@@ -227,6 +227,22 @@ Examples:
         help="Skip SurrealDB persistence",
     )
 
+    # Agent harness command (UnifiedAgent + LLMExecutor)
+    agent_parser = subparsers.add_parser("agent", help="Run the UnifiedAgent harness on a task")
+    agent_sub = agent_parser.add_subparsers(dest="agent_cmd")
+
+    agent_run = agent_sub.add_parser("run", help="Run one autonomous task")
+    agent_run.add_argument("task", help="Task description to execute")
+    agent_run.add_argument(
+        "--model", "-m", default="lemonade:Gemma-4-E4B-it-GGUF", help="Model to use"
+    )
+    agent_run.add_argument(
+        "--provider", "-p", default="auto", help="Backend provider: auto|lemonade|ollama"
+    )
+    agent_run.add_argument("--max-steps", type=int, default=10, help="Maximum agent steps")
+    agent_run.add_argument("--timeout", type=int, default=120, help="Task timeout in seconds")
+    agent_run.add_argument("--workdir", "-w", default=None, help="Working directory for the task")
+
     # Interactive mode
     subparsers.add_parser("interactive", help="Start interactive mode")
 
@@ -758,6 +774,43 @@ async def cmd_mass_sim(args: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_agent_run(args: argparse.Namespace) -> int:
+    """Run one task through the UnifiedAgent harness."""
+    import time
+
+    from cohezion.agent.unified_harness import UnifiedAgent
+    from cohezion.integrations.agentverse.llm_executor import LLMExecutor
+
+    start = time.monotonic()
+    executor = LLMExecutor(
+        model=args.model,
+        provider=args.provider,
+        timeout=60.0,
+    )
+    agent = UnifiedAgent(executor=executor)
+    if args.max_steps:
+        agent.max_steps = args.max_steps
+
+    env = {"workdir": args.workdir} if args.workdir else None
+    trace = await agent.run_task(args.task, env=env, timeout=args.timeout)
+
+    summary = {
+        "task": args.task,
+        "model": args.model,
+        "provider": args.provider,
+        "completed": trace.completed,
+        "error": trace.error,
+        "steps": len(trace.steps),
+        "tool_calls": len(trace.tool_calls),
+        "recoveries": trace.recoveries,
+        "duration_s": round(time.monotonic() - start, 2),
+        "final_state": trace.final_state,
+        "tool_summary": [{"tool": tc.tool_name, "ok": tc.error is None} for tc in trace.tool_calls],
+    }
+    print(json.dumps(summary, indent=2, default=str))
+    return 0 if trace.completed and not trace.error else 1
+
+
 async def cmd_interactive() -> int:
     """Start interactive mode."""
     print("""
@@ -872,6 +925,13 @@ async def main_async() -> int:
 
         elif args.command == "mass-sim":
             res = await cmd_mass_sim(args)
+
+        elif args.command == "agent":
+            if args.agent_cmd == "run":
+                res = await cmd_agent_run(args)
+            else:
+                print('Use: cohezion agent run "TASK" --model ...')
+                res = 1
 
         elif args.command == "interactive":
             res = await cmd_interactive()

@@ -17,15 +17,17 @@
 
 import type { ExtensionAPI, Model } from "@mariozechner/pi-coding-agent";
 
+const LEMONADE_ROUTER_BASE = "http://127.0.0.1:13305";
 const LEMOND_BASE = "http://127.0.0.1:13307";
 const FLM_NPU_BASE = "http://127.0.0.1:13306";
 const COHEZION_BASE = "http://127.0.0.1:8080";
 
+// Tier models must be registered in ~/.pi/agent/models.json under provider=lemonade.
 const TIER_MODELS = {
-  npu:    "gemma4-it:e2b",
+  npu:    "llama3.2-1b-FLM",
   reason: "DeepSeek-Qwen3-8B-GGUF",
-  igpu:   "user.Qwen3.6-35B-A3B-GGUF-Strix-Q4_K_M",
-  cpu:    "Gemma-4-31B-it-GGUF",
+  igpu:   "Gemma-4-31B-it-GGUF",
+  cpu:    "Qwen3-14B-GGUF",
 } as const;
 type TierKey = keyof typeof TIER_MODELS;
 
@@ -86,30 +88,43 @@ export default function lemonadeRouter(pi: ExtensionAPI) {
   let lastPromptChars = 0;
 
   const endpointUp: Record<string, boolean> = {
+    [LEMONADE_ROUTER_BASE]: true,
     [FLM_NPU_BASE]: false,
-    [LEMOND_BASE]: true,
+    [LEMOND_BASE]: false,
   };
 
   function findLemonadeModel(
-    ctx: { modelRegistry: { getModels(): Model<any>[] } },
+    ctx: { modelRegistry?: { getModels?(): Model<any>[] }; getModels?: () => Model<any>[] },
     modelId: string,
   ): Model<any> | undefined {
-    return ctx.modelRegistry
-      .getModels()
-      .find((m: any) => m.id === modelId && m.provider === "lemonade");
+    const registry =
+      ctx.modelRegistry?.getModels?.() ??
+      ctx.getModels?.() ??
+      (pi as any).getModels?.() ??
+      [];
+    return registry.find((m: any) => m.id === modelId && m.provider === "lemonade");
   }
 
   // ── session_start: probe endpoints ─────────────────────────────────────────
 
   pi.on("session_start", async (_event, ctx) => {
-    const [npu, igpu] = await Promise.all([isUp(FLM_NPU_BASE), isUp(LEMOND_BASE)]);
+    const [router, npu, igpu] = await Promise.all([
+      isUp(LEMONADE_ROUTER_BASE),
+      isUp(FLM_NPU_BASE),
+      isUp(LEMOND_BASE),
+    ]);
+    endpointUp[LEMONADE_ROUTER_BASE] = router;
     endpointUp[FLM_NPU_BASE] = npu;
     endpointUp[LEMOND_BASE] = igpu;
 
-    const parts = [`iGPU :13307 ${igpu ? "✓" : "✗"}`, `NPU :13306 ${npu ? "✓" : "✗"}`];
-    ctx.ui.notify(`🔥 Lemonade Router active — ${parts.join("  ")}`, igpu ? "info" : "warning");
+    const parts = [
+      `router :13305 ${router ? "✓" : "✗"}`,
+      `iGPU :13307 ${igpu ? "✓" : "✗"}`,
+      `NPU :13306 ${npu ? "✓" : "✗"}`,
+    ];
+    ctx.ui.notify(`🔥 Lemonade Router active — ${parts.join("  ")}`, router ? "info" : "warning");
 
-    if (igpu) {
+    if (router) {
       const m = findLemonadeModel(ctx, TIER_MODELS.igpu);
       if (m) await pi.setModel(m);
     }
@@ -124,12 +139,13 @@ export default function lemonadeRouter(pi: ExtensionAPI) {
     const tierKey: TierKey = manualPin ?? pickTier(event.text);
     const modelId = TIER_MODELS[tierKey];
 
-    const endpointBase = tierKey === "npu" ? FLM_NPU_BASE : LEMOND_BASE;
-    const effectiveTierKey = endpointUp[endpointBase] ? tierKey : "igpu";
+    // Router-first: if the OmniRouter on :13305 is up, route by model tier.
+    // Direct NPU/iGPU ports are optional fast-paths when available.
+    const effectiveTierKey = endpointUp[LEMONADE_ROUTER_BASE] ? tierKey : "igpu";
     const effectiveModelId = TIER_MODELS[effectiveTierKey];
 
-    if (!endpointUp[LEMOND_BASE] && !endpointUp[FLM_NPU_BASE]) {
-      ctx.ui.notify("⚠️  All Lemonade endpoints down", "warning");
+    if (!endpointUp[LEMONADE_ROUTER_BASE]) {
+      ctx.ui.notify("⚠️  Lemonade router :13305 unreachable", "warning");
       return { action: "continue" };
     }
 
