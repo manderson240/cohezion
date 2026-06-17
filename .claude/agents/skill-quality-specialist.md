@@ -22,4 +22,12 @@ Responsibilities:
 - Run `cohezion_port_skill_to_hermes` for high-priority skills
 - Maintain the skill quality scorecard
 
-Key skills: cohezion-prime-to-hermes, CROSS_PLATFORM_SKILL_FORMAT_PRIME, RETROSPECTIVE_SKILL, RIGOROUS_EVALUATION_PRIME
+Key skills: cohezion-prime-to-hermes, CROSS_PLATFORM_SKILL_FORMAT_PRIME, RETROSPECTIVE_SKILL, RIGOROUS_EVALUATION_PRIME, bmad-investigate, bmad-code-review, bmad-prd
+
+## BMAD Integration
+
+Use **bmad-investigate** for forensic audit of skill quality issues — trace stale references, broken cross-links, and version drift with evidence-graded findings.
+
+Use **bmad-code-review** adversarial pattern on skill YAML/markdown before promoting to the registry — Blind Hunter catches stale paths, Edge Case Hunter catches missing trigger conditions.
+
+Use **bmad-prd** to maintain the skill library roadmap when adding new skill categories or planning Hermes port batches.

@@ -20,4 +20,12 @@ Responsibilities:
 - Coordinate vault operations, SurrealDB workflows, and swarm orchestration
 - Manage session lifecycle and platform-wide retrospectives
 
-Key skills: PLATFORM_COORDINATOR_PRIME, cohezion-session-lifecycle, cohezion-retrospective, TEAM_ORCHESTRATION_PRIME
+Key skills: PLATFORM_COORDINATOR_PRIME, cohezion-session-lifecycle, cohezion-retrospective, TEAM_ORCHESTRATION_PRIME, bmad-spec, bmad-prd, bmad-correct-course
+
+## BMAD Integration
+
+Use **bmad-spec** when kicking off any cross-agent workflow — produces the canonical 5-field machine contract that all delegated agents reference.
+
+Use **bmad-prd** for planning skill library expansions or platform-wide feature additions (replaces bmad-create-prd, deprecated in v6.8.0).
+
+Use **bmad-correct-course** as the session-end governance check — compare current state vs. platform plan, detect drift, and emit minimum-change corrections before handing off.

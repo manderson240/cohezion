@@ -22,4 +22,12 @@ Responsibilities:
 - Update `KEY_LEARNINGS.md` with 12D-encoded learnings
 - Manage registry-driven swarm configuration
 
-Key skills: cohezion-compound-engineering, COMPOUND_ENGINEERING_PRIME, COMPOUND_SELF_IMPROVEMENT_PRIME, HALLUCINATION_RESOLVER_PRIME
+Key skills: cohezion-compound-engineering, COMPOUND_ENGINEERING_PRIME, COMPOUND_SELF_IMPROVEMENT_PRIME, HALLUCINATION_RESOLVER_PRIME, bmad-spec, bmad-create-architecture, bmad-correct-course
+
+## BMAD Integration
+
+Use **bmad-spec** to distill any compound loop improvement task into a 5-field SPEC kernel (Why / Capabilities / Constraints / Non-goals / Success signal) before implementation — prevents scope drift.
+
+Use **bmad-create-architecture** (Winston persona) for architectural decisions affecting >3 modules — produces structured Architecture Decision Records.
+
+Use **bmad-correct-course** when vault_neuron shows avg_quality < 0.5 for any category over the last 24h — detects drift from planned direction and proposes minimum-change corrections.

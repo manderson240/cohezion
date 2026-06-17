@@ -527,14 +527,7 @@ def main() -> None:
     local_tokens = sum(s.local_tokens for s in report.sprint_results)
     cloud_tokens = sum(s.cloud_tokens for s in report.sprint_results)
 
-    logger.info("=" * 60)
-    logger.info("Loop complete in %.1fs", elapsed)
-    logger.info("  Tasks completed : %d", report.tasks_completed)
-    logger.info("  Tasks failed    : %d", report.tasks_failed)
-    logger.info("  Local tokens    : %d (cost: $0.00)", local_tokens)
-    logger.info("  Cloud tokens    : %d", cloud_tokens)
-    logger.info("  Sprints         : %d", len(report.sprint_results))
-
+    # --- Routing topology ---
     node_counts: dict[str, int] = {}
     fallback_count = 0
     for r in report.results:
@@ -542,15 +535,52 @@ def main() -> None:
         node_counts[n] = node_counts.get(n, 0) + 1
         if r.get("fallback"):
             fallback_count += 1
+
+    # --- Category breakdown ---
+    cat_stats: dict[str, dict[str, float]] = {}
+    for task, r in zip(tasks, report.results):
+        cat = task.category
+        if cat not in cat_stats:
+            cat_stats[cat] = {"wins": 0, "total": 0, "tokens": 0}
+        cat_stats[cat]["total"] += 1
+        if r.get("success"):
+            cat_stats[cat]["wins"] += 1
+        cat_stats[cat]["tokens"] += r.get("tokens", 0)
+
+    logger.info("=" * 60)
+    logger.info("Loop complete in %.1fs", elapsed)
+    logger.info("  Tasks completed : %d", report.tasks_completed)
+    logger.info("  Tasks failed    : %d", report.tasks_failed)
+    logger.info("  Local tokens    : %d (cost: $0.00)", local_tokens)
+    logger.info("  Cloud tokens    : %d", cloud_tokens)
+    logger.info("  Sprints         : %d", len(report.sprint_results))
     logger.info(
         "  Routing         : %s", " | ".join(f"{n}={c}" for n, c in sorted(node_counts.items()))
     )
     if fallback_count:
         logger.info("  NPU fallbacks   : %d", fallback_count)
+
+    # Category breakdown table
+    logger.info("─" * 60)
+    logger.info("  %-28s  %6s  %8s  %7s", "Category", "Win%", "Tokens", "Tasks")
+    logger.info("  %-28s  %6s  %8s  %7s", "─" * 28, "─" * 6, "─" * 8, "─" * 7)
+    for cat, s in sorted(cat_stats.items()):
+        win_pct = 100.0 * s["wins"] / s["total"] if s["total"] else 0.0
+        bar = "█" * int(win_pct / 10) + "░" * (10 - int(win_pct / 10))
+        logger.info(
+            "  %-28s  %5.0f%%  %8.0f  %4.0f/%-2.0f  %s",
+            cat[:28],
+            win_pct,
+            s["tokens"],
+            s["wins"],
+            s["total"],
+            bar,
+        )
     logger.info("=" * 60)
 
-    # Print per-task summary
-    for r in report.results[:20]:
+    # Per-task table
+    logger.info("Task results:")
+    for r in report.results:
         status = "✓" if r["success"] else "✗"
         node = r.get("node", "?")[:5]
         model = r.get("model", "?")[:18]
@@ -566,8 +596,10 @@ def main() -> None:
             ms,
             r.get("tokens", 0),
         )
+    logger.info("=" * 60)
 
     _push_loop_results_to_vault(report.results, elapsed)
+    _push_evo_to_vault(report.results, tasks, elapsed, node_counts)
 
 
 def _push_loop_results_to_vault(results: list[dict], elapsed_s: float) -> None:
@@ -618,6 +650,91 @@ def _push_loop_results_to_vault(results: list[dict], elapsed_s: float) -> None:
         )
     except Exception as exc:
         logger.debug("Vault push failed (non-fatal): %s", exc)
+
+
+def _push_evo_to_vault(
+    results: list[dict],
+    tasks: list[LoopTask],
+    elapsed_s: float,
+    node_topology: dict[str, int],
+) -> None:
+    """Persist this loop run as an EVO (Exotic Vacuum Object) in SurrealDB.
+
+    Each loop run is a vacuum excitation — a persistent structure that captures
+    the improvement trajectory. EVOs accumulate over time; querying evo_vacuum
+    reveals the compound AI improvement field across runs.
+
+    Fields:
+        evo_energy  — win_rate × wins: dimensionless quality of this excitation
+        topology    — node routing distribution (NPU/iGPU/CPU mix)
+        cat_fields  — per-category win rate, a local-structure fingerprint
+        elapsed_s   — run duration (correlates with task complexity)
+    """
+    wins = sum(1 for r in results if r.get("success"))
+    total = len(results)
+    win_rate = wins / total if total > 0 else 0.0
+    evo_energy = win_rate * wins  # 0 → vacuum; high → strong excitation
+
+    # Per-category structure
+    cat_fields: dict[str, dict] = {}
+    for task, r in zip(tasks, results):
+        cat = task.category
+        if cat not in cat_fields:
+            cat_fields[cat] = {"wins": 0, "total": 0}
+        cat_fields[cat]["total"] += 1
+        if r.get("success"):
+            cat_fields[cat]["wins"] += 1
+
+    cat_summary = {
+        cat: round(s["wins"] / s["total"], 3) if s["total"] else 0.0
+        for cat, s in cat_fields.items()
+    }
+
+    # Build SurrealDB record
+    import json as _json
+
+    topology_str = _json.dumps(node_topology).replace('"', "'")
+    cat_str = _json.dumps(cat_summary).replace('"', "'")
+    episode_id = f"evo-{int(elapsed_s * 1000)}-{total}"
+
+    sql = (
+        f"INSERT INTO evo_vacuum {{"
+        f"episode_id: '{episode_id}', "
+        f"episode_type: 'agentic_loop', "
+        f"elapsed_s: {elapsed_s:.1f}, "
+        f"tasks_total: {total}, "
+        f"tasks_won: {wins}, "
+        f"win_rate: {win_rate:.3f}, "
+        f"evo_energy: {evo_energy:.2f}, "
+        f"topology: {topology_str}, "
+        f"category_topology: {cat_str}, "
+        f"recorded_at: time::now()"
+        f"}};"
+    )
+    try:
+        req = urllib.request.Request(
+            "http://localhost:8001/sql",
+            data=sql.encode(),
+            headers={
+                "Content-Type": "text/plain",
+                "surreal-ns": "cohezion",
+                "surreal-db": "main",
+                "Accept": "application/json",
+                "Authorization": "Basic cm9vdDpyb290",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=5.0) as resp:
+            resp.read()
+        logger.info(
+            "EVO vacuum: episode %s | energy=%.2f | win_rate=%.0f%% | %d tasks",
+            episode_id,
+            evo_energy,
+            win_rate * 100,
+            total,
+        )
+    except Exception as exc:
+        logger.debug("EVO push failed (non-fatal): %s", exc)
 
 
 if __name__ == "__main__":
