@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import aiohttp
+if TYPE_CHECKING:
+    import aiohttp
 
 from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
 
@@ -36,7 +37,7 @@ class LemonadeProvider(ModelProvider):
         """
         super().__init__(config)
 
-        self.base_url = self.config.get("base_url", "http://localhost:13307")
+        self.base_url = self.config.get("base_url", "http://localhost:13305")
         self.timeout = self.config.get("timeout", 120)
 
         self._session: aiohttp.ClientSession | None = None

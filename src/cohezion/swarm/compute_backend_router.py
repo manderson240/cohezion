@@ -533,11 +533,11 @@ class ComputeBackendRouter:
         self,
         model: str,
         prompt: str,
-        port: int = 13306,
+        port: int = 13305,
         **kwargs: Any,
     ) -> str:
         """Execute via FLM NPU backend."""
-        import aiohttp
+        import aiohttp  # type: ignore[import-not-found]
 
         # Ensure FLM server is running
         # (In production, this would check/manage the server)
@@ -564,7 +564,7 @@ class ComputeBackendRouter:
         **kwargs: Any,
     ) -> str:
         """Execute via Ollama cloud/local backend."""
-        import aiohttp
+        import aiohttp  # type: ignore[import-not-found]
 
         async with aiohttp.ClientSession() as session:
             try:

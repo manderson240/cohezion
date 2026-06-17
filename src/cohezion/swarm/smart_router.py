@@ -18,7 +18,6 @@ from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 
-import aiofiles
 import httpx
 
 
@@ -270,7 +269,7 @@ class SmartRouter:
 
     def __init__(
         self,
-        ollama_host: str = "http://localhost:11434",
+        ollama_host: str = "http://localhost:13305",
         strategy: str = "efficiency",
         log_actions: bool = True,
     ):
@@ -454,6 +453,10 @@ class SmartRouter:
             return
 
         log_file = self.action_log_dir / f"actions_{int(time.time())}.json"
+        try:
+            import aiofiles  # type: ignore[import-not-found]
+        except ImportError as _e:
+            raise RuntimeError("aiofiles required: uv pip install aiofiles") from _e
         async with aiofiles.open(log_file, "w") as f:
             await f.write(json.dumps([a.to_dict() for a in self.action_log], indent=2))
 

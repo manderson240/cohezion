@@ -13,6 +13,7 @@ try:
     ADAPTIVE_OPTIMIZER_AVAILABLE = True
 except ImportError:
     ADAPTIVE_OPTIMIZER_AVAILABLE = False
+    get_adaptive_optimizer = None  # type: ignore[assignment]
     logger.warning("Adaptive framework optimizer not available")
 
 
@@ -22,7 +23,7 @@ class LocalExpertRouter:
     Supports Qwen-32B (Coding/Reasoning) and DeepSeek-R1 (Logic).
     """
 
-    def __init__(self, ollama_url: str = "http://localhost:11434"):
+    def __init__(self, ollama_url: str = "http://localhost:13305"):
         self.ollama_url = ollama_url
         self.client = httpx.AsyncClient(timeout=300.0)
 

@@ -46,7 +46,7 @@ class EigentAgent(BaseScout):
     def __init__(
         self,
         model: str = "Gemma-4-E2B-it-GGUF",
-        lemonade_url: str = "http://localhost:13307",
+        lemonade_url: str = "http://localhost:13305",
         role: str = "System Architect",
         **kwargs,
     ) -> None:
@@ -60,17 +60,17 @@ class EigentAgent(BaseScout):
         if not CAMEL_AVAILABLE:
             raise ImportError("CAMEL-AI required.")
 
-        self.model_config = ChatGPTConfig(temperature=0.2)
-        self.camel_model = ModelFactory.create(
+        self.model_config = ChatGPTConfig(temperature=0.2)  # type: ignore[operator]
+        self.camel_model = ModelFactory.create(  # type: ignore[operator]
             model_platform="openai",
-            model_type=ModelType.GPT_4O,
+            model_type=ModelType.GPT_4O,  # type: ignore[attr-defined]
             model_config_dict=self.model_config.as_dict(),
             api_key="lemonade",
             url=f"{self.lemonade_url}/v1",
         )
 
-        self.agent = ChatAgent(
-            system_message=BaseMessage.make_assistant_message(
+        self.agent = ChatAgent(  # type: ignore[operator]
+            system_message=BaseMessage.make_assistant_message(  # type: ignore[operator]
                 role_name=self.role, content=f"You are a {self.role} in Symphony-168."
             ),
             model=self.camel_model,

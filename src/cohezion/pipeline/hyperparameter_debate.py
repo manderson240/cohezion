@@ -81,7 +81,7 @@ def _apply_bounds(raw_params: dict[str, float]) -> dict[str, Any]:
 class HyperparameterDebate:
     """Use democratic debate to search for RL hyperparameters."""
 
-    def __init__(self, ollama_host: str = "http://localhost:11434"):
+    def __init__(self, ollama_host: str = "http://localhost:13305"):
         self.ollama_host = ollama_host
 
     async def search_rl_params(

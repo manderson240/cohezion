@@ -56,7 +56,7 @@ class ResilientOllamaClient:
 
     def __init__(
         self,
-        base_url: str = "http://localhost:11434",
+        base_url: str = "http://localhost:13305",
         timeout: float = 1200.0,
         max_retries: int = 3,
     ):
@@ -171,7 +171,7 @@ class TokenEfficientClient:
 
     def __init__(
         self,
-        ollama_base_url: str = "http://localhost:11434",
+        ollama_base_url: str = "http://localhost:13305",
         router: Any = None,
         config: CohezionConfig | None = None,
         use_persistent_cache: bool = True,

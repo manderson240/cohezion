@@ -156,7 +156,7 @@ def build_gaia_native_tier(
     model_id: str = "Gemma-4-E2B-it-GGUF",
     *,
     silent: bool = True,
-    base_url: str | None = "http://localhost:13306/v1",
+    base_url: str | None = "http://localhost:13305/v1",
 ) -> GaiaAgentTier:
     """Instantiate a GAIA ChatAgent bound to a specific lane, wrap as a tier.
 
@@ -169,7 +169,7 @@ def build_gaia_native_tier(
         (GAIA's LemonadeClient, zero RAG deps, talks to the same fleet).
     """
     try:
-        from gaia.agents.chat.agent import ChatAgent, ChatAgentConfig
+        from gaia.agents.chat.agent import ChatAgent, ChatAgentConfig  # type: ignore[import-not-found]
     except ImportError as exc:
         raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
 
@@ -232,7 +232,7 @@ def build_gaia_llm_tier(
     or accept the one-time reload.
     """
     try:
-        from gaia.llm.lemonade_client import LemonadeClient
+        from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import-not-found]
     except ImportError as exc:
         raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
 

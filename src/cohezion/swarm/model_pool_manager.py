@@ -56,7 +56,7 @@ class ModelPoolManager:
         self,
         config: TierConfig | None = None,
         ollama_host: str = OLLAMA_HOST,
-        lemonade_port: int = 13307,
+        lemonade_port: int = 13305,
     ) -> None:
         self._config = config or TierConfig()
         self._ollama_host = ollama_host
@@ -183,7 +183,9 @@ class ModelPoolManager:
     async def _predictive_warmup(self, model_name: str):
         """Symphony-specific pre-warming to eliminate regime transition lag."""
         model = self._pool.get(model_name)
-        if model and not model.loaded:
+        if model is None:
+            return False
+        if not model.loaded:
             logger.info("Symphony Pre-warming: Predictive loading of %s", model_name)
             await self._load_model(model_name, model.tier)
             model.loaded = True

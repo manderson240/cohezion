@@ -67,7 +67,8 @@ class CircuitBreakerRouterAdapter:
             self._backend_states[backend] = False
 
             # Update router's view of this backend
-            status = self.router.get_backend_status(backend)
+            get_status = getattr(self.router, "get_backend_status", None)
+            status = get_status(backend) if get_status else None
             if status:
                 status.available = False
                 status.last_updated = datetime.now()
@@ -80,7 +81,8 @@ class CircuitBreakerRouterAdapter:
             self._backend_states[backend] = True
 
             # Update router's view
-            status = self.router.get_backend_status(backend)
+            get_status = getattr(self.router, "get_backend_status", None)
+            status = get_status(backend) if get_status else None
             if status:
                 status.available = True
                 status.last_updated = datetime.now()
@@ -97,7 +99,8 @@ class CircuitBreakerRouterAdapter:
             return self._backend_states[backend]
 
         # Fall back to router's view
-        return self.router.is_backend_available(backend)
+        is_avail = getattr(self.router, "is_backend_available", None)
+        return bool(is_avail(backend)) if is_avail else True
 
     def get_available_backends(self) -> list[BackendType]:
         """Get list of available backends respecting circuit breakers."""
@@ -538,7 +541,8 @@ class DynamicSystemCoordinator:
             if patterns:
                 logger.info(f"🧠 Loaded {len(patterns)} historical patterns from vault")
                 # Apply to engine
-                self.proactive_engine._detected_patterns.extend(patterns)
+                if getattr(self.proactive_engine, "_detected_patterns", None) is not None:
+                    self.proactive_engine._detected_patterns.extend(patterns)
 
     async def execute(self, task: str, context: dict | None = None, **kwargs) -> Any:
         """Execute task with full dynamic system."""
@@ -612,7 +616,7 @@ class LemonadeAdapter:
         "cpu": "onnx",  # ONNX int4 (CPU only)
     }
 
-    def __init__(self, lemonade_base_url: str = "http://localhost:13307"):
+    def __init__(self, lemonade_base_url: str = "http://localhost:13305"):
         self.base_url = lemonade_base_url.rstrip("/")
         self._loaded_models: dict[str, str] = {"npu": "", "gpu": "", "cpu": ""}
 
