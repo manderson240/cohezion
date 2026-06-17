@@ -51,9 +51,9 @@ _WARMUP_TIERS: list[tuple[str, str, list[str]]] = [
 def warmup_tiers(base_url: str = LEMONADE_BASE_URL) -> dict[str, bool]:
     """Pre-load NPU/iGPU/CPU tiers via the lemonade CLI.
 
-    The lemonade CLI is the correct interface for model loading — the OmniRouter
-    does not expose a /v1/load REST endpoint. Reloading the FLM model also
-    resets any stale NPU context (fixes HTTP 500 'logits computation' errors).
+    Uses the lemonade CLI for bulk tier pre-loading at startup. For in-flight
+    NPU recovery after a 500 error, use _recover_npu() (REST API, no subprocess).
+    Reloading the FLM model resets stale NPU context (fixes HTTP 500 errors).
 
     Returns {tier_name: success}.
     """
@@ -89,6 +89,50 @@ def get_tier_health(base_url: str = LEMONADE_BASE_URL) -> dict[str, str]:
     except Exception as exc:
         logger.debug("get_tier_health: %s", exc)
         return {}
+
+
+def _recover_npu(base_url: str, model_name: str, ctx_size: int = 16384) -> bool:
+    """API-first NPU context recovery: unload then reload with bounded ctx_size.
+
+    Uses POST /api/v1/unload + POST /api/v1/load rather than a subprocess call
+    so it works from PID-namespaced environments (sandboxes, systemd units).
+    See skill: flm-npu-context-recovery v1.1.0.
+
+    Returns True if reload succeeded and the model is ready to serve.
+    """
+    base = base_url.rstrip("/")
+    try:
+        # Step 1: unload stale context
+        unload_payload = json.dumps({"model_name": model_name}).encode()
+        req = urllib.request.Request(  # noqa: S310
+            f"{base}/api/v1/unload",
+            data=unload_payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10.0) as resp:  # noqa: S310
+            resp.read()
+        logger.debug("NPU recovery: unloaded %s", model_name)
+    except Exception as exc:
+        logger.warning("NPU recovery: unload failed (%s): %s", model_name, exc)
+        # Non-fatal — proceed to load anyway (model may already be unloaded)
+
+    try:
+        # Step 2: reload with bounded ctx_size to prevent KV-cache OOM (N3)
+        load_payload = json.dumps({"model_name": model_name, "ctx_size": ctx_size}).encode()
+        req = urllib.request.Request(  # noqa: S310
+            f"{base}/api/v1/load",
+            data=load_payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30.0) as resp:  # noqa: S310
+            resp.read()
+        logger.info("NPU recovery: reloaded %s (ctx_size=%d)", model_name, ctx_size)
+        return True
+    except Exception as exc:
+        logger.warning("NPU recovery: load failed (%s): %s", model_name, exc)
+        return False
 
 
 def _classify_node(task_description: str) -> str:
@@ -204,23 +248,35 @@ class LocalImprovementExecutor:
             resp = _chat_complete(self._base_url, model, prompt, max_tokens=400, timeout=90.0)
         except urllib.error.HTTPError as exc:
             # NPU FLM backend can return 500 if context is stale post-warmup.
-            # Fall back to default iGPU model rather than failing.
+            # Attempt API-first recovery (unload+reload) before falling back to iGPU.
             if exc.code == 500 and node == "npu" and model != _DEFAULT_MODEL:
-                logger.warning(
-                    "task %s: %s HTTP 500 (NPU stale), falling back to %s",
-                    task_id,
-                    model,
-                    _DEFAULT_MODEL,
-                )
-                model = _DEFAULT_MODEL
-                tried_models.append(model)
-                try:
-                    resp = _chat_complete(
-                        self._base_url, model, prompt, max_tokens=400, timeout=90.0
+                npu_model = model
+                resp = None
+                if _recover_npu(self._base_url, npu_model):
+                    logger.info("task %s: NPU recovery succeeded, retrying %s", task_id, npu_model)
+                    try:
+                        resp = _chat_complete(
+                            self._base_url, npu_model, prompt, max_tokens=400, timeout=90.0
+                        )
+                    except Exception:
+                        resp = None  # fall through to iGPU below
+
+                if resp is None:
+                    logger.warning(
+                        "task %s: %s HTTP 500 (NPU stale, recovery failed), falling back to %s",
+                        task_id,
+                        npu_model,
+                        _DEFAULT_MODEL,
                     )
-                except Exception as exc2:
-                    logger.error("execute_task %s fallback failed: %s", task_id, exc2)
-                    return _error_result(task_id, model, node, str(exc2), returncode=1)
+                    model = _DEFAULT_MODEL
+                    tried_models.append(model)
+                    try:
+                        resp = _chat_complete(
+                            self._base_url, model, prompt, max_tokens=400, timeout=90.0
+                        )
+                    except Exception as exc2:
+                        logger.error("execute_task %s fallback failed: %s", task_id, exc2)
+                        return _error_result(task_id, model, node, str(exc2), returncode=1)
             else:
                 logger.warning("OmniRouter HTTP %d for task %s: %s", exc.code, task_id, exc)
                 return _error_result(task_id, model, node, f"HTTP {exc.code}: {exc}", returncode=2)
