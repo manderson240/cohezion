@@ -243,6 +243,32 @@ Examples:
     agent_run.add_argument("--timeout", type=int, default=120, help="Task timeout in seconds")
     agent_run.add_argument("--workdir", "-w", default=None, help="Working directory for the task")
 
+    # Lemonade server command (v10.8 private instance)
+    lemonade_parser = subparsers.add_parser(
+        "lemonade", help="Manage the local private Lemonade v10.8 server"
+    )
+    lemonade_sub = lemonade_parser.add_subparsers(dest="lemonade_cmd")
+
+    lemonade_start = lemonade_sub.add_parser("start", help="Start a private v10.8 lemond instance")
+    lemonade_start.add_argument(
+        "--port", type=int, default=13315, help="Port for the private instance (default: 13315)"
+    )
+    lemonade_start.add_argument(
+        "--base-dir",
+        default="vendor/lemonade-10.8.0/lemonade-embeddable-10.8.0-ubuntu-x64",
+        help="Path to the extracted v10.8 embeddable binaries",
+    )
+    lemonade_start.add_argument(
+        "--cache-dir",
+        default=str(Path.home() / ".cache" / "lemonade-10.8.0"),
+        help="Isolated cache directory for the private instance",
+    )
+
+    lemonade_status = lemonade_sub.add_parser("status", help="Check local Lemonade server status")
+    lemonade_status.add_argument(
+        "--port", type=int, default=13305, help="Port to probe (default: 13305)"
+    )
+
     # Interactive mode
     subparsers.add_parser("interactive", help="Start interactive mode")
 
@@ -774,6 +800,68 @@ async def cmd_mass_sim(args: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_lemonade_start(args: argparse.Namespace) -> int:
+    """Start a private Lemonade v10.8 server instance."""
+    from cohezion.swarm.lemonade_manager import LemonadeManager
+
+    manager = LemonadeManager(
+        base_dir=args.base_dir,
+        cache_dir=args.cache_dir,
+        port=args.port,
+        host="127.0.0.1",
+    )
+    ok = await manager.start()
+    if not ok:
+        print(json.dumps({"success": False, "error": "failed to start lemond"}, indent=2))
+        return 1
+
+    ready = await manager.wait_until_ready(timeout=30.0)
+    if not ready:
+        await manager.stop()
+        print(json.dumps({"success": False, "error": "server did not become ready"}, indent=2))
+        return 1
+
+    print(
+        json.dumps(
+            {
+                "success": True,
+                "pid": manager.process.pid if manager.process else None,
+                "port": args.port,
+                "base_url": f"http://127.0.0.1:{args.port}",
+                "cache_dir": str(args.cache_dir),
+                "next": f"LEMONADE_BASE_URL=http://127.0.0.1:{args.port} cohezion agent run ...",
+            },
+            indent=2,
+            default=str,
+        )
+    )
+    return 0
+
+
+async def cmd_lemonade_status(args: argparse.Namespace) -> int:
+    """Probe the local Lemonade server for status and model count."""
+    import httpx
+
+    base_url = f"http://127.0.0.1:{args.port}"
+    try:
+        async with httpx.AsyncClient() as client:
+            status_resp = await client.get(f"{base_url}/api/v1/status", timeout=5.0)
+            models_resp = await client.get(f"{base_url}/v1/models", timeout=5.0)
+        result = {
+            "base_url": base_url,
+            "status_ok": status_resp.status_code == 200,
+            "status": status_resp.json() if status_resp.status_code == 200 else None,
+            "models_count": len(models_resp.json().get("data", []))
+            if models_resp.status_code == 200
+            else 0,
+        }
+        print(json.dumps(result, indent=2, default=str))
+        return 0
+    except Exception as exc:
+        print(json.dumps({"base_url": base_url, "reachable": False, "error": str(exc)}, indent=2))
+        return 1
+
+
 async def cmd_agent_run(args: argparse.Namespace) -> int:
     """Run one task through the UnifiedAgent harness."""
     import time
@@ -931,6 +1019,15 @@ async def main_async() -> int:
                 res = await cmd_agent_run(args)
             else:
                 print('Use: cohezion agent run "TASK" --model ...')
+                res = 1
+
+        elif args.command == "lemonade":
+            if args.lemonade_cmd == "start":
+                res = await cmd_lemonade_start(args)
+            elif args.lemonade_cmd == "status":
+                res = await cmd_lemonade_status(args)
+            else:
+                print("Use: cohezion lemonade [start|status]")
                 res = 1
 
         elif args.command == "interactive":

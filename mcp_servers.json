@@ -83,6 +83,30 @@
         "MCP_TRANSPORT": "stdio",
         "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
       }
+    },
+    "lemonade": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.lemonade_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "LEMONADE_BASE_URL": "http://localhost:13305"
+      }
+    },
+    "lemonade-v10-8": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.lemonade_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "LEMONADE_BASE_URL": "http://localhost:13315"
+      }
     }
   }
 }

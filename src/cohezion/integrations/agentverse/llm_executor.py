@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import random
 import re
 import time
@@ -22,26 +23,48 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CLOUD_MODEL = "qwen3.5:cloud"
 DEFAULT_JUDGE_MODEL = "qwen3.5:cloud"
-OLLAMA_BASE_URL = "http://localhost:11434"
-LEMONADE_BASE_URL = "http://localhost:13305"
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+LEMONADE_BASE_URL = os.getenv("LEMONADE_BASE_URL", "http://localhost:13305")
 
 # Known Lemonade model names (OmniRouter catalog). Names matching this set are
 # auto-routed to the Lemonade backend when provider="auto".
-KNOWN_LEMONADE_MODELS: frozenset[str] = frozenset(
-    {
-        "llama3.2-1b-FLM",
-        "Gemma-4-E4B-it-GGUF",
-        "Gemma-4-31B-it-GGUF",
-        "Gemma-4-E2B-it-GGUF",
-        "deepseek-r1-0528-8b-FLM",
-        "Qwen3.6-35B-A3B-NoThinking",
-        "Qwen3.6-35B-A3B-ThinkingCoder",
-        "Qwen3.6-35B-A3B-GGUF-Strix-Q4_K_M",
-        "nomic-embed-text-v2-moe-GGUF",
-        "Gemma-4-9B-it-GGUF",
-        "Gemma-4-27B-it-GGUF",
-    }
-)
+# Base list is the live catalog from http://localhost:13305/v1/models.
+_LEMONADE_BASE_MODELS = {
+    "llama3.2-1b-FLM",
+    "Gemma-4-E2B-it-GGUF",
+    "Gemma-4-E4B-it-GGUF",
+    "Gemma-4-26B-A4B-it-GGUF",
+    "Gemma-4-31B-it-GGUF",
+    "Llama-4-Scout-17B-16E-Instruct-GGUF-Q4_K_M",
+    "Flux-2-Klein-9B-GGUF",
+    "DeepSeek-Qwen3-8B-GGUF",
+    "Qwen3-0.6B-GGUF",
+    "Qwen3-14B-GGUF",
+    "Qwen3.5-35B-A3B-GGUF",
+    "Qwen3.6-27B-GGUF",
+    "Qwen3.6-35B-A3B-GGUF",
+    "Qwen3.6-35B-A3B-GGUF-Strix-Q4_K_M",
+    "Qwen3.6-35B-A3B-MTP-GGUF",
+    "Qwen3.6-35B-A3B-NoThinking",
+    "Qwen3.6-35B-A3B-ThinkingCoder",
+    "Nemotron-3-Nano-30B-A3B-GGUF",
+    "nomic-embed-text-v2-moe-GGUF",
+    "SD-Turbo",
+    "RealESRGAN-x4plus",
+    "RealESRGAN-x4plus-anime",
+    "Whisper-Large-v3-Turbo",
+    "kokoro-v1",
+    # Pi extension / recipe aliases
+    "gemma4-it:e2b",
+    "user.Qwen3.6-35B-A3B-GGUF-Strix-Q4_K_M",
+    "Granite-4.1-8B-GGUF",
+    # v10.8 Omni / MCP-gateway models (planner + tool-calling bundles)
+    "LMX-Omni-52B-Halo",
+    "LMX-Omni-5.5B-Lite",
+    "Qwen3.5-4B-MTP-GGUF",
+    "Moonshine",
+}
+KNOWN_LEMONADE_MODELS: frozenset[str] = frozenset(_LEMONADE_BASE_MODELS)
 
 # Retry configuration with exponential backoff and jitter
 RETRY_BASE_DELAY = 1.0

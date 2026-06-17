@@ -35,11 +35,17 @@ class LemonadeManager:
     def __init__(
         self,
         base_dir: str | Path | None = None,
+        cache_dir: str | Path | None = None,
         port: int = 13305,
         host: str = "localhost",
         min_free_ram_bytes: int = _MIN_FREE_RAM_BYTES,
     ) -> None:
-        self.base_dir = Path(base_dir or "vendor/lemonade").absolute()
+        self.base_dir = Path(
+            base_dir or "vendor/lemonade-10.8.0/lemonade-embeddable-10.8.0-ubuntu-x64"
+        ).absolute()
+        # v10.8 embeddable layout keeps binaries at base_dir; cache should be a
+        # separate directory so we don't mix downloaded models with the package.
+        self.cache_dir = Path(cache_dir or self.base_dir).absolute()
         self.port = port
         self.host = host
         self.process: subprocess.Popen | None = None
@@ -75,22 +81,27 @@ class LemonadeManager:
 
         # Prepare environment
         env = os.environ.copy()
-        # Add local bin to LD_LIBRARY_PATH to ensure optimized libs are loaded
+        # v10.8 embeddable ships a monolithic binary with bundled resources; a
+        # private bin/ is optional for side-loading optimized .so files.
         local_bin = str(self.base_dir / "bin")
-        if "LD_LIBRARY_PATH" in env:
-            env["LD_LIBRARY_PATH"] = f"{local_bin}:{env['LD_LIBRARY_PATH']}"
-        else:
-            env["LD_LIBRARY_PATH"] = local_bin
+        if Path(local_bin).exists():
+            if "LD_LIBRARY_PATH" in env:
+                env["LD_LIBRARY_PATH"] = f"{local_bin}:{env['LD_LIBRARY_PATH']}"
+            else:
+                env["LD_LIBRARY_PATH"] = local_bin
 
         logger.info("Starting private Lemonade server on port %d...", self.port)
         try:
             # We use subprocess.Popen instead of asyncio.create_subprocess_exec
             # for easier integration with existing synchronous shutdown hooks if needed,
             # but we run it in a way that doesn't block.
+            # Ensure the isolated cache directory exists; lemond uses the
+            # positional argument as its cache_dir (config + model data).
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
             self.process = subprocess.Popen(
                 [
                     str(self._executable),
-                    str(self.base_dir),
+                    str(self.cache_dir),
                     "--port",
                     str(self.port),
                     "--host",

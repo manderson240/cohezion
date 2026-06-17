@@ -197,6 +197,9 @@ f821_out.txt
 *.tar.gz
 *.bundle
 /archive/worktrees/
+
+# Private Lemonade embeddable binaries (large, downloaded per install)
+vendor/lemonade-10.8.0/
 node_modules/
 *.sst
 LOCK
