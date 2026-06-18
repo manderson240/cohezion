@@ -1,0 +1,58 @@
+pipeline:
+  name: "cohezion-enterprise-review"
+  version: "1.0.0"
+  description: "Cohezion Compound AI Code Review on UiPath Maestro"
+  uipath_case_type: "EnterpriseCodeReview"
+  track: "maestro-case"
+
+agents:
+  orchestrator:
+    id: "cohezion-orchestrator"
+    tier: "npu"
+    model_local: "llama3.2-1b-FLM"
+    model_cloud: "claude-haiku-4-5"
+    uipath_activity: "run_orchestrator"
+    lemonade_port: 13306
+    case_transition: "OPEN -> PLANNING"
+
+  analyst:
+    id: "cohezion-analyst"
+    tier: "igpu"
+    model_local: "deepseek-r1-0528-8b-FLM"
+    model_cloud: "claude-sonnet-4-5"
+    uipath_activity: "run_analyst"
+    lemonade_port: 13307
+    case_transition: "PLANNING -> ANALYSIS"
+    semantic_cache: true
+    flume_vae_dims: 256
+
+  engineer:
+    id: "cohezion-engineer"
+    tier: "cpu"
+    model_local: "Gemma-4-31B-it-GGUF"
+    model_cloud: "claude-sonnet-4-5"
+    uipath_activity: "run_engineer"
+    lemonade_port: 13309
+    case_transition: "ANALYSIS -> IMPLEMENTATION -> COMPLETE"
+    claude_code_integration: true
+    skill_refiner: true
+
+cost_comparison:
+  local_silicon_per_10k_tokens: 0.00
+  cloud_sonnet_per_10k_tokens: 0.18
+  cache_hit_reduction: 0.95
+  estimated_savings_per_review: "$0.15-$0.30"
+
+maestro_case_config:
+  exception_rules:
+    - trigger: "complexity == high AND risk_flags > 3"
+      action: "ESCALATE_TO_HUMAN"
+      sla_override: "30min"
+    - trigger: "security_checklist.length > 5"
+      action: "ROUTE_TO_SECURITY_TEAM"
+    - trigger: "confidence_score < 0.70"
+      action: "REQUEST_ADDITIONAL_CONTEXT"
+  sla:
+    default: "2 hours"
+    high_complexity: "4 hours"
+    security_sensitive: "1 hour"
