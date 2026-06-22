@@ -75,6 +75,189 @@ with contextlib.suppress(Exception):
         set_default_calibrator as set_default_calibrator,
     )
 
+# Wiring-sweep 2026-06-22: anti_sycophancy — bias-resistant evaluation guard.
+with contextlib.suppress(Exception):
+    from cohezion.inference.anti_sycophancy import (
+        AntiSycophancyGuard as AntiSycophancyGuard,
+    )
+    from cohezion.inference.anti_sycophancy import (
+        SycophancyRisk as SycophancyRisk,
+    )
+    from cohezion.inference.anti_sycophancy import (
+        create_sycophancy_resistant_runner as create_sycophancy_resistant_runner,
+    )
+
+# Wiring-sweep 2026-06-22: autoharness_ce — compound engineering autoharness.
+with contextlib.suppress(Exception):
+    from cohezion.inference.autoharness_ce import (
+        CompoundEngineeringAutoHarness as CompoundEngineeringAutoHarness,
+    )
+    from cohezion.inference.autoharness_ce import (
+        create_compound_autoharness as create_compound_autoharness,
+    )
+
+# Wiring-sweep 2026-06-22: context_engineering — model card registry + context engineer.
+with contextlib.suppress(Exception):
+    from cohezion.inference.context_engineering import (
+        ContextEngineer as ContextEngineer,
+    )
+    from cohezion.inference.context_engineering import (
+        ModelCard as ModelCard,
+    )
+    from cohezion.inference.context_engineering import (
+        ModelCardRegistry as ModelCardRegistry,
+    )
+    from cohezion.inference.context_engineering import (
+        get_context_engineer as get_context_engineer,
+    )
+
+# Wiring-sweep 2026-06-22: evaluation_harness — quality metrics and cost estimation.
+with contextlib.suppress(Exception):
+    from cohezion.inference.evaluation_harness import (
+        EvaluationHarness as EvaluationHarness,
+    )
+    from cohezion.inference.evaluation_harness import (
+        ExperimentMetrics as ExperimentMetrics,
+    )
+    from cohezion.inference.evaluation_harness import (
+        evaluate_quality_simple as evaluate_quality_simple,
+    )
+
+# Wiring-sweep 2026-06-22: fractal_metrics — Higuchi FD, Feynman path weights (harness A3/CC1).
+with contextlib.suppress(Exception):
+    from cohezion.inference.fractal_metrics import (
+        feynman_path_weight as feynman_path_weight,
+    )
+    from cohezion.inference.fractal_metrics import (
+        higuchi_fd as higuchi_fd,
+    )
+    from cohezion.inference.fractal_metrics import (
+        quality_series_report as quality_series_report,
+    )
+
+# Wiring-sweep 2026-06-22: gaia_adapter — AMD-optimized GAIA agent tier builder.
+with contextlib.suppress(Exception):
+    from cohezion.inference.gaia_adapter import (
+        GaiaAgentTier as GaiaAgentTier,
+    )
+    from cohezion.inference.gaia_adapter import (
+        build_gaia_native_tier as build_gaia_native_tier,
+    )
+    from cohezion.inference.gaia_adapter import (
+        rank_models_by_amd_optimization as rank_models_by_amd_optimization,
+    )
+
+# Wiring-sweep 2026-06-22: hardware_telemetry — NPU/iGPU/CPU utilization snapshots.
+with contextlib.suppress(Exception):
+    from cohezion.inference.hardware_telemetry import (
+        ComputeBackend as ComputeBackend,
+    )
+    from cohezion.inference.hardware_telemetry import (
+        HardwareSnapshot as HardwareSnapshot,
+    )
+    from cohezion.inference.hardware_telemetry import (
+        HardwareTelemetry as HardwareTelemetry,
+    )
+    from cohezion.inference.hardware_telemetry import (
+        create_hardware_telemetry as create_hardware_telemetry,
+    )
+
+# Wiring-sweep 2026-06-22: oom_guard — RAM gate + ctx_size harden (harness N3).
+with contextlib.suppress(Exception):
+    from cohezion.inference.oom_guard import check_ram as check_ram
+    from cohezion.inference.oom_guard import pre_load_gate as pre_load_gate
+    from cohezion.inference.oom_guard import scan_and_harden as scan_and_harden
+
+# Wiring-sweep 2026-06-22: orchestrator_autoharness — Strix Halo multi-node orchestrator.
+with contextlib.suppress(Exception):
+    from cohezion.inference.orchestrator_autoharness import (
+        MultiNodeOrchestrator as MultiNodeOrchestrator,
+    )
+    from cohezion.inference.orchestrator_autoharness import (
+        StrixHaloOrchestrator as StrixHaloOrchestrator,
+    )
+    from cohezion.inference.orchestrator_autoharness import (
+        create_strix_halo_orchestrator as create_strix_halo_orchestrator,
+    )
+
+# Wiring-sweep 2026-06-22: p0_resilience_mixins — timeout, checkpoint, async executor mixins.
+with contextlib.suppress(Exception):
+    from cohezion.inference.p0_resilience_mixins import (
+        AsyncExecutorMixin as AsyncExecutorMixin,
+    )
+    from cohezion.inference.p0_resilience_mixins import (
+        CheckpointManager as CheckpointManager,
+    )
+    from cohezion.inference.p0_resilience_mixins import (
+        HealthChecker as HealthChecker,
+    )
+    from cohezion.inference.p0_resilience_mixins import (
+        TimeoutMixin as TimeoutMixin,
+    )
+
+# Wiring-sweep 2026-06-22: seed_evaluator — deterministic seed quality scoring.
+with contextlib.suppress(Exception):
+    from cohezion.inference.seed_evaluator import (
+        eval_quality as eval_quality,
+    )
+    from cohezion.inference.seed_evaluator import (
+        get_seed_analysis as get_seed_analysis,
+    )
+    from cohezion.inference.seed_evaluator import (
+        select_best_seed as select_best_seed,
+    )
+
+# Wiring-sweep 2026-06-22: transition_controller — Markov state transition analysis.
+with contextlib.suppress(Exception):
+    from cohezion.inference.transition_controller import (
+        TransitionController as TransitionController,
+    )
+    from cohezion.inference.transition_controller import (
+        detect_stuck_loops as detect_stuck_loops,
+    )
+    from cohezion.inference.transition_controller import (
+        first_passage as first_passage,
+    )
+
+# Wiring-sweep 2026-06-22: tri_compute_orchestrator — NPU/iGPU/CPU tri-compute engines.
+with contextlib.suppress(Exception):
+    from cohezion.inference.tri_compute_orchestrator import (
+        CPUOrchestrationEngine as CPUOrchestrationEngine,
+    )
+    from cohezion.inference.tri_compute_orchestrator import (
+        NPUInferenceEngine as NPUInferenceEngine,
+    )
+    from cohezion.inference.tri_compute_orchestrator import (
+        iGPUSimulationEngine as iGPUSimulationEngine,
+    )
+
+# Wiring-sweep 2026-06-22: triune_orchestrator — three-tier local inference builder (harness N2).
+with contextlib.suppress(Exception):
+    from cohezion.inference.triune_orchestrator import (
+        build_triune_orchestrator as build_triune_orchestrator,
+    )
+
+# Wiring-sweep 2026-06-22: turboquant_reference — Hadamard rotation + polar quantization.
+with contextlib.suppress(Exception):
+    from cohezion.inference.turboquant_reference import (
+        HadamardRotation as HadamardRotation,
+    )
+    from cohezion.inference.turboquant_reference import (
+        PolarQuant as PolarQuant,
+    )
+    from cohezion.inference.turboquant_reference import (
+        TurboQuantReference as TurboQuantReference,
+    )
+
+# Wiring-sweep 2026-06-22: turboquant_streaming — KV cache compression for long contexts.
+with contextlib.suppress(Exception):
+    from cohezion.inference.turboquant_streaming import (
+        KVCacheStats as KVCacheStats,
+    )
+    from cohezion.inference.turboquant_streaming import (
+        StreamingKVCompressor as StreamingKVCompressor,
+    )
+
 from cohezion.inference.fleet import RouteResult, extend_claude, route
 from cohezion.inference.harnesses import (
     Harness,
