@@ -140,11 +140,13 @@ class DegradationDetector:
             "coherence": MetricBaseline("coherence"),
             "duration_seconds": MetricBaseline("duration_seconds"),
             "success_rate": MetricBaseline("success_rate"),
+            "token_surprisal": MetricBaseline("token_surprisal"),
         }
 
-        # Alert history for deduplication
+        # Alert history for deduplication and CB9 dashboard API
         self._last_alert_time: dict[str, float] = {}
         self._alert_cooldown_seconds = 60.0  # Don't repeat same alert within 60s
+        self._alert_history: list[DegradationAlert] = []
 
         # Healing pipeline integration (non-blocking)
         self._healing_enabled = True
@@ -174,18 +176,18 @@ class DegradationDetector:
         """
         alerts = []
 
-        # Extract metrics
-        cache_hit_rate = metrics.get("combined_hit_rate", 0.0)
-        tokens_per_sec = metrics.get("tokens_per_second", 0.0)
-        coherence = metrics.get("mean_coherence", 0.5)
-        duration = metrics.get("elapsed_seconds", 0.0)
-        success_rate = metrics.get("success_rate", 1.0)
+        # Extract metrics — None means "not provided this call"; skip baseline updates for those
+        cache_hit_rate = metrics.get("combined_hit_rate")
+        tokens_per_sec = metrics.get("tokens_per_second")
+        coherence = metrics.get("mean_coherence")
+        duration = metrics.get("elapsed_seconds")
+        success_rate = metrics.get("success_rate")
 
         # Check conditions AGAINST ESTABLISHED BASELINES FIRST
         # Then add samples after all checks are done
 
-        # Check cache hit rate
-        if (
+        # Check cache hit rate (skip if not provided this call)
+        if cache_hit_rate is not None and (
             self._baselines["cache_hit_rate"].is_established
             and cache_hit_rate < self.cache_hit_rate_threshold
         ):
@@ -201,8 +203,8 @@ class DegradationDetector:
             if self._should_emit_alert(alert):
                 alerts.append(alert)
 
-        # Check token efficiency
-        if self._baselines["token_efficiency"].is_established:
+        # Check token efficiency (skip if not provided)
+        if tokens_per_sec is not None and self._baselines["token_efficiency"].is_established:
             baseline_tok_sec = self._baselines["token_efficiency"].mean
             if baseline_tok_sec > 0:
                 efficiency_drop = 1.0 - (tokens_per_sec / baseline_tok_sec)
@@ -219,8 +221,12 @@ class DegradationDetector:
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
 
-        # Check coherence
-        if self._baselines["coherence"].is_established and coherence < self.coherence_threshold:
+        # Check coherence (skip if not provided)
+        if (
+            coherence is not None
+            and self._baselines["coherence"].is_established
+            and coherence < self.coherence_threshold
+        ):
             alert = DegradationAlert(
                 metric="coherence",
                 severity=AlertSeverity.CRITICAL,
@@ -232,8 +238,8 @@ class DegradationDetector:
             if self._should_emit_alert(alert):
                 alerts.append(alert)
 
-        # Check duration slowdown
-        if self._baselines["duration_seconds"].is_established:
+        # Check duration slowdown (skip if not provided)
+        if duration is not None and self._baselines["duration_seconds"].is_established:
             baseline_duration = self._baselines["duration_seconds"].mean
             if baseline_duration > 0:
                 slowdown = (duration / baseline_duration) - 1.0
@@ -250,8 +256,8 @@ class DegradationDetector:
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
 
-        # Check success rate
-        if self._baselines["success_rate"].is_established:
+        # Check success rate (skip if not provided)
+        if success_rate is not None and self._baselines["success_rate"].is_established:
             baseline_success = self._baselines["success_rate"].mean
             if success_rate < baseline_success * 0.8:  # 20% drop in success rate
                 alert = DegradationAlert(
@@ -265,13 +271,21 @@ class DegradationDetector:
                 if self._should_emit_alert(alert):
                     alerts.append(alert)
 
-        # NOW add samples to baselines (after all checks completed)
-        # This ensures checks compare against established baseline, not polluted by current value
-        self._baselines["cache_hit_rate"].add_sample(cache_hit_rate)
-        self._baselines["token_efficiency"].add_sample(tokens_per_sec)
-        self._baselines["coherence"].add_sample(coherence)
-        self._baselines["duration_seconds"].add_sample(duration)
-        self._baselines["success_rate"].add_sample(success_rate)
+        # NOW add samples to baselines (only for metrics provided this call)
+        if cache_hit_rate is not None:
+            self._baselines["cache_hit_rate"].add_sample(cache_hit_rate)
+        if tokens_per_sec is not None:
+            self._baselines["token_efficiency"].add_sample(tokens_per_sec)
+        if coherence is not None:
+            self._baselines["coherence"].add_sample(coherence)
+        if duration is not None:
+            self._baselines["duration_seconds"].add_sample(duration)
+        if success_rate is not None:
+            self._baselines["success_rate"].add_sample(success_rate)
+        # token_surprisal: S_LP signal — skip None (FLM/NPU tasks have no logprobs)
+        _ts = metrics.get("token_surprisal")
+        if _ts is not None:
+            self._baselines["token_surprisal"].add_sample(float(_ts))
 
         # Constitutional equilibrium check (non-blocking)
         # Validates HIHO attractor convergence via ManifoldEquilibrium
@@ -360,6 +374,9 @@ class DegradationDetector:
                 self._routing_callback(alerts)
             except Exception:
                 logger.debug("Routing callback failed (non-blocking)", exc_info=True)
+
+        # CB9: append to alert_history for get_alert_summary() dashboard API
+        self._alert_history.extend(alerts)
 
         return alerts
 
@@ -472,6 +489,36 @@ class DegradationDetector:
                 "lower_bound": round(baseline.lower_bound(), 4),
             }
         return stats
+
+    def get_alert_summary(self) -> dict[str, Any]:
+        """CB9: Dashboard aggregation API — total + groupings from alert_history.
+
+        Returns:
+            {"total": int, "by_severity": {sev: count}, "by_metric": {metric: count},
+             "most_recent_per_metric": {metric: alert_dict}}
+        """
+        by_severity: dict[str, int] = {}
+        by_metric: dict[str, int] = {}
+        most_recent: dict[str, dict[str, Any]] = {}
+        for a in self._alert_history:
+            sev = a.severity.value if hasattr(a.severity, "value") else str(a.severity)
+            by_severity[sev] = by_severity.get(sev, 0) + 1
+            by_metric[a.metric] = by_metric.get(a.metric, 0) + 1
+            if a.metric not in most_recent or a.timestamp > most_recent[a.metric].get(
+                "timestamp", 0
+            ):
+                most_recent[a.metric] = {
+                    "metric": a.metric,
+                    "severity": sev,
+                    "message": a.message,
+                    "timestamp": a.timestamp,
+                }
+        return {
+            "total": len(self._alert_history),
+            "by_severity": by_severity,
+            "by_metric": by_metric,
+            "most_recent_per_metric": most_recent,
+        }
 
     def reset_baselines(self) -> None:
         """Reset all baselines (for testing or fresh start)."""

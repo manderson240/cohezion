@@ -62,10 +62,17 @@ class RunReport:
 
 
 class LoopCoordinator:
-    def __init__(self, config: LoopConfig) -> None:
+    def __init__(self, config: LoopConfig, degradation_detector: Any = None) -> None:
         self.config = config
         self._backlog: list[LoopTask] = []
         self._sprint_results: list[SprintResult] = []
+        # CB5 pattern: auto-create DegradationDetector if not supplied
+        if degradation_detector is None:
+            with contextlib.suppress(Exception):
+                from cohezion.compound.degradation_detector import DegradationDetector
+
+                degradation_detector = DegradationDetector()
+        self._degradation_detector = degradation_detector
 
     def run(self, executor: Any = None) -> RunReport:
         from cohezion.compound.autonomous_loop.executor import ImprovementExecutor
@@ -227,3 +234,14 @@ class LoopCoordinator:
                 "fallback": result.get("fallback", False),
             }
         )
+
+        # CB5: wire DegradationDetector per-result (non-blocking)
+        if self._degradation_detector is not None:
+            with contextlib.suppress(Exception):
+                self._degradation_detector.check_degradation(
+                    {
+                        "elapsed_seconds": result.get("elapsed_ms", 0) / 1000.0,
+                        "success_rate": 1.0 if success else 0.0,
+                        "token_surprisal": result.get("token_surprisal"),
+                    }
+                )

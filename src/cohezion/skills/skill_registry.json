@@ -149,7 +149,7 @@
     "source": "src/cohezion/skills/CITATIONS_PRIME.md"
   },
   "COMPOUND_ENGINEERING_PRIME": {
-    "version": "v1.1",
+    "version": "v1.2",
     "concepts": [
       "Unified Configuration",
       "MCP Bridge Topology",
@@ -160,8 +160,10 @@
     "see_also": [
       "SKILL_SYNTHESIS_PRIME",
       "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
+      "PERSISTENT_QUALITY_PRIME",
       "HALLUCINATION_RESOLVER_PRIME",
       "LOCAL_OFFLOAD_PRIME",
+      "COHEZION_BRIDGE_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
     "source": "src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md"
@@ -1072,5 +1074,23 @@
       "physics"
     ],
     "source": "src/cohezion/skills/SKILL_SYNTHESIS_PRIME.md"
+  },
+  "SKILL_0_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-17/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+  },
+  "SKILL_1_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-17/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+  },
+  "TEST_SKILL_PRIME": {
+    "version": "2.5",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-17/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   }
 }

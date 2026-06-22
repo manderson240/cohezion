@@ -8,6 +8,10 @@ Modules:
     tracks — Multi-track orchestrator and individual track pipelines
 """
 
+from __future__ import annotations
+
+import contextlib
+
 from cohezion.arc.codec import ARCCodec, decode_prediction, encode_task
 from cohezion.arc.grid_pipeline import (
     batch_decode,
@@ -28,19 +32,25 @@ from cohezion.arc.tracks import (
     PaperTrackPipeline,
 )
 
-
-import contextlib
-
-# Wiring-sweep 2026-06-22: data_loader, evaluate_local, solver, transforms were orphans.
+# Wiring-sweep 2026-06-22: data_loader, evaluate_local, solver were orphans.
 with contextlib.suppress(Exception):
-    from cohezion.arc.data_loader import load_task as load_task
     from cohezion.arc.data_loader import load_all as load_all
+    from cohezion.arc.data_loader import load_task as load_task
 
 with contextlib.suppress(Exception):
     from cohezion.arc.evaluate_local import score_submission as score_submission
 
 with contextlib.suppress(Exception):
     from cohezion.arc.solver import SolverState as SolverState
+
+# Wiring-sweep 2026-06-22: transforms was a genuine import-graph orphan (29 grid xform ops).
+with contextlib.suppress(Exception):
+    from cohezion.arc.transforms import ALL_TRANSFORMS as ALL_TRANSFORMS
+    from cohezion.arc.transforms import TransformFn as TransformFn
+    from cohezion.arc.transforms import apply_chain as apply_chain
+    from cohezion.arc.transforms import get_timing_report as get_timing_report
+    from cohezion.arc.transforms import make_color_remap as make_color_remap
+    from cohezion.arc.transforms import make_color_swap as make_color_swap
 
 
 __all__ = [
