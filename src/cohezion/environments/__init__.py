@@ -35,3 +35,9 @@ with contextlib.suppress(Exception):
         "GeneratedCodeValidator",
         "GeneratedEnvironment",
     ]
+
+# Wiring-sweep 2026-06-22: arc_env was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.environments.arc_env import (
+        ARCEnvironment as ARCEnvironment,
+    )
