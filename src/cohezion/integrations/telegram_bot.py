@@ -7,6 +7,7 @@ dispatching via Telegram. Constrained to the configured TELEGRAM_CHAT_ID for sec
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import html
 import logging
 import os
@@ -20,6 +21,21 @@ from typing import Any, NamedTuple
 import httpx
 
 from cohezion.config.defaults import LEMONADE_BASE_URL
+
+
+# Fail-open: if oom_guard is unavailable the RAM gate is simply skipped.
+_check_ram = None
+with contextlib.suppress(Exception):
+    from cohezion.inference.oom_guard import check_ram as _check_ram  # type: ignore[assignment]
+
+# Minimum free RAM (GiB) required before sending a hint that could trigger a
+# large-model auto-load on the OmniRouter.  Matches the N3 invariant floor.
+_OOM_MIN_FREE_GB: float = 20.0
+
+# Pattern matching model names that contain a parameter count ≥ 10 B, i.e. hints
+# that can auto-load a model large enough to risk OOM on a partially-used system.
+# Covers the MEDIUM/COMPLEX tier names: 27B, 31B, 35B, 26B (and future additions).
+_LARGE_MODEL_RE = _re.compile(r"\b(1[0-9]B|2[0-9]B|3[0-9]B|[1-9]\d{2,}B)\b", _re.IGNORECASE)
 
 LEMONADE_ROUTER_URL: str = LEMONADE_BASE_URL
 
@@ -169,6 +185,9 @@ class TelegramCommunicationHub:
         self._running = False
         self.conversation_history: list[dict[str, str]] = []
         self.max_history = 20
+        # Process-spawn guard: True only after a successful :13305 probe.
+        # /agent and /run are blocked until inference is verified healthy.
+        self._inference_ready: bool = False
 
     async def _run_cmd(self, *args: Any, **kwargs: Any) -> subprocess.CompletedProcess[Any]:
         """Run subprocess.run in a background thread to keep event loop responsive."""
@@ -176,6 +195,16 @@ class TelegramCommunicationHub:
 
     def is_configured(self) -> bool:
         return bool(self.token and self.allowed_chat_id)
+
+    async def _verify_inference_health(self) -> bool:
+        """Probe :13305 to confirm inference is up. Caches result; re-probes after failure."""
+        if self._inference_ready:
+            return True
+        available = await self._select_model()
+        if available:
+            self._inference_ready = True
+            logger.info("Inference health verified: model=%s", available)
+        return self._inference_ready
 
     def _classify_complexity(self, text: str) -> QueryComplexity:
         """Classify query complexity for OmniRouter hint selection."""
@@ -200,6 +229,22 @@ class TelegramCommunicationHub:
         last_error: str | None = None
 
         for attempt, hint_model in enumerate(hints, 1):
+            # RAM gate: skip hints that could auto-load a large model when RAM
+            # is insufficient.  Fail-open: if _check_ram is None (import failed)
+            # we proceed without the gate rather than refusing all requests.
+            if _check_ram is not None and _LARGE_MODEL_RE.search(hint_model):
+                ram_ok, free_gb = _check_ram(_OOM_MIN_FREE_GB)
+                if not ram_ok:
+                    logger.warning(
+                        "OOMGuard: skipping hint %r — only %.1f GiB free (need %.0f GiB); "
+                        "trying next hint",
+                        hint_model,
+                        free_gb,
+                        _OOM_MIN_FREE_GB,
+                    )
+                    last_error = f"RAM pressure: {free_gb:.1f} GiB free"
+                    continue
+
             try:
                 async with httpx.AsyncClient() as client:
                     r = await client.post(
@@ -385,6 +430,11 @@ class TelegramCommunicationHub:
             prompt = text[len("/agent ") :].strip()
             if not prompt:
                 await self._send_msg("⚠️ Format: <code>/agent &lt;prompt&gt;</code>")
+            elif not await self._verify_inference_health():
+                await self._send_msg(
+                    "🔴 <b>/agent blocked</b> — :13305 Lemonade router not responding.\n"
+                    "Fix inference first, then retry."
+                )
             else:
                 await self._handle_agent(prompt)
 
@@ -399,6 +449,11 @@ class TelegramCommunicationHub:
             code = text[len("/run ") :].strip() if len(parts) > 1 else ""
             if not code:
                 await self._send_msg("⚠️ Format: <code>/run &lt;python code&gt;</code>")
+            elif not await self._verify_inference_health():
+                await self._send_msg(
+                    "🔴 <b>/run blocked</b> — :13305 Lemonade router not responding.\n"
+                    "Fix inference first, then retry."
+                )
             else:
                 await self._handle_run(code)
 
@@ -772,17 +827,15 @@ class TelegramCommunicationHub:
                 text=True,
                 timeout=30,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await self._send_msg("⏱ <b>/run timed out</b> (30s limit).")
             return
         except Exception as exc:
             await self._send_msg(f"⚠️ Execution error: <code>{safe_html(str(exc))}</code>")
             return
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 Path(tmp_path).unlink(missing_ok=True)
-            except Exception:
-                pass
 
         stdout = res.stdout.strip()
         stderr = res.stderr.strip()
