@@ -167,6 +167,22 @@ with contextlib.suppress(Exception):
         MyceliumNetwork as MyceliumNetwork,
     )
 
+# Wiring-sweep 2026-06-22: ouroboros.py (learning layer), shadow_scripter, skill_acquisition
+with contextlib.suppress(Exception):
+    from cohezion.learning.ouroboros import (
+        OuroborosEngine as OuroborosEngine,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.learning.shadow_scripter import (
+        ShadowScripter as ShadowScripter,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.learning.skill_acquisition import (
+        DynamicSkillAcquisition as DynamicSkillAcquisition,
+    )
+
 
 _instance: SkillGenerator | None = None
 
