@@ -428,20 +428,14 @@ class TelegramCommunicationHub:
         )
 
     async def _select_model(self) -> ModelSelection | None:
-        """Selects the best available chat model, preferring the lemonade fleet.
+        """Selects the best available chat model from the Lemonade fleet (:13305).
 
-        FIRST tries the always-up lemonade OpenAI-compatible router (:13305).
-        If the router is unreachable or lists no usable model, FALLS BACK to the
-        legacy Ollama path (:11434), which is preserved intact.
+        Uses the always-up Lemonade OpenAI-compatible router (:13305) exclusively.
+        Returns None when the router is unreachable or lists no usable model.
         """
         lemonade_model = await self._select_lemonade_model()
         if lemonade_model is not None:
             return ModelSelection(lemonade_model, "lemonade")
-
-        ollama_model = await self._select_ollama_model()
-        if ollama_model is not None:
-            return ModelSelection(ollama_model, "ollama")
-
         return None
 
     async def _select_lemonade_model(self) -> str | None:
@@ -549,28 +543,9 @@ class TelegramCommunicationHub:
             await self._record_telemetry(telem)
             return
 
-        # OmniRouter failed — Ollama-only fallback (no cloud)
-        ollama_model = await self._select_ollama_model()
-        if ollama_model:
-            try:
-                ollama_reply = await self._chat_ollama(ollama_model, messages)
-                if ollama_reply:
-                    self.conversation_history.append({"role": "assistant", "content": ollama_reply})
-                    await self._send_msg(ollama_reply, parse_mode=None)
-                    fallback_telem = _OmniTelemetry(
-                        actual_model=ollama_model,
-                        port=11434,
-                        backend="ollama",
-                        route_reason="fallback: omnirouter unavailable",
-                    )
-                    await self._record_telemetry(fallback_telem)
-                    return
-            except Exception as exc:
-                logger.error("Ollama fallback failed: %s", exc)
-
         await self._send_msg(
             "⚠️ <b>Local Fleet Offline</b>\n"
-            "The :13305 OmniRouter and Ollama (:11434) are both unreachable. "
+            "The :13305 Lemonade router is unreachable. "
             "Ensure the AMD fleet is up: <code>lemond --port 13305 &amp;</code>"
         )
 
