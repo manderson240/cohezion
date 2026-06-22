@@ -28,6 +28,95 @@ from cohezion.compound.batch_executor import (
 )
 from cohezion.compound.config import CompoundConfig as Config  # noqa: F401
 from cohezion.compound.core.batch_processor import BatchProcessor as BatchProcessor
+
+
+# Wiring-sweep 2026-06-06: hiho_lm_gate was an import-graph orphan (no production importer).
+# Re-exported here so its HIHO-LM quality gate is part of compound's public surface and
+# reachable by static analysis. Guarded — a future LM-import fragility must not take down
+# the whole package. (Deeper integration of this model-based gate INTO anti_sycophancy /
+# AUTODQA is a BEHAVIOR change — flagged for human decision in WIRING_SWEEP_LEDGER.md.)
+with contextlib.suppress(Exception):
+    from cohezion.compound.hiho_lm_gate import (
+        check_quality as check_quality,
+    )
+    from cohezion.compound.hiho_lm_gate import (
+        check_sycophancy as check_sycophancy,
+    )
+    from cohezion.compound.hiho_lm_gate import (
+        ppl_score as ppl_score,
+    )
+
+# Wiring-sweep 2026-06-06: journey_to_training was a genuine import-graph orphan. Re-exported
+# so the journey→training bridge is part of compound's public surface + statically reachable.
+with contextlib.suppress(Exception):
+    from cohezion.compound.journey_to_training import (
+        JourneyToTrainingBridge as JourneyToTrainingBridge,
+    )
+    from cohezion.compound.journey_to_training import (
+        ValidationResult as ValidationResult,
+    )
+
+# Wiring-sweep 2026-06-06: optimized_session_manager was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.optimized_session_manager import (
+        CompoundSessionManager as CompoundSessionManager,
+    )
+    from cohezion.compound.optimized_session_manager import (
+        OptimizedSessionRuntime as OptimizedSessionRuntime,
+    )
+
+# Wiring-sweep 2026-06-06: thermal_autoresearch_executor was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.thermal_autoresearch_executor import (
+        ThermalAutoresearchExecutor as ThermalAutoresearchExecutor,
+    )
+
+# Wiring-sweep 2026-06-06: distillation_engine was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.distillation_engine import (
+        DistillationEngine as DistillationEngine,
+    )
+
+# Wiring-sweep 2026-06-06: dynamic_compound_system was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.dynamic_compound_system import (
+        DynamicCompoundSystem as DynamicCompoundSystem,
+    )
+    from cohezion.compound.dynamic_compound_system import (
+        DynamicExecutionResult as DynamicExecutionResult,
+    )
+
+# Wiring-sweep 2026-06-06: dynamic_system_integration was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.dynamic_system_integration import (
+        DynamicSystemCoordinator as DynamicSystemCoordinator,
+    )
+
+# Wiring-sweep 2026-06-06: consortium_instigator was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.consortium_instigator import (
+        ConsortiumInstigator as ConsortiumInstigator,
+    )
+
+# Wiring-sweep 2026-06-06: agi_reasoning was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.agi_reasoning import (
+        AGIEvaluator as AGIEvaluator,
+    )
+    from cohezion.compound.agi_reasoning import (
+        ReasoningModel as ReasoningModel,
+    )
+
+# Wiring-sweep 2026-06-06: aimo_reasoning was a genuine import-graph orphan. Re-export its
+# DISTINCTIVE classes only — `ReasoningModel` collides with agi_reasoning's (surface-name
+# duplicate flagged for human review in WIRING_SWEEP_LEDGER.md), so it is NOT re-exported here.
+with contextlib.suppress(Exception):
+    from cohezion.compound.aimo_reasoning import (
+        AIMOScaler as AIMOScaler,
+    )
+    from cohezion.compound.aimo_reasoning import (
+        ProcessRewardModel as ProcessRewardModel,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
@@ -38,7 +127,6 @@ from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecuto
 from cohezion.compound.executor_factory import (  # noqa: F401
     ExecutorFactory as CompoundExecutorFactory,
 )
-from cohezion.compound.executor_factory import make_executor as make_executor  # noqa: F401
 
 # New Simplified API
 from cohezion.compound.models import (
@@ -151,3 +239,29 @@ from cohezion.compound.tdd_adversarial.tdd_integration import (
 from cohezion.compound.tdd_adversarial.tdd_integration import (
     get_tdd_integration as get_tdd_integration,
 )
+
+
+def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
+    """Factory that wires local AMD silicon (Triune) inference by default.
+
+    Checks Lemonade liveness before building the TieredOrchestrator — no
+    model weights are loaded in Python; only HTTP endpoints are probed.
+    Falls back to inference_provider=None (caller must supply execute_fn)
+    when Lemonade is offline.
+
+    Also sets recommended max_concurrent on the orchestrator based on live
+    model load count (exp_NNNN1: heavy load → sequential, light load → concurrent).
+    """
+    from cohezion.compound.executor import CompoundExecutor  # avoid circular at module level
+    from cohezion.compound.local_inference import get_recommended_concurrency, lemonade_available
+    from cohezion.inference.triune_orchestrator import build_triune_orchestrator
+
+    if lemonade_available():
+        provider = build_triune_orchestrator()
+        # Wire adaptive concurrency: under heavy model load, use sequential dispatch
+        max_concurrent = get_recommended_concurrency()
+        provider._max_concurrent = max_concurrent  # type: ignore[attr-defined]
+    else:
+        provider = None
+
+    return CompoundExecutor(mcp_client, inference_provider=provider, **kwargs)  # type: ignore[arg-type]

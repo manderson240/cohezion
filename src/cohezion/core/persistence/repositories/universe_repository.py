@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from cohezion.core.persistence.surreal_client import PhysicsState as PhysicsState
 from cohezion.core.persistence.surreal_client import UniverseNode
 
 

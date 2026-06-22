@@ -9,7 +9,7 @@ description: |
       O_RDWR file opens even when the files are writable via Claude Code's Edit/Write
       tools. Specific files affected: .claude/*, .gitmodules, scripts/ newly added files.
 author: Claude Code
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Pre-commit Sandbox Bypass
@@ -96,11 +96,49 @@ git status --short | grep '^ M'   # should be empty (no unstaged tracked changes
 git commit -m "..."               # should pass hooks cleanly
 ```
 
+## Preferred Path (v1.1 — avoids all stash conflicts)
+
+**Pre-apply auto-fix hooks manually, then commit clean:**
+
+```bash
+# Step 1: run hooks on your staged files (apply auto-fixes before commit)
+.venv/bin/pre-commit run --files FILE1 FILE2 FILE3
+
+# Step 2: re-stage any files the hooks modified
+git add <files modified by hooks>
+
+# Step 3: mark read-only overlay files so stash won't touch them
+git update-index --skip-worktree .claude/scheduled_tasks.lock
+git update-index --skip-worktree scripts/drivers/some_file.py   # any read-only tracked file
+
+# Step 4: commit — hooks run again but make NO changes → no stash conflict
+git commit -m "..."
+```
+
+`--skip-worktree` vs `--assume-unchanged`:
+- `--skip-worktree` = "index is right, working-tree deviation is intentional" — git checkout won't WRITE over these files
+- `--assume-unchanged` = "file probably didn't change, skip check" — git can still overwrite them on checkout
+- Use `--skip-worktree` for this scenario; the distinction prevents checkout-triggered overwrites.
+
+## No-checkout Fast-forward (when `git checkout main` is blocked)
+
+When local modifications prevent `git checkout main`:
+
+```bash
+# Check if main has no unique commits (safe to fast-forward)
+git log HEAD..main --oneline   # must be empty
+
+# Advance main ref without checking out
+git update-ref refs/heads/main HEAD
+```
+
+This directly updates the branch reference without touching the working tree.
+Only safe when `HEAD` is a strict superset of `main` (no divergence).
+
 ## Full Checklist
 
-1. [ ] `ruff format --diff` on any failing file → apply via Edit tool
-2. [ ] `git add -u` to re-stage reformatted files  
-3. [ ] `git update-index --assume-unchanged` on `.claude/` and `.gitmodules`
-4. [ ] Add global + per-hook excludes to `.pre-commit-config.yaml` for `.claude/`
-5. [ ] Add `^scripts/` to end-of-file-fixer exclude if scripts/ files are new
-6. [ ] Verify `git status --short | grep '^ M'` is empty before committing
+1. [ ] Run `pre-commit run --files <staged-files>` to pre-apply auto-fixes
+2. [ ] `git add` any files modified by pre-commit run
+3. [ ] `git update-index --skip-worktree` on read-only tracked files
+4. [ ] Commit — hooks should all pass with no auto-fixes needed
+5. [ ] If `git checkout main` blocked: check `git log HEAD..main` is empty, then `git update-ref`

@@ -63,6 +63,16 @@ class Task(StrEnum):
     LONG_HORIZON = "long_horizon"
     ARCHITECT = "architect"
     GENERAL = "general"
+    # Task-specialist members (task-aware routing, 2026-06-05; research:
+    # docs/research/TASK_HARNESS_ROUTING_LEVERS_2026-06-05.md). Added so for_task() can
+    # express small-specialist lanes. No model is registered for these yet, so for_task
+    # returns [] for them until a specialist ModelEntry is added (e.g. LFM2.5-VL → EXTRACTION).
+    EXTRACTION = "extraction"
+    VISION = "vision"
+    FIM = "fim"
+    FUNCTION_CALL = "function_call"
+    RERANK = "rerank"
+    OCR_DOC = "ocr_doc"
 
 
 class WeightQuant(StrEnum):
@@ -223,6 +233,62 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="LFM2.5-VL-1.6B-Extract-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # vision needs --mmproj (llama-mtmd) — unproven on lemonade
+            task_affinity=frozenset({Task.EXTRACTION, Task.VISION}),
+            weight_quant=WeightQuant.Q4_K_M,  # actual GGUF is Q4_0 (~696 MB); F16 ~2.34 GB
+            context_window=32768,
+            priority=25,  # the EXTRACTION/VISION specialist (was none); small VLM, low VRAM
+            verified_working=False,  # mmproj proof NOT yet run — see LFM_VL_EXTRACTION_2026-06-06.md
+            notes=(
+                "LiquidAI image→YAML field-extraction VLM (the seed for Task.EXTRACTION). "
+                "mmproj-GATED: needs the vision projector (mmproj-…-F16.gguf) loaded — lemonade "
+                "--mmproj support UNPROVEN → llama-mtmd sidecar fallback. Model not yet downloaded; "
+                "verified_working flips True only after the 10-image extraction proof (item 18). "
+                "License lfm1.0 — verify commercial terms before production use."
+            ),
+        ),
+        ModelEntry(
+            model_id="Qwen3-Reranker-0.6B-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # needs --pooling rank (llama-server reranker mode)
+            task_affinity=frozenset({Task.RERANK}),
+            weight_quant=WeightQuant.Q5_K_M,  # ~0.6B; Q5_K_M GGUF ~520 MB, low VRAM
+            context_window=32768,
+            priority=25,  # the RERANK specialist (was none); tiny cross-encoder, cheap to host
+            verified_working=False,  # /v1/rerank proof NOT yet run — see item 19 / BLEEDING_EDGE_FEED
+            notes=(
+                "Qwen3-Reranker-0.6B cross-encoder (the seed for Task.RERANK; HF id "
+                "Mungert/Qwen3-Reranker-0.6B-GGUF, 21 GGUF variants). SERVING-GATED: llama.cpp "
+                "rerankers need `--pooling rank` + a proper convert_hf_to_gguf.py; the known trap is "
+                "degenerate near-zero scores (~4.5e-23) for every pair. verified_working flips True "
+                "only after a real NON-DEGENERATE /v1/rerank proof passes. Apache-2.0."
+            ),
+        ),
+        ModelEntry(
+            model_id="Granite-4.1-3b-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # tool-calling needs template/tool-token alignment
+            task_affinity=frozenset({Task.FUNCTION_CALL}),
+            weight_quant=WeightQuant.Q4_K_M,  # ~3B; Q4_K_M GGUF ~2 GB, low VRAM
+            context_window=131072,
+            priority=22,  # the FUNCTION_CALL specialist (was none); small no-thinking tool model
+            verified_working=False,  # tool-call proof NOT yet run — see item 21 / BLEEDING_EDGE_FEED
+            notes=(
+                "IBM Granite-4.1-3b (the seed for Task.FUNCTION_CALL; HF id "
+                "ibm-granite/granite-4.1-3b-GGUF, 15 GGUF variants). SAME validated no-thinking, "
+                "tool-capable family as Hermes's main Granite-4.1-8B, but $0-local-small. "
+                "SERVING-GATED: llama.cpp tool-calling breaks on chat-template / tool-call "
+                "special-token mismatch (orchestrator prompt format must match the model template). "
+                "verified_working flips True only after a real finish_reason=tool_calls proof with "
+                "valid args. Apache-2.0."
+            ),
+        ),
+        ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",
@@ -238,6 +304,67 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             notes=(
                 "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE "
                 "(8 active / 128 total experts + 1 shared expert)."
+            ),
+        ),
+        ModelEntry(
+            model_id="GLM-OCR-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # vision/OCR needs --mmproj (llama-mtmd) — shares item 18
+            task_affinity=frozenset({Task.OCR_DOC}),
+            weight_quant=WeightQuant.Q4_K_M,  # GGUF: GLM-OCR-Q8_0 + GLM-OCR-f16 + mmproj-GLM-OCR-Q8_0
+            context_window=32768,
+            priority=25,  # the OCR_DOC specialist (was none) — the LAST empty Task slot
+            verified_working=False,  # mmproj serving proof NOT yet run (shares item 18's path)
+            notes=(
+                "Official ggml-org OCR/document VLM (the seed for Task.OCR_DOC; HF id verified "
+                "ggml-org/GLM-OCR-GGUF, 23,009 dl, GGUF + mmproj-GLM-OCR-Q8_0). Runs via "
+                "`llama-server -hf ggml-org/GLM-OCR-GGUF` (mmproj auto-paired). mmproj-GATED: "
+                "lemonade --mmproj support UNPROVEN → llama-mtmd sidecar fallback; K1/rule-5 OOM "
+                "gate must pass before pinning (size unconfirmed). verified_working flips True only "
+                "after a real OCR/doc proof — SHARES item 18's vision-projector experiment."
+            ),
+        ),
+        ModelEntry(
+            model_id="Mellum-4b-base-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # FIM completion via /api/v1/completions (NOT chat)
+            task_affinity=frozenset({Task.FIM}),
+            weight_quant=WeightQuant.INT8,  # GGUF mellum-4b-base.Q8_0 (≈8-bit); enum has no Q8_0
+            context_window=8192,
+            priority=25,  # the FIM specialist (was none) — the LAST empty Task slot now filled
+            verified_working=False,  # FIM-completion serving proof NOT yet run — see item 28
+            notes=(
+                "JetBrains Mellum-4b FIM-native BASE model (the seed for Task.FIM; HF id VERIFIED "
+                "huggingface_hub.model_info — JetBrains/Mellum-4b-base-gguf, 406 dl, 1 GGUF "
+                "mellum-4b-base.Q8_0.gguf, research round 4). Fill-in-the-middle via "
+                "/api/v1/completions with <fim_prefix>…<fim_suffix>…<fim_middle> tokens — NOT a "
+                "chat model. Q8_0 ≈ 4 GB → load on-demand, do NOT pin (K1/rule-5). "
+                "verified_working flips True only after a real FIM-completion serving proof."
+            ),
+        ),
+        ModelEntry(
+            model_id="Granite-4.1-8B-GGUF",
+            lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
+            endpoint="http://localhost:13305",  # the ALWAYS-UP lemonade router (Hermes-shared)
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset(
+                {Task.REASONING, Task.GENERAL}
+            ),  # 3b stays FUNCTION_CALL specialist
+            weight_quant=WeightQuant.Q4_K_M,
+            context_window=131072,
+            priority=12,  # preferred LOCAL reasoning/agent-offload pick (below the 26B's 15)
+            verified_working=True,  # live-proven 2026-06-06 (V1_OK, reasoning_content=0)
+            last_verified_at=datetime(2026, 6, 6),
+            notes=(
+                "Extends agent availability with $0 local inference: the verified-live, "
+                "NO-THINKING, tool-capable Granite-4.1-8B served by the always-up lemonade router "
+                ":13305 (the same model Hermes runs). Registered because the registry's other local "
+                "REASONING model (Gemma-4-26B-A4B) points at the DOWN :13308 lane — so route(REASONING,"
+                " $0) was returning 'all candidates exhausted' and silently escalating to cloud. This "
+                "is the local-first target for extend_claude. No thinking-trap (reasoning_content "
+                "empty on plain turns); finish_reason=tool_calls on tool turns."
             ),
         ),
         ModelEntry(
@@ -286,29 +413,6 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             notes=(
                 "Code generation specialist. Native 256K context (repository-scale); "
                 "YARN extension to 1M. Reduce to ctx=32768 if OOM per model card guidance."
-            ),
-        ),
-        # --- Fast FIM code-completion specialist (JetBrains Mellum) ---
-        ModelEntry(
-            model_id="Mellum-4b-base-gguf-mellum-4b-base.Q8_0.gguf",
-            lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # lemonade router (serves by model name)
-            runtime_backend="llamacpp_hip",
-            task_affinity=frozenset({Task.CODE_GEN}),
-            weight_quant=WeightQuant.INT8,  # GGUF Q8_0
-            context_window=8192,
-            # priority 25: below qwen3-coder:30b (30) so fast FIM completion is preferred
-            # for CODE_GEN, while the heavier qwen coder remains the fallback.
-            priority=25,
-            verified_working=True,  # live FIM smoke 2026-06-01: "return " -> "a + b"
-            last_verified_at=datetime(2026, 6, 1),
-            reasoning_mode=False,  # base FIM model — no thinking tokens, content-clean
-            notes=(
-                "JetBrains Mellum-4b — fast FIM code-completion specialist (Apache-2.0, "
-                "4B dense, 8192 ctx, Q8_0). BASE = fill-in-the-middle completion: prompt with "
-                "<fim_prefix>…<fim_suffix>…<fim_middle>, use /completions (not chat). Natural "
-                "backend for `gaia api` IDE completion. Upgrade target when an official "
-                "Mellum-2 (12B-A2.5B) GGUF lands — see watch_mellum2_gguf.py."
             ),
         ),
         ModelEntry(
