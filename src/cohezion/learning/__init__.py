@@ -153,6 +153,20 @@ with contextlib.suppress(Exception):
         VaultNeuronWriter as VaultNeuronWriter,
     )
 
+# Wiring-sweep 2026-06-22: mycelium_registry and mycelium_network were genuine orphans.
+with contextlib.suppress(Exception):
+    from cohezion.learning.mycelium_registry import (
+        MyceliumRegistry as MyceliumRegistry,
+    )
+    from cohezion.learning.mycelium_registry import (
+        SynthesizedSkill as SynthesizedSkill,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.learning.mycelium_network import (
+        MyceliumNetwork as MyceliumNetwork,
+    )
+
 
 _instance: SkillGenerator | None = None
 
