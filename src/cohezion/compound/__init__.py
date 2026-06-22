@@ -513,6 +513,17 @@ with contextlib.suppress(Exception):
     )
 
 
+# Wiring-sweep 2026-06-22: loop_daemon, trace_exporter, vmodel_harness orphans.
+with contextlib.suppress(Exception):
+    from cohezion.compound.loop_daemon import LoopDaemon as LoopDaemon
+
+with contextlib.suppress(Exception):
+    from cohezion.compound.trace_exporter import OtelSpan as OtelSpan
+
+with contextlib.suppress(Exception):
+    from cohezion.compound.vmodel_harness import VModelHarness as VModelHarness
+
+
 def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
     """Factory that wires local AMD silicon (Triune) inference by default.
 

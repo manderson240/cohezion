@@ -258,6 +258,11 @@ with contextlib.suppress(Exception):
         StreamingKVCompressor as StreamingKVCompressor,
     )
 
+# Wiring-sweep 2026-06-22: seed_evaluator — best-of-N seed selection for local inference.
+with contextlib.suppress(Exception):
+    from cohezion.inference.seed_evaluator import eval_quality as eval_quality
+    from cohezion.inference.seed_evaluator import select_best_seed as select_best_seed
+
 from cohezion.inference.fleet import RouteResult, extend_claude, route
 from cohezion.inference.harnesses import (
     Harness,
