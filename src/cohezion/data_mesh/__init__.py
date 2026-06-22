@@ -48,3 +48,53 @@ with contextlib.suppress(Exception):
         "SpectrogramConfig",
         "TaxonomyLevel",
     ]
+
+# Wiring-sweep 2026-06-22: data_product.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.data_product import DataProduct as DataProduct
+    from cohezion.data_mesh.data_product import DataProductSchema as DataProductSchema
+    from cohezion.data_mesh.data_product import DataProductStatus as DataProductStatus
+    from cohezion.data_mesh.data_product import DataQualityTier as DataQualityTier
+    from cohezion.data_mesh.data_product import (
+        get_cohezion_data_products as get_cohezion_data_products,
+    )
+
+# Wiring-sweep 2026-06-22: corpus_quality_consumer.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.corpus_quality_consumer import (
+        CorpusQualityConsumer as CorpusQualityConsumer,
+    )
+    from cohezion.data_mesh.corpus_quality_consumer import (
+        make_corpus_quality_consumer as make_corpus_quality_consumer,
+    )
+
+# Wiring-sweep 2026-06-22: event_bridge.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.event_bridge import (
+        DataMeshEventBridge as DataMeshEventBridge,
+    )
+    from cohezion.data_mesh.event_bridge import (
+        make_event_bridge as make_event_bridge,
+    )
+
+# Wiring-sweep 2026-06-22: journey_telemetry.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.journey_telemetry import (
+        FlumeJourneyEvent as FlumeJourneyEvent,
+    )
+    from cohezion.data_mesh.journey_telemetry import HardwareTier as HardwareTier
+    from cohezion.data_mesh.journey_telemetry import (
+        QuadratureFabrics as QuadratureFabrics,
+    )
+
+# Wiring-sweep 2026-06-22: lemonade_multimodal.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.lemonade_multimodal import (
+        LemonadeMultimodalClient as LemonadeMultimodalClient,
+    )
+
+# Wiring-sweep 2026-06-22: universe_telemetry.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.universe_telemetry import (
+        UniverseStateEvent as UniverseStateEvent,
+    )

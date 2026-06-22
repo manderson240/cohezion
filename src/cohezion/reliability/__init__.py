@@ -7,6 +7,7 @@ Provides:
 - Automatic recovery testing
 """
 
+import contextlib
 import logging
 import time
 from dataclasses import dataclass
@@ -132,6 +133,70 @@ class CircuitBreaker:
             "failures": self._stats.failures,
             "successes": self._stats.successes,
         }
+
+
+# Wiring-sweep 2026-06-22: reliability sub-modules were genuine import-graph orphans.
+with contextlib.suppress(Exception):
+    from cohezion.reliability.blackwell_handshake import (
+        BlackwellHandshake as BlackwellHandshake,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.batch_manager import BatchManager as BatchManager
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.context_harness import ContextHarness as ContextHarness
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.heartbeat import get_heartbeats as get_heartbeats
+    from cohezion.reliability.heartbeat import update_heartbeat as update_heartbeat
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.memory_manager import MemoryManager as MemoryManager
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.monitor import (
+        ResourceMonitor as ResourceMonitor,
+    )
+    from cohezion.reliability.monitor import (
+        get_resource_monitor as get_resource_monitor,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.offload_manager import OffloadManager as OffloadManager
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.pool import ConnectionPool as ConnectionPool
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.resource_guard import ResourceGuard as ResourceGuard
+    from cohezion.reliability.resource_guard import SystemVitals as SystemVitals
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.resolver import HallucinationResolver as HallucinationResolver
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.semantic_cache import SemanticCache as SemanticCache
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.sync import AgentWorkspace as AgentWorkspace
+    from cohezion.reliability.sync import FileLock as FileLock
+    from cohezion.reliability.sync import SafeWriter as SafeWriter
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.viscoelastic import (
+        ViscoelasticController as ViscoelasticController,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.quantum_performance_monitor import (
+        MetricType as MetricType,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.reliability.residency_awareness import (
+        ResidencyAnchorBase as ResidencyAnchorBase,
+    )
 
 
 # Circuit registry
