@@ -5,8 +5,14 @@ import contextlib
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
 # Wiring-sweep 2026-06-22: diversity.py was a genuine import-graph orphan (Gvendi diversity
-# filter). SkillStateEncoder skipped — surface-name duplicate exists in skill_state_encoder.py.
+# filter + LatentDirectionProbe for mechanistic interpretability).
 with contextlib.suppress(Exception):
+    from cohezion.flume.diversity import (
+        ConceptDirection as ConceptDirection,
+    )
+    from cohezion.flume.diversity import (
+        LatentDirectionProbe as LatentDirectionProbe,
+    )
     from cohezion.flume.diversity import (
         gvendi_diversity_filter as gvendi_diversity_filter,
     )
