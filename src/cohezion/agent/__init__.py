@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import contextlib
 
-from cohezion.agent.unified_harness import ExecutionTrace, ToolRegistry, UnifiedAgent
-
-
-__all__ = [UnifiedAgent, ToolRegistry, ExecutionTrace]
+with contextlib.suppress(Exception):
+    from cohezion.agent.unified_harness import ExecutionTrace as ExecutionTrace
+    from cohezion.agent.unified_harness import ToolRegistry as ToolRegistry
+    from cohezion.agent.unified_harness import UnifiedAgent as UnifiedAgent
 
 # Wiring-sweep 2026-06-22: skill_adaptor was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
