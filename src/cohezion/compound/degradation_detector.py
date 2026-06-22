@@ -154,6 +154,14 @@ class DegradationDetector:
         # Routing feedback callback (wired by CompoundExecutor)
         self._routing_callback: Any = None
 
+        # CB12: per-metric health verdict — updated each check_degradation() call.
+        # None = not yet checked (grace period for that metric).
+        self._current_health: dict[str, bool | None] = {
+            "cache_hit_rate": None,
+            "token_efficiency": None,
+            "coherence": None,
+        }
+
         logger.debug("DegradationDetector initialized with thresholds")
 
     def set_routing_callback(self, callback: Any) -> None:
@@ -286,6 +294,18 @@ class DegradationDetector:
         _ts = metrics.get("token_surprisal")
         if _ts is not None:
             self._baselines["token_surprisal"].add_sample(float(_ts))
+
+        # CB12: update per-metric health verdicts for composite score / routing tier
+        if cache_hit_rate is not None and self._baselines["cache_hit_rate"].is_established:
+            self._current_health["cache_hit_rate"] = (
+                float(cache_hit_rate) >= self.cache_hit_rate_threshold
+            )
+        if tokens_per_sec is not None and self._baselines["token_efficiency"].is_established:
+            _base_tok = self._baselines["token_efficiency"].mean
+            _drop = 1.0 - (float(tokens_per_sec) / _base_tok) if _base_tok > 0 else 0.0
+            self._current_health["token_efficiency"] = _drop <= self.token_efficiency_drop_threshold
+        if coherence is not None and self._baselines["coherence"].is_established:
+            self._current_health["coherence"] = float(coherence) >= self.coherence_threshold
 
         # Constitutional equilibrium check (non-blocking)
         # Validates HIHO attractor convergence via ManifoldEquilibrium
@@ -519,6 +539,34 @@ class DegradationDetector:
             "by_metric": by_metric,
             "most_recent_per_metric": most_recent,
         }
+
+    def get_composite_health_score(self) -> float | None:
+        """CB12: 0–100 composite health score, None while any baseline is in grace period."""
+        keys = ["cache_hit_rate", "token_efficiency", "coherence"]
+        if not all(self._baselines[m].is_established for m in keys):
+            return None
+        healthy = sum(1 for v in self._current_health.values() if v is True)
+        return (healthy / len(self._current_health)) * 100.0
+
+    def suggest_routing_tier(self) -> str:
+        """CB12: Return Triune tier recommendation. Never raises, never None.
+
+        Returns:
+            "npu"  — score ≥ 80 (healthy, use fastest tier)
+            "igpu" — score 50–79 or grace period (middle tier / default)
+            "cpu"  — score < 50 (degraded, use most capable tier)
+        """
+        try:
+            score = self.get_composite_health_score()
+            if score is None:
+                return "igpu"
+            if score >= 80.0:
+                return "npu"
+            if score >= 50.0:
+                return "igpu"
+            return "cpu"
+        except Exception:
+            return "igpu"
 
     def reset_baselines(self) -> None:
         """Reset all baselines (for testing or fresh start)."""

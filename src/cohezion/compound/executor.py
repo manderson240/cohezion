@@ -78,6 +78,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
       - Token metrics captured in ExecutionResult for compound scoring
     """
 
+    # MGPO: fire batch refinement every N skill executions
+    MGPO_BATCH_SIZE: int = 10
+
     def __init__(
         self,
         mcp_client: MCPClient,
@@ -170,6 +173,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
             self._skill_health_tracker = SkillHealthTracker()
 
+        # MGPO: accumulator of recent skill names for boundary-first batch refinement
+        self._recent_skill_names: list[str] = []
+
         # Geometric Latent Bridge for topological reasoning
         try:
             from cohezion.flume.geometric_bridge import GeometricLatentBridge
@@ -233,6 +239,41 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("Initialized default skill refiner")
 
         return self._skill_refiner
+
+    def _batch_mgpo_refine(self, top_k: int | None = None) -> None:
+        """MGPO: refine boundary skills (highest weight) from the recent-skill accumulator.
+
+        Deduplicates candidates, sorts by MGPO weight (boundary-first), calls
+        skill_refiner.refine() for the top K, then drains the accumulator.
+        """
+        if not self._recent_skill_names:
+            return
+        refiner = self.skill_refiner
+        if refiner is None:
+            self._recent_skill_names = []
+            return
+        try:
+            candidates = list(dict.fromkeys(self._recent_skill_names))
+            prioritized = refiner.prioritized_skills(candidates)
+            k = top_k if top_k is not None else len(prioritized)
+            for skill in prioritized[:k]:
+                try:
+                    refiner.refine(
+                        skill_name=skill,
+                        operation_type="mgpo_batch",
+                        execution_result={},
+                    )
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        finally:
+            self._recent_skill_names = []
+
+    def _check_mgpo_batch(self) -> None:
+        """Fire _batch_mgpo_refine() when accumulator reaches MGPO_BATCH_SIZE."""
+        if len(self._recent_skill_names) >= self.MGPO_BATCH_SIZE:
+            self._batch_mgpo_refine()
 
     @property
     def alignment_analyzer(self) -> Any | None:

@@ -19,6 +19,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+# MGPO: VaultNeuronWriter must be importable at module level so tests can mock
+# `cohezion.compound.skill_refiner.VaultNeuronWriter` directly.
+try:
+    from cohezion.learning.vault_neuron_reader import VaultNeuronWriter
+except ImportError:
+    VaultNeuronWriter = None  # type: ignore[assignment,misc]
+
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +77,29 @@ class SkillRefiner:
             mcp_client: Optional MCPClient for vault operations
         """
         self.mcp_client = mcp_client
+
+    def mgpo_weight(self, skill_name: str, gamma: float = 5.0) -> float:
+        """MGPO boundary weight: w = exp(-γ * |success_rate - 0.5|).
+
+        Returns 1.0 (maximum priority) when no data is available — treat unexplored
+        skills as operating at the boundary where learning is most efficient.
+        """
+        import math
+
+        try:
+            if VaultNeuronWriter is None:
+                return 1.0
+            vnw = VaultNeuronWriter.get_instance()
+            sr = vnw.query_category_success_rate(skill_name)
+            if sr is None:
+                return 1.0
+            return math.exp(-gamma * abs(sr - 0.5))
+        except Exception:
+            return 1.0
+
+    def prioritized_skills(self, skill_names: list[str], gamma: float = 5.0) -> list[str]:
+        """Return skill_names sorted descending by mgpo_weight (boundary-first ordering)."""
+        return sorted(skill_names, key=lambda s: self.mgpo_weight(s, gamma), reverse=True)
 
     def refine(
         self,
