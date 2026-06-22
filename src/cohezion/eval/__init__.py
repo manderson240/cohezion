@@ -8,10 +8,7 @@ with contextlib.suppress(Exception):
     from cohezion.eval.capability_scorecard import StatisticalComparison as StatisticalComparison
 
 with contextlib.suppress(Exception):
-    from cohezion.eval.huggingface_export import (
-        HuggingFaceExporter as HuggingFaceExporter,
-    )
-    from cohezion.eval.huggingface_export import EVOTask as EVOTask
+    from cohezion.eval.huggingface_export import HuggingFaceExporter as HuggingFaceExporter
 
 with contextlib.suppress(Exception):
     from cohezion.eval.pipeline import EpisodeResult as EpisodeResult
