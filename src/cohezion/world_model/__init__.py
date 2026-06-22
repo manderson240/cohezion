@@ -30,3 +30,26 @@ with contextlib.suppress(Exception):
     from cohezion.world_model.jepa_world_model_persistent import (
         JEPAWorldModelPersistent as JEPAWorldModelPersistent,
     )
+
+# Wiring-sweep 2026-06-22: observer, surprise_action_gate, surprise_router, jepa_world_model
+# were genuine import-graph orphans.
+with contextlib.suppress(Exception):
+    from cohezion.world_model.observer import (
+        Observer as Observer,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.world_model.surprise_action_gate import (
+        GateOutcome as GateOutcome,
+    )
+    from cohezion.world_model.surprise_action_gate import (
+        SurpriseActionGate as SurpriseActionGate,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.world_model.surprise_router import (
+        ActionMode as ActionMode,
+    )
+    from cohezion.world_model.surprise_router import (
+        SurpriseRouter as SurpriseRouter,
+    )

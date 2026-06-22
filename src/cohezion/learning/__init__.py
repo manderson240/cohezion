@@ -199,3 +199,20 @@ def get_skill_generator() -> SkillGenerator:
     if _instance is None:
         _instance = SkillGenerator()
     return _instance
+
+
+# Wiring-sweep 2026-06-22: deep_research and ouroboros_trigger were genuine import-graph orphans.
+import contextlib as _contextlib
+
+with _contextlib.suppress(Exception):
+    from cohezion.learning.deep_research import (
+        DeepResearchPipeline as DeepResearchPipeline,
+    )
+
+with _contextlib.suppress(Exception):
+    from cohezion.learning.ouroboros_trigger import (
+        OuroborosTrigger as OuroborosTrigger,
+    )
+    from cohezion.learning.ouroboros_trigger import (
+        TriggerState as TriggerState,
+    )
