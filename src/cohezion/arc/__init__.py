@@ -29,6 +29,20 @@ from cohezion.arc.tracks import (
 )
 
 
+import contextlib
+
+# Wiring-sweep 2026-06-22: data_loader, evaluate_local, solver, transforms were orphans.
+with contextlib.suppress(Exception):
+    from cohezion.arc.data_loader import load_task as load_task
+    from cohezion.arc.data_loader import load_all as load_all
+
+with contextlib.suppress(Exception):
+    from cohezion.arc.evaluate_local import score_submission as score_submission
+
+with contextlib.suppress(Exception):
+    from cohezion.arc.solver import SolverState as SolverState
+
+
 __all__ = [
     "ARCAGI2Pipeline",
     "ARCAGI3Pipeline",
