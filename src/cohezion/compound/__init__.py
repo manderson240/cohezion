@@ -276,6 +276,229 @@ from cohezion.compound.tdd_adversarial.tdd_integration import (
     get_tdd_integration as get_tdd_integration,
 )
 
+# Wiring-sweep 2026-06-22: behavioral_eval was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.behavioral_eval import (
+        BehaviorProperty as BehaviorProperty,
+    )
+    from cohezion.compound.behavioral_eval import (
+        BehaviorTestResult as BehaviorTestResult,
+    )
+
+# Wiring-sweep 2026-06-22: eco_symphony was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.eco_symphony import (
+        CompoundEcoSymphony as CompoundEcoSymphony,
+    )
+    from cohezion.compound.eco_symphony import (
+        EcoResilienceCompoundEngine as EcoResilienceCompoundEngine,
+    )
+
+# Wiring-sweep 2026-06-22: evolution_training_bridge was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.evolution_training_bridge import (
+        EvolutionTrainingConfig as EvolutionTrainingConfig,
+    )
+    from cohezion.compound.evolution_training_bridge import (
+        EvolutionTrainingExporter as EvolutionTrainingExporter,
+    )
+    from cohezion.compound.evolution_training_bridge import (
+        EvolutionTrainingSignalGenerator as EvolutionTrainingSignalGenerator,
+    )
+
+# Wiring-sweep 2026-06-22: experiment_correlator was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.experiment_correlator import (
+        compute_temporal_correlation as compute_temporal_correlation,
+    )
+
+# Wiring-sweep 2026-06-22: harness was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.harness import (
+        HarnessSynthesizer as HarnessSynthesizer,
+    )
+    from cohezion.compound.harness import (
+        run_verification as run_verification,
+    )
+
+# Wiring-sweep 2026-06-22: health was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.health import (
+        CompoundHealthReport as CompoundHealthReport,
+    )
+    from cohezion.compound.health import (
+        SkillHistoryResponse as SkillHistoryResponse,
+    )
+
+# Wiring-sweep 2026-06-22: holographic_projection was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.holographic_projection import (
+        encode_step_sequence as encode_step_sequence,
+    )
+    from cohezion.compound.holographic_projection import (
+        holographic_project as holographic_project,
+    )
+    from cohezion.compound.holographic_projection import (
+        step_to_axiomatic as step_to_axiomatic,
+    )
+    from cohezion.compound.holographic_projection import (
+        text_to_latent as text_to_latent,
+    )
+
+# Wiring-sweep 2026-06-22: intake_specialist was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.intake_specialist import (
+        IntakeGreeting as IntakeGreeting,
+    )
+    from cohezion.compound.intake_specialist import (
+        IntakeSpecialist as IntakeSpecialist,
+    )
+
+# Wiring-sweep 2026-06-22: long_horizon_task was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.long_horizon_task import (
+        LongHorizonTask as LongHorizonTask,
+    )
+    from cohezion.compound.long_horizon_task import (
+        TaskStepResult as TaskStepResult,
+    )
+    from cohezion.compound.long_horizon_task import (
+        get_context_usage_percent as get_context_usage_percent,
+    )
+
+# Wiring-sweep 2026-06-22: plasma_theosophy_synthesizer was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.plasma_theosophy_synthesizer import (
+        PlasmaAnomalyData as PlasmaAnomalyData,
+    )
+    from cohezion.compound.plasma_theosophy_synthesizer import (
+        PlasmaTheosophySynthesizer as PlasmaTheosophySynthesizer,
+    )
+
+# Wiring-sweep 2026-06-22: post_execution was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.post_execution import (
+        PostExecutionOrchestrator as PostExecutionOrchestrator,
+    )
+
+# Wiring-sweep 2026-06-22: recursive_challenger was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.recursive_challenger import (
+        ImprovementOpportunity as ImprovementOpportunity,
+    )
+    from cohezion.compound.recursive_challenger import (
+        RecursiveChallenger as RecursiveChallenger,
+    )
+    from cohezion.compound.recursive_challenger import (
+        get_test_count as get_test_count,
+    )
+
+# Wiring-sweep 2026-06-22: retrospection_summary was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.retrospection_summary import (
+        CycleMetrics as CycleMetrics,
+    )
+    from cohezion.compound.retrospection_summary import (
+        RetrospectionSummary as RetrospectionSummary,
+    )
+
+# Wiring-sweep 2026-06-22: retrospection_validator was a genuine import-graph orphan.
+# ValidationResult skipped — name collision with journey_to_training.ValidationResult (already wired).
+with contextlib.suppress(Exception):
+    from cohezion.compound.retrospection_validator import (
+        RetrospectionValidator as RetrospectionValidator,
+    )
+
+# Wiring-sweep 2026-06-22: routing_feedback_loop was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.routing_feedback_loop import (
+        RoutingDecision as RoutingDecision,
+    )
+    from cohezion.compound.routing_feedback_loop import (
+        RoutingDecisionType as RoutingDecisionType,
+    )
+    from cohezion.compound.routing_feedback_loop import (
+        RoutingMetrics as RoutingMetrics,
+    )
+
+# Wiring-sweep 2026-06-22: skill_consensus_voter was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.skill_consensus_voter import (
+        AgentVote as AgentVote,
+    )
+    from cohezion.compound.skill_consensus_voter import (
+        VotingStrategy as VotingStrategy,
+    )
+
+# Wiring-sweep 2026-06-22: skill_refinement_validator was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.skill_refinement_validator import (
+        RefinementMetrics as RefinementMetrics,
+    )
+    from cohezion.compound.skill_refinement_validator import (
+        SkillRefinementValidator as SkillRefinementValidator,
+    )
+
+# Wiring-sweep 2026-06-22: tape_logger was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.tape_logger import (
+        TapeEntry as TapeEntry,
+    )
+    from cohezion.compound.tape_logger import (
+        TapeLogger as TapeLogger,
+    )
+
+# Wiring-sweep 2026-06-22: task_queue was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.task_queue import (
+        QueuedTask as QueuedTask,
+    )
+    from cohezion.compound.task_queue import (
+        TaskPriority as TaskPriority,
+    )
+
+# Wiring-sweep 2026-06-22: thermal_predictor was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.thermal_predictor import (
+        ThermalMetrics as ThermalMetrics,
+    )
+
+# Wiring-sweep 2026-06-22: universe_bridge was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.universe_bridge import (
+        UniverseBridge as UniverseBridge,
+    )
+
+# Wiring-sweep 2026-06-22: vault_search_executor was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.vault_search_executor import (
+        SearchQuery as SearchQuery,
+    )
+    from cohezion.compound.vault_search_executor import (
+        SearchResult as SearchResult,
+    )
+
+# Wiring-sweep 2026-06-22: vector_pruning was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.vector_pruning import (
+        PruningReport as PruningReport,
+    )
+    from cohezion.compound.vector_pruning import (
+        SemanticVector as SemanticVector,
+    )
+
+# Wiring-sweep 2026-06-22: workflow_manager was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.workflow_manager import (
+        GapReport as GapReport,
+    )
+    from cohezion.compound.workflow_manager import (
+        OnboardingResult as OnboardingResult,
+    )
+    from cohezion.compound.workflow_manager import (
+        WorkflowManager as WorkflowManager,
+    )
+
 
 def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
     """Factory that wires local AMD silicon (Triune) inference by default.
