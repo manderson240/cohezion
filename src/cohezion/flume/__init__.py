@@ -241,3 +241,9 @@ with contextlib.suppress(Exception):
 # Wiring-sweep 2026-06-22: vliw_kernel_sim.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.flume.vliw_kernel_sim import VLIWSimulator as VLIWSimulator
+
+# Wiring-sweep 2026-06-22: sparse_analysis.py — overcomplete dictionary learning.
+with contextlib.suppress(Exception):
+    from cohezion.flume.sparse_analysis import (
+        SparseLatentAnalysis as SparseLatentAnalysis,
+    )

@@ -738,6 +738,11 @@ class PostExecutionOrchestrator:
                 # mycelium API reader (closes the recursion loop). Matches the
                 # executor Step 10.6 writer path.
                 self._ex._mycelium_registry = MyceliumRegistry.get_instance()
+            from cohezion.compound.clr_quality_gate import CLRQualityGate
+
+            gate = CLRQualityGate()
+            if not gate.passes(task_description):
+                return
             entry = JournalEntry(
                 entry_id=f"exec_{int(time.time())}_{skill_name}",
                 content=f"Executed {skill_name}: {task_description[:200]}",

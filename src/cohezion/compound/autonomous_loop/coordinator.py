@@ -86,7 +86,10 @@ class LoopCoordinator:
         cloud_exec = executor
 
         if self.config.use_local_inference:
-            local_exec = LocalImprovementExecutor(self.config.local_base_url)
+            local_exec = LocalImprovementExecutor(
+                self.config.local_base_url,
+                degradation_detector=self._degradation_detector,
+            )
             local_exec.start(self.config.worktree_path)
         else:
             cloud_exec = cloud_exec or ImprovementExecutor(self.config)
@@ -94,7 +97,6 @@ class LoopCoordinator:
 
         sprint_start = time.monotonic()
         sprint = SprintResult()
-        use_batch = local_exec is not None and hasattr(local_exec, "execute_batch")
 
         try:
             remaining = list(self._backlog)
@@ -103,73 +105,31 @@ class LoopCoordinator:
                 if total_tokens >= self.config.max_tokens:
                     break
 
-                # Partition: tasks ready for cloud escalation vs. local
-                cloud_tasks = [
-                    t
-                    for t in remaining
-                    if fail_counts.get(t.id, 0) >= self.config.cloud_escalation_threshold
-                ]
-                local_tasks = [t for t in remaining if t not in cloud_tasks]
+                # Process one task at a time so fail_counts updates between picks
+                # of the same task id (enables correct cloud escalation).
+                task = remaining.pop(0)
 
-                # --- Cloud escalation (sequential) ---
-                for task in cloud_tasks:
-                    if cloud_exec is not None:
-                        if not cloud_exec._started:
-                            cloud_exec.start(self.config.worktree_path)
-                        result = cloud_exec.execute_task(task, self.config.worktree_path)
-                        tokens = result.get("tokens_used", 0)
-                        sprint.cloud_tokens += tokens
-                        self._record_result(
-                            result, task, True, tokens, report, fail_counts, category_stats, sprint
-                        )
+                use_cloud = (
+                    fail_counts.get(task.id, 0) >= self.config.cloud_escalation_threshold
+                    or local_exec is None  # no local exec → always route to cloud
+                )
 
-                # --- Local execution: batch (concurrent) or sequential ---
-                if local_tasks and local_exec is not None:
-                    if use_batch:
-                        batch_results = local_exec.execute_batch(
-                            local_tasks, self.config.worktree_path, max_workers=3
-                        )
-                        # Match results back to tasks by task_id
-                        result_by_id = {r.get("task_id", ""): r for r in batch_results}
-                        for task in local_tasks:
-                            result = result_by_id.get(
-                                task.id,
-                                {
-                                    "success": False,
-                                    "tokens_used": 0,
-                                    "task_id": task.id,
-                                    "summary": "no result from batch",
-                                },
-                            )
-                            tokens = result.get("tokens_used", 0)
-                            sprint.local_tokens += tokens
-                            self._record_result(
-                                result,
-                                task,
-                                False,
-                                tokens,
-                                report,
-                                fail_counts,
-                                category_stats,
-                                sprint,
-                            )
-                    else:
-                        for task in local_tasks:
-                            result = local_exec.execute_task(task, self.config.worktree_path)
-                            tokens = result.get("tokens_used", 0)
-                            sprint.local_tokens += tokens
-                            self._record_result(
-                                result,
-                                task,
-                                False,
-                                tokens,
-                                report,
-                                fail_counts,
-                                category_stats,
-                                sprint,
-                            )
-
-                remaining = []  # all tasks processed in this pass
+                if use_cloud and cloud_exec is not None:
+                    if not getattr(cloud_exec, "_started", False):
+                        cloud_exec.start(self.config.worktree_path)
+                    result = cloud_exec.execute_task(task, self.config.worktree_path)
+                    tokens = result.get("tokens_used", 0)
+                    sprint.cloud_tokens += tokens
+                    self._record_result(
+                        result, task, True, tokens, report, fail_counts, category_stats, sprint
+                    )
+                elif local_exec is not None:
+                    result = local_exec.execute_task(task, self.config.worktree_path)
+                    tokens = result.get("tokens_used", 0)
+                    sprint.local_tokens += tokens
+                    self._record_result(
+                        result, task, False, tokens, report, fail_counts, category_stats, sprint
+                    )
 
                 elapsed = time.monotonic() - sprint_start
                 if elapsed >= self.config.sprint_duration_seconds:
@@ -239,7 +199,7 @@ class LoopCoordinator:
                 "node": result.get("node", "cloud" if is_cloud else "?"),
                 "model": result.get("model", "?"),
                 "elapsed_ms": result.get("elapsed_ms", 0),
-                "fallback": result.get("fallback", False),
+                "fallback": len(result.get("tried_models") or []) > 1,
                 "quality_score": quality_score,
             }
         )

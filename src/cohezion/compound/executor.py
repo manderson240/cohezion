@@ -190,6 +190,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             self.geometric_bridge = None
             logger.debug("GeometricLatentBridge not available")
 
+        # SkillStateEncoder: FLUME 256D encoding for post-execution skill state
+        self._skill_state_encoder = None
+        try:
+            from cohezion.flume.skill_state_encoder import SkillStateEncoder
+
+            self._skill_state_encoder = SkillStateEncoder()
+        except Exception:  # noqa: BLE001
+            pass
+
         self._degradation_mode = False  # HIHO band violation flag
         # Lazy import to avoid circular dependency
         if inflection_detector:
@@ -226,6 +235,41 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("Initialized default guardrail pipeline")
 
         return self._guardrail_pipeline
+
+    def _flume_encode_skill_state(
+        self,
+        skill_name: str,
+        *,
+        mgpo_weight: float,
+        success_rate: float,
+        verdict: object | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Encode skill state into a 256D FLUME vector (fail-open).
+
+        Routes to encode_rubric_verdict when ``verdict`` is provided,
+        otherwise to encode_skill.  Returns None when the encoder is
+        absent or any exception occurs.
+        """
+        if self._skill_state_encoder is None:
+            return None
+        try:
+            if verdict is not None:
+                return self._skill_state_encoder.encode_rubric_verdict(
+                    skill_name,
+                    verdict,
+                    mgpo_weight=mgpo_weight,
+                    success_rate=success_rate,
+                    **kwargs,
+                )
+            return self._skill_state_encoder.encode_skill(
+                skill_name,
+                mgpo_weight=mgpo_weight,
+                success_rate=success_rate,
+                **kwargs,
+            )
+        except Exception:  # noqa: BLE001
+            return None
 
     @property
     def skill_refiner(self) -> Any | None:
