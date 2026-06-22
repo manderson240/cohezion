@@ -16,6 +16,7 @@ from cohezion.core.mcp_client import (
 from cohezion.core.vault_subscription import VaultEvent as VaultChangeEvent
 from cohezion.core.vault_subscription import VaultSubscriptionClient
 
+
 # Wiring-sweep 2026-06-22: core/ orphan modules round-4
 with contextlib.suppress(Exception):
     from cohezion.core.plan_executor import (
@@ -146,6 +147,54 @@ with contextlib.suppress(Exception):
     from cohezion.core.event_bus import (
         EventBus as EventBus,
     )
+
+# Wiring-sweep 2026-06-22: core/ orphan modules round-5
+with contextlib.suppress(Exception):
+    from cohezion.core.cache_manager import CacheManager as CacheManager
+with contextlib.suppress(Exception):
+    from cohezion.core.config_templates import ConfigTemplateManager as ConfigTemplateManager
+with contextlib.suppress(Exception):
+    from cohezion.core.credit_manager import CreditManager as CreditManager
+with contextlib.suppress(Exception):
+    from cohezion.core.journey_persistence_manager import (
+        JourneyPersistenceManager as JourneyPersistenceManager,
+    )
+with contextlib.suppress(Exception):
+    from cohezion.core.journey_persistence_manager import TrajectoryNode as TrajectoryNode
+with contextlib.suppress(Exception):
+    from cohezion.core.journey_worker import JourneyWorker as JourneyWorker
+with contextlib.suppress(Exception):
+    from cohezion.core.local_registry import LocalRegistry as LocalRegistry
+with contextlib.suppress(Exception):
+    from cohezion.core.mcp_retry import retry_sync as retry_sync
+with contextlib.suppress(Exception):
+    from cohezion.core.resource_monitor import ResourceMonitor as ResourceMonitor
+with contextlib.suppress(Exception):
+    from cohezion.core.routing.router import LocalExpertRouter as LocalExpertRouter
+with contextlib.suppress(Exception):
+    from cohezion.core.routing.manifold_bridge import ManifoldBridge as ManifoldBridge
+with contextlib.suppress(Exception):
+    from cohezion.core.silicon_guard import SiliconGuard as SiliconGuard
+with contextlib.suppress(Exception):
+    from cohezion.core.silicon_guard import HardwarePressure as HardwarePressure
+with contextlib.suppress(Exception):
+    from cohezion.core.symmetry_hardware_bridge import (
+        SymmetryHardwareBridge as SymmetryHardwareBridge,
+    )
+with contextlib.suppress(Exception):
+    from cohezion.core.telemetry_bus import TelemetryBus as TelemetryBus
+with contextlib.suppress(Exception):
+    from cohezion.core.template_engine import TemplateEngine as TemplateEngine
+with contextlib.suppress(Exception):
+    from cohezion.core.template_engine import SkillSpec as SkillSpec
+with contextlib.suppress(Exception):
+    from cohezion.core.time_keeper import TimeKeeper as TimeKeeper
+with contextlib.suppress(Exception):
+    from cohezion.core.timeit import TimeitStats as TimeitStats
+with contextlib.suppress(Exception):
+    from cohezion.core.zvol_swap import ZVOLSwapPipeline as ZVOLSwapPipeline
+with contextlib.suppress(Exception):
+    from cohezion.core.zvol_swap import SwapEventType as SwapEventType
 
 
 __all__ = [
