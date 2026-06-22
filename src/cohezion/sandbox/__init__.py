@@ -76,3 +76,21 @@ __all__ = [
     "get_executor",
     "get_hook_integration",
 ]
+
+import contextlib
+
+# Wiring-sweep 2026-06-22: isolation, rollback, shadow_worktree were genuine orphans.
+with contextlib.suppress(Exception):
+    from cohezion.sandbox.isolation import IsolationMode as IsolationMode
+    from cohezion.sandbox.isolation import IsolationStatus as IsolationStatus
+
+with contextlib.suppress(Exception):
+    from cohezion.sandbox.rollback import AuditEventType as AuditEventType
+    from cohezion.sandbox.rollback import (
+        SnapshotBackendType as SnapshotBackendType,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.sandbox.shadow_worktree import (
+        ShadowWorktree as ShadowWorktree,
+    )

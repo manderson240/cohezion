@@ -91,3 +91,14 @@ __all__ = [
     "reload_config",
     "reset_config_orchestrator",
 ]
+
+import contextlib
+
+# Wiring-sweep 2026-06-22: event_wiring and semver_validator were genuine import-graph orphans.
+with contextlib.suppress(Exception):
+    from cohezion.config.event_wiring import CommitBatcher as CommitBatcher
+    from cohezion.config.event_wiring import EventSubscriber as EventSubscriber
+
+with contextlib.suppress(Exception):
+    from cohezion.config.semver_validator import BumpType as BumpType
+    from cohezion.config.semver_validator import SemVer as SemVer
