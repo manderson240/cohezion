@@ -145,6 +145,15 @@ class SkillGenerator:
         return self.engine.generate_config_class(spec)
 
 
+# Wiring-sweep 2026-06-22: vault_neuron_reader.py was a genuine import-graph orphan.
+import contextlib
+
+with contextlib.suppress(Exception):
+    from cohezion.learning.vault_neuron_reader import (
+        VaultNeuronWriter as VaultNeuronWriter,
+    )
+
+
 _instance: SkillGenerator | None = None
 
 
