@@ -16,6 +16,7 @@ Architecture:
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.cost_optimization.budget_enforcer import (
         BudgetCircuitBreaker as BudgetCircuitBreaker,

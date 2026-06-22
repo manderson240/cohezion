@@ -7,6 +7,7 @@ Workflow implementations for coordinating swarm agents.
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.swarm.workflows.debate_protocol import DebateWorkflow as DebateWorkflow
 

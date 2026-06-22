@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.hookify.validator import HookifyValidator as HookifyValidator
     from cohezion.hookify.validator import Rule as Rule

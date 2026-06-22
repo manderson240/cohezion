@@ -6,6 +6,7 @@ Cohezion's compound engineering stack with SurrealDB persistence.
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.graph.builder import WorkflowBuilder as WorkflowBuilder
 

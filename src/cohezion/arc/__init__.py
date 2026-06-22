@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.arc.codec import ARCCodec as ARCCodec
     from cohezion.arc.codec import decode_prediction as decode_prediction

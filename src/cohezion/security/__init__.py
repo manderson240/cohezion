@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.security.guardrail_factory import (
         create_default_pipeline as create_default_pipeline,

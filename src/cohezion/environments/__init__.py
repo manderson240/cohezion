@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.environments.manifold_env import ManifoldEnv as ManifoldEnv
 

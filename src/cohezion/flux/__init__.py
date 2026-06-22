@@ -6,6 +6,7 @@ and execution history into a single query surface for agent nodes.
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.flux.aggregator import FluxAggregator as FluxAggregator
 

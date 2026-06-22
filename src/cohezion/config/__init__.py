@@ -8,6 +8,7 @@ Includes:
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.config.config_archival import ConfigArchiver as ConfigArchiver
     from cohezion.config.config_archival import SizeEnforcer as SizeEnforcer

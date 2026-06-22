@@ -13,6 +13,7 @@ Usage:
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.mass_sim.config import SCALE_TIERS as SCALE_TIERS
     from cohezion.mass_sim.config import ScaleTier as ScaleTier

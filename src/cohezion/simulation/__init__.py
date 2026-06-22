@@ -6,6 +6,7 @@ parallel training, enhanced R-Zero simulators, and distributed execution.
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.simulation.fractal_universe import FractalSimulator as FractalSimulator
 

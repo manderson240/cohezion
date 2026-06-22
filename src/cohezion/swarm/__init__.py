@@ -129,6 +129,8 @@ __all__ = [
     # "DynamicConcurrencyGate",  # Module unavailable
     "DynamicAgentRegistry",
     "ExecutionResult",
+    # Wiring-sweep 2026-06-22 renamed re-exports (A as B aliases need __all__ for Pyright)
+    "Gemma4RoutingDecision",
     "KVCacheOptimizer",
     "LRUPersistentCache",
     "ModelPoolManager",
@@ -136,20 +138,26 @@ __all__ = [
     "MultiAgentOrchestrator",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
+    "OllamaResilientClient",
+    "OrchestratorSwarmConfig",
     "PersistentCache",
     "PersistentTokenCache",
     "PoolStatus",
     "PooledModel",
     "Priority",
     "ResilientOllamaClient",
+    "ResonanceSwarmOrchestrator",
     "RoutingDecision",
     "RoutingRequest",
     "SemanticCacheStore",
+    "SmartRoutingDecision",
     "SpecialistAgent",
+    "SwarmSemanticCache",
     "TierConfig",
     "TokenCacheOptimizer",
     "TokenEfficientClient",
     "ToolRegistry",
+    "TopologicalRoutingDecision",
     "execute_task",
     # "get_concurrency_gate",  # Module unavailable
     "get_global_registry",
@@ -480,15 +488,3 @@ with contextlib.suppress(Exception):
         InstrumentedVModelEngineering as InstrumentedVModelEngineering,
     )
     from cohezion.swarm.vmodel_phase_optimizer import PhaseOptimizer as PhaseOptimizer
-
-# Renamed re-exports: Pyright requires __all__ to recognize `A as B` aliases as public.
-# `X as X` imports above are already implicit re-exports; only the renamed aliases need this.
-__all__ = [
-    "Gemma4RoutingDecision",
-    "OllamaResilientClient",
-    "OrchestratorSwarmConfig",
-    "ResonanceSwarmOrchestrator",
-    "SmartRoutingDecision",
-    "SwarmSemanticCache",
-    "TopologicalRoutingDecision",
-]

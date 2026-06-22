@@ -10,6 +10,7 @@ This package contains foundational systems required by the Charter:
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.platform.agent_evaluation import AgentEvaluationResult as AgentEvaluationResult
     from cohezion.platform.agent_evaluation import AgentExecutionContext as AgentExecutionContext

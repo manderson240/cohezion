@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.datamesh.bidirectional_linkage import BidirectionalLink as BidirectionalLink
     from cohezion.datamesh.bidirectional_linkage import (
