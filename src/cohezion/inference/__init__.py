@@ -63,6 +63,18 @@ with contextlib.suppress(Exception):
         select_harness as select_harness,
     )
 
+# Wiring-sweep 2026-06-22: confidence_calibration wires Platt-scaling on classify().confidence.
+with contextlib.suppress(Exception):
+    from cohezion.inference.confidence_calibration import (
+        PlattCalibrator as PlattCalibrator,
+    )
+    from cohezion.inference.confidence_calibration import (
+        calibrated_classify as calibrated_classify,
+    )
+    from cohezion.inference.confidence_calibration import (
+        set_default_calibrator as set_default_calibrator,
+    )
+
 from cohezion.inference.fleet import RouteResult, extend_claude, route
 from cohezion.inference.harnesses import (
     Harness,
