@@ -9,12 +9,8 @@ from __future__ import annotations
 
 import contextlib
 
-from cohezion.agents.base import BaseAgent
-
-
-__all__ = [
-    "BaseAgent",
-]
+with contextlib.suppress(Exception):
+    from cohezion.agents.base import BaseAgent as BaseAgent
 
 # Wiring-sweep 2026-06-22: analyst was a genuine import-graph orphan.
 with contextlib.suppress(Exception):

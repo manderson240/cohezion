@@ -12,35 +12,35 @@ package is for platform specialists only.
 
 from __future__ import annotations
 
-from cohezion.agents.specialists._base import (
-    AgentCard,
-    PlatformSpecialist,
-    describe_all,
-    get_specialist,
-    list_specialists,
-    register,
-)
-from cohezion.agents.specialists.claude_specialist import ClaudeSpecialist
-from cohezion.agents.specialists.gemini_specialist import GeminiSpecialist
-from cohezion.agents.specialists.mcp_specialist import MCPSpecialist
-from cohezion.agents.specialists.ollama_specialist import OllamaSpecialist
-from cohezion.agents.specialists.platform_coordinator import PlatformCoordinator
-from cohezion.agents.specialists.surreal_dba import SurrealDBA
-from cohezion.agents.specialists.vault_keeper import VaultKeeper
+import contextlib
 
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists._base import AgentCard as AgentCard
+    from cohezion.agents.specialists._base import PlatformSpecialist as PlatformSpecialist
+    from cohezion.agents.specialists._base import describe_all as describe_all
+    from cohezion.agents.specialists._base import get_specialist as get_specialist
+    from cohezion.agents.specialists._base import list_specialists as list_specialists
+    from cohezion.agents.specialists._base import register as register
 
-__all__ = [
-    "AgentCard",
-    "ClaudeSpecialist",
-    "GeminiSpecialist",
-    "MCPSpecialist",
-    "OllamaSpecialist",
-    "PlatformCoordinator",
-    "PlatformSpecialist",
-    "SurrealDBA",
-    "VaultKeeper",
-    "describe_all",
-    "get_specialist",
-    "list_specialists",
-    "register",
-]
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists.claude_specialist import ClaudeSpecialist as ClaudeSpecialist
+
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists.gemini_specialist import GeminiSpecialist as GeminiSpecialist
+
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists.mcp_specialist import MCPSpecialist as MCPSpecialist
+
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists.ollama_specialist import OllamaSpecialist as OllamaSpecialist
+
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists.platform_coordinator import (
+        PlatformCoordinator as PlatformCoordinator,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists.surreal_dba import SurrealDBA as SurrealDBA
+
+with contextlib.suppress(Exception):
+    from cohezion.agents.specialists.vault_keeper import VaultKeeper as VaultKeeper
