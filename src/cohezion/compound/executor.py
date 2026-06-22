@@ -100,6 +100,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        rubric_middleware: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -175,6 +176,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         # MGPO: accumulator of recent skill names for boundary-first batch refinement
         self._recent_skill_names: list[str] = []
+
+        # Rubric middleware: structured output gate before MGPO accumulation
+        self._rubric_middleware = rubric_middleware
 
         # Geometric Latent Bridge for topological reasoning
         try:
@@ -274,6 +278,21 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """Fire _batch_mgpo_refine() when accumulator reaches MGPO_BATCH_SIZE."""
         if len(self._recent_skill_names) >= self.MGPO_BATCH_SIZE:
             self._batch_mgpo_refine()
+
+    def _evaluate_rubric(self, task_output: str, task_context: str = "") -> bool:
+        """Gate task output through rubric middleware. Returns True when no middleware."""
+        if self._rubric_middleware is None:
+            return True
+        try:
+            verdict = self._rubric_middleware.evaluate(task_output, task_context)
+            return bool(verdict.passed)
+        except Exception:
+            return True  # fail-open
+
+    def _rubric_gated_accumulate(self, skill_name: str, task_output: str = "") -> None:
+        """Append skill_name to MGPO accumulator only when rubric passes (or absent)."""
+        if self._evaluate_rubric(task_output, task_context=skill_name):
+            self._recent_skill_names.append(skill_name)
 
     @property
     def alignment_analyzer(self) -> Any | None:

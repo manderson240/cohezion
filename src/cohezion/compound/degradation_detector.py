@@ -141,6 +141,7 @@ class DegradationDetector:
             "duration_seconds": MetricBaseline("duration_seconds"),
             "success_rate": MetricBaseline("success_rate"),
             "token_surprisal": MetricBaseline("token_surprisal"),
+            "quality_score": MetricBaseline("quality_score"),
         }
 
         # Alert history for deduplication and CB9 dashboard API
@@ -279,6 +280,25 @@ class DegradationDetector:
                 if self._should_emit_alert(alert):
                     alerts.append(alert)
 
+        # Check quality_score (Long2Short: 1/tokens for success, 0.0 for failure)
+        _qs = metrics.get("quality_score")
+        if _qs is not None and self._baselines["quality_score"].is_established:
+            baseline_qs = self._baselines["quality_score"].mean
+            if baseline_qs > 0 and float(_qs) < baseline_qs * 0.8:
+                alert = DegradationAlert(
+                    metric="quality_score",
+                    severity=AlertSeverity.CRITICAL,
+                    message=(
+                        f"Long2Short quality dropped to {float(_qs):.5f} "
+                        f"(baseline: {baseline_qs:.5f})"
+                    ),
+                    current_value=float(_qs),
+                    baseline_value=baseline_qs,
+                    threshold=baseline_qs * 0.8,
+                )
+                if self._should_emit_alert(alert):
+                    alerts.append(alert)
+
         # NOW add samples to baselines (only for metrics provided this call)
         if cache_hit_rate is not None:
             self._baselines["cache_hit_rate"].add_sample(cache_hit_rate)
@@ -294,6 +314,8 @@ class DegradationDetector:
         _ts = metrics.get("token_surprisal")
         if _ts is not None:
             self._baselines["token_surprisal"].add_sample(float(_ts))
+        if _qs is not None:
+            self._baselines["quality_score"].add_sample(float(_qs))
 
         # CB12: update per-metric health verdicts for composite score / routing tier
         if cache_hit_rate is not None and self._baselines["cache_hit_rate"].is_established:

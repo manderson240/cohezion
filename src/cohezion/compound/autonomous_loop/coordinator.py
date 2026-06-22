@@ -222,6 +222,14 @@ class LoopCoordinator:
             category_stats[cat] = {"done": 0, "failed": 0}
         category_stats[cat]["done" if success else "failed"] += 1
 
+        # Long2Short quality score: success/tokens (sparse — None when undefined)
+        if not success:
+            quality_score: float | None = 0.0
+        elif tokens > 0:
+            quality_score = 1.0 / tokens
+        else:
+            quality_score = None  # success=True, tokens=0 → undefined
+
         report.results.append(
             {
                 "task_id": task.id,
@@ -232,16 +240,18 @@ class LoopCoordinator:
                 "model": result.get("model", "?"),
                 "elapsed_ms": result.get("elapsed_ms", 0),
                 "fallback": result.get("fallback", False),
+                "quality_score": quality_score,
             }
         )
 
         # CB5: wire DegradationDetector per-result (non-blocking)
         if self._degradation_detector is not None:
             with contextlib.suppress(Exception):
-                self._degradation_detector.check_degradation(
-                    {
-                        "elapsed_seconds": result.get("elapsed_ms", 0) / 1000.0,
-                        "success_rate": 1.0 if success else 0.0,
-                        "token_surprisal": result.get("token_surprisal"),
-                    }
-                )
+                sparse: dict[str, Any] = {
+                    "elapsed_seconds": result.get("elapsed_ms", 0) / 1000.0,
+                    "success_rate": 1.0 if success else 0.0,
+                    "token_surprisal": result.get("token_surprisal"),
+                }
+                if quality_score is not None:
+                    sparse["quality_score"] = quality_score
+                self._degradation_detector.check_degradation(sparse)
