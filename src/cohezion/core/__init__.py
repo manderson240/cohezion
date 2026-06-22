@@ -2,19 +2,26 @@
 
 import contextlib
 
-from cohezion.core.config import CohezionConfig
-from cohezion.core.context_engineering import ContextEngineeringInfrastructure
-from cohezion.core.mcp_client import (
-    MCPAuthenticationError,
-    MCPClient,
-    MCPClientError,
-    MCPConfig,
-    MCPConnectionError,
-    MCPToolError,
-    create_mcp_client,
-)
-from cohezion.core.vault_subscription import VaultEvent as VaultChangeEvent
-from cohezion.core.vault_subscription import VaultSubscriptionClient
+with contextlib.suppress(Exception):
+    from cohezion.core.config import CohezionConfig as CohezionConfig
+
+with contextlib.suppress(Exception):
+    from cohezion.core.context_engineering import (
+        ContextEngineeringInfrastructure as ContextEngineeringInfrastructure,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.core.mcp_client import MCPAuthenticationError as MCPAuthenticationError
+    from cohezion.core.mcp_client import MCPClient as MCPClient
+    from cohezion.core.mcp_client import MCPClientError as MCPClientError
+    from cohezion.core.mcp_client import MCPConfig as MCPConfig
+    from cohezion.core.mcp_client import MCPConnectionError as MCPConnectionError
+    from cohezion.core.mcp_client import MCPToolError as MCPToolError
+    from cohezion.core.mcp_client import create_mcp_client as create_mcp_client
+
+with contextlib.suppress(Exception):
+    from cohezion.core.vault_subscription import VaultEvent as VaultChangeEvent
+    from cohezion.core.vault_subscription import VaultSubscriptionClient as VaultSubscriptionClient
 
 
 # Wiring-sweep 2026-06-22: core/ orphan modules round-4

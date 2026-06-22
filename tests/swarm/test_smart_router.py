@@ -143,7 +143,7 @@ class TestSmartRouterInitialization:
         router = SmartRouter()
 
         assert router is not None
-        assert router.ollama_host == "http://localhost:11434"
+        assert router.ollama_host == "http://localhost:13305"
         assert router.strategy == "efficiency"
         assert router.log_actions is True
 

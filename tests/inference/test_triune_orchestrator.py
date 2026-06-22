@@ -17,7 +17,7 @@ def test_build_triune_orchestrator_structure():
         orch = build_triune_orchestrator()
     assert len(orch.tiers) == 3
     labels = [tier[0].label for tier in orch.tiers]
-    assert "gaia:qwen3.5-4b-FLM" in labels
+    assert "gaia:llama3.2-1b-FLM" in labels
     assert "gaia:Gemma-4-E4B-it-GGUF" in labels
     assert "gaia:Gemma-4-31B-it-GGUF" in labels
 

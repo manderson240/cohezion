@@ -61,6 +61,8 @@ def _extract_sections(text: str) -> dict[str, str]:
     sections: dict[str, str] = {}
     for i, m in enumerate(headings):
         key = m.group(1).strip().upper()
+        # Strip trailing parenthetical annotations: "INSTRUCTION (Core Execution)" → "INSTRUCTION"
+        key = re.sub(r"\s*\([^)]*\)\s*$", "", key).strip()
         start = m.end()
         end = headings[i + 1].start() if i + 1 < len(headings) else len(text)
         sections[key] = text[start:end].strip()

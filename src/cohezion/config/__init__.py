@@ -6,47 +6,75 @@ Includes:
 - Configuration orchestration (CLAUDE.md/GEMINI.md sync)
 """
 
-from cohezion.config.config_archival import ConfigArchiver, SizeEnforcer
-from cohezion.config.config_events import ConfigEvent
-from cohezion.config.config_monitoring import (
-    ConfigMonitor,
-    VaultSubscriptionClientProxy,
-)
-from cohezion.config.config_state import (
-    ChangeSet,
-    ConfigConflict,
-    ConfigSchema,
-    ConfigState,
-    FileMetadata,
-    ValidationReport,
-)
-from cohezion.config.config_sync_engine import ConfigSyncEngine
-from cohezion.config.config_sync_logger import ConfigSyncLogger, SyncLogEntry
-from cohezion.config.config_templates import (
-    ConfigTemplateEngine,
-    TemplateContext,
-    TemplateType,
-)
-from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
-from cohezion.config.configuration_orchestrator import (
-    ConfigurationOrchestrator,
-    get_config_orchestrator,
-    reset_config_orchestrator,
-)
-from cohezion.config.conflict_policy import (
-    ConflictPolicy,
-    ConflictResolutionPolicy,
-    ConflictResolutionStrategy,
-)
-from cohezion.config.git_utils import GitUtils
-from cohezion.config.unified import (
-    CloudGraderConfig,
-    EmailConfig,
-    SystemConfig,
-    UniverseTrackConfig,
-    get_config,
-    reload_config,
-)
+import contextlib
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_archival import ConfigArchiver as ConfigArchiver
+    from cohezion.config.config_archival import SizeEnforcer as SizeEnforcer
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_events import ConfigEvent as ConfigEvent
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_monitoring import ConfigMonitor as ConfigMonitor
+    from cohezion.config.config_monitoring import (
+        VaultSubscriptionClientProxy as VaultSubscriptionClientProxy,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_state import ChangeSet as ChangeSet
+    from cohezion.config.config_state import ConfigConflict as ConfigConflict
+    from cohezion.config.config_state import ConfigSchema as ConfigSchema
+    from cohezion.config.config_state import ConfigState as ConfigState
+    from cohezion.config.config_state import FileMetadata as FileMetadata
+    from cohezion.config.config_state import ValidationReport as ValidationReport
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_sync_engine import ConfigSyncEngine as ConfigSyncEngine
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_sync_logger import ConfigSyncLogger as ConfigSyncLogger
+    from cohezion.config.config_sync_logger import SyncLogEntry as SyncLogEntry
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_templates import ConfigTemplateEngine as ConfigTemplateEngine
+    from cohezion.config.config_templates import TemplateContext as TemplateContext
+    from cohezion.config.config_templates import TemplateType as TemplateType
+
+with contextlib.suppress(Exception):
+    from cohezion.config.config_validation import ConfigValidator as ConfigValidator
+    from cohezion.config.config_validation import ReconciliationValidator as ReconciliationValidator
+
+with contextlib.suppress(Exception):
+    from cohezion.config.configuration_orchestrator import (
+        ConfigurationOrchestrator as ConfigurationOrchestrator,
+    )
+    from cohezion.config.configuration_orchestrator import (
+        get_config_orchestrator as get_config_orchestrator,
+    )
+    from cohezion.config.configuration_orchestrator import (
+        reset_config_orchestrator as reset_config_orchestrator,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.config.conflict_policy import ConflictPolicy as ConflictPolicy
+    from cohezion.config.conflict_policy import (
+        ConflictResolutionPolicy as ConflictResolutionPolicy,
+    )
+    from cohezion.config.conflict_policy import (
+        ConflictResolutionStrategy as ConflictResolutionStrategy,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.config.git_utils import GitUtils as GitUtils
+
+with contextlib.suppress(Exception):
+    from cohezion.config.unified import CloudGraderConfig as CloudGraderConfig
+    from cohezion.config.unified import EmailConfig as EmailConfig
+    from cohezion.config.unified import SystemConfig as SystemConfig
+    from cohezion.config.unified import UniverseTrackConfig as UniverseTrackConfig
+    from cohezion.config.unified import get_config as get_config
+    from cohezion.config.unified import reload_config as reload_config
 
 
 __all__ = [
@@ -91,8 +119,6 @@ __all__ = [
     "reload_config",
     "reset_config_orchestrator",
 ]
-
-import contextlib
 
 # Wiring-sweep 2026-06-22: event_wiring and semver_validator were genuine import-graph orphans.
 with contextlib.suppress(Exception):

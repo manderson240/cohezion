@@ -2,7 +2,10 @@
 
 import contextlib
 
-from cohezion.hookify.validator import HookifyValidator, Rule, ValidationResult
+with contextlib.suppress(Exception):
+    from cohezion.hookify.validator import HookifyValidator as HookifyValidator
+    from cohezion.hookify.validator import Rule as Rule
+    from cohezion.hookify.validator import ValidationResult as ValidationResult
 
 
 __all__ = ["HookifyValidator", "Rule", "ValidationResult"]

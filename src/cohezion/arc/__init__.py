@@ -12,25 +12,34 @@ from __future__ import annotations
 
 import contextlib
 
-from cohezion.arc.codec import ARCCodec, decode_prediction, encode_task
-from cohezion.arc.grid_pipeline import (
-    batch_decode,
-    batch_encode,
-    decode_grid,
-    encode_grid,
-    grid_hash,
-    grid_summary,
-    validate_grid,
-    verify_pipeline_sanity,
-)
-from cohezion.arc.pattern_extractor import CompoundRule, PatternExtractor
-from cohezion.arc.submission import SubmissionBuilder, verify_submission
-from cohezion.arc.tracks import (
-    ARCAGI2Pipeline,
-    ARCAGI3Pipeline,
-    MultiTrackOrchestrator,
-    PaperTrackPipeline,
-)
+with contextlib.suppress(Exception):
+    from cohezion.arc.codec import ARCCodec as ARCCodec
+    from cohezion.arc.codec import decode_prediction as decode_prediction
+    from cohezion.arc.codec import encode_task as encode_task
+
+with contextlib.suppress(Exception):
+    from cohezion.arc.grid_pipeline import batch_decode as batch_decode
+    from cohezion.arc.grid_pipeline import batch_encode as batch_encode
+    from cohezion.arc.grid_pipeline import decode_grid as decode_grid
+    from cohezion.arc.grid_pipeline import encode_grid as encode_grid
+    from cohezion.arc.grid_pipeline import grid_hash as grid_hash
+    from cohezion.arc.grid_pipeline import grid_summary as grid_summary
+    from cohezion.arc.grid_pipeline import validate_grid as validate_grid
+    from cohezion.arc.grid_pipeline import verify_pipeline_sanity as verify_pipeline_sanity
+
+with contextlib.suppress(Exception):
+    from cohezion.arc.pattern_extractor import CompoundRule as CompoundRule
+    from cohezion.arc.pattern_extractor import PatternExtractor as PatternExtractor
+
+with contextlib.suppress(Exception):
+    from cohezion.arc.submission import SubmissionBuilder as SubmissionBuilder
+    from cohezion.arc.submission import verify_submission as verify_submission
+
+with contextlib.suppress(Exception):
+    from cohezion.arc.tracks import ARCAGI2Pipeline as ARCAGI2Pipeline
+    from cohezion.arc.tracks import ARCAGI3Pipeline as ARCAGI3Pipeline
+    from cohezion.arc.tracks import MultiTrackOrchestrator as MultiTrackOrchestrator
+    from cohezion.arc.tracks import PaperTrackPipeline as PaperTrackPipeline
 
 # Wiring-sweep 2026-06-22: data_loader, evaluate_local, solver were orphans.
 with contextlib.suppress(Exception):

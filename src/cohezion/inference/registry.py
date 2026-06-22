@@ -345,6 +345,22 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="Mellum-4b-base-gguf-mellum-4b-base.Q8_0.gguf",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13305",  # served via Lemonade router
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset({Task.CODE_GEN}),
+            weight_quant=WeightQuant.INT8,
+            context_window=8192,
+            priority=20,  # ranks ahead of qwen3-coder:30b (priority=30) for CODE_GEN
+            reasoning_mode=False,
+            verified_working=False,
+            notes=(
+                "JetBrains Mellum-4b code-completion specialist (full GGUF filename ID). "
+                "Fast FIM/code-gen via Lemonade router. 4 GB on-demand load; do NOT pin."
+            ),
+        ),
+        ModelEntry(
             model_id="Granite-4.1-8B-GGUF",
             lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
             endpoint="http://localhost:13305",  # the ALWAYS-UP lemonade router (Hermes-shared)

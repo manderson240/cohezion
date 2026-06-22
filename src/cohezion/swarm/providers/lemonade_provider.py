@@ -6,8 +6,10 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
+import aiohttp  # noqa: F401 — used at runtime in _get_session
+
 if TYPE_CHECKING:
-    import aiohttp
+    pass
 
 from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
 

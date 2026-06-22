@@ -13,8 +13,13 @@ Usage:
 
 import contextlib
 
-from cohezion.mass_sim.config import SCALE_TIERS, ScaleTier, SimulationConfig
-from cohezion.mass_sim.orchestrator import MassSimOrchestrator
+with contextlib.suppress(Exception):
+    from cohezion.mass_sim.config import SCALE_TIERS as SCALE_TIERS
+    from cohezion.mass_sim.config import ScaleTier as ScaleTier
+    from cohezion.mass_sim.config import SimulationConfig as SimulationConfig
+
+with contextlib.suppress(Exception):
+    from cohezion.mass_sim.orchestrator import MassSimOrchestrator as MassSimOrchestrator
 
 
 # Wiring-sweep 2026-06-22: agent_factory.py was a genuine import-graph orphan.

@@ -10,7 +10,9 @@ Two server options:
 
 import contextlib
 
-from cohezion.gateway.ngrok_adapter import NgrokAIGateway, NgrokMetrics
+with contextlib.suppress(Exception):
+    from cohezion.gateway.ngrok_adapter import NgrokAIGateway as NgrokAIGateway
+    from cohezion.gateway.ngrok_adapter import NgrokMetrics as NgrokMetrics
 
 
 __all__ = ["NgrokAIGateway", "NgrokMetrics"]

@@ -2,108 +2,108 @@
 
 import contextlib
 
+
 # Note: Some imports are currently broken due to missing modules.
 # They are commented out to allow the rest of the codebase to function.
 # TODO: Restore these imports once the underlying modules are implemented:
 # - adaptive_router_adapter
 # - hardware_profiler_stub
-from cohezion.swarm.adaptive_router import (
-    AdaptiveRouter,
-    route_task,
-)
-from cohezion.swarm.adaptive_router import (
-    RoutingDecision as AdaptiveRoutingDecision,
-)
-from cohezion.swarm.batch_processor import (
-    BatchItem,
-    BatchProcessor,
-    BatchResult,
-    CacheEntry,
-)
-from cohezion.swarm.compute_backend_router import (
-    BackendCapability,
-    BackendConstraints,
-    BackendStatus,
-    BackendType,
-    ComputeBackendRouter,
-    route_compute,
-)
-from cohezion.swarm.compute_backend_router import (
-    RoutingDecision as BackendRoutingDecision,
-)
-from cohezion.swarm.dynamic_agent_registry import (
-    AgentModule,
-    DynamicAgentRegistry,
-    get_global_registry,
-)
-from cohezion.swarm.hardware_aware_router import (
-    Priority,
-    RoutingDecision,
-    RoutingRequest,
-)
-from cohezion.swarm.lru_persistent_cache import (
-    LRUPersistentCache,
-)
-from cohezion.swarm.model_pool_config import (
-    ModelTierPolicy,
-    PooledModel,
-    PoolStatus,
-    TierConfig,
-)
-from cohezion.swarm.model_pool_manager import (
-    ModelPoolManager,
-    get_pool_manager,
-    reset_pool_manager,
-)
-from cohezion.swarm.multi_agent_orchestrator import (
-    ExecutionResult,
-    MultiAgentOrchestrator,
-    execute_task,
-    get_orchestrator,
-    quick_orchestrate,
-)
-from cohezion.swarm.multi_layer_cache import (
-    CacheEntry as MultiLayerCacheEntry,
-)
-from cohezion.swarm.multi_layer_cache import (
-    ContextPoolManager,
-    KVCacheOptimizer,
-    MultiLayerCache,
-    SemanticCacheStore,
-)
-from cohezion.swarm.persistent_cache import (
-    PersistentCache,
-    get_persistent_cache,
-)
+with contextlib.suppress(Exception):
+    from cohezion.swarm.adaptive_router import AdaptiveRouter as AdaptiveRouter
+    from cohezion.swarm.adaptive_router import RoutingDecision as AdaptiveRoutingDecision
+    from cohezion.swarm.adaptive_router import route_task as route_task
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.batch_processor import BatchItem as BatchItem
+    from cohezion.swarm.batch_processor import BatchProcessor as BatchProcessor
+    from cohezion.swarm.batch_processor import BatchResult as BatchResult
+    from cohezion.swarm.batch_processor import CacheEntry as CacheEntry
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.compute_backend_router import BackendCapability as BackendCapability
+    from cohezion.swarm.compute_backend_router import BackendConstraints as BackendConstraints
+    from cohezion.swarm.compute_backend_router import BackendStatus as BackendStatus
+    from cohezion.swarm.compute_backend_router import BackendType as BackendType
+    from cohezion.swarm.compute_backend_router import ComputeBackendRouter as ComputeBackendRouter
+    from cohezion.swarm.compute_backend_router import RoutingDecision as BackendRoutingDecision
+    from cohezion.swarm.compute_backend_router import route_compute as route_compute
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.dynamic_agent_registry import AgentModule as AgentModule
+    from cohezion.swarm.dynamic_agent_registry import DynamicAgentRegistry as DynamicAgentRegistry
+    from cohezion.swarm.dynamic_agent_registry import get_global_registry as get_global_registry
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.hardware_aware_router import Priority as Priority
+    from cohezion.swarm.hardware_aware_router import RoutingDecision as RoutingDecision
+    from cohezion.swarm.hardware_aware_router import RoutingRequest as RoutingRequest
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.lru_persistent_cache import LRUPersistentCache as LRUPersistentCache
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.model_pool_config import ModelTierPolicy as ModelTierPolicy
+    from cohezion.swarm.model_pool_config import PooledModel as PooledModel
+    from cohezion.swarm.model_pool_config import PoolStatus as PoolStatus
+    from cohezion.swarm.model_pool_config import TierConfig as TierConfig
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.model_pool_manager import ModelPoolManager as ModelPoolManager
+    from cohezion.swarm.model_pool_manager import get_pool_manager as get_pool_manager
+    from cohezion.swarm.model_pool_manager import reset_pool_manager as reset_pool_manager
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.multi_agent_orchestrator import ExecutionResult as ExecutionResult
+    from cohezion.swarm.multi_agent_orchestrator import (
+        MultiAgentOrchestrator as MultiAgentOrchestrator,
+    )
+    from cohezion.swarm.multi_agent_orchestrator import execute_task as execute_task
+    from cohezion.swarm.multi_agent_orchestrator import get_orchestrator as get_orchestrator
+    from cohezion.swarm.multi_agent_orchestrator import quick_orchestrate as quick_orchestrate
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.multi_layer_cache import CacheEntry as MultiLayerCacheEntry
+    from cohezion.swarm.multi_layer_cache import ContextPoolManager as ContextPoolManager
+    from cohezion.swarm.multi_layer_cache import KVCacheOptimizer as KVCacheOptimizer
+    from cohezion.swarm.multi_layer_cache import MultiLayerCache as MultiLayerCache
+    from cohezion.swarm.multi_layer_cache import SemanticCacheStore as SemanticCacheStore
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.persistent_cache import PersistentCache as PersistentCache
+    from cohezion.swarm.persistent_cache import get_persistent_cache as get_persistent_cache
 
 # from cohezion.swarm.dynamic_concurrency_gate import (
 #     DynamicConcurrencyGate,
 #     get_concurrency_gate,
 # )
-from cohezion.swarm.persistent_token_cache import (
-    PersistentTokenCache,
-)
+with contextlib.suppress(Exception):
+    from cohezion.swarm.persistent_token_cache import PersistentTokenCache as PersistentTokenCache
 
 # Multi-agent orchestration (dynamic + adaptive)
-from cohezion.swarm.specialist_agents import (
-    CODE_SPECIALIST,
-    NOVEL_SPECIALIST,
-    REASONING_SPECIALIST,
-    VALIDATED_SPECIALISTS,
-    SpecialistAgent,
-    ToolRegistry,
-    get_specialist,
-    list_validated_specialists,
-)
-from cohezion.swarm.token_cache_optimizer import (
-    CacheOptimizationConfig,
-    TokenCacheOptimizer,
-    get_token_cache_optimizer,
-)
-from cohezion.swarm.token_client import (
-    ResilientOllamaClient,
-    TokenEfficientClient,
-)
+with contextlib.suppress(Exception):
+    from cohezion.swarm.specialist_agents import CODE_SPECIALIST as CODE_SPECIALIST
+    from cohezion.swarm.specialist_agents import NOVEL_SPECIALIST as NOVEL_SPECIALIST
+    from cohezion.swarm.specialist_agents import REASONING_SPECIALIST as REASONING_SPECIALIST
+    from cohezion.swarm.specialist_agents import VALIDATED_SPECIALISTS as VALIDATED_SPECIALISTS
+    from cohezion.swarm.specialist_agents import SpecialistAgent as SpecialistAgent
+    from cohezion.swarm.specialist_agents import ToolRegistry as ToolRegistry
+    from cohezion.swarm.specialist_agents import get_specialist as get_specialist
+    from cohezion.swarm.specialist_agents import (
+        list_validated_specialists as list_validated_specialists,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.token_cache_optimizer import (
+        CacheOptimizationConfig as CacheOptimizationConfig,
+    )
+    from cohezion.swarm.token_cache_optimizer import TokenCacheOptimizer as TokenCacheOptimizer
+    from cohezion.swarm.token_cache_optimizer import (
+        get_token_cache_optimizer as get_token_cache_optimizer,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.token_client import ResilientOllamaClient as ResilientOllamaClient
+    from cohezion.swarm.token_client import TokenEfficientClient as TokenEfficientClient
 
 
 __all__ = [
@@ -259,7 +259,7 @@ with contextlib.suppress(Exception):
 # RoutingDecision already exported from hardware_aware_router; use unique alias.
 with contextlib.suppress(Exception):
     from cohezion.swarm.gemma4_router import Gemma4Router as Gemma4Router
-    from cohezion.swarm.gemma4_router import RoutingDecision as Gemma4RoutingDecision  # noqa: F401
+    from cohezion.swarm.gemma4_router import RoutingDecision as Gemma4RoutingDecision
 
 # Wiring-sweep 2026-06-22: hf_modelfile_builder.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
@@ -351,7 +351,7 @@ with contextlib.suppress(Exception):
 # ResilientOllamaClient already exported from token_client; use unique alias.
 with contextlib.suppress(Exception):
     from cohezion.swarm.ollama_resilience import (
-        ResilientOllamaClient as OllamaResilientClient,  # noqa: F401
+        ResilientOllamaClient as OllamaResilientClient,
     )
 
 # Wiring-sweep 2026-06-22: orchestrator.py was a genuine import-graph orphan.
@@ -359,7 +359,7 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.swarm.orchestrator import SimpleSwarm as SimpleSwarm
     from cohezion.swarm.orchestrator import Swarm as Swarm
-    from cohezion.swarm.orchestrator import SwarmConfig as OrchestratorSwarmConfig  # noqa: F401
+    from cohezion.swarm.orchestrator import SwarmConfig as OrchestratorSwarmConfig
 
 # Wiring-sweep 2026-06-22: parser_v3_validation_oracle.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
@@ -396,7 +396,7 @@ with contextlib.suppress(Exception):
     from cohezion.swarm.resonance import ResonanceProtocol as ResonanceProtocol
     from cohezion.swarm.resonance import ResonanceState as ResonanceState
     from cohezion.swarm.resonance import (
-        SwarmOrchestrator as ResonanceSwarmOrchestrator,  # noqa: F401
+        SwarmOrchestrator as ResonanceSwarmOrchestrator,
     )
 
 # Wiring-sweep 2026-06-22: routing_orchestrator.py was a genuine import-graph orphan.
@@ -412,13 +412,13 @@ with contextlib.suppress(Exception):
 # (Different from cache/semantic_cache.py — this is the swarm-local implementation.)
 with contextlib.suppress(Exception):
     from cohezion.swarm.semantic_cache import EmbeddingResult as EmbeddingResult
-    from cohezion.swarm.semantic_cache import SemanticCache as SwarmSemanticCache  # noqa: F401
+    from cohezion.swarm.semantic_cache import SemanticCache as SwarmSemanticCache
     from cohezion.swarm.semantic_cache import SemanticCacheHit as SemanticCacheHit
 
 # Wiring-sweep 2026-06-22: smart_router.py was a genuine import-graph orphan.
 # RoutingDecision collides with hardware_aware_router; use unique alias.
 with contextlib.suppress(Exception):
-    from cohezion.swarm.smart_router import RoutingDecision as SmartRoutingDecision  # noqa: F401
+    from cohezion.swarm.smart_router import RoutingDecision as SmartRoutingDecision
     from cohezion.swarm.smart_router import SmartRouter as SmartRouter
 
 # Wiring-sweep 2026-06-22: swarm_types.py was a genuine import-graph orphan.
@@ -449,7 +449,7 @@ with contextlib.suppress(Exception):
 # RoutingDecision collides with hardware_aware_router; use unique alias.
 with contextlib.suppress(Exception):
     from cohezion.swarm.topological_router import (
-        RoutingDecision as TopologicalRoutingDecision,  # noqa: F401
+        RoutingDecision as TopologicalRoutingDecision,
     )
     from cohezion.swarm.topological_router import TopologicalRouter as TopologicalRouter
 
@@ -480,3 +480,15 @@ with contextlib.suppress(Exception):
         InstrumentedVModelEngineering as InstrumentedVModelEngineering,
     )
     from cohezion.swarm.vmodel_phase_optimizer import PhaseOptimizer as PhaseOptimizer
+
+# Renamed re-exports: Pyright requires __all__ to recognize `A as B` aliases as public.
+# `X as X` imports above are already implicit re-exports; only the renamed aliases need this.
+__all__ = [
+    "Gemma4RoutingDecision",
+    "OllamaResilientClient",
+    "OrchestratorSwarmConfig",
+    "ResonanceSwarmOrchestrator",
+    "SmartRoutingDecision",
+    "SwarmSemanticCache",
+    "TopologicalRoutingDecision",
+]

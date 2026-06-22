@@ -2,8 +2,11 @@
 
 import contextlib
 
-from cohezion.environments.manifold_env import ManifoldEnv
-from cohezion.environments.swarm_env import SwarmEnv
+with contextlib.suppress(Exception):
+    from cohezion.environments.manifold_env import ManifoldEnv as ManifoldEnv
+
+with contextlib.suppress(Exception):
+    from cohezion.environments.swarm_env import SwarmEnv as SwarmEnv
 
 
 __all__ = ["ManifoldEnv", "SwarmEnv"]

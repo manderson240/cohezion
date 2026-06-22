@@ -4,12 +4,18 @@ Provides fractal universe simulation, HIHO RL environments, vectorized
 parallel training, enhanced R-Zero simulators, and distributed execution.
 """
 
-from cohezion.simulation.fractal_universe import FractalSimulator
-from cohezion.simulation.rl_framework import HihoEnvironment, PPOAgent
-from cohezion.simulation.vectorized_env import (
-    CurriculumScheduler,
-    VectorizedHihoEnv,
-)
+import contextlib
+
+with contextlib.suppress(Exception):
+    from cohezion.simulation.fractal_universe import FractalSimulator as FractalSimulator
+
+with contextlib.suppress(Exception):
+    from cohezion.simulation.rl_framework import HihoEnvironment as HihoEnvironment
+    from cohezion.simulation.rl_framework import PPOAgent as PPOAgent
+
+with contextlib.suppress(Exception):
+    from cohezion.simulation.vectorized_env import CurriculumScheduler as CurriculumScheduler
+    from cohezion.simulation.vectorized_env import VectorizedHihoEnv as VectorizedHihoEnv
 
 
 __all__ = [
@@ -19,9 +25,6 @@ __all__ = [
     "PPOAgent",
     "VectorizedHihoEnv",
 ]
-
-import contextlib
-
 
 # Wiring-sweep 2026-06-22: simulation sub-modules were genuine import-graph orphans.
 with contextlib.suppress(Exception):

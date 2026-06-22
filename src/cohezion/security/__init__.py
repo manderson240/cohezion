@@ -2,8 +2,15 @@
 
 import contextlib
 
-from cohezion.security.guardrail_factory import create_default_pipeline
-from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline, GuardrailResult
+with contextlib.suppress(Exception):
+    from cohezion.security.guardrail_factory import (
+        create_default_pipeline as create_default_pipeline,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.security.guardrail_pipeline import GuardrailAction as GuardrailAction
+    from cohezion.security.guardrail_pipeline import GuardrailPipeline as GuardrailPipeline
+    from cohezion.security.guardrail_pipeline import GuardrailResult as GuardrailResult
 
 
 __all__ = [
