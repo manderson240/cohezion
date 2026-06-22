@@ -6,7 +6,10 @@ import pytest
 
 from cohezion.compound.retrospection_summary import (
     CycleMetrics,
+    FailureSignature,
     RetrospectionEngine,
+    RetrospectionSummary,
+    mine_failure_signatures,
 )
 
 
@@ -98,3 +101,63 @@ class TestRetrospectionEngine:
         assert "narrative" in d
         assert "coherence_delta" in d
         assert d["coherence_delta"] == pytest.approx(0.1)
+
+
+@pytest.mark.unit
+class TestFailureSignatureAndMining:
+    """Self-Harness Weakness Mining: FailureSignature + mine_failure_signatures."""
+
+    def _failed_summary(self, cycle_id: str, anomalies: list[str]) -> RetrospectionSummary:
+        m = CycleMetrics(
+            coherence_start=0.4,
+            coherence_end=0.3,
+            tokens_used=500,
+            skill_name="test-skill",
+            phase="executing",
+            success=False,
+            anomalies=anomalies,
+        )
+        return RetrospectionSummary(cycle_id=cycle_id, narrative="failed", metrics=m)
+
+    def test_mine_returns_empty_for_all_successes(self):
+        m = CycleMetrics(0.5, 0.7, 100, "s", "executing", True)
+        summaries = [RetrospectionSummary(cycle_id="c1", narrative="ok", metrics=m)]
+        assert mine_failure_signatures(summaries) == []
+
+    def test_mine_extracts_one_signature_per_failure(self):
+        s1 = self._failed_summary("c1", ["output_mismatch", "retry_loop"])
+        s2 = self._failed_summary("c2", ["timeout", "missing_artifact"])
+        sigs = mine_failure_signatures([s1, s2])
+        assert len(sigs) == 2
+
+    def test_terminal_cause_from_first_anomaly(self):
+        s = self._failed_summary("c1", ["output_mismatch", "retry_loop"])
+        sig = mine_failure_signatures([s])[0]
+        assert sig.terminal_cause == "output_mismatch"
+
+    def test_mechanism_from_second_anomaly(self):
+        s = self._failed_summary("c1", ["output_mismatch", "retry_loop"])
+        sig = mine_failure_signatures([s])[0]
+        # discriminating: mechanism must be second anomaly, not first
+        assert sig.agent_mechanism == "retry_loop"
+        assert sig.agent_mechanism != "output_mismatch"
+
+    def test_mechanism_falls_back_to_skill_name_when_single_anomaly(self):
+        s = self._failed_summary("c1", ["output_mismatch"])
+        sig = mine_failure_signatures([s])[0]
+        assert sig.agent_mechanism == "test-skill"
+
+    def test_signature_carries_cycle_id(self):
+        s = self._failed_summary("my-cycle-123", ["err"])
+        sig = mine_failure_signatures([s])[0]
+        assert sig.cycle_id == "my-cycle-123"
+
+    def test_failure_signature_is_dataclass(self):
+        fs = FailureSignature(
+            terminal_cause="t",
+            causal_status="c",
+            agent_mechanism="m",
+            skill_name="s",
+            cycle_id="cy",
+        )
+        assert fs.terminal_cause == "t"

@@ -3,6 +3,11 @@
 Closes W1 in the strategic plan: the SkillRefiner mutated skill definitions without
 validating that mutations actually improved performance. This validator records
 pre-mutation baselines and blocks regressions before they propagate.
+
+Self-Harness regression gate (arXiv 2606.09498 §3.3): a mutation passes only when
+  Δin ≥ 0  AND  Δho ≥ 0  AND  max(Δin, Δho) > 0
+where held-in tasks resemble the failure cluster used to motivate the patch and
+held-out tasks are independent generalization probes. See validate_split_gate().
 """
 
 import logging
@@ -117,6 +122,55 @@ class SkillRefinementValidator:
                 "measured_at": baseline.measured_at,
             },
         }
+
+    def validate_split_gate(
+        self,
+        skill_name: str,
+        held_in_post: RefinementMetrics,
+        held_out_post: RefinementMetrics,
+    ) -> tuple[bool, str]:
+        """Self-Harness split-wise regression gate (arXiv 2606.09498 §3.3).
+
+        A mutation is approved iff:
+          Δin  = held_in_post.success_rate  - baseline.success_rate ≥ 0
+          Δho  = held_out_post.success_rate - baseline.success_rate ≥ 0
+          max(Δin, Δho) > 0   (must improve at least one split)
+
+        This is strictly stronger than the single-split validate_refinement():
+        it guards against patches that overfit the failure cluster without
+        generalising to held-out tasks.
+
+        Falls back to validate_refinement() when no baseline exists.
+        """
+        if skill_name not in self._baseline_metrics:
+            return False, f"no baseline recorded for '{skill_name}'"
+
+        baseline = self._baseline_metrics[skill_name]
+        delta_in = held_in_post.success_rate - baseline.success_rate
+        delta_ho = held_out_post.success_rate - baseline.success_rate
+
+        if delta_in < 0:
+            return (
+                False,
+                f"held-in degraded by {delta_in:.1%} "
+                f"(baseline={baseline.success_rate:.1%}, post={held_in_post.success_rate:.1%})",
+            )
+        if delta_ho < 0:
+            return (
+                False,
+                f"held-out degraded by {delta_ho:.1%} "
+                f"(baseline={baseline.success_rate:.1%}, post={held_out_post.success_rate:.1%})",
+            )
+        if max(delta_in, delta_ho) == 0:
+            return False, "no improvement on either held-in or held-out split"
+
+        logger.info(
+            "Split-gate APPROVED for %s: Δin=+%.1f%% Δho=+%.1f%%",
+            skill_name,
+            delta_in * 100,
+            delta_ho * 100,
+        )
+        return True, f"split-gate approved (Δin={delta_in:+.1%}, Δho={delta_ho:+.1%})"
 
     def _persist_async(self, skill_name: str, stage: str, metrics: RefinementMetrics) -> None:
         """Non-blocking SurrealDB persistence — failures must not crash callers."""

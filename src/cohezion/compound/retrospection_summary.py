@@ -53,6 +53,54 @@ class RetrospectionSummary:
 
 
 @dataclass
+class FailureSignature:
+    """Verifier-grounded failure signature (Self-Harness §3.1 Weakness Mining).
+
+    Captures the three-tuple that describes why a task failed — not just what went
+    wrong but the causal chain that a harness patch can address:
+      terminal_cause  — what the verifier rejected (e.g. "output mismatch", "timeout")
+      causal_status   — agent state at failure (e.g. "stuck in retry loop", "wrong tool")
+      agent_mechanism — the reusable behavioral mechanism involved
+                        (e.g. "artifact_recovery", "command_retry_discipline")
+    """
+
+    terminal_cause: str
+    causal_status: str
+    agent_mechanism: str
+    skill_name: str
+    cycle_id: str
+
+
+def mine_failure_signatures(summaries: list["RetrospectionSummary"]) -> list[FailureSignature]:
+    """Cluster failed summaries into verifier-grounded failure signatures.
+
+    Minimal implementation: extracts one FailureSignature per failed cycle.
+    The mechanism is inferred from anomaly tags when present, otherwise uses
+    the skill name as a proxy. Production upgrade: cluster by embedding similarity
+    across terminal_cause strings to find recurring patterns.
+    """
+    signatures: list[FailureSignature] = []
+    for summary in summaries:
+        if summary.metrics.success:
+            continue
+        anomalies = summary.metrics.anomalies or []
+        terminal_cause = anomalies[0] if anomalies else "unknown_failure"
+        causal_status = f"phase={summary.metrics.phase}"
+        # Infer mechanism: use second anomaly tag if available, else skill name
+        agent_mechanism = anomalies[1] if len(anomalies) > 1 else summary.metrics.skill_name
+        signatures.append(
+            FailureSignature(
+                terminal_cause=terminal_cause,
+                causal_status=causal_status,
+                agent_mechanism=agent_mechanism,
+                skill_name=summary.metrics.skill_name,
+                cycle_id=summary.cycle_id,
+            )
+        )
+    return signatures
+
+
+@dataclass
 class StrategyTracker:
     """Tracks consecutive failures and improvement plateaus per skill.
 

@@ -98,3 +98,56 @@ class TestSkillRefinementValidator:
         report = validator.get_improvement_report("nonexistent")
         assert "error" in report
         assert report["skill_name"] == "nonexistent"
+
+
+@pytest.mark.unit
+class TestSplitGate:
+    """Self-Harness split-wise regression gate (arXiv 2606.09498 §3.3)."""
+
+    @pytest.fixture
+    def v(self) -> SkillRefinementValidator:
+        v = SkillRefinementValidator()
+        v.record_baseline("sk", _metrics(success_rate=0.5))
+        return v
+
+    def test_both_improve_approved(self, v):
+        approved, reason = v.validate_split_gate(
+            "sk", _metrics(success_rate=0.7), _metrics(success_rate=0.6)
+        )
+        assert approved is True
+        assert "Δin=+20.0%" in reason
+
+    def test_held_in_degraded_rejected(self, v):
+        approved, reason = v.validate_split_gate(
+            "sk", _metrics(success_rate=0.4), _metrics(success_rate=0.6)
+        )
+        assert approved is False
+        assert "held-in degraded" in reason
+
+    def test_held_out_degraded_rejected(self, v):
+        approved, reason = v.validate_split_gate(
+            "sk", _metrics(success_rate=0.6), _metrics(success_rate=0.4)
+        )
+        assert approved is False
+        assert "held-out degraded" in reason
+
+    def test_no_improvement_on_either_split_rejected(self, v):
+        # Both equal to baseline — max(Δin, Δho) == 0
+        approved, reason = v.validate_split_gate(
+            "sk", _metrics(success_rate=0.5), _metrics(success_rate=0.5)
+        )
+        assert approved is False
+        assert "no improvement" in reason
+
+    def test_no_baseline_rejected(self):
+        v = SkillRefinementValidator()
+        approved, reason = v.validate_split_gate("unknown", _metrics(), _metrics())
+        assert approved is False
+        assert "no baseline" in reason
+
+    def test_discriminating_held_out_must_not_degrade(self, v):
+        # Wrong impl: only checks held-in. This test catches it because held-out degrades.
+        approved, _ = v.validate_split_gate(
+            "sk", _metrics(success_rate=0.9), _metrics(success_rate=0.3)
+        )
+        assert approved is False  # held-out degraded by 20%
