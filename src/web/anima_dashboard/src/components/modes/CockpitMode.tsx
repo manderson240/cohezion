@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useUniverse } from "@/context/UniverseProvider";
 import CompoundLoopViz from "@/components/CompoundLoopViz";
 import ArchitectureGraph from "@/components/ArchitectureGraph";
@@ -27,6 +28,19 @@ export default function CockpitMode() {
         <p className="text-gray-500 font-mono text-sm tracking-widest">
           COCKPIT MODE — Compound Engineering Loop
         </p>
+      </div>
+
+      {/* Journey Nexus link — live EVO stream + quadrature panels */}
+      <div className="flex justify-center">
+        <Link
+          href="/journey-nexus"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] font-mono text-xs tracking-widest text-gray-300 hover:text-white transition-all duration-200"
+          style={{ borderColor: "var(--hiho-glow-color, #00ff00)33" }}
+        >
+          <span style={{ color: "var(--hiho-glow-color, #00ff00)" }}>◈</span>
+          JOURNEY NEXUS
+          <span className="text-gray-600">→</span>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
