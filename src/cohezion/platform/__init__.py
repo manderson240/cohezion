@@ -8,6 +8,8 @@ This package contains foundational systems required by the Charter:
 - ObservableActionProposer: Transparent reasoning display
 """
 
+import contextlib
+
 from cohezion.platform.agent_evaluation import (
     AgentEvaluationResult,
     AgentExecutionContext,
@@ -88,6 +90,56 @@ from cohezion.platform.skill_tracker_charter import (
 )
 
 
+# Wiring-sweep 2026-06-22: mcp_server.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.platform.mcp_server import ObsidianVaultMCP as ObsidianVaultMCP
+
+# Wiring-sweep 2026-06-22: resource_manager.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.platform.resource_manager import (
+        OOMRiskError as OOMRiskError,
+    )
+    from cohezion.platform.resource_manager import (
+        PlatformMemoryState as PlatformMemoryState,
+    )
+    from cohezion.platform.resource_manager import (
+        ResourceClient as ResourceClient,
+    )
+    from cohezion.platform.resource_manager import (
+        ResourceDaemon as ResourceDaemon,
+    )
+    from cohezion.platform.resource_manager import (
+        ResourceUnavailableError as ResourceUnavailableError,
+    )
+    from cohezion.platform.resource_manager import (
+        TrainingLock as TrainingLock,
+    )
+
+# Wiring-sweep 2026-06-22: session_tracker.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.platform.session_tracker import (
+        ModelUsageEvent as ModelUsageEvent,
+    )
+    from cohezion.platform.session_tracker import (
+        SessionRecord as SessionRecord,
+    )
+    from cohezion.platform.session_tracker import (
+        SessionTracker as SessionTracker,
+    )
+
+# Wiring-sweep 2026-06-22: tier_optimizer.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.platform.tier_optimizer import (
+        TierChange as TierChange,
+    )
+    from cohezion.platform.tier_optimizer import (
+        TierOptimizer as TierOptimizer,
+    )
+    from cohezion.platform.tier_optimizer import (
+        TierRecommendation as TierRecommendation,
+    )
+
+
 __all__ = [
     "ActionProposal",
     "AgentEvaluationResult",
@@ -117,12 +169,25 @@ __all__ = [
     "IDEIntegrationAdapter",
     "Journey",
     "JourneyLogger",
+    "ModelUsageEvent",
+    "OOMRiskError",
     "ObservableActionProposer",
+    "ObsidianVaultMCP",
+    "PlatformMemoryState",
     "RepositoryMetrics",
+    "ResourceClient",
+    "ResourceDaemon",
+    "ResourceUnavailableError",
     "SafetyViolation",
+    "SessionRecord",
+    "SessionTracker",
     "SkillUsageEvent",
     "StreamRecommendation",
     "TestMetrics",
+    "TierChange",
+    "TierOptimizer",
+    "TierRecommendation",
+    "TrainingLock",
     "ViolationSeverity",
     "ZedCodeAdapter",
     "get_agent_evaluator",
