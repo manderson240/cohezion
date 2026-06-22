@@ -77,6 +77,7 @@ class SkillRefiner:
         operation_type: str,
         execution_result: dict[str, Any],
         patterns_extracted: list[str] | None = None,
+        failure_signatures: list[Any] | None = None,
     ) -> str | None:
         """Learn from execution result and refine PRIME skill.
 

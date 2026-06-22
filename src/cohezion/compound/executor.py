@@ -844,6 +844,51 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
+        # Step 7.2a: Mine failure signatures (Self-Harness §3.1) — non-blocking
+        # CycleRetrospectionEngine accumulates per-cycle summaries as a lazy
+        # sidecar; mine_failure_signatures clusters them into (terminal_cause,
+        # causal_status, agent_mechanism) triples usable by SkillRefiner.
+        if not success:
+            try:
+                from cohezion.compound.retrospection_summary import (
+                    CycleMetrics,
+                    CycleRetrospectionEngine,
+                    mine_failure_signatures,
+                )
+
+                if not hasattr(self, "_cycle_retro_engine"):
+                    self._cycle_retro_engine = CycleRetrospectionEngine()
+                _cycle_metrics = CycleMetrics(
+                    coherence_start=float(
+                        metrics.get("coherence_start", metrics.get("coherence", 0.5))
+                    ),
+                    coherence_end=float(
+                        metrics.get("coherence_end", metrics.get("coherence", 0.5))
+                    ),
+                    tokens_used=int(metrics.get("tokens_used", 0)),
+                    skill_name=skill_name,
+                    phase=operation_type,
+                    success=False,
+                    anomalies=metrics.get("anomalies", []),
+                )
+                _cycle_id = f"{skill_name}_{int(time.time())}"
+                self._cycle_retro_engine.summarize(_cycle_id, _cycle_metrics)
+                _sigs = mine_failure_signatures(self._cycle_retro_engine.summaries)
+                if _sigs:
+                    metrics["failure_signatures"] = [
+                        {
+                            "terminal_cause": s.terminal_cause,
+                            "causal_status": s.causal_status,
+                            "agent_mechanism": s.agent_mechanism,
+                            "skill_name": s.skill_name,
+                            "cycle_id": s.cycle_id,
+                        }
+                        for s in _sigs
+                    ]
+                    logger.debug("Mined %d failure signature(s) for %s", len(_sigs), skill_name)
+            except Exception as _sig_err:
+                logger.debug("Failure signature mining skipped: %s", _sig_err)
+
         # Step 7: Refine skills based on execution results (non-blocking)
         # Gated by retrospection AND DRR: only refine when both pass.
         # The DRR gate is only authoritative when a real V-Model session is
@@ -875,6 +920,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     operation_type=operation_type,
                     execution_result=exec_result,
                     patterns_extracted=decision_paths,
+                    failure_signatures=metrics.get("failure_signatures"),
                 )
 
                 if refined_path:

@@ -107,6 +107,19 @@ with contextlib.suppress(Exception):
         ReasoningModel as ReasoningModel,
     )
 
+# Self-Harness Weakness Mining (arXiv 2606.09498 §3.1): mine_failure_signatures
+# was defined but never exported — zero callers, zero static analysis reachability.
+# Re-exported here so the FailureSignature pipeline is part of compound's public
+# surface and reachable by executor, skill_refiner, and downstream consumers.
+with contextlib.suppress(Exception):
+    from cohezion.compound.retrospection_summary import (
+        FailureSignature as FailureSignature,
+    )
+with contextlib.suppress(Exception):
+    from cohezion.compound.retrospection_summary import (
+        mine_failure_signatures as mine_failure_signatures,
+    )
+
 # Wiring-sweep 2026-06-06: aimo_reasoning was a genuine import-graph orphan. Re-export its
 # DISTINCTIVE classes only — `ReasoningModel` collides with agi_reasoning's (surface-name
 # duplicate flagged for human review in WIRING_SWEEP_LEDGER.md), so it is NOT re-exported here.
