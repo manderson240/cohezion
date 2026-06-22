@@ -48,3 +48,16 @@ __all__ = [
     "set_current_enforcer",
     "set_current_tracker",
 ]
+
+import contextlib
+
+
+with contextlib.suppress(Exception):
+    from cohezion.cost_optimization.cost_dashboard import BudgetStatus as BudgetStatus
+    from cohezion.cost_optimization.cost_dashboard import CostBreakdown as CostBreakdown
+    from cohezion.cost_optimization.cost_dashboard import SpendRate as SpendRate
+
+with contextlib.suppress(Exception):
+    from cohezion.cost_optimization.forecast_engine import Forecast as Forecast
+    from cohezion.cost_optimization.forecast_engine import ForecastEngine as ForecastEngine
+    from cohezion.cost_optimization.forecast_engine import ForecastSummary as ForecastSummary

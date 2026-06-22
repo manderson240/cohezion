@@ -58,3 +58,13 @@ __all__ = [
     "set_bus",
     "zero_twelve_d",
 ]
+
+import contextlib
+
+
+with contextlib.suppress(Exception):
+    from cohezion.precipitation.orchestrator import GenerationRecord as GenerationRecord
+    from cohezion.precipitation.orchestrator import OrchestratorConfig as OrchestratorConfig
+    from cohezion.precipitation.orchestrator import (
+        PrecipitationOrchestrator as PrecipitationOrchestrator,
+    )

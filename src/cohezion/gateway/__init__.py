@@ -8,7 +8,19 @@ Two server options:
 - mcp_http_server: HTTP endpoint for Claude.ai custom connectors
 """
 
+import contextlib
+
 from cohezion.gateway.ngrok_adapter import NgrokAIGateway, NgrokMetrics
 
 
 __all__ = ["NgrokAIGateway", "NgrokMetrics"]
+
+with contextlib.suppress(Exception):
+    from cohezion.gateway.demo_gateway import DemoGateway as DemoGateway
+    from cohezion.gateway.demo_gateway import DemoMetrics as DemoMetrics
+
+with contextlib.suppress(Exception):
+    from cohezion.gateway.mcp_server import GatewayManager as GatewayManager
+    from cohezion.gateway.mcp_server import (
+        get_gateway_manager as get_gateway_manager,
+    )

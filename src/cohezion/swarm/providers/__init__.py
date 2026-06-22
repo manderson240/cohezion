@@ -61,3 +61,36 @@ __all__ = [
     "get_model_provider",
     "register_model_provider",
 ]
+
+import contextlib
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.providers.model_provider import GenerationResult as GenerationResult
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.providers.ollama_provider import OllamaProvider as OllamaProvider
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.providers.gemma4_provider import Gemma4Provider as Gemma4Provider
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.providers.gemini_provider import GeminiProvider as GeminiProvider
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.providers.lemonade_provider import (
+        LemonadeProvider as LemonadeProvider,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.providers.multi_model_orchestrator import (
+        ComputeUnit as ComputeUnit,
+    )
+    from cohezion.swarm.providers.multi_model_orchestrator import ModelType as ModelType
+    from cohezion.swarm.providers.multi_model_orchestrator import (
+        MultiModelOrchestrator as MultiModelOrchestrator,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.swarm.providers.tip_spear_provider import (
+        TipSpearProvider as TipSpearProvider,
+    )
