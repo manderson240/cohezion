@@ -117,6 +117,42 @@ with contextlib.suppress(Exception):
     from cohezion.compound.aimo_reasoning import (
         ProcessRewardModel as ProcessRewardModel,
     )
+# Wiring-sweep 2026-06-22: clr_quality_gate was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.clr_quality_gate import (
+        CLRQualityGate as CLRQualityGate,
+    )
+
+# Wiring-sweep 2026-06-22: degradation_health was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.degradation_health import (
+        HealthObservabilityMixin as HealthObservabilityMixin,
+    )
+
+# Wiring-sweep 2026-06-22: loop_daemon was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.loop_daemon import (
+        LoopDaemon as LoopDaemon,
+    )
+
+# Wiring-sweep 2026-06-22: rubric_middleware was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.rubric_middleware import (
+        RubricMiddleware as RubricMiddleware,
+    )
+    from cohezion.compound.rubric_middleware import (
+        RubricVerdict as RubricVerdict,
+    )
+
+# Wiring-sweep 2026-06-22: vmodel_harness was a genuine import-graph orphan (V-Model CI gate).
+with contextlib.suppress(Exception):
+    from cohezion.compound.vmodel_harness import (
+        VModelCoverageReport as VModelCoverageReport,
+    )
+    from cohezion.compound.vmodel_harness import (
+        VModelHarness as VModelHarness,
+    )
+
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )

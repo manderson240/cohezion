@@ -42,6 +42,27 @@ with contextlib.suppress(Exception):
         LYNXGate as LYNXGate,
     )
 
+# Wiring-sweep 2026-06-22: task_classifier was a genuine import-graph orphan. Guarded re-export
+# makes its zero-latency router part of the inference surface (CL1/CL2/CL3 harness invariants).
+# `Harness` aliased `AgenticHarness` to avoid shadowing harnesses.Harness (process slots).
+with contextlib.suppress(Exception):
+    from cohezion.inference.task_classifier import Harness as AgenticHarness  # noqa: F401
+    from cohezion.inference.task_classifier import (
+        RouteDecision as RouteDecision,
+    )
+    from cohezion.inference.task_classifier import (
+        band_for_node as band_for_node,
+    )
+    from cohezion.inference.task_classifier import (
+        classify as classify,
+    )
+    from cohezion.inference.task_classifier import (
+        classify_with_harness as classify_with_harness,
+    )
+    from cohezion.inference.task_classifier import (
+        select_harness as select_harness,
+    )
+
 from cohezion.inference.fleet import RouteResult, extend_claude, route
 from cohezion.inference.harnesses import (
     Harness,

@@ -1,6 +1,21 @@
 """FLUME VAE module for semantic embeddings and latent space operations."""
 
+import contextlib
+
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
+# Wiring-sweep 2026-06-22: diversity.py was a genuine import-graph orphan (Gvendi diversity
+# filter). SkillStateEncoder skipped — surface-name duplicate exists in skill_state_encoder.py.
+with contextlib.suppress(Exception):
+    from cohezion.flume.diversity import (
+        gvendi_diversity_filter as gvendi_diversity_filter,
+    )
+
+# Wiring-sweep 2026-06-22: skill_state_encoder.py was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.flume.skill_state_encoder import (
+        SkillStateEncoder as SkillStateEncoder,
+    )
 
 
 __all__ = [
