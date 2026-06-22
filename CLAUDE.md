@@ -71,6 +71,48 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 # NEVER: logger.info("Starting...") at module scope, print() anywhere in init path
 ```
 
+### ⚡ Reporting Findings (Multi-Agent)
+`SendMessage` is a **deferred tool** — it exists but its schema is not preloaded. Before calling it, always run:
+```python
+# Step 1: load the schema
+ToolSearch(query="select:SendMessage")
+# Step 2: then call it
+SendMessage(to="<recipient-name>", message="...")
+```
+If you are in a restricted agent type (e.g. `code-reviewer`) that cannot call ToolSearch, fall back to writing a structured report to the vault:
+```bash
+~/vaults/cohezion-vault/reports/YYYYMMDD-<slug>.md
+```
+**Never loop trying SendMessage without loading it first.** The deferred-tool pattern is: ToolSearch → call.
+
+### ⚡ Sandbox / Filesystem Constraints
+`~/.claude/` and git worktrees are often read-only. On the **first** read-only or permission-denied error:
+1. **Stop immediately** — do not retry the blocked path
+2. Route the write to vault storage: `~/vaults/cohezion-vault/reports/`
+3. If a worktree is blocking commits, escape the worktree and use the main checkout
+
+Retrying blocked writes wastes turns and always fails. One error = pivot, not retry.
+
+### ⚡ Inference Ports
+**Port 13305 is the only port needed.** It is the Lemonade router and GAIA SDK endpoint — it serves the entire model catalog (NPU, iGPU, CPU) on demand.
+
+Dedicated per-port servers (13306, 13307, 13309) are redundant and often offline. Do not start them, chase them, or investigate them as separate inference endpoints. When debugging inference, check 13305 only:
+```bash
+curl -s http://localhost:13305/v1/models | python3 -c "import sys,json; d=json.load(sys.stdin); print([m['id'] for m in d['data'][:5]])"
+```
+
+### ⚡ Editing After Formatters
+The `post-edit-lint.sh` PostToolUse hook runs `pre-commit run --files <file>` (which includes ruff) after **every** Edit/Write on Python/JS/TS files. Ruff may reformat the file, invalidating subsequent Edit anchors.
+
+**Rule: after any step that triggers ruff or a formatter, re-read the file before making further Edits.** Otherwise `old_string` won't match the reformatted content and the Edit will fail.
+
+```python
+# Pattern: write → (hook reformats) → re-read → edit
+Edit(file_path=f, ...)   # hook runs ruff automatically
+Read(file_path=f)        # re-read the reformatted version
+Edit(file_path=f, ...)   # now old_string will match
+```
+
 ### ⚡ Critical Principles (Sessions 40-55)
 1. **Implement ONE feature, validate manually, write 5 tests** (NOT 600 pre-implementation tests)
 2. **Use proven templates** (e.g., cloud-vault-mcp: 40+ tools) over greenfield exploration
@@ -156,6 +198,28 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | `platform-coordinator` | Cross-platform routing, cost tiers, fallback chains | Agent + PRIME |
 
 **Cost routing tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M)
+
+### ⚡ Development Agent Routing
+When spawning sub-agents (`Agent()` or `subagent_type`), match the task to the specialist:
+
+| Task | `subagent_type` | Restriction |
+|------|-----------------|-------------|
+| Write / fix tests | `autoharness-specialist` | — |
+| Autonomous research / experiments | `autoresearch-specialist` | — |
+| Review code (no writes) | `code-reviewer` | Read + Glob only |
+| Multi-agent orchestration, skill loop | `compound-engineering-specialist` | — |
+| Architecture planning | `Plan` | No Edit/Write |
+| Fast codebase search | `Explore` | No Edit/Write; use "quick/medium/very thorough" |
+| Skill library audits | `skill-quality-specialist` | — |
+| SurrealDB schema / indexes | `surreal-dba` | — |
+| Vault / memory / decisions | `vault-keeper` | — |
+| Run pytest, report coverage | `test-runner` | Read + Bash |
+| HIHO / manifold / 12D physics | `hiho-stability-specialist` | — |
+| FLUME VAE / embeddings | `flume-specialist` | — |
+| MCP server lifecycle | `mcp-specialist` | Read + Bash + Glob + Edit |
+| Full context in sub-agent | `fork` (subagent_type) | Inherits parent context |
+
+**Do not** use `general-purpose` or omit `subagent_type` for specialized work — domain-tuned types have tighter tool lists and purpose-built prompts. Use `fork` only when the sub-agent genuinely needs the parent's conversation history.
 
 ### ⚡ Quick Reference
 - **Languages (polyglot)**: Python `==3.11.*` for `src/cohezion/**` (package manager: `uv`, never bare pip) | Rust for `src/cohezion-physics-core/` (Cargo) | TypeScript/React for `src/web/` (Next.js 16 + Three.js + Tone.js). Use the right language for the job; language-specific rules apply to their scope only.

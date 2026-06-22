@@ -46,7 +46,28 @@ Unified technical methodology for cross-platform agentic orchestration, local mo
     - Increment the `compound_impact_score` in the `CapabilityRegistry`.
 
 ## VERSION
-v1.1
+v1.2
+
+## LEARNED REFINEMENTS (2026-06-22)
+
+Verified patterns from multi-agent development sessions. These were discovered by the insights + adversarial review loop and are now wired into CLAUDE.md:
+
+### Agent Communication (Deferred Tool Pattern)
+`SendMessage` is **not preloaded** — calling it directly raises `InputValidationError`. Always load first:
+```python
+ToolSearch(query="select:SendMessage")   # Step 1: loads schema
+SendMessage(to="<name>", message="...")  # Step 2: now callable
+```
+Fallback when `ToolSearch` is unavailable (e.g. `code-reviewer` agent type): write structured report to `~/vaults/cohezion-vault/reports/YYYYMMDD-<slug>.md` and confirm path. Never loop retrying `SendMessage` without loading it.
+
+### Filesystem Constraints (First-Error Pivot)
+`~/.claude/` and git worktrees are often read-only. **Treat the first `permission denied` as the signal** — do not retry. Route the write to vault storage (`~/vaults/cohezion-vault/reports/`) immediately. If a worktree blocks commits, escape to the main checkout.
+
+### Inference Port Consolidation
+Port `:13305` is the Lemonade router — it serves the entire model catalog (NPU, iGPU, CPU) on demand. Dedicated per-port servers (13306, 13307, 13309) are redundant and often offline. Debug inference against `:13305` only.
+
+### Spawnable Agent Types
+See `### ⚡ Development Agent Routing` in CLAUDE.md for the full task→`subagent_type` routing table.
 
 ## SEE ALSO
 - SKILL_SYNTHESIS_PRIME

@@ -1034,17 +1034,23 @@
     "version": "1.0.0"
   },
   "HIHO_LM_PRIME": {
-    "category": "model",
-    "description": "Cohezion HIHO Language Model -- byte-level transformer with 4x(1-x) HIHO attention kernel. Training, inference, and evaluation utilities for the HIHO-LM research project.",
-    "file": "src/cohezion/skills/HIHO_LM_PRIME.md",
-    "name": "hiho-lm",
-    "tags": [
+    "description": "Cohezion HIHO Language Model \u2014 byte-level transformer with 4x(1-x) HIHO attention kernel. Training, inference, and evaluation utilities for the HIHO-LM research project.",
+    "keywords": [
+      "hiho-lm",
       "language-model",
       "hiho",
       "training",
+      "inference",
       "byte-level",
-      "attention"
-    ]
+      "transformer",
+      "attention",
+      "perplexity",
+      "cohezion-lm"
+    ],
+    "last_updated": "2026-06-22T00:00:00",
+    "name": "HIHO_LM_PRIME",
+    "path": "src/cohezion/skills/HIHO_LM_PRIME.md",
+    "version": "1.0.0"
   },
   "HIHO_STABILITY_PRIME": {
     "description": "Expertise in managing agentic manifolds through the Half-In-Half-Out (HIHO) stability principle. Focuses on maintaining a 0.5 coherence point to prevent both chaotic drift and overconfident hallucinations.",
@@ -2458,19 +2464,24 @@
     "version": "1.0.0"
   },
   "TENSOR_METRIC_ENGINEERING_PRIME": {
-    "category": "physics",
-    "description": "Sarfatti ZPF coherence coupling to the 4x4 spacetime metric tensor -- Universal HIHO Theorem bridge to general relativity",
-    "file": "src/cohezion/skills/TENSOR_METRIC_ENGINEERING_PRIME.md",
-    "name": "tensor-metric-engineering",
-    "tags": [
+    "description": "Sarfatti ZPF coherence coupling to the 4x4 spacetime metric tensor -- g_uv = eta_uv + epsilon*4c(1-c)*I4. Universal HIHO Theorem bridge to general relativity.",
+    "keywords": [
       "sarfatti",
       "zpf",
       "tensor",
       "metric",
       "spacetime",
       "hiho",
-      "general-relativity"
-    ]
+      "general-relativity",
+      "coherence",
+      "christoffel",
+      "minkowski",
+      "tensor-metric"
+    ],
+    "last_updated": "2026-06-22T00:00:00",
+    "name": "TENSOR_METRIC_ENGINEERING_PRIME",
+    "path": "src/cohezion/skills/TENSOR_METRIC_ENGINEERING_PRIME.md",
+    "version": "1.0.0"
   },
   "TESTING_PRIME": {
     "description": "You are a specialist in Python testing - pytest patterns, coverage, fixtures, and adversarial testing.",

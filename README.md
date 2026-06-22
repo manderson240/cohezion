@@ -126,12 +126,64 @@ HIHO (Half-In, Half-Out) at 0.5 coherence is where six mathematical frameworks c
 
 Cohezion practices compound engineering: every feature makes future features easier.
 
-- **151 PRIME skills** encode reusable patterns from 95 sessions
+- **235 PRIME skills** encode reusable patterns from 100+ sessions
 - **SkillRefiner** updates skills based on execution results
 - **DegradationDetector** monitors quality and feeds back to CostAwareRouter
 - **JourneyTracker** records 12D trajectories for pattern extraction
 - **Execution traces** stored as browsable filesystem (Meta-Harness pattern)
 - **SurrealDB + Obsidian vault** for long-term knowledge persistence
+
+## Agentic-First Development
+
+Cohezion is built **by** agents, not just **for** agents. The development loop uses 18 specialist sub-agents that collaborate through the compound engineering pipeline — every session extracts learnings that refine the skills the agents use next time.
+
+### Spawning the Right Specialist
+
+When working on Cohezion, match the task to the `subagent_type`:
+
+| Task | `subagent_type` |
+|------|-----------------|
+| Write / fix tests | `autoharness-specialist` |
+| Research & experiments | `autoresearch-specialist` |
+| Code review (no writes) | `code-reviewer` |
+| Multi-agent orchestration | `compound-engineering-specialist` |
+| Architecture planning | `Plan` |
+| Fast codebase search | `Explore` |
+| Skill library audits | `skill-quality-specialist` |
+| SurrealDB schema / queries | `surreal-dba` |
+| Vault / decision persistence | `vault-keeper` |
+| HIHO / 12D physics | `hiho-stability-specialist` |
+| FLUME VAE / embeddings | `flume-specialist` |
+| Run pytest, coverage | `test-runner` |
+| MCP server lifecycle | `mcp-specialist` |
+
+Agent definitions live in `.claude/agents/`. Each has a YAML frontmatter `name` + `description` — missing either causes silent load failure.
+
+### The Self-Improving Loop
+
+Each development session runs the compound loop:
+
+```
+Execute (CompoundExecutor 11-step pipeline)
+  → Reflect (RetrospectionEngine extracts learnings)
+  → Refine  (SkillRefiner version-bumps the PRIME skill)
+  → Compound (better skill → better next execution)
+```
+
+Run: `uv run python scripts/drivers/compound_cycle.py`
+
+The 235 PRIME skill definitions in `src/cohezion/skills/` are the accumulated output of this loop — version-controlled, keyword-indexed via `src/cohezion/registry/skill_registry.json`, and auto-discoverable by any agent that inherits the agent contract.
+
+### Agent Contract
+
+[CLAUDE.md](CLAUDE.md) is the agent contract inherited by every agent spawned on this repo. It encodes verified agentic patterns:
+
+- **Deferred tool loading** — `ToolSearch("select:SendMessage")` before calling `SendMessage` (the schema isn't preloaded; calling directly raises `InputValidationError`)
+- **Vault fallback** — first `permission denied` → write to `~/vaults/cohezion-vault/reports/`, not retry
+- **Inference** — port `:13305` (Lemonade router) serves NPU / iGPU / CPU on demand; dedicated per-port servers are redundant
+- **Post-formatter re-read** — after any ruff/formatter run, re-read the file before the next `Edit` (ruff reformats in place, invalidating prior anchors)
+
+These patterns were discovered across 35 sessions, surfaced by `/insights` analysis, and proven via live sub-agent execution before encoding.
 
 ## Persistence
 
