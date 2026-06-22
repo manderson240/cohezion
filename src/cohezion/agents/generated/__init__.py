@@ -1,12 +1,13 @@
 """Auto-generated agents from PRIME skill definitions."""
 
-from cohezion.agents.generated.skill_0_agent import Skill0Agent
-from cohezion.agents.generated.skill_1_agent import Skill1Agent
-from cohezion.agents.generated.test_skill_agent import TestSkillAgent
+import contextlib
 
+with contextlib.suppress(Exception):
+    from cohezion.agents.generated.skill_0_agent import Skill0Agent as Skill0Agent
 
-__all__: list[str] = [
-    "Skill0Agent",
-    "Skill1Agent",
-    "TestSkillAgent",
-]
+with contextlib.suppress(Exception):
+    from cohezion.agents.generated.skill_1_agent import Skill1Agent as Skill1Agent
+
+# test_skill_agent.py is generated on demand — guard so missing file is non-fatal
+with contextlib.suppress(Exception):
+    from cohezion.agents.generated.test_skill_agent import TestSkillAgent as TestSkillAgent
