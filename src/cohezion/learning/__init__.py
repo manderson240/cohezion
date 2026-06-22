@@ -170,6 +170,12 @@ with contextlib.suppress(Exception):
 # Wiring-sweep 2026-06-22: ouroboros.py (learning layer), shadow_scripter, skill_acquisition
 with contextlib.suppress(Exception):
     from cohezion.learning.ouroboros import (
+        ExecutionExhaust as ExecutionExhaust,
+    )
+    from cohezion.learning.ouroboros import (
+        OuroborosAttribution as OuroborosAttribution,
+    )
+    from cohezion.learning.ouroboros import (
         OuroborosEngine as OuroborosEngine,
     )
 

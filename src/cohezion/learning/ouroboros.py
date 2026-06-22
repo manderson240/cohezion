@@ -2,13 +2,21 @@
 
 Consumes engine operation exhaust (failures, inefficiencies, context walls)
 to systematically rewrite internal execution PRDs and system prompts.
+
+Attribution bridge (2026-06-22):
+    ``OuroborosAttribution.from_exhaust()`` converts ExecutionExhaust into a
+    typed failure class + evidence dict ready for RecursiveTraceLoop.failure_map.
+    When a numpy latent vector is provided, top concept directions are included
+    via LatentDirectionProbe (if fitted) for mechanistic interpretability.
 """
 
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass, field
 from typing import Any
 
+import numpy as np
 from pydantic import BaseModel
 
 
@@ -103,6 +111,101 @@ class OuroborosEngine:
             return await self._trigger_rewrite_cycle(exhaust)
 
         return False
+
+
+@dataclass
+class OuroborosAttribution:
+    """Structured failure attribution produced from ExecutionExhaust.
+
+    Bridges OuroborosEngine healing events to RecursiveTraceLoop.failure_map
+    so the next strategy is conditioned on a TYPED failure class rather than
+    an opaque error string.
+
+    Fields
+    ------
+    failure_class : str
+        Typed category: 'coherence_drop', 'error', 'token_spike', 'latent_drift', 'unknown'
+    evidence : dict
+        Raw diagnostics from the exhaust plus optional concept alignment scores.
+    recommended_strategies : list[str]
+        Ordered list suitable for use as failure_map[failure_class] value.
+    latent_concepts : list[tuple[str, float]]
+        Top concept alignments from LatentDirectionProbe (empty if probe unavailable).
+    """
+
+    failure_class: str
+    evidence: dict[str, Any] = field(default_factory=dict)
+    recommended_strategies: list[str] = field(default_factory=list)
+    latent_concepts: list[tuple[str, float]] = field(default_factory=list)
+
+    @classmethod
+    def from_exhaust(
+        cls,
+        exhaust: ExecutionExhaust,
+        *,
+        latent_vector: np.ndarray | None = None,
+        probe: Any = None,  # cohezion.flume.diversity.LatentDirectionProbe | None
+    ) -> OuroborosAttribution:
+        """Derive a typed failure class and evidence from an ExecutionExhaust.
+
+        Parameters
+        ----------
+        exhaust:
+            The ExecutionExhaust emitted by OuroborosEngine.
+        latent_vector:
+            Optional 256D FLUME vector for the failed execution. When provided
+            and a fitted LatentDirectionProbe is supplied, concept alignments
+            are added to evidence.
+        probe:
+            Optional LatentDirectionProbe. Must have .fitted == True to be used.
+        """
+        # Rule-based failure class from exhaust fields (deterministic, zero model calls)
+        if exhaust.error_message:
+            failure_class = "error"
+            strategies = ["reduce_context", "retry_with_fallback", "escalate"]
+        elif exhaust.coherence_drop > 0.5:
+            failure_class = "coherence_drop"
+            strategies = ["reduce_context", "increase_temperature", "retry_with_fallback"]
+        elif exhaust.token_usage > 8000:
+            failure_class = "token_spike"
+            strategies = ["summarize_first", "reduce_context", "escalate"]
+        else:
+            failure_class = "unknown"
+            strategies = ["retry_with_fallback", "escalate"]
+
+        evidence: dict[str, Any] = {
+            "task_id": exhaust.task_id,
+            "error_message": exhaust.error_message,
+            "coherence_drop": exhaust.coherence_drop,
+            "token_usage": exhaust.token_usage,
+        }
+        evidence.update(exhaust.diagnostics)
+
+        latent_concepts: list[tuple[str, float]] = []
+        if latent_vector is not None and probe is not None:
+            try:
+                if getattr(probe, "fitted", False):
+                    latent_concepts = probe.top_concepts(latent_vector, k=3)
+                    evidence["latent_concepts"] = latent_concepts
+                    # Refine failure class when latent evidence provides signal
+                    if latent_concepts and failure_class == "unknown":
+                        top_concept = latent_concepts[0][0]
+                        if top_concept:
+                            failure_class = f"latent_drift:{top_concept}"
+                            strategies = [
+                                "probe_latent_space",
+                                "reduce_context",
+                                "retry_with_fallback",
+                            ]
+            except Exception:
+                pass  # probe failure must never surface to caller
+
+        return cls(
+            failure_class=failure_class,
+            evidence=evidence,
+            recommended_strategies=strategies,
+            latent_concepts=latent_concepts,
+        )
 
 
 def _emit_healing_event(exhaust: ExecutionExhaust, new_rule: str) -> None:
