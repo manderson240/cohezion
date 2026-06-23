@@ -1,0 +1,112 @@
+rules:
+  # -------------------------------------------------------------------------
+  # Harness L359: No broad except-Exception stealth catches
+  # except (SubclassError, Exception) is semantically identical to
+  # except Exception: because Exception is a supertype of everything.
+  # Use only sibling-or-unrelated types in except tuples.
+  # -------------------------------------------------------------------------
+  - id: cohezion-broad-except-exception
+    patterns:
+      - pattern: |
+          try:
+              ...
+          except (..., Exception, ...):
+              ...
+    message: >
+      [L359] Broad except-Exception stealth catch. Because Exception is a supertype,
+      this tuple is semantically `except Exception:`. Use only sibling-or-unrelated
+      types (e.g. ImportError, AttributeError, KeyError, TypeError, ValueError).
+      Let unexpected exceptions propagate.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: reliability
+      cohezion_learning: L359
+      cwe: "CWE-390: Detection of Error Condition Without Action"
+
+  - id: cohezion-bare-except-exception
+    pattern: |
+      try:
+          ...
+      except Exception:
+          ...
+    message: >
+      [L359] Bare `except Exception:` silently swallows all exceptions. Catch only
+      the specific exception types you intend to handle. New bare-except clauses
+      should not be introduced; the existing 1,607 are being remediated in phases.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: reliability
+      cohezion_learning: L359
+
+  # -------------------------------------------------------------------------
+  # Harness pre-commit rule: No sys.path.insert with hardcoded home paths
+  # (mirrors the pre-commit hook no-hardcoded-home-paths)
+  # -------------------------------------------------------------------------
+  - id: cohezion-sys-path-insert-home
+    pattern: sys.path.insert(0, "/home/...")
+    message: >
+      sys.path.insert with hardcoded /home/ path is forbidden. Use relative imports
+      or set PYTHONPATH. This breaks when run outside the developer's machine.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: portability
+
+  - id: cohezion-sys-path-insert-any
+    patterns:
+      - pattern: sys.path.insert(0, ...)
+      - pattern-not: sys.path.insert(0, str(...))
+    message: >
+      sys.path.insert should not be used in production code. Use relative imports,
+      proper package structure, or PYTHONPATH environment variable.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: portability
+
+  # -------------------------------------------------------------------------
+  # Harness N4: No direct port bypass in live inference paths
+  # New code in src/cohezion/ must use :13305 (OmniRouter), not per-port servers.
+  # Use build_gaia_llm_tier() or build_reasoning_orchestrator().
+  # Inline override: # allow-direct-port: <reason>
+  # -------------------------------------------------------------------------
+  - id: cohezion-direct-inference-port-11434
+    pattern: |
+      "http://..."
+    pattern-where-regex:
+      - pattern: '"http://[^"]*:11434[^"]*"'
+    message: >
+      [N4] Direct reference to Ollama port 11434. Use :13305 (OmniRouter) via
+      build_gaia_llm_tier(). Add `# allow-direct-port: <reason>` to exempt.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: inference
+      cohezion_harness: N4
+
+  # -------------------------------------------------------------------------
+  # Subprocessing must use .venv Python, not sys.executable (L367)
+  # -------------------------------------------------------------------------
+  - id: cohezion-subprocess-sys-executable
+    pattern: subprocess.run([sys.executable, ...], ...)
+    message: >
+      [L367] subprocess.run with sys.executable fails in git hooks, systemd, and
+      cron because sys.executable resolves to the launching interpreter (not venv).
+      Use `<repo_root>/.venv/bin/python3` with a fallback to sys.executable.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: reliability
+      cohezion_learning: L367
+
+  - id: cohezion-subprocess-sys-executable-list
+    pattern: subprocess.run([sys.executable, $A, ...], ...)
+    message: >
+      [L367] subprocess.run with sys.executable. See cohezion-subprocess-sys-executable.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: reliability
+      cohezion_learning: L367

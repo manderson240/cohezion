@@ -17,6 +17,10 @@ lint-check:  ## Check linting without fixing
 	ruff format --check .
 	@echo "✓ Lint check complete"
 
+semgrep:  ## Run Cohezion custom Semgrep rules (anti-patterns from harness)
+	uvx semgrep --config .semgrep/cohezion-rules.yaml src/cohezion/ --metrics=off
+	@echo "✓ Semgrep cohezion-rules check complete"
+
 coherence-check:  ## Enforce 12D manifold integrity in data artifacts
 	uv run python src/cohezion/scripts/coherence_inspector.py
 	@echo "✓ Manifold integrity verified"
