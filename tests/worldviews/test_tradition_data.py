@@ -14,10 +14,10 @@ from cohezion.worldviews.tradition_data import (
 
 
 class TestTraditionRegistry:
-    """Verify the 16-tradition registry is complete and well-formed."""
+    """Verify the 17-tradition registry is complete and well-formed."""
 
-    def test_exactly_16_traditions(self):
-        assert len(get_traditions()) == 16
+    def test_exactly_17_traditions(self):
+        assert len(get_traditions()) == 17
 
     def test_all_slugs_unique(self):
         slugs = [t.slug for t in get_traditions()]
@@ -101,9 +101,9 @@ class TestTraditionProperties:
 class TestStepComparison:
     """Test cross-tradition step view."""
 
-    def test_step_0_returns_16_entries(self):
+    def test_step_0_returns_17_entries(self):
         result = get_step_across_traditions(0)
-        assert len(result) == 16
+        assert len(result) == 17
 
     def test_step_entries_have_required_fields(self):
         result = get_step_across_traditions(0)

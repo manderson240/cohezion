@@ -148,7 +148,7 @@ def _steps(*entries: tuple[str, str, str]) -> tuple[StepMapping, ...]:
     )
 
 
-# ─── 16 Traditions ──────────────────────────────────────────────────────
+# ─── 17 Traditions ──────────────────────────────────────────────────────
 
 _LAKOTA = Tradition(
     name="Lakota",
