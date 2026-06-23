@@ -124,3 +124,23 @@ class SyntheticFlumeDataset(Dataset):
 
     def __getitem__(self, idx: int) -> torch.Tensor:
         return torch.from_numpy(self.data[idx])
+
+
+class RealSkillStateDataset(SyntheticFlumeDataset):
+    """Load skill-state latent vectors from SurrealDB.
+
+    Falls back to SyntheticFlumeDataset when SurrealDB is unreachable.
+    Gaussian augmentation is applied only to continuous dims [0:29];
+    the SHA-256 fingerprint region [29:256] is kept bit-exact.
+    """
+
+    def __init__(
+        self,
+        *,
+        surreal_url: str = "ws://localhost:8001",
+        n_fallback: int = 10000,
+        z_dim: int = 256,
+        seed: int = 42,
+        augment_sigma: float = 0.01,
+    ) -> None:
+        raise NotImplementedError

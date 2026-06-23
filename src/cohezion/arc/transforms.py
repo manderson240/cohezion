@@ -919,3 +919,18 @@ def get_timing_report() -> dict[str, dict[str, Any]]:
         "max_ms": cd["max"],
     }
     return report
+
+
+# ---------------------------------------------------------------------------
+# Tier 8 high-impact transforms (stub implementations)
+# ---------------------------------------------------------------------------
+
+
+def grid_symmetry_reflect(grid: np.ndarray) -> np.ndarray:
+    """Mirror missing halves of asymmetric grids using reflective symmetry."""
+    raise NotImplementedError
+
+
+def object_center_of_mass(grid: np.ndarray) -> tuple[float, float]:
+    """Return the (row, col) center of mass of non-zero cells in *grid*."""
+    raise NotImplementedError

@@ -148,7 +148,7 @@ def _steps(*entries: tuple[str, str, str]) -> tuple[StepMapping, ...]:
     )
 
 
-# ─── 16 Traditions ──────────────────────────────────────────────────────
+# ─── 17 Traditions ──────────────────────────────────────────────────────
 
 _LAKOTA = Tradition(
     name="Lakota",
@@ -1030,6 +1030,85 @@ _ABORIGINAL = Tradition(
 )
 
 
+_ININEW = Tradition(
+    name="Ininew (Cree)",
+    slug="ininew",
+    origin_region="Subarctic / Great Plains, Turtle Island (Canada)",
+    step_mappings=_steps(
+        (
+            "Kitci Manito",
+            "The Great Spirit — sacred emptiness before all creation",
+            "Vacuum state / quantum void",
+        ),
+        (
+            "Tipiskawi Pisim (Night Sun)",
+            "The Moon as first distinction: Night Sun emerging as peer of the Day Sun",
+            "Symmetry breaking from void — the first duality",
+        ),
+        (
+            "13 moons / 13 turtle scutes",
+            "13 central scutes of Mikinak's shell = 13 lunar cycles per year; "
+            "the degrees of temporal freedom encoded in living biology",
+            "12 degrees of freedom (13-fold lunar calendar)",
+        ),
+        (
+            "Four seasons / four cardinal medicines",
+            "Seasonal governance of the land and its medicines",
+            "4 fabric domains",
+        ),
+        (
+            "28-day lunar cycle / 28 turtle edge scutes",
+            "28 edge scutes = 28 days in one moon; the phase rhythm embedded in the turtle's body",
+            "Phase oscillation",
+        ),
+        (
+            "Mikinak chosen after the flood",
+            "Creator Kitci Manito chooses the turtle as cosmic foundation; dry land "
+            "rises from water on the turtle's back — differentiation of earth from sea",
+            "Symmetry breaking — differentiation of domains",
+        ),
+        (
+            "Turtle shell calendar",
+            "The living shell encodes year (13 scutes) and month (28 scutes) "
+            "simultaneously — biology as information carrier",
+            "SPIN information unit — cosmic time written in morphology",
+        ),
+        (
+            "Tipiskawi Pisim / Pisim equilibrium",
+            "Night Sun and Day Sun as equal luminaries in dynamic balance; "
+            "neither dominates — they alternate in HIHO rhythm",
+            "HIHO dynamic equilibrium",
+        ),
+        (
+            "Waskitow (ecological relatedness)",
+            "Moon governs weather, plants, animals, temperature — all life is "
+            "bound in one relational system through lunar rhythm",
+            "COHESION binding principle",
+        ),
+        (
+            "Turtle Island",
+            "The continent itself as permanent witness mark — Mikinak's back "
+            "as the living foundation of the world",
+            "Reality precipitates — geological witness mark",
+        ),
+    ),
+    unique_contributions=(
+        UniqueContribution(
+            "Biological cosmological encoding",
+            "The only tradition where cosmic time (year + month) is physically "
+            "embedded in a living organism's anatomy — turtle scute counts are "
+            "SPIN information units realized in biology",
+        ),
+        UniqueContribution(
+            "Dual luminary HIHO",
+            "Tipiskawi Pisim (Night Sun) as equal peer of the Day Sun — "
+            "a cosmological HIHO pair at the astronomical scale; "
+            "equilibrium is not philosophical but structural",
+        ),
+    ),
+)
+
+
 # ─── Registry ───────────────────────────────────────────────────────────
 
 _ALL_TRADITIONS: tuple[Tradition, ...] = (
@@ -1049,6 +1128,7 @@ _ALL_TRADITIONS: tuple[Tradition, ...] = (
     _AMAZONIAN,
     _DOGON,
     _ABORIGINAL,
+    _ININEW,
 )
 
 _BY_SLUG: dict[str, Tradition] = {t.slug: t for t in _ALL_TRADITIONS}
@@ -1063,7 +1143,7 @@ def get_tradition(slug: str) -> Tradition | None:
 
 
 def get_step_across_traditions(step_index: int) -> list[dict]:
-    """Return all 16 traditions' mapping for a given step (0-9)."""
+    """Return all 17 traditions' mapping for a given step (0-9)."""
     if not 0 <= step_index <= 9:
         raise ValueError(f"Step index must be 0-9, got {step_index}")
     return [

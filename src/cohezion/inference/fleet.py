@@ -613,3 +613,36 @@ async def extend_claude(
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
     result.escalated_to_cloud = True
     return result
+
+
+# ---------------------------------------------------------------------------
+# Recipe-aware health gate stubs (fleet_recipe_gate, 2026-06-10)
+# ---------------------------------------------------------------------------
+
+
+def _get_lemonade_health() -> "Any | None":  # type: ignore[return]
+    """Fetch the latest LemonadeHealth snapshot from the OmniRouter (:13305).
+
+    Returns None when the router is unreachable or the probe fails.
+    """
+    raise NotImplementedError
+
+
+def _recipe_for_backend(runtime_backend: str) -> "str | None":
+    """Map a model's ``runtime_backend`` string to its lemonade recipe name.
+
+    Returns None when the backend is unknown or not a lemonade recipe.
+    """
+    raise NotImplementedError
+
+
+def _lemonade_recipe_skip_reason(
+    candidate: "Any",
+    health: "Any | None",
+) -> "str | None":
+    """Return a human-readable skip reason if *candidate* should be dropped.
+
+    Returns None when the candidate is healthy (or when health is None —
+    fail-soft: no probe means permissive gate).
+    """
+    raise NotImplementedError
