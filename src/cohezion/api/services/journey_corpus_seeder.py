@@ -5,11 +5,11 @@ Exports consumed by tests/api/test_journey_corpus_seeder.py.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import random
 from pathlib import Path
+
 
 # Dimension constants matching the test assertions
 INITIAL_AXIOMATIC_DIM: int = 12
@@ -37,7 +37,7 @@ def _uniform_norm(rng: random.Random, dim: int) -> list[float]:
 def _make_journey(journey_index: int, seed: int) -> tuple[str, dict]:
     rng = random.Random(seed + journey_index * 997)
 
-    jid = "journey_" + hashlib.sha1(f"seed{seed}-idx{journey_index}".encode()).hexdigest()[:12]
+    jid = f"journey_s{seed}_{journey_index:04d}"
 
     trajectory = []
     for step in range(TRAJECTORY_STEPS):
