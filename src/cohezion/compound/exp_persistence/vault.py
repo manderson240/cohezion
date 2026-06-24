@@ -82,10 +82,32 @@ class VaultLogger:
         except Exception as e:
             logger.error(f"Failed to log execution result to Vault: {e}")
 
+    # Context tier rank (lower = higher priority in guidance assembly)
+    _TIER_RANK: dict[str, int] = {"gold": 0, "silver": 1, "bronze": 2}
+
+    @staticmethod
+    def _parse_context_tier(content: str) -> str:
+        """Extract context_tier from YAML frontmatter; default 'silver'."""
+        if not isinstance(content, str) or not content.startswith("---"):
+            return "silver"
+        end = content.find("---", 3)
+        if end == -1:
+            return "silver"
+        fm = content[3:end]
+        for line in fm.splitlines():
+            if line.strip().startswith("context_tier:"):
+                return line.split(":", 1)[1].strip().strip("\"'") or "silver"
+        return "silver"
+
     def get_experience_guidance(
         self, task_description: str, project: str = "cohezion"
     ) -> dict[str, Any]:
-        """Fetch similar patterns from the Vault for guidance."""
+        """Fetch similar patterns from the Vault for guidance.
+
+        Patterns are sorted by context_tier (gold → silver → bronze) so
+        the highest-curation context appears first in the guidance string,
+        matching the Qubot finding that structured context is 3× faster.
+        """
         try:
             # Simple keyword extraction for search
             keywords = [w for w in task_description.lower().split() if len(w) > 4][:3]
@@ -93,6 +115,19 @@ class VaultLogger:
 
             logger.debug(f"Searching Vault for guidance: {query}")
             patterns = self.mcp.vault_search(query)
+
+            # Tier-sort: gold first (curated PRIME), then silver, bronze last
+            if patterns:
+                def _tier_key(p: Any) -> int:
+                    text = p if isinstance(p, str) else (p.get("content", "") if isinstance(p, dict) else "")
+                    return self._TIER_RANK.get(self._parse_context_tier(text), 1)
+                patterns = sorted(patterns, key=_tier_key)  # type: ignore[type-var]
+                tier_counts = {}
+                for p in patterns:
+                    t = self._parse_context_tier(p if isinstance(p, str) else p.get("content", ""))
+                    tier_counts[t] = tier_counts.get(t, 0) + 1
+                tier_summary = ", ".join(f"{t}={n}" for t, n in sorted(tier_counts.items()))
+                logger.debug("Vault guidance tiers: %s", tier_summary)
 
             return {
                 "relevant_context": patterns,
@@ -107,10 +142,18 @@ class VaultLogger:
     def extract_execution_pattern(
         self, source_path: str, pattern_name: str, description: str, code_example: str, domain: str
     ) -> str:
-        """Extract a reusable pattern from a successful execution."""
+        """Extract a reusable pattern from a successful execution.
+
+        Writes Silver-tier context (conformed, domain-specific, with usage guidance).
+        """
         try:
             path = f"patterns/domains/{domain}/{pattern_name}.md"
-            content = f"""# Pattern: {pattern_name}
+            content = f"""---
+context_tier: silver
+domain: {domain}
+owned_by: analytics
+---
+# Pattern: {pattern_name}
 - **Domain**: {domain}
 - **Description**: {description}
 - **Source**: {source_path}
@@ -129,11 +172,19 @@ class VaultLogger:
     def log_decision_point(
         self, project: str, title: str, context: str, decision: str, rationale: str
     ) -> str:
-        """Log a critical decision point to the vault."""
+        """Log a critical decision point to the vault.
+
+        Writes Silver-tier context (curated decision with rationale).
+        """
         try:
             timestamp = int(datetime.now().timestamp())
             path = f"decisions/{project}/inflection_{timestamp}.md"
-            content = f"""# Decision: {title}
+            content = f"""---
+context_tier: silver
+project: {project}
+owned_by: compound-loop
+---
+# Decision: {title}
 
 - **Project**: {project}
 - **Timestamp**: {datetime.now().isoformat()}

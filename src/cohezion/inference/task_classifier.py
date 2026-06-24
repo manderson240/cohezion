@@ -96,8 +96,37 @@ _MODEL_HINTS: dict[str, str] = {
     "reasoning": "Gemma-4-31B-it-GGUF",
     "math_reasoning": "Gemma-4-31B-it-GGUF",
 }
-_NPU_MODEL = "llama3.2-1b-FLM"
-_IGPU_DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"
+_NPU_MODEL = "llama3.2-1b-FLM"  # fallback; overridden lazily from FleetRegistry
+_IGPU_DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"  # fallback; overridden lazily from FleetRegistry
+_hints_initialized = False
+
+
+def _init_model_hints() -> None:
+    """Populate NPU/iGPU model IDs from FleetRegistry on first call (lazy, cached)."""
+    global _NPU_MODEL, _IGPU_DEFAULT_MODEL, _hints_initialized
+    if _hints_initialized:
+        return
+    _hints_initialized = True  # set before try so failures don't retry on every call
+    try:
+        from cohezion.inference.registry import Lane, Task, get_registry
+
+        r = get_registry()
+        npu = next(
+            (e.model_id for e in r.for_task(Task.ROUTING) if e.lane == Lane.NPU),
+            _NPU_MODEL,
+        )
+        igpu = next(
+            (
+                e.model_id
+                for e in r.for_task(Task.GOVERNANCE)
+                if e.lane in (Lane.IGPU_ROCWMMA, Lane.IGPU_UNIFIED)
+            ),
+            _IGPU_DEFAULT_MODEL,
+        )
+        _NPU_MODEL = npu
+        _IGPU_DEFAULT_MODEL = igpu
+    except Exception:
+        pass  # keep hardcoded fallbacks on any import or registry error
 
 
 def _preferred_model(output_type: str, node: str) -> str:
@@ -105,12 +134,13 @@ def _preferred_model(output_type: str, node: str) -> str:
 
     Priority:
     1. output_type-specific override: code → ThinkingCoder, reasoning/math_reasoning → Gemma31B
-    2. NPU node → llama3.2-1b-FLM
-    3. GPU node default → Gemma-4-E4B-it-GGUF (iGPU tier)
+    2. NPU node → registry best for Task.ROUTING/NPU (falls back to llama3.2-1b-FLM)
+    3. GPU node default → registry best for Task.GOVERNANCE/iGPU (falls back to Gemma-4-E4B-it-GGUF)
 
     Advisory only -- the caller is free to use any model. This is a routing hint to help
     callers that want to pin a specific Lemonade model without duplicating the mapping logic.
     """
+    _init_model_hints()
     if output_type in _MODEL_HINTS:
         return _MODEL_HINTS[output_type]
     if node == "npu":

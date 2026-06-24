@@ -47,6 +47,7 @@ class Learning:
     tags: list[str]
     propagate_to: str = ""  # e.g., "CLAUDE.md Coding Standards"
     links: list[str] | None = None  # [[bidirectional links]]
+    context_tier: str = "silver"  # bronze | silver | gold (gold = curated PRIME refinements)
 
 
 def persist_to_vault(learning: Learning) -> Path:
@@ -74,7 +75,8 @@ date: {learning.date}
 type: learning
 status: verified
 tags: [{tags_str}]
-learning_number: {learning.number}{links_str}
+learning_number: {learning.number}
+context_tier: {learning.context_tier}{links_str}
 ---
 
 # L{learning.number}: {learning.title}

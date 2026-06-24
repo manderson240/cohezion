@@ -215,6 +215,48 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "delta.reasoning_content before delta.content."
             ),
         ),
+        # --- FastFlowLM (FLM) fleet — XDNA2/NPU via :13305 OmniRouter ---
+        ModelEntry(
+            model_id="llama3.2-1b-FLM",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13305",  # OmniRouter dispatches to XDNA2/NPU
+            runtime_backend="flm",
+            task_affinity=frozenset({Task.SENSING, Task.ROUTING}),
+            weight_quant=WeightQuant.INT4,
+            kv_quant=KVQuant(),
+            context_window=8192,
+            priority=5,  # beats Gemma-4-E2B-it-GGUF (10) for SENSING/ROUTING
+            observed_tokens_per_sec=42.0,
+            verified_working=True,
+            last_verified_at=datetime(2026, 6, 22),
+            notes=(
+                "Primary FLM classifier/router — 42 TPS on XDNA2 NPU. "
+                "Dispatched by OmniRouter :13305 → XDNA2. "
+                "Used by triune_orchestrator for NPU tier (harness N1/N2). "
+                "Actual runtime: FastFlowLM v0.9.42+ (flm binary at "
+                "~/.cache/lemonade/bin/flm/npu/flm)."
+            ),
+        ),
+        ModelEntry(
+            model_id="deepseek-r1-0528-8b-FLM",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13305",  # OmniRouter dispatches to XDNA2/NPU
+            runtime_backend="flm",
+            task_affinity=frozenset({Task.REASONING}),
+            weight_quant=WeightQuant.INT4,
+            kv_quant=KVQuant(),
+            context_window=8192,
+            priority=8,  # NPU reasoning specialist; beats Gemma-4-E2B (10) for REASONING
+            observed_tokens_per_sec=10.6,
+            reasoning_mode=True,
+            verified_working=True,
+            last_verified_at=datetime(2026, 6, 22),
+            notes=(
+                "FLM reasoning model — 10.6 TPS on XDNA2 NPU. "
+                "Wired via build_reasoning_orchestrator() in triune_orchestrator.py. "
+                "Dispatched by OmniRouter :13305 → XDNA2."
+            ),
+        ),
         ModelEntry(
             model_id="Gemma-4-E4B-it-GGUF",
             lane=Lane.IGPU_ROCWMMA,
@@ -572,6 +614,22 @@ class FleetRegistry:
             (m for m in self.models.values() if task in m.task_affinity),
             key=lambda m: m.priority,
         )
+
+    def resolve_model(
+        self,
+        task: Task,
+        lane: Lane | None = None,
+        fallback: str = "",
+    ) -> str:
+        """Highest-priority model_id for a task, optionally filtered by lane.
+
+        Advisory — does not verify liveness. Returns ``fallback`` when no
+        candidate matches.
+        """
+        candidates = self.for_task(task)
+        if lane is not None:
+            candidates = [c for c in candidates if c.lane == lane]
+        return candidates[0].model_id if candidates else fallback
 
     def by_lane(self, lane: Lane) -> list[ModelEntry]:
         return [m for m in self.models.values() if m.lane == lane]

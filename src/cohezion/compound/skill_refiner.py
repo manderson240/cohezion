@@ -108,6 +108,7 @@ class SkillRefiner:
         execution_result: dict[str, Any],
         patterns_extracted: list[str] | None = None,
         failure_signatures: list[Any] | None = None,
+        failure_attribution: Any | None = None,
     ) -> str | None:
         """Learn from execution result and refine PRIME skill.
 
@@ -119,6 +120,10 @@ class SkillRefiner:
             operation_type: Type of operation (generate, analyze, search, etc.)
             execution_result: ExecutionResult dict with metrics and outputs
             patterns_extracted: List of vault pattern paths from execution
+            failure_attribution: Optional FailureAttribution from FailureAttributor.
+                When provided for a failed execution:
+                  - L1 (format/reasoning): emits a failure-derived PRIME refinement
+                  - L2/L3 (retrieval/cascading): writes a proof_obligation to SurrealDB
 
         Returns:
             Path to refined skill file if successful, None otherwise
@@ -127,7 +132,13 @@ class SkillRefiner:
             # Extract metrics
             metrics = self._extract_metrics(execution_result)
 
-            # Only refine on success
+            # FAPO: handle failure attribution before the success gate
+            if not metrics.success and failure_attribution is not None:
+                return self._handle_failure_attribution(
+                    skill_name, operation_type, failure_attribution, execution_result
+                )
+
+            # Only refine on success (original gate — preserved)
             if not metrics.success:
                 logger.debug("Skipping refinement for failed execution")
                 return None
@@ -143,6 +154,12 @@ class SkillRefiner:
             prime_file = self._find_prime_file(skill_name)
             if not prime_file:
                 logger.debug(f"No PRIME file found for skill: {skill_name}")
+                return None
+
+            # Golden-fixture gate (V-model verification — fail-open)
+            from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+            if not PromptVersionRegistry().check_drift(skill_name, signal.key_insight):
+                logger.info("Skill refinement blocked by golden-fixture gate: %s", skill_name)
                 return None
 
             # Append refinement
@@ -190,6 +207,7 @@ class SkillRefiner:
                 date=time.strftime("%Y-%m-%d"),
                 tags=["skill-refinement", skill_name, operation_type],
                 propagate_to=f"PRIME skill: {skill_name}",
+                context_tier="gold",
             )
 
             persist_learning(learning)
@@ -197,6 +215,128 @@ class SkillRefiner:
 
         except Exception:
             logger.debug("Skill refinement vault persistence failed (non-blocking)", exc_info=True)
+
+    # ── FAPO failure-attribution helpers ─────────────────────────────────────
+
+    def _handle_failure_attribution(
+        self,
+        skill_name: str,
+        operation_type: str,
+        failure_attribution: Any,
+        execution_result: dict[str, Any],
+    ) -> str | None:
+        """Route failure attribution to L1 refinement or L2/L3 proof obligation."""
+        level = getattr(failure_attribution, "escalation_level", None)
+        category = getattr(failure_attribution, "category", "unknown")
+        evidence = getattr(failure_attribution, "evidence", "")
+
+        if level == "L1":
+            # Act: emit failure-derived prompt refinement to PRIME skill
+            return self._apply_l1_failure_refinement(
+                skill_name, operation_type, category, evidence
+            )
+        elif level in ("L2", "L3"):
+            # Record: write proof_obligation to SurrealDB; no auto-edit
+            self._write_proof_obligation(skill_name, category, level, evidence)
+            logger.info(
+                "FAPO %s (%s) obligation recorded for skill %s — no auto-edit",
+                level,
+                category,
+                skill_name,
+            )
+            return None
+        return None
+
+    def _apply_l1_failure_refinement(
+        self,
+        skill_name: str,
+        operation_type: str,
+        category: str,
+        evidence: str,
+    ) -> str | None:
+        """Append an L1 failure-derived note to the PRIME skill file."""
+        prime_file = self._find_prime_file(skill_name)
+        if not prime_file:
+            logger.debug("No PRIME file for L1 failure refinement: %s", skill_name)
+            return None
+
+        signal = self._generate_failure_signal(skill_name, operation_type, category, evidence)
+        refined_path = self._append_refinement(prime_file, signal)
+        if refined_path:
+            logger.info(
+                "FAPO L1: refined PRIME skill %s for %s failure", skill_name, category
+            )
+        return str(refined_path) if refined_path else None
+
+    def _generate_failure_signal(
+        self,
+        skill_name: str,
+        operation_type: str,
+        category: str,
+        evidence: str,
+    ) -> LearningSignal:
+        """Create a LearningSignal that encodes a FAPO failure insight."""
+        recommendation_map = {
+            "format": (
+                f"Add structured-output format examples to {skill_name} PRIME skill guidance"
+            ),
+            "reasoning": (
+                f"Add step-by-step reasoning scaffolding to {skill_name} PRIME skill"
+            ),
+        }
+        return LearningSignal(
+            skill_name=skill_name,
+            operation_type=operation_type,
+            key_insight=f"FAILURE ({category}): {evidence[:200]}",
+            metric_change=f"failure_category={category}; escalation=L1",
+            recommendation=recommendation_map.get(
+                category,
+                f"Review {category} failure in {skill_name} PRIME skill",
+            ),
+            confidence=0.6,
+        )
+
+    def _write_proof_obligation(
+        self,
+        skill_name: str,
+        category: str,
+        level: str,
+        evidence: str,
+    ) -> None:
+        """Write an unsatisfied FAPO proof_obligation to SurrealDB (non-blocking)."""
+        try:
+            import json as _json
+            import urllib.request
+            from base64 import b64encode
+
+            obligation_text = (
+                f"FAPO {level} ({category}) failure obligation: {evidence[:300]}"
+            )
+            surql = (
+                f"CREATE proof_obligation SET "
+                f"skill_name = {_json.dumps(skill_name)}, "
+                f"obligation = {_json.dumps(obligation_text)}, "
+                f"satisfied_by = 'pending', "
+                f"verified = false;"
+            )
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=surql.encode(),
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "cohezion",
+                    "Content-Type": "text/plain",
+                    "Authorization": "Basic " + b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=3)
+            logger.debug("FAPO proof_obligation written for skill=%s level=%s", skill_name, level)
+        except Exception:
+            logger.debug("proof_obligation write failed (non-blocking)", exc_info=False)
+
+    # ── Original helpers ──────────────────────────────────────────────────────
 
     def _extract_metrics(self, execution_result: dict[str, Any]) -> ExecutionMetrics:
         """Extract metrics from execution result.
