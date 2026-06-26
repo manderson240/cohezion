@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <!-- Preload is necessary because we show these images when we disconnect from the server,
+    but at that point we cannot load these images from the server -->
+    <link rel="preload" href="./assets/gradient-yHQUC_QB.png" as="image" />
+    <link rel="preload" href="./assets/noise-60BoTA8O.png" as="image" />
+    <!-- Preload the fonts -->
+    <link rel="preload" href="./assets/Lora-VariableFont_wght-CZceb_kH.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Regular-Bam3NpBI.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Bold-C_DwAp7Z.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Regular-CEsLFVD9.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Medium-D5MAsWEG.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Bold-C6PDArdf.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="a marimo app" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <script data-marimo="true">
+      function __resizeIframe(obj) {
+        const scrollbarHeight = 20; // Max between windows, mac, and linux
+
+        function setHeight() {
+          // Guard against race condition where iframe isn't ready
+          if (!obj.contentWindow?.document?.documentElement) {
+            return;
+          }
+          const element = obj.contentWindow.document.documentElement;
+          // If there is no vertical scrollbar, we don't need to resize the iframe
+          if (element.scrollHeight === element.clientHeight) {
+            return;
+          }
+
+          // Create a new height that includes the scrollbar height if it's visible
+          const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+          const newHeight = element.scrollHeight + (hasHorizontalScrollbar ? scrollbarHeight : 0);
+
+          // Only update the height if it's different from the current height
+          if (obj.style.height !== `${newHeight}px`) {
+            obj.style.height = `${newHeight}px`;
+          }
+        }
+
+        // Resize the iframe to the height of the content and bottom scrollbar height
+        setHeight();
+
+        // Resize the iframe when the content changes
+        const resizeObserver = new ResizeObserver((_entries) => {
+          setHeight();
+        });
+        // Only observe if iframe content is ready
+        if (obj.contentWindow?.document?.body) {
+          resizeObserver.observe(obj.contentWindow.document.body);
+        }
+      }
+    </script>
+    <marimo-filename hidden>notebook.py</marimo-filename>
+    <!-- TODO(Trevor): Legacy, required by VS Code plugin. Remove when plugin is updated (see marimo/server/_templates/template.py) -->
+    <marimo-version data-version="{{ version }}" hidden></marimo-version>
+    <marimo-user-config data-config="{{ user_config }}" hidden></marimo-user-config>
+    <marimo-server-token data-token="{{ server_token }}" hidden></marimo-server-token>
+    <!-- /TODO -->
+    <title>ThermodynamicGravity ε Sweep</title>
+    <script type="module" crossorigin src="./assets/index-fNBoXCyz.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/preload-helper-BPPi7vOr.js">
+    <link rel="modulepreload" crossorigin href="./assets/chunk-LvLJmgfZ.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-Bj1aDYRI.js">
+    <link rel="modulepreload" crossorigin href="./assets/compiler-runtime-B3qBwwSJ.js">
+    <link rel="modulepreload" crossorigin href="./assets/jsx-runtime-BqBOg78p.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEventListener-DvoEXWke.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-BLUna9fQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/precisionRound-Cl9k9ZmS.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-DzliDDTm.js">
+    <link rel="modulepreload" crossorigin href="./assets/vega-loader.browser-C8wT63Va.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-DCL4n9wx.js">
+    <link rel="modulepreload" crossorigin href="./assets/clsx-Dz_KRrWq.js">
+    <link rel="modulepreload" crossorigin href="./assets/cn-DCUzRj2J.js">
+    <link rel="modulepreload" crossorigin href="./assets/badge-j3NGjqhR.js">
+    <link rel="modulepreload" crossorigin href="./assets/button-BbCh-29a.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-dom-CSu739Rf.js">
+    <link rel="modulepreload" crossorigin href="./assets/fullscreen-DFky0PAA.js">
+    <link rel="modulepreload" crossorigin href="./assets/menu-items-BP7Ju9ww.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-CWMKC7yO.js">
+    <link rel="modulepreload" crossorigin href="./assets/createLucideIcon-D5guW7EU.js">
+    <link rel="modulepreload" crossorigin href="./assets/check-BH35Ndha.js">
+    <link rel="modulepreload" crossorigin href="./assets/x-C-6liIBr.js">
+    <link rel="modulepreload" crossorigin href="./assets/select-6suE6YM2.js">
+    <link rel="modulepreload" crossorigin href="./assets/tooltip-B_PkSKN3.js">
+    <link rel="modulepreload" crossorigin href="./assets/use-toast-CJ1Tj2eC.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEvent-D91BmmQi.js">
+    <link rel="modulepreload" crossorigin href="./assets/invariant-BUdrueMv.js">
+    <link rel="modulepreload" crossorigin href="./assets/isObject-DvLSfCY5.js">
+    <link rel="modulepreload" crossorigin href="./assets/_baseFor-DKD1r8uL.js">
+    <link rel="modulepreload" crossorigin href="./assets/merge-_9WLTEyt.js">
+    <link rel="modulepreload" crossorigin href="./assets/zod-H_cgTO0M.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-CvI-39U6.js">
+    <link rel="modulepreload" crossorigin href="./assets/Deferred-CP7vq682.js">
+    <link rel="modulepreload" crossorigin href="./assets/uuid-e9lSomwA.js">
+    <link rel="modulepreload" crossorigin href="./assets/DeferredRequestRegistry-CNldVcrP.js">
+    <link rel="modulepreload" crossorigin href="./assets/constants-DMpttj8Q.js">
+    <link rel="modulepreload" crossorigin href="./assets/session-0B5NBztP.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-ClMcu_sV.js">
+    <link rel="modulepreload" crossorigin href="./assets/requests-DIwGYs0l.js">
+    <link rel="modulepreload" crossorigin href="./assets/useLifecycle-DieWOfXE.js">
+    <link rel="modulepreload" crossorigin href="./assets/useNonce-DfoVjkkH.js">
+    <link rel="modulepreload" crossorigin href="./assets/useTheme-CI2eq4XN.js">
+    <link rel="modulepreload" crossorigin href="./assets/arrays-DYDL-3-i.js">
+    <link rel="modulepreload" crossorigin href="./assets/strings-wdPMRf6Z.js">
+    <link rel="modulepreload" crossorigin href="./assets/once-DRroIaBz.js">
+    <link rel="modulepreload" crossorigin href="./assets/capabilities-A_KhFcGV.js">
+    <link rel="modulepreload" crossorigin href="./assets/createReducer-CI9qeK_X.js">
+    <link rel="modulepreload" crossorigin href="./assets/paths-D5zczhUD.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-D0HyMpgV.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-Bo13cFwO.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-DVkC-Qmw.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-rBRbke5D.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-RMRSa-Mj.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BwnT-_gD.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-HyCgERnW.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BURue7-e.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-YEXtMjTi.js">
+    <link rel="modulepreload" crossorigin href="./assets/stex-BGrE-q7N.js">
+    <link rel="modulepreload" crossorigin href="./assets/toDate-B5A0DFEz.js">
+    <link rel="modulepreload" crossorigin href="./assets/purify.es-B9KxLTTS.js">
+    <link rel="modulepreload" crossorigin href="./assets/cjs-BRGiG41H.js">
+    <link rel="modulepreload" crossorigin href="./assets/isSymbol-BT6B8Bon.js">
+    <link rel="modulepreload" crossorigin href="./assets/now-CsYTPAhW.js">
+    <link rel="modulepreload" crossorigin href="./assets/debounce-DhnxH9Rh.js">
+    <link rel="modulepreload" crossorigin href="./assets/database-zap-kIkTfzTX.js">
+    <link rel="modulepreload" crossorigin href="./assets/main-B0OX4z33.js">
+    <link rel="modulepreload" crossorigin href="./assets/cells-DOA0Gew8.js">
+    <link rel="modulepreload" crossorigin href="./assets/ErrorBoundary-DyYDV0HI.js">
+    <link rel="modulepreload" crossorigin href="./assets/kbd-CTUAEnEx.js">
+    <link rel="modulepreload" crossorigin href="./assets/useInstallPackage-GI6gu7_S.js">
+    <link rel="modulepreload" crossorigin href="./assets/alert-dialog-5BGIfskO.js">
+    <link rel="modulepreload" crossorigin href="./assets/dialog-DRnNAWYl.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDebounce-7xZwVnnu.js">
+    <link rel="modulepreload" crossorigin href="./assets/numbers-DGxQfQ-A.js">
+    <link rel="modulepreload" crossorigin href="./assets/SSRProvider-CkFAAHXw.js">
+    <link rel="modulepreload" crossorigin href="./assets/context-QkTujrKn.js">
+    <link rel="modulepreload" crossorigin href="./assets/useNumberFormatter-ByUv-u9o.js">
+    <link rel="modulepreload" crossorigin href="./assets/usePress-DQ_tAz5W.js">
+    <link rel="modulepreload" crossorigin href="./assets/input-DA8xlX70.js">
+    <link rel="modulepreload" crossorigin href="./assets/ImperativeModal-BW1dmntO.js">
+    <link rel="modulepreload" crossorigin href="./assets/cell-link-Bj4-yOIx.js">
+    <link rel="modulepreload" crossorigin href="./assets/multi-map-C4OANz8X.js">
+    <link rel="modulepreload" crossorigin href="./assets/alert-yTS3WpF4.js">
+    <link rel="modulepreload" crossorigin href="./assets/chevron-right-CG5QYXYk.js">
+    <link rel="modulepreload" crossorigin href="./assets/dropdown-menu-CZ4XbE-c.js">
+    <link rel="modulepreload" crossorigin href="./assets/links-D1JoyKTt.js">
+    <link rel="modulepreload" crossorigin href="./assets/useRunCells-cSZpNqnR.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-LK56fFow.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-BwrPA9zQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-icon-BuRdHNPA.js">
+    <link rel="modulepreload" crossorigin href="./assets/RenderHTML-BQ1PO4Wd.js">
+    <link rel="modulepreload" crossorigin href="./assets/datasource-CR6RRpTi.js">
+    <link rel="modulepreload" crossorigin href="./assets/state-BWM3qRkR.js">
+    <link rel="modulepreload" crossorigin href="./assets/package-Tv6ztuzw.js">
+    <link rel="modulepreload" crossorigin href="./assets/sparkles-lWUAsPhp.js">
+    <link rel="modulepreload" crossorigin href="./assets/MarimoErrorOutput-BH6hs0Ir.js">
+    <link rel="modulepreload" crossorigin href="./assets/eye-off-Cm6DdkeR.js">
+    <link rel="modulepreload" crossorigin href="./assets/refresh-cw-DHwG4Mac.js">
+    <link rel="modulepreload" crossorigin href="./assets/tree-actions-1KQDSu1H.js">
+    <link rel="modulepreload" crossorigin href="./assets/spinner-Bhir8k53.js">
+    <link rel="modulepreload" crossorigin href="./assets/html-to-image-CyAtzePO.js">
+    <link rel="modulepreload" crossorigin href="./assets/focus-Ldqh99xE.js">
+    <link rel="modulepreload" crossorigin href="./assets/useAsyncData-bgszE9F0.js">
+    <link rel="modulepreload" crossorigin href="./assets/LazyAnyLanguageCodeMirror-C7ALwTI_.js">
+    <link rel="modulepreload" crossorigin href="./assets/micromark-factory-space-bqhKsQDn.js">
+    <link rel="modulepreload" crossorigin href="./assets/chunk-5FQGJX7Z-D91x7QHS.js">
+    <link rel="modulepreload" crossorigin href="./assets/markdown-renderer-C9Ujvj0b.js">
+    <link rel="modulepreload" crossorigin href="./assets/command-BmOGG6-2.js">
+    <link rel="modulepreload" crossorigin href="./assets/field-DCdxnSKm.js">
+    <link rel="modulepreload" crossorigin href="./assets/popover-CNCYAwbC.js">
+    <link rel="modulepreload" crossorigin href="./assets/errors-D3F5g1xA.js">
+    <link rel="modulepreload" crossorigin href="./assets/download-DhxnAw14.js">
+    <link rel="modulepreload" crossorigin href="./assets/table-BGPSHfig.js">
+    <link rel="modulepreload" crossorigin href="./assets/useIframeCapabilities-CcI1zSdn.js">
+    <link rel="modulepreload" crossorigin href="./assets/error-banner-D0xvrLog.js">
+    <link rel="modulepreload" crossorigin href="./assets/formats-b7Sf6DAK.js">
+    <link rel="modulepreload" crossorigin href="./assets/en-US-Cb8rIK52.js">
+    <link rel="modulepreload" crossorigin href="./assets/isValid-CklTTytn.js">
+    <link rel="modulepreload" crossorigin href="./assets/dates-CTxr0EqQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/extends-BiFDv3jB.js">
+    <link rel="modulepreload" crossorigin href="./assets/emotion-is-prop-valid.esm-C59xfSYt.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDateFormatter-ICIDGgHf.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-icons.esm-BNzu6e7h.js">
+    <link rel="modulepreload" crossorigin href="./assets/RSPContexts-C3vBe8nL.js">
+    <link rel="modulepreload" crossorigin href="./assets/table-6NxtGaCm.js">
+    <link rel="modulepreload" crossorigin href="./assets/ellipsis-KAhMaCIV.js">
+    <link rel="modulepreload" crossorigin href="./assets/external-link-BTNxSavU.js">
+    <link rel="modulepreload" crossorigin href="./assets/message-circle-CWm2KnSx.js">
+    <link rel="modulepreload" crossorigin href="./assets/plus-BgB18UzY.js">
+    <link rel="modulepreload" crossorigin href="./assets/trash-2-rVklqqFF.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-resizable-panels.browser.esm-CV8-hvjx.js">
+    <link rel="modulepreload" crossorigin href="./assets/JsonOutput-DRNPZOvX.js">
+    <link rel="modulepreload" crossorigin href="./assets/chart-no-axes-column-nqk474t8.js">
+    <link rel="modulepreload" crossorigin href="./assets/square-function-uY_yJr5g.js">
+    <link rel="modulepreload" crossorigin href="./assets/spec-CPQR_o92.js">
+    <link rel="modulepreload" crossorigin href="./assets/column-preview-nu3Qo2OW.js">
+    <link rel="modulepreload" crossorigin href="./assets/icons-Ol38nIbL.js">
+    <link rel="modulepreload" crossorigin href="./assets/radio-group-D7rh6Zek.js">
+    <link rel="modulepreload" crossorigin href="./assets/floating-outline-BvHFWRoz.js">
+    <link rel="modulepreload" crossorigin href="./assets/objectWithoutPropertiesLoose-DfWeGRFv.js">
+    <link rel="modulepreload" crossorigin href="./assets/esm-xaw4Vy8N.js">
+    <link rel="modulepreload" crossorigin href="./assets/readonly-python-code-CvPx4CU_.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-headphone-BrQspHac.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-BrdxGLRX.js">
+    <link rel="modulepreload" crossorigin href="./assets/image-DQHXdEQn.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-icons-D2f3nfbq.js">
+    <link rel="modulepreload" crossorigin href="./assets/switch-Ac7CgLgh.js">
+    <link rel="modulepreload" crossorigin href="./assets/events-CPoJAfgx.js">
+    <link rel="modulepreload" crossorigin href="./assets/globals-BivClSmn.js">
+    <link rel="modulepreload" crossorigin href="./assets/share-mSf5FZIP.js">
+    <link rel="modulepreload" crossorigin href="./assets/blob-Bgnx1kuY.js">
+    <link rel="modulepreload" crossorigin href="./assets/memoize-Tp7rARFe.js">
+    <link rel="modulepreload" crossorigin href="./assets/get-C-qh_et5.js">
+    <link rel="modulepreload" crossorigin href="./assets/_baseSet-CxV9N1bc.js">
+    <link rel="modulepreload" crossorigin href="./assets/state-C8yHPSLN.js">
+    <link rel="modulepreload" crossorigin href="./assets/label-C2_YQRio.js">
+    <link rel="modulepreload" crossorigin href="./assets/textarea-bBuxbFm7.js">
+    <link rel="modulepreload" crossorigin href="./assets/refresh-ccw-C-n2VFP5.js">
+    <link rel="modulepreload" crossorigin href="./assets/form-CxBAInfg.js">
+    <link rel="modulepreload" crossorigin href="./assets/renderShortcut--ku7VECI.js">
+    <link rel="modulepreload" crossorigin href="./assets/useBoolean-CE6PfxGj.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDeepCompareMemoize-CVmg-GkP.js">
+    <link rel="modulepreload" crossorigin href="./assets/types-W8WWuumF.js">
+    <link rel="modulepreload" crossorigin href="./assets/semaphore-qUGKVeAE.js">
+    <link rel="modulepreload" crossorigin href="./assets/fileToBase64-D15LPv1Y.js">
+    <link rel="modulepreload" crossorigin href="./assets/pathUtils-DPJ-EgtH.js">
+    <link rel="modulepreload" crossorigin href="./assets/prop-types-DaaA-ptl.js">
+    <link rel="modulepreload" crossorigin href="./assets/es-By9LYOsD.js">
+    <link rel="modulepreload" crossorigin href="./assets/hasIn-DiS_ryrS.js">
+    <link rel="modulepreload" crossorigin href="./assets/flatten-Dl4V1ub3.js">
+    <link rel="modulepreload" crossorigin href="./assets/pick-DqWUNly1.js">
+    <link rel="modulepreload" crossorigin href="./assets/code-xml-CZN6vNxu.js">
+    <link rel="modulepreload" crossorigin href="./assets/house-mGK3v0Mm.js">
+    <link rel="modulepreload" crossorigin href="./assets/square-B5xWCt0a.js">
+    <link rel="modulepreload" crossorigin href="./assets/triangle-alert-D2p96PEF.js">
+    <link rel="modulepreload" crossorigin href="./assets/bundle.esm-DjhGJy4I.js">
+    <link rel="stylesheet" crossorigin href="./assets/cells-pu5xzE_v.css">
+    <link rel="stylesheet" crossorigin href="./assets/markdown-renderer-DdDKmWlR.css">
+    <link rel="stylesheet" crossorigin href="./assets/JsonOutput-B7vuddcd.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-BAYF7dcV.css">
+  <marimo-wasm hidden=""></marimo-wasm>
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert('Warning: This file must be served by an HTTP server to function correctly.');
+        }
+    </script>
+    
+    <style>
+        #save-button {
+            display: none !important;
+        }
+        #filename-input {
+            display: none !important;
+        }
+    </style>
+    
+<script data-marimo="true">
+    Object.defineProperty(window, "__MARIMO_EXPORT_CONTEXT__", {
+        value: Object.freeze({
+            trusted: true,
+            notebookCode: "\"\"\"ThermodynamicGravity \u03b5 Sweep \u2014 Interactive Walkthrough.\n\nReactive marimo notebook exploring the thermodynamic gravity model\n(Isichei \u0026 Magueijo 2026, arXiv:2511.22221, PRL).\n\nGR emerges as a degenerate Otto thermodynamic cycle (\u03b5=0).\nAdding work-producing legs with Lorentz violation parameter \u03b5 \u003E 0\ngenerates late-time cosmic acceleration without a cosmological constant \u039b.\n\nWired into Cohezion cosmogony Step 3\u21924:\nSO(12) Symmetric Vacuum \u2192 Fabric Differentiation.\n\"\"\"\n\nimport marimo\n\n__generated_with = \"0.23.10\"\napp = marimo.App(width=\"medium\", app_title=\"ThermodynamicGravity \u03b5 Sweep\")\n\n\n@app.cell\ndef _():\n    import math\n\n    import marimo as mo\n    import plotly.graph_objects as go\n\n    return go, math, mo\n\n\n@app.cell\ndef _(mo):\n    mo.md(r\"\"\"\n    # ThermodynamicGravity \u03b5 Sweep\n\n    **Paper:** Isichei \u0026 Magueijo (2026) \u2014 *arXiv:2511.22221* (PRL)\n\n    | \u03b5 | Otto cycle | Physical consequence |\n    |---|-----------|---------------------|\n    | 0 | Degenerate | Standard GR, \u039b = 0 |\n    | 0 \u003C \u03b5 \u003C 1 | Non-degenerate | Late-time acceleration, \u2202_\u03bcT^\u03bc\u03bd \u2260 0 |\n    | 1 | Maximal | Maximum departure from LLI |\n\n    **Harness invariant LV1** requires `\u03b5 = 0` in production Cohezion runs.\n    This sweep lets you explore what happens when you dial \u03b5 up.\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(mo):\n    epsilon = mo.ui.slider(\n        0.0, 1.0, step=0.01, value=0.0,\n        label=\"\u03b5 \u2014 Lorentz violation parameter\", show_value=True,\n    )\n    temperature = mo.ui.slider(\n        0.1, 5.0, step=0.1, value=1.0,\n        label=\"T \u2014 Temperature (natural units)\", show_value=True,\n    )\n    n_legs = mo.ui.slider(\n        1, 10, step=1, value=3,\n        label=\"N \u2014 Work-producing legs in Otto cycle\",\n    )\n    mo.vstack([epsilon, mo.hstack([temperature, n_legs], justify=\"start\")])\n    return epsilon, n_legs, temperature\n\n\n@app.cell\ndef _(epsilon, math, mo, n_legs, temperature):\n    \"\"\"Evaluate the actual ThermodynamicGravity dataclass.\"\"\"\n    try:\n        from cohezion.physics.thermodynamic_gravity import ThermodynamicGravity, OttoWorkLeg\n        _USE_REAL = True\n    except Exception:\n        ThermodynamicGravity = None\n        OttoWorkLeg = None\n        _USE_REAL = False\n\n    eps_val = epsilon.value\n    T_val = temperature.value\n    N_val = n_legs.value\n\n    if _USE_REAL:\n        _legs = [OttoWorkLeg(\n            lorentz_violation=eps_val,\n            entropy_flux=math.sin(math.pi * (_i + 1) / N_val) * 0.5,\n        ) for _i in range(N_val)]\n        _model = ThermodynamicGravity(temperature=T_val, work_legs=_legs)\n        accel_term = _model.acceleration_term()\n        measured_eps = _model.lorentz_violation_parameter()\n        is_gr = _model.is_standard_gr()\n        _source = \"cohezion.physics\"\n    else:\n        accel_term = sum(\n            eps_val * math.sin(math.pi * (_i + 1) / N_val) * 0.5\n            for _i in range(N_val)\n        )\n        measured_eps = eps_val\n        is_gr = eps_val \u003C 1e-9\n        _source = \"analytic fallback\"\n\n    _status = \"\u2705 Standard GR (\u03b5 \u2248 0, \u039b = 0)\" if is_gr else f\"\u26a1 Modified gravity (\u03b5 = {measured_eps:.3f})\"\n    mo.callout(\n        mo.md(f\"**{_status}** \u00b7 Acceleration = {accel_term:.6f} \u00b7 source: `{_source}`\"),\n        kind=\"success\" if is_gr else \"warn\",\n    )\n    return N_val, T_val, accel_term\n\n\n@app.cell\ndef _(N_val, T_val, go, math, mo):\n    \"\"\"Sweep \u03b5 from 0 to 1 and plot the acceleration-term curve.\"\"\"\n    _eps_range = [_i / 100 for _i in range(101)]\n\n    def _accel(e):\n        return sum(\n            e * math.sin(math.pi * (_i + 1) / N_val) * 0.5\n            for _i in range(N_val)\n        )\n\n    _accel_vals = [_accel(_e) for _e in _eps_range]\n    _entropy_vals = [_accel(_e) / T_val for _e in _eps_range]\n\n    fig_sweep = go.Figure()\n    fig_sweep.add_trace(go.Scatter(\n        x=_eps_range, y=_accel_vals,\n        mode=\"lines\", name=\"Acceleration term\",\n        line=dict(color=\"#4C78A8\", width=2),\n    ))\n    fig_sweep.add_trace(go.Scatter(\n        x=_eps_range, y=_entropy_vals,\n        mode=\"lines\", name=f\"Entropy gain (T={T_val:.1f})\",\n        line=dict(color=\"#72B7B2\", dash=\"dash\"),\n    ))\n    fig_sweep.add_vline(\n        x=0.0, line_dash=\"dot\", line_color=\"#54A24B\",\n        annotation_text=\"Standard GR (\u03b5=0)\",\n    )\n    fig_sweep.update_layout(\n        title=f\"Late-time acceleration vs \u03b5 (N={N_val} work legs, T={T_val:.1f})\",\n        xaxis_title=\"\u03b5 (Lorentz violation)\",\n        yaxis_title=\"Acceleration proxy  \u03a3 \u03b5\u1d62\u00b7\u03b4S\u1d62\",\n        height=400,\n        legend=dict(x=0.02, y=0.98),\n    )\n    mo.ui.plotly(fig_sweep)\n    return\n\n\n@app.cell\ndef _(mo):\n    mo.md(\"\"\"\n    ## Otto Cycle Phase Portrait\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(N_val, T_val, epsilon, go, math, mo):\n    \"\"\"Phase portrait of the Otto cycle in (S, \u03b4Q/T) space.\"\"\"\n    _eps = epsilon.value\n    _phases = 100\n\n    def _cycle_pt(phase):\n        _angle = 2 * math.pi * phase\n        _s_base = math.sin(_angle) * 0.5\n        _q_base = math.cos(_angle) * 0.5\n        _area = _eps * sum(\n            math.sin(math.pi * (_i + 1) / N_val) * 0.1\n            for _i in range(N_val)\n        )\n        return (\n            _s_base + _area * math.cos(_angle * 2) / T_val,\n            _q_base + _area * math.sin(_angle * 2) / T_val,\n        )\n\n    _pts = [_cycle_pt(_i / _phases) for _i in range(_phases + 1)]\n    _s_pts, _q_pts = zip(*_pts)\n\n    fig_portrait = go.Figure()\n    fig_portrait.add_trace(go.Scatter(\n        x=list(_s_pts), y=list(_q_pts), mode=\"lines\",\n        name=f\"\u03b5={_eps:.2f}\",\n        line=dict(color=\"#E45756\", width=2),\n        fill=\"toself\" if _eps \u003E 0.05 else None,\n        fillcolor=\"rgba(228,87,86,0.15)\",\n    ))\n    fig_portrait.add_trace(go.Scatter(\n        x=[0], y=[0], mode=\"markers\",\n        marker=dict(color=\"#54A24B\", size=10, symbol=\"x\"),\n        name=\"GR degenerate point\",\n    ))\n    fig_portrait.update_layout(\n        title=\"Otto Cycle Phase Portrait (S vs \u03b4Q/T)\",\n        xaxis_title=\"Entropy S\",\n        yaxis_title=\"Heat flux \u03b4Q/T\",\n        height=380,\n    )\n    mo.ui.plotly(fig_portrait)\n    return\n\n\n@app.cell\ndef _(N_val, T_val, accel_term, epsilon, mo):\n    mo.md(\n        f\"\"\"\n        ## Live Model State\n\n        | Parameter | Value |\n        |-----------|-------|\n        | \u03b5 (Lorentz violation) | **{epsilon.value:.3f}** |\n        | T (temperature) | **{T_val:.1f}** natural units |\n        | N (work legs) | **{N_val}** |\n        | Acceleration term | **{accel_term:.6f}** |\n        | dS = \u03b4Q/T contribution | **{accel_term / T_val:.6f}** |\n\n        \u003E **Cosmogony link (Step 3\u21924):** When \u03b5 \u003E 0, `\u2202_\u03bcT^\u03bc\u03bd \u2260 0` \u2014 the energy-\n        \u003E momentum tensor is no longer conserved. In the cosmogony chain this\n        \u003E corresponds to the *Fabric Differentiation* transition seeding structural\n        \u003E asymmetry from the SO(12) symmetric vacuum.\n        \u003E\n        \u003E **Cohezion harness invariant LV1:** `ThermodynamicGravity().lorentz_violation_parameter() == 0.0`\n        \u003E for the baseline GR test case.\n        \"\"\"\n    )\n    return\n\n\n@app.cell\ndef _(mo):\n    import os\n    _default_url = os.getenv(\"LEMONADE_URL\", \"http://localhost:13305\")\n    gravity_query = mo.ui.text_area(\n        placeholder=\"Ask about Lorentz violation, Otto cycles, late-time acceleration, cosmogony step 3\u21924...\",\n        label=\"Ask the local agent (AMD silicon, $0)\",\n        rows=3,\n    )\n    gravity_model = mo.ui.dropdown(\n        [\"llama3.2-1b-FLM\", \"Bonsai-8B-gguf\", \"DeepSeek-Qwen3-8B-GGUF\"],\n        value=\"llama3.2-1b-FLM\",\n        label=\"Model\",\n    )\n    gravity_run = mo.ui.run_button(label=\"Ask Agent \u25b6\")\n    gravity_url = mo.ui.text(value=_default_url, label=\"Lemonade URL\")\n    mo.vstack([\n        mo.md(\"## Live Agent \u2014 Ask About Thermodynamic Gravity\"),\n        mo.hstack([gravity_url, gravity_model], justify=\"start\"),\n        gravity_query,\n        gravity_run,\n    ])\n    return gravity_model, gravity_query, gravity_run, gravity_url\n\n\n@app.cell\ndef _(gravity_model, gravity_query, gravity_run, gravity_url, mo):\n    import requests as _req\n\n    mo.stop(not gravity_run.value, mo.md(\"_Configure a query above, then click **Ask Agent \u25b6**_\"))\n\n    def _ask(q: str, model: str, base_url: str) -\u003E str:\n        try:\n            r = _req.post(\n                f\"{base_url.rstrip('/')}/v1/chat/completions\",\n                json={\n                    \"model\": model,\n                    \"messages\": [\n                        {\"role\": \"system\", \"content\": (\n                            \"You are an expert in thermodynamic gravity and the Isichei-Magueijo \"\n                            \"2026 PRL paper (arXiv:2511.22221). Explain \u03b5 Lorentz violation, \"\n                            \"late-time cosmic acceleration via non-degenerate Otto cycles, \"\n                            \"and its connection to Cohezion cosmogony Step 3\u21924: \"\n                            \"SO(12) symmetric vacuum \u2192 Fabric Differentiation. \"\n                            \"Harness invariant LV1: \u03b5=0 for standard GR baseline.\"\n                        )},\n                        {\"role\": \"user\", \"content\": q},\n                    ],\n                    \"max_tokens\": 600,\n                },\n                timeout=90,\n            )\n            r.raise_for_status()\n            return r.json()[\"choices\"][0][\"message\"][\"content\"]\n        except Exception as exc:\n            return f\"\u26a0\ufe0f Lemonade error: {exc}\"\n\n    _answer = _ask(gravity_query.value, gravity_model.value, gravity_url.value)\n    mo.callout(mo.md(_answer), kind=\"info\")\n    return\n\n\nif __name__ == \"__main__\":\n    app.run()\n",
+        }),
+        writable: false,
+        configurable: false,
+    });
+</script>
+<marimo-code hidden="">%22%22%22ThermodynamicGravity%20%CE%B5%20Sweep%20%E2%80%94%20Interactive%20Walkthrough.%0A%0AReactive%20marimo%20notebook%20exploring%20the%20thermodynamic%20gravity%20model%0A(Isichei%20%26%20Magueijo%202026%2C%20arXiv%3A2511.22221%2C%20PRL).%0A%0AGR%20emerges%20as%20a%20degenerate%20Otto%20thermodynamic%20cycle%20(%CE%B5%3D0).%0AAdding%20work-producing%20legs%20with%20Lorentz%20violation%20parameter%20%CE%B5%20%3E%200%0Agenerates%20late-time%20cosmic%20acceleration%20without%20a%20cosmological%20constant%20%CE%9B.%0A%0AWired%20into%20Cohezion%20cosmogony%20Step%203%E2%86%924%3A%0ASO(12)%20Symmetric%20Vacuum%20%E2%86%92%20Fabric%20Differentiation.%0A%22%22%22%0A%0Aimport%20marimo%0A%0A__generated_with%20%3D%20%220.23.10%22%0Aapp%20%3D%20marimo.App(width%3D%22medium%22%2C%20app_title%3D%22ThermodynamicGravity%20%CE%B5%20Sweep%22)%0A%0A%0A%40app.cell%0Adef%20_()%3A%0A%20%20%20%20import%20math%0A%0A%20%20%20%20import%20marimo%20as%20mo%0A%20%20%20%20import%20plotly.graph_objects%20as%20go%0A%0A%20%20%20%20return%20go%2C%20math%2C%20mo%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%20ThermodynamicGravity%20%CE%B5%20Sweep%0A%0A%20%20%20%20**Paper%3A**%20Isichei%20%26%20Magueijo%20(2026)%20%E2%80%94%20*arXiv%3A2511.22221*%20(PRL)%0A%0A%20%20%20%20%7C%20%CE%B5%20%7C%20Otto%20cycle%20%7C%20Physical%20consequence%20%7C%0A%20%20%20%20%7C---%7C-----------%7C---------------------%7C%0A%20%20%20%20%7C%200%20%7C%20Degenerate%20%7C%20Standard%20GR%2C%20%CE%9B%20%3D%200%20%7C%0A%20%20%20%20%7C%200%20%3C%20%CE%B5%20%3C%201%20%7C%20Non-degenerate%20%7C%20Late-time%20acceleration%2C%20%E2%88%82_%CE%BCT%5E%CE%BC%CE%BD%20%E2%89%A0%200%20%7C%0A%20%20%20%20%7C%201%20%7C%20Maximal%20%7C%20Maximum%20departure%20from%20LLI%20%7C%0A%0A%20%20%20%20**Harness%20invariant%20LV1**%20requires%20%60%CE%B5%20%3D%200%60%20in%20production%20Cohezion%20runs.%0A%20%20%20%20This%20sweep%20lets%20you%20explore%20what%20happens%20when%20you%20dial%20%CE%B5%20up.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20epsilon%20%3D%20mo.ui.slider(%0A%20%20%20%20%20%20%20%200.0%2C%201.0%2C%20step%3D0.01%2C%20value%3D0.0%2C%0A%20%20%20%20%20%20%20%20label%3D%22%CE%B5%20%E2%80%94%20Lorentz%20violation%20parameter%22%2C%20show_value%3DTrue%2C%0A%20%20%20%20)%0A%20%20%20%20temperature%20%3D%20mo.ui.slider(%0A%20%20%20%20%20%20%20%200.1%2C%205.0%2C%20step%3D0.1%2C%20value%3D1.0%2C%0A%20%20%20%20%20%20%20%20label%3D%22T%20%E2%80%94%20Temperature%20(natural%20units)%22%2C%20show_value%3DTrue%2C%0A%20%20%20%20)%0A%20%20%20%20n_legs%20%3D%20mo.ui.slider(%0A%20%20%20%20%20%20%20%201%2C%2010%2C%20step%3D1%2C%20value%3D3%2C%0A%20%20%20%20%20%20%20%20label%3D%22N%20%E2%80%94%20Work-producing%20legs%20in%20Otto%20cycle%22%2C%0A%20%20%20%20)%0A%20%20%20%20mo.vstack(%5Bepsilon%2C%20mo.hstack(%5Btemperature%2C%20n_legs%5D%2C%20justify%3D%22start%22)%5D)%0A%20%20%20%20return%20epsilon%2C%20n_legs%2C%20temperature%0A%0A%0A%40app.cell%0Adef%20_(epsilon%2C%20math%2C%20mo%2C%20n_legs%2C%20temperature)%3A%0A%20%20%20%20%22%22%22Evaluate%20the%20actual%20ThermodynamicGravity%20dataclass.%22%22%22%0A%20%20%20%20try%3A%0A%20%20%20%20%20%20%20%20from%20cohezion.physics.thermodynamic_gravity%20import%20ThermodynamicGravity%2C%20OttoWorkLeg%0A%20%20%20%20%20%20%20%20_USE_REAL%20%3D%20True%0A%20%20%20%20except%20Exception%3A%0A%20%20%20%20%20%20%20%20ThermodynamicGravity%20%3D%20None%0A%20%20%20%20%20%20%20%20OttoWorkLeg%20%3D%20None%0A%20%20%20%20%20%20%20%20_USE_REAL%20%3D%20False%0A%0A%20%20%20%20eps_val%20%3D%20epsilon.value%0A%20%20%20%20T_val%20%3D%20temperature.value%0A%20%20%20%20N_val%20%3D%20n_legs.value%0A%0A%20%20%20%20if%20_USE_REAL%3A%0A%20%20%20%20%20%20%20%20_legs%20%3D%20%5BOttoWorkLeg(%0A%20%20%20%20%20%20%20%20%20%20%20%20lorentz_violation%3Deps_val%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20entropy_flux%3Dmath.sin(math.pi%20*%20(_i%20%2B%201)%20%2F%20N_val)%20*%200.5%2C%0A%20%20%20%20%20%20%20%20)%20for%20_i%20in%20range(N_val)%5D%0A%20%20%20%20%20%20%20%20_model%20%3D%20ThermodynamicGravity(temperature%3DT_val%2C%20work_legs%3D_legs)%0A%20%20%20%20%20%20%20%20accel_term%20%3D%20_model.acceleration_term()%0A%20%20%20%20%20%20%20%20measured_eps%20%3D%20_model.lorentz_violation_parameter()%0A%20%20%20%20%20%20%20%20is_gr%20%3D%20_model.is_standard_gr()%0A%20%20%20%20%20%20%20%20_source%20%3D%20%22cohezion.physics%22%0A%20%20%20%20else%3A%0A%20%20%20%20%20%20%20%20accel_term%20%3D%20sum(%0A%20%20%20%20%20%20%20%20%20%20%20%20eps_val%20*%20math.sin(math.pi%20*%20(_i%20%2B%201)%20%2F%20N_val)%20*%200.5%0A%20%20%20%20%20%20%20%20%20%20%20%20for%20_i%20in%20range(N_val)%0A%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20measured_eps%20%3D%20eps_val%0A%20%20%20%20%20%20%20%20is_gr%20%3D%20eps_val%20%3C%201e-9%0A%20%20%20%20%20%20%20%20_source%20%3D%20%22analytic%20fallback%22%0A%0A%20%20%20%20_status%20%3D%20%22%E2%9C%85%20Standard%20GR%20(%CE%B5%20%E2%89%88%200%2C%20%CE%9B%20%3D%200)%22%20if%20is_gr%20else%20f%22%E2%9A%A1%20Modified%20gravity%20(%CE%B5%20%3D%20%7Bmeasured_eps%3A.3f%7D)%22%0A%20%20%20%20mo.callout(%0A%20%20%20%20%20%20%20%20mo.md(f%22**%7B_status%7D**%20%C2%B7%20Acceleration%20%3D%20%7Baccel_term%3A.6f%7D%20%C2%B7%20source%3A%20%60%7B_source%7D%60%22)%2C%0A%20%20%20%20%20%20%20%20kind%3D%22success%22%20if%20is_gr%20else%20%22warn%22%2C%0A%20%20%20%20)%0A%20%20%20%20return%20N_val%2C%20T_val%2C%20accel_term%0A%0A%0A%40app.cell%0Adef%20_(N_val%2C%20T_val%2C%20go%2C%20math%2C%20mo)%3A%0A%20%20%20%20%22%22%22Sweep%20%CE%B5%20from%200%20to%201%20and%20plot%20the%20acceleration-term%20curve.%22%22%22%0A%20%20%20%20_eps_range%20%3D%20%5B_i%20%2F%20100%20for%20_i%20in%20range(101)%5D%0A%0A%20%20%20%20def%20_accel(e)%3A%0A%20%20%20%20%20%20%20%20return%20sum(%0A%20%20%20%20%20%20%20%20%20%20%20%20e%20*%20math.sin(math.pi%20*%20(_i%20%2B%201)%20%2F%20N_val)%20*%200.5%0A%20%20%20%20%20%20%20%20%20%20%20%20for%20_i%20in%20range(N_val)%0A%20%20%20%20%20%20%20%20)%0A%0A%20%20%20%20_accel_vals%20%3D%20%5B_accel(_e)%20for%20_e%20in%20_eps_range%5D%0A%20%20%20%20_entropy_vals%20%3D%20%5B_accel(_e)%20%2F%20T_val%20for%20_e%20in%20_eps_range%5D%0A%0A%20%20%20%20fig_sweep%20%3D%20go.Figure()%0A%20%20%20%20fig_sweep.add_trace(go.Scatter(%0A%20%20%20%20%20%20%20%20x%3D_eps_range%2C%20y%3D_accel_vals%2C%0A%20%20%20%20%20%20%20%20mode%3D%22lines%22%2C%20name%3D%22Acceleration%20term%22%2C%0A%20%20%20%20%20%20%20%20line%3Ddict(color%3D%22%234C78A8%22%2C%20width%3D2)%2C%0A%20%20%20%20))%0A%20%20%20%20fig_sweep.add_trace(go.Scatter(%0A%20%20%20%20%20%20%20%20x%3D_eps_range%2C%20y%3D_entropy_vals%2C%0A%20%20%20%20%20%20%20%20mode%3D%22lines%22%2C%20name%3Df%22Entropy%20gain%20(T%3D%7BT_val%3A.1f%7D)%22%2C%0A%20%20%20%20%20%20%20%20line%3Ddict(color%3D%22%2372B7B2%22%2C%20dash%3D%22dash%22)%2C%0A%20%20%20%20))%0A%20%20%20%20fig_sweep.add_vline(%0A%20%20%20%20%20%20%20%20x%3D0.0%2C%20line_dash%3D%22dot%22%2C%20line_color%3D%22%2354A24B%22%2C%0A%20%20%20%20%20%20%20%20annotation_text%3D%22Standard%20GR%20(%CE%B5%3D0)%22%2C%0A%20%20%20%20)%0A%20%20%20%20fig_sweep.update_layout(%0A%20%20%20%20%20%20%20%20title%3Df%22Late-time%20acceleration%20vs%20%CE%B5%20(N%3D%7BN_val%7D%20work%20legs%2C%20T%3D%7BT_val%3A.1f%7D)%22%2C%0A%20%20%20%20%20%20%20%20xaxis_title%3D%22%CE%B5%20(Lorentz%20violation)%22%2C%0A%20%20%20%20%20%20%20%20yaxis_title%3D%22Acceleration%20proxy%20%20%CE%A3%20%CE%B5%E1%B5%A2%C2%B7%CE%B4S%E1%B5%A2%22%2C%0A%20%20%20%20%20%20%20%20height%3D400%2C%0A%20%20%20%20%20%20%20%20legend%3Ddict(x%3D0.02%2C%20y%3D0.98)%2C%0A%20%20%20%20)%0A%20%20%20%20mo.ui.plotly(fig_sweep)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(%22%22%22%0A%20%20%20%20%23%23%20Otto%20Cycle%20Phase%20Portrait%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(N_val%2C%20T_val%2C%20epsilon%2C%20go%2C%20math%2C%20mo)%3A%0A%20%20%20%20%22%22%22Phase%20portrait%20of%20the%20Otto%20cycle%20in%20(S%2C%20%CE%B4Q%2FT)%20space.%22%22%22%0A%20%20%20%20_eps%20%3D%20epsilon.value%0A%20%20%20%20_phases%20%3D%20100%0A%0A%20%20%20%20def%20_cycle_pt(phase)%3A%0A%20%20%20%20%20%20%20%20_angle%20%3D%202%20*%20math.pi%20*%20phase%0A%20%20%20%20%20%20%20%20_s_base%20%3D%20math.sin(_angle)%20*%200.5%0A%20%20%20%20%20%20%20%20_q_base%20%3D%20math.cos(_angle)%20*%200.5%0A%20%20%20%20%20%20%20%20_area%20%3D%20_eps%20*%20sum(%0A%20%20%20%20%20%20%20%20%20%20%20%20math.sin(math.pi%20*%20(_i%20%2B%201)%20%2F%20N_val)%20*%200.1%0A%20%20%20%20%20%20%20%20%20%20%20%20for%20_i%20in%20range(N_val)%0A%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20return%20(%0A%20%20%20%20%20%20%20%20%20%20%20%20_s_base%20%2B%20_area%20*%20math.cos(_angle%20*%202)%20%2F%20T_val%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20_q_base%20%2B%20_area%20*%20math.sin(_angle%20*%202)%20%2F%20T_val%2C%0A%20%20%20%20%20%20%20%20)%0A%0A%20%20%20%20_pts%20%3D%20%5B_cycle_pt(_i%20%2F%20_phases)%20for%20_i%20in%20range(_phases%20%2B%201)%5D%0A%20%20%20%20_s_pts%2C%20_q_pts%20%3D%20zip(*_pts)%0A%0A%20%20%20%20fig_portrait%20%3D%20go.Figure()%0A%20%20%20%20fig_portrait.add_trace(go.Scatter(%0A%20%20%20%20%20%20%20%20x%3Dlist(_s_pts)%2C%20y%3Dlist(_q_pts)%2C%20mode%3D%22lines%22%2C%0A%20%20%20%20%20%20%20%20name%3Df%22%CE%B5%3D%7B_eps%3A.2f%7D%22%2C%0A%20%20%20%20%20%20%20%20line%3Ddict(color%3D%22%23E45756%22%2C%20width%3D2)%2C%0A%20%20%20%20%20%20%20%20fill%3D%22toself%22%20if%20_eps%20%3E%200.05%20else%20None%2C%0A%20%20%20%20%20%20%20%20fillcolor%3D%22rgba(228%2C87%2C86%2C0.15)%22%2C%0A%20%20%20%20))%0A%20%20%20%20fig_portrait.add_trace(go.Scatter(%0A%20%20%20%20%20%20%20%20x%3D%5B0%5D%2C%20y%3D%5B0%5D%2C%20mode%3D%22markers%22%2C%0A%20%20%20%20%20%20%20%20marker%3Ddict(color%3D%22%2354A24B%22%2C%20size%3D10%2C%20symbol%3D%22x%22)%2C%0A%20%20%20%20%20%20%20%20name%3D%22GR%20degenerate%20point%22%2C%0A%20%20%20%20))%0A%20%20%20%20fig_portrait.update_layout(%0A%20%20%20%20%20%20%20%20title%3D%22Otto%20Cycle%20Phase%20Portrait%20(S%20vs%20%CE%B4Q%2FT)%22%2C%0A%20%20%20%20%20%20%20%20xaxis_title%3D%22Entropy%20S%22%2C%0A%20%20%20%20%20%20%20%20yaxis_title%3D%22Heat%20flux%20%CE%B4Q%2FT%22%2C%0A%20%20%20%20%20%20%20%20height%3D380%2C%0A%20%20%20%20)%0A%20%20%20%20mo.ui.plotly(fig_portrait)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(N_val%2C%20T_val%2C%20accel_term%2C%20epsilon%2C%20mo)%3A%0A%20%20%20%20mo.md(%0A%20%20%20%20%20%20%20%20f%22%22%22%0A%20%20%20%20%20%20%20%20%23%23%20Live%20Model%20State%0A%0A%20%20%20%20%20%20%20%20%7C%20Parameter%20%7C%20Value%20%7C%0A%20%20%20%20%20%20%20%20%7C-----------%7C-------%7C%0A%20%20%20%20%20%20%20%20%7C%20%CE%B5%20(Lorentz%20violation)%20%7C%20**%7Bepsilon.value%3A.3f%7D**%20%7C%0A%20%20%20%20%20%20%20%20%7C%20T%20(temperature)%20%7C%20**%7BT_val%3A.1f%7D**%20natural%20units%20%7C%0A%20%20%20%20%20%20%20%20%7C%20N%20(work%20legs)%20%7C%20**%7BN_val%7D**%20%7C%0A%20%20%20%20%20%20%20%20%7C%20Acceleration%20term%20%7C%20**%7Baccel_term%3A.6f%7D**%20%7C%0A%20%20%20%20%20%20%20%20%7C%20dS%20%3D%20%CE%B4Q%2FT%20contribution%20%7C%20**%7Baccel_term%20%2F%20T_val%3A.6f%7D**%20%7C%0A%0A%20%20%20%20%20%20%20%20%3E%20**Cosmogony%20link%20(Step%203%E2%86%924)%3A**%20When%20%CE%B5%20%3E%200%2C%20%60%E2%88%82_%CE%BCT%5E%CE%BC%CE%BD%20%E2%89%A0%200%60%20%E2%80%94%20the%20energy-%0A%20%20%20%20%20%20%20%20%3E%20momentum%20tensor%20is%20no%20longer%20conserved.%20In%20the%20cosmogony%20chain%20this%0A%20%20%20%20%20%20%20%20%3E%20corresponds%20to%20the%20*Fabric%20Differentiation*%20transition%20seeding%20structural%0A%20%20%20%20%20%20%20%20%3E%20asymmetry%20from%20the%20SO(12)%20symmetric%20vacuum.%0A%20%20%20%20%20%20%20%20%3E%0A%20%20%20%20%20%20%20%20%3E%20**Cohezion%20harness%20invariant%20LV1%3A**%20%60ThermodynamicGravity().lorentz_violation_parameter()%20%3D%3D%200.0%60%0A%20%20%20%20%20%20%20%20%3E%20for%20the%20baseline%20GR%20test%20case.%0A%20%20%20%20%20%20%20%20%22%22%22%0A%20%20%20%20)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20import%20os%0A%20%20%20%20_default_url%20%3D%20os.getenv(%22LEMONADE_URL%22%2C%20%22http%3A%2F%2Flocalhost%3A13305%22)%0A%20%20%20%20gravity_query%20%3D%20mo.ui.text_area(%0A%20%20%20%20%20%20%20%20placeholder%3D%22Ask%20about%20Lorentz%20violation%2C%20Otto%20cycles%2C%20late-time%20acceleration%2C%20cosmogony%20step%203%E2%86%924...%22%2C%0A%20%20%20%20%20%20%20%20label%3D%22Ask%20the%20local%20agent%20(AMD%20silicon%2C%20%240)%22%2C%0A%20%20%20%20%20%20%20%20rows%3D3%2C%0A%20%20%20%20)%0A%20%20%20%20gravity_model%20%3D%20mo.ui.dropdown(%0A%20%20%20%20%20%20%20%20%5B%22llama3.2-1b-FLM%22%2C%20%22Bonsai-8B-gguf%22%2C%20%22DeepSeek-Qwen3-8B-GGUF%22%5D%2C%0A%20%20%20%20%20%20%20%20value%3D%22llama3.2-1b-FLM%22%2C%0A%20%20%20%20%20%20%20%20label%3D%22Model%22%2C%0A%20%20%20%20)%0A%20%20%20%20gravity_run%20%3D%20mo.ui.run_button(label%3D%22Ask%20Agent%20%E2%96%B6%22)%0A%20%20%20%20gravity_url%20%3D%20mo.ui.text(value%3D_default_url%2C%20label%3D%22Lemonade%20URL%22)%0A%20%20%20%20mo.vstack(%5B%0A%20%20%20%20%20%20%20%20mo.md(%22%23%23%20Live%20Agent%20%E2%80%94%20Ask%20About%20Thermodynamic%20Gravity%22)%2C%0A%20%20%20%20%20%20%20%20mo.hstack(%5Bgravity_url%2C%20gravity_model%5D%2C%20justify%3D%22start%22)%2C%0A%20%20%20%20%20%20%20%20gravity_query%2C%0A%20%20%20%20%20%20%20%20gravity_run%2C%0A%20%20%20%20%5D)%0A%20%20%20%20return%20gravity_model%2C%20gravity_query%2C%20gravity_run%2C%20gravity_url%0A%0A%0A%40app.cell%0Adef%20_(gravity_model%2C%20gravity_query%2C%20gravity_run%2C%20gravity_url%2C%20mo)%3A%0A%20%20%20%20import%20requests%20as%20_req%0A%0A%20%20%20%20mo.stop(not%20gravity_run.value%2C%20mo.md(%22_Configure%20a%20query%20above%2C%20then%20click%20**Ask%20Agent%20%E2%96%B6**_%22))%0A%0A%20%20%20%20def%20_ask(q%3A%20str%2C%20model%3A%20str%2C%20base_url%3A%20str)%20-%3E%20str%3A%0A%20%20%20%20%20%20%20%20try%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20r%20%3D%20_req.post(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%22%7Bbase_url.rstrip('%2F')%7D%2Fv1%2Fchat%2Fcompletions%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20json%3D%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22model%22%3A%20model%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22messages%22%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%22role%22%3A%20%22system%22%2C%20%22content%22%3A%20(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22You%20are%20an%20expert%20in%20thermodynamic%20gravity%20and%20the%20Isichei-Magueijo%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%222026%20PRL%20paper%20(arXiv%3A2511.22221).%20Explain%20%CE%B5%20Lorentz%20violation%2C%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22late-time%20cosmic%20acceleration%20via%20non-degenerate%20Otto%20cycles%2C%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22and%20its%20connection%20to%20Cohezion%20cosmogony%20Step%203%E2%86%924%3A%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22SO(12)%20symmetric%20vacuum%20%E2%86%92%20Fabric%20Differentiation.%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22Harness%20invariant%20LV1%3A%20%CE%B5%3D0%20for%20standard%20GR%20baseline.%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20)%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%22role%22%3A%20%22user%22%2C%20%22content%22%3A%20q%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22max_tokens%22%3A%20600%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20timeout%3D90%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20%20%20%20%20r.raise_for_status()%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20r.json()%5B%22choices%22%5D%5B0%5D%5B%22message%22%5D%5B%22content%22%5D%0A%20%20%20%20%20%20%20%20except%20Exception%20as%20exc%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20f%22%E2%9A%A0%EF%B8%8F%20Lemonade%20error%3A%20%7Bexc%7D%22%0A%0A%20%20%20%20_answer%20%3D%20_ask(gravity_query.value%2C%20gravity_model.value%2C%20gravity_url.value)%0A%20%20%20%20mo.callout(mo.md(_answer)%2C%20kind%3D%22info%22)%0A%20%20%20%20return%0A%0A%0Aif%20__name__%20%3D%3D%20%22__main__%22%3A%0A%20%20%20%20app.run()%0A</marimo-code></head>
+  <body>
+    <div id="root"></div>
+    <!-- This is a portal for the data editor to render in -->
+    <div id="portal" data-testid="glide-portal" style="position: fixed; left: 0; top: 0; z-index: 9999"></div>
+    <script data-marimo="true">
+      Object.defineProperty(window, "__MARIMO_MOUNT_CONFIG__", {
+        value: Object.freeze({
+            "filename": "notebook.py",
+            "cwd": "",
+            "lspWorkspace": null,
+            "mode": "read",
+            "version": "0.23.10",
+            "serverToken": "unused",
+            "config": {"ai": {"custom_providers": {}, "enabled": true, "models": {"custom_models": [], "displayed_models": []}}, "completion": {"activate_on_typing": true, "auto_close_pairs": true, "copilot": false, "signature_hint_on_typing": false}, "diagnostics": {"sql_linter": true}, "display": {"cell_output": "below", "code_editor_font_size": 14, "dataframes": "rich", "default_table_max_columns": 50, "default_table_page_size": 10, "default_width": "medium", "reference_highlighting": true, "theme": "dark"}, "formatting": {"line_length": 79}, "keymap": {"overrides": {}, "preset": "default"}, "language_servers": {"pylsp": {"enable_flake8": false, "enable_mypy": true, "enable_pydocstyle": false, "enable_pyflakes": false, "enable_pylint": false, "enable_ruff": true, "enabled": false}}, "mcp": {"mcpServers": {}, "presets": []}, "package_management": {"manager": "uv"}, "runtime": {"auto_instantiate": false, "auto_reload": "off", "default_csv_encoding": "utf-8", "default_sql_output": "auto", "on_cell_change": "autorun", "output_max_bytes": 8000000, "reactive_tests": true, "show_tracebacks": false, "std_stream_max_bytes": 1000000, "watcher_on_save": "lazy"}, "save": {"autosave": "off", "autosave_delay": 1000, "format_on_save": false}, "server": {"browser": "default", "follow_symlink": false}, "snippets": {"custom_paths": [], "include_default_snippets": true}},
+            "configOverrides": {},
+            "appConfig": {"app_title": "ThermodynamicGravity \u03b5 Sweep", "sql_output": "auto", "width": "medium"},
+            "view": {"showAppCode": false},
+            "notebook": null,
+            "session": null,
+            "runtimeConfig": null,
+        }),
+        writable: false,
+        configurable: false,
+      });
+    </script>
+  </body>
+</html>

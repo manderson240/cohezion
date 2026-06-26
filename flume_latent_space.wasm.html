@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <!-- Preload is necessary because we show these images when we disconnect from the server,
+    but at that point we cannot load these images from the server -->
+    <link rel="preload" href="./assets/gradient-yHQUC_QB.png" as="image" />
+    <link rel="preload" href="./assets/noise-60BoTA8O.png" as="image" />
+    <!-- Preload the fonts -->
+    <link rel="preload" href="./assets/Lora-VariableFont_wght-CZceb_kH.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Regular-Bam3NpBI.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Bold-C_DwAp7Z.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Regular-CEsLFVD9.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Medium-D5MAsWEG.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Bold-C6PDArdf.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="a marimo app" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <script data-marimo="true">
+      function __resizeIframe(obj) {
+        const scrollbarHeight = 20; // Max between windows, mac, and linux
+
+        function setHeight() {
+          // Guard against race condition where iframe isn't ready
+          if (!obj.contentWindow?.document?.documentElement) {
+            return;
+          }
+          const element = obj.contentWindow.document.documentElement;
+          // If there is no vertical scrollbar, we don't need to resize the iframe
+          if (element.scrollHeight === element.clientHeight) {
+            return;
+          }
+
+          // Create a new height that includes the scrollbar height if it's visible
+          const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+          const newHeight = element.scrollHeight + (hasHorizontalScrollbar ? scrollbarHeight : 0);
+
+          // Only update the height if it's different from the current height
+          if (obj.style.height !== `${newHeight}px`) {
+            obj.style.height = `${newHeight}px`;
+          }
+        }
+
+        // Resize the iframe to the height of the content and bottom scrollbar height
+        setHeight();
+
+        // Resize the iframe when the content changes
+        const resizeObserver = new ResizeObserver((_entries) => {
+          setHeight();
+        });
+        // Only observe if iframe content is ready
+        if (obj.contentWindow?.document?.body) {
+          resizeObserver.observe(obj.contentWindow.document.body);
+        }
+      }
+    </script>
+    <marimo-filename hidden>notebook.py</marimo-filename>
+    <!-- TODO(Trevor): Legacy, required by VS Code plugin. Remove when plugin is updated (see marimo/server/_templates/template.py) -->
+    <marimo-version data-version="{{ version }}" hidden></marimo-version>
+    <marimo-user-config data-config="{{ user_config }}" hidden></marimo-user-config>
+    <marimo-server-token data-token="{{ server_token }}" hidden></marimo-server-token>
+    <!-- /TODO -->
+    <title>FLUME Latent Space Explorer</title>
+    <script type="module" crossorigin src="./assets/index-fNBoXCyz.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/preload-helper-BPPi7vOr.js">
+    <link rel="modulepreload" crossorigin href="./assets/chunk-LvLJmgfZ.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-Bj1aDYRI.js">
+    <link rel="modulepreload" crossorigin href="./assets/compiler-runtime-B3qBwwSJ.js">
+    <link rel="modulepreload" crossorigin href="./assets/jsx-runtime-BqBOg78p.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEventListener-DvoEXWke.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-BLUna9fQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/precisionRound-Cl9k9ZmS.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-DzliDDTm.js">
+    <link rel="modulepreload" crossorigin href="./assets/vega-loader.browser-C8wT63Va.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-DCL4n9wx.js">
+    <link rel="modulepreload" crossorigin href="./assets/clsx-Dz_KRrWq.js">
+    <link rel="modulepreload" crossorigin href="./assets/cn-DCUzRj2J.js">
+    <link rel="modulepreload" crossorigin href="./assets/badge-j3NGjqhR.js">
+    <link rel="modulepreload" crossorigin href="./assets/button-BbCh-29a.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-dom-CSu739Rf.js">
+    <link rel="modulepreload" crossorigin href="./assets/fullscreen-DFky0PAA.js">
+    <link rel="modulepreload" crossorigin href="./assets/menu-items-BP7Ju9ww.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-CWMKC7yO.js">
+    <link rel="modulepreload" crossorigin href="./assets/createLucideIcon-D5guW7EU.js">
+    <link rel="modulepreload" crossorigin href="./assets/check-BH35Ndha.js">
+    <link rel="modulepreload" crossorigin href="./assets/x-C-6liIBr.js">
+    <link rel="modulepreload" crossorigin href="./assets/select-6suE6YM2.js">
+    <link rel="modulepreload" crossorigin href="./assets/tooltip-B_PkSKN3.js">
+    <link rel="modulepreload" crossorigin href="./assets/use-toast-CJ1Tj2eC.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEvent-D91BmmQi.js">
+    <link rel="modulepreload" crossorigin href="./assets/invariant-BUdrueMv.js">
+    <link rel="modulepreload" crossorigin href="./assets/isObject-DvLSfCY5.js">
+    <link rel="modulepreload" crossorigin href="./assets/_baseFor-DKD1r8uL.js">
+    <link rel="modulepreload" crossorigin href="./assets/merge-_9WLTEyt.js">
+    <link rel="modulepreload" crossorigin href="./assets/zod-H_cgTO0M.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-CvI-39U6.js">
+    <link rel="modulepreload" crossorigin href="./assets/Deferred-CP7vq682.js">
+    <link rel="modulepreload" crossorigin href="./assets/uuid-e9lSomwA.js">
+    <link rel="modulepreload" crossorigin href="./assets/DeferredRequestRegistry-CNldVcrP.js">
+    <link rel="modulepreload" crossorigin href="./assets/constants-DMpttj8Q.js">
+    <link rel="modulepreload" crossorigin href="./assets/session-0B5NBztP.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-ClMcu_sV.js">
+    <link rel="modulepreload" crossorigin href="./assets/requests-DIwGYs0l.js">
+    <link rel="modulepreload" crossorigin href="./assets/useLifecycle-DieWOfXE.js">
+    <link rel="modulepreload" crossorigin href="./assets/useNonce-DfoVjkkH.js">
+    <link rel="modulepreload" crossorigin href="./assets/useTheme-CI2eq4XN.js">
+    <link rel="modulepreload" crossorigin href="./assets/arrays-DYDL-3-i.js">
+    <link rel="modulepreload" crossorigin href="./assets/strings-wdPMRf6Z.js">
+    <link rel="modulepreload" crossorigin href="./assets/once-DRroIaBz.js">
+    <link rel="modulepreload" crossorigin href="./assets/capabilities-A_KhFcGV.js">
+    <link rel="modulepreload" crossorigin href="./assets/createReducer-CI9qeK_X.js">
+    <link rel="modulepreload" crossorigin href="./assets/paths-D5zczhUD.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-D0HyMpgV.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-Bo13cFwO.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-DVkC-Qmw.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-rBRbke5D.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-RMRSa-Mj.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BwnT-_gD.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-HyCgERnW.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BURue7-e.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-YEXtMjTi.js">
+    <link rel="modulepreload" crossorigin href="./assets/stex-BGrE-q7N.js">
+    <link rel="modulepreload" crossorigin href="./assets/toDate-B5A0DFEz.js">
+    <link rel="modulepreload" crossorigin href="./assets/purify.es-B9KxLTTS.js">
+    <link rel="modulepreload" crossorigin href="./assets/cjs-BRGiG41H.js">
+    <link rel="modulepreload" crossorigin href="./assets/isSymbol-BT6B8Bon.js">
+    <link rel="modulepreload" crossorigin href="./assets/now-CsYTPAhW.js">
+    <link rel="modulepreload" crossorigin href="./assets/debounce-DhnxH9Rh.js">
+    <link rel="modulepreload" crossorigin href="./assets/database-zap-kIkTfzTX.js">
+    <link rel="modulepreload" crossorigin href="./assets/main-B0OX4z33.js">
+    <link rel="modulepreload" crossorigin href="./assets/cells-DOA0Gew8.js">
+    <link rel="modulepreload" crossorigin href="./assets/ErrorBoundary-DyYDV0HI.js">
+    <link rel="modulepreload" crossorigin href="./assets/kbd-CTUAEnEx.js">
+    <link rel="modulepreload" crossorigin href="./assets/useInstallPackage-GI6gu7_S.js">
+    <link rel="modulepreload" crossorigin href="./assets/alert-dialog-5BGIfskO.js">
+    <link rel="modulepreload" crossorigin href="./assets/dialog-DRnNAWYl.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDebounce-7xZwVnnu.js">
+    <link rel="modulepreload" crossorigin href="./assets/numbers-DGxQfQ-A.js">
+    <link rel="modulepreload" crossorigin href="./assets/SSRProvider-CkFAAHXw.js">
+    <link rel="modulepreload" crossorigin href="./assets/context-QkTujrKn.js">
+    <link rel="modulepreload" crossorigin href="./assets/useNumberFormatter-ByUv-u9o.js">
+    <link rel="modulepreload" crossorigin href="./assets/usePress-DQ_tAz5W.js">
+    <link rel="modulepreload" crossorigin href="./assets/input-DA8xlX70.js">
+    <link rel="modulepreload" crossorigin href="./assets/ImperativeModal-BW1dmntO.js">
+    <link rel="modulepreload" crossorigin href="./assets/cell-link-Bj4-yOIx.js">
+    <link rel="modulepreload" crossorigin href="./assets/multi-map-C4OANz8X.js">
+    <link rel="modulepreload" crossorigin href="./assets/alert-yTS3WpF4.js">
+    <link rel="modulepreload" crossorigin href="./assets/chevron-right-CG5QYXYk.js">
+    <link rel="modulepreload" crossorigin href="./assets/dropdown-menu-CZ4XbE-c.js">
+    <link rel="modulepreload" crossorigin href="./assets/links-D1JoyKTt.js">
+    <link rel="modulepreload" crossorigin href="./assets/useRunCells-cSZpNqnR.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-LK56fFow.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-BwrPA9zQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-icon-BuRdHNPA.js">
+    <link rel="modulepreload" crossorigin href="./assets/RenderHTML-BQ1PO4Wd.js">
+    <link rel="modulepreload" crossorigin href="./assets/datasource-CR6RRpTi.js">
+    <link rel="modulepreload" crossorigin href="./assets/state-BWM3qRkR.js">
+    <link rel="modulepreload" crossorigin href="./assets/package-Tv6ztuzw.js">
+    <link rel="modulepreload" crossorigin href="./assets/sparkles-lWUAsPhp.js">
+    <link rel="modulepreload" crossorigin href="./assets/MarimoErrorOutput-BH6hs0Ir.js">
+    <link rel="modulepreload" crossorigin href="./assets/eye-off-Cm6DdkeR.js">
+    <link rel="modulepreload" crossorigin href="./assets/refresh-cw-DHwG4Mac.js">
+    <link rel="modulepreload" crossorigin href="./assets/tree-actions-1KQDSu1H.js">
+    <link rel="modulepreload" crossorigin href="./assets/spinner-Bhir8k53.js">
+    <link rel="modulepreload" crossorigin href="./assets/html-to-image-CyAtzePO.js">
+    <link rel="modulepreload" crossorigin href="./assets/focus-Ldqh99xE.js">
+    <link rel="modulepreload" crossorigin href="./assets/useAsyncData-bgszE9F0.js">
+    <link rel="modulepreload" crossorigin href="./assets/LazyAnyLanguageCodeMirror-C7ALwTI_.js">
+    <link rel="modulepreload" crossorigin href="./assets/micromark-factory-space-bqhKsQDn.js">
+    <link rel="modulepreload" crossorigin href="./assets/chunk-5FQGJX7Z-D91x7QHS.js">
+    <link rel="modulepreload" crossorigin href="./assets/markdown-renderer-C9Ujvj0b.js">
+    <link rel="modulepreload" crossorigin href="./assets/command-BmOGG6-2.js">
+    <link rel="modulepreload" crossorigin href="./assets/field-DCdxnSKm.js">
+    <link rel="modulepreload" crossorigin href="./assets/popover-CNCYAwbC.js">
+    <link rel="modulepreload" crossorigin href="./assets/errors-D3F5g1xA.js">
+    <link rel="modulepreload" crossorigin href="./assets/download-DhxnAw14.js">
+    <link rel="modulepreload" crossorigin href="./assets/table-BGPSHfig.js">
+    <link rel="modulepreload" crossorigin href="./assets/useIframeCapabilities-CcI1zSdn.js">
+    <link rel="modulepreload" crossorigin href="./assets/error-banner-D0xvrLog.js">
+    <link rel="modulepreload" crossorigin href="./assets/formats-b7Sf6DAK.js">
+    <link rel="modulepreload" crossorigin href="./assets/en-US-Cb8rIK52.js">
+    <link rel="modulepreload" crossorigin href="./assets/isValid-CklTTytn.js">
+    <link rel="modulepreload" crossorigin href="./assets/dates-CTxr0EqQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/extends-BiFDv3jB.js">
+    <link rel="modulepreload" crossorigin href="./assets/emotion-is-prop-valid.esm-C59xfSYt.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDateFormatter-ICIDGgHf.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-icons.esm-BNzu6e7h.js">
+    <link rel="modulepreload" crossorigin href="./assets/RSPContexts-C3vBe8nL.js">
+    <link rel="modulepreload" crossorigin href="./assets/table-6NxtGaCm.js">
+    <link rel="modulepreload" crossorigin href="./assets/ellipsis-KAhMaCIV.js">
+    <link rel="modulepreload" crossorigin href="./assets/external-link-BTNxSavU.js">
+    <link rel="modulepreload" crossorigin href="./assets/message-circle-CWm2KnSx.js">
+    <link rel="modulepreload" crossorigin href="./assets/plus-BgB18UzY.js">
+    <link rel="modulepreload" crossorigin href="./assets/trash-2-rVklqqFF.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-resizable-panels.browser.esm-CV8-hvjx.js">
+    <link rel="modulepreload" crossorigin href="./assets/JsonOutput-DRNPZOvX.js">
+    <link rel="modulepreload" crossorigin href="./assets/chart-no-axes-column-nqk474t8.js">
+    <link rel="modulepreload" crossorigin href="./assets/square-function-uY_yJr5g.js">
+    <link rel="modulepreload" crossorigin href="./assets/spec-CPQR_o92.js">
+    <link rel="modulepreload" crossorigin href="./assets/column-preview-nu3Qo2OW.js">
+    <link rel="modulepreload" crossorigin href="./assets/icons-Ol38nIbL.js">
+    <link rel="modulepreload" crossorigin href="./assets/radio-group-D7rh6Zek.js">
+    <link rel="modulepreload" crossorigin href="./assets/floating-outline-BvHFWRoz.js">
+    <link rel="modulepreload" crossorigin href="./assets/objectWithoutPropertiesLoose-DfWeGRFv.js">
+    <link rel="modulepreload" crossorigin href="./assets/esm-xaw4Vy8N.js">
+    <link rel="modulepreload" crossorigin href="./assets/readonly-python-code-CvPx4CU_.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-headphone-BrQspHac.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-BrdxGLRX.js">
+    <link rel="modulepreload" crossorigin href="./assets/image-DQHXdEQn.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-icons-D2f3nfbq.js">
+    <link rel="modulepreload" crossorigin href="./assets/switch-Ac7CgLgh.js">
+    <link rel="modulepreload" crossorigin href="./assets/events-CPoJAfgx.js">
+    <link rel="modulepreload" crossorigin href="./assets/globals-BivClSmn.js">
+    <link rel="modulepreload" crossorigin href="./assets/share-mSf5FZIP.js">
+    <link rel="modulepreload" crossorigin href="./assets/blob-Bgnx1kuY.js">
+    <link rel="modulepreload" crossorigin href="./assets/memoize-Tp7rARFe.js">
+    <link rel="modulepreload" crossorigin href="./assets/get-C-qh_et5.js">
+    <link rel="modulepreload" crossorigin href="./assets/_baseSet-CxV9N1bc.js">
+    <link rel="modulepreload" crossorigin href="./assets/state-C8yHPSLN.js">
+    <link rel="modulepreload" crossorigin href="./assets/label-C2_YQRio.js">
+    <link rel="modulepreload" crossorigin href="./assets/textarea-bBuxbFm7.js">
+    <link rel="modulepreload" crossorigin href="./assets/refresh-ccw-C-n2VFP5.js">
+    <link rel="modulepreload" crossorigin href="./assets/form-CxBAInfg.js">
+    <link rel="modulepreload" crossorigin href="./assets/renderShortcut--ku7VECI.js">
+    <link rel="modulepreload" crossorigin href="./assets/useBoolean-CE6PfxGj.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDeepCompareMemoize-CVmg-GkP.js">
+    <link rel="modulepreload" crossorigin href="./assets/types-W8WWuumF.js">
+    <link rel="modulepreload" crossorigin href="./assets/semaphore-qUGKVeAE.js">
+    <link rel="modulepreload" crossorigin href="./assets/fileToBase64-D15LPv1Y.js">
+    <link rel="modulepreload" crossorigin href="./assets/pathUtils-DPJ-EgtH.js">
+    <link rel="modulepreload" crossorigin href="./assets/prop-types-DaaA-ptl.js">
+    <link rel="modulepreload" crossorigin href="./assets/es-By9LYOsD.js">
+    <link rel="modulepreload" crossorigin href="./assets/hasIn-DiS_ryrS.js">
+    <link rel="modulepreload" crossorigin href="./assets/flatten-Dl4V1ub3.js">
+    <link rel="modulepreload" crossorigin href="./assets/pick-DqWUNly1.js">
+    <link rel="modulepreload" crossorigin href="./assets/code-xml-CZN6vNxu.js">
+    <link rel="modulepreload" crossorigin href="./assets/house-mGK3v0Mm.js">
+    <link rel="modulepreload" crossorigin href="./assets/square-B5xWCt0a.js">
+    <link rel="modulepreload" crossorigin href="./assets/triangle-alert-D2p96PEF.js">
+    <link rel="modulepreload" crossorigin href="./assets/bundle.esm-DjhGJy4I.js">
+    <link rel="stylesheet" crossorigin href="./assets/cells-pu5xzE_v.css">
+    <link rel="stylesheet" crossorigin href="./assets/markdown-renderer-DdDKmWlR.css">
+    <link rel="stylesheet" crossorigin href="./assets/JsonOutput-B7vuddcd.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-BAYF7dcV.css">
+  <marimo-wasm hidden=""></marimo-wasm>
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert('Warning: This file must be served by an HTTP server to function correctly.');
+        }
+    </script>
+    
+    <style>
+        #save-button {
+            display: none !important;
+        }
+        #filename-input {
+            display: none !important;
+        }
+    </style>
+    
+<script data-marimo="true">
+    Object.defineProperty(window, "__MARIMO_EXPORT_CONTEXT__", {
+        value: Object.freeze({
+            trusted: true,
+            notebookCode: "\"\"\"FLUME Latent Space Explorer \u2014 Interactive Walkthrough.\n\nReactive marimo notebook exploring the FLUME (Fluid Latent Understanding\nthrough Manifold Encoding) 256-dimensional latent space.\n\nDemonstrates:\n- Latent vector sampling and 3D PCA projection\n- Cyclic \u03b2-annealing schedule for KL regularisation\n\"\"\"\n\nimport marimo\n\n__generated_with = \"0.23.10\"\napp = marimo.App(width=\"medium\", app_title=\"FLUME Latent Space Explorer\")\n\n\n@app.cell\ndef _():\n    import math\n    import random\n\n    import marimo as mo\n    import plotly.graph_objects as go\n\n    return go, math, mo, random\n\n\n@app.cell\ndef _(mo):\n    mo.md(r\"\"\"\n    # FLUME Latent Space Explorer\n\n    **FLUME** encodes compound-loop execution traces into a **256-dimensional\n    latent manifold** using a \u03b2-VAE architecture:\n\n    ```\n    Input \u2192 Encoder \u2192 \u03bc, \u03c3 (256D) \u2192 z ~ N(\u03bc, \u03c3\u00b2) \u2192 Decoder \u2192 Reconstruction\n    ```\n\n    The optimal \u03b2 (KL weight) is **\u2264 0.01** \u2014 above \u03b2=0.020 the posterior\n    collapses (KL \u2192 0, decoder ignores z). Explore the latent geometry below.\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(mo):\n    n_points = mo.ui.slider(50, 500, step=50, value=200, label=\"Sample points\")\n    n_clusters = mo.ui.slider(2, 8, step=1, value=4, label=\"Semantic clusters\")\n    latent_dim = mo.ui.slider(2, 256, step=2, value=256, label=\"Latent dim (D)\")\n    beta_val = mo.ui.slider(\n        0.001, 0.025, step=0.001, value=0.010,\n        label=\"\u03b2 (KL weight)\", show_value=True,\n    )\n    mo.vstack([n_points, n_clusters, mo.hstack([latent_dim, beta_val], justify=\"start\")])\n    return beta_val, latent_dim, n_clusters, n_points\n\n\n@app.cell\ndef _(beta_val, mo):\n    _collapse = beta_val.value \u003E 0.015\n    collapse_risk = _collapse\n    mo.callout(\n        mo.md(\n            \"\u26a0\ufe0f **Posterior collapse risk** \u2014 \u03b2 \u003E 0.015 empirical threshold\"\n            if _collapse\n            else \"\u2705 \u03b2 is within safe range\"\n        ),\n        kind=\"warn\" if _collapse else \"info\",\n    )\n    return\n\n\n@app.cell\ndef _(latent_dim, math, n_clusters, n_points, random):\n    \"\"\"Sample synthetic 256D latent vectors with cluster structure.\"\"\"\n    random.seed(7)\n    D = latent_dim.value\n    K = n_clusters.value\n    N = n_points.value\n\n    _centers = [[random.gauss(0, 2.0) for _ in range(D)] for _ in range(K)]\n    labels = []\n    vectors = []\n    for _i in range(N):\n        _ci = _i % K\n        labels.append(_ci)\n        _v = [_centers[_ci][_d] + random.gauss(0, 0.6) for _d in range(D)]\n        _norm = math.sqrt(sum(_x ** 2 for _x in _v)) or 1.0\n        vectors.append([_x / _norm for _x in _v])\n    return K, labels, vectors\n\n\n@app.cell\ndef _(K, go, labels, mo, random, vectors):\n    \"\"\"3D PCA projection via Monte Carlo random-projection approximation.\"\"\"\n\n    def _rp3(X):\n        _n, _d = len(X), len(X[0])\n        _mean = [sum(X[_i][_j] for _i in range(_n)) / _n for _j in range(_d)]\n        _Xc = [[X[_i][_j] - _mean[_j] for _j in range(_d)] for _i in range(_n)]\n        random.seed(0)\n        _axes = []\n        for _ in range(3):\n            _ax = [random.gauss(0, 1) for _ in range(_d)]\n            _nm = sum(_x ** 2 for _x in _ax) ** 0.5\n            _axes.append([_x / _nm for _x in _ax])\n        return [\n            [sum(_Xc[_i][_j] * _axes[_k][_j] for _j in range(_d)) for _k in range(3)]\n            for _i in range(_n)\n        ]\n\n    _coords = _rp3(vectors)\n    _x3, _y3, _z3 = zip(*_coords)\n\n    _colours = [\"#4C78A8\", \"#F58518\", \"#E45756\", \"#72B7B2\",\n                \"#54A24B\", \"#EECA3B\", \"#B279A2\", \"#FF9DA6\"]\n\n    fig_latent = go.Figure()\n    for _ci in range(K):\n        _idxs = [_i for _i, _lbl in enumerate(labels) if _lbl == _ci]\n        fig_latent.add_trace(go.Scatter3d(\n            x=[_x3[_i] for _i in _idxs],\n            y=[_y3[_i] for _i in _idxs],\n            z=[_z3[_i] for _i in _idxs],\n            mode=\"markers\",\n            marker=dict(size=4, color=_colours[_ci % len(_colours)], opacity=0.8),\n            name=f\"Cluster {_ci}\",\n        ))\n\n    fig_latent.update_layout(\n        title=\"FLUME Latent Space (3D random projection)\",\n        scene=dict(xaxis_title=\"PC1\", yaxis_title=\"PC2\", zaxis_title=\"PC3\"),\n        height=500,\n        legend_title=\"Semantic cluster\",\n    )\n    mo.ui.plotly(fig_latent)\n    return\n\n\n@app.cell\ndef _(mo):\n    mo.md(\"\"\"\n    ## \u03b2-Annealing Schedule\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(beta_val, go, math, mo):\n    \"\"\"Cyclic \u03b2 schedule: amp*(1 - cos(2\u03c0\u00b7s/period)) \u2014 amp = \u03b2_max / 2.\"\"\"\n    _amp = beta_val.value / 2.0\n    _period = 50\n    _steps = list(range(300))\n    _sched = [_amp * (1 - math.cos(2 * math.pi * _s / _period)) for _s in _steps]\n    _threshold = [0.020] * len(_steps)\n\n    fig_beta = go.Figure()\n    fig_beta.add_trace(go.Scatter(\n        x=_steps, y=_sched, mode=\"lines\",\n        name=f\"\u03b2 schedule (amp={_amp:.4f})\",\n        line=dict(color=\"#4C78A8\"),\n    ))\n    fig_beta.add_trace(go.Scatter(\n        x=_steps, y=_threshold, mode=\"lines\",\n        name=\"Collapse threshold (0.020)\",\n        line=dict(dash=\"dash\", color=\"#E45756\"),\n    ))\n    fig_beta.update_layout(\n        title=\"Cyclic \u03b2-Annealing Schedule\",\n        xaxis_title=\"Training step\",\n        yaxis_title=\"\u03b2 (KL weight)\",\n        height=350,\n    )\n    mo.ui.plotly(fig_beta)\n    return\n\n\n@app.cell\ndef _(beta_val, latent_dim, mo, n_clusters, n_points):\n    mo.md(\n        f\"\"\"\n        ## Configuration Summary\n\n        | Parameter | Value | Constraint |\n        |-----------|-------|-----------|\n        | Latent dim D | **{latent_dim.value}** | Optimal: 256 (hd=4096 decoder) |\n        | \u03b2 (KL weight) | **{beta_val.value:.3f}** | Must be \u2264 0.010 |\n        | Sample points N | **{n_points.value}** | \u2014 |\n        | Semantic clusters K | **{n_clusters.value}** | \u2014 |\n\n        \u003E **Harness invariant A3:** `kl_weight \u2264 0.01` in `flume/training.py`.\n        \u003E Exceeding \u03b2=0.020 empirically collapses the posterior (KL\u21920.024 measured\n        \u003E 2026-05-19). Cyclic schedule with `amp=0.005` stays within bounds.\n        \"\"\"\n    )\n    return\n\n\n@app.cell\ndef _(mo):\n    import os\n    _default_url = os.getenv(\"LEMONADE_URL\", \"http://localhost:13305\")\n    flume_query = mo.ui.text_area(\n        placeholder=\"Ask about \u03b2-VAE KL collapse, latent geometry, HIHO equilibrium in latent space...\",\n        label=\"Ask the local agent (AMD silicon, $0)\",\n        rows=3,\n    )\n    flume_model = mo.ui.dropdown(\n        [\"llama3.2-1b-FLM\", \"Bonsai-8B-gguf\", \"DeepSeek-Qwen3-8B-GGUF\"],\n        value=\"llama3.2-1b-FLM\",\n        label=\"Model\",\n    )\n    flume_run = mo.ui.run_button(label=\"Ask Agent \u25b6\")\n    flume_url = mo.ui.text(value=_default_url, label=\"Lemonade URL\")\n    mo.vstack([\n        mo.md(\"## Live Agent \u2014 Ask About FLUME Latent Space\"),\n        mo.hstack([flume_url, flume_model], justify=\"start\"),\n        flume_query,\n        flume_run,\n    ])\n    return flume_model, flume_query, flume_run, flume_url\n\n\n@app.cell\ndef _(flume_model, flume_query, flume_run, flume_url, mo):\n    import requests as _req\n\n    mo.stop(not flume_run.value, mo.md(\"_Configure a query above, then click **Ask Agent \u25b6**_\"))\n\n    def _ask(q: str, model: str, base_url: str) -\u003E str:\n        try:\n            r = _req.post(\n                f\"{base_url.rstrip('/')}/v1/chat/completions\",\n                json={\n                    \"model\": model,\n                    \"messages\": [\n                        {\"role\": \"system\", \"content\": (\n                            \"You are an expert in \u03b2-VAE latent space geometry and FLUME \"\n                            \"(Fluid Latent Understanding through Manifold Encoding). \"\n                            \"Key invariants: \u03b2 \u2264 0.01, 2-layer decoder, hidden_dim=4096. \"\n                            \"Explain KL regularisation, posterior collapse thresholds, \"\n                            \"and semantic cluster geometry concisely.\"\n                        )},\n                        {\"role\": \"user\", \"content\": q},\n                    ],\n                    \"max_tokens\": 600,\n                },\n                timeout=90,\n            )\n            r.raise_for_status()\n            return r.json()[\"choices\"][0][\"message\"][\"content\"]\n        except Exception as exc:\n            return f\"\u26a0\ufe0f Lemonade error: {exc}\"\n\n    _answer = _ask(flume_query.value, flume_model.value, flume_url.value)\n    mo.callout(mo.md(_answer), kind=\"info\")\n    return\n\n\nif __name__ == \"__main__\":\n    app.run()\n",
+        }),
+        writable: false,
+        configurable: false,
+    });
+</script>
+<marimo-code hidden="">%22%22%22FLUME%20Latent%20Space%20Explorer%20%E2%80%94%20Interactive%20Walkthrough.%0A%0AReactive%20marimo%20notebook%20exploring%20the%20FLUME%20(Fluid%20Latent%20Understanding%0Athrough%20Manifold%20Encoding)%20256-dimensional%20latent%20space.%0A%0ADemonstrates%3A%0A-%20Latent%20vector%20sampling%20and%203D%20PCA%20projection%0A-%20Cyclic%20%CE%B2-annealing%20schedule%20for%20KL%20regularisation%0A%22%22%22%0A%0Aimport%20marimo%0A%0A__generated_with%20%3D%20%220.23.10%22%0Aapp%20%3D%20marimo.App(width%3D%22medium%22%2C%20app_title%3D%22FLUME%20Latent%20Space%20Explorer%22)%0A%0A%0A%40app.cell%0Adef%20_()%3A%0A%20%20%20%20import%20math%0A%20%20%20%20import%20random%0A%0A%20%20%20%20import%20marimo%20as%20mo%0A%20%20%20%20import%20plotly.graph_objects%20as%20go%0A%0A%20%20%20%20return%20go%2C%20math%2C%20mo%2C%20random%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%20FLUME%20Latent%20Space%20Explorer%0A%0A%20%20%20%20**FLUME**%20encodes%20compound-loop%20execution%20traces%20into%20a%20**256-dimensional%0A%20%20%20%20latent%20manifold**%20using%20a%20%CE%B2-VAE%20architecture%3A%0A%0A%20%20%20%20%60%60%60%0A%20%20%20%20Input%20%E2%86%92%20Encoder%20%E2%86%92%20%CE%BC%2C%20%CF%83%20(256D)%20%E2%86%92%20z%20~%20N(%CE%BC%2C%20%CF%83%C2%B2)%20%E2%86%92%20Decoder%20%E2%86%92%20Reconstruction%0A%20%20%20%20%60%60%60%0A%0A%20%20%20%20The%20optimal%20%CE%B2%20(KL%20weight)%20is%20**%E2%89%A4%200.01**%20%E2%80%94%20above%20%CE%B2%3D0.020%20the%20posterior%0A%20%20%20%20collapses%20(KL%20%E2%86%92%200%2C%20decoder%20ignores%20z).%20Explore%20the%20latent%20geometry%20below.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20n_points%20%3D%20mo.ui.slider(50%2C%20500%2C%20step%3D50%2C%20value%3D200%2C%20label%3D%22Sample%20points%22)%0A%20%20%20%20n_clusters%20%3D%20mo.ui.slider(2%2C%208%2C%20step%3D1%2C%20value%3D4%2C%20label%3D%22Semantic%20clusters%22)%0A%20%20%20%20latent_dim%20%3D%20mo.ui.slider(2%2C%20256%2C%20step%3D2%2C%20value%3D256%2C%20label%3D%22Latent%20dim%20(D)%22)%0A%20%20%20%20beta_val%20%3D%20mo.ui.slider(%0A%20%20%20%20%20%20%20%200.001%2C%200.025%2C%20step%3D0.001%2C%20value%3D0.010%2C%0A%20%20%20%20%20%20%20%20label%3D%22%CE%B2%20(KL%20weight)%22%2C%20show_value%3DTrue%2C%0A%20%20%20%20)%0A%20%20%20%20mo.vstack(%5Bn_points%2C%20n_clusters%2C%20mo.hstack(%5Blatent_dim%2C%20beta_val%5D%2C%20justify%3D%22start%22)%5D)%0A%20%20%20%20return%20beta_val%2C%20latent_dim%2C%20n_clusters%2C%20n_points%0A%0A%0A%40app.cell%0Adef%20_(beta_val%2C%20mo)%3A%0A%20%20%20%20_collapse%20%3D%20beta_val.value%20%3E%200.015%0A%20%20%20%20collapse_risk%20%3D%20_collapse%0A%20%20%20%20mo.callout(%0A%20%20%20%20%20%20%20%20mo.md(%0A%20%20%20%20%20%20%20%20%20%20%20%20%22%E2%9A%A0%EF%B8%8F%20**Posterior%20collapse%20risk**%20%E2%80%94%20%CE%B2%20%3E%200.015%20empirical%20threshold%22%0A%20%20%20%20%20%20%20%20%20%20%20%20if%20_collapse%0A%20%20%20%20%20%20%20%20%20%20%20%20else%20%22%E2%9C%85%20%CE%B2%20is%20within%20safe%20range%22%0A%20%20%20%20%20%20%20%20)%2C%0A%20%20%20%20%20%20%20%20kind%3D%22warn%22%20if%20_collapse%20else%20%22info%22%2C%0A%20%20%20%20)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(latent_dim%2C%20math%2C%20n_clusters%2C%20n_points%2C%20random)%3A%0A%20%20%20%20%22%22%22Sample%20synthetic%20256D%20latent%20vectors%20with%20cluster%20structure.%22%22%22%0A%20%20%20%20random.seed(7)%0A%20%20%20%20D%20%3D%20latent_dim.value%0A%20%20%20%20K%20%3D%20n_clusters.value%0A%20%20%20%20N%20%3D%20n_points.value%0A%0A%20%20%20%20_centers%20%3D%20%5B%5Brandom.gauss(0%2C%202.0)%20for%20_%20in%20range(D)%5D%20for%20_%20in%20range(K)%5D%0A%20%20%20%20labels%20%3D%20%5B%5D%0A%20%20%20%20vectors%20%3D%20%5B%5D%0A%20%20%20%20for%20_i%20in%20range(N)%3A%0A%20%20%20%20%20%20%20%20_ci%20%3D%20_i%20%25%20K%0A%20%20%20%20%20%20%20%20labels.append(_ci)%0A%20%20%20%20%20%20%20%20_v%20%3D%20%5B_centers%5B_ci%5D%5B_d%5D%20%2B%20random.gauss(0%2C%200.6)%20for%20_d%20in%20range(D)%5D%0A%20%20%20%20%20%20%20%20_norm%20%3D%20math.sqrt(sum(_x%20**%202%20for%20_x%20in%20_v))%20or%201.0%0A%20%20%20%20%20%20%20%20vectors.append(%5B_x%20%2F%20_norm%20for%20_x%20in%20_v%5D)%0A%20%20%20%20return%20K%2C%20labels%2C%20vectors%0A%0A%0A%40app.cell%0Adef%20_(K%2C%20go%2C%20labels%2C%20mo%2C%20random%2C%20vectors)%3A%0A%20%20%20%20%22%22%223D%20PCA%20projection%20via%20Monte%20Carlo%20random-projection%20approximation.%22%22%22%0A%0A%20%20%20%20def%20_rp3(X)%3A%0A%20%20%20%20%20%20%20%20_n%2C%20_d%20%3D%20len(X)%2C%20len(X%5B0%5D)%0A%20%20%20%20%20%20%20%20_mean%20%3D%20%5Bsum(X%5B_i%5D%5B_j%5D%20for%20_i%20in%20range(_n))%20%2F%20_n%20for%20_j%20in%20range(_d)%5D%0A%20%20%20%20%20%20%20%20_Xc%20%3D%20%5B%5BX%5B_i%5D%5B_j%5D%20-%20_mean%5B_j%5D%20for%20_j%20in%20range(_d)%5D%20for%20_i%20in%20range(_n)%5D%0A%20%20%20%20%20%20%20%20random.seed(0)%0A%20%20%20%20%20%20%20%20_axes%20%3D%20%5B%5D%0A%20%20%20%20%20%20%20%20for%20_%20in%20range(3)%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20_ax%20%3D%20%5Brandom.gauss(0%2C%201)%20for%20_%20in%20range(_d)%5D%0A%20%20%20%20%20%20%20%20%20%20%20%20_nm%20%3D%20sum(_x%20**%202%20for%20_x%20in%20_ax)%20**%200.5%0A%20%20%20%20%20%20%20%20%20%20%20%20_axes.append(%5B_x%20%2F%20_nm%20for%20_x%20in%20_ax%5D)%0A%20%20%20%20%20%20%20%20return%20%5B%0A%20%20%20%20%20%20%20%20%20%20%20%20%5Bsum(_Xc%5B_i%5D%5B_j%5D%20*%20_axes%5B_k%5D%5B_j%5D%20for%20_j%20in%20range(_d))%20for%20_k%20in%20range(3)%5D%0A%20%20%20%20%20%20%20%20%20%20%20%20for%20_i%20in%20range(_n)%0A%20%20%20%20%20%20%20%20%5D%0A%0A%20%20%20%20_coords%20%3D%20_rp3(vectors)%0A%20%20%20%20_x3%2C%20_y3%2C%20_z3%20%3D%20zip(*_coords)%0A%0A%20%20%20%20_colours%20%3D%20%5B%22%234C78A8%22%2C%20%22%23F58518%22%2C%20%22%23E45756%22%2C%20%22%2372B7B2%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22%2354A24B%22%2C%20%22%23EECA3B%22%2C%20%22%23B279A2%22%2C%20%22%23FF9DA6%22%5D%0A%0A%20%20%20%20fig_latent%20%3D%20go.Figure()%0A%20%20%20%20for%20_ci%20in%20range(K)%3A%0A%20%20%20%20%20%20%20%20_idxs%20%3D%20%5B_i%20for%20_i%2C%20_lbl%20in%20enumerate(labels)%20if%20_lbl%20%3D%3D%20_ci%5D%0A%20%20%20%20%20%20%20%20fig_latent.add_trace(go.Scatter3d(%0A%20%20%20%20%20%20%20%20%20%20%20%20x%3D%5B_x3%5B_i%5D%20for%20_i%20in%20_idxs%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20y%3D%5B_y3%5B_i%5D%20for%20_i%20in%20_idxs%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20z%3D%5B_z3%5B_i%5D%20for%20_i%20in%20_idxs%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20mode%3D%22markers%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20marker%3Ddict(size%3D4%2C%20color%3D_colours%5B_ci%20%25%20len(_colours)%5D%2C%20opacity%3D0.8)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20name%3Df%22Cluster%20%7B_ci%7D%22%2C%0A%20%20%20%20%20%20%20%20))%0A%0A%20%20%20%20fig_latent.update_layout(%0A%20%20%20%20%20%20%20%20title%3D%22FLUME%20Latent%20Space%20(3D%20random%20projection)%22%2C%0A%20%20%20%20%20%20%20%20scene%3Ddict(xaxis_title%3D%22PC1%22%2C%20yaxis_title%3D%22PC2%22%2C%20zaxis_title%3D%22PC3%22)%2C%0A%20%20%20%20%20%20%20%20height%3D500%2C%0A%20%20%20%20%20%20%20%20legend_title%3D%22Semantic%20cluster%22%2C%0A%20%20%20%20)%0A%20%20%20%20mo.ui.plotly(fig_latent)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(%22%22%22%0A%20%20%20%20%23%23%20%CE%B2-Annealing%20Schedule%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(beta_val%2C%20go%2C%20math%2C%20mo)%3A%0A%20%20%20%20%22%22%22Cyclic%20%CE%B2%20schedule%3A%20amp*(1%20-%20cos(2%CF%80%C2%B7s%2Fperiod))%20%E2%80%94%20amp%20%3D%20%CE%B2_max%20%2F%202.%22%22%22%0A%20%20%20%20_amp%20%3D%20beta_val.value%20%2F%202.0%0A%20%20%20%20_period%20%3D%2050%0A%20%20%20%20_steps%20%3D%20list(range(300))%0A%20%20%20%20_sched%20%3D%20%5B_amp%20*%20(1%20-%20math.cos(2%20*%20math.pi%20*%20_s%20%2F%20_period))%20for%20_s%20in%20_steps%5D%0A%20%20%20%20_threshold%20%3D%20%5B0.020%5D%20*%20len(_steps)%0A%0A%20%20%20%20fig_beta%20%3D%20go.Figure()%0A%20%20%20%20fig_beta.add_trace(go.Scatter(%0A%20%20%20%20%20%20%20%20x%3D_steps%2C%20y%3D_sched%2C%20mode%3D%22lines%22%2C%0A%20%20%20%20%20%20%20%20name%3Df%22%CE%B2%20schedule%20(amp%3D%7B_amp%3A.4f%7D)%22%2C%0A%20%20%20%20%20%20%20%20line%3Ddict(color%3D%22%234C78A8%22)%2C%0A%20%20%20%20))%0A%20%20%20%20fig_beta.add_trace(go.Scatter(%0A%20%20%20%20%20%20%20%20x%3D_steps%2C%20y%3D_threshold%2C%20mode%3D%22lines%22%2C%0A%20%20%20%20%20%20%20%20name%3D%22Collapse%20threshold%20(0.020)%22%2C%0A%20%20%20%20%20%20%20%20line%3Ddict(dash%3D%22dash%22%2C%20color%3D%22%23E45756%22)%2C%0A%20%20%20%20))%0A%20%20%20%20fig_beta.update_layout(%0A%20%20%20%20%20%20%20%20title%3D%22Cyclic%20%CE%B2-Annealing%20Schedule%22%2C%0A%20%20%20%20%20%20%20%20xaxis_title%3D%22Training%20step%22%2C%0A%20%20%20%20%20%20%20%20yaxis_title%3D%22%CE%B2%20(KL%20weight)%22%2C%0A%20%20%20%20%20%20%20%20height%3D350%2C%0A%20%20%20%20)%0A%20%20%20%20mo.ui.plotly(fig_beta)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(beta_val%2C%20latent_dim%2C%20mo%2C%20n_clusters%2C%20n_points)%3A%0A%20%20%20%20mo.md(%0A%20%20%20%20%20%20%20%20f%22%22%22%0A%20%20%20%20%20%20%20%20%23%23%20Configuration%20Summary%0A%0A%20%20%20%20%20%20%20%20%7C%20Parameter%20%7C%20Value%20%7C%20Constraint%20%7C%0A%20%20%20%20%20%20%20%20%7C-----------%7C-------%7C-----------%7C%0A%20%20%20%20%20%20%20%20%7C%20Latent%20dim%20D%20%7C%20**%7Blatent_dim.value%7D**%20%7C%20Optimal%3A%20256%20(hd%3D4096%20decoder)%20%7C%0A%20%20%20%20%20%20%20%20%7C%20%CE%B2%20(KL%20weight)%20%7C%20**%7Bbeta_val.value%3A.3f%7D**%20%7C%20Must%20be%20%E2%89%A4%200.010%20%7C%0A%20%20%20%20%20%20%20%20%7C%20Sample%20points%20N%20%7C%20**%7Bn_points.value%7D**%20%7C%20%E2%80%94%20%7C%0A%20%20%20%20%20%20%20%20%7C%20Semantic%20clusters%20K%20%7C%20**%7Bn_clusters.value%7D**%20%7C%20%E2%80%94%20%7C%0A%0A%20%20%20%20%20%20%20%20%3E%20**Harness%20invariant%20A3%3A**%20%60kl_weight%20%E2%89%A4%200.01%60%20in%20%60flume%2Ftraining.py%60.%0A%20%20%20%20%20%20%20%20%3E%20Exceeding%20%CE%B2%3D0.020%20empirically%20collapses%20the%20posterior%20(KL%E2%86%920.024%20measured%0A%20%20%20%20%20%20%20%20%3E%202026-05-19).%20Cyclic%20schedule%20with%20%60amp%3D0.005%60%20stays%20within%20bounds.%0A%20%20%20%20%20%20%20%20%22%22%22%0A%20%20%20%20)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20import%20os%0A%20%20%20%20_default_url%20%3D%20os.getenv(%22LEMONADE_URL%22%2C%20%22http%3A%2F%2Flocalhost%3A13305%22)%0A%20%20%20%20flume_query%20%3D%20mo.ui.text_area(%0A%20%20%20%20%20%20%20%20placeholder%3D%22Ask%20about%20%CE%B2-VAE%20KL%20collapse%2C%20latent%20geometry%2C%20HIHO%20equilibrium%20in%20latent%20space...%22%2C%0A%20%20%20%20%20%20%20%20label%3D%22Ask%20the%20local%20agent%20(AMD%20silicon%2C%20%240)%22%2C%0A%20%20%20%20%20%20%20%20rows%3D3%2C%0A%20%20%20%20)%0A%20%20%20%20flume_model%20%3D%20mo.ui.dropdown(%0A%20%20%20%20%20%20%20%20%5B%22llama3.2-1b-FLM%22%2C%20%22Bonsai-8B-gguf%22%2C%20%22DeepSeek-Qwen3-8B-GGUF%22%5D%2C%0A%20%20%20%20%20%20%20%20value%3D%22llama3.2-1b-FLM%22%2C%0A%20%20%20%20%20%20%20%20label%3D%22Model%22%2C%0A%20%20%20%20)%0A%20%20%20%20flume_run%20%3D%20mo.ui.run_button(label%3D%22Ask%20Agent%20%E2%96%B6%22)%0A%20%20%20%20flume_url%20%3D%20mo.ui.text(value%3D_default_url%2C%20label%3D%22Lemonade%20URL%22)%0A%20%20%20%20mo.vstack(%5B%0A%20%20%20%20%20%20%20%20mo.md(%22%23%23%20Live%20Agent%20%E2%80%94%20Ask%20About%20FLUME%20Latent%20Space%22)%2C%0A%20%20%20%20%20%20%20%20mo.hstack(%5Bflume_url%2C%20flume_model%5D%2C%20justify%3D%22start%22)%2C%0A%20%20%20%20%20%20%20%20flume_query%2C%0A%20%20%20%20%20%20%20%20flume_run%2C%0A%20%20%20%20%5D)%0A%20%20%20%20return%20flume_model%2C%20flume_query%2C%20flume_run%2C%20flume_url%0A%0A%0A%40app.cell%0Adef%20_(flume_model%2C%20flume_query%2C%20flume_run%2C%20flume_url%2C%20mo)%3A%0A%20%20%20%20import%20requests%20as%20_req%0A%0A%20%20%20%20mo.stop(not%20flume_run.value%2C%20mo.md(%22_Configure%20a%20query%20above%2C%20then%20click%20**Ask%20Agent%20%E2%96%B6**_%22))%0A%0A%20%20%20%20def%20_ask(q%3A%20str%2C%20model%3A%20str%2C%20base_url%3A%20str)%20-%3E%20str%3A%0A%20%20%20%20%20%20%20%20try%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20r%20%3D%20_req.post(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%22%7Bbase_url.rstrip('%2F')%7D%2Fv1%2Fchat%2Fcompletions%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20json%3D%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22model%22%3A%20model%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22messages%22%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%22role%22%3A%20%22system%22%2C%20%22content%22%3A%20(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22You%20are%20an%20expert%20in%20%CE%B2-VAE%20latent%20space%20geometry%20and%20FLUME%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22(Fluid%20Latent%20Understanding%20through%20Manifold%20Encoding).%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22Key%20invariants%3A%20%CE%B2%20%E2%89%A4%200.01%2C%202-layer%20decoder%2C%20hidden_dim%3D4096.%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22Explain%20KL%20regularisation%2C%20posterior%20collapse%20thresholds%2C%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22and%20semantic%20cluster%20geometry%20concisely.%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20)%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%22role%22%3A%20%22user%22%2C%20%22content%22%3A%20q%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22max_tokens%22%3A%20600%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20timeout%3D90%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20%20%20%20%20r.raise_for_status()%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20r.json()%5B%22choices%22%5D%5B0%5D%5B%22message%22%5D%5B%22content%22%5D%0A%20%20%20%20%20%20%20%20except%20Exception%20as%20exc%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20f%22%E2%9A%A0%EF%B8%8F%20Lemonade%20error%3A%20%7Bexc%7D%22%0A%0A%20%20%20%20_answer%20%3D%20_ask(flume_query.value%2C%20flume_model.value%2C%20flume_url.value)%0A%20%20%20%20mo.callout(mo.md(_answer)%2C%20kind%3D%22info%22)%0A%20%20%20%20return%0A%0A%0Aif%20__name__%20%3D%3D%20%22__main__%22%3A%0A%20%20%20%20app.run()%0A</marimo-code></head>
+  <body>
+    <div id="root"></div>
+    <!-- This is a portal for the data editor to render in -->
+    <div id="portal" data-testid="glide-portal" style="position: fixed; left: 0; top: 0; z-index: 9999"></div>
+    <script data-marimo="true">
+      Object.defineProperty(window, "__MARIMO_MOUNT_CONFIG__", {
+        value: Object.freeze({
+            "filename": "notebook.py",
+            "cwd": "",
+            "lspWorkspace": null,
+            "mode": "read",
+            "version": "0.23.10",
+            "serverToken": "unused",
+            "config": {"ai": {"custom_providers": {}, "enabled": true, "models": {"custom_models": [], "displayed_models": []}}, "completion": {"activate_on_typing": true, "auto_close_pairs": true, "copilot": false, "signature_hint_on_typing": false}, "diagnostics": {"sql_linter": true}, "display": {"cell_output": "below", "code_editor_font_size": 14, "dataframes": "rich", "default_table_max_columns": 50, "default_table_page_size": 10, "default_width": "medium", "reference_highlighting": true, "theme": "dark"}, "formatting": {"line_length": 79}, "keymap": {"overrides": {}, "preset": "default"}, "language_servers": {"pylsp": {"enable_flake8": false, "enable_mypy": true, "enable_pydocstyle": false, "enable_pyflakes": false, "enable_pylint": false, "enable_ruff": true, "enabled": false}}, "mcp": {"mcpServers": {}, "presets": []}, "package_management": {"manager": "uv"}, "runtime": {"auto_instantiate": false, "auto_reload": "off", "default_csv_encoding": "utf-8", "default_sql_output": "auto", "on_cell_change": "autorun", "output_max_bytes": 8000000, "reactive_tests": true, "show_tracebacks": false, "std_stream_max_bytes": 1000000, "watcher_on_save": "lazy"}, "save": {"autosave": "off", "autosave_delay": 1000, "format_on_save": false}, "server": {"browser": "default", "follow_symlink": false}, "snippets": {"custom_paths": [], "include_default_snippets": true}},
+            "configOverrides": {},
+            "appConfig": {"app_title": "FLUME Latent Space Explorer", "sql_output": "auto", "width": "medium"},
+            "view": {"showAppCode": false},
+            "notebook": null,
+            "session": null,
+            "runtimeConfig": null,
+        }),
+        writable: false,
+        configurable: false,
+      });
+    </script>
+  </body>
+</html>

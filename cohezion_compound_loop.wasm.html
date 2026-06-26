@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <!-- Preload is necessary because we show these images when we disconnect from the server,
+    but at that point we cannot load these images from the server -->
+    <link rel="preload" href="./assets/gradient-yHQUC_QB.png" as="image" />
+    <link rel="preload" href="./assets/noise-60BoTA8O.png" as="image" />
+    <!-- Preload the fonts -->
+    <link rel="preload" href="./assets/Lora-VariableFont_wght-CZceb_kH.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Regular-Bam3NpBI.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Bold-C_DwAp7Z.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Regular-CEsLFVD9.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Medium-D5MAsWEG.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Bold-C6PDArdf.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="a marimo app" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <script data-marimo="true">
+      function __resizeIframe(obj) {
+        const scrollbarHeight = 20; // Max between windows, mac, and linux
+
+        function setHeight() {
+          // Guard against race condition where iframe isn't ready
+          if (!obj.contentWindow?.document?.documentElement) {
+            return;
+          }
+          const element = obj.contentWindow.document.documentElement;
+          // If there is no vertical scrollbar, we don't need to resize the iframe
+          if (element.scrollHeight === element.clientHeight) {
+            return;
+          }
+
+          // Create a new height that includes the scrollbar height if it's visible
+          const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+          const newHeight = element.scrollHeight + (hasHorizontalScrollbar ? scrollbarHeight : 0);
+
+          // Only update the height if it's different from the current height
+          if (obj.style.height !== `${newHeight}px`) {
+            obj.style.height = `${newHeight}px`;
+          }
+        }
+
+        // Resize the iframe to the height of the content and bottom scrollbar height
+        setHeight();
+
+        // Resize the iframe when the content changes
+        const resizeObserver = new ResizeObserver((_entries) => {
+          setHeight();
+        });
+        // Only observe if iframe content is ready
+        if (obj.contentWindow?.document?.body) {
+          resizeObserver.observe(obj.contentWindow.document.body);
+        }
+      }
+    </script>
+    <marimo-filename hidden>notebook.py</marimo-filename>
+    <!-- TODO(Trevor): Legacy, required by VS Code plugin. Remove when plugin is updated (see marimo/server/_templates/template.py) -->
+    <marimo-version data-version="{{ version }}" hidden></marimo-version>
+    <marimo-user-config data-config="{{ user_config }}" hidden></marimo-user-config>
+    <marimo-server-token data-token="{{ server_token }}" hidden></marimo-server-token>
+    <!-- /TODO -->
+    <title>Cohezion Compound Loop</title>
+    <script type="module" crossorigin src="./assets/index-fNBoXCyz.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/preload-helper-BPPi7vOr.js">
+    <link rel="modulepreload" crossorigin href="./assets/chunk-LvLJmgfZ.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-Bj1aDYRI.js">
+    <link rel="modulepreload" crossorigin href="./assets/compiler-runtime-B3qBwwSJ.js">
+    <link rel="modulepreload" crossorigin href="./assets/jsx-runtime-BqBOg78p.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEventListener-DvoEXWke.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-BLUna9fQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/precisionRound-Cl9k9ZmS.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-DzliDDTm.js">
+    <link rel="modulepreload" crossorigin href="./assets/vega-loader.browser-C8wT63Va.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-DCL4n9wx.js">
+    <link rel="modulepreload" crossorigin href="./assets/clsx-Dz_KRrWq.js">
+    <link rel="modulepreload" crossorigin href="./assets/cn-DCUzRj2J.js">
+    <link rel="modulepreload" crossorigin href="./assets/badge-j3NGjqhR.js">
+    <link rel="modulepreload" crossorigin href="./assets/button-BbCh-29a.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-dom-CSu739Rf.js">
+    <link rel="modulepreload" crossorigin href="./assets/fullscreen-DFky0PAA.js">
+    <link rel="modulepreload" crossorigin href="./assets/menu-items-BP7Ju9ww.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-CWMKC7yO.js">
+    <link rel="modulepreload" crossorigin href="./assets/createLucideIcon-D5guW7EU.js">
+    <link rel="modulepreload" crossorigin href="./assets/check-BH35Ndha.js">
+    <link rel="modulepreload" crossorigin href="./assets/x-C-6liIBr.js">
+    <link rel="modulepreload" crossorigin href="./assets/select-6suE6YM2.js">
+    <link rel="modulepreload" crossorigin href="./assets/tooltip-B_PkSKN3.js">
+    <link rel="modulepreload" crossorigin href="./assets/use-toast-CJ1Tj2eC.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEvent-D91BmmQi.js">
+    <link rel="modulepreload" crossorigin href="./assets/invariant-BUdrueMv.js">
+    <link rel="modulepreload" crossorigin href="./assets/isObject-DvLSfCY5.js">
+    <link rel="modulepreload" crossorigin href="./assets/_baseFor-DKD1r8uL.js">
+    <link rel="modulepreload" crossorigin href="./assets/merge-_9WLTEyt.js">
+    <link rel="modulepreload" crossorigin href="./assets/zod-H_cgTO0M.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-CvI-39U6.js">
+    <link rel="modulepreload" crossorigin href="./assets/Deferred-CP7vq682.js">
+    <link rel="modulepreload" crossorigin href="./assets/uuid-e9lSomwA.js">
+    <link rel="modulepreload" crossorigin href="./assets/DeferredRequestRegistry-CNldVcrP.js">
+    <link rel="modulepreload" crossorigin href="./assets/constants-DMpttj8Q.js">
+    <link rel="modulepreload" crossorigin href="./assets/session-0B5NBztP.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-ClMcu_sV.js">
+    <link rel="modulepreload" crossorigin href="./assets/requests-DIwGYs0l.js">
+    <link rel="modulepreload" crossorigin href="./assets/useLifecycle-DieWOfXE.js">
+    <link rel="modulepreload" crossorigin href="./assets/useNonce-DfoVjkkH.js">
+    <link rel="modulepreload" crossorigin href="./assets/useTheme-CI2eq4XN.js">
+    <link rel="modulepreload" crossorigin href="./assets/arrays-DYDL-3-i.js">
+    <link rel="modulepreload" crossorigin href="./assets/strings-wdPMRf6Z.js">
+    <link rel="modulepreload" crossorigin href="./assets/once-DRroIaBz.js">
+    <link rel="modulepreload" crossorigin href="./assets/capabilities-A_KhFcGV.js">
+    <link rel="modulepreload" crossorigin href="./assets/createReducer-CI9qeK_X.js">
+    <link rel="modulepreload" crossorigin href="./assets/paths-D5zczhUD.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-D0HyMpgV.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-Bo13cFwO.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-DVkC-Qmw.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-rBRbke5D.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-RMRSa-Mj.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BwnT-_gD.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-HyCgERnW.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BURue7-e.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-YEXtMjTi.js">
+    <link rel="modulepreload" crossorigin href="./assets/stex-BGrE-q7N.js">
+    <link rel="modulepreload" crossorigin href="./assets/toDate-B5A0DFEz.js">
+    <link rel="modulepreload" crossorigin href="./assets/purify.es-B9KxLTTS.js">
+    <link rel="modulepreload" crossorigin href="./assets/cjs-BRGiG41H.js">
+    <link rel="modulepreload" crossorigin href="./assets/isSymbol-BT6B8Bon.js">
+    <link rel="modulepreload" crossorigin href="./assets/now-CsYTPAhW.js">
+    <link rel="modulepreload" crossorigin href="./assets/debounce-DhnxH9Rh.js">
+    <link rel="modulepreload" crossorigin href="./assets/database-zap-kIkTfzTX.js">
+    <link rel="modulepreload" crossorigin href="./assets/main-B0OX4z33.js">
+    <link rel="modulepreload" crossorigin href="./assets/cells-DOA0Gew8.js">
+    <link rel="modulepreload" crossorigin href="./assets/ErrorBoundary-DyYDV0HI.js">
+    <link rel="modulepreload" crossorigin href="./assets/kbd-CTUAEnEx.js">
+    <link rel="modulepreload" crossorigin href="./assets/useInstallPackage-GI6gu7_S.js">
+    <link rel="modulepreload" crossorigin href="./assets/alert-dialog-5BGIfskO.js">
+    <link rel="modulepreload" crossorigin href="./assets/dialog-DRnNAWYl.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDebounce-7xZwVnnu.js">
+    <link rel="modulepreload" crossorigin href="./assets/numbers-DGxQfQ-A.js">
+    <link rel="modulepreload" crossorigin href="./assets/SSRProvider-CkFAAHXw.js">
+    <link rel="modulepreload" crossorigin href="./assets/context-QkTujrKn.js">
+    <link rel="modulepreload" crossorigin href="./assets/useNumberFormatter-ByUv-u9o.js">
+    <link rel="modulepreload" crossorigin href="./assets/usePress-DQ_tAz5W.js">
+    <link rel="modulepreload" crossorigin href="./assets/input-DA8xlX70.js">
+    <link rel="modulepreload" crossorigin href="./assets/ImperativeModal-BW1dmntO.js">
+    <link rel="modulepreload" crossorigin href="./assets/cell-link-Bj4-yOIx.js">
+    <link rel="modulepreload" crossorigin href="./assets/multi-map-C4OANz8X.js">
+    <link rel="modulepreload" crossorigin href="./assets/alert-yTS3WpF4.js">
+    <link rel="modulepreload" crossorigin href="./assets/chevron-right-CG5QYXYk.js">
+    <link rel="modulepreload" crossorigin href="./assets/dropdown-menu-CZ4XbE-c.js">
+    <link rel="modulepreload" crossorigin href="./assets/links-D1JoyKTt.js">
+    <link rel="modulepreload" crossorigin href="./assets/useRunCells-cSZpNqnR.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-LK56fFow.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-BwrPA9zQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-icon-BuRdHNPA.js">
+    <link rel="modulepreload" crossorigin href="./assets/RenderHTML-BQ1PO4Wd.js">
+    <link rel="modulepreload" crossorigin href="./assets/datasource-CR6RRpTi.js">
+    <link rel="modulepreload" crossorigin href="./assets/state-BWM3qRkR.js">
+    <link rel="modulepreload" crossorigin href="./assets/package-Tv6ztuzw.js">
+    <link rel="modulepreload" crossorigin href="./assets/sparkles-lWUAsPhp.js">
+    <link rel="modulepreload" crossorigin href="./assets/MarimoErrorOutput-BH6hs0Ir.js">
+    <link rel="modulepreload" crossorigin href="./assets/eye-off-Cm6DdkeR.js">
+    <link rel="modulepreload" crossorigin href="./assets/refresh-cw-DHwG4Mac.js">
+    <link rel="modulepreload" crossorigin href="./assets/tree-actions-1KQDSu1H.js">
+    <link rel="modulepreload" crossorigin href="./assets/spinner-Bhir8k53.js">
+    <link rel="modulepreload" crossorigin href="./assets/html-to-image-CyAtzePO.js">
+    <link rel="modulepreload" crossorigin href="./assets/focus-Ldqh99xE.js">
+    <link rel="modulepreload" crossorigin href="./assets/useAsyncData-bgszE9F0.js">
+    <link rel="modulepreload" crossorigin href="./assets/LazyAnyLanguageCodeMirror-C7ALwTI_.js">
+    <link rel="modulepreload" crossorigin href="./assets/micromark-factory-space-bqhKsQDn.js">
+    <link rel="modulepreload" crossorigin href="./assets/chunk-5FQGJX7Z-D91x7QHS.js">
+    <link rel="modulepreload" crossorigin href="./assets/markdown-renderer-C9Ujvj0b.js">
+    <link rel="modulepreload" crossorigin href="./assets/command-BmOGG6-2.js">
+    <link rel="modulepreload" crossorigin href="./assets/field-DCdxnSKm.js">
+    <link rel="modulepreload" crossorigin href="./assets/popover-CNCYAwbC.js">
+    <link rel="modulepreload" crossorigin href="./assets/errors-D3F5g1xA.js">
+    <link rel="modulepreload" crossorigin href="./assets/download-DhxnAw14.js">
+    <link rel="modulepreload" crossorigin href="./assets/table-BGPSHfig.js">
+    <link rel="modulepreload" crossorigin href="./assets/useIframeCapabilities-CcI1zSdn.js">
+    <link rel="modulepreload" crossorigin href="./assets/error-banner-D0xvrLog.js">
+    <link rel="modulepreload" crossorigin href="./assets/formats-b7Sf6DAK.js">
+    <link rel="modulepreload" crossorigin href="./assets/en-US-Cb8rIK52.js">
+    <link rel="modulepreload" crossorigin href="./assets/isValid-CklTTytn.js">
+    <link rel="modulepreload" crossorigin href="./assets/dates-CTxr0EqQ.js">
+    <link rel="modulepreload" crossorigin href="./assets/extends-BiFDv3jB.js">
+    <link rel="modulepreload" crossorigin href="./assets/emotion-is-prop-valid.esm-C59xfSYt.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDateFormatter-ICIDGgHf.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-icons.esm-BNzu6e7h.js">
+    <link rel="modulepreload" crossorigin href="./assets/RSPContexts-C3vBe8nL.js">
+    <link rel="modulepreload" crossorigin href="./assets/table-6NxtGaCm.js">
+    <link rel="modulepreload" crossorigin href="./assets/ellipsis-KAhMaCIV.js">
+    <link rel="modulepreload" crossorigin href="./assets/external-link-BTNxSavU.js">
+    <link rel="modulepreload" crossorigin href="./assets/message-circle-CWm2KnSx.js">
+    <link rel="modulepreload" crossorigin href="./assets/plus-BgB18UzY.js">
+    <link rel="modulepreload" crossorigin href="./assets/trash-2-rVklqqFF.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-resizable-panels.browser.esm-CV8-hvjx.js">
+    <link rel="modulepreload" crossorigin href="./assets/JsonOutput-DRNPZOvX.js">
+    <link rel="modulepreload" crossorigin href="./assets/chart-no-axes-column-nqk474t8.js">
+    <link rel="modulepreload" crossorigin href="./assets/square-function-uY_yJr5g.js">
+    <link rel="modulepreload" crossorigin href="./assets/spec-CPQR_o92.js">
+    <link rel="modulepreload" crossorigin href="./assets/column-preview-nu3Qo2OW.js">
+    <link rel="modulepreload" crossorigin href="./assets/icons-Ol38nIbL.js">
+    <link rel="modulepreload" crossorigin href="./assets/radio-group-D7rh6Zek.js">
+    <link rel="modulepreload" crossorigin href="./assets/floating-outline-BvHFWRoz.js">
+    <link rel="modulepreload" crossorigin href="./assets/objectWithoutPropertiesLoose-DfWeGRFv.js">
+    <link rel="modulepreload" crossorigin href="./assets/esm-xaw4Vy8N.js">
+    <link rel="modulepreload" crossorigin href="./assets/readonly-python-code-CvPx4CU_.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-headphone-BrQspHac.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-BrdxGLRX.js">
+    <link rel="modulepreload" crossorigin href="./assets/image-DQHXdEQn.js">
+    <link rel="modulepreload" crossorigin href="./assets/file-icons-D2f3nfbq.js">
+    <link rel="modulepreload" crossorigin href="./assets/switch-Ac7CgLgh.js">
+    <link rel="modulepreload" crossorigin href="./assets/events-CPoJAfgx.js">
+    <link rel="modulepreload" crossorigin href="./assets/globals-BivClSmn.js">
+    <link rel="modulepreload" crossorigin href="./assets/share-mSf5FZIP.js">
+    <link rel="modulepreload" crossorigin href="./assets/blob-Bgnx1kuY.js">
+    <link rel="modulepreload" crossorigin href="./assets/memoize-Tp7rARFe.js">
+    <link rel="modulepreload" crossorigin href="./assets/get-C-qh_et5.js">
+    <link rel="modulepreload" crossorigin href="./assets/_baseSet-CxV9N1bc.js">
+    <link rel="modulepreload" crossorigin href="./assets/state-C8yHPSLN.js">
+    <link rel="modulepreload" crossorigin href="./assets/label-C2_YQRio.js">
+    <link rel="modulepreload" crossorigin href="./assets/textarea-bBuxbFm7.js">
+    <link rel="modulepreload" crossorigin href="./assets/refresh-ccw-C-n2VFP5.js">
+    <link rel="modulepreload" crossorigin href="./assets/form-CxBAInfg.js">
+    <link rel="modulepreload" crossorigin href="./assets/renderShortcut--ku7VECI.js">
+    <link rel="modulepreload" crossorigin href="./assets/useBoolean-CE6PfxGj.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDeepCompareMemoize-CVmg-GkP.js">
+    <link rel="modulepreload" crossorigin href="./assets/types-W8WWuumF.js">
+    <link rel="modulepreload" crossorigin href="./assets/semaphore-qUGKVeAE.js">
+    <link rel="modulepreload" crossorigin href="./assets/fileToBase64-D15LPv1Y.js">
+    <link rel="modulepreload" crossorigin href="./assets/pathUtils-DPJ-EgtH.js">
+    <link rel="modulepreload" crossorigin href="./assets/prop-types-DaaA-ptl.js">
+    <link rel="modulepreload" crossorigin href="./assets/es-By9LYOsD.js">
+    <link rel="modulepreload" crossorigin href="./assets/hasIn-DiS_ryrS.js">
+    <link rel="modulepreload" crossorigin href="./assets/flatten-Dl4V1ub3.js">
+    <link rel="modulepreload" crossorigin href="./assets/pick-DqWUNly1.js">
+    <link rel="modulepreload" crossorigin href="./assets/code-xml-CZN6vNxu.js">
+    <link rel="modulepreload" crossorigin href="./assets/house-mGK3v0Mm.js">
+    <link rel="modulepreload" crossorigin href="./assets/square-B5xWCt0a.js">
+    <link rel="modulepreload" crossorigin href="./assets/triangle-alert-D2p96PEF.js">
+    <link rel="modulepreload" crossorigin href="./assets/bundle.esm-DjhGJy4I.js">
+    <link rel="stylesheet" crossorigin href="./assets/cells-pu5xzE_v.css">
+    <link rel="stylesheet" crossorigin href="./assets/markdown-renderer-DdDKmWlR.css">
+    <link rel="stylesheet" crossorigin href="./assets/JsonOutput-B7vuddcd.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-BAYF7dcV.css">
+  <marimo-wasm hidden=""></marimo-wasm>
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert('Warning: This file must be served by an HTTP server to function correctly.');
+        }
+    </script>
+    
+    <style>
+        #save-button {
+            display: none !important;
+        }
+        #filename-input {
+            display: none !important;
+        }
+    </style>
+    
+<script data-marimo="true">
+    Object.defineProperty(window, "__MARIMO_EXPORT_CONTEXT__", {
+        value: Object.freeze({
+            trusted: true,
+            notebookCode: "\"\"\"Cohezion Compound Loop Metrics \u2014 Interactive Walkthrough.\n\nReactive marimo notebook exploring the compound engineering loop:\nExecutor \u2192 SkillRefiner \u2192 RetrospectionEngine \u2192 Updated Skill.\n\nVisualises quality scores, cache hit rates, and tier latency over\nsynthetic-but-realistic compound loop execution data.\n\"\"\"\n\nimport marimo\n\n__generated_with = \"0.23.10\"\napp = marimo.App(width=\"medium\", app_title=\"Cohezion Compound Loop\")\n\n\n@app.cell\ndef _():\n    import marimo as mo\n\n    return (mo,)\n\n\n@app.cell\ndef _(mo):\n    mo.md(r\"\"\"\n    # Cohezion Compound Loop Metrics\n\n    The **compound engineering loop** continuously refines skills:\n\n    ```\n    PRIME Skill \u2192 InstructionExpander \u2192 PlanExecutor\n        \u2192 ExecutionOrchestrator (11-step pipeline)\n        \u2192 RetrospectionEngine \u2192 SkillRefiner \u2192 Updated Skill\n    ```\n\n    Adjust the controls below to explore different execution windows.\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(mo):\n    n_cycles = mo.ui.slider(\n        10, 200, step=10, value=50, label=\"Simulation cycles\"\n    )\n    seed_val = mo.ui.slider(0, 99, step=1, value=42, label=\"Random seed\")\n    mo.hstack([n_cycles, seed_val], justify=\"start\")\n    return n_cycles, seed_val\n\n\n@app.cell\ndef _(mo, n_cycles, seed_val):\n    mo.md(f\"**Running {n_cycles.value} cycles** (seed={seed_val.value})\")\n    return\n\n\n@app.cell\ndef _(n_cycles, seed_val):\n    \"\"\"Generate synthetic compound loop metrics (realistic distributions).\"\"\"\n    import random\n    import math\n\n    random.seed(seed_val.value)\n    n = n_cycles.value\n\n    cycles = list(range(1, n + 1))\n\n    # Quality converges toward HIHO 0.5 equilibrium from random start\n    quality = []\n    q = random.uniform(0.2, 0.8)\n    for i in range(n):\n        noise = random.gauss(0, 0.04)\n        q = q + 0.03 * (0.5 - q) + noise  # mean-reversion to HIHO 0.5\n        quality.append(max(0.0, min(1.0, q)))\n\n    # Cache hit rate ramps up as the semantic cache warms\n    cache_hits = [min(0.95, 0.1 + 0.85 * (1 - math.exp(-i / (n * 0.3))) +\n                      random.gauss(0, 0.02)) for i in range(n)]\n\n    # Latency: NPU fast (24ms), iGPU medium (200ms), CPU slow (800ms)\n    tier_weights = [(0.7, 24), (0.2, 200), (0.1, 800)]\n    latency_ms = []\n    for _ in range(n):\n        r = random.random()\n        cumulative = 0\n        for w, base_ms in tier_weights:\n            cumulative += w\n            if r \u003C cumulative:\n                latency_ms.append(base_ms + random.gauss(0, base_ms * 0.1))\n                break\n\n    # Skill refinement confidence (increases as SkillRefiner accumulates data)\n    confidence = [min(0.95, 0.4 + 0.55 * (i / n) + random.gauss(0, 0.03))\n                  for i in range(n)]\n    return cache_hits, confidence, cycles, latency_ms, quality\n\n\n@app.cell\ndef _(mo):\n    chart_type = mo.ui.dropdown(\n        [\"Quality Score\", \"Cache Hit Rate\", \"Latency (ms)\", \"All\"],\n        value=\"All\",\n        label=\"Chart\",\n    )\n    mo.vstack([chart_type])\n    return (chart_type,)\n\n\n@app.cell\ndef _(cache_hits, chart_type, confidence, cycles, latency_ms, mo, quality):\n    import plotly.graph_objects as go\n    from plotly.subplots import make_subplots\n\n    sel = chart_type.value\n\n    if sel == \"All\":\n        fig = make_subplots(\n            rows=2, cols=2,\n            subplot_titles=(\n                \"Quality Score (HIHO target = 0.5)\",\n                \"Semantic Cache Hit Rate\",\n                \"Tier Latency (ms)\",\n                \"SkillRefiner Confidence\",\n            ),\n        )\n        fig.add_trace(\n            go.Scatter(x=cycles, y=quality, mode=\"lines\", name=\"quality\",\n                       line=dict(color=\"#4C78A8\")),\n            row=1, col=1,\n        )\n        fig.add_hline(y=0.5, line_dash=\"dash\", line_color=\"orange\",\n                      annotation_text=\"HIHO equilibrium\", row=1, col=1)\n        fig.add_trace(\n            go.Scatter(x=cycles, y=cache_hits, mode=\"lines\", name=\"cache\",\n                       line=dict(color=\"#72B7B2\")),\n            row=1, col=2,\n        )\n        fig.add_trace(\n            go.Scatter(x=cycles, y=latency_ms, mode=\"markers\", name=\"latency\",\n                       marker=dict(color=\"#F58518\", size=4)),\n            row=2, col=1,\n        )\n        fig.add_trace(\n            go.Scatter(x=cycles, y=confidence, mode=\"lines\", name=\"confidence\",\n                       line=dict(color=\"#E45756\")),\n            row=2, col=2,\n        )\n        fig.update_layout(height=500, showlegend=False,\n                          title_text=\"Compound Loop Metrics Dashboard\")\n    elif sel == \"Quality Score\":\n        fig = go.Figure()\n        fig.add_trace(go.Scatter(x=cycles, y=quality, mode=\"lines+markers\",\n                                 name=\"quality\", line=dict(color=\"#4C78A8\")))\n        fig.add_hline(y=0.5, line_dash=\"dash\", line_color=\"orange\",\n                      annotation_text=\"HIHO equilibrium (0.50)\")\n        fig.update_layout(title=\"Quality Score\", xaxis_title=\"Cycle\",\n                          yaxis_title=\"Score\", height=400)\n    elif sel == \"Cache Hit Rate\":\n        fig = go.Figure()\n        fig.add_trace(go.Scatter(x=cycles, y=cache_hits, mode=\"lines\",\n                                 fill=\"tozeroy\", line=dict(color=\"#72B7B2\")))\n        fig.update_layout(title=\"Semantic Cache Hit Rate\", xaxis_title=\"Cycle\",\n                          yaxis_title=\"Hit Rate\", yaxis_range=[0, 1], height=400)\n    elif sel == \"Latency (ms)\":\n        fig = go.Figure()\n        fig.add_trace(go.Scatter(x=cycles, y=latency_ms, mode=\"markers\",\n                                 marker=dict(color=\"#F58518\", size=5)))\n        fig.add_hline(y=24, line_dash=\"dot\", annotation_text=\"NPU (24ms)\")\n        fig.add_hline(y=200, line_dash=\"dot\", annotation_text=\"iGPU (200ms)\")\n        fig.add_hline(y=800, line_dash=\"dot\", annotation_text=\"CPU (800ms)\")\n        fig.update_layout(title=\"Tier Latency\", xaxis_title=\"Cycle\",\n                          yaxis_title=\"ms\", height=400)\n    else:\n        fig = go.Figure()\n\n    mo.ui.plotly(fig)\n    return\n\n\n@app.cell\ndef _(cache_hits, confidence, latency_ms, mo, quality):\n    avg_q = sum(quality) / len(quality)\n    avg_cache = sum(cache_hits) / len(cache_hits)\n    avg_lat = sum(latency_ms) / len(latency_ms)\n    avg_conf = sum(confidence) / len(confidence)\n\n    mo.md(\n        f\"\"\"\n        ## Summary Statistics\n\n        | Metric | Mean | Notes |\n        |--------|------|-------|\n        | Quality score | **{avg_q:.3f}** | HIHO target = 0.500 |\n        | Cache hit rate | **{avg_cache:.1%}** | L1+L2+L3 combined |\n        | Avg latency | **{avg_lat:.0f} ms** | NPU/iGPU/CPU blended |\n        | SkillRefiner confidence | **{avg_conf:.3f}** | Converges to \u22650.90 |\n\n        \u003E The compound loop self-improves over time \u2014 quality drifts toward\n        \u003E the HIHO equilibrium (0.5) and cache hit rate climbs as the semantic\n        \u003E cache warms with recurring patterns.\n        \"\"\"\n    )\n    return\n\n\n@app.cell\ndef _(mo):\n    import os\n    _default_url = os.getenv(\"LEMONADE_URL\", \"http://localhost:13305\")\n    loop_query = mo.ui.text_area(\n        placeholder=\"Ask about HIHO equilibrium, cache hit rates, tier routing...\",\n        label=\"Ask the local agent (AMD silicon, $0)\",\n        rows=3,\n    )\n    loop_model = mo.ui.dropdown(\n        [\"llama3.2-1b-FLM\", \"Bonsai-8B-gguf\", \"DeepSeek-Qwen3-8B-GGUF\"],\n        value=\"llama3.2-1b-FLM\",\n        label=\"Model\",\n    )\n    loop_run = mo.ui.run_button(label=\"Ask Agent \u25b6\")\n    loop_url = mo.ui.text(value=_default_url, label=\"Lemonade URL\")\n    mo.vstack([\n        mo.md(\"## Live Agent \u2014 Ask About the Compound Loop\"),\n        mo.hstack([loop_url, loop_model], justify=\"start\"),\n        loop_query,\n        loop_run,\n    ])\n    return loop_model, loop_query, loop_run, loop_url\n\n\n@app.cell\ndef _(loop_model, loop_query, loop_run, loop_url, mo):\n    import requests as _req\n\n    mo.stop(not loop_run.value, mo.md(\"_Configure a query above, then click **Ask Agent \u25b6**_\"))\n\n    def _ask(q: str, model: str, base_url: str) -\u003E str:\n        try:\n            r = _req.post(\n                f\"{base_url.rstrip('/')}/v1/chat/completions\",\n                json={\n                    \"model\": model,\n                    \"messages\": [\n                        {\"role\": \"system\", \"content\": (\n                            \"You are an expert in Cohezion compound AI engineering loops. \"\n                            \"Answer concisely with reference to HIHO (Half-In-Half-Out) \"\n                            \"equilibrium, semantic cache, and tiered AMD inference.\"\n                        )},\n                        {\"role\": \"user\", \"content\": q},\n                    ],\n                    \"max_tokens\": 600,\n                },\n                timeout=90,\n            )\n            r.raise_for_status()\n            return r.json()[\"choices\"][0][\"message\"][\"content\"]\n        except Exception as exc:\n            return f\"\u26a0\ufe0f Lemonade error: {exc}\"\n\n    _answer = _ask(loop_query.value, loop_model.value, loop_url.value)\n    mo.callout(mo.md(_answer), kind=\"info\")\n    return\n\n\nif __name__ == \"__main__\":\n    app.run()\n",
+        }),
+        writable: false,
+        configurable: false,
+    });
+</script>
+<marimo-code hidden="">%22%22%22Cohezion%20Compound%20Loop%20Metrics%20%E2%80%94%20Interactive%20Walkthrough.%0A%0AReactive%20marimo%20notebook%20exploring%20the%20compound%20engineering%20loop%3A%0AExecutor%20%E2%86%92%20SkillRefiner%20%E2%86%92%20RetrospectionEngine%20%E2%86%92%20Updated%20Skill.%0A%0AVisualises%20quality%20scores%2C%20cache%20hit%20rates%2C%20and%20tier%20latency%20over%0Asynthetic-but-realistic%20compound%20loop%20execution%20data.%0A%22%22%22%0A%0Aimport%20marimo%0A%0A__generated_with%20%3D%20%220.23.10%22%0Aapp%20%3D%20marimo.App(width%3D%22medium%22%2C%20app_title%3D%22Cohezion%20Compound%20Loop%22)%0A%0A%0A%40app.cell%0Adef%20_()%3A%0A%20%20%20%20import%20marimo%20as%20mo%0A%0A%20%20%20%20return%20(mo%2C)%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%20Cohezion%20Compound%20Loop%20Metrics%0A%0A%20%20%20%20The%20**compound%20engineering%20loop**%20continuously%20refines%20skills%3A%0A%0A%20%20%20%20%60%60%60%0A%20%20%20%20PRIME%20Skill%20%E2%86%92%20InstructionExpander%20%E2%86%92%20PlanExecutor%0A%20%20%20%20%20%20%20%20%E2%86%92%20ExecutionOrchestrator%20(11-step%20pipeline)%0A%20%20%20%20%20%20%20%20%E2%86%92%20RetrospectionEngine%20%E2%86%92%20SkillRefiner%20%E2%86%92%20Updated%20Skill%0A%20%20%20%20%60%60%60%0A%0A%20%20%20%20Adjust%20the%20controls%20below%20to%20explore%20different%20execution%20windows.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20n_cycles%20%3D%20mo.ui.slider(%0A%20%20%20%20%20%20%20%2010%2C%20200%2C%20step%3D10%2C%20value%3D50%2C%20label%3D%22Simulation%20cycles%22%0A%20%20%20%20)%0A%20%20%20%20seed_val%20%3D%20mo.ui.slider(0%2C%2099%2C%20step%3D1%2C%20value%3D42%2C%20label%3D%22Random%20seed%22)%0A%20%20%20%20mo.hstack(%5Bn_cycles%2C%20seed_val%5D%2C%20justify%3D%22start%22)%0A%20%20%20%20return%20n_cycles%2C%20seed_val%0A%0A%0A%40app.cell%0Adef%20_(mo%2C%20n_cycles%2C%20seed_val)%3A%0A%20%20%20%20mo.md(f%22**Running%20%7Bn_cycles.value%7D%20cycles**%20(seed%3D%7Bseed_val.value%7D)%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(n_cycles%2C%20seed_val)%3A%0A%20%20%20%20%22%22%22Generate%20synthetic%20compound%20loop%20metrics%20(realistic%20distributions).%22%22%22%0A%20%20%20%20import%20random%0A%20%20%20%20import%20math%0A%0A%20%20%20%20random.seed(seed_val.value)%0A%20%20%20%20n%20%3D%20n_cycles.value%0A%0A%20%20%20%20cycles%20%3D%20list(range(1%2C%20n%20%2B%201))%0A%0A%20%20%20%20%23%20Quality%20converges%20toward%20HIHO%200.5%20equilibrium%20from%20random%20start%0A%20%20%20%20quality%20%3D%20%5B%5D%0A%20%20%20%20q%20%3D%20random.uniform(0.2%2C%200.8)%0A%20%20%20%20for%20i%20in%20range(n)%3A%0A%20%20%20%20%20%20%20%20noise%20%3D%20random.gauss(0%2C%200.04)%0A%20%20%20%20%20%20%20%20q%20%3D%20q%20%2B%200.03%20*%20(0.5%20-%20q)%20%2B%20noise%20%20%23%20mean-reversion%20to%20HIHO%200.5%0A%20%20%20%20%20%20%20%20quality.append(max(0.0%2C%20min(1.0%2C%20q)))%0A%0A%20%20%20%20%23%20Cache%20hit%20rate%20ramps%20up%20as%20the%20semantic%20cache%20warms%0A%20%20%20%20cache_hits%20%3D%20%5Bmin(0.95%2C%200.1%20%2B%200.85%20*%20(1%20-%20math.exp(-i%20%2F%20(n%20*%200.3)))%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20random.gauss(0%2C%200.02))%20for%20i%20in%20range(n)%5D%0A%0A%20%20%20%20%23%20Latency%3A%20NPU%20fast%20(24ms)%2C%20iGPU%20medium%20(200ms)%2C%20CPU%20slow%20(800ms)%0A%20%20%20%20tier_weights%20%3D%20%5B(0.7%2C%2024)%2C%20(0.2%2C%20200)%2C%20(0.1%2C%20800)%5D%0A%20%20%20%20latency_ms%20%3D%20%5B%5D%0A%20%20%20%20for%20_%20in%20range(n)%3A%0A%20%20%20%20%20%20%20%20r%20%3D%20random.random()%0A%20%20%20%20%20%20%20%20cumulative%20%3D%200%0A%20%20%20%20%20%20%20%20for%20w%2C%20base_ms%20in%20tier_weights%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20cumulative%20%2B%3D%20w%0A%20%20%20%20%20%20%20%20%20%20%20%20if%20r%20%3C%20cumulative%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20latency_ms.append(base_ms%20%2B%20random.gauss(0%2C%20base_ms%20*%200.1))%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20break%0A%0A%20%20%20%20%23%20Skill%20refinement%20confidence%20(increases%20as%20SkillRefiner%20accumulates%20data)%0A%20%20%20%20confidence%20%3D%20%5Bmin(0.95%2C%200.4%20%2B%200.55%20*%20(i%20%2F%20n)%20%2B%20random.gauss(0%2C%200.03))%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20for%20i%20in%20range(n)%5D%0A%20%20%20%20return%20cache_hits%2C%20confidence%2C%20cycles%2C%20latency_ms%2C%20quality%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20chart_type%20%3D%20mo.ui.dropdown(%0A%20%20%20%20%20%20%20%20%5B%22Quality%20Score%22%2C%20%22Cache%20Hit%20Rate%22%2C%20%22Latency%20(ms)%22%2C%20%22All%22%5D%2C%0A%20%20%20%20%20%20%20%20value%3D%22All%22%2C%0A%20%20%20%20%20%20%20%20label%3D%22Chart%22%2C%0A%20%20%20%20)%0A%20%20%20%20mo.vstack(%5Bchart_type%5D)%0A%20%20%20%20return%20(chart_type%2C)%0A%0A%0A%40app.cell%0Adef%20_(cache_hits%2C%20chart_type%2C%20confidence%2C%20cycles%2C%20latency_ms%2C%20mo%2C%20quality)%3A%0A%20%20%20%20import%20plotly.graph_objects%20as%20go%0A%20%20%20%20from%20plotly.subplots%20import%20make_subplots%0A%0A%20%20%20%20sel%20%3D%20chart_type.value%0A%0A%20%20%20%20if%20sel%20%3D%3D%20%22All%22%3A%0A%20%20%20%20%20%20%20%20fig%20%3D%20make_subplots(%0A%20%20%20%20%20%20%20%20%20%20%20%20rows%3D2%2C%20cols%3D2%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20subplot_titles%3D(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22Quality%20Score%20(HIHO%20target%20%3D%200.5)%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22Semantic%20Cache%20Hit%20Rate%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22Tier%20Latency%20(ms)%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22SkillRefiner%20Confidence%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20)%2C%0A%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20fig.add_trace(%0A%20%20%20%20%20%20%20%20%20%20%20%20go.Scatter(x%3Dcycles%2C%20y%3Dquality%2C%20mode%3D%22lines%22%2C%20name%3D%22quality%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20line%3Ddict(color%3D%22%234C78A8%22))%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20row%3D1%2C%20col%3D1%2C%0A%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20fig.add_hline(y%3D0.5%2C%20line_dash%3D%22dash%22%2C%20line_color%3D%22orange%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20annotation_text%3D%22HIHO%20equilibrium%22%2C%20row%3D1%2C%20col%3D1)%0A%20%20%20%20%20%20%20%20fig.add_trace(%0A%20%20%20%20%20%20%20%20%20%20%20%20go.Scatter(x%3Dcycles%2C%20y%3Dcache_hits%2C%20mode%3D%22lines%22%2C%20name%3D%22cache%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20line%3Ddict(color%3D%22%2372B7B2%22))%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20row%3D1%2C%20col%3D2%2C%0A%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20fig.add_trace(%0A%20%20%20%20%20%20%20%20%20%20%20%20go.Scatter(x%3Dcycles%2C%20y%3Dlatency_ms%2C%20mode%3D%22markers%22%2C%20name%3D%22latency%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20marker%3Ddict(color%3D%22%23F58518%22%2C%20size%3D4))%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20row%3D2%2C%20col%3D1%2C%0A%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20fig.add_trace(%0A%20%20%20%20%20%20%20%20%20%20%20%20go.Scatter(x%3Dcycles%2C%20y%3Dconfidence%2C%20mode%3D%22lines%22%2C%20name%3D%22confidence%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20line%3Ddict(color%3D%22%23E45756%22))%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20row%3D2%2C%20col%3D2%2C%0A%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20fig.update_layout(height%3D500%2C%20showlegend%3DFalse%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20title_text%3D%22Compound%20Loop%20Metrics%20Dashboard%22)%0A%20%20%20%20elif%20sel%20%3D%3D%20%22Quality%20Score%22%3A%0A%20%20%20%20%20%20%20%20fig%20%3D%20go.Figure()%0A%20%20%20%20%20%20%20%20fig.add_trace(go.Scatter(x%3Dcycles%2C%20y%3Dquality%2C%20mode%3D%22lines%2Bmarkers%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%3D%22quality%22%2C%20line%3Ddict(color%3D%22%234C78A8%22)))%0A%20%20%20%20%20%20%20%20fig.add_hline(y%3D0.5%2C%20line_dash%3D%22dash%22%2C%20line_color%3D%22orange%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20annotation_text%3D%22HIHO%20equilibrium%20(0.50)%22)%0A%20%20%20%20%20%20%20%20fig.update_layout(title%3D%22Quality%20Score%22%2C%20xaxis_title%3D%22Cycle%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20yaxis_title%3D%22Score%22%2C%20height%3D400)%0A%20%20%20%20elif%20sel%20%3D%3D%20%22Cache%20Hit%20Rate%22%3A%0A%20%20%20%20%20%20%20%20fig%20%3D%20go.Figure()%0A%20%20%20%20%20%20%20%20fig.add_trace(go.Scatter(x%3Dcycles%2C%20y%3Dcache_hits%2C%20mode%3D%22lines%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fill%3D%22tozeroy%22%2C%20line%3Ddict(color%3D%22%2372B7B2%22)))%0A%20%20%20%20%20%20%20%20fig.update_layout(title%3D%22Semantic%20Cache%20Hit%20Rate%22%2C%20xaxis_title%3D%22Cycle%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20yaxis_title%3D%22Hit%20Rate%22%2C%20yaxis_range%3D%5B0%2C%201%5D%2C%20height%3D400)%0A%20%20%20%20elif%20sel%20%3D%3D%20%22Latency%20(ms)%22%3A%0A%20%20%20%20%20%20%20%20fig%20%3D%20go.Figure()%0A%20%20%20%20%20%20%20%20fig.add_trace(go.Scatter(x%3Dcycles%2C%20y%3Dlatency_ms%2C%20mode%3D%22markers%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20marker%3Ddict(color%3D%22%23F58518%22%2C%20size%3D5)))%0A%20%20%20%20%20%20%20%20fig.add_hline(y%3D24%2C%20line_dash%3D%22dot%22%2C%20annotation_text%3D%22NPU%20(24ms)%22)%0A%20%20%20%20%20%20%20%20fig.add_hline(y%3D200%2C%20line_dash%3D%22dot%22%2C%20annotation_text%3D%22iGPU%20(200ms)%22)%0A%20%20%20%20%20%20%20%20fig.add_hline(y%3D800%2C%20line_dash%3D%22dot%22%2C%20annotation_text%3D%22CPU%20(800ms)%22)%0A%20%20%20%20%20%20%20%20fig.update_layout(title%3D%22Tier%20Latency%22%2C%20xaxis_title%3D%22Cycle%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20yaxis_title%3D%22ms%22%2C%20height%3D400)%0A%20%20%20%20else%3A%0A%20%20%20%20%20%20%20%20fig%20%3D%20go.Figure()%0A%0A%20%20%20%20mo.ui.plotly(fig)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(cache_hits%2C%20confidence%2C%20latency_ms%2C%20mo%2C%20quality)%3A%0A%20%20%20%20avg_q%20%3D%20sum(quality)%20%2F%20len(quality)%0A%20%20%20%20avg_cache%20%3D%20sum(cache_hits)%20%2F%20len(cache_hits)%0A%20%20%20%20avg_lat%20%3D%20sum(latency_ms)%20%2F%20len(latency_ms)%0A%20%20%20%20avg_conf%20%3D%20sum(confidence)%20%2F%20len(confidence)%0A%0A%20%20%20%20mo.md(%0A%20%20%20%20%20%20%20%20f%22%22%22%0A%20%20%20%20%20%20%20%20%23%23%20Summary%20Statistics%0A%0A%20%20%20%20%20%20%20%20%7C%20Metric%20%7C%20Mean%20%7C%20Notes%20%7C%0A%20%20%20%20%20%20%20%20%7C--------%7C------%7C-------%7C%0A%20%20%20%20%20%20%20%20%7C%20Quality%20score%20%7C%20**%7Bavg_q%3A.3f%7D**%20%7C%20HIHO%20target%20%3D%200.500%20%7C%0A%20%20%20%20%20%20%20%20%7C%20Cache%20hit%20rate%20%7C%20**%7Bavg_cache%3A.1%25%7D**%20%7C%20L1%2BL2%2BL3%20combined%20%7C%0A%20%20%20%20%20%20%20%20%7C%20Avg%20latency%20%7C%20**%7Bavg_lat%3A.0f%7D%20ms**%20%7C%20NPU%2FiGPU%2FCPU%20blended%20%7C%0A%20%20%20%20%20%20%20%20%7C%20SkillRefiner%20confidence%20%7C%20**%7Bavg_conf%3A.3f%7D**%20%7C%20Converges%20to%20%E2%89%A50.90%20%7C%0A%0A%20%20%20%20%20%20%20%20%3E%20The%20compound%20loop%20self-improves%20over%20time%20%E2%80%94%20quality%20drifts%20toward%0A%20%20%20%20%20%20%20%20%3E%20the%20HIHO%20equilibrium%20(0.5)%20and%20cache%20hit%20rate%20climbs%20as%20the%20semantic%0A%20%20%20%20%20%20%20%20%3E%20cache%20warms%20with%20recurring%20patterns.%0A%20%20%20%20%20%20%20%20%22%22%22%0A%20%20%20%20)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20import%20os%0A%20%20%20%20_default_url%20%3D%20os.getenv(%22LEMONADE_URL%22%2C%20%22http%3A%2F%2Flocalhost%3A13305%22)%0A%20%20%20%20loop_query%20%3D%20mo.ui.text_area(%0A%20%20%20%20%20%20%20%20placeholder%3D%22Ask%20about%20HIHO%20equilibrium%2C%20cache%20hit%20rates%2C%20tier%20routing...%22%2C%0A%20%20%20%20%20%20%20%20label%3D%22Ask%20the%20local%20agent%20(AMD%20silicon%2C%20%240)%22%2C%0A%20%20%20%20%20%20%20%20rows%3D3%2C%0A%20%20%20%20)%0A%20%20%20%20loop_model%20%3D%20mo.ui.dropdown(%0A%20%20%20%20%20%20%20%20%5B%22llama3.2-1b-FLM%22%2C%20%22Bonsai-8B-gguf%22%2C%20%22DeepSeek-Qwen3-8B-GGUF%22%5D%2C%0A%20%20%20%20%20%20%20%20value%3D%22llama3.2-1b-FLM%22%2C%0A%20%20%20%20%20%20%20%20label%3D%22Model%22%2C%0A%20%20%20%20)%0A%20%20%20%20loop_run%20%3D%20mo.ui.run_button(label%3D%22Ask%20Agent%20%E2%96%B6%22)%0A%20%20%20%20loop_url%20%3D%20mo.ui.text(value%3D_default_url%2C%20label%3D%22Lemonade%20URL%22)%0A%20%20%20%20mo.vstack(%5B%0A%20%20%20%20%20%20%20%20mo.md(%22%23%23%20Live%20Agent%20%E2%80%94%20Ask%20About%20the%20Compound%20Loop%22)%2C%0A%20%20%20%20%20%20%20%20mo.hstack(%5Bloop_url%2C%20loop_model%5D%2C%20justify%3D%22start%22)%2C%0A%20%20%20%20%20%20%20%20loop_query%2C%0A%20%20%20%20%20%20%20%20loop_run%2C%0A%20%20%20%20%5D)%0A%20%20%20%20return%20loop_model%2C%20loop_query%2C%20loop_run%2C%20loop_url%0A%0A%0A%40app.cell%0Adef%20_(loop_model%2C%20loop_query%2C%20loop_run%2C%20loop_url%2C%20mo)%3A%0A%20%20%20%20import%20requests%20as%20_req%0A%0A%20%20%20%20mo.stop(not%20loop_run.value%2C%20mo.md(%22_Configure%20a%20query%20above%2C%20then%20click%20**Ask%20Agent%20%E2%96%B6**_%22))%0A%0A%20%20%20%20def%20_ask(q%3A%20str%2C%20model%3A%20str%2C%20base_url%3A%20str)%20-%3E%20str%3A%0A%20%20%20%20%20%20%20%20try%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20r%20%3D%20_req.post(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%22%7Bbase_url.rstrip('%2F')%7D%2Fv1%2Fchat%2Fcompletions%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20json%3D%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22model%22%3A%20model%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22messages%22%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%22role%22%3A%20%22system%22%2C%20%22content%22%3A%20(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22You%20are%20an%20expert%20in%20Cohezion%20compound%20AI%20engineering%20loops.%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22Answer%20concisely%20with%20reference%20to%20HIHO%20(Half-In-Half-Out)%20%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22equilibrium%2C%20semantic%20cache%2C%20and%20tiered%20AMD%20inference.%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20)%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%22role%22%3A%20%22user%22%2C%20%22content%22%3A%20q%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22max_tokens%22%3A%20600%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20timeout%3D90%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20)%0A%20%20%20%20%20%20%20%20%20%20%20%20r.raise_for_status()%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20r.json()%5B%22choices%22%5D%5B0%5D%5B%22message%22%5D%5B%22content%22%5D%0A%20%20%20%20%20%20%20%20except%20Exception%20as%20exc%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20f%22%E2%9A%A0%EF%B8%8F%20Lemonade%20error%3A%20%7Bexc%7D%22%0A%0A%20%20%20%20_answer%20%3D%20_ask(loop_query.value%2C%20loop_model.value%2C%20loop_url.value)%0A%20%20%20%20mo.callout(mo.md(_answer)%2C%20kind%3D%22info%22)%0A%20%20%20%20return%0A%0A%0Aif%20__name__%20%3D%3D%20%22__main__%22%3A%0A%20%20%20%20app.run()%0A</marimo-code></head>
+  <body>
+    <div id="root"></div>
+    <!-- This is a portal for the data editor to render in -->
+    <div id="portal" data-testid="glide-portal" style="position: fixed; left: 0; top: 0; z-index: 9999"></div>
+    <script data-marimo="true">
+      Object.defineProperty(window, "__MARIMO_MOUNT_CONFIG__", {
+        value: Object.freeze({
+            "filename": "notebook.py",
+            "cwd": "",
+            "lspWorkspace": null,
+            "mode": "read",
+            "version": "0.23.10",
+            "serverToken": "unused",
+            "config": {"ai": {"custom_providers": {}, "enabled": true, "models": {"custom_models": [], "displayed_models": []}}, "completion": {"activate_on_typing": true, "auto_close_pairs": true, "copilot": false, "signature_hint_on_typing": false}, "diagnostics": {"sql_linter": true}, "display": {"cell_output": "below", "code_editor_font_size": 14, "dataframes": "rich", "default_table_max_columns": 50, "default_table_page_size": 10, "default_width": "medium", "reference_highlighting": true, "theme": "dark"}, "formatting": {"line_length": 79}, "keymap": {"overrides": {}, "preset": "default"}, "language_servers": {"pylsp": {"enable_flake8": false, "enable_mypy": true, "enable_pydocstyle": false, "enable_pyflakes": false, "enable_pylint": false, "enable_ruff": true, "enabled": false}}, "mcp": {"mcpServers": {}, "presets": []}, "package_management": {"manager": "uv"}, "runtime": {"auto_instantiate": false, "auto_reload": "off", "default_csv_encoding": "utf-8", "default_sql_output": "auto", "on_cell_change": "autorun", "output_max_bytes": 8000000, "reactive_tests": true, "show_tracebacks": false, "std_stream_max_bytes": 1000000, "watcher_on_save": "lazy"}, "save": {"autosave": "off", "autosave_delay": 1000, "format_on_save": false}, "server": {"browser": "default", "follow_symlink": false}, "snippets": {"custom_paths": [], "include_default_snippets": true}},
+            "configOverrides": {},
+            "appConfig": {"app_title": "Cohezion Compound Loop", "sql_output": "auto", "width": "medium"},
+            "view": {"showAppCode": false},
+            "notebook": null,
+            "session": null,
+            "runtimeConfig": null,
+        }),
+        writable: false,
+        configurable: false,
+      });
+    </script>
+  </body>
+</html>
