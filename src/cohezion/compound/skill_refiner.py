@@ -41,6 +41,7 @@ class ExecutionMetrics:
     quality_score: float
     anomaly_score: float
     cached_hits: int
+    tokens_per_task: int = 0
 
 
 @dataclass
@@ -158,6 +159,7 @@ class SkillRefiner:
 
             # Golden-fixture gate (V-model verification — fail-open)
             from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+
             if not PromptVersionRegistry().check_drift(skill_name, signal.key_insight):
                 logger.info("Skill refinement blocked by golden-fixture gate: %s", skill_name)
                 return None
@@ -232,9 +234,7 @@ class SkillRefiner:
 
         if level == "L1":
             # Act: emit failure-derived prompt refinement to PRIME skill
-            return self._apply_l1_failure_refinement(
-                skill_name, operation_type, category, evidence
-            )
+            return self._apply_l1_failure_refinement(skill_name, operation_type, category, evidence)
         elif level in ("L2", "L3"):
             # Record: write proof_obligation to SurrealDB; no auto-edit
             self._write_proof_obligation(skill_name, category, level, evidence)
@@ -263,9 +263,7 @@ class SkillRefiner:
         signal = self._generate_failure_signal(skill_name, operation_type, category, evidence)
         refined_path = self._append_refinement(prime_file, signal)
         if refined_path:
-            logger.info(
-                "FAPO L1: refined PRIME skill %s for %s failure", skill_name, category
-            )
+            logger.info("FAPO L1: refined PRIME skill %s for %s failure", skill_name, category)
         return str(refined_path) if refined_path else None
 
     def _generate_failure_signal(
@@ -280,9 +278,7 @@ class SkillRefiner:
             "format": (
                 f"Add structured-output format examples to {skill_name} PRIME skill guidance"
             ),
-            "reasoning": (
-                f"Add step-by-step reasoning scaffolding to {skill_name} PRIME skill"
-            ),
+            "reasoning": (f"Add step-by-step reasoning scaffolding to {skill_name} PRIME skill"),
         }
         return LearningSignal(
             skill_name=skill_name,
@@ -309,9 +305,7 @@ class SkillRefiner:
             import urllib.request
             from base64 import b64encode
 
-            obligation_text = (
-                f"FAPO {level} ({category}) failure obligation: {evidence[:300]}"
-            )
+            obligation_text = f"FAPO {level} ({category}) failure obligation: {evidence[:300]}"
             surql = (
                 f"CREATE proof_obligation SET "
                 f"skill_name = {_json.dumps(skill_name)}, "
@@ -356,6 +350,18 @@ class SkillRefiner:
         anomaly_score = metrics_dict.get("anomaly_score", 0.5)
         cached_hits = token_metrics.get("cache_hits", 0)
 
+        # CB16 ext (TOKEN_BLOAT): per-task token total for rolling-window bloat detection.
+        execution_trace = execution_result.get("execution_trace", {})
+        tokens_per_task = (
+            tokens_used
+            or token_metrics.get("total_tokens")
+            or token_metrics.get("token_count")
+            or execution_trace.get("tokens_used")
+            or execution_trace.get("total_tokens")
+            or execution_trace.get("token_count")
+            or 0
+        )
+
         # Calculate quality score (lower is better quality)
         quality_score = 1.0 - anomaly_score
 
@@ -370,6 +376,7 @@ class SkillRefiner:
             quality_score=quality_score,
             anomaly_score=anomaly_score,
             cached_hits=cached_hits,
+            tokens_per_task=tokens_per_task,
         )
 
     def _generate_learning_signal(
@@ -389,6 +396,27 @@ class SkillRefiner:
             LearningSignal if significant learning found, None otherwise
         """
         insights = []
+
+        # CB16 ext: TOKEN_BLOAT detection over a rolling window of per-task token
+        # totals. Emits an insight when the current task exceeds 3x the rolling
+        # median (Raschka benchmark: 578k tokens/task vs 50k baseline = 11x gap).
+        if not hasattr(self, "_token_window"):
+            from collections import deque
+
+            self._token_window = deque(maxlen=10)
+
+        current = metrics.tokens_per_task
+        if current > 0:
+            self._token_window.append(current)
+
+        if len(self._token_window) >= 3 and current > 0:
+            sorted_vals = sorted(self._token_window)
+            median = sorted_vals[len(sorted_vals) // 2]
+            if current > 3 * median:
+                insights.append(
+                    f"TOKEN_BLOAT: {current} tokens vs median {median} (>3x threshold). "
+                    "Consider task decomposition or prompt compression."
+                )
 
         # Check quality score
         if metrics.quality_score > 0.8:

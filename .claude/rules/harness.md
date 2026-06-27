@@ -51,6 +51,65 @@ Generated: 2026-05-02. Updated via `/autoharness-update`.
 - The authoritative skill registry is `src/cohezion/registry/skill_registry.json`
   (NOT the one in `src/cohezion/skills/skill_registry.json`)
 
+## FAPO Failure Attribution Invariants (2026-06-23)
+
+### FA1: FailureAttributor.classify() signature (T1 structural)
+- `inspect.signature(FailureAttributor.classify).parameters` must contain `output`, `metrics`, `decision_paths`
+- Without these params the executor's call site fails with TypeError at attribution time
+- **Verification**: `import inspect; from cohezion.compound.failure_attributor import FailureAttributor; params = inspect.signature(FailureAttributor.classify).parameters; assert 'output' in params and 'metrics' in params and 'decision_paths' in params`
+
+### FA2: SkillRefiner.refine() accepts failure_attribution kwarg (T2 structural)
+- `inspect.signature(SkillRefiner.refine).parameters` must contain `failure_attribution`
+- Without this kwarg the executor's FAPO wiring call fails with TypeError
+- **Verification**: `import inspect; from cohezion.compound.skill_refiner import SkillRefiner; assert 'failure_attribution' in inspect.signature(SkillRefiner.refine).parameters`
+
+### FA3: FailureAttributor returns one of four categories or None
+- `FailureAttribution.category` must be in `{"format", "cascading", "retrieval", "reasoning"}`
+- `FailureAttribution.escalation_level` must be in `{"L1", "L2", "L3"}`
+- Returning any other string would silently mis-route L1/L2/L3 handling in SkillRefiner
+- **Verification**: covered by `tests/compound/test_failure_attributor.py::TestStructural`
+
+### Deferred Obligations (V-model R3 / L2-L3 auto-apply — proof_obligation records in SurrealDB)
+- R3 (overfitting guard): `skill_name="*", obligation="FAPO R3: held-out eval set needed for overfitting guard", satisfied_by="pending", verified=false`
+- L3-auto (structural topology changes): `obligation="FAPO L3: auto-apply structural changes requires human gate", satisfied_by="pending", verified=false`
+- These are written to SurrealDB `proof_obligation` table on first FAPO failure-attribution run
+
+## Loopception Invariants (G15/G16/G18, 2026-06-25)
+
+### LC1: compound_daemon.run_batch() routes through LoopCoordinator in-process (G15)
+- `LoopCoordinator` + `make_executor` must be referenced in `~/cohezion-labs/compound_daemon.py`
+- `coordinator.run(executor=CompoundExecutor)` must be the primary execution path
+- `subprocess.run(compound_cycle.py)` must only appear inside a fallback block
+- Achieves loopception depth=3 (daemon→LoopCoordinator→LocalImprovementExecutor) and
+  depth=4 on cloud escalation (→CompoundExecutor→SkillRefiner→RetrospectionEngine)
+- **Verification**: `uv run pytest tests/compound/test_loopception.py::TestG15Structural -q`
+
+### LC2: JourneyTracker injects LemonadeEmbedBridge as _flume_encoder (G16)
+- `JourneyTracker.__init__` must attempt `LemonadeEmbedBridge` import and set `self._flume_encoder = bridge` when available
+- `track_execution()` must call `self.text_to_latent()` (FLUME-aware, 768→256→2048D), NOT `self._text_to_latent()` (SHA-256 hash only)
+- Enables real semantic trajectory embeddings via nomic-embed-text-v2-moe-GGUF at OmniRouter :13305
+- **Verification**: `uv run pytest tests/compound/test_loopception.py::TestG16aStructural tests/compound/test_loopception.py::TestG16bStructural tests/compound/test_loopception.py::TestG16Behavioral -q`
+
+### LC3: ManifoldEnv and SwarmEnv wire step() into JourneyTracker (G18)
+- Both `ManifoldEnv.__init__` and `SwarmEnv.__init__` must accept `journey_tracker: object | None = None`
+- Both `step()` methods must call `record_env_state()` via duck-typed `getattr` after reward computation
+- `JourneyTracker.record_env_state()` must exist and record a `TrajectoryPoint` with `env:manifold` / `env:swarm` operation_type
+- `get_recent_point_count()` must increment by 1 per step when tracker is wired
+- **Verification**: `uv run pytest tests/compound/test_loopception.py::TestG18Structural tests/compound/test_loopception.py::TestG18Behavioral -q`
+
+Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 0 failures
+
+## SkillRefiner Invariants
+
+### CB16 ext: ExecutionMetrics.tokens_per_task field + TOKEN_BLOAT detection (#123, 2026-06-27)
+- `ExecutionMetrics` carries `tokens_per_task: int = 0` (safe default, last field).
+- `_generate_learning_signal()` maintains a `deque(maxlen=10)` rolling window of per-task
+  token totals and emits a `TOKEN_BLOAT` insight when the current task exceeds 3x the
+  rolling median (Raschka benchmark: 578k tokens/task vs 50k baseline = 11x gap).
+- Threshold is strictly `> 3 * median` and requires >= 3 samples in the window.
+- **Verification**: `import dataclasses; from cohezion.compound.skill_refiner import ExecutionMetrics; assert 'tokens_per_task' in {f.name for f in dataclasses.fields(ExecutionMetrics)}`
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestTokenBloatSignal`
+
 ## Lessons Captured (2026-05-02)
 
 - **Em-dash bug:** Skill names with `—` generated invalid Python class names

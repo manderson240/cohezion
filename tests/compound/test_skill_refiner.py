@@ -322,3 +322,50 @@ class TestFactory:
         refiner2 = SkillRefinerFactory.get_singleton()
 
         assert refiner1 is not refiner2
+
+
+class TestTokenBloatSignal:
+    """CB16 ext: TOKEN_BLOAT rolling-window detection in _generate_learning_signal."""
+
+    @staticmethod
+    def _metrics(tokens_per_task: int) -> ExecutionMetrics:
+        # token_efficiency > 500 and quality_score <= 0.8 and no cache hits so the
+        # ONLY insight that can fire is TOKEN_BLOAT — isolates the mechanism.
+        return ExecutionMetrics(
+            success=True,
+            duration_seconds=1.0,
+            tokens_used=tokens_per_task,
+            token_efficiency=1000.0,
+            quality_score=0.5,
+            anomaly_score=0.5,
+            cached_hits=0,
+            tokens_per_task=tokens_per_task,
+        )
+
+    def test_tokens_per_task_field_exists(self):
+        """Structural: ExecutionMetrics carries the tokens_per_task field."""
+        import dataclasses
+
+        from cohezion.compound.skill_refiner import ExecutionMetrics as EM
+
+        assert "tokens_per_task" in {f.name for f in dataclasses.fields(EM)}
+
+    def test_token_bloat_not_triggered_at_2x(self, skill_refiner):
+        """Discriminating: 2x the median must NOT trip the 3x threshold."""
+        for _ in range(3):
+            skill_refiner._generate_learning_signal("S", "generate", self._metrics(1000))
+
+        signal = skill_refiner._generate_learning_signal("S", "generate", self._metrics(2000))
+
+        # A wrong 2x-threshold implementation would emit TOKEN_BLOAT here.
+        assert signal is None or "TOKEN_BLOAT" not in signal.key_insight
+
+    def test_token_bloat_triggered_at_3x(self, skill_refiner):
+        """Discriminating: just over 3x the median must trip TOKEN_BLOAT."""
+        for _ in range(3):
+            skill_refiner._generate_learning_signal("S", "generate", self._metrics(1000))
+
+        signal = skill_refiner._generate_learning_signal("S", "generate", self._metrics(3001))
+
+        assert signal is not None
+        assert "TOKEN_BLOAT" in signal.key_insight

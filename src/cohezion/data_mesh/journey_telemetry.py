@@ -10,7 +10,7 @@ import time
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HardwareTier(StrEnum):
@@ -78,8 +78,8 @@ class FlumeJourneyEvent(BaseModel):
 
     metadata: dict[str, Any] = Field(default_factory=dict)
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "journey_id": "journey_alpha_001",
                 "z_vector": [0.1] * 256,
@@ -90,3 +90,4 @@ class FlumeJourneyEvent(BaseModel):
                 "expert_stream": "architect",
             }
         }
+    )
