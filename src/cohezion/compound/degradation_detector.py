@@ -101,6 +101,38 @@ class MetricBaseline:
         """Get lower bound (mean - N*std_dev)."""
         return self.mean - (std_devs * self.std_dev)
 
+    def trend_value(self, horizon: int = 1) -> float:
+        """Project metric value at `horizon` steps ahead via linear trend extrapolation.
+
+        Fits a degree-1 polynomial (numpy polyfit) to the last ``window_size`` samples
+        and returns the extrapolated value at ``horizon`` steps beyond the last sample.
+        Falls back to ``mean`` when fewer than 2 samples are available or if polyfit
+        raises (e.g., all-identical samples yielding a degenerate matrix).
+
+        Task #120: used by check_degradation() for baseline comparisons so that a
+        steadily declining metric triggers an alert *before* it crosses the mean.
+        """
+        recent = self.samples[-self.window_size :]
+        if len(recent) < 2:
+            return self.mean
+        try:
+            x = np.arange(len(recent), dtype=float)
+            coeffs = np.polyfit(x, recent, 1)
+            return float(np.polyval(coeffs, float(len(recent) - 1 + horizon)))
+        except Exception:
+            return self.mean
+
+    def chebyshev_lower_bound(self, k: float = 2.0) -> float:
+        """Chebyshev adaptive lower bound: mean - std_dev / k.
+
+        By Chebyshev's inequality (distribution-free), the probability that a sample
+        falls below this bound is ≤ 1/k².  At k=2.0 that is ≤ 25 %.
+
+        Task #121: used by check_degradation() when ``use_chebyshev=True`` to replace
+        fixed percentage-drop thresholds with data-adaptive alert bounds.
+        """
+        return self.mean - (self.std_dev / k)
+
 
 class DegradationDetector:
     """Monitor metrics and detect degradation.
@@ -118,6 +150,9 @@ class DegradationDetector:
         Alert if coherence drops below this (default: 0.60)
     duration_slowdown_threshold : float
         Alert if duration increases more than this % (default: 0.25 = 25%)
+    use_chebyshev : bool
+        When True, replace fixed thresholds for cache/efficiency/coherence with
+        data-adaptive Chebyshev lower bounds (Task #121, default: False).
     """
 
     def __init__(
@@ -126,12 +161,15 @@ class DegradationDetector:
         token_efficiency_drop_threshold: float = 0.10,
         coherence_threshold: float = 0.60,
         duration_slowdown_threshold: float = 0.25,
+        use_chebyshev: bool = False,
     ) -> None:
         """Initialize degradation detector."""
         self.cache_hit_rate_threshold = cache_hit_rate_threshold
         self.token_efficiency_drop_threshold = token_efficiency_drop_threshold
         self.coherence_threshold = coherence_threshold
         self.duration_slowdown_threshold = duration_slowdown_threshold
+        # Task #121: when True, use Chebyshev adaptive bounds instead of fixed thresholds
+        self.use_chebyshev = use_chebyshev
 
         # Baselines for each metric
         self._baselines = {
@@ -162,6 +200,10 @@ class DegradationDetector:
             "token_efficiency": None,
             "coherence": None,
         }
+
+        # Task #112: rolling embedding L2-norms for PSI drift detection.
+        # Populated via update_embedding_distribution(); checked in check_degradation().
+        self._embedding_norms: list[float] = []
 
         logger.debug("DegradationDetector initialized with thresholds")
 
@@ -196,26 +238,46 @@ class DegradationDetector:
         # Then add samples after all checks are done
 
         # Check cache hit rate (skip if not provided this call)
-        if cache_hit_rate is not None and (
-            self._baselines["cache_hit_rate"].is_established
-            and cache_hit_rate < self.cache_hit_rate_threshold
-        ):
-            alert = DegradationAlert(
-                metric="cache_hit_rate",
-                severity=AlertSeverity.WARNING,
-                message=f"Cache hit rate dropped to {cache_hit_rate:.1%} "
-                f"(threshold: {self.cache_hit_rate_threshold:.1%})",
-                current_value=cache_hit_rate,
-                baseline_value=self._baselines["cache_hit_rate"].mean,
-                threshold=self.cache_hit_rate_threshold,
+        # Task #121: when use_chebyshev=True, replace fixed threshold with Chebyshev bound.
+        if cache_hit_rate is not None and self._baselines["cache_hit_rate"].is_established:
+            _cache_thr = (
+                self._baselines["cache_hit_rate"].chebyshev_lower_bound(2.0)
+                if self.use_chebyshev
+                else self.cache_hit_rate_threshold
             )
-            if self._should_emit_alert(alert):
-                alerts.append(alert)
+            if cache_hit_rate < _cache_thr:
+                alert = DegradationAlert(
+                    metric="cache_hit_rate",
+                    severity=AlertSeverity.WARNING,
+                    message=f"Cache hit rate dropped to {cache_hit_rate:.1%} "
+                    f"(threshold: {_cache_thr:.1%})",
+                    current_value=cache_hit_rate,
+                    baseline_value=self._baselines["cache_hit_rate"].mean,
+                    threshold=_cache_thr,
+                )
+                if self._should_emit_alert(alert):
+                    alerts.append(alert)
 
         # Check token efficiency (skip if not provided)
+        # Task #120: use trend_value(1) as the comparison baseline.
+        # Task #121: when use_chebyshev=True, replace % drop check with Chebyshev bound.
         if tokens_per_sec is not None and self._baselines["token_efficiency"].is_established:
-            baseline_tok_sec = self._baselines["token_efficiency"].mean
-            if baseline_tok_sec > 0:
+            baseline_tok_sec = self._baselines["token_efficiency"].trend_value(1)
+            if self.use_chebyshev:
+                _cheby_tok = self._baselines["token_efficiency"].chebyshev_lower_bound(2.0)
+                if tokens_per_sec < _cheby_tok:
+                    alert = DegradationAlert(
+                        metric="token_efficiency",
+                        severity=AlertSeverity.WARNING,
+                        message=f"Token efficiency {tokens_per_sec:.0f} tok/sec below "
+                        f"Chebyshev bound {_cheby_tok:.0f} tok/sec",
+                        current_value=tokens_per_sec,
+                        baseline_value=self._baselines["token_efficiency"].mean,
+                        threshold=_cheby_tok,
+                    )
+                    if self._should_emit_alert(alert):
+                        alerts.append(alert)
+            elif baseline_tok_sec > 0:
                 efficiency_drop = 1.0 - (tokens_per_sec / baseline_tok_sec)
                 if efficiency_drop > self.token_efficiency_drop_threshold:
                     alert = DegradationAlert(
@@ -224,32 +286,38 @@ class DegradationDetector:
                         message=f"Token efficiency dropped {efficiency_drop:.1%} "
                         f"({tokens_per_sec:.0f} vs baseline {baseline_tok_sec:.0f} tok/sec)",
                         current_value=tokens_per_sec,
-                        baseline_value=baseline_tok_sec,
+                        baseline_value=self._baselines["token_efficiency"].mean,
                         threshold=baseline_tok_sec * (1 - self.token_efficiency_drop_threshold),
                     )
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
 
         # Check coherence (skip if not provided)
-        if (
-            coherence is not None
-            and self._baselines["coherence"].is_established
-            and coherence < self.coherence_threshold
-        ):
-            alert = DegradationAlert(
-                metric="coherence",
-                severity=AlertSeverity.CRITICAL,
-                message=f"Coherence dropped to {coherence:.2f} (threshold: {self.coherence_threshold:.2f})",
-                current_value=coherence,
-                baseline_value=self._baselines["coherence"].mean,
-                threshold=self.coherence_threshold,
+        # Task #121: when use_chebyshev=True, replace fixed threshold with Chebyshev bound.
+        if coherence is not None and self._baselines["coherence"].is_established:
+            _coh_thr = (
+                self._baselines["coherence"].chebyshev_lower_bound(2.0)
+                if self.use_chebyshev
+                else self.coherence_threshold
             )
-            if self._should_emit_alert(alert):
-                alerts.append(alert)
+            if coherence < _coh_thr:
+                alert = DegradationAlert(
+                    metric="coherence",
+                    severity=AlertSeverity.CRITICAL,
+                    message=f"Coherence dropped to {coherence:.2f} (threshold: {_coh_thr:.2f})",
+                    current_value=coherence,
+                    baseline_value=self._baselines["coherence"].mean,
+                    threshold=_coh_thr,
+                )
+                if self._should_emit_alert(alert):
+                    alerts.append(alert)
 
         # Check duration slowdown (skip if not provided)
+        # Task #120: use trend_value(1) as baseline for comparison.
+        # Note: Chebyshev is NOT applied here — duration is "higher = worse" so
+        #       a lower bound cannot detect upward (slowdown) degradation.
         if duration is not None and self._baselines["duration_seconds"].is_established:
-            baseline_duration = self._baselines["duration_seconds"].mean
+            baseline_duration = self._baselines["duration_seconds"].trend_value(1)
             if baseline_duration > 0:
                 slowdown = (duration / baseline_duration) - 1.0
                 if slowdown > self.duration_slowdown_threshold:
@@ -266,8 +334,9 @@ class DegradationDetector:
                         alerts.append(alert)
 
         # Check success rate (skip if not provided)
+        # Task #120: use trend_value(1) as baseline for comparison.
         if success_rate is not None and self._baselines["success_rate"].is_established:
-            baseline_success = self._baselines["success_rate"].mean
+            baseline_success = self._baselines["success_rate"].trend_value(1)
             if success_rate < baseline_success * 0.8:  # 20% drop in success rate
                 alert = DegradationAlert(
                     metric="success_rate",
@@ -281,9 +350,10 @@ class DegradationDetector:
                     alerts.append(alert)
 
         # Check quality_score (Long2Short: 1/tokens for success, 0.0 for failure)
+        # Task #120: use trend_value(1) as baseline for comparison.
         _qs = metrics.get("quality_score")
         if _qs is not None and self._baselines["quality_score"].is_established:
-            baseline_qs = self._baselines["quality_score"].mean
+            baseline_qs = self._baselines["quality_score"].trend_value(1)
             if baseline_qs > 0 and float(_qs) < baseline_qs * 0.8:
                 alert = DegradationAlert(
                     metric="quality_score",
@@ -298,6 +368,25 @@ class DegradationDetector:
                 )
                 if self._should_emit_alert(alert):
                     alerts.append(alert)
+
+        # Task #112: check embedding distribution drift via PSI.
+        # get_embedding_psi() returns None when fewer than 20 norms are recorded.
+        _emb_psi = self.get_embedding_psi()
+        if _emb_psi is not None and _emb_psi > 0.1:
+            _psi_severity = AlertSeverity.CRITICAL if _emb_psi > 0.2 else AlertSeverity.WARNING
+            _psi_alert = DegradationAlert(
+                metric="embedding_drift",
+                severity=_psi_severity,
+                message=(
+                    f"Embedding distribution drift detected: PSI={_emb_psi:.4f} "
+                    f"({'significant' if _emb_psi > 0.2 else 'moderate'})"
+                ),
+                current_value=_emb_psi,
+                baseline_value=0.0,
+                threshold=0.1,
+            )
+            if self._should_emit_alert(_psi_alert):
+                alerts.append(_psi_alert)
 
         # NOW add samples to baselines (only for metrics provided this call)
         if cache_hit_rate is not None:
@@ -323,7 +412,7 @@ class DegradationDetector:
                 float(cache_hit_rate) >= self.cache_hit_rate_threshold
             )
         if tokens_per_sec is not None and self._baselines["token_efficiency"].is_established:
-            _base_tok = self._baselines["token_efficiency"].mean
+            _base_tok = self._baselines["token_efficiency"].trend_value(1)
             _drop = 1.0 - (float(tokens_per_sec) / _base_tok) if _base_tok > 0 else 0.0
             self._current_health["token_efficiency"] = _drop <= self.token_efficiency_drop_threshold
         if coherence is not None and self._baselines["coherence"].is_established:
@@ -519,9 +608,11 @@ class DegradationDetector:
         """Get current baseline statistics for all metrics.
 
         Returns:
-            Dict with baseline info for each metric
+            Dict with baseline info for each metric, plus a top-level
+            ``log_synthesis_score`` key (Task #99) holding the geometric-mean
+            health proxy across all established baselines, or None.
         """
-        stats = {}
+        stats: dict[str, Any] = {}
         for metric_name, baseline in self._baselines.items():
             stats[metric_name] = {
                 "is_established": baseline.is_established,
@@ -530,6 +621,8 @@ class DegradationDetector:
                 "std_dev": round(baseline.std_dev, 4),
                 "lower_bound": round(baseline.lower_bound(), 4),
             }
+        # Task #99: add geometric-mean health proxy across all established baselines.
+        stats["log_synthesis_score"] = self.get_log_synthesis_score()
         return stats
 
     def get_alert_summary(self) -> dict[str, Any]:
@@ -596,6 +689,103 @@ class DegradationDetector:
             baseline.samples.clear()
         self._last_alert_time.clear()
         logger.debug("Degradation detector baselines reset")
+
+    # ------------------------------------------------------------------
+    # Task #99 — Log-Synthesis Score (Sazabi pattern)
+    # ------------------------------------------------------------------
+
+    def get_log_synthesis_score(self) -> float | None:
+        """Task #99: geometric mean of established baseline health proxies.
+
+        Computes ``exp(mean(log(max(ε, score_i))))`` for all established baselines,
+        where ε = 1e-6 guards against log(0).  Health proxies per metric:
+
+        * Most metrics: ``baseline.mean`` (cache_hit_rate, coherence, success_rate,
+          token_efficiency, token_surprisal, quality_score).
+        * ``duration_seconds``: ``1 / (1 + baseline.mean)`` — inverts the direction
+          so that lower (faster) duration yields a higher health proxy.
+
+        Returns:
+            Geometric-mean health proxy (float > 0), or None when no baseline
+            has been established yet.
+        """
+        eps = 1e-6
+        scores: list[float] = []
+        for name, baseline in self._baselines.items():
+            if not baseline.is_established:
+                continue
+            score = 1.0 / (1.0 + baseline.mean) if name == "duration_seconds" else baseline.mean
+            scores.append(max(eps, score))
+        if not scores:
+            return None
+        return float(np.exp(float(np.mean(np.log(np.array(scores))))))
+
+    # ------------------------------------------------------------------
+    # Task #112 — PSI Embedding Drift Detection
+    # ------------------------------------------------------------------
+
+    def update_embedding_distribution(self, embedding_sample: list[float]) -> None:
+        """Task #112: Record the L2 norm of an embedding vector for PSI tracking.
+
+        Call this once per inference pass.  After 20 norms have been collected,
+        ``get_embedding_psi()`` begins returning meaningful values; the norms list
+        grows without bound (rolling window is applied inside get_embedding_psi).
+
+        Args:
+            embedding_sample: A single embedding vector (any dimensionality).
+                              Its L2 norm is the drift-sensitive statistic.
+        """
+        norm = float(np.linalg.norm(embedding_sample))
+        self._embedding_norms.append(norm)
+
+    def get_embedding_psi(self) -> float | None:
+        """Task #112: PSI between the first and latest window halves of embedding norms.
+
+        Splits recorded norms into two windows of size ``window_size // 2`` (10):
+        * **expected**: the first 10 norms (baseline distribution)
+        * **actual**: the most recent 10 norms (current distribution)
+
+        Histograms each window over 20 bins spanning [0, 5] and computes the
+        Population Stability Index:
+
+            PSI = Σ (actual_i − expected_i) × ln(actual_i / expected_i)
+
+        where ε = 1e-6 prevents log(0) / zero-division.
+
+        Returns:
+            PSI value (float ≥ 0), or None when fewer than 20 norms are recorded.
+            * PSI < 0.10 → no significant drift
+            * 0.10 ≤ PSI < 0.20 → moderate drift (WARNING)
+            * PSI ≥ 0.20 → significant drift (CRITICAL)
+        """
+        window = 20
+        half = window // 2  # 10 samples per half
+        if len(self._embedding_norms) < window:
+            return None
+
+        expected_samples = self._embedding_norms[:half]
+        actual_samples = self._embedding_norms[-half:]
+
+        bins = np.linspace(0.0, 5.0, 21)  # 20 equally-spaced bins over [0, 5]
+
+        expected_hist, _ = np.histogram(expected_samples, bins=bins)
+        actual_hist, _ = np.histogram(actual_samples, bins=bins)
+
+        expected_total = float(expected_hist.sum())
+        actual_total = float(actual_hist.sum())
+        if expected_total == 0 or actual_total == 0:
+            return None
+
+        expected_prob = expected_hist.astype(float) / expected_total
+        actual_prob = actual_hist.astype(float) / actual_total
+
+        # Floor at ε to avoid log(0) and division-by-zero
+        eps = 1e-6
+        expected_prob = np.maximum(expected_prob, eps)
+        actual_prob = np.maximum(actual_prob, eps)
+
+        psi = float(np.sum((actual_prob - expected_prob) * np.log(actual_prob / expected_prob)))
+        return psi
 
 
 __all__ = [

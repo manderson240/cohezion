@@ -425,3 +425,87 @@ class TestBaselineStatistics:
         stats_after = detector.get_baseline_stats()
         assert stats_after["cache_hit_rate"]["num_samples"] == 0
         assert stats_after["cache_hit_rate"]["is_established"] is False
+
+
+class TestLogSynthesisScore:
+    """Tests for Task #99 — Sazabi log synthesis score (geometric-mean health proxy)."""
+
+    def test_returns_none_when_no_baselines_established(self):
+        """Discriminating: fresh detector returns None, not 0 or 1.
+
+        A stub that always returns 0 or always returns None would satisfy one case
+        but not both. The discriminating pair is this test + the next.
+        """
+        d = DegradationDetector()
+        assert d.get_log_synthesis_score() is None
+
+    def test_geometric_mean_not_arithmetic_mean(self):
+        """Discriminating: log-space computation gives geometric mean, not arithmetic.
+
+        geometric([0.8, 0.2]) = sqrt(0.16) ≈ 0.4000
+        arithmetic([0.8, 0.2]) = 0.5
+
+        A wrong implementation using arithmetic mean returns 0.5 and fails here.
+        """
+        import math
+
+        d = DegradationDetector()
+        # Seed only two 0-1 baselines so the expected value is analytically known
+        for _ in range(5):
+            d._baselines["cache_hit_rate"].add_sample(0.8)
+        for _ in range(5):
+            d._baselines["coherence"].add_sample(0.2)
+        # All other baselines remain unestablished → excluded from computation
+
+        score = d.get_log_synthesis_score()
+        assert score is not None
+
+        expected_geom = math.exp((math.log(0.8) + math.log(0.2)) / 2)  # ≈ 0.4
+        wrong_arith = (0.8 + 0.2) / 2  # = 0.5 — what an arithmetic-mean impl returns
+        assert score == pytest.approx(expected_geom, rel=1e-3)
+        assert score != pytest.approx(wrong_arith, rel=1e-2)
+
+
+class TestEmbeddingPSI:
+    """Tests for Task #112 — PSI embedding drift detection."""
+
+    def test_identical_distributions_yield_near_zero_psi(self):
+        """Discriminating: stable embedding norms produce PSI < 0.1 (no spurious alert).
+
+        A broken implementation that always returns a large PSI would fail here.
+        A stub returning None fails because we have ≥ 20 samples.
+        """
+        d = DegradationDetector()
+        # 20 identical unit vectors — both histogram halves are in the same bin
+        for _ in range(20):
+            d.update_embedding_distribution([1.0, 0.0, 0.0])  # norm = 1.0
+
+        psi = d.get_embedding_psi()
+        assert psi is not None
+        assert psi < 0.1  # identical distributions → no drift
+
+    def test_distribution_shift_triggers_check_degradation_alert(self, detector):
+        """Discriminating: shifted embedding norms must produce a CRITICAL embedding_drift
+        alert through the production check_degradation() path.
+
+        Tests the end-to-end wiring (update_embedding_distribution →
+        get_embedding_psi → check_degradation alert list), not just the PSI math.
+        A stub that short-circuits either leg would fail because we assert on
+        the alert object returned by check_degradation().
+        """
+        # First 10 norms: tight cluster at 0.3 (baseline distribution)
+        for _ in range(10):
+            detector.update_embedding_distribution([0.3, 0.0, 0.0])  # norm ≈ 0.3
+        # Last 10 norms: tight cluster at 3.2 (completely non-overlapping bins)
+        for _ in range(10):
+            detector.update_embedding_distribution([3.2, 0.0, 0.0])  # norm ≈ 3.2
+
+        psi = detector.get_embedding_psi()
+        assert psi is not None and psi > 0.2  # non-overlapping → CRITICAL territory
+
+        # Production path: check_degradation() must surface the alert
+        alerts = detector.check_degradation({})
+        drift_alerts = [a for a in alerts if a.metric == "embedding_drift"]
+        assert len(drift_alerts) == 1
+        assert drift_alerts[0].severity == AlertSeverity.CRITICAL  # psi > 0.2
+        assert drift_alerts[0].current_value == pytest.approx(psi)
