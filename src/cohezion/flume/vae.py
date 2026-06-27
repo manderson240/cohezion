@@ -6,6 +6,8 @@ import torch.nn.functional as F
 from pydantic import BaseModel, ConfigDict, field_validator
 from transformers import PretrainedConfig
 
+from cohezion.flume.latent_health import LatentBasisMonitor
+
 
 class FlumeVAEConfig(PretrainedConfig):
     """
@@ -123,6 +125,9 @@ class FlumeVAE(nn.Module):
             )
             self.transformer_decoder = nn.TransformerDecoder(decoder_layer, config.num_layers)
             self.to_logits = nn.Linear(config.embed_dim, config.vocab_size)
+        # A3 complement: latent basis health monitor for posterior collapse detection.
+        # A3 guards against collapse via kl_weight ≤ 0.01; this detects it empirically.
+        self.latent_monitor: LatentBasisMonitor | None = None
 
     @property
     def input_dim(self) -> int | None:
@@ -148,18 +153,25 @@ class FlumeVAE(nn.Module):
         """Encode inputs to (mu, log_var). Accepts float embeddings in legacy mode."""
         if self._legacy_mode:
             h = self._enc(input_ids.float())
-            return self._mu_head(h), self._logvar_head(h)
-        _batch_size, seq_len = input_ids.shape
-        positions = torch.arange(seq_len, device=input_ids.device).unsqueeze(0)
-        x = self.embedding(input_ids) + self.pos_embedding(positions)
-        src_key_padding_mask = ~attention_mask.bool() if attention_mask is not None else None
-        x = self.transformer_encoder(x, src_key_padding_mask=src_key_padding_mask)
-        if attention_mask is not None:
-            mask = attention_mask.unsqueeze(-1).float()
-            x = (x * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)
+            mu = self._mu_head(h)
+            log_var = self._logvar_head(h)
         else:
-            x = x.mean(dim=1)
-        return self.mu_head(x), self.logvar_head(x)
+            _batch_size, seq_len = input_ids.shape
+            positions = torch.arange(seq_len, device=input_ids.device).unsqueeze(0)
+            x = self.embedding(input_ids) + self.pos_embedding(positions)
+            src_key_padding_mask = ~attention_mask.bool() if attention_mask is not None else None
+            x = self.transformer_encoder(x, src_key_padding_mask=src_key_padding_mask)
+            if attention_mask is not None:
+                mask = attention_mask.unsqueeze(-1).float()
+                x = (x * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)
+            else:
+                x = x.mean(dim=1)
+            mu = self.mu_head(x)
+            log_var = self.logvar_head(x)
+        # A3 complement: accumulate latent codes to detect posterior collapse empirically.
+        if self.latent_monitor is not None:
+            self.latent_monitor.update(mu)
+        return mu, log_var
 
     def decode(self, z: torch.Tensor, target_tokens: torch.Tensor | None = None) -> torch.Tensor:
         """Decode latent z. Returns float reconstruction in legacy mode, logits in token mode."""
@@ -186,6 +198,18 @@ class FlumeVAE(nn.Module):
         z = self.reparameterize(mu, log_var)
         recon = self.decode(z) if self._legacy_mode else self.decode(z, input_ids)
         return recon, mu, log_var, z
+
+    def get_latent_health(self) -> dict | None:
+        """Return SVD-based latent space health metrics.
+
+        Returns ``None`` if no monitor is attached or no samples have been accumulated.
+        Attach a monitor via ``model.latent_monitor = LatentBasisMonitor()`` and call
+        ``model.encode(...)`` to accumulate samples before calling this method.
+        See :class:`~cohezion.flume.latent_health.LatentBasisMonitor` for details.
+        """
+        if self.latent_monitor is None or not self.latent_monitor.has_samples:
+            return None
+        return self.latent_monitor.compute_health()
 
     def compute_loss(
         self,

@@ -76,6 +76,10 @@ with contextlib.suppress(Exception):
     from cohezion.flume.vae import FlumeVAEConfig as FlumeVAEConfig
     from cohezion.flume.vae import flume_vae_loss as flume_vae_loss
 
+# latent_health.py — SVD-based latent basis health monitor (A3 complement, #119).
+with contextlib.suppress(Exception):
+    from cohezion.flume.latent_health import LatentBasisMonitor as LatentBasisMonitor
+
 # Wiring-sweep 2026-06-22: alignment.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.flume.alignment import DomainAlignmentMLP as DomainAlignmentMLP
