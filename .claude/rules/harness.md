@@ -110,6 +110,18 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **Verification**: `import dataclasses; from cohezion.compound.skill_refiner import ExecutionMetrics; assert 'tokens_per_task' in {f.name for f in dataclasses.fields(ExecutionMetrics)}`
 - **Behavioral**: `tests/compound/test_skill_refiner.py::TestTokenBloatSignal`
 
+## Physics Calibration Notes (#100, added 2026-06-27)
+
+### Bunimovich chaotic-FD complement to CC1
+- `fractal_metrics.bunimovich_calibration_sequence()` (logistic map r=3.8) is a
+  DETERMINISTIC-CHAOS reference in the same universality class as the Bunimovich
+  stadium billiard.
+- Empirically `higuchi_fd(bunimovich_calibration_sequence())` == 2.0 -- the chaotic /
+  white-noise regime (`FD > 1.8`), NOT the Brownian `[1.3, 1.7]` band. Chaotic billiards
+  have high Higuchi FD; CC1's `[1.3, 1.7]` is for Brownian-motion quality series only.
+- The CC1 invariant itself lives in the GLOBAL `~/.claude/rules/harness.md` (this project
+  file has no CC1 section). Verification: `higuchi_fd(bunimovich_calibration_sequence()) >= 1.8`.
+
 ## Lessons Captured (2026-05-02)
 
 - **Em-dash bug:** Skill names with `—` generated invalid Python class names

@@ -68,6 +68,7 @@ References:
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -648,7 +649,52 @@ def _emit_cosmogony_phase(
         logger.debug("Precipitation emit failed for cosmogony transition", exc_info=True)
 
 
+@dataclass
+class CosmicScaleHierarchy:
+    """Maps cosmogony steps to characteristic length scales (in meters).
+
+    Calibration anchor for the 12-step chain: each cosmogony stage corresponds to a
+    characteristic physical length scale, from the Planck length (step 1) to the cosmic
+    horizon (step 12). The hierarchy spans >60 orders of magnitude and is strictly
+    monotonic, providing a deterministic benchmark for scale-aware reasoning/routing.
+    """
+
+    _SCALES: dict | None = None  # initialized in __post_init__
+
+    def __post_init__(self) -> None:
+        self._SCALES = {
+            1: ("Planck", 1.616e-35),
+            2: ("GUT", 1e-31),
+            3: ("Electroweak", 1e-18),
+            4: ("Nuclear", 1e-15),
+            5: ("Atomic", 5.29e-11),
+            6: ("Molecular", 1e-9),
+            7: ("Cellular", 1e-6),
+            8: ("Organism", 1e-3),
+            9: ("Planetary", 6.37e6),
+            10: ("Stellar", 6.96e8),
+            11: ("Galactic", 9.46e20),
+            12: ("Cosmic", 4.4e26),
+        }
+
+    def scale_for_step(self, step: int) -> tuple:
+        """Return ``(name, length_meters)`` for a cosmogony step (1-12)."""
+        return self._SCALES[step]
+
+    def log_ratio(self, step_a: int, step_b: int) -> float:
+        """log10 of the scale ratio between two steps (positive when b is larger)."""
+        return math.log10(self._SCALES[step_b][1] / self._SCALES[step_a][1])
+
+    def calibration_benchmark(self) -> dict:
+        """Validate the hierarchy: strictly monotonic and spanning >55 orders of magnitude."""
+        scales = [self._SCALES[i][1] for i in range(1, 13)]
+        monotonic = all(scales[i] < scales[i + 1] for i in range(len(scales) - 1))
+        span = math.log10(scales[-1] / scales[0])
+        return {"monotonic": monotonic, "log10_span": span, "valid": monotonic and span > 55}
+
+
 __all__ = [
+    "CosmicScaleHierarchy",
     "CosmogonyState",
     "PhaseTransitionEvent",
     "SymmetryBreaking",

@@ -202,3 +202,21 @@ def quality_series_report(scores: list[float]) -> dict[str, float | str]:
         "feynman_dominant_tier": dominant,
         "interpretation": interp,
     }
+
+
+def bunimovich_calibration_sequence(n: int = 100) -> list[float]:
+    """Chaotic time series via logistic map r=3.8 -- same universality class as Bunimovich stadium.
+
+    The Bunimovich stadium billiard is the canonical deterministically-chaotic dynamical
+    system (positive Lyapunov exponent, ergodic). The logistic map at r=3.8 lives in the
+    same chaotic band past the period-doubling cascade, so its Higuchi fractal dimension
+    sits in the *chaotic* regime (FD -> 2.0, ``FD > 1.8`` per this module's interpretation),
+    NOT the Brownian ``[1.3, 1.7]`` band used by the CC1 quality-series invariant. It is a
+    deterministic high-FD calibration anchor complementing CC1's Brownian-motion anchor.
+    """
+    x = 0.3
+    result: list[float] = []
+    for _ in range(n):
+        x = 3.8 * x * (1 - x)
+        result.append(x)
+    return result

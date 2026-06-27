@@ -47,6 +47,7 @@ from cohezion.physics.information_geometry import FisherInformationMetric
 from cohezion.physics.lagrangian import LagrangianDynamics
 from cohezion.physics.natural_capital import NaturalCapitalValuation
 from cohezion.physics.rewards_bridge import CoherenceRatchet, RewardsBridge
+from cohezion.physics.riemannian_glide import RiemannianGlideTrajectory
 from cohezion.physics.riemannian_metric import RiemannianMetric
 from cohezion.physics.spinor import SpinorState
 
@@ -63,6 +64,7 @@ __all__ = [
     "LagrangianDynamics",
     "NaturalCapitalValuation",
     "RewardsBridge",
+    "RiemannianGlideTrajectory",
     "RiemannianMetric",
     "SpinorState",
     "SymmetryBreaking",
