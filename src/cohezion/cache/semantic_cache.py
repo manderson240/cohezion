@@ -65,6 +65,7 @@ class SemanticCache:
         max_l2_size: int = 1024,
         mcp_client: Any = None,
         enable_adaptive_threshold: bool = True,
+        novelty_threshold: float = 0.95,
     ):
         """Initialize semantic cache.
 
@@ -74,6 +75,9 @@ class SemanticCache:
             max_l2_size: L2 cache size
             mcp_client: Optional MCPClient for L3 vault operations
             enable_adaptive_threshold: Enable adaptive threshold tuning (default: True)
+            novelty_threshold: Max cosine similarity to existing L2 entries for insertion
+                (default: 0.95). Embeddings more similar than this are considered
+                near-duplicates and skipped to preserve retrieval diversity.
         """
         self.similarity_threshold = similarity_threshold
         self.initial_threshold = similarity_threshold
@@ -81,6 +85,7 @@ class SemanticCache:
         self.max_l2_size = max_l2_size
         self.mcp_client = mcp_client
         self.enable_adaptive_threshold = enable_adaptive_threshold
+        self.novelty_threshold = novelty_threshold
 
         # L1 cache: exact hash matches
         self.l1_cache: dict[str, CacheEntry] = {}
@@ -99,6 +104,7 @@ class SemanticCache:
         self.hits_l2 = 0
         self.hits_l3 = 0
         self.misses = 0
+        self.novelty_skipped = 0
 
         # Adaptive threshold tracking
         self._threshold_adjustment_interval = 100  # Adjust every 100 ops
@@ -157,6 +163,24 @@ class SemanticCache:
         """
         dot_product = np.dot(a, b)
         return float(dot_product)
+
+    def _is_novel(self, embedding: np.ndarray) -> bool:
+        """Check if embedding is novel relative to existing L2 entries.
+
+        Returns True if the embedding's max cosine similarity to any existing
+        L2 entry is below novelty_threshold (i.e., it adds retrieval diversity).
+        Returns False if it is a near-duplicate that should be skipped.
+
+        Args:
+            embedding: Normalized embedding vector to check.
+
+        Returns:
+            True if novel (should insert), False if near-duplicate (skip).
+        """
+        if self._l2_matrix is None or len(self._l2_keys) == 0:
+            return True
+        sims = np.dot(self._l2_matrix, embedding)
+        return float(np.max(sims)) < self.novelty_threshold
 
     def _get_adaptive_threshold(self) -> float:
         """Adjust similarity threshold based on observed hit rates.
@@ -289,8 +313,12 @@ class SemanticCache:
         # Store in L1 (exact match)
         self._put_l1(hash_key, entry)
 
-        # Store in L2 (semantic)
-        self._put_l2(hash_key, entry)
+        # Store in L2 (semantic) — skip if near-duplicate (novelty gate)
+        if self._is_novel(embedding):
+            self._put_l2(hash_key, entry)
+        else:
+            self.novelty_skipped += 1
+            logger.debug("L2 insertion skipped: embedding too similar to existing entry")
 
         # Store in L3 (vault, async non-blocking fire-and-forget)
         # Schedule vault storage without awaiting (non-blocking pattern)
@@ -469,6 +497,7 @@ class SemanticCache:
             "l1_size": len(self.l1_cache),
             "l2_size": len(self.l2_cache),
             "similarity_threshold": self.similarity_threshold,
+            "novelty_skipped": self.novelty_skipped,
         }
 
     def clear(self) -> None:
@@ -483,3 +512,4 @@ class SemanticCache:
         self.hits_l2 = 0
         self.hits_l3 = 0
         self.misses = 0
+        self.novelty_skipped = 0

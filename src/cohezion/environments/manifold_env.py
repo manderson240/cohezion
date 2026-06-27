@@ -90,9 +90,25 @@ class ManifoldEnv(gym.Env):
         Weight for energy efficiency reward (default: 0.1).
     seed : int or None
         Random seed for reproducibility.
+    obstacle_mode : bool
+        Enable maze-obstacle penalty in reward (default: False).
+    obstacles : list of (center_dim0, center_dim1, radius) tuples
+        Obstacle definitions in observation-space dims 0–1 (default: []).
+        When obstacle_mode=True, steps landing within any obstacle's radius
+        receive a -1.0 penalty added to the normal reward.
     """
 
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
+
+    # Default maze configuration: 5 obstacles spread across the observation space.
+    # Each tuple is (center_dim0, center_dim1, radius).
+    MAZE_OBSTACLES: list[tuple[float, float, float]] = [
+        (0.2, 0.3, 0.15),
+        (0.7, 0.2, 0.12),
+        (0.5, 0.7, 0.18),
+        (-0.5, 0.5, 0.10),
+        (1.2, 0.8, 0.14),
+    ]
 
     def __init__(
         self,
@@ -108,6 +124,8 @@ class ManifoldEnv(gym.Env):
         render_mode: str | None = None,
         seed: int | None = None,
         dynamics_engine: str = "lagrangian",
+        obstacle_mode: bool = False,
+        obstacles: list[tuple[float, float, float]] | None = None,
     ) -> None:
         super().__init__()
 
@@ -121,6 +139,10 @@ class ManifoldEnv(gym.Env):
         self.reward_energy_weight = reward_energy_weight
         self.reward_mode = reward_mode  # "curriculum", "dense", or "verifiable"
         self.render_mode = render_mode
+        self.obstacle_mode = obstacle_mode
+        self.obstacles: list[tuple[float, float, float]] = (
+            obstacles if obstacles is not None else []
+        )
 
         # Observation: 12D state + 3D Bloch + 4D fiber base = 19D
         self.observation_space = spaces.Box(low=-2.0, high=2.0, shape=(19,), dtype=np.float32)
@@ -240,6 +262,15 @@ class ManifoldEnv(gym.Env):
         # Compute reward
         coherence = self._compute_coherence()
         reward = self._compute_reward(coherence)
+
+        # Maze-obstacle penalty: -1.0 if agent is within any obstacle's radius
+        if self.obstacle_mode and self.obstacles:
+            p0, p1 = float(self._position[0]), float(self._position[1])
+            for cx, cy, r in self.obstacles:
+                if ((p0 - cx) ** 2 + (p1 - cy) ** 2) ** 0.5 < r:
+                    reward -= 1.0
+                    break
+
         self._prev_coherence = coherence
         self._episode_reward += reward
 
@@ -539,6 +570,15 @@ class ManifoldEnv(gym.Env):
         )
         print(output)
         return output
+
+    @classmethod
+    def make_maze(cls) -> ManifoldEnv:
+        """Create a ManifoldEnv with the default maze-obstacle configuration.
+
+        Returns an environment with obstacle_mode=True and MAZE_OBSTACLES wired in,
+        suitable for HIHO stability benchmarking around local optima.
+        """
+        return cls(obstacle_mode=True, obstacles=cls.MAZE_OBSTACLES)
 
     def get_trajectory(self) -> np.ndarray:
         """Return the full trajectory as (n_steps, 12) array."""
