@@ -22,9 +22,11 @@ Features:
 import hashlib
 import json
 import logging
+import uuid
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, ClassVar
 
 
 if TYPE_CHECKING:
@@ -115,14 +117,24 @@ class JourneyTracker:
     # Maximum entries in the projection cache
     MAX_CACHE_SIZE = 1000
 
-    def __init__(self, seed: int = 42):
+    # #138: Default identity storage path (can be overridden in save/restore).
+    _IDENTITY_PATH: ClassVar[Path] = Path.home() / ".cohezion" / "journey_identity.json"
+
+    def __init__(self, seed: int = 42, agent_id: str | None = None):
         """Initialize journey tracker.
 
         Args:
             seed: Random seed for deterministic projections
+            agent_id: Optional stable agent identity; a fresh UUID is generated if
+                      None and restore_identity() hasn't been called yet.
         """
         self.seed = seed
         self.rng = np.random.RandomState(seed)
+
+        # #138: Cross-session identity state (GIC Identity dimension).
+        self._agent_id: str | None = agent_id  # None → generated lazily via .agent_id property
+        self._session_count: int = 0
+        self._lifetime_op_counts: dict[str, int] = {}
 
         # Cache for projections
         self._projection_cache: dict[str, np.ndarray] = {}
@@ -140,8 +152,16 @@ class JourneyTracker:
         # Operation modulation profiles (12D vectors)
         self._modulation_profiles = self._create_modulation_profiles()
 
-        # Optional FLUME encoder (injected externally or loaded from checkpoint)
+        # G16 (LC2): inject LemonadeEmbedBridge for semantic latent embeddings via nomic-embed-text-v2-moe-GGUF
         self._flume_encoder = None
+        try:
+            from cohezion.inference.lemonade_embed_bridge import LemonadeEmbedBridge
+
+            bridge = LemonadeEmbedBridge()
+            if bridge.is_available():
+                self._flume_encoder = bridge
+        except Exception as exc:
+            logger.debug("LemonadeEmbedBridge unavailable: %s", exc)
 
         # Try loading TemporalVAELoader from checkpoint if one is available
         self._temporal_encoder = None
@@ -422,8 +442,8 @@ class JourneyTracker:
             else 0.5
         )
 
-        # Generate embeddings
-        latent_2048d = self._text_to_latent(task_description)
+        # Generate embeddings — use public method so LemonadeEmbedBridge is used when available (G16b)
+        latent_2048d = self.text_to_latent(task_description)
         projection_12d = self._holographic_project(latent_2048d)
 
         # Apply operation modulation
@@ -564,6 +584,85 @@ class JourneyTracker:
     def get_recent_point_count(self) -> int:
         """Return the number of points in the recent trajectory buffer."""
         return len(self._recent_points)
+
+    # ------------------------------------------------------------------
+    # #138: Cross-session identity persistence (GIC Identity dimension)
+    # ------------------------------------------------------------------
+
+    @property
+    def agent_id(self) -> str:
+        """Stable agent identity UUID, generated once and persisted across sessions."""
+        if self._agent_id is None:
+            self._agent_id = str(uuid.uuid4())
+        return self._agent_id
+
+    def save_identity(self, path: Path | None = None) -> dict:
+        """Persist agent identity to disk.
+
+        Increments session_count and merges lifetime_op_counts from the
+        current session into the serialized record.
+
+        Args:
+            path: Override the default identity file path. Defaults to
+                  ~/.cohezion/journey_identity.json.
+
+        Returns:
+            The dict written to disk.
+        """
+        target = path or self._IDENTITY_PATH
+        target.parent.mkdir(parents=True, exist_ok=True)
+        identity: dict = {
+            "agent_id": self.agent_id,
+            "session_count": self._session_count + 1,
+            "lifetime_op_counts": dict(self._lifetime_op_counts),
+        }
+        target.write_text(json.dumps(identity, indent=2))
+        return identity
+
+    def restore_identity(self, path: Path | None = None) -> bool:
+        """Load agent identity from disk.
+
+        On success, restores agent_id, session_count, and lifetime_op_counts.
+        Fail-safe: returns False without raising if the file is absent or corrupt.
+
+        Args:
+            path: Override the default identity file path.
+
+        Returns:
+            True if identity was loaded, False otherwise.
+        """
+        target = path or self._IDENTITY_PATH
+        if not target.exists():
+            return False
+        try:
+            data = json.loads(target.read_text())
+            self._agent_id = data.get("agent_id", self._agent_id)
+            self._session_count = int(data.get("session_count", 0))
+            self._lifetime_op_counts = dict(data.get("lifetime_op_counts", {}))
+            return True
+        except Exception as exc:
+            logger.debug("restore_identity failed (non-blocking): %s", exc)
+            return False
+
+    def record_env_state(self, env_type: str, step: int, obs: "np.ndarray", reward: float) -> None:
+        """Record a gymnasium environment step as a TrajectoryPoint (G18 / LC3).
+
+        Called via duck-typed getattr from ManifoldEnv/SwarmEnv.step() after reward computation.
+        """
+        import time as _time
+
+        latent_2048d = self.text_to_latent(f"{env_type} step={step} reward={reward:.3f}")
+        dims_12d = self._holographic_project(latent_2048d)
+        point = TrajectoryPoint(
+            dimensions=dims_12d,
+            timestamp=_time.time(),
+            coherence=float(np.clip(reward, 0.0, 1.0)),
+            efficiency=1.0,
+            operation_type=f"env:{env_type}",
+            task_description=f"{env_type} step {step}",
+            metadata={"reward": reward, "step": step, "env_type": env_type},
+        )
+        self._recent_points.append(point)
 
     def text_to_latent(self, text: str) -> np.ndarray:
         """Convert text to 2048D latent vector via FLUME encoding pipeline.

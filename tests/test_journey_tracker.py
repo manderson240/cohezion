@@ -117,3 +117,105 @@ class TestCompoundMetricsCollectorSmoke:
         assert snap["executions"] == []
         assert snap["refinements"] == []
         assert snap["cycles"] == []
+
+
+# ---------------------------------------------------------------------------
+# #138: Cross-session identity persistence (GIC Identity dimension)
+# ---------------------------------------------------------------------------
+
+
+class TestCrossSessionIdentity:
+    """V-model tests for JourneyTracker cross-session identity (#138).
+
+    GIC Identity dimension: the agent maintains a stable self-concept
+    (agent_id, session_count, lifetime_op_counts) across process restarts
+    via JSON persistence in ~/.cohezion/journey_identity.json.
+    """
+
+    # T1 structural: required attributes must exist on JourneyTracker
+
+    def test_agent_id_attribute_exists(self):
+        jt = JourneyTracker()
+        assert hasattr(jt, "agent_id"), "JourneyTracker must have agent_id property"
+
+    def test_save_identity_method_exists(self):
+        jt = JourneyTracker()
+        assert callable(getattr(jt, "save_identity", None))
+
+    def test_restore_identity_method_exists(self):
+        jt = JourneyTracker()
+        assert callable(getattr(jt, "restore_identity", None))
+
+    def test_lifetime_op_counts_attribute_exists(self):
+        jt = JourneyTracker()
+        assert hasattr(jt, "_lifetime_op_counts")
+        assert isinstance(jt._lifetime_op_counts, dict)
+
+    # T2 discriminating: agent_id persists across instances via save/restore
+
+    def test_agent_id_is_stable_string(self):
+        jt = JourneyTracker()
+        aid = jt.agent_id
+        assert isinstance(aid, str) and len(aid) > 0
+
+    def test_save_restore_preserves_agent_id(self, tmp_path):
+        """A new JourneyTracker restored from a save has the SAME agent_id.
+
+        Wrong impl: generates a new UUID on every __init__ (never restores).
+        Discriminating: the two ids must match, not merely be non-empty.
+        """
+        identity_file = tmp_path / "journey_identity.json"
+        jt1 = JourneyTracker()
+        original_id = jt1.agent_id
+        jt1.save_identity(path=identity_file)
+
+        jt2 = JourneyTracker()
+        restored = jt2.restore_identity(path=identity_file)
+        assert restored is True, "restore_identity() should return True on success"
+        assert jt2.agent_id == original_id, (
+            f"Restored agent_id {jt2.agent_id!r} != original {original_id!r}"
+        )
+
+    def test_session_count_increments_across_saves(self, tmp_path):
+        """session_count increases each time save_identity() is called.
+
+        Wrong impl: always writes 0.  Discriminating: count must strictly
+        increase across two saves.
+        """
+        identity_file = tmp_path / "journey_identity.json"
+        jt1 = JourneyTracker()
+        jt1.save_identity(path=identity_file)
+
+        jt2 = JourneyTracker()
+        jt2.restore_identity(path=identity_file)
+        count_after_first = jt2._session_count
+        jt2.save_identity(path=identity_file)
+
+        jt3 = JourneyTracker()
+        jt3.restore_identity(path=identity_file)
+        assert jt3._session_count > count_after_first, (
+            "session_count must increase after a second save"
+        )
+
+    def test_restore_returns_false_when_no_file(self, tmp_path):
+        """restore_identity() returns False when the identity file doesn't exist."""
+        jt = JourneyTracker()
+        result = jt.restore_identity(path=tmp_path / "nonexistent.json")
+        assert result is False
+
+    def test_save_identity_returns_dict_with_required_keys(self, tmp_path):
+        """save_identity() must return the serialized dict with required fields."""
+        identity_file = tmp_path / "journey_identity.json"
+        jt = JourneyTracker()
+        saved = jt.save_identity(path=identity_file)
+        assert isinstance(saved, dict)
+        for key in ("agent_id", "session_count", "lifetime_op_counts"):
+            assert key in saved, f"save_identity() result missing key: {key!r}"
+
+    def test_agent_id_is_injected_via_constructor(self):
+        """JourneyTracker(agent_id=X) preserves X as the identity.
+
+        Enables test isolation and cross-agent identity hand-off.
+        """
+        jt = JourneyTracker(agent_id="test-agent-42")
+        assert jt.agent_id == "test-agent-42"

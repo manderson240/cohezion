@@ -99,7 +99,97 @@ Generated: 2026-05-02. Updated via `/autoharness-update`.
 
 Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 0 failures
 
+## TieredOrchestrator Temperature Invariants
+
+### TR1: _TIER_TEMPERATURE constants wire per-tier temperatures into build_reasoning_orchestrator (#131, 2026-06-27)
+- `_TIER_TEMPERATURE = {"npu": 0.0, "igpu": 0.1, "cpu": 0.3}` in `triune_orchestrator.py`
+- `build_reasoning_orchestrator` passes these as `temperature=_TIER_TEMPERATURE[tier]` to each `build_gaia_llm_tier` call
+- Motivation: arXiv 2603.08274 — T=0.0 causes 48x coherence collapse at long contexts; scale temperature with context depth
+- `build_triune_orchestrator` uses `build_gaia_native_tier` (no temperature param) — temperature only applies to the LLM reasoning path
+- **Structural**: `_TIER_TEMPERATURE["npu"] == 0.0` and `_TIER_TEMPERATURE["cpu"] == 0.3`
+- **Discriminating**: `test_reasoning_orchestrator_passes_tier_temperatures` captures kwargs and verifies per-model temperatures
+- **Verification**: `uv run pytest tests/inference/test_triune_orchestrator.py -q` → 5 passed
+
+## MetricBaseline Invariants
+
+### MB1: MetricBaseline.value_bounds clamps trend_value() for bounded metrics (#129, 2026-06-27)
+- `value_bounds: tuple[float, float] | None = None` field on `MetricBaseline` dataclass
+- When set, `trend_value(horizon)` clamps result to `[lo, hi]` via `max(lo, min(hi, result))`
+- `DegradationDetector.__init__` wires `value_bounds=(0.0, 1.0)` on: `cache_hit_rate`, `coherence`, `success_rate`, `quality_score`
+- Unbounded metrics (`token_efficiency`, `duration_seconds`) retain `value_bounds=None`
+- Motivation: arXiv 2603.08274 — linear extrapolation projects coherence outside [0,1] causing false alert suppression
+- **Discriminating**: `test_unbounded_metric_can_extrapolate_outside_unit_interval` proves clamp is selective, not global
+- **Verification**: `uv run pytest tests/compound/test_degradation_detector.py::TestMetricBaseline -q` → 12 passed
+
+### LT1: DegradationDetector._ema_thresholds adapts toward observed values (GIC self-regulation, #137, 2026-06-27)
+- `_ema_thresholds: dict[str, float]` seeded from constructor params (`cache_hit_rate_threshold`, `coherence_threshold`)
+- Each `check_degradation()` call updates: `ema = alpha * observed + (1 - alpha) * ema` (AFTER alert checks)
+- `get_learned_threshold(metric)` returns `ema * (1 - drop_band)` — adaptive alert floor
+- `use_ema_thresholds=True` activates the EMA path; default False preserves existing fixed-threshold behavior
+- **Key property**: after 10 observations of 0.90 (alpha=0.3), EMA threshold rises well above initial 0.50 seed — more sensitive to drops from a high baseline than the fixed threshold
+- **Discriminating**: `test_use_ema_thresholds_more_sensitive_than_fixed` — value of 0.65 triggers EMA alert but NOT fixed alert after training on 0.90 history
+- **Verification**: `uv run pytest tests/compound/test_degradation_detector.py::TestEMAThresholds -q` → 8 passed
+
 ## SkillRefiner Invariants
+
+### JI1: JourneyTracker cross-session identity persistence (GIC Identity, #138, 2026-06-27)
+- `agent_id: str` property — stable UUID, generated once on first access (lazy), injected via `__init__(agent_id=X)` for tests
+- `save_identity(path?)` → persists `{"agent_id", "session_count", "lifetime_op_counts"}` as JSON; increments session_count; returns dict
+- `restore_identity(path?)` → loads identity JSON; sets `_agent_id`, `_session_count`, `_lifetime_op_counts`; returns `False` if file absent/corrupt (fail-safe)
+- Default path: `~/.cohezion/journey_identity.json` (class var `_IDENTITY_PATH`)
+- `_lifetime_op_counts: dict[str, int]` — cumulative op-type tally across sessions
+- **T1 structural**: `{agent_id, save_identity, restore_identity, _lifetime_op_counts} ⊆ dir(JourneyTracker)`
+- **T2 discriminating**: `test_save_restore_preserves_agent_id` (two fresh trackers share id), `test_session_count_increments_across_saves` (strictly monotone across two saves), `test_restore_returns_false_when_no_file` (fail-safe behavior)
+- **Verification**: `uv run pytest tests/test_journey_tracker.py::TestCrossSessionIdentity -q` → 10 passed
+
+### JG1: JepaGate pre-execution verdict (GIC Decision-making, #139, 2026-06-27)
+- `PreExecutionVerdict` enum — `PROCEED`, `REROUTE`, `SKIP`
+- `JepaGate(world_model)` — `check(task_description, current_state?) → PreExecutionVerdict`
+- Coherence = `mean(clip(predict_next_state(state, zero_action), 0, 1))`; epsilon guard `+1e-9` for float64 pairwise-sum boundary drift
+- Thresholds: coherence ≥ 0.6 → PROCEED; [0.1, 0.6) → REROUTE; < 0.1 → SKIP; world_model=None → PROCEED (fail-open)
+- Module: `src/cohezion/compound/jepa_gate.py`
+- **T1 structural**: `PreExecutionVerdict` has PROCEED/REROUTE/SKIP; `JepaGate.check` accepts `task_description` + `current_state`
+- **T2 discriminating**: `test_low_coherence_prediction_does_not_return_proceed` (0.1 → not PROCEED), `test_very_low_coherence_returns_skip` (0.05 → SKIP), `test_threshold_boundary_at_point_six_is_proceed` (exactly 0.6 → PROCEED)
+- **Verification**: `uv run pytest tests/compound/test_jepa_gate.py -q` → 12 passed
+
+### SG1: SkillRefiner._session_goal drives _generate_recommendation() directly (GIC Goal, #136, 2026-06-27)
+- `_session_goal: dict | None` — session-wide goal state; None by default
+- `set_goal(objective, target_metric)` sets it; `get_goal()` returns it; `_auto_update_goal(skill, metrics)` proposes it after N=5 consistently problematic calls
+- When `_session_goal` is active, `_generate_recommendation()` returns the goal-aligned string directly (bypasses self-consistency selection) — goal IS the explicit directive
+- `target_metric="quality_score"` → embeds "quality" + current quality_score in recommendation
+- `target_metric="escalation_count"` → embeds "tier" + "escalation" + current tier_used
+- **T1 structural**: `{'_session_goal','set_goal','get_goal','_auto_update_goal'} ⊆ dir(SkillRefiner)`
+- **T2 discriminating**: `test_goal_biases_recommendation_toward_quality` (goal overrides metrics-based selection), `test_goal_tier_biases_toward_tier_recommendation` (tier/escalation in output with escalation goal), `test_auto_update_goal_fires_after_threshold_calls` (auto-goal set after 5 low-quality calls)
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestSessionGoal -q` → 7 passed
+
+### AD1: _autodata_candidates() returns at least one candidate for any metrics input (Autodata #122, 2026-06-27)
+- `_AUTODATA_PERSPECTIVES[-1]` is a fallback perspective with `condition=lambda m: True`
+- `_autodata_candidates(metrics, op)` therefore always returns ≥1 string, never empty
+- **Verification**: `from cohezion.compound.skill_refiner import SkillRefiner, ExecutionMetrics; sr=SkillRefiner(); m=ExecutionMetrics(success=True,duration_seconds=1.0,tokens_used=50,token_efficiency=50.0,quality_score=0.5,anomaly_score=0.5,cached_hits=0); assert len(sr._autodata_candidates(m,'op')) >= 1`
+
+### AD2: _autodata_select() chooses highest self-consistency candidate by keyword overlap (Autodata #122, 2026-06-27)
+- Given N candidates, computes pairwise keyword overlap (words > 3 chars) for each candidate
+- Returns the candidate with the highest total overlap with ALL OTHER candidates (self-consistency)
+- Tie-breaks by insertion order (lowest index) — deterministic for fixed candidate lists
+- Prevents single-greedy recommendation from always returning the first matching perspective
+- **Discriminating**: a quality candidate wins over a caching candidate when more of its keywords recur across sibling candidates
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestRecommendationGeneration::test_recommend_high_quality` (quality metrics → "quality" or "optimize" in output)
+
+### AD3: _generate_recommendation() delegates to _autodata_candidates() + _autodata_select() pipeline (#122)
+- `_generate_recommendation(metrics, op)` MUST call `_autodata_candidates()` then `_autodata_select()`
+- Replaces the prior single-condition greedy path (which returned "Prioritize..." for quality > 0.8)
+- Result must be a non-empty string (AD1 guarantees fallback candidate always exists)
+- **Structural**: `import inspect; from cohezion.compound.skill_refiner import SkillRefiner; src=inspect.getsource(SkillRefiner._generate_recommendation); assert '_autodata_candidates' in src and '_autodata_select' in src`
+
+### CB14: _lm_signal_cites_metrics() fabrication probe in SkillRefiner (#130, 2026-06-27)
+- `_lm_signal_cites_metrics(text: str, metrics: ExecutionMetrics) -> bool` exists on `SkillRefiner`
+- Returns `True` iff text cites ≥1 actual metric value (tokens_used, quality_score, duration_seconds, cached_hits) within ±50% tolerance
+- Fail-open: empty text or `"NOMINAL"` sentinel → True (heuristic path unblocked)
+- Called inside `_generate_learning_signal()` on the `metric_change` string (T1 structural)
+- Source: NatureBench validity auditing + arXiv 2606.27226 BINEVAL binary-probe decomposition
+- **T1 structural**: `'_lm_signal_cites_metrics' in inspect.getsource(SkillRefiner._generate_learning_signal)`
+- **T2 discriminating**: `test_lm_hallucinated_text_blocked_by_citation_gate` — fabricated numbers outside ±50% of any metric → False
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestLocalInferenceWiring -q` → 5 passed
 
 ### CB16 ext: ExecutionMetrics.tokens_per_task field + TOKEN_BLOAT detection (#123, 2026-06-27)
 - `ExecutionMetrics` carries `tokens_per_task: int = 0` (safe default, last field).
@@ -109,6 +199,93 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - Threshold is strictly `> 3 * median` and requires >= 3 samples in the window.
 - **Verification**: `import dataclasses; from cohezion.compound.skill_refiner import ExecutionMetrics; assert 'tokens_per_task' in {f.name for f in dataclasses.fields(ExecutionMetrics)}`
 - **Behavioral**: `tests/compound/test_skill_refiner.py::TestTokenBloatSignal`
+
+## EnvironmentResponsePredictor Invariants (#117, 2026-06-27)
+
+### ERP1: EnvironmentResponsePredictor predict() returns None with no history
+- `EnvironmentResponsePredictor().predict("s", "op")` must be `None` before any `record()` call
+- A wrong impl that self-seeds would return the first quality value immediately, masking non-stationarity
+- **Verification**: `from cohezion.compound.skill_refiner import EnvironmentResponsePredictor; erp = EnvironmentResponsePredictor(); assert erp.predict("s", "op") is None`
+
+### ERP2: prediction_error computed BEFORE record() — prior history only
+- `prediction_error(skill, op, actual)` must use history PRIOR to the current call
+- An impl that records before predicting would always return 0.0 (predicted == actual)
+- Consequence: ENVIRONMENT_SURPRISE would NEVER fire
+- **Verification**: `erp = EnvironmentResponsePredictor(); erp.record("s","op",0.5); erp.record("s","op",0.5); assert abs(erp.prediction_error("s","op",0.9) - 0.4) < 1e-9`
+
+### ERP3: ENVIRONMENT_SURPRISE fires in SkillRefiner._generate_learning_signal when |error| > 0.2
+- Quality that deviates >0.2 from rolling mean must produce "ENVIRONMENT_SURPRISE" in key_insight
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestEnvironmentSurpriseSignal::test_surprise_fires_above_threshold`
+
+### ERP4: prediction_error field in ExecutionMetrics (safe default None)
+- `ExecutionMetrics` carries `prediction_error: float | None = None`
+- **Verification**: `import dataclasses; from cohezion.compound.skill_refiner import ExecutionMetrics; assert 'prediction_error' in {f.name for f in dataclasses.fields(ExecutionMetrics)}`
+
+## RL Process Reward Invariants (#118, 2026-06-27)
+
+### RL1: pred_err stored back into metrics.prediction_error — producer→consumer closed
+- `_generate_learning_signal()` must set `metrics.prediction_error = pred_err` after computing it
+- Without this, the `prediction_error` field is always None — a silent dead field
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestProcessRewardWiring::test_prediction_error_stored_in_metrics_after_signal`
+
+### RL2: process_reward_mean() is non-None after _generate_learning_signal calls
+- `SkillRefiner._accumulate_process_reward()` must be called inside `_generate_learning_signal()`
+- Without this, `process_reward_mean` always returns None → reward never feeds back
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestProcessRewardWiring::test_process_reward_accumulated_across_signals`
+
+### RL3: Positive process reward raises LearningSignal.confidence above base quality score
+- `confidence = max(0.1, min(0.95, base_confidence + 0.2 * reward_mean))` when reward_mean is not None
+- Scale factor 0.2 × reward keeps confidence in [0.1, 0.95]; adjusts ±0.19 max
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestProcessRewardWiring::test_positive_reward_boosts_confidence`
+- **Inverse**: `tests/compound/test_skill_refiner.py::TestProcessRewardWiring::test_negative_reward_dampens_confidence`
+
+### RL4: mgpo_weight biased by accumulated process reward via sr nudge
+- `sr = max(0.0, min(1.0, sr - 0.1 * reward_mean))` applied before `exp(-gamma * |sr - 0.5|)`
+- Positive reward nudges sr toward 0.5 → higher boundary weight → higher skill priority
+- **Structural**: `process_reward_mean("S") > 0` after positive-surprise sequence
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestProcessRewardWiring::test_mgpo_weight_biased_by_positive_rewards`
+
+## DifficultyEstimator Invariants (#93, 2026-06-27)
+
+### GIC1: predict_tier() returns 'unknown' before any records
+- `DifficultyEstimator().predict_tier("s", "op")` must be `"unknown"` with no history
+- Self-seeding or returning a default tier masks the "no data" case and causes premature pre-allocation
+- **Verification**: `from cohezion.compound.difficulty_estimator import DifficultyEstimator; assert DifficultyEstimator().predict_tier("s", "op") == "unknown"`
+
+### GIC2: returns cheapest successful tier (NPU → iGPU → CPU order) with success_rate >= 0.7
+- Tier success = escalation_count == 0 AND quality_score >= 0.6 (QUALITY_FLOOR)
+- Requires at least _MIN_SAMPLES=2 records per tier before considering it
+- Tie-break: cheapest always wins (NPU preferred over iGPU, iGPU over CPU)
+- **Discriminating**: escalating NPU runs (success_rate < 0.7) must NOT trigger NPU recommendation
+- **Behavioral**: `tests/compound/test_difficulty_estimator.py::TestDifficultyEstimatorBehavioral::test_discriminating_escalating_npu_gets_igpu`
+
+### GIC3: SkillRefiner._difficulty_estimator wired and records tier_used + escalation_count
+- `SkillRefiner().__difficulty_estimator` must be a `DifficultyEstimator` instance
+- `_generate_learning_signal()` must call `self._difficulty_estimator.record(skill_name, op_type, metrics.tier_used, metrics.escalation_count, metrics.quality_score)` after ERP record
+- Closes the CB16 producer→consumer gap: tier_used and escalation_count flow into future tier prediction
+- **Structural**: `tests/compound/test_difficulty_estimator.py::TestDifficultyEstimatorStructural::test_skill_refiner_has_difficulty_estimator`
+
+## Skill Proximity Invariants (#102, 2026-06-27)
+
+### SP1: skill_proximity() returns 0.0 when either skill has no ERP history
+- Uses `_env_predictor._history` as the data source — no separate data collection needed
+- Skill with zero records contributes an empty op-type set → Jaccard = 0 / union = 0.0
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestSkillProximity::test_unknown_skill_returns_zero`
+
+### SP2: identical op-type distributions with same mean quality → proximity ≈ 1.0
+- Jaccard = 1.0 (all shared), quality_agreement = 1.0 (|Δq|=0) → product = 1.0
+- Proves the discriminating quality-weighting factor is neutral at perfect match
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestSkillProximity::test_identical_op_types_same_quality_near_one`
+
+### SP3: disjoint op-types → proximity == 0.0
+- Jaccard = 0 when no shared operation types → proximity = 0.0 regardless of quality
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestSkillProximity::test_disjoint_op_types_returns_zero`
+
+### SP4: different quality profiles on shared op-type reduce proximity below identity
+- Formula: `jaccard × mean_over_shared(1 - |Δq|/2)` where Δq is quality difference
+- quality_agreement = 1.0 at |Δq|=0, falls toward 0.5 at |Δq|=1.0
+- Identical-quality proximity > different-quality proximity for same Jaccard score (discriminating test)
+- **Behavioral**: `tests/compound/test_skill_refiner.py::TestSkillProximity::test_different_quality_on_shared_op_reduces_proximity`
 
 ## Physics Calibration Notes (#100, added 2026-06-27)
 
