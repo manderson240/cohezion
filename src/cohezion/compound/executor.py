@@ -101,6 +101,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         rubric_middleware: Any | None = None,
+        inference_provider: Any | None = None,
+        jepa_gate: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -144,6 +146,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 usage metrics (invocations, success rate, tokens, quality).
                 If None, no health tracking recorded.
         """
+        self._inference_provider = inference_provider
+        self._jepa_gate = jepa_gate
         self.mcp_client = mcp_client
         self.token_client = token_client
         self._guardrail_pipeline = guardrail_pipeline
@@ -660,6 +664,37 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if self.token_client:
             token_metrics_before = self.token_client.get_metrics()
 
+        # Step 3.5: JEPA pre-execution coherence gate (GIC Decision-making, JW1)
+        # Predicts outcome quality before committing to the 11-step pipeline.
+        _jepa_verdict = None
+        if self._jepa_gate is not None:
+            try:
+                _jepa_verdict = self._jepa_gate.check(task_description)
+                metrics["jepa_verdict"] = _jepa_verdict.value
+                metrics["jepa_coherence"] = self._jepa_gate.last_coherence
+                if _jepa_verdict.value == "skip":
+                    logger.warning(
+                        "JEPA gate SKIP: predicted coherence %.3f below threshold — skipping execution",
+                        self._jepa_gate.last_coherence,
+                    )
+                    return ExecutionResult(
+                        success=False,
+                        output="Execution skipped: JEPA gate predicted insufficient coherence",
+                        metrics={
+                            "jepa_verdict": "skip",
+                            "jepa_coherence": self._jepa_gate.last_coherence,
+                        },
+                        duration_seconds=time.time() - start_seconds,
+                        vault_experiment_path=experiment_path,
+                    )
+                if _jepa_verdict.value == "reroute":
+                    logger.info(
+                        "JEPA gate REROUTE: predicted coherence %.3f — marking for tier consideration",
+                        self._jepa_gate.last_coherence,
+                    )
+            except Exception as exc:
+                logger.debug("JEPA gate check failed (non-blocking): %s", exc)
+
         try:
             output, metrics = execute_fn(guidance)
             success = True
@@ -1077,6 +1112,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     degradation_metrics["tokens_per_second"] = token_metrics.get(
                         "tokens_per_second", 0.0
                     )
+                # Fold JEPA pre-execution coherence into degradation metrics (JW1 routing feedback).
+                if _jepa_verdict is not None and self._jepa_gate is not None:
+                    degradation_metrics["jepa_coherence"] = self._jepa_gate.last_coherence
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)

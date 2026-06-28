@@ -62,6 +62,9 @@ class JepaGate:
         self._world_model = world_model
         self._proceed_threshold = proceed_threshold
         self._reroute_threshold = reroute_threshold
+        # Readable after check() — callers can feed this into DegradationDetector.
+        # Initialized to 1.0 (optimistic, fail-open default).
+        self.last_coherence: float = 1.0
 
     def check(
         self,
@@ -79,6 +82,7 @@ class JepaGate:
             PreExecutionVerdict based on the predicted mean coherence.
         """
         if self._world_model is None:
+            self.last_coherence = 1.0
             return PreExecutionVerdict.PROCEED
 
         state = current_state if current_state is not None else _DEFAULT_STATE
@@ -87,7 +91,10 @@ class JepaGate:
             coherence = float(np.mean(np.clip(predicted, 0.0, 1.0)))
         except Exception as exc:
             logger.debug("JEPA gate prediction failed (fail-open): %s", exc)
+            self.last_coherence = 1.0
             return PreExecutionVerdict.PROCEED
+
+        self.last_coherence = coherence
 
         if coherence + _EPS >= self._proceed_threshold:
             verdict = PreExecutionVerdict.PROCEED

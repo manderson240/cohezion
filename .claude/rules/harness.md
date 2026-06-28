@@ -152,6 +152,17 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **T2 discriminating**: `test_low_coherence_prediction_does_not_return_proceed` (0.1 → not PROCEED), `test_very_low_coherence_returns_skip` (0.05 → SKIP), `test_threshold_boundary_at_point_six_is_proceed` (exactly 0.6 → PROCEED)
 - **Verification**: `uv run pytest tests/compound/test_jepa_gate.py -q` → 12 passed
 
+### JW1: JepaGate.last_coherence + CompoundExecutor routing feedback wiring (2026-06-27)
+- `JepaGate.last_coherence: float` — set to predicted coherence after every `check()` call
+- Fail-open paths (None world_model, exception) set `last_coherence = 1.0` (optimistic default)
+- `CompoundExecutor.__init__` accepts `jepa_gate: Any | None = None` kwarg; stores as `self._jepa_gate`
+- `execute_task()` calls `self._jepa_gate.check(task_description)` at Step 3.5 (after input guardrails, before `execute_fn`)
+- SKIP verdict → early return (no `execute_fn` call, no tokens spent); REROUTE → logged warning
+- `jepa_coherence` added to `degradation_metrics` dict → DegradationDetector sees pre-execution quality signal
+- **T1 structural**: `hasattr(JepaGate(), 'last_coherence')` and `last_coherence == 1.0` at init; `'jepa_gate' in inspect.signature(CompoundExecutor.__init__).parameters`
+- **T2 discriminating**: `test_last_coherence_differs_from_init_after_real_check` (must change from 1.0), `test_skip_verdict_prevents_execute_fn_from_running` (execute_fn call count == 0), `test_jepa_coherence_in_degradation_metrics_when_gate_wired`
+- **Verification**: `uv run pytest tests/compound/test_jepa_gate_wiring.py tests/compound/test_jepa_gate.py -q` → 25 passed
+
 ### SG1: SkillRefiner._session_goal drives _generate_recommendation() directly (GIC Goal, #136, 2026-06-27)
 - `_session_goal: dict | None` — session-wide goal state; None by default
 - `set_goal(objective, target_metric)` sets it; `get_goal()` returns it; `_auto_update_goal(skill, metrics)` proposes it after N=5 consistently problematic calls
