@@ -48,6 +48,27 @@ else:
 
 logger = logging.getLogger(__name__)
 
+# Tier cost order (cheapest → most expensive) for routing-signal synthesis.
+_TIER_ORDER = ("npu", "igpu", "cpu", "cloud")
+
+
+def _resolve_tier(
+    predicted: str | None, suggested: str | None, jepa_reroute: bool
+) -> str | None:
+    """Synthesize the GIC's routing signals into ONE coherent tier recommendation.
+
+    Combines the predictive signal (DifficultyEstimator.predict_tier — skill-specific) and the
+    reactive signal (DegradationDetector.suggest_routing_tier — health-based) by taking the more
+    CONSERVATIVE (cheaper) of the two. A JEPA-gate REROUTE verdict (marginal predicted coherence)
+    then downgrades ONE step toward a cheaper tier — the gate's "try cheaper first" intent — making
+    REROUTE actionable instead of merely logged. Returns None when no valid signal is present.
+    """
+    candidates = [t for t in (predicted, suggested) if t in _TIER_ORDER]
+    base = min(candidates, key=_TIER_ORDER.index) if candidates else None
+    if jepa_reroute and base is not None:
+        return _TIER_ORDER[max(0, _TIER_ORDER.index(base) - 1)]
+    return base
+
 
 @dataclass
 class ExecutionResult:
@@ -546,7 +567,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         _context_budget = None
         try:
             _context_budget = self.apply_policy(task_description, operation_type)
-            if _context_budget is not None:
+            if self._context_policy is not None and _context_budget is not None:
                 _task_profile = self._context_policy.classify_task(task_description, operation_type)
         except Exception as e:
             logger.debug("Context policy classification failed (non-blocking): %s", e)
@@ -695,6 +716,39 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as exc:
                 logger.debug("JEPA gate check failed (non-blocking): %s", exc)
 
+        # Step 3.6: Pre-execution tier routing hints (W3/W4 wiring completeness).
+        # Collected before execute_fn so the hints survive even if execute_fn raises.
+        # They are merged INTO the metrics dict returned by execute_fn after the call.
+        _tier_hints: dict[str, str] = {}
+        # (a) W3: DegradationDetector.suggest_routing_tier() — reactive, health-based tier hint.
+        if self._degradation_detector is not None:
+            try:
+                _tier_hints["suggested_tier"] = (
+                    self._degradation_detector.suggest_routing_tier()
+                )
+            except Exception:
+                pass
+        # (b) W4: DifficultyEstimator.predict_tier() — predictive, skill-specific tier hint.
+        if self._skill_refiner is not None:
+            _estimator = getattr(self._skill_refiner, "_difficulty_estimator", None)
+            if _estimator is not None:
+                try:
+                    _tier_hints["predicted_tier"] = _estimator.predict_tier(
+                        skill_name, operation_type
+                    )
+                except Exception:
+                    pass
+        # (c) Synthesize ONE coherent tier recommendation from the predictive + reactive signals.
+        # A JEPA-gate REROUTE (marginal coherence) downgrades toward a cheaper tier — making the
+        # REROUTE verdict actionable (it was previously only logged at Step 3.5).
+        _recommended = _resolve_tier(
+            _tier_hints.get("predicted_tier"),
+            _tier_hints.get("suggested_tier"),
+            jepa_reroute=(_jepa_verdict is not None and _jepa_verdict.value == "reroute"),
+        )
+        if _recommended is not None:
+            _tier_hints["recommended_tier"] = _recommended
+
         try:
             output, metrics = execute_fn(guidance)
             success = True
@@ -706,6 +760,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             output = f"Error: {error_msg}"
             metrics = {"error": error_msg, "error_type": type(e).__name__}
             logger.error("Task failed: %s", error_msg, exc_info=True)
+        # Merge W3/W4 tier hints — execute_fn may return a new dict so we must merge after the call.
+        if _tier_hints:
+            metrics.update(_tier_hints)
 
         # Capture token metrics after execution (if token_client available)
         if self.token_client:
@@ -946,12 +1003,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     description=f"Successful execution pattern for {skill_name} "
                     f"operation: {operation_type}. "
                     f"Task: {task_description[:100]}",
-                    code_example=f"Result metrics: {json.dumps(metrics, indent=2)}",
+                    code_example=f"Result metrics: {json.dumps(metrics, indent=2, default=repr)}",
                     domain="compound-engineering",
                 )
                 if pattern_path:
                     decision_paths.append(pattern_path)
-            except (OSError, RuntimeError, ValueError, AttributeError, KeyError) as e:
+            except (OSError, RuntimeError, ValueError, AttributeError, KeyError, TypeError) as e:
                 logger.warning("Failed to extract pattern: %s", e, exc_info=True)
 
         # Step 7.3: Retrospection analysis (gates skill refinement)
@@ -1308,8 +1365,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Step 9.1: Persist universe snapshot (L183)
         # Record a universe state snapshot to SurrealDB for world model training
         try:
-            import asyncio
-
             from cohezion.persistence.genesis_persistence import persist_universe_snapshot
 
             _snap_coro = persist_universe_snapshot(
@@ -1419,8 +1474,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Step 10.7: Persist prompt artifact (L183)
         # Record prompt/response pair to SurrealDB for retrospective analysis
         try:
-            import asyncio
-
             from cohezion.persistence.genesis_persistence import persist_prompt_artifact
 
             _artifact_coro = persist_prompt_artifact(
@@ -1439,7 +1492,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("Prompt artifact persistence failed (non-blocking): %s", e)
 
         # Step 10.9: Record context policy outcome for cross-session learning
-        if _task_profile is not None and _context_budget is not None:
+        if self._context_policy is not None and _task_profile is not None and _context_budget is not None:
             try:
                 self._context_policy.record_outcome(
                     profile=_task_profile,
