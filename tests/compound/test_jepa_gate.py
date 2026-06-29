@@ -11,6 +11,7 @@ T2: discriminating — low-coherence world model ⇒ not PROCEED; None model ⇒
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from cohezion.compound.jepa_gate import JepaGate, PreExecutionVerdict
 
@@ -147,3 +148,104 @@ class TestJepaGateBehavioral:
         state = np.zeros(12, dtype=float)
         verdict = gate.check("test op", current_state=state)
         assert verdict == PreExecutionVerdict.REROUTE
+
+
+# ---------------------------------------------------------------------------
+# #156: coherence_threshold settable property
+# ---------------------------------------------------------------------------
+
+
+class TestJepaGateCoherenceThreshold:
+    """T1+T2 for #156: expose coherence_threshold as settable property."""
+
+    def _stub(self, coherence: float):
+        class _S:
+            def predict_next_state(self, s, a):
+                return np.full(12, float(coherence), dtype=np.float32)
+        return _S()
+
+    def test_t1_coherence_threshold_is_property(self):
+        """T1 structural: coherence_threshold must be a Python property descriptor."""
+        assert isinstance(
+            JepaGate.__dict__.get("coherence_threshold"), property
+        ), "coherence_threshold must be a @property on JepaGate"
+
+    def test_t1_coherence_threshold_readable_matches_init(self):
+        """T1: getter returns the proceed_threshold passed at construction."""
+        gate = JepaGate(world_model=None, proceed_threshold=0.75)
+        assert gate.coherence_threshold == pytest.approx(0.75)
+
+    def test_t1_default_coherence_threshold_is_0_6(self):
+        """T1: default threshold matches module constant (0.6)."""
+        gate = JepaGate(world_model=None)
+        assert gate.coherence_threshold == pytest.approx(0.6)
+
+    def test_t2_raising_threshold_converts_proceed_to_reroute(self):
+        """T2 discriminating: threshold raised above current coherence → REROUTE.
+
+        Wrong impl: property setter has no effect on check() behaviour.
+        A coherence of 0.75 is PROCEED at default 0.6 but REROUTE at 0.9.
+        """
+        gate = JepaGate(world_model=self._stub(0.75))
+        assert gate.check("task") == PreExecutionVerdict.PROCEED  # baseline
+
+        gate.coherence_threshold = 0.9
+        # Now 0.75 < 0.9 → must NOT be PROCEED
+        result = gate.check("task")
+        assert result != PreExecutionVerdict.PROCEED, (
+            f"Raising threshold to 0.9 must demote 0.75-coherence from PROCEED; got {result}"
+        )
+
+    def test_t2_lowering_threshold_converts_reroute_to_proceed(self):
+        """T2 discriminating: threshold lowered below current coherence → PROCEED.
+
+        Coherence 0.45 at default 0.6 → REROUTE; at 0.3 → PROCEED.
+        """
+        gate = JepaGate(world_model=self._stub(0.45))
+        assert gate.check("task") == PreExecutionVerdict.REROUTE  # baseline
+
+        gate.coherence_threshold = 0.3
+        result = gate.check("task")
+        assert result == PreExecutionVerdict.PROCEED, (
+            f"Lowering threshold to 0.3 must promote 0.45-coherence to PROCEED; got {result}"
+        )
+
+
+class TestJepaGateLookahead:
+    """k-step latent lookahead (Dyna-Think, arXiv 2506.00320): the gate uses the world model's
+    simulate_trajectory to take the MIN coherence over k steps — catching a path that looks
+    coherent now but diverges later. Default k=1 is a strict no-op (all 12 prior tests unchanged)."""
+
+    def test_t1_lookahead_steps_param_exists(self):
+        import inspect
+
+        assert "lookahead_steps" in inspect.signature(JepaGate.__init__).parameters
+
+    def test_t2_diverging_trajectory_changes_verdict(self):
+        """Discriminating: a 3-step gate must SKIP a path that collapses at step 3, while a
+        1-step gate sees only the coherent step 1 and PROCEEDs. A wrong impl that ignores
+        lookahead_steps returns PROCEED for both → the second assert fails."""
+
+        class _DivergingJEPA:
+            def predict_next_state(self, state, action):
+                return np.full(12, 0.85, dtype=np.float32)  # step 1 looks coherent
+
+            def simulate_trajectory(self, initial_state, actions):
+                traj = [initial_state.copy()]
+                for v in [0.85, 0.85, 0.05][: len(actions)]:  # diverges at step 3
+                    traj.append(np.full(12, v, dtype=np.float32))
+                return traj
+
+        v1 = JepaGate(_DivergingJEPA(), lookahead_steps=1).check("t", current_state=np.zeros(12))
+        v3 = JepaGate(_DivergingJEPA(), lookahead_steps=3).check("t", current_state=np.zeros(12))
+        assert v1 == PreExecutionVerdict.PROCEED  # 0.85 at step 1 → PROCEED
+        assert v3 == PreExecutionVerdict.SKIP  # min(0.85, 0.85, 0.05) = 0.05 → SKIP
+
+    def test_t3_fallback_when_no_simulate_trajectory(self):
+        """A world model lacking simulate_trajectory (existing stubs) falls back to single-step."""
+
+        class _StubJEPA:
+            def predict_next_state(self, state, action):
+                return np.full(12, 0.9, dtype=np.float32)
+
+        assert JepaGate(_StubJEPA(), lookahead_steps=3).check("t") == PreExecutionVerdict.PROCEED

@@ -58,13 +58,27 @@ class JepaGate:
         world_model: Any | None,
         proceed_threshold: float = _THRESHOLD_PROCEED,
         reroute_threshold: float = _THRESHOLD_REROUTE,
+        lookahead_steps: int = 1,
     ) -> None:
         self._world_model = world_model
         self._proceed_threshold = proceed_threshold
         self._reroute_threshold = reroute_threshold
+        # k-step latent lookahead (Dyna-Think, arXiv 2506.00320): 1 = single-step coherence
+        # (memoryless heuristic); >1 = min coherence over a k-step simulated trajectory
+        # (planning-before-acting — catches states that look locally OK but diverge later).
+        self._lookahead_steps = max(1, int(lookahead_steps))
         # Readable after check() — callers can feed this into DegradationDetector.
         # Initialized to 1.0 (optimistic, fail-open default).
         self.last_coherence: float = 1.0
+
+    @property
+    def coherence_threshold(self) -> float:
+        """RQGM-settable proceed threshold; adjustable as epoch utility cycles."""
+        return self._proceed_threshold
+
+    @coherence_threshold.setter
+    def coherence_threshold(self, value: float) -> None:
+        self._proceed_threshold = value
 
     def check(
         self,
@@ -87,8 +101,23 @@ class JepaGate:
 
         state = current_state if current_state is not None else _DEFAULT_STATE
         try:
-            predicted = self._world_model.predict_next_state(state, _DEFAULT_ACTION)
-            coherence = float(np.mean(np.clip(predicted, 0.0, 1.0)))
+            if self._lookahead_steps > 1:
+                # k-step lookahead: the trajectory's MINIMUM coherence — a path that looks
+                # coherent now but collapses at step k is caught before committing the pipeline.
+                try:
+                    trajectory = self._world_model.simulate_trajectory(
+                        state, [_DEFAULT_ACTION] * self._lookahead_steps
+                    )
+                    coherence = min(
+                        float(np.mean(np.clip(s, 0.0, 1.0))) for s in trajectory[1:]
+                    )
+                except AttributeError:
+                    # world_model lacks simulate_trajectory (e.g. a test stub) → 1-step fallback
+                    predicted = self._world_model.predict_next_state(state, _DEFAULT_ACTION)
+                    coherence = float(np.mean(np.clip(predicted, 0.0, 1.0)))
+            else:
+                predicted = self._world_model.predict_next_state(state, _DEFAULT_ACTION)
+                coherence = float(np.mean(np.clip(predicted, 0.0, 1.0)))
         except Exception as exc:
             logger.debug("JEPA gate prediction failed (fail-open): %s", exc)
             self.last_coherence = 1.0
