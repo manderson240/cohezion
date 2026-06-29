@@ -180,6 +180,15 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **T3 fallback**: `test_t3_fallback_when_no_simulate_trajectory` — k=3 stub w/o simulate_trajectory → single-step PROCEED
 - **Verification**: `uv run pytest tests/compound/test_jepa_gate.py tests/compound/test_jepa_gate_wiring.py -q` → 33 passed
 
+### JG3: JepaGate lookahead wired LIVE via lemonade-backed world model (GAIA SDK, 2026-06-29)
+- `src/cohezion/compound/lemonade_world_model.py`: `LemonadeWorldModel` implements the gate's world-model interface (`predict_next_state`/`simulate_trajectory`), delegating next-step coherence estimation to local lemonade via the GAIA SDK (`LemonadeClient` :13305, `llama3.2-1b-FLM`). Injectable `chat_fn` for tests; lazy GAIA shim default.
+- `build_live_jepa_gate(lookahead_steps=3)` wired into BOTH factory paths (`executor_factory.make_executor` + `compound.__init__.make_executor`): lemonade-backed gate + k=3 lookahead when `lemonade_available()` (probed once at construction), else fail-open `JepaGate(world_model=None)` — W1 preserved.
+- Fail-OPEN discipline: uninitialized zero-state → `_BASELINE=0.7`; LLM unreachable/unparseable → persist current coherence. Neither forces a spurious SKIP.
+- **T1 structural**: `LemonadeWorldModel` has `predict_next_state` + `simulate_trajectory`; `build_live_jepa_gate` exists
+- **T2 discriminating**: `test_low_coherence_llm_makes_gate_skip` (LLM "0.05" → gate SKIP; a fail-open impl PROCEEDs), `test_high_coherence_llm_makes_gate_proceed`; `test_fallback_when_llm_raises_does_not_force_skip` (baseline ≥0.6, no false SKIP)
+- **T3 wiring**: `test_wires_lemonade_world_model_when_available` / `test_fail_open_when_lemonade_unavailable` (monkeypatched `lemonade_available`)
+- **Verification**: `uv run pytest tests/compound/test_lemonade_world_model.py -q` → 11 passed; LIVE: `build_live_jepa_gate().check(...)` real GAIA k=3 delegation ~0.4s
+
 ### JW1: JepaGate.last_coherence + CompoundExecutor routing feedback wiring (2026-06-27)
 - `JepaGate.last_coherence: float` — set to predicted coherence after every `check()` call
 - Fail-open paths (None world_model, exception) set `last_coherence = 1.0` (optimistic default)
