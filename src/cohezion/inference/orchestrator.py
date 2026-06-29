@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from typing import ClassVar, Protocol, runtime_checkable
 
 from cohezion.inference.fleet import RouteResult, route
 from cohezion.inference.registry import Task
@@ -39,6 +39,8 @@ class QualityGate:
     - ``TRUST`` — always pass (terminal tier).
     """
 
+    TRUST: ClassVar[QualityGate]  # sentinel: always pass; set below class definition
+
     min_chars: int | None = None
     require_nonempty: bool = True
 
@@ -53,7 +55,7 @@ class QualityGate:
 
 
 # Sentinel — always passes. Use for the terminal tier.
-QualityGate.TRUST = QualityGate(min_chars=None, require_nonempty=False)  # type: ignore[attr-defined]
+QualityGate.TRUST = QualityGate(min_chars=None, require_nonempty=False)
 
 
 @dataclass
@@ -146,15 +148,24 @@ class TieredOrchestrator:
         sub = await target.run(prompt, budget_usd=remaining_budget)
         return sub, sub.cost_usd, sub.ttft_ms
 
-    async def run(self, prompt: str, *, budget_usd: float | None = None) -> OrchestrationResult:
-        """Execute tier 0, escalate while gates fail, honor budget.
+    async def run(
+        self, prompt: str, *, budget_usd: float | None = None, min_tier_index: int = 0
+    ) -> OrchestrationResult:
+        """Execute from tier ``min_tier_index``, escalate while gates fail, honor budget.
 
         ``budget_usd`` is the caller's (usually the parent orchestrator's)
         remaining budget. When set, it caps spending *in addition to*
         ``self.max_cost_usd`` — the effective ceiling is the stricter of the
         two. This is how nested orchestrators inherit the parent's envelope
         without plumbing a shared mutable counter (O3b).
+
+        ``min_tier_index`` is the difficulty-based cascade ENTRY (AdaptEvolve / cascade-with-prior):
+        a task predicted to need a higher tier skips the cheaper tiers below it, avoiding wasted
+        attempts that would only fail their gate and escalate anyway. Clamped to a valid tier;
+        default 0 = unchanged (start at the cheapest tier). Escalation/budget/gate logic for the
+        tiers that DO run is unchanged (O1–O8 preserved).
         """
+        start_tier = max(0, min(int(min_tier_index), len(self.tiers) - 1))
         # Effective ceiling: min(self.max_cost_usd, budget_usd), ignoring Nones.
         if self.max_cost_usd is None:
             effective_max_cost: float | None = budget_usd
@@ -170,6 +181,8 @@ class TieredOrchestrator:
         last_model = ""
 
         for idx, (target, gate) in enumerate(self.tiers):
+            if idx < start_tier:  # difficulty-based cascade entry: skip cheaper tiers
+                continue
             model_name = target if isinstance(target, str) else type(target).__name__
 
             # O3: budget gate — short-circuit before invoking if cost already
@@ -287,6 +300,8 @@ class TieredOrchestrator:
                         iteration_count=idx + 1,
                         difficulty_adjustment=1.0,
                     ),
+                    predicted_z_vector=None,
+                    prediction_error=0.0,
                     metadata={"reason": reason, "model": model_name},
                 )
 
@@ -349,7 +364,7 @@ def default_hierarchy(
         tiers.extend(
             [
                 ("claude-haiku-4-5", QualityGate(min_chars=50)),
-                ("claude-sonnet-4-6", QualityGate.TRUST),  # type: ignore[attr-defined]
+                ("claude-sonnet-4-6", QualityGate.TRUST),
             ]
         )
     return TieredOrchestrator(tiers=tiers, max_cost_usd=max_cost_usd)

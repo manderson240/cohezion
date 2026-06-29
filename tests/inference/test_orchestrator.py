@@ -267,3 +267,49 @@ async def test_O3b_nested_respects_own_cap_when_parent_unbounded():
 
     # Only inner-t0 fires; inner-t1 blocked by inner's own $0.005 cap.
     assert m.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_min_tier_index_skips_cheaper_tiers():
+    """Discriminating (difficulty-based cascade entry): min_tier_index=2 starts at tier 2, skipping
+    tiers 0 and 1. A wrong impl that ignores min_tier_index runs tier 0 first (prefer='tier0')."""
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate.TRUST),
+            ("tier1", QualityGate.TRUST),
+            ("tier2", QualityGate.TRUST),
+        ]
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
+    ) as m:
+        await orch.run("test", min_tier_index=2)
+    assert m.await_count == 1  # only one tier ran
+    assert m.call_args.kwargs["prefer"] == "tier2"  # it was tier 2, NOT tier 0
+
+
+@pytest.mark.asyncio
+async def test_min_tier_index_default_starts_at_tier0():
+    """Default min_tier_index=0 is backward-compatible (cheapest tier first)."""
+    orch = TieredOrchestrator(
+        tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)]
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
+    ) as m:
+        await orch.run("test")
+    assert m.call_args.kwargs["prefer"] == "tier0"
+
+
+@pytest.mark.asyncio
+async def test_min_tier_index_clamped_never_skips_all():
+    """Out-of-range min_tier_index clamps to the last tier (never empties the cascade)."""
+    orch = TieredOrchestrator(
+        tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)]
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
+    ) as m:
+        await orch.run("test", min_tier_index=99)
+    assert m.await_count == 1
+    assert m.call_args.kwargs["prefer"] == "tier1"  # clamped to last tier
