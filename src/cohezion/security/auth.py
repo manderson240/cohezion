@@ -35,13 +35,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # API Keys (loaded from secure storage)
 _API_KEY_ENV = os.environ.get("COHEZION_API_KEY")
-API_KEYS: dict[str, dict[str, Any]] = {
-    _API_KEY_ENV: {
-        "name": "default",
-        "role": "admin",
-        "enabled": True,
+API_KEYS: dict[str, dict[str, Any]] = (
+    {
+        _API_KEY_ENV: {
+            "name": "default",
+            "role": "admin",
+            "enabled": True,
+        }
     }
-} if _API_KEY_ENV else {}
+    if _API_KEY_ENV
+    else {}
+)
 
 
 class AuthError(Exception):
@@ -128,12 +132,12 @@ def verify_token(token: str) -> dict[str, Any]:
 
 def hash_password(password: str) -> str:
     """Hash a password."""
-    return pwd_context.hash(password)
+    return pwd_context.hash(password)  # type: ignore[no-any-return]
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)  # type: ignore[no-any-return]
 
 
 def check_role(user_role: str, required_role: str) -> bool:

@@ -69,7 +69,7 @@ class HealthMetrics:
 class CodebaseHealthAssessment:
     """Comprehensive codebase health assessment."""
 
-    def __init__(self, repo_root: Path = None):
+    def __init__(self, repo_root: Path | None = None):
         """Initialize assessment.
 
         Args:

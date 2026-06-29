@@ -63,7 +63,8 @@ def quantize_values(
     orig_shape = v.shape
     d = orig_shape[-1]
     n_groups = d // group_size
-    assert d % group_size == 0, f"head_dim {d} must be divisible by group_size {group_size}"
+    if d % group_size != 0:
+        raise ValueError(f"head_dim {d} must be divisible by group_size {group_size}")
 
     # Reshape to groups
     v_grouped = v.reshape(*orig_shape[:-1], n_groups, group_size)  # (..., seq, n_groups, gs)
@@ -84,12 +85,14 @@ def quantize_values(
     # Bit-pack: for 2-bit, pack 4 values per byte; for 4-bit, pack 2 per byte
     if bits == 2:
         # Pack 4 x 2-bit values into each uint8: [a, b, c, d] -> a | (b<<2) | (c<<4) | (d<<6)
-        assert d % 4 == 0
+        if d % 4 != 0:
+            raise ValueError(f"head_dim {d} must be divisible by 4 for 2-bit packing")
         v_4 = v_q_flat.reshape(*orig_shape[:-1], d // 4, 4)
         packed = v_4[..., 0] | (v_4[..., 1] << 2) | (v_4[..., 2] << 4) | (v_4[..., 3] << 6)
         v_q_flat = packed  # shape: (..., d//4)
     elif bits == 4:
-        assert d % 2 == 0
+        if d % 2 != 0:
+            raise ValueError(f"head_dim {d} must be divisible by 2 for 4-bit packing")
         v_2 = v_q_flat.reshape(*orig_shape[:-1], d // 2, 2)
         packed = v_2[..., 0] | (v_2[..., 1] << 4)
         v_q_flat = packed  # shape: (..., d//2)

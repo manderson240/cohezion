@@ -48,9 +48,11 @@ async def extend_availability(
     )
     if result.get("error"):
         print(f"⚠️ Fleet error: {result['error']}", file=sys.stderr)
-    print(f"model={result['model']} lane={result['lane']} "
-          f"latency_ms={result['latency_ms']:.1f} "
-          f"escalated={result['escalated_to_cloud']}")
+    print(
+        f"model={result['model']} lane={result['lane']} "
+        f"latency_ms={result['latency_ms']:.1f} "
+        f"escalated={result['escalated_to_cloud']}"
+    )
     return result.get("text", "")
 
 

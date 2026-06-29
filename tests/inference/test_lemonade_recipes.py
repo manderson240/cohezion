@@ -107,9 +107,7 @@ class TestGetRecipe:
                 "multilingual",
             ):
                 value = getattr(recipe.capabilities, field_name)
-                assert 0.0 <= value <= 1.0, (
-                    f"{recipe.model_id}.{field_name}={value} out of [0,1]"
-                )
+                assert 0.0 <= value <= 1.0, f"{recipe.model_id}.{field_name}={value} out of [0,1]"
 
 
 class TestRegisterRecipe:
@@ -205,9 +203,7 @@ class TestGetInferenceParams:
 
 class TestProbeLiveModels:
     def test_probe_live_models_success(self):
-        fake = json.dumps(
-            {"data": [{"id": "Gemma-4-E4B-it-GGUF", "downloaded": True}]}
-        ).encode()
+        fake = json.dumps({"data": [{"id": "Gemma-4-E4B-it-GGUF", "downloaded": True}]}).encode()
         mock_resp = MagicMock()
         mock_resp.read.return_value = fake
         mock_resp.__enter__ = lambda s: s

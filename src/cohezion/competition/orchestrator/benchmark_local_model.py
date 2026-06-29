@@ -191,9 +191,7 @@ def main() -> None:
     """CLI entry point for local Lemonade benchmarking."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    parser = argparse.ArgumentParser(
-        description="Benchmark local Lemonade models on port 13305"
-    )
+    parser = argparse.ArgumentParser(description="Benchmark local Lemonade models on port 13305")
     parser.add_argument(
         "--base-url",
         default=DEFAULT_BASE_URL,

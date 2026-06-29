@@ -153,6 +153,7 @@ class ModelRecipe:
 
 # ── Recipe builder helpers ───────────────────────────────────────────────────
 
+
 def _cap(
     reasoning: float = 0.5,
     coding: float = 0.5,
@@ -272,7 +273,9 @@ _register(
             structured=0.50,
             general=0.60,
         ),
-        system_prompts=_prompts(default="You are a fast, concise assistant. Give short, direct answers."),
+        system_prompts=_prompts(
+            default="You are a fast, concise assistant. Give short, direct answers."
+        ),
         output_budgets=_budgets(
             short_categorical=20,
             short_answer=60,
@@ -310,7 +313,9 @@ _register(
             general=0.65,
         ),
         system_prompts=_prompts(default="You are a fast, concise assistant."),
-        metrics=_metrics(ttft_ms=900.0, tokens_per_sec=55.0, thinking_overhead_tokens=0, estimated=True),
+        metrics=_metrics(
+            ttft_ms=900.0, tokens_per_sec=55.0, thinking_overhead_tokens=0, estimated=True
+        ),
     )
 )
 
@@ -347,7 +352,9 @@ _register(
             code=200,
             math_reasoning=200,
         ),
-        metrics=_metrics(ttft_ms=1200.0, tokens_per_sec=50.0, thinking_overhead_tokens=450, estimated=True),
+        metrics=_metrics(
+            ttft_ms=1200.0, tokens_per_sec=50.0, thinking_overhead_tokens=450, estimated=True
+        ),
     )
 )
 
@@ -378,7 +385,9 @@ _register(
             general=0.70,
         ),
         system_prompts=_prompts(default="You are a fast, accurate assistant."),
-        metrics=_metrics(ttft_ms=1100.0, tokens_per_sec=52.0, thinking_overhead_tokens=350, estimated=True),
+        metrics=_metrics(
+            ttft_ms=1100.0, tokens_per_sec=52.0, thinking_overhead_tokens=350, estimated=True
+        ),
     )
 )
 
@@ -414,7 +423,9 @@ _register(
             reasoning="You are a reasoning specialist. Think step-by-step and show your work.",
             coding="You are a coding expert. Write clean, efficient, well-commented code.",
         ),
-        metrics=_metrics(ttft_ms=2500.0, tokens_per_sec=35.0, thinking_overhead_tokens=700, estimated=True),
+        metrics=_metrics(
+            ttft_ms=2500.0, tokens_per_sec=35.0, thinking_overhead_tokens=700, estimated=True
+        ),
     )
 )
 
@@ -542,7 +553,9 @@ _register(
             general=0.82,
         ),
         system_prompts=_prompts(default="You are a knowledgeable, accurate assistant."),
-        metrics=_metrics(ttft_ms=12000.0, tokens_per_sec=12.0, thinking_overhead_tokens=800, estimated=False),
+        metrics=_metrics(
+            ttft_ms=12000.0, tokens_per_sec=12.0, thinking_overhead_tokens=800, estimated=False
+        ),
     )
 )
 
@@ -571,8 +584,12 @@ _register(
             general=0.65,
             code_gen=0.60,
         ),
-        system_prompts=_prompts(default="You are a fast, efficient assistant. Give direct, concise answers."),
-        metrics=_metrics(ttft_ms=350.0, tokens_per_sec=90.0, thinking_overhead_tokens=120, estimated=False),
+        system_prompts=_prompts(
+            default="You are a fast, efficient assistant. Give direct, concise answers."
+        ),
+        metrics=_metrics(
+            ttft_ms=350.0, tokens_per_sec=90.0, thinking_overhead_tokens=120, estimated=False
+        ),
     )
 )
 
@@ -607,7 +624,9 @@ _register(
             coding="You are a coding specialist. Write correct, efficient code with proper error handling.",
             reasoning="You are a logical reasoning assistant. Think step by step.",
         ),
-        metrics=_metrics(ttft_ms=1500.0, tokens_per_sec=50.0, thinking_overhead_tokens=400, estimated=True),
+        metrics=_metrics(
+            ttft_ms=1500.0, tokens_per_sec=50.0, thinking_overhead_tokens=400, estimated=True
+        ),
     )
 )
 
@@ -685,7 +704,9 @@ _register(
             reasoning="You are a reasoning specialist. Think step-by-step and show your work.",
             coding="You are a coding expert. Write clean, efficient, well-commented code.",
         ),
-        metrics=_metrics(ttft_ms=9000.0, tokens_per_sec=18.0, thinking_overhead_tokens=1200, estimated=True),
+        metrics=_metrics(
+            ttft_ms=9000.0, tokens_per_sec=18.0, thinking_overhead_tokens=1200, estimated=True
+        ),
     )
 )
 
@@ -721,7 +742,9 @@ _register(
             default="You are a highly capable assistant.",
             reasoning="You are an expert with strong reasoning capabilities. Think thoroughly.",
         ),
-        metrics=_metrics(ttft_ms=7000.0, tokens_per_sec=22.0, thinking_overhead_tokens=700, estimated=False),
+        metrics=_metrics(
+            ttft_ms=7000.0, tokens_per_sec=22.0, thinking_overhead_tokens=700, estimated=False
+        ),
     )
 )
 
@@ -752,7 +775,9 @@ _register(
             general=0.85,
         ),
         system_prompts=_prompts(default="You are a highly capable assistant."),
-        metrics=_metrics(ttft_ms=6500.0, tokens_per_sec=25.0, thinking_overhead_tokens=600, estimated=True),
+        metrics=_metrics(
+            ttft_ms=6500.0, tokens_per_sec=25.0, thinking_overhead_tokens=600, estimated=True
+        ),
     )
 )
 
@@ -785,7 +810,9 @@ _register(
             general=0.89,
         ),
         system_prompts=_prompts(default="You are a highly capable assistant."),
-        metrics=_metrics(ttft_ms=7200.0, tokens_per_sec=23.0, thinking_overhead_tokens=650, estimated=True),
+        metrics=_metrics(
+            ttft_ms=7200.0, tokens_per_sec=23.0, thinking_overhead_tokens=650, estimated=True
+        ),
     )
 )
 
@@ -818,7 +845,9 @@ _register(
             default="You are an expert coding assistant.",
             coding="You are a coding specialist. Write correct, efficient, well-structured code.",
         ),
-        metrics=_metrics(ttft_ms=6000.0, tokens_per_sec=28.0, thinking_overhead_tokens=500, estimated=True),
+        metrics=_metrics(
+            ttft_ms=6000.0, tokens_per_sec=28.0, thinking_overhead_tokens=500, estimated=True
+        ),
     )
 )
 
@@ -853,7 +882,9 @@ _register(
             default="You are an expert coding and reasoning assistant.",
             coding="You are a coding specialist. Think step by step, then write correct, efficient code.",
         ),
-        metrics=_metrics(ttft_ms=7500.0, tokens_per_sec=24.0, thinking_overhead_tokens=800, estimated=True),
+        metrics=_metrics(
+            ttft_ms=7500.0, tokens_per_sec=24.0, thinking_overhead_tokens=800, estimated=True
+        ),
     )
 )
 
@@ -886,7 +917,9 @@ _register(
             code_gen=0.82,
         ),
         system_prompts=_prompts(default="You are a helpful, efficient assistant."),
-        metrics=_metrics(ttft_ms=5000.0, tokens_per_sec=30.0, thinking_overhead_tokens=0, estimated=True),
+        metrics=_metrics(
+            ttft_ms=5000.0, tokens_per_sec=30.0, thinking_overhead_tokens=0, estimated=True
+        ),
     )
 )
 
@@ -1059,7 +1092,7 @@ def best_model_for_task(
         except ValueError as exc:
             raise ValueError(f"Unknown task {task!r}") from exc
 
-    candidates = LEMONADE_RECIPES.values()
+    candidates: list[ModelRecipe] = list(LEMONADE_RECIPES.values())
     if lane is not None:
         candidates = [r for r in candidates if r.lane == lane]
     if prefer_downloaded is not None:
@@ -1137,7 +1170,7 @@ def register_recipe(recipe: ModelRecipe) -> None:
     LEMONADE_RECIPES[recipe.model_id] = recipe
 
 
-def probe_live_models(port: int = 13305, timeout: float = 3.0) -> list[dict]:
+def probe_live_models(port: int = 13305, timeout: float = 3.0) -> list[dict[str, Any]]:
     """Fetch the list of models from the Lemonade /v1/models endpoint.
 
     Returns an empty list if the server is unreachable so callers can degrade
@@ -1147,8 +1180,8 @@ def probe_live_models(port: int = 13305, timeout: float = 3.0) -> list[dict]:
         with urllib.request.urlopen(
             f"http://127.0.0.1:{port}/v1/models", timeout=timeout
         ) as response:
-            data = json.loads(response.read())
-        return data.get("data", [])
+            data: dict[str, Any] = json.loads(response.read())
+        return data.get("data", [])  # type: ignore[no-any-return]
     except Exception:
         logger.debug("probe_live_models: Lemonade unavailable on port %d", port)
         return []

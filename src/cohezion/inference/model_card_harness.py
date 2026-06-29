@@ -53,6 +53,7 @@ def _thinking_overhead(model_id: str) -> int:
         return recipe.metrics.thinking_overhead_tokens
     return _THINKING_OVERHEAD_TOKENS.get(model_id, _THINKING_OVERHEAD_TOKENS["default_thinking"])
 
+
 # Per-output-type optimal max_tokens (thinking budget + output headroom)
 _OUTPUT_TYPE_MAX_TOKENS: dict[str, int] = {
     "short_categorical": 50,
@@ -90,13 +91,16 @@ class ModelCardHarness:
         """Build from the Lemonade /v1/models endpoint."""
         try:
             with urllib.request.urlopen(f"http://127.0.0.1:{port}/v1/models", timeout=3) as r:
-                data = json.loads(r.read())
+                data: dict = json.loads(r.read())
             return cls(data.get("data", []))
         except Exception:
             return cls([])  # empty harness — callers must handle gracefully
 
     def get_labels(self, model_id: str) -> list[str]:
-        return self._by_id.get(model_id, {}).get("labels", [])
+        labels = self._by_id.get(model_id, {}).get("labels", [])
+        if isinstance(labels, list):
+            return labels
+        return []
 
     def get_ctx_size(self, model_id: str) -> int | None:
         ctx = self._by_id.get(model_id, {}).get("recipe_options", {}).get("ctx_size")
@@ -112,22 +116,22 @@ class ModelCardHarness:
         """Return the model_id from the catalog best suited to the output type."""
         if output_type == "code":
             # Prefer models with 'coding' label
-            for m in self._by_id.values():
-                if "coding" in m.get("labels", []) and m.get("downloaded"):
-                    return m["id"]
+            for model_id, meta in self._by_id.items():
+                if "coding" in meta.get("labels", []) and meta.get("downloaded"):
+                    return model_id
             # Fallback: Qwen3 with /no_think
-            for m in self._by_id.values():
+            for model_id, meta in self._by_id.items():
                 if (
-                    "reasoning" in m.get("labels", [])
-                    and m.get("downloaded")
-                    and self.is_qwen3_family(m["id"])
+                    "reasoning" in meta.get("labels", [])
+                    and meta.get("downloaded")
+                    and self.is_qwen3_family(model_id)
                 ):
-                    return m["id"]
+                    return model_id
 
         if output_type in ("math_reasoning", "long_generation"):
-            for m in self._by_id.values():
-                if "reasoning" in m.get("labels", []) and m.get("downloaded"):
-                    return m["id"]
+            for model_id, meta in self._by_id.items():
+                if "reasoning" in meta.get("labels", []) and meta.get("downloaded"):
+                    return model_id
 
         return None
 
@@ -176,7 +180,7 @@ class ModelCardHarness:
         # Legacy fallback for models without a curated recipe.
         max_tokens = _OUTPUT_TYPE_MAX_TOKENS.get(output_type, 400)
         prompt_prefix = ""
-        extra_body: dict[str, Any] = {}
+        extra_body = {}
 
         if self.is_qwen3_family(model_id) and output_type in (
             "code",

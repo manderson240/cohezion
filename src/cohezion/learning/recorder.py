@@ -73,7 +73,9 @@ class LearningRecorder:
         synthesizer.
         """
         try:
-            effective_coherence = coherence if coherence is not None else max(0.0, min(1.0, phi_score))
+            effective_coherence = (
+                coherence if coherence is not None else max(0.0, min(1.0, phi_score))
+            )
             twelve_d = zero_twelve_d()
             twelve_d["novelty"] = confidence
             twelve_d["precipitation"] = effective_coherence
@@ -144,7 +146,10 @@ class LearningRecorder:
                 "output_preview": output[:500],
                 "success": success,
                 "duration_seconds": duration_seconds,
-                "metrics": {k: str(v) if not isinstance(v, (int, float, str, bool, list, dict)) else v for k, v in metrics.items()},
+                "metrics": {
+                    k: str(v) if not isinstance(v, (int, float, str, bool, list, dict)) else v
+                    for k, v in metrics.items()
+                },
             }
 
             event = PrecipitationEvent(

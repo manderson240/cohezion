@@ -10,6 +10,7 @@ Implements the 'Ratchet' mechanism:
 4. Ratchet (Raise Standards)
 """
 
+import asyncio
 import logging
 import sys
 import time
@@ -39,15 +40,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("EvolutionaryDriver")
 
-# ... (Imports remain the same)
-import asyncio
-
 
 # ... (Logging setup remains the same)
 
 
 class StreamAgent:
-    def __init__(self, name: str, focus: str, target_file: str = None):
+    def __init__(self, name: str, focus: str, target_file: str | None = None):
         self.name = name
         self.focus = focus
         self.target_file = target_file
@@ -106,7 +104,7 @@ class StreamAgent:
 
 
 class SwarmOrchestrator:
-    def __init__(self, engineer_target: str = None):
+    def __init__(self, engineer_target: str | None = None):
         self.streams = [
             StreamAgent("Architect", "Structure & Patterns"),
             StreamAgent("Engineer", "Performance & Correctness", target_file=engineer_target),

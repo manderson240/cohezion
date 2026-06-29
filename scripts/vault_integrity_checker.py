@@ -25,7 +25,7 @@ from pathlib import Path
 class VaultIntegrityChecker:
     """Comprehensive vault data integrity validator"""
 
-    def __init__(self, vault_path: str = None):
+    def __init__(self, vault_path: str | None = None):
         if vault_path is None:
             vault_path = Path.cwd() / "cloud-vault-mcp" / "vault"
         self.vault_path = Path(vault_path)
@@ -141,7 +141,7 @@ class VaultIntegrityChecker:
 
             # Check for orphaned links
             links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
-            for link_text, link_url in links:
+            for _, link_url in links:
                 if link_url.endswith(".md"):
                     # Internal reference
                     self.references[doc_path].add(link_url)
@@ -372,7 +372,7 @@ class VaultIntegrityChecker:
 
         return recommendations
 
-    def export_report(self, output_path: str = None):
+    def export_report(self, output_path: str | None = None):
         """Export detailed report to JSON"""
         if output_path is None:
             output_path = self.vault_path.parent / "vault_integrity_report.json"
