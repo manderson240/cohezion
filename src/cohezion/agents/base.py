@@ -527,6 +527,35 @@ class BaseAgent(ABC):
         )
         await self._narrator.narrate(narration)
 
+        latency = (time.perf_counter() - start_time) * 1000
+
+        # 2.6 Learning-loop feedback — close BaseAgent turn → Mycelium/Ouroboros.
+        _lane: str | None = None
+        _escalated = False
+        try:
+            _lane = adapter_result.get("lane")  # type: ignore[has-type]
+            _escalated = adapter_result.get("escalated_to_cloud", False)  # type: ignore[has-type]
+        except Exception:
+            pass
+
+        try:
+            from cohezion.learning.recorder import get_learning_recorder
+
+            get_learning_recorder().record_agent_turn(
+                agent_name=self.__class__.__name__,
+                prompt=prompt,
+                response=final_result,
+                model=active_model,
+                lane=_lane,
+                phi_score=phi_score,
+                confidence=confidence,
+                latency_ms=latency,
+                escalated_to_cloud=_escalated,
+                embedding=embedding,
+            )
+        except Exception as e:
+            logger.debug(f"Learning loop feedback failed: {e}")
+
         # Persistence & Cache
         persistence_id = f"thought_{int(time.time() * 1000)}_{query_hash}"
         await self._set_cached(
