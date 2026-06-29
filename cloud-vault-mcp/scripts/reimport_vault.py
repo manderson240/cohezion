@@ -104,7 +104,7 @@ async def verify_services():
         try:
             resp = await client.post(
                 f"{EMBED_URL}/v1/embeddings",
-                json={"model": "nomic-embed-text-v2-moe-GGUF", "input": "ping"},
+                json={"model": "Qwen3-Embedding-0.6B-GGUF-Q8_0", "input": "ping"},
             )
             dim = len((resp.json().get("data") or [{}])[0].get("embedding", []))
             logger.info(f"lemonade embed: OK (dim={dim})")
@@ -162,7 +162,7 @@ async def main():
         surrealdb_url=SURREALDB_URL,
         namespace="cohezion",
         database="vault",
-        embedding_model="nomic-embed-text-v2-moe-GGUF",
+        embedding_model="Qwen3-Embedding-0.6B-GGUF-Q8_0",
         max_concurrent=1,  # lemonade nomic-embed hangs on concurrency; serialize (single embed ~22ms)
     ) as importer:
         for directory, recursive in DIRECTORIES:

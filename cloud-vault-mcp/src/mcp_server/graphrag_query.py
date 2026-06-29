@@ -28,7 +28,7 @@ class GraphRAGQuery:
         surrealdb_url: str = "http://localhost:8000",
         namespace: str = "cohezion",
         database: str = "vault",
-        embedding_model: str = "nomic-embed-text-v2-moe-GGUF",
+        embedding_model: str = "Qwen3-Embedding-0.6B-GGUF-Q8_0",
         max_graph_depth: int = 3,
     ):
         self.embed_url = embed_url.rstrip("/")

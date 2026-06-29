@@ -64,7 +64,7 @@ class OllamaClient:
             raise
 
     async def embed(
-        self, texts: list[str], model: str = "nomic-embed-text-v2-moe-GGUF"
+        self, texts: list[str], model: str = "Qwen3-Embedding-0.6B-GGUF-Q8_0"
     ) -> list[list[float]]:
         """Generate embeddings for texts.
 

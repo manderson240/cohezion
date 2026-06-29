@@ -40,7 +40,7 @@ class GraphRAGImporter:
         surrealdb_url: str = "http://localhost:8000",
         namespace: str = "cohezion",
         database: str = "vault",
-        embedding_model: str = "nomic-embed-text-v2-moe-GGUF",
+        embedding_model: str = "Qwen3-Embedding-0.6B-GGUF-Q8_0",
         max_concurrent: int = 10,
     ):
         self.vault_path = Path(vault_path).resolve()
