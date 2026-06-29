@@ -130,6 +130,24 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **Discriminating**: `test_use_ema_thresholds_more_sensitive_than_fixed` — value of 0.65 triggers EMA alert but NOT fixed alert after training on 0.90 history
 - **Verification**: `uv run pytest tests/compound/test_degradation_detector.py::TestEMAThresholds -q` → 8 passed
 
+### FD1: FrequencyDispersedDelay + stack_delays() pulsar dispersion model (#141, 2026-06-28)
+- `FrequencyDispersedDelay(dm, nu_mhz)` frozen dataclass in `observer_patch.py`; `delay_seconds` property: `τ_DM = _K_DM × DM / ν²`
+- `_K_DM = 4148.808` MHz² pc⁻¹ cm³ s — IPTA-standard dispersion constant
+- `stack_delays(*delay_seconds) → float` — additive compositor for dispersion + Roemer (or any geometric) delay
+- Calibration anchor: PSR J0125−5854 (MWA 2026-06-27), DM=9.9 pc cm⁻³, ν=154 MHz → τ_DM ≈ 1.731 s
+- Composes with `RetardedField` + `signal_at_observer` via `stack_delays(fd.delay_seconds, geometric_delay)`
+- **Discriminating**: halving ν quadruples delay (ν⁻² scaling), not doubles (ν⁻¹) — verified by ratio test
+- **Verification**: `uv run pytest tests/physics/test_frequency_dispersed_delay.py -q` → 11 passed
+
+### RTG1: MetricBaseline.rtg_floor() Voyager-calibrated predictive decay floor (#98, 2026-06-27)
+- `MetricBaseline.rtg_floor(initial_value, calls_elapsed, half_life_calls) → float` static method
+- Physics: `P(t) = P₀ × exp(−λ × t)`, `λ = ln(2) / T½` (Pu-238 analogue in call-space)
+- `DegradationDetector._rtg_calibration`: `cache_hit_rate` T½=500 calls, `coherence` T½=1000 calls
+- RTG alert fires when `current < rtg_floor(initial, calls, T½)` — anomalous decay beyond natural aging
+- Alert `metric` field uses `f"{metric}_rtg"` namespace (e.g. `"cache_hit_rate_rtg"`) to avoid colliding with EMA/Chebyshev metric names
+- Predictive (not reactive): uses initial established baseline, not recent history — complements Chebyshev (distribution-based) and EMA (adaptive threshold)
+- **Verification**: `uv run pytest tests/compound/test_degradation_detector.py::TestRTGDecayFloor -q` → 10 passed
+
 ## SkillRefiner Invariants
 
 ### JI1: JourneyTracker cross-session identity persistence (GIC Identity, #138, 2026-06-27)
@@ -150,7 +168,17 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - Module: `src/cohezion/compound/jepa_gate.py`
 - **T1 structural**: `PreExecutionVerdict` has PROCEED/REROUTE/SKIP; `JepaGate.check` accepts `task_description` + `current_state`
 - **T2 discriminating**: `test_low_coherence_prediction_does_not_return_proceed` (0.1 → not PROCEED), `test_very_low_coherence_returns_skip` (0.05 → SKIP), `test_threshold_boundary_at_point_six_is_proceed` (exactly 0.6 → PROCEED)
-- **Verification**: `uv run pytest tests/compound/test_jepa_gate.py -q` → 12 passed
+- **Verification**: `uv run pytest tests/compound/test_jepa_gate.py -q` → 20 passed (12 + 8 later)
+
+### JG2: JepaGate k-step latent lookahead — planning-before-acting (Dyna-Think, arXiv 2506.00320, 2026-06-29)
+- `JepaGate(world_model, ..., lookahead_steps: int = 1)` — `lookahead_steps=1` is single-step coherence (strict no-op, JG1 unchanged); `>1` plans ahead.
+- When `lookahead_steps > 1`: coherence = `min(mean(clip(s,0,1)) for s in world_model.simulate_trajectory(state, [zero_action]*k)[1:])` — the trajectory MINIMUM, so a path coherent now but diverging at step k is caught before committing the pipeline.
+- Closes a producer→consumer gap: `JEPAWorldModel.simulate_trajectory` existed (used by the API service) but the gate never called it.
+- `AttributeError` fallback to single-step `predict_next_state` for world models/stubs without `simulate_trajectory`. `last_coherence` becomes a strictly more conservative signal for DegradationDetector consumers. Activation: inject a real world model + `lookahead_steps>1` at construction (factory default still k=1).
+- **T1 structural**: `'lookahead_steps' in inspect.signature(JepaGate.__init__).parameters`
+- **T2 discriminating**: `test_t2_diverging_trajectory_changes_verdict` — diverging traj (0.85,0.85,0.05): 1-step→PROCEED, 3-step→SKIP (a wrong impl ignoring lookahead returns PROCEED for both)
+- **T3 fallback**: `test_t3_fallback_when_no_simulate_trajectory` — k=3 stub w/o simulate_trajectory → single-step PROCEED
+- **Verification**: `uv run pytest tests/compound/test_jepa_gate.py tests/compound/test_jepa_gate_wiring.py -q` → 33 passed
 
 ### JW1: JepaGate.last_coherence + CompoundExecutor routing feedback wiring (2026-06-27)
 - `JepaGate.last_coherence: float` — set to predicted coherence after every `check()` call
@@ -276,6 +304,18 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - Closes the CB16 producer→consumer gap: tier_used and escalation_count flow into future tier prediction
 - **Structural**: `tests/compound/test_difficulty_estimator.py::TestDifficultyEstimatorStructural::test_skill_refiner_has_difficulty_estimator`
 
+### GIC_NEW_4: predict_tier() accepts optional prompt="" for cold-start complexity routing (#142, 2026-06-28)
+- `predict_tier(skill_name, operation_type, prompt: str = "")` — GIC1 preserved: no-arg call still returns "unknown"
+- `_complexity_score(prompt) → float` in [0.0, 1.0]: length (40%, saturates at 200 words) + keyword density (60%, saturates at 3 hard keywords)
+- `_tier_from_complexity(score)`: score < 0.3 → "npu"; 0.3 ≤ score < 0.6 → "igpu"; ≥ 0.6 → "cpu"
+- History always overrides prompt-based estimate (GIC2/GIC3 preserved)
+- Source: gitmoot/modeltier.go pre-execution feature space (2026-06-28 research)
+- **Structural**: `"prompt" in inspect.signature(DifficultyEstimator.predict_tier).parameters`
+- **GIC_NEW_5 discriminating**: `predict_tier("s","op", prompt="<long reasoning prompt with ≥3 hard keywords>")` → "cpu" (no history)
+- **GIC_NEW_6 discriminating**: `predict_tier("s","op", prompt="What is Python?")` → "npu" (short, no hard keywords)
+- **GIC_NEW_7 discriminating**: solid NPU history overrides complex prompt → result is "npu", not "cpu"
+- **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py::TestDifficultyEstimatorPromptFeatures -q` → 8 passed
+
 ## Skill Proximity Invariants (#102, 2026-06-27)
 
 ### SP1: skill_proximity() returns 0.0 when either skill has no ERP history
@@ -309,6 +349,207 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
   have high Higuchi FD; CC1's `[1.3, 1.7]` is for Brownian-motion quality series only.
 - The CC1 invariant itself lives in the GLOBAL `~/.claude/rules/harness.md` (this project
   file has no CC1 section). Verification: `higuchi_fd(bunimovich_calibration_sequence()) >= 1.8`.
+
+### Microseism LOW-FD calibration anchor (2026-06-28)
+- `fractal_metrics.microseism_calibration_sequence()` — pure 0.038 Hz sinusoid (26-second
+  Earth microseism period), n=100 samples at 1 Hz.
+- Higuchi FD < 1.2 (smooth/predictable). Together with CC1 Brownian [1.3, 1.7] and
+  Bunimovich (FD ≥ 1.8), the three anchors span the FULL FD interpretation scale:
+    - microseism  → FD ≈ 1.0  (stuck — quality series locked, no improvement)
+    - CC1 Brownian → FD ∈ [1.3, 1.7]  (HIHO equilibrium, healthy)
+    - Bunimovich   → FD ≥ 1.8  (chaotic oscillation)
+- Verified: `tests/inference/test_fractal_metrics.py` — 8 tests, all pass (3.61s).
+- DO NOT confuse FD < 1.2 with "the CC1 lower bound" — CC1 lower bound is 1.3 (Brownian);
+  microseism is an ANCHOR, not a threshold to keep quality above.
+
+## Wiring Completeness Invariants (W1–W5, 2026-06-27)
+
+Five previously-unwired products closed: JepaGate factory injection, JourneyTracker
+cross-session identity lifecycle, DegradationDetector tier suggestion, DifficultyEstimator
+tier prediction, and skill_proximity transfer hints. All verified by
+`tests/compound/test_wiring_completeness.py` (14 discriminating tests).
+
+### W1: JepaGate auto-injected by make_executor() and compound __init__.make_executor()
+- Both `make_executor()` functions inject `JepaGate(world_model=None)` when caller doesn't supply one
+- Fail-open: `world_model=None` → `JepaGate.check()` always returns `PROCEED` (no false blocks)
+- `ExecutorFactory.create()` and `get_singleton()` accept and forward `jepa_gate` kwarg
+- **Verification**: `from cohezion.compound import make_executor; e=make_executor(MagicMock()); assert e._jepa_gate is not None`
+
+### W2: JourneyTracker identity lifecycle wired by ExecutorFactory (GIC Identity)
+- `ExecutorFactory.create()` calls `journey_tracker.restore_identity()` when tracker is provided
+- `atexit.register(journey_tracker.save_identity)` called so identity survives process restarts
+- No-op when `journey_tracker=None` (guard prevents AttributeError)
+- **Verification**: `tests/compound/test_wiring_completeness.py::TestW2JourneyTrackerIdentityLifecycle`
+
+### W3: DegradationDetector.suggest_routing_tier() exposed in execution metrics
+- `execute_task()` captures `suggest_routing_tier()` result in `_tier_hints["suggested_tier"]`
+- Hints collected pre-execution, merged into final metrics after `execute_fn()` returns
+- Non-blocking: exception in suggest_routing_tier() leaves key absent, doesn't crash execution
+- **Verification**: `result.metrics["suggested_tier"] in {"npu", "igpu", "cpu"}` after execute_task()
+
+### W4: DifficultyEstimator.predict_tier() exposed in execution metrics
+- `execute_task()` captures `_skill_refiner._difficulty_estimator.predict_tier(skill, op)` result
+- Stored in `_tier_hints["predicted_tier"]`, merged into metrics after execute_fn() returns
+- Called with exact `skill_name` and `operation_type` arguments from execute_task() signature
+- **Verification**: `result.metrics["predicted_tier"]` present and `predict_tier` called with correct args
+
+### W5: skill_proximity() consumed by _generate_recommendation()
+- `_generate_recommendation(metrics, operation_type, skill_name="")` accepts optional skill_name
+- When skill_name provided and `best_score > 0.5`, appends `(transfer from 'X', proximity=Y)`
+- Searches `_env_predictor._history` for all known skills, skips self, picks max proximity
+- Call site at line 645 updated: `self._generate_recommendation(metrics, operation_type, skill_name)`
+- **Verification**: `tests/compound/test_wiring_completeness.py::TestW5SkillProximityConsumer`
+
+## RiVER Reward Normalization Invariants (#140/#141, 2026-06-27)
+
+Source: RiVER (arXiv:2606.27369) — fixes scale-dominance and frequency-dominance in process reward accumulation.
+
+### RV1: _accumulate_process_reward() z-scores incoming values once window has ≥3 samples (#140)
+- With < 3 samples: raw `pred_err` is appended unchanged (no stable σ estimate).
+- With ≥ 3 samples: `normalized = (pred_err - mu) / (sigma + 1e-8)` where `mu`/`sigma` are computed from the CURRENT window BEFORE appending. The normalized value is what's stored — NOT the raw value.
+- Effect: high-variance skills (e.g. alternating ±1000 errors) have their scale squashed within ~3–5 samples; `process_reward_mean()` stays comparable across skills regardless of raw magnitude.
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRiVERZScoreNormalization -q` → 3 passed
+
+### RV2: _autodata_select() applies 1/(1+wins) frequency penalty before max selection (#141)
+- `self._autodata_wins: dict[str, int]` initialized to `{}` in `SkillRefiner.__init__`.
+- Each call to `_autodata_select()` multiplies each candidate's overlap score by `1 / (1.0 + wins)` before taking `max(scores)`.
+- The winner's count is incremented after selection (post-selection tracking, not pre-selection).
+- Effect: a candidate that has dominated N consecutive selections sees its effective score fall toward 0, allowing a fresher candidate to overtake it. Prevents perspective lock (one quality/caching/tier recommendation monopolizing the loop).
+- **T1 structural**: `hasattr(SkillRefiner(), '_autodata_wins') and SkillRefiner()._autodata_wins == {}`
+- **T2 discriminating**: `test_repeated_winner_gets_lower_score_on_next_call` — after 20 rounds, `set(winners)` must have `len > 1`.
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRiVERFrequencyWeighting -q` → 3 passed
+
+## TrajectoryPoint Action Field Invariants (JI1, 2026-06-27)
+
+Source: General Intuitions (TechCrunch 2026-06-25) — explicit action labels give JEPA
+far better (state, action, next_state) triples than inferred state-pair transitions.
+
+### JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default (#142, 2026-06-27)
+- `action: str = ""` field on `TrajectoryPoint` dataclass (safe default, backward-compatible)
+- `track_execution(result, task_desc, op_type, action="")` — optional kwarg
+- Resolution: `resolved_action = action or execution_result.metrics.get("tier_used", "")`
+- Explicit `action` arg takes priority over `tier_used` in metrics
+- `record_env_state(env_type, step, obs, reward, action="")` — same pattern for gym envs
+- **T1 structural**: `"action" in {f.name for f in dataclasses.fields(TrajectoryPoint)}`; `field_map["action"].default == ""`; `"action" in inspect.signature(JourneyTracker.track_execution).parameters`
+- **T2 discriminating**: `test_track_execution_action_captured_from_tier_used` (must equal 'npu', not '' and not operation_type); `test_track_execution_explicit_action_overrides_tier_used` (explicit 'igpu:escalated' wins over 'npu' from metrics)
+- **Verification**: `uv run pytest tests/test_journey_tracker.py::TestTrajectoryPointAction -q` → 7 passed
+
+## MoE Skill Router Invariants (MR1–MR4, #83, 2026-06-28)
+
+### MR1: MoESkillRouter expert names align with SkillRefiner._AUTODATA_PERSPECTIVES keys
+- `MoESkillRouter._EXPERT_NAMES == ["quality", "efficiency", "caching", "tier", "fallback"]`
+- Weights initialized uniformly: `∀ name: weights[name] == 1.0 / 5`
+- **Verification**: `from cohezion.compound.moe_skill_router import MoESkillRouter; r=MoESkillRouter(); assert set(r._EXPERT_NAMES)=={"quality","efficiency","caching","tier","fallback"}; assert abs(r.get_weight("quality") - 0.2) < 1e-9`
+
+### MR2: update() and replay() shift weights via EMA
+- `update("quality", +1.0)` raises quality weight above initial 0.2
+- `update("quality", -1.0)` lowers quality weight below initial 0.2
+- `update("nonexistent", 1.0)` is a no-op (no crash, weights unchanged)
+- `replay(history)` with repeated quality wins makes quality the max-weight expert
+- **Discriminating**: after `replay([("quality", 1.0)] * 20, alpha=0.3)`, quality is the dominant expert
+- **Verification**: `uv run pytest tests/compound/test_moe_skill_router.py::TestMR2WeightLearning -q` → 6 passed
+
+### MR3: route() always returns a valid expert name
+- `MoESkillRouter().route("skill", metrics)` ∈ `_EXPERT_NAMES`
+- Returns the expert with the highest current weight
+- **Verification**: `r=MoESkillRouter(alpha=0.9); r.update("tier",1.0); r.update("tier",1.0); assert r.route("s",None)=="tier"`
+
+### MR4: SkillRefiner accepts moe_router kwarg; _autodata_select() applies MoE weight
+- `"moe_router" in inspect.signature(SkillRefiner.__init__).parameters`
+- `SkillRefiner(moe_router=router)._moe_router is router`
+- `_autodata_candidates()` populates `self._candidate_expert_map` (candidate_text → expert_name)
+- `_autodata_select()` multiplies candidate score by `moe_router.get_weight(expert_name)` when router is wired
+- Combined score formula: `overlap × freq_penalty × moe_weight` — three orthogonal bias signals
+- **Discriminating**: with caching expert weight driven to max, `_generate_recommendation(metrics_with_cached_hits>0)` returns "cache"-themed result ≥5/10 calls
+- **Verification**: `uv run pytest tests/compound/test_moe_skill_router.py -q` → 14 passed
+
+## Lessons Captured (2026-05-02)
+
+## JepaGate Threshold Property Invariants (#156, 2026-06-28)
+
+### JTP1: JepaGate.coherence_threshold is a settable @property aliasing _proceed_threshold
+- `isinstance(JepaGate.__dict__.get("coherence_threshold"), property)` must be True
+- Getter returns `self._proceed_threshold`; setter assigns to `self._proceed_threshold`
+- Default value 0.6 (matches `_THRESHOLD_PROCEED` module constant)
+- Enables RQGM epoch cycling to tighten/loosen the JEPA gate without reimplementing `check()`
+- **T1 structural**: `isinstance(JepaGate.__dict__.get("coherence_threshold"), property)`
+- **T2 discriminating**: raising to 0.9 demotes 0.75-coherence PROCEED→not-PROCEED; lowering to 0.3 promotes 0.45-coherence REROUTE→PROCEED
+- **Verification**: `uv run pytest tests/compound/test_jepa_gate.py::TestJepaGateCoherenceThreshold -q` → 5 passed
+
+## RQGM Epoch-Boundary Utility Invariants (#155, 2026-06-28)
+
+### RQGM1: SkillRefiner._goal_epoch and _goal_consecutive_hits initialized to 0
+- Both fields must exist on SkillRefiner and start at 0
+- Source: Red Queen Gödel Machine (arXiv 2606.26294) — co-evolving goal objectives prevents static-evaluator stagnation
+- **T1 structural**: `hasattr(SkillRefiner(), '_goal_epoch') and sr._goal_epoch == 0; hasattr(..., '_goal_consecutive_hits') and sr._goal_consecutive_hits == 0`
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate::test_t1_epoch_fields_exist_with_zero_defaults -q`
+
+### RQGM2: _auto_update_goal() advances _goal_epoch and resets _goal_consecutive_hits on each fire
+- Every time the auto-update tally reaches `_goal_auto_threshold`, `_goal_epoch` increments by 1 and `_goal_consecutive_hits` resets to 0
+- Epoch 0: uses original metrics-driven heuristic (quality < 0.5 → quality_score goal)
+- Epoch 1+: uses `_RQGM_GOAL_ROTATION[epoch % 3]` — rotates through quality_score / escalation_count / token_efficiency
+- **T2 discriminating**: after 5 calls, `_goal_epoch == 1`; after 10 calls, `second_goal.target_metric != first_goal.target_metric`
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate -q` → 4 passed
+
+## SkillRefiner Durable Loop-State Spine (#154, 2026-06-28)
+
+### SRS1: to_dict() returns all required cross-session state keys
+- `{"goal_epoch","goal_consecutive_hits","session_goal","goal_call_tally","autodata_wins","process_rewards","erp_history"} ⊆ set(SkillRefiner().to_dict())`
+- JSON-safe: all values are dicts/lists/ints/floats/None — no deque, tuple, or Path objects
+- ERP history uses `"skill::op"` string keys (tuple keys are not JSON-serializable)
+
+### SRS2: from_dict() restores non-default state — discriminating
+- `SkillRefiner.from_dict({"goal_epoch": 7, ...})._goal_epoch == 7` — wrong impl (ignoring key) would leave it at 0
+- `autodata_wins`, `process_rewards`, and `session_goal` all round-trip faithfully
+- CB16 safe-defaults: missing keys fall back to empty/zero state (never crash on partial file)
+
+### SRS3: save_state() / restore_state() round-trip with str or Path arguments
+- `save_state(path)` creates parent dirs and writes JSON; accepts `str | Path | None`
+- `restore_state(path)` returns `True` on success, `False` when file absent or corrupt (fail-open)
+- ERP history tuple keys survive `"skill::op"` encoding through the full save→restore cycle
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestSkillRefinerDurableSpine -q` → 8 passed
+
+## RiemannianGlideTrajectory Curvature-Induced Anisotropy (#157, 2026-06-28)
+
+### RGA1: curvature_coupling=0.0 default preserves original step() behaviour (backward-compatible)
+- `RiemannianGlideTrajectory` accepts `curvature_coupling: float = 0.0` as 4th field
+- `step()` with κ=0 is byte-for-byte identical to the pre-#157 implementation
+- `anisotropy_tensor()` returns `[1.0, ..., 1.0]` when κ=0 or when `position=[0,...,0]`
+- **T1 structural**: `"curvature_coupling" in {f.name for f in dataclasses.fields(RiemannianGlideTrajectory)}`
+- **T1 backward-compat**: `test_backward_compatibility_no_coupling_kwarg` — step still gives [0.1, 0.2] for identity metric
+
+### RGA2: κ > 0 damps step in proportion to |position| — discriminating test
+- `a_i = 1 / (1 + κ * g_{ii} * |x_i|)` — factor < 1.0 when κ>0 and x≠0
+- `step(dt)` applies `x_{t+dt} = x_t + dt * v * a` (elementwise) instead of `x_t + dt * v`
+- Curved trajectory (κ>0) is SHORTER than flat trajectory (κ=0) from same initial conditions
+- At origin |x|=0, damping is zero regardless of κ (no anisotropy at fixed point)
+- Source: PRL 136 256708 analogy — curvature resists transport in high-curvature directions
+- **T2 discriminating**: `test_nonzero_coupling_changes_step` (κ=0 vs κ=1 produce different positions); `test_anisotropy_damped_in_large_position` (larger |x| → smaller a_i)
+- **Verification**: `uv run pytest tests/physics/test_riemannian_glide.py -q` → 12 passed
+
+## AIR Model Invariants (task_classifier output_intent, #89, 2026-06-28)
+
+### AIR1: classify() accepts output_intent kwarg; None is identity (T1 structural)
+- `"output_intent" in inspect.signature(classify).parameters`
+- `classify(prompt) == classify(prompt, output_intent=None)` for any prompt
+- Invalid output_intent values (not in `_VALID_OUTPUT_INTENTS`) are silently ignored → base decision returned
+- **T1 structural**: `import inspect; from cohezion.inference.task_classifier import classify; assert "output_intent" in inspect.signature(classify).parameters`
+- **Verification**: `uv run pytest tests/inference/test_classifier_thinking_routing.py::TestGoalConditionedClassify::test_no_output_intent_matches_raw_classify -q`
+
+### AIR2: output_intent='generation' upgrades NPU→GPU/long_generation (T2 discriminating)
+- A prompt that routes to NPU without intent must route to GPU/long_generation with `output_intent='generation'`
+- Wrong implementation (ignoring output_intent) returns `node='npu'` both times → FAIL
+- `short_categorical` overrides are immune: categorical output_type is preserved regardless of intent
+- **T2 discriminating**: `test_generation_intent_upgrades_npu_to_gpu`, `test_categorical_override_survives_generation_intent`
+- **Verification**: `uv run pytest tests/inference/test_classifier_thinking_routing.py::TestGoalConditionedClassify -q` → 8 passed
+
+### AIR3: output_intent='lookup'/'summary' downgrades GPU→NPU/short_answer; 'action' upgrades NPU→GPU/code; 'evaluation' upgrades NPU→GPU/medium_generation
+- Downgrade path: GPU/long_generation input + lookup → NPU/short_answer output
+- Action path: NPU/short_answer input + action → GPU/code output
+- Evaluation path: NPU/short_answer input + evaluation → GPU/medium_generation output
+- When base already matches intent direction (GPU + generation), returns base unchanged
+- **T2 discriminating**: `test_lookup_intent_downgrades_gpu_to_npu`, `test_action_intent_upgrades_npu_to_code`, `test_evaluation_intent_upgrades_short_answer_to_medium_generation`, `test_aligned_intent_leaves_decision_unchanged`
+- Source: AIR model R_j = Δk{Di}|Gi — goal-conditioned routing decision
 
 ## Lessons Captured (2026-05-02)
 
