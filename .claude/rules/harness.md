@@ -197,6 +197,13 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **Verification**: `uv run pytest tests/compound/test_tier_resolution.py -q` → 8 passed
 - **Open follow-on**: `recommended_tier` is exposed in metrics + feeds the learning/observability layer; driving execute_fn's actual tier requires an execute_fn contract change (not yet done).
 
+### O9: TieredOrchestrator.run min_tier_index — difficulty-based cascade entry (2026-06-29)
+- `TieredOrchestrator.run(prompt, *, budget_usd=None, min_tier_index=0)`: the cascade loop skips `idx < start_tier` where `start_tier = clamp(min_tier_index, 0, len(tiers)-1)`. A task predicted to need a higher tier skips cheaper tiers that would only fail-and-escalate (AdaptEvolve, arXiv 2602.11931). Index-based (tiers cost-ordered) — no tier-name mapping. Default 0 = unchanged; O1–O8 preserved for the tiers that run.
+- **T1 structural**: `'min_tier_index' in inspect.signature(TieredOrchestrator.run).parameters`
+- **T2 discriminating**: `test_min_tier_index_skips_cheaper_tiers` — `run(min_tier_index=2)` → `route` called once with `prefer='tier2'` (a verdict-ignoring impl runs tier 0); `test_min_tier_index_clamped_never_skips_all` (99 → last tier)
+- **Verification**: `uv run pytest tests/inference/test_orchestrator.py -q` → 17 passed
+- **Open follow-on (binding)**: thread `predicted_tier`(name)→index via a signature-aware `execute_fn(guidance, min_tier_index=...)` in `make_local_execute_fn` + the executor call-site, so the difficulty signal actually drives the cascade entry.
+
 ### JW1: JepaGate.last_coherence + CompoundExecutor routing feedback wiring (2026-06-27)
 - `JepaGate.last_coherence: float` — set to predicted coherence after every `check()` call
 - Fail-open paths (None world_model, exception) set `last_coherence = 1.0` (optimistic default)
