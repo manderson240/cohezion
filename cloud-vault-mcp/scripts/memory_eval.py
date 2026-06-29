@@ -24,7 +24,7 @@ import sys
 
 _SURREAL = "http://localhost:8001/sql"
 _EMBED = "http://localhost:13305/v1/embeddings"
-_EMBED_MODEL = "nomic-embed-text-v2-moe-GGUF"
+_EMBED_MODEL = "Qwen3-Embedding-0.6B-GGUF-Q8_0"
 
 
 def _sq(query: str) -> list:
@@ -59,7 +59,10 @@ def _topk_by_vector(vec: list[float], k: int = 5) -> list[str]:
         "FROM vault_memory WHERE embedding != NONE ORDER BY s DESC LIMIT "
         f"{k};"
     )
-    return [r.get("title", "") for r in _sq(q)]
+    res = _sq(q)
+    if not isinstance(res, list):
+        return []
+    return [r.get("title", "") for r in res if isinstance(r, dict)]
 
 
 def _sample(n: int) -> list[dict]:
