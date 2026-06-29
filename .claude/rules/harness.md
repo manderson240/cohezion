@@ -189,6 +189,14 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **T3 wiring**: `test_wires_lemonade_world_model_when_available` / `test_fail_open_when_lemonade_unavailable` (monkeypatched `lemonade_available`)
 - **Verification**: `uv run pytest tests/compound/test_lemonade_world_model.py -q` → 11 passed; LIVE: `build_live_jepa_gate().check(...)` real GAIA k=3 delegation ~0.4s
 
+### RS1: GIC routing-signal synthesis — JEPA REROUTE actionable (2026-06-29)
+- `executor._resolve_tier(predicted, suggested, jepa_reroute) -> str|None`: combines DifficultyEstimator `predicted_tier` (predictive) + DegradationDetector `suggested_tier` (reactive) by taking the cheaper (conservative); a JepaGate REROUTE verdict then downgrades ONE step toward a cheaper tier via `_TIER_ORDER=("npu","igpu","cpu","cloud")`.
+- Closes a producer→consumer gap: REROUTE was only LOGGED at Step 3.5; `execute_task` Step 3.6(c) now calls `_resolve_tier(...)` and sets `metrics["recommended_tier"]`. None when no valid signal.
+- **T1 structural**: `_TIER_ORDER == ("npu","igpu","cpu","cloud")`
+- **T2 discriminating**: `test_reroute_downgrades_one_step_toward_cheaper` — `_resolve_tier("cpu","cpu",False)=="cpu"` but `(...,True)=="igpu"` (a verdict-ignoring impl leaves it "cpu"); `test_reroute_clamped_at_cheapest_tier`; `test_no_valid_signal_returns_none`
+- **Verification**: `uv run pytest tests/compound/test_tier_resolution.py -q` → 8 passed
+- **Open follow-on**: `recommended_tier` is exposed in metrics + feeds the learning/observability layer; driving execute_fn's actual tier requires an execute_fn contract change (not yet done).
+
 ### JW1: JepaGate.last_coherence + CompoundExecutor routing feedback wiring (2026-06-27)
 - `JepaGate.last_coherence: float` — set to predicted coherence after every `check()` call
 - Fail-open paths (None world_model, exception) set `last_coherence = 1.0` (optimistic default)
