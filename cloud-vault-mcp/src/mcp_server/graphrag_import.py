@@ -36,11 +36,11 @@ class GraphRAGImporter:
     def __init__(
         self,
         vault_path: Path,
-        ollama_url: str = "http://localhost:11434",
+        ollama_url: str = "http://localhost:13305",  # lemonade OmniRouter (OpenAI-compatible)
         surrealdb_url: str = "http://localhost:8000",
         namespace: str = "cohezion",
         database: str = "vault",
-        embedding_model: str = "nomic-embed-text:latest",
+        embedding_model: str = "nomic-embed-text-v2-moe-GGUF",
         max_concurrent: int = 10,
     ):
         self.vault_path = Path(vault_path).resolve()
@@ -74,19 +74,34 @@ class GraphRAGImporter:
             # Truncate to reasonable length (2K chars ~500 tokens)
             text = text[:2000]
 
-            response = await self.http_client.post(
-                f"{self.ollama_url}/api/embeddings",
-                json={"model": self.embedding_model, "prompt": text},
-                timeout=30.0,
-            )
-            response.raise_for_status()
-            data = response.json()
+            # NOTE: lemonade :13305 /v1/embeddings hangs on httpx (ReadTimeout) but responds to
+            # curl in ~8ms (verified 2026-06-29). Use curl via subprocess; payload over stdin to
+            # avoid arg-length/escaping issues with long document bodies.
+            import json as _json
 
-            embedding = data.get("embedding", [])
-            if not embedding:
-                raise GraphRAGError("No embedding returned from Ollama")
+            payload = _json.dumps({"model": self.embedding_model, "input": text}).encode()
+            # nomic-embed returns empty under rapid back-to-back load; retry with backoff.
+            for attempt in range(4):
+                proc = await asyncio.create_subprocess_exec(
+                    "curl", "-s", "--max-time", "30",
+                    f"{self.ollama_url}/v1/embeddings",
+                    "-H", "Content-Type: application/json",
+                    "--data-binary", "@-",
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                out, _ = await proc.communicate(input=payload)
+                try:
+                    data = _json.loads(out)
+                    embedding = (data.get("data") or [{}])[0].get("embedding", [])
+                except Exception:
+                    embedding = []
+                if embedding:
+                    return embedding
+                await asyncio.sleep(0.1 * (attempt + 1))
 
-            return embedding
+            raise GraphRAGError("No embedding returned from lemonade after retries")
 
         except Exception as e:
             logger.error(f"Embedding generation failed: {e}")

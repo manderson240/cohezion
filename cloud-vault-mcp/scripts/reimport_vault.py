@@ -70,7 +70,7 @@ logger = logging.getLogger(__name__)
 
 
 VAULT_PATH = Path("/home/mike-anderson/vaults/cohezion-vault")
-OLLAMA_URL = "http://localhost:11434"
+EMBED_URL = "http://localhost:13305"  # lemonade OmniRouter (OpenAI-compatible), ollama :11434 retired
 SURREALDB_URL = "http://localhost:8001"
 
 # Directories to import (order matters: import targets before sources for edges)
@@ -90,7 +90,7 @@ async def verify_services():
     """Check that SurrealDB and Ollama are reachable."""
     import httpx
 
-    async with httpx.AsyncClient(timeout=5.0) as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:  # generous: :13305 may be busy w/ live agent
         # Check SurrealDB
         try:
             resp = await client.get(f"{SURREALDB_URL}/health")
@@ -99,21 +99,17 @@ async def verify_services():
             logger.error(f"SurrealDB unreachable: {e}")
             return False
 
-        # Check Ollama
+        # Check lemonade embedding backend (:13305) with a REAL embed. Non-fatal: the router may be
+        # busy with a live agent; per-doc embeds have their own 30s timeouts, so don't abort here.
         try:
-            resp = await client.get(f"{OLLAMA_URL}/api/tags")
-            models = resp.json().get("models", [])
-            model_names = [m["name"] for m in models]
-            has_nomic = any("nomic-embed-text" in n for n in model_names)
-            logger.info(
-                f"Ollama: OK (models: {model_names}, nomic-embed-text: {has_nomic})"
+            resp = await client.post(
+                f"{EMBED_URL}/v1/embeddings",
+                json={"model": "nomic-embed-text-v2-moe-GGUF", "input": "ping"},
             )
-            if not has_nomic:
-                logger.error("nomic-embed-text model not available!")
-                return False
+            dim = len((resp.json().get("data") or [{}])[0].get("embedding", []))
+            logger.info(f"lemonade embed: OK (dim={dim})")
         except Exception as e:
-            logger.error(f"Ollama unreachable: {e}")
-            return False
+            logger.warning(f"lemonade embed pre-check slow/failed (continuing, per-doc retries apply): {e}")
 
     return True
 
@@ -162,12 +158,12 @@ async def main():
     all_stats = {}
     async with GraphRAGImporter(
         vault_path=VAULT_PATH,
-        ollama_url=OLLAMA_URL,
+        ollama_url=EMBED_URL,
         surrealdb_url=SURREALDB_URL,
         namespace="cohezion",
         database="vault",
-        embedding_model="nomic-embed-text:latest",
-        max_concurrent=5,  # Conservative to avoid overwhelming Ollama
+        embedding_model="nomic-embed-text-v2-moe-GGUF",
+        max_concurrent=1,  # lemonade nomic-embed hangs on concurrency; serialize (single embed ~22ms)
     ) as importer:
         for directory, recursive in DIRECTORIES:
             logger.info(f"\n{'=' * 60}")

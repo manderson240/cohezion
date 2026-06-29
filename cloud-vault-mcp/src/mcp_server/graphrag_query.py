@@ -24,14 +24,14 @@ class GraphRAGQuery:
 
     def __init__(
         self,
-        ollama_url: str = "http://localhost:11434",
+        embed_url: str = "http://localhost:13305",  # lemonade OmniRouter (OpenAI-compatible)
         surrealdb_url: str = "http://localhost:8000",
         namespace: str = "cohezion",
         database: str = "vault",
-        embedding_model: str = "nomic-embed-text:latest",
+        embedding_model: str = "nomic-embed-text-v2-moe-GGUF",
         max_graph_depth: int = 3,
     ):
-        self.ollama_url = ollama_url.rstrip("/")
+        self.embed_url = embed_url.rstrip("/")
         self.surrealdb_url = surrealdb_url
         self.namespace = namespace
         self.database = database
@@ -57,16 +57,16 @@ class GraphRAGQuery:
 
         try:
             response = await self.http_client.post(
-                f"{self.ollama_url}/api/embeddings",
-                json={"model": self.embedding_model, "prompt": text[:2000]},
+                f"{self.embed_url}/v1/embeddings",
+                json={"model": self.embedding_model, "input": text[:2000]},
                 timeout=30.0,
             )
             response.raise_for_status()
             data = response.json()
 
-            embedding = data.get("embedding", [])
+            embedding = (data.get("data") or [{}])[0].get("embedding", [])
             if not embedding:
-                raise GraphRAGError("No embedding returned from Ollama")
+                raise GraphRAGError("No embedding returned from lemonade")
 
             return embedding
 

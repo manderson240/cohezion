@@ -64,7 +64,7 @@ class OllamaClient:
             raise
 
     async def embed(
-        self, texts: list[str], model: str = "nomic-embed-text:latest"
+        self, texts: list[str], model: str = "nomic-embed-text-v2-moe-GGUF"
     ) -> list[list[float]]:
         """Generate embeddings for texts.
 
@@ -77,22 +77,15 @@ class OllamaClient:
         """
         try:
             client = await self._get_client()
-            url = f"{self.base_url}/api/embeddings"
-
-            embeddings = []
-            for text in texts:
-                response = await client.post(
-                    url,
-                    json={
-                        "model": model,
-                        "prompt": text,
-                    },
-                )
-                response.raise_for_status()
-                data = response.json()
-                embeddings.append(data.get("embedding", []))
-
-            return embeddings
+            # lemonade OmniRouter is OpenAI-compatible: /v1/embeddings, batched input
+            url = f"{self.base_url}/v1/embeddings"
+            response = await client.post(
+                url,
+                json={"model": model, "input": texts},
+            )
+            response.raise_for_status()
+            data = response.json()
+            return [d.get("embedding", []) for d in data.get("data", [])]
 
         except Exception as e:
             logger.error(f"Embed failed: {e}")

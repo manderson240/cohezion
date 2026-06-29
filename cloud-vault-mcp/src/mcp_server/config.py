@@ -104,8 +104,10 @@ class ServerConfig:
     health_check_interval: int = field(
         default_factory=lambda: int(os.environ.get("HEALTH_CHECK_INTERVAL", "60"))
     )
+    # Embedding/search backend: lemonade OmniRouter (:13305, OpenAI-compatible). Env OLLAMA_URL
+    # still honored for override; default repointed off ollama :11434 (retired) to lemonade.
     ollama_url: str = field(
-        default_factory=lambda: os.environ.get("OLLAMA_URL", "http://localhost:11434")
+        default_factory=lambda: os.environ.get("OLLAMA_URL", "http://localhost:13305")
     )
     ollama_timeout: float = field(
         default_factory=lambda: float(os.environ.get("OLLAMA_TIMEOUT", "30"))
