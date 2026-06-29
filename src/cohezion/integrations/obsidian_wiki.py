@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass
@@ -214,6 +215,21 @@ backlinks: {backlinks}
         else:
             body = content
 
+        # Parse YAML-ish frontmatter safely. Tags/source_refs are expected to be
+        # JSON/YAML lists; fall back to empty list if malformed.
+        tags = frontmatter.get("tags", "[]")
+        source_refs = frontmatter.get("source_refs", "[]")
+        try:
+            parsed_tags = json.loads(tags) if isinstance(tags, str) else list(tags)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            parsed_tags = []
+        try:
+            parsed_source_refs = (
+                json.loads(source_refs) if isinstance(source_refs, str) else list(source_refs)
+            )
+        except (json.JSONDecodeError, TypeError, ValueError):
+            parsed_source_refs = []
+
         title = body.lstrip("\n").split("\n")[0].lstrip("# ").strip()
         backlinks = re.findall(r"\[\[([^\]]+)\]\]", body)
 
@@ -222,7 +238,7 @@ backlinks: {backlinks}
             title=title,
             content=content,
             category=frontmatter.get("category", "unknown"),
-            tags=eval(frontmatter.get("tags", "[]")),
+            tags=parsed_tags,
             backlinks=backlinks,
             created_at=datetime.fromisoformat(
                 frontmatter.get("created_at", datetime.now().isoformat())
@@ -230,7 +246,7 @@ backlinks: {backlinks}
             updated_at=datetime.fromisoformat(
                 frontmatter.get("updated_at", datetime.now().isoformat())
             ),
-            source_refs=eval(frontmatter.get("source_refs", "[]")),
+            source_refs=parsed_source_refs,
         )
 
     async def get_index(self) -> str:

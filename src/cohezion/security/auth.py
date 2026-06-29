@@ -20,21 +20,28 @@ from passlib.context import CryptContext
 logger = logging.getLogger(__name__)
 
 # Configuration
-SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY", "dev-secret-change-in-production!!")
+_SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY")
+if not _SECRET_KEY:
+    raise RuntimeError(
+        "COHEZION_SECRET_KEY environment variable is required. "
+        "Set it before starting the application."
+    )
+SECRET_KEY: str = _SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# API Keys (in production, load from secure storage)
-API_KEYS = {
-    os.environ.get("COHEZION_API_KEY", "dev-api-key"): {
+# API Keys (loaded from secure storage)
+_API_KEY_ENV = os.environ.get("COHEZION_API_KEY")
+API_KEYS: dict[str, dict[str, Any]] = {
+    _API_KEY_ENV: {
         "name": "default",
         "role": "admin",
         "enabled": True,
     }
-}
+} if _API_KEY_ENV else {}
 
 
 class AuthError(Exception):
