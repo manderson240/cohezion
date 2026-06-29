@@ -1,0 +1,87 @@
+"""V-model tests for the lemonade-backed JepaGate world model (JG2 live wiring, 2026-06-29).
+
+The GIC's k-step lookahead delegates world-model inference to local lemonade silicon via the
+GAIA SDK. These tests mock the LLM call (no network) and exercise the EXACT production path:
+a LemonadeWorldModel inside a JepaGate, plus the factory wiring guard.
+"""
+from __future__ import annotations
+
+import numpy as np
+
+from cohezion.compound.jepa_gate import JepaGate, PreExecutionVerdict
+from cohezion.compound.lemonade_world_model import (
+    LemonadeWorldModel,
+    _parse_coherence,
+    build_live_jepa_gate,
+)
+
+
+class TestLemonadeWorldModelStructural:
+    def test_implements_world_model_interface(self):
+        assert hasattr(LemonadeWorldModel, "predict_next_state")
+        assert hasattr(LemonadeWorldModel, "simulate_trajectory")
+
+    def test_parse_coherence_extracts_valid_floats_only(self):
+        assert _parse_coherence("0.85") == 0.85
+        assert _parse_coherence("The coherence is 0.3 roughly") == 0.3
+        assert _parse_coherence("1.5") is None  # out of [0,1] range
+        assert _parse_coherence("no number here") is None
+        assert _parse_coherence("") is None
+
+
+class TestLemonadeWorldModelBehavioral:
+    def test_predict_uses_llm_estimate(self):
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.42")
+        s = wm.predict_next_state(np.full(12, 0.5, dtype=np.float32), None)
+        assert abs(float(np.mean(s)) - 0.42) < 1e-6
+
+    def test_fallback_when_llm_raises_does_not_force_skip(self):
+        """Discriminating: an LLM failure on the default zero-state must NOT collapse to 0.0
+        (which would SKIP everything). It falls back to the neutral baseline → safe."""
+
+        def boom(_p):
+            raise RuntimeError("lemonade down")
+
+        wm = LemonadeWorldModel(chat_fn=boom)
+        s = wm.predict_next_state(np.zeros(12, dtype=np.float32), None)
+        assert float(np.mean(s)) >= 0.6  # baseline, not a false 0.0 → would not spuriously SKIP
+
+    def test_simulate_trajectory_rolls_k_steps(self):
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.5")
+        traj = wm.simulate_trajectory(np.full(12, 0.5, dtype=np.float32), [None, None, None])
+        assert len(traj) == 4  # initial + 3 predicted
+
+
+class TestLemonadeGateIntegration:
+    """The EXACT production path: a JepaGate whose world model delegates to lemonade."""
+
+    def test_low_coherence_llm_makes_gate_skip(self):
+        """Discriminating: the LLM's LOW coherence estimate must drive the gate to SKIP. A wrong
+        impl that ignores the world model (fail-open) would PROCEED."""
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.05")
+        gate = JepaGate(world_model=wm, lookahead_steps=3)
+        verdict = gate.check("risky task", current_state=np.full(12, 0.5, dtype=np.float32))
+        assert verdict == PreExecutionVerdict.SKIP
+
+    def test_high_coherence_llm_makes_gate_proceed(self):
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.9")
+        gate = JepaGate(world_model=wm, lookahead_steps=3)
+        verdict = gate.check("safe task", current_state=np.full(12, 0.5, dtype=np.float32))
+        assert verdict == PreExecutionVerdict.PROCEED
+
+
+class TestLiveWiring:
+    def test_wires_lemonade_world_model_when_available(self, monkeypatch):
+        import cohezion.compound.local_inference as li
+
+        monkeypatch.setattr(li, "lemonade_available", lambda *a, **k: True)
+        gate = build_live_jepa_gate(lookahead_steps=3)
+        assert isinstance(gate._world_model, LemonadeWorldModel)
+        assert gate._lookahead_steps == 3
+
+    def test_fail_open_when_lemonade_unavailable(self, monkeypatch):
+        import cohezion.compound.local_inference as li
+
+        monkeypatch.setattr(li, "lemonade_available", lambda *a, **k: False)
+        gate = build_live_jepa_gate()
+        assert gate._world_model is None  # fail-open gate, no network at runtime

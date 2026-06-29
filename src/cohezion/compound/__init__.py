@@ -26,7 +26,7 @@ from cohezion.compound.batch_executor import (
 from cohezion.compound.batch_executor import (
     BatchExecutorFactory as BatchExecutorFactory,
 )
-from cohezion.compound.config import CompoundConfig as Config  # noqa: F401
+from cohezion.compound.config import CompoundConfig as Config  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from cohezion.compound.core.batch_processor import BatchProcessor as BatchProcessor
 
 
@@ -172,9 +172,9 @@ from cohezion.compound.core.executor import (
 from cohezion.compound.core.executor import (
     execute_simple as execute_simple,
 )
-from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor  # noqa: F401
+from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from cohezion.compound.executor_factory import (  # noqa: F401
-    ExecutorFactory as CompoundExecutorFactory,
+    ExecutorFactory as CompoundExecutorFactory,  # pyright: ignore[reportUnusedImport]
 )
 
 # New Simplified API
@@ -329,9 +329,6 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.compound.harness import (
         HarnessSynthesizer as HarnessSynthesizer,
-    )
-    from cohezion.compound.harness import (
-        run_verification as run_verification,
     )
 
 # Wiring-sweep 2026-06-22: health was a genuine import-graph orphan.
@@ -537,14 +534,29 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
     """
     from cohezion.compound.executor import CompoundExecutor  # avoid circular at module level
     from cohezion.compound.local_inference import get_recommended_concurrency, lemonade_available
-    from cohezion.inference.triune_orchestrator import build_triune_orchestrator
+    from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
 
     if lemonade_available():
-        provider = build_triune_orchestrator()
+        exec_provider = build_triune_omni_orchestrator()
         # Wire adaptive concurrency: under heavy model load, use sequential dispatch
         max_concurrent = get_recommended_concurrency()
-        provider._max_concurrent = max_concurrent  # type: ignore[attr-defined]
+        exec_provider._max_concurrent = max_concurrent  # type: ignore[attr-defined]
     else:
-        provider = None
+        exec_provider = None
 
-    return CompoundExecutor(mcp_client, inference_provider=provider, **kwargs)  # type: ignore[arg-type]
+    # W1 + JG2: JepaGate auto-injection. build_live_jepa_gate wires a LEMONADE-backed world model
+    # (GAIA SDK, :13305) + k-step lookahead when local inference is reachable; else fail-open.
+    if "jepa_gate" not in kwargs:
+        try:
+            from cohezion.compound.lemonade_world_model import build_live_jepa_gate  # type: ignore[import]
+
+            kwargs["jepa_gate"] = build_live_jepa_gate()  # type: ignore[assignment]
+        except Exception:
+            try:
+                from cohezion.compound.jepa_gate import JepaGate  # type: ignore[import]
+
+                kwargs["jepa_gate"] = JepaGate(world_model=None)  # type: ignore[assignment]
+            except Exception:
+                pass
+
+    return CompoundExecutor(mcp_client, inference_provider=exec_provider, **kwargs)  # type: ignore[arg-type]

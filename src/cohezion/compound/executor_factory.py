@@ -5,6 +5,7 @@ Extracted from executor.py (Session 87) to keep files under 500 lines.
 
 from __future__ import annotations
 
+import atexit
 import logging
 from typing import Any
 
@@ -40,18 +41,34 @@ class ExecutorFactory:
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        jepa_gate: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
         When token_client is provided, attempts to use TokenEfficientCompoundExecutor
         for automatic API prompt caching (40-60% token savings).
         """
+        # W2: JourneyTracker cross-session identity lifecycle (GIC Identity, #138).
+        # restore_identity() reloads agent_id + lifetime op counts from ~/.cohezion/journey_identity.json.
+        # save_identity() is registered via atexit so the identity persists across process restarts.
+        if journey_tracker is not None:
+            try:
+                journey_tracker.restore_identity()
+                atexit.register(journey_tracker.save_identity)
+                logger.debug(
+                    "ExecutorFactory: restored JourneyTracker identity; "
+                    "save_identity registered via atexit"
+                )
+            except Exception:
+                logger.debug("JourneyTracker identity lifecycle wiring failed (non-blocking)")
+
         # Auto-create RetrospectionEngine if not provided (closes middle loop)
+        # N5: wire inference_provider into RetrospectionEngine so local silicon is used
         if retrospection_engine is None:
             try:
                 from cohezion.core.compound.retrospection import RetrospectionEngine
 
-                retrospection_engine = RetrospectionEngine()
+                retrospection_engine = RetrospectionEngine(inference_provider=None)
                 logger.debug("ExecutorFactory: auto-created RetrospectionEngine (middle loop)")
             except ImportError:
                 logger.debug("RetrospectionEngine not available")
@@ -101,6 +118,7 @@ class ExecutorFactory:
             retrospection_engine=retrospection_engine,
             universe_bridge=universe_bridge,
             skill_health_tracker=skill_health_tracker,
+            jepa_gate=jepa_gate,
         )
 
     @staticmethod
@@ -122,6 +140,7 @@ class ExecutorFactory:
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        jepa_gate: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor."""
         if ExecutorFactory._instance is None:
@@ -143,6 +162,7 @@ class ExecutorFactory:
                 retrospection_engine=retrospection_engine,
                 universe_bridge=universe_bridge,
                 skill_health_tracker=skill_health_tracker,
+                jepa_gate=jepa_gate,
             )
         return ExecutorFactory._instance
 
@@ -159,9 +179,36 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
     Falls back to cloud-only if lemonade is offline.
     """
     try:
-        from cohezion.inference.triune_orchestrator import build_triune_orchestrator
-        provider = build_triune_orchestrator()
+        from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
+        exec_provider = build_triune_omni_orchestrator()
     except Exception:
-        provider = None
+        exec_provider = None
+
+    # Wire the local inference provider into RetrospectionEngine (N5 harness invariant).
+    # Only inject if the caller hasn't already supplied a retrospection_engine.
+    if exec_provider is not None and "retrospection_engine" not in kwargs:
+        try:
+            from cohezion.core.compound.retrospection import RetrospectionEngine
+            kwargs["retrospection_engine"] = RetrospectionEngine(
+                inference_provider=exec_provider
+            )
+        except Exception:
+            pass
+
+    # W1 + JG2: JepaGate auto-injection. build_live_jepa_gate wires a LEMONADE-backed world model
+    # (GAIA SDK, :13305) + k-step lookahead when local inference is reachable — planning-before-
+    # acting delegated to local silicon — else falls back to a fail-open gate (world_model=None).
+    if "jepa_gate" not in kwargs:
+        try:
+            from cohezion.compound.lemonade_world_model import build_live_jepa_gate
+
+            kwargs["jepa_gate"] = build_live_jepa_gate()
+        except Exception:
+            try:
+                from cohezion.compound.jepa_gate import JepaGate
+
+                kwargs["jepa_gate"] = JepaGate(world_model=None)
+            except Exception:
+                pass
 
     return ExecutorFactory.create(mcp_client, **kwargs)
