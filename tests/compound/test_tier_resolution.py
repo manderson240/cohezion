@@ -76,3 +76,37 @@ class TestCallExecuteFnBinding:
 
         out, _ = _call_execute_fn(ex, "g", "cpu")  # would be idx=2, but fn can't accept it
         assert out == "out" and calls == ["g"]
+
+
+class TestCompactionReroute:
+    """Fusion free-reroute at the compaction boundary — re-decide the tier where the cache rebuilds
+    anyway, rerouting to the MORE-CAPABLE of (difficulty prediction, health suggestion)."""
+
+    def _executor(self, suggested_tier):
+        from unittest.mock import MagicMock
+
+        from cohezion.compound.executor import CompoundExecutor
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        dd = MagicMock()
+        dd.suggest_routing_tier.return_value = suggested_tier
+        sr = SkillRefiner()
+        for _ in range(4):  # teach: 'reason' needs cpu; 'greet' fine on npu
+            sr._difficulty_estimator.record("reason", "op", "cpu", 2, 0.9)
+            sr._difficulty_estimator.record("greet", "op", "npu", 0, 0.9)
+        return CompoundExecutor(MagicMock(), degradation_detector=dd, skill_refiner=sr)
+
+    def test_reroutes_hard_skill_up_at_compaction(self):
+        """Discriminating: a hard skill (learned→cpu) on an active NPU tier reroutes to cpu. A
+        no-reroute impl stays npu; a cheaper-bias impl would pick npu."""
+        ex = self._executor(suggested_tier="npu")  # health fine
+        assert ex._recompute_tier_at_compaction("reason", "op", active_tier="npu") == "cpu"
+
+    def test_stays_when_already_adequate(self):
+        ex = self._executor(suggested_tier="npu")
+        assert ex._recompute_tier_at_compaction("reason", "op", active_tier="cpu") is None
+        assert ex._recompute_tier_at_compaction("greet", "op", active_tier="npu") is None
+
+    def test_health_degradation_escalates_even_easy_skill(self):
+        ex = self._executor(suggested_tier="cpu")  # degraded health
+        assert ex._recompute_tier_at_compaction("greet", "op", active_tier="npu") == "cpu"

@@ -1552,6 +1552,43 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             compound_score=compound_score,
         )
 
+    def _recompute_tier_at_compaction(
+        self, skill_name: str, operation_type: str, active_tier: str
+    ) -> str | None:
+        """Fusion free-reroute (cognition.com/blog/devin-fusion): at a context-COMPACTION boundary —
+        where the cache/context is rebuilt anyway, so a tier switch is effectively FREE — re-evaluate
+        routing on the CURRENT state (reactive DegradationDetector health + predictive
+        DifficultyEstimator) and reroute ONLY if the recommendation now DIFFERS from the active tier.
+        Returns the new tier (a free mid-task switch) or None (stay). No-op-safe if components absent.
+        """
+        suggested = None
+        if self._degradation_detector is not None:
+            try:
+                suggested = self._degradation_detector.suggest_routing_tier()
+            except Exception:
+                pass
+        predicted = None
+        estimator = getattr(self._skill_refiner, "_difficulty_estimator", None) if self._skill_refiner else None
+        if estimator is not None:
+            try:
+                predicted = estimator.predict_tier(skill_name, operation_type)
+            except Exception:
+                pass
+        # Adequate tier = the MORE CAPABLE of the difficulty prediction and the health suggestion
+        # (either signal escalating wins — never under-route a hard task at the boundary). Unlike
+        # RS1's cost-biased _resolve_tier (cheaper-of-two), the reroute ensures capability.
+        candidates = [t for t in (predicted, suggested) if t in _TIER_ORDER]
+        if not candidates:
+            return None
+        recommended = max(candidates, key=_TIER_ORDER.index)
+        if recommended != active_tier:
+            logger.info(
+                "compaction reroute: %s -> %s (free switch at compaction boundary)",
+                active_tier, recommended,
+            )
+            return recommended
+        return None
+
     def start_session(self, max_cache_entries: int = 256) -> dict[str, Any]:
         """Start a compound session: warm-start autocontext and cache.
 
