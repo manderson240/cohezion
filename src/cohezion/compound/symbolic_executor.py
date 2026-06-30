@@ -55,9 +55,13 @@ class SymbolicExecutor:
         exec_globals = {**self.namespace}
 
         try:
-            # We use a restricted set of globals and an empty set of locals
-            # to prevent easy access to built-ins like __import__
-            exec(code, exec_globals, local_vars)
+            # H5 fix: a RESTRICTED __builtins__ allow-list so exec'd LLM code cannot reach
+            # __import__/open/eval — CPython auto-injects the FULL builtins otherwise (the prior
+            # comment was false; {**namespace} provided NO __builtins__ key). NOT a full sandbox;
+            # durable fix is out-of-process (see safe_exec.py).
+            from cohezion.compound.safe_exec import safe_exec_globals
+
+            exec(code, safe_exec_globals(**exec_globals), local_vars)
 
             # Filter out non-serializable or internal objects
             clean_results = {}

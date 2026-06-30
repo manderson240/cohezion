@@ -65,8 +65,11 @@ def llm_solve(task: dict[str, Any]) -> Grid | None:
         if not code:
             return None
 
-        # Safely execute the generated code
-        namespace: dict[str, Any] = {}
+        # H5 fix: restricted __builtins__ so exec'd LLM-generated code cannot reach import/open/eval
+        # (CPython auto-injects full builtins into an empty namespace otherwise). Not a full sandbox.
+        from cohezion.compound.safe_exec import safe_exec_globals
+
+        namespace: dict[str, Any] = safe_exec_globals()
         exec(compile(code, "<generated>", "exec"), namespace)
         solve_fn = namespace.get("solve")
         if not solve_fn:

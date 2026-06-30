@@ -112,7 +112,9 @@ class AIMOScaler:
 
         def dummy_env(c):
             try:
-                exec(c, {"sympy": sympy, "np": np})
+                from cohezion.compound.safe_exec import safe_exec_globals
+
+                exec(c, safe_exec_globals(sympy=sympy, np=np))  # H5: restricted builtins
                 return True, "OK"
             except Exception as e:
                 return False, str(e)
