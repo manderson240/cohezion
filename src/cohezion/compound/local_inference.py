@@ -144,9 +144,18 @@ def make_local_execute_fn(task_description: str = ""):
     def execute_fn(guidance: str, min_tier_index: int = 0) -> tuple[str, dict]:
         orch = _get_orchestrator()
         prompt = f"{guidance}\n\n{task_description}".strip() if task_description else guidance
+        # Lever 1: classify the task to get its quality_gate_chars (0 for categorical/short answers)
+        # so the orchestrator gate is task-appropriate — a correct "POSITIVE" passes at NPU instead of
+        # escalating to the CPU 31B because it's < 500 chars. Fail-open to None (fixed per-tier gates).
+        try:
+            from cohezion.inference.task_classifier import classify
+
+            gate_chars = classify(prompt).quality_gate_chars
+        except Exception:
+            gate_chars = None
         try:
             # O9: difficulty-based cascade entry — a hard task starts above the cheap tiers.
-            result = asyncio.run(orch.run(prompt, min_tier_index=min_tier_index))
+            result = asyncio.run(orch.run(prompt, min_tier_index=min_tier_index, gate_chars=gate_chars))
             model = result.final_model or ""
 
             # --- Token accounting ---

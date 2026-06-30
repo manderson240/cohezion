@@ -149,7 +149,12 @@ class TieredOrchestrator:
         return sub, sub.cost_usd, sub.ttft_ms
 
     async def run(
-        self, prompt: str, *, budget_usd: float | None = None, min_tier_index: int = 0
+        self,
+        prompt: str,
+        *,
+        budget_usd: float | None = None,
+        min_tier_index: int = 0,
+        gate_chars: int | None = None,
     ) -> OrchestrationResult:
         """Execute from tier ``min_tier_index``, escalate while gates fail, honor budget.
 
@@ -246,7 +251,15 @@ class TieredOrchestrator:
             else:
                 view = result
 
-            passed, reason = gate.check(view)
+            # Lever 1 (per-task gate): when the caller supplies the task's quality_gate_chars (from
+            # task_classifier — 0 for categorical), it OVERRIDES the fixed per-tier min_chars so a
+            # correct SHORT answer (e.g. "POSITIVE") passes at NPU instead of needlessly escalating to
+            # the CPU 31B. TRUST tiers (min_chars=None) are never overridden — the last tier still
+            # always completes. Verifier-per-task pattern (arXiv 2605.17554).
+            effective_gate = gate
+            if gate_chars is not None and gate.min_chars is not None:
+                effective_gate = QualityGate(min_chars=gate_chars, require_nonempty=gate.require_nonempty)
+            passed, reason = effective_gate.check(view)
             path.append(
                 TierAttempt(
                     tier_index=idx,

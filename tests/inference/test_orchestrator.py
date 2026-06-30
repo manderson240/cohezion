@@ -313,3 +313,21 @@ async def test_min_tier_index_clamped_never_skips_all():
         await orch.run("test", min_tier_index=99)
     assert m.await_count == 1
     assert m.call_args.kwargs["prefer"] == "tier1"  # clamped to last tier
+
+
+@pytest.mark.asyncio
+async def test_lever1_task_gate_overrides_fixed_tier_gate():
+    """Lever 1: a categorical task (gate_chars=0) passes a SHORT correct answer at tier 0 instead of
+    needlessly escalating because it's < the fixed min_chars=500. A wrong impl that ignores
+    gate_chars escalates in BOTH cases and fails the gate_chars=0 assertion."""
+    orch = TieredOrchestrator(
+        tiers=[("npu", QualityGate(min_chars=500)), ("cpu", QualityGate.TRUST)]
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("POSITIVE")),
+    ):
+        esc_default = (await orch.run("classify the sentiment")).escalation_count
+        esc_categorical = (await orch.run("classify the sentiment", gate_chars=0)).escalation_count
+    assert esc_default == 1      # short answer fails fixed min_chars=500 → escalates (the degenerate path)
+    assert esc_categorical == 0  # Lever 1: gate_chars=0 → "POSITIVE" passes at NPU, no escalation
