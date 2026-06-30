@@ -46,6 +46,11 @@ REGISTRY: list[tuple[str, str, str, int]] = [
     # Removing the seam (re-dormanting the gate) drops the count below the floor → scan goes RED.
     ("qa_gate P0: refine() CONSUMES qa_gate.evaluate (advisory 4-state gate FIRES)",
      r"_qa_gate\.evaluate\(", "src/cohezion/compound/skill_refiner.py", 1),
+    # Quarter-on-a-String knot: execute_task's success verdict is gated by the QA-judge
+    # lane, NOT bool(strip()). Pin to the CALL (`_judge_quality(self._base_url`) so the
+    # def line can't satisfy the floor — removing the call re-dormants the gate → RED.
+    ("Knot: local_executor success gated by QA-judge lane (_judge_quality CONSUMED)",
+     r"_judge_quality\(self\._base_url", "src/cohezion/compound/autonomous_loop/local_executor.py", 1),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE

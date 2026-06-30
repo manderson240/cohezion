@@ -210,6 +210,66 @@ def _chat_complete(
     return data
 
 
+# QA-judge lane. Model choice is empirical (live-smoked 2026-06-30 on :13305):
+#   - llama3.2-1b-FLM (NPU) is FAST but an UNRELIABLE judge — it latches onto one
+#     verdict regardless of the answer (returned FAIL/NO even for an exact-correct
+#     answer). Do NOT use the 1B for judging.
+#   - Gemma-4-E4B-it-GGUF (iGPU) reasons correctly (wrong→FAIL, correct→PASS) but is a
+#     THINKING model: it needs enough tokens to finish reasoning AND emit the bare
+#     verdict, else the verdict token is truncated (content="") and we fall back to the
+#     promoted reasoning text (ambiguous → fail-open). _JUDGE_MAX_TOKENS=384 was the
+#     budget at which both cases emitted a clean finish_reason=stop verdict.
+# Runs AFTER the Dev call within a task (sequential, no intra-task contention). $0 —
+# cloud escalation happens only AFTER this gate genuinely FAILs.
+_JUDGE_MODEL = "Gemma-4-E4B-it-GGUF"
+_JUDGE_MAX_TOKENS = 384
+
+
+def _judge_quality(
+    base_url: str,
+    description: str,
+    verification: str,
+    output: str,
+    *,
+    model: str = _JUDGE_MODEL,
+    timeout: float = 60.0,
+) -> bool:
+    """Second local lemonade lane — judge whether `output` genuinely satisfies the
+    task intent + acceptance criteria. Returns True (PASS) / False (FAIL).
+
+    This is the KNOT in the Quarter-on-a-String protocol: only a genuine quality FAIL
+    counts toward cloud escalation — a non-empty WRONG answer no longer passes.
+
+    Fail-OPEN: any judge-lane error or unparseable/ambiguous verdict degrades to the
+    cheap pre-filter (the caller already verified non-empty) → returns True, logged.
+    We never abort a task because the 1B judge lane hiccuped.
+    """
+    prompt = (
+        "You are a strict QA verifier. Decide whether the ANSWER genuinely completes "
+        "the TASK and satisfies the ACCEPTANCE criteria. Judge correctness and "
+        "relevance, not mere presence of text: a confident but WRONG or off-topic "
+        "answer is a FAIL.\n\n"
+        f"TASK: {description}\n"
+        f"ACCEPTANCE: {verification or '(none stated — judge against the task intent)'}\n"
+        f"ANSWER: {output}\n\n"
+        "Reply with exactly one word: PASS or FAIL."
+    )
+    try:
+        resp = _chat_complete(base_url, model, prompt, max_tokens=_JUDGE_MAX_TOKENS, timeout=timeout)
+        verdict = resp.get("choices", [{}])[0].get("message", {}).get("content", "") or ""
+    except Exception as exc:
+        logger.warning("QA judge lane error (fail-open → pre-filter PASS): %s", exc)
+        return True
+    v = verdict.strip().upper()
+    has_fail, has_pass = "FAIL" in v, "PASS" in v
+    if has_fail and not has_pass:
+        return False
+    if has_pass and not has_fail:
+        return True
+    logger.warning("QA judge unparseable/ambiguous verdict %r (fail-open → pre-filter PASS)", verdict[:40])
+    return True
+
+
 class LoopTickSweeper:
     """Periodically corrects the loop's course based on sprint statistics."""
 
@@ -356,7 +416,14 @@ class LocalImprovementExecutor:
             logger.error("execute_task %s response parse failed: %s", task_id, exc)
             return _error_result(task_id, model, node, str(exc), returncode=1)
 
-        success = bool(output.strip())
+        # The knot: a cheap pre-filter (empty → fail fast, no judge call), then a
+        # SECOND local lemonade lane judges the Dev output against the task's
+        # acceptance criteria. Only a genuine quality FAIL counts toward the
+        # cloud-escalation threshold — a non-empty WRONG answer no longer passes.
+        if not output.strip():
+            success = False
+        else:
+            success = _judge_quality(self._base_url, description, verification, output)
         token_surprisal = _compute_slp(resp)
         tried_str = "→".join(m[:20] for m in tried_models)
         logger.info(
