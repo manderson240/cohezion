@@ -33,15 +33,28 @@ REGISTRY: list[tuple[str, str, str, int]] = [
      r"jepa_coherence", "src/cohezion/compound/degradation_detector.py", 1),
     ("ME1: engine feedback consumed by the learner (record call)",
      r"_difficulty_estimator\.record\(", "src/cohezion/compound/skill_refiner.py", 1),
-    ("M1: regression run_fn wired live (set in __init__ + factory)",
-     r"_regression_run_fn", "src/cohezion/compound/skill_refiner.py", 2),
-    ("Lever1: per-task gate_chars drives the cascade entry",
-     r"gate_chars", "src/cohezion/inference/orchestrator.py", 2),
+    # M1/Lever1 (review fix): pin to the CONSUMPTION read, not the bare identifier — the old
+    # `_regression_run_fn`/`gate_chars` floors were satisfied by the `=None` decl + a comment, so the
+    # guard stayed GREEN with every consumer deleted (the exact false-GREEN this scan forbids).
+    ("M1: regression run_fn CONSUMED (refine reads it to gate)",
+     r"self\._regression_run_fn is not None", "src/cohezion/compound/skill_refiner.py", 1),
+    ("Lever1: per-task gate_chars CONSUMED (override branch reads it)",
+     r"gate_chars is not None", "src/cohezion/inference/orchestrator.py", 1),
+]
+
+# Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
+# (not a failure) so the scan never falsely claims "all clear" while these sit dormant outside the
+# guarded set — addressing the curation-coverage gap honestly instead of pretending it doesn't exist.
+KNOWN_DORMANT: list[str] = [
+    "CR1 _recompute_tier_at_compaction — no production boundary fires it (intentional callable; harness-documented)",
+    "get_pending_approvals — write side consumed, READ side has no operator surface (HITL gap)",
 ]
 
 
 def count_matches(pattern: str, path_rel: str) -> int:
-    """Count regex matches in PRODUCTION .py (excluding tests/ and test_*.py)."""
+    """Count regex matches in PRODUCTION .py (excluding tests/ and test_*.py), SKIPPING full-line
+    comments so a `# ... pattern ...` comment can't satisfy a consumer floor (review fix: the old
+    raw-text grep let a comment + a declaration count as 'consumers')."""
     p = REPO / path_rel
     files = [p] if p.is_file() else list(p.rglob("*.py"))
     rx = re.compile(pattern)
@@ -51,7 +64,10 @@ def count_matches(pattern: str, path_rel: str) -> int:
         if "/tests/" in s or f.name.startswith("test_"):
             continue
         try:
-            total += len(rx.findall(f.read_text(errors="ignore")))
+            for line in f.read_text(errors="ignore").splitlines():
+                if line.lstrip().startswith("#"):  # full-line comment — never a consumer
+                    continue
+                total += len(rx.findall(line))
         except Exception:
             pass
     return total
@@ -92,6 +108,10 @@ def main() -> int:
         print("\nA capability with no consumer is wired structurally but dead functionally (verification-depth.md).")
         return 1
     print(f"dormancy scan OK — all {len(REGISTRY)} curated capabilities have production consumers.")
+    if KNOWN_DORMANT:
+        print(f"NOTICE — {len(KNOWN_DORMANT)} capability(ies) known-dormant and intentionally unguarded:")
+        for d in KNOWN_DORMANT:
+            print("  - " + d)
     return 0
 
 
