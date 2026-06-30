@@ -31,6 +31,32 @@ RESOLVED 2026-06-30 (follow-up GAIA-SDK orchestration round — 3 agents, disjoi
   built-but-unread (decide consume-or-delete); `get_pending_approvals` operator surface; auto-fixture
   critical-promotion is an intended HITL step.
 
+CORRECTION 2026-06-30 (re-evaluation adversarial review — 3 lenses; the prior "RESOLVED" overclaimed):
+- **H1 is NOT actually fixed for its stated purpose (CONFIRMED HIGH).** The two H1 sub-fixes are
+  mutually self-defeating: anti-poisoning forces every auto-fixture `critical=False`, but
+  `evaluate_regression` only BLOCKS on `critical=True`. So NO production path can block a behavioral
+  regression — the gate's `return False` is reachable only via the inference-OUTAGE clause
+  (`evaluated==0`). The keystone "discrimination" test drove `run_fn` to RAISE (outage), so it proved
+  the wrong claim. H1 makes the gate RUN, not BITE. Real fix: GROUND `expected_output` by running the
+  CURRENT skill (via `_regression_run_fn`) so a divergence is a real regression → safe to mark critical.
+- **The dormancy scanner itself shipped 2 false-GREEN guards (CONFIRMED HIGH) — NOW FIXED.** M1/Lever1
+  were declaration-counters (floor met by a `=None` decl + a comment); stayed green with all consumers
+  deleted. Re-pinned to the consumption read + comment-skip; falsification-proven (neutralize→RED).
+- **H5 has an untested AVAILABILITY regression (CONFIRMED MED).** The allow-list denies `__import__`, so
+  LLM solvers that `import numpy`/`import math` now fail → fallback success rate silently drops. Plus
+  the gadget escape (`().__class__.__bases__[0].__subclasses__()`→real builtins) is open (security lens
+  concurs). "H5 closed" overstates — only the trivial `import os` path is closed. Fix: out-of-process
+  sandbox + a curated safe-import allow-list for the solver sinks.
+- **JEPA task-awareness FIRES but on a garbage signal (CONFIRMED MED).** Coherence tracks PROMPT LENGTH,
+  not tractability (trivial→0.20, verbose-impossible→0.97). H2 plumbing + parse fix are sound; the
+  estimate is noise → would REROUTE most real tasks if it drove routing.
+- LOW: `_safe_ident` slugify collisions (distinct skills → shared fixtures); `journey_tracker.py:566`
+  `operation_type` raw interpolation; `auth=("root","root")`×4 (localhost-bound); integration smoke is
+  green-by-skip when :13305 is down (no surfaced SKIP signal); `recommended_tier` metric key dead
+  (but the `_resolve_tier` VALUE path IS consumed — routing is live).
+- VERIFIED SOUND by the re-eval: Lever1 under-routing fix; registry #1/#2 fail-policy; H2/parse plumbing;
+  the scanner's H1/H2/ME1 guards + self-test + cron robustness.
+
 (Original deferred list, now mostly resolved above:)
 DEFERRED (architectural / dormancy backlog — NOT quick fixes):
 - **WIRING H1 (the big one)** — the golden-fixture → regression-gate → HITL-approval chain is wired
