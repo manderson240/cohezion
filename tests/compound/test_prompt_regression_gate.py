@@ -64,3 +64,22 @@ def test_factory_wires_regression_gate_live():
 
     assert hasattr(SkillRefiner(), "_regression_run_fn")          # on the RIGHT class
     assert SkillRefinerFactory.create()._regression_run_fn is not None  # wired LIVE, not dormant
+
+
+def test_blocked_promotion_recorded_for_review(tmp_path, monkeypatch):
+    """HITL/observability surface (2026 Agent Confidence Index #1+#2 levers): a blocked self-mutation
+    becomes a visible pending-approval with a 'why', not a silent no-op."""
+    from cohezion.compound.skill_refiner import SkillRefiner
+
+    monkeypatch.setattr(SkillRefiner, "_APPROVALS_PATH", tmp_path / "approvals.jsonl")
+
+    class Sig:
+        key_insight = "increase cache TTL to 300s"
+
+    sr = SkillRefiner()
+    rec = sr._record_blocked_promotion("cache_skill", Sig(), "regression_gate")
+    assert rec["reason"] == "regression_gate" and rec["status"] == "pending_review"
+
+    pending = SkillRefiner.get_pending_approvals()
+    assert len(pending) == 1
+    assert pending[0]["skill"] == "cache_skill" and "cache TTL" in pending[0]["proposed_insight"]

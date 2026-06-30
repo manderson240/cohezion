@@ -337,6 +337,7 @@ class SkillRefiner:
 
             if not PromptVersionRegistry().check_drift(skill_name, signal.key_insight):
                 logger.info("Skill refinement blocked by golden-fixture gate: %s", skill_name)
+                self._record_blocked_promotion(skill_name, signal, "drift_gate")
                 return None
 
             # FAPO R3: behavioral regression gate — run the CANDIDATE skill against golden fixtures
@@ -349,6 +350,7 @@ class SkillRefiner:
                     skill_name, candidate, self._regression_run_fn
                 ):
                     logger.info("Skill refinement blocked by behavioral regression gate: %s", skill_name)
+                    self._record_blocked_promotion(skill_name, signal, "regression_gate")
                     return None
 
             # Append refinement
@@ -866,6 +868,50 @@ class SkillRefiner:
                 return file
 
         return None
+
+    # HITL + observability surface for blocked self-mutations (2026 Agent Confidence Index: human-in-
+    # the-loop is the #1 production-confidence lever at 59%, observability #2 at 53%). When the loop
+    # autonomously BLOCKS a skill mutation, it must not vanish silently — record it with a legible
+    # "why" so an operator can review it. Stdlib only; append-only JSONL the operator can tail.
+    _APPROVALS_PATH = Path.home() / ".cohezion" / "pending_skill_approvals.jsonl"
+
+    def _record_blocked_promotion(self, skill_name: str, signal: Any, reason: str) -> dict:
+        """Turn a silent autonomous block into a visible pending-approval with a 'why' trace."""
+        import json
+        from datetime import datetime, timezone
+
+        insight = getattr(signal, "key_insight", str(signal))
+        rec = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "skill": skill_name,
+            "reason": reason,
+            "proposed_insight": str(insight)[:500],
+            "status": "pending_review",
+        }
+        try:
+            self._APPROVALS_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(self._APPROVALS_PATH, "a") as f:
+                f.write(json.dumps(rec) + "\n")
+        except Exception as exc:  # observability must never break the loop
+            logger.debug("could not record blocked promotion: %s", exc)
+        return rec
+
+    @classmethod
+    def get_pending_approvals(cls) -> list[dict]:
+        """Operator-facing read of blocked self-mutations awaiting review (empty if none)."""
+        import json
+
+        if not cls._APPROVALS_PATH.exists():
+            return []
+        out = []
+        try:
+            for line in cls._APPROVALS_PATH.read_text().splitlines():
+                line = line.strip()
+                if line:
+                    out.append(json.loads(line))
+        except Exception:
+            pass
+        return out
 
     def _append_refinement(self, prime_file: Path, signal: LearningSignal) -> Path | None:
         """Append learned refinement to PRIME file.
