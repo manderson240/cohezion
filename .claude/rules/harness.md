@@ -2,6 +2,34 @@
 
 Generated: 2026-05-02. Updated via `/autoharness-update`.
 
+## GAIA-SDK Bug Hunt (2026-06-30) — latent bugs the green suite missed
+
+FIXED (committed, verified live):
+- **#1 HIGH** `build_live_jepa_gate` lookahead 3→1: with k>1 the gate takes the trajectory MIN but
+  the LemonadeWorldModel degrades coherence over zero-action steps → constant ~0.15 → task-blind
+  constant REROUTE → systematic over-routing. Now single-step PROCEED (0.85). (Follow-on: feed
+  task_description into the world model + a non-degrading rollout so k-step is meaningful.)
+- **#8 MED** `evaluate_regression` fail-CLOSED hole: swallowed ALL per-fixture errors → returned True
+  (promotion allowed) when inference down. Now: per-fixture error fail-open, but well-formed-fixtures-
+  but-none-evaluable → fail-CLOSED (matches the M1 contract).
+- **#4 MED** `make_executor` probed dead :13306 in `lemonade_available()` → exec_provider always None.
+  Now probes :13305 (matches M3).
+
+DEFERRED (documented backlog, lower value / architectural):
+- **#2** `self._inference_provider` is built (post-#4) but UNREAD by `execute_task` (uses the caller's
+  `execute_fn`); same for RetrospectionEngine. Vestigial plumbing — decide: consume it as a default
+  execute_fn, or delete the parameter + document execute_fn-required. (The LIVE local-inference path
+  is `make_local_execute_fn → _get_orchestrator → :13305`, which works.)
+- **#3** REROUTE direction: `_resolve_tier` escalates UP (H4, correct per research) but jepa_gate.py
+  docstrings still say "cheaper" (stale) — reconcile the comments.
+- **#5** `SkillRefinerFactory.get_singleton()` doesn't wire `_regression_run_fn` (only `create()` does)
+  — latent (no prod callers). **#6** W4 predicted_tier hint dropped on the FIRST task (lazy
+  skill_refiner built after execute_fn). **#7** deprecated `asyncio.get_event_loop()` patterns
+  (executor.py:1022 dead branch, :1456 the "Event loop is closed" source). **#9** `_parse_coherence`
+  can latch a stray integer (mitigated by temp=0).
+- VERIFIED-CLEAN: no stealth bare-excepts, no bad sys.executable subprocess, Wilson-LCB math sound,
+  `_safe_ident` injection guard present, gate_chars/min_tier_index threading correct.
+
 ## House-in-Order: keystone live-routing fixes (2026-06-30)
 
 - **DEAD-PORT KEYSTONE (the empty-output root cause):** `local_inference._get_orchestrator()` built
