@@ -70,7 +70,7 @@ Generated: 2026-05-02. Updated via `/autoharness-update`.
 - **Verification**: covered by `tests/compound/test_failure_attributor.py::TestStructural`
 
 ### Deferred Obligations (V-model R3 / L2-L3 auto-apply — proof_obligation records in SurrealDB)
-- R3 (overfitting guard): `skill_name="*", obligation="FAPO R3: held-out eval set needed for overfitting guard", satisfied_by="pending", verified=false`
+- R3 (overfitting guard): **SATISFIED 2026-06-29** by the behavioral regression gate. `prompt_version_registry.evaluate_regression(fixtures, candidate, run_fn)` + `PromptVersionRegistry.regression_check(skill_name, candidate, run_fn)`: runs the CANDIDATE skill against `golden_fixture` (input,expected_output) cases with DETERMINISTIC validators (`_validate`: contains/exact/regex, no LLM-judge) and BLOCKS promotion if any CRITICAL case regresses even when the aggregate improves ("false improvement detected"). Wired in `SkillRefiner.refine()` after check_drift, before `_append_refinement`, gated by `self._regression_run_fn` (None=fail-open). **T2 discriminating**: `tests/compound/test_prompt_regression_gate.py::TestEvaluateRegression::test_critical_regression_blocks` (a candidate breaking a critical fixture → False; a no-eval impl returns True). **Verification**: `uv run pytest tests/compound/test_prompt_regression_gate.py -q` → green. Follow-on: set `_regression_run_fn` in the factory + populate `golden_fixture` with behavioral cases per skill.
 - L3-auto (structural topology changes): `obligation="FAPO L3: auto-apply structural changes requires human gate", satisfied_by="pending", verified=false`
 - These are written to SurrealDB `proof_obligation` table on first FAPO failure-attribution run
 
