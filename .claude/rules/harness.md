@@ -39,6 +39,10 @@ CORRECTION 2026-06-30 (re-evaluation adversarial review — 3 lenses; the prior 
   (`evaluated==0`). The keystone "discrimination" test drove `run_fn` to RAISE (outage), so it proved
   the wrong claim. H1 makes the gate RUN, not BITE. Real fix: GROUND `expected_output` by running the
   CURRENT skill (via `_regression_run_fn`) so a divergence is a real regression → safe to mark critical.
+  → RESOLVED 2026-06-30 (falsification-first): `_ground_fixture` keeps a fixture only if the current
+  skill's output contains the keyword → `critical=True` → the gate BITES a real regression (inference
+  UP), proven discriminating (neutralize `critical=True` → keystone+bootstrap tests RED). Guarded in
+  dormancy_scan (`ground_fn=ground`). The keystone test was rewritten to the regression claim, not outage.
 - **The dormancy scanner itself shipped 2 false-GREEN guards (CONFIRMED HIGH) — NOW FIXED.** M1/Lever1
   were declaration-counters (floor met by a `=None` decl + a comment); stayed green with all consumers
   deleted. Re-pinned to the consumption read + comment-skip; falsification-proven (neutralize→RED).
