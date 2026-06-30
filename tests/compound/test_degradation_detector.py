@@ -272,6 +272,33 @@ class TestDegradationDetector:
         assert len(critical_alerts) >= 2
 
 
+class TestJepaCoherenceSignal:
+    """H2: JepaGate.last_coherence written into degradation_metrics must be tracked, not dropped."""
+
+    def test_jepa_coherence_low_value_emits_warning_alert(self, detector):
+        """Discriminating: a low pre-execution JEPA coherence must produce a jepa_coherence WARNING.
+
+        A regression that drops the key (the original bug — DegradationDetector read a fixed key
+        set omitting jepa_coherence) produces NO jepa_coherence alert, failing this assertion.
+        """
+        # Establish a healthy jepa_coherence baseline (need >= min_samples to be established).
+        for _ in range(5):
+            detector.check_degradation({"jepa_coherence": 0.90})
+
+        alerts = detector.check_degradation({"jepa_coherence": 0.20})  # below 0.60 threshold
+        jepa_alerts = [a for a in alerts if a.metric == "jepa_coherence"]
+        assert len(jepa_alerts) > 0, "low jepa_coherence must emit an alert (not be silently dropped)"
+        assert jepa_alerts[0].severity == AlertSeverity.WARNING
+        assert jepa_alerts[0].current_value == pytest.approx(0.20)
+
+    def test_jepa_coherence_healthy_value_no_alert(self, detector):
+        """A healthy predicted coherence must NOT alert (proves the check is selective)."""
+        for _ in range(5):
+            detector.check_degradation({"jepa_coherence": 0.90})
+        alerts = detector.check_degradation({"jepa_coherence": 0.85})
+        assert [a for a in alerts if a.metric == "jepa_coherence"] == []
+
+
 class TestAlertCooldown:
     """Test alert cooldown enforcement."""
 

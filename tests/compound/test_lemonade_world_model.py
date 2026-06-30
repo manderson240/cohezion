@@ -28,6 +28,13 @@ class TestLemonadeWorldModelStructural:
         assert _parse_coherence("no number here") is None
         assert _parse_coherence("") is None
 
+    def test_parse_coherence_leading_integer_does_not_mask_valid_float(self):
+        """BUGHUNT 2026-06-30: a leading out-of-range integer (e.g. a step index) must NOT shadow
+        the real [0,1] value. The old `.search()` impl returned the FIRST match (2.0 → None)."""
+        assert _parse_coherence("step 2: 0.9") == 0.9
+        assert _parse_coherence("2.0 then 0.4") == 0.4
+        assert _parse_coherence("42") is None  # only out-of-range numbers → None
+
 
 class TestLemonadeWorldModelBehavioral:
     def test_predict_uses_llm_estimate(self):
@@ -50,6 +57,44 @@ class TestLemonadeWorldModelBehavioral:
         wm = LemonadeWorldModel(chat_fn=lambda _p: "0.5")
         traj = wm.simulate_trajectory(np.full(12, 0.5, dtype=np.float32), [None, None, None])
         assert len(traj) == 4  # initial + 3 predicted
+
+
+class TestTaskAwareness:
+    """BUGHUNT 2026-06-30: the world model must read the TASK, not just the prior coherence."""
+
+    def test_different_task_yields_different_coherence(self):
+        """Discriminating: two different tasks (same prior state) must yield DIFFERENT coherence
+        via the production gate path. A task-blind impl (ignoring set_task) returns identical
+        coherence for both → both asserts fail."""
+
+        def task_aware_chat(prompt: str) -> str:
+            # The task is threaded into the prompt; coherence depends on it.
+            return "0.9" if "easy" in prompt.lower() else "0.1"
+
+        wm = LemonadeWorldModel(chat_fn=task_aware_chat)
+        gate = JepaGate(world_model=wm)  # default single-step; set_task threaded by check()
+        state = np.full(12, 0.5, dtype=np.float32)
+
+        gate.check("an easy lookup", current_state=state)
+        coh_easy = gate.last_coherence
+        gate.check("a hard multi-step reasoning chain", current_state=state)
+        coh_hard = gate.last_coherence
+
+        assert coh_easy != coh_hard, "coherence must depend on the task (gate was task-blind)"
+        assert coh_easy > coh_hard
+
+    def test_set_task_threads_into_predict_prompt(self):
+        """The injected task text appears in the prompt the world model sends to the LLM."""
+        seen: dict[str, str] = {}
+
+        def capture(prompt: str) -> str:
+            seen["prompt"] = prompt
+            return "0.5"
+
+        wm = LemonadeWorldModel(chat_fn=capture)
+        wm.set_task("translate the contract clause")
+        wm.predict_next_state(np.full(12, 0.5, dtype=np.float32), None)
+        assert "translate the contract clause" in seen["prompt"]
 
 
 class TestLemonadeGateIntegration:

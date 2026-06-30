@@ -180,6 +180,10 @@ class DegradationDetector:
             "success_rate": MetricBaseline("success_rate"),
             "token_surprisal": MetricBaseline("token_surprisal"),
             "quality_score": MetricBaseline("quality_score"),
+            # JW1 / H2: JepaGate.last_coherence — a [0,1] PRE-execution coherence signal that
+            # the executor writes into degradation_metrics. Tracked here so a low predicted
+            # coherence can contribute a (predictive) WARNING alert instead of being dropped.
+            "jepa_coherence": MetricBaseline("jepa_coherence"),
         }
 
         # Alert history for deduplication and CB9 dashboard API
@@ -233,6 +237,8 @@ class DegradationDetector:
         coherence = metrics.get("mean_coherence")
         duration = metrics.get("elapsed_seconds")
         success_rate = metrics.get("success_rate")
+        # H2: pre-execution JEPA coherence — a [0,1] predictive signal from JepaGate.last_coherence.
+        jepa_coherence = metrics.get("jepa_coherence")
 
         # Check conditions AGAINST ESTABLISHED BASELINES FIRST
         # Then add samples after all checks are done
@@ -308,6 +314,31 @@ class DegradationDetector:
                     current_value=coherence,
                     baseline_value=self._baselines["coherence"].mean,
                     threshold=_coh_thr,
+                )
+                if self._should_emit_alert(alert):
+                    alerts.append(alert)
+
+        # Check pre-execution JEPA coherence (skip if not provided this call).
+        # H2: this is a PREDICTIVE signal (JepaGate.last_coherence), so the alert is a WARNING
+        # rather than the CRITICAL used for observed post-execution coherence collapse.
+        # Task #121: honour use_chebyshev for a data-adaptive bound, same as coherence.
+        if jepa_coherence is not None and self._baselines["jepa_coherence"].is_established:
+            _jepa_thr = (
+                self._baselines["jepa_coherence"].chebyshev_lower_bound(2.0)
+                if self.use_chebyshev
+                else self.coherence_threshold
+            )
+            if float(jepa_coherence) < _jepa_thr:
+                alert = DegradationAlert(
+                    metric="jepa_coherence",
+                    severity=AlertSeverity.WARNING,
+                    message=(
+                        f"Pre-execution JEPA coherence dropped to {float(jepa_coherence):.2f} "
+                        f"(threshold: {_jepa_thr:.2f})"
+                    ),
+                    current_value=float(jepa_coherence),
+                    baseline_value=self._baselines["jepa_coherence"].mean,
+                    threshold=_jepa_thr,
                 )
                 if self._should_emit_alert(alert):
                     alerts.append(alert)
@@ -399,6 +430,8 @@ class DegradationDetector:
             self._baselines["duration_seconds"].add_sample(duration)
         if success_rate is not None:
             self._baselines["success_rate"].add_sample(success_rate)
+        if jepa_coherence is not None:
+            self._baselines["jepa_coherence"].add_sample(float(jepa_coherence))
         # token_surprisal: S_LP signal — skip None (FLM/NPU tasks have no logprobs)
         _ts = metrics.get("token_surprisal")
         if _ts is not None:

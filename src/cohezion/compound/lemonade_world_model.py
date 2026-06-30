@@ -27,17 +27,22 @@ _FLOAT_RE = re.compile(r"(\d?\.\d+|\d+\.?\d*)")
 
 
 def _parse_coherence(text: str) -> float | None:
-    """Extract the first 0..1 float from the LLM reply; None if absent/out of range."""
+    """Extract the first 0..1 float from the LLM reply; None if none in range.
+
+    BUGHUNT FIX (2026-06-30): iterate ALL numeric matches and return the first one in [0, 1],
+    rather than the first match overall. A reply like ``"step 2: 0.9"`` previously matched the
+    leading integer ``2`` (→ 2.0, out of range → None) and silently discarded the real ``0.9``.
+    """
     if not text:
         return None
-    m = _FLOAT_RE.search(text)
-    if not m:
-        return None
-    try:
-        v = float(m.group(1))
-    except ValueError:
-        return None
-    return v if 0.0 <= v <= 1.0 else None
+    for m in _FLOAT_RE.finditer(text):
+        try:
+            v = float(m.group(1))
+        except ValueError:
+            continue
+        if 0.0 <= v <= 1.0:
+            return v
+    return None
 
 
 class LemonadeWorldModel:
@@ -52,6 +57,22 @@ class LemonadeWorldModel:
     def __init__(self, chat_fn: Callable[[str], str] | None = None, model_id: str = _DEFAULT_MODEL) -> None:
         self._chat_fn = chat_fn
         self._model_id = model_id
+        # Current task description — injected by JepaGate.check() via set_task() before each
+        # prediction so the coherence estimate depends on the ACTUAL task, not just the prior
+        # coherence value (BUGHUNT 2026-06-30: the gate was task-blind → constant verdict).
+        self._task: str = ""
+
+    def set_task(self, task_description: str) -> None:
+        """Inject the task description threaded into the next predict_next_state prompt.
+
+        State-injection (not a signature change) keeps the world-model interface backward-compat:
+        existing stubs/JEPAWorldModels without set_task are unaffected. Fail-open: any non-string
+        input is coerced to an empty task, never raises.
+        """
+        try:
+            self._task = str(task_description) if task_description else ""
+        except Exception:  # pragma: no cover - defensive, str() rarely raises
+            self._task = ""
 
     def _chat(self, prompt: str) -> str:
         if self._chat_fn is None:
@@ -75,10 +96,11 @@ class LemonadeWorldModel:
         cur = float(np.mean(np.clip(np.asarray(state, dtype=np.float32), 0.0, 1.0)))
         if cur < 0.05:  # uninitialized/default zero-state → a neutral baseline, not a false 0.0
             cur = self._BASELINE
+        task_clause = f" The task is: {self._task[:200]}." if self._task else ""
         prompt = (
             f"A multi-step AI execution is at coherence {cur:.2f} (1.0 = fully coherent, 0.0 = "
-            "incoherent). Multi-step executions tend to lose coherence. Estimate the coherence of "
-            "the NEXT step as a number between 0.0 and 1.0. Reply with ONLY the number."
+            f"incoherent).{task_clause} Multi-step executions tend to lose coherence. Estimate the "
+            "coherence of the NEXT step as a number between 0.0 and 1.0. Reply with ONLY the number."
         )
         try:
             coh = _parse_coherence(self._chat(prompt))

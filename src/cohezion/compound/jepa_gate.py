@@ -100,6 +100,19 @@ class JepaGate:
             return PreExecutionVerdict.PROCEED
 
         state = current_state if current_state is not None else _DEFAULT_STATE
+
+        # Thread the task into the world model so its coherence estimate is TASK-AWARE
+        # (BUGHUNT 2026-06-30: the lemonade world model was building its prompt from the prior
+        # coherence ONLY → identical verdict every call). State-injection via an optional
+        # set_task() hook keeps the predict_next_state/simulate_trajectory signatures unchanged,
+        # so world models without set_task (test stubs, torch JEPAWorldModel) are unaffected.
+        _set_task = getattr(self._world_model, "set_task", None)
+        if callable(_set_task):
+            try:
+                _set_task(task_description)
+            except Exception:  # fail-open: a task-injection failure must never block execution
+                logger.debug("JEPA gate set_task failed (non-blocking)", exc_info=True)
+
         try:
             if self._lookahead_steps > 1:
                 # k-step lookahead: the trajectory's MINIMUM coherence — a path that looks
