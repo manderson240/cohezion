@@ -112,6 +112,21 @@ def lemonade_available(npu_port: int = 13306, timeout_s: float = 1.5) -> bool:
         return False
 
 
+# The OmniRouter triune cascade order — index = engine. The final tier reached is
+# (entry + escalations), so this maps a cascade outcome to the ENGINE that actually ran.
+_OMNI_TIERS = ("npu", "igpu", "cpu")
+
+
+def _engine_for(min_tier_index: int, escalation_count: int, is_cloud: bool) -> str:
+    """Which compute engine the cascade landed on — the feedback the GIC's DifficultyEstimator
+    needs to LEARN per-skill engine allocation (closes the multi-engine compounding loop).
+    Cloud short-circuits to 'cloud'; otherwise NPU(0)→iGPU(1)→CPU(2) by (entry + escalations)."""
+    if is_cloud:
+        return "cloud"
+    idx = min(max(0, int(min_tier_index) + int(escalation_count)), len(_OMNI_TIERS) - 1)
+    return _OMNI_TIERS[idx]
+
+
 def make_local_execute_fn(task_description: str = ""):
     """Return a callable compatible with CompoundExecutor.execute_task(execute_fn=...).
 
@@ -146,6 +161,11 @@ def make_local_execute_fn(task_description: str = ""):
 
             return result.text, {
                 "model": model,
+                # which ENGINE ran — feeds the GIC DifficultyEstimator so it learns per-skill
+                # engine allocation (multi-engine compounding; CB16 reads top-level tier_used).
+                "tier_used": _engine_for(
+                    min_tier_index, result.escalation_count, _is_cloud_model(model)
+                ),
                 "primary_model": result.primary_model,
                 "latency_ms": result.latency_ms,
                 "escalation_count": result.escalation_count,
