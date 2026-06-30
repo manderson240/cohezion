@@ -23,9 +23,14 @@ was green only because tests exercised the easy paths. Corrections (all committe
 - **M3:** `build_live_jepa_gate` probes `lemonade_available(npu_port=13305)` (was default :13306,
   offline per N1 → the JEPA gate silently never ran). **M5:** `_safe_ident` validates skill_name
   before SurrealQL interpolation (injection guard).
-- **OPEN (documented, not yet fixed):** M1 — FAPO R3 regression gate is DORMANT (`_regression_run_fn`
-  never set in any factory; fix = wire a local runner in make_executor + fail-closed when fixtures
-  exist but can't run). M2 — CR1 `_recompute_tier_at_compaction` has no caller (wire to
+- **M1 (FIXED 2026-06-29):** the FAPO R3 regression gate is now LIVE. `_regression_run_fn` had TWO
+  bugs — never wired AND added to the wrong class (`EnvironmentResponsePredictor`, not `SkillRefiner`),
+  so `refine()` would AttributeError if reached (dormancy masked it). Fix: moved onto `SkillRefiner`;
+  `SkillRefinerFactory.create` wires a local-inference runner; `regression_check` is fail-CLOSED when
+  fixtures exist but eval can't complete (infra errors still fail-open). Verified:
+  `SkillRefinerFactory.create()._regression_run_fn is not None`. No-op until golden fixtures populated
+  (bootstrap from JourneyTracker traces = follow-on).
+- **OPEN (documented, not yet fixed):** M2 — CR1 `_recompute_tier_at_compaction` has no caller (wire to
   `vector_pruning.should_compact()`). H5 — `exec(llm_code, {"np": np})` in symbolic_executor.py:60 /
   agi_reasoning.py:86 / aimo_reasoning.py:115 has NO `__builtins__` → real RCE; fix = explicit
   allow-list builtins + out-of-process (bubblewrap/nsjail) for the durable fix. **Separate security track.**
