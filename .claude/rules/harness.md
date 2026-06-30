@@ -2,6 +2,34 @@
 
 Generated: 2026-05-02. Updated via `/autoharness-update`.
 
+## Adversarial-Review Corrections (2026-06-29) — supersedes earlier routing invariants
+
+A 3-reviewer adversarial review + 5 SOTA research agents found the prior session's GIC routing code
+was green only because tests exercised the easy paths. Corrections (all committed, tested):
+- **H1/H2 (supersedes ME1 telemetry assumption):** `orchestrator.run` returns `escalation_count =
+  idx - start_tier` (RELATIVE escalations), not absolute idx. `_engine_for(entry + relative)` = the
+  absolute final tier; `predict_tier`'s `escalation_count==0` clean-success test stays valid when
+  entering above NPU. Cascade credit-assignment convention (final-tier identity + relative count).
+- **H3 (SUPERSEDES GIC-CAL1):** the `_MIN_TIER_FREQUENCY=0.34` guard is REPLACED by a **Wilson lower
+  confidence bound** — `predict_tier` returns the cheapest tier whose `_wilson_lcb(clean, n) >=
+  _LCB_ADEQUATE (0.35)`; dominant-by-(count, mean-quality) fallback. Fixes BOTH lucky-cheap
+  miscalibration AND the balanced-3-way default-to-worst bug. Validated across 400 seeds (mean 98.9%,
+  91% perfect, max drift 12%). `test_wilson_lcb_*` + `test_balanced_3way_*`. The GIC-CAL1 entry below
+  is HISTORICAL — `_MIN_TIER_FREQUENCY` no longer exists.
+- **H4 (corrects RS1):** `_resolve_tier` fuses by MAX-CAPABILITY (health may only escalate a hard
+  task, never cheapen it) and a JEPA REROUTE escalates ONE step toward capability (not cheaper). The
+  fused value now DRIVES cascade entry (`_call_execute_fn(execute_fn, guidance, _recommended or ...)`)
+  — previously it was metric-only/dead. RS1's "cheaper-of-two + REROUTE-downgrades" is REVERSED.
+- **M3:** `build_live_jepa_gate` probes `lemonade_available(npu_port=13305)` (was default :13306,
+  offline per N1 → the JEPA gate silently never ran). **M5:** `_safe_ident` validates skill_name
+  before SurrealQL interpolation (injection guard).
+- **OPEN (documented, not yet fixed):** M1 — FAPO R3 regression gate is DORMANT (`_regression_run_fn`
+  never set in any factory; fix = wire a local runner in make_executor + fail-closed when fixtures
+  exist but can't run). M2 — CR1 `_recompute_tier_at_compaction` has no caller (wire to
+  `vector_pruning.should_compact()`). H5 — `exec(llm_code, {"np": np})` in symbolic_executor.py:60 /
+  agi_reasoning.py:86 / aimo_reasoning.py:115 has NO `__builtins__` → real RCE; fix = explicit
+  allow-list builtins + out-of-process (bubblewrap/nsjail) for the durable fix. **Separate security track.**
+
 ## Verification Commands
 
 | Check | Command | Expected |
