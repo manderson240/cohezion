@@ -126,8 +126,11 @@ class ManifoldEnv(gym.Env):
         dynamics_engine: str = "lagrangian",
         obstacle_mode: bool = False,
         obstacles: list[tuple[float, float, float]] | None = None,
+        journey_tracker: object | None = None,
     ) -> None:
         super().__init__()
+
+        self._journey_tracker = journey_tracker
 
         self.dim = dim
         self.max_steps = max_steps
@@ -301,6 +304,15 @@ class ManifoldEnv(gym.Env):
                 )
             except Exception:
                 pass
+
+        # G18 / LC3: record this env step into the JourneyTracker (duck-typed, non-blocking)
+        if self._journey_tracker is not None:
+            recorder = getattr(self._journey_tracker, "record_env_state", None)
+            if recorder is not None:
+                try:
+                    recorder("manifold", self._step_count, self._position, float(reward))
+                except Exception:
+                    pass
 
         return self._get_obs_and_info(float(reward))
 

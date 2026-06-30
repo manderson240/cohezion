@@ -210,6 +210,60 @@ class CapabilityMatrix:
             )
             self._entries[f"agent:{name}"] = entry
 
+    def scan_for_task(
+        self, skill_name: str, task_description: str
+    ) -> dict[str, object]:
+        """Pre-flight capability gap analysis for a single skill + task.
+
+        Fail-open: always returns a dict with the required keys, never raises.
+
+        Returns keys:
+            skill_name, skill_found, gap_severity, quality_score, related_skills
+        """
+        result: dict[str, object] = {
+            "skill_name": skill_name,
+            "skill_found": False,
+            "gap_severity": "unknown",
+            "quality_score": None,
+            "related_skills": [],
+        }
+        try:
+            entry = self._entries.get(f"skill:{skill_name}") if skill_name else None
+            if entry is not None:
+                result["skill_found"] = True
+                result["quality_score"] = entry.quality_score
+                # Higher quality => smaller gap.
+                if entry.quality_score >= 0.8:
+                    result["gap_severity"] = "none"
+                elif entry.quality_score >= 0.6:
+                    result["gap_severity"] = "low"
+                elif entry.quality_score >= 0.4:
+                    result["gap_severity"] = "medium"
+                else:
+                    result["gap_severity"] = "high"
+            else:
+                # Unknown skill: a real gap, severity by whether anything related exists.
+                result["gap_severity"] = "high"
+
+            # Related skills: token overlap between task description and skill ids.
+            tokens = {
+                t for t in (task_description or "").lower().split() if len(t) > 2
+            }
+            if tokens:
+                related: list[str] = []
+                for key, cand in self._entries.items():
+                    if not key.startswith("skill:"):
+                        continue
+                    cand_tokens = set(cand.entity_id.lower().replace("-", " ").split())
+                    if tokens & cand_tokens:
+                        related.append(cand.entity_id)
+                result["related_skills"] = related
+                if not result["skill_found"] and related:
+                    result["gap_severity"] = "medium"
+        except Exception:
+            logger.debug("scan_for_task failed (non-blocking)", exc_info=True)
+        return result
+
     def enrich_from_execution_history(self) -> int:
         """Update entries with runtime data from ModelQualityClassifier."""
         updated = 0

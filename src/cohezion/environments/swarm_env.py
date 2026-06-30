@@ -63,7 +63,9 @@ class SwarmEnv:
         damping: float = 0.1,
         coupling_strength: float = 0.1,
         seed: int | None = None,
+        journey_tracker: object | None = None,
     ) -> None:
+        self._journey_tracker = journey_tracker
         self.n_agents = n_agents
         self.dim = dim
         self.max_steps = max_steps
@@ -155,6 +157,21 @@ class SwarmEnv:
 
         terminateds = dict.fromkeys(self.agents, all_at_hiho)
         truncateds = dict.fromkeys(self.agents, self._step_count >= self.max_steps)
+
+        # G18 / LC3: record one trajectory point per swarm step (duck-typed, non-blocking)
+        if self._journey_tracker is not None:
+            recorder = getattr(self._journey_tracker, "record_env_state", None)
+            if recorder is not None:
+                try:
+                    mean_reward = float(np.mean(list(rewards.values()))) if rewards else 0.0
+                    first_obs = (
+                        self._positions[self.agents[0]]
+                        if self.agents
+                        else np.zeros(self.dim, dtype=np.float32)
+                    )
+                    recorder("swarm", self._step_count, first_obs, mean_reward)
+                except Exception:
+                    pass
 
         return (
             self._get_all_obs(),

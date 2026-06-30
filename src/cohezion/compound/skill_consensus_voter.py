@@ -105,15 +105,18 @@ class SkillConsensusVoter:
         self,
         mcp_client: MCPClient,
         project: str = "cohezion",
+        inference_provider: Any | None = None,
     ):
         """Initialize skill consensus voter.
 
         Args:
             mcp_client: Connected MCPClient for vault operations
             project: Project name for vault operations
+            inference_provider: Optional local inference provider (N5 wiring)
         """
         self.mcp_client = mcp_client
         self.project = project
+        self._inference_provider = inference_provider
         logger.debug(
             "Initialized SkillConsensusVoter for project=%s",
             project,

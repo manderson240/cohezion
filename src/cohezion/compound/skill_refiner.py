@@ -116,13 +116,20 @@ class SkillRefiner:
 
     SKILLS_DIR = Path(__file__).parent.parent / "skills"
 
-    def __init__(self, mcp_client: Any = None):
+    def __init__(self, mcp_client: Any = None, moe_router: Any = None):
         """Initialize skill refiner.
 
         Args:
             mcp_client: Optional MCPClient for vault operations
+            moe_router: Optional MoESkillRouter (#83). When wired, biases
+                ``_autodata_select`` candidate scoring by learned per-expert weight.
         """
         self.mcp_client = mcp_client
+        # #83: MoE router over the five Autodata expert heads (None = unbiased selection).
+        self._moe_router = moe_router
+        # #83: maps candidate recommendation text -> originating expert name; populated by
+        # _autodata_candidates(), consumed by _autodata_select() for MoE-weighted scoring.
+        self._candidate_expert_map: dict[str, str] = {}
         self._env_predictor = EnvironmentResponsePredictor()
         # #118: per-skill rolling window of prediction errors (process rewards)
         self._process_rewards: dict[str, deque[float]] = {}
@@ -731,9 +738,13 @@ class SkillRefiner:
             "tier": metrics.tier_used,
             "esc": metrics.escalation_count,
         }
+        # #83: rebuild candidate->expert map for MoE-weighted selection.
+        self._candidate_expert_map = {}
         for _name, template, condition in self._AUTODATA_PERSPECTIVES:
             if condition(metrics):
-                candidates.append(template.format(**fmt))
+                candidate = template.format(**fmt)
+                candidates.append(candidate)
+                self._candidate_expert_map[candidate] = _name
         return candidates
 
     def _autodata_select(self, candidates: list[str], metrics: ExecutionMetrics) -> str:
@@ -757,8 +768,14 @@ class SkillRefiner:
             overlap = sum(
                 len(kw & _keywords(other)) for j, other in enumerate(candidates) if j != i
             )
+            # #83 (MR4): bias score by the originating expert's learned MoE weight when wired.
+            # No router → weight 1.0, preserving the pure self-consistency ordering.
+            weight = 1.0
+            if self._moe_router is not None:
+                expert = self._candidate_expert_map.get(cand, "fallback")
+                weight = self._moe_router.get_weight(expert)
             scores.append(
-                (overlap, -i, cand)
+                (overlap * weight, -i, cand)
             )  # secondary sort by position (earlier = higher priority)
         return max(scores)[2]
 
