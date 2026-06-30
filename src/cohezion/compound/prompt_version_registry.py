@@ -41,7 +41,12 @@ def _safe_ident(name: str) -> str:
     slug is produced at write and read, so a skill maps consistently. Empty/None → 'unknown'."""
     import re
 
-    return re.sub(r"[^A-Za-z0-9_./-]+", "_", (name or "").strip()) or "unknown"
+    slug = re.sub(r"[^A-Za-z0-9_./-]+", "_", (name or "").strip()) or "unknown"
+    if slug != name:
+        # review#2: distinct names can collide onto one slug (e.g. "my skill" & "my_skill") →
+        # shared golden_fixture rows → gate cross-contamination. Make it visible, at least.
+        logger.warning("skill_name slugified for SurrealQL: %r -> %r (collision risk)", name, slug)
+    return slug
 
 
 def _surreal_rows(data) -> list:

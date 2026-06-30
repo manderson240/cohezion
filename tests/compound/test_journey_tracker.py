@@ -645,3 +645,37 @@ class TestRealPhiScore:
             tracker.track_execution(result, f"Task {i}", "generate")
 
         assert len(tracker._recent_points) == tracker.TRAJECTORY_WINDOW
+
+
+class TestSurrealInjectionSanitization:
+    """Review LOW #1: operation_type must be quote-stripped like the sibling task field."""
+
+    def test_operation_type_single_quote_is_sanitized(self):
+        """An operation_type containing a single quote must not survive into the SurrealQL literal."""
+        import urllib.request
+        from unittest.mock import patch
+
+        tracker = JourneyTracker(seed=42)
+        point = TrajectoryPoint(
+            dimensions=np.array([0.5] * 12),
+            timestamp=1.0,
+            coherence=0.8,
+            efficiency=0.7,
+            operation_type="generate'; DROP TABLE journey_transition; --",
+            task_description="benign task",
+        )
+
+        captured = {}
+
+        def fake_urlopen(req, timeout=None):
+            captured["data"] = req.data.decode()
+            raise RuntimeError("stop after capture")
+
+        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+            tracker._persist_to_surreal(point)
+
+        query = captured["data"]
+        # The single quote from operation_type must be stripped — no stray quote can break the literal.
+        assert "DROP TABLE" in query  # the text content is preserved (just de-quoted)
+        assert "generate'" not in query  # the quote that would close the literal is gone
+        assert "operation_type = 'generate" in query

@@ -326,3 +326,30 @@ def test_grounding_drops_ungrounded_keyword():
 
     n = reg.bootstrap_fixtures("s", "p", chat_fn=fake_chat, n=1, ground_fn=current_skill)
     assert n == 0 and captured == []
+
+
+class TestSafeIdentSlugifyWarning:
+    """Review LOW #2: slugification can collide distinct skill names → shared golden_fixture rows.
+    Surface it with a warning so collisions are at least visible."""
+
+    def test_slugified_name_logs_warning(self, caplog):
+        import logging
+
+        from cohezion.compound.prompt_version_registry import _safe_ident
+
+        with caplog.at_level(logging.WARNING, logger="cohezion.compound.prompt_version_registry"):
+            result = _safe_ident("my skill")
+        assert result == "my_skill"
+        assert any("slugif" in r.message.lower() or "my_skill" in r.message for r in caplog.records), (
+            "expected a warning when the name was slugified"
+        )
+
+    def test_clean_name_does_not_warn(self, caplog):
+        import logging
+
+        from cohezion.compound.prompt_version_registry import _safe_ident
+
+        with caplog.at_level(logging.WARNING, logger="cohezion.compound.prompt_version_registry"):
+            result = _safe_ident("my_skill")
+        assert result == "my_skill"
+        assert not caplog.records, "a name needing no slugification must not warn"
