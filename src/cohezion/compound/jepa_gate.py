@@ -51,6 +51,8 @@ class JepaGate:
         proceed_threshold: Minimum mean predicted state value to PROCEED.
         reroute_threshold: Minimum mean predicted state value to REROUTE
             (below this → SKIP).
+        reroute_only: When True, the gate can never return SKIP — a sub-reroute
+            coherence is capped at REROUTE (escalate one tier, never abort).
     """
 
     def __init__(
@@ -59,10 +61,18 @@ class JepaGate:
         proceed_threshold: float = _THRESHOLD_PROCEED,
         reroute_threshold: float = _THRESHOLD_REROUTE,
         lookahead_steps: int = 1,
+        reroute_only: bool = False,
     ) -> None:
         self._world_model = world_model
         self._proceed_threshold = proceed_threshold
         self._reroute_threshold = reroute_threshold
+        # F3 SAFETY (2026-06-30): when True, a sub-reroute coherence is CAPPED at REROUTE — the gate
+        # can never return SKIP (which aborts the task at executor.py:721). The live LemonadeWorldModel
+        # path uses this because the 1B model is BINARY (QA: routine tractable tasks — "reverse a
+        # linked list", "summarize an article" — all collapse to ~0.01, the LOW few-shot anchor). A
+        # noisy 0.01 must escalate ONE tier, never SKIP-abort legitimate work. The deterministic
+        # torch-JEPA path (reroute_only=False, default) retains full PROCEED/REROUTE/SKIP semantics.
+        self._reroute_only = reroute_only
         # k-step latent lookahead (Dyna-Think, arXiv 2506.00320): 1 = single-step coherence
         # (memoryless heuristic); >1 = min coherence over a k-step simulated trajectory
         # (planning-before-acting — catches states that look locally OK but diverge later).
@@ -141,6 +151,9 @@ class JepaGate:
         if coherence + _EPS >= self._proceed_threshold:
             verdict = PreExecutionVerdict.PROCEED
         elif coherence + _EPS >= self._reroute_threshold:
+            verdict = PreExecutionVerdict.REROUTE
+        elif self._reroute_only:
+            # Noisy binary signal: cap at REROUTE so a spurious ~0.01 escalates a tier, never aborts.
             verdict = PreExecutionVerdict.REROUTE
         else:
             verdict = PreExecutionVerdict.SKIP

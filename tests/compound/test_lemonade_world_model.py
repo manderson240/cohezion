@@ -180,6 +180,41 @@ class TestF3CoherenceCalibratedToTractability:
         assert "tend to lose coherence" not in p  # downward-priming bias removed
 
 
+class TestF3RerouteOnlySafety:
+    """F3 PRODUCTION HAZARD (QA 2026-06-30): the 1B world model is BINARY — routine TRACTABLE tasks
+    ('reverse a linked list', 'summarize an article') collapse to ~0.01, the LOW few-shot anchor.
+    Below the reroute threshold the verdict is SKIP, which early-returns ExecutionResult(success=False)
+    at executor.py:721 → the task is ABORTED. The live gate must therefore be REROUTE-ONLY: a noisy
+    low reading escalates ONE tier, never aborts. PROCEED and REROUTE semantics are preserved.
+    """
+
+    def test_routine_tractable_low_reading_does_not_skip_on_live_gate(self):
+        """Falsification: a routine tractable task that the binary 1B rates 0.01 must NOT yield a
+        SKIP on the live (reroute_only) gate. A wrong impl (no reroute_only cap) returns SKIP →
+        the executor aborts the task → assertion fails."""
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.01")  # the binary LOW anchor collapse
+        gate = JepaGate(world_model=wm, reroute_only=True)
+        verdict = gate.check("reverse a linked list in Python", current_state=np.full(12, 0.5, dtype=np.float32))
+        assert verdict != PreExecutionVerdict.SKIP
+        assert verdict == PreExecutionVerdict.REROUTE  # escalate one tier, never abort
+
+    def test_default_gate_still_skips_at_same_reading_discriminating(self):
+        """Discriminating control: the SAME 0.01 reading on a DEFAULT gate (reroute_only=False, the
+        deterministic torch-JEPA path) DOES yield SKIP — proving the reroute_only flag is what caps
+        the verdict, not a threshold change that would weaken the torch path's SKIP semantics."""
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.01")
+        gate = JepaGate(world_model=wm)  # reroute_only defaults False
+        verdict = gate.check("some task", current_state=np.full(12, 0.5, dtype=np.float32))
+        assert verdict == PreExecutionVerdict.SKIP
+
+    def test_reroute_only_still_proceeds_on_high_coherence(self):
+        """The safety cap must not suppress a legitimate PROCEED for a tractable high reading."""
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.95")
+        gate = JepaGate(world_model=wm, reroute_only=True)
+        verdict = gate.check("add two numbers", current_state=np.full(12, 0.5, dtype=np.float32))
+        assert verdict == PreExecutionVerdict.PROCEED
+
+
 class TestLiveWiring:
     def test_wires_lemonade_world_model_when_available(self, monkeypatch):
         import cohezion.compound.local_inference as li
@@ -188,6 +223,7 @@ class TestLiveWiring:
         gate = build_live_jepa_gate(lookahead_steps=3)
         assert isinstance(gate._world_model, LemonadeWorldModel)
         assert gate._lookahead_steps == 3
+        assert gate._reroute_only is True  # live binary signal must never SKIP-abort
 
     def test_fail_open_when_lemonade_unavailable(self, monkeypatch):
         import cohezion.compound.local_inference as li

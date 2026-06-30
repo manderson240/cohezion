@@ -165,7 +165,14 @@ def build_live_jepa_gate(lookahead_steps: int = 1):
         # default :13306, which is the redundant per-port server and is usually offline, so the gate
         # was silently fail-opening to world_model=None for the whole executor lifetime.
         if lemonade_available(npu_port=13305):
-            return JepaGate(world_model=LemonadeWorldModel(), lookahead_steps=lookahead_steps)
+            # reroute_only=True: the 1B world model is a NOISY BINARY signal (QA 2026-06-30 — routine
+            # tractable tasks collapse to ~0.01, the LOW few-shot anchor). A spurious low must escalate
+            # ONE tier, NEVER SKIP-abort a legitimate task (executor.py:721). PROCEED/REROUTE kept.
+            return JepaGate(
+                world_model=LemonadeWorldModel(),
+                lookahead_steps=lookahead_steps,
+                reroute_only=True,
+            )
     except Exception:
         pass
     return JepaGate(world_model=None)
