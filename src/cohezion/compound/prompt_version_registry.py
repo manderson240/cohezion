@@ -207,18 +207,27 @@ def evaluate_regression(fixtures: list[dict[str, Any]], candidate: str, run_fn) 
     """Run the CANDIDATE skill against each golden fixture; return False if any CRITICAL fixture
     REGRESSES (output fails its deterministic validator). Non-critical failures are allowed; this
     is the article's 'critical-category gate that blocks even when the aggregate improves'.
-    Per-fixture execution errors fail OPEN (skip, don't block). Pure: run_fn(candidate, input)->str."""
+    A SINGLE per-fixture execution error fails OPEN (skip it), but if WELL-FORMED fixtures exist and
+    NONE could be evaluated (e.g. inference down), fail CLOSED — the candidate is unverified and must
+    not auto-promote (bughunt #8: matches regression_check's M1 contract; the old code swallowed all
+    per-fixture errors and returned True → promotion allowed). Pure: run_fn(candidate, input)->str."""
+    well_formed = evaluated = 0
     for f in fixtures:
         inp, exp = f.get("input"), f.get("expected_output")
         if not inp or exp is None:
-            continue
+            continue  # malformed fixture — not a real test case
+        well_formed += 1
         try:
             out = run_fn(candidate, inp)
         except Exception:
-            continue  # execution error is not a regression signal
+            continue  # per-fixture execution error — fail open for THIS fixture
+        evaluated += 1
         if not _validate(out, exp, f.get("validator_type") or "contains") and f.get("critical", True):
             logger.info("RegressionGate BLOCK: critical fixture regressed (input=%r)", str(inp)[:50])
             return False
+    if well_formed and evaluated == 0:
+        logger.warning("RegressionGate BLOCK: %d fixtures present but none evaluable — fail-closed", well_formed)
+        return False
     return True
 
 

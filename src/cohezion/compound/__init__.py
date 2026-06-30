@@ -536,7 +536,10 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
     from cohezion.compound.local_inference import get_recommended_concurrency, lemonade_available
     from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
 
-    if lemonade_available():
+    # bughunt #4: probe :13305 (OmniRouter), NOT the default :13306 (the redundant per-port server,
+    # usually offline per N1) — matching the M3 fix in build_live_jepa_gate. The old default-port
+    # probe failed on the live box → exec_provider was always None.
+    if lemonade_available(npu_port=13305):
         exec_provider = build_triune_omni_orchestrator()
         # Wire adaptive concurrency: under heavy model load, use sequential dispatch
         max_concurrent = get_recommended_concurrency()

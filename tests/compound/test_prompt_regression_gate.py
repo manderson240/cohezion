@@ -43,11 +43,22 @@ class TestEvaluateRegression:
         fx = [{"input": "x", "expected_output": "y", "critical": False}]
         assert evaluate_regression(fx, "cand", lambda c, i: "wrong") is True
 
-    def test_execution_error_fails_open(self):
+    def test_per_fixture_error_does_not_block(self):
+        """A SINGLE flaky fixture fails OPEN — the other (passing) fixture still gates."""
+        def run(c, inp):
+            if inp == "is 2+2=5?":
+                raise RuntimeError("flaky")
+            return "hi there"  # the 'say hi' critical fixture passes
+
+        assert evaluate_regression(_fixtures(), "cand", run) is True
+
+    def test_all_fixtures_unevaluable_fails_closed(self):
+        """bughunt #8: well-formed fixtures exist but NONE evaluate (inference down) → fail-CLOSED.
+        The old code swallowed all per-fixture errors and returned True (promotion allowed)."""
         def boom(c, i):
             raise RuntimeError("inference down")
 
-        assert evaluate_regression(_fixtures(), "cand", boom) is True
+        assert evaluate_regression(_fixtures(), "cand", boom) is False
 
     def test_false_improvement_detected(self):
         """The article's failure mode: aggregate looks OK (1/2 pass) but a CRITICAL category broke."""

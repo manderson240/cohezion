@@ -99,10 +99,17 @@ class LemonadeWorldModel:
         return trajectory
 
 
-def build_live_jepa_gate(lookahead_steps: int = 3):
-    """JG2 live wiring (factory): a JepaGate with a lemonade-backed world model + k-step lookahead
-    when local inference is reachable; else a fail-open gate (world_model=None). Probes lemonade
-    ONCE at construction so the runtime path never blocks on a dead endpoint."""
+def build_live_jepa_gate(lookahead_steps: int = 1):
+    """JG2 live wiring (factory): a JepaGate with a lemonade-backed world model when local inference
+    is reachable; else a fail-open gate (world_model=None). Probes lemonade ONCE at construction so
+    the runtime path never blocks on a dead endpoint.
+
+    BUGHUNT FIX (2026-06-30): default lookahead_steps=1, NOT 3. With k>1 the gate takes the trajectory
+    MINIMUM, but the current LemonadeWorldModel degrades coherence over zero-action steps, so the min
+    collapses to a constant ~0.15 → a CONSTANT REROUTE on every task (verified: single-step=0.85 →
+    PROCEED, but 3-step min=0.15 → REROUTE, identical across tasks). That made the gate a task-blind
+    anti-signal that systematically over-routed. Single-step is the honest coherence read. (Follow-on
+    to make k-step meaningful: feed task_description into the world model + a non-degrading rollout.)"""
     from cohezion.compound.jepa_gate import JepaGate
 
     try:
