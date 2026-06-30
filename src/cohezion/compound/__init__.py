@@ -541,8 +541,11 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
     # probe failed on the live box → exec_provider was always None.
     if lemonade_available(npu_port=13305):
         exec_provider = build_triune_omni_orchestrator()
-        # Wire adaptive concurrency: under heavy model load, use sequential dispatch
-        max_concurrent = get_recommended_concurrency()
+        # Wire adaptive concurrency: under heavy model load, use sequential dispatch.
+        # bughunt: probe :13305 (OmniRouter), NOT the default :13306 (redundant per-port server,
+        # usually offline per N1) — matching the lemonade_available fix above. The old default-port
+        # probe always failed on the live box → fell back to max_concurrent=3 instead of the real load.
+        max_concurrent = get_recommended_concurrency(npu_port=13305)
         exec_provider._max_concurrent = max_concurrent  # type: ignore[attr-defined]
     else:
         exec_provider = None

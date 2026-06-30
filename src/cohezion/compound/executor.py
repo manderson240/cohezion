@@ -754,8 +754,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception:
                 pass
         # (b) W4: DifficultyEstimator.predict_tier() — predictive, skill-specific tier hint.
-        if self._skill_refiner is not None:
-            _estimator = getattr(self._skill_refiner, "_difficulty_estimator", None)
+        # Use the lazy `skill_refiner` PROPERTY (not the raw `_skill_refiner` attr): the attr is None
+        # until the property first fires at the post-execute_fn refinement step, so reading it here
+        # skipped the predicted_tier hint — and thus the O9 cascade-entry routing — on the FIRST
+        # execute_task. The property builds the refiner on demand, so the hint is available from call #1.
+        _refiner = self.skill_refiner
+        if _refiner is not None:
+            _estimator = getattr(_refiner, "_difficulty_estimator", None)
             if _estimator is not None:
                 try:
                     _tier_hints["predicted_tier"] = _estimator.predict_tier(
@@ -1564,6 +1569,16 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         routing on the CURRENT state (reactive DegradationDetector health + predictive
         DifficultyEstimator) and reroute ONLY if the recommendation now DIFFERS from the active tier.
         Returns the new tier (a free mid-task switch) or None (stay). No-op-safe if components absent.
+
+        INTENTIONALLY CALLER-SUPPLIED (no internal automatic caller). This is an operator /
+        long-horizon-driver hook: the candidate in-process compaction boundaries do NOT carry the
+        routing context (skill_name, operation_type, active_tier) this method needs —
+        `VectorPruningEngine.should_compact()` is a generic cycle-count trigger not owned by the
+        executor, and `LongHorizonTask._perform_step` is a stub with no tier/skill context. Rather
+        than fabricate a context-less caller, expose it publicly (see the
+        `recompute_tier_at_compaction` alias below) so a driver that DOES hold routing context — a
+        long-horizon task loop or an operator-controlled compaction handler — can invoke it at its
+        own boundary. Exercised by tests/compound/test_tier_resolution.py::TestCompactionReroute.
         """
         suggested = None
         if self._degradation_detector is not None:
@@ -1592,6 +1607,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             )
             return recommended
         return None
+
+    # Public alias for the caller-supplied compaction-boundary reroute hook (see the docstring on
+    # _recompute_tier_at_compaction). The private name is retained for the existing test/invariant.
+    def recompute_tier_at_compaction(
+        self, skill_name: str, operation_type: str, active_tier: str
+    ) -> str | None:
+        """Public entry point for an external long-horizon/operator driver to request a free
+        tier reroute at its own compaction boundary. Delegates to _recompute_tier_at_compaction."""
+        return self._recompute_tier_at_compaction(skill_name, operation_type, active_tier)
 
     def start_session(self, max_cache_entries: int = 256) -> dict[str, Any]:
         """Start a compound session: warm-start autocontext and cache.
