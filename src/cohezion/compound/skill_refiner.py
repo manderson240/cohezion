@@ -915,7 +915,15 @@ class SkillRefiner:
             if registry._load_behavioral_fixtures(skill_name):
                 return  # already has fixtures — never re-author its own criteria
             current = prime_file.read_text(encoding="utf-8")
-            registry.bootstrap_fixtures(skill_name, current)
+            # H1 real fix: GROUND each fixture keyword against the CURRENT skill's actual output (run the
+            # pre-edit prime via _regression_run_fn) so a confirmed keyword is VERIFIED behaviour
+            # (critical=True → can block a real regression), not an LLM guess. partial(rf, current) binds
+            # the candidate arg to the current prime → ground(inp) = rf(current, inp). No run_fn → no
+            # grounding → fixtures stay critical=False (observe-only), preserving the prior contract.
+            import functools
+
+            ground = functools.partial(self._regression_run_fn, current) if self._regression_run_fn else None
+            registry.bootstrap_fixtures(skill_name, current, ground_fn=ground)
         except Exception as exc:  # fail-safe: gate stays fail-open if population fails
             logger.debug("golden-fixture bootstrap skipped (fail-safe): %s", exc)
 

@@ -178,13 +178,20 @@ class _FakeRegistry:
     def _load_behavioral_fixtures(self, skill):
         return list(_FakeRegistry.store.get(skill, []))
 
-    def bootstrap_fixtures(self, skill, prime, chat_fn=None, n=3):
+    def bootstrap_fixtures(self, skill, prime, chat_fn=None, n=3, ground_fn=None):
         if not _FakeRegistry.bootstrap_enabled:
             return 0  # population failed (infra down) -> fixtures stay empty
-        # Faithful to the real anti-poisoning contract: auto-generated fixtures are critical=False.
-        _FakeRegistry.store.setdefault(skill, []).append(
-            {"input": "is 2+2=5?", "expected_output": "no", "validator_type": "contains", "critical": False}
-        )
+        from cohezion.compound.prompt_version_registry import _ground_fixture
+
+        # candidate keyword "cache" (the prime's keyword); GROUND it against the current skill so a
+        # confirmed keyword becomes critical=True (real H1 contract). ground_fn=None -> critical=False.
+        fx = {"input": "what does this skill do?", "expected_output": "cache",
+              "validator_type": "contains", "critical": False}
+        if ground_fn is not None:
+            fx = _ground_fixture(fx, ground_fn)
+            if fx is None:
+                return 0  # un-grounded keyword -> dropped
+        _FakeRegistry.store.setdefault(skill, []).append(fx)
         return 1
 
     def regression_check(self, skill, candidate, run_fn):
@@ -196,10 +203,14 @@ class _FakeRegistry:
         return evaluate_regression(fx, candidate, run_fn)
 
 
-def _drive_refine(monkeypatch, tmp_path, *, bootstrap_enabled):
-    """Drive SkillRefiner.refine() to the behavioral regression gate with a stubbed prime file and
-    a run_fn that simulates inference being DOWN (raises). With fixtures present this fail-CLOSES
-    (blocks); with none it fail-OPENS (promotes). Returns (result, pending_approvals)."""
+_KEYSTONE_PRIME = "# Cache skill\nDoes caching.\n## Version: 1.0.0\n## Keywords: cache\n"
+
+
+def _drive_refine(monkeypatch, tmp_path, *, bootstrap_enabled, run_fn=None):
+    """Drive SkillRefiner.refine() to the behavioral regression gate with a stubbed prime file.
+    run_fn defaults to simulating inference DOWN (raises); pass a grounded-regression run_fn to test
+    the real catch (grounds the CURRENT prime, regresses the candidate → BLOCK). Returns
+    (result, pending_approvals)."""
     from types import SimpleNamespace
 
     import cohezion.compound.prompt_version_registry as pvr
@@ -220,10 +231,12 @@ def _drive_refine(monkeypatch, tmp_path, *, bootstrap_enabled):
     monkeypatch.setattr(SkillRefiner, "_APPROVALS_PATH", tmp_path / "approvals.jsonl")
 
     prime = tmp_path / "CACHE_SKILL_PRIME.md"
-    prime.write_text("# Cache skill\nDoes caching.\n## Version: 1.0.0\n## Keywords: cache\n")
+    prime.write_text(_KEYSTONE_PRIME)
 
     sr = SkillRefiner()
-    sr._regression_run_fn = lambda candidate, inp: (_ for _ in ()).throw(RuntimeError("inference down"))
+    if run_fn is None:
+        run_fn = lambda candidate, inp: (_ for _ in ()).throw(RuntimeError("inference down"))  # noqa: E731
+    sr._regression_run_fn = run_fn
     monkeypatch.setattr(sr, "_find_prime_file", lambda name: prime)
     monkeypatch.setattr(sr, "_extract_metrics", lambda res: SimpleNamespace(success=True))
     monkeypatch.setattr(sr, "_generate_learning_signal", lambda s, o, m: signal)
@@ -234,17 +247,22 @@ def _drive_refine(monkeypatch, tmp_path, *, bootstrap_enabled):
 
 
 def test_population_makes_regression_gate_non_dormant(tmp_path, monkeypatch):
-    """WIRING H1 keystone (discriminating): the gate was DORMANT because nothing populated
-    golden_fixture, so regression_check always hit its no-fixtures fail-open path. refine() now
-    bootstraps fixtures from the CURRENT prime BEFORE the gate. With fixtures present and inference
-    down, evaluate_regression fail-CLOSES → promotion BLOCKED + recorded for review.
+    """WIRING H1 keystone done RIGHT (discriminating): refine() bootstraps GROUNDED fixtures from the
+    CURRENT skill (inference UP) — the keyword is confirmed in the current output → critical=True — so
+    a regressing candidate is BLOCKED. This is the REAL behavioral-regression catch, not the inference-
+    outage path the earlier version mistakenly proved.
 
-    CONTROL (bootstrap disabled = infra down): no fixtures populated → gate fail-opens → PROMOTES.
-    The original dormant code (no bootstrap caller) behaves like the control in BOTH cases, so it
-    fails the blocked-case assertion below — this test discriminates the fix from the bug."""
-    # Population succeeds -> gate bites -> blocked
-    result, pending = _drive_refine(monkeypatch, tmp_path, bootstrap_enabled=True)
-    assert result is None
+    DISCRIMINATING: the pre-grounding code forced auto-fixtures critical=False, and evaluate_regression
+    only blocks on critical=True, so this exact scenario (inference UP, candidate regresses) PROMOTED
+    the regression. A wrong impl that skips grounding makes `result is None` FAIL (it would promote)."""
+
+    def run_fn(candidate, inp):
+        # grounding runs the CURRENT prime (== _KEYSTONE_PRIME) → output contains "cache" (keyword
+        # grounded, critical=True); the refined candidate differs → output lacks "cache" → REGRESSION.
+        return "this skill manages the cache" if candidate == _KEYSTONE_PRIME else "unrelated behavior now"
+
+    result, pending = _drive_refine(monkeypatch, tmp_path, bootstrap_enabled=True, run_fn=run_fn)
+    assert result is None  # BLOCKED — a real regression caught with inference UP
     assert len(pending) == 1
     assert pending[0]["skill"] == "cache_skill" and pending[0]["reason"] == "regression_gate"
 
@@ -256,3 +274,55 @@ def test_failed_bootstrap_leaves_gate_failopen(tmp_path, monkeypatch):
     result, pending = _drive_refine(monkeypatch, tmp_path, bootstrap_enabled=False)
     assert result is not None  # promoted (fail-open), not blocked
     assert pending == []
+
+
+def test_grounded_bootstrap_makes_gate_block_a_real_regression():
+    """H1 done right (the test that should have existed): GROUNDING the fixture keyword against the
+    CURRENT skill's actual output makes it critical=True (verified behaviour, not an LLM guess), so the
+    gate BLOCKS a real behavioral regression with inference UP — not merely an outage.
+
+    DISCRIMINATING: the pre-fix code forced every auto-fixture critical=False, and evaluate_regression
+    only blocks on critical=True, so this exact scenario PROMOTED the regression. A wrong impl that
+    skips grounding (critical stays False) makes the final assertion FAIL."""
+    from cohezion.compound.prompt_version_registry import PromptVersionRegistry, evaluate_regression
+
+    def current_skill(inp):  # the CURRENT skill's output contains "done" for this input
+        return "Task complete: DONE."
+
+    def fake_chat(_prompt):  # the LLM proposes (input, keyword) — keyword is only a CANDIDATE
+        return '[{"input":"do the task","expected_output":"done","critical":false}]'
+
+    reg = PromptVersionRegistry()
+    captured: list[dict] = []
+    reg._write_fixture = lambda skill, fx: (captured.append(fx) or True)  # capture; no SurrealDB
+
+    n = reg.bootstrap_fixtures("s", "a skill", chat_fn=fake_chat, n=1, ground_fn=current_skill)
+    assert n == 1
+    assert captured[0]["critical"] is True  # grounded (keyword IS in current output) → can hard-block
+    assert captured[0]["expected_output"] == "done"
+
+    def candidate_skill(_cand, inp):  # the candidate REGRESSES — no longer produces "done"
+        return "Task complete: FAILED."
+
+    # inference is UP (run_fn returns a real string); the candidate diverges from grounded behaviour
+    assert evaluate_regression(captured, "candidate", candidate_skill) is False  # BLOCKED
+
+
+def test_grounding_drops_ungrounded_keyword():
+    """A keyword the LLM guessed but the CURRENT skill does NOT produce is un-grounded → DROPPED, not
+    written as a false criterion. This is the anti-poisoning guarantee that lets grounded fixtures be
+    critical=True safely: only keywords confirmed in real current behaviour survive."""
+    from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+
+    def current_skill(_inp):
+        return "the sky is blue"
+
+    def fake_chat(_p):  # "purple" is NOT in the current skill's output → must be dropped
+        return '[{"input":"x","expected_output":"purple","critical":true}]'
+
+    reg = PromptVersionRegistry()
+    captured: list[dict] = []
+    reg._write_fixture = lambda skill, fx: (captured.append(fx) or True)
+
+    n = reg.bootstrap_fixtures("s", "p", chat_fn=fake_chat, n=1, ground_fn=current_skill)
+    assert n == 0 and captured == []

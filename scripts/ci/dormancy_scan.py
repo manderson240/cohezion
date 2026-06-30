@@ -40,6 +40,8 @@ REGISTRY: list[tuple[str, str, str, int]] = [
      r"self\._regression_run_fn is not None", "src/cohezion/compound/skill_refiner.py", 1),
     ("Lever1: per-task gate_chars CONSUMED (override branch reads it)",
      r"gate_chars is not None", "src/cohezion/inference/orchestrator.py", 1),
+    ("H1-grounding: _ensure_golden_fixtures passes ground_fn (grounding LIVE → gate can BITE)",
+     r"ground_fn=ground", "src/cohezion/compound/skill_refiner.py", 1),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE

@@ -136,13 +136,25 @@ class PromptVersionRegistry:
         r.raise_for_status()
         return _surreal_rows(r.json())
 
-    def bootstrap_fixtures(self, skill_name: str, prime_excerpt: str, chat_fn=None, n: int = 3) -> int:
+    def bootstrap_fixtures(
+        self, skill_name: str, prime_excerpt: str, chat_fn=None, n: int = 3, ground_fn=None
+    ) -> int:
         """Generate (local-first, $0) + persist behavioral golden fixtures so the M1 regression gate
         has cases to run for `skill_name`. Defaults to the fast iGPU model when chat_fn is None.
+
+        ground_fn (H1 real fix): when provided, each candidate keyword is GROUNDED against the CURRENT
+        skill's actual output (`ground_fn(input)`) — a keyword the current skill genuinely produces is
+        VERIFIED behaviour (not an LLM guess), so the fixture is marked `critical=True` and CAN hard-
+        block a regression. A keyword the current skill does NOT produce is dropped (un-grounded false
+        criterion). Without ground_fn, fixtures stay `critical=False` (observe-only) as before.
         Returns the count written (0 on any failure)."""
         chat_fn = chat_fn or _fast_local_chat
         written = 0
         for fx in generate_fixture_candidates(skill_name, prime_excerpt, chat_fn, n):
+            if ground_fn is not None:
+                fx = _ground_fixture(fx, ground_fn)
+                if fx is None:
+                    continue  # un-grounded keyword (current skill doesn't produce it) → drop
             if self._write_fixture(skill_name, fx):
                 written += 1
         if written:
@@ -315,6 +327,22 @@ def generate_fixture_candidates(
         if out:
             return out
     return []
+
+
+def _ground_fixture(fx: dict, ground_fn) -> dict | None:
+    """H1 real fix — confirm a candidate keyword against the CURRENT skill's actual output, resolving
+    the poisoning↔dormancy contradiction. Returns the fixture marked ``critical=True`` when the current
+    skill's output CONTAINS the keyword (grounded = verified current behaviour → safe to HARD-block on a
+    regression); returns ``None`` to DROP it when the keyword is not produced (an un-grounded LLM guess
+    that would be a false criterion). Fail-safe: any ``ground_fn`` error → ``None`` (never write an
+    untrustworthy fixture). Uses the same ``_validate`` the gate uses, so grounding and gating agree."""
+    try:
+        current_out = ground_fn(fx["input"])
+    except Exception:
+        return None
+    if _validate(current_out, fx["expected_output"], fx.get("validator_type", "contains")):
+        return {**fx, "critical": True}
+    return None
 
 
 def _fast_local_chat(prompt: str) -> str:
