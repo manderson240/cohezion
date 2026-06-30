@@ -28,6 +28,17 @@ _EMBED_MODEL = "nomic-embed-text-v2-moe-GGUF"
 DRIFT_THRESHOLD = 0.35  # cosine distance; block if drift >= this
 
 
+def _safe_ident(name: str) -> str:
+    """M5: guard against SurrealQL injection — skill_name flows from the registry/loop into
+    interpolated queries. Allow only identifier-safe chars; reject quote/semicolon/space breakouts.
+    Raises ValueError on a bad name (callers fail-open via their try/except)."""
+    import re
+
+    if not re.fullmatch(r"[A-Za-z0-9_./-]+", name or ""):
+        raise ValueError(f"unsafe skill_name for query: {name!r}")
+    return name
+
+
 class PromptVersionRegistry:
     """Gate: block SkillRefiner from promoting a change that drifts ≥0.35 from golden fixtures."""
 
@@ -93,7 +104,7 @@ class PromptVersionRegistry:
 
         q = (
             "SELECT input, expected_output, validator_type, critical FROM golden_fixture "
-            f"WHERE skill_name = '{skill_name}';"
+            f"WHERE skill_name = '{_safe_ident(skill_name)}';"
         )
         r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
         r.raise_for_status()
@@ -102,7 +113,7 @@ class PromptVersionRegistry:
 
     def _load_fixtures(self, skill_name: str) -> list[dict[str, Any]]:
         import httpx
-        q = f"SELECT embedding_768d FROM golden_fixture WHERE skill_name = '{skill_name}';"
+        q = f"SELECT embedding_768d FROM golden_fixture WHERE skill_name = '{_safe_ident(skill_name)}';"
         r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
         r.raise_for_status()
         data = r.json()
@@ -121,7 +132,7 @@ class PromptVersionRegistry:
         try:
             import httpx
             q = (
-                f"CREATE fixture_run SET skill_name='{skill_name}', "
+                f"CREATE fixture_run SET skill_name='{_safe_ident(skill_name)}', "
                 f"drift_score={drift:.4f}, passed={str(passed).lower()}, "
                 f"created_at=time::now();"
             )

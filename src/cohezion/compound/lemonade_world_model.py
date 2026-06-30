@@ -108,7 +108,10 @@ def build_live_jepa_gate(lookahead_steps: int = 3):
     try:
         from cohezion.compound.local_inference import lemonade_available
 
-        if lemonade_available():
+        # M3 fix: probe :13305 (the OmniRouter the world model actually infers on, per N1) — NOT the
+        # default :13306, which is the redundant per-port server and is usually offline, so the gate
+        # was silently fail-opening to world_model=None for the whole executor lifetime.
+        if lemonade_available(npu_port=13305):
             return JepaGate(world_model=LemonadeWorldModel(), lookahead_steps=lookahead_steps)
     except Exception:
         pass
