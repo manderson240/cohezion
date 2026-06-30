@@ -84,6 +84,9 @@ class EnvironmentResponsePredictor:
         self._history: dict[tuple[str, str], deque[float]] = {}
         self._window_size = window_size
         self._surprise_threshold = surprise_threshold
+        # FAPO R3: optional run_fn(candidate_prompt, fixture_input) -> output for the behavioral
+        # regression gate. None = gate fail-open (drift gate still applies). Set by the factory.
+        self._regression_run_fn = None
 
     def predict(self, skill_name: str, operation_type: str) -> float | None:
         """Return rolling-mean quality prediction, or None if no history yet."""
@@ -334,6 +337,18 @@ class SkillRefiner:
             if not PromptVersionRegistry().check_drift(skill_name, signal.key_insight):
                 logger.info("Skill refinement blocked by golden-fixture gate: %s", skill_name)
                 return None
+
+            # FAPO R3: behavioral regression gate — run the CANDIDATE skill against golden fixtures
+            # and block promotion if a critical case regresses (defends the self-improvement loop
+            # from QUIET prompt regression — check_drift only inspects edit-text embeddings, not
+            # behavior). Fail-open when no run_fn is configured.
+            if self._regression_run_fn is not None:
+                candidate = prime_file.read_text() + f"\n\n{signal.key_insight}"
+                if not PromptVersionRegistry().regression_check(
+                    skill_name, candidate, self._regression_run_fn
+                ):
+                    logger.info("Skill refinement blocked by behavioral regression gate: %s", skill_name)
+                    return None
 
             # Append refinement
             refined_path = self._append_refinement(prime_file, signal)
