@@ -352,8 +352,17 @@ class SkillRefiner:
             # from QUIET prompt regression — check_drift only inspects edit-text embeddings, not
             # behavior). Fail-open when no run_fn is configured.
             if self._regression_run_fn is not None:
+                reg = PromptVersionRegistry()
+                # WIRING H1: the gate was DORMANT because nothing ever populated golden_fixture, so
+                # regression_check always hit its no-fixtures fail-open path. Lazily bootstrap
+                # fixtures from the CURRENT (pre-edit) prime content so the gate has cases to BITE
+                # on. Non-circular: fixtures capture the skill's CURRENT correct behavior; the
+                # candidate edit is then tested AGAINST them — the skill does NOT author its own
+                # pass criteria from the edit it is trying to promote. Fail-safe (no-op on error).
+                self._ensure_golden_fixtures(reg, skill_name, prime_file)
+
                 candidate = prime_file.read_text() + f"\n\n{signal.key_insight}"
-                if not PromptVersionRegistry().regression_check(
+                if not reg.regression_check(
                     skill_name, candidate, self._regression_run_fn
                 ):
                     logger.info("Skill refinement blocked by behavioral regression gate: %s", skill_name)
@@ -886,6 +895,30 @@ class SkillRefiner:
 
         return None
 
+    def _ensure_golden_fixtures(self, registry: Any, skill_name: str, prime_file: Path) -> None:
+        """WIRING H1: populate golden fixtures so the behavioral regression gate is non-dormant.
+
+        Bootstraps fixtures from the CURRENT (pre-edit) prime content ONLY when the skill has none.
+        This is the missing production caller for ``bootstrap_fixtures`` — without it the
+        ``golden_fixture`` table stays empty and ``regression_check`` perpetually fail-opens.
+
+        Anti-poisoning (security review FIXTURE-POISONING): fixtures are derived from the skill's
+        CURRENT correct behavior, NOT from the candidate edit being promoted — so a skill cannot
+        author its own pass criteria from the change it is trying to land (non-circular). We also
+        never re-author once fixtures exist (avoids unbounded accumulation / drift of criteria).
+
+        Fail-safe: any error (lemonade down → empty generation; SurrealDB down → load/write error)
+        is swallowed, leaving fixtures absent so the gate stays fail-open (no fixtures → skip),
+        per the existing regression_check contract. Bootstrap must never break refine().
+        """
+        try:
+            if registry._load_behavioral_fixtures(skill_name):
+                return  # already has fixtures — never re-author its own criteria
+            current = prime_file.read_text(encoding="utf-8")
+            registry.bootstrap_fixtures(skill_name, current)
+        except Exception as exc:  # fail-safe: gate stays fail-open if population fails
+            logger.debug("golden-fixture bootstrap skipped (fail-safe): %s", exc)
+
     # HITL + observability surface for blocked self-mutations (2026 Agent Confidence Index: human-in-
     # the-loop is the #1 production-confidence lever at 59%, observability #2 at 53%). When the loop
     # autonomously BLOCKS a skill mutation, it must not vanish silently — record it with a legible
@@ -1137,7 +1170,10 @@ class SkillRefinerFactory:
             Singleton SkillRefiner instance
         """
         if SkillRefinerFactory._instance is None:
-            SkillRefinerFactory._instance = SkillRefiner(mcp_client)
+            # WIRING H1: delegate to create() so the singleton ALSO wires _regression_run_fn.
+            # The old `SkillRefiner(mcp_client)` left the behavioral regression gate dormant on
+            # every singleton consumer (the common path), so the gate could never bite.
+            SkillRefinerFactory._instance = SkillRefinerFactory.create(mcp_client)
         return SkillRefinerFactory._instance
 
     @staticmethod

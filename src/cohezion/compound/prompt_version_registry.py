@@ -293,12 +293,23 @@ def generate_fixture_candidates(
         out = []
         for item in arr if isinstance(arr, list) else []:
             if isinstance(item, dict) and item.get("input") and item.get("expected_output"):
+                expected = str(item["expected_output"])
+                # WIRING H1 anti-poisoning: reject DEGENERATE expected_output. A 1-char or
+                # whitespace-only keyword `_validate(..., "contains")`-matches almost any output,
+                # so it would silently NEVER block — a poisoned fixture that auto-promotes anything.
+                # Require >=3 non-space chars of real signal.
+                if len(expected.replace(" ", "")) < 3:
+                    continue
+                # DEFAULT critical=False: an auto-generated (hallucinated-criterion-risk) fixture
+                # must NOT be able to HARD-block a promotion. Only a human / later promotion step
+                # may mark a fixture critical=True. evaluate_regression only blocks on critical
+                # fixtures, so an unsupervised bootstrap is observe-and-log, never a hard gate.
                 out.append(
                     {
                         "input": str(item["input"]),
-                        "expected_output": str(item["expected_output"]),
+                        "expected_output": expected,
                         "validator_type": "contains",
-                        "critical": bool(item.get("critical", False)),
+                        "critical": False,
                     }
                 )
         if out:
