@@ -55,18 +55,20 @@ _TIER_ORDER = ("npu", "igpu", "cpu", "cloud")
 def _resolve_tier(
     predicted: str | None, suggested: str | None, jepa_reroute: bool
 ) -> str | None:
-    """Synthesize the GIC's routing signals into ONE coherent tier recommendation.
+    """Synthesize the GIC's routing signals into ONE tier that DRIVES cascade entry (H4 fix).
 
-    Combines the predictive signal (DifficultyEstimator.predict_tier — skill-specific) and the
-    reactive signal (DegradationDetector.suggest_routing_tier — health-based) by taking the more
-    CONSERVATIVE (cheaper) of the two. A JEPA-gate REROUTE verdict (marginal predicted coherence)
-    then downgrades ONE step toward a cheaper tier — the gate's "try cheaper first" intent — making
-    REROUTE actionable instead of merely logged. Returns None when no valid signal is present.
+    Fuse the predictive signal (DifficultyEstimator.predict_tier — skill-specific) and the reactive
+    health signal (DegradationDetector.suggest_routing_tier) by MAX-CAPABILITY: capability/SLO is a
+    hard floor, so health may only ESCALATE a predicted-hard task, never cheapen it (the llm-d /
+    conservative-routing precedence — research-corrected from the original cheaper-of-two, which let
+    a healthy signal down-route a hard task). A JEPA REROUTE verdict (marginal coherence = the world
+    model expects divergence) escalates ONE more step toward capability (speculative-cascades:
+    defer-UP on disagreement), never cheaper. Returns None when no valid signal is present.
     """
     candidates = [t for t in (predicted, suggested) if t in _TIER_ORDER]
-    base = min(candidates, key=_TIER_ORDER.index) if candidates else None
+    base = max(candidates, key=_TIER_ORDER.index) if candidates else None
     if jepa_reroute and base is not None:
-        return _TIER_ORDER[max(0, _TIER_ORDER.index(base) - 1)]
+        return _TIER_ORDER[min(len(_TIER_ORDER) - 1, _TIER_ORDER.index(base) + 1)]
     return base
 
 
@@ -761,9 +763,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     )
                 except Exception:
                     pass
-        # (c) Synthesize ONE coherent tier recommendation from the predictive + reactive signals.
-        # A JEPA-gate REROUTE (marginal coherence) downgrades toward a cheaper tier — making the
-        # REROUTE verdict actionable (it was previously only logged at Step 3.5).
+        # (c) Synthesize ONE coherent tier recommendation from the predictive + reactive signals,
+        # escalating on a JEPA REROUTE (marginal coherence). H4 fix: this fused value now DRIVES
+        # cascade entry (below) instead of only being logged — so health degradation and the REROUTE
+        # verdict are actionable, not metric-only.
         _recommended = _resolve_tier(
             _tier_hints.get("predicted_tier"),
             _tier_hints.get("suggested_tier"),
@@ -773,10 +776,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             _tier_hints["recommended_tier"] = _recommended
 
         try:
-            # O9 binding: a confident high difficulty prediction enters the cascade above the
-            # cheap tiers (signature-aware, backward-compatible, conservative — see _call_execute_fn).
+            # O9 binding: enter the cascade at the FUSED recommendation (difficulty + health + REROUTE,
+            # max-capability) when present, else the raw difficulty prediction. Signature-aware,
+            # backward-compatible, conservative — see _call_execute_fn.
             output, metrics = _call_execute_fn(
-                execute_fn, guidance, _tier_hints.get("predicted_tier")
+                execute_fn, guidance, _recommended or _tier_hints.get("predicted_tier")
             )
             success = True
             logger.info("Task completed successfully")

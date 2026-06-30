@@ -15,23 +15,27 @@ class TestResolveTierStructural:
 
 
 class TestResolveTierBehavioral:
-    def test_conservative_of_two_signals(self):
-        # takes the cheaper (lower-index) of predicted vs suggested
-        assert _resolve_tier("cpu", "npu", jepa_reroute=False) == "npu"
-        assert _resolve_tier("igpu", "cloud", jepa_reroute=False) == "igpu"
+    def test_max_capability_of_two_signals(self):
+        # H4: takes the MORE-CAPABLE (higher-index) of predicted vs suggested — health may only
+        # escalate a predicted-hard task, never cheapen it (SLO/capability floor).
+        assert _resolve_tier("cpu", "npu", jepa_reroute=False) == "cpu"
+        assert _resolve_tier("igpu", "cloud", jepa_reroute=False) == "cloud"
+        assert _resolve_tier("npu", "igpu", jepa_reroute=False) == "igpu"
 
-    def test_reroute_downgrades_one_step_toward_cheaper(self):
-        """Discriminating: REROUTE must CHANGE the recommendation toward a cheaper tier. A wrong
-        impl that ignores the verdict (the old 'only logged' behavior) returns the base unchanged."""
-        assert _resolve_tier("cpu", "cpu", jepa_reroute=False) == "cpu"  # baseline
-        assert _resolve_tier("cpu", "cpu", jepa_reroute=True) == "igpu"  # REROUTE downgrades cpu→igpu
+    def test_reroute_escalates_one_step_toward_capability(self):
+        """H4 discriminating: REROUTE (marginal coherence → expect divergence) escalates UP one tier.
+        A wrong impl that ignores the verdict returns the base; the OLD cheaper-downgrade impl
+        returns npu — both fail."""
+        assert _resolve_tier("npu", "npu", jepa_reroute=False) == "npu"  # baseline
+        assert _resolve_tier("npu", "npu", jepa_reroute=True) == "igpu"  # REROUTE escalates npu→igpu
+        assert _resolve_tier("igpu", "igpu", jepa_reroute=True) == "cpu"
 
-    def test_reroute_clamped_at_cheapest_tier(self):
-        assert _resolve_tier("npu", "npu", jepa_reroute=True) == "npu"  # can't go below npu
+    def test_reroute_clamped_at_most_capable_tier(self):
+        assert _resolve_tier("cloud", "cloud", jepa_reroute=True) == "cloud"  # can't escalate past cloud
 
     def test_no_valid_signal_returns_none(self):
         assert _resolve_tier(None, None, jepa_reroute=False) is None
-        assert _resolve_tier(None, None, jepa_reroute=True) is None  # nothing to downgrade
+        assert _resolve_tier(None, None, jepa_reroute=True) is None  # nothing to escalate
         assert _resolve_tier("unknown", "bogus", jepa_reroute=False) is None
 
     def test_invalid_tier_ignored_valid_one_used(self):
