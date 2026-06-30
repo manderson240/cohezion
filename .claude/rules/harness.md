@@ -17,6 +17,21 @@ FIXED (committed, verified by me):
   `_surreal_rows` treats ERR as no-rows.
 - **FAILURE #4** — `_safe_ident` now SLUGIFIES (was: RAISE on spaces → skills silently un-gated).
 
+RESOLVED 2026-06-30 (follow-up GAIA-SDK orchestration round — 3 agents, disjoint files, 2004 green):
+- **H1 FIXED** — `refine()._ensure_golden_fixtures` lazily bootstraps fixtures from the CURRENT
+  pre-edit prime (non-circular) when a skill has none; anti-poisoning (force critical=False, reject
+  <3-char expected); `get_singleton` delegates to `create()`. Discrimination PROVEN (neutralize → gate
+  promotes a regressing candidate; restore → blocks + records pending_review). The gate now FIRES.
+- **H2 FIXED** — `jepa_coherence` is a tracked `DegradationDetector` MetricBaseline (low → WARNING).
+- **JEPA task-blindness FIXED** — `set_task` threads task_description into the world model; verdict now
+  task-dependent. `_parse_coherence` returns first in-range float.
+- **Dormancy cluster** — concurrency probe → :13305; first-call predicted_tier uses lazy property;
+  CR1 honestly documented as intentional caller-supplied (no fake caller); overnight coverage n>0.
+- STILL OPEN: H5 durable out-of-process sandbox (the allow-list is a stop-gap); `inference_provider`
+  built-but-unread (decide consume-or-delete); `get_pending_approvals` operator surface; auto-fixture
+  critical-promotion is an intended HITL step.
+
+(Original deferred list, now mostly resolved above:)
 DEFERRED (architectural / dormancy backlog — NOT quick fixes):
 - **WIRING H1 (the big one)** — the golden-fixture → regression-gate → HITL-approval chain is wired
   component-by-component but DORMANT end-to-end: `bootstrap_fixtures` has NO production caller, so the
