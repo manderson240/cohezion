@@ -84,18 +84,25 @@ class PromptVersionRegistry:
         fixtures and BLOCK promotion (return False) if any CRITICAL case regresses. Complements
         check_drift (which only compares EDIT-TEXT embeddings) by checking actual BEHAVIOR — the
         quiet-failure mode prompt edits cause. Fail-open: no run_fn / no fixtures / errors → True."""
+        # Fail-policy (M1, AUTO-promotion): no run_fn / infra load error → fail-OPEN (don't halt the
+        # loop); no fixtures → skip-but-log; fixtures EXIST but eval can't complete → fail-CLOSED.
         if run_fn is None:
             return True
         try:
             fixtures = self._load_behavioral_fixtures(skill_name)
-            if not fixtures:
-                return True
-            passed = evaluate_regression(fixtures, candidate, run_fn)
-            self._log_run(skill_name, drift=-1.0, passed=passed)
-            return passed
         except Exception as exc:
-            logger.debug("RegressionGate error (fail-open): %s", exc)
+            logger.warning("RegressionGate: fixture load failed — fail-open (infra): %s", exc)
             return True
+        if not fixtures:
+            logger.debug("RegressionGate: no golden fixtures for %s — skip", skill_name)
+            return True
+        try:
+            passed = evaluate_regression(fixtures, candidate, run_fn)
+        except Exception as exc:
+            logger.warning("RegressionGate BLOCK: eval failed with fixtures present (%s): %s", skill_name, exc)
+            return False  # fail-CLOSED: fixtures exist, can't verify → don't promote
+        self._log_run(skill_name, drift=-1.0, passed=passed)
+        return passed
 
     # ── internal helpers ──────────────────────────────────────────────────────
 

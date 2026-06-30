@@ -53,3 +53,14 @@ class TestEvaluateRegression:
         """The article's failure mode: aggregate looks OK (1/2 pass) but a CRITICAL category broke."""
         ans = {"is 2+2=5?": "yes", "say hi": "hi"}  # 1 pass, 1 critical fail
         assert evaluate_regression(_fixtures(), "cand", lambda c, i: ans[i]) is False
+
+
+def test_factory_wires_regression_gate_live():
+    """M1: the FAPO R3 gate was DORMANT — _regression_run_fn defaulted None AND was added to the
+    wrong class (EnvironmentResponsePredictor), so refine()'s guard would AttributeError if reached.
+    Now SkillRefiner owns it and SkillRefinerFactory.create wires a live runner. A dormant gate gives
+    the self-improvement loop ZERO behavioral-regression protection."""
+    from cohezion.compound.skill_refiner import SkillRefiner, SkillRefinerFactory
+
+    assert hasattr(SkillRefiner(), "_regression_run_fn")          # on the RIGHT class
+    assert SkillRefinerFactory.create()._regression_run_fn is not None  # wired LIVE, not dormant

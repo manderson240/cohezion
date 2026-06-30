@@ -559,4 +559,6 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
             except Exception:
                 pass
 
+    # M1: the FAPO R3 regression gate's run_fn is wired in SkillRefinerFactory.create (the canonical
+    # creation point — the executor builds its SkillRefiner lazily, so it isn't available here).
     return CompoundExecutor(mcp_client, inference_provider=exec_provider, **kwargs)  # type: ignore[arg-type]

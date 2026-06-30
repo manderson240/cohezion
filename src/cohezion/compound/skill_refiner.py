@@ -84,9 +84,6 @@ class EnvironmentResponsePredictor:
         self._history: dict[tuple[str, str], deque[float]] = {}
         self._window_size = window_size
         self._surprise_threshold = surprise_threshold
-        # FAPO R3: optional run_fn(candidate_prompt, fixture_input) -> output for the behavioral
-        # regression gate. None = gate fail-open (drift gate still applies). Set by the factory.
-        self._regression_run_fn = None
 
     def predict(self, skill_name: str, operation_type: str) -> float | None:
         """Return rolling-mean quality prediction, or None if no history yet."""
@@ -140,6 +137,10 @@ class SkillRefiner:
         self._session_goal: dict | None = None
         self._goal_call_tally: dict[str, int] = {}  # per-skill call counter for auto-update
         self._goal_auto_threshold: int = 5  # auto-update goal every N calls per skill
+        # FAPO R3 (M1): optional run_fn(candidate_prompt, fixture_input) -> output for the behavioral
+        # regression gate in refine(). None = gate fail-open (drift gate still applies). Wired by
+        # SkillRefinerFactory.create so the gate is LIVE on the standard path, not dormant.
+        self._regression_run_fn = None
 
     def process_reward_mean(self, skill_name: str) -> float | None:
         """Return mean accumulated RL process reward for a skill, or None if no data.
@@ -1049,7 +1050,18 @@ class SkillRefinerFactory:
         Returns:
             SkillRefiner instance
         """
-        return SkillRefiner(mcp_client)
+        refiner = SkillRefiner(mcp_client)
+        # M1: wire the FAPO R3 behavioral regression gate LIVE (it defaulted dormant). Bind a
+        # local-inference runner that executes a candidate skill against a fixture input. No-op
+        # until golden fixtures exist; per-fixture fail-open when lemonade is down.
+        try:
+            from cohezion.compound.local_inference import make_local_execute_fn
+
+            _local = make_local_execute_fn()
+            refiner._regression_run_fn = lambda candidate, inp: _local(f"{candidate}\n\n{inp}")[0]
+        except Exception:  # never let gate-wiring break refiner creation
+            pass
+        return refiner
 
     @staticmethod
     def get_singleton(mcp_client: Any = None) -> SkillRefiner:
