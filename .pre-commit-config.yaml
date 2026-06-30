@@ -65,6 +65,19 @@ repos:
   # Catch hardcoded developer home paths in test files (environment-specific failures)
   - repo: local
     hooks:
+      # Dormancy gate (verification-depth.md layer 3): a curated load-bearing capability that lost its
+      # production consumer (wired structurally, dead functionally) FAILS the commit. Deterministic,
+      # fast, no LLM. Self-test-proven to go red on a planted-dormant symbol. Only fires when compound/
+      # inference source changes (so it never cries wolf on unrelated commits).
+      - id: dormancy-scan
+        name: dormancy-scan (no load-bearing capability may go dormant)
+        entry: python scripts/ci/dormancy_scan.py
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^src/cohezion/(compound|inference)/
+        stages: [pre-commit]
+
       - id: no-hardcoded-home-paths
         name: no-hardcoded-home-paths
         language: pygrep
