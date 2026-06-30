@@ -253,3 +253,29 @@ def test_miscalibration_lucky_cheap_tier_does_not_pull_routing_down():
     for _ in range(2):  # lucky: NPU clean + slightly higher quality (would win the naive fallback)
         de.record("translate", "op", "npu", escalation_count=0, quality_score=0.95)
     assert de.predict_tier("translate", "op") == "igpu"  # NOT npu (freq 2/10 < _MIN_TIER_FREQUENCY)
+
+
+def test_wilson_lcb_rejects_lucky_rare_accepts_sustained():
+    """H3: the Wilson LCB is the calibration mechanism — a lucky 2/2 has a wide interval (low LCB,
+    rejected) while sustained success is tight (high LCB, trusted)."""
+    from cohezion.compound.difficulty_estimator import _LCB_ADEQUATE, _wilson_lcb
+
+    assert _wilson_lcb(2, 2) < _LCB_ADEQUATE   # lucky-rare → not adequate
+    assert _wilson_lcb(8, 8) >= _LCB_ADEQUATE  # sustained → adequate
+    assert _wilson_lcb(0, 5) == 0.0            # no successes → floor
+
+
+def test_balanced_3way_does_not_default_to_worst_tier():
+    """H3 regression (reviewer-found): a skill that finals cleanly at npu but is also reached at
+    igpu/cpu must route to the cheapest clean-supported tier (npu), NOT default to cpu. The old 0.34
+    frequency guard rejected every tier at ~33% each and defaulted to cpu — a wrong impl fails this."""
+    from cohezion.compound.difficulty_estimator import DifficultyEstimator
+
+    de = DifficultyEstimator()
+    for _ in range(4):
+        de.record("bal", "op", "npu", 0, 0.90)
+    for _ in range(3):
+        de.record("bal", "op", "igpu", 1, 0.90)
+    for _ in range(3):
+        de.record("bal", "op", "cpu", 2, 0.90)
+    assert de.predict_tier("bal", "op") == "npu"

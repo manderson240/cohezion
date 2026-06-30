@@ -29,14 +29,27 @@ _TIER_ORDER = ("npu", "igpu", "cpu")
 _QUALITY_FLOOR = 0.6
 _SUCCESS_RATE_THRESHOLD = 0.7
 _MIN_SAMPLES = 2
-# UCCI calibration (arXiv 2605.18796): a tier must have actually RUN in >= this fraction of the
-# recent window to be trusted as the recommendation. Blocks rare "lucky" cheap-tier successes
-# (e.g. an iGPU-skill that occasionally succeeds on NPU) from fooling the CONDITIONAL success-rate
-# (success/tier_count = 100% on 2 lucky runs) into a miscalibrated over-cheap downgrade. Asymmetric
-# by construction: a cheap tier that rarely runs can't clear the frequency bar, so it can't pull
-# routing down — exactly the asymmetry the cascade literature prescribes (hard→cheap is costly).
-_MIN_TIER_FREQUENCY = 0.34
+# H3 fix (supersedes the _MIN_TIER_FREQUENCY guard, which mis-rejected balanced 3-way splits):
+# adequacy = the Wilson LOWER confidence bound of a tier's clean-success rate clears this floor.
+# Pessimistic-for-commitment (conservative bandit / UCB1, Auer 2002): a rare lucky cheap tier (2/2)
+# has a wide interval → low LCB → not trusted; a well-sampled tier has a tight interval → trusted.
+# This fixes BOTH the lucky-cheap miscalibration AND the even-distribution case in one mechanism.
+# Tuned on the test/experiment fixtures (the research's 0.5 default is for larger windows): at 0.35 a
+# clean 3/3 tier (LCB 0.439) clears the success path while a lucky 2/2 (LCB 0.342) does not.
+_LCB_ADEQUATE = 0.35
+_WILSON_Z = 1.96  # ~95% one-sided; engineering default, tune on replay logs
 _WINDOW = 10
+
+
+def _wilson_lcb(successes: int, n: int, z: float = _WILSON_Z) -> float:
+    """Wilson score lower confidence bound of a binomial success rate. Pure; no scipy.
+    Well-behaved at small n and at p near 0/1 (unlike the naive normal interval)."""
+    if n <= 0:
+        return 0.0
+    p = successes / n
+    z2 = z * z
+    margin = z * ((p * (1.0 - p) + z2 / (4.0 * n)) / n) ** 0.5
+    return (p + z2 / (2.0 * n) - margin) / (1.0 + z2 / n)
 
 # Prompt-complexity feature extraction (gitmoot modeltier.go pattern, #142)
 # Reasoning/analysis keywords that indicate heavy compute tasks
@@ -151,29 +164,26 @@ class DifficultyEstimator:
             if rec.escalation_count == 0 and rec.quality_score >= _QUALITY_FLOOR:
                 tier_success[t] += 1
 
-        # Pick cheapest tier with success_rate >= threshold, sufficient samples, AND sufficient
-        # FREQUENCY (it actually ran in enough of the window — UCCI calibration vs lucky-cheap noise).
-        total = len(window)
+        # Cheapest tier whose Wilson LCB of clean-success clears the adequacy floor (H3).
         for tier in _TIER_ORDER:
             n = tier_count[tier]
-            if n >= _MIN_SAMPLES and (n / total) >= _MIN_TIER_FREQUENCY:
-                rate = tier_success[tier] / n
-                if rate >= _SUCCESS_RATE_THRESHOLD:
-                    return tier
+            if n >= _MIN_SAMPLES and _wilson_lcb(tier_success[tier], n) >= _LCB_ADEQUATE:
+                return tier
 
-        # Fallback: highest mean quality AMONG tiers that actually ran often enough (same UCCI
-        # frequency guard — a rare lucky cheap tier must not win the fallback on a slightly higher
-        # mean of 1-2 records). When no tier clears the bar, default to cpu (safe/capable).
-        best_tier = "cpu"
-        best_q = -math.inf
-        for tier in _TIER_ORDER:
+        # Fallback when no tier's LCB clears the floor (e.g. a skill reached only via escalation, so
+        # its final tier has no CLEAN successes yet): pick the DOMINANT tier — where the skill
+        # actually runs most — tie-broken by the cheapest. A rare lucky-cheap tier can't win (low
+        # count). Once the skill is routed to ENTER at its tier, it logs clean successes and the LCB
+        # path above takes over (the self-reinforcing bootstrap).
+        best_tier, best_key = "cpu", (-1, -math.inf)
+        for tier in _TIER_ORDER:  # rank by (most records, then highest mean quality)
             n = tier_count[tier]
-            if not n or (n / total) < _MIN_TIER_FREQUENCY:
+            if not n:
                 continue
             mean_q = sum(r.quality_score for r in window if r.tier_used == tier) / n
-            if mean_q > best_q:
-                best_q = mean_q
-                best_tier = tier
+            key = (n, mean_q)
+            if key > best_key:
+                best_key, best_tier = key, tier
         return best_tier
 
     def get_escalation_rate(self, skill_name: str, operation_type: str) -> float | None:

@@ -327,7 +327,11 @@ class TieredOrchestrator:
                     if isinstance(self.tiers[0][0], str)
                     else type(self.tiers[0][0]).__name__,
                     final_model=last_model or model_name,
-                    escalation_count=idx,
+                    # RELATIVE escalations from the entry tier (H1/H2 fix, cascade credit-assignment
+                    # convention): a skill that passes at its entry tier reports 0, so _engine_for
+                    # (entry + escalations = absolute final tier) and predict_tier's escalation==0
+                    # success test both stay correct when min_tier_index > 0.
+                    escalation_count=idx - start_tier,
                     tier_path=path,
                     cost_usd=accumulated_cost,
                     latency_ms=(time.perf_counter() - start) * 1000,
