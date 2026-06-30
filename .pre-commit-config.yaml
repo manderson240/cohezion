@@ -71,7 +71,7 @@ repos:
       # inference source changes (so it never cries wolf on unrelated commits).
       - id: dormancy-scan
         name: dormancy-scan (no load-bearing capability may go dormant)
-        entry: python scripts/ci/dormancy_scan.py
+        entry: python3 scripts/ci/dormancy_scan.py
         language: system
         pass_filenames: false
         always_run: false
