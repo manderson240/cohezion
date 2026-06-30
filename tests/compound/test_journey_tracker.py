@@ -648,20 +648,23 @@ class TestRealPhiScore:
 
 
 class TestSurrealInjectionSanitization:
-    """Review LOW #1: operation_type must be quote-stripped like the sibling task field."""
+    """Review LOW #1: operation_type must be injection-safe (json.dumps) like the sibling task field."""
 
     def test_operation_type_single_quote_is_sanitized(self):
-        """An operation_type containing a single quote must not survive into the SurrealQL literal."""
+        """A single-quote payload must be contained inside a json.dumps double-quoted literal so it
+        cannot break out and inject SurrealQL."""
+        import json
         import urllib.request
         from unittest.mock import patch
 
         tracker = JourneyTracker(seed=42)
+        payload = "generate'; DROP TABLE journey_transition; --"
         point = TrajectoryPoint(
             dimensions=np.array([0.5] * 12),
             timestamp=1.0,
             coherence=0.8,
             efficiency=0.7,
-            operation_type="generate'; DROP TABLE journey_transition; --",
+            operation_type=payload,
             task_description="benign task",
         )
 
@@ -675,7 +678,42 @@ class TestSurrealInjectionSanitization:
             tracker._persist_to_surreal(point)
 
         query = captured["data"]
-        # The single quote from operation_type must be stripped — no stray quote can break the literal.
-        assert "DROP TABLE" in query  # the text content is preserved (just de-quoted)
-        assert "generate'" not in query  # the quote that would close the literal is gone
-        assert "operation_type = 'generate" in query
+        # The entire payload is wrapped in a json double-quoted literal — the single quote is inert
+        # because the literal is delimited by double-quotes, not single-quotes.
+        assert f"operation_type = {json.dumps(payload)}" in query
+        # A `.replace(chr(39),'')`-only impl would emit `operation_type = 'generate; DROP ...'`
+        # (single-quote-wrapped) — that form must NOT appear.
+        assert "operation_type = 'generate" not in query
+
+    def test_operation_type_backslash_does_not_extend_literal(self):
+        """Backslash payload: a `.replace`-only impl emits `'\\'` so SurrealQL reads the closing
+        quote as ESCAPED — the literal doesn't close and swallows following fields → injection.
+        json.dumps escapes the backslash (and quotes), keeping the literal self-contained."""
+        import urllib.request
+        from unittest.mock import patch
+
+        tracker = JourneyTracker(seed=42)
+        point = TrajectoryPoint(
+            dimensions=np.array([0.5] * 12),
+            timestamp=1.0,
+            coherence=0.8,
+            efficiency=0.7,
+            operation_type="\\",  # single backslash
+            task_description="benign task",
+        )
+
+        captured = {}
+
+        def fake_urlopen(req, timeout=None):
+            captured["data"] = req.data.decode()
+            raise RuntimeError("stop after capture")
+
+        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+            tracker._persist_to_surreal(point)
+
+        query = captured["data"]
+        # The backslash must be ESCAPED (doubled) so the value literal stays closed.
+        # A `.replace(chr(39),'')`-only impl leaves a lone backslash before the delimiter → FAILS.
+        assert "\\\\" in query, "backslash in operation_type must be escaped"
+        # `task` must still appear as its own SET assignment, not absorbed into operation_type.
+        assert "task = " in query
