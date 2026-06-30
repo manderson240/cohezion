@@ -2,6 +2,41 @@
 
 Generated: 2026-05-02. Updated via `/autoharness-update`.
 
+## GAIA-SDK 4-Lens Adversarial Review (2026-06-30) — what we built this session
+
+FIXED (committed, verified by me):
+- **SECURITY H5 (CRITICAL)** — `exec(llm_code, {"np": np})` RCE across 4 sinks (agi_reasoning,
+  aimo_reasoning, symbolic_executor, competition/llm_fallback). New `safe_exec.py::safe_exec_globals`
+  = restricted `__builtins__` allow-list. Stop-gap; DURABLE fix = out-of-process sandbox.
+- **CORRECTNESS HIGH** — Lever 1 UNDER-routed: `quality_gate_chars`≈0 for long_generation/code too, so
+  the blanket override let essays pass at the 1B NPU. Now overrides only for short_categorical/short_answer.
+- **FAILURE #1** — regression gate `evaluate_regression` fail-closed hole (a CRITICAL fixture erroring
+  while another passes still promoted). Now any critical-unevaluable → fail-CLOSED.
+- **FAILURE #2** — SurrealDB returns SQL errors as HTTP 200 + status='ERR' (string result); loaders
+  iterated it as fixtures → regression_check inverted → FROZE the loop on a fresh/missing-table deploy.
+  `_surreal_rows` treats ERR as no-rows.
+- **FAILURE #4** — `_safe_ident` now SLUGIFIES (was: RAISE on spaces → skills silently un-gated).
+
+DEFERRED (architectural / dormancy backlog — NOT quick fixes):
+- **WIRING H1 (the big one)** — the golden-fixture → regression-gate → HITL-approval chain is wired
+  component-by-component but DORMANT end-to-end: `bootstrap_fixtures` has NO production caller, so the
+  `golden_fixture` table is empty → both gates fail-open → `_record_blocked_promotion` never fires. The
+  overnight loop (`overnight_improve.py`) IS the intended population path but isn't the live loop. The
+  M1 "FIXED"/"live" claim is true at the wiring layer, false end-to-end. Fix = populate fixtures (run the
+  overnight bootstrap, or wire a guarded population step) — until then the regression gate is a no-op.
+- **WIRING H2** — `jepa_coherence` is written into `degradation_metrics` but `DegradationDetector.
+  check_degradation` reads a fixed key set that omits it → silently dropped (JW1 promise unfulfilled).
+- **CORRECTNESS MED** — the JEPA gate is now a constant-PROCEED no-op: `predict_next_state` never reads
+  `task_description` and `check()` gets no `current_state` → task-blind, identical verdict every call.
+  Benign (safe no-op) but spends an NPU call for no signal. Fix = feed task_description + live state.
+- **DORMANT capabilities** (confirmed across bug-hunt + review): `inference_provider` built-but-unread;
+  `SkillRefinerFactory.get_singleton()` doesn't wire `_regression_run_fn`; `_recompute_tier_at_compaction`
+  (CR1) orphaned; `get_pending_approvals` has no operator-facing consumer; `get_recommended_concurrency`
+  probes dead :13306; first-call predicted_tier gap; `_parse_coherence` first-token; overnight coverage
+  overstated (marks done at 0 fixtures), deadline checked only between cycles.
+- VERIFIED SOUND (no real bug): Wilson-LCB math, `_resolve_tier` direction, `_engine_for` relative
+  mapping, SurrealQL injection guards (json.dumps + slugified _safe_ident), asyncio.run fail-open.
+
 ## GAIA-SDK Bug Hunt (2026-06-30) — latent bugs the green suite missed
 
 FIXED (committed, verified live):
