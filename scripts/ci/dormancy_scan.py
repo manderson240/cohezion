@@ -59,8 +59,8 @@ REGISTRY: list[tuple[str, str, str, int]] = [
      r"consolidator\.consolidate\(", "src/cohezion/compound/autonomous_loop/coordinator.py", 1),
     # Cognitive-profile harness (P1-P3 of the AGI cognitive-framework /goal): the CLI must CONSUME
     # run_profile(). Removing the call re-dormants the harness (a scorecard nobody runs) -> scan RED.
-    ("CogProfile: run_cognitive_profile CLI CONSUMES run_profile() (10-faculty scorecard FIRES)",
-     r"run_profile\(", "scripts/eval/run_cognitive_profile.py", 1),
+    ("CogProfile: cognitive_profile_cli CONSUMES run_profile() (10-faculty scorecard FIRES)",
+     r"run_profile\(", "scripts/eval/cognitive_profile_cli.py", 1),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
