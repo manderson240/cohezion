@@ -83,3 +83,28 @@ def test_blocked_promotion_recorded_for_review(tmp_path, monkeypatch):
     pending = SkillRefiner.get_pending_approvals()
     assert len(pending) == 1
     assert pending[0]["skill"] == "cache_skill" and "cache TTL" in pending[0]["proposed_insight"]
+
+
+def test_generate_fixture_candidates_parses_local_output():
+    """Golden-fixture bootstrap: parse a local model's JSON test cases (Autodata, $0). Robust to
+    surrounding prose."""
+    from cohezion.compound.prompt_version_registry import generate_fixture_candidates
+
+    def fake_chat(_prompt):
+        return ('cases: [{"input":"sort [3,1,2]","expected_output":"[1, 2, 3]","critical":true},'
+                '{"input":"x","expected_output":"y","critical":false}] done')
+
+    fx = generate_fixture_candidates("sort_skill", "sorts a list", fake_chat, n=2)
+    assert len(fx) == 2
+    assert fx[0]["input"] == "sort [3,1,2]" and fx[0]["critical"] is True
+    assert fx[0]["validator_type"] == "contains"
+
+
+def test_generate_fixture_candidates_failsafe():
+    from cohezion.compound.prompt_version_registry import generate_fixture_candidates
+
+    def boom(_p):
+        raise RuntimeError("lemonade down")
+
+    assert generate_fixture_candidates("s", "p", lambda _p: "no json") == []
+    assert generate_fixture_candidates("s", "p", boom) == []

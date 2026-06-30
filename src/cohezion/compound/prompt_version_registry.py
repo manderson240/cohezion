@@ -25,6 +25,11 @@ _SURREAL_HEADERS = {
 }
 _EMBED_URL = "http://localhost:13305/v1/embeddings"
 _EMBED_MODEL = "nomic-embed-text-v2-moe-GGUF"
+# Fixture generation = a structured task → the FAST iGPU model DIRECTLY, not the escalating triune
+# cascade (which reaches the slow CPU 31B that empties/times out on structured prompts). Verified
+# 2026-06-29: Gemma-4-E4B generated 3 fixtures in seconds; the 31B cascade timed out at 180s.
+_FAST_CHAT_URL = "http://localhost:13305/api/v1/chat/completions"
+_FAST_GEN_MODEL = "Gemma-4-E4B-it-GGUF"
 DRIFT_THRESHOLD = 0.35  # cosine distance; block if drift >= this
 
 
@@ -118,6 +123,39 @@ class PromptVersionRegistry:
         data = r.json()
         return data[0].get("result", []) if data else []
 
+    def bootstrap_fixtures(self, skill_name: str, prime_excerpt: str, chat_fn=None, n: int = 3) -> int:
+        """Generate (local-first, $0) + persist behavioral golden fixtures so the M1 regression gate
+        has cases to run for `skill_name`. Defaults to the fast iGPU model when chat_fn is None.
+        Returns the count written (0 on any failure)."""
+        chat_fn = chat_fn or _fast_local_chat
+        written = 0
+        for fx in generate_fixture_candidates(skill_name, prime_excerpt, chat_fn, n):
+            if self._write_fixture(skill_name, fx):
+                written += 1
+        if written:
+            logger.info("bootstrapped %d golden fixtures for %s", written, skill_name)
+        return written
+
+    def _write_fixture(self, skill_name: str, fx: dict) -> bool:
+        import json
+
+        import httpx
+
+        try:
+            # json.dumps escapes quotes/backslashes → injection-safe literals; _safe_ident guards skill_name.
+            q = (
+                f"CREATE golden_fixture SET skill_name='{_safe_ident(skill_name)}', "
+                f"input={json.dumps(fx['input'])}, expected_output={json.dumps(fx['expected_output'])}, "
+                f"validator_type={json.dumps(fx.get('validator_type', 'contains'))}, "
+                f"critical={str(bool(fx.get('critical'))).lower()};"
+            )
+            r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
+            r.raise_for_status()
+            return True
+        except Exception as exc:
+            logger.debug("fixture write failed for %s: %s", skill_name, exc)
+            return False
+
     def _load_fixtures(self, skill_name: str) -> list[dict[str, Any]]:
         import httpx
         q = f"SELECT embedding_768d FROM golden_fixture WHERE skill_name = '{_safe_ident(skill_name)}';"
@@ -182,6 +220,79 @@ def evaluate_regression(fixtures: list[dict[str, Any]], candidate: str, run_fn) 
             logger.info("RegressionGate BLOCK: critical fixture regressed (input=%r)", str(inp)[:50])
             return False
     return True
+
+
+# ── golden-fixture bootstrap (local-first agentic data creation, Autodata #38) ─────────────────
+
+def generate_fixture_candidates(
+    skill_name: str, prime_excerpt: str, chat_fn, n: int = 3, retries: int = 3
+) -> list[dict]:
+    """Generate behavioral golden fixtures for a skill via LOCAL inference (chat_fn = GAIA SDK / the
+    triune, $0). Converts local compute into eval data so the M1 regression gate has cases to run.
+    A few-shot anchor + retry handle the local model's intermittent empty-on-structured-prompt
+    calibration (harness N5/L369). Returns [{input, expected_output, validator_type, critical}];
+    [] when every retry fails (fail-safe)."""
+    import json
+    import re
+
+    prompt = (
+        f"You are writing regression test cases for an AI skill named '{skill_name}'.\n"
+        f"Skill purpose (excerpt):\n{(prime_excerpt or '')[:600]}\n\n"
+        f"Produce exactly {n} behavioral test cases as a JSON array. Each object has keys "
+        '"input" (a representative user query), "expected_output" (a short lowercase substring the '
+        'correct answer MUST contain), and "critical" (true if core to the skill).\n'
+        "Example: "
+        '[{"input": "summarize this in one word: cats are nice", "expected_output": "cat", '
+        '"critical": true}]\n'
+        "Return ONLY the JSON array."
+    )
+    for _ in range(max(1, retries)):
+        try:
+            raw = chat_fn(prompt)
+        except Exception:
+            continue
+        m = re.search(r"\[.*\]", raw or "", re.DOTALL)
+        if not m:
+            continue  # empty/unparseable (calibration) → retry
+        try:
+            arr = json.loads(m.group(0))
+        except Exception:
+            continue
+        out = []
+        for item in arr if isinstance(arr, list) else []:
+            if isinstance(item, dict) and item.get("input") and item.get("expected_output"):
+                out.append(
+                    {
+                        "input": str(item["input"]),
+                        "expected_output": str(item["expected_output"]),
+                        "validator_type": "contains",
+                        "critical": bool(item.get("critical", False)),
+                    }
+                )
+        if out:
+            return out
+    return []
+
+
+def _fast_local_chat(prompt: str) -> str:
+    """Default generation chat — the FAST iGPU model directly (NOT the escalating cascade). $0."""
+    import httpx
+
+    try:
+        r = httpx.post(
+            _FAST_CHAT_URL,
+            json={
+                "model": _FAST_GEN_MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 500,
+                "temperature": 0.4,
+            },
+            timeout=120,
+        )
+        r.raise_for_status()
+        return r.json()["choices"][0]["message"]["content"]
+    except Exception:
+        return ""
 
 
 # ── pure math (no deps) ───────────────────────────────────────────────────────
