@@ -33,9 +33,13 @@ def _get_orchestrator():
     if _orchestrator is None:
         with _lock:
             if _orchestrator is None:
-                from cohezion.inference.triune_orchestrator import build_triune_orchestrator
+                # N1: the :13305 OmniRouter — NOT build_triune_orchestrator, which targets the
+                # per-port :13306/:13307/:13309 servers that are redundant and usually OFFLINE.
+                # Those dead ports were why this core execute path returned empty (every tier failed,
+                # escalated to the end, returned ""). The omni variant is the proven-live path.
+                from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
 
-                _orchestrator = build_triune_orchestrator()
+                _orchestrator = build_triune_omni_orchestrator()
     return _orchestrator
 
 
