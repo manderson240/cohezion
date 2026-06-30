@@ -30,6 +30,15 @@ counts, near-zero system assurance. This rule is the standing corrective so we n
    system). This is why adversarial review found what the V-model didn't — not more rigor, rigor pointed
    at the integration/system levels the bottom rung skips.
 
+   **This applies RECURSIVELY to delegated work (BMAD Dev→QA on GAIA SDK).** A local-inference agent
+   that BUILDS a fix must NOT be the agent that signs off on it — that re-creates the author–test
+   correlation one tier down. Route every producer's output to a DIFFERENT agent (a QA / test-architect
+   role, fresh context, "assume broken") that *executes* the falsification + traces consumption
+   independently. Local inference makes this ~$0, so there is no cost excuse. A producer's
+   "falsification-proven, all green" is a *claim*, not QA — it is unverified until an independent agent
+   has tried to break it. (Verifier-agent must have execution tools; a read-only reviewer reasons but
+   cannot run the PoC.)
+
 ## Meta-invariant for harness.md entries
 
 Every new invariant must be a **CONSUMPTION invariant** (asserts a consumer reads/acts), not a
