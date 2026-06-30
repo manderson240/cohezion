@@ -2,6 +2,24 @@
 
 Generated: 2026-05-02. Updated via `/autoharness-update`.
 
+## House-in-Order: keystone live-routing fixes (2026-06-30)
+
+- **DEAD-PORT KEYSTONE (the empty-output root cause):** `local_inference._get_orchestrator()` built
+  `build_triune_orchestrator()` — which targets the per-port `:13306/:13307/:13309` servers that are
+  redundant/OFFLINE per N1. So the GIC's CORE execute path (`make_local_execute_fn`) hit dead ports →
+  every tier failed → cascade escalated to the end → returned `''`. Symptoms it caused: degenerate
+  all-CPU routing, the overnight loop learning all-cpu, empty generation via make_local_execute_fn.
+  **Fix:** use `build_triune_omni_orchestrator()` (the :13305 OmniRouter). VERIFIED LIVE: a categorical
+  task now returns `tier_used=npu, escalations=0, out='POSITIVE'` (was cpu/3/'').
+- **Lever 1 (per-task quality gate):** `TieredOrchestrator.run(gate_chars=N)` overrides the fixed
+  per-tier `min_chars` with `task_classifier.classify(prompt).quality_gate_chars` (0 for
+  short_categorical); `make_local_execute_fn` threads it. TRUST tiers untouched. Verifier-per-task
+  (arXiv 2605.17554). Discriminating: `tests/inference/test_orchestrator.py::test_lever1_task_gate_overrides_fixed_tier_gate`.
+- **Pre-existing test debt (NOT this session's regressions):** ~20 failures predate the session
+  (confirmed: 22 failed at the pre-session commit; this work fixed 2). Subsystems: MoESkillRouter
+  (`SkillRefiner.__init__` lost its `moe_router` kwarg — MR1/MR4 drift), capability_gap_scan,
+  loopception G18 (Manifold/SwarmEnv journey wiring), inference_wiring_n5. Separate cleanup pass.
+
 ## Adversarial-Review Corrections (2026-06-29) — supersedes earlier routing invariants
 
 A 3-reviewer adversarial review + 5 SOTA research agents found the prior session's GIC routing code
