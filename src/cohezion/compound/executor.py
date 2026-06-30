@@ -70,6 +70,29 @@ def _resolve_tier(
     return base
 
 
+_TIER_NAME_TO_INDEX = {"npu": 0, "igpu": 1, "cpu": 2, "cloud": 3}
+
+
+def _call_execute_fn(execute_fn, guidance, predicted_tier):
+    """Call execute_fn, binding the difficulty prediction to the cascade ENTRY (O9) when execute_fn
+    accepts a ``min_tier_index`` kwarg — a hard task skips the cheap tiers it would only fail-and-
+    escalate through. Conservative + miscalibration-safe (cascade routers are usually miscalibrated):
+    only a CONFIDENT high prediction skips; "unknown"/"npu"/None → 0 (cheap-first default). On local
+    $0 silicon a mis-skip costs only latency, and the cascade still escalates from the entry tier.
+    Backward-compatible: a 1-arg execute_fn (no min_tier_index) is always called with just guidance.
+    """
+    import inspect
+
+    idx = _TIER_NAME_TO_INDEX.get(predicted_tier or "", 0)
+    if idx > 0:
+        try:
+            if "min_tier_index" in inspect.signature(execute_fn).parameters:
+                return execute_fn(guidance, min_tier_index=idx)
+        except (TypeError, ValueError):
+            pass
+    return execute_fn(guidance)
+
+
 @dataclass
 class ExecutionResult:
     """Result of a compound execution."""
@@ -750,7 +773,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             _tier_hints["recommended_tier"] = _recommended
 
         try:
-            output, metrics = execute_fn(guidance)
+            # O9 binding: a confident high difficulty prediction enters the cascade above the
+            # cheap tiers (signature-aware, backward-compatible, conservative — see _call_execute_fn).
+            output, metrics = _call_execute_fn(
+                execute_fn, guidance, _tier_hints.get("predicted_tier")
+            )
             success = True
             logger.info("Task completed successfully")
         except Exception as e:

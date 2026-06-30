@@ -126,11 +126,12 @@ def make_local_execute_fn(task_description: str = ""):
     execute_fn is always invoked from synchronous CompoundExecutor code.
     """
 
-    def execute_fn(guidance: str) -> tuple[str, dict]:
+    def execute_fn(guidance: str, min_tier_index: int = 0) -> tuple[str, dict]:
         orch = _get_orchestrator()
         prompt = f"{guidance}\n\n{task_description}".strip() if task_description else guidance
         try:
-            result = asyncio.run(orch.run(prompt))
+            # O9: difficulty-based cascade entry — a hard task starts above the cheap tiers.
+            result = asyncio.run(orch.run(prompt, min_tier_index=min_tier_index))
             model = result.final_model or ""
 
             # --- Token accounting ---

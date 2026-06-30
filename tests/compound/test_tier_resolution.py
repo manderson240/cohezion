@@ -6,7 +6,7 @@ unifies them into one coherent recommendation and makes REROUTE actionable (down
 """
 from __future__ import annotations
 
-from cohezion.compound.executor import _TIER_ORDER, _resolve_tier
+from cohezion.compound.executor import _call_execute_fn, _TIER_ORDER, _resolve_tier
 
 
 class TestResolveTierStructural:
@@ -36,3 +36,43 @@ class TestResolveTierBehavioral:
 
     def test_invalid_tier_ignored_valid_one_used(self):
         assert _resolve_tier("bogus", "cpu", jepa_reroute=False) == "cpu"
+
+
+class TestCallExecuteFnBinding:
+    """O9 binding: a confident high difficulty prediction enters the cascade above the cheap tiers,
+    signature-aware + backward-compatible + conservative."""
+
+    def test_confident_high_prediction_binds_min_tier_index(self):
+        """Discriminating: predicted_tier='cpu' → execute_fn called with min_tier_index=2. A wrong
+        impl that ignores the prediction calls with the default 0."""
+        seen = {}
+
+        def ex(guidance, min_tier_index=0):
+            seen["idx"] = min_tier_index
+            return "out", {}
+
+        _call_execute_fn(ex, "g", "cpu")
+        assert seen["idx"] == 2  # cpu → index 2
+
+    def test_npu_unknown_none_do_not_skip(self):
+        seen = {}
+
+        def ex(guidance, min_tier_index=0):
+            seen["idx"] = min_tier_index
+            return "out", {}
+
+        for pred in ("npu", "unknown", None):
+            _call_execute_fn(ex, "g", pred)
+            assert seen["idx"] == 0  # cheap-first default — no skip on low/unknown
+
+    def test_one_arg_execute_fn_backward_compatible(self):
+        """A legacy 1-arg execute_fn (no min_tier_index) is called with just guidance even on a high
+        prediction — no TypeError, no crash."""
+        calls = []
+
+        def ex(guidance):  # no min_tier_index kwarg
+            calls.append(guidance)
+            return "out", {}
+
+        out, _ = _call_execute_fn(ex, "g", "cpu")  # would be idx=2, but fn can't accept it
+        assert out == "out" and calls == ["g"]
