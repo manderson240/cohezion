@@ -6,6 +6,8 @@ a LemonadeWorldModel inside a JepaGate, plus the factory wiring guard.
 """
 from __future__ import annotations
 
+import re
+
 import numpy as np
 
 from cohezion.compound.jepa_gate import JepaGate, PreExecutionVerdict
@@ -113,6 +115,69 @@ class TestLemonadeGateIntegration:
         gate = JepaGate(world_model=wm, lookahead_steps=3)
         verdict = gate.check("safe task", current_state=np.full(12, 0.5, dtype=np.float32))
         assert verdict == PreExecutionVerdict.PROCEED
+
+
+class TestF3CoherenceCalibratedToTractability:
+    """F3 (re-eval review, CONFIRMED MED): the coherence estimate must correlate with TASK
+    TRACTABILITY, not prompt framing/length. The old prompt ("multi-step executions tend to lose
+    coherence. Estimate the coherence of the NEXT step") pinned a TRIVIAL task at ~0.20 and an
+    INTRACTABLE one at ~0.00 → at the real-task zero-state the gate REROUTE/SKIPed almost everything.
+    The fix reframes the prompt to ask the few-shot-anchored SUCCESS-likelihood of THIS task.
+    """
+
+    @staticmethod
+    def _calibration_sensitive_chat(prompt: str) -> str:
+        """Simulate the 1B model's dependence on prompt framing.
+
+        Under the OLD downward-priming framing (no success/tractability anchors) the model pins a
+        pathological constant ~0.2 regardless of task → over-routing. Under the FIXED calibrated
+        framing it reads the actual (last, incomplete) ``Task: ... ->`` line and rates tractability.
+        A wrong impl that kept the old prompt elicits 0.2 for BOTH tasks → the PROCEED assertion fails.
+        """
+        p = prompt.lower()
+        if "succeed" not in p or "trivially solvable" not in p:
+            return "0.2"  # old framing → constant low, no task separation
+        matches = re.findall(r"task:\s*(.*?)\s*->", p)
+        actual = matches[-1] if matches else p  # the final incomplete few-shot line = the real task
+        return "0.95" if "add two" in actual else "0.05"
+
+    def test_tractable_task_not_lower_than_intractable_via_gate(self):
+        """Falsification: a TRACTABLE task must NOT score lower than (and must PROCEED where) an
+        INTRACTABLE one. Against the unfixed prompt both land at 0.2 → tractable REROUTEs → FAIL."""
+        chat = self._calibration_sensitive_chat
+        state = np.full(12, 0.5, dtype=np.float32)
+
+        gate_t = JepaGate(world_model=LemonadeWorldModel(chat_fn=chat))
+        v_t = gate_t.check("add two small numbers together", current_state=state)
+        coh_t = gate_t.last_coherence
+
+        gate_i = JepaGate(world_model=LemonadeWorldModel(chat_fn=chat))
+        v_i = gate_i.check("prove an intractable open conjecture in a single step", current_state=state)
+        coh_i = gate_i.last_coherence
+
+        # The inversion the review found: tractable must be >= intractable.
+        assert coh_t >= coh_i
+        # And the calibrated signal must let a trivial task PROCEED (no spurious REROUTE),
+        # while the intractable one does not.
+        assert v_t == PreExecutionVerdict.PROCEED
+        assert v_i != PreExecutionVerdict.PROCEED
+
+    def test_prompt_asks_tractability_not_coherence_loss(self):
+        """The fix's root cause: the prompt must ask SUCCESS-likelihood with anchors and must NOT
+        carry the downward-priming bias. The old prompt fails all three assertions."""
+        seen: dict[str, str] = {}
+
+        def capture(prompt: str) -> str:
+            seen["p"] = prompt
+            return "0.5"
+
+        wm = LemonadeWorldModel(chat_fn=capture)
+        wm.set_task("summarize a short paragraph")
+        wm.predict_next_state(np.full(12, 0.5, dtype=np.float32), None)
+        p = seen["p"].lower()
+        assert "succeed" in p  # asks about success, not generic "coherence"
+        assert "trivially solvable" in p  # calibration anchor present
+        assert "tend to lose coherence" not in p  # downward-priming bias removed
 
 
 class TestLiveWiring:
