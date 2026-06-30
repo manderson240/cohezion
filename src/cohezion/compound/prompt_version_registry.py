@@ -237,10 +237,11 @@ def generate_fixture_candidates(
 
     prompt = (
         f"You are writing regression test cases for an AI skill named '{skill_name}'.\n"
-        f"Skill purpose (excerpt):\n{(prime_excerpt or '')[:600]}\n\n"
+        f"Skill documentation:\n{(prime_excerpt or '')[:1500]}\n\n"
         f"Produce exactly {n} behavioral test cases as a JSON array. Each object has keys "
-        '"input" (a representative user query), "expected_output" (a short lowercase substring the '
-        'correct answer MUST contain), and "critical" (true if core to the skill).\n'
+        '"input" (a realistic concrete user request to this skill), "expected_output" (a SHORT '
+        "lowercase keyword or phrase of AT MOST 3 words that the correct answer MUST contain), and "
+        '"critical" (true if core to the skill).\n'
         "Example: "
         '[{"input": "summarize this in one word: cats are nice", "expected_output": "cat", '
         '"critical": true}]\n'
@@ -251,7 +252,12 @@ def generate_fixture_candidates(
             raw = chat_fn(prompt)
         except Exception:
             continue
-        m = re.search(r"\[.*\]", raw or "", re.DOTALL)
+        # Robust extraction: the fast iGPU model often wraps the array in a ```json … ``` fence
+        # (and is a thinking model — content arrives AFTER reasoning_content, see _fast_local_chat).
+        # Strip the fence first, then grab the first top-level array.
+        fenced = re.search(r"```(?:json)?\s*(.*?)```", raw or "", re.DOTALL)
+        candidate = fenced.group(1) if fenced else (raw or "")
+        m = re.search(r"\[.*\]", candidate, re.DOTALL)
         if not m:
             continue  # empty/unparseable (calibration) → retry
         try:
@@ -275,7 +281,13 @@ def generate_fixture_candidates(
 
 
 def _fast_local_chat(prompt: str) -> str:
-    """Default generation chat — the FAST iGPU model directly (NOT the escalating cascade). $0."""
+    """Default generation chat — the FAST iGPU model directly (NOT the escalating cascade). $0.
+
+    Gemma-4-E4B is a THINKING model: it streams a `reasoning_content` phase first, then the final
+    `content`. On abstract skill descriptions the reasoning phase is long, so a low max_tokens budget
+    is exhausted mid-reasoning and `content` comes back EMPTY (harness N5: "the constraint is token
+    budget, not model type"). max_tokens=2048 lets the reasoning finish and the JSON array land.
+    """
     import httpx
 
     try:
@@ -284,13 +296,13 @@ def _fast_local_chat(prompt: str) -> str:
             json={
                 "model": _FAST_GEN_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 500,
+                "max_tokens": 2048,
                 "temperature": 0.4,
             },
-            timeout=120,
+            timeout=180,
         )
         r.raise_for_status()
-        return r.json()["choices"][0]["message"]["content"]
+        return r.json()["choices"][0]["message"].get("content") or ""
     except Exception:
         return ""
 
