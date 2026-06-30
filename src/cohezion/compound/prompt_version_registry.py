@@ -11,9 +11,12 @@ fixtures registered) returns True so SkillRefiner continues normally.
 
 from __future__ import annotations
 
+import json
 import logging
 import math
+import re
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +64,52 @@ def _surreal_rows(data) -> list:
         return []
     result = row.get("result", [])
     return result if isinstance(result, list) else []
+
+
+# ── safe SurrealQL builder — STRUCTURAL kill of the injection class ─────────────────────────────
+# No writer hand-builds an interpolated SurrealQL f-string. Every VALUE goes through _surql_lit
+# (json.dumps escapes BOTH quotes AND backslashes → an inert string literal that cannot be broken
+# out of — this is what closed the journey_tracker trailing-backslash hole); every FIELD NAME is
+# validated as a bare identifier (the one spot json.dumps can't cover); time::now() is the ONLY raw
+# expression, reachable solely via the _RawSurql sentinel. Writers pass a dict to _surql_set, so a
+# raw f-string literally cannot be constructed. The future BMAD qa_gate writers reuse this.
+
+_IDENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+class _RawSurql:
+    """A pre-validated raw SurrealQL expression (e.g. ``time::now()``). The ONLY way to place a
+    non-literal into a builder clause — must be a developer-controlled constant, never user input."""
+
+    __slots__ = ("expr",)
+
+    def __init__(self, expr: str) -> None:
+        self.expr = expr
+
+
+_NOW = _RawSurql("time::now()")
+
+
+def _surql_lit(value: Any) -> str:
+    """Render a Python value as an INERT SurrealQL literal. json.dumps emits its own double-quotes
+    and escapes quotes+backslashes, so no value can break out of its string literal. ``_RawSurql`` is
+    the sole expression escape hatch (constants like ``time::now()``)."""
+    if isinstance(value, _RawSurql):
+        return value.expr
+    return json.dumps(value)
+
+
+def _surql_set(fields: dict[str, Any]) -> str:
+    """Build a SAFE ``k1=v1, k2=v2`` SurrealQL clause (a SET body or a WHERE equality) from a dict.
+    Every VALUE passes through ``_surql_lit`` (inert); every FIELD NAME is validated as a bare
+    identifier. Writers MUST go through this — they cannot pass a raw interpolated f-string, so the
+    injection class is eliminated by construction."""
+    parts = []
+    for name, value in fields.items():
+        if not _IDENT_RE.match(name):
+            raise ValueError(f"unsafe SurrealQL field name: {name!r}")
+        parts.append(f"{name}={_surql_lit(value)}")
+    return ", ".join(parts)
 
 
 class PromptVersionRegistry:
@@ -134,8 +183,9 @@ class PromptVersionRegistry:
         import httpx
 
         q = (
-            "SELECT input, expected_output, validator_type, critical FROM golden_fixture "
-            f"WHERE skill_name = '{_safe_ident(skill_name)}';"
+            "SELECT input, expected_output, validator_type, critical FROM golden_fixture WHERE "
+            + _surql_set({"skill_name": _safe_ident(skill_name)})
+            + ";"
         )
         r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
         r.raise_for_status()
@@ -167,18 +217,17 @@ class PromptVersionRegistry:
         return written
 
     def _write_fixture(self, skill_name: str, fx: dict) -> bool:
-        import json
-
         import httpx
 
         try:
-            # json.dumps escapes quotes/backslashes → injection-safe literals; _safe_ident guards skill_name.
-            q = (
-                f"CREATE golden_fixture SET skill_name='{_safe_ident(skill_name)}', "
-                f"input={json.dumps(fx['input'])}, expected_output={json.dumps(fx['expected_output'])}, "
-                f"validator_type={json.dumps(fx.get('validator_type', 'contains'))}, "
-                f"critical={str(bool(fx.get('critical'))).lower()};"
-            )
+            # _surql_set renders every value via json.dumps (inert) — injection-safe by construction.
+            q = "CREATE golden_fixture SET " + _surql_set({
+                "skill_name": _safe_ident(skill_name),
+                "input": fx["input"],
+                "expected_output": fx["expected_output"],
+                "validator_type": fx.get("validator_type", "contains"),
+                "critical": bool(fx.get("critical")),
+            }) + ";"
             r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
             r.raise_for_status()
             return True
@@ -188,7 +237,11 @@ class PromptVersionRegistry:
 
     def _load_fixtures(self, skill_name: str) -> list[dict[str, Any]]:
         import httpx
-        q = f"SELECT embedding_768d FROM golden_fixture WHERE skill_name = '{_safe_ident(skill_name)}';"
+        q = (
+            "SELECT embedding_768d FROM golden_fixture WHERE "
+            + _surql_set({"skill_name": _safe_ident(skill_name)})
+            + ";"
+        )
         r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
         r.raise_for_status()
         return _surreal_rows(r.json())
@@ -205,11 +258,12 @@ class PromptVersionRegistry:
     def _log_run(self, skill_name: str, drift: float, *, passed: bool) -> None:
         try:
             import httpx
-            q = (
-                f"CREATE fixture_run SET skill_name='{_safe_ident(skill_name)}', "
-                f"drift_score={drift:.4f}, passed={str(passed).lower()}, "
-                f"created_at=time::now();"
-            )
+            q = "CREATE fixture_run SET " + _surql_set({
+                "skill_name": _safe_ident(skill_name),
+                "drift_score": round(drift, 4),
+                "passed": bool(passed),
+                "created_at": _NOW,
+            }) + ";"
             httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=3.0)
         except Exception:
             pass

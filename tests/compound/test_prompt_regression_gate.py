@@ -353,3 +353,147 @@ class TestSafeIdentSlugifyWarning:
             result = _safe_ident("my_skill")
         assert result == "my_skill"
         assert not caplog.records, "a name needing no slugification must not warn"
+
+
+# ── SurrealQL injection class — STRUCTURAL kill via the central safe builder ───────────────────
+#
+# Goal: no gate/persistence writer hand-builds an interpolated SurrealQL f-string. Every value goes
+# through _surql_lit (json.dumps → escapes BOTH quotes AND backslashes → inert), every field name is
+# validated as a bare identifier, and time::now() is the ONLY raw expression (via _RawSurql). These
+# tests are written FALSIFICATION-FIRST: they fail against the pre-fix hand-built f-strings.
+
+_INJECTION_PAYLOADS = [
+    "x'); DROP TABLE golden_fixture; --",   # classic single-quote breakout
+    "back\\slash",                           # embedded backslash
+    "evil\\",                                # TRAILING backslash — the journey_tracker hole
+    "().__class__",                          # python/expr-looking smuggle
+    'a"b',                                    # double-quote (json.dumps target delimiter)
+    "time::now()",                           # an expression smuggled as a VALUE must stay inert
+]
+
+
+class TestSurqlBuilderUnit:
+    """Unit: the builder renders any value inert and validates field names."""
+
+    def test_surql_lit_escapes_quotes_and_backslashes(self):
+        import json
+
+        from cohezion.compound.prompt_version_registry import _surql_lit
+
+        for p in _INJECTION_PAYLOADS:
+            rendered = _surql_lit(p)
+            # json.dumps wraps in DOUBLE quotes and escapes quotes+backslashes → the literal cannot
+            # be broken out of. A raw `'{p}'` impl (the wrong one) would NOT equal json.dumps(p).
+            assert rendered == json.dumps(p)
+            assert rendered.startswith('"') and rendered.endswith('"')
+            # discriminating: a trailing backslash must be DOUBLED so the closing quote isn't escaped.
+            if p.endswith("\\"):
+                assert rendered.endswith('\\\\"'), "trailing backslash must be escaped, literal stays closed"
+
+    def test_surql_set_validates_field_names(self):
+        """A non-identifier field NAME (the one spot json.dumps can't cover) must be rejected, not
+        interpolated raw. A naive builder that f-strings the key would silently emit injection."""
+        from cohezion.compound.prompt_version_registry import _surql_set
+
+        assert _surql_set({"skill_name": "ok"}) == 'skill_name="ok"'
+        for bad in ["a=1; DROP", "a b", "a'b", "", "1abc"]:
+            try:
+                _surql_set({bad: "v"})
+            except ValueError:
+                continue
+            raise AssertionError(f"unsafe field name {bad!r} must raise, not interpolate")
+
+    def test_raw_surql_is_sole_expression_escape_hatch(self):
+        """time::now() must be a _RawSurql (developer constant), and a plain string "time::now()"
+        must be rendered INERT (quoted), never executed — proving values can't smuggle expressions."""
+        from cohezion.compound.prompt_version_registry import _NOW, _RawSurql, _surql_lit
+
+        assert _surql_lit(_RawSurql("time::now()")) == "time::now()"   # passthrough for constants
+        assert _surql_lit(_NOW) == "time::now()"
+        assert _surql_lit("time::now()") == '"time::now()"'            # a VALUE stays a quoted string
+
+
+def _capture_writer_query(monkeypatch, call):
+    """Run a writer with httpx.post stubbed to capture the emitted SurrealQL (writers fail-open, so
+    raising after capture is fine)."""
+    import httpx
+
+    captured: dict[str, str] = {}
+
+    def fake_post(url, **kwargs):
+        captured["q"] = kwargs.get("content", "")
+        raise RuntimeError("stop after capture")
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+    # writers fail-open (swallow); loaders re-raise — catch the sentinel either way, query is captured.
+    try:
+        call()
+    except RuntimeError:
+        pass
+    return captured["q"]
+
+
+class TestWriterInjectionInert:
+    """The actual gate/persistence writers must render adversarial skill-names AND fixture values
+    inert — discriminating vs the pre-fix `skill_name='{...}'` / single-quote-wrapped form."""
+
+    def test_write_fixture_renders_payloads_inert(self, monkeypatch):
+        import json
+
+        from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+
+        reg = PromptVersionRegistry()
+        for p in _INJECTION_PAYLOADS:
+            fx = {"input": p, "expected_output": p, "validator_type": "contains", "critical": False}
+            q = _capture_writer_query(monkeypatch, lambda fx=fx: reg._write_fixture("bad skill", fx))
+            # the payload appears ONLY as a json-escaped (inert) literal — proves the safe builder ran.
+            assert json.dumps(p) in q
+            # the wrong impl emitted `input='...'` (single-quote wrapped) or `skill_name='...` — gone.
+            assert "='" not in q, f"no single-quote-wrapped interpolation allowed: {q!r}"
+            # skill_name slug is itself an inert double-quoted literal, never broken out of.
+            assert 'skill_name="' in q
+
+    def test_log_run_renders_payload_inert(self, monkeypatch):
+        from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+
+        reg = PromptVersionRegistry()
+        q = _capture_writer_query(
+            monkeypatch, lambda: reg._log_run("x'); DROP TABLE fixture_run; --", 0.5, passed=False)
+        )
+        assert "='" not in q
+        assert 'skill_name="' in q
+        # time::now() must remain a RAW expression (the only non-literal), not a quoted string.
+        assert "created_at=time::now()" in q and '"time::now()"' not in q
+
+    def test_loaders_use_safe_where_equality(self, monkeypatch):
+        from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+
+        reg = PromptVersionRegistry()
+        for loader in (reg._load_fixtures, reg._load_behavioral_fixtures):
+            q = _capture_writer_query(monkeypatch, lambda loader=loader: loader("x' OR 1=1 --"))
+            assert "='" not in q, f"WHERE must not single-quote-interpolate: {q!r}"
+            assert 'skill_name="' in q  # inert double-quoted RHS
+
+
+class TestNoRawInterpolationStructural:
+    """Structural regression guard: every writer/loader MUST route through _surql_set and contain NO
+    raw single-quoted f-string interpolation. A future regression that hand-builds is caught HERE,
+    before it can reach a live DB — discriminating against the exact pre-fix source."""
+
+    def test_writers_invoke_builder_and_have_no_fstring_interpolation(self):
+        import inspect
+
+        from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+
+        for fn in (
+            PromptVersionRegistry._write_fixture,
+            PromptVersionRegistry._log_run,
+            PromptVersionRegistry._load_fixtures,
+            PromptVersionRegistry._load_behavioral_fixtures,
+        ):
+            src = inspect.getsource(fn)
+            assert "_surql_set" in src, f"{fn.__name__} must build queries via _surql_set"
+            # the pre-fix hand-built forms: `name='{...}'` or `= '{...}'` — must be gone.
+            assert "='{" not in src and "= '{" not in src, (
+                f"{fn.__name__} still hand-builds a single-quoted interpolated literal"
+            )
