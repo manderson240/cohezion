@@ -56,6 +56,29 @@ def build_triune_orchestrator(
     )
 
 
+def build_triune_omni_orchestrator(
+    *, base_url: str = "http://localhost:13305/api/v1"
+) -> TieredOrchestrator:
+    """OmniRouter triune cascade — the same llama3.2 → Gemma-4-E4B → Gemma-4-31B tiers as
+    :func:`build_triune_orchestrator`, but ALL served by the single :13305 OmniRouter via the
+    supported GAIA ``LemonadeClient`` path (:func:`build_gaia_llm_tier`).
+
+    N1: :13305 is the only port needed — the dedicated per-port servers (:13306/:13307/:13309) are
+    redundant and often offline, so this OmniRouter variant is the default ``exec_provider`` for the
+    compound loop (``make_executor``). Same gates/escalation as the per-port build.
+    """
+    npu_tier = build_gaia_llm_tier(model_id="llama3.2-1b-FLM", base_url=base_url, silent=True)
+    igpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF", base_url=base_url, silent=True)
+    cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-31B-it-GGUF", base_url=base_url, silent=True)
+    return TieredOrchestrator(
+        tiers=[
+            (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
+            (igpu_tier, QualityGate(min_chars=2000)),  # iGPU for complex synthesis
+            (cpu_tier, QualityGate.TRUST),  # CPU for guaranteed completion
+        ]
+    )
+
+
 def build_reasoning_orchestrator(
     *,
     omni_port: int = 13305,

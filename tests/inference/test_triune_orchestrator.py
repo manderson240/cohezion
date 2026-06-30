@@ -31,3 +31,14 @@ def test_build_triune_orchestrator_quality_gates():
     assert orch.tiers[0][1].min_chars == 500
     assert orch.tiers[1][1].min_chars == 2000
     assert orch.tiers[2][1].min_chars is None
+
+
+def test_build_triune_omni_orchestrator_three_tier_cascade():
+    """The :13305 OmniRouter triune cascade (restored 2026-06-29 — make_executor's exec_provider)."""
+    import pytest
+
+    pytest.importorskip("gaia")  # GAIA LemonadeClient path
+    from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
+
+    orch = build_triune_omni_orchestrator()
+    assert len(orch.tiers) == 3  # NPU -> iGPU -> CPU, all via :13305

@@ -642,7 +642,7 @@ class SkillRefiner:
         if not self._lm_signal_cites_metrics(metric_change, metrics):
             logger.debug("CB14: metric_change cites no real metric values — signal blocked")
             return None
-        recommendation = self._generate_recommendation(metrics, operation_type)
+        recommendation = self._generate_recommendation(metrics, operation_type, skill_name)
         # #118: RL process reward modulates confidence.
         # Positive mean reward (skill outperforms its own prediction) → boost.
         # Negative mean reward (skill underperforms) → dampen.
@@ -773,7 +773,9 @@ class SkillRefiner:
                 return True
         return False
 
-    def _generate_recommendation(self, metrics: ExecutionMetrics, operation_type: str) -> str:
+    def _generate_recommendation(
+        self, metrics: ExecutionMetrics, operation_type: str, skill_name: str = ""
+    ) -> str:
         """Generate recommendation via Autodata multi-perspective self-consistency (#122).
 
         Generates diverse candidate recommendations from metric perspectives
@@ -783,26 +785,48 @@ class SkillRefiner:
         is prepended.  Self-consistency selection still governs, but the goal candidate
         has structural advantage because it shares vocabulary with multiple metric
         perspectives that orbit the same target_metric.
+
+        W5: when ``skill_name`` is given and another known skill is close
+        (``skill_proximity`` > 0.5), append a cross-skill transfer hint so the loop reuses a
+        neighbor's learnings.
         """
-        # #136: When a session goal is active, return the goal-aligned recommendation
-        # directly.  Goal state represents an explicit directive (GIC agentive Goal
-        # dimension); self-consistency selection only governs the undirected case.
+        rec = ""
+        # #136: goal-aligned recommendation when a session goal is active (GIC Goal dimension);
+        # self-consistency selection only governs the undirected case.
         if self._session_goal is not None:
             target = self._session_goal.get("target_metric", "")
             if target == "quality_score":
-                return (
+                rec = (
                     f"Optimize PRIME skill guidance for output quality in {operation_type} "
                     f"operations (goal: improve quality_score, "
                     f"current={metrics.quality_score:.0%})."
                 )
             elif target == "escalation_count":
                 tier = getattr(metrics, "tier_used", "unknown")
-                return (
+                rec = (
                     f"Specify tier preference in PRIME skill to reduce escalations for "
                     f"{operation_type} (goal: reduce tier escalation, tier={tier})."
                 )
-        candidates = self._autodata_candidates(metrics, operation_type)
-        return self._autodata_select(candidates, metrics)
+        if not rec:
+            candidates = self._autodata_candidates(metrics, operation_type)
+            rec = self._autodata_select(candidates, metrics)
+        # W5: cross-skill transfer hint from the nearest known skill (proximity > 0.5).
+        if skill_name:
+            best_other, best_score = "", 0.0
+            predictor = getattr(self, "_env_predictor", None)
+            known = set()
+            if predictor is not None and hasattr(predictor, "_history"):
+                for k in predictor._history:  # keys are (skill, op) tuples or "skill::op" strings
+                    known.add(k[0] if isinstance(k, tuple) else str(k).split("::")[0])
+            for other in known:
+                if other == skill_name:
+                    continue
+                score = self.skill_proximity(skill_name, other)
+                if score > best_score:
+                    best_other, best_score = other, score
+            if best_score > 0.5:
+                rec = f"{rec} (transfer from '{best_other}', proximity={best_score:.2f})"
+        return rec
 
     def _find_prime_file(self, skill_name: str) -> Path | None:
         """Find PRIME skill file for given skill name.

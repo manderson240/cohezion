@@ -74,10 +74,14 @@ class RetrospectionEngine:
         Override path to the knowledge graph directory.
     """
 
-    def __init__(self, kg_dir: Path | None = None) -> None:
+    def __init__(self, kg_dir: Path | None = None, inference_provider: object | None = None) -> None:
         self.kg_dir = kg_dir or _KG_DIR
         self._learnings: list[LearningPattern] = []
         self._journal_entries: list[dict] = []
+        # N5: optional local-silicon inference provider (Triune/lemonade) for LLM-assisted
+        # retrospection. Accepted + stored so the factory (ExecutorFactory) can wire it; the
+        # file-based analyze_learnings path does not require it (provider stays optional).
+        self._inference_provider = inference_provider
 
     def analyze_learnings(self) -> list[LearningPattern]:
         """Parse KEY_LEARNINGS.md, extract tagged patterns, count cross-references.
