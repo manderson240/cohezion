@@ -218,6 +218,12 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **T2 discriminating**: `test_miscalibration_lucky_cheap_tier_does_not_pull_routing_down` — 8 iGPU(escalated) + 2 lucky NPU(clean, higher q) → predict_tier must be `igpu` (a no-guard impl returns `npu`).
 - **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py -q` → 21 passed.
 
+### CR1: free-reroute-at-compaction hook (Devin Fusion, 2026-06-29)
+- `CompoundExecutor._recompute_tier_at_compaction(skill_name, operation_type, active_tier) -> str|None`: at a context-compaction boundary (cache rebuilds anyway → switch is free), re-evaluate routing on the CURRENT state and reroute to the MORE-CAPABLE of `DegradationDetector.suggest_routing_tier()` (health) and `DifficultyEstimator.predict_tier()` (difficulty) — `max` over `_TIER_ORDER`, NOT RS1's cost-biased `_resolve_tier` (never under-route a hard task). Returns the new tier or None (stay). No-op-safe.
+- **T2 discriminating**: `test_reroutes_hard_skill_up_at_compaction` (learned-hard skill on npu → cpu; a no-reroute or cheaper-bias impl fails); `test_health_degradation_escalates_even_easy_skill`; `test_stays_when_already_adequate`.
+- **Verification**: `uv run pytest tests/compound/test_tier_resolution.py::TestCompactionReroute -q` → 3 passed; live demo: npu→cpu reroute fires only after the task is learned-hard, stays when adequate.
+- **Open follow-on**: auto-fire it at an actual boundary (`vector_pruning.should_compact()` / a `long_horizon_task` checkpoint) so the reroute happens unattended; currently a callable capability.
+
 ### JW1: JepaGate.last_coherence + CompoundExecutor routing feedback wiring (2026-06-27)
 - `JepaGate.last_coherence: float` — set to predicted coherence after every `check()` call
 - Fail-open paths (None world_model, exception) set `last_coherence = 1.0` (optimistic default)
