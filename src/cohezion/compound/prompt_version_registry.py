@@ -34,14 +34,28 @@ DRIFT_THRESHOLD = 0.35  # cosine distance; block if drift >= this
 
 
 def _safe_ident(name: str) -> str:
-    """M5: guard against SurrealQL injection — skill_name flows from the registry/loop into
-    interpolated queries. Allow only identifier-safe chars; reject quote/semicolon/space breakouts.
-    Raises ValueError on a bad name (callers fail-open via their try/except)."""
+    """M5 + review#4: SLUGIFY skill_name for safe SurrealQL interpolation — non-identifier chars
+    ([^A-Za-z0-9_./-]) → '_'. Injection-safe (no quote/semicolon/space survives, so a single-quoted
+    literal can't be broken out of) AND total: skills whose name has spaces get a STABLE slug instead
+    of raising ValueError — which silently left those skills un-gated and un-bootstrapped. The same
+    slug is produced at write and read, so a skill maps consistently. Empty/None → 'unknown'."""
     import re
 
-    if not re.fullmatch(r"[A-Za-z0-9_./-]+", name or ""):
-        raise ValueError(f"unsafe skill_name for query: {name!r}")
-    return name
+    return re.sub(r"[^A-Za-z0-9_./-]+", "_", (name or "").strip()) or "unknown"
+
+
+def _surreal_rows(data) -> list:
+    """Extract result rows from a SurrealDB /sql response, treating SQL errors (HTTP 200 +
+    status='ERR', e.g. a missing table) as NO ROWS — not data. SurrealDB returns the error as a
+    STRING 'result'; the old code iterated that string as fixtures, which inverted regression_check's
+    fail-policy and FROZE the self-improvement loop on a fresh deploy (review #2)."""
+    if not data:
+        return []
+    row = data[0]
+    if not isinstance(row, dict) or row.get("status") == "ERR":
+        return []
+    result = row.get("result", [])
+    return result if isinstance(result, list) else []
 
 
 class PromptVersionRegistry:
@@ -120,8 +134,7 @@ class PromptVersionRegistry:
         )
         r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
         r.raise_for_status()
-        data = r.json()
-        return data[0].get("result", []) if data else []
+        return _surreal_rows(r.json())
 
     def bootstrap_fixtures(self, skill_name: str, prime_excerpt: str, chat_fn=None, n: int = 3) -> int:
         """Generate (local-first, $0) + persist behavioral golden fixtures so the M1 regression gate
@@ -161,8 +174,7 @@ class PromptVersionRegistry:
         q = f"SELECT embedding_768d FROM golden_fixture WHERE skill_name = '{_safe_ident(skill_name)}';"
         r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
         r.raise_for_status()
-        data = r.json()
-        return data[0].get("result", []) if data else []
+        return _surreal_rows(r.json())
 
     def _embed(self, text: str) -> list[float] | None:
         try:
@@ -212,6 +224,7 @@ def evaluate_regression(fixtures: list[dict[str, Any]], candidate: str, run_fn) 
     not auto-promote (bughunt #8: matches regression_check's M1 contract; the old code swallowed all
     per-fixture errors and returned True → promotion allowed). Pure: run_fn(candidate, input)->str."""
     well_formed = evaluated = 0
+    critical_unevaluable = False
     for f in fixtures:
         inp, exp = f.get("input"), f.get("expected_output")
         if not inp or exp is None:
@@ -220,13 +233,17 @@ def evaluate_regression(fixtures: list[dict[str, Any]], candidate: str, run_fn) 
         try:
             out = run_fn(candidate, inp)
         except Exception:
-            continue  # per-fixture execution error — fail open for THIS fixture
+            if f.get("critical", True):
+                critical_unevaluable = True  # a CRITICAL case couldn't be verified (review #1)
+            continue  # per-fixture error — fail open only for NON-critical
         evaluated += 1
         if not _validate(out, exp, f.get("validator_type") or "contains") and f.get("critical", True):
             logger.info("RegressionGate BLOCK: critical fixture regressed (input=%r)", str(inp)[:50])
             return False
-    if well_formed and evaluated == 0:
-        logger.warning("RegressionGate BLOCK: %d fixtures present but none evaluable — fail-closed", well_formed)
+    # fail-CLOSED if a CRITICAL fixture couldn't be evaluated (not just the all-or-nothing case),
+    # or if well-formed fixtures exist but NONE evaluated — the candidate is unverified.
+    if critical_unevaluable or (well_formed and evaluated == 0):
+        logger.warning("RegressionGate BLOCK: critical/all fixtures unevaluable — fail-closed")
         return False
     return True
 

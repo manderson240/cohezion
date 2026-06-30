@@ -148,13 +148,16 @@ def make_local_execute_fn(task_description: str = ""):
     def execute_fn(guidance: str, min_tier_index: int = 0) -> tuple[str, dict]:
         orch = _get_orchestrator()
         prompt = f"{guidance}\n\n{task_description}".strip() if task_description else guidance
-        # Lever 1: classify the task to get its quality_gate_chars (0 for categorical/short answers)
-        # so the orchestrator gate is task-appropriate — a correct "POSITIVE" passes at NPU instead of
-        # escalating to the CPU 31B because it's < 500 chars. Fail-open to None (fixed per-tier gates).
+        # Lever 1 (correctness-review fix): override the orchestrator's escalation floor with the
+        # task's quality_gate_chars ONLY for genuinely SHORT outputs (categorical/short answers) — so a
+        # correct "POSITIVE" passes at NPU instead of escalating. The classifier returns gate_chars≈0
+        # for long_generation/code/medium TOO, so a BLANKET override would let an essay pass at the 1B
+        # NPU and never escalate (under-routing). Those types keep the 500/2000 floors → None here.
         try:
             from cohezion.inference.task_classifier import classify
 
-            gate_chars = classify(prompt).quality_gate_chars
+            _d = classify(prompt)
+            gate_chars = _d.quality_gate_chars if _d.output_type in ("short_categorical", "short_answer") else None
         except Exception:
             gate_chars = None
         try:

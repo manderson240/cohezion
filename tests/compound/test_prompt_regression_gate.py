@@ -43,14 +43,34 @@ class TestEvaluateRegression:
         fx = [{"input": "x", "expected_output": "y", "critical": False}]
         assert evaluate_regression(fx, "cand", lambda c, i: "wrong") is True
 
-    def test_per_fixture_error_does_not_block(self):
-        """A SINGLE flaky fixture fails OPEN — the other (passing) fixture still gates."""
-        def run(c, inp):
-            if inp == "is 2+2=5?":
-                raise RuntimeError("flaky")
-            return "hi there"  # the 'say hi' critical fixture passes
+    def test_noncritical_error_does_not_block(self):
+        """A flaky NON-critical fixture fails OPEN — the passing critical fixture still gates."""
+        fx = [
+            {"input": "a", "expected_output": "x", "critical": False},  # errors, non-critical
+            {"input": "b", "expected_output": "ok", "critical": True},  # passes, critical
+        ]
 
-        assert evaluate_regression(_fixtures(), "cand", run) is True
+        def run(c, inp):
+            if inp == "a":
+                raise RuntimeError("flaky")
+            return "ok here"
+
+        assert evaluate_regression(fx, "cand", run) is True
+
+    def test_critical_error_fails_closed(self):
+        """review #1: a CRITICAL fixture that can't be evaluated → fail-CLOSED even though a
+        non-critical one passes (the #8 fix only covered the all-unevaluable case)."""
+        fx = [
+            {"input": "a", "expected_output": "x", "critical": True},   # errors, CRITICAL
+            {"input": "b", "expected_output": "ok", "critical": False},  # passes, non-critical
+        ]
+
+        def run(c, inp):
+            if inp == "a":
+                raise RuntimeError("flaky")
+            return "ok"
+
+        assert evaluate_regression(fx, "cand", run) is False
 
     def test_all_fixtures_unevaluable_fails_closed(self):
         """bughunt #8: well-formed fixtures exist but NONE evaluate (inference down) → fail-CLOSED.
