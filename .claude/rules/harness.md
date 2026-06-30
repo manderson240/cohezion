@@ -212,6 +212,12 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **T2 discriminating**: `test_escalation_count_drives_engine` — `_engine_for(0,1,False)=="igpu"`, `(0,2,False)=="cpu"` (a wrong impl ignoring escalations reports "npu"); `test_cloud_short_circuits`
 - **Verification**: `uv run pytest tests/compound/test_local_inference.py -q` → 6 passed; end-to-end: `DifficultyEstimator` learns 'unknown'→'cpu' from engine feedback, per-skill divergence (greet→npu, math→cpu).
 
+### GIC-CAL1: DifficultyEstimator miscalibration guard — _MIN_TIER_FREQUENCY (2026-06-29)
+- A controlled learning experiment (`scratchpad/gic_learning_experiment.py`) showed predict_tier converges to 100% per-skill engine accuracy by cycle 2 but DRIFTS to 62% under realistic noise: rare "lucky" cheap-tier successes (high conditional rate `success/tier_count`, low frequency) fooled both the success-rate path AND the mean-quality fallback into over-cheap routing (UCCI cascade miscalibration, arXiv 2605.18796).
+- Fix: `_MIN_TIER_FREQUENCY = 0.34` guard on BOTH paths in `predict_tier` — a tier must have run in ≥34% of the recent window (`n/len(window)`) to be eligible. Asymmetric: a rare cheap tier can't pull routing down. Post-fix the experiment holds 100% through the noise + adapts (summarize igpu→cpu by cycle 16).
+- **T2 discriminating**: `test_miscalibration_lucky_cheap_tier_does_not_pull_routing_down` — 8 iGPU(escalated) + 2 lucky NPU(clean, higher q) → predict_tier must be `igpu` (a no-guard impl returns `npu`).
+- **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py -q` → 21 passed.
+
 ### JW1: JepaGate.last_coherence + CompoundExecutor routing feedback wiring (2026-06-27)
 - `JepaGate.last_coherence: float` — set to predicted coherence after every `check()` call
 - Fail-open paths (None world_model, exception) set `last_coherence = 1.0` (optimistic default)
