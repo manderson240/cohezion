@@ -10,12 +10,14 @@ Reads from four layers (highest priority last):
 
 Outputs merged JSON to stdout. Errors go to stderr.
 
-Requires Python 3.11+ (uses stdlib `tomllib`). No `uv`, no `pip install`,
-no virtualenv — plain `python3` is sufficient.
+Uses only the Python stdlib (`tomllib`) — no third-party dependencies.
+BMad is standardizing on `uv run` to invoke scripts (uv provisions a suitable
+interpreter for you); a plain `python3` on PATH still works during the
+transition. Either runner needs Python 3.11+ for `tomllib`.
 
-  python3 resolve_config.py --project-root /abs/path/to/project
-  python3 resolve_config.py --project-root ... --key core
-  python3 resolve_config.py --project-root ... --key agents
+  uv run resolve_config.py --project-root /abs/path/to/project
+  uv run resolve_config.py --project-root ... --key core
+  uv run resolve_config.py --project-root ... --key agents
 
 Merge rules (same as resolve_customization.py):
   - Scalars: override wins
@@ -32,7 +34,9 @@ from pathlib import Path
 try:
     import tomllib
 except ImportError:
-    sys.stderr.write("error: Python 3.11+ is required (stdlib `tomllib` not found).\n")
+    sys.stderr.write(
+        "error: Python 3.11+ is required (stdlib `tomllib` not found).\n"
+    )
     sys.exit(3)
 
 
@@ -137,16 +141,11 @@ def main():
         description="Resolve BMad central config using four-layer TOML merge.",
     )
     parser.add_argument(
-        "--project-root",
-        "-p",
-        required=True,
+        "--project-root", "-p", required=True,
         help="Absolute path to the project root (contains _bmad/)",
     )
     parser.add_argument(
-        "--key",
-        "-k",
-        action="append",
-        default=[],
+        "--key", "-k", action="append", default=[],
         help="Dotted field path to resolve (repeatable). Omit for full dump.",
     )
     args = parser.parse_args()
