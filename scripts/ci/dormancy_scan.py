@@ -21,6 +21,7 @@ import re
 import sys
 from pathlib import Path
 
+
 REPO = Path(__file__).resolve().parents[2]
 SRC = REPO / "src" / "cohezion"
 
@@ -51,6 +52,11 @@ REGISTRY: list[tuple[str, str, str, int]] = [
     # def line can't satisfy the floor — removing the call re-dormants the gate → RED.
     ("Knot: local_executor success gated by QA-judge lane (_judge_quality CONSUMED)",
      r"_judge_quality\(self\._base_url", "src/cohezion/compound/autonomous_loop/local_executor.py", 1),
+    # Memory consolidation: the LoopCoordinator end-of-cycle trigger must CALL consolidate() — the
+    # automated episode->semantic-fact promotion loop (Elastic deferred-consolidation gap). Pin to
+    # the call; removing it re-dormants the consolidator (manual /learn promotion only) -> RED.
+    ("MemConsolidate: LoopCoordinator fires consolidate() each cycle (episode->semantic promotion)",
+     r"consolidator\.consolidate\(", "src/cohezion/compound/autonomous_loop/coordinator.py", 1),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE

@@ -66,6 +66,8 @@ class LoopCoordinator:
         self.config = config
         self._backlog: list[LoopTask] = []
         self._sprint_results: list[SprintResult] = []
+        # Episodic records accumulated this run, fed to MemoryConsolidator at end-of-cycle.
+        self._episodes: list[dict[str, Any]] = []
         # CB5 pattern: auto-create DegradationDetector if not supplied
         if degradation_detector is None:
             with contextlib.suppress(Exception):
@@ -152,7 +154,25 @@ class LoopCoordinator:
             self._sprint_results.append(sprint)
 
         report.sprint_results = list(self._sprint_results)
+
+        # End-of-cycle deferred consolidation: promote this run's episodes to durable semantic
+        # facts (local-Gemma $0, fail-open). This is the production trigger for MemoryConsolidator.
+        with contextlib.suppress(Exception):
+            self._consolidate_episodes(report)
+
         return report
+
+    def _consolidate_episodes(self, report: RunReport) -> None:
+        """Run the automated episode -> semantic-fact consolidation pass over this cycle's episodes.
+
+        Fires once per loop cycle (the Elastic deferred-consolidation cadence). No-op when no
+        episodes were recorded; the consolidator itself is idempotent + fail-open."""
+        if not self._episodes:
+            return
+        from cohezion.memory.consolidator import MemoryConsolidator
+
+        consolidator = MemoryConsolidator()
+        consolidator.consolidate(self._episodes)
 
     def _record_result(
         self,
@@ -166,6 +186,10 @@ class LoopCoordinator:
         sprint: SprintResult,
     ) -> None:
         """Update all tracking state for a completed task result."""
+        # Episodic record for end-of-cycle MemoryConsolidator promotion (provenance source).
+        self._episodes.append(
+            {"id": task.id, "text": task.description, "operation_type": task.category}
+        )
         success = result.get("success", False)
         task_fail_count = fail_counts.get(task.id, 0)
         if success:
