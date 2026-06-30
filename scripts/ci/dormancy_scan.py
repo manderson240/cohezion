@@ -42,6 +42,10 @@ REGISTRY: list[tuple[str, str, str, int]] = [
      r"gate_chars is not None", "src/cohezion/inference/orchestrator.py", 1),
     ("H1-grounding: _ensure_golden_fixtures passes ground_fn (grounding LIVE → gate can BITE)",
      r"ground_fn=ground", "src/cohezion/compound/skill_refiner.py", 1),
+    # BMAD qa_gate P0: pin to the ADVISORY consumption seam — refine() must CALL qa_gate.evaluate.
+    # Removing the seam (re-dormanting the gate) drops the count below the floor → scan goes RED.
+    ("qa_gate P0: refine() CONSUMES qa_gate.evaluate (advisory 4-state gate FIRES)",
+     r"_qa_gate\.evaluate\(", "src/cohezion/compound/skill_refiner.py", 1),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE

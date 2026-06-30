@@ -480,20 +480,41 @@ class TestNoRawInterpolationStructural:
     raw single-quoted f-string interpolation. A future regression that hand-builds is caught HERE,
     before it can reach a live DB — discriminating against the exact pre-fix source."""
 
-    def test_writers_invoke_builder_and_have_no_fstring_interpolation(self):
+    def test_every_surql_building_site_routes_through_builder(self):
+        """GENERALIZED (residual fix): instead of listing writer functions BY NAME (which silently
+        omits a NEW writer like qa_gate._log_gate), walk the AST of BOTH SurrealQL-touching modules
+        and assert that EVERY function whose body builds a query (CREATE/UPDATE/WHERE) routes through
+        ``_surql_set`` and hand-builds no single-quoted interpolation. A future writer that bypasses
+        the safe builder in either module is auto-caught here, before it can reach a live DB."""
+        import ast
         import inspect
 
-        from cohezion.compound.prompt_version_registry import PromptVersionRegistry
+        import cohezion.compound.prompt_version_registry as pvr
+        import cohezion.compound.qa_gate as qg
 
-        for fn in (
-            PromptVersionRegistry._write_fixture,
-            PromptVersionRegistry._log_run,
-            PromptVersionRegistry._load_fixtures,
-            PromptVersionRegistry._load_behavioral_fixtures,
-        ):
-            src = inspect.getsource(fn)
-            assert "_surql_set" in src, f"{fn.__name__} must build queries via _surql_set"
-            # the pre-fix hand-built forms: `name='{...}'` or `= '{...}'` — must be gone.
-            assert "='{" not in src and "= '{" not in src, (
-                f"{fn.__name__} still hand-builds a single-quoted interpolated literal"
-            )
+        MARKERS = ("CREATE ", "UPDATE ", " WHERE ")  # SurrealQL write / filter sites
+        offenders: list[str] = []
+        checked = 0
+        for module in (pvr, qg):
+            src = inspect.getsource(module)
+            tree = ast.parse(src)
+            for node in ast.walk(tree):
+                if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    continue
+                fsrc = ast.get_source_segment(src, node) or ""
+                # strip the docstring so MARKER prose in a docstring isn't mistaken for a query.
+                body_src = fsrc
+                doc = ast.get_docstring(node)
+                if doc:
+                    body_src = body_src.replace(doc, "", 1)
+                if not any(m in body_src for m in MARKERS):
+                    continue
+                checked += 1
+                if "_surql_set" not in body_src:
+                    offenders.append(f"{module.__name__}.{node.name} builds SurrealQL without _surql_set")
+                if "='{" in body_src or "= '{" in body_src:
+                    offenders.append(f"{module.__name__}.{node.name} hand-builds single-quoted interpolation")
+
+        # the 4 registry writers/loaders + qa_gate._log_gate = at least 5 covered sites.
+        assert checked >= 5, f"expected >=5 SurrealQL-building sites, found {checked}"
+        assert not offenders, offenders

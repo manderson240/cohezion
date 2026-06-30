@@ -362,6 +362,18 @@ class SkillRefiner:
                 self._ensure_golden_fixtures(reg, skill_name, prime_file)
 
                 candidate = prime_file.read_text() + f"\n\n{signal.key_insight}"
+
+                # BMAD qa_gate P0 (ADVISORY): risk-weighted 4-state verdict WRAPPING the binary
+                # regression gate below. Logs a qa_gate row; the BINARY gate still OWNS the actual
+                # block (additive — never alters this decision). Belt-and-suspenders try (evaluate
+                # is itself fail-open) so an advisory failure can never break refine().
+                from cohezion.compound import qa_gate as _qa_gate
+
+                try:
+                    _qa_gate.evaluate(skill_name, candidate, self._regression_run_fn)
+                except Exception as _exc:
+                    logger.debug("qa_gate advisory failed (non-blocking): %s", _exc)
+
                 if not reg.regression_check(
                     skill_name, candidate, self._regression_run_fn
                 ):
