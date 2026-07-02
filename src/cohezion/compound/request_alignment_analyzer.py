@@ -308,9 +308,10 @@ class RequestAlignmentAnalyzer:
             Dict with relevant alignment patterns (non-blocking on failure)
         """
         try:
-            context = self.mcp_client.vault_find_relevant_context(
-                query=f"alignment misalignment {task_description}", project=project
-            )
+            # vault_find_relevant_context is async; use the sync vault_search wrapper
+            # to avoid "coroutine never awaited" RuntimeWarning when called from
+            # synchronous execute_task context.
+            context = self.mcp_client.vault_search(f"alignment misalignment {task_description}")
             logger.debug(
                 "Found %d alignment patterns for task",
                 len(context) if context else 0,

@@ -52,9 +52,7 @@ logger = logging.getLogger(__name__)
 _TIER_ORDER = ("npu", "igpu", "cpu", "cloud")
 
 
-def _resolve_tier(
-    predicted: str | None, suggested: str | None, jepa_reroute: bool
-) -> str | None:
+def _resolve_tier(predicted: str | None, suggested: str | None, jepa_reroute: bool) -> str | None:
     """Synthesize the GIC's routing signals into ONE tier that DRIVES cascade entry (H4 fix).
 
     Fuse the predictive signal (DifficultyEstimator.predict_tier — skill-specific) and the reactive
@@ -565,7 +563,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 AttributeError,
                 ValueError,
             ) as e:
-                logger.warning("Failed to auto-load context: %s", e, exc_info=True)
+                logger.debug("Failed to auto-load context: %s", e)
 
         # Continue execution - context failure shouldn't block execution
 
@@ -748,9 +746,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # (a) W3: DegradationDetector.suggest_routing_tier() — reactive, health-based tier hint.
         if self._degradation_detector is not None:
             try:
-                _tier_hints["suggested_tier"] = (
-                    self._degradation_detector.suggest_routing_tier()
-                )
+                _tier_hints["suggested_tier"] = self._degradation_detector.suggest_routing_tier()
             except Exception:
                 pass
         # (b) W4: DifficultyEstimator.predict_tier() — predictive, skill-specific tier hint.
@@ -961,22 +957,40 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
         metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
 
-        # Step 5.85: V-Model DRR gate (non-blocking)
+        # Step 5.85: V-Model DRR gate (non-blocking).
+        # DRR checks file artifacts (skill PRIME .md + matching test .py). Only fire when both
+        # can be resolved to real paths — passing runtime strings (skill_name, task_description)
+        # caused false CRITICAL findings on every task execution (2 criticals per run).
         if self._drr_generator:
             try:
                 from cohezion.compound.design_review_report import GateLevel
+                from pathlib import Path as _Path
 
-                drr = self._drr_generator.generate(
-                    gate=GateLevel.IMPLEMENTATION,
-                    session_id=self._drr_session_id or "unknown",
-                    left_artifact=skill_name or "unknown",
-                    right_artifact=task_description[:100] if task_description else "unknown",
+                _skills_dir = _Path(__file__).parent.parent / "skills"
+                _sn = (skill_name or "").upper().replace("-", "_").replace(" ", "_")
+                _skill_file = _skills_dir / f"{_sn}_PRIME.md"
+                _test_file = (
+                    _Path(__file__).parent.parent.parent.parent
+                    / "tests"
+                    / "compound"
+                    / f"test_{(skill_name or '').replace('-', '_')}.py"
                 )
-                metrics["drr_gate"] = drr.gate.value
-                metrics["drr_passed"] = drr.passed
-                metrics["drr_findings"] = len(drr.findings)
-                if not drr.passed:
-                    logger.warning("DRR-%s FAILED: %s", drr.gate.value, drr.summary)
+                if _skill_file.exists() and _test_file.exists():
+                    drr = self._drr_generator.generate(
+                        gate=GateLevel.IMPLEMENTATION,
+                        session_id=self._drr_session_id or "unknown",
+                        left_artifact=str(_skill_file),
+                        right_artifact=str(_test_file),
+                    )
+                    metrics["drr_gate"] = drr.gate.value
+                    metrics["drr_passed"] = drr.passed
+                    metrics["drr_findings"] = len(drr.findings)
+                    if not drr.passed:
+                        logger.warning("DRR-%s FAILED: %s", drr.gate.value, drr.summary)
+                else:
+                    metrics["drr_gate"] = GateLevel.IMPLEMENTATION.value
+                    metrics["drr_passed"] = None
+                    metrics["drr_findings"] = 0
             except Exception:
                 logger.debug("DRR gate check failed (non-blocking)", exc_info=True)
 
@@ -1208,6 +1222,22 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 # Fold JEPA pre-execution coherence into degradation metrics (JW1 routing feedback).
                 if _jepa_verdict is not None and self._jepa_gate is not None:
                     degradation_metrics["jepa_coherence"] = self._jepa_gate.last_coherence
+                    # Step 7.5b: AdaJEPA feedback — recalibrate world-model baseline from
+                    # actual execution quality (2606.32026). Fail-open: any exception is
+                    # suppressed so calibration never blocks the execution pipeline.
+                    _wm = getattr(self._jepa_gate, "_world_model", None)
+                    if _wm is not None and hasattr(_wm, "observe"):
+                        _actual_quality = float(
+                            metrics.get("quality_score", metrics.get("coherence", 0.5))
+                        )
+                        try:
+                            _wm.observe(
+                                task_description,
+                                self._jepa_gate.last_coherence,
+                                _actual_quality,
+                            )
+                        except Exception:  # never block on calibration
+                            pass
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
@@ -1528,7 +1558,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("Prompt artifact persistence failed (non-blocking): %s", e)
 
         # Step 10.9: Record context policy outcome for cross-session learning
-        if self._context_policy is not None and _task_profile is not None and _context_budget is not None:
+        if (
+            self._context_policy is not None
+            and _task_profile is not None
+            and _context_budget is not None
+        ):
             try:
                 self._context_policy.record_outcome(
                     profile=_task_profile,
@@ -1587,7 +1621,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception:
                 pass
         predicted = None
-        estimator = getattr(self._skill_refiner, "_difficulty_estimator", None) if self._skill_refiner else None
+        estimator = (
+            getattr(self._skill_refiner, "_difficulty_estimator", None)
+            if self._skill_refiner
+            else None
+        )
         if estimator is not None:
             try:
                 predicted = estimator.predict_tier(skill_name, operation_type)
@@ -1603,7 +1641,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if recommended != active_tier:
             logger.info(
                 "compaction reroute: %s -> %s (free switch at compaction boundary)",
-                active_tier, recommended,
+                active_tier,
+                recommended,
             )
             return recommended
         return None

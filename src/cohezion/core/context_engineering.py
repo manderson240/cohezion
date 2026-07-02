@@ -169,9 +169,9 @@ class ContextEngineeringInfrastructure:
             Returns:
                 List of relevant context with path, category, match_count
             """
-            return client.vault_find_relevant_context(  # type: ignore[no-any-return]
-                query=query, project=project
-            )
+            # vault_find_relevant_context is async; use the sync wrapper to avoid
+            # "coroutine never awaited" RuntimeWarning from synchronous callers.
+            return client.vault_search(query)  # type: ignore[return-value]
 
         # Register all compound operations
         self._tools["log_decision"] = log_decision

@@ -330,11 +330,13 @@ class MCPClient:
         try:
             return asyncio.run(coro)
         except RuntimeError:
-            # Loop already running (e.g. pytest-asyncio) — cannot block.
-            # Callers in async contexts should await
-            # :meth:`vault_find_relevant_context` directly.
+            # Loop already running (e.g. pytest-asyncio, or nested asyncio.run).
+            # Close the coroutine explicitly so Python doesn't emit
+            # "RuntimeWarning: coroutine … was never awaited".
+            coro.close()
             return []
         except Exception as exc:
+            coro.close()
             logger.debug("vault_search failed: %s", exc)
             return []
 

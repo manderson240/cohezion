@@ -4,6 +4,7 @@ The GIC's k-step lookahead delegates world-model inference to local lemonade sil
 GAIA SDK. These tests mock the LLM call (no network) and exercise the EXACT production path:
 a LemonadeWorldModel inside a JepaGate, plus the factory wiring guard.
 """
+
 from __future__ import annotations
 
 import re
@@ -40,9 +41,11 @@ class TestLemonadeWorldModelStructural:
 
 class TestLemonadeWorldModelBehavioral:
     def test_predict_uses_llm_estimate(self):
+        # Beta(2,2) prior (2026-07-02): (2*0.7 + 0.42)/3 = 0.6067, not raw 0.42.
         wm = LemonadeWorldModel(chat_fn=lambda _p: "0.42")
         s = wm.predict_next_state(np.full(12, 0.5, dtype=np.float32), None)
-        assert abs(float(np.mean(s)) - 0.42) < 1e-6
+        expected = (2.0 * LemonadeWorldModel._BASELINE + 0.42) / 3.0
+        assert abs(float(np.mean(s)) - expected) < 1e-4
 
     def test_fallback_when_llm_raises_does_not_force_skip(self):
         """Discriminating: an LLM failure on the default zero-state must NOT collapse to 0.0
@@ -102,13 +105,16 @@ class TestTaskAwareness:
 class TestLemonadeGateIntegration:
     """The EXACT production path: a JepaGate whose world model delegates to lemonade."""
 
-    def test_low_coherence_llm_makes_gate_skip(self):
-        """Discriminating: the LLM's LOW coherence estimate must drive the gate to SKIP. A wrong
-        impl that ignores the world model (fail-open) would PROCEED."""
+    def test_low_coherence_llm_makes_gate_reroute_not_proceed(self):
+        """Discriminating: a LOW LLM coherence (0.05) must drive the gate to REROUTE, NOT PROCEED.
+        A wrong impl that ignores the world model (fail-open) returns PROCEED → assertion fails.
+        After the Beta(2,2) prior (2026-07-02), 0.05 → (2*0.7+0.05)/3=0.483 → REROUTE, not SKIP:
+        the prior prevents abort while still penalizing low-confidence readings."""
         wm = LemonadeWorldModel(chat_fn=lambda _p: "0.05")
         gate = JepaGate(world_model=wm, lookahead_steps=3)
         verdict = gate.check("risky task", current_state=np.full(12, 0.5, dtype=np.float32))
-        assert verdict == PreExecutionVerdict.SKIP
+        assert verdict != PreExecutionVerdict.PROCEED  # world model IS used (not fail-open)
+        assert verdict == PreExecutionVerdict.REROUTE  # escalates, does not abort
 
     def test_high_coherence_llm_makes_gate_proceed(self):
         wm = LemonadeWorldModel(chat_fn=lambda _p: "0.9")
@@ -152,7 +158,9 @@ class TestF3CoherenceCalibratedToTractability:
         coh_t = gate_t.last_coherence
 
         gate_i = JepaGate(world_model=LemonadeWorldModel(chat_fn=chat))
-        v_i = gate_i.check("prove an intractable open conjecture in a single step", current_state=state)
+        v_i = gate_i.check(
+            "prove an intractable open conjecture in a single step", current_state=state
+        )
         coh_i = gate_i.last_coherence
 
         # The inversion the review found: tractable must be >= intractable.
@@ -194,18 +202,23 @@ class TestF3RerouteOnlySafety:
         the executor aborts the task → assertion fails."""
         wm = LemonadeWorldModel(chat_fn=lambda _p: "0.01")  # the binary LOW anchor collapse
         gate = JepaGate(world_model=wm, reroute_only=True)
-        verdict = gate.check("reverse a linked list in Python", current_state=np.full(12, 0.5, dtype=np.float32))
+        verdict = gate.check(
+            "reverse a linked list in Python", current_state=np.full(12, 0.5, dtype=np.float32)
+        )
         assert verdict != PreExecutionVerdict.SKIP
         assert verdict == PreExecutionVerdict.REROUTE  # escalate one tier, never abort
 
-    def test_default_gate_still_skips_at_same_reading_discriminating(self):
-        """Discriminating control: the SAME 0.01 reading on a DEFAULT gate (reroute_only=False, the
-        deterministic torch-JEPA path) DOES yield SKIP — proving the reroute_only flag is what caps
-        the verdict, not a threshold change that would weaken the torch path's SKIP semantics."""
-        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.01")
-        gate = JepaGate(world_model=wm)  # reroute_only defaults False
+    def test_beta_prior_prevents_skip_even_without_reroute_only_discriminating(self):
+        """Discriminating: after the Beta(2,2) prior (2026-07-02), the MINIMUM LLM output (0.0)
+        is smoothed to (2*0.7+0.0)/3=0.467 > SKIP threshold 0.1 — so SKIP is structurally
+        impossible for any in-range LemonadeWorldModel reading even with reroute_only=False.
+        The Beta prior itself is the abort-safety; reroute_only is now a redundant belt. A wrong
+        impl (no Beta prior, raw 0.0 passed to gate) would return SKIP → assertion fails."""
+        wm = LemonadeWorldModel(chat_fn=lambda _p: "0.0")  # absolute minimum LLM output
+        gate = JepaGate(world_model=wm)  # reroute_only=False — the prior, not the flag, saves us
         verdict = gate.check("some task", current_state=np.full(12, 0.5, dtype=np.float32))
-        assert verdict == PreExecutionVerdict.SKIP
+        assert verdict != PreExecutionVerdict.SKIP  # Beta prior prevents abort
+        assert verdict == PreExecutionVerdict.REROUTE
 
     def test_reroute_only_still_proceeds_on_high_coherence(self):
         """The safety cap must not suppress a legitimate PROCEED for a tractable high reading."""
@@ -213,6 +226,94 @@ class TestF3RerouteOnlySafety:
         gate = JepaGate(world_model=wm, reroute_only=True)
         verdict = gate.check("add two numbers", current_state=np.full(12, 0.5, dtype=np.float32))
         assert verdict == PreExecutionVerdict.PROCEED
+
+
+class TestAdaJEPA:
+    """AdaJEPA adaptive baseline (arXiv:2606.32026): per-instance _baseline drifts toward the
+    empirical mean of actual execution quality after ≥5 observe() calls accumulate.
+    """
+
+    def test_baseline_starts_at_class_prior(self):
+        """Instance baseline must shadow the class prior at construction."""
+        wm = LemonadeWorldModel()
+        assert wm._baseline == LemonadeWorldModel._BASELINE
+
+    def test_no_drift_before_five_observations(self):
+        """Discriminating: fewer than 5 calls must NOT move _baseline.
+
+        A wrong impl (updating on every call) would show drift after 3 → FAIL.
+        """
+        wm = LemonadeWorldModel()
+        prior = wm._baseline
+        for _ in range(4):
+            wm.observe("t", 0.7, 0.9)  # positive error = actual > predicted
+        assert wm._baseline == prior, "_baseline must not change before 5 observations"
+
+    def test_baseline_increases_after_positive_errors(self):
+        """Discriminating: systematic positive errors (actual > predicted) must raise _baseline.
+
+        A wrong impl that ignores EMA or drifts in the wrong direction would leave _baseline
+        at _BASELINE or below → FAIL.
+        """
+        wm = LemonadeWorldModel()
+        for _ in range(10):
+            wm.observe("t", 0.5, 0.9)  # actual=0.9, predicted=0.5 → error=+0.4 each time
+        assert wm._baseline > LemonadeWorldModel._BASELINE, (
+            f"_baseline ({wm._baseline:.4f}) must exceed class prior "
+            f"({LemonadeWorldModel._BASELINE}) after 10 positive-error observations"
+        )
+
+    def test_baseline_decreases_after_negative_errors(self):
+        """Discriminating: systematic negative errors (actual < predicted) must lower _baseline.
+
+        A wrong impl with wrong sign convention would raise _baseline instead → FAIL.
+        """
+        wm = LemonadeWorldModel()
+        for _ in range(10):
+            wm.observe("t", 0.9, 0.3)  # actual=0.3, predicted=0.9 → error=-0.6 each time
+        assert wm._baseline < LemonadeWorldModel._BASELINE, (
+            f"_baseline ({wm._baseline:.4f}) must fall below class prior "
+            f"({LemonadeWorldModel._BASELINE}) after 10 negative-error observations"
+        )
+
+    def test_baseline_clamped_to_floor(self):
+        """Fail-safe: extreme negative errors must not drive _baseline below 0.3."""
+        wm = LemonadeWorldModel()
+        for _ in range(50):
+            wm.observe("t", 1.0, 0.0)  # error = -1.0 every call
+        assert wm._baseline >= 0.3
+
+    def test_baseline_clamped_to_ceiling(self):
+        """Fail-safe: extreme positive errors must not drive _baseline above 0.9."""
+        wm = LemonadeWorldModel()
+        for _ in range(50):
+            wm.observe("t", 0.0, 1.0)  # error = +1.0 every call
+        assert wm._baseline <= 0.9
+
+    def test_adapted_baseline_influences_beta_prior_shrinkage(self):
+        """Discriminating: predict_next_state must use _baseline, not _BASELINE.
+
+        We drive _baseline below _BASELINE with negative errors, then confirm that
+        the Beta(2,2) shrinkage output is lower than it would be with the class prior.
+        A wrong impl that still uses self._BASELINE inside predict_next_state would
+        return the pre-adaptation value → both assertions below would FAIL.
+        """
+        wm_adapted = LemonadeWorldModel(chat_fn=lambda _p: "0.5")
+        for _ in range(10):
+            wm_adapted.observe("t", 0.9, 0.1)  # drive _baseline DOWN
+
+        wm_naive = LemonadeWorldModel(chat_fn=lambda _p: "0.5")
+
+        s = np.full(12, 0.01, dtype=np.float32)  # near-zero → triggers the cur=_baseline branch
+        pred_adapted = float(np.mean(wm_adapted.predict_next_state(s, None)))
+        pred_naive = float(np.mean(wm_naive.predict_next_state(s, None)))
+
+        assert wm_adapted._baseline < wm_naive._baseline, "adapted baseline must be lower"
+        assert pred_adapted < pred_naive, (
+            f"adapted prediction ({pred_adapted:.4f}) must be lower than naive "
+            f"({pred_naive:.4f}) because _baseline influences both the cur fallback "
+            f"and the Beta(2,2) shrinkage term"
+        )
 
 
 class TestLiveWiring:

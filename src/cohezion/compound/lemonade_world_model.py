@@ -11,6 +11,7 @@ Inference is delegated to GAIA's ``LemonadeClient`` (fast NPU model by default).
 fallback (persist current coherence) when the LLM is unreachable or returns an unparseable reply,
 so the gate degrades gracefully rather than failing.
 """
+
 from __future__ import annotations
 
 import logging
@@ -75,13 +76,21 @@ class LemonadeWorldModel:
         model_id: lemonade model id for the default GAIA path.
     """
 
-    def __init__(self, chat_fn: Callable[[str], str] | None = None, model_id: str = _DEFAULT_MODEL) -> None:
+    def __init__(
+        self, chat_fn: Callable[[str], str] | None = None, model_id: str = _DEFAULT_MODEL
+    ) -> None:
         self._chat_fn = chat_fn
         self._model_id = model_id
         # Current task description — injected by JepaGate.check() via set_task() before each
         # prediction so the coherence estimate depends on the ACTUAL task, not just the prior
         # coherence value (BUGHUNT 2026-06-30: the gate was task-blind → constant verdict).
         self._task: str = ""
+        # AdaJEPA adaptive baseline (2606.32026): per-instance baseline that drifts toward
+        # the empirical mean of actual execution quality after observe() calls accumulate.
+        # Starts at the class prior _BASELINE (0.7); clamp [0.3, 0.9] prevents collapse.
+        self._baseline: float = self._BASELINE
+        self._ema_bias: float = 0.0  # EMA of (actual_quality - predicted_coherence)
+        self._obs_count: int = 0
 
     def set_task(self, task_description: str) -> None:
         """Inject the task description threaded into the next predict_next_state prompt.
@@ -110,9 +119,25 @@ class LemonadeWorldModel:
             ).prompt
         return self._chat_fn(prompt)
 
-    _BASELINE = 0.7  # used when the input state is uninitialized (the gate's zero-vector default)
+    _BASELINE = 0.7  # class prior — per-instance _baseline adapts away from this after observe()
 
-    def predict_next_state(self, state: np.ndarray, action: Any) -> np.ndarray:
+    def observe(self, _task: str, predicted_coherence: float, actual_quality: float) -> None:
+        """AdaJEPA feedback (2606.32026): recalibrate the per-instance baseline from actual outcomes.
+
+        Records the signed error (actual − predicted) via EMA. After ≥5 observations the instance
+        baseline drifts toward the empirical bias so future coherence estimates converge to reality.
+        Example: if the 1B model consistently over-predicts tractability (predicted=0.7, actual=0.4),
+        the baseline drops, tightening gate thresholds for this compound loop instance.
+        Fail-open: clamps to [0.3, 0.9] so the gate never collapse-disables via runaway drift.
+        """
+        error = float(actual_quality) - float(predicted_coherence)
+        alpha = 0.2
+        self._ema_bias = (1.0 - alpha) * self._ema_bias + alpha * error
+        self._obs_count += 1
+        if self._obs_count >= 5:
+            self._baseline = float(np.clip(self._baseline + 0.1 * self._ema_bias, 0.3, 0.9))
+
+    def predict_next_state(self, state: np.ndarray, _action: Any) -> np.ndarray:
         """Estimate next-step coherence as the TASK's success-likelihood via the local LLM.
 
         The estimate is driven by the task tractability (few-shot calibrated, F3 fix), NOT the
@@ -123,8 +148,8 @@ class LemonadeWorldModel:
         near it and ignore the task — the root cause of the F3 garbage signal).
         """
         cur = float(np.mean(np.clip(np.asarray(state, dtype=np.float32), 0.0, 1.0)))
-        if cur < 0.05:  # uninitialized/default zero-state → a neutral baseline, not a false 0.0
-            cur = self._BASELINE
+        if cur < 0.05:  # uninitialized/default zero-state → neutral baseline, not a false 0.0
+            cur = self._baseline  # use adaptive instance baseline (starts at class _BASELINE=0.7)
         task = self._task[:200] if self._task else "(unspecified task)"
         prompt = f"{_COHERENCE_PROMPT_HEADER}Task: {task} -> "
         try:
@@ -134,6 +159,11 @@ class LemonadeWorldModel:
             coh = None
         if coh is None:
             coh = cur  # deterministic fallback: persist current coherence (no spurious SKIP)
+        else:
+            # Beta(2,2) shrinkage toward adaptive _baseline (AdaJEPA: baseline drifts from actual
+            # quality observations). Cold-start: coh=0.010 → 0.470 (REROUTE, not SKIP).
+            # After calibration: _baseline converges toward empirical execution quality mean.
+            coh = (2.0 * self._baseline + coh) / 3.0
         return np.full(_DIM, float(np.clip(coh, 0.0, 1.0)), dtype=np.float32)
 
     def simulate_trajectory(self, initial_state: np.ndarray, actions: list) -> list[np.ndarray]:
