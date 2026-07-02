@@ -120,6 +120,11 @@ class JourneyTracker:
     # #138: Default identity storage path (can be overridden in save/restore).
     _IDENTITY_PATH: ClassVar[Path] = Path.home() / ".cohezion" / "journey_identity.json"
 
+    # Fixed random projection matrix for vacuum topology classification (2048D → 12D).
+    # Drawn once from RandomState(42) so every process uses the same angular mapping,
+    # preserving the cosine-similarity structure of the tiled 256D nomic-embed vectors.
+    _VAC_RP: ClassVar[np.ndarray] = np.random.RandomState(42).randn(2048, 12)
+
     def __init__(self, seed: int = 42, agent_id: str | None = None):
         """Initialize journey tracker.
 
@@ -418,6 +423,18 @@ class JourneyTracker:
         phi = coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
         return np.clip(phi, 0.0, 1.0)
 
+    def _project_for_vacuum(self, latent_2048d: np.ndarray) -> np.ndarray:
+        """Project a 2048D latent vector to a 12D unit vector for vacuum topology classification.
+
+        Uses a fixed random projection matrix (_VAC_RP) so that the angular structure
+        (cosine similarities) of the original embedding is preserved in 12D.  This is
+        necessary because chunk-mean holographic projection destroys directional signal
+        (all chunk means land near zero → min-max stretch amplifies noise → trivial wins).
+        """
+        proj = latent_2048d.astype(np.float64) @ self._VAC_RP
+        norm = float(np.linalg.norm(proj))
+        return proj / (norm + 1e-10)
+
     def track_execution(
         self,
         execution_result: ExecutionResult,
@@ -513,6 +530,18 @@ class JourneyTracker:
             percolation = bio.percolation_analysis()
             point.metadata["bioelectric_percolated"] = percolation.is_percolated
             point.metadata["bioelectric_clusters"] = percolation.cluster_count
+        except Exception:
+            pass
+
+        # Enrich with vacuum topology classification (non-blocking)
+        # Uses random projection of the raw 2048D latent to preserve angular structure
+        # (chunk-mean holographic projection destroys signal; see _project_for_vacuum).
+        try:
+            from cohezion.flume.vacuum_topology import classify_point
+
+            point.metadata["vacuum_topology"] = classify_point(
+                self._project_for_vacuum(latent_2048d)
+            ).to_dict()
         except Exception:
             pass
 
@@ -669,6 +698,14 @@ class JourneyTracker:
             task_description=f"{env_type} step {step}",
             metadata={"reward": reward, "step": step, "env_type": env_type},
         )
+        try:
+            from cohezion.flume.vacuum_topology import classify_point
+
+            point.metadata["vacuum_topology"] = classify_point(
+                self._project_for_vacuum(latent_2048d)
+            ).to_dict()
+        except Exception:
+            pass
         self._recent_points.append(point)
 
     def text_to_latent(self, text: str) -> np.ndarray:
