@@ -1748,6 +1748,14 @@ try:
 except ImportError:
     pass  # training routes not available
 
+# Work queue + Kanban UI (human-in-the-loop approval gate)
+try:
+    from cohezion.api.work_queue_router import router as work_queue_router
+
+    app.include_router(work_queue_router)
+except ImportError:
+    pass  # work queue module not available
+
 
 __all__ = [
     "_a2a_server",
