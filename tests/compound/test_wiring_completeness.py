@@ -101,8 +101,11 @@ class TestW2JourneyTrackerIdentityLifecycle:
 
         ExecutorFactory.create(mock_client, journey_tracker=mock_tracker)
 
-        mock_tracker.restore_identity.assert_called_once(), (
-            "ExecutorFactory.create() must call restore_identity() when a journey_tracker is provided"
+        (
+            mock_tracker.restore_identity.assert_called_once(),
+            (
+                "ExecutorFactory.create() must call restore_identity() when a journey_tracker is provided"
+            ),
         )
 
     def test_factory_registers_save_identity_as_atexit_handler(self):
@@ -185,8 +188,9 @@ class TestW3SuggestRoutingTierConsumer:
             execute_fn=fake_execute,
         )
 
-        dd.suggest_routing_tier.assert_called(), (
-            "execute_task must call DegradationDetector.suggest_routing_tier()"
+        (
+            dd.suggest_routing_tier.assert_called(),
+            ("execute_task must call DegradationDetector.suggest_routing_tier()"),
         )
 
     def test_execute_task_exposes_suggested_tier_in_metrics(self):
@@ -252,8 +256,9 @@ class TestW4PredictTierConsumer:
             execute_fn=fake_execute,
         )
 
-        estimator.predict_tier.assert_called_with("MY_SKILL", "analyze"), (
-            "execute_task must call predict_tier(skill_name, operation_type)"
+        (
+            estimator.predict_tier.assert_called_with("MY_SKILL", "analyze"),
+            ("execute_task must call predict_tier(skill_name, operation_type)"),
         )
 
     def test_execute_task_exposes_predicted_tier_in_metrics(self):
@@ -327,8 +332,9 @@ class TestW5SkillProximityConsumer:
         )
         sr._generate_recommendation(metrics, "generate", "SKILL_A")
 
-        sr.skill_proximity.assert_called(), (
-            "_generate_recommendation() must call skill_proximity() when history is available"
+        (
+            sr.skill_proximity.assert_called(),
+            ("_generate_recommendation() must call skill_proximity() when history is available"),
         )
 
     def test_generate_recommendation_includes_transfer_hint_when_high_proximity(self):
@@ -409,8 +415,13 @@ class TestWNTrajectoryWiring:
     def _make_fake_tracker(self, op: str, coherence: float, n: int = 5) -> object:
         """Return a minimal duck-typed JourneyTracker with export_trajectories."""
         points = [
-            {"operation_type": op, "coherence": coherence, "efficiency": 0.5,
-             "tier": "npu", "success": True}
+            {
+                "operation_type": op,
+                "coherence": coherence,
+                "efficiency": 0.5,
+                "tier": "npu",
+                "success": True,
+            }
             for _ in range(n)
         ]
 
@@ -446,8 +457,13 @@ class TestWNTrajectoryWiring:
 
         result = tracker.export_trajectories(last_n=10)
         assert len(result) == 1
-        assert set(result[0].keys()) >= {"operation_type", "coherence", "efficiency",
-                                          "tier", "success"}
+        assert set(result[0].keys()) >= {
+            "operation_type",
+            "coherence",
+            "efficiency",
+            "tier",
+            "success",
+        }
         assert result[0]["operation_type"] == "synthesis"
         assert result[0]["coherence"] == 0.8
 
@@ -504,8 +520,7 @@ class TestWNTrajectoryWiring:
         traj_candidates = [c for c in candidates if "Trajectory" in c]
         assert traj_candidates, "Expected trajectory candidate for low-coherence history"
         assert "revise" in traj_candidates[0].lower(), (
-            f"Low-coherence trajectory must produce 'revise' candidate; "
-            f"got: {traj_candidates[0]!r}"
+            f"Low-coherence trajectory must produce 'revise' candidate; got: {traj_candidates[0]!r}"
         )
 
     def test_wn3c_no_tracker_produces_no_trajectory_candidate(self):
@@ -514,8 +529,13 @@ class TestWNTrajectoryWiring:
 
         sr = SkillRefiner(journey_tracker=None)
         metrics = ExecutionMetrics(
-            success=True, duration_seconds=1.0, tokens_used=50,
-            token_efficiency=50.0, quality_score=0.7, anomaly_score=0.1, cached_hits=0,
+            success=True,
+            duration_seconds=1.0,
+            tokens_used=50,
+            token_efficiency=50.0,
+            quality_score=0.7,
+            anomaly_score=0.1,
+            cached_hits=0,
         )
         candidates = sr._autodata_candidates(metrics, "synthesis")
         assert not any("Trajectory" in c for c in candidates)
@@ -540,6 +560,7 @@ class TestWNTrajectoryWiring:
 # ---------------------------------------------------------------------------
 # OR1-OR3: CompoundHealthOracle wiring (CH5 production path)
 # ---------------------------------------------------------------------------
+
 
 class TestORHealthOracleWiring:
     """OR1-OR3: CompoundHealthOracle wired into SkillRefiner and ExecutorFactory.
@@ -749,3 +770,73 @@ class TestOCExecutorWiring:
         assert result.metrics.get("oracle_tier") is None or "oracle_tier" not in result.metrics, (
             "oracle_tier must be absent from metrics when oracle has no last_assessment"
         )
+
+
+class TestSRSSkillRefinerPersistence:
+    """SRS3 wiring in ExecutorFactory: restore_state on startup, save_state via atexit.
+
+    Mirrors W2 (JourneyTracker identity lifecycle) and HO3 (CompoundHealthOracle).
+    The discriminating test verifies that restore_state is CALLED (consumption), not
+    merely that the SkillRefiner object exists (declaration).
+    """
+
+    def test_sr_wiring_restore_called_when_state_file_exists(self, tmp_path):
+        """SRS3 discriminating: ExecutorFactory.create() calls restore_state when the
+        state file exists, advancing _goal_epoch from 0 to the saved value.
+
+        Wrong impl (restore not called) leaves _goal_epoch == 0 -> FAILS.
+        """
+        import json
+        from unittest.mock import MagicMock, patch
+
+        from cohezion.compound.executor_factory import ExecutorFactory
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        # Build a state file with non-default goal_epoch
+        state_file = tmp_path / "skill_refiner_state.json"
+        state_file.write_text(
+            json.dumps(
+                {
+                    "goal_epoch": 5,
+                    "goal_consecutive_hits": 2,
+                    "session_goal": None,
+                    "goal_call_tally": {},
+                    "autodata_wins": {},
+                    "process_rewards": {},
+                    "erp_history": {},
+                }
+            )
+        )
+
+        mcp = MagicMock()
+
+        with patch.object(SkillRefiner, "_DEFAULT_STATE_PATH", str(state_file)):
+            executor = ExecutorFactory.create(mcp)
+
+        # The SkillRefiner instance should have had restore_state called.
+        # Access it via the executor's internal _skill_refiner attribute.
+        sr = getattr(executor, "_skill_refiner", None)
+        if sr is None:
+            # Some executor variants store it differently
+            sr = getattr(executor, "skill_refiner", None)
+
+        assert sr is not None, "SkillRefiner must be wired into executor"
+        assert sr._goal_epoch == 5, (
+            f"restore_state must have been called; _goal_epoch expected 5, got {sr._goal_epoch}"
+        )
+
+    def test_sr_wiring_no_crash_when_state_file_absent(self, tmp_path):
+        """SRS3 fail-open: ExecutorFactory.create() does not crash when state file absent."""
+        from unittest.mock import MagicMock, patch
+
+        from cohezion.compound.executor_factory import ExecutorFactory
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        absent_path = str(tmp_path / "nonexistent_state.json")
+        mcp = MagicMock()
+
+        # Should not raise
+        with patch.object(SkillRefiner, "_DEFAULT_STATE_PATH", absent_path):
+            executor = ExecutorFactory.create(mcp)
+
+        assert executor is not None

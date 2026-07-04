@@ -110,14 +110,24 @@ class ExecutorFactory:
         # If caller supplied a skill_refiner, don't replace it; inject oracle into the default.
         if skill_refiner is None and _health_oracle is not None:
             try:
-                from cohezion.compound.skill_refiner import SkillRefinerFactory
+                from pathlib import Path
+
+                from cohezion.compound.skill_refiner import SkillRefiner, SkillRefinerFactory
 
                 skill_refiner = SkillRefinerFactory.create(
                     degradation_detector=degradation_detector,
                     health_oracle=_health_oracle,
                 )
+                # SRS3: cross-session durable spine — restore loop state from disk, register
+                # auto-save on clean shutdown (mirrors HO3 CompoundHealthOracle pattern).
+                _sr_state_path = Path(SkillRefiner._DEFAULT_STATE_PATH)
+                if _sr_state_path.exists():
+                    skill_refiner.restore_state(_sr_state_path)
+                    logger.debug("ExecutorFactory: restored SkillRefiner loop state from disk")
+                atexit.register(skill_refiner.save_state, _sr_state_path)
                 logger.debug(
-                    "ExecutorFactory: auto-created SkillRefiner with CompoundHealthOracle wired"
+                    "ExecutorFactory: auto-created SkillRefiner with CompoundHealthOracle wired; "
+                    "SRS atexit save registered"
                 )
             except Exception:
                 logger.debug("SkillRefiner auto-creation with oracle failed (non-blocking)")
@@ -229,6 +239,7 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
     """
     try:
         from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
+
         exec_provider = build_triune_omni_orchestrator()
     except Exception:
         exec_provider = None
@@ -238,9 +249,8 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
     if exec_provider is not None and "retrospection_engine" not in kwargs:
         try:
             from cohezion.core.compound.retrospection import RetrospectionEngine
-            kwargs["retrospection_engine"] = RetrospectionEngine(
-                inference_provider=exec_provider
-            )
+
+            kwargs["retrospection_engine"] = RetrospectionEngine(inference_provider=exec_provider)
         except Exception:
             pass
 
