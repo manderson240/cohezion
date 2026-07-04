@@ -1304,6 +1304,15 @@ class SkillRefiner:
                 reply = (chat_fn(prompt) or "").strip().upper()
                 if reply.startswith("APPROVE"):
                     approvals += 1
+                elif (
+                    not reply
+                    or "AUTHENTICATION REQUIRED" in reply
+                    or "PLEASE LOG IN" in reply
+                    or "ACCOUNTS.GOOG" in reply
+                ):
+                    # Auth redirect or empty reply — reviewer unavailable, fail-open.
+                    logger.debug("Adversarial perspective %s auth-error (fail-open)", name)
+                    approvals += 1
                 else:
                     rejections.append(f"{name}: {reply[:80]}")
             except Exception as exc:

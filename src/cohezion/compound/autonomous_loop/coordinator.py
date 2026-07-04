@@ -172,7 +172,14 @@ class LoopCoordinator:
                     tokens = result.get("tokens_used", 0)
                     sprint.cloud_tokens += tokens
                     self._record_result(
-                        result, cloud_task, True, tokens, report, fail_counts, category_stats, sprint
+                        result,
+                        cloud_task,
+                        True,
+                        tokens,
+                        report,
+                        fail_counts,
+                        category_stats,
+                        sprint,
                     )
 
                 elapsed = time.monotonic() - sprint_start
@@ -230,7 +237,11 @@ class LoopCoordinator:
         """Update all tracking state for a completed task result."""
         # Episodic record for end-of-cycle MemoryConsolidator promotion (provenance source).
         self._episodes.append(
-            {"id": task.id, "text": task.description, "operation_type": task.category}
+            {
+                "id": task.id,
+                "text": getattr(task, "description", ""),
+                "operation_type": task.category,
+            }
         )
         success = result.get("success", False)
         task_fail_count = fail_counts.get(task.id, 0)
