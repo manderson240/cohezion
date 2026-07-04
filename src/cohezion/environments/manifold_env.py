@@ -522,15 +522,16 @@ class ManifoldEnv(gym.Env):
         millions of episodes without human judgment.
 
         Components:
-            r_hiho: Peaks at HIHO (all dims = 0.5), verifiable by variance theorem
+            r_hiho: Peaks at HIHO (all dims = 0.5); 1 - 4·mean((dim-0.5)²), anchored to target
             r_conservation: Energy conservation violation penalty
             r_unitarity: Spinor norm violation penalty (|psi|^2 must = 1)
             r_gauge: Yang-Mills action penalty (should be 0 at HIHO)
         """
         pos = self._position.astype(np.float64)
 
-        # r_hiho = 1 - 4 * var(brane_dims) — peaks at 1.0 when all dims = 0.5
-        r_hiho = 1.0 - 4.0 * float(np.var(pos))
+        # r_hiho = 1 - 4 * mean((dim - 0.5)²) — peaks at 1.0 only when all dims = 0.5;
+        # anchored to the true HIHO equilibrium target, not exploitable by constant vectors
+        r_hiho = 1.0 - 4.0 * float(np.mean((pos - 0.5) ** 2))
 
         # r_conservation = -|E(t) - E(0)| — energy drift penalty
         if self._initial_energy is not None:

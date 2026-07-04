@@ -1,0 +1,21 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.11",
+  "include": ["src", "tests"],
+  "extraPaths": ["src"],
+  "exclude": [
+    "src/cohezion/competition",
+    "src/cohezion/benchmarks",
+    "agents",
+    "**/__pycache__",
+    ".worktrees"
+  ],
+  "typeCheckingMode": "standard",
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none",
+  "reportUnknownVariableType": "none",
+  "reportUnknownMemberType": "none",
+  "reportUnknownArgumentType": "none",
+  "reportUnknownParameterType": "none"
+}

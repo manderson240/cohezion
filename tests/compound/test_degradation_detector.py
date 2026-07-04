@@ -7,6 +7,7 @@ from cohezion.compound.degradation_detector import (
     DegradationAlert,
     DegradationDetector,
     MetricBaseline,
+    SkillDriftDetector,
 )
 
 
@@ -536,3 +537,279 @@ class TestEmbeddingPSI:
         assert len(drift_alerts) == 1
         assert drift_alerts[0].severity == AlertSeverity.CRITICAL  # psi > 0.2
         assert drift_alerts[0].current_value == pytest.approx(psi)
+
+
+class TestSkillDriftDetector:
+    """SD1–SD8: per-skill quality drift detection with two-level severity.
+
+    SkillDriftDetector is a standalone class inside DegradationDetector that tracks
+    per-skill rolling quality baselines. Unlike the aggregate MetricBaseline which watches
+    system-wide metrics, this gives each skill its own drift signal — enabling the compound
+    loop to distinguish "system is degrading" from "this specific skill is regressing."
+    """
+
+    def test_sd1_structural_interface(self):
+        """SD1: class has expected thresholds and internal structure."""
+        sdd = SkillDriftDetector()
+        assert sdd.WARN_THRESHOLD == pytest.approx(0.03)
+        assert sdd.BLOCK_THRESHOLD == pytest.approx(0.05)
+        assert isinstance(sdd._baselines, dict)
+
+    def test_sd1_custom_window_and_min_samples(self):
+        """SD1b: constructor params are respected, not hardcoded."""
+        sdd = SkillDriftDetector(window_size=5, min_samples=2)
+        # Fill 6 samples — window should cap at 5
+        for _ in range(6):
+            sdd.record("s", 0.9)
+        assert len(sdd._baselines["s"]) == 5
+
+    def test_sd2_warn_at_3_5_pct_drop(self):
+        """SD2: 3.5% drop below baseline triggers WARNING, not None.
+
+        Discriminating: a broken impl returning None always would fail here.
+        An impl that only returns CRITICAL would also fail.
+        """
+        sdd = SkillDriftDetector(min_samples=5)
+        # Baseline: 5 samples at 0.85 → mean = 0.85
+        for _ in range(5):
+            sdd.record("gen", 0.85)
+        # 3.5% drop: 0.85 * (1 - 0.035) = 0.82025
+        alert = sdd.check("gen", 0.82)
+        assert alert is not None
+        assert alert.severity == AlertSeverity.WARNING
+        assert "WARN" in alert.message
+
+    def test_sd3_block_at_7_pct_drop(self):
+        """SD3 (discriminating): 7.1% drop triggers CRITICAL, not WARNING.
+
+        The most plausible wrong impl returns WARNING for all alerts regardless of
+        severity. This test would FAIL that implementation.
+        """
+        sdd = SkillDriftDetector(min_samples=5)
+        for _ in range(5):
+            sdd.record("gen", 0.85)
+        # 7.1% drop: 0.85 * (1 - 0.071) ≈ 0.790
+        alert = sdd.check("gen", 0.79)
+        assert alert is not None
+        assert alert.severity == AlertSeverity.CRITICAL
+        assert "BLOCK" in alert.message
+
+    def test_sd3_severity_discrimination(self):
+        """SD3b: warning-severity score must NOT trigger CRITICAL.
+
+        A simple threshold impl that fires CRITICAL at any alert would fail this.
+        """
+        sdd = SkillDriftDetector(min_samples=5)
+        for _ in range(5):
+            sdd.record("s", 0.80)
+        # 3.75% drop = WARN territory, not CRITICAL
+        alert = sdd.check("s", 0.77)
+        assert alert is not None
+        assert alert.severity == AlertSeverity.WARNING
+        assert alert.severity != AlertSeverity.CRITICAL
+
+    def test_sd4_mild_variation_returns_none(self):
+        """SD4: improvement or <3% variation returns None — no false positives."""
+        sdd = SkillDriftDetector(min_samples=5)
+        for _ in range(5):
+            sdd.record("s", 0.80)
+        # 1% drop — well below 3% WARN threshold
+        assert sdd.check("s", 0.792) is None
+        # Improvement: no alert ever for quality going up
+        assert sdd.check("s", 0.90) is None
+
+    def test_sd5_fail_open_with_fewer_than_min_samples(self):
+        """SD5: with < min_samples records, check() returns None (fail-open).
+
+        Fail-open is critical so new skills don't trigger spurious alerts on their
+        first few executions before a real baseline is established.
+        """
+        sdd = SkillDriftDetector(min_samples=5)
+        for _ in range(4):  # one short of min_samples
+            sdd.record("new_skill", 0.90)
+        # Even a large drop should produce None — baseline not yet reliable
+        assert sdd.check("new_skill", 0.50) is None
+
+    def test_sd5_fail_open_unknown_skill(self):
+        """SD5b: unknown skill (no records at all) returns None."""
+        sdd = SkillDriftDetector()
+        assert sdd.check("never_seen", 0.01) is None
+
+    def test_sd6_improvements_never_blocked(self):
+        """SD6 (discriminating): quality ABOVE baseline never triggers an alert.
+
+        This tests that the detector is directional — it catches regressions, not
+        improvements. The wrong impl (absolute deviation instead of signed drop)
+        would fire an alert for 0.95 vs 0.80 baseline.
+        """
+        sdd = SkillDriftDetector(min_samples=5)
+        for _ in range(5):
+            sdd.record("s", 0.80)
+        # Strong improvement — 18.75% ABOVE baseline
+        alert = sdd.check("s", 0.95)
+        assert alert is None, "Improvements must never be blocked by drift detector"
+
+    def test_sd7_degradation_detector_has_skill_drift_attribute(self):
+        """SD7: DegradationDetector exposes _skill_drift as a SkillDriftDetector instance.
+
+        This is the declaration half of the wiring invariant. The consumption half
+        is tested in SD8 (check_skill_drift updates history).
+        """
+        dd = DegradationDetector()
+        assert hasattr(dd, "_skill_drift")
+        assert isinstance(dd._skill_drift, SkillDriftDetector)
+
+    def test_sd8_check_skill_drift_records_and_gates(self):
+        """SD8 (discriminating): check_skill_drift() records quality AND gates on BLOCK.
+
+        This is the consumption invariant: calling check_skill_drift() must feed the
+        rolling baseline (record) AND surface CRITICAL alerts through DegradationDetector's
+        alert history. A stub that calls check() but not record() would make the baseline
+        static; a stub that calls record() but doesn't append to _alert_history would
+        produce a silent DORMANT capability.
+
+        The wrong impl (calling record() before check()) would self-validate the current
+        sample — this test catches that by verifying the final history reflects the drop.
+        """
+        dd = DegradationDetector()
+        # Build a baseline: 5 calls at quality=0.85
+        for _ in range(5):
+            dd.check_skill_drift("my_skill", 0.85)
+        # Now a CRITICAL drop (7%+ below 0.85)
+        alert = dd.check_skill_drift("my_skill", 0.78)
+        # Alert must be returned AND in history
+        assert alert is not None
+        assert alert.severity == AlertSeverity.CRITICAL
+        history_metrics = [a.metric for a in dd._alert_history]
+        assert any("my_skill" in m for m in history_metrics)
+        # Baseline must have grown (record was called)
+        assert len(dd._skill_drift._baselines.get("my_skill", [])) == 6
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# LT1: EMA threshold adaptation (MTF 2-competitiveness backing)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class TestEMAThresholds:
+    """LT1: _ema_thresholds adapts toward observed values; fast-path α=0.4 on >2σ burst.
+
+    Invariants:
+      T1: EMA seeded from constructor threshold (structural)
+      T2: slow α (0.1) applied for stable observations
+      T3: fast α (0.4) applied when observation deviates >2σ — DISCRIMINATING
+      T4: get_learned_threshold() applies drop_band below EMA
+      T5: use_ema_thresholds=False leaves EMA dormant (not updated)
+      T6: EMA bounded to [0.0, 1.0] even for extreme observations
+      T7: unknown metric falls back gracefully in get_learned_threshold()
+      T8: EMA converges toward observed values over multiple stable calls
+    """
+
+    def test_t1_ema_seeded_from_constructor(self) -> None:
+        """EMA initialized to constructor threshold value."""
+        dd = DegradationDetector(cache_hit_rate_threshold=0.65)
+        assert dd._ema_thresholds["cache_hit_rate"] == pytest.approx(0.65)
+        assert dd._ema_thresholds["coherence"] == pytest.approx(0.60)
+        assert dd._ema_thresholds["token_efficiency_drop"] == pytest.approx(0.10)
+
+    def test_t2_stable_observations_use_slow_alpha(self) -> None:
+        """Stable sequence → EMA moves by slow α≈0.1 fraction per step."""
+        dd = DegradationDetector(
+            cache_hit_rate_threshold=0.50,
+            use_ema_thresholds=True,
+        )
+        # The metrics key for cache hit rate is "combined_hit_rate"
+        for _ in range(8):
+            dd.check_degradation({"combined_hit_rate": 0.70})
+        ema_after = dd._ema_thresholds["cache_hit_rate"]
+        # EMA should be between original (0.50) and observation (0.70), moved by slow α
+        # After ~8 steps with α=0.1: ema ≈ 0.50*(0.9^8) + 0.70*(1-0.9^8) ≈ 0.61
+        assert 0.50 < ema_after < 0.70, f"Expected EMA between 0.50 and 0.70, got {ema_after:.4f}"
+
+    def test_t3_burst_observation_uses_fast_alpha(self) -> None:
+        """Burst (>2σ deviation) → fast α (0.4) applied, NOT slow α (0.1).
+
+        Wrong impl (always α=0.1): after seeding near 0.70 and then a burst to 0.10,
+        the EMA moves much less than with α=0.4, so the test fails if fast-path is absent.
+        """
+        dd = DegradationDetector(
+            cache_hit_rate_threshold=0.70,
+            use_ema_thresholds=True,
+        )
+        # Seed history: 8 stable observations near 0.70 (small σ)
+        for _ in range(8):
+            dd.check_degradation({"combined_hit_rate": 0.70})
+        ema_before_burst = dd._ema_thresholds["cache_hit_rate"]
+
+        # Burst: a sudden observation at 0.10 (far below the stable mean, >2σ)
+        dd.check_degradation({"combined_hit_rate": 0.10})
+        ema_after_burst = dd._ema_thresholds["cache_hit_rate"]
+
+        # With slow α=0.1: drop ≈ 0.9*(ema_before) + 0.1*0.10
+        slow_prediction = 0.9 * ema_before_burst + 0.1 * 0.10
+        # With fast α=0.4: drop ≈ 0.6*(ema_before) + 0.4*0.10
+        fast_prediction = 0.6 * ema_before_burst + 0.4 * 0.10
+
+        # The actual EMA must be closer to fast_prediction than slow_prediction
+        diff_from_fast = abs(ema_after_burst - fast_prediction)
+        diff_from_slow = abs(ema_after_burst - slow_prediction)
+        assert diff_from_fast < diff_from_slow, (
+            f"Burst must use fast α=0.4 (diff={diff_from_fast:.4f}) not slow α=0.1 "
+            f"(diff={diff_from_slow:.4f}). EMA after burst={ema_after_burst:.4f}"
+        )
+
+    def test_t4_get_learned_threshold_applies_drop_band(self) -> None:
+        """get_learned_threshold() returns ema*(1-drop_band), always < ema."""
+        dd = DegradationDetector(cache_hit_rate_threshold=0.60)
+        ema = dd._ema_thresholds["cache_hit_rate"]
+        learned = dd.get_learned_threshold("cache_hit_rate", drop_band=0.05)
+        assert learned == pytest.approx(ema * 0.95)
+        # Must be strictly below the EMA
+        assert learned < ema
+
+    def test_t5_use_ema_thresholds_false_leaves_ema_dormant(self) -> None:
+        """When use_ema_thresholds=False (default), EMA is NOT updated by check_degradation."""
+        dd = DegradationDetector(cache_hit_rate_threshold=0.50)  # use_ema_thresholds=False
+        initial_ema = dd._ema_thresholds["cache_hit_rate"]
+        # Drive many observations far from the initial threshold
+        for _ in range(20):
+            dd.check_degradation({"combined_hit_rate": 0.90})
+        # EMA must remain at seeded value (not updated when flag is False)
+        assert dd._ema_thresholds["cache_hit_rate"] == pytest.approx(initial_ema)
+
+    def test_t6_ema_bounded_to_zero_one(self) -> None:
+        """EMA updates clamp to [0.0, 1.0] even for extreme observations."""
+        dd = DegradationDetector(
+            cache_hit_rate_threshold=0.50,
+            use_ema_thresholds=True,
+        )
+        for _ in range(15):
+            dd.check_degradation({"combined_hit_rate": 1.5})  # above 1.0
+        assert dd._ema_thresholds["cache_hit_rate"] <= 1.0
+
+        dd2 = DegradationDetector(
+            cache_hit_rate_threshold=0.50,
+            use_ema_thresholds=True,
+        )
+        for _ in range(15):
+            dd2.check_degradation({"combined_hit_rate": -0.5})  # below 0.0
+        assert dd2._ema_thresholds["cache_hit_rate"] >= 0.0
+
+    def test_t7_unknown_metric_returns_gracefully(self) -> None:
+        """get_learned_threshold() on unknown metric returns a float (fallback, no crash)."""
+        dd = DegradationDetector()
+        result = dd.get_learned_threshold("nonexistent_metric")
+        assert isinstance(result, float)
+
+    def test_t8_ema_converges_toward_observations(self) -> None:
+        """After many stable calls at 0.80, EMA moves closer to 0.80 than initial 0.50."""
+        dd = DegradationDetector(
+            cache_hit_rate_threshold=0.50,
+            use_ema_thresholds=True,
+        )
+        for _ in range(40):
+            dd.check_degradation({"combined_hit_rate": 0.80})
+        ema = dd._ema_thresholds["cache_hit_rate"]
+        # EMA must have moved: distance to 0.80 < initial distance to 0.80 (=0.30)
+        assert abs(ema - 0.80) < abs(0.50 - 0.80), (
+            f"EMA={ema:.4f} should be closer to 0.80 than initial 0.50"
+        )

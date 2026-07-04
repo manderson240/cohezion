@@ -111,22 +111,121 @@ class EnvironmentResponsePredictor:
         return err is not None and abs(err) > self._surprise_threshold
 
 
+class ShadowCanaryValidator:
+    """Rolling-window baseline gate — blocks PRIME promotion on quality regression.
+
+    Before SkillRefiner writes a candidate learning signal to a PRIME skill file,
+    validate() checks whether the triggering execution's quality score falls more than
+    ``regression_threshold`` below the per-skill rolling median baseline. Fail-open
+    when the baseline window is empty (first N executions always pass).
+
+    Interface (confirmed by Bonsai-8B design review 2026-06-30):
+        record(skill_name, quality_score)       — called every successful execution
+        validate(skill_name, candidate_scores)  — called before each PRIME write
+    """
+
+    # RC1: regime-conditioned threshold multipliers.
+    # STUCK (FD<1.3): loosen gate to allow experimental updates that break the exploitation rut.
+    # CHAOTIC (FD>1.7): tighten gate; quality is oscillating so block speculative promotions.
+    _REGIME_THRESHOLD_MULTIPLIERS: dict[str, float] = {
+        "stuck": 1.5,
+        "chaotic": 0.5,
+    }
+
+    def __init__(self, window_size: int = 20, regression_threshold: float = 0.05) -> None:
+        self._history: dict[str, deque[float]] = {}
+        self._window_size = window_size
+        self._regression_threshold = regression_threshold
+
+    def record(self, skill_name: str, quality_score: float) -> None:
+        """Append quality_score to the per-skill rolling baseline window."""
+        if skill_name not in self._history:
+            self._history[skill_name] = deque(maxlen=self._window_size)
+        self._history[skill_name].append(quality_score)
+
+    def validate(
+        self,
+        skill_name: str,
+        candidate_scores: list[float],
+        regime: str | None = None,
+    ) -> tuple[bool, str]:
+        """Return (ok, reason).
+
+        Fail-open when there is no baseline history or no candidate scores.
+        Blocks when median(candidate) < median(baseline) - effective_threshold.
+
+        The effective threshold is the base regression_threshold modulated by the
+        current FD regime (RC1): STUCK loosens it (×1.5), CHAOTIC tightens it (×0.5).
+        """
+        window = self._history.get(skill_name)
+        if not window or not candidate_scores:
+            return True, "no_baseline"
+
+        multiplier = self._REGIME_THRESHOLD_MULTIPLIERS.get(regime or "", 1.0)
+        effective_threshold = self._regression_threshold * multiplier
+
+        sorted_baseline = sorted(window)
+        baseline_median = sorted_baseline[len(sorted_baseline) // 2]
+
+        sorted_candidate = sorted(candidate_scores)
+        candidate_median = sorted_candidate[len(sorted_candidate) // 2]
+
+        regression = baseline_median - candidate_median
+        if regression > effective_threshold:
+            return False, (
+                f"quality regression {candidate_median:.2f} vs baseline {baseline_median:.2f} "
+                f"(delta {regression:.3f} > threshold {effective_threshold:.3f}"
+                + (f", regime={regime}" if regime else "")
+                + ")"
+            )
+        return True, (
+            f"ok (candidate {candidate_median:.2f} >= "
+            f"baseline {baseline_median:.2f} - {effective_threshold:.3f}"
+            + (f", regime={regime}" if regime else "")
+            + ")"
+        )
+
+
 class SkillRefiner:
     """Refines PRIME skill definitions based on execution results."""
 
     SKILLS_DIR = Path(__file__).parent.parent / "skills"
 
-    def __init__(self, mcp_client: Any = None, moe_router: Any = None):
+    # RQGM2: rotating goal targets — cycles quality_score → escalation_count → token_efficiency
+    # so the SkillRefiner never stagnates at a single-metric local optimum (Red Queen principle).
+    _RQGM_GOAL_ROTATION: list[str] = ["quality_score", "escalation_count", "token_efficiency"]
+
+    def __init__(
+        self,
+        mcp_client: Any = None,
+        moe_router: Any = None,
+        degradation_detector: Any = None,
+        journey_tracker: Any = None,
+        health_oracle: Any = None,
+    ):
         """Initialize skill refiner.
 
         Args:
             mcp_client: Optional MCPClient for vault operations
             moe_router: Optional MoESkillRouter (#83). When wired, biases
                 ``_autodata_select`` candidate scoring by learned per-expert weight.
+            degradation_detector: Optional DegradationDetector. When wired,
+                per-skill quality drift is checked on each learning signal.
+            health_oracle: Optional CompoundHealthOracle. When wired, each execution's
+                quality score is fed into the streaming HIHO regime tracker so the oracle
+                builds up a rolling FD baseline across the session.
         """
         self.mcp_client = mcp_client
         # #83: MoE router over the five Autodata expert heads (None = unbiased selection).
         self._moe_router = moe_router
+        # Per-skill drift: calls check_skill_drift() in _generate_learning_signal when wired.
+        self._degradation_detector = degradation_detector
+        # AReaL2.0: cross-session trajectory history from JourneyTracker — consumed by
+        # _autodata_candidates() to generate history-informed perspective candidates.
+        self._journey_tracker = journey_tracker
+        # CH1-CH5: streaming HIHO regime oracle — assess() is called on each quality score so
+        # the oracle accumulates an FD baseline and can answer is_healthy() across the session.
+        self._health_oracle = health_oracle
         # #83: maps candidate recommendation text -> originating expert name; populated by
         # _autodata_candidates(), consumed by _autodata_select() for MoE-weighted scoring.
         self._candidate_expert_map: dict[str, str] = {}
@@ -144,10 +243,25 @@ class SkillRefiner:
         self._session_goal: dict | None = None
         self._goal_call_tally: dict[str, int] = {}  # per-skill call counter for auto-update
         self._goal_auto_threshold: int = 5  # auto-update goal every N calls per skill
+        # RQGM (Red Queen Gödel Machine — arXiv 2606.26294): co-evolving goal epoch prevents
+        # static-evaluator stagnation.  Each time _auto_update_goal fires, the epoch advances
+        # and the goal target rotates through _RQGM_GOAL_ROTATION, breaking local optima.
+        self._goal_epoch: int = 0
+        self._goal_consecutive_hits: int = 0
+        # RV2 (RiVER frequency penalty — arXiv:2606.27369): per-candidate win counter for
+        # _autodata_select(); dominant candidates are penalised via 1/(1+wins) to prevent
+        # perspective lock.
+        self._autodata_wins: dict[str, int] = {}
         # FAPO R3 (M1): optional run_fn(candidate_prompt, fixture_input) -> output for the behavioral
         # regression gate in refine(). None = gate fail-open (drift gate still applies). Wired by
         # SkillRefinerFactory.create so the gate is LIVE on the standard path, not dormant.
         self._regression_run_fn = None
+        # Shadow canary: rolling quality baseline per skill; blocks PRIME promotion on regression.
+        self._shadow_canary = ShadowCanaryValidator()
+        # Adversarial review: 3-perspective frontier-first LLM fan-out before PRIME commit.
+        # Priority: claude-fable-5 → claude-opus-4-8 → agy → Bonsai-8B-local.
+        # None = dormant; gate lazy-builds on first refine() call; fail-open everywhere.
+        self._adversarial_chat_fn: Any = None
 
     def process_reward_mean(self, skill_name: str) -> float | None:
         """Return mean accumulated RL process reward for a skill, or None if no data.
@@ -217,9 +331,13 @@ class SkillRefiner:
     def _auto_update_goal(self, skill_name: str, metrics: "ExecutionMetrics") -> None:
         """Propose a session goal after N consistently problematic executions (#136).
 
-        Analyzes execution pattern over `_goal_auto_threshold` calls per skill
-        and sets a goal targeting the most problematic metric.
-        Priority: quality_score < 0.5 first, then escalation_count > 0.
+        Epoch 0: uses the original metrics-driven heuristic (quality < 0.5 first,
+        then escalation_count > 0) — existing behaviour is preserved.
+        Epoch 1+: rotates through _RQGM_GOAL_ROTATION [quality_score,
+        escalation_count, token_efficiency] ignoring current metrics, so the
+        SkillRefiner never stagnates at a single-metric local optimum (RQGM2).
+
+        Each firing increments _goal_epoch and resets _goal_consecutive_hits.
         """
         tally = self._goal_call_tally.get(skill_name, 0) + 1
         self._goal_call_tally[skill_name] = tally
@@ -227,16 +345,28 @@ class SkillRefiner:
             return
         # Reset so it fires again after the next N calls.
         self._goal_call_tally[skill_name] = 0
-        if metrics.quality_score < 0.5:
+        # RQGM2: advance epoch counter and reset consecutive-hit tracker.
+        self._goal_consecutive_hits = 0
+        if self._goal_epoch == 0:
+            # Epoch 0: original metrics-driven heuristic — preserve backward compatibility.
+            if metrics.quality_score < 0.5:
+                self._session_goal = {
+                    "objective": "improve quality_score",
+                    "target_metric": "quality_score",
+                }
+            elif getattr(metrics, "escalation_count", 0) > 0:
+                self._session_goal = {
+                    "objective": "reduce tier escalation",
+                    "target_metric": "escalation_count",
+                }
+        else:
+            # Epoch 1+: rotate through goal targets regardless of current metrics.
+            target = self._RQGM_GOAL_ROTATION[self._goal_epoch % len(self._RQGM_GOAL_ROTATION)]
             self._session_goal = {
-                "objective": "improve quality_score",
-                "target_metric": "quality_score",
+                "objective": f"rqgm-epoch-{self._goal_epoch} optimize {target}",
+                "target_metric": target,
             }
-        elif getattr(metrics, "escalation_count", 0) > 0:
-            self._session_goal = {
-                "objective": "reduce tier escalation",
-                "target_metric": "escalation_count",
-            }
+        self._goal_epoch += 1
 
     def skill_proximity(self, skill_a: str, skill_b: str) -> float:
         """#102: lineage-based skill proximity — CSHL brain development analogy.
@@ -374,12 +504,41 @@ class SkillRefiner:
                 except Exception as _exc:
                     logger.debug("qa_gate advisory failed (non-blocking): %s", _exc)
 
-                if not reg.regression_check(
-                    skill_name, candidate, self._regression_run_fn
-                ):
-                    logger.info("Skill refinement blocked by behavioral regression gate: %s", skill_name)
+                if not reg.regression_check(skill_name, candidate, self._regression_run_fn):
+                    logger.info(
+                        "Skill refinement blocked by behavioral regression gate: %s", skill_name
+                    )
                     self._record_blocked_promotion(skill_name, signal, "regression_gate")
                     return None
+
+            # Shadow canary: block promotion when current quality regresses vs rolling baseline.
+            # Fail-open when no history yet or when quality_score is absent (e.g., mocked metrics).
+            # RC1: extract FD regime from oracle to modulate the effective threshold.
+            _canary_regime: str | None = None
+            _canary_oracle = getattr(self, "_health_oracle", None)
+            if _canary_oracle is not None:
+                _canary_last = getattr(_canary_oracle, "_last_assessment", None)
+                if _canary_last is not None:
+                    _canary_regime = getattr(_canary_last, "regime", None)
+            _candidate_score = getattr(metrics, "quality_score", None)
+            if _candidate_score is not None:
+                _canary_ok, _canary_reason = self._shadow_canary.validate(
+                    skill_name, [_candidate_score], regime=_canary_regime
+                )
+                if not _canary_ok:
+                    logger.info(
+                        "Skill refinement blocked by shadow canary: %s — %s",
+                        skill_name,
+                        _canary_reason,
+                    )
+                    self._record_blocked_promotion(skill_name, signal, "shadow_canary")
+                    return None
+
+            # Adversarial review: 3-perspective local LLM fan-out (fail-open when offline).
+            # Inserted after shadow canary so only high-quality signals reach this gate.
+            if not self._adversarial_review_gate(signal, skill_name, metrics):
+                self._record_blocked_promotion(skill_name, signal, "adversarial_review")
+                return None
 
             # Append refinement
             refined_path = self._append_refinement(prime_file, signal)
@@ -624,6 +783,18 @@ class SkillRefiner:
         metrics.prediction_error = pred_err
         # Accumulate into per-skill RL process reward window.
         self._accumulate_process_reward(skill_name, pred_err)
+        # Shadow canary: feed into per-skill rolling baseline for validate() in refine().
+        self._shadow_canary.record(skill_name, metrics.quality_score)
+        # Per-skill drift: WARN at 3%, CRITICAL at 5% drop vs rolling mean.
+        if self._degradation_detector is not None:
+            self._degradation_detector.check_skill_drift(skill_name, metrics.quality_score)
+        # CH5: Health oracle — feed quality score into streaming HIHO regime tracker so
+        # oracle.is_healthy() reflects actual session quality history, not warming-up state.
+        if self._health_oracle is not None:
+            try:
+                self._health_oracle.assess(metrics.quality_score)
+            except Exception:
+                pass
         # #93: feed tier_used + escalation_count into predictive estimator
         self._difficulty_estimator.record(
             skill_name,
@@ -714,6 +885,28 @@ class SkillRefiner:
     # Each entry: (perspective_name, insight_template, condition_fn).
     # _autodata_recommendation generates all applicable candidates and selects
     # the one with the highest saliency score (most deviation from baseline).
+    # RA1-RA3: regime-aware expert weight multipliers (2026-07-04).
+    # Applied in _autodata_select() when a CompoundHealthOracle regime is available.
+    # HIHO (1.3≤FD≤1.7): no bias — dict omits HIHO entries, defaults to 1.0 via .get().
+    # STUCK (FD<1.3): loop over-exploiting → boost exploration signals (quality/efficiency/trajectory),
+    #   suppress operational signals (tier/caching = more of the same pattern).
+    # CHAOTIC (FD>1.7): quality oscillating → boost stability signals (tier/caching anchor routing),
+    #   suppress exploration signals (quality metrics are unreliable noise in this regime).
+    _REGIME_EXPERT_WEIGHT: dict[tuple[str, str], float] = {
+        ("stuck", "quality"): 1.6,
+        ("stuck", "efficiency"): 1.4,
+        ("stuck", "trajectory"): 1.5,
+        ("stuck", "tier"): 0.6,
+        ("stuck", "caching"): 0.7,
+        ("stuck", "fallback"): 0.8,
+        ("chaotic", "tier"): 1.8,
+        ("chaotic", "caching"): 1.6,
+        ("chaotic", "fallback"): 1.4,
+        ("chaotic", "quality"): 0.6,
+        ("chaotic", "efficiency"): 0.7,
+        ("chaotic", "trajectory"): 0.8,
+    }
+
     _AUTODATA_PERSPECTIVES: list[tuple[str, str, Any]] = [
         (
             "quality",
@@ -766,14 +959,55 @@ class SkillRefiner:
                 candidate = template.format(**fmt)
                 candidates.append(candidate)
                 self._candidate_expert_map[candidate] = _name
+
+        # AReaL2.0: trajectory-informed perspective — consume cross-session history from
+        # JourneyTracker. Generates a history-grounded candidate when recent trajectory
+        # data for this operation_type exists (≥3 matching points).
+        if self._journey_tracker is not None:
+            try:
+                recent = [
+                    p
+                    for p in self._journey_tracker.export_trajectories(last_n=20)
+                    if p["operation_type"] == operation_type
+                ]
+                if len(recent) >= 3:
+                    mean_coherence = sum(p["coherence"] for p in recent) / len(recent)
+                    n = len(recent)
+                    if mean_coherence >= 0.65:
+                        candidate = (
+                            f"Trajectory shows high coherence ({mean_coherence:.0%}) on "
+                            f"{operation_type} over last {n} runs — reinforce current "
+                            f"PRIME guidance; this approach is working well."
+                        )
+                    else:
+                        candidate = (
+                            f"Trajectory shows degraded coherence ({mean_coherence:.0%}) on "
+                            f"{operation_type} over last {n} runs — revise PRIME skill "
+                            f"to address recurring quality shortfall."
+                        )
+                    candidates.append(candidate)
+                    self._candidate_expert_map[candidate] = "trajectory"
+            except Exception:
+                pass  # fail-open: tracker errors never block candidate generation
+
         return candidates
 
-    def _autodata_select(self, candidates: list[str], metrics: ExecutionMetrics) -> str:
+    def _autodata_select(
+        self,
+        candidates: list[str],
+        metrics: ExecutionMetrics,
+        regime: str | None = None,
+    ) -> str:
         """#122: Self-consistency selection — pick the candidate with highest saliency.
 
         Saliency = word-overlap with ALL other candidates (most-consistent wins).
         Tie-break: quality > efficiency > caching > tier > fallback (order in pool).
         Falls back to candidates[0] (quality perspective) when only one candidate.
+
+        RA1-RA3 (2026-07-04): when ``regime`` is "stuck" or "chaotic", applies a
+        per-expert multiplier from ``_REGIME_EXPERT_WEIGHT`` AFTER the MoE weight.
+        Combined score = overlap × moe_weight × regime_weight.  HIHO or None → 1.0
+        for all experts (no bias), preserving the original self-consistency ordering.
         """
         if not candidates:
             return ""
@@ -789,16 +1023,27 @@ class SkillRefiner:
             overlap = sum(
                 len(kw & _keywords(other)) for j, other in enumerate(candidates) if j != i
             )
+            expert = self._candidate_expert_map.get(cand, "fallback")
             # #83 (MR4): bias score by the originating expert's learned MoE weight when wired.
             # No router → weight 1.0, preserving the pure self-consistency ordering.
             weight = 1.0
             if self._moe_router is not None:
-                expert = self._candidate_expert_map.get(cand, "fallback")
                 weight = self._moe_router.get_weight(expert)
+            # RA1-RA3: regime-aware multiplier — STUCK boosts exploration, CHAOTIC boosts stability.
+            if regime in ("stuck", "chaotic"):
+                weight = weight * self._REGIME_EXPERT_WEIGHT.get((regime, expert), 1.0)
+            # RV2 (RiVER arXiv:2606.27369): frequency penalty prevents perspective lock.
+            # Candidates that have won many times are discounted via 1/(1+wins) so
+            # under-explored perspectives can overtake a habitually dominant winner.
+            wins = self._autodata_wins.get(cand, 0)
+            freq_penalty = 1.0 / (1.0 + wins)
             scores.append(
-                (overlap * weight, -i, cand)
+                (overlap * weight * freq_penalty, -i, cand)
             )  # secondary sort by position (earlier = higher priority)
-        return max(scores)[2]
+        winner = max(scores)[2]
+        # Post-selection: increment win counter for the chosen candidate (RV2).
+        self._autodata_wins[winner] = self._autodata_wins.get(winner, 0) + 1
+        return winner
 
     def _lm_signal_cites_metrics(self, text: str, metrics: ExecutionMetrics) -> bool:
         """CB14: Fabrication probe — True iff text cites ≥1 actual metric value within ±50%.
@@ -865,7 +1110,15 @@ class SkillRefiner:
                 )
         if not rec:
             candidates = self._autodata_candidates(metrics, operation_type)
-            rec = self._autodata_select(candidates, metrics)
+            # RA1-RA3: pass the oracle's current FD regime so selection favors the right experts.
+            # Use getattr so stubs that skip __init__ (e.g. W5 tests via __new__) don't crash.
+            _regime: str | None = None
+            _oracle = getattr(self, "_health_oracle", None)
+            if _oracle is not None:
+                _last = getattr(_oracle, "_last_assessment", None)
+                if _last is not None:
+                    _regime = getattr(_last, "regime", None)
+            rec = self._autodata_select(candidates, metrics, regime=_regime)
         # W5: cross-skill transfer hint from the nearest known skill (proximity > 0.5).
         if skill_name:
             best_other, best_score = "", 0.0
@@ -934,10 +1187,140 @@ class SkillRefiner:
             # grounding → fixtures stay critical=False (observe-only), preserving the prior contract.
             import functools
 
-            ground = functools.partial(self._regression_run_fn, current) if self._regression_run_fn else None
+            ground = (
+                functools.partial(self._regression_run_fn, current)
+                if self._regression_run_fn
+                else None
+            )
             registry.bootstrap_fixtures(skill_name, current, ground_fn=ground)
         except Exception as exc:  # fail-safe: gate stays fail-open if population fails
             logger.debug("golden-fixture bootstrap skipped (fail-safe): %s", exc)
+
+    # ------------------------------------------------------------------
+    # Adversarial review gate (local inference, 3-perspective fan-out)
+    # ------------------------------------------------------------------
+
+    _ADVERSARIAL_PERSONAS: list[tuple[str, str]] = [
+        (
+            "skeptic",
+            (
+                "You are an adversarial reviewer. Assume this skill improvement is WRONG.\n"
+                "Find a concrete reason to reject it.\n"
+                "Reply ONLY: APPROVE or REJECT <reason in ≤15 words>.\n"
+            ),
+        ),
+        (
+            "invariant_guardian",
+            (
+                "You are an invariant guardian. Check if this recommendation negates any "
+                "'must', 'never', or 'always' directive in the skill's documented constraints.\n"
+                "Reply ONLY: APPROVE (safe) or REJECT <reason in ≤15 words>.\n"
+            ),
+        ),
+        (
+            "metric_auditor",
+            (
+                "You are a metrics auditor. Does this learning signal cite specific measured "
+                "values (numbers, percentages, durations) from the actual execution?\n"
+                "Reply ONLY: APPROVE (cites real metrics) or REJECT (vague/hallucinated).\n"
+            ),
+        ),
+    ]
+
+    def _adversarial_review_gate(
+        self,
+        signal: "LearningSignal",
+        skill_name: str,
+        metrics: "ExecutionMetrics",
+    ) -> bool:
+        """3-perspective local LLM adversarial fan-out before PRIME commit.
+
+        Three independent local-model calls each take a distinct adversarial lens:
+        Skeptic (assume wrong), InvariantGuardian (must/never/always), MetricAuditor
+        (are real values cited?).  2/3 APPROVE → proceed; otherwise block.
+
+        Fail-open on any LLM transport failure — a single perspective timeout counts
+        as APPROVE so a down endpoint never blocks the self-improvement loop entirely.
+        Fail-open when the gate is not yet built (first call lazy-builds the shim).
+
+        Uses Bonsai-8B-gguf via :13305 OmniRouter (iGPU structured-generation tier).
+        Quarter-on-a-string: $0 local inference, 48 max-tokens per call, temperature=0.3.
+        Bonsai-8B is preferred over deepseek-r1 for short categorical APPROVE/REJECT calls
+        (right model for the task — reasoning depth not needed for 48-token outputs).
+        """
+        chat_fn = self._adversarial_chat_fn
+        if chat_fn is None:
+            # Build frontier chat function: Fable → Opus → agy → Bonsai-local.
+            # Each layer is tried once at build time; the first live path becomes chat_fn.
+            _frontier_fn = None
+            try:
+                from cohezion.inference.frontier_oracle import frontier_complete_sync as _fcs
+
+                def _frontier_wrapper(p: str) -> str:
+                    return _fcs(p, timeout=90.0)
+
+                _frontier_fn = _frontier_wrapper
+            except Exception as _fe:
+                logger.debug("Frontier oracle unavailable, falling back to local: %s", _fe)
+
+            if _frontier_fn is not None:
+                chat_fn = _frontier_fn
+                self._adversarial_chat_fn = chat_fn
+            else:
+                # Fall through to local Bonsai-8B-gguf on Lemonade (iGPU, fast structured gen).
+                try:
+                    from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import-not-found]
+                    from cohezion.inference.gaia_adapter import _GaiaLLMClientShim
+
+                    _model = "Bonsai-8B-gguf"
+                    _client = LemonadeClient(
+                        base_url="http://localhost:13305/api/v1",
+                        model=_model,
+                        verbose=False,
+                    )
+                    chat_fn = _GaiaLLMClientShim(
+                        _client, _model, max_tokens=48, temperature=0.3
+                    ).prompt
+                    self._adversarial_chat_fn = chat_fn
+                except Exception as exc:
+                    logger.debug("Adversarial reviewer unavailable (fail-open): %s", exc)
+                    return True  # all paths down → always proceed
+
+        rec = signal.recommendation
+        insight = signal.key_insight
+        metric_change = signal.metric_change
+        context = (
+            f"Skill: {skill_name}\n"
+            f"Insight: {insight}\n"
+            f"Metric change: {metric_change}\n"
+            f"Recommendation: {rec}\n\n"
+        )
+
+        approvals = 0
+        rejections: list[str] = []
+        for name, system_lens in self._ADVERSARIAL_PERSONAS:
+            prompt = system_lens + context
+            try:
+                reply = (chat_fn(prompt) or "").strip().upper()
+                if reply.startswith("APPROVE"):
+                    approvals += 1
+                else:
+                    rejections.append(f"{name}: {reply[:80]}")
+            except Exception as exc:
+                # Per-perspective failure: fail-open (counts as APPROVE).
+                logger.debug("Adversarial perspective %s failed (fail-open): %s", name, exc)
+                approvals += 1
+
+        approved = approvals >= 2
+        if approved:
+            logger.debug("Adversarial review PASSED for %s (%d/3 approve)", skill_name, approvals)
+        else:
+            logger.info(
+                "Adversarial review BLOCKED PRIME promotion for %s: %s",
+                skill_name,
+                " | ".join(rejections) or "no rejections recorded",
+            )
+        return approved
 
     # HITL + observability surface for blocked self-mutations (2026 Agent Confidence Index: human-in-
     # the-loop is the #1 production-confidence lever at 59%, observability #2 at 53%). When the loop
@@ -1082,6 +1465,103 @@ class SkillRefiner:
         except (ValueError, IndexError):
             return version
 
+    # ------------------------------------------------------------------ #
+    # SRS: Durable Loop-State Spine (SRS1-SRS3)                           #
+    # Serializes cross-session SkillRefiner state so a fresh process can   #
+    # restore baselines without a warm-up period.                          #
+    # ------------------------------------------------------------------ #
+
+    _DEFAULT_STATE_PATH: str = str(Path.home() / ".cohezion" / "skill_refiner_state.json")
+
+    def to_dict(self) -> dict:
+        """Serialize cross-session state to a JSON-safe dict (SRS1).
+
+        Required keys: goal_epoch, goal_consecutive_hits, session_goal,
+        goal_call_tally, autodata_wins, process_rewards, erp_history.
+        """
+        # ERP history: encode (skill, op) tuple keys as "skill::op" strings.
+        erp_history: dict[str, list[float]] = {}
+        predictor = getattr(self, "_env_predictor", None)
+        if predictor is not None:
+            for (sn, op), window in predictor._history.items():
+                erp_history[f"{sn}::{op}"] = list(window)
+
+        process_rewards: dict[str, list[float]] = {
+            k: list(v) for k, v in getattr(self, "_process_rewards", {}).items()
+        }
+
+        return {
+            "goal_epoch": getattr(self, "_goal_epoch", 0),
+            "goal_consecutive_hits": getattr(self, "_goal_consecutive_hits", 0),
+            "session_goal": getattr(self, "_session_goal", None),
+            "goal_call_tally": dict(getattr(self, "_goal_call_tally", {})),
+            "autodata_wins": dict(getattr(self, "_autodata_wins", {})),
+            "process_rewards": process_rewards,
+            "erp_history": erp_history,
+        }
+
+    @classmethod
+    def from_dict(cls, state: dict, **kwargs: object) -> "SkillRefiner":
+        """Restore a SkillRefiner from a serialized state dict (SRS2).
+
+        Missing keys fall back to safe defaults (CB16 pattern).
+        kwargs are forwarded to __init__ for dependency injection.
+        """
+        instance = cls(**kwargs)  # type: ignore[arg-type]
+        instance._goal_epoch = int(state.get("goal_epoch", 0))
+        instance._goal_consecutive_hits = int(state.get("goal_consecutive_hits", 0))
+        instance._session_goal = state.get("session_goal")
+        instance._goal_call_tally = dict(state.get("goal_call_tally") or {})
+        instance._autodata_wins = dict(state.get("autodata_wins") or {})
+
+        # Restore process_rewards
+        for skill_name, samples in (state.get("process_rewards") or {}).items():
+            instance._process_rewards[skill_name] = deque(samples, maxlen=20)
+
+        # Restore ERP history — decode "skill::op" back to (skill, op) tuples.
+        predictor = getattr(instance, "_env_predictor", None)
+        if predictor is not None:
+            for encoded_key, samples in (state.get("erp_history") or {}).items():
+                if "::" in encoded_key:
+                    sn, op = encoded_key.split("::", 1)
+                    predictor._history[(sn, op)] = deque(samples, maxlen=predictor._window_size)
+
+        return instance
+
+    def save_state(self, path: "str | Path | None" = None) -> None:
+        """Persist loop state to JSON (SRS3). Creates parent directories."""
+        import json
+
+        target = Path(path) if path is not None else Path(self._DEFAULT_STATE_PATH)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(self.to_dict(), indent=2))
+
+    def restore_state(self, path: "str | Path | None" = None) -> bool:
+        """Restore loop state from JSON (SRS3). Returns False on missing/corrupt file."""
+        import json
+
+        target = Path(path) if path is not None else Path(self._DEFAULT_STATE_PATH)
+        try:
+            data = json.loads(target.read_text())
+            self._goal_epoch = int(data.get("goal_epoch", 0))
+            self._goal_consecutive_hits = int(data.get("goal_consecutive_hits", 0))
+            self._session_goal = data.get("session_goal")
+            self._goal_call_tally = dict(data.get("goal_call_tally") or {})
+            self._autodata_wins = dict(data.get("autodata_wins") or {})
+
+            for skill_name, samples in (data.get("process_rewards") or {}).items():
+                self._process_rewards[skill_name] = deque(samples, maxlen=20)
+
+            predictor = getattr(self, "_env_predictor", None)
+            if predictor is not None:
+                for encoded_key, samples in (data.get("erp_history") or {}).items():
+                    if "::" in encoded_key:
+                        sn, op = encoded_key.split("::", 1)
+                        predictor._history[(sn, op)] = deque(samples, maxlen=predictor._window_size)
+            return True
+        except Exception:
+            return False
+
     def refine_from_training_runs(self) -> str | None:
         """Query SurrealDB for training runs and refine RL skills based on results.
 
@@ -1157,16 +1637,29 @@ class SkillRefinerFactory:
     _instance: SkillRefiner | None = None
 
     @staticmethod
-    def create(mcp_client: Any = None) -> SkillRefiner:
+    def create(
+        mcp_client: Any = None,
+        degradation_detector: Any = None,
+        journey_tracker: Any = None,
+        health_oracle: Any = None,
+    ) -> SkillRefiner:
         """Create a new SkillRefiner.
 
         Args:
             mcp_client: Optional MCPClient for vault operations
+            degradation_detector: Optional DegradationDetector for per-skill drift tracking.
+            journey_tracker: Optional JourneyTracker for cross-session trajectory history.
+            health_oracle: Optional CompoundHealthOracle for HIHO regime tracking.
 
         Returns:
             SkillRefiner instance
         """
-        refiner = SkillRefiner(mcp_client)
+        refiner = SkillRefiner(
+            mcp_client,
+            degradation_detector=degradation_detector,
+            journey_tracker=journey_tracker,
+            health_oracle=health_oracle,
+        )
         # M1: wire the FAPO R3 behavioral regression gate LIVE (it defaulted dormant). Bind a
         # local-inference runner that executes a candidate skill against a fixture input. No-op
         # until golden fixtures exist; per-fixture fail-open when lemonade is down.

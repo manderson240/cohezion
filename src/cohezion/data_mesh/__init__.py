@@ -98,3 +98,12 @@ with contextlib.suppress(Exception):
     from cohezion.data_mesh.universe_telemetry import (
         UniverseStateEvent as UniverseStateEvent,
     )
+
+# GaiaDataAgent: event-driven domain ownership via local GAIA inference.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.gaia_domain_agent import GaiaDataAgent as GaiaDataAgent
+
+# KanbanBridge: write-through projection to SurrealDB + Obsidian.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.kanban_bridge import backfill_items as backfill_items
+    from cohezion.data_mesh.kanban_bridge import persist_item as persist_item

@@ -48,12 +48,13 @@ class TestDifficultyEstimatorBehavioral:
         assert est.predict_tier("skill_a", "classify") == "npu"
 
     def test_discriminating_escalating_npu_gets_igpu(self, est: DifficultyEstimator) -> None:
-        """GIC6: NPU always escalates → success_rate < threshold → igpu preferred."""
-        # NPU: all escalate (not successful)
-        for _ in range(4):
+        """GIC6: NPU always escalates → success_rate < threshold → igpu preferred.
+        Both tiers need ≥_MIN_SAMPLES records for the LCB path to activate."""
+        # NPU: all escalate (not successful) — must meet _MIN_SAMPLES for LCB to evaluate
+        for _ in range(5):
             est.record("skill_b", "reason", "npu", escalation_count=1, quality_score=0.55)
-        # iGPU: no escalation, quality good
-        for _ in range(3):
+        # iGPU: no escalation, quality good — also meets _MIN_SAMPLES
+        for _ in range(5):
             est.record("skill_b", "reason", "igpu", escalation_count=0, quality_score=0.80)
         result = est.predict_tier("skill_b", "reason")
         assert result == "igpu", f"Expected igpu (npu escalates), got {result}"

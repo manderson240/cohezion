@@ -565,6 +565,22 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
             except Exception:
                 pass
 
+    # CB5: auto-create DegradationDetector when not provided (closes routing feedback loop).
+    # This __init__ make_executor bypasses ExecutorFactory.create(), so we duplicate the
+    # auto-creation here — without it, suggest_routing_tier() never fires and JepaGate
+    # REROUTE signals have nowhere to land.
+    if "degradation_detector" not in kwargs:
+        try:
+            from cohezion.compound.degradation_detector import DegradationDetector
+            from cohezion.swarm.cost_aware_router import CostAwareRouter
+
+            _dd = DegradationDetector()
+            _router = CostAwareRouter()
+            _dd.set_routing_callback(_router.apply_degradation_feedback)
+            kwargs["degradation_detector"] = _dd  # type: ignore[assignment]
+        except Exception:
+            pass
+
     # M1: the FAPO R3 regression gate's run_fn is wired in SkillRefinerFactory.create (the canonical
     # creation point — the executor builds its SkillRefiner lazily, so it isn't available here).
     return CompoundExecutor(mcp_client, inference_provider=exec_provider, **kwargs)  # type: ignore[arg-type]

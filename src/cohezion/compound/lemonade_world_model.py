@@ -1,15 +1,19 @@
-"""Lemonade-backed world model for the JepaGate pre-execution lookahead (GIC, 2026-06-29).
+"""FLUME world model — extends Cohezion's latent-space backbone for JepaGate lookahead (GIC, 2026-06-29).
 
-Wires the JepaGate k-step lookahead (JG2) LIVE by delegating the world-model inference to local
-lemonade silicon via the GAIA SDK (router :13305) instead of a torch JEPAWorldModel. The gate's
-world model only needs ``predict_next_state(state, action) -> ndarray`` and
-``simulate_trajectory(...)``; we return a 12D state whose mean IS the LLM's next-step coherence
-estimate. A local LLM models the tendency of multi-step executions to LOSE coherence — exactly
-what the lookahead is meant to catch (Dyna-Think: world-model simulation guides planning).
+:class:`FlumeWorldModel` is a FLUME (Fluid Latent Understanding through Manifold Encoding) component
+that maps task descriptions into the 12D manifold's coherence dimension via local AMD silicon.  It
+wires the JepaGate k-step lookahead (JG2) LIVE by delegating coherence inference to the GAIA SDK
+(router :13305, fast NPU model) rather than a heavyweight torch JEPAWorldModel.
 
-Inference is delegated to GAIA's ``LemonadeClient`` (fast NPU model by default). Deterministic
-fallback (persist current coherence) when the LLM is unreachable or returns an unparseable reply,
-so the gate degrades gracefully rather than failing.
+Why FLUME? FLUME is the latent-space backbone — not just the VAE, but any component that translates
+between surface representations (task text, env observations) and the 12D manifold.  This world
+model does exactly that: it converts a task description into a tractability estimate that lives in
+the manifold's quality dimension.  The inference provider is Lemonade, but the semantics are FLUME.
+
+Deterministic fallback (persist current coherence) when the LLM is unreachable, so the gate
+degrades gracefully rather than failing.
+
+:class:`LemonadeWorldModel` is a backward-compatible alias retained for existing importers.
 """
 
 from __future__ import annotations
@@ -67,8 +71,13 @@ def _parse_coherence(text: str) -> float | None:
     return None
 
 
-class LemonadeWorldModel:
-    """World model whose next-step coherence is estimated by a local LLM via the GAIA SDK.
+class FlumeWorldModel:
+    """FLUME world model — maps task descriptions to 12D manifold coherence via local LLM inference.
+
+    Extends the FLUME latent-space backbone: instead of encoding via the VAE, this component
+    uses a fast local language model (llama3.2-1b-FLM on the XDNA2 NPU via :13305 OmniRouter)
+    as a tractability probe in the manifold's quality dimension.  The protocol is:
+    task description → tractability prompt → scalar coherence → 12D state vector.
 
     Args:
         chat_fn: Optional ``prompt(text) -> str`` callable. Injected in tests; when None, a GAIA
@@ -176,6 +185,10 @@ class LemonadeWorldModel:
         return trajectory
 
 
+#: Backward-compatible alias — existing importers work unchanged.
+LemonadeWorldModel = FlumeWorldModel
+
+
 def build_live_jepa_gate(lookahead_steps: int = 1):
     """JG2 live wiring (factory): a JepaGate with a lemonade-backed world model when local inference
     is reachable; else a fail-open gate (world_model=None). Probes lemonade ONCE at construction so
@@ -199,7 +212,7 @@ def build_live_jepa_gate(lookahead_steps: int = 1):
             # tractable tasks collapse to ~0.01, the LOW few-shot anchor). A spurious low must escalate
             # ONE tier, NEVER SKIP-abort a legitimate task (executor.py:721). PROCEED/REROUTE kept.
             return JepaGate(
-                world_model=LemonadeWorldModel(),
+                world_model=FlumeWorldModel(),
                 lookahead_steps=lookahead_steps,
                 reroute_only=True,
             )

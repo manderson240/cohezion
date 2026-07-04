@@ -73,6 +73,55 @@ class ExecutorFactory:
             except ImportError:
                 logger.debug("RetrospectionEngine not available")
 
+        # CB5: auto-create DegradationDetector when not provided (closes routing feedback loop).
+        # Without this, suggest_routing_tier() and check_degradation() are never called and
+        # the JepaGate REROUTE signal has nowhere to land.
+        if degradation_detector is None:
+            try:
+                from cohezion.compound.degradation_detector import DegradationDetector
+
+                degradation_detector = DegradationDetector()
+                logger.debug("ExecutorFactory: auto-created DegradationDetector (CB5)")
+            except Exception:
+                logger.debug("DegradationDetector auto-creation failed (non-blocking)")
+
+        # CH5 (CompoundHealthOracle): auto-create and inject into skill_refiner so quality scores
+        # from every execution flow into the streaming HIHO regime tracker automatically.  The
+        # oracle is seeded with the same DegradationDetector (already auto-created above) so
+        # regime-driven tier recommendations also see the metric-based tier suggestion.
+        _health_oracle: Any = None
+        try:
+            from cohezion.compound.compound_health_oracle import (
+                CompoundHealthOracle,
+                _DEFAULT_STATE_PATH,
+            )
+
+            _health_oracle = CompoundHealthOracle(degradation_detector=degradation_detector)
+            # HO3: auto-restore cross-session state (non-blocking)
+            if _DEFAULT_STATE_PATH.exists():
+                _health_oracle.restore_state(_DEFAULT_STATE_PATH)
+                logger.debug("ExecutorFactory: restored CompoundHealthOracle state from disk")
+            # Register auto-save on clean shutdown (mirrors CB7 DegradationDetector pattern)
+            atexit.register(_health_oracle.save_state, _DEFAULT_STATE_PATH)
+            logger.debug("ExecutorFactory: auto-created CompoundHealthOracle (CH5)")
+        except Exception:
+            logger.debug("CompoundHealthOracle auto-creation failed (non-blocking)")
+
+        # If caller supplied a skill_refiner, don't replace it; inject oracle into the default.
+        if skill_refiner is None and _health_oracle is not None:
+            try:
+                from cohezion.compound.skill_refiner import SkillRefinerFactory
+
+                skill_refiner = SkillRefinerFactory.create(
+                    degradation_detector=degradation_detector,
+                    health_oracle=_health_oracle,
+                )
+                logger.debug(
+                    "ExecutorFactory: auto-created SkillRefiner with CompoundHealthOracle wired"
+                )
+            except Exception:
+                logger.debug("SkillRefiner auto-creation with oracle failed (non-blocking)")
+
         # Wire DegradationDetector → CostAwareRouter feedback callback (closes routing loop)
         if degradation_detector is not None:
             try:

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(uv run pytest*)",
+      "Bash(uv run python*)",
+      "Bash(uv pip*)",
+      "Bash(make*)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(git worktree*)",
+      "Bash(git stash list)",
+      "Bash(cz*)",
+      "Bash(lemond*)",
+      "Bash(lemonade*)",
+      "Bash(entire*)",
+      "Bash(curl -s http://localhost:*)",
+      "Task(bouncer:*)",
+      "mcp__plugin_playwright_playwright__*",
+      "mcp__claude_ai_Context7__*"
+    ]
+  },
+  "env": {
+    "PYTHONPATH": "src",
+    "COHEZION_SESSION_ID": "",
+    "ANTHROPIC_INTEL_LOCAL_LLM": "http://localhost:13307"
+  }
+}

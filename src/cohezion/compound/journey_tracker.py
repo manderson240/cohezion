@@ -621,6 +621,29 @@ class JourneyTracker:
         """Return the number of points in the recent trajectory buffer."""
         return len(self._recent_points)
 
+    def export_trajectories(self, last_n: int = 20) -> list[dict]:
+        """Export recent trajectory points as plain dicts for cross-module consumption.
+
+        AReaL2.0 Gap 1+2 closure: the trajectory buffer is the loop's experiential memory.
+        Consumers (SkillRefiner._autodata_candidates) use it to generate history-informed
+        recommendations rather than reasoning from the current execution alone.
+
+        Returns:
+            List of dicts with keys: operation_type, coherence, efficiency, tier, success.
+            At most last_n points, most-recent last. Empty list when no history.
+        """
+        points = list(self._recent_points[-last_n:])
+        return [
+            {
+                "operation_type": p.operation_type,
+                "coherence": p.coherence,
+                "efficiency": p.efficiency,
+                "tier": (p.metadata or {}).get("tier_used", "unknown"),
+                "success": bool((p.metadata or {}).get("success", True)),
+            }
+            for p in points
+        ]
+
     # ------------------------------------------------------------------
     # #138: Cross-session identity persistence (GIC Identity dimension)
     # ------------------------------------------------------------------

@@ -52,18 +52,25 @@ logger = logging.getLogger(__name__)
 _TIER_ORDER = ("npu", "igpu", "cpu", "cloud")
 
 
-def _resolve_tier(predicted: str | None, suggested: str | None, jepa_reroute: bool) -> str | None:
+def _resolve_tier(
+    predicted: str | None,
+    suggested: str | None,
+    jepa_reroute: bool,
+    oracle_tier: str | None = None,
+) -> str | None:
     """Synthesize the GIC's routing signals into ONE tier that DRIVES cascade entry (H4 fix).
 
-    Fuse the predictive signal (DifficultyEstimator.predict_tier — skill-specific) and the reactive
-    health signal (DegradationDetector.suggest_routing_tier) by MAX-CAPABILITY: capability/SLO is a
-    hard floor, so health may only ESCALATE a predicted-hard task, never cheapen it (the llm-d /
-    conservative-routing precedence — research-corrected from the original cheaper-of-two, which let
-    a healthy signal down-route a hard task). A JEPA REROUTE verdict (marginal coherence = the world
-    model expects divergence) escalates ONE more step toward capability (speculative-cascades:
-    defer-UP on disagreement), never cheaper. Returns None when no valid signal is present.
+    Fuse the predictive signal (DifficultyEstimator.predict_tier — skill-specific), the reactive
+    health signal (DegradationDetector.suggest_routing_tier), and the regime-driven oracle signal
+    (CompoundHealthOracle.last_assessment.tier_recommendation — rolling FD regime, cross-session
+    persistent) by MAX-CAPABILITY: capability/SLO is a hard floor, so health may only ESCALATE a
+    predicted-hard task, never cheapen it. A JEPA REROUTE verdict (marginal coherence = the world
+    model expects divergence) escalates ONE more step toward capability, never cheaper. oracle_tier
+    (OC1-OC3) adds the HIHO/STUCK/CHAOTIC regime as a 4th routing signal with the same MAX-CAPABILITY
+    semantics — a STUCK regime (FD < 1.3, over-exploiting) raises the floor toward iGPU/CPU without
+    overriding an already-confident higher prediction. Returns None when no valid signal is present.
     """
-    candidates = [t for t in (predicted, suggested) if t in _TIER_ORDER]
+    candidates = [t for t in (predicted, suggested, oracle_tier) if t in _TIER_ORDER]
     base = max(candidates, key=_TIER_ORDER.index) if candidates else None
     if jepa_reroute and base is not None:
         return _TIER_ORDER[min(len(_TIER_ORDER) - 1, _TIER_ORDER.index(base) + 1)]
@@ -331,7 +338,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if self._skill_refiner is None:
             from cohezion.compound.skill_refiner import SkillRefinerFactory
 
-            self._skill_refiner = SkillRefinerFactory.create(self.mcp_client)
+            self._skill_refiner = SkillRefinerFactory.create(
+                self.mcp_client, degradation_detector=self._degradation_detector
+            )
             logger.debug("Initialized default skill refiner")
 
         return self._skill_refiner
@@ -440,7 +449,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         return try_template_match(task_description)
 
     def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
+        self,
+        task_description: str,
+        project: str = "cohezion",
+        operation_type: str = "generate",
+        skill_name: str = "",
     ) -> dict[str, Any]:
         """Fetch experience guidance from vault before execution.
 
@@ -451,6 +464,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             task_description: Description of the task to execute
             project: Project name for scoped search
             operation_type: Type of operation (for trajectory search)
+            skill_name: Skill whose PRIME-file learned refinements should
+                be merged in (empty string skips the refinement read)
 
         Returns:
             Dict with relevant_context (decisions, experiments, patterns)
@@ -461,7 +476,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         )
 
         return fetch_experience_guidance(
-            self.logger, task_description, project=project, operation_type=operation_type
+            self.logger,
+            task_description,
+            project=project,
+            operation_type=operation_type,
+            skill_name=skill_name,
         )
 
     def suggest_skills(
@@ -596,7 +615,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("Context policy classification failed (non-blocking): %s", e)
 
         # Step 1: Get experience guidance (enhanced with trajectory search)
-        guidance = self.get_experience_guidance(task_description, project, operation_type)
+        guidance = self.get_experience_guidance(
+            task_description, project, operation_type, skill_name=skill_name
+        )
         logger.debug("Experience guidance: %s", guidance)
 
         # Step 1.3: Template matching — check cache for similar completed task
@@ -764,14 +785,31 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     )
                 except Exception:
                     pass
-        # (c) Synthesize ONE coherent tier recommendation from the predictive + reactive signals,
-        # escalating on a JEPA REROUTE (marginal coherence). H4 fix: this fused value now DRIVES
-        # cascade entry (below) instead of only being logged — so health degradation and the REROUTE
-        # verdict are actionable, not metric-only.
+        # (d) OC1-OC3: CompoundHealthOracle.last_assessment.tier_recommendation — regime-driven,
+        # rolling Higuchi-FD window (cross-session persistent). Reflects the PREVIOUS executions'
+        # quality texture (HIHO/STUCK/CHAOTIC). STUCK (FD < 1.3) escalates the recommended tier
+        # to break out of over-exploitation; CHAOTIC forces cpu (maximum reasoning depth, slow down).
+        # Reading _last_assessment (not calling assess()) is intentional: assess() is called POST-
+        # execution inside SkillRefiner._generate_learning_signal, so the current execution uses the
+        # oracle's accumulated knowledge from all previous executions as a forward-looking hint.
+        if _refiner is not None:
+            _oracle = getattr(_refiner, "_health_oracle", None)
+            if _oracle is not None:
+                try:
+                    _last = getattr(_oracle, "_last_assessment", None)
+                    if _last is not None:
+                        _tier_hints["oracle_tier"] = _last.tier_recommendation
+                except Exception:
+                    pass
+        # (c) Synthesize ONE coherent tier recommendation from the predictive + reactive + regime
+        # signals, escalating on a JEPA REROUTE (marginal coherence). H4 fix: this fused value now
+        # DRIVES cascade entry (below) instead of only being logged — so health degradation, the
+        # REROUTE verdict, and the HIHO regime assessment are actionable, not metric-only.
         _recommended = _resolve_tier(
             _tier_hints.get("predicted_tier"),
             _tier_hints.get("suggested_tier"),
             jepa_reroute=(_jepa_verdict is not None and _jepa_verdict.value == "reroute"),
+            oracle_tier=_tier_hints.get("oracle_tier"),
         )
         if _recommended is not None:
             _tier_hints["recommended_tier"] = _recommended

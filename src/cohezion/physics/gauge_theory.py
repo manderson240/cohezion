@@ -264,6 +264,33 @@ class GaugeConnection:
         F = self.field_strength()
         return float(np.linalg.norm(F.tensor)) < tol
 
+    def superconducting_order_parameter(self) -> float:
+        """U(1) superconducting order parameter |Ψ| ∈ [0, 1).
+
+        Motivated by kagome-lattice flat-band superconductivity (Wang et al.,
+        arXiv:2209.04072): flat-band quantum geometry bounds the superfluid
+        density |Ψ|² from below via the Berry curvature / quantum metric.
+
+        Approximation: map the SO(3) connection potential A onto a U(1) condensate
+        fraction via the Frobenius norm of the potential stack:
+
+            f = ‖A‖_F² / (‖A‖_F² + 1)   ∈ [0, 1)
+
+        where ‖A‖_F² = Tr(A^T A) is the squared Frobenius norm.
+
+        f ≈ 0 : normal (disordered) phase — flat connection, HIHO exploration.
+        f → 1 : condensed phase — large potential, system locked in ordered attractor.
+        At HIHO equilibrium (A ≈ zero-connection): f ≈ 0 (consistent with HIHO target).
+        Non-trivial connection (HIHO deviation): f > 0, signals symmetry has been broken.
+
+        Returns
+        -------
+        float
+            Condensate fraction in [0, 1). Returns 0.0 for the flat connection.
+        """
+        norm_sq = float(np.sum(self._A * self._A))  # ‖A‖_F²
+        return norm_sq / (norm_sq + 1.0)
+
 
 class FourFabricGauge:
     """Complete gauge theory for all four fabrics.
@@ -382,6 +409,37 @@ class FourFabricGauge:
         self._cached_ym_action = total_action
         return total_action, is_hiho
 
+    def superconducting_order_parameter(self) -> dict[str, float]:
+        """Per-fabric and weighted-aggregate U(1) superconducting order parameters.
+
+        Calls :meth:`GaugeConnection.superconducting_order_parameter` for each of the
+        four fabrics, then aggregates with Yang-Mills weights 1/g_i² (stiffer coupling
+        → stronger contribution to the condensate — consistent with Meissner-effect
+        analogy where weaker coupling fabrics expel more flux).
+
+        Returns
+        -------
+        dict with keys ``"Space"``, ``"Field"``, ``"Control"``, ``"Precipitation"``,
+        and ``"aggregate"`` (weighted mean ∈ [0, 1)).
+
+        Physical interpretation:
+            aggregate ≈ 0 : all fabrics in normal phase (HIHO exploration regime).
+            aggregate > 0.3 : significant condensate — at least one fabric has deviated
+                              substantially from the flat connection (HIHO exploitation).
+        """
+        result: dict[str, float] = {}
+        weighted_sum = 0.0
+        weight_total = 0.0
+        for name, conn in self.connections.items():
+            f_i = conn.superconducting_order_parameter()
+            result[name] = f_i
+            g_i = conn.coupling
+            w_i = 1.0 / (g_i**2) if g_i > 0 else 0.0
+            weighted_sum += f_i * w_i
+            weight_total += w_i
+        result["aggregate"] = weighted_sum / weight_total if weight_total > 0 else 0.0
+        return result
+
     def covariant_tempic(self, state_before: np.ndarray, state_after: np.ndarray) -> np.ndarray:
         """Compute gauge-covariant Tempic field (replaces Euclidean displacement).
 
@@ -412,6 +470,7 @@ class FourFabricGauge:
             "fabrics": {name: fs.to_dict() for name, fs in field_strengths.items()},
             "yang_mills_action": self.yang_mills_action(),
             "is_hiho": self.is_hiho(),
+            "superconducting_order_parameter": self.superconducting_order_parameter(),
         }
 
 

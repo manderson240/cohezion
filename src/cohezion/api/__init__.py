@@ -1594,15 +1594,45 @@ class CompoundHealthResponse(BaseModel):
     model_usage: dict[str, int] = {}
     top_refined_skills: list[dict[str, Any]] = []
     compound_score_trend: list[dict[str, Any]] = []
+    # CB6: degradation detector tri-state health (CB6 harness invariant)
+    degradation_health: dict[str, Any] | None = None
+    # HO4: oracle regime + tier synthesis (CompoundHealthOracle)
+    oracle_health: dict[str, Any] | None = None
 
 
 @app.get("/compound/health", response_model=CompoundHealthResponse)
 async def compound_health():
     """Return compound system health from the metrics collector."""
+    from cohezion.compound.executor_factory import ExecutorFactory
     from cohezion.compound.metrics import get_collector
 
     collector = get_collector()
-    return CompoundHealthResponse(**collector.to_health_dict())
+    base = collector.to_health_dict()
+
+    # CB6: pull degradation health from the singleton executor if available
+    degradation_health: dict[str, Any] | None = None
+    oracle_health: dict[str, Any] | None = None
+    try:
+        executor = ExecutorFactory._instance
+        if executor is not None:
+            # CB6: CompoundExecutor.get_health() → degradation_detector.get_health_summary()
+            get_health_fn = getattr(executor, "get_health", None)
+            if callable(get_health_fn):
+                degradation_health = get_health_fn()
+            # HO4: CompoundHealthOracle.to_health_dict()
+            skill_refiner = getattr(executor, "_skill_refiner", None)
+            if skill_refiner is not None:
+                oracle = getattr(skill_refiner, "_health_oracle", None)
+                if oracle is not None:
+                    oracle_health = oracle.to_health_dict()
+    except Exception:
+        pass  # health endpoint must never raise
+
+    return CompoundHealthResponse(
+        **base,
+        degradation_health=degradation_health,
+        oracle_health=oracle_health,
+    )
 
 
 class CompoundHistoryResponse(BaseModel):

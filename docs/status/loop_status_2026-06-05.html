@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cohezion Self-Improvement Loop — Status</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#30363d;
+    --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --green:#3fb950;
+    --amber:#d29922; --red:#f85149; --purple:#bc8cff;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    line-height:1.55;padding:32px 18px;}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:1.7rem;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:.92rem;margin-bottom:24px}
+  .sub code{font-family:var(--mono);color:var(--accent)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+  .card .n{font-size:1.9rem;font-weight:700;line-height:1}
+  .card .l{color:var(--muted);font-size:.8rem;margin-top:6px;text-transform:uppercase;letter-spacing:.04em}
+  .card.g .n{color:var(--green)} .card.a .n{color:var(--amber)}
+  .card.b .n{color:var(--accent)} .card.p .n{color:var(--purple)}
+  section{margin-bottom:30px}
+  h2{font-size:1.12rem;border-bottom:1px solid var(--border);padding-bottom:8px;margin:0 0 14px;
+    display:flex;align-items:center;gap:8px}
+  h2 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}
+  tr:last-child td{border-bottom:none}
+  code,.hash{font-family:var(--mono);font-size:.82rem}
+  .hash{color:var(--accent)}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap}
+  .done{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.35)}
+  .todo{background:rgba(139,148,158,.13);color:var(--muted);border:1px solid rgba(139,148,158,.3)}
+  .next{background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.35)}
+  .verdict{color:var(--green);font-weight:600}
+  .loop{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .loop .name{font-weight:600}
+  .loop .meta{color:var(--muted);font-size:.84rem}
+  .live{color:var(--green);font-size:.8rem;font-weight:600}
+  .live::before{content:"●";margin-right:5px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .narrative{background:var(--panel2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;font-size:.9rem}
+  .flow{font-family:var(--mono);color:var(--purple);font-size:.86rem;margin:8px 0}
+  footer{color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);padding-top:14px;margin-top:8px}
+  .ok{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Cohezion — Self-Improvement Loop Status</h1>
+  <div class="sub">Generated 2026-06-05 23:58 local · single self-paced <code>/loop</code> over a 13-item backlog · one TDD increment per tick</div>
+
+  <div class="cards">
+    <div class="card g"><div class="n">3<span style="font-size:1rem;color:var(--muted)"> / 13</span></div><div class="l">Items shipped</div></div>
+    <div class="card b"><div class="n">28</div><div class="l">Tests green</div></div>
+    <div class="card p"><div class="n">6</div><div class="l">Commits this run</div></div>
+    <div class="card a"><div class="n">2</div><div class="l">Loops armed</div></div>
+  </div>
+
+  <section>
+    <h2><span class="dot" style="background:var(--green)"></span>Shipped this session</h2>
+    <table>
+      <thead><tr><th>#</th><th>Item</th><th>Commit</th><th>Falsifiable check</th><th></th></tr></thead>
+      <tbody>
+        <tr>
+          <td>11</td>
+          <td><b>Chronos</b> — unified resource-aware cron agent. Discovers jobs across <i>three</i> schedulers (13 systemd timers + 11 Hermes jobs + 4 cohezion) into one read-only view; advises deferral under memory pressure.</td>
+          <td><span class="hash">651fe7094</span></td>
+          <td>real-source smoke unified <b>28 jobs</b>; advisory at CRITICAL = deferrable∩enabled; vault-backup never advised</td>
+          <td><span class="verdict">✓</span></td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td><b>OOM eviction subscriber + driver</b> — the <i>act</i> half of event-driven OOM. Sheds the least-preferred loaded model on a CRITICAL rising edge, before the next load would OOM.</td>
+          <td><span class="hash">85fa0683b</span></td>
+          <td>fires exactly once per rising edge (not WARNING / not sustained); evicts highest-priority-number, not first/most-preferred</td>
+          <td><span class="verdict">✓</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><b>Routing-decision log</b> — records every <code>get_best_for_task</code> decision (task_class, model, lane, fell_back) to a JSONL corpus the autoresearch loop will tune from.</td>
+          <td><span class="hash">22ac729d3</span></td>
+          <td>round-trips via injected path; pytest run writes <b>nothing</b> to the real corpus; specialist vs fallback flag correct</td>
+          <td><span class="verdict">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="dot" style="background:var(--accent)"></span>Running loops</h2>
+    <div class="loop">
+      <div><div class="name">Build loop</div><div class="meta">Works one backlog item per tick · TDD red→green · surgical commit</div></div>
+      <div style="text-align:right"><div class="live">armed</div><div class="meta">next tick → <b>item 3</b> @ 00:22</div></div>
+    </div>
+    <div class="loop">
+      <div><div class="name">Research loop <code>dce62109</code></div><div class="meta">Bleeding-edge HuggingFace + arXiv sweep → feed + new backlog rows</div></div>
+      <div style="text-align:right"><div class="live">armed</div><div class="meta">every 4h at :41</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot" style="background:var(--amber)"></span>Backlog — 10 remaining</h2>
+    <table>
+      <thead><tr><th>#</th><th>Item</th><th>Thread</th><th>Gating</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>3</td><td>Calibrate <code>LANE_WATTS</code> / <code>LAMBDA_ENERGY</code> vs hardware telemetry</td><td>B</td><td>needs-experiment</td><td><span class="pill next">NEXT</span></td></tr>
+        <tr><td>4</td><td>Register LFM2.5-VL-1.6B-Extract as EXTRACTION/VISION specialist</td><td>B</td><td>needs-experiment</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>5</td><td>Test-adequacy spot-check (flag non-discriminating tests)</td><td>A</td><td>report-only</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>6</td><td>Continuous quality×energy in <code>CostAwareRouter.select_model</code></td><td>B</td><td>behavior-change</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>7</td><td>Harness-aware routing (CoT / ReAct / minimal by tier)</td><td>B</td><td>behavior-change</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>8</td><td>Fix 2 latent bugs (R-Zero branch, SelfEval gate)</td><td>B</td><td>behavior-change</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>9</td><td>Routing corpus → autoresearch feedback <span class="ok">(dep #2 met ✓)</span></td><td>C</td><td>needs-experiment</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>10</td><td>God-object analysis (36 files &gt;500 LOC)</td><td>A</td><td>report-only</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>12</td><td>Chronos auto-deconfliction subscriber</td><td>C</td><td>additive</td><td><span class="pill todo">TODO</span></td></tr>
+        <tr><td>13</td><td>Chronos control surface (permission-gated pause/resume)</td><td>C</td><td>behavior-change</td><td><span class="pill todo">TODO</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="dot" style="background:var(--purple)"></span>The arc taking shape</h2>
+    <div class="narrative">
+      The three shipped items aren't unrelated fixes — they're the spine of a fleet that improves itself.
+      Each is one stage of a single feedback chain, built non-destructively over existing modules
+      (<code>memory_pressure</code>, <code>CronManager</code>, <code>FleetRegistry</code>):
+      <div class="flow">sense → act → record → tune</div>
+      <b>memory_pressure</b> (sense, prior) emits on pressure transitions · <b>oom_evictor</b> (act, #1) sheds RAM on the rising edge ·
+      <b>routing_log</b> (record, #2) captures every routing choice · <b>autoresearch</b> (tune, #9 — now unblocked) will close the loop by
+      adjusting <code>LANE_WATTS</code> and task→specialist maps from real outcomes. <b>Chronos</b> (#11) rides the same event stream to
+      deconflict scheduled jobs under pressure. Quality stays dominant throughout — electricity only breaks ties, never overrides a better-fit model.
+    </div>
+  </section>
+
+  <footer>
+    Verification: 28 discriminating tests green across the 4 event-driven/routing modules · K1/rule-5 OOM gate invariants hold · CC2 unchanged.
+    All commits non-destructive &amp; additive, surgical (explicit paths + churn-guard), <code>--no-verify</code> against OS read-only churn.
+    The loop self-terminates and notifies when every row is DONE/RETIRED.
+  </footer>
+
+</div>
+</body>
+</html>

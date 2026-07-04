@@ -33,13 +33,16 @@ def _get_orchestrator():
     if _orchestrator is None:
         with _lock:
             if _orchestrator is None:
-                # N1: the :13305 OmniRouter — NOT build_triune_orchestrator, which targets the
-                # per-port :13306/:13307/:13309 servers that are redundant and usually OFFLINE.
-                # Those dead ports were why this core execute path returned empty (every tier failed,
-                # escalated to the end, returned ""). The omni variant is the proven-live path.
-                from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
+                # Use build_reasoning_orchestrator (not build_triune_omni_orchestrator):
+                # - NPU: deepseek-r1-0528-8b-FLM (10.6 TPS, reasoning-capable FLM)
+                # - iGPU: Gemma-4-E4B-it-GGUF (max_tokens=2048, min_chars=200)
+                # - CPU: Bonsai-8B-gguf (fast non-thinking fallback, <60s vs 380s for 31B)
+                # build_triune_omni_orchestrator had min_chars=500/2000 quality gates that
+                # guaranteed 100% escalation to Gemma-4-31B-it-GGUF (thinking model that
+                # exhausts max_tokens=512 in <think> phase and returns empty content).
+                from cohezion.inference.triune_orchestrator import build_reasoning_orchestrator
 
-                _orchestrator = build_triune_omni_orchestrator()
+                _orchestrator = build_reasoning_orchestrator()
     return _orchestrator
 
 
@@ -71,7 +74,7 @@ def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
-def get_recommended_concurrency(npu_port: int = 13306, timeout_s: float = 1.5) -> int:
+def get_recommended_concurrency(npu_port: int = 13305, timeout_s: float = 1.5) -> int:
     """Return recommended max_concurrent for run_batch() based on live model load.
 
     Heuristic from exp_LLLL1: under heavy model load (9+ models), concurrent
@@ -103,7 +106,7 @@ def get_recommended_concurrency(npu_port: int = 13306, timeout_s: float = 1.5) -
     return 3  # safe default when probe fails
 
 
-def lemonade_available(npu_port: int = 13306, timeout_s: float = 1.5) -> bool:
+def lemonade_available(npu_port: int = 13305, timeout_s: float = 1.5) -> bool:
     """Non-blocking liveness check for the NPU Lemonade server.
 
     Returns False (instead of raising) when the server is unreachable.
@@ -131,7 +134,7 @@ def _engine_for(min_tier_index: int, escalation_count: int, is_cloud: bool) -> s
     return _OMNI_TIERS[idx]
 
 
-def make_local_execute_fn(task_description: str = ""):
+def make_local_execute_fn(task_description: str = "", context_prefix: str = ""):
     """Return a callable compatible with CompoundExecutor.execute_task(execute_fn=...).
 
     The returned function bridges the synchronous execute_fn contract
@@ -143,11 +146,24 @@ def make_local_execute_fn(task_description: str = ""):
 
     asyncio.run() creates a fresh event loop per call — safe because
     execute_fn is always invoked from synchronous CompoundExecutor code.
+
+    Args:
+        task_description: The task to perform (appended after guidance).
+        context_prefix: Static codebase context injected BEFORE guidance — use
+            to give CPU-tier models (31B) enough domain knowledge to answer
+            Cohezion-specific questions without SurrealDB or vault access.
     """
 
     def execute_fn(guidance: str, min_tier_index: int = 0) -> tuple[str, dict]:
         orch = _get_orchestrator()
-        prompt = f"{guidance}\n\n{task_description}".strip() if task_description else guidance
+        # Normalize guidance: executor may pass a dict from get_experience_guidance().
+        # str(dict) produces repr noise in the prompt; extract the human-readable text.
+        if isinstance(guidance, dict):
+            guidance_text = guidance.get("guidance", "") or ""
+        else:
+            guidance_text = str(guidance) if guidance else ""
+        parts = [p for p in [context_prefix, guidance_text, task_description] if p]
+        prompt = "\n\n".join(parts).strip()
         # Lever 1 (correctness-review fix): override the orchestrator's escalation floor with the
         # task's quality_gate_chars ONLY for genuinely SHORT outputs (categorical/short answers) — so a
         # correct "POSITIVE" passes at NPU instead of escalating. The classifier returns gate_chars≈0

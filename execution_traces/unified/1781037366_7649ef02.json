@@ -1,0 +1,12 @@
+{
+  "trace_id": "7649ef02-9a9",
+  "prompt_digest": "9f86d081884c7d65",
+  "source": "swarm",
+  "node_id": "ollama:mistral:7b",
+  "model": "mistral:7b",
+  "quality_score": 0.9,
+  "latency_ms": 0.03430400101933628,
+  "complexity": 0.0012,
+  "phi_score": 0.19999999999999996,
+  "timestamp": 1781037366.2455184
+}

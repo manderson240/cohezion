@@ -114,3 +114,61 @@ class TestCompactionReroute:
     def test_health_degradation_escalates_even_easy_skill(self):
         ex = self._executor(suggested_tier="cpu")  # degraded health
         assert ex._recompute_tier_at_compaction("greet", "op", active_tier="npu") == "cpu"
+
+
+class TestOracleTierSignal:
+    """OC1-OC3: CompoundHealthOracle regime-driven tier as 4th MAX-CAPABILITY routing signal.
+
+    The oracle's _last_assessment.tier_recommendation reflects the rolling Higuchi-FD window
+    (cross-session persistent).  STUCK regime (FD < 1.3) escalates tier to break over-exploitation;
+    CHAOTIC regime forces cpu.  It participates in MAX-CAPABILITY fusion alongside predicted,
+    suggested, and REROUTE — it can only raise the floor, never lower it.
+    """
+
+    def test_oc1_oracle_tier_parameter_in_signature(self):
+        """OC1 structural: _resolve_tier accepts oracle_tier kwarg. A wrong impl (3-arg only)
+        raises TypeError here."""
+        import inspect
+
+        params = inspect.signature(_resolve_tier).parameters
+        assert "oracle_tier" in params, "oracle_tier missing from _resolve_tier signature"
+
+    def test_oc2_oracle_stuck_escalates_npu_to_igpu(self):
+        """OC2 discriminating: oracle STUCK regime → oracle_tier='igpu'; predicted='npu'; suggested=None.
+        Correct impl returns 'igpu'.  Wrong impl ignoring oracle_tier returns 'npu'."""
+        result = _resolve_tier(
+            predicted="npu",
+            suggested=None,
+            jepa_reroute=False,
+            oracle_tier="igpu",  # STUCK regime escalated from npu
+        )
+        assert result == "igpu", f"Expected 'igpu' (oracle STUCK floor), got {result!r}"
+
+    def test_oc3_oracle_chaotic_forces_cpu(self):
+        """OC3 discriminating: CHAOTIC regime sets oracle_tier='cpu'; even easy skill on npu gets
+        escalated.  Wrong impl ignoring oracle_tier returns 'npu'."""
+        result = _resolve_tier(
+            predicted="npu",
+            suggested="npu",
+            jepa_reroute=False,
+            oracle_tier="cpu",  # CHAOTIC → maximum reasoning depth
+        )
+        assert result == "cpu", f"Expected 'cpu' (oracle CHAOTIC floor), got {result!r}"
+
+    def test_oc4_oracle_hiho_does_not_downgrade_confident_cpu_prediction(self):
+        """OC4 correctness: HIHO oracle_tier='npu' does NOT lower a confident cpu prediction.
+        MAX-CAPABILITY picks the more-capable signal — oracle only raises the floor, never lowers it."""
+        result = _resolve_tier(
+            predicted="cpu",
+            suggested=None,
+            jepa_reroute=False,
+            oracle_tier="npu",  # HIHO healthy — would prefer npu
+        )
+        assert result == "cpu", f"Expected 'cpu' (predicted dominates), got {result!r}"
+
+    def test_oc5_oracle_tier_none_backward_compatible(self):
+        """OC5: default oracle_tier=None preserves existing 3-signal behavior — existing callers
+        passing 3 positional args are unaffected (backward-compatible signature extension)."""
+        assert _resolve_tier("npu", "igpu", jepa_reroute=False) == "igpu"
+        assert _resolve_tier("cpu", "npu", jepa_reroute=False) == "cpu"
+        assert _resolve_tier(None, None, jepa_reroute=False) is None

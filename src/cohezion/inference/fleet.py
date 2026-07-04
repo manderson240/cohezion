@@ -342,6 +342,13 @@ async def _dispatch_headless_cli(
             "--approval-mode",
             "plan",
         ]
+    elif model.lane == Lane.CLOUD_AGY:
+        binary = "agy"
+        # agy outputs plain text; JSON parse falls back to raw stdout (cost=0.0).
+        # Don't pass --model for "agy-default" — use agy's configured default.
+        cli_args_tail = ["-p", prompt]
+        if model.model_id not in {"agy-default", "agy"}:
+            cli_args_tail.extend(["--model", model.model_id])
     else:
         raise ValueError(f"_dispatch_headless_cli does not handle lane {model.lane}")
 
@@ -400,7 +407,7 @@ async def _dispatch_one(
     Only the OpenAI-compatible streaming path currently populates TTFT and
     tokens/sec — Ollama and the headless CLIs return None for those fields.
     """
-    if model.lane in {Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI}:
+    if model.lane in {Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY}:
         text, cost = await _dispatch_headless_cli(model, prompt, timeout, budget_usd)
         return text, cost, None, None
     if model.lane == Lane.CLOUD_OLLAMA or (
@@ -533,7 +540,7 @@ async def route(
                 ttft_ms=ttft_ms,
                 tokens_per_sec=tokens_per_sec,
                 cost_usd=cost,
-                escalated_to_cloud=candidate.lane in {Lane.CLOUD_OLLAMA, Lane.CLOUD_CLAUDE},
+                escalated_to_cloud=candidate.lane in {Lane.CLOUD_OLLAMA, Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY},
                 symmetry_coherence=coherence,
                 self_reported_confidence=confidence,
                 attempts=attempts,

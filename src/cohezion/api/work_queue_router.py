@@ -39,6 +39,16 @@ def _save(q: dict) -> None:
     WORK_QUEUE_FILE.write_text(json.dumps(q, indent=2, default=str))
 
 
+def _persist(item: dict) -> None:
+    """Write-through to SurrealDB + Obsidian. Fail-open: JSON is already saved."""
+    try:
+        from cohezion.data_mesh.kanban_bridge import persist_item  # lazy — avoids circular imports
+
+        persist_item(item)
+    except Exception:
+        pass  # bridge unavailable — JSON source of truth is already written
+
+
 # ── Pydantic schemas ──────────────────────────────────────────────────────────
 class WorkItemCreate(BaseModel):
     type: str = "task"  # research | improvement | task
@@ -97,6 +107,7 @@ def create_item(body: WorkItemCreate):
     }
     q["items"].append(item)
     _save(q)
+    _persist(item)
     return item
 
 
@@ -116,6 +127,7 @@ def patch_item(item_id: str, body: WorkItemPatch):
             if body.priority is not None:
                 item["priority"] = body.priority
             _save(q)
+            _persist(item)
             return item
     raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
 

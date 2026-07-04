@@ -1,0 +1,37 @@
+# bmad-brainstorming customization
+# Merged per BMAD structural rules:
+#   scalars: override wins • arrays: append
+#   arrays-of-tables with `code`/`id`: replace matching items, append new ones
+
+[brainstorming]
+# Output directory for brainstorming session documents
+output_dir = "_bmad-output/brainstorming"
+
+# Whether to enable MCP tool calls during brainstorming sessions
+# When true, facilitator may call cohezion-knowledge, cohezion-skills,
+# cohezion-vault MCP servers for domain-informed ideation
+mcp_enabled = true
+
+# Whether to persist completed brainstorming sessions to the Cohezion vault
+# for long-term knowledge retention and pattern mining
+vault_persistence = true
+
+# Whether to cross-reference Pi session logs during session detection
+session_cross_reference = true
+
+# Pre-selected approach (null = ask user each time)
+# 1 = User-Selected, 2 = AI-Recommended, 3 = Random, 4 = Progressive, 5 = Pi-Enhanced
+default_approach = null
+
+# Default techniques to pre-populate (empty = no pre-selection)
+default_techniques = []
+
+[brainstorming.ideation_defaults]
+# Minimum ideas before suggesting organization
+min_ideas_before_organize = 100
+
+# Domain pivot frequency for anti-bias protocol
+anti_bias_pivot_interval = 10
+
+# Simulated creativity temperature (0.0 - 1.0)
+creativity_temperature = 0.85

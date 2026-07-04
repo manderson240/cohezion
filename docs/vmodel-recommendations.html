@@ -1,0 +1,410 @@
+<title>V-Model Recommendations — Cohezion</title>
+<style>
+:root{
+  --ink:#0d1117;--surf:#161b26;--surf2:#1c2335;--bdr:#222d40;
+  --tp:#ccd8ee;--ts:#718096;--tt:#3d5470;
+  --amb:#d69420;--teal:#27a879;--rust:#bf4918;--warn:#b07828;--blue:#4888c0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;}
+body{background:var(--ink);color:var(--tp);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.65;padding:1.5rem 1rem 5rem;}
+.page{max-width:860px;margin:0 auto;}
+
+/* top bar */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding-bottom:1.1rem;border-bottom:1px solid var(--bdr);margin-bottom:1.5rem;}
+.eyebrow{font-family:'Courier New',Courier,monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--amb);margin-bottom:.3rem;}
+h1{font-family:'Trebuchet MS',Tahoma,sans-serif;font-size:clamp(1.2rem,3vw,1.7rem);font-weight:700;color:var(--tp);text-wrap:balance;line-height:1.2;}
+.topbar-r{font-family:'Courier New',Courier,monospace;font-size:.65rem;color:var(--ts);text-align:right;line-height:1.6;}
+
+/* canvas */
+.vwrap{margin-bottom:1.75rem;}
+canvas{display:block;width:100%;max-width:700px;margin:0 auto;}
+
+/* section label */
+.sl{font-family:'Courier New',Courier,monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ts);margin-bottom:.65rem;}
+
+/* summary table */
+.tw{overflow-x:auto;border:1px solid var(--bdr);border-radius:3px;margin-bottom:2.25rem;}
+table{width:100%;border-collapse:collapse;font-size:.79rem;font-variant-numeric:tabular-nums;}
+th{font-family:'Courier New',Courier,monospace;font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tt);text-align:left;padding:.4rem .8rem;border-bottom:1px solid var(--bdr);background:var(--surf);white-space:nowrap;}
+td{padding:.44rem .8rem;border-bottom:1px solid var(--bdr);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surf2);}
+.pri{font-family:'Courier New',Courier,monospace;font-size:.58rem;padding:.1em .4em;border-radius:2px;text-transform:uppercase;font-weight:700;white-space:nowrap;}
+.p0{color:#e06030;border:1px solid #803020;background:#1c0a06;}
+.p1{color:#3db880;border:1px solid #1f6040;background:#031210;}
+.p2{color:#5898d0;border:1px solid #284870;background:#060e18;}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:.35rem;flex-shrink:0;}
+.do{background:var(--rust);box-shadow:0 0 3px var(--rust);}
+.dp{background:var(--warn);}
+.sc{display:flex;align-items:center;}
+.so{color:#d05030;}.sp{color:var(--warn);}
+
+/* cards */
+.cards{display:flex;flex-direction:column;gap:1.2rem;margin-bottom:2.25rem;}
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:3px;overflow:hidden;}
+.ctop{padding:.8rem 1.05rem;border-bottom:1px solid var(--bdr);display:flex;gap:.7rem;align-items:flex-start;}
+.cpri{flex-shrink:0;padding-top:.12rem;}
+.cmeta{flex:1;}
+.ctitle{font-family:'Trebuchet MS',Tahoma,sans-serif;font-size:.92rem;font-weight:700;color:var(--tp);text-wrap:balance;line-height:1.25;margin-bottom:.22rem;}
+.cclaim{font-size:.77rem;color:var(--ts);line-height:1.4;}
+.cclaim em{font-style:italic;}
+
+/* v-model split */
+.vs{display:grid;grid-template-columns:1fr 1fr;}
+@media(max-width:540px){.vs{grid-template-columns:1fr;}}
+.va{padding:.75rem 1.05rem;}
+.va+.va{border-left:1px solid var(--bdr);}
+@media(max-width:540px){.va+.va{border-left:none;border-top:1px solid var(--bdr);}}
+.al{font-family:'Courier New',Courier,monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amb);margin-bottom:.5rem;display:flex;align-items:center;gap:.45rem;}
+.al::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.al.v{color:var(--teal);}
+.cl{list-style:none;display:flex;flex-direction:column;gap:.42rem;}
+.cl li{font-size:.77rem;color:var(--tp);padding-left:1.05rem;position:relative;line-height:1.4;}
+.cl li::before{content:'▸';position:absolute;left:0;color:var(--tt);font-size:.66rem;top:.15em;}
+.cl strong{color:#90aac8;font-weight:600;}
+code{font-family:'Courier New',Courier,monospace;font-size:.77em;background:#0d1525;padding:.07em .28em;border-radius:2px;color:#88b4d8;}
+
+/* card footer */
+.cf{padding:.38rem 1.05rem;border-top:1px solid var(--bdr);font-family:'Courier New',Courier,monospace;font-size:.63rem;display:flex;align-items:center;gap:.4rem;}
+.cf-o{background:#160805;color:#d05030;}
+.cf-p{background:#141006;color:var(--warn);}
+
+/* cross-cutting */
+.xg{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.75rem;}
+.xc{background:var(--surf);border:1px solid var(--bdr);border-radius:3px;padding:.72rem .88rem;}
+.xn{font-family:'Courier New',Courier,monospace;font-size:.56rem;letter-spacing:.12em;color:var(--amb);margin-bottom:.22rem;}
+.xh{font-size:.81rem;font-weight:600;color:var(--tp);margin-bottom:.22rem;}
+.xb{font-size:.74rem;color:var(--ts);line-height:1.4;}
+
+:focus-visible{outline:2px solid var(--amb);outline-offset:2px;}
+</style>
+
+<main class="page">
+
+<div class="topbar">
+  <div>
+    <div class="eyebrow">Cohezion · Compound Engineering</div>
+    <h1>V-Model Recommendations</h1>
+  </div>
+  <div class="topbar-r">
+    <div>2026-07-02</div>
+    <div>5 items · 2&thinsp;P0 · 2&thinsp;P1 · 1&thinsp;P2</div>
+  </div>
+</div>
+
+<div class="vwrap">
+  <canvas id="vc" width="700" height="130" aria-hidden="true"></canvas>
+</div>
+
+<div class="sl">At a glance</div>
+<div class="tw">
+  <table>
+    <thead><tr><th>Pri</th><th>Item</th><th>Status</th><th>Effort</th><th>Gate</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="pri p0">P0</span></td>
+        <td>FLUME VAE mu as SIGReg input</td>
+        <td><div class="sc"><span class="dot do"></span><span class="so">Open</span></div></td>
+        <td>~1&thinsp;h, no download</td>
+        <td><code>EP &lt; 0.50</code></td>
+      </tr>
+      <tr>
+        <td><span class="pri p0">P0</span></td>
+        <td>Wire H1 regression gate (bootstrap_fixtures caller)</td>
+        <td><div class="sc"><span class="dot do"></span><span class="so">Open</span></div></td>
+        <td>~30&thinsp;min, 1 call site</td>
+        <td>Bad update blocked</td>
+      </tr>
+      <tr>
+        <td><span class="pri p1">P1</span></td>
+        <td>Wire jepa_coherence into check_degradation</td>
+        <td><div class="sc"><span class="dot do"></span><span class="so">Dormant</span></div></td>
+        <td>~1&thinsp;h</td>
+        <td>Low coherence → tier escalates</td>
+      </tr>
+      <tr>
+        <td><span class="pri p1">P1</span></td>
+        <td>Real trajectories into JEPAWorldModel.train_epoch</td>
+        <td><div class="sc"><span class="dot do"></span><span class="so">Open</span></div></td>
+        <td>~2&thinsp;h</td>
+        <td>prediction_loss decreases after 10 loops</td>
+      </tr>
+      <tr>
+        <td><span class="pri p2">P2</span></td>
+        <td>VJEPA probabilistic predictor — (mu, sigma)</td>
+        <td><div class="sc"><span class="dot dp"></span><span class="sp">Design</span></div></td>
+        <td>~4&thinsp;h, needs P1-B first</td>
+        <td><code>sigma &gt; 0</code>; JepaGate routing changes</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="sl">Recommendations — left: build arm &nbsp;·&nbsp; right: verify arm</div>
+<div class="cards">
+
+  <div class="card">
+    <div class="ctop">
+      <div class="cpri"><span class="pri p0">P0</span></div>
+      <div class="cmeta">
+        <div class="ctitle">Fix SIGReg input — route FLUME VAE mu instead of nomic-embed</div>
+        <div class="cclaim"><em>Claim:</em> JEPA state embeddings must be in free R<sup>256</sup> to give EP ≈ 0.42. Current nomic-embed output is L2-normalized to S<sup>767</sup> → EP = 0.584 by geometry, not model quality. FLUME VAE <code>mu</code> is already in <code>build_optimal_vae()</code> — no downloads needed.</div>
+      </div>
+    </div>
+    <div class="vs">
+      <div class="va">
+        <div class="al">Build</div>
+        <ul class="cl">
+          <li><strong>Req</strong> — state embeddings entering <code>JEPAWorldModel</code> have EP &lt; 0.50 (tighter generalization bound, arXiv:2606.27014)</li>
+          <li><strong>Design</strong> — <code>LemonadeEmbedBridge.encode(use_flume_vae=True)</code> → <code>flume.encode(emb_768d)</code> → returns <code>mu</code> (256D, un-normalized)</li>
+          <li><strong>Constraint</strong> — A3 invariant unchanged: <code>kl_weight ≤ 0.01</code>; only the output path changes</li>
+          <li><strong>Note</strong> — FLUME VAE lives in <code>src/cohezion/flume/</code>; <code>build_optimal_vae()</code> is ready and 2-layer decoder is confirmed correct (A4)</li>
+        </ul>
+      </div>
+      <div class="va">
+        <div class="al v">Verify</div>
+        <ul class="cl">
+          <li><strong>Discriminating unit test</strong> — <code>assert SIGReg(flume_mu).item() &lt; 0.50</code>; passthrough of nomic-embed → 0.584 → <strong>FAIL</strong></li>
+          <li><strong>Integration</strong> — re-run <code>dogfood_sigreg.py --use-flume-vae</code> live against :13305; target EP 0.42–0.47</li>
+          <li><strong>Consumption proof</strong> — grep non-test consumer of <code>mu</code> in <code>JourneyTracker.text_to_latent()</code> → <code>train_step()</code>. No consumer = still dormant</li>
+          <li><strong>Boundary smoke</strong> — one live FLUME encode call → <code>SIGReg</code> → assert EP &lt; 0.50 against actual :13305</li>
+          <li><strong>Adversarial</strong> — independent agent asks "where could <code>mu</code> get L2-normalized before SIGReg?" — the failure mode the author misses</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cf cf-o">⚑ OPEN — implement today; no downloads, no external deps</div>
+  </div>
+
+  <div class="card">
+    <div class="ctop">
+      <div class="cpri"><span class="pri p0">P0</span></div>
+      <div class="cmeta">
+        <div class="ctitle">Wire H1 regression gate — call bootstrap_fixtures from SkillRefiner.refine</div>
+        <div class="cclaim"><em>Claim:</em> SkillRefiner must block skill updates that regress PRIME fixtures before writing to disk. The gate exists and passes its own unit tests, but harness.md records: "WIRING H1: bootstrap_fixtures has no prod caller → regression gate still no-op end-to-end."</div>
+      </div>
+    </div>
+    <div class="vs">
+      <div class="va">
+        <div class="al">Build</div>
+        <ul class="cl">
+          <li><strong>Req</strong> — any proposed PRIME skill update is gated against the grounded fixture before <code>refine()</code> writes; bad updates blocked, not silently committed</li>
+          <li><strong>Design</strong> — call <code>bootstrap_fixtures(skill_name)</code> at the top of <code>SkillRefiner.refine()</code> before any write path; grounded expected_output derived from current skill</li>
+          <li><strong>H1 status</strong> — <code>_ground_fixture(critical=True)</code> is already committed; only the caller is missing</li>
+        </ul>
+      </div>
+      <div class="va">
+        <div class="al v">Verify</div>
+        <ul class="cl">
+          <li><strong>Unit test</strong> — inject known-bad skill update → assert gate raises/returns False; wrong impl (no caller) → update passes through → <strong>FAIL</strong></li>
+          <li><strong>Discriminating test</strong> — neutralize <code>_ground_fixture</code> → gate promotes regressing candidate → test <strong>FAILS</strong>. Verifies the gate bites, not just that the symbol exists</li>
+          <li><strong>Boundary smoke</strong> — one live <code>refine()</code> call with a syntactically valid but semantically bad candidate; assert PRIME file unchanged</li>
+          <li><strong>Adversarial</strong> — trace the <code>refine()</code> call path; confirm <code>bootstrap_fixtures</code> fires <em>before</em> any file write, not after</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cf cf-o">⚑ OPEN — one call-site addition in refine(); harness.md explicitly flags this gap</div>
+  </div>
+
+  <div class="card">
+    <div class="ctop">
+      <div class="cpri"><span class="pri p1">P1</span></div>
+      <div class="cmeta">
+        <div class="ctitle">Wire jepa_coherence into DegradationDetector.check_degradation</div>
+        <div class="cclaim"><em>Claim:</em> low JEPA coherence should escalate routing to a more capable tier. The signal is produced (JW1: <code>execute_task</code> sets <code>metrics["jepa_coherence"]</code>) but the consumer is missing (H2: <code>check_degradation</code> omits it). Classic dormant wiring.</div>
+      </div>
+    </div>
+    <div class="vs">
+      <div class="va">
+        <div class="al">Build</div>
+        <ul class="cl">
+          <li><strong>Req</strong> — <code>check_degradation({"jepa_coherence": 0.1})</code> fires an alert and influences <code>suggest_routing_tier()</code></li>
+          <li><strong>Design</strong> — add <code>jepa_coherence</code> branch in <code>check_degradation()</code>; update composite score in <code>suggest_routing_tier()</code></li>
+          <li><strong>Existing producer</strong> — <code>execute_task()</code> → <code>self._jepa_gate.last_coherence</code> → <code>degradation_metrics</code> (JW1, already committed)</li>
+        </ul>
+      </div>
+      <div class="va">
+        <div class="al v">Verify</div>
+        <ul class="cl">
+          <li><strong>Unit test</strong> — <code>check_degradation({"jepa_coherence": 0.1})</code> → alert fired; wrong impl (field ignored) → no alert → <strong>FAIL</strong></li>
+          <li><strong>Consumption proof</strong> — neutralize the jepa_coherence branch → <code>suggest_routing_tier()</code> returns same tier regardless of value → <strong>FAIL</strong></li>
+          <li><strong>Integration</strong> — 5 compound loop iterations with low coherence forced; assert routing escalates to iGPU/CPU</li>
+          <li><strong>Boundary smoke</strong> — set <code>JepaGate.last_coherence = 0.1</code>, run one <code>execute_task</code>, call <code>check_degradation</code>, verify tier suggestion changes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cf cf-o">⚑ DORMANT — producer exists (JW1), consumer missing (H2); closing this costs ~1 h</div>
+  </div>
+
+  <div class="card">
+    <div class="ctop">
+      <div class="cpri"><span class="pri p1">P1</span></div>
+      <div class="cmeta">
+        <div class="ctitle">Wire real compound-loop trajectories into JEPAWorldModel.train_epoch</div>
+        <div class="cclaim"><em>Claim:</em> JepaGate predictions are only meaningful if the world model has trained on actual execution data. Currently it receives random tensors in tests only — it has never seen a real (state, action, next_state) triple from the compound loop.</div>
+      </div>
+    </div>
+    <div class="vs">
+      <div class="va">
+        <div class="al">Build</div>
+        <ul class="cl">
+          <li><strong>Req</strong> — after N compound loop iterations, <code>JEPAWorldModel.prediction_loss</code> measurably decreases vs. a random-tensor baseline</li>
+          <li><strong>Design</strong> — <code>ExecutorFactory.create()</code> wires <code>JourneyTracker._snapshot_history</code> → <code>world_model.train_epoch()</code> every 10 executions</li>
+          <li><strong>Data format</strong> — each <code>TrajectoryPoint</code> supplies <code>(state_emb, action, next_state_emb)</code>; <code>action = tier_used</code> (CB16/JI1 already set this field)</li>
+          <li><strong>Frequency</strong> — every 10 executions; batching amortizes FLUME encoder overhead</li>
+        </ul>
+      </div>
+      <div class="va">
+        <div class="al v">Verify</div>
+        <ul class="cl">
+          <li><strong>Discriminating test</strong> — after 10 real trajectories, <code>prediction_loss &lt; initial</code>; wrong impl (random tensors) → loss is flat → <strong>FAIL</strong></li>
+          <li><strong>Consumption proof</strong> — <code>JepaGate.check()</code> routing decisions must differ after training vs. before; "model updated" alone does not count</li>
+          <li><strong>Integration</strong> — <code>compound_daemon --interval 1</code> for 5 iterations; print <code>world_model.get_metrics()["prediction_loss"]</code> before/after</li>
+          <li><strong>Boundary smoke</strong> — one live <code>world_model.train_step(real_trajectories)</code> on actual FLUME latents; assert loss &lt; 1.0 without error</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cf cf-o">⚑ OPEN — no implementation yet; makes JEPA learning empirical, not theoretical</div>
+  </div>
+
+  <div class="card">
+    <div class="ctop">
+      <div class="cpri"><span class="pri p2">P2</span></div>
+      <div class="cmeta">
+        <div class="ctitle">VJEPA probabilistic predictor — JEPAWorldModel.predict returns (mu, sigma)</div>
+        <div class="cclaim"><em>Claim:</em> replacing point-estimate prediction with a distribution enables JepaGate to use uncertainty as a confidence proxy for PROCEED vs. REROUTE. Depends on P1-B — sigma is meaningless before the model has trained on real data.</div>
+      </div>
+    </div>
+    <div class="vs">
+      <div class="va">
+        <div class="al">Build</div>
+        <ul class="cl">
+          <li><strong>Req</strong> — <code>JEPAWorldModel.predict(s_t, a) → (mu, sigma)</code>; sigma wired into <code>JepaGate.check()</code> as coherence proxy</li>
+          <li><strong>Design</strong> — variational predictor head: linear → (mu, log_var); <code>sigma = exp(0.5 * log_var)</code>; KL term in <code>train_step()</code>. Source: VJEPA arXiv:2601.14354 + CDiT arXiv:2603.14482</li>
+          <li><strong>JepaGate</strong> — <code>coherence = 1 / (1 + sigma.mean())</code> → high uncertainty → REROUTE. Uses existing <code>coherence_threshold</code> property (JTP1)</li>
+          <li><strong>Backward compat</strong> — single-tensor callers receive <code>mu</code>; sigma is additive</li>
+        </ul>
+      </div>
+      <div class="va">
+        <div class="al v">Verify</div>
+        <ul class="cl">
+          <li><strong>Structural test</strong> — <code>assert 'sigma' in inspect.signature(JEPAWorldModel.predict).parameters</code>; catches signature drift before behavioral tests run</li>
+          <li><strong>Discriminating test</strong> — high-noise input → sigma &gt; low-noise input; wrong impl (constant sigma=1) → both equal → <strong>FAIL</strong></li>
+          <li><strong>Consumption proof</strong> — neutralize sigma (constant 1.0) → JepaGate routing unchanged → <strong>FAIL</strong>. If this test passes, sigma is not consumed</li>
+          <li><strong>Adversarial</strong> — independent agent traces sigma from <code>predict()</code> through JepaGate to an actual routing decision; documents every intermediate consumer</li>
+          <li><strong>Boundary smoke</strong> — live JEPA train step on 5 real trajectories; assert <code>sigma.mean() &gt; 0</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="cf cf-p">◐ DESIGN PHASE — research banked (arXiv:2601.14354, 2603.14482); ~4 h; implement after P1-B</div>
+  </div>
+
+</div>
+
+<div class="sl">Cross-cutting V-model rules — apply to all five</div>
+<div class="xg">
+  <div class="xc">
+    <div class="xn">Rule 1</div>
+    <div class="xh">Test the claim, not the component</div>
+    <div class="xb">Write the falsifying command before any code. If the mechanism is wrong the test must fail. A green test that cannot fail proves nothing about the system.</div>
+  </div>
+  <div class="xc">
+    <div class="xn">Rule 2</div>
+    <div class="xh">Consumption, not declaration</div>
+    <div class="xb">A capability is wired only when a production consumer reads it and acts on it. Grep for non-test, non-def uses of every producer. No consumer = dormant.</div>
+  </div>
+  <div class="xc">
+    <div class="xn">Rule 3</div>
+    <div class="xh">Un-mocked boundary smoke</div>
+    <div class="xb">One live probe per real boundary before declaring done. Wrong port, empty sigma, or bad threshold are invisible to mocked tests — only a live call catches them.</div>
+  </div>
+  <div class="xc">
+    <div class="xn">Rule 4</div>
+    <div class="xh">Break author–test correlation</div>
+    <div class="xb">The agent that builds the fix must not sign off on it. Route to an independent QA agent with "assume broken" framing. A producer's green self-test is a claim, not QA.</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('vc');
+  if(!c)return;
+  var ctx=c.getContext('2d');
+  var W=c.width,H=c.height;
+
+  var amb='#d69420',teal='#27a879',bdr='#2a3650',ts='#3d5470';
+
+  var L=[
+    {x:0.03,y:0.11,t:'Requirement'},
+    {x:0.20,y:0.44,t:'Sys Design'},
+    {x:0.37,y:0.77,t:'Component'}
+  ];
+  var mid={x:0.50,y:0.90,t:'Implement'};
+  var R=[
+    {x:0.63,y:0.77,t:'Unit Test'},
+    {x:0.80,y:0.44,t:'Integration'},
+    {x:0.97,y:0.11,t:'Acceptance'}
+  ];
+
+  function px(r){return r*W;}
+  function py(r){return r*H;}
+
+  ctx.setLineDash([2,5]);
+  ctx.lineWidth=0.8;
+  ctx.globalAlpha=0.35;
+  var pairs=[[L[0],R[2]],[L[1],R[1]],[L[2],R[0]]];
+  pairs.forEach(function(p){
+    ctx.strokeStyle=bdr;
+    ctx.beginPath();
+    ctx.moveTo(px(p[0].x),py(p[0].y));
+    ctx.lineTo(px(p[1].x),py(p[1].y));
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+  ctx.globalAlpha=1;
+
+  ctx.strokeStyle=amb;ctx.lineWidth=1.5;ctx.globalAlpha=0.55;
+  ctx.beginPath();
+  ctx.moveTo(px(L[0].x),py(L[0].y));
+  L.slice(1).forEach(function(n){ctx.lineTo(px(n.x),py(n.y));});
+  ctx.lineTo(px(mid.x),py(mid.y));
+  ctx.stroke();
+
+  ctx.strokeStyle=teal;
+  ctx.beginPath();
+  ctx.moveTo(px(mid.x),py(mid.y));
+  R.forEach(function(n){ctx.lineTo(px(n.x),py(n.y));});
+  ctx.stroke();
+  ctx.globalAlpha=1;
+
+  ctx.font='9px "Courier New",Courier,monospace';
+  ctx.fillStyle=ts;ctx.textBaseline='top';
+  ctx.textAlign='left'; ctx.fillText('BUILD',px(0.03),py(0.02));
+  ctx.textAlign='right';ctx.fillText('VERIFY',px(0.97),py(0.02));
+  ctx.textAlign='center';ctx.fillStyle='#2a3a55';ctx.fillText('·',px(0.5),py(0.02));
+
+  function node(n,color,align){
+    ctx.beginPath();ctx.arc(px(n.x),py(n.y),3.5,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.globalAlpha=0.8;ctx.fill();ctx.globalAlpha=1;
+    ctx.font='9px "Courier New",Courier,monospace';
+    ctx.fillStyle=color;ctx.globalAlpha=0.7;
+    ctx.textAlign=align;ctx.textBaseline='middle';
+    var lx=align==='left'?px(n.x)+7:px(n.x)-7;
+    ctx.fillText(n.t,lx,py(n.y));
+    ctx.globalAlpha=1;
+  }
+
+  L.forEach(function(n){node(n,amb,'left');});
+  R.forEach(function(n){node(n,teal,'right');});
+
+  ctx.beginPath();ctx.arc(px(mid.x),py(mid.y),3.5,0,Math.PI*2);
+  ctx.fillStyle='#808098';ctx.fill();
+  ctx.font='9px "Courier New",Courier,monospace';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillStyle='#606080';ctx.globalAlpha=0.8;
+  ctx.fillText(mid.t,px(mid.x),py(mid.y)+6);
+  ctx.globalAlpha=1;
+})();
+</script>

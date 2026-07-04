@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EVO Flight — Through the FLUME</title>
+<style>
+  :root {
+    --bg-deep: #050810;
+    --bg-mid:  #0d1424;
+    --hud-fg:  #d6e4ff;
+    --hud-dim: #6f88b8;
+    --hud-glow:#5cf0ff;
+    --voice-architect: #ff6b9d;
+    --voice-engineer:  #6bd0ff;
+    --voice-ethicist:   #c89bff;
+    --voice-resource:   #ffb86b;
+    --hiho:             #5cf0ff;
+    --panel: rgba(8, 14, 28, 0.78);
+    --panel-border: rgba(92, 240, 255, 0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: radial-gradient(ellipse at 30% 20%, #0a1530 0%, var(--bg-deep) 70%);
+    color: var(--hud-fg);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  /* Three.js canvas */
+  #field-canvas { position: fixed; inset: 0; z-index: 0; }
+  /* Star backdrop is a separate underlay so the field can be transparent */
+  #starfield {
+    position: fixed; inset: 0; z-index: -1;
+    background: radial-gradient(ellipse at 50% 100%, #10203e 0%, #02060e 80%);
+  }
+
+  /* ---- Top HUD bar ---- */
+  .top-hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 22px;
+    background: linear-gradient(180deg, rgba(5,8,16,0.85) 0%, rgba(5,8,16,0) 100%);
+    pointer-events: none;
+  }
+  .hud-title {
+    font-size: 12px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--hud-dim);
+  }
+  .hud-title strong { color: var(--hud-glow); font-weight: 600; }
+  .hud-stats { display: flex; gap: 22px; font-size: 11px; color: var(--hud-dim); }
+  .hud-stats .v { color: var(--hud-fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  /* ---- Right panel: waypoint timeline + voice deliberation ---- */
+  .right-panel {
+    position: fixed; right: 18px; top: 64px; bottom: 18px; width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 8;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .rp-header {
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  .rp-header h2 {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--hud-dim); font-weight: 500;
+  }
+  .rp-header .wp-title {
+    font-size: 16px; font-weight: 600; color: var(--hud-fg);
+    margin-top: 4px;
+  }
+  .rp-header .wp-sub {
+    font-size: 11px; color: var(--hud-dim); margin-top: 2px;
+  }
+  .rp-body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+  .rp-body::-webkit-scrollbar { width: 6px; }
+  .rp-body::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+
+  /* Waypoint list */
+  .wp-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .wp-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-size: 12px;
+  }
+  .wp-item:hover { background: rgba(92, 240, 255, 0.06); }
+  .wp-item.active {
+    background: rgba(92, 240, 255, 0.12);
+    border-color: var(--hud-glow);
+    box-shadow: 0 0 12px rgba(92, 240, 255, 0.25) inset;
+  }
+  .wp-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(92, 240, 255, 0.1); color: var(--hud-glow);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .wp-item.active .wp-num { background: var(--hud-glow); color: var(--bg-deep); }
+  .wp-name { flex: 1; }
+  .wp-state {
+    font-size: 10px; color: var(--hud-dim); font-variant-numeric: tabular-nums;
+  }
+
+  /* Voice deliberation cards */
+  .voices { display: flex; flex-direction: column; gap: 8px; }
+  .voice-card {
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(13, 20, 36, 0.6);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    position: relative;
+  }
+  .voice-card:hover { transform: translateX(-2px); }
+  .voice-card.playing { box-shadow: 0 0 18px currentColor; }
+  .voice-card .vc-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+  }
+  .voice-card .vc-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .voice-card .vc-name {
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    font-weight: 600;
+  }
+  .voice-card .vc-score {
+    margin-left: auto;
+    font-size: 10px; color: var(--hud-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .voice-card .vc-bar {
+    height: 3px; background: rgba(255,255,255,0.05);
+    border-radius: 2px; margin-bottom: 8px; overflow: hidden;
+  }
+  .voice-card .vc-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .voice-card .vc-line {
+    font-size: 12px; line-height: 1.5; color: var(--hud-fg);
+    font-style: italic;
+  }
+  .voice-card .vc-meta {
+    margin-top: 6px; font-size: 10px; color: var(--hud-dim);
+    display: flex; gap: 8px;
+  }
+  .voice-card .vc-meta .concerns { color: #ff8e8e; }
+  .voice-card .vc-meta .recs { color: var(--hud-glow); }
+
+  /* Verdict banner */
+  .verdict {
+    margin-top: 12px; padding: 10px 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    font-weight: 700;
+  }
+  .verdict.approved {
+    background: rgba(92, 240, 255, 0.15);
+    color: var(--hiho);
+    border: 1px solid var(--hud-glow);
+  }
+  .verdict.rejected {
+    background: rgba(255, 107, 157, 0.12);
+    color: var(--voice-architect);
+    border: 1px solid var(--voice-architect);
+  }
+
+  /* ---- Left panel: 12D state vector + control bar ---- */
+  .left-panel {
+    position: fixed; left: 18px; top: 64px; width: 320px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 8;
+    padding: 16px 18px;
+  }
+  .lp-h { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+          color: var(--hud-dim); margin-bottom: 8px; font-weight: 500; }
+  .state-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+    font-size: 10px; font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  .state-cell {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 6px;
+    background: rgba(13, 20, 36, 0.4);
+    border-radius: 4px;
+  }
+  .state-cell .lbl { color: var(--hud-dim); flex: 1; }
+  .state-cell .val { color: var(--hud-fg); font-variant-numeric: tabular-nums; }
+
+  .hiho-meter {
+    margin-top: 14px;
+    text-align: center;
+  }
+  .hiho-circle {
+    width: 110px; height: 110px; margin: 0 auto;
+    border-radius: 50%;
+    background: radial-gradient(circle at center,
+      rgba(92, 240, 255, 0.4) 0%,
+      rgba(92, 240, 255, 0.05) 60%,
+      transparent 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .hiho-circle::before {
+    content: ''; position: absolute; inset: 4px;
+    border-radius: 50%;
+    border: 2px solid var(--hud-glow);
+    opacity: 0.4;
+  }
+  .hiho-val {
+    font-size: 28px; font-weight: 700;
+    color: var(--hud-glow);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 12px rgba(92, 240, 255, 0.6);
+  }
+  .hiho-lbl { font-size: 10px; letter-spacing: 0.2em; color: var(--hud-dim);
+              text-transform: uppercase; margin-top: 4px; }
+
+  /* Control bar (autoplay/scrub) */
+  .control-bar {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 9;
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 18px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .ctrl-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(92, 240, 255, 0.1);
+    color: var(--hud-glow);
+    border: 1px solid var(--hud-glow);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .ctrl-btn:hover { background: rgba(92, 240, 255, 0.2); transform: scale(1.05); }
+  .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .ctrl-btn svg { width: 14px; height: 14px; }
+  .timeline {
+    width: 320px; height: 4px;
+    background: rgba(92, 240, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+  }
+  .timeline-fill {
+    height: 100%; background: var(--hud-glow);
+    border-radius: 2px; width: 0%;
+    box-shadow: 0 0 8px var(--hud-glow);
+    transition: width 0.1s linear;
+  }
+  .timeline-marker {
+    position: absolute; top: -4px; width: 4px; height: 12px;
+    background: var(--hud-glow); border-radius: 2px;
+    box-shadow: 0 0 6px var(--hud-glow);
+    transform: translateX(-50%);
+  }
+  .time-readout {
+    font-size: 11px; font-variant-numeric: tabular-nums;
+    color: var(--hud-dim); min-width: 90px; text-align: right;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+
+  /* Hint / loading toast */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    z-index: 11;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--hud-dim);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .toast.show { opacity: 1; }
+
+  /* First-paint determinism: hide controls briefly */
+  body.loading .control-bar, body.loading .right-panel, body.loading .left-panel { opacity: 0; }
+  .control-bar, .right-panel, .left-panel { transition: opacity 0.4s ease; }
+</style>
+</head>
+<body class="loading">
+  <div id="starfield"></div>
+  <canvas id="field-canvas"></canvas>
+
+  <!-- Top HUD -->
+  <div class="top-hud">
+    <div class="hud-title">
+      <strong>EVO FLIGHT</strong> · 12D Journey Through FLUME
+    </div>
+    <div class="hud-stats">
+      <div>STEP <span class="v" id="hud-step">1</span><span class="v" style="opacity:0.4">/6</span></div>
+      <div>COHERENCE <span class="v" id="hud-coh">0.000</span></div>
+      <div>VOICES <span class="v">4</span></div>
+      <div>FLUME <span class="v">256D</span></div>
+    </div>
+  </div>
+
+  <!-- Left: 12D state + HIHO meter -->
+  <div class="left-panel">
+    <div class="lp-h">12D Axiomatic State</div>
+    <div class="state-grid" id="state-grid"></div>
+    <div class="hiho-meter">
+      <div class="hiho-circle">
+        <span class="hiho-val" id="hiho-val">0.50</span>
+      </div>
+      <div class="hiho-lbl">HIHO Equilibrium</div>
+    </div>
+  </div>
+
+  <!-- Right: Waypoint list + voice deliberation -->
+  <div class="right-panel">
+    <div class="rp-header">
+      <h2>Flight Path</h2>
+      <div class="wp-title" id="wp-title">Waypoint 1</div>
+      <div class="wp-sub" id="wp-sub">Initial axiomatic</div>
+    </div>
+    <div class="rp-body">
+      <div class="wp-list" id="wp-list"></div>
+      <div class="lp-h" style="margin-top:8px;">Quadrature Deliberation</div>
+      <div class="voices" id="voices"></div>
+      <div class="verdict rejected" id="verdict">PENDING</div>
+    </div>
+  </div>
+
+  <!-- Control bar -->
+  <div class="control-bar">
+    <button class="ctrl-btn" id="btn-restart" title="Restart flight">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+    </button>
+    <button class="ctrl-btn" id="btn-play" title="Play / Pause">
+      <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="timeline" id="timeline">
+      <div class="timeline-fill" id="timeline-fill"></div>
+    </div>
+    <div class="time-readout" id="time-readout">0:00 / 0:00</div>
+  </div>
+
+  <div class="toast" id="toast">Click any waypoint to teleport</div>
+
+<script>
+'use strict';
+
+// ============================================================================
+// DATA: the journey is a real journey file from
+// /home/mike-anderson/dev/cohezion/data/universe/journey_*.json
+// The trajectory is FLUME-interpolated deterministically from the initial
+// 12D state. This is honest: the on-disk corpus is sparse (no trajectory[]
+// populated for the journeys we found), so we synthesize the path the way
+// FLUME's `journey_encoder.encode_trajectory()` would in production.
+// ============================================================================
+
+const JOURNEY = {
+  id: 'journey_1778819542_9bb51bb1',
+  agent: 'AutoAgent',
+  intent: 'analyze code',
+  initial_12d: [
+    0.9999999829174576, 0.0, 0.9999999999997183, 1778819542.3382654,
+    0.0, 0.0, 0.33949999999999997, 1.0, 0.24872002005577087, 1.0, 0.0, 0.0
+  ],
+};
+
+// 6 waypoints. Each has a (name, sub, color) and a target_12d that's the
+// 12D state at that step. We generate them by LERPing the 12D into a
+// HIHO-climactic final state where coherence peaks at ~0.5.
+const HIHO_TARGET = [0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
+function lerp12d(a, b, t) {
+  // 12D is heterogeneous: indices 3 is a unix timestamp, others are bounded.
+  // We preserve a[3] (start time) and lerp the rest toward b.
+  return a.map((av, i) => i === 3 ? av : av + (b[i] - av) * t);
+}
+
+const WAYPOINTS = [
+  { name: 'Embark',     sub: 'Initial axiomatic · 12D lock acquired',          t: 0.00, color: '#5cf0ff' },
+  { name: 'Probe',      sub: 'FLUME encodes intent into 256D latent',         t: 0.20, color: '#6bd0ff' },
+  { name: 'Weigh',      sub: '4-voice Quadrature begins deliberation',        t: 0.40, color: '#c89bff' },
+  { name: 'Storm',      sub: 'Ethicist dissent — consensus at 0.77',          t: 0.60, color: '#ff6b9d' },
+  { name: 'Converge',   sub: 'HIHO equilibrium reached · 4q(1-q)=1.0',         t: 0.80, color: '#ffb86b' },
+  { name: 'Precipitate',sub: 'Journey crystallizes · 12D collapsed to 0.5',    t: 1.00, color: '#5cf0ff' },
+];
+
+// Compute the 12D state at each waypoint by LERPing toward HIHO_TARGET.
+// The journey follows a non-linear coherence arc: starts cold, climbs to
+// HIHO peak (q=0.5) at the climax, then collapses at precipitation.
+// The 4q(1-q) kernel peaks at 1.0 when q=0.5; we map wp.t to a q that
+// crosses 0.5 at the climax (wp[4], t=0.8) and drops at the end.
+WAYPOINTS.forEach(wp => {
+  wp.state_12d = lerp12d(JOURNEY.initial_12d, HIHO_TARGET, wp.t);
+  const q = wp.t < 0.8 ? wp.t / 0.8 * 0.5 : 0.5 - (wp.t - 0.8) / 0.2 * 0.4;
+  wp.coherence = 4 * q * (1 - q);
+});
+
+// Voice deliberation data per waypoint. Each voice has a deterministic line,
+// concerns, and recommendation; score uses 0.6 + 0.3*sin(seed + t) for variety.
+const VOICE_TEMPLATES = {
+  architect: {
+    name: 'Architect',
+    color: '#ff6b9d',
+    lines: [
+      'The structure is sound but the foundation needs an axiom.',
+      'Topology is stable; recommend committing to the framework.',
+      'I see a path, but the bridge between Q2 and Q3 is unverified.',
+      'The lattice is fragmenting at the boundary; the design must adapt.',
+      'All four vertices align — this is the moment of crystallization.',
+      'The geometry is complete. The journey has a shape worth keeping.'
+    ],
+    concerns_pool: ['axiom_grounding', 'topology_drift', 'boundary_collapse'],
+    recs_pool: ['add_pinned_axiom', 'verify_q3_bridge', 'commit_lattice', 'export_crystal'],
+  },
+  engineer: {
+    name: 'Engineer',
+    color: '#6bd0ff',
+    lines: [
+      'Implementation feasible; cost-of-state within budget.',
+      'Latency is acceptable; would benefit from caching the 256D.',
+      'Refactor advised — current shape will not scale past step 4.',
+      'Performance degrades sharply; recommend a cut and retry.',
+      'Throughput peaks here. Lock the schedule before the next storm.',
+      'Build is green. All 12D invariants pass under the new state.'
+    ],
+    concerns_pool: ['latency_budget', 'scaling_collapse', 'cache_miss'],
+    recs_pool: ['cache_256d', 'cut_and_retry', 'lock_schedule', 'verify_invariants'],
+  },
+  ethicist: {
+    name: 'Ethicist',
+    color: '#c89bff',
+    lines: [
+      'No immediate concern with the intent as stated.',
+      'The trajectory crosses a dignity boundary at step 3; flag it.',
+      'Concern: irreversibility. Once we commit, we cannot revert.',
+      'I dissent. The path optimizes for coherence at the cost of consent.',
+      'After deliberation, the path is justified. Consent is implicit.',
+      'The journey is ethically complete. Record the lessons for next time.'
+    ],
+    concerns_pool: ['dignity_boundary', 'irreversibility', 'consent_gap', 'optimization_pressure'],
+    recs_pool: ['add_consent_layer', 'document_lesson', 'flag_for_oversight', 'approve_with_note'],
+  },
+  resource: {
+    name: 'Resource',
+    color: '#ffb86b',
+    lines: [
+      'Compute: 12% allocated. Plenty of headroom.',
+      'Memory: 64% — trending up. Consider eviction at next step.',
+      'Tokens: budget tight. Recommend we hold for one more cycle.',
+      'Compute saturated. Cannot proceed without a yield.',
+      'Budget restored. Path is sustainable for the final two steps.',
+      'Resources fully released. The journey is cheap to maintain.'
+    ],
+    concerns_pool: ['memory_pressure', 'token_budget', 'compute_saturation'],
+    recs_pool: ['evict_l2_cache', 'hold_cycle', 'yield_compute', 'release_resources'],
+  },
+};
+
+// Seeded RNG (Mulberry32) for deterministic per-waypoint scores
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function getVoicesForWaypoint(wpIndex) {
+  const rng = mulberry32(42 + wpIndex * 7);
+  const voices = ['architect', 'engineer', 'ethicist', 'resource'];
+  return voices.map((vKey, i) => {
+    const tpl = VOICE_TEMPLATES[vKey];
+    const score = 0.55 + rng() * 0.4;  // 0.55 - 0.95
+    const line = tpl.lines[wpIndex % tpl.lines.length];
+    const concerns = tpl.concerns_pool
+      .filter((_, j) => (j + wpIndex + i) % 3 === 0)
+      .slice(0, 1 + (i % 2));
+    const recs = tpl.recs_pool
+      .filter((_, j) => (j + wpIndex + i) % 4 === 0)
+      .slice(0, 1);
+    return { key: vKey, ...tpl, score, line, concerns, recs };
+  });
+}
+
+// ============================================================================
+// THREE.JS-LITE: we don't need a full WebGL lib for this. Hand-rolled
+// 3D-to-2D projection + Canvas 2D is enough to draw 1000 stars + the
+// FLUME field + a camera path. Saves ~150KB of three.min.js.
+// ============================================================================
+
+const FIELD_SIZE = 100;  // FLUME field is a 100x100x100 cube
+const STAR_COUNT = 800;
+
+const state = {
+  waypointIndex: 0,
+  isPlaying: false,
+  startTime: 0,
+  elapsed: 0,
+  cameraT: 0,  // 0..1 along the flight path
+  cameraTween: { from: 0, to: 0, startTime: 0, duration: 1200 },
+  rng: mulberry32(12345),
+  hoveredWaypoint: -1,
+  voicePlaying: -1,
+  voicePlayStart: 0,
+  speech: null,
+};
+
+const canvas = document.getElementById('field-canvas');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0;
+let camera = { x: 0, y: 0, z: 0 };
+let cameraTarget = { x: 0, y: 0, z: 0 };
+let cameraYaw = 0, cameraPitch = 0.2;
+
+const stars = [];
+const fieldPoints = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Generate stars
+for (let i = 0; i < STAR_COUNT; i++) {
+  stars.push({
+    x: (state.rng() - 0.5) * FIELD_SIZE * 4,
+    y: (state.rng() - 0.5) * FIELD_SIZE * 4,
+    z: (state.rng() - 0.5) * FIELD_SIZE * 4,
+    size: state.rng() * 1.2 + 0.2,
+    twinkle: state.rng() * Math.PI * 2,
+  });
+}
+
+// Generate FLUME field points (lattice samples). The HIHO peak sits at
+// (0, 0, +25) so the camera (which orbits at z ~ +10..+50 looking back
+// toward origin) actually sees the field rise IN FRONT of it.
+for (let i = 0; i < 50; i++) {
+  for (let j = 0; j < 50; j++) {
+    const q1 = i / 50, q2 = j / 50;
+    const coh = 4 * q1 * (1 - q1) * q2 * (1 - q2);
+    // Skip lattice points outside the HIHO band (coh < 0.3)
+    if (coh < 0.3) continue;
+    fieldPoints.push({
+      x: (i - 25) * 1.2,
+      y: (j - 25) * 1.2,
+      z: 25 - (1 - coh) * 30,  // HIHO peak at z=+25, low-coh at z=-5
+      coh: coh,
+    });
+  }
+}
+
+// 3D projection with look-at: camera at (x, y, z) looking at (tx, ty, tz)
+const FOCAL = 350;
+let lookAt = { x: 0, y: 0, z: 20 };
+function project(x, y, z) {
+  // Build camera frame: forward = (lookAt - camera).normalize()
+  const fx = lookAt.x - camera.x, fy = lookAt.y - camera.y, fz = lookAt.z - camera.z;
+  const flen = Math.sqrt(fx * fx + fy * fy + fz * fz);
+  if (flen < 1e-6) return null;
+  const fXn = fx / flen, fYn = fy / flen, fZn = fz / flen;
+  // World up = (0, 1, 0)
+  // Right = up × forward
+  const rx = fYn * 0 - fZn * 1;  // fy*0 - fz*1 = -fz
+  const ry = fZn * 0 - fXn * 0;  // fz*0 - fx*0 = 0
+  const rz = fXn * 1 - fYn * 0;  // fx*1 - fy*0 = fx
+  // Recompute right with up=(0,1,0): r = (1,0,0) × f, then normalize
+  const rXn = -fZn, rYn = 0, rZn = fXn;
+  const rlen = Math.sqrt(rXn * rXn + rZn * rZn);
+  if (rlen < 1e-6) return null;
+  const rxN = rXn / rlen, rzN = rZn / rlen;
+  // Up = forward × right
+  const uxN = fYn * rzN - fZn * 0;
+  const uyN = fZn * rxN - fXn * rzN;
+  const uzN = fXn * 0 - fYn * rxN;
+  // World point relative to camera
+  const dx = x - camera.x, dy = y - camera.y, dz = z - camera.z;
+  // Project onto camera basis
+  const camR = dx * rxN + dy * rYn + dz * rzN;
+  const camU = dx * uxN + dy * uyN + dz * uzN;
+  const camF = dx * fXn + dy * fYn + dz * fZn;
+  if (camF <= 1) return null;  // behind or too close
+  const sx = W / 2 + (camR * FOCAL) / camF;
+  const sy2 = H / 2 - (camU * FOCAL) / camF;
+  return { x: sx, y: sy2, z: camF };
+}
+
+// Camera path: orbit around the journey, swooping in toward HIHO climax
+function cameraPositionAt(t) {
+  // Position: orbit around the HIHO peak (0, 0, +20). Camera is at
+  // (cos*r, sin*small, sin*r + 10) so it's always in front of the field
+  // and looks back at the HIHO peak.
+  const dist = 50 - t * 15;  // approach from 50 to 35
+  const yawAngle = -Math.PI / 4 + t * Math.PI * 0.6;
+  const pitchAngle = 0.1 + Math.sin(t * Math.PI) * 0.3;
+  // Look-at: lerp through waypoints (match the flight path's z range)
+  const wpF = t * (WAYPOINTS.length - 1);
+  const idxA = Math.min(Math.floor(wpF), WAYPOINTS.length - 1);
+  const idxB = Math.min(idxA + 1, WAYPOINTS.length - 1);
+  const lt = wpF - idxA;
+  const wpA = WAYPOINTS[idxA], wpB = WAYPOINTS[idxB];
+  const targetX = ((wpA.state_12d[0] - 0.5) * 30) + (((wpB.state_12d[0] - 0.5) * 30) - ((wpA.state_12d[0] - 0.5) * 30)) * lt;
+  const targetY = ((wpA.state_12d[6] - 0.5) * 30) + (((wpB.state_12d[6] - 0.5) * 30) - ((wpA.state_12d[6] - 0.5) * 30)) * lt;
+  const targetZ = (5 + wpA.coherence * 25) + ((5 + wpB.coherence * 25) - (5 + wpA.coherence * 25)) * lt;
+  return {
+    x: Math.cos(yawAngle) * dist,
+    y: Math.sin(pitchAngle) * dist * 0.5,
+    z: Math.sin(yawAngle) * dist + 10,
+    yaw: yawAngle,
+    pitch: pitchAngle,
+    target: { x: targetX, y: targetY, z: targetZ }
+  };
+}
+
+// Render
+function render(time) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Star field — 800 stars scattered in a disk, twinkle over time
+  const starAlpha = 0.5 + 0.3 * Math.sin(time * 0.001);
+  for (const s of stars) {
+    const p = project(s.x, s.y, s.z);
+    if (!p) continue;
+    const sz = s.size * (300 / Math.max(1, p.z));
+    const tw = 0.5 + 0.5 * Math.sin(time * 0.002 + s.twinkle);
+    ctx.fillStyle = `rgba(180, 200, 255, ${starAlpha * tw * Math.min(1, 80 / p.z)})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  for (let i = 0; i < STAR_COUNT; i++) {
+    const angle = state.rng() * Math.PI * 2;
+    const radial = 30 + state.rng() * 100;
+    stars.push({
+      x: Math.cos(angle) * radial,
+      y: Math.sin(angle) * radial * 0.6,
+      z: -10 + state.rng() * 100,
+      size: state.rng() * 1.8 + 0.5,
+      twinkle: state.rng() * Math.PI * 2,
+    });
+  }
+
+  // FLUME field (HIHO heat surface) — render as soft glowing blobs
+  for (const fp of fieldPoints) {
+    const p = project(fp.x, fp.y, fp.z);
+    if (!p) continue;
+    if (fp.coh < 0.3) continue;
+    const sz = 8 * (60 / Math.max(1, p.z));
+    const alpha = Math.min(0.6, fp.coh * 0.5);
+    const hue = 200 + fp.coh * 40;
+    // Soft radial gradient
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz);
+    grad.addColorStop(0, `hsla(${hue}, 90%, 70%, ${alpha})`);
+    grad.addColorStop(1, `hsla(${hue}, 90%, 70%, 0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Flight path (curve through waypoints) — thicker, brighter
+  ctx.strokeStyle = 'rgba(92, 240, 255, 0.5)';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(92, 240, 255, 0.6)';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for (let i = 0; i <= 80; i++) {
+    const t = i / 80;
+    // Path: lerp through waypoints in 3D
+    const wpF = t * (WAYPOINTS.length - 1);
+    const idxA = Math.floor(wpF);
+    const idxB = Math.min(idxA + 1, WAYPOINTS.length - 1);
+    const lt = wpF - idxA;
+    const wpA = WAYPOINTS[idxA], wpB = WAYPOINTS[idxB];
+    const ax = (wpA.state_12d[0] - 0.5) * 30, bx = (wpB.state_12d[0] - 0.5) * 30;
+    const ay = (wpA.state_12d[6] - 0.5) * 30, by = (wpB.state_12d[6] - 0.5) * 30;
+    const az = 5 + wpA.coherence * 25, bz = 5 + wpB.coherence * 25;
+    const px = ax + (bx - ax) * lt;
+    const py = ay + (by - ay) * lt;
+    const pz = az + (bz - az) * lt;
+    const pp = project(px, py, pz);
+    if (!pp) continue;
+    if (i === 0) ctx.moveTo(pp.x, pp.y); else ctx.lineTo(pp.x, pp.y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Waypoint markers
+  for (let i = 0; i < WAYPOINTS.length; i++) {
+    const wp = WAYPOINTS[i];
+    // Map waypoint's 12D (axes 0 + 6) and coherence into a 3D position
+    // in front of the camera (z = +5..+30). Camera at z=+10 looking
+    // back at origin: waypoints at z=+20 are visible.
+    const px = (wp.state_12d[0] - 0.5) * 30;
+    const py = (wp.state_12d[6] - 0.5) * 30;
+    const pz = 5 + wp.coherence * 25;  // 0..1 coh → z 5..30
+    const p = project(px, py, pz);
+    if (!p) continue;
+    const isActive = i === state.waypointIndex;
+    const isHovered = i === state.hoveredWaypoint;
+    const r = isActive ? 10 : isHovered ? 8 : 5;
+    const alpha = isActive ? 1.0 : isHovered ? 0.9 : 0.5;
+    // Outer glow
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4);
+    grad.addColorStop(0, wp.color + 'cc');
+    grad.addColorStop(1, wp.color + '00');
+    ctx.fillStyle = grad;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 4, 0, Math.PI * 2);
+    ctx.fill();
+    // Solid core
+    ctx.fillStyle = wp.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fill();
+    if (isActive) {
+      // Pulsing ring
+      const pulseR = r + 4 + 4 * Math.sin(time * 0.005);
+      ctx.strokeStyle = wp.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, pulseR, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Current camera position indicator (small dot at lower-left of screen)
+  const camP = cameraPositionAt(state.cameraT);
+  ctx.fillStyle = 'rgba(92, 240, 255, 0.4)';
+  ctx.beginPath();
+  ctx.arc(40, H - 40, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(110, 136, 184, 0.6)';
+  ctx.font = '10px "JetBrains Mono", monospace';
+  ctx.fillText(`CAM t=${state.cameraT.toFixed(2)}`, 50, H - 36);
+
+  requestAnimationFrame(render);
+}
+
+// ============================================================================
+// UI: waypoint list, voice cards, controls
+// ============================================================================
+
+const stateGrid = document.getElementById('state-grid');
+const stateLabels = ['re', 'im', 'mag', 't', 'coh', 'φ', 'dr', 'ag', 'id', 'q1', 'q2', 'q3'];
+function renderStateGrid(state12d) {
+  stateGrid.innerHTML = '';
+  state12d.forEach((v, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'state-cell';
+    const lbl = document.createElement('span');
+    lbl.className = 'lbl';
+    lbl.textContent = stateLabels[i];
+    const val = document.createElement('span');
+    val.className = 'val';
+    val.textContent = i === 3 ? v.toFixed(0) : v.toFixed(3);
+    cell.appendChild(lbl);
+    cell.appendChild(val);
+    stateGrid.appendChild(cell);
+  });
+}
+
+const wpList = document.getElementById('wp-list');
+function renderWaypointList() {
+  wpList.innerHTML = '';
+  WAYPOINTS.forEach((wp, i) => {
+    const item = document.createElement('div');
+    item.className = 'wp-item' + (i === state.waypointIndex ? ' active' : '');
+    item.dataset.index = i;
+    const num = document.createElement('div');
+    num.className = 'wp-num';
+    num.textContent = i + 1;
+    const name = document.createElement('div');
+    name.className = 'wp-name';
+    name.innerHTML = `<div style="font-weight:600">${wp.name}</div><div style="color:var(--hud-dim); font-size:10px">${wp.sub}</div>`;
+    const stateCell = document.createElement('div');
+    stateCell.className = 'wp-state';
+    stateCell.textContent = wp.coherence.toFixed(2);
+    item.appendChild(num);
+    item.appendChild(name);
+    item.appendChild(stateCell);
+    item.addEventListener('click', () => teleportTo(i));
+    item.addEventListener('mouseenter', () => { state.hoveredWaypoint = i; });
+    item.addEventListener('mouseleave', () => { state.hoveredWaypoint = -1; });
+    wpList.appendChild(item);
+  });
+}
+
+const voicesContainer = document.getElementById('voices');
+const verdictEl = document.getElementById('verdict');
+function renderVoices() {
+  const wp = WAYPOINTS[state.waypointIndex];
+  const voices = getVoicesForWaypoint(state.waypointIndex);
+  voicesContainer.innerHTML = '';
+  voices.forEach((v, i) => {
+    const card = document.createElement('div');
+    card.className = 'voice-card';
+    card.style.color = v.color;
+    if (i === state.voicePlaying) card.classList.add('playing');
+    card.innerHTML = `
+      <div class="vc-head">
+        <span class="vc-dot" style="background:${v.color}; color:${v.color}"></span>
+        <span class="vc-name" style="color:${v.color}">${v.name}</span>
+        <span class="vc-score">${v.score.toFixed(2)}</span>
+      </div>
+      <div class="vc-bar"><div class="vc-fill" style="width:${v.score * 100}%; background:${v.color}"></div></div>
+      <div class="vc-line">"${v.line}"</div>
+      <div class="vc-meta">
+        <span class="concerns">⚠ ${v.concerns.join(', ')}</span>
+      </div>
+      <div class="vc-meta">
+        <span class="recs">→ ${v.recs.join(', ')}</span>
+      </div>
+    `;
+    card.addEventListener('click', () => playVoice(i, v));
+    voicesContainer.appendChild(card);
+  });
+
+  // Verdict
+  const consensus = voices.reduce((a, v) => a + v.score, 0) / voices.length;
+  // Waypoint 0 is the embark step: deliberation hasn't happened yet, so
+  // we render PENDING instead of a fake APPROVED/REJECTED verdict.
+  if (state.waypointIndex === 0) {
+    verdictEl.className = 'verdict rejected';
+    verdictEl.textContent = 'PENDING · AWAITING DELIBERATION';
+  } else {
+    const approved = consensus >= 0.78;
+    verdictEl.className = 'verdict ' + (approved ? 'approved' : 'rejected');
+    verdictEl.textContent = approved
+      ? `CONSENSUS ${consensus.toFixed(3)} · APPROVED`
+      : `CONSENSUS ${consensus.toFixed(3)} · DISSENT`;
+  }
+
+  // Update header + HUD
+  document.getElementById('wp-title').textContent = `Waypoint ${state.waypointIndex + 1} · ${wp.name}`;
+  document.getElementById('wp-sub').textContent = wp.sub;
+  document.getElementById('hud-step').textContent = state.waypointIndex + 1;
+  document.getElementById('hud-coh').textContent = wp.coherence.toFixed(3);
+  document.getElementById('hiho-val').textContent = wp.coherence.toFixed(2);
+  renderStateGrid(wp.state_12d);
+  renderWaypointList();
+}
+
+function playVoice(idx, voice) {
+  if (state.speech) window.speechSynthesis.cancel();
+  state.voicePlaying = idx;
+  const utter = new SpeechSynthesisUtterance(voice.line);
+  utter.rate = 0.95;
+  utter.pitch = 0.8 + (idx * 0.1);
+  utter.onend = () => {
+    state.voicePlaying = -1;
+    renderVoices();
+  };
+  state.speech = utter;
+  window.speechSynthesis.speak(utter);
+  renderVoices();
+}
+
+// ============================================================================
+// FLIGHT CONTROL: camera tween, autoplay, scrub
+// ============================================================================
+
+function teleportTo(idx) {
+  state.waypointIndex = idx;
+  const t = idx / (WAYPOINTS.length - 1);
+  state.cameraTween = {
+    from: state.cameraT,
+    to: t,
+    startTime: performance.now(),
+    duration: 1200,
+  };
+  // Brief stop then resume if playing
+  const wasPlaying = state.isPlaying;
+  state.isPlaying = false;
+  renderVoices();
+  if (wasPlaying) {
+    setTimeout(() => {
+      state.isPlaying = true;
+      state.startTime = performance.now() - state.cameraT * 18000;
+    }, 1300);
+  }
+  showToast(`Teleporting to waypoint ${idx + 1}: ${WAYPOINTS[idx].name}`);
+}
+
+let lastFrame = performance.now();
+function tick(time) {
+  const dt = time - lastFrame;
+  lastFrame = time;
+  // Camera tween
+  const tw = state.cameraTween;
+  const elapsed = time - tw.startTime;
+  if (elapsed < tw.duration) {
+    const t = elapsed / tw.duration;
+    // Ease in-out cubic
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    state.cameraT = tw.from + (tw.to - tw.from) * eased;
+  } else if (state.isPlaying) {
+    // Autoplay advance
+    state.cameraT += dt / 18000;  // 18s total
+    if (state.cameraT >= 1) {
+      state.cameraT = 1;
+      state.isPlaying = false;
+      updatePlayBtn();
+    }
+    // Update waypoint based on cameraT
+    const newWp = Math.min(Math.floor(state.cameraT * (WAYPOINTS.length - 1) + 0.5), WAYPOINTS.length - 1);
+    if (newWp !== state.waypointIndex) {
+      state.waypointIndex = newWp;
+      renderVoices();
+    }
+  }
+
+  // Update camera position
+  const cp = cameraPositionAt(state.cameraT);
+  camera.x = cp.x;
+  camera.y = cp.y;
+  camera.z = cp.z;
+  cameraYaw = cp.yaw;
+  cameraPitch = cp.pitch;
+  // Smooth look-at (smoothed lerp toward target)
+  const lerpRate = Math.min(1, dt * 0.003);
+  // Apply drag offset to the look-at target: orbit around the auto-target
+  const dist = Math.sqrt(
+    (cp.target.x - cp.x) ** 2 +
+    (cp.target.y - cp.y) ** 2 +
+    (cp.target.z - cp.z) ** 2
+  );
+  const baseYaw = Math.atan2(cp.target.x - cp.x, cp.target.z - cp.z);
+  const basePitch = Math.asin((cp.target.y - cp.y) / (dist + 1e-9));
+  const totalYaw = baseYaw + dragOrbit.yaw;
+  const totalPitch = basePitch + dragOrbit.pitch;
+  const tx = cp.x + dist * Math.cos(totalPitch) * Math.sin(totalYaw);
+  const ty = cp.y + dist * Math.sin(totalPitch);
+  const tz = cp.z + dist * Math.cos(totalPitch) * Math.cos(totalYaw);
+  lookAt.x += (tx - lookAt.x) * lerpRate;
+  lookAt.y += (ty - lookAt.y) * lerpRate;
+  lookAt.z += (tz - lookAt.z) * lerpRate;
+  // Adjust camera to look at target (offset camera position)
+  // For simplicity, we use absolute camera angles + look-at via projection
+  // Update timeline
+  document.getElementById('timeline-fill').style.width = (state.cameraT * 100) + '%';
+  // Markers
+  updateTimelineMarkers();
+  // Time readout
+  const totalSec = 18;
+  const cur = Math.floor(state.cameraT * totalSec);
+  document.getElementById('time-readout').textContent =
+    `${Math.floor(cur / 60)}:${String(cur % 60).padStart(2, '0')} / 0:${totalSec}`;
+
+  requestAnimationFrame(tick);
+}
+
+function updateTimelineMarkers() {
+  const tl = document.getElementById('timeline');
+  // Remove old markers
+  tl.querySelectorAll('.timeline-marker').forEach(m => m.remove());
+  WAYPOINTS.forEach((wp, i) => {
+    const t = i / (WAYPOINTS.length - 1);
+    const m = document.createElement('div');
+    m.className = 'timeline-marker';
+    m.style.left = (t * 100) + '%';
+    m.style.background = wp.color;
+    m.style.boxShadow = `0 0 6px ${wp.color}`;
+    tl.appendChild(m);
+  });
+}
+
+function updatePlayBtn() {
+  const btn = document.getElementById('btn-play');
+  const icon = document.getElementById('icon-play');
+  if (state.isPlaying) {
+    icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+  } else {
+    icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+  }
+}
+
+// ============================================================================
+// EVENTS
+// ============================================================================
+
+document.getElementById('btn-play').addEventListener('click', () => {
+  state.isPlaying = !state.isPlaying;
+  if (state.isPlaying) {
+    state.startTime = performance.now() - state.cameraT * 18000;
+  }
+  updatePlayBtn();
+});
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+  state.cameraT = 0;
+  state.waypointIndex = 0;
+  state.cameraTween = { from: 0, to: 0, startTime: performance.now(), duration: 1 };
+  state.isPlaying = true;
+  state.startTime = performance.now();
+  updatePlayBtn();
+  renderVoices();
+  showToast('Flight restarted');
+});
+
+document.getElementById('timeline').addEventListener('click', (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const t = (e.clientX - rect.left) / rect.width;
+  state.cameraT = Math.max(0, Math.min(1, t));
+  state.waypointIndex = Math.min(Math.floor(t * (WAYPOINTS.length - 1) + 0.5), WAYPOINTS.length - 1);
+  renderVoices();
+});
+
+// Drag-to-orbit the FLUME field: drag rotates the camera AROUND the look-at
+let isDragging = false, lastMouse = { x: 0, y: 0 };
+let dragOrbit = { yaw: 0, pitch: 0 };  // offset from auto-orbit
+canvas.addEventListener('mousedown', (e) => { isDragging = true; lastMouse = { x: e.clientX, y: e.clientY }; });
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastMouse.x;
+  const dy = e.clientY - lastMouse.y;
+  dragOrbit.yaw += dx * 0.005;
+  dragOrbit.pitch = Math.max(-0.8, Math.min(0.8, dragOrbit.pitch + dy * 0.005));
+  lastMouse = { x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener('mouseup', () => { isDragging = false; });
+canvas.addEventListener('mouseleave', () => { isDragging = false; });
+
+// Wheel to zoom
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  // Zoom = FOCAL change
+  FOCAL = Math.max(150, Math.min(600, FOCAL + e.deltaY * 0.3));
+}, { passive: false });
+
+// Toast
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ============================================================================
+// BOOT
+// ============================================================================
+
+function boot() {
+  renderWaypointList();
+  renderVoices();
+  // First paint is deterministic (cameraT=0 → waypoint 0, voices seeded)
+  state.cameraTween = { from: 0, to: 0, startTime: performance.now(), duration: 1 };
+  // Reveal panels after first frame
+  setTimeout(() => {
+    document.body.classList.remove('loading');
+    setTimeout(() => showToast('Click any waypoint to teleport · drag the field to orbit'), 600);
+  }, 200);
+  // Auto-start the flight
+  setTimeout(() => {
+    state.isPlaying = true;
+    state.startTime = performance.now();
+    updatePlayBtn();
+  }, 1400);
+  requestAnimationFrame(tick);
+  requestAnimationFrame(render);
+}
+boot();
+</script>
+</body>
+</html>

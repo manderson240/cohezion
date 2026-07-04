@@ -1,0 +1,28 @@
+---
+type: autoresearch
+run_id: tcrao_bfd28718
+target: arc_solver
+status: error
+metric_value: 0.0
+hypothesis: add_scale_up_down_transform
+compute_tier: igpu
+wall_time_s: 45.781501178993494
+timestamp: 2026-06-06T01:41:47.632235+00:00
+---
+
+# TCRAO Experiment tcrao_bfd28718
+
+## Config Delta
+```json
+{
+  "_raw": "add_scale_up_down_transform"
+}
+```
+
+## Result
+- **Metric value**: 0.0
+- **Status**: error
+- **Compute tier**: igpu
+- **Wall time**: 45.8s
+
+---

@@ -13,7 +13,9 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -109,6 +111,10 @@ class SemanticCache:
         # Adaptive threshold tracking
         self._threshold_adjustment_interval = 100  # Adjust every 100 ops
         self._background_tasks: set[asyncio.Task] = set()
+
+        # Access entropy tracking: rolling window of hash_keys seen in get()
+        # Used by access_entropy() to distinguish repetitive vs diverse workloads.
+        self._access_window: deque[str] = deque(maxlen=256)
 
     @staticmethod
     def _text_to_embedding(text: str) -> np.ndarray:
@@ -240,6 +246,7 @@ class SemanticCache:
         """
         full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
+        self._access_window.append(hash_key)
 
         # L1: Exact match
         if hash_key in self.l1_cache:
@@ -475,6 +482,43 @@ class SemanticCache:
             # Non-blocking: log and continue (NON_CRITICAL_TRACKING_PATTERN)
             logger.debug(f"Vault store failed (non-critical): {e}")
 
+    def access_entropy(self) -> float:
+        """Shannon entropy of the rolling access-key distribution, normalized to [0, 1].
+
+        Low entropy (≈ 0): a few keys dominate — repetitive workload, cache helps.
+        High entropy (≈ 1): every access is a unique key — diverse working set,
+        misses are expected and should NOT trigger DegradationDetector alerts.
+
+        Uses the rolling ``_access_window`` (maxlen=256) recorded on every ``get()``
+        call so the signal reflects the CURRENT workload pattern rather than lifetime
+        statistics (which are dominated by the past in long-running sessions).
+
+        Returns
+        -------
+        float
+            Normalized Shannon entropy H / log₂(window_size) in [0.0, 1.0].
+            Returns 0.0 when the window has fewer than 2 entries (not yet meaningful).
+        """
+        window = list(self._access_window)
+        n = len(window)
+        if n < 2:
+            return 0.0
+
+        # Build frequency table
+        counts: dict[str, int] = {}
+        for key in window:
+            counts[key] = counts.get(key, 0) + 1
+
+        # Shannon entropy H = -Σ p log₂ p
+        entropy = 0.0
+        for count in counts.values():
+            p = count / n
+            entropy -= p * math.log2(p)
+
+        # Normalize by log₂(n) so the result is in [0, 1]
+        max_entropy = math.log2(n)
+        return entropy / max_entropy if max_entropy > 0 else 0.0
+
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics.
 
@@ -483,6 +527,7 @@ class SemanticCache:
         """
         total = self.hits_l1 + self.hits_l2 + self.hits_l3 + self.misses
         hit_rate = (self.hits_l1 + self.hits_l2 + self.hits_l3) / total * 100 if total > 0 else 0.0
+        combined_hit_rate = hit_rate / 100.0  # fraction [0,1] for DegradationDetector
 
         return {
             "l1_hits": self.hits_l1,
@@ -491,6 +536,7 @@ class SemanticCache:
             "misses": self.misses,
             "total_requests": total,
             "overall_hit_rate": hit_rate,
+            "combined_hit_rate": combined_hit_rate,
             "l1_hit_rate": (self.hits_l1 / total * 100 if total > 0 else 0.0),
             "l2_hit_rate": (self.hits_l2 / total * 100 if total > 0 else 0.0),
             "l3_hit_rate": (self.hits_l3 / total * 100 if total > 0 else 0.0),
@@ -498,6 +544,7 @@ class SemanticCache:
             "l2_size": len(self.l2_cache),
             "similarity_threshold": self.similarity_threshold,
             "novelty_skipped": self.novelty_skipped,
+            "access_entropy": self.access_entropy(),
         }
 
     def clear(self) -> None:
@@ -513,3 +560,4 @@ class SemanticCache:
         self.hits_l3 = 0
         self.misses = 0
         self.novelty_skipped = 0
+        self._access_window.clear()

@@ -26,6 +26,7 @@ class LoopConfig:
     max_wall_clock_hours: float = 8.0
     sprint_duration_seconds: float = 300.0
     cloud_escalation_threshold: int = 3
+    batch_size: int = 3  # max local tasks fanned out in parallel per iteration
     min_free_ram_gb: float = 8.0
     resume_from_checkpoint: bool = False
     fail_fast: bool = False
@@ -107,30 +108,71 @@ class LoopCoordinator:
                 if total_tokens >= self.config.max_tokens:
                     break
 
-                # Process one task at a time so fail_counts updates between picks
-                # of the same task id (enables correct cloud escalation).
-                task = remaining.pop(0)
+                # Batch-window: collect local-eligible tasks up to batch_size and fan
+                # them across NPU/iGPU/CPU in parallel via execute_batch(). Cloud-due
+                # tasks are processed one-at-a-time (they're already at the failure
+                # threshold and rare; sequential is correct for ordered escalation).
+                batch: list[Any] = []
+                cloud_task = None
 
-                use_cloud = (
-                    fail_counts.get(task.id, 0) >= self.config.cloud_escalation_threshold
-                    or local_exec is None  # no local exec → always route to cloud
-                )
+                next_task = remaining[0]  # safe: outer while guarantees non-empty
+                if (
+                    fail_counts.get(next_task.id, 0) >= self.config.cloud_escalation_threshold
+                    or local_exec is None
+                ):
+                    cloud_task = remaining.pop(0)
+                else:
+                    while remaining and len(batch) < self.config.batch_size:
+                        candidate = remaining[0]
+                        if (
+                            fail_counts.get(candidate.id, 0)
+                            < self.config.cloud_escalation_threshold
+                            and local_exec is not None
+                        ):
+                            remaining.pop(0)
+                            batch.append(candidate)
+                        else:
+                            break  # cloud-due task at head — stop building batch
 
-                if use_cloud and cloud_exec is not None:
+                if batch and local_exec is not None:
+                    results = local_exec.execute_batch(batch, self.config.worktree_path)
+                    result_by_id = {r["task_id"]: r for r in results}
+                    for task in batch:
+                        result = result_by_id.get(
+                            task.id,
+                            {
+                                "success": False,
+                                "tokens_used": 0,
+                                "node": "?",
+                                "model": "?",
+                                "elapsed_ms": 0,
+                                "tried_models": [],
+                            },
+                        )
+                        tokens = result.get("tokens_used", 0)
+                        sprint.local_tokens += tokens
+                        self._record_result(
+                            result, task, False, tokens, report, fail_counts, category_stats, sprint
+                        )
+                    # Re-queue ONE instance per unique task ID that hit the cloud threshold —
+                    # preserves escalation semantics when multiple copies share a task.id.
+                    cloud_escalate_ids: set[str] = set()
+                    for task in batch:
+                        if (
+                            fail_counts.get(task.id, 0) >= self.config.cloud_escalation_threshold
+                            and task.id not in cloud_escalate_ids
+                        ):
+                            remaining.insert(0, task)
+                            cloud_escalate_ids.add(task.id)
+
+                if cloud_task is not None and cloud_exec is not None:
                     if not getattr(cloud_exec, "_started", False):
                         cloud_exec.start(self.config.worktree_path)
-                    result = cloud_exec.execute_task(task, self.config.worktree_path)
+                    result = cloud_exec.execute_task(cloud_task, self.config.worktree_path)
                     tokens = result.get("tokens_used", 0)
                     sprint.cloud_tokens += tokens
                     self._record_result(
-                        result, task, True, tokens, report, fail_counts, category_stats, sprint
-                    )
-                elif local_exec is not None:
-                    result = local_exec.execute_task(task, self.config.worktree_path)
-                    tokens = result.get("tokens_used", 0)
-                    sprint.local_tokens += tokens
-                    self._record_result(
-                        result, task, False, tokens, report, fail_counts, category_stats, sprint
+                        result, cloud_task, True, tokens, report, fail_counts, category_stats, sprint
                     )
 
                 elapsed = time.monotonic() - sprint_start

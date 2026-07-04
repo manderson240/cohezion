@@ -9,8 +9,13 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.environments.swarm_env import SwarmEnv as SwarmEnv
 
+with contextlib.suppress(Exception):
+    from cohezion.environments.universe_agent_env import (
+        UniverseAgentEnv as UniverseAgentEnv,
+    )
 
-__all__ = ["ManifoldEnv", "SwarmEnv"]
+
+__all__ = ["ManifoldEnv", "SwarmEnv", "UniverseAgentEnv"]
 
 # Wiring-sweep 2026-06-06: auto_generator was a genuine production orphan — its
 # EnvironmentGenerator / EnvironmentSpec / GeneratedEnvironment / GeneratedCodeValidator

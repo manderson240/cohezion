@@ -20,6 +20,7 @@ def fetch_experience_guidance(
     task_description: str,
     project: str = "cohezion",
     operation_type: str = "generate",
+    skill_name: str = "",
 ) -> dict[str, Any]:
     """Fetch experience guidance from vault before execution.
 
@@ -33,6 +34,8 @@ def fetch_experience_guidance(
         task_description: Description of the task to execute.
         project: Project name for scoped search.
         operation_type: Type of operation (for trajectory search).
+        skill_name: Skill whose PRIME-file learned refinements should be
+            merged in (empty string skips the refinement read).
 
     Returns:
         Dict with relevant_context (decisions, experiments, patterns)
@@ -108,5 +111,22 @@ def fetch_experience_guidance(
             logger.debug("Guidance enriched with %d recent retrospections", len(data[0]["result"]))
     except (OSError, ValueError, KeyError) as e:
         logger.debug("SurrealDB retrospection query failed (non-blocking): %s", e)
+
+    # Step 4: Merge learned refinements from the skill's PRIME file (closes
+    # the SkillRefiner._append_refinement → next-execution feedback loop)
+    if skill_name:
+        try:
+            from cohezion.compound.executor_helpers.refinement_reader import (
+                load_refined_guidance,
+            )
+
+            result["learned_refinements"] = load_refined_guidance(skill_name)
+            logger.debug(
+                "Guidance enriched with %d learned refinements for %s",
+                len(result["learned_refinements"]),
+                skill_name,
+            )
+        except (ImportError, OSError, ValueError, KeyError) as e:
+            logger.debug("Learned-refinement read failed (non-blocking): %s", e)
 
     return result

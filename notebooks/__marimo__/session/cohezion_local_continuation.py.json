@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.11",
+    "script_metadata_hash": "51ef673b4593dad71f7f93c56548fafc"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "d5165f81cf05659c3dfc8b9f5cccc417",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "96d67ead1984866233f88d98f4ce9e1e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"cohezion-local-continuation-runner\">Cohezion \u2014 Local Continuation Runner</h1>\n<span class=\"paragraph\"><strong>$0 local inference (lemonade :13305). No Claude required.</strong> This is the\nquarter-on-a-string loop made standalone: Dev generates, QA jpprint('local AI works')\nprint('local AI works')\nprint('local AI works')\nudges (the <em>knot</em>),\nyou keep the quarter. Edit the task below; cells re-run reactively.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "9e47f98ece10a84192bc7742c4d06011",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "f89f4f55d3d25089e3f519e0e07040da",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "20c926b8b5ec83feba5b0ac210b56e3c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "a6e8b48b0a2a3bd825d2c6edee940670",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "01bdf71635c137712247e995ac020d50",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "aefe50e4b0f9948cb439b89f6ce7ba41",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"how-to-continue-the-work-without-claude\">How to continue the work (without Claude)</h2>\n<span class=\"paragraph\">The repo is <code>~/dev/cohezion</code>. Key landed pieces (all cross-verified this session):</span>\n<ul>\n<li><strong>qa_gate</strong> (<code>src/cohezion/compound/qa_gate.py</code>) \u2014 risk-weighted 4-state gate; the QA <em>knot</em>.</li>\n<li><strong>TokenLedger</strong> (<code>src/cohezion/compound/token_ledger.py</code>) \u2014 proves local-vs-cloud spend.</li>\n<li><strong>Cognitive-profile harness</strong> (<code>src/cohezion/eval/cognitive_profile.py</code>, once built) \u2014\n  the AGI-framework scorecard: <code>uv run python scripts/eval/run_cognitive_profile.py</code>.</li>\n<li><strong>Local loop</strong>: <code>make_local_execute_fn</code> \u2192 <code>build_triune_omni_orchestrator</code> (:13305).</li>\n<li><strong>Protocol</strong> + <strong>AGI gap-map</strong> + all research: <code>~/vaults/cohezion-vault/reports/</code>.</li>\n</ul>\n<span class=\"paragraph\"><strong>To drive a real build\u2192verify\u2192refine cycle here:</strong> point the Dev cell at a task, read the\nQA verdict, edit, re-run \u2014 all $0. For the autonomous loop, run\n<code>python ~/cohezion-labs/compound_daemon.py</code> (local) or the LoopCoordinator. The AGI campaign\ntasks (G0 harness \u2192 G3/G5/G7/G9/G10 axes) live in the vault gap-map; each is a bounded,\nlocal-inference-addressable build.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "b7df3e2382c5501796c85a0f9ef28323",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"continue-development-local-inference-no-claude-needed\">Continue Development \u2014 Local Inference (no Claude needed)</h2>\n<span class=\"paragraph\"><strong>The fleet</strong> (lemonade :13305, all $0):\n<code>curl localhost:13305/api/v1/models</code> \u2014 llama3.2-1b-FLM (NPU/fast), Gemma-4-26B-A4B-it-GGUF (reasoning),\nDeepSeek-Qwen3-8B-GGUF, Bonsai-8B-gguf. If down: <code>lemond --port 13305 &amp;</code>.</span>\n<span class=\"paragraph\"><strong>Tools</strong> (in <code>~/dev/cohezion/scripts/</code>, all $0 local):</span>\n<ul>\n<li><code>uv run python scripts/gaia_orchestrator.py \"&lt;task&gt;\"</code> \u2014 BMAD Dev\u2192QA loop; escalates to\n  <code>~/.cohezion/advice_queue.jsonl</code> when stuck.</li>\n<li><code>uv run python scripts/local_research.py &lt;url&gt; [topic]</code> \u2014 research/audit any URL \u2192 vault report.</li>\n<li><code>uv run python scripts/storage_manager.py</code> \u2014 HF cache index (~100 GB reclaimable; manifest at\n  <code>~/.cohezion/storage_manifest.json</code>).</li>\n<li>This notebook \u2014 interactive Dev\u2192QA runner + marimo AI assist.</li>\n</ul>\n<span class=\"paragraph\"><strong>marimo AI assist setup</strong> (so \"Generate with AI\" calls lemonade):</span>\n<ul>\n<li>install <code>pydantic_ai</code></li>\n<li><code>~/.config/marimo/marimo.toml</code>: <code>[ai.custom_providers.lemonade]</code> <code>base_url = \"http://localhost:13305/v1\"</code>;\n  models = <code>lemonade/&lt;model&gt;</code>. (lemonade is its OWN provider; <code>[ai.ollama]</code> is left free for real Ollama.)</li>\n</ul>\n<span class=\"paragraph\"><strong>Next steps toward the AGI-framework goal:</strong></span>\n<ol>\n<li>Re-run the scorecard: <code>uv run python scripts/eval/cognitive_profile_cli.py</code> (11 MET / 1 PARTIAL / 3 BEYOND_REACH).</li>\n<li>Close engineering-addressable axes #10\u201315 (gap-map in <code>~/vaults/cohezion-vault/reports/</code>) via the\n   orchestrator, one at a time, Dev\u2192QA cross-verified (never self-signoff).</li>\n<li>Close the orchestration leak: TokenLedger <code>local_fraction = 0.025</code> \u2014 point the orchestrator at real\n   build tasks so orchestration moves onto local silicon; watch it climb.</li>\n<li>BEYOND_REACH (native vision/audio, broad knowledge, frontier Gf) = substrate-limited \u2014 measure, never fake.</li>\n</ol>\n<span class=\"paragraph\"><strong>Escalate to Claude</strong> (budget resets Fri 5pm): paste <code>~/.cohezion/advice_queue.jsonl</code> + the latest\nscorecard. Full handoff: <code>~/vaults/cohezion-vault/reports/SESSION-HANDOFF-2026-06-30.md</code>.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

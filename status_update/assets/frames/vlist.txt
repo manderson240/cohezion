@@ -1,0 +1,11 @@
+file '01_title.png'
+duration 24.63
+file '02_ladder.png'
+duration 24.63
+file '03_wins.png'
+duration 24.63
+file '04_routing.png'
+duration 24.63
+file '05_closing.png'
+duration 24.63
+file '05_closing.png'

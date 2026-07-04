@@ -49,6 +49,7 @@ class Lane(StrEnum):
     CLOUD_OLLAMA = "cloud_ollama"
     CLOUD_CLAUDE = "cloud_claude"  # headless `claude` CLI
     CLOUD_GEMINI = "cloud_gemini"  # headless `gemini` CLI
+    CLOUD_AGY = "cloud_agy"        # headless `agy` CLI (Google Antigravity 2.0)
 
 
 class Task(StrEnum):
@@ -570,6 +571,46 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             cost_per_1k_output_usd=0.075,
             priority=100,
             notes="Opus 4.7 via headless `claude -p --model opus-4-7`",
+        ),
+        ModelEntry(
+            model_id="claude-opus-4-8",
+            lane=Lane.CLOUD_CLAUDE,
+            endpoint="cli:claude",
+            runtime_backend="",
+            task_affinity=frozenset({Task.REASONING, Task.LONG_HORIZON, Task.ARCHITECT}),
+            weight_quant=WeightQuant.API,
+            context_window=200000,
+            cost_per_1k_input_usd=0.015,
+            cost_per_1k_output_usd=0.075,
+            priority=105,
+            notes="Opus 4.8 via headless `claude -p --model claude-opus-4-8` — skill refinement fallback",
+        ),
+        ModelEntry(
+            model_id="claude-fable-5",
+            lane=Lane.CLOUD_CLAUDE,
+            endpoint="cli:claude",
+            runtime_backend="",
+            task_affinity=frozenset({Task.REASONING, Task.LONG_HORIZON, Task.ARCHITECT, Task.CODE_GEN}),
+            weight_quant=WeightQuant.API,
+            context_window=200000,
+            cost_per_1k_input_usd=0.015,
+            cost_per_1k_output_usd=0.075,
+            priority=110,
+            notes="Fable 5 via headless `claude -p --model claude-fable-5` — frontier adversarial review",
+        ),
+        # --- Headless `agy` CLI (Google Antigravity 2.0) ---
+        ModelEntry(
+            model_id="agy-default",
+            lane=Lane.CLOUD_AGY,
+            endpoint="cli:agy",
+            runtime_backend="",
+            task_affinity=frozenset({Task.REASONING, Task.LONG_HORIZON, Task.CODE_GEN}),
+            weight_quant=WeightQuant.API,
+            context_window=1000000,
+            cost_per_1k_input_usd=0.0,
+            cost_per_1k_output_usd=0.0,
+            priority=108,
+            notes="Google Antigravity 2.0 via headless `agy -p` — frontier peer reviewer",
         ),
         # --- Headless `gemini` CLI ---
         ModelEntry(

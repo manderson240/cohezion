@@ -1,0 +1,55 @@
+{
+  "mcpServers": {
+    "surrealdb": {
+      "command": "/home/mike-anderson/.surrealdb/surreal",
+      "args": [
+        "mcp",
+        "ws://127.0.0.1:8001",
+        "--ns", "cohezion",
+        "--db", "main",
+        "--allow-all"
+      ],
+      "env": {
+        "SURREAL_USER": "root",
+        "SURREAL_PASS": "root"
+      }
+    },
+    "robinhood-trading": {
+      "type": "http",
+      "url": "https://agent.robinhood.com/mcp/trading"
+    },
+    "alpha-vantage": {
+      "type": "http",
+      "url": "https://mcp.alphavantage.co/mcp?apikey=7BGMZ4JLKFK37O4I"
+    },
+    "yfinance": {
+      "command": "uvx",
+      "args": [
+        "yfinance-mcp"
+      ]
+    },
+    "lemonade": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.lemonade_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "LEMONADE_BASE_URL": "http://localhost:13305"
+      }
+    },
+    "kaggle": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.kaggle_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}

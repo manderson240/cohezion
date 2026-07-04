@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-06-10T09:49:47.040548",
+  "endpoint": "http://localhost:13305",
+  "prompt": "Explain the relationship between quantized neural networks and local inference speed in one paragraph.",
+  "results": {
+    "npu": {
+      "model": "gemma3-4b-FLM",
+      "backend": "npu",
+      "ok": true,
+      "content_preview": "Quantized neural networks achieve significantly faster local inference speeds because representing weights and activatio\u2026",
+      "tokens_out": 181,
+      "latency_s": 14.068,
+      "ttft_ms": 14068.4,
+      "tps": 12.87
+    },
+    "igpu": {
+      "model": "Qwen3-0.6B-GGUF",
+      "backend": "igpu",
+      "ok": true,
+      "content_preview": "Okay, let's explain the relationship between quantized neural networks and local inference speed in one paragraph. Okay,\u2026",
+      "tokens_out": 170,
+      "latency_s": 8.551,
+      "ttft_ms": 8550.9,
+      "tps": 19.88
+    },
+    "cpu": {
+      "model": "Qwen3-0.6B-GGUF",
+      "backend": "cpu",
+      "ok": true,
+      "content_preview": "Okay, I am a language model, and I don't have to think of anything new. Okay, so I'll explain the relationship between n\u2026",
+      "tokens_out": 139,
+      "latency_s": 8.547,
+      "ttft_ms": 8547.1,
+      "tps": 16.26
+    }
+  }
+}

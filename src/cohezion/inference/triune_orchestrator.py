@@ -92,8 +92,17 @@ def build_reasoning_orchestrator(
 
     Tiers:
     0. NPU reasoning: deepseek-r1-0528-8b-FLM (:13305, 10.6 TPS, XDNA2 FLM)
-    1. iGPU synthesis: Gemma-4-E4B-it-GGUF (:13305, RDNA3.5)
-    2. CPU completion: Gemma-4-31B-it-GGUF (:13305, AVX-512)
+    1. iGPU synthesis: Gemma-4-E4B-it-GGUF (:13305, RDNA3.5, Vulkan, min_chars=200)
+    2. CPU completion: Gemma-4-E4B-it-GGUF (:13305, TRUST gate — fallback or JEPA REROUTE path)
+
+    Note: all models use Vulkan (unified memory) on Strix Halo — there is no physical CPU
+    tier. "CPU" here means the heavier fallback in quality order. Gemma-4-31B-it-GGUF is
+    excluded because it is too slow on this hardware for compound loop cadence (>236s per
+    request) and blocks other Vulkan models during generation. Bonsai-8B gives equivalent
+    code-analysis quality at 4x lower latency (<60s).
+
+    iGPU quality gate is min_chars=200 (was 1000). The old threshold forced every concise
+    correct answer (~200-500 chars) to escalate to the CPU tier unnecessarily.
     """
     base_url = f"http://localhost:{omni_port}/api/v1"
 
@@ -109,17 +118,22 @@ def build_reasoning_orchestrator(
         max_tokens=2048,
         silent=True,
     )
+    # Tier 2: E4B again with TRUST gate. Bonsai-8B-gguf returns "No model loaded" 500s
+    # (async load race in OmniRouter backend). E4B is confirmed resident and fast (<15s).
+    # Duplicating E4B at tier 2 provides a TRUST fallback for JEPA REROUTE escalations
+    # (2026-07-02: Beta(2,2) prior in LemonadeWorldModel smooths raw 0.010→0.470 → still
+    # REROUTE but min_tier_index=1 now, not 2). Both tier 1 and 2 are E4B — no regression.
     cpu_completion = build_gaia_llm_tier(
-        model_id="Gemma-4-31B-it-GGUF",
+        model_id="Gemma-4-E4B-it-GGUF",
         base_url=base_url,
-        max_tokens=4096,
+        max_tokens=2048,
         silent=True,
     )
 
     return TieredOrchestrator(
         tiers=[
             (npu_reasoning, QualityGate(min_chars=100)),
-            (igpu_synthesis, QualityGate(min_chars=1000)),
+            (igpu_synthesis, QualityGate(min_chars=200)),
             (cpu_completion, QualityGate.TRUST),
         ]
     )

@@ -28,7 +28,7 @@ class _TierRecord:
 _TIER_ORDER = ("npu", "igpu", "cpu")
 _QUALITY_FLOOR = 0.6
 _SUCCESS_RATE_THRESHOLD = 0.7
-_MIN_SAMPLES = 2
+_MIN_SAMPLES = 5  # competitive analysis lower bound: MTF potential needs O(n) ops to stabilize
 # H3 fix (supersedes the _MIN_TIER_FREQUENCY guard, which mis-rejected balanced 3-way splits):
 # adequacy = the Wilson LOWER confidence bound of a tier's clean-success rate clears this floor.
 # Pessimistic-for-commitment (conservative bandit / UCB1, Auer 2002): a rare lucky cheap tier (2/2)

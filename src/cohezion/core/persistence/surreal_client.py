@@ -372,10 +372,12 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return True
         except InsecureSurrealCredentialsError:
             # Do NOT fall back to InMemoryStore on an insecure-credentials refusal — that
-            # would mask the misconfiguration. Surface the error loudly and refuse to proceed.
+            # would mask the misconfiguration. Re-raise so callers can degrade gracefully.
+            # Log at INFO (not ERROR): callers like experience_collector treat this as an
+            # optional tier skip, so ERROR is misleading noise in dev environments.
             breaker.record_failure()
-            logger.error(
-                "❌ SurrealDB refused: insecure credentials — see InsecureSurrealCredentialsError above."
+            logger.info(
+                "SurrealDB skipped: insecure credentials (configure root password to enable)"
             )
             raise
         except Exception as e:

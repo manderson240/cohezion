@@ -1,0 +1,12 @@
+{
+  "trace_id": "1d167487-513",
+  "prompt_digest": "be75ce1d216fa3da",
+  "source": "swarm",
+  "node_id": "lemonade:npu",
+  "model": "Gemma-4-E2B-it-GGUF",
+  "quality_score": 0.9,
+  "latency_ms": 7104.830830001447,
+  "complexity": 0.025700000000000004,
+  "phi_score": 0.19999999999999996,
+  "timestamp": 1781037363.6387253
+}

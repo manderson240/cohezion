@@ -376,6 +376,7 @@ See skill: `cohezion-worktree-workflow` — covers session scripts (start/end/li
 | `src/cohezion/data_mesh/data_product.py` | **DATA MESH** | Typed data products with SLA for 17+ MCP servers. Dehghani (2022) |
 | `src/web/anima_dashboard/src/a2ui/` | **A2UI CATALOG** | 9 declarative components + experience scripts. Google A2UI v0.9 (Apache 2.0) |
 | `src/cohezion/api/agui_events.py` | **AG-UI EVENTS** | 15+ typed SSE event types. CopilotKit AG-UI (Apache 2.0) |
+| `docs/vmodel-recommendations.html` | **V-MODEL STANDARD** | Governing standard for all compound engineering — 5 open items (2 P0, 2 P1, 1 P2) with explicit BUILD/VERIFY criteria. Adopted 2026-07-02. |
 
 ## Agent Journey Tracking & Request Alignment
 

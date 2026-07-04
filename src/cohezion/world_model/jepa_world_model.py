@@ -202,6 +202,7 @@ class JEPAWorldModel:
         sigreg_weight: float = 0.1,
         regularizer_lambda: float = 0.1,
         causal_mask_ratio: float = 0.3,
+        use_natural_gradient: bool = True,
     ) -> None:
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -209,6 +210,11 @@ class JEPAWorldModel:
         self.sigreg_weight = sigreg_weight
         self.regularizer_lambda = regularizer_lambda
         self.causal_mask_ratio = causal_mask_ratio
+        # Amari (1998) natural gradient: precondition encoder gradients using diagonal
+        # Fisher from the encoder's own output distribution (precision = exp(-logvar)).
+        # High-precision latent dims (low variance) carry more Fisher information and
+        # get amplified — coordinate-invariant steepest descent on the statistical manifold.
+        self.use_natural_gradient = use_natural_gradient
 
         self.encoder = ManifoldEncoder(state_dim, embed_dim)
         self.action_encoder = ActionEncoder(action_dim, embed_dim)
@@ -280,6 +286,34 @@ class JEPAWorldModel:
         kl = -0.5 * torch.sum(1.0 + logvar - mu.pow(2) - logvar.exp())
         return kl / mu.size(0)
 
+    def _apply_natural_gradient(self, logvar: torch.Tensor) -> float:
+        """Precondition encoder.mu_head gradients using the diagonal Fisher metric.
+
+        For Gaussian encoder q(z|x) = N(mu, exp(logvar)), the Fisher metric in
+        latent space is the precision matrix F_z = diag(exp(-logvar)).
+        Applying exp(-logvar) to mu_head gradients steers parameter updates toward
+        latent directions with higher information density (Amari 1998, natural gradient).
+
+        Normalized to unit-mean precision so the effective learning rate is preserved.
+        Returns the mean precision (1.0 = uniform logvar = no net preconditioning effect).
+        """
+        with torch.no_grad():
+            # Batch-averaged diagonal precision: (embed_dim,)
+            precision = torch.exp(-logvar).mean(dim=0)
+            # Normalize: unit-mean so learning rate scale is preserved
+            precision_norm = precision / (precision.mean() + 1e-8)
+
+            if self.encoder.mu_head.weight.grad is not None:
+                # weight: (embed_dim, hidden_dim) — broadcast precision over hidden_dim
+                self.encoder.mu_head.weight.grad.mul_(precision_norm.unsqueeze(1))
+            if (
+                self.encoder.mu_head.bias is not None
+                and self.encoder.mu_head.bias.grad is not None
+            ):
+                self.encoder.mu_head.bias.grad.mul_(precision_norm)
+
+        return float(precision_norm.mean().item())
+
     def train_step(
         self,
         states: torch.Tensor,
@@ -321,6 +355,12 @@ class JEPAWorldModel:
 
         self.optimizer.zero_grad()
         total_loss.backward()
+
+        # Amari natural gradient: precondition encoder gradients using diagonal Fisher
+        fisher_precision_mean = 1.0
+        if self.use_natural_gradient:
+            fisher_precision_mean = self._apply_natural_gradient(logvar)
+
         self.optimizer.step()
 
         return {
@@ -328,6 +368,7 @@ class JEPAWorldModel:
             "sigreg_loss": float(sigreg_loss.item()),
             "regularizer_loss": float(regularizer_loss.item()),
             "total_loss": float(total_loss.item()),
+            "fisher_precision_mean": fisher_precision_mean,
         }
 
     def train_epoch(
@@ -353,6 +394,7 @@ class JEPAWorldModel:
             "sigreg_loss": 0.0,
             "regularizer_loss": 0.0,
             "total_loss": 0.0,
+            "fisher_precision_mean": 0.0,
         }
         n_batches = 0
 

@@ -21,3 +21,8 @@ with contextlib.suppress(Exception):
     from cohezion.compound.executor_helpers.vault_integration import (
         fetch_experience_guidance as fetch_experience_guidance,
     )
+
+with contextlib.suppress(Exception):
+    from cohezion.compound.executor_helpers.refinement_reader import (
+        load_refined_guidance as load_refined_guidance,
+    )

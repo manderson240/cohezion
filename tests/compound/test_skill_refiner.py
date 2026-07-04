@@ -6,6 +6,7 @@ from cohezion.compound.skill_refiner import (
     EnvironmentResponsePredictor,
     ExecutionMetrics,
     LearningSignal,
+    ShadowCanaryValidator,
     SkillRefiner,
     SkillRefinerFactory,
 )
@@ -901,3 +902,704 @@ class TestSessionGoal:
         assert "quality" in sr._session_goal.get("target_metric", ""), (
             f"Auto goal should target quality_score. Got: {sr._session_goal}"
         )
+
+
+class TestShadowCanaryValidator:
+    """Tests for ShadowCanaryValidator rolling-window quality gate.
+
+    SC1: structural — class, fields, defaults
+    SC2: pass case — candidate quality >= baseline - threshold
+    SC3: block case — candidate quality regresses beyond threshold (discriminating)
+    SC4: fail-open — no history means always pass
+    SC5: wiring structural — _shadow_canary present in SkillRefiner
+    SC6: wiring behavioral — record() called in _generate_learning_signal
+    """
+
+    def test_sc1_structural_fields(self):
+        """SC1: ShadowCanaryValidator has required interface with correct defaults."""
+        sv = ShadowCanaryValidator()
+        assert hasattr(sv, "_history")
+        assert isinstance(sv._history, dict)
+        assert sv._window_size == 20
+        assert sv._regression_threshold == 0.05
+
+    def test_sc1_custom_params(self):
+        """SC1: constructor params accepted and stored."""
+        sv = ShadowCanaryValidator(window_size=10, regression_threshold=0.1)
+        assert sv._window_size == 10
+        assert sv._regression_threshold == 0.1
+
+    def test_sc2_pass_case_well_above_threshold(self):
+        """SC2: validate passes when candidate quality is clearly >= baseline - threshold.
+
+        A wrong implementation (blocking all changes) would fail here.
+        """
+        sv = ShadowCanaryValidator(regression_threshold=0.05)
+        for q in [0.80, 0.82, 0.79]:
+            sv.record("skill_a", q)
+        # baseline median ≈ 0.80; candidate=0.78 → regression=0.02 < 0.05 → should pass
+        ok, reason = sv.validate("skill_a", [0.78])
+        assert ok is True, f"Expected pass for candidate 0.78 vs baseline ~0.80, got: {reason}"
+
+    def test_sc3_block_case_clear_regression(self):
+        """SC3 discriminating: validate blocks when candidate clearly regresses.
+
+        A wrong implementation (never blocking) would fail this test.
+        """
+        sv = ShadowCanaryValidator(regression_threshold=0.05)
+        for q in [0.80, 0.82, 0.79]:
+            sv.record("skill_b", q)
+        # baseline median ≈ 0.80; candidate=0.60 → regression=0.20 > 0.05 → must block
+        ok, reason = sv.validate("skill_b", [0.60])
+        assert ok is False, "Expected block for candidate 0.60 vs baseline ~0.80, got ok=True"
+        assert "regression" in reason.lower(), f"Reason should describe regression: {reason}"
+        assert "0.60" in reason or "0.6" in reason, f"Reason should cite candidate score: {reason}"
+
+    def test_sc4_fail_open_no_history(self):
+        """SC4: validate fails open when skill has no recorded history.
+
+        A wrong implementation (blocking unknown skills) would fail here.
+        """
+        sv = ShadowCanaryValidator()
+        ok, reason = sv.validate("brand_new_skill", [0.1])  # terrible score, still passes
+        assert ok is True, f"Must fail open with no history, got ok=False reason={reason}"
+        assert "no_baseline" in reason
+
+    def test_sc4_fail_open_empty_candidate_scores(self):
+        """SC4: validate fails open when candidate_scores is empty."""
+        sv = ShadowCanaryValidator()
+        sv.record("skill_c", 0.9)
+        ok, reason = sv.validate("skill_c", [])
+        assert ok is True, "Must fail open with empty candidate, got ok=False"
+
+    def test_sc5_wiring_in_skill_refiner(self):
+        """SC5: SkillRefiner has _shadow_canary as ShadowCanaryValidator instance."""
+        sr = SkillRefiner()
+        assert hasattr(sr, "_shadow_canary"), "SkillRefiner missing _shadow_canary"
+        assert isinstance(sr._shadow_canary, ShadowCanaryValidator), (
+            f"Expected ShadowCanaryValidator, got {type(sr._shadow_canary).__name__}"
+        )
+
+    def test_sc6_record_wired_in_generate_learning_signal(self):
+        """SC6 structural: _generate_learning_signal() calls _shadow_canary.record().
+
+        A wrong implementation (leaving record() unwired) would fail this structural check.
+        """
+        import inspect
+
+        sr = SkillRefiner()
+        src = inspect.getsource(sr._generate_learning_signal)
+        assert "_shadow_canary.record" in src, (
+            "_generate_learning_signal must call _shadow_canary.record() to build baseline"
+        )
+
+    def test_sc6_validate_wired_in_refine(self):
+        """SC6 structural: refine() calls _shadow_canary.validate() before PRIME write."""
+        import inspect
+
+        sr = SkillRefiner()
+        src = inspect.getsource(sr.refine)
+        assert "_shadow_canary.validate" in src, (
+            "refine() must call _shadow_canary.validate() before _append_refinement"
+        )
+        assert "shadow_canary" in src, "refine() must block on shadow_canary failure"
+
+    def test_sc3_regression_is_directional(self):
+        """SC3 discriminating: improvements (candidate > baseline) always pass.
+
+        A wrong implementation checking absolute deviation would incorrectly block improvements.
+        """
+        sv = ShadowCanaryValidator(regression_threshold=0.05)
+        for q in [0.50, 0.52, 0.49]:
+            sv.record("skill_d", q)
+        # baseline ≈ 0.50; candidate=0.90 → quality improved massively → must NOT block
+        ok, reason = sv.validate("skill_d", [0.90])
+        assert ok is True, f"Improvements should never be blocked: got ok=False reason={reason}"
+
+
+# --------------------------------------------------------------------------- #
+# AR (Adversarial Review Gate) invariants — AR1/AR2/AR3/AR4
+# --------------------------------------------------------------------------- #
+
+
+def _make_signal() -> LearningSignal:
+    return LearningSignal(
+        skill_name="test-skill",
+        operation_type="generate",
+        key_insight="cache hit rate improved by 12%",
+        metric_change="cache_hit_rate: 0.71 → 0.83",
+        recommendation="Increase L2 threshold to 0.58 for nomic-embed",
+        confidence=0.82,
+    )
+
+
+def _make_metrics() -> ExecutionMetrics:
+    return ExecutionMetrics(
+        success=True,
+        duration_seconds=1.2,
+        tokens_used=120,
+        token_efficiency=100.0,
+        quality_score=0.82,
+        anomaly_score=0.1,
+        cached_hits=3,
+    )
+
+
+class TestAdversarialReviewGate:
+    """AR1–AR4: adversarial gate signature, blocking, approval, and fail-open contracts."""
+
+    def test_ar1_structural_method_exists_and_accepts_required_args(self):
+        """AR1: _adversarial_review_gate(signal, skill_name, metrics) must exist.
+
+        A structural check that fires BEFORE behavioral tests — if the method
+        signature changes, this gives a clear invariant name rather than a TypeError.
+        """
+        import inspect
+
+        sr = SkillRefiner()
+        params = inspect.signature(sr._adversarial_review_gate).parameters
+        assert "signal" in params, "signal param missing"
+        assert "skill_name" in params, "skill_name param missing"
+        assert "metrics" in params, "metrics param missing"
+
+    def test_ar2_three_rejects_blocks_gate(self):
+        """AR2 (discriminating): chat_fn returning 'REJECT' for ALL 3 personas → gate blocks.
+
+        This is the discriminating case. A wrong implementation that always
+        returned True (always-APPROVE bug) would fail here.
+        """
+        sr = SkillRefiner()
+        sr._adversarial_chat_fn = lambda _p: "REJECT bad idea"
+
+        result = sr._adversarial_review_gate(_make_signal(), "test-skill", _make_metrics())
+        assert result is False, "3/3 REJECT must block the gate (use_frontier=False)"
+
+    def test_ar3_three_approves_passes_gate(self):
+        """AR3: chat_fn returning 'APPROVE' for all 3 → gate passes."""
+        sr = SkillRefiner()
+        sr._adversarial_chat_fn = lambda _p: "APPROVE looks good"
+
+        result = sr._adversarial_review_gate(_make_signal(), "test-skill", _make_metrics())
+        assert result is True, "3/3 APPROVE must pass the gate"
+
+    def test_ar3_two_approves_one_reject_passes(self):
+        """2/3 APPROVE is sufficient threshold."""
+        call_count = [0]
+
+        def chat_fn(p: str) -> str:
+            call_count[0] += 1
+            return "REJECT" if call_count[0] == 1 else "APPROVE ok"
+
+        sr = SkillRefiner()
+        sr._adversarial_chat_fn = chat_fn
+        result = sr._adversarial_review_gate(_make_signal(), "test-skill", _make_metrics())
+        assert result is True, "2/3 APPROVE is enough to pass"
+
+    def test_ar4_exception_in_chat_fn_counts_as_approve_fail_open(self):
+        """AR4 (fail-open): each perspective exception counts as APPROVE.
+
+        An unavailable LLM endpoint must never permanently block the compound loop.
+        """
+
+        def failing_chat_fn(p: str) -> str:
+            raise ConnectionError("LLM offline")
+
+        sr = SkillRefiner()
+        sr._adversarial_chat_fn = failing_chat_fn
+        result = sr._adversarial_review_gate(_make_signal(), "test-skill", _make_metrics())
+        assert result is True, "Transport failures must fail-open (count as APPROVE)"
+
+    def test_ar2_frontier_chat_fn_injected_before_review(self):
+        """AR2 structural: chat_fn field exists and starts as None (lazy-build)."""
+        sr = SkillRefiner()
+        assert hasattr(sr, "_adversarial_chat_fn"), "_adversarial_chat_fn field missing"
+        assert sr._adversarial_chat_fn is None, "field must start None (lazy-built on first call)"
+
+
+class TestRegimeAwareAutodata:
+    """RA1-RA4: Regime-aware autodata selection (2026-07-04).
+
+    CompoundHealthOracle reports a FD regime (STUCK/HIHO/CHAOTIC). _autodata_select()
+    uses regime multipliers from _REGIME_EXPERT_WEIGHT to bias candidate selection:
+    - STUCK (FD<1.3): boost quality/efficiency/trajectory (exploration), suppress tier/caching
+    - CHAOTIC (FD>1.7): boost tier/caching (stability), suppress quality/efficiency
+    - None/HIHO: no bias (all weights 1.0)
+
+    The three candidates below are crafted so:
+      quality_cand and tier_cand share "quality" and "performance" (2 shared keywords),
+      tier_cand and extra_cand share "hardware", "routing", and "performance" (3 shared keywords).
+      Result: tier_cand has overlap=5, quality_cand has overlap=3, extra_cand has overlap=4
+              (with regime=None, tier_cand wins; with STUCK, quality_cand wins → regime overrides)
+    """
+
+    # Crafted candidates where shared keywords are known exactly (words > 3 chars counted)
+    QUALITY_CAND = "optimize prime skill guidance quality output performance"
+    TIER_CAND = "specify tier routing escalation quality performance hardware"
+    EXTRA_CAND = "hardware routing performance configuration setup"
+
+    def _make_metrics(self, **kwargs) -> ExecutionMetrics:
+        defaults = dict(
+            success=True,
+            duration_seconds=1.0,
+            tokens_used=100,
+            token_efficiency=300.0,
+            quality_score=0.7,
+            anomaly_score=0.3,
+            cached_hits=0,
+            tier_used="npu",
+            escalation_count=1,
+        )
+        defaults.update(kwargs)
+        return ExecutionMetrics(**defaults)
+
+    def _sr_with_map(self) -> SkillRefiner:
+        sr = SkillRefiner()
+        # Pre-register expert identities for the three candidates
+        sr._candidate_expert_map = {
+            self.QUALITY_CAND: "quality",
+            self.TIER_CAND: "tier",
+            self.EXTRA_CAND: "caching",
+        }
+        return sr
+
+    def test_ra1_regime_parameter_in_autodata_select_signature(self):
+        """RA1 structural: _autodata_select() accepts 'regime' kwarg.
+
+        A wrong impl (3-arg only) would raise TypeError. If it raises, the
+        regime is never applied — the entire RA system is dead code.
+        """
+        import inspect
+
+        params = inspect.signature(SkillRefiner._autodata_select).parameters
+        assert "regime" in params, "'regime' missing from _autodata_select signature"
+
+    def test_ra2_stuck_regime_overrides_overlap_ordering(self):
+        """RA2 discriminating: STUCK regime boosts quality expert (1.6×) over tier (0.6×).
+
+        With regime=None, tier_cand wins (overlap=5 > quality_cand overlap=3).
+        With regime='stuck', quality wins: 3 * 1.6 = 4.8 > 5 * 0.6 = 3.0.
+
+        Wrong impl (ignoring regime, or applying to wrong expert) keeps tier_cand winning.
+        """
+        sr = self._sr_with_map()
+        metrics = self._make_metrics()
+        candidates = [self.QUALITY_CAND, self.TIER_CAND, self.EXTRA_CAND]
+
+        # Verify baseline: without regime, tier_cand wins due to higher overlap
+        no_regime_result = sr._autodata_select(candidates, metrics, regime=None)
+        assert no_regime_result == self.TIER_CAND, (
+            f"Baseline broken: expected tier_cand to win without regime, got {no_regime_result!r}"
+        )
+
+        # With STUCK: quality regime_weight=1.6 must flip the winner
+        stuck_result = sr._autodata_select(candidates, metrics, regime="stuck")
+        assert stuck_result == self.QUALITY_CAND, (
+            f"STUCK regime must boost quality expert over tier; got {stuck_result!r}"
+        )
+
+    def test_ra3_chaotic_regime_boosts_tier_expert(self):
+        """RA3 discriminating: CHAOTIC regime boosts tier expert (1.8×) over quality (0.6×).
+
+        Starting from STUCK (quality wins at 4.8), CHAOTIC must flip to tier:
+        tier_cand: 5 * 1.8 = 9.0 >> quality_cand: 3 * 0.6 = 1.8.
+
+        Wrong impl (applying STUCK multipliers for CHAOTIC) would keep quality winning.
+        """
+        sr = self._sr_with_map()
+        metrics = self._make_metrics()
+        candidates = [self.QUALITY_CAND, self.TIER_CAND, self.EXTRA_CAND]
+
+        chaotic_result = sr._autodata_select(candidates, metrics, regime="chaotic")
+        assert chaotic_result == self.TIER_CAND, (
+            f"CHAOTIC regime must boost tier expert; got {chaotic_result!r}"
+        )
+
+    def test_ra4_unknown_regime_treated_as_neutral(self):
+        """RA4: regime values outside stuck/chaotic (e.g. 'hiho', None) apply no multiplier.
+
+        The guard `if regime in ('stuck', 'chaotic')` handles this. An impl that branches
+        on 'hiho' without the guard would incorrectly apply 1.0 multipliers (no-op) or crash.
+        Both None and 'hiho' must produce the same result (tier_cand wins by raw overlap).
+
+        Note: uses separate fresh SkillRefiner instances per call so the RV2 frequency
+        penalty (_autodata_wins counter) does not carry over between regime-neutrality checks.
+        """
+        metrics = self._make_metrics()
+        candidates = [self.QUALITY_CAND, self.TIER_CAND, self.EXTRA_CAND]
+
+        none_result = self._sr_with_map()._autodata_select(candidates, metrics, regime=None)
+        hiho_result = self._sr_with_map()._autodata_select(candidates, metrics, regime="hiho")
+        assert none_result == hiho_result == self.TIER_CAND, (
+            f"Both None and 'hiho' must use raw overlap (tier wins); "
+            f"none={none_result!r}, hiho={hiho_result!r}"
+        )
+
+
+class TestRegimeConditionedCanary:
+    """RC1-RC3: regime-conditioned ShadowCanaryValidator threshold.
+
+    STUCK (FD<1.3):  effective_threshold = base × 1.5 — loosen gate for experimental updates.
+    CHAOTIC (FD>1.7): effective_threshold = base × 0.5 — tighten gate during quality oscillation.
+    None/hiho:        effective_threshold = base × 1.0 — unchanged.
+    """
+
+    _SKILL = "test_rc_skill"
+    _BASE = 0.05  # matches ShadowCanaryValidator default
+
+    def _build_canary_with_baseline(self, baseline: float, n: int = 10) -> ShadowCanaryValidator:
+        """Return a canary with `n` baseline records at `baseline` quality."""
+        canary = ShadowCanaryValidator(window_size=20, regression_threshold=self._BASE)
+        for _ in range(n):
+            canary.record(self._SKILL, baseline)
+        return canary
+
+    def test_rc1_regime_parameter_in_validate_signature(self):
+        """RC1: validate() must accept a `regime` kwarg (structural)."""
+        import inspect
+
+        sig = inspect.signature(ShadowCanaryValidator.validate)
+        assert "regime" in sig.parameters, (
+            "ShadowCanaryValidator.validate() must accept 'regime' kwarg for RC1"
+        )
+
+    def test_rc2_stuck_loosens_gate_borderline_regression_passes(self):
+        """RC2: STUCK regime raises effective_threshold; a borderline regression passes.
+
+        Baseline median = 0.80. Candidate = 0.74 → regression = 0.06.
+        Default threshold = 0.05 → blocks (0.06 > 0.05).
+        STUCK multiplier = 1.5 → effective = 0.075 → passes (0.06 < 0.075).
+
+        A wrong implementation (ignoring regime) blocks this candidate.
+        """
+        canary = self._build_canary_with_baseline(0.80)
+        candidate = 0.74  # regression 0.06 — above base but below stuck threshold
+
+        ok_default, reason_default = canary.validate(self._SKILL, [candidate], regime=None)
+        ok_stuck, reason_stuck = canary.validate(self._SKILL, [candidate], regime="stuck")
+
+        assert not ok_default, (
+            f"Default (regime=None) should block a 0.06 regression against threshold 0.05; "
+            f"got ok=True, reason={reason_default!r}"
+        )
+        assert ok_stuck, (
+            f"STUCK regime should loosen threshold to 0.075 and pass the 0.06 regression; "
+            f"got ok=False, reason={reason_stuck!r}"
+        )
+
+    def test_rc3_chaotic_tightens_gate_borderline_regression_blocks(self):
+        """RC3: CHAOTIC regime lowers effective_threshold; a normally-passing regression blocks.
+
+        Baseline median = 0.80. Candidate = 0.77 → regression = 0.03.
+        Default threshold = 0.05 → passes (0.03 < 0.05).
+        CHAOTIC multiplier = 0.5 → effective = 0.025 → blocks (0.03 > 0.025).
+
+        A wrong implementation (ignoring regime) passes this candidate.
+        """
+        canary = self._build_canary_with_baseline(0.80)
+        candidate = 0.77  # regression 0.03 — below base but above chaotic threshold
+
+        ok_default, _ = canary.validate(self._SKILL, [candidate], regime=None)
+        ok_chaotic, reason_chaotic = canary.validate(self._SKILL, [candidate], regime="chaotic")
+
+        assert ok_default, (
+            "Default (regime=None) should pass a 0.03 regression against threshold 0.05"
+        )
+        assert not ok_chaotic, (
+            f"CHAOTIC regime should tighten threshold to 0.025 and block the 0.03 regression; "
+            f"got ok=True, reason={reason_chaotic!r}"
+        )
+
+    def test_rc_hiho_and_none_unchanged(self):
+        """hiho regime and None both leave the threshold unmodified (neutral multiplier 1.0)."""
+        canary = self._build_canary_with_baseline(0.80)
+        candidate = 0.77  # 0.03 regression — just under default 0.05 threshold
+
+        ok_none, _ = canary.validate(self._SKILL, [candidate], regime=None)
+        ok_hiho, _ = canary.validate(self._SKILL, [candidate], regime="hiho")
+
+        assert ok_none == ok_hiho, (
+            f"None and 'hiho' should produce identical outcomes; none={ok_none}, hiho={ok_hiho}"
+        )
+        assert ok_none, "0.03 regression < 0.05 threshold should pass in HIHO/neutral mode"
+
+
+class TestRQGMEpochBoundaryUpdate:
+    """RQGM1-RQGM2: Red Queen Gödel Machine goal epoch rotation.
+
+    Source: arXiv 2606.26294 — co-evolving goal objectives prevent static-evaluator stagnation.
+    Epoch 0: existing metrics-driven heuristic (backward-compatible).
+    Epoch 1+: rotates through quality_score / escalation_count / token_efficiency.
+    """
+
+    _SKILL = "rqgm_test_skill"
+
+    def _low_q_metrics(self):
+        return ExecutionMetrics(
+            success=True,
+            duration_seconds=1.0,
+            tokens_used=100,
+            token_efficiency=100.0,
+            quality_score=0.3,
+            anomaly_score=0.5,
+            cached_hits=0,
+        )
+
+    def _high_q_metrics(self):
+        return ExecutionMetrics(
+            success=True,
+            duration_seconds=1.0,
+            tokens_used=100,
+            token_efficiency=100.0,
+            quality_score=0.9,
+            anomaly_score=0.1,
+            cached_hits=0,
+        )
+
+    def test_rqgm1_t1_epoch_fields_exist_with_zero_defaults(self):
+        """RQGM1 T1 structural: _goal_epoch and _goal_consecutive_hits start at 0."""
+        sr = SkillRefiner()
+        assert hasattr(sr, "_goal_epoch"), "SkillRefiner must have '_goal_epoch' field"
+        assert hasattr(sr, "_goal_consecutive_hits"), (
+            "SkillRefiner must have '_goal_consecutive_hits' field"
+        )
+        assert sr._goal_epoch == 0, f"_goal_epoch must start at 0; got {sr._goal_epoch}"
+        assert sr._goal_consecutive_hits == 0, (
+            f"_goal_consecutive_hits must start at 0; got {sr._goal_consecutive_hits}"
+        )
+
+    def test_rqgm2_t2_discriminating_epoch_advances_after_threshold(self):
+        """RQGM2 T2 discriminating: after 5 (default threshold) calls, _goal_epoch advances to 1.
+
+        Wrong impl (ignoring epoch) would leave _goal_epoch at 0 → FAILS assertion.
+        """
+        sr = SkillRefiner()
+        metrics = self._low_q_metrics()
+        for _ in range(sr._goal_auto_threshold):
+            sr._auto_update_goal(self._SKILL, metrics)
+        assert sr._goal_epoch == 1, (
+            f"After {sr._goal_auto_threshold} calls _goal_epoch must be 1; got {sr._goal_epoch}"
+        )
+        assert sr._goal_consecutive_hits == 0, (
+            "_goal_consecutive_hits must reset to 0 on each epoch advance"
+        )
+
+    def test_rqgm2_t2_discriminating_second_goal_differs_from_first(self):
+        """RQGM2 T2: second epoch goal target must differ from the first (rotation fires).
+
+        After threshold calls → epoch 0 heuristic sets goal (e.g. quality_score).
+        After another threshold calls → epoch 1 rotates to quality_score[0] in the list
+        (same slot), but epoch 2 would rotate to escalation_count.  We force 15 total
+        calls so epoch goes 0→1→2 and compare the epoch-1 and epoch-2 targets.
+        """
+        sr = SkillRefiner()
+        metrics = self._low_q_metrics()
+        threshold = sr._goal_auto_threshold  # typically 5
+
+        # Fire epoch 0 → epoch 1 (first fire sets epoch 0 heuristic result)
+        for _ in range(threshold):
+            sr._auto_update_goal(self._SKILL, metrics)
+        first_goal = sr._session_goal.copy() if sr._session_goal else {}
+
+        # Fire epoch 1 → epoch 2 (second fire uses RQGM rotation)
+        for _ in range(threshold):
+            sr._auto_update_goal(self._SKILL, metrics)
+        second_goal = sr._session_goal.copy() if sr._session_goal else {}
+
+        # Epoch 1: rotation index = 1 % 3 = 1 → "escalation_count"
+        # Epoch 0 (heuristic): quality < 0.5 → "quality_score"
+        # So the targets should differ across the two firings.
+        assert second_goal.get("target_metric") != first_goal.get("target_metric"), (
+            f"Epoch-boundary rotation must change target_metric; "
+            f"first={first_goal.get('target_metric')!r}, "
+            f"second={second_goal.get('target_metric')!r}"
+        )
+
+
+class TestRiVERFrequencyWeighting:
+    """RV2: RiVER frequency penalty in _autodata_select() prevents perspective lock.
+
+    Source: arXiv:2606.27369 — 1/(1+wins) discount prevents one candidate from
+    monopolizing selection across repeated calls.
+    """
+
+    QUALITY_CAND = "optimize prime skill guidance quality output performance"
+    TIER_CAND = "specify tier routing escalation quality performance hardware"
+    EXTRA_CAND = "hardware routing performance configuration setup"
+
+    def _make_sr(self) -> SkillRefiner:
+        sr = SkillRefiner()
+        sr._candidate_expert_map = {
+            self.QUALITY_CAND: "quality",
+            self.TIER_CAND: "tier",
+            self.EXTRA_CAND: "caching",
+        }
+        return sr
+
+    def _make_metrics(self):
+        return ExecutionMetrics(
+            success=True,
+            duration_seconds=1.0,
+            tokens_used=100,
+            token_efficiency=300.0,
+            quality_score=0.7,
+            anomaly_score=0.3,
+            cached_hits=0,
+        )
+
+    def test_rv2_t1_autodata_wins_initialized_empty(self):
+        """RV2 T1 structural: SkillRefiner()._autodata_wins starts as an empty dict."""
+        sr = SkillRefiner()
+        assert hasattr(sr, "_autodata_wins"), "SkillRefiner must have '_autodata_wins'"
+        assert sr._autodata_wins == {}, f"_autodata_wins must start empty; got {sr._autodata_wins}"
+
+    def test_rv2_t2_repeated_winner_gets_lower_score_on_next_call(self):
+        """RV2 T2 discriminating: after 20 rounds, at least 2 distinct winners appear.
+
+        Without the frequency penalty, tier_cand would win every round (highest overlap = 5).
+        With 1/(1+wins) decay, after enough rounds the penalty drops tier_cand's effective
+        score below quality_cand (overlap=3, wins=0 → no penalty), so quality_cand overtakes.
+
+        Wrong impl (no frequency penalty) returns only tier_cand → len(set(winners)) == 1 → FAILS.
+        """
+        sr = self._make_sr()
+        metrics = self._make_metrics()
+        candidates = [self.QUALITY_CAND, self.TIER_CAND, self.EXTRA_CAND]
+
+        winners = []
+        for _ in range(20):
+            winners.append(sr._autodata_select(candidates, metrics))
+
+        unique_winners = set(winners)
+        assert len(unique_winners) > 1, (
+            f"Frequency penalty must enable at least 2 distinct winners over 20 rounds; "
+            f"got only: {unique_winners}"
+        )
+
+
+class TestSkillRefinerDurableSpine:
+    """SRS1-SRS3: to_dict/from_dict/save_state/restore_state cross-session serialization.
+
+    Pattern mirrors CB7 (DegradationDetector) and HO3 (CompoundHealthOracle).
+    All state is JSON-safe; no deques, tuples, or Path objects in the payload.
+    """
+
+    _SKILL = "srs_test_skill"
+    _OP = "srs_test_op"
+    _ERP_KEY = f"{_SKILL}::{_OP}"
+
+    def _primed_refiner(self) -> SkillRefiner:
+        """Return a SkillRefiner with non-default state on every tracked field."""
+        sr = SkillRefiner()
+        sr._goal_epoch = 3
+        sr._goal_consecutive_hits = 7
+        sr._session_goal = {"objective": "rqgm-test", "target_metric": "escalation_count"}
+        sr._goal_call_tally = {self._SKILL: 4}
+        sr._autodata_wins = {"some_candidate": 5}
+        # Add a process reward
+        sr._process_rewards[self._SKILL] = __import__("collections").deque(
+            [0.1, 0.2, 0.3], maxlen=20
+        )
+        # Add ERP history
+        sr._env_predictor._history[(self._SKILL, self._OP)] = __import__("collections").deque(
+            [0.4, 0.5, 0.6], maxlen=sr._env_predictor._window_size
+        )
+        return sr
+
+    def test_srs1_to_dict_has_required_keys(self):
+        """SRS1: to_dict() must contain all 7 required cross-session state keys."""
+        sr = SkillRefiner()
+        d = sr.to_dict()
+        required = {
+            "goal_epoch",
+            "goal_consecutive_hits",
+            "session_goal",
+            "goal_call_tally",
+            "autodata_wins",
+            "process_rewards",
+            "erp_history",
+        }
+        assert required <= set(d), f"Missing keys: {required - set(d)}"
+
+    def test_srs1_to_dict_is_json_serializable(self):
+        """SRS1: to_dict() output must be JSON-serializable (no deques/tuples/Paths)."""
+        import json
+
+        sr = self._primed_refiner()
+        d = sr.to_dict()
+        # This must not raise
+        json.dumps(d)
+
+    def test_srs2_from_dict_restores_non_default_epoch(self):
+        """SRS2 discriminating: from_dict must restore goal_epoch=7, not leave it at 0."""
+        sr = SkillRefiner()
+        d = sr.to_dict()
+        d["goal_epoch"] = 7
+        restored = SkillRefiner.from_dict(d)
+        assert restored._goal_epoch == 7, (
+            f"from_dict must restore non-default goal_epoch; got {restored._goal_epoch}"
+        )
+
+    def test_srs2_from_dict_full_roundtrip(self):
+        """SRS2: full state round-trip — all fields match after to_dict → from_dict."""
+        original = self._primed_refiner()
+        d = original.to_dict()
+        restored = SkillRefiner.from_dict(d)
+
+        assert restored._goal_epoch == original._goal_epoch
+        assert restored._goal_consecutive_hits == original._goal_consecutive_hits
+        assert restored._session_goal == original._session_goal
+        assert restored._goal_call_tally == original._goal_call_tally
+        assert restored._autodata_wins == original._autodata_wins
+
+        # process_rewards round-trip
+        assert list(restored._process_rewards.get(self._SKILL, [])) == [0.1, 0.2, 0.3]
+
+        # ERP history round-trip — tuple key must be restored
+        erp = restored._env_predictor._history
+        assert (self._SKILL, self._OP) in erp, (
+            f"ERP tuple key ({self._SKILL!r}, {self._OP!r}) not restored; keys: {list(erp)}"
+        )
+        assert list(erp[(self._SKILL, self._OP)]) == [0.4, 0.5, 0.6]
+
+    def test_srs2_from_dict_safe_defaults_for_missing_keys(self):
+        """SRS2 CB16 safe-defaults: from_dict on an empty dict must not crash."""
+        # This should not raise
+        restored = SkillRefiner.from_dict({})
+        assert restored._goal_epoch == 0
+        assert restored._autodata_wins == {}
+
+    def test_srs3_save_restore_roundtrip(self, tmp_path):
+        """SRS3: save_state/restore_state round-trip preserves all state."""
+        original = self._primed_refiner()
+        state_file = tmp_path / "test_state.json"
+
+        original.save_state(state_file)
+        assert state_file.exists(), "save_state must create the file"
+
+        fresh = SkillRefiner()
+        result = fresh.restore_state(state_file)
+        assert result is True, "restore_state must return True on success"
+
+        assert fresh._goal_epoch == original._goal_epoch
+        assert fresh._goal_consecutive_hits == original._goal_consecutive_hits
+        assert fresh._session_goal == original._session_goal
+        assert fresh._autodata_wins == original._autodata_wins
+
+        # ERP history tuple key must survive the full save→restore cycle
+        erp = fresh._env_predictor._history
+        assert (self._SKILL, self._OP) in erp, (
+            f"ERP key not restored after save/restore; keys: {list(erp)}"
+        )
+
+    def test_srs3_restore_returns_false_on_missing_file(self, tmp_path):
+        """SRS3 fail-open: restore_state returns False (not raises) when file absent."""
+        sr = SkillRefiner()
+        result = sr.restore_state(tmp_path / "nonexistent.json")
+        assert result is False
+
+    def test_srs3_save_creates_parent_directories(self, tmp_path):
+        """SRS3: save_state creates nested parent directories that don't exist."""
+        sr = SkillRefiner()
+        deep_path = tmp_path / "a" / "b" / "c" / "state.json"
+        sr.save_state(deep_path)
+        assert deep_path.exists(), "save_state must create parent directories"

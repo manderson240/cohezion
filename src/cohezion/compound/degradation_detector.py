@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -63,6 +64,75 @@ class DegradationAlert:
     baseline_value: float
     threshold: float
     timestamp: float = field(default_factory=time.time)
+
+
+class SkillDriftDetector:
+    """Per-skill quality drift with two-level severity: WARN at 3%, BLOCK (CRITICAL) at 5%.
+
+    Separated from DegradationDetector's aggregate-metric tracking so each skill gets
+    its own rolling baseline. Integrated via DegradationDetector.check_skill_drift().
+
+    Severity mapping:
+        3% drop below rolling baseline mean → AlertSeverity.WARNING  (notify Kanban)
+        5% drop below rolling baseline mean → AlertSeverity.CRITICAL (block promotion)
+    """
+
+    WARN_THRESHOLD: float = 0.03
+    BLOCK_THRESHOLD: float = 0.05
+
+    def __init__(self, window_size: int = 20, min_samples: int = 5) -> None:
+        self._baselines: dict[str, list[float]] = {}
+        self._window_size = window_size
+        self._min_samples = min_samples
+
+    def record(self, skill_name: str, quality_score: float) -> None:
+        """Append quality to per-skill rolling window (capped at window_size)."""
+        buf = self._baselines.setdefault(skill_name, [])
+        buf.append(quality_score)
+        if len(buf) > self._window_size:
+            del buf[0]
+
+    def check(self, skill_name: str, quality_score: float) -> "DegradationAlert | None":
+        """Return a DegradationAlert if quality has drifted, else None.
+
+        Fail-open when fewer than min_samples recorded for this skill.
+        """
+        buf = self._baselines.get(skill_name, [])
+        if len(buf) < self._min_samples:
+            return None
+
+        baseline = sum(buf) / len(buf)
+        if baseline <= 0:
+            return None
+
+        drop = (baseline - quality_score) / baseline
+        if drop >= self.BLOCK_THRESHOLD:
+            return DegradationAlert(
+                metric=f"skill_quality:{skill_name}",
+                severity=AlertSeverity.CRITICAL,
+                message=(
+                    f"Skill '{skill_name}' quality dropped {drop:.1%} "
+                    f"(BLOCK ≥{self.BLOCK_THRESHOLD:.0%}): "
+                    f"{quality_score:.2f} vs baseline {baseline:.2f}"
+                ),
+                current_value=quality_score,
+                baseline_value=baseline,
+                threshold=baseline * (1 - self.BLOCK_THRESHOLD),
+            )
+        if drop >= self.WARN_THRESHOLD:
+            return DegradationAlert(
+                metric=f"skill_quality:{skill_name}",
+                severity=AlertSeverity.WARNING,
+                message=(
+                    f"Skill '{skill_name}' quality drifted {drop:.1%} "
+                    f"(WARN ≥{self.WARN_THRESHOLD:.0%}): "
+                    f"{quality_score:.2f} vs baseline {baseline:.2f}"
+                ),
+                current_value=quality_score,
+                baseline_value=baseline,
+                threshold=baseline * (1 - self.WARN_THRESHOLD),
+            )
+        return None
 
 
 @dataclass
@@ -155,6 +225,14 @@ class DegradationDetector:
         data-adaptive Chebyshev lower bounds (Task #121, default: False).
     """
 
+    # LT1: EMA adaptation constants (MTF 2-competitiveness backing)
+    # α=0.1 tracks within 2× of optimal when drift < 1 change per 10 observations.
+    # α=0.4 fast-path fires when consecutive observations deviate >2σ (burst regime).
+    _EMA_ALPHA_SLOW: float = 0.1
+    _EMA_ALPHA_FAST: float = 0.4
+    _EMA_BURST_SIGMA: float = 2.0  # σ threshold for fast-path activation
+    _EMA_OBS_WINDOW: int = 8       # rolling window for σ estimation
+
     def __init__(
         self,
         cache_hit_rate_threshold: float = 0.50,
@@ -162,6 +240,7 @@ class DegradationDetector:
         coherence_threshold: float = 0.60,
         duration_slowdown_threshold: float = 0.25,
         use_chebyshev: bool = False,
+        use_ema_thresholds: bool = False,
     ) -> None:
         """Initialize degradation detector."""
         self.cache_hit_rate_threshold = cache_hit_rate_threshold
@@ -170,6 +249,20 @@ class DegradationDetector:
         self.duration_slowdown_threshold = duration_slowdown_threshold
         # Task #121: when True, use Chebyshev adaptive bounds instead of fixed thresholds
         self.use_chebyshev = use_chebyshev
+        # LT1: when True, alert thresholds self-adapt via EMA toward observed values
+        self.use_ema_thresholds = use_ema_thresholds
+        # EMA state: seeded from constructor thresholds; adapts each check_degradation()
+        self._ema_thresholds: dict[str, float] = {
+            "cache_hit_rate": cache_hit_rate_threshold,
+            "coherence": coherence_threshold,
+            "token_efficiency_drop": token_efficiency_drop_threshold,
+        }
+        # Rolling observation window for burst-detection σ estimation (per metric)
+        self._ema_obs_history: dict[str, deque[float]] = {
+            "cache_hit_rate": deque(maxlen=self._EMA_OBS_WINDOW),
+            "coherence": deque(maxlen=self._EMA_OBS_WINDOW),
+            "token_efficiency_drop": deque(maxlen=self._EMA_OBS_WINDOW),
+        }
 
         # Baselines for each metric
         self._baselines = {
@@ -209,6 +302,9 @@ class DegradationDetector:
         # Populated via update_embedding_distribution(); checked in check_degradation().
         self._embedding_norms: list[float] = []
 
+        # Per-skill quality drift: WARN at 3%, CRITICAL (block) at 5%.
+        self._skill_drift = SkillDriftDetector()
+
         logger.debug("DegradationDetector initialized with thresholds")
 
     def set_routing_callback(self, callback: Any) -> None:
@@ -219,6 +315,100 @@ class DegradationDetector:
         """
         self._routing_callback = callback
         logger.debug("Routing feedback callback registered")
+
+    # ── LT1: EMA threshold adaptation ────────────────────────────────────────
+
+    def get_learned_threshold(self, metric: str, drop_band: float = 0.05) -> float:
+        """Return the EMA-adapted threshold for a metric, with headroom.
+
+        The returned value is `ema * (1 - drop_band)` — slightly below the running
+        EMA of observed values, giving a margin before an alert fires.  Falls back to
+        the constructor threshold if the metric is unknown.
+
+        Args:
+            metric:    One of "cache_hit_rate", "coherence", "token_efficiency_drop".
+            drop_band: Fractional headroom below the EMA (default 0.05 = 5%).
+        """
+        ema = self._ema_thresholds.get(metric)
+        if ema is None:
+            # Fallback for unknown metrics
+            return getattr(self, f"{metric}_threshold", 0.0)
+        return max(0.0, ema * (1.0 - drop_band))
+
+    def _update_ema_thresholds(
+        self,
+        cache_hit_rate: float | None,
+        coherence: float | None,
+        tokens_per_sec: float | None,
+        baseline_tok_sec: float | None,
+    ) -> None:
+        """Update EMA thresholds after alert checks.
+
+        Uses a fast-path α (0.4) when the incoming observation deviates by >2σ from
+        the rolling window history — the MTF burst-regime heuristic.  Otherwise uses
+        slow α (0.1) which tracks within 2× of optimal for gradual drift.
+
+        All updates are bounded to [0.0, 1.0] to keep thresholds meaningful.
+        """
+        def _alpha_for(metric: str, obs: float) -> float:
+            """Choose α based on whether obs is a burst (>2σ from recent history)."""
+            hist = self._ema_obs_history[metric]
+            if len(hist) < 3:
+                return self._EMA_ALPHA_SLOW
+            mean_h = sum(hist) / len(hist)
+            var_h = sum((x - mean_h) ** 2 for x in hist) / len(hist)
+            sigma = var_h ** 0.5
+            if sigma > 0 and abs(obs - mean_h) > self._EMA_BURST_SIGMA * sigma:
+                return self._EMA_ALPHA_FAST
+            return self._EMA_ALPHA_SLOW
+
+        if cache_hit_rate is not None:
+            obs = float(cache_hit_rate)
+            α = _alpha_for("cache_hit_rate", obs)
+            self._ema_thresholds["cache_hit_rate"] = min(
+                1.0,
+                max(0.0, α * obs + (1.0 - α) * self._ema_thresholds["cache_hit_rate"]),
+            )
+            self._ema_obs_history["cache_hit_rate"].append(obs)
+
+        if coherence is not None:
+            obs = float(coherence)
+            α = _alpha_for("coherence", obs)
+            self._ema_thresholds["coherence"] = min(
+                1.0,
+                max(0.0, α * obs + (1.0 - α) * self._ema_thresholds["coherence"]),
+            )
+            self._ema_obs_history["coherence"].append(obs)
+
+        if tokens_per_sec is not None and baseline_tok_sec is not None and baseline_tok_sec > 0:
+            # Represent token efficiency as a drop fraction (lower = worse)
+            drop = max(0.0, 1.0 - float(tokens_per_sec) / baseline_tok_sec)
+            α = _alpha_for("token_efficiency_drop", drop)
+            self._ema_thresholds["token_efficiency_drop"] = min(
+                1.0,
+                max(0.0, α * drop + (1.0 - α) * self._ema_thresholds["token_efficiency_drop"]),
+            )
+            self._ema_obs_history["token_efficiency_drop"].append(drop)
+
+    def check_skill_drift(
+        self, skill_name: str, quality_score: float
+    ) -> DegradationAlert | None:
+        """Check and record per-skill quality drift; return alert if threshold crossed.
+
+        WARN at 3% drop, CRITICAL at 5% drop vs per-skill rolling mean.
+        Fail-open when fewer than 5 samples recorded for this skill.
+        Emitted alerts go through the shared _alert_history (cooldown-deduplicated).
+        """
+        alert = self._skill_drift.check(skill_name, quality_score)
+        self._skill_drift.record(skill_name, quality_score)
+        if alert is not None and self._should_emit_alert(alert):
+            self._alert_history.append(alert)
+            logger.info("Skill drift detected: %s", alert.message)
+            return alert
+        elif alert is None:
+            # No drift — still record for baseline
+            pass
+        return None
 
     def check_degradation(self, metrics: dict[str, Any]) -> list[DegradationAlert]:
         """Check if metrics show degradation compared to baseline.
@@ -541,6 +731,20 @@ class DegradationDetector:
 
         # CB9: append to alert_history for get_alert_summary() dashboard API
         self._alert_history.extend(alerts)
+
+        # LT1: update EMA thresholds after alert checks (non-blocking)
+        if self.use_ema_thresholds:
+            _tok_base = (
+                self._baselines["token_efficiency"].trend_value(1)
+                if self._baselines["token_efficiency"].is_established
+                else None
+            )
+            self._update_ema_thresholds(
+                cache_hit_rate=cache_hit_rate,
+                coherence=coherence,
+                tokens_per_sec=tokens_per_sec,
+                baseline_tok_sec=_tok_base,
+            )
 
         return alerts
 
