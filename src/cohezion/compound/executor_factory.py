@@ -85,6 +85,18 @@ class ExecutorFactory:
             except Exception:
                 logger.debug("DegradationDetector auto-creation failed (non-blocking)")
 
+        # CB7: auto-restore baseline history and register end_session() for clean shutdown.
+        if degradation_detector is not None:
+            try:
+                degradation_detector.start_session()
+                atexit.register(degradation_detector.end_session)
+                logger.debug(
+                    "ExecutorFactory: DegradationDetector start_session restored; "
+                    "end_session registered via atexit (CB7)"
+                )
+            except Exception:
+                logger.debug("DegradationDetector CB7 lifecycle wiring failed (non-blocking)")
+
         # CH5 (CompoundHealthOracle): auto-create and inject into skill_refiner so quality scores
         # from every execution flow into the streaming HIHO regime tracker automatically.  The
         # oracle is seeded with the same DegradationDetector (already auto-created above) so

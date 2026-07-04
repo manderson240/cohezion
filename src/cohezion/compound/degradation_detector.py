@@ -33,11 +33,13 @@ Usage::
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -1082,6 +1084,56 @@ class DegradationDetector:
         if skill_drift_state:
             inst._skill_drift = SkillDriftDetector.from_dict(skill_drift_state)
         return inst
+
+    _DEFAULT_BASELINES_PATH: Path = Path.home() / ".cohezion" / "degradation_baselines.json"
+
+    def end_session(self, path: "str | Path | None" = None) -> None:
+        """Persist detector state to JSON at session end (CB7 auto-save).
+
+        Non-blocking: failures are logged at DEBUG and silently ignored.
+        """
+        target = Path(path) if path is not None else self._DEFAULT_BASELINES_PATH
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
+            logger.debug("DegradationDetector: saved baselines to %s", target)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("DegradationDetector: end_session save failed (non-blocking): %s", exc)
+
+    def start_session(self, path: "str | Path | None" = None) -> bool:
+        """Restore detector state from JSON at session start (CB7 auto-restore).
+
+        Performs an in-place restoration: mutates self rather than creating a new
+        instance, so the ExecutorFactory can wire this via atexit then call it once.
+
+        Returns
+        -------
+        bool
+            True on success, False when the file is absent or corrupt (fail-open).
+        """
+        target = Path(path) if path is not None else self._DEFAULT_BASELINES_PATH
+        if not target.exists():
+            return False
+        try:
+            state = json.loads(target.read_text(encoding="utf-8"))
+            self._call_count = int(state.get("call_count", 0))
+            for name, samples in state.get("baselines", {}).items():
+                if name in self._baselines:
+                    self._baselines[name].samples = list(samples)
+            skill_drift_state = state.get("skill_drift")
+            if skill_drift_state:
+                self._skill_drift = SkillDriftDetector.from_dict(skill_drift_state)
+            logger.debug(
+                "DegradationDetector: restored baselines from %s (call_count=%d)",
+                target,
+                self._call_count,
+            )
+            return True
+        except Exception as exc:  # noqa: BLE001
+            logger.debug(
+                "DegradationDetector: start_session restore failed (non-blocking): %s", exc
+            )
+            return False
 
 
 __all__ = [
