@@ -134,6 +134,26 @@ class SkillDriftDetector:
             )
         return None
 
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize per-skill baselines for cross-session persistence (SD-PERSIST)."""
+        return {
+            "window_size": self._window_size,
+            "min_samples": self._min_samples,
+            "baselines": {k: list(v) for k, v in self._baselines.items()},
+        }
+
+    @classmethod
+    def from_dict(cls, state: dict[str, Any]) -> "SkillDriftDetector":
+        """Restore from serialized state. Missing keys fall back to defaults (fail-open)."""
+        inst = cls(
+            window_size=state.get("window_size", 20),
+            min_samples=state.get("min_samples", 5),
+        )
+        for skill, samples in state.get("baselines", {}).items():
+            # Honour the window_size cap when restoring (in case window shrunk)
+            inst._baselines[skill] = list(samples)[-inst._window_size :]
+        return inst
+
 
 @dataclass
 class MetricBaseline:
@@ -231,7 +251,7 @@ class DegradationDetector:
     _EMA_ALPHA_SLOW: float = 0.1
     _EMA_ALPHA_FAST: float = 0.4
     _EMA_BURST_SIGMA: float = 2.0  # σ threshold for fast-path activation
-    _EMA_OBS_WINDOW: int = 8       # rolling window for σ estimation
+    _EMA_OBS_WINDOW: int = 8  # rolling window for σ estimation
 
     def __init__(
         self,
@@ -305,6 +325,10 @@ class DegradationDetector:
         # Per-skill quality drift: WARN at 3%, CRITICAL (block) at 5%.
         self._skill_drift = SkillDriftDetector()
 
+        # CB7: call counter for warm-start awareness — how many check_degradation() calls
+        # have established baselines in this detector instance.
+        self._call_count: int = 0
+
         logger.debug("DegradationDetector initialized with thresholds")
 
     def set_routing_callback(self, callback: Any) -> None:
@@ -350,6 +374,7 @@ class DegradationDetector:
 
         All updates are bounded to [0.0, 1.0] to keep thresholds meaningful.
         """
+
         def _alpha_for(metric: str, obs: float) -> float:
             """Choose α based on whether obs is a burst (>2σ from recent history)."""
             hist = self._ema_obs_history[metric]
@@ -357,7 +382,7 @@ class DegradationDetector:
                 return self._EMA_ALPHA_SLOW
             mean_h = sum(hist) / len(hist)
             var_h = sum((x - mean_h) ** 2 for x in hist) / len(hist)
-            sigma = var_h ** 0.5
+            sigma = var_h**0.5
             if sigma > 0 and abs(obs - mean_h) > self._EMA_BURST_SIGMA * sigma:
                 return self._EMA_ALPHA_FAST
             return self._EMA_ALPHA_SLOW
@@ -390,9 +415,7 @@ class DegradationDetector:
             )
             self._ema_obs_history["token_efficiency_drop"].append(drop)
 
-    def check_skill_drift(
-        self, skill_name: str, quality_score: float
-    ) -> DegradationAlert | None:
+    def check_skill_drift(self, skill_name: str, quality_score: float) -> DegradationAlert | None:
         """Check and record per-skill quality drift; return alert if threshold crossed.
 
         WARN at 3% drop, CRITICAL at 5% drop vs per-skill rolling mean.
@@ -420,6 +443,7 @@ class DegradationDetector:
             List of DegradationAlert if degradation detected, empty list otherwise
         """
         alerts = []
+        self._call_count += 1
 
         # Extract metrics — None means "not provided this call"; skip baseline updates for those
         cache_hit_rate = metrics.get("combined_hit_rate")
@@ -1023,6 +1047,41 @@ class DegradationDetector:
 
         psi = float(np.sum((actual_prob - expected_prob) * np.log(actual_prob / expected_prob)))
         return psi
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize detector state for cross-session persistence (CB7).
+
+        Returns a JSON-safe dict with:
+        - call_count: int — how many check_degradation() calls have run
+        - baselines: {metric: [samples]} — the rolling float windows
+        - skill_drift: nested SkillDriftDetector state
+        """
+        return {
+            "call_count": self._call_count,
+            "baselines": {name: list(b.samples) for name, b in self._baselines.items()},
+            "skill_drift": self._skill_drift.to_dict(),
+        }
+
+    @classmethod
+    def from_dict(cls, state: dict[str, Any], **kwargs: Any) -> "DegradationDetector":
+        """Restore detector from serialized state.
+
+        Args:
+            state: dict produced by to_dict()
+            **kwargs: forwarded to __init__ for threshold overrides
+                      (e.g. cache_hit_rate_threshold=0.99)
+
+        Fail-open: missing keys default to zero/empty — never crashes on partial files.
+        """
+        inst = cls(**kwargs)
+        inst._call_count = int(state.get("call_count", 0))
+        for name, samples in state.get("baselines", {}).items():
+            if name in inst._baselines:
+                inst._baselines[name].samples = list(samples)
+        skill_drift_state = state.get("skill_drift")
+        if skill_drift_state:
+            inst._skill_drift = SkillDriftDetector.from_dict(skill_drift_state)
+        return inst
 
 
 __all__ = [

@@ -288,7 +288,9 @@ class TestJepaCoherenceSignal:
 
         alerts = detector.check_degradation({"jepa_coherence": 0.20})  # below 0.60 threshold
         jepa_alerts = [a for a in alerts if a.metric == "jepa_coherence"]
-        assert len(jepa_alerts) > 0, "low jepa_coherence must emit an alert (not be silently dropped)"
+        assert len(jepa_alerts) > 0, (
+            "low jepa_coherence must emit an alert (not be silently dropped)"
+        )
         assert jepa_alerts[0].severity == AlertSeverity.WARNING
         assert jepa_alerts[0].current_value == pytest.approx(0.20)
 
@@ -690,6 +692,7 @@ class TestSkillDriftDetector:
 # LT1: EMA threshold adaptation (MTF 2-competitiveness backing)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestEMAThresholds:
     """LT1: _ema_thresholds adapts toward observed values; fast-path α=0.4 on >2σ burst.
 
@@ -813,3 +816,131 @@ class TestEMAThresholds:
         assert abs(ema - 0.80) < abs(0.50 - 0.80), (
             f"EMA={ema:.4f} should be closer to 0.80 than initial 0.50"
         )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CB7: DegradationDetector serialization (to_dict / from_dict)
+# SkillDriftDetector serialization (SD-PERSIST series)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class TestCB7Serialization:
+    """CB7: DegradationDetector.to_dict()/from_dict() round-trips baselines + call_count.
+
+    Also covers SkillDriftDetector persistence (SD-PERSIST1-3) as a nested sub-state.
+
+    Invariants:
+      CB7-1 (structural): to_dict() returns required JSON-safe keys
+      CB7-2 (discriminating): from_dict() restores non-default call_count (not always 0)
+      CB7-3: SkillDriftDetector._baselines survive round-trip
+      CB7-4 (fail-open): missing keys in from_dict() fall back to empty/zero state
+    """
+
+    def test_cb7_1_to_dict_returns_required_keys(self) -> None:
+        """CB7-1 (structural): to_dict() must include 'call_count', 'baselines', 'skill_drift'."""
+        dd = DegradationDetector()
+        # Add some baseline samples so we have non-empty state
+        for _ in range(3):
+            dd.check_degradation({"combined_hit_rate": 0.8, "quality_score": 0.9})
+        state = dd.to_dict()
+        assert isinstance(state, dict)
+        assert "call_count" in state, "Missing call_count"
+        assert "baselines" in state, "Missing baselines"
+        assert "skill_drift" in state, "Missing skill_drift (SkillDriftDetector state)"
+        # JSON-safe: no non-serializable objects
+        import json
+
+        json.dumps(state)  # must not raise
+
+    def test_cb7_2_from_dict_restores_call_count(self) -> None:
+        """CB7-2 (discriminating): from_dict() restores call_count; wrong impl leaves it at 0."""
+        dd = DegradationDetector()
+        for _ in range(7):
+            dd.check_degradation({"combined_hit_rate": 0.8})
+        original_count = dd._call_count
+        assert original_count == 7
+
+        state = dd.to_dict()
+        dd2 = DegradationDetector.from_dict(state)
+        # Discriminating: a wrong impl that ignores 'call_count' would give 0 here
+        assert dd2._call_count == 7, f"call_count should be 7 but got {dd2._call_count}"
+
+    def test_cb7_3_skill_drift_baselines_survive_roundtrip(self) -> None:
+        """CB7-3: SkillDriftDetector per-skill baselines round-trip through to/from_dict."""
+        dd = DegradationDetector()
+        # Build skill baselines
+        for _ in range(5):
+            dd.check_skill_drift("alpha_skill", 0.85)
+        for _ in range(3):
+            dd.check_skill_drift("beta_skill", 0.70)
+
+        state = dd.to_dict()
+        dd2 = DegradationDetector.from_dict(state)
+
+        # Per-skill windows must survive
+        alpha = dd2._skill_drift._baselines.get("alpha_skill", [])
+        beta = dd2._skill_drift._baselines.get("beta_skill", [])
+        assert len(alpha) == 5, f"alpha_skill should have 5 samples, got {len(alpha)}"
+        assert len(beta) == 3, f"beta_skill should have 3 samples, got {len(beta)}"
+        assert abs(alpha[0] - 0.85) < 1e-9
+
+    def test_cb7_4_fail_open_on_missing_keys(self) -> None:
+        """CB7-4: from_dict() with partial/empty dict falls back gracefully, no crash."""
+        # Empty dict → default state
+        dd = DegradationDetector.from_dict({})
+        assert dd._call_count == 0
+        assert isinstance(dd._skill_drift._baselines, dict)
+
+        # Missing skill_drift → fresh SkillDriftDetector
+        dd2 = DegradationDetector.from_dict({"call_count": 5, "baselines": {}})
+        assert dd2._call_count == 5
+        assert len(dd2._skill_drift._baselines) == 0
+
+    def test_cb7_kwargs_forwarded_to_init(self) -> None:
+        """CB7: from_dict() forwards kwargs to __init__ for threshold overrides."""
+        state = {"call_count": 3, "baselines": {}, "skill_drift": {}}
+        dd = DegradationDetector.from_dict(state, cache_hit_rate_threshold=0.99)
+        assert dd._call_count == 3
+        # The threshold kwarg must reach __init__ (attribute is public, no underscore)
+        assert dd.cache_hit_rate_threshold == pytest.approx(0.99)
+
+
+class TestSkillDriftPersistence:
+    """SD-PERSIST: SkillDriftDetector.to_dict()/from_dict() — standalone persistence.
+
+    Invariants:
+      SD-P1 (structural): to_dict() returns JSON-safe {'window_size', 'min_samples', 'baselines'}
+      SD-P2 (discriminating): from_dict() restores non-empty baselines
+      SD-P3 (fail-open): missing keys fall back to empty state
+    """
+
+    def test_sdp1_to_dict_required_keys(self) -> None:
+        """SD-P1 (structural): to_dict() returns the three required keys."""
+        sdd = SkillDriftDetector(window_size=15, min_samples=3)
+        sdd.record("skill_x", 0.9)
+        state = sdd.to_dict()
+        assert set(state.keys()) >= {"window_size", "min_samples", "baselines"}
+        assert state["window_size"] == 15
+        assert state["min_samples"] == 3
+        assert isinstance(state["baselines"], dict)
+
+    def test_sdp2_from_dict_restores_baselines(self) -> None:
+        """SD-P2 (discriminating): from_dict() restores per-skill history; wrong impl gives empty."""
+        sdd = SkillDriftDetector()
+        for _ in range(6):
+            sdd.record("my_skill", 0.80)
+        state = sdd.to_dict()
+        sdd2 = SkillDriftDetector.from_dict(state)
+        # Discriminating: wrong impl that ignores 'baselines' would give len == 0
+        restored = sdd2._baselines.get("my_skill", [])
+        assert len(restored) == 6, f"Expected 6 samples, got {len(restored)}"
+        assert all(abs(v - 0.80) < 1e-9 for v in restored)
+
+    def test_sdp3_fail_open_missing_keys(self) -> None:
+        """SD-P3 (fail-open): from_dict({}) returns a usable SkillDriftDetector."""
+        sdd = SkillDriftDetector.from_dict({})
+        assert isinstance(sdd._baselines, dict)
+        assert len(sdd._baselines) == 0
+        # Default window/min_samples preserved
+        assert sdd._window_size == 20
+        assert sdd._min_samples == 5
