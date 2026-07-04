@@ -1603,3 +1603,84 @@ class TestSkillRefinerDurableSpine:
         deep_path = tmp_path / "a" / "b" / "c" / "state.json"
         sr.save_state(deep_path)
         assert deep_path.exists(), "save_state must create parent directories"
+
+
+class TestShadowCanaryWarmStart:
+    """Shadow canary warm-start from restored process_rewards (SRS3 extension).
+
+    Without this, the canary is in fail-open mode for 20 executions after every restart.
+    With this, any skill that has process_reward history gets a pre-warmed canary baseline.
+    """
+
+    _SKILL = "warm_start_skill"
+
+    def test_canary_warm_started_from_process_rewards(self, tmp_path):
+        """Discriminating: after restore_state, the shadow canary has a populated baseline.
+
+        Wrong impl (no warm-start) leaves canary._history empty → baseline_count == 0.
+        """
+        import json
+        import math
+
+        # Build a state file with process_rewards for the skill
+        rewards = [0.3, -0.1, 0.4, 0.2, 0.5]  # 5 samples > 0 → all map to quality > 0.5
+        state_file = tmp_path / "skill_refiner_state.json"
+        state_file.write_text(
+            json.dumps(
+                {
+                    "goal_epoch": 0,
+                    "goal_consecutive_hits": 0,
+                    "session_goal": None,
+                    "goal_call_tally": {},
+                    "autodata_wins": {},
+                    "process_rewards": {self._SKILL: rewards},
+                    "erp_history": {},
+                }
+            )
+        )
+
+        sr = SkillRefiner()
+        result = sr.restore_state(state_file)
+        assert result is True
+
+        # The shadow canary must have a populated window for this skill
+        window = sr._shadow_canary._history.get(self._SKILL)
+        assert window is not None, (
+            f"Shadow canary must be warmed for '{self._SKILL}' after restore_state; "
+            f"found no window. history keys: {list(sr._shadow_canary._history)}"
+        )
+        assert len(window) == len(rewards), (
+            f"Window must contain {len(rewards)} samples (one per reward); got {len(window)}"
+        )
+        # Each sample must be a sigmoid-mapped quality value in (0, 1)
+        for q in window:
+            assert 0.0 < q < 1.0, f"Quality {q} must be in (0, 1) from sigmoid mapping"
+        # Positive rewards map to quality > 0.5
+        assert all(q > 0.5 for q in window if rewards[list(window).index(q)] > 0), (
+            "Positive process rewards must map to quality > 0.5"
+        )
+
+    def test_canary_no_crash_on_empty_process_rewards(self, tmp_path):
+        """Fail-open: restore_state with empty process_rewards does not populate canary."""
+        import json
+
+        state_file = tmp_path / "state.json"
+        state_file.write_text(
+            json.dumps(
+                {
+                    "goal_epoch": 0,
+                    "goal_consecutive_hits": 0,
+                    "session_goal": None,
+                    "goal_call_tally": {},
+                    "autodata_wins": {},
+                    "process_rewards": {},
+                    "erp_history": {},
+                }
+            )
+        )
+
+        sr = SkillRefiner()
+        result = sr.restore_state(state_file)
+        assert result is True
+        # No canary window added for skills with no history
+        assert self._SKILL not in sr._shadow_canary._history

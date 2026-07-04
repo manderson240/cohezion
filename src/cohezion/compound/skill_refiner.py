@@ -1558,6 +1558,19 @@ class SkillRefiner:
                     if "::" in encoded_key:
                         sn, op = encoded_key.split("::", 1)
                         predictor._history[(sn, op)] = deque(samples, maxlen=predictor._window_size)
+            # Warm the shadow canary from restored process_rewards so the canary's
+            # per-skill baseline window isn't empty after a process restart.  Use the
+            # process_reward z-scored values as quality proxies: map raw reward magnitudes
+            # back to a [0,1] quality range using sigmoid (reward ≥ 0 → quality ≥ 0.5).
+            canary = getattr(self, "_shadow_canary", None)
+            if canary is not None:
+                for skill_name, samples in (data.get("process_rewards") or {}).items():
+                    for raw in samples:
+                        # Sigmoid maps reward → (0,1); positive rewards → quality > 0.5.
+                        import math
+
+                        quality = 1.0 / (1.0 + math.exp(-float(raw)))
+                        canary.record(skill_name, quality)
             return True
         except Exception:
             return False
