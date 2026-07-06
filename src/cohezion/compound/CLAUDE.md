@@ -48,7 +48,7 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
 
 **RL** (Process Reward) — RL1-RL4: `prediction_error` stored back, `process_reward_mean()` non-None, confidence boosted, `mgpo_weight` biased
 
-**RV** (RiVER) — RV1: z-score normalization after ≥3 samples; RV2: `1/(1+wins)` frequency penalty in `_autodata_select()`
+**RV** (RiVER) — RV1: NIG normalization from n=1 (Gelman BDA §2.6; replaced z-score warm-up); RV2: `1/(1+wins)` frequency penalty in `_autodata_select()`
 
 **AD** (Autodata) — AD1: `_autodata_candidates()` always ≥1; AD2: highest keyword overlap wins; AD3: delegates to both
 
@@ -69,9 +69,32 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
 A method that ACCEPTS a value is not wired. Wiring = a production (non-test, non-def) consumer reads it and acts.
 Before marking anything wired: `grep -n "that_method\|that_field" src/cohezion/compound/*.py | grep -v test | grep -v def`.
 
+**TL** (Token Ledger) — TL1-TL3: Quarter-on-a-String audit; wired 2026-07-05
+- TL1: `execute_task()` calls `_token_ledger.record_local()` for npu/igpu/cpu tiers; `record_cloud` NOT called
+- TL2: `execute_task()` calls `_token_ledger.record_cloud()` for cloud tier; `record_local` NOT called
+- TL3: `make_executor()` auto-creates and injects `TokenLedger()` as `token_ledger=`
+
+**AO** (AOEP-v0 Governance Scorecard) — arXiv:2606.30306; wired 2026-07-06
+- AO1: `AOEPScore` is a dataclass with exactly 8 fields: `{authority, scope, mutability, provenance, recoverability, actionability, overall, gaps}`
+  - **Verification**: `{f.name for f in dataclasses.fields(AOEPScore)} == {"authority","scope","mutability","provenance","recoverability","actionability","overall","gaps"}`
+- AO2 (discriminating): `score_authority(has_authority_gate=True) == 1.0`; `score_authority(has_authority_gate=False) == 0.0` — a wrong impl ignoring the probe fails the `> without_gate` assertion
+  - **Verification**: `uv run pytest tests/compound/test_aoep_scorecard.py::TestAOEPAuthority -q` → 4 passed
+- AO3 (discriminating): `score_scope(has_scope_filter=True) > 0.0`; `score_scope(has_scope_filter=False) == 0.0`
+  - **Verification**: `uv run pytest tests/compound/test_aoep_scorecard.py::TestAOEPScope -q` → 4 passed
+- AO4 (discriminating): `score_mutability(has_seesaw=True) > 0.0`; `score_mutability(has_seesaw=False) == 0.0`
+  - **Verification**: `uv run pytest tests/compound/test_aoep_scorecard.py::TestAOEPMutability -q` → 4 passed
+- AO5: `run().overall == mean(6 axes)`; `run().gaps` lists every axis < 0.5
+  - **Verification**: `uv run pytest tests/compound/test_aoep_scorecard.py::TestAOEPRun -q` → 4 passed
+- AO6 (live baseline): `AOEPScorecard().run().overall >= 0.5` with current harness (confirmed 0.67 on 2026-07-06, no gaps)
+  - Authority=1.0, Scope=0.5, Mutability=0.5, Provenance=0.5, Recoverability=1.0, Actionability=0.5
+  - Full suite: `uv run pytest tests/compound/test_aoep_scorecard.py -q` → 28 passed
+
 Known dormant (do not re-close without discriminating test):
-- `inference_provider` — accepted by `execute_task`, not read inside it
-- `_recompute_tier_at_compaction` — no caller in production path (CR1)
+- (none — all tracked gaps now closed)
+
+Closed dormancy gaps:
+- `inference_provider` — now injected into execute_fn via `_call_execute_fn` (IP1-IP5, 2026-07-04); tests in test_wiring_completeness.py::TestIPInferenceProviderConsumption
+- `_recompute_tier_at_compaction` — wired in `LongHorizonTask.execute_step()` at context-compaction boundary (CR1, 2026-07-04); tests in test_tier_resolution.py::TestCompactionReroute
 
 ## File Size Warning
 
