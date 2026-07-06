@@ -67,6 +67,7 @@ class DataMeshEventBridge:
         EventType.DATA_PRODUCT_QUALITY_ALERT,
         EventType.LINEAGE_UPDATED,
         EventType.DOMAIN_HEALTH_DEGRADED,
+        EventType.CUSTOM,  # GAP-5: persist GaiaDataAgent HEAL/ALERT/ENRICH decisions
     ]
 
     def __init__(
@@ -106,10 +107,11 @@ class DataMeshEventBridge:
         """Register this bridge as a handler on the given EventBus.
 
         Each DataMesh EventType gets its own subscription slot so the bus
-        can track handler counts per type correctly.
+        can track handler counts per type correctly. Uses the public
+        register_handler() API (GAP-4) rather than direct _handlers access.
         """
         for event_type in self.SUBSCRIBED_TYPES:
-            bus._handlers[event_type].append(self._handle)
+            bus.register_handler(self._handle, event_type)
 
     async def _handle(self, event: Event) -> None:
         """Persist a single DataMesh event to SurrealDB."""
@@ -181,7 +183,12 @@ class DataMeshEventBridge:
             logger.debug("DataMeshEventBridge.replay_since failed: %s", exc)
         return []
 
-    async def watch_federation(self, federation: object, poll_interval_s: float = 30.0) -> None:
+    async def watch_federation(
+        self,
+        federation: object,
+        poll_interval_s: float = 30.0,
+        products: object | None = None,
+    ) -> None:
         """Poll FederationLayer health and publish DOMAIN_HEALTH_DEGRADED events.
 
         Designed to run as a cancellable asyncio.Task:
@@ -189,20 +196,19 @@ class DataMeshEventBridge:
             ...
             task.cancel()
 
-        On each poll, if a previously-healthy domain becomes unhealthy a
-        DOMAIN_HEALTH_DEGRADED event is published to the global EventBus.  The
-        bridge handles that event itself (it is subscribed to DOMAIN_HEALTH_DEGRADED)
-        and persists it to SurrealDB, closing the loop.
+        On each poll:
+        - If a previously-healthy domain becomes unhealthy, publishes DOMAIN_HEALTH_DEGRADED.
+        - If products dict is provided (GAP-3), checks each DataProduct.meets_sla and
+          publishes DATA_PRODUCT_QUALITY_ALERT for any that are violating their SLA.
 
         Args:
             federation: A FederationLayer instance (typed as object to allow lazy import).
             poll_interval_s: Seconds between health polls.
+            products: Optional dict[str, DataProduct] of inference products to poll for SLA.
         """
         from cohezion.core.event_bus import Event, EventType, get_event_bus
 
         bus = await get_event_bus()
-        # Snapshot of domain health from the previous poll.
-        # Default assumption: all domains start healthy (None = first poll).
         prev_health: dict[str, bool] = {}
         first_poll = True
 
@@ -212,7 +218,6 @@ class DataMeshEventBridge:
                 for domain, healthy in health.items():
                     was_healthy = prev_health.get(domain, True)
                     if first_poll:
-                        # On the first poll, just record state — no events yet.
                         pass
                     elif was_healthy and not healthy:
                         event = Event(
@@ -233,6 +238,34 @@ class DataMeshEventBridge:
                 raise
             except Exception as exc:
                 logger.debug("watch_federation poll failed (non-fatal): %s", exc)
+
+            # GAP-3: proactively poll inference product SLAs
+            if products:
+                try:
+                    for product in products.values():  # type: ignore[union-attr]
+                        if not product.meets_sla:
+                            sla_event = Event(
+                                type=EventType.DATA_PRODUCT_QUALITY_ALERT,
+                                source="DataMeshEventBridge.watch_federation",
+                                payload={
+                                    "product_id": product.product_id,
+                                    "name": product.name,
+                                    "domain": product.owner_domain,
+                                    "error_rate": product.error_rate,
+                                    "meets_sla": False,
+                                    "reason": "SLA violated (proactive poll)",
+                                },
+                            )
+                            await bus.publish(sla_event)
+                            logger.warning(
+                                "watch_federation: SLA violation for product %r (error_rate=%.3f)",
+                                product.product_id,
+                                product.error_rate,
+                            )
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    logger.debug("watch_federation SLA poll failed (non-fatal): %s", exc)
 
             await asyncio.sleep(poll_interval_s)
 

@@ -88,7 +88,7 @@ class GaiaDataAgent:
         """Attach reactive handler to bus; store reference for publishing follow-on events."""
         self._bus = bus
         for event_type in self._subscribed_types:
-            bus._handlers[event_type].append(self.handle_event)
+            bus.register_handler(self.handle_event, event_type)
 
     def unsubscribe(self, bus: EventBus) -> None:
         for event_type in self._subscribed_types:
@@ -176,9 +176,7 @@ class GaiaDataAgent:
                 trigger.type.name,
             )
         else:
-            logger.warning(
-                "GaiaDataAgent[%s] %s dropped — bus queue full", self.domain, action
-            )
+            logger.warning("GaiaDataAgent[%s] %s dropped — bus queue full", self.domain, action)
 
     # ── Proactive check (single-iteration catch-up pass) ──────────────────────
 
