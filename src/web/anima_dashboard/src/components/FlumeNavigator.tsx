@@ -305,7 +305,7 @@ export default function FlumeNavigator({ className = "" }: FlumeNavigatorProps) 
             value={nSamples}
             onChange={(e) => setNSamples(parseInt(e.target.value))}
             className="flex-1"
-            aria-label="Number of samples"
+            aria-label="Sample Count"
           />
           <span className="text-xs text-cyan-400 font-mono w-12">{nSamples}</span>
           <button
@@ -319,7 +319,7 @@ export default function FlumeNavigator({ className = "" }: FlumeNavigatorProps) 
       </div>
 
       {/* 3D Visualization with Error Boundary (Issue #15) */}
-      <div className="w-full h-[600px] bg-black/90 rounded-xl border border-cyan-500/20 overflow-hidden relative">
+      <div className="w-full h-[600px] bg-black/90 rounded-xl border border-cyan-500/20 overflow-hidden relative" aria-label="FLUME VAE Latent Space">
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => fetchLatentSpace(nSamples)}>
           <WebGLCanvas data={data} selectedPoint={selectedPoint} onPointClick={handlePointClick} />
         </ErrorBoundary>
