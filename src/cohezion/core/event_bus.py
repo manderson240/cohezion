@@ -170,6 +170,17 @@ class EventBus:
 
         return decorator
 
+    def register_handler(self, handler: EventHandler, event_type: EventType | None = None) -> None:
+        """Imperatively register a handler (non-decorator form of subscribe).
+
+        Equivalent to the @bus.subscribe(event_type) decorator but callable
+        without the decorator pattern — preferred over direct _handlers access.
+        """
+        if event_type is None:
+            self._wildcard_handlers.append(handler)
+        else:
+            self._handlers[event_type].append(handler)
+
     def unsubscribe(self, handler: EventHandler, event_type: EventType | None = None) -> None:
         """Remove a handler subscription."""
         if event_type is None:
