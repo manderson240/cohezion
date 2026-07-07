@@ -90,11 +90,34 @@ Before marking anything wired: `grep -n "that_method\|that_field" src/cohezion/c
   - Full suite: `uv run pytest tests/compound/test_aoep_scorecard.py -q` → 28 passed
 
 Known dormant (do not re-close without discriminating test):
-- (none — all tracked gaps now closed)
+- `SkillConsensusVoter._inference_provider` — accepted/stored (N5), deliberately NOT wired to a
+  consumer (2026-07-06). Vote aggregation (`_vote_majority`/`_vote_weighted`/`_fallback_single_best`)
+  is pure deterministic composite scoring over already-structured `AgentVote` objects — there is no
+  free-text output an LLM could ground or improve. Forcing a consumption point here would be
+  manufactured complexity, not genuine wiring (see `_llm_reason` in `retrospection.py` for the
+  contrasting case where a real free-text output existed). Re-evaluate only if a genuine tie-breaking
+  or free-text-rationale need appears in this class.
 
 Closed dormancy gaps:
-- `inference_provider` — now injected into execute_fn via `_call_execute_fn` (IP1-IP5, 2026-07-04); tests in test_wiring_completeness.py::TestIPInferenceProviderConsumption
+- `inference_provider` (CompoundExecutor) — the 2026-07-04 claim below this line was WRONG: no
+  `TestIPInferenceProviderConsumption` class exists anywhere in the repo, and `_call_execute_fn` never
+  referenced `_inference_provider`. Actually fixed 2026-07-06: `execute_task`'s `execute_fn` param is
+  now optional; when omitted, a default is built from `self._inference_provider` via
+  `make_local_execute_fn(orchestrator=...)` (new override param on that helper). Raises `ValueError`
+  when neither is available. Tests: test_inference_provider_default_execute_fn.py (3 discriminating
+  cases: genuine invocation, explicit execute_fn takes priority, no-provider raises).
+- `inference_provider` (RetrospectionEngine) — same 2026-07-06 fix. `suggest_skill_refinements()` now
+  calls `self._inference_provider.run()` for a grounded rationale, gated by `_cites_a_learning()` (a
+  CB14-style citation gate: ungrounded/hallucinated text is rejected, falling back to the original
+  heuristic reason string). Tests: test_retrospection_inference_consumption.py (4 discriminating
+  cases: grounded response used, ungrounded response rejected, no provider, provider raises).
 - `_recompute_tier_at_compaction` — wired in `LongHorizonTask.execute_step()` at context-compaction boundary (CR1, 2026-07-04); tests in test_tier_resolution.py::TestCompactionReroute
+- `GlobalMetricsAggregator._window_size_sec` (2026-07-06) — accepted/stored/documented since creation
+  but `get_dashboard_snapshot()`'s trend-window loop hardcoded `60`/`300` literals instead of reading
+  it, so a non-default `window_size_sec` was silently ignored exactly where its own docstring said it
+  applied. Fixed: trend window boundaries and the overall lookback span now use `self._window_size_sec`.
+  Tests: test_global_metrics_window_size_wiring.py (default-60 span unchanged at 300s; custom 10s span
+  correctly totals 50s, not 300s).
 
 ## File Size Warning
 

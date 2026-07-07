@@ -42,3 +42,20 @@ def test_build_triune_omni_orchestrator_three_tier_cascade():
 
     orch = build_triune_omni_orchestrator()
     assert len(orch.tiers) == 3  # NPU -> iGPU -> CPU, all via :13305
+
+
+def test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero():
+    """TR1 (2026-07-07 goal: right model, right recipe): build_triune_omni_orchestrator used to
+    hardcode temperature=0.0 for every tier via build_gaia_llm_tier's old default. Each tier must
+    now resolve its own model's card temperature instead of one fixed value for all three."""
+    import pytest
+
+    pytest.importorskip("gaia")
+    from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
+
+    orch = build_triune_omni_orchestrator()
+    temps = [tier[0].agent._temperature for tier in orch.tiers]
+    assert temps == [0.3, 1.0, 1.0]  # llama3.2-1b-FLM, Gemma-4-E4B, Gemma-4-31B
+    assert len({t for t in temps}) > 1, "not every tier should share one hardcoded temperature"
+    igpu_extra = orch.tiers[1][0].agent._extra_sampling
+    assert igpu_extra == {"top_k": 64, "top_p": 0.95}

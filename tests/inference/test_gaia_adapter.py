@@ -244,3 +244,58 @@ class TestGaiaLLMClientTier:
         result = await tier.run("capital of France?")
         assert result.text == "Paris"
         assert result.error is None
+
+
+# ── recipe-aware sampling defaults (2026-07-07 goal: right recipe per model) ──
+
+
+class TestGaiaLLMTierRecipeAwareDefaults:
+    """build_gaia_llm_tier used to hardcode temperature=0.0 for every model
+    regardless of family, silently overriding any server-side recipe tuning
+    on every request. It must now resolve the model's family default instead,
+    while still respecting an explicit caller override."""
+
+    @staticmethod
+    def _fake_client(content: str = "ok"):
+        client = MagicMock()
+        client.chat_completions.return_value = {
+            "choices": [{"message": {"content": content}, "finish_reason": "stop"}]
+        }
+        return client
+
+    def test_qwen3_model_gets_family_temperature_not_zero(self):
+        client = self._fake_client()
+        with patch("gaia.llm.lemonade_client.LemonadeClient", return_value=client):
+            tier = build_gaia_llm_tier("DeepSeek-Qwen3-8B-GGUF")
+        tier.agent.prompt("hi")
+        kwargs = client.chat_completions.call_args.kwargs
+        assert kwargs["temperature"] == 0.6
+        assert kwargs["top_k"] == 20
+        assert kwargs["top_p"] == 0.95
+
+    def test_gemma4_model_gets_family_temperature(self):
+        client = self._fake_client()
+        with patch("gaia.llm.lemonade_client.LemonadeClient", return_value=client):
+            tier = build_gaia_llm_tier("Gemma-4-E4B-it-GGUF")
+        tier.agent.prompt("hi")
+        kwargs = client.chat_completions.call_args.kwargs
+        assert kwargs["temperature"] == 1.0
+        assert kwargs["top_k"] == 64
+
+    def test_unknown_model_falls_back_to_generic_default_not_zero(self):
+        client = self._fake_client()
+        with patch("gaia.llm.lemonade_client.LemonadeClient", return_value=client):
+            tier = build_gaia_llm_tier("Granite-4.1-8B-GGUF")
+        tier.agent.prompt("hi")
+        kwargs = client.chat_completions.call_args.kwargs
+        assert kwargs["temperature"] != 0.0
+        assert "top_k" not in kwargs  # no family match -> no sampling extras sent
+
+    def test_explicit_temperature_override_still_wins(self):
+        """Caller-supplied temperature must not be clobbered by the family default."""
+        client = self._fake_client()
+        with patch("gaia.llm.lemonade_client.LemonadeClient", return_value=client):
+            tier = build_gaia_llm_tier("DeepSeek-Qwen3-8B-GGUF", temperature=0.2)
+        tier.agent.prompt("hi")
+        kwargs = client.chat_completions.call_args.kwargs
+        assert kwargs["temperature"] == 0.2

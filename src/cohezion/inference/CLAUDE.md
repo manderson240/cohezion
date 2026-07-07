@@ -61,6 +61,25 @@ NPU (classify/route/short) → iGPU (code/structured) → CPU (reasoning) → Cl
 - **AIR2**: `output_intent='generation'` upgrades NPU → GPU/long_generation
 - **AIR3**: `'lookup'/'summary'` downgrades GPU → NPU; `'action'` upgrades NPU → GPU/code
 
+## TR (Triune Recipe) Invariants — 2026-07-07 goal: right model, right recipe
+
+- **TR1**: `build_gaia_llm_tier(model_id)` with no explicit `temperature` resolves the model's
+  card default via `model_card_defaults.get_sampling_defaults()`, NOT a blanket `0.0` for every
+  model. Previously every tier in `build_triune_omni_orchestrator()`/`build_reasoning_orchestrator()`
+  silently got `temperature=0.0` regardless of model family — an explicit `temperature=` kwarg still
+  overrides. **Verification**: `uv run pytest tests/inference/test_triune_orchestrator.py -q` → 4
+  passed (`test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero` asserts the 3 default
+  tiers get `[0.3, 1.0, 1.0]`, not `[0.0, 0.0, 0.0]`).
+- **TR2**: `model_card_defaults.py` (previously an unimplemented stub — both functions raised
+  `NotImplementedError`) is now implemented against its own pre-written test suite. Distinct from
+  `recipe_guard.py`: `recipe_guard` corrects a model's SERVER-SIDE `recipe_options` via
+  `/api/v1/load`; `model_card_defaults` supplies CLIENT-REQUEST sampling defaults for callers like
+  `build_gaia_llm_tier`. Both matter — a request can omit a param even when the server recipe is
+  correct. **Verification**: `uv run pytest tests/inference/test_model_card_defaults.py -q` → 11 passed.
+- **Known gap (Kanban `7d3f05b80839`)**: `lemonade_health.py`'s `probe_lemonade()` is a separate,
+  still-unimplemented stub (9 failing tests) — a fleet-level hazard/health detector, not touched by
+  TR1/TR2. Not blocking; filed for a future pass.
+
 ## Port Bypass Guard
 
 Pattern `\b(11434|1330[6-9])\b` must not appear in `src/cohezion/**` outside the allow-list.

@@ -12,14 +12,21 @@ Quarter-on-a-String Protocol (user directive, recurring):
   Dispatcher: quarter_on_a_string_tier(complexity)
   - "routine"       → llama3.2-1b-FLM  (NPU, 42 TPS, classification/routing)
   - "synthesis"     → Bonsai-8B-gguf   (iGPU-class, structured output)
-  - "orchestration" → Qwen3.6-35B-A3B-NoThinking (35B, reasoning)
-  - "review"        → Qwen3.6-35B-A3B-NoThinking (same tier, review context)
+  - "orchestration" → Qwen3-8B-GGUF (8B, reasoning)
+  - "review"        → Qwen3-8B-GGUF (same tier, review context)
 
 All routes go through the OmniRouter at :13305 — dedicated per-port servers
 (13306/13307/13309) are optional and often offline.
 
 Validated in exp_OOOO3 and exp_PPPP3 (2026-05-30, autoresearch round 13).
 Restored to main 2026-06-25 from session 18b9f3af worktree.
+
+2026-07-07: the "orchestration"/"review" tier previously pointed at
+"Qwen3.6-35B-A3B-NoThinking", a model name that doesn't exist on this
+Lemonade instance (confirmed via /v1/models — every real call 404'd).
+Repointed to Qwen3-8B-GGUF: already pinned unevictable, verified reliable
+across every test today, and avoids the 35B-class contention/corruption
+issues also seen with GAIA's unrelated hardcoded 35B dependency.
 """
 
 from __future__ import annotations
@@ -53,12 +60,13 @@ def _strip_think(text: str) -> str:
     stripped = _THINK_RE.sub("", text).strip()
     return stripped if stripped else text
 
+
 # Quarter-on-a-string model routing by complexity
 _QUARTER_MODELS: dict[str, str] = {
-    "routine": "llama3.2-1b-FLM",           # NPU, 42 TPS, $0
-    "synthesis": "Bonsai-8B-gguf",           # iGPU-class, balanced
-    "orchestration": "Qwen3.6-35B-A3B-NoThinking",  # 35B, full reasoning
-    "review": "Qwen3.6-35B-A3B-NoThinking",          # same tier
+    "routine": "llama3.2-1b-FLM",  # NPU, 42 TPS, $0
+    "synthesis": "Bonsai-8B-gguf",  # iGPU-class, balanced
+    "orchestration": "Qwen3-8B-GGUF",  # 8B, pinned + reliable
+    "review": "Qwen3-8B-GGUF",  # same tier
 }
 
 _QUARTER_MAX_TOKENS: dict[str, int] = {
@@ -118,13 +126,15 @@ class DirectLemonadeTier:
 
     def call(self, prompt: str) -> dict[str, Any]:
         """Synchronous call via urllib (stdlib-only, no httpx dependency)."""
-        payload = json.dumps({
-            "model": self.model_id,
-            "messages": self._build_messages(prompt),
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-            "stream": False,
-        }).encode()
+        payload = json.dumps(
+            {
+                "model": self.model_id,
+                "messages": self._build_messages(prompt),
+                "max_tokens": self.max_tokens,
+                "temperature": self.temperature,
+                "stream": False,
+            }
+        ).encode()
 
         start = time.perf_counter()
         try:
@@ -165,6 +175,7 @@ class DirectLemonadeTier:
 
 # ── Convenience builders ───────────────────────────────────────────────────────
 
+
 def build_direct_npu_tier(
     port: int = _OMNI_PORT,
     model_id: str = "llama3.2-1b-FLM",
@@ -183,7 +194,7 @@ def build_direct_igpu_tier(
 
 def build_direct_cpu_tier(
     port: int = _OMNI_PORT,
-    model_id: str = "Qwen3.6-35B-A3B-NoThinking",
+    model_id: str = "Qwen3-8B-GGUF",
 ) -> DirectLemonadeTier:
     """CPU-class tier — strongest local reasoning."""
     return DirectLemonadeTier(port=port, model_id=model_id, max_tokens=1024)
@@ -191,12 +202,13 @@ def build_direct_cpu_tier(
 
 # ── Fleet dataclasses ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class FleetNodeResult:
     """Result from a single compute node in a parallel fleet dispatch."""
 
     model_id: str
-    node: str       # "npu" | "igpu" | "cpu"
+    node: str  # "npu" | "igpu" | "cpu"
     text: str
     latency_ms: float
     error: str | None = None
@@ -209,7 +221,7 @@ class FleetResult:
     nodes: list[FleetNodeResult] = field(default_factory=list)
     best_text: str = ""
     best_node: str = ""
-    wall_ms: float = 0.0   # max latency — all nodes ran in parallel
+    wall_ms: float = 0.0  # max latency — all nodes ran in parallel
     cost_usd: float = 0.0  # always free (local silicon)
 
     @property
@@ -218,6 +230,7 @@ class FleetResult:
 
 
 # ── Parallel fleet orchestrator ────────────────────────────────────────────────
+
 
 class ParallelFleetOrchestrator:
     """Fan-out: same prompt → NPU + iGPU + CPU simultaneously → FleetResult.
@@ -229,20 +242,14 @@ class ParallelFleetOrchestrator:
     Node mapping (via OmniRouter :13305):
       npu  → llama3.2-1b-FLM           42 TPS, fast classification
       igpu → Bonsai-8B-gguf            iGPU-class, balanced generation
-      cpu  → Qwen3.6-35B-A3B-NoThinking  35B, full reasoning
+      cpu  → Qwen3-8B-GGUF  8B, pinned + reliable
     """
 
     def __init__(self, *, omni_port: int = _OMNI_PORT) -> None:
         self._nodes: dict[str, DirectLemonadeTier] = {
-            "npu": DirectLemonadeTier(
-                port=omni_port, model_id="llama3.2-1b-FLM", max_tokens=256
-            ),
-            "igpu": DirectLemonadeTier(
-                port=omni_port, model_id="Bonsai-8B-gguf", max_tokens=512
-            ),
-            "cpu": DirectLemonadeTier(
-                port=omni_port, model_id="Qwen3.6-35B-A3B-NoThinking", max_tokens=1024
-            ),
+            "npu": DirectLemonadeTier(port=omni_port, model_id="llama3.2-1b-FLM", max_tokens=256),
+            "igpu": DirectLemonadeTier(port=omni_port, model_id="Bonsai-8B-gguf", max_tokens=512),
+            "cpu": DirectLemonadeTier(port=omni_port, model_id="Qwen3-8B-GGUF", max_tokens=1024),
         }
 
     async def generate(self, prompt: str) -> FleetResult:
@@ -256,15 +263,19 @@ class ParallelFleetOrchestrator:
             if isinstance(raw, Exception):
                 node_results.append(
                     FleetNodeResult(
-                        model_id=tier.model_id, node=node,
-                        text="", latency_ms=0.0, error=str(raw),
+                        model_id=tier.model_id,
+                        node=node,
+                        text="",
+                        latency_ms=0.0,
+                        error=str(raw),
                     )
                 )
             else:
                 d: dict[str, Any] = raw if isinstance(raw, dict) else {}
                 node_results.append(
                     FleetNodeResult(
-                        model_id=tier.model_id, node=node,
+                        model_id=tier.model_id,
+                        node=node,
                         text=d.get("text", ""),
                         latency_ms=d.get("latency_ms", 0.0),
                         error=d.get("error"),
@@ -291,6 +302,7 @@ class ParallelFleetOrchestrator:
 
 # ── Multi-node dispatch (sync, ThreadPoolExecutor) ────────────────────────────
 
+
 def multi_node_batch(
     tasks: list[tuple[str, str]],
     *,
@@ -304,7 +316,7 @@ def multi_node_batch(
 
       routine       → llama3.2-1b-FLM  (NPU, XDNA2)
       synthesis     → Bonsai-8B-gguf   (iGPU-class)
-      orchestration → Qwen3.6-35B      (CPU AVX-512)
+      orchestration → Qwen3-8B-GGUF    (CPU AVX-512)
 
     Example::
 
@@ -353,8 +365,8 @@ def quarter_on_a_string_tier(
     -----------------
     routine       → llama3.2-1b-FLM  (NPU, 42 TPS) — classify, route, short answers
     synthesis     → Bonsai-8B-gguf   (iGPU-class)  — code gen, structured output
-    orchestration → Qwen3.6-35B-A3B-NoThinking (35B) — multi-step reasoning
-    review        → Qwen3.6-35B-A3B-NoThinking (35B) — adversarial review, audit
+    orchestration → Qwen3-8B-GGUF (8B, pinned) — multi-step reasoning
+    review        → Qwen3-8B-GGUF (8B, pinned) — adversarial review, audit
 
     Examples
     --------
@@ -366,8 +378,20 @@ def quarter_on_a_string_tier(
     max_tokens = _QUARTER_MAX_TOKENS.get(task_complexity, 512)
     logger.debug(
         "Quarter-on-a-String: complexity=%s → model=%s port=%d",
-        task_complexity, model_id, port,
+        task_complexity,
+        model_id,
+        port,
     )
+    # Recipe guard (2026-07-07): ensure the model's live sampling config matches
+    # its family's known-good spec before dispatching -- a mismatch here is what
+    # caused Qwen3-8B-GGUF to hang indefinitely rather than error cleanly.
+    # Fail-open: guard failures never block dispatch, they just forgo the check.
+    try:
+        from cohezion.inference.recipe_guard import ensure_recipe
+
+        ensure_recipe(model_id, port=port)
+    except Exception as exc:
+        logger.debug("recipe_guard check skipped for %s: %s", model_id, exc)
     return DirectLemonadeTier(
         port=port,
         model_id=model_id,
