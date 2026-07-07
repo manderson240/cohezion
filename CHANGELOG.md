@@ -28,13 +28,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ruff excludes for worktrees, archives, .pi, .tmp_kaggle
 - Gitignore for .playwright-mcp, .aider, .tmp_kaggle large artifacts
 
+### Added — Worktree landing 2026-07-09 (imperative-wondering-kettle)
+- `validate_changelog_claims()` in `scripts/ci/version_governance.py`: structural CI
+  guard verifying that any backtick-quoted file/module path mentioned in a Changelog
+  entry actually exists in the repo, wired into the existing governance check
+- `LatentGravityNavigator` (`src/cohezion/flume/latent_gravity.py`) — SWIFT/CarbonEngine
+  analog with journey-nexus route exposure
+- JourneyNexus full service implementation (quadrature/narrate/omni_chat) replacing the
+  consolidated stub, with real FLUME text-encode (`LemonadeEmbedBridge` via :13305,
+  hash-VAE fallback), HIHO-centered coherence, and the real `TTSRequest` contract
+- A2A agent-card discovery falls back to the repo common root in sparse worktrees
+- SurrealDB vault watcher: dead papers/concepts filter fixed (routes
+  cortex/cerebellum/patterns/decisions) + PollingObserver fallback for exhausted inotify
+- `lemonade_server_status` probes `/api/v1/health` (`/api/v1/status` is 404 on Lemonade 8.x)
+
+### Removed
+- Corrected a previously-listed `Added` entry describing a `cohezion.release` module
+  (semantic version detection, conventional-commit bump validation, changelog
+  enforcement, 41 unit tests) — verified via `git log --all` that this module was
+  never actually committed on any branch. The entry described work that was never
+  done; removed rather than left standing.
+
+### Note on release automation
+- Real semver/changelog automation already exists and is more complete than the
+  removed entry implied: `scripts/ci/version_governance.py` (conventional-commit
+  classification, bump-type detection, changelog/version consistency) gates PRs via
+  `.github/workflows/semver-check.yml` and gates releases via
+  `.github/workflows/release.yml`, which runs `python-semantic-release publish` on
+  push to `main`. Both workflows require `runs-on: self-hosted`. No tag has been cut
+  since `v0.5.0` because that self-hosted runner is offline (a known, already-tracked
+  issue) — not because the tooling is missing. Restoring the runner, not building new
+  release tooling, is the actual unblock.
+
 ### Fixed
 - Removed 3.5GB safetensors blob from git history (Kaggle artifact accidentally committed)
 - Removed .playwright-mcp captures containing ad tracking URLs (GitHub secret scanner block)
-- aiohttp async context manager mock patterns in connector tests
+- aiohttp async context manager mock patterns in connector tests (43 tests now passing)
 - Metacognitive intent validation boundaries for confidence, z_vector, and physical state dimensions
 - tests/compound/conftest.py syntax error (duplicate closing paren + double docstring)
 - Live test skip logic for STT/image tiers (check model loaded, not just port reachable)
+- Committed merge-conflict markers removed from `Makefile`
 
 ## [1.0.2] - 2026-05-02
 
