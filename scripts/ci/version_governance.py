@@ -107,6 +107,52 @@ def validate_changelog(bump_type: BumpType, changelog_path: Path) -> list[str]:
     return issues
 
 
+_CHANGELOG_CLAIM_PATTERN = re.compile(r"`([\w./-]+\.\w+|[\w]+(?:\.[\w]+)+)`")
+
+
+def validate_changelog_claims(changelog_path: Path, project_root: Path) -> list[str]:
+    """Verify file/module paths claimed under [Unreleased]'s Added/Changed actually exist.
+
+    Catches phantom entries: a Changelog claiming a module/file was added when it
+    was never actually committed. Scoped to Added/Changed only — a Removed entry's
+    whole point is describing something that no longer (or never did) exist, and
+    Fixed/Note entries aren't claims of new capability, so neither should be flagged.
+    """
+    issues: list[str] = []
+    if not changelog_path.exists():
+        return issues
+
+    content = changelog_path.read_text()
+    unreleased_match = re.search(r"## \[Unreleased\](.*?)(?=\n## \[|\Z)", content, re.DOTALL)
+    if not unreleased_match:
+        return issues
+
+    claim_text = "\n".join(
+        section_match.group(1)
+        for section_match in re.finditer(
+            r"### (?:Added|Changed)\n(.*?)(?=\n### |\Z)", unreleased_match.group(1), re.DOTALL
+        )
+    )
+
+    for candidate in _CHANGELOG_CLAIM_PATTERN.findall(claim_text):
+        if "/" in candidate or candidate.endswith(
+            (".py", ".ts", ".tsx", ".sh", ".yml", ".yaml", ".md")
+        ):
+            if not (project_root / candidate).exists():
+                issues.append(f"CHANGELOG claims '{candidate}' but no such file exists in the repo")
+        elif candidate.startswith("cohezion."):
+            rel = candidate.replace(".", "/")
+            if (
+                not (project_root / "src" / f"{rel}.py").exists()
+                and not (project_root / "src" / rel / "__init__.py").exists()
+            ):
+                issues.append(
+                    f"CHANGELOG claims module '{candidate}' but no such module exists in the repo"
+                )
+
+    return issues
+
+
 def get_pyproject_version(project_root: Path) -> str | None:
     """Extract version from pyproject.toml."""
     pyproject = project_root / "pyproject.toml"
@@ -136,6 +182,7 @@ def main() -> int:
     print(f"Detected bump type: {bump_type.name}")
 
     changelog_issues = validate_changelog(bump_type, project_root / "CHANGELOG.md")
+    changelog_issues += validate_changelog_claims(project_root / "CHANGELOG.md", project_root)
 
     version = get_pyproject_version(project_root)
     version_issues: list[str] = []
