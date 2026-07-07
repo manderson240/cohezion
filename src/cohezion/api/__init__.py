@@ -1675,6 +1675,14 @@ try:
 except ImportError:
     pass  # universe module not available
 
+# Register Journey Nexus endpoints (vacuum VizFrame + EVO snapshot)
+try:
+    from cohezion.api.routes.journey_nexus import router as journey_nexus_router
+
+    app.include_router(journey_nexus_router, prefix="/api")
+except ImportError:
+    pass  # journey_nexus module not available
+
 # Register Genesis Engine endpoints (grounded physics layer)
 try:
     from cohezion.api.services.genesis import genesis_router
