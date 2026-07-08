@@ -155,3 +155,21 @@ Tests 6/6 drafted by Qwen3-Coder-30B on the CPU lane (compile+pytest gated); rou
 19/19; tsc clean; smoke: 0.23ms/50-particle 12D field. Commit: feat(flume). Email
 draft #2 in Gmail: the local-inference continuation playbook (fleet warm-up, tests-as-
 spec queue, gates, vault/SurrealDB/skills/autoharness/ouroboros/mycelium wiring).
+
+## Addendum 2026-07-08 (2) — local-inference execution round (user: "proceed with local inference")
+- JourneyNexus SERVICE implemented against its 7 failing tests → 12/12 + router 19/19 = 31/31.
+  Full-fleet quarter-on-a-string: Qwen3-Coder-30B (CPU) drafted method bodies — spec-perfect
+  logic but it rewrote dataclasses it was told to keep (lesson: local models obey ADD wells,
+  KEEP poorly — always diff the contract surface); cortex restored the surface; Gemma-4-E4B
+  (iGPU, 2000-token budget after a 900-token empty/thinking miss) adversarial review — 4
+  findings, all judged theoretical for single-event-loop ASGI; llama3.2-1b (NPU) drafted the
+  retro. All three lanes ran concurrently (107s wall for review+retro pair).
+- Frontend prefix bugs fixed (FlumeLatentViz, SwarmTopologyViz) — tsc clean.
+- JepaGate gravity bias: deliberately NOT shipped half-wired (W-series wiring discipline
+  requires factory injection + discriminating tests); remains the top local-session item.
+- Runtime follow-up: narrate() assumes flume.get_vae().encode(text) — tests mock it.
+- DISCOVERED, not caused by this round: tests/api/test_a2a_endpoints.py::
+  test_list_agents_finds_all_7_specialists now fails ("vault-keeper not discovered") —
+  passed in tonight's earlier full run (160+7 tally), fails now even in isolation; none of
+  this round's files touch agent discovery. Environment-dependent card discovery — needs a
+  local-session look.
