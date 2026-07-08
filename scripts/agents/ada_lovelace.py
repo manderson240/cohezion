@@ -42,13 +42,14 @@ import json
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
 
-LEMONADE = "http://localhost:13305/api/v1/chat/completions"
+
+LEMONADE ="http://localhost:13305/api/v1/chat/completions"
 COHEZION_API = "http://localhost:8080"
 STATE_DIR = Path.home() / ".cohezion"
 STATE_FILE = STATE_DIR / "ada_state.json"
@@ -89,7 +90,7 @@ Structure, in plain markdown, max ~300 words:
 
 
 def _log(msg: str) -> None:
-    line = f"{datetime.now(timezone.utc).isoformat()} {msg}"
+    line = f"{datetime.now(UTC).isoformat()} {msg}"
     print(line)
     try:
         with LOG_FILE.open("a") as fh:
@@ -202,7 +203,7 @@ def reflect(observations: str, letter: str) -> tuple[str, str]:
 
 def record(note_text: str, letter: str, model: str, observations: str) -> Path:
     VAULT_NOTES.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc)
+    stamp = datetime.now(UTC)
     path = VAULT_NOTES / f"Note-{letter}-{stamp:%Y-%m-%d-%H%M}.md"
     path.write_text(
         f"""---
@@ -240,7 +241,7 @@ def propose(note_text: str, letter: str) -> str | None:
                     json.dumps(
                         {
                             "note": letter,
-                            "utc": datetime.now(timezone.utc).isoformat(),
+                            "utc": datetime.now(UTC).isoformat(),
                             "proposal": proposal,
                             "status": "open",
                         }
@@ -264,7 +265,7 @@ def tick() -> bool:
     proposal = propose(note_text, letter)
     state["note_index"] += 1
     state["ticks"] += 1
-    state["last_tick_utc"] = datetime.now(timezone.utc).isoformat()
+    state["last_tick_utc"] = datetime.now(UTC).isoformat()
     state["last_note"] = str(path)
     state["last_model"] = model
     _save_state(state)
