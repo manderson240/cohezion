@@ -24,8 +24,8 @@ from pydantic import BaseModel, Field
 
 from cohezion.api.services.journey_nexus import JourneyNexus
 from cohezion.api.services.universe import get_universe_service
+from cohezion.flume.latent_gravity import LatentGravityNavigator
 from cohezion.flume.vacuum_topology import VacuumTopologyClassifier
-
 
 
 router = APIRouter(prefix="/journey-nexus")
@@ -42,6 +42,14 @@ _VACUUM_N = 16  # VacuumFog samples a 16^3 Data3DTexture
 _nexus_instance: JourneyNexus | None = None
 _frame_classifier: VacuumTopologyClassifier | None = None
 _detector_instance: Any = None
+_gravity_navigator: LatentGravityNavigator | None = None
+
+
+def _get_gravity() -> LatentGravityNavigator:
+    global _gravity_navigator
+    if _gravity_navigator is None:
+        _gravity_navigator = LatentGravityNavigator()
+    return _gravity_navigator
 
 
 async def _get_nexus() -> JourneyNexus:
@@ -129,6 +137,12 @@ def _build_viz_frame(frame_id: int) -> dict[str, Any]:
     vectors = svc._vectors
     state = svc.get_state()
 
+    # SWIFT-analog gravity: EVO latent vectors are the N-body mass field
+    # (vault: swift-carbonengine-vacuum-analog.md). Each point reports the
+    # potential-well depth at its own position.
+    gravity = _get_gravity()
+    gravity.update_field([np.asarray(v) for v in vectors])
+
     points: list[dict[str, Any]] = []
     tier_votes: dict[str, int] = {"npu": 0, "igpu": 0, "cpu": 0}
     for evo, vec in zip(evos, vectors, strict=True):
@@ -137,6 +151,7 @@ def _build_viz_frame(frame_id: int) -> dict[str, Any]:
         tier = _TIER_BY_WINDING[winding]
         tier_votes[tier] += 1
         px, py, pz = _project_12d_to_3d(np.asarray(vec))
+        potential, force = gravity.potential_and_force(np.asarray(vec))
         points.append(
             {
                 "pos_x": px,
@@ -152,6 +167,8 @@ def _build_viz_frame(frame_id: int) -> dict[str, Any]:
                 "coherence": evo.coherence,
                 "tier_used": tier,
                 "winding_number": winding,
+                "potential": potential,
+                "force_magnitude": float(np.linalg.norm(force)),
             }
         )
 
@@ -203,6 +220,11 @@ def _build_viz_frame(frame_id: int) -> dict[str, Any]:
             "instanton": float(diversity.get("instanton", 0.0)),
             "soliton": float(diversity.get("soliton", 0.0)),
             "trivial": float(diversity.get("trivial", 0.0)),
+        },
+        "gravity": {
+            "n_particles": gravity.n_particles,
+            "deepest_potential": min((p["potential"] for p in points), default=0.0),
+            "mean_potential": (float(np.mean([p["potential"] for p in points])) if points else 0.0),
         },
         "cache_stats": _cache_stats(),
         "detector_snapshot": _detector_snapshot(),
