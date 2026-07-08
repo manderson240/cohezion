@@ -146,3 +146,12 @@ NEXT_PUBLIC_API_URL=http://127.0.0.1:8082 and COHEZION_CORS_ORIGINS including :3
 - JourneyRibbon already expects `/api/journey-nexus/frame` → VizFrame{points:[VizPoint]}.
 - Zod not in package.json yet (verified) — installing.
 - Explore agent mapping backend API surface (universe/journey/vacuum/GAIA routes).
+
+## Addendum 2026-07-08 — SWIFT × CarbonEngine transformation (user follow-up)
+Vault recall found the 2026-07-02 research settling it: neither engine integrable
+directly; combination = spec'd-but-never-built LatentGravityNavigator. Implemented per
+spec + wired into /frame (per-point potential/force_magnitude, gravity summary, HUD).
+Tests 6/6 drafted by Qwen3-Coder-30B on the CPU lane (compile+pytest gated); router
+19/19; tsc clean; smoke: 0.23ms/50-particle 12D field. Commit: feat(flume). Email
+draft #2 in Gmail: the local-inference continuation playbook (fleet warm-up, tests-as-
+spec queue, gates, vault/SurrealDB/skills/autoharness/ouroboros/mycelium wiring).
