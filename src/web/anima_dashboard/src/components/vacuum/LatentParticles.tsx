@@ -11,7 +11,7 @@
  * At coherence=1 → tight cluster (ordered phase). At 0 → expanded cloud (chaotic).
  */
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -97,6 +97,15 @@ export function LatentParticles({
         depthWrite: false,
       }),
     [coherenceScore]
+  );
+
+  // Dispose the 50k-point geometry + material on unmount/rebuild
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material]
   );
 
   useFrame((_, delta) => {

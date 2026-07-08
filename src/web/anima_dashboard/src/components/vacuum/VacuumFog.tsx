@@ -147,6 +147,15 @@ export function VacuumFog({
   );
   matRef.current = material;
 
+  // Dispose the 3D texture + raymarch material on unmount/rebuild
+  useEffect(
+    () => () => {
+      texture3D.dispose();
+      material.dispose();
+    },
+    [texture3D, material]
+  );
+
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (matRef.current) {

@@ -77,6 +77,33 @@ export function JourneyRibbon({
     };
   }, [apiBase, refreshMs]);
 
+  // Shared unit sphere for node markers — scaled per instance instead of
+  // allocating a new SphereGeometry per point per render (that leaked one
+  // geometry+material set every poll cycle).
+  const unitSphere = useMemo(() => new THREE.SphereGeometry(1, 16, 16), []);
+  useEffect(() => () => unitSphere.dispose(), [unitSphere]);
+
+  const nodeMaterials = useMemo(
+    () =>
+      points.map(
+        (pt) =>
+          new THREE.MeshStandardMaterial({
+            color: hslToColor(pt.color_hue, pt.color_saturation, pt.luminosity),
+            emissive: hslToColor(pt.color_hue, pt.color_saturation, pt.luminosity * 0.5),
+            emissiveIntensity: pt.glow,
+            transparent: true,
+            opacity: pt.alpha,
+          })
+      ),
+    [points]
+  );
+  useEffect(
+    () => () => {
+      for (const m of nodeMaterials) m.dispose();
+    },
+    [nodeMaterials]
+  );
+
   // Build tube geometry from current points
   const { geometry, material } = useMemo(() => {
     if (points.length < 2) {
@@ -123,6 +150,15 @@ export function JourneyRibbon({
     return { geometry: geom, material: mat };
   }, [points]);
 
+  // Dispose superseded tube geometry/material (rebuilt each points change)
+  useEffect(
+    () => () => {
+      geometry?.dispose();
+      material?.dispose();
+    },
+    [geometry, material]
+  );
+
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (groupRef.current) {
@@ -144,21 +180,14 @@ export function JourneyRibbon({
   return (
     <group ref={groupRef}>
       <mesh geometry={geometry} material={material} />
-      {/* Node spheres at each journey point */}
+      {/* Node spheres at each journey point — shared geometry, scaled */}
       {points.map((pt, i) => (
         <mesh
           key={i}
           position={[pt.pos_x, pt.pos_y, pt.pos_z]}
-          geometry={new THREE.SphereGeometry(pt.radius * 1.5, 16, 16)}
-          material={
-            new THREE.MeshStandardMaterial({
-              color: hslToColor(pt.color_hue, pt.color_saturation, pt.luminosity),
-              emissive: hslToColor(pt.color_hue, pt.color_saturation, pt.luminosity * 0.5),
-              emissiveIntensity: pt.glow,
-              transparent: true,
-              opacity: pt.alpha,
-            })
-          }
+          scale={pt.radius * 1.5}
+          geometry={unitSphere}
+          material={nodeMaterials[i]}
         />
       ))}
     </group>

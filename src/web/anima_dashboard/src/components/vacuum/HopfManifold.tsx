@@ -10,7 +10,7 @@
  * HIHO glow peaks at coherenceScore=0.5 — the BKT critical temperature.
  */
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -140,6 +140,20 @@ export function HopfManifold({
     [tierUsed]
   );
   materialsRef.current = materials;
+
+  // Dispose GPU resources on unmount / rebuild (300 tube geoms per mount)
+  useEffect(
+    () => () => {
+      for (const g of geometries) g.dispose();
+    },
+    [geometries]
+  );
+  useEffect(
+    () => () => {
+      for (const m of materials) m.dispose();
+    },
+    [materials]
+  );
 
   useFrame((_, delta) => {
     timeRef.current += delta;
