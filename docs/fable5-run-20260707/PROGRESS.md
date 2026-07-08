@@ -173,3 +173,13 @@ spec queue, gates, vault/SurrealDB/skills/autoharness/ouroboros/mycelium wiring)
   passed in tonight's earlier full run (160+7 tally), fails now even in isolation; none of
   this round's files touch agent discovery. Environment-dependent card discovery — needs a
   local-session look.
+
+## Addendum 2026-07-08 (3) — "use Cohezion to verify Cohezion" pass
+- make validate was UNRUNNABLE: committed merge-conflict markers in Makefile (2 blocks) —
+  resolved; now 23/23 PASS (SurrealDB, vault, training persistence, SkillRefiner, routing).
+- Real task through CompoundExecutor + make_local_execute_fn on the fleet: success=True,
+  full pipeline fired (retrospection, healing diagnoses, degradation detection), and the
+  quality instrumentation correctly scored a weak local answer LOW (compound_score 0.296).
+- Docs-vs-code drift found (compound/CLAUDE.md claims not on this branch): execute_fn is
+  NOT optional; executor.get_health() (CB6) absent; execute_task is sync. Also: vault
+  exp-persistence JSON error + SurrealDB :8001 400 on result logging. All queued facets.
