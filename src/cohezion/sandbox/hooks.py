@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """HookIntegration - Wire Phase 2.1 security hooks into sandbox execution pipeline.
 
 This module provides hook discovery, registration, and execution for sandbox
@@ -254,7 +254,7 @@ class HookExecutor:
         start_time = time.time()
         try:
             # Execute hook script
-            result = subprocess.run(  # noqa: S603 - hook.path is registered hook script in trusted hook registry
+            result = subprocess.run(
                 [str(hook.path)],
                 capture_output=True,
                 text=True,

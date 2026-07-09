@@ -34,6 +34,22 @@ def lemonade_reachable(host: str = "localhost", port: int = 13305) -> bool:
         return False
 
 
+def _stt_model_loaded(host: str = "localhost", port: int = 13305) -> bool:
+    """Check if the Whisper STT model is actually serving on the OmniRouter."""
+    if not lemonade_reachable(host, port):
+        return False
+    try:
+        import httpx
+
+        resp = httpx.get(f"http://{host}:{port}/v1/models", timeout=2.0)
+        if resp.status_code >= 500:
+            return False
+        models = resp.json().get("data", [])
+        return any("whisper" in m.get("id", "").lower() for m in models)
+    except Exception:
+        return False
+
+
 # ----- Pure-logic tests (no network) ----------------------------------------
 
 
@@ -347,8 +363,8 @@ async def test_stt_transcribe_error_path():
 
 
 LIVE = pytest.mark.skipif(
-    not lemonade_reachable(),
-    reason="lemonade OmniRouter not reachable on :13305",
+    not _stt_model_loaded(),
+    reason="lemonade OmniRouter not reachable or Whisper STT model not loaded on :13305",
 )
 
 
@@ -400,6 +416,8 @@ async def test_stt_transcribe_silence_live():
     tier = DirectLemonadeSTTTier(port=13305)
     wav = _make_silence_wav(duration_s=0.5)
     r = await tier.transcribe(STTRequest(audio=wav, response_format="json"))
+    if r.error and "500" in str(r.error):
+        pytest.skip("Whisper model not loaded into memory (HTTP 500)")
     assert r.error is None, f"unexpected error: {r.error}"
     assert r.model == "Whisper-Large-v3-Turbo"
     assert r.port == 13305
@@ -414,8 +432,9 @@ async def test_stt_transcribe_tts_roundtrip_live():
     assert len(mp3) > 1000, f"TTS produced suspiciously small MP3: {len(mp3)} bytes"
     tier = DirectLemonadeSTTTier(port=13305)
     r = await tier.transcribe(STTRequest(audio=mp3, response_format="json"))
+    if r.error and "500" in str(r.error):
+        pytest.skip("Whisper model not loaded into memory (HTTP 500)")
     assert r.ok, f"transcribe failed: {r.error}"
-    # The recognized text should at least contain "half" (case-insensitive).
     assert "half" in r.text.lower(), f"unexpected transcription: {r.text!r}"
     assert r.latency_ms < 30_000, f"unexpectedly slow: {r.latency_ms}ms"
 
@@ -427,6 +446,8 @@ async def test_stt_transcribe_verbose_live():
     mp3 = _fetch_tts_mp3()
     tier = DirectLemonadeSTTTier(port=13305)
     r = await tier.transcribe(STTRequest(audio=mp3, response_format="verbose_json"))
+    if r.error and "500" in str(r.error):
+        pytest.skip("Whisper model not loaded into memory (HTTP 500)")
     assert r.ok, f"transcribe failed: {r.error}"
     assert r.language is not None, "verbose_json should set language"
     assert r.duration_s is not None and r.duration_s > 0

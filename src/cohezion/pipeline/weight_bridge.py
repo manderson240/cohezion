@@ -1,4 +1,4 @@
-# ruff: noqa: E501, N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
+# math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """Weight bridge — transfer trained RL policy weights into the Rust FlumePhysics engine.
 
 The PolicyNetwork has 3 weight layers (shared[0], shared[2], mean_head) but

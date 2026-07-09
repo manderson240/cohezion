@@ -16,9 +16,10 @@ import logging
 import re
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
 
 # MGPO: VaultNeuronWriter must be importable at module level so tests can mock
 # `cohezion.compound.skill_refiner.VaultNeuronWriter` directly.
@@ -1269,7 +1270,10 @@ class SkillRefiner:
             else:
                 # Fall through to local Bonsai-8B-gguf on Lemonade (iGPU, fast structured gen).
                 try:
-                    from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import-not-found]
+                    from gaia.llm.lemonade_client import (
+                        LemonadeClient,  # type: ignore[import-not-found]
+                    )
+
                     from cohezion.inference.gaia_adapter import _GaiaLLMClientShim
 
                     _model = "Bonsai-8B-gguf"
@@ -1340,11 +1344,11 @@ class SkillRefiner:
     def _record_blocked_promotion(self, skill_name: str, signal: Any, reason: str) -> dict:
         """Turn a silent autonomous block into a visible pending-approval with a 'why' trace."""
         import json
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         insight = getattr(signal, "key_insight", str(signal))
         rec = {
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "skill": skill_name,
             "reason": reason,
             "proposed_insight": str(insight)[:500],

@@ -23,6 +23,7 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass
 
+
 logger = logging.getLogger(__name__)
 
 RAM_CEILING_GB = 96.0
@@ -42,7 +43,7 @@ def model_footprint(model_id: str, fleet=None) -> float:
         fleet: LocalResearchFleet instance.  If None, uses the global singleton.
                Pass an injected fleet in tests to avoid HTTP calls.
     """
-    from cohezion.inference.local_fleet import get_fleet  # noqa: PLC0415
+    from cohezion.inference.local_fleet import get_fleet
     f = fleet if fleet is not None else get_fleet()
     size = f.size_gb(model_id)
     return size + _kv_overhead(size)

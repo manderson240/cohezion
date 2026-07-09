@@ -23,6 +23,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
+
 logger = logging.getLogger(__name__)
 
 N_PATCHES = 16

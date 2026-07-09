@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: mcp/manager orphan modules.
 with contextlib.suppress(Exception):
     from cohezion.mcp.manager.server_manager import (

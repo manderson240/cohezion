@@ -224,7 +224,7 @@ class TestConfidence:
         ("Classify this text as spam or not.", "npu", "short_categorical"),
         ("In one sentence, summarize the main idea.", "npu", "short_answer"),
         ("Write a Python function to merge two dicts.", "gpu", "code"),
-        ("Prove that P != NP showing each step.", "gpu", "long_generation"),
+        ("Prove that P != NP showing each step.", "gpu", "math_reasoning"),
         ("Is this statement true or false only: 2+2=4", "npu", "short_categorical"),
         ("Name the capital of France.", "npu", "short_answer"),
         ("Write an essay on the history of computing.", "gpu", "long_generation"),

@@ -64,6 +64,7 @@ __all__ = [
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.swarm.providers.model_provider import GenerationResult as GenerationResult
 

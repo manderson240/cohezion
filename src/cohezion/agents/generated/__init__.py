@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.agents.generated.skill_0_agent import Skill0Agent as Skill0Agent
 

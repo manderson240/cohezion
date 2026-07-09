@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: hermetic_design_patterns.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.patterns.hermetic_design_patterns import (

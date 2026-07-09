@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 FLUME VAE Service - Logic for encoding, decoding, and training Flume latent vectors.
 """

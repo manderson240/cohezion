@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: agi_specialists sub-package was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.agents.adk_swarm.agi_specialists import (

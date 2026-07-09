@@ -188,7 +188,7 @@ def create_embedding_provider(
     return provider
 
 
-import httpx  # noqa: E402
+import httpx
 
 
 class AsyncOllamaEmbeddingProvider:

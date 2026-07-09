@@ -29,7 +29,7 @@ class MoESkillRouter:
     def __init__(self, alpha: float = 0.1) -> None:
         self._alpha = alpha
         n = len(self._EXPERT_NAMES)
-        self.weights: dict[str, float] = {name: 1.0 / n for name in self._EXPERT_NAMES}
+        self.weights: dict[str, float] = dict.fromkeys(self._EXPERT_NAMES, 1.0 / n)
 
     def get_weight(self, expert_name: str) -> float:
         return self.weights.get(expert_name, 0.0)

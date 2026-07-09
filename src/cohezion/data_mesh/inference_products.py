@@ -27,6 +27,7 @@ from cohezion.data_mesh.data_product import (
 )
 from cohezion.governance.autonomy_engine import AutonomyTier
 
+
 _OMNI_ROUTER = "http://localhost:13305"
 _FETCH_TIMEOUT_S = 2.0
 

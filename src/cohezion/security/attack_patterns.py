@@ -1,4 +1,4 @@
-# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
+# random used for simulation/jitter, not cryptography
 """
 Attack Pattern Database for Adversarial Security Testing.
 

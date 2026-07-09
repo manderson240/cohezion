@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Quality Scout - Performs zero-token static analysis to identify code smells and high-complexity files.
 Acts as the primary filter for selective LLM analysis.

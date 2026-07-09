@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """BMAD MCP Server - Shared config, engine, and route definitions."""
 
 from __future__ import annotations

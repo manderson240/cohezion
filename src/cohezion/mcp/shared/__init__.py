@@ -14,6 +14,7 @@ __all__ = [
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: client and auth were import-graph orphans.
 with contextlib.suppress(Exception):
     from cohezion.mcp.shared.client import MCPClient as MCPClient

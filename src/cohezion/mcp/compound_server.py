@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """MCP Compound Server - Unified interface for compound engineering.
 
 Elegant refactor: 782 lines compounded into ~380.

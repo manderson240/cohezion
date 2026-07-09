@@ -1,4 +1,4 @@
-# ruff: noqa: S608  # SQL strings parameterized via SurrealDB driver, not raw string concat
+# SQL strings parameterized via SurrealDB driver, not raw string concat
 """
 Pattern Repository - Persistence layer for code patterns and anti-patterns.
 Supports SurrealDB with a local write-buffer for stability.

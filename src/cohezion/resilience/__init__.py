@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.resilience.manager import AutonomicManager as AutonomicManager
 

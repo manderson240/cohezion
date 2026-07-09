@@ -22,14 +22,15 @@ Register in mcp_servers.json:
 
 from __future__ import annotations
 
+import logging
 import math
 import os
 import random
 import sys
-import logging
 
 import httpx
 from fastmcp import FastMCP
+
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger("marimo-walkthroughs-mcp")
@@ -246,9 +247,11 @@ async def thermodynamic_gravity(
         _src = __import__("pathlib").Path(__file__).parent.parent.parent
         if str(_src) not in sys.path:
             sys.path.insert(0, str(_src))
+        from cohezion.physics.thermodynamic_gravity import (
+            OttoWorkLeg as _OWL,
+        )
         from cohezion.physics.thermodynamic_gravity import (  # type: ignore[import]
             ThermodynamicGravity as _TG,
-            OttoWorkLeg as _OWL,
         )
         legs = [_OWL(lorentz_violation=epsilon,
                      entropy_flux=math.sin(math.pi * (i + 1) / n_legs) * 0.5)

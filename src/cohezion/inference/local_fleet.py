@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 OMNI_URL = "http://localhost:13305/api/v1"
@@ -113,7 +114,7 @@ def _fetch_registry(registry: list[dict] | None) -> dict[str, dict]:
     if registry is not None:
         return {m["id"]: m for m in registry}
     try:
-        import httpx  # noqa: PLC0415
+        import httpx
         r = httpx.get(f"{OMNI_URL}/models", timeout=5.0)
         r.raise_for_status()
         return {m["id"]: m for m in r.json().get("data", [])}

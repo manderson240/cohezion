@@ -455,6 +455,7 @@ async def route(
     registry: FleetRegistry | None = None,
     stream: bool = False,
     max_tokens: int = 512,
+    resource_snapshot: Any = None,
 ) -> RouteResult:
     """Dispatch a prompt to the optimal lane of the fleet.
 
@@ -529,6 +530,8 @@ async def route(
     from cohezion.inference.health import LaneStatus, check_fleet
 
     health = None
+    lemonade_health: Any | None = None
+    lemonade_health_fetched = False
 
     attempts: list[str] = []
     last_error: str | None = None
@@ -546,6 +549,14 @@ async def route(
             lane_key = candidate.lane.value
             if lane_key in health.lanes and health.lanes[lane_key].status != LaneStatus.UP:
                 attempts.append(f"{candidate.model_id}(lane-down)")
+                continue
+
+            if not lemonade_health_fetched:
+                lemonade_health = await _get_lemonade_health()
+                lemonade_health_fetched = True
+            skip_reason = _lemonade_recipe_skip_reason(candidate, lemonade_health)
+            if skip_reason is not None:
+                attempts.append(f"{candidate.model_id}({skip_reason})")
                 continue
 
         attempts.append(candidate.model_id)
@@ -656,30 +667,78 @@ async def extend_claude(
 # Recipe-aware health gate stubs (fleet_recipe_gate, 2026-06-10)
 # ---------------------------------------------------------------------------
 
+_LEMONADE_LAST_PROBE_AT: float = 0.0
+_LEMONADE_LAST_RESULT: Any = None
+_LEMONADE_PROBE_TTL_S: float = 5.0
 
-def _get_lemonade_health() -> "Any | None":  # type: ignore[return]
+_RECIPE_FOR_BACKEND_MAP: dict[str, str] = {
+    "flm": "flm",
+    "llamacpp": "llamacpp",
+    "llamacpp_hip": "llamacpp",
+    "llamacpp_cpu": "llamacpp",
+    "vllm": "vllm",
+    "vllm_rocm": "vllm",
+    "cpu": "llamacpp",
+    "sd-cpp": "sd-cpp",
+    "whispercpp": "whispercpp",
+    "whisper": "whispercpp",
+    "kokoro": "kokoro",
+}
+
+
+async def _get_lemonade_health() -> Any | None:
     """Fetch the latest LemonadeHealth snapshot from the OmniRouter (:13305).
 
     Returns None when the router is unreachable or the probe fails.
+    Cached for ``_LEMONADE_PROBE_TTL_S`` seconds to avoid probing every dispatch.
     """
-    raise NotImplementedError
+    global _LEMONADE_LAST_PROBE_AT, _LEMONADE_LAST_RESULT
+    now = time.time()
+    if (
+        _LEMONADE_LAST_RESULT is not None
+        and (now - _LEMONADE_LAST_PROBE_AT) < _LEMONADE_PROBE_TTL_S
+    ):
+        return _LEMONADE_LAST_RESULT
+    try:
+        from cohezion.inference.lemonade_health import probe_lemonade
+
+        result = await probe_lemonade(port=13305)
+        _LEMONADE_LAST_RESULT = result
+        _LEMONADE_LAST_PROBE_AT = now
+        return result
+    except Exception as exc:
+        logger.debug("lemonade health probe failed: %s", exc)
+        _LEMONADE_LAST_RESULT = None
+        _LEMONADE_LAST_PROBE_AT = now
+        return None
 
 
-def _recipe_for_backend(runtime_backend: str) -> "str | None":
+def _recipe_for_backend(runtime_backend: str) -> str | None:
     """Map a model's ``runtime_backend`` string to its lemonade recipe name.
 
     Returns None when the backend is unknown or not a lemonade recipe.
     """
-    raise NotImplementedError
+    return _RECIPE_FOR_BACKEND_MAP.get(runtime_backend)
 
 
 def _lemonade_recipe_skip_reason(
-    candidate: "Any",
-    health: "Any | None",
-) -> "str | None":
+    candidate: Any,
+    health: Any | None,
+) -> str | None:
     """Return a human-readable skip reason if *candidate* should be dropped.
 
     Returns None when the candidate is healthy (or when health is None —
     fail-soft: no probe means permissive gate).
     """
-    raise NotImplementedError
+    if health is None:
+        return None
+    recipe = _recipe_for_backend(getattr(candidate, "runtime_backend", "") or "")
+    if recipe is None:
+        return None
+    for probe in getattr(health, "recipe_probes", []) or []:
+        if probe.recipe == recipe and not probe.ok:
+            return f"recipe-down:{recipe}"
+    for hazard in getattr(health, "ctx_hazards", []) or []:
+        if hazard.model == getattr(candidate, "model_id", ""):
+            return f"ctx-hazard:{hazard.model} ctx_size=0"
+    return None

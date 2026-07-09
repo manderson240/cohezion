@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """Security guardrails for ResearchAgent.
 
 Validates code changes before execution.

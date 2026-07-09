@@ -1,4 +1,4 @@
-# ruff: noqa: S608, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 SurrealDB Journey Repository - Concrete implementation using SurrealDB.
 """

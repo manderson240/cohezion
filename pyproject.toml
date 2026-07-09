@@ -129,6 +129,13 @@ exclude = [
     ".archives",
     "src/cohezion-archive",  # archived/legacy code — not actively maintained
     "*.ipynb",
+    ".claude/worktrees",  # agent worktree copies — not source of truth
+    ".gemini/worktrees",
+    ".worktrees",
+    "archives",
+    "cloud-vault-mcp",
+    ".pi",
+    ".tmp_kaggle",
 ]
 
 # Linting configuration

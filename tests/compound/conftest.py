@@ -1,5 +1,6 @@
-"""Fixtures for compound integration tests."""
-"""Compound test fixtures.
+"""Fixtures for compound integration tests.
+
+Compound test fixtures.
 
 Ensures the project ``.context/`` tree has the placeholder source files that
 ``cohezion.compound.context_integration.ContextManager`` expects when loading
@@ -65,6 +66,7 @@ async def mcp_client():
     """Create mock MCP client for testing."""
     return MagicMock(spec=MCPClient)
 
+
 import pytest
 
 
@@ -114,5 +116,4 @@ def _ensure_context_placeholders() -> None:
             "# Real content lives in the corresponding src/ module; this file exists so\n"
             "# ContextManager._load_file() does not raise ContextLoadError during tests.\n",
             encoding="utf-8",
-        )
         )

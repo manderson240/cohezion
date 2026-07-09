@@ -1,4 +1,4 @@
-# ruff: noqa: RUF006, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Budget enforcement with soft-stop policy and emergency circuit breaker.
 
 Features:

@@ -21,6 +21,7 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
 
+
 # ── Model capability facts (from model card + empirical measurement) ─────────
 
 # Labels that indicate thinking-mode behaviour
@@ -69,7 +70,7 @@ class ModelCardHarness:
         self._by_id: dict[str, dict] = {m["id"]: m for m in models}
 
     @classmethod
-    def from_live_api(cls, port: int = 13305) -> "ModelCardHarness":
+    def from_live_api(cls, port: int = 13305) -> ModelCardHarness:
         """Build from the Lemonade /v1/models endpoint."""
         try:
             with urllib.request.urlopen(f"http://127.0.0.1:{port}/v1/models", timeout=3) as r:

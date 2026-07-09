@@ -26,6 +26,7 @@ from typing import Any
 from cohezion.config.defaults import LEMONADE_BASE_URL
 from cohezion.inference.oom_guard import check_ram
 
+
 logger = logging.getLogger(__name__)
 
 # Model tier map: classifier node → OmniRouter model name

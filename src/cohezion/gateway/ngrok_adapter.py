@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """ngrok AI Gateway adapter for multi-provider LLM routing.
 
 Provides OpenAI SDK-compatible endpoint that routes requests through ngrok AI Gateway

@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """Experience-guided batch sizing for optimal throughput.
 
 Learns optimal batch sizes from vault history and predicts sizes for new tasks.

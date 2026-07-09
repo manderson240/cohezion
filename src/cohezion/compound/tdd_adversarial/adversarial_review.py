@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Multiperspective Adversarial Review System for Compound Engineering
 Provides multiple perspective analysis to improve compound engineering decisions.

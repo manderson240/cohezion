@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.agents.specialists._base import AgentCard as AgentCard
     from cohezion.agents.specialists._base import PlatformSpecialist as PlatformSpecialist

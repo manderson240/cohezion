@@ -8,6 +8,7 @@ __all__ = ["RedisSemanticCache", "SemanticCache"]
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: cache_warmer, sentence_encoder, text_encoder were genuine orphans.
 with contextlib.suppress(Exception):
     from cohezion.cache.cache_warmer import CacheWarmer as CacheWarmer

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 import httpx
 
+
 _FORMAT_TO_MIME: dict[str, str] = {
     "mp3": "audio/mpeg",
     "wav": "audio/wav",
@@ -47,7 +48,7 @@ class TTSResult:
         return self.error is None and len(self.audio) > 0
 
 
-def build_tts_tier(port: int = 13305, timeout: float = 30.0) -> "DirectLemonadeTTSTier":
+def build_tts_tier(port: int = 13305, timeout: float = 30.0) -> DirectLemonadeTTSTier:
     """Construct a DirectLemonadeTTSTier with the given port and timeout."""
     return DirectLemonadeTTSTier(port=port, timeout=timeout)
 

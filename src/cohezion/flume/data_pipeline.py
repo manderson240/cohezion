@@ -1,4 +1,4 @@
-# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
+# random used for simulation/jitter, not cryptography
 """Training data pipeline for FLUME VAE v2.
 
 Generates synthetic task descriptions across 5 operation types,

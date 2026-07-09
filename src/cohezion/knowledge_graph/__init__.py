@@ -28,6 +28,7 @@ except ImportError:
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: graphrag_engine, query_engine, bidirectional_linker,
 # universe_genealogy_migration were genuine import-graph orphans.
 with contextlib.suppress(Exception):

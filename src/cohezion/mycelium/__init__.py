@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.mycelium.loop import CoverageLoop as CoverageLoop
 

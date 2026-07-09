@@ -40,9 +40,9 @@ Falls back to identity-compatible stubs when torch is not available.
 
 from __future__ import annotations
 
-import math
 import logging
-from typing import Optional
+import math
+
 
 logger = logging.getLogger(__name__)
 
@@ -117,11 +117,11 @@ try:
 
         def forward(
             self,
-            query: "torch.Tensor",
-            key: "torch.Tensor",
-            value: "torch.Tensor",
-            mask: Optional["torch.Tensor"] = None,
-        ) -> "torch.Tensor":
+            query: torch.Tensor,
+            key: torch.Tensor,
+            value: torch.Tensor,
+            mask: torch.Tensor | None = None,
+        ) -> torch.Tensor:
             """HIHO attention forward pass.
 
             Parameters
@@ -175,9 +175,9 @@ try:
 
         def hiho_entropy(
             self,
-            query: "torch.Tensor",
-            key: "torch.Tensor",
-        ) -> "torch.Tensor":
+            query: torch.Tensor,
+            key: torch.Tensor,
+        ) -> torch.Tensor:
             """Compute mean HIHO attention entropy (diagnostic).
 
             Higher entropy = more diverse attention = closer to HIHO equilibrium.
@@ -210,7 +210,7 @@ try:
             self.dropout = nn.Dropout(dropout)
             self.ffn_scale = ffn_scale
 
-        def forward(self, x: "torch.Tensor") -> "torch.Tensor":
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
             # Scaled HIHO activation: scale>1 improves activation variance (exp_FFFF4)
             return self.fc2(self.dropout(hiho_kernel(self.ffn_scale * self.fc1(x))))
 
@@ -235,9 +235,9 @@ try:
 
         def forward(
             self,
-            x: "torch.Tensor",
-            mask: Optional["torch.Tensor"] = None,
-        ) -> "torch.Tensor":
+            x: torch.Tensor,
+            mask: torch.Tensor | None = None,
+        ) -> torch.Tensor:
             # Pre-norm (more stable than post-norm)
             x = x + self.dropout(self.attn(self.norm1(x), self.norm1(x), self.norm1(x), mask))
             x = x + self.dropout(self.ff(self.norm2(x)))

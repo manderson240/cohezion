@@ -26,7 +26,9 @@ from cohezion.compound.batch_executor import (
 from cohezion.compound.batch_executor import (
     BatchExecutorFactory as BatchExecutorFactory,
 )
-from cohezion.compound.config import CompoundConfig as Config  # noqa: F401  # pyright: ignore[reportUnusedImport]
+from cohezion.compound.config import (
+    CompoundConfig as Config,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+)
 from cohezion.compound.core.batch_processor import BatchProcessor as BatchProcessor
 
 
@@ -172,7 +174,9 @@ from cohezion.compound.core.executor import (
 from cohezion.compound.core.executor import (
     execute_simple as execute_simple,
 )
-from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor  # noqa: F401  # pyright: ignore[reportUnusedImport]
+from cohezion.compound.executor import (
+    CompoundExecutor as LegacyCompoundExecutor,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+)
 from cohezion.compound.executor_factory import (  # noqa: F401
     ExecutorFactory as CompoundExecutorFactory,  # pyright: ignore[reportUnusedImport]
 )
@@ -288,6 +292,7 @@ from cohezion.compound.tdd_adversarial.tdd_integration import (
 from cohezion.compound.tdd_adversarial.tdd_integration import (
     get_tdd_integration as get_tdd_integration,
 )
+
 
 # Wiring-sweep 2026-06-22: behavioral_eval was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
@@ -554,7 +559,9 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
     # (GAIA SDK, :13305) + k-step lookahead when local inference is reachable; else fail-open.
     if "jepa_gate" not in kwargs:
         try:
-            from cohezion.compound.lemonade_world_model import build_live_jepa_gate  # type: ignore[import]
+            from cohezion.compound.lemonade_world_model import (
+                build_live_jepa_gate,  # type: ignore[import]
+            )
 
             kwargs["jepa_gate"] = build_live_jepa_gate()  # type: ignore[assignment]
         except Exception:

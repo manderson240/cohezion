@@ -1,4 +1,4 @@
-# ruff: noqa: S104, RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """Security MCP Server - Vulnerability scanning and security analysis.
 
 Port: 8369
@@ -21,7 +21,7 @@ import logging
 import os
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from aiohttp import web
 

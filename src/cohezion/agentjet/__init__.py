@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.agentjet.context_optimizer import CONTEXT_PROFILES as CONTEXT_PROFILES
     from cohezion.agentjet.context_optimizer import ContextOptimizer as ContextOptimizer

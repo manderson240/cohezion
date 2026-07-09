@@ -19,11 +19,12 @@ import hashlib
 import json
 import logging
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
 
 if TYPE_CHECKING:
     from cohezion.compound.journey_tracker import Journey
@@ -52,7 +53,7 @@ def _surreal_query(sql: str) -> dict:
         return json.loads(resp.read())
 
 
-def _journey_to_agent_trajectory(journey: "Journey") -> Any:
+def _journey_to_agent_trajectory(journey: Journey) -> Any:
     """Convert JourneyTracker.Journey → AgentTrajectory for FLUME encoding."""
     from cohezion.universe.llm_training_bridge import AgentTrajectory, TrajectoryStep
 
@@ -85,13 +86,14 @@ def _journey_to_agent_trajectory(journey: "Journey") -> Any:
     )
 
 
-def encode_journey_as_evo(journey: "Journey") -> dict[str, Any] | None:
+def encode_journey_as_evo(journey: Journey) -> dict[str, Any] | None:
     """Encode a completed Journey as an Exotic Vacuum Object.
 
     Returns the EVO record dict, or None if encoding fails.
     """
     try:
         import torch
+
         from cohezion.flume.journey_encoder import JourneyToFlumeEncoder
     except ImportError as e:
         logger.warning("EVO encoding skipped — torch/journey_encoder not available: %s", e)
@@ -128,7 +130,7 @@ def encode_journey_as_evo(journey: "Journey") -> dict[str, Any] | None:
         "mu_256d": mu_np,
         "log_var_256d": log_var_np,
         "traj_hash": traj_hash,
-        "created": datetime.now(timezone.utc).isoformat(),
+        "created": datetime.now(UTC).isoformat(),
     }
     return evo
 
@@ -192,7 +194,7 @@ High-coherence EVOs (φ > 0.7) seed ManifoldEnv initial state distribution.
         return None
 
 
-def capture_evo(journey: "Journey") -> dict[str, Any] | None:
+def capture_evo(journey: Journey) -> dict[str, Any] | None:
     """Full pipeline: Journey → encode → persist SurrealDB + Obsidian.
 
     Returns the EVO record or None on failure.

@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.swarm.agents.base_scout import ASTSummary as ASTSummary
     from cohezion.swarm.agents.base_scout import BaseScout as BaseScout

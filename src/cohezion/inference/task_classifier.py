@@ -65,7 +65,7 @@ def band_for_node(node: str) -> str:
 # quality_gate_chars=0 means "trust any non-empty response"
 _TYPE_CONFIG: dict[str, tuple[Literal["npu", "gpu"], int]] = {
     "short_categorical": ("npu", 0),  # single word / letter / label
-    "short_answer": ("npu", 1),  # 1-3 sentences; gate=1 accepts single-word/number answers
+    "short_answer": ("npu", 10),  # 1-3 sentences, direct answer
     "medium_generation": ("gpu", 0),  # multi-sentence, some structure
     "long_generation": ("gpu", 0),  # essay, detailed explanation
     "code": ("gpu", 0),  # code output
@@ -94,7 +94,7 @@ class RouteDecision:
 _MODEL_HINTS: dict[str, str] = {
     "code": "Qwen3.6-35B-A3B-ThinkingCoder",
     "reasoning": "Gemma-4-31B-it-GGUF",
-    "math_reasoning": "Gemma-4-31B-it-GGUF",
+    "math_reasoning": "deepseek-r1-0528-8b-FLM",
 }
 _NPU_MODEL = "llama3.2-1b-FLM"  # fallback; overridden lazily from FleetRegistry
 _IGPU_DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"  # fallback; overridden lazily from FleetRegistry
@@ -1179,6 +1179,35 @@ _BACKTICK_VERB_ENGINEERING_PATTERN = re.compile(
     re.I,
 )
 
+
+# Math/reasoning patterns — fire AFTER short-what-is pre-override, BEFORE GPU scan.
+# These route to gpu/math_reasoning (with deepseek-r1-0528-8b-FLM) instead of
+# falling through to NPU length-fallback or GPU long_generation.
+_MATH_REASONING_PATTERNS: list[tuple[re.Pattern, float, str]] = [
+    # Calculus operations: integrate, differentiate, derive
+    (re.compile(r"\b(?:integrate|integration|differentiate|differentiation)\b", re.I), 0.92, "calculus operation"),
+    # "Derive the formula for X" / "Derive X" (mathematical derivation, not code)
+    (re.compile(r"\bderive(?:d)?\s+(?:the\s+)?(?:formula|equation|expression|relation|identity|bound|estimate|approximation|series|expansion|recurrence|closed.form)\b", re.I), 0.90, "derive formula"),
+    (re.compile(r"\bderive\b.{0,30}\b(?:formula|area|volume|derivative|integral|limit|series|expansion|equation)\b", re.I), 0.88, "mathematical derivation"),
+    # "Solve step by step: X" / "Solve for x" / "Solve the equation"
+    (re.compile(r"\bsolve\b.{0,30}\b(?:step.by.step|for\s+\w+|the\s+equation|the\s+system|for\s+x|for\s+y|for\s+n)\b", re.I), 0.90, "solve equation"),
+    (re.compile(r"\bsolve\s+(?:step.by.step|for\s+)", re.I), 0.90, "solve step-by-step"),
+    # "Prove that X" / "Prove X is/holds"
+    (re.compile(r"\bprove\s+(?:that\b|the\b|\w+\s+is\b|\w+\s+holds\b|\w+\s+satisfies\b)", re.I), 0.90, "mathematical proof"),
+    # "Logic puzzle: X"
+    (re.compile(r"\blogic\s+puzzle\b", re.I), 0.88, "logic puzzle"),
+    # "Calculate X" / "Compute X" (standalone math, not "calculate the metrics for...")
+    (re.compile(r"\b(?:calculate|compute)\s+(?:the\s+)?(?:sum|product|difference|quotient|integral|derivative|limit|determinant|eigenvalue|trace|norm|dot\s+product|cross\s+product|matrix\s+product|area|volume|perimeter|circumference|probability|expectation|variance|standard\s+deviation|correlation|coefficient)\b", re.I), 0.88, "calculate math quantity"),
+    # "Simplify the expression/equation"
+    (re.compile(r"\bsimplify\s+(?:the\s+)?(?:expression|equation|fraction|polynomial|rational|algebraic)\b", re.I), 0.85, "simplify expression"),
+    # "Factor the polynomial/expression"
+    (re.compile(r"\bfactor\s+(?:the\s+)?(?:polynomial|expression|quadratic|trinomial|equation)\b", re.I), 0.85, "factor polynomial"),
+    # "Expand the expression"
+    (re.compile(r"\bexpand\s+(?:the\s+)?(?:expression|polynomial|binomial|series|product)\b", re.I), 0.85, "expand expression"),
+    # "Find the roots/zeros/solutions of X"
+    (re.compile(r"\bfind\s+(?:the\s+)?(?:roots|zeros|solutions?|fixed\s+points?|critical\s+points?|extrema|maxim(?:a|um)|minim(?:a|um)|saddle\s+points?)\s+of\b", re.I), 0.85, "find roots/extrema"),
+]
+
 _calibrated_overrides: dict[str, Any] | None = None
 _overrides_loaded = False
 
@@ -1234,7 +1263,75 @@ def _load_overrides() -> dict[str, Any]:
     return _calibrated_overrides or {}
 
 
-def classify(prompt: str) -> RouteDecision:
+def classify(prompt: str, output_intent: str | None = None) -> RouteDecision:
+    """Classify a prompt and return routing decision. Zero model calls.
+
+    Parameters
+    ----------
+    output_intent
+        Optional AIR (output intent) goal-conditioning key. When provided,
+        adjusts the routing decision per the AIR model:
+        - ``None``: identity (no change)
+        - ``'generation'``: upgrades NPU → GPU/long_generation
+        - ``'lookup'`` / ``'summary'``: downgrades GPU → NPU/short_answer
+        - ``'action'``: upgrades NPU → GPU/code
+        - ``'evaluation'``: upgrades NPU short_answer → GPU/medium_generation
+    """
+    decision = _classify_base(prompt)
+    if output_intent is None:
+        return decision
+    return _apply_output_intent(decision, output_intent)
+
+
+def _apply_output_intent(decision: RouteDecision, output_intent: str) -> RouteDecision:
+    """Apply AIR goal-conditioning to a base routing decision.
+
+    AIR invariants (CLAUDE.md):
+      AIR1: output_intent=None is identity (handled by caller)
+      AIR2: 'generation' upgrades NPU → GPU/long_generation
+      AIR3: 'lookup'/'summary' downgrades GPU → NPU/short_answer;
+            'action' upgrades NPU → GPU/code
+    """
+    node = decision.node
+    otype = decision.output_type
+    reason = decision.reason
+
+    if output_intent == "generation":
+        if node == "npu":
+            node = "gpu"
+            otype = "long_generation"
+            reason = f"{reason} + AIR generation upgrade NPU→GPU"
+    elif output_intent in ("lookup", "summary"):
+        if node == "gpu":
+            node = "npu"
+            otype = "short_answer"
+            reason = f"{reason} + AIR {output_intent} downgrade GPU→NPU"
+    elif output_intent == "action":
+        if node == "npu":
+            node = "gpu"
+            otype = "code"
+            reason = f"{reason} + AIR action upgrade NPU→GPU/code"
+    elif output_intent == "evaluation":
+        if node == "npu" and otype in ("short_answer", "short_categorical"):
+            node = "gpu"
+            otype = "medium_generation"
+            reason = f"{reason} + AIR evaluation upgrade NPU→GPU/medium"
+
+    if node == decision.node and otype == decision.output_type:
+        return decision
+
+    gate = _TYPE_CONFIG.get(otype, (node, decision.quality_gate_chars))[1]
+    return RouteDecision(
+        node=node,
+        output_type=otype,
+        quality_gate_chars=gate,
+        confidence=decision.confidence,
+        reason=reason,
+        preferred_model=_preferred_model(otype, node),
+    )
+
+
+def _classify_base(prompt: str) -> RouteDecision:
     """Classify a prompt and return routing decision. Zero model calls."""
     # Truncate very long prompts -- classifier only needs the opening intent phrase
     # Prevents O(n^2) backtracking on adversarial 1000+ char inputs
@@ -1395,6 +1492,21 @@ def classify(prompt: str) -> RouteDecision:
             preferred_model=_preferred_model("medium_generation", node),
         )
 
+    # 4d. Math/reasoning patterns → gpu/math_reasoning (deepseek-r1-0528-8b-FLM)
+    # Fires AFTER short-what-is pre-override (so "What is the integral of x^2?" stays NPU)
+    # but BEFORE the GPU long_generation scan (so "Prove that X" is math, not long_generation).
+    for pattern, confidence, reason in _MATH_REASONING_PATTERNS:
+        if pattern.search(prompt):
+            node, gate = _TYPE_CONFIG["math_reasoning"]
+            return RouteDecision(
+                node=node,
+                output_type="math_reasoning",
+                quality_gate_chars=gate,
+                confidence=confidence,
+                reason=reason,
+                preferred_model=_preferred_model("math_reasoning", node),
+            )
+
     # -- Check GPU patterns first (highest cost to mis-route) -----------------
     # Normalize backtick-quoted verbs: `port` → port (backtick prevents \s+ after \bport\b)
     # Only used for GPU scan -- pre-GPU overrides still use the original prompt.
@@ -1472,13 +1584,15 @@ def classify(prompt: str) -> RouteDecision:
         )
 
 
-def classify_with_harness(prompt: str, *, tool_task: bool = False) -> tuple[RouteDecision, Harness]:
+def classify_with_harness(
+    prompt: str, *, tool_task: bool = False, output_intent: str | None = None
+) -> tuple[RouteDecision, Harness]:
     """``classify`` + an advisory harness recommendation for the chosen node.
 
     Returns the EXISTING ``RouteDecision`` unchanged (routing/CL invariants intact) paired
     with a ``Harness`` -- additive: nothing forces the dispatcher to apply it. Item 7.
     """
-    decision = classify(prompt)
+    decision = classify(prompt, output_intent=output_intent)
     return decision, select_harness(decision.node, tool_task=tool_task)
 
 
@@ -1498,7 +1612,10 @@ async def classify_with_vacuum_hint(prompt: str, response: str = "") -> RouteDec
     """
     base = classify(prompt)
     try:
-        from cohezion.flume.vacuum_encoder import classify_journey_phase, encode_journey_text  # type: ignore[reportMissingImports]
+        from cohezion.flume.vacuum_encoder import (  # type: ignore[reportMissingImports]
+            classify_journey_phase,
+            encode_journey_text,
+        )
 
         z = await encode_journey_text(prompt, response)
         phase, margin = classify_journey_phase(z)

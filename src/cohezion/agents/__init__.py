@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.agents.base import BaseAgent as BaseAgent
 

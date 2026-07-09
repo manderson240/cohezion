@@ -13,6 +13,7 @@ from typing import Any
 
 import httpx
 
+
 _EXT_TO_MIME: dict[str, str] = {
     "mp3": "audio/mpeg",
     "wav": "audio/wav",
@@ -47,7 +48,7 @@ class Segment:
     language: str = ""
 
     @classmethod
-    def from_api(cls, raw: dict) -> "Segment":
+    def from_api(cls, raw: dict) -> Segment:
         return cls(
             id=raw.get("id", 0),
             start=raw.get("start", 0.0),
@@ -137,7 +138,7 @@ def _read_audio(source: Any) -> tuple[bytes, str, str]:
     return data, f"audio.{ext}", mime
 
 
-def build_stt_tier(port: int = 13305, timeout: float = 30.0) -> "DirectLemonadeSTTTier":
+def build_stt_tier(port: int = 13305, timeout: float = 30.0) -> DirectLemonadeSTTTier:
     """Construct a DirectLemonadeSTTTier with the given port and timeout."""
     return DirectLemonadeSTTTier(port=port, timeout=timeout)
 

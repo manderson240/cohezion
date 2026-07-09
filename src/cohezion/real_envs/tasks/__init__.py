@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.real_envs.tasks.scenarios import create_flask_api_task as create_flask_api_task
 

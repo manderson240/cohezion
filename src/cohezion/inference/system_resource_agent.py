@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 _PRESSURE_LOCK = Path("/tmp/cohezion_pressure.lock")
@@ -87,13 +88,13 @@ class SystemResourceAgent:
             try:
                 from cohezion.core.silicon_guard import SiliconGuard
                 self._guard = SiliconGuard()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 self._guard = _FallbackGuard()
         if self._monitor is None:
             try:
                 from cohezion.core.resource_monitor import ResourceMonitor
                 self._monitor = ResourceMonitor()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 self._monitor = _FallbackMonitor()
 
     def _poll_metrics(self) -> dict[str, Any]:
@@ -103,13 +104,13 @@ class SystemResourceAgent:
         avail_gb = 64.0
         try:
             temp = self._guard.get_temperature()
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         try:
             stats = self._monitor.get_stats()
             mem_pct = stats.get("memory_percent", 50.0)
             avail_gb = stats.get("available_memory_gb", 64.0)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         return {
             "temp_c": round(temp, 1),
@@ -192,7 +193,7 @@ class SystemResourceAgent:
             )
         except (urllib.error.URLError, TimeoutError, OSError):
             return None  # Lemonade offline — silent fallback
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("SystemResourceAgent: Lemonade parse failed (%s), using deterministic", exc)
             return None
 
@@ -204,7 +205,7 @@ class SystemResourceAgent:
                 "silicon_temp_c": rec.raw_metrics.get("temp_c", 45.0),
                 "memory_pressure": rec.pressure_score,
             })
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass  # DegradationDetector feeding is best-effort; never block assess()
 
     def assess(self) -> ResourceRecommendation:
@@ -221,7 +222,7 @@ class SystemResourceAgent:
                 rec.tier, rec.action, rec.pressure_score, rec.source, rec.reason,
             )
             return rec
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("SystemResourceAgent.assess() failed: %s", exc, exc_info=True)
             return ResourceRecommendation(
                 tier="igpu", action="proceed",

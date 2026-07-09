@@ -1,4 +1,4 @@
-# ruff: noqa: N812  # scientific lib import aliasing (np, F, etc.)
+# scientific lib import aliasing (np, F, etc.)
 """
 Git FLUME Encoder - Semantic history analysis using latent space trajectories.
 

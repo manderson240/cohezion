@@ -148,6 +148,7 @@ class SkillGenerator:
 # Wiring-sweep 2026-06-22: vault_neuron_reader.py was a genuine import-graph orphan.
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.learning.vault_neuron_reader import (
         VaultNeuronWriter as VaultNeuronWriter,
@@ -203,6 +204,7 @@ def get_skill_generator() -> SkillGenerator:
 
 # Wiring-sweep 2026-06-22: deep_research and ouroboros_trigger were genuine import-graph orphans.
 import contextlib as _contextlib
+
 
 with _contextlib.suppress(Exception):
     from cohezion.learning.deep_research import (

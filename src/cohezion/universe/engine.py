@@ -1,4 +1,4 @@
-# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
+# math/physics symbols intentional
 """Core Universe Simulation Engine for Cohezion.
 
 Captures every agent interaction as 12D/2048D manifold trajectory data,

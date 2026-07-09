@@ -1,4 +1,4 @@
-# ruff: noqa: A002, RUF006  # shadows builtin (id, type) — domain-specific naming / fire-and-forget async tasks — intentional
+# ruff: noqa: A002  # shadows builtin (id, type) — domain-specific naming / fire-and-forget async tasks — intentional
 """
 SurrealDB connection pooling and resource management.
 

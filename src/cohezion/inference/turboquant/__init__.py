@@ -29,4 +29,4 @@ with contextlib.suppress(Exception):
     )
 
 with contextlib.suppress(Exception):
-    from cohezion.inference.turboquant import triton_kernels as triton_kernels  # noqa: F401
+    from cohezion.inference.turboquant import triton_kernels as triton_kernels

@@ -54,7 +54,7 @@ with contextlib.suppress(Exception):
     )
 
 with contextlib.suppress(Exception):
-    from cohezion.governance.flume_bridge import encode_prompt as encode_prompt
     from cohezion.governance.flume_bridge import (
         data_product_similarity as data_product_similarity,
     )
+    from cohezion.governance.flume_bridge import encode_prompt as encode_prompt

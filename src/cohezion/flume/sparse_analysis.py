@@ -14,9 +14,9 @@ numpy-only fallback (sklearn absent or _force_numpy=True)
 from __future__ import annotations
 
 import contextlib
-from typing import Optional
 
 import numpy as np
+
 
 _DictionaryLearning = None
 _SparseCoder = None
@@ -50,7 +50,7 @@ class SparseLatentAnalysis:
         self.n_atoms = n_atoms
         self.sparsity_target = sparsity_target
         self._use_sklearn = (_DictionaryLearning is not None) and not _force_numpy
-        self._dictionary: Optional[np.ndarray] = None  # (n_atoms, n_features)
+        self._dictionary: np.ndarray | None = None  # (n_atoms, n_features)
         self._learner = None  # DictionaryLearning instance (sklearn path only)
 
     # ------------------------------------------------------------------

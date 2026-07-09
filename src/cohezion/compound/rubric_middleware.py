@@ -21,6 +21,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 
+
 try:
     import httpx
 except ImportError:  # pragma: no cover

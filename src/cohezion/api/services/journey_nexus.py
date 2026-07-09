@@ -7,8 +7,9 @@ Exports consumed by:
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator
+from typing import Any
 
 
 @dataclass

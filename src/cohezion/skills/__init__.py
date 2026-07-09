@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: all 7 MCP tool modules were import-graph orphans.
 with contextlib.suppress(Exception):
     from cohezion.skills.cohezion_mcp import CohezionMCP as CohezionMCP

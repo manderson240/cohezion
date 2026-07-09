@@ -1,13 +1,13 @@
-# ruff: noqa: SIM117, E501, RUF003  # math/physics symbols intentional
+# ruff: noqa: SIM117  # math/physics symbols intentional
 """Per-model context profiles and OOM-safe Ollama lifecycle management."""
 
 from __future__ import annotations
 
 import asyncio
-from typing import Any
 import logging
 import time
 from dataclasses import dataclass
+from typing import Any
 
 import aiohttp
 

@@ -20,6 +20,7 @@ from typing import Any
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # Default 12D zero-vector used when current_state is None.
@@ -93,7 +94,7 @@ class JepaGate:
     def check(
         self,
         task_description: str,
-        current_state: "np.ndarray | None" = None,
+        current_state: np.ndarray | None = None,
     ) -> PreExecutionVerdict:
         """Predict execution coherence and return a routing verdict.
 

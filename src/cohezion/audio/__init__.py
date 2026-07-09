@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: all audio sub-modules were genuine import-graph orphans.
 with contextlib.suppress(Exception):
     from cohezion.audio.narrator import CosmoNarrator as CosmoNarrator

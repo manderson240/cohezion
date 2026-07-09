@@ -16,10 +16,11 @@ higher demonstrated scores — the best-performing tier on this task class gets 
 """
 
 import re
-import requests
 from dataclasses import dataclass
 
+import requests
 import treequest as tq  # type: ignore[import-untyped]
+
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 _TIMEOUT = 120  # seconds — CPU tier can be slow on large models

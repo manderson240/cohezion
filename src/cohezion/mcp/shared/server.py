@@ -1,4 +1,4 @@
-# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
+# binds 0.0.0.0 in dev/internal services
 """Shared MCP server utilities."""
 
 from __future__ import annotations

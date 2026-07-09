@@ -31,6 +31,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 OMNI_URL = "http://localhost:13305"
@@ -77,7 +78,7 @@ class OmniModel:
         models = []
         for role in text_roles:
             try:
-                from cohezion.inference.local_fleet import FleetRole  # noqa: PLC0415
+                from cohezion.inference.local_fleet import FleetRole
                 m = fleet.get(FleetRole(role))
                 models.append(m.model_id)
             except (ValueError, KeyError):
@@ -91,7 +92,7 @@ class OmniModel:
 
     async def transcribe(self, audio_path: str | Path) -> str:
         """Transcribe audio file using Whisper-Large-v3-Turbo (NPU-cached)."""
-        from cohezion.inference.local_fleet import FleetRole  # noqa: PLC0415
+        from cohezion.inference.local_fleet import FleetRole
 
         model_id = self._get_fleet().get(FleetRole.TRANSCRIBE).model_id
         self._maybe_load(model_id)
@@ -101,7 +102,7 @@ class OmniModel:
 
     async def speak(self, text: str, output_path: str | Path) -> Path:
         """Synthesise speech using kokoro-v1.  Returns path to audio file."""
-        from cohezion.inference.local_fleet import FleetRole  # noqa: PLC0415
+        from cohezion.inference.local_fleet import FleetRole
 
         model_id = self._get_fleet().get(FleetRole.TTS).model_id
         self._maybe_load(model_id)
@@ -112,7 +113,7 @@ class OmniModel:
 
     async def generate_image(self, prompt: str, output_path: str | Path) -> Path:
         """Generate an image using Flux-2-Klein-9B."""
-        from cohezion.inference.local_fleet import FleetRole  # noqa: PLC0415
+        from cohezion.inference.local_fleet import FleetRole
 
         model_id = self._get_fleet().get(FleetRole.IMAGE_GEN).model_id
         self._maybe_load(model_id)
@@ -133,7 +134,7 @@ class OmniModel:
         prefer_fast=True uses Gemma-4-E4B (5.97 GB, ~54 TPS).
         prefer_fast=False uses Gemma-4-31B (19.5 GB, 6 TPS) for higher quality.
         """
-        from cohezion.inference.local_fleet import FleetRole  # noqa: PLC0415
+        from cohezion.inference.local_fleet import FleetRole
 
         role = FleetRole.VISION_FAST if prefer_fast else FleetRole.VISION
         model_id = self._get_fleet().get(role).model_id
@@ -144,7 +145,7 @@ class OmniModel:
 
     def _pick_model(self, prompt: str, role: str | None) -> str:
         """Select model_id: explicit role > task_classifier > gauntlet champion > fleet default."""
-        from cohezion.inference.local_fleet import FleetRole  # noqa: PLC0415
+        from cohezion.inference.local_fleet import FleetRole
 
         if role:
             try:
@@ -154,7 +155,7 @@ class OmniModel:
 
         # Try task_classifier
         try:
-            from cohezion.inference.task_classifier import classify  # noqa: PLC0415
+            from cohezion.inference.task_classifier import classify
             decision = classify(prompt)
             output_type = decision.output_type
         except Exception:
@@ -162,11 +163,11 @@ class OmniModel:
 
         # Check gauntlet champion for this role mapping
         fleet = self._get_fleet()
-        from cohezion.inference.local_fleet import _TYPE_TO_ROLE  # noqa: PLC0415
+        from cohezion.inference.local_fleet import _TYPE_TO_ROLE
         fleet_role = _TYPE_TO_ROLE.get(output_type, FleetRole.GENERATION)
 
         try:
-            from cohezion.inference.gauntlet import get_champion  # noqa: PLC0415
+            from cohezion.inference.gauntlet import get_champion
             champion = get_champion(fleet_role.value)
             if champion:
                 return champion
@@ -194,7 +195,7 @@ class OmniModel:
         temperature: float = 0.7,
     ) -> str:
         try:
-            import httpx  # noqa: PLC0415
+            import httpx
 
             payload = {
                 "model": model_id,
@@ -213,7 +214,7 @@ class OmniModel:
 
     async def _transcribe(self, model_id: str, audio_path: str) -> str:
         try:
-            import httpx  # noqa: PLC0415
+            import httpx
 
             async with httpx.AsyncClient(timeout=120.0) as client:
                 with open(audio_path, "rb") as f:
@@ -231,7 +232,7 @@ class OmniModel:
 
     async def _tts(self, model_id: str, text: str, output_path: str) -> None:
         try:
-            import httpx  # noqa: PLC0415
+            import httpx
 
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(
@@ -245,7 +246,7 @@ class OmniModel:
 
     async def _image_gen(self, model_id: str, prompt: str, output_path: str) -> None:
         try:
-            import httpx  # noqa: PLC0415
+            import httpx
 
             async with httpx.AsyncClient(timeout=300.0) as client:
                 resp = await client.post(
@@ -255,7 +256,7 @@ class OmniModel:
                 resp.raise_for_status()
             data = resp.json()
             # Lemonade returns base64-encoded PNG
-            import base64  # noqa: PLC0415
+            import base64
             b64 = data["data"][0].get("b64_json", "")
             if b64:
                 Path(output_path).write_bytes(base64.b64decode(b64))
@@ -264,8 +265,9 @@ class OmniModel:
 
     async def _vision(self, model_id: str, image_path: str, prompt: str) -> str:
         try:
-            import base64  # noqa: PLC0415
-            import httpx  # noqa: PLC0415
+            import base64
+
+            import httpx
 
             image_b64 = base64.b64encode(Path(image_path).read_bytes()).decode()
             suffix = Path(image_path).suffix.lower().lstrip(".")
@@ -296,13 +298,13 @@ class OmniModel:
 
     def _get_fleet(self) -> Any:
         if self._fleet is None:
-            from cohezion.inference.local_fleet import get_fleet  # noqa: PLC0415
+            from cohezion.inference.local_fleet import get_fleet
             self._fleet = get_fleet()
         return self._fleet
 
     def _get_scheduler(self) -> Any:
         if self._scheduler is None:
-            from cohezion.inference.ram_scheduler import get_scheduler  # noqa: PLC0415
+            from cohezion.inference.ram_scheduler import get_scheduler
             self._scheduler = get_scheduler()
         return self._scheduler
 

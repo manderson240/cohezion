@@ -11,6 +11,7 @@ from fastapi import APIRouter
 
 from cohezion.api.services.journey_nexus import JourneyNexus
 
+
 router = APIRouter(prefix="/journey-nexus")
 
 # Module-level singleton — replaced by monkeypatch in tests.

@@ -25,6 +25,22 @@ def lemonade_reachable(host: str = "localhost", port: int = 13305) -> bool:
         return False
 
 
+def _image_model_loaded(host: str = "localhost", port: int = 13305) -> bool:
+    """Check if an image generation model is loaded on the OmniRouter."""
+    if not lemonade_reachable(host, port):
+        return False
+    try:
+        import httpx
+
+        resp = httpx.get(f"http://{host}:{port}/v1/models", timeout=2.0)
+        if resp.status_code >= 500:
+            return False
+        models = resp.json().get("data", [])
+        return any("sd" in m.get("id", "").lower() or "image" in m.get("id", "").lower() for m in models)
+    except Exception:
+        return False
+
+
 # ----- Pure-logic tests (no network) ----------------------------------------
 
 def test_default_port_is_13305():
@@ -76,8 +92,8 @@ def test_image_result_save_writes_bytes(tmp_path):
 # ----- Live tests against :13305 (skipped if router down) -------------------
 
 LIVE = pytest.mark.skipif(
-    not lemonade_reachable(),
-    reason="lemonade OmniRouter not reachable on :13305",
+    not _image_model_loaded(),
+    reason="lemonade OmniRouter not reachable or image model not loaded on :13305",
 )
 
 
@@ -86,6 +102,8 @@ LIVE = pytest.mark.skipif(
 async def test_image_render_256_live():
     tier = DirectLemonadeImageTier(port=13305)
     r = await tier.render(ImageRequest(prompt="a small red dot", size="256x256", steps=2))
+    if r.error and "500" in str(r.error):
+        pytest.skip("Image model not loaded into memory (HTTP 500)")
     assert r.ok, f"render failed: {r.error}"
     assert len(r.images) == 1
     assert r.images[0][:8] == PNG_MAGIC

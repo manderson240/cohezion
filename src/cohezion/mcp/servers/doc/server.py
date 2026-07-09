@@ -1,4 +1,4 @@
-# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
+# binds 0.0.0.0 in dev/internal services
 """BMAD Doc Retriever MCP Server - Standalone document retrieval.
 
 Port: 8364

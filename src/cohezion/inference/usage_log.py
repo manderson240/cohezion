@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+
 _DEFAULT_LOG = Path.home() / ".cohezion" / "usage.jsonl"
 
 

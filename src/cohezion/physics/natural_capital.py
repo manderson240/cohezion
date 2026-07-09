@@ -1,4 +1,4 @@
-# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
+# math/physics symbols intentional
 """Natural Capital Valuation — InVEST-inspired ecosystem services on the 12D manifold.
 
 Maps Stanford's InVEST framework (22 models, 1000+ peer-reviewed papers) onto

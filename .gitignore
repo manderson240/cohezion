@@ -303,3 +303,9 @@ analyze_overnight*.py
 sandbox/*.py
 simulations/
 conductor/
+
+# Aider AI assistant cache
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+.aiderignore

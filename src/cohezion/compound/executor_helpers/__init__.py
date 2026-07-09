@@ -7,6 +7,7 @@ is preserved — these are internal helpers.
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.compound.executor_helpers.guardrail_runner import (
         run_async_guardrail as run_async_guardrail,

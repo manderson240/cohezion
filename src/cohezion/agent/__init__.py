@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.agent.unified_harness import ExecutionTrace as ExecutionTrace
     from cohezion.agent.unified_harness import ToolRegistry as ToolRegistry

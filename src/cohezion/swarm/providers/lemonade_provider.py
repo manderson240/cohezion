@@ -4,12 +4,9 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-import aiohttp  # noqa: F401 — used at runtime in _get_session
-
-if TYPE_CHECKING:
-    pass
+import aiohttp
 
 from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
 

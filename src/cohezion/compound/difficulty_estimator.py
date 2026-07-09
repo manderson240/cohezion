@@ -156,8 +156,8 @@ class DifficultyEstimator:
             return "unknown"
 
         # Count per-tier success vs total
-        tier_success: dict[str, int] = {t: 0 for t in _TIER_ORDER}
-        tier_count: dict[str, int] = {t: 0 for t in _TIER_ORDER}
+        tier_success: dict[str, int] = dict.fromkeys(_TIER_ORDER, 0)
+        tier_count: dict[str, int] = dict.fromkeys(_TIER_ORDER, 0)
         for rec in window:
             t = rec.tier_used
             tier_count[t] += 1

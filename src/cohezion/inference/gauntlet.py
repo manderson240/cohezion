@@ -29,9 +29,10 @@ import asyncio
 import json
 import logging
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +131,7 @@ async def _call_model(
     Returns ("", 0, 0) on error rather than raising so the gauntlet keeps running.
     """
     try:
-        import httpx  # lazy import — test mocks replace this  # noqa: PLC0415
+        import httpx  # lazy import — test mocks replace this
 
         payload = {
             "model": model_id,
@@ -281,7 +282,7 @@ async def run_gauntlet(
         task_suite: Override the default TASK_SUITE.
         challengers_by_role: {role: [model_ids]}.  If None, uses fleet defaults.
     """
-    from cohezion.inference.local_fleet import get_fleet, FleetRole  # noqa: PLC0415
+    from cohezion.inference.local_fleet import FleetRole, get_fleet
 
     fleet = get_fleet()
     suite = task_suite or TASK_SUITE

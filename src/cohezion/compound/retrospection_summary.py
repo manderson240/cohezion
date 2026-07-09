@@ -71,7 +71,7 @@ class FailureSignature:
     cycle_id: str
 
 
-def mine_failure_signatures(summaries: list["RetrospectionSummary"]) -> list[FailureSignature]:
+def mine_failure_signatures(summaries: list[RetrospectionSummary]) -> list[FailureSignature]:
     """Cluster failed summaries into verifier-grounded failure signatures.
 
     Minimal implementation: extracts one FailureSignature per failed cycle.

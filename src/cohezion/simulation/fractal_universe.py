@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: E402, E501, S311  # random used for simulation/jitter, not cryptography
+# ruff: noqa: E402  # random used for simulation/jitter, not cryptography
 """
 Fractal Universe Simulator (Fractal Nexus)
 ==========================================
@@ -43,7 +43,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("FractalNexus")
 
-from cohezion.simulation.analysis_prime import SimulationAnalyzer  # noqa: E402
+from cohezion.simulation.analysis_prime import SimulationAnalyzer
 
 
 # Constants

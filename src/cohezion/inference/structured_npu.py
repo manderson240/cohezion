@@ -9,8 +9,9 @@ natively without new dependencies or second model load.
 """
 
 import json
-import requests
 from typing import Any
+
+import requests
 
 
 def npu_structured_json(prompt: str, schema: dict[str, Any], temperature: float = 0.7) -> dict:

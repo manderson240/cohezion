@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Degradation detection for Phase 5A.6 - Monitor and alert on metric drops.
 
 Detects when system performance degrades by monitoring:
@@ -95,7 +95,7 @@ class SkillDriftDetector:
         if len(buf) > self._window_size:
             del buf[0]
 
-    def check(self, skill_name: str, quality_score: float) -> "DegradationAlert | None":
+    def check(self, skill_name: str, quality_score: float) -> DegradationAlert | None:
         """Return a DegradationAlert if quality has drifted, else None.
 
         Fail-open when fewer than min_samples recorded for this skill.
@@ -146,7 +146,7 @@ class SkillDriftDetector:
         }
 
     @classmethod
-    def from_dict(cls, state: dict[str, Any]) -> "SkillDriftDetector":
+    def from_dict(cls, state: dict[str, Any]) -> SkillDriftDetector:
         """Restore from serialized state. Missing keys fall back to defaults (fail-open)."""
         inst = cls(
             window_size=state.get("window_size", 20),
@@ -1066,7 +1066,7 @@ class DegradationDetector:
         }
 
     @classmethod
-    def from_dict(cls, state: dict[str, Any], **kwargs: Any) -> "DegradationDetector":
+    def from_dict(cls, state: dict[str, Any], **kwargs: Any) -> DegradationDetector:
         """Restore detector from serialized state.
 
         Args:
@@ -1088,7 +1088,7 @@ class DegradationDetector:
 
     _DEFAULT_BASELINES_PATH: Path = Path.home() / ".cohezion" / "degradation_baselines.json"
 
-    def end_session(self, path: "str | Path | None" = None) -> None:
+    def end_session(self, path: str | Path | None = None) -> None:
         """Persist detector state to JSON at session end (CB7 auto-save).
 
         Non-blocking: failures are logged at DEBUG and silently ignored.
@@ -1098,10 +1098,10 @@ class DegradationDetector:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
             logger.debug("DegradationDetector: saved baselines to %s", target)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("DegradationDetector: end_session save failed (non-blocking): %s", exc)
 
-    def start_session(self, path: "str | Path | None" = None) -> bool:
+    def start_session(self, path: str | Path | None = None) -> bool:
         """Restore detector state from JSON at session start (CB7 auto-restore).
 
         Performs an in-place restoration: mutates self rather than creating a new
@@ -1130,7 +1130,7 @@ class DegradationDetector:
                 self._call_count,
             )
             return True
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug(
                 "DegradationDetector: start_session restore failed (non-blocking): %s", exc
             )

@@ -4,6 +4,7 @@ import contextlib
 
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
+
 # Wiring-sweep 2026-06-22: diversity.py was a genuine import-graph orphan (Gvendi diversity
 # filter + LatentDirectionProbe for mechanistic interpretability).
 with contextlib.suppress(Exception):
@@ -165,8 +166,8 @@ with contextlib.suppress(Exception):
 
 # Wiring-sweep 2026-06-22: lcsp.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
-    from cohezion.flume.lcsp import LCSPPredictor as LCSPPredictor
     from cohezion.flume.lcsp import LCSPPrediction as LCSPPrediction
+    from cohezion.flume.lcsp import LCSPPredictor as LCSPPredictor
 
 # Wiring-sweep 2026-06-22: local_finetune_pipeline.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
@@ -179,8 +180,8 @@ with contextlib.suppress(Exception):
 
 # Wiring-sweep 2026-06-22: morphospace.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
-    from cohezion.flume.morphospace import MorphospaceMapper as MorphospaceMapper
     from cohezion.flume.morphospace import MorphoPath as MorphoPath
+    from cohezion.flume.morphospace import MorphospaceMapper as MorphospaceMapper
     from cohezion.flume.morphospace import StabilityWell as StabilityWell
 
 # Wiring-sweep 2026-06-22: mps_compressor.py was a genuine import-graph orphan.

@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Compound feedback loop with re-execution on critical anomalies.
 
 Monitors execution results and automatically re-executes tasks when

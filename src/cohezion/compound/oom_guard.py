@@ -165,7 +165,7 @@ class MemorySnapshot(NamedTuple):
     used_gb: float
 
     @classmethod
-    def capture(cls) -> "MemorySnapshot":
+    def capture(cls) -> MemorySnapshot:
         """Read current RAM state from /proc/meminfo."""
         info: dict[str, int] = {}
         try:

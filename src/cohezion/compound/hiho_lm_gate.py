@@ -25,6 +25,7 @@ import math
 import threading
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from cohezion.model.cohezion_lm import CohezionLM
 
@@ -36,11 +37,11 @@ _PPL_REJECT_THRESHOLD = 80.0
 # Threshold=22 catches all sycophancy with zero false positives on calibration set (gap=11.3 PPL).
 _PPL_SYCOPHANCY_THRESHOLD = 22.0
 
-_model: "CohezionLM | None" = None
+_model: CohezionLM | None = None
 _lock = threading.Lock()
 
 
-def _get_model() -> "CohezionLM":
+def _get_model() -> CohezionLM:
     global _model
     if _model is None:
         with _lock:

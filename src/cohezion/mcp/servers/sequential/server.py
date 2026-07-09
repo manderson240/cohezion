@@ -1,4 +1,4 @@
-# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
+# binds 0.0.0.0 in dev/internal services
 """Sequential Thinking MCP Server - Multi-step reasoning with revision.
 
 Port: 8367

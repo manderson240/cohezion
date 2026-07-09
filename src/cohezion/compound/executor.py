@@ -16,7 +16,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
-from pathlib import Path  # noqa: F401 — structural guard; used at 4 sites in vault-default resolution
+from pathlib import (
+    Path,  # noqa: F401 — structural guard; used at 4 sites in vault-default resolution
+)
 from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import (
@@ -251,7 +253,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             from cohezion.flume.skill_state_encoder import SkillStateEncoder
 
             self._skill_state_encoder = SkillStateEncoder()
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
         self._degradation_mode = False  # HIHO band violation flag
@@ -323,7 +325,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 success_rate=success_rate,
                 **kwargs,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             return None
 
     @property
@@ -1001,8 +1003,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # caused false CRITICAL findings on every task execution (2 criticals per run).
         if self._drr_generator:
             try:
-                from cohezion.compound.design_review_report import GateLevel
                 from pathlib import Path as _Path
+
+                from cohezion.compound.design_review_report import GateLevel
 
                 _skills_dir = _Path(__file__).parent.parent / "skills"
                 _sn = (skill_name or "").upper().replace("-", "_").replace(" ", "_")

@@ -36,6 +36,7 @@ from concurrent.futures import as_completed as _futs_done
 from dataclasses import dataclass, field
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 _OMNI_PORT = 13305

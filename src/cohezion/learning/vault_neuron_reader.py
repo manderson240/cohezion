@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import time
 
+
 try:
     import httpx as _httpx
 except ImportError:  # pragma: no cover
@@ -104,7 +105,7 @@ class VaultNeuronWriter:
                 logger.debug(
                     "VaultNeuronWriter.write_outcome HTTP %s: %s", resp.status_code, resp.text[:200]
                 )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("VaultNeuronWriter.write_outcome skipped: %s", exc)
 
     def query_category_success_rate(self, category: str, limit: int = 100) -> float | None:
@@ -131,5 +132,5 @@ class VaultNeuronWriter:
             if not records:
                 return None
             return sum(1 for r in records if r.get("success")) / len(records)
-        except Exception:  # noqa: BLE001
+        except Exception:
             return None

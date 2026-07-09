@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import builtins
 
+
 # Pure, side-effect-free builtins the LLM math/policy code legitimately needs. DELIBERATELY EXCLUDES
 # __import__, open, eval, compile, exec, input, globals, locals, vars, getattr, setattr, delattr,
 # __build_class__, memoryview, breakpoint, help. (True/False/None are keywords — always available.)

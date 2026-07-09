@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """BMAD Doc Retriever - Token-efficient document retrieval with compound session management.
 
 Elegant simplicity: Minimal code, maximum context awareness.

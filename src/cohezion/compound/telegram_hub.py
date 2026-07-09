@@ -9,14 +9,11 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING
 
 import httpx
 
 from cohezion.config.defaults import LEMONADE_BASE_URL
 
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +123,7 @@ class TelegramHub:
         available this method silently no-ops rather than raising ImportError.
         """
         try:
-            from cohezion.sessions.session_bus import SessionBus  # noqa: PLC0415
+            from cohezion.sessions.session_bus import SessionBus
         except ImportError:
             logger.debug("TelegramHub.broadcast_to_sessions: sessions package not available")
             return

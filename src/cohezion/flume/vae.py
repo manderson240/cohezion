@@ -1,4 +1,4 @@
-# ruff: noqa: N812, RUF002  # math/physics symbols intentional
+# math/physics symbols intentional
 from typing import Any
 
 import torch

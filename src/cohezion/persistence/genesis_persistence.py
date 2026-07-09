@@ -1,4 +1,4 @@
-# ruff: noqa: S105, S310,S608, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: S105, S310  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Genesis Engine persistence — write journey transitions to SurrealDB.
 
 Stores (state, action, next_state, reward) tuples with enriched physics
@@ -48,7 +48,7 @@ async def _execute_surql(query: str) -> list[dict[str, Any]] | None:
                 timeout=10.0,
             )
             if resp.status_code == 200:
-                return cast(list[dict[str, Any]], resp.json())
+                return cast("list[dict[str, Any]]", resp.json())
     except ImportError:
         # Fallback to synchronous urllib
         import urllib.request
@@ -70,7 +70,7 @@ async def _execute_surql(query: str) -> list[dict[str, Any]] | None:
         req.add_header("Authorization", f"Basic {credentials}")
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
-                return cast(list[dict[str, Any]], json.loads(resp.read()))
+                return cast("list[dict[str, Any]]", json.loads(resp.read()))
         except Exception as e:
             logger.debug("SurrealDB fallback failed: %s", e)
     except Exception as e:
@@ -209,7 +209,7 @@ async def get_journey_transitions(
     if result and isinstance(result, list):
         for r in result:
             if r.get("status") == "OK" and isinstance(r.get("result"), list):
-                return cast(list[dict[str, Any]], r["result"])
+                return cast("list[dict[str, Any]]", r["result"])
     return []
 
 

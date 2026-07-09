@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """Semver CI Pipeline Validator (Story 7.1, NFR-AUTO_VERSION_HEALTH).
 
 Validates semantic versioning compliance by analyzing git tags,

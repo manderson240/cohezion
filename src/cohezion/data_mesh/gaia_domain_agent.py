@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING, Any
 
 from cohezion.core.event_bus import Event, EventBus, EventType
 
+
 if TYPE_CHECKING:
     from cohezion.data_mesh.event_bridge import DataMeshEventBridge
 

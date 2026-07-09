@@ -1,4 +1,4 @@
-# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
+# raise pattern in HTTP/API handlers — explicit user-facing errors
 """LLM Executor for autonomous compound benchmarking.
 
 Uses Ollama cloud models or local Lemonade (:13305) models to execute

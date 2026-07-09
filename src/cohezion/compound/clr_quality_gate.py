@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 _ROUTER_URL = "http://localhost:13305/v1/chat/completions"

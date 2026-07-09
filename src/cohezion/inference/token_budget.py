@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+
 # Reference pricing for cloud savings estimate: claude-sonnet-4-6
 _CLOUD_INPUT_PER_TOKEN: float = 3.0 / 1_000_000   # $3/M input tokens
 _CLOUD_OUTPUT_PER_TOKEN: float = 15.0 / 1_000_000  # $15/M output tokens

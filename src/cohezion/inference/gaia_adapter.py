@@ -169,7 +169,10 @@ def build_gaia_native_tier(
         (GAIA's LemonadeClient, zero RAG deps, talks to the same fleet).
     """
     try:
-        from gaia.agents.chat.agent import ChatAgent, ChatAgentConfig  # type: ignore[import-not-found]
+        from gaia.agents.chat.agent import (  # type: ignore[import-not-found]
+            ChatAgent,
+            ChatAgentConfig,
+        )
     except ImportError as exc:
         raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
 
@@ -210,6 +213,7 @@ class _GaiaLLMClientShim:
             messages=[{"role": "user", "content": text}],
             max_tokens=self._max_tokens,
             temperature=self._temperature,
+            auto_download=False,
         )
         # OpenAI-compatible shape; raise (don't silently return '') on an unexpected body
         return resp["choices"][0]["message"].get("content", "") or ""

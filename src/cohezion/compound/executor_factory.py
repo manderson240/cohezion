@@ -104,8 +104,8 @@ class ExecutorFactory:
         _health_oracle: Any = None
         try:
             from cohezion.compound.compound_health_oracle import (
-                CompoundHealthOracle,
                 _DEFAULT_STATE_PATH,
+                CompoundHealthOracle,
             )
 
             _health_oracle = CompoundHealthOracle(degradation_detector=degradation_detector)

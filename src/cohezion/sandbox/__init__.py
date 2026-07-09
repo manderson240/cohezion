@@ -79,6 +79,7 @@ __all__ = [
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: isolation, rollback, shadow_worktree were genuine orphans.
 with contextlib.suppress(Exception):
     from cohezion.sandbox.isolation import IsolationMode as IsolationMode

@@ -87,11 +87,23 @@ __all__ = [
 with contextlib.suppress(Exception):
     from cohezion.universe.advanced_components import (
         BioelectricsEngine as BioelectricsEngine,
+    )
+    from cohezion.universe.advanced_components import (
         EsotericPhysicsEngine as EsotericPhysicsEngine,
+    )
+    from cohezion.universe.advanced_components import (
         KordylewskiSwarmEngine as KordylewskiSwarmEngine,
+    )
+    from cohezion.universe.advanced_components import (
         PenroseTwistorEngine as PenroseTwistorEngine,
+    )
+    from cohezion.universe.advanced_components import (
         PlasmaMCPEngine as PlasmaMCPEngine,
+    )
+    from cohezion.universe.advanced_components import (
         QuantumEmergenceEngine as QuantumEmergenceEngine,
+    )
+    from cohezion.universe.advanced_components import (
         SacredGeometryEngine as SacredGeometryEngine,
     )
 
@@ -99,7 +111,11 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.adversarial_grounding import (
         AdversarialGrounding as AdversarialGrounding,
+    )
+    from cohezion.universe.adversarial_grounding import (
         HallucinationAlert as HallucinationAlert,
+    )
+    from cohezion.universe.adversarial_grounding import (
         PerturbationResult as PerturbationResult,
     )
 
@@ -107,9 +123,17 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.agentic_evo_mhd import (
         AgenticEVOMHD as AgenticEVOMHD,
+    )
+    from cohezion.universe.agentic_evo_mhd import (
         AgenticMHDSystem as AgenticMHDSystem,
+    )
+    from cohezion.universe.agentic_evo_mhd import (
         EVOMagneticState as EVOMagneticState,
+    )
+    from cohezion.universe.agentic_evo_mhd import (
         IonizationState as IonizationState,
+    )
+    from cohezion.universe.agentic_evo_mhd import (
         MHDField as MHDField,
     )
 
@@ -117,10 +141,20 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.agentic_evo_swift import (
         AgenticEVO as AgenticEVO,
+    )
+    from cohezion.universe.agentic_evo_swift import (
         AgenticEVOSimulation as AgenticEVOSimulation,
+    )
+    from cohezion.universe.agentic_evo_swift import (
         EVOCoupling as EVOCoupling,
+    )
+    from cohezion.universe.agentic_evo_swift import (
         EVOLatentState as EVOLatentState,
+    )
+    from cohezion.universe.agentic_evo_swift import (
         EVOPhysicalState as EVOPhysicalState,
+    )
+    from cohezion.universe.agentic_evo_swift import (
         VacuumCoherence as VacuumCoherence,
     )
 
@@ -128,12 +162,26 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.components import (
         CellularAutomataEngine as CellularAutomataEngine,
+    )
+    from cohezion.universe.components import (
         CellularAutomataState as CellularAutomataState,
+    )
+    from cohezion.universe.components import (
         ChaosTheoryEngine as ChaosTheoryEngine,
+    )
+    from cohezion.universe.components import (
         ChaosTheoryParameters as ChaosTheoryParameters,
+    )
+    from cohezion.universe.components import (
         EVOInitializationFactory as EVOInitializationFactory,
+    )
+    from cohezion.universe.components import (
         EvoState as EvoState,
+    )
+    from cohezion.universe.components import (
         HIHOStabilizationEngine as HIHOStabilizationEngine,
+    )
+    from cohezion.universe.components import (
         MagnetohydrodynamicsEngine as MagnetohydrodynamicsEngine,
     )
 
@@ -141,18 +189,32 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.evo_simulation import (
         EVOSimulation as EVOSimulation,
+    )
+    from cohezion.universe.evo_simulation import (
         ExoticVacuumObject as ExoticVacuumObject,
+    )
+    from cohezion.universe.evo_simulation import (
         FLUMEJourneyStream as FLUMEJourneyStream,
+    )
+    from cohezion.universe.evo_simulation import (
         JourneyEvent as JourneyEvent,
-        VAIEMetrics as VAIEMetrics,
+    )
+    from cohezion.universe.evo_simulation import (
         VacuumState as VacuumState,
+    )
+    from cohezion.universe.evo_simulation import (
+        VAIEMetrics as VAIEMetrics,
     )
 
 # Wiring-sweep 2026-06-22: factory.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.universe.factory import (
         Universe as Universe,
+    )
+    from cohezion.universe.factory import (
         UniverseFactory as UniverseFactory,
+    )
+    from cohezion.universe.factory import (
         UniverseSpec as UniverseSpec,
     )
 
@@ -160,7 +222,11 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.freeze_frame import (
         FreezeFrame as FreezeFrame,
+    )
+    from cohezion.universe.freeze_frame import (
         FreezeFrameCapture as FreezeFrameCapture,
+    )
+    from cohezion.universe.freeze_frame import (
         FreezeFrameStore as FreezeFrameStore,
     )
 
@@ -174,7 +240,11 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.intent_action_sync import (
         IntentActionPair as IntentActionPair,
+    )
+    from cohezion.universe.intent_action_sync import (
         IntentActionSync as IntentActionSync,
+    )
+    from cohezion.universe.intent_action_sync import (
         SyncVerdict as SyncVerdict,
     )
 
@@ -182,9 +252,17 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.intent_capture import (
         CheckResult as CheckResult,
+    )
+    from cohezion.universe.intent_capture import (
         IntentCapture as IntentCapture,
+    )
+    from cohezion.universe.intent_capture import (
         IntentPayload as IntentPayload,
+    )
+    from cohezion.universe.intent_capture import (
         IntentViolation as IntentViolation,
+    )
+    from cohezion.universe.intent_capture import (
         StateChangeRequest as StateChangeRequest,
     )
 
@@ -192,13 +270,29 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.llm_training_bridge import (
         AgentTrajectory as AgentTrajectory,
+    )
+    from cohezion.universe.llm_training_bridge import (
         ExperienceDataset as ExperienceDataset,
+    )
+    from cohezion.universe.llm_training_bridge import (
         JudgmentAssessment as JudgmentAssessment,
+    )
+    from cohezion.universe.llm_training_bridge import (
         JudgmentEvaluator as JudgmentEvaluator,
+    )
+    from cohezion.universe.llm_training_bridge import (
         PreferencePair as PreferencePair,
+    )
+    from cohezion.universe.llm_training_bridge import (
         PreferencePairGenerator as PreferencePairGenerator,
+    )
+    from cohezion.universe.llm_training_bridge import (
         TokenReward as TokenReward,
+    )
+    from cohezion.universe.llm_training_bridge import (
         TrajectoryStep as TrajectoryStep,
+    )
+    from cohezion.universe.llm_training_bridge import (
         TrajectoryToReward as TrajectoryToReward,
     )
 
@@ -206,7 +300,11 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.schema import (
         LOCAL_SCHEMA as LOCAL_SCHEMA,
+    )
+    from cohezion.universe.schema import (
         MIGRATIONS as MIGRATIONS,
+    )
+    from cohezion.universe.schema import (
         UNIVERSE_SCHEMA as UNIVERSE_SCHEMA,
     )
 
@@ -214,6 +312,8 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.spatial_phonons import (
         PhononParameters as PhononParameters,
+    )
+    from cohezion.universe.spatial_phonons import (
         SpatialPhononsEngine as SpatialPhononsEngine,
     )
 
@@ -227,7 +327,11 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.triune_manifold import (
         TriuneState as TriuneState,
+    )
+    from cohezion.universe.triune_manifold import (
         calculate_hiho_coherence as calculate_hiho_coherence,
+    )
+    from cohezion.universe.triune_manifold import (
         compute_restoring_force as compute_restoring_force,
     )
 
@@ -235,9 +339,17 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.universe.truth_anchor import (
         CoherenceBubble as CoherenceBubble,
+    )
+    from cohezion.universe.truth_anchor import (
         RestoringForceResult as RestoringForceResult,
+    )
+    from cohezion.universe.truth_anchor import (
         TruthAnchor as TruthAnchor,
+    )
+    from cohezion.universe.truth_anchor import (
         TruthAnchorValidator as TruthAnchorValidator,
+    )
+    from cohezion.universe.truth_anchor import (
         ValidationResult as ValidationResult,
     )
 

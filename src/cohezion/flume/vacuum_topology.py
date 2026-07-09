@@ -26,6 +26,7 @@ from typing import Literal
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 _DIMS = 12

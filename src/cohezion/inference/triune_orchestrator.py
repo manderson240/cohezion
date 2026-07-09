@@ -137,3 +137,16 @@ def build_reasoning_orchestrator(
             (cpu_completion, QualityGate.TRUST),
         ]
     )
+
+
+def build_parallel_fleet_orchestrator(
+    *,
+    omni_port: int = 13305,
+) -> "ParallelFleetOrchestrator":
+    """Factory for ParallelFleetOrchestrator — fan-out to NPU/iGPU/CPU simultaneously.
+
+    All three nodes talk to the OmniRouter (:13305).
+    """
+    from cohezion.inference.direct_tier import ParallelFleetOrchestrator
+
+    return ParallelFleetOrchestrator(omni_port=omni_port)

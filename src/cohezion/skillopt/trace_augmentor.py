@@ -29,6 +29,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 _SURREAL_URL = "http://127.0.0.1:8001/sql"

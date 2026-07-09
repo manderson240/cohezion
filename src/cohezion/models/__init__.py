@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.models.model_registry import ModelRegistry as ModelRegistry
 

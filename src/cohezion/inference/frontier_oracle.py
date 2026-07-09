@@ -27,6 +27,7 @@ from cohezion.inference.fleet import extend_claude
 from cohezion.inference.triune_orchestrator import build_triune_orchestrator
 from cohezion.inference.usage_log import record_usage
 
+
 logger = logging.getLogger(__name__)
 
 _FABLE_MODEL = "claude-fable-5"

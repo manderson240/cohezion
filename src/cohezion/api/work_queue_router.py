@@ -11,13 +11,14 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+
 
 router = APIRouter()
 
@@ -101,7 +102,7 @@ def create_item(body: WorkItemCreate):
         "notes": body.notes,
         "status": "pending_review",
         "priority": 1,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "approved_at": None,
         "feedback": "",
     }
@@ -119,7 +120,7 @@ def patch_item(item_id: str, body: WorkItemPatch):
             if body.status is not None:
                 item["status"] = body.status
                 if body.status == "approved":
-                    item["approved_at"] = datetime.now(timezone.utc).isoformat()
+                    item["approved_at"] = datetime.now(UTC).isoformat()
             if body.feedback is not None:
                 item["feedback"] = body.feedback
             if body.notes is not None:

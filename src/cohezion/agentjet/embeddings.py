@@ -1,4 +1,4 @@
-# ruff: noqa: S608  # SQL strings parameterized via SurrealDB driver, not raw string concat
+# SQL strings parameterized via SurrealDB driver, not raw string concat
 """Gemini Embedding 2 integration with local FLUME VAE fallback.
 
 Models: GeminiEmbeddingModel (cloud + SurrealDB cache), FlumeVAEEmbeddingModel (local 256D).

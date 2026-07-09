@@ -2,6 +2,7 @@
 
 import contextlib
 
+
 with contextlib.suppress(Exception):
     from cohezion.flux.providers.cache_flux import CacheFlux as CacheFlux
 

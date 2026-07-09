@@ -62,7 +62,7 @@ class OuroborosMonitor:
                 rows = first.get("result")
                 if not isinstance(rows, list):
                     return []
-                return cast(list[dict[Any, Any]], rows)
+                return cast("list[dict[Any, Any]]", rows)
 
             except Exception as e:
                 logger.error(f"Failed to fetch trajectories from SurrealDB: {e}")

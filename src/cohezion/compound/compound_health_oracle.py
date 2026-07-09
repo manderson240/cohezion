@@ -36,6 +36,7 @@ from typing import Any
 
 from cohezion.inference.fractal_metrics import FractalRegime, RollingRegimeTracker
 
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_STATE_PATH = Path.home() / ".cohezion" / "oracle_state.json"
@@ -216,7 +217,7 @@ class CompoundHealthOracle:
             tier = self._detector.suggest_routing_tier()
             if tier in _TIER_ORDER:
                 return tier
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         return None
 
@@ -262,7 +263,7 @@ class CompoundHealthOracle:
         cls,
         state: dict[str, Any],
         degradation_detector: Any = None,
-    ) -> "CompoundHealthOracle":
+    ) -> CompoundHealthOracle:
         """Restore an oracle from a previously serialized dict.
 
         CB16-pattern safe defaults: missing keys fall back to empty/zero state
@@ -298,7 +299,7 @@ class CompoundHealthOracle:
                     alert_level=la.get("alert_level", "warn"),
                     alerts=list(la.get("alerts", [])),
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass  # fail-open: missing/corrupt last_assessment is fine
 
         return oracle
@@ -316,7 +317,7 @@ class CompoundHealthOracle:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
             logger.debug("CompoundHealthOracle: saved state to %s", target)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("CompoundHealthOracle: save_state failed (non-blocking): %s", exc)
 
     def restore_state(self, path: str | Path | None = None) -> bool:
@@ -362,7 +363,7 @@ class CompoundHealthOracle:
                         alert_level=la.get("alert_level", "warn"),
                         alerts=list(la.get("alerts", [])),
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     pass
 
             logger.debug(
@@ -370,7 +371,7 @@ class CompoundHealthOracle:
                 target, len(self._tracker._scores), len(self._tracker._regime_history),
             )
             return True
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("CompoundHealthOracle: restore_state failed (non-blocking): %s", exc)
             return False
 

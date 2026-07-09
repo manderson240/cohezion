@@ -17,6 +17,7 @@ import re
 from collections.abc import Callable
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 _MAX_RETRIES = 3

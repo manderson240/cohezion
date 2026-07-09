@@ -1,4 +1,4 @@
-# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
+# binds 0.0.0.0 in dev/internal services
 """MCP Server Manager - HTTP routes and application entrypoint."""
 
 from __future__ import annotations

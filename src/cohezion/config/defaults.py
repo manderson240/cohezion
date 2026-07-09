@@ -7,6 +7,7 @@ See harness.md §N3 and local-inference-default.md for the full topology.
 
 from __future__ import annotations
 
+
 # ── Lemonade OmniRouter (AMD Strix Halo) ──────────────────────────────────────
 LEMONADE_BASE_URL: str = "http://localhost:13305"
 LEMONADE_OPENAI_URL: str = f"{LEMONADE_BASE_URL}/v1"

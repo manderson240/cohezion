@@ -1,4 +1,4 @@
-# ruff: noqa: N814, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: N814  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Democratic Debate Orchestrator - Multi-agent consensus building.
 

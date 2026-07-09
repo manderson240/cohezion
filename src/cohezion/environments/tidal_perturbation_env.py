@@ -32,6 +32,7 @@ from gymnasium import spaces
 from cohezion.physics.bioelectric_model import BioelectricNetwork
 from cohezion.physics.thermodynamic_gravity import OttoWorkLeg, ThermodynamicGravity
 
+
 logger = logging.getLogger(__name__)
 
 N_CELLS = 16

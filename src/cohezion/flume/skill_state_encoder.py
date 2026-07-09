@@ -18,6 +18,7 @@ import math
 
 import numpy as np
 
+
 _TOTAL_DIM = 256
 _TRAJECTORY_END = 12
 _MGPO_WEIGHT_DIM = 12

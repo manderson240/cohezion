@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 
+
 # Wiring-sweep 2026-06-22: manifold_agent was a genuine import-graph orphan.
 # Note: ARCManifoldAgent uses @adk.tool decorator that is absent in adk>=2.x; suppressed.
 with contextlib.suppress(Exception):

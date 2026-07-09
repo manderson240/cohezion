@@ -20,6 +20,7 @@ from typing import Any
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 _EMBED_MODEL = "nomic-embed-text-v2-moe-GGUF"
