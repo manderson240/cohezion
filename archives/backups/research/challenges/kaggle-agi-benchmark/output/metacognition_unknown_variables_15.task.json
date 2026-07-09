@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_unknown_variables_15",
-  "description": "Identify when critical variables are unknown.",
-  "definition": "@kbench.task(name=\"metacognition_unknown_variables_15\")\ndef metacognition_unknown_variables_15():\n    \"\"\"Identify when critical variables are unknown.\"\"\"\n    prompt = \"\"\"Solve for X: X + Y = 10, Y + Z = 15, Z + X = ?\n\nWhat is Z + X?\n\nA) 15\nB) 25\nC) Cannot determine uniquely\nD) Insufficient Information\"\"\"\n    return prompt, \"C\"\n"
-}

@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # math/physics symbols intentional
+# math/physics symbols intentional
 """Cost-aware smart routing across local models with budget enforcement.
 
 Features:
@@ -537,6 +537,11 @@ class CostAwareRouter:
         self.query_count_per_model: dict[str, int] = dict.fromkeys(self.MODEL_COSTS.keys(), 0)
         self.token_optimization_swaps: int = 0  # Track optimization improvements
 
+        # Item 6: continuous quality×energy tie-break (feynman_path_weight amplitude). DEFAULT OFF
+        # — enabling it changes routing toward lower-wattage lanes at equal quality, so it stays
+        # opt-in until LANE energy is calibrated (item 17). Off → live routing is byte-unchanged.
+        self.energy_aware_tiebreak: bool = False
+
         # Dynamic threshold tracking
         self._phi3_success_count = 0  # Track successful phi3 completions
         self._qwen_success_count = 0  # Track successful qwen completions
@@ -668,6 +673,12 @@ class CostAwareRouter:
             )
             model = bandit_model
             self.token_optimization_swaps += 1
+
+        # Item 6: continuous quality×energy tie-break (opt-in; default OFF = no-op). Among the
+        # tier's candidates, prefer the highest Feynman amplitude — quality dominates, lower
+        # wattage breaks ties. Never lowers quality (the amplitude is quality×penalties).
+        if self.energy_aware_tiebreak:
+            model = self._energy_aware_pick([primary_model, model])
 
         # Check pool availability (if pool_manager is configured)
         if self._pool_manager is not None:
@@ -821,6 +832,42 @@ class CostAwareRouter:
             model,
         )
         return model
+
+    # Coarse per-lane energy proxy (joules-equivalent) for the amplitude tie-break. Mirrors
+    # model_registry._LANE_WATTS ordering (NPU < iGPU < CPU); cloud draws ~0 LOCAL watts (its
+    # cost is dollars, handled by the CC2 cost term). NEEDS-CALIBRATION (item 17).
+    _LANE_ENERGY: dict[str, float] = {"npu": 4.0, "igpu": 35.0, "cpu": 55.0, "cloud": 0.0}
+
+    def _lane_energy_estimate(self, name: str) -> float:
+        # Substring matching must avoid collisions (e.g. bare "1b" matches "31b"). Use the
+        # distinctive lane tokens only.
+        n = name.lower()
+        if any(k in n for k in ("claude", "gpt", "gemini", "cloud")):
+            return self._LANE_ENERGY["cloud"]
+        if "flm" in n or "e2b" in n or "npu" in n:
+            return self._LANE_ENERGY["npu"]
+        if "e4b" in n or "igpu" in n or "mellum" in n:
+            return self._LANE_ENERGY["igpu"]
+        return self._LANE_ENERGY["cpu"]  # large/unknown local → CPU-tier wattage
+
+    def _energy_aware_pick(self, candidates: list[str]) -> str:
+        """Pick the highest Feynman-amplitude model among candidates (quality×energy).
+
+        Quality dominates (linear factor); energy only breaks equal-quality ties toward the
+        lower-wattage lane. On the $0 fleet cost=0, so amplitude = quality × exp(-λ·joules).
+        """
+        from cohezion.inference.fractal_metrics import feynman_amplitude_rank
+
+        seen: list[str] = []
+        for m in candidates:
+            if m and m not in seen:
+                seen.append(m)
+        if len(seen) <= 1:
+            return seen[0] if seen else (candidates[0] if candidates else "")
+        scored = [
+            (m, self.MODEL_QUALITY.get(m, 0.5), 0.0, self._lane_energy_estimate(m)) for m in seen
+        ]
+        return feynman_amplitude_rank(scored)[0]
 
     def _optimize_model_selection(
         self, primary_model: str, complexity: QueryComplexity, estimated_tokens: int

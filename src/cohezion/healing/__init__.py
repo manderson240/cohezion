@@ -124,7 +124,14 @@ class Diagnostician:
                 component="ollama",
                 issue="Connection to Ollama failed",
                 probable_cause="Ollama service not running",
-                recommended_action="Restart Ollama: ollama serve",
+                recommended_action="Restart ollama.service",
+                confidence=0.9,
+            ),
+            "surrealdb_connection_failed": DiagnosisResult(
+                component="surrealdb",
+                issue="Connection to SurrealDB failed",
+                probable_cause="SurrealDB service not running or port mismatch",
+                recommended_action="Restart surrealdb.service",
                 confidence=0.9,
             ),
             "sandbox_divergence": DiagnosisResult(
@@ -150,6 +157,22 @@ class Diagnostician:
 
         if health_status.component == "ollama" and health_status.status == "failing":
             return self._known_issues["connection_failed"]
+
+        if health_status.component == "surrealdb" and health_status.status == "failing":
+            return self._known_issues["surrealdb_connection_failed"]
+
+        if health_status.component.startswith("daemon:") and health_status.status in (
+            "degraded",
+            "failing",
+        ):
+            daemon_name = health_status.component.split(":", 1)[1]
+            return DiagnosisResult(
+                component=health_status.component,
+                issue=f"Daemon {daemon_name} heartbeat timeout",
+                probable_cause="Daemon process crashed or hung",
+                recommended_action=f"Restart {daemon_name}.service",
+                confidence=0.9,
+            )
 
         if health_status.component == "sandbox" and health_status.metric == "divergence":
             return self._known_issues["sandbox_divergence"]
@@ -189,6 +212,35 @@ class Corrector:
             # Mark as needing swap - actual swap happens on next call
             correction["applied"] = True
             logger.info(f"Scheduled model swap for {diagnosis.component}")
+        elif (
+            "restart" in diagnosis.recommended_action.lower()
+            and "service" in diagnosis.recommended_action.lower()
+        ):
+            # Parse service name (e.g. Restart surrealdb.service or Restart cohezion-compound.service)
+            from cohezion.healing.immune_system import ActuatorSystem
+
+            actuator = ActuatorSystem()
+            service_name = None
+            action_lower = diagnosis.recommended_action.lower()
+            if "surrealdb.service" in action_lower:
+                service_name = "surrealdb.service"
+            elif "entire-sync.service" in action_lower:
+                service_name = "entire-sync.service"
+            elif "cohezion-vault.service" in action_lower:
+                service_name = "cohezion-vault.service"
+            elif "cohezion-vault-sync.service" in action_lower:
+                service_name = "cohezion-vault-sync.service"
+            elif "cohezion-compound.service" in action_lower:
+                service_name = "cohezion-compound.service"
+            elif "ollama.service" in action_lower or "ollama" in action_lower:
+                service_name = "ollama.service"
+
+            if service_name:
+                applied = await actuator.restart_failed_service(service_name)
+                correction["applied"] = applied
+                logger.info(
+                    f"Autonomous recovery: Restoring systemd service {service_name}: {applied}"
+                )
 
         self._corrections.append(correction)
         self._save_log()

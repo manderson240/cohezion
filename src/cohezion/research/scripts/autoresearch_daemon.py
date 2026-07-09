@@ -25,9 +25,9 @@ SCRIPT_PATH = Path(__file__).resolve()
 PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cohezion.mcp.research_server import get_server  # noqa: E402
-from cohezion.reliability.heartbeat import update_heartbeat  # noqa: E402
-from cohezion.universe.engine import UniverseSimulationEngine  # noqa: E402
+from cohezion.mcp.research_server import get_server
+from cohezion.reliability.heartbeat import update_heartbeat
+from cohezion.universe.engine import UniverseSimulationEngine
 
 
 UNIVERSE_DATA_DIR = PROJECT_ROOT / "data/universe"

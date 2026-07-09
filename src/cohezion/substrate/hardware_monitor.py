@@ -23,6 +23,35 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def marginal_power_w(
+    idle_samples: list[float | None], load_samples: list[float | None]
+) -> float | None:
+    """Marginal SoC power for a single lane's activity: mean(load) − mean(idle).
+
+    The per-lane ΔP harness core (item 17). With every OTHER lane idle, the rise in whole-SoC
+    power (``read_soc_power_w``) while one lane runs sustained inference is that lane's marginal
+    draw — which IS isolable, unlike the absolute per-lane split item 3 found confounded. None
+    readings are ignored; insufficient data returns None (never a fabricated delta). The live
+    3-lane run (NPU<iGPU<CPU separation) needs all lanes up + a controlled harness.
+    """
+    idle = [v for v in idle_samples if v is not None]
+    load = [v for v in load_samples if v is not None]
+    if not idle or not load:
+        return None
+    return round(sum(load) / len(load) - sum(idle) / len(idle), 3)
+
+
+def joules_per_token(power_w: float, tokens: int, duration_s: float) -> float:
+    """Energy cost per generated token: (power × duration) / tokens.
+
+    The honest unit for routing-energy comparisons. ``tokens == 0`` returns ``inf`` (a
+    zero-token run has undefined per-token cost, not zero). Pure — no hardware access.
+    """
+    if tokens <= 0:
+        return float("inf")
+    return (power_w * duration_s) / tokens
+
+
 @dataclass
 class HardwareMetrics:
     """Current hardware state snapshot."""
@@ -189,6 +218,32 @@ class HardwareMonitor:
         except Exception as e:
             logger.debug("CPU power read failed, using default: %s", e)
             return self.DEFAULT_CPU_POWER
+
+    def read_soc_power_w(self, drm_root: str = "/sys/class/drm") -> float | None:
+        """Read REAL whole-SoC power from amdgpu ``power1_average`` (microwatts → watts).
+
+        This is a genuine instantaneous reading (≈18 W idle on Strix Halo), unlike the
+        clock²-estimate in ``_read_gpu_power``. Returns ``None`` (fail-soft) when the sysfs
+        node is absent — never a fabricated default.
+
+        APU caveat (why this is SoC-total, not per-lane): on a unified Strix Halo APU the
+        CPU, RDNA3.5 iGPU, and Infinity Fabric share one power rail, and the XDNA2 NPU is in
+        neither this domain nor RAPL. So this measures total SoC draw; isolating a single
+        lane's marginal cost requires a single-lane-load ΔP run (see
+        docs/research/POWER_CALIBRATION_2026-06-06.md).
+        """
+        try:
+            for node in Path(drm_root).glob("card*/device/hwmon/hwmon*/power1_average"):
+                try:
+                    micro_w = int(node.read_text().strip())
+                    if micro_w > 0:
+                        return micro_w / 1e6
+                except (ValueError, OSError):
+                    continue
+            return None
+        except OSError as exc:
+            logger.debug("SoC power read failed: %s", exc)
+            return None
 
     def _read_gpu_power(self) -> float:
         """Read GPU power draw estimate."""

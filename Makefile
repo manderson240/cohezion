@@ -38,8 +38,11 @@ resume:  ## Re-verify the Anthropic Universes living resume (docs/anthropic-univ
 	@echo "✓ Resume receipt refreshed: docs/resume_receipt.json"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
-	uv run pytest tests/unit --import-mode=append --tb=short -q -p no:warnings
+	PYTHONPATH=src:scripts/ci uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
+
+frontier-digest:  ## Generate today's frontier digest
+	uv run python scripts/ci/frontier_digest.py
 
 test-integration:  ## Run integration tests (require live services)
 	uv run pytest tests/ -m integration -v
@@ -184,6 +187,28 @@ evaluate:  ## Evaluate trained model vs baselines
 benchmark:  ## Full benchmark: 100K training + safety metrics + all comparisons
 	uv run python scripts/train_manifold_agent.py --timesteps 100000 --eval-episodes 50
 	@echo "✓ Benchmark complete. Results in results/training/"
+
+hermes-restore:  ## Restore ~/.hermes/config.yaml from committed baseline (idempotent)
+	@if [ ! -f docs/ops/hermes-config-baseline-2026-06-03.yaml ]; then \
+		echo "ERROR: docs/ops/hermes-config-baseline-2026-06-03.yaml not found"; exit 1; \
+	fi
+	@if [ ! -f $(HOME)/.hermes/config.yaml ]; then \
+		echo "No existing ~/.hermes/config.yaml; installing fresh baseline"; \
+	else \
+		cp $(HOME)/.hermes/config.yaml $(HOME)/.hermes/config.yaml.bak-pre-restore-$$(date +%Y%m%d-%H%M%S); \
+		echo "Existing config backed up to config.yaml.bak-pre-restore-*"; \
+	fi
+	cp docs/ops/hermes-config-baseline-2026-06-03.yaml $(HOME)/.hermes/config.yaml
+	chmod 600 $(HOME)/.hermes/config.yaml
+	@echo "✓ Hermes config restored from baseline (and chmod 600 set)"
+
+hermes-baseline:  ## Snapshot current ~/.hermes/config.yaml as the new committed baseline
+	@if [ ! -f $(HOME)/.hermes/config.yaml ]; then \
+		echo "ERROR: no ~/.hermes/config.yaml to snapshot"; exit 1; \
+	fi
+	cp $(HOME)/.hermes/config.yaml docs/ops/hermes-config-baseline-2026-06-03.yaml
+	chmod 644 docs/ops/hermes-config-baseline-2026-06-03.yaml
+	@echo "✓ New baseline written to docs/ops/hermes-config-baseline-2026-06-03.yaml"
 
 demo:  ## Quick demo: train 5K steps, evaluate, show compound loop
 	@echo "=== Cohezion Demo: Physics-Grounded Agent Training ==="

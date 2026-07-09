@@ -347,7 +347,7 @@ unit test already proves.
 - The two dead copies (`recursive_trace.py` shadow, `cohezioion/` typo-dir non-compiling) left as
   documented findings — NOT resurrected, NOT deleted (non-destructive; the clean impl supersedes).
 
-## 10. Deferred finding (surfaced by the orphan-bridge, stacked behind the §earlier cli/PhysicsState fix)
+## 10. Deferred finding [RESOLVED 2026-06-05] (surfaced by the orphan-bridge, stacked behind the §earlier cli/PhysicsState fix)
 
 The fail-soft `orphan_bridge` now reports `cli` **degraded** with a NEW root cause (the PhysicsState
 fix revealed the next link — classic stacked bug):
@@ -358,3 +358,110 @@ fix revealed the next link — classic stacked bug):
 - **Deferred** (not chased mid-task per one-change-at-a-time): a future loop iteration should
   resolve `swarm_service`'s import — locate the intended registry (likely `swarm/` model routing)
   or stub it. Bridge stays fail-soft; nothing is broken, cli is degraded-but-logged.
+
+## 11. Iteration 7 — retro + state refresh (2026-06-05)
+
+Retro for the recursive-trace value-gate arc (3 completed tasks): refined the
+`falsifiable-eval-harness` skill to **v1.1.0**, adding rule 9 (CIRCULARITY — oracle must
+not be the mechanism's own model; the tell is hand-derivability; fix = conditional-vs-
+marginal dependence over real pairs + label-permutation null + counterfactual-only
+observations) and rule 10 (VIABILITY — an experiment that can't RUN is as useless as one
+that can't FAIL; viability is an environment fact; never synthesize the event batch).
+
+**Audit state (re-run of `vmodel_module_audit.py`):** 80 modules · 0 orphans · 0 missing
+`__init__` · 0 compile fails. Remaining V-model debt:
+- **No test/verification leg (17):** agent, cli, datamesh, dogfooding, evaluation,
+  evolution, hookify, infrastructure, knowledge, optimization, pipeline, policies,
+  reporting, sandboxing, services, simulations, traceability.
+- **God-objects HARD>500 LOC (36):** top offenders api/__init__.py(2113),
+  compound/executor.py(1645), inference/task_classifier.py(1390), swarm/cost_aware_router.py(1360).
+
+**Next iteration target (bounded):** add a discriminating verification leg to ONE no-test
+module. Preferred candidate: `hookify` (hookify/validator.py, 658 LOC of real validation
+logic) — confirm it imports cleanly first, then pin its public contract with discriminating
+tests (per the testing rule: write the test that fails the most plausible WRONG impl).
+Avoid the broken `services` (swarm_service → missing model_registry, §10 deferred finding).
+
+## 12. Iterations 8-11 — verification-leg backfill + a latent-bug finding (2026-06-05)
+
+Continued converting the S1 no-test-dir gap into verification legs (additive, report-only,
+non-destructive). Each module: pure-logic core pinned with DISCRIMINATING tests (fail the most
+plausible wrong impl, per the testing rule), construction kept offline (no DB/LLM in unit path).
+
+| Module | test file | tests | pinned contract |
+|---|---|--:|---|
+| hookify | tests/hookify/test_validator.py | 10 | condition eval **security boundary** (raises on `os.`/`eval`/`import`) |
+| evolution | tests/evolution/test_variable.py | 6 | TextGrad Variable dedup/skip-empty; `__str__`→raw value |
+| traceability | tests/traceability/test_plan_graph_helpers.py | 5 | SurrealDB response parse (`_first_result` skips empty list) |
+| optimization | tests/optimization/test_r_zero.py | 5 | R-Zero success-rate arithmetic + clamp |
+
+**No-test modules: 17 → 13.** Structural legs still clean (0 orphans, 0 missing `__init__`, 0 compile fails).
+
+### 12.1 Latent-bug finding — RESOLVED 2026-06-06 (item 8, see git)
+`optimization/r_zero.py::LocalModelOptimizer.record_execution`: `recent_successes` counts prior
+records whose `success_rate == 1.0`, but a fresh optimizer can never PRODUCE a 1.0 record
+(`base_rate = (recent_successes + success) / (total+1)` is bounded below 1 because the +1 denominator
+always exceeds the numerator on the first record, and the numerator only grows by counting 1.0-records
+that never exist). Consequence: `success_rate` never climbs above 0.5 — it actually *trends toward 0*
+as history grows (denominator grows, numerator stuck) — so `difficulty_adjustment`'s `>0.8` branch
+(multiplier 1.0) is **unreachable**; the optimizer is permanently stuck at the 0.8 "hard" multiplier.
+Pinned by `test_success_rate_does_not_climb_above_half_on_repeated_success`. **Remediation is a
+behavior change → separate, gated track** (per non-destructive policy); the test documents current
+reality so a future fix updates it deliberately.
+
+### 12.2 Stub-gate finding — RESOLVED 2026-06-06 (item 8, see git)
+`SelfEvaluationEngine.evaluate_execution_plan(plan, prd_context)` is a STUB: it discards both
+arguments (`_ = plan; _ = prd_context`) and returns a hardcoded `score = 0.92` ("a real impl would
+use Gemini 3 Pro"). So the only live logic is the threshold gate `passed = score >= passing_threshold`,
+which — with the default 0.85 — **always passes regardless of input**. This is **called for real** at
+`src/cohezion/compound/capability_matrix.py:504` (`engine.evaluate_execution_plan(plan, prd_context)`),
+so the CapabilityMatrix's "self-evaluation pre-flight" is non-functional (a fake green light), same
+hazard class as the recursive_trace stub (§7) and the always-pass risk the AUTODQA I6 invariant guards.
+Pinned by `tests/evaluation/test_self_eval.py` (pin-actual pattern). **Remediation (wire real scoring,
+e.g. via the local fleet / quality_eval) is a separate, permission-gated, additive track** — not done
+in this report-only audit. Note: capability_matrix.py:574 already suggests merging evaluation/self_eval
+into eval/ (CapabilityScorecard) — a wiring target for that remediation.
+
+No-test modules: **13 → 12.**
+
+## 13. Verification-leg backfill — consolidated ledger + remaining-surface triage (2026-06-05)
+
+S1 (no-test-dir) gap closed from **17 → 6** this session. All additive, report-only, non-destructive;
+every module: pure-logic core pinned with discriminating tests, construction kept offline.
+
+| Module | tests | headline pinned |
+|---|--:|---|
+| cost_optimization | 13 | BudgetCircuitBreaker strikes + BudgetEnforcer policy bands |
+| hookify | 10 | condition-eval security boundary (raises on `os.`/`eval`/`import`) |
+| evolution | 6 | Variable dedup/skip-empty; `__str__`→raw value |
+| traceability | 5 | SurrealDB `_first_result` skips empty list |
+| optimization | 5 | R-Zero arithmetic + **latent-bug finding** (§12.1) |
+| evaluation | 4 | **always-pass stub gate** finding (§12.2) |
+| knowledge | 5 | LLMWiki persist/reload round-trip |
+| reporting | 4 | missing-key→0.0 averaging |
+| sandboxing | 5 | backend selection + `network=False` default; gvisor-gap finding |
+| agent | 5 | ToolRegistry dispatch; autocontext no-op-monitor finding |
+| pipeline | 6 | **harness A3** (kl_weight ≤ 0.015) pinned AT SOURCE |
+| dogfooding | 5 | PerformanceMonitor strict-`>` thresholds + time-window filter |
+
+### 13.1 The remaining 6 "no-test" modules are NOT test gaps — they are findings
+Re-running the instrument shows 6 left: `cli, datamesh, dogfooding*, infrastructure, policies,
+services, simulations`. These are **not** "modules that need unit tests" — they are pre-existing
+structural findings (adding tests would be testing things slated for removal or that don't import):
+- **datamesh** — orphan slated for deletion (CLAUDE.md / ORPHAN_AUDIT_2026_04_24); do NOT test.
+- **infrastructure**, **policies** — effectively EMPTY (0 / ~0 LOC of real logic); nothing to verify.
+- **cli**, **services** — broken transitive import chain (`cohezion.models.model_registry` missing,
+  §10); unit tests would fail at import. **Wiring/repair is the prerequisite**, not tests.
+- **simulations** — orphan (no-underscore twin of `simulation`); consolidation target, not a test gap.
+
+**Conclusion:** the *testable* no-test surface is effectively exhausted. The audit's next high-value
+work is the flagged remediations (the §10 cli/services missing-module, the §12 latent bugs, the
+orphan consolidations) — each a separate, permission-gated, ADDITIVE track per the non-destructive
+policy, not part of this report-only pass.
+
+### 10.1 RESOLUTION (2026-06-05, user-authorized remediation)
+Root cause: `services/swarm_service.py` imported `cohezion.models.model_registry.ModelRegistry` — a class *intended but never built* (`get_best_for_task` existed nowhere). Fixed **non-destructively** by WIRING the intended behavior to the real `CostAwareRouter`:
+- New `src/cohezion/models/model_registry.py` — `ModelRegistry.get_best_for_task(task, budget, prefer_fast)` delegates to `CostAwareRouter.select_model` (fail-soft → None so callers fall back to a default; NOT an always-None stub, avoiding the §12.2 hazard).
+- `prefer_fast` maps onto the router's cache-aware fast path (cache_hit_rate=0.95) — no new code path.
+- 5 tests (`tests/models/test_model_registry.py`), incl. an integration check that `cohezion.services.swarm_service` + `cohezion.cli` now import.
+- **Verified:** orphan-bridge `degraded` went `['cli'] → []`, `wired_count 10 → 11`. The cli + services import chain is repaired. 0 edits to swarm_service/cli (they expected this module; we supplied it).

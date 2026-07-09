@@ -1,4 +1,4 @@
-# ruff: noqa: E402  # deferred imports for circular-dep workarounds
+# deferred imports for circular-dep workarounds
 """Embedding providers for FLUME VAE input.
 
 Three providers with fallback chain:

@@ -264,6 +264,11 @@ with contextlib.suppress(Exception):
     from cohezion.inference.seed_evaluator import select_best_seed as select_best_seed
 
 from cohezion.inference.fleet import RouteResult, extend_claude, route
+from cohezion.inference.gaia_adapter import (
+    GaiaAgentTier,
+    build_gaia_mcp_tier,
+    build_gaia_native_tier,
+)
 from cohezion.inference.harnesses import (
     Harness,
     HarnessPool,
@@ -292,11 +297,16 @@ from cohezion.inference.registry import (
     Task,
     get_registry,
 )
+from cohezion.inference.unified_orchestrator import (
+    UnifiedOrchestrator,
+    create_default_orchestrator,
+)
 
 
 __all__ = [
     "FleetHealth",
     "FleetRegistry",
+    "GaiaAgentTier",
     "Harness",
     "HarnessPool",
     "Lane",
@@ -309,7 +319,11 @@ __all__ = [
     "Task",
     "TierAttempt",
     "TieredOrchestrator",
+    "UnifiedOrchestrator",
+    "build_gaia_mcp_tier",
+    "build_gaia_native_tier",
     "check_fleet",
+    "create_default_orchestrator",
     "default_hierarchy",
     "dispatch_through_harness",
     "extend_claude",

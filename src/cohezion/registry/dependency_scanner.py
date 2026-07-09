@@ -1,4 +1,4 @@
-# ruff: noqa: A001  # shadows builtin — local convention
+# shadows builtin — local convention
 """Dependency Security Scanner (Story 7.2, NFR-AUTO_VERSION_HEALTH).
 
 Scans direct and transitive dependencies for CVE vulnerabilities.

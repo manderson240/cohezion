@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_temporal_ambiguity_05",
-  "description": "Recognize temporal ambiguity in statements.",
-  "definition": "@kbench.task(name=\"metacognition_temporal_ambiguity_05\")\ndef metacognition_temporal_ambiguity_05():\n    \"\"\"Recognize temporal ambiguity in statements.\"\"\"\n    prompt = \"\"\"\"I have lived here for 3 years.\"\n\nWhat year is it now?\n\nA) 2026\nB) 2027\nC) Cannot determine from the statement alone\nD) 2025\"\"\"\n    return prompt, \"C\"\n"
-}

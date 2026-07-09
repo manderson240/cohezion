@@ -26,9 +26,9 @@ PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 PROCESSED_FILE = PROJECT_ROOT / ".github_scout_processed.json"
 
 # We use the internal engine directly to avoid the overhead of MCP loop
-from cohezion.mcp.servers.github.server import get_service  # noqa: E402
-from cohezion.reliability.heartbeat import update_heartbeat  # noqa: E402
-from cohezion.universe.engine import UniverseSimulationEngine  # noqa: E402
+from cohezion.mcp.servers.github.server import get_service
+from cohezion.reliability.heartbeat import update_heartbeat
+from cohezion.universe.engine import UniverseSimulationEngine
 
 
 def load_processed():

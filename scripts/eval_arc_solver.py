@@ -50,6 +50,36 @@ def grids_equal(a: list, b: list) -> bool:
     return True
 
 
+def grid_similarity(pred: list[list[int]] | None, sol: list[list[int]]) -> float:
+    """Calculate continuous similarity (0.0-1.0) between predicted and solution grid."""
+    if not pred or not isinstance(pred, list) or not all(isinstance(r, list) for r in pred):
+        return 0.0
+    h_pred = len(pred)
+    if h_pred == 0:
+        return 0.0
+    w_pred = len(pred[0])
+    if w_pred == 0 or not all(len(r) == w_pred for r in pred):
+        return 0.0
+
+    h_sol = len(sol)
+    w_sol = len(sol[0]) if h_sol > 0 else 0
+    if h_sol == 0 or w_sol == 0:
+        return 0.0
+
+    # Calculate match count in overlapping region
+    matches = 0
+    min_h = min(h_pred, h_sol)
+    min_w = min(w_pred, w_sol)
+    for r in range(min_h):
+        for c in range(min_w):
+            if pred[r][c] == sol[r][c]:
+                matches += 1
+
+    # Similarity is overlap matches divided by total elements of the larger grid
+    max_elements = max(h_pred * w_pred, h_sol * w_sol)
+    return matches / max_elements if max_elements > 0 else 0.0
+
+
 def evaluate_solver(
     solver_module,
     tasks: dict,
@@ -70,11 +100,12 @@ def evaluate_solver(
         max_depth: Max program depth
 
     Returns:
-        (solve_rate_float, correct_count, total_count)
+        (average_similarity_float, correct_count, total_count)
     """
     task_ids = sorted(tasks.keys())[:max_tasks] if max_tasks else sorted(tasks.keys())
     total = len(task_ids)
     correct = 0
+    total_similarity = 0.0
 
     for _, task_id in enumerate(task_ids):
         try:
@@ -103,19 +134,28 @@ def evaluate_solver(
             if not test_inputs:
                 continue
 
+            task_similarities = []
             all_match = True
             for t_idx, test_ex in enumerate(test_inputs):
                 if t_idx >= len(solution):
                     all_match = False
+                    task_similarities.append(0.0)
                     break
 
                 pred = solver_module.apply_program(
                     solver_module.deepcopy_grid(test_ex["input"]), program
                 )
+                sim = grid_similarity(pred, solution[t_idx])
+                task_similarities.append(sim)
                 if not grids_equal(pred, solution[t_idx]):
                     all_match = False
-                    break
 
+            if task_similarities:
+                task_sim = sum(task_similarities) / len(task_similarities)
+            else:
+                task_sim = 0.0
+
+            total_similarity += task_sim
             if all_match:
                 correct += 1
 
@@ -123,10 +163,10 @@ def evaluate_solver(
             raise
         except Exception:
             # Log but continue
-            traceback.format_exc()
+            traceback.print_exc()
             continue
 
-    solve_rate = correct / total if total else 0.0
+    solve_rate = total_similarity / total if total else 0.0
     return solve_rate, correct, total
 
 

@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "attention_name_recognition_12",
-  "description": "Recognize names amid noise.",
-  "definition": "@kbench.task(name=\"attention_name_recognition_12\")\ndef attention_name_recognition_12():\n    \"\"\"Recognize names amid noise.\"\"\"\n    prompt = \"\"\"The conference attendees were: Alice, Bob, zQx9#mK, Charlie, 42, Diana, @#$%, Eve.\n\nWhich of these is NOT a person's name?\n\nA) Alice\nB) zQx9#mK\nC) Diana\nD) Eve\"\"\"\n    return prompt, \"B\"\n"
-}

@@ -30,6 +30,67 @@ class OOMRiskError(ResourceUnavailableError):
 
 
 # ---------------------------------------------------------------------------
+# Hard OOM safety gate — ACTUAL memory + swap (harness K1 / strix-halo rule 5)
+# ---------------------------------------------------------------------------
+
+# A model at/above this footprint risks OOM under typical load on the 128 GiB box (harness K1).
+LARGE_MODEL_GB = 20.0
+# Never pin a LARGE model while swap usage is at/above this (strix-halo rule 5). Sustained swap
+# is the precursor to the OOM killer, and the budget model below cannot see it.
+SWAP_PRESSURE_PCT = 50.0
+# Footprint multiplier required free before a model is considered loadable.
+MEMORY_HEADROOM = 1.2
+
+
+def _read_system_memory() -> tuple[float, float] | None:
+    """Return (available_GiB, swap_used_pct) from the REAL system via psutil, or None if absent.
+
+    Independent of ``PlatformMemoryState``'s reservation budget — this catches drift when other
+    processes consume memory the budget never reserved. Fail-soft: never raises.
+    """
+    try:
+        import psutil
+
+        return (
+            psutil.virtual_memory().available / (1024**3),
+            float(psutil.swap_memory().percent),
+        )
+    except Exception:
+        return None
+
+
+def oom_safe_to_load(
+    size_gb: float, *, snapshot: tuple[float, float] | None = None
+) -> tuple[bool, str]:
+    """Hard OOM gate on ACTUAL system memory + swap (harness K1 / strix-halo rule 5).
+
+    Returns ``(ok, reason)``. This is a second, independent guard layered on top of the
+    cross-session budget model: it blocks a load when the *real* available memory is
+    insufficient, OR when a LARGE (>= ``LARGE_MODEL_GB``) model would be pinned while swap is
+    under pressure (>= ``SWAP_PRESSURE_PCT``). Fail-soft: if psutil is unavailable it returns
+    ``(True, ...)`` so the budget model remains the primary guard rather than blocking all loads.
+
+    ``snapshot`` overrides the live reading for tests: ``(available_GiB, swap_used_pct)``.
+    """
+    snap = snapshot if snapshot is not None else _read_system_memory()
+    if snap is None:
+        return True, "psutil unavailable — real-memory gate skipped (budget model still applies)"
+    avail_gb, swap_pct = snap
+    need = size_gb * MEMORY_HEADROOM
+    if avail_gb <= need:
+        return False, (
+            f"insufficient real memory: need {need:.1f} GiB (incl {MEMORY_HEADROOM}x headroom), "
+            f"have {avail_gb:.1f} GiB"
+        )
+    if size_gb >= LARGE_MODEL_GB and swap_pct >= SWAP_PRESSURE_PCT:
+        return False, (
+            f"swap pressure {swap_pct:.0f}% >= {SWAP_PRESSURE_PCT:.0f}% — refusing a "
+            f"{size_gb:.0f} GiB (>= {LARGE_MODEL_GB:.0f} GiB) load to avoid the OOM killer"
+        )
+    return True, "ok"
+
+
+# ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
 
@@ -212,9 +273,40 @@ class ResourceClient:
             logger.warning("Could not release lock %s: %s", lock_id, exc)
 
     async def can_load_model(self, model_name: str, size_gb: float) -> bool:
-        """Return True if there is enough memory to load the model safely."""
+        """Return True if there is enough memory to load the model safely.
+
+        Three guards must ALL pass: (0) the EVENT-DRIVEN memory-pressure monitor — evaluating it
+        here both advances the shared pressure state (emitting a transition event to subscribers)
+        and proactively blocks loads at CRITICAL; (1) the cross-session reservation budget
+        (PlatformMemoryState); (2) the hard real-memory + swap gate (`oom_safe_to_load`, harness
+        K1 / strix-halo rule 5). Guards 1-2 catch what the budget model cannot see.
+        """
+        # (0) Event-driven pressure gate. Lazy import avoids a module-level cycle
+        # (memory_pressure imports this module's helpers).
+        try:
+            from cohezion.platform.memory_pressure import get_pressure_monitor
+
+            monitor = get_pressure_monitor()
+            monitor.evaluate()  # drives the monitor + fires transition events to subscribers
+            if monitor.loads_blocked():
+                logger.warning(
+                    "OOM guard blocked load of %s (%.1f GiB): memory pressure CRITICAL",
+                    model_name,
+                    size_gb,
+                )
+                return False
+        except Exception as exc:
+            logger.debug("pressure monitor unavailable: %s", exc)
+
         state = await self.check_memory()
-        return state.available_gb > size_gb * 1.2
+        if state.available_gb <= size_gb * MEMORY_HEADROOM:
+            return False
+        ok, reason = oom_safe_to_load(size_gb)
+        if not ok:
+            logger.warning(
+                "OOM guard blocked load of %s (%.1f GiB): %s", model_name, size_gb, reason
+            )
+        return ok
 
     async def register_session(self, session_id: str) -> None:
         """Notify the daemon that a new session is starting."""

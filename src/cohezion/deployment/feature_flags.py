@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # math/physics symbols intentional
+# math/physics symbols intentional
 """Feature flags for gradual Phase 2 rollout.
 
 Enables opt-in enablement of Phase 2 optimizations:

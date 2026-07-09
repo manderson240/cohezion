@@ -143,7 +143,15 @@ class MyceliumRegistry:
         return cluster
 
     def _emit_pattern_event(self, cluster: MyceliumCluster) -> None:
-        """Fire MYCELIUM_PATTERN precipitation event for a cluster that crossed threshold."""
+        """Fire MYCELIUM_PATTERN precipitation event for a cluster that crossed threshold.
+
+        Also auto-promotes the pattern to:
+        - the Obsidian vault at `<vault>/wiki/ouroboros/improvements/<cluster_id>.md`
+        - SurrealDB at `mycelium_patterns:<cluster_id>` (ns cohezion, db main)
+        Both writes are best-effort: failure logs and continues. The
+        PrecipitationEvent emission is the source of truth; vault+DB are
+        derived indexes for search and audit.
+        """
         try:
             # Cross-universe patterns are more valuable; boost coherence slightly.
             cross_universe_boost = 0.1 if len(cluster.member_universe_ids) > 1 else 0.0
@@ -176,6 +184,150 @@ class MyceliumRegistry:
             )
         except Exception:
             logger.debug("Failed to emit MYCELIUM_PATTERN", exc_info=True)
+
+        # Best-effort auto-promotion to vault + SurrealDB.
+        self._promote_pattern(cluster)
+
+    def _promote_pattern(self, cluster: MyceliumCluster) -> None:
+        """Write a short markdown summary to the Obsidian vault AND a row to
+        SurrealDB. Both are best-effort. Cooldown: only promote if the
+        cluster spans >= 2 universes (true cross-agent signal); a single
+        event from one agent does not warrant a vault entry.
+        """
+        # Cooldown guard: don't promote single-universe single-agent
+        # clusters. Otherwise we'd write a vault note every time any
+        # agent produces 3+ same-signature events.
+        if len(cluster.member_universe_ids) < 2:
+            logger.debug(
+                "skip vault+db promotion for %s (only %d universe[s])",
+                cluster.cluster_id,
+                len(cluster.member_universe_ids),
+            )
+            return
+
+        from datetime import UTC, datetime
+        from pathlib import Path
+
+        ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+        slug = cluster.cluster_id.replace(" ", "-")
+        payload = {
+            "cluster_id": cluster.cluster_id,
+            "size": cluster.size,
+            "mean_coherence": cluster.mean_coherence,
+            "agent_count": len(cluster.member_agent_ids),
+            "universe_count": len(cluster.member_universe_ids),
+            "member_universe_ids": sorted(cluster.member_universe_ids),
+            "member_agent_ids": sorted(cluster.member_agent_ids),
+            "member_event_ids": list(cluster.member_event_ids),
+            "cross_universe": True,
+        }
+
+        # 1) Write to Obsidian vault
+        try:
+            vault_root = Path(
+                __import__("os").environ.get(
+                    "COHEZION_VAULT_PATH",
+                    "/home/mike-anderson/vaults/cohezion-vault",
+                )
+            )
+            improvements = vault_root / "wiki" / "ouroboros" / "improvements"
+            improvements.mkdir(parents=True, exist_ok=True)
+            md_path = improvements / f"{slug}-{ts}.md"
+            lines = [
+                "---",
+                f"cluster_id: {cluster.cluster_id}",
+                f"date: {datetime.now(UTC).isoformat()}",
+                f"size: {cluster.size}",
+                f"mean_coherence: {cluster.mean_coherence:.3f}",
+                f"universes: {len(cluster.member_universe_ids)}",
+                f"agents: {len(cluster.member_agent_ids)}",
+                "tags: [mycelium, pattern, auto-promoted]",
+                "---",
+                "",
+                f"# Mycelium pattern: {cluster.cluster_id}",
+                "",
+                f"Cluster size: **{cluster.size}** events",
+                f"Mean coherence: **{cluster.mean_coherence:.3f}**",
+                f"Universes: {', '.join(sorted(cluster.member_universe_ids))}",
+                f"Agents: {', '.join(sorted(cluster.member_agent_ids))}",
+                "",
+                "## Member events",
+                "",
+            ]
+            for eid in cluster.member_event_ids:
+                lines.append(f"- `{eid}`")
+            lines.append("")
+            md_path.write_text("\n".join(lines))
+            logger.info("wrote mycelium pattern to vault: %s", md_path)
+        except Exception as exc:
+            logger.debug("vault write failed for %s: %s", cluster.cluster_id, exc)
+
+        # 2) Write to SurrealDB
+        try:
+            import base64
+            import json
+            import urllib.error
+            import urllib.request
+
+            surreal_url = __import__("os").environ.get("SURREALDB_URL", "http://localhost:8001/sql")
+            surreal_user = __import__("os").environ.get("SURREALDB_USER", "root")
+            surreal_pass = __import__("os").environ.get("SURREALDB_PASS", "root")
+            # Sanitize cluster_id for use as record ID. Also strip dashes
+            # from the timestamp — SurrealDB parses `tablename:id-with-dashes`
+            # as a subtraction expression, which fails type validation.
+            sanitized = cluster.cluster_id.replace("-", "_").replace(" ", "_")
+            ts_compact = ts.replace("-", "")  # 20260604-032226 -> 20260604032226
+            db_id = f"mycelium_patterns:{sanitized}_{ts_compact}"
+            payload_json = json.dumps(payload)
+            created_at = datetime.now(UTC).isoformat()
+
+            # Inline values into the SQL (safe — no user input flows here;
+            # all values come from numeric fields + a JSON payload we built)
+            def _sql_str(v: str) -> str:
+                return "'" + v.replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+            upsert_sql = (
+                f"UPSERT {db_id} SET "
+                f"cluster_id = {_sql_str(cluster.cluster_id)}, "
+                f"size = {cluster.size}, "
+                f"mean_coherence = {cluster.mean_coherence}, "
+                f"agent_count = {len(cluster.member_agent_ids)}, "
+                f"universe_count = {len(cluster.member_universe_ids)}, "
+                f"cross_universe = true, "
+                f"payload = {_sql_str(payload_json)}, "
+                f"created_at = {_sql_str(created_at)};"
+            )
+            auth = base64.b64encode(f"{surreal_user}:{surreal_pass}".encode()).decode()
+            req = urllib.request.Request(
+                surreal_url,
+                data=upsert_sql.encode("utf-8"),
+                method="POST",
+                headers={
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "main",
+                    "Authorization": f"Basic {auth}",
+                    "Content-Type": "text/plain",
+                },
+            )
+            response_bytes = urllib.request.urlopen(req, timeout=5).read()
+            # SurrealDB returns 200 even on logical errors (e.g. type
+            # validation). Check the response for an error status.
+            try:
+                response_json = json.loads(response_bytes)
+                if isinstance(response_json, list) and response_json:
+                    first = response_json[0]
+                    if isinstance(first, dict) and first.get("status") == "ERR":
+                        logger.debug(
+                            "surrealdb UPSERT returned ERR for %s: %s",
+                            db_id,
+                            str(first.get("result", ""))[:200],
+                        )
+                        return
+            except (json.JSONDecodeError, KeyError, IndexError, TypeError):
+                pass  # Non-JSON response, assume success (urllib raised on real error)
+            logger.info("wrote mycelium pattern to surrealdb: %s", db_id)
+        except (urllib.error.URLError, OSError, Exception) as exc:
+            logger.debug("surrealdb write failed for %s: %s", cluster.cluster_id, exc)
 
 
 __all__ = ["MyceliumCluster", "MyceliumRegistry"]

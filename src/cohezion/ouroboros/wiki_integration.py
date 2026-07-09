@@ -210,6 +210,73 @@ class OuroborosWikiBridge:
 
         return results
 
+    def log_session(
+        self,
+        skill_name: str,
+        task_description: str,
+        metrics: dict[str, Any] | None = None,
+        execution_id: str | None = None,
+    ) -> str | None:
+        """Log a successful CompoundExecutor session to the wiki.
+
+        WS1C (2026-06-04) adds this high-level helper so the executor
+        can persist a session note without constructing an
+        ExecutionExhaust. Writes to wiki/ouroboros/improvements/<ts>_<skill>.md
+        with the task description + key metrics. Best-effort.
+
+        Returns:
+            Path to the written file, or None on failure.
+        """
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_skill = skill_name.replace(" ", "-").replace("/", "_")[:50]
+        filename = f"{timestamp}_{safe_skill}.md"
+        path = self.vault_path / "wiki" / "ouroboros" / "improvements" / filename
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Build markdown content
+        lines = [
+            "---",
+            f"skill: {skill_name}",
+            f"execution_id: {execution_id or 'unknown'}",
+            f"date: {datetime.now().isoformat()}",
+            "tags: [ouroboros, session, auto-promoted]",
+            "---",
+            "",
+            f"# Session: {skill_name}",
+            "",
+            f"## Task",
+            "",
+            task_description or "(no description)",
+            "",
+        ]
+        if metrics:
+            lines.extend(
+                [
+                    "## Metrics",
+                    "",
+                    "```json",
+                    json.dumps(metrics, indent=2, default=str),
+                    "```",
+                    "",
+                ]
+            )
+        lines.extend(
+            [
+                "## Notes",
+                "",
+                f"Auto-logged by OuroborosWikiBridge.log_session() (WS1C, 2026-06-04).",
+                "Linked from compound execution context; see vault for the full pattern.",
+                "",
+            ]
+        )
+        try:
+            path.write_text("\n".join(lines))
+            logger.info("wrote session note to wiki: %s", path)
+            return str(path)
+        except Exception as exc:
+            logger.debug("log_session failed: %s", exc)
+            return None
+
     async def _find_related_exhaust(
         self,
         exhaust: ExecutionExhaust,

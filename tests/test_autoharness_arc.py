@@ -45,7 +45,7 @@ def mock_arc_env(code_str: str) -> tuple[bool, str]:
 
 async def run_arc_harness():
     print("=== 🧩 TESTING AUTOHARNESS SYNTHESIS (ARC PRIZE) ===")
-    executor = LLMExecutor(model="qwen2.5-coder:7b")
+    executor = LLMExecutor(model="phi4:latest")
     synthesizer = AutoHarnessSynthesizer(llm_executor=executor, max_iterations=3)
 
     env_desc = """

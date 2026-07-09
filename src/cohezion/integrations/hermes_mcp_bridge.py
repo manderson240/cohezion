@@ -12,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -799,10 +800,8 @@ def _zerolang_run_cmd(cmd: str, code: str, file_path: str, timeout: int) -> dict
         }
     finally:
         if cleanup and run_path and os.path.exists(run_path):
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(run_path)
-            except OSError:
-                pass
 
 
 def _handle_zerolang_run(args: dict) -> dict:

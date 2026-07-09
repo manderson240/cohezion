@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V-Model Module Audit — Status</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d;
+    --txt:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --accent2:#bc8cff;
+    --hi:#f85149; --med:#d29922; --low:#3fb950; --ok:#2ea043;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 22px 80px}
+  header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:26px}
+  h1{margin:0 0 6px;font-size:26px;letter-spacing:-.02em}
+  h2{font-size:19px;margin:34px 0 14px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--accent)}
+  .sub{color:var(--muted);font-size:14px}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;
+    font-weight:600;border:1px solid var(--border);background:var(--panel2)}
+  .pill.run{color:var(--med);border-color:#3d2e0a;background:#241b07}
+  code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:13px;
+    font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;color:#c9d1d9}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:8px 0 4px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:15px 16px}
+  .card .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .card .l{color:var(--muted);font-size:12.5px;margin-top:7px}
+  .card.ok .n{color:var(--ok)} .card.hi .n{color:var(--hi)}
+  .card.med .n{color:var(--med)} .card.low .n{color:var(--low)}
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:13.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  tr:hover td{background:var(--panel)}
+  td.mono,code.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  .sev{font-weight:700;font-size:11px;padding:2px 7px;border-radius:5px;white-space:nowrap}
+  .sev.hi{color:#ffb4ad;background:#3d1412} .sev.med{color:#f0c88a;background:#33280a}
+  .sev.low{color:#9fe0ab;background:#0f2f17}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:4px 18px;margin:10px 0}
+  .bar{height:9px;background:var(--panel2);border-radius:6px;overflow:hidden;margin:14px 0 6px}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  ul{margin:8px 0 14px;padding-left:20px} li{margin:4px 0}
+  .next{counter-reset:step;list-style:none;padding:0}
+  .next li{position:relative;padding:13px 16px 13px 52px;background:var(--panel);
+    border:1px solid var(--border);border-radius:10px;margin:9px 0}
+  .next li::before{counter-increment:step;content:counter(step);position:absolute;left:14px;top:12px;
+    width:26px;height:26px;border-radius:50%;background:var(--accent);color:#04101f;
+    font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .next b{color:var(--txt)} .next .sub{display:block;margin-top:3px}
+  footer{margin-top:40px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--border);padding-top:16px}
+  .tag{color:var(--low);font-weight:600}
+  .warnrow td:first-child{border-left:3px solid var(--med)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Systems-Engineering V-Model Audit <span class="pill run">● IN PROGRESS</span></h1>
+  <div class="sub">Cohezion &nbsp;·&nbsp; <code>/loop</code> self-paced &nbsp;·&nbsp; 2026-06-05 &nbsp;·&nbsp;
+    branch <code>feat/adaptive-calibration-harness</code></div>
+  <div class="sub" style="margin-top:9px">
+    <span class="tag">Policy:</span> Non-destructive — orphans are <b>wired, never deleted</b>.
+    Report-only; every recommendation is additive/integrative.</div>
+</header>
+
+<h2>Coverage</h2>
+<div class="panel">
+  <div style="display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted)">
+    <span>Deterministic pass</span><span style="color:var(--ok);font-weight:600">79 / 79 complete</span>
+  </div>
+  <div class="bar"><i style="width:100%"></i></div>
+  <div style="display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);margin-top:14px">
+    <span>Judgment pass (read-the-code per module)</span><span style="font-weight:600">0 / 79</span>
+  </div>
+  <div class="bar"><i style="width:1%"></i></div>
+  <div class="sub" style="padding:2px 0 10px">Next: <b>Batch A — the 11 orphans</b>, then untested-but-wired,
+    then remaining modules by blast radius (descending external-importer count). ~8 batches total.</div>
+</div>
+
+<h2>Headline numbers (deterministic, all 79 modules)</h2>
+<div class="cards">
+  <div class="card ok"><div class="n">79/79</div><div class="l">valid Python 3.11 — zero compile failures</div></div>
+  <div class="card hi"><div class="n">11</div><div class="l">import-graph orphans → wiring proposals</div></div>
+  <div class="card hi"><div class="n">20</div><div class="l">no verification leg (no <code>tests/</code> dir)</div></div>
+  <div class="card med"><div class="n">9</div><div class="l">missing <code>__init__.py</code></div></div>
+  <div class="card med"><div class="n">36</div><div class="l">files over 500-LOC hard limit</div></div>
+  <div class="card low"><div class="n">5</div><div class="l">duplicate-name pairs (verified, 1 false alarm)</div></div>
+</div>
+
+<h2>Findings by severity</h2>
+<table>
+  <thead><tr><th>Sev</th><th>Finding</th><th>Modules / detail</th><th>Recommendation (non-destructive)</th></tr></thead>
+  <tbody>
+  <tr><td><span class="sev hi">HIGH</span></td>
+    <td>No verification leg — module has code but no <code>tests/&lt;mod&gt;/</code></td>
+    <td class="mono">20 modules. Worst: <b>model</b> (harness asserts LM1–LM7 behavior, yet no unit-test dir), <b>cost_optimization</b> (16 importers, untested)</td>
+    <td>Add <code>tests/&lt;mod&gt;/</code> with paired structural + behavioral tests (Learning 366). Purely additive.</td></tr>
+  <tr><td><span class="sev hi">HIGH</span></td>
+    <td>Import-graph orphans (0 external importers)</td>
+    <td class="mono">cli, datamesh, dogfooding, infrastructure, policies, recursive_trace, reporting, sandboxing, simulations, skills*, traceability</td>
+    <td>Wire each to a concrete target (table below). <b>Never delete.</b> <code>*skills</code> is functionally live (registry), not dead.</td></tr>
+  <tr class="warnrow"><td><span class="sev med">MED</span></td>
+    <td>Missing <code>__init__.py</code> (breaks vault skill discovery)</td>
+    <td class="mono">competition, infrastructure, knowledge, models, patterns, reporting, scripts, simulations, storage</td>
+    <td>Add <code>__init__.py</code>. Confirm <code>scripts/</code>, <code>competition/</code> aren't intentionally flat script dirs.</td></tr>
+  <tr class="warnrow"><td><span class="sev med">MED</span></td>
+    <td>Files over 500-LOC hard limit (god-object risk)</td>
+    <td class="mono">36 files. Top: api/__init__.py (2113), compound/executor.py (1645), swarm/cost_aware_router.py (1360)</td>
+    <td>Judgment pass separates legit cohesion (data tables) from refactor targets. Split = additive extraction.</td></tr>
+  <tr><td><span class="sev low">LOW</span></td>
+    <td>Duplicate-name siblings — verify, never auto-merge</td>
+    <td class="mono"><b>model≠models</b> (both real; model=CohezionLM, load-bearing). datamesh→data_mesh, sandboxing→sandbox, simulations→simulation, eval/evaluation</td>
+    <td>Consolidate orphan twin INTO canonical (integrate first; empty husk is a downstream step).</td></tr>
+  </tbody>
+</table>
+
+<h2>Orphans → proposed wiring targets</h2>
+<p class="sub">Each orphan gets a target to <b>integrate into</b>, confirmed in the upcoming judgment pass. No deletions.</p>
+<table>
+  <thead><tr><th>Orphan</th><th>py</th><th>Proposed wiring target</th></tr></thead>
+  <tbody>
+  <tr><td class="mono">cli</td><td>3</td><td>Confirm <code>__main__</code> / console-script entry-point edge; wire to <code>pyproject [project.scripts]</code>.</td></tr>
+  <tr><td class="mono">datamesh</td><td>7</td><td>Integrate unique content INTO <code>data_mesh</code> (canonical, 14 importers).</td></tr>
+  <tr><td class="mono">dogfooding</td><td>3</td><td><code>production_hardening.py</code> → <code>reliability</code> / <code>resilience</code> health path.</td></tr>
+  <tr><td class="mono">infrastructure</td><td>0</td><td>Empty dir — add <code>__init__.py</code> + docstring, or document as namespace placeholder.</td></tr>
+  <tr><td class="mono">policies</td><td>1</td><td>Wire into <code>governance</code> policy evaluation.</td></tr>
+  <tr><td class="mono">recursive_trace</td><td>2</td><td>Wire into <code>traceability</code> / JourneyTracker hash-chain.</td></tr>
+  <tr><td class="mono">reporting</td><td>1</td><td>Wire into <code>observability</code> / <code>platform</code> digest (supersedes prior DELETE call).</td></tr>
+  <tr><td class="mono">sandboxing</td><td>2</td><td>Integrate INTO <code>sandbox</code> (canonical, 7 importers).</td></tr>
+  <tr><td class="mono">simulations</td><td>4</td><td>Integrate INTO <code>simulation</code> (canonical, 11 importers).</td></tr>
+  <tr><td class="mono">skills</td><td>29</td><td><b>Not dead</b> — registry-referenced. Add an import-shim / registry assertion test so the graph reflects reality.</td></tr>
+  <tr><td class="mono">traceability</td><td>3</td><td>Wire into JourneyTracker / V-Model gate (<code>vmodel_gate</code> table).</td></tr>
+  </tbody>
+</table>
+
+<h2>Proposed next steps</h2>
+<ol class="next">
+  <li><b>Let the loop continue as an audit (default).</b>
+    <span class="sub">It runs Batch A–H, reading code to confirm each wiring target and whether tests verify design, until judgment coverage hits 79/79, then stops with a summary. No changes to the tree.</span></li>
+  <li><b>Flip the loop from audit → action: actually wire the orphans.</b>
+    <span class="sub">Highest-value, lowest-risk first: the 4 consolidations (datamesh→data_mesh, sandboxing→sandbox, simulations→simulation, reporting→observability). Each is an additive integration + a test, done with permission per batch on a feature branch.</span></li>
+  <li><b>Close the worst verification-leg gap: <code>model/</code>.</b>
+    <span class="sub">Harness invariants LM1–LM7 assert <code>CohezionLM</code> behavior but there is no <code>tests/model/</code>. Add the paired structural+behavioral unit tests so the V-model leg exists in code, not just the harness.</span></li>
+  <li><b>Quick structural cleanup: add the 9 missing <code>__init__.py</code>.</b>
+    <span class="sub">Zero-behavior-change, restores vault skill discovery. (Verify <code>scripts/</code> &amp; <code>competition/</code> shouldn't stay flat first.)</span></li>
+  <li><b>Triage the 36 oversize files.</b>
+    <span class="sub">Separate legitimately-cohesive (e.g. <code>worldviews/tradition_data.py</code> — a data table) from true god-objects (<code>compound/executor.py</code>, <code>api/__init__.py</code>) that warrant additive module extraction.</span></li>
+</ol>
+
+<footer>
+  Instrument: <code>scripts/audits/vmodel_module_audit.py</code> (re-runnable) &nbsp;·&nbsp;
+  Raw data: <code>docs/audits/vmodel_manifest.json</code> &nbsp;·&nbsp;
+  Full report: <code>docs/audits/VMODEL_AUDIT_2026-06-05.md</code> &nbsp;·&nbsp;
+  Policy: <code>~/.claude/rules/non-destructive-wiring.md</code><br>
+  Generated 2026-06-05 · iteration 1 of self-paced <code>/loop</code>.
+</footer>
+</div>
+</body>
+</html>

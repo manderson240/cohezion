@@ -16,8 +16,8 @@ from typing import Any
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-FAST_CHECKS = ["format", "lint-quick"]
-FULL_CHECKS = ["format", "lint", "typecheck", "fast-tests"]
+FAST_CHECKS = ["format", "lint-quick", "harness-bash"]
+FULL_CHECKS = ["format", "lint", "typecheck", "fast-tests", "harness-bash"]
 VALIDATE_CHECKS = ["validate-skills", "validate-registry"]
 
 CHECKS: dict[str, dict[str, Any]] = {
@@ -27,7 +27,10 @@ CHECKS: dict[str, dict[str, Any]] = {
         "timeout": 30,
     },
     "lint-quick": {
-        "cmd": ["ruff", "check", "--select=F,E9,E501", "src/", "tests/"],
+        # E9 only = genuine syntax errors (the gate's stated purpose). F (pyflakes) and E501
+        # (line-length) are pervasive intentional drift across the repo and were making this
+        # "syntax errors only" gate red on style, not syntax (re-scoped 2026-06-07, user-approved).
+        "cmd": ["ruff", "check", "--select=E9", "src/", "tests/"],
         "desc": "Ruff quick lint (syntax errors only)",
         "timeout": 30,
     },
@@ -66,7 +69,40 @@ CHECKS: dict[str, dict[str, Any]] = {
         "desc": "Validate skill registry",
         "timeout": 30,
     },
+    "harness-bash": {
+        "cmd": [],  # special-cased below
+        "desc": "Verify deploy script sources safe-env.sh and the file exists (H3 invariant)",
+        "timeout": 5,
+    },
 }
+
+
+def _run_harness_bash_check(t0: float) -> dict:
+    """H3 invariant: deploy script must source safe-env.sh; safe-env.sh must exist."""
+    elapsed = time.perf_counter() - t0
+    safe_env = Path.home() / ".config" / "cohezion" / "safe-env.sh"
+    deploy_script = PROJECT_ROOT / "scripts" / "ci" / "deploy_harness_agents.sh"
+    issues: list[str] = []
+    if not safe_env.exists():
+        issues.append(f"missing: {safe_env}")
+    if not deploy_script.exists():
+        issues.append(f"missing: {deploy_script}")
+    elif "safe-env.sh" not in deploy_script.read_text():
+        issues.append(f"deploy script does not source safe-env.sh")
+    if issues:
+        return {
+            "check": "harness-bash",
+            "description": CHECKS["harness-bash"]["desc"],
+            "passed": False,
+            "elapsed_s": round(elapsed, 3),
+            "stderr": " | ".join(issues),
+        }
+    return {
+        "check": "harness-bash",
+        "description": CHECKS["harness-bash"]["desc"],
+        "passed": True,
+        "elapsed_s": round(elapsed, 3),
+    }
 
 
 def run_check(name: str, cfg: dict, files: list[str]) -> dict:
@@ -76,6 +112,8 @@ def run_check(name: str, cfg: dict, files: list[str]) -> dict:
 
     t0 = time.perf_counter()
     try:
+        if name == "harness-bash":
+            return _run_harness_bash_check(t0)
         result = subprocess.run(
             cmd,
             cwd=str(PROJECT_ROOT),

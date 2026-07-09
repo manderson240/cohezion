@@ -185,6 +185,20 @@
       },
       "name": "cohezion-agentskills",
       "description": "External AgentSkills framework integration"
+    },
+    "research": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.research_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-research",
+      "description": "SOTA research discovery tools"
     }
   }
 }

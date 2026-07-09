@@ -1,8 +1,0 @@
-{
-  "track_id": "repo_size_fix_20260407",
-  "type": "chore",
-  "status": "new",
-  "created_at": "2026-04-07T12:21:03Z",
-  "updated_at": "2026-04-07T12:21:03Z",
-  "description": "Systemic Repository Size Optimization and Health Maintenance: Fix git push failure due to 2GiB pack size limit."
-}

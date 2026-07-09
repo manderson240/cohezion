@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # nested if for clarity over single combined condition
+# nested if for clarity over single combined condition
 """Experiment Tracker for Reproducible Universe Simulations.
 
 Provides deterministic experiment management: seed tracking, configuration

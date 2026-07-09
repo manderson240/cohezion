@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Deep Codebase Auditor.
 

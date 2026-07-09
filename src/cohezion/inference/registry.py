@@ -74,6 +74,16 @@ class Task(StrEnum):
     FUNCTION_CALL = "function_call"
     RERANK = "rerank"
     OCR_DOC = "ocr_doc"
+    # Multimodal in+out members (thread M item 83 + user video directive, 2026-06-06). cohezion
+    # already ingests images (VISION/EXTRACTION/OCR_DOC); these declare the OUTPUT modalities plus
+    # video INPUT. No model is registered for them yet → for_task returns [] until a specialist
+    # ModelEntry is added behind its serving proof: IMAGE_GEN (sd.cpp Vulkan, item 86), AUDIO_TTS
+    # (PocketTTS item 85 / Higgs research-only item 93), VIDEO_GEN (research-gated item 87),
+    # VIDEO_UNDERSTAND (video input — research-gated until a fleet-runnable video VLM is verified).
+    IMAGE_GEN = "image_gen"
+    AUDIO_TTS = "audio_tts"
+    VIDEO_GEN = "video_gen"
+    VIDEO_UNDERSTAND = "video_understand"
 
 
 class WeightQuant(StrEnum):
@@ -153,6 +163,10 @@ class ModelEntry:
     observed_ttft_ms_p95: float | None = None  # 95th percentile TTFT
     observed_total_ms_p50: float | None = None  # 50th percentile full-response latency
     observed_tokens_per_sec: float | None = None  # sustained generation throughput
+    # Approximate resident size in GB (weights + KV) for the per-candidate OOM headroom gate
+    # (fleet.route, item 132). None = unknown → the headroom gate is skipped for this candidate
+    # (never fabricate a size); the fleet-wide OOM buffer (item 131) still applies.
+    size_gb: float | None = None
     # Reasoning-mode models (e.g. Gemma 4 FLM) emit <thinking> tokens first and
     # only then produce visible output. With small `max_tokens` budgets the
     # thinking block consumes the whole budget and the caller sees empty text.
@@ -198,6 +212,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         # --- Strix Halo Symphony: 4-lane Gemma 4 ---
         ModelEntry(
             model_id="Gemma-4-E2B-it-GGUF",
+            size_gb=2.9,  # measured GGUF on disk: gemma-4-E2B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.NPU,
             endpoint="http://localhost:13306",
             runtime_backend="flm",
@@ -266,6 +281,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ),
         ModelEntry(
             model_id="Gemma-4-E4B-it-GGUF",
+            size_gb=4.6,  # measured GGUF on disk: gemma-4-E4B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.IGPU_ROCWMMA,
             endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",  # served by Lemonade (lemond :13307)
@@ -290,13 +306,17 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             weight_quant=WeightQuant.Q4_K_M,  # actual GGUF is Q4_0 (~696 MB); F16 ~2.34 GB
             context_window=32768,
             priority=25,  # the EXTRACTION/VISION specialist (was none); small VLM, low VRAM
-            verified_working=False,  # mmproj proof NOT yet run — see LFM_VL_EXTRACTION_2026-06-06.md
+            verified_working=False,  # SERVING proven; ACCURACY proof still pending — see LFM_VL_EXTRACTION_2026-06-06.md
             notes=(
                 "LiquidAI image→YAML field-extraction VLM (the seed for Task.EXTRACTION). "
-                "mmproj-GATED: needs the vision projector (mmproj-…-F16.gguf) loaded — lemonade "
-                "--mmproj support UNPROVEN → llama-mtmd sidecar fallback. Model not yet downloaded; "
-                "verified_working flips True only after the 10-image extraction proof (item 18). "
-                "License lfm1.0 — verify commercial terms before production use."
+                "SERVING PROVEN 2026-06-06 via the llama-mtmd-cli sidecar (bundled in lemonade "
+                "bin/llamacpp/rocm-stable/) with --mmproj mmproj-…-F16.gguf — lemonade `load` has NO "
+                "--mmproj flag, so the sidecar (or --llamacpp-args passthrough) is the path. Smoke: a "
+                "known-text image → structured YAML echoing the image fields (read 'Cohezion'→'Cohesion', "
+                "i.e. genuinely reading pixels). ACCURACY bake-off RAN 2026-06-06 on CORD-v2 (10 img, "
+                "pre-registered value-recall): LFM 0.771 vs Qwen2.5-VL-7B baseline 0.864 → honest NULL, "
+                "verified_working stays False (LFM serves + is 6.7x smaller but ~9pts less accurate than "
+                "the bigger VLM). Re-run on real user docs may differ. License lfm1.0 — verify commercial terms."
             ),
         ),
         ModelEntry(
@@ -339,6 +359,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ),
         ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
+            size_gb=15.7,  # measured GGUF on disk via measure_gguf_sizes (item 136, non-fabricated)
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",
             # DECLARED vllm_rocm; today served via Lemonade (llamacpp) when loaded.
@@ -353,6 +374,28 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             notes=(
                 "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE "
                 "(8 active / 128 total experts + 1 shared expert)."
+            ),
+        ),
+        ModelEntry(
+            model_id="Gemma-4-12B-it-qat-q4_0-GGUF",
+            size_gb=6.5,  # google/gemma-4-12B-it-qat-q4_0-gguf q4_0 = 6.50 GiB (item 144, model_info-verified)
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
+            weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0: near-FP quality at q4 (quantization-aware training)
+            kv_quant=kv8_q80,
+            context_window=131072,
+            # priority 18 is BELOW the 26B (15): non-displacing memory-pressure FALLBACK, not the default.
+            # When the 15.7 GB 26B is OOM-deferred (item 132), this 6.5 GB model fits and keeps
+            # REASONING/CODE_GEN on the fast iGPU lane instead of falling to CPU (qwen3-coder) or cloud.
+            priority=18,
+            verified_working=False,  # needs-experiment: benchmark TPS+quality on XDNA2 before mark_verified
+            notes=(
+                "Mid-tier fleet-gap fallback (item 144). VERIFIED google/gemma-4-12B-it-qat-q4_0-gguf, "
+                "6.50 GiB official QAT (25,077 dl). Fills the 4.6 GB (E4B) -> 15.7 GB (26B) iGPU gap. "
+                "Load-on-demand, NOT pinned (K1/rule-5). Do NOT mark_verified until a TPS+quality "
+                "benchmark on XDNA2/ROCWMMA confirms it beats the alternatives under memory pressure."
             ),
         ),
         ModelEntry(

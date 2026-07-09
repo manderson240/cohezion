@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # nested if for clarity over single combined condition
+# nested if for clarity over single combined condition
 """MCP Server Manager - data models and configuration."""
 
 from __future__ import annotations

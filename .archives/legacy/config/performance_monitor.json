@@ -1,7 +1,0 @@
-{
-  "monitor_interval": 30,
-  "memory_threshold": 85,
-  "gpu_threshold": 90,
-  "auto_scale": true,
-  "target_hiko": 0.5
-}

@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_insufficient_info_01",
-  "description": "Recognize when information is insufficient.",
-  "definition": "@kbench.task(name=\"metacognition_insufficient_info_01\")\ndef metacognition_insufficient_info_01():\n    \"\"\"Recognize when information is insufficient.\"\"\"\n    prompt = \"\"\"A train leaves Station A at 8:00 AM traveling at 60 mph toward Station B.\n\nHow long does the journey take?\n\nA) 1 hour\nB) 2 hours\nC) 3 hours\nD) Insufficient Information\"\"\"\n    return prompt, \"D\"\n"
-}

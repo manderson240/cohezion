@@ -87,8 +87,8 @@ Your one-sentence summary:"""
 
 def _git(args: list[str]) -> str:
     try:
-        result = subprocess.run(  # noqa: S603
-            ["git", *args],  # noqa: S607
+        result = subprocess.run(
+            ["git", *args],
             capture_output=True,
             text=True,
             check=False,
@@ -131,21 +131,21 @@ def _python_exec(repo_root: Path) -> str:
     return sys.executable
 
 
-def _delegate_narrative(prompt: str, repo_root: Path) -> dict | None:
+def _delegate_narrative(prompt: str, repo_root: Path, model_name: str) -> dict | None:
     """Call scripts/delegate.py --local-only --json. Returns the envelope dict
     or None if the call fails / times out / returns non-zero."""
     delegate = repo_root / "scripts" / "delegate.py"
     if not delegate.exists():
         return None
     try:
-        proc = subprocess.run(  # noqa: S603
+        proc = subprocess.run(
             [
                 _python_exec(repo_root),
                 str(delegate),
                 "--json",
                 "--local-only",
                 "--model",
-                DEFAULT_NARRATIVE_MODEL,
+                model_name,
                 "--timeout",
                 str(DELEGATE_TIMEOUT_SEC),
                 "--max-tokens",
@@ -234,7 +234,17 @@ def main() -> int:
         files="\n".join(f"  - {f}" for f in files[:20]),
         diff=diff,
     )
-    envelope = _delegate_narrative(prompt, repo_root)
+    envelope = _delegate_narrative(prompt, repo_root, DEFAULT_NARRATIVE_MODEL)
+    if (
+        (envelope is None or not envelope.get("text") or envelope.get("error"))
+        and DEFAULT_NARRATIVE_MODEL != "phi4:latest"
+        and (time.perf_counter() - start) <= HOOK_TOTAL_BUDGET_SEC - 2
+    ):
+        print(
+            f"[experiential-learning] primary model ({DEFAULT_NARRATIVE_MODEL}) failed, falling back to phi4:latest..."
+        )
+        envelope = _delegate_narrative(prompt, repo_root, "phi4:latest")
+
     if envelope is None or not envelope.get("text"):
         return 0
 
