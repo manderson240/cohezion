@@ -3,7 +3,7 @@
 import contextlib
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 
 # Wiring-sweep 2026-06-22: branding.py was a genuine import-graph orphan (top-level).
 with contextlib.suppress(Exception):
