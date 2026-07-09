@@ -1578,6 +1578,23 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except Exception:
             pass  # Non-blocking: mycelium may not be available
 
+        # Step 10.8: Unified learning-loop feedback (replaces/advances Step 10.6).
+        # Emit a WITNESS_MARK, feed MyceliumRegistry, and drive Ouroboros on failure.
+        try:
+            from cohezion.learning.recorder import get_learning_recorder
+
+            get_learning_recorder().record_executor_outcome(
+                task_description=task_description,
+                skill_name=skill_name,
+                success=success,
+                output=output,
+                metrics=metrics,
+                duration_seconds=duration_seconds,
+                project=project,
+            )
+        except Exception:
+            logger.debug("Learning recorder feedback failed (non-blocking)", exc_info=True)
+
         # Step 10.7: Persist prompt artifact (L183)
         # Record prompt/response pair to SurrealDB for retrospective analysis
         try:

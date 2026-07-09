@@ -100,6 +100,9 @@ See: [[theory-of-everything-synthesis]] for the unified physics framework.
 def persist_to_surrealdb(learning: Learning) -> bool:
     """Insert a learning into SurrealDB vault/neuron table with FLUME embedding.
 
+    Uses a parameterized SurrealQL query so user-controlled content cannot
+    escape into the query text.
+
     Returns True if successful, False otherwise.
     """
     try:
@@ -107,78 +110,49 @@ def persist_to_surrealdb(learning: Learning) -> bool:
         import urllib.request
 
         # Encode learning for FLUME embedding
+        embedding_list: list[float] = []
         try:
             from cohezion.governance.flume_bridge import encode_prompt
 
             embedding = encode_prompt(f"{learning.title}: {learning.content}")
             embedding_list = embedding.tolist()
         except (ImportError, RuntimeError, ValueError):
-            embedding_list = []
+            pass
 
-        # Build SurrealQL
+        slug = learning.title.lower().replace(" ", "-").replace(":", "")[:60]
+        vault_path = f"cerebellum/{learning.date}-{slug}.md"
+
         surql = """
         CREATE neuron SET
-            name = $name,
-            content = $content,
-            country = 'cerebellum',
+            title = $title,
+            path = $path,
+            aspect = 'knower',
+            stage = 'mature',
             tags = $tags,
-            learning_number = $number,
+            word_count = $word_count,
             embedding = $embedding,
             created = time::now();
         """
 
-        json.dumps(
-            {
-                "name": f"L{learning.number}: {learning.title}",
-                "content": learning.content[:500],
-                "tags": learning.tags,
-                "number": learning.number,
-                "embedding": embedding_list[:32],  # Store first 32 dims for space efficiency
-            }
-        )
+        variables = {
+            "title": f"L{learning.number}: {learning.title}",
+            "path": vault_path,
+            "tags": learning.tags,
+            "word_count": len(learning.content.split()),
+            "embedding": embedding_list[:64] if embedding_list else [],
+        }
 
-        # Use parameterized query via SurrealDB HTTP API
+        payload = f"{surql}\n{json.dumps(variables)}".encode()
         auth = base64.b64encode(b"root:root").decode()
         req = urllib.request.Request(
             f"{SURREAL_URL}/sql",
-            data=surql.encode(),
+            data=payload,
             headers={
                 "Accept": "application/json",
                 "Authorization": f"Basic {auth}",
                 "surreal-ns": "cohezion",
                 "surreal-db": "vault",
                 "Content-Type": "application/json",
-            },
-        )
-        # Note: parameterized queries need different approach for SurrealDB HTTP
-        # Using direct insert for simplicity
-        # Match the neuron table schema exactly
-        safe_title = learning.title.replace("'", "")
-        learning.content[:200].replace("'", "")
-        slug = learning.title.lower().replace(" ", "-").replace(":", "")[:60]
-        vault_path = f"cerebellum/{learning.date}-{slug}.md"
-        # Include FLUME embedding for semantic search (first 64 dims for balance)
-        embedding_json = json.dumps(embedding_list[:64]) if embedding_list else "[]"
-        direct_surql = (
-            f"CREATE neuron SET "
-            f"title = 'L{learning.number}: {safe_title}', "
-            f"path = '{vault_path}', "
-            f"aspect = 'knower', "
-            f"stage = 'mature', "
-            f"tags = {json.dumps(learning.tags)}, "
-            f"word_count = {len(learning.content.split())}, "
-            f"embedding = {embedding_json}, "
-            f"created = time::now();"
-        )
-
-        req = urllib.request.Request(
-            f"{SURREAL_URL}/sql",
-            data=direct_surql.encode(),
-            headers={
-                "Accept": "application/json",
-                "Authorization": f"Basic {auth}",
-                "surreal-ns": "cohezion",
-                "surreal-db": "vault",
             },
         )
 

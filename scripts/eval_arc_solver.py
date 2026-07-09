@@ -54,7 +54,7 @@ def evaluate_solver(
     solver_module,
     tasks: dict,
     solutions: dict,
-    max_tasks: int = None,
+    max_tasks: int | None = None,
     budget: int = 5000,
     max_depth: int = 3,
 ) -> tuple[float, int, int]:
@@ -76,7 +76,7 @@ def evaluate_solver(
     total = len(task_ids)
     correct = 0
 
-    for idx, task_id in enumerate(task_ids):
+    for _, task_id in enumerate(task_ids):
         try:
             task = tasks[task_id]
             solution = solutions.get(task_id)

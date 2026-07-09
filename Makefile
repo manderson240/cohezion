@@ -126,6 +126,7 @@ ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg
 	uv run ruff check .
 	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder' || true
 	uv run pytest tests/
+<<<<<<< HEAD
 	uv run python src/cohezion/swarm/scripts/agent_guard.py
 	uv run python src/cohezion/mcp/scripts/mcp_guard.py
 	uv run python src/cohezion/knowledge_graph/scripts/kg_guard.py
@@ -134,6 +135,8 @@ ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg
 	uv run python src/cohezion/swarm/scripts/a2a_guard.py
 	uv run python src/cohezion/data_mesh/scripts/data_mesh_guard.py
 	uv run python src/cohezion/healing/scripts/trajectory_guard.py
+=======
+>>>>>>> 2f17bae64 (feat(security): resolve Makefile conflicts, remove eval, add timeouts, real auth, no fallback secrets)
 	@echo "✓ All CI checks passed"
 # Compound Loop Validation
 validate:  ## Validate compound engineering loop end-to-end (25 checks, ~18s)

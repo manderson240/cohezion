@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set Kaggle credentials for all libraries
-username = os.getenv("KAGGLE_USERNAME") or os.getenv("username")
+username = os.getenv("KAGGLE_USERNAME") or os.getenv("KAGGLE_USERNAME")
 api_token = os.getenv("KAGGLE_API_TOKEN")
 
 if api_token and api_token.startswith("KGAT_"):
@@ -25,10 +25,10 @@ if username:
 if api_token:
     os.environ["KAGGLE_KEY"] = api_token
 
-from cohezion.integrations.kaggle_api import KaggleAPI
+from cohezion.integrations.kaggle_api import KaggleAPI  # noqa: E402
 
 
-async def submit_adapter_to_competition(adapter_path: Path, message: str = None):
+async def submit_adapter_to_competition(adapter_path: Path, message: str | None = None):
     """Submit the trained LoRA adapter to the Kaggle competition."""
     if not username or not api_token:
         print("❌ Missing KAGGLE_USERNAME or KAGGLE_API_TOKEN in .env")
