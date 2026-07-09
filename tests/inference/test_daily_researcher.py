@@ -143,9 +143,7 @@ async def test_run_dry_run_runs_all_four_lanes():
 @pytest.mark.asyncio
 async def test_run_refuses_to_start_if_preflight_fails():
     researcher = DailyResearcher()
-    with patch.object(
-        DailyResearcher, "_preflight", return_value=(False, ["low memory"])
-    ):
+    with patch.object(DailyResearcher, "_preflight", return_value=(False, ["low memory"])):
         with pytest.raises(RuntimeError) as exc_info:
             await researcher.run()
         assert "preflight" in str(exc_info.value).lower()

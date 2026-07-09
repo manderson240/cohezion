@@ -576,9 +576,7 @@ class TestPhase21HooksIntegration:
 
         # Should discover the 4 Phase 2.1 hooks
         all_hooks = integration.registry.to_dict()
-        hook_names = [
-            hook_name for stage_hooks in all_hooks.values() for hook_name in stage_hooks
-        ]
+        hook_names = [hook_name for stage_hooks in all_hooks.values() for hook_name in stage_hooks]
 
         expected_hooks = [
             "protect-files",

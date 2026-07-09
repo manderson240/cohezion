@@ -5,6 +5,7 @@ for code, reasoning, NPU, and iGPU tasks. No model loading occurs -- the classif
 is pure-heuristic. The PYTEST_CURRENT_TEST env var (set by pytest) bypasses
 _load_overrides() automatically.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -18,6 +19,7 @@ from cohezion.inference.task_classifier import (
 # ---------------------------------------------------------------------------
 # Task 1: Code tasks → ThinkingCoder
 # ---------------------------------------------------------------------------
+
 
 class TestCodeTasksPreferThinkingCoder:
     """Code output type routes to ThinkingCoder (bounded at ctx_size=16384, harness N3)."""
@@ -57,6 +59,7 @@ class TestCodeTasksPreferThinkingCoder:
 # Task 2: NPU tasks → llama3.2-1b-FLM
 # ---------------------------------------------------------------------------
 
+
 class TestNpuTasksSuggestLlama:
     """NPU-routed tasks should suggest llama3.2-1b-FLM (CL1 invariant preserved)."""
 
@@ -70,30 +73,25 @@ class TestNpuTasksSuggestLlama:
     def test_yes_no_question_suggests_llama(self) -> None:
         d = classify("Reply yes or no: is Python interpreted?")
         assert d.node == "npu"
-        assert "llama" in d.preferred_model.lower(), (
-            f"expected llama, got '{d.preferred_model}'"
-        )
+        assert "llama" in d.preferred_model.lower(), f"expected llama, got '{d.preferred_model}'"
 
     def test_short_definitional_question_suggests_llama(self) -> None:
         # CL3 invariant: "What is the HIHO stability principle?" → NPU
         d = classify("What is the HIHO stability principle?")
         assert d.node == "npu", f"CL3 violated: node={d.node}"
-        assert "llama" in d.preferred_model.lower(), (
-            f"expected llama, got '{d.preferred_model}'"
-        )
+        assert "llama" in d.preferred_model.lower(), f"expected llama, got '{d.preferred_model}'"
 
     def test_class_inheritance_question_suggests_llama(self) -> None:
         # CL2 invariant: "How does class inheritance work?" → NPU
         d = classify("How does class inheritance work?")
         assert d.node == "npu", f"CL2 violated: node={d.node}"
-        assert "llama" in d.preferred_model.lower(), (
-            f"expected llama, got '{d.preferred_model}'"
-        )
+        assert "llama" in d.preferred_model.lower(), f"expected llama, got '{d.preferred_model}'"
 
 
 # ---------------------------------------------------------------------------
 # Task 3: iGPU non-code tasks → Gemma-4-E4B-it-GGUF
 # ---------------------------------------------------------------------------
+
 
 class TestIgpuNonCodeTasksSuggestGemma4E4B:
     """Long-generation GPU tasks that are not code → iGPU Gemma-4-E4B model."""
@@ -108,7 +106,9 @@ class TestIgpuNonCodeTasksSuggestGemma4E4B:
     def test_long_explanation_suggests_gemma4e4b(self) -> None:
         # 79 chars: longer than short_what_is_max_len=75 so the describe pre-override is skipped;
         # "explain why ... 30+ chars" matches the "explain-why causal question" GPU pattern.
-        d = classify("Explain why distributed systems are fundamentally hard to reason about at scale")
+        d = classify(
+            "Explain why distributed systems are fundamentally hard to reason about at scale"
+        )
         assert d.node == "gpu", f"expected 'gpu', got '{d.node}' (reason: {d.reason})"
         assert "Gemma-4-E4B" in d.preferred_model, (
             f"expected Gemma-4-E4B, got '{d.preferred_model}'"
@@ -118,6 +118,7 @@ class TestIgpuNonCodeTasksSuggestGemma4E4B:
 # ---------------------------------------------------------------------------
 # CL1/CL2/CL3 invariant regression: node values are unchanged
 # ---------------------------------------------------------------------------
+
 
 class TestCLInvariantsUnchanged:
     """Confirm CL1, CL2, CL3 harness invariants are unaffected by preferred_model addition."""
@@ -152,9 +153,7 @@ class TestCLInvariantsUnchanged:
             assert isinstance(d.preferred_model, str), (
                 f"preferred_model is {type(d.preferred_model)} for '{prompt}'"
             )
-            assert d.preferred_model != "", (
-                f"preferred_model is empty for '{prompt}'"
-            )
+            assert d.preferred_model != "", f"preferred_model is empty for '{prompt}'"
 
     def test_classify_with_harness_passthrough(self) -> None:
         """classify_with_harness returns unchanged RouteDecision (preferred_model included)."""
@@ -174,6 +173,7 @@ class TestCLInvariantsUnchanged:
 # ---------------------------------------------------------------------------
 # Task #104: Math/reasoning routing → gpu/math_reasoning/deepseek-r1-0528-8b-FLM
 # ---------------------------------------------------------------------------
+
 
 class TestMathReasoningRouting:
     """Math/reasoning prompts must route to gpu/math_reasoning with deepseek-r1-0528-8b-FLM.
@@ -292,7 +292,9 @@ class TestGoalConditionedClassify:
         With output_intent='lookup': caller only wants a quick reference → NPU/short_answer.
         A wrong implementation (ignoring output_intent) returns 'gpu' both times.
         """
-        prompt = "Analyze and compare the three inference tiers and explain when each should be used"
+        prompt = (
+            "Analyze and compare the three inference tiers and explain when each should be used"
+        )
         base = classify(prompt)
         assert base.node == "gpu", f"Baseline should be GPU; got {base.node!r} {base.output_type!r}"
 
@@ -305,7 +307,9 @@ class TestGoalConditionedClassify:
 
     def test_summary_intent_downgrades_gpu_to_npu(self) -> None:
         """output_intent='summary' behaves identically to 'lookup' for downgrade path."""
-        prompt = "Analyze and compare the three inference tiers and explain when each should be used"
+        prompt = (
+            "Analyze and compare the three inference tiers and explain when each should be used"
+        )
         base = classify(prompt)
         assert base.node == "gpu", f"Baseline should be GPU; got {base.node!r}"
 
@@ -337,7 +341,9 @@ class TestGoalConditionedClassify:
 
     def test_aligned_intent_leaves_decision_unchanged(self) -> None:
         """When output_intent is 'generation' and base is already GPU/long_generation, no change."""
-        prompt = "Analyze and compare the three inference tiers and explain when each should be used"
+        prompt = (
+            "Analyze and compare the three inference tiers and explain when each should be used"
+        )
         base = classify(prompt)
         assert base.node == "gpu"
 

@@ -4,9 +4,10 @@ The executor computed three routing signals (DifficultyEstimator predicted_tier,
 suggested_tier, JepaGate verdict) but never combined them, and REROUTE was only logged. _resolve_tier
 unifies them into one coherent recommendation and makes REROUTE actionable (downgrade toward cheaper).
 """
+
 from __future__ import annotations
 
-from cohezion.compound.executor import _call_execute_fn, _TIER_ORDER, _resolve_tier
+from cohezion.compound.executor import _TIER_ORDER, _call_execute_fn, _resolve_tier
 
 
 class TestResolveTierStructural:
@@ -27,11 +28,15 @@ class TestResolveTierBehavioral:
         A wrong impl that ignores the verdict returns the base; the OLD cheaper-downgrade impl
         returns npu — both fail."""
         assert _resolve_tier("npu", "npu", jepa_reroute=False) == "npu"  # baseline
-        assert _resolve_tier("npu", "npu", jepa_reroute=True) == "igpu"  # REROUTE escalates npu→igpu
+        assert (
+            _resolve_tier("npu", "npu", jepa_reroute=True) == "igpu"
+        )  # REROUTE escalates npu→igpu
         assert _resolve_tier("igpu", "igpu", jepa_reroute=True) == "cpu"
 
     def test_reroute_clamped_at_most_capable_tier(self):
-        assert _resolve_tier("cloud", "cloud", jepa_reroute=True) == "cloud"  # can't escalate past cloud
+        assert (
+            _resolve_tier("cloud", "cloud", jepa_reroute=True) == "cloud"
+        )  # can't escalate past cloud
 
     def test_no_valid_signal_returns_none(self):
         assert _resolve_tier(None, None, jepa_reroute=False) is None

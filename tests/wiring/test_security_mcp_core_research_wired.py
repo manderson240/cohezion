@@ -8,6 +8,7 @@ is actually executable, not just importable.
 
 from __future__ import annotations
 
+
 # ---------------------------------------------------------------------------
 # Identity tests — security/
 # ---------------------------------------------------------------------------

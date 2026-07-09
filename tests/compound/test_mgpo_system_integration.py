@@ -33,7 +33,7 @@ from cohezion.compound.skill_refiner import SkillRefiner
 _SKILL_SUCCESS_RATES: dict[str, float] = {
     "boundary_skill": 0.50,  # capability boundary → highest MGPO weight
     "mastered_skill": 1.00,  # fully mastered     → low weight (symmetric)
-    "stuck_skill": 0.00,     # never succeeds     → low weight (symmetric)
+    "stuck_skill": 0.00,  # never succeeds     → low weight (symmetric)
 }
 
 
@@ -44,8 +44,8 @@ def _expected_weight(sr: float, gamma: float = 5.0) -> float:
 def _vault_neuron_mock() -> MagicMock:
     """Return a VaultNeuronWriter stub with controlled per-skill success rates."""
     mock = MagicMock()
-    mock.query_category_success_rate.side_effect = (
-        lambda skill_name: _SKILL_SUCCESS_RATES.get(skill_name)
+    mock.query_category_success_rate.side_effect = lambda skill_name: _SKILL_SUCCESS_RATES.get(
+        skill_name
     )
     return mock
 
@@ -134,7 +134,7 @@ def test_prioritized_skills_descending_weight_order():
     for i in range(len(weights) - 1):
         assert weights[i] >= weights[i + 1], (
             f"Weight must be non-increasing: position {i} ({weights[i]:.4f}) < "
-            f"position {i+1} ({weights[i+1]:.4f})"
+            f"position {i + 1} ({weights[i + 1]:.4f})"
         )
 
 
@@ -167,8 +167,7 @@ def test_batch_refine_fires_boundary_skill_first():
 
     assert refine_calls, "_batch_mgpo_refine must call refine() at least once"
     assert refine_calls[0] == "boundary_skill", (
-        f"First refine() call must be boundary_skill (highest MGPO weight); "
-        f"got {refine_calls}"
+        f"First refine() call must be boundary_skill (highest MGPO weight); got {refine_calls}"
     )
     # Discriminating: mastered_skill must NOT appear before boundary_skill
     if "mastered_skill" in refine_calls:
@@ -257,6 +256,4 @@ def test_check_mgpo_batch_fires_at_threshold_not_before():
         # Push to exactly batch_size: MUST fire
         ex._recent_skill_names.append("boundary_skill")
         ex._check_mgpo_batch()
-        assert refine_calls, (
-            f"Batch must fire at threshold ({batch_size} == {batch_size})"
-        )
+        assert refine_calls, f"Batch must fire at threshold ({batch_size} == {batch_size})"

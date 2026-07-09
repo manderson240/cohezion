@@ -117,16 +117,12 @@ class TestGuidanceConsumption:
     """The channel: PRIME refinement → fetch_experience_guidance output."""
 
     def test_refinement_reaches_guidance_dict(self, skills_dir, vault_logger):
-        guidance = fetch_experience_guidance(
-            vault_logger, "some task", skill_name="TEST_REFINED"
-        )
+        guidance = fetch_experience_guidance(vault_logger, "some task", skill_name="TEST_REFINED")
         assert "learned_refinements" in guidance
         assert any(KNOWN_INSIGHT in s for s in guidance["learned_refinements"])
 
     def test_existing_keys_preserved(self, skills_dir, vault_logger):
-        guidance = fetch_experience_guidance(
-            vault_logger, "some task", skill_name="TEST_REFINED"
-        )
+        guidance = fetch_experience_guidance(vault_logger, "some task", skill_name="TEST_REFINED")
         assert "relevant_context" in guidance  # base guidance contract intact
 
     def test_no_skill_name_skips_refinement_read(self, skills_dir, vault_logger):
@@ -142,12 +138,8 @@ class TestGuidanceConsumption:
         making test_refinement_reaches_guidance_dict the red one).
         """
         monkeypatch.setattr(refinement_reader, "load_refined_guidance", lambda *a, **k: [])
-        guidance = fetch_experience_guidance(
-            vault_logger, "some task", skill_name="TEST_REFINED"
-        )
-        assert not any(
-            KNOWN_INSIGHT in s for s in guidance.get("learned_refinements", [])
-        )
+        guidance = fetch_experience_guidance(vault_logger, "some task", skill_name="TEST_REFINED")
+        assert not any(KNOWN_INSIGHT in s for s in guidance.get("learned_refinements", []))
         assert KNOWN_INSIGHT not in str(guidance)
 
     def test_reader_exception_returns_base_guidance_unchanged(
@@ -157,8 +149,6 @@ class TestGuidanceConsumption:
             raise ValueError("test: reader exploded")
 
         monkeypatch.setattr(refinement_reader, "load_refined_guidance", _boom)
-        guidance = fetch_experience_guidance(
-            vault_logger, "some task", skill_name="TEST_REFINED"
-        )
+        guidance = fetch_experience_guidance(vault_logger, "some task", skill_name="TEST_REFINED")
         assert "learned_refinements" not in guidance
         assert "relevant_context" in guidance

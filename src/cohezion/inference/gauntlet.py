@@ -39,13 +39,13 @@ logger = logging.getLogger(__name__)
 OMNI_URL = "http://localhost:13305"
 GAUNTLET_PATH = Path.home() / ".cohezion" / "gauntlet_scores.json"
 PROMOTION_THRESHOLD = 0.05  # 5% required for champion replacement
-BENCH_RUNS = 3               # mean over N runs for repeatability (V-model Test tier)
+BENCH_RUNS = 3  # mean over N runs for repeatability (V-model Test tier)
 
 
 @dataclass
 class BenchTask:
     name: str
-    role: str                   # FleetRole value (e.g. "code", "generation")
+    role: str  # FleetRole value (e.g. "code", "generation")
     prompt: str
     expected_keywords: list[str]  # presence check (case-insensitive)
     max_tokens: int = 60
@@ -60,8 +60,8 @@ class BenchResult:
     tps_actual: float
     keyword_hits: int
     keyword_total: int
-    quality_ratio: float        # keyword_hits / keyword_total
-    score: float                # quality_ratio * tps_actual
+    quality_ratio: float  # keyword_hits / keyword_total
+    score: float  # quality_ratio * tps_actual
     run_id: int = 0
 
 
@@ -121,6 +121,7 @@ TASK_SUITE: list[BenchTask] = [
 
 # ── HTTP helpers ──────────────────────────────────────────────────────────────
 
+
 async def _call_model(
     model_id: str,
     prompt: str,
@@ -176,6 +177,7 @@ def _score_result(task: BenchTask, ttft: float, tps: float, text: str) -> BenchR
 
 # ── Core benchmark logic ──────────────────────────────────────────────────────
 
+
 async def _bench_model_on_task(
     model_id: str,
     task: BenchTask,
@@ -217,13 +219,11 @@ async def _bench_role(
         if r.tps_actual > 0:  # skip error runs
             scores[r.model_id].append(r.score)
 
-    return {
-        mid: round(sum(s) / len(s), 3) if s else 0.0
-        for mid, s in scores.items()
-    }
+    return {mid: round(sum(s) / len(s), 3) if s else 0.0 for mid, s in scores.items()}
 
 
 # ── Champion tracking ─────────────────────────────────────────────────────────
+
 
 def _load_scores() -> dict:
     if GAUNTLET_PATH.exists():
@@ -261,14 +261,20 @@ def _promote_if_better(
             "score": best_score,
         }
         promoted = True
-        logger.info("Gauntlet: NEW CHAMPION role=%s model=%s score=%.2f (prev=%.2f)",
-                    role, best_model, best_score, current_score)
+        logger.info(
+            "Gauntlet: NEW CHAMPION role=%s model=%s score=%.2f (prev=%.2f)",
+            role,
+            best_model,
+            best_score,
+            current_score,
+        )
 
     champion = scores.get("champions", {}).get(role, {}).get("model_id", best_model)
     return champion or "", promoted
 
 
 # ── Public entry point ────────────────────────────────────────────────────────
+
 
 async def run_gauntlet(
     roles: Sequence[str] | None = None,
@@ -313,11 +319,13 @@ async def run_gauntlet(
         champions[role] = champion
 
         # History entry for trending
-        scores["history"].append({
-            "role": role,
-            "scores": role_scores,
-            "promoted": promoted,
-        })
+        scores["history"].append(
+            {
+                "role": role,
+                "scores": role_scores,
+                "promoted": promoted,
+            }
+        )
 
     _save_scores(scores)
     return champions

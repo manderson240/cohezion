@@ -33,42 +33,42 @@ logger = logging.getLogger(__name__)
 # ──────────────────────────────────────────────────────────────────────────────
 
 LEMONADE_BASE = "http://localhost:13305"
-SAFE_CTX_LIMIT = 16384   # hard cap applied before any heavy model load
+SAFE_CTX_LIMIT = 16384  # hard cap applied before any heavy model load
 RAM_LOAD_BUFFER_GB = 8.0  # keep at least this much RAM free after loading
-MAX_CTX_SIZE_LIGHT = 32768   # models <5GB can safely use larger context
+MAX_CTX_SIZE_LIGHT = 32768  # models <5GB can safely use larger context
 
 # Approximate weight footprints (GB, Q4_K_M quantization where applicable).
 # Source: ~/.cohezion/storage_manifest.json + model spec sheets.
 # Footprint = weight bytes loaded into UMA; KV cache adds ~(ctx/4096) × 0.5 GB per 10B params.
 MODEL_FOOTPRINT_GB: dict[str, float] = {
     # ── Non-LLM (image / audio / TTS) — different memory model ──────────────
-    "Flux-2-Klein-9B-GGUF":         19.0,   # diffusion weights, no KV cache
-    "SD-Turbo":                       5.2,   # diffusion weights
-    "RealESRGAN-x4plus":              0.07,
-    "RealESRGAN-x4plus-anime":        0.07,
-    "Whisper-Large-v3-Turbo":         1.62,  # encoder+decoder, no KV cache
-    "kokoro-v1":                      0.35,  # TTS
+    "Flux-2-Klein-9B-GGUF": 19.0,  # diffusion weights, no KV cache
+    "SD-Turbo": 5.2,  # diffusion weights
+    "RealESRGAN-x4plus": 0.07,
+    "RealESRGAN-x4plus-anime": 0.07,
+    "Whisper-Large-v3-Turbo": 1.62,  # encoder+decoder, no KV cache
+    "kokoro-v1": 0.35,  # TTS
     # ── Embeddings (no generative KV cache) ──────────────────────────────────
-    "nomic-embed-text-v2-moe-GGUF":  0.51,
-    "Qwen3-Embedding-0.6B-GGUF":     0.64,
+    "nomic-embed-text-v2-moe-GGUF": 0.51,
+    "Qwen3-Embedding-0.6B-GGUF": 0.64,
     # ── Small LLMs (safe at any reasonable ctx) ──────────────────────────────
-    "Qwen3-0.6B-GGUF":               0.38,
-    "Bonsai-1.7B-gguf":              1.05,
-    "Bonsai-4B-gguf":                2.40,
-    "Gemma-4-E2B-it-GGUF":           4.09,
+    "Qwen3-0.6B-GGUF": 0.38,
+    "Bonsai-1.7B-gguf": 1.05,
+    "Bonsai-4B-gguf": 2.40,
+    "Gemma-4-E2B-it-GGUF": 4.09,
     # ── Medium LLMs (need ctx guard at high load) ────────────────────────────
-    "Bonsai-8B-gguf":                5.25,
-    "DeepSeek-Qwen3-8B-GGUF":        5.25,
-    "Gemma-4-E4B-it-GGUF":           5.97,
+    "Bonsai-8B-gguf": 5.25,
+    "DeepSeek-Qwen3-8B-GGUF": 5.25,
+    "Gemma-4-E4B-it-GGUF": 5.97,
     # ── Heavy LLMs (require available_ram > footprint + RAM_LOAD_BUFFER_GB) ──
-    "Qwen3.6-27B-GGUF":             16.0,
-    "Gemma-4-26B-A4B-it-GGUF":      18.1,
-    "Gemma-4-31B-it-GGUF":          19.5,
-    "Qwen3.5-35B-A3B-GGUF":         23.1,
+    "Qwen3.6-27B-GGUF": 16.0,
+    "Gemma-4-26B-A4B-it-GGUF": 18.1,
+    "Gemma-4-31B-it-GGUF": 19.5,
+    "Qwen3.5-35B-A3B-GGUF": 23.1,
     "Nemotron-3-Nano-30B-A3B-GGUF": 22.8,
     "Qwen3-Coder-30B-A3B-Instruct-GGUF": 18.6,
-    "Qwen3.6-35B-A3B-GGUF":         23.3,
-    "Qwen3.6-35B-A3B-MTP-GGUF":     23.3,   # MTP variant, same weights
+    "Qwen3.6-35B-A3B-GGUF": 23.3,
+    "Qwen3.6-35B-A3B-MTP-GGUF": 23.3,  # MTP variant, same weights
 }
 
 HEAVY_THRESHOLD_GB = 5.0  # models above this need memory gate
@@ -77,49 +77,53 @@ HEAVY_THRESHOLD_GB = 5.0  # models above this need memory gate
 # Compute tier classification (verified against /api/v1/health 2026-07-01)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class ComputeTier(Enum):
-    NPU = "npu"         # XDNA2 SRAM — separate from UMA, FLM recipe models only
-    IGPU = "igpu"       # RDNA 3.5 vulkan — UMA shared with CPU (all GGUF LLMs)
-    CPU = "cpu"         # AVX-512 — UMA shared with iGPU (kokoro TTS)
+    NPU = "npu"  # XDNA2 SRAM — separate from UMA, FLM recipe models only
+    IGPU = "igpu"  # RDNA 3.5 vulkan — UMA shared with CPU (all GGUF LLMs)
+    CPU = "cpu"  # AVX-512 — UMA shared with iGPU (kokoro TTS)
     SPECIALIZED = "spec"  # sd-cpp/whispercpp — iGPU device, no KV cache
+
 
 # On Strix Halo, IGPU + CPU + SPECIALIZED all draw from the 122GB LPDDR5X UMA pool.
 # NPU (XDNA2 SRAM ~2GB) is completely separate — FLM loads never compete for UMA.
-UMA_TIERS: frozenset[ComputeTier] = frozenset({ComputeTier.IGPU, ComputeTier.CPU, ComputeTier.SPECIALIZED})
+UMA_TIERS: frozenset[ComputeTier] = frozenset(
+    {ComputeTier.IGPU, ComputeTier.CPU, ComputeTier.SPECIALIZED}
+)
 
 # Static tier per model — derived from /api/v1/health device/recipe_options fields.
 # All llamacpp+vulkan models land on iGPU even when catalog shows llamacpp_backend=N/A.
 MODEL_TIER: dict[str, ComputeTier] = {
     # NPU — FLM recipe (XDNA2 SRAM, NOT in MODEL_FOOTPRINT_GB)
-    "llama3.2-1b-FLM":                     ComputeTier.NPU,
-    "deepseek-r1-0528-8b-FLM":             ComputeTier.NPU,
-    "gemma3-4b-FLM":                        ComputeTier.NPU,
+    "llama3.2-1b-FLM": ComputeTier.NPU,
+    "deepseek-r1-0528-8b-FLM": ComputeTier.NPU,
+    "gemma3-4b-FLM": ComputeTier.NPU,
     # iGPU — all GGUF LLMs (device: gpu, llamacpp_backend: vulkan)
-    "Qwen3-0.6B-GGUF":                     ComputeTier.IGPU,
-    "Qwen3-Embedding-0.6B-GGUF":           ComputeTier.IGPU,
-    "Bonsai-1.7B-gguf":                    ComputeTier.IGPU,
-    "Bonsai-4B-gguf":                      ComputeTier.IGPU,
-    "Gemma-4-E2B-it-GGUF":                 ComputeTier.IGPU,
-    "Bonsai-8B-gguf":                      ComputeTier.IGPU,
-    "DeepSeek-Qwen3-8B-GGUF":              ComputeTier.IGPU,
-    "Gemma-4-E4B-it-GGUF":                 ComputeTier.IGPU,
-    "nomic-embed-text-v2-moe-GGUF":        ComputeTier.IGPU,
-    "Qwen3.6-27B-GGUF":                    ComputeTier.IGPU,
-    "Gemma-4-26B-A4B-it-GGUF":             ComputeTier.IGPU,
-    "Gemma-4-31B-it-GGUF":                 ComputeTier.IGPU,
-    "Qwen3.5-35B-A3B-GGUF":                ComputeTier.IGPU,
-    "Nemotron-3-Nano-30B-A3B-GGUF":        ComputeTier.IGPU,
-    "Qwen3-Coder-30B-A3B-Instruct-GGUF":   ComputeTier.IGPU,
-    "Qwen3.6-35B-A3B-GGUF":                ComputeTier.IGPU,
-    "Qwen3.6-35B-A3B-MTP-GGUF":            ComputeTier.IGPU,
+    "Qwen3-0.6B-GGUF": ComputeTier.IGPU,
+    "Qwen3-Embedding-0.6B-GGUF": ComputeTier.IGPU,
+    "Bonsai-1.7B-gguf": ComputeTier.IGPU,
+    "Bonsai-4B-gguf": ComputeTier.IGPU,
+    "Gemma-4-E2B-it-GGUF": ComputeTier.IGPU,
+    "Bonsai-8B-gguf": ComputeTier.IGPU,
+    "DeepSeek-Qwen3-8B-GGUF": ComputeTier.IGPU,
+    "Gemma-4-E4B-it-GGUF": ComputeTier.IGPU,
+    "nomic-embed-text-v2-moe-GGUF": ComputeTier.IGPU,
+    "Qwen3.6-27B-GGUF": ComputeTier.IGPU,
+    "Gemma-4-26B-A4B-it-GGUF": ComputeTier.IGPU,
+    "Gemma-4-31B-it-GGUF": ComputeTier.IGPU,
+    "Qwen3.5-35B-A3B-GGUF": ComputeTier.IGPU,
+    "Nemotron-3-Nano-30B-A3B-GGUF": ComputeTier.IGPU,
+    "Qwen3-Coder-30B-A3B-Instruct-GGUF": ComputeTier.IGPU,
+    "Qwen3.6-35B-A3B-GGUF": ComputeTier.IGPU,
+    "Qwen3.6-35B-A3B-MTP-GGUF": ComputeTier.IGPU,
     # CPU — kokoro TTS (device: cpu per /api/v1/health)
-    "kokoro-v1":                            ComputeTier.CPU,
+    "kokoro-v1": ComputeTier.CPU,
     # SPECIALIZED — image gen / transcription (iGPU device but sd-cpp/whispercpp recipe)
-    "Flux-2-Klein-9B-GGUF":               ComputeTier.SPECIALIZED,
-    "SD-Turbo":                             ComputeTier.SPECIALIZED,
-    "RealESRGAN-x4plus":                    ComputeTier.SPECIALIZED,
-    "RealESRGAN-x4plus-anime":              ComputeTier.SPECIALIZED,
-    "Whisper-Large-v3-Turbo":              ComputeTier.SPECIALIZED,
+    "Flux-2-Klein-9B-GGUF": ComputeTier.SPECIALIZED,
+    "SD-Turbo": ComputeTier.SPECIALIZED,
+    "RealESRGAN-x4plus": ComputeTier.SPECIALIZED,
+    "RealESRGAN-x4plus-anime": ComputeTier.SPECIALIZED,
+    "Whisper-Large-v3-Turbo": ComputeTier.SPECIALIZED,
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -130,34 +134,35 @@ MODEL_TIER: dict[str, ComputeTier] = {
 
 _TASK_ROUTING: dict[str, tuple[str, str]] = {
     # Classification and routing — tiny, always warm
-    "short_categorical": ("Bonsai-1.7B-gguf",      "Qwen3-0.6B-GGUF"),
-    "short_answer":      ("Bonsai-4B-gguf",         "Bonsai-1.7B-gguf"),
+    "short_categorical": ("Bonsai-1.7B-gguf", "Qwen3-0.6B-GGUF"),
+    "short_answer": ("Bonsai-4B-gguf", "Bonsai-1.7B-gguf"),
     # Code generation — Qwen3-Coder is purpose-built; fall to Gemma-4-E4B
-    "code":              ("Qwen3-Coder-30B-A3B-Instruct-GGUF", "Gemma-4-E4B-it-GGUF"),
+    "code": ("Qwen3-Coder-30B-A3B-Instruct-GGUF", "Gemma-4-E4B-it-GGUF"),
     # Reasoning / planning — DeepSeek excels at chain-of-thought
-    "reasoning":         ("DeepSeek-Qwen3-8B-GGUF", "Bonsai-8B-gguf"),
+    "reasoning": ("DeepSeek-Qwen3-8B-GGUF", "Bonsai-8B-gguf"),
     # QA judging — Bonsai is non-thinking, reliable content extraction
-    "qa_judge":          ("Bonsai-8B-gguf",         "Bonsai-4B-gguf"),
+    "qa_judge": ("Bonsai-8B-gguf", "Bonsai-4B-gguf"),
     # General generation
-    "medium_generation": ("Gemma-4-E4B-it-GGUF",    "Bonsai-8B-gguf"),
-    "long_generation":   ("Qwen3.6-35B-A3B-GGUF",   "Gemma-4-E4B-it-GGUF"),
+    "medium_generation": ("Gemma-4-E4B-it-GGUF", "Bonsai-8B-gguf"),
+    "long_generation": ("Qwen3.6-35B-A3B-GGUF", "Gemma-4-E4B-it-GGUF"),
     # Vision tasks (all three have mmproj)
-    "vision":            ("Gemma-4-26B-A4B-it-GGUF", "Gemma-4-E4B-it-GGUF"),
+    "vision": ("Gemma-4-26B-A4B-it-GGUF", "Gemma-4-E4B-it-GGUF"),
     # Embedding
-    "embed":             ("nomic-embed-text-v2-moe-GGUF", "Qwen3-Embedding-0.6B-GGUF"),
+    "embed": ("nomic-embed-text-v2-moe-GGUF", "Qwen3-Embedding-0.6B-GGUF"),
     # Audio
-    "transcribe":        ("Whisper-Large-v3-Turbo",  "Whisper-Large-v3-Turbo"),
-    "tts":               ("kokoro-v1",               "kokoro-v1"),
+    "transcribe": ("Whisper-Large-v3-Turbo", "Whisper-Large-v3-Turbo"),
+    "tts": ("kokoro-v1", "kokoro-v1"),
     # Image generation
-    "image_gen":         ("Flux-2-Klein-9B-GGUF",    "SD-Turbo"),
+    "image_gen": ("Flux-2-Klein-9B-GGUF", "SD-Turbo"),
     # Skill refinement / self-improvement — heavy reasoning with long context
-    "skill_refine":      ("Qwen3.6-35B-A3B-GGUF",   "DeepSeek-Qwen3-8B-GGUF"),
+    "skill_refine": ("Qwen3.6-35B-A3B-GGUF", "DeepSeek-Qwen3-8B-GGUF"),
 }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Memory utilities
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class MemorySnapshot(NamedTuple):
     total_gb: float
@@ -176,8 +181,8 @@ class MemorySnapshot(NamedTuple):
         except Exception:
             return cls(total_gb=128.0, available_gb=20.0, used_gb=108.0)
 
-        total = info.get("MemTotal", 0) / (1024 ** 2)
-        available = info.get("MemAvailable", 0) / (1024 ** 2)
+        total = info.get("MemTotal", 0) / (1024**2)
+        available = info.get("MemAvailable", 0) / (1024**2)
         return cls(total_gb=total, available_gb=available, used_gb=total - available)
 
 
@@ -189,6 +194,7 @@ def get_available_ram_gb() -> float:
 # ──────────────────────────────────────────────────────────────────────────────
 # ctx_size validation
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _get_recipe_ctx(model_name: str, timeout_s: float = 2.0) -> int | None:
     """Query Lemonade for a model's recipe_options.ctx_size. Returns None on error."""
@@ -220,8 +226,11 @@ def audit_heavy_models(timeout_s: float = 2.0) -> dict[str, int | None]:
                 logger.error(
                     "OOM HAZARD: %s (%.1f GB) has ctx_size=0 — will OOM on load. "
                     "Run: curl -X POST http://localhost:13305/api/v1/load "
-                    "-d '{\"model_name\": \"%s\", \"ctx_size\": %d, \"save_options\": true}'",
-                    name, gb, name, SAFE_CTX_LIMIT,
+                    '-d \'{"model_name": "%s", "ctx_size": %d, "save_options": true}\'',
+                    name,
+                    gb,
+                    name,
+                    SAFE_CTX_LIMIT,
                 )
     return results
 
@@ -229,6 +238,7 @@ def audit_heavy_models(timeout_s: float = 2.0) -> dict[str, int | None]:
 # ──────────────────────────────────────────────────────────────────────────────
 # Memory gate
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class OOMRisk(NamedTuple):
     safe: bool
@@ -272,6 +282,7 @@ def check_oom_risk(model_name: str, available_gb: float | None = None) -> OOMRis
 # Smart routing
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def safe_model_for_task(task_type: str, available_gb: float | None = None) -> str:
     """Return the safest model ID for task_type that fits in current RAM.
 
@@ -291,7 +302,11 @@ def safe_model_for_task(task_type: str, available_gb: float | None = None) -> st
         logger.warning(
             "OOM gate: %s blocked (%.1f GB needed, %.1f GB available). "
             "Routing task '%s' to fallback %s.",
-            preferred, risk.footprint_gb + RAM_LOAD_BUFFER_GB, avail, task_type, fallback,
+            preferred,
+            risk.footprint_gb + RAM_LOAD_BUFFER_GB,
+            avail,
+            task_type,
+            fallback,
         )
         return fallback
 
@@ -299,7 +314,10 @@ def safe_model_for_task(task_type: str, available_gb: float | None = None) -> st
     logger.error(
         "OOM gate: both %s and %s blocked for task '%s'. "
         "System RAM critically low (%.1f GB). Using Bonsai-4B-gguf.",
-        preferred, fallback, task_type, avail,
+        preferred,
+        fallback,
+        task_type,
+        avail,
     )
     return "Bonsai-4B-gguf"
 
@@ -307,6 +325,7 @@ def safe_model_for_task(task_type: str, available_gb: float | None = None) -> st
 # ──────────────────────────────────────────────────────────────────────────────
 # Safe load (with ctx_size enforcement)
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def safe_load(
     model_name: str,
@@ -339,7 +358,9 @@ def safe_load(
         if resp.status_code == 200:
             logger.info("safe_load OK: %s (ctx=%d)", model_name, effective_ctx)
             return True
-        logger.warning("safe_load API error %d for %s: %s", resp.status_code, model_name, resp.text[:200])
+        logger.warning(
+            "safe_load API error %d for %s: %s", resp.status_code, model_name, resp.text[:200]
+        )
         return False
     except Exception as exc:
         logger.warning("safe_load exception for %s: %s", model_name, exc)
@@ -402,6 +423,7 @@ def prefetch_for_next_task(
 # Startup audit (call once at module import or service start)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def run_startup_audit(log_clean: bool = False) -> list[str]:
     """Audit heavy models for ctx_size=0 hazards. Returns list of hazardous model names.
 
@@ -411,7 +433,9 @@ def run_startup_audit(log_clean: bool = False) -> list[str]:
     snap = MemorySnapshot.capture()
     logger.info(
         "OOM guard startup: %.1f GB total, %.1f GB available, %.1f GB used",
-        snap.total_gb, snap.available_gb, snap.used_gb,
+        snap.total_gb,
+        snap.available_gb,
+        snap.used_gb,
     )
 
     # Warn if any heavy model won't fit given current RAM
@@ -435,8 +459,10 @@ def run_startup_audit(log_clean: bool = False) -> list[str]:
 # Live topology (multi-tenant, tier-aware)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class BackendEntry(NamedTuple):
     """One running backend in the OmniRouter."""
+
     model_name: str
     tier: ComputeTier
     footprint_gb: float
@@ -465,13 +491,15 @@ def get_live_topology(timeout_s: float = 2.0) -> list[BackendEntry]:
         name = m.get("model_name", "")
         tier = MODEL_TIER.get(name, ComputeTier.IGPU)  # default iGPU (all GGUF are vulkan)
         footprint = MODEL_FOOTPRINT_GB.get(name, 0.0)
-        entries.append(BackendEntry(
-            model_name=name,
-            tier=tier,
-            footprint_gb=footprint,
-            backend_url=m.get("backend_url", ""),
-            device=m.get("device", ""),
-        ))
+        entries.append(
+            BackendEntry(
+                model_name=name,
+                tier=tier,
+                footprint_gb=footprint,
+                backend_url=m.get("backend_url", ""),
+                device=m.get("device", ""),
+            )
+        )
     return entries
 
 

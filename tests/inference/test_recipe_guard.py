@@ -20,11 +20,11 @@ from pathlib import Path
 import pytest
 
 from cohezion.inference.capability_profile import CapabilityProfile
+from cohezion.inference.model_card_harness import InferenceParams
 from cohezion.inference.recipe_guard import (
     RecipeGuard,
     RecipeMisalignment,
 )
-from cohezion.inference.model_card_harness import InferenceParams
 
 
 def _good_profile(model_id: str = "test/model") -> CapabilityProfile:

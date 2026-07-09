@@ -30,6 +30,7 @@ class _ExperimentResult:
 @dataclass
 class _VerifierCall:
     """A single verifier's verdict on a single synthesis."""
+
     verifier: str
     status: str
     reason: str = ""
@@ -146,9 +147,7 @@ class VerifyEvolveLane:
             enough_executions = execution_count >= 3
             enough_pattern = any(p.get("size", 0) >= 5 for p in mycelium_patterns)
             if enough_executions or enough_pattern:
-                reason = (
-                    f"surreal:{execution_count}+mycelium:{len(mycelium_patterns)}"
-                )
+                reason = f"surreal:{execution_count}+mycelium:{len(mycelium_patterns)}"
                 return {
                     "slug": synthesis["slug"],
                     "verdict": "verified",
@@ -166,9 +165,7 @@ class VerifyEvolveLane:
             return {
                 "slug": synthesis["slug"],
                 "verdict": "disputed_by_evidence",
-                "reason": (
-                    f"surreal:{execution_count}<3, mycelium:{len(mycelium_patterns)}<5"
-                ),
+                "reason": (f"surreal:{execution_count}<3, mycelium:{len(mycelium_patterns)}<5"),
                 "verifiers": [
                     _VerifierCall("recipe_fit", "passed").__dict__,
                     _VerifierCall("card_fit", "passed").__dict__,
@@ -239,9 +236,7 @@ class VerifyEvolveLane:
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": "Basic "
-                    + __import__("base64").b64encode(
-                        f"{user}:{password}".encode()
-                    ).decode(),
+                    + __import__("base64").b64encode(f"{user}:{password}".encode()).decode(),
                 },
                 method="POST",
             )
@@ -254,9 +249,7 @@ class VerifyEvolveLane:
             logger.debug("SurrealDB execution query failed (non-blocking): %s", e)
             return []
 
-    async def _query_mycelium_patterns(
-        self, model_id: str, task: str
-    ) -> list[dict]:
+    async def _query_mycelium_patterns(self, model_id: str, task: str) -> list[dict]:
         """Query Mycelium for pattern clusters matching the model + task.
 
         A MYCELIUM_PATTERN event is a Mycelium cluster of WITNESS_MARKs
@@ -269,6 +262,7 @@ class VerifyEvolveLane:
             # subscribes to the bus. For the verify_evolve query, we
             # snapshot its state and filter by (family, task).
             from cohezion.inference.default_profiles import get_profile
+
             profile = get_profile(model_id)
             if profile is None:
                 return []
@@ -276,7 +270,7 @@ class VerifyEvolveLane:
             # the Mycelium state in tests. In production, this would
             # be a direct MyceliumRegistry.query call.
             return []  # Test suites patch this; production uses
-                      # MyceliumRegistry which is already wired in WS2B.
+            # MyceliumRegistry which is already wired in WS2B.
         except Exception as e:
             logger.debug("Mycelium pattern query failed (non-blocking): %s", e)
             return []
@@ -316,5 +310,7 @@ class VerifyEvolveLane:
         if self.researcher._experiments_today >= 2 and not mandatory:
             return _ExperimentResult(status="EXPERIMENT_BUDGET_EXHAUSTED", id=exp_id)
         self.researcher._experiments_today += 1
-        logger.info("experiment_queued: %s (total_today=%d)", exp_id, self.researcher._experiments_today)
+        logger.info(
+            "experiment_queued: %s (total_today=%d)", exp_id, self.researcher._experiments_today
+        )
         return _ExperimentResult(status="EXPERIMENT_QUEUED", id=exp_id)

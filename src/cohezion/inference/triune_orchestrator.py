@@ -123,7 +123,7 @@ def build_reasoning_orchestrator(
     # Duplicating E4B at tier 2 provides a TRUST fallback for JEPA REROUTE escalations
     # (2026-07-02: Beta(2,2) prior in LemonadeWorldModel smooths raw 0.010→0.470 → still
     # REROUTE but min_tier_index=1 now, not 2). Both tier 1 and 2 are E4B — no regression.
-    cpu_completion = build_gaia_llm_tier(
+    e4b_trust_fallback = build_gaia_llm_tier(
         model_id="Gemma-4-E4B-it-GGUF",
         base_url=base_url,
         max_tokens=2048,
@@ -134,7 +134,7 @@ def build_reasoning_orchestrator(
         tiers=[
             (npu_reasoning, QualityGate(min_chars=100)),
             (igpu_synthesis, QualityGate(min_chars=200)),
-            (cpu_completion, QualityGate.TRUST),
+            (e4b_trust_fallback, QualityGate.TRUST),
         ]
     )
 
@@ -142,7 +142,7 @@ def build_reasoning_orchestrator(
 def build_parallel_fleet_orchestrator(
     *,
     omni_port: int = 13305,
-) -> "ParallelFleetOrchestrator":
+) -> ParallelFleetOrchestrator:
     """Factory for ParallelFleetOrchestrator — fan-out to NPU/iGPU/CPU simultaneously.
 
     All three nodes talk to the OmniRouter (:13305).

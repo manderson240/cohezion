@@ -177,7 +177,9 @@ class CardParser:
 
         # Family: derive from the model_id prefix. HF models are
         # "org/Model-Name"; family is the leading org or the model stem.
-        family = model_id.split("/")[-1].split("-")[0].lower() if "/" in model_id else model_id.lower()
+        family = (
+            model_id.split("/")[-1].split("-")[0].lower() if "/" in model_id else model_id.lower()
+        )
 
         # Supported modes: chat is the default; tool_use is set if the
         # card mentions "tool" or "function calling".
@@ -201,10 +203,10 @@ class CardParser:
             family=family,
             supported_modes=frozenset(modes),
             optimal_ctx=32768,  # conservative default; refine when the
-                                # card says otherwise. We don't read ctx
-                                # from the card here — the runtime will
-                                # check ResourceGuard.can_load_model with
-                                # the recipe's own ctx_size.
+            # card says otherwise. We don't read ctx
+            # from the card here — the runtime will
+            # check ResourceGuard.can_load_model with
+            # the recipe's own ctx_size.
             min_ctx=512,
             strengths=frozenset(_bullets(sections["strengths"])),
             weaknesses=frozenset(_bullets(sections["limitations"])),

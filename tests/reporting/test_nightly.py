@@ -6,6 +6,7 @@ Each test fails a plausible wrong impl:
   - an average that crashes or SKIPS a metric missing 'success_rate' (must default it to 0.0),
   - dropping the System Health checklist.
 """
+
 from __future__ import annotations
 
 from cohezion.reporting.nightly import NightlyReporter
@@ -34,10 +35,8 @@ def test_average_success_rate(tmp_path) -> None:
 def test_missing_success_rate_defaults_to_zero_not_skipped(tmp_path) -> None:
     # Discriminating: a metric without 'success_rate' contributes 0.0 to the mean over ALL
     # metrics. A skip-impl would give 1.0; a crash-impl would raise KeyError.
-    d = _reporter(tmp_path).generate_nightly_report_dict(
-        [{"success_rate": 1.0}, {"iterations": 5}]
-    )
-    assert d["avg_success_rate"] == 0.5   # (1.0 + 0.0) / 2
+    d = _reporter(tmp_path).generate_nightly_report_dict([{"success_rate": 1.0}, {"iterations": 5}])
+    assert d["avg_success_rate"] == 0.5  # (1.0 + 0.0) / 2
     assert d["total_executions"] == 2
 
 

@@ -42,9 +42,15 @@ async def test_recipe_fit_below_threshold_discards_synthesis():
     """A synthesis with recipe_fit_score < 0.6 is discarded."""
     researcher = DailyResearcher()
     lane = VerifyEvolveLane(researcher)
-    with patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[
-        _synthesis("low", recipe_fit=0.3),
-    ])):
+    with patch.object(
+        lane,
+        "_read_pending_syntheses",
+        new=AsyncMock(
+            return_value=[
+                _synthesis("low", recipe_fit=0.3),
+            ]
+        ),
+    ):
         report = await lane.run(dry_run=False)
     assert any(v["slug"] == "low" and v["verdict"] == "discarded" for v in report.verifications)
 
@@ -54,9 +60,15 @@ async def test_recipe_fit_above_threshold_passes():
     researcher = DailyResearcher()
     lane = VerifyEvolveLane(researcher)
     with (
-        patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[
-            _synthesis("good", recipe_fit=0.9),
-        ])),
+        patch.object(
+            lane,
+            "_read_pending_syntheses",
+            new=AsyncMock(
+                return_value=[
+                    _synthesis("good", recipe_fit=0.9),
+                ]
+            ),
+        ),
         patch.object(lane, "_run_card_fit", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_cross_model", new=AsyncMock(return_value="agreed")),
         patch.object(lane, "_run_falsifiability", new=AsyncMock(return_value="passed")),

@@ -143,7 +143,9 @@ class CompoundHealthOracle:
                 tier_recommendation="igpu",
                 confidence=0.0,
                 alert_level="warn",
-                alerts=["Oracle warming up — insufficient samples for reliable regime classification."],
+                alerts=[
+                    "Oracle warming up — insufficient samples for reliable regime classification."
+                ],
             )
             self._last_assessment = assessment
             return assessment
@@ -339,8 +341,9 @@ class CompoundHealthOracle:
             # Only restore if window_size matches (prevents corrupt/mismatched state)
             if window_size != self._tracker._window_size:
                 logger.debug(
-                    "CompoundHealthOracle: restore_state window_size mismatch "
-                    "(%d vs %d), skipping", window_size, self._tracker._window_size
+                    "CompoundHealthOracle: restore_state window_size mismatch (%d vs %d), skipping",
+                    window_size,
+                    self._tracker._window_size,
                 )
                 return False
 
@@ -368,7 +371,9 @@ class CompoundHealthOracle:
 
             logger.debug(
                 "CompoundHealthOracle: restored state from %s (%d scores, %d regime entries)",
-                target, len(self._tracker._scores), len(self._tracker._regime_history),
+                target,
+                len(self._tracker._scores),
+                len(self._tracker._regime_history),
             )
             return True
         except Exception as exc:

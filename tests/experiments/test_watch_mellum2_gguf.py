@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+
 _WATCHER = Path(__file__).resolve().parents[2] / "scripts" / "experiments" / "watch_mellum2_gguf.py"
 
 

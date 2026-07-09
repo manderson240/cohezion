@@ -16,8 +16,6 @@ from __future__ import annotations
 import atexit
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 # ---------------------------------------------------------------------------
 # W1: JepaGate auto-injected by make_executor()
@@ -162,8 +160,8 @@ class TestW2JourneyTrackerIdentityLifecycle:
 class TestW3SuggestRoutingTierConsumer:
     def _make_executor_with_degradation_detector(self):
         """Build a CompoundExecutor with a mocked DegradationDetector."""
-        from cohezion.compound.executor import CompoundExecutor
         from cohezion.compound.degradation_detector import DegradationDetector
+        from cohezion.compound.executor import CompoundExecutor
 
         dd = MagicMock(spec=DegradationDetector)
         dd.suggest_routing_tier.return_value = "igpu"
@@ -226,9 +224,9 @@ class TestW3SuggestRoutingTierConsumer:
 class TestW4PredictTierConsumer:
     def _make_executor_with_difficulty_estimator(self):
         """Build a CompoundExecutor where SkillRefiner has a mocked DifficultyEstimator."""
+        from cohezion.compound.difficulty_estimator import DifficultyEstimator
         from cohezion.compound.executor import CompoundExecutor
         from cohezion.compound.skill_refiner import SkillRefiner
-        from cohezion.compound.difficulty_estimator import DifficultyEstimator
 
         sr = MagicMock(spec=SkillRefiner)
         estimator = MagicMock(spec=DifficultyEstimator)
@@ -391,6 +389,7 @@ class TestW5SkillProximityConsumer:
         Wrong impl: signature has no skill_name, causing TypeError on call.
         """
         import inspect
+
         from cohezion.compound.skill_refiner import SkillRefiner
 
         sig = inspect.signature(SkillRefiner._generate_recommendation)
@@ -434,6 +433,7 @@ class TestWNTrajectoryWiring:
     def test_wn1_journey_tracker_kwarg_accepted(self):
         """WN1 structural: SkillRefiner.__init__ accepts journey_tracker kwarg."""
         import inspect
+
         from cohezion.compound.skill_refiner import SkillRefiner
 
         params = inspect.signature(SkillRefiner.__init__).parameters
@@ -444,6 +444,7 @@ class TestWNTrajectoryWiring:
     def test_wn2_export_trajectories_shape(self):
         """WN2: export_trajectories returns list of dicts with required keys."""
         from unittest.mock import MagicMock
+
         from cohezion.compound.journey_tracker import JourneyTracker
 
         tracker = JourneyTracker()
@@ -473,7 +474,7 @@ class TestWNTrajectoryWiring:
         Wrong impl that ignores _journey_tracker would not include any candidate
         containing "Trajectory" — the discriminating check is substring presence.
         """
-        from cohezion.compound.skill_refiner import SkillRefiner, ExecutionMetrics
+        from cohezion.compound.skill_refiner import ExecutionMetrics, SkillRefiner
 
         tracker = self._make_fake_tracker("synthesis", coherence=0.80, n=5)
         sr = SkillRefiner(journey_tracker=tracker)
@@ -501,7 +502,7 @@ class TestWNTrajectoryWiring:
 
     def test_wn3b_low_coherence_trajectory_generates_revise_candidate(self):
         """WN3b discriminating: low-coherence trajectory → 'revise' candidate, not 'reinforce'."""
-        from cohezion.compound.skill_refiner import SkillRefiner, ExecutionMetrics
+        from cohezion.compound.skill_refiner import ExecutionMetrics, SkillRefiner
 
         tracker = self._make_fake_tracker("synthesis", coherence=0.30, n=5)
         sr = SkillRefiner(journey_tracker=tracker)
@@ -525,7 +526,7 @@ class TestWNTrajectoryWiring:
 
     def test_wn3c_no_tracker_produces_no_trajectory_candidate(self):
         """WN3c: without tracker, no trajectory candidate appears — operation_type mismatch also excluded."""
-        from cohezion.compound.skill_refiner import SkillRefiner, ExecutionMetrics
+        from cohezion.compound.skill_refiner import ExecutionMetrics, SkillRefiner
 
         sr = SkillRefiner(journey_tracker=None)
         metrics = ExecutionMetrics(
@@ -543,6 +544,7 @@ class TestWNTrajectoryWiring:
     def test_wn4_factory_wires_journey_tracker(self):
         """WN4: SkillRefinerFactory.create() forwards journey_tracker to the instance."""
         import inspect
+
         from cohezion.compound.skill_refiner import SkillRefinerFactory
 
         params = inspect.signature(SkillRefinerFactory.create).parameters
@@ -573,6 +575,7 @@ class TestORHealthOracleWiring:
     def test_or1_skill_refiner_accepts_health_oracle_kwarg(self) -> None:
         """OR1: SkillRefiner.__init__ accepts health_oracle; stores as _health_oracle."""
         import inspect
+
         from cohezion.compound.skill_refiner import SkillRefiner
 
         params = inspect.signature(SkillRefiner.__init__).parameters
@@ -619,6 +622,7 @@ class TestORHealthOracleWiring:
     def test_or3_factory_accepts_and_passes_health_oracle(self) -> None:
         """OR3: SkillRefinerFactory.create() forwards health_oracle to the instance."""
         import inspect
+
         from cohezion.compound.compound_health_oracle import CompoundHealthOracle
         from cohezion.compound.skill_refiner import SkillRefinerFactory
 

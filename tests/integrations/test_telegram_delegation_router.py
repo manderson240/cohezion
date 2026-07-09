@@ -16,6 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+
 # Guard: if telegram_bot can't be imported (missing httpx) skip entire module
 pytest.importorskip("httpx", reason="httpx required for telegram_bot")
 
@@ -24,15 +25,18 @@ from cohezion.integrations.telegram_bot import TelegramCommunicationHub
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+
 def _make_hub() -> TelegramCommunicationHub:
     """Create a hub with test env vars — constructor reads from environment."""
     import os
+
     os.environ.setdefault("TELEGRAM_BOT_TOKEN", "TEST_TOKEN")
     os.environ.setdefault("TELEGRAM_CHAT_ID", "12345")
     return TelegramCommunicationHub()
 
 
 # ── Structural: method exists and returns valid label ─────────────────────────
+
 
 def test_classify_delegation_intent_method_exists():
     hub = _make_hub()
@@ -79,6 +83,7 @@ async def test_classify_delegation_intent_ignores_unknown_label():
 
 
 # ── Behavioural discriminating: router calls the right handler ─────────────────
+
 
 @pytest.mark.asyncio
 async def test_handle_chat_routes_status_intent_to_handle_status():
@@ -159,6 +164,7 @@ async def test_handle_chat_agent_intent_blocked_when_inference_offline():
 
 # ── Behavioural: _handle_agent no longer uses git-worktree / tmux ─────────────
 
+
 @pytest.mark.asyncio
 async def test_handle_agent_does_not_call_git_worktree():
     """_handle_agent must NOT spawn git worktree — that was the primary failure mode.
@@ -172,9 +178,11 @@ async def test_handle_agent_does_not_call_git_worktree():
     hub._record_telemetry = AsyncMock()
 
     # If _run_cmd is called, the test fails (old worktree path still present)
-    hub._run_cmd = AsyncMock(side_effect=AssertionError(
-        "_handle_agent must not call _run_cmd (git worktree / tmux removed)"
-    ))
+    hub._run_cmd = AsyncMock(
+        side_effect=AssertionError(
+            "_handle_agent must not call _run_cmd (git worktree / tmux removed)"
+        )
+    )
 
     await hub._handle_agent("analyze the compound loop performance")
 
@@ -197,6 +205,7 @@ async def test_handle_agent_sends_error_when_omnirouter_unavailable():
 
 # ── Behavioural: _select_lemonade_model prefers actual fleet models ───────────
 
+
 @pytest.mark.asyncio
 async def test_select_lemonade_model_prefers_bonsai_over_granite():
     """Bonsai-8B-gguf (in fleet) must be preferred over Granite-4.1-8B-GGUF (not in fleet).
@@ -218,9 +227,7 @@ async def test_select_lemonade_model_prefers_bonsai_over_granite():
     }
 
     with patch("httpx.AsyncClient") as MockClient:
-        MockClient.return_value.__aenter__.return_value.get = AsyncMock(
-            return_value=mock_response
-        )
+        MockClient.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
         result = await hub._select_lemonade_model()
 
     assert result == "Bonsai-8B-gguf"
@@ -235,16 +242,14 @@ async def test_select_lemonade_model_falls_back_when_preferred_absent():
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "data": [
-            {"id": "nomic-embed-text-v2"},   # skip: embed
-            {"id": "some-cloud-model"},       # skip: cloud
+            {"id": "nomic-embed-text-v2"},  # skip: embed
+            {"id": "some-cloud-model"},  # skip: cloud
             {"id": "Qwen3.6-35B-A3B-NoThinking"},  # first non-embed, non-cloud
         ]
     }
 
     with patch("httpx.AsyncClient") as MockClient:
-        MockClient.return_value.__aenter__.return_value.get = AsyncMock(
-            return_value=mock_response
-        )
+        MockClient.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
         result = await hub._select_lemonade_model()
 
     assert result == "Qwen3.6-35B-A3B-NoThinking"

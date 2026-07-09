@@ -32,9 +32,7 @@ class TestBaseRecipeCtxSize:
         """Heavy models must be ≤ 16384; MoE code/reasoning models may use 32768."""
         for name, opts in BASE_RECIPES.items():
             ctx = opts.get("ctx_size", 0)
-            assert ctx <= 32768, (
-                f"{name}: ctx_size={ctx} exceeds 32768 — likely an OOM risk"
-            )
+            assert ctx <= 32768, f"{name}: ctx_size={ctx} exceeds 32768 — likely an OOM risk"
 
     def test_heavy_dense_models_ctx_le_16384(self) -> None:
         """Dense models ≥26B have full weight activation; 16384 is the safe ceiling."""
@@ -62,9 +60,7 @@ class TestBaseRecipeBackend:
             if name == "Gemma-4-E2B-it-GGUF":
                 continue
             backend = opts.get("llamacpp_backend")
-            assert backend == "auto", (
-                f"{name}: expected llamacpp_backend='auto', got '{backend}'"
-            )
+            assert backend == "auto", f"{name}: expected llamacpp_backend='auto', got '{backend}'"
 
     def test_no_hardcoded_vulkan(self) -> None:
         """Hardcoded 'vulkan' bypasses Lemonade's device probe and may fail on CPU fallback."""
@@ -129,9 +125,7 @@ class TestBaseRecipeCount:
 
 class TestUserVariants:
     def test_variant_count(self) -> None:
-        assert len(USER_VARIANTS) == 5, (
-            f"Expected 5 USER_VARIANTS, got {len(USER_VARIANTS)}"
-        )
+        assert len(USER_VARIANTS) == 5, f"Expected 5 USER_VARIANTS, got {len(USER_VARIANTS)}"
 
     def test_all_have_model_name(self) -> None:
         for v in USER_VARIANTS:
@@ -140,9 +134,7 @@ class TestUserVariants:
     def test_all_model_names_have_user_prefix(self) -> None:
         for v in USER_VARIANTS:
             name = v.get("model_name", "")
-            assert name.startswith("user."), (
-                f"{name}: user variant must start with 'user.'"
-            )
+            assert name.startswith("user."), f"{name}: user variant must start with 'user.'"
 
     def test_all_have_checkpoint_or_checkpoints(self) -> None:
         for v in USER_VARIANTS:

@@ -244,7 +244,7 @@ class OuroborosWikiBridge:
             "",
             f"# Session: {skill_name}",
             "",
-            f"## Task",
+            "## Task",
             "",
             task_description or "(no description)",
             "",
@@ -264,7 +264,7 @@ class OuroborosWikiBridge:
             [
                 "## Notes",
                 "",
-                f"Auto-logged by OuroborosWikiBridge.log_session() (WS1C, 2026-06-04).",
+                "Auto-logged by OuroborosWikiBridge.log_session() (WS1C, 2026-06-04).",
                 "Linked from compound execution context; see vault for the full pattern.",
                 "",
             ]

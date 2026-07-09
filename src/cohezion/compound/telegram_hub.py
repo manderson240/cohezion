@@ -29,9 +29,7 @@ class TelegramOOMGuard:
     auto-load of a large, unbounded-ctx model on the :13305 OmniRouter (N3).
     """
 
-    SAFE_MODELS: frozenset[str] = frozenset(
-        {"llama3.2-1b-FLM", "Gemma-4-E2B-it-GGUF", "Mellum-4b"}
-    )
+    SAFE_MODELS: frozenset[str] = frozenset({"llama3.2-1b-FLM", "Gemma-4-E2B-it-GGUF", "Mellum-4b"})
 
     @classmethod
     def is_safe(cls, model_name: str) -> bool:
@@ -104,9 +102,7 @@ class TelegramHub:
                     timeout=_TIMEOUT,
                 )
             if response.status_code != 200:
-                logger.debug(
-                    "TelegramHub.ask_local: HTTP %s from OmniRouter", response.status_code
-                )
+                logger.debug("TelegramHub.ask_local: HTTP %s from OmniRouter", response.status_code)
                 return ""
             choices = response.json().get("choices", [])
             if not choices:

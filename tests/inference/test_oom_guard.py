@@ -47,6 +47,7 @@ def test_check_ram_no_psutil():
 
     with patch.dict("sys.modules", {"psutil": None}):
         import importlib
+
         import cohezion.inference.oom_guard as g
 
         importlib.reload(g)
@@ -78,7 +79,7 @@ def test_is_heavy_missing_size():
 
 
 def test_is_heavy_exactly_at_threshold():
-    from cohezion.inference.oom_guard import _is_heavy, HEAVY_MODEL_GB_THRESHOLD
+    from cohezion.inference.oom_guard import HEAVY_MODEL_GB_THRESHOLD, _is_heavy
 
     assert _is_heavy({"size": HEAVY_MODEL_GB_THRESHOLD}) is True
 

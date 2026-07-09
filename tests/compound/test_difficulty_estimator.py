@@ -59,7 +59,9 @@ class TestDifficultyEstimatorBehavioral:
         result = est.predict_tier("skill_b", "reason")
         assert result == "igpu", f"Expected igpu (npu escalates), got {result}"
 
-    def test_fallback_to_highest_quality_when_no_threshold_met(self, est: DifficultyEstimator) -> None:
+    def test_fallback_to_highest_quality_when_no_threshold_met(
+        self, est: DifficultyEstimator
+    ) -> None:
         """GIC3: no tier clears 0.7 success_rate → returns tier with best mean quality."""
         # npu: 2 samples, quality 0.7 (marginal)
         for _ in range(2):
@@ -174,13 +176,9 @@ class TestDifficultyEstimatorPromptFeatures:
         returns 'cpu' regardless of prompt length/content.
         """
         result = est.predict_tier("novel_skill", "op", prompt="What is Python?")
-        assert result == "npu", (
-            f"Short simple prompt should predict 'npu', got '{result}'"
-        )
+        assert result == "npu", f"Short simple prompt should predict 'npu', got '{result}'"
 
-    def test_long_complex_reasoning_prompt_predicts_cpu(
-        self, est: DifficultyEstimator
-    ) -> None:
+    def test_long_complex_reasoning_prompt_predicts_cpu(self, est: DifficultyEstimator) -> None:
         """GIC_NEW_5 discriminating: multi-keyword reasoning task → CPU tier.
 
         Wrong impl: returns 'unknown' (ignores prompt entirely), or returns
@@ -198,9 +196,7 @@ class TestDifficultyEstimatorPromptFeatures:
             "existing literature on distributed systems architecture."
         )
         result = est.predict_tier("novel_skill", "novel_op", prompt=complex_prompt)
-        assert result == "cpu", (
-            f"Complex reasoning prompt should predict 'cpu', got '{result}'"
-        )
+        assert result == "cpu", f"Complex reasoning prompt should predict 'cpu', got '{result}'"
 
     def test_history_overrides_prompt_complexity(self, est: DifficultyEstimator) -> None:
         """GIC_NEW_7 discriminating: post-execution history wins over prompt estimate.
@@ -261,9 +257,9 @@ def test_wilson_lcb_rejects_lucky_rare_accepts_sustained():
     rejected) while sustained success is tight (high LCB, trusted)."""
     from cohezion.compound.difficulty_estimator import _LCB_ADEQUATE, _wilson_lcb
 
-    assert _wilson_lcb(2, 2) < _LCB_ADEQUATE   # lucky-rare → not adequate
+    assert _wilson_lcb(2, 2) < _LCB_ADEQUATE  # lucky-rare → not adequate
     assert _wilson_lcb(8, 8) >= _LCB_ADEQUATE  # sustained → adequate
-    assert _wilson_lcb(0, 5) == 0.0            # no successes → floor
+    assert _wilson_lcb(0, 5) == 0.0  # no successes → floor
 
 
 def test_balanced_3way_does_not_default_to_worst_tier():

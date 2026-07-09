@@ -6,6 +6,7 @@ The continuous quality×energy ranking. Each test fails a plausible wrong impl:
   - one that breaks CC2 (energy term must be inert at energy=0 → cost-only ordering),
   - an unstable sort (equal candidates must keep input order).
 """
+
 from __future__ import annotations
 
 from cohezion.inference.fractal_metrics import (

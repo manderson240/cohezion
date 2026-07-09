@@ -84,10 +84,12 @@ class TestSurrealDBTables:
                 method="POST",
             )
             import base64
+
             auth = base64.b64encode(SURREAL_AUTH.encode()).decode()
             req.add_header("Authorization", f"Basic {auth}")
             with urllib.request.urlopen(req, timeout=5) as resp:
                 return json.loads(resp.read())
+
         return _q
 
     def test_md2_5_state_transitions_table_exists(self, db_query):

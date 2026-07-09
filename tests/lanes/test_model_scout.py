@@ -1,3 +1,6 @@
+import pytest
+
+pytest.importorskip("respx")
 """RED tests for the ModelScoutLane (Lane 1).
 
 Contracts:
@@ -35,13 +38,14 @@ async def test_model_scout_drops_candidate_without_parseable_card():
     with respx.mock(assert_all_called=False, base_url="https://huggingface.co") as mock_hf:
         # The HF daily papers feed returns a candidate
         mock_hf.get("/api/daily-papers").mock(
-            return_value=httpx.Response(200, text="<?xml version='1.0'?><feed></feed>",
-                                          headers={"content-type": "application/atom+xml"})
+            return_value=httpx.Response(
+                200,
+                text="<?xml version='1.0'?><feed></feed>",
+                headers={"content-type": "application/atom+xml"},
+            )
         )
         # The model card 404s → card_missing → dropped
-        mock_hf.get(url__regex=r".*README\.md$").mock(
-            return_value=httpx.Response(404)
-        )
+        mock_hf.get(url__regex=r".*README\.md$").mock(return_value=httpx.Response(404))
 
         report = await lane.run(dry_run=False)
         assert isinstance(report, DryRunReport)
@@ -68,12 +72,11 @@ async def test_model_scout_parses_hf_daily_papers():
 </feed>"""
     with respx.mock(assert_all_called=False, base_url="https://huggingface.co") as mock_hf:
         mock_hf.get("/api/daily-papers").mock(
-            return_value=httpx.Response(200, text=feed_xml,
-                                          headers={"content-type": "application/atom+xml"})
+            return_value=httpx.Response(
+                200, text=feed_xml, headers={"content-type": "application/atom+xml"}
+            )
         )
-        mock_hf.get(url__regex=r".*README\.md$").mock(
-            return_value=httpx.Response(404)
-        )
+        mock_hf.get(url__regex=r".*README\.md$").mock(return_value=httpx.Response(404))
 
         report = await lane.run(dry_run=False)
         # The lane recorded that it looked at HF daily

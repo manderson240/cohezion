@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-
 from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.rubric_middleware import RubricMiddleware, RubricVerdict
 
@@ -74,9 +73,7 @@ def test_no_rubric_middleware_does_not_raise():
 def test_rejected_output_skips_mgpo_accumulation():
     """When rubric rejects output, skill must not be added to _recent_skill_names."""
     failing_rm = MagicMock(spec=RubricMiddleware)
-    failing_rm.evaluate.return_value = RubricVerdict(
-        passed=False, reason="Output is incoherent."
-    )
+    failing_rm.evaluate.return_value = RubricVerdict(passed=False, reason="Output is incoherent.")
 
     ex = _make_executor(rubric_middleware=failing_rm)
     ex._recent_skill_names = []
@@ -95,9 +92,7 @@ def test_rejected_output_skips_mgpo_accumulation():
 def test_passed_output_reaches_mgpo_accumulator():
     """When rubric passes output, skill must be added to _recent_skill_names."""
     passing_rm = MagicMock(spec=RubricMiddleware)
-    passing_rm.evaluate.return_value = RubricVerdict(
-        passed=True, reason="Output looks good."
-    )
+    passing_rm.evaluate.return_value = RubricVerdict(passed=True, reason="Output looks good.")
 
     ex = _make_executor(rubric_middleware=passing_rm)
     ex._recent_skill_names = []
@@ -107,9 +102,7 @@ def test_passed_output_reaches_mgpo_accumulator():
         task_output="Good output.",
     )
 
-    assert "accepted_skill" in ex._recent_skill_names, (
-        "Accepted skill must enter MGPO accumulator"
-    )
+    assert "accepted_skill" in ex._recent_skill_names, "Accepted skill must enter MGPO accumulator"
 
 
 def test_no_rubric_middleware_accumulates_unconditionally():
@@ -171,7 +164,5 @@ def test_executor_has_evaluate_rubric_method():
 def test_executor_has_rubric_gated_accumulate_method():
     """CompoundExecutor must expose _rubric_gated_accumulate() method."""
     ex = _make_executor()
-    assert hasattr(ex, "_rubric_gated_accumulate"), (
-        "_rubric_gated_accumulate method missing"
-    )
+    assert hasattr(ex, "_rubric_gated_accumulate"), "_rubric_gated_accumulate method missing"
     assert callable(ex._rubric_gated_accumulate)

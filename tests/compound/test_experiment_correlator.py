@@ -37,7 +37,9 @@ class TestTemporalCorrelation:
         for exp_a, followers in corr.items():
             for exp_b, _score in followers.items():
                 # This should not appear (< 2 co-occurrences)
-                raise AssertionError(f"Found correlation with insufficient evidence: {exp_a} -> {exp_b}")
+                raise AssertionError(
+                    f"Found correlation with insufficient evidence: {exp_a} -> {exp_b}"
+                )
 
     def test_discard_events_not_counted(self):
         # E63 succeeded but E50 discarded — should NOT count

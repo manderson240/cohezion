@@ -31,6 +31,7 @@ from cohezion.compound.degradation_detector import DegradationDetector
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _Task:
     id: str = "t1"
@@ -76,6 +77,7 @@ def _call_record_result(
 # Class 1: quality_score arithmetic
 # ---------------------------------------------------------------------------
 
+
 class TestLong2ShortArithmetic:
     """quality_score follows success * (1/tokens) with zero-division protection."""
 
@@ -113,9 +115,9 @@ class TestLong2ShortArithmetic:
         """Discriminating: 50-token success beats 400-token success."""
         coord = LoopCoordinator(LoopConfig())
         r_short = _make_result(success=True, tokens_used=50)
-        r_long  = _make_result(success=True, tokens_used=400)
+        r_long = _make_result(success=True, tokens_used=400)
         rep_s = _call_record_result(coord, r_short, tokens=50, task=_Task(id="s"))
-        rep_l = _call_record_result(coord, r_long,  tokens=400, task=_Task(id="l"))
+        rep_l = _call_record_result(coord, r_long, tokens=400, task=_Task(id="l"))
         assert rep_s.results[0]["quality_score"] > rep_l.results[0]["quality_score"]
 
     def test_single_token_success_is_max(self):
@@ -129,6 +131,7 @@ class TestLong2ShortArithmetic:
 # ---------------------------------------------------------------------------
 # Class 2: quality_score key is always present in report.results
 # ---------------------------------------------------------------------------
+
 
 class TestQualityScoreInReport:
     """quality_score is always written to report.results (may be None)."""
@@ -155,6 +158,7 @@ class TestQualityScoreInReport:
 # ---------------------------------------------------------------------------
 # Class 3: quality_score fed to DegradationDetector as sparse metric
 # ---------------------------------------------------------------------------
+
 
 class TestQualityScoreFedToDetector:
     """quality_score (when not None) is included in the sparse metrics dict
@@ -204,6 +208,7 @@ class TestQualityScoreFedToDetector:
 #   (discriminating — MagicMock in Class 3 only proves the dict was passed;
 #    these use a real detector to prove the baseline accumulates)
 # ---------------------------------------------------------------------------
+
 
 class TestQualityScoreTrackedByDetector:
     """Real DegradationDetector (no mock) accumulates quality_score samples."""

@@ -38,9 +38,9 @@ def test_profile_has_all_ten_faculties() -> None:
     profile = run_profile(capabilities=oracle_capabilities())
     axis_ids = set(profile["axes"].keys())
     for i in range(1, 11):
-        assert any(
-            aid.startswith(f"G{i}_") for aid in axis_ids
-        ), f"no axis for faculty G{i}; axes present: {sorted(axis_ids)}"
+        assert any(aid.startswith(f"G{i}_") for aid in axis_ids), (
+            f"no axis for faculty G{i}; axes present: {sorted(axis_ids)}"
+        )
 
 
 def test_axis_separability_reasoning_disabled_collapses_only_g6() -> None:
@@ -51,9 +51,7 @@ def test_axis_separability_reasoning_disabled_collapses_only_g6() -> None:
     """
     baseline = run_profile(capabilities=oracle_capabilities())
 
-    crippled_caps = dataclasses.replace(
-        oracle_capabilities(), reasoning_fn=lambda _prompt: ""
-    )
+    crippled_caps = dataclasses.replace(oracle_capabilities(), reasoning_fn=lambda _prompt: "")
     crippled = run_profile(capabilities=crippled_caps)
 
     # G6 collapses
@@ -68,12 +66,8 @@ def test_axis_separability_reasoning_disabled_collapses_only_g6() -> None:
 def test_noop_reasoner_scores_low_g6_real_reasoner_scores_high() -> None:
     """Per-axis discrimination: the G6 axis measures reasoning CAPABILITY, not
     the mere presence of a reasoner. An always-empty reasoner → G6 ≈ 0."""
-    empty_caps = dataclasses.replace(
-        oracle_capabilities(), reasoning_fn=lambda _prompt: ""
-    )
-    wrong_caps = dataclasses.replace(
-        oracle_capabilities(), reasoning_fn=lambda _prompt: "banana"
-    )
+    empty_caps = dataclasses.replace(oracle_capabilities(), reasoning_fn=lambda _prompt: "")
+    wrong_caps = dataclasses.replace(oracle_capabilities(), reasoning_fn=lambda _prompt: "banana")
     assert _axis_score(run_profile(capabilities=empty_caps), "G6_reasoning") < 0.34
     assert _axis_score(run_profile(capabilities=wrong_caps), "G6_reasoning") < 0.34
     assert _axis_score(run_profile(capabilities=oracle_capabilities()), "G6_reasoning") >= 0.7
@@ -85,11 +79,7 @@ def test_beyond_reach_axis_never_silently_met() -> None:
     score must NOT be laundered into MET."""
     profile = run_profile(capabilities=oracle_capabilities())
     # Find at least one substrate-beyond-reach axis.
-    beyond = {
-        aid: ax
-        for aid, ax in profile["axes"].items()
-        if ax["substrate_beyond_reach"]
-    }
+    beyond = {aid: ax for aid, ax in profile["axes"].items() if ax["substrate_beyond_reach"]}
     assert beyond, "no BEYOND_REACH axis declared — the harness hides substrate limits"
     for aid, ax in beyond.items():
         assert ax["status"] == "BEYOND_REACH", (

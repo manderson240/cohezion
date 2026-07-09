@@ -28,8 +28,8 @@ from cohezion.compound.autonomous_loop import LoopCoordinator as pkg_loop_coord
 from cohezion.compound.autonomous_loop import LoopTask as pkg_loop_task
 from cohezion.compound.autonomous_loop import LoopTickSweeper as pkg_tick_sweeper
 from cohezion.compound.autonomous_loop import MarkovQualityTracker as pkg_markov
-from cohezion.compound.autonomous_loop import RZeroChallengerExecutor as pkg_rzero
 from cohezion.compound.autonomous_loop import RunReport as pkg_run_report
+from cohezion.compound.autonomous_loop import RZeroChallengerExecutor as pkg_rzero
 from cohezion.compound.autonomous_loop import SolverAgent as pkg_solver
 from cohezion.compound.autonomous_loop import SprintResult as pkg_sprint
 from cohezion.compound.autonomous_loop import TaskAttempt as pkg_task_attempt
@@ -102,6 +102,26 @@ from cohezion.compound.exp_persistence.vault import ExecutionContext as src_exec
 from cohezion.compound.exp_persistence.vault import VaultLogger as src_vault_logger
 from cohezion.compound.exp_persistence.vault import get_vault_logger as src_get_vault_logger
 
+# persistence
+from cohezion.compound.persistence import PersistenceConfig as pkg_pers_cfg
+from cohezion.compound.persistence import SessionPersister as pkg_session_pers
+from cohezion.compound.persistence import SimplePersistence as pkg_simple_pers
+from cohezion.compound.persistence import VaultPersister as pkg_vault_pers
+from cohezion.compound.persistence.vault import PersistenceConfig as src_pers_cfg
+from cohezion.compound.persistence.vault import SessionPersister as src_session_pers
+from cohezion.compound.persistence.vault import SimplePersistence as src_simple_pers
+from cohezion.compound.persistence.vault import VaultPersister as src_vault_pers
+
+# skills
+from cohezion.compound.skills import SelectorFeedbackRefiner as pkg_sel_refiner
+from cohezion.compound.skills import SimpleSkills as pkg_simple_skills
+from cohezion.compound.skills import SkillMatch as pkg_skill_match
+from cohezion.compound.skills import SkillSelector as pkg_skill_selector
+from cohezion.compound.skills.selector import SelectorFeedbackRefiner as src_sel_refiner
+from cohezion.compound.skills.selector import SimpleSkills as src_simple_skills
+from cohezion.compound.skills.selector import SkillMatch as src_skill_match
+from cohezion.compound.skills.selector import SkillSelector as src_skill_selector
+
 # tdd_adversarial
 from cohezion.compound.tdd_adversarial import AdversarialCritique as pkg_adv_critique
 from cohezion.compound.tdd_adversarial import AdversarialRedTeamAgent as pkg_redteam
@@ -165,26 +185,6 @@ from cohezion.compound.tdd_adversarial.tdd_integration import TestType as src_te
 from cohezion.compound.tdd_adversarial.tdd_integration import (
     get_tdd_integration as src_get_tdd_int,
 )
-
-# persistence
-from cohezion.compound.persistence import PersistenceConfig as pkg_pers_cfg
-from cohezion.compound.persistence import SessionPersister as pkg_session_pers
-from cohezion.compound.persistence import SimplePersistence as pkg_simple_pers
-from cohezion.compound.persistence import VaultPersister as pkg_vault_pers
-from cohezion.compound.persistence.vault import PersistenceConfig as src_pers_cfg
-from cohezion.compound.persistence.vault import SessionPersister as src_session_pers
-from cohezion.compound.persistence.vault import SimplePersistence as src_simple_pers
-from cohezion.compound.persistence.vault import VaultPersister as src_vault_pers
-
-# skills
-from cohezion.compound.skills import SelectorFeedbackRefiner as pkg_sel_refiner
-from cohezion.compound.skills import SimpleSkills as pkg_simple_skills
-from cohezion.compound.skills import SkillMatch as pkg_skill_match
-from cohezion.compound.skills import SkillSelector as pkg_skill_selector
-from cohezion.compound.skills.selector import SelectorFeedbackRefiner as src_sel_refiner
-from cohezion.compound.skills.selector import SimpleSkills as src_simple_skills
-from cohezion.compound.skills.selector import SkillMatch as src_skill_match
-from cohezion.compound.skills.selector import SkillSelector as src_skill_selector
 
 
 # ── analytics ────────────────────────────────────────────────────────────────

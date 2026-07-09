@@ -173,12 +173,18 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = ""):
             from cohezion.inference.task_classifier import classify
 
             _d = classify(prompt)
-            gate_chars = _d.quality_gate_chars if _d.output_type in ("short_categorical", "short_answer") else None
+            gate_chars = (
+                _d.quality_gate_chars
+                if _d.output_type in ("short_categorical", "short_answer")
+                else None
+            )
         except Exception:
             gate_chars = None
         try:
             # O9: difficulty-based cascade entry — a hard task starts above the cheap tiers.
-            result = asyncio.run(orch.run(prompt, min_tier_index=min_tier_index, gate_chars=gate_chars))
+            result = asyncio.run(
+                orch.run(prompt, min_tier_index=min_tier_index, gate_chars=gate_chars)
+            )
             model = result.final_model or ""
 
             # --- Token accounting ---

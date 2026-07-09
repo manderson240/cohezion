@@ -39,9 +39,9 @@ N_CELLS = 16
 HIHO_LOW = 1.3
 HIHO_HIGH = 1.7
 FD_WINDOW = 20
-COLLAPSE_GC_FRACTION = 0.10   # giant component < this → extinction
-DEFAULT_EPS_MAX = 0.7          # peak Lorentz-violation during flyby
-DEFAULT_SIGMA_STEPS = 30.0     # Gaussian half-width in steps
+COLLAPSE_GC_FRACTION = 0.10  # giant component < this → extinction
+DEFAULT_EPS_MAX = 0.7  # peak Lorentz-violation during flyby
+DEFAULT_SIGMA_STEPS = 30.0  # Gaussian half-width in steps
 DEFAULT_FISHER_THRESHOLD = 0.05  # |dε/dt| above this = rapid symmetry break
 
 
@@ -109,8 +109,7 @@ class TidalPerturbationEnv(gym.Env):
     def _eps_at(self, t: int) -> float:
         """Gaussian tidal spike ε(t) centred on peak_step."""
         return float(
-            self.eps_max
-            * np.exp(-((t - self._peak_step) ** 2) / (2.0 * self.sigma_steps ** 2))
+            self.eps_max * np.exp(-((t - self._peak_step) ** 2) / (2.0 * self.sigma_steps**2))
         )
 
     def _update_thermodynamic_gravity(self, t: int) -> float:
@@ -168,9 +167,7 @@ class TidalPerturbationEnv(gym.Env):
         self._eps_prev = eps
         return self._make_obs(eps), {}
 
-    def step(
-        self, action: int
-    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         # Apply agent action: strengthen or weaken a cell's junction
         if action < N_CELLS:
             # Strengthen: raise all conductances to this cell's neighbours
@@ -187,7 +184,7 @@ class TidalPerturbationEnv(gym.Env):
 
         # Tidal perturbation: ε(t) modulates network noise
         eps = self._update_thermodynamic_gravity(self._step_count)
-        noise_scale = 0.02 + 0.08 * eps          # more noise near tidal peak
+        noise_scale = 0.02 + 0.08 * eps  # more noise near tidal peak
         self._net.v_mem += self.np_random.standard_normal(N_CELLS) * noise_scale
         self._net.v_mem = np.clip(self._net.v_mem, -1.0, 1.0)
 

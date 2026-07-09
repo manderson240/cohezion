@@ -1,10 +1,10 @@
 """Tests for FlumeTwoTrack — two-track structural/semantic FLUME VAE split."""
 
-import torch
 import pytest
+import torch
 
-from cohezion.flume.vae import FlumeVAE
 from cohezion.flume.flume_two_track import FlumeTwoTrack, run_twotrack_smoke_test
+from cohezion.flume.vae import FlumeVAE
 
 
 @pytest.fixture()

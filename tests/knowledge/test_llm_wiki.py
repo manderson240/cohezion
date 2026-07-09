@@ -8,6 +8,7 @@ contract is the persist→reload ROUND TRIP (`_persist` dumps `v.__dict__`, `_lo
   - update that doesn't overwrite an existing key,
   - a missing wiki dir that crashes instead of degrading to empty.
 """
+
 from __future__ import annotations
 
 from cohezion.knowledge.llm_wiki import LLMWiki, WikiEntry

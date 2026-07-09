@@ -7,6 +7,7 @@ call `record_resolution(...)`, which appends one domain-tagged JSON line to the 
 the value gate scans. `read_resolutions()` loads them back for analysis. The default
 sink is `~/.cohezion-research/logs/resolution_log.jsonl`; tests inject a temp path.
 """
+
 from __future__ import annotations
 
 import json

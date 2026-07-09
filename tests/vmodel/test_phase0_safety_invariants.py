@@ -41,10 +41,13 @@ class TestSR1SafetyInvariants:
 
     def test_sr1_3_can_load_model_rejects_below_floor(self):
         guard = ResourceGuard(min_ram_available_mb=16384)
-        from cohezion.reliability.resource_guard import SystemVitals
         from unittest.mock import patch
 
-        vitals = SystemVitals(cpu_load_1m=5.0, ram_available_mb=4000, ram_percent=85.0, swap_used_mb=0)
+        from cohezion.reliability.resource_guard import SystemVitals
+
+        vitals = SystemVitals(
+            cpu_load_1m=5.0, ram_available_mb=4000, ram_percent=85.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             ok, reason = guard.can_load_model(estimated_mb=100)
         assert not ok

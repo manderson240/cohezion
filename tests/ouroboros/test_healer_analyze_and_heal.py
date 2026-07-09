@@ -6,12 +6,14 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 
 def test_healer_class_exists():
     """OuroborosHealer must be importable from cohezion.ouroboros.healer."""
     from cohezion.ouroboros.healer import HealerAgent
+
     assert HealerAgent is not None
 
 

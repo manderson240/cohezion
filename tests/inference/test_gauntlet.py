@@ -8,27 +8,30 @@ not merely that the code runs.
 from __future__ import annotations
 
 import json
-import pytest
 from pathlib import Path
+
+import pytest
 
 from cohezion.inference.gauntlet import (
     PROMOTION_THRESHOLD,
-    BenchTask,
     TASK_SUITE,
-    _score_result,
+    BenchTask,
     _promote_if_better,
+    _score_result,
     get_champion,
 )
 
 
 # ── Score computation ─────────────────────────────────────────────────────────
 
+
 class TestScoreComputation:
     """_score_result must compute quality_ratio and score correctly."""
 
     def _make_task(self, keywords: list[str]) -> BenchTask:
         return BenchTask(
-            name="test_task", role="generation",
+            name="test_task",
+            role="generation",
             prompt="test prompt",
             expected_keywords=keywords,
             max_tokens=50,
@@ -66,14 +69,13 @@ class TestScoreComputation:
 
 # ── Champion promotion ────────────────────────────────────────────────────────
 
+
 class TestChampionPromotion:
     """_promote_if_better must enforce the 5% promotion threshold."""
 
     def test_new_champion_when_no_previous(self) -> None:
         scores: dict = {}
-        _champion, promoted = _promote_if_better(
-            scores, "code", {"Qwen3-Coder-30B": 50.0}
-        )
+        _champion, promoted = _promote_if_better(scores, "code", {"Qwen3-Coder-30B": 50.0})
         assert promoted
         assert scores["champions"]["code"]["model_id"] == "Qwen3-Coder-30B"
 
@@ -81,18 +83,14 @@ class TestChampionPromotion:
         """Discriminating: 4% improvement must NOT promote (threshold is 5%)."""
         scores = {"champions": {"code": {"model_id": "old-model", "score": 50.0}}}
         # 4% improvement: 50.0 * 1.04 = 52.0 — below 50.0 * 1.05 = 52.5
-        _champion, promoted = _promote_if_better(
-            scores, "code", {"new-model": 52.0}
-        )
+        _champion, promoted = _promote_if_better(scores, "code", {"new-model": 52.0})
         assert not promoted, "4% improvement should not trigger promotion"
 
     def test_promotion_at_exactly_threshold(self) -> None:
         """Exactly 5% improvement must promote."""
         scores = {"champions": {"code": {"model_id": "old-model", "score": 50.0}}}
         # 5.1% improvement: 50.0 * 1.051 = 52.55 > 52.5
-        _champion, promoted = _promote_if_better(
-            scores, "code", {"new-model": 52.55}
-        )
+        _champion, promoted = _promote_if_better(scores, "code", {"new-model": 52.55})
         assert promoted, "5.1% improvement should trigger promotion"
 
     def test_champion_persisted_in_scores_dict(self) -> None:
@@ -106,6 +104,7 @@ class TestChampionPromotion:
 
 
 # ── Task suite integrity ──────────────────────────────────────────────────────
+
 
 class TestTaskSuite:
     """TASK_SUITE must cover all required capability domains."""
@@ -128,16 +127,21 @@ class TestTaskSuite:
 
 # ── get_champion ──────────────────────────────────────────────────────────────
 
+
 class TestGetChampion:
-    def test_returns_none_when_no_scores_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_returns_none_when_no_scores_file(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         fake_path = tmp_path / "gauntlet_scores.json"
         monkeypatch.setattr("cohezion.inference.gauntlet.GAUNTLET_PATH", fake_path)
         assert get_champion("code") is None
 
-    def test_returns_champion_when_present(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_returns_champion_when_present(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         fake_path = tmp_path / "gauntlet_scores.json"
-        fake_path.write_text(json.dumps({
-            "champions": {"code": {"model_id": "Qwen3-Coder-30B", "score": 50.0}}
-        }))
+        fake_path.write_text(
+            json.dumps({"champions": {"code": {"model_id": "Qwen3-Coder-30B", "score": 50.0}}})
+        )
         monkeypatch.setattr("cohezion.inference.gauntlet.GAUNTLET_PATH", fake_path)
         assert get_champion("code") == "Qwen3-Coder-30B"

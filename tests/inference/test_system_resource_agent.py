@@ -12,14 +12,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from cohezion.inference.system_resource_agent import (
-    ResourceRecommendation,
-    SystemResourceAgent,
     _VALID_ACTIONS,
     _VALID_TIERS,
+    ResourceRecommendation,
+    SystemResourceAgent,
 )
 
 
 # ── Structural ──────────────────────────────────────────────────────────────────
+
 
 def test_assess_returns_recommendation():
     """assess() always returns a ResourceRecommendation, never raises."""
@@ -38,11 +39,16 @@ def test_assess_never_raises_on_broken_sources():
     advisor = SystemResourceAgent()
     advisor._guard = None
     advisor._monitor = None
+
     # Force a broken guard
     class _BrokenGuard:
-        def get_temperature(self): raise RuntimeError("hw failure")
+        def get_temperature(self):
+            raise RuntimeError("hw failure")
+
     class _BrokenMonitor:
-        def get_stats(self): raise RuntimeError("psutil missing")
+        def get_stats(self):
+            raise RuntimeError("psutil missing")
+
     advisor._guard = _BrokenGuard()
     advisor._monitor = _BrokenMonitor()
     rec = advisor.assess()  # must not raise
@@ -51,14 +57,18 @@ def test_assess_never_raises_on_broken_sources():
 
 # ── Deterministic path ──────────────────────────────────────────────────────────
 
-@pytest.mark.parametrize("temp,mem,lock,expected_action", [
-    (45.0, 50.0, False, "proceed"),
-    (76.0, 55.0, False, "throttle"),   # temp above throttle threshold
-    (55.0, 85.0, False, "throttle"),   # mem above throttle threshold
-    (90.0, 55.0, False, "pause"),      # temp above pause threshold
-    (55.0, 95.0, False, "pause"),      # mem above pause threshold
-    (45.0, 50.0, True, "pause"),       # pressure lock active
-])
+
+@pytest.mark.parametrize(
+    "temp,mem,lock,expected_action",
+    [
+        (45.0, 50.0, False, "proceed"),
+        (76.0, 55.0, False, "throttle"),  # temp above throttle threshold
+        (55.0, 85.0, False, "throttle"),  # mem above throttle threshold
+        (90.0, 55.0, False, "pause"),  # temp above pause threshold
+        (55.0, 95.0, False, "pause"),  # mem above pause threshold
+        (45.0, 50.0, True, "pause"),  # pressure lock active
+    ],
+)
 def test_deterministic_recommendation_thresholds(temp, mem, lock, expected_action):
     advisor = SystemResourceAgent()
     metrics = {"temp_c": temp, "memory_percent": mem, "available_gb": 64.0, "pressure_lock": lock}
@@ -70,20 +80,32 @@ def test_deterministic_recommendation_thresholds(temp, mem, lock, expected_actio
 
 # ── Lemonade path ───────────────────────────────────────────────────────────────
 
+
 def test_lemonade_valid_response_parsed():
     """Valid Lemonade JSON is parsed into a ResourceRecommendation."""
     advisor = SystemResourceAgent()
-    mock_body = json.dumps({
-        "choices": [{
-            "message": {"content": '{"tier":"igpu","action":"throttle","reason":"temp elevated","pressure_score":0.5}'}
-        }]
-    }).encode()
+    mock_body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": '{"tier":"igpu","action":"throttle","reason":"temp elevated","pressure_score":0.5}'
+                    }
+                }
+            ]
+        }
+    ).encode()
     mock_resp = MagicMock()
     mock_resp.read.return_value = mock_body
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
     with patch("urllib.request.urlopen", return_value=mock_resp):
-        metrics = {"temp_c": 76.0, "memory_percent": 65.0, "available_gb": 50.0, "pressure_lock": False}
+        metrics = {
+            "temp_c": 76.0,
+            "memory_percent": 65.0,
+            "available_gb": 50.0,
+            "pressure_lock": False,
+        }
         rec = advisor._lemonade_recommendation(metrics)
     assert rec is not None
     assert rec.tier == "igpu"
@@ -95,15 +117,28 @@ def test_lemonade_valid_response_parsed():
 def test_lemonade_invalid_tier_falls_back_to_none():
     """Invalid tier from Lemonade returns None (triggers deterministic fallback)."""
     advisor = SystemResourceAgent()
-    mock_body = json.dumps({
-        "choices": [{"message": {"content": '{"tier":"xpu","action":"proceed","reason":"ok","pressure_score":0.1}'}}]
-    }).encode()
+    mock_body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": '{"tier":"xpu","action":"proceed","reason":"ok","pressure_score":0.1}'
+                    }
+                }
+            ]
+        }
+    ).encode()
     mock_resp = MagicMock()
     mock_resp.read.return_value = mock_body
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
     with patch("urllib.request.urlopen", return_value=mock_resp):
-        metrics = {"temp_c": 50.0, "memory_percent": 60.0, "available_gb": 60.0, "pressure_lock": False}
+        metrics = {
+            "temp_c": 50.0,
+            "memory_percent": 60.0,
+            "available_gb": 60.0,
+            "pressure_lock": False,
+        }
         result = advisor._lemonade_recommendation(metrics)
     assert result is None
 
@@ -111,14 +146,21 @@ def test_lemonade_invalid_tier_falls_back_to_none():
 def test_lemonade_unavailable_returns_none():
     """URLError from Lemonade returns None silently."""
     import urllib.error
+
     advisor = SystemResourceAgent()
     with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("conn refused")):
-        metrics = {"temp_c": 50.0, "memory_percent": 60.0, "available_gb": 60.0, "pressure_lock": False}
+        metrics = {
+            "temp_c": 50.0,
+            "memory_percent": 60.0,
+            "available_gb": 60.0,
+            "pressure_lock": False,
+        }
         result = advisor._lemonade_recommendation(metrics)
     assert result is None
 
 
 # ── DegradationDetector feed ───────────────────────────────────────────────────
+
 
 def test_assess_feeds_degradation_detector():
     """assess() calls detector.check_degradation() with silicon metrics when detector provided."""

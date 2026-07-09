@@ -19,7 +19,9 @@ class TestCanLoadModel:
 
     def test_accepts_when_ram_sufficient(self):
         guard = ResourceGuard(min_ram_available_mb=16384)
-        vitals = SystemVitals(cpu_load_1m=5.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0)
+        vitals = SystemVitals(
+            cpu_load_1m=5.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             ok, reason = guard.can_load_model(estimated_mb=5000)
         assert ok is True
@@ -28,7 +30,9 @@ class TestCanLoadModel:
     def test_rejects_when_estimated_exceeds_available(self):
         """When RAM is above floor but below the estimate, the estimate check fires."""
         guard = ResourceGuard(min_ram_available_mb=16384)
-        vitals = SystemVitals(cpu_load_1m=5.0, ram_available_mb=20000, ram_percent=70.0, swap_used_mb=0)
+        vitals = SystemVitals(
+            cpu_load_1m=5.0, ram_available_mb=20000, ram_percent=70.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             ok, reason = guard.can_load_model(estimated_mb=50000)
         assert ok is False
@@ -38,7 +42,9 @@ class TestCanLoadModel:
         """Loading a 100MB model when RAM is below the 16GB floor is unsafe —
         the floor exists because the OS + running services need that headroom."""
         guard = ResourceGuard(min_ram_available_mb=16384)
-        vitals = SystemVitals(cpu_load_1m=5.0, ram_available_mb=8000, ram_percent=85.0, swap_used_mb=0)
+        vitals = SystemVitals(
+            cpu_load_1m=5.0, ram_available_mb=8000, ram_percent=85.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             ok, reason = guard.can_load_model(estimated_mb=100)
         assert ok is False
@@ -47,14 +53,18 @@ class TestCanLoadModel:
     def test_accepts_when_estimate_zero_and_ram_ok(self):
         """estimated_mb=0 means 'unknown size' — still gate on the RAM floor."""
         guard = ResourceGuard(min_ram_available_mb=16384)
-        vitals = SystemVitals(cpu_load_1m=5.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0)
+        vitals = SystemVitals(
+            cpu_load_1m=5.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             ok, reason = guard.can_load_model(estimated_mb=0)
         assert ok is True
 
     def test_rejects_when_cpu_unhealthy(self):
         guard = ResourceGuard(max_cpu_load=24.0, min_ram_available_mb=16384)
-        vitals = SystemVitals(cpu_load_1m=30.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0)
+        vitals = SystemVitals(
+            cpu_load_1m=30.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             ok, reason = guard.can_load_model(estimated_mb=100)
         assert ok is False
@@ -73,13 +83,17 @@ class TestRequireCanLoad:
 
     def test_raises_on_insufficient_ram(self):
         guard = ResourceGuard(min_ram_available_mb=16384)
-        vitals = SystemVitals(cpu_load_1m=5.0, ram_available_mb=4000, ram_percent=70.0, swap_used_mb=0)
+        vitals = SystemVitals(
+            cpu_load_1m=5.0, ram_available_mb=4000, ram_percent=70.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             with pytest.raises(MemoryError, match=""):
                 guard.require_can_load(estimated_mb=5000)
 
     def test_passes_on_sufficient_ram(self):
         guard = ResourceGuard(min_ram_available_mb=16384)
-        vitals = SystemVitals(cpu_load_1m=5.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0)
+        vitals = SystemVitals(
+            cpu_load_1m=5.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0
+        )
         with patch.object(guard, "get_vitals", return_value=vitals):
             guard.require_can_load(estimated_mb=5000)

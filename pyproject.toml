@@ -205,6 +205,7 @@ ignore = [
     "N806",  # Math/ML tests use uppercase for matrix dims (M, K, N) — standard notation
     "S607",  # Partial executable paths acceptable in test subprocesses
     "E402",  # Guard imports (try/except) after module-level code allowed in tests
+    "N813",  # Camelcase imported as lowercase — intentional in wiring identity tests (pkg_ledger, pkg_driver)
 ]
 "src/cohezion/traceability/plan_graph.py" = [
     "S608",  # SurrealQL uses record ID interpolation (plan:{slug}), not user input

@@ -22,6 +22,7 @@ from cohezion.inference.direct_tier import (
 
 # ── Structural ──────────────────────────────────────────────────────────────────
 
+
 def test_fleet_node_result_fields():
     r = FleetNodeResult(model_id="llama3.2-1b-FLM", node="npu", text="hi", latency_ms=12.0)
     assert r.model_id == "llama3.2-1b-FLM"
@@ -53,6 +54,7 @@ def test_parallel_fleet_orchestrator_has_generate_and_run_batch():
 
 
 # ── Behavioural: multi_node_batch ordering ─────────────────────────────────────
+
 
 def test_multi_node_batch_returns_results_in_original_order():
     """Results must match input order regardless of which thread finishes first.
@@ -119,6 +121,7 @@ def test_multi_node_batch_handles_individual_node_failure():
 
 # ── Behavioural: ParallelFleetOrchestrator best_node selection ─────────────────
 
+
 @pytest.mark.asyncio
 async def test_generate_selects_longest_nonempty_response_as_best():
     """best_node must be the node with the LONGEST text, not the first non-empty.
@@ -135,7 +138,11 @@ async def test_generate_selects_longest_nonempty_response_as_best():
         return {"text": "medium response here", "latency_ms": 200.0, "error": None}
 
     async def mock_run_cpu(_prompt: str, **_):
-        return {"text": "a much longer and more detailed response from the CPU tier", "latency_ms": 800.0, "error": None}
+        return {
+            "text": "a much longer and more detailed response from the CPU tier",
+            "latency_ms": 800.0,
+            "error": None,
+        }
 
     orch._nodes["npu"].run = mock_run_npu
     orch._nodes["igpu"].run = mock_run_igpu
@@ -224,6 +231,7 @@ async def test_generate_records_all_three_node_results():
 
 
 # ── build_parallel_fleet_orchestrator ─────────────────────────────────────────
+
 
 def test_build_parallel_fleet_orchestrator_returns_orchestrator():
     from cohezion.inference.triune_orchestrator import build_parallel_fleet_orchestrator

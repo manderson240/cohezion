@@ -48,9 +48,7 @@ class CardAlignmentMonitor:
             ...
     """
 
-    def __init__(
-        self, threshold: float = 0.5, window_size: int = 10
-    ) -> None:
+    def __init__(self, threshold: float = 0.5, window_size: int = 10) -> None:
         if not 0.0 <= threshold <= 1.0:
             raise ValueError(f"threshold {threshold} must be in [0, 1]")
         if window_size < 1:
@@ -88,21 +86,29 @@ class CardAlignmentMonitor:
         elif rate >= self.threshold:
             # Recovery: re-arm the latch
             self._emitted_this_drop = False
-        return AlignmentVerdict(
-            dipped=dipped, rate=rate, window_size=len(self._window)
-        )
+        return AlignmentVerdict(dipped=dipped, rate=rate, window_size=len(self._window))
 
     def _emit_healing_event(self, rate: float) -> None:
         try:
             from cohezion.precipitation import bus
+
             event = PrecipitationEvent(
                 kind=PrecipitationKind.HEALING_EVENT,
                 universe_id="cohezion_card_alignment_monitor",
                 coherence=1.0 - rate,  # low coherence = healing needed
                 twelve_d={
-                    "x": 0.5, "y": 0.5, "z": 0.5, "time": 0.5,
-                    "physics": 0.5, "biology": 0.5, "logic": 0.5, "quantum": 0.5,
-                    "field": 0.5, "control": 0.5, "novelty": 0.5, "precipitation": 0.5,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "z": 0.5,
+                    "time": 0.5,
+                    "physics": 0.5,
+                    "biology": 0.5,
+                    "logic": 0.5,
+                    "quantum": 0.5,
+                    "field": 0.5,
+                    "control": 0.5,
+                    "novelty": 0.5,
+                    "precipitation": 0.5,
                 },
                 payload={
                     "source": "ouroboros.card_alignment_monitor",
@@ -114,7 +120,8 @@ class CardAlignmentMonitor:
             bus.emit(event)
             logger.info(
                 "CardAlignmentMonitor emitted HEALING_EVENT (rate=%.2f < %.2f)",
-                rate, self.threshold,
+                rate,
+                self.threshold,
             )
         except Exception as e:
             logger.debug("HEALING_EVENT emission failed (non-blocking): %s", e)

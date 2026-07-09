@@ -581,7 +581,8 @@ async def route(
                 ttft_ms=ttft_ms,
                 tokens_per_sec=tokens_per_sec,
                 cost_usd=cost,
-                escalated_to_cloud=candidate.lane in {Lane.CLOUD_OLLAMA, Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY},
+                escalated_to_cloud=candidate.lane
+                in {Lane.CLOUD_OLLAMA, Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY},
                 symmetry_coherence=coherence,
                 self_reported_confidence=confidence,
                 attempts=attempts,
@@ -674,7 +675,9 @@ async def extend_claude(
             quality_threshold=quality_threshold,
         )
         if decision != "cloud" and local_result is not None:
-            logger.info("extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota)
+            logger.info(
+                "extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota
+            )
             return local_result
 
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
@@ -761,3 +764,90 @@ def _lemonade_recipe_skip_reason(
         if hazard.model == getattr(candidate, "model_id", ""):
             return f"ctx-hazard:{hazard.model} ctx_size=0"
     return None
+
+
+# ── extend_claude_aligned: card-aligned sibling of extend_claude ─────────────
+#
+# The local dispatch honors the caller-supplied InferenceParams — it does NOT let
+# the registry re-pick a different model. `params` is keyword-only and required.
+# RecipeGuard rule: default params are a bug, not a fallback.
+
+
+async def extend_claude_aligned(
+    prompt: str,
+    *,
+    params,
+    claude_model: str = "claude-sonnet-4-6",
+    quality_threshold: float = 0.8,
+    max_local_attempts: int = 2,
+    timeout: float = 30.0,
+):
+    """Card-aligned extend_claude. Local-first, escalate on quality-gate failure.
+
+    ``params`` is required and keyword-only. The local dispatch goes to
+    ``params.model_id`` (not a registry-picked alternative).
+
+    The quality gate is the same as extend_claude: length >= 40 AND
+    (no self-reported confidence OR confidence >= quality_threshold).
+    On failure, escalate to ``claude_model``.
+    """
+    from cohezion.inference.model_card_harness import InferenceParams
+    from cohezion.inference.recipe_guard import RecipeGuard
+
+    if not isinstance(params, InferenceParams):
+        raise TypeError(
+            f"extend_claude_aligned requires params=InferenceParams(...); "
+            f"got {type(params).__name__}. Build params via "
+            f"ModelCardHarness.aligned_params(model_id, task)."
+        )
+    RecipeGuard.assert_aligned(params)
+
+    registry = get_registry()
+
+    if claude_model not in registry.models:
+        return RouteResult(
+            text="",
+            model="",
+            lane="",
+            latency_ms=0.0,
+            error=f"Unknown claude_model {claude_model}",
+        )
+
+    for _ in range(max_local_attempts):
+        text, cost, _ttft, _tps = await _dispatch_one(
+            registry.models[params.model_id], prompt, None, timeout
+        )
+        local_result = RouteResult(
+            text=text,
+            model=params.model_id,
+            lane=str(registry.models[params.model_id].lane.value),
+            latency_ms=0.0,
+            cost_usd=cost,
+            self_reported_confidence=None,
+            escalated_to_cloud=False,
+            error=None if text else "empty",
+        )
+        confidence = local_result.self_reported_confidence
+        length_ok = local_result.error is None and len(local_result.text) >= 40
+        confidence_ok = confidence is None or confidence >= quality_threshold
+        if length_ok and confidence_ok:
+            return local_result
+        logger.info(
+            "Aligned local attempt insufficient (%s, confidence=%s); retrying",
+            local_result.error or "short output",
+            confidence,
+        )
+
+    cloud_text, cloud_cost, _ttft, _tps = await _dispatch_one(
+        registry.models[claude_model], prompt, None, timeout
+    )
+    return RouteResult(
+        text=cloud_text,
+        model=claude_model,
+        lane=str(registry.models[claude_model].lane.value),
+        latency_ms=0.0,
+        cost_usd=cloud_cost,
+        self_reported_confidence=None,
+        escalated_to_cloud=True,
+        error=None if cloud_text else "empty",
+    )

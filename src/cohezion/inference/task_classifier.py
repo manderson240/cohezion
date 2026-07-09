@@ -1185,27 +1185,89 @@ _BACKTICK_VERB_ENGINEERING_PATTERN = re.compile(
 # falling through to NPU length-fallback or GPU long_generation.
 _MATH_REASONING_PATTERNS: list[tuple[re.Pattern, float, str]] = [
     # Calculus operations: integrate, differentiate, derive
-    (re.compile(r"\b(?:integrate|integration|differentiate|differentiation)\b", re.I), 0.92, "calculus operation"),
+    (
+        re.compile(r"\b(?:integrate|integration|differentiate|differentiation)\b", re.I),
+        0.92,
+        "calculus operation",
+    ),
     # "Derive the formula for X" / "Derive X" (mathematical derivation, not code)
-    (re.compile(r"\bderive(?:d)?\s+(?:the\s+)?(?:formula|equation|expression|relation|identity|bound|estimate|approximation|series|expansion|recurrence|closed.form)\b", re.I), 0.90, "derive formula"),
-    (re.compile(r"\bderive\b.{0,30}\b(?:formula|area|volume|derivative|integral|limit|series|expansion|equation)\b", re.I), 0.88, "mathematical derivation"),
+    (
+        re.compile(
+            r"\bderive(?:d)?\s+(?:the\s+)?(?:formula|equation|expression|relation|identity|bound|estimate|approximation|series|expansion|recurrence|closed.form)\b",
+            re.I,
+        ),
+        0.90,
+        "derive formula",
+    ),
+    (
+        re.compile(
+            r"\bderive\b.{0,30}\b(?:formula|area|volume|derivative|integral|limit|series|expansion|equation)\b",
+            re.I,
+        ),
+        0.88,
+        "mathematical derivation",
+    ),
     # "Solve step by step: X" / "Solve for x" / "Solve the equation"
-    (re.compile(r"\bsolve\b.{0,30}\b(?:step.by.step|for\s+\w+|the\s+equation|the\s+system|for\s+x|for\s+y|for\s+n)\b", re.I), 0.90, "solve equation"),
+    (
+        re.compile(
+            r"\bsolve\b.{0,30}\b(?:step.by.step|for\s+\w+|the\s+equation|the\s+system|for\s+x|for\s+y|for\s+n)\b",
+            re.I,
+        ),
+        0.90,
+        "solve equation",
+    ),
     (re.compile(r"\bsolve\s+(?:step.by.step|for\s+)", re.I), 0.90, "solve step-by-step"),
     # "Prove that X" / "Prove X is/holds"
-    (re.compile(r"\bprove\s+(?:that\b|the\b|\w+\s+is\b|\w+\s+holds\b|\w+\s+satisfies\b)", re.I), 0.90, "mathematical proof"),
+    (
+        re.compile(r"\bprove\s+(?:that\b|the\b|\w+\s+is\b|\w+\s+holds\b|\w+\s+satisfies\b)", re.I),
+        0.90,
+        "mathematical proof",
+    ),
     # "Logic puzzle: X"
     (re.compile(r"\blogic\s+puzzle\b", re.I), 0.88, "logic puzzle"),
     # "Calculate X" / "Compute X" (standalone math, not "calculate the metrics for...")
-    (re.compile(r"\b(?:calculate|compute)\s+(?:the\s+)?(?:sum|product|difference|quotient|integral|derivative|limit|determinant|eigenvalue|trace|norm|dot\s+product|cross\s+product|matrix\s+product|area|volume|perimeter|circumference|probability|expectation|variance|standard\s+deviation|correlation|coefficient)\b", re.I), 0.88, "calculate math quantity"),
+    (
+        re.compile(
+            r"\b(?:calculate|compute)\s+(?:the\s+)?(?:sum|product|difference|quotient|integral|derivative|limit|determinant|eigenvalue|trace|norm|dot\s+product|cross\s+product|matrix\s+product|area|volume|perimeter|circumference|probability|expectation|variance|standard\s+deviation|correlation|coefficient)\b",
+            re.I,
+        ),
+        0.88,
+        "calculate math quantity",
+    ),
     # "Simplify the expression/equation"
-    (re.compile(r"\bsimplify\s+(?:the\s+)?(?:expression|equation|fraction|polynomial|rational|algebraic)\b", re.I), 0.85, "simplify expression"),
+    (
+        re.compile(
+            r"\bsimplify\s+(?:the\s+)?(?:expression|equation|fraction|polynomial|rational|algebraic)\b",
+            re.I,
+        ),
+        0.85,
+        "simplify expression",
+    ),
     # "Factor the polynomial/expression"
-    (re.compile(r"\bfactor\s+(?:the\s+)?(?:polynomial|expression|quadratic|trinomial|equation)\b", re.I), 0.85, "factor polynomial"),
+    (
+        re.compile(
+            r"\bfactor\s+(?:the\s+)?(?:polynomial|expression|quadratic|trinomial|equation)\b", re.I
+        ),
+        0.85,
+        "factor polynomial",
+    ),
     # "Expand the expression"
-    (re.compile(r"\bexpand\s+(?:the\s+)?(?:expression|polynomial|binomial|series|product)\b", re.I), 0.85, "expand expression"),
+    (
+        re.compile(
+            r"\bexpand\s+(?:the\s+)?(?:expression|polynomial|binomial|series|product)\b", re.I
+        ),
+        0.85,
+        "expand expression",
+    ),
     # "Find the roots/zeros/solutions of X"
-    (re.compile(r"\bfind\s+(?:the\s+)?(?:roots|zeros|solutions?|fixed\s+points?|critical\s+points?|extrema|maxim(?:a|um)|minim(?:a|um)|saddle\s+points?)\s+of\b", re.I), 0.85, "find roots/extrema"),
+    (
+        re.compile(
+            r"\bfind\s+(?:the\s+)?(?:roots|zeros|solutions?|fixed\s+points?|critical\s+points?|extrema|maxim(?:a|um)|minim(?:a|um)|saddle\s+points?)\s+of\b",
+            re.I,
+        ),
+        0.85,
+        "find roots/extrema",
+    ),
 ]
 
 _calibrated_overrides: dict[str, Any] | None = None
@@ -1559,7 +1621,7 @@ def _classify_base(prompt: str) -> RouteDecision:
         return RouteDecision(
             node="npu",
             output_type="short_answer",
-            quality_gate_chars=1,
+            quality_gate_chars=_TYPE_CONFIG["short_answer"][1],
             confidence=0.60,
             reason=f"short prompt ({prompt_len} chars), defaulting to NPU",
             preferred_model=_preferred_model("short_answer", "npu"),

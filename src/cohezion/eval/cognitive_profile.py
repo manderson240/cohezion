@@ -65,8 +65,13 @@ def _validate_contains(output: str, expected: str) -> bool:
 
 # LLM-backed faculty batteries. Each routes through its OWN capability slot (separability).
 _REASONING = [  # G6 — deductive / transitive / inductive
-    TextProbe("If all roses are flowers and this object is a rose, is it a flower? Answer yes or no.", "yes"),
-    TextProbe("Tom is taller than Sam. Sam is taller than Bob. Who is tallest? Answer one name.", "tom"),
+    TextProbe(
+        "If all roses are flowers and this object is a rose, is it a flower? Answer yes or no.",
+        "yes",
+    ),
+    TextProbe(
+        "Tom is taller than Sam. Sam is taller than Bob. Who is tallest? Answer one name.", "tom"
+    ),
     TextProbe("What number comes next in 2, 4, 6, 8, ? Answer with only the number.", "10"),
 ]
 _GENERATION = [  # G2 — text/code execution ability
@@ -75,7 +80,10 @@ _GENERATION = [  # G2 — text/code execution ability
     TextProbe("Write a Python expression that adds 2 and 3. Output only the expression.", "2 + 3"),
 ]
 _PROBLEM_SOLVING = [  # G9 — math / algorithmic
-    TextProbe("A train travels 60 miles in 2 hours. What is its speed in mph? Answer the number only.", "30"),
+    TextProbe(
+        "A train travels 60 miles in 2 hours. What is its speed in mph? Answer the number only.",
+        "30",
+    ),
     TextProbe("Sort the numbers 3, 1, 2 in ascending order. Answer comma-separated.", "1, 2, 3"),
     TextProbe("What is 7 multiplied by 8? Answer the number only.", "56"),
 ]
@@ -96,11 +104,16 @@ _PLANNING = [  # G8 — executive: decompose a goal into ordered steps (graded s
 ]
 _KNOWLEDGE = [  # Gc breadth — SUBSTRATE-BEYOND-REACH (measured cheap, never MET)
     TextProbe("What is the capital city of France? Answer one word.", "paris"),
-    TextProbe("What gas do plants primarily absorb for photosynthesis? Answer one phrase.", "carbon dioxide"),
+    TextProbe(
+        "What gas do plants primarily absorb for photosynthesis? Answer one phrase.",
+        "carbon dioxide",
+    ),
     TextProbe("Who wrote the play 'Romeo and Juliet'? Answer the surname.", "shakespeare"),
 ]
 _FLUID = [  # Gf frontier abstraction — SUBSTRATE-BEYOND-REACH
-    TextProbe("Complete the analogy: hand is to glove as foot is to ____. Answer one word.", "sock"),
+    TextProbe(
+        "Complete the analogy: hand is to glove as foot is to ____. Answer one word.", "sock"
+    ),
     TextProbe("If A=1, B=2, C=3, what is the value of E? Answer the number only.", "5"),
 ]
 
@@ -161,7 +174,10 @@ class MemoryProbe:
             self._jt._flume_encoder = None  # force deterministic hash latent (offline, no network)
         before = self._jt.get_recent_point_count()
         result = ExecutionResult(
-            success=True, output=task, metrics={"coherence": 0.6}, duration_seconds=0.01,
+            success=True,
+            output=task,
+            metrics={"coherence": 0.6},
+            duration_seconds=0.01,
             token_metrics={"cache_hit_rate": 0.5},
         )
         self._jt.track_execution(result, task_description=task, operation_type="memory_probe")
@@ -368,21 +384,59 @@ def _run_learning(caps: Capabilities) -> list[bool]:
 
 _AXES: list[Axis] = [
     Axis("G1_perception", "Perception (text)", _run_perception, False, "PARTIAL"),
-    Axis("G2_generation", "Generation", lambda c: _grade_text(c.generation_fn, _GENERATION), False, "PARTIAL"),
+    Axis(
+        "G2_generation",
+        "Generation",
+        lambda c: _grade_text(c.generation_fn, _GENERATION),
+        False,
+        "PARTIAL",
+    ),
     Axis("G3_attention", "Attention", _run_attention, False, "PARTIAL"),
     Axis("G4_learning", "Learning", _run_learning, False, "PARTIAL"),
     Axis("G5_memory", "Memory", _run_memory, False, "MET"),
-    Axis("G6_reasoning", "Reasoning", lambda c: _grade_text(c.reasoning_fn, _REASONING), False, "PARTIAL"),
+    Axis(
+        "G6_reasoning",
+        "Reasoning",
+        lambda c: _grade_text(c.reasoning_fn, _REASONING),
+        False,
+        "PARTIAL",
+    ),
     Axis("G7_metacognition", "Metacognition", _run_metacognition, False, "PARTIAL"),
     Axis("G8_executive", "Executive functions", _run_planning, False, "PARTIAL"),
-    Axis("G9_problem_solving", "Problem solving", lambda c: _grade_text(c.problem_solving_fn, _PROBLEM_SOLVING), False, "PARTIAL"),
-    Axis("G10_social", "Social cognition", lambda c: _grade_text(c.social_fn, _SOCIAL), False, "GAP"),
+    Axis(
+        "G9_problem_solving",
+        "Problem solving",
+        lambda c: _grade_text(c.problem_solving_fn, _PROBLEM_SOLVING),
+        False,
+        "PARTIAL",
+    ),
+    Axis(
+        "G10_social", "Social cognition", lambda c: _grade_text(c.social_fn, _SOCIAL), False, "GAP"
+    ),
     Axis("B1_speed", "Processing speed", _run_speed, False, "MET"),
     Axis("B2_calibration", "Confidence calibration", _run_calibration, False, "PARTIAL"),
     # Substrate-BEYOND-REACH axes — MEASURED where cheap, never flipped to MET.
-    Axis("Gc_knowledge_breadth", "Memory: broad knowledge (Gc)", lambda c: _grade_text(c.knowledge_fn, _KNOWLEDGE), True, "BEYOND"),
-    Axis("Gf_fluid_frontier", "Problem solving: fluid reasoning (Gf)", lambda c: _grade_text(c.fluid_fn, _FLUID), True, "BEYOND"),
-    Axis("Gv_perception_native", "Perception: native visual/auditory (Gv/Ga)", lambda c: _run_native_perception(c), True, "BEYOND"),
+    Axis(
+        "Gc_knowledge_breadth",
+        "Memory: broad knowledge (Gc)",
+        lambda c: _grade_text(c.knowledge_fn, _KNOWLEDGE),
+        True,
+        "BEYOND",
+    ),
+    Axis(
+        "Gf_fluid_frontier",
+        "Problem solving: fluid reasoning (Gf)",
+        lambda c: _grade_text(c.fluid_fn, _FLUID),
+        True,
+        "BEYOND",
+    ),
+    Axis(
+        "Gv_perception_native",
+        "Perception: native visual/auditory (Gv/Ga)",
+        lambda c: _run_native_perception(c),
+        True,
+        "BEYOND",
+    ),
 ]
 
 
@@ -589,15 +643,21 @@ def _persist_surreal(profile: dict[str, Any]) -> None:
             _surql_set,
         )
 
-        q = "CREATE cognitive_profile SET " + _surql_set(
-            {
-                "profile_json": json.dumps(profile),
-                "mean_score_testable": profile["summary"]["mean_score_testable"],
-                "n_met": profile["summary"]["MET"],
-                "created_at": _NOW,
-            }
-        ) + ";"
-        httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
+        q = (
+            "CREATE cognitive_profile SET "
+            + _surql_set(
+                {
+                    "profile_json": json.dumps(profile),
+                    "mean_score_testable": profile["summary"]["mean_score_testable"],
+                    "n_met": profile["summary"]["MET"],
+                    "created_at": _NOW,
+                }
+            )
+            + ";"
+        )
+        httpx.post(
+            _SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0
+        )
         logger.info("persisted cognitive_profile to SurrealDB")
     except Exception as exc:
         logger.debug("cognitive_profile SurrealDB persist failed (fail-open): %s", exc)

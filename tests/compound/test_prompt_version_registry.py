@@ -20,15 +20,18 @@ from cohezion.compound.prompt_version_registry import (
 
 # ── structural invariant ──────────────────────────────────────────────────────
 
+
 def test_structural_check_drift_is_callable():
     """Structural: PromptVersionRegistry.check_drift exists and accepts (skill_name, content)."""
     import inspect
+
     sig = inspect.signature(PromptVersionRegistry.check_drift)
     assert "skill_name" in sig.parameters
     assert "new_content" in sig.parameters
 
 
 # ── pure math ─────────────────────────────────────────────────────────────────
+
 
 def test_cosine_identical_vectors():
     a = [1.0, 0.0, 0.0]
@@ -48,6 +51,7 @@ def test_centroid_two_vectors():
 
 
 # ── behavioral: fail-open paths ───────────────────────────────────────────────
+
 
 def test_no_fixtures_registered_allows():
     """Fail-open: no golden fixtures → allow promotion."""
@@ -81,6 +85,7 @@ def test_db_exception_allows():
 
 # ── behavioral: gate decisions ────────────────────────────────────────────────
 
+
 def test_low_drift_allows():
     """Allow: new content very similar to fixture corpus (drift < 0.35)."""
     reg = PromptVersionRegistry()
@@ -110,6 +115,7 @@ def test_drift_threshold_boundary():
     target_cos = 1.0 - DRIFT_THRESHOLD
     # fixture=[1,0], embed=[cos,sin] → cosine = cos
     import math
+
     sin_val = math.sqrt(1.0 - target_cos**2)
     fixture_emb = [1.0, 0.0]
     boundary_emb = [target_cos, sin_val]
@@ -120,6 +126,7 @@ def test_drift_threshold_boundary():
 
 
 # ── integration: SkillRefiner honours the gate ────────────────────────────────
+
 
 def test_skill_refiner_respects_gate_block():
     """SkillRefiner.refine() returns None when golden-fixture gate blocks."""
@@ -136,15 +143,18 @@ def test_skill_refiner_respects_gate_block():
     )
     fake_prime = MagicMock()
 
-    with patch.object(refiner, "_extract_metrics") as mock_metrics, \
-         patch.object(refiner, "_generate_learning_signal", return_value=fake_signal), \
-         patch.object(refiner, "_find_prime_file", return_value=fake_prime), \
-         patch("cohezion.compound.prompt_version_registry.PromptVersionRegistry") as MockGate:
-
+    with (
+        patch.object(refiner, "_extract_metrics") as mock_metrics,
+        patch.object(refiner, "_generate_learning_signal", return_value=fake_signal),
+        patch.object(refiner, "_find_prime_file", return_value=fake_prime),
+        patch("cohezion.compound.prompt_version_registry.PromptVersionRegistry") as MockGate,
+    ):
         mock_metrics.return_value = MagicMock(success=True)
         MockGate.return_value.check_drift.return_value = False  # gate blocks
 
-        result = refiner.refine("test-skill", "generate", {"success": True, "metrics": {}, "token_metrics": {}})
+        result = refiner.refine(
+            "test-skill", "generate", {"success": True, "metrics": {}, "token_metrics": {}}
+        )
 
     assert result is None
     MockGate.return_value.check_drift.assert_called_once_with("test-skill", fake_signal.key_insight)

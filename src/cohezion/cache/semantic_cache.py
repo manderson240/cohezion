@@ -154,23 +154,6 @@ class SemanticCache:
         if _singleton is None and similarity_threshold in self._THRESHOLD_BY_DIM.values():
             _singleton = self
 
-        # Auto-tune threshold for the active encoder (exp_RRRR, 2026-05-29)
-        # When using the default (0.80), probe the actual encoder dimension and adjust.
-        # sentence-transformers crashes on XDNA2, falling back to FLUME VAE 256D;
-        # FLUME VAE similarity scores are lower (0.40-0.65 range vs 0.80-0.97).
-        profile_threshold = self._load_profile_threshold()
-        if profile_threshold is not None:
-            similarity_threshold = profile_threshold
-        elif similarity_threshold == self._DEFAULT_THRESHOLD:
-            similarity_threshold = self._auto_tune_threshold_for_encoder()
-        self.similarity_threshold = similarity_threshold
-        self.initial_threshold = similarity_threshold
-
-        # Register as singleton only when using auto-tuned default (not test-overridden)
-        global _singleton
-        if _singleton is None and similarity_threshold in self._THRESHOLD_BY_DIM.values():
-            _singleton = self
-
         # L1 cache: exact hash matches
         self.l1_cache: dict[str, CacheEntry] = {}
         self.l1_insertion_order: list[str] = []
@@ -197,38 +180,6 @@ class SemanticCache:
         # Access entropy tracking: rolling window of hash_keys seen in get()
         # Used by access_entropy() to distinguish repetitive vs diverse workloads.
         self._access_window: deque[str] = deque(maxlen=256)
-
-    @staticmethod
-    def _auto_tune_threshold_for_encoder() -> float:
-        """Probe the embedding encoder and return the appropriate threshold.
-
-        Calibrated thresholds per encoder (exp_RRRR + exp_OOOO2, 2026-05-29):
-          768D → 0.58 (nomic-embed via lemonade, 0% FP, 100% near-dup hits — exp_OOOO2)
-          384D → 0.80 (sentence-transformers, 0% FP, 87% near-dup hits — exp_BBBB)
-          256D → 0.45 (FLUME VAE, 0% FP, 88% paraphrase hits — exp_RRRR)
-        """
-        try:
-            probe = SemanticCache._text_to_embedding("routing task probe")
-            dim = probe.shape[0]
-            threshold = SemanticCache._THRESHOLD_BY_DIM.get(dim, SemanticCache._DEFAULT_THRESHOLD)
-            if threshold != SemanticCache._DEFAULT_THRESHOLD:
-                logger.debug("Encoder detected: %dD → threshold %.2f", dim, threshold)
-            return threshold
-        except Exception:
-            return SemanticCache._DEFAULT_THRESHOLD
-
-    @classmethod
-    def get_instance(cls) -> "SemanticCache":
-        """Return the module-level singleton, creating it on first call.
-
-        Called by template_matcher.try_template_match() to activate cache
-        in the CompoundExecutor pipeline without requiring explicit wiring.
-        The singleton uses default parameters (threshold=0.80, exp_BBBB optimal).
-        """
-        global _singleton
-        if _singleton is None:
-            _singleton = cls()
-        return _singleton
 
     @staticmethod
     def _auto_tune_threshold_for_encoder() -> float:

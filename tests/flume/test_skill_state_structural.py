@@ -87,6 +87,7 @@ def test_layout_constants_match_behavioral_test_assumptions():
 
 # ── SC3: _FINGERPRINT_START equals the slice index used in tests ─────────────
 
+
 def test_fingerprint_start_equals_slice_index_used_in_tests():
     """SC3: _FINGERPRINT_START must equal 29 — the literal slice index used in:
     - test_skill_state_encoder.py::MD8 (v[29:])
@@ -103,6 +104,7 @@ def test_fingerprint_start_equals_slice_index_used_in_tests():
 
 
 # ── SC4: encode_skill and encode_rubric_verdict return signatures ─────────────
+
 
 def test_encode_skill_returns_type_annotation():
     """SC4: encode_skill must have a return annotation of np.ndarray (or compatible).

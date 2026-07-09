@@ -11,6 +11,7 @@ deliberately); each fails a plausible wrong impl:
   - an inverted or unconditional threshold comparison,
   - a non-deterministic (model-call) score.
 """
+
 from __future__ import annotations
 
 from cohezion.evaluation.self_eval import SelfEvaluationEngine

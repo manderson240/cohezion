@@ -71,6 +71,7 @@ def _run(args: list[str], *, timeout: int = 60) -> dict[str, Any]:
 
 # ── Kernels ───────────────────────────────────────────────────────────────────
 
+
 @app.tool()
 def kaggle_kernel_status(kernel_id: str) -> dict[str, Any]:
     """Check the run status of a Kaggle kernel.
@@ -106,6 +107,7 @@ def kaggle_kernel_logs(kernel_id: str) -> dict[str, Any]:
 
 # ── Competitions ──────────────────────────────────────────────────────────────
 
+
 @app.tool()
 def kaggle_competition_submit(
     competition: str,
@@ -121,13 +123,22 @@ def kaggle_competition_submit(
         message:     Submission description shown on the leaderboard
         version:     Kernel output version number to submit (default: 1)
     """
-    return _run([
-        "competitions", "submit", competition,
-        "-k", kernel_id,
-        "-v", str(version),
-        "-f", "submission.zip",
-        "-m", message,
-    ], timeout=60)
+    return _run(
+        [
+            "competitions",
+            "submit",
+            competition,
+            "-k",
+            kernel_id,
+            "-v",
+            str(version),
+            "-f",
+            "submission.zip",
+            "-m",
+            message,
+        ],
+        timeout=60,
+    )
 
 
 @app.tool()
@@ -156,6 +167,7 @@ def kaggle_competition_submissions(competition: str) -> dict[str, Any]:
 
 # ── Quota & Config ────────────────────────────────────────────────────────────
 
+
 @app.tool()
 def kaggle_quota() -> dict[str, Any]:
     """Show your remaining weekly GPU and TPU accelerator quota."""
@@ -169,6 +181,7 @@ def kaggle_config_view() -> dict[str, Any]:
 
 
 # ── Benchmark Tasks (new in kaggle 2.2.2) ─────────────────────────────────────
+
 
 @app.tool()
 def kaggle_benchmark_tasks_list(

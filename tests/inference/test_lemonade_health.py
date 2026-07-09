@@ -3,6 +3,7 @@
 Pure logic + mocked tests run unconditionally. Live tests skip cleanly if
 :13305 is down.
 """
+
 from __future__ import annotations
 
 import json
@@ -68,10 +69,23 @@ def test_recipe_probe_ok_short_circuit():
 
 def test_check_ctx_hazards_finds_zero():
     loaded = [
-        {"model_name": "X", "recipe": "llamacpp", "recipe_options": {"ctx_size": 0}, "backend_url": "u", "pid": 1},
-        {"model_name": "Y", "recipe": "llamacpp", "recipe_options": {"ctx_size": 16384}, "backend_url": "u", "pid": 2},
+        {
+            "model_name": "X",
+            "recipe": "llamacpp",
+            "recipe_options": {"ctx_size": 0},
+            "backend_url": "u",
+            "pid": 1,
+        },
+        {
+            "model_name": "Y",
+            "recipe": "llamacpp",
+            "recipe_options": {"ctx_size": 16384},
+            "backend_url": "u",
+            "pid": 2,
+        },
     ]
     import asyncio
+
     hazards = asyncio.run(_check_ctx_hazards(loaded))
     assert len(hazards) == 1
     assert hazards[0].model == "X"
@@ -80,20 +94,46 @@ def test_check_ctx_hazards_finds_zero():
 
 def test_check_ctx_hazards_ignores_non_llm_recipes():
     loaded = [
-        {"model_name": "k", "recipe": "kokoro", "recipe_options": {"ctx_size": 0}, "backend_url": "u", "pid": 1},
-        {"model_name": "s", "recipe": "sd-cpp", "recipe_options": {"ctx_size": 0}, "backend_url": "u", "pid": 2},
-        {"model_name": "w", "recipe": "whispercpp", "recipe_options": {"ctx_size": 0}, "backend_url": "u", "pid": 3},
+        {
+            "model_name": "k",
+            "recipe": "kokoro",
+            "recipe_options": {"ctx_size": 0},
+            "backend_url": "u",
+            "pid": 1,
+        },
+        {
+            "model_name": "s",
+            "recipe": "sd-cpp",
+            "recipe_options": {"ctx_size": 0},
+            "backend_url": "u",
+            "pid": 2,
+        },
+        {
+            "model_name": "w",
+            "recipe": "whispercpp",
+            "recipe_options": {"ctx_size": 0},
+            "backend_url": "u",
+            "pid": 3,
+        },
     ]
     import asyncio
+
     hazards = asyncio.run(_check_ctx_hazards(loaded))
     assert hazards == []
 
 
 def test_check_ctx_hazards_handles_missing_ctx():
     loaded = [
-        {"model_name": "X", "recipe": "llamacpp", "recipe_options": {}, "backend_url": "u", "pid": 1},
+        {
+            "model_name": "X",
+            "recipe": "llamacpp",
+            "recipe_options": {},
+            "backend_url": "u",
+            "pid": 1,
+        },
     ]
     import asyncio
+
     hazards = asyncio.run(_check_ctx_hazards(loaded))
     # missing ctx_size is not a hazard (not zero, just absent)
     assert hazards == []
@@ -107,6 +147,7 @@ def test_check_orphans_finds_zeros_and_dups():
         {"model_name": "D", "pid": 100, "backend_url": "u4"},  # dup of A
     ]
     import asyncio
+
     orphans = asyncio.run(_check_orphans(loaded))
     names = [o.model for o in orphans]
     assert any("B" in n for n in names)
@@ -116,7 +157,10 @@ def test_check_orphans_finds_zeros_and_dups():
 
 def test_health_summary_includes_counts():
     h = LemonadeHealth(
-        checked_at=0.0, port=13305, version="10.6.0", status="ok",
+        checked_at=0.0,
+        port=13305,
+        version="10.6.0",
+        status="ok",
         loaded_count=3,
         recipe_probes=[
             RecipeProbe(recipe="kokoro", ok=True, latency_ms=10.0),
@@ -136,14 +180,24 @@ def test_health_summary_includes_counts():
 
 def test_health_ok_requires_no_hazards():
     h_ok = LemonadeHealth(
-        checked_at=0.0, port=13305, version="10.6.0", status="ok",
-        loaded_count=1, recipe_probes=[], headroom=[],
+        checked_at=0.0,
+        port=13305,
+        version="10.6.0",
+        status="ok",
+        loaded_count=1,
+        recipe_probes=[],
+        headroom=[],
     )
     assert h_ok.ok
 
     h_bad = LemonadeHealth(
-        checked_at=0.0, port=13305, version="10.6.0", status="ok",
-        loaded_count=1, recipe_probes=[], headroom=[],
+        checked_at=0.0,
+        port=13305,
+        version="10.6.0",
+        status="ok",
+        loaded_count=1,
+        recipe_probes=[],
+        headroom=[],
         ctx_hazards=[CtxHazard("M", "llamacpp", 0, "u", 1)],
     )
     assert not h_bad.ok
@@ -152,7 +206,10 @@ def test_health_ok_requires_no_hazards():
 
 def test_health_recipes_up_down():
     h = LemonadeHealth(
-        checked_at=0.0, port=13305, version="10.6.0", status="degraded",
+        checked_at=0.0,
+        port=13305,
+        version="10.6.0",
+        status="degraded",
         loaded_count=0,
         recipe_probes=[
             RecipeProbe(recipe="kokoro", ok=True, latency_ms=10.0),
@@ -175,10 +232,22 @@ async def test_probe_lemonade_mocked_all_ok(monkeypatch):
         "version": "10.6.0",
         "status": "ok",
         "all_models_loaded": [
-            {"model_name": "M1", "recipe": "llamacpp", "type": "llm",
-             "recipe_options": {"ctx_size": 16384}, "backend_url": "http://x", "pid": 100},
-            {"model_name": "M2", "recipe": "kokoro", "type": "tts",
-             "recipe_options": {}, "backend_url": "http://y", "pid": 200},
+            {
+                "model_name": "M1",
+                "recipe": "llamacpp",
+                "type": "llm",
+                "recipe_options": {"ctx_size": 16384},
+                "backend_url": "http://x",
+                "pid": 100,
+            },
+            {
+                "model_name": "M2",
+                "recipe": "kokoro",
+                "type": "tts",
+                "recipe_options": {},
+                "backend_url": "http://y",
+                "pid": 200,
+            },
         ],
         "max_models": {"llm": 6, "tts": 6},
     }
@@ -188,13 +257,24 @@ async def test_probe_lemonade_mocked_all_ok(monkeypatch):
         def __init__(self, status, payload):
             self.status_code = status
             self._payload = payload
-        def json(self): return self._payload
+
+        def json(self):
+            return self._payload
+
         @property
-        def text(self): return json.dumps(self._payload)
+        def text(self):
+            return json.dumps(self._payload)
+
     class _Client:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *e): return False
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *e):
+            return False
+
         async def get(self, url, **kw):
             if url.endswith("/api/v1/health"):
                 return _Resp(200, health_payload)
@@ -207,6 +287,7 @@ async def test_probe_lemonade_mocked_all_ok(monkeypatch):
             if url.endswith("/v1/audio/transcriptions"):
                 return _Resp(400, {"error": "multipart required"})
             return _Resp(404, {})
+
         async def request(self, method, url, **kw):
             return await self.get(url, **kw)
 
@@ -227,28 +308,48 @@ async def test_probe_lemonade_mocked_ctx_hazard(monkeypatch):
         "version": "10.6.0",
         "status": "ok",
         "all_models_loaded": [
-            {"model_name": "Q-HAZARD", "recipe": "llamacpp", "type": "llm",
-             "recipe_options": {"ctx_size": 0}, "backend_url": "http://x", "pid": 1},
+            {
+                "model_name": "Q-HAZARD",
+                "recipe": "llamacpp",
+                "type": "llm",
+                "recipe_options": {"ctx_size": 0},
+                "backend_url": "http://x",
+                "pid": 1,
+            },
         ],
         "max_models": {"llm": 6},
     }
+
     class _Resp:
         def __init__(self, status, payload):
             self.status_code = status
             self._payload = payload
-        def json(self): return self._payload
+
+        def json(self):
+            return self._payload
+
         @property
-        def text(self): return json.dumps(self._payload)
+        def text(self):
+            return json.dumps(self._payload)
+
     class _Client:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *e): return False
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *e):
+            return False
+
         async def get(self, url, **kw):
             if url.endswith("/api/v1/health"):
                 return _Resp(200, health_payload)
             return _Resp(400, {})  # recipes alive
+
         async def request(self, method, url, **kw):
             return await self.get(url, **kw)
+
     monkeypatch.setattr(httpx, "AsyncClient", _Client)
     h = await probe_lemonade(port=13305)
     assert not h.ok
@@ -262,13 +363,21 @@ async def test_probe_lemonade_mocked_omni_down(monkeypatch):
     import httpx
 
     class _Client:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *e): return False
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *e):
+            return False
+
         async def get(self, url, **kw):
             raise httpx.ConnectError("connection refused", request=httpx.Request("GET", url))
+
         async def request(self, method, url, **kw):
             return await self.get(url, **kw)
+
     monkeypatch.setattr(httpx, "AsyncClient", _Client)
     h = await probe_lemonade(port=13305)
     assert h.status == "down"
@@ -285,22 +394,42 @@ async def test_probe_lemonade_mocked_5xx_means_dead(monkeypatch):
         def __init__(self, status, payload):
             self.status_code = status
             self._payload = payload
-        def json(self): return self._payload
+
+        def json(self):
+            return self._payload
+
         @property
-        def text(self): return json.dumps(self._payload)
+        def text(self):
+            return json.dumps(self._payload)
+
     class _Client:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *e): return False
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *e):
+            return False
+
         async def get(self, url, **kw):
             if url.endswith("/api/v1/health"):
-                return _Resp(200, {"version": "10.6.0", "status": "ok",
-                                   "all_models_loaded": [], "max_models": {}})
+                return _Resp(
+                    200,
+                    {
+                        "version": "10.6.0",
+                        "status": "ok",
+                        "all_models_loaded": [],
+                        "max_models": {},
+                    },
+                )
             if url.endswith("/v1/audio/voices"):
                 return _Resp(503, {"error": "down"})
             return _Resp(400, {})
+
         async def request(self, method, url, **kw):
             return await self.get(url, **kw)
+
     monkeypatch.setattr(httpx, "AsyncClient", _Client)
     h = await probe_lemonade(port=13305, probe_recipes=["kokoro", "llamacpp"])
     assert h.recipes_down == ["kokoro"]

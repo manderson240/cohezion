@@ -43,10 +43,9 @@ class MoESkillRouter:
         if expert_name not in self.weights:
             return
         reward = max(-1.0, min(1.0, quality_delta))
-        self.weights[expert_name] = (
-            (1.0 - self._alpha) * self.weights[expert_name]
-            + self._alpha * (0.5 + 0.5 * reward)
-        )
+        self.weights[expert_name] = (1.0 - self._alpha) * self.weights[
+            expert_name
+        ] + self._alpha * (0.5 + 0.5 * reward)
 
     def replay(self, history: list[tuple[str, float]]) -> None:
         """Batch update from (expert_name, quality_delta) tuples."""

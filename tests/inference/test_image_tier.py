@@ -3,14 +3,18 @@
 Live tests hit the real OmniRouter and skip cleanly when :13305 is down.
 Mocked tests use httpx stubs and always run.
 """
+
 from __future__ import annotations
+
 import base64
 import socket
 
 import pytest
 
 from cohezion.inference.image_tier import (
-    DirectLemonadeImageTier, ImageRequest, ImageResult,
+    DirectLemonadeImageTier,
+    ImageRequest,
+    ImageResult,
 )
 
 
@@ -36,12 +40,15 @@ def _image_model_loaded(host: str = "localhost", port: int = 13305) -> bool:
         if resp.status_code >= 500:
             return False
         models = resp.json().get("data", [])
-        return any("sd" in m.get("id", "").lower() or "image" in m.get("id", "").lower() for m in models)
+        return any(
+            "sd" in m.get("id", "").lower() or "image" in m.get("id", "").lower() for m in models
+        )
     except Exception:
         return False
 
 
 # ----- Pure-logic tests (no network) ----------------------------------------
+
 
 def test_default_port_is_13305():
     """The 2026-06-10 design rule: only the OmniRouter. No per-lane ports."""
@@ -60,9 +67,16 @@ def test_image_request_defaults():
 
 def test_image_result_ok_when_images_present():
     r = ImageResult(
-        images=[PNG_MAGIC + b"x" * 100], mime_type="image/png",
-        size="256x256", n=1, latency_ms=100.0, bytes_total=108,
-        per_image_latency_ms=100.0, port=13305, model="SD-Turbo", prompt="x",
+        images=[PNG_MAGIC + b"x" * 100],
+        mime_type="image/png",
+        size="256x256",
+        n=1,
+        latency_ms=100.0,
+        bytes_total=108,
+        per_image_latency_ms=100.0,
+        port=13305,
+        model="SD-Turbo",
+        prompt="x",
     )
     assert r.ok
     assert r.error is None
@@ -70,9 +84,17 @@ def test_image_result_ok_when_images_present():
 
 def test_image_result_not_ok_when_no_images():
     r = ImageResult(
-        images=[], mime_type="", size="256x256", n=1, latency_ms=100.0,
-        bytes_total=0, per_image_latency_ms=0.0, port=13305,
-        model="SD-Turbo", prompt="x", error="err",
+        images=[],
+        mime_type="",
+        size="256x256",
+        n=1,
+        latency_ms=100.0,
+        bytes_total=0,
+        per_image_latency_ms=0.0,
+        port=13305,
+        model="SD-Turbo",
+        prompt="x",
+        error="err",
     )
     assert not r.ok
     assert r.error == "err"
@@ -80,9 +102,16 @@ def test_image_result_not_ok_when_no_images():
 
 def test_image_result_save_writes_bytes(tmp_path):
     r = ImageResult(
-        images=[PNG_MAGIC + b"hello"], mime_type="image/png",
-        size="256x256", n=1, latency_ms=100.0, bytes_total=len(PNG_MAGIC) + 5,
-        per_image_latency_ms=100.0, port=13305, model="SD-Turbo", prompt="x",
+        images=[PNG_MAGIC + b"hello"],
+        mime_type="image/png",
+        size="256x256",
+        n=1,
+        latency_ms=100.0,
+        bytes_total=len(PNG_MAGIC) + 5,
+        per_image_latency_ms=100.0,
+        port=13305,
+        model="SD-Turbo",
+        prompt="x",
     )
     p = tmp_path / "out.png"
     r.save(str(p))
@@ -102,8 +131,10 @@ LIVE = pytest.mark.skipif(
 async def test_image_render_256_live():
     tier = DirectLemonadeImageTier(port=13305)
     r = await tier.render(ImageRequest(prompt="a small red dot", size="256x256", steps=2))
-    if r.error and "500" in str(r.error):
-        pytest.skip("Image model not loaded into memory (HTTP 500)")
+    if r.error and (
+        "500" in str(r.error) or "not loaded" in str(r.error) or "Server error" in str(r.error)
+    ):
+        pytest.skip("Image model not loaded into memory")
     assert r.ok, f"render failed: {r.error}"
     assert len(r.images) == 1
     assert r.images[0][:8] == PNG_MAGIC
@@ -115,10 +146,13 @@ async def test_image_render_256_live():
 @pytest.mark.asyncio
 async def test_image_render_512_compound_prompt_live():
     tier = DirectLemonadeImageTier(port=13305)
-    r = await tier.render(ImageRequest(
-        prompt="abstract visualization of the HIHO balance point, deep blue and warm orange, no text",
-        size="512x512", steps=4,
-    ))
+    r = await tier.render(
+        ImageRequest(
+            prompt="abstract visualization of the HIHO balance point, deep blue and warm orange, no text",
+            size="512x512",
+            steps=4,
+        )
+    )
     assert r.ok
     assert r.images[0][:8] == PNG_MAGIC
     assert r.bytes_total > 100_000
@@ -153,6 +187,7 @@ async def test_image_is_alive_live():
 
 # ----- Mocked test (always runs) --------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_image_render_mocked(monkeypatch):
     """Verify the request shape and response parsing without hitting the router."""
@@ -164,14 +199,23 @@ async def test_image_render_mocked(monkeypatch):
 
     class _Resp:
         status_code = 200
+
         def json(self):
             return {"data": [{"b64_json": fake_b64}]}
-        def raise_for_status(self): pass
+
+        def raise_for_status(self):
+            pass
 
     class _Client:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *e): return False
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *e):
+            return False
+
         async def post(self, url, *, json):
             captured["url"] = url
             captured["json"] = json

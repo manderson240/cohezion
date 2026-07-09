@@ -319,7 +319,9 @@ class TieredOrchestrator:
             # always completes. Verifier-per-task pattern (arXiv 2605.17554).
             effective_gate = gate
             if gate_chars is not None and gate.min_chars is not None:
-                effective_gate = QualityGate(min_chars=gate_chars, require_nonempty=gate.require_nonempty)
+                effective_gate = QualityGate(
+                    min_chars=gate_chars, require_nonempty=gate.require_nonempty
+                )
             passed, reason = effective_gate.check(view)
             path.append(
                 TierAttempt(

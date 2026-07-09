@@ -53,12 +53,13 @@ def _strip_think(text: str) -> str:
     stripped = _THINK_RE.sub("", text).strip()
     return stripped if stripped else text
 
+
 # Quarter-on-a-string model routing by complexity
 _QUARTER_MODELS: dict[str, str] = {
-    "routine": "llama3.2-1b-FLM",           # NPU, 42 TPS, $0
-    "synthesis": "Bonsai-8B-gguf",           # iGPU-class, balanced
+    "routine": "llama3.2-1b-FLM",  # NPU, 42 TPS, $0
+    "synthesis": "Bonsai-8B-gguf",  # iGPU-class, balanced
     "orchestration": "Qwen3.6-35B-A3B-NoThinking",  # 35B, full reasoning
-    "review": "Qwen3.6-35B-A3B-NoThinking",          # same tier
+    "review": "Qwen3.6-35B-A3B-NoThinking",  # same tier
 }
 
 _QUARTER_MAX_TOKENS: dict[str, int] = {
@@ -118,13 +119,15 @@ class DirectLemonadeTier:
 
     def call(self, prompt: str) -> dict[str, Any]:
         """Synchronous call via urllib (stdlib-only, no httpx dependency)."""
-        payload = json.dumps({
-            "model": self.model_id,
-            "messages": self._build_messages(prompt),
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-            "stream": False,
-        }).encode()
+        payload = json.dumps(
+            {
+                "model": self.model_id,
+                "messages": self._build_messages(prompt),
+                "max_tokens": self.max_tokens,
+                "temperature": self.temperature,
+                "stream": False,
+            }
+        ).encode()
 
         start = time.perf_counter()
         try:
@@ -165,6 +168,7 @@ class DirectLemonadeTier:
 
 # ── Convenience builders ───────────────────────────────────────────────────────
 
+
 def build_direct_npu_tier(
     port: int = _OMNI_PORT,
     model_id: str = "llama3.2-1b-FLM",
@@ -191,12 +195,13 @@ def build_direct_cpu_tier(
 
 # ── Fleet dataclasses ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class FleetNodeResult:
     """Result from a single compute node in a parallel fleet dispatch."""
 
     model_id: str
-    node: str       # "npu" | "igpu" | "cpu"
+    node: str  # "npu" | "igpu" | "cpu"
     text: str
     latency_ms: float
     error: str | None = None
@@ -209,7 +214,7 @@ class FleetResult:
     nodes: list[FleetNodeResult] = field(default_factory=list)
     best_text: str = ""
     best_node: str = ""
-    wall_ms: float = 0.0   # max latency — all nodes ran in parallel
+    wall_ms: float = 0.0  # max latency — all nodes ran in parallel
     cost_usd: float = 0.0  # always free (local silicon)
 
     @property
@@ -218,6 +223,7 @@ class FleetResult:
 
 
 # ── Parallel fleet orchestrator ────────────────────────────────────────────────
+
 
 class ParallelFleetOrchestrator:
     """Fan-out: same prompt → NPU + iGPU + CPU simultaneously → FleetResult.
@@ -234,12 +240,8 @@ class ParallelFleetOrchestrator:
 
     def __init__(self, *, omni_port: int = _OMNI_PORT) -> None:
         self._nodes: dict[str, DirectLemonadeTier] = {
-            "npu": DirectLemonadeTier(
-                port=omni_port, model_id="llama3.2-1b-FLM", max_tokens=256
-            ),
-            "igpu": DirectLemonadeTier(
-                port=omni_port, model_id="Bonsai-8B-gguf", max_tokens=512
-            ),
+            "npu": DirectLemonadeTier(port=omni_port, model_id="llama3.2-1b-FLM", max_tokens=256),
+            "igpu": DirectLemonadeTier(port=omni_port, model_id="Bonsai-8B-gguf", max_tokens=512),
             "cpu": DirectLemonadeTier(
                 port=omni_port, model_id="Qwen3.6-35B-A3B-NoThinking", max_tokens=1024
             ),
@@ -256,15 +258,19 @@ class ParallelFleetOrchestrator:
             if isinstance(raw, Exception):
                 node_results.append(
                     FleetNodeResult(
-                        model_id=tier.model_id, node=node,
-                        text="", latency_ms=0.0, error=str(raw),
+                        model_id=tier.model_id,
+                        node=node,
+                        text="",
+                        latency_ms=0.0,
+                        error=str(raw),
                     )
                 )
             else:
                 d: dict[str, Any] = raw if isinstance(raw, dict) else {}
                 node_results.append(
                     FleetNodeResult(
-                        model_id=tier.model_id, node=node,
+                        model_id=tier.model_id,
+                        node=node,
                         text=d.get("text", ""),
                         latency_ms=d.get("latency_ms", 0.0),
                         error=d.get("error"),
@@ -290,6 +296,7 @@ class ParallelFleetOrchestrator:
 
 
 # ── Multi-node dispatch (sync, ThreadPoolExecutor) ────────────────────────────
+
 
 def multi_node_batch(
     tasks: list[tuple[str, str]],
@@ -366,7 +373,9 @@ def quarter_on_a_string_tier(
     max_tokens = _QUARTER_MAX_TOKENS.get(task_complexity, 512)
     logger.debug(
         "Quarter-on-a-String: complexity=%s → model=%s port=%d",
-        task_complexity, model_id, port,
+        task_complexity,
+        model_id,
+        port,
     )
     return DirectLemonadeTier(
         port=port,

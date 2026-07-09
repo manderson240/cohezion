@@ -8,22 +8,35 @@ wrong impl:
   - one that ignores apply=True (never executes),
   - one that emits the wrong systemctl verb (stop vs start).
 """
+
 from __future__ import annotations
 
 from cohezion.compound.chronos import ChronosController, ChronosJob
 
 
 DEFERRABLE = ChronosJob(
-    source="systemd", job_id="autoresearch.timer", name="autoresearch",
-    schedule="*/7 * * * *", command="bash run_autoresearch.sh", enabled=True,
+    source="systemd",
+    job_id="autoresearch.timer",
+    name="autoresearch",
+    schedule="*/7 * * * *",
+    command="bash run_autoresearch.sh",
+    enabled=True,
 )
 CRITICAL = ChronosJob(
-    source="systemd", job_id="vault-backup.timer", name="vault-backup",
-    schedule="daily", command="python3 vault-backup.py", enabled=True,
+    source="systemd",
+    job_id="vault-backup.timer",
+    name="vault-backup",
+    schedule="daily",
+    command="python3 vault-backup.py",
+    enabled=True,
 )
 HERMES_JOB = ChronosJob(
-    source="hermes", job_id="h1", name="research-cycle", schedule="*/20 * * * *",
-    command="run", enabled=True,
+    source="hermes",
+    job_id="h1",
+    name="research-cycle",
+    schedule="*/20 * * * *",
+    command="run",
+    enabled=True,
 )
 
 

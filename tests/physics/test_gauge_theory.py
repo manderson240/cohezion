@@ -161,9 +161,7 @@ class TestSuperconductingOrderParameter:
         conn = GaugeConnection("Space")
         conn.set_from_state(np.array([0.8, 0.3, 0.6]))  # off-HIHO
         f = conn.superconducting_order_parameter()
-        assert f > 0.0, (
-            f"Non-zero gauge potential must give positive order parameter, got {f}"
-        )
+        assert f > 0.0, f"Non-zero gauge potential must give positive order parameter, got {f}"
 
     def test_sop2_larger_potential_gives_larger_order_parameter(self) -> None:
         """SOP2 discriminating: stronger gauge field → larger condensate fraction.
@@ -191,9 +189,7 @@ class TestSuperconductingOrderParameter:
         # Extreme state
         conn.set_from_state(np.array([1.0, 0.0, 1.0]))
         f = conn.superconducting_order_parameter()
-        assert 0.0 <= f < 1.0, (
-            f"Order parameter must be in [0, 1), got {f}"
-        )
+        assert 0.0 <= f < 1.0, f"Order parameter must be in [0, 1), got {f}"
 
     # ── SOP3 aggregate structure ──────────────────────────────────────────
 
@@ -216,9 +212,7 @@ class TestSuperconductingOrderParameter:
         sop = gauge.superconducting_order_parameter()
 
         for name, f in sop.items():
-            assert 0.0 <= f < 1.0, (
-                f"Order parameter for '{name}' must be in [0, 1), got {f}"
-            )
+            assert 0.0 <= f < 1.0, f"Order parameter for '{name}' must be in [0, 1), got {f}"
 
     def test_sop3_yang_mills_weighted_aggregate(self) -> None:
         """SOP3: aggregate uses Yang-Mills weights 1/g² where g = coupling constant.
@@ -231,8 +225,9 @@ class TestSuperconductingOrderParameter:
         sop_hiho = gauge.superconducting_order_parameter()
         assert sop_hiho["aggregate"] == pytest.approx(0.0, abs=1e-12)
 
-        gauge.set_from_12d_state(np.array([0.9, 0.9, 0.9, 0.9, 0.5, 0.5,
-                                            0.5, 0.5, 0.5, 0.5, 0.5, 0.5]))
+        gauge.set_from_12d_state(
+            np.array([0.9, 0.9, 0.9, 0.9, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
+        )
         sop_perturbed = gauge.superconducting_order_parameter()
         assert sop_perturbed["aggregate"] > 0.0
 

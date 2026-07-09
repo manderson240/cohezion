@@ -7,6 +7,7 @@ risks worth pinning. Each test fails a plausible wrong impl:
   - _first_result that returns on the FIRST envelope even when its result list is empty,
   - _all_results that mishandles a missing/dict result.
 """
+
 from __future__ import annotations
 
 from cohezion.traceability.plan_graph import _all_results, _first_result, _path_to_id
@@ -14,8 +15,8 @@ from cohezion.traceability.plan_graph import _all_results, _first_result, _path_
 
 def test_path_to_id_replaces_slash_dot_dash_and_strips() -> None:
     assert _path_to_id("src/cohezion/foo.py") == "src_cohezion_foo_py"
-    assert _path_to_id("a-b.c") == "a_b_c"          # dashes too, not just slashes
-    assert _path_to_id("./foo") == "foo"            # leading separators stripped
+    assert _path_to_id("a-b.c") == "a_b_c"  # dashes too, not just slashes
+    assert _path_to_id("./foo") == "foo"  # leading separators stripped
     assert _path_to_id("/x/") == "x"
 
 
@@ -39,4 +40,4 @@ def test_first_result_none_when_no_records() -> None:
 def test_all_results_returns_list_and_empty_on_missing_or_dict() -> None:
     assert _all_results([{"result": [{"a": 1}, {"a": 2}]}]) == [{"a": 1}, {"a": 2}]
     assert _all_results([{"result": []}]) == []
-    assert _all_results([{"status": "ERR"}]) == []   # no 'result' key -> []
+    assert _all_results([{"status": "ERR"}]) == []  # no 'result' key -> []

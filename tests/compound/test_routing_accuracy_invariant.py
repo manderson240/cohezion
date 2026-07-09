@@ -76,6 +76,6 @@ def test_cb13_routing_accuracy_agreement():
 
     # Otherwise, assert agreement >=7/8 (>=87.5% ≈ >=90%)
     agreement_rate = agreements / len(FIXTURE_PROMPTS)
-    assert (
-        agreements >= 7
-    ), f"Routing accuracy {agreement_rate:.1%} ({agreements}/{len(FIXTURE_PROMPTS)}) failed CB13 invariant (need >=90%)"
+    assert agreements >= 7, (
+        f"Routing accuracy {agreement_rate:.1%} ({agreements}/{len(FIXTURE_PROMPTS)}) failed CB13 invariant (need >=90%)"
+    )

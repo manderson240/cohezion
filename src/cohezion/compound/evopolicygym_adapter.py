@@ -53,10 +53,13 @@ class SkillRefinerEvoPolicyAgent:
         feedback: EvoPolicyFeedback | dict[str, Any],
     ) -> str:
         if isinstance(feedback, dict):
-            feedback = EvoPolicyFeedback(**{
-                k: v for k, v in feedback.items()
-                if k in {f.name for f in dataclasses.fields(EvoPolicyFeedback)}
-            })
+            feedback = EvoPolicyFeedback(
+                **{
+                    k: v
+                    for k, v in feedback.items()
+                    if k in {f.name for f in dataclasses.fields(EvoPolicyFeedback)}
+                }
+            )
 
         execution_result: dict[str, Any] = {
             "success": feedback.success,
@@ -198,5 +201,6 @@ def run_benchmark(n_episodes: int = 20) -> None:
 
 if __name__ == "__main__":
     import sys
+
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 20
     run_benchmark(n_episodes=n)

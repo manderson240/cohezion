@@ -218,6 +218,7 @@ class TestEvalScorer:
     def test_custom_scorer(self, scorer):
         def custom_fn(out, _):
             return 1.0 if "special" in out else 0.0
+
         task = EvalTask(
             task_id="t1",
             domain=TaskDomain.REASONING,

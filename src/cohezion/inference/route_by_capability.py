@@ -68,8 +68,12 @@ def _score(entry: ModelEntry, task: Task) -> float:
     if entry.profile is None:
         return float("-inf")
     intent = _task_intent_words(task)
-    strengths_hit = sum(1 for s in entry.profile.strengths if s in intent or any(i in s for i in intent))
-    weaknesses_hit = sum(1 for w in entry.profile.weaknesses if w in intent or any(i in w for i in intent))
+    strengths_hit = sum(
+        1 for s in entry.profile.strengths if s in intent or any(i in s for i in intent)
+    )
+    weaknesses_hit = sum(
+        1 for w in entry.profile.weaknesses if w in intent or any(i in w for i in intent)
+    )
     return float(strengths_hit) - 2.0 * float(weaknesses_hit)
 
 

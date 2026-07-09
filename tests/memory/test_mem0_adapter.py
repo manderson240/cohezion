@@ -1,3 +1,6 @@
+import pytest
+
+pytest.importorskip("mem0", reason="mem0 optional dep not installed")
 """Tests for the local-first mem0 adapter (cohezion.memory.mem0_adapter).
 
 Two layers:

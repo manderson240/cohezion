@@ -54,7 +54,5 @@ def test_default_profiles_for_known_models_match_public_cards():
         assert gemma.thinking_mode == "always"
 
     # A code-oriented model should have "code" in strengths
-    code_oriented = [
-        k for k, p in DEFAULT_PROFILES.items() if "code" in p.strengths
-    ]
+    code_oriented = [k for k, p in DEFAULT_PROFILES.items() if "code" in p.strengths]
     assert len(code_oriented) >= 1

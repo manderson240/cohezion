@@ -44,6 +44,7 @@ def model_footprint(model_id: str, fleet=None) -> float:
                Pass an injected fleet in tests to avoid HTTP calls.
     """
     from cohezion.inference.local_fleet import get_fleet
+
     f = fleet if fleet is not None else get_fleet()
     size = f.size_gb(model_id)
     return size + _kv_overhead(size)
@@ -107,7 +108,8 @@ class RamScheduler:
 
         # Evict LRU large models until we have room.
         candidate_keys = [
-            k for k in self._lru
+            k
+            for k in self._lru
             if self._lru[k][1] > 10.0  # only evict large models
         ]
         while self._current_gb() + new_fp > self._ceiling_gb and candidate_keys:
@@ -118,7 +120,10 @@ class RamScheduler:
         if self._current_gb() + new_fp > self._ceiling_gb:
             logger.warning(
                 "RamScheduler: cannot fit %s (%.1f GB); current %.1f GB / %.1f GB",
-                model_id, new_fp, self._current_gb(), self._ceiling_gb,
+                model_id,
+                new_fp,
+                self._current_gb(),
+                self._ceiling_gb,
             )
         else:
             self._register(model_id, new_fp)
