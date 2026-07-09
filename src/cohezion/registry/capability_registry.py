@@ -261,9 +261,37 @@ class CapabilityRegistry:
                 except Exception as e:
                     logger.error(f"Failed to scan agent {py_file}: {e}")
 
+    def _resolve_agents_dir(self) -> Path:
+        """Resolve .claude/agents/, following worktree indirection when sparse.
+
+        Linked worktrees may be created with a sparse-checkout cone that
+        excludes .claude/, so the tracked agent cards are absent on disk even
+        though they belong to this repository. When the local dir has no
+        cards, follow the ``.git`` file (``gitdir: <path>``) and its
+        ``commondir`` to the repository common root and use its cards, so
+        A2A discovery behaves identically in every checkout.
+        """
+        local = self.root_dir / ".claude" / "agents"
+        if any(local.glob("*.md")):
+            return local
+        gitfile = self.root_dir / ".git"
+        if gitfile.is_file():
+            try:
+                gitdir = Path(gitfile.read_text().split("gitdir:", 1)[1].strip())
+                commondir_file = gitdir / "commondir"
+                common = gitdir
+                if commondir_file.exists():
+                    common = (gitdir / commondir_file.read_text().strip()).resolve()
+                fallback = common.parent / ".claude" / "agents"
+                if any(fallback.glob("*.md")):
+                    return fallback
+            except (OSError, IndexError):
+                pass
+        return local
+
     def _scan_claude_agents(self) -> None:
         """Scan .claude/agents/ for Claude Code markdown agent definitions."""
-        agents_dir = self.root_dir / ".claude" / "agents"
+        agents_dir = self._resolve_agents_dir()
         if not agents_dir.exists():
             return
         for md_file in agents_dir.glob("*.md"):
@@ -277,12 +305,17 @@ class CapabilityRegistry:
                 meta = yaml.safe_load(parts[1])
                 if not isinstance(meta, dict):
                     continue
+                # Fallback cards live outside root_dir (repo common root)
+                try:
+                    card_path = str(md_file.relative_to(self.root_dir))
+                except ValueError:
+                    card_path = str(md_file)
                 self.capabilities.append(
                     Capability(
                         name=meta.get("name", md_file.stem),
                         type="agent",
                         description=meta.get("description", f"Specialist agent: {md_file.stem}"),
-                        path=str(md_file.relative_to(self.root_dir)),
+                        path=card_path,
                         tags=["agent", "specialist"],
                     )
                 )
