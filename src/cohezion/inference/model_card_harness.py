@@ -27,6 +27,9 @@ if TYPE_CHECKING:
     from cohezion.inference.registry import Task
 
 
+from cohezion.inference.lemonade_recipes import get_inference_params, get_recipe
+
+
 # ── Model capability facts (from model card + empirical measurement) ─────────
 
 # Labels that indicate thinking-mode behaviour
@@ -41,6 +44,14 @@ _THINKING_OVERHEAD_TOKENS = {
     "Gemma-4-E2B-it-GGUF": 1800,  # estimate
     "default_thinking": 500,  # conservative default for unknown thinking models
 }
+
+
+def _thinking_overhead(model_id: str) -> int:
+    """Return thinking overhead tokens, preferring the curated recipe."""
+    recipe = get_recipe(model_id)
+    if recipe is not None and recipe.metrics.thinking_overhead_tokens is not None:
+        return recipe.metrics.thinking_overhead_tokens
+    return _THINKING_OVERHEAD_TOKENS.get(model_id, _THINKING_OVERHEAD_TOKENS["default_thinking"])
 
 # Per-output-type optimal max_tokens (thinking budget + output headroom)
 _OUTPUT_TYPE_MAX_TOKENS: dict[str, int] = {
@@ -106,9 +117,12 @@ class ModelCardHarness:
                     return m["id"]
             # Fallback: Qwen3 with /no_think
             for m in self._by_id.values():
-                if "reasoning" in m.get("labels", []) and m.get("downloaded"):
-                    if self.is_qwen3_family(m["id"]):
-                        return m["id"]
+                if (
+                    "reasoning" in m.get("labels", [])
+                    and m.get("downloaded")
+                    and self.is_qwen3_family(m["id"])
+                ):
+                    return m["id"]
 
         if output_type in ("math_reasoning", "long_generation"):
             for m in self._by_id.values():
@@ -118,7 +132,48 @@ class ModelCardHarness:
         return None
 
     def get_params(self, output_type: str, model_id: str) -> InferenceParams:
-        """Return inference params for this model + output_type combination."""
+        """Return inference params for this model + output_type combination.
+
+        First consults the curated ``lemonade_recipes.py`` recipe (if one exists),
+        then falls back to the legacy prefix/heuristic logic so behaviour for
+        unregistered thinking/Qwen3 models remains unchanged.
+        """
+        # Prefer the curated recipe when available.
+        recipe = get_recipe(model_id)
+        if recipe is not None and recipe.supports_thinking:
+            # Thinking-mode models use the recipe's empirical overhead and
+            # output budgets so the thinking trace does not consume the answer.
+            bundle = get_inference_params(model_id, output_type=output_type)
+            overhead = _thinking_overhead(model_id)
+            extra_body = dict(bundle.get("extra_body", {}))
+            if overhead:
+                budget = min(overhead, bundle["max_tokens"] - 50)
+                extra_body["thinking"] = {"type": "enabled", "budget_tokens": max(budget, 50)}
+            return InferenceParams(
+                model_id=model_id,
+                max_tokens=bundle["max_tokens"],
+                prompt_prefix="",
+                extra_body=extra_body,
+            )
+
+        if recipe is not None and self.is_qwen3_family(model_id):
+            # Qwen3 /no_think short-cut: when a recipe supports reasoning but we
+            # want a cheap short/code answer, mirror the legacy prompt-prefix path.
+            if output_type in ("code", "short_categorical", "short_answer", "medium_generation"):
+                return InferenceParams(
+                    model_id=model_id,
+                    max_tokens=_OUTPUT_TYPE_MAX_TOKENS.get(output_type, 400),
+                    prompt_prefix="/no_think\n",
+                    extra_body={},
+                )
+            return InferenceParams(
+                model_id=model_id,
+                max_tokens=_OUTPUT_TYPE_MAX_TOKENS.get(output_type, 400),
+                prompt_prefix="",
+                extra_body={},
+            )
+
+        # Legacy fallback for models without a curated recipe.
         max_tokens = _OUTPUT_TYPE_MAX_TOKENS.get(output_type, 400)
         prompt_prefix = ""
         extra_body: dict[str, Any] = {}
@@ -135,9 +190,7 @@ class ModelCardHarness:
 
         elif self.is_thinking_model(model_id):
             # Thinking models: bound reasoning via budget_tokens API
-            overhead = _THINKING_OVERHEAD_TOKENS.get(
-                model_id, _THINKING_OVERHEAD_TOKENS["default_thinking"]
-            )
+            overhead = _thinking_overhead(model_id)
             budget = min(_DEFAULT_THINKING_BUDGET, max(50, max_tokens - 100))
 
             if output_type == "code":
