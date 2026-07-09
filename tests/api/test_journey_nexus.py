@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 from typing import Any
 
+import numpy as np
 import pytest
 
 from cohezion.api.services.journey_nexus import (
@@ -263,7 +264,7 @@ async def test_quadrature_maps_result_fields(monkeypatch):
 
 class _FakeTTSResult:
     def __init__(self) -> None:
-        self.audio_b64 = base64.b64encode(b"fake-mp3").decode("ascii")
+        self.audio = b"fake-mp3"
 
 
 class _FakeImageResult:
@@ -276,9 +277,10 @@ class _FakeTTS:
         self.last_text: str | None = None
         self.last_voice: str | None = None
 
-    async def speak(self, *, text: str, voice: str) -> _FakeTTSResult:
-        self.last_text = text
-        self.last_voice = voice
+    async def speak(self, request: Any) -> _FakeTTSResult:
+        # Real contract: DirectLemonadeTTSTier.speak(request: TTSRequest)
+        self.last_text = request.text
+        self.last_voice = request.voice
         return _FakeTTSResult()
 
 
@@ -299,22 +301,19 @@ class _FakeOmni:
         self.image_tier = _FakeImageTier()
 
 
-class _FakeVAE:
-    def __init__(self) -> None:
-        self.last_text: str | None = None
-
-    def encode(self, text: str) -> list[float]:
-        self.last_text = text
-        return [0.5] * 256
+def _fake_encode_text(text: str) -> np.ndarray:
+    return np.full(256, 0.5, dtype=np.float32)
 
 
 @pytest.mark.asyncio
-async def test_narrate_no_image_uses_vae_and_tts(monkeypatch):
+async def test_narrate_no_image_uses_encoder_and_tts(monkeypatch):
     nx = JourneyNexus()
     fake_omni = _FakeOmni()
     monkeypatch.setattr(nx, "_get_omni_tier", lambda: fake_omni)
-    fake_vae = _FakeVAE()
-    monkeypatch.setattr("cohezion.api.services.flume.get_vae", lambda: fake_vae)
+    monkeypatch.setattr(
+        "cohezion.api.services.journey_nexus._encode_journey_text",
+        _fake_encode_text,
+    )
     monkeypatch.setattr(
         "cohezion.api.services.journey_loader.load_journey",
         lambda jid: {"id": jid, "intent": "test intent"},
@@ -338,8 +337,10 @@ async def test_narrate_with_image_renders(monkeypatch):
     nx = JourneyNexus()
     fake_omni = _FakeOmni()
     monkeypatch.setattr(nx, "_get_omni_tier", lambda: fake_omni)
-    fake_vae = _FakeVAE()
-    monkeypatch.setattr("cohezion.api.services.flume.get_vae", lambda: fake_vae)
+    monkeypatch.setattr(
+        "cohezion.api.services.journey_nexus._encode_journey_text",
+        _fake_encode_text,
+    )
     monkeypatch.setattr(
         "cohezion.api.services.journey_loader.load_journey",
         lambda jid: {"id": jid, "intent": "paint a sphere"},
@@ -349,6 +350,69 @@ async def test_narrate_with_image_renders(monkeypatch):
     assert out.image_b64 == base64.b64encode(b"fake-png").decode("ascii")
     assert fake_omni.image_tier.last_prompt == "paint a sphere"
     assert fake_omni.image_tier.last_journey_id == "j2"
+
+
+@pytest.mark.asyncio
+async def test_narrate_real_encode_path_offline_fallback(monkeypatch):
+    """Regression: narrate() must not require a mocked VAE.
+
+    The old implementation called flume.get_vae().encode(text) — but the real
+    FlumeVAETrainer has no encode() method, so un-mocked narrate crashed with
+    AttributeError (hidden by _FakeVAE). This exercises the REAL encode path
+    with the OmniRouter forced unavailable: the deterministic hash fallback
+    must produce a coherence in [0, 1] with no crash.
+    """
+    nx = JourneyNexus()
+    fake_omni = _FakeOmni()
+    monkeypatch.setattr(nx, "_get_omni_tier", lambda: fake_omni)
+    monkeypatch.setattr(
+        "cohezion.inference.lemonade_embed_bridge.LemonadeEmbedBridge.is_available",
+        lambda self: False,
+    )
+    monkeypatch.setattr(
+        "cohezion.api.services.journey_loader.load_journey",
+        lambda jid: {"id": jid, "intent": "offline narration"},
+    )
+
+    out = await nx.narrate("j3")
+    assert isinstance(out, NarrateResult)
+    assert 0.0 <= out.coherence <= 1.0
+    assert "offline narration" in out.text
+    assert out.audio_b64
+
+
+def test_encode_journey_text_prefers_live_bridge(monkeypatch):
+    """When the OmniRouter is healthy, the semantic embedding is used as-is."""
+    from cohezion.api.services.journey_nexus import _encode_journey_text
+
+    sentinel = np.full(256, 1.0 / 16.0, dtype=np.float32)  # unit norm
+    monkeypatch.setattr(
+        "cohezion.inference.lemonade_embed_bridge.LemonadeEmbedBridge.is_available",
+        lambda self: True,
+    )
+    monkeypatch.setattr(
+        "cohezion.inference.lemonade_embed_bridge.LemonadeEmbedBridge.encode",
+        lambda self, text: sentinel,
+    )
+    z = _encode_journey_text("hello manifold")
+    assert np.allclose(z, sentinel)
+
+
+def test_encode_journey_text_zero_vector_falls_back_to_hash(monkeypatch):
+    """The bridge's failure sentinel (zero vector) must trigger the hash fallback."""
+    from cohezion.api.services.journey_nexus import _encode_journey_text
+
+    monkeypatch.setattr(
+        "cohezion.inference.lemonade_embed_bridge.LemonadeEmbedBridge.is_available",
+        lambda self: True,
+    )
+    monkeypatch.setattr(
+        "cohezion.inference.lemonade_embed_bridge.LemonadeEmbedBridge.encode",
+        lambda self, text: np.zeros(256, dtype=np.float32),
+    )
+    z = _encode_journey_text("hello manifold")
+    assert z.shape == (256,)
+    assert float(np.linalg.norm(z)) > 0.0  # non-degenerate: hash fallback engaged
 
 
 class _FakeToolCallLog:
