@@ -122,7 +122,7 @@ async def test_lemonade_chat_parses_choice(fake_client: dict[str, Any]) -> None:
 
 @pytest.mark.anyio
 async def test_lemonade_server_status(fake_client: dict[str, Any]) -> None:
-    fake_client["http://localhost:13305/api/v1/status"] = _FakeResponse(200, {"status": "ok"})
+    fake_client["http://localhost:13305/api/v1/health"] = _FakeResponse(200, {"status": "ok"})
     fake_client["http://localhost:13305/v1/models"] = _FakeResponse(200, {"data": []})
     result = await server.lemonade_server_status()
     assert result["status"]["status"] == "ok"

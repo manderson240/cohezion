@@ -336,7 +336,8 @@ async def lemonade_transcribe_audio(
 @app.tool()
 async def lemonade_server_status() -> dict[str, Any]:
     """Return the local Lemonade server status and loaded models."""
-    status = await _safe_get("/api/v1/status")
+    # /api/v1/status does not exist on Lemonade 8.x — health is the status surface
+    status = await _safe_get("/api/v1/health")
     models = await _safe_get("/v1/models")
     return {
         "status": status,
