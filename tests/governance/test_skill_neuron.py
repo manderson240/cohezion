@@ -7,6 +7,7 @@ country='skill' neuron. Each test fails a plausible wrong impl:
   - one that mislabels the region (must be 'skill'),
   - one that deposits more (or fewer) than exactly one neuron per gate-survivor.
 """
+
 from __future__ import annotations
 
 from cohezion.governance.knowledge_bridge import (

@@ -22,6 +22,7 @@ import urllib.request
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # Encoder-calibrated cosine threshold for 768D nomic-embed (harness CA1).

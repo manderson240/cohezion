@@ -145,6 +145,6 @@ def test_executor_factory_produces_executor_with_skill_state_encoder():
     assert hasattr(ex, "_skill_state_encoder"), (
         "ExecutorFactory-produced executor must have _skill_state_encoder attribute"
     )
-    assert ex._skill_state_encoder is None or isinstance(ex._skill_state_encoder, SkillStateEncoder), (
-        "_skill_state_encoder must be SkillStateEncoder or None (import guard)"
-    )
+    assert ex._skill_state_encoder is None or isinstance(
+        ex._skill_state_encoder, SkillStateEncoder
+    ), "_skill_state_encoder must be SkillStateEncoder or None (import guard)"

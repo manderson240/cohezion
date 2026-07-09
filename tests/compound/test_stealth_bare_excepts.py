@@ -31,7 +31,9 @@ def test_bare_except_flagged(tmp_path: Path) -> None:
 
 
 def test_catchall_exception_flagged(tmp_path: Path) -> None:
-    out = _flags(tmp_path, "def f():\n    try:\n        pass\n    except Exception:\n        pass\n")
+    out = _flags(
+        tmp_path, "def f():\n    try:\n        pass\n    except Exception:\n        pass\n"
+    )
     assert len(out) == 1 and "Exception" in out[0][1]
 
 
@@ -54,7 +56,9 @@ def test_sibling_tuple_not_flagged(tmp_path: Path) -> None:
 
 
 def test_narrow_except_not_flagged(tmp_path: Path) -> None:
-    out = _flags(tmp_path, "def f():\n    try:\n        pass\n    except ValueError:\n        pass\n")
+    out = _flags(
+        tmp_path, "def f():\n    try:\n        pass\n    except ValueError:\n        pass\n"
+    )
     assert out == []
 
 

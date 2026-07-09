@@ -1620,7 +1620,6 @@ class TestShadowCanaryWarmStart:
         Wrong impl (no warm-start) leaves canary._history empty → baseline_count == 0.
         """
         import json
-        import math
 
         # Build a state file with process_rewards for the skill
         rewards = [0.3, -0.1, 0.4, 0.2, 0.5]  # 5 samples > 0 → all map to quality > 0.5

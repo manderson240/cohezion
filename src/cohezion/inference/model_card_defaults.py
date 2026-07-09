@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+
 # Registry of model-card sampling defaults.
 # Keys are model name substrings (matched case-insensitive against the payload model field).
 _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {

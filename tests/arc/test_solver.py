@@ -40,6 +40,7 @@ def test_chain_apply():
 def test_score_chain_perfect():
     # Use case where ONLY gravity_fall matches (rotate_90 does not)
     from cohezion.arc.transforms import ALL_TRANSFORMS
+
     train = [{"input": np.array([[1, 0], [0, 2]]), "output": np.array([[0, 0], [1, 2]])}]
     score = _score_chain(["gravity_fall"], train, ALL_TRANSFORMS)
     assert score == 1.0

@@ -161,7 +161,10 @@ class SmartOrchestrator:
         spec = get_specialist(task_type)
         logger.info(
             "Routing task_type=%s → model=%s (backend=%s, ctx=%d)",
-            task_type, spec.model_id, spec.backend, spec.ctx_size,
+            task_type,
+            spec.model_id,
+            spec.backend,
+            spec.ctx_size,
         )
         return await self.dispatch(spec, prompt)
 
@@ -179,23 +182,25 @@ class SmartOrchestrator:
         for task_type, spec in SPECIALISTS.items():
             if task_type in ("classify", "embed"):
                 continue  # not useful as callable tools
-            tools.append({
-                "type": "function",
-                "function": {
-                    "name": f"call_{task_type}_specialist",
-                    "description": spec.description,
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "task": {
-                                "type": "string",
-                                "description": "The specific task to delegate to this specialist.",
-                            }
+            tools.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": f"call_{task_type}_specialist",
+                        "description": spec.description,
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "task": {
+                                    "type": "string",
+                                    "description": "The specific task to delegate to this specialist.",
+                                }
+                            },
+                            "required": ["task"],
                         },
-                        "required": ["task"],
                     },
-                },
-            })
+                }
+            )
         return tools
 
     async def handle_tool_call(self, tool_name: str, task: str) -> str:
@@ -208,7 +213,7 @@ class SmartOrchestrator:
         prefix = "call_"
         suffix = "_specialist"
         if tool_name.startswith(prefix) and tool_name.endswith(suffix):
-            task_type = tool_name[len(prefix):-len(suffix)]
+            task_type = tool_name[len(prefix) : -len(suffix)]
         else:
             task_type = DEFAULT_SPECIALIST
 

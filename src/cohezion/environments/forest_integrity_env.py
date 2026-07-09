@@ -28,9 +28,9 @@ logger = logging.getLogger(__name__)
 
 N_PATCHES = 16
 GRID_SIDE = 4
-N_INDICATORS = 5   # biodiversity, canopy, carbon_stock, connectivity, disturbance_regime
+N_INDICATORS = 5  # biodiversity, canopy, carbon_stock, connectivity, disturbance_regime
 OBS_DIM = N_PATCHES * N_INDICATORS + 2  # 82 total
-CONNECT_THRESHOLD = 0.5   # mean_integrity > this → patch in giant component
+CONNECT_THRESHOLD = 0.5  # mean_integrity > this → patch in giant component
 FD_WINDOW = 20
 HIHO_LOW = 1.3
 HIHO_HIGH = 1.7
@@ -138,6 +138,7 @@ class ForestIntegrityEnv(gym.Env):
             return 1.5
         try:
             from cohezion.inference.fractal_metrics import higuchi_fd
+
             return float(np.clip(higuchi_fd(self._integrity_history[-FD_WINDOW:]), 1.0, 2.0))
         except Exception:
             return 1.5
@@ -153,17 +154,15 @@ class ForestIntegrityEnv(gym.Env):
         self, *, seed: int | None = None, options: dict[str, Any] | None = None
     ) -> tuple[np.ndarray, dict[str, Any]]:
         super().reset(seed=seed)
-        self._integrity = self.np_random.uniform(
-            0.4, 1.0, size=(N_PATCHES, N_INDICATORS)
-        ).astype(np.float32)
+        self._integrity = self.np_random.uniform(0.4, 1.0, size=(N_PATCHES, N_INDICATORS)).astype(
+            np.float32
+        )
         self._integrity_history = []
         self._step_count = 0
         self._protected = set()
         return self._make_obs(), {}
 
-    def step(
-        self, action: int
-    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         patch_idx = action // 3
         action_type = action % 3
         self._protected = set()
@@ -171,9 +170,7 @@ class ForestIntegrityEnv(gym.Env):
         if action_type == ACTION_PROTECT:
             self._protected.add(patch_idx)  # no degradation applied this step
         elif action_type == ACTION_RESTORE:
-            self._integrity[patch_idx] = np.clip(
-                self._integrity[patch_idx] + 0.05, 0.0, 1.0
-            )
+            self._integrity[patch_idx] = np.clip(self._integrity[patch_idx] + 0.05, 0.0, 1.0)
         # ACTION_MONITOR: stochastic drift only (handled below)
 
         # Stochastic degradation — protected patches are clamped after

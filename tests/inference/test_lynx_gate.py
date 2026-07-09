@@ -8,11 +8,11 @@ import numpy as np
 import pytest
 
 from cohezion.inference.lynx_gate import (
+    _N_FEATURES,
     EscalationProbe,
     LYNXGate,
     RouteResult,
     _extract_features,
-    _N_FEATURES,
 )
 from cohezion.inference.orchestrator import QualityGate
 

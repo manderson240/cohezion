@@ -176,9 +176,7 @@ class GaiaDataAgent:
                 trigger.type.name,
             )
         else:
-            logger.warning(
-                "GaiaDataAgent[%s] %s dropped — bus queue full", self.domain, action
-            )
+            logger.warning("GaiaDataAgent[%s] %s dropped — bus queue full", self.domain, action)
 
     # ── Proactive check (single-iteration catch-up pass) ──────────────────────
 

@@ -1,4 +1,5 @@
 """Tests for CapabilityMatrix.scan_for_task() — pre-flight gap analysis."""
+
 from cohezion.compound.capability_matrix import CapabilityMatrix
 
 

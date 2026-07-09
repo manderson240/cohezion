@@ -56,18 +56,21 @@ async def test_get_misses_when_card_signature_differs():
     )
     # The L1 cache key includes the card signature
     key_qwen3 = SemanticCache._full_key(
-        "refactor function X", "", "qwen3-coder:30b",
+        "refactor function X",
+        "",
+        "qwen3-coder:30b",
         ("qwen3-coder:30b", "qwen3", "optional_prefix"),
     )
     key_phi4 = SemanticCache._full_key(
-        "refactor function X", "", "phi4:latest",
+        "refactor function X",
+        "",
+        "phi4:latest",
         ("phi4:latest", "phi4", "never"),
     )
-    assert key_qwen3 != key_phi4, (
-        "Card signature must change the cache key for the same prompt"
-    )
+    assert key_qwen3 != key_phi4, "Card signature must change the cache key for the same prompt"
     # The L1 cache has an entry for key_qwen3 but NOT key_phi4
     import hashlib
+
     h_qwen3 = hashlib.sha256(key_qwen3.encode()).hexdigest()[:16]
     h_phi4 = hashlib.sha256(key_phi4.encode()).hexdigest()[:16]
     assert h_qwen3 in cache.l1_cache
@@ -160,8 +163,7 @@ async def test_put_writes_surreal_row_with_ttl():
     from cohezion.cache.semantic_cache import SemanticCache
 
     cache = SemanticCache(similarity_threshold=0.0, enable_adaptive_threshold=False)
-    with patch("cohezion.cache.semantic_cache._upsert_cache_entry",
-              new=AsyncMock()) as mock_upsert:
+    with patch("cohezion.cache.semantic_cache._upsert_cache_entry", new=AsyncMock()) as mock_upsert:
         await cache.put(
             prompt="x",
             response="ok",
@@ -198,8 +200,10 @@ async def test_executor_cache_hit_short_circuits_execute_fn():
         return_value=("qwen3-coder:30b", "qwen3", "optional_prefix")
     )
 
-    with patch("cohezion.compound.executor._call_execute_fn",
-               new=AsyncMock(side_effect=AssertionError("should not call"))):
+    with patch(
+        "cohezion.compound.executor._call_execute_fn",
+        new=AsyncMock(side_effect=AssertionError("should not call")),
+    ):
         result = executor.execute_task(
             task_description="x",
             skill_name="y",

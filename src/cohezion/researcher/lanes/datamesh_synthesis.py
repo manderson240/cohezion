@@ -35,9 +35,7 @@ class SynthesisNote:
     consumer_optimal_ctx: int | None = None
 
 
-def _split_note_by_consumer_ctx(
-    *, text: str, consumer_optimal_ctx: int
-) -> list[str]:
+def _split_note_by_consumer_ctx(*, text: str, consumer_optimal_ctx: int) -> list[str]:
     """Split `text` into chunks ≤ consumer_optimal_ctx * 0.8.
 
     The 0.8 factor leaves 20% headroom for the consumer's preamble
@@ -115,9 +113,7 @@ class DatameshSynthesisLane:
 
     # ── Write paths (async per AGENTS.md "All I/O must be async") ──────
 
-    async def _write_to_vault(
-        self, *, notes: list[SynthesisNote], date: datetime
-    ) -> Path:
+    async def _write_to_vault(self, *, notes: list[SynthesisNote], date: datetime) -> Path:
         root = self._vault_root()
         root.mkdir(parents=True, exist_ok=True)
         out = root / f"DAILY-DIGEST-{date.strftime('%Y-%m-%d')}.md"
@@ -159,6 +155,7 @@ class DatameshSynthesisLane:
             def _append(path: Path, content: str) -> None:
                 with path.open("a") as f:
                     f.write(content)
+
             await asyncio.to_thread(_append, jsonl_path, "".join(rows))
 
     # ── The run method ─────────────────────────────────────────────────

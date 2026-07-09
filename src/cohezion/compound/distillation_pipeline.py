@@ -17,7 +17,7 @@ from cohezion.compound.evolution_training_bridge import (
 from cohezion.compound.group_evolution import (
     ExperienceTrace,
     GroupEvolutionEngine,
-    TraceType,
+    ExperienceTraceType,
 )
 from cohezion.integrations.telegram_bot import TelegramCommunicationHub
 
@@ -39,7 +39,7 @@ async def run_distillation() -> None:
                 trace_id="trc_001",
                 agent_id="claude-opus",
                 prompt_hash="hash_a",
-                trace_type=TraceType.REASONING_CHAIN,
+                trace_type=ExperienceTraceType.REASONING_CHAIN,
                 content="Definitive logic flow...",
                 quality_score=0.95,
                 metadata={"complexity": "high", "success": True},
@@ -50,7 +50,7 @@ async def run_distillation() -> None:
                 trace_id="trc_002",
                 agent_id="gemini-pro",
                 prompt_hash="hash_b",
-                trace_type=TraceType.EXECUTION_RESULT,
+                trace_type=ExperienceTraceType.EXECUTION_RESULT,
                 content="Optimal code generation...",
                 quality_score=0.92,
                 metadata={"complexity": "high", "success": True},
@@ -61,7 +61,7 @@ async def run_distillation() -> None:
                 trace_id="trc_003",
                 agent_id="phi4-mini",
                 prompt_hash="hash_c",
-                trace_type=TraceType.EXECUTION_RESULT,
+                trace_type=ExperienceTraceType.EXECUTION_RESULT,
                 content="Failed loop...",
                 quality_score=0.30,
                 metadata={"complexity": "high", "success": False},

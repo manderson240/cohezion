@@ -1,3 +1,6 @@
+import pytest
+
+pytest.importorskip("playwright")
 """V-model playwright test suite for Cohezion marimo walkthrough notebooks.
 
 Three V-model layers:
@@ -31,6 +34,7 @@ Usage:
     uv run pytest tests/walkthroughs/test_marimo_playwright.py -k flume -v
     uv run pytest tests/walkthroughs/test_marimo_playwright.py -k gravity -v
 """
+
 from __future__ import annotations
 
 import re
@@ -42,13 +46,14 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import sync_playwright
 
+
 _WALKTHROUGHS_DIR = Path(__file__).parent.parent.parent / "docs" / "walkthroughs"
 
 # (notebook filename, port, min expected sliders, expected title fragment, id-slug)
 _NOTEBOOKS = [
     ("cohezion_compound_loop.py", 2720, 2, "Cohezion Compound Loop", "compound"),
-    ("flume_latent_space.py",     2721, 4, "FLUME Latent Space",     "flume"),
-    ("thermodynamic_gravity_sweep.py", 2722, 3, "ThermodynamicGravity",  "gravity"),
+    ("flume_latent_space.py", 2721, 4, "FLUME Latent Space", "flume"),
+    ("thermodynamic_gravity_sweep.py", 2722, 3, "ThermodynamicGravity", "gravity"),
 ]
 
 
@@ -78,8 +83,15 @@ def marimo_server(request):
 
     proc = subprocess.Popen(
         [
-            "uv", "run", "marimo", "run", str(nb_path),
-            "--no-token", "--headless", "--port", str(port),
+            "uv",
+            "run",
+            "marimo",
+            "run",
+            str(nb_path),
+            "--no-token",
+            "--headless",
+            "--port",
+            str(port),
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -100,6 +112,7 @@ def marimo_server(request):
 
 
 # ── S: Structural layer ────────────────────────────────────────────────────────
+
 
 class TestStructural:
     """Layer 1: assert DOM elements are present and correctly formed.
@@ -141,13 +154,9 @@ class TestStructural:
             page.goto(base_url, wait_until="networkidle")
             # state="attached": element is in DOM (not necessarily visible)
             page.wait_for_selector("marimo-slider", state="attached", timeout=10000)
-            count = page.evaluate(
-                "() => document.querySelectorAll('marimo-slider').length"
-            )
+            count = page.evaluate("() => document.querySelectorAll('marimo-slider').length")
             browser.close()
-        assert count >= n_min, (
-            f"Expected ≥{n_min} marimo-slider elements in DOM, found {count}"
-        )
+        assert count >= n_min, f"Expected ≥{n_min} marimo-slider elements in DOM, found {count}"
 
     def test_S4_plotly_chart_present(self, marimo_server):
         """S4: at least one plotly chart rendered (.js-plotly-plot div)."""
@@ -173,9 +182,7 @@ class TestStructural:
             page = browser.new_page()
             page.goto(base_url, wait_until="networkidle")
             page.wait_for_selector("marimo-text-area", state="attached", timeout=8000)
-            count = page.evaluate(
-                "() => document.querySelectorAll('marimo-text-area').length"
-            )
+            count = page.evaluate("() => document.querySelectorAll('marimo-text-area').length")
             browser.close()
         assert count >= 1, f"Expected ≥1 marimo-text-area element, found {count}"
 
@@ -204,9 +211,7 @@ class TestStructural:
                 )
 
             browser.close()
-        assert agent_btn_count >= 1, (
-            f"Expected ≥1 agent/run button, found {agent_btn_count}"
-        )
+        assert agent_btn_count >= 1, f"Expected ≥1 agent/run button, found {agent_btn_count}"
 
     def test_S7_lemonade_url_input_present(self, marimo_server):
         """S7: Lemonade URL text input present with :13305 default.
@@ -272,6 +277,7 @@ class TestStructural:
 
 
 # ── B: Behavioral layer ────────────────────────────────────────────────────────
+
 
 class TestBehavioral:
     """Layer 2: verify reactivity — user interaction triggers re-render."""
@@ -368,9 +374,7 @@ class TestBehavioral:
                     pass
 
             # Click run button via ARIA role
-            agent_btn = page.get_by_role(
-                "button", name=re.compile(r"Agent", re.IGNORECASE)
-            )
+            agent_btn = page.get_by_role("button", name=re.compile(r"Agent", re.IGNORECASE))
             clicked = False
             if agent_btn.count() > 0:
                 try:
@@ -401,6 +405,7 @@ class TestBehavioral:
 
 # ── I: Integration layer ───────────────────────────────────────────────────────
 
+
 class TestIntegration:
     """Layer 3: system boundaries — agent gate and error handling."""
 
@@ -429,7 +434,9 @@ class TestIntegration:
                 browser.close()
                 pytest.skip("Could not locate Lemonade URL input — skipping I2")
 
-            assert url_input is not None  # guard for type checker; pytest.skip() above always raises
+            assert (
+                url_input is not None
+            )  # guard for type checker; pytest.skip() above always raises
 
             # Point to an unreachable port
             url_input.fill("http://localhost:9999")
@@ -447,9 +454,7 @@ class TestIntegration:
                     pass
 
             # Click run
-            agent_btn = page.get_by_role(
-                "button", name=re.compile(r"Agent", re.IGNORECASE)
-            )
+            agent_btn = page.get_by_role("button", name=re.compile(r"Agent", re.IGNORECASE))
             if agent_btn.count() > 0:
                 try:
                     agent_btn.first.click(timeout=2000)

@@ -32,10 +32,10 @@ _LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 _MODEL_ID = "llama3.2-1b-FLM"
 
 # Deterministic thresholds (mirror OverloadCoordinator._determine_level pressure boundaries)
-_TEMP_PAUSE = 85.0          # °C — thermal limit (harness N3)
-_TEMP_THROTTLE = 75.0       # °C
-_MEM_PAUSE = 92.0           # %
-_MEM_THROTTLE = 80.0        # %
+_TEMP_PAUSE = 85.0  # °C — thermal limit (harness N3)
+_TEMP_THROTTLE = 75.0  # °C
+_MEM_PAUSE = 92.0  # %
+_MEM_THROTTLE = 80.0  # %
 
 _VALID_TIERS = {"npu", "igpu", "cpu"}
 _VALID_ACTIONS = {"proceed", "throttle", "pause"}
@@ -43,10 +43,10 @@ _VALID_ACTIONS = {"proceed", "throttle", "pause"}
 
 @dataclass
 class ResourceRecommendation:
-    tier: str               # "npu" | "igpu" | "cpu"
-    action: str             # "proceed" | "throttle" | "pause"
+    tier: str  # "npu" | "igpu" | "cpu"
+    action: str  # "proceed" | "throttle" | "pause"
     reason: str
-    pressure_score: float = 0.0    # 0.0 = healthy, 1.0 = critical
+    pressure_score: float = 0.0  # 0.0 = healthy, 1.0 = critical
     source: str = "deterministic"  # "lemonade" | "deterministic"
     raw_metrics: dict[str, Any] = field(default_factory=dict)
 
@@ -87,12 +87,14 @@ class SystemResourceAgent:
         if self._guard is None:
             try:
                 from cohezion.core.silicon_guard import SiliconGuard
+
                 self._guard = SiliconGuard()
             except Exception:
                 self._guard = _FallbackGuard()
         if self._monitor is None:
             try:
                 from cohezion.core.resource_monitor import ResourceMonitor
+
                 self._monitor = ResourceMonitor()
             except Exception:
                 self._monitor = _FallbackMonitor()
@@ -125,33 +127,46 @@ class SystemResourceAgent:
         lock = m["pressure_lock"]
 
         if lock or mem > _MEM_PAUSE or temp > _TEMP_PAUSE:
-            score = min(1.0, (max(mem - _MEM_PAUSE, 0) / 8.0) + (0.4 if lock else 0.0) + (max(temp - _TEMP_PAUSE, 0) / 5.0))
+            score = min(
+                1.0,
+                (max(mem - _MEM_PAUSE, 0) / 8.0)
+                + (0.4 if lock else 0.0)
+                + (max(temp - _TEMP_PAUSE, 0) / 5.0),
+            )
             score = max(0.8, score)
             return ResourceRecommendation(
-                tier="cpu", action="pause",
+                tier="cpu",
+                action="pause",
                 reason=f"pressure: temp={temp:.0f}°C mem={mem:.0f}% lock={lock}",
-                pressure_score=round(score, 3), raw_metrics=m,
+                pressure_score=round(score, 3),
+                raw_metrics=m,
             )
         if mem > _MEM_THROTTLE or temp > _TEMP_THROTTLE:
-            score = 0.4 + 0.3 * max((mem - _MEM_THROTTLE) / (_MEM_PAUSE - _MEM_THROTTLE),
-                                     (temp - _TEMP_THROTTLE) / (_TEMP_PAUSE - _TEMP_THROTTLE))
+            score = 0.4 + 0.3 * max(
+                (mem - _MEM_THROTTLE) / (_MEM_PAUSE - _MEM_THROTTLE),
+                (temp - _TEMP_THROTTLE) / (_TEMP_PAUSE - _TEMP_THROTTLE),
+            )
             return ResourceRecommendation(
-                tier="igpu", action="throttle",
+                tier="igpu",
+                action="throttle",
                 reason=f"elevated: temp={temp:.0f}°C mem={mem:.0f}%",
-                pressure_score=round(score, 3), raw_metrics=m,
+                pressure_score=round(score, 3),
+                raw_metrics=m,
             )
         score = 0.1 * (mem / _MEM_THROTTLE) + 0.05 * (temp / _TEMP_THROTTLE)
         return ResourceRecommendation(
-            tier="npu", action="proceed",
+            tier="npu",
+            action="proceed",
             reason=f"healthy: temp={temp:.0f}°C mem={mem:.0f}%",
-            pressure_score=round(score, 3), raw_metrics=m,
+            pressure_score=round(score, 3),
+            raw_metrics=m,
         )
 
     def _lemonade_recommendation(self, m: dict[str, Any]) -> ResourceRecommendation | None:
         """Ask llama3.2-1b-FLM for a structured recommendation. Returns None on any failure."""
         prompt = (
-            f'Metrics: temp={m["temp_c"]}C memory={m["memory_percent"]}% '
-            f'available={m["available_gb"]}GB pressure_lock={m["pressure_lock"]}\n\n'
+            f"Metrics: temp={m['temp_c']}C memory={m['memory_percent']}% "
+            f"available={m['available_gb']}GB pressure_lock={m['pressure_lock']}\n\n"
             "Reply with ONLY valid JSON (no markdown):\n"
             '{"tier":"npu","action":"proceed","reason":"<12 words max>","pressure_score":0.05}\n\n'
             "Rules:\n"
@@ -160,15 +175,18 @@ class SystemResourceAgent:
             "- proceed+npu otherwise\n"
             "- pressure_score: 0.0=healthy 1.0=critical"
         )
-        payload = json.dumps({
-            "model": _MODEL_ID,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 80,
-            "temperature": 0,
-        }).encode()
+        payload = json.dumps(
+            {
+                "model": _MODEL_ID,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 80,
+                "temperature": 0,
+            }
+        ).encode()
         try:
             req = urllib.request.Request(
-                self._url, data=payload,
+                self._url,
+                data=payload,
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
@@ -185,26 +203,38 @@ class SystemResourceAgent:
             score = float(parsed.get("pressure_score", 0.0))
             score = max(0.0, min(1.0, score))
             if tier not in _VALID_TIERS or action not in _VALID_ACTIONS:
-                logger.debug("SystemResourceAgent: invalid schema from Lemonade (%s/%s), using deterministic", tier, action)
+                logger.debug(
+                    "SystemResourceAgent: invalid schema from Lemonade (%s/%s), using deterministic",
+                    tier,
+                    action,
+                )
                 return None
             return ResourceRecommendation(
-                tier=tier, action=action, reason=reason,
-                pressure_score=round(score, 3), source="lemonade", raw_metrics=m,
+                tier=tier,
+                action=action,
+                reason=reason,
+                pressure_score=round(score, 3),
+                source="lemonade",
+                raw_metrics=m,
             )
         except (urllib.error.URLError, TimeoutError, OSError):
             return None  # Lemonade offline — silent fallback
         except Exception as exc:
-            logger.debug("SystemResourceAgent: Lemonade parse failed (%s), using deterministic", exc)
+            logger.debug(
+                "SystemResourceAgent: Lemonade parse failed (%s), using deterministic", exc
+            )
             return None
 
     def _feed_degradation_detector(self, rec: ResourceRecommendation) -> None:
         if self._detector is None:
             return
         try:
-            self._detector.check_degradation({
-                "silicon_temp_c": rec.raw_metrics.get("temp_c", 45.0),
-                "memory_pressure": rec.pressure_score,
-            })
+            self._detector.check_degradation(
+                {
+                    "silicon_temp_c": rec.raw_metrics.get("temp_c", 45.0),
+                    "memory_pressure": rec.pressure_score,
+                }
+            )
         except Exception:
             pass  # DegradationDetector feeding is best-effort; never block assess()
 
@@ -215,23 +245,32 @@ class SystemResourceAgent:
         """
         try:
             metrics = self._poll_metrics()
-            rec = self._lemonade_recommendation(metrics) or self._deterministic_recommendation(metrics)
+            rec = self._lemonade_recommendation(metrics) or self._deterministic_recommendation(
+                metrics
+            )
             self._feed_degradation_detector(rec)
             logger.debug(
                 "SystemResourceAgent: tier=%s action=%s score=%.3f source=%s reason=%s",
-                rec.tier, rec.action, rec.pressure_score, rec.source, rec.reason,
+                rec.tier,
+                rec.action,
+                rec.pressure_score,
+                rec.source,
+                rec.reason,
             )
             return rec
         except Exception as exc:
             logger.warning("SystemResourceAgent.assess() failed: %s", exc, exc_info=True)
             return ResourceRecommendation(
-                tier="igpu", action="proceed",
+                tier="igpu",
+                action="proceed",
                 reason="assess() error — safe default",
-                pressure_score=0.0, source="error",
+                pressure_score=0.0,
+                source="error",
             )
 
 
 # ── Fallback stubs (no psutil/torch available) ─────────────────────────────────
+
 
 class _FallbackGuard:
     def get_temperature(self) -> float:

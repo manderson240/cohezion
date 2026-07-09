@@ -42,6 +42,7 @@ _LEMONADE_URL = os.getenv("LEMONADE_URL", "http://localhost:13305")
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _lemonade_base() -> str:
     return os.getenv("LEMONADE_URL", _LEMONADE_URL).rstrip("/")
 
@@ -67,6 +68,7 @@ async def _lemonade_chat(system: str, user: str, model: str, max_tokens: int = 6
 
 
 # ── Tool 1: compound loop metrics ─────────────────────────────────────────────
+
 
 @app.tool()
 async def compound_loop_metrics(
@@ -99,8 +101,9 @@ async def compound_loop_metrics(
         quality.append(max(0.0, min(1.0, q)))
 
         # Cache: exponential ramp
-        cache_hits.append(min(0.95, 0.1 + 0.85 * (1 - math.exp(-i / (n_cycles * 0.3)))
-                              + random.gauss(0, 0.02)))
+        cache_hits.append(
+            min(0.95, 0.1 + 0.85 * (1 - math.exp(-i / (n_cycles * 0.3))) + random.gauss(0, 0.02))
+        )
 
         # Latency: probabilistic tier selection
         r = random.random()
@@ -118,8 +121,12 @@ async def compound_loop_metrics(
         n = len(series)
         mean = sum(series) / n
         std = math.sqrt(sum((x - mean) ** 2 for x in series) / n)
-        return {"mean": round(mean, 4), "std": round(std, 4),
-                "min": round(min(series), 4), "max": round(max(series), 4)}
+        return {
+            "mean": round(mean, 4),
+            "std": round(std, 4),
+            "min": round(min(series), 4),
+            "max": round(max(series), 4),
+        }
 
     return {
         "n_cycles": n_cycles,
@@ -135,6 +142,7 @@ async def compound_loop_metrics(
 
 
 # ── Tool 2: FLUME latent space summary ────────────────────────────────────────
+
 
 @app.tool()
 async def flume_latent_summary(
@@ -169,13 +177,13 @@ async def flume_latent_summary(
     for i in range(N):
         k = i % K
         vec = [centers[k][d] + random.gauss(0, 0.6) for d in range(D)]
-        norm = math.sqrt(sum(v ** 2 for v in vec)) or 1.0
+        norm = math.sqrt(sum(v**2 for v in vec)) or 1.0
         vectors_by_cluster[k].append([v / norm for v in vec])
 
     def _cosine(a: list[float], b: list[float]) -> float:
         dot = sum(ai * bi for ai, bi in zip(a, b))
-        na = math.sqrt(sum(ai ** 2 for ai in a)) or 1.0
-        nb = math.sqrt(sum(bi ** 2 for bi in b)) or 1.0
+        na = math.sqrt(sum(ai**2 for ai in a)) or 1.0
+        nb = math.sqrt(sum(bi**2 for bi in b)) or 1.0
         return dot / (na * nb)
 
     # Intra-cluster cohesion: mean pairwise cosine within each cluster
@@ -184,20 +192,19 @@ async def flume_latent_summary(
         vecs = vectors_by_cluster[k][:20]  # sample for speed
         if len(vecs) < 2:
             continue
-        sims = [_cosine(vecs[i], vecs[j])
-                for i in range(len(vecs)) for j in range(i + 1, len(vecs))]
+        sims = [
+            _cosine(vecs[i], vecs[j]) for i in range(len(vecs)) for j in range(i + 1, len(vecs))
+        ]
         cohesion_per_cluster.append(sum(sims) / len(sims))
 
     mean_cohesion = sum(cohesion_per_cluster) / len(cohesion_per_cluster)
 
     # Inter-cluster separation: mean cosine between cluster centroids
     centroids = [
-        [sum(v[d] for v in vectors_by_cluster[k]) / len(vectors_by_cluster[k])
-         for d in range(D)]
+        [sum(v[d] for v in vectors_by_cluster[k]) / len(vectors_by_cluster[k]) for d in range(D)]
         for k in range(K)
     ]
-    sep_sims = [_cosine(centroids[i], centroids[j])
-                for i in range(K) for j in range(i + 1, K)]
+    sep_sims = [_cosine(centroids[i], centroids[j]) for i in range(K) for j in range(i + 1, K)]
     mean_separation = 1.0 - (sum(sep_sims) / len(sep_sims))  # higher = more separated
 
     collapse_risk = beta > 0.015
@@ -219,6 +226,7 @@ async def flume_latent_summary(
 
 
 # ── Tool 3: thermodynamic gravity ─────────────────────────────────────────────
+
 
 @app.tool()
 async def thermodynamic_gravity(
@@ -253,9 +261,11 @@ async def thermodynamic_gravity(
         from cohezion.physics.thermodynamic_gravity import (  # type: ignore[import]
             ThermodynamicGravity as _TG,
         )
-        legs = [_OWL(lorentz_violation=epsilon,
-                     entropy_flux=math.sin(math.pi * (i + 1) / n_legs) * 0.5)
-                for i in range(n_legs)]
+
+        legs = [
+            _OWL(lorentz_violation=epsilon, entropy_flux=math.sin(math.pi * (i + 1) / n_legs) * 0.5)
+            for i in range(n_legs)
+        ]
         model = _TG(temperature=temperature, work_legs=legs)
         accel = model.acceleration_term()
         measured_eps = model.lorentz_violation_parameter()
@@ -263,8 +273,7 @@ async def thermodynamic_gravity(
         source = "cohezion.physics"
     except Exception:
         # Analytic fallback
-        accel = sum(epsilon * math.sin(math.pi * (i + 1) / n_legs) * 0.5
-                    for i in range(n_legs))
+        accel = sum(epsilon * math.sin(math.pi * (i + 1) / n_legs) * 0.5 for i in range(n_legs))
         measured_eps = epsilon
         is_gr = epsilon < 1e-9
         source = "analytic"
@@ -284,6 +293,7 @@ async def thermodynamic_gravity(
 
 
 # ── Tool 4: walkthrough chat ──────────────────────────────────────────────────
+
 
 @app.tool()
 async def lemonade_walkthrough_chat(

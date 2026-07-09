@@ -8,6 +8,7 @@ enforced at the source. Each test fails a plausible wrong impl:
   - hidden_dim that isn't snapped to a power of 2 / isn't int,
   - keeping unknown params, or not filling defaults.
 """
+
 from __future__ import annotations
 
 from cohezion.pipeline.hyperparameter_debate import (
@@ -21,8 +22,8 @@ def test_A3_kl_weight_clamped_to_collapse_guard_max() -> None:
     # Harness A3: kl_weight must never exceed 0.015 (collapse at ~0.02). Source enforcement.
     assert _apply_bounds({"kl_weight": 0.02})["kl_weight"] == 0.015
     assert _apply_bounds({"kl_weight": 0.05})["kl_weight"] == 0.015
-    assert _apply_bounds({"kl_weight": 0.01})["kl_weight"] == 0.01   # within bounds: unchanged
-    assert _apply_bounds({"kl_weight": 1e-9})["kl_weight"] == 1e-4   # floor
+    assert _apply_bounds({"kl_weight": 0.01})["kl_weight"] == 0.01  # within bounds: unchanged
+    assert _apply_bounds({"kl_weight": 1e-9})["kl_weight"] == 1e-4  # floor
 
 
 def test_alias_canonicalization() -> None:
@@ -32,8 +33,8 @@ def test_alias_canonicalization() -> None:
 
 
 def test_hidden_dim_snapped_to_power_of_2_int() -> None:
-    out = _apply_bounds({"hidden": 100})           # alias hidden -> hidden_dim
-    assert out["hidden_dim"] == 128                # nearest power of 2
+    out = _apply_bounds({"hidden": 100})  # alias hidden -> hidden_dim
+    assert out["hidden_dim"] == 128  # nearest power of 2
     assert isinstance(out["hidden_dim"], int)
 
 
@@ -55,5 +56,5 @@ def test_clamp_and_power_of_2_units() -> None:
     assert _clamp(-1, 0, 10) == 0
     assert _clamp(20, 0, 10) == 10
     assert _nearest_power_of_2(100) == 128
-    assert _nearest_power_of_2(0) == 64            # x<=0 guard
+    assert _nearest_power_of_2(0) == 64  # x<=0 guard
     assert _nearest_power_of_2(63) == 64

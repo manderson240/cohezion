@@ -10,6 +10,7 @@ Each test fails a plausible wrong impl:
   - one that crashes on None (fail-soft) readings,
   - one that reports a delta from insufficient data instead of None.
 """
+
 from __future__ import annotations
 
 from cohezion.substrate.hardware_monitor import marginal_power_w
@@ -22,8 +23,8 @@ def test_delta_is_load_minus_idle() -> None:
 def test_separates_a_heavy_lane_from_a_light_one() -> None:
     # The whole point: a CPU-tier load (ΔP large) must measure higher than an NPU-tier load
     # (ΔP small). A wrong impl that ignores idle baseline would not separate them.
-    npu_delta = marginal_power_w([24.0], [28.0])    # ~4 W marginal
-    cpu_delta = marginal_power_w([24.0], [79.0])    # ~55 W marginal
+    npu_delta = marginal_power_w([24.0], [28.0])  # ~4 W marginal
+    cpu_delta = marginal_power_w([24.0], [79.0])  # ~55 W marginal
     assert npu_delta < cpu_delta
     assert npu_delta == 4.0 and cpu_delta == 55.0
 

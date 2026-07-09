@@ -5,6 +5,7 @@ through `cohezion.compound`. Fails if the static edge is removed: asserts the na
 FROM the package AND is the SAME object as the source module (a plain import-OK test would
 pass even with the wiring deleted).
 """
+
 from __future__ import annotations
 
 import cohezion.compound as compound

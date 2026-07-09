@@ -51,11 +51,19 @@ async def test_aligned_execute_fn_returns_text_and_metrics():
     )
     fake_entry = _make_entry_with_profile("Gemma-4-E4B-it-GGUF")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=_RouteResult(text=fake_text, model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None))),
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(
+                return_value=_RouteResult(
+                    text=fake_text, model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None
+                )
+            ),
+        ),
     ):
         mock_lock = MagicMock()
         mock_lock.acquire = MagicMock(return_value=_FakeAsyncCM())
@@ -74,7 +82,10 @@ async def test_aligned_execute_fn_uses_route_by_capability_params():
 
     target_model = "qwen3-coder:30b"
     target_params = InferenceParams(
-        model_id=target_model, max_tokens=600, prompt_prefix="/no_think\n", extra_body={"temperature": 0.2}
+        model_id=target_model,
+        max_tokens=600,
+        prompt_prefix="/no_think\n",
+        extra_body={"temperature": 0.2},
     )
     fake_result = _RouteResult(
         text="the aligned dispatch went to qwen3-coder as instructed",
@@ -84,16 +95,22 @@ async def test_aligned_execute_fn_uses_route_by_capability_params():
     )
     fake_entry = _make_entry_with_profile(target_model)
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, target_params)) as mock_route,
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, target_params),
+        ) as mock_route,
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=fake_result)) as mock_dispatch,
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(return_value=fake_result),
+        ) as mock_dispatch,
     ):
         mock_lock = MagicMock()
         mock_lock.acquire = MagicMock(return_value=_FakeAsyncCM())
         mock_lock_cls.return_value = mock_lock
-        _text, _metrics = await execute_fn_aligned({"task_description": "refactor function X", "operation_type": "transform"})
+        _text, _metrics = await execute_fn_aligned(
+            {"task_description": "refactor function X", "operation_type": "transform"}
+        )
     mock_route.assert_called_once()
     # The dispatch went to the target model, not a registry alternative
     mock_dispatch.assert_called_once()
@@ -113,12 +130,16 @@ async def test_aligned_execute_fn_preflights_resource_guard():
     fake_params = InferenceParams(model_id="x", max_tokens=400, extra_body={})
     fake_entry = _make_entry_with_profile("x")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.ResourceGuard") as mock_rg,
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=_RouteResult(text="ok", model="x", lane="x", error=None))),
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(return_value=_RouteResult(text="ok", model="x", lane="x", error=None)),
+        ),
     ):
         mock_lock = MagicMock()
         mock_lock.acquire = MagicMock(return_value=_FakeAsyncCM())
@@ -135,11 +156,15 @@ async def test_aligned_execute_fn_acquires_fleet_lock_for_duration():
     fake_params = InferenceParams(model_id="x", max_tokens=400, extra_body={})
     fake_entry = _make_entry_with_profile("x")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=_RouteResult(text="ok", model="x", lane="x", error=None))),
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(return_value=_RouteResult(text="ok", model="x", lane="x", error=None)),
+        ),
     ):
         # The FleetLock is used as `async with FleetLock().acquire(key, timeout)`.
         # `acquire` must be an async context manager; build a fake one.
@@ -169,11 +194,19 @@ async def test_aligned_execute_fn_emits_witness_mark_with_12d_from_card():
     fake_params = InferenceParams(model_id="Gemma-4-E4B-it-GGUF", max_tokens=400, extra_body={})
     fake_entry = _make_entry_with_profile("Gemma-4-E4B-it-GGUF")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=_RouteResult(text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None))),
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(
+                return_value=_RouteResult(
+                    text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None
+                )
+            ),
+        ),
         patch("cohezion.compound.execute_fn_aligned.bus") as mock_bus,
     ):
         mock_lock = MagicMock()
@@ -184,6 +217,7 @@ async def test_aligned_execute_fn_emits_witness_mark_with_12d_from_card():
     event = mock_bus.emit.call_args.args[0]
     # The event is a WITNESS_MARK
     from cohezion.precipitation.events import PrecipitationKind
+
     assert event.kind == PrecipitationKind.WITNESS_MARK
     # The 12D point has a non-baseline value on the family fingerprint
     twelve_d = event.twelve_d
@@ -205,11 +239,19 @@ async def test_witness_mark_cooldown_per_task_and_model():
     fake_params = InferenceParams(model_id="Gemma-4-E4B-it-GGUF", max_tokens=400, extra_body={})
     fake_entry = _make_entry_with_profile("Gemma-4-E4B-it-GGUF")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=_RouteResult(text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None))),
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(
+                return_value=_RouteResult(
+                    text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None
+                )
+            ),
+        ),
         patch("cohezion.compound.execute_fn_aligned.bus") as mock_bus,
     ):
         mock_lock = MagicMock()
@@ -234,11 +276,19 @@ async def test_aligned_execute_fn_writes_vault_note(tmp_path):
     fake_params = InferenceParams(model_id="Gemma-4-E4B-it-GGUF", max_tokens=400, extra_body={})
     fake_entry = _make_entry_with_profile("Gemma-4-E4B-it-GGUF")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=_RouteResult(text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None))),
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(
+                return_value=_RouteResult(
+                    text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None
+                )
+            ),
+        ),
         patch.dict("os.environ", {"COHEZION_VAULT_ROOT": str(tmp_path)}),
     ):
         mock_lock = MagicMock()
@@ -261,13 +311,22 @@ async def test_aligned_execute_fn_upserts_surreal_row():
     fake_params = InferenceParams(model_id="Gemma-4-E4B-it-GGUF", max_tokens=400, extra_body={})
     fake_entry = _make_entry_with_profile("Gemma-4-E4B-it-GGUF")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(return_value=_RouteResult(text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None))),
-        patch("cohezion.compound.execute_fn_aligned._upsert_surreal_execution",
-              new=AsyncMock()) as mock_upsert,
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(
+                return_value=_RouteResult(
+                    text="ok", model="Gemma-4-E4B-it-GGUF", lane="igpu", error=None
+                )
+            ),
+        ),
+        patch(
+            "cohezion.compound.execute_fn_aligned._upsert_surreal_execution", new=AsyncMock()
+        ) as mock_upsert,
         patch("cohezion.compound.execute_fn_aligned.asyncio.create_task") as mock_create_task,
     ):
         mock_lock = MagicMock()
@@ -298,16 +357,22 @@ async def test_aligned_execute_fn_returns_error_tuple_on_dispatch_failure():
     fake_params = InferenceParams(model_id="Gemma-4-E4B-it-GGUF", max_tokens=400, extra_body={})
     fake_entry = _make_entry_with_profile("Gemma-4-E4B-it-GGUF")
     with (
-        patch("cohezion.compound.execute_fn_aligned.route_by_capability",
-              return_value=(fake_entry, fake_params)),
+        patch(
+            "cohezion.compound.execute_fn_aligned.route_by_capability",
+            return_value=(fake_entry, fake_params),
+        ),
         patch("cohezion.compound.execute_fn_aligned.FleetLock") as mock_lock_cls,
-        patch("cohezion.compound.execute_fn_aligned.extend_claude_aligned",
-              new=AsyncMock(side_effect=RuntimeError("upstream down"))),
+        patch(
+            "cohezion.compound.execute_fn_aligned.extend_claude_aligned",
+            new=AsyncMock(side_effect=RuntimeError("upstream down")),
+        ),
     ):
         mock_lock = MagicMock()
         mock_lock.acquire = MagicMock(return_value=_FakeAsyncCM())
         mock_lock_cls.return_value = mock_lock
-        text, metrics = await execute_fn_aligned({"task_description": "x", "operation_type": "analyze"})
+        text, metrics = await execute_fn_aligned(
+            {"task_description": "x", "operation_type": "analyze"}
+        )
     assert "error" in metrics
     assert metrics["card_aligned"] is False
     assert "Error" in text
@@ -338,6 +403,7 @@ def _make_entry_with_profile(model_id: str = "x", family: str = "gemma4"):
     """A ModelEntry-like object that satisfies RecipeGuard.assert_card_present."""
     from cohezion.inference.capability_profile import CapabilityProfile
     from cohezion.inference.registry import Lane
+
     profile = CapabilityProfile(
         model_id=model_id,
         family=family,

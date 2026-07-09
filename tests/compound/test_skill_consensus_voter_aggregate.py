@@ -19,8 +19,12 @@ from cohezion.compound.skill_consensus_voter import (
 )
 from cohezion.compound.skill_selector import SkillScore
 
+
 try:
-    from cohezion.compound.skill_consensus_voter import AggregateOperation  # type: ignore[attr-defined]
+    from cohezion.compound.skill_consensus_voter import (
+        AggregateOperation,  # type: ignore[attr-defined]
+    )
+
     _HAS_AGGREGATE_OP = True
 except ImportError:
     _HAS_AGGREGATE_OP = False

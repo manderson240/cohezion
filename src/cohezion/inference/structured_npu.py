@@ -72,15 +72,15 @@ def _schema_to_gbnf(schema: dict) -> str:
     if not props:
         return 'root ::= "{" ws "}"'
 
-    rules = ["root ::= \"{\" ws fields ws \"}\""]
+    rules = ['root ::= "{" ws fields ws "}"']
     rules.append('fields ::= field ("," ws field)*')
     rules.append('field ::= key ws ":" ws value')
-    rules.append('key ::= "\"" [a-zA-Z_][a-zA-Z0-9_]* "\""')
-    rules.append('value ::= (string | number | boolean)')
-    rules.append('string ::= "\"" [^"]* "\""')
+    rules.append('key ::= """ [a-zA-Z_][a-zA-Z0-9_]* """')
+    rules.append("value ::= (string | number | boolean)")
+    rules.append('string ::= """ [^"]* """')
     rules.append('number ::= ("-"? [0-9]+ ("." [0-9]+)?)')
     rules.append('boolean ::= ("true" | "false")')
-    rules.append('ws ::= ([ \t\n])*')
+    rules.append("ws ::= ([ \t\n])*")
 
     return "\n".join(rules)
 

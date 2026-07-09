@@ -30,18 +30,20 @@ def test_wiki_bridge_log_session_method_exists():
     executor to call without needing to construct ExecutionExhaust."""
     from cohezion.ouroboros.wiki_integration import OuroborosWikiBridge
 
-    with patch(
-        "cohezion.integrations.obsidian_wiki.ObsidianWiki.__init__",
-        return_value=None,
-    ):
-        with patch(
+    with (
+        patch(
+            "cohezion.integrations.obsidian_wiki.ObsidianWiki.__init__",
+            return_value=None,
+        ),
+        patch(
             "cohezion.integrations.wiki_mirix_bridge.WikiMirixBridge.__init__",
             return_value=None,
-        ):
-            try:
-                bridge = OuroborosWikiBridge(vault_path=Path("/tmp/fake-vault"))
-            except Exception:
-                return  # Skip if other deps required; test is structural
+        ),
+    ):
+        try:
+            bridge = OuroborosWikiBridge(vault_path=Path("/tmp/fake-vault"))
+        except Exception:
+            return  # Skip if other deps required; test is structural
 
     assert hasattr(bridge, "log_session"), (
         "OuroborosWikiBridge must expose log_session() for executor wiring"

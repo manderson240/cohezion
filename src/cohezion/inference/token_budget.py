@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 
 # Reference pricing for cloud savings estimate: claude-sonnet-4-6
-_CLOUD_INPUT_PER_TOKEN: float = 3.0 / 1_000_000   # $3/M input tokens
+_CLOUD_INPUT_PER_TOKEN: float = 3.0 / 1_000_000  # $3/M input tokens
 _CLOUD_OUTPUT_PER_TOKEN: float = 15.0 / 1_000_000  # $15/M output tokens
 
 
@@ -36,9 +36,6 @@ class TokenUsageRecord:
 
     def add_cloud(self, input_tokens: int, output_tokens: int, *, model: str = "") -> float:
         """Record a metered cloud call and return the USD cost."""
-        cost = (
-            input_tokens * _CLOUD_INPUT_PER_TOKEN
-            + output_tokens * _CLOUD_OUTPUT_PER_TOKEN
-        )
+        cost = input_tokens * _CLOUD_INPUT_PER_TOKEN + output_tokens * _CLOUD_OUTPUT_PER_TOKEN
         self.cloud_cost_usd += cost
         return cost

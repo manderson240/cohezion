@@ -144,9 +144,7 @@ class MockSkillRegistry:
 
         ranked = []
         for skill_name, metrics in self.skills.items():
-            score = sum(
-                metrics.get(key, 0) * weights[key] for key in weights if key in metrics
-            )
+            score = sum(metrics.get(key, 0) * weights[key] for key in weights if key in metrics)
             ranked.append((skill_name, score))
 
         return sorted(ranked, key=lambda x: x[1], reverse=True)

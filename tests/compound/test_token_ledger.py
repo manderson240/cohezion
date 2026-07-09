@@ -19,8 +19,8 @@ def test_record_local_adds_local_tokens_and_cost_avoided():
     led.record_local("lemonade_classify", 800)
     s = led.summary()
     assert s.local_tokens == 800
-    assert s.cloud_tokens == 0           # cloud column MUST stay zero for a local row
-    assert s.quarters_saved_usd > 0.0    # cost-avoided ("quarters saved") accrues
+    assert s.cloud_tokens == 0  # cloud column MUST stay zero for a local row
+    assert s.quarters_saved_usd > 0.0  # cost-avoided ("quarters saved") accrues
 
 
 def test_record_cloud_adds_real_cost_not_savings():
@@ -31,8 +31,8 @@ def test_record_cloud_adds_real_cost_not_savings():
     led.record_cloud("claude_orchestration", 1200)
     s = led.summary()
     assert s.cloud_tokens == 1200
-    assert s.cloud_cost_usd > 0.0        # real dollars spent on cloud orchestration
-    assert s.quarters_saved_usd == 0.0   # cloud work saves nothing — no vanity credit
+    assert s.cloud_cost_usd > 0.0  # real dollars spent on cloud orchestration
+    assert s.quarters_saved_usd == 0.0  # cloud work saves nothing — no vanity credit
     assert s.local_tokens == 0
 
 
@@ -62,8 +62,8 @@ def test_discriminating_vanity_cloud_mislabelled_as_local():
     vanity.record_local("lemonade_work", 1000)
     vanity.record_local("claude_orchestration", 1000)  # BUG: cloud counted as local
 
-    assert honest.summary().local_fraction < 1.0       # honest exposes the leak
-    assert vanity.summary().local_fraction == 1.0       # vanity hides it
+    assert honest.summary().local_fraction < 1.0  # honest exposes the leak
+    assert vanity.summary().local_fraction == 1.0  # vanity hides it
     assert honest.summary().local_fraction == pytest.approx(0.5)
 
 
@@ -72,5 +72,5 @@ def test_surreal_write_uses_surql_set_no_raw_fstring():
     builder — never a hand-built interpolated SET f-string (injection-safe by import)."""
     src = inspect.getsource(TokenLedger._persist_row)
     assert "_surql_set" in src
-    assert "SET {" not in src          # no raw f-string SET body
+    assert "SET {" not in src  # no raw f-string SET body
     assert 'SET " + f"' not in src

@@ -22,7 +22,7 @@ from cohezion.inference.gaia_adapter import GaiaAgentTier, _GaiaLLMClientShim, b
 def test_gaia_importable() -> None:
     """gaia.llm.lemonade_client.LemonadeClient must be importable after install."""
     # No mock — this is an install-check; we want the real import to succeed.
-    from gaia.llm.lemonade_client import LemonadeClient  # noqa: F401 (import-only check)
+    from gaia.llm.lemonade_client import LemonadeClient
 
     assert LemonadeClient is not None
 

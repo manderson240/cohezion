@@ -33,10 +33,10 @@ _FETCH_TIMEOUT_S = 2.0
 
 # The 4 models the compound loop uses: SkillRefiner (x2) + SemanticCache + routing
 COMPOUND_LOOP_MODELS: list[str] = [
-    "llama3.2-1b-FLM",               # NPU: routing/classification, 42 TPS (harness N1)
-    "Bonsai-8B-gguf",                 # llamacpp: SkillRefiner fast tier
-    "nomic-embed-text-v2-moe-GGUF",   # llamacpp: SemanticCache 768D embeddings, 6ms (CA1)
-    "deepseek-r1-0528-8b-FLM",        # FLM NPU: SkillRefiner reasoning tier, 10.6 TPS (N1)
+    "llama3.2-1b-FLM",  # NPU: routing/classification, 42 TPS (harness N1)
+    "Bonsai-8B-gguf",  # llamacpp: SkillRefiner fast tier
+    "nomic-embed-text-v2-moe-GGUF",  # llamacpp: SemanticCache 768D embeddings, 6ms (CA1)
+    "deepseek-r1-0528-8b-FLM",  # FLM NPU: SkillRefiner reasoning tier, 10.6 TPS (N1)
 ]
 
 # SLA: latency targets and quality tiers (source: harness.md N1, measured 2026-06-22)
@@ -102,8 +102,10 @@ def _build_product(model_name: str, meta: dict[str, Any] | None) -> DataProduct:
         recipe: str = meta.get("recipe", "unknown")  # type: ignore[assignment]
         raw_ctx = (meta.get("recipe_options") or {}).get("ctx_size")
         # N3: never allow ctx_size=0 — fall back to bounded default
-        ctx_size: Any = raw_ctx if (raw_ctx and raw_ctx > 0) else (
-            min(16384, max_ctx) if isinstance(max_ctx, int) else 16384
+        ctx_size: Any = (
+            raw_ctx
+            if (raw_ctx and raw_ctx > 0)
+            else (min(16384, max_ctx) if isinstance(max_ctx, int) else 16384)
         )
         size_gb: Any = meta.get("size", "unknown")
     else:

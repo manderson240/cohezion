@@ -585,33 +585,40 @@ class JourneyTracker:
     def _persist_to_surreal(self, point: TrajectoryPoint) -> None:
         """Persist trajectory point to SurrealDB journey_transitions table.
 
-        Non-blocking HTTP POST. Silently fails if SurrealDB is unavailable.
-        Uses port 8001 (native binary, writable per L187).
+        Fire-and-forget via a background thread — never blocks the compound loop.
+        Silently fails if SurrealDB is unavailable.
         """
+        import threading
         import urllib.request
 
-        # review#1: json.dumps escapes BOTH single quotes AND backslashes → injection-safe literals.
-        # A bare `.replace(chr(39),'')` leaves a trailing backslash that SurrealQL reads as an escaped
-        # quote (`\'`), so the literal never closes and following SET fields get swallowed. json.dumps
-        # emits its own double-quotes, so these two fields are NOT manually single-quote-wrapped.
-        dims = point.dimensions.tolist() if hasattr(point.dimensions, "tolist") else list(point.dimensions)
+        dims = (
+            point.dimensions.tolist()
+            if hasattr(point.dimensions, "tolist")
+            else list(point.dimensions)
+        )
         op_type = json.dumps(point.operation_type)
         task = json.dumps(point.task_description[:100])
-        req = urllib.request.Request(
-            "http://localhost:8001/sql",
-            data=f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}, created = time::now();".encode(),
-            headers={
-                "Accept": "application/json",
-                "surreal-ns": "cohezion",
-                "surreal-db": "cohezion",
-                "Authorization": "Basic " + __import__("base64").b64encode(b"root:root").decode(),
-            },
-            method="POST",
-        )
-        try:
-            urllib.request.urlopen(req, timeout=2)
-        except Exception:
-            pass  # Fire-and-forget
+        body = f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}, created = time::now();".encode()
+
+        def _fire() -> None:
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=body,
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "main",
+                    "Authorization": "Basic "
+                    + __import__("base64").b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            try:
+                urllib.request.urlopen(req, timeout=2)
+            except Exception:
+                pass
+
+        threading.Thread(target=_fire, daemon=True).start()
 
     def get_last_point(self) -> TrajectoryPoint | None:
         """Return the most recent trajectory point, or None if no points tracked."""

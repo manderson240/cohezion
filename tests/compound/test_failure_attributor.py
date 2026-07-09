@@ -12,9 +12,9 @@ V-Model: T3 (unit tests) on D1 (deterministic 4-category classifier).
 import pytest
 
 from cohezion.compound.failure_attributor import (
-    FailureAttributor,
     _CASCADING_THRESHOLD,
     _REASONING_QUALITY_THRESHOLD,
+    FailureAttributor,
 )
 
 
@@ -231,7 +231,11 @@ class TestStructural:
             # format
             (
                 '{"bad": ',
-                {"anomaly_score": 0.9, "output_validation_failed": True, "output_validation_error": "bad"},
+                {
+                    "anomaly_score": 0.9,
+                    "output_validation_failed": True,
+                    "output_validation_error": "bad",
+                },
                 [],
             ),
             # cascading

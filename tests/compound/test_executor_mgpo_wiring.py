@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-
 from cohezion.compound.executor import CompoundExecutor
 
 
@@ -107,9 +106,7 @@ def test_accumulator_drains_after_batch():
 
     ex._batch_mgpo_refine()
 
-    assert ex._recent_skill_names == [], (
-        "_recent_skill_names must be empty after batch refinement"
-    )
+    assert ex._recent_skill_names == [], "_recent_skill_names must be empty after batch refinement"
 
 
 def test_batch_mgpo_refine_empty_accumulator_is_noop():

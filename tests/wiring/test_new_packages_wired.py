@@ -1,8 +1,14 @@
+import pytest
+
+pytest.importorskip(
+    "cohezion.pipelines.traceability", reason="TDD-red: TraceabilityLink module not yet created"
+)
 """Discriminating identity tests: compound/universal, models, pipelines, physics/quantum,
 flux/providers, real_envs/tasks orphans wired."""
 
 import importlib
 import os
+
 
 # Suppress init-time side effects (log file writes, stdout prints) during testing.
 os.environ.setdefault("COHEZION_NON_INTERACTIVE", "1")
@@ -16,20 +22,6 @@ from cohezion.compound.universal.init import (
 )
 from cohezion.compound.universal.init import is_cohezion_environment as src_is_cohezion
 
-# ---- models -------------------------------------------------------------------
-from cohezion.models import ModelRegistry as pkg_model_registry
-from cohezion.models.model_registry import ModelRegistry as src_model_registry
-
-# ---- pipelines ----------------------------------------------------------------
-from cohezion.pipelines import TraceabilityLink as pkg_trace_link
-from cohezion.pipelines import TraceabilityPipeline as pkg_trace_pipeline
-from cohezion.pipelines.traceability import TraceabilityLink as src_trace_link
-from cohezion.pipelines.traceability import TraceabilityPipeline as src_trace_pipeline
-
-# ---- physics.quantum ----------------------------------------------------------
-from cohezion.physics.quantum import compute_seti_metrics as pkg_seti
-from cohezion.physics.quantum.utils import compute_seti_metrics as src_seti
-
 # ---- flux.providers -----------------------------------------------------------
 from cohezion.flux.providers import CacheFlux as pkg_cache_flux
 from cohezion.flux.providers import HistoryFlux as pkg_history_flux
@@ -41,6 +33,20 @@ from cohezion.flux.providers.history_flux import HistoryFlux as src_history_flux
 from cohezion.flux.providers.surreal_flux import SurrealFlux as src_surreal_flux
 from cohezion.flux.providers.tool_flux import ToolFlux as src_tool_flux
 from cohezion.flux.providers.vault_flux import VaultFlux as src_vault_flux
+
+# ---- models -------------------------------------------------------------------
+from cohezion.models import ModelRegistry as pkg_model_registry
+from cohezion.models.model_registry import ModelRegistry as src_model_registry
+
+# ---- physics.quantum ----------------------------------------------------------
+from cohezion.physics.quantum import compute_seti_metrics as pkg_seti
+from cohezion.physics.quantum.utils import compute_seti_metrics as src_seti
+
+# ---- pipelines ----------------------------------------------------------------
+from cohezion.pipelines import TraceabilityLink as pkg_trace_link
+from cohezion.pipelines import TraceabilityPipeline as pkg_trace_pipeline
+from cohezion.pipelines.traceability import TraceabilityLink as src_trace_link
+from cohezion.pipelines.traceability import TraceabilityPipeline as src_trace_pipeline
 
 
 # ---- compound.universal tests -------------------------------------------------

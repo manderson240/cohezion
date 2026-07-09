@@ -6,6 +6,7 @@ FROM the package AND are the SAME objects as the source module (a plain import-O
 pass even with the wiring deleted — and `is` identity also catches a name collision with a
 differently-sourced SessionManager).
 """
+
 from __future__ import annotations
 
 import cohezion.compound as compound

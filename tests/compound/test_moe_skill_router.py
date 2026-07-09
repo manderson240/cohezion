@@ -9,8 +9,6 @@ from __future__ import annotations
 import inspect
 from unittest.mock import MagicMock
 
-import pytest  # type: ignore[reportMissingImports]
-
 from cohezion.compound.moe_skill_router import MoESkillRouter  # type: ignore[reportMissingImports]
 from cohezion.compound.skill_refiner import ExecutionMetrics, SkillRefiner
 

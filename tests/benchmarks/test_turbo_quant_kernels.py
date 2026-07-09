@@ -2,6 +2,7 @@ import time
 
 import pytest
 
+
 tl = pytest.importorskip("triton.language")
 
 import torch

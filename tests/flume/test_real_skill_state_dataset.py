@@ -6,6 +6,7 @@ Critical invariants:
      the SHA-256 fingerprint region [29:256] must remain bit-exact.
   3. Dataset protocol: len() > 0, __getitem__ returns a 256D float32 tensor.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -15,6 +16,7 @@ from cohezion.flume.dataset import RealSkillStateDataset
 
 
 # ── Offline / fallback ────────────────────────────────────────────────────────
+
 
 def test_falls_back_to_synthetic_when_surreal_offline():
     """With a nonsense URL, must not raise; data comes from SyntheticFlumeDataset."""
@@ -32,6 +34,7 @@ def test_falls_back_to_synthetic_when_surreal_offline():
 
 # ── Augmentation boundary ─────────────────────────────────────────────────────
 
+
 def test_augmentation_does_not_touch_fingerprint_dims():
     """Augmentation sigma applied to [0:29] must leave [29:256] untouched.
 
@@ -47,17 +50,19 @@ def test_augmentation_does_not_touch_fingerprint_dims():
     ds_aug.z_dim = 256
     ds_aug._rng = np.random.default_rng(42)
 
-    records = [{
-        "task_id": "test-001",
-        "category": "code",
-        "success": True,
-        "tokens": 512,
-        "node": "npu",
-        "model": "llama3.2-1b-FLM",
-        "quality_score": 0.9,
-        "elapsed_ms": 120,
-        "recorded_at": "2026-06-17T00:00:00Z",
-    }]
+    records = [
+        {
+            "task_id": "test-001",
+            "category": "code",
+            "success": True,
+            "tokens": 512,
+            "node": "npu",
+            "model": "llama3.2-1b-FLM",
+            "quality_score": 0.9,
+            "elapsed_ms": 120,
+            "recorded_at": "2026-06-17T00:00:00Z",
+        }
+    ]
 
     vecs_no_aug = ds_no_aug._encode_records(records, augment_sigma=0.0)
     vecs_aug = ds_aug._encode_records(records, augment_sigma=0.05)
@@ -82,6 +87,7 @@ def test_augmentation_does_not_touch_fingerprint_dims():
 
 
 # ── Dataset protocol ──────────────────────────────────────────────────────────
+
 
 def test_dataset_protocol_offline():
     """len() and __getitem__ work correctly in offline-fallback mode."""

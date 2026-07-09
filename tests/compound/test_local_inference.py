@@ -4,9 +4,10 @@ make_local_execute_fn now reports tier_used (the ENGINE that ran), closing the l
 cascade outcome → tier_used → ExecutionMetrics (CB16) → DifficultyEstimator.record → predict_tier
 → O9 cascade-entry binding. The DifficultyEstimator can finally LEARN per-skill engine allocation.
 """
+
 from __future__ import annotations
 
-from cohezion.compound.local_inference import _engine_for, _OMNI_TIERS
+from cohezion.compound.local_inference import _OMNI_TIERS, _engine_for
 
 
 class TestEngineFor:

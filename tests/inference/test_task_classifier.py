@@ -113,7 +113,7 @@ class TestShortAnswerPatterns:
         d = classify("In one sentence, what does the HIHO stability principle optimize for?")
         assert d.node == "npu"
         assert d.output_type == "short_answer"
-        assert d.quality_gate_chars == 1
+        assert d.quality_gate_chars == 10
 
     def test_briefly_explain(self):
         d = classify("Briefly explain what FLUME encoding does.")

@@ -20,13 +20,17 @@ from cohezion.inference.escalation_gate import (
 )
 from cohezion.inference.fleet import RouteResult
 
+
 try:
     from cohezion.inference.fleet import _extract_mean_logprob  # type: ignore[attr-defined]
+
     _HAS_EXTRACT_LOGPROB = True
 except ImportError:
     _HAS_EXTRACT_LOGPROB = False
 
 import dataclasses as _dc
+
+
 _HAS_MEAN_LOGPROB = any(f.name == "mean_logprob" for f in _dc.fields(RouteResult))
 
 
@@ -94,22 +98,38 @@ class TestIsotonicCalibrator:
 
 class TestCompositeGate:
     def test_passes_with_good_logprob(self):
-        ok, reason = composite_gate("A sufficiently long good answer to the question.", mean_logprob=-0.01, self_reported_confidence=None)
+        ok, reason = composite_gate(
+            "A sufficiently long good answer to the question.",
+            mean_logprob=-0.01,
+            self_reported_confidence=None,
+        )
         assert ok
         assert "logprob" in reason.lower()
 
     def test_fails_with_low_logprob(self):
-        ok, reason = composite_gate("A sufficiently long bad answer to the question.", mean_logprob=-5.0, self_reported_confidence=None)
+        ok, reason = composite_gate(
+            "A sufficiently long bad answer to the question.",
+            mean_logprob=-5.0,
+            self_reported_confidence=None,
+        )
         assert not ok
         assert "logprob" in reason.lower()
 
     def test_falls_back_to_confidence_when_no_logprob(self):
-        ok, reason = composite_gate("A sufficiently long answer with confidence.", mean_logprob=None, self_reported_confidence=0.9)
+        ok, reason = composite_gate(
+            "A sufficiently long answer with confidence.",
+            mean_logprob=None,
+            self_reported_confidence=0.9,
+        )
         assert ok
         assert "confidence" in reason.lower()
 
     def test_falls_back_to_length_when_neither_available(self):
-        ok, reason = composite_gate("A sufficiently long answer with no signals.", mean_logprob=None, self_reported_confidence=None)
+        ok, reason = composite_gate(
+            "A sufficiently long answer with no signals.",
+            mean_logprob=None,
+            self_reported_confidence=None,
+        )
         assert ok
         assert "length" in reason.lower()
 

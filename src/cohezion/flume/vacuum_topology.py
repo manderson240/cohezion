@@ -50,15 +50,22 @@ _SOLITON_CENTER: np.ndarray = np.array(
 # instanton: alternating ±1/√12 sign pattern
 # Analogy: BPST instanton / bounce solution — maximally oscillatory in theory space,
 # encoding a tunnelling event between two topological sectors.
-_INSTANTON_CENTER: np.ndarray = np.array(
-    [1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0], dtype=np.float64
-) / _SQRT12
+_INSTANTON_CENTER: np.ndarray = (
+    np.array([1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0], dtype=np.float64)
+    / _SQRT12
+)
 
 # Verify unit norms at import time (silent: just log if off)
-for _name, _ctr in [("trivial", _TRIVIAL_CENTER), ("soliton", _SOLITON_CENTER), ("instanton", _INSTANTON_CENTER)]:
+for _name, _ctr in [
+    ("trivial", _TRIVIAL_CENTER),
+    ("soliton", _SOLITON_CENTER),
+    ("instanton", _INSTANTON_CENTER),
+]:
     _norm = float(np.linalg.norm(_ctr))
     if abs(_norm - 1.0) > 1e-9:
-        logger.warning("Prototype '%s' is not unit-norm (%.6f) — classifier may misbehave", _name, _norm)
+        logger.warning(
+            "Prototype '%s' is not unit-norm (%.6f) — classifier may misbehave", _name, _norm
+        )
 
 VacuumClass = Literal["instanton", "soliton", "trivial"]
 
@@ -71,8 +78,8 @@ class VacuumLabel:
     """Result of classifying a 12D FLUME latent point."""
 
     label: VacuumClass
-    confidence: float          # cosine similarity to winning prototype [0, 1]
-    l2_norm: float             # raw magnitude of the input vector
+    confidence: float  # cosine similarity to winning prototype [0, 1]
+    l2_norm: float  # raw magnitude of the input vector
     runner_up: VacuumClass | None = None
     runner_up_confidence: float | None = None
 

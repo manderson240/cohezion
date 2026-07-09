@@ -12,37 +12,118 @@ from __future__ import annotations
 import pytest
 
 from cohezion.inference.local_fleet import (
-    FleetRole,
-    LocalResearchFleet,
-    RAM_CEILING_GB,
-    RAM_EFFECTIVE_GB,
     _FLEET,
     _TYPE_TO_ROLE,
+    RAM_CEILING_GB,
+    RAM_EFFECTIVE_GB,
+    FleetRole,
+    LocalResearchFleet,
     get_fleet,
 )
+
 
 # Fixture registry mirrors real Lemonade /api/v1/models data for models in _FLEET.
 # Injected into LocalResearchFleet to avoid HTTP calls.
 FIXTURE_REGISTRY = [
-    {"id": "llama3.2-1b-FLM",                    "size": 1.30, "max_context_window": 131072,  "labels": []},
-    {"id": "Qwen3-0.6B-GGUF",                    "size": 0.38, "max_context_window": 40960,   "labels": ["reasoning", "tool-calling"]},
-    {"id": "Bonsai-4B-gguf",                      "size": 0.572,"max_context_window": 32768,   "labels": ["llamacpp", "tool-calling"]},
-    {"id": "Bonsai-8B-gguf",                      "size": 1.16, "max_context_window": 65536,   "labels": ["llamacpp", "tool-calling"]},
-    {"id": "nomic-embed-text-v2-moe-GGUF",        "size": 0.51, "max_context_window": 512,     "labels": ["embeddings"]},
-    {"id": "Whisper-Large-v3-Turbo",              "size": 1.62, "max_context_window": 0,        "labels": ["transcription", "realtime-transcription", "hot"]},
-    {"id": "kokoro-v1",                           "size": 0.354,"max_context_window": 0,        "labels": ["tts"]},
-    {"id": "RealESRGAN-x4plus",                   "size": 0.064,"max_context_window": 0,        "labels": ["upscaling", "image"]},
-    {"id": "Gemma-4-E4B-it-GGUF",                "size": 5.97, "max_context_window": 131072,  "labels": ["vision", "tool-calling"]},
-    {"id": "deepseek-r1-0528-8b-FLM",            "size": 5.60, "max_context_window": 40960,   "labels": ["reasoning"]},
-    {"id": "DeepSeek-Qwen3-8B-GGUF",             "size": 5.25, "max_context_window": 131072,  "labels": ["reasoning", "tool-calling"]},
-    {"id": "Gemma-4-E2B-it-GGUF",                "size": 4.09, "max_context_window": 131072,  "labels": ["vision", "tool-calling"]},
-    {"id": "SD-Turbo",                            "size": 5.21, "max_context_window": 0,        "labels": ["image"]},
-    {"id": "Qwen3-Coder-30B-A3B-Instruct-GGUF",  "size": 18.60,"max_context_window": 262144,  "labels": ["coding", "tool-calling", "hot"]},
-    {"id": "Qwen3.6-35B-A3B-ThinkingCoder",       "size": 21.70,"max_context_window": 262144,  "labels": ["coding", "custom", "tool-calling", "vision"]},
-    {"id": "Gemma-4-31B-it-GGUF",                "size": 19.50,"max_context_window": 262144,  "labels": ["vision", "tool-calling", "hot"]},
-    {"id": "Gemma-4-26B-A4B-it-GGUF",            "size": 18.10,"max_context_window": 262144,  "labels": ["hot", "tool-calling", "vision", "llamacpp"]},
-    {"id": "Flux-2-Klein-9B-GGUF",               "size": 19.00,"max_context_window": 0,        "labels": ["image", "edit"]},
-    {"id": "Nemotron-3-Nano-30B-A3B-GGUF",       "size": 22.80,"max_context_window": 1048576, "labels": ["tool-calling"]},
+    {"id": "llama3.2-1b-FLM", "size": 1.30, "max_context_window": 131072, "labels": []},
+    {
+        "id": "Qwen3-0.6B-GGUF",
+        "size": 0.38,
+        "max_context_window": 40960,
+        "labels": ["reasoning", "tool-calling"],
+    },
+    {
+        "id": "Bonsai-4B-gguf",
+        "size": 0.572,
+        "max_context_window": 32768,
+        "labels": ["llamacpp", "tool-calling"],
+    },
+    {
+        "id": "Bonsai-8B-gguf",
+        "size": 1.16,
+        "max_context_window": 65536,
+        "labels": ["llamacpp", "tool-calling"],
+    },
+    {
+        "id": "nomic-embed-text-v2-moe-GGUF",
+        "size": 0.51,
+        "max_context_window": 512,
+        "labels": ["embeddings"],
+    },
+    {
+        "id": "Whisper-Large-v3-Turbo",
+        "size": 1.62,
+        "max_context_window": 0,
+        "labels": ["transcription", "realtime-transcription", "hot"],
+    },
+    {"id": "kokoro-v1", "size": 0.354, "max_context_window": 0, "labels": ["tts"]},
+    {
+        "id": "RealESRGAN-x4plus",
+        "size": 0.064,
+        "max_context_window": 0,
+        "labels": ["upscaling", "image"],
+    },
+    {
+        "id": "Gemma-4-E4B-it-GGUF",
+        "size": 5.97,
+        "max_context_window": 131072,
+        "labels": ["vision", "tool-calling"],
+    },
+    {
+        "id": "deepseek-r1-0528-8b-FLM",
+        "size": 5.60,
+        "max_context_window": 40960,
+        "labels": ["reasoning"],
+    },
+    {
+        "id": "DeepSeek-Qwen3-8B-GGUF",
+        "size": 5.25,
+        "max_context_window": 131072,
+        "labels": ["reasoning", "tool-calling"],
+    },
+    {
+        "id": "Gemma-4-E2B-it-GGUF",
+        "size": 4.09,
+        "max_context_window": 131072,
+        "labels": ["vision", "tool-calling"],
+    },
+    {"id": "SD-Turbo", "size": 5.21, "max_context_window": 0, "labels": ["image"]},
+    {
+        "id": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "size": 18.60,
+        "max_context_window": 262144,
+        "labels": ["coding", "tool-calling", "hot"],
+    },
+    {
+        "id": "Qwen3.6-35B-A3B-ThinkingCoder",
+        "size": 21.70,
+        "max_context_window": 262144,
+        "labels": ["coding", "custom", "tool-calling", "vision"],
+    },
+    {
+        "id": "Gemma-4-31B-it-GGUF",
+        "size": 19.50,
+        "max_context_window": 262144,
+        "labels": ["vision", "tool-calling", "hot"],
+    },
+    {
+        "id": "Gemma-4-26B-A4B-it-GGUF",
+        "size": 18.10,
+        "max_context_window": 262144,
+        "labels": ["hot", "tool-calling", "vision", "llamacpp"],
+    },
+    {
+        "id": "Flux-2-Klein-9B-GGUF",
+        "size": 19.00,
+        "max_context_window": 0,
+        "labels": ["image", "edit"],
+    },
+    {
+        "id": "Nemotron-3-Nano-30B-A3B-GGUF",
+        "size": 22.80,
+        "max_context_window": 1048576,
+        "labels": ["tool-calling"],
+    },
 ]
 
 
@@ -51,9 +132,15 @@ class TestFleetRegistryStructure:
 
     def test_fleet_has_all_required_roles(self) -> None:
         required = {
-            FleetRole.ROUTER, FleetRole.EMBED, FleetRole.TRANSCRIBE,
-            FleetRole.TTS, FleetRole.GENERATION, FleetRole.CODE,
-            FleetRole.IMAGE_GEN, FleetRole.VISION, FleetRole.REASONING,
+            FleetRole.ROUTER,
+            FleetRole.EMBED,
+            FleetRole.TRANSCRIBE,
+            FleetRole.TTS,
+            FleetRole.GENERATION,
+            FleetRole.CODE,
+            FleetRole.IMAGE_GEN,
+            FleetRole.VISION,
+            FleetRole.REASONING,
         }
         missing = required - set(_FLEET.keys())
         assert not missing, f"Missing roles: {missing}"
@@ -98,8 +185,7 @@ class TestFleetModelAttributes:
     def test_code_model_has_large_ctx(self) -> None:
         code = _FLEET[FleetRole.CODE]
         assert self.fleet.ctx_size(code.model_id) >= 32768, (
-            f"Qwen3-Coder-30B must have ≥32k ctx; "
-            f"got {self.fleet.ctx_size(code.model_id)}"
+            f"Qwen3-Coder-30B must have ≥32k ctx; got {self.fleet.ctx_size(code.model_id)}"
         )
 
     def test_vision_models_have_has_vision_true(self) -> None:
@@ -141,9 +227,7 @@ class TestFleetRouting:
     def test_math_reasoning_routes_to_code(self) -> None:
         """Discriminating: math_reasoning must NOT route to FleetRole.GENERATION."""
         role = _TYPE_TO_ROLE.get("math_reasoning")
-        assert role == FleetRole.CODE, (
-            f"math_reasoning should map to CODE; got {role}"
-        )
+        assert role == FleetRole.CODE, f"math_reasoning should map to CODE; got {role}"
 
     def test_short_categorical_routes_to_router(self) -> None:
         role = _TYPE_TO_ROLE.get("short_categorical")

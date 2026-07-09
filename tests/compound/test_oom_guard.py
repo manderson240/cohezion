@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from cohezion.compound.oom_guard import (
+    _TASK_ROUTING,
     MODEL_FOOTPRINT_GB,
     MODEL_TIER,
     RAM_LOAD_BUFFER_GB,
@@ -14,7 +15,6 @@ from cohezion.compound.oom_guard import (
     ComputeTier,
     MemorySnapshot,
     OOMRisk,
-    _TASK_ROUTING,
     check_oom_risk,
     get_active_uma_gb,
     get_live_topology,
@@ -26,6 +26,7 @@ from cohezion.compound.oom_guard import (
 
 
 # ── Structural ────────────────────────────────────────────────────────────────
+
 
 class TestStructural:
     def test_safe_ctx_limit_bounded(self):
@@ -63,6 +64,7 @@ class TestStructural:
 
 
 # ── Memory gate — discriminating ─────────────────────────────────────────────
+
 
 class TestCheckOOMRisk:
     def test_small_model_always_safe(self):
@@ -102,6 +104,7 @@ class TestCheckOOMRisk:
 
 
 # ── Smart routing — discriminating ───────────────────────────────────────────
+
 
 class TestSafeModelForTask:
     def test_always_returns_a_non_empty_string(self):
@@ -144,6 +147,7 @@ class TestSafeModelForTask:
 
 
 # ── Tier awareness ────────────────────────────────────────────────────────────
+
 
 class TestComputeTier:
     def test_all_gguf_llms_are_igpu(self):
@@ -204,7 +208,9 @@ class TestTopologyFunctions:
     def test_models_on_tier_with_fixture(self):
         """models_on_tier uses supplied topology — no HTTP call."""
         topo = [
-            BackendEntry("Bonsai-8B-gguf", ComputeTier.IGPU, 5.25, "http://127.0.0.1:8007/v1", "gpu"),
+            BackendEntry(
+                "Bonsai-8B-gguf", ComputeTier.IGPU, 5.25, "http://127.0.0.1:8007/v1", "gpu"
+            ),
             BackendEntry("kokoro-v1", ComputeTier.CPU, 0.35, "http://127.0.0.1:8005/v1", "cpu"),
         ]
         assert models_on_tier(ComputeTier.IGPU, topology=topo) == ["Bonsai-8B-gguf"]
@@ -223,5 +229,11 @@ class TestTopologyFunctions:
     def test_topology_summary_has_required_keys(self):
         """topology_summary always returns the required dict keys."""
         summary = topology_summary()
-        for key in ("ram_total_gb", "ram_available_gb", "uma_committed_gb", "backends_loaded", "by_tier"):
+        for key in (
+            "ram_total_gb",
+            "ram_available_gb",
+            "uma_committed_gb",
+            "backends_loaded",
+            "by_tier",
+        ):
             assert key in summary, f"Missing key: {key}"

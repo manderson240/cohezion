@@ -19,41 +19,62 @@ from cohezion.inference.hybrid_router import hybrid_route_decision
 
 
 def test_local_when_healthy_and_quality_ok() -> None:
-    assert hybrid_route_decision(
-        local_capacity="route", claude_quota="proceed", local_quality=0.9, quality_threshold=0.8
-    ) == "local"
+    assert (
+        hybrid_route_decision(
+            local_capacity="route", claude_quota="proceed", local_quality=0.9, quality_threshold=0.8
+        )
+        == "local"
+    )
 
 
 def test_cloud_when_local_saturated_and_quota_proceeds() -> None:
-    assert hybrid_route_decision(
-        local_capacity="defer", claude_quota="proceed", local_quality=0.9, quality_threshold=0.8
-    ) == "cloud"
+    assert (
+        hybrid_route_decision(
+            local_capacity="defer", claude_quota="proceed", local_quality=0.9, quality_threshold=0.8
+        )
+        == "cloud"
+    )
 
 
 def test_cloud_when_low_quality_and_quota_proceeds() -> None:
-    assert hybrid_route_decision(
-        local_capacity="route", claude_quota="proceed", local_quality=0.5, quality_threshold=0.8
-    ) == "cloud"
+    assert (
+        hybrid_route_decision(
+            local_capacity="route", claude_quota="proceed", local_quality=0.5, quality_threshold=0.8
+        )
+        == "cloud"
+    )
 
 
 def test_stay_local_when_low_quality_but_quota_halt() -> None:
     # never run out of Claude: accept lower-quality LOCAL rather than spend the exhausted quota
-    assert hybrid_route_decision(
-        local_capacity="route", claude_quota="halt", local_quality=0.5, quality_threshold=0.8
-    ) == "local"
+    assert (
+        hybrid_route_decision(
+            local_capacity="route", claude_quota="halt", local_quality=0.5, quality_threshold=0.8
+        )
+        == "local"
+    )
 
 
 def test_defer_when_local_cannot_serve_and_quota_halt() -> None:
-    assert hybrid_route_decision(
-        local_capacity="defer", claude_quota="halt", local_quality=0.9, quality_threshold=0.8
-    ) == "defer"
+    assert (
+        hybrid_route_decision(
+            local_capacity="defer", claude_quota="halt", local_quality=0.9, quality_threshold=0.8
+        )
+        == "defer"
+    )
 
 
 def test_throttle_does_not_escalate_to_cloud() -> None:
     # throttle conserves Claude just like halt for the cloud-escalation decision
-    assert hybrid_route_decision(
-        local_capacity="route", claude_quota="throttle", local_quality=0.5, quality_threshold=0.8
-    ) == "local"
+    assert (
+        hybrid_route_decision(
+            local_capacity="route",
+            claude_quota="throttle",
+            local_quality=0.5,
+            quality_threshold=0.8,
+        )
+        == "local"
+    )
 
 
 # --- the real consumer: extend_claude escalation is quota-gated ---

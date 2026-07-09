@@ -71,12 +71,8 @@ class HarnessPaperLane:
         """Re-summarize the paper's core claim with two different model
         families. If they disagree on the core claim → disputed, never
         auto-promoted."""
-        summary_a = await self._summarize_with_model(
-            paper, model_id="Gemma-4-E4B-it-GGUF"
-        )
-        summary_b = await self._summarize_with_model(
-            paper, model_id="qwen3-coder:30b"
-        )
+        summary_a = await self._summarize_with_model(paper, model_id="Gemma-4-E4B-it-GGUF")
+        summary_b = await self._summarize_with_model(paper, model_id="qwen3-coder:30b")
         if self._core_claims_agree(summary_a, summary_b):
             return _Verdict(status="agreed", reason="cross_model_agreement")
         return _Verdict(status="disputed", promoted=False, reason="cross_model_disagreement")
@@ -100,6 +96,7 @@ class HarnessPaperLane:
         if not rec:
             return _Verdict(status="passed", reason="no_recommendation")
         from cohezion.inference.default_profiles import get_profile
+
         profile = get_profile(rec["model_id"])
         if profile is None:
             return _Verdict(status="passed", reason="card_unknown_for_recommendation")

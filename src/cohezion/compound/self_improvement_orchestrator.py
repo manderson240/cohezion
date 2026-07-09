@@ -28,8 +28,10 @@ Routes:
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +67,7 @@ class SelfImprovementOrchestrator:
         # ... events flow automatically ...
     """
 
-    def __init__(self, vault_path: Optional[Path] = None) -> None:
+    def __init__(self, vault_path: Path | None = None) -> None:
         self._handlers: dict[str, Callable[[PrecipitationEvent], None]] = {
             "WITNESS_MARK": self._on_witness_mark,
             "MYCELIUM_PATTERN": self._on_mycelium_pattern,
@@ -188,7 +190,7 @@ class SelfImprovementOrchestrator:
                     Path.cwd() / "vaults" / "cohezion-vault",
                 ]
             )
-            target: Optional[Path] = None
+            target: Path | None = None
             for c in candidates:
                 if c.exists() and c.is_dir():
                     target = c / "wiki" / "ouroboros" / subdir
@@ -218,5 +220,5 @@ class SelfImprovementOrchestrator:
             content += "\n```\n"
             file_path.write_text(content)
             logger.debug("Wrote wiki note: %s", file_path)
-        except (OSError, IOError, AttributeError, TypeError) as e:
+        except (OSError, AttributeError, TypeError) as e:
             logger.debug("Wiki note write failed: %s", e)

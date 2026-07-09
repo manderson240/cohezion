@@ -10,10 +10,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from cohezion.compound.gaia_loop import (
-    GaiaLoop,
-    GoalResult,
     _FAST_MODEL,
     _REASONING_MODEL,
+    GaiaLoop,
+    GoalResult,
 )
 
 
@@ -73,8 +73,8 @@ class TestIsAvailable:
         import httpx
 
         with patch("httpx.Client") as mock_client:
-            mock_client.return_value.__enter__.return_value.get.side_effect = (
-                httpx.ConnectError("refused")
+            mock_client.return_value.__enter__.return_value.get.side_effect = httpx.ConnectError(
+                "refused"
             )
             assert loop.is_available() is False
 

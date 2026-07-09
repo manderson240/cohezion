@@ -7,6 +7,7 @@ that. Each test fails a plausible wrong impl:
   - one that gives the mid-tier the SAME harness regardless of whether it's a tool task,
   - one that over-scaffolds the strong/cloud tier instead of going minimal.
 """
+
 from __future__ import annotations
 
 from cohezion.inference.task_classifier import Harness, classify_with_harness, select_harness
@@ -38,7 +39,7 @@ def test_strong_tier_is_minimal() -> None:
 def test_classify_with_harness_pairs_decision_and_harness() -> None:
     # Advisory pairing: returns the existing RouteDecision UNCHANGED + a harness recommendation.
     decision, harness = classify_with_harness("Reply with one word only.")
-    assert decision.node == "npu"            # routing unchanged (CL invariants intact)
-    assert harness is Harness.COT            # NPU → plain CoT, never ReAct
+    assert decision.node == "npu"  # routing unchanged (CL invariants intact)
+    assert harness is Harness.COT  # NPU → plain CoT, never ReAct
     d2, h2 = classify_with_harness("Write a python function to sort a list", tool_task=True)
     assert d2.node == "gpu" and h2 is Harness.REACT

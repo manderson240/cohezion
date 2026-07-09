@@ -24,8 +24,12 @@ def test_returns_correct_count():
 def test_maximizes_spread():
     rng = np.random.default_rng(1)
     # Two tight clusters + sparse outliers — diverse selection should pick outliers
-    cluster_a = [rng.standard_normal(256) * 0.01 + np.array([1.0] + [0.0] * 255) for _ in range(200)]
-    cluster_b = [rng.standard_normal(256) * 0.01 + np.array([-1.0] + [0.0] * 255) for _ in range(200)]
+    cluster_a = [
+        rng.standard_normal(256) * 0.01 + np.array([1.0] + [0.0] * 255) for _ in range(200)
+    ]
+    cluster_b = [
+        rng.standard_normal(256) * 0.01 + np.array([-1.0] + [0.0] * 255) for _ in range(200)
+    ]
     outliers = [rng.standard_normal(256) for _ in range(100)]
     vectors = cluster_a + cluster_b + outliers
 

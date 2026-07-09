@@ -103,6 +103,7 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         SurrealDB row. A card change → different hash → cache miss.
         """
         import hashlib
+
         if card is None:
             return (
                 "\n# CARD-ALIGNED RECIPE\n"
@@ -125,9 +126,7 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
             f"# FLUME_VAE: {h}\n"
         )
 
-    def _emit_prefix_hit_witness_mark(
-        self, model_id: str, task: str
-    ) -> None:
+    def _emit_prefix_hit_witness_mark(self, model_id: str, task: str) -> None:
         """Connection A: emit a WITNESS_MARK with coherence=0.8 on
         Anthropic prompt cache hit. Higher than the 0.6 used for
         normal executions because a prefix cache hit means the
@@ -146,9 +145,18 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
                 universe_id="cohezion_compound_executor",
                 coherence=0.8,
                 twelve_d={
-                    "x": 0.5, "y": 0.5, "z": 0.5, "time": 0.5,
-                    "physics": 0.5, "biology": 0.5, "logic": 0.5, "quantum": 0.5,
-                    "field": 0.5, "control": 0.5, "novelty": 0.5, "precipitation": 0.5,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "z": 0.5,
+                    "time": 0.5,
+                    "physics": 0.5,
+                    "biology": 0.5,
+                    "logic": 0.5,
+                    "quantum": 0.5,
+                    "field": 0.5,
+                    "control": 0.5,
+                    "novelty": 0.5,
+                    "precipitation": 0.5,
                 },
                 payload={
                     "source": "compound.executor.prefix_hit",

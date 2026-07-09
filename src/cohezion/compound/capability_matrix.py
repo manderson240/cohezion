@@ -211,9 +211,7 @@ class CapabilityMatrix:
             )
             self._entries[f"agent:{name}"] = entry
 
-    def scan_for_task(
-        self, skill_name: str, task_description: str
-    ) -> dict[str, object]:
+    def scan_for_task(self, skill_name: str, task_description: str) -> dict[str, object]:
         """Pre-flight capability gap analysis for a single skill + task.
 
         Fail-open: always returns a dict with the required keys, never raises.
@@ -247,9 +245,7 @@ class CapabilityMatrix:
                 result["gap_severity"] = "high"
 
             # Related skills: token overlap between task description and skill ids.
-            tokens = {
-                t for t in (task_description or "").lower().split() if len(t) > 2
-            }
+            tokens = {t for t in (task_description or "").lower().split() if len(t) > 2}
             if tokens:
                 related: list[str] = []
                 for key, cand in self._entries.items():

@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 N_PATCHES = 16
 GRID_SIDE = 4
-CONNECT_THRESHOLD = 0.5   # health > this means patch contributes to connectivity
-FD_WINDOW = 20             # steps of mean-health history for Higuchi FD
+CONNECT_THRESHOLD = 0.5  # health > this means patch contributes to connectivity
+FD_WINDOW = 20  # steps of mean-health history for Higuchi FD
 HIHO_LOW = 1.3
 HIHO_HIGH = 1.7
 COLLAPSE_FRACTION = 0.10  # giant component < this → meadow collapse → episode ends
@@ -138,16 +138,12 @@ class SeagrassPercolationEnv(gym.Env):
     ) -> tuple[np.ndarray, dict[str, Any]]:
         super().reset(seed=seed)
         # Start with a partially established meadow so connectivity varies
-        self._patch_health = self.np_random.uniform(0.4, 1.0, size=N_PATCHES).astype(
-            np.float32
-        )
+        self._patch_health = self.np_random.uniform(0.4, 1.0, size=N_PATCHES).astype(np.float32)
         self._health_history = []
         self._step_count = 0
         return self._make_obs(), {}
 
-    def step(
-        self, action: int
-    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         if action < N_PATCHES:
             self._patch_health[action] = min(1.0, float(self._patch_health[action]) + 0.1)
         else:

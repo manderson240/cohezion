@@ -27,9 +27,9 @@ _TIMEOUT = 120  # seconds — CPU tier can be slow on large models
 _THINK_RE = re.compile(r"<think>.*?</think>\s*", re.DOTALL)
 
 _TIER_MODELS: dict[str, str] = {
-    "solver":     "Gemma-4-E4B-it-GGUF",
+    "solver": "Gemma-4-E4B-it-GGUF",
     "challenger": "deepseek-r1-0528-8b-FLM",
-    "cpu":        "Gemma-4-31B-it-GGUF",
+    "cpu": "Gemma-4-31B-it-GGUF",
 }
 _JUDGE_MODEL = "llama3.2-1b-FLM"  # 42 TPS — fast independent judge
 
@@ -62,7 +62,12 @@ def _judge(task: str, response: str) -> float:
         return 0.0
     try:
         text = _chat(
-            [{"role": "user", "content": f"Rate this answer 0-10 (number only).\nQ: {task[:80]}\nA: {response[:400]}"}],
+            [
+                {
+                    "role": "user",
+                    "content": f"Rate this answer 0-10 (number only).\nQ: {task[:80]}\nA: {response[:400]}",
+                }
+            ],
             model=_JUDGE_MODEL,
             max_tokens=4,
         )

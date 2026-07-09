@@ -51,22 +51,48 @@ def _wilson_lcb(successes: int, n: int, z: float = _WILSON_Z) -> float:
     margin = z * ((p * (1.0 - p) + z2 / (4.0 * n)) / n) ** 0.5
     return (p + z2 / (2.0 * n) - margin) / (1.0 + z2 / n)
 
+
 # Prompt-complexity feature extraction (gitmoot modeltier.go pattern, #142)
 # Reasoning/analysis keywords that indicate heavy compute tasks
-_HARD_KEYWORDS: frozenset[str] = frozenset({
-    "analyze", "analyse", "evaluate", "compare", "implement", "refactor",
-    "optimize", "design", "architecture", "reasoning", "comprehensive",
-    "systematically", "algorithm", "differentiate", "synthesize", "critique",
-    "detailed", "sophisticated", "intricate", "complex", "thorough",
-    "elaborate", "integrate", "distributed",
-})
+_HARD_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "analyze",
+        "analyse",
+        "evaluate",
+        "compare",
+        "implement",
+        "refactor",
+        "optimize",
+        "design",
+        "architecture",
+        "reasoning",
+        "comprehensive",
+        "systematically",
+        "algorithm",
+        "differentiate",
+        "synthesize",
+        "critique",
+        "detailed",
+        "sophisticated",
+        "intricate",
+        "complex",
+        "thorough",
+        "elaborate",
+        "integrate",
+        "distributed",
+    }
+)
 # Multi-word phrases (checked against the full lowercased prompt)
 _HARD_PHRASES: tuple[str, ...] = (
-    "step by step", "in detail", "step-by-step", "walk through",
-    "deep dive", "architectural overview",
+    "step by step",
+    "in detail",
+    "step-by-step",
+    "walk through",
+    "deep dive",
+    "architectural overview",
 )
 # Thresholds mapping complexity score → tier
-_COMPLEXITY_NPU_MAX: float = 0.3   # score < 0.3  → "npu"
+_COMPLEXITY_NPU_MAX: float = 0.3  # score < 0.3  → "npu"
 _COMPLEXITY_IGPU_MAX: float = 0.6  # 0.3 ≤ score < 0.6 → "igpu"; ≥ 0.6 → "cpu"
 
 

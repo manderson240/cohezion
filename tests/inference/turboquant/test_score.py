@@ -27,11 +27,11 @@ torch = pytest.importorskip("torch")
 
 pytestmark = pytest.mark.fast
 
-from cohezion.inference.turboquant.score import (  # noqa: E402
+from cohezion.inference.turboquant.score import (
     MIN_HISTORY_FOR_TQ,
     compute_hybrid_attention,
 )
-from cohezion.inference.turboquant.store import CompressedKVStore  # noqa: E402
+from cohezion.inference.turboquant.store import CompressedKVStore
 
 
 CPU = torch.device("cpu")

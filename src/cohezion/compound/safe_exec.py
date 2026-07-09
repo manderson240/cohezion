@@ -36,14 +36,62 @@ import builtins
 # __import__, open, eval, compile, exec, input, globals, locals, vars, getattr, setattr, delattr,
 # __build_class__, memoryview, breakpoint, help. (True/False/None are keywords — always available.)
 _ALLOWED = (
-    "abs", "all", "any", "bin", "bool", "bytearray", "bytes", "callable", "chr", "complex",
-    "dict", "divmod", "enumerate", "filter", "float", "format", "frozenset", "hash", "hex",
-    "int", "isinstance", "issubclass", "iter", "len", "list", "map", "max", "min", "next",
-    "oct", "ord", "pow", "print", "range", "repr", "reversed", "round", "set", "slice",
-    "sorted", "str", "sum", "tuple", "zip",
+    "abs",
+    "all",
+    "any",
+    "bin",
+    "bool",
+    "bytearray",
+    "bytes",
+    "callable",
+    "chr",
+    "complex",
+    "dict",
+    "divmod",
+    "enumerate",
+    "filter",
+    "float",
+    "format",
+    "frozenset",
+    "hash",
+    "hex",
+    "int",
+    "isinstance",
+    "issubclass",
+    "iter",
+    "len",
+    "list",
+    "map",
+    "max",
+    "min",
+    "next",
+    "oct",
+    "ord",
+    "pow",
+    "print",
+    "range",
+    "repr",
+    "reversed",
+    "round",
+    "set",
+    "slice",
+    "sorted",
+    "str",
+    "sum",
+    "tuple",
+    "zip",
     # exceptions the generated code may raise/catch
-    "Exception", "ValueError", "TypeError", "KeyError", "IndexError", "AttributeError",
-    "ZeroDivisionError", "ArithmeticError", "RuntimeError", "StopIteration", "OverflowError",
+    "Exception",
+    "ValueError",
+    "TypeError",
+    "KeyError",
+    "IndexError",
+    "AttributeError",
+    "ZeroDivisionError",
+    "ArithmeticError",
+    "RuntimeError",
+    "StopIteration",
+    "OverflowError",
     "NotImplementedError",
 )
 
@@ -53,8 +101,18 @@ _ALLOWED = (
 # re-export sys/os (e.g. collections._sys, statistics.sys), so this gate does not contain hostile
 # code. See the module docstring; the real boundary is out-of-process.
 _ALLOWED_MODULES = frozenset(
-    {"math", "numpy", "itertools", "functools", "collections", "statistics", "fractions",
-     "decimal", "re", "json"}
+    {
+        "math",
+        "numpy",
+        "itertools",
+        "functools",
+        "collections",
+        "statistics",
+        "fractions",
+        "decimal",
+        "re",
+        "json",
+    }
 )
 
 
@@ -70,7 +128,9 @@ def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     return builtins.__import__(name, globals, locals, fromlist, level)
 
 
-_SAFE_BUILTINS: dict = {name: getattr(builtins, name) for name in _ALLOWED if hasattr(builtins, name)}
+_SAFE_BUILTINS: dict = {
+    name: getattr(builtins, name) for name in _ALLOWED if hasattr(builtins, name)
+}
 _SAFE_BUILTINS["__import__"] = _safe_import
 
 

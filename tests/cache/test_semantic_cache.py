@@ -352,9 +352,7 @@ class TestAccessEntropy:
         self._inject_window(cache, unique_keys)
         entropy = cache.access_entropy()
         # H / log2(32) = 5/5 = 1.0 exactly for uniform distribution
-        assert entropy > 0.9, (
-            f"Fully diverse access must give entropy > 0.9, got {entropy:.4f}"
-        )
+        assert entropy > 0.9, f"Fully diverse access must give entropy > 0.9, got {entropy:.4f}"
 
     def test_ae3_entropy_strictly_higher_for_diverse_vs_repetitive(self) -> None:
         """AE3 discriminating (relative): diverse > repetitive (same window size).

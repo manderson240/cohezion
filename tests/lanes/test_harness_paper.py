@@ -78,10 +78,16 @@ async def test_harness_paper_cross_model_disagreement_marks_disputed():
     # First model says "the harness is great for skill refinement"
     # Second model (deliberately different family) says "the harness is
     # mostly noise" — disagreement on the core claim
-    with patch.object(lane, "_summarize_with_model", new=AsyncMock(side_effect=[
-        "the harness is great for skill refinement",
-        "the harness is mostly noise; not a real improvement",
-    ])):
+    with patch.object(
+        lane,
+        "_summarize_with_model",
+        new=AsyncMock(
+            side_effect=[
+                "the harness is great for skill refinement",
+                "the harness is mostly noise; not a real improvement",
+            ]
+        ),
+    ):
         verdict = await lane._verifiers_cross_model(paper)
     assert verdict.status == "disputed"
     assert verdict.promoted is False

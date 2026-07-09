@@ -40,7 +40,9 @@ def test_oom_guard_heavy_model_remapped():
 
 def test_telegram_hub_importable_without_env():
     """TelegramHub can be constructed with no env vars set (no-op mode)."""
-    env = {k: v for k, v in os.environ.items() if k not in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")}
+    env = {
+        k: v for k, v in os.environ.items() if k not in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
+    }
     with patch.dict(os.environ, env, clear=True):
         hub = TelegramHub()
     assert not hub.is_configured()
@@ -106,13 +108,17 @@ async def test_ask_local_returns_empty_on_error():
 @pytest.mark.asyncio
 async def test_notify_noop_when_unconfigured():
     """notify must not make any HTTP call when credentials are absent."""
-    env = {k: v for k, v in os.environ.items() if k not in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")}
+    env = {
+        k: v for k, v in os.environ.items() if k not in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
+    }
     mock_client = AsyncMock()
     mock_client.__aenter__.return_value = mock_client
     mock_client.__aexit__.return_value = None
 
-    with patch.dict(os.environ, env, clear=True), \
-         patch("cohezion.compound.telegram_hub.httpx.AsyncClient", return_value=mock_client):
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch("cohezion.compound.telegram_hub.httpx.AsyncClient", return_value=mock_client),
+    ):
         hub = TelegramHub()
         await hub.notify("test message", session_id="s1")
 

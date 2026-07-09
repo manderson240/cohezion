@@ -280,9 +280,7 @@ async def test_min_tier_index_skips_cheaper_tiers():
             ("tier2", QualityGate.TRUST),
         ]
     )
-    with patch(
-        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
-    ) as m:
+    with patch("cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))) as m:
         await orch.run("test", min_tier_index=2)
     assert m.await_count == 1  # only one tier ran
     assert m.call_args.kwargs["prefer"] == "tier2"  # it was tier 2, NOT tier 0
@@ -291,12 +289,8 @@ async def test_min_tier_index_skips_cheaper_tiers():
 @pytest.mark.asyncio
 async def test_min_tier_index_default_starts_at_tier0():
     """Default min_tier_index=0 is backward-compatible (cheapest tier first)."""
-    orch = TieredOrchestrator(
-        tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)]
-    )
-    with patch(
-        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
-    ) as m:
+    orch = TieredOrchestrator(tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)])
+    with patch("cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))) as m:
         await orch.run("test")
     assert m.call_args.kwargs["prefer"] == "tier0"
 
@@ -304,12 +298,8 @@ async def test_min_tier_index_default_starts_at_tier0():
 @pytest.mark.asyncio
 async def test_min_tier_index_clamped_never_skips_all():
     """Out-of-range min_tier_index clamps to the last tier (never empties the cascade)."""
-    orch = TieredOrchestrator(
-        tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)]
-    )
-    with patch(
-        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
-    ) as m:
+    orch = TieredOrchestrator(tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)])
+    with patch("cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))) as m:
         await orch.run("test", min_tier_index=99)
     assert m.await_count == 1
     assert m.call_args.kwargs["prefer"] == "tier1"  # clamped to last tier
@@ -329,5 +319,7 @@ async def test_lever1_task_gate_overrides_fixed_tier_gate():
     ):
         esc_default = (await orch.run("classify the sentiment")).escalation_count
         esc_categorical = (await orch.run("classify the sentiment", gate_chars=0)).escalation_count
-    assert esc_default == 1      # short answer fails fixed min_chars=500 → escalates (the degenerate path)
+    assert (
+        esc_default == 1
+    )  # short answer fails fixed min_chars=500 → escalates (the degenerate path)
     assert esc_categorical == 0  # Lever 1: gate_chars=0 → "POSITIVE" passes at NPU, no escalation

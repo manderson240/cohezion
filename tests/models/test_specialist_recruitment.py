@@ -8,6 +8,7 @@ plausible wrong impl:
   - one that suggests a heavy CPU lane for a light routing task (wrong lane heuristic),
   - one that proposes from an empty corpus.
 """
+
 from __future__ import annotations
 
 from cohezion.inference.registry import get_registry

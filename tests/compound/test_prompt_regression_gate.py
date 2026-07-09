@@ -1,6 +1,7 @@
 """Behavioral regression gate (FAPO R3) — defends the compound self-improvement loop from QUIET
 prompt regression (a skill edit that fixes one case while silently breaking others). run_fn mocked.
 """
+
 from __future__ import annotations
 
 from cohezion.compound.prompt_version_registry import _validate, evaluate_regression
@@ -61,7 +62,7 @@ class TestEvaluateRegression:
         """review #1: a CRITICAL fixture that can't be evaluated → fail-CLOSED even though a
         non-critical one passes (the #8 fix only covered the all-unevaluable case)."""
         fx = [
-            {"input": "a", "expected_output": "x", "critical": True},   # errors, CRITICAL
+            {"input": "a", "expected_output": "x", "critical": True},  # errors, CRITICAL
             {"input": "b", "expected_output": "ok", "critical": False},  # passes, non-critical
         ]
 
@@ -75,6 +76,7 @@ class TestEvaluateRegression:
     def test_all_fixtures_unevaluable_fails_closed(self):
         """bughunt #8: well-formed fixtures exist but NONE evaluate (inference down) → fail-CLOSED.
         The old code swallowed all per-fixture errors and returned True (promotion allowed)."""
+
         def boom(c, i):
             raise RuntimeError("inference down")
 
@@ -93,7 +95,7 @@ def test_factory_wires_regression_gate_live():
     the self-improvement loop ZERO behavioral-regression protection."""
     from cohezion.compound.skill_refiner import SkillRefiner, SkillRefinerFactory
 
-    assert hasattr(SkillRefiner(), "_regression_run_fn")          # on the RIGHT class
+    assert hasattr(SkillRefiner(), "_regression_run_fn")  # on the RIGHT class
     assert SkillRefinerFactory.create()._regression_run_fn is not None  # wired LIVE, not dormant
 
 
@@ -123,8 +125,10 @@ def test_generate_fixture_candidates_parses_local_output():
     from cohezion.compound.prompt_version_registry import generate_fixture_candidates
 
     def fake_chat(_prompt):
-        return ('cases: [{"input":"sort [3,1,2]","expected_output":"[1, 2, 3]","critical":true},'
-                '{"input":"greet","expected_output":"hello","critical":false}] done')
+        return (
+            'cases: [{"input":"sort [3,1,2]","expected_output":"[1, 2, 3]","critical":true},'
+            '{"input":"greet","expected_output":"hello","critical":false}] done'
+        )
 
     fx = generate_fixture_candidates("sort_skill", "sorts a list", fake_chat, n=2)
     assert len(fx) == 2
@@ -143,8 +147,8 @@ def test_generate_fixture_candidates_rejects_degenerate_expected_output():
 
     def fake_chat(_p):
         return (
-            '[{"input":"a","expected_output":"x","critical":true},'        # 1 char -> rejected
-            '{"input":"b","expected_output":"   ","critical":true},'        # whitespace -> rejected
+            '[{"input":"a","expected_output":"x","critical":true},'  # 1 char -> rejected
+            '{"input":"b","expected_output":"   ","critical":true},'  # whitespace -> rejected
             '{"input":"c","expected_output":"valid answer","critical":true}]'  # kept (forced non-critical)
         )
 
@@ -185,8 +189,12 @@ class _FakeRegistry:
 
         # candidate keyword "cache" (the prime's keyword); GROUND it against the current skill so a
         # confirmed keyword becomes critical=True (real H1 contract). ground_fn=None -> critical=False.
-        fx = {"input": "what does this skill do?", "expected_output": "cache",
-              "validator_type": "contains", "critical": False}
+        fx = {
+            "input": "what does this skill do?",
+            "expected_output": "cache",
+            "validator_type": "contains",
+            "critical": False,
+        }
         if ground_fn is not None:
             fx = _ground_fixture(fx, ground_fn)
             if fx is None:
@@ -259,7 +267,11 @@ def test_population_makes_regression_gate_non_dormant(tmp_path, monkeypatch):
     def run_fn(candidate, inp):
         # grounding runs the CURRENT prime (== _KEYSTONE_PRIME) → output contains "cache" (keyword
         # grounded, critical=True); the refined candidate differs → output lacks "cache" → REGRESSION.
-        return "this skill manages the cache" if candidate == _KEYSTONE_PRIME else "unrelated behavior now"
+        return (
+            "this skill manages the cache"
+            if candidate == _KEYSTONE_PRIME
+            else "unrelated behavior now"
+        )
 
     result, pending = _drive_refine(monkeypatch, tmp_path, bootstrap_enabled=True, run_fn=run_fn)
     assert result is None  # BLOCKED — a real regression caught with inference UP
@@ -294,11 +306,13 @@ def test_grounded_bootstrap_makes_gate_block_a_real_regression():
 
     reg = PromptVersionRegistry()
     captured: list[dict] = []
-    reg._write_fixture = lambda skill, fx: (captured.append(fx) or True)  # capture; no SurrealDB
+    reg._write_fixture = lambda skill, fx: captured.append(fx) or True  # capture; no SurrealDB
 
     n = reg.bootstrap_fixtures("s", "a skill", chat_fn=fake_chat, n=1, ground_fn=current_skill)
     assert n == 1
-    assert captured[0]["critical"] is True  # grounded (keyword IS in current output) → can hard-block
+    assert (
+        captured[0]["critical"] is True
+    )  # grounded (keyword IS in current output) → can hard-block
     assert captured[0]["expected_output"] == "done"
 
     def candidate_skill(_cand, inp):  # the candidate REGRESSES — no longer produces "done"
@@ -322,7 +336,7 @@ def test_grounding_drops_ungrounded_keyword():
 
     reg = PromptVersionRegistry()
     captured: list[dict] = []
-    reg._write_fixture = lambda skill, fx: (captured.append(fx) or True)
+    reg._write_fixture = lambda skill, fx: captured.append(fx) or True
 
     n = reg.bootstrap_fixtures("s", "p", chat_fn=fake_chat, n=1, ground_fn=current_skill)
     assert n == 0 and captured == []
@@ -340,9 +354,9 @@ class TestSafeIdentSlugifyWarning:
         with caplog.at_level(logging.WARNING, logger="cohezion.compound.prompt_version_registry"):
             result = _safe_ident("my skill")
         assert result == "my_skill"
-        assert any("slugif" in r.message.lower() or "my_skill" in r.message for r in caplog.records), (
-            "expected a warning when the name was slugified"
-        )
+        assert any(
+            "slugif" in r.message.lower() or "my_skill" in r.message for r in caplog.records
+        ), "expected a warning when the name was slugified"
 
     def test_clean_name_does_not_warn(self, caplog):
         import logging
@@ -363,12 +377,12 @@ class TestSafeIdentSlugifyWarning:
 # tests are written FALSIFICATION-FIRST: they fail against the pre-fix hand-built f-strings.
 
 _INJECTION_PAYLOADS = [
-    "x'); DROP TABLE golden_fixture; --",   # classic single-quote breakout
-    "back\\slash",                           # embedded backslash
-    "evil\\",                                # TRAILING backslash — the journey_tracker hole
-    "().__class__",                          # python/expr-looking smuggle
-    'a"b',                                    # double-quote (json.dumps target delimiter)
-    "time::now()",                           # an expression smuggled as a VALUE must stay inert
+    "x'); DROP TABLE golden_fixture; --",  # classic single-quote breakout
+    "back\\slash",  # embedded backslash
+    "evil\\",  # TRAILING backslash — the journey_tracker hole
+    "().__class__",  # python/expr-looking smuggle
+    'a"b',  # double-quote (json.dumps target delimiter)
+    "time::now()",  # an expression smuggled as a VALUE must stay inert
 ]
 
 
@@ -388,7 +402,9 @@ class TestSurqlBuilderUnit:
             assert rendered.startswith('"') and rendered.endswith('"')
             # discriminating: a trailing backslash must be DOUBLED so the closing quote isn't escaped.
             if p.endswith("\\"):
-                assert rendered.endswith('\\\\"'), "trailing backslash must be escaped, literal stays closed"
+                assert rendered.endswith('\\\\"'), (
+                    "trailing backslash must be escaped, literal stays closed"
+                )
 
     def test_surql_set_validates_field_names(self):
         """A non-identifier field NAME (the one spot json.dumps can't cover) must be rejected, not
@@ -408,9 +424,9 @@ class TestSurqlBuilderUnit:
         must be rendered INERT (quoted), never executed — proving values can't smuggle expressions."""
         from cohezion.compound.prompt_version_registry import _NOW, _RawSurql, _surql_lit
 
-        assert _surql_lit(_RawSurql("time::now()")) == "time::now()"   # passthrough for constants
+        assert _surql_lit(_RawSurql("time::now()")) == "time::now()"  # passthrough for constants
         assert _surql_lit(_NOW) == "time::now()"
-        assert _surql_lit("time::now()") == '"time::now()"'            # a VALUE stays a quoted string
+        assert _surql_lit("time::now()") == '"time::now()"'  # a VALUE stays a quoted string
 
 
 def _capture_writer_query(monkeypatch, call):
@@ -445,7 +461,9 @@ class TestWriterInjectionInert:
         reg = PromptVersionRegistry()
         for p in _INJECTION_PAYLOADS:
             fx = {"input": p, "expected_output": p, "validator_type": "contains", "critical": False}
-            q = _capture_writer_query(monkeypatch, lambda fx=fx: reg._write_fixture("bad skill", fx))
+            q = _capture_writer_query(
+                monkeypatch, lambda fx=fx: reg._write_fixture("bad skill", fx)
+            )
             # the payload appears ONLY as a json-escaped (inert) literal — proves the safe builder ran.
             assert json.dumps(p) in q
             # the wrong impl emitted `input='...'` (single-quote wrapped) or `skill_name='...` — gone.
@@ -511,9 +529,13 @@ class TestNoRawInterpolationStructural:
                     continue
                 checked += 1
                 if "_surql_set" not in body_src:
-                    offenders.append(f"{module.__name__}.{node.name} builds SurrealQL without _surql_set")
+                    offenders.append(
+                        f"{module.__name__}.{node.name} builds SurrealQL without _surql_set"
+                    )
                 if "='{" in body_src or "= '{" in body_src:
-                    offenders.append(f"{module.__name__}.{node.name} hand-builds single-quoted interpolation")
+                    offenders.append(
+                        f"{module.__name__}.{node.name} hand-builds single-quoted interpolation"
+                    )
 
         # the 4 registry writers/loaders + qa_gate._log_gate = at least 5 covered sites.
         assert checked >= 5, f"expected >=5 SurrealQL-building sites, found {checked}"

@@ -310,9 +310,7 @@ class TestFisherNaturalGradient:
 
         with torch.no_grad():
             # Synthetic gradient: all ones
-            model.encoder.mu_head.weight.grad = torch.ones_like(
-                model.encoder.mu_head.weight
-            )
+            model.encoder.mu_head.weight.grad = torch.ones_like(model.encoder.mu_head.weight)
             model.encoder.mu_head.bias.grad = torch.ones_like(model.encoder.mu_head.bias)
             original_weight_grad = model.encoder.mu_head.weight.grad.clone()
             original_bias_grad = model.encoder.mu_head.bias.grad.clone()
@@ -322,12 +320,8 @@ class TestFisherNaturalGradient:
         precision_mean = model._apply_natural_gradient(uniform_logvar)
 
         # Gradient unchanged (all scale factors = 1)
-        assert torch.allclose(
-            model.encoder.mu_head.weight.grad, original_weight_grad, atol=1e-6
-        )
-        assert torch.allclose(
-            model.encoder.mu_head.bias.grad, original_bias_grad, atol=1e-6
-        )
+        assert torch.allclose(model.encoder.mu_head.weight.grad, original_weight_grad, atol=1e-6)
+        assert torch.allclose(model.encoder.mu_head.bias.grad, original_bias_grad, atol=1e-6)
         assert abs(precision_mean - 1.0) < 1e-5
 
     def test_ng3_nonuniform_logvar_scales_grad(self):
@@ -344,21 +338,15 @@ class TestFisherNaturalGradient:
         half = embed_dim // 2
 
         with torch.no_grad():
-            model.encoder.mu_head.weight.grad = torch.ones_like(
-                model.encoder.mu_head.weight
-            )
+            model.encoder.mu_head.weight.grad = torch.ones_like(model.encoder.mu_head.weight)
             original_grad = model.encoder.mu_head.weight.grad.clone()
 
         # Non-uniform logvar: first half=0 (low precision), second half=-2 (high precision)
-        logvar = torch.cat(
-            [torch.zeros(4, half), torch.full((4, embed_dim - half), -2.0)], dim=1
-        )
+        logvar = torch.cat([torch.zeros(4, half), torch.full((4, embed_dim - half), -2.0)], dim=1)
         model._apply_natural_gradient(logvar)
 
         # Gradient MUST differ from original for non-uniform precision
-        assert not torch.allclose(
-            model.encoder.mu_head.weight.grad, original_grad, atol=1e-4
-        )
+        assert not torch.allclose(model.encoder.mu_head.weight.grad, original_grad, atol=1e-4)
         # High-precision dims (second half, rows) should have larger gradient than
         # low-precision dims (first half)
         low_prec_rows = model.encoder.mu_head.weight.grad[:half].mean()

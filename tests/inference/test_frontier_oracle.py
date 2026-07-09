@@ -59,7 +59,9 @@ def test_keyword_trap_improve_is_not_frontier():
     """DISCRIMINATING word-boundary guard: 'improve' contains the substring 'prove' but is
     NOT a frontier signal. A naive substring match would over-trigger Fable on every
     'improve the X' request."""
-    assert is_frontier_task("Please improve the architecture documentation wording a little") is False
+    assert (
+        is_frontier_task("Please improve the architecture documentation wording a little") is False
+    )
 
 
 def test_frontier_keyword_but_too_short_is_not_frontier():
@@ -76,12 +78,33 @@ def test_fable_spend_counts_only_fable(tmp_path):
     """DISCRIMINATING: only claude-fable-5 spend counts toward the Fable budget — a Sonnet
     row in the same log must NOT inflate it."""
     p = tmp_path / "usage_log.jsonl"
-    record_usage(model="claude-fable-5", lane="cloud", input_tokens=100, output_tokens=50,
-                 cost_usd=0.0035, local=False, path=p)
-    record_usage(model="claude-sonnet-4-6", lane="cloud", input_tokens=100, output_tokens=50,
-                 cost_usd=0.0009, local=False, path=p)
-    record_usage(model="claude-fable-5", lane="cloud", input_tokens=200, output_tokens=100,
-                 cost_usd=0.0070, local=False, path=p)
+    record_usage(
+        model="claude-fable-5",
+        lane="cloud",
+        input_tokens=100,
+        output_tokens=50,
+        cost_usd=0.0035,
+        local=False,
+        path=p,
+    )
+    record_usage(
+        model="claude-sonnet-4-6",
+        lane="cloud",
+        input_tokens=100,
+        output_tokens=50,
+        cost_usd=0.0009,
+        local=False,
+        path=p,
+    )
+    record_usage(
+        model="claude-fable-5",
+        lane="cloud",
+        input_tokens=200,
+        output_tokens=100,
+        cost_usd=0.0070,
+        local=False,
+        path=p,
+    )
     assert fable_spend_usd(path=p) == pytest.approx(0.0105, abs=1e-9)  # 0.0035+0.0070, NOT sonnet
 
 
@@ -99,7 +122,8 @@ def test_non_frontier_decision_stays_local(tmp_path):
 def test_frontier_within_budget_uses_fable(tmp_path):
     d = decide_frontier(
         "Prove the orchestrator escalation terminates for any finite tier configuration",
-        monthly_budget_usd=10.0, path=tmp_path / "u.jsonl",
+        monthly_budget_usd=10.0,
+        path=tmp_path / "u.jsonl",
     )
     assert d.use_frontier is True
 
@@ -108,11 +132,19 @@ def test_frontier_over_budget_is_blocked(tmp_path):
     """DISCRIMINATING budget guard: a frontier task whose Fable spend has hit the cap must
     NOT use Fable. An impl that ignored the budget would keep spending."""
     p = tmp_path / "u.jsonl"
-    record_usage(model="claude-fable-5", lane="cloud", input_tokens=1, output_tokens=1,
-                 cost_usd=10.5, local=False, path=p)  # already over a $10 cap
+    record_usage(
+        model="claude-fable-5",
+        lane="cloud",
+        input_tokens=1,
+        output_tokens=1,
+        cost_usd=10.5,
+        local=False,
+        path=p,
+    )  # already over a $10 cap
     d = decide_frontier(
         "Design the architecture for a fault-tolerant distributed consensus layer end to end",
-        monthly_budget_usd=10.0, path=p,
+        monthly_budget_usd=10.0,
+        path=p,
     )
     assert d.use_frontier is False
     assert "budget" in d.reason.lower()
@@ -127,12 +159,15 @@ def test_frontier_over_budget_is_blocked(tmp_path):
 async def test_frontier_task_routes_through_extend_claude_to_fable(tmp_path):
     fake = MagicMock(text="frontier answer")
     with (
-        patch("cohezion.inference.frontier_oracle.extend_claude", new=AsyncMock(return_value=fake)) as ec,
+        patch(
+            "cohezion.inference.frontier_oracle.extend_claude", new=AsyncMock(return_value=fake)
+        ) as ec,
         patch("cohezion.inference.frontier_oracle.build_triune_orchestrator") as bto,
     ):
         text, decision = await frontier_complete(
             "Prove that the escalation ladder terminates for a finite, fixed tier list",
-            monthly_budget_usd=10.0, path=tmp_path / "u.jsonl",
+            monthly_budget_usd=10.0,
+            path=tmp_path / "u.jsonl",
         )
     assert decision.use_frontier is True
     assert text == "frontier answer"

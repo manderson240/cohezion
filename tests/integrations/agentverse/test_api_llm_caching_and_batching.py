@@ -475,13 +475,13 @@ class TestBatchExecute:
         with (
             patch("httpx.AsyncClient", return_value=mock_client),
             patch("asyncio.sleep", new_callable=AsyncMock),
+            pytest.raises(TimeoutError),
         ):
-            with pytest.raises(TimeoutError):
-                await e.batch_execute(
-                    [{"custom_id": "r1", "prompt": "hello"}],
-                    poll_interval_s=0.01,
-                    max_wait_s=0.02,  # tiny window → guaranteed timeout
-                )
+            await e.batch_execute(
+                [{"custom_id": "r1", "prompt": "hello"}],
+                poll_interval_s=0.01,
+                max_wait_s=0.02,  # tiny window → guaranteed timeout
+            )
 
 
 # ── HybridExecutor.batch_execute ────────────────────────────────────────────

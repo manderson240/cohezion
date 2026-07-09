@@ -53,9 +53,7 @@ class FlumeTwoTrack:
         mu, log_var = self.base_vae.encode(x, attention_mask)
         return mu, log_var, mu[:, : self.structural_dim], mu[:, self.structural_dim :]
 
-    def structural_regularizer(
-        self, mu_structural: Tensor, weight: float = 1.0
-    ) -> Tensor:
+    def structural_regularizer(self, mu_structural: Tensor, weight: float = 1.0) -> Tensor:
         """Training-only auxiliary loss: encourage high variance in structural dims.
 
         Loss = -var(mu_structural, dim=0).mean() * weight
@@ -68,9 +66,7 @@ class FlumeTwoTrack:
         var_per_dim = torch.var(mu_structural, dim=0, unbiased=False)
         return -var_per_dim.mean() * weight
 
-    def interpolate(
-        self, z1: Tensor, z2: Tensor, *, swap_structural: bool = False
-    ) -> Tensor:
+    def interpolate(self, z1: Tensor, z2: Tensor, *, swap_structural: bool = False) -> Tensor:
         """Cross-track recombination of two latent vectors.
 
         Parameters

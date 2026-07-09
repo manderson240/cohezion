@@ -245,7 +245,7 @@ def test_get_codebook_computes_and_writes_when_missing(monkeypatch):
 def test_get_codebook_isolation_fixture_resets_module_globals(tmp_path):
     # The autouse fixture should have cleared the cache and redirected the dir.
     assert cb_mod._CODEBOOK_CACHE == {}
-    assert cb_mod._CODEBOOK_DIR == str(tmp_path / "codebooks")
+    assert str(tmp_path / "codebooks") == cb_mod._CODEBOOK_DIR
 
 
 # ── get_codebook_tensors ────────────────────────────────────────────────────

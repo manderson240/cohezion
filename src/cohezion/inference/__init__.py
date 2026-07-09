@@ -263,7 +263,7 @@ with contextlib.suppress(Exception):
     from cohezion.inference.seed_evaluator import eval_quality as eval_quality
     from cohezion.inference.seed_evaluator import select_best_seed as select_best_seed
 
-from cohezion.inference.fleet import RouteResult, extend_claude, route
+from cohezion.inference.fleet import RouteResult, extend_claude, extend_claude_aligned, route
 from cohezion.inference.gaia_adapter import (
     GaiaAgentTier,
     build_gaia_mcp_tier,
@@ -327,6 +327,7 @@ __all__ = [
     "default_hierarchy",
     "dispatch_through_harness",
     "extend_claude",
+    "extend_claude_aligned",
     "format_fleet_summary",
     "get_pool",
     "get_registry",

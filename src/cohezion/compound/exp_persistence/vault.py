@@ -118,9 +118,15 @@ class VaultLogger:
 
             # Tier-sort: gold first (curated PRIME), then silver, bronze last
             if patterns:
+
                 def _tier_key(p: Any) -> int:
-                    text = p if isinstance(p, str) else (p.get("content", "") if isinstance(p, dict) else "")
+                    text = (
+                        p
+                        if isinstance(p, str)
+                        else (p.get("content", "") if isinstance(p, dict) else "")
+                    )
                     return self._TIER_RANK.get(self._parse_context_tier(text), 1)
+
                 patterns = sorted(patterns, key=_tier_key)  # type: ignore[type-var]
                 tier_counts = {}
                 for p in patterns:

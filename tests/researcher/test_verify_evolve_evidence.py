@@ -57,11 +57,15 @@ async def test_verify_queries_surreal_for_execution_evidence():
     # 5 backings → verified
     with (
         patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[synthesis])),
-        patch.object(lane, "_query_surreal_executions",
-                    new=AsyncMock(return_value=[
-                        {"model_id": "qwen3-coder:30b", "card_aligned": True}
-                        for _ in range(5)
-                    ])),
+        patch.object(
+            lane,
+            "_query_surreal_executions",
+            new=AsyncMock(
+                return_value=[
+                    {"model_id": "qwen3-coder:30b", "card_aligned": True} for _ in range(5)
+                ]
+            ),
+        ),
         patch.object(lane, "_run_card_fit", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_falsifiability", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_cross_model", new=AsyncMock(return_value="agreed")),
@@ -92,17 +96,20 @@ async def test_verify_disputes_synthesis_below_evidence_threshold():
     # Only 1 backing
     with (
         patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[synthesis])),
-        patch.object(lane, "_query_surreal_executions",
-                    new=AsyncMock(return_value=[
-                        {"model_id": "qwen3-coder:30b", "card_aligned": True}
-                    ])),
+        patch.object(
+            lane,
+            "_query_surreal_executions",
+            new=AsyncMock(return_value=[{"model_id": "qwen3-coder:30b", "card_aligned": True}]),
+        ),
         patch.object(lane, "_run_card_fit", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_falsifiability", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_cross_model", new=AsyncMock(return_value="agreed")),
     ):
         report = await lane.run(dry_run=False)
     verdicts = report.verifications
-    assert any(v["slug"] == "low-evidence" and v["verdict"] == "disputed_by_evidence" for v in verdicts)
+    assert any(
+        v["slug"] == "low-evidence" and v["verdict"] == "disputed_by_evidence" for v in verdicts
+    )
 
 
 # ── Mycelium pattern cluster boosts synthesis ──────────────────────────────
@@ -129,15 +136,20 @@ async def test_mycelium_pattern_boosts_synthesis_to_verified():
     # 2 backings (below the 3-threshold) but a MYCELIUM pattern exists
     with (
         patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[synthesis])),
-        patch.object(lane, "_query_surreal_executions",
-                    new=AsyncMock(return_value=[
-                        {"model_id": "qwen3-coder:30b", "card_aligned": True}
-                        for _ in range(2)
-                    ])),
-        patch.object(lane, "_query_mycelium_patterns",
-                    new=AsyncMock(return_value=[
-                        {"family": "qwen3", "task": "code", "size": 7}
-                    ])),
+        patch.object(
+            lane,
+            "_query_surreal_executions",
+            new=AsyncMock(
+                return_value=[
+                    {"model_id": "qwen3-coder:30b", "card_aligned": True} for _ in range(2)
+                ]
+            ),
+        ),
+        patch.object(
+            lane,
+            "_query_mycelium_patterns",
+            new=AsyncMock(return_value=[{"family": "qwen3", "task": "code", "size": 7}]),
+        ),
         patch.object(lane, "_run_card_fit", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_falsifiability", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_cross_model", new=AsyncMock(return_value="agreed")),
@@ -170,22 +182,31 @@ async def test_ouroboros_healing_event_disputes_synthesis():
     # 5 backings (well above threshold) but a HEALING_EVENT exists
     with (
         patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[synthesis])),
-        patch.object(lane, "_query_surreal_executions",
-                    new=AsyncMock(return_value=[
-                        {"model_id": "qwen3-coder:30b", "card_aligned": True}
-                        for _ in range(5)
-                    ])),
-        patch.object(lane, "_query_ouroboros_healing_events",
-                    new=AsyncMock(return_value=[
-                        {"model_id": "qwen3-coder:30b", "kind": "card_alignment_drop"}
-                    ])),
+        patch.object(
+            lane,
+            "_query_surreal_executions",
+            new=AsyncMock(
+                return_value=[
+                    {"model_id": "qwen3-coder:30b", "card_aligned": True} for _ in range(5)
+                ]
+            ),
+        ),
+        patch.object(
+            lane,
+            "_query_ouroboros_healing_events",
+            new=AsyncMock(
+                return_value=[{"model_id": "qwen3-coder:30b", "kind": "card_alignment_drop"}]
+            ),
+        ),
         patch.object(lane, "_run_card_fit", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_falsifiability", new=AsyncMock(return_value="passed")),
         patch.object(lane, "_run_cross_model", new=AsyncMock(return_value="agreed")),
     ):
         report = await lane.run(dry_run=False)
     verdicts = report.verifications
-    assert any(v["slug"] == "under-healing" and v["verdict"] == "disputed_by_ouroboros" for v in verdicts)
+    assert any(
+        v["slug"] == "under-healing" and v["verdict"] == "disputed_by_ouroboros" for v in verdicts
+    )
 
 
 # ── SkillRefiner uses route_by_capability ──────────────────────────────────
@@ -203,13 +224,17 @@ def test_skill_refiner_uses_route_by_capability_for_refinement():
             MagicMock(model_id="claude-sonnet-4-6"),
         )
         refiner = SkillRefiner.__new__(SkillRefiner)  # bypass __init__
-        params = refiner._pick_refinement_params(Task=None) if hasattr(refiner, "_pick_refinement_params") else None
+        params = (
+            refiner._pick_refinement_params(Task=None)
+            if hasattr(refiner, "_pick_refinement_params")
+            else None
+        )
     # The route_by_capability call was made with Task.ARCHITECT
     if params is not None or mock_route.called:
         # The interface varies; just verify route_by_capability is called
         # in the SkillRefiner's model-selection path
         assert True  # assertion contract: SkillRefiner eventually calls
-                     # route_by_capability. Pin via integration test.
+        # route_by_capability. Pin via integration test.
 
 
 # ── OuroborosDetector emits HEALING_EVENT on card_alignment_rate drop ─────
@@ -236,6 +261,7 @@ async def test_ouroboros_emits_healing_event_on_card_alignment_drop():
         mock_bus.emit.assert_called_once()
         event = mock_bus.emit.call_args.args[0]
         from cohezion.precipitation.events import PrecipitationKind
+
         assert event.kind == PrecipitationKind.HEALING_EVENT
     else:
         # The test was a no-op (window not full yet); that's fine.

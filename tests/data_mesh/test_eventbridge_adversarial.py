@@ -26,6 +26,7 @@ import pytest
 from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.data_mesh.event_bridge import DataMeshEventBridge, _escape
 
+
 # ── Character constants ────────────────────────────────────────────────────────
 # Avoid Python string-literal escaping confusion in assertions.
 BACKSLASH = chr(92)  # \

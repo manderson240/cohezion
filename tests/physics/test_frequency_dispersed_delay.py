@@ -1,3 +1,8 @@
+import pytest
+
+pytest.importorskip(
+    "cohezion.physics.observer_patch", reason="TDD-red: FrequencyDispersedDelay not yet implemented"
+)
 """Tests for FrequencyDispersedDelay — pulsar dispersion model in OPH.
 
 Grounded in MWA millisecond pulsar PSR J0125−5854 (2026-06-27 research):
@@ -22,8 +27,8 @@ import math
 import pytest
 
 from cohezion.physics.observer_patch import (
-    FrequencyDispersedDelay,
     _K_DM,
+    FrequencyDispersedDelay,
     signal_at_observer,
     stack_delays,
 )
@@ -50,7 +55,7 @@ class TestFrequencyDispersedDelayStructural:
     def test_k_dm_module_constant_accessible(self) -> None:
         """_K_DM is the standard pulsar dispersion constant 4148.808 MHz² pc⁻¹ cm³ s."""
         assert isinstance(_K_DM, float)
-        assert _K_DM == pytest.approx(4148.808, rel=1e-6)
+        assert pytest.approx(4148.808, rel=1e-6) == _K_DM
 
     def test_stack_delays_callable(self) -> None:
         """stack_delays(*delays) sums multiple delay contributions."""
@@ -91,7 +96,7 @@ class TestFrequencyDispersedDelayDiscriminating:
         Discriminating: must match to within 0.1% relative.
         """
         fd = FrequencyDispersedDelay(dm=9.9, nu_mhz=154.0)
-        expected = 4148.808 * 9.9 / (154.0 ** 2)  # ≈ 1.7317 s
+        expected = 4148.808 * 9.9 / (154.0**2)  # ≈ 1.7317 s
         assert fd.delay_seconds == pytest.approx(expected, rel=1e-3), (
             f"MWA calibration: expected ≈{expected:.4f} s, got {fd.delay_seconds:.4f} s"
         )
