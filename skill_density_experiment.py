@@ -4,13 +4,18 @@ Autoresearch Experiment: Skill Context Density Optimization
 Each run applies a set of skillOverrides, measures token savings, logs result.
 """
 
-import json, os, sys
-from datetime import datetime, timezone
+import json
+import os
+import re
+import sys
+from datetime import UTC, datetime
 from pathlib import Path
+
+import autoresearch_store as store  # canonical storage: SurrealDB + vault + datamesh graph
+
 
 SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
 SKILLS_DIR = Path.home() / ".claude" / "skills"
-JSONL_PATH = Path(__file__).parent / "autoresearch.jsonl"
 
 # Skills that must NEVER be overridden — core compound engineering
 PROTECTED = {"autoresearch", "autoresearch-team", "cohezion-dynamic-modularity"}
@@ -103,27 +108,20 @@ def apply_overrides(settings: dict, new_overrides: dict) -> None:
             settings["skillOverrides"][k] = v
 
 
-def log_result(experiment_id: str, config: dict, metrics: dict, winner: bool, notes: str) -> None:
-    if config.get("dry_run"):
-        return  # never log dry-run results
-    # Deduplicate: skip if same experiment_id already logged as winner
-    if JSONL_PATH.exists():
-        existing = [json.loads(l) for l in JSONL_PATH.read_text().splitlines() if l.strip()]
-        if any(e["experiment_id"] == experiment_id and e["winner"] for e in existing):
-            return
-    entry = {
-        "ts": datetime.now(timezone.utc).isoformat(),
-        "experiment_id": experiment_id,
-        "config": config,
-        "metrics": metrics,
-        "winner": winner,
-        "notes": notes,
-    }
-    with open(JSONL_PATH, "a") as f:
-        f.write(json.dumps(entry) + "\n")
-    print(
-        f"  Logged: {experiment_id} | winner={winner} | saved={metrics.get('tokens_saved_new', 0):,}t"
-    )
+def log_result(
+    experiment_id: str,
+    config: dict,
+    metrics: dict,
+    winner: bool,
+    notes: str,
+    derived_from: str | None = None,
+) -> None:
+    """Delegate persistence to the canonical store (SurrealDB + vault + datamesh graph).
+
+    The `derived_from` arg names the prior run; the loop lineage is stored via the `references`
+    graph edge (param name intentionally differs from the edge table).
+    """
+    store.log_result(experiment_id, config, metrics, winner, notes, derived_from=derived_from)
 
 
 # ─── Experiment Definitions ───────────────────────────────────────────────────
@@ -197,7 +195,61 @@ EXPERIMENTS = {
         "overrides": {},  # no overrides; metrics will show opportunity size
         "_audit_only": True,
     },
+    # ── Round 8: SkillReducer Stage-2 (arXiv 2603.29919) — progressive disclosure ──
+    "exp_H_skillreducer_rules_audit": {
+        "description": (
+            "SkillReducer Stage-2 audit: classify rules-file body as actionable "
+            "(directives/commands/code) vs non-actionable (prose/rationale/examples), "
+            "estimate progressive-disclosure savings. Non-destructive — measures the "
+            "opportunity, does not rewrite critical files (e.g. harness.md invariants)."
+        ),
+        "overrides": {},
+        "_skillreducer_audit": True,
+    },
 }
+
+
+# Actionable = a line a model must ACT on (rule/command/code/path). Non-actionable = prose
+# rationale/examples that SkillReducer moves to on-demand (progressive disclosure).
+# Word-boundary the command keywords so they match whole commands, not prose substrings
+# ("python" in "pythonic", "git" in "digital", etc.) — without \b the audit under-reports
+# the non-actionable (compressible) fraction.
+_ACTIONABLE_RE = re.compile(
+    r"(MUST|NEVER|ALWAYS|DO NOT|DON'T|Rule:|Verification|`|^\s*[-*|]\s|"
+    r"\buv run\b|\bgit\b|\bcurl\b|\bpython\b|\bexport\b|\bchmod\b|\bsudo\b|"
+    r"->|::|\$\(|\bgrep\b|\bsed\b)",
+    re.IGNORECASE,
+)
+
+
+def analyze_actionable_ratio(text: str) -> dict:
+    """Estimate actionable vs non-actionable body for a rules/skill file (SkillReducer Stage-2).
+
+    Lines inside ``` fences count as actionable (code). Of the remaining prose lines, the
+    non-actionable fraction is the progressive-disclosure compression candidate.
+    """
+    lines = text.splitlines()
+    in_fence = False
+    actionable_chars = nonaction_chars = 0
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            actionable_chars += len(line)
+            continue
+        if in_fence or not stripped:
+            actionable_chars += len(line)
+            continue
+        if _ACTIONABLE_RE.search(stripped):
+            actionable_chars += len(line)
+        else:
+            nonaction_chars += len(line)
+    total = actionable_chars + nonaction_chars or 1
+    return {
+        "actionable_tokens": actionable_chars // 4,
+        "nonaction_tokens": nonaction_chars // 4,
+        "nonaction_pct": round(nonaction_chars / total * 100, 1),
+    }
 
 
 def run_all(dry_run: bool = False):
@@ -207,9 +259,15 @@ def run_all(dry_run: bool = False):
 
     total_new_overrides = {}
     cumulative_savings = 0
+    prev_exp_id = None  # for the datamesh `derived_from` lineage chain
+
+    if not dry_run:
+        synced = store.sync_buffer()  # flush any offline-buffered rows first
+        if synced:
+            print(f"Synced {synced} buffered result(s) into SurrealDB")
 
     print(f"\n{'=' * 60}")
-    print(f"SKILL DENSITY AUTORESEARCH — {datetime.now(timezone.utc).date()}")
+    print(f"SKILL DENSITY AUTORESEARCH — {datetime.now(UTC).date()}")
     print(f"{'=' * 60}")
     print(f"Total skills: {len(skill_tokens)}, baseline tokens: {sum(skill_tokens.values()):,}")
     print(f"Already overridden: {len(existing)}")
@@ -247,8 +305,62 @@ def run_all(dry_run: bool = False):
                 metrics,
                 winner=False,
                 notes=exp["description"],
+                derived_from=prev_exp_id,
             )
+            prev_exp_id = exp_id
             print("  → INFO (audit only, no overrides applied)")
+            continue
+
+        # SkillReducer Stage-2 audit: measure actionable vs non-actionable rules body.
+        if exp.get("_skillreducer_audit"):
+            rules_dir = Path.home() / ".claude" / "rules"
+            per_file = {}
+            if rules_dir.exists():
+                for f in sorted(os.listdir(rules_dir)):
+                    if f.endswith(".md"):
+                        per_file[f] = analyze_actionable_ratio((rules_dir / f).read_text())
+            compressible = sum(v["nonaction_tokens"] for v in per_file.values())
+            total_rules = sum(
+                v["actionable_tokens"] + v["nonaction_tokens"] for v in per_file.values()
+            )
+            # Candidates: high prose-ratio files (safe to progressively disclose). Exclude
+            # harness.md from auto-action — its body is dense invariants, human-gated only.
+            candidates = sorted(
+                (
+                    (f, v["nonaction_tokens"], v["nonaction_pct"])
+                    for f, v in per_file.items()
+                    if v["nonaction_pct"] >= 50 and f != "harness.md"
+                ),
+                key=lambda x: -x[1],
+            )[:6]
+            print(f"\n  Experiment: {exp_id}")
+            print(f"  Desc: {exp['description']}")
+            print(
+                f"  Rules body: {total_rules:,}t total | "
+                f"~{compressible:,}t non-actionable ({round(compressible / (total_rules or 1) * 100, 1)}%)"
+            )
+            print("  Top progressive-disclosure candidates (prose ≥50%, excl. harness.md):")
+            for f, nt, pct in candidates:
+                print(f"    {nt:5,}t  {pct:4.0f}% prose  {f}")
+            metrics = {
+                "rules_total_tokens": total_rules,
+                "nonaction_tokens": compressible,
+                "nonaction_pct": round(compressible / (total_rules or 1) * 100, 1),
+                "candidates": [c[0] for c in candidates],
+                "tokens_saved_new": 0,  # audit: opportunity sizing, no settings change
+                "routing_coverage": 1.0,
+                "compound_skills_preserved": True,
+            }
+            log_result(
+                exp_id,
+                {"skillreducer_audit": True, "dry_run": dry_run},
+                metrics,
+                winner=False,
+                notes=exp["description"],
+                derived_from=prev_exp_id,
+            )
+            prev_exp_id = exp_id
+            print("  → INFO (SkillReducer Stage-2 audit; human-gated, no edits applied)")
             continue
 
         overrides = {k: v for k, v in exp["overrides"].items() if k not in PROTECTED}
@@ -284,7 +396,9 @@ def run_all(dry_run: bool = False):
             metrics,
             winner=is_winner,
             notes=exp["description"],
+            derived_from=prev_exp_id,
         )
+        prev_exp_id = exp_id
 
         if is_winner and not dry_run:
             apply_overrides(settings, new)
