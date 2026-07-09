@@ -634,16 +634,26 @@ class SurrealDBSync:
             return
 
         event_handler = VaultFileHandler(self)
+
+        def _schedule_and_start(observer) -> None:
+            for subdir in ["cortex", "cerebellum", "patterns", "decisions"]:
+                watch_path = self.vault_path / subdir
+                if watch_path.exists():
+                    observer.schedule(event_handler, str(watch_path), recursive=False)
+                    logger.info(f"Watching: {watch_path}")
+            observer.start()
+
         self.observer = Observer()
+        try:
+            _schedule_and_start(self.observer)
+        except OSError as exc:
+            # inotify watch limit exhausted (ENOSPC) — fall back to polling
+            # so the watcher degrades instead of dying on busy boxes.
+            logger.warning(f"inotify observer failed ({exc}); falling back to polling")
+            from watchdog.observers.polling import PollingObserver
 
-        # Watch papers and concepts directories
-        for subdir in ["cortex", "cerebellum", "patterns", "decisions"]:
-            watch_path = self.vault_path / subdir
-            if watch_path.exists():
-                self.observer.schedule(event_handler, str(watch_path), recursive=False)
-                logger.info(f"Watching: {watch_path}")
-
-        self.observer.start()
+            self.observer = PollingObserver()
+            _schedule_and_start(self.observer)
         logger.info("File watcher started")
 
     def stop_watching(self) -> None:
@@ -674,11 +684,18 @@ class VaultFileHandler(FileSystemEventHandler):
             return
 
         path = Path(event.src_path)
+        parts = path.parts
 
-        # Determine file type and sync
-        if "papers" in path.parts:
+        # Route by the directories start_watching() actually schedules
+        # (cortex/cerebellum/patterns/decisions). The old papers/concepts-only
+        # filter never intersected the watched set, so every event was
+        # silently dropped ("watcher succeeds, indexes nothing"). Legacy
+        # papers/concepts names kept for old vault layouts.
+        if "cortex" in parts or "papers" in parts:
             self.sync.sync_paper(path)
-        elif "concepts" in path.parts:
+        elif "cerebellum" in parts or "concepts" in parts:
+            self.sync.sync_concept(path)
+        elif "patterns" in parts or "decisions" in parts:
             self.sync.sync_concept(path)
 
     def on_created(self, event: FileSystemEvent) -> None:
