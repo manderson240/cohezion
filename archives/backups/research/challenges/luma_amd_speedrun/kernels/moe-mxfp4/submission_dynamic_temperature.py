@@ -8,7 +8,6 @@ Adaptive softmax temperature based on token entropy
 POPCORN: amd-moe-mxfp4
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

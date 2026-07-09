@@ -33,13 +33,6 @@ def test_triune_state_invalid_shapes():
         TriuneState(doer=torch.randn(12), thinker=torch.randn(512), knower=torch.randn(2047))
 
 
-@pytest.mark.skip(
-    reason=(
-        "Pre-existing regex-assertion drift unrelated to PR #75. The test expects a "
-        "specific error message that the current implementation phrases differently. "
-        "Follow-up: reconcile test regex with current TriuneState error text."
-    )
-)
 def test_triune_state_type_validation():
     """Test that TriuneState enforces tensor types (pydantic is_instance_of constraint)."""
     # Invalid Doer type — pydantic raises with "instance of Tensor" message

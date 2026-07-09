@@ -13,7 +13,6 @@ This hybrid approach matches the memory hierarchy better than
 uniform square tiles.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

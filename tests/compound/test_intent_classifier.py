@@ -1,11 +1,11 @@
 """Tests for zero-token intent classifier."""
+
 import pytest
 
 from cohezion.compound.intent_classifier import IntentClassifier
 
 
 class TestIntentClassifier:
-
     @pytest.fixture
     def clf(self):
         return IntentClassifier()
@@ -44,4 +44,3 @@ class TestIntentClassifier:
         clf = IntentClassifier(default_operation="analyze")
         result = clf.classify("unintelligible_gibberish")
         assert result == "analyze"
-

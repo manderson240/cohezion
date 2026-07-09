@@ -216,10 +216,8 @@ class BaseGateway:
         self, input_paths: list[str | pathlib.Path]
     ) -> tuple[list[str], list[str]]:
         # Accept a list of str or pathlib.Path, but standardize on list of str
-        if (
-            (input_paths
-            and not self.file_share_dir)
-            or not isinstance(self.file_share_dir, (str, os.PathLike))
+        if (input_paths and not self.file_share_dir) or not isinstance(
+            self.file_share_dir, (str, os.PathLike)
         ):
             raise GatewayRuntimeError(
                 GatewayRuntimeErrorType.GATEWAY_RAISED_EXCEPTION,

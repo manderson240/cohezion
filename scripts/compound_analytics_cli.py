@@ -13,6 +13,7 @@ Commands:
     recommend   Show next experiment recommendations
     health      Run health checks on all compound components
 """
+
 import argparse
 import sys
 from pathlib import Path
@@ -28,18 +29,22 @@ def cmd_status(args):
     top = report["top_experiments"]
     mean_delta = sum(e["mean_metric"] for e in top) / max(len(top), 1)
 
-    print(render_session_summary(
-        n_experiments=report["n_records"],
-        hiho_balance=report["hiho_balance"],
-        mean_delta=mean_delta,
-        keep_rate=report["hiho_balance"],
-        retirement_candidates=report["retirement_candidates"],
-    ))
+    print(
+        render_session_summary(
+            n_experiments=report["n_records"],
+            hiho_balance=report["hiho_balance"],
+            mean_delta=mean_delta,
+            keep_rate=report["hiho_balance"],
+            retirement_candidates=report["retirement_candidates"],
+        )
+    )
     print()
-    print(render_experiment_table(
-        report["per_experiment"],
-        retirement_candidates=report["retirement_candidates"],
-    ))
+    print(
+        render_experiment_table(
+            report["per_experiment"],
+            retirement_candidates=report["retirement_candidates"],
+        )
+    )
 
 
 def cmd_retire(args):
@@ -55,7 +60,9 @@ def cmd_retire(args):
     print(f"Retirement candidates ({len(candidates)}):")
     for exp in candidates:
         stats = report["per_experiment"].get(exp, {})
-        print(f"  {exp}: n={stats.get('total', 0)} cv={stats.get('cv', 0):.4f} mean={stats.get('mean_metric', 0):.4f}")
+        print(
+            f"  {exp}: n={stats.get('total', 0)} cv={stats.get('cv', 0):.4f} mean={stats.get('mean_metric', 0):.4f}"
+        )
 
 
 def cmd_recommend(args):
@@ -65,7 +72,7 @@ def cmd_recommend(args):
     print(f"HIHO Balance: {summary['hiho_balance']:.3f} (mode: {summary['mode'].upper()})")
     print(f"Retiring: {summary['retirement_candidates'][:5]}")
     print(f"\nRecommended next experiments (n={len(summary['recommendations'])}):")
-    for rec in summary["recommendations"][:args.n]:
+    for rec in summary["recommendations"][: args.n]:
         replaces = f" → replaces {rec['replaces']}" if rec.get("replaces") else ""
         print(f"  [{rec['mode'].upper()}] {rec['experiment_name']}{replaces}")
         print(f"    {rec['hypothesis'][:80]}")

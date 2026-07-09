@@ -66,6 +66,7 @@ class TestAutocontextInit:
 
     def test_creates_policy_directory(self, tmp_path: Path):
         """Should also create the policy/ directory alongside traceability/."""
+
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
                 self.__init_context__(project_root=tmp_path)
@@ -77,6 +78,7 @@ class TestAutocontextInit:
 
     def test_idempotent_multiple_calls(self, tmp_path: Path):
         """Multiple calls should be safe and not corrupt existing files."""
+
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
                 self.__init_context__(project_root=tmp_path)
@@ -95,8 +97,10 @@ class TestAutocontextInit:
         trace.mkdir(parents=True)
         # Make directory read-only so creating manifest.json fails
         import os
+
         os.chmod(str(trace), 0o555)
         try:
+
             class DummyMixin(CompoundContextMixin):
                 def __init__(self):
                     self.__init_context__(project_root=tmp_path)
@@ -115,6 +119,7 @@ class TestArchiveSession:
 
     def test_creates_learned_budgets(self, tmp_path: Path):
         """Should write a YAML-frontmatter entry to policy/learned-budgets.md."""
+
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
                 self.__init_context__(project_root=tmp_path)
@@ -132,6 +137,7 @@ class TestArchiveSession:
 
     def test_appends_entries(self, tmp_path: Path):
         """Multiple archives should append, not overwrite."""
+
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
                 self.__init_context__(project_root=tmp_path)
@@ -147,6 +153,7 @@ class TestArchiveSession:
 
     def test_handles_no_outcome(self, tmp_path: Path):
         """Should still write a minimal entry when outcome is None."""
+
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
                 self.__init_context__(project_root=tmp_path)
@@ -160,6 +167,7 @@ class TestArchiveSession:
 
     def test_returns_none_on_failure(self, tmp_path: Path):
         """Should return None if writing fails."""
+
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
                 self.__init_context__(project_root=tmp_path)
@@ -168,6 +176,7 @@ class TestArchiveSession:
         policy_dir = tmp_path / ".context" / "policy"
         policy_dir.mkdir(parents=True)
         import os
+
         os.chmod(str(policy_dir), 0o555)
         try:
             result = obj.archive_session(outcome={"x": 1})
@@ -252,7 +261,9 @@ class TestAutocontextWithRealContextStructure:
         trace.mkdir(parents=True)
         (core / "syntax-rules.md").write_text("# Syntax\n")
         manifest = trace / "manifest.json"
-        manifest.write_text(json.dumps({"version": "2.0.0", "core_files": [{"path": "core/syntax-rules.md"}]}))
+        manifest.write_text(
+            json.dumps({"version": "2.0.0", "core_files": [{"path": "core/syntax-rules.md"}]})
+        )
 
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
@@ -267,6 +278,7 @@ class TestAutocontextWithRealContextStructure:
 
     def test_load_execution_context_after_init(self, tmp_path: Path):
         """After init_autocontext, load_execution_context should succeed."""
+
         class DummyMixin(CompoundContextMixin):
             def __init__(self):
                 self.__init_context__(project_root=tmp_path)
@@ -278,11 +290,17 @@ class TestAutocontextWithRealContextStructure:
         core.mkdir(parents=True)
         (core / "rules.md").write_text("# Rules\n")
         manifest = tmp_path / ".context" / "traceability" / "manifest.json"
-        manifest.write_text(json.dumps({
-            "version": "1.0.0",
-            "core_files": [{"path": "core/rules.md", "token_budget": 50, "coherence_threshold": 0.5}],
-            "skills": {},
-        }))
+        manifest.write_text(
+            json.dumps(
+                {
+                    "version": "1.0.0",
+                    "core_files": [
+                        {"path": "core/rules.md", "token_budget": 50, "coherence_threshold": 0.5}
+                    ],
+                    "skills": {},
+                }
+            )
+        )
 
         obj.load_execution_context()
         assert obj._context_loaded is True

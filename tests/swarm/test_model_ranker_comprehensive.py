@@ -811,7 +811,12 @@ class TestIntegrationWithGlobalMetrics:
         ranker = ModelRanker()
 
         ranked = ranker.rank_models(
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+            available_models=[
+                "phi3:mini",
+                "qwen3-coder:32b",
+                "deepseek-r1:8b",
+                "Phi-4-mini-instruct-Hybrid",
+            ]
         )
 
         # Scores should be in valid range for comparison

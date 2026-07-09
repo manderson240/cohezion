@@ -85,11 +85,18 @@ def _run_lint(file_path: str) -> dict:
             "check": "lint",
             "passed": passed,
             "elapsed_s": round(elapsed, 3),
-            "detail": "clean" if passed else (result.stderr.splitlines()[0][:200] if result.stderr else "lint errors"),
+            "detail": "clean"
+            if passed
+            else (result.stderr.splitlines()[0][:200] if result.stderr else "lint errors"),
         }
     except Exception as exc:
         elapsed = time.perf_counter() - t0
-        return {"check": "lint", "passed": False, "elapsed_s": round(elapsed, 3), "detail": str(exc)}
+        return {
+            "check": "lint",
+            "passed": False,
+            "elapsed_s": round(elapsed, 3),
+            "detail": str(exc),
+        }
 
 
 def _run_typecheck(file_path: str) -> dict:
@@ -113,12 +120,28 @@ def _run_typecheck(file_path: str) -> dict:
         }
     except Exception as exc:
         elapsed = time.perf_counter() - t0
-        return {"check": "typecheck", "passed": False, "elapsed_s": round(elapsed, 3), "detail": str(exc)}
+        return {
+            "check": "typecheck",
+            "passed": False,
+            "elapsed_s": round(elapsed, 3),
+            "detail": str(exc),
+        }
 
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print(json.dumps({"passed": False, "file": "", "checks": [], "elapsed_s": 0.0, "error": "Missing target file argument"}, indent=2))
+        print(
+            json.dumps(
+                {
+                    "passed": False,
+                    "file": "",
+                    "checks": [],
+                    "elapsed_s": 0.0,
+                    "error": "Missing target file argument",
+                },
+                indent=2,
+            )
+        )
         return 1
 
     target = sys.argv[1]

@@ -48,6 +48,7 @@ DEFAULT_TIMEOUT = 30
 # Attack Vector Taxonomy
 # ═══════════════════════════════════════════════════════════════
 
+
 class Severity(Enum):
     CRITICAL = "critical"
     HIGH = "high"
@@ -57,6 +58,7 @@ class Severity(Enum):
 
 class AttackCategory(Enum):
     """Categories of adversarial probe."""
+
     INPUT_VALIDATION = "input_validation"
     CONCURRENCY = "concurrency"
     NETWORK_FAILURE = "network_failure"
@@ -68,18 +70,19 @@ class AttackCategory(Enum):
 @dataclass
 class AttackVector:
     """One adversarial probe against the consortium pipeline."""
-    id: str                       # short unique identifier
-    description: str              # what we're testing
+
+    id: str  # short unique identifier
+    description: str  # what we're testing
     category: AttackCategory
     severity: Severity
-    payload: dict[str, Any]       # kwargs for cohezion_consortium_reason
-    expected_behavior: str        # what the pipeline SHOULD do
+    payload: dict[str, Any]  # kwargs for cohezion_consortium_reason
+    expected_behavior: str  # what the pipeline SHOULD do
     failure_indicators: list[str]  # patterns that indicate the pipeline broke
 
     # Filled in post-execution
-    result: str | None = None     # "pass", "fail", "error"
-    actual_behavior: str = ""     # what actually happened
-    evidence: str = ""            # proof (error message, trace)
+    result: str | None = None  # "pass", "fail", "error"
+    actual_behavior: str = ""  # what actually happened
+    evidence: str = ""  # proof (error message, trace)
     elapsed_ms: float = 0.0
     retries: int = 0
 
@@ -87,13 +90,14 @@ class AttackVector:
 @dataclass
 class AttackRunResult:
     """Full result of an instigator run."""
+
     run_id: str
     timestamp: str
     attack_vectors: list[AttackVector]
     passed: int
     failed: int
     errored: int
-    coverage_pct: float          # vectors that produced results / total
+    coverage_pct: float  # vectors that produced results / total
     compound_score_delta: float  # improvement over last run
     vault_path: str = ""
 
@@ -312,14 +316,10 @@ class ConsortiumInstigator(BaseAgent):
         # Filter vectors if skipping categories
         active_vectors = self.attack_vectors.copy()
         if skip_concurrent:
-            active_vectors = [
-                v for v in active_vectors
-                if v.category != AttackCategory.CONCURRENCY
-            ]
+            active_vectors = [v for v in active_vectors if v.category != AttackCategory.CONCURRENCY]
         if skip_network:
             active_vectors = [
-                v for v in active_vectors
-                if v.category != AttackCategory.NETWORK_FAILURE
+                v for v in active_vectors if v.category != AttackCategory.NETWORK_FAILURE
             ]
 
         # Execute each vector
@@ -366,7 +366,11 @@ class ConsortiumInstigator(BaseAgent):
         elapsed = time.perf_counter() - t0
         logger.info(
             "Instigator run %s complete: %dP/%dF/%dE in %.1fs",
-            run_id, passed, failed, errored, elapsed,
+            run_id,
+            passed,
+            failed,
+            errored,
+            elapsed,
         )
 
         return result
@@ -462,9 +466,7 @@ class ConsortiumInstigator(BaseAgent):
         stages = response.get("stages", [])
         elapsed = response.get("elapsed", 0)
 
-        vector.actual_behavior = (
-            f"{len(stages)} stages, {elapsed}s, final={final[:100]!r}"
-        )
+        vector.actual_behavior = f"{len(stages)} stages, {elapsed}s, final={final[:100]!r}"
         vector.evidence = json.dumps(response, indent=2, default=str)[:500]
 
         # ── AC-9.2: 10KB prompt ──
@@ -485,9 +487,7 @@ class ConsortiumInstigator(BaseAgent):
 
         # ── AC-9.2: Lemonade down ──
         if vector.id == "lemonade-down":
-            error_count = sum(
-                1 for s in stages if s.get("text", "").startswith("[ERROR")
-            )
+            error_count = sum(1 for s in stages if s.get("text", "").startswith("[ERROR"))
             if error_count == len(stages) and len(stages) == 5:
                 vector.result = "pass"
                 vector.actual_behavior += " [All 5 properly errored]"
@@ -552,12 +552,8 @@ class ConsortiumInstigator(BaseAgent):
         tasks = [one_call(i) for i in range(concurrency)]
         await asyncio.gather(*tasks, return_exceptions=True)
 
-        vector.actual_behavior = (
-            f"{len(results)}/{concurrency} completed, {len(errors)} errors"
-        )
-        vector.evidence = (
-            f"Results: {len(results)}, Errors: {errors[:3]}"
-        )
+        vector.actual_behavior = f"{len(results)}/{concurrency} completed, {len(errors)} errors"
+        vector.evidence = f"Results: {len(results)}, Errors: {errors[:3]}"
 
         # All must complete without interference
         if len(results) == concurrency and len(errors) == 0:
@@ -599,9 +595,7 @@ class ConsortiumInstigator(BaseAgent):
         discovered: list[AttackVector] = []
 
         # Rule 1: If concurrent failed, add higher-concurrency test
-        concurrent_fails = [
-            v for v in failures if v.category == AttackCategory.CONCURRENCY
-        ]
+        concurrent_fails = [v for v in failures if v.category == AttackCategory.CONCURRENCY]
         if concurrent_fails:
             discovered.append(
                 AttackVector(
@@ -616,9 +610,7 @@ class ConsortiumInstigator(BaseAgent):
             )
 
         # Rule 2: If input validation failed, add boundary tests
-        input_fails = [
-            v for v in failures if v.category == AttackCategory.INPUT_VALIDATION
-        ]
+        input_fails = [v for v in failures if v.category == AttackCategory.INPUT_VALIDATION]
         if input_fails:
             discovered.append(
                 AttackVector(
@@ -633,9 +625,7 @@ class ConsortiumInstigator(BaseAgent):
             )
 
         # Rule 3: If network failure vectors worked, add port-scan style
-        network_fails = [
-            v for v in failures if v.category == AttackCategory.NETWORK_FAILURE
-        ]
+        network_fails = [v for v in failures if v.category == AttackCategory.NETWORK_FAILURE]
         if network_fails:
             discovered.append(
                 AttackVector(
@@ -681,18 +671,17 @@ class ConsortiumInstigator(BaseAgent):
             "-" * 80,
         ]
 
-        for v in sorted(run.attack_vectors, key=lambda x: (
-            0 if x.result == "fail" else 1 if x.result == "error" else 2,
-            x.id,
-        )):
+        for v in sorted(
+            run.attack_vectors,
+            key=lambda x: (
+                0 if x.result == "fail" else 1 if x.result == "error" else 2,
+                x.id,
+            ),
+        ):
             result_str = (
-                "✅ PASS" if v.result == "pass"
-                else "❌ FAIL" if v.result == "fail"
-                else "⚠ ERR"
+                "✅ PASS" if v.result == "pass" else "❌ FAIL" if v.result == "fail" else "⚠ ERR"
             )
-            lines.append(
-                f"{v.id:<24} {v.category.value:<20} {result_str:<8} {v.elapsed_ms:.0f}"
-            )
+            lines.append(f"{v.id:<24} {v.category.value:<20} {result_str:<8} {v.elapsed_ms:.0f}")
             if v.result == "fail":
                 lines.append(f"  └ {v.actual_behavior[:120]}")
 

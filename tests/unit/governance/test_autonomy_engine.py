@@ -1,5 +1,7 @@
 """Unit tests for the AutonomyEngine governance tier system."""
 
+import pytest
+
 from cohezion.governance.autonomy_engine import (
     DEMOTION_WINDOW,
     PROMOTION_WINDOW,
@@ -303,3 +305,25 @@ class TestAutonomyEngineSingleton:
         engine_a = get_autonomy_engine()
         engine_b = get_autonomy_engine()
         assert engine_a is engine_b
+
+
+# ---------------------------------------------------------------------------
+# HIHO attractor (integration)
+# ---------------------------------------------------------------------------
+
+
+class TestHIHOAttractor:
+    def test_sustained_hiho_coherence_reaches_sovereign_tier(self):
+        """Agents sustaining coherence near 0.5 naturally converge to HIHO in <= 30 steps."""
+        import random
+
+        engine = AutonomyEngine()
+        rng = random.Random(42)
+
+        for step in range(30):
+            coherence = 0.50 + rng.gauss(0, 0.04)
+            tier = engine.record_physics_coherence("hiho-attractor", "lenr", coherence)
+            if tier == AutonomyTier.HIHO:
+                return  # Reached HIHO within budget
+
+        pytest.fail("Agent did not reach HIHO within 30 steps of sustained coherence near 0.5")

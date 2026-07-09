@@ -51,7 +51,7 @@ def build_kernel(solver_path: Path, kernel_name: str) -> Path:
     (kdir / "arc_solver.py").write_text(solver_code)
 
     # Write submission builder
-    submission_code = '''
+    submission_code = """
 import json
 import sys
 from pathlib import Path
@@ -85,7 +85,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
+"""
     (kdir / "submission.py").write_text(submission_code)
 
     # Write kernel metadata
@@ -174,7 +174,9 @@ def wait_for_score(kernel_id: str, competition: str, timeout: int = 600) -> tupl
     return 0.0, "timeout"
 
 
-def submit_and_score(solver_path: Path, competition: str = "arc-prize-2026-arc-agi-3") -> tuple[float, str, str]:
+def submit_and_score(
+    solver_path: Path, competition: str = "arc-prize-2026-arc-agi-3"
+) -> tuple[float, str, str]:
     """
     Full pipeline: build kernel, push, wait for score.
 
@@ -199,6 +201,7 @@ def submit_and_score(solver_path: Path, competition: str = "arc-prize-2026-arc-a
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--solver", type=Path, required=True, help="Path to arc_solver.py variant")
     parser.add_argument("--competition", default="arc-prize-2026-arc-agi-3")

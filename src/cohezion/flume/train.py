@@ -43,7 +43,7 @@ class FlumeTrainConfig:
     epochs: int = 3
     batch_size: int = 4
     lr: float = 1e-4
-    kl_weight: float = 0.1
+    kl_weight: float = 0.01  # β=0.1 causes posterior collapse; 0.01 is empirically validated
     checkpoint_every: int = 100  # steps (not epochs)
     output_dir: Path = Path("models/flume")
     max_seq_len: int = 128

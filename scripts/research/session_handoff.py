@@ -9,6 +9,7 @@ Usage:
     uv run python3 scripts/research/session_handoff.py
     # Or from autorun loop: session_handoff.write_if_needed()
 """
+
 from __future__ import annotations
 
 import json
@@ -24,11 +25,10 @@ def get_session_dir() -> Path | None:
     """Get the current session directory from cz CLI."""
     try:
         result = subprocess.run(
-            ['cz', 'session', 'status', '--json'],
-            capture_output=True, text=True, timeout=5
+            ["cz", "session", "status", "--json"], capture_output=True, text=True, timeout=5
         )
         data = json.loads(result.stdout)
-        d = data.get('session_dir', '')
+        d = data.get("session_dir", "")
         return Path(d) if d else None
     except Exception:
         return None
@@ -38,11 +38,10 @@ def get_context_pct() -> float:
     """Get context usage percentage (0.0-1.0)."""
     try:
         result = subprocess.run(
-            ['cz', 'context', '--json'],
-            capture_output=True, text=True, timeout=5
+            ["cz", "context", "--json"], capture_output=True, text=True, timeout=5
         )
         data = json.loads(result.stdout)
-        return data.get('percentage', 0.0) / 100.0
+        return data.get("percentage", 0.0) / 100.0
     except Exception:
         return 0.0
 
@@ -51,14 +50,12 @@ def get_git_summary() -> dict:
     """Get recent git activity for handoff."""
     try:
         log = subprocess.run(
-            ['git', 'log', '--oneline', '-5'],
-            capture_output=True, text=True, timeout=5, cwd=ROOT
+            ["git", "log", "--oneline", "-5"], capture_output=True, text=True, timeout=5, cwd=ROOT
         ).stdout.strip()
         branch = subprocess.run(
-            ['git', 'branch', '--show-current'],
-            capture_output=True, text=True, timeout=5, cwd=ROOT
+            ["git", "branch", "--show-current"], capture_output=True, text=True, timeout=5, cwd=ROOT
         ).stdout.strip()
-        return {'branch': branch, 'recent_commits': log.split('\n')}
+        return {"branch": branch, "recent_commits": log.split("\n")}
     except Exception:
         return {}
 
@@ -72,32 +69,41 @@ def get_autoresearch_summary(jsonl_path: Path) -> dict:
         import statistics
 
         by_exp = defaultdict(list)
-        lines = jsonl_path.read_text().strip().split('\n')
+        lines = jsonl_path.read_text().strip().split("\n")
         # Sample last 10k entries for speed
         for line in lines[-10000:]:
             try:
                 rec = json.loads(line)
-                exp = rec.get('experiment', '')
-                if exp and not exp.startswith('FINDING_'):
-                    delta = float(rec.get('delta', 0))
-                    keep = rec.get('keep', 'discard')
+                exp = rec.get("experiment", "")
+                if exp and not exp.startswith("FINDING_"):
+                    delta = float(rec.get("delta", 0))
+                    keep = rec.get("keep", "discard")
                     by_exp[exp].append((delta, keep))
             except Exception:
                 pass
 
         top = []
-        for exp, runs in sorted(by_exp.items(), key=lambda x: -statistics.mean(d for d, _ in x[1] if d > 0) * sum(1 for _, k in x[1] if k == 'keep') / max(1, len(x[1]))):
-            keeps = sum(1 for _, k in runs if k == 'keep')
+        for exp, runs in sorted(
+            by_exp.items(),
+            key=lambda x: (
+                -statistics.mean(d for d, _ in x[1] if d > 0)
+                * sum(1 for _, k in x[1] if k == "keep")
+                / max(1, len(x[1]))
+            ),
+        ):
+            keeps = sum(1 for _, k in runs if k == "keep")
             deltas = [d for d, _ in runs if d > 0]
             if keeps > 0 and deltas:
-                top.append({
-                    'experiment': exp,
-                    'keep_frac': round(keeps / len(runs), 2),
-                    'mean_delta': round(statistics.mean(deltas), 4),
-                })
+                top.append(
+                    {
+                        "experiment": exp,
+                        "keep_frac": round(keeps / len(runs), 2),
+                        "mean_delta": round(statistics.mean(deltas), 4),
+                    }
+                )
             if len(top) >= 5:
                 break
-        return {'total_runs': len(lines), 'top_experiments': top}
+        return {"total_runs": len(lines), "top_experiments": top}
     except Exception:
         return {}
 
@@ -116,24 +122,24 @@ def write_handoff(force: bool = False) -> bool:
     session_dir = get_session_dir()
     if not session_dir:
         # Fallback path
-        session_dir = ROOT / '.cohezion-sessions' / 'current'
+        session_dir = ROOT / ".cohezion-sessions" / "current"
         session_dir.mkdir(parents=True, exist_ok=True)
 
     git = get_git_summary()
-    research = get_autoresearch_summary(ROOT / 'autoresearch_overnight.jsonl')
+    research = get_autoresearch_summary(ROOT / "autoresearch_overnight.jsonl")
 
     content = f"""# Session Continuation
 **Written:** {datetime.now(timezone.utc).isoformat()}
 **Context:** {ctx_pct:.0%}
-**Branch:** {git.get('branch', 'unknown')}
+**Branch:** {git.get("branch", "unknown")}
 
 ## Active Plan
 None — autoresearch mode
 
 ## Git State
-Branch: {git.get('branch', 'unknown')}
+Branch: {git.get("branch", "unknown")}
 Recent commits:
-{chr(10).join('  ' + c for c in git.get('recent_commits', []))}
+{chr(10).join("  " + c for c in git.get("recent_commits", []))}
 
 ## Autoresearch State
 {json.dumps(research, indent=2)}
@@ -161,12 +167,14 @@ uv run python3 scripts/research/adaptive_schedule.py autoresearch_overnight.json
 uv run python3 /tmp/evo_optimal_schedule.py &
 ```
 
-Elapsed write time: {(timeit.default_timer() - t0)*1000:.0f}ms
+Elapsed write time: {(timeit.default_timer() - t0) * 1000:.0f}ms
 """
 
-    cont_path = session_dir / 'continuation.md'
+    cont_path = session_dir / "continuation.md"
     cont_path.write_text(content)
-    print(f"[session_handoff] Written to {cont_path} ({ctx_pct:.0%} context, {(timeit.default_timer()-t0)*1000:.0f}ms)")
+    print(
+        f"[session_handoff] Written to {cont_path} ({ctx_pct:.0%} context, {(timeit.default_timer() - t0) * 1000:.0f}ms)"
+    )
     return True
 
 
@@ -175,10 +183,11 @@ def write_if_needed() -> bool:
     return write_handoff(force=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('--force', action='store_true', help='Write regardless of context level')
+    parser.add_argument("--force", action="store_true", help="Write regardless of context level")
     args = parser.parse_args()
     written = write_handoff(force=args.force)
     if not written:

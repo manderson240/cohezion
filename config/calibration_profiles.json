@@ -1,0 +1,24 @@
+{
+  "task_classifier": {
+    "parameters": {
+      "status_question_max_len": 90,
+      "short_what_is_max_len": 75,
+      "how_does_max_len": 85,
+      "fallback_short_max_len": 150,
+      "fallback_medium_max_len": 400
+    },
+    "metadata": {
+      "calibrated_at": "2026-06-02T15:48:27.875904Z",
+      "cohezion_version": "v1.0.0"
+    }
+  },
+  "semantic_cache": {
+    "parameters": {
+      "similarity_threshold": 0.8
+    },
+    "metadata": {
+      "calibrated_at": "2026-06-02T15:47:16.444620Z",
+      "cohezion_version": "v1.0.0"
+    }
+  }
+}

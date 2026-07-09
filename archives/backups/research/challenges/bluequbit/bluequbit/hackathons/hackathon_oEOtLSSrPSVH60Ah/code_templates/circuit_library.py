@@ -3,7 +3,6 @@ BlueQubit Circuit Library
 Pre-built circuits for common quantum algorithms
 """
 
-
 import numpy as np
 import qiskit
 from qiskit.circuit.random import random_circuit

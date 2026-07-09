@@ -110,9 +110,7 @@ def build_synced_registry(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Print delta, do not write registry"
-    )
+    parser.add_argument("--dry-run", action="store_true", help="Print delta, do not write registry")
     args = parser.parse_args()
 
     if not SKILLS_DIR.exists():

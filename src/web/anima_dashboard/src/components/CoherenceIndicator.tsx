@@ -24,7 +24,7 @@ export const CoherenceIndicator: React.FC<CoherenceIndicatorProps> = ({ value })
     <div style={{ width: "100%", padding: "8px 0" }}>
       <div style={{ 
         display: "flex", 
-        justify_content: "space-between", 
+        justifyContent: "space-between", 
         fontFamily: "JetBrains Mono, monospace",
         fontSize: "0.75rem",
         color: "#666",

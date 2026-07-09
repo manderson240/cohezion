@@ -8,7 +8,6 @@ By prefetching upcoming tiles while computing current tiles,
 we can hide memory latency.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

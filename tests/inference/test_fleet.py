@@ -316,3 +316,87 @@ async def test_extend_claude_accepts_high_confidence_local():
     assert mock_route.await_count == 1
     assert result.self_reported_confidence == 0.95
     assert not result.escalated_to_cloud
+
+
+# ── Thinking model (reasoning_content) fallback tests ────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_fetch_completion_uses_reasoning_content_when_content_empty():
+    """Non-streaming path: empty content + reasoning_content → use reasoning."""
+    from cohezion.inference.fleet import _dispatch_openai_compatible
+    from cohezion.inference.registry import Lane, ModelEntry, WeightQuant
+
+    model = ModelEntry(
+        model_id="DeepSeek-R1-test",
+        lane=Lane.NPU,
+        endpoint="http://localhost:13306",
+        runtime_backend="lemonade",
+        task_affinity=frozenset(),
+        weight_quant=WeightQuant.INT4,
+        context_window=8192,
+    )
+    fake_response = {
+        "choices": [
+            {"message": {"content": "", "reasoning_content": "2+2 = 4 because arithmetic."}}
+        ],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 50},
+    }
+    mock_resp = AsyncMock()
+    mock_resp.raise_for_status = lambda: None
+    mock_resp.json = lambda: fake_response
+
+    with patch("httpx.AsyncClient") as mock_client_cls:
+        mock_client = AsyncMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+        mock_client.post = AsyncMock(return_value=mock_resp)
+        mock_client_cls.return_value = mock_client
+
+        text, cost, _, _ = await _dispatch_openai_compatible(
+            model, "What is 2+2?", coherence=None, timeout=10.0, stream=False
+        )
+
+    assert "2+2 = 4" in text, f"Expected reasoning fallback, got: {text!r}"
+    assert cost == 0.0
+
+
+@pytest.mark.asyncio
+async def test_fetch_completion_prefers_content_over_reasoning():
+    """Substantive content (≥50 chars) takes priority over reasoning_content."""
+    from cohezion.inference.fleet import _dispatch_openai_compatible
+    from cohezion.inference.registry import Lane, ModelEntry, WeightQuant
+
+    model = ModelEntry(
+        model_id="DeepSeek-R1-test",
+        lane=Lane.NPU,
+        endpoint="http://localhost:13306",
+        runtime_backend="lemonade",
+        task_affinity=frozenset(),
+        weight_quant=WeightQuant.INT4,
+        context_window=8192,
+    )
+    # Content is 66 chars (≥50 threshold) — should be preferred over reasoning
+    long_content = "The answer is 4. This result follows from the Peano axioms of arithmetic."
+    fake_response = {
+        "choices": [
+            {"message": {"content": long_content, "reasoning_content": "Let me think... 2+2=4."}}
+        ],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 20},
+    }
+    mock_resp = AsyncMock()
+    mock_resp.raise_for_status = lambda: None
+    mock_resp.json = lambda: fake_response
+
+    with patch("httpx.AsyncClient") as mock_client_cls:
+        mock_client = AsyncMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+        mock_client.post = AsyncMock(return_value=mock_resp)
+        mock_client_cls.return_value = mock_client
+
+        text, _, _, _ = await _dispatch_openai_compatible(
+            model, "What is 2+2?", coherence=None, timeout=10.0, stream=False
+        )
+
+    assert "Peano axioms" in text, f"Expected long_content (≥50c), got: {text!r}"

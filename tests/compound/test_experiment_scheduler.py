@@ -1,4 +1,5 @@
 """Tests for ExperimentScheduler."""
+
 import json
 from pathlib import Path
 
@@ -10,7 +11,6 @@ def _make_jsonl(path: Path, records: list) -> None:
 
 
 class TestExperimentScheduler:
-
     def test_default_params(self):
         sched = ExperimentScheduler()
         assert sched.min_keeps == 10
@@ -19,8 +19,7 @@ class TestExperimentScheduler:
     def test_check_retirements_finds_constant_experiment(self, tmp_path):
         f = tmp_path / "test.jsonl"
         records = [
-            {"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}}
-            for _ in range(15)
+            {"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)
         ]
         _make_jsonl(f, records)
         sched = ExperimentScheduler(min_keeps=10)
@@ -40,7 +39,9 @@ class TestExperimentScheduler:
 
     def test_already_retired_not_returned_again(self, tmp_path):
         f = tmp_path / "test.jsonl"
-        records = [{"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)]
+        records = [
+            {"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)
+        ]
         _make_jsonl(f, records)
         sched = ExperimentScheduler(min_keeps=10)
         # First call finds E50
@@ -72,4 +73,3 @@ class TestExperimentScheduler:
         assert "E50" in summary["retired_labels"]
         assert summary["min_keeps"] == 5
         assert summary["cv_threshold"] == 0.03
-

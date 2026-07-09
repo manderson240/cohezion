@@ -84,7 +84,7 @@ def main() -> int:
     except subprocess.CalledProcessError:
         check(False, "Maintenance check failed")
 
-    print(f"\n{'='*40}{'ALL PASSED' if failures == 0 else f'{failures} FAILURES'}{'='*40}")
+    print(f"\n{'=' * 40}{'ALL PASSED' if failures == 0 else f'{failures} FAILURES'}{'=' * 40}")
     return 0 if failures == 0 else 1
 
 

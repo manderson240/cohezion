@@ -5,7 +5,6 @@ If we defer load_inline to the first call of custom_kernel(),
 the compilation happens on the harness's active stream context.
 """
 
-
 from task import input_t, output_t
 
 

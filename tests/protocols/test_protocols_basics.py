@@ -14,7 +14,6 @@ from __future__ import annotations
 import asyncio
 import json
 
-
 from cohezion.protocols.a2a_server import (
     A2AClient,
     A2AMessage,

@@ -185,11 +185,15 @@ def reflect_via_lane(lane: dict, trace: str) -> dict:
     # Critic call timeout is half the lane timeout so the serial pair fits
     # under the outer 30s ThreadPoolExecutor cap (was overflowing in E108).
     txt, telem = autolit._post_chat(
-        lane["model"], base_prompt, timeout=lane["timeout"], max_tokens=240,
+        lane["model"],
+        base_prompt,
+        timeout=lane["timeout"],
+        max_tokens=240,
         endpoint=lane.get("endpoint"),
     )
     crit_txt, crit_telem = autolit._post_chat(
-        lane["model"], critic_prompt,
+        lane["model"],
+        critic_prompt,
         timeout=max(5.0, lane["timeout"] / 2),
         max_tokens=20,
         endpoint=lane.get("endpoint"),
@@ -223,7 +227,7 @@ def reflect_via_lane(lane: dict, trace: str) -> dict:
         if lm:
             suspect = lm.group(0).upper()
             out["critic"] = {"suspect_experiment": suspect, "raw": clean[:200]}
-            proposed = ((out.get("proposed_experiment") or "").strip().lower())
+            proposed = (out.get("proposed_experiment") or "").strip().lower()
             # Convergence: if the same label appears in both lists, strongest signal
             out["adversarial_convergence"] = bool(
                 proposed and (suspect.lower() in proposed or proposed.startswith(suspect.lower()))
@@ -242,8 +246,11 @@ def main() -> int:
         print("[e80] no trace data — aborting")
         return 1
 
-    print(f"[e80] trace built: {summary['rows_analyzed']} rows, "
-          f"{summary['labels_count']} unique experiment labels", flush=True)
+    print(
+        f"[e80] trace built: {summary['rows_analyzed']} rows, "
+        f"{summary['labels_count']} unique experiment labels",
+        flush=True,
+    )
 
     profile = autolit._load_silicon_profile()
     profile["runs"] = profile.get("runs", 0) + 1
@@ -251,19 +258,24 @@ def main() -> int:
     print("[e80] firing silicon council in parallel (NPU + iGPU + CPU)...", flush=True)
     verdicts: list[dict] = []
     with ThreadPoolExecutor(max_workers=len(autolit.LEMONADE_LANES)) as pool:
-        futures = {pool.submit(reflect_via_lane, lane, trace): lane
-                   for lane in autolit.LEMONADE_LANES}
+        futures = {
+            pool.submit(reflect_via_lane, lane, trace): lane for lane in autolit.LEMONADE_LANES
+        }
         for fut in as_completed(futures):
             try:
                 v = fut.result(timeout=120.0)  # E109: was 30s — too tight for 2-call lanes
                 # Update silicon_profile telemetry
-                autolit._update_silicon_profile(profile, v["lane"], {
-                    "latency_ms": v["latency_ms"],
-                    "ok": v.get("ok", False),
-                    "error_class": v.get("error_class"),
-                    "tokens_per_sec": v.get("tokens_per_sec", 0),
-                    "response_tokens": 0,
-                })
+                autolit._update_silicon_profile(
+                    profile,
+                    v["lane"],
+                    {
+                        "latency_ms": v["latency_ms"],
+                        "ok": v.get("ok", False),
+                        "error_class": v.get("error_class"),
+                        "tokens_per_sec": v.get("tokens_per_sec", 0),
+                        "response_tokens": 0,
+                    },
+                )
                 verdicts.append(v)
             except Exception as exc:
                 lane_name = futures[fut]["name"]
@@ -281,13 +293,15 @@ def main() -> int:
         if not label or label in seen_labels:
             continue
         seen_labels.add(label)
-        distinct_proposals.append({
-            "proposed_experiment": v.get("proposed_experiment"),
-            "hypothesis": v.get("hypothesis"),
-            "why_novel": v.get("why_novel"),
-            "unblocks": v.get("unblocks"),
-            "voted_by_lane": v["lane"],
-        })
+        distinct_proposals.append(
+            {
+                "proposed_experiment": v.get("proposed_experiment"),
+                "hypothesis": v.get("hypothesis"),
+                "why_novel": v.get("why_novel"),
+                "unblocks": v.get("unblocks"),
+                "voted_by_lane": v["lane"],
+            }
+        )
 
     # If a label is proposed by 2+ lanes, that's stronger consensus
     label_count: dict[str, int] = {}
@@ -312,27 +326,36 @@ def main() -> int:
         )
         try:
             adv_txt, _ = autolit._post_chat(
-                probe_lane["model"], adv_prompt,
-                timeout=probe_lane["timeout"], max_tokens=20,
+                probe_lane["model"],
+                adv_prompt,
+                timeout=probe_lane["timeout"],
+                max_tokens=20,
                 endpoint=probe_lane.get("endpoint"),
             )
             if adv_txt:
                 lm = re.search(r"\bE\d{1,4}\b", adv_txt.strip(), re.IGNORECASE)
                 if lm and lm.group(0).lower() != consensus_label:
                     unanimous_flag = True
-                    print(f"[e80] ⚠️  UNANIMOUS DIVERGENCE: re-probe suggests "
-                          f"'{lm.group(0).upper()}' vs unanimous '{consensus_label}'", flush=True)
+                    print(
+                        f"[e80] ⚠️  UNANIMOUS DIVERGENCE: re-probe suggests "
+                        f"'{lm.group(0).upper()}' vs unanimous '{consensus_label}'",
+                        flush=True,
+                    )
         except Exception:
             pass  # non-blocking
 
     elapsed = timeit.default_timer() - t0
 
     # Print
-    print(f"\n[e80] silicon council done in {elapsed:.1f}s — "
-          f"{len(verdicts)} lanes responded, {len(distinct_proposals)} distinct proposals",
-          flush=True)
-    print(f"[e80] consensus label: '{consensus_label}' (voted by {consensus_count}/{len(verdicts)} lanes)",
-          flush=True)
+    print(
+        f"\n[e80] silicon council done in {elapsed:.1f}s — "
+        f"{len(verdicts)} lanes responded, {len(distinct_proposals)} distinct proposals",
+        flush=True,
+    )
+    print(
+        f"[e80] consensus label: '{consensus_label}' (voted by {consensus_count}/{len(verdicts)} lanes)",
+        flush=True,
+    )
     for i, p in enumerate(distinct_proposals, 1):
         print(f"\n  Proposal {i} (from {p['voted_by_lane']}):")
         print(f"    label: {p['proposed_experiment']}")
@@ -349,7 +372,7 @@ def main() -> int:
         f"{summary['labels_count']} experiment labels). Fired NPU + iGPU + CPU in parallel; "
         f"{len(verdicts)} lanes responded ({sum(1 for v in verdicts if v.get('ok'))} ok). "
         f"Consensus label: '{consensus_label}' ({consensus_count}/{len(verdicts)} lane votes).",
-        f"\nDistinct proposals ({len(distinct_proposals)}):"
+        f"\nDistinct proposals ({len(distinct_proposals)}):",
     ]
     for i, p in enumerate(distinct_proposals, 1):
         text_parts.append(
@@ -360,11 +383,16 @@ def main() -> int:
         f"\nThis replaces the existing AutoresearchEngine's stuck output ('cache: increase "
         f"semantic_cache_size to 4096' — repeated 1733 cycles per E74). Wall time {elapsed:.1f}s."
     )
-    obs = {"id": new_id, "timestamp": ts, "type": "reflection", "project": "cohezion",
-           "title": f"E80 reflective autoresearch: {len(distinct_proposals)} novel proposals via silicon council "
-                    f"(consensus: {consensus_label})",
-           "text": "\n".join(text_parts),
-           "experiment": "E80"}
+    obs = {
+        "id": new_id,
+        "timestamp": ts,
+        "type": "reflection",
+        "project": "cohezion",
+        "title": f"E80 reflective autoresearch: {len(distinct_proposals)} novel proposals via silicon council "
+        f"(consensus: {consensus_label})",
+        "text": "\n".join(text_parts),
+        "experiment": "E80",
+    }
     with VAULT_OBS.open("a") as f:
         f.write(json.dumps(obs) + "\n")
     bump_id(VAULT_OBS, new_id, "id")
@@ -387,19 +415,19 @@ def main() -> int:
         run_status = "discard"
     # Aggregate adversarial-convergence signal (E104 part-a)
     n_adversarial_convergence = sum(1 for v in verdicts if v.get("adversarial_convergence"))
-    suspect_labels = [(v.get("critic") or {}).get("suspect_experiment")
-                      for v in verdicts if v.get("ok")]
+    suspect_labels = [
+        (v.get("critic") or {}).get("suspect_experiment") for v in verdicts if v.get("ok")
+    ]
     suspect_labels = [s for s in suspect_labels if s]
     # E113 anti-sycophancy #3: unanimous-vote warning. When ALL responsive lanes
     # converge on the same label, that's *suspect* — disagreement is signal,
     # consensus may be groupthink. Flag it; downstream scripts can re-fire with
     # sharpened prompt + temperature=0.7 to test whether the consensus survives.
-    is_unanimous = (n_ok_lanes >= 3
-                    and consensus_label is not None
-                    and consensus_count == n_ok_lanes)
+    is_unanimous = n_ok_lanes >= 3 and consensus_label is not None and consensus_count == n_ok_lanes
     requires_dissent_check = is_unanimous
     entry = {
-        "run": new_run, "metric": float(n_proposals),
+        "run": new_run,
+        "metric": float(n_proposals),
         "metrics": {
             "trace_rows_analyzed": summary["rows_analyzed"],
             "experiment_labels_in_trace": summary["labels_count"],
@@ -420,31 +448,39 @@ def main() -> int:
         },
         "status": run_status,
         "description": f"E80 reflective autoresearch (E104-anti-sycophancy): "
-                       f"{n_proposals} novel proposals "
-                       f"({consensus_count}/{len(verdicts)} consensus on '{consensus_label}'); "
-                       f"adversarial convergence={n_adversarial_convergence}/{len(verdicts)}; "
-                       f"suspect labels={suspect_labels[:3]}; status={run_status}",
-        "timestamp": int(time.time() * 1000), "segment": 99, "confidence": 1.0,
-        "asi": {"experiment": "E80", "novel_proposals": n_proposals,
-                "consensus_label": consensus_label, "consensus_count": consensus_count,
-                "adversarial_convergence_lanes": n_adversarial_convergence,
-                "suspect_labels": suspect_labels,
-                "unanimous_warning": is_unanimous,
-                "requires_dissent_check": requires_dissent_check},
+        f"{n_proposals} novel proposals "
+        f"({consensus_count}/{len(verdicts)} consensus on '{consensus_label}'); "
+        f"adversarial convergence={n_adversarial_convergence}/{len(verdicts)}; "
+        f"suspect labels={suspect_labels[:3]}; status={run_status}",
+        "timestamp": int(time.time() * 1000),
+        "segment": 99,
+        "confidence": 1.0,
+        "asi": {
+            "experiment": "E80",
+            "novel_proposals": n_proposals,
+            "consensus_label": consensus_label,
+            "consensus_count": consensus_count,
+            "adversarial_convergence_lanes": n_adversarial_convergence,
+            "suspect_labels": suspect_labels,
+            "unanimous_warning": is_unanimous,
+            "requires_dissent_check": requires_dissent_check,
+        },
     }
     with JSONL.open("a") as f:
         f.write(json.dumps(entry) + "\n")
     bump_id(JSONL, new_run, "run")
     # Dual-write to SurrealDB index (silent-fails if v3 protocol issue persists)
-    surreal_index.record_experiment_run({
-        "run": new_run,
-        "experiment": "E80",
-        "status": entry["status"],
-        "metric": entry["metric"],
-        "ts": entry["timestamp"],
-        "asi": entry["asi"],
-        "description": entry["description"],
-    })
+    surreal_index.record_experiment_run(
+        {
+            "run": new_run,
+            "experiment": "E80",
+            "status": entry["status"],
+            "metric": entry["metric"],
+            "ts": entry["timestamp"],
+            "asi": entry["asi"],
+            "description": entry["description"],
+        }
+    )
     print(f"[e80] appended autoresearch.jsonl run #{new_run}", flush=True)
     return 0
 

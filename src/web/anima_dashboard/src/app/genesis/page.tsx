@@ -60,8 +60,12 @@ const EcoResilienceView = dynamic(
   () => import("@/components/EcoResilienceView"),
   { ssr: false }
 );
+const StealthskaterView = dynamic(
+  () => import("@/components/genesis/StealthskaterView"),
+  { ssr: false }
+);
 
-type GenesisTab = "cosmogony" | "bloch" | "thermo" | "compound" | "swarm" | "cache" | "flume" | "ecoresilience" | "about";
+type GenesisTab = "cosmogony" | "bloch" | "thermo" | "compound" | "swarm" | "cache" | "flume" | "ecoresilience" | "stealthskater" | "about";
 
 export default function GenesisPage() {
   const [tab, setTab] = useState<GenesisTab>("cosmogony");
@@ -143,6 +147,7 @@ export default function GenesisPage() {
     { key: "cache", label: "Cache/Cost", desc: "Optimization" },
     { key: "flume", label: "FLUME", desc: "Latent Space" },
     { key: "ecoresilience", label: "EcoResilience", desc: "12D Manifold" },
+    { key: "stealthskater", label: "Stealthskater", desc: "Quantum & Plasma Telemetry" },
     { key: "about", label: "About", desc: "The Mathematics" },
   ];
 
@@ -409,6 +414,7 @@ export default function GenesisPage() {
           </div>
         )}
         {tab === "ecoresilience" && <EcoResilienceView />}
+        {tab === "stealthskater" && <StealthskaterView />}
         {tab === "about" && <AboutPanel />}
       </main>
 

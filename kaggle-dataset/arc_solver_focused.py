@@ -6,6 +6,7 @@ Strategy:
 3. Shape-change → try scale/crop/pad primitives
 4. Always return a prediction (no None)
 """
+
 from __future__ import annotations
 
 from typing import Callable
@@ -15,6 +16,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
+
     HAS_TORCH = True
 except Exception:
     HAS_TORCH = False
@@ -36,6 +38,7 @@ def grids_equal(a, b):
 
 
 # ── Same-size tasks: TinyConv per-task ──────────────────────────
+
 
 class TinyConv(nn.Module):
     def __init__(self, colors=10, hidden=32):
@@ -82,7 +85,7 @@ def _train_conv(train, colors=10, hidden=32, steps=200, lr=0.05):
     opt = torch.optim.Adam(model.parameters(), lr=lr)
     model.train()
 
-    best_loss = float('inf')
+    best_loss = float("inf")
     no_improve = 0
 
     for epoch in range(steps):
@@ -121,8 +124,10 @@ def _predict_conv(model, grid):
 
 # ── Shape-change primitives ───────────────────────────────────
 
+
 def identity(g):
     return [r[:] for r in g]
+
 
 def crop_to_size(g, th, tw):
     """Crop or pad grid to target size."""
@@ -166,6 +171,7 @@ def try_primitives(train, test_input):
 
 # ── Task type detection ───────────────────────────────────────
 
+
 def _task_type(task):
     """Returns 'same_size', 'downscale', 'upscale', 'mixed'."""
     train = task.get("train", [])
@@ -185,12 +191,16 @@ def _task_type(task):
         return "same_size"
 
     # Check if output is consistently smaller or larger
-    smaller = all(len(ex["input"]) >= len(ex["output"]) and
-                  (not ex["input"] or len(ex["input"][0]) >= len(ex["output"][0]))
-                  for ex in train)
-    larger = all(len(ex["input"]) <= len(ex["output"]) and
-                 (not ex["input"] or len(ex["input"][0]) <= len(ex["output"][0]))
-                 for ex in train)
+    smaller = all(
+        len(ex["input"]) >= len(ex["output"])
+        and (not ex["input"] or len(ex["input"][0]) >= len(ex["output"][0]))
+        for ex in train
+    )
+    larger = all(
+        len(ex["input"]) <= len(ex["output"])
+        and (not ex["input"] or len(ex["input"][0]) <= len(ex["output"][0]))
+        for ex in train
+    )
 
     if smaller and any(len(ex["input"]) > len(ex["output"]) for ex in train):
         return "downscale"
@@ -201,6 +211,7 @@ def _task_type(task):
 
 
 # ── Main solve entry point ─────────────────────────────────────
+
 
 def solve_task(task: dict, max_depth: int = 3):
     task_id = task.get("id", "unknown")

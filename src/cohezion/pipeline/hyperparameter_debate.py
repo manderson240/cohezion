@@ -25,7 +25,7 @@ _PARAM_SPEC: dict[str, dict[str, float]] = {
     "gamma": {"min": 0.9, "max": 0.999, "default": 0.99},
     "discount": {"min": 0.9, "max": 0.999, "default": 0.99},
     "action_scale": {"min": 0.001, "max": 0.1, "default": 0.01},
-    "kl_weight": {"min": 1e-4, "max": 1.0, "default": 0.1},
+    "kl_weight": {"min": 1e-4, "max": 0.015, "default": 0.01},  # collapse at ~0.02 (empirical)
 }
 
 # Canonical name mapping (aliases -> canonical)

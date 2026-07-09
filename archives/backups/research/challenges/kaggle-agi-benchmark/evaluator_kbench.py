@@ -12,7 +12,6 @@ Kaggle Competition Submission using kbench SDK
 Total: 75 tasks (15 per track)
 """
 
-
 import kaggle_benchmarks as kbench
 import requests
 
@@ -1486,7 +1485,6 @@ def agi_cognitive_framework_overall(llm) -> float:
 
 
 if __name__ == "__main__":
-
     import requests
 
     class SwarmLLM:

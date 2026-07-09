@@ -1,4 +1,5 @@
 """Tests for CachePersistence and WarmCacheLoader."""
+
 import json
 
 import pytest
@@ -12,7 +13,6 @@ def tmp_cache(tmp_path):
 
 
 class TestCachePersistence:
-
     def test_save_and_load_roundtrip(self, tmp_cache):
         cache = {"key1": "value1", "key2": "value2"}
         n = tmp_cache.save_cache(cache)
@@ -41,7 +41,6 @@ class TestCachePersistence:
 
 
 class TestWarmCacheLoader:
-
     def test_instantiable(self, tmp_path):
         persistence = CachePersistence(cache_dir=tmp_path)
         loader = WarmCacheLoader(persistence=persistence)
@@ -57,4 +56,3 @@ class TestWarmCacheLoader:
         persistence = CachePersistence(cache_dir=tmp_path)
         loader = WarmCacheLoader(persistence=persistence)
         assert loader.load_cache() == {}
-

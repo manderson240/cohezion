@@ -94,12 +94,8 @@ class TLSConfig:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
             context.load_cert_chain(self.cert_path, self.key_path)
 
-            # Enforce strong TLS versions (TLS 1.2+)
+            # minimum_version=TLSv1_2 enforces TLS 1.2+ — deprecated OP_NO_* constants not needed
             context.minimum_version = ssl.TLSVersion.TLSv1_2
-            context.options |= ssl.OP_NO_SSLv2
-            context.options |= ssl.OP_NO_SSLv3
-            context.options |= ssl.OP_NO_TLSv1
-            context.options |= ssl.OP_NO_TLSv1_1
 
             logger.info("SSL context loaded successfully")
             return context

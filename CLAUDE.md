@@ -163,10 +163,11 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Cost Opt** | CostAwareRouter (Lemonade-first, YAML profiles, 45 models), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector, ExecutionTraces (Meta-Harness L225) | `SessionManager` |
 | **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
+| **Stealthskater Bridges** | LENR (lattice coherence), DielectricField (Biefeld-Brown/U(1) gauge), IonicClusterState (plasma HIHO) — all share 4x(1-x) kernel, peak at HIHO threshold 0.5 | `LENRHamiltonian` |
 | **World Model** | JEPA predictor (~2M params, causal masking), `SurpriseExplorer`, `SIGReg` | `JEPAWorldModel` |
 | **Bioelectric** | Levin bioelectric network, gap junction percolation, HIHO phase transition (lives in `physics/`) | `BioelectricNetwork` |
 | **Cosmogony** | Cosmogonic chain + `SymmetryBreaking` | `physics/cosmogony.py` |
-| **Worldviews** | 16 indigenous traditions x 10 cosmogony steps, Worldview Explorer | `WorldviewExplorer` |
+| **Worldviews** | 17 traditions (16 indigenous + stealthskater) x 10 cosmogony steps, Worldview Explorer | `WorldviewExplorer` |
 | **Ouroboros** | Ouroboros bridge + Mycelium network wired into Genesis chain | `OuroborosBridge` |
 | **Environments** | ManifoldEnv (gymnasium, 19D obs, verifiable rewards), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
 | **Governance** | AutonomyEngine (cosmogonic tiers), ConciergeAgent, KnowledgeBridge, FlumeBridge | `AutonomyEngine` |
@@ -271,10 +272,10 @@ Updated Skill (loop again)
 | `src/cohezion/environments/` | Gymnasium RL envs: ManifoldEnv (single), SwarmEnv (multi-agent) | `manifold_env.py`, `swarm_env.py` |
 | `src/cohezion/api/` | FastAPI backend (92 route handlers) | `__init__.py`, `services/genesis.py` |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
-| `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony | `spinor.py`, `cosmogony.py` |
+| `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony. **Stealthskater bridges**: LENR, DielectricField, IonicCluster (all share 4x(1-x) HIHO kernel) | `spinor.py`, `cosmogony.py`, `lenr.py`, `dielectric.py`, `ionic_cluster.py` |
 | `src/cohezion/world_model/` | JEPA world model (~2M params, causal masking, CPU-trainable) + `SurpriseExplorer` + `SIGReg`. See `docs/deep-dive-world-model.md`. | `jepa_world_model.py` |
 | `src/cohezion/physics/bioelectric_model.py` | Levin bioelectric network, gap junction percolation | `BioelectricNetwork` |
-| `src/cohezion/worldviews/` | 16 indigenous traditions x 10 cosmogony steps | `WorldviewExplorer` |
+| `src/cohezion/worldviews/` | 17 traditions (16 indigenous + stealthskater) x 10 cosmogony steps | `WorldviewExplorer` |
 | `src/cohezion/ouroboros/` | Ouroboros bridge + Mycelium network | `OuroborosBridge` |
 | `src/cohezion/audio/` | PocketTTS narrator, Kyutai Labs integration | `narrator.py` |
 | `src/web/anima_dashboard/` | Next.js 16 + Three.js + Tone.js webapp | `/genesis` route (4 tabs) |
@@ -291,6 +292,7 @@ Updated Skill (loop again)
 - **Every `src/` dir**: MUST have `__init__.py`. Enables vault skill discovery
 - **Observability**: Log state transitions (input → processing → output). Track coherence
 - **YAML Frontmatter Markdown**: Structured config/state files that humans may read MUST use YAML frontmatter `.md` (not JSON). Consistent with vault, skills, `.context/` conventions. JSON only for wire formats and machine-to-machine data
+- **Python Standards**: Prefer `pathlib.Path` over `os.path` for all path manipulations. Use context managers (`with` statements) for all resource handling (files, sockets, database clients). Never run `-v` or `-s` on broad test runs (only when debugging a single focused test) to conserve prompt context.
 
 ## Token Budgets (Conservative Estimates)
 

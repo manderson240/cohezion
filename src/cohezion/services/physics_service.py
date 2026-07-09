@@ -123,16 +123,16 @@ class PhysicsService:
         try:
             # Σ2: legacy semantic-physics schema; see PhysicsState constructor note.
             stability_score = (
-                getattr(state, 'stability', 0.0) * 0.4
-                + getattr(state, 'coherence', 0.0) * 0.3
-                + getattr(state, 'connectivity', 0.0) * 0.3
+                getattr(state, "stability", 0.0) * 0.4
+                + getattr(state, "coherence", 0.0) * 0.3
+                + getattr(state, "connectivity", 0.0) * 0.3
             )
 
-            coherence_score = getattr(state, 'coherence', 0.0)
+            coherence_score = getattr(state, "coherence", 0.0)
 
             novelty_score = state.novelty
 
-            connectivity_score = getattr(state, 'connectivity', 0.0)
+            connectivity_score = getattr(state, "connectivity", 0.0)
 
             overall_health = (
                 stability_score * 0.3

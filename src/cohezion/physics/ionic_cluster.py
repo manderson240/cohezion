@@ -77,7 +77,7 @@ class IonicClusterState:
         -------
         bool
         """
-        return abs(self.plasma_density - _HIHO_THRESHOLD) <= self.hiho_tolerance
+        return abs(self.plasma_density - _HIHO_THRESHOLD) <= self.hiho_tolerance + 1e-9
 
     def ionisation_rate(self) -> float:
         """Collective ionisation rate — beta-binomial kernel.

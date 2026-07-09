@@ -3,6 +3,7 @@
 Structural tests fire at harness start time — before behavioral tests.
 They verify interface contracts (types, presence of fields) not behavior.
 """
+
 import inspect
 from unittest.mock import MagicMock, patch
 
@@ -90,22 +91,22 @@ class TestExecutorVModelStructure:
             task_description="Low quality task",
             skill_name="test",
             operation_type="generate",
-            execute_fn=lambda g: ("output", {"coherence": 0.05}),  # Very low coherence → triggers DRR
+            execute_fn=lambda g: (
+                "output",
+                {"coherence": 0.05},
+            ),  # Very low coherence → triggers DRR
         )
         # DRR may log warnings but must not set result.success = False
         assert result.success is True, (
-            "DRR gate is blocking execution (result.success=False). "
-            "DRR should be advisory-only."
+            "DRR gate is blocking execution (result.success=False). DRR should be advisory-only."
         )
 
     def test_failed_execute_fn_sets_success_false(self, executor):
         """O3: If execute_fn raises, result.success must be False."""
+
         def failing_fn(guidance):
             raise ValueError("deliberate failure")
 
-        result = executor.execute_task(
-            "Desc", "skill", "generate", failing_fn
-        )
+        result = executor.execute_task("Desc", "skill", "generate", failing_fn)
         assert result.success is False
         assert "deliberate failure" in result.output
-

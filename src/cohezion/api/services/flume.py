@@ -22,7 +22,7 @@ class FlumeTrainRequest(BaseModel):
     batch_size: int = 64
     lr: float = 1e-3
     z_dim: int = 256
-    kl_weight: float = 0.1
+    kl_weight: float = 0.01
     coherence_weight: float = 0.05
     n_samples: int = 10000
 

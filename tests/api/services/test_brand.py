@@ -15,5 +15,5 @@ async def test_get_brand_theme():
     """[P0] Should return brand theme."""
     theme = await get_brand_theme()
     assert theme.identity.name == "COHEZION"
-    assert "nexus_green" in theme.colors.model_fields
+    assert "nexus_green" in type(theme.colors).model_fields
     assert theme.hiho_palette.stable is not None

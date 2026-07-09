@@ -198,9 +198,7 @@ class AIMOAutoresearchDriver:
             logger.warning(f"  Unknown mutation: {hypothesis}")
             return False
 
-    async def run_autoresearch_cycle(
-        self, problem_ids: list[str] | None = None
-    ) -> dict[str, Any]:
+    async def run_autoresearch_cycle(self, problem_ids: list[str] | None = None) -> dict[str, Any]:
         """
         Run single autoresearch cycle:
         1. Benchmark

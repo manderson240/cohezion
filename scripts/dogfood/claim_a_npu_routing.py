@@ -76,7 +76,9 @@ async def main() -> int:
     if result.ttft_ms is not None and result.ttft_ms < 2000:
         print(f"\nPASS A — routed locally to lane={result.lane}, TTFT={result.ttft_ms:.1f}ms")
     else:
-        print(f"\nPARTIAL PASS A — routed locally to lane={result.lane} but TTFT={result.ttft_ms} (expected < 2000ms)")
+        print(
+            f"\nPARTIAL PASS A — routed locally to lane={result.lane} but TTFT={result.ttft_ms} (expected < 2000ms)"
+        )
     return 0
 
 

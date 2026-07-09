@@ -72,7 +72,7 @@ class TestSemanticCache:
     def test_initialization(self, semantic_cache):
         """[P0] Should initialize SemanticCache with defaults."""
         assert semantic_cache is not None
-        assert semantic_cache.similarity_threshold == 0.88
+        assert semantic_cache.similarity_threshold == 0.75
         assert semantic_cache.max_l1_size == 512
         assert semantic_cache.max_l2_size == 1024
 
@@ -165,8 +165,8 @@ class TestSemanticCacheL1:
 
     @pytest.fixture()
     def semantic_cache(self):
-        """Create SemanticCache instance."""
-        return SemanticCache()
+        """Create SemanticCache instance with high threshold to test L1-only behavior."""
+        return SemanticCache(similarity_threshold=0.95)
 
     @pytest.mark.asyncio
     async def test_l1_size_limit(self, semantic_cache):

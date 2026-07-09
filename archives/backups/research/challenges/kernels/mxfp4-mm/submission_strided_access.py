@@ -7,7 +7,6 @@ Key insight: Sequential access patterns maximize cache line usage.
 Strided patterns can be optimized by reordering computations.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

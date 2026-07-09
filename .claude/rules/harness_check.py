@@ -42,7 +42,17 @@ CHECKS: dict[str, dict[str, Any]] = {
         "timeout": 90,
     },
     "fast-tests": {
-        "cmd": ["uv", "run", "pytest", "tests/unit/", "--import-mode=append", "--tb=short", "-q", "-p", "no:warnings"],
+        "cmd": [
+            "uv",
+            "run",
+            "pytest",
+            "tests/unit/",
+            "--import-mode=append",
+            "--tb=short",
+            "-q",
+            "-p",
+            "no:warnings",
+        ],
         "desc": "Fast unit tests",
         "timeout": 120,
     },
