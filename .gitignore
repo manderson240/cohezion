@@ -309,3 +309,6 @@ conductor/
 .aider.input.history
 .aider.tags.cache.v4/
 .aiderignore
+
+# Playwright MCP captures (browser session dumps)
+.playwright-mcp/
