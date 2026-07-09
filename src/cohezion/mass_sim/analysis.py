@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import logging
 import math
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cohezion.mass_sim.config import UniverseResult
+
+if TYPE_CHECKING:
+    from cohezion.mass_sim.config import UniverseResult
 
 
 logger = logging.getLogger(__name__)

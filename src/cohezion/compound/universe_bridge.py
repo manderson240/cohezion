@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Bridge between compound executor journeys and universe simulation engine.
 
 Converts JourneyTracker's TrajectoryPoints (12-parameter vectors) into

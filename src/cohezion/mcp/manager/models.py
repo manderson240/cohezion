@@ -1,13 +1,17 @@
+# ruff: noqa: SIM102  # nested if for clarity over single combined condition
 """MCP Server Manager - data models and configuration."""
 
 from __future__ import annotations
 
 import os
-import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    import subprocess
+    from datetime import datetime
 
 
 # Port allocation range for all MCP servers

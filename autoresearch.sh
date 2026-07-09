@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Autoresearch: E70 Triple-Node
-# Target: Activate NPU for 3/3 heterogeneous compute
-
+# Autoresearch: Skill Context Density Optimization
 cd "$(dirname "$0")"
-
-python3 e70_triple_node_experiment.py
+python3 skill_density_experiment.py "$@"

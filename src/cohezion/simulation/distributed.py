@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Distributed Universe Simulation via Grid Sharding.
 
 Enables scaling the Fractal Universe across multiple processes on

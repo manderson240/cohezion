@@ -43,6 +43,11 @@ from cohezion.inference.registry import (
 
 logger = logging.getLogger(__name__)
 
+# Reasoning-model content guard: when a thinking model (DeepSeek-R1, Gemma-4 FLM) produces
+# content shorter than this threshold, the response is likely a bare numerical answer with
+# all reasoning hidden in reasoning_content. Fall back to reasoning_content in that case.
+_REASONING_MIN_TOKENS = 50
+
 
 @dataclass
 class RouteResult:
@@ -203,7 +208,16 @@ async def _dispatch_openai_compatible(
             resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
             resp.raise_for_status()
             data = resp.json()
-        text = data["choices"][0]["message"]["content"]
+        msg = data["choices"][0]["message"]
+        content = msg.get("content") or ""
+        reasoning = msg.get("reasoning_content") or ""
+        # Thinking models (DeepSeek-R1, Gemma-4 FLM) put CoT in reasoning_content
+        # and a concise answer in content. Fall back to reasoning when content is short.
+        text = (
+            content
+            if len(content.strip()) >= _REASONING_MIN_TOKENS
+            else (reasoning.strip() or content)
+        )
         usage = data.get("usage", {})
         in_tok = usage.get("prompt_tokens", 0)
         out_tok = usage.get("completion_tokens", 0)
@@ -220,6 +234,7 @@ async def _dispatch_openai_compatible(
     start = _time.perf_counter()
     first_chunk_at: float | None = None
     chunks: list[str] = []
+    reasoning_chunks: list[str] = []
     in_tok = 0
     out_tok = 0
 
@@ -252,13 +267,22 @@ async def _dispatch_openai_compatible(
                 first_chunk_at = _time.perf_counter()
             if visible:
                 chunks.append(visible)
+            if thinking:
+                reasoning_chunks.append(thinking)
             usage = chunk.get("usage")
             if usage:
                 in_tok = usage.get("prompt_tokens", in_tok)
                 out_tok = usage.get("completion_tokens", out_tok)
 
     end = _time.perf_counter()
-    text = "".join(chunks)
+    content_text = "".join(chunks)
+    reasoning_text = "".join(reasoning_chunks)
+    # Thinking model fallback: use reasoning when content is very short (same threshold as non-streaming)
+    text = (
+        content_text
+        if len(content_text.strip()) >= _REASONING_MIN_TOKENS
+        else (reasoning_text.strip() or content_text)
+    )
     ttft_ms = ((first_chunk_at - start) * 1000) if first_chunk_at else None
     gen_duration = end - (first_chunk_at or end)
     tokens_per_sec = len(text.split()) / gen_duration if gen_duration > 0.01 and text else None
@@ -471,6 +495,12 @@ async def route(
     registry = registry or get_registry()
     task_enum = _classify_task(prompt, task)
     coherence = _get_symmetry_coherence()
+
+    # reasoning_mode: thinking models need larger max_tokens to avoid truncating CoT before the answer.
+    # DeepSeek-R1 and Gemma-4 FLM thinking variants require 4k+ tokens for full reasoning traces.
+    reasoning_mode = task_enum == Task.REASONING
+    if reasoning_mode and max_tokens < 4096:
+        max_tokens = 4096
 
     # Build candidate ordering.
     candidates = registry.for_task(task_enum)

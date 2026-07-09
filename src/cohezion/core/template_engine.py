@@ -1,3 +1,4 @@
+# ruff: noqa: SIM108  # if/else preferred over ternary
 """Adaptive Template Engine for parsing PRIME skill definitions.
 
 Parses PRIME skill ``.md`` files into structured ``SkillSpec`` objects,

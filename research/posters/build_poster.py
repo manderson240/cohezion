@@ -16,7 +16,10 @@ from matplotlib.font_manager import FontProperties
 from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle
 
 
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/main
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.font_manager import FontProperties

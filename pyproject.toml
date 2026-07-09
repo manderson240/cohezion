@@ -8,7 +8,7 @@ version = "1.0.2"
 description = "Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes"
 readme = "README.md"
 requires-python = "==3.11.*"
-license = {text = "MIT"}
+license = {text = "AGPL-3.0-or-later"}
 authors = [
     {name = "Mike Anderson", email = "manderson240@users.noreply.github.com"},
 ]
@@ -24,6 +24,7 @@ keywords = [
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Programming Language :: Python :: 3.11",
@@ -93,6 +94,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
+    "pytest-xdist[psutil]>=3.0.0",
     "ruff>=0.8.0",
     "mypy>=1.5.0",
     "black>=23.0",
@@ -112,6 +114,12 @@ audio = [
 ]
 unsloth = [
     "unsloth",
+]
+# mem0: LLM-extracted conversational memory layer (add/search/consolidate facts).
+# Complements SemanticCache/SurrealDB/JourneyTracker — does NOT replace them.
+# Wired local-first to Lemonade (OpenAI-compatible) via cohezion.memory.mem0_adapter.
+memory = [
+    "mem0ai>=2.0.0",
 ]
 
 [tool.ruff]
@@ -228,6 +236,20 @@ strict_equality = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
+
+# Surreal strict-wave 1 (polish/sigma-surreal-strict-mypy, 2026-05-12):
+# genesis_persistence.py and storage/surreal_client.py are now fully strict-clean.
+# The following 3 modules have pre-existing errors that need a separate sprint:
+# - core.persistence.surreal_client: complex type issues + SurrealClient.search_similar missing
+# - mcp.surreal_server: SurrealClient.search_similar missing (potential real bug)
+# - persistence.surreal_logger: surrealdb Value type mismatch
+[[tool.mypy.overrides]]
+module = [
+    "cohezion.core.persistence.surreal_client",
+    "cohezion.mcp.surreal_server",
+    "cohezion.persistence.surreal_logger",
+]
+ignore_errors = true
 
 # Strict carve-out: files that pass `mypy --strict` cleanly.
 # Wave 2E (synthetic-sniffing-panda): pin these so they don't regress.

@@ -52,6 +52,23 @@ lemonade_hybrid:
     context: 32768
     tier: complex
 
+# iGPU 4-8B GGUF candidates (Vulkan/ROCm, Strix Halo iGPU slot)
+lemonade_igpu:
+  VibeThinker-3B-Q4_K_M:
+    cost_per_token: 0.0
+    quality_score: 0.83
+    tokens_per_second: 35.0      # estimate for 3B Q4_K_M on Radeon 8060S
+    latency_ms: 45.0
+    context: 16384               # fleet ctx cap; model max 131072
+    tier: simple
+    gguf: mradermacher/VibeThinker-3B-GGUF/VibeThinker-3B.Q4_K_M.gguf
+    arch: qwen2
+    params_b: 3.0
+    kv_heads: 2                  # 8:1 GQA -- very compact KV cache
+    strengths: [math, coding, stem_reasoning]
+    limitations: [no_tool_calling, no_vision]
+    eval_status: pending         # change to: pass | fail | skip
+
 ollama_cloud:
   gpt-4o:
     cost_per_token: 0.000005

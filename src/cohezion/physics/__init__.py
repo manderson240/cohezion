@@ -38,6 +38,23 @@ with contextlib.suppress(Exception):
     )
 
 from cohezion.physics.bioelectric_model import BioelectricNetwork
+from cohezion.physics.dielectric import DielectricField
+from cohezion.physics.ionic_cluster import IonicClusterState
+from cohezion.physics.lenr import LENRHamiltonian
+from cohezion.physics.cellular_automata import (
+    CAEngine,
+    CAGrid2D,
+    CARule,
+    CAState,
+    ComplexityMetrics2D,
+    CosmogonyCA,
+    EVOEmergence,
+    EVOPattern,
+    LemonadeCAAdvisor,
+    TotalisticRule2D,
+    WolframClass,
+    ca_rl_step,
+)
 from cohezion.physics.cosmogony import SymmetryBreaking, SymmetryGroup
 from cohezion.physics.dimension_extractor import DimensionExtractor
 from cohezion.physics.evo_model import ExoticVacuumObject
@@ -54,6 +71,21 @@ from cohezion.physics.spinor import SpinorState
 
 __all__ = [
     "BioelectricNetwork",
+    "DielectricField",
+    "IonicClusterState",
+    "LENRHamiltonian",
+    "CAEngine",
+    "CAGrid2D",
+    "CARule",
+    "CAState",
+    "ComplexityMetrics2D",
+    "CosmogonyCA",
+    "EVOEmergence",
+    "EVOPattern",
+    "LemonadeCAAdvisor",
+    "TotalisticRule2D",
+    "WolframClass",
+    "ca_rl_step",
     "CoherenceRatchet",
     "DimensionExtractor",
     "ExoticVacuumObject",

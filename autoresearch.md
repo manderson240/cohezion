@@ -129,6 +129,7 @@ prevents further core skill overrides. Remaining opportunities require human dec
 2. **Real session routing accuracy**: Task classifier tested on 8 synthetic tasks.
    Need to extract real compound loop task prompts to measure production accuracy.
 
+<<<<<<< HEAD
 ## Round 7: HIHO Gate Training — Corpus Optimization (2026-05-22)
 
 | Experiment | Type | Result | Key Metric |

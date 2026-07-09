@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any
+from typing import Any, cast
 
 from surrealdb import AsyncSurreal
 
@@ -35,7 +35,11 @@ class OuroborosMonitor:
         """
         async with AsyncSurreal(self.url) as db:
             try:
-                await db.connect()
+                # NOTE: `async with AsyncSurreal(...) as db` already establishes
+                # the WebSocket connection via __aenter__. Calling db.connect()
+                # here was a stale paste-from-docs bug (Ω11 Phase 1, 2026-04-23).
+                # See sibling cohezion/persistence/surreal_logger.py:58-66 for
+                # the canonical pattern (no manual connect()).
                 await db.use(self.namespace, self.database)
 
                 user = os.getenv("SURREAL_USER", "root")
@@ -47,10 +51,18 @@ class OuroborosMonitor:
                     f"SELECT * FROM trajectory ORDER BY timestamp DESC LIMIT {limit}"
                 )
 
-                # SurrealDB query returns a list of results (one per statement)
-                if result and result[0].get("result"):
-                    return result[0]["result"]
-                return []
+                # Defensive narrowing: SurrealDB returns list[Value], but for
+                # SELECT statements we expect [{"result": [...records...], ...}].
+                # Anything else is a driver/server contract violation -> [].
+                if not result or not isinstance(result, list):
+                    return []
+                first = result[0]
+                if not isinstance(first, dict):
+                    return []
+                rows = first.get("result")
+                if not isinstance(rows, list):
+                    return []
+                return cast(list[dict[Any, Any]], rows)
 
             except Exception as e:
                 logger.error(f"Failed to fetch trajectories from SurrealDB: {e}")

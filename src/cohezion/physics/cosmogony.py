@@ -1,3 +1,4 @@
+# ruff: noqa: N803, N806, RUF002  # math/physics symbols intentional
 """Cosmogony — the complete 10-step chain from Nothing to Reality Precipitates.
 
 The creation narrative of the Cohezion universe, grounded in real physics

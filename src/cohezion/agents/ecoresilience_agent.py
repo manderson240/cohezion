@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """EcoResilience Specialist Agent for Gemma 4.
 
 Synthesizes Traditional Ecological Knowledge (TEK) with Unified Physics

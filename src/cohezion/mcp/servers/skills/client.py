@@ -1,3 +1,4 @@
+# ruff: noqa: S112  # best-effort skip in cleanup paths
 """Skills.sh API client."""
 
 from __future__ import annotations

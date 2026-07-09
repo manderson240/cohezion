@@ -1,3 +1,4 @@
+# ruff: noqa: SIM102, S608, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Adversarial Review Harness with Multi-Perspective Analysis
 Graph-aware review system with adversarial test generation
@@ -8,10 +9,13 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.hookify.validator import Rule
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cohezion.hookify.validator import Rule
 
 
 logger = logging.getLogger(__name__)

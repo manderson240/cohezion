@@ -1,3 +1,4 @@
+# ruff: noqa: E501, RUF002  # math/physics symbols intentional
 """KV Cache tracking and management for memory-efficient inference.
 
 Tracks KV cache allocations across all active requests to prevent
@@ -12,9 +13,11 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.swarm.context_model_router import ModelContextProfile
+
+if TYPE_CHECKING:
+    from cohezion.swarm.context_model_router import ModelContextProfile
 
 
 logger = logging.getLogger(__name__)

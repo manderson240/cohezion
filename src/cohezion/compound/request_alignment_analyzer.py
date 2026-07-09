@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Request-execution alignment analysis for closed-loop compound engineering.
 
 Analyzes how well task execution aligns with human intent and constraints.
@@ -29,12 +30,12 @@ from cohezion.compound.models import (
     IntentType,
     SuccessCriterion,
 )
-from cohezion.core.mcp_client import MCPClient
 
 
 if TYPE_CHECKING:
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection
+    from cohezion.core.mcp_client import MCPClient
 
 
 logger = logging.getLogger(__name__)

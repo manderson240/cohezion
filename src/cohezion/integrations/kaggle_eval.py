@@ -38,7 +38,7 @@ class KaggleEvaluator:
         correct = 0
         total = len(predictions)
 
-        for pred, ref in zip(predictions, references):
+        for pred, ref in zip(predictions, references, strict=False):
             if str(pred).strip() == str(ref).strip():
                 correct += 1
 

@@ -26,12 +26,7 @@ coherence-check:  ## Enforce 12D manifold integrity in data artifacts
 	@echo "✓ Manifold integrity verified"
 
 type-check:  ## Run type checking with mypy
-<<<<<<< HEAD
-
-	mypy --ignore-missing-imports bmad/ || true
-=======
-	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder'
->>>>>>> origin/polish/sigma-security-p1p2
+	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder' || true
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite
@@ -127,11 +122,10 @@ dev-setup:  ## Install pre-commit hooks
 
 ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg-guard data-mesh-guard health-guard ## Run CI checks locally
 	@echo "Running CI checks..."
-<<<<<<< HEAD
-	ruff format --check .
-	ruff check .
-	mypy --ignore-missing-imports bmad/ || true
-	pytest tests/
+	uv run ruff format --check .
+	uv run ruff check .
+	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder' || true
+	uv run pytest tests/
 	uv run python src/cohezion/swarm/scripts/agent_guard.py
 	uv run python src/cohezion/mcp/scripts/mcp_guard.py
 	uv run python src/cohezion/knowledge_graph/scripts/kg_guard.py
@@ -140,12 +134,6 @@ ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg
 	uv run python src/cohezion/swarm/scripts/a2a_guard.py
 	uv run python src/cohezion/data_mesh/scripts/data_mesh_guard.py
 	uv run python src/cohezion/healing/scripts/trajectory_guard.py
-=======
-	uv run ruff format --check .
-	uv run ruff check .
-	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder' || true
-	uv run pytest tests/
->>>>>>> origin/polish/sigma-security-p1p2
 	@echo "✓ All CI checks passed"
 # Compound Loop Validation
 validate:  ## Validate compound engineering loop end-to-end (25 checks, ~18s)

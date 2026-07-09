@@ -1,3 +1,4 @@
+# ruff: noqa: B904, E402  # raise pattern in HTTP/API handlers — explicit user-facing errors / deferred imports for circular-dep workarounds
 """Gemini model provider implementation (Google Cloud, multi-tier cost optimization).
 
 Supports Gemini Flash-Lite, Flash, and Pro models via the Google Generative AI API.

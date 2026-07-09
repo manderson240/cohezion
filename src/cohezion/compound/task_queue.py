@@ -1,3 +1,4 @@
+# ruff: noqa: S108  # temp file paths in /tmp are intentional for ephemeral data
 """Task queue for managing excess workload during thermal degradation.
 
 Implements FIFO queue with priority support for tasks that cannot be

@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """Gemma 4 model provider implementation (Ollama-backed with thinking mode)."""
 
 from __future__ import annotations

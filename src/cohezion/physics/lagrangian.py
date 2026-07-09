@@ -1,3 +1,4 @@
+# ruff: noqa: N802, N806, RUF002, RUF003  # math/physics symbols intentional
 """Lagrangian dynamics on the 12D axiomatic manifold.
 
 Replaces the ad-hoc `_toward_target()` linear interpolation in engine.py
@@ -25,10 +26,13 @@ References:
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cohezion.physics.riemannian_metric import RiemannianMetric
+
+if TYPE_CHECKING:
+    from cohezion.physics.riemannian_metric import RiemannianMetric
 
 
 logger = logging.getLogger(__name__)

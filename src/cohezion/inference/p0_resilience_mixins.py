@@ -11,12 +11,14 @@ Implements:
 Verified against adversarial review findings.
 """
 
+from __future__ import annotations
+
 import asyncio
 import concurrent.futures
 import json
 import time
 import urllib.request
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypeVar
@@ -36,7 +38,7 @@ class TimeoutMixin:
 
     async def with_timeout(
         self,
-        coro: asyncio.Coroutine[Any, Any, T],
+        coro: Coroutine[Any, Any, T],
         timeout: float | None = None,
         on_timeout: Callable | None = None,
     ) -> T:
@@ -358,7 +360,7 @@ class ThreadSafeAggregator:
 
 
 async def retry_with_backoff(
-    operation: Callable[..., asyncio.Coroutine],
+    operation: Callable[..., Coroutine],
     max_retries: int = 3,
     base_delay: float = 1.0,
     max_delay: float = 10.0,

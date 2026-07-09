@@ -279,7 +279,7 @@ class ROCmExecutor:
             )
             if result.returncode == 0:
                 info["rocminfo_available"] = True
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        except (subprocess.TimeoutExpired, OSError):
             info["rocminfo_available"] = False
 
         return info

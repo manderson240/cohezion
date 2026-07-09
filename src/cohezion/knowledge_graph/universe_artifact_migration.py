@@ -1,3 +1,4 @@
+# ruff: noqa: E402, S108  # temp file paths in /tmp are intentional for ephemeral data
 """
 Universe Artifact Migration Service
 
@@ -129,7 +130,7 @@ class UniverseArtifactMigration:
 
         try:
             # Get file count
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, no user input
                 [
                     _GIT,
                     "ls-tree",
@@ -150,7 +151,7 @@ class UniverseArtifactMigration:
             file_count = len([f for f in files if f])
 
             # Calculate total size
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, no user input
                 [
                     _GIT,
                     "ls-tree",
@@ -167,7 +168,7 @@ class UniverseArtifactMigration:
             total_bytes = sum(int(line) for line in result.stdout.strip().split("\n") if line)
 
             # Get commit history
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, no user input
                 [
                     _GIT,
                     "log",
@@ -218,7 +219,7 @@ class UniverseArtifactMigration:
             # Export artifacts from git
             tar_path = artifacts_path / "universe_artifacts.tar.gz"
 
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, tar_path internal
                 [
                     _GIT,
                     "archive",

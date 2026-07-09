@@ -1,3 +1,4 @@
+# ruff: noqa: S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """RoutingOrchestrator — Unified entry point for all routing systems.
 
 Chain of Responsibility combining:

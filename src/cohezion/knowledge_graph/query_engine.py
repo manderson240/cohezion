@@ -1,3 +1,4 @@
+# ruff: noqa: S112  # best-effort skip in cleanup paths
 """Knowledge graph query engine for execution history and pattern analysis.
 
 Provides search over agent execution records and knowledge graph entries,

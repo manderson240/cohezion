@@ -762,3 +762,31 @@ far better (state, action, next_state) triples than inferred state-pair transiti
   is authoritative. The skills dir copy is stale/dead.
 - **Auto-test pollution:** `auto-generate-tests` CI job committed 998 scaffold files
   to main on every push. Disabled permanently.
+
+## Stealthskater Bridge Invariants (2026-05-16)
+
+### S1: Physics bridges must import without error
+- `from cohezion.physics.dielectric import DielectricField`
+- `from cohezion.physics.lenr import LENRHamiltonian`
+- `from cohezion.physics.ionic_cluster import IonicClusterState`
+- **Verification**: `uv run python -c "from cohezion.physics import DielectricField, LENRHamiltonian, IonicClusterState"`
+
+### S2: Stealthskater tradition must have exactly 10 step_mappings
+- Tradition slug: `stealthskater`, 10 StepMappings + 4 UniqueContributions
+- **Verification**: `from cohezion.worldviews.tradition_data import get_tradition; assert len(get_tradition('stealthskater').step_mappings) == 10`
+
+### S3: LENR reaction_threshold must equal HIHO threshold (0.5)
+- Same coherence law governs nuclear-scale transitions and bioelectric phase transitions
+- **Verification**: `uv run python -c "from cohezion.physics.lenr import LENRHamiltonian; assert LENRHamiltonian().reaction_threshold == 0.5"`
+
+### S4: No hardcoded stealthskater.com URLs in physics bridge files
+- **Verification**: `grep -r "stealthskater.com" src/cohezion/physics/` must return empty
+
+### S5: SkillMutationQueue refund must be bi-temporal
+- `refund(mutation_id)` sets `valid_to = now()` and `status = rejected`
+- Mutation must have `is_valid_at() == False` after refund
+- **Verification**: `uv run pytest tests/unit/compound/test_skill_mutation_queue.py::test_is_valid_at_false_after_refund -q`
+
+### S6: CA engine Rule 110 must classify as COMPLEX
+- Wolfram Class IV (Turing-complete) is the target for cosmogony stages 2 and 9
+- **Verification**: `uv run pytest tests/physics/test_cellular_automata.py::TestCARule::test_rule_110_is_class_complex -q`

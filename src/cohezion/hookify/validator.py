@@ -1,3 +1,4 @@
+# ruff: noqa: SIM116, S112,S608, RUF012, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Hookify Rule Engine - Core Implementation
 Universal rule system with cross-platform MCP bridge support
@@ -9,8 +10,23 @@ import logging
 import os
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+
+logger = logging.getLogger(__name__)
+
+# Validates rule IDs from on-disk markdown before SQL interpolation
+# (Ω12 P1 Patch 7 — defense-in-depth against SurrealQL injection).
+_RULE_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
+
+try:
+    from surrealdb.errors import SurrealDBMethodError
+except (ImportError, AttributeError):
+    SurrealDBMethodError = ()  # type: ignore[assignment,misc]
 
 
 logger = logging.getLogger(__name__)
@@ -500,7 +516,6 @@ class HookifyValidator:
         except (
             ImportError,
             AttributeError,
-            ConnectionError,
             OSError,
             RuntimeError,
             ValueError,

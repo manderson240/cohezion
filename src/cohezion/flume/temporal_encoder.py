@@ -1,3 +1,4 @@
+# ruff: noqa: E402, N806, RUF002  # math/physics symbols intentional
 """FLUME Phase 2 TemporalEncoder — Transformer over trajectory step sequences.
 
 Encodes variable-length sequences of compound execution steps into a 256D

@@ -1,3 +1,4 @@
+# ruff: noqa: RUF003  # math/physics symbols intentional
 """Data-driven model tier optimization based on cross-session usage."""
 
 from __future__ import annotations

@@ -8,10 +8,14 @@ Total: 1,361 lines → ~150 lines
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from cohezion.compound.models import ExecutionResult, Task
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

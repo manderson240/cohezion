@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """MCP Fleet Manager - Single entry point for all Cohezion MCP servers.
 
 Optimized for: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S

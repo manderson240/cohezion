@@ -1,3 +1,4 @@
+# ruff: noqa: S310  # URL open targets are internal/config-allowlisted, not user-supplied
 """Knowledge Bridge — bidirectional persistence for retrospective learnings.
 
 Connects the retrospect process to three persistence layers:

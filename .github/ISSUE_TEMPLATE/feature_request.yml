@@ -1,0 +1,42 @@
+name: 💡 Feature request / idea
+description: Propose a new capability, environment, baseline, or improvement
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: For larger changes, opening this before you build saves everyone time — let's agree on the approach first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: The motivation or use case, not just the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: What you'd like to add or change. Sketches and pseudocode are fine.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Physics / manifold
+        - RL environments (ManifoldEnv / SwarmEnv)
+        - Evaluation / baselines
+        - Compound engineering loop
+        - Inference routing / swarm
+        - Docs
+        - Other
+    validations:
+      required: false
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Are you willing to work on it?
+      options:
+        - label: I'd like to implement this myself (with guidance if needed)

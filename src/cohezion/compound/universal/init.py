@@ -1,3 +1,4 @@
+# ruff: noqa: E501, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Universal Cohezion Environment Initialization
 Activates in ANY environment that uses Cohezion (Claude Code, Gemini CLI, Zed IDE, Antigravity, Opencode, OpenClaw, Hermes Agent, terminals, APIs, etc.)

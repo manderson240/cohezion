@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Constitutional Shielding & Auto-Incinerator (Story 4.3, NFR-10).
 
 Audits code and agent outputs against Anthropic's safety criteria

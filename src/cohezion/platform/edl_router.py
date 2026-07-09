@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Expert Domain Lattice routing for complex decisions.
 Charter requirement: "All complex problems must route through five specialized streams"

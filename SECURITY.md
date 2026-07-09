@@ -112,7 +112,7 @@ We thank security researchers who responsibly disclose vulnerabilities. Contribu
 
 ## License
 
-Security policies and procedures are provided under the same [MIT License](../LICENSE) as the project.
+Security policies and procedures are provided under the same license as the project — see [LICENSE](LICENSE) (AGPL-3.0) and [LICENSING.md](LICENSING.md).
 
 ---
 
