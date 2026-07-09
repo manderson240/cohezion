@@ -266,7 +266,6 @@ with contextlib.suppress(Exception):
 from cohezion.inference.fleet import RouteResult, extend_claude, route
 from cohezion.inference.gaia_adapter import (
     GaiaAgentTier,
-    build_gaia_mcp_tier,
     build_gaia_native_tier,
 )
 from cohezion.inference.harnesses import (
@@ -320,7 +319,6 @@ __all__ = [
     "TierAttempt",
     "TieredOrchestrator",
     "UnifiedOrchestrator",
-    "build_gaia_mcp_tier",
     "build_gaia_native_tier",
     "check_fleet",
     "create_default_orchestrator",

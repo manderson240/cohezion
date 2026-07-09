@@ -24,6 +24,23 @@ SURREAL_PASS: str = "root"
 # ── Ollama (cloud/remote fallback only) ──────────────────────────────────────
 OLLAMA_BASE_URL: str = "http://localhost:11434"
 
+# ── Unified orchestrator lanes (PR #242 imported these but never defined them;
+#    values grounded in harness.md N1/N2 fleet topology and module usage) ─────
+LANE_PORTS: dict[str, int] = {"npu": 13306, "igpu": 13307, "cpu": 13309}
+LANE_MODELS: dict[str, str] = {
+    "npu": "llama3.2-1b-FLM",
+    "igpu": "Gemma-4-E4B-it-GGUF",
+    "cpu": "Gemma-4-26B-A4B-it-GGUF",
+}
+CPU_SMALL_MODELS: list[str] = ["phi3:mini"]
+N_CPU_WORKERS: int = 2
+# [0,1] complexity score above which LatentEngine engages
+COMPLEXITY_THRESHOLD: float = 0.7
+# [0,1] minimum quality gate before escalating a lane's answer
+MIN_QUALITY_ACCEPT: float = 0.5
+# rolling window (samples) for lane quality scores
+SCORE_WINDOW: int = 20
+
 # ── FastAPI backend ───────────────────────────────────────────────────────────
 API_HOST: str = "0.0.0.0"
 API_PORT: int = 8080
