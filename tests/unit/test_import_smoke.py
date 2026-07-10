@@ -79,6 +79,8 @@ def _can_import(module_name: str) -> tuple[bool, str | None]:
         return True, None
     except SyntaxError as e:
         return False, f"SyntaxError at {e.filename}:{e.lineno}: {e.msg}"
+    except SystemExit:
+        return True, None  # Skip — module calls sys.exit on missing optional dep
     except Exception:
         return True, None  # Skip — optional dep, env var, or runtime config issue
 
