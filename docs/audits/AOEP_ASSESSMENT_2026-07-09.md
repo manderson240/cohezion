@@ -201,3 +201,21 @@ Remaining to reach 1.0 (the true tip of the spear — the survey's rarest capabi
 - P2 BUILDS: forgetting (cross-tier deletion propagation / unlearning) and
   decision-rollback (undo downstream state-affected actions) — the two capabilities
   the survey found rarest across all 435 works.
+
+## Milestone 2 EXECUTED (2026-07-10): all six axes at 1.0
+
+P1 fills, each behavior-tested (tests/compound/test_aoep_p1_fills.py, 11 tests) and
+live-dogfooded (real track_execution produced action="skill:npu" with provenance):
+- scope 1.0: CacheEntry.scope + active _scope_ok filtering in get() L1/L2 (unscoped = global, back-compat)
+- mutability 1.0: SkillMutationQueue.expire_stale() TTL decay (bi-temporal soft-delete, history preserved) wired into SkillRefiner.refine
+- actionability 1.0: classify_state_category() — deterministic evidence/skill/commitment mapping populated into TrajectoryPoint.action
+
+Compound daemon gaps also filled + dogfooded live (--once ran a full compound cycle,
+tasks retired through the new retry-aware path): bounded retries, idempotent sys.path,
+PID liveness gate, atomic state writes, uv-run dashboard subprocess.
+
+**HONESTY NOTE: scorecard 1.0 ≠ done.** The six axes measure the AOEP-v0 contract
+points; the two lifecycle stages the survey found rarest — FORGETTING (cross-tier
+deletion propagation) and DECISION-ROLLBACK (undoing downstream actions) — remain
+ABSENT and are not captured by any axis probe. They stay P2 on this roadmap and are
+the real tip of the spear.

@@ -603,6 +603,11 @@ class SkillRefiner:
                 self._record_blocked_promotion(skill_name, signal, "adversarial_review")
                 return None
 
+            # AOEP mutability axis: decay stale pending mutations (TTL contract)
+            queue = getattr(self, "mutation_queue", None)
+            if queue is not None and hasattr(queue, "expire_stale"):
+                queue.expire_stale()
+
             # CB15: seesaw gate — block any recommendation that negates PRIME invariants
             if not self._seesaw_check(prime_file, signal.recommendation):
                 self._record_blocked_promotion(skill_name, signal, "seesaw_check")

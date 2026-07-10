@@ -50,6 +50,32 @@ class OperationType(Enum):
     PERSIST = "persist"  # High temporal + precipitation
 
 
+
+
+# AOEP actionability axis: semantic state categories (arXiv 2606.30306).
+# Deterministic mapping — no LLM call in the tracking hot path.
+_STATE_CATEGORY_MAP = {
+    "skill_refinement": "skill",
+    "skill_update": "skill",
+    "refinement": "skill",
+    "commitment": "commitment",
+    "checkpoint": "commitment",
+    "rollback": "commitment",
+}
+
+
+def classify_state_category(operation_type: str) -> str:
+    """Map an operation type to the paper's semantic state categories:
+    evidence (observations/measurements), skill (procedural updates),
+    commitment (decisions binding future behavior). Default: evidence.
+    """
+    key = (operation_type or "").lower().strip()
+    for marker, category in _STATE_CATEGORY_MAP.items():
+        if marker in key:
+            return category
+    return "evidence"
+
+
 @dataclass
 class TrajectoryPoint:
     """Single point in a 12D FLUME trajectory."""
@@ -486,8 +512,11 @@ class JourneyTracker:
             convergence=convergence,
         )
 
-        # JI1: explicit action overrides tier_used fallback
-        resolved_action = action or execution_result.metrics.get("tier_used", "")
+        # JI1: explicit action overrides tier_used fallback; AOEP actionability:
+        # prefix with the semantic state category (evidence/skill/commitment)
+        tier = execution_result.metrics.get("tier_used", "")
+        category = classify_state_category(operation_type)
+        resolved_action = action or (f"{category}:{tier}" if tier else category)
 
         point = TrajectoryPoint(
             dimensions=axiomatic_12d,
@@ -497,6 +526,8 @@ class JourneyTracker:
             operation_type=operation_type,
             task_description=task_description,
             action=resolved_action,
+            source="compound_executor",
+            transformation=f"track_execution/{operation_type}",
             metadata={
                 "phi_score": phi_score,
                 "success": execution_result.success,

@@ -97,6 +97,26 @@ class SkillMutationQueue:
             self._update_surreal(m)
         return True
 
+    def expire_stale(self, ttl_hours: float = 168.0) -> int:
+        """TTL/decay contract (AOEP mutability axis): retire pending mutations
+        older than *ttl_hours* via bi-temporal soft-delete (valid_to=now,
+        status=expired). Returns the number expired. History is preserved —
+        is_valid_at() before expiry still returns True (time-travel intact).
+        """
+        from datetime import timedelta
+
+        now = _now()
+        cutoff = now - timedelta(hours=ttl_hours)
+        expired = 0
+        for m in self._mutations.values():
+            if m.valid_to is None and m.status == "pending" and m.valid_from <= cutoff:
+                m.valid_to = now
+                m.status = "expired"
+                expired += 1
+                if self._persist:
+                    self._update_surreal(m)
+        return expired
+
     def refund(self, mutation_id: str) -> bool:
         """Reject a mutation bi-temporally: valid_to=now(), status=rejected.
 

@@ -104,10 +104,17 @@ class AOEPScorecard:
             return 0.5 if has_scope_filter else 0.0
 
         try:
-            from cohezion.cache.semantic_cache import SemanticCache
+            from cohezion.cache.semantic_cache import CacheEntry, SemanticCache
 
             sig = inspect.signature(SemanticCache.get)
-            return 0.5 if "scope_filter" in sig.parameters else 0.0
+            if "scope_filter" not in sig.parameters:
+                return 0.0
+            # Full contract: entries carry scope metadata AND get() enforces it
+            entry_fields = {f.name for f in __import__("dataclasses").fields(CacheEntry)}
+            src = inspect.getsource(SemanticCache.get)
+            if "scope" in entry_fields and "_scope_ok" in src:
+                return 1.0
+            return 0.5
         except Exception:
             return 0.0
 
@@ -130,7 +137,10 @@ class AOEPScorecard:
             from cohezion.compound.skill_refiner import SkillRefiner
 
             src = inspect.getsource(SkillRefiner.refine)
-            return 0.5 if "_seesaw_check" in src else 0.0
+            if "_seesaw_check" not in src:
+                return 0.0
+            # Full contract: seesaw gate + TTL/decay on revisable state
+            return 1.0 if "expire_stale" in src else 0.5
         except Exception:
             return 0.0
 
@@ -219,12 +229,16 @@ class AOEPScorecard:
 
         # Structural check: does TrajectoryPoint have an action field with a default?
         try:
-            from cohezion.compound.journey_tracker import TrajectoryPoint
+            from cohezion.compound.journey_tracker import JourneyTracker, TrajectoryPoint
 
             fields_map = {f.name: f for f in __import__("dataclasses").fields(TrajectoryPoint)}
-            if "action" in fields_map:
-                return 0.5
-            return 0.0
+            if "action" not in fields_map:
+                return 0.0
+            # Full contract: action carries a semantic state category per paper
+            src = inspect.getsource(JourneyTracker.track_execution)
+            if "classify_state_category" in src:
+                return 1.0
+            return 0.5
         except Exception:
             return 0.0
 

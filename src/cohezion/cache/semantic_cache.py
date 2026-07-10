@@ -41,6 +41,7 @@ class CacheEntry:
     embedding: np.ndarray
     timestamp: float = field(default_factory=time.time)
     hit_count: int = 0
+    scope: str = ""  # AOEP scope axis: "" = global, else agent/task scope tag
 
 
 _singleton: "SemanticCache | None" = None
@@ -354,11 +355,17 @@ class SemanticCache:
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
         self._access_window.append(hash_key)
 
+        def _scope_ok(e: CacheEntry) -> bool:
+            # AOEP scope axis: unscoped ("") entries are global; scoped entries
+            # are visible only when their scope is in the caller's filter.
+            return scope_filter is None or not e.scope or e.scope in scope_filter
+
         # L1: Exact match
         if hash_key in self.l1_cache:
             entry = self.l1_cache[hash_key]
-            self.hits_l1 += 1
-            return entry.response
+            if _scope_ok(entry):
+                self.hits_l1 += 1
+                return entry.response
 
         # L2: Vectorized semantic similarity via pre-stacked BLAS dot
         query_embedding = self._text_to_embedding(prompt)
@@ -373,7 +380,7 @@ class SemanticCache:
             best_key = self._l2_keys[best_idx]
             best_match = self.l2_cache.get(best_key)
 
-        if best_match and best_similarity > current_threshold:
+        if best_match and best_similarity > current_threshold and _scope_ok(best_match):
             self.hits_l2 += 1
             # Promote to L1
             self._promote_to_l1(hash_key, best_match)
@@ -403,6 +410,7 @@ class SemanticCache:
         response: str,
         system: str | None = None,
         model: str | None = None,
+        scope: str = "",
     ) -> None:
         """Store in all cache tiers.
 
@@ -420,6 +428,7 @@ class SemanticCache:
             key=hash_key,
             prompt=prompt,
             response=response,
+            scope=scope,
             embedding=embedding,
         )
 
