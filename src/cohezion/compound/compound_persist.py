@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 import re
 import urllib.request
 from typing import TYPE_CHECKING, Any
@@ -109,6 +110,7 @@ def persist_cycle(
     skill_name: str,
     learning: str,
     run_id: str,
+    parent_run_id: str | None = None,
 ) -> dict[str, int]:
     """Persist one real compound cycle idempotently. Returns the new count of each table.
 
@@ -126,6 +128,8 @@ def persist_cycle(
         raise ValueError(
             f"run_id must match {_SAFE_RUN_ID.pattern} (safe for a SurrealDB record id); got {run_id!r}"
         )
+    if parent_run_id is not None and not _SAFE_RUN_ID.match(parent_run_id):
+        raise ValueError(f"parent_run_id must match {_SAFE_RUN_ID.pattern}; got {parent_run_id!r}")
 
     coherence = _num(getattr(point, "coherence", 0.0), lo=0.0, hi=1.0)
     efficiency = _num(getattr(point, "efficiency", 0.0), lo=0.0, hi=1.0)
@@ -171,15 +175,47 @@ def persist_cycle(
         f"skill: {_lit(skill_name)}, model: {model}, success: {success_sql}, escalated: false, "
         f"duration_ms: {dur_ms}, mean_logprob: {mean_logprob}, state_path: [{_lit(run_id)}], "
         f"stuck_loops: [] }};\n"
-        f"DELETE yielded WHERE in = {cid};\n"
+        # Record-scoped edge delete (SurrealDB docs, verified live 2026-07-10):
+        # `DELETE <record>->edge` touches only this record's outgoing edges — a
+        # table-wide `DELETE ... WHERE` scan conflicted with concurrent Ring-4
+        # writers under optimistic concurrency and aborted whole transactions.
+        f"DELETE {cid}->yielded;\n"
         f"RELATE {cid}->yielded->{lid};\n"
-        "COMMIT TRANSACTION;\n"
     )
-    res = _sql(query)
-    # Surface any per-statement error instead of silently under-persisting.
-    errs = [r for r in res if isinstance(r, dict) and r.get("status") == "ERR"]
-    if errs:
-        raise RuntimeError(f"persist_cycle SurrealQL error: {errs[0].get('result')}")
+    # Recursive-trace lineage (markov-trace research, 2026-07-10): when this cycle
+    # was spawned by another cycle (proposal -> experiment -> child cycles), rebuild
+    # exactly one `spawned` parent->child edge inside the same transaction. The
+    # Galton-Watson branching factor over `spawned` is the honest "is it actually
+    # compounding" metric. Parent record may not exist yet (out-of-order persistence);
+    # SurrealDB RELATE tolerates that — the edge binds by id.
+    if parent_run_id is not None:
+        pid_ = f"compound_loop:`{parent_run_id}`"
+        query += f"DELETE {pid_}->spawned WHERE out = {cid};\nRELATE {pid_}->spawned->{cid};\n"
+    query += "COMMIT TRANSACTION;\n"
+
+    # Concurrency (found live 2026-07-10): the DELETE ... WHERE scans conflict with
+    # concurrent Ring-4 writers (the actioner batch writes quasi-continuously) and
+    # SurrealKV's optimistic concurrency aborts the whole transaction with
+    # "failed transaction". Without retry, the executor's fail-open wiring silently
+    # DROPS the cycle. Bounded retry with backoff; genuine errors surface unchanged.
+    last_errs: list[dict] = []
+    for attempt in range(6):
+        res = _sql(query)
+        last_errs = [r for r in res if isinstance(r, dict) and r.get("status") == "ERR"]
+        if not last_errs:
+            break
+        msg = " ".join(str(e.get("result", "")) for e in last_errs)
+        if "failed transaction" in msg.lower() and attempt < 5:
+            # Conflict windows observed live span multiple seconds while the
+            # actioner batch persists cycles + journey/universe side-writes;
+            # widen backoff: 0.5,1,1.5,2,2.5s (~7.5s total worst case).
+            time.sleep(0.5 * (attempt + 1))
+            continue
+        raise RuntimeError(f"persist_cycle SurrealQL error: {last_errs[0].get('result')}")
+    if last_errs:
+        raise RuntimeError(
+            f"persist_cycle: transaction conflict persisted after 6 attempts: {last_errs[0].get('result')}"
+        )
 
     counts: dict[str, int] = {}
     for table in ("agent_journey", "compound_learnings", "compound_loop", "yielded"):
