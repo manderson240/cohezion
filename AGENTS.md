@@ -90,3 +90,34 @@ bug, not a fallback.
 - `/agent <prompt>` - Spawn side agent (parallel work in tmux + worktree)
 - `/agents` - List active side agents
 
+## Automated CI/CD Pipeline
+
+### AutoMerge Guard (`scripts/ci/automerge_guard.sh <PR_NUMBER>`)
+Runs all CI gates locally (format, lint ratchet, unit tests, import smoke,
+inference tests, version governance), then merges the PR via `gh pr merge --squash`
+if all pass. Logs to SurrealDB `automerge_log`. Use instead of manual `--admin` merges.
+
+### Local Code Review (`scripts/ci/local_review.sh <PR_NUMBER>`)
+Pre-warms a review model (Qwen3-Coder-30B) on Lemonade, chunks the PR diff,
+and sends each chunk to the local model for adversarial review. Also runs
+static import analysis. Writes report to `/tmp/opencode/reviews/`. Logs to
+SurrealDB `review_log`.
+
+### Pre-warm Model (`scripts/prewarm_review_model.sh [model] [ctx_size]`)
+Acquires `fleet_lock:modelload`, loads a model via Lemonade OmniRouter, waits
+for it to appear in `/v1/models`, releases lock. Run before any local inference
+session to prevent LRU eviction.
+
+### Import Smoke Test (`tests/unit/test_import_smoke.py`)
+Parametrized test that imports every changed Python source file. Only fails
+on `SyntaxError` (real merge bug). Skips `ImportError`, `SystemExit`, and
+other runtime errors (optional deps, env vars). Catches the class of bugs
+that the consolidation campaign introduced (duplicate `__init__`, missing
+functions, broken re-exports).
+
+### Bleeding-Edge Policy
+- `pyproject.toml` uses `requires-python = ">=3.13"` (newest stable, no-GIL ready)
+- All CI workflows use `python-version: "3.13"`
+- Dependencies should always use the newest compatible versions
+- `uv lock` should be regenerated when upgrading
+
