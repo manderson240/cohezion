@@ -1,12 +1,12 @@
 """Discriminating identity test: task_classifier exports reachable via inference package."""
 
+from cohezion.inference import RouteDecision as pkg_RouteDecision
 from cohezion.inference import classify as pkg_classify
 from cohezion.inference import classify_with_harness as pkg_cwh
-from cohezion.inference import RouteDecision as pkg_RouteDecision
 from cohezion.inference import select_harness as pkg_select_harness
+from cohezion.inference.task_classifier import RouteDecision as src_RouteDecision
 from cohezion.inference.task_classifier import classify as src_classify
 from cohezion.inference.task_classifier import classify_with_harness as src_cwh
-from cohezion.inference.task_classifier import RouteDecision as src_RouteDecision
 from cohezion.inference.task_classifier import select_harness as src_select_harness
 
 

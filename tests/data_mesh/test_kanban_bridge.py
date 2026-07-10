@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import json
 import urllib.request
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -25,6 +24,7 @@ from cohezion.data_mesh.kanban_bridge import (
     backfill_items,
     persist_item,
 )
+
 
 # ── shared fixture ─────────────────────────────────────────────────────────────
 

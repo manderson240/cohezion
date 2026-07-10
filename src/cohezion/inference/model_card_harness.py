@@ -32,8 +32,6 @@ if TYPE_CHECKING:
 from cohezion.inference.lemonade_recipes import get_inference_params, get_recipe
 
 
-
-
 # ── Model capability facts (from model card + empirical measurement) ─────────
 
 # Fallback prefix heuristic for thinking models NOT served through port 13305.

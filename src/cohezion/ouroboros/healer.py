@@ -34,9 +34,7 @@ class HealerAgent(BaseAgent):
     ):
         super().__init__(model_name, config, **kwargs)
 
-    def analyze_and_heal(
-        self, failure_log: str, target: str = "unknown"
-    ) -> dict[str, Any]:
+    def analyze_and_heal(self, failure_log: str, target: str = "unknown") -> dict[str, Any]:
         """Analyze a failure log + emit a HEALING_EVENT to the bus.
 
         The deterministic FailureAnalyzer is the source of truth.

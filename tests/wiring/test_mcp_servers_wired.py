@@ -12,6 +12,7 @@ conditional: test passes whether the symbol resolved or not.
 
 from __future__ import annotations
 
+
 # ---------------------------------------------------------------------------
 # doc
 # ---------------------------------------------------------------------------

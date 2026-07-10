@@ -30,13 +30,20 @@ from cohezion.inference.fractal_metrics import FractalRegime
 
 # ── CH1: Structural ────────────────────────────────────────────────────────
 
+
 class TestCH1Structural:
     def test_health_assessment_is_dataclass(self) -> None:
         assert dataclasses.is_dataclass(HealthAssessment)
 
     def test_health_assessment_fields(self) -> None:
         field_names = {f.name for f in dataclasses.fields(HealthAssessment)}
-        assert {"regime", "tier_recommendation", "confidence", "alert_level", "alerts"} <= field_names
+        assert {
+            "regime",
+            "tier_recommendation",
+            "confidence",
+            "alert_level",
+            "alerts",
+        } <= field_names
 
     def test_alerts_defaults_to_empty_list(self) -> None:
         a = HealthAssessment(
@@ -50,6 +57,7 @@ class TestCH1Structural:
     def test_oracle_has_tracker_property(self) -> None:
         oracle = CompoundHealthOracle(window_size=20)
         from cohezion.inference.fractal_metrics import RollingRegimeTracker
+
         assert isinstance(oracle.tracker, RollingRegimeTracker)
 
     def test_oracle_is_healthy_false_before_first_assess(self) -> None:
@@ -59,12 +67,14 @@ class TestCH1Structural:
 
 # ── CH2: HIHO → "ok" (discriminating) ─────────────────────────────────────
 
+
 class TestCH2HihoOk:
     """Discriminating: wrong impl returning "warn" for all regimes fails this."""
 
     def _make_hiho_scores(self, n: int = 40) -> list[float]:
         """Produce Brownian-like scores around 0.5 to trigger HIHO regime."""
         import random
+
         rng = random.Random(42)
         scores = []
         val = 0.5
@@ -116,6 +126,7 @@ class TestCH2HihoOk:
 
 # ── CH3: STUCK → "warn" + tier escalated (discriminating) ─────────────────
 
+
 class TestCH3StuckWarn:
     """Discriminating: wrong impl returning same tier for all regimes fails this."""
 
@@ -161,6 +172,7 @@ class TestCH3StuckWarn:
 
 # ── CH4: CHAOTIC → "critical" (discriminating) ────────────────────────────
 
+
 class TestCH4ChaoticCritical:
     """Discriminating: wrong impl returning "warn" for CHAOTIC fails this."""
 
@@ -192,6 +204,7 @@ class TestCH4ChaoticCritical:
 
 
 # ── CH5: Synthesizes from BOTH tracker AND detector (discriminating) ───────
+
 
 class TestCH5BothSourcesSynthesized:
     """Discriminating: wiring the detector must change tier_recommendation.
@@ -232,6 +245,7 @@ class TestCH5BothSourcesSynthesized:
         # Use low min_samples so warm-up completes quickly
         oracle._tracker._min_samples = 10
         import random
+
         rng = random.Random(99)
         last = None
         for _ in range(15):
@@ -253,6 +267,7 @@ class TestCH5BothSourcesSynthesized:
 
 
 # ── HO1: to_dict() serialization ──────────────────────────────────────────
+
 
 class TestHO1ToDict:
     """HO1: to_dict() returns required JSON-safe keys."""
@@ -312,6 +327,7 @@ class TestHO1ToDict:
 
 # ── HO2: from_dict() cross-session restoration (discriminating) ────────────
 
+
 class TestHO2FromDict:
     """HO2: from_dict() restores non-default state.
 
@@ -359,12 +375,18 @@ class TestHO2FromDict:
     def test_window_size_mismatch_does_not_crash(self) -> None:
         """Mismatched window_size in state is handled gracefully by restore_state."""
         # from_dict uses whatever window_size is in state — no mismatch check here
-        state = {"window_size": 40, "scores": [0.5] * 5, "regime_history": [], "last_assessment": None}
+        state = {
+            "window_size": 40,
+            "scores": [0.5] * 5,
+            "regime_history": [],
+            "last_assessment": None,
+        }
         restored = CompoundHealthOracle.from_dict(state)
         assert restored._tracker._window_size == 40
 
 
 # ── HO3: save_state / restore_state round-trip ────────────────────────────
+
 
 class TestHO3SaveRestoreState:
     """HO3: save_state/restore_state round-trip with str/Path; returns False on missing."""
@@ -429,16 +451,24 @@ class TestHO3SaveRestoreState:
 
 # ── HO4: to_health_dict() API format ─────────────────────────────────────
 
+
 class TestHO4ToHealthDict:
     """HO4: to_health_dict() returns all required API keys; is_healthy() reflected."""
 
-    _REQUIRED_KEYS = {"regime", "tier_recommendation", "confidence", "alert_level",
-                      "alerts", "window_fill", "is_healthy"}
+    _REQUIRED_KEYS = {
+        "regime",
+        "tier_recommendation",
+        "confidence",
+        "alert_level",
+        "alerts",
+        "window_fill",
+        "is_healthy",
+    }
 
     def test_required_keys_present(self) -> None:
         oracle = CompoundHealthOracle(window_size=20)
         d = oracle.to_health_dict()
-        assert self._REQUIRED_KEYS <= set(d)
+        assert set(d) >= self._REQUIRED_KEYS
 
     def test_warming_up_regime_is_warming_up(self) -> None:
         """Before any assess() call, regime should be 'warming_up'."""

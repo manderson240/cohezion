@@ -127,6 +127,7 @@ class IsotonicCalibrator:
         if not self._fitted:
             return max(0.0, min(1.0, 0.5 + logprob * 0.1))
         import bisect
+
         idx = bisect.bisect_left(self._logprobs, logprob)
         if idx == 0:
             return self._p_errors[0] if self._p_errors else 1.0

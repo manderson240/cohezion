@@ -25,6 +25,7 @@ from cohezion.api.routes.journey_nexus import router as journey_router
 # Stub nexus with deterministic viz_frame() for agent tests
 # ---------------------------------------------------------------------------
 
+
 class _AgentStubNexus:
     """Minimal nexus stub exposing viz_frame() so agents get deterministic data."""
 
@@ -33,8 +34,11 @@ class _AgentStubNexus:
 
     async def viz_frame(self, *, window: int = 20, frame_id: int = 0):
         from cohezion.api.routes.journey_nexus import (  # type: ignore[attr-defined]
-            VizFrame, NexusState, _build_viz_point  # type: ignore[attr-defined]
+            NexusState,
+            VizFrame,  # type: ignore[attr-defined]
+            _build_viz_point,
         )
+
         ts = 1_000_000.0  # fixed for determinism
         pts = [_build_viz_point(i, ts) for i in range(3)]
         return VizFrame(
@@ -44,9 +48,12 @@ class _AgentStubNexus:
             nexus=NexusState(
                 I=0.6,
                 Q=0.45,
-                distance=round(math.sqrt((0.6-0.5)**2 + (0.45-0.5)**2), 4),
-                angle_rad=round(math.atan2(0.45-0.5, 0.6-0.5), 4),
-                power=round(max(0.0, 1.0 - math.sqrt((0.6-0.5)**2+(0.45-0.5)**2)*math.sqrt(2)), 4),
+                distance=round(math.sqrt((0.6 - 0.5) ** 2 + (0.45 - 0.5) ** 2), 4),
+                angle_rad=round(math.atan2(0.45 - 0.5, 0.6 - 0.5), 4),
+                power=round(
+                    max(0.0, 1.0 - math.sqrt((0.6 - 0.5) ** 2 + (0.45 - 0.5) ** 2) * math.sqrt(2)),
+                    4,
+                ),
                 routing_tier="npu",
                 composite_health_score=0.82,
             ),
@@ -60,12 +67,14 @@ class _AgentStubNexus:
 def _async_agent_stub():
     async def _get():
         return _AgentStubNexus()
+
     return _get
 
 
 @pytest.fixture
 def agent_app(monkeypatch):
     from cohezion.api.routes import journey_nexus as router_mod
+
     monkeypatch.setattr(router_mod, "_nexus_instance", None, raising=False)
     monkeypatch.setattr(router_mod, "_get_nexus", _async_agent_stub())
     app = FastAPI()
@@ -180,9 +189,7 @@ def test_agent_mhd_ripple_phase_is_circular(agent_client):
     """mhd_ripple_phase must be in [0, 2π] — it drives standing wave timing."""
     resp = agent_client.get("/journey-nexus/frame")
     phase = resp.json()["mhd_ripple_phase"]
-    assert 0.0 <= phase <= 2 * math.pi + 0.01, (
-        f"mhd_ripple_phase={phase} out of [0, 2π]"
-    )
+    assert 0.0 <= phase <= 2 * math.pi + 0.01, f"mhd_ripple_phase={phase} out of [0, 2π]"
 
 
 def test_agent_can_stream_and_read_first_frame(agent_client):

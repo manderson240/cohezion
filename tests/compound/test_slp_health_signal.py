@@ -9,7 +9,6 @@ Tests for the S_LP pipeline in the autonomous loop:
 
 from __future__ import annotations
 
-
 from cohezion.compound.autonomous_loop.coordinator import (
     LoopConfig,
     LoopCoordinator,
@@ -138,7 +137,14 @@ def _call_record(
     category_stats: dict[str, dict[str, int]] = {}
     sprint = SprintResult()
     coordinator._record_result(
-        result, task, is_cloud, result.get("tokens_used", 0), report, fail_counts, category_stats, sprint
+        result,
+        task,
+        is_cloud,
+        result.get("tokens_used", 0),
+        report,
+        fail_counts,
+        category_stats,
+        sprint,
     )
     return report
 

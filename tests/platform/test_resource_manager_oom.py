@@ -9,6 +9,7 @@ injectable), so each test pins a boundary a plausible wrong impl would miss:
   - strict-`>` vs `>=` at the 50% swap / 20 GB boundaries,
   - a non-fail-soft impl that blocks everything when psutil is missing.
 """
+
 from __future__ import annotations
 
 from unittest.mock import patch

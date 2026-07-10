@@ -21,7 +21,6 @@ from __future__ import annotations
 import math
 from unittest.mock import MagicMock, patch
 
-
 from cohezion.compound.skill_refiner import SkillRefiner
 
 
@@ -37,9 +36,7 @@ def test_mgpo_weight_exists():
 def test_mgpo_weight_boundary_is_one():
     """success_rate=0.5 → weight=1.0 regardless of gamma (exp(0) = 1)."""
     refiner = SkillRefiner()
-    with patch(
-        "cohezion.compound.skill_refiner.VaultNeuronWriter"
-    ) as mock_vnw_cls:
+    with patch("cohezion.compound.skill_refiner.VaultNeuronWriter") as mock_vnw_cls:
         mock_vnw = MagicMock()
         mock_vnw.query_category_success_rate.return_value = 0.5
         mock_vnw_cls.get_instance.return_value = mock_vnw
@@ -51,9 +48,7 @@ def test_mgpo_weight_boundary_is_one():
 def test_mgpo_weight_mastered_is_lower():
     """success_rate=1.0 → weight < 1.0 (skill already mastered, deprioritize)."""
     refiner = SkillRefiner()
-    with patch(
-        "cohezion.compound.skill_refiner.VaultNeuronWriter"
-    ) as mock_vnw_cls:
+    with patch("cohezion.compound.skill_refiner.VaultNeuronWriter") as mock_vnw_cls:
         mock_vnw = MagicMock()
         mock_vnw.query_category_success_rate.return_value = 1.0
         mock_vnw_cls.get_instance.return_value = mock_vnw
@@ -67,9 +62,7 @@ def test_mgpo_weight_mastered_is_lower():
 def test_mgpo_weight_stuck_is_lower():
     """success_rate=0.0 → weight < 1.0 (skill stuck, deprioritize vs boundary)."""
     refiner = SkillRefiner()
-    with patch(
-        "cohezion.compound.skill_refiner.VaultNeuronWriter"
-    ) as mock_vnw_cls:
+    with patch("cohezion.compound.skill_refiner.VaultNeuronWriter") as mock_vnw_cls:
         mock_vnw = MagicMock()
         mock_vnw.query_category_success_rate.return_value = 0.0
         mock_vnw_cls.get_instance.return_value = mock_vnw
@@ -106,9 +99,7 @@ def test_mgpo_weight_symmetry():
 def test_mgpo_weight_no_data_returns_one():
     """When VaultNeuronWriter returns None (no data), default weight=1.0 (treat as boundary)."""
     refiner = SkillRefiner()
-    with patch(
-        "cohezion.compound.skill_refiner.VaultNeuronWriter"
-    ) as mock_vnw_cls:
+    with patch("cohezion.compound.skill_refiner.VaultNeuronWriter") as mock_vnw_cls:
         mock_vnw = MagicMock()
         mock_vnw.query_category_success_rate.return_value = None
         mock_vnw_cls.get_instance.return_value = mock_vnw
@@ -133,18 +124,16 @@ def test_prioritized_skills_ordering():
     refiner = SkillRefiner()
 
     success_rates = {
-        "routing": 0.5,   # boundary — should be first
-        "search": 1.0,    # mastered — lower priority
-        "codegen": 0.0,   # stuck — lower priority
-        "planning": 0.48, # near-boundary — high priority
+        "routing": 0.5,  # boundary — should be first
+        "search": 1.0,  # mastered — lower priority
+        "codegen": 0.0,  # stuck — lower priority
+        "planning": 0.48,  # near-boundary — high priority
     }
 
     def fake_query(category: str, limit: int = 100) -> float | None:
         return success_rates.get(category)
 
-    with patch(
-        "cohezion.compound.skill_refiner.VaultNeuronWriter"
-    ) as mock_vnw_cls:
+    with patch("cohezion.compound.skill_refiner.VaultNeuronWriter") as mock_vnw_cls:
         mock_vnw = MagicMock()
         mock_vnw.query_category_success_rate.side_effect = fake_query
         mock_vnw_cls.get_instance.return_value = mock_vnw
@@ -177,20 +166,16 @@ def test_prioritized_skills_descending_weight():
     def fake_query(category: str, limit: int = 100) -> float | None:
         return rates.get(category)
 
-    with patch(
-        "cohezion.compound.skill_refiner.VaultNeuronWriter"
-    ) as mock_vnw_cls:
+    with patch("cohezion.compound.skill_refiner.VaultNeuronWriter") as mock_vnw_cls:
         mock_vnw = MagicMock()
         mock_vnw.query_category_success_rate.side_effect = fake_query
         mock_vnw_cls.get_instance.return_value = mock_vnw
 
         ordered = refiner.prioritized_skills(list(rates.keys()), gamma=5.0)
-        weights = [
-            math.exp(-5.0 * abs((rates.get(s) or 0.5) - 0.5)) for s in ordered
-        ]
+        weights = [math.exp(-5.0 * abs((rates.get(s) or 0.5) - 0.5)) for s in ordered]
 
     for i in range(len(weights) - 1):
         assert weights[i] >= weights[i + 1], (
             f"Weight must be non-increasing: {ordered[i]}={weights[i]:.4f} "
-            f"> {ordered[i+1]}={weights[i+1]:.4f}"
+            f"> {ordered[i + 1]}={weights[i + 1]:.4f}"
         )

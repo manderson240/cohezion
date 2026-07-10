@@ -186,6 +186,7 @@ async def test_gda3_fail_open_when_gaia_not_installed(bus):
 
     # Simulate ImportError from gaia
     import builtins
+
     original_import = builtins.__import__
 
     def blocked_import(name, *args, **kwargs):

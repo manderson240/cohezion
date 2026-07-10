@@ -205,7 +205,7 @@ def test_stream_evo_sse_format(client):
 # Latent Mind Theater: VizFrame discriminating tests
 # ---------------------------------------------------------------------------
 
-import math  # noqa: E402  (below existing imports for clarity)
+import math
 
 
 def test_viz_frame_returns_correct_structure(client):
@@ -214,9 +214,15 @@ def test_viz_frame_returns_correct_structure(client):
     assert resp.status_code == 200
     frame = resp.json()
     required_keys = {
-        "frame_id", "timestamp", "points", "nexus",
-        "vacuum_field", "vacuum_field_shape", "mhd_ripple_phase",
-        "cache_stats", "detector_snapshot",
+        "frame_id",
+        "timestamp",
+        "points",
+        "nexus",
+        "vacuum_field",
+        "vacuum_field_shape",
+        "mhd_ripple_phase",
+        "cache_stats",
+        "detector_snapshot",
     }
     assert required_keys <= set(frame.keys()), f"Missing keys: {required_keys - set(frame.keys())}"
 
@@ -271,8 +277,7 @@ def test_viz_frame_point_winding_number_is_valid(client):
     valid_winding = {-1, 0, 1}
     for pt in points:
         assert pt["winding_number"] in valid_winding, (
-            f"tier={pt['tier_used']} winding={pt['winding_number']}, "
-            f"must be in {valid_winding}"
+            f"tier={pt['tier_used']} winding={pt['winding_number']}, must be in {valid_winding}"
         )
     # NPU must map to +1 (converging, warm chirality)
     npu_pts = [p for p in points if p["tier_used"] == "npu"]
@@ -318,6 +323,4 @@ def test_stream_viz_first_frame_id_is_zero(client):
         for line in resp.iter_lines():
             if line.startswith("data: "):
                 frame = json.loads(line[6:])
-                assert frame["frame_id"] == 0, (
-                    f"First frame_id={frame['frame_id']}, expected 0"
-                )
+                assert frame["frame_id"] == 0, f"First frame_id={frame['frame_id']}, expected 0"

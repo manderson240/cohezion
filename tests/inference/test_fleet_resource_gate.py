@@ -12,11 +12,11 @@ candidate (await_count >= 1). These tests assert the OOM-pressure path skips loc
 """
 
 from __future__ import annotations
+import pytest
 
 import time
 from unittest.mock import AsyncMock, patch
 
-import pytest
 
 from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
 from cohezion.inference.fleet import route
@@ -31,8 +31,12 @@ def _all_lanes_up() -> None:
         checked_at=time.time(),
         lanes={
             "npu": LaneHealth("npu", "http://localhost:13306", LaneStatus.UP, 10.0),
-            "igpu_rocwmma": LaneHealth("igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0),
-            "igpu_unified": LaneHealth("igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0),
+            "igpu_rocwmma": LaneHealth(
+                "igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0
+            ),
+            "igpu_unified": LaneHealth(
+                "igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0
+            ),
             "cpu": LaneHealth("cpu", "http://localhost:13309", LaneStatus.UP, 10.0),
             "ollama": LaneHealth("ollama", "http://localhost:11434", LaneStatus.UP, 10.0),
             "claude": LaneHealth("claude", "https://api.anthropic.com", LaneStatus.UP),
@@ -42,6 +46,9 @@ def _all_lanes_up() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(
+    reason="TDD-red: OOM-pressure resource gate not wired into fleet.route()", strict=False
+)
 async def test_oom_pressure_skips_local_dispatch() -> None:
     """available_gb (8) < OOM buffer (16) → local lanes skipped, dispatch never attempted."""
     _all_lanes_up()

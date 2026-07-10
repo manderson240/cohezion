@@ -505,7 +505,10 @@ class TestWarmupTiersCalledFromStart:
                 "cohezion.compound.autonomous_loop.local_executor.warmup_tiers",
                 return_value={"npu": True, "igpu": True, "cpu": True},
             ) as mock_warmup,
-            patch("cohezion.compound.autonomous_loop.local_executor.check_ram", return_value=(True, 32.0)),
+            patch(
+                "cohezion.compound.autonomous_loop.local_executor.check_ram",
+                return_value=(True, 32.0),
+            ),
         ):
             exec_ = LocalImprovementExecutor(base_url=custom_url)
             exec_.start("/tmp/worktree")
@@ -525,7 +528,10 @@ class TestWarmupTiersCalledFromStart:
                 "cohezion.compound.autonomous_loop.local_executor.warmup_tiers",
                 return_value={"npu": False, "igpu": True, "cpu": True},
             ),
-            patch("cohezion.compound.autonomous_loop.local_executor.check_ram", return_value=(True, 32.0)),
+            patch(
+                "cohezion.compound.autonomous_loop.local_executor.check_ram",
+                return_value=(True, 32.0),
+            ),
         ):
             exec_ = LocalImprovementExecutor()
             exec_.start("/tmp/worktree")
@@ -541,7 +547,10 @@ class TestWarmupTiersCalledFromStart:
                 "cohezion.compound.autonomous_loop.local_executor.warmup_tiers",
                 return_value={"npu": False, "igpu": False, "cpu": False},
             ),
-            patch("cohezion.compound.autonomous_loop.local_executor.check_ram", return_value=(True, 32.0)),
+            patch(
+                "cohezion.compound.autonomous_loop.local_executor.check_ram",
+                return_value=(True, 32.0),
+            ),
         ):
             exec_ = LocalImprovementExecutor()
             exec_.start("/tmp/worktree")  # must not raise

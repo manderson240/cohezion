@@ -12,6 +12,7 @@ Gap summary:
   G16b — track_execution() calls text_to_latent() (FLUME-aware), not _text_to_latent().
   G18  — ManifoldEnv.step() / SwarmEnv.step() call record_env_state() on journey_tracker.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -22,6 +23,7 @@ import pytest
 
 
 # ── G15 structural ────────────────────────────────────────────────────────────
+
 
 class TestG15Structural:
     """T1: run_batch() must use LoopCoordinator, not raw subprocess."""
@@ -60,11 +62,13 @@ class TestG15Structural:
 
 # ── G16a structural ───────────────────────────────────────────────────────────
 
+
 class TestG16aStructural:
     """T1: JourneyTracker.__init__ must attempt LemonadeEmbedBridge injection."""
 
     def test_bridge_import_in_init(self):
         from cohezion.compound.journey_tracker import JourneyTracker
+
         src = inspect.getsource(JourneyTracker.__init__)
         assert "LemonadeEmbedBridge" in src, (
             "LemonadeEmbedBridge not imported inside JourneyTracker.__init__"
@@ -72,6 +76,7 @@ class TestG16aStructural:
 
     def test_flume_encoder_set_on_success(self):
         from cohezion.compound.journey_tracker import JourneyTracker
+
         src = inspect.getsource(JourneyTracker.__init__)
         assert "self._flume_encoder = bridge" in src, (
             "_flume_encoder never assigned from bridge — G16a injection missing"
@@ -80,11 +85,13 @@ class TestG16aStructural:
 
 # ── G16b structural ───────────────────────────────────────────────────────────
 
+
 class TestG16bStructural:
     """T1: track_execution() must call the public text_to_latent(), not _text_to_latent()."""
 
     def test_public_method_called_in_track_execution(self):
         from cohezion.compound.journey_tracker import JourneyTracker
+
         src = inspect.getsource(JourneyTracker.track_execution)
         # Public method should appear; the private hash-only method should NOT
         # appear in track_execution (it may still exist elsewhere but must not
@@ -98,6 +105,7 @@ class TestG16bStructural:
 
 
 # ── G16 behavioral ────────────────────────────────────────────────────────────
+
 
 class TestG16Behavioral:
     """T2: text_to_latent() must return a semantic unit vector, not a hash expansion."""
@@ -146,25 +154,25 @@ class TestG16Behavioral:
 
 # ── G18 structural ────────────────────────────────────────────────────────────
 
+
 class TestG18Structural:
     """T1: Both gymnasium envs must accept journey_tracker and wire step()."""
 
     def test_manifold_env_init_signature(self):
         from cohezion.environments.manifold_env import ManifoldEnv
+
         params = inspect.signature(ManifoldEnv.__init__).parameters
-        assert "journey_tracker" in params, (
-            "ManifoldEnv.__init__ missing journey_tracker parameter"
-        )
+        assert "journey_tracker" in params, "ManifoldEnv.__init__ missing journey_tracker parameter"
 
     def test_swarm_env_init_signature(self):
         from cohezion.environments.swarm_env import SwarmEnv
+
         params = inspect.signature(SwarmEnv.__init__).parameters
-        assert "journey_tracker" in params, (
-            "SwarmEnv.__init__ missing journey_tracker parameter"
-        )
+        assert "journey_tracker" in params, "SwarmEnv.__init__ missing journey_tracker parameter"
 
     def test_manifold_step_calls_record_env_state(self):
         from cohezion.environments.manifold_env import ManifoldEnv
+
         src = inspect.getsource(ManifoldEnv.step)
         assert "record_env_state" in src, (
             "ManifoldEnv.step() never calls record_env_state — G18 not wired"
@@ -172,6 +180,7 @@ class TestG18Structural:
 
     def test_swarm_step_calls_record_env_state(self):
         from cohezion.environments.swarm_env import SwarmEnv
+
         src = inspect.getsource(SwarmEnv.step)
         assert "record_env_state" in src, (
             "SwarmEnv.step() never calls record_env_state — G18 not wired"
@@ -179,12 +188,14 @@ class TestG18Structural:
 
     def test_journey_tracker_has_record_env_state(self):
         from cohezion.compound.journey_tracker import JourneyTracker
+
         assert hasattr(JourneyTracker, "record_env_state"), (
             "JourneyTracker missing record_env_state() — G18 receiver not implemented"
         )
 
 
 # ── G18 behavioral discriminating ─────────────────────────────────────────────
+
 
 class TestG18Behavioral:
     """T2: step() with a tracker must increment recent_point_count; without one it must not."""
@@ -255,6 +266,5 @@ class TestG18Behavioral:
         for _ in range(5):
             env.step(np.zeros(12, dtype=np.float32))
         assert jt.get_recent_point_count() == 5, (
-            f"Expected 5 trajectory points after 5 steps, "
-            f"got {jt.get_recent_point_count()}"
+            f"Expected 5 trajectory points after 5 steps, got {jt.get_recent_point_count()}"
         )

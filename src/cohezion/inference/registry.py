@@ -49,7 +49,7 @@ class Lane(StrEnum):
     CLOUD_OLLAMA = "cloud_ollama"
     CLOUD_CLAUDE = "cloud_claude"  # headless `claude` CLI
     CLOUD_GEMINI = "cloud_gemini"  # headless `gemini` CLI
-    CLOUD_AGY = "cloud_agy"        # headless `agy` CLI (Google Antigravity 2.0)
+    CLOUD_AGY = "cloud_agy"  # headless `agy` CLI (Google Antigravity 2.0)
 
 
 class Task(StrEnum):
@@ -639,7 +639,9 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             lane=Lane.CLOUD_CLAUDE,
             endpoint="cli:claude",
             runtime_backend="",
-            task_affinity=frozenset({Task.REASONING, Task.LONG_HORIZON, Task.ARCHITECT, Task.CODE_GEN}),
+            task_affinity=frozenset(
+                {Task.REASONING, Task.LONG_HORIZON, Task.ARCHITECT, Task.CODE_GEN}
+            ),
             weight_quant=WeightQuant.API,
             context_window=200000,
             cost_per_1k_input_usd=0.015,
@@ -696,6 +698,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
     # (the route_by_capability router filters those out).
     try:
         from cohezion.inference.default_profiles import DEFAULT_PROFILES
+
         for entry in entries:
             entry.profile = DEFAULT_PROFILES.get(entry.model_id)
     except ImportError:

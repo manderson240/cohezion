@@ -53,7 +53,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Zero-cost task classifier. Outputs one of: code, reason, vision, long, fast, synthesis, agent, embed.",
         labels=["router", "cheap"],
     ),
-
     # ── Code generation ────────────────────────────────────────────────────
     # Specialized coder with thinking mode enabled; low temperature for determinism.
     # Qwen3-Coder-30B trained on 7.5T code tokens (2026-06 hot model).
@@ -61,14 +60,13 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         model_id="Qwen3-Coder-30B-A3B-Instruct-GGUF",
         task_type="code",
         backend="vulkan",
-        ctx_size=32768,   # 65K available but 32K balances VRAM vs need
+        ctx_size=32768,  # 65K available but 32K balances VRAM vs need
         max_tokens=8192,  # code can be long
         temperature=0.15,  # low temp: deterministic code
         llamacpp_args="--top-k 40 --top-p 0.95 --min-p 0.01",
         description="Specialized code generation. Best for: write/debug/review code, algorithms, architecture.",
         labels=["coding", "tool-calling"],
     ),
-
     # ── Reasoning / math ──────────────────────────────────────────────────
     # DeepSeek-R1 variant — tool-calling + reasoning labels. Extended budget.
     "reasoning": SpecialistSpec(
@@ -82,7 +80,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Chain-of-thought reasoning, math, logic proofs, step-by-step analysis.",
         labels=["reasoning", "tool-calling"],
     ),
-
     # ── Vision / multimodal ───────────────────────────────────────────────
     # Gemma-4-E4B: vision + tool-calling, fast on vulkan.
     "vision": SpecialistSpec(
@@ -95,7 +92,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Image analysis, chart reading, multimodal understanding.",
         labels=["vision", "tool-calling"],
     ),
-
     # ── Long-context tasks ────────────────────────────────────────────────
     # Llama-4-Scout: 10M context window — unique in the fleet for very long docs.
     "long_context": SpecialistSpec(
@@ -108,7 +104,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Very long documents, codebases, extended context synthesis (up to 128K tokens).",
         labels=["vision", "tool-calling", "long-context"],
     ),
-
     # ── Synthesis / main interactive ──────────────────────────────────────
     # Qwen3.6-35B-A3B-NoThinking: already has a finely crafted recipe in Lemonade
     # (presence-penalty=2.0, enable_thinking=false, batch=4096). The model that gains
@@ -119,12 +114,11 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         backend="vulkan",
         ctx_size=16384,
         max_tokens=6144,
-        temperature=1.0,   # matches the crafted NoThinking recipe
+        temperature=1.0,  # matches the crafted NoThinking recipe
         llamacpp_args="--top-p 1.0 --top-k 40 --min-p 0.00 --presence-penalty 2.0 --repeat-penalty 1.0 -b 4096 -ub 1024",
         description="General synthesis, writing, agentic orchestration, harness-aware tasks.",
         labels=["synthesis", "tool-calling", "hot"],
     ),
-
     # ── MTP speculative: fast large model ────────────────────────────────
     # Qwen3.6-35B-A3B-MTP-GGUF: internal draft heads → ~1.7-1.9x speedup.
     # Note: requires llama-server with --spec-type draft-mtp; use via direct recipe.
@@ -138,7 +132,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Large model with MTP speculative decoding (~1.7-1.9x faster). Best for high-quality fast output.",
         labels=["mtp", "tool-calling"],
     ),
-
     # ── Agentic coordinator ───────────────────────────────────────────────
     # Bonsai-8B: tool-calling, lightweight, designed to CALL other models as tools.
     "agent": SpecialistSpec(
@@ -151,7 +144,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Thin coordinator that dispatches to specialist models via tool calls.",
         labels=["tool-calling", "coordinator"],
     ),
-
     # ── Fast answers ──────────────────────────────────────────────────────
     # Bonsai-4B: smaller + faster for simple lookup/QA tasks.
     "fast": SpecialistSpec(
@@ -164,7 +156,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Quick lookup, simple Q&A, yes/no, short structured output.",
         labels=["tool-calling"],
     ),
-
     # ── Deep thinking + code ──────────────────────────────────────────────
     # Qwen3.6-35B-A3B-ThinkingCoder: thinking mode enabled for hard problems.
     "thinking_code": SpecialistSpec(
@@ -178,7 +169,6 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="Hard algorithmic problems requiring deep reasoning AND code output.",
         labels=["coding", "tool-calling"],
     ),
-
     # ── Embeddings ────────────────────────────────────────────────────────
     "embed": SpecialistSpec(
         model_id="nomic-embed-text-v2-moe-GGUF",
@@ -190,14 +180,13 @@ SPECIALISTS: dict[str, SpecialistSpec] = {
         description="768D semantic embeddings for similarity search and caching.",
         labels=["embeddings"],
     ),
-
     # ── NPU reasoning (FLM, fast draft) ──────────────────────────────────
     "npu_reasoning": SpecialistSpec(
         model_id="deepseek-r1-0528-8b-FLM",
         task_type="npu_reasoning",
         backend="flm",
         ctx_size=8192,
-        max_tokens=512,   # fast draft, escalate if insufficient
+        max_tokens=512,  # fast draft, escalate if insufficient
         temperature=0.6,
         description="NPU-accelerated reasoning draft (10.6 TPS on XDNA2). Quick first pass.",
         labels=["reasoning", "npu"],

@@ -55,8 +55,9 @@ def test_agents_identity(src: str, name: str) -> None:
 
 def test_agents_finding_behavioral() -> None:
     """Finding dataclass must be instantiable and have expected fields."""
-    import cohezion.swarm.agents as pkg
     import dataclasses
+
+    import cohezion.swarm.agents as pkg
 
     if not hasattr(pkg, "Finding"):
         pytest.skip("Finding suppressed")

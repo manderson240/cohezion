@@ -306,10 +306,7 @@ class JEPAWorldModel:
             if self.encoder.mu_head.weight.grad is not None:
                 # weight: (embed_dim, hidden_dim) — broadcast precision over hidden_dim
                 self.encoder.mu_head.weight.grad.mul_(precision_norm.unsqueeze(1))
-            if (
-                self.encoder.mu_head.bias is not None
-                and self.encoder.mu_head.bias.grad is not None
-            ):
+            if self.encoder.mu_head.bias is not None and self.encoder.mu_head.bias.grad is not None:
                 self.encoder.mu_head.bias.grad.mul_(precision_norm)
 
         return float(precision_norm.mean().item())

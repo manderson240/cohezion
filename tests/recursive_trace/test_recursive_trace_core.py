@@ -7,6 +7,7 @@ plausible WRONG implementation is "autoresearch with a dedup cache": pick the ne
 unused strategy in list order, IGNORING the failure map. Every test below is written
 to FAIL that wrong impl, not merely to prove run() fires.
 """
+
 from __future__ import annotations
 
 from cohezion.recursive_trace.core import RecursiveTraceLoop, TraceTask
@@ -45,7 +46,7 @@ def test_dedup_never_retries_a_strategy() -> None:
     result = loop.run(task, _solver)
     assert result.solved is True
     assert len(result.path) == len(set(result.path))  # no repeats
-    assert result.path[0] == "contextual_modifier"     # map consulted first
+    assert result.path[0] == "contextual_modifier"  # map consulted first
 
 
 def test_unsolvable_task_exhausts_and_returns_not_solved() -> None:

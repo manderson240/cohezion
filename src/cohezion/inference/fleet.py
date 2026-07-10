@@ -581,7 +581,8 @@ async def route(
                 ttft_ms=ttft_ms,
                 tokens_per_sec=tokens_per_sec,
                 cost_usd=cost,
-                escalated_to_cloud=candidate.lane in {Lane.CLOUD_OLLAMA, Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY},
+                escalated_to_cloud=candidate.lane
+                in {Lane.CLOUD_OLLAMA, Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY},
                 symmetry_coherence=coherence,
                 self_reported_confidence=confidence,
                 attempts=attempts,
@@ -674,7 +675,9 @@ async def extend_claude(
             quality_threshold=quality_threshold,
         )
         if decision != "cloud" and local_result is not None:
-            logger.info("extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota)
+            logger.info(
+                "extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota
+            )
             return local_result
 
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)

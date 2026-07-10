@@ -10,6 +10,7 @@ from cohezion.inference.turboquant.rotation import (
     rotate_forward,
 )
 
+
 CPU = torch.device("cpu")
 
 

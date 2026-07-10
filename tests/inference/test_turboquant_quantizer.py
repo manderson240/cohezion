@@ -11,6 +11,7 @@ from cohezion.inference.turboquant.quantizer import (
     TurboQuantProd,
 )
 
+
 CPU = torch.device("cpu")
 
 

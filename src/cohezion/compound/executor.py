@@ -187,6 +187,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         token_ledger: Any | None = None,
         semantic_cache: Any | None = None,
         enable_semantic_cache: bool = False,
+        memory_service: Any | None = None,
+        enable_memory: bool = False,
     ):
         """Initialize compound executor.
 
@@ -248,6 +250,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._enable_semantic_cache = enable_semantic_cache and semantic_cache is not None
         # Strong refs to in-flight cache writes so they aren't GC'd mid-flight.
         self._cache_write_tasks: set[asyncio.Task] = set()
+        self._memory_service = memory_service
         self.mcp_client = mcp_client
         self.token_client = token_client
         self._guardrail_pipeline = guardrail_pipeline
@@ -331,6 +334,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         closing the CB inference_provider consumption gap.
         """
         return self._inference_provider
+
+    @property
+    def memory_service(self) -> Any:
+        """Backward-compat: returns the memory service (or None if not configured)."""
+        return self._memory_service
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:
@@ -1431,6 +1439,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
             except Exception as e:
                 logger.warning("Skill refinement failed (non-blocking): %s", e, exc_info=True)
+
+        # Step 7.3a: MGPO batch accumulation (wires _rubric_gated_accumulate + _check_mgpo_batch)
+        if success:
+            try:
+                self._rubric_gated_accumulate(skill_name, output if output else "")
+                self._check_mgpo_batch()
+            except Exception as e:
+                logger.debug("MGPO batch accumulation failed (non-blocking): %s", e)
 
         # Step 7.4: Record skill health metrics (non-blocking)
         if self._skill_health_tracker:

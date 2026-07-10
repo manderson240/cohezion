@@ -50,7 +50,14 @@ def _call_record_result(
     category_stats: dict[str, dict[str, int]] = {}
     sprint = SprintResult()
     coordinator._record_result(
-        result, task, is_cloud, result.get("tokens_used", 0), report, fail_counts, category_stats, sprint
+        result,
+        task,
+        is_cloud,
+        result.get("tokens_used", 0),
+        report,
+        fail_counts,
+        category_stats,
+        sprint,
     )
     return report
 

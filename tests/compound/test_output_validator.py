@@ -61,7 +61,11 @@ class TestValidateStructuredOutput:
         assert err is not None and len(err) > 10
 
     def test_schema_valid(self):
-        schema = {"type": "object", "required": ["role"], "properties": {"role": {"type": "string"}}}
+        schema = {
+            "type": "object",
+            "required": ["role"],
+            "properties": {"role": {"type": "string"}},
+        }
         valid, err = validate_structured_output('{"role": "PRODUCER"}', schema=schema)
         assert valid is True
         assert err is None

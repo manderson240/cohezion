@@ -11,6 +11,7 @@ FINDING (pin-actual, minor): `preferred_backend` is typed Literal[...,"gvisor"],
 handles only docker/firecracker and raises ValueError on gvisor — a type-allowed-but-unhandled
 value. Pinned by test_gvisor_is_type_allowed_but_unhandled.
 """
+
 from __future__ import annotations
 
 from cohezion.sandboxing.executor import (

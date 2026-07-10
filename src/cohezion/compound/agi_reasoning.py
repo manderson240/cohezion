@@ -85,7 +85,9 @@ class AGIEvaluator:
             try:
                 from cohezion.compound.safe_exec import safe_exec_globals
 
-                exec(code, safe_exec_globals(np=np))  # H5: restricted builtins (deny import/open/eval)
+                exec(
+                    code, safe_exec_globals(np=np)
+                )  # H5: restricted builtins (deny import/open/eval)
                 if "predict_action" not in code:
                     return False, "Function predict_action not found."
                 return True, "Code compiled."

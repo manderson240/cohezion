@@ -29,12 +29,12 @@ V-Model contracts:
 
 from __future__ import annotations
 
-
 import numpy as np
 
 
 def _import_encoder():
     from cohezion.flume.skill_state_encoder import SkillStateEncoder
+
     return SkillStateEncoder
 
 
@@ -72,6 +72,7 @@ def test_encode_skill_returns_256d_float32():
 
 def test_encode_rubric_verdict_returns_256d_float32():
     from cohezion.compound.rubric_middleware import RubricVerdict
+
     enc = _import_encoder()
     e = enc()
     verdict = RubricVerdict(passed=True, reason="Output is coherent.")
@@ -87,9 +88,7 @@ def test_mgpo_weight_at_dim_12():
     enc = _import_encoder()
     e = enc()
     v = e.encode_skill("skill", mgpo_weight=0.75, success_rate=0.5)
-    assert abs(v[12] - 0.75) < 1e-6, (
-        f"mgpo_weight must be at dim 12; got {v[12]:.4f}"
-    )
+    assert abs(v[12] - 0.75) < 1e-6, f"mgpo_weight must be at dim 12; got {v[12]:.4f}"
 
 
 def test_mgpo_weight_boundary_is_1():
@@ -106,9 +105,7 @@ def test_success_rate_at_dim_13():
     enc = _import_encoder()
     e = enc()
     v = e.encode_skill("skill", mgpo_weight=0.5, success_rate=0.8)
-    assert abs(v[13] - 0.8) < 1e-6, (
-        f"success_rate must be at dim 13; got {v[13]:.4f}"
-    )
+    assert abs(v[13] - 0.8) < 1e-6, f"success_rate must be at dim 13; got {v[13]:.4f}"
 
 
 # ── MD5: rubric_passed at dim 14 ──────────────────────────────────────────────
@@ -116,6 +113,7 @@ def test_success_rate_at_dim_13():
 
 def test_rubric_passed_true_at_dim_14():
     from cohezion.compound.rubric_middleware import RubricVerdict
+
     enc = _import_encoder()
     e = enc()
     verdict = RubricVerdict(passed=True, reason="ok")
@@ -125,6 +123,7 @@ def test_rubric_passed_true_at_dim_14():
 
 def test_rubric_passed_false_at_dim_14():
     from cohezion.compound.rubric_middleware import RubricVerdict
+
     enc = _import_encoder()
     e = enc()
     verdict = RubricVerdict(passed=False, reason="hallucinated")
@@ -146,6 +145,7 @@ def test_encode_skill_defaults_rubric_passed_to_1():
 def test_rubric_passed_changes_vector_at_dim_14():
     """Changing rubric_passed must change exactly dim 14 (discriminating test)."""
     from cohezion.compound.rubric_middleware import RubricVerdict
+
     enc = _import_encoder()
     e = enc()
     v_pass = e.encode_rubric_verdict(
@@ -192,6 +192,4 @@ def test_different_skill_names_produce_different_vectors():
     e = enc()
     v1 = e.encode_skill("routing_skill", mgpo_weight=0.5, success_rate=0.5)
     v2 = e.encode_skill("analysis_skill", mgpo_weight=0.5, success_rate=0.5)
-    assert not np.allclose(v1, v2), (
-        "Different skill names must produce different fingerprints"
-    )
+    assert not np.allclose(v1, v2), "Different skill names must produce different fingerprints"

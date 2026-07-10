@@ -1,9 +1,11 @@
 """Unit tests for TokenEfficientCompoundExecutor dynamic rules pruning and token optimization."""
 
 from unittest.mock import MagicMock, patch
+
 import pytest
-from cohezion.compound.token_efficient_executor import TokenEfficientCompoundExecutor
+
 from cohezion.compound.prompt_optimizer import PromptOptimizer
+from cohezion.compound.token_efficient_executor import TokenEfficientCompoundExecutor
 
 
 def test_jaccard_deduplication():

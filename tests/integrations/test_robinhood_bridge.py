@@ -20,12 +20,18 @@ from cohezion.integrations.robinhood_bridge import (
     TradeIntent,
 )
 
+
 # ── Test helpers ──────────────────────────────────────────────────────────────
 
 
-def _lemonade_response(action: str, symbol: str | None = None, quantity=None,
-                        order_type: str | None = None, limit_price=None,
-                        reasoning: str = "test"):
+def _lemonade_response(
+    action: str,
+    symbol: str | None = None,
+    quantity=None,
+    order_type: str | None = None,
+    limit_price=None,
+    reasoning: str = "test",
+):
     """Build a Lemonade-style chat completion response containing JSON."""
     payload = {
         "action": action,
@@ -37,9 +43,7 @@ def _lemonade_response(action: str, symbol: str | None = None, quantity=None,
     }
     resp = MagicMock()
     resp.status_code = 200
-    resp.json.return_value = {
-        "choices": [{"message": {"content": json.dumps(payload)}}]
-    }
+    resp.json.return_value = {"choices": [{"message": {"content": json.dumps(payload)}}]}
     resp.raise_for_status = MagicMock()
     return resp
 
@@ -125,14 +129,16 @@ class TestTradeActionEnum:
 class TestOrderProposalSummary:
     def _make_intent(self, action, symbol=None, qty=None, order_type=None, lp=None):
         return TradeIntent(
-            action=action, symbol=symbol, quantity=qty,
-            order_type=order_type, limit_price=lp,
+            action=action,
+            symbol=symbol,
+            quantity=qty,
+            order_type=order_type,
+            limit_price=lp,
         )
 
     def test_buy_market_summary(self):
         intent = self._make_intent(TradeAction.PROPOSE_BUY, "AAPL", 10.0, "market")
-        proposal = OrderProposal(intent=intent, mcp_tool="place_order",
-                                  mcp_params={})
+        proposal = OrderProposal(intent=intent, mcp_tool="place_order", mcp_params={})
         assert proposal.summary() == "BUY 10.0 shares of AAPL (MARKET)"
 
     def test_sell_limit_with_price(self):
@@ -162,15 +168,15 @@ class TestReadonlyModeGuard:
 
     @pytest.fixture
     def bridge(self):
-        return RobinhoodBridge(readonly_mode=True,
-                                lemonade_url="http://localhost:13305",
-                                surreal_url="http://localhost:8001")
+        return RobinhoodBridge(
+            readonly_mode=True,
+            lemonade_url="http://localhost:13305",
+            surreal_url="http://localhost:8001",
+        )
 
     @pytest.mark.asyncio
     async def test_propose_buy_blocked_in_readonly(self, bridge):
-        client = _FakeAsyncClient(
-            _lemonade_response("propose_buy", "AAPL", 5.0, "market")
-        )
+        client = _FakeAsyncClient(_lemonade_response("propose_buy", "AAPL", 5.0, "market"))
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
             return_value=client,
@@ -184,9 +190,7 @@ class TestReadonlyModeGuard:
 
     @pytest.mark.asyncio
     async def test_propose_sell_blocked_in_readonly(self, bridge):
-        client = _FakeAsyncClient(
-            _lemonade_response("propose_sell", "TSLA", 2.0, "market")
-        )
+        client = _FakeAsyncClient(_lemonade_response("propose_sell", "TSLA", 2.0, "market"))
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
             return_value=client,
@@ -198,9 +202,7 @@ class TestReadonlyModeGuard:
 
     @pytest.mark.asyncio
     async def test_query_allowed_in_readonly(self, bridge):
-        client = _FakeAsyncClient(
-            _lemonade_response("query_portfolio")
-        )
+        client = _FakeAsyncClient(_lemonade_response("query_portfolio"))
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
             return_value=client,
@@ -222,15 +224,18 @@ class TestOrderProposalFlow:
 
     @pytest.fixture
     def bridge(self):
-        return RobinhoodBridge(readonly_mode=False,
-                                lemonade_url="http://localhost:13305",
-                                surreal_url="http://localhost:8001")
+        return RobinhoodBridge(
+            readonly_mode=False,
+            lemonade_url="http://localhost:13305",
+            surreal_url="http://localhost:8001",
+        )
 
     @pytest.mark.asyncio
     async def test_limit_buy_produces_proposal(self, bridge):
         client = _FakeAsyncClient(
-            _lemonade_response("propose_buy", "NVDA", 5.0, "limit", 900.0,
-                                "User wants limit buy NVDA")
+            _lemonade_response(
+                "propose_buy", "NVDA", 5.0, "limit", 900.0, "User wants limit buy NVDA"
+            )
         )
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
@@ -249,8 +254,7 @@ class TestOrderProposalFlow:
     @pytest.mark.asyncio
     async def test_market_sell_proposal_params(self, bridge):
         client = _FakeAsyncClient(
-            _lemonade_response("propose_sell", "AAPL", 3.0, "market",
-                                reasoning="sell AAPL")
+            _lemonade_response("propose_sell", "AAPL", 3.0, "market", reasoning="sell AAPL")
         )
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
@@ -265,9 +269,7 @@ class TestOrderProposalFlow:
 
     @pytest.mark.asyncio
     async def test_reply_contains_pending_confirmation_marker(self, bridge):
-        client = _FakeAsyncClient(
-            _lemonade_response("propose_buy", "MSFT", 1.0, "market")
-        )
+        client = _FakeAsyncClient(_lemonade_response("propose_buy", "MSFT", 1.0, "market"))
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
             return_value=client,
@@ -281,9 +283,7 @@ class TestOrderProposalFlow:
     @pytest.mark.asyncio
     async def test_reply_echoes_exact_mcp_params(self, bridge):
         """Discriminating: proposal reply must include the structured params, not just a summary."""
-        client = _FakeAsyncClient(
-            _lemonade_response("propose_buy", "NVDA", 7.0, "limit", 875.50)
-        )
+        client = _FakeAsyncClient(_lemonade_response("propose_buy", "NVDA", 7.0, "limit", 875.50))
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
             return_value=client,
@@ -305,9 +305,11 @@ class TestLemonadeJsonParse:
 
     @pytest.fixture
     def bridge(self):
-        return RobinhoodBridge(readonly_mode=True,
-                                lemonade_url="http://localhost:13305",
-                                surreal_url="http://localhost:8001")
+        return RobinhoodBridge(
+            readonly_mode=True,
+            lemonade_url="http://localhost:13305",
+            surreal_url="http://localhost:8001",
+        )
 
     def test_clean_json_parsed(self, bridge):
         intent = bridge._parse_lemonade_json(
@@ -319,7 +321,7 @@ class TestLemonadeJsonParse:
         assert intent.symbol is None
 
     def test_markdown_fenced_json_parsed(self, bridge):
-        content = "```json\n{\"action\": \"query_positions\", \"symbol\": \"AAPL\", \"quantity\": null, \"order_type\": null, \"limit_price\": null, \"reasoning\": \"positions for AAPL\"}\n```"
+        content = '```json\n{"action": "query_positions", "symbol": "AAPL", "quantity": null, "order_type": null, "limit_price": null, "reasoning": "positions for AAPL"}\n```'
         intent = bridge._parse_lemonade_json(content, raw_text="my AAPL positions")
         assert intent.action == TradeAction.QUERY_POSITIONS
         assert intent.symbol == "AAPL"
@@ -354,7 +356,7 @@ class TestLemonadeJsonParse:
         assert intent.quantity == 3.0
 
     def test_fenced_json_without_language_tag(self, bridge):
-        content = "```\n{\"action\": \"query_balances\", \"symbol\": null, \"quantity\": null, \"order_type\": null, \"limit_price\": null, \"reasoning\": \"check balance\"}\n```"
+        content = '```\n{"action": "query_balances", "symbol": null, "quantity": null, "order_type": null, "limit_price": null, "reasoning": "check balance"}\n```'
         intent = bridge._parse_lemonade_json(content, raw_text="my balance")
         assert intent.action == TradeAction.QUERY_BALANCES
 
@@ -368,9 +370,11 @@ class TestLemonadeFailureResilience:
 
     @pytest.fixture
     def bridge(self):
-        return RobinhoodBridge(readonly_mode=True,
-                                lemonade_url="http://localhost:13305",
-                                surreal_url="http://localhost:8001")
+        return RobinhoodBridge(
+            readonly_mode=True,
+            lemonade_url="http://localhost:13305",
+            surreal_url="http://localhost:8001",
+        )
 
     @pytest.mark.asyncio
     async def test_lemonade_http_error_returns_unknown(self, bridge):
@@ -403,8 +407,12 @@ class TestLemonadeFailureResilience:
         call_count = 0
 
         class _SelectiveClient:
-            async def __aenter__(self): return self
-            async def __aexit__(self, *exc): return False
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *exc):
+                return False
+
             async def post(self, url, **kwargs):
                 nonlocal call_count
                 call_count += 1
@@ -446,16 +454,16 @@ class TestQueryReplyFormatting:
 
     @pytest.mark.asyncio
     async def test_unknown_action_shows_help_text(self, bridge):
-        client = _FakeAsyncClient(
-            _lemonade_response("unknown", reasoning="unclear intent")
-        )
+        client = _FakeAsyncClient(_lemonade_response("unknown", reasoning="unclear intent"))
         with patch(
             "cohezion.integrations.robinhood_bridge.httpx.AsyncClient",
             return_value=client,
         ):
             result = await bridge.analyze("do something weird")
 
-        assert "portfolio" in result.telegram_reply.lower() or "try:" in result.telegram_reply.lower()
+        assert (
+            "portfolio" in result.telegram_reply.lower() or "try:" in result.telegram_reply.lower()
+        )
 
     @pytest.mark.asyncio
     async def test_portfolio_reply_includes_mcp_tool_name(self, bridge):
@@ -474,8 +482,12 @@ class TestQueryReplyFormatting:
         captured = {}
 
         class _CapturingClient:
-            async def __aenter__(self): return self
-            async def __aexit__(self, *exc): return False
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *exc):
+                return False
+
             async def post(self, url, **kwargs):
                 if "13305" in url:
                     captured["body"] = kwargs.get("json", {})

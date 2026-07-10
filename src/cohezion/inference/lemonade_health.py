@@ -7,7 +7,6 @@ Exports the types and functions consumed by:
 
 from __future__ import annotations
 
-import base64
 import time
 from dataclasses import dataclass, field
 from typing import Any

@@ -21,17 +21,53 @@ from cohezion.inference.ram_scheduler import (
     model_footprint,
 )
 
+
 # Minimal registry covering the models used in these tests.
 # Mirrors real Lemonade size data so assertions stay discriminating.
 FIXTURE_REGISTRY = [
-    {"id": "llama3.2-1b-FLM",                   "size": 1.30, "max_context_window": 131072,  "labels": []},
-    {"id": "nomic-embed-text-v2-moe-GGUF",       "size": 0.51, "max_context_window": 512,     "labels": ["embeddings"]},
-    {"id": "Gemma-4-E4B-it-GGUF",               "size": 5.97, "max_context_window": 131072,  "labels": ["vision", "tool-calling"]},
-    {"id": "Gemma-4-31B-it-GGUF",               "size": 19.50,"max_context_window": 262144,  "labels": ["vision", "tool-calling"]},
-    {"id": "Qwen3.6-35B-A3B-MTP-GGUF",          "size": 23.80,"max_context_window": 262144,  "labels": ["vision", "tool-calling", "mtp"]},
-    {"id": "Nemotron-3-Nano-30B-A3B-GGUF",       "size": 22.80,"max_context_window": 1048576, "labels": ["tool-calling"]},
-    {"id": "Qwen3.6-35B-A3B-GGUF",              "size": 23.30,"max_context_window": 262144,  "labels": ["vision", "tool-calling", "hot"]},
-    {"id": "Qwen3.5-35B-A3B-GGUF",              "size": 23.10,"max_context_window": 262144,  "labels": ["vision", "tool-calling"]},
+    {"id": "llama3.2-1b-FLM", "size": 1.30, "max_context_window": 131072, "labels": []},
+    {
+        "id": "nomic-embed-text-v2-moe-GGUF",
+        "size": 0.51,
+        "max_context_window": 512,
+        "labels": ["embeddings"],
+    },
+    {
+        "id": "Gemma-4-E4B-it-GGUF",
+        "size": 5.97,
+        "max_context_window": 131072,
+        "labels": ["vision", "tool-calling"],
+    },
+    {
+        "id": "Gemma-4-31B-it-GGUF",
+        "size": 19.50,
+        "max_context_window": 262144,
+        "labels": ["vision", "tool-calling"],
+    },
+    {
+        "id": "Qwen3.6-35B-A3B-MTP-GGUF",
+        "size": 23.80,
+        "max_context_window": 262144,
+        "labels": ["vision", "tool-calling", "mtp"],
+    },
+    {
+        "id": "Nemotron-3-Nano-30B-A3B-GGUF",
+        "size": 22.80,
+        "max_context_window": 1048576,
+        "labels": ["tool-calling"],
+    },
+    {
+        "id": "Qwen3.6-35B-A3B-GGUF",
+        "size": 23.30,
+        "max_context_window": 262144,
+        "labels": ["vision", "tool-calling", "hot"],
+    },
+    {
+        "id": "Qwen3.5-35B-A3B-GGUF",
+        "size": 23.10,
+        "max_context_window": 262144,
+        "labels": ["vision", "tool-calling"],
+    },
 ]
 
 
@@ -85,18 +121,16 @@ class TestCeilingEnforcement:
         # Pre-fill with large models until we're near the ceiling:
         # 26.8 + 25.8 + 26.3 = 78.9 GB  (size + 3 GB KV each)
         large_models = [
-            "Qwen3.6-35B-A3B-MTP-GGUF",    # 23.8 + 3 = 26.8 GB
-            "Nemotron-3-Nano-30B-A3B-GGUF", # 22.8 + 3 = 25.8 GB
-            "Qwen3.6-35B-A3B-GGUF",         # 23.3 + 3 = 26.3 GB
+            "Qwen3.6-35B-A3B-MTP-GGUF",  # 23.8 + 3 = 26.8 GB
+            "Nemotron-3-Nano-30B-A3B-GGUF",  # 22.8 + 3 = 25.8 GB
+            "Qwen3.6-35B-A3B-GGUF",  # 23.3 + 3 = 26.3 GB
         ]
         for mid in large_models:
             self.sched.ensure_loaded(mid)
 
         # Current usage: ~78.9 GB — adding another 26.1 GB overflows 88 GB
         to_evict = self.sched.ensure_loaded("Qwen3.5-35B-A3B-GGUF")
-        assert len(to_evict) > 0, (
-            "Expected eviction recommendation when ceiling would be exceeded"
-        )
+        assert len(to_evict) > 0, "Expected eviction recommendation when ceiling would be exceeded"
 
     def test_eviction_removes_from_lru(self) -> None:
         self.sched.ensure_loaded("Qwen3.6-35B-A3B-MTP-GGUF")
@@ -132,16 +166,14 @@ class TestRamStatus:
     def test_at_risk_when_headroom_under_12gb(self) -> None:
         # Fill to ~78.9 GB (88 - 12 = 76 threshold for at_risk)
         for mid in [
-            "Qwen3.6-35B-A3B-MTP-GGUF",    # 26.8 GB
-            "Nemotron-3-Nano-30B-A3B-GGUF", # 25.8 GB
-            "Qwen3.6-35B-A3B-GGUF",         # 26.3 GB
+            "Qwen3.6-35B-A3B-MTP-GGUF",  # 26.8 GB
+            "Nemotron-3-Nano-30B-A3B-GGUF",  # 25.8 GB
+            "Qwen3.6-35B-A3B-GGUF",  # 26.3 GB
         ]:
             self.sched.ensure_loaded(mid)
         status = self.sched.status()
         # ~78.9 GB used → headroom ~9 GB → at_risk=True
-        assert status.at_risk, (
-            f"Expected at_risk=True at {status.estimated_gb:.1f} GB"
-        )
+        assert status.at_risk, f"Expected at_risk=True at {status.estimated_gb:.1f} GB"
 
     def test_reset_clears_state(self) -> None:
         self.sched.ensure_loaded("Gemma-4-E4B-it-GGUF")

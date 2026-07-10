@@ -36,6 +36,7 @@ _VAULT_KANBAN_DIR = Path.home() / "vaults" / "cohezion-vault" / "kanban"
 
 # ── SurrealDB write-through ─────────────────────────────────────────────────
 
+
 def _surreal_write(item: dict[str, Any]) -> bool:
     """UPSERT item into kanban_item SurrealDB table. Returns True on success."""
     item_id = item.get("id", "")
@@ -70,6 +71,7 @@ def _surreal_write(item: dict[str, Any]) -> bool:
 
 
 # ── Obsidian vault write-through ────────────────────────────────────────────
+
 
 def _obsidian_write(item: dict[str, Any]) -> bool:
     """Write item as YAML-frontmatter Markdown note to vault kanban/ dir. Returns True on success."""
@@ -126,6 +128,7 @@ def _obsidian_write(item: dict[str, Any]) -> bool:
 
 
 # ── Public API ───────────────────────────────────────────────────────────────
+
 
 def persist_item(item: dict[str, Any]) -> dict[str, bool]:
     """Write item to both SurrealDB and Obsidian. Fail-open on each sink.

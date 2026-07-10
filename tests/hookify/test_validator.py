@@ -10,6 +10,7 @@ fires:
   - an inverted comparison operator, AND-evaluated-as-OR,
   - a case-sensitive goal match, a crash on a non-numeric context value.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -27,14 +28,24 @@ def v() -> HookifyValidator:
 
 def test_is_safe_condition_blocks_dangerous_patterns(v: HookifyValidator) -> None:
     # Discriminates a no-op guard (returns True for all): each of these MUST be unsafe.
-    for bad in ["os.system('rm')", "subprocess.run(x)", "eval('1')", "exec('x')",
-                "__import__('os')", "import os"]:
+    for bad in [
+        "os.system('rm')",
+        "subprocess.run(x)",
+        "eval('1')",
+        "exec('x')",
+        "__import__('os')",
+        "import os",
+    ]:
         assert v._is_safe_condition(bad) is False, bad
 
 
 def test_is_safe_condition_allows_legitimate_conditions(v: HookifyValidator) -> None:
-    for ok in ["always", "coherence < 0.5", 'goal.contains("deploy")',
-               "coherence > 0.1 AND coherence < 0.9"]:
+    for ok in [
+        "always",
+        "coherence < 0.5",
+        'goal.contains("deploy")',
+        "coherence > 0.1 AND coherence < 0.9",
+    ]:
         assert v._is_safe_condition(ok) is True, ok
 
 
@@ -84,7 +95,7 @@ def test_always_is_true_and_unknown_is_false(v: HookifyValidator) -> None:
 
 
 def test_parse_value_type_coercion(v: HookifyValidator) -> None:
-    assert v._parse_value("true") is True          # identity, not == 1
+    assert v._parse_value("true") is True  # identity, not == 1
     assert v._parse_value("False") is False
     assert v._parse_value("3.14") == 3.14 and isinstance(v._parse_value("3.14"), float)
     assert v._parse_value("5") == 5 and isinstance(v._parse_value("5"), int)

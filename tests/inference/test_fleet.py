@@ -147,7 +147,9 @@ async def test_route_records_attempts_list():
     with patch("cohezion.inference.fleet._dispatch_openai_compatible", side_effect=sometimes):
         with patch("cohezion.inference.fleet._dispatch_ollama", side_effect=sometimes):
             with patch("cohezion.inference.fleet._dispatch_headless_cli", side_effect=cli_mock):
-                result = await route("explain reasoning", task=Task.REASONING, resource_snapshot=_AMPLE_MEM)
+                result = await route(
+                    "explain reasoning", task=Task.REASONING, resource_snapshot=_AMPLE_MEM
+                )
 
     assert result.error is None
     assert result.text == "second lane response"

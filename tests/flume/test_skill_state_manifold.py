@@ -19,8 +19,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from cohezion.flume.skill_state_encoder import SkillStateEncoder
 from cohezion.compound.rubric_middleware import RubricVerdict
+from cohezion.flume.skill_state_encoder import SkillStateEncoder
 
 
 @pytest.fixture
@@ -131,8 +131,9 @@ def test_rubric_verdict_isolates_to_dim_14_in_manifold(enc):
     # ALL other dims must be identical
     other_pass = np.concatenate([v_pass[:14], v_pass[15:]])
     other_fail = np.concatenate([v_fail[:14], v_fail[15:]])
-    np.testing.assert_allclose(other_pass, other_fail, atol=1e-6,
-                                err_msg="Changing rubric_passed must affect ONLY dim 14")
+    np.testing.assert_allclose(
+        other_pass, other_fail, atol=1e-6, err_msg="Changing rubric_passed must affect ONLY dim 14"
+    )
 
 
 # ── SR4: success rate is independent of fingerprint region ────────────────────
@@ -152,8 +153,9 @@ def test_success_rate_only_varies_dim_13_not_fingerprint(enc):
 
     # Fingerprint region [29:256] must be identical (same skill_name, same context)
     np.testing.assert_array_equal(
-        v_low[29:], v_high[29:],
-        err_msg="Fingerprint region [29:256] must not vary with success_rate"
+        v_low[29:],
+        v_high[29:],
+        err_msg="Fingerprint region [29:256] must not vary with success_rate",
     )
 
 

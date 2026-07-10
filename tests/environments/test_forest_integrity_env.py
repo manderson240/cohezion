@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 
 from cohezion.environments.forest_integrity_env import (
-    ForestIntegrityEnv,
-    N_PATCHES,
     N_INDICATORS,
+    N_PATCHES,
     OBS_DIM,
+    ForestIntegrityEnv,
 )
 
 

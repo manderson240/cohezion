@@ -3,16 +3,16 @@
 import pytest
 
 from cohezion.inference.fractal_metrics import (
-    feynman_amplitude_rank,
-    feynman_path_weight,
-    FractalRegime,
     _HIHO_DEVIATION_THRESHOLD,
+    FractalRegime,
+    RollingRegimeTracker,
     bunimovich_calibration_sequence,
     classify_fd,
+    feynman_amplitude_rank,
+    feynman_path_weight,
     gwtc5_calibration_sequence,
     higuchi_fd,
     quality_series_report,
-    RollingRegimeTracker,
 )
 
 
@@ -88,15 +88,9 @@ class TestFractalRegime:
 
         Wrong impl returning HIHO always would FAIL.
         """
-        assert classify_fd(1.0) is FractalRegime.STUCK, (
-            "FD=1.0 (stuck/floor) must map to STUCK"
-        )
-        assert classify_fd(1.2) is FractalRegime.STUCK, (
-            "FD=1.2 (below HIHO band) must map to STUCK"
-        )
-        assert classify_fd(1.29999) is FractalRegime.STUCK, (
-            "FD just below 1.3 must map to STUCK"
-        )
+        assert classify_fd(1.0) is FractalRegime.STUCK, "FD=1.0 (stuck/floor) must map to STUCK"
+        assert classify_fd(1.2) is FractalRegime.STUCK, "FD=1.2 (below HIHO band) must map to STUCK"
+        assert classify_fd(1.29999) is FractalRegime.STUCK, "FD just below 1.3 must map to STUCK"
 
     def test_fr2_hiho_in_brownian_band(self) -> None:
         """FR2 discriminating: FD=1.5 (Brownian) → HIHO.
@@ -117,9 +111,7 @@ class TestFractalRegime:
         assert classify_fd(1.9) is FractalRegime.CHAOTIC, (
             "FD=1.9 (chaotic regime) must map to CHAOTIC"
         )
-        assert classify_fd(2.0) is FractalRegime.CHAOTIC, (
-            "FD=2.0 (white noise) must map to CHAOTIC"
-        )
+        assert classify_fd(2.0) is FractalRegime.CHAOTIC, "FD=2.0 (white noise) must map to CHAOTIC"
 
     # ── FR3 boundary precision ────────────────────────────────────────────
 
@@ -176,10 +168,10 @@ class TestFractalRegime:
         Confirms the refactoring eliminated the duplicate threshold logic — the report
         and classify_fd() share a single source of truth.
         """
-        from cohezion.inference.fractal_metrics import quality_series_report
-
         # Brownian-ish scores → hiho regime
         import random
+
+        from cohezion.inference.fractal_metrics import quality_series_report
 
         rng = random.Random(42)
         scores = [0.5 + rng.gauss(0, 0.1) for _ in range(80)]
@@ -250,17 +242,19 @@ class TestHihoDeviationThreshold:
             "Scores with mean=0.8 (deviation=0.3) must give hiho_engaged=False"
         )
 
-    def test_dt3_threshold_is_used_by_quality_series_report(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_dt3_threshold_is_used_by_quality_series_report(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """DT3 discriminating: monkeypatching _HIHO_DEVIATION_THRESHOLD changes hiho_engaged.
 
         This proves quality_series_report() references the constant, not a separate literal.
         If the function uses a hardcoded 0.1, this test has NO effect and would catch
         that only when the constant and the literal drift apart.
         """
-        import cohezion.inference.fractal_metrics as fm
-
         # Build a series with deviation = 0.05 (between 0.0 and 0.1, straddling threshold)
         import random
+
+        import cohezion.inference.fractal_metrics as fm
 
         rng = random.Random(42)
         # Force mean close to 0.55 (deviation ≈ 0.05) with Brownian noise
@@ -331,8 +325,8 @@ class TestFeynmanAmplitudeRank:
         would return cloud first and FAIL.
         """
         candidates = [
-            ("cloud", 1.0, 0.01, 0.0),   # high quality, high cost
-            ("local", 0.5, 0.0, 0.0),    # lower quality, zero cost
+            ("cloud", 1.0, 0.01, 0.0),  # high quality, high cost
+            ("local", 0.5, 0.0, 0.0),  # lower quality, zero cost
         ]
         ranked = feynman_amplitude_rank(candidates)
         assert ranked[0] == "local", (
@@ -347,8 +341,8 @@ class TestFeynmanAmplitudeRank:
         """
         # Equal quality, zero dollar cost, different energy
         candidates = [
-            ("cpu", 0.8, 0.0, 55.0),   # 55 J (high wattage tier)
-            ("npu", 0.8, 0.0, 2.0),    # 2 J  (low wattage tier)
+            ("cpu", 0.8, 0.0, 55.0),  # 55 J (high wattage tier)
+            ("npu", 0.8, 0.0, 2.0),  # 2 J  (low wattage tier)
             ("igpu", 0.8, 0.0, 15.0),  # 15 J (mid wattage tier)
         ]
         ranked = feynman_amplitude_rank(candidates)
@@ -389,7 +383,9 @@ class TestFeynmanAmplitudeRank:
         )
         # Exact values from harness (λ=100): local=0.500, cloud≈0.368
         assert abs(local_amplitude - 0.5) < 1e-9, f"local_amplitude={local_amplitude} should be 0.5"
-        assert 0.36 < cloud_amplitude < 0.37, f"cloud_amplitude={cloud_amplitude:.4f} should be ≈0.368"
+        assert 0.36 < cloud_amplitude < 0.37, (
+            f"cloud_amplitude={cloud_amplitude:.4f} should be ≈0.368"
+        )
 
 
 # ---------------------------------------------------------------------------

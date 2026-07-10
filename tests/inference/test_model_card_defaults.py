@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from cohezion.inference.model_card_defaults import (
     apply_model_card_defaults,
     get_sampling_defaults,

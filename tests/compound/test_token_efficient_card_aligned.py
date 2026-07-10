@@ -67,6 +67,7 @@ def test_cacheable_prefix_includes_flume_vae_hash():
     assert "# FLUME_VAE:" in prefix
     # The hash is a stable 16-char prefix of a sha256
     import re
+
     m = re.search(r"# FLUME_VAE:\s*([a-f0-9]+)", prefix)
     assert m is not None
     assert len(m.group(1)) >= 8
@@ -89,6 +90,7 @@ def test_different_cards_produce_different_prefixes():
     assert prefix_qwen3 != prefix_phi4
     # The FLUME_VAE hash lines must differ
     import re
+
     h_qwen3 = re.search(r"# FLUME_VAE:\s*([a-f0-9]+)", prefix_qwen3).group(1)
     h_phi4 = re.search(r"# FLUME_VAE:\s*([a-f0-9]+)", prefix_phi4).group(1)
     assert h_qwen3 != h_phi4

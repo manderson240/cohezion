@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
@@ -67,7 +67,6 @@ def test_self_improvement_orchestrator_subscribes_to_bus():
     from cohezion.compound.self_improvement_orchestrator import (
         SelfImprovementOrchestrator,
     )
-    from cohezion.precipitation.events import PrecipitationKind
 
     orch = SelfImprovementOrchestrator()
     # Snapshot subscriber counts before

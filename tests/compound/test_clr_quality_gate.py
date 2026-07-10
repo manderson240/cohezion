@@ -12,13 +12,15 @@ All inference routes through OmniRouter :13305 (model: llama3.2-1b-FLM).
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_gate(verdicts: list[int | None]):
     """Build a CLRQualityGate with _verify_claim returning verdicts in sequence."""
@@ -37,6 +39,7 @@ def _make_gate(verdicts: list[int | None]):
 # ---------------------------------------------------------------------------
 # Class 1: CLR score arithmetic — (mean_verdicts)^3
 # ---------------------------------------------------------------------------
+
 
 class TestCLRScoreArithmetic:
     """score = (mean_verdicts)^3 — verified with injected verdicts."""
@@ -82,6 +85,7 @@ class TestCLRScoreArithmetic:
 # Class 2: passes() threshold boundary
 # ---------------------------------------------------------------------------
 
+
 class TestCLRPassFail:
     """passes() = score >= 0.7; unanimous YES required in practice."""
 
@@ -105,6 +109,7 @@ class TestCLRPassFail:
 # ---------------------------------------------------------------------------
 # Class 3: Fail-open — inference unavailable → allow ingestion
 # ---------------------------------------------------------------------------
+
 
 class TestCLRFailOpen:
     """When inference is unavailable (score=None), passes() must return True (fail-open)."""
@@ -130,12 +135,14 @@ class TestCLRFailOpen:
 # Class 4: Verdict parsing — first-word only
 # ---------------------------------------------------------------------------
 
+
 class TestVerdictParsing:
     """_parse_verdict() parses YES/NO from first word only."""
 
     @pytest.fixture
     def parse(self):
         from cohezion.compound.clr_quality_gate import _parse_verdict
+
         return _parse_verdict
 
     def test_parses_YES(self, parse):
@@ -181,6 +188,7 @@ class TestVerdictParsing:
 # ---------------------------------------------------------------------------
 # Class 5: Mycelium wiring — CLR gate gates ingest_entry
 # ---------------------------------------------------------------------------
+
 
 class TestMyceliumWiring:
     """CLRQualityGate.passes() controls whether ingest_entry is called.

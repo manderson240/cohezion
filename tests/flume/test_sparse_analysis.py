@@ -55,8 +55,7 @@ def test_fit_encode_roundtrip() -> None:
     error_zero = float(np.linalg.norm(z))
 
     assert error_encoded < error_zero, (
-        f"Encoding did not reduce reconstruction error "
-        f"({error_encoded:.4f} >= {error_zero:.4f})"
+        f"Encoding did not reduce reconstruction error ({error_encoded:.4f} >= {error_zero:.4f})"
     )
     assert np.count_nonzero(alpha) >= 1, "At least one atom must be active"
 
@@ -115,9 +114,7 @@ def test_numpy_fallback_path() -> None:
 
     model = SparseLatentAnalysis(n_atoms=20, sparsity_target=0.2, _force_numpy=True)
 
-    assert not model._use_sklearn, (
-        "_use_sklearn should be False when _force_numpy=True"
-    )
+    assert not model._use_sklearn, "_use_sklearn should be False when _force_numpy=True"
 
     model.fit(latents)
     alpha = model.encode(z)

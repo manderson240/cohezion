@@ -10,6 +10,7 @@ Skips gracefully when local inference is down (CI without lemonade); when the :1
 the loop MUST produce non-empty output on a real engine — anything else is the failure mode this rung
 exists to catch.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -36,9 +37,13 @@ def test_live_loop_produces_nonempty_output_on_a_real_engine():
     cascade all surface here as empty output or tier_used='unknown' — invisible to mocked tests."""
     from cohezion.compound.local_inference import make_local_execute_fn
 
-    out, metrics = make_local_execute_fn()("Reply with ONE word, POSITIVE or NEGATIVE: I love this.")
+    out, metrics = make_local_execute_fn()(
+        "Reply with ONE word, POSITIVE or NEGATIVE: I love this."
+    )
 
-    assert (out or "").strip(), "live loop produced EMPTY output — dead-port / empty-reply / dormant cascade"
+    assert (out or "").strip(), (
+        "live loop produced EMPTY output — dead-port / empty-reply / dormant cascade"
+    )
     assert metrics.get("tier_used") in ("npu", "igpu", "cpu"), (
         f"no real engine recorded (tier_used={metrics.get('tier_used')!r}) — the engine-feedback loop is dead"
     )

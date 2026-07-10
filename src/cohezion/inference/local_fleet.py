@@ -59,49 +59,56 @@ class FleetModel:
     Size, ctx_size, and vision capability are NOT stored here — query
     the live Lemonade registry via ``LocalResearchFleet`` for those.
     """
+
     model_id: str
     role: FleetRole
-    tps_estimate: float       # tokens/sec on Strix Halo (0 = non-LLM)
-    is_npu: bool = False      # XDNA2 NPU via FLM backend
+    tps_estimate: float  # tokens/sec on Strix Halo (0 = non-LLM)
+    is_npu: bool = False  # XDNA2 NPU via FLM backend
 
 
 # Role → model assignment + empirical performance.
 # This is the ONLY place in the codebase that duplicates Lemonade data.
 _FLEET: dict[FleetRole, FleetModel] = {
-    FleetRole.ROUTER:         FleetModel("llama3.2-1b-FLM",                    FleetRole.ROUTER,         42.0,  is_npu=True),
-    FleetRole.TRIAGE:         FleetModel("Qwen3-0.6B-GGUF",                    FleetRole.TRIAGE,         80.0),
-    FleetRole.SYNTHESIS:      FleetModel("Bonsai-4B-gguf",                     FleetRole.SYNTHESIS,      90.0),
-    FleetRole.SKILL:          FleetModel("Bonsai-8B-gguf",                     FleetRole.SKILL,          60.0),
-    FleetRole.EMBED:          FleetModel("nomic-embed-text-v2-moe-GGUF",       FleetRole.EMBED,         200.0),
-    FleetRole.TRANSCRIBE:     FleetModel("Whisper-Large-v3-Turbo",             FleetRole.TRANSCRIBE,      0.0, is_npu=True),
-    FleetRole.TTS:            FleetModel("kokoro-v1",                          FleetRole.TTS,             0.0),
-    FleetRole.UPSCALE:        FleetModel("RealESRGAN-x4plus",                  FleetRole.UPSCALE,         0.0),
-    FleetRole.GENERATION:     FleetModel("Gemma-4-E4B-it-GGUF",               FleetRole.GENERATION,     54.0),
-    FleetRole.NPU_THINK:      FleetModel("deepseek-r1-0528-8b-FLM",           FleetRole.NPU_THINK,      10.6, is_npu=True),
-    FleetRole.REASONING:      FleetModel("DeepSeek-Qwen3-8B-GGUF",            FleetRole.REASONING,      41.0),
-    FleetRole.VISION_FAST:    FleetModel("Gemma-4-E2B-it-GGUF",               FleetRole.VISION_FAST,    60.0),
-    FleetRole.IMAGE_FAST:     FleetModel("SD-Turbo",                           FleetRole.IMAGE_FAST,      0.0),
-    FleetRole.CODE:           FleetModel("Qwen3-Coder-30B-A3B-Instruct-GGUF", FleetRole.CODE,           12.0),
-    FleetRole.THINKING_CODE:  FleetModel("Qwen3.6-35B-A3B-ThinkingCoder",     FleetRole.THINKING_CODE,   8.0),
-    FleetRole.VISION:         FleetModel("Gemma-4-31B-it-GGUF",               FleetRole.VISION,          6.0),
-    FleetRole.DEEP_SYNTHESIS: FleetModel("Gemma-4-26B-A4B-it-GGUF",          FleetRole.DEEP_SYNTHESIS, 43.0),
-    FleetRole.IMAGE_GEN:      FleetModel("Flux-2-Klein-9B-GGUF",              FleetRole.IMAGE_GEN,       0.0),
-    FleetRole.TOOL_CALL:      FleetModel("Nemotron-3-Nano-30B-A3B-GGUF",      FleetRole.TOOL_CALL,       5.0),
+    FleetRole.ROUTER: FleetModel("llama3.2-1b-FLM", FleetRole.ROUTER, 42.0, is_npu=True),
+    FleetRole.TRIAGE: FleetModel("Qwen3-0.6B-GGUF", FleetRole.TRIAGE, 80.0),
+    FleetRole.SYNTHESIS: FleetModel("Bonsai-4B-gguf", FleetRole.SYNTHESIS, 90.0),
+    FleetRole.SKILL: FleetModel("Bonsai-8B-gguf", FleetRole.SKILL, 60.0),
+    FleetRole.EMBED: FleetModel("nomic-embed-text-v2-moe-GGUF", FleetRole.EMBED, 200.0),
+    FleetRole.TRANSCRIBE: FleetModel(
+        "Whisper-Large-v3-Turbo", FleetRole.TRANSCRIBE, 0.0, is_npu=True
+    ),
+    FleetRole.TTS: FleetModel("kokoro-v1", FleetRole.TTS, 0.0),
+    FleetRole.UPSCALE: FleetModel("RealESRGAN-x4plus", FleetRole.UPSCALE, 0.0),
+    FleetRole.GENERATION: FleetModel("Gemma-4-E4B-it-GGUF", FleetRole.GENERATION, 54.0),
+    FleetRole.NPU_THINK: FleetModel(
+        "deepseek-r1-0528-8b-FLM", FleetRole.NPU_THINK, 10.6, is_npu=True
+    ),
+    FleetRole.REASONING: FleetModel("DeepSeek-Qwen3-8B-GGUF", FleetRole.REASONING, 41.0),
+    FleetRole.VISION_FAST: FleetModel("Gemma-4-E2B-it-GGUF", FleetRole.VISION_FAST, 60.0),
+    FleetRole.IMAGE_FAST: FleetModel("SD-Turbo", FleetRole.IMAGE_FAST, 0.0),
+    FleetRole.CODE: FleetModel("Qwen3-Coder-30B-A3B-Instruct-GGUF", FleetRole.CODE, 12.0),
+    FleetRole.THINKING_CODE: FleetModel(
+        "Qwen3.6-35B-A3B-ThinkingCoder", FleetRole.THINKING_CODE, 8.0
+    ),
+    FleetRole.VISION: FleetModel("Gemma-4-31B-it-GGUF", FleetRole.VISION, 6.0),
+    FleetRole.DEEP_SYNTHESIS: FleetModel("Gemma-4-26B-A4B-it-GGUF", FleetRole.DEEP_SYNTHESIS, 43.0),
+    FleetRole.IMAGE_GEN: FleetModel("Flux-2-Klein-9B-GGUF", FleetRole.IMAGE_GEN, 0.0),
+    FleetRole.TOOL_CALL: FleetModel("Nemotron-3-Nano-30B-A3B-GGUF", FleetRole.TOOL_CALL, 5.0),
 }
 
 # task_classifier output_type → FleetRole
 _TYPE_TO_ROLE: dict[str, FleetRole] = {
     "short_categorical": FleetRole.ROUTER,
-    "short_answer":      FleetRole.ROUTER,
+    "short_answer": FleetRole.ROUTER,
     "medium_generation": FleetRole.GENERATION,
-    "long_generation":   FleetRole.GENERATION,
-    "code":              FleetRole.CODE,
-    "math_reasoning":    FleetRole.CODE,
-    "reasoning":         FleetRole.REASONING,
-    "embed":             FleetRole.EMBED,
-    "tts":               FleetRole.TTS,
-    "image":             FleetRole.IMAGE_GEN,
-    "transcribe":        FleetRole.TRANSCRIBE,
+    "long_generation": FleetRole.GENERATION,
+    "code": FleetRole.CODE,
+    "math_reasoning": FleetRole.CODE,
+    "reasoning": FleetRole.REASONING,
+    "embed": FleetRole.EMBED,
+    "tts": FleetRole.TTS,
+    "image": FleetRole.IMAGE_GEN,
+    "transcribe": FleetRole.TRANSCRIBE,
 }
 
 
@@ -115,6 +122,7 @@ def _fetch_registry(registry: list[dict] | None) -> dict[str, dict]:
         return {m["id"]: m for m in registry}
     try:
         import httpx
+
         r = httpx.get(f"{OMNI_URL}/models", timeout=5.0)
         r.raise_for_status()
         return {m["id"]: m for m in r.json().get("data", [])}

@@ -162,13 +162,14 @@ class TestJepaGateCoherenceThreshold:
         class _S:
             def predict_next_state(self, s, a):
                 return np.full(12, float(coherence), dtype=np.float32)
+
         return _S()
 
     def test_t1_coherence_threshold_is_property(self):
         """T1 structural: coherence_threshold must be a Python property descriptor."""
-        assert isinstance(
-            JepaGate.__dict__.get("coherence_threshold"), property
-        ), "coherence_threshold must be a @property on JepaGate"
+        assert isinstance(JepaGate.__dict__.get("coherence_threshold"), property), (
+            "coherence_threshold must be a @property on JepaGate"
+        )
 
     def test_t1_coherence_threshold_readable_matches_init(self):
         """T1: getter returns the proceed_threshold passed at construction."""

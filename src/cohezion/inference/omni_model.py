@@ -59,8 +59,7 @@ class OmniModel:
         """Generate text.  Route is auto-selected unless `role` is provided."""
         model_id = self._pick_model(prompt, role)
         self._maybe_load(model_id)
-        return await self._chat(model_id, prompt, max_tokens=max_tokens,
-                                temperature=temperature)
+        return await self._chat(model_id, prompt, max_tokens=max_tokens, temperature=temperature)
 
     async def party_generate(
         self,
@@ -79,6 +78,7 @@ class OmniModel:
         for role in text_roles:
             try:
                 from cohezion.inference.local_fleet import FleetRole
+
                 m = fleet.get(FleetRole(role))
                 models.append(m.model_id)
             except (ValueError, KeyError):
@@ -156,6 +156,7 @@ class OmniModel:
         # Try task_classifier
         try:
             from cohezion.inference.task_classifier import classify
+
             decision = classify(prompt)
             output_type = decision.output_type
         except Exception:
@@ -164,10 +165,12 @@ class OmniModel:
         # Check gauntlet champion for this role mapping
         fleet = self._get_fleet()
         from cohezion.inference.local_fleet import _TYPE_TO_ROLE
+
         fleet_role = _TYPE_TO_ROLE.get(output_type, FleetRole.GENERATION)
 
         try:
             from cohezion.inference.gauntlet import get_champion
+
             champion = get_champion(fleet_role.value)
             if champion:
                 return champion
@@ -257,6 +260,7 @@ class OmniModel:
             data = resp.json()
             # Lemonade returns base64-encoded PNG
             import base64
+
             b64 = data["data"][0].get("b64_json", "")
             if b64:
                 Path(output_path).write_bytes(base64.b64decode(b64))
@@ -275,15 +279,18 @@ class OmniModel:
 
             payload = {
                 "model": model_id,
-                "messages": [{
-                    "role": "user",
-                    "content": [
-                        {"type": "image_url", "image_url": {
-                            "url": f"data:{media_type};base64,{image_b64}"
-                        }},
-                        {"type": "text", "text": prompt},
-                    ],
-                }],
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{media_type};base64,{image_b64}"},
+                            },
+                            {"type": "text", "text": prompt},
+                        ],
+                    }
+                ],
                 "max_tokens": 512,
             }
             async with httpx.AsyncClient(timeout=60.0) as client:
@@ -299,12 +306,14 @@ class OmniModel:
     def _get_fleet(self) -> Any:
         if self._fleet is None:
             from cohezion.inference.local_fleet import get_fleet
+
             self._fleet = get_fleet()
         return self._fleet
 
     def _get_scheduler(self) -> Any:
         if self._scheduler is None:
             from cohezion.inference.ram_scheduler import get_scheduler
+
             self._scheduler = get_scheduler()
         return self._scheduler
 

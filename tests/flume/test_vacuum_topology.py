@@ -1,15 +1,14 @@
 """Tests for VacuumTopologyClassifier — harness invariants VT1–VT6."""
 
-
 import numpy as np
 import pytest
 
 from cohezion.flume.vacuum_topology import (
-    VACUUM_LABELS,
-    VacuumTopologyClassifier,
     _INSTANTON_CENTER,
     _SOLITON_CENTER,
     _TRIVIAL_CENTER,
+    VACUUM_LABELS,
+    VacuumTopologyClassifier,
     classify_point,
 )
 
@@ -21,13 +20,19 @@ def clf():
 
 # VT1 ─ prototype centres are unit-norm -----------------------------------
 
+
 def test_prototype_centers_unit_norm():
-    for name, ctr in [("trivial", _TRIVIAL_CENTER), ("soliton", _SOLITON_CENTER), ("instanton", _INSTANTON_CENTER)]:
+    for name, ctr in [
+        ("trivial", _TRIVIAL_CENTER),
+        ("soliton", _SOLITON_CENTER),
+        ("instanton", _INSTANTON_CENTER),
+    ]:
         norm = float(np.linalg.norm(ctr))
         assert abs(norm - 1.0) < 1e-9, f"{name} centre not unit-norm: {norm}"
 
 
 # VT2 ─ label is always a member of VACUUM_LABELS -------------------------
+
 
 def test_label_always_valid(clf):
     rng = np.random.RandomState(42)
@@ -39,6 +44,7 @@ def test_label_always_valid(clf):
 
 
 # VT3 ─ each prototype maps to its own class (identity property) ----------
+
 
 def test_trivial_center_classifies_trivial(clf):
     assert clf.classify(_TRIVIAL_CENTER).label == "trivial"
@@ -54,6 +60,7 @@ def test_instanton_center_classifies_instanton(clf):
 
 # VT4 ─ near-zero vectors are definitively trivial -----------------------
 
+
 def test_near_zero_is_trivial(clf):
     v = np.full(12, 0.001)
     result = clf.classify(v)
@@ -62,6 +69,7 @@ def test_near_zero_is_trivial(clf):
 
 
 # VT5 ─ noise robustness: perturbed prototype stays in its class ---------
+
 
 def test_noisy_soliton_stays_soliton(clf):
     rng = np.random.RandomState(7)
@@ -78,6 +86,7 @@ def test_noisy_instanton_stays_instanton(clf):
 
 
 # VT6 ─ batch and diversity APIs ------------------------------------------
+
 
 def test_classify_many_returns_correct_count(clf):
     pts = [_TRIVIAL_CENTER, _SOLITON_CENTER, _INSTANTON_CENTER]
@@ -105,6 +114,7 @@ def test_topological_diversity_empty_returns_zero(clf):
 
 # VT7 ─ module singleton --------------------------------------------------
 
+
 def test_classify_point_singleton():
     r1 = classify_point(_SOLITON_CENTER)
     r2 = classify_point(_SOLITON_CENTER)
@@ -113,6 +123,7 @@ def test_classify_point_singleton():
 
 
 # VT8 ─ to_dict keys and types -------------------------------------------
+
 
 def test_to_dict_structure(clf):
     d = clf.classify(_INSTANTON_CENTER).to_dict()
@@ -123,6 +134,7 @@ def test_to_dict_structure(clf):
 
 
 # VT9 ─ wrong shape raises -------------------------------------------------
+
 
 def test_wrong_shape_raises(clf):
     with pytest.raises(ValueError, match="Expected 12D"):

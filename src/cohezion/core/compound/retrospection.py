@@ -75,7 +75,9 @@ class RetrospectionEngine:
         Override path to the knowledge graph directory.
     """
 
-    def __init__(self, kg_dir: Path | None = None, inference_provider: object | None = None) -> None:
+    def __init__(
+        self, kg_dir: Path | None = None, inference_provider: object | None = None
+    ) -> None:
         self.kg_dir = kg_dir or _KG_DIR
         self._learnings: list[LearningPattern] = []
         self._journal_entries: list[dict] = []

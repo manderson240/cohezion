@@ -7,7 +7,7 @@ name = "cohezion"
 version = "1.0.2"
 description = "Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes"
 readme = "README.md"
-requires-python = "==3.11.*"
+requires-python = ">=3.13"
 license = {text = "AGPL-3.0-or-later"}
 authors = [
     {name = "Mike Anderson", email = "manderson240@users.noreply.github.com"},
@@ -27,7 +27,7 @@ classifiers = [
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
 
@@ -60,14 +60,14 @@ dependencies = [
     "qiskit>=1.0.0",
     "python-dotenv>=1.0.0",
     "pocket-tts>=0.1.0",
-    "torch==2.5.1+rocm6.2",
-    "pytorch-triton-rocm==3.1.0",
+    "torch==2.8.0+rocm6.3",
+    "pytorch-triton-rocm==3.4.0",
     "structlog>=25.5.0",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
     "pytest-cov>=7.0.0",
     "arc-agi>=0.0.7",
-    "torchvision>=0.20.1",
+    "torchvision>=0.23.0",
     "google-adk>=1.28.1",
     "polars>=1.39.3",
     "aiofiles>=25.1.0",
@@ -75,7 +75,7 @@ dependencies = [
 
 [[tool.uv.index]]
 name = "pytorch-rocm"
-url = "https://download.pytorch.org/whl/rocm6.2"
+url = "https://download.pytorch.org/whl/rocm6.3"
 explicit = true
 
 [tool.uv.sources]
@@ -205,6 +205,7 @@ ignore = [
     "N806",  # Math/ML tests use uppercase for matrix dims (M, K, N) — standard notation
     "S607",  # Partial executable paths acceptable in test subprocesses
     "E402",  # Guard imports (try/except) after module-level code allowed in tests
+    "N813",  # Camelcase imported as lowercase — intentional in wiring identity tests (pkg_ledger, pkg_driver)
 ]
 "src/cohezion/traceability/plan_graph.py" = [
     "S608",  # SurrealQL uses record ID interpolation (plan:{slug}), not user input

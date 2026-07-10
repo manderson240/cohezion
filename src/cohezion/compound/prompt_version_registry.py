@@ -139,7 +139,9 @@ class PromptVersionRegistry:
             if dist >= DRIFT_THRESHOLD:
                 logger.info(
                     "GoldenFixtureGate BLOCK: skill=%s drift=%.3f >= %.3f",
-                    skill_name, dist, DRIFT_THRESHOLD,
+                    skill_name,
+                    dist,
+                    DRIFT_THRESHOLD,
                 )
                 self._log_run(skill_name, dist, passed=False)
                 return False
@@ -172,7 +174,9 @@ class PromptVersionRegistry:
         try:
             passed = evaluate_regression(fixtures, candidate, run_fn)
         except Exception as exc:
-            logger.warning("RegressionGate BLOCK: eval failed with fixtures present (%s): %s", skill_name, exc)
+            logger.warning(
+                "RegressionGate BLOCK: eval failed with fixtures present (%s): %s", skill_name, exc
+            )
             return False  # fail-CLOSED: fixtures exist, can't verify → don't promote
         self._log_run(skill_name, drift=-1.0, passed=passed)
         return passed
@@ -187,7 +191,9 @@ class PromptVersionRegistry:
             + _surql_set({"skill_name": _safe_ident(skill_name)})
             + ";"
         )
-        r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
+        r = httpx.post(
+            _SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0
+        )
         r.raise_for_status()
         return _surreal_rows(r.json())
 
@@ -221,14 +227,26 @@ class PromptVersionRegistry:
 
         try:
             # _surql_set renders every value via json.dumps (inert) — injection-safe by construction.
-            q = "CREATE golden_fixture SET " + _surql_set({
-                "skill_name": _safe_ident(skill_name),
-                "input": fx["input"],
-                "expected_output": fx["expected_output"],
-                "validator_type": fx.get("validator_type", "contains"),
-                "critical": bool(fx.get("critical")),
-            }) + ";"
-            r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
+            q = (
+                "CREATE golden_fixture SET "
+                + _surql_set(
+                    {
+                        "skill_name": _safe_ident(skill_name),
+                        "input": fx["input"],
+                        "expected_output": fx["expected_output"],
+                        "validator_type": fx.get("validator_type", "contains"),
+                        "critical": bool(fx.get("critical")),
+                    }
+                )
+                + ";"
+            )
+            r = httpx.post(
+                _SURREAL_URL,
+                content=q,
+                headers=_SURREAL_HEADERS,
+                auth=("root", "root"),
+                timeout=5.0,
+            )
             r.raise_for_status()
             return True
         except Exception as exc:
@@ -237,18 +255,22 @@ class PromptVersionRegistry:
 
     def _load_fixtures(self, skill_name: str) -> list[dict[str, Any]]:
         import httpx
+
         q = (
             "SELECT embedding_768d FROM golden_fixture WHERE "
             + _surql_set({"skill_name": _safe_ident(skill_name)})
             + ";"
         )
-        r = httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0)
+        r = httpx.post(
+            _SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=5.0
+        )
         r.raise_for_status()
         return _surreal_rows(r.json())
 
     def _embed(self, text: str) -> list[float] | None:
         try:
             import httpx
+
             r = httpx.post(_EMBED_URL, json={"model": _EMBED_MODEL, "input": text}, timeout=10.0)
             r.raise_for_status()
             return r.json()["data"][0]["embedding"]
@@ -258,18 +280,32 @@ class PromptVersionRegistry:
     def _log_run(self, skill_name: str, drift: float, *, passed: bool) -> None:
         try:
             import httpx
-            q = "CREATE fixture_run SET " + _surql_set({
-                "skill_name": _safe_ident(skill_name),
-                "drift_score": round(drift, 4),
-                "passed": bool(passed),
-                "created_at": _NOW,
-            }) + ";"
-            httpx.post(_SURREAL_URL, content=q, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=3.0)
+
+            q = (
+                "CREATE fixture_run SET "
+                + _surql_set(
+                    {
+                        "skill_name": _safe_ident(skill_name),
+                        "drift_score": round(drift, 4),
+                        "passed": bool(passed),
+                        "created_at": _NOW,
+                    }
+                )
+                + ";"
+            )
+            httpx.post(
+                _SURREAL_URL,
+                content=q,
+                headers=_SURREAL_HEADERS,
+                auth=("root", "root"),
+                timeout=3.0,
+            )
         except Exception:
             pass
 
 
 # ── behavioral regression eval (FAPO R3 — defends against quiet prompt regression) ────────────
+
 
 def _validate(output: str, expected: str, validator: str = "contains") -> bool:
     """DETERMINISTIC validator (no LLM-as-judge, per the prompt-regression discipline)."""
@@ -308,8 +344,12 @@ def evaluate_regression(fixtures: list[dict[str, Any]], candidate: str, run_fn) 
                 critical_unevaluable = True  # a CRITICAL case couldn't be verified (review #1)
             continue  # per-fixture error — fail open only for NON-critical
         evaluated += 1
-        if not _validate(out, exp, f.get("validator_type") or "contains") and f.get("critical", True):
-            logger.info("RegressionGate BLOCK: critical fixture regressed (input=%r)", str(inp)[:50])
+        if not _validate(out, exp, f.get("validator_type") or "contains") and f.get(
+            "critical", True
+        ):
+            logger.info(
+                "RegressionGate BLOCK: critical fixture regressed (input=%r)", str(inp)[:50]
+            )
             return False
     # fail-CLOSED if a CRITICAL fixture couldn't be evaluated (not just the all-or-nothing case),
     # or if well-formed fixtures exist but NONE evaluated — the candidate is unverified.
@@ -320,6 +360,7 @@ def evaluate_regression(fixtures: list[dict[str, Any]], candidate: str, run_fn) 
 
 
 # ── golden-fixture bootstrap (local-first agentic data creation, Autodata #38) ─────────────────
+
 
 def generate_fixture_candidates(
     skill_name: str, prime_excerpt: str, chat_fn, n: int = 3, retries: int = 3
@@ -432,6 +473,7 @@ def _fast_local_chat(prompt: str) -> str:
 
 
 # ── pure math (no deps) ───────────────────────────────────────────────────────
+
 
 def _centroid(vecs: list[list[float]]) -> list[float]:
     n, dim = len(vecs), len(vecs[0])

@@ -60,7 +60,9 @@ def _journey_to_agent_trajectory(journey: Journey) -> Any:
     steps = []
     for point in journey.points:
         dims = point.dimensions
-        state_12d = dims[:12].tolist() if len(dims) >= 12 else (dims.tolist() + [0.5] * (12 - len(dims)))
+        state_12d = (
+            dims[:12].tolist() if len(dims) >= 12 else (dims.tolist() + [0.5] * (12 - len(dims)))
+        )
         # Dimensions 10-11 proxy for spin/tempic when available
         spin_coherence = float(dims[10]) if len(dims) > 10 else point.coherence
         tempic_field = float(dims[11]) if len(dims) > 11 else 1.0 - point.efficiency
@@ -76,7 +78,9 @@ def _journey_to_agent_trajectory(journey: Journey) -> Any:
             )
         )
 
-    final_coherence = float(np.mean([p.coherence for p in journey.points])) if journey.points else 0.5
+    final_coherence = (
+        float(np.mean([p.coherence for p in journey.points])) if journey.points else 0.5
+    )
     return AgentTrajectory(
         agent_id=journey.execution_id,
         task_description=journey.task_description,
@@ -159,30 +163,30 @@ def persist_evo_to_obsidian(evo: dict[str, Any]) -> Path | None:
         mu_norm = float(np.linalg.norm(evo["mu_256d"]))
         note = f"""---
 type: evo
-traj_hash: {evo['traj_hash']}
-execution_id: {evo['execution_id']}
-phi_score: {evo['phi_score']:.4f}
-coherence: {evo['coherence']:.4f}
-efficiency: {evo['efficiency']:.4f}
-n_steps: {evo['n_steps']}
-success: {evo['success']}
+traj_hash: {evo["traj_hash"]}
+execution_id: {evo["execution_id"]}
+phi_score: {evo["phi_score"]:.4f}
+coherence: {evo["coherence"]:.4f}
+efficiency: {evo["efficiency"]:.4f}
+n_steps: {evo["n_steps"]}
+success: {evo["success"]}
 mu_norm: {mu_norm:.4f}
-created: {evo['created']}
+created: {evo["created"]}
 tags: [evo, flume, agentic-journey]
 ---
 
-# EVO {evo['traj_hash']}
+# EVO {evo["traj_hash"]}
 
-**Task**: {evo['task']}
-**Operation**: {evo['operation_type']}
-**φ-score**: {evo['phi_score']:.4f} | **Coherence**: {evo['coherence']:.4f} | **Efficiency**: {evo['efficiency']:.4f}
+**Task**: {evo["task"]}
+**Operation**: {evo["operation_type"]}
+**φ-score**: {evo["phi_score"]:.4f} | **Coherence**: {evo["coherence"]:.4f} | **Efficiency**: {evo["efficiency"]:.4f}
 
 ## Latent Preview (first 8 of 256 dims)
 `{mu_preview}`
 
 ## Connections
-- SurrealDB: `evo_vacuum:{evo['traj_hash']}`
-- Execution: `{evo['execution_id']}`
+- SurrealDB: `evo_vacuum:{evo["traj_hash"]}`
+- Execution: `{evo["execution_id"]}`
 
 ## Notes
 High-coherence EVOs (φ > 0.7) seed ManifoldEnv initial state distribution.

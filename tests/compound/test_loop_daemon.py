@@ -22,13 +22,13 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 
-
 # ── import guard ──────────────────────────────────────────────────────────────
 
 
 def _import_daemon():
     """Import LoopDaemon — fails if not yet implemented (RED guard)."""
     from cohezion.compound.loop_daemon import LoopDaemon
+
     return LoopDaemon
 
 
@@ -68,8 +68,10 @@ def test_stop_terminates_loop():
 
     mock_coord = MagicMock()
     mock_coord.run.return_value = SimpleNamespace(
-        tasks_completed=1, tasks_failed=0,
-        sprint_results=[], results=[],
+        tasks_completed=1,
+        tasks_failed=0,
+        sprint_results=[],
+        results=[],
     )
 
     daemon = LoopDaemon(coordinator=mock_coord, sprint_delay_seconds=0.01)
@@ -98,8 +100,10 @@ def test_coordinator_run_called_per_sprint():
     def fake_run(executor=None):
         sprint_count[0] += 1
         return SimpleNamespace(
-            tasks_completed=1, tasks_failed=0,
-            sprint_results=[], results=[],
+            tasks_completed=1,
+            tasks_failed=0,
+            sprint_results=[],
+            results=[],
         )
 
     mock_coord = MagicMock()
@@ -132,8 +136,10 @@ def test_sprint_delay_is_respected():
     def fake_run(executor=None):
         sprint_times.append(time.monotonic())
         return SimpleNamespace(
-            tasks_completed=1, tasks_failed=0,  # non-empty → uses sprint_delay, not empty_delay
-            sprint_results=[], results=[],
+            tasks_completed=1,
+            tasks_failed=0,  # non-empty → uses sprint_delay, not empty_delay
+            sprint_results=[],
+            results=[],
         )
 
     mock_coord = MagicMock()
@@ -163,8 +169,10 @@ def test_sigterm_triggers_stop():
 
     mock_coord = MagicMock()
     mock_coord.run.return_value = SimpleNamespace(
-        tasks_completed=0, tasks_failed=0,
-        sprint_results=[], results=[],
+        tasks_completed=0,
+        tasks_failed=0,
+        sprint_results=[],
+        results=[],
     )
 
     daemon = LoopDaemon(coordinator=mock_coord, sprint_delay_seconds=0.01)
@@ -189,10 +197,9 @@ def test_daemon_logs_sprint_health(capsys):
     def fake_run(executor=None):
         sprint_count[0] += 1
         return SimpleNamespace(
-            tasks_completed=3, tasks_failed=1,
-            sprint_results=[
-                SimpleNamespace(tasks_done=3, tasks_failed=1, tokens_used=500)
-            ],
+            tasks_completed=3,
+            tasks_failed=1,
+            sprint_results=[SimpleNamespace(tasks_done=3, tasks_failed=1, tokens_used=500)],
             results=[],
         )
 
@@ -214,8 +221,7 @@ def test_daemon_logs_sprint_health(capsys):
     # At least one info log must mention sprint results
     info_calls = [str(c) for c in mock_logger.info.call_args_list]
     assert any("sprint" in c.lower() or "tasks" in c.lower() for c in info_calls), (
-        "Daemon must log sprint health; no matching log call found.\n"
-        f"Actual calls: {info_calls}"
+        f"Daemon must log sprint health; no matching log call found.\nActual calls: {info_calls}"
     )
 
 
@@ -228,8 +234,10 @@ def test_backlog_empty_triggers_delay():
     def fake_run(executor=None):
         call_times.append(time.monotonic())
         return SimpleNamespace(
-            tasks_completed=0, tasks_failed=0,
-            sprint_results=[], results=[],
+            tasks_completed=0,
+            tasks_failed=0,
+            sprint_results=[],
+            results=[],
         )
 
     mock_coord = MagicMock()
@@ -252,6 +260,4 @@ def test_backlog_empty_triggers_delay():
 
     assert len(call_times) >= 2
     gap = call_times[1] - call_times[0]
-    assert gap >= empty_delay * 0.8, (
-        f"Empty-backlog delay ({gap:.3f}s) must be ≥ {empty_delay}s"
-    )
+    assert gap >= empty_delay * 0.8, f"Empty-backlog delay ({gap:.3f}s) must be ≥ {empty_delay}s"

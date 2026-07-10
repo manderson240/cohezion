@@ -17,8 +17,13 @@ from cohezion.inference.escalation_gate import (
     SlidingWindowQuantileTracker,
 )
 
+
 try:
-    from cohezion.inference.fleet import _extend_quality_tracker, get_extend_quality_tracker  # type: ignore[attr-defined]
+    from cohezion.inference.fleet import (  # type: ignore[attr-defined]
+        _extend_quality_tracker,
+        get_extend_quality_tracker,
+    )
+
     _HAS_EXTEND_TRACKER = True
 except ImportError:
     _HAS_EXTEND_TRACKER = False
@@ -102,7 +107,9 @@ def test_adaptive_tau_raises_caller_threshold_when_higher() -> None:
     caller_threshold = 0.5  # caller requested low threshold
     effective = max(caller_threshold, high_tau)
     # effective should be governed by the high τ from the tracker
-    assert effective >= 0.95, f"high τ={high_tau} should dominate low caller_threshold={caller_threshold}"
+    assert effective >= 0.95, (
+        f"high τ={high_tau} should dominate low caller_threshold={caller_threshold}"
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
+from typing import Any
 
 from cohezion.inference.orchestrator import (
     OrchestrationResult,
@@ -189,6 +190,34 @@ def build_gaia_native_tier(
     )
     agent = FixedChatAgent(config=config)
     return GaiaAgentTier(agent=agent, label=f"gaia:{model_id}")
+
+
+def build_gaia_mcp_tier(
+    model_id: str = "Gemma-4-E2B-it-GGUF",
+    *,
+    mcp_servers: dict[str, Any] | None = None,
+    silent: bool = True,
+    base_url: str | None = "http://localhost:13305/v1",
+) -> GaiaAgentTier:
+    """Instantiate a GAIA MCPAgent bound to a specific lane with tools, wrap as a tier."""
+    try:
+        from gaia.agents.mcp.agent import MCPAgent, MCPAgentConfig
+    except ImportError as exc:
+        raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
+
+    class FixedMCPAgent(MCPAgent):
+        def __init__(self, config):
+            super().__init__(config=config)
+            self.skip_lemonade = True
+
+    config = MCPAgentConfig(
+        model_id=model_id,
+        base_url=base_url,
+        mcp_servers=mcp_servers or {},
+        silent_mode=silent,
+    )
+    agent = FixedMCPAgent(config=config)
+    return GaiaAgentTier(agent=agent, label=f"gaia-mcp:{model_id}")
 
 
 class _GaiaLLMClientShim:

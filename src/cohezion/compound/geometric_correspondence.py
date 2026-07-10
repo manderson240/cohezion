@@ -76,9 +76,7 @@ def geometric_correspondence(
     return out[:top_k]
 
 
-def correspondence_is_discriminating(
-    corpus: dict[str, list[str]], encoder: Encoder
-) -> bool:
+def correspondence_is_discriminating(corpus: dict[str, list[str]], encoder: Encoder) -> bool:
     """Metacognitive self-check: does the encoder DISCRIMINATE related from unrelated? (item 68).
 
     ``corpus`` maps a group label → its member texts. Returns True iff BOTH hold:

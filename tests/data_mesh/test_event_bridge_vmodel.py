@@ -6,7 +6,6 @@ signatures) before behavioral tests. All SurrealDB calls are mocked.
 
 import inspect
 
-
 from cohezion.core.event_bus import EventType
 
 

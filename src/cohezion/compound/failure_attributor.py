@@ -34,10 +34,10 @@ _REASONING_QUALITY_THRESHOLD = 0.7
 
 # FAPO three-level escalation map (category → level)
 _ESCALATION: dict[str, str] = {
-    "format": "L1",       # prompt edit: inject exact validation error into skill guidance
-    "reasoning": "L1",    # prompt edit: add reasoning scaffolding to PRIME skill
-    "retrieval": "L2",    # parameter change: vault indexing / guidance structure needs review
-    "cascading": "L3",    # structural: upstream component produced near-empty output
+    "format": "L1",  # prompt edit: inject exact validation error into skill guidance
+    "reasoning": "L1",  # prompt edit: add reasoning scaffolding to PRIME skill
+    "retrieval": "L2",  # parameter change: vault indexing / guidance structure needs review
+    "cascading": "L3",  # structural: upstream component produced near-empty output
 }
 
 
@@ -45,9 +45,9 @@ _ESCALATION: dict[str, str] = {
 class FailureAttribution:
     """FAPO failure attribution result."""
 
-    category: str           # "format" | "cascading" | "retrieval" | "reasoning"
-    escalation_level: str   # "L1" | "L2" | "L3"
-    evidence: str           # human-readable rationale, injected into proof_obligation
+    category: str  # "format" | "cascading" | "retrieval" | "reasoning"
+    escalation_level: str  # "L1" | "L2" | "L3"
+    evidence: str  # human-readable rationale, injected into proof_obligation
 
 
 class FailureAttributor:
@@ -101,7 +101,9 @@ class FailureAttributor:
         # ── 1. FORMAT ────────────────────────────────────────────────────────
         # Explicit flag from execute_with_output_validation retry loop
         if validation_failed:
-            val_err = metrics.get("output_validation_error") or "structured output validation failed"
+            val_err = (
+                metrics.get("output_validation_error") or "structured output validation failed"
+            )
             return FailureAttribution(
                 category="format",
                 escalation_level=_ESCALATION["format"],

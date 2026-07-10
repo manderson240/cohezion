@@ -167,9 +167,7 @@ def _param_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     return n
 
 
-def long_parameter_lists(
-    paths: Iterable[Path], *, threshold: int = 6
-) -> list[tuple[str, int]]:
+def long_parameter_lists(paths: Iterable[Path], *, threshold: int = 6) -> list[tuple[str, int]]:
     """Functions whose parameter count exceeds ``threshold`` — the data-clump smell (item 63). READ-ONLY.
 
     Returns ``[(qualified_name, param_count)]`` for every function/method with ``params > threshold``,

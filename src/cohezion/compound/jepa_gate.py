@@ -132,9 +132,7 @@ class JepaGate:
                     trajectory = self._world_model.simulate_trajectory(
                         state, [_DEFAULT_ACTION] * self._lookahead_steps
                     )
-                    coherence = min(
-                        float(np.mean(np.clip(s, 0.0, 1.0))) for s in trajectory[1:]
-                    )
+                    coherence = min(float(np.mean(np.clip(s, 0.0, 1.0))) for s in trajectory[1:])
                 except AttributeError:
                     # world_model lacks simulate_trajectory (e.g. a test stub) → 1-step fallback
                     predicted = self._world_model.predict_next_state(state, _DEFAULT_ACTION)

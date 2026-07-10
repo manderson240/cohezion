@@ -24,6 +24,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+
 # In strict asyncio_mode every async test must be marked.
 # Module-level pytestmark covers all async methods in this file.
 pytestmark = pytest.mark.asyncio

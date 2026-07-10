@@ -23,9 +23,9 @@ from dataclasses import fields
 from unittest.mock import MagicMock, patch
 
 
-
 def _import_middleware():
     from cohezion.compound.rubric_middleware import RubricMiddleware, RubricVerdict
+
     return RubricMiddleware, RubricVerdict
 
 
@@ -82,6 +82,7 @@ def test_evaluate_fail_open_on_network_error():
 
     with patch("cohezion.compound.rubric_middleware.httpx") as mock_httpx:
         import httpx as _real_httpx
+
         mock_httpx.post.side_effect = _real_httpx.ConnectError("refused")
         mock_httpx.ConnectError = _real_httpx.ConnectError
         mock_httpx.TimeoutException = _real_httpx.TimeoutException
@@ -96,9 +97,7 @@ def test_evaluate_fail_open_on_invalid_json():
 
     mock_resp = MagicMock()
     mock_resp.raise_for_status.return_value = None
-    mock_resp.json.return_value = {
-        "choices": [{"message": {"content": "not json at all"}}]
-    }
+    mock_resp.json.return_value = {"choices": [{"message": {"content": "not json at all"}}]}
 
     with patch("cohezion.compound.rubric_middleware.httpx") as mock_httpx:
         mock_httpx.post.return_value = mock_resp
@@ -239,9 +238,7 @@ def test_rubric_embedded_in_system_prompt():
     messages = body["messages"]
     system_msgs = [m for m in messages if m.get("role") == "system"]
     assert system_msgs, "Must have a system message"
-    assert rubric in system_msgs[0]["content"], (
-        "Rubric must be embedded in the system prompt"
-    )
+    assert rubric in system_msgs[0]["content"], "Rubric must be embedded in the system prompt"
 
 
 def test_task_output_in_user_message():

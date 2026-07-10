@@ -1,29 +1,29 @@
 """Identity tests — misc package orphans wired via contextlib.suppress blocks."""
 
-import cohezion.vibe
-import cohezion.vanguard
-import cohezion.substrate
-import cohezion.skillopt
 import cohezion.concurrency
-import cohezion.dogfooding
-import cohezion.evaluation
-import cohezion.eval
-import cohezion.pipeline
-import cohezion.protocols
-import cohezion.rewards
-import cohezion.traceability
-import cohezion.validation
-import cohezion.reporting
-import cohezion.optimization
-import cohezion.services
-import cohezion.simulations
-import cohezion.storage
-import cohezion.tools
-import cohezion.precipitation
-import cohezion.worldviews
-import cohezion.deployment
 import cohezion.cost_optimization
 import cohezion.datamesh
+import cohezion.deployment
+import cohezion.dogfooding
+import cohezion.eval
+import cohezion.evaluation
+import cohezion.optimization
+import cohezion.pipeline
+import cohezion.precipitation
+import cohezion.protocols
+import cohezion.reporting
+import cohezion.rewards
+import cohezion.services
+import cohezion.simulations
+import cohezion.skillopt
+import cohezion.storage
+import cohezion.substrate
+import cohezion.tools
+import cohezion.traceability
+import cohezion.validation
+import cohezion.vanguard
+import cohezion.vibe
+import cohezion.worldviews
 
 
 # --- vibe (already wired eagerly) ---

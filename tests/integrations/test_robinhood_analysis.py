@@ -17,6 +17,7 @@ from cohezion.integrations.robinhood_analysis import (
     TradingMonitorLoop,
 )
 
+
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -261,8 +262,12 @@ class TestMultiModelConsensusGate:
         call_count = [0]
 
         class _Client:
-            async def __aenter__(self): return self
-            async def __aexit__(self, *exc): return False
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *exc):
+                return False
+
             async def post(self, url, **kwargs):
                 idx = min(call_count[0], len(risk_responses) - 1)
                 call_count[0] += 1
@@ -270,10 +275,15 @@ class TestMultiModelConsensusGate:
                 resp.status_code = 200
                 resp.raise_for_status = MagicMock()
                 resp.json.return_value = {
-                    "choices": [{"message": {"content": json.dumps({
-                        "risk": risk_responses[idx],
-                        "reason": "test"
-                    })}}]
+                    "choices": [
+                        {
+                            "message": {
+                                "content": json.dumps(
+                                    {"risk": risk_responses[idx], "reason": "test"}
+                                )
+                            }
+                        }
+                    ]
                 }
                 return resp
 
@@ -307,8 +317,12 @@ class TestMultiModelConsensusGate:
         gate = MultiModelConsensusGate(lemonade_url="http://localhost:13305")
 
         class _FailClient:
-            async def __aenter__(self): return self
-            async def __aexit__(self, *exc): return False
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *exc):
+                return False
+
             async def post(self, url, **kwargs):
                 raise Exception("timeout")
 
@@ -323,7 +337,11 @@ class TestMultiModelConsensusGate:
 
     def test_format_assessment_high_shows_blocked(self):
         gate = MultiModelConsensusGate()
-        result = {"consensus": "HIGH", "votes": {"Gemma": "HIGH", "llama": "HIGH"}, "proceed": False}
+        result = {
+            "consensus": "HIGH",
+            "votes": {"Gemma": "HIGH", "llama": "HIGH"},
+            "proceed": False,
+        }
         text = gate.format_assessment(result)
         assert "BLOCKED" in text
         assert "🔴" in text
@@ -344,9 +362,7 @@ class TestTradingMonitorLoop:
     @pytest.mark.asyncio
     async def test_run_once_returns_analysis_string(self):
         loop = TradingMonitorLoop()
-        with patch(
-            "cohezion.integrations.robinhood_analysis.httpx.AsyncClient"
-        ) as mock_cls:
+        with patch("cohezion.integrations.robinhood_analysis.httpx.AsyncClient") as mock_cls:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=False)
@@ -363,7 +379,8 @@ class TestTradingMonitorLoop:
         """Monitor loop must fire alerts when concentration warnings exist."""
         alerts_received = []
 
-        async def capture(msg): alerts_received.append(msg)
+        async def capture(msg):
+            alerts_received.append(msg)
 
         loop = TradingMonitorLoop()
         loop.add_alert_fn(capture)
@@ -378,9 +395,7 @@ class TestTradingMonitorLoop:
         )
         loop.goal_tracker.add_goal(goal)
 
-        with patch(
-            "cohezion.integrations.robinhood_analysis.httpx.AsyncClient"
-        ) as mock_cls:
+        with patch("cohezion.integrations.robinhood_analysis.httpx.AsyncClient") as mock_cls:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=False)
@@ -393,14 +408,13 @@ class TestTradingMonitorLoop:
 
     @pytest.mark.asyncio
     async def test_alert_fn_failure_is_non_fatal(self):
-        async def broken(_): raise RuntimeError("telegram down")
+        async def broken(_):
+            raise RuntimeError("telegram down")
 
         loop = TradingMonitorLoop()
         loop.add_alert_fn(broken)
 
-        with patch(
-            "cohezion.integrations.robinhood_analysis.httpx.AsyncClient"
-        ) as mock_cls:
+        with patch("cohezion.integrations.robinhood_analysis.httpx.AsyncClient") as mock_cls:
             mock_client = MagicMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=False)

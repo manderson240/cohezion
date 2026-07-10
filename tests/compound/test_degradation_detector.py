@@ -625,8 +625,8 @@ class TestSkillDriftDetector:
     def test_sd1_structural_interface(self):
         """SD1: class has expected thresholds and internal structure."""
         sdd = SkillDriftDetector()
-        assert sdd.WARN_THRESHOLD == pytest.approx(0.03)
-        assert sdd.BLOCK_THRESHOLD == pytest.approx(0.05)
+        assert pytest.approx(0.03) == sdd.WARN_THRESHOLD
+        assert pytest.approx(0.05) == sdd.BLOCK_THRESHOLD
         assert isinstance(sdd._baselines, dict)
 
     def test_sd1_custom_window_and_min_samples(self):

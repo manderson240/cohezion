@@ -7,7 +7,7 @@ unifies them into one coherent recommendation and makes REROUTE actionable (down
 
 from __future__ import annotations
 
-from cohezion.compound.executor import _call_execute_fn, _TIER_ORDER, _resolve_tier
+from cohezion.compound.executor import _TIER_ORDER, _call_execute_fn, _resolve_tier
 
 
 class TestResolveTierStructural:

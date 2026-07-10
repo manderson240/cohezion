@@ -46,7 +46,9 @@ def _gap(task: str) -> RoutingDecision:
 
 
 def _unclassifiable() -> RoutingDecision:
-    return RoutingDecision(model_id=None, lane=None, task=None, escalate=False, rationale="fallback")
+    return RoutingDecision(
+        model_id=None, lane=None, task=None, escalate=False, rationale="fallback"
+    )
 
 
 def test_classifiable_no_specialist_is_gap() -> None:

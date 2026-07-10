@@ -7,6 +7,7 @@ the flag-on path. Each test fails a plausible wrong impl:
   - a tie-break that lets energy OVERRIDE quality (a higher-quality CPU model would lose),
   - the "1b" substring collision (mis-rating the 31B CPU model as the 1B NPU model).
 """
+
 from __future__ import annotations
 
 from cohezion.swarm.cost_aware_router import CostAwareRouter

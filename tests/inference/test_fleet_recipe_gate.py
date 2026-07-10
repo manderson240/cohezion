@@ -3,6 +3,7 @@
 Pure logic + mocked tests run unconditionally. Live tests skip cleanly if
 :13305 is down.
 """
+
 from __future__ import annotations
 
 import socket
@@ -166,8 +167,12 @@ def _empty_health():
         checked_at=time.time(),
         lanes={
             "npu": LaneHealth("npu", "http://localhost:13306", LaneStatus.UP, 10.0),
-            "igpu_rocwmma": LaneHealth("igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0),
-            "igpu_unified": LaneHealth("igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0),
+            "igpu_rocwmma": LaneHealth(
+                "igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0
+            ),
+            "igpu_unified": LaneHealth(
+                "igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0
+            ),
             "cpu": LaneHealth("cpu", "http://localhost:13309", LaneStatus.UP, 10.0),
             "ollama": LaneHealth("ollama", "http://localhost:11434", LaneStatus.UP, 10.0),
             "claude": LaneHealth("claude", "https://api.anthropic.com", LaneStatus.UP, 10.0),
@@ -179,8 +184,8 @@ def _empty_health():
 async def test_route_drops_ctx_hazard_candidate_and_moves_to_next():
     """If a candidate's model has ctx_size=0, route() should skip it and
     try the next candidate (recording the reason in attempts)."""
-    from cohezion.inference import health as health_mod
     from cohezion.inference import fleet as fleet_mod
+    from cohezion.inference import health as health_mod
     from cohezion.inference.registry import FleetRegistry
 
     # Lane gate: all UP
@@ -225,20 +230,24 @@ async def test_route_drops_ctx_hazard_candidate_and_moves_to_next():
 
     with patch.object(fleet_mod, "_get_lemonade_health", AsyncMock(return_value=hazard_h)):
         with patch.object(fleet_mod, "_dispatch_one", side_effect=fake_dispatch):
-            result = await route("ping", task=Task.ROUTING, registry=reg, resource_snapshot=AMPLE_MEM)
+            result = await route(
+                "ping", task=Task.ROUTING, registry=reg, resource_snapshot=AMPLE_MEM
+            )
 
     assert result.error is None
     assert result.model == "GOOD-MODEL"
     assert seen == ["GOOD-MODEL"]
     # The bad candidate should appear in the attempts list with the hazard reason
-    assert any("ctx-hazard" in a for a in result.attempts), f"missing ctx-hazard in {result.attempts}"
+    assert any("ctx-hazard" in a for a in result.attempts), (
+        f"missing ctx-hazard in {result.attempts}"
+    )
 
 
 @pytest.mark.asyncio
 async def test_route_drops_recipe_down_and_tries_cloud_fallback():
     """If the local recipe is DOWN, the cloud fallback should be tried."""
-    from cohezion.inference import health as health_mod
     from cohezion.inference import fleet as fleet_mod
+    from cohezion.inference import health as health_mod
     from cohezion.inference.registry import FleetRegistry
 
     health_mod._LAST_RESULT = _empty_health()
@@ -277,19 +286,23 @@ async def test_route_drops_recipe_down_and_tries_cloud_fallback():
 
     with patch.object(fleet_mod, "_get_lemonade_health", AsyncMock(return_value=down_h)):
         with patch.object(fleet_mod, "_dispatch_one", side_effect=fake_dispatch):
-            result = await route("ping", task=Task.ROUTING, registry=reg, resource_snapshot=AMPLE_MEM)
+            result = await route(
+                "ping", task=Task.ROUTING, registry=reg, resource_snapshot=AMPLE_MEM
+            )
 
     assert result.error is None
     assert result.model == "CLOUD"
-    assert any("recipe-down" in a for a in result.attempts), f"missing recipe-down in {result.attempts}"
+    assert any("recipe-down" in a for a in result.attempts), (
+        f"missing recipe-down in {result.attempts}"
+    )
 
 
 @pytest.mark.asyncio
 async def test_route_probe_failure_is_advisory_does_not_block():
     """When _get_lemonade_health returns None (probe failed), the gate is
     permissive and dispatch proceeds normally (matches OOM-gate doctrine)."""
-    from cohezion.inference import health as health_mod
     from cohezion.inference import fleet as fleet_mod
+    from cohezion.inference import health as health_mod
     from cohezion.inference.registry import FleetRegistry
 
     health_mod._LAST_RESULT = _empty_health()
@@ -309,7 +322,9 @@ async def test_route_probe_failure_is_advisory_does_not_block():
     # Probe returns None (lemonade is down OR probe errored).
     with patch.object(fleet_mod, "_get_lemonade_health", AsyncMock(return_value=None)):
         with patch.object(fleet_mod, "_dispatch_one", side_effect=fake_dispatch):
-            result = await route("ping", task=Task.ROUTING, registry=reg, resource_snapshot=AMPLE_MEM)
+            result = await route(
+                "ping", task=Task.ROUTING, registry=reg, resource_snapshot=AMPLE_MEM
+            )
 
     assert result.error is None
     assert result.model == "GOOD"
@@ -335,8 +350,8 @@ async def test_route_against_live_omni_with_real_probe():
     Verifies the live probe doesn't error out, the gate doesn't drop a
     healthy candidate, and route() returns a real response.
     """
-    from cohezion.inference import health as health_mod
     from cohezion.inference import fleet as fleet_mod
+    from cohezion.inference import health as health_mod
     from cohezion.inference.registry import FleetRegistry
 
     health_mod._LAST_RESULT = _empty_health()

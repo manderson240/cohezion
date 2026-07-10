@@ -8,6 +8,7 @@ analysis is one that conflates "a strategy resolves things" with "the failure-cl
 predicts which strategy" — i.e. an impl that fires KEEP even on independent data. The
 independence test below fails exactly that wrong impl.
 """
+
 from __future__ import annotations
 
 from cohezion.recursive_trace.coupling_analysis import (

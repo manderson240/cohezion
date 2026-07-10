@@ -5,27 +5,29 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 
-
 class TestInferenceProviderParams:
     """Verify all three compound components accept inference_provider."""
 
     def test_retrospection_engine_accepts_inference_provider(self):
-        from cohezion.core.compound.retrospection import RetrospectionEngine
         import inspect
+
+        from cohezion.core.compound.retrospection import RetrospectionEngine
 
         params = inspect.signature(RetrospectionEngine.__init__).parameters
         assert "inference_provider" in params
 
     def test_skill_consensus_voter_accepts_inference_provider(self):
-        from cohezion.compound.skill_consensus_voter import SkillConsensusVoter
         import inspect
+
+        from cohezion.compound.skill_consensus_voter import SkillConsensusVoter
 
         params = inspect.signature(SkillConsensusVoter.__init__).parameters
         assert "inference_provider" in params
 
     def test_compound_executor_accepts_inference_provider(self):
-        from cohezion.compound.executor import CompoundExecutor
         import inspect
+
+        from cohezion.compound.executor import CompoundExecutor
 
         params = inspect.signature(CompoundExecutor.__init__).parameters
         assert "inference_provider" in params
@@ -67,6 +69,7 @@ class TestN5ProductionPath:
     def test_make_executor_wires_exec_provider(self):
         """make_executor() must pass exec_provider as inference_provider to CompoundExecutor."""
         import inspect
+
         from cohezion.compound import make_executor
 
         src = inspect.getsource(make_executor)
@@ -76,6 +79,7 @@ class TestN5ProductionPath:
     def test_executor_factory_wires_retrospection_with_provider(self):
         """ExecutorFactory.create() must pass inference_provider to RetrospectionEngine."""
         import inspect
+
         from cohezion.compound.executor_factory import ExecutorFactory
 
         src = inspect.getsource(ExecutorFactory.create)

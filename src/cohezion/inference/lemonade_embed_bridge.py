@@ -11,6 +11,7 @@ to 12D manifold, giving real semantic embeddings instead of SHA-256 hashes.
 
 CA1 reference: nomic-embed-text-v2-moe-GGUF at :13305, similarity threshold 0.58.
 """
+
 from __future__ import annotations
 
 import json
@@ -24,8 +25,8 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 _EMBED_MODEL = "nomic-embed-text-v2-moe-GGUF"
-_SOURCE_DIM = 768   # nomic-embed output dimension
-_TARGET_DIM = 256   # FLUME contract (tiled to 2048D by JourneyTracker)
+_SOURCE_DIM = 768  # nomic-embed output dimension
+_TARGET_DIM = 256  # FLUME contract (tiled to 2048D by JourneyTracker)
 
 
 class LemonadeEmbedBridge:
@@ -69,9 +70,7 @@ class LemonadeEmbedBridge:
         and returns zero vector — JourneyTracker falls back to SHA-512 on next call.
         """
         try:
-            payload = json.dumps(
-                {"model": _EMBED_MODEL, "input": text}
-            ).encode()
+            payload = json.dumps({"model": _EMBED_MODEL, "input": text}).encode()
             req = urllib.request.Request(
                 f"{self._base_url}/v1/embeddings",
                 data=payload,
@@ -80,9 +79,7 @@ class LemonadeEmbedBridge:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 result: dict[str, Any] = json.loads(resp.read())
 
-            emb_full = np.array(
-                result["data"][0]["embedding"], dtype=np.float32
-            )
+            emb_full = np.array(result["data"][0]["embedding"], dtype=np.float32)
             emb_256 = emb_full[self._subsample_idx]
             norm = float(np.linalg.norm(emb_256))
             return emb_256 / norm if norm > 1e-8 else emb_256

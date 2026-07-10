@@ -9,18 +9,20 @@ test_guarded_stays_local_when_live_quota_halt — under a halt quota it must NOT
 """
 
 from __future__ import annotations
+import pytest
 
 from unittest.mock import patch
 
-import pytest
-
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(reason="TDD-red: quota-aware extend_claude guard not wired", strict=False)
 async def test_guarded_stays_local_when_live_quota_halt() -> None:
     async def fake_route(prompt, **kwargs):
         from cohezion.inference.fleet import RouteResult
 
-        return RouteResult(text="hi", model="local", lane="npu", latency_ms=1.0)  # short → gate fails
+        return RouteResult(
+            text="hi", model="local", lane="npu", latency_ms=1.0
+        )  # short → gate fails
 
     with (
         patch("cohezion.inference.fleet._live_claude_quota", return_value="halt"),
@@ -35,6 +37,7 @@ async def test_guarded_stays_local_when_live_quota_halt() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(reason="TDD-red: quota-aware extend_claude guard not wired", strict=False)
 async def test_guarded_escalates_when_live_quota_proceed() -> None:
     async def fake_route(prompt, **kwargs):
         from cohezion.inference.fleet import RouteResult

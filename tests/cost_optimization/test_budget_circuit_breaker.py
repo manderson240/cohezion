@@ -6,6 +6,7 @@ blocks runaway spend — so each test below is *discriminating*: written to FAIL
 most plausible wrong implementation (off-by-one strike count, inverted open/closed
 return, no auto-reset), not merely to prove the method fires.
 """
+
 from __future__ import annotations
 
 import time
@@ -18,7 +19,7 @@ def test_opens_exactly_at_strike_limit_not_before() -> None:
     cb = BudgetCircuitBreaker(strike_limit=3)
     assert cb.record_violation() is False and not cb.is_open  # strike 1
     assert cb.record_violation() is False and not cb.is_open  # strike 2
-    assert cb.record_violation() is True and cb.is_open       # strike 3 -> OPEN
+    assert cb.record_violation() is True and cb.is_open  # strike 3 -> OPEN
 
 
 def test_record_violation_returns_true_whenever_at_or_past_limit() -> None:
@@ -27,8 +28,8 @@ def test_record_violation_returns_true_whenever_at_or_past_limit() -> None:
     # that returns True only on the transition and False afterward.
     cb = BudgetCircuitBreaker(strike_limit=2)
     assert cb.record_violation() is False  # strike 1: below limit
-    assert cb.record_violation() is True   # strike 2: reaches limit -> open
-    assert cb.record_violation() is True   # strike 3: still at/past limit -> still True
+    assert cb.record_violation() is True  # strike 2: reaches limit -> open
+    assert cb.record_violation() is True  # strike 3: still at/past limit -> still True
 
 
 def test_strike_limit_one_opens_immediately() -> None:
@@ -42,7 +43,7 @@ def test_check_state_true_only_while_open() -> None:
     cb = BudgetCircuitBreaker(strike_limit=1)
     assert cb.check_state() is False  # fresh -> not blocking
     cb.record_violation()
-    assert cb.check_state() is True   # open -> blocking
+    assert cb.check_state() is True  # open -> blocking
 
 
 def test_manual_reset_closes_and_clears_strikes() -> None:

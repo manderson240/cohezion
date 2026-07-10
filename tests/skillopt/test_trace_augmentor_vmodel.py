@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cohezion.skillopt.trace_augmentor import SurrealTraceAugmentor, _SKIP_SKILL_NAMES
+from cohezion.skillopt.trace_augmentor import _SKIP_SKILL_NAMES, SurrealTraceAugmentor
 
 
 class TestAugmentorVModelStructure:

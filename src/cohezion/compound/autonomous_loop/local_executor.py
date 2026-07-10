@@ -256,7 +256,9 @@ def _judge_quality(
         "Reply with exactly one word: PASS or FAIL."
     )
     try:
-        resp = _chat_complete(base_url, model, prompt, max_tokens=_JUDGE_MAX_TOKENS, timeout=timeout)
+        resp = _chat_complete(
+            base_url, model, prompt, max_tokens=_JUDGE_MAX_TOKENS, timeout=timeout
+        )
         verdict = resp.get("choices", [{}])[0].get("message", {}).get("content", "") or ""
     except Exception as exc:
         logger.warning("QA judge lane error (fail-open → pre-filter PASS): %s", exc)
@@ -267,7 +269,9 @@ def _judge_quality(
         return False
     if has_pass and not has_fail:
         return True
-    logger.warning("QA judge unparseable/ambiguous verdict %r (fail-open → pre-filter PASS)", verdict[:40])
+    logger.warning(
+        "QA judge unparseable/ambiguous verdict %r (fail-open → pre-filter PASS)", verdict[:40]
+    )
     return True
 
 

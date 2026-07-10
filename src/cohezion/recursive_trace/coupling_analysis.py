@@ -14,6 +14,7 @@ shuffle the strategy labels (destroying any failure→strategy dependence) and c
 the real Δ beats the 95th percentile of shuffled Δ. If failures are independent of what
 fixes them, Δ falls inside the null and the verdict is RETIRE — honestly.
 """
+
 from __future__ import annotations
 
 import random
@@ -91,7 +92,9 @@ def analyze_domain(
         return {
             "verdict": "UNPROVEN",
             "reason": f"below floor (n={n}<{n_min} or k={k}<{k_min} or strategies={n_strat}<2)",
-            "n": n, "k": k, "n_strategies": n_strat,
+            "n": n,
+            "k": k,
+            "n_strategies": n_strat,
         }
     delta, p = permutation_pvalue(pairs, n_perm=n_perm)
     if delta > 0 and p < alpha:
@@ -101,6 +104,11 @@ def analyze_domain(
         verdict = "RETIRE"
         reason = f"strategy ⊥ failure-class: Δ={delta:.3f}, p={p:.4f} (within permutation null)"
     return {
-        "verdict": verdict, "reason": reason,
-        "delta": delta, "p_value": p, "n": n, "k": k, "n_strategies": n_strat,
+        "verdict": verdict,
+        "reason": reason,
+        "delta": delta,
+        "p_value": p,
+        "n": n,
+        "k": k,
+        "n_strategies": n_strat,
     }
