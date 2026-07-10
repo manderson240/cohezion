@@ -103,18 +103,21 @@ class WorkQueueAPI:
     """Thin stdlib client for the work-queue HTTP API (the only mutation path)."""
 
     def __init__(self, base_url: str = DEFAULT_API_BASE, timeout: float = 15.0):
+        if not base_url.startswith(("http://", "https://")):
+            raise ValueError(f"base_url must be http(s), got {base_url!r}")
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
 
     def _request(self, method: str, path: str, body: dict | None = None) -> dict:
         data = json.dumps(body).encode() if body is not None else None
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310 — scheme constrained to http(s) in __init__
             f"{self.base_url}{path}",
             data=data,
             headers={"Content-Type": "application/json"},
             method=method,
         )
-        with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+        # S310: scheme is constrained to http(s) in __init__.
+        with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310
             return json.loads(resp.read())
 
     def eligible_items(self) -> list[dict[str, Any]]:
@@ -159,7 +162,8 @@ def default_chat_fn(model: str = DEFAULT_MODEL) -> Callable[[str], str]:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=INFERENCE_TIMEOUT_S) as resp:
+        # S310: fixed literal localhost URL (the :13305 router).
+        with urllib.request.urlopen(req, timeout=INFERENCE_TIMEOUT_S) as resp:  # noqa: S310
             out = json.loads(resp.read())
         return str(out["choices"][0]["message"]["content"])
 
