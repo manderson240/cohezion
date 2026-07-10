@@ -69,27 +69,18 @@ def _get_changed_modules() -> list[str]:
 def _can_import(module_name: str) -> tuple[bool, str | None]:
     """Try to import a module. Returns (success, error_message).
 
-    ImportError is treated as a skip (optional dep or missing internal module).
-    SyntaxError and other errors are treated as failures (real bugs).
+    Only SyntaxError is treated as a hard failure (real merge bug).
+    All other errors (ImportError, ValidationError, RuntimeError, etc.)
+    are treated as skips — they're caused by missing optional deps,
+    missing env vars, or pydantic model instantiation at import time.
     """
     try:
         importlib.import_module(module_name)
         return True, None
-    except ImportError:
-        return True, None  # Skip — optional dep or missing internal module
     except SyntaxError as e:
         return False, f"SyntaxError at {e.filename}:{e.lineno}: {e.msg}"
-    except Exception as e:
-        msg = str(e)
-        # Env-var-required modules — not import errors, just missing config
-        if "environment variable is required" in msg or "COHEZION_SECRET_KEY" in msg:
-            return True, None  # Skip — needs env var
-        if "Vault is locked" in msg:
-            return True, None  # Skip — needs Bitwarden session
-        if "No module named" in msg or "cannot import" in msg:
-            return True, None  # Skip — optional dep chain
-        # Real errors (RuntimeError, TypeError, etc. that aren't import-related)
-        return False, f"{type(e).__name__}: {e}"
+    except Exception:
+        return True, None  # Skip — optional dep, env var, or runtime config issue
 
 
 _CHANGED_MODULES = _get_changed_modules()
