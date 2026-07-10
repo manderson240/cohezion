@@ -136,7 +136,15 @@ class DataMeshEventBridge:
             f"priority = {pri};"
         )
         try:
-            self._http.post(
+            # The httpx.Client is SYNCHRONOUS; calling it directly inside the
+            # async event-loop blocks _process_loop and deadlocks EventBus.stop()'s
+            # _queue.join() under DB contention (2026-07-10: the reason no event
+            # ever persisted — the write itself is correct, verified 0->1). Offload
+            # the blocking POST to a thread so the loop keeps draining.
+            import asyncio
+
+            await asyncio.to_thread(
+                self._http.post,
                 self._surreal_url,
                 content=sql,
                 headers=_SURREAL_HEADERS,
