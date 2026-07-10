@@ -18,13 +18,27 @@ fabricate data: callers pass genuine computed outputs, not hand-authored ones.
     compound_loop       ← the cycle record, linking journey + learning
     RELATE compound_loop -> yielded -> compound_learnings   (the compounding edge)
 
-Verification contract: after a call, ``SELECT count()`` on all three tables rises
-and the edge exists. That is the loop compounding — one real edge at a time.
+Only ``agent_journey`` is SCHEMAFULL; ``compound_loop`` / ``compound_learnings`` are
+SCHEMALESS but still TYPE-enforce their known fields.
+
+Idempotency + honesty (adversarial review 2026-07-10): the whole block runs in ONE
+transaction; records are rewritten (DELETE+CREATE, which re-applies SCHEMAFULL
+nested-field defaults) and the single ``yielded`` edge is rebuilt each run, so
+re-driving the same ``run_id`` leaves counts STABLE — it never inflates the
+"compounding" count the module returns as real work. ``run_id`` is validated against
+a safe record-id charset (a backtick would otherwise break the id and silently write
+nothing), and every value that reaches a typed field is finite-guarded.
+
+Verification contract: after a call, ``SELECT count()`` on all three tables reflects
+the UPSERT and the edge exists exactly once. That is the loop compounding — one real,
+re-runnable edge at a time.
 """
 
 from __future__ import annotations
 
 import json
+import math
+import re
 import urllib.request
 from typing import TYPE_CHECKING, Any
 
@@ -38,6 +52,11 @@ if TYPE_CHECKING:
 _SURREAL_URL = "http://127.0.0.1:8001/sql"
 _HEADERS = {"surreal-ns": SURREAL_NS, "surreal-db": SURREAL_DB, "Content-Type": "text/plain"}
 _AUTH = "Basic cm9vdDpyb290"  # root:root, base64 — matches the fleet default
+
+# run_id becomes part of a backtick-quoted SurrealDB record id (agent_journey:`<run_id>`).
+# A backtick or quote inside it would break the id → HTTP 400 → the error bypasses the
+# per-statement guard and nothing is written. Fail fast and honestly instead (review #3).
+_SAFE_RUN_ID = re.compile(r"^[A-Za-z0-9_.\-]+$")
 
 
 def _sql(query: str, *, timeout: float = 10.0) -> list[dict[str, Any]]:
@@ -57,6 +76,31 @@ def _lit(value: object) -> str:
     return json.dumps(str(value))
 
 
+def _num(
+    value: object,
+    default: float = 0.0,
+    *,
+    lo: float | None = None,
+    hi: float | None = None,
+) -> float:
+    """Coerce to a FINITE float, optionally clamped. Non-finite (inf/nan) → default.
+
+    SurrealDB typed float fields reject inf/nan and abort the whole transaction
+    (review #5); guard every value that reaches a typed field.
+    """
+    try:
+        f = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(f):
+        return default
+    if lo is not None:
+        f = max(lo, f)
+    if hi is not None:
+        f = min(hi, f)
+    return f
+
+
 def persist_cycle(
     point: TrajectoryPoint,
     result: ExecutionResult,
@@ -66,48 +110,70 @@ def persist_cycle(
     learning: str,
     run_id: str,
 ) -> dict[str, int]:
-    """Persist one real compound cycle. Returns the new count of each table.
+    """Persist one real compound cycle idempotently. Returns the new count of each table.
 
     All arguments carry GENUINE computed values — ``point`` from
     ``JourneyTracker.track_execution``, ``result`` from a real execution,
     ``learning`` a signal derived from the run. Nothing here is fabricated to
     move a counter; the caller must drive a real cycle first.
+
+    Idempotent: re-running the same ``run_id`` rewrites the three records (DELETE+CREATE)
+    and rebuilds the single ``yielded`` edge inside one transaction, so counts are stable
+    across re-runs (never inflated). Raises ValueError on an unsafe ``run_id`` and RuntimeError
+    on any SurrealQL error.
     """
-    coherence = max(0.0, min(1.0, float(getattr(point, "coherence", 0.0))))
-    efficiency = max(0.0, min(1.0, float(getattr(point, "efficiency", 0.0))))
+    if not _SAFE_RUN_ID.match(run_id or ""):
+        raise ValueError(
+            f"run_id must match {_SAFE_RUN_ID.pattern} (safe for a SurrealDB record id); got {run_id!r}"
+        )
+
+    coherence = _num(getattr(point, "coherence", 0.0), lo=0.0, hi=1.0)
+    efficiency = _num(getattr(point, "efficiency", 0.0), lo=0.0, hi=1.0)
     metrics = getattr(result, "metrics", {}) or {}
-    quality = float(metrics.get("quality", metrics.get("quality_score", coherence)))
-    phi = max(0.0, min(1.0, float((getattr(point, "metadata", None) or {}).get("phi_score", coherence))))
+    quality = _num(metrics.get("quality", metrics.get("quality_score", coherence)), lo=0.0, hi=1.0)
+    phi = _num((getattr(point, "metadata", None) or {}).get("phi_score", coherence), lo=0.0, hi=1.0)
     model = _lit(metrics.get("tier_used", "local"))
-    success = str(bool(getattr(result, "success", True))).lower()
-    dur_ms = float(getattr(result, "duration_seconds", 0.0)) * 1000.0
+    # Fail-closed: a result missing `success` is treated as NOT successful (review #8).
+    success = bool(getattr(result, "success", False))
+    success_sql = str(success).lower()
+    status = "completed" if success else "failed"  # honest status, not hardcoded (review #7)
+    dur_ms = _num(getattr(result, "duration_seconds", 0.0), lo=0.0) * 1000.0
+    # mean_logprob is a real-logprob field — use one only if the run produced it; do NOT
+    # alias coherence into it (review #6). Absent → neutral 0.0.
+    mean_logprob = _num(metrics.get("mean_logprob", 0.0))
 
     jid = f"agent_journey:`{run_id}`"
     lid = f"compound_learnings:`{run_id}`"
     cid = f"compound_loop:`{run_id}`"
 
-    # One statement block, records matching each table's SCHEMAFULL contract.
-    # Idempotent via explicit ids (re-running the same run_id overwrites). The
-    # RELATE edge is the compounding link. compound_learnings is schemaless.
+    # One atomic transaction (review #4): the three record writes + the rebuilt single
+    # edge commit together or roll back together, so the "all counts move together"
+    # contract holds even on a mid-block failure. DELETE+CREATE (not UPSERT) makes
+    # re-runs idempotent (review #1) AND re-applies the SCHEMAFULL nested-field defaults
+    # (e.g. physics_state.biology TYPE float) that an UPSERT-update leaves as NONE — a
+    # fresh CREATE always fills them. DELETE-before-RELATE rebuilds exactly one edge per
+    # run instead of accumulating duplicates that would inflate the compounding count
+    # (review #2). ns/db come from the HTTP headers, so no USE statements are needed.
     query = (
-        f"USE NS {SURREAL_NS}; USE DB {SURREAL_DB};\n"
-        # agent_journey — schema requires agent_id/agent_name/journey_id/intent (str),
-        # coherence_trajectory/efficiency_trajectory (array<float>), metadata + physics_state (object).
+        "BEGIN TRANSACTION;\n"
+        f"DELETE {jid};\n"
         f"CREATE {jid} CONTENT {{ journey_id: {_lit(run_id)}, agent_id: 'compound-loop', "
         f"agent_name: 'compound-loop', intent: {_lit(task_description)}, "
         f"coherence_trajectory: [{coherence}], efficiency_trajectory: [{efficiency}], "
-        f"final_coherence: {coherence}, final_phi_score: {phi}, status: 'completed', "
+        f"final_coherence: {coherence}, final_phi_score: {phi}, status: {_lit(status)}, "
         f"total_steps: 1, total_duration_ms: {dur_ms}, metadata: {{}}, physics_state: {{}} }};\n"
+        f"DELETE {lid};\n"
         f"CREATE {lid} CONTENT {{ skill_name: {_lit(skill_name)}, "
         f"insight: {_lit(learning)}, quality_score: {quality}, "
         f"source: 'compound_persist', created_at: time::now() }};\n"
-        # compound_loop — schema requires cycle_id/task/skill/model (str), success/escalated (bool),
-        # duration_ms/mean_logprob (float), state_path/stuck_loops (array).
+        f"DELETE {cid};\n"
         f"CREATE {cid} CONTENT {{ cycle_id: {_lit(run_id)}, task: {_lit(task_description)}, "
-        f"skill: {_lit(skill_name)}, model: {model}, success: {success}, escalated: false, "
-        f"duration_ms: {dur_ms}, mean_logprob: {coherence}, state_path: [{_lit(run_id)}], "
+        f"skill: {_lit(skill_name)}, model: {model}, success: {success_sql}, escalated: false, "
+        f"duration_ms: {dur_ms}, mean_logprob: {mean_logprob}, state_path: [{_lit(run_id)}], "
         f"stuck_loops: [] }};\n"
+        f"DELETE yielded WHERE in = {cid};\n"
         f"RELATE {cid}->yielded->{lid};\n"
+        "COMMIT TRANSACTION;\n"
     )
     res = _sql(query)
     # Surface any per-statement error instead of silently under-persisting.
