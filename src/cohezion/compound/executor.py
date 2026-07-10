@@ -109,6 +109,27 @@ def _call_execute_fn(execute_fn, guidance, predicted_tier, inference_provider=No
     return execute_fn(guidance)
 
 
+def _run_async(coro: Any) -> Any:
+    """Run an async coroutine from a sync function. The compound loop
+    is sync; the card-aligned semantic cache is async — this helper
+    bridges the two.
+
+    If there's no running event loop, asyncio.run() is used. If a loop
+    IS running (we're inside an async caller), the coroutine is run in a
+    dedicated thread so we don't try to await from a sync function.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # No running loop — safe to use asyncio.run
+        return asyncio.run(coro)
+    # There IS a running loop — run in a worker thread.
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
+
+
 @dataclass
 class ExecutionResult:
     """Result of a compound execution."""
@@ -164,6 +185,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         inference_provider: Any | None = None,
         jepa_gate: Any | None = None,
         token_ledger: Any | None = None,
+        semantic_cache: Any | None = None,
+        enable_semantic_cache: bool = False,
     ):
         """Initialize compound executor.
 
@@ -210,6 +233,21 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._inference_provider = inference_provider
         self._jepa_gate = jepa_gate
         self._token_ledger = token_ledger
+        # PR 2: card-aligned semantic cache. When enable_semantic_cache=True
+        # and no cache is provided, a default SemanticCache() is created.
+        # The cache short-circuits the aligned execute_fn on a hit.
+        if enable_semantic_cache and semantic_cache is None:
+            try:
+                from cohezion.cache.semantic_cache import SemanticCache
+
+                semantic_cache = SemanticCache()
+            except Exception as e:
+                logger.debug("Failed to create default SemanticCache: %s", e)
+                semantic_cache = None
+        self._semantic_cache = semantic_cache
+        self._enable_semantic_cache = enable_semantic_cache and semantic_cache is not None
+        # Strong refs to in-flight cache writes so they aren't GC'd mid-flight.
+        self._cache_write_tasks: set[asyncio.Task] = set()
         self.mcp_client = mcp_client
         self.token_client = token_client
         self._guardrail_pipeline = guardrail_pipeline
@@ -469,6 +507,79 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         return try_template_match(task_description)
 
+    # ── PR 2: card-aligned semantic cache helpers ───────────────────────
+
+    def _current_card_signature(
+        self, operation_type: str
+    ) -> tuple[str, str, str] | None:
+        """Return the (model_id, family, thinking_mode) for the current
+        caller's default card — the route_by_capability pick for the
+        operation. Used as the semantic-cache key so two consumers with
+        different cards for the same prompt miss each other.
+
+        Returns None if routing is unavailable; the cache then falls
+        back to model-only keying.
+        """
+        try:
+            from cohezion.inference.registry import Task
+            from cohezion.inference.route_by_capability import route_by_capability
+
+            op_to_task = {
+                "generate": Task.GENERAL,
+                "analyze": Task.REASONING,
+                "search": Task.SENSING,
+                "transform": Task.CODE_GEN,
+                "persist": Task.SUMMARIZATION,
+                "summarize": Task.SUMMARIZATION,
+            }
+            task_enum = op_to_task.get(operation_type, Task.GENERAL)
+            result = route_by_capability(task=task_enum, prompt_estimate_tokens=1024)
+            if result is None:
+                return None
+            entry, params = result
+            family = entry.profile.family if entry.profile is not None else "unknown"
+            thinking = (
+                entry.profile.thinking_mode if entry.profile is not None else "never"
+            )
+            return (params.model_id, family, thinking)
+        except Exception as e:
+            logger.debug("Card signature lookup failed (non-blocking): %s", e)
+            return None
+
+    def _emit_cache_hit_witness_mark(
+        self, card_sig: tuple[str, str, str] | None, task: str
+    ) -> None:
+        """Connection A: emit a WITNESS_MARK with coherence=0.7 on cache
+        hit. Cache hits are coherent by construction (prior LLM output
+        the card already accepted), so the bus signal sits at the high
+        end of the basin. Best-effort, never raises.
+        """
+        try:
+            from cohezion.precipitation import bus
+            from cohezion.precipitation.events import (
+                PrecipitationEvent,
+                PrecipitationKind,
+            )
+
+            event = PrecipitationEvent(
+                kind=PrecipitationKind.WITNESS_MARK,
+                universe_id="cohezion_compound_executor",
+                coherence=0.7,
+                twelve_d={
+                    "x": 0.5, "y": 0.5, "z": 0.5, "time": 0.5,
+                    "physics": 0.5, "biology": 0.5, "logic": 0.5, "quantum": 0.5,
+                    "field": 0.5, "control": 0.5, "novelty": 0.5, "precipitation": 0.5,
+                },
+                payload={
+                    "source": "compound.executor.cache_hit",
+                    "card_signature": list(card_sig) if card_sig else None,
+                    "task": task[:200],
+                },
+            )
+            bus.emit(event)
+        except Exception as e:
+            logger.debug("Cache-hit WITNESS_MARK failed (non-blocking): %s", e)
+
     def get_experience_guidance(
         self,
         task_description: str,
@@ -577,6 +688,45 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             ExecutionResult with success status, output, metrics, vault paths,
             and token_metrics if TokenEfficientClient was used
         """
+        start_time = datetime.now()
+        start_seconds = time.time()
+
+        # PR 2: Card-aligned semantic cache check. On a hit, the LLM
+        # call is skipped and a WITNESS_MARK with coherence=0.7 is
+        # emitted (cache hits are coherent by construction). The cache
+        # is keyed by (prompt, card_signature) so two consumers with
+        # different cards for the same prompt miss each other. This runs
+        # before execute_fn resolution because a hit needs no LLM at all.
+        if self._enable_semantic_cache and self._semantic_cache is not None:
+            try:
+                card_sig = self._current_card_signature(operation_type)
+                cache_hit = _run_async(
+                    self._semantic_cache.get(
+                        prompt=task_description,
+                        system="",
+                        model=card_sig[0] if card_sig else None,
+                        card_signature=card_sig,
+                    )
+                )
+                if cache_hit is not None:
+                    logger.info("Semantic cache hit (card=%s) — skipping LLM", card_sig)
+                    self._emit_cache_hit_witness_mark(card_sig, task_description)
+                    return ExecutionResult(
+                        success=True,
+                        output=cache_hit,
+                        metrics={
+                            "cache_hit": True,
+                            "card_signature_observed": list(card_sig) if card_sig else None,
+                            "card_aligned": True,
+                            "source": "semantic_cache",
+                        },
+                        duration_seconds=time.time() - start_seconds,
+                        vault_experiment_path="",
+                        token_metrics={"cache_hit": True, "tokens_used": 0},
+                    )
+            except Exception as e:
+                logger.debug("Semantic cache check failed (non-blocking): %s", e)
+
         # Close the dormant-producer gap: when the caller doesn't supply an execute_fn,
         # build one from the stored inference_provider (wired by ExecutorFactory/make_executor).
         if execute_fn is None:
@@ -591,8 +741,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     "execute_fn is required when CompoundExecutor has no inference_provider. "
                     "Use make_executor() to get a pre-wired executor."
                 )
-        start_time = datetime.now()
-        start_seconds = time.time()
 
         # Create execution context
         ctx = ExecutionContext(
@@ -903,6 +1051,36 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
+
+        # PR 2: card-aligned cache write. Best-effort, fire-and-forget;
+        # the next call for the same (prompt, card_signature) hits. The
+        # cache is the in-process L1/L2; the SurrealDB row is the
+        # datamesh-resident copy.
+        if (
+            self._enable_semantic_cache
+            and self._semantic_cache is not None
+            and success
+            and output
+        ):
+            try:
+                card_sig = self._current_card_signature(operation_type)
+                if card_sig is not None:
+                    _c_task = asyncio.create_task(
+                        self._semantic_cache.put(
+                            prompt=task_description,
+                            response=str(output)[:16000],
+                            system="",
+                            model=card_sig[0],
+                            card_signature=card_sig,
+                        )
+                    )
+                    self._cache_write_tasks.add(_c_task)
+                    _c_task.add_done_callback(self._cache_write_tasks.discard)
+            except RuntimeError:
+                # No event loop — skip cache write (e.g., sync caller)
+                pass
+            except Exception as e:
+                logger.debug("Cache write failed (non-blocking): %s", e)
 
         # Step 4: Log execution results
         self.logger.log_execution_result(
