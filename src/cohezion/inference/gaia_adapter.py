@@ -201,11 +201,20 @@ class _GaiaLLMClientShim:
     pypdf/sentence-transformers/faiss-cpu at init.
     """
 
-    def __init__(self, client: object, model_id: str, *, max_tokens: int, temperature: float):
+    def __init__(
+        self,
+        client: object,
+        model_id: str,
+        *,
+        max_tokens: int,
+        temperature: float,
+        extra_sampling: dict[str, float | int] | None = None,
+    ):
         self._client = client
         self._model = model_id
         self._max_tokens = max_tokens
         self._temperature = temperature
+        self._extra_sampling = extra_sampling or {}
 
     def prompt(self, text: str) -> str:
         resp = self._client.chat_completions(  # type: ignore[attr-defined]
@@ -214,6 +223,7 @@ class _GaiaLLMClientShim:
             max_tokens=self._max_tokens,
             temperature=self._temperature,
             auto_download=False,
+            **self._extra_sampling,
         )
         # OpenAI-compatible shape; raise (don't silently return '') on an unexpected body
         return resp["choices"][0]["message"].get("content", "") or ""
@@ -224,7 +234,7 @@ def build_gaia_llm_tier(
     *,
     base_url: str = "http://localhost:13305/api/v1",
     max_tokens: int = 512,
-    temperature: float = 0.0,
+    temperature: float | None = None,
     silent: bool = True,
 ) -> GaiaAgentTier:
     """Wrap GAIA's ``LemonadeClient`` as a tier — the supported GAIA path (0.19.0+).
@@ -240,6 +250,24 @@ def build_gaia_llm_tier(
     except ImportError as exc:
         raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
 
+    # TR1 (2026-07-07, restored 2026-07-09): temperature=None resolves the model's
+    # card sampling defaults (temp + top_k/top_p/min_p) instead of a fixed 0.0 for
+    # every model — greedy 0.0 on Gemma-family cards (which want temp 1.0) produces
+    # degenerate/empty output. An explicit temperature= still overrides.
+    extra_sampling: dict[str, float | int] = {}
+    if temperature is None:
+        from cohezion.inference.model_card_defaults import get_sampling_defaults
+
+        sampling = get_sampling_defaults(model_id)
+        temperature = float(sampling.get("temperature", 0.0))
+        extra_sampling = {k: v for k, v in sampling.items() if k != "temperature"}
+
     client = LemonadeClient(base_url=base_url, model=model_id, verbose=not silent)
-    shim = _GaiaLLMClientShim(client, model_id, max_tokens=max_tokens, temperature=temperature)
+    shim = _GaiaLLMClientShim(
+        client,
+        model_id,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        extra_sampling=extra_sampling,
+    )
     return GaiaAgentTier(agent=shim, label=f"gaia-llm:{model_id}")

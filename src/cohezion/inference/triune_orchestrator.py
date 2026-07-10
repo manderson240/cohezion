@@ -59,17 +59,25 @@ def build_triune_orchestrator(
 def build_triune_omni_orchestrator(
     *, base_url: str = "http://localhost:13305/api/v1"
 ) -> TieredOrchestrator:
-    """OmniRouter triune cascade — the same llama3.2 → Gemma-4-E4B → Gemma-4-31B tiers as
-    :func:`build_triune_orchestrator`, but ALL served by the single :13305 OmniRouter via the
-    supported GAIA ``LemonadeClient`` path (:func:`build_gaia_llm_tier`).
+    """OmniRouter triune cascade — llama3.2 (NPU) → Gemma-4-E4B (iGPU) → Gemma-4-E2B (CPU),
+    ALL served by the single :13305 OmniRouter via the supported GAIA ``LemonadeClient`` path
+    (:func:`build_gaia_llm_tier`).
 
     N1: :13305 is the only port needed — the dedicated per-port servers (:13306/:13307/:13309) are
     redundant and often offline, so this OmniRouter variant is the default ``exec_provider`` for the
     compound loop (``make_executor``). Same gates/escalation as the per-port build.
+
+    2026-07-09 fix: the CPU tier previously used ``Gemma-4-31B-it-GGUF``, which the router
+    places on Vulkan (iGPU) — a FAKE CPU tier (two tiers on one device) that was also too slow
+    (>236s). It now uses ``Gemma-4-E2B-it-GGUF`` loaded with ``llamacpp_backend=cpu`` (persisted
+    via ``save_options``), which measurably runs on the Zen5 cores — verified by CPU busy-time
+    (~195 core-s vs ~51 on iGPU vs ~9 on NPU for the same request). The three tiers now genuinely
+    span three distinct compute substrates, so the cascade parallelises across NPU/iGPU/CPU
+    instead of serialising two tiers on the iGPU.
     """
     npu_tier = build_gaia_llm_tier(model_id="llama3.2-1b-FLM", base_url=base_url, silent=True)
     igpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF", base_url=base_url, silent=True)
-    cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-31B-it-GGUF", base_url=base_url, silent=True)
+    cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E2B-it-GGUF", base_url=base_url, silent=True)
     return TieredOrchestrator(
         tiers=[
             (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
@@ -142,7 +150,7 @@ def build_reasoning_orchestrator(
 def build_parallel_fleet_orchestrator(
     *,
     omni_port: int = 13305,
-) -> "ParallelFleetOrchestrator":
+) -> ParallelFleetOrchestrator:
     """Factory for ParallelFleetOrchestrator — fan-out to NPU/iGPU/CPU simultaneously.
 
     All three nodes talk to the OmniRouter (:13305).

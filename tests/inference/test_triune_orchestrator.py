@@ -55,7 +55,7 @@ def test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero():
 
     orch = build_triune_omni_orchestrator()
     temps = [tier[0].agent._temperature for tier in orch.tiers]
-    assert temps == [0.3, 1.0, 1.0]  # llama3.2-1b-FLM, Gemma-4-E4B, Gemma-4-31B
+    assert temps == [0.3, 1.0, 1.0]  # llama3.2-1b-FLM (NPU), Gemma-4-E4B (iGPU), Gemma-4-E2B (CPU)
     assert len({t for t in temps}) > 1, "not every tier should share one hardcoded temperature"
     igpu_extra = orch.tiers[1][0].agent._extra_sampling
     assert igpu_extra == {"top_k": 64, "top_p": 0.95}
