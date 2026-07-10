@@ -142,8 +142,25 @@ def test_batch_limit_strictly_enforced(tmp_path):
         proposals_path=tmp_path / "p.jsonl",
         vault_dir=tmp_path / "v",
     )
-    assert summary["processed"] == 50
-    assert len(api.patched) == 50
+    assert len(api.patched) == 50  # exactly batch_size ATTEMPTED items
+
+
+def test_unmatched_head_items_do_not_starve_batch(tmp_path):
+    """Found live 2026-07-10: no-match items at the oldest-first queue head
+    consumed every batch slot, so matchable items behind them never ran."""
+    unmatched = [_item(i, title="quantum entanglement", domain="quant-ph") for i in range(3)]
+    matchable = [_item(10, title="prompt caching for agent tools")]
+    api = FakeAPI(unmatched + matchable)
+    summary = run_batch(
+        FakeExecutor(),
+        api,
+        _chat,
+        batch_size=3,
+        proposals_path=tmp_path / "p.jsonl",
+        vault_dir=tmp_path / "v",
+    )
+    assert len(summary["skipped_no_match"]) == 3
+    assert [a["id"] for a in summary["actioned"]] == ["item010"]
 
 
 def test_experiment_route_writes_vault_note(tmp_path):

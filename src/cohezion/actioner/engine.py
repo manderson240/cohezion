@@ -305,13 +305,20 @@ def run_batch(
         "dry_run": dry_run,
     }
 
-    for item in api.eligible_items()[:batch_size]:
+    attempts = 0
+    for item in api.eligible_items():
+        # batch_size caps ATTEMPTED items only — permanently-unmatched items at
+        # the head of the oldest-first queue must not starve matchable ones
+        # behind them (found live 2026-07-10: 3 no-match items ate a whole batch).
+        if attempts >= batch_size:
+            break
         summary["processed"] += 1
         item_id = str(item.get("id", ""))
         route = triage(item)
         if route is None:
             summary["skipped_no_match"].append(item_id)
             continue
+        attempts += 1
         if dry_run:
             summary["actioned"].append({"id": item_id, "route": route, "dry_run": True})
             continue

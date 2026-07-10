@@ -590,4 +590,7 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
 
     # M1: the FAPO R3 regression gate's run_fn is wired in SkillRefinerFactory.create (the canonical
     # creation point — the executor builds its SkillRefiner lazily, so it isn't available here).
+    # Ring-4: production executors persist real cycles to the compound graph
+    # (direct CompoundExecutor() construction stays off — test isolation, CB4 pattern).
+    kwargs.setdefault("enable_cycle_persistence", True)
     return CompoundExecutor(mcp_client, inference_provider=exec_provider, **kwargs)  # type: ignore[arg-type]

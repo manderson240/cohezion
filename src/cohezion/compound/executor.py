@@ -187,6 +187,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         token_ledger: Any | None = None,
         semantic_cache: Any | None = None,
         enable_semantic_cache: bool = False,
+        enable_cycle_persistence: bool = False,
         memory_service: Any | None = None,
         enable_memory: bool = False,
     ):
@@ -248,6 +249,21 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 semantic_cache = None
         self._semantic_cache = semantic_cache
         self._enable_semantic_cache = enable_semantic_cache and semantic_cache is not None
+        # Ring-4 wiring (2026-07-10): persist each real cycle to the compound
+        # graph via compound_persist.persist_cycle. Off by default so unit tests
+        # and ad-hoc executors never write SurrealDB; make_executor turns it on
+        # (same injection-isolation pattern as the semantic cache / CB4).
+        # persist_cycle needs a real TrajectoryPoint, so enabling persistence
+        # auto-creates a JourneyTracker when none was injected (CB5 pattern) —
+        # otherwise the wiring is silently dead (no tracker -> no point -> no write).
+        self._enable_cycle_persistence = enable_cycle_persistence
+        if enable_cycle_persistence and journey_tracker is None:
+            try:
+                from cohezion.compound.journey_tracker import JourneyTracker
+
+                journey_tracker = JourneyTracker()
+            except ImportError as e:
+                logger.debug("Cycle persistence without JourneyTracker: %s", e)
         # Strong refs to in-flight cache writes so they aren't GC'd mid-flight.
         self._cache_write_tasks: set[asyncio.Task] = set()
         self._memory_service = memory_service
@@ -1712,6 +1728,27 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)
+
+        # Step 9.05: persist the REAL cycle to the compound graph (Ring 4).
+        # persist_cycle is idempotent (DELETE+CREATE in one transaction) and the
+        # learning string is a factual metric summary — nothing fabricated.
+        if self._enable_cycle_persistence and journey_point_tracked and point is not None:
+            try:
+                from cohezion.compound.compound_persist import persist_cycle
+
+                persist_cycle(
+                    point,
+                    temp_result,
+                    task_description=task_description,
+                    skill_name=skill_name,
+                    learning=(
+                        f"quality={metrics.get('quality_score', metrics.get('quality', 0.0))} "
+                        f"tier={metrics.get('tier_used', 'unknown')} op={operation_type}"
+                    ),
+                    run_id=f"cycle-{time.time_ns()}",
+                )
+            except (RuntimeError, ValueError, OSError, TimeoutError) as e:
+                logger.debug("Cycle persistence failed (non-blocking): %s", e)
 
         # Step 9.1: Persist universe snapshot (L183)
         # Record a universe state snapshot to SurrealDB for world model training

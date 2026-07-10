@@ -54,9 +54,15 @@ class OmniModel:
         *,
         role: str | None = None,
         max_tokens: int = 1024,
-        temperature: float = 0.7,
+        temperature: float | None = None,
     ) -> str:
-        """Generate text.  Route is auto-selected unless `role` is provided."""
+        """Generate text.  Route is auto-selected unless `role` is provided.
+
+        temperature=None (default) OMITS sampling params so the loaded model
+        card's own defaults apply (F1, 2026-07-10 — a forced 0.7 overrode
+        card-tuned sampling on every lane; see lemonade-serves-card-sampling).
+        An explicit temperature still wins.
+        """
         model_id = self._pick_model(prompt, role)
         self._maybe_load(model_id)
         return await self._chat(model_id, prompt, max_tokens=max_tokens, temperature=temperature)
@@ -195,7 +201,7 @@ class OmniModel:
         prompt: str,
         *,
         max_tokens: int,
-        temperature: float = 0.7,
+        temperature: float | None = None,
     ) -> str:
         try:
             import httpx
@@ -204,8 +210,11 @@ class OmniModel:
                 "model": model_id,
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": max_tokens,
-                "temperature": temperature,
             }
+            # F1: only send temperature when the caller set one — omitting it
+            # lets the lemonade-loaded model card's sampling defaults apply.
+            if temperature is not None:
+                payload["temperature"] = temperature
             async with httpx.AsyncClient(timeout=120.0) as client:
                 resp = await client.post(f"{self._url}/api/v1/chat", json=payload)
                 resp.raise_for_status()
