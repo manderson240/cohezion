@@ -6,12 +6,18 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  COHEZION_CI: "true"
+  COHEZION_NON_INTERACTIVE: "true"
+  KAGGLE_USERNAME: "dummy"
+  KAGGLE_KEY: "dummy"
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.13"]
+        python-version: ["3.11"]
 
     steps:
       - name: Checkout
@@ -23,10 +29,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
-        run: pip install uv  # inline install to bypass astral-sh/setup-uv@v7 workflow-file-issue
+        run: pip install uv
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --frozen --extra dev
 
       - name: Run lint
         run: make lint-check
@@ -86,10 +92,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.11"
 
       - name: Install uv
-        run: pip install uv  # inline install to bypass astral-sh/setup-uv@v7 workflow-file-issue
+        run: pip install uv
 
       - name: Check for missing test coverage
         continue-on-error: true
