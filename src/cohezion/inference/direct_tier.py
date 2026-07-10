@@ -62,11 +62,18 @@ def _strip_think(text: str) -> str:
 
 
 # Quarter-on-a-string model routing by complexity
+# Quarter-on-a-String maps every complexity onto a model RESIDENT on one of the
+# three device lanes (NPU/iGPU/CPU), so each dispatch hits an already-loaded model
+# on its own silicon — instant, $0, and with NO router eviction (2026-07-09: the
+# old map named Bonsai-8B/Qwen3-8B which are not lane-resident, so every non-routine
+# call auto-loaded a model and evicted a lane — the embed-eviction race, Kanban
+# 32aa143b3962). Complexity → lane: routine=NPU, synthesis/orchestration=iGPU,
+# review=CPU (spreads load across all three substrates).
 _QUARTER_MODELS: dict[str, str] = {
-    "routine": "llama3.2-1b-FLM",  # NPU, 42 TPS, $0
-    "synthesis": "Bonsai-8B-gguf",  # iGPU-class, balanced
-    "orchestration": "Qwen3-8B-GGUF",  # 8B, pinned + reliable
-    "review": "Qwen3-8B-GGUF",  # same tier
+    "routine": "llama3.2-1b-FLM",  # NPU (XDNA2), 42 TPS — classify/route/short
+    "synthesis": "Gemma-4-E4B-it-GGUF",  # iGPU (RDNA3.5) — code/structured
+    "orchestration": "Gemma-4-E4B-it-GGUF",  # iGPU — multi-step reasoning
+    "review": "Gemma-4-E2B-it-GGUF",  # CPU (Zen5, llamacpp_backend=cpu) — audit/completion
 }
 
 _QUARTER_MAX_TOKENS: dict[str, int] = {
@@ -361,12 +368,12 @@ def quarter_on_a_string_tier(
     Route every inference call to the cheapest local tier that can handle the
     stated complexity. Cloud inference is NEVER called from this path.
 
-    Complexity levels
+    Complexity levels (each maps to a model RESIDENT on its device lane — no eviction)
     -----------------
-    routine       → llama3.2-1b-FLM  (NPU, 42 TPS) — classify, route, short answers
-    synthesis     → Bonsai-8B-gguf   (iGPU-class)  — code gen, structured output
-    orchestration → Qwen3-8B-GGUF (8B, pinned) — multi-step reasoning
-    review        → Qwen3-8B-GGUF (8B, pinned) — adversarial review, audit
+    routine       → llama3.2-1b-FLM     (NPU, 42 TPS)  — classify, route, short answers
+    synthesis     → Gemma-4-E4B-it-GGUF (iGPU)         — code gen, structured output
+    orchestration → Gemma-4-E4B-it-GGUF (iGPU)         — multi-step reasoning
+    review        → Gemma-4-E2B-it-GGUF (CPU, Zen5)    — adversarial review, audit
 
     Examples
     --------
@@ -392,9 +399,22 @@ def quarter_on_a_string_tier(
         ensure_recipe(model_id, port=port)
     except Exception as exc:
         logger.debug("recipe_guard check skipped for %s: %s", model_id, exc)
+    # Right recipe: resolve the model's card sampling temperature (Gemma cards want
+    # 1.0, not the generic 0.3) — greedy/low temp on Gemma degrades output.
+    tier_temperature = 0.3
+    try:
+        from cohezion.inference.model_card_defaults import get_sampling_defaults
+
+        card_temp = get_sampling_defaults(model_id).get("temperature")
+        if card_temp is not None:
+            tier_temperature = float(card_temp)
+    except Exception as exc:
+        logger.debug("card temperature lookup skipped for %s: %s", model_id, exc)
+
     return DirectLemonadeTier(
         port=port,
         model_id=model_id,
         max_tokens=max_tokens,
+        temperature=tier_temperature,
         system_message=system_message,
     )
