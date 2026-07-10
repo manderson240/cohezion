@@ -18,12 +18,7 @@ The live smoke is guarded (skipped if the router is down) so CI never flakes.
 from __future__ import annotations
 import pytest
 
-pytestmark = pytest.mark.xfail(
-    reason="TDD-red: extend_claude probe/guard not fully wired", strict=False
-)
-
 import httpx
-import pytest
 
 from cohezion.inference.registry import Lane, Task, get_registry
 
@@ -43,6 +38,9 @@ def test_live_local_reasoning_model_registered() -> None:
     assert ":13305" in entry.endpoint
 
 
+@pytest.mark.xfail(
+    reason="TDD-red: live local reasoning model registration not wired", strict=False
+)
 def test_reasoning_prefers_a_live_local_model_over_the_dead_lane() -> None:
     # Before the fix, for_task(REASONING)[0] was Gemma-4-26B-A4B on the DOWN :13308. Now the
     # top local REASONING candidate must be the verified-live router-backed Granite.
@@ -70,6 +68,7 @@ def _router_up() -> bool:
 
 
 @pytest.mark.skipif(not _router_up(), reason="lemonade router :13305 down — live smoke skipped")
+@pytest.mark.xfail(reason="TDD-red: live local completion endpoint not wired", strict=False)
 def test_live_local_completion_via_registered_endpoint() -> None:
     # Proves the registered endpoint actually serves: a real $0 completion comes back non-empty
     # with no thinking-trap (reasoning-only empty content) on the exact path route() uses.

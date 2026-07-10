@@ -1,13 +1,9 @@
 """Unit tests for compound.local_inference and compound.telegram_notify."""
 
 from __future__ import annotations
-import pytest
-
-pytestmark = pytest.mark.xfail(
-    reason="TDD-red: expects old per-port :13306 but OmniRouter is :13305", strict=False
-)
 
 import inspect
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from cohezion.compound.local_inference import (
@@ -42,6 +38,9 @@ class TestLemonadeAvailable:
             mock_httpx.get.return_value = MagicMock(status_code=503)
             assert lemonade_available() is False
 
+    @pytest.mark.xfail(
+        reason="TDD-red: expects old per-port :13306 but OmniRouter is :13305", strict=False
+    )
     def test_uses_npu_port_by_default(self):
         with patch("cohezion.compound.local_inference.httpx") as mock_httpx:
             mock_httpx.get.return_value = MagicMock(status_code=200)
@@ -96,6 +95,10 @@ class TestMakeLocalExecuteFn:
         assert "error" in metrics
         assert metrics["local_silicon"] is True
 
+    @pytest.mark.xfail(
+        reason="TDD-red: make_local_execute_fn task description appending not implemented",
+        strict=False,
+    )
     def test_task_description_appended_to_prompt(self):
         captured_prompts: list[str] = []
 
@@ -135,6 +138,7 @@ class TestCompoundExecutorInferenceProvider:
         sig = inspect.signature(CompoundExecutor.__init__)
         assert "inference_provider" in sig.parameters
 
+    @pytest.mark.xfail(reason="TDD-red: execute_fn default wiring not implemented", strict=False)
     def test_execute_task_execute_fn_defaults_to_none(self):
         from cohezion.compound.executor import CompoundExecutor
 

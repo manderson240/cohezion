@@ -3,7 +3,6 @@
 from __future__ import annotations
 import pytest
 
-pytestmark = pytest.mark.xfail(reason="TDD-red", strict=False)
 
 import pytest
 
@@ -14,6 +13,9 @@ from cohezion.reliability.resource_guard import ResourceGuard
 class TestResourceGuardDiskSpace:
     """Test disk space and percentage checks in ResourceGuard."""
 
+    @pytest.mark.xfail(
+        reason="TDD-red: ResourceGuard disk monitoring not implemented", strict=False
+    )
     def test_disk_space_healthy(self) -> None:
         # A low threshold (e.g. 0.01 GB) and high max percent (e.g. 99%) should pass
         guard = ResourceGuard(min_disk_free_gb=0.01, max_disk_percent=99.0)
@@ -27,6 +29,9 @@ class TestResourceGuardDiskSpace:
             assert "Disk space" not in _reason
             assert "Disk utilization" not in _reason
 
+    @pytest.mark.xfail(
+        reason="TDD-red: ResourceGuard disk monitoring not implemented", strict=False
+    )
     def test_disk_space_unhealthy_gb(self) -> None:
         # A massive threshold (e.g., 10,000,000 GB) should fail
         guard = ResourceGuard(min_disk_free_gb=10000000.0)
@@ -34,6 +39,9 @@ class TestResourceGuardDiskSpace:
         assert healthy is False
         assert "Disk space too low" in reason
 
+    @pytest.mark.xfail(
+        reason="TDD-red: ResourceGuard disk monitoring not implemented", strict=False
+    )
     def test_disk_space_unhealthy_percent(self) -> None:
         # A very low max disk percent (e.g. 1%) should fail
         guard = ResourceGuard(max_disk_percent=1.0)
