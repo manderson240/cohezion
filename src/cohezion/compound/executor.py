@@ -1228,9 +1228,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         cohesion_components: list[float] = []
         # Precipitation success: did reality match intent?
         cohesion_components.append(0.7 if success else 0.2)
-        # Spin alignment: inverse of anomaly score (low anomaly = high alignment)
-        # Default 0.0 = no anomaly detected (assume clean if detection unavailable)
-        cohesion_components.append(1.0 - metrics.get("anomaly_score", 0.0))
+        # Spin alignment from the InflectionDetector's score. POLARITY FIX
+        # (2026-07-10, markov-trace root cause): detect_anomaly() returns a HEALTH
+        # score (starts 1.0, penalized down — inflection_detector.py) despite the
+        # "anomaly_score" key name, so it is used DIRECTLY. The old `1.0 - score`
+        # inversion zeroed every healthy run and froze final_coherence at 0.385.
+        # Default 1.0 = assume clean when detection unavailable (same behavior as
+        # the old default-0.0-then-invert path).
+        cohesion_components.append(metrics.get("anomaly_score", 1.0))
         # Quadrature consensus: alignment with human request
         if alignment_data := metrics.get("alignment", {}):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
