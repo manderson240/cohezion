@@ -82,23 +82,30 @@ def _resolve_tier(
 _TIER_NAME_TO_INDEX = {"npu": 0, "igpu": 1, "cpu": 2, "cloud": 3}
 
 
-def _call_execute_fn(execute_fn, guidance, predicted_tier):
-    """Call execute_fn, binding the difficulty prediction to the cascade ENTRY (O9) when execute_fn
-    accepts a ``min_tier_index`` kwarg — a hard task skips the cheap tiers it would only fail-and-
-    escalate through. Conservative + miscalibration-safe (cascade routers are usually miscalibrated):
-    only a CONFIDENT high prediction skips; "unknown"/"npu"/None → 0 (cheap-first default). On local
-    $0 silicon a mis-skip costs only latency, and the cascade still escalates from the entry tier.
-    Backward-compatible: a 1-arg execute_fn (no min_tier_index) is always called with just guidance.
+def _call_execute_fn(execute_fn, guidance, predicted_tier, inference_provider=None):
+    """Call execute_fn, injecting difficulty prediction (O9) and inference_provider when supported.
+
+    Backward-compatible: a 1-arg execute_fn is always called with just guidance.
+    - ``min_tier_index`` injection: skips cheap tiers for high-predicted-difficulty tasks.
+    - ``inference_provider`` injection: passes the executor's wired TieredOrchestrator into
+      execute_fn when the fn's signature accepts it — closes the CB inference_provider wiring gap.
+      execute_fn authors opt in by declaring ``inference_provider=None`` in their signature.
     """
     import inspect
 
+    try:
+        params = inspect.signature(execute_fn).parameters
+    except (TypeError, ValueError):
+        return execute_fn(guidance)
+
+    kwargs: dict = {}
     idx = _TIER_NAME_TO_INDEX.get(predicted_tier or "", 0)
-    if idx > 0:
-        try:
-            if "min_tier_index" in inspect.signature(execute_fn).parameters:
-                return execute_fn(guidance, min_tier_index=idx)
-        except (TypeError, ValueError):
-            pass
+    if idx > 0 and "min_tier_index" in params:
+        kwargs["min_tier_index"] = idx
+    if inference_provider is not None and "inference_provider" in params:
+        kwargs["inference_provider"] = inference_provider
+    if kwargs:
+        return execute_fn(guidance, **kwargs)
     return execute_fn(guidance)
 
 
@@ -156,6 +163,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         rubric_middleware: Any | None = None,
         inference_provider: Any | None = None,
         jepa_gate: Any | None = None,
+        token_ledger: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -201,6 +209,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         self._inference_provider = inference_provider
         self._jepa_gate = jepa_gate
+        self._token_ledger = token_ledger
         self.mcp_client = mcp_client
         self.token_client = token_client
         self._guardrail_pipeline = guardrail_pipeline
@@ -274,6 +283,16 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         self._context_policy = ContextPolicy(vault_logger=self.logger)
         self.set_context_policy(self._context_policy)
+
+    @property
+    def inference_provider(self) -> Any | None:
+        """The executor's wired TieredOrchestrator (NPU→iGPU→CPU via :13305).
+
+        Pass to ``make_local_execute_fn(orchestrator=executor.inference_provider)``
+        so the execute_fn uses the same provider that is injected by execute_task —
+        closing the CB inference_provider consumption gap.
+        """
+        return self._inference_provider
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:
@@ -537,7 +556,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         task_description: str,
         skill_name: str,
         operation_type: str,
-        execute_fn: Callable,
+        execute_fn: Callable | None = None,
         project: str = "cohezion",
         human_request: str | None = None,
     ) -> ExecutionResult:
@@ -548,8 +567,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             skill_name: Name of the skill being executed
             operation_type: Type of operation
                 (generate, analyze, search, transform, persist)
-            execute_fn: Callable that executes the task, returns (output, metrics)
-                Can optionally use self.token_client if available
+            execute_fn: Callable that executes the task, returns (output, metrics).
+                When None, falls back to self._inference_provider (set via make_executor).
+                Can optionally use self.token_client if available.
             project: Project name for vault logging
             human_request: Optional raw request text for alignment analysis
 
@@ -557,6 +577,20 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             ExecutionResult with success status, output, metrics, vault paths,
             and token_metrics if TokenEfficientClient was used
         """
+        # Close the dormant-producer gap: when the caller doesn't supply an execute_fn,
+        # build one from the stored inference_provider (wired by ExecutorFactory/make_executor).
+        if execute_fn is None:
+            if self._inference_provider is not None:
+                from cohezion.compound.local_inference import (
+                    make_local_execute_fn,
+                )  # lazy, avoids circular
+
+                execute_fn = make_local_execute_fn(task_description=task_description)
+            else:
+                raise ValueError(
+                    "execute_fn is required when CompoundExecutor has no inference_provider. "
+                    "Use make_executor() to get a pre-wired executor."
+                )
         start_time = datetime.now()
         start_seconds = time.time()
 
@@ -821,7 +855,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             # max-capability) when present, else the raw difficulty prediction. Signature-aware,
             # backward-compatible, conservative — see _call_execute_fn.
             output, metrics = _call_execute_fn(
-                execute_fn, guidance, _recommended or _tier_hints.get("predicted_tier")
+                execute_fn,
+                guidance,
+                _recommended or _tier_hints.get("predicted_tier"),
+                inference_provider=self._inference_provider,
             )
             success = True
             logger.info("Task completed successfully")
@@ -1412,6 +1449,21 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 logger.debug("Metrics recording failed (non-blocking): %s", e)
 
+        # Step 8.5: Record token ledger + tag authority source (Quarter-on-a-String audit)
+        _step85_tier = metrics.get("tier_used", "unknown")
+        metrics["authority_tag"] = (
+            "local-authority" if _step85_tier in ("npu", "igpu", "cpu") else "external-authority"
+        )
+        if self._token_ledger:
+            try:
+                tokens = metrics.get("tokens_used", 0) or 0
+                if _step85_tier in ("npu", "igpu", "cpu"):
+                    self._token_ledger.record_local(task_description, tokens)
+                elif _step85_tier == "cloud":
+                    self._token_ledger.record_cloud(task_description, tokens)
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
+                logger.debug("TokenLedger recording failed (non-blocking): %s", e)
+
         # Step 9: Track journey (non-blocking)
         journey_point_tracked = False
         if self._journey_tracker:
@@ -1459,11 +1511,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                                 )
                             )
                     except (
-                        TimeoutError,
                         AttributeError,
                         RuntimeError,
                         OSError,
-                        ConnectionError,
                     ) as e:
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:

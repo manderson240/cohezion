@@ -280,9 +280,7 @@ async def test_min_tier_index_skips_cheaper_tiers():
             ("tier2", QualityGate.TRUST),
         ]
     )
-    with patch(
-        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
-    ) as m:
+    with patch("cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))) as m:
         await orch.run("test", min_tier_index=2)
     assert m.await_count == 1  # only one tier ran
     assert m.call_args.kwargs["prefer"] == "tier2"  # it was tier 2, NOT tier 0
@@ -291,12 +289,8 @@ async def test_min_tier_index_skips_cheaper_tiers():
 @pytest.mark.asyncio
 async def test_min_tier_index_default_starts_at_tier0():
     """Default min_tier_index=0 is backward-compatible (cheapest tier first)."""
-    orch = TieredOrchestrator(
-        tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)]
-    )
-    with patch(
-        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
-    ) as m:
+    orch = TieredOrchestrator(tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)])
+    with patch("cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))) as m:
         await orch.run("test")
     assert m.call_args.kwargs["prefer"] == "tier0"
 
@@ -304,12 +298,8 @@ async def test_min_tier_index_default_starts_at_tier0():
 @pytest.mark.asyncio
 async def test_min_tier_index_clamped_never_skips_all():
     """Out-of-range min_tier_index clamps to the last tier (never empties the cascade)."""
-    orch = TieredOrchestrator(
-        tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)]
-    )
-    with patch(
-        "cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))
-    ) as m:
+    orch = TieredOrchestrator(tiers=[("tier0", QualityGate.TRUST), ("tier1", QualityGate.TRUST)])
+    with patch("cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("ok"))) as m:
         await orch.run("test", min_tier_index=99)
     assert m.await_count == 1
     assert m.call_args.kwargs["prefer"] == "tier1"  # clamped to last tier
@@ -329,5 +319,99 @@ async def test_lever1_task_gate_overrides_fixed_tier_gate():
     ):
         esc_default = (await orch.run("classify the sentiment")).escalation_count
         esc_categorical = (await orch.run("classify the sentiment", gate_chars=0)).escalation_count
-    assert esc_default == 1      # short answer fails fixed min_chars=500 → escalates (the degenerate path)
+    assert (
+        esc_default == 1
+    )  # short answer fails fixed min_chars=500 → escalates (the degenerate path)
     assert esc_categorical == 0  # Lever 1: gate_chars=0 → "POSITIVE" passes at NPU, no escalation
+
+
+@pytest.mark.asyncio
+async def test_max_escalations_zero_runs_only_one_tier():
+    """max_escalations=0 — no escalations permitted, only tier 0 runs even if it fails.
+
+    Discriminating: a wrong impl that ignores max_escalations would invoke tier 1
+    and return m.await_count == 2. The correct impl breaks before escalating.
+    """
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate(min_chars=100)),  # will fail (response too short)
+            ("tier1", QualityGate.TRUST),  # must NOT be reached
+        ],
+        max_escalations=0,
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("too short")),
+    ) as m:
+        result = await orch.run("test")
+    assert m.await_count == 1, "tier 1 must not run when max_escalations=0"
+    assert result.error == "all tiers exhausted"
+
+
+@pytest.mark.asyncio
+async def test_max_escalations_one_limits_cascade_to_two_tiers():
+    """max_escalations=1 — 1 escalation allowed (tier 0→1), tier 2 must not run.
+
+    Discriminating: a wrong impl (None cap) calls route 3 times. Correct impl
+    calls it twice only (tier 0 fails → escalates to tier 1 → tier 1 fails → cap hit → stop).
+    """
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate(min_chars=100)),  # fails
+            (
+                "tier1",
+                QualityGate(min_chars=100),
+            ),  # fails — but max_escalations=1 means we stop here
+            ("tier2", QualityGate.TRUST),  # must NOT be reached
+        ],
+        max_escalations=1,
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("too short")),
+    ) as m:
+        result = await orch.run("test")
+    assert m.await_count == 2, f"only tier 0 and 1 should run; got {m.await_count}"
+    assert result.error == "all tiers exhausted"
+
+
+@pytest.mark.asyncio
+async def test_max_escalations_none_is_uncapped_default():
+    """max_escalations=None (default) — all three failing tiers run, unchanged behavior."""
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate(min_chars=100)),
+            ("tier1", QualityGate(min_chars=100)),
+            ("tier2", QualityGate(min_chars=100)),
+        ]
+        # max_escalations omitted → defaults to None
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("too short")),
+    ) as m:
+        await orch.run("test")
+    assert m.await_count == 3, "all 3 tiers run when uncapped"
+
+
+@pytest.mark.asyncio
+async def test_max_escalations_exception_path_also_counts():
+    """Exceptions also consume escalation slots (not just gate failures).
+
+    Discriminating: if the exception path ignores max_escalations, tier 1 would
+    run after tier 0 throws — await_count would be 2 instead of 1.
+    """
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate.TRUST),  # will raise (exception path)
+            ("tier1", QualityGate.TRUST),  # must NOT run (max_escalations=0)
+        ],
+        max_escalations=0,
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(side_effect=RuntimeError("tier0 exploded")),
+    ) as m:
+        result = await orch.run("test")
+    assert m.await_count == 1, "exception consumes the escalation slot; tier 1 must not run"
+    assert result.error == "all tiers exhausted"

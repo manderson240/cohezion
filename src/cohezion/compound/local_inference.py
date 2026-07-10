@@ -134,7 +134,7 @@ def _engine_for(min_tier_index: int, escalation_count: int, is_cloud: bool) -> s
     return _OMNI_TIERS[idx]
 
 
-def make_local_execute_fn(task_description: str = "", context_prefix: str = ""):
+def make_local_execute_fn(task_description: str = "", context_prefix: str = "", orchestrator=None):
     """Return a callable compatible with CompoundExecutor.execute_task(execute_fn=...).
 
     The returned function bridges the synchronous execute_fn contract
@@ -151,11 +151,18 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = ""):
         task_description: The task to perform (appended after guidance).
         context_prefix: Static codebase context injected BEFORE guidance — use
             to give CPU-tier models (31B) enough domain knowledge to answer
-            Cohezion-specific questions without SurrealDB or vault access.
+            Cohesion-specific questions without SurrealDB or vault access.
+        orchestrator: Optional pre-built TieredOrchestrator to use. When None,
+            falls back to the module-level singleton (``_get_orchestrator()``).
+            Pass ``executor.inference_provider`` to share the executor's wired
+            provider — this closes the CB inference_provider consumption gap.
     """
 
-    def execute_fn(guidance: str, min_tier_index: int = 0) -> tuple[str, dict]:
-        orch = _get_orchestrator()
+    def execute_fn(
+        guidance: str, min_tier_index: int = 0, inference_provider=None
+    ) -> tuple[str, dict]:
+        # Priority: injected inference_provider > caller-supplied orchestrator > module singleton
+        orch = inference_provider or orchestrator or _get_orchestrator()
         # Normalize guidance: executor may pass a dict from get_experience_guidance().
         # str(dict) produces repr noise in the prompt; extract the human-readable text.
         if isinstance(guidance, dict):
@@ -173,12 +180,18 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = ""):
             from cohezion.inference.task_classifier import classify
 
             _d = classify(prompt)
-            gate_chars = _d.quality_gate_chars if _d.output_type in ("short_categorical", "short_answer") else None
+            gate_chars = (
+                _d.quality_gate_chars
+                if _d.output_type in ("short_categorical", "short_answer")
+                else None
+            )
         except Exception:
             gate_chars = None
         try:
             # O9: difficulty-based cascade entry — a hard task starts above the cheap tiers.
-            result = asyncio.run(orch.run(prompt, min_tier_index=min_tier_index, gate_chars=gate_chars))
+            result = asyncio.run(
+                orch.run(prompt, min_tier_index=min_tier_index, gate_chars=gate_chars)
+            )
             model = result.final_model or ""
 
             # --- Token accounting ---

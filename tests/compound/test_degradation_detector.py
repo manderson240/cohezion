@@ -541,6 +541,78 @@ class TestEmbeddingPSI:
         assert drift_alerts[0].current_value == pytest.approx(psi)
 
 
+class TestBetaBinomialEarlyWarning:
+    """Beta-Binomial early warning for cache_hit_rate before baseline is established.
+
+    Gelman BDA §3.1: treats observed rates as fractional hits. Posterior mean =
+    (sum(samples)+1)/(n+2).  Fires only when posterior mean < 50% of the threshold to
+    avoid false positives during warm-up.
+    """
+
+    def test_early_warning_fires_on_severe_drop(self):
+        """Beta posterior fires when cache_hit_rate is catastrophically low before baseline.
+        Discriminating: a wrong impl (only checking when is_established) would miss this.
+
+        call 1: 0 pre-existing samples → len>=1 False → no check; 0.0 added.
+        call 2: 1 sample → Beta=(0+1)/(1+2)=0.333 > 0.25 → no alert; 0.0 added.
+        call 3: 2 samples → Beta=(0+1)/(2+2)=0.25, strict < fails → no alert; 0.0 added.
+        call 4: 3 samples → Beta=(0+1)/(3+2)=0.2 < 0.25 → ALERT fires.
+
+        The wire-format key is "combined_hit_rate" (what check_degradation reads via
+        metrics.get("combined_hit_rate")); the internal storage key is "cache_hit_rate".
+        """
+        from cohezion.compound.degradation_detector import DegradationDetector
+
+        dd = DegradationDetector(cache_hit_rate_threshold=0.5)
+        alerts1 = dd.check_degradation({"combined_hit_rate": 0.0})
+        alerts2 = dd.check_degradation({"combined_hit_rate": 0.0})
+        alerts3 = dd.check_degradation({"combined_hit_rate": 0.0})
+        alerts4 = dd.check_degradation({"combined_hit_rate": 0.0})
+        all_alerts = alerts1 + alerts2 + alerts3 + alerts4
+        cache_alerts = [a for a in all_alerts if a.metric == "cache_hit_rate"]
+        assert len(cache_alerts) >= 1, (
+            "Beta early-warning should have fired before baseline is established"
+        )
+
+    def test_mild_cold_start_no_early_warning(self):
+        """Beta posterior does NOT fire for mild dips before baseline — avoids false positives.
+        Discriminating: a wrong impl with a low threshold would fire erroneously here.
+
+        Beta posterior after 1 sample of 0.4: (0.4+1)/(1+2) ≈ 0.467; 0.467 > 0.25 → no alert.
+        Uses "combined_hit_rate" wire format (internal storage key is "cache_hit_rate").
+        """
+        from cohezion.compound.degradation_detector import DegradationDetector
+
+        dd = DegradationDetector(cache_hit_rate_threshold=0.5)
+        # First call sees 0 pre-existing samples → no Beta check at all.
+        # Pump in a non-alerting warm-up call then check with mild dip.
+        dd.check_degradation({"combined_hit_rate": 0.8})  # warm-up: adds 0.8
+        alerts = dd.check_degradation({"combined_hit_rate": 0.4})  # 1 pre-existing sample
+        cache_alerts = [a for a in alerts if a.metric == "cache_hit_rate"]
+        assert len(cache_alerts) == 0, (
+            "Mild dip before baseline should not trigger Beta early warning"
+        )
+
+    def test_no_early_warning_when_is_established(self):
+        """Once baseline is established, the regular check runs, not the Beta fallback.
+        Discriminating: a wrong impl (duplicate alerts) would fire both paths.
+        Uses "combined_hit_rate" wire format (check_degradation reads from that key).
+        """
+        from cohezion.compound.degradation_detector import DegradationDetector
+
+        dd = DegradationDetector(cache_hit_rate_threshold=0.5)
+        # Establish baseline with 5 good samples (min_samples=5)
+        for _ in range(5):
+            dd.check_degradation({"combined_hit_rate": 0.9})
+        assert dd._baselines["cache_hit_rate"].is_established
+        # Now a bad sample — only the regular path should run (Beta gate is guarded by
+        # `not is_established`, so it cannot fire when the baseline is already warm)
+        alerts = dd.check_degradation({"combined_hit_rate": 0.1})
+        cache_alerts = [a for a in alerts if a.metric == "cache_hit_rate"]
+        # Should be exactly 0 or 1 (the regular check), not 2 (both paths)
+        assert len(cache_alerts) <= 1
+
+
 class TestSkillDriftDetector:
     """SD1–SD8: per-skill quality drift detection with two-level severity.
 

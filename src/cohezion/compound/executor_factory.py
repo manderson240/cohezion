@@ -42,6 +42,7 @@ class ExecutorFactory:
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
+        token_ledger: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -190,6 +191,7 @@ class ExecutorFactory:
             universe_bridge=universe_bridge,
             skill_health_tracker=skill_health_tracker,
             jepa_gate=jepa_gate,
+            token_ledger=token_ledger,
         )
 
     @staticmethod
@@ -212,6 +214,7 @@ class ExecutorFactory:
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
+        token_ledger: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor."""
         if ExecutorFactory._instance is None:
@@ -234,6 +237,7 @@ class ExecutorFactory:
                 universe_bridge=universe_bridge,
                 skill_health_tracker=skill_health_tracker,
                 jepa_gate=jepa_gate,
+                token_ledger=token_ledger,
             )
         return ExecutorFactory._instance
 
@@ -281,5 +285,20 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
                 kwargs["jepa_gate"] = JepaGate(world_model=None)
             except Exception:
                 pass
+
+    # Pass exec_provider as inference_provider so execute_task injects it into compatible
+    # execute_fns (signature-aware, backward-compatible — closes CB dormancy gap).
+    if exec_provider is not None and "inference_provider" not in kwargs:
+        kwargs["inference_provider"] = exec_provider
+
+    # TL3: Auto-inject TokenLedger for Quarter-on-a-String token accounting ($0 vs cloud audit).
+    if "token_ledger" not in kwargs:
+        try:
+            from cohezion.compound.token_ledger import TokenLedger
+
+            kwargs["token_ledger"] = TokenLedger()
+            logger.debug("make_executor: auto-created TokenLedger (TL3)")
+        except Exception:
+            logger.debug("TokenLedger auto-creation failed (non-blocking)")
 
     return ExecutorFactory.create(mcp_client, **kwargs)

@@ -60,6 +60,9 @@ class TrajectoryPoint:
     efficiency: float  # Token efficiency (0.0-1.0)
     operation_type: str  # Type of operation
     task_description: str  # Task that generated this point
+    action: str = ""  # Execution action (tier_used by default; JI1)
+    source: str = ""  # Provenance: producing subsystem (AOEP-v0 provenance axis)
+    transformation: str = ""  # Provenance: transformation applied to reach this state
     metadata: dict[str, Any] = None  # Additional context
 
 
@@ -440,6 +443,7 @@ class JourneyTracker:
         execution_result: ExecutionResult,
         task_description: str,
         operation_type: str,
+        action: str = "",
     ) -> TrajectoryPoint:
         """Track a compound execution as a trajectory point.
 
@@ -482,6 +486,9 @@ class JourneyTracker:
             convergence=convergence,
         )
 
+        # JI1: explicit action overrides tier_used fallback
+        resolved_action = action or execution_result.metrics.get("tier_used", "")
+
         point = TrajectoryPoint(
             dimensions=axiomatic_12d,
             timestamp=execution_result.duration_seconds,
@@ -489,6 +496,7 @@ class JourneyTracker:
             efficiency=efficiency,
             operation_type=operation_type,
             task_description=task_description,
+            action=resolved_action,
             metadata={
                 "phi_score": phi_score,
                 "success": execution_result.success,
@@ -506,8 +514,8 @@ class JourneyTracker:
                 jepa = _get_model()
                 if jepa._trained:
                     prev = self._recent_points[-1].dimensions
-                    action = axiomatic_12d - prev
-                    surprise = jepa.surprise_score(prev, action, axiomatic_12d)
+                    action_delta = axiomatic_12d - prev
+                    surprise = jepa.surprise_score(prev, action_delta, axiomatic_12d)
                     point.metadata["jepa_surprise"] = float(surprise)
                     # Active-Inference: turn surprise into an explore/exploit + tier hint.
                     # Advisory metadata (a downstream router may read it); never overrides
@@ -594,7 +602,11 @@ class JourneyTracker:
         # A bare `.replace(chr(39),'')` leaves a trailing backslash that SurrealQL reads as an escaped
         # quote (`\'`), so the literal never closes and following SET fields get swallowed. json.dumps
         # emits its own double-quotes, so these two fields are NOT manually single-quote-wrapped.
-        dims = point.dimensions.tolist() if hasattr(point.dimensions, "tolist") else list(point.dimensions)
+        dims = (
+            point.dimensions.tolist()
+            if hasattr(point.dimensions, "tolist")
+            else list(point.dimensions)
+        )
         op_type = json.dumps(point.operation_type)
         task = json.dumps(point.task_description[:100])
         req = urllib.request.Request(
@@ -703,7 +715,9 @@ class JourneyTracker:
             logger.debug("restore_identity failed (non-blocking): %s", exc)
             return False
 
-    def record_env_state(self, env_type: str, step: int, obs: "np.ndarray", reward: float) -> None:
+    def record_env_state(
+        self, env_type: str, step: int, obs: "np.ndarray", reward: float, action: str = ""
+    ) -> None:
         """Record a gymnasium environment step as a TrajectoryPoint (G18 / LC3).
 
         Called via duck-typed getattr from ManifoldEnv/SwarmEnv.step() after reward computation.
@@ -719,6 +733,7 @@ class JourneyTracker:
             efficiency=1.0,
             operation_type=f"env:{env_type}",
             task_description=f"{env_type} step {step}",
+            action=action,
             metadata={"reward": reward, "step": step, "env_type": env_type},
         )
         try:

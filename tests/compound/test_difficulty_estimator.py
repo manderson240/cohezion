@@ -59,7 +59,9 @@ class TestDifficultyEstimatorBehavioral:
         result = est.predict_tier("skill_b", "reason")
         assert result == "igpu", f"Expected igpu (npu escalates), got {result}"
 
-    def test_fallback_to_highest_quality_when_no_threshold_met(self, est: DifficultyEstimator) -> None:
+    def test_fallback_to_highest_quality_when_no_threshold_met(
+        self, est: DifficultyEstimator
+    ) -> None:
         """GIC3: no tier clears 0.7 success_rate → returns tier with best mean quality."""
         # npu: 2 samples, quality 0.7 (marginal)
         for _ in range(2):
@@ -174,13 +176,9 @@ class TestDifficultyEstimatorPromptFeatures:
         returns 'cpu' regardless of prompt length/content.
         """
         result = est.predict_tier("novel_skill", "op", prompt="What is Python?")
-        assert result == "npu", (
-            f"Short simple prompt should predict 'npu', got '{result}'"
-        )
+        assert result == "npu", f"Short simple prompt should predict 'npu', got '{result}'"
 
-    def test_long_complex_reasoning_prompt_predicts_cpu(
-        self, est: DifficultyEstimator
-    ) -> None:
+    def test_long_complex_reasoning_prompt_predicts_cpu(self, est: DifficultyEstimator) -> None:
         """GIC_NEW_5 discriminating: multi-keyword reasoning task → CPU tier.
 
         Wrong impl: returns 'unknown' (ignores prompt entirely), or returns
@@ -198,9 +196,7 @@ class TestDifficultyEstimatorPromptFeatures:
             "existing literature on distributed systems architecture."
         )
         result = est.predict_tier("novel_skill", "novel_op", prompt=complex_prompt)
-        assert result == "cpu", (
-            f"Complex reasoning prompt should predict 'cpu', got '{result}'"
-        )
+        assert result == "cpu", f"Complex reasoning prompt should predict 'cpu', got '{result}'"
 
     def test_history_overrides_prompt_complexity(self, est: DifficultyEstimator) -> None:
         """GIC_NEW_7 discriminating: post-execution history wins over prompt estimate.
@@ -261,9 +257,9 @@ def test_wilson_lcb_rejects_lucky_rare_accepts_sustained():
     rejected) while sustained success is tight (high LCB, trusted)."""
     from cohezion.compound.difficulty_estimator import _LCB_ADEQUATE, _wilson_lcb
 
-    assert _wilson_lcb(2, 2) < _LCB_ADEQUATE   # lucky-rare → not adequate
+    assert _wilson_lcb(2, 2) < _LCB_ADEQUATE  # lucky-rare → not adequate
     assert _wilson_lcb(8, 8) >= _LCB_ADEQUATE  # sustained → adequate
-    assert _wilson_lcb(0, 5) == 0.0            # no successes → floor
+    assert _wilson_lcb(0, 5) == 0.0  # no successes → floor
 
 
 def test_balanced_3way_does_not_default_to_worst_tier():
@@ -280,3 +276,28 @@ def test_balanced_3way_does_not_default_to_worst_tier():
     for _ in range(3):
         de.record("bal", "op", "cpu", 2, 0.90)
     assert de.predict_tier("bal", "op") == "npu"
+
+
+def test_beta_gate_passes_after_3_clean_successes():
+    """Beta cold-start: 3/3 NPU clean successes gives Beta=(3+1)/(3+2)=0.80 > 0.77 threshold.
+    The Min_SAMPLES=5 gate would have blocked this; Beta gate accepts it.  Discriminating:
+    a wrong impl that keeps n >= 5 would return 'unknown' / fallback, not 'npu'."""
+    de = DifficultyEstimator()
+    for _ in range(3):
+        de.record("skill_x", "op", "npu", escalation_count=0, quality_score=0.85)
+    assert de.predict_tier("skill_x", "op") == "npu"
+
+
+def test_beta_gate_rejects_lucky_2_of_2():
+    """Beta cold-start: 2/2 NPU clean successes gives Beta=(2+1)/(2+2)=0.75 < 0.77 threshold.
+    The lucky-cheap-tier guard still holds — 2 successes are not enough to claim the route.
+    Discriminating: a wrong impl (threshold=0.65 or pure Min_SAMPLES removal) would return 'npu'
+    when 'igpu' is the dominant tier here."""
+    de = DifficultyEstimator()
+    for _ in range(8):  # igpu: dominant but escalated (no clean successes)
+        de.record("skill_y", "op", "igpu", escalation_count=1, quality_score=0.90)
+    for _ in range(2):  # npu: lucky 2/2 — below Beta threshold
+        de.record("skill_y", "op", "npu", escalation_count=0, quality_score=0.95)
+    # Beta(npu)=0.75 < 0.77, Beta(igpu)=1/10=0.1 < 0.77 → fallback by (count, quality)
+    # igpu has 8 records (dominant), npu has 2 → igpu wins fallback
+    assert de.predict_tier("skill_y", "op") == "igpu"

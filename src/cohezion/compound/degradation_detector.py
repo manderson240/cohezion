@@ -462,6 +462,29 @@ class DegradationDetector:
 
         # Check cache hit rate (skip if not provided this call)
         # Task #121: when use_chebyshev=True, replace fixed threshold with Chebyshev bound.
+        # Gelman BDA §3.1: Beta-Binomial early-warning path when baseline is not yet established
+        # (n < min_samples=5).  Treats observed rates as fractional hits; posterior mean =
+        # (sum(samples) + 1) / (n + 2).  Fires only on a severe drop (< 50% of threshold) to
+        # avoid false positives during the warm-up window.
+        if cache_hit_rate is not None and not self._baselines["cache_hit_rate"].is_established:
+            _chr_samples = self._baselines["cache_hit_rate"].samples
+            if len(_chr_samples) >= 1:
+                _beta_mean = (sum(_chr_samples) + 1) / (len(_chr_samples) + 2)
+                if _beta_mean < self.cache_hit_rate_threshold * 0.5:
+                    alert = DegradationAlert(
+                        metric="cache_hit_rate",
+                        severity=AlertSeverity.WARNING,
+                        message=f"Cache hit rate early warning: Beta posterior "
+                        f"{_beta_mean:.1%} far below threshold "
+                        f"{self.cache_hit_rate_threshold:.1%} (n={len(_chr_samples)}, "
+                        f"baseline warming up)",
+                        current_value=cache_hit_rate,
+                        baseline_value=_beta_mean,
+                        threshold=self.cache_hit_rate_threshold,
+                    )
+                    if self._should_emit_alert(alert):
+                        alerts.append(alert)
+
         if cache_hit_rate is not None and self._baselines["cache_hit_rate"].is_established:
             _cache_thr = (
                 self._baselines["cache_hit_rate"].chebyshev_lower_bound(2.0)

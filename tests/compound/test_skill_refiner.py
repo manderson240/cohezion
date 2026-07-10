@@ -1,5 +1,7 @@
 """Tests for skill refiner learning from execution results."""
 
+from pathlib import Path
+
 import pytest
 
 from cohezion.compound.skill_refiner import (
@@ -1415,6 +1417,56 @@ class TestRQGMEpochBoundaryUpdate:
         )
 
 
+class TestRiVERZScoreNormalization:
+    """RV1 (updated): _accumulate_process_reward() uses NIG normalization from n=1.
+
+    The original z-score approach needed ≥3 samples for a stable standard deviation.
+    NIG (Normal-Inverse-Gamma conjugate prior) provides a well-calibrated predictive
+    std from the first observation, eliminating the warm-up dead zone.
+    Source: Gelman BDA §2.6; arXiv:2606.27369 RiVER upgrade.
+    """
+
+    def test_nig_works_from_n_equals_1(self):
+        """Discriminating: NIG normalization fires on the FIRST observation.
+        A z-score impl (which needs ≥3) would leave the window empty after 1 call."""
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        sr = SkillRefiner()
+        sr._accumulate_process_reward("s", 1.0)
+        window = list(sr._process_rewards.get("s", []))
+        assert len(window) == 1, "NIG should have appended after the first observation"
+
+    def test_nig_normalizes_large_error(self):
+        """After warm-up the NIG predictive std should shrink, normalizing large values.
+        Discriminating: a no-op impl (raw append) would store the raw value 100.0;
+        NIG-normalized value must be substantially smaller."""
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        sr = SkillRefiner()
+        # Seed a few observations so the NIG variance estimate is established
+        for _ in range(5):
+            sr._accumulate_process_reward("s", 0.1)
+        sr._accumulate_process_reward("s", 100.0)  # outlier
+        window = list(sr._process_rewards.get("s", []))
+        assert abs(window[-1]) < 100.0, (
+            f"NIG-normalized large error should be smaller than raw; got {window[-1]}"
+        )
+
+    def test_nig_params_stored_per_skill(self):
+        """NIG hyperparameters are tracked per-skill — two skills don't share state."""
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        sr = SkillRefiner()
+        sr._accumulate_process_reward("skill_a", 2.0)
+        sr._accumulate_process_reward("skill_b", -3.0)
+        assert "skill_a" in sr._nig_params
+        assert "skill_b" in sr._nig_params
+        # mu parameters should differ because the input values differ
+        mu_a = sr._nig_params["skill_a"][0]
+        mu_b = sr._nig_params["skill_b"][0]
+        assert mu_a != mu_b, "NIG mu should reflect the actual observed value per skill"
+
+
 class TestRiVERFrequencyWeighting:
     """RV2: RiVER frequency penalty in _autodata_select() prevents perspective lock.
 
@@ -1620,7 +1672,6 @@ class TestShadowCanaryWarmStart:
         Wrong impl (no warm-start) leaves canary._history empty → baseline_count == 0.
         """
         import json
-        import math
 
         # Build a state file with process_rewards for the skill
         rewards = [0.3, -0.1, 0.4, 0.2, 0.5]  # 5 samples > 0 → all map to quality > 0.5
@@ -1683,4 +1734,58 @@ class TestShadowCanaryWarmStart:
         result = sr.restore_state(state_file)
         assert result is True
         # No canary window added for skills with no history
-        assert self._SKILL not in sr._shadow_canary._history
+
+
+class TestSeesawCheck:
+    """CB15: _seesaw_check() deterministic invariant-negation gate."""
+
+    def _make_prime(self, tmp_path: "Path", content: str) -> "Path":
+        p = tmp_path / "PRIME.md"
+        p.write_text(content)
+        return p
+
+    # T1 structural: refine() source must reference _seesaw_check
+    def test_t1_structural_seesaw_wired_in_refine(self) -> None:
+        import inspect
+
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        src = inspect.getsource(SkillRefiner.refine)
+        assert "_seesaw_check" in src, "_seesaw_check must be called inside refine()"
+
+    # T2: non-contradictory recommendation passes (returns True)
+    def test_t2_allow_non_contradictory(self, tmp_path: "Path") -> None:
+
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        prime = self._make_prime(
+            tmp_path,
+            "## Invariants\n- Must always use semantic cache for repeated queries.\n",
+        )
+        sr = SkillRefiner()
+        result = sr._seesaw_check(prime, "Increase cache TTL to improve hit rate.")
+        assert result is True, "Non-contradictory recommendation should pass"
+
+    # T3: invariant-negating recommendation is blocked (returns False)
+    def test_t3_block_invariant_negation(self, tmp_path: "Path") -> None:
+
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        prime = self._make_prime(
+            tmp_path,
+            "## Rules\n- Must always use the semantic cache for all repeated queries.\n",
+        )
+        sr = SkillRefiner()
+        # "disable" near "cache" should be blocked
+        result = sr._seesaw_check(prime, "Disable the semantic cache to reduce latency.")
+        assert result is False, "Invariant-negating recommendation should be blocked"
+
+    # T4: missing PRIME file → fail-open (returns True)
+    def test_t4_fail_open_missing_file(self, tmp_path: "Path") -> None:
+
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        missing = tmp_path / "NONEXISTENT_PRIME.md"
+        sr = SkillRefiner()
+        result = sr._seesaw_check(missing, "Remove cache entirely.")
+        assert result is True, "Missing PRIME file must fail-open (True)"

@@ -39,6 +39,21 @@ _MIN_SAMPLES = 5  # competitive analysis lower bound: MTF potential needs O(n) o
 _LCB_ADEQUATE = 0.35
 _WILSON_Z = 1.96  # ~95% one-sided; engineering default, tune on replay logs
 _WINDOW = 10
+# Bayesian cold-start gate (Beta(1,1) conjugate posterior — Gelman BDA §3.1).
+# Threshold 0.77 sits between (2+1)/(2+2)=0.75 (lucky-2/2, reject) and
+# (3+1)/(3+2)=0.80 (sustained-3/3, accept).  Works from n=1; replaces the
+# _MIN_SAMPLES=5 dead-zone while still rejecting small-sample lucky streaks.
+_BETA_THRESHOLD: float = 0.77
+
+
+def _beta_posterior_mean(successes: int, n: int) -> float:
+    """Beta(1,1) conjugate posterior mean: (s+1)/(n+2).
+
+    Equivalent to Laplace smoothing.  Well-calibrated at n=1 (unlike Wilson
+    LCB which collapses to ~0.2 there); provides a useful cold-start estimate
+    without requiring a minimum sample count floor.
+    """
+    return (successes + 1) / (n + 2)
 
 
 def _wilson_lcb(successes: int, n: int, z: float = _WILSON_Z) -> float:
@@ -51,22 +66,48 @@ def _wilson_lcb(successes: int, n: int, z: float = _WILSON_Z) -> float:
     margin = z * ((p * (1.0 - p) + z2 / (4.0 * n)) / n) ** 0.5
     return (p + z2 / (2.0 * n) - margin) / (1.0 + z2 / n)
 
+
 # Prompt-complexity feature extraction (gitmoot modeltier.go pattern, #142)
 # Reasoning/analysis keywords that indicate heavy compute tasks
-_HARD_KEYWORDS: frozenset[str] = frozenset({
-    "analyze", "analyse", "evaluate", "compare", "implement", "refactor",
-    "optimize", "design", "architecture", "reasoning", "comprehensive",
-    "systematically", "algorithm", "differentiate", "synthesize", "critique",
-    "detailed", "sophisticated", "intricate", "complex", "thorough",
-    "elaborate", "integrate", "distributed",
-})
+_HARD_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "analyze",
+        "analyse",
+        "evaluate",
+        "compare",
+        "implement",
+        "refactor",
+        "optimize",
+        "design",
+        "architecture",
+        "reasoning",
+        "comprehensive",
+        "systematically",
+        "algorithm",
+        "differentiate",
+        "synthesize",
+        "critique",
+        "detailed",
+        "sophisticated",
+        "intricate",
+        "complex",
+        "thorough",
+        "elaborate",
+        "integrate",
+        "distributed",
+    }
+)
 # Multi-word phrases (checked against the full lowercased prompt)
 _HARD_PHRASES: tuple[str, ...] = (
-    "step by step", "in detail", "step-by-step", "walk through",
-    "deep dive", "architectural overview",
+    "step by step",
+    "in detail",
+    "step-by-step",
+    "walk through",
+    "deep dive",
+    "architectural overview",
 )
 # Thresholds mapping complexity score → tier
-_COMPLEXITY_NPU_MAX: float = 0.3   # score < 0.3  → "npu"
+_COMPLEXITY_NPU_MAX: float = 0.3  # score < 0.3  → "npu"
 _COMPLEXITY_IGPU_MAX: float = 0.6  # 0.3 ≤ score < 0.6 → "igpu"; ≥ 0.6 → "cpu"
 
 
@@ -164,10 +205,12 @@ class DifficultyEstimator:
             if rec.escalation_count == 0 and rec.quality_score >= _QUALITY_FLOOR:
                 tier_success[t] += 1
 
-        # Cheapest tier whose Wilson LCB of clean-success clears the adequacy floor (H3).
+        # Cheapest tier whose Beta(1,1) posterior success rate clears the threshold.
+        # Replaces the Wilson LCB + _MIN_SAMPLES=5 gate — works from n=1 while still
+        # rejecting lucky 2/2 (Beta=0.75 < 0.77) but accepting sustained 3/3 (Beta=0.80).
         for tier in _TIER_ORDER:
             n = tier_count[tier]
-            if n >= _MIN_SAMPLES and _wilson_lcb(tier_success[tier], n) >= _LCB_ADEQUATE:
+            if n >= 1 and _beta_posterior_mean(tier_success[tier], n) >= _BETA_THRESHOLD:
                 return tier
 
         # Fallback when no tier's LCB clears the floor (e.g. a skill reached only via escalation, so

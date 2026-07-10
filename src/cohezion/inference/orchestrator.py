@@ -115,6 +115,7 @@ class TieredOrchestrator:
         task: Task | str | None = None,
         max_tokens: int = 512,
         stream: bool = True,
+        max_escalations: int | None = None,
     ) -> None:
         if not tiers:
             raise ValueError("TieredOrchestrator requires at least one tier")
@@ -123,6 +124,7 @@ class TieredOrchestrator:
         self.task = task
         self.max_tokens = max_tokens
         self.stream = stream
+        self.max_escalations = max_escalations
 
     async def _invoke_tier(
         self,
@@ -184,6 +186,7 @@ class TieredOrchestrator:
         accumulated_cost = 0.0
         last_text = ""
         last_model = ""
+        escalations_used = 0
 
         for idx, (target, gate) in enumerate(self.tiers):
             if idx < start_tier:  # difficulty-based cascade entry: skip cheaper tiers
@@ -293,6 +296,9 @@ class TieredOrchestrator:
                         ttft_ms=None,
                     )
                 )
+                if self.max_escalations is not None and escalations_used >= self.max_escalations:
+                    break
+                escalations_used += 1
                 continue
 
             tier_latency = (time.perf_counter() - tier_start) * 1000
@@ -319,7 +325,9 @@ class TieredOrchestrator:
             # always completes. Verifier-per-task pattern (arXiv 2605.17554).
             effective_gate = gate
             if gate_chars is not None and gate.min_chars is not None:
-                effective_gate = QualityGate(min_chars=gate_chars, require_nonempty=gate.require_nonempty)
+                effective_gate = QualityGate(
+                    min_chars=gate_chars, require_nonempty=gate.require_nonempty
+                )
             passed, reason = effective_gate.check(view)
             path.append(
                 TierAttempt(
@@ -392,6 +400,11 @@ class TieredOrchestrator:
 
             last_text = view.text
             last_model = view.model
+
+            if not passed:
+                if self.max_escalations is not None and escalations_used >= self.max_escalations:
+                    break
+                escalations_used += 1
 
             if passed:
                 # O1: higher tiers don't run once a lower tier passes.

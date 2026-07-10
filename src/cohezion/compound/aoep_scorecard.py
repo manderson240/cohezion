@@ -152,6 +152,9 @@ class AOEPScorecard:
             from cohezion.compound.journey_tracker import TrajectoryPoint
 
             fields = {f.name for f in __import__("dataclasses").fields(TrajectoryPoint)}
+            # Full contract (docstring): source + transformation recorded
+            if "source" in fields and "transformation" in fields:
+                return 1.0
             if "action" in fields and "operation_type" in fields:
                 return 0.5
             return 0.0

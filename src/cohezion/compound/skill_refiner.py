@@ -48,6 +48,7 @@ class ExecutionMetrics:
     tool_call_count: int = 0
     escalation_count: int = 0
     prediction_error: float | None = None
+    authority_tag: str = "system"
 
 
 @dataclass
@@ -196,6 +197,42 @@ class SkillRefiner:
     # so the SkillRefiner never stagnates at a single-metric local optimum (Red Queen principle).
     _RQGM_GOAL_ROTATION: list[str] = ["quality_score", "escalation_count", "token_efficiency"]
 
+    # CB15: words excluded from PRIME invariant keyword extraction (anchor words + stop words).
+    # Shared-root comparison requires min 4 chars, so short words filtered out by length already.
+    _SEESAW_STOP: frozenset[str] = frozenset(
+        {
+            "must",
+            "never",
+            "always",
+            "required",
+            "mandatory",  # anchor words themselves
+            "the",
+            "and",
+            "for",
+            "with",
+            "that",
+            "this",
+            "from",
+            "have",
+            "when",
+            "will",
+            "not",
+            "are",
+            "was",
+            "been",
+            "they",
+            "their",
+            "which",
+            "should",
+            "would",
+            "could",
+            "does",
+            "into",
+            "each",
+            "only",
+        }
+    )
+
     def __init__(
         self,
         mcp_client: Any = None,
@@ -233,6 +270,11 @@ class SkillRefiner:
         self._env_predictor = EnvironmentResponsePredictor()
         # #118: per-skill rolling window of prediction errors (process rewards)
         self._process_rewards: dict[str, deque[float]] = {}
+        # NIG prior: (mu, kappa, alpha, beta) per skill — conjugate for Normal(mu,sigma²).
+        # Prior: mu=0.0 (zero mean), kappa=1.0 (one pseudocount), alpha=1.5 (half-observation
+        # prior on variance), beta=1.0 (unit prior scale).  Works from n=1 unlike z-score
+        # normalization which needs ≥3 samples to stabilize.  (Gelman BDA §2.6)
+        self._nig_params: dict[str, tuple[float, float, float, float]] = {}
         # #93: predictive tier estimator (closes tier_used producer→consumer gap)
         from cohezion.compound.difficulty_estimator import DifficultyEstimator
 
@@ -274,12 +316,32 @@ class SkillRefiner:
         return float(sum(window) / len(window)) if window else None
 
     def _accumulate_process_reward(self, skill_name: str, pred_err: float | None) -> None:
-        """Append prediction error to per-skill process reward accumulator (window=20)."""
+        """Normalize pred_err with NIG predictive std and append to the reward window.
+
+        Normal-Inverse-Gamma conjugate update (Gelman BDA §2.6):
+          prior  (μ, κ, α, β) → posterior after observing x:
+          κ' = κ+1,  μ' = (κμ+x)/κ',  α' = α+0.5,  β' = β + κ(x-μ)²/(2κ')
+          predictive std = sqrt(β'(κ'+1)/(α'κ'))
+
+        Works from n=1 without warm-up (unlike z-score which needs ≥3 for a
+        stable sample std).  RV1 upgrade per Gelman BDA §3.1 research run.
+        """
         if pred_err is None:
             return
         if skill_name not in self._process_rewards:
             self._process_rewards[skill_name] = deque(maxlen=20)
-        self._process_rewards[skill_name].append(pred_err)
+        # NIG sequential update
+        mu, kappa, alpha, beta = self._nig_params.get(skill_name, (0.0, 1.0, 1.5, 1.0))
+        kappa_new = kappa + 1.0
+        mu_new = (kappa * mu + pred_err) / kappa_new
+        alpha_new = alpha + 0.5
+        beta_new = beta + kappa * (pred_err - mu) ** 2 / (2.0 * kappa_new)
+        self._nig_params[skill_name] = (mu_new, kappa_new, alpha_new, beta_new)
+        import math
+
+        pred_std = math.sqrt(beta_new * kappa_new / (alpha_new * kappa))
+        normalized = (pred_err - mu) / max(pred_std, 1e-8)
+        self._process_rewards[skill_name].append(normalized)
 
     def mgpo_weight(self, skill_name: str, gamma: float = 5.0) -> float:
         """MGPO boundary weight: w = exp(-γ * |success_rate - 0.5|).
@@ -539,6 +601,11 @@ class SkillRefiner:
             # Inserted after shadow canary so only high-quality signals reach this gate.
             if not self._adversarial_review_gate(signal, skill_name, metrics):
                 self._record_blocked_promotion(skill_name, signal, "adversarial_review")
+                return None
+
+            # CB15: seesaw gate — block any recommendation that negates PRIME invariants
+            if not self._seesaw_check(prime_file, signal.recommendation):
+                self._record_blocked_promotion(skill_name, signal, "seesaw_check")
                 return None
 
             # Append refinement
@@ -1340,6 +1407,69 @@ class SkillRefiner:
     # autonomously BLOCKS a skill mutation, it must not vanish silently — record it with a legible
     # "why" so an operator can review it. Stdlib only; append-only JSONL the operator can tail.
     _APPROVALS_PATH = Path.home() / ".cohezion" / "pending_skill_approvals.jsonl"
+
+    def _seesaw_check(self, prime_file: "Path", proposed_recommendation: str) -> bool:
+        """CB15: block any recommendation that negates an invariant in the PRIME file.
+
+        Scans lines containing anchor words (must/never/always/required/mandatory), extracts
+        significant keywords, then rejects when a negation word in the recommendation appears
+        within 40 chars of an invariant keyword (shared-root comparison for morphological
+        variants).  Fail-open on any read/parse error — never blocks on uncertainty.
+        """
+        _ANCHORS = frozenset({"must", "never", "always", "required", "mandatory"})
+        _NEGATIONS = frozenset(
+            {
+                "skip",
+                "avoid",
+                "disable",
+                "remove",
+                "never",
+                "don't",
+                "do not",
+            }
+        )
+        try:
+            text = prime_file.read_text()
+        except Exception:
+            return True  # fail-open
+
+        # Collect significant keywords from invariant-anchor lines
+        invariant_kws: list[str] = []
+        for line in text.splitlines():
+            line_lower = line.lower()
+            if not any(anc in line_lower for anc in _ANCHORS):
+                continue
+            for word in line_lower.split():
+                word = word.strip(".,;:()[]\"'")
+                if len(word) >= 4 and word not in self._SEESAW_STOP and word not in _ANCHORS:
+                    invariant_kws.append(word)
+
+        if not invariant_kws:
+            return True  # no invariants to protect
+
+        rec_lower = proposed_recommendation.lower()
+
+        for kw in invariant_kws:
+            root = kw[: max(4, len(kw) - 1)]
+            # Find every occurrence of the root in the recommendation
+            start = 0
+            while True:
+                idx = rec_lower.find(root, start)
+                if idx == -1:
+                    break
+                # Check if a negation word appears within 40 chars of this keyword occurrence
+                window_start = max(0, idx - 40)
+                window_end = min(len(rec_lower), idx + len(kw) + 40)
+                window = rec_lower[window_start:window_end]
+                for neg in _NEGATIONS:
+                    if neg in window:
+                        logger.info(
+                            "Seesaw check blocked: negation %r near invariant keyword %r", neg, kw
+                        )
+                        return False
+                start = idx + 1
+
+        return True
 
     def _record_blocked_promotion(self, skill_name: str, signal: Any, reason: str) -> dict:
         """Turn a silent autonomous block into a visible pending-approval with a 'why' trace."""

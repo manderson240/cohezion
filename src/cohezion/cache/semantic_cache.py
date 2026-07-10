@@ -331,7 +331,11 @@ class SemanticCache:
         return self.similarity_threshold
 
     async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
+        self,
+        prompt: str,
+        system: str | None = None,
+        model: str | None = None,
+        scope_filter: list[str] | None = None,
     ) -> str | None:
         """Lookup with 3-tier fallback.
 

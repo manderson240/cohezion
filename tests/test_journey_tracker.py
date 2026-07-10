@@ -219,3 +219,72 @@ class TestCrossSessionIdentity:
         """
         jt = JourneyTracker(agent_id="test-agent-42")
         assert jt.agent_id == "test-agent-42"
+
+
+# ---------------------------------------------------------------------------
+# JI1: TrajectoryPoint.action field (harness invariant JI1)
+# ---------------------------------------------------------------------------
+
+
+class TestTrajectoryPointAction:
+    """JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default."""
+
+    def _make_result(self, tier: str = "npu", **extra_metrics) -> "ExecutionResult":
+        return ExecutionResult(
+            success=True,
+            output="ok",
+            metrics={"tier_used": tier, **extra_metrics},
+            duration_seconds=0.1,
+            token_metrics={},
+        )
+
+    def test_t1_action_field_exists_with_str_default(self) -> None:
+        """T1 structural: TrajectoryPoint has action field defaulting to empty string."""
+        import dataclasses
+
+        fields = {f.name: f for f in dataclasses.fields(TrajectoryPoint)}
+        assert "action" in fields, "TrajectoryPoint missing 'action' field (JI1)"
+        assert fields["action"].default == "", "'action' default must be empty string"
+
+    def test_t1_track_execution_accepts_action_kwarg(self) -> None:
+        """T1 structural: track_execution signature includes optional action kwarg."""
+        import inspect
+
+        sig = inspect.signature(JourneyTracker.track_execution)
+        assert "action" in sig.parameters, "track_execution missing 'action' parameter"
+        assert sig.parameters["action"].default == ""
+
+    def test_t2_action_captured_from_tier_used(self) -> None:
+        """T2 discriminating: action defaults to tier_used when not explicitly provided.
+
+        Wrong impl (action stays empty) would leave point.action == '' → fails.
+        """
+        tracker = JourneyTracker()
+        result = self._make_result(tier="npu")
+        point = tracker.track_execution(result, "classify task", "classify")
+        assert point.action == "npu", f"Expected action='npu' from tier_used, got {point.action!r}"
+
+    def test_t2_explicit_action_overrides_tier_used(self) -> None:
+        """T2 discriminating: explicit action arg takes priority over tier_used.
+
+        Wrong impl (always uses tier_used) would return 'cpu' instead of explicit value.
+        """
+        tracker = JourneyTracker()
+        result = self._make_result(tier="cpu")
+        point = tracker.track_execution(result, "escalated task", "reason", action="igpu:escalated")
+        assert point.action == "igpu:escalated", (
+            f"Explicit action must override tier_used, got {point.action!r}"
+        )
+
+    def test_action_empty_when_no_tier_and_no_explicit(self) -> None:
+        """When tier_used absent and no explicit action, action stays empty string."""
+        tracker = JourneyTracker()
+        result = ExecutionResult(
+            success=True,
+            output="ok",
+            metrics={},  # no tier_used
+            duration_seconds=0.1,
+            token_metrics={},
+        )
+        point = tracker.track_execution(result, "simple task", "classify")
+        assert point.action == "", f"Expected empty action, got {point.action!r}"

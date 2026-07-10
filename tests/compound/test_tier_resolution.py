@@ -4,6 +4,7 @@ The executor computed three routing signals (DifficultyEstimator predicted_tier,
 suggested_tier, JepaGate verdict) but never combined them, and REROUTE was only logged. _resolve_tier
 unifies them into one coherent recommendation and makes REROUTE actionable (downgrade toward cheaper).
 """
+
 from __future__ import annotations
 
 from cohezion.compound.executor import _call_execute_fn, _TIER_ORDER, _resolve_tier
@@ -27,11 +28,15 @@ class TestResolveTierBehavioral:
         A wrong impl that ignores the verdict returns the base; the OLD cheaper-downgrade impl
         returns npu — both fail."""
         assert _resolve_tier("npu", "npu", jepa_reroute=False) == "npu"  # baseline
-        assert _resolve_tier("npu", "npu", jepa_reroute=True) == "igpu"  # REROUTE escalates npu→igpu
+        assert (
+            _resolve_tier("npu", "npu", jepa_reroute=True) == "igpu"
+        )  # REROUTE escalates npu→igpu
         assert _resolve_tier("igpu", "igpu", jepa_reroute=True) == "cpu"
 
     def test_reroute_clamped_at_most_capable_tier(self):
-        assert _resolve_tier("cloud", "cloud", jepa_reroute=True) == "cloud"  # can't escalate past cloud
+        assert (
+            _resolve_tier("cloud", "cloud", jepa_reroute=True) == "cloud"
+        )  # can't escalate past cloud
 
     def test_no_valid_signal_returns_none(self):
         assert _resolve_tier(None, None, jepa_reroute=False) is None
@@ -114,6 +119,74 @@ class TestCompactionReroute:
     def test_health_degradation_escalates_even_easy_skill(self):
         ex = self._executor(suggested_tier="cpu")  # degraded health
         assert ex._recompute_tier_at_compaction("greet", "op", active_tier="npu") == "cpu"
+
+
+class TestCR1LongHorizonWiring:
+    """CR1: LongHorizonTask.execute_step() calls recompute_tier_at_compaction at compaction boundary.
+
+    The discriminating test fails when the wiring block is removed: mock.called stays False.
+    """
+
+    def test_execute_step_calls_recompute_at_compaction(self):
+        """CR1 discriminating: compaction boundary triggers executor.recompute_tier_at_compaction."""
+        from unittest.mock import MagicMock, patch
+
+        from cohezion.compound.long_horizon_task import LongHorizonTask
+
+        mock_executor = MagicMock()
+        mock_executor.recompute_tier_at_compaction.return_value = "igpu"
+
+        task = LongHorizonTask("skill_foo", executor=mock_executor, active_tier="npu")
+
+        # Drive context usage above the guardrail (80%) so execute_step sees a compaction boundary.
+        with patch(
+            "cohezion.compound.long_horizon_task.get_context_usage_percent", return_value=90.0
+        ):
+            result = task.execute_step()
+
+        assert result.handoff_triggered is True, "should have triggered handoff"
+        (
+            mock_executor.recompute_tier_at_compaction.assert_called_once_with(
+                "skill_foo", "execute_step", "npu"
+            ),
+            "recompute_tier_at_compaction must be called at the compaction boundary",
+        )
+        assert task.active_tier == "igpu", (
+            "active_tier must be updated from executor recommendation"
+        )
+
+    def test_execute_step_no_executor_does_not_crash(self):
+        """CR1 backward compat: execute_step without an executor still runs cleanly."""
+        from unittest.mock import patch
+
+        from cohezion.compound.long_horizon_task import LongHorizonTask
+
+        task = LongHorizonTask("bare_task")
+
+        with patch(
+            "cohezion.compound.long_horizon_task.get_context_usage_percent", return_value=90.0
+        ):
+            result = task.execute_step()
+
+        assert result.handoff_triggered is True
+
+    def test_active_tier_unchanged_when_recompute_returns_none(self):
+        """CR1: when recompute returns None (stay), active_tier is not modified."""
+        from unittest.mock import MagicMock, patch
+
+        from cohezion.compound.long_horizon_task import LongHorizonTask
+
+        mock_executor = MagicMock()
+        mock_executor.recompute_tier_at_compaction.return_value = None  # stay on current tier
+
+        task = LongHorizonTask("greet_task", executor=mock_executor, active_tier="npu")
+
+        with patch(
+            "cohezion.compound.long_horizon_task.get_context_usage_percent", return_value=90.0
+        ):
+            task.execute_step()
+
+        assert task.active_tier == "npu", "tier must not change when recompute returns None"
 
 
 class TestOracleTierSignal:
