@@ -288,7 +288,10 @@ def build_gaia_llm_tier(
         from cohezion.inference.model_card_defaults import get_sampling_defaults
 
         sampling = get_sampling_defaults(model_id)
-        temperature = float(sampling.get("temperature", 0.0))
+        # Unknown model: generic NON-ZERO fallback. 0.0-greedy is never a safe guess
+        # (degenerate on Gemma-family cards); 0.7 is the least-surprising generic. Family
+        # extras (top_k/top_p) are only sent on a real registry match.
+        temperature = float(sampling.get("temperature", 0.7))
         extra_sampling = {k: v for k, v in sampling.items() if k != "temperature"}
 
     client = LemonadeClient(base_url=base_url, model=model_id, verbose=not silent)

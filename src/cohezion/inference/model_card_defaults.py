@@ -17,6 +17,9 @@ _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     "qwen3.6-35b-a3b-gguf": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0.0},
     "qwen3.6-35b-a3b-nothinking": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0.0},
     "qwen3.6-35b-a3b-thinkingcoder": {"temperature": 0.6, "top_k": 30},
+    # Generic Qwen3 family (matches e.g. DeepSeek-Qwen3-8B). MUST stay after the
+    # qwen3.6-35b-* keys: _match_model takes the first substring hit in insertion order.
+    "qwen3": {"temperature": 0.6, "top_p": 0.95, "top_k": 20},
     "llama3.2-1b-flm": {"temperature": 0.3},
 }
 
