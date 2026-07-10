@@ -45,6 +45,8 @@ from typing import Any
 
 import numpy as np
 
+from cohezion.compound.degradation_health import HealthObservabilityMixin
+
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +229,7 @@ class MetricBaseline:
         return self.mean - (self.std_dev / k)
 
 
-class DegradationDetector:
+class DegradationDetector(HealthObservabilityMixin):
     """Monitor metrics and detect degradation.
 
     Tracks moving averages and alerts when metrics fall below thresholds.
@@ -331,6 +333,11 @@ class DegradationDetector:
         # CB7: call counter for warm-start awareness — how many check_degradation() calls
         # have established baselines in this detector instance.
         self._call_count: int = 0
+
+        # CB11: capped rolling buffer of health snapshots (HealthObservabilityMixin
+        # reads/writes these; record_snapshot() trims to _max_snapshot_history).
+        self._snapshot_history: list[dict[str, Any]] = []
+        self._max_snapshot_history: int = 20
 
         logger.debug("DegradationDetector initialized with thresholds")
 

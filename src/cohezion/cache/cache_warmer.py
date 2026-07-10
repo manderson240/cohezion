@@ -116,15 +116,19 @@ class CacheWarmer:
                 "tokens_saved": len(task_description.split()) * 4,  # rough estimate
             }
 
-        # Try L2 semantic match (cosine similarity)
-        if hasattr(self.cache, "_l2_cache") and self.cache._l2_cache:
+        # Try L2 semantic match (cosine similarity). CB3: the SemanticCache L2
+        # store is the public ``l2_cache`` attribute and the encoder is
+        # ``_text_to_embedding`` — the old ``_l2_cache``/``_embed`` names never
+        # existed on the current cache, so the fallback silently disabled L2.
+        l2_cache = getattr(self.cache, "l2_cache", getattr(self.cache, "_l2_cache", {}))
+        if l2_cache:
             try:
-                embedding = self.cache._embed(task_description)
+                embedding = self.cache._text_to_embedding(task_description)
                 if embedding is not None:
                     best_match = None
                     best_sim = 0.0
 
-                    for entry in self.cache._l2_cache.values():
+                    for entry in l2_cache.values():
                         if entry.embedding is not None:
                             sim = self.cache._cosine_similarity(embedding, entry.embedding)
                             if sim > best_sim:

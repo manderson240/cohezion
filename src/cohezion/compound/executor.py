@@ -609,6 +609,45 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except Exception as e:
             logger.debug("Cache-hit WITNESS_MARK failed (non-blocking): %s", e)
 
+    def _populate_semantic_cache(
+        self, task_description: str, output: Any, operation_type: str
+    ) -> None:
+        """CB4: persist a successful execution into the injected semantic cache.
+
+        Complements the async fire-and-forget writer in ``execute_task``: when a
+        loop IS running, that writer's ``asyncio.create_task`` already scheduled
+        the ``put`` and this method skips (no double write); when NO loop is
+        running (the normal sync-caller path), the async writer raises+skips and
+        this method owns the write via ``asyncio.run``. Gated on the *injected*
+        ``self._semantic_cache`` (``None`` → no-op) so direct ``CompoundExecutor``
+        construction stays cache-free and test isolation is preserved (exp_SSSS).
+        """
+        if self._semantic_cache is None:
+            return
+        try:
+            import asyncio
+
+            try:
+                asyncio.get_running_loop()
+                return  # loop active → async writer already scheduled the put
+            except RuntimeError:
+                pass  # no running loop → this call owns the write
+
+            card_sig = self._current_card_signature(operation_type)
+            if card_sig is None:
+                return
+            asyncio.run(
+                self._semantic_cache.put(
+                    prompt=task_description,
+                    response=str(output)[:16000],
+                    system="",
+                    model=card_sig[0],
+                    card_signature=card_sig,
+                )
+            )
+        except Exception as e:
+            logger.debug("Semantic cache populate failed (non-blocking): %s", e)
+
     def get_experience_guidance(
         self,
         task_description: str,
@@ -690,6 +729,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 exc_info=True,
             )
             return []
+
+    def get_health(self) -> dict[str, bool | None]:
+        """Tri-state health of the executor's monitored dimensions (CB6).
+
+        Public entry point to the health API so callers don't reach through the
+        private ``_degradation_detector``. Delegates to
+        ``DegradationDetector.get_health_summary()`` when a detector is wired;
+        returns all-``None`` (safe unconfigured default) otherwise.
+        """
+        if self._degradation_detector is None:
+            return {"cache": None, "token_efficiency": None, "coherence": None}
+        return self._degradation_detector.get_health_summary()
 
     def execute_task(
         self,
@@ -1105,6 +1156,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 pass
             except Exception as e:
                 logger.debug("Cache write failed (non-blocking): %s", e)
+
+        # CB4: sync-caller write path. In a running loop the block above already
+        # scheduled the put (this call skips); with no loop it raised+skipped and
+        # this call performs the write via asyncio.run. Gated on the injected
+        # cache so it is a no-op for direct construction (test isolation).
+        if success and output:
+            self._populate_semantic_cache(task_description, output, operation_type)
 
         # Step 4: Log execution results
         self.logger.log_execution_result(

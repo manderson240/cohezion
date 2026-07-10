@@ -17,11 +17,44 @@ from cohezion.inference.orchestrator import (
 logger = logging.getLogger(__name__)
 
 
+# OOM1 (harness N3/K1/N2): footprint of the heavy CPU reasoner tier and the RAM
+# headroom to keep after a load. The router pre-loads this model; a load that
+# exceeds free memory risks the OOM killer (N3), so gate before adding the tier.
+_CPU_REASONER_FOOTPRINT_GB = 20.0
+_MEMORY_SAFETY_BUFFER_GB = 16.0
+
+
+def _cpu_reasoner_tier_fits() -> tuple[bool, str]:
+    """OOM gate for the heavy CPU reasoner tier (harness N3/K1/N2).
+
+    Mirrors ``ResourceGuard.can_load_model``: reads live free RAM via
+    ``MemorySnapshot.capture()`` and refuses the tier when the reasoner
+    footprint + safety buffer would exceed available memory, so a load can never
+    push the box into the OOM killer. Fails open (allows) if the probe raises.
+    """
+    try:
+        from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
+
+        snap = MemorySnapshot.capture()
+    except Exception as exc:  # probe unavailable — do not silently block
+        return True, f"memory probe failed ({exc}); gate skipped"
+
+    needed = _CPU_REASONER_FOOTPRINT_GB + _MEMORY_SAFETY_BUFFER_GB
+    if snap.available_gb < needed:
+        return False, (
+            f"CPU reasoner ~{_CPU_REASONER_FOOTPRINT_GB:.0f}GB + "
+            f"{_MEMORY_SAFETY_BUFFER_GB:.0f}GB buffer = {needed:.0f}GB > "
+            f"{snap.available_gb:.1f}GB free — escalate to router/cloud instead"
+        )
+    return True, f"fits: {needed:.0f}GB needed <= {snap.available_gb:.1f}GB free"
+
+
 def build_triune_orchestrator(
     *,
     npu_port: int = 13306,  # allow-direct-port: N2-retained default, not dispatch bypass
     igpu_port: int = 13307,  # allow-direct-port: N2-retained default, not dispatch bypass
     cpu_port: int = 13309,  # N2: lemonade CPU port (NOT 11434/Ollama — migrated 2026-05-21)
+    enforce_memory_gate: bool = False,
 ) -> TieredOrchestrator:
     """
     Constructs a TieredOrchestrator mapped to the Triune Substrate.
@@ -42,18 +75,30 @@ def build_triune_orchestrator(
         model_id="Gemma-4-E4B-it-GGUF", base_url=f"http://localhost:{igpu_port}/v1", silent=True
     )
 
-    # 3. CPU Tier — lemonade :13309 (AVX-512); N2: NOT Ollama :11434
-    cpu_tier = build_gaia_native_tier(
-        model_id="Gemma-4-31B-it-GGUF", base_url=f"http://localhost:{cpu_port}/v1", silent=True
-    )
+    tiers = [
+        (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
+        (igpu_tier, QualityGate(min_chars=2000)),  # iGPU for complex synthesis
+    ]
 
-    return TieredOrchestrator(
-        tiers=[
-            (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
-            (igpu_tier, QualityGate(min_chars=2000)),  # iGPU for complex synthesis
-            (cpu_tier, QualityGate.TRUST),  # CPU for guaranteed completion
-        ]
-    )
+    # 3. CPU Tier — lemonade :13309 (AVX-512); N2: NOT Ollama :11434.
+    # OOM1: gate the heavy CPU reasoner on free RAM (N3/K1). Opt-in via
+    # enforce_memory_gate so the default remains a deterministic 3-tier cascade
+    # (an always-on gate would make this pure constructor read live RAM and flake
+    # the tier-count contract); enable on memory-tight hosts to escalate rather
+    # than risk an OOM hang.
+    include_cpu = True
+    if enforce_memory_gate:
+        include_cpu, reason = _cpu_reasoner_tier_fits()
+        if not include_cpu:
+            logger.warning("OOM guard: omitting CPU reasoner tier — %s", reason)
+
+    if include_cpu:
+        cpu_tier = build_gaia_native_tier(
+            model_id="Gemma-4-31B-it-GGUF", base_url=f"http://localhost:{cpu_port}/v1", silent=True
+        )
+        tiers.append((cpu_tier, QualityGate.TRUST))  # CPU for guaranteed completion
+
+    return TieredOrchestrator(tiers=tiers)
 
 
 def build_triune_omni_orchestrator(
