@@ -27,7 +27,7 @@ GCVM_PATTERN='GCVM_L2_PROTECTION_FAULT'
 
 ok()  { echo "  ✓ $*"; }
 err() { echo "  ✗ $*" >&2; }
-info() { (( VERBOSE )) && echo "  · $*"; }
+info() { (( VERBOSE )) && echo "  · $*" || true; }
 
 fail=0
 
@@ -44,7 +44,9 @@ else
   else
     avail=$(echo "${mem_line}" | awk '{print $7}')
     info "available: ${avail}"
-    avail_gib=$(echo "${avail}" | numfmt --from=iec --to=none 2>/dev/null || echo "0")
+    avail_normalized=$(echo "${avail}" | sed 's/Gi$/G/')
+    avail_gib=$(echo "${avail_normalized}" | numfmt --from=iec --to=none 2>/dev/null || echo "0")
+    avail_gib=$((avail_gib / 1073741824))
     if (( $(echo "${avail_gib} < ${MIN_AVAILABLE_GIB}" | bc -l 2>/dev/null || echo 1) )); then
       err "available memory ${avail} is below the ${MIN_AVAILABLE_GIB} GiB floor"
       fail=1

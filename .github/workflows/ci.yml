@@ -13,6 +13,9 @@ permissions:
 
 env:
   COHEZION_CI: "true"
+  COHEZION_NON_INTERACTIVE: "true"
+  KAGGLE_USERNAME: "dummy"
+  KAGGLE_KEY: "dummy"
 
 jobs:
   # ── Lint ─────────────────────────────────────────────────────
