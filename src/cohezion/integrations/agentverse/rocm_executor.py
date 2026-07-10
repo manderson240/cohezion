@@ -37,7 +37,11 @@ logger = logging.getLogger(__name__)
 
 # ROCm-optimized defaults
 DEFAULT_ROCM_MODEL = "llama3.2:3b"  # Efficient on 8060S
-DEFAULT_ROCM_URL = "http://localhost:11434"
+# Wiring target: fold into the agentverse executor factory, or remove once confirmed
+# unreachable after integration (non-destructive-wiring policy: never a bare delete).
+DEFAULT_ROCM_URL = (
+    "http://localhost:11434"  # allow-direct-port: DEAD, 0 prod importers (__main__-only)
+)
 
 # Hardware-optimized parameters for Ryzen AI MAX+ 395
 ROCM_CONFIG = {

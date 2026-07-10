@@ -53,10 +53,10 @@ def _silicon_state() -> dict[str, object]:
     try:
         import httpx
 
-        npu_up = _probe_lemonade(13306, httpx)
-        igpu_up = _probe_lemonade(13307, httpx)
-        igpu_models = _count_models(13307, httpx)
-        npu_models = _list_flm_models(13306, httpx)
+        npu_up = _probe_lemonade(13306, httpx)  # allow-direct-port: liveness probe, not dispatch
+        igpu_up = _probe_lemonade(13307, httpx)  # allow-direct-port: liveness probe, not dispatch
+        igpu_models = _count_models(13307, httpx)  # allow-direct-port: liveness probe, not dispatch
+        npu_models = _list_flm_models(13306, httpx)  # allow-direct-port: liveness probe
     except Exception as exc:
         logger.debug("silicon_state probe failed: %s", exc)
         return {"npu_up": False, "igpu_up": False, "igpu_models": 0, "npu_models": []}

@@ -172,7 +172,11 @@ def build_rag_chain(
         from langchain_core.prompts import ChatPromptTemplate
         from langchain_core.runnables import RunnablePassthrough
 
-        embeddings = OllamaEmbeddings(model="phi3:mini", base_url="http://localhost:11434")
+        # Wiring target: fold into the tier-builder registry, or remove once confirmed
+        # unreachable after integration (non-destructive-wiring policy: never a bare delete).
+        embeddings = OllamaEmbeddings(
+            model="phi3:mini", base_url="http://localhost:11434"
+        )  # allow-direct-port: DEAD, only a test imports this module (0 prod importers)
         from langchain_core.documents import Document
 
         docs = [Document(page_content=d) for d in documents]
@@ -200,6 +204,10 @@ def _default_llm():
     try:
         from langchain_community.llms import Ollama
 
-        return Ollama(model="phi3:mini", base_url="http://localhost:11434")
+        # Wiring target: fold into the tier-builder registry, or remove once confirmed
+        # unreachable after integration (non-destructive-wiring policy: never a bare delete).
+        return Ollama(
+            model="phi3:mini", base_url="http://localhost:11434"
+        )  # allow-direct-port: DEAD, only a test imports this module (0 prod importers)
     except Exception:
         return None

@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 def build_triune_orchestrator(
     *,
-    npu_port: int = 13306,
-    igpu_port: int = 13307,
+    npu_port: int = 13306,  # allow-direct-port: N2-retained default, not dispatch bypass
+    igpu_port: int = 13307,  # allow-direct-port: N2-retained default, not dispatch bypass
     cpu_port: int = 13309,  # N2: lemonade CPU port (NOT 11434/Ollama — migrated 2026-05-21)
 ) -> TieredOrchestrator:
     """

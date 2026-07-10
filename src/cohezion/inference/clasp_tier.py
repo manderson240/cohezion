@@ -169,8 +169,8 @@ class CLaSpTier:
 
 def build_clasp_igpu_tier(
     *,
-    draft_port: int = 13308,
-    verify_port: int = 13307,
+    draft_port: int = 13308,  # allow-direct-port: N2-retained default, not dispatch bypass
+    verify_port: int = 13307,  # allow-direct-port: N2-retained default, not dispatch bypass
     draft_model: str = "Gemma-4-E2B-it-GGUF",
     verify_model: str = "Gemma-4-E4B-it-GGUF",
     draft_acceptance_chars: int = _CLASP_DRAFT_ACCEPTANCE_CHARS,
