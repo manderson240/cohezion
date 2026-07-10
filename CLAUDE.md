@@ -456,6 +456,14 @@ See skill: `cohezion-skill-routing` for the decision tree, keyword-to-skill rout
 | Anthropic scan | `/anthropic-scan` | `~/.claude/commands/anthropic-scan.md` |
 | Config audit | Read `~/.claude/anthropic-intel/latest-digest.md` | `~/.claude/anthropic-intel/` |
 
+## PR Landing Workflow
+
+**Documented in `AGENTS.md` → "PR Landing Workflow (for agents)"** — pre-warm review model,
+local adversarial review, then `scripts/ci/automerge_guard.sh` (runs all 7 CI gates locally,
+logs to SurrealDB `automerge_log`). Consolidation lessons (squash drops functions, blanket
+xfail, import smoke, pre-warm before review, branch hygiene) live there too. Claude Code
+loads CLAUDE.md, not AGENTS.md — this pointer exists so sessions find the workflow.
+
 ## Kaggle Blackwell Handshake (Critical)
 When orchestrating jobs on Kaggle G4 (Blackwell) infrastructure, standard `accelerator` requests will fail. You MUST follow this handshake:
 1.  **Metadata**: Set `"machine_shape": "NvidiaRtxPro6000"` and `"dockerImageVersionId": 31287` in the internal `.ipynb` metadata.
