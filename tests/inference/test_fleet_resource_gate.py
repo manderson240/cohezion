@@ -14,14 +14,9 @@ candidate (await_count >= 1). These tests assert the OOM-pressure path skips loc
 from __future__ import annotations
 import pytest
 
-pytestmark = pytest.mark.xfail(
-    reason="TDD-red: feature not fully implemented post-consolidation", strict=False
-)
-
 import time
 from unittest.mock import AsyncMock, patch
 
-import pytest
 
 from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
 from cohezion.inference.fleet import route
@@ -51,6 +46,9 @@ def _all_lanes_up() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(
+    reason="TDD-red: OOM-pressure resource gate not wired into fleet.route()", strict=False
+)
 async def test_oom_pressure_skips_local_dispatch() -> None:
     """available_gb (8) < OOM buffer (16) → local lanes skipped, dispatch never attempted."""
     _all_lanes_up()

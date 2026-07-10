@@ -13,14 +13,9 @@ A candidate with size_gb=None must NOT be spuriously deferred (no fabricated siz
 from __future__ import annotations
 import pytest
 
-pytestmark = pytest.mark.xfail(
-    reason="TDD-red: feature not fully implemented post-consolidation", strict=False
-)
-
 import time
 from unittest.mock import AsyncMock, patch
 
-import pytest
 
 from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
 from cohezion.inference.fleet import route
@@ -57,6 +52,7 @@ def _all_up() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(reason="TDD-red: per-candidate headroom gate not implemented", strict=False)
 async def test_oversized_candidate_deferred_smaller_dispatched() -> None:
     _all_up()
     reg = FleetRegistry(models={})
@@ -87,6 +83,7 @@ async def test_unknown_size_not_spuriously_deferred() -> None:
     assert dispatch.await_count == 1
 
 
+@pytest.mark.xfail(reason="TDD-red: Gemma-12B-QAT OOM fallback not implemented", strict=False)
 def test_gemma_12b_qat_is_codegen_oom_fallback_below_26b() -> None:
     """Item 144: the 6.5 GB Gemma-4-12B-QAT is the CODE_GEN memory-pressure fallback below the 26B.
 

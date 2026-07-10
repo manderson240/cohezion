@@ -3,7 +3,6 @@
 from __future__ import annotations
 import pytest
 
-pytestmark = pytest.mark.xfail(reason="TDD-red", strict=False)
 
 import pytest
 
@@ -23,21 +22,25 @@ class TestTokenUsageRecord:
         assert cost == pytest.approx(3.00 + 1.50, rel=1e-6)
         assert r.cloud_cost_usd > 0
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_cloud_savings_matches_sonnet_rate(self):
         r = TokenUsageRecord()
         r.add_local(1_000_000)  # 1M local tokens
         expected = 1_000_000 * 3.00 / 1_000_000  # Sonnet input rate
         assert r.cloud_savings_usd == pytest.approx(expected, rel=1e-6)
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_local_fraction_all_local(self):
         r = TokenUsageRecord()
         r.add_local(100)
         assert r.local_fraction == pytest.approx(1.0, abs=1e-6)
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_local_fraction_zero_tokens(self):
         r = TokenUsageRecord()
         assert r.local_fraction == 0.0
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_local_fraction_mixed(self):
         r = TokenUsageRecord()
         r.add_local(800)
@@ -45,6 +48,7 @@ class TestTokenUsageRecord:
         fraction = r.local_fraction
         assert 0.7 < fraction < 0.95
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_cache_hit_accounting(self):
         r = TokenUsageRecord()
         r.add_cache_hit(500)
@@ -52,6 +56,7 @@ class TestTokenUsageRecord:
         assert r.cache_hits == 2
         assert r.cache_tokens_saved == 800
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_to_dict_has_required_keys(self):
         r = TokenUsageRecord()
         r.add_local(100)
@@ -63,6 +68,7 @@ class TestTokenUsageRecord:
         assert "local_fraction" in d
         assert "cache_hits" in d
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_telegram_report_contains_key_info(self):
         r = TokenUsageRecord()
         r.add_local(50_000, model="Gemma-4-E4B-it-GGUF")
@@ -73,12 +79,14 @@ class TestTokenUsageRecord:
         assert "local" in report.lower() or "free" in report.lower()
         assert "$" in report
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_is_local_model_recognizes_flm(self):
         r = TokenUsageRecord()
         assert r.is_local_model("llama3.2-1b-FLM") is True
         assert r.is_local_model("Gemma-4-E4B-it-GGUF") is True
         assert r.is_local_model("claude-sonnet-4-6") is False
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_haiku_cheaper_than_sonnet(self):
         r = TokenUsageRecord()
         haiku_cost = r.add_cloud(100_000, 10_000, model="claude-haiku-4-5")
@@ -86,6 +94,7 @@ class TestTokenUsageRecord:
         sonnet_cost = r2.add_cloud(100_000, 10_000, model="claude-sonnet-4-6")
         assert haiku_cost < sonnet_cost
 
+    @pytest.mark.xfail(reason="TDD-red: TokenUsageRecord method not implemented", strict=False)
     def test_total_tokens(self):
         r = TokenUsageRecord()
         r.add_local(500)
