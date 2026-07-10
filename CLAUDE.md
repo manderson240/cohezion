@@ -454,6 +454,7 @@ See skill: `cohezion-skill-routing` for the decision tree, keyword-to-skill rout
 | Debug journeys | `JourneyTracker.get_journey(agent_id)` | `src/cohezion/compound/journey_tracker.py` |
 | Check alignment | `RequestAlignmentAnalyzer.analyze(...)` | `src/cohezion/compound/request_alignment_analyzer.py` |
 | Anthropic scan | `/anthropic-scan` | `~/.claude/commands/anthropic-scan.md` |
+| Drain research backlog | `uv run python scripts/actioner.py [--dry-run]` | `src/cohezion/actioner/engine.py` |
 | Config audit | Read `~/.claude/anthropic-intel/latest-digest.md` | `~/.claude/anthropic-intel/` |
 
 ## PR Landing Workflow
