@@ -50,8 +50,6 @@ class OperationType(Enum):
     PERSIST = "persist"  # High temporal + precipitation
 
 
-
-
 # AOEP actionability axis: semantic state categories (arXiv 2606.30306).
 # Deterministic mapping — no LLM call in the tracking hot path.
 _STATE_CATEGORY_MAP = {

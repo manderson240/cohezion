@@ -517,9 +517,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
     # ── PR 2: card-aligned semantic cache helpers ───────────────────────
 
-    def _current_card_signature(
-        self, operation_type: str
-    ) -> tuple[str, str, str] | None:
+    def _current_card_signature(self, operation_type: str) -> tuple[str, str, str] | None:
         """Return the (model_id, family, thinking_mode) for the current
         caller's default card — the route_by_capability pick for the
         operation. Used as the semantic-cache key so two consumers with
@@ -546,9 +544,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 return None
             entry, params = result
             family = entry.profile.family if entry.profile is not None else "unknown"
-            thinking = (
-                entry.profile.thinking_mode if entry.profile is not None else "never"
-            )
+            thinking = entry.profile.thinking_mode if entry.profile is not None else "never"
             return (params.model_id, family, thinking)
         except Exception as e:
             logger.debug("Card signature lookup failed (non-blocking): %s", e)
@@ -574,9 +570,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 universe_id="cohezion_compound_executor",
                 coherence=0.7,
                 twelve_d={
-                    "x": 0.5, "y": 0.5, "z": 0.5, "time": 0.5,
-                    "physics": 0.5, "biology": 0.5, "logic": 0.5, "quantum": 0.5,
-                    "field": 0.5, "control": 0.5, "novelty": 0.5, "precipitation": 0.5,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "z": 0.5,
+                    "time": 0.5,
+                    "physics": 0.5,
+                    "biology": 0.5,
+                    "logic": 0.5,
+                    "quantum": 0.5,
+                    "field": 0.5,
+                    "control": 0.5,
+                    "novelty": 0.5,
+                    "precipitation": 0.5,
                 },
                 payload={
                     "source": "compound.executor.cache_hit",
@@ -1064,12 +1069,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # the next call for the same (prompt, card_signature) hits. The
         # cache is the in-process L1/L2; the SurrealDB row is the
         # datamesh-resident copy.
-        if (
-            self._enable_semantic_cache
-            and self._semantic_cache is not None
-            and success
-            and output
-        ):
+        if self._enable_semantic_cache and self._semantic_cache is not None and success and output:
             try:
                 card_sig = self._current_card_signature(operation_type)
                 if card_sig is not None:
