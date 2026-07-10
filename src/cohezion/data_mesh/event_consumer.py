@@ -61,7 +61,7 @@ TALLY_ONLY_EVENT_TYPES = {
 
 
 def _default_sql(query: str, timeout: float = 10.0) -> list[dict[str, Any]]:
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310 — fixed localhost literal
         SURREAL_URL,
         data=query.encode(),
         headers={**_HEADERS, "Authorization": _AUTH},
@@ -118,7 +118,7 @@ def _default_file_work_item(title: str, description: str, domain: str) -> str:
             "notes": "auto-filed by datamesh EventConsumer",
         }
     ).encode()
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310 — fixed localhost literal
         WORK_QUEUE_API,
         data=body,
         headers={"Content-Type": "application/json"},
