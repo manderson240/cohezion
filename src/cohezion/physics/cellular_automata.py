@@ -226,14 +226,14 @@ class CosmogonyCA:
 
 
 class LemonadeCAAdvisor:
-    """Queries local NPU (port 13306) to propose CA rule mutations.
+    """Queries local NPU via the :13305 OmniRouter to propose CA rule mutations.
 
     The LLM acts as policy network for RL rule search: given current rule
     number and target Wolfram class, suggest a rule bit to flip.
     Falls back silently if Lemonade is unreachable.
     """
 
-    NPU_URL = "http://localhost:13306/v1"
+    NPU_URL = "http://localhost:13305/v1"
     MODEL = "llama3.2-1b-FLM"
 
     def __init__(self, npu_url: str = NPU_URL, timeout: float = 5.0) -> None:

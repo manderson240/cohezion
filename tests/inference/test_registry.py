@@ -33,12 +33,16 @@ def test_gemma_lanes_bind_to_correct_silicon() -> None:
     assert registry.models["Gemma-4-31B-it-GGUF"].lane == Lane.CPU
 
 
-def test_gemma_lane_ports_match_symphony_launch_script() -> None:
+def test_gemma_lanes_dispatch_via_omnirouter() -> None:
+    # F2 Phase 2 (port-bypass triage): the deprecated per-lane Lemonade ports
+    # (:13306-:13309) were repointed at the always-up :13305 OmniRouter, which
+    # fans out to NPU/iGPU/CPU on demand. Lane binding is still asserted above
+    # (test_gemma_lanes_bind_to_correct_silicon); the dispatch endpoint is the router.
     registry = FleetRegistry()
-    assert "13306" in registry.models["Gemma-4-E2B-it-GGUF"].endpoint
-    assert "13307" in registry.models["Gemma-4-E4B-it-GGUF"].endpoint
-    assert "13308" in registry.models["Gemma-4-26B-A4B-it-GGUF"].endpoint
-    assert "13309" in registry.models["Gemma-4-31B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-E2B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-E4B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-26B-A4B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-31B-it-GGUF"].endpoint
 
 
 def test_for_task_returns_sorted_by_priority() -> None:

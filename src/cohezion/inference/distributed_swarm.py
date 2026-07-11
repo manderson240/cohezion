@@ -765,7 +765,7 @@ class SiliconSwarm:
             else:
                 # Lemonade — map node_id to port
                 lane = node.node_id.split(":", 1)[1]
-                port = _LANE_PORTS.get(lane, 13309)
+                port = _LANE_PORTS.get(lane, 13305)
                 text, latency_ms = await _call_lemonade(
                     port, node.model, prompt, max_tokens=max_tokens, timeout=timeout
                 )

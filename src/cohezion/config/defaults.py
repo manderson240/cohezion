@@ -29,7 +29,9 @@ OLLAMA_BASE_URL: str = "http://localhost:11434"
 
 # ── Unified orchestrator lanes (PR #242 imported these but never defined them;
 #    values grounded in harness.md N1/N2 fleet topology and module usage) ─────
-LANE_PORTS: dict[str, int] = {"npu": 13306, "igpu": 13307, "cpu": 13309}
+# All lanes dispatch through the :13305 OmniRouter (which fans out to NPU/iGPU/CPU
+# on demand); the deprecated per-lane ports (:13306-:13309) are down and redundant.
+LANE_PORTS: dict[str, int] = {"npu": 13305, "igpu": 13305, "cpu": 13305}
 LANE_MODELS: dict[str, str] = {
     "npu": "llama3.2-1b-FLM",
     "igpu": "Gemma-4-E4B-it-GGUF",
@@ -65,10 +67,10 @@ LANE_MODELS: dict[str, str] = {
 }
 
 LANE_PORTS: dict[str, int] = {
-    "npu": 13306,
-    "igpu_rocwmma": 13307,
-    "igpu_unified": 13308,
-    "cpu": 13309,
+    "npu": 13305,
+    "igpu_rocwmma": 13305,
+    "igpu_unified": 13305,
+    "cpu": 13305,
 }
 
 N_CPU_WORKERS: int = int(os.environ.get("SWARM_CPU_WORKERS", "6"))

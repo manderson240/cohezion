@@ -123,7 +123,7 @@ STANDARD_JOBS = [
         "prompt": (
             "Check NPU liveness: from cohezion.compound.local_inference import lemonade_available; "
             "up = lemonade_available(); print('NPU:', 'UP' if up else 'DOWN'); "
-            "if not up: print('Action needed: lemond --port 13306 &')"
+            "if not up: print('Action needed: lemond --port 13306 &')"  # allow-direct-port: manual-recovery help text, not dispatch
         ),
     },
     {

@@ -31,12 +31,12 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 
 logger = logging.getLogger(__name__)
 
-# Lemonade OpenAI-compatible defaults (local-first, $0). The CPU node (13309) is
-# the resilient default because the NPU (13306) / iGPU (13307) tiers are often
-# down; any caller can override every field via Mem0Config.
-_DEFAULT_LLM_BASE_URL = "http://localhost:13309/v1"
+# Lemonade OpenAI-compatible defaults (local-first, $0). The :13305 OmniRouter is
+# the resilient default — it is always up and fans out to NPU/iGPU/CPU on demand,
+# unlike the deprecated per-lane ports; any caller can override every field via Mem0Config.
+_DEFAULT_LLM_BASE_URL = "http://localhost:13305/v1"
 _DEFAULT_LLM_MODEL = "Gemma-4-E4B-it-GGUF"
-_DEFAULT_EMBED_BASE_URL = "http://localhost:13309/v1"
+_DEFAULT_EMBED_BASE_URL = "http://localhost:13305/v1"
 # Verified live on Lemonade 13309 (dogfood exp_mem0_dogfood): the generic
 # "nomic-embed-text" id does NOT exist there and hard-fails; this moe GGUF is the
 # harness-CA1 primary 768-dim encoder actually served.

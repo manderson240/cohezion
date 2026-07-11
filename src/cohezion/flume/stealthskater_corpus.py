@@ -269,7 +269,7 @@ def run_exp_bbbb(latents: dict[str, torch.Tensor]) -> dict:
             "vae_architecture": "build_optimal_vae(input_dim=768, hd=4096, 2-layer-decoder)",
             "vae_trained": False,
             "note": (
-                "iGPU Lemonade server (13307) does not expose /v1/embeddings "
+                "iGPU Lemonade server (13307) does not expose /v1/embeddings "  # allow-direct-port: historical experiment record, not dispatch
                 "(needs --embeddings flag). Used canonical SentenceTransformer "
                 "all-mpnet-base-v2 as specified in STEALTHSKATER_CORPUS.md. "
                 "VAE is untrained random projection; latent structure reflects "

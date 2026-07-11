@@ -214,7 +214,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-E2B-it-GGUF",
             size_gb=2.9,  # measured GGUF on disk: gemma-4-E2B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.NPU,
-            endpoint="http://localhost:13306",
+            endpoint="http://localhost:13305",  # OmniRouter dispatches to XDNA2/NPU
             runtime_backend="flm",
             task_affinity=frozenset({Task.SENSING, Task.ROUTING, Task.SUMMARIZATION}),
             weight_quant=WeightQuant.INT4,
@@ -283,8 +283,8 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-E4B-it-GGUF",
             size_gb=4.6,  # measured GGUF on disk: gemma-4-E4B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13307",
-            runtime_backend="llamacpp_hip",  # served by Lemonade (lemond :13307)
+            endpoint="http://localhost:13305",
+            runtime_backend="llamacpp_hip",  # served by Lemonade via the :13305 router
             task_affinity=frozenset({Task.STRUCTURED, Task.GOVERNANCE}),
             weight_quant=WeightQuant.Q4_K_M,
             kv_quant=kv8_q80,
@@ -300,7 +300,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="LFM2.5-VL-1.6B-Extract-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13307",
+            endpoint="http://localhost:13305",
             runtime_backend="llamacpp_hip",  # vision needs --mmproj (llama-mtmd) — unproven on lemonade
             task_affinity=frozenset({Task.EXTRACTION, Task.VISION}),
             weight_quant=WeightQuant.Q4_K_M,  # actual GGUF is Q4_0 (~696 MB); F16 ~2.34 GB
@@ -322,7 +322,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="Qwen3-Reranker-0.6B-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13307",
+            endpoint="http://localhost:13305",
             runtime_backend="llamacpp_hip",  # needs --pooling rank (llama-server reranker mode)
             task_affinity=frozenset({Task.RERANK}),
             weight_quant=WeightQuant.Q5_K_M,  # ~0.6B; Q5_K_M GGUF ~520 MB, low VRAM
@@ -340,7 +340,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="Granite-4.1-3b-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13307",
+            endpoint="http://localhost:13305",
             runtime_backend="llamacpp_hip",  # tool-calling needs template/tool-token alignment
             task_affinity=frozenset({Task.FUNCTION_CALL}),
             weight_quant=WeightQuant.Q4_K_M,  # ~3B; Q4_K_M GGUF ~2 GB, low VRAM
@@ -361,7 +361,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-26B-A4B-it-GGUF",
             size_gb=15.7,  # measured GGUF on disk via measure_gguf_sizes (item 136, non-fabricated)
             lane=Lane.IGPU_UNIFIED,
-            endpoint="http://localhost:13308",
+            endpoint="http://localhost:13305",  # OmniRouter dispatches to iGPU-unified lane
             # DECLARED vllm_rocm; today served via Lemonade (llamacpp) when loaded.
             runtime_backend="vllm_rocm",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
@@ -380,7 +380,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-12B-it-qat-q4_0-GGUF",
             size_gb=6.5,  # google/gemma-4-12B-it-qat-q4_0-gguf q4_0 = 6.50 GiB (item 144, model_info-verified)
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13307",
+            endpoint="http://localhost:13305",
             runtime_backend="llamacpp_hip",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
             weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0: near-FP quality at q4 (quantization-aware training)
@@ -401,7 +401,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="GLM-OCR-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13307",
+            endpoint="http://localhost:13305",
             runtime_backend="llamacpp_hip",  # vision/OCR needs --mmproj (llama-mtmd) — shares item 18
             task_affinity=frozenset({Task.OCR_DOC}),
             weight_quant=WeightQuant.Q4_K_M,  # GGUF: GLM-OCR-Q8_0 + GLM-OCR-f16 + mmproj-GLM-OCR-Q8_0
@@ -420,7 +420,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="Mellum-4b-base-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13307",
+            endpoint="http://localhost:13305",
             runtime_backend="llamacpp_hip",  # FIM completion via /api/v1/completions (NOT chat)
             task_affinity=frozenset({Task.FIM}),
             weight_quant=WeightQuant.INT8,  # GGUF mellum-4b-base.Q8_0 (≈8-bit); enum has no Q8_0
@@ -469,7 +469,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "Extends agent availability with $0 local inference: the verified-live, "
                 "NO-THINKING, tool-capable Granite-4.1-8B served by the always-up lemonade router "
                 ":13305 (the same model Hermes runs). Registered because the registry's other local "
-                "REASONING model (Gemma-4-26B-A4B) points at the DOWN :13308 lane — so route(REASONING,"
+                "REASONING model (Gemma-4-26B-A4B) points at the DOWN iGPU-unified lane — so route(REASONING,"
                 " $0) was returning 'all candidates exhausted' and silently escalating to cloud. This "
                 "is the local-first target for extend_claude. No thinking-trap (reasoning_content "
                 "empty on plain turns); finish_reason=tool_calls on tool turns."
@@ -478,7 +478,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="Gemma-4-31B-it-GGUF",
             lane=Lane.CPU,
-            endpoint="http://localhost:13309",
+            endpoint="http://localhost:13305",  # OmniRouter dispatches to CPU lane
             runtime_backend="cpu",
             task_affinity=frozenset({Task.ARCHITECT, Task.LONG_HORIZON}),
             weight_quant=WeightQuant.Q4_K_M,

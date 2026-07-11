@@ -908,7 +908,7 @@ class UnifiedOrchestrator:
                 )
             else:
                 lane = node.node_id.split(":", 1)[1]
-                port = LANE_PORTS.get(lane, 13309)
+                port = LANE_PORTS.get(lane, 13305)
                 text, latency_ms = await _call_lemonade(
                     port,
                     node.model,

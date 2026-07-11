@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 
 # Lemonade/Ollama endpoint — falls back to GPU tier
 _LEMONADE_URLS = [
-    "http://localhost:13307",  # Governance lane (Gemma-4-E4B)
-    "http://localhost:13305",  # GPU tier
+    "http://localhost:13305",  # OmniRouter (NPU/iGPU/CPU dispatched on demand)
     "http://localhost:11434",  # Ollama fallback
 ]
 

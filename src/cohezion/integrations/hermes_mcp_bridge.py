@@ -161,9 +161,11 @@ def _crawl_tree(root: str, max_depth: int = 4, pattern: str = "*.py") -> list[di
 
 
 # === Local inference configuration ===
-_NPU_PORT = int(os.environ.get("COHEZION_NPU_PORT", 13306))
-_IGPU_PORT = int(os.environ.get("COHEZION_IGPU_PORT", 13307))
-_CPU_PORT = int(os.environ.get("COHEZION_CPU_PORT", 13309))
+# Tier dispatch defaults route through the :13305 OmniRouter (fans out to
+# NPU/iGPU/CPU on demand); still env-overridable for bespoke topologies.
+_NPU_PORT = int(os.environ.get("COHEZION_NPU_PORT", 13305))
+_IGPU_PORT = int(os.environ.get("COHEZION_IGPU_PORT", 13305))
+_CPU_PORT = int(os.environ.get("COHEZION_CPU_PORT", 13305))
 
 # Model IDs loaded by default on each tier (overridable via env)
 _NPU_MODEL = os.environ.get("COHEZION_NPU_MODEL", "llama3.2-1b-FLM")
@@ -688,11 +690,14 @@ def _handle_inference_status(_args: dict) -> dict:
     """Report live status of all inference nodes and NPU TTFT probe."""
     import time
 
+    # Diagnostic-only: probe each legacy per-lane server's live status for the
+    # status report. NOT a dispatch bypass — production traffic goes via :13305.
+    # Kept per-port so the report reflects which individual servers are up.
     node_configs = [
-        (13306, "npu", _NPU_MODEL),
-        (13307, "igpu", _IGPU_MODEL),
-        (13308, "clasp", "Gemma-4-E2B-it-GGUF"),
-        (13309, "cpu", _CPU_MODEL),
+        (13306, "npu", _NPU_MODEL),  # allow-direct-port: diagnostic status probe, not dispatch
+        (13307, "igpu", _IGPU_MODEL),  # allow-direct-port: diagnostic status probe, not dispatch
+        (13308, "clasp", "Gemma-4-E2B-it-GGUF"),  # allow-direct-port: diagnostic status probe
+        (13309, "cpu", _CPU_MODEL),  # allow-direct-port: diagnostic status probe, not dispatch
     ]
 
     nodes = []
