@@ -44,6 +44,8 @@ class ModelCapability(Enum):
     CREATIVE = "creative"
     LARGE_CONTEXT = "large_context"
     CODING = "coding"
+    TOOL_CALLING = "tool_calling"
+    MULTILINGUAL = "multilingual"
 
 
 @dataclass
@@ -70,6 +72,8 @@ LOCAL_MODELS = {
             ModelCapability.ACCURATE,
             ModelCapability.CODING,
             ModelCapability.LARGE_CONTEXT,
+            ModelCapability.TOOL_CALLING,
+            ModelCapability.MULTILINGUAL,
         ],
         context_length=262144,
         speed_tier=5,
@@ -81,6 +85,8 @@ LOCAL_MODELS = {
             ModelCapability.ACCURATE,
             ModelCapability.CODING,
             ModelCapability.LARGE_CONTEXT,
+            ModelCapability.TOOL_CALLING,
+            ModelCapability.MULTILINGUAL,
         ],
         context_length=262144,
         speed_tier=4,
@@ -92,6 +98,8 @@ LOCAL_MODELS = {
             ModelCapability.ACCURATE,
             ModelCapability.CODING,
             ModelCapability.LARGE_CONTEXT,
+            ModelCapability.TOOL_CALLING,
+            ModelCapability.MULTILINGUAL,
         ],
         context_length=65536,
         speed_tier=3,
@@ -99,7 +107,12 @@ LOCAL_MODELS = {
     ),
     "qwen3-coder-256k:latest": ModelProfile(
         name="qwen3-coder-256k:latest",
-        capabilities=[ModelCapability.CODING, ModelCapability.LARGE_CONTEXT],
+        capabilities=[
+            ModelCapability.CODING,
+            ModelCapability.LARGE_CONTEXT,
+            ModelCapability.TOOL_CALLING,
+            ModelCapability.MULTILINGUAL,
+        ],
         context_length=256000,
         speed_tier=3,
         quality_tier=4,
@@ -145,14 +158,22 @@ LOCAL_MODELS = {
     ),
     "gpt-oss-256k:latest": ModelProfile(
         name="gpt-oss-256k:latest",
-        capabilities=[ModelCapability.ACCURATE, ModelCapability.LARGE_CONTEXT],
+        capabilities=[
+            ModelCapability.ACCURATE,
+            ModelCapability.LARGE_CONTEXT,
+            ModelCapability.TOOL_CALLING,
+        ],
         context_length=256000,
         speed_tier=3,
         quality_tier=4,
     ),
     "gpt-oss:20b": ModelProfile(
         name="gpt-oss:20b",
-        capabilities=[ModelCapability.ACCURATE, ModelCapability.LARGE_CONTEXT],
+        capabilities=[
+            ModelCapability.ACCURATE,
+            ModelCapability.LARGE_CONTEXT,
+            ModelCapability.TOOL_CALLING,
+        ],
         context_length=256000,
         speed_tier=2,
         quality_tier=4,
@@ -166,21 +187,34 @@ LOCAL_MODELS = {
     ),
     "qwen3:8b": ModelProfile(
         name="qwen3:8b",
-        capabilities=[ModelCapability.FAST, ModelCapability.CODING],
+        capabilities=[
+            ModelCapability.FAST,
+            ModelCapability.CODING,
+            ModelCapability.TOOL_CALLING,
+            ModelCapability.MULTILINGUAL,
+        ],
         context_length=64000,
         speed_tier=1,
         quality_tier=3,
     ),
     "gemma3:4b": ModelProfile(
         name="gemma3:4b",
-        capabilities=[ModelCapability.FAST, ModelCapability.CODING],
+        capabilities=[
+            ModelCapability.FAST,
+            ModelCapability.CODING,
+            ModelCapability.MULTILINGUAL,
+        ],
         context_length=8192,
         speed_tier=1,
         quality_tier=3,
     ),
     "gemma3-4b-256k:latest": ModelProfile(
         name="gemma3-4b-256k:latest",
-        capabilities=[ModelCapability.FAST, ModelCapability.LARGE_CONTEXT],
+        capabilities=[
+            ModelCapability.FAST,
+            ModelCapability.LARGE_CONTEXT,
+            ModelCapability.MULTILINGUAL,
+        ],
         context_length=256000,
         speed_tier=1,
         quality_tier=3,

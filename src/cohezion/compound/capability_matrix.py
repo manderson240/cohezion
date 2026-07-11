@@ -97,6 +97,8 @@ class CapabilityMatrix:
                 ModelCapability.CREATIVE: "creative",
                 ModelCapability.LARGE_CONTEXT: "long-context",
                 ModelCapability.CODING: "coding",
+                ModelCapability.TOOL_CALLING: "tool-calling",
+                ModelCapability.MULTILINGUAL: "multilingual",
             }
 
             for model_id, profile in LOCAL_MODELS.items():
@@ -115,6 +117,10 @@ class CapabilityMatrix:
                     elif cap == "long-context":
                         affinity["long-context"] = 0.9
                         affinity["research"] = 0.6
+                    elif cap == "tool-calling":
+                        affinity["tool-calling"] = 0.9
+                    elif cap == "multilingual":
+                        affinity["multilingual"] = 0.9
 
                 entry = CapabilityEntry(
                     entity_type="model",
