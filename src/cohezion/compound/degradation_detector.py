@@ -46,6 +46,7 @@ from typing import Any
 import numpy as np
 
 from cohezion.compound.degradation_health import HealthObservabilityMixin
+from cohezion.compound.friction_metric import FrictionMetric, FrictionReading
 
 
 logger = logging.getLogger(__name__)
@@ -1080,6 +1081,37 @@ class DegradationDetector(HealthObservabilityMixin):
 
         psi = float(np.sum((actual_prob - expected_prob) * np.log(actual_prob / expected_prob)))
         return psi
+
+    def compute_friction(
+        self,
+        *,
+        surprise: float,
+        phase_divergence: float,
+        entropy_production: float,
+        quality_delta: float,
+    ) -> FrictionReading:
+        """OBSERVE-ONLY composite friction Φ ∈ [0,1] — active-inference bottleneck signal.
+
+        Additive accessor: computes Φ via a lazily-created :class:`FrictionMetric`, records it
+        into a 10th ``"friction"`` :class:`MetricBaseline` for observability, and returns the
+        reading. It triggers NO Electro-Nuclear Collapse/Regeneration — Φ→action wiring is
+        calibration-gated (see vault research/2026-07-11-friction-metric-and-physics-spec-mapping.md).
+
+        Deliberately does NOT reuse ``get_composite_health_score``/``suggest_routing_tier`` and
+        does NOT perturb any CB5–CB16 frozen surface (get_health_summary, snapshot, to_dict,
+        get_alert_summary). Adding the ``"friction"`` baseline only appends a key inside the
+        existing ``baselines`` map — the CB7 top-level to_dict shape is unchanged.
+        """
+        if getattr(self, "_friction_metric", None) is None:
+            self._friction_metric: FrictionMetric = FrictionMetric()
+        reading = self._friction_metric.compute(
+            surprise=surprise,
+            phase_divergence=phase_divergence,
+            entropy_production=entropy_production,
+            quality_delta=quality_delta,
+        )
+        self._baselines.setdefault("friction", MetricBaseline("friction")).add_sample(reading.phi)
+        return reading
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize detector state for cross-session persistence (CB7).
