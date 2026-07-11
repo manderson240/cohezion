@@ -16,8 +16,10 @@ Reference: amd-gaia 0.17.2 installed (2026-04-18) — see
 
 from __future__ import annotations
 
+import json
 import logging
 import time
+import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
@@ -258,6 +260,50 @@ class _GaiaLLMClientShim:
         return resp["choices"][0]["message"].get("content", "") or ""
 
 
+class _LocalRouterClient:
+    """Dependency-free fallback for GAIA's ``LemonadeClient`` — same ``.chat_completions``
+    surface, but talks to the lemonade OmniRouter (:13305) directly over stdlib urllib.
+
+    Used when ``amd-gaia`` is not installed: the GAIA ``LemonadeClient`` is only ever an
+    OpenAI-compatible HTTP client to the same router the fleet already runs, so a missing
+    optional SDK must NOT take down the loop while the router is healthy. Matches the
+    stdlib-only transport idiom of :class:`~cohezion.inference.direct_tier.DirectLemonadeTier`.
+    """
+
+    def __init__(self, base_url: str, model: str, *, verbose: bool = False):
+        self._url = f"{base_url.rstrip('/')}/chat/completions"
+        self._model = model
+
+    def chat_completions(
+        self,
+        *,
+        model: str,
+        messages: list[dict[str, str]],
+        max_tokens: int,
+        temperature: float,
+        auto_download: bool = False,  # GAIA-specific flag; ignored on the direct path
+        **extra_sampling: float | int,
+    ) -> dict[str, Any]:
+        payload = json.dumps(
+            {
+                "model": model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "stream": False,
+                **extra_sampling,
+            }
+        ).encode()
+        req = urllib.request.Request(  # noqa: S310 (localhost :13305 router, fixed scheme)
+            self._url,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310 (localhost router)
+            return json.loads(resp.read())
+
+
 def build_gaia_llm_tier(
     model_id: str = "Granite-4.1-8B-GGUF",
     *,
@@ -276,8 +322,17 @@ def build_gaia_llm_tier(
     """
     try:
         from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import-not-found]
-    except ImportError as exc:
-        raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
+
+        client_factory: Any = LemonadeClient
+        label_prefix = "gaia-llm"
+    except ImportError:
+        # amd-gaia absent: GAIA's LemonadeClient is only an OpenAI-compatible HTTP client to
+        # the :13305 router the fleet already runs. A missing OPTIONAL SDK must not take down
+        # the compound loop / actioner while the router is healthy — fall back to a stdlib
+        # client with the same .chat_completions surface (local-inference-first). The router
+        # is the real dependency; the SDK is not.
+        client_factory = _LocalRouterClient
+        label_prefix = "local-router"
 
     # TR1 (2026-07-07, restored 2026-07-09): temperature=None resolves the model's
     # card sampling defaults (temp + top_k/top_p/min_p) instead of a fixed 0.0 for
@@ -294,7 +349,7 @@ def build_gaia_llm_tier(
         temperature = float(sampling.get("temperature", 0.7))
         extra_sampling = {k: v for k, v in sampling.items() if k != "temperature"}
 
-    client = LemonadeClient(base_url=base_url, model=model_id, verbose=not silent)
+    client = client_factory(base_url=base_url, model=model_id, verbose=not silent)
     shim = _GaiaLLMClientShim(
         client,
         model_id,
@@ -302,4 +357,4 @@ def build_gaia_llm_tier(
         temperature=temperature,
         extra_sampling=extra_sampling,
     )
-    return GaiaAgentTier(agent=shim, label=f"gaia-llm:{model_id}")
+    return GaiaAgentTier(agent=shim, label=f"{label_prefix}:{model_id}")

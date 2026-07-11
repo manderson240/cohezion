@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -11,6 +12,7 @@ import pytest
 from cohezion.inference.gaia_adapter import (
     GaiaAgentTier,
     _GaiaLLMClientShim,
+    _LocalRouterClient,
     amd_optimized_hierarchy,
     build_gaia_llm_tier,
     build_gaia_native_tier,
@@ -299,3 +301,53 @@ class TestGaiaLLMTierRecipeAwareDefaults:
         tier.agent.prompt("hi")
         kwargs = client.chat_completions.call_args.kwargs
         assert kwargs["temperature"] == 0.2
+
+
+# ── amd-gaia MISSING → fall back to :13305 router (regression, 2026-07-11) ─────
+
+
+class TestGaiaLLMTierMissingSDKFallback:
+    """When amd-gaia is absent, build_gaia_llm_tier must FALL BACK to the local
+    :13305 router via a stdlib _LocalRouterClient — NOT crash. A missing OPTIONAL
+    SDK took down the actioner + compound-daemon escalation path (both via
+    make_executor → build_triune_omni_orchestrator → build_gaia_llm_tier) with
+    'ModuleNotFoundError: gaia'. The router is the real dependency; the SDK is not.
+    """
+
+    def test_falls_back_to_local_router_when_gaia_missing(self):
+        """No RuntimeError; returns a GaiaAgentTier backed by _LocalRouterClient."""
+        with patch.dict(sys.modules, {"gaia.llm.lemonade_client": None}):
+            tier = build_gaia_llm_tier("llama3.2-1b-FLM")
+        assert isinstance(tier, GaiaAgentTier)
+        assert tier.label == "local-router:llama3.2-1b-FLM"
+        assert isinstance(tier.agent, _GaiaLLMClientShim)
+        assert isinstance(tier.agent._client, _LocalRouterClient)
+
+    def test_fallback_targets_13305_chat_completions(self):
+        """The fallback client points at the OmniRouter's OpenAI-compatible endpoint."""
+        with patch.dict(sys.modules, {"gaia.llm.lemonade_client": None}):
+            tier = build_gaia_llm_tier("llama3.2-1b-FLM")
+        assert tier.agent._client._url == "http://localhost:13305/api/v1/chat/completions"
+
+    def test_gaia_path_still_used_when_sdk_present(self):
+        """No regression: with LemonadeClient importable, the label stays gaia-llm."""
+        client = MagicMock()
+        client.chat_completions.return_value = {"choices": [{"message": {"content": "ok"}}]}
+        with patch("gaia.llm.lemonade_client.LemonadeClient", return_value=client):
+            tier = build_gaia_llm_tier("Granite-4.1-8B-GGUF")
+        assert tier.label == "gaia-llm:Granite-4.1-8B-GGUF"
+
+    def test_local_router_client_parses_openai_response(self):
+        """_LocalRouterClient POSTs and parses the OpenAI-compatible body (transport)."""
+        canned = json.dumps({"choices": [{"message": {"content": "pong"}}]}).encode()
+        with patch("urllib.request.urlopen") as mock_open:
+            mock_open.return_value.__enter__.return_value.read.return_value = canned
+            c = _LocalRouterClient("http://localhost:13305/api/v1", "llama3.2-1b-FLM")
+            resp = c.chat_completions(
+                model="llama3.2-1b-FLM",
+                messages=[{"role": "user", "content": "ping"}],
+                max_tokens=8,
+                temperature=0.7,
+                auto_download=False,
+            )
+        assert resp["choices"][0]["message"]["content"] == "pong"
