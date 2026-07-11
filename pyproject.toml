@@ -108,6 +108,11 @@ ml = [
 agentjet = [
     "aiohttp>=3.9",
 ]
+# Operator cockpit — marimo reactive notebook (scripts/cockpit.py) over
+# cohezion.cockpit.daemon_state. Optional: keeps the runtime lean.
+cockpit = [
+    "marimo>=0.23",
+]
 audio = [
     "librosa>=0.10.0",
     "torchaudio>=2.0.0",
@@ -212,6 +217,10 @@ ignore = [
 ]
 "scripts/**/*.py" = [
     "E501",  # Research scripts use intentionally verbose description strings
+]
+"scripts/cockpit.py" = [
+    "E501",  # verbose markdown/f-strings in notebook cells
+    "B018",  # marimo cells render UI via bare expressions (refresh/button) — idiomatic
 ]
 "examples/**/*.py" = [
     "E501",  # Demonstrator scripts use intentionally verbose evidence f-strings
