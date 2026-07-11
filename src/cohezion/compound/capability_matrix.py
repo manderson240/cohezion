@@ -18,6 +18,31 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def _affinity_for_caps(caps: list[str]) -> dict[str, float]:
+    """Map capability strings to task-type affinity scores.
+
+    Shared by the static LOCAL_MODELS loader and the YAML capability loader so
+    both credit the same task dimensions consistently.
+    """
+    affinity: dict[str, float] = {}
+    for cap in caps:
+        if cap == "coding":
+            affinity["coding"] = 0.9
+        elif cap == "reasoning":
+            affinity["reasoning"] = 0.8
+            affinity["analysis"] = 0.7
+        elif cap == "creative":
+            affinity["creative"] = 0.8
+        elif cap == "long-context":
+            affinity["long-context"] = 0.9
+            affinity["research"] = 0.6
+        elif cap == "tool-calling":
+            affinity["tool-calling"] = 0.9
+        elif cap == "multilingual":
+            affinity["multilingual"] = 0.9
+    return affinity
+
+
 @dataclass
 class CapabilityEntry:
     """Assessment record for a model, skill, or agent."""
@@ -82,6 +107,7 @@ class CapabilityMatrix:
     def __init__(self) -> None:
         self._entries: dict[str, CapabilityEntry] = {}
         self._load_static_models()
+        self._load_yaml_model_capabilities()
         self._load_static_skills()
         self._load_static_agents()
 
@@ -103,18 +129,7 @@ class CapabilityMatrix:
                 caps = [cap_map.get(c, str(c)) for c in profile.capabilities]
                 quality = CostAwareRouter.MODEL_QUALITY.get(model_id, profile.quality_tier / 5.0)
 
-                affinity: dict[str, float] = {}
-                for cap in caps:
-                    if cap == "coding":
-                        affinity["coding"] = 0.9
-                    elif cap == "reasoning":
-                        affinity["reasoning"] = 0.8
-                        affinity["analysis"] = 0.7
-                    elif cap == "creative":
-                        affinity["creative"] = 0.8
-                    elif cap == "long-context":
-                        affinity["long-context"] = 0.9
-                        affinity["research"] = 0.6
+                affinity = _affinity_for_caps(caps)
 
                 entry = CapabilityEntry(
                     entity_type="model",
@@ -136,6 +151,74 @@ class CapabilityMatrix:
 
         except ImportError:
             logger.debug("SmartRouter/CostAwareRouter not available")
+
+    def _load_yaml_model_capabilities(self) -> None:
+        """Credit capability tags declared in config/model_profiles.yaml.
+
+        The static LOCAL_MODELS roster carries no ``tool-calling`` or
+        ``multilingual`` tags, so those dimensions read as gaps even though the
+        live Lemonade catalog labels most served models tool-calling and the
+        Gemma-4/Qwen3 families are natively multilingual. This folds the YAML's
+        accurate, catalog-grounded capability tags into the matrix (additively:
+        augmenting an existing entry or adding a new one) so real capabilities
+        are credited rather than under-reported as gaps.
+        """
+        try:
+            import yaml
+        except ImportError:
+            return
+
+        config_path = Path(__file__).parents[3] / "config" / "model_profiles.yaml"
+        if not config_path.is_file():
+            config_path = Path("config/model_profiles.yaml")
+        if not config_path.is_file():
+            return
+
+        try:
+            data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        except Exception:
+            logger.debug("model_profiles.yaml unreadable", exc_info=True)
+            return
+
+        for profiles in data.values():
+            if not isinstance(profiles, dict):
+                continue
+            for model_id, profile in profiles.items():
+                if not isinstance(profile, dict):
+                    continue
+                caps = profile.get("capabilities")
+                if not caps:
+                    continue
+                affinity = _affinity_for_caps(caps)
+                if not affinity:
+                    continue
+
+                key = f"model:{model_id}"
+                existing = self._entries.get(key)
+                if existing is not None:
+                    # Additive: never lower an existing score, only credit more.
+                    for dim, score in affinity.items():
+                        existing.affinity[dim] = max(existing.affinity.get(dim, 0.0), score)
+                    for cap in caps:
+                        if cap not in existing.capabilities:
+                            existing.capabilities.append(cap)
+                    continue
+
+                self._entries[key] = CapabilityEntry(
+                    entity_type="model",
+                    entity_id=model_id,
+                    capabilities=list(caps),
+                    quality_score=float(profile.get("quality_score", 0.0)),
+                    speed_tier=2,
+                    success_rate=0.0,
+                    affinity=affinity,
+                    last_assessed=date.today().isoformat(),
+                    source="static",
+                    metadata={
+                        "context_length": profile.get("context"),
+                        "config": "model_profiles.yaml",
+                    },
+                )
 
     def _load_static_skills(self) -> None:
         """Load skill data from SkillHealthTracker."""

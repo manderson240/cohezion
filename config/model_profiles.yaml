@@ -23,6 +23,9 @@ lemonade_hybrid:
     latency_ms: 100.0
     context: 32768
     tier: medium
+    # Qwen3-Coder family: live catalog labels Qwen3-Coder-*-GGUF tool-calling;
+    # Qwen3 family is natively multilingual.
+    capabilities: [coding, tool-calling, multilingual]
   deepseek-r1:8b:
     cost_per_token: 0.0
     quality_score: 0.95
@@ -44,6 +47,8 @@ lemonade_hybrid:
     latency_ms: 60.0
     context: 32768
     tier: medium
+    # Live catalog labels Qwen3-8B-GGUF tool-calling; Qwen3 family is multilingual.
+    capabilities: [tool-calling, multilingual]
   Qwen3-14B-Hybrid:
     cost_per_token: 0.0
     quality_score: 0.90
@@ -51,6 +56,9 @@ lemonade_hybrid:
     latency_ms: 80.0
     context: 32768
     tier: complex
+    # Qwen3-14B-GGUF catalog counterpart is labeled reasoning (not tool-calling);
+    # Qwen3 family is natively multilingual.
+    capabilities: [multilingual]
 
 # iGPU 4-8B GGUF candidates (Vulkan/ROCm, Strix Halo iGPU slot)
 lemonade_igpu:
