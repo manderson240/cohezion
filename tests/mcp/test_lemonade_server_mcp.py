@@ -89,9 +89,16 @@ async def test_lemonade_load_model_bounds_ctx_size(fake_client: dict[str, Any]) 
     original = s._httpx_client
     s._httpx_client = factory
     try:
-        result = await server.lemonade_load_model("Gemma-4-E4B-it-GGUF", ctx_size=999999)
+        # Over-cap ctx_size is rejected with an actionable N3 message, not loaded.
+        over = await server.lemonade_load_model("Gemma-4-E4B-it-GGUF", ctx_size=999999)
+        assert "error" in over
+        assert "16384" in over["error"]
+        assert not calls  # no load request was sent
+
+        # A safe ctx_size loads normally.
+        result = await server.lemonade_load_model("Gemma-4-E4B-it-GGUF", ctx_size=8192)
         assert result["status"] == "loaded"
-        assert calls[0]["json"]["ctx_size"] == 32768
+        assert calls[0]["json"]["ctx_size"] == 8192
         assert calls[0]["json"]["save_options"] is True
         assert calls[0]["json"]["llamacpp_backend"] == "rocm"
     finally:
