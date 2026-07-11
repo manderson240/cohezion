@@ -177,6 +177,35 @@ class TestTextToLatent:
         # Should not be identical
         assert not np.allclose(latent1, latent2)
 
+    def test_flume_encoder_path_does_not_collapse_12d(self, tracker):
+        """Regression (2026-07-11): the FLUME-encoder path must not collapse distinct tasks to
+        the same 12D point. np.tile(emb, 8) repeated with period 256; _holographic_project
+        chunk-means at CHUNK_SIZE=128 (256 % 128 == 0) reduced all 16 chunks to 2 distinct
+        values → every task mapped to ~2 possible 12D points. The interpolating upsample fixes
+        it. Uses a stub encoder so the encoder path is exercised without a live :13305."""
+
+        class _StubEncoder:
+            def is_available(self):
+                return True
+
+            def encode(self, text):
+                # Distinct, content-spread 256D per text (not a constant / not 2-region).
+                seed = int.from_bytes(text.encode()[:4].ljust(4, b"\0"), "big")
+                return np.random.default_rng(seed).standard_normal(256)
+
+        tracker._flume_encoder = _StubEncoder()
+        texts = [
+            "what is a compound engineering loop",
+            "tradeoffs of local vs cloud inference",
+            "transform a bug report into a fix plan",
+            "describe the HIHO 0.5 stability principle",
+        ]
+        pts = [np.asarray(tracker._holographic_project(tracker.text_to_latent(t))) for t in texts]
+        unique = {tuple(np.round(p, 6)) for p in pts}
+        assert len(unique) == len(texts), (
+            f"12D projection collapsed: {len(unique)} unique for {len(texts)} distinct tasks"
+        )
+
 
 class TestHolographicProjection:
     """Tests for holographic projection."""

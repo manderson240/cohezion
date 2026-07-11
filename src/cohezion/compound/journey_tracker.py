@@ -798,10 +798,15 @@ class JourneyTracker:
         Returns:
             Normalized 2048D numpy array
         """
-        # FLUME encoder path: 256D → tile to 2048D (preserves cosine similarity structure)
+        # FLUME encoder path: 256D → 2048D by INTERPOLATING upsample (not tiling).
+        # np.tile repeats with period 256; _holographic_project chunk-means at CHUNK_SIZE=128,
+        # and 256 % 128 == 0 collapses all 16 chunks to just 2 distinct values → every task maps
+        # to ~2 possible 12D points regardless of content (verified 2026-07-11). Interpolation
+        # spreads the 256D content across all 2048 samples so each 128-chunk spans distinct
+        # content → 16 distinct chunk-means → task-discriminating 12D coordinates.
         if self._flume_encoder is not None and self._flume_encoder.is_available():
             emb = self._flume_encoder.encode(text).astype(np.float64)
-            latent = np.tile(emb, 8)[:2048]
+            latent = np.interp(np.linspace(0, len(emb) - 1, 2048), np.arange(len(emb)), emb)
             norm = np.linalg.norm(latent)
             return latent / norm if norm > 0 else latent
 
