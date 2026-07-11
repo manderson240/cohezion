@@ -52,8 +52,39 @@ def _httpx_client() -> httpx.AsyncClient:
     return httpx.AsyncClient(timeout=120.0)
 
 
+# Maximum context window this server will load. Larger values grow the KV cache
+# without bound and can hang a memory-tight box (harness N3 OOM-safety invariant:
+# footprint is driven by ctx_size/KV-cache, not param count).
+_CTX_SIZE_CAP = 16384
+
+
+def _router_down_error(path: str, exc: Exception) -> dict[str, str]:
+    """Actionable message for connection-refused / timeout failures."""
+    return {
+        "error": (
+            f"Cannot reach the Lemonade router at {_base_url()} (requesting {path}): "
+            f"{exc}. The local Lemonade router on :13305 appears to be down. "
+            "Call lemonade_server_status() to confirm, then restart it "
+            "(`lemond --port 13305 &`) before retrying."
+        )
+    }
+
+
+def _model_not_found_error(path: str, payload: dict[str, Any], detail: str) -> dict[str, str]:
+    """Actionable message for a 404 (model not loaded/registered)."""
+    model = payload.get("model") or payload.get("model_name") or "<unknown>"
+    return {
+        "error": (
+            f"HTTP 404 from {path}: model '{model}' is not loaded on the Lemonade "
+            f"router. Call lemonade_load_model(model_name='{model}') to load it first, "
+            "or lemonade_list_models() to see the available options. "
+            f"Server said: {detail}"
+        )
+    }
+
+
 async def _safe_post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
-    """POST JSON to Lemonade and return the parsed response or an error dict."""
+    """POST JSON to Lemonade and return the parsed response or an actionable error dict."""
     url = f"{_base_url()}{path}"
     async with _httpx_client() as client:
         try:
@@ -63,14 +94,22 @@ async def _safe_post(path: str, payload: dict[str, Any]) -> dict[str, Any]:
         except httpx.HTTPStatusError as exc:
             text = exc.response.text[:400]
             logger.error("Lemonade POST failed: %s %s", exc, text)
-            return {"error": f"HTTP {exc.response.status_code}: {text}"}
+            if exc.response.status_code == 404:
+                return _model_not_found_error(path, payload, text)
+            return {"error": f"HTTP {exc.response.status_code} from {path}: {text}"}
+        except (
+            httpx.ConnectError,
+            httpx.TimeoutException,
+        ) as exc:  # pragma: no cover - real network failures
+            logger.error("Lemonade POST connection error: %s", exc)
+            return _router_down_error(path, exc)
         except Exception as exc:  # pragma: no cover - real network failures
             logger.error("Lemonade POST error: %s", exc)
-            return {"error": str(exc)}
+            return {"error": f"Lemonade POST to {path} failed: {exc}"}
 
 
 async def _safe_get(path: str) -> dict[str, Any]:
-    """GET JSON from Lemonade and return the parsed response or an error dict."""
+    """GET JSON from Lemonade and return the parsed response or an actionable error dict."""
     url = f"{_base_url()}{path}"
     async with _httpx_client() as client:
         try:
@@ -79,9 +118,14 @@ async def _safe_get(path: str) -> dict[str, Any]:
             return resp.json()
         except httpx.HTTPStatusError as exc:
             text = exc.response.text[:400]
-            return {"error": f"HTTP {exc.response.status_code}: {text}"}
+            return {"error": f"HTTP {exc.response.status_code} from {path}: {text}"}
+        except (
+            httpx.ConnectError,
+            httpx.TimeoutException,
+        ) as exc:  # pragma: no cover - real network failures
+            return _router_down_error(path, exc)
         except Exception as exc:  # pragma: no cover - real network failures
-            return {"error": str(exc)}
+            return {"error": f"Lemonade GET {path} failed: {exc}"}
 
 
 @app.tool()
@@ -113,17 +157,29 @@ async def lemonade_load_model(
 ) -> dict[str, Any]:
     """Load a model into the local Lemonade server with safe bounded context.
 
-    Always caps ctx_size to avoid the unbounded KV-cache crash vector on heavy
+    Enforces the ctx_size cap to avoid the unbounded KV-cache crash vector on heavy
     models (N3 invariant). Use this before chat/vision/image tasks so the model
     is warm and does not auto-load at ctx_size=-1.
 
     Args:
         model_name: Lemonade model ID (e.g. "Gemma-4-E4B-it-GGUF").
-        ctx_size: Maximum context window. Default 16384; clipped to [1024, 32768].
+        ctx_size: Maximum context window. Default 16384. Must be <= 16384 (the N3
+            OOM-safety cap); values above the cap are rejected with an actionable
+            error rather than silently loaded. Values below 1024 are floored to 1024.
         backend: Backend recipe: "rocm", "vulkan", "cpu", or "flm".
         save_options: Persist recipe options so later loads use the same bounds.
     """
-    ctx_size = max(1024, min(32768, ctx_size))
+    if ctx_size > _CTX_SIZE_CAP:
+        return {
+            "error": (
+                f"ctx_size={ctx_size} exceeds the {_CTX_SIZE_CAP} OOM-safety cap. "
+                "Loading a heavy model with a large/unbounded KV cache can hang the "
+                "box (N3 invariant: memory footprint is driven by ctx_size/KV-cache, "
+                "not param count). Retry lemonade_load_model with "
+                f"ctx_size<={_CTX_SIZE_CAP}."
+            )
+        }
+    ctx_size = max(1024, ctx_size)
     payload = {
         "model_name": model_name,
         "ctx_size": ctx_size,
