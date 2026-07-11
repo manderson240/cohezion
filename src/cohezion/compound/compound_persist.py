@@ -111,6 +111,7 @@ def persist_cycle(
     learning: str,
     run_id: str,
     parent_run_id: str | None = None,
+    trajectory: list | None = None,
 ) -> dict[str, int]:
     """Persist one real compound cycle idempotently. Returns the new count of each table.
 
@@ -123,6 +124,15 @@ def persist_cycle(
     and rebuilds the single ``yielded`` edge inside one transaction, so counts are stable
     across re-runs (never inflated). Raises ValueError on an unsafe ``run_id`` and RuntimeError
     on any SurrealQL error.
+
+    ``trajectory`` (optional, ADDITIVE 2026-07-11): a list of TrajectoryPoint-like objects
+    (each with ``.coherence`` / ``.efficiency``) for a genuine multi-step cycle. When provided,
+    the FULL ``coherence_trajectory`` / ``efficiency_trajectory`` arrays are written (every
+    element finite-guarded + clamped 0..1), ``total_steps = len(trajectory)``, and the
+    ``final_coherence`` / ``final_phi_score`` come from the LAST point. When ``None`` (or an
+    empty list), behavior is EXACTLY as before — a single ``point``-derived step,
+    ``total_steps: 1`` — so the vacuum-relaxation + Markov-trajectory experiments (which gate on
+    ``total_steps > 1``) can finally ungate without breaking any existing caller.
     """
     if not _SAFE_RUN_ID.match(run_id or ""):
         raise ValueError(
@@ -146,6 +156,33 @@ def persist_cycle(
     # alias coherence into it (review #6). Absent → neutral 0.0.
     mean_logprob = _num(metrics.get("mean_logprob", 0.0))
 
+    # Multi-step trajectory (ADDITIVE): a truthy `trajectory` overrides the single-point
+    # arrays. `if trajectory:` (not `is not None`) makes an EMPTY list fall through to the
+    # byte-identical single-point path — no `total_steps: 0` and no `trajectory[-1]` IndexError.
+    # Every element is finite-guarded + clamped 0..1 so one inf/nan mid-list can't abort the
+    # transaction (same contract as the single-point `_num` guards above). final_phi_score is
+    # read from the last point's metadata["phi_score"] (falling back to its coherence), since
+    # trajectory objects only promise .coherence / .efficiency.
+    if trajectory:
+        coh_list = [_num(getattr(p, "coherence", 0.0), lo=0.0, hi=1.0) for p in trajectory]
+        eff_list = [_num(getattr(p, "efficiency", 0.0), lo=0.0, hi=1.0) for p in trajectory]
+        total_steps = len(trajectory)
+        last = trajectory[-1]
+        final_coherence = _num(getattr(last, "coherence", 0.0), lo=0.0, hi=1.0)
+        final_phi = _num(
+            (getattr(last, "metadata", None) or {}).get("phi_score", final_coherence),
+            lo=0.0,
+            hi=1.0,
+        )
+    else:
+        coh_list = [coherence]
+        eff_list = [efficiency]
+        total_steps = 1
+        final_coherence = coherence
+        final_phi = phi
+    coh_sql = "[" + ", ".join(str(c) for c in coh_list) + "]"
+    eff_sql = "[" + ", ".join(str(e) for e in eff_list) + "]"
+
     jid = f"agent_journey:`{run_id}`"
     lid = f"compound_learnings:`{run_id}`"
     cid = f"compound_loop:`{run_id}`"
@@ -163,9 +200,9 @@ def persist_cycle(
         f"DELETE {jid};\n"
         f"CREATE {jid} CONTENT {{ journey_id: {_lit(run_id)}, agent_id: 'compound-loop', "
         f"agent_name: 'compound-loop', intent: {_lit(task_description)}, "
-        f"coherence_trajectory: [{coherence}], efficiency_trajectory: [{efficiency}], "
-        f"final_coherence: {coherence}, final_phi_score: {phi}, status: {_lit(status)}, "
-        f"total_steps: 1, total_duration_ms: {dur_ms}, metadata: {{}}, physics_state: {{}} }};\n"
+        f"coherence_trajectory: {coh_sql}, efficiency_trajectory: {eff_sql}, "
+        f"final_coherence: {final_coherence}, final_phi_score: {final_phi}, status: {_lit(status)}, "
+        f"total_steps: {total_steps}, total_duration_ms: {dur_ms}, metadata: {{}}, physics_state: {{}} }};\n"
         f"DELETE {lid};\n"
         f"CREATE {lid} CONTENT {{ skill_name: {_lit(skill_name)}, "
         f"insight: {_lit(learning)}, quality_score: {quality}, "
