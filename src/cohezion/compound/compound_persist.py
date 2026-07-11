@@ -112,6 +112,7 @@ def persist_cycle(
     run_id: str,
     parent_run_id: str | None = None,
     trajectory: list | None = None,
+    coherence_version: int = 1,
 ) -> dict[str, int]:
     """Persist one real compound cycle idempotently. Returns the new count of each table.
 
@@ -124,6 +125,16 @@ def persist_cycle(
     and rebuilds the single ``yielded`` edge inside one transaction, so counts are stable
     across re-runs (never inflated). Raises ValueError on an unsafe ``run_id`` and RuntimeError
     on any SurrealQL error.
+
+    ``coherence_version`` (optional, ADDITIVE 2026-07-11): tags which coherence formula
+    produced ``final_coherence`` — ``1`` (default) = the executor Step 5.8 crude formula,
+    ``2`` = the opt-in coherence-v3 multiplicative formula. When it is ``1`` NO new field is
+    emitted, so the ``agent_journey`` write is BYTE-IDENTICAL to before (existing callers are
+    undisturbed). Only ``coherence_version != 1`` writes an explicit ``coherence_version``
+    field; the DB DEFAULT (``DEFINE FIELD coherence_version ON agent_journey TYPE int
+    DEFAULT 1``) fills version-1 rows. NOTE: because ``agent_journey`` is SCHEMAFULL, that
+    DEFINE FIELD migration MUST be applied before any ``coherence_version=2`` write, or the
+    typed table rejects the undefined field.
 
     ``trajectory`` (optional, ADDITIVE 2026-07-11): a list of TrajectoryPoint-like objects
     (each with ``.coherence`` / ``.efficiency``) for a genuine multi-step cycle. When provided,
@@ -183,6 +194,13 @@ def persist_cycle(
     coh_sql = "[" + ", ".join(str(c) for c in coh_list) + "]"
     eff_sql = "[" + ", ".join(str(e) for e in eff_list) + "]"
 
+    # ADDITIVE era tag: emit `coherence_version` ONLY when it is not the default 1, so the
+    # default write stays byte-identical (see docstring). Requires the DEFINE FIELD migration
+    # to be applied before any v2 write (SCHEMAFULL table rejects undefined fields).
+    version_field = (
+        f"coherence_version: {int(coherence_version)}, " if coherence_version != 1 else ""
+    )
+
     jid = f"agent_journey:`{run_id}`"
     lid = f"compound_learnings:`{run_id}`"
     cid = f"compound_loop:`{run_id}`"
@@ -202,6 +220,7 @@ def persist_cycle(
         f"agent_name: 'compound-loop', intent: {_lit(task_description)}, "
         f"coherence_trajectory: {coh_sql}, efficiency_trajectory: {eff_sql}, "
         f"final_coherence: {final_coherence}, final_phi_score: {final_phi}, status: {_lit(status)}, "
+        f"{version_field}"
         f"total_steps: {total_steps}, total_duration_ms: {dur_ms}, metadata: {{}}, physics_state: {{}} }};\n"
         f"DELETE {lid};\n"
         f"CREATE {lid} CONTENT {{ skill_name: {_lit(skill_name)}, "
