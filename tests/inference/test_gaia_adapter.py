@@ -351,3 +351,43 @@ class TestGaiaLLMTierMissingSDKFallback:
                 auto_download=False,
             )
         assert resp["choices"][0]["message"]["content"] == "pong"
+
+
+class TestThinkingModelReasoningFormat:
+    """defect 4dd925b0081f: thinking models (Gemma-4/Qwen3) stream chain-of-thought to a
+    separate reasoning_content field and return EMPTY `content` on structured prompts at
+    low budgets. build_gaia_llm_tier must inject reasoning_format='none' (flows through
+    extra_sampling into both the gaia and _LocalRouterClient payloads) so content is
+    non-empty — but must NOT touch the NPU FastFlowLM backend, which has no such channel.
+    """
+
+    def test_predicate_flags_llamacpp_thinking_families_only(self):
+        from cohezion.inference.gaia_adapter import _is_llamacpp_thinking_model
+
+        assert _is_llamacpp_thinking_model("Gemma-4-E4B-it-GGUF")
+        assert _is_llamacpp_thinking_model("Gemma-4-E2B-it-GGUF")
+        assert _is_llamacpp_thinking_model("Qwen3.6-35B-A3B-NoThinking")
+        # case-insensitive + hyphenless: callers (e.g. actioner) pass free-form ids; must
+        # mirror model_card_defaults.get_sampling_defaults or the defect silently returns.
+        assert _is_llamacpp_thinking_model("gemma-4-e4b")
+        assert _is_llamacpp_thinking_model("gemma4-e4b")
+        # FLM guard is LOAD-BEARING: deepseek-r1-0528-8b-FLM (a live NPU reasoning tier)
+        # matches the deepseek-r1 marker AND contains FLM — the guard must exclude it, else
+        # reasoning_format is injected into a backend that rejects it. (Deleting the FLM
+        # guard MUST fail this assertion — llama3.2-1b-FLM alone would not catch that.)
+        assert not _is_llamacpp_thinking_model("deepseek-r1-0528-8b-FLM")
+        assert not _is_llamacpp_thinking_model("llama3.2-1b-FLM")  # NPU FLM: no channel
+        assert not _is_llamacpp_thinking_model("Granite-4.1-8B-GGUF")  # non-thinking
+        assert not _is_llamacpp_thinking_model("claude-sonnet-5")  # cloud, no marker
+
+    def test_reasoning_format_injected_for_gemma(self):
+        """Gemma tier request carries reasoning_format='none' (the empty-output fix)."""
+        with patch.dict(sys.modules, {"gaia.llm.lemonade_client": None}):
+            tier = build_gaia_llm_tier("Gemma-4-E4B-it-GGUF")
+        assert tier.agent._extra_sampling.get("reasoning_format") == "none"
+
+    def test_reasoning_format_not_injected_for_flm(self):
+        """NPU FLM tier is untouched — no reasoning_content channel, works as-is."""
+        with patch.dict(sys.modules, {"gaia.llm.lemonade_client": None}):
+            tier = build_gaia_llm_tier("llama3.2-1b-FLM")
+        assert "reasoning_format" not in tier.agent._extra_sampling

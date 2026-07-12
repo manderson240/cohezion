@@ -239,7 +239,7 @@ class _GaiaLLMClientShim:
         *,
         max_tokens: int,
         temperature: float,
-        extra_sampling: dict[str, float | int] | None = None,
+        extra_sampling: dict[str, str | float | int] | None = None,
     ):
         self._client = client
         self._model = model_id
@@ -282,7 +282,7 @@ class _LocalRouterClient:
         max_tokens: int,
         temperature: float,
         auto_download: bool = False,  # GAIA-specific flag; ignored on the direct path
-        **extra_sampling: float | int,
+        **extra_sampling: str | float | int,
     ) -> dict[str, Any]:
         payload = json.dumps(
             {
@@ -302,6 +302,30 @@ class _LocalRouterClient:
         )
         with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310 (localhost router)
             return json.loads(resp.read())
+
+
+# Thinking/reasoning model families that stream chain-of-thought to a SEPARATE
+# ``reasoning_content`` field on lemonade's llama.cpp backend. Without a reasoning-format
+# override these return EMPTY ``content`` with finish_reason='length' on structured prompts
+# at low budgets — the </think> block never closes in-budget, so every token lands in
+# reasoning_content and content stays "" (defect 4dd925b0081f; verified 2-session 2026-07-12
+# on Gemma-4-E4B/E2B: content 0->760/769/758). ``reasoning_format="none"`` keeps the answer
+# IN content so it is non-empty. Excludes the NPU FastFlowLM backend (``*-FLM``): it has no
+# reasoning_content channel and rejects the arg on some builds — this guard is load-bearing
+# for the LIVE ``deepseek-r1-0528-8b-FLM`` NPU reasoning tier, which matches ``deepseek-r1``
+# AND contains ``FLM`` (FLM check runs first). Matched CASE-INSENSITIVELY to mirror
+# ``model_card_defaults.get_sampling_defaults`` (callers such as actioner/engine.py pass
+# free-form ids, incl. lowercase/hyphenless ``gemma4``); a case-sensitive miss would let the
+# model resolve as Gemma for temperature yet silently skip reasoning_format → defect returns.
+_THINKING_MODEL_MARKERS = ("gemma-4", "gemma4", "gemma-3", "qwen3", "deepseek-r1")
+
+
+def _is_llamacpp_thinking_model(model_id: str) -> bool:
+    """True for llama.cpp-served reasoning models that stream to reasoning_content."""
+    mid = model_id.lower()
+    if "flm" in mid:  # NPU FastFlowLM backend — no reasoning_content channel
+        return False
+    return any(marker in mid for marker in _THINKING_MODEL_MARKERS)
 
 
 def build_gaia_llm_tier(
@@ -338,7 +362,7 @@ def build_gaia_llm_tier(
     # card sampling defaults (temp + top_k/top_p/min_p) instead of a fixed 0.0 for
     # every model — greedy 0.0 on Gemma-family cards (which want temp 1.0) produces
     # degenerate/empty output. An explicit temperature= still overrides.
-    extra_sampling: dict[str, float | int] = {}
+    extra_sampling: dict[str, str | float | int] = {}
     if temperature is None:
         from cohezion.inference.model_card_defaults import get_sampling_defaults
 
@@ -348,6 +372,14 @@ def build_gaia_llm_tier(
         # extras (top_k/top_p) are only sent on a real registry match.
         temperature = float(sampling.get("temperature", 0.7))
         extra_sampling = {k: v for k, v in sampling.items() if k != "temperature"}
+
+    # defect 4dd925b0081f: thinking models stream CoT to reasoning_content and return EMPTY
+    # content on structured prompts at low budgets. reasoning_format="none" keeps the answer
+    # in content. Flows through extra_sampling into BOTH the gaia LemonadeClient (verified:
+    # its chat_completions ends in **kwargs, merged straight into the request payload) and the
+    # _LocalRouterClient payload. setdefault is defensive — card defaults never set it today.
+    if _is_llamacpp_thinking_model(model_id):
+        extra_sampling.setdefault("reasoning_format", "none")
 
     client = client_factory(base_url=base_url, model=model_id, verbose=not silent)
     shim = _GaiaLLMClientShim(
