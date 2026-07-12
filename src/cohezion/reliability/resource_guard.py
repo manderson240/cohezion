@@ -99,6 +99,40 @@ class ResourceGuard:
         if not ok:
             raise MemoryError(reason)
 
+    def can_load_model_kv_aware(
+        self,
+        *,
+        weight_mb: int,
+        num_layers: int,
+        num_kv_heads: int,
+        head_dim: int,
+        seq_len: int,
+        batch: int = 1,
+        cache_dtype: str = "fp16",
+    ) -> tuple[bool, str]:
+        """Like :meth:`can_load_model` but adds the KV-cache footprint to the estimate.
+
+        The plain ``can_load_model`` trusts a caller-supplied ``estimated_mb`` that is almost
+        always just the model *weights* — ignoring the KV cache, which is the hidden cost that
+        actually caused the 2026-06-09 OOM crash (harness note N3: a heavy model at full context
+        had a huge KV cache and hung the box). This method computes the real footprint
+        (weights + KV given the shape, context, batch, and cache dtype) via
+        :func:`cohezion.inference.kv_budget.kv_cache_bytes`, so the guard refuses a load whose
+        *KV cache* would OOM even when the weights alone would fit. The three "make it fit" levers
+        (``seq_len``, ``batch``, ``cache_dtype``) are exactly the ones the finding identifies.
+        """
+        from cohezion.inference.kv_budget import kv_cache_bytes
+
+        kv_mb = kv_cache_bytes(
+            num_layers=num_layers,
+            num_kv_heads=num_kv_heads,
+            head_dim=head_dim,
+            seq_len=seq_len,
+            batch=batch,
+            cache_dtype=cache_dtype,
+        ) // (1024 * 1024)
+        return self.can_load_model(weight_mb + kv_mb)
+
     async def wait_for_stability(self, timeout_seconds: int = 300, check_interval: int = 5) -> bool:
         """Wait until system stabilizes or timeout occurs."""
         start_time = asyncio.get_event_loop().time()
