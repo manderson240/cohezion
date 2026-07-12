@@ -36,12 +36,39 @@ import math
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Protocol
 
 import numpy as np
 
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Archive persistence (optional, fail-open side-write)
+# ---------------------------------------------------------------------------
+
+
+class ArchivePersister(Protocol):
+    """Duck-typed durable store for archive entries.
+
+    Keeps the engine free of any SurrealDB import: the default engine path
+    (``persister=None``) never touches this. A concrete SurrealDB-backed
+    implementation lives in ``group_evolution_persistence`` and is injected
+    by callers that want durability (CB4/CB17 isolation pattern).
+    """
+
+    def persist(self, record: dict[str, Any]) -> None:
+        """Write one serialized archive record (append-only)."""
+        ...
+
+    def load(self, limit: int = 1000) -> list[dict[str, Any]]:
+        """Return all persisted archive records."""
+        ...
+
+    def query_rejected_novel(self, limit: int = 1000) -> list[dict[str, Any]]:
+        """Return persisted records marked ``rejected_novel``."""
+        ...
 
 
 # ---------------------------------------------------------------------------
@@ -443,6 +470,7 @@ class GroupEvolutionEngine:
         novelty_scorer: NoveltyScorer | None = None,
         max_archive_size: int = 1000,
         quality_filter_threshold: float = 0.3,
+        persister: ArchivePersister | None = None,
     ) -> None:
         """Initialize group evolution engine.
 
@@ -453,12 +481,21 @@ class GroupEvolutionEngine:
             max_archive_size: Maximum archive entries before pruning.
             quality_filter_threshold: Minimum quality for experience sharing.
                 Addresses GEA's noted limitation about noise filtering.
+            persister: Optional durable side-write for archive entries. When
+                ``None`` (the default) the archive is in-memory only and
+                behaviour is identical to prior versions. When provided,
+                retained and pruned ("rejected_novel") entries are also
+                written to durable storage so rejected-novel stepping-stones
+                stay queryable across restarts (DGM archive). Persistence is a
+                fail-open SIDE-WRITE: it never changes in-memory selection or
+                pruning, and any persister error is swallowed.
         """
         self.selector = selector or PerformanceNoveltySelector()
         self.novelty_scorer = novelty_scorer or NoveltyScorer()
         self.archive: list[ArchiveEntry] = []
         self.max_archive_size = max_archive_size
         self.quality_filter_threshold = quality_filter_threshold
+        self._persister = persister
         self._generation = 0
 
     def build_candidates(
@@ -672,11 +709,16 @@ class GroupEvolutionEngine:
 
         self.archive.append(entry)
         self._generation += 1
+        self._persist(entry, "retained")
 
-        # Prune if necessary (keep highest-scoring)
+        # Prune if necessary (keep highest-scoring). Pruned entries are the
+        # "rejected-novel" stepping-stones — persist them before dropping so
+        # they stay queryable, but the in-memory archive is unchanged.
         if len(self.archive) > self.max_archive_size:
-            self.archive.sort(key=lambda e: e.gea_score, reverse=True)
-            self.archive = self.archive[: self.max_archive_size]
+            ranked = sorted(self.archive, key=lambda e: e.gea_score, reverse=True)
+            self.archive = ranked[: self.max_archive_size]
+            for dropped in ranked[self.max_archive_size :]:
+                self._persist(dropped, "rejected_novel")
             logger.info("Pruned archive to %d entries", len(self.archive))
 
         logger.info(
@@ -716,6 +758,68 @@ class GroupEvolutionEngine:
             "max_ancestors": max(ancestors),
             "best_agent": max(self.archive, key=lambda e: e.gea_score).agent_id,
         }
+
+    # -- Optional durable persistence (fail-open side-write) ----------------
+
+    @staticmethod
+    def _serialize_entry(entry: ArchiveEntry, status: str) -> dict[str, Any]:
+        """Serialize an ArchiveEntry into a JSON/CBOR-safe record.
+
+        ``status`` is ``"retained"`` for archived entries or
+        ``"rejected_novel"`` for entries dropped by size-pruning.
+        """
+        return {
+            "agent_id": entry.agent_id,
+            "generation": entry.generation,
+            "parent_ids": list(entry.parent_ids),
+            "performance": float(entry.performance),
+            "novelty": float(entry.novelty),
+            "gea_score": float(entry.gea_score),
+            "skill_patches": list(entry.skill_patches),
+            "ancestor_count": int(entry.ancestor_count),
+            "creation_time": float(entry.creation_time),
+            "task_ids": list(entry.success_vector.task_ids),
+            "successes": entry.success_vector.successes.tolist(),
+            "status": status,
+        }
+
+    def _persist(self, entry: ArchiveEntry, status: str) -> None:
+        """Best-effort durable write. No-op when no persister is configured.
+
+        Fail-open: any persister error is logged and swallowed so the engine
+        keeps working exactly as the in-memory-only path.
+        """
+        if self._persister is None:
+            return
+        try:
+            self._persister.persist(self._serialize_entry(entry, status))
+        except Exception as e:  # fail-open side-write
+            logger.debug("Archive persist skipped (%s): %s", status, e)
+
+    def load_archive(self, limit: int = 1000) -> list[dict[str, Any]]:
+        """Load persisted archive records (raw dicts). Empty if no persister.
+
+        Reconstruction into ArchiveEntry / re-seeding selection is out of
+        scope here (GAP 1.2) — this only makes the stepping-stone pool
+        queryable.
+        """
+        if self._persister is None:
+            return []
+        try:
+            return list(self._persister.load(limit))
+        except Exception as e:  # fail-open read
+            logger.debug("Archive load skipped: %s", e)
+            return []
+
+    def query_rejected_novel(self, limit: int = 1000) -> list[dict[str, Any]]:
+        """Query persisted ``rejected_novel`` stepping-stones. Empty if none."""
+        if self._persister is None:
+            return []
+        try:
+            return list(self._persister.query_rejected_novel(limit))
+        except Exception as e:  # fail-open read
+            logger.debug("Rejected-novel query skipped: %s", e)
+            return []
 
 
 # ---------------------------------------------------------------------------
