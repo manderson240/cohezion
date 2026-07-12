@@ -100,6 +100,7 @@ dev = [
     "black>=23.0",
     "flake8>=6.0",
     "respx>=0.23.0",  # WS2B: HTTP mocking for the four lane tests
+    "optuna>=3.6",  # FLUME-VAE hyperparameter tuning (flume/optuna_tuner.py), local $0
 ]
 ml = [
     "torch>=2.0.0",
