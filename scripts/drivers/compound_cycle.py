@@ -50,13 +50,13 @@ def create_mock_mcp_client():
 
 
 def create_mock_inflection_detector():
-    """Create a mock inflection detector with low anomaly scores."""
+    """Create a mock inflection detector with high health scores (anomaly_score = HEALTH, high=good)."""
     from cohezion.compound.inflection_detector import Severity
 
     detector = MagicMock()
     anomaly = MagicMock()
     anomaly.severity = Severity.INFO
-    anomaly.score = 0.1  # Low anomaly for high-quality tasks
+    anomaly.score = 0.9  # High health score for high-quality tasks (anomaly_score = HEALTH, high=good)
     anomaly.issues = []
     anomaly.recommendations = []
     anomaly.should_reexecute = False
@@ -149,7 +149,7 @@ def run_compound_cycle(dry_run: bool = True):
     if coherence == 0.5:
         logger.warning("⚠ WARNING: Coherence is exactly 0.5 (may be default)")
 
-    # Should be high coherence: success (0.7) + low anomaly (0.0-0.3) = ~0.6-0.85
+    # Should be high coherence: success (0.7) + high health (0.9) = ~0.7-0.85
     if coherence > 0.55:
         logger.info(f"✓ Phase 1 PASSED: Real cohesion = {coherence:.3f}")
     else:
