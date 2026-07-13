@@ -16,6 +16,8 @@ from __future__ import annotations
 import atexit
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 
 # ---------------------------------------------------------------------------
 # W1: JepaGate auto-injected by make_executor()

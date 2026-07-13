@@ -496,7 +496,7 @@ class ActuatorSystem:
         import shutil
         import subprocess
 
-        shutil.which("uv") or "/usr/local/bin/uv"
+        uv_exec = shutil.which("uv") or "/usr/local/bin/uv"
         try:
             res = subprocess.run(
                 [uv_exec, "run", "pytest", "-q", "--tb=no"],

@@ -16,8 +16,8 @@ from cohezion.compound.evolution_training_bridge import (
 )
 from cohezion.compound.group_evolution import (
     ExperienceTrace,
-    GroupEvolutionEngine,
     ExperienceTraceType,
+    GroupEvolutionEngine,
 )
 from cohezion.integrations.telegram_bot import TelegramCommunicationHub
 

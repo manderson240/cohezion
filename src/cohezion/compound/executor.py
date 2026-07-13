@@ -36,8 +36,8 @@ from cohezion.compound.exp_persistence.vault import (
 )
 from cohezion.compound.inflection_detector import AnomalyDetection, Severity
 from cohezion.core.mcp_client import MCPClient
-from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
 from cohezion.observability.unified_metrics import get_metrics_collector
+from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
 
 
 if TYPE_CHECKING:

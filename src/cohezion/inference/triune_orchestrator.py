@@ -6,12 +6,17 @@ Seamlessly routes complex tasks across NPU, iGPU, and CPU on AMD Strix Halo.
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from cohezion.inference.gaia_adapter import build_gaia_llm_tier, build_gaia_native_tier
 from cohezion.inference.orchestrator import (
     QualityGate,
     TieredOrchestrator,
 )
+
+
+if TYPE_CHECKING:
+    from cohezion.inference.direct_tier import ParallelFleetOrchestrator
 
 
 logger = logging.getLogger(__name__)
