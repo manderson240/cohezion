@@ -37,6 +37,7 @@ from cohezion.compound.exp_persistence.vault import (
 from cohezion.compound.inflection_detector import AnomalyDetection, Severity
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
+from cohezion.observability.unified_metrics import get_metrics_collector
 
 
 if TYPE_CHECKING:
@@ -968,6 +969,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             input_check = _run_async_guardrail(
                 self.guardrail_pipeline.check_input(task_description, guard_context)
             )
+            if input_check:
+                # Feed UnifiedMetrics so the /guardrails analytics counts real input checks
+                # (this counter previously had no producer -> dashboard always reported 0).
+                get_metrics_collector().record_guardrail_action(
+                    "block" if input_check.action == GuardrailAction.BLOCK else "allow"
+                )
             if input_check and input_check.action == GuardrailAction.BLOCK:
                 error_msg = f"Input blocked by guardrails: {input_check.reason}"
                 output = f"Error: {error_msg}"
@@ -1118,6 +1125,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 self.guardrail_pipeline.check_output(output, guard_context)
             )
             if output_check:
+                # Feed UnifiedMetrics so /guardrails analytics + total_guardrail_blocks reflect
+                # real activity (the counter had no producer -> dashboard silently always 0).
+                # Record every action for an accurate block rate.
+                get_metrics_collector().record_guardrail_action(
+                    {
+                        GuardrailAction.BLOCK: "block",
+                        GuardrailAction.SANITIZE: "sanitize",
+                    }.get(output_check.action, "allow")
+                )
                 if output_check.action == GuardrailAction.BLOCK:
                     output = "[Output blocked by content filter]"
                     success = False
