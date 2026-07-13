@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -73,7 +74,7 @@ class SurrealDBClient:
             logger.warning("SurrealDB probe failed: %s — inserts will be no-ops", e)
         self.connected = False
 
-    async def _sql(self, query: str) -> list:
+    async def _sql(self, query: str) -> list[Any]:
         """Execute a SurrealQL statement. Returns parsed result list."""
         try:
             import httpx
@@ -85,7 +86,8 @@ class SurrealDBClient:
                     content=query,
                 )
                 resp.raise_for_status()
-                return resp.json()
+                parsed: list[Any] = resp.json()
+                return parsed
         except Exception as e:
             logger.debug("SurrealDB SQL error: %s | query: %.120s", e, query)
             return []
@@ -144,7 +146,7 @@ class SurrealDBClient:
         # Map 12D dimension_state to physics_state object fields
         ds = node.dimension_state
 
-        def p(i):
+        def p(i: int) -> float:
             return float(ds[i]) if i < len(ds) else 0.5
 
         physics = {
@@ -200,7 +202,7 @@ class SurrealDBClient:
 
         ds = event.state_12d
 
-        def p(i):
+        def p(i: int) -> float:
             return float(ds[i]) if i < len(ds) else 0.5
 
         physics = {
@@ -273,7 +275,7 @@ class SurrealDBClient:
 
         ds = getattr(event, "state_12d", [0.5] * 12)
 
-        def p(i):
+        def p(i: int) -> float:
             return float(ds[i]) if i < len(ds) else 0.5
 
         physics = {
@@ -308,7 +310,7 @@ class SurrealDBClient:
         await self._sql(q)
         return f"journey_point:universe_{safe_id}"
 
-    async def query_holographic_record(self, journey_id: str) -> dict:
+    async def query_holographic_record(self, journey_id: str) -> dict[str, Any]:
         """Query journey_point records for a given journey_id."""
         if not self.connected:
             return {"journey": [], "universe_shifts": [], "correlations": []}
@@ -320,7 +322,7 @@ class SurrealDBClient:
         rows = result[0].get("result", []) if result else []
         return {"journey": rows, "universe_shifts": [], "correlations": []}
 
-    async def query_evo_trajectory(self, evo_id: str) -> list:
+    async def query_evo_trajectory(self, evo_id: str) -> list[Any]:
         """Query journey_point records for an EVO by agent_id prefix."""
         if not self.connected:
             return []
