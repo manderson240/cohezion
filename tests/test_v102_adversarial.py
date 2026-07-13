@@ -32,6 +32,10 @@ class TestSimulationValidator:
         )
 
         validator = SimulationValidator()
+        # Fixed seed for determinism: an unseeded uniform sample makes the KS test
+        # false-reject uniformity (p<=0.05) ~5% of runs, which flaked the p>0.05
+        # assertion below. Seeding makes it reproducible; uniform data yields p>0.05.
+        np.random.seed(42)
         coherence = np.random.uniform(0, 1, 500)
         entropy = np.random.uniform(1.0, 5.0, 500)
         report = validator.validate(coherence, entropy, run_id="test-uniform")

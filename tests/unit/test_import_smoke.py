@@ -15,8 +15,6 @@ from __future__ import annotations
 import os
 import importlib
 import subprocess
-import sys
-from pathlib import Path
 
 import pytest
 

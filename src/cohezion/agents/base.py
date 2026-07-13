@@ -530,10 +530,14 @@ class BaseAgent(ABC):
         latency = (time.perf_counter() - start_time) * 1000
 
         # 2.6 Learning-loop feedback — close BaseAgent turn → Mycelium/Ouroboros.
+        # adapter_result is not yet threaded into BaseAgent (the tiered-adapter result is
+        # produced elsewhere), so default to empty — the learning-loop feedback below is a
+        # clean no-op until that wiring lands. Previously an undefined-name bug (F821).
+        adapter_result: dict = {}
         _lane: str | None = None
         _escalated = False
         try:
-            _lane = adapter_result.get("lane")  # type: ignore[has-type]
+            _lane = adapter_result.get("lane")
             _escalated = adapter_result.get("escalated_to_cloud", False)  # type: ignore[has-type]
         except Exception:
             pass

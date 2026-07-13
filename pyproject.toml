@@ -145,6 +145,13 @@ exclude = [
     "cloud-vault-mcp",
     ".pi",
     ".tmp_kaggle",
+    # These three are bash scripts (#!/bin/bash) mislabeled with a .py extension;
+    # ruff parses them as Python -> invalid-syntax, which broke the repo_health
+    # enforcement tests. Correct fix is renaming to .sh, but scripts/ is currently a
+    # read-only bind mount so the rename can't be staged here — exclude until then.
+    "scripts/update_handoff_prompt.py",
+    "scripts/update_handoff_stt.py",
+    "scripts/dedupe_next_moves.py",
 ]
 
 # Linting configuration
