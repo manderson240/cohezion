@@ -7,6 +7,11 @@ Each test is designed to fail against the most-plausible *wrong* implementation:
     the discriminating retrieval vs reasoning boundary test.
 
 V-Model: T3 (unit tests) on D1 (deterministic 4-category classifier).
+
+POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good), used directly
+as quality_score (NOT `1.0 - anomaly_score`). All fixture values below were inverted
+from their pre-fix values to preserve each test's original intent (healthy input →
+high anomaly_score; unhealthy/low-quality input → low anomaly_score).
 """
 
 import pytest
@@ -31,13 +36,13 @@ def fa() -> FailureAttributor:
 class TestNoAttribution:
     def test_high_quality_no_validation_error_returns_none(self, fa):
         """Successful execution must not be attributed."""
-        metrics = {"anomaly_score": 0.1}  # quality_score = 0.9 > threshold
+        metrics = {"anomaly_score": 0.9}  # quality_score = 0.9 > threshold
         result = fa.classify("some output", metrics, decision_paths=["vault/path"])
         assert result is None
 
     def test_threshold_boundary_just_above_returns_none(self, fa):
         """quality_score exactly above threshold → no attribution."""
-        threshold_anomaly = 1.0 - _REASONING_QUALITY_THRESHOLD - 0.001
+        threshold_anomaly = _REASONING_QUALITY_THRESHOLD + 0.001
         metrics = {"anomaly_score": threshold_anomaly}
         result = fa.classify("x" * 50, metrics, decision_paths=["something"])
         assert result is None
@@ -52,7 +57,7 @@ class TestFormatAttribution:
     def test_explicit_validation_failed_flag_gives_format(self, fa):
         """output_validation_failed=True → format, regardless of output content."""
         metrics = {
-            "anomaly_score": 0.8,
+            "anomaly_score": 0.2,
             "output_validation_failed": True,
             "output_validation_error": "JSON parse error at position 5: Expecting value",
         }
@@ -64,7 +69,7 @@ class TestFormatAttribution:
     def test_format_evidence_contains_validator_message(self, fa):
         """Format attribution must surface the exact validator error (for prompt injection)."""
         metrics = {
-            "anomaly_score": 0.8,
+            "anomaly_score": 0.2,
             "output_validation_failed": True,
             "output_validation_error": "JSON parse error at position 5: Expecting value",
         }
@@ -78,14 +83,14 @@ class TestFormatAttribution:
         Discriminating: a wrong implementation that ignores output_validator and always
         falls through to reasoning would fail this test.
         """
-        metrics = {"anomaly_score": 0.8}  # low quality
+        metrics = {"anomaly_score": 0.2}  # low quality
         result = fa.classify('{"key": missing_value}', metrics, decision_paths=["vault/x"])
         assert result is not None
         assert result.category == "format"
 
     def test_valid_json_does_not_classify_as_format(self, fa):
         """Valid JSON output must not be classified as format, even on low quality."""
-        metrics = {"anomaly_score": 0.8}  # low quality score
+        metrics = {"anomaly_score": 0.2}  # low quality score
         result = fa.classify('{"answer": "wrong but valid JSON"}', metrics, decision_paths=["v"])
         # Should NOT be format — it's valid JSON
         assert result is None or result.category != "format"
@@ -99,7 +104,7 @@ class TestFormatAttribution:
 class TestCascadingAttribution:
     def test_empty_output_gives_cascading(self, fa):
         """Empty output → cascading (upstream produced nothing)."""
-        metrics = {"anomaly_score": 0.9}
+        metrics = {"anomaly_score": 0.1}
         result = fa.classify("", metrics, decision_paths=["vault/x"])
         assert result is not None
         assert result.category == "cascading"
@@ -112,7 +117,7 @@ class TestCascadingAttribution:
         would classify this as retrieval. Cascading must win because empty output
         means the upstream component failed regardless of what vault returned.
         """
-        metrics = {"anomaly_score": 0.9}
+        metrics = {"anomaly_score": 0.1}
         short_output = "x" * (_CASCADING_THRESHOLD - 1)
         result = fa.classify(short_output, metrics, decision_paths=[])
         assert result is not None
@@ -120,7 +125,7 @@ class TestCascadingAttribution:
 
     def test_output_at_threshold_not_cascading(self, fa):
         """Output exactly at (not below) threshold → not cascading."""
-        metrics = {"anomaly_score": 0.8}
+        metrics = {"anomaly_score": 0.2}
         output_at_threshold = "x" * _CASCADING_THRESHOLD
         result = fa.classify(output_at_threshold, metrics, decision_paths=[])
         # At threshold it should proceed to retrieval (empty paths) or reasoning
@@ -139,7 +144,7 @@ class TestRetrievalAttribution:
         Discriminating: a wrong implementation that only looks at quality_score would
         classify this as reasoning. Empty decision_paths must override quality signal.
         """
-        metrics = {"anomaly_score": 0.8}  # low quality
+        metrics = {"anomaly_score": 0.2}  # low quality
         output = "x" * (_CASCADING_THRESHOLD + 10)  # non-empty, non-cascading
         result = fa.classify(output, metrics, decision_paths=[])
         assert result is not None
@@ -148,7 +153,7 @@ class TestRetrievalAttribution:
 
     def test_none_decision_paths_gives_retrieval(self, fa):
         """decision_paths=None treated same as empty list → retrieval."""
-        metrics = {"anomaly_score": 0.8}
+        metrics = {"anomaly_score": 0.2}
         output = "a substantial response that is definitely long enough"
         result = fa.classify(output, metrics, decision_paths=None)
         assert result is not None
@@ -160,7 +165,7 @@ class TestRetrievalAttribution:
         If decision_paths has content, the retrieval step was not empty — the issue
         is downstream (reasoning), not upstream (retrieval).
         """
-        metrics = {"anomaly_score": 0.8}  # low quality, but had guidance
+        metrics = {"anomaly_score": 0.2}  # low quality, but had guidance
         output = "a substantial response that is definitely long enough"
         result = fa.classify(output, metrics, decision_paths=["vault/pattern/foo"])
         assert result is not None
@@ -180,7 +185,7 @@ class TestReasoningAttribution:
         quality score would mis-classify this. Reasoning is the fallthrough after
         all other categories are eliminated.
         """
-        metrics = {"anomaly_score": 0.8}  # low quality = poor reasoning
+        metrics = {"anomaly_score": 0.2}  # low quality = poor reasoning
         output = "The answer to everything is 42 but this is incorrect"
         result = fa.classify(output, metrics, decision_paths=["vault/context/guidance"])
         assert result is not None
@@ -202,7 +207,7 @@ class TestReasoningAttribution:
         Discriminating: checks that format detection doesn't fire on valid JSON
         even when the answer is semantically wrong (low quality).
         """
-        metrics = {"anomaly_score": 0.8}
+        metrics = {"anomaly_score": 0.2}
         valid_but_wrong_json = '{"result": "wrong_answer", "confidence": 0.1}'
         result = fa.classify(valid_but_wrong_json, metrics, decision_paths=["vault/x"])
         # Valid JSON should not be categorized as format failure
@@ -232,18 +237,18 @@ class TestStructural:
             (
                 '{"bad": ',
                 {
-                    "anomaly_score": 0.9,
+                    "anomaly_score": 0.1,
                     "output_validation_failed": True,
                     "output_validation_error": "bad",
                 },
                 [],
             ),
             # cascading
-            ("", {"anomaly_score": 0.9}, ["vault/x"]),
+            ("", {"anomaly_score": 0.1}, ["vault/x"]),
             # retrieval
-            ("x" * 30, {"anomaly_score": 0.9}, []),
+            ("x" * 30, {"anomaly_score": 0.1}, []),
             # reasoning
-            ("x" * 30, {"anomaly_score": 0.9}, ["vault/x"]),
+            ("x" * 30, {"anomaly_score": 0.1}, ["vault/x"]),
         ]
         for output, metrics, paths in test_cases:
             result = fa.classify(output, metrics, paths)

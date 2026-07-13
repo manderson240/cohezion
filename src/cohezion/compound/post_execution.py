@@ -314,7 +314,8 @@ class PostExecutionOrchestrator:
     def _compute_coherence(self, metrics: dict[str, Any]) -> None:
         cohesion_components: list[float] = []
         cohesion_components.append(0.7 if metrics.get("success", False) else 0.2)
-        cohesion_components.append(1.0 - metrics.get("anomaly_score", 0.0))
+        # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good) — use directly
+        cohesion_components.append(metrics.get("anomaly_score", 1.0))
         alignment_data = metrics.get("alignment", {})
         if alignment_data:
             cohesion_components.append(alignment_data.get("intent_match", 0.5))

@@ -519,8 +519,9 @@ class RetrospectionEngine:
         elif coherence < 0.4:
             insights.append(f"Low cohesion ({coherence:.2f}) — spin misalignment")
 
-        if anomaly_score > 0.7:
-            insights.append(f"High anomaly ({anomaly_score:.2f}) — investigate")
+        # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good); flag LOW health
+        if anomaly_score < 0.3:
+            insights.append(f"Low health score ({anomaly_score:.2f}) — investigate")
 
         if degraded:
             insights.append("Execution ran in degradation mode")
@@ -537,7 +538,8 @@ class RetrospectionEngine:
         # Compound score: weighted quality signal
         compound_score = 0.0
         if success:
-            compound_score = coherence * 0.5 + (1.0 - anomaly_score) * 0.3 + phi_score * 0.2
+            # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good) — add directly
+            compound_score = coherence * 0.5 + anomaly_score * 0.3 + phi_score * 0.2
 
         if should_refine:
             recommendation = f"Refine {skill_name} with cohesion={coherence:.2f}"

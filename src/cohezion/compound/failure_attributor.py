@@ -28,8 +28,8 @@ from cohezion.compound.output_validator import validate_structured_output
 # Near-empty output (< this many chars) → cascading failure
 _CASCADING_THRESHOLD = 20
 
-# quality_score = 1 - anomaly_score; below this threshold on a failed execution
-# → reasoning failure
+# quality_score = anomaly_score (HEALTH score, high=good); below this threshold on a
+# failed execution → reasoning failure
 _REASONING_QUALITY_THRESHOLD = 0.7
 
 # FAPO three-level escalation map (category → level)
@@ -80,7 +80,7 @@ class FailureAttributor:
         Args:
             output: Raw execution output string.
             metrics: CompoundExecutor metrics dict. Relevant keys:
-                ``anomaly_score`` (float 0–1, lower = better),
+                ``anomaly_score`` (float 0–1, higher = better),
                 ``output_validation_failed`` (bool),
                 ``output_validation_error`` (str).
             decision_paths: Vault guidance paths retrieved during execution.
@@ -90,7 +90,8 @@ class FailureAttributor:
             FailureAttribution if a failure category was detected, None otherwise.
         """
         validation_failed = bool(metrics.get("output_validation_failed", False))
-        quality_score = 1.0 - float(metrics.get("anomaly_score", 0.5))
+        # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good) — use directly
+        quality_score = float(metrics.get("anomaly_score", 0.5))
 
         # Short-circuit: healthy execution (high quality, no explicit validation error)
         if quality_score > _REASONING_QUALITY_THRESHOLD and not validation_failed:

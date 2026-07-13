@@ -811,8 +811,8 @@ class SkillRefiner:
             or 0
         )
 
-        # Calculate quality score (lower is better quality)
-        quality_score = 1.0 - anomaly_score
+        # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good) — use directly
+        quality_score = anomaly_score
 
         # Calculate token efficiency (tokens per second)
         token_efficiency = tokens_used / duration if duration > 0 else 0.0

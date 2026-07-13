@@ -28,7 +28,9 @@ def sample_execution_result():
         "output": "Sample output",
         "metrics": {
             "duration_seconds": 1.5,
-            "anomaly_score": 0.1,
+            # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good).
+            # 0.9 represents a healthy run, consistent with success=True above.
+            "anomaly_score": 0.9,
             "error": None,
         },
         "duration_seconds": 1.5,
@@ -51,7 +53,7 @@ class TestExecutionMetricsExtraction:
         assert metrics.duration_seconds == 1.5
         assert metrics.tokens_used == 200
         assert metrics.cached_hits == 2
-        assert metrics.anomaly_score == 0.1
+        assert metrics.anomaly_score == 0.9
         assert metrics.quality_score > 0.8
 
     def test_extract_metrics_failure(self, skill_refiner):
@@ -79,10 +81,11 @@ class TestExecutionMetricsExtraction:
         assert metrics.token_efficiency == pytest.approx(133.33, rel=0.01)
 
     def test_extract_metrics_quality_score(self, skill_refiner, sample_execution_result):
-        """Test quality score calculation (inverse of anomaly score)."""
+        """Test quality score calculation (anomaly_score used directly, HEALTH score)."""
         metrics = skill_refiner._extract_metrics(sample_execution_result)
 
-        # quality_score = 1.0 - anomaly_score = 1.0 - 0.1 = 0.9
+        # POLARITY FIX (2026-07-12): quality_score = anomaly_score = 0.9 (used directly,
+        # anomaly_score is a HEALTH score where high=good — NOT `1.0 - anomaly_score`)
         assert metrics.quality_score == pytest.approx(0.9)
 
 
