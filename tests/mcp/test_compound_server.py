@@ -213,6 +213,12 @@ class TestSkillMatrix:
     async def test_local_skills_have_legacy_names(self) -> None:
         result = await cohezion_skill_matrix()
         local = result.get("local_hermes_skills", [])
+        if not local:
+            # cohezion_skill_matrix scans ~/.hermes/skills (an optional external Hermes
+            # integration). When it isn't provisioned (CI, most dev envs) there are no local
+            # skills to verify — skip rather than fail. The invariant only applies WHEN local
+            # hermes skills exist: they must carry a legacy_name.
+            pytest.skip("~/.hermes/skills not provisioned — no local hermes skills to verify")
         with_legacy = [s for s in local if s.get("legacy_name")]
         assert len(with_legacy) > 0, "No ported skills found with legacy_name"
 

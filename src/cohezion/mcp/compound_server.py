@@ -450,18 +450,17 @@ async def cohezion_skill_matrix() -> dict[str, Any]:
 
     prime_names = {s["name"] for s in prime_skills}
     local_legacies = {s["legacy_name"] for s in local_skills if s.get("legacy_name")}
-    matrix = {
-        "prime_total": len(prime_names),
-        "hermes_local_total": len(local_skills),
-        "ported": sorted(prime_names & local_legacies),
-        "not_ported": sorted(prime_names - local_legacies),
-        "hermes_only": sorted({s["name"] for s in local_skills}),
-    }
     return ok(
         prime_skills=prime_skills,
         categories=sorted(categories),
         local_hermes_skills=local_skills,
-        matrix=matrix,
+        matrix={
+            "prime_total": len(prime_names),
+            "hermes_local_total": len(local_skills),
+            "ported": sorted(prime_names & local_legacies),
+            "not_ported": sorted(prime_names - local_legacies),
+            "hermes_only": sorted({s["name"] for s in local_skills}),
+        },
     )
 
 
