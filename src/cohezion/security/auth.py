@@ -19,14 +19,27 @@ from passlib.context import CryptContext
 
 logger = logging.getLogger(__name__)
 
-# Configuration
-_SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY")
-if not _SECRET_KEY:
-    raise RuntimeError(
-        "COHEZION_SECRET_KEY environment variable is required. "
-        "Set it before starting the application."
-    )
-SECRET_KEY: str = _SECRET_KEY
+# Configuration — the secret key is resolved LAZILY (not at import time).
+# A module-level `raise` on missing config is an import-time smell: it broke
+# test collection and would crash any tool that transitively imports auth.
+# Production still fails fast — on the first token operation, not on import.
+SECRET_KEY: str | None = os.environ.get("COHEZION_SECRET_KEY")
+
+
+def _require_secret_key() -> str:
+    """Return the configured JWT secret, raising only when a token op needs it.
+
+    Re-reads the environment as a fallback so the key can be provided after
+    module import (e.g. a test fixture) without the value being frozen at
+    import time.
+    """
+    key = SECRET_KEY or os.environ.get("COHEZION_SECRET_KEY")
+    if not key:
+        raise RuntimeError(
+            "COHEZION_SECRET_KEY environment variable is required. "
+            "Set it before starting the application."
+        )
+    return key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -105,7 +118,7 @@ def create_token(
         expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, _require_secret_key(), algorithm=ALGORITHM)
 
     return encoded_jwt
 
@@ -124,7 +137,7 @@ def verify_token(token: str) -> dict[str, Any]:
         AuthError if invalid
     """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, _require_secret_key(), algorithms=[ALGORITHM])
         return payload
     except PyJWTError as e:
         raise AuthError(f"Invalid token: {e}", "invalid_token") from e

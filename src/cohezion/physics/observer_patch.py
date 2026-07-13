@@ -32,6 +32,8 @@ import numpy as np
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from cohezion.physics.spinor import SpinorState
 
 
@@ -191,3 +193,68 @@ def evo_observer_consistency(
         agent_id=agent_b_id, spinor=agent_b_spinor, angular_radius=angular_radius
     )
     return verify_observer_consistency(patch_a, patch_b)
+
+
+# ---------------------------------------------------------------------------
+# Retarded fields & frequency dispersion (OPH signal propagation)
+# ---------------------------------------------------------------------------
+#
+# OPH signals propagate between observer patches at finite speed, so the value
+# seen at the observer is the emitted signal shifted by a retarded delay τ.
+# Two stacked delays matter in practice: a geometric (Roemer) delay from patch
+# separation, and a frequency-dependent dispersion delay τ_DM = K_DM·DM/ν²
+# (pulsar timing; calibrated on MWA PSR J0125−5854, DM=9.9, ν=154 MHz → τ≈1.73 s).
+
+_K_DM: float = 4148.808
+"""Pulsar dispersion constant K_DM (MHz² pc⁻¹ cm³ s), IPTA standard."""
+
+
+def stack_delays(*delays: float) -> float:
+    """Additively compose multiple delay contributions (dispersion + geometric)."""
+    return float(sum(delays))
+
+
+def signal_at_observer(signal_fn: Callable[[float], float], t: float, delay: float) -> float:
+    """Value of a signal at the observer at time ``t`` given propagation ``delay``.
+
+    The observer sees the signal at its retarded time ``t - delay``; ``delay=0``
+    is the identity (no shift).
+    """
+    return float(signal_fn(t - delay))
+
+
+@dataclass(frozen=True)
+class FrequencyDispersedDelay:
+    """Frequency-dependent dispersion delay τ_DM = K_DM · DM / ν² (pulsar timing)."""
+
+    dm: float
+    nu_mhz: float
+
+    @property
+    def delay_seconds(self) -> float:
+        if self.nu_mhz == 0.0:
+            return math.inf  # low-frequency cutoff: ν → 0 ⇒ τ → ∞
+        return _K_DM * self.dm / (self.nu_mhz**2)
+
+
+@dataclass(frozen=True)
+class RetardedField:
+    """A field observed with finite propagation delay τ = separation / speed."""
+
+    delay_seconds: float
+    propagation_speed: float = 1.0
+
+
+def compute_retarded_delay(
+    patch_a: ObserverPatch, patch_b: ObserverPatch, propagation_speed: float
+) -> float:
+    """Retarded delay between two observer patches: τ = angular_separation / speed.
+
+    Identical patches (separation 0) give τ=0; antipodal patches give the maximal
+    delay. Faster propagation shortens the delay.
+    """
+    if propagation_speed <= 0.0:
+        return math.inf
+    dot = float(np.clip(np.dot(patch_a.bloch_vector, patch_b.bloch_vector), -1.0, 1.0))
+    separation = math.acos(dot)
+    return float(separation / propagation_speed)

@@ -1,8 +1,3 @@
-import pytest
-
-pytest.importorskip(
-    "cohezion.physics.observer_patch", reason="TDD-red: FrequencyDispersedDelay not yet implemented"
-)
 """Tests for FrequencyDispersedDelay — pulsar dispersion model in OPH.
 
 Grounded in MWA millisecond pulsar PSR J0125−5854 (2026-06-27 research):
@@ -21,6 +16,13 @@ extends RetardedField to the frequency axis.
 """
 
 from __future__ import annotations
+
+import pytest
+
+
+pytest.importorskip(
+    "cohezion.physics.observer_patch", reason="TDD-red: FrequencyDispersedDelay not yet implemented"
+)
 
 import math
 
@@ -144,7 +146,8 @@ class TestFrequencyDispersedDelayDiscriminating:
         A step-function signal emitted at t=0 must not arrive at t < τ_DM.
         """
         fd = FrequencyDispersedDelay(dm=9.9, nu_mhz=154.0)  # τ ≈ 1.73 s
-        step = lambda t: 1.0 if t >= 0.0 else 0.0
+        def step(t):
+            return 1.0 if t >= 0.0 else 0.0
 
         before = signal_at_observer(step, t=1.0, delay=fd.delay_seconds)
         after = signal_at_observer(step, t=3.0, delay=fd.delay_seconds)

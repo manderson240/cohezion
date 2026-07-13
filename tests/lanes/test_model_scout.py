@@ -1,6 +1,3 @@
-import pytest
-
-pytest.importorskip("respx")
 """RED tests for the ModelScoutLane (Lane 1).
 
 Contracts:
@@ -18,6 +15,11 @@ Contracts:
 """
 
 from __future__ import annotations
+
+import pytest
+
+
+pytest.importorskip("respx")
 
 import httpx
 import pytest

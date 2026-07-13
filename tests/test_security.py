@@ -67,8 +67,9 @@ class TestRateLimiter:
 class TestAuth:
     """Test authentication."""
 
-    def test_create_verify_token(self):
+    def test_create_verify_token(self, monkeypatch):
         """Token creation and verification works."""
+        monkeypatch.setenv("COHEZION_SECRET_KEY", "test-secret-key-for-jwt-roundtrip")
         token = create_token({"sub": "test-user"})
         payload = verify_token(token)
         assert payload["sub"] == "test-user"
