@@ -10,6 +10,20 @@ import pytest
 from cohezion.agent.unified_harness import UnifiedAgent
 
 
+# STALE DUPLICATE (2026-07-13): this file tests a pre-refactor
+# UnifiedAgent(executor=, use_gaia=, use_autocontext=, ...) harness-integration API that
+# no longer exists — cohezion.agent.unified_harness now exposes a no-arg tool-dispatcher
+# UnifiedAgent + ToolRegistry. The canonical, passing tests are the singular-dir
+# tests/agent/test_unified_harness.py (5 passing, testing ToolRegistry). These 10 tests
+# can never pass without rebuilding the removed API. Skipped (NOT deleted) pending an
+# operator decision to remove this duplicate husk. Surfaced by the tests/agents +
+# tests/agent __init__.py collection fix in PR #254.
+pytestmark = pytest.mark.skip(
+    reason="stale duplicate of tests/agent/test_unified_harness.py; tests removed "
+    "pre-refactor UnifiedAgent(use_gaia=...) API (module now exposes ToolRegistry)"
+)
+
+
 @pytest.fixture
 def mock_executor():
     """Mock LLMExecutor."""
