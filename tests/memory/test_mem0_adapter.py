@@ -1,6 +1,3 @@
-import pytest
-
-pytest.importorskip("mem0", reason="mem0 optional dep not installed")
 """Tests for the local-first mem0 adapter (cohezion.memory.mem0_adapter).
 
 Two layers:
@@ -14,6 +11,11 @@ would be a false signal. That validation is deferred to node-restore.
 """
 
 from __future__ import annotations
+
+import pytest
+
+
+pytest.importorskip("mem0", reason="mem0 optional dep not installed")
 
 import sys
 

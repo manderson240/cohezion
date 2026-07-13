@@ -1,6 +1,3 @@
-import pytest
-
-pytest.importorskip("playwright")
 """V-model playwright test suite for Cohezion marimo walkthrough notebooks.
 
 Three V-model layers:
@@ -36,6 +33,11 @@ Usage:
 """
 
 from __future__ import annotations
+
+import pytest
+
+
+pytest.importorskip("playwright")
 
 import re
 import subprocess

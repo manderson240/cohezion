@@ -67,6 +67,7 @@ from cohezion.physics.rewards_bridge import CoherenceRatchet, RewardsBridge
 from cohezion.physics.riemannian_glide import RiemannianGlideTrajectory
 from cohezion.physics.riemannian_metric import RiemannianMetric
 from cohezion.physics.spinor import SpinorState
+from cohezion.physics.thermodynamic_gravity import OttoWorkLeg, ThermodynamicGravity
 
 
 __all__ = [
@@ -92,12 +93,14 @@ __all__ = [
     "LagrangianDynamics",
     "LemonadeCAAdvisor",
     "NaturalCapitalValuation",
+    "OttoWorkLeg",
     "RewardsBridge",
     "RiemannianGlideTrajectory",
     "RiemannianMetric",
     "SpinorState",
     "SymmetryBreaking",
     "SymmetryGroup",
+    "ThermodynamicGravity",
     "TotalisticRule2D",
     "WolframClass",
     "ca_rl_step",
@@ -143,10 +146,17 @@ with contextlib.suppress(Exception):
     from cohezion.physics.mereon_projector import ProjectionResult as ProjectionResult
 
 # Wiring-sweep 2026-06-22: observer_patch.py was a genuine import-graph orphan.
+# 2026-07-13: retarded-field / frequency-dispersion surface added (FD1) — implemented
+# after the TDD-red tests were found importing symbols that never landed.
 with contextlib.suppress(Exception):
     from cohezion.physics.observer_patch import ConsistencyResult as ConsistencyResult
+    from cohezion.physics.observer_patch import FrequencyDispersedDelay as FrequencyDispersedDelay
     from cohezion.physics.observer_patch import ObserverPatch as ObserverPatch
+    from cohezion.physics.observer_patch import RetardedField as RetardedField
+    from cohezion.physics.observer_patch import compute_retarded_delay as compute_retarded_delay
     from cohezion.physics.observer_patch import overlap_fraction as overlap_fraction
+    from cohezion.physics.observer_patch import signal_at_observer as signal_at_observer
+    from cohezion.physics.observer_patch import stack_delays as stack_delays
 
 # Wiring-sweep 2026-06-22: ouroboros_bridge.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):

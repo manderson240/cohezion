@@ -1,8 +1,3 @@
-import pytest
-
-pytest.importorskip(
-    "cohezion.physics.observer_patch", reason="TDD-red: FrequencyDispersedDelay not yet implemented"
-)
 """Tests for RetardedField — OPH signal propagation with causal delay.
 
 Grounded in X-ray reverberation mapping (Kara 2026, MIT): a source flash
@@ -16,6 +11,13 @@ emitted value.
 """
 
 from __future__ import annotations
+
+import pytest
+
+
+pytest.importorskip(
+    "cohezion.physics.observer_patch", reason="TDD-red: FrequencyDispersedDelay not yet implemented"
+)
 
 import math
 
@@ -57,7 +59,8 @@ class TestRetardedFieldStructural:
 
     def test_signal_at_observer_callable(self) -> None:
         """signal_at_observer(signal_fn, t, delay) must return a float."""
-        signal_fn = lambda t: 1.0 if t >= 0 else 0.0
+        def signal_fn(t):
+            return 1.0 if t >= 0 else 0.0
         val = signal_at_observer(signal_fn, t=1000.0, delay=500.0)
         assert isinstance(val, float)
 
@@ -115,7 +118,9 @@ class TestRetardedFieldDiscriminating:
 
     def test_zero_delay_is_identity(self) -> None:
         """With τ=0, observer receives the signal with no shift."""
-        fn = lambda t: math.sin(t)
+        def fn(t):
+            return math.sin(t)
+
         for t in [0.0, 1.0, 100.0, -5.0]:
             assert signal_at_observer(fn, t=t, delay=0.0) == pytest.approx(math.sin(t))
 
