@@ -29,11 +29,24 @@ import os
 import re
 import sys
 import urllib.request
+from pathlib import Path
 
 SURREAL_URL = "http://localhost:8001/sql"
 LEMONADE_URL = "http://localhost:13305/api/v1/chat/completions"
 MODEL = os.environ.get("HELD_OUT_MODEL", "Bonsai-8B-gguf")
 _STOP = {"the", "a", "an", "of", "to", "in", "for", "and", "or", "with", "3d", "2d"}
+SKILLS_DIR = Path(__file__).resolve().parents[2] / "src" / "cohezion" / "skills"
+
+
+def _load_skill_prompt(skill_name: str) -> str:
+    """Load a skill's PRIME prompt (capped), so skill-refinement can measurably move the
+    fitness. Falls back to a generic prompt when the skill file is absent."""
+    stem = skill_name.replace("-", "_")
+    for cand in (SKILLS_DIR / f"{stem.upper()}.md", SKILLS_DIR / f"{stem}.md", SKILLS_DIR / f"{skill_name}.md"):
+        if cand.exists():
+            txt = cand.read_text(encoding="utf-8", errors="ignore")
+            return f"You are the '{skill_name}' skill. Apply it precisely and answer concisely.\n\n{txt[:3000]}"
+    return "You are a concise expert engineering assistant."
 
 
 def _surreal(query: str) -> list:
@@ -45,9 +58,9 @@ def _surreal(query: str) -> list:
         return json.load(r)[0].get("result", [])
 
 
-def _infer(prompt: str, timeout: int = 60) -> str:
+def _infer(prompt: str, system_prompt: str, timeout: int = 90) -> str:
     body = {"model": MODEL, "temperature": 0.0, "max_tokens": 512,
-            "messages": [{"role": "system", "content": "You are a concise expert engineering assistant."},
+            "messages": [{"role": "system", "content": system_prompt},
                          {"role": "user", "content": prompt}]}
     req = urllib.request.Request(  # noqa: S310
         LEMONADE_URL, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
@@ -82,7 +95,7 @@ def main() -> int:
     results = []
     for fx in fixtures:
         inp, exp = fx.get("input", ""), fx.get("expected_output", "")
-        out = _infer(inp)
+        out = _infer(inp, _load_skill_prompt(fx.get("skill_name", "")))
         ok = _passes(exp, out)
         results.append({"skill": fx.get("skill_name", "?"), "expected": exp, "passed": ok})
 
