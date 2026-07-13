@@ -28,6 +28,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
+import subprocess
+import tempfile
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -49,6 +52,9 @@ class BenchTask:
     prompt: str
     expected_keywords: list[str]  # presence check (case-insensitive)
     max_tokens: int = 60
+    grader: str = "keyword"  # "keyword" (surface-form) | "python_exec" (behavior)
+    test_code: str = ""  # for grader="python_exec": assert-based test appended to the generated code
+    timeout_s: float = 30.0  # per-call HTTP timeout (raise for reasoning models on big budgets)
 
 
 @dataclass
@@ -70,9 +76,29 @@ TASK_SUITE: list[BenchTask] = [
     BenchTask(
         name="code_fibonacci",
         role="code",
-        prompt="Write a compact Python function that returns a list of Fibonacci numbers up to n.",
-        expected_keywords=["def", "fibonacci", "return"],
-        max_tokens=80,
+        prompt=(
+            "Write a Python function `def fib(n)` that returns the FIRST n Fibonacci "
+            "numbers as a list, starting with 0, 1 (so fib(7) == [0,1,1,2,3,5,8]). "
+            "Reply with a Python code block."
+        ),
+        expected_keywords=["def", "fib", "return"],  # retained for provenance; unused by exec grader
+        max_tokens=3072,
+        grader="python_exec",
+        test_code="assert fib(7) == [0, 1, 1, 2, 3, 5, 8]\nassert fib(0) == []\nassert fib(1) == [0]",
+        timeout_s=300.0,
+    ),
+    BenchTask(
+        name="code_dedup",
+        role="code",
+        prompt=(
+            "Write a Python function `def dedup(xs)` that returns the input list with "
+            "duplicates removed, preserving first-seen order. Reply with a Python code block."
+        ),
+        expected_keywords=["def", "dedup", "return"],
+        max_tokens=3072,
+        grader="python_exec",
+        test_code="assert dedup([1, 1, 2, 3, 2, 1]) == [1, 2, 3]\nassert dedup([]) == []",
+        timeout_s=300.0,
     ),
     BenchTask(
         name="math_proof",
@@ -122,14 +148,22 @@ TASK_SUITE: list[BenchTask] = [
 # ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+_FENCE_RE = re.compile(r"```(?:python)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
+
+
 async def _call_model(
     model_id: str,
     prompt: str,
     max_tokens: int,
+    timeout_s: float = 30.0,
 ) -> tuple[float, float, str]:
-    """POST to OmniRouter /api/v1/chat and return (ttft_s, tps, text).
+    """POST to OmniRouter /api/v1/chat/completions and return (ttft_s, tps, text).
 
-    Returns ("", 0, 0) on error rather than raising so the gauntlet keeps running.
+    Reads message.content, falling back to message.reasoning_content when content is
+    empty (DeepSeek/Lemonade reasoning-model convention — a reasoning model exhausting
+    its budget mid-think leaves content=""), and strips inline <think>…</think> blocks.
+    Returns (0, 0, "") on error rather than raising so the gauntlet keeps running.
     """
     try:
         import httpx  # lazy import — test mocks replace this
@@ -141,12 +175,15 @@ async def _call_model(
             "stream": False,
         }
         t0 = time.monotonic()
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(f"{OMNI_URL}/api/v1/chat", json=payload)
+        async with httpx.AsyncClient(timeout=timeout_s) as client:
+            resp = await client.post(f"{OMNI_URL}/api/v1/chat/completions", json=payload)
             resp.raise_for_status()
         elapsed = time.monotonic() - t0
         data = resp.json()
-        text: str = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        msg = data.get("choices", [{}])[0].get("message", {}) or {}
+        # content first; fall back to reasoning_content when the final channel is empty.
+        text: str = (msg.get("content") or "").strip() or (msg.get("reasoning_content") or "")
+        text = _THINK_RE.sub("", text)  # strip inline <think>…</think> if the server inlines it
         n_tokens = data.get("usage", {}).get("completion_tokens", max(1, len(text.split())))
         tps = n_tokens / max(elapsed, 0.001)
         # TTFT: for non-streaming we approximate as half the elapsed time
@@ -157,7 +194,53 @@ async def _call_model(
         return 0.0, 0.0, ""
 
 
-def _score_result(task: BenchTask, ttft: float, tps: float, text: str) -> BenchResult:
+def _extract_python(text: str) -> str:
+    """Return the last fenced Python code block, or the whole text if unfenced."""
+    blocks = _FENCE_RE.findall(text or "")
+    return blocks[-1].strip() if blocks else (text or "").strip()
+
+
+def _run_python_test(code: str, test_code: str, timeout: float = 10.0) -> bool:
+    """Execution grader: write code+assert-test to a tempfile, run out-of-process, pass iff exit 0.
+
+    Uses the repo venv python (L367) in isolated mode (-I) with a wall-clock timeout. Out-of-process
+    is the durable containment the in-process allow-list (safe_exec.py) only stop-gaps (H5 lesson).
+    """
+    body = _extract_python(code)
+    if not body:
+        return False
+    repo_venv = Path(__file__).resolve().parents[3] / ".venv" / "bin" / "python3"
+    py = str(repo_venv) if repo_venv.exists() else "python3"
+    with tempfile.TemporaryDirectory() as td:
+        f = Path(td) / "cand.py"
+        f.write_text(body + "\n" + test_code + "\n")
+        try:
+            r = subprocess.run(
+                [py, "-I", str(f)], cwd=td, capture_output=True, timeout=timeout
+            )
+            return r.returncode == 0
+        except (subprocess.TimeoutExpired, OSError):
+            return False
+
+
+def _score_result(
+    task: BenchTask, ttft: float, tps: float, text: str, exec_pass: bool | None = None
+) -> BenchResult:
+    if task.grader == "python_exec":
+        # Behavior, not surface form: quality is 1.0 iff the generated code passed its test.
+        quality = 1.0 if exec_pass else 0.0
+        hits, total = (1 if exec_pass else 0), 1
+        return BenchResult(
+            model_id="",
+            task_name=task.name,
+            role=task.role,
+            ttft_seconds=round(ttft, 3),
+            tps_actual=round(tps, 1),
+            keyword_hits=hits,
+            keyword_total=total,
+            quality_ratio=round(quality, 3),
+            score=round(quality * tps, 2),
+        )
     lower = text.lower()
     hits = sum(1 for kw in task.expected_keywords if kw.lower() in lower)
     total = max(1, len(task.expected_keywords))
@@ -183,8 +266,12 @@ async def _bench_model_on_task(
     task: BenchTask,
     run_id: int = 0,
 ) -> BenchResult:
-    ttft, tps, text = await _call_model(model_id, task.prompt, task.max_tokens)
-    result = _score_result(task, ttft, tps, text)
+    ttft, tps, text = await _call_model(model_id, task.prompt, task.max_tokens, task.timeout_s)
+    exec_pass: bool | None = None
+    if task.grader == "python_exec":
+        # Out-of-process execution grading, off the event loop so party mode stays async.
+        exec_pass = await asyncio.to_thread(_run_python_test, text, task.test_code)
+    result = _score_result(task, ttft, tps, text, exec_pass=exec_pass)
     result.model_id = model_id
     result.run_id = run_id
     return result
