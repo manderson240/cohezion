@@ -11,14 +11,16 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 import time
 import urllib.request
 from pathlib import Path
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
-# llama3.2-1b-FLM: 30-42 TPS on XDNA2 NPU — no extended thinking, fast JSON output
-MODEL = "llama3.2-1b-FLM"
+# Env-overridable; default is a small fast model reliably in the local catalog.
+# Override: PC_AUDIT_MODEL=<id> (e.g. Bonsai-8B-gguf / Gemma-4-31B-it-GGUF for deeper triage).
+MODEL = os.environ.get("PC_AUDIT_MODEL", "Gemma-4-E2B-it-GGUF")
 SRC_ROOT = Path(__file__).parent.parent / "src" / "cohezion"
 
 SYSTEM_PROMPT = "You classify software modules by data-flow role. Output JSON only, no explanation, no markdown."
