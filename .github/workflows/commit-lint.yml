@@ -26,7 +26,10 @@ jobs:
 
           # Conventional commit pattern:
           # type(scope)?: description  OR  type(scope)?!: description (breaking)
-          PATTERN='^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([^)]+\))?!?\s*:\s*.+'
+          # Scope group is zero-or-more (\(...\))* so multi-scope titles like Dependabot's
+          # "chore(actions)(deps): ..." / "chore(deps-js)(deps-dev): ..." pass, without
+          # weakening type/colon/description enforcement.
+          PATTERN='^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([^)]+\))*!?\s*:\s*.+'
 
           if echo "$PR_TITLE" | grep -qP "$PATTERN"; then
             echo "PR title follows conventional commit format"
@@ -51,7 +54,10 @@ jobs:
 
       - name: Validate commit messages
         run: |
-          PATTERN='^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([^)]+\))?!?\s*:\s*.+'
+          # Scope group is zero-or-more (\(...\))* so multi-scope titles like Dependabot's
+          # "chore(actions)(deps): ..." / "chore(deps-js)(deps-dev): ..." pass, without
+          # weakening type/colon/description enforcement.
+          PATTERN='^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([^)]+\))*!?\s*:\s*.+'
           MERGE_PATTERN='^Merge '
           REVERT_PATTERN='^Revert '
 
