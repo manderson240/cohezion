@@ -12,6 +12,7 @@ floor, not a ceiling).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass
 
@@ -258,19 +259,15 @@ class VerifyEvolveLane:
         evidence that the model's recipe is well-attested.
         """
         try:
-            # In production, MyceliumRegistry is the singleton that
-            # subscribes to the bus. For the verify_evolve query, we
-            # snapshot its state and filter by (family, task).
             from cohezion.inference.default_profiles import get_profile
+            from cohezion.mycelium.registry import MyceliumRegistry
 
             profile = get_profile(model_id)
             if profile is None:
                 return []
-            # We use the bus's WITNESS_MARK stream as a proxy for
-            # the Mycelium state in tests. In production, this would
-            # be a direct MyceliumRegistry.query call.
-            return []  # Test suites patch this; production uses
-            # MyceliumRegistry which is already wired in WS2B.
+            
+            registry = MyceliumRegistry.get_instance()
+            return registry.query_patterns(profile.family, task)
         except Exception as e:
             logger.debug("Mycelium pattern query failed (non-blocking): %s", e)
             return []
@@ -283,19 +280,55 @@ class VerifyEvolveLane:
         HEALING_EVENT when the card_alignment_rate drops. verify_evolve
         treats any recent HEALING_EVENT on the model as a veto.
         """
-        try:
-            from cohezion.precipitation.bus import get_bus
+        import re
+        if not re.match(r"^[a-zA-Z0-9:-]+$", model_id):
+            raise ValueError(f"Invalid model_id: {model_id}")
 
-            get_bus()  # ensure bus is initialized
-            # The bus doesn't have a query interface; production would
-            # add one. For now we return empty; the bus has the
-            # CardAlignmentMonitor subscribed and it will have
-            # already published the event to the in-memory ring buffer.
-            # Tests patch this method.
-            return []
-        except Exception as e:
-            logger.debug("Ouroboros healing event query failed (non-blocking): %s", e)
-            return []
+        import json
+        import os
+        import urllib.request
+        import urllib.error
+
+        url = os.environ.get("SURREAL_URL", "http://localhost:8001/sql")
+        user = os.environ.get("SURREAL_USER", "root")
+        password = os.environ.get("SURREAL_PASSWORD", "root")
+        body = {
+            "query": (
+                "SELECT model_id, kind FROM precipitation_event "
+                f"WHERE model_id = '{model_id}' AND kind = 'HEALING_EVENT' "
+                "LIMIT 100;"
+            )
+        }
+        
+        req = urllib.request.Request(  # noqa: S310 — env-controlled
+            url,
+            data=json.dumps(body).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Basic "
+                + __import__("base64").b64encode(f"{user}:{password}".encode()).decode(),
+                "Surreal-ns": "cohezion",
+                "Surreal-db": "main",
+            },
+            method="POST",
+        )
+
+        max_retries = 3
+        backoff = 0.1
+        for attempt in range(max_retries):
+            try:
+                with urllib.request.urlopen(req, timeout=2.0) as resp:  # noqa: S310
+                    data = json.loads(resp.read())
+                if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict) and "result" in data[0]:
+                    return data[0]["result"]
+                return []
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.debug("Ouroboros healing event query failed after %d retries: %s", max_retries, e)
+                    return []
+                await asyncio.sleep(backoff)
+                backoff *= 2
+        return []
 
     # ── Experiment driver ─────────────────────────────────────────────
 
