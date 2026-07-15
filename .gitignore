@@ -317,3 +317,4 @@ conductor/
 
 # Playwright MCP captures (browser session dumps)
 .playwright-mcp/
+execution_traces/
