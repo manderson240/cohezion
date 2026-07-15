@@ -66,7 +66,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 - [x] **Track: Comprehensive Retrospective & Skill Refinement**
-*Link: [./conductor/plan_retrospective_20260422.md](./plan_retrospective_20260422.md)*
+  *Link: [./conductor/plan_retrospective_20260422.md](./plan_retrospective_20260422.md)*
 
+---
 
-
+- [ ] **Track: Producer and Consumer Wiring Audit**
+  *Link: [./tracks/producer_consumer_wiring_audit_20260715/index.md](./tracks/producer_consumer_wiring_audit_20260715/index.md)*
