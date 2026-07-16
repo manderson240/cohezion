@@ -920,6 +920,21 @@ class DegradationDetector(HealthObservabilityMixin):
         stats["log_synthesis_score"] = self.get_log_synthesis_score()
         return stats
 
+    _max_alert_history: int = 50
+
+    def get_recent_alerts(self, n: int = 10) -> list:
+        """Returns the last min(n, len) alerts, newest last; caps history."""
+        if n <= 0:
+            return []
+        self._alert_history = self._alert_history[-self._max_alert_history :]
+        return self._alert_history[-n:]
+
+    def clear_alert_history(self) -> int:
+        """Empties alert history and returns how many were cleared."""
+        count = len(self._alert_history)
+        self._alert_history.clear()
+        return count
+
     def get_alert_summary(self) -> dict[str, Any]:
         """CB9: Dashboard aggregation API — total + groupings from alert_history.
 
