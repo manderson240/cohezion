@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Set
+from typing import List
 
 from cohezion.inference.transition_controller import TransitionController
 from cohezion.world_model.observer import Observer
@@ -84,67 +84,6 @@ class ObserverWorldModel:
 
     def n_transitions(self, frm: str) -> int:
         return self._n_transitions[frm]
-
-
-def trace_kernel(controller: TransitionController, subset: Set[str], max_hops: int = 50) -> Dict[str, Dict[str, float]]:
-    """
-    Compute the Markov kernel Q_A for a subset of states A.
-    
-    Implements the formula:
-    Q_A = I_A Q Σ_{k=0..∞} (I_U Q)^k Q I_A
-    
-    where U is the complement of A, I_A and I_U are indicator matrices,
-    and Q is the row-normalized transition matrix from controller.ranked_next.
-    
-    The result is a dict mapping each state in A to a dict of probabilities
-    to states in A. Each row sums to at most 1 + 1e-9.
-    """
-    # Step 1: Build row-normalized transition matrix Q
-    states = set(controller.matrix) | {t for lst in controller.matrix.values() for t in lst}
-    Q = {}
-    
-    for s in states:
-        valid = controller.ranked_next(s)
-        if not valid:
-            # Terminal self-loop
-            Q[s] = {s: 1.0}
-        else:
-            total = sum(w for _, w in valid)
-            if total == 0:
-                # Fallback to uniform over valid
-                Q[s] = {v: 1.0 / len(valid) for v, _ in valid}
-            else:
-                Q[s] = {v: w / total for v, w in valid}
-
-    # Step 2: Compute R using first-return probabilities
-    U = states - subset
-    R = {}
-    
-    # Initialize R_prev[u] for all u in U
-    R_prev = {}
-    for u in U:
-        R_prev[u] = {a: Q[u].get(a, 0.0) for a in subset}
-    
-    # Iterate max_hops times to compute R_next from R_prev
-    for _ in range(max_hops):
-        R_next = {}
-        for u in U:
-            R_next[u] = {}
-            for a in subset:
-                R_next[u][a] = Q[u].get(a, 0.0) + sum(Q[u].get(u2, 0.0) * R_prev[u2][a] for u2 in U)
-        R_prev = R_next
-    
-    # Step 3: Compute Q_A
-    Q_A = {}
-    
-    for a in subset:
-        Q_A[a] = {}
-        for a2 in subset:
-            val = Q[a].get(a2, 0.0) + sum(Q[a].get(u, 0.0) * R_prev[u][a2] for u in U)
-            if val > 0.0:
-                Q_A[a][a2] = val
-    
-    return Q_A
 
 
 # --- live tier-flow singleton (TRACE wiring 2026-07-15) -------------------------------

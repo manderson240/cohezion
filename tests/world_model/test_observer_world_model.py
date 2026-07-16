@@ -1,7 +1,7 @@
 import pytest
 from cohezion.inference.transition_controller import TransitionController
 from cohezion.world_model.observer import Observer
-from cohezion.world_model.observer_world_model import ObserverWorldModel, trace_kernel
+from cohezion.world_model.observer_world_model import ObserverWorldModel
 from cohezion.world_model.surprise_router import SurpriseRouter
 
 
@@ -60,33 +60,4 @@ def test_simulate_trajectory_length():
         assert 0.0 <= entry[0] <= 1.0
 
 
-def test_trace_kernel_rows_substochastic():
-    tc = TransitionController(matrix={"greet":["done"],"code":["escalated","done"],"escalated":["done"],"done":[]})
-    subset = {"code", "done"}
-    result = trace_kernel(tc, subset, max_hops=50)
-    for a in subset:
-        total = sum(result[a].values())
-        assert total <= 1.0 + 1e-9
-    assert abs(result["code"]["done"] - 1.0) < 1e-6
 
-
-def test_trace_kernel_partial_order_sanity():
-    tc = TransitionController(matrix={"greet":["done"],"code":["escalated","done"],"escalated":["done"],"done":[]})
-    subset = set(tc.matrix)
-    result = trace_kernel(tc, subset, max_hops=50)
-    # Row-normalized Q matrix should be approximately equal to full kernel when A = all states
-    Q_full = {}
-    for s in tc.matrix:
-        valid = tc.ranked_next(s)
-        if not valid:
-            Q_full[s] = {s: 1.0}
-        else:
-            total = sum(w for _, w in valid)
-            if total == 0:
-                Q_full[s] = {v: 1.0 / len(valid) for v, _ in valid}
-            else:
-                Q_full[s] = {v: w / total for v, w in valid}
-
-    for s in tc.matrix:
-        total = sum(result[s].values())
-        assert abs(total - 1.0) < 1e-6
