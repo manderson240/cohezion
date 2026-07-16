@@ -204,13 +204,24 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
                 record.add_local(input_tokens + output_tokens, model=model)
                 cost = result.cost_usd  # already 0.0 for local
 
+            tier_used = _engine_for(min_tier_index, result.escalation_count, _is_cloud_model(model))
+            try:
+                # TRACE wiring (2026-07-15): feed the tier-flow observer — entry tier ->
+                # engine that ran, quality penalized per escalation. Never blocks execution.
+                from cohezion.world_model.observer_world_model import get_default_observer_model
+
+                entry = "cloud" if _is_cloud_model(model) else _OMNI_TIERS[min(min_tier_index, len(_OMNI_TIERS) - 1)]
+                get_default_observer_model().record(
+                    entry, tier_used, max(0.2, 1.0 - 0.25 * result.escalation_count)
+                )
+            except Exception:  # noqa: BLE001 — observability must not break inference
+                pass
+
             return result.text, {
                 "model": model,
                 # which ENGINE ran — feeds the GIC DifficultyEstimator so it learns per-skill
                 # engine allocation (multi-engine compounding; CB16 reads top-level tier_used).
-                "tier_used": _engine_for(
-                    min_tier_index, result.escalation_count, _is_cloud_model(model)
-                ),
+                "tier_used": tier_used,
                 "primary_model": result.primary_model,
                 "latency_ms": result.latency_ms,
                 "escalation_count": result.escalation_count,

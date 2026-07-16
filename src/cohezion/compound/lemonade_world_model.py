@@ -210,6 +210,22 @@ def build_live_jepa_gate(lookahead_steps: int = 1):
         # default :13306, which is the redundant per-port server and is usually offline, so the gate
         # was silently fail-opening to world_model=None for the whole executor lifetime.
         if lemonade_available(npu_port=13305):
+            try:
+                # TRACE wiring (2026-07-15): once the tier-flow observer has real transition
+                # data, prefer coherence from OBSERVED tier statistics (ObserverWorldModel)
+                # over the LLM estimate — the LLM signal tracks prompt length, not
+                # tractability (QA 2026-06-30). Cold observer -> fall through to FLUME/LLM.
+                from cohezion.world_model.observer_world_model import get_default_observer_model
+
+                _owm = get_default_observer_model()
+                if sum(_owm.n_transitions(t) for t in ("npu", "igpu", "cpu")) >= 10:
+                    return JepaGate(
+                        world_model=_owm,
+                        lookahead_steps=lookahead_steps,
+                        reroute_only=True,
+                    )
+            except Exception:  # noqa: BLE001 — gate construction must stay fail-open
+                pass
             # reroute_only=True: the 1B world model is a NOISY BINARY signal (QA 2026-06-30 — routine
             # tractable tasks collapse to ~0.01, the LOW few-shot anchor). A spurious low must escalate
             # ONE tier, NEVER SKIP-abort a legitimate task (executor.py:721). PROCEED/REROUTE kept.
