@@ -83,13 +83,69 @@ def _fetch_lemonade_metadata(model_name: str) -> dict[str, Any] | None:
     return None
 
 
-def _build_product(model_name: str, meta: dict[str, Any] | None) -> DataProduct:
+_SURREAL = "http://localhost:8001/sql"
+
+
+def _fetch_gauntlet_perf() -> dict[str, dict[str, float]]:
+    """Live measured quality/TPS per model from the NPU gauntlet stream.
+
+    Same source the FleetRoster adaptive hook reads (SurrealDB
+    ``model_performance``, fed 24/7 by cohezion.inference.npu_gauntlet).
+    Returns {} on any error — static harness-N1 SLAs then stand as fallback
+    (gauntlet→datamesh wire, 2026-07-17 compound operating doctrine).
+    """
+    try:
+        resp = httpx.post(
+            _SURREAL,
+            content=(
+                "SELECT model, math::mean(quality_score) AS q, math::mean(tps) AS t "
+                "FROM model_performance GROUP BY model;"
+            ),
+            headers={
+                "surreal-ns": "cohezion",
+                "surreal-db": "main",
+                "Content-Type": "text/plain",
+                "Accept": "application/json",
+                "Authorization": "Basic cm9vdDpyb290",
+            },
+            timeout=_FETCH_TIMEOUT_S,
+        )
+        rows = resp.json()[-1].get("result", []) or []
+        return {
+            r["model"]: {"quality": float(r["q"]), "tps": float(r["t"])}
+            for r in rows
+            if r.get("q") is not None and r.get("t") is not None
+        }
+    except Exception:
+        return {}
+
+
+def _tier_from_measured_quality(quality: float) -> DataQualityTier:
+    """Map a gauntlet-measured mean quality (0..1 exact-verified) to a tier."""
+    if quality >= 0.9:
+        return DataQualityTier.GOLD
+    if quality >= 0.7:
+        return DataQualityTier.SILVER
+    return DataQualityTier.BRONZE
+
+
+def _build_product(
+    model_name: str,
+    meta: dict[str, Any] | None,
+    live_perf: dict[str, float] | None = None,
+) -> DataProduct:
     """Build a DataProduct for one inference model.
 
     All schema field values come from the Lemonade API. If meta is None
     (Lemonade offline at registration), fields are marked 'unverified' and
     the product is created in DRAFT status — no fabrication of unknown values.
     N3 compliance: ctx_size=0 is never used; defaults to min(16384, max_ctx).
+
+    ``live_perf`` ({"quality": .., "tps": ..}) is the gauntlet's MEASURED
+    stream for this model; when present it overrides the static harness-N1
+    quality tier and is advertised in the schema. Static values are
+    fallback-only (doctrine invariant: advertised SLA must track the newest
+    measurement).
     """
     sla = _SLA[model_name]
     use_cases = _USE_CASES[model_name]
@@ -114,16 +170,26 @@ def _build_product(model_name: str, meta: dict[str, Any] | None) -> DataProduct:
 
     capabilities = sorted(set(labels) | set(use_cases))
 
+    fields = {
+        "checkpoint": f"str — artifact ref: {checkpoint}",
+        "recipe": f"str — Lemonade backend: {recipe}",
+        "ctx_size": f"int — configured context window: {ctx_size}",
+        "max_context_window": f"int — maximum supported: {max_ctx}",
+        "capabilities": f"list[str] — {capabilities}",
+        "size_gb": f"float — disk size in GB: {size_gb}",
+        "use_cases": f"list[str] — {use_cases}",
+    }
+    quality_tier = sla["quality_tier"]
+    if live_perf:
+        # Gauntlet-measured values override static harness numbers (live SLA).
+        fields["measured_quality"] = (
+            f"float — gauntlet mean exact-verified quality: {live_perf['quality']:.3f}"
+        )
+        fields["measured_tps"] = f"float — gauntlet mean TPS: {live_perf['tps']:.1f}"
+        quality_tier = _tier_from_measured_quality(live_perf["quality"])
+
     schema = DataProductSchema(
-        fields={
-            "checkpoint": f"str — artifact ref: {checkpoint}",
-            "recipe": f"str — Lemonade backend: {recipe}",
-            "ctx_size": f"int — configured context window: {ctx_size}",
-            "max_context_window": f"int — maximum supported: {max_ctx}",
-            "capabilities": f"list[str] — {capabilities}",
-            "size_gb": f"float — disk size in GB: {size_gb}",
-            "use_cases": f"list[str] — {use_cases}",
-        },
+        fields=fields,
         version="1.0.0" if verified else "0.0.0",
     )
 
@@ -139,7 +205,7 @@ def _build_product(model_name: str, meta: dict[str, Any] | None) -> DataProduct:
         owner_domain="inference",
         schema=schema,
         output_format="binary" if "embeddings" in labels else "json",
-        quality_tier=sla["quality_tier"],
+        quality_tier=quality_tier,
         status=DataProductStatus.ACTIVE if verified else DataProductStatus.DRAFT,
         required_autonomy=AutonomyTier.SO3_4,
         max_latency_ms=sla["max_latency_ms"],
@@ -156,8 +222,11 @@ def build_inference_products() -> dict[str, DataProduct]:
 
     Returns dict keyed by Lemonade model_name.
     """
+    live = _fetch_gauntlet_perf()  # one query for all models; {} on DB error
     return {
-        model_name: _build_product(model_name, _fetch_lemonade_metadata(model_name))
+        model_name: _build_product(
+            model_name, _fetch_lemonade_metadata(model_name), live.get(model_name)
+        )
         for model_name in COMPOUND_LOOP_MODELS
     }
 

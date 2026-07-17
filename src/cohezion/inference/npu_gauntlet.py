@@ -588,6 +588,38 @@ def publish(board: dict, advisor_note: str = "") -> None:
         (VAULT / "reports" / "npu-gauntlet-latest.md").write_text("\n".join(lines) + "\n")
     except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
         logger.debug("vault publish failed (fail-open): %s", exc)
+    _emit_leaderboard_event(board)
+
+
+def _emit_leaderboard_event(board: dict) -> None:
+    """Broadcast the regenerated leaderboard on the event-driven datamesh.
+
+    DATA_PRODUCT_UPDATED (not QUALITY_ALERT — that path records a FAILED access
+    on the product and is reserved for degradation). Ambient consumers
+    (DataMeshEventBridge → SurrealDB audit, TaskClassifier registry refresh)
+    subscribe bus-side. Fail-open: the lap must never block on the mesh.
+    Gauntlet→datamesh wire per the 2026-07-17 compound operating doctrine.
+    """
+    try:
+        from cohezion.core.event_bus import Event, EventType, get_event_bus
+
+        event = Event(
+            type=EventType.DATA_PRODUCT_UPDATED,
+            source="npu_gauntlet",
+            payload={
+                "product_family": "inference",
+                "generated": board.get("generated"),
+                "entries": board.get("entries", [])[:12],
+            },
+        )
+        bus = get_event_bus()
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(bus.publish(event))
+        except RuntimeError:
+            asyncio.run(bus.publish(event))
+    except Exception as exc:  # noqa: BLE001 — mesh emission is observability; never block the lap
+        logger.debug("leaderboard event emission failed (fail-open): %s", exc)
 
 
 def frontier_review(board: dict) -> str:
