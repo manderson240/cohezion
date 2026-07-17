@@ -37,9 +37,10 @@ import json
 import logging
 import re
 import urllib.request
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from cohezion.data_mesh.data_product import (
     DataProduct,
@@ -48,6 +49,7 @@ from cohezion.data_mesh.data_product import (
     DataQualityTier,
 )
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logger = logging.getLogger(__name__)
 
@@ -382,10 +384,10 @@ def _emit_data_product_event(finding: ResearchFinding) -> bool:
         "priority = 0;"
     )
     try:
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
             return resp.status == 200
     except Exception as exc:  # fail-open: audit is best-effort
         logger.debug("research_products: event emit failed for %s: %s", finding.finding_id, exc)
@@ -398,10 +400,10 @@ def _existing_card_urls() -> set[str]:
     """
     sql = "SELECT url FROM kanban_item WHERE type = 'research-finding';"
     try:
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
             results = json.loads(resp.read().decode())
         if isinstance(results, list) and results:
             rows = results[0].get("result", []) or []

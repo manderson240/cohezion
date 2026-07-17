@@ -71,7 +71,8 @@ def test_unknown_role_raises():
 def test_adaptivity_new_model_wins_without_code_change():
     # A newly-installed stronger interactive model (more matching labels) is
     # picked purely from catalog metadata — no ROLE_SPECS edit.
-    catalog = _CATALOG + [
+    catalog = [
+        *_CATALOG,
         {"id": "Qwen4-40B-A3B-MTP-GGUF", "labels": ["mtp", "tool-calling", "reasoning"], "size": 24.0, "recipe": "llamacpp"},
     ]
     r = _roster_with(catalog)

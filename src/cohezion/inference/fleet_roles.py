@@ -34,6 +34,7 @@ from cohezion.inference.load_safety import (
     effective_size_gb,
 )
 
+
 logger = logging.getLogger(__name__)
 
 BASE = "http://localhost:13305"
@@ -105,7 +106,7 @@ ROLE_SPECS: dict[str, RoleSpec] = {
 def _perf_scores() -> dict[str, float]:
     """Optional adaptive signal: avg quality per model from SurrealDB. Empty on any error."""
     try:
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             SURREAL,
             data=b"SELECT model, math::mean(quality_score) AS q FROM model_performance GROUP BY model;",
             headers={
@@ -114,7 +115,7 @@ def _perf_scores() -> dict[str, float]:
                 "Authorization": "Basic cm9vdDpyb290",
             },
         )
-        with urllib.request.urlopen(req, timeout=4) as r:
+        with urllib.request.urlopen(req, timeout=4) as r:  # noqa: S310
             rows = json.loads(r.read())[-1].get("result", [])
         return {row["model"]: float(row["q"]) for row in rows if row.get("q") is not None}
     except Exception:
@@ -139,7 +140,7 @@ class FleetRoster:
         now = time.monotonic()
         if force or not self._cache or (now - self._cache_at) > _CACHE_TTL_S:
             try:
-                with urllib.request.urlopen(f"{BASE}/api/v1/models", timeout=5) as r:
+                with urllib.request.urlopen(f"{BASE}/api/v1/models", timeout=5) as r:  # noqa: S310
                     self._cache = json.loads(r.read()).get("data", [])
                 self._cache_at = now
                 self._perf = _perf_scores()
