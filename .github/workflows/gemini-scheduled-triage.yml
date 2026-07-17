@@ -131,6 +131,7 @@ jobs:
 
   label:
     runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
     needs:
       - 'triage'
     if: |-

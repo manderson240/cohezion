@@ -26,6 +26,7 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: self-hosted
+    timeout-minutes: 30
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -146,6 +147,7 @@ jobs:
   deprecation-check:
     name: Deprecation Check
     runs-on: self-hosted
+    timeout-minutes: 30
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6

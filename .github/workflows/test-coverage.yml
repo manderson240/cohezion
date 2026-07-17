@@ -15,6 +15,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         python-version: ["3.13"]
@@ -82,6 +83,7 @@ jobs:
 
   test-generated:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: test
     if: github.event_name == 'pull_request'
 
@@ -119,6 +121,7 @@ jobs:
 
   auto-generate-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: false
     steps:
       - run: echo "disabled"

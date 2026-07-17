@@ -665,6 +665,7 @@ jobs:
   test-summary:
     name: Test Summary & PR Comments
     runs-on: self-hosted
+    timeout-minutes: 30
     needs: [lint-and-format, type-check, unit-tests, integration-tests, benchmark-tests, live-tests, compatibility-tests]
     if: always()
     permissions:
