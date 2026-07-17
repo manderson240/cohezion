@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-17
+
+### Added
+- 24/7 NPU Gauntlet (`inference/npu_gauntlet.py`): serial rounds over the FLM
+  roster, exactly-verifiable procedural tasks + robustness probes, 3-way
+  outcomes, on-policy trace banking, temp-arm config search, SurrealDB
+  `model_performance` write-back closing the FleetRoster adaptive-routing loop
+- Idle-eviction sweep (`inference/idle_eviction.py`): RAM-aware fleet relief
+  (provable-idleness eviction; never NPU occupant/embedders/pinned)
+- Blessed Ollama Cloud client (`inference/ollama_cloud.py`): HTTP-API-only,
+  think:false default, robust JSON extraction, purpose-tagged usage ledger
+- Capability index (`scripts/audits/capability_index.py` → CAPABILITIES.md):
+  5-surface generated manifest + CI freshness guard
+- Local-LLM choke-point CI gate (lemonade + ollama endpoints; file-set ratchet)
+- Silicon Doctrine (`docs/SILICON_DOCTRINE.md`): measured NPU/iGPU/CPU
+  leverage rules, thinking-model playbook pointers, token law
+- Graphify wired live (`api/services/graphify.py`): real LLM extraction via
+  blessed call path + SurrealDB entity/edge persistence (was a mock)
+- Gauntlet→datamesh wire: inference DataProducts source live measured SLAs;
+  leaderboard regens emit DATA_PRODUCT_UPDATED on the EventBus
+
+### Changed
+- `fleet_roles` interactive role retargeted 35B-MTP → Gemma-4-26B (RAM policy);
+  adaptivity test now exercises the measured-quality lever
+- `gauntlet.py`: additive exact/gold grader + optional temperature (TR1-safe)
+- lemonade MCP defaults → NPU champions (chat: qwen3-4b-FLM; vision:
+  gemma4-it-e2b-FLM)
+- CI: format check gating (debt cleared), semver-check on ubuntu-latest,
+  timeout-minutes on every job across all 26 workflows
+
+### Fixed
+- All 10 ultrareview findings for PR #259 (observer tier-vocab placebo, deque
+  alert history + mixin slice, pid guard, broadcast shim, load_safety SoT,
+  portability scrub, async sleeps, noqa policy, .mcp.json.example)
+- Pre-existing sigma=0 burst-detection gap in DegradationDetector EMA
+
 ### Added — Consolidation Campaign 2026-07-09
 - Reconciled local compound-loop spine (61 commits) with origin polish/CI waves (228 commits)
 - Card-aware router with 14 default profiles + `extend_claude_aligned()` (Stack A1-A7)

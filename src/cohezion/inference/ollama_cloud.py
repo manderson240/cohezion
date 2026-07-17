@@ -51,12 +51,14 @@ def cloud_chat(
     ``purpose`` is recorded in the usage ledger — future budget reviews group
     spend by it, so name the workload (e.g. "graphify-extraction").
     """
-    body = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "stream": False,
-        "think": think,
-    }).encode()
+    body = json.dumps(
+        {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "think": think,
+        }
+    ).encode()
     t0 = time.time()
     try:
         req = urllib.request.Request(  # noqa: S310
@@ -79,7 +81,7 @@ def extract_json(text: str) -> dict | None:
     never silently coerce; Minerva outcome discipline)."""
     t = _THINK_RE.sub("", text or "")
     for cand in [*_FENCE_RE.findall(t), t]:
-        s = cand[cand.find("{"): cand.rfind("}") + 1]
+        s = cand[cand.find("{") : cand.rfind("}") + 1]
         if not s:
             continue
         try:
@@ -95,16 +97,21 @@ def _log_usage(model: str, purpose: str, prompt: str, text: str, resp: dict, dur
     try:
         USAGE_LEDGER.parent.mkdir(parents=True, exist_ok=True)
         with USAGE_LEDGER.open("a") as f:
-            f.write(json.dumps({
-                "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                "model": model,
-                "purpose": purpose,
-                "prompt_chars": len(prompt),
-                "response_chars": len(text),
-                "eval_count": resp.get("eval_count"),
-                "prompt_eval_count": resp.get("prompt_eval_count"),
-                "duration_s": round(dur, 1),
-                "error": resp.get("error"),
-            }) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                        "model": model,
+                        "purpose": purpose,
+                        "prompt_chars": len(prompt),
+                        "response_chars": len(text),
+                        "eval_count": resp.get("eval_count"),
+                        "prompt_eval_count": resp.get("prompt_eval_count"),
+                        "duration_s": round(dur, 1),
+                        "error": resp.get("error"),
+                    }
+                )
+                + "\n"
+            )
     except Exception:  # noqa: BLE001 — ledger is observability; never block the call
         pass

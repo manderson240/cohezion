@@ -591,6 +591,9 @@ def publish(board: dict, advisor_note: str = "") -> None:
     _emit_leaderboard_event(board)
 
 
+_PENDING_EVENT_TASKS: set = set()  # strong refs to in-flight emissions (GC guard)
+
+
 def _emit_leaderboard_event(board: dict) -> None:
     """Broadcast the regenerated leaderboard on the event-driven datamesh.
 
@@ -612,12 +615,24 @@ def _emit_leaderboard_event(board: dict) -> None:
                 "entries": board.get("entries", [])[:12],
             },
         )
-        bus = get_event_bus()
+
+        async def _publish() -> None:
+            # get_event_bus is ASYNC (event_bus.py:303) — calling it without
+            # await returns a coroutine whose .publish AttributeErrors into the
+            # fail-open swallow: a silent production no-op (adversarial review
+            # blocking finding, 2026-07-17; same placebo class as bug_006/013).
+            bus = await get_event_bus()
+            await bus.publish(event)
+
         try:
             loop = asyncio.get_running_loop()
-            loop.create_task(bus.publish(event))
+            task = loop.create_task(_publish())
+            # Hold a strong reference — bare create_task results are GC-able
+            # mid-flight, and publish() runs on the daemon's live loop.
+            _PENDING_EVENT_TASKS.add(task)
+            task.add_done_callback(_PENDING_EVENT_TASKS.discard)
         except RuntimeError:
-            asyncio.run(bus.publish(event))
+            asyncio.run(_publish())
     except Exception as exc:  # noqa: BLE001 — mesh emission is observability; never block the lap
         logger.debug("leaderboard event emission failed (fail-open): %s", exc)
 

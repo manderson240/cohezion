@@ -17,9 +17,7 @@ class TestLiveSlaSourcing:
     def test_live_overrides_static_tier_and_advertises_measurements(self):
         # deepseek is statically SILVER; a measured 0.95 must promote to GOLD
         # and the schema must advertise the measured numbers.
-        product = ip._build_product(
-            "deepseek-r1-0528-8b-FLM", None, {"quality": 0.95, "tps": 10.3}
-        )
+        product = ip._build_product("deepseek-r1-0528-8b-FLM", None, {"quality": 0.95, "tps": 10.3})
         assert product.quality_tier == DataQualityTier.GOLD
         assert "0.950" in product.schema.fields["measured_quality"]
         assert "10.3" in product.schema.fields["measured_tps"]
@@ -28,9 +26,7 @@ class TestLiveSlaSourcing:
         # Discriminating: llama3.2-1b is statically GOLD; a measured 0.58 must
         # DEMOTE to BRONZE — an implementation that only ever upgrades would
         # pass the promotion test but fail this one.
-        product = ip._build_product(
-            "llama3.2-1b-FLM", None, {"quality": 0.58, "tps": 16.0}
-        )
+        product = ip._build_product("llama3.2-1b-FLM", None, {"quality": 0.58, "tps": 16.0})
         assert product.quality_tier == DataQualityTier.BRONZE
 
     def test_static_fallback_when_no_live_rows(self):
@@ -60,12 +56,30 @@ class TestLeaderboardEventEmission:
                 captured.append(event)
                 return True
 
-        monkeypatch.setattr(eb, "get_event_bus", lambda: _Bus())
+        async def _fake_get_bus():
+            # Discriminating: mirrors the REAL async get_event_bus signature
+            # (event_bus.py:303). The original sync-lambda fake hid a blocking
+            # bug — production called get_event_bus() without await; the
+            # coroutine's missing .publish AttributeError was swallowed
+            # fail-open (silent no-op). A sync-call regression now fails here.
+            return _Bus()
+
+        monkeypatch.setattr(eb, "get_event_bus", _fake_get_bus)
         monkeypatch.setattr(ng, "RUN_DIR", tmp_path)
         monkeypatch.setattr(ng, "VAULT", tmp_path / "vault")
-        board = {"generated": "t", "entries": [{"model": "m", "role": "r", "n": 1,
-                                                "accuracy": 1.0, "mean_tps": 10.0,
-                                                "quality_per_s": 10.0}]}
+        board = {
+            "generated": "t",
+            "entries": [
+                {
+                    "model": "m",
+                    "role": "r",
+                    "n": 1,
+                    "accuracy": 1.0,
+                    "mean_tps": 10.0,
+                    "quality_per_s": 10.0,
+                }
+            ],
+        }
         ng.publish(board)
         assert len(captured) == 1
         assert captured[0].type == eb.EventType.DATA_PRODUCT_UPDATED
