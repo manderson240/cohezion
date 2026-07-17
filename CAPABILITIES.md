@@ -1,5 +1,5 @@
 # CAPABILITIES (generated — do not hand-edit; see scripts/audits/capability_index.py)
-_generated 2026-07-17T09:46:51; grep this BEFORE building anything new_
+_generated 2026-07-17T10:42:26; grep this BEFORE building anything new_
 
 pkg actioner (2 files)
   actioner/engine.py: triage, load_actioned_ids, WorkQueueAPI, default_chat_fn, action_item, run_batch
@@ -1344,7 +1344,7 @@ table INTRODUCES: WIRE-GAP(no code refs)
 table MANAGES: WIRE-GAP(no code refs)
 table MONITORS: WIRE-GAP(no code refs)
 table OPTIMIZES: WIRE-GAP(no code refs)
-table adjacent_to: WIRE-GAP(no code refs)
+table adjacent_to: refs=1
 table agent_journey: refs=11
 table agent_task: refs=1
 table agt_lecture: WIRE-GAP(no code refs)
@@ -1362,8 +1362,8 @@ table compound_local_run: WIRE-GAP(no code refs)
 table compound_loop: refs=6
 table concept: refs=38
 table data_product_event: refs=6
-table derived_from: WIRE-GAP(no code refs)
-table documents: refs=20
+table derived_from: refs=1
+table documents: refs=21
 table evo_experiment: WIRE-GAP(no code refs)
 table evo_journey: refs=1
 table evo_vacuum: refs=2
@@ -1385,8 +1385,8 @@ table implements: refs=31
 table implements_spec: WIRE-GAP(no code refs)
 table import_drift: refs=2
 table inference_bench: WIRE-GAP(no code refs)
-table influences: refs=2
-table informed_by: refs=4
+table influences: refs=3
+table informed_by: refs=6
 table integration: refs=168
 table inward_analysis: WIRE-GAP(no code refs)
 table journey_knowledge: WIRE-GAP(no code refs)
@@ -1394,13 +1394,15 @@ table journey_point: refs=4
 table journey_roundtrip: WIRE-GAP(no code refs)
 table journey_transition: refs=1
 table kanban_item: refs=2
+table kg_entity: refs=2
 table learning: refs=139
 table learnings: refs=54
-table led_to: refs=1
+table led_to: refs=2
 table link: refs=34
 table located_in: WIRE-GAP(no code refs)
 table mem0_df: WIRE-GAP(no code refs)
 table mem0migrations: WIRE-GAP(no code refs)
+table mentions: refs=9
 table model_capabilities: WIRE-GAP(no code refs)
 table model_performance: refs=2
 table model_specialties: WIRE-GAP(no code refs)
@@ -1409,7 +1411,7 @@ table mycelium_skill: WIRE-GAP(no code refs)
 table narrative_learning: refs=2
 table neuron: refs=18
 table paper: refs=56
-table part_of: WIRE-GAP(no code refs)
+table part_of: refs=1
 table physics_session: WIRE-GAP(no code refs)
 table precipitation_event: refs=2
 table prompt_version: refs=1
@@ -1417,6 +1419,7 @@ table proof_obligation: refs=3
 table qa_gate: refs=4
 table quality_gate: refs=2
 table references: refs=41
+table relates_to: refs=5
 table replaces: refs=19
 table research_brief: WIRE-GAP(no code refs)
 table research_consumer: WIRE-GAP(no code refs)
@@ -1433,7 +1436,7 @@ table session_presence: WIRE-GAP(no code refs)
 table session_recovery: WIRE-GAP(no code refs)
 table session_registry: refs=1
 table shadow_portfolio: WIRE-GAP(no code refs)
-table similar_to: WIRE-GAP(no code refs)
+table similar_to: refs=1
 table snapshots: refs=25
 table source_document: WIRE-GAP(no code refs)
 table spawned: refs=10
@@ -1446,39 +1449,40 @@ table trajectory: refs=171
 table transition_to: refs=1
 table universe_node: refs=3
 table universe_region: WIRE-GAP(no code refs)
-table vault_neuron: refs=6
+table vault_memory: refs=5
+table vault_neuron: refs=7
 table vmodel_gate: refs=8
 table yielded: refs=5
 
 hook SessionStart[all]: bash
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/check-settings-size.sh
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/autocompact-calibrate.sh
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/version-watch.sh
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/_safe_run.sh
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/reload-skills-on-update.sh
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/lemonade-warmup.sh
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/session-register.sh
+hook SessionStart[all]: ~/.claude/hooks/check-settings-size.sh
+hook SessionStart[all]: ~/.claude/hooks/autocompact-calibrate.sh
+hook SessionStart[all]: ~/.claude/hooks/version-watch.sh
+hook SessionStart[all]: ~/.claude/hooks/_safe_run.sh
+hook SessionStart[all]: ~/.claude/hooks/reload-skills-on-update.sh
+hook SessionStart[all]: ~/.claude/hooks/lemonade-warmup.sh
+hook SessionStart[all]: ~/.claude/hooks/session-register.sh
 hook SessionStart[all]: python3
-hook SessionStart[all]: /home/mike-anderson/.claude/hooks/session-title.sh
-hook PreToolUse[Bash]: /home/mike-anderson/.claude/hooks/pre-bash-check.sh
+hook SessionStart[all]: ~/.claude/hooks/session-title.sh
+hook PreToolUse[Bash]: ~/.claude/hooks/pre-bash-check.sh
 hook PreToolUse[Bash]: python3
 hook PreToolUse[Write]: python3
-hook PreToolUse[Agent]: /home/mike-anderson/.claude/hooks/lemonade-research-gate.sh
-hook PostCompact[all]: /home/mike-anderson/.claude/hooks/post-compact-context.sh
-hook PostToolUse[Bash]: /home/mike-anderson/.claude/hooks/post-bash-cleanup.sh
-hook PostToolUse[Edit|Write]: /home/mike-anderson/.claude/hooks/post-edit-lint.sh
+hook PreToolUse[Agent]: ~/.claude/hooks/lemonade-research-gate.sh
+hook PostCompact[all]: ~/.claude/hooks/post-compact-context.sh
+hook PostToolUse[Bash]: ~/.claude/hooks/post-bash-cleanup.sh
+hook PostToolUse[Edit|Write]: ~/.claude/hooks/post-edit-lint.sh
 hook PostToolUse[Bash|Write|Edit]: python3
-hook PostToolUse[TaskUpdate]: /home/mike-anderson/.claude/hooks/retro-watch.sh
-hook PostToolUse[Write|Edit]: /home/mike-anderson/.claude/hooks/compound-self-improve.sh
+hook PostToolUse[TaskUpdate]: ~/.claude/hooks/retro-watch.sh
+hook PostToolUse[Write|Edit]: ~/.claude/hooks/compound-self-improve.sh
 hook PostToolUseFailure[all]: python3
-hook PermissionDenied[all]: /home/mike-anderson/.claude/hooks/on-permission-denied.sh
-hook PreCompact[*]: /home/mike-anderson/.claude/hooks/pre-compact-checkpoint.sh
-hook UserPromptSubmit[all]: /home/mike-anderson/.claude/hooks/autoresearch-context.sh
+hook PermissionDenied[all]: ~/.claude/hooks/on-permission-denied.sh
+hook PreCompact[*]: ~/.claude/hooks/pre-compact-checkpoint.sh
+hook UserPromptSubmit[all]: ~/.claude/hooks/autoresearch-context.sh
 hook UserPromptSubmit[all]: python3
-hook UserPromptSubmit[all]: /home/mike-anderson/.claude/hooks/session-inbox.sh
-hook UserPromptSubmit[all]: /home/mike-anderson/.claude/hooks/retro-watch.sh
-hook UserPromptSubmit[all]: /home/mike-anderson/.claude/hooks/ponytail-gate.sh
-hook Stop[all]: /home/mike-anderson/.claude/hooks/autoresearch-stop.sh
+hook UserPromptSubmit[all]: ~/.claude/hooks/session-inbox.sh
+hook UserPromptSubmit[all]: ~/.claude/hooks/retro-watch.sh
+hook UserPromptSubmit[all]: ~/.claude/hooks/ponytail-gate.sh
+hook Stop[all]: ~/.claude/hooks/autoresearch-stop.sh
 
 skills[global] (100): agent-claim-verification, aiter-kernel-parameter-semantics, aiter-mxfp4-api-limitations, amd-ctypes-hip-kernel-dispatch, amd-gemm-mxfp4-optimization, amd-gfx950-tl-dot-scaled-constraints, amd-mla-decode-optimization, amd-moe-mxfp4-optimization, amd-speedrun-research-baseline, amd-triton-jit-callsite-correctness, autoharness-init, autoharness-skill, autoharness-update, autoresearch, autoresearch-team, autoresearch-team-long, benchmark-experiment-design, check-git-log-before-low-level-unlock, ci-green-ruff-fractal-campaign, claude-code-agent-teams, claude-code-bouncer-extension, claude-code-bwrap-sandbox-missing-bind, claude-code-token-optimization, claude-code-transcript-replay-file-recovery, close-deferral, cohezion-dynamic-modularity, cohezion-extend-availability, cohezion-land, competition-research-untapped, competitive-kernel-optimization-ceiling, compound-build, deepseek-mla-decode-flash-attention-gap, dreamserver-lemonade-external, dynamic-template-generator, electron-appimage-erofs-fix, evo-loop-fleet-operations, evo-loop-hiho-coherence-init, evo-loop-research-grounding, falsifiable-eval-harness, find-skills …
 skills[vault] (44): a2a-per-specialist-agent-cards, a3-metaheuristic-optimizer, arc-agi-onnx-zero-param, claude-code-hook-stdin-protocol, cohezion-ecological-percolation-env, cohezion-orphan-wiring-sweep, compound-monitoring-serialization, compound-self-improvement-lm-wiring, eigent-lemonade-local-inference, fail-open-compound-gate, fleet-registry-gateway-pattern, frontier-oracle-cascade, got-aggregate-hierarchical-synthesis, gstack-canary-cohezion, gstack-cso-cohezion, gstack-scope-drift-review, hermes-cron-daemon-audit, kaggle-kernel-push-traps, kaggle-midnight-submit-mcp, kaggle-notebook-data-mount, kaggle-savekernel-rate-limit, kaggle-wellbore-tvt-spatial, land-worktree-onto-consolidated-main, lemonade-gguf-vulkan-no-logprobs, lemonade-mcp-models-as-tools, lemonade-nomic-embed-batch-limit, lemonade-omni-recipe-health-probe, lemonade-resource-advisor, lemonade-url-research-task, local-first-honest-backend-attribution, npu-exclusive-slot-benchmarking, playwright-precommit-artifact-conflict, playwright-webgl-headless, pyright-bughunt-workflow, python-venv-package-corruption-triage, report-findings-fallback, research-daemon-local-inference-consumer, robinhood-backtest-daemon, session-recovery-triage, strix-halo-fleet-research …

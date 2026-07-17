@@ -46,6 +46,10 @@ def _assert_sid(session_id: str) -> str:
 
 
 def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        # os.kill(0,0) signals our own process group and ALWAYS succeeds —
+        # corrupted/null pids must read as dead, not immortal (ultrareview bug_015).
+        return False
     """Liveness is process-existence, not last_seen recency (SCP2)."""
     try:
         os.kill(pid, 0)
@@ -78,7 +82,7 @@ def _sql(query: str, timeout: float = 5.0) -> list:
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             batches = json.loads(r.read())
-    except Exception:
+    except Exception:  # noqa: BLE001 — bus reads degrade to empty, never crash a session
         return []
     rows: list = []
     for batch in batches if isinstance(batches, list) else []:
@@ -185,3 +189,10 @@ class SessionBus:
             budget -= len(body)
             out.append(row)
         return out
+
+    async def broadcast(self, body: str) -> None:
+        """Operator broadcast to every session (to_session='all' — the pattern
+        _pending already reads). async because the declared consumer
+        (telegram_hub.broadcast_to_sessions) awaits it; the AttributeError it
+        used to swallow was ultrareview bug_013."""
+        self.post("all", body, from_session="operator")

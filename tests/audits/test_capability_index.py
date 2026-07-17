@@ -43,8 +43,13 @@ class TestKnownComponentsPresent:
         assert "BenchTask" in index["md"]
 
     def test_hooks_visible_including_warmup(self, index):
-        # The 418-autoload incident hook must be discoverable.
+        # The 418-autoload incident hook must be discoverable. Hermetic guard:
+        # this asserts personal machine content — skip where not provisioned.
+        if not (Path.home() / ".claude" / "settings.json").exists():
+            pytest.skip("~/.claude/settings.json not provisioned on this machine")
         assert any("lemonade-warmup" in h["command"] for h in index["json"]["hooks"])
+        # portability: scrubbed commands must not leak absolute home paths
+        assert not any(str(Path.home()) in h["command"] for h in index["json"]["hooks"])
 
     def test_idle_eviction_module_indexed(self, index):
         pub = index["json"]["packages"]["inference"]["public"]
@@ -58,6 +63,8 @@ class TestKnownComponentsPresent:
         assert "global" in stores and "repo_prime" in stores
 
     def test_labs_orphan_zone_listed(self, index):
+        if not (Path.home() / "cohezion-labs").exists():
+            pytest.skip("~/cohezion-labs not present on this machine")
         assert index["json"]["entry_points"].get("labs_orphan_zone")
 
     def test_generated_invariant_stamped(self, index):

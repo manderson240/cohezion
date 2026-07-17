@@ -102,11 +102,16 @@ def main() -> int:
         if mid in loaded and not args.force_reload:
             skipped.append((mid, f"currently loaded — will pick up on next reload; delta={delta}"))
             continue
-        size_gib = float(cur.get("size") or 0.0)
-        needed = size_gib * 1.2 + KV_ALLOWANCE_GIB + RAM_FLOOR_GIB
+        # Single source of truth for the freeze-prevention gate (ultrareview
+        # bug_014): the ad-hoc 1.2x formula here diverged from load_safety's
+        # calibrated 1.7x (Mistral-Medium 2026-07-16 freeze). KV allowance is
+        # kept as an explicit extra on top of the SoT budget.
+        from cohezion.inference.load_safety import check_load_safe
+
         avail = mem_available_gib()
-        if avail < needed:
-            skipped.append((mid, f"RAM gate: need ~{needed:.0f} GiB, have {avail:.0f} GiB; delta={delta}"))
+        ok, why = check_load_safe(cur, avail - KV_ALLOWANCE_GIB, ram_floor_gb=RAM_FLOOR_GIB)
+        if not ok:
+            skipped.append((mid, f"RAM gate (load_safety): {why}; delta={delta}"))
             continue
         if not args.apply:
             print(f"PLAN  {mid}: {delta}")

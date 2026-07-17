@@ -64,3 +64,25 @@ def test_warm_observer_coherence_reflects_recorded_flow():
     model._state = "cpu"
     degraded = model.predict_next_state(None, None)[0]
     assert clean > degraded, "coherence must separate clean vs degraded tier flows"
+
+
+def test_set_task_maps_into_tier_vocabulary():
+    # Discriminating test for ultrareview bug_006: set_task used to write
+    # classifier OUTPUT_TYPE strings ("short_categorical") into _state while
+    # predictions are keyed on TIER names -> every lookup missed -> constant
+    # default coherence -> JepaGate always PROCEEDed once warm. The production
+    # path (set_task THEN predict) must land in the tier vocabulary.
+    model = get_default_observer_model()
+    model.set_task("classify the sentiment of this review")
+    assert model._state in ("npu", "igpu", "cpu", "cloud", "unknown"), (
+        f"set_task wrote non-tier state {model._state!r}"
+    )
+    tier = model._state if model._state != "unknown" else "npu"
+    for _ in range(5):
+        model.record(tier, "cloud", 0.1)  # degraded flow on the task's tier
+    model.set_task("classify the sentiment of this review")
+    coh = model.predict_next_state(None, None)[0]
+    assert coh < model._default_coherence, (
+        "warm degraded stats must move coherence off the default — "
+        "constant default means the vocabulary mismatch is back"
+    )

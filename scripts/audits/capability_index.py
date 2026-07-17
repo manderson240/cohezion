@@ -81,7 +81,7 @@ def scan_tables(py_files: list[Path]) -> dict[str, dict]:
         )
         with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
             names = sorted(json.load(r)[-1]["result"]["tables"].keys())
-    except Exception:
+    except Exception:  # noqa: BLE001 — index generation is best-effort per surface
         return {"_error": {"note": "SurrealDB unreachable — table scan skipped"}}
     # Static cross-reference: which source files mention each table name.
     corpus = {f: f.read_text(errors="replace") for f in py_files}
@@ -101,13 +101,16 @@ def scan_hooks() -> list[dict]:
         cfg = json.loads(SETTINGS.read_text())
         for event, groups in cfg.get("hooks", {}).items():
             for g in groups:
+                home = str(Path.home())
                 for h in g.get("hooks", []):
                     out.append({
                         "event": event,
                         "matcher": g.get("matcher", "*"),
-                        "command": h.get("command", "")[:120],
+                        # scrub $HOME → ~ so the committed index is portable and
+                        # leaks no usernames (ultrareview merged_bug_005)
+                        "command": h.get("command", "")[:160].replace(home, "~"),
                     })
-    except Exception:
+    except Exception:  # noqa: BLE001 — index generation is best-effort per surface
         pass
     return out
 

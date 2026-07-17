@@ -82,13 +82,13 @@ def sweep(dry_run: bool = False) -> list[str]:
     avail = available_ram_gb()
     try:
         state = json.loads(STATE_PATH.read_text())
-    except Exception:
+    except Exception:  # noqa: BLE001 — sweep is best-effort ops; never crash
         state = {}
     try:
         health = _http_json(f"{BASE}/api/v1/health", timeout=10)
         loaded = health.get("all_models_loaded", [])
         catalog = {m["id"]: m for m in _http_json(f"{BASE}/api/v1/models", timeout=10).get("data", [])}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — logged fail-open; sweep continues
         logger.warning("sweep: server unreachable (%s)", exc)
         return []
 
@@ -102,7 +102,7 @@ def sweep(dry_run: bool = False) -> list[str]:
             if not dry_run:
                 try:
                     _http_json(f"{BASE}/api/v1/unload", {"model_name": name}, timeout=60)
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001 — logged fail-open; sweep continues
                     logger.warning("unload %s failed: %s", name, exc)
                     continue
                 state.pop(name, None)

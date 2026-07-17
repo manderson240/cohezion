@@ -244,7 +244,7 @@ def npu_occupant() -> str | None:
         for m in h.get("all_models_loaded", []):
             if m.get("device") == "npu" and m.get("type") == "llm":
                 return m.get("model_name")
-    except Exception:
+    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
         pass
     return None
 
@@ -331,7 +331,7 @@ def server_version() -> str:
     if _SERVER_VERSION is None:
         try:
             _SERVER_VERSION = str(_http_json(f"{BASE}/api/v1/health", timeout=5).get("version", "?"))
-        except Exception:
+        except Exception:  # noqa: BLE001 — 24/7 daemon guard: fail open, never kill the loop
             return "?"
     return _SERVER_VERSION
 
@@ -344,12 +344,12 @@ def telemetry() -> dict[str, float]:
             if (hw / "name").read_text().strip() == "k10temp":
                 out["temp_c"] = int((hw / "temp1_input").read_text()) / 1000.0
                 break
-    except Exception:
+    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
         pass
     try:
         out["ram_gb"] = round(available_ram_gb(), 1)
         out["load1"] = float(Path("/proc/loadavg").read_text().split()[0])
-    except Exception:
+    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
         pass
     return out
 
@@ -360,7 +360,7 @@ def telemetry() -> dict[str, float]:
 def _load_manifest() -> dict:
     try:
         return json.loads((RUN_DIR / "manifest.json").read_text())
-    except Exception:
+    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
         return {}
 
 
@@ -412,7 +412,7 @@ def surreal_push(rows: list[dict]) -> bool:
         )
         with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
             return json.load(r)[-1].get("status") == "OK"
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
         logger.debug("surreal_push failed (fail-open): %s", exc)
         return False
 
@@ -563,7 +563,7 @@ def publish(board: dict, advisor_note: str = "") -> None:
         if advisor_note:
             lines += ["", "## Frontier advisor", "", advisor_note]
         (VAULT / "reports" / "npu-gauntlet-latest.md").write_text("\n".join(lines) + "\n")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
         logger.debug("vault publish failed (fail-open): %s", exc)
 
 
@@ -594,7 +594,7 @@ def frontier_review(board: dict) -> str:
         if note:
             _append_jsonl(RUN_DIR / "advisor.jsonl", {"ts": time.time(), "note": note})
         return note
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
         logger.debug("frontier_review failed (fail-open): %s", exc)
         return ""
 
@@ -621,7 +621,7 @@ async def run_gauntlet_forever(laps: int = 0, quick: bool = False) -> None:
         models = flm_roster()
         if not models:
             logger.warning("lap %d: empty FLM roster (server down?) — backing off", lap)
-            time.sleep(300)
+            await asyncio.sleep(300)  # non-blocking: keeps SIGTERM responsive (ultrareview bug_001)
             continue
         for mid in models:
             if stop["flag"]:
@@ -640,12 +640,12 @@ async def run_gauntlet_forever(laps: int = 0, quick: bool = False) -> None:
                 # flowing, never trip the failure backoff (observed 09:00: three
                 # vetoes → needless 900s halt while ≤1B rounds could still run).
                 logger.info("lap %d %s: oom-gate skip (%s)", lap, mid, exc)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
                 failures += 1
                 logger.error("round failed (%d consecutive) %s: %s", failures, mid, exc)
                 if failures >= 3:
                     logger.error("3 consecutive failures — backing off %ds", BACKOFF_S)
-                    time.sleep(BACKOFF_S)
+                    await asyncio.sleep(BACKOFF_S)  # non-blocking (ultrareview bug_001)
                     failures = 0
         board = leaderboard()
         note = frontier_review(board) if lap % REVIEW_EVERY == 0 else ""

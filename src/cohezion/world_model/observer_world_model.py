@@ -14,10 +14,17 @@ class ObserverWorldModel:
         self._n_transitions = defaultdict(int)
         self._transition_counts = defaultdict(lambda: defaultdict(int))
 
+    # classify() emits output_type vocabulary; the tier-flow matrix is keyed on
+    # TIER names. Bridging here fixes the ultrareview bug_006 placebo: writing
+    # output_type into _state meant every lookup missed → constant 0.7 → the
+    # JepaGate always PROCEEDed once warm.
+    _NODE_TO_TIER = {"npu": "npu", "gpu": "igpu", "igpu": "igpu", "cpu": "cpu"}
+
     def set_task(self, task_description: str) -> None:
         try:
-            self._state = classify(task_description).output_type
-        except Exception:
+            node = classify(task_description).node
+            self._state = self._NODE_TO_TIER.get(node, "npu")
+        except Exception:  # noqa: BLE001 — gate must stay fail-open on classifier errors
             self._state = "unknown"
 
     def record(self, frm: str, to: str, quality: float) -> float:
@@ -27,7 +34,7 @@ class ObserverWorldModel:
             surprise = 1.0 - self._transition_counts[frm][to]/self._n_transitions[frm]
         try:
             self.observer.observe(surprise)
-        except Exception:
+        except Exception:  # noqa: BLE001 — observation is telemetry; recording must not fail
             pass
         self.observer.state_matrix.record_transition(frm, to, reward)
         self._n_transitions[frm] += 1

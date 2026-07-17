@@ -149,7 +149,7 @@ class FleetRoster:
                     self._cache = json.loads(r.read()).get("data", [])
                 self._cache_at = now
                 self._perf = _perf_scores()
-            except Exception:
+            except Exception:  # noqa: BLE001 — selector must degrade to stale/empty, never crash a daemon
                 pass  # keep stale cache (possibly []); do not raise
         return self._cache
 

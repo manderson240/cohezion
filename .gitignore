@@ -319,3 +319,4 @@ conductor/
 .playwright-mcp/
 execution_traces/
 .mcp.json
+docs/capability-index/
