@@ -52,11 +52,17 @@ class BenchTask:
     prompt: str
     expected_keywords: list[str]  # presence check (case-insensitive)
     max_tokens: int = 60
-    grader: str = "keyword"  # "keyword" (surface-form) | "python_exec" (behavior) | "exact" (gold answer)
-    test_code: str = ""  # for grader="python_exec": assert-based test appended to the generated code
+    grader: str = (
+        "keyword"  # "keyword" (surface-form) | "python_exec" (behavior) | "exact" (gold answer)
+    )
+    test_code: str = (
+        ""  # for grader="python_exec": assert-based test appended to the generated code
+    )
     timeout_s: float = 30.0  # per-call HTTP timeout (raise for reasoning models on big budgets)
     gold: str = ""  # for grader="exact": the exact expected answer (normalized comparison)
-    temperature: float | None = None  # None = inherit model-card default (TR1); 0.0 for determinism canaries
+    temperature: float | None = (
+        None  # None = inherit model-card default (TR1); 0.0 for determinism canaries
+    )
 
 
 @dataclass
@@ -84,7 +90,11 @@ TASK_SUITE: list[BenchTask] = [
             "numbers as a list, starting with 0, 1 (so fib(7) == [0,1,1,2,3,5,8]). "
             "Reply with a Python code block."
         ),
-        expected_keywords=["def", "fib", "return"],  # retained for provenance; unused by exec grader
+        expected_keywords=[
+            "def",
+            "fib",
+            "return",
+        ],  # retained for provenance; unused by exec grader
         max_tokens=3072,
         grader="python_exec",
         test_code="assert fib(7) == [0, 1, 1, 2, 3, 5, 8]\nassert fib(0) == []\nassert fib(1) == [0]",
@@ -221,9 +231,7 @@ def _run_python_test(code: str, test_code: str, timeout: float = 10.0) -> bool:
         f = Path(td) / "cand.py"
         f.write_text(body + "\n" + test_code + "\n")
         try:
-            r = subprocess.run(
-                [py, "-I", str(f)], cwd=td, capture_output=True, timeout=timeout
-            )
+            r = subprocess.run([py, "-I", str(f)], cwd=td, capture_output=True, timeout=timeout)
             return r.returncode == 0
         except (subprocess.TimeoutExpired, OSError):
             return False

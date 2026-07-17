@@ -60,7 +60,10 @@ class TestProceduralSuite:
 
     def test_deterministic_tasks_pin_temperature_zero(self):
         for t in procedural_suite(9):
-            if t.name not in ("proc_arith", "proc_arith_distract"):  # reasoning tasks inherit card sampling
+            if t.name not in (
+                "proc_arith",
+                "proc_arith_distract",
+            ):  # reasoning tasks inherit card sampling
                 assert t.temperature == 0.0
 
 
@@ -99,13 +102,17 @@ class TestNormalizeAndGrade:
         assert picks.count("temp0") > 35  # exploited, modulo ε-exploration
 
     def test_exact_grader_scores_correct(self):
-        t = BenchTask(name="x", role="router", prompt="p", expected_keywords=[], grader="exact", gold="paris")
+        t = BenchTask(
+            name="x", role="router", prompt="p", expected_keywords=[], grader="exact", gold="paris"
+        )
         r = _score_result(t, ttft=0.1, tps=40.0, text="Paris.")
         assert r.quality_ratio == 1.0
         assert r.score == 40.0
 
     def test_exact_grader_scores_wrong(self):
-        t = BenchTask(name="x", role="router", prompt="p", expected_keywords=[], grader="exact", gold="paris")
+        t = BenchTask(
+            name="x", role="router", prompt="p", expected_keywords=[], grader="exact", gold="paris"
+        )
         r = _score_result(t, ttft=0.1, tps=40.0, text="London")
         assert r.quality_ratio == 0.0
         assert r.score == 0.0
@@ -133,9 +140,7 @@ class TestGuards:
         # 18.9GB avail: swapping 8b -> 1b frees RAM (delta 0) — must NOT veto on RAM;
         # it proceeds to the HTTP load, which we stub to fail distinctly.
         monkeypatch.setattr(ng, "available_ram_gb", lambda: 18.9)
-        monkeypatch.setattr(
-            ng, "_http_json", lambda *a, **k: (_ for _ in ()).throw(OSError("net"))
-        )
+        monkeypatch.setattr(ng, "_http_json", lambda *a, **k: (_ for _ in ()).throw(OSError("net")))
         with pytest.raises(OSError, match="net"):
             ng.load_npu("llama3.2-1b-FLM")
         # But an empty slot + big model + thin headroom must veto BEFORE any load.

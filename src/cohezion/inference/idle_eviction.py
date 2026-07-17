@@ -87,7 +87,9 @@ def sweep(dry_run: bool = False) -> list[str]:
     try:
         health = _http_json(f"{BASE}/api/v1/health", timeout=10)
         loaded = health.get("all_models_loaded", [])
-        catalog = {m["id"]: m for m in _http_json(f"{BASE}/api/v1/models", timeout=10).get("data", [])}
+        catalog = {
+            m["id"]: m for m in _http_json(f"{BASE}/api/v1/models", timeout=10).get("data", [])
+        }
     except Exception as exc:  # noqa: BLE001 — logged fail-open; sweep continues
         logger.warning("sweep: server unreachable (%s)", exc)
         return []
@@ -125,8 +127,13 @@ def sweep(dry_run: bool = False) -> list[str]:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("--loop", type=int, default=0, metavar="SECONDS",
-                   help="sweep every N seconds forever (0 = one sweep and exit)")
+    p.add_argument(
+        "--loop",
+        type=int,
+        default=0,
+        metavar="SECONDS",
+        help="sweep every N seconds forever (0 = one sweep and exit)",
+    )
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
     if args.loop <= 0:

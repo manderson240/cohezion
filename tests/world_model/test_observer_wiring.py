@@ -26,12 +26,13 @@ def test_gate_prefers_observer_model_once_warm(monkeypatch):
     import cohezion.compound.lemonade_world_model as lwm
 
     monkeypatch.setattr(lwm, "lemonade_available", lambda **_: True, raising=False)
-    monkeypatch.setattr(
-        "cohezion.compound.local_inference.lemonade_available", lambda **_: True
-    )
+    monkeypatch.setattr("cohezion.compound.local_inference.lemonade_available", lambda **_: True)
     # cold: falls through to the FLUME/LLM world model
     cold_gate = lwm.build_live_jepa_gate()
-    assert not isinstance(cold_gate._world_model if hasattr(cold_gate, "_world_model") else cold_gate.world_model, ObserverWorldModel)
+    assert not isinstance(
+        cold_gate._world_model if hasattr(cold_gate, "_world_model") else cold_gate.world_model,
+        ObserverWorldModel,
+    )
     # warm: >= 10 real transitions flips the preference
     model = get_default_observer_model()
     for _ in range(10):

@@ -17,9 +17,24 @@ def _roster_with(catalog: list[dict]) -> FleetRoster:
 
 
 _CATALOG = [
-    {"id": "Qwen3.6-35B-A3B-MTP-GGUF", "labels": ["mtp", "tool-calling"], "size": 22.1, "recipe": "llamacpp"},
-    {"id": "Gemma-4-26B-A4B-it-GGUF", "labels": ["reasoning", "tool-calling"], "size": 16.9, "recipe": "llamacpp"},
-    {"id": "mistralai_Mistral-Medium-3.5-128B-GGUF-IQ4_XS", "labels": [], "size": 42.3, "recipe": "llamacpp"},
+    {
+        "id": "Qwen3.6-35B-A3B-MTP-GGUF",
+        "labels": ["mtp", "tool-calling"],
+        "size": 22.1,
+        "recipe": "llamacpp",
+    },
+    {
+        "id": "Gemma-4-26B-A4B-it-GGUF",
+        "labels": ["reasoning", "tool-calling"],
+        "size": 16.9,
+        "recipe": "llamacpp",
+    },
+    {
+        "id": "mistralai_Mistral-Medium-3.5-128B-GGUF-IQ4_XS",
+        "labels": [],
+        "size": 42.3,
+        "recipe": "llamacpp",
+    },
     {"id": "Bonsai-1.7B-gguf", "labels": ["tool-calling"], "size": 0.231, "recipe": "llamacpp"},
     {"id": "deepseek-r1-0528-8b-FLM", "labels": [], "size": None, "recipe": "flm"},
     {"id": "gemma3-1b-FLM", "labels": [], "size": None, "recipe": "flm"},
@@ -77,7 +92,12 @@ def test_adaptivity_new_model_wins_without_code_change():
     # purely from data — no ROLE_SPECS edit.
     catalog = [
         *_CATALOG,
-        {"id": "Gemma-5-26B-A4B-it-GGUF", "labels": ["reasoning", "tool-calling"], "size": 18.5, "recipe": "llamacpp"},
+        {
+            "id": "Gemma-5-26B-A4B-it-GGUF",
+            "labels": ["reasoning", "tool-calling"],
+            "size": 18.5,
+            "recipe": "llamacpp",
+        },
     ]
     r = _roster_with(catalog)
     assert r.select("interactive") == "Gemma-4-26B-A4B-it-GGUF"  # no perf data → incumbent
@@ -90,8 +110,18 @@ def test_interactive_excludes_mtp_heavy_stacker():
     # 35B-MTP has MORE matching labels must NOT resolve interactive to it —
     # the MTP exclusion is the load-bearing RAM-policy mechanism.
     catalog = [
-        {"id": "Qwen3.6-35B-A3B-MTP-GGUF", "labels": ["mtp", "tool-calling", "reasoning"], "size": 22.1, "recipe": "llamacpp"},
-        {"id": "Gemma-4-26B-A4B-it-GGUF", "labels": ["tool-calling"], "size": 16.9, "recipe": "llamacpp"},
+        {
+            "id": "Qwen3.6-35B-A3B-MTP-GGUF",
+            "labels": ["mtp", "tool-calling", "reasoning"],
+            "size": 22.1,
+            "recipe": "llamacpp",
+        },
+        {
+            "id": "Gemma-4-26B-A4B-it-GGUF",
+            "labels": ["tool-calling"],
+            "size": 16.9,
+            "recipe": "llamacpp",
+        },
     ]
     r = _roster_with(catalog)
     assert r.select("interactive") == "Gemma-4-26B-A4B-it-GGUF"

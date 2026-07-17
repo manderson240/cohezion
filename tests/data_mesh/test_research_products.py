@@ -136,7 +136,9 @@ def test_verdict_maps_to_actionability(verdict: str, expected: str) -> None:
 
 
 def test_headerless_verdict_defaults_to_monitor(tmp_path: Path) -> None:
-    text = _CLEAN_ACTIONABLE.replace("## Verdict\nIntegrate: adopt the function-calling loop with minimal effort.\n", "")
+    text = _CLEAN_ACTIONABLE.replace(
+        "## Verdict\nIntegrate: adopt the function-calling loop with minimal effort.\n", ""
+    )
     f = parse_brief(_write(tmp_path, "noverdict.md", text))
     assert f.verdict_text == ""
     assert f.actionability == "monitor"  # conservative: no card

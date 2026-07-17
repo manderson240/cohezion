@@ -1,10 +1,10 @@
 """CLI for the Session Control Plane — the interface the global hooks call.
 
-    python -m cohezion.sessions register <sid> <label> --pid <pid> --mode turn
-    python -m cohezion.sessions heartbeat <sid>
-    python -m cohezion.sessions inbox <sid> [--cap 20]
-    python -m cohezion.sessions send <to-sid|all> <body> [--from <sid>] [--kind MSG|REPLY]
-    python -m cohezion.sessions list
+python -m cohezion.sessions register <sid> <label> --pid <pid> --mode turn
+python -m cohezion.sessions heartbeat <sid>
+python -m cohezion.sessions inbox <sid> [--cap 20]
+python -m cohezion.sessions send <to-sid|all> <body> [--from <sid>] [--kind MSG|REPLY]
+python -m cohezion.sessions list
 """
 
 from __future__ import annotations
@@ -55,7 +55,9 @@ def main() -> int:
         print(f"sent {a.kind} to {a.to}")
     elif a.cmd == "list":
         for r in reg.list_active():
-            print(f"{r.get('session_id')}  pid={r.get('pid')}  mode={r.get('mode')}  {r.get('label')}")
+            print(
+                f"{r.get('session_id')}  pid={r.get('pid')}  mode={r.get('mode')}  {r.get('label')}"
+            )
     return 0
 
 

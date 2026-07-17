@@ -64,9 +64,7 @@ class TestCheckLoadSafe:
 
     def test_c_flm_recipe_none_size_passes(self):
         # Bounded nominal 6.0 * 1.7 = 10.2 GB <= 44 GB budget => OK.
-        ok, reason = check_load_safe(
-            {"size": None, "recipe": "flm"}, available_gb=60.0
-        )
+        ok, reason = check_load_safe({"size": None, "recipe": "flm"}, available_gb=60.0)
         assert ok is True, reason
 
     def test_d_small_known_model_passes(self):

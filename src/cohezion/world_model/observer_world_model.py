@@ -31,7 +31,7 @@ class ObserverWorldModel:
         reward = 2.0 * quality - 1.0
         surprise = 1.0
         if self._n_transitions[frm] > 0:
-            surprise = 1.0 - self._transition_counts[frm][to]/self._n_transitions[frm]
+            surprise = 1.0 - self._transition_counts[frm][to] / self._n_transitions[frm]
         try:
             self.observer.observe(surprise)
         except Exception:  # noqa: BLE001 — observation is telemetry; recording must not fail
@@ -114,7 +114,9 @@ def get_default_observer_model() -> "ObserverWorldModel":
         _default_model = ObserverWorldModel(
             Observer(
                 name="tier-flow",
-                state_matrix=TransitionController(matrix={k: list(v) for k, v in _TIER_MATRIX.items()}),
+                state_matrix=TransitionController(
+                    matrix={k: list(v) for k, v in _TIER_MATRIX.items()}
+                ),
                 router=SurpriseRouter(),
             )
         )

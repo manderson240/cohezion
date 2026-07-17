@@ -146,6 +146,7 @@ class TestFrequencyDispersedDelayDiscriminating:
         A step-function signal emitted at t=0 must not arrive at t < τ_DM.
         """
         fd = FrequencyDispersedDelay(dm=9.9, nu_mhz=154.0)  # τ ≈ 1.73 s
+
         def step(t):
             return 1.0 if t >= 0.0 else 0.0
 

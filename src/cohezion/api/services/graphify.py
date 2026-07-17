@@ -85,7 +85,14 @@ class GraphifyService:
 
     # Map free-verb relations onto the EXISTING edge tables (census 2026-07-17:
     # all empty). Unknown verbs land in relates_to rather than spawning tables.
-    _EDGE_TABLES = ("informed_by", "led_to", "influences", "similar_to", "derived_from", "adjacent_to")
+    _EDGE_TABLES = (
+        "informed_by",
+        "led_to",
+        "influences",
+        "similar_to",
+        "derived_from",
+        "adjacent_to",
+    )
 
     _VERB_ROOTS = {
         "inform": "informed_by",
@@ -154,8 +161,10 @@ class GraphifyService:
                 "http://localhost:8001/sql",  # noqa: S310
                 data="".join(stmts).encode(),
                 headers={
-                    "surreal-ns": "cohezion", "surreal-db": "main",
-                    "Content-Type": "text/plain", "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "main",
+                    "Content-Type": "text/plain",
+                    "Accept": "application/json",
                     "Authorization": "Basic cm9vdDpyb290",
                 },
             )
@@ -166,7 +175,11 @@ class GraphifyService:
         ok = await asyncio.to_thread(_run)
         logger.info(
             "graphify: %s — %d/%d statements ok (%d entities, %d relations)",
-            result.document_id, ok, len(stmts), len(result.entities), len(result.relations),
+            result.document_id,
+            ok,
+            len(stmts),
+            len(result.entities),
+            len(result.relations),
         )
         return ok
 
@@ -217,13 +230,14 @@ class GraphifyService:
         fenced = _re.findall(r"```(?:json)?\s*(.*?)```", text, _re.DOTALL)
         raw = fenced[-1] if fenced else text
         try:
-            data = _json.loads(raw[raw.find("{"): raw.rfind("}") + 1])
+            data = _json.loads(raw[raw.find("{") : raw.rfind("}") + 1])
         except (ValueError, TypeError):
             logger.warning("graphify: unparseable extraction — returning empty graph")
             return [], []
         entities = [
             GraphEntity(name=str(e.get("name", ""))[:80], type=str(e.get("type", "Concept"))[:40])
-            for e in data.get("entities", []) if e.get("name")
+            for e in data.get("entities", [])
+            if e.get("name")
         ]
         known = {e.name for e in entities}
         relations = [

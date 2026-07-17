@@ -37,6 +37,7 @@ def test_oom1_invariants():
     # mock /proc/meminfo to return 1GB (should fail gate)
     import builtins
     import io
+
     real_open = builtins.open
 
     def meminfo_only(path, *a, **k):

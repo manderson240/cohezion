@@ -102,7 +102,8 @@ def procedural_suite(seed: int) -> list[BenchTask]:
         name="proc_extract",
         role="triage",
         prompt=(
-            "Facts: " + "; ".join(f"the {i} is {c}" for i, c in zip(items, colors))
+            "Facts: "
+            + "; ".join(f"the {i} is {c}" for i, c in zip(items, colors))
             + f". What color is the {items[pick]}? Answer with one word only."
         ),
         expected_keywords=[],
@@ -136,7 +137,7 @@ def procedural_suite(seed: int) -> list[BenchTask]:
         name="proc_classify",
         role="router",
         prompt=(
-            f'Label the sentiment of this review as positive or negative, one word only: '
+            f"Label the sentiment of this review as positive or negative, one word only: "
             f'"The service was {adj} and I would tell everyone about it."'
         ),
         expected_keywords=[],
@@ -301,7 +302,9 @@ def load_npu(model_id: str) -> dict[str, Any]:
     _http_json(f"{BASE}/api/v1/load", {"model_name": model_id})
     swap_s = time.monotonic() - t0
     now = npu_occupant()
-    for _ in range(3):  # FLM swap can lag health readiness (observed: occupant=None right after load)
+    for _ in range(
+        3
+    ):  # FLM swap can lag health readiness (observed: occupant=None right after load)
         if now == model_id:
             break
         time.sleep(5)
@@ -330,7 +333,9 @@ def server_version() -> str:
     global _SERVER_VERSION
     if _SERVER_VERSION is None:
         try:
-            _SERVER_VERSION = str(_http_json(f"{BASE}/api/v1/health", timeout=5).get("version", "?"))
+            _SERVER_VERSION = str(
+                _http_json(f"{BASE}/api/v1/health", timeout=5).get("version", "?")
+            )
         except Exception:  # noqa: BLE001 — 24/7 daemon guard: fail open, never kill the loop
             return "?"
     return _SERVER_VERSION
@@ -468,9 +473,14 @@ async def run_round(model_id: str, lap: int, quick: bool = False) -> dict:
         if outcome == "correct" and task.name == "proc_arith":
             _append_jsonl(
                 RUN_DIR / "traces.jsonl",
-                {"model": model_id, "lap": lap, "prompt": task.prompt,
-                 "response": r.text, "gold": task.gold,
-                 "ts": time.strftime("%Y-%m-%dT%H:%M:%S")},
+                {
+                    "model": model_id,
+                    "lap": lap,
+                    "prompt": task.prompt,
+                    "response": r.text,
+                    "gold": task.gold,
+                    "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                },
             )
         trial = {
             "lap": lap,
@@ -488,7 +498,20 @@ async def run_round(model_id: str, lap: int, quick: bool = False) -> dict:
         trials.append(trial)
         _append_jsonl(RUN_DIR / "results.jsonl", trial)
         push_rows.append(
-            {k: trial[k] for k in ("lap", "model", "task", "role", "quality_score", "tps", "ts", "outcome", "temp_arm")}
+            {
+                k: trial[k]
+                for k in (
+                    "lap",
+                    "model",
+                    "task",
+                    "role",
+                    "quality_score",
+                    "tps",
+                    "ts",
+                    "outcome",
+                    "temp_arm",
+                )
+            }
         )
     _save_manifest(manifest)  # persist H2 arm stats (merged with lap counter)
     surreal_push(push_rows)
@@ -500,12 +523,12 @@ async def run_round(model_id: str, lap: int, quick: bool = False) -> dict:
         "conflict": meta["conflict"],
         "n_trials": len(trials),
         "n_responded": len(ok_trials),
-        "mean_quality": round(
-            sum(t["quality_score"] for t in ok_trials) / len(ok_trials), 3
-        )
+        "mean_quality": round(sum(t["quality_score"] for t in ok_trials) / len(ok_trials), 3)
         if ok_trials
         else 0.0,
-        "mean_tps": round(sum(t["tps"] for t in ok_trials) / len(ok_trials), 1) if ok_trials else 0.0,
+        "mean_tps": round(sum(t["tps"] for t in ok_trials) / len(ok_trials), 1)
+        if ok_trials
+        else 0.0,
         "server_version": server_version(),
         **tele,
     }
@@ -632,7 +655,12 @@ async def run_gauntlet_forever(laps: int = 0, quick: bool = False) -> None:
                 failures = 0
                 logger.info(
                     "lap %d %s: acc=%.2f tps=%.1f swap=%.0fs conflict=%s",
-                    lap, mid, s["mean_quality"], s["mean_tps"], s["swap_s"], s["conflict"],
+                    lap,
+                    mid,
+                    s["mean_quality"],
+                    s["mean_tps"],
+                    s["swap_s"],
+                    s["conflict"],
                 )
             except MemoryError as exc:
                 # RAM-gate veto is an EXPECTED environmental state under external
