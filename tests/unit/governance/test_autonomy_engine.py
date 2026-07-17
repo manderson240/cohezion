@@ -320,7 +320,7 @@ class TestHIHOAttractor:
         engine = AutonomyEngine()
         rng = random.Random(42)
 
-        for step in range(30):
+        for _step in range(30):
             coherence = 0.50 + rng.gauss(0, 0.04)
             tier = engine.record_physics_coherence("hiho-attractor", "lenr", coherence)
             if tier == AutonomyTier.HIHO:

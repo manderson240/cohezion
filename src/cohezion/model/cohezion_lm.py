@@ -549,7 +549,7 @@ try:
                 import random as _random
 
                 _rng = _random.Random(seed)  # exp_SSSS0: shuffled sampling gives -4.3% PPL
-                for step in range(steps):
+                for _step in range(steps):
                     batch = _rng.sample(pool, batch_size)
                     ids_list = [_tokenize(f"{ex.instruction} {ex.response}") for ex in batch]
                     weights = torch.tensor([ex.hiho_weight for ex in batch], dtype=torch.float32)

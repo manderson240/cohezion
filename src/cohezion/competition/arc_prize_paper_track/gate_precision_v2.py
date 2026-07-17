@@ -86,7 +86,7 @@ def collecting_search(train, depth, ops, budget, visited, global_counter=None):
                 COLLECTED["wrong"].append((name, avg_score))
         return None
 
-    for name, op in ops:
+    for _name, op in ops:
         transformed = []
         valid = True
         for ex in train:

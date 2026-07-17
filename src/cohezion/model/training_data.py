@@ -581,7 +581,7 @@ def build_balanced_training_dataset(
     # Add Python code corpus (exp_EEEE2); n_code controls how many are included
     if include_code:
         # Cycle through _CODE_EXAMPLES to reach n_code total
-        for i, ex in enumerate((_CODE_EXAMPLES * ((n_code // len(_CODE_EXAMPLES)) + 1))[:n_code]):
+        for _i, ex in enumerate((_CODE_EXAMPLES * ((n_code // len(_CODE_EXAMPLES)) + 1))[:n_code]):
             combined.add(ex)
 
     logger.info(

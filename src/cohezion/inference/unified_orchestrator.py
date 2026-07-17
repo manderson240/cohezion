@@ -625,7 +625,7 @@ class UnifiedOrchestrator:
 
     def _register_all_nodes(self) -> None:
         """Register all silicon lanes + Ollama CPU workers."""
-        for lane_name, port in LANE_PORTS.items():
+        for lane_name, _port in LANE_PORTS.items():
             kind = (
                 NodeKind.NPU
                 if lane_name == "npu"

@@ -425,7 +425,7 @@ class BatchableExecutor:
                 }
 
                 unique_results: dict[int, ExecutionResult] = {}
-                for task_id, task in zip(task_groups.keys(), unique_tasks, strict=True):
+                for task_id, _task in zip(task_groups.keys(), unique_tasks, strict=True):
                     api_res = id_to_api.get(str(task_id))
                     if api_res is None:
                         unique_results[task_id] = ExecutionResult(

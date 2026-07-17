@@ -509,12 +509,12 @@ if __name__ == "__main__":
     for i in range(5):
         config = {"temperature": 0.7, "expected_tps": 100 + i * 10}
 
-        def fake_runner(c):
+        def fake_runner(c, _i=i):
             return {
-                "status": "keep" if i % 2 == 0 else "discard",
-                "tokens_per_sec": 95 + i * 8,  # Worse than expected
+                "status": "keep" if _i % 2 == 0 else "discard",
+                "tokens_per_sec": 95 + _i * 8,  # Worse than expected
                 "quality_score": 0.8,
-                "timestamp": f"2026-04-26T{i:02d}:00:00",
+                "timestamp": f"2026-04-26T{_i:02d}:00:00",
             }
 
         result = runner.run_experiment(config, fake_runner)

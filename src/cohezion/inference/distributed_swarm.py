@@ -552,7 +552,7 @@ class SiliconSwarm:
     def _register_nodes(self) -> None:
         """Register all silicon lanes + CPU small-model workers."""
         # Lemonade lanes (Gemma-4 symphony)
-        for lane_name, port in _LANE_PORTS.items():
+        for lane_name, _port in _LANE_PORTS.items():
             kind = (
                 NodeKind.NPU
                 if lane_name == "npu"

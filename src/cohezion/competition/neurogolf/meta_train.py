@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # Step 1: Build meta-training dataset from ALL tasks
     all_pairs = []
-    for task_id, task in challenges.items():
+    for _task_id, task in challenges.items():
         for pair in task["train"]:
             all_pairs.append((pair["input"], pair["output"]))
         # optionally include test pairs for meta-training (cheating if eval, but training set only)

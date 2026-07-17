@@ -466,12 +466,12 @@ class TestExecutorIntegrationScenarios:
                 ),
             ):
 
-                def execute_fn(guidance):
-                    if i == 2:
+                def execute_fn(guidance, _i=i):
+                    if _i == 2:
                         # One task has low coherence
-                        return f"output_{i}", {"coherence": 0.2}
+                        return f"output_{_i}", {"coherence": 0.2}
                     else:
-                        return f"output_{i}", {"coherence": 0.8}
+                        return f"output_{_i}", {"coherence": 0.8}
 
                 result = executor.execute_task(
                     task_description=f"Batch task {i}",

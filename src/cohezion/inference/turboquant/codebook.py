@@ -54,7 +54,7 @@ def _mse_cost(centroids: np.ndarray, d: int) -> float:
     for i in range(n):
         lo, hi = boundaries[i], boundaries[i + 1]
         c = centroids[i]
-        val, _ = integrate.quad(lambda x: (x - c) ** 2 * beta_pdf(np.array([x]), d)[0], lo, hi)
+        val, _ = integrate.quad(lambda x, c=c: (x - c) ** 2 * beta_pdf(np.array([x]), d)[0], lo, hi)
         cost += val
     return cost
 
