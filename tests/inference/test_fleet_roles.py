@@ -33,7 +33,9 @@ _CATALOG = [
 def test_roles_resolve_to_expected_models():
     r = _roster_with(_CATALOG)
     got = r.verify()
-    assert got["interactive"] == "Qwen3.6-35B-A3B-MTP-GGUF"
+    # 2026-07-17 RAM-policy retarget: interactive shares the 26B with bbq; the
+    # 22GB 35B-MTP is excluded (it stacked on the 26B and breached the RAM floor).
+    assert got["interactive"] == "Gemma-4-26B-A4B-it-GGUF"
     assert got["bbq"] == "Gemma-4-26B-A4B-it-GGUF"
     assert got["deep"] == "mistralai_Mistral-Medium-3.5-128B-GGUF-IQ4_XS"
     assert got["draft"] == "Bonsai-1.7B-gguf"
@@ -69,15 +71,30 @@ def test_unknown_role_raises():
 
 
 def test_adaptivity_new_model_wins_without_code_change():
-    # A newly-installed stronger interactive model (more matching labels) is
-    # picked purely from catalog metadata — no ROLE_SPECS edit.
+    # The live adaptivity lever is MEASURED quality (25×perf from SurrealDB
+    # model_performance — fed by the NPU gauntlet since 2026-07-17): a same-
+    # family newcomer with a better recorded score outranks the incumbent
+    # purely from data — no ROLE_SPECS edit.
     catalog = [
         *_CATALOG,
-        {"id": "Qwen4-40B-A3B-MTP-GGUF", "labels": ["mtp", "tool-calling", "reasoning"], "size": 24.0, "recipe": "llamacpp"},
+        {"id": "Gemma-5-26B-A4B-it-GGUF", "labels": ["reasoning", "tool-calling"], "size": 18.5, "recipe": "llamacpp"},
     ]
     r = _roster_with(catalog)
-    # Both match; the newcomer has an extra 'reasoning' label => higher score.
-    assert r.select("interactive") == "Qwen4-40B-A3B-MTP-GGUF"
+    assert r.select("interactive") == "Gemma-4-26B-A4B-it-GGUF"  # no perf data → incumbent
+    r._perf = {"Gemma-5-26B-A4B-it-GGUF": 0.9, "Gemma-4-26B-A4B-it-GGUF": 0.4}
+    assert r.select("interactive") == "Gemma-5-26B-A4B-it-GGUF"  # measured quality wins
+
+
+def test_interactive_excludes_mtp_heavy_stacker():
+    # Discriminating test for the 2026-07-17 retarget: even a catalog where the
+    # 35B-MTP has MORE matching labels must NOT resolve interactive to it —
+    # the MTP exclusion is the load-bearing RAM-policy mechanism.
+    catalog = [
+        {"id": "Qwen3.6-35B-A3B-MTP-GGUF", "labels": ["mtp", "tool-calling", "reasoning"], "size": 22.1, "recipe": "llamacpp"},
+        {"id": "Gemma-4-26B-A4B-it-GGUF", "labels": ["tool-calling"], "size": 16.9, "recipe": "llamacpp"},
+    ]
+    r = _roster_with(catalog)
+    assert r.select("interactive") == "Gemma-4-26B-A4B-it-GGUF"
 
 
 def test_deep_loadable_uses_load_safety_guard(monkeypatch):

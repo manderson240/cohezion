@@ -59,9 +59,14 @@ class RoleSpec:
 # Role -> selection policy. Capability-driven, NOT hardcoded model IDs.
 ROLE_SPECS: dict[str, RoleSpec] = {
     "interactive": RoleSpec(
-        prefer=("mtp", "tool-calling", "reasoning"),
-        name_hint=("A3B", "MTP", "Qwen3.6"),
-        exclude=("Embedding", "embed", "FLM", "Bonsai-1", "0.6B"),
+        # 2026-07-17 RAM-policy retarget (user-approved): the MTP/Qwen3.6 hints
+        # summoned the 22GB 35B-A3B-MTP hourly, stacking on top of the 26B and
+        # breaching the 16GB floor 3x/day. Interactive now shares the 26B with
+        # bbq — one heavy resident instead of two. Revisit if MTP speculative
+        # decoding becomes load-bearing for interactive latency.
+        prefer=("tool-calling", "reasoning"),
+        name_hint=("26B", "A4B", "Gemma-4-26B"),
+        exclude=("Embedding", "embed", "FLM", "Bonsai-1", "0.6B", "MTP"),
         size_min=8.0, size_max=45.0,
     ),
     "bbq": RoleSpec(
