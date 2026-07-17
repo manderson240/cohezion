@@ -165,7 +165,8 @@ class BlindEvaluator:
 
     def __init__(self, ground_truth_store: Path | None = None):
         self.store = ground_truth_store or Path(".autoharness/ground_truth.json")
-        self.predictions: dict[str, str] = {}  # hash -> predicted outcome
+        # hash -> {"config": dict, "predicted_tps": float, "timestamp": Any}
+        self.predictions: dict[str, dict[str, Any]] = {}
         self.results: dict[str, Any] = {}  # hash -> actual outcome
 
     def commit_prediction(self, experiment_config: dict, predicted_tps: float) -> str:

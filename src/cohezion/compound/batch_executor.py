@@ -502,14 +502,21 @@ class BatchableExecutor:
         """Original sequential execute_task loop (fallback / non-Anthropic path)."""
         unique_results: dict[int, ExecutionResult] = {}
         for task_id, task in zip(task_groups.keys(), unique_tasks, strict=True):
-            guidance = guidance_map.get(task.task_id, {})
+            # CompoundExecutor.execute_task is synchronous and its contract is
+            # (task_description, skill_name, operation_type, ...). The prior call
+            # awaited it and passed system_prompt/model/timeout_seconds/guidance —
+            # none of which the base API accepts — so every task on this path raised
+            # TypeError and was silently swallowed as success=False. skill_name has no
+            # dedicated CompoundTask field, so the task_id is used as a stable label;
+            # operation_type is derived from the same classifier used for batch sizing.
+            # Per-task system_prompt/model/timeout are not honored here (the base API
+            # only takes them via an execute_fn closure) — pre-existing limitation.
+            operation_type = self._detect_task_types([task])[0]
             try:
-                result = await self.executor.execute_task(
-                    task.prompt,
-                    system_prompt=task.system_prompt,
-                    model=task.model,
-                    timeout_seconds=task.timeout_seconds,
-                    guidance=guidance,
+                result = self.executor.execute_task(
+                    task_description=task.prompt,
+                    skill_name=task.task_id,
+                    operation_type=operation_type,
                 )
                 unique_results[task_id] = result
             except Exception as e:
