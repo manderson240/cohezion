@@ -49,7 +49,8 @@ export LC_ALL=C
 # ARE the reference implementation of the safety contract. Relocating the choke
 # point to a successor module = edit this one array.
 BLESSED_CALLERS=(
-  "src/cohezion/inference/gauntlet.py"
+  "src/cohezion/inference/gauntlet.py"      # local lane (lemonade): _call_model
+  "src/cohezion/inference/ollama_cloud.py"  # cloud lane (metered): cloud_chat + usage ledger
 )
 # The guard's own tooling legitimately contains the literal "chat/completions"
 # for detection purposes — it is not a call site.
@@ -76,7 +77,10 @@ esac
 #    call sites; 3. reduce to unique files.
 collect_enforceable_files() {
   local hits
-  hits="$(grep -rnE "chat/completions" $SCAN_ROOTS --include="*.py" 2>/dev/null \
+  # chat/completions = lemonade/OpenAI-compat sites; 11434 = raw ollama API
+  # sites (blessed ollama path = ollama_cloud.cloud_chat; CLI capture banned —
+  # its thinking-stream TTY rendering garbles stdout).
+  hits="$(grep -rnE "chat/completions|11434" $SCAN_ROOTS --include="*.py" 2>/dev/null \
     | grep -vE "/tests?/|_test\.py|test_" || true)"
   local f
   for f in "${BLESSED_CALLERS[@]}" "${GUARD_TOOLING[@]}"; do

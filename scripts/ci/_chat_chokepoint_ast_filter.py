@@ -29,7 +29,7 @@ import tokenize
 
 # Match the OpenAI-compatible chat endpoint in either raw form
 # (/v1/chat/completions or /api/v1/chat/completions).
-PATTERN = re.compile(r"chat/completions")
+PATTERN = re.compile(r"chat/completions|11434")
 
 
 def _docstring_lines(source: str) -> set[int]:
