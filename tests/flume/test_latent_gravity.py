@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from cohezion.flume.latent_gravity import LatentGravityNavigator
 
 

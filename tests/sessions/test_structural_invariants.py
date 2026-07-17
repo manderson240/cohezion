@@ -13,6 +13,7 @@ from pathlib import Path
 from cohezion.sessions import session_bus
 from cohezion.sessions.session_bus import MessageKind, SessionBus
 
+
 REPO = Path(__file__).resolve().parents[2]
 
 

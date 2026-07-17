@@ -1,4 +1,5 @@
 import pytest
+
 from cohezion.inference.transition_controller import TransitionController
 from cohezion.world_model.observer import Observer
 from cohezion.world_model.observer_world_model import ObserverWorldModel

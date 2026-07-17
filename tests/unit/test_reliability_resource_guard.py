@@ -1,8 +1,6 @@
 """Unit tests for ResourceGuard disk space and percentage checks."""
 
 from __future__ import annotations
-import pytest
-
 
 import pytest
 

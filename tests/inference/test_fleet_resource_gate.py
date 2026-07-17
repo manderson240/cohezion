@@ -12,11 +12,11 @@ candidate (await_count >= 1). These tests assert the OOM-pressure path skips loc
 """
 
 from __future__ import annotations
-import pytest
 
 import time
 from unittest.mock import AsyncMock, patch
 
+import pytest
 
 from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
 from cohezion.inference.fleet import route

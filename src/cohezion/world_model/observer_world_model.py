@@ -1,9 +1,9 @@
 from collections import defaultdict
 from typing import List
 
+from cohezion.inference.task_classifier import classify
 from cohezion.inference.transition_controller import TransitionController
 from cohezion.world_model.observer import Observer
-from cohezion.inference.task_classifier import classify
 
 
 class ObserverWorldModel:

@@ -14,6 +14,7 @@ import re
 import urllib.request
 from enum import Enum
 
+
 SURREAL_URL = "http://localhost:8001/sql"
 _NS, _DB = "cohezion", "main"
 _AUTH = "root:root"

@@ -1,5 +1,6 @@
 import pytest
 
+
 pytest.importorskip(
     "cohezion.physics.observer_patch", reason="TDD-red: FrequencyDispersedDelay not yet implemented"
 )

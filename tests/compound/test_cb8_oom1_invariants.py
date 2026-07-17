@@ -1,7 +1,9 @@
-import pytest
+import inspect
 from types import SimpleNamespace
 from unittest.mock import patch
-import inspect
+
+import pytest
+
 
 def test_cb8_invariants():
     from cohezion.compound.degradation_detector import DegradationDetector
@@ -24,8 +26,8 @@ def test_cb8_invariants():
 
 
 def test_oom1_invariants():
-    from cohezion.inference.triune_orchestrator import build_triune_orchestrator
     import cohezion.inference.triune_orchestrator as tri
+    from cohezion.inference.triune_orchestrator import build_triune_orchestrator
 
     # source must contain MemorySnapshot and available_gb
     src = inspect.getsource(build_triune_orchestrator)
@@ -33,7 +35,8 @@ def test_oom1_invariants():
     assert "available_gb" in src
 
     # mock /proc/meminfo to return 1GB (should fail gate)
-    import builtins, io
+    import builtins
+    import io
     real_open = builtins.open
 
     def meminfo_only(path, *a, **k):

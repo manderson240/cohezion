@@ -16,9 +16,9 @@ The live smoke is guarded (skipped if the router is down) so CI never flakes.
 """
 
 from __future__ import annotations
-import pytest
 
 import httpx
+import pytest
 
 from cohezion.inference.registry import Lane, Task, get_registry
 

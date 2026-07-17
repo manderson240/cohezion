@@ -18,6 +18,7 @@ from cohezion.data_mesh.research_products import (
     parse_brief,
 )
 
+
 # --- fixtures ---------------------------------------------------------------
 
 _CLEAN_ACTIONABLE = """\
