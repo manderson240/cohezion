@@ -294,6 +294,19 @@ def pre_load_gate(
             f"(required before loading {model_name!r})"
         )
 
+    # 3. Weight-fit gate (freeze-prevention, 2026-07-16). The RAM gate above only
+    # guarantees a fixed reserve — it does NOT verify the model's WEIGHTS fit.
+    # Mistral-Medium-128B (catalog size 42.3 GB, ~69 GB real weights) passed the
+    # floor with 42 GB free and hard-froze the box. When the catalog knows this
+    # model, refuse if its safety-inflated footprint over-commits available RAM
+    # minus the same reserve. Pure decision in load_safety; catalog entry as input.
+    if entry is not None:
+        from cohezion.inference.load_safety import check_load_safe
+
+        fit_ok, fit_reason = check_load_safe(entry, free_gb, ram_floor_gb=min_free_gb)
+        if not fit_ok:
+            return False, f"weight over-commit for {model_name!r}: {fit_reason}"
+
     return True, f"ok: {free_gb:.1f} GiB free, ctx_size={ctx_size}, heavy={is_heavy}"
 
 
