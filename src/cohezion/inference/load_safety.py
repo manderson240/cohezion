@@ -36,7 +36,7 @@ nominal instead of None so a missing size does not false-refuse a safe NPU load.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -138,3 +138,57 @@ def check_load_safe(
         f"ok: est {est:.1f}GB <= {budget:.1f}GB budget "
         f"({available_gb:.1f}GB avail - {ram_floor_gb:.0f}GB floor)"
     )
+
+
+def safe_swap(
+    target: str,
+    *,
+    prior_occupant: Callable[[], str | None],
+    load_fn: Callable[[str], object],
+    verify_fn: Callable[[str], bool],
+) -> dict[str, object]:
+    """Transactional model swap: load ``target``, restoring the prior occupant if
+    the load fails or the model never verifies ready.
+
+    Incident 2026-07-17 (Ternary-Bonsai): lemonade LRU-evicts the current
+    occupant BEFORE the load attempt and does NOT restore it on failure, flushing
+    the fleet. This makes the swap atomic. Dependency-injected so it is testable
+    without a live server and reusable for any backend (NPU slot, iGPU tenant).
+
+    Returns ``{ok, loaded, restored, restore_failed}``. Never raises — a recovery
+    primitive must not itself crash the caller.
+    """
+    prior = prior_occupant()
+    try:
+        load_fn(target)
+        if verify_fn(target):
+            return {"ok": True, "loaded": target, "restored": None, "restore_failed": False}
+        reason = "verify_false"
+    except Exception as exc:
+        reason = f"load_error: {exc}"
+    # Load failed → restore the evicted occupant if there was one.
+    if prior is None:
+        return {
+            "ok": False,
+            "loaded": None,
+            "restored": None,
+            "restore_failed": False,
+            "reason": reason,
+        }
+    try:
+        load_fn(prior)
+        return {
+            "ok": False,
+            "loaded": None,
+            "restored": prior,
+            "restore_failed": False,
+            "reason": reason,
+        }
+    except Exception as exc:
+        return {
+            "ok": False,
+            "loaded": None,
+            "restored": None,
+            "restore_failed": True,
+            "reason": f"{reason}; restore: {exc}",
+        }
