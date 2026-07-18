@@ -9,6 +9,7 @@ interface for capability assessment, gap analysis, and task recommendation.
 from __future__ import annotations
 
 import contextlib
+import json
 import logging
 from dataclasses import dataclass, field
 from datetime import date
@@ -83,6 +84,7 @@ class CapabilityMatrix:
         self._entries: dict[str, CapabilityEntry] = {}
         self._load_static_models()
         self._load_static_skills()
+        self._load_catalog_skills()
         self._load_static_agents()
 
     def _load_static_models(self) -> None:
@@ -171,9 +173,57 @@ class CapabilityMatrix:
         except Exception:
             logger.debug("SkillHealthTracker not available")
 
+    def _load_catalog_skills(self) -> None:
+        """Load skill definitions from the PRIME skill registry (the catalog).
+
+        Complements ``_load_static_skills`` (which sees only skills with
+        execution history): the registry is the authoritative skill CATALOG, so
+        the matrix knows a skill EXISTS even if it has never been executed.
+        Without this, ``get_matrix()['skill']`` is empty on a fresh process and
+        gap analysis is blind to the entire skill library. Execution-history
+        entries are richer and are never overwritten.
+        """
+        registry_path = Path(__file__).resolve().parent.parent / "skills" / "skill_registry.json"
+        try:
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            logger.debug("skill_registry.json not readable at %s", registry_path)
+            return
+        if not isinstance(registry, dict):
+            # A wrong-shape (e.g. JSON array) registry parses fine but has no
+            # .items(); guard so __init__ never raises AttributeError here.
+            logger.debug("skill_registry.json is not an object; skipping catalog load")
+            return
+
+        for name, meta in registry.items():
+            key = f"skill:{name}"
+            if key in self._entries:
+                continue  # execution-history entry is richer; keep it
+            if not isinstance(meta, dict):
+                continue
+            concepts = [str(c) for c in (meta.get("concepts") or [])]
+            self._entries[key] = CapabilityEntry(
+                entity_type="skill",
+                entity_id=name,
+                capabilities=concepts or ["skill"],
+                quality_score=0.0,
+                speed_tier=2,
+                success_rate=0.0,
+                affinity={},
+                last_assessed=date.today().isoformat(),
+                source="catalog",
+                metadata={
+                    "version": meta.get("version", ""),
+                    "source_path": meta.get("source", ""),
+                    "see_also": meta.get("see_also", []),
+                },
+            )
+
     def _load_static_agents(self) -> None:
-        """Load agent metadata from .claude/agents/ directory."""
-        agents_dir = Path(".claude/agents")
+        """Load agent metadata from .claude/agents/ (repo-root, cwd-independent)."""
+        agents_dir = Path(__file__).resolve().parents[3] / ".claude" / "agents"
+        if not agents_dir.is_dir():
+            agents_dir = Path(".claude/agents")  # fallback: cwd-relative
         if not agents_dir.is_dir():
             return
 
