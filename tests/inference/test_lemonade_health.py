@@ -19,9 +19,83 @@ from cohezion.inference.lemonade_health import (
     TypeHeadroom,
     _check_ctx_hazards,
     _check_orphans,
+    detect_unready_backends,
     is_lemonade_alive,
     probe_lemonade,
 )
+
+
+# ----- Wedge detection (2026-07-18 FLM-wedge fix) --------------------------
+
+
+def test_detect_unready_backends_does_not_flag_busy():
+    # DISCRIMINATING (false-positive guard): "busy" is a NORMAL in-flight state —
+    # verified live 2026-07-18 (a loaded FLM read "busy" then cleared). Flagging it
+    # would route around every actively-serving backend. Must return [].
+    loaded = [
+        {"model_name": "Gemma-4-26B-A4B-it-GGUF", "loaded": True, "backend_health": "ready"},
+        {"model_name": "deepseek-r1-0528-8b-FLM", "loaded": True, "backend_health": "busy"},
+        {"model_name": "kokoro-v1", "loaded": True, "backend_health": "ready"},
+    ]
+    assert detect_unready_backends(loaded) == []
+
+
+def test_detect_unready_backends_flags_dead_and_error():
+    # DISCRIMINATING: a DEFINITIVELY bad backend must be flagged — backend_alive
+    # False (dead process) or a non-transient bad health state (e.g. "error").
+    loaded = [
+        {"model_name": "ok", "loaded": True, "backend_health": "ready", "backend_alive": True},
+        {"model_name": "dead", "loaded": True, "backend_health": "ready", "backend_alive": False},
+        {"model_name": "errored", "loaded": True, "backend_health": "error"},
+    ]
+    assert detect_unready_backends(loaded) == ["dead", "errored"]
+
+
+def test_detect_unready_backends_ignores_unknown_and_unloaded():
+    # no backend_health + no backend_alive -> unknown, NOT flagged
+    assert detect_unready_backends([{"model_name": "C", "loaded": True}]) == []
+    # not loaded -> not flagged even if health looks bad
+    assert (
+        detect_unready_backends([{"model_name": "D", "loaded": False, "backend_health": "error"}])
+        == []
+    )
+
+
+def test_detect_unready_backends_fails_safe_on_unknown_states():
+    # DISCRIMINATING (Finding-1 guard): a denylist must NOT flag states it hasn't
+    # enumerated — an allowlist impl (flag anything != {ready,busy,...}) would WRONGLY
+    # flag "idle"/"" and route around a healthy lane. These must all be [].
+    for unknown in ("idle", "initializing", "", "paused", "queued"):
+        assert (
+            detect_unready_backends(
+                [{"model_name": "m", "loaded": True, "backend_health": unknown}]
+            )
+            == []
+        ), f"unknown state {unknown!r} must fail safe (not flagged)"
+
+
+def test_lemonade_health_ok_false_when_backend_unready():
+    # DISCRIMINATING: a wedged backend must make the snapshot NOT ok — the whole
+    # point (last night .ok stayed true while the FLM lane was dead).
+    h_wedged = LemonadeHealth(
+        checked_at=0.0,
+        port=13305,
+        version="11.0.0",
+        status="ok",
+        loaded_count=1,
+        unready_backends=["deepseek-r1-0528-8b-FLM"],
+    )
+    assert h_wedged.ok is False
+    assert "unready=deepseek-r1-0528-8b-FLM" in h_wedged.summary
+    h_healthy = LemonadeHealth(
+        checked_at=0.0,
+        port=13305,
+        version="11.0.0",
+        status="ok",
+        loaded_count=1,
+    )
+    assert h_healthy.ok is True
+    assert "unready=none" in h_healthy.summary
 
 
 def lemonade_reachable(host: str = "localhost", port: int = 13305) -> bool:
