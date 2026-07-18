@@ -193,7 +193,11 @@ async def lemonade_load_model(
 @app.tool()
 async def lemonade_chat(
     messages: list[dict[str, str]],
-    model: str = "Gemma-4-E4B-it-GGUF",
+    # Default = the NPU gauntlet champion (fast, non-thinking, fits MCP's 60s
+    # tool timeout — the old E4B/26B iGPU defaults are thinking models that
+    # burn the whole window in-think; 2026-07-17 measured incident). The
+    # leaderboard keeps this honest: qwen3-4b-FLM = 1.00 acc / 17.4 TPS.
+    model: str = "qwen3-4b-FLM",
     max_tokens: int = 2048,
     temperature: float = 0.7,
     tools: list[dict[str, Any]] | None = None,
@@ -237,7 +241,10 @@ async def lemonade_chat(
 async def lemonade_analyze_image(
     image_path: str,
     prompt: str,
-    model: str = "Gemma-4-E4B-it-GGUF",
+    # NPU-first default: gemma4-it-e2b-FLM is vision+audio-capable on the XDNA2
+    # (registry labels) and fast enough for the MCP tool timeout; the old E4B
+    # default was an iGPU thinking model. Override for hard visual reasoning.
+    model: str = "gemma4-it-e2b-FLM",
     max_tokens: int = 1024,
 ) -> dict[str, Any]:
     """Send an image plus prompt to a local vision-capable Lemonade model.

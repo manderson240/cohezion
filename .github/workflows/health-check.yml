@@ -24,6 +24,7 @@ jobs:
   # ── Health Check ─────────────────────────────────────────────────────
   health:
     runs-on: self-hosted
+    timeout-minutes: 30
     permissions:
       contents: read
       pull-requests: write
@@ -36,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -165,9 +166,10 @@ jobs:
   # ── Security Scan ──────────────────────────────────────────────────────
   security:
     runs-on: self-hosted
+    timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -192,6 +194,7 @@ jobs:
   # ── Daily Report ───────────────────────────────────────────────────────
   daily-report:
     runs-on: self-hosted
+    timeout-minutes: 30
     if: github.event_name == 'schedule'
     needs: [health, security]
     

@@ -15,13 +15,14 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         python-version: ["3.13"]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -53,7 +54,7 @@ jobs:
             -v
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v6
         with:
           files: ./coverage.xml
           # fail_ci_if_error was true but Codecov token-less uploads have been
@@ -82,12 +83,13 @@ jobs:
 
   test-generated:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: test
     if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -119,6 +121,7 @@ jobs:
 
   auto-generate-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: false
     steps:
       - run: echo "disabled"

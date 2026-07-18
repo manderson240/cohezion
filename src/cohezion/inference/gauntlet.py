@@ -52,9 +52,17 @@ class BenchTask:
     prompt: str
     expected_keywords: list[str]  # presence check (case-insensitive)
     max_tokens: int = 60
-    grader: str = "keyword"  # "keyword" (surface-form) | "python_exec" (behavior)
-    test_code: str = ""  # for grader="python_exec": assert-based test appended to the generated code
+    grader: str = (
+        "keyword"  # "keyword" (surface-form) | "python_exec" (behavior) | "exact" (gold answer)
+    )
+    test_code: str = (
+        ""  # for grader="python_exec": assert-based test appended to the generated code
+    )
     timeout_s: float = 30.0  # per-call HTTP timeout (raise for reasoning models on big budgets)
+    gold: str = ""  # for grader="exact": the exact expected answer (normalized comparison)
+    temperature: float | None = (
+        None  # None = inherit model-card default (TR1); 0.0 for determinism canaries
+    )
 
 
 @dataclass
@@ -69,6 +77,7 @@ class BenchResult:
     quality_ratio: float  # keyword_hits / keyword_total
     score: float  # quality_ratio * tps_actual
     run_id: int = 0
+    text: str = ""  # response text (think-stripped), for outcome triage + trace banking
 
 
 # ── Canonical 7-domain task suite ────────────────────────────────────────────
@@ -81,7 +90,11 @@ TASK_SUITE: list[BenchTask] = [
             "numbers as a list, starting with 0, 1 (so fib(7) == [0,1,1,2,3,5,8]). "
             "Reply with a Python code block."
         ),
-        expected_keywords=["def", "fib", "return"],  # retained for provenance; unused by exec grader
+        expected_keywords=[
+            "def",
+            "fib",
+            "return",
+        ],  # retained for provenance; unused by exec grader
         max_tokens=3072,
         grader="python_exec",
         test_code="assert fib(7) == [0, 1, 1, 2, 3, 5, 8]\nassert fib(0) == []\nassert fib(1) == [0]",
@@ -157,6 +170,7 @@ async def _call_model(
     prompt: str,
     max_tokens: int,
     timeout_s: float = 30.0,
+    temperature: float | None = None,
 ) -> tuple[float, float, str]:
     """POST to OmniRouter /api/v1/chat/completions and return (ttft_s, tps, text).
 
@@ -174,6 +188,8 @@ async def _call_model(
             "max_tokens": max_tokens,
             "stream": False,
         }
+        if temperature is not None:  # omit → inherit model-card sampling (TR1)
+            payload["temperature"] = temperature
         t0 = time.monotonic()
         async with httpx.AsyncClient(timeout=timeout_s) as client:
             resp = await client.post(f"{OMNI_URL}/api/v1/chat/completions", json=payload)
@@ -215,17 +231,55 @@ def _run_python_test(code: str, test_code: str, timeout: float = 10.0) -> bool:
         f = Path(td) / "cand.py"
         f.write_text(body + "\n" + test_code + "\n")
         try:
-            r = subprocess.run(
-                [py, "-I", str(f)], cwd=td, capture_output=True, timeout=timeout
-            )
+            r = subprocess.run([py, "-I", str(f)], cwd=td, capture_output=True, timeout=timeout)
             return r.returncode == 0
         except (subprocess.TimeoutExpired, OSError):
             return False
 
 
+def _normalize_answer(text: str) -> str:
+    """Normalize a model answer for exact-gold comparison.
+
+    Strips think blocks, prefers a trailing '#### <answer>' marker, then tries
+    JSON canonicalization, then numeric canonicalization, else casefolded text.
+    """
+    t = _THINK_RE.sub("", text or "").strip()
+    marked = re.findall(r"####\s*(.+)", t)
+    if marked:
+        t = marked[-1].strip()
+    # Strip markdown code fences before JSON parse: models that answer correctly
+    # but wrap JSON in ```json fences otherwise fail parse and fall through to
+    # string comparison (caused false 0.00 synthesis scores for the gemma family
+    # + llama-1b in the 2026-07-17 gauntlet run — extraction brittleness, Minerva).
+    fenced = re.findall(r"```(?:json)?\s*(.*?)```", t, re.DOTALL | re.IGNORECASE)
+    candidate = fenced[-1].strip() if fenced else t
+    try:
+        return json.dumps(json.loads(candidate), sort_keys=True, separators=(",", ":"))
+    except (ValueError, TypeError):
+        pass
+    nums = re.findall(r"-?\d[\d,]*\.?\d*", t)
+    if nums and len(t) < 40:
+        return nums[-1].replace(",", "")
+    return " ".join(t.casefold().split()).strip(" .!\"'")
+
+
 def _score_result(
     task: BenchTask, ttft: float, tps: float, text: str, exec_pass: bool | None = None
 ) -> BenchResult:
+    if task.grader == "exact":
+        # Gold-answer grading: quality is 1.0 iff normalized answer == normalized gold.
+        ok = _normalize_answer(text) == _normalize_answer(task.gold)
+        return BenchResult(
+            model_id="",
+            task_name=task.name,
+            role=task.role,
+            ttft_seconds=round(ttft, 3),
+            tps_actual=round(tps, 1),
+            keyword_hits=1 if ok else 0,
+            keyword_total=1,
+            quality_ratio=1.0 if ok else 0.0,
+            score=round((1.0 if ok else 0.0) * tps, 2),
+        )
     if task.grader == "python_exec":
         # Behavior, not surface form: quality is 1.0 iff the generated code passed its test.
         quality = 1.0 if exec_pass else 0.0
@@ -266,7 +320,9 @@ async def _bench_model_on_task(
     task: BenchTask,
     run_id: int = 0,
 ) -> BenchResult:
-    ttft, tps, text = await _call_model(model_id, task.prompt, task.max_tokens, task.timeout_s)
+    ttft, tps, text = await _call_model(
+        model_id, task.prompt, task.max_tokens, task.timeout_s, temperature=task.temperature
+    )
     exec_pass: bool | None = None
     if task.grader == "python_exec":
         # Out-of-process execution grading, off the event loop so party mode stays async.
@@ -274,6 +330,7 @@ async def _bench_model_on_task(
     result = _score_result(task, ttft, tps, text, exec_pass=exec_pass)
     result.model_id = model_id
     result.run_id = run_id
+    result.text = (text or "")[:4000]
     return result
 
 

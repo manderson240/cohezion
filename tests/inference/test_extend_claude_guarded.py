@@ -9,9 +9,10 @@ test_guarded_stays_local_when_live_quota_halt — under a halt quota it must NOT
 """
 
 from __future__ import annotations
-import pytest
 
 from unittest.mock import patch
+
+import pytest
 
 
 @pytest.mark.asyncio

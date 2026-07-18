@@ -38,6 +38,16 @@ step() {
   fi
 }
 
+step_advisory() {
+  # Run for INFORMATION only — never fails the guard, never counts as a gate.
+  # Mirrors GitHub ci.yml, where raw `ruff check` is advisory (continue-on-error)
+  # because of the pre-existing lint backlog; the ruff debt RATCHET (next gate) is
+  # what actually gates NEW debt. Hard-gating raw ruff here blocked every merge.
+  local name="$1"; shift
+  echo "== ${name} (advisory) =="
+  if "$@"; then echo "  -> PASS"; else echo "  -> advisory violations (non-gating)"; fi
+}
+
 echo "=== AutoMerge Guard for PR #${PR_NUMBER} ==="
 echo "Time: $(date -Iseconds)"
 echo ""
@@ -52,8 +62,9 @@ gh pr checkout "$PR_NUMBER" 2>/dev/null || {
 # Step 1: Ruff format check
 step "ruff format --check" uv run ruff format --check src/ tests/
 
-# Step 2: Ruff lint check
-step "ruff lint check" uv run ruff check src/ tests/
+# Step 2: Ruff lint check (ADVISORY — mirrors ci.yml; the ratchet at Step 3 gates
+# NEW debt. Hard-gating raw ruff blocked every merge on the pre-existing backlog.)
+step_advisory "ruff lint check" uv run ruff check src/ tests/
 
 # Step 3: Ruff debt ratchet (gating)
 step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
@@ -66,6 +77,13 @@ step "import smoke test" uv run pytest tests/unit/test_import_smoke.py -q --tb=s
 
 # Step 6: Inference tests (gating — but live tests skip without Lemonade)
 step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings
+
+# Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
+# that bypass the blessed path + its content->reasoning_content fallback.
+# Report-mode-first rollout (mirrors check_inference_port_bypass.sh) — always
+# exits 0 for now; drop the --report flag to enforce (fail on new sites) once
+# the baseline is settled on the branch.
+step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh --report
 
 # Step 7: Conventional commit / version governance
 step "version governance" uv run python scripts/ci/version_governance.py

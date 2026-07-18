@@ -245,7 +245,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
                     break
         if not found:
             ok = True
-            for a, b in pairs:
+            for _a, b in pairs:
                 if ((b >> out_bit) & 1) != 0:
                     ok = False
                     break
@@ -254,7 +254,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
                 found = True
             else:
                 ok = True
-                for a, b in pairs:
+                for _a, b in pairs:
                     if ((b >> out_bit) & 1) != 1:
                         ok = False
                         break
@@ -497,7 +497,7 @@ def solve_equations(examples, test_in: str) -> str:
     # Strategy 2: Numeric operations
     first_in = examples[0][0] if examples else ""
     if any(c.isdigit() for c in first_in):
-        for inp, out in examples:
+        for _inp, _out in examples:
             # Try simple numeric ops
             pass
     return ""

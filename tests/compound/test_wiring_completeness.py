@@ -1153,8 +1153,9 @@ class TestTLTokenLedgerWiring:
                 )
             except Exception as exc:
                 # If TokenLedger import fails (CI env), check factory param exists instead
-                from cohezion.compound.executor_factory import ExecutorFactory
                 import inspect
+
+                from cohezion.compound.executor_factory import ExecutorFactory
 
                 sig = inspect.signature(ExecutorFactory.create)
                 assert "token_ledger" in sig.parameters, (

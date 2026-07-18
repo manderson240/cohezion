@@ -308,7 +308,10 @@ class DegradationDetector(HealthObservabilityMixin):
         # Alert history for deduplication and CB9 dashboard API
         self._last_alert_time: dict[str, float] = {}
         self._alert_cooldown_seconds = 60.0  # Don't repeat same alert within 60s
-        self._alert_history: list[DegradationAlert] = []
+        # deque(maxlen) enforces the 50-alert cap at APPEND time — the cap used
+        # to live inside get_recent_alerts (a state-mutating getter; CQS
+        # violation + aliasing hazard, ultrareview bug_009).
+        self._alert_history: deque[DegradationAlert] = deque(maxlen=self._max_alert_history)
 
         # Healing pipeline integration (non-blocking)
         self._healing_enabled = True
@@ -394,7 +397,11 @@ class DegradationDetector(HealthObservabilityMixin):
             mean_h = sum(hist) / len(hist)
             var_h = sum((x - mean_h) ** 2 for x in hist) / len(hist)
             sigma = var_h**0.5
-            if sigma > 0 and abs(obs - mean_h) > self._EMA_BURST_SIGMA * sigma:
+            deviation = abs(obs - mean_h)
+            # σ==0 (perfectly stable history) previously made bursts UNDETECTABLE
+            # (`sigma > 0` guard) — but deviation from a constant history is the
+            # clearest burst there is. Any material deviation now qualifies.
+            if deviation > self._EMA_BURST_SIGMA * sigma and deviation > 1e-9:
                 return self._EMA_ALPHA_FAST
             return self._EMA_ALPHA_SLOW
 
@@ -919,6 +926,21 @@ class DegradationDetector(HealthObservabilityMixin):
         # Task #99: add geometric-mean health proxy across all established baselines.
         stats["log_synthesis_score"] = self.get_log_synthesis_score()
         return stats
+
+    _max_alert_history: int = 50
+
+    def get_recent_alerts(self, n: int = 10) -> list:
+        """Returns the last min(n, len) alerts, newest last. Pure read — the
+        cap is structural (deque maxlen), not enforced at inspection time."""
+        if n <= 0:
+            return []
+        return list(self._alert_history)[-n:]
+
+    def clear_alert_history(self) -> int:
+        """Empties alert history and returns how many were cleared."""
+        count = len(self._alert_history)
+        self._alert_history.clear()
+        return count
 
     def get_alert_summary(self) -> dict[str, Any]:
         """CB9: Dashboard aggregation API — total + groupings from alert_history.

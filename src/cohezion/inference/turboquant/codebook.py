@@ -54,7 +54,7 @@ def _mse_cost(centroids: np.ndarray, d: int) -> float:
     for i in range(n):
         lo, hi = boundaries[i], boundaries[i + 1]
         c = centroids[i]
-        val, _ = integrate.quad(lambda x: (x - c) ** 2 * beta_pdf(np.array([x]), d)[0], lo, hi)
+        val, _ = integrate.quad(lambda x, c=c: (x - c) ** 2 * beta_pdf(np.array([x]), d)[0], lo, hi)
         cost += val
     return cost
 
@@ -100,6 +100,7 @@ def compute_lloyd_max_codebook(d: int, bits: int, max_iter: int = 200, tol: floa
 
     # Lloyd-Max iterations
     prev_cost = float("inf")
+    cost = float("inf")  # bound before the loop: max_iter=0 must not NameError at return
     for _iteration in range(max_iter):
         # Compute boundaries (midpoints between consecutive centroids)
         boundaries = np.zeros(n_clusters + 1)

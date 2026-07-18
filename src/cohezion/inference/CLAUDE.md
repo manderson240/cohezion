@@ -3,6 +3,11 @@
 Routing, classification, local model tiers. Root `CLAUDE.md` applies.
 Omitted: compound loop internals, web UI, Kaggle.
 
+**Read `docs/SILICON_DOCTRINE.md` before writing ANY code that calls a model**
+— one page: measured NPU/iGPU/CPU leverage, thinking-model rules, the blessed
+call path (`gauntlet._call_model`), and the token law (local ≈ unlimited,
+cloud = metered).
+
 ## THE ONLY PORT THAT MATTERS
 
 ```

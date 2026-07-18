@@ -6,7 +6,8 @@ Covers 4 classes, 0 functions.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+import inspect
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -16,7 +17,7 @@ from cohezion.compound.batch_executor import (
     BatchExecutorFactory,
     CompoundTask,
 )
-from cohezion.compound.executor import ExecutionResult
+from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 
 
 class TestCompoundTask:
@@ -79,7 +80,9 @@ class TestBatchableExecutor:
             CompoundTask(task_id="t2", prompt="p2"),
         ]
 
-        mock_executor.execute_task = AsyncMock(
+        # CompoundExecutor.execute_task is SYNCHRONOUS — mock it as such so the
+        # real (non-awaited) call contract is exercised, not masked by AsyncMock.
+        mock_executor.execute_task = MagicMock(
             return_value=ExecutionResult(
                 success=True,
                 output="test output",
@@ -96,6 +99,9 @@ class TestBatchableExecutor:
         assert result.tasks_executed == 2
         assert len(result.results) == 2
         assert mock_executor.execute_task.call_count == 2
+        # Regression guard: the call must use the real execute_task signature.
+        _, kwargs = mock_executor.execute_task.call_args
+        assert set(kwargs) == {"task_description", "skill_name", "operation_type"}
 
     @pytest.mark.asyncio
     async def test_execute_batch_deduplication(self, batchable_executor, mock_executor):
@@ -106,7 +112,7 @@ class TestBatchableExecutor:
             CompoundTask(task_id="t2", prompt="identical"),
         ]
 
-        mock_executor.execute_task = AsyncMock(
+        mock_executor.execute_task = MagicMock(
             return_value=ExecutionResult(
                 success=True, output="test output", metrics={}, duration_seconds=0.5
             )
@@ -118,6 +124,20 @@ class TestBatchableExecutor:
         # Assert
         assert result.tasks_executed == 2
         assert mock_executor.execute_task.call_count == 1
+
+    def test_sequential_call_binds_real_execute_task_signature(self):
+        """[P0] The kwargs BatchableExecutor sends must bind to the REAL
+        CompoundExecutor.execute_task signature. This is the structural guard the
+        AsyncMock-based tests lacked — it fails loudly on future signature drift
+        instead of silently swallowing a TypeError as success=False."""
+        sig = inspect.signature(CompoundExecutor.execute_task)
+        # Bound with a placeholder self; raises TypeError if the call is invalid.
+        sig.bind(
+            None,
+            task_description="p",
+            skill_name="t1",
+            operation_type="generate",
+        )
 
 
 class TestBatchExecutorFactory:

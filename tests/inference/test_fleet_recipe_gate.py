@@ -89,6 +89,38 @@ def test_recipe_skip_cloud_candidate_returns_none():
     assert _lemonade_recipe_skip_reason(cand, h) is None
 
 
+def test_recipe_skip_backend_unready():
+    """DISCRIMINATING (slice 2): a candidate whose model is a definitively-dead
+    backend (in unready_backends) is dropped — pre-slice-2 this returned None and
+    dispatch would hang on the wedged backend."""
+    cand = _entry("deepseek-r1-0528-8b-FLM", runtime_backend="flm")
+    h = LemonadeHealth(
+        checked_at=time.time(),
+        port=13305,
+        version="x",
+        status="ok",
+        loaded_count=1,
+        unready_backends=["deepseek-r1-0528-8b-FLM"],
+    )
+    assert _lemonade_recipe_skip_reason(cand, h) == "backend-unready:deepseek-r1-0528-8b-FLM"
+
+
+def test_recipe_skip_healthy_backend_passes_when_other_dead():
+    """DISCRIMINATING (over-skip guard): a candidate whose backend is healthy passes
+    even when a DIFFERENT model is dead — must not route around a healthy lane."""
+    cand = _entry("Gemma-4-26B-A4B-it-GGUF", runtime_backend="llamacpp_hip")
+    h = LemonadeHealth(
+        checked_at=time.time(),
+        port=13305,
+        version="x",
+        status="ok",
+        loaded_count=2,
+        unready_backends=["deepseek-r1-0528-8b-FLM"],  # a different model is dead
+        recipe_probes=[RecipeProbe(recipe="llamacpp", ok=True, latency_ms=5.0)],
+    )
+    assert _lemonade_recipe_skip_reason(cand, h) is None
+
+
 def test_recipe_skip_recipe_down():
     """A recipe whose probe returned not ok -> drop the candidate."""
     cand = _entry("Flan-T5", runtime_backend="llamacpp_hip")

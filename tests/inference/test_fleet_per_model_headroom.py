@@ -11,11 +11,11 @@ A candidate with size_gb=None must NOT be spuriously deferred (no fabricated siz
 """
 
 from __future__ import annotations
-import pytest
 
 import time
 from unittest.mock import AsyncMock, patch
 
+import pytest
 
 from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
 from cohezion.inference.fleet import route

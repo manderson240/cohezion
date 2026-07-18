@@ -36,7 +36,7 @@ def test_beta_pdf_d3_is_uniform_half():
 
 def test_beta_pdf_integrates_to_one():
     for d in (3, 8):
-        total, _ = integrate.quad(lambda x: beta_pdf(np.array([x]), d)[0], -1.0, 1.0)
+        total, _ = integrate.quad(lambda x, d=d: beta_pdf(np.array([x]), d)[0], -1.0, 1.0)
         assert total == pytest.approx(1.0, abs=1e-6)
 
 

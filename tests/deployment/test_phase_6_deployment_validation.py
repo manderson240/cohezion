@@ -128,7 +128,7 @@ class TestGradualRollout:
 
         # Verify metrics collected for all stages
         assert len(self.metrics_per_stage) == 4
-        for stage_name, metrics in self.metrics_per_stage.items():
+        for _stage_name, metrics in self.metrics_per_stage.items():
             assert "cost_reduction" in metrics
             assert "latency_change" in metrics
             assert "error_rate" in metrics

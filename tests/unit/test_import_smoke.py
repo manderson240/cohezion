@@ -12,8 +12,8 @@ In CI, the base is the PR's base SHA. Locally, it uses the last tag.
 
 from __future__ import annotations
 
-import os
 import importlib
+import os
 import subprocess
 
 import pytest

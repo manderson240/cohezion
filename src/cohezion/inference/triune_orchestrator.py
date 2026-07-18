@@ -70,6 +70,23 @@ def build_triune_orchestrator(
     2. CPU (AVX-512 / lemonade): Gemma-4-31B-it-GGUF (Port 13309)
     """
 
+    # OOM1: gate the heavy CPU reasoner on free RAM (N3/K1). Opt-in via
+    # enforce_memory_gate so the default remains a deterministic 3-tier cascade.
+    # MemorySnapshot is a lightweight /proc/meminfo form of MemorySnapshot.capture()
+    available_gb = None
+    try:
+        with open("/proc/meminfo", "r") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    kb = int(line.split()[1])
+                    available_gb = kb / (1024 * 1024)
+                    break
+    except Exception:
+        pass
+    logger.debug("OOM1 gate: available_gb=%s", available_gb)
+    if enforce_memory_gate and available_gb is not None and available_gb < 8.0:
+        raise RuntimeError(f"OOM1 invariant violated: available_gb={available_gb} < 8.0 GB")
+
     # 1. NPU Tier — N1: llama3.2-1b-FLM only; qwen3.5-4b-FLM is 5x slower on XDNA2
     npu_tier = build_gaia_native_tier(
         model_id="llama3.2-1b-FLM", base_url=f"http://localhost:{npu_port}/v1", silent=True

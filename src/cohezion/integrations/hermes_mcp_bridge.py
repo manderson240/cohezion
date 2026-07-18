@@ -701,7 +701,7 @@ def _handle_inference_status(_args: dict) -> dict:
     ]
 
     nodes = []
-    for port, role, default_model in node_configs:
+    for port, role, _default_model in node_configs:
         models = _lemonade_models(port, timeout=2)
         nodes.append(
             {

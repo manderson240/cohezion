@@ -242,7 +242,7 @@ def solve_bit_manip(examples, test_in):
                 break
         if out_bit not in mapping:
             ok = True
-            for a, b in pairs:
+            for _a, b in pairs:
                 if ((b >> out_bit) & 1) != 0:
                     ok = False
                     break
@@ -250,7 +250,7 @@ def solve_bit_manip(examples, test_in):
                 mapping[out_bit] = ("const", 0, False)
             else:
                 ok = True
-                for a, b in pairs:
+                for _a, b in pairs:
                     if ((b >> out_bit) & 1) != 1:
                         ok = False
                         break

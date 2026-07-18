@@ -10,7 +10,9 @@ no-escalation test below fails exactly that wrong wiring.
 """
 
 from __future__ import annotations
+
 import pytest
+
 
 pytestmark = pytest.mark.xfail(
     reason="TDD-red: feature not fully implemented post-consolidation", strict=False

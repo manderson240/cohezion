@@ -1,0 +1,34 @@
+{
+  "_note": "Copy to .mcp.json (gitignored) and fill in credentials/paths. See CLAUDE.md 'MCP setup'.",
+  "mcpServers": {
+    "robinhood-trading": {
+      "type": "http",
+      "url": "https://agent.robinhood.com/mcp/trading"
+    },
+    "alpha-vantage": {
+      "type": "http",
+      "url": "https://mcp.alphavantage.co/mcp?apikey=YOUR_ALPHA_VANTAGE_KEY"
+    },
+    "yfinance": {
+      "command": "uvx",
+      "args": ["yfinance-mcp"]
+    },
+    "lemonade": {
+      "command": "${REPO_ROOT}/.venv/bin/python",
+      "args": ["-m", "cohezion.mcp.lemonade_server_mcp"],
+      "env": {
+        "PYTHONPATH": "${REPO_ROOT}/src",
+        "MCP_TRANSPORT": "stdio",
+        "LEMONADE_BASE_URL": "http://localhost:13305"
+      }
+    },
+    "kaggle": {
+      "command": "${REPO_ROOT}/.venv/bin/python",
+      "args": ["-m", "cohezion.mcp.kaggle_server_mcp"],
+      "env": {
+        "PYTHONPATH": "${REPO_ROOT}/src",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}

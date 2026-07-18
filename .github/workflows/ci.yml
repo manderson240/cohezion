@@ -21,8 +21,9 @@ jobs:
   # ── Lint ─────────────────────────────────────────────────────
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -45,13 +46,12 @@ jobs:
 
       - name: Ruff format check
         run: uv run ruff format --check src/ tests/
-        continue-on-error: true
 
       - name: Ruff lint check
         run: uv run ruff check src/ tests/
         continue-on-error: true
 
-      # Gating: the two ruff steps above are advisory (annotations only) because of a
+      # Gating: the ruff-check (lint) step above is advisory (annotations only) because of a
       # large pre-existing backlog. This ratchet gives the lint job teeth — it FAILS if
       # the ruff-check violation count exceeds the committed baseline (scripts/ci/lint_baseline.txt),
       # so no PR can add new lint debt. Pay it down by lowering the baseline as the count
@@ -62,9 +62,10 @@ jobs:
   # ── Validate ──────────────────────────────────────────────────
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: lint
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -108,12 +109,13 @@ jobs:
   # ── Test ──────────────────────────────────────────────────────
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: validate
     strategy:
       matrix:
         python-version: ["3.13"]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -157,7 +159,7 @@ jobs:
 
       - name: Upload coverage
         if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v6
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
@@ -176,9 +178,10 @@ jobs:
   # ── Compound ──────────────────────────────────────────────────
   compound:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: validate
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -214,9 +217,10 @@ jobs:
   # ── Typecheck ─────────────────────────────────────────────────
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: validate
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -244,6 +248,7 @@ jobs:
   # ── Summary ───────────────────────────────────────────────────
   ci-status:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [lint, validate, test, compound, typecheck]
     if: always()
     steps:

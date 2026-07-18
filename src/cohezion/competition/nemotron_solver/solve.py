@@ -330,7 +330,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     yield ("bit", out_bit, in_bit, True)
             # constant 0
             ok = True
-            for a, b in pairs:
+            for _a, b in pairs:
                 if ((b >> out_bit) & 1) != 0:
                     ok = False
                     break
@@ -338,7 +338,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                 yield ("const", out_bit, 0, False)
             # constant 1
             ok = True
-            for a, b in pairs:
+            for _a, b in pairs:
                 if ((b >> out_bit) & 1) != 1:
                     ok = False
                     break
@@ -534,7 +534,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
 
     # --- Phase 5: Unary + constant ---
     for const in range(256):
-        for op_name, op_fn in [
+        for _op_name, op_fn in [
             ("xor", lambda x, c: x ^ c),
             ("and", lambda x, c: x & c),
             ("or", lambda x, c: x | c),

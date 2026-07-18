@@ -760,6 +760,13 @@ def _lemonade_recipe_skip_reason(
     for probe in getattr(health, "recipe_probes", []) or []:
         if probe.recipe == recipe and not probe.ok:
             return f"recipe-down:{recipe}"
+    # Route around a definitively-dead backend (slice 2 of the 2026-07-18 isolation
+    # fix): detect_unready_backends flags a LOADED model whose backend is dead/errored,
+    # so a candidate on that model is skipped from dispatch → falls through to the next
+    # healthy candidate instead of hanging on the wedged backend.
+    for dead_model in getattr(health, "unready_backends", []) or []:
+        if dead_model == getattr(candidate, "model_id", ""):
+            return f"backend-unready:{dead_model}"
     for hazard in getattr(health, "ctx_hazards", []) or []:
         if hazard.model == getattr(candidate, "model_id", ""):
             return f"ctx-hazard:{hazard.model} ctx_size=0"

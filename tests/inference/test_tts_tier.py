@@ -110,6 +110,7 @@ async def test_tts_error_path() -> None:
     assert "Connect" in r.error or "connect" in r.error
 
 
+@KOKORO_LIVE
 @pytest.mark.asyncio
 async def test_tts_is_alive() -> None:
     tier = DirectLemonadeTTSTier(port=13305)

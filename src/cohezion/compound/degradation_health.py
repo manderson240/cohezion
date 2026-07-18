@@ -20,6 +20,7 @@ Health/degraded boundaries use the SAME threshold comparisons as
 
 from __future__ import annotations
 
+from collections import deque
 from typing import TYPE_CHECKING, Any
 
 
@@ -37,7 +38,7 @@ class HealthObservabilityMixin:
     # Type-only attribute contract (assigned by the host class, not here).
     _baselines: dict[str, MetricBaseline]
     _call_count: int
-    _alert_history: list[DegradationAlert]
+    _alert_history: "deque[DegradationAlert]"  # deque(maxlen) — cap enforced at append (bug_009)
     _snapshot_history: list[dict[str, Any]]
     _max_snapshot_history: int
     cache_hit_rate_threshold: float
@@ -112,7 +113,7 @@ class HealthObservabilityMixin:
         """Return the last ``n`` emitted alerts (newest last). ``n<=0`` → []."""
         if n <= 0:
             return []
-        return list(self._alert_history[-n:])
+        return list(self._alert_history)[-n:]  # deques don't slice; copy first
 
     def clear_alert_history(self) -> None:
         """Clear the rolling alert buffer (independent of baseline reset)."""

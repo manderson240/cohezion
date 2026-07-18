@@ -13,9 +13,10 @@ permissions:
 jobs:
   validate:
     runs-on: self-hosted
+    timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -36,10 +37,11 @@ jobs:
 
   release:
     runs-on: self-hosted
+    timeout-minutes: 30
     needs: validate
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false

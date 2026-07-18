@@ -1,5 +1,6 @@
 import pytest
 
+
 pytest.importorskip(
     "cohezion.pipelines.traceability", reason="TDD-red: TraceabilityLink module not yet created"
 )

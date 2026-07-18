@@ -103,6 +103,7 @@ class LemonadeHealth:
     orphan_processes: list[OrphanProcess] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    unready_backends: list[str] = field(default_factory=list)
     latency_ms: float = 0.0
 
     @property
@@ -119,7 +120,7 @@ class LemonadeHealth:
 
     @property
     def ok(self) -> bool:
-        return self.status == "ok" and not self.ctx_hazards
+        return self.status == "ok" and not self.ctx_hazards and not self.unready_backends
 
     @property
     def summary(self) -> str:
@@ -130,8 +131,51 @@ class LemonadeHealth:
             f"loaded={self.loaded_count} "
             f"recipes_up={up} recipes_down={down} "
             f"ctx_hazards={len(self.ctx_hazards)} "
+            f"unready={','.join(self.unready_backends) if self.unready_backends else 'none'} "
             f"orphans={len(self.orphan_processes)}"
         )
+
+
+# backend_health states that DEFINITIVELY indicate a broken backend. This is a
+# DENYLIST, not an allowlist: an unknown/unlisted state ("idle", "initializing",
+# "", or a future lemonade value) is treated as NOT-a-problem (fail SAFE) rather
+# than flagged (fail loud). "busy"/"loading" are normal in-flight states — verified
+# 2026-07-18 that a loaded FLM read "busy" one moment and cleared the next — and
+# flagging any unenumerated state would false-positive on healthy serving backends.
+_BAD_BACKEND_HEALTH = frozenset(
+    {"error", "dead", "crashed", "failed", "unreachable", "timeout", "unresponsive"}
+)
+
+
+def detect_unready_backends(loaded_models: list[dict]) -> list[str]:
+    """Return names of loaded models whose backend is in a DEFINITIVELY bad state.
+
+    Flags a loaded model when ``backend_alive is False`` (backend process dead) OR
+    ``backend_health`` is in ``_BAD_BACKEND_HEALTH`` (a known-bad state). Uses a
+    denylist so unknown/transient states (``"busy"``, ``"loading"``, ``"idle"``, an
+    empty string, or a not-yet-seen lemonade value) fail SAFE — never flagged.
+
+    Context: the 2026-07-18 FLM wedge manifested as loads HANGING (HTTP 000) while
+    ``GET /health`` still returned 200 — so nothing marked the lane unhealthy. This
+    surfaces a *definitively* dead backend into ``LemonadeHealth.ok``/summary. The
+    load-HANG symptom itself is failure-driven and detected at the load path (a
+    wedge-aware route-around is the follow-on); this covers the dead-backend case.
+
+    Pure/deterministic — safe to unit-test with a fixture payload.
+    """
+    unready: list[str] = []
+    for m in loaded_models:
+        if not isinstance(m, dict):
+            continue
+        if not m.get("loaded", True):
+            continue
+        health = m.get("backend_health")
+        dead = m.get("backend_alive") is False
+        bad_state = isinstance(health, str) and health in _BAD_BACKEND_HEALTH
+        if dead or bad_state:
+            name = m.get("model_name") or m.get("checkpoint") or "?"
+            unready.append(str(name))
+    return unready
 
 
 async def is_lemonade_alive(port: int = 13305, timeout: float = 1.0) -> bool:
@@ -244,6 +288,7 @@ async def probe_lemonade(
                 orphan_processes=orphans,
                 warnings=warnings,
                 errors=errors,
+                unready_backends=detect_unready_backends(loaded_models),
                 latency_ms=latency_ms,
             )
     except Exception as exc:
