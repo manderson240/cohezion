@@ -20,6 +20,7 @@ are unit-tested; ``lemonade_chat`` is the injectable I/O edge.
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
 import urllib.request
 from collections.abc import Callable
@@ -40,7 +41,16 @@ DEFAULT_MAX_TOKENS = 2048
 _MAX_ITEMS = 40  # per evidence category
 _MAX_CHARS = 200  # per individual line
 
-ChatFn = Callable[[str], dict]
+# The four sections build_digest_prompt demands, anchored at LINE START.
+#
+# Anchoring is load-bearing, not cosmetic. A substring test (`"GOAL:" in text`) passes the
+# very dumps this gate exists to reject: real Gemma-4 scratchpads mention "GOAL:" 2-5 times
+# inside their reasoning ("...Four sections (GOAL, OUTCOME...)", "GOAL: one sentence —"),
+# just never at the start of a line. A real digest always emits them as section headers.
+_REQUIRED_SECTIONS = ("GOAL:", "OUTCOME:", "DECISIONS:", "OPEN:")
+_SECTION_PATTERNS = tuple(re.compile(rf"^{s}", re.M) for s in _REQUIRED_SECTIONS)
+
+ChatFn = Callable[[str, int], dict]
 
 
 def _bounded(items: list[str], label: str) -> str:
@@ -112,9 +122,9 @@ def parse_chat_response(payload: Any) -> str:
 
 def lemonade_chat(
     prompt: str,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
     *,
     model: str = DEFAULT_MODEL,
-    max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: float = 180.0,
 ) -> dict:
     """I/O edge: one local chat completion via the :13305 OmniRouter.
@@ -147,10 +157,49 @@ def lemonade_chat(
         return json.loads(resp.read())
 
 
-def digest_session(art: SessionArtifacts, chat_fn: ChatFn | None = None) -> str:
-    """Summarize one session on local silicon. Returns "" if the model is unreachable."""
+def is_well_formed(text: str) -> bool:
+    """True only if every required section is present.
+
+    WHY THIS EXISTS: parse_chat_response cannot distinguish an ANSWER from a SCRATCHPAD.
+    When a thinking model exhausts max_tokens mid-reasoning, `content` is empty and
+    `reasoning_content` holds raw thinking — often the model restating the instructions
+    back. The reasoning fallback then persists that as if it were the digest.
+
+    Observed on the first live run: 3 of 37 digests (8%) were unusable — two were ~9KB
+    reasoning dumps ("Format: Four sections (GOAL, OUTCOME...)"), one was truncated before
+    OPEN. All three were max_tokens exhaustion on large sessions.
+
+    Matching is LINE-ANCHORED. A substring version of this check passed those same 9KB
+    dumps, because they mention "GOAL:" repeatedly inside the prose — see _SECTION_PATTERNS.
+    """
+    return all(pattern.search(text) for pattern in _SECTION_PATTERNS)
+
+
+def digest_session(
+    art: SessionArtifacts,
+    chat_fn: ChatFn | None = None,
+    *,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+    retries: int = 1,
+) -> str:
+    """Summarize one session on local silicon.
+
+    Retries with a doubled token budget when the reply is not well-formed — the failure is
+    almost always "the model ran out of room to finish", and local tokens are free.
+
+    Returns "" if the model is unreachable OR never produced a well-formed digest. An empty
+    return is honest ("no digest") and the batch records it as a failure; persisting a
+    reasoning dump would look like success while poisoning the vault.
+    """
     chat = chat_fn or lemonade_chat
-    try:
-        return parse_chat_response(chat(build_digest_prompt(art)))
-    except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError):
-        return ""
+    prompt = build_digest_prompt(art)
+    budget = max_tokens
+    for _ in range(retries + 1):
+        try:
+            text = parse_chat_response(chat(prompt, budget))
+        except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError):
+            return ""
+        if is_well_formed(text):
+            return text
+        budget *= 2
+    return ""
