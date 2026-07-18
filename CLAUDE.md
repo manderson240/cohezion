@@ -154,49 +154,10 @@ When given a task:
 
 See skill: `cohezion-vault-workflow` for vault API examples (log decisions, experiments, patterns) and MEMORY.md regeneration.
 
-### ⚡ Architecture at a Glance
-| Layer | Components | Entry |
-|-------|-----------|-------|
-| **Compound** | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker, DRRGenerator, TapeLogger | `CompoundExecutor` |
-| **Swarm** | TeamOrchestrator, ExecutionOrchestrator, DynamicModelRouter | `TeamExecutor` |
-| **Cache** | SemanticCache (L1 hash + L2 cosine + L3 vault, 95%+ hit rate) | `SemanticCache` |
-| **Cost Opt** | CostAwareRouter (Lemonade-first, YAML profiles, 45 models), BudgetEnforcer, ModelQualityClassifier | `CostAwareRouter` |
-| **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector, ExecutionTraces (Meta-Harness L225) | `SessionManager` |
-| **Physics** | SU(2) Spinors, Riemannian/Lagrangian, FiberBundle, GaugeTheory, Fisher metric | `SpinorState` |
-| **Stealthskater Bridges** | LENR (lattice coherence), DielectricField (Biefeld-Brown/U(1) gauge), IonicClusterState (plasma HIHO) — all share 4x(1-x) kernel, peak at HIHO threshold 0.5 | `LENRHamiltonian` |
-| **World Model** | JEPA predictor (~2M params, causal masking), `SurpriseExplorer`, `SIGReg` | `JEPAWorldModel` |
-| **Bioelectric** | Levin bioelectric network, gap junction percolation, HIHO phase transition (lives in `physics/`) | `BioelectricNetwork` |
-| **Cosmogony** | Cosmogonic chain + `SymmetryBreaking` | `physics/cosmogony.py` |
-| **Worldviews** | 17 traditions (16 indigenous + stealthskater) x 10 cosmogony steps, Worldview Explorer | `WorldviewExplorer` |
-| **Ouroboros** | Ouroboros bridge + Mycelium network wired into Genesis chain | `OuroborosBridge` |
-| **Environments** | ManifoldEnv (gymnasium, 19D obs, verifiable rewards), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
-| **Governance** | AutonomyEngine (cosmogonic tiers), ConciergeAgent, KnowledgeBridge, FlumeBridge | `AutonomyEngine` |
-| **Data Mesh** | DataProduct (typed SLA), MCP Registry (tier access control + call tracking). Canonical: `src/cohezion/data_mesh/`. NOTE: orphan `src/cohezion/datamesh/` (no underscore) is slated for deletion per ORPHAN_AUDIT_2026_04_23. | `get_cohezion_data_products()` |
-| **Providers** | LemonadeProvider (local 3-slot), OllamaCloudProvider ($20/mo), LemonadeAdapter (NPU/GPU/CPU hotswap) | `CostAwareRouter` |
-| **Genesis UI** | 11 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
-| **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
-| **Anthropic Intel** | 11-source monitor, version-watch hook, `/anthropic-scan`, risk-tiered auto-integration | `/anthropic-scan` |
 
-### ⚡ Agent Protocol Stack (6-Protocol Architecture)
-| Protocol | Purpose | Cohezion Status |
-|----------|---------|----------------|
-| **MCP** | Agent ↔ Tool connectivity | **Strong** (87+ tools via cloud-vault-mcp, compound-mcp, maintenance-mcp) |
-| **A2A** | Agent ↔ Agent discovery/coordination | **In Progress** (7 specialist agents with agent cards) |
-| **UCP** | Commerce lifecycle | N/A |
-| **AP2** | Payment authorization | N/A |
-| **A2UI** | Agent ↔ UI composition | **Strong** (8-component catalog, declarative experience scripts, A2UIRenderer) |
-| **AG-UI** | Event streaming transport | **Strong** (typed SSE events, /api/agui/stream, 15+ event types) |
 
 ### ⚡ Platform Coordination
-| Specialist | Role | Format |
-|-----------|------|--------|
-| `vault-keeper` | Vault health, orphan detection, frontmatter enforcement | Agent + PRIME |
-| `surreal-dba` | Schema validation, index optimization, graph health | Agent + PRIME |
-| `claude-specialist` | Claude Code/API optimization, agent teams | Agent + PRIME |
-| `gemini-specialist` | Gemini CLI, Google ADK, ecosystem integration | Agent + PRIME |
-| `ollama-specialist` | Local model lifecycle, VRAM, DynamicModelRouter | Agent + PRIME |
-| `mcp-specialist` | MCP server lifecycle, tool schemas, health monitoring | Agent + PRIME |
-| `platform-coordinator` | Cross-platform routing, cost tiers, fallback chains | Agent + PRIME |
+Platform specialists (vault-keeper, surreal-dba, mcp-specialist, platform-coordinator, …) are defined in `.claude/agents/*.md` — their descriptions load with the session; see that directory for roles.
 
 **Cost routing tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M)
 
@@ -222,16 +183,6 @@ When spawning sub-agents (`Agent()` or `subagent_type`), match the task to the s
 
 **Do not** use `general-purpose` or omit `subagent_type` for specialized work — domain-tuned types have tighter tool lists and purpose-built prompts. Use `fork` only when the sub-agent genuinely needs the parent's conversation history.
 
-### ⚡ Quick Reference
-- **Languages (polyglot)**: Python `==3.11.*` for `src/cohezion/**` (package manager: `uv`, never bare pip) | Rust for `src/cohezion-physics-core/` (Cargo) | TypeScript/React for `src/web/` (Next.js 16 + Three.js + Tone.js). Use the right language for the job; language-specific rules apply to their scope only.
-- **DB**: SurrealDB (ws://localhost:8001) | **API**: FastAPI :8080
-- **Tests**: 6,133 collected (verified 2026-04-23 post-synthetic-sniffing-panda; 4 collection errors in swarm/cache test files), full suite completes without crash. Genesis: 398 (physics 309 + world_model 34 + environments 55). Physics: 22 conservation + 15 invariant checker. LeWM JEPA: 34. GraphRAG: 12. DRR generator: 15. Constitutional enforcer: 13. Verifiable rewards: 4. | **Coverage** (post-campaign hot files): executor.py 51%, cost_aware_router.py 88%, knowledge_graph/ 53% | html report in `htmlcov/`
-- **SurrealDB Persistence**: SurrealKV backend (migrated from RocksDB Session 96b) with `?versioned=true` for VERSION clause temporal queries. Port 8001, 127.0.0.1 only. Bi-temporal schemas (valid_from/valid_to) on neurons, agent_journey, universe_node. V-Model tables: vmodel_gate, traces, hash_chain, proof_obligation (Session 96b). Hash-chain audit trail in JourneyTracker (OLIF mitigation).
-- **CI**: `make lint-check && uv run pytest` before commit
-- **Entry point**: `cohezion = "cohezion.__main__:main"`
-- **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
-- **Git LFS**: Active (46 files: vendor/*.so, *.whl, *.pth). Bundle: 182MB. Remote: `manderson240/cohezion`
-- **Repo Health**: SessionStart hooks validate settings.json schema + check .git/ size, branch count, LFS, remote, fsck
 
 ## The Compound Engineering Loop (Production-Ready)
 
@@ -260,27 +211,6 @@ Updated Skill (loop again)
 ```
 **CLI**: `uv run python scripts/drivers/compound_cycle.py` (dry-run) or via `/compound` API endpoint.
 
-## Key Directories (Find Anything Fast)
-
-| Path | Purpose | Key Files |
-|------|---------|-----------|
-| `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
-| `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
-| `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 235 skill definitions (215 PRIME) (*.md + *.py) | `skill_registry.json` |
-| `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
-| `src/cohezion/environments/` | Gymnasium RL envs: ManifoldEnv (single), SwarmEnv (multi-agent) | `manifold_env.py`, `swarm_env.py` |
-| `src/cohezion/api/` | FastAPI backend (92 route handlers) | `__init__.py`, `services/genesis.py` |
-| `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
-| `src/cohezion/physics/` | **Genesis Engine**: SU(2) spinors, Riemannian, Lagrangian, fiber bundles, gauge theory, Fisher metric, cosmogony. **Stealthskater bridges**: LENR, DielectricField, IonicCluster (all share 4x(1-x) HIHO kernel) | `spinor.py`, `cosmogony.py`, `lenr.py`, `dielectric.py`, `ionic_cluster.py` |
-| `src/cohezion/world_model/` | JEPA world model (~2M params, causal masking, CPU-trainable) + `SurpriseExplorer` + `SIGReg`. See `docs/deep-dive-world-model.md`. | `jepa_world_model.py` |
-| `src/cohezion/physics/bioelectric_model.py` | Levin bioelectric network, gap junction percolation | `BioelectricNetwork` |
-| `src/cohezion/worldviews/` | 17 traditions (16 indigenous + stealthskater) x 10 cosmogony steps | `WorldviewExplorer` |
-| `src/cohezion/ouroboros/` | Ouroboros bridge + Mycelium network | `OuroborosBridge` |
-| `src/cohezion/audio/` | PocketTTS narrator, Kyutai Labs integration | `narrator.py` |
-| `src/web/anima_dashboard/` | Next.js 16 + Three.js + Tone.js webapp | `/genesis` route (4 tabs) |
-| `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
-
 ## Coding Standards (Cohezion-Specific)
 
 - **FLUME-First**: New modules MUST encode/decode through FLUME. Start with `encode()` → latent reasoning → `decode()`. Don't retrofit — wire from the start (Learning 215)
@@ -294,19 +224,6 @@ Updated Skill (loop again)
 - **YAML Frontmatter Markdown**: Structured config/state files that humans may read MUST use YAML frontmatter `.md` (not JSON). Consistent with vault, skills, `.context/` conventions. JSON only for wire formats and machine-to-machine data
 - **Python Standards**: Prefer `pathlib.Path` over `os.path` for all path manipulations. Use context managers (`with` statements) for all resource handling (files, sockets, database clients). Never run `-v` or `-s` on broad test runs (only when debugging a single focused test) to conserve prompt context.
 
-## Token Budgets (Conservative Estimates)
-
-| Task | Tokens | Pattern |
-|------|--------|---------|
-| Implement 1 feature | 500-1,500 | Copy template → code → manual test → 5 tests |
-| Research + implement | 2,000-3,000 | Quick survey → proof of concept → tests |
-| Full test suite run | 100 | `uv run pytest tests/ -q` (no code changes) |
-| Single test debug | 200-500 | Add print → run → check output → fix → verify |
-| Skill refinement loop | 1,500-2,500 | Analyze failures → update PRIME skill → retest |
-| **ANTI-PATTERN**: Research-first | 5,000-10,000 | 1,200 lines research + 600 tests + 0 implementation = wasted |
-| **ANTI-PATTERN**: Infrastructure play | 8,000+ | Dependency research, 4,400 placeholder tests, product doesn't exist |
-
-**Rule**: If feature doesn't exist yet, DON'T build infrastructure. Implement, validate, THEN test.
 
 ## Operational Patterns
 
@@ -394,44 +311,9 @@ See skill: `cohezion-data-governance` — covers three-tier storage (Git/Surreal
 
 ---
 
-## CI Debugging Protocol (Hard-Won Lessons)
+## CI Debugging Protocol
 
-### Step 1 — Identify the source workflow FIRST
-
-Before reading any logs, map every failing check to its workflow file:
-```bash
-# Replace RUN_ID with the value from the failing check URL
-gh api repos/manderson240/cohezion/actions/runs/$RUN_ID --jq '"\(.name) -> \(.path)"'
-```
-
-**Key insight**: The GitHub UI check name ≠ workflow file name. `EnricoMi/publish-unit-test-result-action` creates a check called "Test Results (Python X.Y)" from `ci.yml`. CodeQL creates its own named checks. Fixing the wrong workflow wastes sessions.
-
-### Step 2 — Distinguish workflow-file-issue from step failure
-
-| Signal | Meaning |
-|--------|---------|
-| `"jobs": []` in API response | Workflow YAML schema error (parse/validate failed) |
-| `started_at == completed_at` (0s) | Same — GitHub rejected the file before queuing any runner |
-| Job exists but step fails | Normal step failure — read the logs |
-
-**Root cause of "workflow file issue"**: GitHub validates ALL job schemas before evaluating `if:` conditions. A job with `if: false` but no `steps:` still fails validation. `actionlint` pre-commit catches this locally.
-
-```bash
-# Quick check: does the failing run have any jobs at all?
-gh api repos/manderson240/cohezion/actions/runs/$RUN_ID/jobs --jq '.total_count'
-# 0 = schema error in YAML   nonzero = actual step failure
-```
-
-### Step 3 — Ruff `--fix` deletes `# noqa: F401` intentional re-exports
-
-Ruff's `--fix` ignores noqa suppression and removes the import anyway. Use `X as X` instead:
-```python
-# WRONG — ruff --fix will delete this
-from cohezion.compound.executor_factory import ExecutorFactory  # noqa: F401
-
-# RIGHT — ruff recognizes same-name alias as public re-export
-from cohezion.compound.executor_factory import ExecutorFactory as ExecutorFactory
-```
+See skill: `cohezion-ci-debugging` — map failing checks to their source workflow FIRST, distinguish YAML schema errors (0 jobs) from step failures, and the ruff `--fix` / `noqa: F401` re-export trap.
 
 ## Common Debugging Scenarios
 
@@ -441,21 +323,6 @@ See skill: `cohezion-debugging-scenarios` — covers test isolation/singleton po
 
 See skill: `cohezion-skill-routing` for the decision tree, keyword-to-skill routing table, and overlap resolution guide. When in doubt: `bmad-help`.
 
-## Quick Lookup
-
-| Need | Command | File |
-|------|---------|------|
-| Run tests (all) | `uv run pytest tests/ -q` | `pytest.ini` |
-| Run tests (module) | `uv run pytest tests/compound/ -v` | `tests/conftest.py` |
-| Format + lint | `make format && make lint` | `Makefile` |
-| Check types | `make type-check` | `pyproject.toml` |
-| Start API | `uv run uvicorn cohezion.api:app --reload` | `src/cohezion/api/__init__.py` |
-| Find skill | `grep -r "skill_name" src/cohezion/skills/` | `skill_registry.json` |
-| Debug journeys | `JourneyTracker.get_journey(agent_id)` | `src/cohezion/compound/journey_tracker.py` |
-| Check alignment | `RequestAlignmentAnalyzer.analyze(...)` | `src/cohezion/compound/request_alignment_analyzer.py` |
-| Anthropic scan | `/anthropic-scan` | `~/.claude/commands/anthropic-scan.md` |
-| Drain research backlog | `uv run python scripts/actioner.py [--dry-run]` | `src/cohezion/actioner/engine.py` |
-| Config audit | Read `~/.claude/anthropic-intel/latest-digest.md` | `~/.claude/anthropic-intel/` |
 
 ## PR Landing Workflow
 
@@ -466,8 +333,4 @@ xfail, import smoke, pre-warm before review, branch hygiene) live there too. Cla
 loads CLAUDE.md, not AGENTS.md — this pointer exists so sessions find the workflow.
 
 ## Kaggle Blackwell Handshake (Critical)
-When orchestrating jobs on Kaggle G4 (Blackwell) infrastructure, standard `accelerator` requests will fail. You MUST follow this handshake:
-1.  **Metadata**: Set `"machine_shape": "NvidiaRtxPro6000"` and `"dockerImageVersionId": 31287` in the internal `.ipynb` metadata.
-2.  **Environment**: Copy the `nvidia_utility_script` to `/tmp` and `chmod +x` the `ptxas-blackwell` binary.
-3.  **Triton**: Set `os.environ["TRITON_PTXAS_PATH"]` to the `/tmp` binary path.
-4.  **Auth**: Pre-authorize models in the `"model_sources"` metadata array.
+See skill: `kaggle-blackwell-handshake` — required metadata (`machine_shape`, `dockerImageVersionId`), ptxas-blackwell env setup, `TRITON_PTXAS_PATH`, and `model_sources` pre-auth. Standard `accelerator` requests FAIL on G4 without it.
