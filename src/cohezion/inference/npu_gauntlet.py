@@ -23,13 +23,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-from dataclasses import replace
 import logging
 import random
 import signal
 import subprocess
 import time
 import urllib.request
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -233,7 +233,7 @@ CANARY_SUITE: list[BenchTask] = [
 
 def _http_json(url: str, payload: dict | None = None, timeout: float = 300.0) -> dict:
     data = json.dumps(payload).encode() if payload is not None else None
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})  # noqa: S310
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
         return json.load(r)
 
@@ -245,7 +245,7 @@ def npu_occupant() -> str | None:
         for m in h.get("all_models_loaded", []):
             if m.get("device") == "npu" and m.get("type") == "llm":
                 return m.get("model_name")
-    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
+    except Exception:
         pass
     return None
 
@@ -336,7 +336,7 @@ def server_version() -> str:
             _SERVER_VERSION = str(
                 _http_json(f"{BASE}/api/v1/health", timeout=5).get("version", "?")
             )
-        except Exception:  # noqa: BLE001 — 24/7 daemon guard: fail open, never kill the loop
+        except Exception:
             return "?"
     return _SERVER_VERSION
 
@@ -349,12 +349,12 @@ def telemetry() -> dict[str, float]:
             if (hw / "name").read_text().strip() == "k10temp":
                 out["temp_c"] = int((hw / "temp1_input").read_text()) / 1000.0
                 break
-    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
+    except Exception:
         pass
     try:
         out["ram_gb"] = round(available_ram_gb(), 1)
         out["load1"] = float(Path("/proc/loadavg").read_text().split()[0])
-    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
+    except Exception:
         pass
     return out
 
@@ -365,7 +365,7 @@ def telemetry() -> dict[str, float]:
 def _load_manifest() -> dict:
     try:
         return json.loads((RUN_DIR / "manifest.json").read_text())
-    except Exception:  # noqa: BLE001 — fail-soft helper; caller handles absence
+    except Exception:
         return {}
 
 
@@ -404,7 +404,7 @@ def surreal_push(rows: list[dict]) -> bool:
         return True
     try:
         stmt = "INSERT INTO model_performance " + json.dumps(rows) + ";"
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             SURREAL,
             data=stmt.encode(),
             headers={
@@ -417,7 +417,7 @@ def surreal_push(rows: list[dict]) -> bool:
         )
         with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
             return json.load(r)[-1].get("status") == "OK"
-    except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
+    except Exception as exc:
         logger.debug("surreal_push failed (fail-open): %s", exc)
         return False
 
@@ -586,7 +586,7 @@ def publish(board: dict, advisor_note: str = "") -> None:
         if advisor_note:
             lines += ["", "## Frontier advisor", "", advisor_note]
         (VAULT / "reports" / "npu-gauntlet-latest.md").write_text("\n".join(lines) + "\n")
-    except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
+    except Exception as exc:
         logger.debug("vault publish failed (fail-open): %s", exc)
     _emit_leaderboard_event(board)
 
@@ -633,7 +633,7 @@ def _emit_leaderboard_event(board: dict) -> None:
             task.add_done_callback(_PENDING_EVENT_TASKS.discard)
         except RuntimeError:
             asyncio.run(_publish())
-    except Exception as exc:  # noqa: BLE001 — mesh emission is observability; never block the lap
+    except Exception as exc:
         logger.debug("leaderboard event emission failed (fail-open): %s", exc)
 
 
@@ -664,7 +664,7 @@ def frontier_review(board: dict) -> str:
         if note:
             _append_jsonl(RUN_DIR / "advisor.jsonl", {"ts": time.time(), "note": note})
         return note
-    except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
+    except Exception as exc:
         logger.debug("frontier_review failed (fail-open): %s", exc)
         return ""
 
@@ -715,7 +715,7 @@ async def run_gauntlet_forever(laps: int = 0, quick: bool = False) -> None:
                 # flowing, never trip the failure backoff (observed 09:00: three
                 # vetoes → needless 900s halt while ≤1B rounds could still run).
                 logger.info("lap %d %s: oom-gate skip (%s)", lap, mid, exc)
-            except Exception as exc:  # noqa: BLE001 — fail-open with logged reason (daemon guard)
+            except Exception as exc:
                 failures += 1
                 logger.error("round failed (%d consecutive) %s: %s", failures, mid, exc)
                 if failures >= 3:

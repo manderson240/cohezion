@@ -69,7 +69,7 @@ def cloud_chat(
         text = str(d.get("message", {}).get("content", "") or "")
         _log_usage(model, purpose, prompt, text, d, time.time() - t0)
         return text
-    except Exception as exc:  # noqa: BLE001 — cloud lane must fail soft; local is the default anyway
+    except Exception as exc:
         logger.warning("ollama cloud_chat(%s) failed: %s", model, exc)
         _log_usage(model, purpose, prompt, "", {"error": str(exc)[:200]}, time.time() - t0)
         return ""
@@ -113,5 +113,5 @@ def _log_usage(model: str, purpose: str, prompt: str, text: str, resp: dict, dur
                 )
                 + "\n"
             )
-    except Exception:  # noqa: BLE001 — ledger is observability; never block the call
+    except Exception:
         pass

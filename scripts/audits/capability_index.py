@@ -70,18 +70,20 @@ def scan_packages() -> dict[str, dict]:
 def scan_tables(py_files: list[Path]) -> dict[str, dict]:
     tables: dict[str, dict] = {}
     try:
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             SURREAL,
             data=b"INFO FOR DB;",
             headers={
-                "surreal-ns": "cohezion", "surreal-db": "main",
-                "Content-Type": "text/plain", "Accept": "application/json",
+                "surreal-ns": "cohezion",
+                "surreal-db": "main",
+                "Content-Type": "text/plain",
+                "Accept": "application/json",
                 "Authorization": "Basic cm9vdDpyb290",
             },
         )
         with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
             names = sorted(json.load(r)[-1]["result"]["tables"].keys())
-    except Exception:  # noqa: BLE001 — index generation is best-effort per surface
+    except Exception:
         return {"_error": {"note": "SurrealDB unreachable — table scan skipped"}}
     # Static cross-reference: which source files mention each table name.
     corpus = {f: f.read_text(errors="replace") for f in py_files}
@@ -103,14 +105,16 @@ def scan_hooks() -> list[dict]:
             for g in groups:
                 home = str(Path.home())
                 for h in g.get("hooks", []):
-                    out.append({
-                        "event": event,
-                        "matcher": g.get("matcher", "*"),
-                        # scrub $HOME → ~ so the committed index is portable and
-                        # leaks no usernames (ultrareview merged_bug_005)
-                        "command": h.get("command", "")[:160].replace(home, "~"),
-                    })
-    except Exception:  # noqa: BLE001 — index generation is best-effort per surface
+                    out.append(
+                        {
+                            "event": event,
+                            "matcher": g.get("matcher", "*"),
+                            # scrub $HOME → ~ so the committed index is portable and
+                            # leaks no usernames (ultrareview merged_bug_005)
+                            "command": h.get("command", "")[:160].replace(home, "~"),
+                        }
+                    )
+    except Exception:
         pass
     return out
 
@@ -126,9 +130,7 @@ def scan_entry_points() -> dict[str, list[str]]:
             str(p.relative_to(REPO)) for p in scripts.rglob("*.py") if p.is_file()
         )[:400]
     if LABS.exists():
-        out["labs_orphan_zone"] = sorted(
-            p.name for p in LABS.glob("*.py")
-        )
+        out["labs_orphan_zone"] = sorted(p.name for p in LABS.glob("*.py"))
     return out
 
 
@@ -159,14 +161,18 @@ def main() -> int:
     import argparse
 
     p = argparse.ArgumentParser()
-    p.add_argument("--out", type=Path, default=None,
-                   help="output dir override (default: repo root + docs/capability-index)")
+    p.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="output dir override (default: repo root + docs/capability-index)",
+    )
     args = p.parse_args()
     global OUT_JSON, OUT_MD
     if args.out:
         OUT_JSON = args.out / "capabilities.json"
         OUT_MD = args.out / "CAPABILITIES.md"
-    py_files = [f for f in SRC.rglob("*.py")] + [
+    py_files = list(SRC.rglob("*.py")) + [
         f for f in (REPO / "scripts").rglob("*.py") if f.is_file()
     ]
     index = {
@@ -197,21 +203,32 @@ def main() -> int:
     for t, info in index["surreal_tables"].items():
         if t.startswith("_"):
             continue
-        tag = "WIRE-GAP(no code refs)" if info.get("wire_gap") else f"refs={len(info['referenced_by'])}"
+        tag = (
+            "WIRE-GAP(no code refs)"
+            if info.get("wire_gap")
+            else f"refs={len(info['referenced_by'])}"
+        )
         lines.append(f"table {t}: {tag}")
     lines.append("")
     for h in index["hooks"]:
         lines.append(f"hook {h['event']}[{h['matcher']}]: {h['command']}")
     lines.append("")
     for store, names in index["skill_stores"].items():
-        lines.append(f"skills[{store}] ({len(names)}): {', '.join(names[:40])}{' …' if len(names) > 40 else ''}")
+        lines.append(
+            f"skills[{store}] ({len(names)}): {', '.join(names[:40])}{' …' if len(names) > 40 else ''}"
+        )
     if index["entry_points"].get("labs_orphan_zone"):
         lines.append("")
-        lines.append(f"labs orphan zone ({len(index['entry_points']['labs_orphan_zone'])}): " + ", ".join(index["entry_points"]["labs_orphan_zone"]))
+        lines.append(
+            f"labs orphan zone ({len(index['entry_points']['labs_orphan_zone'])}): "
+            + ", ".join(index["entry_points"]["labs_orphan_zone"])
+        )
     OUT_MD.write_text("\n".join(lines) + "\n")
     n_pkg = len(index["packages"])
     n_tbl = len([t for t in index["surreal_tables"] if not t.startswith("_")])
-    print(f"capability index: {n_pkg} packages, {n_tbl} tables, {len(index['hooks'])} hooks → {OUT_JSON}, {OUT_MD}")
+    print(
+        f"capability index: {n_pkg} packages, {n_tbl} tables, {len(index['hooks'])} hooks → {OUT_JSON}, {OUT_MD}"
+    )
     return 0
 
 
