@@ -33,6 +33,28 @@ live-wire · datamesh wire · cockpit UI · ollama_cloud client · 1.1.0 release
 CI remediation · loop-engineering + ambient-skill + morning-brief skills ·
 55+ research verdicts · fail-open-discriminating-test skill.
 
+## SKILLS-&-CAPABILITIES GAP LOOP (2026-07-18, user: "loop until gaps filled")
+
+Analysis: `~/vaults/cohezion-vault/reports/20260718-skills-capabilities-matrix-gap-loop.md`
+- **GAP-0 DONE (gated)** — CapabilityMatrix was blind to its own skill catalog
+  (loaded 0 skills / 0 agents live). Fixed: `_load_catalog_skills` (96 PRIME
+  skills) + repo-root agent path. Adversarial review (2 findings fixed) → 25
+  tests green → semver 1.1.0→1.2.0 → **commit 81bc9411** in this clone.
+  MERGE = NEEDS-ME (RO-mount + gh-auth): from ~/dev/ci-fix-weaving push branch
+  `worktree-dynamic-weaving-wirth` + open/land PR (stacks with the #259 work).
+- rung 2 (task #59): consolidate 3 module overlaps — LARGE architectural refactor
+  (healing/resilience, eval/evaluation, pipeline/pipelines); integrate-first per
+  non-destructive-wiring; deserves its own plan + go before diving in.
+- **skill-scoring DONE (gated, task #61)** — catalog skills now carry task-type
+  affinity (word-boundary keyword match from concepts) + `run_skill_gap_analysis()`
+  (skills assessed apart from models). Live result: 42/96 skills scored; honest
+  **skill gap = multilingual (0 skills)**, research thinnest-covered (1). Adversarial
+  review (2 findings fixed: vacuous test #4 → model-covered-skill-uncovered discriminator;
+  substring→word-boundary matching, dropped ambiguous "language" that masked the
+  multilingual gap). 29 tests green → semver 1.2.0→1.3.0 → commit in this clone.
+- rung 3 (task #60): progressive-disclosure retrieval probe — measurement, smaller.
+- rung 2 (task #59): module overlaps — LOW value (detector list is stale); skip/deprioritize.
+
 ## NEXT RUN
 
 Autonomous items are real builds/probes (not one-liners) — draining them is a

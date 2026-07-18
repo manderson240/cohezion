@@ -67,3 +67,59 @@ def test_execution_history_not_clobbered_by_catalog():
     m._load_catalog_skills()  # re-run: the guard must NOT overwrite the history entry
     assert m._entries[key].source == "execution-history"
     assert m._entries[key].quality_score == 0.9
+
+
+def test_catalog_skills_have_task_affinity():
+    # DISCRIMINATING: pre-scoring, catalog skills had affinity={}. Now at least
+    # some skills map to a task type via their concepts (the 96-skill library
+    # covers coding/reasoning/analysis/research). Zero affinity across all = the
+    # scoring never ran.
+    m = CapabilityMatrix()
+    catalog = [e for e in m.get_matrix().get("skill", []) if e.source == "catalog"]
+    assert catalog
+    assert any(e.affinity for e in catalog), "no catalog skill got any task affinity"
+
+
+def test_affinity_from_concepts_maps_keywords_honestly():
+    from cohezion.compound.capability_matrix import _affinity_from_concepts
+
+    # a testing/coding concept must produce coding affinity; text with no
+    # language/translation keyword must NOT fabricate a multilingual affinity.
+    aff = _affinity_from_concepts(["Structural Drift", "unit test coverage"])
+    assert aff.get("coding", 0.0) > 0.0  # "test" -> coding
+    assert aff.get("analysis", 0.0) > 0.0  # "drift" -> analysis
+    assert "multilingual" not in aff  # no evidence -> no claim
+    # empty concepts -> empty affinity (no fabrication)
+    assert _affinity_from_concepts([]) == {}
+
+
+def test_skill_gap_analysis_detects_absent_coverage():
+    # DISCRIMINATING (non-vacuous): strip all skill affinity so coverage is zero,
+    # then EVERY task type must be flagged as a skill gap. A no-op impl that
+    # returned [] would fail here. The live library happens to have no gaps, so
+    # this controlled case is what actually exercises the detection logic.
+    m = CapabilityMatrix()
+    for e in m.get_matrix().get("skill", []):
+        e.affinity = {}
+    flagged = {g.task_type for g in m.run_skill_gap_analysis()}
+    assert flagged == set(m.TASK_TYPES), "unscored library must flag every task type"
+
+
+def test_skill_gap_analysis_reads_skill_not_model_affinity():
+    # DISCRIMINATING (non-vacuous): a task type with STRONG model coverage but
+    # ZERO skill coverage must STILL be flagged as a skill gap. If the method
+    # mistakenly read MODEL affinity it would NOT flag it — so this fails against
+    # a model-reading bug. "coding" has model affinity 0.9 in the fixture.
+    m = CapabilityMatrix()
+    target = "coding"
+    models = m.get_matrix().get("model", [])
+    assert any(e.affinity.get(target, 0.0) >= 0.6 for e in models), (
+        "precondition: a model must cover 'coding' for this test to discriminate"
+    )
+    for e in m.get_matrix().get("skill", []):
+        e.affinity.pop(target, None)  # remove all SKILL coverage of coding
+    flagged = {g.task_type for g in m.run_skill_gap_analysis()}
+    assert target in flagged, (
+        "coding not flagged as a skill gap despite a model covering it — "
+        "run_skill_gap_analysis is reading model affinity, not skill affinity"
+    )

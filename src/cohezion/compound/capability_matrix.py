@@ -11,12 +11,49 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
+
+
+# Keyword -> task-type map for deriving a skill's affinity from its `concepts`.
+# Honest and lossy by design: only clear signals map. A domain skill with no
+# task-type keyword simply gets no affinity, which is correct — it guides a
+# domain, not one of the 8 execution task-types.
+_CONCEPT_TASK_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "coding": ("code", "debug", "test", "refactor", "implement", "lint", "onnx", "pytest"),
+    "reasoning": ("reason", "logic", "compound", "chain", "inference", "decision", "think"),
+    "analysis": ("analy", "audit", "drift", "review", "metric", "diagnos", "retrospect", "assess"),
+    "creative": ("creativ", "generat", "design", "narrat", "synthes"),
+    "tool-calling": ("tool", "agent", "mcp", "orchestrat", "rout", "swarm"),
+    "long-context": ("context", "memory", "retriev", "corpus", "vault"),
+    "multilingual": ("multiling", "translat", "i18n"),
+    "research": ("research", "experiment", "paper", "literature", "probe", "verdict"),
+}
+
+
+def _affinity_from_concepts(concepts: list[str]) -> dict[str, float]:
+    """Derive task-type affinity for a skill from its concept strings.
+
+    Presence-and-count based: each task-type whose keywords appear in the
+    concepts gets an affinity that grows mildly with the match count, capped at
+    0.9. Task-types with no keyword match are absent (0.0), so a skill only
+    claims coverage it has textual evidence for.
+    """
+    blob = " ".join(concepts).lower()
+    affinity: dict[str, float] = {}
+    for task_type, keywords in _CONCEPT_TASK_KEYWORDS.items():
+        # Word-boundary (prefix) match, NOT bare substring: `\bcode` matches
+        # "code"/"codebase" but not "en*code*r"; prevents fabricated coverage that
+        # would silently mask a real skill gap (reviewer finding, 2026-07-18).
+        hits = sum(1 for kw in keywords if re.search(rf"\b{re.escape(kw)}", blob))
+        if hits:
+            affinity[task_type] = round(min(0.9, 0.6 + 0.1 * hits), 2)
+    return affinity
 
 
 @dataclass
@@ -209,7 +246,7 @@ class CapabilityMatrix:
                 quality_score=0.0,
                 speed_tier=2,
                 success_rate=0.0,
-                affinity={},
+                affinity=_affinity_from_concepts(concepts),
                 last_assessed=date.today().isoformat(),
                 source="catalog",
                 metadata={
@@ -413,6 +450,36 @@ class CapabilityMatrix:
                 )
                 gaps.append(gap)
 
+        return gaps
+
+    def run_skill_gap_analysis(self) -> list[CapabilityGap]:
+        """Identify task types with weak or absent SKILL coverage.
+
+        Distinct from ``run_gap_analysis`` (which scores MODELS): models execute,
+        skills guide execution, so their coverage is assessed separately rather
+        than conflated into one number. For each task type the best skill affinity
+        (derived from concepts) is compared to a coverage threshold; a task type
+        with no skill above it is a skill-coverage gap to ``onboard``.
+        """
+        gaps: list[CapabilityGap] = []
+        threshold = 0.6  # a single keyword match scores 0.7, so 0.0 coverage => gap
+
+        for task_type in self.TASK_TYPES:
+            best_score = 0.0
+            for entry in self._entries.values():
+                if entry.entity_type == "skill":
+                    best_score = max(best_score, entry.affinity.get(task_type, 0.0))
+
+            if best_score < threshold:
+                gaps.append(
+                    CapabilityGap(
+                        task_type=task_type,
+                        required_capability=task_type,
+                        best_available_score=best_score,
+                        threshold=threshold,
+                        suggested_action="onboard",
+                    )
+                )
         return gaps
 
     def suggest_finetune_targets(self) -> list[FinetuneCandidate]:
