@@ -32,7 +32,13 @@ class GraphClient:
         if isinstance(data, dict) and "code" in data:
             raise GraphQueryError(data.get("description", str(data)))
         # Unwrap: [{"result": [...]}] → [...]
-        if data and isinstance(data, list) and "result" in data[0]:
+        # isinstance(data[0], dict) is LOAD-BEARING. Without it, `"result" in data[0]`
+        # is a SUBSTRING test when data[0] is a str -- so a string response falls through
+        # here, gets returned as-is, and the caller's .get() dies with
+        # "'str' object has no attribute 'get'". That is exactly how graph_stats and
+        # graph_bridges failed (2026-07-19): both threw instead of returning data, and the
+        # two tools for finding non-obvious connections were dead for an unknown period.
+        if data and isinstance(data, list) and isinstance(data[0], dict) and "result" in data[0]:
             return data[0]["result"]
         return data or []
 

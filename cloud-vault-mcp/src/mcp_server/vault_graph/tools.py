@@ -99,8 +99,10 @@ async def tool_graph_bridges(cluster_a: str, cluster_b: str) -> str:
 async def tool_graph_stats() -> str:
     """Return global vault statistics snapshot."""
     data = await queries.stats()
-    if not data:
-        return "Could not fetch vault stats"
+    if not isinstance(data, dict) or not data:
+        # A truthiness check alone lets a non-empty STRING through to data.get() below.
+        # Report the shape instead of crashing -- a diagnosable error beats a traceback.
+        return f"Could not fetch vault stats (got {type(data).__name__}: {str(data)[:120]})"
 
     def _unwrap_count(field):
         """fn::vault_stats() returns counts as [{count: N}] subquery arrays."""
