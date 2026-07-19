@@ -73,16 +73,27 @@ class TestBuildDigestPrompt:
         assert "pytest -q" in p
 
     def test_prompt_is_bounded_for_huge_sessions(self):
-        """Discriminating: an impl that inlines everything sends a 300-file session
-        straight past the context window. Cheap local tokens are not infinite context."""
+        """Two independent caps bound this: _MAX_ITEMS (count) and _MAX_CHARS (per line).
+
+        The original version of this test used ~10-char items and asserted `< 12000`,
+        which pinned only the item cap: raising _MAX_CHARS 200->4000, or deleting the
+        per-line truncation outright, both left it green. The 12000 encoded the author's
+        fixture, not the code's guarantee — the real bound is ~25.5k and the largest real
+        session already emits 18.2k. Items below are at the truncation boundary so BOTH
+        caps are load-bearing, and the bound is derived from the constants, not guessed.
+        """
+        long_item = "x" * (session_digest._MAX_CHARS * 10)
+        n = session_digest._MAX_ITEMS * 10
         big = _art(
-            user_prompts=[f"prompt {i}" for i in range(500)],
-            file_writes=[FileWrite(f"/repo/f{i}.py", "Write", "z") for i in range(500)],
-            bash_commands=[f"cmd-{i}" for i in range(500)],
+            user_prompts=[long_item] * n,
+            file_writes=[FileWrite(f"/repo/{long_item}{i}.py", "Write", "z") for i in range(n)],
+            bash_commands=[long_item] * n,
         )
         p = build_digest_prompt(big)
-        assert len(p) < 12000, f"prompt not bounded: {len(p)} chars"
-        assert "500" in p or "more" in p.lower(), "truncation should be disclosed"
+        cap = 3 * session_digest._MAX_ITEMS * (session_digest._MAX_CHARS + 8) + 4000
+        assert len(p) < cap, f"prompt not bounded: {len(p)} chars (cap {cap})"
+        assert long_item not in p, "per-line truncation did not fire"
+        assert "more" in p.lower(), "truncation should be disclosed"
 
     def test_empty_session_still_produces_a_prompt(self):
         p = build_digest_prompt(_art(user_prompts=[], file_writes=[], bash_commands=[]))
@@ -177,6 +188,36 @@ class TestEndpointSchemePinning:
     def test_http_endpoint_passes_the_guard(self, monkeypatch):
         """The guard must not reject the legitimate endpoint — it fails past the scheme
         check on connection, not on validation."""
+        monkeypatch.setattr(session_digest, "OMNIROUTER", "http://127.0.0.1:9/none")
+        with pytest.raises(OSError):
+            session_digest.lemonade_chat("hi", timeout=1.0)
+
+
+class TestOOMPreflight:
+    """A chat request naming an unloaded model makes the router LOAD it, so this is a
+    model-load path. It previously bypassed oom_guard entirely — the box hard-froze on
+    2026-07-18 with heavy local inference running, which is what this gate exists to stop.
+    """
+
+    def _force_risk(self, monkeypatch, *, safe: bool):
+        from cohezion.compound import oom_guard
+
+        risk = oom_guard.OOMRisk(safe, "M", 2.0, 40.0, "insufficient RAM: need 48.0GB")
+        monkeypatch.setattr(oom_guard, "check_oom_risk", lambda *a, **k: risk)
+
+    def test_unsafe_memory_refuses_before_any_request(self, monkeypatch):
+        """Discriminating: an unwired impl reaches urlopen and errors on CONNECTION
+        (OSError) rather than refusing on MEMORY, so asserting MemoryError specifically
+        is what proves the gate ran."""
+        self._force_risk(monkeypatch, safe=False)
+        monkeypatch.setattr(session_digest, "OMNIROUTER", "http://127.0.0.1:9/none")
+        with pytest.raises(MemoryError, match="protect the box"):
+            session_digest.lemonade_chat("hi", timeout=1.0)
+
+    def test_safe_memory_proceeds_to_the_request(self, monkeypatch):
+        """Mirror case: the gate must not block when memory is fine — it should get past
+        the check and fail on connection instead."""
+        self._force_risk(monkeypatch, safe=True)
         monkeypatch.setattr(session_digest, "OMNIROUTER", "http://127.0.0.1:9/none")
         with pytest.raises(OSError):
             session_digest.lemonade_chat("hi", timeout=1.0)

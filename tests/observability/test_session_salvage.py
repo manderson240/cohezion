@@ -7,9 +7,13 @@ per .claude/rules/verification-depth.md (test the claim, not the component).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from cohezion.observability.session_salvage import (
     SessionArtifacts,
     extract_session_artifacts,
+    is_ephemeral,
+    is_subagent_transcript,
     unique_writes,
 )
 
@@ -140,3 +144,168 @@ class TestUniqueWrites:
         uniq = unique_writes(art)
         assert len(uniq) == 1
         assert uniq[0].content == "v3"
+
+
+class TestUniqueWritesForEdits:
+    """An Edit's payload is a FRAGMENT (the replacement span), not a whole file.
+
+    Comparing a fragment against whole-file contents is unconditionally unequal, so every
+    Edit was flagged as "work that never landed" — 213 of 305 reported findings (70%) were
+    false positives against the real corpus. The earlier tests built only Write records, so
+    this entire input class went unexercised.
+    """
+
+    def _edit(self, path: str, new_string: str) -> SessionArtifacts:
+        return extract_session_artifacts(
+            [
+                _assistant(
+                    _tool_use(
+                        "Edit", file_path=path, old_string="OLD", new_string=new_string
+                    )
+                )
+            ]
+        )
+
+    def test_edit_that_landed_is_not_unique(self, tmp_path):
+        """Discriminating: the edit succeeded and its text is in the file on disk. A
+        fragment-vs-whole-file comparison reports this as lost work."""
+        f = tmp_path / "landed.py"
+        f.write_text("import os\n\n\ndef go():\n    return 2\n")
+        assert unique_writes(self._edit(str(f), "return 2")) == []
+
+    def test_edit_that_did_not_land_is_unique(self, tmp_path):
+        """The mirror case: the fragment is absent, so the work really is only in the
+        transcript. Guards against 'fix' by never flagging Edits at all."""
+        f = tmp_path / "reverted.py"
+        f.write_text("import os\n\n\ndef go():\n    return 1\n")
+        assert [w.path for w in unique_writes(self._edit(str(f), "return 2"))] == [str(f)]
+
+    def test_edit_to_vanished_file_is_unique(self, tmp_path):
+        assert len(unique_writes(self._edit(str(tmp_path / "gone.py"), "x = 1"))) == 1
+
+    def test_write_still_uses_exact_comparison(self, tmp_path):
+        """A Write payload IS the whole file, so a merely-contained match is not enough."""
+        f = tmp_path / "w.py"
+        f.write_text("prefix\nx = 1\nsuffix\n")
+        art = extract_session_artifacts(
+            [_assistant(_tool_use("Write", file_path=str(f), content="x = 1\n"))]
+        )
+        assert [w.path for w in unique_writes(art)] == [str(f)]
+
+
+class TestMalformedLeafValues:
+    """`.get("text", "")` defaults only when the key is ABSENT. A present-but-null value
+    reached str.join and raised, falsifying the 'never raises' contract — and the batch has
+    no per-file guard, so one such record in one of 221 transcripts aborted the whole run."""
+
+    def test_null_text_value_does_not_raise(self):
+        recs = [{"type": "user", "message": {"content": [{"type": "text", "text": None}]}}]
+        assert extract_session_artifacts(recs).user_prompts == []
+
+    def test_non_string_text_values_do_not_raise(self):
+        for bad in (123, ["a"], {"k": "v"}, True):
+            recs = [
+                {"type": "user", "message": {"content": [{"type": "text", "text": bad}]}}
+            ]
+            assert extract_session_artifacts(recs).user_prompts == []
+
+    def test_valid_text_still_extracted_alongside_bad(self):
+        """Discriminating: guards against 'fixing' this by dropping the branch entirely."""
+        recs = [
+            {
+                "type": "user",
+                "message": {
+                    "content": [
+                        {"type": "text", "text": None},
+                        {"type": "text", "text": "real ask"},
+                    ]
+                },
+            }
+        ]
+        assert extract_session_artifacts(recs).user_prompts == ["real ask"]
+
+
+class TestTextBlockExtraction:
+    """The list-of-text-blocks branch is live: 17 real prompts arrive in this shape. The
+    tool-result test appears to cover it but returns early, so the branch was unexercised —
+    mutating it to `return ""` survived the whole suite."""
+
+    def test_text_blocks_in_a_list_are_extracted(self):
+        recs = [
+            {"type": "user", "message": {"content": [{"type": "text", "text": "do it"}]}}
+        ]
+        assert extract_session_artifacts(recs).user_prompts == ["do it"]
+
+    def test_multiple_text_blocks_are_joined(self):
+        recs = [
+            {
+                "type": "user",
+                "message": {
+                    "content": [
+                        {"type": "text", "text": "first"},
+                        {"type": "text", "text": "second"},
+                    ]
+                },
+            }
+        ]
+        assert extract_session_artifacts(recs).user_prompts == ["first\nsecond"]
+
+
+class TestClassifiers:
+    """is_ephemeral and is_subagent_transcript both survived `return False` mutations.
+    The subagent filter is load-bearing: 165 of 221 real transcripts are subagents."""
+
+    def test_ephemeral_paths_detected(self):
+        for p in ("/tmp/x.py", "/a/scratchpad/b.md", "/h/.cache/c", "/n/node_modules/d"):
+            assert is_ephemeral(p), p
+
+    def test_real_paths_are_not_ephemeral(self):
+        for p in ("/home/u/dev/repo/src/a.py", "/opt/thing/b.md"):
+            assert not is_ephemeral(p), p
+
+    def test_subagent_transcript_detected(self):
+        assert is_subagent_transcript(Path("/p/sess/subagents/agent-a1.jsonl"))
+
+    def test_main_session_is_not_subagent(self):
+        assert not is_subagent_transcript(Path("/p/sess.jsonl"))
+
+
+class TestArtifactAccounting:
+    def test_first_and_last_timestamps_differ(self):
+        """first_ts must be the FIRST seen, not overwritten by each record."""
+        recs = [
+            {"type": "assistant", "timestamp": f"2026-07-18T0{i}:00:00Z", "message": {}}
+            for i in (1, 2, 3)
+        ]
+        art = extract_session_artifacts(recs)
+        assert art.first_ts.startswith("2026-07-18T01")
+        assert art.last_ts.startswith("2026-07-18T03")
+
+    def test_files_touched_dedupes_preserving_order(self):
+        art = extract_session_artifacts(
+            [
+                _assistant(_tool_use("Write", file_path=p, content="c"))
+                for p in ("/a.py", "/b.py", "/a.py")
+            ]
+        )
+        assert art.files_touched == ["/a.py", "/b.py"]
+
+
+class TestNonRegularFiles:
+    """unique_writes reads a transcript-supplied path. A planted `/dev/urandom` would be
+    read until OOM; a FIFO blocks forever. Non-regular files take the 'only copy' branch."""
+
+    def test_directory_path_does_not_read(self, tmp_path):
+        d = tmp_path / "adir"
+        d.mkdir()
+        art = extract_session_artifacts(
+            [_assistant(_tool_use("Write", file_path=str(d), content="x"))]
+        )
+        assert len(unique_writes(art)) == 1
+
+    def test_device_node_is_not_read(self):
+        """Discriminating: an impl calling read_text on /dev/zero never returns."""
+        art = extract_session_artifacts(
+            [_assistant(_tool_use("Write", file_path="/dev/zero", content="x"))]
+        )
+        assert len(unique_writes(art)) == 1

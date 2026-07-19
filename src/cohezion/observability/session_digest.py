@@ -140,6 +140,21 @@ def lemonade_chat(
     if not OMNIROUTER.startswith(("http://", "https://")):
         raise ValueError(f"refusing non-HTTP inference endpoint: {OMNIROUTER!r}")
 
+    # OOM preflight. A request naming an unloaded model makes the router LOAD it, so this
+    # is a model-load path even though it reads like a chat call -- exactly the case
+    # oom_guard exists to gate (harness N3). This module previously called the router
+    # directly, bypassing the guard entirely: a wire-at-creation miss, not a new need.
+    # Lazy import (oom_guard pulls a heavy dependency tree) and fail-open on ImportError,
+    # so a trimmed install degrades to today's behaviour rather than breaking.
+    try:
+        from cohezion.compound.oom_guard import check_oom_risk
+    except ImportError:
+        pass
+    else:
+        risk = check_oom_risk(model)
+        if not risk.safe:
+            raise MemoryError(f"refusing inference to protect the box: {risk.reason}")
+
     body = json.dumps(
         {
             "model": model,

@@ -78,8 +78,14 @@ def _text_of(content: object) -> str:
     if isinstance(content, str):
         return content
     if isinstance(content, list):
+        # The isinstance(...str) check is load-bearing, not defensive noise: `.get("text","")`
+        # defaults only when the key is ABSENT, so {"type":"text","text":null} passes the
+        # type filter and feeds None into str.join -> TypeError. The batch has no per-file
+        # guard, so one such record in one of 221 transcripts aborted the entire run.
         return "\n".join(
-            b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"
+            b["text"]
+            for b in content
+            if isinstance(b, dict) and b.get("type") == "text" and isinstance(b.get("text"), str)
         )
     return ""
 
@@ -166,12 +172,32 @@ def unique_writes(art: SessionArtifacts) -> list[FileWrite]:
 
     out: list[FileWrite] = []
     for path, w in latest.items():
+        p = Path(path)
+        # MUST precede any read. `path` comes verbatim from an untrusted transcript, and
+        # read_text() on a device node or FIFO never returns: /dev/zero and /dev/urandom
+        # read until the process is OOM-killed. A non-regular file also cannot BE the
+        # recovered content, so it belongs in the "transcript is the only copy" branch.
         try:
-            current = Path(path).read_text(encoding="utf-8", errors="replace")
-        except (OSError, ValueError):
-            out.append(w)  # vanished or unreadable -> transcript is the only copy
+            if not p.is_file():
+                out.append(w)
+                continue
+        except OSError:
+            out.append(w)
             continue
-        if current != w.content:
+
+        try:
+            current = p.read_text(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            out.append(w)  # unreadable -> transcript is the only copy
+            continue
+
+        # An Edit/NotebookEdit payload is a FRAGMENT (the replacement span); a Write
+        # payload is the WHOLE file. Comparing a fragment for equality against whole-file
+        # contents is unconditionally unequal, which flagged every Edit as lost work --
+        # 213 of 305 findings (70%) against the real corpus. For a fragment the right
+        # question is "did this text survive?", i.e. containment, not equality.
+        landed = (current == w.content) if w.tool == "Write" else (w.content in current)
+        if not landed:
             out.append(w)
     return out
 
