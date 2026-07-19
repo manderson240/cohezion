@@ -72,6 +72,9 @@ MODEL_FOOTPRINT_GB: dict[str, float] = {
 }
 
 HEAVY_THRESHOLD_GB = 5.0  # models above this need memory gate
+# Footprint assumed for a model absent from MODEL_FOOTPRINT_GB. Deliberately above
+# HEAVY_THRESHOLD_GB so an unrecognised name is gated rather than waved through.
+UNKNOWN_ASSUMED_GB = 8.0
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Compute tier classification (verified against /api/v1/health 2026-07-01)
@@ -248,6 +251,51 @@ class OOMRisk(NamedTuple):
     reason: str
 
 
+def _is_model_loaded(model_name: str, timeout_s: float = 2.0) -> bool:
+    """True if the router reports model_name already resident. A loaded model needs no new
+    memory to reuse, so the UMA budget check does not apply. Matches on the id or the
+    checkpoint substring, since /api/v1/health reports checkpoints (e.g.
+    'unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_M') while callers pass the short id
+    ('Gemma-4-26B-A4B-it-GGUF'). Fail-CLOSED (False) on any error — an unreachable router
+    means fall through to the real budget check, never a false clearance.
+    """
+    try:
+        with httpx.Client(timeout=timeout_s) as c:
+            r = c.get(f"{LEMONADE_BASE}/api/v1/health")
+            r.raise_for_status()
+            key = model_name.lower()
+            for m in r.json().get("all_models_loaded", []):
+                ck = str(m.get("checkpoint", "")).lower()
+                if key in ck or ck.split(":")[0].split("/")[-1] == key:
+                    return True
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        return False
+    return False
+
+
+def _catalog_size_gb(model_name: str, timeout_s: float = 2.0) -> float | None:
+    """Ask the router for a model's real size instead of guessing.
+
+    UNKNOWN_ASSUMED_GB is a floor, not a measurement. Observed 2026-07-19:
+    LMX-Omni-52B-Halo is 44.77GB and the 8GB assumption cleared it with 46GB free --
+    a load that would have left ~1GB and reproduced the hard freeze. The catalog carries
+    `size` for every entry, including the ones absent from MODEL_FOOTPRINT_GB, so the
+    honest default is to LOOK IT UP and only fall back to the assumption when the router
+    is unreachable.
+    """
+    try:
+        with httpx.Client(timeout=timeout_s) as c:
+            r = c.get(f"{LEMONADE_BASE}/api/v1/models", params={"show_all": "true"})
+            r.raise_for_status()
+            for m in r.json().get("data", []):
+                if m.get("id") == model_name:
+                    size = m.get("size")
+                    return float(size) if size is not None else None
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        return None
+    return None
+
+
 def check_oom_risk(model_name: str, available_gb: float | None = None) -> OOMRisk:
     """Check whether loading model_name is safe given current or supplied RAM state.
 
@@ -255,12 +303,57 @@ def check_oom_risk(model_name: str, available_gb: float | None = None) -> OOMRis
     For a topology-aware view of committed UMA, call get_active_uma_gb().
     NPU (FLM) models are always UMA-safe — they use XDNA2 SRAM, not the UMA pool.
     """
-    footprint = MODEL_FOOTPRINT_GB.get(model_name, 0.0)
+    # An ABSENT model must not read as a 0GB model. The previous `.get(name, 0.0)` made
+    # every unrecognised name fall under HEAVY_THRESHOLD_GB and return
+    # "small model — no gate needed" — a fail-open that looks like a positive clearance.
+    # Observed 2026-07-18: the table holds 23 models and ZERO FLM/NPU entries, so every
+    # NPU model auto-passed. That reading was reported as "the guard confirms UMA-safe"
+    # when the guard had simply never heard of them, and ~14GB was consumed anyway.
+    # Unknown now means "assume heavy until measured": still allowed when there is ample
+    # headroom, but it must clear the same budget check as a known heavy model.
+    known = model_name in MODEL_FOOTPRINT_GB
     avail = available_gb if available_gb is not None else get_available_ram_gb()
+
+    # A model that is ALREADY LOADED needs zero new memory to reuse — its weights are
+    # already resident and counted in MemAvailable. Blocking it because
+    # footprint+buffer > avail is wrong: the load already happened. Observed 2026-07-19:
+    # 6 models pinned RAM at 25.8GB, and Gemma-4-26B (resident, 18.1GB) failed the
+    # 26.1GB gate, so EVERY task reusing it aborted — a whole task queue deadlocked on
+    # 0.3GB for a model that required no load at all. Check what is actually loaded first.
+    if available_gb is None and _is_model_loaded(model_name):
+        return OOMRisk(True, model_name, avail, 0.0, "already loaded — reuse needs no memory")
+
+    # NPU models are absent from MODEL_FOOTPRINT_GB BY DESIGN (see MODEL_TIER: "XDNA2 SRAM,
+    # NOT in MODEL_FOOTPRINT_GB") — they do not draw on the UMA pool, so a UMA budget check
+    # does not apply to them. Recognise them explicitly rather than letting them fall
+    # through the unknown-model path below, which would over-gate them.
+    if MODEL_TIER.get(model_name) is ComputeTier.NPU:
+        return OOMRisk(True, model_name, avail, 0.0, "NPU (XDNA2 SRAM) — outside the UMA pool")
+
+    # An ABSENT, UNTIERED model must not read as a 0GB model. The previous
+    # `.get(name, 0.0)` made every unrecognised name fall under HEAVY_THRESHOLD_GB and
+    # return "small model — no gate needed" — a fail-open that looks like a clearance.
+    # A newly-pulled 30B model would have sailed through it. Unknown now means "assume
+    # heavy until measured": allowed with ample headroom, gated otherwise.
+    if known:
+        footprint = MODEL_FOOTPRINT_GB[model_name]
+    else:
+        looked_up = _catalog_size_gb(model_name)
+        footprint = looked_up if looked_up is not None else UNKNOWN_ASSUMED_GB
     required = footprint + RAM_LOAD_BUFFER_GB
 
-    if footprint < HEAVY_THRESHOLD_GB:
+    if known and footprint < HEAVY_THRESHOLD_GB:
         return OOMRisk(True, model_name, avail, footprint, "small model — no gate needed")
+
+    if not known and avail >= required:
+        return OOMRisk(
+            True,
+            model_name,
+            avail,
+            footprint,
+            f"unknown model — assumed {UNKNOWN_ASSUMED_GB:.0f}GB, within budget "
+            f"(add it to MODEL_FOOTPRINT_GB or MODEL_TIER to gate it accurately)",
+        )
 
     if avail >= required:
         return OOMRisk(True, model_name, avail, footprint, "within memory budget")
