@@ -1383,6 +1383,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except Exception:
             pass  # Non-blocking: natural_capital module may not be available
 
+        # E1-S2: feed the FINAL coherence (Step 5.8 composite + Step 5.9 natural-capital blend) to
+        # the detector so cross-execution coherence trend analysis is live. detect_anomaly (Step 5)
+        # runs before this value exists — it depends on the anomaly score — so without this the
+        # coherence tripwire is dead on the normal path. Non-blocking.
+        try:
+            coherence_issues = self.inflection_detector.observe_coherence(metrics["coherence"])
+            if coherence_issues:
+                metrics["coherence_issues"] = coherence_issues
+                logger.debug("Composite coherence issues: %s", coherence_issues)
+        except (AttributeError, TypeError, ValueError) as e:
+            logger.debug("Coherence observation failed (non-blocking): %s", e)
+
         # Step 5.91: Autoresearch dispatch (non-blocking, research tasks only)
         _RESEARCH_KEYWORDS = {"train", "optimize", "research", "experiment", "tune", "improve loss"}
         if any(kw in task_description.lower() for kw in _RESEARCH_KEYWORDS):
