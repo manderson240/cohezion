@@ -1096,7 +1096,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 inference_provider=self._inference_provider,
             )
             success = True
-            logger.info("Task completed successfully")
+            # E1-S1: empty/whitespace-only output is the fleet's known "local inference emits
+            # empty" failure mode — do NOT score it as a healthy success (was: unconditional
+            # True). Downstream anomaly/quality scoring must see it as degraded, not nominal.
+            if not output or not str(output).strip():
+                success = False
+                metrics["degraded"] = True
+                logger.warning("Task produced empty output — marking degraded, not success")
+            else:
+                logger.info("Task completed successfully")
         except Exception as e:
             # User-supplied execute_fn can raise anything; record failure metric and continue.
             # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit Exception).
