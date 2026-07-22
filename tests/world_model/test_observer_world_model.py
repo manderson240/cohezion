@@ -7,7 +7,9 @@ from cohezion.world_model.surprise_router import SurpriseRouter
 
 
 def test_cold_start_returns_default():
-    tc = TransitionController(matrix={"greet":["done"],"code":["escalated","done"],"escalated":["done"],"done":[]})
+    tc = TransitionController(
+        matrix={"greet": ["done"], "code": ["escalated", "done"], "escalated": ["done"], "done": []}
+    )
     observer = Observer(name="test", state_matrix=tc, router=SurpriseRouter())
     model = ObserverWorldModel(observer, default_coherence=0.7)
     model.set_task("anything")
@@ -16,7 +18,9 @@ def test_cold_start_returns_default():
 
 
 def test_learned_bad_state_lowers_coherence():
-    tc = TransitionController(matrix={"greet":["done"],"code":["escalated","done"],"escalated":["done"],"done":[]})
+    tc = TransitionController(
+        matrix={"greet": ["done"], "code": ["escalated", "done"], "escalated": ["done"], "done": []}
+    )
     observer = Observer(name="test", state_matrix=tc, router=SurpriseRouter())
     model = ObserverWorldModel(observer, default_coherence=0.7)
     # record through the world model so its transition counters (the <3 data gate)
@@ -32,7 +36,9 @@ def test_learned_bad_state_lowers_coherence():
 
 
 def test_surprise_high_on_first_transition_low_on_repeat():
-    tc = TransitionController(matrix={"greet":["done"],"code":["escalated","done"],"escalated":["done"],"done":[]})
+    tc = TransitionController(
+        matrix={"greet": ["done"], "code": ["escalated", "done"], "escalated": ["done"], "done": []}
+    )
     observer = Observer(name="test", state_matrix=tc, router=SurpriseRouter())
     model = ObserverWorldModel(observer, default_coherence=0.7)
     # First record should return surprise = 1.0
@@ -46,7 +52,9 @@ def test_surprise_high_on_first_transition_low_on_repeat():
 
 
 def test_simulate_trajectory_length():
-    tc = TransitionController(matrix={"greet":["done"],"code":["escalated","done"],"escalated":["done"],"done":[]})
+    tc = TransitionController(
+        matrix={"greet": ["done"], "code": ["escalated", "done"], "escalated": ["done"], "done": []}
+    )
     tc.record_transition("greet", "done", 1.0)
     tc.record_transition("code", "escalated", 1.0)
     tc.record_transition("code", "done", 1.0)
@@ -59,6 +67,3 @@ def test_simulate_trajectory_length():
     for entry in result:
         assert isinstance(entry[0], float)
         assert 0.0 <= entry[0] <= 1.0
-
-
-

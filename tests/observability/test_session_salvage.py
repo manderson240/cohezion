@@ -157,13 +157,7 @@ class TestUniqueWritesForEdits:
 
     def _edit(self, path: str, new_string: str) -> SessionArtifacts:
         return extract_session_artifacts(
-            [
-                _assistant(
-                    _tool_use(
-                        "Edit", file_path=path, old_string="OLD", new_string=new_string
-                    )
-                )
-            ]
+            [_assistant(_tool_use("Edit", file_path=path, old_string="OLD", new_string=new_string))]
         )
 
     def test_edit_that_landed_is_not_unique(self, tmp_path):
@@ -204,9 +198,7 @@ class TestMalformedLeafValues:
 
     def test_non_string_text_values_do_not_raise(self):
         for bad in (123, ["a"], {"k": "v"}, True):
-            recs = [
-                {"type": "user", "message": {"content": [{"type": "text", "text": bad}]}}
-            ]
+            recs = [{"type": "user", "message": {"content": [{"type": "text", "text": bad}]}}]
             assert extract_session_artifacts(recs).user_prompts == []
 
     def test_valid_text_still_extracted_alongside_bad(self):
@@ -231,9 +223,7 @@ class TestTextBlockExtraction:
     mutating it to `return ""` survived the whole suite."""
 
     def test_text_blocks_in_a_list_are_extracted(self):
-        recs = [
-            {"type": "user", "message": {"content": [{"type": "text", "text": "do it"}]}}
-        ]
+        recs = [{"type": "user", "message": {"content": [{"type": "text", "text": "do it"}]}}]
         assert extract_session_artifacts(recs).user_prompts == ["do it"]
 
     def test_multiple_text_blocks_are_joined(self):

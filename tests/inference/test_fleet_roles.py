@@ -17,9 +17,24 @@ def _roster_with(catalog: list[dict]) -> FleetRoster:
 
 
 _CATALOG = [
-    {"id": "Qwen3.6-35B-A3B-MTP-GGUF", "labels": ["mtp", "tool-calling"], "size": 22.1, "recipe": "llamacpp"},
-    {"id": "Gemma-4-26B-A4B-it-GGUF", "labels": ["reasoning", "tool-calling"], "size": 16.9, "recipe": "llamacpp"},
-    {"id": "mistralai_Mistral-Medium-3.5-128B-GGUF-IQ4_XS", "labels": [], "size": 42.3, "recipe": "llamacpp"},
+    {
+        "id": "Qwen3.6-35B-A3B-MTP-GGUF",
+        "labels": ["mtp", "tool-calling"],
+        "size": 22.1,
+        "recipe": "llamacpp",
+    },
+    {
+        "id": "Gemma-4-26B-A4B-it-GGUF",
+        "labels": ["reasoning", "tool-calling"],
+        "size": 16.9,
+        "recipe": "llamacpp",
+    },
+    {
+        "id": "mistralai_Mistral-Medium-3.5-128B-GGUF-IQ4_XS",
+        "labels": [],
+        "size": 42.3,
+        "recipe": "llamacpp",
+    },
     {"id": "Bonsai-1.7B-gguf", "labels": ["tool-calling"], "size": 0.231, "recipe": "llamacpp"},
     {"id": "deepseek-r1-0528-8b-FLM", "labels": [], "size": None, "recipe": "flm"},
     {"id": "gemma3-1b-FLM", "labels": [], "size": None, "recipe": "flm"},
@@ -73,7 +88,12 @@ def test_adaptivity_new_model_wins_without_code_change():
     # picked purely from catalog metadata — no ROLE_SPECS edit.
     catalog = [
         *_CATALOG,
-        {"id": "Qwen4-40B-A3B-MTP-GGUF", "labels": ["mtp", "tool-calling", "reasoning"], "size": 24.0, "recipe": "llamacpp"},
+        {
+            "id": "Qwen4-40B-A3B-MTP-GGUF",
+            "labels": ["mtp", "tool-calling", "reasoning"],
+            "size": 24.0,
+            "recipe": "llamacpp",
+        },
     ]
     r = _roster_with(catalog)
     # Both match; the newcomer has an extra 'reasoning' label => higher score.

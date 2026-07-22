@@ -46,14 +46,14 @@ _CACHE_TTL_S = 30.0
 class RoleSpec:
     """How to choose a model for one role, from live catalog metadata."""
 
-    require: tuple[str, ...] = ()        # labels ALL required (AND)
-    prefer: tuple[str, ...] = ()         # labels that add rank score (OR)
-    name_hint: tuple[str, ...] = ()      # id substrings that add rank score
-    exclude: tuple[str, ...] = ()        # id substrings to reject
-    size_min: float = 0.0                # GB, inclusive
-    size_max: float = 999.0             # GB, inclusive
-    bigger_is_better: bool = True        # size as quality proxy when labels tie
-    heavy: bool = False                  # apply RAM-fit guard on select(loadable=True)
+    require: tuple[str, ...] = ()  # labels ALL required (AND)
+    prefer: tuple[str, ...] = ()  # labels that add rank score (OR)
+    name_hint: tuple[str, ...] = ()  # id substrings that add rank score
+    exclude: tuple[str, ...] = ()  # id substrings to reject
+    size_min: float = 0.0  # GB, inclusive
+    size_max: float = 999.0  # GB, inclusive
+    bigger_is_better: bool = True  # size as quality proxy when labels tie
+    heavy: bool = False  # apply RAM-fit guard on select(loadable=True)
 
 
 # Role -> selection policy. Capability-driven, NOT hardcoded model IDs.
@@ -62,33 +62,51 @@ ROLE_SPECS: dict[str, RoleSpec] = {
         prefer=("mtp", "tool-calling", "reasoning"),
         name_hint=("A3B", "MTP", "Qwen3.6"),
         exclude=("Embedding", "embed", "FLM", "Bonsai-1", "0.6B"),
-        size_min=8.0, size_max=45.0,
+        size_min=8.0,
+        size_max=45.0,
     ),
     "bbq": RoleSpec(
         prefer=("reasoning", "tool-calling"),
         name_hint=("26B", "A4B", "Gemma-4-26B"),
         exclude=("Embedding", "embed", "FLM", "MTP"),
-        size_min=8.0, size_max=40.0,
+        size_min=8.0,
+        size_max=40.0,
     ),
     "deep": RoleSpec(
         name_hint=("Mistral-Medium", "128B", "70B", "Nemotron"),
         exclude=("Embedding", "embed", "FLM", "KT"),  # KT quant won't load (mainline llama.cpp)
-        size_min=40.0, size_max=200.0,
+        size_min=40.0,
+        size_max=200.0,
         heavy=True,
     ),
     "draft": RoleSpec(
-        exclude=("Embedding", "embed", "vision", "Music", "SD-", "TRELLIS", "RealESRGAN", "Whisper", "kokoro", "Flux"),
-        size_min=0.1, size_max=5.0,
+        exclude=(
+            "Embedding",
+            "embed",
+            "vision",
+            "Music",
+            "SD-",
+            "TRELLIS",
+            "RealESRGAN",
+            "Whisper",
+            "kokoro",
+            "Flux",
+        ),
+        size_min=0.1,
+        size_max=5.0,
         bigger_is_better=False,
     ),
     "npu_reason": RoleSpec(
         name_hint=("deepseek-r1", "FLM"),
         exclude=("embed", "1b"),
-        size_min=2.0, size_max=12.0,
+        size_min=2.0,
+        size_max=12.0,
     ),
     "npu_route": RoleSpec(
         name_hint=("llama3.2-1b-FLM", "1b-FLM", "gemma3-1b-FLM"),
-        size_min=0.0, size_max=3.0, bigger_is_better=False,
+        size_min=0.0,
+        size_max=3.0,
+        bigger_is_better=False,
     ),
     "npu_embed": RoleSpec(
         name_hint=("embed-gemma", "FLM"),
@@ -110,8 +128,10 @@ def _perf_scores() -> dict[str, float]:
             SURREAL,
             data=b"SELECT model, math::mean(quality_score) AS q FROM model_performance GROUP BY model;",
             headers={
-                "surreal-ns": "cohezion", "surreal-db": "main",
-                "Content-Type": "text/plain", "Accept": "application/json",
+                "surreal-ns": "cohezion",
+                "surreal-db": "main",
+                "Content-Type": "text/plain",
+                "Accept": "application/json",
                 "Authorization": "Basic cm9vdDpyb290",
             },
         )
@@ -183,7 +203,7 @@ class FleetRoster:
             raise KeyError(f"unknown role {role!r}; known: {sorted(ROLE_SPECS)}")
         ranked = sorted(
             ((self._score(m, spec), m) for m in self.catalog(force)),
-            key=lambda t: (t[0] if t[0] is not None else -1e9),
+            key=lambda t: t[0] if t[0] is not None else -1e9,
             reverse=True,
         )
         cand = [(s, m) for s, m in ranked if s is not None]

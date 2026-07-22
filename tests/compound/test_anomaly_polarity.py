@@ -113,7 +113,9 @@ class TestFailureAttributorAnomalyPolarity:
         """
         fa = FailureAttributor()
         metrics = {"anomaly_score": _UNHEALTHY_ANOMALY_SCORE}
-        result = fa.classify("a substantial but low-quality output here", metrics, decision_paths=["v/x"])
+        result = fa.classify(
+            "a substantial but low-quality output here", metrics, decision_paths=["v/x"]
+        )
         assert result is not None
 
 
@@ -203,10 +205,14 @@ class TestCrossConsumerDirectionAgreement:
     def test_all_consumers_agree_on_unhealthy_input(self):
         unhealthy_metrics = {"success": True, "anomaly_score": _UNHEALTHY_ANOMALY_SCORE}
 
-        refiner_quality = SkillRefiner()._extract_metrics(_unhealthy_execution_result()).quality_score
+        refiner_quality = (
+            SkillRefiner()._extract_metrics(_unhealthy_execution_result()).quality_score
+        )
 
         fa_result = FailureAttributor().classify(
-            "a substantial but low-quality output here", dict(unhealthy_metrics), decision_paths=["v/x"]
+            "a substantial but low-quality output here",
+            dict(unhealthy_metrics),
+            decision_paths=["v/x"],
         )
         fa_is_unhealthy = fa_result is not None
 
@@ -296,7 +302,11 @@ class TestRetrospectionEngineAnomalyPolarity:
         Catches a half-migrated fix: if retrospection.py were reverted while the other
         three sites stayed fixed, this test diverges (retrospection LOW, others HIGH).
         """
-        healthy_metrics = {"success": True, "coherence": 0.75, "anomaly_score": _HEALTHY_ANOMALY_SCORE}
+        healthy_metrics = {
+            "success": True,
+            "coherence": 0.75,
+            "anomaly_score": _HEALTHY_ANOMALY_SCORE,
+        }
 
         retrospection_score = RetrospectionEngine().analyze_execution_result(
             self._healthy_result(), "test_skill"
@@ -317,13 +327,19 @@ class TestRetrospectionEngineAnomalyPolarity:
 
     def test_cross_consumer_all_four_sites_agree_on_unhealthy_input(self):
         """The SAME unhealthy metrics dict trends LOW through all 4 fixed consumers."""
-        unhealthy_metrics = {"success": True, "coherence": 0.75, "anomaly_score": _UNHEALTHY_ANOMALY_SCORE}
+        unhealthy_metrics = {
+            "success": True,
+            "coherence": 0.75,
+            "anomaly_score": _UNHEALTHY_ANOMALY_SCORE,
+        }
 
         retrospection_score = RetrospectionEngine().analyze_execution_result(
             self._unhealthy_result(), "test_skill"
         )["compound_score"]
 
-        refiner_quality = SkillRefiner()._extract_metrics(_unhealthy_execution_result()).quality_score
+        refiner_quality = (
+            SkillRefiner()._extract_metrics(_unhealthy_execution_result()).quality_score
+        )
 
         po_metrics = dict(unhealthy_metrics)
         PostExecutionOrchestrator(executor=MagicMock())._compute_coherence(po_metrics)

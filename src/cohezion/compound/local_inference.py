@@ -210,7 +210,11 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
                 # engine that ran, quality penalized per escalation. Never blocks execution.
                 from cohezion.world_model.observer_world_model import get_default_observer_model
 
-                entry = "cloud" if _is_cloud_model(model) else _OMNI_TIERS[min(min_tier_index, len(_OMNI_TIERS) - 1)]
+                entry = (
+                    "cloud"
+                    if _is_cloud_model(model)
+                    else _OMNI_TIERS[min(min_tier_index, len(_OMNI_TIERS) - 1)]
+                )
                 get_default_observer_model().record(
                     entry, tier_used, max(0.2, 1.0 - 0.25 * result.escalation_count)
                 )

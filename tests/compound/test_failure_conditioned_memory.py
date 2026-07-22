@@ -60,9 +60,7 @@ class TestFailureConditionedMemoryUnit:
             raise RuntimeError("lemonade offline")
 
         mem = FailureConditionedMemory(embed_fn=_raising_embed, similarity_threshold=0.1)
-        mem.record(
-            "parser threw invalid JSON schema error", "add schema validation before parse"
-        )
+        mem.record("parser threw invalid JSON schema error", "add schema validation before parse")
         # Shares keywords ("schema", "json"/"parser") with the seeded failure text.
         results = mem.retrieve("parser threw invalid schema error again", k=3)
         assert results, "keyword-overlap fallback should still surface a match"

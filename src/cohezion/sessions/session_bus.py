@@ -172,7 +172,9 @@ class SessionBus:
         )
         return bool(rows) and (rows[0].get("claimed_by") or [None])[0] == sid
 
-    def read_replies(self, session_id: str, *, cap_msgs: int = 20, cap_bytes: int = 8000) -> list[dict]:
+    def read_replies(
+        self, session_id: str, *, cap_msgs: int = 20, cap_bytes: int = 8000
+    ) -> list[dict]:
         """Pending REPLY entries for a session (unacked), same caps as fetch. The Tier-3
         spawn seam kind is filtered out by the pinned-kind query (SCP3 inert)."""
         sid = _assert_sid(session_id)
