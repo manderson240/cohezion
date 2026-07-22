@@ -103,7 +103,7 @@ class TestCompoundFullCycle:
         mock_detector = MagicMock()
         mock_detector.detect_anomaly.return_value = AnomalyDetection(
             severity=Severity.INFO,
-            score=0.05,
+            score=0.95,  # health score (1.0=healthy); used DIRECTLY per 2026-07-10 polarity fix
             issues=[],
             recommendations=[],
             should_reexecute=False,
@@ -126,7 +126,8 @@ class TestCompoundFullCycle:
         assert result.success is True
         assert result.output == "cycle-success-output"
         assert "coherence" in result.metrics
-        # With score=0.05: coherence = (0.7 + 0.95) / 2 = 0.825
+        # health score=0.95 (clean run) used directly -> coherence = (0.7 + 0.95)/2, blended
+        # with natural-capital (*0.9 + habitat*0.1) ~= 0.82
         assert result.metrics["coherence"] > 0.6
         assert result.duration_seconds >= 0.0
 
@@ -192,7 +193,7 @@ class TestCompoundFullCycle:
     def test_full_cycle_failure_recovery_no_refine_anomaly_detected(
         self, tmp_path: Path, mock_mcp_client: MagicMock, prime_file: Path
     ):
-        """Execute (fail) → Reflect (anomaly) → no-refine → Vote (fallback)."""
+        """Execute (fail) → Reflect (anomaly) → FAPO failure-refine (no PRIME mutation) → Vote (fallback)."""
         # ── Phase 1: Setup ────────────────────────────────────────────────────
         mock_refiner = MagicMock(spec=SkillRefiner)
         executor = _make_executor(
@@ -214,7 +215,11 @@ class TestCompoundFullCycle:
 
         assert result.success is False
         assert "Error:" in result.output
-        mock_refiner.refine.assert_not_called()  # executor skips refiner on failure
+        # KEYSTONE (d60bde902): the FAPO failure path now CALLS refine WITH a failure_attribution
+        # (closing the dormancy where failures never informed the loop). The refiner is MOCKED, so
+        # no real PRIME mutation occurs — Phase 4 below still asserts the PRIME file is unchanged.
+        mock_refiner.refine.assert_called_once()
+        assert mock_refiner.refine.call_args.kwargs.get("failure_attribution") is not None
 
         # ── Phase 3: Retrospect with failure metrics ───────────────────────────
         engine = RetrospectionEngine()
@@ -271,10 +276,11 @@ class TestCompoundFullCycle:
     def test_full_cycle_metrics_propagate_through_all_stages(self, mock_mcp_client: MagicMock):
         """Verify coherence and token counts flow correctly executor → retro → vote."""
         # Mock inflection detector so coherence is fully deterministic.
-        # anomaly_score=0.1 → coherence = (0.7 + 0.9) / 2 = 0.8
+        # health score=0.9 (clean run; used DIRECTLY per 2026-07-10 polarity fix, NOT inverted)
+        # → coherence = (0.7 + 0.9) / 2, natural-capital-blended ≈ 0.8
         mock_detector = MagicMock()
         mock_detector.detect_anomaly.return_value = AnomalyDetection(
-            severity=Severity.INFO, score=0.1, issues=[], recommendations=[], should_reexecute=False
+            severity=Severity.INFO, score=0.9, issues=[], recommendations=[], should_reexecute=False
         )
         executor = CompoundExecutor(
             mock_mcp_client,
@@ -292,7 +298,7 @@ class TestCompoundFullCycle:
         )
 
         assert result.success is True
-        # Coherence = avg(0.7_success + (1.0 - anomaly_score)); clean run → > 0.6
+        # Coherence = avg(0.7_success + health_score used directly); clean run → > 0.6
         coherence_val = result.metrics["coherence"]
         assert coherence_val > 0.6
 
