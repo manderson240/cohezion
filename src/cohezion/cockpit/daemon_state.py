@@ -359,3 +359,18 @@ def ask_local_advisor(state_summary: str, chat_fn: Callable[[str], str] | None =
         return f"(advisor unavailable: {exc})"
     text = (text or "").strip()
     return text or "(advisor returned no content)"
+
+
+def run_fleet_prompt(prompt: str, chat_fn: Callable[[str], str] | None = None) -> str:
+    """Run a FREE-FORM prompt on the local inference fleet (:13305) — an embedded agent.
+
+    Pass-through (no state-advising wrapper, unlike ``ask_local_advisor``). One bounded
+    local call, $0. ``chat_fn`` injectable for tests. Fails soft — never raises.
+    """
+    caller = chat_fn or _default_advisor_chat
+    try:
+        text = caller(prompt)
+    except Exception as exc:
+        logger.debug("run_fleet_prompt failed: %s", exc)
+        return f"(local fleet unavailable: {exc})"
+    return (text or "").strip() or "(local fleet returned no content)"

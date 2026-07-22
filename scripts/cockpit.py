@@ -34,11 +34,13 @@ def _header(mo):
 
 @app.cell
 def _imports():
+    import matplotlib.pyplot as plt
+
     import marimo as mo
 
     from cohezion.cockpit import daemon_state as ds
 
-    return ds, mo
+    return ds, mo, plt
 
 
 @app.cell
@@ -92,6 +94,21 @@ def _work_queue(mo, ds, refresh):
         f"## 🗂️ Work queue (:8080)\n**total** {wq['total']}\n\n"
         f"- by status: {wq_status}\n- by relevance: {wq_rel}"
     )
+    return
+
+
+@app.cell
+def _status_chart(ds, refresh, plt):
+    # Interactive PLOT (reactive: redraws on each poll tick). marimo renders the figure.
+    refresh
+    sc_wq = ds.read_work_queue()
+    sc_items = list(sc_wq["by_status"].items()) or [("—", 0)]
+    sc_fig, sc_ax = plt.subplots(figsize=(5, 2.2))
+    sc_ax.bar([k for k, _ in sc_items], [v for _, v in sc_items], color="#6aa84f")
+    sc_ax.set_title("Work queue by status")
+    sc_ax.set_ylabel("count")
+    sc_fig.tight_layout()
+    sc_fig
     return
 
 
@@ -190,6 +207,25 @@ def _advisor_action(mo, ds, advisor_btn):
     )
     adv_advice = ds.ask_local_advisor(adv_summary)
     mo.md(f"**Advisor:**\n\n{adv_advice}")
+    return
+
+
+@app.cell
+def _fleet_controls(mo):
+    # Embedded RUNNING agent: free-form prompt → local inference fleet (:13305, $0).
+    fleet_prompt = mo.ui.text(placeholder="ask the local fleet anything ($0)…", full_width=True)
+    fleet_btn = mo.ui.run_button(label="🤖 Run on local fleet")
+    mo.vstack([fleet_prompt, fleet_btn])
+    return fleet_btn, fleet_prompt
+
+
+@app.cell
+def _fleet_action(mo, ds, fleet_btn, fleet_prompt):
+    # Fires ONLY on click (not on the refresh tick). Embedded agent, runs on-demand.
+    mo.stop(not fleet_btn.value, mo.md("_Free-form embedded agent — type a prompt, click. Runs on local :13305, $0._"))
+    mo.stop(not fleet_prompt.value.strip(), mo.md("⚠️ Prompt is empty."))
+    fleet_answer = ds.run_fleet_prompt(fleet_prompt.value.strip())
+    mo.md(f"**🤖 Local fleet:**\n\n{fleet_answer}")
     return
 
 
