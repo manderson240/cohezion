@@ -61,6 +61,19 @@ REGISTRY: list[tuple[str, str, str, int]] = [
     # run_profile(). Removing the call re-dormants the harness (a scorecard nobody runs) -> scan RED.
     ("CogProfile: cognitive_profile_cli CONSUMES run_profile() (10-faculty scorecard FIRES)",
      r"run_profile\(", "scripts/eval/cognitive_profile_cli.py", 1),
+    # FAPO failure-path loop (verification-depth.md #2 — "consumption, not declaration"). Before this
+    # session's fix, refine() was ONLY ever called on SUCCESS: a failed execution never reached
+    # FailureAttributor.classify(), and refine()'s own failure_attribution branch was unreachable from
+    # production (green unit tests, dormant seam — the exact failure class this scan exists to catch).
+    # Four pins guard both halves of the closed loop so a future refactor can't silently re-dormant it:
+    ("FA-exec: executor failure branch CONSUMES FailureAttributor().classify() on a failed execution",
+     r"FailureAttributor\(\)\.classify\(", "src/cohezion/compound/executor.py", 1),
+    ("FA-refine: executor failure branch CONSUMES refine(failure_attribution=...) (FAPO path reachable)",
+     r"failure_attribution=attribution", "src/cohezion/compound/executor.py", 1),
+    ("FM-retrieve: _generate_failure_signal CONSUMES failure_memory.retrieve() before generic template",
+     r"self\._failure_memory\.retrieve\(", "src/cohezion/compound/skill_refiner.py", 1),
+    ("FM-record: L1 refinement CONSUMES failure_memory.record() to store the new (failure, fix) pair",
+     r"self\._failure_memory\.record\(", "src/cohezion/compound/skill_refiner.py", 1),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE

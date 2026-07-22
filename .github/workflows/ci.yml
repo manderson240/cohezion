@@ -94,6 +94,13 @@ jobs:
       - name: Validate skill registry
         run: uv run python scripts/ci/validate_registry.py
 
+      # Gating (verification-depth.md layer 3): a curated registry of load-bearing
+      # capabilities that must have a production consumer, not just a `def` + unit
+      # tests. Catches the "green but dormant" class (regression gate, jepa_coherence,
+      # the FAPO failure-path wiring) before it ships silently broken.
+      - name: Dormancy scan (gating)
+        run: uv run python scripts/ci/dormancy_scan.py
+
       - name: Validate critical imports
         run: |
           uv run python -c "

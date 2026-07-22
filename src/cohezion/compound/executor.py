@@ -1535,6 +1535,58 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as e:
                 logger.warning("Skill refinement failed (non-blocking): %s", e, exc_info=True)
 
+        # Step 7.2b: FAPO failure-conditioned refinement (non-blocking).
+        # Closes the dormancy in FailureAttributor + FailureConditionedMemory: prior to this,
+        # refine() was ONLY ever called on success (the block above), so a failed execution
+        # never reached FailureAttributor.classify() and refine()'s own
+        # ``failure_attribution`` branch (checked BEFORE the internal success gate) was
+        # unreachable from production. This is deliberately independent of drr_passed/
+        # should_refine — those gate the SUCCESS-pattern refinement path; FAPO failure
+        # attribution is a distinct concern with its own internal escalation routing
+        # (L1 prompt-edit / L2-L3 proof_obligation) inside SkillRefiner.refine().
+        elif not success and self.skill_refiner:
+            try:
+                from cohezion.compound.failure_attributor import FailureAttributor
+
+                attribution = FailureAttributor().classify(
+                    output=output,
+                    metrics=metrics,
+                    decision_paths=decision_paths,
+                )
+                if attribution is not None:
+                    exec_result = {
+                        "success": success,
+                        "output": output,
+                        "metrics": metrics,
+                        "duration_seconds": duration_seconds,
+                        # Normalized to {} (not None): SkillRefiner._extract_metrics does
+                        # ``execution_result.get("token_metrics", {})``, whose default only
+                        # applies when the key is ABSENT — an explicit ``None`` (the common
+                        # case here: no token_client configured) passes through and crashes
+                        # on ``token_metrics.get(...)``. Scoped to this branch only; the
+                        # pre-existing success-path dict below is untouched (byte-for-byte).
+                        "token_metrics": token_metrics or {},
+                    }
+                    refined_path = self.skill_refiner.refine(
+                        skill_name=skill_name,
+                        operation_type=operation_type,
+                        execution_result=exec_result,
+                        patterns_extracted=decision_paths,
+                        failure_attribution=attribution,
+                    )
+                    if refined_path:
+                        logger.info(
+                            "Skill failure-refined (%s/%s): %s",
+                            attribution.category,
+                            attribution.escalation_level,
+                            refined_path,
+                        )
+                        decision_paths.append(refined_path)
+            except Exception as e:
+                logger.warning(
+                    "Failure-attribution refinement failed (non-blocking): %s", e, exc_info=True
+                )
+
         # Step 7.3a: MGPO batch accumulation (wires _rubric_gated_accumulate + _check_mgpo_batch)
         if success:
             try:

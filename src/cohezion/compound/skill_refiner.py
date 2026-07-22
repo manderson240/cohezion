@@ -240,6 +240,7 @@ class SkillRefiner:
         degradation_detector: Any = None,
         journey_tracker: Any = None,
         health_oracle: Any = None,
+        failure_memory: Any = None,
     ):
         """Initialize skill refiner.
 
@@ -252,6 +253,10 @@ class SkillRefiner:
             health_oracle: Optional CompoundHealthOracle. When wired, each execution's
                 quality score is fed into the streaming HIHO regime tracker so the oracle
                 builds up a rolling FD baseline across the session.
+            failure_memory: Optional FailureConditionedMemory. Retrieval-augmented
+                recommendation over past FAPO L1 failure+fix pairs (defaults to a
+                fresh in-process instance — never None, so retrieval is always
+                attempted and fails open to the existing generic template).
         """
         self.mcp_client = mcp_client
         # #83: MoE router over the five Autodata expert heads (None = unbiased selection).
@@ -305,6 +310,17 @@ class SkillRefiner:
         # Priority: claude-fable-5 → claude-opus-4-8 → agy → Bonsai-8B-local.
         # None = dormant; gate lazy-builds on first refine() call; fail-open everywhere.
         self._adversarial_chat_fn: Any = None
+        # Failure-conditioned retrieval (2607.13104 + MSCE 2607.16617 + self-healing-code):
+        # kNN over past FAPO L1 failure+fix pairs, consumed by _generate_failure_signal().
+        # Always instantiated (never None) — retrieve() on an empty/unreachable-embed store
+        # is itself fail-open (returns []), so this never changes existing behaviour when
+        # no analogous failure has been recorded yet.
+        if failure_memory is not None:
+            self._failure_memory = failure_memory
+        else:
+            from cohezion.compound.failure_memory import FailureConditionedMemory
+
+            self._failure_memory = FailureConditionedMemory()
 
     def process_reward_mean(self, skill_name: str) -> float | None:
         """Return mean accumulated RL process reward for a skill, or None if no data.
@@ -713,6 +729,18 @@ class SkillRefiner:
         refined_path = self._append_refinement(prime_file, signal)
         if refined_path:
             logger.info("FAPO L1: refined PRIME skill %s for %s failure", skill_name, category)
+            # Failure-conditioned retrieval: record this (failure, fix) pair now that the
+            # refinement was actually applied, so a future analogous failure (in this or
+            # any other skill) can retrieve and cite it instead of the generic template.
+            try:
+                self._failure_memory.record(
+                    failure_text=evidence,
+                    fix_text=signal.recommendation,
+                    skill_name=skill_name,
+                    category=category,
+                )
+            except Exception:
+                logger.debug("failure_memory.record failed (non-blocking)", exc_info=True)
         return str(refined_path) if refined_path else None
 
     def _generate_failure_signal(
@@ -722,23 +750,51 @@ class SkillRefiner:
         category: str,
         evidence: str,
     ) -> LearningSignal:
-        """Create a LearningSignal that encodes a FAPO failure insight."""
+        """Create a LearningSignal that encodes a FAPO failure insight.
+
+        Failure-conditioned retrieval (2607.13104 self-improving-agent survey +
+        MSCE 2607.16617 + GenAI_Agents self_healing_code): before falling back
+        to the generic per-category template, retrieve the most semantically
+        similar PAST failure+fix from ``self._failure_memory``. When a match
+        clears the similarity threshold, its fix text becomes the
+        recommendation VERBATIM (not decorated) so that re-recording it after
+        this refinement is applied doesn't accumulate citation wrappers across
+        repeated retrievals. Provenance instead goes into ``metric_change``.
+        Fail-open: an empty/unreachable memory returns [] and behaviour is
+        byte-for-byte the pre-existing generic-template path.
+        """
         recommendation_map = {
             "format": (
                 f"Add structured-output format examples to {skill_name} PRIME skill guidance"
             ),
             "reasoning": (f"Add step-by-step reasoning scaffolding to {skill_name} PRIME skill"),
         }
+
+        retrieved = self._failure_memory.retrieve(evidence, k=1)
+        if retrieved:
+            past_record, similarity = retrieved[0]
+            recommendation = past_record.fix_text
+            metric_change = (
+                f"failure_category={category}; escalation=L1; "
+                f"retrieved_fix_from='{past_record.failure_text[:60]}' "
+                f"(similarity={similarity:.2f})"
+            )
+            confidence = 0.65  # slightly higher: grounded in a demonstrated prior fix
+        else:
+            recommendation = recommendation_map.get(
+                category,
+                f"Review {category} failure in {skill_name} PRIME skill",
+            )
+            metric_change = f"failure_category={category}; escalation=L1"
+            confidence = 0.6
+
         return LearningSignal(
             skill_name=skill_name,
             operation_type=operation_type,
             key_insight=f"FAILURE ({category}): {evidence[:200]}",
-            metric_change=f"failure_category={category}; escalation=L1",
-            recommendation=recommendation_map.get(
-                category,
-                f"Review {category} failure in {skill_name} PRIME skill",
-            ),
-            confidence=0.6,
+            metric_change=metric_change,
+            recommendation=recommendation,
+            confidence=confidence,
         )
 
     def _write_proof_obligation(
