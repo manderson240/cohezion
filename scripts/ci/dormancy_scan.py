@@ -68,8 +68,12 @@ REGISTRY: list[tuple[str, str, str, int]] = [
     # Four pins guard both halves of the closed loop so a future refactor can't silently re-dormant it:
     ("FA-exec: executor failure branch CONSUMES FailureAttributor().classify() on a failed execution",
      r"FailureAttributor\(\)\.classify\(", "src/cohezion/compound/executor.py", 1),
+    # Pinned to the kwarg name (not `=attribution`, the current variable name) — a harmless
+    # local rename of the passed variable must not silently re-green a re-dormanted call.
+    # Safe to broaden: `path_rel` scopes this to executor.py alone, whose only occurrence of
+    # this literal IS the consumer line (verified; no docstring/comment collisions in this file).
     ("FA-refine: executor failure branch CONSUMES refine(failure_attribution=...) (FAPO path reachable)",
-     r"failure_attribution=attribution", "src/cohezion/compound/executor.py", 1),
+     r"failure_attribution=", "src/cohezion/compound/executor.py", 1),
     ("FM-retrieve: _generate_failure_signal CONSUMES failure_memory.retrieve() before generic template",
      r"self\._failure_memory\.retrieve\(", "src/cohezion/compound/skill_refiner.py", 1),
     ("FM-record: L1 refinement CONSUMES failure_memory.record() to store the new (failure, fix) pair",

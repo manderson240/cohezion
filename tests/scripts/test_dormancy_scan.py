@@ -53,7 +53,7 @@ _CONSUMER_LITERALS = {
         "FailureAttributor().classify("
     ),
     "FA-refine: executor failure branch CONSUMES refine(failure_attribution=...) (FAPO path reachable)": (
-        "failure_attribution=attribution"
+        "failure_attribution="
     ),
     "FM-retrieve: _generate_failure_signal CONSUMES failure_memory.retrieve() before generic template": (
         "self._failure_memory.retrieve("

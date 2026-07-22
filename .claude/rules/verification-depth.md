@@ -52,8 +52,11 @@ regressing candidate → test fails).
 - `tests/integration/` — un-mocked end-to-end smoke: assemble `make_executor`, run a REAL task, assert
   non-empty output + a sane tier. Skips gracefully when local inference is down; REQUIRED when live.
   (Catches the dead-port / dormant-routing / empty-output class in one test.)
-- `scripts/ci/dormancy_scan.py` (when built) — deterministic "defined-but-only-referenced-in-tests"
-  scan over a curated capability registry. Re-dormancy of a fixed capability fails CI.
+- `scripts/ci/dormancy_scan.py` — deterministic "defined-but-only-referenced-in-tests" scan over a
+  curated capability registry. **Wired as a BLOCKING gate** in `.github/workflows/ci.yml` (validate
+  job) and `scripts/ci/automerge_guard.sh` (Step 6c) as of 2026-07-22 — re-dormancy of a fixed
+  capability now fails CI, not just an advisory report. Discriminating self-test:
+  `python scripts/ci/dormancy_scan.py --self-test`; unit coverage in `tests/scripts/test_dormancy_scan.py`.
 - Routine adversarial pass before committing load-bearing changes — a different lens, "assume broken."
 
 **The test of whether a fix is real:** can you make it FAIL by breaking the thing it claims to do? If

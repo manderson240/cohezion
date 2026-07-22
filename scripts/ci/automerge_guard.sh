@@ -67,6 +67,20 @@ step "import smoke test" uv run pytest tests/unit/test_import_smoke.py -q --tb=s
 # Step 6: Inference tests (gating — but live tests skip without Lemonade)
 step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings
 
+# Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
+# that bypass the blessed path + its content->reasoning_content fallback.
+# Report-mode-first rollout (mirrors check_inference_port_bypass.sh) — always
+# exits 0 for now; drop the --report flag to enforce (fail on new sites) once
+# the baseline is settled on the branch.
+step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh --report
+
+# Step 6c: Dormancy scan (gating). A curated registry of load-bearing capabilities
+# that must have a production consumer, not just a `def` + green unit tests — the
+# failure class that let the regression gate, jepa_coherence, and the FAPO
+# failure-path wiring all sit dormant behind passing tests. Unlike 6b, this is
+# blocking from the start: the registry is curated specifically to never cry wolf.
+step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
+
 # Step 7: Conventional commit / version governance
 step "version governance" uv run python scripts/ci/version_governance.py
 
