@@ -72,7 +72,11 @@ class TestSemanticCache:
     def test_initialization(self, semantic_cache):
         """[P0] Should initialize SemanticCache with defaults."""
         assert semantic_cache is not None
-        assert semantic_cache.similarity_threshold == 0.75
+        # CA1: default threshold is encoder-calibrated (768D->0.58, 384D->0.80, 256D->0.45),
+        # NOT the pre-exp_BBBB 0.75 (which caused a 6.7% FP rate). Assert a calibrated value
+        # (encoder-agnostic, matches the CA1 verification), not a stale constant.
+        assert semantic_cache.similarity_threshold in SemanticCache._THRESHOLD_BY_DIM.values()
+        assert semantic_cache.similarity_threshold >= 0.40
         assert semantic_cache.max_l1_size == 512
         assert semantic_cache.max_l2_size == 1024
 
