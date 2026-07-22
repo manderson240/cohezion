@@ -101,6 +101,13 @@ jobs:
       - name: Dormancy scan (gating)
         run: uv run python scripts/ci/dormancy_scan.py
 
+      # Doc↔code drift (sibling to dormancy_scan): dormancy_scan checks that code
+      # has consumers; this checks that CLAUDE.md/harness.md tell the truth about the
+      # code — every referenced file-path and cohezion.* module must resolve. Fails on
+      # E-errors (broken refs); class.member mismatches are advisory W-warnings.
+      - name: Doc-code consistency (gating)
+        run: uv run python scripts/ci/doc_code_consistency.py
+
       - name: Validate critical imports
         run: |
           uv run python -c "
