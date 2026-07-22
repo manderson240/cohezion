@@ -241,6 +241,7 @@ class SkillRefiner:
         journey_tracker: Any = None,
         health_oracle: Any = None,
         failure_memory: Any = None,
+        refine_interval: int = 1,
     ):
         """Initialize skill refiner.
 
@@ -259,6 +260,12 @@ class SkillRefiner:
                 attempted and fails open to the existing generic template).
         """
         self.mcp_client = mcp_client
+        # A1 (option b): bound the EXPENSIVE refinement chain (drift/regression/shadow-canary/
+        # adversarial + PRIME mutation) to 1-in-N successes. Default 1 = run every reached
+        # refine (unchanged behavior); the production factory sets it >1 to cap hot-path cost.
+        # The cheap learning records in _generate_learning_signal still run every success.
+        self._refine_interval = max(1, refine_interval)
+        self._signal_count = 0
         # #83: MoE router over the five Autodata expert heads (None = unbiased selection).
         self._moe_router = moe_router
         # Per-skill drift: calls check_skill_drift() in _generate_learning_signal when wired.
@@ -546,6 +553,17 @@ class SkillRefiner:
             prime_file = self._find_prime_file(skill_name)
             if not prime_file:
                 logger.debug(f"No PRIME file found for skill: {skill_name}")
+                return None
+
+            # A1 (option b): the cheap learning records above (_generate_learning_signal) ran
+            # every success; run the EXPENSIVE gate chain (drift/regression/shadow-canary/
+            # adversarial) + PRIME mutation only 1-in-_refine_interval signals to bound cost.
+            if not self._should_run_refinement_chain():
+                logger.debug(
+                    "Refinement chain sampled out (signal %d, interval %d)",
+                    self._signal_count,
+                    self._refine_interval,
+                )
                 return None
 
             # Golden-fixture gate (V-model verification — fail-open)
@@ -837,6 +855,18 @@ class SkillRefiner:
 
     # ── Original helpers ──────────────────────────────────────────────────────
 
+    def _should_run_refinement_chain(self) -> bool:
+        """A1 (option b): bound the expensive refinement chain to 1-in-_refine_interval signals.
+
+        Increments the signal counter and returns True only when the expensive gate chain
+        (drift/regression/shadow-canary/adversarial) + PRIME mutation should run. Default
+        interval 1 -> always True (behavior unchanged); interval N>1 -> True on every Nth signal.
+        """
+        self._signal_count += 1
+        if self._refine_interval <= 1:
+            return True
+        return self._signal_count % self._refine_interval == 0
+
     def _extract_metrics(self, execution_result: dict[str, Any]) -> ExecutionMetrics:
         """Extract metrics from execution result.
 
@@ -846,8 +876,13 @@ class SkillRefiner:
         Returns:
             ExecutionMetrics dataclass
         """
-        metrics_dict = execution_result.get("metrics", {})
-        token_metrics = execution_result.get("token_metrics", {})
+        # A1: `.get(key, {})` returns the default ONLY when the key is ABSENT. The default
+        # make_executor()/unconfigured path emits an explicit `token_metrics=None` (and can emit
+        # `metrics=None`), so `.get(...)` returns None and the `.get()` calls below crash with
+        # AttributeError — caught non-blocking, silently no-op'ing the SUCCESS half of the loop.
+        # `or {}` guards the explicit-None case. This is the fix that re-enables the success loop.
+        metrics_dict = execution_result.get("metrics") or {}
+        token_metrics = execution_result.get("token_metrics") or {}
 
         success = execution_result.get("success", False)
         duration = execution_result.get("duration_seconds", 0.0)
@@ -1859,6 +1894,7 @@ class SkillRefinerFactory:
         degradation_detector: Any = None,
         journey_tracker: Any = None,
         health_oracle: Any = None,
+        refine_interval: int = 4,
     ) -> SkillRefiner:
         """Create a new SkillRefiner.
 
@@ -1876,6 +1912,7 @@ class SkillRefinerFactory:
             degradation_detector=degradation_detector,
             journey_tracker=journey_tracker,
             health_oracle=health_oracle,
+            refine_interval=refine_interval,
         )
         # M1: wire the FAPO R3 behavioral regression gate LIVE (it defaulted dormant). Bind a
         # local-inference runner that executes a candidate skill against a fixture input. No-op
