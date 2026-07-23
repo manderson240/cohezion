@@ -8,12 +8,64 @@ Combines:
 """
 
 import logging
+import math
+import re
+from collections import Counter, defaultdict
 from functools import lru_cache
 from typing import Any
 
 import httpx
 
 from .graphrag_helpers import GraphRAGError, execute_surreal_async
+
+
+_TOKEN = re.compile(r"[a-z0-9]+")
+
+
+def _tokenize(text: str) -> list[str]:
+    return _TOKEN.findall((text or "").lower())
+
+
+def _bm25_scores(
+    query: str, docs: list[str], k1: float = 1.5, b: float = 0.75
+) -> list[float]:
+    """Okapi BM25 lexical scores of `docs` against `query` (pure-python, no index/deps).
+
+    The lexical complement to cosine retrieval: exact-term matches (identifiers, error codes,
+    invariant names like ``CB14``) that a dense embedding dilutes below top-k score high here.
+    """
+    doc_toks = [_tokenize(d) for d in docs]
+    n = len(doc_toks)
+    if n == 0:
+        return []
+    avgdl = (sum(len(d) for d in doc_toks) / n) or 1.0
+    counters = [Counter(d) for d in doc_toks]
+    scores = [0.0] * n
+    for term in set(_tokenize(query)):
+        df = sum(1 for c in counters if term in c)
+        if df == 0:
+            continue
+        idf = math.log(1 + (n - df + 0.5) / (df + 0.5))
+        for i, c in enumerate(counters):
+            f = c.get(term, 0)
+            if f == 0:
+                continue
+            dl = len(doc_toks[i])
+            scores[i] += idf * (f * (k1 + 1)) / (f + k1 * (1 - b + b * dl / avgdl))
+    return scores
+
+
+def _rrf_fuse(rank_lists: list[list[int]], k: int = 60) -> list[int]:
+    """Reciprocal Rank Fusion of several ranked index-lists → indices by fused score (desc).
+
+    Parameter-light fusion (Cormack et al.): a doc ranked high in EITHER the semantic or the BM25
+    ordering rises, so an exact-term match buried mid-pool by cosine is promoted toward top-k.
+    """
+    fused: dict[int, float] = defaultdict(float)
+    for rl in rank_lists:
+        for rank, idx in enumerate(rl):
+            fused[idx] += 1.0 / (k + rank + 1)
+    return sorted(fused, key=lambda i: fused[i], reverse=True)
 
 
 logger = logging.getLogger(__name__)
@@ -110,6 +162,37 @@ class GraphRAGQuery:
         )
 
         return results[0].get("result", [])
+
+    async def bm25_fused_search(
+        self, query: str, top_k: int = 5, pool: int = 20, min_score: float = 0.3
+    ) -> list[dict[str, Any]]:
+        """Semantic + BM25 lexical hybrid via Reciprocal Rank Fusion.
+
+        Retrieves a larger semantic POOL (default 20), re-scores it by BM25 lexical overlap, and
+        RRF-fuses the two rankings — promoting exact-term matches that pure cosine buries below
+        top_k (the RAG "exact term diluted by semantics" failure mode; Anthropic Contextual
+        Retrieval reports ~49% fewer retrieval failures from adding lexical BM25). Additive: leaves
+        semantic_search and the semantic+graph hybrid_search untouched.
+
+        Args:
+            query: search text
+            top_k: results to return after fusion
+            pool: semantic candidate pool to re-rank (>= top_k)
+            min_score: cosine floor for the semantic pool
+        """
+        pool_results = await self.semantic_search(
+            query, top_k=max(pool, top_k), min_score=min_score
+        )
+        if len(pool_results) <= 1:
+            return pool_results[:top_k]
+        contents = [r.get("content") or r.get("title") or "" for r in pool_results]
+        bm25 = _bm25_scores(query, contents)
+        semantic_order = list(range(len(pool_results)))  # already cosine-desc
+        bm25_order = sorted(
+            range(len(pool_results)), key=lambda i: bm25[i], reverse=True
+        )
+        fused_order = _rrf_fuse([semantic_order, bm25_order])
+        return [pool_results[i] for i in fused_order[:top_k]]
 
     async def hybrid_search(
         self,
