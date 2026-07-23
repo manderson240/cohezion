@@ -59,8 +59,10 @@ class TestRetardedFieldStructural:
 
     def test_signal_at_observer_callable(self) -> None:
         """signal_at_observer(signal_fn, t, delay) must return a float."""
+
         def signal_fn(t):
             return 1.0 if t >= 0 else 0.0
+
         val = signal_at_observer(signal_fn, t=1000.0, delay=500.0)
         assert isinstance(val, float)
 
@@ -118,6 +120,7 @@ class TestRetardedFieldDiscriminating:
 
     def test_zero_delay_is_identity(self) -> None:
         """With τ=0, observer receives the signal with no shift."""
+
         def fn(t):
             return math.sin(t)
 

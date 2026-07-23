@@ -23,8 +23,10 @@ def test_variant_expansion_covers_space_and_capital_forms():
 def test_bias_map_applies_penalty_to_marker_tokens():
     # fake tokenizer: each distinct string maps to a stable single id; penalize all of them
     ids = {}
+
     def token_ids_for(s):
         return [ids.setdefault(s, len(ids) + 1000)]
+
     bias = overthinking_logit_bias(token_ids_for, markers=["wait"], penalty=-5.0)
     assert bias, "expected non-empty bias map"
     assert all(v == -5.0 for v in bias.values())
@@ -35,5 +37,6 @@ def test_multi_token_markers_are_skipped():
     # a marker that tokenizes to >1 tokens must NOT be biased (would penalize unrelated continuations)
     def token_ids_for(s):
         return [1, 2, 3] if "alternatively" in s.lower() else [42]
+
     bias = overthinking_logit_bias(token_ids_for, markers=["alternatively"])
     assert bias == {}, bias  # all variants are multi-token → skipped

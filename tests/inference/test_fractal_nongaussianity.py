@@ -16,7 +16,7 @@ GAUSSIAN_LIKE = [0.45, 0.5, 0.55, 0.48, 0.52, 0.5, 0.47, 0.53, 0.5, 0.49]
 
 def test_right_skewed_series_is_flagged_nongaussian():
     r = nongaussianity(RIGHT_SKEWED)
-    assert r["skewness"] > 0.5, r          # a no-op (returns 0) fails here
+    assert r["skewness"] > 0.5, r  # a no-op (returns 0) fails here
     assert r["nongaussian"] is True, r
 
 
@@ -27,7 +27,9 @@ def test_gaussian_like_series_low_skew():
 
 def test_skew_discriminates_between_series():
     # the DISCRIMINATING inequality: an impl that ignores the 3rd moment gives 0 for both → fails
-    assert abs(nongaussianity(RIGHT_SKEWED)["skewness"]) > abs(nongaussianity(GAUSSIAN_LIKE)["skewness"])
+    assert abs(nongaussianity(RIGHT_SKEWED)["skewness"]) > abs(
+        nongaussianity(GAUSSIAN_LIKE)["skewness"]
+    )
 
 
 def test_constant_series_is_gaussian_trivial():

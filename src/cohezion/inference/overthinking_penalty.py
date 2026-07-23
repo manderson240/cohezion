@@ -21,7 +21,13 @@ from collections.abc import Callable, Iterable
 
 # The paper's curated overthinking markers (base forms; expanded to tokenizer variants below).
 DEFAULT_OVERTHINKING_MARKERS: tuple[str, ...] = (
-    "wait", "but", "alternatively", "however", "actually", "hmm", "although",
+    "wait",
+    "but",
+    "alternatively",
+    "however",
+    "actually",
+    "hmm",
+    "although",
 )
 
 

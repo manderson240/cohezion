@@ -60,10 +60,14 @@ def _mock_httpx(content: str = "", reasoning_content: str = "", capture: dict | 
 def test_t1_reasoning_content_fallback_is_graded_fairly():
     """content='' but correct code in reasoning_content → exec quality 1.0 (old harness: 0.0)."""
     reasoning = f"Here's my plan...\n```python\n{CORRECT_FIB}```\nDone."
-    with patch("httpx.AsyncClient", return_value=_mock_httpx(content="", reasoning_content=reasoning)):
+    with patch(
+        "httpx.AsyncClient", return_value=_mock_httpx(content="", reasoning_content=reasoning)
+    ):
         ttft, tps, text = asyncio.run(_call_model("m", "prompt", 3072, 300.0))
     assert CORRECT_FIB.split("\n")[0] in text, "reasoning_content must be used when content empty"
-    task = BenchTask("code_fibonacci", "code", "p", ["def"], grader="python_exec", test_code=FIB_TEST)
+    task = BenchTask(
+        "code_fibonacci", "code", "p", ["def"], grader="python_exec", test_code=FIB_TEST
+    )
     exec_pass = _run_python_test(text, task.test_code)
     res = _score_result(task, ttft, tps, text, exec_pass=exec_pass)
     assert res.quality_ratio == 1.0
@@ -74,8 +78,12 @@ def test_t2_keyword_matching_but_broken_code_fails_exec():
     """Text with 'def','fibonacci','return' but a SyntaxError scores 0 under exec (old keyword: 1.0)."""
     broken = "```python\ndef fibonacci(n) return n\n```"  # missing colon → SyntaxError
     task = BenchTask(
-        "code_fibonacci", "code", "p", ["def", "fibonacci", "return"],
-        grader="python_exec", test_code=FIB_TEST,
+        "code_fibonacci",
+        "code",
+        "p",
+        ["def", "fibonacci", "return"],
+        grader="python_exec",
+        test_code=FIB_TEST,
     )
     # Old keyword grader WOULD have scored this 1.0 (all 3 keywords present):
     kw_task = BenchTask("x", "code", "p", ["def", "fibonacci", "return"])  # grader defaults keyword

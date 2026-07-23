@@ -53,7 +53,9 @@ class BenchTask:
     expected_keywords: list[str]  # presence check (case-insensitive)
     max_tokens: int = 60
     grader: str = "keyword"  # "keyword" (surface-form) | "python_exec" (behavior)
-    test_code: str = ""  # for grader="python_exec": assert-based test appended to the generated code
+    test_code: str = (
+        ""  # for grader="python_exec": assert-based test appended to the generated code
+    )
     timeout_s: float = 30.0  # per-call HTTP timeout (raise for reasoning models on big budgets)
 
 
@@ -81,7 +83,11 @@ TASK_SUITE: list[BenchTask] = [
             "numbers as a list, starting with 0, 1 (so fib(7) == [0,1,1,2,3,5,8]). "
             "Reply with a Python code block."
         ),
-        expected_keywords=["def", "fib", "return"],  # retained for provenance; unused by exec grader
+        expected_keywords=[
+            "def",
+            "fib",
+            "return",
+        ],  # retained for provenance; unused by exec grader
         max_tokens=3072,
         grader="python_exec",
         test_code="assert fib(7) == [0, 1, 1, 2, 3, 5, 8]\nassert fib(0) == []\nassert fib(1) == [0]",
@@ -160,10 +166,20 @@ async def _call_model(
 ) -> tuple[float, float, str]:
     """POST to OmniRouter /api/v1/chat/completions and return (ttft_s, tps, text).
 
-    Reads message.content, falling back to message.reasoning_content when content is
-    empty (DeepSeek/Lemonade reasoning-model convention — a reasoning model exhausting
-    its budget mid-think leaves content=""), and strips inline <think>…</think> blocks.
-    Returns (0, 0, "") on error rather than raising so the gauntlet keeps running.
+    Reference implementation of the local-LLM chat SAFETY CONTRACT — new call sites
+    should route through this (or a successor helper carrying the same contract)
+    rather than making a raw httpx/requests POST, which is how solved reasoning-model
+    traps re-appear (2026-07-17 graphify empty-content incident). The contract:
+
+      1. Read message.content, FALL BACK to message.reasoning_content when content is
+         empty (DeepSeek/Lemonade reasoning-model convention — a reasoning model
+         exhausting its budget mid-think leaves content="").
+      2. Strip inline <think>…</think> blocks.
+      3. Return (0, 0, "") on error rather than raising, so batch loops keep running.
+
+    NET-NEW raw chat/completions call sites are flagged by
+    scripts/ci/check_local_llm_chokepoint.sh. Consumption guidance:
+    vault model-research/2026-07-17-thinking-models-playbook.md.
     """
     try:
         import httpx  # lazy import — test mocks replace this
@@ -215,9 +231,7 @@ def _run_python_test(code: str, test_code: str, timeout: float = 10.0) -> bool:
         f = Path(td) / "cand.py"
         f.write_text(body + "\n" + test_code + "\n")
         try:
-            r = subprocess.run(
-                [py, "-I", str(f)], cwd=td, capture_output=True, timeout=timeout
-            )
+            r = subprocess.run([py, "-I", str(f)], cwd=td, capture_output=True, timeout=timeout)
             return r.returncode == 0
         except (subprocess.TimeoutExpired, OSError):
             return False
