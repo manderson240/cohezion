@@ -138,6 +138,7 @@ class EventConsumer:
         sql_fn: Callable[[str], list[dict[str, Any]]] | None = None,
         summarize_fn: Callable[[str, str], str] | None = None,
         file_work_item_fn: Callable[[str, str, str], str] | None = None,
+        land_review_fn: Callable[..., Any] | None = None,
     ) -> None:
         if not re.match(r"^[A-Za-z0-9_.\-]+$", consumer_id):
             raise ValueError(f"unsafe consumer_id: {consumer_id!r}")
@@ -145,6 +146,9 @@ class EventConsumer:
         self._sql = sql_fn or _default_sql
         self._summarize = summarize_fn or _default_summarize
         self._file_work_item = file_work_item_fn or _default_file_work_item
+        self._land_review = (
+            land_review_fn  # lazy default (see _handle_land_ready) — avoids import at module load
+        )
         self._ensure_claim_field()
 
     def _ensure_claim_field(self) -> None:
@@ -181,6 +185,8 @@ class EventConsumer:
         """Deterministic routing; local inference writes the summary only."""
         etype = str(event.get("event_type", "")).lower()
         payload = str(event.get("payload", ""))
+        if etype == "land_ready":
+            return self._handle_land_ready(payload, str(event.get("source", "datamesh")))
         if etype in ACTIONABLE_EVENT_TYPES:
             summary = self._summarize(etype, payload)
             item_id = self._file_work_item(
@@ -190,6 +196,26 @@ class EventConsumer:
             )
             return {"action": "work-item", "work_item": item_id}
         return {"action": "tally"}
+
+    def _handle_land_ready(self, payload: str, source: str) -> dict[str, Any]:
+        """Route a land_ready event to the independent CI/CD runner, then file a kanban item.
+
+        This closes the ambient loop: the Stop hook publishes land_ready → this running
+        consumer routes it here → land_runner runs gates + independent adversarial review
+        + semver → a READY/BLOCKED work-item the actioner surfaces for a HUMAN. No push.
+        """
+        land_review = self._land_review
+        if land_review is None:  # lazy default — keep the heavy live fns out of module import
+            from cohezion.data_mesh.land_runner import run_land_review as land_review
+        try:
+            data = json.loads(payload) if payload.strip().startswith("{") else {}
+        except Exception:
+            data = {}
+        repo = str(data.get("repo", ""))
+        branch = str(data.get("branch", ""))
+        verdict = land_review(repo, branch)
+        item_id = self._file_work_item(verdict.title, verdict.body(), source)
+        return {"action": "land-review", "work_item": item_id, "ready": bool(verdict.ready)}
 
     def run_once(self, batch: int = 25) -> dict[str, Any]:
         """One drain pass. Honest summary; per-event failures isolated."""
