@@ -41,18 +41,53 @@ def execute(task: str, context: str = "") -> dict:
 
 def rag(query: str) -> dict:
     """Best-effort vault RAG grounding. Fail-soft to empty chunks."""
-    try:
-        from cohezion.core.context_engineering import ContextEngineeringInfrastructure
+    import base64
+    import math
+    import urllib.request
 
-        infra = ContextEngineeringInfrastructure()
-        for meth in ("find_relevant_context", "retrieve", "search"):
-            f = getattr(infra, meth, None)
-            if callable(f):
-                res = f(query)
-                chunks = res if isinstance(res, list) else [res]
-                return {"ok": True, "chunks": chunks, "count": len(chunks)}
-        return {"ok": False, "chunks": [], "count": 0, "error": "no retrieval method found"}
-    except Exception as exc:
+    def _embed(text: str) -> list[float]:
+        req = urllib.request.Request(  # noqa: S310 — fixed localhost router
+            "http://localhost:13305/v1/embeddings",
+            data=json.dumps({"model": "nomic-embed-text-v2-moe-GGUF", "input": text[:500]}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as r:  # noqa: S310
+            return json.loads(r.read())["data"][0]["embedding"]
+
+    def _sql(q: str) -> list:
+        req = urllib.request.Request(  # noqa: S310 — fixed localhost SurrealDB
+            "http://localhost:8001/sql",
+            data=q.encode(),
+            headers={
+                "surreal-ns": "cohezion",
+                "surreal-db": "corpus",
+                "Content-Type": "text/plain",
+                "Accept": "application/json",
+                "Authorization": "Basic " + base64.b64encode(b"root:root").decode(),
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as r:  # noqa: S310
+            return json.loads(r.read())
+
+    def _cos(a: list[float], b: list[float]) -> float:
+        dot = sum(x * y for x, y in zip(a, b))
+        na = math.sqrt(sum(x * x for x in a))
+        nb = math.sqrt(sum(y * y for y in b))
+        return dot / (na * nb) if na and nb else 0.0
+
+    try:
+        qv = _embed(query)
+        rows = _sql("SELECT title, topic, summary, embedding FROM adp_pattern;")[0]["result"]
+        scored = [(_cos(qv, r["embedding"]), r) for r in rows if r.get("embedding")]
+        scored.sort(key=lambda t: t[0], reverse=True)
+        chunks = [
+            {"title": r["title"], "topic": r["topic"], "summary": r["summary"], "score": round(s, 3)}
+            for s, r in scored[:5]
+        ]
+        return {"ok": True, "chunks": chunks, "count": len(chunks)}
+    except Exception as exc:  # fail-soft — vault RAG is best-effort
         return {"ok": False, "chunks": [], "count": 0, "error": str(exc)}
 
 
