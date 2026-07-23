@@ -203,6 +203,39 @@ def hiho_fixed_point_deviation(scores: list[float]) -> float:
     return abs(sum(scores) / len(scores) - 0.5)
 
 
+def nongaussianity(series: list[float]) -> dict[str, float | bool]:
+    """Non-Gaussianity of a quality/coherence series via standardized cumulants.
+
+    Motivated by Allemand et al. (Nature 2026, doi:10.1038/s41586-026-10811-1): near a phase
+    transition the order parameter's high-order cumulants become non-zero and change sign — a
+    criticality signature the mean/variance miss. Here the "order parameter" is the coherence
+    series; a run approaching a regime change (stuck<->hiho<->chaotic) develops skew/heavy tails
+    BEFORE ``higuchi_fd`` fully crosses a band, so this complements (never replaces) the FD signal.
+
+    Returns skewness (3rd standardized moment), excess_kurtosis (4th - 3; 0 = Gaussian), and a
+    ``nongaussian`` flag. A degenerate (near-constant) series is Gaussian-trivially: zeros, flag False.
+    """
+    n = len(series)
+    if n < 3:
+        return {"skewness": 0.0, "excess_kurtosis": 0.0, "nongaussian": False}
+    mean = sum(series) / n
+    var = sum((x - mean) ** 2 for x in series) / n
+    sigma = math.sqrt(var)
+    if sigma < 1e-9:  # near-constant: no distribution to be non-Gaussian about
+        return {"skewness": 0.0, "excess_kurtosis": 0.0, "nongaussian": False}
+    m3 = sum((x - mean) ** 3 for x in series) / n
+    m4 = sum((x - mean) ** 4 for x in series) / n
+    skew = m3 / (sigma**3)
+    excess_kurt = m4 / (sigma**4) - 3.0
+    # Gaussian => (0, 0). Flag when either cumulant departs materially from Gaussian.
+    nongaussian = abs(skew) > 0.5 or abs(excess_kurt) > 1.0
+    return {
+        "skewness": round(skew, 4),
+        "excess_kurtosis": round(excess_kurt, 4),
+        "nongaussian": nongaussian,
+    }
+
+
 def quality_series_report(scores: list[float]) -> dict[str, float | str]:
     """Comprehensive fractal + Feynman report for an AUTODQA quality series.
 
@@ -252,12 +285,16 @@ def quality_series_report(scores: list[float]) -> dict[str, float | str]:
     else:  # CHAOTIC
         interp = "Chaotic. Quality oscillating wildly. Check model health."
 
+    ng = nongaussianity(scores)
     return {
         "fd": round(fd, 3),
         "hiho_deviation": round(dev, 4),
         "hiho_engaged": engaged,
         "regime": regime.value,
         "feynman_dominant_tier": dominant,
+        "skewness": ng["skewness"],
+        "excess_kurtosis": ng["excess_kurtosis"],
+        "nongaussian": ng["nongaussian"],
         "interpretation": interp,
     }
 
