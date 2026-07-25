@@ -1045,10 +1045,38 @@ class JourneyTracker:
                 logger.warning("verify_chain: no entries found for chain_id=%s", chain_id)
                 return False
 
+            # HC1: verify BOTH (a) each entry's own hash and (b) its LINKAGE to the previous entry.
+            # Checking (a) alone validates every row against its own stored prev_hash, so deleting,
+            # inserting or reordering rows leaves each survivor internally consistent and the chain
+            # still verifies — i.e. false integrity assurance (live-proven 2026-07-12: a deleted
+            # middle row still returned True). The linkage + sequence-continuity checks below are
+            # what make this an actual hash CHAIN rather than a bag of self-consistent rows.
+            expected_prev = "0" * 64  # genesis, matches the write side in _append_hash_chain
+            expected_seq = 0
             for entry in entries:
                 prev_hash = entry["prev_hash"]
                 payload_hash = entry["payload_hash"]
                 stored_chain_hash = entry["chain_hash"]
+
+                if int(entry["sequence"]) != expected_seq:
+                    logger.warning(
+                        "verify_chain: sequence gap at %s (expected %s) for chain_id=%s "
+                        "— row inserted, deleted or reordered",
+                        entry["sequence"],
+                        expected_seq,
+                        chain_id,
+                    )
+                    return False
+
+                if prev_hash != expected_prev:
+                    logger.warning(
+                        "verify_chain: BROKEN LINKAGE at sequence=%s for chain_id=%s "
+                        "(prev_hash does not match the preceding entry's chain_hash)",
+                        entry["sequence"],
+                        chain_id,
+                    )
+                    return False
+
                 recomputed = hashlib.sha256(f"{prev_hash}:{payload_hash}".encode()).hexdigest()
                 if stored_chain_hash != recomputed:
                     logger.warning(
@@ -1057,6 +1085,9 @@ class JourneyTracker:
                         chain_id,
                     )
                     return False
+
+                expected_prev = stored_chain_hash
+                expected_seq += 1
 
             return True
 
