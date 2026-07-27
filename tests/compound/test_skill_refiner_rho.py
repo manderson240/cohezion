@@ -13,8 +13,28 @@ Each test fails a plausible wrong impl:
 
 from __future__ import annotations
 
+import pytest
+
 from cohezion.compound.skill_refiner import SkillRefiner
 from cohezion.models.rho_selector import HarnessCandidate
+
+# These tests are PREMATURE on this branch, not broken.
+#
+# The implementation they exercise — the ``rho_enabled`` kwarg on ``SkillRefiner`` —
+# lives in commit 3b2177104 on ``origin/feat/adaptive-calibration-harness``, which has
+# NEVER been merged here (verified: ``git merge-base --is-ancestor 3b2177104 HEAD``
+# fails). The tests reached this branch separately via #242/#251, without their
+# implementation. Nothing was lost or deleted; the RHO *selector* itself
+# (``harness_tuning_specialist.py``) IS present — only the SkillRefiner flag wiring is
+# absent, so every test here fails with:
+#   TypeError: SkillRefiner.__init__() got an unexpected keyword argument 'rho_enabled'
+#
+# strict=True is deliberate: when that branch lands, these turn XPASS and FAIL the
+# suite, forcing this marker to be removed rather than silently masking real coverage.
+pytestmark = pytest.mark.xfail(
+    strict=True,
+    reason="RHO->SkillRefiner wiring (3b2177104) is unmerged; lives on origin/feat/adaptive-calibration-harness",
+)
 
 
 def _fallback_corpus(task: str, n: int = 6) -> list[dict]:

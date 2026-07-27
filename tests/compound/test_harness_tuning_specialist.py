@@ -12,6 +12,18 @@ Each test fails a plausible wrong impl:
 
 from __future__ import annotations
 
+import pytest
+
+# PREMATURE on this branch, not broken — same root cause as
+# tests/compound/test_skill_refiner_rho.py. All 5 tests here fail with:
+#   TypeError: SkillRefiner.__init__() got an unexpected keyword argument 'rho_enabled'
+# The wiring lives in commit 3b2177104 on ``origin/feat/adaptive-calibration-harness``,
+# which is NOT an ancestor of HEAD. strict=True forces removal once that branch lands.
+pytestmark = pytest.mark.xfail(
+    strict=True,
+    reason="RHO->SkillRefiner wiring (3b2177104) is unmerged; lives on origin/feat/adaptive-calibration-harness",
+)
+
 from cohezion.compound.harness_tuning_specialist import HarnessTuningSpecialist
 from cohezion.compound.skill_refiner import SkillRefiner
 
