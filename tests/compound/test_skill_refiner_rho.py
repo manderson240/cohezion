@@ -18,6 +18,7 @@ import pytest
 from cohezion.compound.skill_refiner import SkillRefiner
 from cohezion.models.rho_selector import HarnessCandidate
 
+
 # These tests are PREMATURE on this branch, not broken.
 #
 # The implementation they exercise — the ``rho_enabled`` kwarg on ``SkillRefiner`` —

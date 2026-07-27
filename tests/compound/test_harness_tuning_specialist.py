@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import pytest
 
+
 # PREMATURE on this branch, not broken — same root cause as
 # tests/compound/test_skill_refiner_rho.py. All 5 tests here fail with:
 #   TypeError: SkillRefiner.__init__() got an unexpected keyword argument 'rho_enabled'

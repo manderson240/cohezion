@@ -18,9 +18,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from cohezion.compound import local_inference
+from cohezion.compound import local_inference, qa_gate
 from cohezion.compound import prompt_version_registry as pvr
-from cohezion.compound import qa_gate
 from cohezion.inference.lemonade_embed_bridge import LemonadeEmbedBridge
 
 from .conftest import _DEAD_LEMONADE_URL, _DEAD_SURREAL_URL

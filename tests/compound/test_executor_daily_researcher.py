@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+
 # PREMATURE on this branch, not broken.
 #
 # ``ExecutorFactory.create(enable_daily_researcher=...)`` is implemented in commit
