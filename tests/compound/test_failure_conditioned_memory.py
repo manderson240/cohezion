@@ -128,6 +128,7 @@ class TestSkillRefinerFailureConditionedRecommendation:
 class TestLiveEmbedSmoke:
     """Live :13305 smoke — skipped when lemonade/nomic-embed is unreachable."""
 
+    @pytest.mark.integration
     def test_paraphrased_failures_are_near_in_embedding_space(self):
         from cohezion.inference.lemonade_embed_bridge import LemonadeEmbedBridge
 
