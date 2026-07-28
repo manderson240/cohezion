@@ -90,3 +90,9 @@
 	path = archives/backups/vendor/kaggle-skill
 	url = https://TODO.example.invalid/kaggle-skill.git
 	# Gitlink commit: f5105ab792ac6699d0e69861e32f09835e5706a6
+
+# Kaggle Nemotron scratch (orphaned gitlink; not initialized)
+[submodule ".tmp_kaggle/nemo-win"]
+	path = .tmp_kaggle/nemo-win
+	url = https://TODO.example.invalid/nemo-win.git
+	# Gitlink commit: 82bd1880aa8a8986ad572ccd17ae35b2b5c7da85
