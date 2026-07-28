@@ -69,10 +69,23 @@ step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnin
 
 # Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
 # that bypass the blessed path + its content->reasoning_content fallback.
-# Report-mode-first rollout (mirrors check_inference_port_bypass.sh) — always
-# exits 0 for now; drop the --report flag to enforce (fail on new sites) once
-# the baseline is settled on the branch.
-step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh --report
+#
+# ENFORCING as of 2026-07-28 (was --report). The report-mode rollout is over: the
+# baseline was settled at 77 files and the gate now FAILS on any net-new bypass.
+#
+# Why this matters for quarter-on-a-string: a raw urllib/httpx call to :13305 cannot
+# be routed (no local-first cascade), cannot be ledgered (TL1/TL2 record_local vs
+# record_cloud), and cannot be gated. Even when such a call is local-only today, it
+# is an un-instrumented seam through which a cloud escalation can later appear
+# unobserved — `data_mesh/land_runner.py` already documents "escalate to cloud on a
+# flag" from exactly such a raw call site.
+#
+# The three files baselined at the flip (prompt_reliability.py, land_runner.py,
+# session_digest.py) are all local-only $0 today. They are GRANDFATHERED, not
+# absolved — each still needs routing through the blessed path.
+#
+# To add a call site intentionally: scripts/ci/check_local_llm_chokepoint.sh --update-baseline
+step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh
 
 # Step 6c: Dormancy scan (gating). A curated registry of load-bearing capabilities
 # that must have a production consumer, not just a `def` + green unit tests — the
@@ -80,6 +93,22 @@ step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh --rep
 # failure-path wiring all sit dormant behind passing tests. Unlike 6b, this is
 # blocking from the start: the registry is curated specifically to never cry wolf.
 step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
+
+# Step 6d: Referential integrity — systemd units. Does every ExecStart target actually resolve?
+# Added 2026-07-26 after 5 of 45 user units were found pointing at things that do not exist (one
+# shipped `__PYTHON3__` installer placeholders verbatim), producing ~10k journal failure events in
+# 24h that nothing surfaced. Handles BOTH the absolute-path form and `python -m pkg.module` — the
+# latter is what broke cohezion-resource-guard and is invisible to a naive path check.
+# Report-mode-first (mirrors 6b): the 5 known-broken units are pre-existing. Drop --report to
+# enforce once they are wired or retired, so the class cannot silently return.
+step "systemd unit audit" uv run python scripts/ci/systemd_unit_audit.py --report
+
+# Step 6e: Referential integrity — graph cardinality. Are DECLARED relation tables populated?
+# Same instrument class as 6d (existence + cardinality over declarations), different referent type.
+# 8 of 9 declared relation tables are empty and `journey_knowledge` — the bridge between 278,741
+# execution rows and 1,146 knowledge docs — holds 0 rows; nothing in ~30 existing gates could
+# notice. Report-only until the tables are populated or the declarations retired.
+step "graph cardinality" uv run python scripts/ci/graph_cardinality_audit.py
 
 # Step 7: Conventional commit / version governance
 step "version governance" uv run python scripts/ci/version_governance.py
