@@ -1,0 +1,14 @@
+# Gitignored files copied into every Claude Code worktree at creation.
+# Syntax: .gitignore-style. Only files that match AND are gitignored are copied.
+# Docs: https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees
+#
+# .mcp.json is REQUIRED, not just convenient: the Bash sandbox (bwrap) bind-mounts
+# <cwd>/.mcp.json as a mountpoint. In a worktree under the read-only .claude/ tree it
+# cannot CREATE that mountpoint, so a missing .mcp.json aborts sandbox setup and kills
+# EVERY Bash command with:
+#   bwrap: Can't create file at <worktree>/.mcp.json: Read-only file system
+# worktree.sparsePaths cannot fix this — sparse-checkout delivers tracked files only.
+.mcp.json
+
+# Local environment config; worktrees are fresh checkouts and otherwise start without it.
+.env
