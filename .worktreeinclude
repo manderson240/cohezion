@@ -10,5 +10,9 @@
 # worktree.sparsePaths cannot fix this — sparse-checkout delivers tracked files only.
 .mcp.json
 
-# Local environment config; worktrees are fresh checkouts and otherwise start without it.
-.env
+# DELIBERATELY NOT INCLUDED — do not "helpfully" re-add:
+#   .env  — carries live secrets/tokens. Copying it duplicates them into EVERY new
+#           worktree, including automatically-created agent worktrees, with no
+#           lifecycle management. .mcp.json is required to prevent a hard sandbox
+#           outage; .env is only a convenience, so the risk is not worth it.
+#           If a worktree needs it, copy it deliberately for that worktree.
