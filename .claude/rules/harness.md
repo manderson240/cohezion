@@ -52,7 +52,7 @@ was green only because tests exercised the easy paths. Corrections (all committe
 
 ## Valid Code Changes (is_legal_change)
 
-1. **All Python code must be valid Python 3.11** — use `compile()` or import
+1. **All Python code must be valid Python 3.13** — use `compile()` or import
 2. **Skill files (`src/cohezion/skills/*.md`) must produce valid Python stubs** — run validate_skills.py
 3. **Registry entries must reference existing skill files** — no orphaned entries
 4. **Generated class names must be valid Python identifiers** — `_skill_name_to_class()` strips dashes/spaces
@@ -80,7 +80,7 @@ was green only because tests exercised the easy paths. Corrections (all committe
 
 ## Project-Specific Notes
 
-- Python 3.11 required (torch ROCm 3.13 incompatibility)
+- Python **>=3.13** required (`pyproject requires-python = ">=3.13"`; venv runs 3.13.11). torch+ROCm (`torch==2.8.0+rocm6.3`) caps Python support at 3.13 — no `cp314` wheels exist for any torch+ROCm build yet, so **3.14 is NOT usable** until AMD/PyTorch ship a cp314 ROCm wheel (or you build from source). (Corrected 2026-07-23: the prior "3.11 required" note was stale — 3.11/3.12 are now below the floor.)
 - `uv sync --frozen` for reproducible builds
 - Self-hosted runner `t30-runner` is bottlenecked — prefer ubuntu-latest for CI
 - Pre-commit hooks: trailing-whitespace, end-of-file-fixer, no-hardcoded-home-paths
