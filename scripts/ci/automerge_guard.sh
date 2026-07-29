@@ -94,6 +94,15 @@ step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh
 # blocking from the start: the registry is curated specifically to never cry wolf.
 step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 
+# Step 6c-bis: Doc↔code drift — the sibling of 6c. dormancy_scan asks "does this code have a
+# consumer?"; this asks "do the docs tell the truth about the code?". Already gating in
+# ci.yml; added here 2026-07-29 so the LOCAL landing gate matches CI rather than discovering
+# the failure after a push. --self-test runs FIRST: it proves each check can still FAIL (with
+# a negative control that must stay silent). A scanner bug otherwise reads as a clean "0
+# errors" — how the RGA1/RGA2 phantom invariants passed, and how E2 was found unable to fire.
+step "doc-code self-test" uv run python scripts/ci/doc_code_consistency.py --self-test
+step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
+
 # Step 6d: Referential integrity — systemd units. Does every ExecStart target actually resolve?
 # Added 2026-07-26 after 5 of 45 user units were found pointing at things that do not exist (one
 # shipped `__PYTHON3__` installer placeholders verbatim), producing ~10k journal failure events in

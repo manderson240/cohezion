@@ -86,6 +86,16 @@ REGISTRY: list[tuple[str, str, str, int]] = [
 KNOWN_DORMANT: list[str] = [
     "CR1 _recompute_tier_at_compaction — no production boundary fires it (intentional callable; harness-documented)",
     "get_pending_approvals — write side consumed, READ side has no operator surface (HITL gap)",
+    "RiemannianGlideTrajectory — geodesic integration made CORRECT 2026-07-29 (was silently "
+    "straight-line under any curved metric) but has NO production consumer: only "
+    "physics/__init__ re-exports it. INVESTIGATED 2026-07-29 — do NOT wire it: "
+    "LagrangianDynamics (physics/lagrangian.py:132) already calls "
+    "metric.geodesic_acceleration and integrates with VERLET (2nd-order, vs this class's "
+    "1st-order Euler-Cromer) plus force terms, and is already live in ManifoldEnv "
+    "(environments/manifold_env.py:176). It is a strict superset; adding a consumer here "
+    "would duplicate a working path with a worse integrator. Correct-and-dormant, "
+    "deliberately — kept as the small dependency-free primitive (pure-Python lists, no "
+    "numpy at import) that LagrangianDynamics is not.",
 ]
 
 
