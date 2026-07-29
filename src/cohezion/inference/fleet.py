@@ -434,7 +434,7 @@ async def _dispatch_one(
     if model.lane in {Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY}:
         text, cost = await _dispatch_headless_cli(model, prompt, timeout, budget_usd)
         return text, cost, None, None
-    if model.lane == Lane.CLOUD_OLLAMA or (
+    if (model.lane == Lane.CLOUD_OLLAMA and model.endpoint.endswith(":11434")) or (
         model.lane == Lane.CPU and model.endpoint.endswith(":11434")
     ):
         text, cost = await _dispatch_ollama(model, prompt, timeout)
