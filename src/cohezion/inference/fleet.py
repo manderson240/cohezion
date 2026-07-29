@@ -219,8 +219,11 @@ async def _dispatch_openai_compatible(
     if not stream:
         client = _get_shared_client(timeout)
         resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
+        try:
+            resp.raise_for_status()
+            data = resp.json()
+        finally:
+            await resp.aclose()
         msg = data["choices"][0]["message"]
         content = msg.get("content") or ""
         reasoning = msg.get("reasoning_content") or ""
