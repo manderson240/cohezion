@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 
 
 # Universal initialization
@@ -526,6 +527,12 @@ with contextlib.suppress(Exception):
     from cohezion.compound.vmodel_harness import VModelHarness as VModelHarness
 
 
+# Defined AFTER the re-export block on purpose: this module is one long sequence of
+# `import ... as ...` re-exports, so any statement placed above them makes every subsequent
+# import an E402 ("module level import not at top of file") — 44 of them, in fact.
+logger = logging.getLogger(__name__)
+
+
 def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
     """Factory that wires local AMD silicon (Triune) inference by default.
 
@@ -587,6 +594,33 @@ def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
             kwargs["degradation_detector"] = _dd  # type: ignore[assignment]
         except Exception:
             pass
+
+    # REFLECT step. Same duplication reason as the block above: this make_executor bypasses
+    # ExecutorFactory.create(), which DOES auto-create a RetrospectionEngine — so without this
+    # the loop silently runs execute -> refine, skipping reflect. executor.py:1426 consumes it
+    # (analyze_execution_result gates should_refine), so a None here does not error; it just
+    # ungates skill refinement, which is the failure mode that hid this for so long.
+    # N5: pass the local inference provider so reflection runs on local silicon, not cloud.
+    if "retrospection_engine" not in kwargs:
+        try:
+            from cohezion.core.compound.retrospection import RetrospectionEngine
+
+            kwargs["retrospection_engine"] = RetrospectionEngine(  # type: ignore[assignment]
+                inference_provider=exec_provider
+            )
+        except Exception:
+            # WARNING, not `pass`. Adversarial review (2026-07-29) flagged that a silent
+            # swallow here re-creates the ORIGINAL bug invisibly: the executor is built
+            # without REFLECT, `should_refine` defaults True, refinement runs ungated, and
+            # nothing anywhere says so. That is precisely how this went unnoticed the first
+            # time. Still non-fatal — a missing reflect step must not stop execution — but it
+            # must be observable. Note the sibling degradation_detector block above still
+            # swallows silently; same latent risk, deliberately out of scope for this commit.
+            logger.warning(
+                "make_executor: RetrospectionEngine auto-create FAILED — the REFLECT step is "
+                "absent and skill refinement will run UNGATED",
+                exc_info=True,
+            )
 
     # M1: the FAPO R3 regression gate's run_fn is wired in SkillRefinerFactory.create (the canonical
     # creation point — the executor builds its SkillRefiner lazily, so it isn't available here).
