@@ -400,14 +400,21 @@ async def _dispatch_headless_cli(
     stdout = stdout_b.decode(errors="replace")
     try:
         data = json.loads(stdout)
-        text = (
-            data.get("result")
-            or data.get("text")
-            or data.get("response")
-            or data.get("content")
-            or ""
-        )
-        cost = float(data.get("total_cost_usd", 0.0))
+        if isinstance(data, dict):
+            text = (
+                data.get("result")
+                or data.get("text")
+                or data.get("response")
+                or data.get("content")
+                or ""
+            )
+            cost = float(data.get("total_cost_usd", 0.0))
+        elif isinstance(data, list):
+            text = json.dumps(data)
+            cost = 0.0
+        else:
+            text = str(data)
+            cost = 0.0
     except json.JSONDecodeError:
         text = stdout.strip()
         cost = 0.0
