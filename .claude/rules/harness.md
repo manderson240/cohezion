@@ -586,18 +586,35 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - ERP history tuple keys survive `"skill::op"` encoding through the full save→restore cycle
 - **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestSkillRefinerDurableSpine -q` → 8 passed
 
-## RiemannianGlideTrajectory Curvature-Induced Anisotropy (#157, 2026-06-28)
+## RiemannianGlideTrajectory geodesic integration (#95, revised 2026-07-29)
 
-### RGA1: curvature_coupling=0.0 default preserves original step() behaviour (backward-compatible)
-- `RiemannianGlideTrajectory` accepts `curvature_coupling: float = 0.0` as 4th field
-- `step()` with κ=0 is byte-for-byte identical to the pre-#157 implementation
-- `anisotropy_tensor()` returns `[1.0, ..., 1.0]` when κ=0 or when `position=[0,...,0]`
-- **T1 structural**: `"curvature_coupling" in {f.name for f in dataclasses.fields(RiemannianGlideTrajectory)}`
-- **T1 backward-compat**: `test_backward_compatibility_no_coupling_kwarg` — step still gives [0.1, 0.2] for identity metric
+### RGA1/RGA2: REMOVED 2026-07-29 — were PHANTOM invariants
+The curvature-anisotropy names (`curvature_coupling`, `anisotropy_tensor`,
+`test_backward_compatibility_no_coupling_kwarg`) never existed in src or tests; the "12 passed"
+claim was false (the file had 4 tests). `git log --all --follow` on
+`src/cohezion/physics/riemannian_glide.py` shows exactly ONE commit (86c450fca, #95) — created
+once, never modified — while the block claimed a #157/2026-06-28 edit. Same class as RTG1.
+The described formula was also NOT a geodesic fix: `a_i = 1/(1 + κ g_ii |x_i|)` scales the step at
+first order, so `DR_x(0) ≠ id` — a position-dependent preconditioner, not a retraction.
+Do NOT re-add without actually implementing it + a real discriminating test.
 
-### RGA2: κ > 0 damps step in proportion to |position| — discriminating test
-- `a_i = 1 / (1 + κ * g_{ii} * |x_i|)` — factor < 1.0 when κ>0 and x≠0
-- `step(dt)` applies `x_{t+dt} = x_t + dt * v * a` (elementwise) instead of `x_t + dt * v`
+### RG1: step() is a geodesic only when Γ vanishes — CONSUMPTION invariant
+- `x + dt*v` is a geodesic iff the Christoffel symbols vanish, which requires a **constant**
+  metric — NOT merely a diagonal one. For conformal `g_ij = δ_ij h(x)`, `Γ¹₁₁ = ∂₁h / 2h ≠ 0`.
+- `RiemannianGlideTrajectory(metric=<RiemannianMetric>)` integrates the true geodesic via
+  `RiemannianMetric.geodesic_acceleration`; `metric=None` (default) keeps the straight-line step.
+- `step()` MUST advance velocity (`v ← v + dt·a`) — computing `a` and advancing position alone
+  leaves the path straight, i.e. a silent no-op.
+- `arc_length()` is non-mutating; `_g()` re-evaluates the metric at the CURRENT position.
+- `ricci_scalar()` returns 0.0 when unwired — correct, not a fallback: a `list[list[float]]`
+  metric is position-independent, hence flat. `curvature_proxy()` is a metric SCALE, not curvature.
+- **T2 discriminating** (verified by mutation testing 2026-07-29 — old code: 9 failed;
+  forgot-velocity: 3 failed; negated-Γ: 3 failed; mutating arc_length: 1 failed;
+  `_g` ignoring wired metric: 2 failed):
+  `test_geodesic_curves_in_the_predicted_direction` (direction-specific, catches sign errors),
+  `test_geodesic_matches_solve_ivp_reference` (RK45 cross-check catches wrong-but-nonzero `a`),
+  `test_velocity_delta_equals_dt_times_acceleration`, `test_constant_metric_stays_straight`.
+- **Verification**: `PYTHONPATH=src .venv/bin/python3 -m pytest tests/physics/test_riemannian_glide.py -q` → 13 passed
 - Curved trajectory (κ>0) is SHORTER than flat trajectory (κ=0) from same initial conditions
 - At origin |x|=0, damping is zero regardless of κ (no anisotropy at fixed point)
 - Source: PRL 136 256708 analogy — curvature resists transport in high-curvature directions
