@@ -13,10 +13,16 @@ Checks (deterministic, no LLM):
   E2 module    : every backtick `cohezion.dotted.module` resolves to a file.
   W3 class.method : `ClassName.method` where ClassName is defined in src but
                     `def method` is not defined in ClassName's file -> WARN.
+  W4 ctor kwarg   : `ClassName(kwarg=...)` where ClassName is defined in src but
+                    `kwarg` is not a field/param/attr of it -> WARN. Added
+                    2026-07-29 after RGA1/RGA2 phantoms passed W3 clean: the
+                    drift was written as `Cls(kwarg=0.0)`, which CLSMETH_RE
+                    cannot see (it requires `Cls.member` adjacency).
 
 Usage:
   python scripts/ci/doc_code_consistency.py            # report + exit 1 on E-errors
   python scripts/ci/doc_code_consistency.py --report   # always exit 0 (advisory)
+  python scripts/ci/doc_code_consistency.py --self-test # prove the checks can FAIL
 """
 
 from __future__ import annotations
@@ -34,6 +40,8 @@ DOCS += sorted(SRC.rglob("CLAUDE.md"))
 FILE_RE = re.compile(r"`?((?:src/cohezion|scripts|tests)/[\w./-]+\.py)`?")
 MODULE_RE = re.compile(r"`(cohezion(?:\.[A-Za-z_][\w]*)+)`")
 CLSMETH_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\.([a-z_][\w]*)\(?\)?`")
+CTORKW_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\(([a-z_][\w]*)\s*=")
+
 
 # false-positive stoplist for E1: paths used illustratively (globs, ellipses, placeholders)
 def _looks_placeholder(p: str) -> bool:
@@ -45,11 +53,28 @@ def _module_to_path(mod: str) -> Path | None:
     for cand in (SRC / "cohezion" / (rel + ".py"), SRC / "cohezion" / rel / "__init__.py"):
         if cand.exists():
             return cand
-    # dotted path may end in a Symbol, not a module — try dropping the last segment
-    parent = rel.rsplit("/", 1)[0] if "/" in rel else ""
+    # A dotted path may end in a SYMBOL rather than a module
+    # (`cohezion.physics.RiemannianMetric`) — drop the last segment and resolve
+    # the parent. Guarded: only when the tail plausibly names a symbol, i.e. it
+    # is CapWords/UPPER_CASE, or it is actually defined in the parent module.
+    # Without this guard a genuinely missing lowercase module silently resolves
+    # to its package __init__ and E2 can never fire (found by --self-test,
+    # 2026-07-29).
+    if "/" not in rel:
+        return None
+    parent, tail = rel.rsplit("/", 1)
     for cand in (SRC / "cohezion" / (parent + ".py"), SRC / "cohezion" / parent / "__init__.py"):
-        if parent and cand.exists():
+        if not cand.exists():
+            continue
+        if tail[:1].isupper():  # CapWords / UPPER_CASE => a symbol, not a module
             return cand
+        src = cand.read_text(errors="replace")
+        if re.search(
+            rf"^\s*(async def|def|class)\s+{re.escape(tail)}\b|^\s*{re.escape(tail)}\s*[:=]",
+            src,
+            re.M,
+        ):
+            return cand  # a real lowercase symbol (function/constant) in the parent
     return None
 
 
@@ -70,15 +95,18 @@ def _member_defined(files: list[Path], member: str) -> bool:
     return any(pat.search(p.read_text(errors="replace")) for p in files)
 
 
-def scan() -> tuple[list[str], list[str]]:
+def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warns: list[str] = []
     class_cache: dict[str, list[Path]] = {}
-    for doc in DOCS:
+    for doc in docs if docs is not None else DOCS:
         if not doc.exists():
             continue
         text = doc.read_text(encoding="utf-8", errors="replace")
-        rel_doc = doc.relative_to(REPO)
+        try:
+            rel_doc = doc.relative_to(REPO)
+        except ValueError:  # --self-test scratch file outside the repo
+            rel_doc = doc
         seen: set[str] = set()
         for m in FILE_RE.finditer(text):
             path = m.group(1)
@@ -108,10 +136,56 @@ def scan() -> tuple[list[str], list[str]]:
             if not _member_defined(cfs, meth):
                 where = ", ".join(str(p.relative_to(REPO)) for p in cfs[:3])
                 warns.append(f"W3 {rel_doc}: `{cls}.{meth}` not found (method/field/attr) in {where}")
+        for m in CTORKW_RE.finditer(text):
+            cls, kw = m.group(1), m.group(2)
+            key = f"{cls}({kw}="
+            if key in seen:
+                continue
+            seen.add(key)
+            if cls not in class_cache:
+                class_cache[cls] = _class_files(cls)
+            cfs = class_cache[cls]
+            if not cfs:  # unknown class — skip (too many external/generic names)
+                continue
+            if not _member_defined(cfs, kw):
+                where = ", ".join(str(p.relative_to(REPO)) for p in cfs[:3])
+                warns.append(f"W4 {rel_doc}: `{cls}({kw}=...)` not a field/param of {where}")
     return errors, warns
 
 
+def self_test() -> int:
+    """Prove the checks CAN fail — a linter that cannot fail verifies nothing."""
+    import tempfile
+
+    cases = [
+        ("W4", "`RiemannianGlideTrajectory(curvature_coupling=0.0)` preserves behaviour"),
+        ("W3", "`RiemannianGlideTrajectory.anisotropy_tensor()` returns ones"),
+        ("E1", "see `src/cohezion/physics/does_not_exist.py` for details"),
+        ("E2", "import `cohezion.physics.no_such_module` to use it"),
+    ]
+    ok = True
+    with tempfile.TemporaryDirectory() as td:
+        for code, body in cases:
+            doc = Path(td) / f"{code}.md"
+            doc.write_text(body, encoding="utf-8")
+            errs, warns = scan([doc])
+            fired = any(x.startswith(code) for x in errs + warns)
+            print(f"self-test {code}: {'PASS (fired)' if fired else 'FAIL (silent)'} — {body[:52]}")
+            ok &= fired
+        # negative control: a TRUE statement must stay silent
+        doc = Path(td) / "clean.md"
+        doc.write_text("`RiemannianGlideTrajectory(metric=None)` is the default", encoding="utf-8")
+        errs, warns = scan([doc])
+        clean = not (errs + warns)
+        print(f"self-test negative-control: {'PASS (silent)' if clean else 'FAIL: ' + str(errs + warns)}")
+        ok &= clean
+    print("\nself-test:", "OK" if ok else "BROKEN — a check cannot fail")
+    return 0 if ok else 1
+
+
 def main() -> int:
+    if "--self-test" in sys.argv:
+        return self_test()
     report_only = "--report" in sys.argv
     errors, warns = scan()
     for w in warns:
