@@ -48,6 +48,21 @@ logger = logging.getLogger(__name__)
 # all reasoning hidden in reasoning_content. Fall back to reasoning_content in that case.
 _REASONING_MIN_TOKENS = 50
 
+# Shared connection pool for local & cloud endpoints (:13305, :11434) to eliminate WAN/socket overhead
+_SHARED_HTTP_CLIENT: httpx.AsyncClient | None = None
+
+
+def _get_shared_client(timeout: float) -> httpx.AsyncClient:
+    """Get or instantiate the singleton persistent AsyncClient pool."""
+    global _SHARED_HTTP_CLIENT
+    if _SHARED_HTTP_CLIENT is None or _SHARED_HTTP_CLIENT.is_closed:
+        limits = httpx.Limits(max_keepalive_connections=50, max_connections=200, keepalive_expiry=60.0)
+        _SHARED_HTTP_CLIENT = httpx.AsyncClient(
+            limits=limits,
+            timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout),
+        )
+    return _SHARED_HTTP_CLIENT
+
 
 @dataclass
 class RouteResult:
@@ -202,12 +217,10 @@ async def _dispatch_openai_compatible(
     payload = _inject_symmetry_axis(payload, coherence)
 
     if not stream:
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
-        ) as client:
-            resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+        client = _get_shared_client(timeout)
+        resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
+        resp.raise_for_status()
+        data = resp.json()
         msg = data["choices"][0]["message"]
         content = msg.get("content") or ""
         reasoning = msg.get("reasoning_content") or ""
