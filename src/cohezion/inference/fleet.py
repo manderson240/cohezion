@@ -410,7 +410,9 @@ async def _dispatch_headless_cli(
             )
             cost = float(data.get("total_cost_usd", 0.0))
         elif isinstance(data, list):
-            text = json.dumps(data)
+            # Limit serialized payload to max 100 items to prevent DoS memory exhaustion
+            bounded_list = data[:100]
+            text = json.dumps(bounded_list)
             cost = 0.0
         else:
             text = str(data)
@@ -821,19 +823,27 @@ async def extend_claude_aligned(
         )
 
     for _ in range(max_local_attempts):
-        text, cost, _ttft, _tps = await _dispatch_one(
-            registry.models[params.model_id], prompt, None, timeout
-        )
-        local_result = RouteResult(
-            text=text,
-            model=params.model_id,
-            lane=str(registry.models[params.model_id].lane.value),
-            latency_ms=0.0,
-            cost_usd=cost,
-            self_reported_confidence=None,
-            escalated_to_cloud=False,
-            error=None if text else "empty",
-        )
+        try:
+            text, cost, _ttft, _tps = await _dispatch_one(
+                registry.models[params.model_id], prompt, None, timeout
+            )
+            local_result = RouteResult(
+                text=text,
+                model=params.model_id,
+                lane=str(registry.models[params.model_id].lane.value),
+                latency_ms=0.0,
+                cost_usd=cost,
+                self_reported_confidence=None,
+                escalated_to_cloud=False,
+                error=None if text else "empty",
+            )
+        except Exception as err:
+            logger.warning(
+                "Local dispatch to %s failed (%s); escalating to cloud fallback",
+                params.model_id,
+                err,
+            )
+            break
         confidence = local_result.self_reported_confidence
         length_ok = local_result.error is None and len(local_result.text) >= 40
         confidence_ok = confidence is None or confidence >= quality_threshold
@@ -845,9 +855,14 @@ async def extend_claude_aligned(
             confidence,
         )
 
-    cloud_text, cloud_cost, _ttft, _tps = await _dispatch_one(
-        registry.models[claude_model], prompt, None, timeout
-    )
+    try:
+        cloud_text, cloud_cost, _ttft, _tps = await _dispatch_one(
+            registry.models[claude_model], prompt, None, timeout
+        )
+    except Exception as err:
+        logger.error("Cloud fallback dispatch failed: %s", err)
+        cloud_text, cloud_cost = f"Error: cloud dispatch failed: {err}", 0.0
+
     return RouteResult(
         text=cloud_text,
         model=claude_model,
@@ -856,5 +871,5 @@ async def extend_claude_aligned(
         cost_usd=cloud_cost,
         self_reported_confidence=None,
         escalated_to_cloud=True,
-        error=None if cloud_text else "empty",
+        error=None if cloud_text and not cloud_text.startswith("Error:") else "cloud_failed",
     )

@@ -81,8 +81,14 @@ class EVOJourneyVisualizer:
                 # Coherent soliton dynamics (localized spatial energy)
                 state_12d += np.array([0.8, 0.8, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) * 0.4
 
+            # Sanitize input vector against NaN / Inf vulnerabilities
+            state_12d = np.nan_to_num(state_12d, nan=0.0, posinf=1.0, neginf=-1.0)
             norm = np.linalg.norm(state_12d)
-            state_12d_norm = state_12d / (norm + 1e-8) if norm > 0 else state_12d
+            if not np.isfinite(norm) or norm == 0.0:
+                state_12d_norm = np.zeros(12, dtype=np.float64)
+            else:
+                state_12d_norm = state_12d / norm
+            
             topology = self.topology_classifier.classify(state_12d_norm)
 
             node_id = f"evo_{evo.agent_id}_step_{i}"
