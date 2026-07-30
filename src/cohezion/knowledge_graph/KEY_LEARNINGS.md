@@ -363,3 +363,4 @@ Single-flight `FleetLock` protects iGPU APU memory aperture from concurrent mode
 | L391 | **semantic-rules-audit** | `redundancy-suppression-prime` skill | Wave AutoHarness — semantic rules overlap audit and cache trim |
 | L395 | **dynamic-context-pruning** | `token-efficient-executor` skill | Wave AutoHarness — zero-cost overlap and keyword relevance pruner |
 | L396 | **persistent-connection-pooling** | `fleet-orchestrator` skill | Wave SiliconSymphony — persistent HTTP/2 connection pooling & explicit reclamation |
+| L397 | **authenticated-cifs-and-tiered-routing** | `LOCAL_INFERENCE_ROUTING` skill | Wave SiliconSymphony — authenticated CIFS mounts & 2-tier local primary cloud secondary routing |
