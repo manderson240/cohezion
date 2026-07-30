@@ -17,7 +17,6 @@ except ImportError:
     logger.warning("Adaptive framework optimizer not available")
 
 
-
 class LocalExpertRouter:
     """
     Routes routine tasks to local SLMs (Ollama) for token efficiency.

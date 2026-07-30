@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HardwareProfile:
     """Hardware profile describing local compute capabilities."""
+
     tier: str  # 'igpu', 'npu', 'cpu', 'cuda'
     vram_gb: float
     ram_gb: float
@@ -52,5 +53,7 @@ def get_adaptive_optimizer() -> AdaptiveFrameworkOptimizer:
     global _GLOBAL_OPTIMIZER
     if _GLOBAL_OPTIMIZER is None:
         _GLOBAL_OPTIMIZER = AdaptiveFrameworkOptimizer()
-        logger.info("🧠 Adaptive Framework Optimizer initialized (Strix Halo 128GB profile active).")
+        logger.info(
+            "🧠 Adaptive Framework Optimizer initialized (Strix Halo 128GB profile active)."
+        )
     return _GLOBAL_OPTIMIZER
