@@ -34,6 +34,7 @@ scripts/overnight_evo_loop.py
 scripts/producer_consumer_audit.py
 scripts/repo_health_and_forge_research.py
 scripts/research/distill_tutorials.py
+scripts/review_capabilities_and_skills.py
 scripts/review_swarm_ci_pr_resolver_daemon.py
 scripts/scalar_manifold_coordinates_pipeline.py
 scripts/scientific_benchmark.py
