@@ -25,9 +25,7 @@ class LemonadeCLIMonitor:
 
     DEFAULT_ENDPOINT: str = "http://localhost:13305"
 
-    def __init__(
-        self, endpoint: str = DEFAULT_ENDPOINT, event_bus: EventBus | None = None
-    ) -> None:
+    def __init__(self, endpoint: str = DEFAULT_ENDPOINT, event_bus: EventBus | None = None) -> None:
         self.endpoint = endpoint.rstrip("/")
         self.bus = event_bus
 

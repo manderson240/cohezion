@@ -17,9 +17,7 @@ def _run(ex: CompoundExecutor) -> Any:
         patch.object(ex, "_run_task_flow", return_value=MagicMock(success=True), create=True),
         patch.object(ex, "_evaluate_inflection", return_value=MagicMock(success=True), create=True),
     ):
-        return ex.run_compound_cycle(
-            task="do stuff", context={}, session_id="s1", turn_index=0
-        )
+        return ex.run_compound_cycle(task="do stuff", context={}, session_id="s1", turn_index=0)
 
 
 @pytest.mark.xfail(reason="legacy test attribute drift on CompoundExecutor")
