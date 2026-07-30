@@ -117,6 +117,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+
 class UniverseArtifactAnalyzer:
     """
     Analyze universe simulation artifacts to understand:
@@ -133,44 +134,73 @@ class UniverseArtifactAnalyzer:
             "artifact_timeline": [],
             "file_patterns": {},
             "size_progression": [],
-            "key_insights": []
+            "key_insights": [],
         }
 
         # Get commits that touched training data
-        commits = subprocess.check_output([
-            "git", "log", "--all", "--follow", "--oneline", "--",
-            "src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs"
-        ]).decode().strip().split("\n")
+        commits = (
+            subprocess.check_output(
+                [
+                    "git",
+                    "log",
+                    "--all",
+                    "--follow",
+                    "--oneline",
+                    "--",
+                    "src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs",
+                ]
+            )
+            .decode()
+            .strip()
+            .split("\n")
+        )
 
         for commit_line in commits[:10]:  # Last 10 meaningful commits
             commit_hash = commit_line.split()[0]
 
             # Extract timestamp and message
-            commit_info = subprocess.check_output([
-                "git", "show", "-s", "--format=%aI %s", commit_hash
-            ]).decode().strip()
+            commit_info = (
+                subprocess.check_output(["git", "show", "-s", "--format=%aI %s", commit_hash])
+                .decode()
+                .strip()
+            )
 
             # Analyze content
             try:
-                files = subprocess.check_output([
-                    "git", "ls-tree", "-r", "--name-only",
-                    f"{commit_hash}:src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs"
-                ]).decode().strip().split("\n")
+                files = (
+                    subprocess.check_output(
+                        [
+                            "git",
+                            "ls-tree",
+                            "-r",
+                            "--name-only",
+                            f"{commit_hash}:src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs",
+                        ]
+                    )
+                    .decode()
+                    .strip()
+                    .split("\n")
+                )
 
                 size = sum(
-                    int(subprocess.check_output([
-                        "git", "cat-file", "-s", f"{commit_hash}:{f}"
-                    ]).decode().strip())
-                    for f in files if f
+                    int(
+                        subprocess.check_output(["git", "cat-file", "-s", f"{commit_hash}:{f}"])
+                        .decode()
+                        .strip()
+                    )
+                    for f in files
+                    if f
                 ) / (1024 * 1024)  # MB
 
-                result["artifact_timeline"].append({
-                    "commit": commit_hash[:7],
-                    "timestamp": commit_info.split()[0],
-                    "message": " ".join(commit_info.split()[1:]),
-                    "file_count": len(files),
-                    "size_mb": round(size, 2)
-                })
+                result["artifact_timeline"].append(
+                    {
+                        "commit": commit_hash[:7],
+                        "timestamp": commit_info.split()[0],
+                        "message": " ".join(commit_info.split()[1:]),
+                        "file_count": len(files),
+                        "size_mb": round(size, 2),
+                    }
+                )
             except:
                 pass
 
@@ -359,6 +389,7 @@ from datetime import datetime
 from cohezion.core.persistence import get_surreal_client
 from cohezion.compound.journey_tracker import JourneyTracker
 
+
 class UniverseArtifactMigration:
     """
     Safely migrate universe simulation artifacts from git to SurrealDB.
@@ -387,7 +418,7 @@ class UniverseArtifactMigration:
             "artifacts_found": 0,
             "total_size_mb": 0,
             "commits_affected": 0,
-            "insights": []
+            "insights": [],
         }
 
         # Count artifacts
@@ -397,7 +428,7 @@ class UniverseArtifactMigration:
         await self.journey.record_step(
             step_name="measure_artifacts",
             description="Cataloging universe simulation artifacts",
-            metrics=measurement
+            metrics=measurement,
         )
 
         return measurement
@@ -413,24 +444,26 @@ class UniverseArtifactMigration:
         # Simplified: actual implementation extracts all commits
         tar_path = output_dir / "universe_artifacts_export.tar"
 
-        with tarfile.open(tar_path, 'w') as tar:
+        with tarfile.open(tar_path, "w") as tar:
             # Extract and add files
             pass
 
         # Verify extraction
-        with tarfile.open(tar_path, 'r') as tar:
+        with tarfile.open(tar_path, "r") as tar:
             file_count = len(tar.getmembers())
 
-        exports.append({
-            "tar_file": str(tar_path),
-            "file_count": file_count,
-            "size_mb": tar_path.stat().st_size / (1024*1024)
-        })
+        exports.append(
+            {
+                "tar_file": str(tar_path),
+                "file_count": file_count,
+                "size_mb": tar_path.stat().st_size / (1024 * 1024),
+            }
+        )
 
         await self.journey.record_step(
             step_name="extract_artifacts",
             description=f"Extracted {file_count} universe artifacts",
-            metrics={"exports": exports}
+            metrics={"exports": exports},
         )
 
         return exports
@@ -444,11 +477,11 @@ class UniverseArtifactMigration:
             "date_extracted": datetime.now().isoformat(),
             "export_archive_location": tar_path,
             "status": "extracted",
-            "files": []
+            "files": [],
         }
 
         # Extract and process each artifact
-        with tarfile.open(tar_path, 'r') as tar:
+        with tarfile.open(tar_path, "r") as tar:
             for member in tar.getmembers():
                 if member.isfile():
                     f = tar.extractfile(member)
@@ -465,9 +498,9 @@ class UniverseArtifactMigration:
                         "content_hash": content_hash,
                         "file_size_bytes": len(content),
                         "semantic_features": semantic,
-                        "content_preview": content.decode('utf-8', errors='ignore')[:1000],
+                        "content_preview": content.decode("utf-8", errors="ignore")[:1000],
                         "export_archive": Path(tar_path).name,
-                        "backup_location": tar_path
+                        "backup_location": tar_path,
                     }
 
                     collection["files"].append(artifact_record)
@@ -488,7 +521,7 @@ class UniverseArtifactMigration:
         await self.journey.record_step(
             step_name="migrate_artifacts",
             description=f"Migrated {len(collection['files'])} artifacts to SurrealDB",
-            metrics={"collection_id": collection_id, "artifact_count": len(collection["files"])}
+            metrics={"collection_id": collection_id, "artifact_count": len(collection["files"])},
         )
 
         return {"collection_id": collection_id, "artifacts_stored": len(collection["files"])}
@@ -505,7 +538,7 @@ class UniverseArtifactMigration:
             await self.journey.record_step(
                 step_name="verify_artifacts_failed",
                 description="Verification failed - collection not found",
-                metrics={"collection_id": collection_id, "status": "FAILED"}
+                metrics={"collection_id": collection_id, "status": "FAILED"},
             )
             return False
 
@@ -517,7 +550,7 @@ class UniverseArtifactMigration:
         await self.journey.record_step(
             step_name="verify_artifacts_success",
             description="All artifacts verified and queryable",
-            metrics={"artifact_count": len(artifacts[0]) if artifacts else 0}
+            metrics={"artifact_count": len(artifacts[0]) if artifacts else 0},
         )
 
         return True
@@ -525,22 +558,22 @@ class UniverseArtifactMigration:
     def _analyze_semantic_content(self, content: bytes) -> dict:
         """Extract language statistics from artifact"""
         try:
-            text = content.decode('utf-8', errors='ignore')
+            text = content.decode("utf-8", errors="ignore")
             return {
-                "lines": len(text.split('\n')),
+                "lines": len(text.split("\n")),
                 "bytes": len(content),
                 "unique_words": len(set(text.split())),
-                "avg_line_length": len(text) / max(1, len(text.split('\n')))
+                "avg_line_length": len(text) / max(1, len(text.split("\n"))),
             }
         except:
             return {"type": "binary", "size": len(content)}
 
     def _extract_run_id(self, filename: str) -> str:
         """Extract training run ID from filename like 'lang_1768630692_0.txt'"""
-        parts = filename.split('_')
+        parts = filename.split("_")
         if len(parts) >= 2:
             return f"lang_{parts[1]}"
-        return filename.split('.')[0]
+        return filename.split(".")[0]
 
     async def execute_full_migration(self) -> dict:
         """Execute complete compound engineering loop"""
@@ -570,7 +603,7 @@ class UniverseArtifactMigration:
             "measurement": measurement,
             "exports": exports,
             "migrations": results,
-            "next_step": "Ready for git-filter-repo cleanup"
+            "next_step": "Ready for git-filter-repo cleanup",
         }
 ```
 
@@ -631,6 +664,7 @@ echo "✅ Checksums saved"
 import asyncio
 from cohezion.knowledge_graph.universe_artifact_migration import UniverseArtifactMigration
 
+
 async def main():
     migration = UniverseArtifactMigration()
 
@@ -646,6 +680,7 @@ async def main():
     else:
         print("\n❌ Migration failed - do not proceed")
         return False
+
 
 if __name__ == "__main__":
     success = asyncio.run(main())

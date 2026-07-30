@@ -56,6 +56,7 @@ cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }
 Create a minimal wrapper module that imports and runs the cloud-vault-mcp:
 ```python
 """Vault MCP Server wrapper."""
+
 import os
 import sys
 
@@ -64,12 +65,16 @@ try:
     from mcp_server.main import main
 except ImportError:
     # Add cloud-vault-mcp src to path if not installed
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "cloud-vault-mcp", "src"))
+    sys.path.insert(
+        0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "cloud-vault-mcp", "src")
+    )
     from mcp_server.main import main
+
 
 def run_server():
     """Entry point for server manager."""
     main()
+
 
 if __name__ == "__main__":
     run_server()

@@ -8,6 +8,7 @@ the class is really N independent responsibilities sharing a namespace — a spl
 
 Report-only: prints a ranked manifest. Run: ``python scripts/audits/cohesion_audit.py``.
 """
+
 from __future__ import annotations
 
 import ast

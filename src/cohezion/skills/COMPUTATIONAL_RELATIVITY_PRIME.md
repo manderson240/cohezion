@@ -87,8 +87,10 @@ relative speed between simulation engine and reporting agent:
 ```python
 import math
 
-def computational_doppler(nu_base: float, v_simulation: float, v_reporter: float,
-                           c_max: float = 1.0) -> float:
+
+def computational_doppler(
+    nu_base: float, v_simulation: float, v_reporter: float, c_max: float = 1.0
+) -> float:
     """Relativistic Doppler shift for stability frequency."""
     beta_rel = (v_simulation - v_reporter) / c_max
     beta_rel = max(-0.999, min(0.999, beta_rel))
@@ -125,9 +127,10 @@ The Navigator predicts the **classical path** (saddle point); Langevin noise sam
 def estimate_trajectory_action(trajectory: list, dt: float = 0.01) -> float:
     """Lower action = more probable FLUME path."""
     import numpy as np
+
     total = 0.0
     for i in range(len(trajectory) - 1):
-        vel = (np.array(trajectory[i+1]) - np.array(trajectory[i])) / dt
+        vel = (np.array(trajectory[i + 1]) - np.array(trajectory[i])) / dt
         total += float(np.dot(vel, vel)) * dt
     return total
 ```

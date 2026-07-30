@@ -25,8 +25,9 @@ import sys
 import time
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 ROUTER_URL = "http://localhost:13305/v1/chat/completions"
 MODEL = os.environ.get("GATE_EVAL_MODEL", "Qwen3-Coder-30B-A3B-Instruct-GGUF")
@@ -38,7 +39,7 @@ DELAY_BETWEEN_CALLS = 2.0  # seconds — be gentle on the omni router (LRU evict
 
 # Gate thresholds
 TAU_LOGPROB = -2.5  # calibrated: correct 1-word answers score ~-0.5 to -1.5; uncertain ~-3.0+
-MIN_LENGTH = 3      # minimum sane response length (filters empty/error responses only)
+MIN_LENGTH = 3  # minimum sane response length (filters empty/error responses only)
 QUALITY_THRESHOLD = 0.8
 
 
@@ -62,14 +63,26 @@ TASKS: list[EvalTask] = [
     EvalTask("What language has the most native speakers?", ["mandarin"], "easy"),
     # Hard tasks — obscure facts where the model might hallucinate (low logprob)
     EvalTask("What year was the Riemann hypothesis first formulated?", ["1859"], "hard"),
-    EvalTask("What is the Erdős–Ko–Rado theorem's maximum intersecting family size?", ["choose"], "hard"),
-    EvalTask("What does the acronym ACID stand for in database theory?", ["atomicity", "consistency", "isolation", "durability"], "easy"),
+    EvalTask(
+        "What is the Erdős–Ko–Rado theorem's maximum intersecting family size?", ["choose"], "hard"
+    ),
+    EvalTask(
+        "What does the acronym ACID stand for in database theory?",
+        ["atomicity", "consistency", "isolation", "durability"],
+        "easy",
+    ),
     EvalTask("What is the Kolmogorov complexity of a string of n zeros?", ["log"], "hard"),
-    EvalTask("What sorting algorithm has O(n) best-case and O(n^2) worst-case?", ["insertion"], "easy"),
+    EvalTask(
+        "What sorting algorithm has O(n) best-case and O(n^2) worst-case?", ["insertion"], "easy"
+    ),
     EvalTask("What is the Chaitin constant?", ["halting"], "hard"),
     EvalTask("What graph algorithm finds shortest paths with negative edges?", ["bellman"], "easy"),
-    EvalTask("What is the maximum number of edges in a planar graph with n vertices?", ["3n"], "hard"),
-    EvalTask("What complexity class is defined by polynomial-space Turing machines?", ["pspace"], "hard"),
+    EvalTask(
+        "What is the maximum number of edges in a planar graph with n vertices?", ["3n"], "hard"
+    ),
+    EvalTask(
+        "What complexity class is defined by polynomial-space Turing machines?", ["pspace"], "hard"
+    ),
     EvalTask("What does DNS stand for?", ["domain", "name", "system"], "easy"),
 ]
 
@@ -153,7 +166,7 @@ def run_experiment() -> dict:
     correct_when_accepted = {"logprob": 0, "length": 0, "placebo": 0}
 
     for i, task in enumerate(TASKS):
-        print(f"  [{i+1}/{len(TASKS)}] {task.question[:60]}...")
+        print(f"  [{i + 1}/{len(TASKS)}] {task.question[:60]}...")
         text, mean_lp = _chat_with_logprobs(MODEL, task.question)
         time.sleep(DELAY_BETWEEN_CALLS)  # be gentle on the omni router (LRU eviction guard)
 
@@ -199,7 +212,7 @@ def run_experiment() -> dict:
 
     verdict = {
         "experiment": "escalation_gate_eval",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "model": MODEL,
         "num_tasks": len(TASKS),
         "tau_logprob": TAU_LOGPROB,
@@ -223,7 +236,9 @@ def main():
     print("RESULTS")
     print("=" * 60)
     for arm, s in verdict["arms"].items():
-        print(f"  {arm:10s}: mean_score={s['mean_score']:.4f}  precision={s['precision']:.4f}  accepted={s['accepted_count']}/{verdict['num_tasks']}")
+        print(
+            f"  {arm:10s}: mean_score={s['mean_score']:.4f}  precision={s['precision']:.4f}  accepted={s['accepted_count']}/{verdict['num_tasks']}"
+        )
     print(f"\n  VERDICT: {verdict['verdict']}")
     print("=" * 60)
 
@@ -236,6 +251,7 @@ def main():
     # Log to SurrealDB
     try:
         import base64
+
         sql = f"CREATE experiment_runs CONTENT {json.dumps(verdict)};"
         req = urllib.request.Request(
             "http://localhost:8001/sql",

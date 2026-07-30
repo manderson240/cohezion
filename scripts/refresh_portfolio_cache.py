@@ -33,8 +33,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 CACHE_DIR = Path.home() / ".cohezion"
 CACHE_FILE = CACHE_DIR / "portfolio_cache.json"
@@ -124,7 +125,7 @@ CURRENT_SNAPSHOT: dict = {
 
 def write_cache(data: dict) -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    data["cache_written_at"] = datetime.now(timezone.utc).isoformat()
+    data["cache_written_at"] = datetime.now(UTC).isoformat()
     with CACHE_FILE.open("w") as f:
         json.dump(data, f, indent=2)
     print(f"Portfolio cache written to {CACHE_FILE}")
@@ -147,11 +148,11 @@ def main() -> None:
 
     if args.from_json:
         data = json.loads(args.from_json)
-        data["fetched_at"] = datetime.now(timezone.utc).isoformat()
+        data["fetched_at"] = datetime.now(UTC).isoformat()
         write_cache(data)
     elif args.stdin:
         data = json.load(sys.stdin)
-        data["fetched_at"] = datetime.now(timezone.utc).isoformat()
+        data["fetched_at"] = datetime.now(UTC).isoformat()
         write_cache(data)
     else:
         write_cache(CURRENT_SNAPSHOT)

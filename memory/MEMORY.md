@@ -169,16 +169,18 @@ uv run python -c "from cohezion.core.persistence.surreal_client import SurrealCl
 ```python
 # Find relevant context before writing code
 from cohezion.skills.cohezion_mcp import vault_find_relevant_context
+
 context = vault_find_relevant_context(query="test isolation singleton reset")
 
 # Log new decisions
 from cohezion.skills.cohezion_mcp import vault_log_decision
+
 vault_log_decision(
     project="cohezion",
     title="SurrealDB Auth Fallback",
     context="Persistent InvalidAuth error during /heal",
     decision="Graceful fallback to InMemoryStore",
-    rationale="System stability > strict persistence"
+    rationale="System stability > strict persistence",
 )
 ```
 

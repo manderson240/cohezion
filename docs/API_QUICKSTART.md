@@ -107,21 +107,24 @@ import httpx
 
 BASE_URL = "http://localhost:8080"
 
+
 async def execute_skill(skill_name: str, text: str):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{BASE_URL}/compound/execute",
-            json={"skill_name": skill_name, "input_text": text}
+            f"{BASE_URL}/compound/execute", json={"skill_name": skill_name, "input_text": text}
         )
         return response.json()
+
 
 async def get_health():
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/health")
         return response.json()
 
+
 # Usage
 import asyncio
+
 result = asyncio.run(execute_skill("analyst", "Analyze this"))
 print(result["final_output"])
 ```
@@ -137,6 +140,7 @@ import asyncio
 import websockets
 import json
 
+
 async def pulse_stream():
     uri = "ws://localhost:8080/pulse"
     async with websockets.connect(uri) as ws:
@@ -144,6 +148,7 @@ async def pulse_stream():
             data = json.loads(message)
             brane = data["payload"]["brane"]
             print(f"Coherence: {brane[7]:.2f}")
+
 
 asyncio.run(pulse_stream())
 ```

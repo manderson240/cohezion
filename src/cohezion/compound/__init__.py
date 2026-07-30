@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 
 
 # Universal initialization
@@ -526,71 +527,6 @@ with contextlib.suppress(Exception):
     from cohezion.compound.vmodel_harness import VModelHarness as VModelHarness
 
 
-def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
-    """Factory that wires local AMD silicon (Triune) inference by default.
-
-    Checks Lemonade liveness before building the TieredOrchestrator — no
-    model weights are loaded in Python; only HTTP endpoints are probed.
-    Falls back to inference_provider=None (caller must supply execute_fn)
-    when Lemonade is offline.
-
-    Also sets recommended max_concurrent on the orchestrator based on live
-    model load count (exp_NNNN1: heavy load → sequential, light load → concurrent).
-    """
-    from cohezion.compound.executor import CompoundExecutor  # avoid circular at module level
-    from cohezion.compound.local_inference import get_recommended_concurrency, lemonade_available
-    from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
-
-    # bughunt #4: probe :13305 (OmniRouter), NOT the default :13306 (the redundant per-port server,
-    # usually offline per N1) — matching the M3 fix in build_live_jepa_gate. The old default-port
-    # probe failed on the live box → exec_provider was always None.
-    if lemonade_available(npu_port=13305):
-        exec_provider = build_triune_omni_orchestrator()
-        # Wire adaptive concurrency: under heavy model load, use sequential dispatch.
-        # bughunt: probe :13305 (OmniRouter), NOT the default :13306 (redundant per-port server,
-        # usually offline per N1) — matching the lemonade_available fix above. The old default-port
-        # probe always failed on the live box → fell back to max_concurrent=3 instead of the real load.
-        max_concurrent = get_recommended_concurrency(npu_port=13305)
-        exec_provider._max_concurrent = max_concurrent  # type: ignore[attr-defined]
-    else:
-        exec_provider = None
-
-    # W1 + JG2: JepaGate auto-injection. build_live_jepa_gate wires a LEMONADE-backed world model
-    # (GAIA SDK, :13305) + k-step lookahead when local inference is reachable; else fail-open.
-    if "jepa_gate" not in kwargs:
-        try:
-            from cohezion.compound.lemonade_world_model import (
-                build_live_jepa_gate,  # type: ignore[import]
-            )
-
-            kwargs["jepa_gate"] = build_live_jepa_gate()  # type: ignore[assignment]
-        except Exception:
-            try:
-                from cohezion.compound.jepa_gate import JepaGate  # type: ignore[import]
-
-                kwargs["jepa_gate"] = JepaGate(world_model=None)  # type: ignore[assignment]
-            except Exception:
-                pass
-
-    # CB5: auto-create DegradationDetector when not provided (closes routing feedback loop).
-    # This __init__ make_executor bypasses ExecutorFactory.create(), so we duplicate the
-    # auto-creation here — without it, suggest_routing_tier() never fires and JepaGate
-    # REROUTE signals have nowhere to land.
-    if "degradation_detector" not in kwargs:
-        try:
-            from cohezion.compound.degradation_detector import DegradationDetector
-            from cohezion.swarm.cost_aware_router import CostAwareRouter
-
-            _dd = DegradationDetector()
-            _router = CostAwareRouter()
-            _dd.set_routing_callback(_router.apply_degradation_feedback)
-            kwargs["degradation_detector"] = _dd  # type: ignore[assignment]
-        except Exception:
-            pass
-
-    # M1: the FAPO R3 regression gate's run_fn is wired in SkillRefinerFactory.create (the canonical
-    # creation point — the executor builds its SkillRefiner lazily, so it isn't available here).
-    # Ring-4: production executors persist real cycles to the compound graph
-    # (direct CompoundExecutor() construction stays off — test isolation, CB4 pattern).
-    kwargs.setdefault("enable_cycle_persistence", True)
-    return CompoundExecutor(mcp_client, inference_provider=exec_provider, **kwargs)  # type: ignore[arg-type]
+from cohezion.compound.executor_factory import (
+    make_executor as make_executor,
+)

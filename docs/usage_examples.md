@@ -55,21 +55,27 @@ echo "Workflow result: $WORKFLOW_RESULT"
 import subprocess
 import json
 
+
 def select_model_for_task(task_type: str, complexity: int = 5):
     """Select optimal model based on task requirements"""
-    result = subprocess.run([
-        "./src/cohezion/skills/cohezion_mcp.py",
-        "execute",
-        "model_selection",
-        task_type,
-        str(complexity),
-        "256000"
-    ], capture_output=True, text=True)
-    
+    result = subprocess.run(
+        [
+            "./src/cohezion/skills/cohezion_mcp.py",
+            "execute",
+            "model_selection",
+            task_type,
+            str(complexity),
+            "256000",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
     if result.returncode == 0:
         return json.loads(result.stdout)
     else:
         raise Exception(f"Model selection failed: {result.stderr}")
+
 
 # Usage
 model_info = select_model_for_task("coding", 8)
@@ -125,28 +131,38 @@ print(f"Recommended model: {model_info['recommended_model']}")
 
 ```python
 # Add project context
-context_result = subprocess.run([
-    "./src/cohezion/skills/cohezion_mcp.py",
-    "execute",
-    "context_management",
-    "add",
-    "project",
-    json.dumps({
-        "project_name": "compound_engineering",
-        "models_used": ["qwen3-coder-256k", "gemma3-4b-256k"],
-        "current_phase": "development",
-        "complexity": 8
-    })
-], capture_output=True, text=True)
+context_result = subprocess.run(
+    [
+        "./src/cohezion/skills/cohezion_mcp.py",
+        "execute",
+        "context_management",
+        "add",
+        "project",
+        json.dumps(
+            {
+                "project_name": "compound_engineering",
+                "models_used": ["qwen3-coder-256k", "gemma3-4b-256k"],
+                "current_phase": "development",
+                "complexity": 8,
+            }
+        ),
+    ],
+    capture_output=True,
+    text=True,
+)
 
 # Retrieve context
-context_result = subprocess.run([
-    "./src/cohezion/skills/cohezion_mcp.py",
-    "execute",
-    "context_management",
-    "retrieve",
-    "project"
-], capture_output=True, text=True)
+context_result = subprocess.run(
+    [
+        "./src/cohezion/skills/cohezion_mcp.py",
+        "execute",
+        "context_management",
+        "retrieve",
+        "project",
+    ],
+    capture_output=True,
+    text=True,
+)
 ```
 
 ## Performance Tips
@@ -167,6 +183,7 @@ context_result = subprocess.run([
 import subprocess
 import json
 import time
+
 
 def execute_with_retry(command, max_retries=3, delay=1):
     """Execute command with retry logic"""

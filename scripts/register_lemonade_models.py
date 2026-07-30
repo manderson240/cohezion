@@ -15,6 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 LEMONADE_CACHE = Path.home() / ".cache" / "lemonade"
 USER_MODELS_JSON = LEMONADE_CACHE / "user_models.json"
 CUSTOM_MODELS_DIR = LEMONADE_CACHE / "custom_models"
@@ -100,8 +101,10 @@ def register_checkpoint(key: str) -> None:
     print(f"  checkpoint: {spec['checkpoint']}")
     print(f"  notes: {spec.get('notes', '')}")
     print(f"\nLoad now: curl -s -X POST {LEMONADE_API}/api/v1/load \\")
-    print(f'  -H "Content-Type: application/json" \\')
-    print(f'  -d \'{{"model_name": "{name}", "ctx_size": {spec["recipe_options"]["ctx_size"]}, "save_options": true}}\'')
+    print('  -H "Content-Type: application/json" \\')
+    print(
+        f'  -d \'{{"model_name": "{name}", "ctx_size": {spec["recipe_options"]["ctx_size"]}, "save_options": true}}\''
+    )
 
 
 def convert_and_register(key: str) -> None:
@@ -112,7 +115,7 @@ def convert_and_register(key: str) -> None:
     print(f"[convert] {hf_id} → GGUF")
     print("  Step 1: download safetensors")
 
-    from huggingface_hub import snapshot_download  # noqa: PLC0415
+    from huggingface_hub import snapshot_download
 
     local_path = snapshot_download(
         repo_id=hf_id,
@@ -124,7 +127,15 @@ def convert_and_register(key: str) -> None:
     print("  Step 2: convert to F16 GGUF")
     f16_path = CUSTOM_MODELS_DIR / f"{name}-F16.gguf"
     subprocess.run(
-        [sys.executable, str(LLAMA_CONVERT), local_path, "--outfile", str(f16_path), "--outtype", "f16"],
+        [
+            sys.executable,
+            str(LLAMA_CONVERT),
+            local_path,
+            "--outfile",
+            str(f16_path),
+            "--outtype",
+            "f16",
+        ],
         check=True,
     )
     print(f"  converted: {f16_path}")
@@ -137,7 +148,7 @@ def convert_and_register(key: str) -> None:
     )
     print(f"  quantized: {q4_path} ({q4_path.stat().st_size / 1e9:.2f} GB)")
     f16_path.unlink()  # remove intermediate
-    print(f"  removed intermediate F16 file")
+    print("  removed intermediate F16 file")
 
     print("  Step 4: register in user_models.json")
     models = load_user_models()
@@ -153,7 +164,7 @@ def convert_and_register(key: str) -> None:
 
 
 def watch_gguf(key: str) -> None:
-    from huggingface_hub import list_repo_files  # noqa: PLC0415
+    from huggingface_hub import list_repo_files
 
     spec = WATCH[key]
     print(f"[watch] checking GGUF availability for {spec['hf_id']}")
@@ -167,12 +178,12 @@ def watch_gguf(key: str) -> None:
             print(f"  [not ready] {repo} — no Q4_K_M yet")
         except Exception:
             print(f"  [missing] {repo}")
-    print(f"[watch] No GGUF found yet. Re-check in a few days.")
+    print("[watch] No GGUF found yet. Re-check in a few days.")
     print(f"  Notes: {spec['notes']}")
 
 
 def show_status() -> None:
-    import urllib.request  # noqa: PLC0415
+    import urllib.request
 
     print("=== Lemonade catalog ===")
     try:

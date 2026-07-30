@@ -66,7 +66,7 @@ def _default_sql(query: str, timeout: float = 10.0) -> list[dict[str, Any]]:
     S310 is justified: ``SURREAL_URL`` is a fixed localhost literal, never
     user-controlled.
     """
-    req = urllib.request.Request(  # noqa: S310 — fixed 127.0.0.1 literal
+    req = urllib.request.Request(
         SURREAL_URL,
         data=query.encode(),
         headers={**_SURREAL_HEADERS, "Authorization": _SURREAL_AUTH},

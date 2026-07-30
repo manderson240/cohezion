@@ -34,9 +34,11 @@ The deleted gateway system (1,415 lines) was speculative infrastructure. The Res
 # ✅ EFFICIENT: Import only when needed
 __all__ = ["ResearchAgent", "ResearchConfig"]
 
+
 def __getattr__(name):
     if name in ("ResearchSquad", "ResearchSwarm"):
         from .research_squad import ResearchSquad
+
         return ResearchSquad
 ```
 
@@ -79,15 +81,11 @@ from cohezion.research import ResearchSquad
 squad = ResearchSquad()
 
 # Party Mode: Democratic consensus without overhead
-result = await squad.optimize_skill(
-    skill_name="coding",
-    baseline=0.45,
-    target_metric="coherence"
-)
+result = await squad.optimize_skill(skill_name="coding", baseline=0.45, target_metric="coherence")
 
 # Token-efficient: Only loads what's needed
 # - No gateway abstraction overhead
-# - No 9-way routing decisions  
+# - No 9-way routing decisions
 # - Direct squad → vault → skills flow
 ```
 

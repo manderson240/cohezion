@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "agent_id": "kimi_kimi_k27_1785421663",
+    "universe_id": "universe-flume-kimi",
+    "total_steps": 5,
+    "binding_energy": 2.05,
+    "timestamp": "2026-07-30T10:27:43"
+  },
+  "nodes": [
+    {
+      "id": "evo_kimi_kimi_k27_1785421663_step_1",
+      "label": "EVO Step 1: Local silicon research on Lemo",
+      "agent_id": "kimi_kimi_k27_1785421663",
+      "topology": "instanton",
+      "confidence": 0.24771636947930245,
+      "coherence": 0.95,
+      "state_12d": [
+        0.6306,
+        1.0178,
+        0.2305,
+        -2.0756,
+        -0.3109,
+        0.6389,
+        -0.6007,
+        -2.1429,
+        -0.3118,
+        -1.8096,
+        0.0919,
+        0.7552
+      ],
+      "color": "#ff0055",
+      "size": 6.99086547791721
+    },
+    {
+      "id": "evo_kimi_kimi_k27_1785421663_step_2",
+      "label": "EVO Step 2: EventBus pub/sub integration (",
+      "agent_id": "kimi_kimi_k27_1785421663",
+      "topology": "trivial",
+      "confidence": 0.3600938109753218,
+      "coherence": 0.85,
+      "state_12d": [
+        0.803,
+        0.1003,
+        -0.7327,
+        2.0622,
+        1.2449,
+        0.6072,
+        -1.087,
+        -1.111,
+        1.9893,
+        -0.0634,
+        -0.0966,
+        1.113
+      ],
+      "color": "#78909c",
+      "size": 7.440375243901287
+    },
+    {
+      "id": "evo_kimi_kimi_k27_1785421663_step_3",
+      "label": "EVO Step 3: Designed zero-allocation ring-",
+      "agent_id": "kimi_kimi_k27_1785421663",
+      "topology": "instanton",
+      "confidence": 0.4578535069841232,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.081,
+        -0.5828,
+        0.1947,
+        1.5835,
+        1.3133,
+        0.3544,
+        2.8175,
+        -0.8003,
+        0.365,
+        -0.7558,
+        0.2602,
+        -1.1624
+      ],
+      "color": "#ff0055",
+      "size": 7.831414027936493
+    },
+    {
+      "id": "evo_kimi_kimi_k27_1785421663_step_4",
+      "label": "EVO Step 4: Executed task via Kimi K2.7 Co",
+      "agent_id": "kimi_kimi_k27_1785421663",
+      "topology": "soliton",
+      "confidence": 0.40215561590369014,
+      "coherence": 0.85,
+      "state_12d": [
+        1.7047,
+        1.5411,
+        0.3967,
+        -0.576,
+        -0.1552,
+        -1.3639,
+        0.077,
+        0.592,
+        -1.4576,
+        0.5711,
+        0.524,
+        1.9493
+      ],
+      "color": "#00e5ff",
+      "size": 7.60862246361476
+    },
+    {
+      "id": "evo_kimi_kimi_k27_1785421663_step_5",
+      "label": "EVO Step 5: Empirically verified AsyncSlid",
+      "agent_id": "kimi_kimi_k27_1785421663",
+      "topology": "instanton",
+      "confidence": 0.538695031953243,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.0246,
+        -0.9474,
+        -0.9077,
+        -1.8387,
+        -1.0046,
+        -0.292,
+        1.3196,
+        -0.7653,
+        0.1128,
+        -1.028,
+        1.0431,
+        -0.9322
+      ],
+      "color": "#ff0055",
+      "size": 8.154780127812971
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_kimi_kimi_k27_1785421663_step_1",
+      "target": "evo_kimi_kimi_k27_1785421663_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_kimi_kimi_k27_1785421663_step_2",
+      "target": "evo_kimi_kimi_k27_1785421663_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_kimi_kimi_k27_1785421663_step_3",
+      "target": "evo_kimi_kimi_k27_1785421663_step_4",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_kimi_kimi_k27_1785421663_step_4",
+      "target": "evo_kimi_kimi_k27_1785421663_step_5",
+      "type": "evo_transition"
+    }
+  ]
+}

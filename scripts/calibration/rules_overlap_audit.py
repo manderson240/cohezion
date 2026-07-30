@@ -8,6 +8,7 @@ in ~/.claude/rules/ to locate redundant instructions.
 import os
 from pathlib import Path
 
+
 CLAUDE_MD_PATH = Path("/home/mike-anderson/dev/cohezion/CLAUDE.md")
 RULES_DIR = Path("/home/mike-anderson/.claude/rules")
 

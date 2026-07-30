@@ -37,9 +37,7 @@ def _get_vae():
                     str(e),
                 )
         else:
-            logger.warning(
-                "No FLUME VAE checkpoint found at %s; using random weights", ckpt_path
-            )
+            logger.warning("No FLUME VAE checkpoint found at %s; using random weights", ckpt_path)
     return _vae_trainer
 ```
 
@@ -72,7 +70,8 @@ def reset_singletons():
 
     # Reset FLUME VAE singleton (NEW)
     import cohezion.api as api_module
-    if hasattr(api_module, '_vae_trainer'):
+
+    if hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
 
     # Clear logger cache to ensure consistent logging formatters
@@ -92,7 +91,7 @@ def reset_singletons():
         BudgetEnforcer.reset_instance()
 
     # Reset FLUME VAE singleton (NEW)
-    if hasattr(api_module, '_vae_trainer'):
+    if hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
 ```
 

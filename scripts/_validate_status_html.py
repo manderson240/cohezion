@@ -1,11 +1,28 @@
 """Throwaway HTML tag-balance validator for the status report."""
-from html.parser import HTMLParser
+
 import pathlib
+from html.parser import HTMLParser
+
 
 p = pathlib.Path("docs/status/loop_status_2026-06-06.html")
 html = p.read_text()
-VOID = {"meta", "br", "img", "hr", "input", "link", "path", "rect", "circle",
-        "polygon", "line", "marker", "tspan", "use", "stop"}
+VOID = {
+    "meta",
+    "br",
+    "img",
+    "hr",
+    "input",
+    "link",
+    "path",
+    "rect",
+    "circle",
+    "polygon",
+    "line",
+    "marker",
+    "tspan",
+    "use",
+    "stop",
+}
 stack = []
 errs = []
 

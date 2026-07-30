@@ -90,6 +90,50 @@ def set_default_calibrator(cal: PlattCalibrator) -> None:
     _default_calibrator = cal
 
 
+# --- Feeder: the missing piece that makes the calibrator non-identity ---------------
+# A "control channel" (cf. CMS BPH-26-005 flavour-tag calibration on B+ self-tagging):
+# prompts whose correct routing tier is unambiguous by construction, so `classify()` can be
+# scored for correctness and the raw confidence calibrated against empirical accuracy.
+DEFAULT_CONTROL_SET: list[tuple[str, str]] = [
+    ("Reply with one word: yes or no.", "npu"),
+    ("What is 2+2?", "npu"),
+    ("Classify sentiment (positive/negative): I love this product.", "npu"),
+    ("Is the sky blue? Answer true or false.", "npu"),
+    ("What is Python?", "npu"),
+    ("Summarize this in one sentence: the cat sat on the mat all day.", "npu"),
+    ("Write a Python function to reverse a string.", "gpu"),
+    ("Generate a haiku about autumn leaves.", "gpu"),
+    ("Refactor this for-loop into a list comprehension.", "gpu"),
+    ("Explain step by step why the halting problem is undecidable.", "gpu"),
+    ("Derive the quadratic formula and justify each algebraic step.", "gpu"),
+    ("Analyze the trade-offs between REST and GraphQL for a high-throughput API.", "gpu"),
+]
+
+
+def fit_default_calibrator(
+    control_set: list[tuple[str, str]] | None = None,
+) -> PlattCalibrator:
+    """Fit and install the module-level calibrator from a labelled control set.
+
+    This is the FEEDER the module was missing: without a `fit()` call the default calibrator
+    stays identity and `calibrated_classify` is a no-op. Runs `classify()` on each control
+    prompt, labels it 1 iff the routed node matches the known-correct tier, fits Platt A/B on
+    the (raw_confidence, correct?) pairs, and installs the result as the default.
+
+    Returns the fitted PlattCalibrator (also set as the module default).
+    """
+    cs = control_set if control_set is not None else DEFAULT_CONTROL_SET
+    raw_scores: list[float] = []
+    labels: list[int] = []
+    for prompt, expected_node in cs:
+        d = classify(prompt)
+        raw_scores.append(d.confidence)
+        labels.append(1 if d.node == expected_node else 0)
+    cal = PlattCalibrator().fit(raw_scores, labels)
+    set_default_calibrator(cal)
+    return cal
+
+
 def calibrated_classify(prompt: str) -> RouteDecision:
     """Classify prompt and return RouteDecision with calibrated confidence.
 

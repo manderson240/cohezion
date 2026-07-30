@@ -41,16 +41,16 @@ from cohezion.compound.triune_self import TriuneSelf, CallableDoer, NullKnower
 
 # With real components (production)
 ts = TriuneSelf(
-    doer=CallableDoer(execute_fn),         # local silicon tier
-    thinker=AutoDQA(persist=True),          # AUTODQA quality gate
-    knower=AutonomyEngine(agent_id="ure"),   # AutonomyEngine identity
+    doer=CallableDoer(execute_fn),  # local silicon tier
+    thinker=AutoDQA(persist=True),  # AUTODQA quality gate
+    knower=AutonomyEngine(agent_id="ure"),  # AutonomyEngine identity
     max_cycles=3,
 )
 
 # One Percival cycle
 result = ts.recursive_learn(
     task="Analyze QGP phase transition at T_c=155 MeV",
-    guidance="Be precise, cite physical constants, use SI units"
+    guidance="Be precise, cite physical constants, use SI units",
 )
 
 # Health check: HIHO equilibrium = honest Thinker

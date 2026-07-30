@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "agent_id": "agent-dogfood-lead",
+    "universe_id": "universe-flume-production",
+    "total_steps": 5,
+    "binding_energy": 2.05,
+    "timestamp": "2026-07-29T14:41:57"
+  },
+  "nodes": [
+    {
+      "id": "evo_agent-dogfood-lead_step_1",
+      "label": "EVO Step 1: Preflight safety check RAM=60G",
+      "agent_id": "agent-dogfood-lead",
+      "topology": "soliton",
+      "confidence": 0.25831615366994265,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.0236,
+        2.1324,
+        0.4824,
+        -0.2345,
+        -0.8564,
+        -0.4413,
+        -0.4408,
+        -3.336,
+        0.5647,
+        0.0675,
+        -1.6087,
+        -0.9001
+      ],
+      "color": "#00e5ff",
+      "size": 7.033264614679771
+    },
+    {
+      "id": "evo_agent-dogfood-lead_step_2",
+      "label": "EVO Step 2: Consolidate local inference en",
+      "agent_id": "agent-dogfood-lead",
+      "topology": "trivial",
+      "confidence": 0.0,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.8347,
+        1.4854,
+        -1.2836,
+        0.1285,
+        -0.5507,
+        -0.9917,
+        -0.6213,
+        -0.2772,
+        0.6966,
+        1.2101,
+        0.3161,
+        0.5258
+      ],
+      "color": "#78909c",
+      "size": 6.0
+    },
+    {
+      "id": "evo_agent-dogfood-lead_step_3",
+      "label": "EVO Step 3: Extract 1594 LOC api/__init__.",
+      "agent_id": "agent-dogfood-lead",
+      "topology": "instanton",
+      "confidence": 0.44244173876416054,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.5603,
+        1.0202,
+        3.9902,
+        -1.0112,
+        2.0584,
+        -0.7176,
+        0.696,
+        -0.3086,
+        -0.5291,
+        -1.1749,
+        -0.2407,
+        -0.1121
+      ],
+      "color": "#ff0055",
+      "size": 7.769766955056642
+    },
+    {
+      "id": "evo_agent-dogfood-lead_step_4",
+      "label": "EVO Step 4: Run multiperspective adversari",
+      "agent_id": "agent-dogfood-lead",
+      "topology": "soliton",
+      "confidence": 0.1019065337082106,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.682,
+        0.4514,
+        1.1552,
+        -0.1847,
+        -0.253,
+        0.8159,
+        -0.1214,
+        -1.0529,
+        -2.9253,
+        -0.2005,
+        0.7196,
+        0.415
+      ],
+      "color": "#00e5ff",
+      "size": 6.407626134832842
+    },
+    {
+      "id": "evo_agent-dogfood-lead_step_5",
+      "label": "EVO Step 5: Validate 821 unit tests in cle",
+      "agent_id": "agent-dogfood-lead",
+      "topology": "soliton",
+      "confidence": 0.5268624578303006,
+      "coherence": 0.95,
+      "state_12d": [
+        2.1164,
+        -0.5272,
+        2.7312,
+        0.7822,
+        1.6068,
+        0.1465,
+        0.3525,
+        -1.3252,
+        1.6986,
+        1.5565,
+        -0.9026,
+        -0.1208
+      ],
+      "color": "#00e5ff",
+      "size": 8.107449831321203
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_agent-dogfood-lead_step_1",
+      "target": "evo_agent-dogfood-lead_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_agent-dogfood-lead_step_2",
+      "target": "evo_agent-dogfood-lead_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_agent-dogfood-lead_step_3",
+      "target": "evo_agent-dogfood-lead_step_4",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_agent-dogfood-lead_step_4",
+      "target": "evo_agent-dogfood-lead_step_5",
+      "type": "evo_transition"
+    }
+  ]
+}

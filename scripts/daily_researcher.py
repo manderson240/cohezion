@@ -104,6 +104,7 @@ async def write_morning_digest(
         logger.info("dry-run: skipping morning digest write")
         return None
     import os
+
     vault_root = Path(
         os.environ.get(
             "COHEZION_VAULT_ROOT",
@@ -135,8 +136,10 @@ async def write_morning_digest(
     # asyncio.to_thread to keep disk I/O off the event loop
     def _write(path: Path, body: str) -> None:
         path.write_text(body)
+
     body = "\n".join(lines)
     import asyncio
+
     await asyncio.to_thread(_write, out, body)
     logger.info("morning digest written to %s", out)
     return out

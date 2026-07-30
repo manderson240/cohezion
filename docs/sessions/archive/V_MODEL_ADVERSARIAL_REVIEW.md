@@ -332,7 +332,7 @@ self.physical_state.effective_mass = coupling.compute_physical_mass(latent)
 **D6.2 [HIGH] Negative Mass Instability**
 ```python
 # EVOs with negative mass:
-force_mag = -masses[i] * masses[j] / (r_mag ** 2)
+force_mag = -masses[i] * masses[j] / (r_mag**2)
 ```
 **Problem**: Runaway acceleration (no stable orbits)
 **Reality**: Negative mass objects accelerate forever

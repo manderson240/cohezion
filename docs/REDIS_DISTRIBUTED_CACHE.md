@@ -59,10 +59,12 @@ RedisSemanticCache extends SemanticCache with a distributed L0 tier backed by Re
 ```python
 # Old code
 from cohezion.cache import SemanticCache
+
 cache = SemanticCache()
 
 # New code (identical usage)
 from cohezion.cache import RedisSemanticCache
+
 cache = RedisSemanticCache()
 
 # With custom Redis endpoint
@@ -77,19 +79,17 @@ cache = RedisSemanticCache(
 ```python
 RedisSemanticCache(
     # Redis config
-    redis_host="localhost",          # default
-    redis_port=6379,                 # default
-    redis_db=0,                       # default
-    redis_ttl_seconds=300,            # 5 min TTL
-
+    redis_host="localhost",  # default
+    redis_port=6379,  # default
+    redis_db=0,  # default
+    redis_ttl_seconds=300,  # 5 min TTL
     # Cache config (inherited from SemanticCache)
-    similarity_threshold=0.92,        # L2 threshold
-    max_l1_size=512,                  # L1 entries
-    max_l2_size=1024,                 # L2 entries
-
+    similarity_threshold=0.92,  # L2 threshold
+    max_l1_size=512,  # L1 entries
+    max_l2_size=1024,  # L2 entries
     # Control
-    enable_redis=True,                # graceful fallback
-    enable_adaptive_threshold=True,   # L2 tuning
+    enable_redis=True,  # graceful fallback
+    enable_adaptive_threshold=True,  # L2 tuning
 )
 ```
 
@@ -131,17 +131,11 @@ print(f"Redis status: {stats['redis_available']}")
 
 ```python
 # Instance 1 (service-a)
-cache_a = RedisSemanticCache(
-    redis_host="redis.internal",
-    redis_port=6379
-)
+cache_a = RedisSemanticCache(redis_host="redis.internal", redis_port=6379)
 await cache_a.put("common_query", "shared_response")
 
 # Instance 2 (service-b) - automatically reads from shared Redis
-cache_b = RedisSemanticCache(
-    redis_host="redis.internal",
-    redis_port=6379
-)
+cache_b = RedisSemanticCache(redis_host="redis.internal", redis_port=6379)
 response = await cache_b.get("common_query")  # L0 hit from Redis!
 ```
 
@@ -184,8 +178,8 @@ cache.clear_all()
 
 # Check statistics
 stats = cache.get_stats()
-total_ops = stats['total_requests']
-overall_rate = stats['overall_hit_rate']
+total_ops = stats["total_requests"]
+overall_rate = stats["overall_hit_rate"]
 ```
 
 ## Implementation Details
@@ -193,6 +187,7 @@ overall_rate = stats['overall_hit_rate']
 ### Key Generation
 ```python
 import hashlib
+
 
 def generate_cache_key(system, prompt, model):
     full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
@@ -204,12 +199,12 @@ def generate_cache_key(system, prompt, model):
 ### L0 Entry Format (Redis JSON)
 ```python
 {
-    "prompt": str[:200],           # truncated for size
-    "response": str[:1000],        # truncated
-    "embedding": [float] * 256,    # normalized 256D embedding
-    "timestamp": float,            # unix timestamp
-    "system": str,                 # system prompt
-    "model": str,                  # model name
+    "prompt": str[:200],  # truncated for size
+    "response": str[:1000],  # truncated
+    "embedding": [float] * 256,  # normalized 256D embedding
+    "timestamp": float,  # unix timestamp
+    "system": str,  # system prompt
+    "model": str,  # model name
 }
 ```
 
@@ -320,7 +315,7 @@ cache = RedisSemanticCache(enable_redis=False)
 ```python
 # Check status
 health = cache.health_check()
-print(health['redis_status'])  # 'disconnected', 'disabled', 'healthy'
+print(health["redis_status"])  # 'disconnected', 'disabled', 'healthy'
 ```
 
 **Solution**:

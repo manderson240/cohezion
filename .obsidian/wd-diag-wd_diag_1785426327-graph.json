@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "wd_wd_diag_1785426327",
+    "universe_id": "universe-flume-wd",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-30T11:46:23"
+  },
+  "nodes": [
+    {
+      "id": "evo_wd_wd_diag_1785426327_step_1",
+      "label": "EVO Step 1: Local silicon analyzed WD-MyBo",
+      "agent_id": "wd_wd_diag_1785426327",
+      "topology": "instanton",
+      "confidence": 0.43173471489049836,
+      "coherence": 0.95,
+      "state_12d": [
+        1.6224,
+        1.3164,
+        0.722,
+        -1.0495,
+        0.0421,
+        -0.5094,
+        1.8903,
+        -1.0511,
+        -0.6161,
+        -0.5762,
+        -1.118,
+        -1.2955
+      ],
+      "color": "#ff0055",
+      "size": 7.726938859561994
+    },
+    {
+      "id": "evo_wd_wd_diag_1785426327_step_2",
+      "label": "EVO Step 2: Dispatched synthesis task to k",
+      "agent_id": "wd_wd_diag_1785426327",
+      "topology": "soliton",
+      "confidence": 0.23906141575456125,
+      "coherence": 0.85,
+      "state_12d": [
+        0.4422,
+        -0.7328,
+        0.3038,
+        1.3242,
+        -1.5403,
+        0.0413,
+        0.0428,
+        0.7389,
+        -0.0237,
+        -0.3486,
+        -1.2708,
+        0.7661
+      ],
+      "color": "#00e5ff",
+      "size": 6.956245663018245
+    },
+    {
+      "id": "evo_wd_wd_diag_1785426327_step_3",
+      "label": "EVO Step 3: Generated wd_mybook_diagnostic",
+      "agent_id": "wd_wd_diag_1785426327",
+      "topology": "soliton",
+      "confidence": 0.21314742449863552,
+      "coherence": 0.95,
+      "state_12d": [
+        0.9727,
+        -0.8501,
+        0.2308,
+        1.0257,
+        -1.0496,
+        -0.3564,
+        -1.0666,
+        -1.1782,
+        -0.0753,
+        -1.0876,
+        -0.9962,
+        -1.3244
+      ],
+      "color": "#00e5ff",
+      "size": 6.852589697994542
+    },
+    {
+      "id": "evo_wd_wd_diag_1785426327_step_4",
+      "label": "EVO Step 4: Persisted findings to SurrealD",
+      "agent_id": "wd_wd_diag_1785426327",
+      "topology": "instanton",
+      "confidence": 0.07934699476048478,
+      "coherence": 0.85,
+      "state_12d": [
+        0.1459,
+        1.6805,
+        -0.7706,
+        -0.6973,
+        -0.5094,
+        0.0671,
+        0.3741,
+        -0.1836,
+        0.4778,
+        -0.7862,
+        0.6711,
+        -0.3525
+      ],
+      "color": "#ff0055",
+      "size": 6.317387979041939
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_wd_wd_diag_1785426327_step_1",
+      "target": "evo_wd_wd_diag_1785426327_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_wd_wd_diag_1785426327_step_2",
+      "target": "evo_wd_wd_diag_1785426327_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_wd_wd_diag_1785426327_step_3",
+      "target": "evo_wd_wd_diag_1785426327_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

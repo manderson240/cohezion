@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cohezion"
-version = "1.1.0"
+version = "1.2.0"
 description = "Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes"
 readme = "README.md"
 requires-python = ">=3.13"

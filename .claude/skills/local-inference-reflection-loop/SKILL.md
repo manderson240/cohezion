@@ -49,7 +49,7 @@ class LocalImprovementExecutor:
     def __init__(
         self,
         base_url: str = LEMONADE_BASE_URL,
-        degradation_detector: Any = None,   # ← add
+        degradation_detector: Any = None,  # ← add
     ) -> None:
         self._degradation_detector = degradation_detector
 ```
@@ -96,14 +96,18 @@ means not in the recent-20-alert set.
 # Verifies the detector actually reaches the executor constructor, not just that
 # the coordinator runs (a wrong impl drops the kwarg silently):
 captured = {}
+
+
 def capture(base_url, degradation_detector=None):
     captured["degradation_detector"] = degradation_detector
     return _mock_local_exec()
 
+
 detector = DegradationDetector()
 coordinator = LoopCoordinator(config, degradation_detector=detector)
-with patch("cohezion.compound.autonomous_loop.local_executor.LocalImprovementExecutor",
-           side_effect=capture):
+with patch(
+    "cohezion.compound.autonomous_loop.local_executor.LocalImprovementExecutor", side_effect=capture
+):
     coordinator.run()
 
 assert captured["degradation_detector"] is detector

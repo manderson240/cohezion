@@ -43,6 +43,13 @@ class ExecutorFactory:
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
         token_ledger: Any | None = None,
+        # I1: CompoundExecutor accepts inference_provider so local silicon serves execute_fn.
+        # `make_executor` below sets kwargs["inference_provider"] and then calls create(), but
+        # create() had no such parameter and no **kwargs — so the ONLY factory path that wires
+        # the RetrospectionEngine raised TypeError and was effectively uncallable. Everything
+        # migrated to compound/__init__.make_executor, which hand-duplicates the auto-wiring
+        # and omitted retrospection, silently dropping REFLECT from the loop.
+        inference_provider: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -192,6 +199,7 @@ class ExecutorFactory:
             skill_health_tracker=skill_health_tracker,
             jepa_gate=jepa_gate,
             token_ledger=token_ledger,
+            inference_provider=inference_provider,
         )
 
     @staticmethod

@@ -15,6 +15,7 @@ Features:
 import logging
 import re
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -242,6 +243,7 @@ class SkillRefiner:
         health_oracle: Any = None,
         failure_memory: Any = None,
         refine_interval: int = 1,
+        promotion_gate: Callable[[Path, Path], bool] | None = None,
     ):
         """Initialize skill refiner.
 
@@ -276,6 +278,10 @@ class SkillRefiner:
         # CH1-CH5: streaming HIHO regime oracle — assess() is called on each quality score so
         # the oracle accumulates an FD baseline and can answer is_healthy() across the session.
         self._health_oracle = health_oracle
+        # Draft-then-promote gate. None => write straight to the live PRIME file (existing
+        # behaviour, preserved so no caller changes). When set, refinements land in a DRAFT and
+        # only replace the live file if the gate returns True. See _append_refinement.
+        self._promotion_gate = promotion_gate
         # #83: maps candidate recommendation text -> originating expert name; populated by
         # _autodata_candidates(), consumed by _autodata_select() for MoE-weighted scoring.
         self._candidate_expert_map: dict[str, str] = {}
@@ -1414,43 +1420,70 @@ class SkillRefiner:
         """
         chat_fn = self._adversarial_chat_fn
         if chat_fn is None:
-            # Build frontier chat function: Fable → Opus → agy → Bonsai-local.
-            # Each layer is tried once at build time; the first live path becomes chat_fn.
-            _frontier_fn = None
+            # QUARTER-ON-A-STRING ORDER: local $0 lane FIRST, metered cloud only on a
+            # genuine local miss.
+            #
+            # This was inverted until 2026-07-27: the frontier cascade
+            # (Fable -> Opus -> agy, each a `subprocess.run` CLI call at timeout=90s) was
+            # built first and won unconditionally, so EVERY refine() reached for metered
+            # cloud before local -- contradicting this method's own docstring. It also cost
+            # ~243s per call when all three legs timed out.
             try:
-                from cohezion.inference.frontier_oracle import frontier_complete_sync as _fcs
+                from gaia.llm.lemonade_client import (
+                    LemonadeClient,  # type: ignore[import-not-found]
+                )
 
-                def _frontier_wrapper(p: str) -> str:
-                    return _fcs(p, timeout=90.0)
+                from cohezion.compound.local_inference import lemonade_available
+                from cohezion.inference.gaia_adapter import _GaiaLLMClientShim
+                from cohezion.inference.model_card_defaults import get_sampling_defaults
 
-                _frontier_fn = _frontier_wrapper
-            except Exception as _fe:
-                logger.debug("Frontier oracle unavailable, falling back to local: %s", _fe)
+                # Probe before building: LemonadeClient construction does not itself prove
+                # the endpoint is up, and silently binding a dead local lane would turn
+                # every perspective into a fail-open APPROVE (a gate that cannot fail).
+                if not lemonade_available(npu_port=13305):
+                    raise RuntimeError("lemonade :13305 unreachable")
 
-            if _frontier_fn is not None:
-                chat_fn = _frontier_fn
+                _model = "Bonsai-8B-gguf"
+                _client = LemonadeClient(
+                    base_url="http://localhost:13305/api/v1",
+                    model=_model,
+                    verbose=False,
+                )
+                # Use what Lemonade already knows (TR1): the model card's own sampling,
+                # not a hand-picked temperature that fights the server's tuned values.
+                _sampling = get_sampling_defaults(_model)
+                # max_tokens was 48. Local inference is $0, so a frugal cap buys nothing and
+                # costs correctness: N5 measured that thinking-capable models return
+                # content="" when max_tokens truncates mid-reasoning, and this gate treats an
+                # empty reply as fail-open APPROVE -- so a 48-token cap could silently approve
+                # every refinement. Budget generously; a one-word APPROVE still returns in one.
+                chat_fn = _GaiaLLMClientShim(
+                    _client,
+                    _model,
+                    max_tokens=2048,
+                    temperature=_sampling.get("temperature", 0.3),
+                ).prompt
                 self._adversarial_chat_fn = chat_fn
-            else:
-                # Fall through to local Bonsai-8B-gguf on Lemonade (iGPU, fast structured gen).
+            except Exception as exc:
+                logger.debug("Local adversarial reviewer unavailable: %s", exc)
+                # Genuine local-lane miss -> escalate ONE step to the metered frontier.
                 try:
-                    from gaia.llm.lemonade_client import (
-                        LemonadeClient,  # type: ignore[import-not-found]
+                    from cohezion.inference.frontier_oracle import (
+                        frontier_complete_sync as _fcs,
                     )
 
-                    from cohezion.inference.gaia_adapter import _GaiaLLMClientShim
+                    def _frontier_wrapper(p: str) -> str:
+                        return _fcs(p, timeout=90.0)
 
-                    _model = "Bonsai-8B-gguf"
-                    _client = LemonadeClient(
-                        base_url="http://localhost:13305/api/v1",
-                        model=_model,
-                        verbose=False,
-                    )
-                    chat_fn = _GaiaLLMClientShim(
-                        _client, _model, max_tokens=48, temperature=0.3
-                    ).prompt
+                    chat_fn = _frontier_wrapper
                     self._adversarial_chat_fn = chat_fn
-                except Exception as exc:
-                    logger.debug("Adversarial reviewer unavailable (fail-open): %s", exc)
+                    logger.warning(
+                        "Adversarial reviewer ESCALATED to metered frontier cascade "
+                        "(local :13305 lane unavailable: %s)",
+                        exc,
+                    )
+                except Exception as _fe:
+                    logger.debug("Frontier oracle also unavailable (fail-open): %s", _fe)
                     return True  # all paths down → always proceed
 
         rec = signal.recommendation
@@ -1650,10 +1683,39 @@ class SkillRefiner:
                 + content[insertion_point + len(version_line) + 1 :]
             )
 
-            # Write back
-            prime_file.write_text(new_content, encoding="utf-8")
-            logger.info(f"Refined PRIME file: {prime_file.name} → v{new_version}")
+            # DRAFT-THEN-PROMOTE. Without a gate this writes straight to the live PRIME file --
+            # a closed loop: an uncalibrated quality signal rewrites the very instructions that
+            # produce it, with nothing external to contradict it. With a gate, the refinement
+            # lands in a DRAFT and only replaces the live file if the gate approves.
+            if self._promotion_gate is None:
+                prime_file.write_text(new_content, encoding="utf-8")
+                logger.info(f"Refined PRIME file: {prime_file.name} -> v{new_version}")
+                return prime_file
 
+            draft = prime_file.with_suffix(".draft.md")
+            draft.write_text(new_content, encoding="utf-8")
+            try:
+                approved = bool(self._promotion_gate(draft, prime_file))
+            except Exception as exc:
+                # FAIL-CLOSED, deliberately inverting this module's usual fail-open habit.
+                # Elsewhere a broken guard should not stop work. Here the guarded action IS
+                # rewriting the instructions that steer every future run, so a gate that cannot
+                # answer must not be read as approval. The draft survives for inspection.
+                logger.warning("promotion gate raised, NOT promoting %s: %s", prime_file.name, exc)
+                return None
+
+            if not approved:
+                logger.info(
+                    "promotion gate REJECTED %s -> v%s (draft kept at %s)",
+                    prime_file.name,
+                    new_version,
+                    draft.name,
+                )
+                return None
+
+            prime_file.write_text(new_content, encoding="utf-8")
+            draft.unlink(missing_ok=True)
+            logger.info(f"Promoted PRIME file: {prime_file.name} -> v{new_version}")
             return prime_file
 
         except Exception as e:

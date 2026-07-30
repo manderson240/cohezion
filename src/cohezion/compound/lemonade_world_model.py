@@ -224,7 +224,7 @@ def build_live_jepa_gate(lookahead_steps: int = 1):
                         lookahead_steps=lookahead_steps,
                         reroute_only=True,
                     )
-            except Exception:  # noqa: BLE001 — gate construction must stay fail-open
+            except Exception:
                 pass
             # reroute_only=True: the 1B world model is a NOISY BINARY signal (QA 2026-06-30 — routine
             # tractable tasks collapse to ~0.01, the LOW few-shot anchor). A spurious low must escalate

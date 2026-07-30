@@ -110,6 +110,7 @@ class TestG16bStructural:
 class TestG16Behavioral:
     """T2: text_to_latent() must return a semantic unit vector, not a hash expansion."""
 
+    @pytest.mark.integration
     def test_encoder_instance_type(self):
         """When Lemonade is available, _flume_encoder is a LemonadeEmbedBridge."""
         from cohezion.compound.journey_tracker import JourneyTracker
@@ -132,6 +133,7 @@ class TestG16Behavioral:
         norm = float(np.linalg.norm(vec))
         assert norm > 1e-6, "text_to_latent returned all-zeros vector"
 
+    @pytest.mark.integration
     def test_semantic_embeddings_differ_for_distinct_inputs(self):
         """Two semantically distinct phrases must produce different 2048D vectors
         when LemonadeEmbedBridge is active (discriminating: hash always differs too,

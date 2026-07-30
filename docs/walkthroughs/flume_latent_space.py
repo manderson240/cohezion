@@ -51,8 +51,12 @@ def _(mo):
     n_clusters = mo.ui.slider(2, 8, step=1, value=4, label="Semantic clusters")
     latent_dim = mo.ui.slider(2, 256, step=2, value=256, label="Latent dim (D)")
     beta_val = mo.ui.slider(
-        0.001, 0.025, step=0.001, value=0.010,
-        label="β (KL weight)", show_value=True,
+        0.001,
+        0.025,
+        step=0.001,
+        value=0.010,
+        label="β (KL weight)",
+        show_value=True,
     )
     mo.vstack([n_points, n_clusters, mo.hstack([latent_dim, beta_val], justify="start")])
     return beta_val, latent_dim, n_clusters, n_points
@@ -88,7 +92,7 @@ def _(latent_dim, math, n_clusters, n_points, random):
         _ci = _i % K
         labels.append(_ci)
         _v = [_centers[_ci][_d] + random.gauss(0, 0.6) for _d in range(D)]
-        _norm = math.sqrt(sum(_x ** 2 for _x in _v)) or 1.0
+        _norm = math.sqrt(sum(_x**2 for _x in _v)) or 1.0
         vectors.append([_x / _norm for _x in _v])
 
     return D, K, N, labels, vectors
@@ -106,7 +110,7 @@ def _(K, go, labels, mo, random, vectors):
         _axes = []
         for _ in range(3):
             _ax = [random.gauss(0, 1) for _ in range(_d)]
-            _nm = sum(_x ** 2 for _x in _ax) ** 0.5
+            _nm = sum(_x**2 for _x in _ax) ** 0.5
             _axes.append([_x / _nm for _x in _ax])
         return [
             [sum(_Xc[_i][_j] * _axes[_k][_j] for _j in range(_d)) for _k in range(3)]
@@ -116,20 +120,30 @@ def _(K, go, labels, mo, random, vectors):
     _coords = _rp3(vectors)
     _x3, _y3, _z3 = zip(*_coords)
 
-    _colours = ["#4C78A8", "#F58518", "#E45756", "#72B7B2",
-                "#54A24B", "#EECA3B", "#B279A2", "#FF9DA6"]
+    _colours = [
+        "#4C78A8",
+        "#F58518",
+        "#E45756",
+        "#72B7B2",
+        "#54A24B",
+        "#EECA3B",
+        "#B279A2",
+        "#FF9DA6",
+    ]
 
     fig_latent = go.Figure()
     for _ci in range(K):
         _idxs = [_i for _i, _lbl in enumerate(labels) if _lbl == _ci]
-        fig_latent.add_trace(go.Scatter3d(
-            x=[_x3[_i] for _i in _idxs],
-            y=[_y3[_i] for _i in _idxs],
-            z=[_z3[_i] for _i in _idxs],
-            mode="markers",
-            marker=dict(size=4, color=_colours[_ci % len(_colours)], opacity=0.8),
-            name=f"Cluster {_ci}",
-        ))
+        fig_latent.add_trace(
+            go.Scatter3d(
+                x=[_x3[_i] for _i in _idxs],
+                y=[_y3[_i] for _i in _idxs],
+                z=[_z3[_i] for _i in _idxs],
+                mode="markers",
+                marker=dict(size=4, color=_colours[_ci % len(_colours)], opacity=0.8),
+                name=f"Cluster {_ci}",
+            )
+        )
 
     fig_latent.update_layout(
         title="FLUME Latent Space (3D random projection)",
@@ -157,16 +171,24 @@ def _(beta_val, go, math, mo):
     _threshold = [0.020] * len(_steps)
 
     fig_beta = go.Figure()
-    fig_beta.add_trace(go.Scatter(
-        x=_steps, y=_sched, mode="lines",
-        name=f"β schedule (amp={_amp:.4f})",
-        line=dict(color="#4C78A8"),
-    ))
-    fig_beta.add_trace(go.Scatter(
-        x=_steps, y=_threshold, mode="lines",
-        name="Collapse threshold (0.020)",
-        line=dict(dash="dash", color="#E45756"),
-    ))
+    fig_beta.add_trace(
+        go.Scatter(
+            x=_steps,
+            y=_sched,
+            mode="lines",
+            name=f"β schedule (amp={_amp:.4f})",
+            line=dict(color="#4C78A8"),
+        )
+    )
+    fig_beta.add_trace(
+        go.Scatter(
+            x=_steps,
+            y=_threshold,
+            mode="lines",
+            name="Collapse threshold (0.020)",
+            line=dict(dash="dash", color="#E45756"),
+        )
+    )
     fig_beta.update_layout(
         title="Cyclic β-Annealing Schedule",
         xaxis_title="Training step",
@@ -201,6 +223,7 @@ def _(beta_val, latent_dim, mo, n_clusters, n_points):
 @app.cell
 def _(mo):
     import os
+
     _default_url = os.getenv("LEMONADE_URL", "http://localhost:13305")
     flume_query = mo.ui.text_area(
         placeholder="Ask about β-VAE KL collapse, latent geometry, HIHO equilibrium in latent space...",
@@ -214,12 +237,14 @@ def _(mo):
     )
     flume_run = mo.ui.run_button(label="Ask Agent ▶")
     flume_url = mo.ui.text(value=_default_url, label="Lemonade URL")
-    mo.vstack([
-        mo.md("## Live Agent — Ask About FLUME Latent Space"),
-        mo.hstack([flume_url, flume_model], justify="start"),
-        flume_query,
-        flume_run,
-    ])
+    mo.vstack(
+        [
+            mo.md("## Live Agent — Ask About FLUME Latent Space"),
+            mo.hstack([flume_url, flume_model], justify="start"),
+            flume_query,
+            flume_run,
+        ]
+    )
     return flume_model, flume_query, flume_run, flume_url
 
 
@@ -236,13 +261,16 @@ def _(flume_model, flume_query, flume_run, flume_url, mo):
                 json={
                     "model": model,
                     "messages": [
-                        {"role": "system", "content": (
-                            "You are an expert in β-VAE latent space geometry and FLUME "
-                            "(Fluid Latent Understanding through Manifold Encoding). "
-                            "Key invariants: β ≤ 0.01, 2-layer decoder, hidden_dim=4096. "
-                            "Explain KL regularisation, posterior collapse thresholds, "
-                            "and semantic cluster geometry concisely."
-                        )},
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are an expert in β-VAE latent space geometry and FLUME "
+                                "(Fluid Latent Understanding through Manifold Encoding). "
+                                "Key invariants: β ≤ 0.01, 2-layer decoder, hidden_dim=4096. "
+                                "Explain KL regularisation, posterior collapse thresholds, "
+                                "and semantic cluster geometry concisely."
+                            ),
+                        },
                         {"role": "user", "content": q},
                     ],
                     "max_tokens": 600,

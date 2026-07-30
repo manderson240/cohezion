@@ -33,16 +33,18 @@ from cohezion.environments.manifold_env import ManifoldEnv
 
 env = ManifoldEnv(seed=42)
 env.reset()
-for _ in range(10): env.step(env.action_space.sample())  # warmup
+for _ in range(10):
+    env.step(env.action_space.sample())  # warmup
 
 n = 5000
 start = time.perf_counter()
 for _ in range(n):
     action = env.action_space.sample()
     obs, reward, term, trunc, info = env.step(action)
-    if term or trunc: env.reset()
+    if term or trunc:
+        env.reset()
 elapsed = time.perf_counter() - start
-print(f"{elapsed/n*1e6:.1f} µs/step ({n/elapsed:.0f} steps/sec)")
+print(f"{elapsed / n * 1e6:.1f} µs/step ({n / elapsed:.0f} steps/sec)")
 ```
 
 **Target**: < 300 µs/step (> 3,300 steps/sec). If above 1000 µs, the physics hot path needs optimization.
@@ -101,7 +103,7 @@ for b in range(3):
 
 # AFTER (17 µs/call): Numpy einsum + fast path for near-HIHO states
 SO3_STACK = np.stack(SO3_GENERATORS)  # (3, 3, 3) precomputed
-Ab_all = np.einsum('ab,aij->bij', A.T, SO3_STACK)  # Vectorized
+Ab_all = np.einsum("ab,aij->bij", A.T, SO3_STACK)  # Vectorized
 
 # Also: yang_mills_action() caching within step
 self._cached_ym_action = sum(conn.field_strength_energy() for conn in self.connections.values())
@@ -113,13 +115,14 @@ self._cached_ym_action = sum(conn.field_strength_energy() for conn in self.conne
 
 ```python
 # BEFORE: SpinorState computed twice (once for obs, once for info)
-obs = self._get_obs()      # SpinorState.from_coherence_values(...)
-info = self._get_info()     # SpinorState.from_coherence_values(...) AGAIN
+obs = self._get_obs()  # SpinorState.from_coherence_values(...)
+info = self._get_info()  # SpinorState.from_coherence_values(...) AGAIN
+
 
 # AFTER: Single SpinorState shared between obs and info
 def _get_obs_and_info(self, reward):
     spinor = SpinorState.from_coherence_values(...)  # computed once
-    bloch = spinor.bloch_vector.astype(np.float32)     # shared
+    bloch = spinor.bloch_vector.astype(np.float32)  # shared
     ...
 ```
 
@@ -130,16 +133,19 @@ Every optimization must preserve physics semantics. Verify with:
 ```python
 # Constant metric → zero Christoffel symbols
 from cohezion.physics.riemannian_metric import fabric_block_metric
+
 metric = fabric_block_metric(12)
 assert np.allclose(metric.christoffel(np.full(12, 0.5)), 0)
 
 # Dynamic metric → non-zero Christoffel symbols
 from cohezion.physics.riemannian_metric import hiho_metric
+
 dyn = hiho_metric(12)
 assert np.linalg.norm(dyn.christoffel(np.full(12, 0.7))) > 0
 
 # Gauge theory at HIHO → flat connection
 from cohezion.physics.gauge_theory import FourFabricGauge
+
 gauge = FourFabricGauge()
 gauge.set_from_12d_state(np.full(12, 0.5))
 assert gauge.is_hiho()  # All connections flat at equilibrium

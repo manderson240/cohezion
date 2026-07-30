@@ -60,11 +60,7 @@ Implementation:
 from cohezion.benchmarks.coding_benchmark import CohezionCodeBenchmark
 
 benchmark = CohezionCodeBenchmark()
-results = await benchmark.run_full_benchmark(
-    executor=llm_executor,
-    n_tasks=500,
-    parallel=True
-)
+results = await benchmark.run_full_benchmark(executor=llm_executor, n_tasks=500, parallel=True)
 ```
 
 **Features**:
@@ -85,14 +81,8 @@ results = await benchmark.run_full_benchmark(
 ```python
 from cohezion.benchmarks.cyber_benchmark import CyberBenchmark
 
-challenge = CTFChallenge(
-    category="web",
-    difficulty=3,
-    description="SQL injection in login form"
-)
-result = await cyber_benchmark.evaluate_ctf(
-    challenge, llm_executor
-)
+challenge = CTFChallenge(category="web", difficulty=3, description="SQL injection in login form")
+result = await cyber_benchmark.evaluate_ctf(challenge, llm_executor)
 ```
 
 **Categories**:
@@ -113,7 +103,7 @@ agent = UnifiedAgent()
 trace = await agent.run_task(
     task="Configure nginx reverse proxy with PostgreSQL",
     env={"tools": ["bash", "file"]},
-    timeout=1800
+    timeout=1800,
 )
 ```
 
@@ -128,11 +118,7 @@ trace = await agent.run_task(
 ```python
 from cohezion.rl.distributed_trainer import DistributedTrainer
 
-trainer = DistributedTrainer(
-    strategy="ddp",
-    world_size=16,
-    gradient_accumulation=4
-)
+trainer = DistributedTrainer(strategy="ddp", world_size=16, gradient_accumulation=4)
 ```
 
 **Supported Strategies**:
@@ -251,8 +237,8 @@ from cohezion.rl.ppo_trainer import TRIUNETrainer
 
 trainer = TRIUNETrainer(
     alpha=0.7,  # Task weight
-    beta=0.2,   # Physics weight  
-    gamma=0.1   # Safety weight
+    beta=0.2,  # Physics weight
+    gamma=0.1,  # Safety weight
 )
 ```
 
@@ -263,11 +249,7 @@ Mythos-style training with group sampling.
 ```python
 from cohezion.rl.grpo_trainer import GRPOTrainer
 
-trainer = GRPOTrainer(
-    policy=model,
-    reference_model=ref_model,
-    group_size=64
-)
+trainer = GRPOTrainer(policy=model, reference_model=ref_model, group_size=64)
 ```
 
 ### 5.3 Distributed Training

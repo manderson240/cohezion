@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-import sys
-import os
 import asyncio
+import os
+import sys
 from pathlib import Path
+
 import numpy as np
+
 
 # Ensure path is set
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
@@ -11,10 +13,10 @@ sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 # Escape hatch for local dev credentials
 os.environ["COHEZION_ALLOW_INSECURE_SURREAL"] = "1"
 
-from cohezion.flume.vacuum_encoder import encode_journey_text
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.flume.coe_evaluator import ChainOfEmbeddingEvaluator
+from cohezion.flume.vacuum_encoder import encode_journey_text
 from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 
 async def main():
@@ -153,7 +155,7 @@ async def main():
     # Store CoE trajectory
     node4 = UniverseNode(
         id="coe_trajectory_20260603",
-        content=f"CoE evaluation of trajectory: codesweep -> tcrao -> research",
+        content="CoE evaluation of trajectory: codesweep -> tcrao -> research",
         node_type="coe_evaluation",
         physics_state=PhysicsState(control=0.9, logic=0.85, field=0.9),
         metadata={
@@ -194,7 +196,7 @@ async def main():
 
     # File 1: Patterns (Codesweep)
     file1_path = vault_dir / "patterns" / "2026-06-03-comprehensive-codesweep-findings.md"
-    file1_content = f"""---
+    file1_content = """---
 date: 2026-06-03
 source_project: cohezion
 tags: [pattern, dev]
@@ -224,7 +226,7 @@ An AST-based codesweep tool was run to automatically inspect code patterns.
 
     # File 2: Experiments (TCRAO Solver)
     file2_path = vault_dir / "experiments" / "2026-06-03-tcrao-solver-success.md"
-    file2_content = f"""---
+    file2_content = """---
 date: 2026-06-03
 project: cohezion
 status: completed

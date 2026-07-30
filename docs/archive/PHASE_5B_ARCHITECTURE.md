@@ -247,13 +247,15 @@ Dashboard Query: "Show metrics for last 24 hours"
 agg = GlobalMetricsAggregator()
 
 # Record instance metrics
-agg.record_instance_metrics(InstanceMetrics(
-    instance_id="executor-1",
-    total_executions=50,
-    total_tokens=12500,
-    avg_coherence=0.92,
-    cache_hit_rate=0.85
-))
+agg.record_instance_metrics(
+    InstanceMetrics(
+        instance_id="executor-1",
+        total_executions=50,
+        total_tokens=12500,
+        avg_coherence=0.92,
+        cache_hit_rate=0.85,
+    )
+)
 
 # Query dashboard (5-min rolling window)
 dashboard = agg.get_dashboard_snapshot()
@@ -261,8 +263,7 @@ dashboard = agg.get_dashboard_snapshot()
 
 # Query time range
 metrics = agg.query_time_window(
-    start_time=datetime.now() - timedelta(days=1),
-    end_time=datetime.now()
+    start_time=datetime.now() - timedelta(days=1), end_time=datetime.now()
 )
 # Returns: p50/p95/p99 latencies, throughput, per-skill trends
 
@@ -315,9 +316,7 @@ persist = SessionPersistence()
 
 # Save session state (non-blocking)
 persist.save_session(
-    session_id="sess-123",
-    state=session_state,
-    cost_breakdown={"gpt-4": 0.05, "claude": 0.02}
+    session_id="sess-123", state=session_state, cost_breakdown={"gpt-4": 0.05, "claude": 0.02}
 )
 
 # Hot-load sessions (fast startup)
@@ -379,19 +378,12 @@ router = CostAwareRouter()
 
 # Route with complexity analysis
 route_result = router.route_query(
-    query="Analyze code for security",
-    session_budget_remaining=5.00,
-    team_budget_remaining=100.00
+    query="Analyze code for security", session_budget_remaining=5.00, team_budget_remaining=100.00
 )
 # Returns: ModelRoute with selected_model, estimated_cost, rationale
 
 # Track execution cost
-router.record_execution(
-    query_id="q-123",
-    model="gpt-4",
-    tokens_used=2000,
-    cost_usd=0.12
-)
+router.record_execution(query_id="q-123", model="gpt-4", tokens_used=2000, cost_usd=0.12)
 
 # Budget enforcement
 if router.is_budget_exhausted(session_id="s-123"):

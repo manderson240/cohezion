@@ -73,17 +73,18 @@ Every agent action becomes a **12D trajectory** through axiomatic space:
 @dataclass
 class AxiomaticState:
     """The 'Doer' — observable 12D projection of agent intent."""
-    spatial_x: float      # Where am I in task space?
+
+    spatial_x: float  # Where am I in task space?
     spatial_y: float
     spatial_z: float
-    physics: float        # How fast am I changing? (Tempic momentum)
-    biology: float        # Am I learning/growing? (Electric vitality)
-    field: float          # What external forces act on me? (Magnetic coupling)
-    logic: float          # Internal coherence (SPIN Rotation)
-    quantum: float        # Measurement uncertainty (SPIN Precession)
-    control: float        # Action polarity (Charge = Rotation + Precession)
-    temporal: float       # Conscious attention (Awareness)
-    novelty: float        # Exploration drive (Particularization)
+    physics: float  # How fast am I changing? (Tempic momentum)
+    biology: float  # Am I learning/growing? (Electric vitality)
+    field: float  # What external forces act on me? (Magnetic coupling)
+    logic: float  # Internal coherence (SPIN Rotation)
+    quantum: float  # Measurement uncertainty (SPIN Precession)
+    control: float  # Action polarity (Charge = Rotation + Precession)
+    temporal: float  # Conscious attention (Awareness)
+    novelty: float  # Exploration drive (Particularization)
     precipitation: float  # Reality manifestation (0.0 = potential, 1.0 = actualized)
 ```
 
@@ -174,14 +175,16 @@ If agents are EVOs learning to precipitate, then **we need to observe the precip
 class JourneyTracker:
     def record_transition(self, state_before, action, result, coherence_after):
         """Log state transitions for rollback capability."""
-        trajectory.append({
-            "spatial": [x, y, z],              # Where did the agent move?
-            "field": [physics, biology, field], # What forces acted?
-            "control": [logic, quantum, control], # Was action coherent?
-            "precipitation": [temporal, novelty, manifestation],
-            "coherence": coherence_after,       # Did HIHO hold?
-            "alignment_score": self.assess_alignment(action, result)
-        })
+        trajectory.append(
+            {
+                "spatial": [x, y, z],  # Where did the agent move?
+                "field": [physics, biology, field],  # What forces acted?
+                "control": [logic, quantum, control],  # Was action coherent?
+                "precipitation": [temporal, novelty, manifestation],
+                "coherence": coherence_after,  # Did HIHO hold?
+                "alignment_score": self.assess_alignment(action, result),
+            }
+        )
 ```
 
 ### The Degradation Detector

@@ -11,6 +11,7 @@ import os
 import sys
 from pathlib import Path
 
+
 # Ensure import paths are set
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -29,7 +30,7 @@ def extract_from_traces() -> list[str]:
 
     for path in trace_dir.glob("*.json"):
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
                 # If there's a prompt or content, extract it
                 if "prompt" in data:

@@ -40,6 +40,8 @@ def _require_secret_key() -> str:
             "Set it before starting the application."
         )
     return key
+
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

@@ -6,6 +6,7 @@ record_guardrail_action` (the producer of the `guardrail_blocks` counter the
 /guardrails analytics reads) had ZERO callers -> the security dashboard silently
 reported 0 blocks forever. This test fails if that wiring is removed.
 """
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -17,11 +18,13 @@ from cohezion.security.guardrail_pipeline import GuardrailAction
 class _Pipeline:
     """Guardrail pipeline stub: input ALLOW, output BLOCK."""
 
-    async def check_input(self, text, ctx):  # noqa: ARG002
+    async def check_input(self, text, ctx):
         return SimpleNamespace(action=GuardrailAction.ALLOW, reason="", modified_input=None)
 
-    async def check_output(self, text, ctx):  # noqa: ARG002
-        return SimpleNamespace(action=GuardrailAction.BLOCK, reason="test block", modified_input=None)
+    async def check_output(self, text, ctx):
+        return SimpleNamespace(
+            action=GuardrailAction.BLOCK, reason="test block", modified_input=None
+        )
 
 
 def test_guardrail_block_feeds_unified_metrics_counter():
@@ -34,9 +37,13 @@ def test_guardrail_block_feeds_unified_metrics_counter():
         task_description="hello world",
         skill_name="test_skill",
         operation_type="generate",
-        execute_fn=lambda guidance: ("some output", {}),  # noqa: ARG005
+        execute_fn=lambda guidance: ("some output", {}),
     )
 
     # input ALLOW (+1 check) + output BLOCK (+1 check, +1 block)
-    assert collector.current_metrics.guardrail_blocks == blocks_before + 1, "output BLOCK not recorded"
-    assert collector.current_metrics.guardrail_checks == checks_before + 2, "guardrail checks not recorded"
+    assert collector.current_metrics.guardrail_blocks == blocks_before + 1, (
+        "output BLOCK not recorded"
+    )
+    assert collector.current_metrics.guardrail_checks == checks_before + 2, (
+        "guardrail checks not recorded"
+    )

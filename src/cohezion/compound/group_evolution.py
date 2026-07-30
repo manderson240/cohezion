@@ -60,15 +60,15 @@ class ArchivePersister(Protocol):
 
     def persist(self, record: dict[str, Any]) -> None:
         """Write one serialized archive record (append-only)."""
-        ...
+        pass
 
     def load(self, limit: int = 1000) -> list[dict[str, Any]]:
         """Return all persisted archive records."""
-        ...
+        return []
 
     def query_rejected_novel(self, limit: int = 1000) -> list[dict[str, Any]]:
         """Return persisted records marked ``rejected_novel``."""
-        ...
+        return []
 
 
 # ---------------------------------------------------------------------------

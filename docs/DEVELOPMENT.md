@@ -266,6 +266,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class MyModel:
     """Class docstring with purpose and usage."""
 
@@ -302,8 +303,10 @@ class MyModel:
 def synthesize(text: str, voice_id: str) -> bytes:
     pass
 
+
 async def transcribe(audio: bytes) -> dict[str, Any]:
     pass
+
 
 # Bad - avoid
 def synthesize(text, voice_id):
@@ -432,10 +435,12 @@ pytest --cov=src --cov-report=html
 import pytest
 from kyutai_mcp.models import TTSModel
 
+
 @pytest.fixture
 def tts_model():
     """Fixture providing TTS model."""
     return TTSModel.load_model()
+
 
 def test_synthesize_basic(tts_model):
     """Test basic text synthesis."""
@@ -443,16 +448,19 @@ def test_synthesize_basic(tts_model):
     assert isinstance(audio, bytes)
     assert len(audio) > 0
 
+
 @pytest.mark.asyncio
 async def test_synthesize_async(tts_model):
     """Test async synthesis."""
     audio = await tts_model.synthesize_async("Hello async")
     assert isinstance(audio, bytes)
 
+
 def test_synthesize_empty_text(tts_model):
     """Test synthesis with empty text."""
     with pytest.raises(ValueError):
         tts_model.synthesize("")
+
 
 @pytest.mark.parametrize("text", ["hello", "世界", "Привет"])
 def test_synthesize_multilingual(tts_model, text):
@@ -524,27 +532,27 @@ pip install dist/kyutai_mcp-0.1.0-py3-none-any.whl
 from setuptools import setup, find_packages
 
 setup(
-    name='kyutai-mcp',
-    version='0.1.0',
-    description='Kyutai MCP Server for Obsidian',
-    author='Kyutai Labs',
-    package_dir={'': 'src'},
-    packages=find_packages('src'),
-    python_requires='>=3.9',
+    name="kyutai-mcp",
+    version="0.1.0",
+    description="Kyutai MCP Server for Obsidian",
+    author="Kyutai Labs",
+    package_dir={"": "src"},
+    packages=find_packages("src"),
+    python_requires=">=3.9",
     install_requires=[
-        'fastapi>=0.104.0',
-        'uvicorn>=0.24.0',
-        'torch>=2.0.0',
-        'transformers>=4.30.0',
-        'pocket-tts>=1.0.0',
+        "fastapi>=0.104.0",
+        "uvicorn>=0.24.0",
+        "torch>=2.0.0",
+        "transformers>=4.30.0",
+        "pocket-tts>=1.0.0",
     ],
     extras_require={
-        'dev': [
-            'pytest>=7.0.0',
-            'pytest-asyncio>=0.21.0',
-            'black>=23.0.0',
-            'flake8>=6.0.0',
-            'mypy>=1.0.0',
+        "dev": [
+            "pytest>=7.0.0",
+            "pytest-asyncio>=0.21.0",
+            "black>=23.0.0",
+            "flake8>=6.0.0",
+            "mypy>=1.0.0",
         ],
     },
 )
@@ -608,18 +616,24 @@ zip kyutai-mcp-plugin-0.1.0.zip manifest.json styles.css esbuild.js
 
 from pydantic import BaseModel
 
+
 class GetLanguagesRequest(BaseModel):
     """Request to list supported languages."""
+
     pass
+
 
 class LanguageInfo(BaseModel):
     """Language information."""
+
     code: str
     name: str
     models: list[str]
 
+
 class GetLanguagesResponse(BaseModel):
     """List of supported languages."""
+
     languages: list[LanguageInfo]
 ```
 
@@ -628,6 +642,7 @@ class GetLanguagesResponse(BaseModel):
 ```python
 # src/kyutai_mcp/tools.py
 
+
 async def get_languages(request: GetLanguagesRequest) -> GetLanguagesResponse:
     """Get list of supported languages.
 
@@ -635,16 +650,8 @@ async def get_languages(request: GetLanguagesRequest) -> GetLanguagesResponse:
         List of language objects with models
     """
     languages = [
-        LanguageInfo(
-            code="en",
-            name="English",
-            models=["stt-1b-en_fr", "stt-2.6b"]
-        ),
-        LanguageInfo(
-            code="fr",
-            name="French",
-            models=["stt-1b-en_fr"]
-        ),
+        LanguageInfo(code="en", name="English", models=["stt-1b-en_fr", "stt-2.6b"]),
+        LanguageInfo(code="fr", name="French", models=["stt-1b-en_fr"]),
     ]
     return GetLanguagesResponse(languages=languages)
 ```
@@ -653,6 +660,7 @@ async def get_languages(request: GetLanguagesRequest) -> GetLanguagesResponse:
 
 ```python
 # src/kyutai_mcp/server.py
+
 
 @app.post("/get-languages")
 async def handle_get_languages(request: GetLanguagesRequest) -> GetLanguagesResponse:
@@ -688,6 +696,7 @@ REGISTERED_TOOLS = {
 import pytest
 from kyutai_mcp.tools import get_languages, GetLanguagesRequest
 
+
 @pytest.mark.asyncio
 async def test_get_languages():
     """Test language listing."""
@@ -697,6 +706,7 @@ async def test_get_languages():
     assert len(response.languages) >= 2
     assert any(lang.code == "en" for lang in response.languages)
     assert any(lang.code == "fr" for lang in response.languages)
+
 
 @pytest.mark.asyncio
 async def test_language_has_models():
@@ -728,6 +738,7 @@ MCP_LOG_LEVEL=DEBUG python -m kyutai_mcp.server
 **Print Debugging:**
 ```python
 import logging
+
 logger = logging.getLogger(__name__)
 
 logger.debug("Debug message: %s", variable)
@@ -770,7 +781,7 @@ result = model.synthesize("Hello")
 
 profiler.disable()
 stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
+stats.sort_stats("cumulative")
 stats.print_stats(20)  # Top 20
 ```
 

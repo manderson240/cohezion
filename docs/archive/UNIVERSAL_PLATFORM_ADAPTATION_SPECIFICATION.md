@@ -25,36 +25,36 @@ The COHEZION system requires universal platform adaptation to operate across div
 # src/cohezion/platform/memory_optimizer.py
 class MemoryOptimizer:
     """Dynamic memory allocation based on available resources"""
-    
+
     def __init__(self):
         self.total_memory = psutil.virtual_memory().total
         self.target_utilization = 0.75  # 75% target
         self.adaptive_thresholds = self._calculate_thresholds()
-    
+
     def _calculate_thresholds(self):
         """Calculate memory thresholds based on total memory"""
         total_gb = self.total_memory / (1024**3)
-        
+
         if total_gb >= 96:  # High-end desktop
             return {
-                "model_cache": 0.4,      # 40% for models
+                "model_cache": 0.4,  # 40% for models
                 "universe_buffer": 0.25,  # 25% for simulations
-                "system_reserve": 0.15,   # 15% system reserve
-                "growth_buffer": 0.20     # 20% for growth
+                "system_reserve": 0.15,  # 15% system reserve
+                "growth_buffer": 0.20,  # 20% for growth
             }
         elif total_gb >= 32:  # Mid-range
             return {
                 "model_cache": 0.35,
                 "universe_buffer": 0.20,
                 "system_reserve": 0.20,
-                "growth_buffer": 0.25
+                "growth_buffer": 0.25,
             }
         else:  # Constrained
             return {
                 "model_cache": 0.25,
                 "universe_buffer": 0.15,
                 "system_reserve": 0.30,
-                "growth_buffer": 0.30
+                "growth_buffer": 0.30,
             }
 ```
 
@@ -75,21 +75,21 @@ class MemoryOptimizer:
 # src/cohezion/platform/tpu_orchestrator.py
 class TPUOrchestrator:
     """Manages COHEZION deployment on TPU pods"""
-    
+
     def __init__(self, pod_config):
         self.pod_size = pod_config.get("cores", 8)
         self.memory_per_core = pod_config.get("memory_gb", 32)
         self.interconnect_speed = pod_config.get("interconnect_gbps", 900)
-        
+
     def allocate_universes(self, total_universes):
         """Distribute universes across TPU cores optimally"""
         universes_per_core = total_universes // self.pod_size
         memory_per_universe = self._calculate_universe_memory()
-        
+
         return {
             "cores_needed": max(1, total_universes // universes_per_core),
             "memory_efficiency": memory_per_universe / self.memory_per_core,
-            "communication_overhead": self._estimate_communication_overhead()
+            "communication_overhead": self._estimate_communication_overhead(),
         }
 ```
 
@@ -104,13 +104,13 @@ class TPUOrchestrator:
 # src/cohezion/platform/mobile_adapter.py
 class MobileAdapter:
     """Adapts COHEZION for mobile deployment"""
-    
+
     TIERS = {
         "essential": {"memory_gb": 16, "features": ["monitoring", "alerts"]},
         "enhanced": {"memory_gb": 32, "features": ["simulation_lite", "model_cache"]},
-        "full": {"memory_gb": 64, "features": ["full_universe", "multi_agent"]}
+        "full": {"memory_gb": 64, "features": ["full_universe", "multi_agent"]},
     }
-    
+
     def configure_for_device(self, available_memory_gb):
         """Configure features based on device capabilities"""
         tier = self._determine_tier(available_memory_gb)
@@ -129,7 +129,7 @@ class MobileAdapter:
 # src/cohezion/platform/discovery.py
 class PlatformDiscovery:
     """Auto-detects platform capabilities and configures accordingly"""
-    
+
     def detect_hardware_profile(self):
         """Comprehensive hardware detection"""
         return {
@@ -137,17 +137,17 @@ class PlatformDiscovery:
                 "cores": psutil.cpu_count(logical=False),
                 "threads": psutil.cpu_count(logical=True),
                 "architecture": platform.machine(),
-                "features": self._detect_cpu_features()
+                "features": self._detect_cpu_features(),
             },
             "memory": {
                 "total": psutil.virtual_memory().total,
                 "available": psutil.virtual_memory().available,
-                "type": self._detect_memory_type()
+                "type": self._detect_memory_type(),
             },
             "gpu": self._detect_gpu_capabilities(),
-            "storage": self._detect_storage_profile()
+            "storage": self._detect_storage_profile(),
         }
-    
+
     def detect_deployment_environment(self):
         """Detect cloud, edge, or local deployment"""
         if os.getenv("KUBERNETES_SERVICE_HOST"):
@@ -196,13 +196,14 @@ class ResourceMonitor:
 @dataclass
 class OptimizationProfile:
     """Platform-specific optimization settings"""
-    
+
     platform_name: str
     memory_strategy: str  # "conservative", "balanced", "aggressive"
     compute_acceleration: bool
     parallel_workers: int
     cache_sizes: Dict[str, int]
     feature_flags: Dict[str, bool]
+
 
 PROFILES = {
     "strix_halo": OptimizationProfile(
@@ -211,15 +212,15 @@ PROFILES = {
         compute_acceleration=True,
         parallel_workers=16,
         cache_sizes={"model": 4096, "universe": 2048},
-        feature_flags={"vliw": True, "uma_optimization": True}
+        feature_flags={"vliw": True, "uma_optimization": True},
     ),
     "tpu_v4": OptimizationProfile(
         platform_name="tpu_v4",
-        memory_strategy="aggressive", 
+        memory_strategy="aggressive",
         compute_acceleration=True,
         parallel_workers=8,
         cache_sizes={"model": 8192, "universe": 4096},
-        feature_flags={"xla_compilation": True, "pod_scaling": True}
+        feature_flags={"xla_compilation": True, "pod_scaling": True},
     ),
     "mobile_32gb": OptimizationProfile(
         platform_name="mobile_32gb",
@@ -227,8 +228,8 @@ PROFILES = {
         compute_acceleration=False,
         parallel_workers=4,
         cache_sizes={"model": 512, "universe": 256},
-        feature_flags={"progressive_loading": True, "battery_optimization": True}
-    )
+        feature_flags={"progressive_loading": True, "battery_optimization": True},
+    ),
 }
 ```
 
@@ -268,18 +269,18 @@ class UniversalStorage:
 # src/cohezion/config/cloud_config.py
 class CloudConfigManager:
     """Cloud-agnostic configuration management"""
-    
+
     PROVIDERS = {
         "aws": AWSConfigProvider,
-        "gcp": GCPConfigProvider, 
+        "gcp": GCPConfigProvider,
         "azure": AzureConfigProvider,
-        "local": LocalConfigProvider
+        "local": LocalConfigProvider,
     }
-    
+
     def __init__(self, provider: str = None):
         provider = provider or self._detect_provider()
         self.provider = self.PROVIDERS[provider]()
-        
+
     async def sync_configuration(self, config_path: str):
         """Sync configuration across all nodes"""
         config = await self.provider.load_config(config_path)
@@ -330,30 +331,14 @@ class AdaptiveStorage:
 # src/cohezion/platform/feature_manager.py
 class FeatureManager:
     """Manages dynamic feature activation"""
-    
+
     FEATURE_TIERS = {
-        "essential": [
-            "health_monitoring",
-            "security_validation", 
-            "basic_alerts"
-        ],
-        "enhanced": [
-            "universe_simulation_lite",
-            "model_caching",
-            "performance_optimization"
-        ],
-        "full": [
-            "full_universe_simulation",
-            "multi_agent_coordination",
-            "advanced_analytics"
-        ],
-        "research": [
-            "experimental_features",
-            "full_logging",
-            "development_tools"
-        ]
+        "essential": ["health_monitoring", "security_validation", "basic_alerts"],
+        "enhanced": ["universe_simulation_lite", "model_caching", "performance_optimization"],
+        "full": ["full_universe_simulation", "multi_agent_coordination", "advanced_analytics"],
+        "research": ["experimental_features", "full_logging", "development_tools"],
     }
-    
+
     def activate_features(self, available_memory_gb, performance_class):
         """Activate features based on resources"""
         tier = self._determine_tier(available_memory_gb, performance_class)
@@ -368,14 +353,14 @@ class FeatureManager:
 # src/cohezion/platform/pressure_handler.py
 class MemoryPressureHandler:
     """Intelligent response to memory pressure"""
-    
+
     RESPONSE_STRATEGIES = {
         0.7: {"action": "light_eviction", "priority": "low"},
         0.8: {"action": "moderate_eviction", "priority": "medium"},
         0.9: {"action": "aggressive_eviction", "priority": "high"},
-        0.95: {"action": "emergency_shutdown", "priority": "critical"}
+        0.95: {"action": "emergency_shutdown", "priority": "critical"},
     }
-    
+
     async def handle_pressure(self, pressure_level):
         """Handle memory pressure with appropriate strategy"""
         strategy = self.RESPONSE_STRATEGIES.get(pressure_level)
@@ -394,25 +379,25 @@ class MemoryPressureHandler:
 # src/cohezion/safety/resource_guard.py
 class ResourceGuard:
     """Protects system from harmful resource exhaustion"""
-    
+
     def __init__(self):
         self.safety_limits = {
             "memory_max": 0.90,  # Never exceed 90% memory
-            "cpu_max": 0.95,     # Never exceed 95% CPU
-            "disk_min": 0.05     # Always maintain 5% free disk
+            "cpu_max": 0.95,  # Never exceed 95% CPU
+            "disk_min": 0.05,  # Always maintain 5% free disk
         }
-        
+
     async def validate_operation(self, resource_estimate):
         """Validate operation won't harm system stability"""
         current_load = await self._get_current_load()
         projected_load = self._project_load(current_load, resource_estimate)
-        
+
         for resource, limit in self.safety_limits.items():
             if projected_load[resource] > limit:
                 raise ResourceSafetyError(
                     f"Operation would exceed {resource} limit: {projected_load[resource]} > {limit}"
                 )
-        
+
         return True
 ```
 
@@ -424,28 +409,26 @@ class ResourceGuard:
 # src/cohezion/engineering/compound_adapter.py
 class CompoundPlatformAdapter:
     """Every adaptation makes future adaptations easier"""
-    
+
     def __init__(self):
         self.adaptation_history = []
         self.adaptation_patterns = {}
-        
+
     async def adapt(self, target_platform):
         """Adapt to new platform using compound engineering"""
-        
+
         # 1. Use existing adaptations as building blocks
         base_adaptations = await self._find_compatible_adaptations(target_platform)
-        
+
         # 2. Create new adaptation incrementally
-        new_adaptation = await self._create_adaptation(
-            target_platform, base_adaptations
-        )
-        
+        new_adaptation = await self._create_adaptation(target_platform, base_adaptations)
+
         # 3. Store for future use (compound benefit)
         await self._store_adaptation_pattern(target_platform, new_adaptation)
-        
+
         # 4. Update existing adaptations to be more flexible
         await self._enhance_existing_adaptations(new_adaptation)
-        
+
         return new_adaptation
 ```
 

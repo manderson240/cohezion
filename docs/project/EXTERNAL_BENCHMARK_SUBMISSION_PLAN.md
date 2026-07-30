@@ -391,6 +391,7 @@ python scripts/upload_to_hf.py
 # scripts/upload_to_hf.py
 from huggingface_hub import HfApi, create_repo
 
+
 def upload_model():
     api = HfApi()
 
@@ -399,19 +400,12 @@ def upload_model():
     create_repo(repo_id, exist_ok=True)
 
     # Upload files
-    api.upload_folder(
-        folder_path="checkpoints",
-        repo_id=repo_id,
-        path_in_repo="checkpoints"
-    )
+    api.upload_folder(folder_path="checkpoints", repo_id=repo_id, path_in_repo="checkpoints")
 
-    api.upload_file(
-        path_or_fileobj="MODEL_CARD.md",
-        path_in_repo="README.md",
-        repo_id=repo_id
-    )
+    api.upload_file(path_or_fileobj="MODEL_CARD.md", path_in_repo="README.md", repo_id=repo_id)
 
     print(f"✅ Uploaded to https://huggingface.co/{repo_id}")
+
 
 if __name__ == "__main__":
     upload_model()

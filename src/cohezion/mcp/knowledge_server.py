@@ -38,6 +38,8 @@ class KnowledgeMCP:
     def __init__(self):
         self._skills_cache: dict[str, str] = {}
         self._library_index: list[dict[str, Any]] = []
+        # Lazily constructed on first corpus search; None until then so import stays cheap.
+        self._corpus: Any | None = None
         self._load_index()
 
     def _load_index(self) -> None:
@@ -106,7 +108,51 @@ class KnowledgeMCP:
                     }
                 )
 
+        results.extend(self._search_corpora(query, limit))
         return results[:limit]
+
+    def _search_corpora(self, query: str, limit: int) -> list[dict[str, Any]]:
+        """Semantic hits from the pre-embedded reference corpora in ~/.cohezion/corpora.
+
+        The skill/library passes above are SUBSTRING matches, so they can only find text that
+        literally contains the query. This pass embeds the query and ranks by cosine, which
+        finds passages that are about the question without sharing its wording -- e.g.
+        "distortion when projecting to lower dimensions" retrieves Johnson-Lindenstrauss
+        material that contains none of those words.
+
+        Additive: substring results are unchanged, so no existing caller regresses.
+        Fail-soft: no corpora on disk, or no embedding endpoint, returns [] rather than
+        raising -- a lookup helper must never take down its caller.
+        """
+        try:
+            import httpx
+            import numpy as np
+
+            from cohezion.knowledge.corpus import KnowledgeCorpus
+
+            resp = httpx.post(
+                "http://localhost:13305/v1/embeddings",
+                json={"model": "nomic-embed-text-v2-moe-GGUF", "input": query},
+                timeout=30,
+            )
+            vector = np.array(resp.json()["data"][0]["embedding"], dtype=np.float32)
+        except Exception as exc:
+            logger.debug("corpus search unavailable: %s", exc)
+            return []
+
+        if self._corpus is None:
+            self._corpus = KnowledgeCorpus()
+
+        return [
+            {
+                "type": "corpus",
+                "name": chunk.corpus,
+                "snippet": chunk.text[:300],
+                "score": round(chunk.score, 4),
+                **chunk.meta,
+            }
+            for chunk in self._corpus.search(vector, limit=limit)
+        ]
 
     def get_skill(self, skill_name: str) -> dict[str, Any]:
         """

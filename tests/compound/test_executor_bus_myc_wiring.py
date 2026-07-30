@@ -16,8 +16,24 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+
+# PREMATURE on this branch, not broken — the FOURTH member of the unmerged-branch cluster
+# (alongside RHO 3b2177104, daily-researcher c9cd1e723, ouroboros 0e973262f).
+#
+# ``CompoundExecutor._bus_subscribed`` is introduced by commit 6cd807e80 on
+# ``origin/feat/adaptive-calibration-harness``, which is NOT an ancestor of HEAD, so:
+#   AttributeError: 'CompoundExecutor' object has no attribute '_bus_subscribed'
+#
+# Applied PER-TEST: the other three tests in this file pass today, and a module-level
+# strict xfail would convert those passes into failures.
+_UNMERGED = pytest.mark.xfail(
+    strict=True,
+    reason="bus-based MyceliumRegistry wiring (6cd807e80) is unmerged; lives on origin/feat/adaptive-calibration-harness",
+)
 
 
 def _make_executor_with_mocks():
@@ -35,6 +51,7 @@ def _make_executor_with_mocks():
     return ex
 
 
+@_UNMERGED
 def test_executor_registers_bus_subscriber_idempotently():
     """A second execute_task should not double-subscribe to the bus
     (would cause events to fire twice through the registry)."""

@@ -105,8 +105,14 @@ jobs:
       # has consumers; this checks that CLAUDE.md/harness.md tell the truth about the
       # code — every referenced file-path and cohezion.* module must resolve. Fails on
       # E-errors (broken refs); class.member mismatches are advisory W-warnings.
+      # --self-test FIRST: it feeds the checks synthetic broken docs and asserts each one
+      # FIRES, plus a negative control that must stay silent. Without it a bug in the
+      # scanner reads as a clean "0 errors" — which is exactly how the RGA1/RGA2 phantom
+      # invariants passed, and how E2 was found structurally unable to fire (2026-07-29).
       - name: Doc-code consistency (gating)
-        run: uv run python scripts/ci/doc_code_consistency.py
+        run: |
+          uv run python scripts/ci/doc_code_consistency.py --self-test
+          uv run python scripts/ci/doc_code_consistency.py
 
       - name: Validate critical imports
         run: |

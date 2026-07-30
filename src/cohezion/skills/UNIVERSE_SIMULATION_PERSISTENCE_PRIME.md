@@ -83,16 +83,16 @@ Universe simulation systems generate large amounts of artifacts:
 
 ```python
 JourneyTracker.record_artifact(
-  session_id="session-55",
-  artifact_type="checkpoint",
-  path="data/flume/session55_run3.pt",
-  size_bytes=234_567_890,
-  tier="external",  # git|surreal|external
-  checksum="sha256:abcd1234",
-  lifetime_days=30,
-  retention_policy="research",
-  parent_artifact="session-54-run-2",  # Lineage
-  tags=["flume", "vae", "training"]
+    session_id="session-55",
+    artifact_type="checkpoint",
+    path="data/flume/session55_run3.pt",
+    size_bytes=234_567_890,
+    tier="external",  # git|surreal|external
+    checksum="sha256:abcd1234",
+    lifetime_days=30,
+    retention_policy="research",
+    parent_artifact="session-54-run-2",  # Lineage
+    tags=["flume", "vae", "training"],
 )
 ```
 
@@ -190,10 +190,10 @@ vae = FlumVAETrainer.from_checkpoint(state, continue_training=True)
 
 ```python
 CompoundExecutor.register_pre_commit_hook(
-  name="universe-simulation-persistence",
-  module="cohezion.reliability.data_governance_hook",
-  priority=100,  # Run before other hooks
-  timeout_ms=100
+    name="universe-simulation-persistence",
+    module="cohezion.reliability.data_governance_hook",
+    priority=100,  # Run before other hooks
+    timeout_ms=100,
 )
 ```
 
@@ -309,9 +309,7 @@ artifact = JourneyTracker.find_by_session("session-54")[0]
 
 # Load checkpoint with deterministic seed
 vae = FlumVAETrainer.from_checkpoint(
-  path=artifact.git_ref,
-  seed=artifact.parent_seed,
-  continue_from_epoch=50
+    path=artifact.git_ref, seed=artifact.parent_seed, continue_from_epoch=50
 )
 
 # Deterministically reproducible from epoch 50 onward

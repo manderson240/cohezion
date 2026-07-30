@@ -268,26 +268,27 @@ cohezion rollback
 ```python
 def classify_change(files, description):
     """Auto-detect tier."""
-    
+
     # Breaking change indicators
-    if any(indicator in description for indicator in [
-        "remove", "delete", "rename", "change to", "replace"
-    ]):
+    if any(
+        indicator in description
+        for indicator in ["remove", "delete", "rename", "change to", "replace"]
+    ):
         if any(f.endswith(".py") for f in files):
             return "tier_3"  # Needs approval
-    
+
     # Security indicators
     if "security" in description.lower():
         return "tier_1"  # Notify but auto-merge if tests pass
-    
+
     # Documentation only
     if all(f.endswith(".md") or f.endswith(".txt") for f in files):
         return "tier_0"  # Pre-approved
-    
+
     # Small fixes
     if len(files) <= 3 and "fix" in description.lower():
         return "tier_1"
-    
+
     # Default
     return "tier_2"
 ```

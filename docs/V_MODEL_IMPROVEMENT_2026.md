@@ -240,26 +240,30 @@ src/cohezion/
 ```python
 # tests/mcp/test_compound_server.py — 13 tests across 4 classes
 
+
 class TestToolRegistration:
-    test_batch_port_skills_registered      # Verify tool is in mcp._tools
-    test_inspect_codebase_registered       # Verify tool is in mcp._tools
-    test_skill_matrix_registered           # Verify tool is in mcp._tools
-    test_total_tool_count                  # Expect >= 16 tools total
+    test_batch_port_skills_registered  # Verify tool is in mcp._tools
+    test_inspect_codebase_registered  # Verify tool is in mcp._tools
+    test_skill_matrix_registered  # Verify tool is in mcp._tools
+    test_total_tool_count  # Expect >= 16 tools total
+
 
 class TestInspectCodebase:
-    test_returns_success_for_known_subdir    # 'flume' returns files > 0
+    test_returns_success_for_known_subdir  # 'flume' returns files > 0
     test_returns_error_for_missing_subdir  # 'nonexistent' returns error
-    test_respects_max_depth                # max_depth=1 limits recursion
+    test_respects_max_depth  # max_depth=1 limits recursion
+
 
 class TestSkillMatrix:
-    test_returns_success_with_matrix       # JSON structure valid
-    test_prime_skills_non_empty            # At least 100 skills found
+    test_returns_success_with_matrix  # JSON structure valid
+    test_prime_skills_non_empty  # At least 100 skills found
+
 
 class TestBatchPortSkills:
-    test_dry_run_with_mocked_converter     # Happy path with mock
-    test_converter_missing_returns_error # Converter binary missing
-    test_timeout_handled_gracefully        # Subprocess timeout
-    test_empty_list_returns_zero_counts    # Empty input edge case
+    test_dry_run_with_mocked_converter  # Happy path with mock
+    test_converter_missing_returns_error  # Converter binary missing
+    test_timeout_handled_gracefully  # Subprocess timeout
+    test_empty_list_returns_zero_counts  # Empty input edge case
 ```
 
 ---
@@ -640,8 +644,11 @@ Router tests hard-code model names (`phi3:mini`, etc.). When new models are adde
 Tests now dynamically include new Hybrid models. The pattern:
 ```python
 assert decision.model in [
-    "phi3:mini", "qwen3-coder:32b",
-    "Phi-4-mini-instruct-Hybrid", "Qwen3-8B-Hybrid", "Qwen3-14B-Hybrid"
+    "phi3:mini",
+    "qwen3-coder:32b",
+    "Phi-4-mini-instruct-Hybrid",
+    "Qwen3-8B-Hybrid",
+    "Qwen3-14B-Hybrid",
 ]
 ```
 This makes tests resilient to model pool additions.

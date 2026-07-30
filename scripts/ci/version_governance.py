@@ -188,6 +188,24 @@ def main() -> int:
     version_issues: list[str] = []
     if version:
         print(f"Current version: {version}")
+        # Validate that if MINOR or MAJOR bump detected, pyproject.toml version matches or exceeds
+        latest_tag = None
+        try:
+            r = subprocess.run(
+                ["git", "describe", "--tags", "--abbrev=0"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            latest_tag = r.stdout.strip().lstrip("v")
+        except Exception:
+            pass
+
+        if latest_tag and bump_type != BumpType.NONE:
+            if latest_tag == version and bump_type >= BumpType.MINOR:
+                version_issues.append(
+                    f"pyproject.toml version '{version}' equals git tag '{latest_tag}' but a {bump_type.name} bump is required."
+                )
     else:
         version_issues.append("Cannot read version from pyproject.toml")
 

@@ -21,6 +21,7 @@ import time
 import urllib.request
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from cohezion.compound.autonomous_loop.coordinator import LoopConfig, LoopCoordinator, LoopTask
@@ -326,7 +327,7 @@ def _build_backlog(n: int) -> list[LoopTask]:
     )
 
     # BMAD correct-course — fires with elevated priority if quality tracker shows regression
-    bmad_course_state = tracker._current.get("skill_improvement", "failing")  # noqa: SLF001
+    bmad_course_state = tracker._current.get("skill_improvement", "failing")
     bmad_course_priority = 10 if bmad_course_state == "regressing" else 5
     tasks.append(
         LoopTask(

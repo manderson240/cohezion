@@ -24,6 +24,7 @@ kagglehub.login()
 
 # Option 2: Programmatic
 from kagglehub.config import set_kaggle_credentials, set_kaggle_api_token
+
 set_kaggle_credentials(username="...", api_key="...")
 set_kaggle_api_token(api_token="...")
 
