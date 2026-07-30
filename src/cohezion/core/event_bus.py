@@ -38,6 +38,7 @@ class EventType(Enum):
     METRIC_UPDATE = auto()
     SYSTEM_HEALTH = auto()
     JOURNEY_STEP = auto()
+    FLEET_STATUS = auto()
     CUSTOM = auto()
 
     # DataMesh domain events (DataMeshEventBridge, CorpusQualityConsumer)
@@ -89,6 +90,15 @@ class Event:
             source=agent_name,
             payload={"model": model, "response_tokens": response_tokens, **kwargs},
         )
+
+    @classmethod
+    def fleet_status(cls, source: str, loaded_models: list[str], busy_models: list[str], **kwargs) -> Event:
+        return cls(
+            type=EventType.FLEET_STATUS,
+            source=source,
+            payload={"loaded_models": loaded_models, "busy_models": busy_models, **kwargs},
+        )
+
 
 
     @classmethod
