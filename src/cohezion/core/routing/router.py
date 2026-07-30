@@ -7,7 +7,6 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# Import adaptive framework optimizer
 try:
     from cohezion.core.optimization.adaptive_framework import get_adaptive_optimizer
 
@@ -16,6 +15,7 @@ except ImportError:
     ADAPTIVE_OPTIMIZER_AVAILABLE = False
     get_adaptive_optimizer = None  # type: ignore[assignment]
     logger.warning("Adaptive framework optimizer not available")
+
 
 
 class LocalExpertRouter:

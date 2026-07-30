@@ -5,6 +5,7 @@ scripts/arpao_orchestrator.py
 scripts/autoliterature_scanner.py
 scripts/bughunt_loop.py
 scripts/ci/prompt_reliability.py
+scripts/consult_next_steps.py
 scripts/delegate_model_status_and_kanban_sync.py
 scripts/delegate_to_omni.py
 scripts/diagnose_wd_mybook.py
