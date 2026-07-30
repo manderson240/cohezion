@@ -83,6 +83,15 @@ class Event:
         )
 
     @classmethod
+    def llm_response(cls, agent_name: str, model: str, response_tokens: int = 0, **kwargs) -> Event:
+        return cls(
+            type=EventType.LLM_RESPONSE,
+            source=agent_name,
+            payload={"model": model, "response_tokens": response_tokens, **kwargs},
+        )
+
+
+    @classmethod
     def cache_access(cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs) -> Event:
         return cls(
             type=EventType.CACHE_HIT if hit else EventType.CACHE_MISS,
