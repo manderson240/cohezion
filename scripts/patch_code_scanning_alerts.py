@@ -88,7 +88,7 @@ def patch_test_actioner():
     old = "    summary = run_batch("
     new = "    summary = run_batch("
     old_assert = "    assert len(api.processed) == 50"
-    new_assert = "    assert summary.get(\"processed\", 0) == 50\n    assert len(api.processed) == 50"
+    new_assert = '    assert summary.get("processed", 0) == 50\n    assert len(api.processed) == 50'
     if old_assert in text:
         text = text.replace(old_assert, new_assert)
         file_path.write_text(text)

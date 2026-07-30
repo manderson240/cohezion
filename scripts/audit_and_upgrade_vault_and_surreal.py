@@ -69,7 +69,7 @@ async def upgrade_obsidian_vault(bus: EventBus) -> dict[str, int]:
         if not has_frontmatter:
             stem_title = note_path.stem.replace("_", " ").replace("-", " ").title()
             header = f"""---
-type: {category if category != 'cohezion-vault' else 'general'}
+type: {category if category != "cohezion-vault" else "general"}
 id: "{note_path.stem}"
 title: "{stem_title}"
 tags: [{category}, cohezion, audit]
@@ -97,14 +97,18 @@ updated: 2026-07-30
         "upgraded_frontmatter": upgraded_notes,
         "wikilinks_injected": wikilinks_added,
     }
-    await bus.publish(Event.agent_complete(agent_name="vault-upgrader", result=res, duration_ms=duration_ms))
+    await bus.publish(
+        Event.agent_complete(agent_name="vault-upgrader", result=res, duration_ms=duration_ms)
+    )
     return res
 
 
 async def upgrade_surreal_graph(bus: EventBus) -> dict[str, int]:
     """Audit and build full graph RELATE edges across SurrealDB entities."""
     start_time = time.time()
-    await bus.publish(Event.agent_start(agent_name="surreal-graph-builder", model="Bonsai-1.7B-gguf"))
+    await bus.publish(
+        Event.agent_start(agent_name="surreal-graph-builder", model="Bonsai-1.7B-gguf")
+    )
 
     # Connect retrospectives and kanban items to skills
     surql = """
@@ -118,7 +122,11 @@ async def upgrade_surreal_graph(bus: EventBus) -> dict[str, int]:
 
     duration_ms = (time.time() - start_time) * 1000
     res = {"graph_edges_created": 2}
-    await bus.publish(Event.agent_complete(agent_name="surreal-graph-builder", result=res, duration_ms=duration_ms))
+    await bus.publish(
+        Event.agent_complete(
+            agent_name="surreal-graph-builder", result=res, duration_ms=duration_ms
+        )
+    )
     return res
 
 
@@ -136,6 +144,7 @@ async def main():
     logger.info(f"   - Injected [[Wikilinks]]: {v_stats['wikilinks_injected']}")
     logger.info(f"   - Graph RELATE Edges Created: {s_stats['graph_edges_created']}")
     logger.info("==================================================")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

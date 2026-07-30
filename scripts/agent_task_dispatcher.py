@@ -297,9 +297,7 @@ def main() -> None:
         action="store_true",
         help=f"Use fast 8B model ({_DISPATCH_MODEL_FAST}) for routing",
     )
-    parser.add_argument(
-        "--hq", action="store_true", help="Use high-quality Omni-Dense for routing"
-    )
+    parser.add_argument("--hq", action="store_true", help="Use high-quality Omni-Dense for routing")
     parser.add_argument(
         "--status", default="", help="Show tasks by status (pending/in_progress/completed/failed)"
     )

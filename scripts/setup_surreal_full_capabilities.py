@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Initialize SurrealDB Schema for Full Capabilities:
-  1. HNSW Vector Index on 256-dim z_vector
-  2. Graph RELATE edges (learnings -> skills, agents -> tasks)
-  3. Live Query Event Stream table (agent_event)
+1. HNSW Vector Index on 256-dim z_vector
+2. Graph RELATE edges (learnings -> skills, agents -> tasks)
+3. Live Query Event Stream table (agent_event)
 """
 
 from __future__ import annotations
@@ -42,6 +42,7 @@ RELATE learning:L397->applies_to->skill:local_inference_routing SET confidence =
 RELATE learning:L397->applies_to->skill:cifs_authenticated_storage_recovery SET confidence = 0.95, created_at = time::now();
 """
 
+
 def execute_surql(statement: str) -> bool:
     try:
         req = urllib.request.Request(
@@ -62,6 +63,7 @@ def execute_surql(statement: str) -> bool:
         logger.error(f"SurrealDB Schema Init Failed: {exc}")
         return False
 
+
 def main():
     logger.info("Initializing SurrealDB Full Capabilities (Vectors + Graph RELATE + Live Query)...")
     success = execute_surql(SURQL_SCHEMA)
@@ -69,6 +71,7 @@ def main():
         logger.info("✅ SurrealDB Full Capabilities Initialized Successfully!")
     else:
         logger.error("❌ SurrealDB Schema Initialization Encountered Errors.")
+
 
 if __name__ == "__main__":
     main()

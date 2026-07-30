@@ -1,3 +1,12 @@
+---
+name: harness_benefit_alignment_prime
+description: "Standardized Cohezion platform PRIME skill for harness_benefit_alignment_prime."
+category: core
+tags: [skill, prime, cohezion]
+metadata:
+  version: "1.0.0"
+---
+
 # SKILL: HARNESS_BENEFIT_ALIGNMENT_PRIME
 
 ## DOMAIN EXPERTISE

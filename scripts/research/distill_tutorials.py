@@ -92,9 +92,7 @@ def distill(name: str, text: str) -> str:
             "temperature": 0.2,
         }
     ).encode()
-    req = urllib.request.Request(
-        LEMONADE, data=body, headers={"Content-Type": "application/json"}
-    )
+    req = urllib.request.Request(LEMONADE, data=body, headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=120) as r:  # noqa: S310
             d = json.load(r)
