@@ -186,6 +186,7 @@ from cohezion.core.persistence import get_surreal_client
 import hashlib
 from pathlib import Path
 
+
 class TrainingDataStore:
     """Store training data metadata in SurrealDB"""
 
@@ -199,7 +200,7 @@ class TrainingDataStore:
         storage_path: str,
         description: str = None,
         tags: list = None,
-        metadata: dict = None
+        metadata: dict = None,
     ) -> dict:
         """Record training data in SurrealDB"""
 
@@ -216,18 +217,14 @@ class TrainingDataStore:
             "metadata": metadata or {},
             "checksum": checksum,
             "size_bytes": size_bytes,
-            "status": "ready"
+            "status": "ready",
         }
 
         result = await self.db.create("training_data", [record])
         return result[0]
 
     async def record_training_run(
-        self,
-        training_data_id: str,
-        model_type: str,
-        hyperparameters: dict,
-        artifacts_path: str
+        self, training_data_id: str, model_type: str, hyperparameters: dict, artifacts_path: str
     ) -> dict:
         """Record training run in SurrealDB"""
 
@@ -236,17 +233,14 @@ class TrainingDataStore:
             "model_type": model_type,
             "hyperparameters": hyperparameters,
             "artifacts_path": artifacts_path,
-            "status": "pending"
+            "status": "pending",
         }
 
         result = await self.db.create("training_runs", [record])
         return result[0]
 
     async def list_training_data(
-        self,
-        dataset_type: str = None,
-        tags: list = None,
-        limit: int = 100
+        self, dataset_type: str = None, tags: list = None, limit: int = 100
     ) -> list:
         """Query training data by type/tags"""
 
@@ -279,6 +273,7 @@ class TrainingDataStore:
 
 from cohezion.knowledge_graph.training_data_store import TrainingDataStore
 
+
 async def train_model(config):
     """Training pipeline that records data in SurrealDB"""
 
@@ -291,11 +286,7 @@ async def train_model(config):
         storage_path="/external/training/lang_data.pkl",  # External storage
         description=f"Language model training data - {config.version}",
         tags=["language-model", "universe-simulation", config.version],
-        metadata={
-            "vocab_size": 50000,
-            "sequence_length": 2048,
-            "preprocessing": "standard"
-        }
+        metadata={"vocab_size": 50000, "sequence_length": 2048, "preprocessing": "standard"},
     )
 
     # Record the training run
@@ -303,7 +294,7 @@ async def train_model(config):
         training_data_id=training_data["uid"],
         model_type="transformer",
         hyperparameters=config.model_params,
-        artifacts_path="/external/models/lang_model_v1.pt"  # git-lfs or external
+        artifacts_path="/external/models/lang_model_v1.pt",  # git-lfs or external
     )
 
     # Training happens here...
@@ -311,8 +302,7 @@ async def train_model(config):
 
     # Update run status
     await store.db.update(
-        f"training_runs:{training_run['uid']}",
-        {"status": "completed", "metrics": model.metrics}
+        f"training_runs:{training_run['uid']}", {"status": "completed", "metrics": model.metrics}
     )
 
     return model

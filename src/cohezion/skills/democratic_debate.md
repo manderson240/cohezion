@@ -45,12 +45,14 @@ Where:
 from enum import Enum
 from dataclasses import dataclass
 
+
 class Persona(Enum):
-    ARCHITECT = "architect"      # Design, structure, long-term
-    PRAGMATIST = "pragmatist"    # Feasibility, resources, timeline
-    GUARDIAN = "guardian"        # Security, risk, compliance
-    INNOVATOR = "innovator"      # Novel approaches, disruption
+    ARCHITECT = "architect"  # Design, structure, long-term
+    PRAGMATIST = "pragmatist"  # Feasibility, resources, timeline
+    GUARDIAN = "guardian"  # Security, risk, compliance
+    INNOVATOR = "innovator"  # Novel approaches, disruption
     SYNTHESIZER = "synthesizer"  # Integration, consensus
+
 
 @dataclass
 class Agent:
@@ -108,12 +110,15 @@ async def _round_opening(self, topic: str, options: list[str]) -> list[dict]:
     proposals = []
     for agent in self.agents:
         proposal = await self._generate_proposal(agent, topic, options)
-        proposals.append({
-            "agent": agent.persona.value,
-            "proposal": proposal,
-            "blind": True  # No visibility to other proposals
-        })
+        proposals.append(
+            {
+                "agent": agent.persona.value,
+                "proposal": proposal,
+                "blind": True,  # No visibility to other proposals
+            }
+        )
     return proposals
+
 
 async def _round_critique(self, proposals: list[dict]) -> list[dict]:
     """Agents critique others and refine their own."""
@@ -123,12 +128,11 @@ async def _round_critique(self, proposals: list[dict]) -> list[dict]:
         critiques = await self._generate_critiques(agent, proposals)
         # Refine own proposal based on critiques
         new_proposal = await self._refine_proposal(agent, critiques)
-        refined.append({
-            "agent": agent.persona.value,
-            "proposal": new_proposal,
-            "critiques_given": critiques
-        })
+        refined.append(
+            {"agent": agent.persona.value, "proposal": new_proposal, "critiques_given": critiques}
+        )
     return refined
+
 
 async def _round_voting(self, proposals: list[dict], options: list[str]) -> dict:
     """Agents vote on best approach."""
@@ -149,6 +153,7 @@ def _check_consensus(self, votes: dict) -> bool:
         return False
     max_vote = max(votes.values())
     return (max_vote / total) >= self.threshold
+
 
 def _determine_winner(self, votes: dict) -> str:
     """Return option with most votes."""
@@ -176,8 +181,8 @@ async def run_pm_debate():
             "GitHub MCP integration",
             "Custom task tracker",
             "Notion MCP",
-            "Enhanced tasks.md"
-        ]
+            "Enhanced tasks.md",
+        ],
     )
 
     print(f"Consensus: {result['consensus']}")

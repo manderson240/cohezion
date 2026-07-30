@@ -25,15 +25,21 @@ tags: [r0, sigma, adversarial, uncertainty, challenger, consensus, ure]
 
 ```python
 from cohezion.compound.r0_sigma import (
-    R0Challenge, R0ChallengeResult, UncertaintyBand,
-    synthesize_challenges, CONFIRMED, CONDITIONAL, WEAK, REJECTED
+    R0Challenge,
+    R0ChallengeResult,
+    UncertaintyBand,
+    synthesize_challenges,
+    CONFIRMED,
+    CONDITIONAL,
+    WEAK,
+    REJECTED,
 )
 
 # Three-perspective adversarial review
 challenges = [
-    R0Challenge("scientific_rigor",       score=0.8, verdict=CONFIRMED, reason="testable"),
-    R0Challenge("physical_consistency",   score=0.7, verdict=CONFIRMED, reason="no violations"),
-    R0Challenge("implementation",          score=0.4, verdict=WEAK, reason="needs verification"),
+    R0Challenge("scientific_rigor", score=0.8, verdict=CONFIRMED, reason="testable"),
+    R0Challenge("physical_consistency", score=0.7, verdict=CONFIRMED, reason="no violations"),
+    R0Challenge("implementation", score=0.4, verdict=WEAK, reason="needs verification"),
 ]
 result = synthesize_challenges(challenges)
 

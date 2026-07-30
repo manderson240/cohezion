@@ -203,7 +203,7 @@ router = CostAwareRouter.get_default()
 # Let router select optimal model
 decision, can_proceed = router.select_model(
     query=user_request,
-    max_cost_usd=0.01  # Budget constraint
+    max_cost_usd=0.01,  # Budget constraint
 )
 
 if not can_proceed:
@@ -218,7 +218,7 @@ router.record_execution(
     model=decision.model,
     actual_tokens=len(result.split()),  # Rough estimate
     duration_ms=elapsed_ms,
-    success=True
+    success=True,
 )
 ```
 

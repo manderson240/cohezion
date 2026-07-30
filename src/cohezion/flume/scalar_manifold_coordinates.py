@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 
 __all__ = [
@@ -110,9 +110,7 @@ async def verify_scalar_manifold() -> None:
       - Precipitation scalar is likewise maximized at the critical coherence.
     """
     test_points = [0.0, 0.25, 0.5, 0.75, 1.0]
-    metrics = [
-        compute_scalar_metrics(c, entropy=0.5, velocity=1.0) for c in test_points
-    ]
+    metrics = [compute_scalar_metrics(c, entropy=0.5, velocity=1.0) for c in test_points]
 
     overlaps = [m.coherence_overlap for m in metrics]
     precipitations = [m.precipitation_scalar for m in metrics]

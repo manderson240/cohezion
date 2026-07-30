@@ -40,8 +40,7 @@ You are a specialist in **multimodal experience generation** for AI swarm demons
 import marimo as mo
 
 stream_select = mo.ui.dropdown(
-    options=["architect", "engineer", "biologist"],
-    label="Select Expert Stream"
+    options=["architect", "engineer", "biologist"], label="Select Expert Stream"
 )
 ```
 
@@ -68,13 +67,10 @@ AGENT_VOICES = {
     "controller": "sage",
 }
 
+
 def narrate_action(action, stream):
     voice = AGENT_VOICES.get(stream, "azelma")
-    return tts.synthesize(
-        text=f"{stream} completed {action}",
-        voice=voice,
-        style="expressive"
-    )
+    return tts.synthesize(text=f"{stream} completed {action}", voice=voice, style="expressive")
 ```
 
 ### 4. Integrate with Quarto

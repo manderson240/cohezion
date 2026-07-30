@@ -10,12 +10,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import subprocess
-import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
 from cohezion.core.event_bus import Event, EventBus, EventType
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +25,13 @@ class LemonadeCLIMonitor:
 
     DEFAULT_ENDPOINT: str = "http://localhost:13305"
 
-    def __init__(self, endpoint: str = DEFAULT_ENDPOINT, event_bus: Optional[EventBus] = None) -> None:
+    def __init__(
+        self, endpoint: str = DEFAULT_ENDPOINT, event_bus: EventBus | None = None
+    ) -> None:
         self.endpoint = endpoint.rstrip("/")
         self.bus = event_bus
 
-    def get_cli_status(self) -> Dict[str, Any]:
+    def get_cli_status(self) -> dict[str, Any]:
         """Execute `lemonade status` and return parsed loaded models and device metadata."""
         try:
             res = subprocess.run(
@@ -44,8 +46,8 @@ class LemonadeCLIMonitor:
                 return {"ok": False, "loaded_models": [], "devices": {}}
 
             output = res.stdout
-            loaded_models: List[str] = []
-            devices: Dict[str, str] = {}
+            loaded_models: list[str] = []
+            devices: dict[str, str] = {}
 
             lines = output.splitlines()
             in_table = False
@@ -71,7 +73,7 @@ class LemonadeCLIMonitor:
             logger.error("Failed to execute lemonade status: %s", exc)
             return {"ok": False, "loaded_models": [], "devices": {}, "error": str(exc)}
 
-    async def get_active_endpoint_models(self) -> List[str]:
+    async def get_active_endpoint_models(self) -> list[str]:
         """Fetch models exposed on Lemonade :13305 /v1/models."""
         try:
             async with httpx.AsyncClient(timeout=3.0) as client:
@@ -103,11 +105,11 @@ class LemonadeCLIMonitor:
         return event
 
 
-async def verify_lemonade_cli_monitor() -> Dict[str, Any]:
+async def verify_lemonade_cli_monitor() -> dict[str, Any]:
     """Isolated self-verification test for LemonadeCLIMonitor."""
     bus = EventBus()
     await bus.start()
-    events_captured: List[Event] = []
+    events_captured: list[Event] = []
 
     @bus.subscribe(EventType.FLEET_STATUS)
     async def on_fleet_status(event: Event):
@@ -124,12 +126,15 @@ async def verify_lemonade_cli_monitor() -> Dict[str, Any]:
         "loaded_models_count": len(status_info.get("loaded_models", [])),
         "event_published": len(events_captured) == 1,
         "captured_event_source": events_captured[0].source if events_captured else "",
-        "captured_models": events_captured[0].payload.get("loaded_models", []) if events_captured else [],
+        "captured_models": events_captured[0].payload.get("loaded_models", [])
+        if events_captured
+        else [],
     }
 
 
 if __name__ == "__main__":
     import sys
+
     res = asyncio.run(verify_lemonade_cli_monitor())
     print("Verification Result:", res)
     sys.exit(0 if res["ok"] else 1)

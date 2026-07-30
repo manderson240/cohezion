@@ -610,6 +610,7 @@ def log_request(request):
     # Don't log full text/audio
     log.info(f"synthesize: {len(request.text)} chars")
 
+
 # Remove timestamps from responses
 response["timestamp"] = None  # or use UTC only
 ```
@@ -872,9 +873,11 @@ class AudioEncoder:
     def encode(self, audio: Tensor) -> bytes:
         return self.strategy.encode(audio)
 
+
 class WAVEncoder(EncodingStrategy):
     def encode(self, audio: Tensor) -> bytes:
         return save_wav(audio)
+
 
 class MP3Encoder(EncodingStrategy):
     def encode(self, audio: Tensor) -> bytes:
@@ -888,6 +891,7 @@ class MetricsCollector(Observer):
     def on_inference_complete(self, event: InferenceEvent):
         self.metrics.record_latency(event.duration_ms)
         self.metrics.increment_request_count()
+
 
 server.attach_observer(MetricsCollector())
 ```

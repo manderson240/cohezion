@@ -120,7 +120,7 @@ def _local_review(diff: str) -> str:
         "\n\nDIFF (truncated):\n" + diff[:8000]
     )
     body = json.dumps({"model": _LOCAL_REVIEWER, "messages": [{"role": "user", "content": prompt}]})
-    req = urllib.request.Request(  # noqa: S310 — fixed localhost router
+    req = urllib.request.Request(
         _ROUTER, data=body.encode(), headers={"Content-Type": "application/json"}, method="POST"
     )
     try:

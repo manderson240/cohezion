@@ -39,6 +39,7 @@ return content.strip()
 ```python
 if "```" in response:
     import re
+
     m = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response, re.DOTALL)
     if m:
         response = m.group(1)
@@ -121,20 +122,21 @@ Use brace-depth counting instead:
 ```python
 def extract_json(text: str) -> dict:
     import re, json
-    text = re.sub(r'^```(?:json)?\n?', '', text.strip())
-    text = re.sub(r'\n?```$', '', text.strip())
+
+    text = re.sub(r"^```(?:json)?\n?", "", text.strip())
+    text = re.sub(r"\n?```$", "", text.strip())
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
-    start = text.find('{')
+    start = text.find("{")
     if start >= 0:
         depth = 0
         for i, ch in enumerate(text[start:], start):
-            depth += (ch == '{') - (ch == '}')
+            depth += (ch == "{") - (ch == "}")
             if depth == 0:
                 try:
-                    return json.loads(text[start:i + 1])
+                    return json.loads(text[start : i + 1])
                 except json.JSONDecodeError:
                     break
     m = re.search(r'"role"\s*:\s*"([A-Z+]+)"', text)

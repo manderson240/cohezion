@@ -1,10 +1,11 @@
 import asyncio
-import json
 import time
+
 import httpx
 
-from cohezion.core.event_bus import EventBus, Event, EventType
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 async def main():
     print("===================================================================================")
@@ -19,7 +20,7 @@ async def main():
     @bus.subscribe()
     async def on_event(event: Event):
         events_logged.append(event)
-        print(f"  [EventBus Stream] {event.type.name} from \"{event.source}\"")
+        print(f'  [EventBus Stream] {event.type.name} from "{event.source}"')
 
     run_id = f"adv_review_{int(time.time())}"
 
@@ -54,20 +55,23 @@ Provide 3 concise, high-severity findings with recommended patches.
 
     sec_report = ""
     async with httpx.AsyncClient(timeout=None) as client:
-        r_sec = await client.post("http://localhost:11434/api/generate", json={
-            "model": "gpt-oss:120b-cloud",
-            "prompt": sec_prompt,
-            "stream": False
-        })
+        r_sec = await client.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "gpt-oss:120b-cloud", "prompt": sec_prompt, "stream": False},
+        )
         if r_sec.status_code == 200:
             sec_report = r_sec.json().get("response", "").strip()
             duration_sec = (time.time() - t0) * 1000
             await bus.publish(Event.llm_response("security_auditor", model="gpt-oss:120b-cloud"))
-            await bus.publish(Event.agent_complete("security_auditor", result="success", duration_ms=duration_sec))
-            print(f"  ✓ Security Audit Completed in {duration_sec/1000:.2f}s!")
+            await bus.publish(
+                Event.agent_complete("security_auditor", result="success", duration_ms=duration_sec)
+            )
+            print(f"  ✓ Security Audit Completed in {duration_sec / 1000:.2f}s!")
 
     # Perspective 2: Memory & Concurrency Architect (kimi-k2.7-code:cloud on :11434)
-    print("\n[Perspective 2] Memory & Concurrency Architect (kimi-k2.7-code:cloud on :11434, timeout=None)...")
+    print(
+        "\n[Perspective 2] Memory & Concurrency Architect (kimi-k2.7-code:cloud on :11434, timeout=None)..."
+    )
     await bus.publish(Event.agent_start("concurrency_architect", model="kimi-k2.7-code:cloud"))
 
     conc_prompt = f"""
@@ -88,20 +92,27 @@ Provide 3 concise findings with concurrency fixes.
 
     conc_report = ""
     async with httpx.AsyncClient(timeout=None) as client:
-        r_conc = await client.post("http://localhost:11434/api/generate", json={
-            "model": "kimi-k2.7-code:cloud",
-            "prompt": conc_prompt,
-            "stream": False
-        })
+        r_conc = await client.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "kimi-k2.7-code:cloud", "prompt": conc_prompt, "stream": False},
+        )
         if r_conc.status_code == 200:
             conc_report = r_conc.json().get("response", "").strip()
             duration_conc = (time.time() - t1) * 1000
-            await bus.publish(Event.llm_response("concurrency_architect", model="kimi-k2.7-code:cloud"))
-            await bus.publish(Event.agent_complete("concurrency_architect", result="success", duration_ms=duration_conc))
-            print(f"  ✓ Concurrency Audit Completed in {duration_conc/1000:.2f}s!")
+            await bus.publish(
+                Event.llm_response("concurrency_architect", model="kimi-k2.7-code:cloud")
+            )
+            await bus.publish(
+                Event.agent_complete(
+                    "concurrency_architect", result="success", duration_ms=duration_conc
+                )
+            )
+            print(f"  ✓ Concurrency Audit Completed in {duration_conc / 1000:.2f}s!")
 
     # Perspective 3: Physics & FLUME Manifold Specialist (Local Silicon: Bonsai-1.7B-gguf on :13305)
-    print("\n[Perspective 3] Physics & FLUME Manifold Specialist (Local Silicon: Bonsai-1.7B-gguf on :13305, timeout=None)...")
+    print(
+        "\n[Perspective 3] Physics & FLUME Manifold Specialist (Local Silicon: Bonsai-1.7B-gguf on :13305, timeout=None)..."
+    )
     await bus.publish(Event.agent_start("physics_specialist", model="Bonsai-1.7B-gguf"))
 
     phys_prompt = f"""
@@ -122,17 +133,24 @@ Provide 3 concise mathematical recommendations.
 
     phys_report = ""
     async with httpx.AsyncClient(timeout=None) as client:
-        r_phys = await client.post("http://localhost:13305/v1/chat/completions", json={
-            "model": "Bonsai-1.7B-gguf",
-            "messages": [{"role": "user", "content": phys_prompt}],
-            "temperature": 0.2
-        })
+        r_phys = await client.post(
+            "http://localhost:13305/v1/chat/completions",
+            json={
+                "model": "Bonsai-1.7B-gguf",
+                "messages": [{"role": "user", "content": phys_prompt}],
+                "temperature": 0.2,
+            },
+        )
         if r_phys.status_code == 200:
             phys_report = r_phys.json()["choices"][0]["message"]["content"].strip()
             duration_phys = (time.time() - t2) * 1000
             await bus.publish(Event.llm_response("physics_specialist", model="Bonsai-1.7B-gguf"))
-            await bus.publish(Event.agent_complete("physics_specialist", result="success", duration_ms=duration_phys))
-            print(f"  ✓ Physics Audit Completed in {duration_phys/1000:.2f}s!")
+            await bus.publish(
+                Event.agent_complete(
+                    "physics_specialist", result="success", duration_ms=duration_phys
+                )
+            )
+            print(f"  ✓ Physics Audit Completed in {duration_phys / 1000:.2f}s!")
 
     # Save Aggregated Report Artifact
     report_file = "multiperspective_adversarial_review_v2.md"
@@ -160,18 +178,23 @@ Provide 3 concise mathematical recommendations.
         f.write(aggregated)
     print(f"\n  ✓ Saved aggregated adversarial review to `{report_file}`")
 
-    sink_res = persist_item({
-        "id": f"kanban_{run_id}",
-        "title": f"Multiperspective Adversarial Review V2 {run_id}",
-        "status": "completed",
-        "priority": "high",
-        "source": "inference/adversarial-review",
-        "category": "security_audit",
-        "details": f"Security: gpt-oss:120b | Concurrency: kimi-k2.7-code | Physics: Bonsai-1.7B | Report: {report_file} | Events: {len(events_logged)}"
-    })
-    print(f"  ✓ DataMesh Persistence: SurrealDB={sink_res.get('surreal')}, Vault={sink_res.get('vault')}")
+    sink_res = persist_item(
+        {
+            "id": f"kanban_{run_id}",
+            "title": f"Multiperspective Adversarial Review V2 {run_id}",
+            "status": "completed",
+            "priority": "high",
+            "source": "inference/adversarial-review",
+            "category": "security_audit",
+            "details": f"Security: gpt-oss:120b | Concurrency: kimi-k2.7-code | Physics: Bonsai-1.7B | Report: {report_file} | Events: {len(events_logged)}",
+        }
+    )
+    print(
+        f"  ✓ DataMesh Persistence: SurrealDB={sink_res.get('surreal')}, Vault={sink_res.get('vault')}"
+    )
 
     await bus.stop()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

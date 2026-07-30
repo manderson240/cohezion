@@ -68,6 +68,7 @@ Surgical-commit discipline (L363 + L368): against high-churn trees, enumerate pa
 
     ```python
     from cohezion.registry.skill_registry import register_skill
+
     register_skill("MY_SKILL_PRIME", "Description", ["keywords"], "skills/MY_SKILL_PRIME.md")
     ```
 
@@ -88,6 +89,7 @@ Surgical-commit discipline (L363 + L368): against high-churn trees, enumerate pa
 
     ```python
     from cohezion.mcp.my_server import get_server
+
     server = get_server()
     ```
 

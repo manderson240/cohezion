@@ -191,7 +191,12 @@ def main() -> int:
         # Validate that if MINOR or MAJOR bump detected, pyproject.toml version matches or exceeds
         latest_tag = None
         try:
-            r = subprocess.run(["git", "describe", "--tags", "--abbrev=0"], capture_output=True, text=True, check=True)
+            r = subprocess.run(
+                ["git", "describe", "--tags", "--abbrev=0"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             latest_tag = r.stdout.strip().lstrip("v")
         except Exception:
             pass

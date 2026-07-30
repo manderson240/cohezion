@@ -26,15 +26,13 @@
 ### Optimal Configuration
 ```python
 # For burst (≤4 requests) - maximum throughput
-results = await asyncio.gather(*[
-    make_request(prompt) for prompt in prompts
-])  # 118-139 TPS
+results = await asyncio.gather(*[make_request(prompt) for prompt in prompts])  # 118-139 TPS
 
 # For sustained (>4 requests) - explicit batching
 for batch in batched(prompts, 4):
-    results.extend(await asyncio.gather(*[
-        make_request(p) for p in batch
-    ]))  # ~107 TPS (23% penalty)
+    results.extend(
+        await asyncio.gather(*[make_request(p) for p in batch])
+    )  # ~107 TPS (23% penalty)
 ```
 
 ### Queue Approaches Tested (All Rejected)
@@ -80,15 +78,17 @@ from lemonade_client import LemonadeClient
 async with LemonadeClient() as client:
     # Single request
     result = await client.generate("Write a haiku")
-    
+
     # Multiple requests (auto-optimized)
-    results = await client.generate_batch([
-        "Write about AI",
-        "Write about ML", 
-        "Write about NLP",
-        "Write about CV",
-    ])
-    
+    results = await client.generate_batch(
+        [
+            "Write about AI",
+            "Write about ML",
+            "Write about NLP",
+            "Write about CV",
+        ]
+    )
+
     # Benchmark
     stats = await client.benchmark(n=4)
     print(f"Throughput: {stats['tokens_per_sec']:.1f} TPS")

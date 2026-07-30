@@ -97,6 +97,7 @@ reviewers = [
 ```python
 from cohezion.inference.fractal_metrics import feynman_path_weight
 
+
 def select_tier(quality_score: float, cost_usd: float = 0.0) -> str:
     """Select optimal tier using Feynman path integral amplitude."""
     # Local silicon always wins — this just confirms Feynman math
@@ -111,6 +112,7 @@ Every compound loop output is evaluated by AUTODQA before acceptance:
 
 ```python
 from cohezion.compound.autodqa import AutoDQA
+
 dqa = AutoDQA(persist=True, notify_on_reject=True)
 result = dqa.evaluate(output, task_description)
 if not result.verdict.accept:

@@ -19,6 +19,7 @@ Budget:
 
 from __future__ import annotations
 
+
 REPO_ROOT_NOTE = "# Run from the cohezion repo root (/home/mike-anderson/dev/cohezion)"
 
 # ── Schedule: geometry sweep (3×/day, every 8 hours) ────────────────────────
@@ -99,7 +100,7 @@ def print_setup_instructions() -> None:
     print("Paste each block below into an INTERACTIVE Claude Code session.")
     print("CronCreate is a session-bound tool; this script cannot call it.")
     print()
-    print(f"Quota: 15 routine runs/day  |  Using 5  |  10 reserved for ad-hoc")
+    print("Quota: 15 routine runs/day  |  Using 5  |  10 reserved for ad-hoc")
     print()
 
     # ── Geometry sweeps ──────────────────────────────────────────────────────
@@ -152,23 +153,23 @@ def print_setup_instructions() -> None:
     print("Inspect the 20 most recent geometry results (pretty-printed):")
     print()
     print(
-        '  tail -20 data/skill_geometry_autoresearch.jsonl | '
+        "  tail -20 data/skill_geometry_autoresearch.jsonl | "
         'python3 -c "import sys,json; '
-        "[print(json.dumps(json.loads(l), indent=2)) for l in sys.stdin]\""
+        '[print(json.dumps(json.loads(l), indent=2)) for l in sys.stdin]"'
     )
     print()
     print("Inspect the 20 most recent FLUME VAE results:")
     print()
     print(
-        '  tail -20 data/flume_variate_autoresearch.jsonl | '
+        "  tail -20 data/flume_variate_autoresearch.jsonl | "
         'python3 -c "import sys,json; '
-        "[print(json.dumps(json.loads(l), indent=2)) for l in sys.stdin]\""
+        '[print(json.dumps(json.loads(l), indent=2)) for l in sys.stdin]"'
     )
     print()
     print("Count WINs vs MISSes in geometry results:")
     print()
     print(
-        "  python3 -c \""
+        '  python3 -c "'
         "import json, pathlib; "
         "lines = pathlib.Path('data/skill_geometry_autoresearch.jsonl').read_text().splitlines(); "
         "recs = [json.loads(l) for l in lines if l.strip()]; "
@@ -187,7 +188,11 @@ def print_setup_instructions() -> None:
     print("  ─────  ─────────────────────────────  ────────  ──────────")
     for cron in ALL_CRONS:
         h = int(cron["schedule"].split()[1])
-        script = "routine_skill_geometry.py" if "geometry" in cron["name"] else "routine_flume_variate.py"
+        script = (
+            "routine_skill_geometry.py"
+            if "geometry" in cron["name"]
+            else "routine_flume_variate.py"
+        )
         print(f"  {h:02d}:00   {script:<29}  1         +1")
     print()
     print("  Total routine runs/day consumed: 5  (10 reserved for ad-hoc)")

@@ -87,9 +87,9 @@ from cohezion.infrastructure import TieredCacheManager, get_cache_manager
 
 # Initialize with tiered backends
 manager = TieredCacheManager()
-await manager.add_backend(MemoryBackend(max_size=1000))      # L1: 0.1ms access
-await manager.add_backend(SemanticBackend(encoder, db))       # L2: 5ms access  
-await manager.add_backend(FileBackend("cache/swarm"))         # L3: 50ms access
+await manager.add_backend(MemoryBackend(max_size=1000))  # L1: 0.1ms access
+await manager.add_backend(SemanticBackend(encoder, db))  # L2: 5ms access
+await manager.add_backend(FileBackend("cache/swarm"))  # L3: 50ms access
 
 # Unified API - automatically traverses tiers
 entry = await manager.get("model", "prompt")
@@ -139,11 +139,7 @@ from cohezion.infrastructure import ConnectionPool, PoolConfig, get_connection_p
 
 # Configure pool
 config = PoolConfig(
-    max_size=10,
-    min_size=2,
-    max_idle_time=300.0,
-    health_check_interval=30.0,
-    retry_attempts=3
+    max_size=10, min_size=2, max_idle_time=300.0, health_check_interval=30.0, retry_attempts=3
 )
 
 # Initialize pool
@@ -169,13 +165,13 @@ async with pool.acquire() as conn:
 ```python
 @dataclass(frozen=True, slots=True)
 class PoolConfig:
-    max_size: int = 10              # Maximum concurrent connections
-    min_size: int = 2               # Minimum warm connections
-    max_idle_time: float = 300.0    # Close idle connections after 5 min
+    max_size: int = 10  # Maximum concurrent connections
+    min_size: int = 2  # Minimum warm connections
+    max_idle_time: float = 300.0  # Close idle connections after 5 min
     health_check_interval: float = 30.0  # Health check frequency
-    connection_timeout: float = 10.0     # Connection attempt timeout
-    retry_attempts: int = 3         # Reconnection attempts
-    retry_delay: float = 1.0        # Delay between retries
+    connection_timeout: float = 10.0  # Connection attempt timeout
+    retry_attempts: int = 3  # Reconnection attempts
+    retry_delay: float = 1.0  # Delay between retries
 ```
 
 #### Performance Metrics
@@ -203,21 +199,20 @@ from cohezion.infrastructure import EventBus, EventType, Event, get_event_bus
 # Get global event bus
 bus = await get_event_bus()
 
+
 # Subscribe to events
 @bus.subscribe(EventType.LLM_CALL)
 async def log_llm_call(event: Event):
     logger.info(f"LLM call from {event.source}")
 
+
 @bus.subscribe()  # Wildcard - all events
 async def log_all(event: Event):
     await database.log(event.to_dict())
 
+
 # Publish events
-await bus.publish(Event.llm_call(
-    agent_name="MyAgent",
-    model="gpt-4",
-    prompt_tokens=150
-))
+await bus.publish(Event.llm_call(agent_name="MyAgent", model="gpt-4", prompt_tokens=150))
 ```
 
 #### Key Features
@@ -235,20 +230,20 @@ await bus.publish(Event.llm_call(
 
 ```python
 class EventType(Enum):
-    AGENT_START          # Agent initialized
-    AGENT_COMPLETE       # Agent finished processing
-    AGENT_ERROR          # Agent error occurred
-    LLM_CALL             # LLM API call initiated
-    LLM_RESPONSE         # LLM response received
-    CACHE_HIT            # Cache hit
-    CACHE_MISS           # Cache miss
-    DB_QUERY             # Database query executed
-    DB_ERROR             # Database error
-    SECURITY_VIOLATION   # Security check failed
-    METRIC_UPDATE        # Metrics published
-    SYSTEM_HEALTH        # Health check status
-    JOURNEY_STEP         # Journey progression
-    CUSTOM               # Custom application events
+    AGENT_START  # Agent initialized
+    AGENT_COMPLETE  # Agent finished processing
+    AGENT_ERROR  # Agent error occurred
+    LLM_CALL  # LLM API call initiated
+    LLM_RESPONSE  # LLM response received
+    CACHE_HIT  # Cache hit
+    CACHE_MISS  # Cache miss
+    DB_QUERY  # Database query executed
+    DB_ERROR  # Database error
+    SECURITY_VIOLATION  # Security check failed
+    METRIC_UPDATE  # Metrics published
+    SYSTEM_HEALTH  # Health check status
+    JOURNEY_STEP  # Journey progression
+    CUSTOM  # Custom application events
 ```
 
 #### Performance Metrics
@@ -336,8 +331,10 @@ The repository pattern provides clean interfaces for data access, decoupling bus
 
 ```python
 from cohezion.infrastructure import (
-    RepositoryFactory, UniverseNode, AgentJourney,
-    get_repository_factory
+    RepositoryFactory,
+    UniverseNode,
+    AgentJourney,
+    get_repository_factory,
 )
 
 # Get repository factory
@@ -369,6 +366,7 @@ journeys = await journey_repo.get_by_agent("MyAgent", limit=10)
 @dataclass(frozen=True, slots=True)
 class UniverseNode:
     """12D physics state node."""
+
     id: str | None
     agent_id: str
     journey_id: str
@@ -387,9 +385,11 @@ class UniverseNode:
     precipitation: float
     metadata: dict[str, Any]
 
+
 @dataclass(frozen=True, slots=True)
 class AgentJourney:
     """Agent journey tracking."""
+
     id: str | None
     agent_name: str
     model: str
@@ -442,10 +442,7 @@ manager = await get_task_manager()
 
 # Create tracked task
 task_id = await manager.create_task(
-    my_coroutine(),
-    name="background_job",
-    on_complete=on_done_callback,
-    on_error=on_error_callback
+    my_coroutine(), name="background_job", on_complete=on_done_callback, on_error=on_error_callback
 )
 
 # Check task status
@@ -473,10 +470,10 @@ print(f"Cancelled {counts['cancelled']} tasks")
 
 ```python
 class TaskStatus(Enum):
-    PENDING    # Task created, waiting to run
-    RUNNING    # Task executing
+    PENDING  # Task created, waiting to run
+    RUNNING  # Task executing
     COMPLETED  # Task finished successfully
-    FAILED     # Task raised exception
+    FAILED  # Task raised exception
     CANCELLED  # Task was cancelled
 ```
 
@@ -567,13 +564,13 @@ cap = await registry.get_by_id("skill:tensor_ops")
 ```python
 @dataclass(frozen=True, slots=True)
 class Capability:
-    id: str           # Unique identifier (e.g., "skill:tensor_ops")
-    name: str         # Human-readable name
-    type: str         # "skill", "agent", "mcp", "tool"
+    id: str  # Unique identifier (e.g., "skill:tensor_ops")
+    name: str  # Human-readable name
+    type: str  # "skill", "agent", "mcp", "tool"
     description: str  # Detailed description
-    provider: str     # Source file or endpoint
-    tags: list[str]   # Searchable tags
-    metadata: dict    # Additional attributes
+    provider: str  # Source file or endpoint
+    tags: list[str]  # Searchable tags
+    metadata: dict  # Additional attributes
 ```
 
 #### Performance Metrics
@@ -595,18 +592,23 @@ The `AgentComposer` replaces deep inheritance with composable behaviors for bett
 
 ```python
 from cohezion.infrastructure import (
-    AgentBuilder, ComposableAgent,
-    SecurityBehavior, CachingBehavior, 
-    PersistenceBehavior, EventPublishingBehavior
+    AgentBuilder,
+    ComposableAgent,
+    SecurityBehavior,
+    CachingBehavior,
+    PersistenceBehavior,
+    EventPublishingBehavior,
 )
 
 # Build agent with composition
-agent = (AgentBuilder("phi4")
-    .with_security()                    # Add security validation
-    .with_caching(ttl_seconds=3600)     # Add response caching
-    .with_persistence()                 # Add database persistence
-    .with_events()                      # Add event publishing
-    .build())
+agent = (
+    AgentBuilder("phi4")
+    .with_security()  # Add security validation
+    .with_caching(ttl_seconds=3600)  # Add response caching
+    .with_persistence()  # Add database persistence
+    .with_events()  # Add event publishing
+    .build()
+)
 
 # Process with all behaviors
 result = await agent.process(prompt="Hello, world!")
@@ -655,23 +657,22 @@ class EventPublishingBehavior:
 ```python
 class LoggingBehavior:
     """Custom behavior for detailed logging."""
-    
+
     async def on_init(self, agent: ComposableAgent) -> None:
         self.logger = logging.getLogger(agent.__class__.__name__)
         self.logger.info("Agent initialized")
-    
+
     async def on_process(self, agent: ComposableAgent, **kwargs) -> dict[str, Any]:
         input_data = kwargs.get("input", {})
         self.logger.info(f"Processing: {input_data.get('prompt', '')[:50]}")
         return {}  # Continue processing
-    
+
     async def on_cleanup(self, agent: ComposableAgent) -> None:
         self.logger.info("Agent cleanup complete")
 
+
 # Use custom behavior
-agent = (AgentBuilder("model")
-    .with_behavior(LoggingBehavior())
-    .build())
+agent = AgentBuilder("model").with_behavior(LoggingBehavior()).build()
 ```
 
 #### Performance Metrics
@@ -752,13 +753,11 @@ async def client(self) -> httpx.AsyncClient:
                 BaseAgent._shared_client = httpx.AsyncClient(
                     base_url=self.config.ollama_base_url,
                     timeout=httpx.Timeout(300.0, connect=10.0),
-                    limits=httpx.Limits(
-                        max_connections=50, 
-                        max_keepalive_connections=20
-                    ),
+                    limits=httpx.Limits(max_connections=50, max_keepalive_connections=20),
                 )
     BaseAgent._client_ref_count += 1
     return BaseAgent._shared_client
+
 
 async def close(self) -> None:
     """Release resources with proper cleanup."""
@@ -813,12 +812,13 @@ async def _call_ollama(self, prompt, ...):
 async def _synchronize_mrp(self) -> None:
     """Execute Memory Recovery Protocol with task tracking."""
     await self._init_infrastructure()
-    
+
     task_id = await self._task_manager.create_task(
         self._mrp_sync_impl(),
         name=f"mrp_sync_{self.__class__.__name__}",
     )
     logger.info(f"MRP sync scheduled: {task_id}")
+
 
 async def _mrp_pulse_loop(self) -> None:
     """Background pulse loop (properly tracked)."""
@@ -836,18 +836,17 @@ async def find_tools(self, query: str, top_k: int = 3) -> list:
     results = await self._registry.search(query, limit=top_k)
     return [cap for cap, _ in results]
 
+
 async def delegate_task(self, query: str, target_agent: str | None = None) -> Any:
     """Delegate task to peer agent with proper tracking."""
     await self._init_infrastructure()
-    
+
     if not target_agent:
-        matches = await self._registry.search(
-            f"agent for {query}", limit=1, types=["agent"]
-        )
+        matches = await self._registry.search(f"agent for {query}", limit=1, types=["agent"])
         if not matches:
             return None
         target_agent = matches[0][0].name
-    
+
     # Dynamic instantiation via registry
     # ... delegation logic with events
 ```
@@ -925,21 +924,22 @@ async def delegate_task(self, query: str, target_agent: str | None = None) -> An
 from cohezion.swarm.agents.base_optimized import BaseAgent, AgentResponse
 from cohezion.swarm.swarm_types import SwarmConfig
 
+
 class MyNewAgent(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__("phi4", config=config)
-    
+
     async def process(self, prompt: str, **kwargs) -> AgentResponse:
         # Use inherited _call_ollama with all optimizations
         response = await self._call_ollama(prompt)
-        
+
         # Use unified registry for tool discovery
         tools = await self.find_tools(prompt, top_k=3)
-        
+
         # Delegate if needed
         if should_delegate:
             result = await self.delegate_task(prompt, target_agent="OtherAgent")
-        
+
         return response
 ```
 
@@ -947,30 +947,36 @@ class MyNewAgent(BaseAgent):
 
 ```python
 from cohezion.infrastructure import (
-    AgentBuilder, SecurityBehavior,
-    CachingBehavior, EventPublishingBehavior
+    AgentBuilder,
+    SecurityBehavior,
+    CachingBehavior,
+    EventPublishingBehavior,
 )
 from cohezion.swarm.swarm_types import SwarmConfig
+
 
 class MyCustomBehavior:
     async def on_init(self, agent):
         self.config = SwarmConfig()
-    
+
     async def on_process(self, agent, **kwargs):
         input_data = kwargs.get("input", {})
         # Custom processing logic
         return {"output": {"result": "processed"}}
-    
+
     async def on_cleanup(self, agent):
         pass
 
+
 # Build composed agent
-agent = (AgentBuilder("phi4")
+agent = (
+    AgentBuilder("phi4")
     .with_security()
     .with_caching(ttl_seconds=3600)
     .with_events()
     .with_behavior(MyCustomBehavior())
-    .build())
+    .build()
+)
 
 # Process
 result = await agent.process(prompt="Hello")
@@ -1047,8 +1053,7 @@ async def start_background_work(self):
     # Properly tracked
     await self._init_infrastructure()
     task_id = await self._task_manager.create_task(
-        self._background_loop(),
-        name="my_background_work"
+        self._background_loop(), name="my_background_work"
     )
 ```
 
@@ -1060,9 +1065,7 @@ from cohezion.core.time_keeper import get_time_keeper
 
 tk = get_time_keeper()
 await tk.log_event(
-    agent_name=self.__class__.__name__,
-    event_type="MY_EVENT",
-    details={"key": "value"}
+    agent_name=self.__class__.__name__, event_type="MY_EVENT", details={"key": "value"}
 )
 ```
 
@@ -1070,11 +1073,7 @@ await tk.log_event(
 ```python
 await self._init_infrastructure()
 await self._event_bus.publish(
-    Event(
-        type=EventType.CUSTOM,
-        source=self.__class__.__name__,
-        payload={"key": "value"}
-    )
+    Event(type=EventType.CUSTOM, source=self.__class__.__name__, payload={"key": "value"})
 )
 ```
 
@@ -1095,12 +1094,18 @@ tools = await self.find_tools(query, top_k=3)
 ```python
 import pytest
 from cohezion.infrastructure import (
-    get_cache_manager, reset_cache_manager,
-    get_event_bus, reset_event_bus,
-    get_security_pipeline, reset_security_pipeline,
-    get_task_manager, reset_task_manager,
-    get_unified_registry, reset_unified_registry,
+    get_cache_manager,
+    reset_cache_manager,
+    get_event_bus,
+    reset_event_bus,
+    get_security_pipeline,
+    reset_security_pipeline,
+    get_task_manager,
+    reset_task_manager,
+    get_unified_registry,
+    reset_unified_registry,
 )
+
 
 @pytest.fixture(autouse=True)
 async def reset_infrastructure():
@@ -1112,19 +1117,20 @@ async def reset_infrastructure():
     reset_unified_registry()
     yield
 
+
 async def test_agent_with_infrastructure():
     """Test agent using shared infrastructure."""
     agent = MyAgent()
-    
+
     # Test with real infrastructure
     response = await agent.process("test prompt")
     assert response is not None
-    
+
     # Verify cache was populated
     cache = await get_cache_manager()
     entry = await cache.get(agent.model_name, "test prompt")
     assert entry is not None
-    
+
     await agent.close()
 ```
 
@@ -1249,10 +1255,12 @@ The Compound Engineering optimization has transformed the Cohezion architecture 
 ```python
 # Initialization
 from cohezion.infrastructure import TieredCacheManager, get_cache_manager
+
 cache = await get_cache_manager()
 
 # Add backends
 from cohezion.infrastructure import MemoryBackend, FileBackend, SemanticBackend
+
 await cache.add_backend(MemoryBackend(max_size=1000))
 await cache.add_backend(FileBackend("cache/dir"))
 await cache.add_backend(SemanticBackend(encoder, db_client))
@@ -1267,7 +1275,10 @@ stats = await cache.get_stats()
 
 ```python
 from cohezion.infrastructure import (
-    ConnectionPool, PoolConfig, get_connection_pool, close_connection_pool
+    ConnectionPool,
+    PoolConfig,
+    get_connection_pool,
+    close_connection_pool,
 )
 
 # Initialize
@@ -1290,10 +1301,12 @@ from cohezion.infrastructure import EventBus, EventType, Event, get_event_bus
 # Get bus
 bus = await get_event_bus()
 
+
 # Subscribe
 @bus.subscribe(EventType.LLM_CALL)
 async def handler(event: Event):
     print(f"LLM call: {event.payload}")
+
 
 # Publish
 await bus.publish(Event.llm_call(agent_name="X", model="gpt-4"))
@@ -1331,10 +1344,7 @@ manager = await get_task_manager()
 
 # Create task
 task_id = await manager.create_task(
-    coroutine,
-    name="task_name",
-    on_complete=callback,
-    on_error=error_handler
+    coroutine, name="task_name", on_complete=callback, on_error=error_handler
 )
 
 # Check status
@@ -1366,17 +1376,22 @@ cap = await registry.get_by_id("skill:tensor_ops")
 
 ```python
 from cohezion.infrastructure import (
-    AgentBuilder, SecurityBehavior, CachingBehavior,
-    PersistenceBehavior, EventPublishingBehavior
+    AgentBuilder,
+    SecurityBehavior,
+    CachingBehavior,
+    PersistenceBehavior,
+    EventPublishingBehavior,
 )
 
 # Build agent
-agent = (AgentBuilder("model")
+agent = (
+    AgentBuilder("model")
     .with_security()
     .with_caching(ttl_seconds=3600)
     .with_persistence()
     .with_events()
-    .build())
+    .build()
+)
 
 # Process
 result = await agent.process(prompt="Hello")

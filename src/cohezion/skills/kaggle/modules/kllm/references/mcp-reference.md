@@ -79,12 +79,14 @@ KAGGLE_KEY = os.environ["KAGGLE_API_TOKEN"]  # API token from "Generate New Toke
 URL = "https://www.kaggle.com/mcp"
 HEADERS = {"Authorization": f"Bearer {KAGGLE_KEY}", "Content-Type": "application/json"}
 
+
 def mcp_call(method, params=None):
     payload = {"jsonrpc": "2.0", "id": 1, "method": method}
     if params:
         payload["params"] = params
     resp = requests.post(URL, headers=HEADERS, json=payload)
     return resp.json()
+
 
 # List tools
 print(mcp_call("tools/list"))

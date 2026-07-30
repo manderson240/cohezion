@@ -7,10 +7,10 @@ parses Artist / Album structure, and moves them into clean /mnt/wd_mybook/media/
 
 from __future__ import annotations
 
-import os
 import re
 import shutil
 from pathlib import Path
+
 
 DOWNLOADS_DIR = Path("/mnt/wd_mybook/downloads")
 TARGET_MUSIC_DIR = Path("/mnt/wd_mybook/media/music")
@@ -20,7 +20,9 @@ AUDIO_EXTENSIONS = {".flac", ".mp3", ".m4a", ".wav", ".aac", ".ogg", ".opus"}
 
 def parse_artist_album(folder_name: str) -> tuple[str, str]:
     """Parse 'Artist - Album (Year) ...' string into (artist, album)."""
-    clean_name = re.sub(r"\[.*?\]|\(.*?FLAC.*?\)|FLAC 88|TEAM EICHBAUM|EICHBAUM|Sc4r3cr0w|Beats⭐", "", folder_name).strip()
+    clean_name = re.sub(
+        r"\[.*?\]|\(.*?FLAC.*?\)|FLAC 88|TEAM EICHBAUM|EICHBAUM|Sc4r3cr0w|Beats⭐", "", folder_name
+    ).strip()
     clean_name = re.sub(r"\s+", " ", clean_name)
 
     if " - " in clean_name:

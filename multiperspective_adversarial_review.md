@@ -44,9 +44,7 @@ Below are **three critical, cross‑component findings** that an attacker coul
 The fallback `EventBus.publish` is a **no‑op stub** that merely logs the payload at `DEBUG` level:
 
 ```python
-logging.getLogger(__name__).debug(
-    "No-op EventBus.publish(%s) payload=%r", topic, payload
-)
+logging.getLogger(__name__).debug("No-op EventBus.publish(%s) payload=%r", topic, payload)
 ```
 
 *Problems*  
@@ -148,7 +146,7 @@ The dispatcher intends to keep a **per-agent message history** (`enable_context_
 ```python
 history = self._cache[agent_id]
 history.append(user_message)
-response = await self._client.post(...)   # network I/O
+response = await self._client.post(...)  # network I/O
 history.append(assistant_message)
 self._trim(history)
 ```
@@ -199,7 +197,7 @@ Additionally, two integrations are likely to **block the event loop**:
 1. **Global backpressure**: add an `asyncio.Semaphore` whose capacity is derived from real load tests (e.g., 512–1024). Requests beyond capacity should receive `503` or be queued with a bounded buffer, not spawn new tasks.
 2. **HTTP client limits**:
    ```python
-   limits=httpx.Limits(
+   limits = httpx.Limits(
        max_connections=512,
        max_keepalive_connections=128,
        keepalive_expiry=30.0,

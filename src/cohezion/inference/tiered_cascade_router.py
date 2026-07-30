@@ -13,13 +13,18 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import httpx
 
-from cohezion.core.event_bus import Event, EventBus, EventType
-from cohezion.inference.load_safety import available_ram_gb, check_load_safe, defer_to_kanban_on_memory_pressure
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.inference.lemonade_cli_monitor import LemonadeCLIMonitor
+from cohezion.inference.load_safety import (
+    available_ram_gb,
+    check_load_safe,
+    defer_to_kanban_on_memory_pressure,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +42,7 @@ class TieredCascadeRouter:
     DEFAULT_CLOUD_CODING_MODEL: str = "kimi-k2.7-code:cloud"
     DEFAULT_CLOUD_REASONING_MODEL: str = "gpt-oss:120b-cloud"
 
-    def __init__(self, bus: Optional[EventBus] = None) -> None:
+    def __init__(self, bus: EventBus | None = None) -> None:
         self.bus = bus
         self.monitor = LemonadeCLIMonitor(endpoint=self.LEMONADE_ENDPOINT, event_bus=bus)
 
@@ -48,11 +53,13 @@ class TieredCascadeRouter:
         agent_name: str = "swarm_agent",
         max_tokens: int = 4096,
         temperature: float = 0.2,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Route request: Primary Local Silicon -> Secondary Ollama Cloud -> Kanban Deferral."""
         avail_gb = available_ram_gb()
         local_model = (
-            self.DEFAULT_LOCAL_CODING_MODEL if task_type == "coding" else self.DEFAULT_LOCAL_REASONING_MODEL
+            self.DEFAULT_LOCAL_CODING_MODEL
+            if task_type == "coding"
+            else self.DEFAULT_LOCAL_REASONING_MODEL
         )
         model_meta = {"id": local_model, "size_gb": 18.5}
 
@@ -63,7 +70,9 @@ class TieredCascadeRouter:
             # Execute Primary: Local Silicon (:13305)
             logger.info("Primary execution on Lemonade :13305 (%s)", local_model)
             if self.bus:
-                await self.bus.publish(Event.agent_start(agent_name, model=local_model, tier="primary_local"))
+                await self.bus.publish(
+                    Event.agent_start(agent_name, model=local_model, tier="primary_local")
+                )
                 await self.bus.publish(Event.llm_call(agent_name, model=local_model))
 
             t0 = time.time()
@@ -82,8 +91,14 @@ class TieredCascadeRouter:
                         content = r.json()["choices"][0]["message"]["content"].strip()
                         duration_ms = (time.time() - t0) * 1000
                         if self.bus:
-                            await self.bus.publish(Event.llm_response(agent_name, model=local_model))
-                            await self.bus.publish(Event.agent_complete(agent_name, result="success", duration_ms=duration_ms))
+                            await self.bus.publish(
+                                Event.llm_response(agent_name, model=local_model)
+                            )
+                            await self.bus.publish(
+                                Event.agent_complete(
+                                    agent_name, result="success", duration_ms=duration_ms
+                                )
+                            )
                         return {
                             "tier": "primary_local",
                             "model": local_model,
@@ -92,15 +107,25 @@ class TieredCascadeRouter:
                             "duration_ms": duration_ms,
                         }
             except Exception as exc:
-                logger.warning("Primary local execution failed (%s): %s. Escalating to Secondary Cloud.", local_model, exc)
+                logger.warning(
+                    "Primary local execution failed (%s): %s. Escalating to Secondary Cloud.",
+                    local_model,
+                    exc,
+                )
 
         # Step 2: Escalation Trigger -> Secondary: Ollama Cloud Peer Models (:11434)
         cloud_model = (
-            self.DEFAULT_CLOUD_CODING_MODEL if task_type == "coding" else self.DEFAULT_CLOUD_REASONING_MODEL
+            self.DEFAULT_CLOUD_CODING_MODEL
+            if task_type == "coding"
+            else self.DEFAULT_CLOUD_REASONING_MODEL
         )
         logger.info("Secondary execution on Ollama Cloud :11434 (%s)", cloud_model)
         if self.bus:
-            await self.bus.publish(Event.agent_start(agent_name, model=cloud_model, tier="secondary_cloud", reason=reason))
+            await self.bus.publish(
+                Event.agent_start(
+                    agent_name, model=cloud_model, tier="secondary_cloud", reason=reason
+                )
+            )
             await self.bus.publish(Event.llm_call(agent_name, model=cloud_model))
 
         t1 = time.time()
@@ -115,7 +140,11 @@ class TieredCascadeRouter:
                     duration_ms = (time.time() - t1) * 1000
                     if self.bus:
                         await self.bus.publish(Event.llm_response(agent_name, model=cloud_model))
-                        await self.bus.publish(Event.agent_complete(agent_name, result="success", duration_ms=duration_ms))
+                        await self.bus.publish(
+                            Event.agent_complete(
+                                agent_name, result="success", duration_ms=duration_ms
+                            )
+                        )
                     return {
                         "tier": "secondary_cloud",
                         "model": cloud_model,
@@ -141,12 +170,12 @@ class TieredCascadeRouter:
         }
 
 
-async def verify_tiered_cascade_router() -> Dict[str, Any]:
+async def verify_tiered_cascade_router() -> dict[str, Any]:
     """Self-verification test for TieredCascadeRouter."""
     bus = EventBus()
     await bus.start()
 
-    events_captured: List[Event] = []
+    events_captured: list[Event] = []
 
     @bus.subscribe()
     async def on_event(event: Event):
@@ -171,6 +200,7 @@ async def verify_tiered_cascade_router() -> Dict[str, Any]:
 
 if __name__ == "__main__":
     import sys
+
     res = asyncio.run(verify_tiered_cascade_router())
     print("Verification Result:", res)
     sys.exit(0 if res["ok"] else 1)

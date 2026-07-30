@@ -36,6 +36,7 @@ Implementing the patches above will close the attack surface that currently allo
 _lock = asyncio.Lock()
 _deferred_ids = weakref.WeakSet()  # or TTL-set of task ids
 
+
 async def defer_to_kanban_on_memory_pressure(task, threshold_gb=2.0, max_q=1000):
     async with _lock:
         # idempotency + bounded queue + cooldown/hysteresis
@@ -63,6 +64,7 @@ Also add cooldown/hysteresis so the system doesn’t flap around the threshold.
 async def on_bus_event(evt):
     # hand off so the consumer can keep dispatching replies
     asyncio.create_task(_handle_with_rpc(evt))
+
 
 async def _handle_with_rpc(evt):
     try:
@@ -101,7 +103,7 @@ class BiDirectionalEventBridge:
                 self._pending.pop(cid, None)
 
     def on_reply(self, event):
-        with threading.RLock():             # if bus may call back cross-thread
+        with threading.RLock():  # if bus may call back cross-thread
             fut = self._pending.pop(event.correlation_id, None)
         if fut and not fut.done():
             loop = fut.get_loop()

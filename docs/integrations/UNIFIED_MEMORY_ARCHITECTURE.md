@@ -70,10 +70,10 @@ Integration of five systems into a unified personal memory and productivity stac
     "duration_sec": 120,
     "app_category": "coding",  # classified
     "physics": {
-        "coherence": 0.92,     # focus score from keystroke velocity
-        "energy": 0.85,          # derived from activity density
-        "time": 1705314600
-    }
+        "coherence": 0.92,  # focus score from keystroke velocity
+        "energy": 0.85,  # derived from activity density
+        "time": 1705314600,
+    },
 }
 ```
 
@@ -108,8 +108,8 @@ class UlogmeBridge:
     "entities": ["autoresearch", "benchmark"],  # extracted entities
     "physics": {
         "salience": 0.85,  # importance score
-        "recency": 0.90    # temporal decay factor
-    }
+        "recency": 0.90,  # temporal decay factor
+    },
 }
 ```
 
@@ -119,15 +119,16 @@ class UlogmeBridge:
 ```python
 # src/cohezion/mcp/servers/vault/obsidian_bridge.py
 
+
 class ObsidianBridge:
     """Bidirectional sync between Obsidian vault and Cohezion."""
-    
+
     async def create_daily_note(self, date: str, content: str) -> str:
         """Create Obsidian daily note from MIRIX summary."""
-        
+
     async def sync_to_surreal(self, vault_path: Path) -> int:
         """Index all vault markdown to SurrealDB with embeddings."""
-        
+
     async def query_vault(self, query: str) -> list[dict]:
         """Semantic search over vault via SurrealDB vectors."""
 ```
@@ -160,34 +161,33 @@ class ObsidianBridge:
 # src/cohezion/mcp/activity_mcp.py
 """MCP server for unified activity/memory queries."""
 
+
 class ActivityMCP:
     """Query across ulogme, MIRIX, and Obsidian."""
-    
+
     async def query_unified_memory(
         self,
         query: str,
         time_range: str = "7d",
-        sources: list[str] = ["ulogme", "mirix", "obsidian"]
+        sources: list[str] = ["ulogme", "mirix", "obsidian"],
     ) -> dict:
         """
         Query unified memory graph.
-        
+
         Example: "What did I work on Tuesday?"
         → Queries ulogme for Tuesday activity
-        → Queries MIRIX for Tuesday conversations  
+        → Queries MIRIX for Tuesday conversations
         → Queries Obsidian for Tuesday notes
         → Returns unified timeline
         """
-        
+
     async def correlate_productivity(
-        self,
-        metric: str = "focus_score",
-        correlate_with: str = "note_creation"
+        self, metric: str = "focus_score", correlate_with: str = "note_creation"
     ) -> dict:
         """
         Correlate ulogme metrics with knowledge work output.
-        
-        Example: Does high keystroke activity correlate with 
+
+        Example: Does high keystroke activity correlate with
         more Obsidian notes created?
         """
 ```
@@ -200,32 +200,32 @@ class ActivityMCP:
 
 from mirix import MirixClient
 
+
 class MirixBridge:
     """Integrate MIRIX memory into Cohezion."""
-    
+
     def __init__(self):
         self.client = MirixClient(
-            api_key=os.getenv("MIRIX_API_KEY"),
-            base_url="http://localhost:8531"
+            api_key=os.getenv("MIRIX_API_KEY"), base_url="http://localhost:8531"
         )
-        
+
     async def sync_episodic_to_surreal(self) -> int:
         """Sync MIRIX episodic memories to SurrealDB graph."""
         memories = self.client.retrieve_with_conversation(
             user_id="cohezion-user",
             messages=[{"role": "user", "content": [{"type": "text", "text": "Last 7 days"}]}],
-            limit=100
+            limit=100,
         )
         for mem in memories:
             await self._store_in_surreal(mem, type="episodic")
-            
+
     async def query_cross_memory(self, query: str) -> dict:
         """Query both MIRIX and SurrealDB for comprehensive results."""
         # MIRIX for semantic search
         mirix_results = self.client.retrieve_with_conversation(
             user_id="cohezion-user",
             messages=[{"role": "user", "content": [{"type": "text", "text": query}]}],
-            limit=5
+            limit=5,
         )
         # SurrealDB for time-series/physics
         surreal_results = await surreal.query_similar(query)
@@ -329,11 +329,11 @@ async def analyze_productivity(week: str):
     hours_coding = await activity_mcp.get_category_hours(week, "coding")
     notes_created = await vault_bridge.count_notes(week)
     mirix_memories = await mirix_bridge.count_memories(week)
-    
+
     return {
         "focus_hours": hours_coding,
         "knowledge_gain": notes_created,
-        "context_retention": mirix_memories
+        "context_retention": mirix_memories,
     }
 ```
 

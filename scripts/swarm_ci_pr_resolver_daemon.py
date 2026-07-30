@@ -14,15 +14,13 @@ import asyncio
 import json
 import logging
 import subprocess
-import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-import httpx
-
-from cohezion.core.event_bus import Event, EventBus, EventType
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.lemonade_cli_monitor import LemonadeCLIMonitor
 from cohezion.inference.tiered_cascade_router import TieredCascadeRouter
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +28,12 @@ logger = logging.getLogger(__name__)
 class SwarmCIPRResolverDaemon:
     """Automated PR & CI resolution daemon leveraging 2-tier model routing and EventBus."""
 
-    def __init__(self, bus: Optional[EventBus] = None) -> None:
+    def __init__(self, bus: EventBus | None = None) -> None:
         self.bus = bus or EventBus()
         self.router = TieredCascadeRouter(bus=self.bus)
         self.monitor = LemonadeCLIMonitor(event_bus=self.bus)
 
-    async def list_open_prs(self) -> List[Dict[str, Any]]:
+    async def list_open_prs(self) -> list[dict[str, Any]]:
         """Fetch open PRs via gh CLI safely with array argument list."""
         try:
             res = subprocess.run(
@@ -49,10 +47,12 @@ class SwarmCIPRResolverDaemon:
             logger.error("Failed to list open PRs: %s", exc)
             return []
 
-    async def run_multiperspective_review_of_pr(self, pr_number: int, title: str) -> Dict[str, Any]:
+    async def run_multiperspective_review_of_pr(self, pr_number: int, title: str) -> dict[str, Any]:
         """Run 2-tier local & cloud multiperspective review on a target PR."""
         if self.bus:
-            await self.bus.publish(Event.agent_start(f"pr_reviewer_{pr_number}", pr_number=pr_number))
+            await self.bus.publish(
+                Event.agent_start(f"pr_reviewer_{pr_number}", pr_number=pr_number)
+            )
 
         clean_title = title.replace("\n", " ").strip()[:150]
         review_prompt = f"""
@@ -82,7 +82,9 @@ Provide a 3-bullet sign-off or list required fixes.
         )
 
         if self.bus:
-            await self.bus.publish(Event.agent_complete(f"pr_reviewer_{pr_number}", result="approved"))
+            await self.bus.publish(
+                Event.agent_complete(f"pr_reviewer_{pr_number}", result="approved")
+            )
 
         return {
             "pr_number": pr_number,
@@ -92,7 +94,7 @@ Provide a 3-bullet sign-off or list required fixes.
             "status": "reviewed",
         }
 
-    async def process_pr(self, pr: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_pr(self, pr: dict[str, Any]) -> dict[str, Any]:
         """Process a single PR with isolated exception handling."""
         pr_num = pr["number"]
         title = pr["title"]
@@ -104,15 +106,17 @@ Provide a 3-bullet sign-off or list required fixes.
 
             # Step 2: DataMesh Logging with Error Isolation
             try:
-                persist_item({
-                    "id": f"pr_review_{pr_num}",
-                    "title": f"Review PR #{pr_num}: {pr['title'][:100]}",
-                    "status": "reviewed",
-                    "priority": "high",
-                    "source": "ci/swarm_resolver",
-                    "category": "pr_landing",
-                    "details": f"Local: {review_data['local_review'][:150]} | Cloud: {review_data['cloud_review'][:150]}",
-                })
+                persist_item(
+                    {
+                        "id": f"pr_review_{pr_num}",
+                        "title": f"Review PR #{pr_num}: {pr['title'][:100]}",
+                        "status": "reviewed",
+                        "priority": "high",
+                        "source": "ci/swarm_resolver",
+                        "category": "pr_landing",
+                        "details": f"Local: {review_data['local_review'][:150]} | Cloud: {review_data['cloud_review'][:150]}",
+                    }
+                )
             except Exception as db_exc:
                 logger.warning("DataMesh persistence error for PR #%d: %s", pr_num, db_exc)
 
@@ -131,7 +135,7 @@ Provide a 3-bullet sign-off or list required fixes.
                 "status": "failed",
             }
 
-    async def run(self) -> Dict[str, Any]:
+    async def run(self) -> dict[str, Any]:
         """Run resolver daemon loop with failure isolation across PRs."""
         await self.bus.start()
 

@@ -26,6 +26,7 @@ Mapping low-level, high-performance computing (VLIW/SIMD/GPGPU) architectures to
 ```python
 # Example: Batch-synchronized 12D Projection
 from cohezion_core import FlumePhysics
+
 physics = FlumePhysics(...)
 reps = physics.project_holographic_batch(embeddings_2048d)
 ```

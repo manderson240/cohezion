@@ -58,6 +58,7 @@ Expert in simulating exotic physics phenomena for long-horizon exploration: EVOs
 5. **Run Simulation**: Use `UniverseSimulator`:
    ```python
    from cohezion.swarm.advanced_physics import PHYSICS_CATALOG, AdvancedPhysicsEngine
+
    engine = AdvancedPhysicsEngine()
    result = await engine.explore_topic("evo_vacuum", epochs=200)
    ```

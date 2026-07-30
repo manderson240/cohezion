@@ -38,9 +38,11 @@ import uuid
 import hashlib
 from datetime import datetime, timedelta
 
+
 @dataclass
 class AgentCredential:
     """Per-agent authentication credential"""
+
     agent_id: str
     token: str  # UUID-based, not the actual API key
     api_key_hash: str  # bcrypt hash of actual API key
@@ -49,6 +51,7 @@ class AgentCredential:
     permissions: list[str]  # ["read", "write", "delete"]
     is_active: bool
     last_used: Optional[datetime]
+
 
 class AgentAuthManager:
     """Manages per-agent authentication and token validation"""
@@ -68,7 +71,7 @@ class AgentAuthManager:
             expires_at=datetime.utcnow() + timedelta(days=90),
             permissions=permissions,
             is_active=False,
-            last_used=None
+            last_used=None,
         )
         # Persist to vault atomically
         self._persist_credential(credential)
@@ -78,7 +81,9 @@ class AgentAuthManager:
         """Validate agent token and return credential"""
         if token in self.token_cache:
             credential = self.token_cache[token]
-            if credential.is_active and (not credential.expires_at or credential.expires_at > datetime.utcnow()):
+            if credential.is_active and (
+                not credential.expires_at or credential.expires_at > datetime.utcnow()
+            ):
                 credential.last_used = datetime.utcnow()
                 return credential
         return None
@@ -106,6 +111,7 @@ class AgentAuthManager:
 from fastapi import FastAPI, HTTPException, Header, Request
 from typing import Optional
 from .agent_auth import AgentAuthManager
+
 
 class APIKeyAuthMiddleware:
     """FastAPI middleware for per-agent API key validation"""
@@ -155,6 +161,7 @@ app = APIKeyAuthMiddleware(app, auth_manager).app
 import pytest
 from cohezion.security.agent_auth import AgentAuthManager
 
+
 class TestAgentAuth:
     @pytest.fixture
     def auth_manager(self):
@@ -162,10 +169,7 @@ class TestAgentAuth:
 
     def test_create_credential(self, auth_manager):
         """Test creating new agent credential"""
-        credential = auth_manager.create_agent_credential(
-            "agent-1",
-            ["read", "write"]
-        )
+        credential = auth_manager.create_agent_credential("agent-1", ["read", "write"])
         assert credential.agent_id == "agent-1"
         assert credential.is_active == False
         assert len(credential.token) > 0
@@ -250,14 +254,14 @@ echo "Cert: /etc/cohezion/certs/server.crt"
 import uvicorn
 import ssl
 
+
 def run_server(host="0.0.0.0", port=8360, ssl_enabled=True):
     """Run MCP server with optional TLS"""
 
     if ssl_enabled:
         ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
         ssl_context.load_cert_chain(
-            certfile="/etc/cohezion/certs/server.crt",
-            keyfile="/etc/cohezion/certs/server.key"
+            certfile="/etc/cohezion/certs/server.crt", keyfile="/etc/cohezion/certs/server.key"
         )
 
         uvicorn.run(
@@ -271,9 +275,11 @@ def run_server(host="0.0.0.0", port=8360, ssl_enabled=True):
     else:
         uvicorn.run(app, host=host, port=port)
 
+
 if __name__ == "__main__":
     # Check env var for SSL enablement
     import os
+
     ssl_enabled = os.getenv("ENABLE_TLS", "true").lower() == "true"
     run_server(ssl_enabled=ssl_enabled)
 ```
@@ -284,6 +290,7 @@ if __name__ == "__main__":
 ```python
 import httpx
 
+
 class MCPClient:
     def __init__(self, host="localhost", port=8360, use_tls=True, verify_cert=False):
         self.base_url = f"{'https' if use_tls else 'http'}://{host}:{port}"
@@ -291,15 +298,13 @@ class MCPClient:
         # For self-signed certs in dev, disable cert verification
         self.client = httpx.Client(
             base_url=self.base_url,
-            verify=verify_cert  # False for self-signed, True for prod
+            verify=verify_cert,  # False for self-signed, True for prod
         )
 
     def call_tool(self, tool_name: str, args: dict):
         """Call MCP tool over HTTPS"""
         response = self.client.post(
-            f"/tools/{tool_name}",
-            json=args,
-            headers={"X-Agent-Token": self.agent_token}
+            f"/tools/{tool_name}", json=args, headers={"X-Agent-Token": self.agent_token}
         )
         return response.json()
 ```
@@ -312,10 +317,12 @@ import pytest
 import ssl
 import socket
 
+
 class TestTLSConfiguration:
     def test_certificate_exists(self):
         """Test certificate files exist"""
         import os
+
         assert os.path.exists("/etc/cohezion/certs/server.crt")
         assert os.path.exists("/etc/cohezion/certs/server.key")
 
@@ -367,8 +374,10 @@ from enum import Enum
 from typing import Any, Optional
 import json
 
+
 class AuditAction(str, Enum):
     """Audit-logged actions"""
+
     READ = "read"
     WRITE = "write"
     DELETE = "delete"
@@ -377,9 +386,11 @@ class AuditAction(str, Enum):
     ROTATE = "rotate"
     EXPORT = "export"
 
+
 @dataclass
 class AuditLogEntry:
     """Single audit log entry"""
+
     timestamp: datetime
     agent_id: str
     action: AuditAction
@@ -395,6 +406,7 @@ class AuditLogEntry:
         data["timestamp"] = self.timestamp.isoformat()
         data["action"] = self.action.value
         return json.dumps(data)
+
 
 class AuditLogger:
     """Manages audit log persistence and querying"""
@@ -415,10 +427,13 @@ class AuditLogger:
             print(f"Audit logging failed: {e}")
             return False
 
-    def query(self, agent_id: Optional[str] = None,
-              action: Optional[AuditAction] = None,
-              start_date: Optional[datetime] = None,
-              end_date: Optional[datetime] = None) -> list[AuditLogEntry]:
+    def query(
+        self,
+        agent_id: Optional[str] = None,
+        action: Optional[AuditAction] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ) -> list[AuditLogEntry]:
         """Query audit logs with filters"""
         # Implementation: read JSONL files, parse, filter
         pass
@@ -442,6 +457,7 @@ from cohezion.security.audit_log import AuditLogger, AuditAction, AuditLogEntry
 
 audit_logger = AuditLogger()
 
+
 @mcp.tool()
 def vault_read(path: str) -> str:
     """Read from vault (audited)"""
@@ -449,37 +465,43 @@ def vault_read(path: str) -> str:
         data = vault.read(path)
 
         # Log successful read
-        audit_logger.log(AuditLogEntry(
-            timestamp=datetime.utcnow(),
-            agent_id=get_agent_id_from_request(),
-            action=AuditAction.READ,
-            resource=path,
-            status="success",
-            details={"bytes_read": len(data)},
-            ip_address=get_client_ip(),
-            user_agent=get_user_agent()
-        ))
+        audit_logger.log(
+            AuditLogEntry(
+                timestamp=datetime.utcnow(),
+                agent_id=get_agent_id_from_request(),
+                action=AuditAction.READ,
+                resource=path,
+                status="success",
+                details={"bytes_read": len(data)},
+                ip_address=get_client_ip(),
+                user_agent=get_user_agent(),
+            )
+        )
 
         return data
     except Exception as e:
         # Log failed read
-        audit_logger.log(AuditLogEntry(
-            timestamp=datetime.utcnow(),
-            agent_id=get_agent_id_from_request(),
-            action=AuditAction.READ,
-            resource=path,
-            status="failure",
-            details={"error": str(e)},
-            ip_address=get_client_ip(),
-            user_agent=get_user_agent()
-        ))
+        audit_logger.log(
+            AuditLogEntry(
+                timestamp=datetime.utcnow(),
+                agent_id=get_agent_id_from_request(),
+                action=AuditAction.READ,
+                resource=path,
+                status="failure",
+                details={"error": str(e)},
+                ip_address=get_client_ip(),
+                user_agent=get_user_agent(),
+            )
+        )
         raise
+
 
 @mcp.tool()
 def vault_write(path: str, data: str) -> bool:
     """Write to vault (audited)"""
     # Similar pattern: try/log success/log failure
     pass
+
 
 @mcp.tool()
 def vault_delete(path: str) -> bool:
@@ -496,6 +518,7 @@ import pytest
 from datetime import datetime
 from cohezion.security.audit_log import AuditLogger, AuditAction, AuditLogEntry
 
+
 class TestAuditLogging:
     @pytest.fixture
     def logger(self):
@@ -511,7 +534,7 @@ class TestAuditLogging:
             status="success",
             details=None,
             ip_address="127.0.0.1",
-            user_agent="test-client"
+            user_agent="test-client",
         )
         assert entry.agent_id == "agent-1"
         assert entry.action == AuditAction.READ
@@ -698,6 +721,7 @@ jobs:
 import pytest
 import subprocess
 
+
 class TestSecretPrevention:
     def test_detect_aws_key(self):
         """Test AWS key detection"""
@@ -705,10 +729,7 @@ class TestSecretPrevention:
         with open(test_file, "w") as f:
             f.write("aws_key = 'AKIAIOSFODNN7EXAMPLE'")
 
-        result = subprocess.run(
-            ["detect-secrets", "scan", test_file],
-            capture_output=True
-        )
+        result = subprocess.run(["detect-secrets", "scan", test_file], capture_output=True)
         assert result.returncode == 1  # Should fail (secret detected)
 
     def test_github_token_detection(self):

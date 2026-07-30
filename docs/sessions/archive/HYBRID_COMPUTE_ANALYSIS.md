@@ -66,9 +66,7 @@ With proper configuration:
 **Option A: Lemonade GPU Only (Current Best)**
 ```python
 # Use Lemonade with optimal concurrency=4
-results = await asyncio.gather(*[
-    lemonade_client.generate(p) for p in prompts[:4]
-])  # 138.9 TPS
+results = await asyncio.gather(*[lemonade_client.generate(p) for p in prompts[:4]])  # 138.9 TPS
 ```
 
 **Option B: True Hybrid (Requires Setup)**

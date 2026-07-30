@@ -42,20 +42,20 @@ retro = RetrospectionEngine()
 # Read the 5 skills we created
 skills_created = [
     "cohezion-compound-engineering",
-    "cohezion-hiho-stability", 
+    "cohezion-hiho-stability",
     "cohezion-flume",
     "cohezion-model-routing",
-    "cohezion-retrospective"
+    "cohezion-retrospective",
 ]
 
 # Analyze each for patterns
 for skill in skills_created:
     content = read_skill_file(skill)
     patterns = extract_patterns(content)
-    
+
     # Check for:
     # - Consistency in format
-    # - Completeness of examples  
+    # - Completeness of examples
     # - Cross-references between skills
     # - Missing sections
 ```
@@ -91,10 +91,9 @@ await agent.start()
 for artifact in artifacts:
     with open(artifact) as f:
         code = f.read()
-    
+
     result = await agent.review_code(
-        code,
-        context=f"Review {artifact} for quality and completeness"
+        code, context=f"Review {artifact} for quality and completeness"
     )
 ```
 
@@ -166,32 +165,34 @@ def verify_geometric_implementation():
     The workflow claims to implement physics correspondences.
     Verify this is actually true in the code.
     """
-    
+
     # Check 1: HIHO is at 0.5
     assert abs(HIHOMonitor.calculate_hiho_score(0.5) - 1.0) < 0.001
-    
+
     # Check 2: Shannon entropy peaks at 0.5
     import math
+
     def shannon(p):
-        return -p * math.log2(p) - (1-p) * math.log2(1-p)
-    
-    max_entropy = max(shannon(p/100) for p in range(1, 100))
+        return -p * math.log2(p) - (1 - p) * math.log2(1 - p)
+
+    max_entropy = max(shannon(p / 100) for p in range(1, 100))
     assert abs(shannon(0.5) - max_entropy) < 0.001
-    
+
     # Check 3: FLUME encodes to 256D
     from cohezion.flume import FlumeEncoder
+
     encoder = FlumeEncoder()
     z = encoder.encode("test")
     assert len(z) == 256
-    
+
     # Check 4: Alignment gate blocks low coherence
     engine = CompoundEngine()
     low_align = engine.check_alignment("vague request", [])
     assert not low_align["should_proceed"]  # Should block
-    
+
     high_align = engine.check_alignment("Implement function to sort list", [])
     assert high_align["should_proceed"]  # Should pass
-    
+
     print("✓ All geometric correspondences verified")
 ```
 
@@ -211,20 +212,20 @@ learning_patterns = [
         "id": 1,
         "title": "Port PRIME skills to Hermes for runtime access",
         "cross_references": ["SKILL_GENERATOR_PRIME", "COMPOUND_ENGINEERING_PRIME"],
-        "tags": ["porting", "skills"]
+        "tags": ["porting", "skills"],
     },
     {
-        "id": 2, 
+        "id": 2,
         "title": "Create converter tool for batch operations",
         "cross_references": ["Learning 1"],
-        "tags": ["automation"]
+        "tags": ["automation"],
     },
     {
         "id": 3,
         "title": "Agentic workflow exercises all 5 skills",
         "cross_references": ["Learning 1", "HIHO_STABILITY_PRIME", "FLUME_METHODOLOGY_PRIME"],
-        "tags": ["workflow", "demonstration"]
-    }
+        "tags": ["workflow", "demonstration"],
+    },
 ]
 
 # Set up for scoring

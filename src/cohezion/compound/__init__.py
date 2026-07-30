@@ -530,4 +530,3 @@ with contextlib.suppress(Exception):
 from cohezion.compound.executor_factory import (
     make_executor as make_executor,
 )
-

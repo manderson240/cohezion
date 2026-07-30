@@ -36,20 +36,24 @@ Use your existing Lemonade Vulkan backend:
 import asyncio
 import aiohttp
 
+
 async def gpu_compute_forces(positions, masses):
-    '''
+    """
     Uses Vulkan compute through existing infrastructure.
-    '''
+    """
     # Encode computation as structured prompt
     # (simulating compute dispatch)
     payload = {
         "model": "DeepSeek-R1-0528-Qwen3-8B-Q4_1",
-        "messages": [{"role": "user", "content": 
-            f"COMPUTE:nbody:v1:{positions.shape[0]}:{json.dumps(positions.tolist())[:1000]}"
-        }],
-        "max_tokens": 100
+        "messages": [
+            {
+                "role": "user",
+                "content": f"COMPUTE:nbody:v1:{positions.shape[0]}:{json.dumps(positions.tolist())[:1000]}",
+            }
+        ],
+        "max_tokens": 100,
     }
-    
+
     # Actual implementation would use Vulkan compute shader
     # via dedicated compute binary
 ```
@@ -101,10 +105,9 @@ sim.evos[0].mass = -1.0  # Negative mass!
 # Run simulation
 for i in range(1000):
     sim.step(dt=0.01)
-    
+
     # Extract high-information agents
-    vaie_scores = [VAIEMetrics.vacuum_quality_metric(e) 
-                   for e in sim.evos]
+    vaie_scores = [VAIEMetrics.vacuum_quality_metric(e) for e in sim.evos]
     top_evos = np.argsort(vaie_scores)[-10:]  # Most exotic
 
 # Find entangled pairs

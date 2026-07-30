@@ -1,12 +1,13 @@
 import asyncio
-import json
 import time
+
 import httpx
 
-from cohezion.core.event_bus import EventBus, Event, EventType
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.evo_visualizer import EVOJourneyVisualizer
 from cohezion.physics.evo_model import ExoticVacuumObject
+
 
 async def main():
     print("===================================================================================")
@@ -21,13 +22,15 @@ async def main():
     @bus.subscribe()
     async def on_event(event: Event):
         events_logged.append(event)
-        print(f"  [EventBus Stream] {event.type.name} from \"{event.source}\"")
+        print(f'  [EventBus Stream] {event.type.name} from "{event.source}"')
 
     run_id = f"amd_digest_{int(time.time())}"
 
     # Dispatch to Local Silicon on :13305 with timeout=None
     await bus.publish(Event.agent_start("local_amd_architect", model="Bonsai-1.7B-gguf"))
-    print("[Step 1] Local Silicon Digesting AMD GitHub Repositories (Lemonade :13305, timeout=None)...")
+    print(
+        "[Step 1] Local Silicon Digesting AMD GitHub Repositories (Lemonade :13305, timeout=None)..."
+    )
 
     digest_prompt = """
 You are an expert AMD Silicon & AI Systems Architect.
@@ -52,30 +55,49 @@ Phase 4: ROCm-vLLM & ZenDNN High-Throughput Execution Lanes
 Return structured, actionable technical specifications.
 """
 
-    await bus.publish(Event.llm_call("local_amd_architect", model="Bonsai-1.7B-gguf", prompt_tokens=350))
+    await bus.publish(
+        Event.llm_call("local_amd_architect", model="Bonsai-1.7B-gguf", prompt_tokens=350)
+    )
     t0 = time.time()
 
     refined_plan_text = ""
     async with httpx.AsyncClient(timeout=None) as client:
-        r_local = await client.post("http://localhost:13305/v1/chat/completions", json={
-            "model": "Bonsai-1.7B-gguf",
-            "messages": [{"role": "user", "content": digest_prompt}],
-            "temperature": 0.2
-        })
+        r_local = await client.post(
+            "http://localhost:13305/v1/chat/completions",
+            json={
+                "model": "Bonsai-1.7B-gguf",
+                "messages": [{"role": "user", "content": digest_prompt}],
+                "temperature": 0.2,
+            },
+        )
         if r_local.status_code == 200:
             refined_plan_text = r_local.json()["choices"][0]["message"]["content"].strip()
             duration_local = (time.time() - t0) * 1000
-            await bus.publish(Event.llm_response("local_amd_architect", model="Bonsai-1.7B-gguf", response_tokens=500))
-            await bus.publish(Event.agent_complete("local_amd_architect", result="success", duration_ms=duration_local))
-            print(f"\n  ✓ Local Silicon Synthesis Completed in {duration_local/1000:.2f}s:\n")
-            print("===================================================================================")
+            await bus.publish(
+                Event.llm_response(
+                    "local_amd_architect", model="Bonsai-1.7B-gguf", response_tokens=500
+                )
+            )
+            await bus.publish(
+                Event.agent_complete(
+                    "local_amd_architect", result="success", duration_ms=duration_local
+                )
+            )
+            print(f"\n  ✓ Local Silicon Synthesis Completed in {duration_local / 1000:.2f}s:\n")
+            print(
+                "==================================================================================="
+            )
             print(refined_plan_text)
-            print("===================================================================================")
+            print(
+                "==================================================================================="
+            )
 
     # Save artifact file
     artifact_path = "amd_silicon_integration_plan.md"
     with open(artifact_path, "w") as f:
-        f.write(f"# Cohezion AMD Silicon Integration Plan\n\n*Generated via Local Silicon (Bonsai-1.7B-gguf on :13305)*\n\n{refined_plan_text}\n")
+        f.write(
+            f"# Cohezion AMD Silicon Integration Plan\n\n*Generated via Local Silicon (Bonsai-1.7B-gguf on :13305)*\n\n{refined_plan_text}\n"
+        )
     print(f"\n  ✓ Saved refined plan to `{artifact_path}`")
 
     # Step 3: FLUME 12D Manifold Visualization & DataMesh Dual Write-Through
@@ -85,24 +107,31 @@ Return structured, actionable technical specifications.
         "Digested github.com/amd repos (gaia, Quark, RyzenAI-SW, Vitis-AI, vllm, ZenDNN)",
         "Local silicon synthesized 4-phase integration plan on Lemonade :13305",
         "Configured single-endpoint Lemonade :13305 dispatching",
-        "Exported amd_silicon_integration_plan.md artifact"
+        "Exported amd_silicon_integration_plan.md artifact",
     ]
     viz = EVOJourneyVisualizer(output_path=f".obsidian/amd-digest-{run_id}-graph.json")
     graph_data = viz.process_evo(evo, actions)
-    print(f"  ✓ 3D Cockpit Graph (.obsidian/amd-digest-{run_id}-graph.json): {len(graph_data['nodes'])} trajectory nodes")
+    print(
+        f"  ✓ 3D Cockpit Graph (.obsidian/amd-digest-{run_id}-graph.json): {len(graph_data['nodes'])} trajectory nodes"
+    )
 
-    sink_res = persist_item({
-        "id": f"kanban_{run_id}",
-        "title": f"AMD Silicon Repositories Digest & Integration Plan {run_id}",
-        "status": "completed",
-        "priority": "high",
-        "source": "amd/local-digest",
-        "category": "amd_silicon_plan",
-        "details": f"Target: github.com/amd | Endpoint: Lemonade :13305 | Artifact: {artifact_path} | Events: {len(events_logged)}"
-    })
-    print(f"  ✓ DataMesh Persistence: SurrealDB={sink_res.get('surreal')}, Vault={sink_res.get('vault')}")
+    sink_res = persist_item(
+        {
+            "id": f"kanban_{run_id}",
+            "title": f"AMD Silicon Repositories Digest & Integration Plan {run_id}",
+            "status": "completed",
+            "priority": "high",
+            "source": "amd/local-digest",
+            "category": "amd_silicon_plan",
+            "details": f"Target: github.com/amd | Endpoint: Lemonade :13305 | Artifact: {artifact_path} | Events: {len(events_logged)}",
+        }
+    )
+    print(
+        f"  ✓ DataMesh Persistence: SurrealDB={sink_res.get('surreal')}, Vault={sink_res.get('vault')}"
+    )
 
     await bus.stop()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

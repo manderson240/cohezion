@@ -151,6 +151,7 @@ def defer_to_kanban_on_memory_pressure(
     allowing background daemons to pop and execute it when free RAM increases.
     """
     import time
+
     from cohezion.data_mesh.kanban_bridge import persist_item
 
     model_name = str(model_meta.get("id") or model_meta.get("name") or "unknown_model")
@@ -178,4 +179,3 @@ def defer_to_kanban_on_memory_pressure(
         "surreal_persisted": res.get("surreal", False),
         "vault_persisted": res.get("vault") is not None,
     }
-

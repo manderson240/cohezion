@@ -218,21 +218,20 @@ logging:
 **From environment:**
 ```python
 from kyutai_mcp import MCPServer
+
 server = MCPServer()  # Auto-loads from .env
 ```
 
 **From file:**
 ```python
 from kyutai_mcp import MCPServer
+
 server = MCPServer(config_file="config.yaml")
 ```
 
 **From dict:**
 ```python
-config = {
-    "server": {"port": 8000},
-    "models": {"tts": {"provider": "pocket-tts"}}
-}
+config = {"server": {"port": 8000}, "models": {"tts": {"provider": "pocket-tts"}}}
 server = MCPServer(config=config)
 ```
 
@@ -266,11 +265,7 @@ python -m kyutai_mcp.server --config config.yaml
 ```python
 from kyutai_mcp import MCPServer
 
-server = MCPServer(
-    host="127.0.0.1",
-    port=8000,
-    log_level="INFO"
-)
+server = MCPServer(host="127.0.0.1", port=8000, log_level="INFO")
 
 server.start()  # Blocking call
 ```
@@ -465,18 +460,17 @@ from kyutai_mcp import MCPServer
 
 server = MCPServer()
 
+
 # Register custom health check
 @server.health_check()
 def check_models():
     return {"models_loaded": len(server.models) > 0}
 
+
 # Register metrics callback
 @server.metrics()
 def report_metrics():
-    return {
-        "inference_count": server.inference_count,
-        "total_time_ms": server.total_time_ms
-    }
+    return {"inference_count": server.inference_count, "total_time_ms": server.total_time_ms}
 ```
 
 ---
@@ -702,7 +696,7 @@ profiler.enable()
 server.synthesize_text("Hello world")
 
 profiler.disable()
-profiler.print_stats(sort='cumulative')
+profiler.print_stats(sort="cumulative")
 ```
 
 ---

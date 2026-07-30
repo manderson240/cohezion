@@ -40,14 +40,16 @@ from cohezion.eval.capability_scorecard import CapabilityScorecard
 scorecard = CapabilityScorecard()
 
 # Generate radar chart
-fig = scorecard.generate_radar_chart({
-    "coherence_amplitude": 0.85,
-    "phase_locking": 0.72,
-    "exotic_charge_lifetime": 0.91,
-    "orbit_quality": 0.68,
-    "triune_balance": 0.77,
-    "recovery_basin_radius": 0.63,
-})
+fig = scorecard.generate_radar_chart(
+    {
+        "coherence_amplitude": 0.85,
+        "phase_locking": 0.72,
+        "exotic_charge_lifetime": 0.91,
+        "orbit_quality": 0.68,
+        "triune_balance": 0.77,
+        "recovery_basin_radius": 0.63,
+    }
+)
 
 # Track longitudinal evolution
 checkpoints = [
@@ -59,7 +61,7 @@ df = scorecard.track_longitudinal(checkpoints)
 # Compare swarm vs self-supervised
 comparison = scorecard.compare_swarm_vs_selfsupervised(swarm_results, self_supervised_results)
 print(comparison.delta_capability)  # Δ per axis
-print(comparison.p_values)         # Statistical significance
+print(comparison.p_values)  # Statistical significance
 
 # 3D morphospace trajectory
 fig = scorecard.generate_3d_morphospace_trajectory(checkpoints)

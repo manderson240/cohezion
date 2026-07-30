@@ -10,9 +10,11 @@ import asyncio
 import logging
 import time
 import uuid
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, EventType
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +24,18 @@ class BiDirectionalEventBridge:
 
     def __init__(self, bus: EventBus) -> None:
         self.bus = bus
-        self._pending_requests: Dict[str, asyncio.Future[Event]] = {}
-        self._reply_handlers: Dict[str, Callable[[Event], Any]] = {}
+        self._pending_requests: dict[str, asyncio.Future[Event]] = {}
+        self._reply_handlers: dict[str, Callable[[Event], Any]] = {}
 
         @self.bus.subscribe()
         async def _on_event(event: Event) -> None:
             corr_id = event.payload.get("correlation_id")
             # Handle reply matching pending correlation_id
-            if corr_id and corr_id in self._pending_requests and not event.payload.get("is_request"):
+            if (
+                corr_id
+                and corr_id in self._pending_requests
+                and not event.payload.get("is_request")
+            ):
                 future = self._pending_requests[corr_id]
                 if not future.done():
                     future.set_result(event)
@@ -37,10 +43,18 @@ class BiDirectionalEventBridge:
 
             # Handle inbound request targeting an agent
             target_agent = event.payload.get("target_agent")
-            if target_agent and target_agent in self._reply_handlers and event.payload.get("is_request"):
+            if (
+                target_agent
+                and target_agent in self._reply_handlers
+                and event.payload.get("is_request")
+            ):
                 handler = self._reply_handlers[target_agent]
                 try:
-                    res_payload = await handler(event) if asyncio.iscoroutinefunction(handler) else handler(event)
+                    res_payload = (
+                        await handler(event)
+                        if asyncio.iscoroutinefunction(handler)
+                        else handler(event)
+                    )
                     reply_event = Event(
                         type=EventType.CUSTOM,
                         source=target_agent,
@@ -78,7 +92,7 @@ class BiDirectionalEventBridge:
         sender_agent: str,
         target_agent: str,
         command: str,
-        data: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         timeout_seconds: float = 30.0,
     ) -> Event:
         """Send a request to target_agent and await 2-way reply."""
@@ -106,7 +120,7 @@ class BiDirectionalEventBridge:
             self._pending_requests.pop(correlation_id, None)
 
 
-async def verify_bidirectional_bridge() -> Dict[str, Any]:
+async def verify_bidirectional_bridge() -> dict[str, Any]:
     """Self-verification test for BiDirectionalEventBridge."""
     bus = EventBus()
     await bus.start()
@@ -114,7 +128,7 @@ async def verify_bidirectional_bridge() -> Dict[str, Any]:
     bridge = BiDirectionalEventBridge(bus)
 
     # Agent B registers a 2-way handler
-    async def agent_b_handler(event: Event) -> Dict[str, Any]:
+    async def agent_b_handler(event: Event) -> dict[str, Any]:
         cmd = event.payload.get("command")
         return {"acknowledged": True, "processed_command": cmd, "echo": event.payload.get("data")}
 
@@ -134,7 +148,9 @@ async def verify_bidirectional_bridge() -> Dict[str, Any]:
     await bus.stop()
 
     payload = response.payload
-    ok = payload.get("status") == "success" and payload.get("result", {}).get("acknowledged") is True
+    ok = (
+        payload.get("status") == "success" and payload.get("result", {}).get("acknowledged") is True
+    )
 
     return {
         "ok": ok,
@@ -146,6 +162,7 @@ async def verify_bidirectional_bridge() -> Dict[str, Any]:
 
 if __name__ == "__main__":
     import sys
+
     res = asyncio.run(verify_bidirectional_bridge())
     print("Verification Result:", res)
     sys.exit(0 if res["ok"] else 1)

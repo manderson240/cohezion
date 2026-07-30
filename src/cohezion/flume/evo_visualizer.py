@@ -15,7 +15,7 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.flume.vacuum_topology import VacuumTopologyClassifier, VacuumLabel
+from cohezion.flume.vacuum_topology import VacuumLabel, VacuumTopologyClassifier
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
 from cohezion.physics.evo_model import ExoticVacuumObject
 
@@ -64,22 +64,27 @@ class EVOJourneyVisualizer:
         for i, action in enumerate(actions, start=1):
             evo.coherent_phase(0.85 + (0.10 * (i % 2)))
             evo.produce_witness_mark("decision", action)
-            
+
             # Encode via FLUME VAE and project 256D -> 12D via holographic Hadamard matrix
             latent_256d = self.vae_encoder.encode(f"{evo.agent_id}:{action}")
-            
+
             # Deterministic projection matrix (12 x 256) based on 12D fabric slices
             idx = np.arange(256)
             proj_matrix = np.sin(np.outer(np.arange(12) + 1, idx + 1) * (np.pi / 16.0))
             state_12d = proj_matrix @ latent_256d
-            
+
             # Add action-type & step dynamics for topological resonance
             if i % 2 == 1:
                 # Oscillatory instanton dynamics (alternating modes)
-                state_12d += np.array([1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0]) * 0.4
+                state_12d += (
+                    np.array([1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0])
+                    * 0.4
+                )
             else:
                 # Coherent soliton dynamics (localized spatial energy)
-                state_12d += np.array([0.8, 0.8, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) * 0.4
+                state_12d += (
+                    np.array([0.8, 0.8, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) * 0.4
+                )
 
             # Sanitize input vector against NaN / Inf vulnerabilities
             state_12d = np.nan_to_num(state_12d, nan=0.0, posinf=1.0, neginf=-1.0)
@@ -88,37 +93,41 @@ class EVOJourneyVisualizer:
                 state_12d_norm = np.zeros(12, dtype=np.float64)
             else:
                 state_12d_norm = state_12d / norm
-            
+
             topology = self.topology_classifier.classify(state_12d_norm)
 
             node_id = f"evo_{evo.agent_id}_step_{i}"
-            
+
             # Map topology to visualization colors
             color_map = {
                 "instanton": "#ff0055",  # Rapid tunneling transition (Magenta/Red)
-                "soliton": "#00e5ff",    # Coherent persistent state (Cyan/Blue)
-                "trivial": "#78909c",    # Vacuum baseline (Grey)
+                "soliton": "#00e5ff",  # Coherent persistent state (Cyan/Blue)
+                "trivial": "#78909c",  # Vacuum baseline (Grey)
             }
 
-            nodes.append({
-                "id": node_id,
-                "label": f"EVO Step {i}: {action[:30]}",
-                "agent_id": evo.agent_id,
-                "topology": topology.label,
-                "confidence": topology.confidence,
-                "coherence": round(float(evo.coherence_history[-1]), 4),
-                "state_12d": [round(float(x), 4) for x in state_12d],
-                "color": color_map.get(topology.label, "#00ff41"),
-                "size": 6.0 + (topology.confidence * 4.0),
-            })
+            nodes.append(
+                {
+                    "id": node_id,
+                    "label": f"EVO Step {i}: {action[:30]}",
+                    "agent_id": evo.agent_id,
+                    "topology": topology.label,
+                    "confidence": topology.confidence,
+                    "coherence": round(float(evo.coherence_history[-1]), 4),
+                    "state_12d": [round(float(x), 4) for x in state_12d],
+                    "color": color_map.get(topology.label, "#00ff41"),
+                    "size": 6.0 + (topology.confidence * 4.0),
+                }
+            )
 
             if i > 1:
-                prev_id = f"evo_{evo.agent_id}_step_{i-1}"
-                edges.append({
-                    "source": prev_id,
-                    "target": node_id,
-                    "type": "evo_transition",
-                })
+                prev_id = f"evo_{evo.agent_id}_step_{i - 1}"
+                edges.append(
+                    {
+                        "source": prev_id,
+                        "target": node_id,
+                        "type": "evo_transition",
+                    }
+                )
 
         graph_data = {
             "meta": {

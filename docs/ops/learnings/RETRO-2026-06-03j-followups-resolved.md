@@ -48,10 +48,12 @@ timeout handling, and unknown-category rejection.
 
 ```python
 from cohezion.mcp.research_server import ResearchMinerServer
+
 s = ResearchMinerServer()
 # Recent HIHO papers on multi-agent systems:
-s.search_arxiv_advanced("HIHO multi-agent", category="cs.MA",
-                        date_from="20260501", date_to="20260603", limit=10)
+s.search_arxiv_advanced(
+    "HIHO multi-agent", category="cs.MA", date_from="20260501", date_to="20260603", limit=10
+)
 # Top models for a task:
 s.get_hf_trending_models(limit=5, task="text-generation")
 # Citation count for a paper:

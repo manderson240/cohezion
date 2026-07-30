@@ -31,9 +31,10 @@ import sys
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import date
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger("frontier_digest")
 
@@ -71,7 +72,7 @@ class Finding:
 
 def _http_get(
     url: str, *, timeout: float = 15.0, headers: dict[str, str] | None = None
-) -> Optional[bytes]:
+) -> bytes | None:
     """Best-effort HTTP GET. Returns body bytes or None on failure."""
     req = urllib.request.Request(
         url, headers=headers or {"User-Agent": "cohezion-frontier-digest/1.0"}
@@ -380,7 +381,7 @@ def write_digest(
     return output_path
 
 
-def post_to_vault(digest_path: Path, today: str) -> Optional[str]:
+def post_to_vault(digest_path: Path, today: str) -> str | None:
     """Mirror the digest into the local vault (best-effort)."""
     try:
         # Try to find vault
@@ -396,7 +397,7 @@ def post_to_vault(digest_path: Path, today: str) -> Optional[str]:
                 target.write_text(digest_path.read_text())
                 return str(target)
         return None
-    except (OSError, IOError) as e:
+    except OSError as e:
         logger.debug("vault mirror failed: %s", e)
         return None
 

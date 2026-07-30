@@ -338,17 +338,20 @@ export function useAgentStream(agentId: string) {
 ```python
 from fastapi import WebSocket
 
+
 @app.websocket("/ws/agent-stream/{agent_id}")
 async def agent_stream(websocket: WebSocket, agent_id: str):
     await websocket.accept()
     # Stream agent execution events in real-time
     async for event in execution_orchestrator.stream_events(agent_id):
-        await websocket.send_json({
-            "timestamp": event.timestamp,
-            "phase": event.phase,
-            "coherence": event.coherence,
-            "message": event.message
-        })
+        await websocket.send_json(
+            {
+                "timestamp": event.timestamp,
+                "phase": event.phase,
+                "coherence": event.coherence,
+                "message": event.message,
+            }
+        )
 ```
 
 ---
@@ -652,6 +655,7 @@ async def agent_stream(websocket: WebSocket, agent_id: str):
 from fastapi import Request
 import time
 
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -747,9 +751,11 @@ bun run start  # Serves production build on http://localhost:3000
    @app.get("/flume/latent-space")
    async def get_flume_latent_space():
        from cohezion.flume.vae import get_latent_embeddings
+
        embeddings = get_latent_embeddings()  # 256D vectors
        # TODO: Reduce to 3D via PCA for visualization
        from sklearn.decomposition import PCA
+
        pca = PCA(n_components=3)
        embeddings_3d = pca.fit_transform(embeddings)
        return {"embeddings": embeddings_3d.tolist()}

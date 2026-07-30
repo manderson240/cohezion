@@ -24,6 +24,7 @@ import sys
 import timeit
 from pathlib import Path
 
+
 ROOT = Path(__file__).parent.parent.parent
 
 
@@ -78,7 +79,7 @@ def check_autocontext_importable() -> tuple[bool, str]:
     t0 = timeit.default_timer()
     try:
         sys.path.insert(0, str(ROOT / "src"))
-        from cohezion.research.autocontext import monitor, compress, budget, archive  # noqa: F401
+        from cohezion.research.autocontext import archive, budget, compress, monitor  # noqa: F401
 
         ms = (timeit.default_timer() - t0) * 1000
         return True, f"O3 PASS: autocontext 4 functions importable ({ms:.1f}ms)"

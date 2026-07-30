@@ -128,13 +128,13 @@ Default costs per 1K tokens:
 ```python
 from cohezion.research.security_api import rate_limit, verify_api_key
 
+
 @router.post("/research/start")
 @rate_limit(requests_per_minute=60)
 async def start_research(
     config: ResearchConfigRequest,
     api_key: dict = Depends(verify_api_key),
-):
-    ...
+): ...
 ```
 
 ### Cost Tracking
@@ -161,10 +161,7 @@ from cohezion.research.cost_optimization import CostAwareRouter
 router = CostAwareRouter(cost_tracker)
 
 # Automatically downgrades if over budget
-model = router.select_model(
-    preferred_model="anthropic/claude-3-sonnet",
-    complexity=0.5
-)
+model = router.select_model(preferred_model="anthropic/claude-3-sonnet", complexity=0.5)
 # Returns cheaper model if budget exceeded
 ```
 

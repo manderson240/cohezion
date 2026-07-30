@@ -81,7 +81,7 @@ vault_log_decision(
     title="Short title",
     context="Why we needed to decide",
     decision="What we decided",
-    rationale="Why this choice"
+    rationale="Why this choice",
 )
 
 # Tried something new?
@@ -90,7 +90,7 @@ vault_log_experiment(
     hypothesis="Expected X to happen",
     method="Did Y to test it",
     result="Actually Z happened",
-    learnings="Key takeaways"
+    learnings="Key takeaways",
 )
 
 # Found a reusable pattern?
@@ -99,7 +99,7 @@ vault_extract_pattern(
     pattern_name="Pattern Name",
     description="When to use this",
     code_example="```python\n...\n```",
-    domain="testing|mcp|compound|etc"
+    domain="testing|mcp|compound|etc",
 )
 ```
 

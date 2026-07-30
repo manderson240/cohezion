@@ -38,7 +38,9 @@ the orchestration chain — **before** constructing the `OrchestrationResult`:
 ```python
 # At top of gaia_adapter.py
 import re
+
 _THINK_RE = re.compile(r"<think>.*?</think>\s*", re.DOTALL)
+
 
 def _strip_thinking_tokens(text: str) -> str:
     stripped = _THINK_RE.sub("", text).strip()

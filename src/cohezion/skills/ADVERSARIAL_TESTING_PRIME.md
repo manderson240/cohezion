@@ -54,8 +54,8 @@ print(f"False Positive Rate: {metrics['false_positive_rate']}")
 print(f"Accuracy: {metrics['accuracy']}")
 
 # Check by category
-for cat, stats in metrics['by_category'].items():
-    acc = stats['correct'] / stats['total'] if stats['total'] > 0 else 0
+for cat, stats in metrics["by_category"].items():
+    acc = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
     print(f"{cat}: {acc:.2%}")
 ```
 

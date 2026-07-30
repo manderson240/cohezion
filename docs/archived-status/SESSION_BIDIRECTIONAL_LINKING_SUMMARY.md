@@ -157,7 +157,7 @@ await kg.load_from_vault()
 await link_doc_to_code(
     doc="/home/mike-anderson/dev/cohezion/DESIGN.md",
     code_file="/home/mike-anderson/dev/cohezion/src/cohezion/swarm/tip_of_spear_router.py",
-    section="Tip-of-Spear Routing"
+    section="Tip-of-Spear Routing",
 )
 
 # Get all links for DESIGN.md

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List
 
 from cohezion.inference.task_classifier import classify
 from cohezion.inference.transition_controller import TransitionController
@@ -67,10 +66,10 @@ class ObserverWorldModel:
         counts = self._transition_counts[frm]
         return max(counts, key=counts.get) if counts else None
 
-    def predict_next_state(self, state, action) -> List[float]:
+    def predict_next_state(self, state, action) -> list[float]:
         return [self._expected_quality(self._state)]
 
-    def simulate_trajectory(self, state, actions) -> List[List[float]]:
+    def simulate_trajectory(self, state, actions) -> list[list[float]]:
         current = self._state
         result = [[self._expected_quality(current)]]
         for _ in actions:

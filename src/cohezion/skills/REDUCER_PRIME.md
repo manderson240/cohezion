@@ -26,7 +26,7 @@ Expert in **semantic compression, conceptual distillation, and latent abstractio
    ```python
    # Pseudocode for REDUCER_PRIME extraction
    z_history = get_journey_vectors(journey_id)
-   kernel = flume.distill(z_history, ratio=0.01) # 100:1 compression
+   kernel = flume.distill(z_history, ratio=0.01)  # 100:1 compression
    ```
 4. **Abstract to Skill**: Translate the distilled vector back into human-readable instructions for inclusion in a `SKILL.md` file.
 5. **Verify Fidelity**: Ensure the abstracted skill can recreate the successful simulation outcome with ≤ 10% error in the sandbox.

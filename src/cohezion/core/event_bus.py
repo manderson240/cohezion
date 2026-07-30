@@ -92,14 +92,14 @@ class Event:
         )
 
     @classmethod
-    def fleet_status(cls, source: str, loaded_models: list[str], busy_models: list[str], **kwargs) -> Event:
+    def fleet_status(
+        cls, source: str, loaded_models: list[str], busy_models: list[str], **kwargs
+    ) -> Event:
         return cls(
             type=EventType.FLEET_STATUS,
             source=source,
             payload={"loaded_models": loaded_models, "busy_models": busy_models, **kwargs},
         )
-
-
 
     @classmethod
     def cache_access(cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs) -> Event:

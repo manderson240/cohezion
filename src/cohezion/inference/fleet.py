@@ -56,7 +56,9 @@ def _get_shared_client(timeout: float) -> httpx.AsyncClient:
     """Get or instantiate the singleton persistent AsyncClient pool."""
     global _SHARED_HTTP_CLIENT
     if _SHARED_HTTP_CLIENT is None or _SHARED_HTTP_CLIENT.is_closed:
-        limits = httpx.Limits(max_keepalive_connections=50, max_connections=200, keepalive_expiry=60.0)
+        limits = httpx.Limits(
+            max_keepalive_connections=50, max_connections=200, keepalive_expiry=60.0
+        )
         _SHARED_HTTP_CLIENT = httpx.AsyncClient(
             limits=limits,
             timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout),

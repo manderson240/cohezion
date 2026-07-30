@@ -77,7 +77,7 @@ teleport_create_task(
     priority="high",  # high|medium|low
     estimated_tokens=2500,
     tags=["compound", "reliability"],
-    due_date="2026-03-12"
+    due_date="2026-03-12",
 )
 # Returns: ~/vaults/cohezion-vault/teleport/pending/task-<uuid>.md
 ```
@@ -100,12 +100,7 @@ teleport_complete_task(
     task_id="<uuid>",
     status="completed",
     result_summary="Circuit breaker implemented. 15 new tests added. All tests pass.",
-    metrics={
-        "tokens_used": 2340,
-        "files_changed": 3,
-        "tests_added": 15,
-        "duration_minutes": 47
-    }
+    metrics={"tokens_used": 2340, "files_changed": 3, "tests_added": 15, "duration_minutes": 47},
 )
 # Moves claimed/ → completed/; logged to vault
 ```
@@ -191,11 +186,11 @@ import asyncio
 from cohezion.compound import CompoundExecutor
 from cohezion.persistence import vault_pull_session_context
 
+
 async def autonomous_scout(direct_prompt=None, vault_path=None):
     # 1. Load vault context (decisions, patterns, experiments)
     context = vault_pull_session_context(
-        query="recent learnings and active patterns",
-        vault_path=vault_path
+        query="recent learnings and active patterns", vault_path=vault_path
     )
 
     # 2. Detect scout tasks (high-value low-cost)
@@ -208,24 +203,23 @@ async def autonomous_scout(direct_prompt=None, vault_path=None):
             skill_name="KNOWLEDGE_HARVESTING",
             prompt=direct_prompt or task.prompt,
             context=context,
-            timeout_minutes=30  # Safety cap
+            timeout_minutes=30,  # Safety cap
         )
         # Logs automatically to vault
 
     # 4. Publish metrics
     publish_metrics_to_dashboard()
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--direct-prompt", required=False)
     parser.add_argument("--vault-path", required=True)
     args = parser.parse_args()
 
-    asyncio.run(autonomous_scout(
-        direct_prompt=args.direct_prompt,
-        vault_path=args.vault_path
-    ))
+    asyncio.run(autonomous_scout(direct_prompt=args.direct_prompt, vault_path=args.vault_path))
 ```
 
 ### 4. Session Coordination Layer (Vault Registry)
@@ -273,8 +267,8 @@ session_registry_update(
         "goal": "Refactor compound executor",
         "progress": "3 tests added, circuit breaker 70% implemented",
         "blockers": [],
-        "next_steps": "Complete circuit breaker, add 2 more tests"
-    }
+        "next_steps": "Complete circuit breaker, add 2 more tests",
+    },
 )
 ```
 
@@ -403,7 +397,7 @@ vault_log_decision(
     title="Circuit breaker pattern for compound executor",
     context="Executor failures cascade; needed graceful degradation",
     decision="Implement exponential backoff + fallback to local Ollama",
-    rationale="Decouples remote failures from local work; improves HIHO stability"
+    rationale="Decouples remote failures from local work; improves HIHO stability",
 )
 ```
 
@@ -416,7 +410,7 @@ vault_log_experiment(
     hypothesis="Teleport queue will reduce context switching overhead",
     method="Implemented async task queue; measured token consumption",
     result="Context switching overhead reduced 34%; queue throughput stable",
-    learnings="File-based queues better than in-memory for persistent sessions"
+    learnings="File-based queues better than in-memory for persistent sessions",
 )
 ```
 
@@ -446,7 +440,7 @@ async def call_remote():
         logger.warning("Circuit open, using fallback")
         return fallback_behavior()
 """,
-    domain="reliability"
+    domain="reliability",
 )
 ```
 
@@ -457,7 +451,7 @@ from cohezion.persistence import vault_pull_session_context
 context = vault_pull_session_context(
     query="circuit breaker patterns and reliability lessons",
     vault_path="~/vaults/cohezion-vault",
-    limit=5  # Top 5 most relevant
+    limit=5,  # Top 5 most relevant
 )
 print(f"Loaded {len(context)} prior decisions and patterns")
 # Context includes: decisions made, experiments run, proven patterns

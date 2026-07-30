@@ -13,7 +13,7 @@ import json
 import logging
 import time
 import urllib.request
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, EventType
@@ -57,7 +57,9 @@ class ContinuousExperimentDaemon:
         self.fleet_lock = fleet_lock or FleetLock()
         self.bus = EventBus()
 
-    async def run_single_experiment(self, experiment_name: str = "247_silicon_autonomy") -> ExperimentResult:
+    async def run_single_experiment(
+        self, experiment_name: str = "247_silicon_autonomy"
+    ) -> ExperimentResult:
         """Run a single safe, card-aligned experiment iteration."""
         timestamp = time.time()
         exp_id = f"exp_{int(timestamp)}"
@@ -153,7 +155,9 @@ class ContinuousExperimentDaemon:
 
     def _persist_surreal(self, result: ExperimentResult) -> bool:
         """SurrealDB write-through for experiment_run table."""
-        surql = f"UPSERT experiment_run:{result.experiment_id} CONTENT {json.dumps(asdict(result))};"
+        surql = (
+            f"UPSERT experiment_run:{result.experiment_id} CONTENT {json.dumps(asdict(result))};"
+        )
         try:
             req = urllib.request.Request(
                 _SURREAL_URL,
@@ -186,7 +190,9 @@ class ContinuousExperimentDaemon:
 
     async def run_daemon_loop(self, interval_seconds: float = 3600.0) -> None:
         """Run continuous 24/7 experiment loop with sleeping intervals."""
-        logger.info(f"Starting 24/7 Continuous Experiment Daemon (Interval: {interval_seconds}s)...")
+        logger.info(
+            f"Starting 24/7 Continuous Experiment Daemon (Interval: {interval_seconds}s)..."
+        )
         while True:
             try:
                 await self.run_single_experiment()
@@ -198,7 +204,9 @@ class ContinuousExperimentDaemon:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cohezion 24/7 Continuous Experiment Daemon")
     parser.add_argument("--mode", choices=["once", "daemon"], default="once", help="Execution mode")
-    parser.add_argument("--interval", type=float, default=3600.0, help="Interval in seconds between daemon runs")
+    parser.add_argument(
+        "--interval", type=float, default=3600.0, help="Interval in seconds between daemon runs"
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")

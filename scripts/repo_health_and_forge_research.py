@@ -1,12 +1,13 @@
 import asyncio
-import json
 import time
+
 import httpx
 
-from cohezion.core.event_bus import EventBus, Event, EventType
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.evo_visualizer import EVOJourneyVisualizer
 from cohezion.physics.evo_model import ExoticVacuumObject
+
 
 async def main():
     print("===================================================================================")
@@ -21,7 +22,7 @@ async def main():
     @bus.subscribe()
     async def on_event(event: Event):
         events_logged.append(event)
-        print(f"  [EventBus Stream] {event.type.name} from \"{event.source}\"")
+        print(f'  [EventBus Stream] {event.type.name} from "{event.source}"')
 
     run_id = f"repo_forge_{int(time.time())}"
 
@@ -29,7 +30,9 @@ async def main():
     # Step 1: Local Silicon Codebase Health Audit on Lemonade :13305 (timeout=None)
     # -----------------------------------------------------------------------------------
     await bus.publish(Event.agent_start("local_health_auditor", model="Bonsai-1.7B-gguf"))
-    print("[Step 1] Local Silicon Conducting Repository Health Audit (Lemonade :13305, timeout=None)...")
+    print(
+        "[Step 1] Local Silicon Conducting Repository Health Audit (Lemonade :13305, timeout=None)..."
+    )
 
     health_prompt = """
 You are a Senior Principal Codebase Architect auditing the Cohezion repository.
@@ -49,28 +52,43 @@ Task: Audit the repository health across 4 pillars:
 Provide concise, actionable health ratings and recommendations.
 """
 
-    await bus.publish(Event.llm_call("local_health_auditor", model="Bonsai-1.7B-gguf", prompt_tokens=350))
+    await bus.publish(
+        Event.llm_call("local_health_auditor", model="Bonsai-1.7B-gguf", prompt_tokens=350)
+    )
     t0 = time.time()
 
     local_health_report = ""
     async with httpx.AsyncClient(timeout=None) as client:
-        r_local = await client.post("http://localhost:13305/v1/chat/completions", json={
-            "model": "Bonsai-1.7B-gguf",
-            "messages": [{"role": "user", "content": health_prompt}],
-            "temperature": 0.2
-        })
+        r_local = await client.post(
+            "http://localhost:13305/v1/chat/completions",
+            json={
+                "model": "Bonsai-1.7B-gguf",
+                "messages": [{"role": "user", "content": health_prompt}],
+                "temperature": 0.2,
+            },
+        )
         if r_local.status_code == 200:
             local_health_report = r_local.json()["choices"][0]["message"]["content"].strip()
             duration_local = (time.time() - t0) * 1000
-            await bus.publish(Event.llm_response("local_health_auditor", model="Bonsai-1.7B-gguf", response_tokens=400))
-            await bus.publish(Event.agent_complete("local_health_auditor", result="success", duration_ms=duration_local))
-            print(f"\n  ✓ Local Health Audit Completed in {duration_local/1000:.2f}s:\n")
+            await bus.publish(
+                Event.llm_response(
+                    "local_health_auditor", model="Bonsai-1.7B-gguf", response_tokens=400
+                )
+            )
+            await bus.publish(
+                Event.agent_complete(
+                    "local_health_auditor", result="success", duration_ms=duration_local
+                )
+            )
+            print(f"\n  ✓ Local Health Audit Completed in {duration_local / 1000:.2f}s:\n")
             print(local_health_report[:900])
 
     # -----------------------------------------------------------------------------------
     # Step 2: Bleeding-Edge GitHub Alternatives Research via Ollama Cloud (:11434)
     # -----------------------------------------------------------------------------------
-    print("\n[Step 2] Ollama Cloud Peer Model (kimi-k2.7-code:cloud on :11434) Researching GitHub Alternatives...")
+    print(
+        "\n[Step 2] Ollama Cloud Peer Model (kimi-k2.7-code:cloud on :11434) Researching GitHub Alternatives..."
+    )
     await bus.publish(Event.agent_start("cloud_forge_researcher", model="kimi-k2.7-code:cloud"))
 
     forge_research_prompt = """
@@ -101,21 +119,34 @@ Provide a definitive recommendation matrix.
 
     cloud_forge_report = ""
     async with httpx.AsyncClient(timeout=None) as client:
-        r_cloud = await client.post("http://localhost:11434/api/generate", json={
-            "model": "kimi-k2.7-code:cloud",
-            "prompt": forge_research_prompt,
-            "stream": False
-        })
+        r_cloud = await client.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": "kimi-k2.7-code:cloud",
+                "prompt": forge_research_prompt,
+                "stream": False,
+            },
+        )
         if r_cloud.status_code == 200:
             cloud_forge_report = r_cloud.json().get("response", "").strip()
             duration_cloud = (time.time() - t1) * 1000
-            await bus.publish(Event.llm_response("cloud_forge_researcher", model="kimi-k2.7-code:cloud"))
-            await bus.publish(Event.agent_complete("cloud_forge_researcher", result="success", duration_ms=duration_cloud))
+            await bus.publish(
+                Event.llm_response("cloud_forge_researcher", model="kimi-k2.7-code:cloud")
+            )
+            await bus.publish(
+                Event.agent_complete(
+                    "cloud_forge_researcher", result="success", duration_ms=duration_cloud
+                )
+            )
 
-            print(f"\n  ✓ Cloud Research Completed in {duration_cloud/1000:.2f}s!\n")
-            print("===================================================================================")
+            print(f"\n  ✓ Cloud Research Completed in {duration_cloud / 1000:.2f}s!\n")
+            print(
+                "==================================================================================="
+            )
             print(cloud_forge_report[:1800])
-            print("===================================================================================")
+            print(
+                "==================================================================================="
+            )
 
     # -----------------------------------------------------------------------------------
     # Step 3: Aggregate Artifact, FLUME 3D Cockpit Graph & DataMesh Persistence
@@ -146,24 +177,31 @@ Provide a definitive recommendation matrix.
         "Local silicon audited codebase health across 4 pillars",
         "Ollama cloud researched 4 bleeding-edge GitHub alternatives (Radicle, Forgejo, Soft Serve, OneDev)",
         "Synthesized comparative recommendation matrix",
-        "Exported repo_health_and_forge_alternatives.md artifact"
+        "Exported repo_health_and_forge_alternatives.md artifact",
     ]
     viz = EVOJourneyVisualizer(output_path=f".obsidian/repo-health-{run_id}-graph.json")
     graph_data = viz.process_evo(evo, actions)
-    print(f"  ✓ 3D Cockpit Graph (.obsidian/repo-health-{run_id}-graph.json): {len(graph_data['nodes'])} trajectory nodes")
+    print(
+        f"  ✓ 3D Cockpit Graph (.obsidian/repo-health-{run_id}-graph.json): {len(graph_data['nodes'])} trajectory nodes"
+    )
 
-    sink_res = persist_item({
-        "id": f"kanban_{run_id}",
-        "title": f"Repo Health & GitHub Alternatives Research {run_id}",
-        "status": "completed",
-        "priority": "high",
-        "source": "research/forge-alternatives",
-        "category": "architecture_research",
-        "details": f"Local: Bonsai-1.7B | Cloud: kimi-k2.7-code:cloud | Report: {report_file} | Events: {len(events_logged)}"
-    })
-    print(f"  ✓ DataMesh Persistence: SurrealDB={sink_res.get('surreal')}, Vault={sink_res.get('vault')}")
+    sink_res = persist_item(
+        {
+            "id": f"kanban_{run_id}",
+            "title": f"Repo Health & GitHub Alternatives Research {run_id}",
+            "status": "completed",
+            "priority": "high",
+            "source": "research/forge-alternatives",
+            "category": "architecture_research",
+            "details": f"Local: Bonsai-1.7B | Cloud: kimi-k2.7-code:cloud | Report: {report_file} | Events: {len(events_logged)}",
+        }
+    )
+    print(
+        f"  ✓ DataMesh Persistence: SurrealDB={sink_res.get('surreal')}, Vault={sink_res.get('vault')}"
+    )
 
     await bus.stop()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

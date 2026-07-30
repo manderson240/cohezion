@@ -54,11 +54,11 @@ def import_vault_document(self, file_path: Path, doc_type: str):
         title = '{frontmatter.get("title", file_path.stem)}',
         content = '{escape_sql(body[:1000])}',
         embedding = {embedding},
-        tags = {frontmatter.get('tags', [])};
+        tags = {frontmatter.get("tags", [])};
     """
 
     # Parse wiki-links: [[other-document]]
-    links = re.findall(r'\[\[([^\]]+)\]\]', body)
+    links = re.findall(r"\[\[([^\]]+)\]\]", body)
     for link in links:
         # Create graph edge if target exists
         target_id = f"vault_memory:{slugify(link)}"
@@ -142,11 +142,12 @@ def register_agent(self, agent_id: str, agent_type: str, capabilities: list[str]
     """
     execute_surreal(query)
 
+
 # Usage:
 orchestrator.register_agent(
     agent_id="researcher-1",
     agent_type="researcher",
-    capabilities=["web-search", "vault-query", "pattern-extraction"]
+    capabilities=["web-search", "vault-query", "pattern-extraction"],
 )
 ```
 
@@ -176,15 +177,19 @@ async def agent_task_listener(agent_id: str):
     """Subscribe to tasks for this agent"""
     async with websocket_connect(f"ws://localhost:8000/rpc") as ws:
         # Subscribe to LIVE SELECT
-        await ws.send(json.dumps({
-            "id": "task-sub",
-            "method": "live",
-            "params": [
-                "SELECT * FROM cohezion_task "
-                "WHERE status = 'pending' "
-                f"AND '{agent_id}' IN assigned_to.capabilities"
-            ]
-        }))
+        await ws.send(
+            json.dumps(
+                {
+                    "id": "task-sub",
+                    "method": "live",
+                    "params": [
+                        "SELECT * FROM cohezion_task "
+                        "WHERE status = 'pending' "
+                        f"AND '{agent_id}' IN assigned_to.capabilities"
+                    ],
+                }
+            )
+        )
 
         # React to task events
         async for message in ws:

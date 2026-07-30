@@ -45,8 +45,9 @@ else:
         print(f"\n{new_nodes_added} new hypothesis node(s) added")
 
     zero_count = sum(len(n.get("metric_values", [])) for n in nodes.values())
-    nonzero_from_zero = sum(1 for n in nodes.values()
-                           for v in n.get("metric_values", []) if round(v, 4) > 0)
+    nonzero_from_zero = sum(
+        1 for n in nodes.values() for v in n.get("metric_values", []) if round(v, 4) > 0
+    )
     print(f"Total metric values across all nodes: {zero_count}")
 
 # Check current rotation state

@@ -41,51 +41,51 @@ Achieve >80% test coverage on all Phase 0 modules.
 #### 1.1 Unified Thinker Tests
 ```python
 # tests/swarm/test_unified_thinker.py
-- test_simplified_encoder()
-- test_jepa_prediction()
-- test_episodic_memory_retrieval()
-- test_reasoning_integration()
-- test_embed_dim_initialization()  # Regression test
-- test_normalization()  # Cosine similarity
+-test_simplified_encoder()
+-test_jepa_prediction()
+-test_episodic_memory_retrieval()
+-test_reasoning_integration()
+-test_embed_dim_initialization()  # Regression test
+-test_normalization()  # Cosine similarity
 ```
 
 #### 1.2 Parser v3 Tests
 ```python
 # tests/swarm/test_parser_v3.py
-- test_validation_oracle()
-- test_parse_with_validation()  # Not fuzzy_parse!
-- test_correction_suggestions()
-- test_five_validation_layers()
-- test_accuracy_measurement()
-- test_95_percent_target()  # Known fail until trained
+-test_validation_oracle()
+-test_parse_with_validation()  # Not fuzzy_parse!
+-test_correction_suggestions()
+-test_five_validation_layers()
+-test_accuracy_measurement()
+-test_95_percent_target()  # Known fail until trained
 ```
 
 #### 1.3 Triune Integration Tests
 ```python
 # tests/swarm/test_triune_integration.py
-- test_bidirectional_connections()
-- test_recursive_step()
-- test_hiho_stability()
-- test_doer_thinker_knower_pathways()
-- test_state_integration()
-- test_restoring_force()
+-test_bidirectional_connections()
+-test_recursive_step()
+-test_hiho_stability()
+-test_doer_thinker_knower_pathways()
+-test_state_integration()
+-test_restoring_force()
 ```
 
 #### 1.4 Meta Learner Tests
 ```python
 # tests/swarm/test_meta_learner.py
-- test_strategy_selection()
-- test_meta_optimize()
-- test_expected_improvement()
-- test_strategy_pool()
+-test_strategy_selection()
+-test_meta_optimize()
+-test_expected_improvement()
+-test_strategy_pool()
 ```
 
 #### 1.5 Lemonade Enhancer Tests
 ```python
 # tests/swarm/test_lemonade_enhancer.py
-- test_model_family_patterns()
-- test_multi_source_discovery()
-- test_12_patterns_loaded()
+-test_model_family_patterns()
+-test_multi_source_discovery()
+-test_12_patterns_loaded()
 ```
 
 ### Success Criteria
@@ -156,6 +156,7 @@ Replace placeholder/dummy implementations with real AGI features.
 def predict(self, state):
     return state + np.random.randn(self.embed_dim) * 0.01
 
+
 # Replace with:
 def predict(self, state):
     return self.jepa_model.forward(state)
@@ -168,6 +169,7 @@ self.memories = []
 
 # Replace with:
 from cohezion.memory.episodic import EpisodicStore
+
 self.memory = EpisodicStore(backend="surrealdb")
 ```
 
@@ -217,9 +219,8 @@ Full integration of all components.
 # Full system working
 cohezion = CohezionSystem()
 cohezion.initialize()
-result = cohezionage.execute_task("Create a Python function", 
-    use_triune=True,
-    use_meta_learning=True
+result = cohezionage.execute_task(
+    "Create a Python function", use_triune=True, use_meta_learning=True
 )
 ```
 

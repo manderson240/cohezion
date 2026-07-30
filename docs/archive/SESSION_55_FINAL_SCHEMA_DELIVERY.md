@@ -98,9 +98,7 @@ Standards: ✅ PASS (Follows cohezion conventions)
 
 ```python
 # Tested initialization and core functionality:
-from cohezion.knowledge_graph.universe_artifact_migration import (
-    UniverseArtifactMigration
-)
+from cohezion.knowledge_graph.universe_artifact_migration import UniverseArtifactMigration
 
 migration = UniverseArtifactMigration()
 # ✅ Initializes correctly
@@ -169,9 +167,7 @@ print(f\"Errors: {report['total_errors']}\")
 ### Programmatic Usage
 
 ```python
-from cohezion.knowledge_graph.universe_artifact_migration import (
-    UniverseArtifactMigration
-)
+from cohezion.knowledge_graph.universe_artifact_migration import UniverseArtifactMigration
 
 # Initialize with defaults
 migration = UniverseArtifactMigration()
@@ -184,10 +180,10 @@ print(f"Status: {results['status']}")
 print(f"Total duration: {results['total_duration_seconds']:.2f}s")
 
 # Access individual phases
-measure = results['phase_0_measure']
-extract = results['phase_1_extract']
-migrate = results['phase_2_migrate']
-verify = results['phase_3_verify']
+measure = results["phase_0_measure"]
+extract = results["phase_1_extract"]
+migrate = results["phase_2_migrate"]
+verify = results["phase_3_verify"]
 ```
 
 ---

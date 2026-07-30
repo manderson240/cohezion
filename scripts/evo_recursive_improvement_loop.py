@@ -42,6 +42,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)-7s %(name)s — %(message)s",
@@ -137,7 +138,9 @@ def _query_entropy_trend(skill_id: str, n_recent: int = 10) -> float | None:
         )
         rows = results[0].get("result", [])
         if rows:
-            entropies = [float(r["latent_entropy"]) for r in rows if r.get("latent_entropy") is not None]
+            entropies = [
+                float(r["latent_entropy"]) for r in rows if r.get("latent_entropy") is not None
+            ]
             if entropies:
                 return sum(entropies) / len(entropies)
     except Exception:
@@ -186,6 +189,7 @@ def _latent_entropy(latent_snapshot: list[float]) -> float:
     before φ collapses when the latent distribution starts polarizing.
     """
     import math
+
     eps = 1e-9
     entropies = []
     for z in latent_snapshot:
@@ -253,7 +257,7 @@ def _vault_write_voyage(
 
     lines = [
         "---",
-        f"type: evo_voyage",
+        "type: evo_voyage",
         f"voyage_id: {voyage.voyage_id}",
         f"agent_id: {voyage.agent_id}",
         f"journey_id: {voyage.journey_id}",
@@ -301,9 +305,9 @@ def _vault_write_voyage(
     lines += [
         "## Links",
         "",
-        f"- [[HIHO_STABILITY_PRIME]] — φ = 4·c·(1-c) kernel",
-        f"- [[COMPOUND_SELF_IMPROVEMENT_PRIME]] — recursive loop",
-        f"- [[JOURNEY_TRACKING_PRIME]] — 12D trajectory",
+        "- [[HIHO_STABILITY_PRIME]] — φ = 4·c·(1-c) kernel",
+        "- [[COMPOUND_SELF_IMPROVEMENT_PRIME]] — recursive loop",
+        "- [[JOURNEY_TRACKING_PRIME]] — 12D trajectory",
         "",
     ]
 
@@ -741,7 +745,7 @@ SKILL_JOURNEYS = [
 _FLUME_VAE = None
 
 
-def _flume_encode_skill_desc(text: str, sigma: float) -> "np.ndarray | None":
+def _flume_encode_skill_desc(text: str, sigma: float) -> np.ndarray | None:
     """Return a FLUME-grounded 256D initial latent, or None on any failure.
 
     Path: skill description → nomic-embed-text-v2-moe-GGUF (768D) →
@@ -754,8 +758,8 @@ def _flume_encode_skill_desc(text: str, sigma: float) -> "np.ndarray | None":
     """
     global _FLUME_VAE
     try:
-        import torch
         import requests as _req
+        import torch
 
         # Build VAE once per process
         if _FLUME_VAE is None:
@@ -799,7 +803,7 @@ def _flume_encode_skill_desc(text: str, sigma: float) -> "np.ndarray | None":
         center = np.clip(center, 0.35, 0.65)
         return np.random.default_rng().standard_normal(256) * sigma + center
 
-    except Exception as exc:  # noqa: BLE001 — fail-soft, caller falls back
+    except Exception as exc:
         logger.debug("FLUME VAE encode failed (%s) — using random init", exc)
         _FLUME_VAE = False  # don't retry this process run
         return None
@@ -895,7 +899,11 @@ def run_evo_loop(
                 # Widen σ further (1.1×) to break out of collapsing attractor basin.
                 if entropy_trend is not None and entropy_trend < 0.5:
                     _sigma_factor = min(1.25 / _sigma_base, _sigma_factor * 1.10)
-                    logger.debug("entropy-trend=%.3f < 0.5 → collapse precursor, σ_factor boosted to %.2f", entropy_trend, _sigma_factor)
+                    logger.debug(
+                        "entropy-trend=%.3f < 0.5 → collapse precursor, σ_factor boosted to %.2f",
+                        entropy_trend,
+                        _sigma_factor,
+                    )
                 _sigma = min(1.25, max(0.25, _sigma_base * _sigma_factor))
                 logger.debug(
                     "φ-trend=%.3f entropy=%.3f → σ_factor=%.2f (base %.3f → %.3f)",
@@ -912,12 +920,16 @@ def run_evo_loop(
                 initial_latent = np.random.default_rng().standard_normal(256) * _sigma + 0.5
                 logger.debug(
                     "random init σ=%.3f for %d steps (E[c]≈%.3f)",
-                    _sigma, n_steps, _sigma * 0.7979,
+                    _sigma,
+                    n_steps,
+                    _sigma * 0.7979,
                 )
             else:
                 logger.debug(
                     "FLUME-grounded init σ=%.3f for %d steps (E[c]≈%.3f)",
-                    _sigma, n_steps, _sigma * 0.7979,
+                    _sigma,
+                    n_steps,
+                    _sigma * 0.7979,
                 )
             agent = AgenticEVO(agent_id=agent_id, initial_latent=initial_latent)
 
@@ -974,11 +986,7 @@ def run_evo_loop(
                     # preserve the signal we already have and avoid wasted inference.
                     # Skip if c_after > c_before (c is moving UP toward 0.5 → ascending).
                     _c_ascending = result.coherence_after > result.coherence_before
-                    if (
-                        result.phi < 0.32
-                        and step_i >= max(2, n_steps // 3)
-                        and not _c_ascending
-                    ):
+                    if result.phi < 0.32 and step_i >= max(2, n_steps // 3) and not _c_ascending:
                         logger.info(
                             "  φ-floor exit: φ=%.3f < 0.32 at step %d/%d (c descending)",
                             result.phi,

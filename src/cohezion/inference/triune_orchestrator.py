@@ -75,7 +75,7 @@ def build_triune_orchestrator(
     # MemorySnapshot is a lightweight /proc/meminfo form of MemorySnapshot.capture()
     available_gb = None
     try:
-        with open("/proc/meminfo", "r") as f:
+        with open("/proc/meminfo") as f:
             for line in f:
                 if line.startswith("MemAvailable:"):
                     kb = int(line.split()[1])

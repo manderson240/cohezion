@@ -11,9 +11,10 @@ import asyncio
 import functools
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 
 logger = logging.getLogger(__name__)

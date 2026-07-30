@@ -36,8 +36,9 @@ VAULT_OBS = Path("/home/mike-anderson/vaults/cohezion-vault/memory/observations.
 
 # Sibling-script import: O(1) last-id cache replaces O(N) full-file scans
 sys.path.insert(0, str(REPO / "scripts"))
-from jsonl_id_cache import bump_id, next_id  # noqa: E402
 import surreal_index  # noqa: E402  (silent-fail telemetry-grade index)
+from jsonl_id_cache import bump_id, next_id  # noqa: E402
+
 
 # Import autoliterature helpers (it's a sibling script — load by file path)
 spec = importlib.util.spec_from_file_location(

@@ -13,25 +13,26 @@
 ```python
 from cohezion.swarm import MultiAgentOrchestrator
 
+
 async def main():
     # Create orchestrator
     orchestrator = MultiAgentOrchestrator()
     await orchestrator.start()
-    
+
     # Execute task - router automatically selects best agent
-    result = await orchestrator.execute(
-        "Write a Python function to calculate fibonacci numbers"
-    )
-    
+    result = await orchestrator.execute("Write a Python function to calculate fibonacci numbers")
+
     print(f"Agent: {result.agent_name}")
     print(f"Backend: {result.backend}")
     print(f"Latency: {result.latency_ms:.1f}ms")
     print(f"Success: {result.success}")
-    
+
     await orchestrator.stop()
+
 
 # Run
 import asyncio
+
 asyncio.run(main())
 ```
 
@@ -111,10 +112,7 @@ tasks = [
     "Task 3",
 ]
 
-results = await orchestrator.execute_batch(
-    tasks,
-    max_concurrent=5
-)
+results = await orchestrator.execute_batch(tasks, max_concurrent=5)
 
 # All results
 for result in results:
@@ -131,7 +129,7 @@ router = AdaptiveRouter(registry)
 # Get routing decision with metadata
 decision = await router.route(
     task="Your task",
-    strategy="greedy"  # or "adaptive", "explore"
+    strategy="greedy",  # or "adaptive", "explore"
 )
 
 print(f"Selected: {decision.agent_name}")
@@ -148,11 +146,9 @@ async def query_vault(query: str) -> list:
     """Query knowledge base."""
     return await vault.find_relevant(query)
 
+
 # Agent uses tool automatically
-result = await agent.execute(
-    "Analyze this topic",
-    use_tools=["query_vault"]
-)
+result = await agent.execute("Analyze this topic", use_tools=["query_vault"])
 ```
 
 ---
@@ -252,7 +248,7 @@ await orchestrator.registry.start_watching(interval=5.0)
 # Automatic fallback on failure
 result = await orchestrator.execute(
     "Complex task",
-    fallback_on_error=True  # Try alternatives on failure
+    fallback_on_error=True,  # Try alternatives on failure
 )
 
 # Manually check alternatives
@@ -271,7 +267,7 @@ await orchestrator.provide_feedback(
         "success": True,
         "latency_ms": 85,
         "quality_score": 0.92,
-    }
+    },
 )
 ```
 
@@ -350,7 +346,7 @@ result = await orchestrator.execute(
 ```python
 # Regular health checks
 stats = orchestrator.get_stats()
-if stats['success_rate'] < 0.9:
+if stats["success_rate"] < 0.9:
     print("⚠️ Success rate below threshold")
 ```
 

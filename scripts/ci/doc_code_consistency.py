@@ -31,6 +31,7 @@ import re
 import sys
 from pathlib import Path
 
+
 REPO = Path(__file__).resolve().parents[2]
 SRC = REPO / "src"
 
@@ -80,16 +81,19 @@ def _module_to_path(mod: str) -> Path | None:
 
 def _class_files(cls: str) -> list[Path]:
     """ALL files defining `class <cls>` (class names are not unique in this repo)."""
-    return [p for p in SRC.rglob("*.py")
-            if re.search(rf"^\s*class {re.escape(cls)}\b", p.read_text(errors="replace"), re.M)]
+    return [
+        p
+        for p in SRC.rglob("*.py")
+        if re.search(rf"^\s*class {re.escape(cls)}\b", p.read_text(errors="replace"), re.M)
+    ]
 
 
 def _member_defined(files: list[Path], member: str) -> bool:
     """True if `member` appears as a method OR dataclass field OR class/instance attr in ANY file."""
     pat = re.compile(
-        rf"^\s*(async def|def)\s+{re.escape(member)}\b"      # method
-        rf"|^\s*{re.escape(member)}\s*[:=]"                    # dataclass field / class attr
-        rf"|self\.{re.escape(member)}\s*=",                   # instance attr
+        rf"^\s*(async def|def)\s+{re.escape(member)}\b"  # method
+        rf"|^\s*{re.escape(member)}\s*[:=]"  # dataclass field / class attr
+        rf"|self\.{re.escape(member)}\s*=",  # instance attr
         re.M,
     )
     return any(pat.search(p.read_text(errors="replace")) for p in files)
@@ -135,7 +139,9 @@ def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
                 continue
             if not _member_defined(cfs, meth):
                 where = ", ".join(str(p.relative_to(REPO)) for p in cfs[:3])
-                warns.append(f"W3 {rel_doc}: `{cls}.{meth}` not found (method/field/attr) in {where}")
+                warns.append(
+                    f"W3 {rel_doc}: `{cls}.{meth}` not found (method/field/attr) in {where}"
+                )
         for m in CTORKW_RE.finditer(text):
             cls, kw = m.group(1), m.group(2)
             key = f"{cls}({kw}="
@@ -177,7 +183,9 @@ def self_test() -> int:
         doc.write_text("`RiemannianGlideTrajectory(metric=None)` is the default", encoding="utf-8")
         errs, warns = scan([doc])
         clean = not (errs + warns)
-        print(f"self-test negative-control: {'PASS (silent)' if clean else 'FAIL: ' + str(errs + warns)}")
+        print(
+            f"self-test negative-control: {'PASS (silent)' if clean else 'FAIL: ' + str(errs + warns)}"
+        )
         ok &= clean
     print("\nself-test:", "OK" if ok else "BROKEN — a check cannot fail")
     return 0 if ok else 1

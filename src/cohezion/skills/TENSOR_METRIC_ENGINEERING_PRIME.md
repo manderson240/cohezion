@@ -44,16 +44,17 @@ from cohezion.physics.tensor_metric_engineering import TensorMetricEngineering
 
 # At HIHO attractor
 t = TensorMetricEngineering.at_hiho(epsilon=0.01)
-print(t.back_action_amplitude)   # 1.0
-print(t.metric_determinant())    # ~-0.98
-print(t.is_flat())               # False
+print(t.back_action_amplitude)  # 1.0
+print(t.metric_determinant())  # ~-0.98
+print(t.is_flat())  # False
 
 # Check perturbation
-g = t.perturbed_metric()   # 4x4 numpy array
+g = t.perturbed_metric()  # 4x4 numpy array
 coords = t.to_riemannian_coordinates()  # dict for RiemannianMetric bridge
 
 # With spatial gradient (non-HIHO)
 import numpy as np
+
 t2 = TensorMetricEngineering(sarfatti_coherence=0.3, destiny_weight=1.0)
 gamma = t2.christoffel_symbols(coherence_gradient=np.array([0, 0.01, 0.01, 0.01]))
 ```

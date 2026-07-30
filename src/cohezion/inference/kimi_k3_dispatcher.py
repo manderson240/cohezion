@@ -16,15 +16,17 @@ import asyncio
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
+
 
 # The Cohezion event bus is imported when available.  A minimal fallback is
 # provided so the dispatcher and its self-test can be inspected in isolation.
 try:
     from cohezion.core.bus import EventBus
 except ImportError:  # pragma: no cover
+
     class EventBus:  # type: ignore[no-redef]
         """No-op fallback used when the real Cohezion bus is not on path."""
 
@@ -81,9 +83,7 @@ class KimiK3ReasoningDispatcher:
         self.model = os.getenv("KIMI_K3_MODEL", self.DEFAULT_MODEL)
         self.base_url = os.getenv("KIMI_BASE_URL", self.DEFAULT_BASE_URL)
         self.api_key = os.getenv("MOONSHOT_API_KEY", "")
-        self.timeout = float(
-            os.getenv("KIMI_TIMEOUT_SECONDS", self.TIMEOUT_SECONDS)
-        )
+        self.timeout = float(os.getenv("KIMI_TIMEOUT_SECONDS", self.TIMEOUT_SECONDS))
 
         self._reasoning_params = self.REASONING_PRESETS[self.reasoning_effort]
         self._cache: dict[str, list[dict[str, str]]] = {}
@@ -149,7 +149,7 @@ class KimiK3ReasoningDispatcher:
         )
 
         raw: dict[str, Any] = {}
-        error: Optional[str] = None
+        error: str | None = None
         response_text = ""
 
         try:
@@ -193,9 +193,7 @@ class KimiK3ReasoningDispatcher:
 
         # Keep the assistant turn in cache so follow-up prompts have context.
         if self.enable_context_cache and response_text:
-            self._cache[agent_id].append(
-                {"role": "assistant", "content": response_text}
-            )
+            self._cache[agent_id].append({"role": "assistant", "content": response_text})
 
         return {
             "agent_id": agent_id,
@@ -218,8 +216,7 @@ class KimiK3ReasoningDispatcher:
         normalized = (value or "medium").strip().lower()
         if normalized not in self.REASONING_PRESETS:
             raise ValueError(
-                f"reasoning_effort must be one of "
-                f"{list(self.REASONING_PRESETS)}; got {value!r}"
+                f"reasoning_effort must be one of {list(self.REASONING_PRESETS)}; got {value!r}"
             )
         return normalized
 
@@ -252,9 +249,7 @@ class KimiK3ReasoningDispatcher:
     async def _call_kimi(self, messages: list[dict[str, str]]) -> dict[str, Any]:
         """Execute an HTTP request against the Kimi K3 chat completions endpoint."""
         if not self.api_key:
-            raise DispatcherError(
-                "MOONSHOT_API_KEY is not configured in the environment"
-            )
+            raise DispatcherError("MOONSHOT_API_KEY is not configured in the environment")
 
         body: dict[str, Any] = {
             "model": self.model,
@@ -289,14 +284,13 @@ class KimiK3ReasoningDispatcher:
         try:
             return str(raw["choices"][0]["message"]["content"])
         except (KeyError, IndexError, TypeError) as exc:
-            raise DispatcherError(
-                f"Unexpected API response structure: {raw}"
-            ) from exc
+            raise DispatcherError(f"Unexpected API response structure: {raw}") from exc
 
 
 # ------------------------------------------------------------------------- #
 # Self-verification
 # ------------------------------------------------------------------------- #
+
 
 async def verify_kimi_dispatcher() -> dict[str, Any]:
     """Run an isolated end-to-end sanity check of :class:`KimiK3ReasoningDispatcher`.
@@ -319,9 +313,7 @@ async def verify_kimi_dispatcher() -> dict[str, Any]:
 
     async def fake_call(messages: list[dict[str, str]]) -> dict[str, Any]:
         return {
-            "choices": [
-                {"message": {"content": "Verification answer: 4"}}
-            ],
+            "choices": [{"message": {"content": "Verification answer: 4"}}],
             "usage": {
                 "total_tokens": 7,
                 "prompt_tokens": 5,
@@ -330,9 +322,7 @@ async def verify_kimi_dispatcher() -> dict[str, Any]:
         }
 
     # Test 1: basic dispatch without caching.
-    dispatcher = KimiK3ReasoningDispatcher(
-        reasoning_effort="low", enable_context_cache=False
-    )
+    dispatcher = KimiK3ReasoningDispatcher(reasoning_effort="low", enable_context_cache=False)
     dispatcher._event_bus = CapturingBus()
     dispatcher._call_kimi = fake_call
 
@@ -346,9 +336,7 @@ async def verify_kimi_dispatcher() -> dict[str, Any]:
     cache_dispatcher._call_kimi = fake_call
 
     await cache_dispatcher.dispatch("First question", "cache-agent")
-    cache_result = await cache_dispatcher.dispatch(
-        "Second question", "cache-agent"
-    )
+    cache_result = await cache_dispatcher.dispatch("Second question", "cache-agent")
 
     required_events = {LLM_CALL, LLM_RESPONSE, AGENT_COMPLETE}
     seen_events = {topic for topic, _ in captured_events}
