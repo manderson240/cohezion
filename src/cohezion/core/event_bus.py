@@ -158,14 +158,25 @@ class EventBus:
             logger.info("EventBus started")
 
     async def stop(self) -> None:
-        """Stop the event processor."""
-        self._running = False
+        """Stop the event processor, draining anything still queued.
+
+        Order matters: `_process_loop` runs `while self._running`, so clearing the flag
+        BEFORE `join()` makes the loop exit without calling `task_done()` — `join()` then
+        waits forever on a counter nobody will decrement, and the queued events are lost.
+        Draining first keeps the loop alive exactly long enough to finish its backlog.
+        (DataMesh adversarial review Finding #2; the test layer worked around it via
+        `_cancel_bus()` for months while every production caller could hang. Fixed
+        2026-07-31 after a live datamesh publish hung here and dropped its event.)
+        """
         if self._processor_task:
-            # Wait for queue to drain
+            # Drain while the loop is still running, THEN stop it.
             await self._queue.join()
             self._processor_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._processor_task
+        # Unconditional: start() sets _running BEFORE create_task(), so a task-creation
+        # failure would otherwise strand the flag True with no processor to clear it.
+        self._running = False
         logger.info(f"EventBus stopped. Metrics: {self._metrics}")
 
     def subscribe(
