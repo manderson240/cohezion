@@ -36,6 +36,7 @@ import base64
 import json
 import logging
 import re
+import time
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -376,10 +377,16 @@ def _emit_data_product_event(finding: ResearchFinding) -> bool:
             "domain": finding.domain,
         }
     )
+    # `timestamp` is TYPE float and REQUIRED on data_product_event (no DEFAULT). Omitting it
+    # made SurrealDB reject EVERY write with "Couldn't coerce value for field `timestamp` ...
+    # Expected `float` but found `NONE`" -- while the caller reported success, because
+    # SurrealDB answers HTTP 200 for QUERY errors and the check below was `status == 200`.
+    # Verified 2026-07-30: zero rows had ever been written by this function.
     sql = (
         "CREATE data_product_event SET "
         'event_type = "DATA_PRODUCT_CREATED", '
         'source = "research", '
+        f"timestamp = {time.time()}, "
         f'payload = "{_escape(payload)}", '
         "priority = 0;"
     )
@@ -388,7 +395,13 @@ def _emit_data_product_event(finding: ResearchFinding) -> bool:
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
         with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
-            return resp.status == 200
+            # HTTP status alone is NOT a success signal for SurrealDB: it answers 200 for
+            # query errors, putting the failure in the body. Require status == "OK" AND a
+            # non-empty result, or a rejected write reports success forever.
+            body = json.loads(resp.read().decode())
+        return bool(
+            isinstance(body, list) and body[0].get("status") == "OK" and body[0].get("result")
+        )
     except Exception as exc:  # fail-open: audit is best-effort
         logger.debug("research_products: event emit failed for %s: %s", finding.finding_id, exc)
         return False
