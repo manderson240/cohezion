@@ -861,3 +861,69 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
   real findings.
 - **Verification**: `grep "safe-env.sh" scripts/ci/deploy_harness_agents.sh`
   returns a non-empty result.
+
+## Coherence Invariants (2026-07-31)
+
+All three are CONSUMPTION invariants (per `verification-depth.md`): each pairs with a test
+that FAILS when the mechanism is neutralized, not merely one that asserts a symbol exists.
+All three defects were found by USING the subsystem, not by re-running its guard — both
+existing coherence gates were green at the time.
+
+### EB1: EventBus.stop() drains BEFORE it stops (deadlock + event loss)
+- `stop()` must `await self._queue.join()` while `_running` is still True, and only then
+  clear `_running` and cancel the processor. The reverse order (the pre-2026-07-31 code)
+  makes `_process_loop`'s `while self._running` exit without calling `task_done()`, so
+  `join()` waits forever on a counter nobody will decrement **and the queued events are
+  silently lost**. Fail-open bridge logging means nothing surfaces.
+- Diagnosed long before it was fixed: the DataMesh adversarial review filed it as
+  "Finding #2" and `tests/data_mesh/test_eventbus_datamesh_stress.py` added a private
+  `_cancel_bus()` helper to avoid `stop()`. The suite stayed green while every production
+  caller of the documented shutdown API could hang. **A test that documents a production
+  bug and routes around it keeps the bug alive** — do not re-introduce that pattern.
+- Note for callers: `publish()` returning True means ENQUEUED, not delivered. Dispatch
+  requires `await bus.start()`; verify the SurrealDB row, never the return value.
+- **T2 discriminating**: `tests/core/test_event_bus_shutdown.py::test_stop_returns_and_does_not_deadlock_on_a_nonempty_queue` (old ordering → `TimeoutError`) and `::test_stop_drains_every_queued_event_not_just_the_first` (old ordering → lost events)
+- **Verification**: `uv run pytest tests/core/test_event_bus_shutdown.py -q` → 4 passed
+
+### SCP2b: session liveness must survive a pid-namespace boundary (refines SCP2)
+- SCP2 stays correct — process-existence, not `last_seen` recency, and `os.kill` remains
+  inside `_pid_alive` so SCP2's structural test passes. SCP2b adds the missing precondition:
+  `os.kill(pid, 0)` answers *"does this PID exist in MY pid namespace"*, so it is only the
+  question `list_active()` asks when the row was WRITTEN from that same namespace. Across a
+  boundary it is wrong in BOTH directions — a recycled sandbox PID reads ALIVE, a live host
+  session reads DEAD.
+- `register()` must persist a boot-qualified namespace token (`_pid_namespace()`);
+  `_liveness()` trusts `os.kill` only on a namespace match (`"confirmed"`), else returns
+  UNKNOWN bounded by a `last_seen` TTL (`"assumed"`). Bias is deliberately to INCLUDE:
+  dropping a live session loses operator broadcasts, retaining a dead one costs one unacked
+  row. Callers needing certainty must require `liveness == "confirmed"`.
+- `last_seen` IS a genuine freshness signal: `~/.claude/hooks/session-inbox.sh` runs
+  `python -m cohezion.sessions heartbeat <sid>` on every **UserPromptSubmit**. The 12h TTL
+  is sized around that hook's limits, not around a never-refreshed timestamp: it fires on
+  USER INPUT rather than wall-clock, so a live-but-idle session still ages, and a session
+  that opted out via `.session-bus-off` or runs outside the cohezion checkout never
+  heartbeats at all. 12h tolerates an overnight idle gap while still excluding the 33h
+  ghost that motivated this. Widen before narrowing.
+- Observed defect: row `pid-79 / claude:l3-evolver-world-model`, 33h stale, reported ALIVE
+  because PID 79 was the reader itself. Note that every sandboxed Bash invocation gets a
+  FRESH pid namespace, so agent-shell readers legitimately never reach `"confirmed"`.
+- **T2 discriminating**: `tests/sessions/test_liveness_namespace.py` — stale-row-with-colliding-pid must be dead; foreign-namespace-recent must be `"assumed"`; same-namespace process-existence must outrank `last_seen` in both directions
+- **Verification**: `uv run pytest tests/sessions/ -q` → 16 passed (7 pre-existing SCP structural + 9 new)
+
+### DOC-E5: nested CLAUDE.md enumerations must be COMPLETE, not merely resolvable
+- `scripts/ci/doc_code_consistency.py` E1/E2/W3/W4 all verify REFERENTIAL truth ("does this
+  name resolve?"). E5 adds ENUMERATIVE truth: a doc claiming `Entry points (N modules)` must
+  have N == the package's actual module count (non-recursive `*.py`, minus `__init__.py`).
+- **Compare declared vs ACTUAL, never declared vs the table's row count.** Large packages
+  (`swarm`, 74) deliberately publish a truncated top-N table; a declared-vs-listed check
+  fires on intentional truncation and gets disabled within a week.
+- Caught `data_mesh/CLAUDE.md` declaring 12 with 13 on disk while every reference in it
+  resolved — the three undocumented modules (`inference_products`, `kanban_bridge`,
+  `land_runner`) were the newest load-bearing ones.
+- **There is no nested-CLAUDE.md generator.** All 5 credited a `gen_nested_claude.py` that
+  exists in no commit and nowhere on disk (phantom provenance, same class as RTG1/RGA1).
+  These docs are HAND-MAINTAINED: update them in the same commit as the code; a
+  regeneration will never clear the drift.
+- **Verification**: `python scripts/ci/doc_code_consistency.py --self-test` (E5 fires on a
+  real temp package declaring 1 with 2 on disk; negative control with a truncated table
+  stays silent) and `python scripts/ci/doc_code_consistency.py` → exit 0
