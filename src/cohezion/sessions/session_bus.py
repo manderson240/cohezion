@@ -84,7 +84,11 @@ def _pid_namespace() -> str:
         with open(_BOOT_ID_PATH) as fh:
             boot = fh.read().strip()
     except OSError:
-        boot = "unknown-boot"
+        # NOT a placeholder string (D5): a literal like "unknown-boot" is COLLIDABLE — two
+        # different hosts that both cannot read boot_id would produce an equal token, the
+        # same-namespace guard would pass, and a foreign PID would be trusted as "confirmed".
+        # An empty token is falsy, which routes to the honest last_seen path instead.
+        return ""
     return f"{boot}/{ns}"
 
 
@@ -114,12 +118,30 @@ def _liveness(row: dict, *, stale_after_s: float = _STALE_AFTER_S) -> str | None
                        dropping a live session silently loses operator broadcasts, while
                        retaining a dead one costs only an unacked row.
     """
-    if row.get("ns") and row["ns"] == _pid_namespace():
+    ns = row.get("ns")
+    if ns and ns == _pid_namespace():
         return "confirmed" if _pid_alive(int(row.get("pid") or 0)) else None
     age = _age_seconds(row.get("last_seen"))
-    if age is None or age > stale_after_s:
-        return None
-    return "assumed"
+    # `age < 0` is a FUTURE last_seen (clock skew at the writer). Without this it can never
+    # exceed stale_after_s, so the row stays "assumed" alive forever — verified with a
+    # timestamp 10 years ahead (D3). A clock ahead of the reader must not confer immortality.
+    if age is not None and 0 <= age <= stale_after_s:
+        return "assumed"
+    if age is None and not ns and _pid_alive(int(row.get("pid") or 0)):
+        # Legacy row (no ns) with NO usable timestamp: os.kill is the only signal left, so
+        # use it to KEEP the row — but never promote to "confirmed", since the pid may belong
+        # to an unrelated process in this namespace (D4/kimi #8).
+        #
+        # Deliberately gated on `age is None`. The weak signal breaks a tie in the ABSENCE of
+        # evidence; it must not override evidence. A legacy row with a definite 33h-old
+        # heartbeat and a colliding pid is exactly the ghost this module was fixed to drop
+        # (`pid-79 / claude:l3-evolver-world-model`), and those two cases are the same input
+        # shape — indistinguishable. Resolving the tie toward "stale timestamp wins" is safe
+        # because the heartbeat hook fires every UserPromptSubmit, so a genuinely live session
+        # already has a FRESH last_seen and is kept by the branch above; only a session idle
+        # past the TTL is dropped, and it re-registers on its very next turn.
+        return "assumed"
+    return None
 
 
 def _sql(query: str, timeout: float = 5.0) -> list:
