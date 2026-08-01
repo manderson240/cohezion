@@ -882,8 +882,27 @@ existing coherence gates were green at the time.
   bug and routes around it keeps the bug alive** — do not re-introduce that pattern.
 - Note for callers: `publish()` returning True means ENQUEUED, not delivered. Dispatch
   requires `await bus.start()`; verify the SurrealDB row, never the return value.
-- **T2 discriminating**: `tests/core/test_event_bus_shutdown.py::test_stop_returns_and_does_not_deadlock_on_a_nonempty_queue` (old ordering → `TimeoutError`) and `::test_stop_drains_every_queued_event_not_just_the_first` (old ordering → lost events)
-- **Verification**: `uv run pytest tests/core/test_event_bus_shutdown.py -q` → 4 passed
+- **EB1a (D1): `_running = False` must be in a `finally:`.** An outer `wait_for(stop(), t)`
+  that times out mid-drain, or a `start()` whose `create_task()` failed after setting the
+  flag, would otherwise strand the bus "running-but-dead" — and `publish()` would keep
+  accepting events nobody drains. This was a REGRESSION introduced by the drain fix itself
+  (the pre-fix code set the flag first); found by adversarial review, not by the suite.
+- **EB1b (D2): the drain must be BOUNDED.** `join()` returns only when the queue empties, so
+  a producer publishing faster than the loop drains — or a handler that never returns —
+  starves it forever. `stop(drain_timeout=_DRAIN_TIMEOUT_S)` wraps it in `wait_for`, then
+  abandons + counts + logs. Bounded observable loss beats an unbounded hang.
+- **EB1c (D7): `publish()` must return False when `not _running`.** Enqueueing with no
+  processor silently discards; returning True there is a lie the one return-checking caller
+  (`gaia_domain_agent`) would log as success.
+- **T2 discriminating**: `test_stop_returns_and_does_not_deadlock_on_a_nonempty_queue` (old
+  ordering → `TimeoutError`), `::test_stop_drains_every_queued_event_not_just_the_first` (old
+  ordering → lost events), `::test_d1_cancelled_stop_still_clears_running`,
+  `::test_d2_hot_producer_cannot_hang_stop_forever`,
+  `::test_d7_publish_after_stop_reports_failure_instead_of_discarding`
+- **Mutation-tested**: a cancel-first/no-drain "fix" kills the deadlock but drops events; 2 of
+  the tests fail against that mutant, so the suite discriminates the RIGHT fix from a
+  plausible wrong one.
+- **Verification**: `uv run pytest tests/core/test_event_bus_shutdown.py -q` → 9 passed
 
 ### SCP2b: session liveness must survive a pid-namespace boundary (refines SCP2)
 - SCP2 stays correct — process-existence, not `last_seen` recency, and `os.kill` remains
@@ -907,8 +926,23 @@ existing coherence gates were green at the time.
 - Observed defect: row `pid-79 / claude:l3-evolver-world-model`, 33h stale, reported ALIVE
   because PID 79 was the reader itself. Note that every sandboxed Bash invocation gets a
   FRESH pid namespace, so agent-shell readers legitimately never reach `"confirmed"`.
-- **T2 discriminating**: `tests/sessions/test_liveness_namespace.py` — stale-row-with-colliding-pid must be dead; foreign-namespace-recent must be `"assumed"`; same-namespace process-existence must outrank `last_seen` in both directions
-- **Verification**: `uv run pytest tests/sessions/ -q` → 16 passed (7 pre-existing SCP structural + 9 new)
+- **SCP2b-D3: a FUTURE `last_seen` must not confer immortality.** A negative age can never
+  exceed `stale_after_s`, so a row written under writer-clock skew stayed `"assumed"` alive
+  forever (verified with a timestamp 10 years ahead). The freshness test is
+  `0 <= age <= stale_after_s`, not `age <= stale_after_s`.
+- **SCP2b-D5: `_pid_namespace()` returns `""` — never a placeholder — when boot_id is
+  unreadable.** A literal like `"unknown-boot"` is COLLIDABLE: two hosts that both cannot read
+  boot_id produce an equal token, the same-namespace guard passes, and a foreign PID is
+  trusted as `"confirmed"`. Falsy routes to the honest TTL path.
+- **SCP2b-D4: the weak PID signal breaks a tie only in the ABSENCE of evidence.** A legacy row
+  (no `ns`) with NO usable timestamp may use `os.kill` to be KEPT as `"assumed"` — never
+  `"confirmed"`, since the pid may collide. It must NOT override a definite stale timestamp:
+  a dead session with a colliding pid and a live session idle past the TTL are **the same
+  input shape**, and letting the pid win re-admits the original `pid-79` ghost. Safe because
+  the UserPromptSubmit heartbeat keeps a genuinely live session's `last_seen` fresh, so it is
+  already kept by the TTL branch; an idle-past-TTL session re-registers on its next turn.
+- **T2 discriminating**: `tests/sessions/test_liveness_namespace.py` — stale-row-with-colliding-pid must be dead; foreign-namespace-recent must be `"assumed"`; same-namespace process-existence must outrank `last_seen` in both directions; `::test_d3_future_last_seen_is_not_permanently_alive`; `::test_d4_weak_signal_must_not_override_a_definite_stale_timestamp` (the guard against resurrecting the ghost); `::test_d5_unreadable_boot_id_yields_a_non_matching_namespace`
+- **Verification**: `uv run pytest tests/sessions/ -q` → 31 passed (7 pre-existing SCP structural + 24 new)
 
 ### DOC-E5: nested CLAUDE.md enumerations must be COMPLETE, not merely resolvable
 - `scripts/ci/doc_code_consistency.py` E1/E2/W3/W4 all verify REFERENTIAL truth ("does this
@@ -924,6 +958,12 @@ existing coherence gates were green at the time.
   exists in no commit and nowhere on disk (phantom provenance, same class as RTG1/RGA1).
   These docs are HAND-MAINTAINED: update them in the same commit as the code; a
   regeneration will never clear the drift.
+- **DOC-E5-D6: no `if actual` guard.** It silently skipped any package whose only `.py` is
+  `__init__.py`, so such a doc could declare any count and pass. `ENTRYPOINTS_RE` already
+  scopes the check to docs that MAKE the claim (neither the root `CLAUDE.md` nor this file
+  does), so a zero-module package declaring a non-zero count is exactly the lie to report.
 - **Verification**: `python scripts/ci/doc_code_consistency.py --self-test` (E5 fires on a
-  real temp package declaring 1 with 2 on disk; negative control with a truncated table
-  stays silent) and `python scripts/ci/doc_code_consistency.py` → exit 0
+  real temp package declaring 1 with 2 on disk; fires on a zero-module package declaring 99;
+  negative control with a truncated table stays silent) and
+  `python scripts/ci/doc_code_consistency.py` → exit 0. Both are gates in
+  `scripts/ci/automerge_guard.sh`.

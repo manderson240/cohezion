@@ -182,7 +182,11 @@ def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
         if ep:
             actual = _package_modules(doc.parent)
             declared = int(ep.group(1))
-            if actual and declared != len(actual):
+            # No `if actual` guard (D6): it silently skipped any package whose only .py is
+            # __init__.py, so such a doc could declare any count and pass. The ENTRYPOINTS_RE
+            # match already scopes this to docs that MAKE the claim, so a zero-module package
+            # declaring a non-zero count is exactly the lie worth reporting.
+            if declared != len(actual):
                 listed = set(re.findall(r"^\|\s*`([\w]+\.py)`\s*\|", text, re.M))
                 missing = [m for m in actual if m not in listed]
                 detail = f" undocumented: {', '.join(missing)}" if missing else ""
@@ -221,6 +225,16 @@ def self_test() -> int:
         errs, warns = scan([pkg / "CLAUDE.md"])
         fired = any(x.startswith("E5") for x in errs + warns)
         print(f"self-test E5: {'PASS (fired)' if fired else 'FAIL (silent)'} — declares 1, has 2")
+        ok &= fired
+        # E5 on a ZERO-module package (D6): before the fix the `if actual` guard skipped it,
+        # so a package holding only __init__.py could declare any count and pass silently.
+        empty = Path(td) / "emptypkg"
+        empty.mkdir()
+        (empty / "__init__.py").write_text("", encoding="utf-8")
+        (empty / "CLAUDE.md").write_text("## Entry points (99 modules)\n", encoding="utf-8")
+        errs, warns = scan([empty / "CLAUDE.md"])
+        fired = any(x.startswith("E5") for x in errs + warns)
+        print(f"self-test E5 zero-module: {'PASS (fired)' if fired else 'FAIL (silent)'} — declares 99, has 0")
         ok &= fired
         # E5 negative control: a truthful count, and a deliberately truncated table, stay silent.
         (pkg / "CLAUDE.md").write_text(
