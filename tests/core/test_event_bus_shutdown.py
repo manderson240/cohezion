@@ -83,6 +83,97 @@ async def test_stop_without_start_is_a_noop():
 
 
 @pytest.mark.asyncio
+async def test_d1_cancelled_stop_still_clears_running():
+    """D1 (adversarial review, gpt-oss:120b) — REGRESSION introduced by the drain fix.
+
+    Pre-fix, `_running = False` was the FIRST statement, so a `stop()` cancelled by an outer
+    timeout still cleared it. Moving it after the awaits left the bus 'running-but-dead' when
+    `wait_for(stop(), t)` times out mid-drain. It must be cleared on EVERY exit path.
+    """
+    bus = EventBus()
+
+    async def slow(event: Event) -> None:
+        await asyncio.sleep(5)
+
+    bus.register_handler(slow, EventType.CUSTOM)
+    await bus.start()
+    await bus.publish(_event())
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(bus.stop(), timeout=0.2)  # cancels stop() inside join()
+    assert bus._running is False, "a cancelled stop() must not leave the bus marked running"
+
+
+@pytest.mark.asyncio
+async def test_d2_hot_producer_cannot_hang_stop_forever():
+    """D2 (gpt-oss:120b #1 + kimi-k2.7 #1/#2) — the drain was unbounded.
+
+    `queue.join()` only returns when the queue empties; a producer that publishes faster than
+    the loop drains starves it forever. Bounding the drain converts an infinite hang into a
+    bounded, logged abandonment.
+    """
+    bus = EventBus()
+    stop_flooding = False
+
+    async def handler(event: Event) -> None:
+        await asyncio.sleep(0.001)
+
+    async def flood() -> None:
+        while not stop_flooding:
+            await bus.publish(_event())
+            await asyncio.sleep(0)
+
+    bus.register_handler(handler, EventType.CUSTOM)
+    await bus.start()
+    flooder = asyncio.create_task(flood())
+    await asyncio.sleep(0.1)
+    try:
+        # Outer timeout is well above drain_timeout: if stop() is unbounded this raises.
+        await asyncio.wait_for(bus.stop(drain_timeout=0.5), timeout=8.0)
+    finally:
+        stop_flooding = True
+        flooder.cancel()
+    assert bus._running is False
+
+
+@pytest.mark.asyncio
+async def test_d2_bounded_drain_still_drains_a_finite_backlog():
+    """The bound must not weaken the guarantee: a backlog that CAN finish must still finish."""
+    bus = EventBus()
+    seen: list[int] = []
+
+    async def handler(event: Event) -> None:
+        await asyncio.sleep(0.01)
+        seen.append(event.payload["n"])
+
+    bus.register_handler(handler, EventType.CUSTOM)
+    await bus.start()
+    for n in range(10):
+        await bus.publish(_event(n=n))
+    await asyncio.wait_for(bus.stop(drain_timeout=30.0), timeout=15.0)
+    assert sorted(seen) == list(range(10))
+
+
+@pytest.mark.asyncio
+async def test_d7_publish_after_stop_reports_failure_instead_of_discarding():
+    """D7 — publish() never checked _running, so a post-stop publish returned True and the
+    event was silently dropped into a queue with no processor. Pre-existing, but only
+    reachable now that stop() actually returns. Mirrors the QueueFull contract (False)."""
+    bus = EventBus()
+    got: list[str] = []
+
+    async def handler(event: Event) -> None:
+        got.append(event.source)
+
+    bus.register_handler(handler, EventType.CUSTOM)
+    await bus.start()
+    await bus.stop()
+    accepted = await bus.publish(_event())
+    await asyncio.sleep(0.1)
+    assert accepted is False, "publish() on a stopped bus must report failure, not silently drop"
+    assert got == []
+
+
+@pytest.mark.asyncio
 async def test_stop_clears_running_even_without_a_processor_task():
     """`start()` sets `_running = True` BEFORE `create_task()`, so a task-creation failure
     leaves the flag set with no processor to clear it. Clearing `_running` only inside
