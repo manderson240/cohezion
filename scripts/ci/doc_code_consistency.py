@@ -192,7 +192,8 @@ def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
                 detail = f" undocumented: {', '.join(missing)}" if missing else ""
                 errors.append(
                     f"E5 {rel_doc}: declares {declared} modules, package has "
-                    f"{len(actual)}.{detail}"
+                    f"{len(actual)} (own *.py, excluding __init__.py; subpackages are NOT "
+                    f"counted).{detail}"
                 )
     return errors, warns
 
