@@ -669,6 +669,12 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 
 ### S2: Stealthskater tradition must have exactly 10 step_mappings
 - Tradition slug: `stealthskater`, 10 StepMappings + 4 UniqueContributions
+- **REGRESSION CAUGHT + RESTORED 2026-08-01**: the tradition was silently dropped when
+  tradition_data.py was recreated in the 17-tradition rewrite (never appeared as a removal
+  in any diff; API docstring still claimed "incl. stealthskater"). Restored from b87186436,
+  registry is now 18; count pins in tests/worldviews updated. First live run of this
+  verification since the rewrite is what caught it — inline verifications must be RUN,
+  not assumed green.
 - **Verification**: `from cohezion.worldviews.tradition_data import get_tradition; assert len(get_tradition('stealthskater').step_mappings) == 10`
 
 ### S3: LENR reaction_threshold must equal HIHO threshold (0.5)
@@ -829,6 +835,10 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 - **Verification**: `uv run python -c "from cohezion.model.cohezion_lm import CohezionLMConfig; assert CohezionLMConfig.byte_level().ffn_scale == 1.0; print('LM6 OK: ffn_scale=1.0')"`
 
 ### LM7: from_autoresearch() defaults are steps=80, lr=1e-2, n_seeds=3 (optimal per exp_NNNN5/QQQQ5)
+- **AMENDED 2026-08-01**: `lr` default is now `None` (schedule-driven: `lr_schedule='cosine'`,
+  `optimizer='rmsprop'` — Round 7+ autoresearch, commit 911b4920f). steps=80 and n_seeds=3
+  still hold. The verification below fails as written on `p['lr'].default==1e-2`; treat
+  steps/n_seeds as the live invariant until re-benchmarked.
 - 80 steps = 2x dataset coverage (~2.6s per seed)
 - n_seeds=3 = best of seeds [42,99,1337], reliably achieves PPL<30 (fixes initialization sensitivity)
 - exp_QQQQ5: StdDev=91 across seeds; n_seeds=3 selection gives PPL=28.35 in 5.83s total
