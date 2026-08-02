@@ -73,10 +73,7 @@ async with TokenEfficientSquad(
     # Initial baseline check
     signal = squad.check_degradation(0.45)
     if signal:
-        result = await squad.optimize(
-            baseline=0.45,
-            max_experiments=5
-        )
+        result = await squad.optimize(baseline=0.45, max_experiments=5)
 ```
 
 **Success Criteria:**
@@ -124,12 +121,9 @@ async def optimize_all_skills():
         ("docs", 0.50),
         ("testing", 0.35),
     ]
-    
-    tasks = [
-        run_optimization_skill(skill, baseline)
-        for skill, baseline in skills
-    ]
-    
+
+    tasks = [run_optimization_skill(skill, baseline) for skill, baseline in skills]
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
     return results
 ```

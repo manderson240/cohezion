@@ -67,9 +67,7 @@ def log_to_bus(repos: list[str]) -> None:
         "repo, set model_id + context_window=131072, re-run FIM smoke', rec: 'UPGRADE-LANE' };"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310 — fixed localhost SurrealDB bus URL
-            BUS, data=payload.encode(), headers=BUS_HEADERS, method="POST"
-        )
+        req = urllib.request.Request(BUS, data=payload.encode(), headers=BUS_HEADERS, method="POST")
         urllib.request.urlopen(req, timeout=6).read()  # noqa: S310 — controlled localhost URL
         print("  logged mellum2_gguf_available to fleet_research bus")
     except Exception as e:

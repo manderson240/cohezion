@@ -81,15 +81,17 @@ Encode Claude's observable outputs into 256D vectors in the same space as Experi
 @dataclass
 class ClaudeTrace:
     """Raw observable outputs from a Claude execution."""
-    thinking_text: str | None        # Extended thinking (if available)
-    tool_calls: list[dict]           # [{name, input, output}, ...]
-    output_text: str                 # Final response text
-    model_id: str                    # e.g., "claude-opus-4-6"
+
+    thinking_text: str | None  # Extended thinking (if available)
+    tool_calls: list[dict]  # [{name, input, output}, ...]
+    output_text: str  # Final response text
+    model_id: str  # e.g., "claude-opus-4-6"
     input_tokens: int
     output_tokens: int
     latency_ms: float
-    task_description: str            # What was asked
-    task_outcome: TaskOutcome | None # How it went
+    task_description: str  # What was asked
+    task_outcome: TaskOutcome | None  # How it went
+
 
 class ClaudeTraceEncoder:
     """Encode Claude execution traces into FLUME 256D space.
@@ -240,26 +242,29 @@ Create human-validated (or auto-rated) ground truth scores for each 12D dimensio
 @dataclass
 class DimensionRating:
     """Ground truth rating for one dimension of one trace."""
+
     trace_id: str
     dimension: AxisDimension
-    score: float                   # 0.0 to 1.0
-    rater: str                     # "human:rater_id" or "auto:method_name"
-    confidence: float              # Rater's confidence in their rating
-    rationale: str | None          # Why this score
+    score: float  # 0.0 to 1.0
+    rater: str  # "human:rater_id" or "auto:method_name"
+    confidence: float  # Rater's confidence in their rating
+    rationale: str | None  # Why this score
+
 
 @dataclass
 class TraceRating:
     """Complete ground truth for one Claude trace across all 12 dimensions."""
+
     trace_id: str
     ratings: dict[AxisDimension, DimensionRating]
-    overall_quality: float         # Aggregate quality rating
+    overall_quality: float  # Aggregate quality rating
     task_outcome: TaskOutcome
+
 
 class GroundTruthRatingFramework:
     """Framework for rating Claude traces on 12D axiomatic dimensions."""
 
-    def __init__(self, storage_path: str = "data/validation/ground_truth_ratings.jsonl"):
-        ...
+    def __init__(self, storage_path: str = "data/validation/ground_truth_ratings.jsonl"): ...
 
     def auto_rate(self, trace: ClaudeTrace) -> TraceRating:
         """Automatically rate a trace using heuristic evaluators.
@@ -332,22 +337,26 @@ Train the existing `DomainAlignmentMLP` (in `alignment.py`) to bridge the distri
 @dataclass
 class AlignmentTrainingConfig:
     """Configuration for domain alignment training."""
+
     epochs: int = 100
     batch_size: int = 32
     lr: float = 1e-3
-    alignment_loss_weight: float = 1.0    # Cosine similarity loss
+    alignment_loss_weight: float = 1.0  # Cosine similarity loss
     reconstruction_loss_weight: float = 0.5  # Don't destroy structure
     min_paired_samples: int = 50
+
 
 @dataclass
 class AlignmentResult:
     """Result of domain alignment training."""
+
     train_loss: float
     val_loss: float
-    mean_cosine_similarity: float          # After alignment
-    baseline_cosine_similarity: float      # Before alignment
-    improvement: float                     # Delta
+    mean_cosine_similarity: float  # After alignment
+    baseline_cosine_similarity: float  # Before alignment
+    improvement: float  # Delta
     n_paired_samples: int
+
 
 class DomainAlignmentTrainer:
     """Train DomainAlignmentMLP to bridge Claude ↔ simulation distributions.
@@ -427,6 +436,7 @@ Rigorous statistical tests for whether FLUME metrics transfer from simulation to
 @dataclass
 class TransferTestResult:
     """Result of a single transfer validation test."""
+
     test_name: str
     passed: bool
     statistic: float
@@ -436,6 +446,7 @@ class TransferTestResult:
     n_simulation: int
     interpretation: str
 
+
 class TransferValidationSuite:
     """Statistical tests for simulation → LLM transfer validity."""
 
@@ -443,8 +454,7 @@ class TransferValidationSuite:
         self,
         claude_encoder: ClaudeTraceEncoder,
         experience_encoder: ExperienceEncoder,
-    ):
-        ...
+    ): ...
 
     def test_distribution_overlap(
         self,

@@ -130,14 +130,12 @@ requirements = {
     "target_value": 0.50,
     "justification": "Improve reliability from 28% to 50%",
     "constraints": ["must_be_positive", "backward_compatible"],
-    "acceptance_criteria": {"extraction_rate": 0.50}
+    "acceptance_criteria": {"extraction_rate": 0.50},
 }
 
 # Execute full V-Model lifecycle
 adj_id = vmodel.adjust_lever_vmodel(
-    lever_name="deterministic_ratio",
-    target_value=0.50,
-    requirements=requirements
+    lever_name="deterministic_ratio", target_value=0.50, requirements=requirements
 )
 
 # Track progress
@@ -166,7 +164,7 @@ print(f"Completed: {dash['completed_adjustments']}")
 rollback = {
     "action": "lever.reset()",
     "revert_to": previous_value,
-    "verification": "check_system_health"
+    "verification": "check_system_health",
 }
 ```
 

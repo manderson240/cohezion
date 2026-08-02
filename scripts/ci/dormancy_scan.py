@@ -15,6 +15,7 @@ disabled (the fate of the auto-test-scaffold hook).
 Run:  python scripts/ci/dormancy_scan.py            # the gate (exit 1 on dormancy)
       python scripts/ci/dormancy_scan.py --self-test # prove it can go RED before trusting GREEN
 """
+
 from __future__ import annotations
 
 import re
@@ -28,56 +29,112 @@ SRC = REPO / "src" / "cohezion"
 # (name, consumer_regex, path_relative_to_repo, min_count). The regex matches the CONSUMER (a read or
 # a call), NOT the declaration — so neutralizing the consumer drops the count below the floor.
 REGISTRY: list[tuple[str, str, str, int]] = [
-    ("H1: regression gate FIRES (refine calls _ensure_golden_fixtures)",
-     r"self\._ensure_golden_fixtures\(", "src/cohezion/compound/skill_refiner.py", 1),
-    ("H2: jepa_coherence CONSUMED by DegradationDetector",
-     r"jepa_coherence", "src/cohezion/compound/degradation_detector.py", 1),
-    ("ME1: engine feedback consumed by the learner (record call)",
-     r"_difficulty_estimator\.record\(", "src/cohezion/compound/skill_refiner.py", 1),
+    (
+        "H1: regression gate FIRES (refine calls _ensure_golden_fixtures)",
+        r"self\._ensure_golden_fixtures\(",
+        "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
+    (
+        "H2: jepa_coherence CONSUMED by DegradationDetector",
+        r"jepa_coherence",
+        "src/cohezion/compound/degradation_detector.py",
+        1,
+    ),
+    (
+        "ME1: engine feedback consumed by the learner (record call)",
+        r"_difficulty_estimator\.record\(",
+        "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
     # M1/Lever1 (review fix): pin to the CONSUMPTION read, not the bare identifier — the old
     # `_regression_run_fn`/`gate_chars` floors were satisfied by the `=None` decl + a comment, so the
     # guard stayed GREEN with every consumer deleted (the exact false-GREEN this scan forbids).
-    ("M1: regression run_fn CONSUMED (refine reads it to gate)",
-     r"self\._regression_run_fn is not None", "src/cohezion/compound/skill_refiner.py", 1),
-    ("Lever1: per-task gate_chars CONSUMED (override branch reads it)",
-     r"gate_chars is not None", "src/cohezion/inference/orchestrator.py", 1),
-    ("H1-grounding: _ensure_golden_fixtures passes ground_fn (grounding LIVE → gate can BITE)",
-     r"ground_fn=ground", "src/cohezion/compound/skill_refiner.py", 1),
+    (
+        "M1: regression run_fn CONSUMED (refine reads it to gate)",
+        r"self\._regression_run_fn is not None",
+        "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
+    (
+        "Lever1: per-task gate_chars CONSUMED (override branch reads it)",
+        r"gate_chars is not None",
+        "src/cohezion/inference/orchestrator.py",
+        1,
+    ),
+    (
+        "H1-grounding: _ensure_golden_fixtures passes ground_fn (grounding LIVE → gate can BITE)",
+        r"ground_fn=ground",
+        "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
     # BMAD qa_gate P0: pin to the ADVISORY consumption seam — refine() must CALL qa_gate.evaluate.
     # Removing the seam (re-dormanting the gate) drops the count below the floor → scan goes RED.
-    ("qa_gate P0: refine() CONSUMES qa_gate.evaluate (advisory 4-state gate FIRES)",
-     r"_qa_gate\.evaluate\(", "src/cohezion/compound/skill_refiner.py", 1),
+    (
+        "qa_gate P0: refine() CONSUMES qa_gate.evaluate (advisory 4-state gate FIRES)",
+        r"_qa_gate\.evaluate\(",
+        "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
     # Quarter-on-a-String knot: execute_task's success verdict is gated by the QA-judge
     # lane, NOT bool(strip()). Pin to the CALL (`_judge_quality(self._base_url`) so the
     # def line can't satisfy the floor — removing the call re-dormants the gate → RED.
-    ("Knot: local_executor success gated by QA-judge lane (_judge_quality CONSUMED)",
-     r"_judge_quality\(self\._base_url", "src/cohezion/compound/autonomous_loop/local_executor.py", 1),
+    (
+        "Knot: local_executor success gated by QA-judge lane (_judge_quality CONSUMED)",
+        r"_judge_quality\(self\._base_url",
+        "src/cohezion/compound/autonomous_loop/local_executor.py",
+        1,
+    ),
     # Memory consolidation: the LoopCoordinator end-of-cycle trigger must CALL consolidate() — the
     # automated episode->semantic-fact promotion loop (Elastic deferred-consolidation gap). Pin to
     # the call; removing it re-dormants the consolidator (manual /learn promotion only) -> RED.
-    ("MemConsolidate: LoopCoordinator fires consolidate() each cycle (episode->semantic promotion)",
-     r"consolidator\.consolidate\(", "src/cohezion/compound/autonomous_loop/coordinator.py", 1),
+    (
+        "MemConsolidate: LoopCoordinator fires consolidate() each cycle (episode->semantic promotion)",
+        r"consolidator\.consolidate\(",
+        "src/cohezion/compound/autonomous_loop/coordinator.py",
+        1,
+    ),
     # Cognitive-profile harness (P1-P3 of the AGI cognitive-framework /goal): the CLI must CONSUME
     # run_profile(). Removing the call re-dormants the harness (a scorecard nobody runs) -> scan RED.
-    ("CogProfile: cognitive_profile_cli CONSUMES run_profile() (10-faculty scorecard FIRES)",
-     r"run_profile\(", "scripts/eval/cognitive_profile_cli.py", 1),
+    (
+        "CogProfile: cognitive_profile_cli CONSUMES run_profile() (10-faculty scorecard FIRES)",
+        r"run_profile\(",
+        "scripts/eval/cognitive_profile_cli.py",
+        1,
+    ),
     # FAPO failure-path loop (verification-depth.md #2 — "consumption, not declaration"). Before this
     # session's fix, refine() was ONLY ever called on SUCCESS: a failed execution never reached
     # FailureAttributor.classify(), and refine()'s own failure_attribution branch was unreachable from
     # production (green unit tests, dormant seam — the exact failure class this scan exists to catch).
     # Four pins guard both halves of the closed loop so a future refactor can't silently re-dormant it:
-    ("FA-exec: executor failure branch CONSUMES FailureAttributor().classify() on a failed execution",
-     r"FailureAttributor\(\)\.classify\(", "src/cohezion/compound/executor.py", 1),
+    (
+        "FA-exec: executor failure branch CONSUMES FailureAttributor().classify() on a failed execution",
+        r"FailureAttributor\(\)\.classify\(",
+        "src/cohezion/compound/executor.py",
+        1,
+    ),
     # Pinned to the kwarg name (not `=attribution`, the current variable name) — a harmless
     # local rename of the passed variable must not silently re-green a re-dormanted call.
     # Safe to broaden: `path_rel` scopes this to executor.py alone, whose only occurrence of
     # this literal IS the consumer line (verified; no docstring/comment collisions in this file).
-    ("FA-refine: executor failure branch CONSUMES refine(failure_attribution=...) (FAPO path reachable)",
-     r"failure_attribution=", "src/cohezion/compound/executor.py", 1),
-    ("FM-retrieve: _generate_failure_signal CONSUMES failure_memory.retrieve() before generic template",
-     r"self\._failure_memory\.retrieve\(", "src/cohezion/compound/skill_refiner.py", 1),
-    ("FM-record: L1 refinement CONSUMES failure_memory.record() to store the new (failure, fix) pair",
-     r"self\._failure_memory\.record\(", "src/cohezion/compound/skill_refiner.py", 1),
+    (
+        "FA-refine: executor failure branch CONSUMES refine(failure_attribution=...) (FAPO path reachable)",
+        r"failure_attribution=",
+        "src/cohezion/compound/executor.py",
+        1,
+    ),
+    (
+        "FM-retrieve: _generate_failure_signal CONSUMES failure_memory.retrieve() before generic template",
+        r"self\._failure_memory\.retrieve\(",
+        "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
+    (
+        "FM-record: L1 refinement CONSUMES failure_memory.record() to store the new (failure, fix) pair",
+        r"self\._failure_memory\.record\(",
+        "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
@@ -126,22 +183,37 @@ def scan(registry: list[tuple[str, str, str, int]]) -> list[str]:
     for name, pattern, path_rel, floor in registry:
         n = count_matches(pattern, path_rel)
         if n < floor:
-            failures.append(f"DORMANT: {name} — {n} consumer(s), need >= {floor}  [{pattern} in {path_rel}]")
+            failures.append(
+                f"DORMANT: {name} — {n} consumer(s), need >= {floor}  [{pattern} in {path_rel}]"
+            )
     return failures
 
 
 def self_test() -> int:
     """Falsification proof: the scanner MUST flag a guaranteed-dormant sentinel (proves it can go red)
     AND pass a known-wired capability (proves it isn't a blanket false-positive)."""
-    sentinel = scan([("sentinel (no consumer exists)", r"__NEVER_EXISTS_DORMANCY_SENTINEL__", "src/cohezion", 1)])
+    sentinel = scan(
+        [
+            (
+                "sentinel (no consumer exists)",
+                r"__NEVER_EXISTS_DORMANCY_SENTINEL__",
+                "src/cohezion",
+                1,
+            )
+        ]
+    )
     if not sentinel:
-        print("SELF-TEST FAILED: scanner did NOT flag a guaranteed-dormant sentinel — it cannot go red.")
+        print(
+            "SELF-TEST FAILED: scanner did NOT flag a guaranteed-dormant sentinel — it cannot go red."
+        )
         return 1
     wired = scan([REGISTRY[0]])  # the H1 gate-fires consumer, which is present
     if wired:
         print(f"SELF-TEST FAILED: scanner false-flagged a wired capability: {wired}")
         return 1
-    print("SELF-TEST OK: scanner flags the dormant sentinel (red) and passes the wired capability (green).")
+    print(
+        "SELF-TEST OK: scanner flags the dormant sentinel (red) and passes the wired capability (green)."
+    )
     return 0
 
 
@@ -153,11 +225,15 @@ def main() -> int:
         print("DORMANCY SCAN FAILED — a load-bearing capability lost its production consumer:")
         for f in failures:
             print("  " + f)
-        print("\nA capability with no consumer is wired structurally but dead functionally (verification-depth.md).")
+        print(
+            "\nA capability with no consumer is wired structurally but dead functionally (verification-depth.md)."
+        )
         return 1
     print(f"dormancy scan OK — all {len(REGISTRY)} curated capabilities have production consumers.")
     if KNOWN_DORMANT:
-        print(f"NOTICE — {len(KNOWN_DORMANT)} capability(ies) known-dormant and intentionally unguarded:")
+        print(
+            f"NOTICE — {len(KNOWN_DORMANT)} capability(ies) known-dormant and intentionally unguarded:"
+        )
         for d in KNOWN_DORMANT:
             print("  - " + d)
     return 0

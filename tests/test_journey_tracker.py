@@ -229,7 +229,7 @@ class TestCrossSessionIdentity:
 class TestTrajectoryPointAction:
     """JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default."""
 
-    def _make_result(self, tier: str = "npu", **extra_metrics) -> "ExecutionResult":
+    def _make_result(self, tier: str = "npu", **extra_metrics) -> ExecutionResult:
         return ExecutionResult(
             success=True,
             output="ok",

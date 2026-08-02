@@ -19,6 +19,7 @@ from pathlib import Path
 
 import requests
 
+
 REPO = Path(__file__).parent.parent.parent
 SRC = REPO / "src" / "cohezion"
 VAULT_MODULES = Path.home() / "vaults" / "cohezion-vault" / "modules"
@@ -46,9 +47,7 @@ DEFINE INDEX IF NOT EXISTS idx_code_module_name ON code_module FIELDS name UNIQU
 
 
 def surreal(sql: str) -> list:
-    r = requests.post(
-        SURREAL_URL, headers=SURREAL_HEADERS, auth=SURREAL_AUTH, data=sql, timeout=10
-    )
+    r = requests.post(SURREAL_URL, headers=SURREAL_HEADERS, auth=SURREAL_AUTH, data=sql, timeout=10)
     r.raise_for_status()
     return r.json()
 
@@ -150,7 +149,9 @@ def get_existing_names() -> set[str]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Index Cohezion modules into SurrealDB + vault")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--force", action="store_true", help="Re-index all, even if already indexed")
+    parser.add_argument(
+        "--force", action="store_true", help="Re-index all, even if already indexed"
+    )
     parser.add_argument("--module", help="Index only this module name")
     args = parser.parse_args()
 
@@ -168,10 +169,9 @@ def main() -> None:
     existing = get_existing_names() if (not args.force and not args.dry_run) else set()
 
     packages = sorted(
-        p for p in SRC.iterdir()
-        if p.is_dir()
-        and not p.name.startswith(("_", "."))
-        and (p / "__init__.py").exists()
+        p
+        for p in SRC.iterdir()
+        if p.is_dir() and not p.name.startswith(("_", ".")) and (p / "__init__.py").exists()
     )
     if args.module:
         packages = [p for p in packages if p.name == args.module]
@@ -208,7 +208,7 @@ def main() -> None:
     if not args.dry_run:
         print(f"\n✓ Indexed {indexed} new modules. Total in DB: {len(existing) + indexed}")
         print(f"  Vault: {VAULT_MODULES}")
-        print(f"  Query: SELECT name, description FROM code_module ORDER BY name;")
+        print("  Query: SELECT name, description FROM code_module ORDER BY name;")
 
 
 if __name__ == "__main__":

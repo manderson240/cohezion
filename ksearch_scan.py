@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Pre-flight K-Search health scan — reads all 3 trees, reports unique scores, best/worst, STUB/BREAKOUT flags."""
+
 import json
 from pathlib import Path
 
@@ -28,11 +29,17 @@ for target in ["arc_solver", "flume_vae", "jepa_world_model"]:
     best = max(scores) if scores else 0.0
     worst = min(scores) if scores else 0.0
 
-    breakouts = sum(1 for v in nodes.values() if isinstance(v, dict) and any(round(s, 6) > 0 for s in v.get("metric_values", [])))
+    breakouts = sum(
+        1
+        for v in nodes.values()
+        if isinstance(v, dict) and any(round(s, 6) > 0 for s in v.get("metric_values", []))
+    )
     status_parts = []
     if len(scores) > 2 and breakouts >= 2:
         status_parts.append("BREAKOUT")
     if len(uniq) <= 1:
         status_parts.append("STUB")
 
-    print(f"{target}: trials={total_trials:6d} unique_scores={len(uniq):3d} best={best:.4f} worst={worst:.4f} {' '.join(status_parts)}")
+    print(
+        f"{target}: trials={total_trials:6d} unique_scores={len(uniq):3d} best={best:.4f} worst={worst:.4f} {' '.join(status_parts)}"
+    )

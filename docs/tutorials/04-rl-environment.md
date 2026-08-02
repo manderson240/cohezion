@@ -72,15 +72,15 @@ for _ in range(500):
 
 ```python
 ManifoldEnv(
-    dim=12,                    # Manifold dimension
-    max_steps=500,             # Episode length
-    dt=0.01,                   # Physics timestep
-    damping=0.1,               # Viscous damping
-    hiho_threshold=0.01,       # HIHO convergence threshold
+    dim=12,  # Manifold dimension
+    max_steps=500,  # Episode length
+    dt=0.01,  # Physics timestep
+    damping=0.1,  # Viscous damping
+    hiho_threshold=0.01,  # HIHO convergence threshold
     hiho_stability_window=10,  # Steps at HIHO before termination
     reward_coherence_weight=1.0,
     reward_energy_weight=0.1,
-    seed=42,                   # Reproducibility
+    seed=42,  # Reproducibility
 )
 ```
 
@@ -96,10 +96,7 @@ observations, infos = env.reset()
 
 for step in range(500):
     # Each agent acts independently
-    actions = {
-        agent: env._rng.uniform(-0.1, 0.1, 12).astype("float32")
-        for agent in env.agents
-    }
+    actions = {agent: env._rng.uniform(-0.1, 0.1, 12).astype("float32") for agent in env.agents}
     observations, rewards, terminateds, truncateds, infos = env.step(actions)
 
     if any(terminateds.values()):
@@ -130,10 +127,10 @@ The collective term means agents are incentivized to help each other converge.
 
 ```python
 SwarmEnv(
-    n_agents=4,            # Number of agents
-    dim=12,                # Manifold dimension
-    max_steps=500,         # Episode length
-    coupling_strength=0.1, # Gauge coupling between agents
+    n_agents=4,  # Number of agents
+    dim=12,  # Manifold dimension
+    max_steps=500,  # Episode length
+    coupling_strength=0.1,  # Gauge coupling between agents
     seed=42,
 )
 ```
@@ -173,8 +170,8 @@ model = JEPAWorldModel()
 
 for t in range(len(trajectory) - 1):
     state = trajectory[t]
-    action = trajectory[t+1] - trajectory[t]
-    surprise = model.surprise_score(state, action, trajectory[t+1])
+    action = trajectory[t + 1] - trajectory[t]
+    surprise = model.surprise_score(state, action, trajectory[t + 1])
     if surprise > 1.0:
         print(f"Step {t}: HIGH SURPRISE ({surprise:.4f})")
 ```

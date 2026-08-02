@@ -77,7 +77,7 @@ suggestions = executor.suggest_skills(
     task_description="Analyze customer feedback",
     operation_type="analyze",
     project="cohezion",
-    top_k=3  # Return top 3 skills
+    top_k=3,  # Return top 3 skills
 )
 
 # suggestions is a list of (skill_name, score) tuples
@@ -102,7 +102,7 @@ scores = selector.select_skills(
     task_description="Generate creative content",
     operation_type="generate",
     project="cohezion",
-    top_k=5
+    top_k=5,
 )
 
 for score in scores:
@@ -205,9 +205,11 @@ efficiency_avg = mean(all_efficiency_scores)
 success_avg = mean(all_success_rates)
 
 # Compute composite with normalized weights
-composite = (weights_coherence * coherence_avg +
-             weights_efficiency * efficiency_avg +
-             weights_success * success_avg)
+composite = (
+    weights_coherence * coherence_avg
+    + weights_efficiency * efficiency_avg
+    + weights_success * success_avg
+)
 ```
 
 ## Configuration
@@ -219,9 +221,9 @@ Customize the scoring weights based on your priorities:
 ```python
 selector = SkillSelector(
     mcp_client=mcp_client,
-    coherence_weight=0.7,    # Prioritize quality (70%)
-    efficiency_weight=0.2,   # Less focus on cost (20%)
-    success_weight=0.1,      # Minimal success rate weight (10%)
+    coherence_weight=0.7,  # Prioritize quality (70%)
+    efficiency_weight=0.2,  # Less focus on cost (20%)
+    success_weight=0.1,  # Minimal success rate weight (10%)
 )
 ```
 
@@ -241,9 +243,7 @@ Common configurations:
 ```python
 # Get top skill for a task
 suggestions = executor.suggest_skills(
-    task_description="Generate product descriptions",
-    operation_type="generate",
-    top_k=1
+    task_description="Generate product descriptions", operation_type="generate", top_k=1
 )
 
 if suggestions:
@@ -256,9 +256,7 @@ if suggestions:
 ```python
 # Get ranked list for manual review
 suggestions = executor.suggest_skills(
-    task_description="Summarize legal documents",
-    operation_type="analyze",
-    top_k=5
+    task_description="Summarize legal documents", operation_type="analyze", top_k=5
 )
 
 print("Skill Recommendations (ranked):")
@@ -279,9 +277,7 @@ selector = SkillSelector(
 
 # Get suggestions with quality prioritized
 scores = selector.select_skills(
-    task_description="Generate medical reports",
-    operation_type="generate",
-    top_k=3
+    task_description="Generate medical reports", operation_type="generate", top_k=3
 )
 
 for score in scores:

@@ -92,14 +92,15 @@ UMA Architecture:
 
 ```python
 # ✅ CORRECT: Exactly 4 concurrent = 121.5 TPS
-results = await asyncio.gather(*[
-    client.generate(p) for p in prompts[:4]
-])
+results = await asyncio.gather(*[client.generate(p) for p in prompts[:4]])
 
 # ❌ WRONG: 5 concurrent = 75.2 TPS (-38% penalty)
-results = await asyncio.gather(*[
-    client.generate(p) for p in prompts[:5]  # SLOWER!
-])
+results = await asyncio.gather(
+    *[
+        client.generate(p)
+        for p in prompts[:5]  # SLOWER!
+    ]
+)
 ```
 
 ### For >4 Requests: Batch Into Groups of 4
@@ -108,10 +109,8 @@ results = await asyncio.gather(*[
 async def optimal_batch_process(prompts: List[str]):
     results = []
     for i in range(0, len(prompts), 4):
-        batch = prompts[i:i+4]
-        batch_results = await asyncio.gather(*[
-            client.generate(p) for p in batch
-        ])
+        batch = prompts[i : i + 4]
+        batch_results = await asyncio.gather(*[client.generate(p) for p in batch])
         results.extend(batch_results)
         # Brief cooldown between batches (optional)
         if i + 4 < len(prompts):

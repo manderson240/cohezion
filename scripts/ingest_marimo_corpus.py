@@ -5,6 +5,7 @@ Fetches docs.marimo.io/guides/ pages, synthesizes each via lemonade :13305 (loca
 writes Obsidian notes to the vault. The orchestration is deterministic Python; the reasoning
 is local inference. Run:  uv run python scripts/ingest_marimo_corpus.py
 """
+
 from __future__ import annotations
 
 import re
@@ -12,6 +13,7 @@ import time
 from pathlib import Path
 
 import httpx
+
 
 VAULT = Path.home() / "vaults" / "cohezion-vault" / "Research" / "marimo"
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
@@ -37,8 +39,12 @@ def synth(title: str, text: str) -> str:
     try:
         r = httpx.post(
             LEMONADE,
-            json={"model": MODEL, "messages": [{"role": "user", "content": prompt}],
-                  "max_tokens": 1024, "temperature": 0.2},
+            json={
+                "model": MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 1024,
+                "temperature": 0.2,
+            },
             timeout=180,
         )
         return r.json()["choices"][0]["message"]["content"].strip() or "(empty synthesis)"

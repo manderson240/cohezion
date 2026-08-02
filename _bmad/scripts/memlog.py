@@ -66,6 +66,7 @@ Commands:
 Addressing: `--workspace` is the run folder, and the memlog is always {workspace}/.memlog.md.
 `--path` points straight at the memlog file instead, for callers that already hold the path.
 """
+
 from __future__ import annotations  # keep type-hint syntax lazy so the script runs on 3.8+
 
 import argparse
@@ -104,7 +105,7 @@ def split(text: str) -> tuple[dict, str]:
         if ":" in line:
             k, v = line.split(":", 1)
             meta[k.strip()] = v.strip()
-    return meta, "\n".join(lines[end + 1:]).lstrip("\n")
+    return meta, "\n".join(lines[end + 1 :]).lstrip("\n")
 
 
 def render(meta: dict, body: str) -> str:
@@ -135,11 +136,15 @@ def entry_count(body: str) -> int:
 
 def ack(path: Path, body: str) -> None:
     """Echo new state so the caller never re-reads the file to know where it stands."""
-    print(json.dumps({
-        "ok": True,
-        "memlog": str(path),
-        "entries": entry_count(body),
-    }))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "memlog": str(path),
+                "entries": entry_count(body),
+            }
+        )
+    )
 
 
 def cmd_init(args) -> int:
@@ -195,19 +200,25 @@ def add_target(sp) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = p.add_subparsers(dest="cmd", required=True)
 
     pi = sub.add_parser("init", help="create the memlog")
     add_target(pi)
-    pi.add_argument("--field", action="append", metavar="KEY=VALUE", help="frontmatter field (repeatable)")
+    pi.add_argument(
+        "--field", action="append", metavar="KEY=VALUE", help="frontmatter field (repeatable)"
+    )
     pi.set_defaults(func=cmd_init)
 
     pa = sub.add_parser("append", help="append one entry at the end")
     add_target(pa)
     pa.add_argument("--text", required=True)
     pa.add_argument("--type", help="entry kind, rendered as an inline tag")
-    pa.add_argument("--by", help="who the entry came from (e.g. user, coach); rendered into the tag")
+    pa.add_argument(
+        "--by", help="who the entry came from (e.g. user, coach); rendered into the tag"
+    )
     pa.set_defaults(func=cmd_append)
 
     pset = sub.add_parser("set", help="set a descriptive frontmatter field")

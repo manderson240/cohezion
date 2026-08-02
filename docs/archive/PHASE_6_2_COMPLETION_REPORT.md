@@ -67,14 +67,14 @@ Both core deliverables are production-ready:
 ### API Endpoints (Available Methods)
 
 ```python
-CostDashboard.get_cost_breakdown()          # Cost by dimension
-CostDashboard.get_spend_rate()              # Real-time rates
-CostDashboard.get_budget_status()           # Budget tracking
-CostDashboard.get_weekly_trend()            # Historical data
-CostDashboard.update_trend_history()        # Record metrics
-CostDashboard.get_cost_by_model_pie_chart() # Pie chart data
-CostDashboard.get_cost_forecasts()          # Forecasts
-CostDashboard.get_dashboard_summary()       # Complete summary
+CostDashboard.get_cost_breakdown()  # Cost by dimension
+CostDashboard.get_spend_rate()  # Real-time rates
+CostDashboard.get_budget_status()  # Budget tracking
+CostDashboard.get_weekly_trend()  # Historical data
+CostDashboard.update_trend_history()  # Record metrics
+CostDashboard.get_cost_by_model_pie_chart()  # Pie chart data
+CostDashboard.get_cost_forecasts()  # Forecasts
+CostDashboard.get_dashboard_summary()  # Complete summary
 ```
 
 ### Test Coverage
@@ -183,10 +183,10 @@ CostDashboard.get_dashboard_summary()       # Complete summary
 ### API Methods
 
 ```python
-ForecastEngine.add_observation()    # Add historical data point
-ForecastEngine.forecast()           # Generate single horizon forecast
-ForecastEngine.forecast_summary()   # Generate summary across horizons
-ForecastEngine.detect_anomaly()     # Score anomalies
+ForecastEngine.add_observation()  # Add historical data point
+ForecastEngine.forecast()  # Generate single horizon forecast
+ForecastEngine.forecast_summary()  # Generate summary across horizons
+ForecastEngine.detect_anomaly()  # Score anomalies
 ForecastEngine.get_history_stats()  # Statistical summary
 ```
 

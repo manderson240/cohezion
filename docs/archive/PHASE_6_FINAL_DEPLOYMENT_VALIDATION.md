@@ -166,9 +166,9 @@ else:
 #### Budget Enforcement Alerts
 ```python
 # File: src/cohezion/cost_optimization/budget_enforcer.py
-warn_threshold_pct=80,
-critical_threshold_pct=90,
-block_threshold_pct=100,
+warn_threshold_pct = (80,)
+critical_threshold_pct = (90,)
+block_threshold_pct = (100,)
 ```
 - **Progressive Alerts**:
   - 80% → Warning (log, continue)
@@ -217,10 +217,10 @@ git push origin main
 #### Option B: Feature Flags (Granular Rollback)
 ```python
 # File: src/cohezion/core/config.py
-COST_OPTIMIZATION_V2_ENABLED = False      # Disable CostAwareRouter v2
-ANALYTICS_ENABLED = False                 # Disable cost dashboard
-ANOMALY_DETECTION_ENABLED = False         # Disable anomaly alerts
-FORECAST_ENGINE_ENABLED = False           # Disable forecasting
+COST_OPTIMIZATION_V2_ENABLED = False  # Disable CostAwareRouter v2
+ANALYTICS_ENABLED = False  # Disable cost dashboard
+ANOMALY_DETECTION_ENABLED = False  # Disable anomaly alerts
+FORECAST_ENGINE_ENABLED = False  # Disable forecasting
 
 # Changes take effect immediately on restart
 # No code redeployment required

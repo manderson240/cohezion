@@ -52,8 +52,9 @@ You are a specialist in **physics-informed high-dimensional visualization**. You
 3. **Global Topology Verification**
    ```python
    import plotly.express as px
+
    # Parallel coordinates for all 12 dimensions
-   fig = px.parallel_coordinates(df, color='coherence')
+   fig = px.parallel_coordinates(df, color="coherence")
    ```
 
 ## VISUAL MAPPINGS

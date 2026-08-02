@@ -35,8 +35,11 @@ _DEFAULT_FIXTURES: list[dict[str, Any]] = [
         "skill": "COMPOUND_EXECUTOR",
         "difficulty": "easy",
         "output": '{"role": "PRODUCER"',
-        "metrics": {"anomaly_score": 0.8, "output_validation_failed": True,
-                    "output_validation_error": "JSON parse error at position 18: Expecting ','"},
+        "metrics": {
+            "anomaly_score": 0.8,
+            "output_validation_failed": True,
+            "output_validation_error": "JSON parse error at position 18: Expecting ','",
+        },
         "decision_paths": ["vault/patterns/domains/compound/executor_pattern.md"],
         "expected_category": "format",
     },
@@ -45,8 +48,11 @@ _DEFAULT_FIXTURES: list[dict[str, Any]] = [
         "skill": "SYSTEM_GUARDRAILS",
         "difficulty": "easy",
         "output": "[{broken json",
-        "metrics": {"anomaly_score": 0.9, "output_validation_failed": True,
-                    "output_validation_error": "JSON parse error at position 1: Expecting value"},
+        "metrics": {
+            "anomaly_score": 0.9,
+            "output_validation_failed": True,
+            "output_validation_error": "JSON parse error at position 1: Expecting value",
+        },
         "decision_paths": [],
         "expected_category": "format",
     },
@@ -278,16 +284,23 @@ def print_json(summary: BenchSummary) -> None:
         "correct": summary.correct,
         "avg_latency_ms": summary.avg_latency_ms,
         "by_difficulty": {
-            d: {"total": v["total"], "correct": v["correct"],
-                "accuracy": v["correct"] / v["total"] if v["total"] else 0}
+            d: {
+                "total": v["total"],
+                "correct": v["correct"],
+                "accuracy": v["correct"] / v["total"] if v["total"] else 0,
+            }
             for d, v in summary.by_difficulty.items()
         },
         "by_category": summary.by_category,
         "results": [
             {
-                "id": r.fixture_id, "skill": r.skill, "difficulty": r.difficulty,
-                "expected": r.expected_category, "actual": r.actual_category,
-                "escalation_level": r.escalation_level, "correct": r.correct,
+                "id": r.fixture_id,
+                "skill": r.skill,
+                "difficulty": r.difficulty,
+                "expected": r.expected_category,
+                "actual": r.actual_category,
+                "escalation_level": r.escalation_level,
+                "correct": r.correct,
                 "latency_ms": round(r.latency_ms, 3),
             }
             for r in summary.results

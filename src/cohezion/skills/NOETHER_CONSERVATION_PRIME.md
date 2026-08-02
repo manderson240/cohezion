@@ -96,8 +96,8 @@ This is the quantum mechanical spin algebra (SU(2)). In Cohezion:
 # If rotation = 1.0 and precession = 1.0, the system is in an over-determined state
 # The commutator forces one to be partially undefined when the other is fixed
 
-rot = state["logic"]       # Rotation dimension
-prec = state["quantum"]    # Precession dimension
+rot = state["logic"]  # Rotation dimension
+prec = state["quantum"]  # Precession dimension
 charge = rot + 0.3 * prec  # Charge = emergent from non-commuting components
 
 # Noether constraint: |rot - prec| < 0.5 for stable SPIN
@@ -160,6 +160,7 @@ precipitate when all continuous conservation laws (dims 1-11) are satisfied simu
 ```python
 import numpy as np
 
+
 class NoetherConservationChecker:
     """
     Checks Noether conservation laws for Smith's 12 dimensions.
@@ -170,10 +171,12 @@ class NoetherConservationChecker:
 
     def check_spatial_momentum(self, prev_state: dict, curr_state: dict, force: float) -> bool:
         """Translation symmetry: Δp = F·Δt (momentum changes only under force)."""
-        delta_pos = np.array([
-            curr_state["spatial_x"] - prev_state["spatial_x"],
-            curr_state["spatial_y"] - prev_state["spatial_y"],
-        ])
+        delta_pos = np.array(
+            [
+                curr_state["spatial_x"] - prev_state["spatial_x"],
+                curr_state["spatial_y"] - prev_state["spatial_y"],
+            ]
+        )
         expected_delta = force * 0.01  # dt = 0.01 (from hamiltonian.py)
         return np.linalg.norm(delta_pos) < expected_delta + self.TOLERANCE
 
@@ -189,13 +192,20 @@ class NoetherConservationChecker:
 
     def check_charge_conservation(self, prev_state: dict, curr_state: dict) -> bool:
         """U(1) symmetry: charge_polarity = rot + 0.3*prec must be conserved."""
+
         def charge(s):
             return s.get("logic", 0) + 0.3 * s.get("quantum", 0)
+
         return abs(charge(curr_state) - charge(prev_state)) < self.TOLERANCE
 
-    def full_check(self, prev_state: dict, curr_state: dict,
-                   prev_H: float = 0.5, curr_H: float = 0.5,
-                   force: float = 0.0) -> dict:
+    def full_check(
+        self,
+        prev_state: dict,
+        curr_state: dict,
+        prev_H: float = 0.5,
+        curr_H: float = 0.5,
+        force: float = 0.0,
+    ) -> dict:
         violations = []
         if not self.check_spatial_momentum(prev_state, curr_state, force):
             violations.append("spatial_momentum")

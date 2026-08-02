@@ -1,3 +1,12 @@
+---
+name: surrealdb_mock_persistence_prime
+description: "Standardized Cohezion platform PRIME skill for surrealdb_mock_persistence_prime."
+category: core
+tags: [skill, prime, cohezion]
+metadata:
+  version: "1.0.0"
+---
+
 # SKILL: SURREALDB_MOCK_PERSISTENCE_PRIME
 
 ## DOMAIN EXPERTISE

@@ -53,13 +53,12 @@ Store and visualize semantic data in 12D physics space.
 ### API Call (via SurrealDB MCP)
 ```python
 from cohezion.mcp.surreal_server import get_server
+
 server = get_server()
 
 # Store node with physics state
 await server.store_node(
-    content="My research finding",
-    node_type="research",
-    physics={"sentiment": 0.8, "novelty": 0.9}
+    content="My research finding", node_type="research", physics={"sentiment": 0.8, "novelty": 0.9}
 )
 ```
 

@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "forge_repo_forge_1785426587",
+    "universe_id": "universe-flume-forge",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-30T11:51:55"
+  },
+  "nodes": [
+    {
+      "id": "evo_forge_repo_forge_1785426587_step_1",
+      "label": "EVO Step 1: Local silicon audited codebase",
+      "agent_id": "forge_repo_forge_1785426587",
+      "topology": "instanton",
+      "confidence": 0.08096964401625897,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.2101,
+        -1.8308,
+        1.6572,
+        -0.5393,
+        0.0836,
+        -1.1537,
+        -2.451,
+        0.8275,
+        0.0042,
+        -0.2378,
+        0.0428,
+        0.9585
+      ],
+      "color": "#ff0055",
+      "size": 6.323878576065036
+    },
+    {
+      "id": "evo_forge_repo_forge_1785426587_step_2",
+      "label": "EVO Step 2: Ollama cloud researched 4 blee",
+      "agent_id": "forge_repo_forge_1785426587",
+      "topology": "trivial",
+      "confidence": 0.3503390363663516,
+      "coherence": 0.85,
+      "state_12d": [
+        0.8202,
+        0.61,
+        0.3476,
+        0.8093,
+        0.8379,
+        1.2957,
+        0.3704,
+        2.722,
+        -1.6942,
+        -0.0545,
+        0.5718,
+        -1.5713
+      ],
+      "color": "#78909c",
+      "size": 7.401356145465407
+    },
+    {
+      "id": "evo_forge_repo_forge_1785426587_step_3",
+      "label": "EVO Step 3: Synthesized comparative recomm",
+      "agent_id": "forge_repo_forge_1785426587",
+      "topology": "trivial",
+      "confidence": 0.30977525428434277,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.5448,
+        -0.8071,
+        0.0798,
+        1.0949,
+        0.7574,
+        0.3239,
+        1.2358,
+        0.5018,
+        0.0672,
+        1.0495,
+        0.5923,
+        -1.3411
+      ],
+      "color": "#78909c",
+      "size": 7.239101017137371
+    },
+    {
+      "id": "evo_forge_repo_forge_1785426587_step_4",
+      "label": "EVO Step 4: Exported repo_health_and_forge",
+      "agent_id": "forge_repo_forge_1785426587",
+      "topology": "soliton",
+      "confidence": 0.4993754442647308,
+      "coherence": 0.85,
+      "state_12d": [
+        1.0985,
+        0.1998,
+        0.6324,
+        0.5326,
+        -0.7666,
+        -0.9831,
+        -1.0629,
+        -0.835,
+        0.2257,
+        0.6683,
+        0.4252,
+        0.305
+      ],
+      "color": "#00e5ff",
+      "size": 7.997501777058924
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_forge_repo_forge_1785426587_step_1",
+      "target": "evo_forge_repo_forge_1785426587_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_forge_repo_forge_1785426587_step_2",
+      "target": "evo_forge_repo_forge_1785426587_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_forge_repo_forge_1785426587_step_3",
+      "target": "evo_forge_repo_forge_1785426587_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

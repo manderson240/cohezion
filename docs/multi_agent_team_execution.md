@@ -46,11 +46,11 @@ Return TeamExecutionResult with all outcomes
 class AgentTask:
     """Single task in a team execution."""
 
-    task_id: str              # Unique task identifier
-    agent_id: str             # Which agent executes this task
-    description: str          # Human-readable task description
-    operation_type: str       # "generate", "analyze", "search", etc.
-    dependencies: list[str]   # task_ids that must complete first
+    task_id: str  # Unique task identifier
+    agent_id: str  # Which agent executes this task
+    description: str  # Human-readable task description
+    operation_type: str  # "generate", "analyze", "search", etc.
+    dependencies: list[str]  # task_ids that must complete first
     available_skills: list[str] = None  # Candidate skills to choose from
     timeout_seconds: float = 300.0
     execute_fn: Callable = None  # Custom execution function
@@ -66,9 +66,9 @@ class AgentTaskResult:
     task_id: str
     agent_id: str
     success: bool
-    output: str                    # Task output
-    metrics: dict[str, Any]        # Coherence, efficiency, etc.
-    selected_skill: str            # Which skill was selected
+    output: str  # Task output
+    metrics: dict[str, Any]  # Coherence, efficiency, etc.
+    selected_skill: str  # Which skill was selected
     execution_result: ExecutionResult = None  # Full execution details
     error: str | None = None
 ```
@@ -80,11 +80,11 @@ class AgentTaskResult:
 class TeamExecutionResult:
     """Overall outcome of team execution."""
 
-    success: bool                  # True if all tasks succeeded
+    success: bool  # True if all tasks succeeded
     tasks_executed: int
     tasks_failed: int
     results: list[AgentTaskResult]  # Per-task results
-    compound_score: float          # 0.0-1.0 team performance metric
+    compound_score: float  # 0.0-1.0 team performance metric
     execution_time_seconds: float
     errors: list[str] = field(default_factory=list)
 ```
@@ -187,6 +187,7 @@ def custom_analyzer(guidance):
     """Custom execution logic with vault guidance."""
     return f"Analyzed with {guidance}", {"coherence": 0.88}
 
+
 task = AgentTask(
     task_id="custom_analysis",
     agent_id="analyst",
@@ -251,8 +252,9 @@ tasks = [
     AgentTask("analyze_a", "agent2", "Analyze A", "analyze", ["gather"]),
     AgentTask("analyze_b", "agent3", "Analyze B", "analyze", ["gather"]),
     AgentTask("analyze_c", "agent1", "Analyze C", "analyze", ["gather"]),
-    AgentTask("consolidate", "agent2", "Consolidate", "transform",
-              ["analyze_a", "analyze_b", "analyze_c"]),
+    AgentTask(
+        "consolidate", "agent2", "Consolidate", "transform", ["analyze_a", "analyze_b", "analyze_c"]
+    ),
 ]
 ```
 
@@ -264,11 +266,8 @@ tasks = [
     # Stage 1: Parallel information gathering
     AgentTask("search_web", "agent1", "Search web", "search", []),
     AgentTask("search_docs", "agent2", "Search docs", "search", []),
-
     # Stage 2: Analysis (depends on stage 1)
-    AgentTask("analyze", "agent3", "Analyze results", "analyze",
-              ["search_web", "search_docs"]),
-
+    AgentTask("analyze", "agent3", "Analyze results", "analyze", ["search_web", "search_docs"]),
     # Stage 3: Report (depends on stage 2)
     AgentTask("report", "agent1", "Generate report", "generate", ["analyze"]),
 ]
@@ -307,18 +306,17 @@ Without `available_skills`, all skills are candidates.
 
 ```python
 # For each task result:
-success_rate = successful_tasks / total_tasks      # 0.0-1.0
+success_rate = successful_tasks / total_tasks  # 0.0-1.0
 
 # Average metrics from successful tasks
 avg_coherence = mean(r.metrics["coherence"] for r in successful)
-avg_efficiency = mean(r.execution_result.cache_hit_rate
-                     for r in successful)
+avg_efficiency = mean(r.execution_result.cache_hit_rate for r in successful)
 
 # Weighted combination
 compound_score = (
-    success_rate * 0.60 +      # Success is primary (60%)
-    avg_coherence * 0.25 +     # Quality of outputs (25%)
-    avg_efficiency * 0.15      # Token efficiency (15%)
+    success_rate * 0.60  # Success is primary (60%)
+    + avg_coherence * 0.25  # Quality of outputs (25%)
+    + avg_efficiency * 0.15  # Token efficiency (15%)
 )
 ```
 
@@ -530,7 +528,7 @@ except ValueError as e:
 ```python
 task = AgentTask(
     ...,
-    timeout_seconds=600.0  # 10 minutes instead of 5
+    timeout_seconds=600.0,  # 10 minutes instead of 5
 )
 ```
 

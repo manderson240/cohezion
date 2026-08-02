@@ -68,7 +68,9 @@ You are a specialist in **semantic physics** - modeling knowledge and thought as
 from cohezion.physics.dimension_extractor import PhysicsState
 
 state = PhysicsState(
-    x=0.5, y=0.5, z=0.5,
+    x=0.5,
+    y=0.5,
+    z=0.5,
     time=0.0,
     mass=0.8,
     sentiment=0.7,

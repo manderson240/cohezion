@@ -7,6 +7,7 @@ escalation queue, NOT the orchestrator.
 Usage:  uv run python scripts/gaia_orchestrator.py "<task>"
 Escalations -> ~/.cohezion/advice_queue.jsonl  (paste entries to Claude when they appear).
 """
+
 from __future__ import annotations
 
 import json
@@ -16,34 +17,58 @@ from pathlib import Path
 
 import httpx
 
+
 LEMONADE = "http://localhost:13305/v1/chat/completions"
-PLAN_MODEL = "DeepSeek-Qwen3-8B-GGUF"   # reasoning lane (planning)
-DEV_MODEL = "Gemma-4-26B-A4B-it-GGUF"   # generation lane
-QA_MODEL = "Bonsai-8B-gguf"             # non-thinking QA judge (the BMAD QA "knot")
+PLAN_MODEL = "DeepSeek-Qwen3-8B-GGUF"  # reasoning lane (planning)
+DEV_MODEL = "Gemma-4-26B-A4B-it-GGUF"  # generation lane
+QA_MODEL = "Bonsai-8B-gguf"  # non-thinking QA judge (the BMAD QA "knot")
 ADVICE = Path.home() / ".cohezion" / "advice_queue.jsonl"
 
 
 def chat(model: str, prompt: str, max_tokens: int = 800) -> str:
     try:
-        r = httpx.post(LEMONADE, json={"model": model, "messages": [{"role": "user", "content": prompt}],
-                                       "max_tokens": max_tokens, "temperature": 0.2}, timeout=240)
+        r = httpx.post(
+            LEMONADE,
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens,
+                "temperature": 0.2,
+            },
+            timeout=240,
+        )
         return r.json()["choices"][0]["message"]["content"].strip()
     except Exception as e:
         return f"(local inference error: {e})"
 
 
 def qa_judge(task: str, output: str) -> tuple[bool, str]:
-    v = chat(QA_MODEL, f"Grade if OUTPUT satisfies TASK.\nTASK: {task}\nOUTPUT:\n{output}\n\n"
-                       "Reply ONE line: 'PASS' or 'FAIL: <reason>'.", 120)
+    v = chat(
+        QA_MODEL,
+        f"Grade if OUTPUT satisfies TASK.\nTASK: {task}\nOUTPUT:\n{output}\n\n"
+        "Reply ONE line: 'PASS' or 'FAIL: <reason>'.",
+        120,
+    )
     return v.upper().startswith("PASS"), v
 
 
 def escalate(task: str, question: str, context: str) -> None:
     ADVICE.parent.mkdir(exist_ok=True)
     with ADVICE.open("a") as f:
-        f.write(json.dumps({"ts": time.strftime("%Y-%m-%d %H:%M"), "task": task,
-                            "question": question, "context": context[:600]}) + "\n")
-    print(f"\n[ESCALATED → Claude advisor] {question}\n  queued: {ADVICE}  (paste it to Claude for advice)")
+        f.write(
+            json.dumps(
+                {
+                    "ts": time.strftime("%Y-%m-%d %H:%M"),
+                    "task": task,
+                    "question": question,
+                    "context": context[:600],
+                }
+            )
+            + "\n"
+        )
+    print(
+        f"\n[ESCALATED → Claude advisor] {question}\n  queued: {ADVICE}  (paste it to Claude for advice)"
+    )
 
 
 def run(task: str, max_rounds: int = 3) -> str | None:
@@ -57,8 +82,16 @@ def run(task: str, max_rounds: int = 3) -> str | None:
         if ok:
             print(f"\n=== RESULT (local, $0) ===\n{last}")
             return last
-        plan = chat(PLAN_MODEL, f"Previous attempt FAILED QA ({verdict[:80]}). Revise the plan:\n{task}", 400)
-    escalate(task, f"Local loop failed QA {max_rounds}x — need advice.", f"task={task}\nlast_output={last}")
+        plan = chat(
+            PLAN_MODEL,
+            f"Previous attempt FAILED QA ({verdict[:80]}). Revise the plan:\n{task}",
+            400,
+        )
+    escalate(
+        task,
+        f"Local loop failed QA {max_rounds}x — need advice.",
+        f"task={task}\nlast_output={last}",
+    )
     return None
 
 

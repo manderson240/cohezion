@@ -274,13 +274,12 @@ async def main(hours: float = 9.5, use_llm: bool = True) -> None:
     spec.loader.exec_module(evo)  # type: ignore[attr-defined]
 
     # autocontext: context pressure monitor + experiment compressor
-    from cohezion.research.autocontext import budget as ctx_budget
-    from cohezion.research.autocontext import compress as ctx_compress
-    from cohezion.research.autocontext import monitor as ctx_monitor
-
     # Wire the persistence stack (mirrors overnight_evo_loop.main())
     from cohezion.core.journey_worker import get_journey_worker
     from cohezion.core.telemetry_bus import get_telemetry_bus
+    from cohezion.research.autocontext import budget as ctx_budget
+    from cohezion.research.autocontext import compress as ctx_compress
+    from cohezion.research.autocontext import monitor as ctx_monitor
 
     bus = get_telemetry_bus()
     worker = get_journey_worker()

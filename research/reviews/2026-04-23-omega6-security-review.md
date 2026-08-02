@@ -243,10 +243,7 @@ The cost-control mechanism is implemented but not enforced at any HTTP boundary.
 **File:** `src/cohezion/mcp/manager.py:122,252`
 
 ```python
-server.process = await asyncio.create_subprocess_shell(
-    server.start_command,
-    ...
-)
+server.process = await asyncio.create_subprocess_shell(server.start_command, ...)
 ```
 
 `MCPManager.register_server` accepts `start_command: str` from the caller. If any path lets an external request reach `register_server` (today none does inside the API surface, but `MCPManager` is publicly exported), this is RCE. The `manager/server_manager.py` (the newer, used implementation) gets it right with a list-form Popen and validation; `manager.py` is the legacy file that should be removed or hardened. Module-level export risks regression.

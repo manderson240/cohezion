@@ -29,16 +29,18 @@ import asyncio
 from pathlib import Path
 from cohezion.mcp.servers.doc.indexer import create_indexer, index_bmad_docs
 
+
 async def test_indexing():
     # Create indexer
     indexer = await create_indexer()
-    
+
     # Index BMAD docs
     results = await index_bmad_docs()
-    
+
     print(f"Indexed {len(results)} modules")
     for lib_id, result in results.items():
         print(f"  {lib_id}: {result['chunks_created']} chunks")
+
 
 asyncio.run(test_indexing())
 ```
@@ -48,21 +50,19 @@ asyncio.run(test_indexing())
 ```python
 from cohezion.mcp.servers.doc.indexer import create_indexer
 
+
 async def test_retrieval():
     indexer = await create_indexer()
-    
+
     # Retrieve docs
-    result = await indexer.retrieve(
-        query="create a PRD",
-        library_id="bmad/bmm",
-        max_tokens=2000
-    )
-    
+    result = await indexer.retrieve(query="create a PRD", library_id="bmad/bmm", max_tokens=2000)
+
     print(f"Found {result['chunk_count']} chunks")
     print(f"Total tokens: {result['total_tokens']}")
-    
-    for chunk in result['chunks']:
+
+    for chunk in result["chunks"]:
         print(f"\nChunk: {chunk['content'][:200]}...")
+
 
 asyncio.run(test_retrieval())
 ```

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — Pre-Commit SemVer & Fast Verification Hook
+# Validates pyproject.toml version sync & import smoke before commit creation
+
+set -eo pipefail
+
+echo "== [Git Pre-Commit Hook] Validating SemVer & Module Imports =="
+
+# 1. Run Version Governance Check
+uv run python scripts/ci/version_governance.py
+
+# 2. Run Fast Import Smoke Test
+uv run pytest tests/unit/test_import_smoke.py -q --tb=short -p no:warnings
+
+echo "✓ Pre-commit SemVer & Import Smoke checks PASSED."

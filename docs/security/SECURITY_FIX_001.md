@@ -191,12 +191,14 @@ if not result.is_valid:
     print(f"Path rejected: {result.message}")
 
 # Validate metrics data
-metrics, result = validate_and_parse_metrics({
-    "batch_size": 32,
-    "task_count": 32,
-    "throughput": 100.0,
-    "execution_time": 1.0,
-})
+metrics, result = validate_and_parse_metrics(
+    {
+        "batch_size": 32,
+        "task_count": 32,
+        "throughput": 100.0,
+        "execution_time": 1.0,
+    }
+)
 
 if metrics:
     print(f"Valid metrics: {metrics}")
@@ -321,13 +323,13 @@ If issues occur:
 
 ```python
 # Validation success rate
-validation_rate = stats['accepted'] / stats['total_attempts']
+validation_rate = stats["accepted"] / stats["total_attempts"]
 
 # Security event rate
 security_rate = security_events / total_requests
 
 # Rejection breakdown
-rejection_reasons = stats['by_reason']
+rejection_reasons = stats["by_reason"]
 ```
 
 ### Alerts

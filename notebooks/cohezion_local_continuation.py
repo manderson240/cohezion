@@ -148,7 +148,7 @@ app._unparsable_cell(
     r"""
     works')
     """,
-    name="_"
+    name="_",
 )
 
 

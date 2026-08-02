@@ -4,7 +4,11 @@
 Run after a serial merge cascade makes all open merge/* PRs CONFLICTING.
 """
 
-import subprocess, sys, json, time
+import json
+import subprocess
+import sys
+import time
+
 
 REPO = "/home/mike-anderson/dev/cohezion"
 LOG_FILE = f"{REPO}/autoresearch-prs.jsonl"

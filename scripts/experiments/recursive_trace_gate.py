@@ -18,6 +18,7 @@ Today this prints UNPROVEN for every domain because the corpus is empty — the 
 current state. It flips to KEEP/RETIRE per domain the moment real pairs accumulate, with
 zero code change.
 """
+
 from __future__ import annotations
 
 from cohezion.recursive_trace.coupling_analysis import analyze_domain
@@ -44,8 +45,7 @@ def main() -> int:
     # Bonferroni: a domain is "testable" iff it clears the volume floor; correct alpha
     # by the number of testable domains so KEEP-if-any doesn't inflate family-wise error.
     testable = sum(
-        1 for p in pairs_by_domain.values()
-        if analyze_domain(p)["verdict"] != "UNPROVEN"
+        1 for p in pairs_by_domain.values() if analyze_domain(p)["verdict"] != "UNPROVEN"
     )
     alpha = 0.05 / testable if testable else 0.05
     if testable > 1:

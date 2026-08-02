@@ -21,6 +21,7 @@ import math
 import sys
 from pathlib import Path
 
+
 logger = logging.getLogger("neurogolf_bench")
 
 # ── Config ─────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ C = 10  # ARC color count
 
 # ── Scoring (same formula as competition) ──────────────────────────────────
 
+
 def score_params(n_params: int) -> float:
     """Score from ONNX parameter count. 0 params → 25.00 (max)."""
     if n_params == 0:
@@ -38,7 +40,9 @@ def score_params(n_params: int) -> float:
     memory = n_params * 4  # float32 = 4 bytes
     return max(1.0, 25.0 - math.log(max(1.0, memory + n_params)))
 
+
 # ── Task analysis ──────────────────────────────────────────────────────────
+
 
 def classify_task(data: dict) -> str:
     all_same = all_up = all_down = True
@@ -181,6 +185,7 @@ def analyze_task(task_num: int, data: dict) -> dict:
 
 # ── Main ────────────────────────────────────────────────────────────────────
 
+
 def run_benchmark(
     task_nums: list[int] | None = None,
     fast_paths_only: bool = False,
@@ -229,16 +234,19 @@ def run_benchmark(
     print(f"NEUROGOLF BENCHMARK — {len(targets)} tasks")
     print("=" * 60)
     for fp, tasks in sorted(by_path.items(), key=lambda x: -len(x[1])):
-        pts = sum(score_params(0) if fp != "tinyconv" else score_params(128)
-                  for _ in tasks)
+        pts = sum(score_params(0) if fp != "tinyconv" else score_params(128) for _ in tasks)
         prefix = "★" if fp not in ("tinyconv", "none") else " "
         print(f"  {prefix} {fp:<20} {len(tasks):4d} tasks  {pts:7.2f} pts")
     print("-" * 60)
     fast_path_tasks = len(solved_fp)
-    print(f"  Fast-path solved:     {fast_path_tasks:4d} tasks  {total_pts_fp:7.2f} pts (avg {total_pts_fp/max(1,fast_path_tasks):.2f})")
+    print(
+        f"  Fast-path solved:     {fast_path_tasks:4d} tasks  {total_pts_fp:7.2f} pts (avg {total_pts_fp / max(1, fast_path_tasks):.2f})"
+    )
     print(f"  Total estimated:                       {total_score:7.2f} pts")
     if len(available) > 0:
-        print(f"  Coverage:             {fast_path_tasks}/{len(targets)} ({100*fast_path_tasks/len(targets):.1f}%)")
+        print(
+            f"  Coverage:             {fast_path_tasks}/{len(targets)} ({100 * fast_path_tasks / len(targets):.1f}%)"
+        )
     print("=" * 60)
 
     # Persist

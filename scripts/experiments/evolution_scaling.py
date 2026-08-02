@@ -31,8 +31,9 @@ import re
 import sys
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # Reuse the existing compound trend tracker (compound principle: don't rebuild).
 try:
@@ -44,6 +45,7 @@ ROUTER_URL = "http://localhost:13305/v1/chat/completions"
 MODEL = "Granite-4.1-8B-GGUF"
 CYCLES = 6  # cycle 0 = base skill (no additions) for all arms; 1..5 add one item/cycle
 import os
+
 
 MAX_TOKENS = int(os.environ.get("EVOSCALE_MAX_TOKENS", "60"))
 TIMEOUT_S = 30
@@ -245,7 +247,7 @@ def run() -> dict:
         "evolve_trend": round(trend("evolve"), 5),
         "final": {a: round(curves[a][-1], 4) for a in arms},
         "hypothesis_supported": supported,
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
     }
 
     print("-" * 38)
@@ -266,7 +268,7 @@ def run_closed_loop() -> dict:
     untargeted writing advice. Now the x-axis IS evolution steps, so this tests P*(C_evolve).
     """
     arms = ["evolve_llm", "static", "placebo"]
-    skills: dict[str, str] = {a: BASE_SKILL for a in arms}
+    skills: dict[str, str] = dict.fromkeys(arms, BASE_SKILL)
     curves: dict[str, list[float]] = {a: [] for a in arms}
     evolver_hints: list[str] = []  # transparency: what the evolver actually wrote
 
@@ -343,7 +345,7 @@ def run_closed_loop() -> dict:
         "slope": round(slope("evolve_llm"), 5),
         "final": {a: round(curves[a][-1], 4) for a in arms},
         "hypothesis_supported": supported,
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
     }
 
 

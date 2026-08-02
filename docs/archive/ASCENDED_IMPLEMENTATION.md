@@ -106,9 +106,9 @@ This implementation establishes the foundation for **ASCENDED COHEZION**: an aut
 
 **Request Types**:
 ```python
-- TTSRequest(text, voice, speed, language)
-- ImageRequest(prompt, width, height, model, steps)
-- VideoRequest(prompt, width, height, frames, fps)
+-TTSRequest(text, voice, speed, language)
+-ImageRequest(prompt, width, height, model, steps)
+-VideoRequest(prompt, width, height, frames, fps)
 ```
 
 ---
@@ -260,6 +260,7 @@ result = await orchestrator.generate_tts(request)
 
 # Generate image (requires mode switch)
 from cohezion.swarm.mode_controller import get_mode_controller, SystemMode
+
 controller = get_mode_controller()
 await controller.switch_mode(SystemMode.IMAGE_WORK)
 ```

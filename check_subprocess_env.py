@@ -1,6 +1,8 @@
 """Check if the evaluator Python has all imports required by arc_solver."""
+
 import importlib
 import sys
+
 targets = ["torch", "requests", "numpy"]
 missing = []
 for mod in targets:

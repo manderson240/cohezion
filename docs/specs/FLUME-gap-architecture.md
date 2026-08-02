@@ -259,40 +259,47 @@ tests/validation/
 @dataclass
 class TrajectoryRecord:
     """Single point in a trajectory, used across all gaps."""
+
     timestamp: float
     agent_id: str
-    operation_type: str                    # One of OPERATION_TYPES
-    trajectory_12d: np.ndarray             # (12,) canonical labels
-    metrics: dict[str, float]              # METRIC_KEYS
-    task_outcome: TaskOutcome | None       # Gap 3: independent success measure
-    claude_trace: ClaudeTrace | None       # Gap 1: raw Claude observables
-    causal_context: CausalContext | None   # Gap 2: what caused this point
+    operation_type: str  # One of OPERATION_TYPES
+    trajectory_12d: np.ndarray  # (12,) canonical labels
+    metrics: dict[str, float]  # METRIC_KEYS
+    task_outcome: TaskOutcome | None  # Gap 3: independent success measure
+    claude_trace: ClaudeTrace | None  # Gap 1: raw Claude observables
+    causal_context: CausalContext | None  # Gap 2: what caused this point
+
 
 @dataclass
 class TaskOutcome:
     """Independent outcome measure, NOT derived from coherence."""
-    test_pass_rate: float | None           # 0.0-1.0 if applicable
-    output_quality_rating: float | None    # Human or auto-rated
+
+    test_pass_rate: float | None  # 0.0-1.0 if applicable
+    output_quality_rating: float | None  # Human or auto-rated
     task_completed: bool
     error_count: int
     wall_time_seconds: float
 
+
 @dataclass
 class ClaudeTrace:
     """Observable outputs from Claude execution."""
-    thinking_text: str | None              # Extended thinking
-    tool_calls: list[dict]                 # Tool invocations
-    output_text: str                       # Final output
-    model_id: str                          # Which Claude model
+
+    thinking_text: str | None  # Extended thinking
+    tool_calls: list[dict]  # Tool invocations
+    output_text: str  # Final output
+    model_id: str  # Which Claude model
     input_tokens: int
     output_tokens: int
+
 
 @dataclass
 class CausalContext:
     """Causal factors for a trajectory point."""
-    input_features: dict[str, float]       # What went in
-    decision_points: list[str]             # Key routing decisions
-    active_control_loops: list[str]        # What feedback was active
+
+    input_features: dict[str, float]  # What went in
+    decision_points: list[str]  # Key routing decisions
+    active_control_loops: list[str]  # What feedback was active
 ```
 
 ### ExperimentResult (shared across all gaps)
@@ -301,15 +308,16 @@ class CausalContext:
 @dataclass
 class ExperimentResult:
     """Standard result format for any gap experiment."""
+
     experiment_id: str
     gap_number: int
     hypothesis: str
     method: str
     data_points: int
-    result: dict[str, Any]                 # Gap-specific metrics
-    conclusion: str                        # "supported", "refuted", "inconclusive"
-    confidence: float                      # 0.0-1.0
-    artifacts: list[str]                   # Paths to saved data/plots
+    result: dict[str, Any]  # Gap-specific metrics
+    conclusion: str  # "supported", "refuted", "inconclusive"
+    confidence: float  # 0.0-1.0
+    artifacts: list[str]  # Paths to saved data/plots
     timestamp: float
 ```
 

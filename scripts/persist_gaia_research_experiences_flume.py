@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-import sys
-import os
 import asyncio
+import os
+import sys
 from pathlib import Path
+
 import numpy as np
+
 
 # Ensure path is set
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
@@ -11,10 +13,10 @@ sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 # Escape hatch for local dev credentials
 os.environ["COHEZION_ALLOW_INSECURE_SURREAL"] = "1"
 
-from cohezion.flume.vacuum_encoder import encode_journey_text
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.flume.coe_evaluator import ChainOfEmbeddingEvaluator
+from cohezion.flume.vacuum_encoder import encode_journey_text
 from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 
 async def main():

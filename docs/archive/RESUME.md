@@ -85,11 +85,13 @@ def _(mo, condition):
     if condition:
         return mo.md("content")  # ERROR!
 
+
 # ✅ CORRECT - Use mo.stop() for conditional display
-@app.cell  
+@app.cell
 def _(mo, condition):
     mo.stop(not condition)  # Stops cell if condition is false
     mo.md("content")  # Just call, don't return
+
 
 # ✅ CORRECT - Variable assignment for if/else
 @app.cell

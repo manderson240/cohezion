@@ -48,6 +48,23 @@ logger = logging.getLogger(__name__)
 # all reasoning hidden in reasoning_content. Fall back to reasoning_content in that case.
 _REASONING_MIN_TOKENS = 50
 
+# Shared connection pool for local & cloud endpoints (:13305, :11434) to eliminate WAN/socket overhead
+_SHARED_HTTP_CLIENT: httpx.AsyncClient | None = None
+
+
+def _get_shared_client(timeout: float) -> httpx.AsyncClient:
+    """Get or instantiate the singleton persistent AsyncClient pool."""
+    global _SHARED_HTTP_CLIENT
+    if _SHARED_HTTP_CLIENT is None or _SHARED_HTTP_CLIENT.is_closed:
+        limits = httpx.Limits(
+            max_keepalive_connections=50, max_connections=200, keepalive_expiry=60.0
+        )
+        _SHARED_HTTP_CLIENT = httpx.AsyncClient(
+            limits=limits,
+            timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout),
+        )
+    return _SHARED_HTTP_CLIENT
+
 
 @dataclass
 class RouteResult:
@@ -202,12 +219,13 @@ async def _dispatch_openai_compatible(
     payload = _inject_symmetry_axis(payload, coherence)
 
     if not stream:
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
-        ) as client:
-            resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
+        client = _get_shared_client(timeout)
+        resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
+        try:
             resp.raise_for_status()
             data = resp.json()
+        finally:
+            await resp.aclose()
         msg = data["choices"][0]["message"]
         content = msg.get("content") or ""
         reasoning = msg.get("reasoning_content") or ""
@@ -400,14 +418,23 @@ async def _dispatch_headless_cli(
     stdout = stdout_b.decode(errors="replace")
     try:
         data = json.loads(stdout)
-        text = (
-            data.get("result")
-            or data.get("text")
-            or data.get("response")
-            or data.get("content")
-            or ""
-        )
-        cost = float(data.get("total_cost_usd", 0.0))
+        if isinstance(data, dict):
+            text = (
+                data.get("result")
+                or data.get("text")
+                or data.get("response")
+                or data.get("content")
+                or ""
+            )
+            cost = float(data.get("total_cost_usd", 0.0))
+        elif isinstance(data, list):
+            # Limit serialized payload to max 100 items to prevent DoS memory exhaustion
+            bounded_list = data[:100]
+            text = json.dumps(bounded_list)
+            cost = 0.0
+        else:
+            text = str(data)
+            cost = 0.0
     except json.JSONDecodeError:
         text = stdout.strip()
         cost = 0.0
@@ -434,7 +461,7 @@ async def _dispatch_one(
     if model.lane in {Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI, Lane.CLOUD_AGY}:
         text, cost = await _dispatch_headless_cli(model, prompt, timeout, budget_usd)
         return text, cost, None, None
-    if model.lane == Lane.CLOUD_OLLAMA or (
+    if (model.lane == Lane.CLOUD_OLLAMA and model.endpoint.endswith(":11434")) or (
         model.lane == Lane.CPU and model.endpoint.endswith(":11434")
     ):
         text, cost = await _dispatch_ollama(model, prompt, timeout)
@@ -814,19 +841,27 @@ async def extend_claude_aligned(
         )
 
     for _ in range(max_local_attempts):
-        text, cost, _ttft, _tps = await _dispatch_one(
-            registry.models[params.model_id], prompt, None, timeout
-        )
-        local_result = RouteResult(
-            text=text,
-            model=params.model_id,
-            lane=str(registry.models[params.model_id].lane.value),
-            latency_ms=0.0,
-            cost_usd=cost,
-            self_reported_confidence=None,
-            escalated_to_cloud=False,
-            error=None if text else "empty",
-        )
+        try:
+            text, cost, _ttft, _tps = await _dispatch_one(
+                registry.models[params.model_id], prompt, None, timeout
+            )
+            local_result = RouteResult(
+                text=text,
+                model=params.model_id,
+                lane=str(registry.models[params.model_id].lane.value),
+                latency_ms=0.0,
+                cost_usd=cost,
+                self_reported_confidence=None,
+                escalated_to_cloud=False,
+                error=None if text else "empty",
+            )
+        except Exception as err:
+            logger.warning(
+                "Local dispatch to %s failed (%s); escalating to cloud fallback",
+                params.model_id,
+                err,
+            )
+            break
         confidence = local_result.self_reported_confidence
         length_ok = local_result.error is None and len(local_result.text) >= 40
         confidence_ok = confidence is None or confidence >= quality_threshold
@@ -838,9 +873,14 @@ async def extend_claude_aligned(
             confidence,
         )
 
-    cloud_text, cloud_cost, _ttft, _tps = await _dispatch_one(
-        registry.models[claude_model], prompt, None, timeout
-    )
+    try:
+        cloud_text, cloud_cost, _ttft, _tps = await _dispatch_one(
+            registry.models[claude_model], prompt, None, timeout
+        )
+    except Exception as err:
+        logger.error("Cloud fallback dispatch failed: %s", err)
+        cloud_text, cloud_cost = f"Error: cloud dispatch failed: {err}", 0.0
+
     return RouteResult(
         text=cloud_text,
         model=claude_model,
@@ -849,5 +889,5 @@ async def extend_claude_aligned(
         cost_usd=cloud_cost,
         self_reported_confidence=None,
         escalated_to_cloud=True,
-        error=None if cloud_text else "empty",
+        error=None if cloud_text and not cloud_text.startswith("Error:") else "cloud_failed",
     )

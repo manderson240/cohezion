@@ -78,12 +78,18 @@ curl -s -X POST http://localhost:13305/v1/load \
 ```python
 def _recover_npu(base_url: str, model: str = "llama3.2-1b-FLM") -> bool:
     import json, time, urllib.request
+
     try:
-        for path, body in [("/v1/unload", {"model_name": model}),
-                           ("/v1/load", {"model_name": model, "ctx_size": 16384})]:
-            req = urllib.request.Request(f"{base_url}{path}",
+        for path, body in [
+            ("/v1/unload", {"model_name": model}),
+            ("/v1/load", {"model_name": model, "ctx_size": 16384}),
+        ]:
+            req = urllib.request.Request(
+                f"{base_url}{path}",
                 data=json.dumps(body).encode(),
-                headers={"Content-Type": "application/json"}, method="POST")
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
             urllib.request.urlopen(req, timeout=30)
         time.sleep(3)
         return True

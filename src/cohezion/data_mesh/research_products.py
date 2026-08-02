@@ -384,7 +384,7 @@ def _emit_data_product_event(finding: ResearchFinding) -> bool:
         "priority = 0;"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
         with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
@@ -400,7 +400,7 @@ def _existing_card_urls() -> set[str]:
     """
     sql = "SELECT url FROM kanban_item WHERE type = 'research-finding';"
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
         with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310

@@ -492,46 +492,14 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "Uses 1024-token sliding window attention."
             ),
         ),
-        # --- Task-specialist models via Ollama (:11434) ---
-        ModelEntry(
-            model_id="phi4:latest",
-            lane=Lane.CPU,
-            endpoint="http://localhost:11434",
-            runtime_backend="",
-            task_affinity=frozenset({Task.REASONING, Task.GENERAL}),
-            weight_quant=WeightQuant.Q4_K_M,
-            context_window=16384,
-            priority=50,
-            verified_working=True,
-            notes="Verified live via Ollama :11434",
-        ),
-        ModelEntry(
-            model_id="qwen3-coder:30b",
-            lane=Lane.CPU,
-            endpoint="http://localhost:11434",
-            runtime_backend="",
-            task_affinity=frozenset({Task.CODE_GEN, Task.LONG_HORIZON}),
-            weight_quant=WeightQuant.Q4_K_M,
-            # 2026-04-21: raised 32768 → 262144 per HF card (256K native, up to 1M
-            # via YARN). Prior 32768 was the card's explicit OOM fallback value,
-            # not the native context. Added LONG_HORIZON to task_affinity because
-            # 256K is "repository-scale understanding" territory per the card.
-            context_window=262144,
-            priority=30,
-            notes=(
-                "Code generation specialist. Native 256K context (repository-scale); "
-                "YARN extension to 1M. Reduce to ctx=32768 if OOM per model card guidance."
-            ),
-        ),
+        # --- Task-specialist models via Lemonade OmniRouter (:13305) ---
         ModelEntry(
             model_id="deepseek-r1:70b",
-            lane=Lane.CPU,
-            endpoint="http://localhost:11434",
-            runtime_backend="",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13305",
+            runtime_backend="lemonade",
             task_affinity=frozenset({Task.LONG_HORIZON, Task.REASONING, Task.MATH}),
             weight_quant=WeightQuant.Q4_K_M,
-            # 2026-04-21: raised 32768 → 131072 per HF card (128K from base
-            # Llama-3.3-70B-Instruct). Added MATH to task_affinity per R1's
             # published strengths. Generation guidance from model card:
             #   temperature=0.6 (0.5-0.7 range to avoid repetition/incoherence)
             #   top_p=0.95, max_tokens=32768

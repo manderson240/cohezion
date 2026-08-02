@@ -34,10 +34,7 @@ if risk_score > 0.8:
 
 ### 2. Synthesize Test
 ```python
-test_code = agent.generate_test(
-    source_code=file_content,
-    context=dependencies
-)
+test_code = agent.generate_test(source_code=file_content, context=dependencies)
 ```
 
 ## VERSION

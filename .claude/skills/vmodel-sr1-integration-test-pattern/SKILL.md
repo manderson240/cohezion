@@ -39,13 +39,13 @@ def test_boundary_skill_refined_first():
         "cohezion.compound.skill_refiner.VaultNeuronWriter.get_instance",
         return_value=mock_vnw,
     ):
-        refiner = SkillRefiner(mcp_client=None)   # REAL SkillRefiner
+        refiner = SkillRefiner(mcp_client=None)  # REAL SkillRefiner
         refine_calls = []
         refiner.refine = lambda skill_name, **kwargs: refine_calls.append(skill_name)
 
         ex = CompoundExecutor(
             mcp_client=None,
-            skill_refiner=refiner,        # REAL refiner injected
+            skill_refiner=refiner,  # REAL refiner injected
             enable_skill_refinement=True,
             enable_guardrails=False,
         )

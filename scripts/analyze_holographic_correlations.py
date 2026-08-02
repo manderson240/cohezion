@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import sys
-import os
-import json
 import asyncio
+import json
+import os
+import sys
 from pathlib import Path
-from datetime import datetime
+
 import numpy as np
+
 
 # Ensure path is set
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
@@ -13,10 +14,10 @@ sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 # Escape hatch for credentials
 os.environ["COHEZION_ALLOW_INSECURE_SURREAL"] = "1"
 
-from cohezion.storage.surreal_client import SurrealDBClient, TrajectoryNode
-from cohezion.swarm.cost_aware_router import CostAwareRouter, QueryComplexity
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.storage.surreal_client import SurrealDBClient
+from cohezion.swarm.cost_aware_router import CostAwareRouter, QueryComplexity
 
 
 async def analyze_evo_analogues(client: SurrealDBClient):

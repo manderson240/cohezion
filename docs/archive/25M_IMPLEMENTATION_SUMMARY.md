@@ -88,7 +88,7 @@ async def _assess_power_concentration_risk(self, journey):
 
 ### Item 8 - Epistemic Autonomy Preservation ✅
 ```python
-# Epistemic autonomy risk assessment  
+# Epistemic autonomy risk assessment
 async def _assess_epistemic_autonomy_risk(self, journey):
     trajectory_diversity = np.std(journey.stability_vector)
     autonomy_score = 1.0 - (trajectory_diversity / 10.0)
@@ -104,7 +104,7 @@ async def log_decision(self, decision):
         reasoning_process=decision.reasoning_chain,
         alternatives_considered=decision.alternatives,
         constitutional_analysis=decision.constitutional_analysis,
-        transparency_hash=self.calculate_transparency_hash(decision)
+        transparency_hash=self.calculate_transparency_hash(decision),
     )
     await self.audit_trail.store(record)
 ```
@@ -112,12 +112,14 @@ async def log_decision(self, decision):
 ### Item 5 - Audit Trail ✅
 ```python
 # Comprehensive audit trail
-journey.transparency_log.append({
-    'timestamp': datetime.now().isoformat(),
-    'coherence_score': journey.coherence_score,
-    'resource_usage': journey.compute_allocation.compute_units,
-    'constitutional_audit': journey.constitutional_audit
-})
+journey.transparency_log.append(
+    {
+        "timestamp": datetime.now().isoformat(),
+        "coherence_score": journey.coherence_score,
+        "resource_usage": journey.compute_allocation.compute_units,
+        "constitutional_audit": journey.constitutional_audit,
+    }
+)
 ```
 
 ---
