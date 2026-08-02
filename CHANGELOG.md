@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] — 2026-08-01
+
+### Fixed — Coherence sweep + adversarial review
+- `EventBus.stop()` deadlocked and silently dropped queued events; now drains before stopping,
+  with a bounded `drain_timeout` so a hot producer or hung handler cannot hang shutdown
+- `EventBus.stop()` clears `_running` in a `finally:` (a cancelled stop left the bus
+  "running-but-dead")
+- `EventBus.publish()` returns `False` when the bus is not running, instead of returning
+  `True` and discarding the event
+- Session liveness (`SessionRegistry.list_active`) is pid-namespace aware; rows are annotated
+  `liveness=confirmed|assumed`. A future `last_seen` no longer confers permanent liveness, and
+  an unreadable `boot_id` no longer yields a collidable namespace token
+- `scripts/ci/doc_code_consistency.py` gained E5: a nested `CLAUDE.md` declaring a module count
+  must match the package's actual module count (caught `data_mesh` declaring 12 with 13 on disk)
+- Corrected phantom provenance in 5 nested `CLAUDE.md` — they credited a generator that exists
+  in no commit; they are hand-maintained
+
+### Changed — Version governance
+- `src/cohezion/__init__.py.__version__` is now derived from installed package metadata instead
+  of being a hand-maintained duplicate that had drifted to 1.0.2 while `pyproject.toml` was 1.2.0
+- `scripts/ci/version_governance.py` now verifies the version was actually BUMPED by at least the
+  bump type implied by the commits, comparing head against the PR base. It previously classified
+  the bump type and then passed regardless, so a release-worthy PR could land with no bump.
+
 ## [Unreleased]
 
 ### Added — Consolidation Campaign 2026-07-09
