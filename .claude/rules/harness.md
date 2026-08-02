@@ -288,6 +288,11 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - Returns the candidate with the highest total overlap with ALL OTHER candidates (self-consistency)
 - Tie-breaks by insertion order (lowest index) — deterministic for fixed candidate lists
 - Prevents single-greedy recommendation from always returning the first matching perspective
+- **AMENDED 2026-08-01**: overlap is now the BASE signal only — final score = overlap ×
+  1/(1+wins) (RV2) × MoE weight (MR4) × regime multiplier (RA1-RA3). The added factors can
+  reorder candidates even when overlap differs; insertion-order tie-break applies to the
+  COMBINED score. Adjudicated MISLEADING-as-written by cross-lane audit (deterministic
+  source check + frontier review); superseded in part by RV2/MR4/RA1-RA3 below.
 - **Discriminating**: a quality candidate wins over a caching candidate when more of its keywords recur across sibling candidates
 - **Behavioral**: `tests/compound/test_skill_refiner.py::TestRecommendationGeneration::test_recommend_high_quality` (quality metrics → "quality" or "optimize" in output)
 
@@ -559,7 +564,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - Both fields must exist on SkillRefiner and start at 0
 - Source: Red Queen Gödel Machine (arXiv 2606.26294) — co-evolving goal objectives prevents static-evaluator stagnation
 - **T1 structural**: `hasattr(SkillRefiner(), '_goal_epoch') and sr._goal_epoch == 0; hasattr(..., '_goal_consecutive_hits') and sr._goal_consecutive_hits == 0`
-- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate::test_t1_epoch_fields_exist_with_zero_defaults -q`
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate::test_rqgm1_t1_epoch_fields_exist_with_zero_defaults -q` (test name corrected 2026-08-01 — latent claim↔evidence audit caught the stale pointer)
 
 ### RQGM2: _auto_update_goal() advances _goal_epoch and resets _goal_consecutive_hits on each fire
 - Every time the auto-update tally reaches `_goal_auto_threshold`, `_goal_epoch` increments by 1 and `_goal_consecutive_hits` resets to 0
