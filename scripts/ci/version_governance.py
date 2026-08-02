@@ -165,6 +165,83 @@ def get_pyproject_version(project_root: Path) -> str | None:
     return None
 
 
+def _parse_semver(version: str) -> tuple[int, int, int] | None:
+    """MAJOR.MINOR.PATCH as ints, ignoring any pre-release/build suffix."""
+    m = re.match(r"^(\d+)\.(\d+)\.(\d+)", version.strip())
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
+
+
+def get_version_at_ref(ref: str) -> str | None:
+    """pyproject.toml version as of a git ref (the PR base), or None if unreadable."""
+    try:
+        result = subprocess.run(
+            ["git", "show", f"{ref}:pyproject.toml"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    if result.returncode != 0:
+        return None
+    for line in result.stdout.splitlines():
+        m = re.match(r'^version\s*=\s*"([^"]+)"', line.strip())
+        if m:
+            return m.group(1)
+    return None
+
+
+def actual_bump(base: str, head: str) -> BumpType | None:
+    """The bump the version numbers actually express between two versions."""
+    b, h = _parse_semver(base), _parse_semver(head)
+    if b is None or h is None:
+        return None
+    if h < b:
+        return None  # a decrease is never a valid bump; caller reports it
+    if h[0] != b[0]:
+        return BumpType.MAJOR
+    if h[1] != b[1]:
+        return BumpType.MINOR
+    if h[2] != b[2]:
+        return BumpType.PATCH
+    return BumpType.NONE
+
+
+def validate_version_bump(
+    bump_type: BumpType, base_sha: str | None, head_version: str | None
+) -> list[str]:
+    """The version must actually BE bumped, by at least what the commits imply.
+
+    Without this the gate was named "Semver Check" while checking no semver: it classified
+    the commits into a bump type and then only verified that pyproject.toml had a *readable*
+    version, so a PR full of `feat:` commits could land with the version untouched.
+
+    Fail-OPEN when the comparison is impossible (no base SHA, unreadable base pyproject,
+    unparseable version) — a CI checkout quirk must not block a legitimate PR. It fails
+    CLOSED only when both versions are known and the bump is genuinely insufficient.
+    """
+    if bump_type == BumpType.NONE or not base_sha or not head_version:
+        return []
+    base_version = get_version_at_ref(base_sha)
+    if base_version is None:
+        return []  # base pyproject unreadable (shallow clone / new file) — cannot judge
+    if base_version == head_version:
+        return [
+            f"Version not bumped: still {head_version}, but commits imply a "
+            f"{bump_type.name} bump. Bump [project].version in pyproject.toml "
+            f"and add a CHANGELOG entry."
+        ]
+    got = actual_bump(base_version, head_version)
+    if got is None:
+        return [f"Version went backwards or is unparseable: {base_version} -> {head_version}"]
+    if got < bump_type:
+        return [
+            f"Version bump too small: {base_version} -> {head_version} is a {got.name} "
+            f"bump, but commits imply {bump_type.name}."
+        ]
+    return []
+
+
 def main() -> int:
     """Run version governance checks."""
     project_root = Path.cwd()
@@ -208,6 +285,7 @@ def main() -> int:
                 )
     else:
         version_issues.append("Cannot read version from pyproject.toml")
+    version_issues += validate_version_bump(bump_type, base_sha, version)
 
     all_issues = commit_issues + changelog_issues + version_issues
 
