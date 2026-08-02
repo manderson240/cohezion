@@ -103,6 +103,17 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.data_mesh.gaia_domain_agent import GaiaDataAgent as GaiaDataAgent
 
+# GaiaAgentRoster: top-tier GAIA agents (live-catalog model selection) per mesh domain.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.gaia_agent_roster import (
+        DEFAULT_AGENT_SPECS as DEFAULT_AGENT_SPECS,
+    )
+    from cohezion.data_mesh.gaia_agent_roster import AgentSpec as AgentSpec
+    from cohezion.data_mesh.gaia_agent_roster import GaiaAgentRoster as GaiaAgentRoster
+    from cohezion.data_mesh.gaia_agent_roster import (
+        deploy_gaia_agent_roster as deploy_gaia_agent_roster,
+    )
+
 # KanbanBridge: write-through projection to SurrealDB + Obsidian.
 with contextlib.suppress(Exception):
     from cohezion.data_mesh.kanban_bridge import backfill_items as backfill_items
