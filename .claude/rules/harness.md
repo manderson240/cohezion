@@ -507,13 +507,14 @@ Source: General Intuitions (TechCrunch 2026-06-25) — explicit action labels gi
 far better (state, action, next_state) triples than inferred state-pair transitions.
 
 ### JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default (#142, 2026-06-27)
-- **DRIFT FLAGGED 2026-08-03 (unresolved — see kanban)**: `track_execution` now resolves
-  `action or (f"{category}:{tier}" if tier else category)` with category defaulting to
-  "evidence" (journey_tracker.py ~517, semantic-category feature from "journey
-  action/category" work) — so action is `evidence:npu`, NOT bare `npu`. The two
-  TestTrajectoryPointAction tests asserting bare tier FAIL on origin/main and worktree
-  lines alike. Adjudicate intent (JEPA (s,a,s') consumers of action format) before
-  "fixing" either side; do not silently rewrite the tests to match.
+- **AMENDED 2026-08-03 (adjudicated)**: `track_execution` resolves
+  `action or (f"{category}:{tier}" if tier else category)`, category defaulting to
+  "evidence" (AOEP actionability axis, arXiv 2606.30306) — so the default is
+  `evidence:npu`, NOT bare `npu`; no tier → bare `evidence`. Consumer trace found NO
+  reader parsing action as a bare tier (only truthiness check in aoep_scorecard.py),
+  so the prefix is harmless and richer for JEPA triples. The two
+  TestTrajectoryPointAction tests were updated to the prefixed contract; explicit
+  `action` arg still overrides (unchanged discriminating test).
 - `action: str = ""` field on `TrajectoryPoint` dataclass (safe default, backward-compatible)
 - `track_execution(result, task_desc, op_type, action="")` — optional kwarg
 - Resolution: `resolved_action = action or execution_result.metrics.get("tier_used", "")`
