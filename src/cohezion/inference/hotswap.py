@@ -155,15 +155,27 @@ def ensure_resident(
     min_free_gb: float = RAM_FLOOR_GB,
     protect: tuple[str, ...] = (),
     load_timeout: float = 300.0,
+    ledger: object | None = None,
 ) -> SwapResult:
     """Make ``model_id`` resident, evicting least-recently-used models if needed.
 
     Returns a :class:`SwapResult`; never raises. A refusal is a SUCCESSFUL outcome of the
     safety gate — callers should fall back to another lane rather than retry.
+
+    ``ledger`` (a :class:`~cohezion.inference.residency_ledger.ResidencyLedger`) is the
+    degraded-mode fallback. ``resident_models()`` reads ``/api/v1/health``, which stops
+    answering under exactly the memory pressure this gate exists to relieve; it then
+    returns ``[]``, which yields an empty VICTIM list and a permanently-refusing gate.
+    With a ledger supplied, eviction stays possible. The server still wins whenever it
+    answers — passing a ledger never overrides ground truth.
     """
     ctx_size = max(1024, min(int(ctx_size), MAX_CTX))
 
     loaded = resident_models()
+    if ledger is not None:
+        from cohezion.inference.residency_ledger import resident_view
+
+        loaded = resident_view(loaded, ledger)  # type: ignore[arg-type]
     names = {m.get("model_name", "") for m in loaded}
     if model_id in names:
         return SwapResult(True, model_id, "already resident", already_resident=True)
@@ -185,11 +197,38 @@ def ensure_resident(
         and m.get("model_name") not in protect
         and m.get("model_name") != model_id
     ]
+    # Refuse BEFORE evicting when even a full teardown provably cannot fit the target.
+    # Eviction is destructive and slow; discovering the refusal afterwards costs the whole
+    # fleet for nothing. Observed live 2026-08-03: a 128B model evicted 4 models and was
+    # then refused by 0.1 GB.
+    #
+    # This is an OPTIMISATION, so it only fires when it can be CERTAIN. A victim whose size
+    # is unknown might still free real memory, so treating it as 0 would refuse loads that
+    # the eviction loop would have satisfied (caught by HS4). When any victim size is
+    # unknown, skip the shortcut and let the loop decide empirically.
+    victim_sizes = [sizes.get(m.get("model_name", "")) for m in victims]
+    if all(s is not None for s in victim_sizes):
+        reachable = free_gb() - min_free_gb + sum(s for s in victim_sizes if s is not None)
+        if reachable < needed:
+            return SwapResult(
+                False,
+                model_id,
+                # Preserves HS3's contract ("insufficient RAM" in the reason) while adding
+                # the new detail. Widening a message is non-destructive; rewriting a
+                # pre-existing test's assertion to match new wording would not be.
+                f"insufficient RAM — refused before evicting: need {needed:.1f}GB, "
+                f"max reachable {reachable:.1f}GB even after evicting {len(victims)}",
+            )
+
     while (free_gb() - min_free_gb) < needed and victims:
         victim = victims.pop(0)
         vid = victim.get("model_name", "")
         if unload(vid):
             evicted.append(vid)
+            if ledger is not None:
+                # Write-through on the VERIFIED postcondition, not on the status code —
+                # `unload` already refuses to report success for a phantom unload.
+                ledger.record_unload(vid)  # type: ignore[attr-defined]
         else:
             logger.debug("hotswap: could not evict %s; trying next", vid)
 
@@ -214,8 +253,31 @@ def ensure_resident(
 
     # Verify rather than trust the status code — a 200 that did not produce residency
     # would otherwise look identical to success.
-    if model_id not in {m.get("model_name", "") for m in resident_models()}:
+    #
+    # The verification reads the SAME endpoint that degrades under memory pressure, and an
+    # empty result is AMBIGUOUS: it means both "health answered, fleet is empty" and "health
+    # did not answer". Collapsing the two would report every successful load as failed while
+    # /health is down.
+    #
+    # Strictness is therefore the DEFAULT and is only relaxed when the caller passes a
+    # ledger — that is the explicit signal that it expects to operate through a degraded
+    # /health. Without one, an unobservable load stays a failure (HS7).
+    server_now = resident_models()
+    if model_id in {m.get("model_name", "") for m in server_now}:
+        if ledger is not None:
+            ledger.record_load(model_id, weights)  # type: ignore[attr-defined]
+        return SwapResult(True, model_id, f"loaded (ctx_size={ctx_size})", evicted=evicted)
+
+    if ledger is None or server_now:
+        # Either strict mode, or health DID answer and genuinely lacks the model.
         return SwapResult(
             False, model_id, "load returned 200 but model is not resident", evicted=evicted
         )
-    return SwapResult(True, model_id, f"loaded (ctx_size={ctx_size})", evicted=evicted)
+
+    ledger.record_load(model_id, weights)  # type: ignore[attr-defined]
+    return SwapResult(
+        True,
+        model_id,
+        f"loaded (ctx_size={ctx_size}) — residency UNVERIFIED: /health reported nothing",
+        evicted=evicted,
+    )
