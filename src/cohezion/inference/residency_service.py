@@ -91,6 +91,66 @@ class ResidencyService:
         """Surface ledger-vs-server drift. Pure — repairing it is a separate decision."""
         return self._ledger.reconcile(hotswap.resident_models())
 
+    def tick(
+        self,
+        *,
+        pressure_gb: float | None = None,
+        protect: tuple[str, ...] = (),
+    ) -> dict[str, Any]:
+        """One ambient pass: repair drift, then reclaim idle models under memory pressure.
+
+        ``request()`` covers loading on demand. This is the missing other half: the router
+        hoards up to ``max_loaded_models`` and never releases an idle model, which is how
+        the box reached 113 GB used / 8 GB available with the count cap holding at 2.
+
+        Releasing is gated on ACTUAL pressure. A tick that evicts a warm fleet when memory
+        is plentiful is worse than no tick — it guarantees an immediate reload. Eviction is
+        LRU-first and stops the moment pressure clears.
+
+        Never raises: this runs on a timer, and one bad pass must not end the loop.
+        """
+        threshold = self._min_free_gb if pressure_gb is None else pressure_gb
+        out: dict[str, Any] = {"released": [], "drift_repaired": False, "free_gb": None}
+        try:
+            server = hotswap.resident_models()
+        except Exception as exc:  # health unreachable — report, do not crash the daemon
+            out["error"] = str(exc)[:200]
+            return out
+
+        # Repair drift FIRST: a model loaded by something else is invisible to eviction
+        # until the ledger knows about it (measured live: only_in_server=[...]).
+        if server:
+            before = {e["model_name"] for e in self._ledger.entries()}
+            self._ledger.adopt(server)
+            out["drift_repaired"] = {e["model_name"] for e in self._ledger.entries()} != before
+
+        # Victims: least-recently-used first, never busy, never protected.
+        victims = [
+            m
+            for m in reversed(server)
+            if not m.get("is_busy") and m.get("model_name") not in protect
+        ]
+        for victim in victims:
+            free = hotswap.free_gb()
+            if free >= threshold:
+                break  # pressure cleared — stop, do not keep tearing down a warm fleet
+            name = victim.get("model_name", "")
+            try:
+                if self.release(name):
+                    out["released"].append(name)
+            except Exception as exc:  # one bad unload must not end the pass
+                logger.warning("residency tick: release %s failed: %s", name, exc)
+
+        out["free_gb"] = round(hotswap.free_gb(), 1)
+        if out["released"]:
+            logger.info(
+                "residency tick: reclaimed %s -> free %.1f GB",
+                out["released"],
+                out["free_gb"],
+            )
+            self._emit(EVENT_IDLE, {"released": out["released"], "free_gb": out["free_gb"]})
+        return out
+
     # ----------------------------------------------------------------- events
     def handle_event(self, event: Mapping[str, Any]) -> Any:
         """Datamesh entry point. Returns the decision, or ``None`` if not ours.
