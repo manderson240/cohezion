@@ -152,16 +152,28 @@ class JourneyTracker:
     # preserving the cosine-similarity structure of the tiled 256D nomic-embed vectors.
     _VAC_RP: ClassVar[np.ndarray] = np.random.RandomState(42).randn(2048, 12)
 
-    def __init__(self, seed: int = 42, agent_id: str | None = None):
+    def __init__(
+        self,
+        seed: int = 42,
+        agent_id: str | None = None,
+        workspace_readout: object | None = None,
+    ):
         """Initialize journey tracker.
 
         Args:
             seed: Random seed for deterministic projections
             agent_id: Optional stable agent identity; a fresh UUID is generated if
                       None and restore_identity() hasn't been called yet.
+            workspace_readout: Optional WorkspaceReadout (sparse-code workspace
+                      readout, vault 2026-08-01-flume-sparse-workspace-design).
+                      When set, track_execution feeds it latents and annotates
+                      TrajectoryPoint.metadata["workspace_atoms"] once fitted.
         """
         self.seed = seed
         self.rng = np.random.RandomState(seed)
+
+        # Sparse-code workspace readout (duck-typed: observe/read; fail-open)
+        self._workspace_readout = workspace_readout
 
         # #138: Cross-session identity state (GIC Identity dimension).
         self._agent_id: str | None = agent_id  # None → generated lazily via .agent_id property
@@ -489,6 +501,20 @@ class JourneyTracker:
 
         # Generate embeddings — use public method so LemonadeEmbedBridge is used when available (G16b)
         latent_2048d = self.text_to_latent(task_description)
+
+        # Workspace readout consumption (fail-open): feed the latent, read top atoms.
+        workspace_atoms = None
+        if self._workspace_readout is not None:
+            try:
+                self._workspace_readout.observe(latent_2048d)
+                raw_atoms = self._workspace_readout.read(latent_2048d)
+                if raw_atoms is not None:
+                    # Defensive native cast: metadata must stay JSON-serializable
+                    # even for duck-typed readouts returning numpy scalars.
+                    workspace_atoms = [(int(i), float(w)) for i, w in raw_atoms]
+            except Exception as exc:
+                logger.debug("workspace readout skipped: %s", exc)
+
         projection_12d = self._holographic_project(latent_2048d)
 
         # Apply operation modulation
@@ -531,6 +557,7 @@ class JourneyTracker:
                 "success": execution_result.success,
                 "output_length": len(execution_result.output),
                 "observer_consistency": self._compute_observer_consistency(axiomatic_12d),
+                **({"workspace_atoms": workspace_atoms} if workspace_atoms is not None else {}),
             },
         )
 
@@ -639,7 +666,11 @@ class JourneyTracker:
         )
         op_type = json.dumps(point.operation_type)
         task = json.dumps(point.task_description[:100])
-        body = f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}, created = time::now();".encode()
+        # workspace_atoms (sparse-code readout) — native (int, float) pairs, JSON-safe;
+        # persisted so the annotation is durable/observable, not buffer-local only.
+        atoms = (point.metadata or {}).get("workspace_atoms")
+        atoms_field = f", workspace_atoms = {json.dumps(atoms)}" if atoms is not None else ""
+        body = f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}{atoms_field}, created = time::now();".encode()
 
         def _fire() -> None:
             req = urllib.request.Request(

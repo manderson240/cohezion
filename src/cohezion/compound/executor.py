@@ -262,7 +262,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             try:
                 from cohezion.compound.journey_tracker import JourneyTracker
 
-                journey_tracker = JourneyTracker()
+                # Sparse-code workspace readout (vault 2026-08-01-flume-sparse-
+                # workspace-design, SUPPORTED): auto-wire so the capability is
+                # live, not dormant. Fail-open — tracker works without it.
+                workspace_readout = None
+                try:
+                    from cohezion.flume.workspace_readout import WorkspaceReadout
+
+                    workspace_readout = WorkspaceReadout()
+                except ImportError:
+                    pass
+                journey_tracker = JourneyTracker(workspace_readout=workspace_readout)
             except ImportError as e:
                 logger.debug("Cycle persistence without JourneyTracker: %s", e)
         # Strong refs to in-flight cache writes so they aren't GC'd mid-flight.
