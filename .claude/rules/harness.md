@@ -332,7 +332,7 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `prediction_error(skill, op, actual)` must use history PRIOR to the current call
 - An impl that records before predicting would always return 0.0 (predicted == actual)
 - Consequence: ENVIRONMENT_SURPRISE would NEVER fire
-- **Verification**: `erp = EnvironmentResponsePredictor(); erp.record("s","op",0.5); erp.record("s","op",0.5); assert abs(erp.prediction_error("s","op",0.9) - 0.4) < 1e-9`
+- **Verification**: `from cohezion.compound.skill_refiner import EnvironmentResponsePredictor; erp = EnvironmentResponsePredictor(); erp.record("s","op",0.5); erp.record("s","op",0.5); assert abs(erp.prediction_error("s","op",0.9) - 0.4) < 1e-9` (import added 2026-08-03 — snippet was not self-contained)
 
 ### ERP3: ENVIRONMENT_SURPRISE fires in SkillRefiner._generate_learning_signal when |error| > 0.2
 - Quality that deviates >0.2 from rolling mean must produce "ENVIRONMENT_SURPRISE" in key_insight
@@ -455,7 +455,7 @@ tier prediction, and skill_proximity transfer hints. All verified by
 - Both `make_executor()` functions inject `JepaGate(world_model=None)` when caller doesn't supply one
 - Fail-open: `world_model=None` → `JepaGate.check()` always returns `PROCEED` (no false blocks)
 - `ExecutorFactory.create()` and `get_singleton()` accept and forward `jepa_gate` kwarg
-- **Verification**: `from cohezion.compound import make_executor; e=make_executor(MagicMock()); assert e._jepa_gate is not None`
+- **Verification**: `from unittest.mock import MagicMock; from cohezion.compound import make_executor; e=make_executor(MagicMock()); assert e._jepa_gate is not None`
 
 ### W2: JourneyTracker identity lifecycle wired by ExecutorFactory (GIC Identity)
 - `ExecutorFactory.create()` calls `journey_tracker.restore_identity()` when tracker is provided
@@ -507,6 +507,13 @@ Source: General Intuitions (TechCrunch 2026-06-25) — explicit action labels gi
 far better (state, action, next_state) triples than inferred state-pair transitions.
 
 ### JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default (#142, 2026-06-27)
+- **DRIFT FLAGGED 2026-08-03 (unresolved — see kanban)**: `track_execution` now resolves
+  `action or (f"{category}:{tier}" if tier else category)` with category defaulting to
+  "evidence" (journey_tracker.py ~517, semantic-category feature from "journey
+  action/category" work) — so action is `evidence:npu`, NOT bare `npu`. The two
+  TestTrajectoryPointAction tests asserting bare tier FAIL on origin/main and worktree
+  lines alike. Adjudicate intent (JEPA (s,a,s') consumers of action format) before
+  "fixing" either side; do not silently rewrite the tests to match.
 - `action: str = ""` field on `TrajectoryPoint` dataclass (safe default, backward-compatible)
 - `track_execution(result, task_desc, op_type, action="")` — optional kwarg
 - Resolution: `resolved_action = action or execution_result.metrics.get("tier_used", "")`
@@ -534,7 +541,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 ### MR3: route() always returns a valid expert name
 - `MoESkillRouter().route("skill", metrics)` ∈ `_EXPERT_NAMES`
 - Returns the expert with the highest current weight
-- **Verification**: `r=MoESkillRouter(alpha=0.9); r.update("tier",1.0); r.update("tier",1.0); assert r.route("s",None)=="tier"`
+- **Verification**: `from cohezion.compound.moe_skill_router import MoESkillRouter; r=MoESkillRouter(alpha=0.9); r.update("tier",1.0); r.update("tier",1.0); assert r.route("s",None)=="tier"`
 
 ### MR4: SkillRefiner accepts moe_router kwarg; _autodata_select() applies MoE weight
 - `"moe_router" in inspect.signature(SkillRefiner.__init__).parameters`
@@ -687,7 +694,7 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 ### S5: SkillMutationQueue refund must be bi-temporal
 - `refund(mutation_id)` sets `valid_to = now()` and `status = rejected`
 - Mutation must have `is_valid_at() == False` after refund
-- **Verification**: `uv run pytest tests/unit/compound/test_skill_mutation_queue.py::test_is_valid_at_false_after_refund -q`
+- **Verification**: `uv run pytest tests/unit/compound/test_skill_mutation_queue.py::TestSkillMutationQueue::test_is_valid_at_false_after_refund -q` (class qualifier added 2026-08-03 — bare node id aborted batched pytest runs)
 
 ### S6: CA engine Rule 110 must classify as COMPLEX
 - Wolfram Class IV (Turing-complete) is the target for cosmogony stages 2 and 9
@@ -817,7 +824,7 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 
 ### LM3: generate_text() returns str for all prompts including empty
 - Empty prompt uses BOS token (0) as seed — no IndexError on zero-length sequence
-- **Verification**: `uv run python -c "import torch; from cohezion.model.cohezion_lm import CohezionLM, CohezionLMConfig; torch.manual_seed(0); m=CohezionLM(CohezionLMConfig.byte_level()); [assert isinstance(m.generate_text(p, max_new=3), str) for p in ['HIHO', '']]; print('LM3 OK')"`
+- **Verification**: `uv run python -c "import torch; from cohezion.model.cohezion_lm import CohezionLM, CohezionLMConfig; torch.manual_seed(0); m=CohezionLM(CohezionLMConfig.byte_level()); assert all(isinstance(m.generate_text(p, max_new=3), str) for p in ['HIHO', '']); print('LM3 OK')"` (syntax fixed 2026-08-03 — `assert` inside a list comprehension is a SyntaxError; the original was never executable. Behavior verified PASS)
 
 ### LM4: hiho_perplexity() returns inf for <=1 byte inputs
 - Cannot compute perplexity without at least 2 bytes (input + target)
