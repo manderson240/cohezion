@@ -842,7 +842,7 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 - FFN saturation is a feature: forces learning through HIHO attention
 - **Verification**: `uv run python -c "from cohezion.model.cohezion_lm import CohezionLMConfig; assert CohezionLMConfig.byte_level().ffn_scale == 1.0; print('LM6 OK: ffn_scale=1.0')"`
 
-### LM7: from_autoresearch() defaults are steps=80, lr=1e-2, n_seeds=3 (optimal per exp_NNNN5/QQQQ5)
+### LM7: from_autoresearch() defaults are steps=80, n_seeds=3; lr is schedule-driven (title amended 2026-08-03 — GAIA docs-consistency lane caught the heading still asserting lr=1e-2 against the amendment below)
 - **AMENDED 2026-08-01**: `lr` default is now `None` (schedule-driven: `lr_schedule='cosine'`,
   `optimizer='rmsprop'` — Round 7+ autoresearch, commit 911b4920f). steps=80 and n_seeds=3
   still hold. The verification below fails as written on `p['lr'].default==1e-2`; treat
