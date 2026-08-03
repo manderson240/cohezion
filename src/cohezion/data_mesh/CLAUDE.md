@@ -4,7 +4,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 
 **Purpose:** Data Mesh architecture for Cohezion's multi-agent system. Maps Zhamak Dehghani's 4 Data Mesh principles to Cohezion: 1. Domain ownership → Each specialist agent owns its data domain 2. Data as product
 
-## Entry points (13 modules)
+## Entry points (14 modules)
 
 | Module | Key class(es) | LOC |
 |---|---|---|
@@ -14,6 +14,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 | `event_bridge.py` | `DataMeshEventBridge` | 289 |
 | `event_consumer.py` | `EventConsumer` | 216 |
 | `gaia_domain_agent.py` | `GaiaDataAgent` | 215 |
+| `gaia_agent_roster.py` | `ModelSelector`, `AgentSpec`, `GaiaAgentRoster` | 249 |
 | `inference_products.py` | _(functions)_ `build_inference_products`, `get_product_for_capability` | 245 |
 | `journey_telemetry.py` | `HardwareTier`, `SwarmExpert`, `QuadratureFabrics` | 93 |
 | `kanban_bridge.py` | _(functions)_ `persist_item`, `backfill_items` | 160 |
