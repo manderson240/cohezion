@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import urllib.request
 from dataclasses import dataclass, field
 
@@ -108,6 +109,49 @@ def _catalog_sizes() -> dict[str, float]:
     except Exception:
         return {}
     return {m["id"]: float(m["size"]) for m in data if isinstance(m.get("size"), (int, float))}
+
+
+_PARAM_RE = re.compile(r"(?<![\d.])(\d+(?:\.\d+)?)\s*B(?![a-z])", re.IGNORECASE)
+
+# Floor bytes-per-parameter. The most aggressive quantisation anyone actually ships is ~1
+# bit/weight, i.e. 0.125 GB per billion params. Half that is used as the floor so a genuinely
+# exotic quant (e.g. Bonsai-27B-gguf-Q1_0 at 4.41GB = 0.163 GB/B) is never wrongly rejected.
+_MIN_GB_PER_B = 0.0625
+
+
+def params_b_from_name(model_id: str) -> float | None:
+    """Parameter count in billions, parsed from a model id. None when absent.
+
+    Two traps this handles:
+      * ``Gemma-4-26B`` — the leading 4 is a VERSION, not a size. Only ``<n>B`` counts.
+      * ``35B-A3B`` — 35B total, 3B ACTIVE. Residency is driven by TOTAL (all experts must
+        be reachable), so the MAXIMUM match is taken; reading A3B would under-gate by 10x.
+    """
+    matches = _PARAM_RE.findall(model_id or "")
+    if not matches:
+        return None
+    try:
+        return max(float(m) for m in matches)
+    except ValueError:
+        return None
+
+
+def implausible_size_gb(model_id: str, size_gb: float) -> bool:
+    """True when a reported size is too small to be real for that parameter count.
+
+    A WRONG size is more dangerous than a missing one: ``ensure_resident`` already refuses an
+    unknown size, but a wrong one looks like knowledge and passes the gate. Measured
+    2026-08-04: the live catalog reports ``Qwen3.6-35B-A3B-GGUF`` at 1.68 GB — a 35B cannot
+    be (its MTP sibling reports 22.10 GB). Trusting it would compute needed=2.68GB, admit,
+    and then attempt a ~20 GB load — the blind cold load N3 item 5 forbids.
+
+    Fails OPEN when the parameter count is unknown: there is no floor to compare against, and
+    the existing unknown-size path already covers genuinely missing metadata.
+    """
+    params = params_b_from_name(model_id)
+    if params is None:
+        return False
+    return size_gb < params * _MIN_GB_PER_B
 
 
 def _kv_overhead_gb(weights_gb: float) -> float:
@@ -186,6 +230,16 @@ def ensure_resident(
         # Refusing a blind cold load is deliberate: an unknown footprint cannot be gated,
         # and an mmap load that "succeeds" still page-storms the box (N3 item 5).
         return SwapResult(False, model_id, "unknown weight size — refusing blind cold load")
+    if implausible_size_gb(model_id, weights):
+        # Bad metadata is worse than missing metadata: it passes the gate. Route it to the
+        # same refusal rather than sizing a load from a number that cannot be true.
+        params = params_b_from_name(model_id)
+        return SwapResult(
+            False,
+            model_id,
+            f"implausible catalog size {weights:.2f}GB for a {params:g}B model — "
+            f"refusing blind cold load (bad metadata defeats the weights-fit gate)",
+        )
     needed = weights + _kv_overhead_gb(weights)
 
     evicted: list[str] = []
