@@ -58,12 +58,6 @@ jobs:
       - name: Build package
         run: uv build
 
-      - name: Run python-semantic-release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_RELEASE_NOTES: true
-        run: uv run semantic-release publish
-
       - name: Upload release artifacts
         if: success()
         uses: actions/upload-artifact@v7
