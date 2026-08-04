@@ -746,6 +746,36 @@ FAILS when the mechanism is neutralised — not a `hasattr` existence check.
 - The refusal reason retains the substring `insufficient RAM` so HS3's contract holds.
 - **Verification**: `uv run pytest tests/inference/test_hotswap.py tests/inference/test_residency_ledger.py tests/inference/test_residency_service.py -q` → 47 passed
 
+### RS7: an implausible catalog size must not defeat the weights-fit gate
+- The live router reports `Qwen3.6-35B-A3B-GGUF` at **1.68 GB**. A 35B cannot be — its MTP
+  sibling reports 22.10 GB. `_catalog_sizes()` trusted it, so `ensure_resident` computed
+  `needed = 2.68 GB`, PASSED, and would then attempt a ~20 GB load. **A wrong size is more
+  dangerous than a missing one** — `ensure_resident` already refuses an unknown size, but a
+  wrong one looks like knowledge.
+- `params_b_from_name` takes the MAXIMUM `<n>B` match: `35B-A3B` is 35B total / 3B active, and
+  residency is driven by TOTAL (all experts must be reachable) — reading `A3B` under-gates 10x.
+  `Gemma-4-26B` → 26, not 4 (leading digit is a version).
+- `implausible_size_gb` fails OPEN when no parameter count is present. Floor is
+  `_MIN_GB_PER_B = 0.0625` — half the most aggressive shipped quant, so a genuine
+  `Bonsai-27B-gguf-Q1_0` (4.41 GB = 0.163 GB/B) is never wrongly rejected.
+- **Mutation-verified**: disabling the guard killed exactly the 3 discriminating tests while
+  BOTH positive controls survived.
+- **Verification**: `uv run pytest tests/inference/test_catalog_size_plausibility.py -q` → 15 passed
+
+### RS8 (CONSUMPTION): the ambient residency tick runs inside the EXISTING pressure loop
+- `PressureDriver.__init__(on_tick=...)`; `run()` invokes it once per iteration after the
+  pressure sample. `PressureDriver` is pressure-driven (CRITICAL rising edge) and has no
+  demand-driven half — RS6 `tick()` supplies it. `hotswap`'s docstring already named the gap.
+- **A second timer is forbidden**: two independent eviction loops over one fleet can race,
+  both reading residency and both choosing an LRU victim.
+- Callback failures are isolated — they neither kill the loop nor suppress the pre-existing
+  pressure sample (`test_callback_failure_does_not_suppress_the_pressure_sample`).
+- **T2 discriminating**: a driver that ACCEPTS `on_tick` and never calls it passes both
+  structural tests and fails `test_DISCRIMINATING_on_tick_is_invoked_once_per_loop_iteration`.
+- **LIVE**: `PressureDriver(on_tick=svc.tick).run(...)` → 2 ticks, residency fired 2x,
+  `drift_repaired` True then False — it converged.
+- **Verification**: `uv run pytest tests/platform/test_pressure_driver_residency.py -q` → 6 passed
+
 ## Stealthskater Bridge Invariants (2026-05-16)
 
 ### S1: Physics bridges must import without error
