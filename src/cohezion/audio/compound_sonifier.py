@@ -12,6 +12,7 @@ import logging
 
 from cohezion.audio.acestep_client import AceStepClient, coherence_to_prompt
 
+
 logger = logging.getLogger(__name__)
 
 _BUCKETS = 4  # sparse / mid / full / crystalline — matches the roadmap's 4 mood bands
@@ -39,7 +40,7 @@ class CompoundSonifier:
         self._observer._state = self._state
         try:
             return float(self._observer.predict_next_state(None, None)[0])
-        except Exception:  # noqa: BLE001 — sonification must never break the loop
+        except Exception:
             return 0.5
 
     def sonify_current(self) -> bytes | None:

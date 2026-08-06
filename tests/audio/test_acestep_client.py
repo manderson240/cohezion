@@ -1,8 +1,9 @@
 """Tests for AceStepClient — thin wrapper on lemonade v11 :13305/v1/audio/generations.
 Endpoint contract PROVEN live 2026-07-15: POST {model,prompt,duration,audio_format} ->
 raw WAV bytes (Content-Type audio/wav), ~5s for 8s clip."""
-from unittest.mock import patch, MagicMock
-import pytest
+
+from unittest.mock import MagicMock, patch
+
 from cohezion.audio.acestep_client import AceStepClient, coherence_to_prompt
 
 

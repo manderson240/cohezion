@@ -13,6 +13,7 @@ import logging
 import urllib.error
 import urllib.request
 
+
 logger = logging.getLogger(__name__)
 
 _ENDPOINT = "http://localhost:13305/v1/audio/generations"
@@ -49,10 +50,18 @@ class AceStepClient:
         """Return raw audio bytes for ``prompt``, or None on any failure (fail-open:
         music is an enhancement, never a hard dependency of the caller)."""
         payload = json.dumps(
-            {"model": self._model, "prompt": prompt, "duration": duration, "audio_format": audio_format}
+            {
+                "model": self._model,
+                "prompt": prompt,
+                "duration": duration,
+                "audio_format": audio_format,
+            }
         ).encode()
         req = urllib.request.Request(
-            self._endpoint, data=payload, headers={"Content-Type": "application/json"}, method="POST"
+            self._endpoint,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
         )
         try:
             with urllib.request.urlopen(req, timeout=self._timeout) as r:

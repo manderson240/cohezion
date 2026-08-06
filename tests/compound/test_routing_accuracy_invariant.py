@@ -19,6 +19,7 @@ from collections import Counter
 from cohezion.compound.degradation_detector import DegradationDetector
 from cohezion.inference.task_classifier import classify
 
+
 # 8-prompt fixture from CL1 (harness.md)
 FIXTURE_PROMPTS = [
     "Classify this text: sentiment analysis task.",  # classify

@@ -70,9 +70,7 @@ def executor():
 def test_execute_task_feeds_composite_coherence_to_detector(executor):
     """WIRING: execute_task records the computed composite coherence via observe_coherence."""
     with (
-        patch.object(
-            executor.logger, "get_experience_guidance", return_value={"context": "test"}
-        ),
+        patch.object(executor.logger, "get_experience_guidance", return_value={"context": "test"}),
         patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
         patch.object(executor.logger, "log_execution_result"),
         patch.object(executor.logger, "extract_execution_pattern", return_value="pattern_path"),

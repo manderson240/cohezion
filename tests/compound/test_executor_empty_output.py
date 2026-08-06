@@ -28,9 +28,7 @@ def executor():
 def _run(executor, output):
     """Drive execute_task with an execute_fn returning ``output`` and stubbed vault logging."""
     with (
-        patch.object(
-            executor.logger, "get_experience_guidance", return_value={"context": "test"}
-        ),
+        patch.object(executor.logger, "get_experience_guidance", return_value={"context": "test"}),
         patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
         patch.object(executor.logger, "log_execution_result"),
         patch.object(executor.logger, "extract_execution_pattern", return_value="pattern_path"),
