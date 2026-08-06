@@ -18,6 +18,18 @@ Checks (deterministic, no LLM):
                     2026-07-29 after RGA1/RGA2 phantoms passed W3 clean: the
                     drift was written as `Cls(kwarg=0.0)`, which CLSMETH_RE
                     cannot see (it requires `Cls.member` adjacency).
+  E5 enumeration  : a nested CLAUDE.md claiming "Entry points (N modules)" where N
+                    != the package's actual module count -> ERROR. Added 2026-07-31.
+                    E1-E4 all verify REFERENTIAL truth ("does this name resolve?");
+                    none verify ENUMERATIVE truth ("does this list claim to be
+                    complete, and is it?"). data_mesh/CLAUDE.md declared 12 with 13
+                    on disk while every reference in it resolved perfectly — the
+                    three undocumented ones (inference_products, kanban_bridge,
+                    land_runner) were the newest, load-bearing modules.
+                    Compares declared vs ACTUAL, never declared vs the table's row
+                    count: large packages (swarm, 74) deliberately show a truncated
+                    top-N table, so a declared-vs-listed check would fire on
+                    intentional truncation and get disabled within a week.
 
 Usage:
   python scripts/ci/doc_code_consistency.py            # report + exit 1 on E-errors
@@ -42,6 +54,16 @@ FILE_RE = re.compile(r"`?((?:src/cohezion|scripts|tests)/[\w./-]+\.py)`?")
 MODULE_RE = re.compile(r"`(cohezion(?:\.[A-Za-z_][\w]*)+)`")
 CLSMETH_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\.([a-z_][\w]*)\(?\)?`")
 CTORKW_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\(([a-z_][\w]*)\s*=")
+ENTRYPOINTS_RE = re.compile(r"Entry points \((\d+) modules?\)")
+
+
+def _package_modules(pkg: Path) -> list[str]:
+    """The modules a nested CLAUDE.md is enumerating: this package's own .py files.
+
+    Non-recursive and `__init__.py`-excluded — the convention the existing docs already
+    follow (verified: sessions 2/2, swarm 74/74 reproduce their declared counts).
+    """
+    return sorted(p.name for p in pkg.glob("*.py") if p.name != "__init__.py")
 
 
 # false-positive stoplist for E1: paths used illustratively (globs, ellipses, placeholders)
@@ -156,6 +178,23 @@ def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
             if not _member_defined(cfs, kw):
                 where = ", ".join(str(p.relative_to(REPO)) for p in cfs[:3])
                 warns.append(f"W4 {rel_doc}: `{cls}({kw}=...)` not a field/param of {where}")
+        ep = ENTRYPOINTS_RE.search(text)
+        if ep:
+            actual = _package_modules(doc.parent)
+            declared = int(ep.group(1))
+            # No `if actual` guard (D6): it silently skipped any package whose only .py is
+            # __init__.py, so such a doc could declare any count and pass. The ENTRYPOINTS_RE
+            # match already scopes this to docs that MAKE the claim, so a zero-module package
+            # declaring a non-zero count is exactly the lie worth reporting.
+            if declared != len(actual):
+                listed = set(re.findall(r"^\|\s*`([\w]+\.py)`\s*\|", text, re.M))
+                missing = [m for m in actual if m not in listed]
+                detail = f" undocumented: {', '.join(missing)}" if missing else ""
+                errors.append(
+                    f"E5 {rel_doc}: declares {declared} modules, package has "
+                    f"{len(actual)} (own *.py, excluding __init__.py; subpackages are NOT "
+                    f"counted).{detail}"
+                )
     return errors, warns
 
 
@@ -178,6 +217,35 @@ def self_test() -> int:
             fired = any(x.startswith(code) for x in errs + warns)
             print(f"self-test {code}: {'PASS (fired)' if fired else 'FAIL (silent)'} — {body[:52]}")
             ok &= fired
+        # E5 needs a real package on disk to count, not just a sentence.
+        pkg = Path(td) / "pkg"
+        pkg.mkdir()
+        for name in ("__init__.py", "alpha.py", "beta.py"):
+            (pkg / name).write_text("", encoding="utf-8")
+        (pkg / "CLAUDE.md").write_text("## Entry points (1 module)\n", encoding="utf-8")
+        errs, warns = scan([pkg / "CLAUDE.md"])
+        fired = any(x.startswith("E5") for x in errs + warns)
+        print(f"self-test E5: {'PASS (fired)' if fired else 'FAIL (silent)'} — declares 1, has 2")
+        ok &= fired
+        # E5 on a ZERO-module package (D6): before the fix the `if actual` guard skipped it,
+        # so a package holding only __init__.py could declare any count and pass silently.
+        empty = Path(td) / "emptypkg"
+        empty.mkdir()
+        (empty / "__init__.py").write_text("", encoding="utf-8")
+        (empty / "CLAUDE.md").write_text("## Entry points (99 modules)\n", encoding="utf-8")
+        errs, warns = scan([empty / "CLAUDE.md"])
+        fired = any(x.startswith("E5") for x in errs + warns)
+        print(f"self-test E5 zero-module: {'PASS (fired)' if fired else 'FAIL (silent)'} — declares 99, has 0")
+        ok &= fired
+        # E5 negative control: a truthful count, and a deliberately truncated table, stay silent.
+        (pkg / "CLAUDE.md").write_text(
+            "## Entry points (2 modules)\n\n| Module |\n|---|\n| `alpha.py` |\n", encoding="utf-8"
+        )
+        errs, warns = scan([pkg / "CLAUDE.md"])
+        quiet = not any(x.startswith("E5") for x in errs + warns)
+        print(f"self-test E5 negative-control: {'PASS (silent)' if quiet else 'FAIL (fired)'}")
+        ok &= quiet
+
         # negative control: a TRUE statement must stay silent
         doc = Path(td) / "clean.md"
         doc.write_text("`RiemannianGlideTrajectory(metric=None)` is the default", encoding="utf-8")
