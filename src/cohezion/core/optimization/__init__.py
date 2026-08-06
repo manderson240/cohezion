@@ -6,6 +6,7 @@ from cohezion.core.optimization.adaptive_framework import (
     get_adaptive_optimizer,
 )
 
+
 __all__ = [
     "AdaptiveFrameworkOptimizer",
     "HardwareProfile",
