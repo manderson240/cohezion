@@ -288,6 +288,11 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - Returns the candidate with the highest total overlap with ALL OTHER candidates (self-consistency)
 - Tie-breaks by insertion order (lowest index) — deterministic for fixed candidate lists
 - Prevents single-greedy recommendation from always returning the first matching perspective
+- **AMENDED 2026-08-01**: overlap is now the BASE signal only — final score = overlap ×
+  1/(1+wins) (RV2) × MoE weight (MR4) × regime multiplier (RA1-RA3). The added factors can
+  reorder candidates even when overlap differs; insertion-order tie-break applies to the
+  COMBINED score. Adjudicated MISLEADING-as-written by cross-lane audit (deterministic
+  source check + frontier review); superseded in part by RV2/MR4/RA1-RA3 below.
 - **Discriminating**: a quality candidate wins over a caching candidate when more of its keywords recur across sibling candidates
 - **Behavioral**: `tests/compound/test_skill_refiner.py::TestRecommendationGeneration::test_recommend_high_quality` (quality metrics → "quality" or "optimize" in output)
 
@@ -327,7 +332,7 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `prediction_error(skill, op, actual)` must use history PRIOR to the current call
 - An impl that records before predicting would always return 0.0 (predicted == actual)
 - Consequence: ENVIRONMENT_SURPRISE would NEVER fire
-- **Verification**: `erp = EnvironmentResponsePredictor(); erp.record("s","op",0.5); erp.record("s","op",0.5); assert abs(erp.prediction_error("s","op",0.9) - 0.4) < 1e-9`
+- **Verification**: `from cohezion.compound.skill_refiner import EnvironmentResponsePredictor; erp = EnvironmentResponsePredictor(); erp.record("s","op",0.5); erp.record("s","op",0.5); assert abs(erp.prediction_error("s","op",0.9) - 0.4) < 1e-9` (import added 2026-08-03 — snippet was not self-contained)
 
 ### ERP3: ENVIRONMENT_SURPRISE fires in SkillRefiner._generate_learning_signal when |error| > 0.2
 - Quality that deviates >0.2 from rolling mean must produce "ENVIRONMENT_SURPRISE" in key_insight
@@ -450,7 +455,7 @@ tier prediction, and skill_proximity transfer hints. All verified by
 - Both `make_executor()` functions inject `JepaGate(world_model=None)` when caller doesn't supply one
 - Fail-open: `world_model=None` → `JepaGate.check()` always returns `PROCEED` (no false blocks)
 - `ExecutorFactory.create()` and `get_singleton()` accept and forward `jepa_gate` kwarg
-- **Verification**: `from cohezion.compound import make_executor; e=make_executor(MagicMock()); assert e._jepa_gate is not None`
+- **Verification**: `from unittest.mock import MagicMock; from cohezion.compound import make_executor; e=make_executor(MagicMock()); assert e._jepa_gate is not None`
 
 ### W2: JourneyTracker identity lifecycle wired by ExecutorFactory (GIC Identity)
 - `ExecutorFactory.create()` calls `journey_tracker.restore_identity()` when tracker is provided
@@ -502,6 +507,14 @@ Source: General Intuitions (TechCrunch 2026-06-25) — explicit action labels gi
 far better (state, action, next_state) triples than inferred state-pair transitions.
 
 ### JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default (#142, 2026-06-27)
+- **AMENDED 2026-08-03 (adjudicated)**: `track_execution` resolves
+  `action or (f"{category}:{tier}" if tier else category)`, category defaulting to
+  "evidence" (AOEP actionability axis, arXiv 2606.30306) — so the default is
+  `evidence:npu`, NOT bare `npu`; no tier → bare `evidence`. Consumer trace found NO
+  reader parsing action as a bare tier (only truthiness check in aoep_scorecard.py),
+  so the prefix is harmless and richer for JEPA triples. The two
+  TestTrajectoryPointAction tests were updated to the prefixed contract; explicit
+  `action` arg still overrides (unchanged discriminating test).
 - `action: str = ""` field on `TrajectoryPoint` dataclass (safe default, backward-compatible)
 - `track_execution(result, task_desc, op_type, action="")` — optional kwarg
 - Resolution: `resolved_action = action or execution_result.metrics.get("tier_used", "")`
@@ -529,7 +542,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 ### MR3: route() always returns a valid expert name
 - `MoESkillRouter().route("skill", metrics)` ∈ `_EXPERT_NAMES`
 - Returns the expert with the highest current weight
-- **Verification**: `r=MoESkillRouter(alpha=0.9); r.update("tier",1.0); r.update("tier",1.0); assert r.route("s",None)=="tier"`
+- **Verification**: `from cohezion.compound.moe_skill_router import MoESkillRouter; r=MoESkillRouter(alpha=0.9); r.update("tier",1.0); r.update("tier",1.0); assert r.route("s",None)=="tier"`
 
 ### MR4: SkillRefiner accepts moe_router kwarg; _autodata_select() applies MoE weight
 - `"moe_router" in inspect.signature(SkillRefiner.__init__).parameters`
@@ -559,7 +572,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - Both fields must exist on SkillRefiner and start at 0
 - Source: Red Queen Gödel Machine (arXiv 2606.26294) — co-evolving goal objectives prevents static-evaluator stagnation
 - **T1 structural**: `hasattr(SkillRefiner(), '_goal_epoch') and sr._goal_epoch == 0; hasattr(..., '_goal_consecutive_hits') and sr._goal_consecutive_hits == 0`
-- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate::test_t1_epoch_fields_exist_with_zero_defaults -q`
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate::test_rqgm1_t1_epoch_fields_exist_with_zero_defaults -q` (test name corrected 2026-08-01 — latent claim↔evidence audit caught the stale pointer)
 
 ### RQGM2: _auto_update_goal() advances _goal_epoch and resets _goal_consecutive_hits on each fire
 - Every time the auto-update tally reaches `_goal_auto_threshold`, `_goal_epoch` increments by 1 and `_goal_consecutive_hits` resets to 0
@@ -664,6 +677,12 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 
 ### S2: Stealthskater tradition must have exactly 10 step_mappings
 - Tradition slug: `stealthskater`, 10 StepMappings + 4 UniqueContributions
+- **REGRESSION CAUGHT + RESTORED 2026-08-01**: the tradition was silently dropped when
+  tradition_data.py was recreated in the 17-tradition rewrite (never appeared as a removal
+  in any diff; API docstring still claimed "incl. stealthskater"). Restored from b87186436,
+  registry is now 18; count pins in tests/worldviews updated. First live run of this
+  verification since the rewrite is what caught it — inline verifications must be RUN,
+  not assumed green.
 - **Verification**: `from cohezion.worldviews.tradition_data import get_tradition; assert len(get_tradition('stealthskater').step_mappings) == 10`
 
 ### S3: LENR reaction_threshold must equal HIHO threshold (0.5)
@@ -676,7 +695,7 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 ### S5: SkillMutationQueue refund must be bi-temporal
 - `refund(mutation_id)` sets `valid_to = now()` and `status = rejected`
 - Mutation must have `is_valid_at() == False` after refund
-- **Verification**: `uv run pytest tests/unit/compound/test_skill_mutation_queue.py::test_is_valid_at_false_after_refund -q`
+- **Verification**: `uv run pytest tests/unit/compound/test_skill_mutation_queue.py::TestSkillMutationQueue::test_is_valid_at_false_after_refund -q` (class qualifier added 2026-08-03 — bare node id aborted batched pytest runs)
 
 ### S6: CA engine Rule 110 must classify as COMPLEX
 - Wolfram Class IV (Turing-complete) is the target for cosmogony stages 2 and 9
@@ -806,7 +825,7 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 
 ### LM3: generate_text() returns str for all prompts including empty
 - Empty prompt uses BOS token (0) as seed — no IndexError on zero-length sequence
-- **Verification**: `uv run python -c "import torch; from cohezion.model.cohezion_lm import CohezionLM, CohezionLMConfig; torch.manual_seed(0); m=CohezionLM(CohezionLMConfig.byte_level()); [assert isinstance(m.generate_text(p, max_new=3), str) for p in ['HIHO', '']]; print('LM3 OK')"`
+- **Verification**: `uv run python -c "import torch; from cohezion.model.cohezion_lm import CohezionLM, CohezionLMConfig; torch.manual_seed(0); m=CohezionLM(CohezionLMConfig.byte_level()); assert all(isinstance(m.generate_text(p, max_new=3), str) for p in ['HIHO', '']); print('LM3 OK')"` (syntax fixed 2026-08-03 — `assert` inside a list comprehension is a SyntaxError; the original was never executable. Behavior verified PASS)
 
 ### LM4: hiho_perplexity() returns inf for <=1 byte inputs
 - Cannot compute perplexity without at least 2 bytes (input + target)
@@ -823,7 +842,11 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 - FFN saturation is a feature: forces learning through HIHO attention
 - **Verification**: `uv run python -c "from cohezion.model.cohezion_lm import CohezionLMConfig; assert CohezionLMConfig.byte_level().ffn_scale == 1.0; print('LM6 OK: ffn_scale=1.0')"`
 
-### LM7: from_autoresearch() defaults are steps=80, lr=1e-2, n_seeds=3 (optimal per exp_NNNN5/QQQQ5)
+### LM7: from_autoresearch() defaults are steps=80, n_seeds=3; lr is schedule-driven (title amended 2026-08-03 — GAIA docs-consistency lane caught the heading still asserting lr=1e-2 against the amendment below)
+- **AMENDED 2026-08-01**: `lr` default is now `None` (schedule-driven: `lr_schedule='cosine'`,
+  `optimizer='rmsprop'` — Round 7+ autoresearch, commit 911b4920f). steps=80 and n_seeds=3
+  still hold. The verification below fails as written on `p['lr'].default==1e-2`; treat
+  steps/n_seeds as the live invariant until re-benchmarked.
 - 80 steps = 2x dataset coverage (~2.6s per seed)
 - n_seeds=3 = best of seeds [42,99,1337], reliably achieves PPL<30 (fixes initialization sensitivity)
 - exp_QQQQ5: StdDev=91 across seeds; n_seeds=3 selection gives PPL=28.35 in 5.83s total

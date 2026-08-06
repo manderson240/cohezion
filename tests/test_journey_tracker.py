@@ -229,7 +229,7 @@ class TestCrossSessionIdentity:
 class TestTrajectoryPointAction:
     """JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default."""
 
-    def _make_result(self, tier: str = "npu", **extra_metrics) -> ExecutionResult:
+    def _make_result(self, tier: str = "npu", **extra_metrics) -> "ExecutionResult":
         return ExecutionResult(
             success=True,
             output="ok",
@@ -255,14 +255,18 @@ class TestTrajectoryPointAction:
         assert sig.parameters["action"].default == ""
 
     def test_t2_action_captured_from_tier_used(self) -> None:
-        """T2 discriminating: action defaults to tier_used when not explicitly provided.
+        """T2 discriminating: action defaults to category:tier_used when not provided.
 
-        Wrong impl (action stays empty) would leave point.action == '' → fails.
+        AOEP semantic-category prefix (adjudicated 2026-08-03): default category is
+        'evidence', so tier npu -> 'evidence:npu'. Wrong impl ignoring tier_used
+        would yield bare 'evidence'; empty impl would yield '' — both fail.
         """
         tracker = JourneyTracker()
         result = self._make_result(tier="npu")
         point = tracker.track_execution(result, "classify task", "classify")
-        assert point.action == "npu", f"Expected action='npu' from tier_used, got {point.action!r}"
+        assert point.action == "evidence:npu", (
+            f"Expected action='evidence:npu' from category+tier_used, got {point.action!r}"
+        )
 
     def test_t2_explicit_action_overrides_tier_used(self) -> None:
         """T2 discriminating: explicit action arg takes priority over tier_used.
@@ -276,8 +280,13 @@ class TestTrajectoryPointAction:
             f"Explicit action must override tier_used, got {point.action!r}"
         )
 
-    def test_action_empty_when_no_tier_and_no_explicit(self) -> None:
-        """When tier_used absent and no explicit action, action stays empty string."""
+    def test_action_category_only_when_no_tier_and_no_explicit(self) -> None:
+        """When tier_used absent and no explicit action, action is the bare category.
+
+        Adjudicated 2026-08-03: with no tier there is nothing to suffix, so the
+        AOEP default category 'evidence' stands alone (never 'evidence:' and
+        never a fabricated tier).
+        """
         tracker = JourneyTracker()
         result = ExecutionResult(
             success=True,
@@ -287,4 +296,6 @@ class TestTrajectoryPointAction:
             token_metrics={},
         )
         point = tracker.track_execution(result, "simple task", "classify")
-        assert point.action == "", f"Expected empty action, got {point.action!r}"
+        assert point.action == "evidence", (
+            f"Expected bare category 'evidence', got {point.action!r}"
+        )
