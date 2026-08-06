@@ -1,6 +1,7 @@
 scripts/actual_performance_probe.py
 scripts/agent_task_dispatcher.py
 scripts/agents/ada_lovelace.py
+scripts/analysis_watcher.py
 scripts/arpao_orchestrator.py
 scripts/autoliterature_scanner.py
 scripts/bughunt_loop.py

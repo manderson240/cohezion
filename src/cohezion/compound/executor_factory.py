@@ -50,6 +50,12 @@ class ExecutorFactory:
         # migrated to compound/__init__.make_executor, which hand-duplicates the auto-wiring
         # and omitted retrospection, silently dropping REFLECT from the loop.
         inference_provider: Any | None = None,
+        # Ring-4 (2026-08-02 reconcile merge): `make_executor` below defaults this to True so
+        # production executors persist real cycles to the compound graph. Declared explicitly
+        # because create() has no **kwargs — forwarding an undeclared kwarg raises TypeError,
+        # the same defect the inference_provider comment above records. Defaults to False so
+        # direct ExecutorFactory.create() callers (notably tests) keep their current behavior.
+        enable_cycle_persistence: bool = False,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -200,6 +206,7 @@ class ExecutorFactory:
             jepa_gate=jepa_gate,
             token_ledger=token_ledger,
             inference_provider=inference_provider,
+            enable_cycle_persistence=enable_cycle_persistence,
         )
 
     @staticmethod
@@ -308,5 +315,13 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
             logger.debug("make_executor: auto-created TokenLedger (TL3)")
         except Exception:
             logger.debug("TokenLedger auto-creation failed (non-blocking)")
+
+    # Ring-4: production executors persist real cycles to the compound graph. Ported here during
+    # the 2026-08-02 reconcile merge: `compound/__init__.make_executor` used to be a hand-rolled
+    # duplicate of this function and set this default itself; that duplicate is now an alias to
+    # this function (test_reflect_wiring: "duplicated wiring diverges, that is the lesson"), so
+    # the default has to live at the single surviving implementation or it is silently dropped.
+    # Direct CompoundExecutor() construction stays off by default — test isolation, CB4 pattern.
+    kwargs.setdefault("enable_cycle_persistence", True)
 
     return ExecutorFactory.create(mcp_client, **kwargs)
