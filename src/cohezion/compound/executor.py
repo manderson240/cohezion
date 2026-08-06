@@ -1096,7 +1096,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 inference_provider=self._inference_provider,
             )
             success = True
-            logger.info("Task completed successfully")
+            # E1-S1: empty/whitespace-only output is the fleet's known "local inference emits
+            # empty" failure mode — do NOT score it as a healthy success (was: unconditional
+            # True). Downstream anomaly/quality scoring must see it as degraded, not nominal.
+            if not output or not str(output).strip():
+                success = False
+                metrics["degraded"] = True
+                logger.warning("Task produced empty output — marking degraded, not success")
+            else:
+                logger.info("Task completed successfully")
         except Exception as e:
             # User-supplied execute_fn can raise anything; record failure metric and continue.
             # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit Exception).
@@ -1374,6 +1382,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             metrics["coherence"] = metrics["coherence"] * 0.9 + nc_metrics.habitat_quality * 0.1
         except Exception:
             pass  # Non-blocking: natural_capital module may not be available
+
+        # E1-S2: feed the FINAL coherence (Step 5.8 composite + Step 5.9 natural-capital blend) to
+        # the detector so cross-execution coherence trend analysis is live. detect_anomaly (Step 5)
+        # runs before this value exists — it depends on the anomaly score — so without this the
+        # coherence tripwire is dead on the normal path. Non-blocking.
+        try:
+            coherence_issues = self.inflection_detector.observe_coherence(metrics["coherence"])
+            if coherence_issues:
+                metrics["coherence_issues"] = coherence_issues
+                logger.debug("Composite coherence issues: %s", coherence_issues)
+        except (AttributeError, TypeError, ValueError) as e:
+            logger.debug("Coherence observation failed (non-blocking): %s", e)
 
         # Step 5.91: Autoresearch dispatch (non-blocking, research tasks only)
         _RESEARCH_KEYWORDS = {"train", "optimize", "research", "experiment", "tune", "improve loss"}

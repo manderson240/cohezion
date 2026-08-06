@@ -75,6 +75,10 @@ class InflectionDetector:
         self.consecutive_failures = 0
         self.token_history: list[int] = []  # Recent token consumption
         self.coherence_history: list[float] = []  # Recent coherence scores
+        # E1-S2: separate history for the executor's *composite* coherence (computed
+        # downstream of detect_anomaly). Kept distinct from coherence_history so the two
+        # coherence sources (upstream execute_fn vs downstream composite) never double-append.
+        self._composite_coherence_history: list[float] = []
 
     def detect_anomaly(self, result: "ExecutionResult") -> AnomalyDetection:
         """Detect anomalies in execution result.
@@ -173,6 +177,36 @@ class InflectionDetector:
             should_reexecute=severity == Severity.CRITICAL,
         )
 
+    def observe_coherence(self, coherence: float) -> list[str]:
+        """Record a composite-coherence observation and flag low/declining coherence.
+
+        ``detect_anomaly`` only inspects coherence supplied UPSTREAM by an execute_fn. The
+        executor's composite coherence (Step 5.8) is derived partly from the anomaly score,
+        so it is computed AFTER detect_anomaly and would otherwise never reach trend
+        analysis — a dead tripwire on the normal path. This port feeds that signal its own
+        history so coherence drops across executions can still be flagged.
+
+        Returns any issues (low value, or >20% drop vs the recent average). Mirrors the
+        thresholds used inside ``detect_anomaly`` but tracks a SEPARATE history.
+        """
+        issues: list[str] = []
+        if coherence < self.coherence_threshold:
+            issues.append(f"Coherence low: {coherence:.2f} < {self.coherence_threshold}")
+
+        self._composite_coherence_history.append(coherence)
+        if len(self._composite_coherence_history) > 10:
+            self._composite_coherence_history.pop(0)
+
+        # Trend: >20% drop vs the average of the previous values (needs >=4 history).
+        if len(self._composite_coherence_history) >= 4:
+            current = self._composite_coherence_history[-1]
+            previous_avg = sum(self._composite_coherence_history[:-1]) / (
+                len(self._composite_coherence_history) - 1
+            )
+            if previous_avg > 0 and current < previous_avg * 0.8:
+                issues.append(f"Coherence trend down: {current:.2f} < {previous_avg:.2f}")
+        return issues
+
     def _generate_recommendations(
         self, result: "ExecutionResult", issues: list[str], severity: Severity
     ) -> list[str]:
@@ -265,6 +299,7 @@ class InflectionDetector:
         self.consecutive_failures = 0
         self.token_history.clear()
         self.coherence_history.clear()
+        self._composite_coherence_history.clear()
         logger.debug("InflectionDetector state reset")
 
 
