@@ -75,7 +75,14 @@ ROLE_SPECS: dict[str, RoleSpec] = {
     "deep": RoleSpec(
         name_hint=("Mistral-Medium", "128B", "70B", "Nemotron"),
         exclude=("Embedding", "embed", "FLM", "KT"),  # KT quant won't load (mainline llama.cpp)
-        size_min=40.0,
+        # size_min was 40.0, which CONTRADICTED this spec's own name_hint: the only
+        # Nemotron in the catalog (Nemotron-3-Nano-30B-A3B, 21.3GB) was sized out, leaving
+        # exactly one eligible candidate -- Mistral-128B at ~71.9GB effective (catalog
+        # x1.7). A role with a single candidate that large is unattainable whenever the box
+        # has any other resident model, so `deep` resolved but was never loadable.
+        # 18.0 admits the Nemotron the hint already names without diluting "deep" into the
+        # interactive/bbq size band (both cap at 40-45GB but floor at 8.0).
+        size_min=18.0,
         size_max=200.0,
         heavy=True,
     ),
