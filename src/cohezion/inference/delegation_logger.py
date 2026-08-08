@@ -52,15 +52,18 @@ class DelegationLogger:
         self.db_name = db_name
         self.fallback_path = FALLBACK_LOG_PATH
         self.fallback_path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.Lock()
 
     def log_delegation(self, event: DelegationEvent) -> None:
         """Log delegation event asynchronously without blocking caller."""
         event_dict = event.to_dict()
         
-        # Local JSONL file fallback (always persistent)
+        # Local JSONL file fallback (thread-safe, persistent)
         try:
-            with open(self.fallback_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(event_dict) + "\n")
+            with self._lock:
+                with open(self.fallback_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(event_dict) + "\n")
+                    f.flush()
         except Exception as exc:
             logger.warning("Failed to write local delegation log: %s", exc)
 

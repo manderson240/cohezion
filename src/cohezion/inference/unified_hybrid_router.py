@@ -7,6 +7,7 @@ gated by Expected Value of Intervention (EVI > 0.75).
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from typing import Any, Dict, Literal, Optional, Tuple
 
@@ -59,12 +60,21 @@ class RoutingResult:
 
 
 class UnifiedHybridRouter:
-    """3-Tier Hybrid Router with EVI Gating (EVI > 0.75)."""
+    """3-Tier Hybrid Router with EVI Gating (default EVI > 0.75)."""
 
-    EVI_THRESHOLD: float = 0.75
+    DEFAULT_EVI_THRESHOLD: float = 0.75
 
-    def __init__(self, logger_instance: Optional[DelegationLogger] = None) -> None:
+    def __init__(
+        self,
+        logger_instance: Optional[DelegationLogger] = None,
+        evi_threshold: Optional[float] = None,
+    ) -> None:
         self.logger = logger_instance or DelegationLogger()
+        if evi_threshold is not None:
+            self.evi_threshold = float(evi_threshold)
+        else:
+            env_val = os.getenv("COHEZION_EVI_THRESHOLD")
+            self.evi_threshold = float(env_val) if env_val else self.DEFAULT_EVI_THRESHOLD
 
     def compute_evi(
         self,
@@ -133,7 +143,7 @@ class UnifiedHybridRouter:
             # Evaluate escalation to Tier 2
             evi_1_to_2 = self.compute_evi(quality_gap, task_importance, 1, 2)
             
-            if not tier1_capable or evi_1_to_2 > self.EVI_THRESHOLD:
+            if not tier1_capable or evi_1_to_2 > self.evi_threshold:
                 # Escalate to Tier 2
                 current_tier = 2
                 selected_model = self._select_model_for_tier(2, task_type)
@@ -141,16 +151,16 @@ class UnifiedHybridRouter:
                 # Check if Tier 2 is sufficient or if Tier 3 escalation is warranted
                 if context_tokens > 100000 or (task_type == "architecture" and task_importance > 0.85):
                     evi_2_to_3 = self.compute_evi(quality_gap, task_importance, 2, 3)
-                    if evi_2_to_3 > self.EVI_THRESHOLD:
+                    if evi_2_to_3 > self.evi_threshold:
                         current_tier = 3
                         selected_model = self._select_model_for_tier(3, task_type)
-                        reason = f"Tier 3 escalation (EVI={evi_2_to_3:.2f} > 0.75, high context/importance)"
+                        reason = f"Tier 3 escalation (EVI={evi_2_to_3:.2f} > {self.evi_threshold:.2f}, high context/importance)"
                     else:
-                        reason = f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > 0.75)"
+                        reason = f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
                 else:
-                    reason = f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > 0.75)"
+                    reason = f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
             else:
-                reason = f"Tier 1 selected (EVI 1->2 = {evi_1_to_2:.2f} <= 0.75)"
+                reason = f"Tier 1 selected (EVI 1->2 = {evi_1_to_2:.2f} <= {self.evi_threshold:.2f})"
         else:
             reason = "Tier 1 selected (quality gap minimal, capacity OK)"
 
