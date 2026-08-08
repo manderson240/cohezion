@@ -861,3 +861,60 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
   real findings.
 - **Verification**: `grep "safe-env.sh" scripts/ci/deploy_harness_agents.sh`
   returns a non-empty result.
+
+## Hybrid Retrieval Invariants (HR1–HR3, 2026-08-08)
+
+### HR1: `hybrid_search` is vector+GRAPH, not lexical — a name that misleads
+- `GraphRAGEngine.hybrid_search` fuses embedding similarity with 1-hop synapse
+  traversal. It performs NO lexical matching. Reading "hybrid" as "sparse+dense"
+  is wrong and was the reason the lexical gap went unnoticed: two independent
+  research sources flagged BM25+embedding as missing while a method named
+  `hybrid_search` already existed.
+- Lexical+dense lives in `GraphRAGEngine.lexical_hybrid_search`. Do not merge
+  the two names.
+
+### HR2: lexical_hybrid_search CONSUMES the index (consumption, not declaration)
+- `src/cohezion/knowledge_graph/lexical_index.py` supplies `BM25Index` (Okapi
+  BM25, pure stdlib) and `reciprocal_rank_fusion` (RRF, rank-based so cosine and
+  BM25 scores never need a common scale).
+- `GraphRAGEngine(lexical_index=...)` is READ by `lexical_hybrid_search`, which
+  fuses `BM25Index.search` output with the vector ranking. Accepting the kwarg is
+  not the invariant — acting on it is.
+- Documents found ONLY by the lexical side are fetched by id, so this is true
+  hybrid retrieval, not a rerank of the dense candidate set. `candidate_k`
+  (default 20) must exceed `top_k` or there is no rescue depth.
+- **Honest mode label**: `mode` is `"lexical_hybrid"` only when fusion actually
+  ran; with no/empty index it degrades and reports `"vector"`. A response must
+  never claim hybrid for a vector-only result.
+- **Verification**: `uv run pytest tests/unit/knowledge_graph/ -q` -> 34 passed.
+
+### HR2-bis: HONEST SCOPE — the engine itself is still dormant
+- The consumption in HR2 is INTERNAL (the engine reads its own index). At the
+  repo level `GraphRAGEngine` has **no production consumer**: nothing in `src/`
+  constructs it. `knowledge_graph/__init__.py` only re-exports it, and a
+  re-export is not wiring — the 2026-06-22 sweep comment in that file calls
+  graphrag_engine "a genuine import-graph orphan" and closed it with exactly
+  that re-export.
+- So `lexical_hybrid_search` is a CORRECT, mutation-verified capability sitting
+  on a dormant surface. Do not describe it as live retrieval. It closes the
+  *algorithmic* gap (there was no lexical ranker anywhere); it does not by
+  itself put hybrid retrieval on any serving path.
+- Deliberately NOT auto-wired: giving the engine a real consumer needs a
+  SurrealDB client, an embedding call, and an index-population strategy for the
+  vault corpus. That is a separate change with its own failure modes, not a
+  side effect of adding a ranker.
+- **Wiring TODO (per non-destructive-wiring policy)**: populate a `BM25Index`
+  from the vault corpus at the same point the neuron embeddings are built, then
+  hand it to `GraphRAGEngine`. Until then this entry is the record that the gap
+  is known and intentional, not overlooked.
+
+### HR3: the discriminating tests must stay discriminating
+- `test_dense_only_FAILS_the_same_query` and
+  `test_vector_only_baseline_FAILS_the_same_query` assert the vector-only path
+  CANNOT find the target. If either flips to passing, the fixtures stopped
+  exercising hybrid retrieval and their sibling tests would pass vacuously
+  against an implementation that ignores BM25 entirely.
+- Mutation-verified 2026-08-08: 13/13 mutants killed (7 unit, 6 wiring). Before
+  hardening, 5/8 survived — notably "order by doc_id instead of score", which the
+  original single-candidate fixture could not detect. Green tests here mean
+  nothing without the mutation run.

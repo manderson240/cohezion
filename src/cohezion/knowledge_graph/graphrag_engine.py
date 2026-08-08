@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from cohezion.knowledge_graph.lexical_index import BM25Index, reciprocal_rank_fusion
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +68,15 @@ class GraphRAGEngine:
         Default number of results to return when ``top_k`` is not supplied.
     """
 
-    def __init__(self, surreal_client: Any | None = None, default_top_k: int = 5) -> None:
+    def __init__(
+        self,
+        surreal_client: Any | None = None,
+        default_top_k: int = 5,
+        lexical_index: BM25Index | None = None,
+    ) -> None:
         self._client = surreal_client
         self.default_top_k = default_top_k
+        self.lexical_index = lexical_index
 
     async def vector_search(
         self,
@@ -193,6 +201,95 @@ class GraphRAGEngine:
             LIMIT {k};
         """
         return await self._execute_query(query, {"query_embedding": query_embedding}, "hybrid")
+
+    async def lexical_hybrid_search(
+        self,
+        query_text: str,
+        query_embedding: list[float],
+        top_k: int | None = None,
+        candidate_k: int = 20,
+    ) -> GraphRAGResponse:
+        """Dense (embedding) + sparse (BM25) retrieval fused by reciprocal rank.
+
+        ``hybrid_search`` fuses vector with *graph* and does no lexical matching,
+        so a query naming a rare exact token can miss entirely. This fuses vector
+        with *lexical*, which is the complementary axis.
+
+        Parameters
+        ----------
+        query_text : str
+            Raw query string, used for the BM25 side.
+        query_embedding : list[float]
+            768-dim query embedding, used for the vector side.
+        top_k : int | None
+            Results to return; defaults to ``self.default_top_k``.
+        candidate_k : int
+            Depth retrieved from each ranker before fusion. Wider than ``top_k``
+            so a document ranked poorly by one retriever can still be rescued.
+
+        Returns
+        -------
+        GraphRAGResponse
+            ``mode`` is ``"lexical_hybrid"`` when fusion actually ran, and
+            ``"vector"`` when no lexical index was configured. The mode is the
+            honest signal — it never claims hybrid for a vector-only result.
+
+        Notes
+        -----
+        Documents found ONLY by the lexical ranker are fetched by id, so this is
+        true hybrid retrieval rather than a rerank of the dense candidate set.
+        """
+        k = top_k or self.default_top_k
+        dense = await self.vector_search(query_embedding, top_k=candidate_k)
+
+        if self.lexical_index is None or len(self.lexical_index) == 0:
+            logger.debug("No lexical index configured; degrading to vector-only")
+            return GraphRAGResponse(
+                results=dense.results[:k],
+                query=query_text,
+                mode="vector",
+                total_results=min(len(dense.results), k),
+                query_time_ms=dense.query_time_ms,
+            )
+
+        dense_ids = [r.neuron_id for r in dense.results]
+        lexical_ids = [d for d, _ in self.lexical_index.search(query_text, top_k=candidate_k)]
+        fused = reciprocal_rank_fusion([dense_ids, lexical_ids], top_k=k)
+
+        by_id = {r.neuron_id: r for r in dense.results}
+        missing = [doc_id for doc_id, _ in fused if doc_id not in by_id]
+        if missing:
+            by_id.update(await self._fetch_by_ids(missing))
+
+        results: list[RetrievalResult] = []
+        for doc_id, fused_score in fused:
+            hit = by_id.get(doc_id)
+            if hit is None:
+                # Present in the lexical index but not retrievable from the
+                # store: skip rather than emit a hollow result.
+                logger.debug("Fused id %s not retrievable; skipping", doc_id)
+                continue
+            hit.score = fused_score
+            results.append(hit)
+
+        return GraphRAGResponse(
+            results=results,
+            query=query_text,
+            mode="lexical_hybrid",
+            total_results=len(results),
+            query_time_ms=dense.query_time_ms,
+        )
+
+    async def _fetch_by_ids(self, ids: list[str]) -> dict[str, RetrievalResult]:
+        """Fetch neurons by id for lexical-only hits. Empty dict on any failure."""
+        if not ids or self._client is None:
+            return {}
+        resp = await self._execute_query(
+            "SELECT id, title, content FROM neurons WHERE id IN $ids;",
+            {"ids": ids},
+            "fetch_by_ids",
+        )
+        return {r.neuron_id: r for r in resp.results}
 
     async def _execute_query(
         self,
