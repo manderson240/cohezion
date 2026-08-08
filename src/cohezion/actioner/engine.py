@@ -133,6 +133,26 @@ class WorkQueueAPI:
             "PATCH", f"/api/work-queue/{item_id}", {"status": "actioned", "notes": note}
         )
 
+    def pending_items(self) -> list[dict[str, Any]]:
+        """Items awaiting triage, oldest first.
+
+        ``POST /api/work-queue`` creates every card as ``pending_review``, a status NO
+        consumer polls: ``eligible_items`` above asks for reviewed/approved, and
+        ``compound_feeder`` asks for actioned/approved. The research daemon classifies
+        inline and writes ``reviewed`` directly, which is why only ITS items ever flow.
+        This is the read side of the missing triage hop (see ``actioner.triage``).
+        """
+        page = self._request("GET", "/api/work-queue?status=pending_review")
+        return sorted(page.get("items", []), key=lambda i: i.get("created_at", ""))
+
+    def mark_reviewed(self, item_id: str, relevance: str, note: str) -> dict:
+        """Promote a triaged item into the lane the actioner actually polls."""
+        return self._request(
+            "PATCH",
+            f"/api/work-queue/{item_id}",
+            {"status": "reviewed", "relevance": relevance, "notes": note},
+        )
+
 
 def default_chat_fn(model: str = DEFAULT_MODEL) -> Callable[[str], str]:
     """Local-inference chat callable: GAIA SDK tier when installed, router otherwise.

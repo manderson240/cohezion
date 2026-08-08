@@ -66,6 +66,10 @@ class WorkItemPatch(BaseModel):
     feedback: str | None = None
     notes: str | None = None
     priority: int | None = None  # 0=low 1=normal 2=high
+    # Triage sets relevance after the fact: POST files a card before anything has judged it,
+    # and consumers filter on relevance. Without this the triage hop can promote an item's
+    # status but never its relevance, so it stays invisible to the actioner.
+    relevance: str | None = None  # APPLY | MONITOR | SKIP
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -127,6 +131,8 @@ def patch_item(item_id: str, body: WorkItemPatch):
                 item["notes"] = body.notes
             if body.priority is not None:
                 item["priority"] = body.priority
+            if body.relevance is not None:
+                item["relevance"] = body.relevance
             _save(q)
             _persist(item)
             return item
