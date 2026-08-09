@@ -861,3 +861,145 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
   real findings.
 - **Verification**: `grep "safe-env.sh" scripts/ci/deploy_harness_agents.sh`
   returns a non-empty result.
+
+## Hybrid Retrieval Invariants (HR1–HR3, 2026-08-08)
+
+### HR1: `hybrid_search` is vector+GRAPH, not lexical — a name that misleads
+- `GraphRAGEngine.hybrid_search` fuses embedding similarity with 1-hop synapse
+  traversal. It performs NO lexical matching. Reading "hybrid" as "sparse+dense"
+  is wrong and was the reason the lexical gap went unnoticed: two independent
+  research sources flagged BM25+embedding as missing while a method named
+  `hybrid_search` already existed.
+- Lexical+dense lives in `GraphRAGEngine.lexical_hybrid_search`. Do not merge
+  the two names.
+
+### HR2: lexical_hybrid_search CONSUMES the index (consumption, not declaration)
+- `src/cohezion/knowledge_graph/lexical_index.py` supplies `BM25Index` (Okapi
+  BM25, pure stdlib) and `reciprocal_rank_fusion` (RRF, rank-based so cosine and
+  BM25 scores never need a common scale).
+- `GraphRAGEngine(lexical_index=...)` is READ by `lexical_hybrid_search`, which
+  fuses `BM25Index.search` output with the vector ranking. Accepting the kwarg is
+  not the invariant — acting on it is.
+- Documents found ONLY by the lexical side are fetched by id, so this is true
+  hybrid retrieval, not a rerank of the dense candidate set. `candidate_k`
+  (default 20) must exceed `top_k` or there is no rescue depth.
+- **Honest mode label**: `mode` is `"lexical_hybrid"` only when fusion actually
+  ran; with no/empty index it degrades and reports `"vector"`. A response must
+  never claim hybrid for a vector-only result.
+- **Verification**: `uv run pytest tests/unit/knowledge_graph/ -q` -> 34 passed.
+
+### HR2-bis: HONEST SCOPE — the engine itself is still dormant
+- The consumption in HR2 is INTERNAL (the engine reads its own index). At the
+  repo level `GraphRAGEngine` has **no production consumer**: nothing in `src/`
+  constructs it. `knowledge_graph/__init__.py` only re-exports it, and a
+  re-export is not wiring — the 2026-06-22 sweep comment in that file calls
+  graphrag_engine "a genuine import-graph orphan" and closed it with exactly
+  that re-export.
+- So `lexical_hybrid_search` is a CORRECT, mutation-verified capability sitting
+  on a dormant surface. Do not describe it as live retrieval. It closes the
+  *algorithmic* gap (there was no lexical ranker anywhere); it does not by
+  itself put hybrid retrieval on any serving path.
+- Deliberately NOT auto-wired: giving the engine a real consumer needs a
+  SurrealDB client, an embedding call, and an index-population strategy for the
+  vault corpus. That is a separate change with its own failure modes, not a
+  side effect of adding a ranker.
+- **Wiring TODO (per non-destructive-wiring policy)**: populate a `BM25Index`
+  from the vault corpus at the same point the neuron embeddings are built, then
+  hand it to `GraphRAGEngine`. Until then this entry is the record that the gap
+  is known and intentional, not overlooked.
+
+### HR3: the discriminating tests must stay discriminating
+- `test_dense_only_FAILS_the_same_query` and
+  `test_vector_only_baseline_FAILS_the_same_query` assert the vector-only path
+  CANNOT find the target. If either flips to passing, the fixtures stopped
+  exercising hybrid retrieval and their sibling tests would pass vacuously
+  against an implementation that ignores BM25 entirely.
+- Mutation-verified 2026-08-08: 13/13 mutants killed (7 unit, 6 wiring). Before
+  hardening, 5/8 survived — notably "order by doc_id instead of score", which the
+  original single-candidate fixture could not detect. Green tests here mean
+  nothing without the mutation run.
+
+## Adversarial Guardrail Ratchet Invariants (AG1–AG3, 2026-08-09)
+
+### AG1: the attack corpus has a CONSUMER that measures the PRODUCTION path
+- `attack_patterns.py` (116 OWASP LLM Top-10 patterns) and `adversarial_tester.py` were
+  both orphans — complete-looking, zero callers, so no number was ever produced from
+  them. `tests/security/test_production_guardrail_ratchet.py` is now that consumer.
+- **The aim matters more than the wiring.** `test_single_pattern`'s DEFAULT target is
+  `PromptGuard` + `validate_input`, neither of which the executor calls; the production
+  input path is `CompoundExecutor.execute_task` → `GuardrailPipeline.check_input`
+  (executor.py:963-986). Wiring the tester without re-aiming it would have produced a
+  reassuring number about a component that never runs. The gate passes an explicit
+  `production_guardrail_probe()`.
+- **First measurement 2026-08-09** (six literal substrings, no normalization): 9 of 106
+  attacks caught (8.5%), 0/10 corpus-benign, **4 of 7 legitimate engineering task
+  descriptions BLOCKED**. A BLOCK hard-fails the task (`success=False`, early return at
+  executor.py:978), so those 4 were real work items that could not execute.
+- **After `cohezion.security.injection_signals` (AG4)**: **25/106 caught, 0/10 corpus
+  benign, 0/7 prose blocked, 7/7 encoding evasions closed.** Baselines raised to match.
+- **Verification**: `uv run pytest tests/security/test_production_guardrail_ratchet.py -q`
+  → 21 passed.
+
+### AG4: detection lives in injection_signals, NOT in a substring blocklist
+- `PromptInjectionGuard.check` delegates to `injection_signals.find_injection`. The
+  `INJECTION_PATTERNS` ClassVar on the *guard* is retained for backward compatibility and
+  is **no longer the detection path** — monkeypatching it does nothing. (When the guard
+  was switched over, the old mutation tests failed LOUDLY rather than silently passing,
+  which is the correct direction: the gate detected that its own mutation mechanism had
+  died. Any future rewiring must preserve that property.)
+- Two corrections, one per failure direction — the old guard failed in **both** at once
+  because matching raw text has no notion of meaning:
+  1. `normalize_variants()` folds text into NFKD/de-leet/de-streamed/ROT13/base64 forms,
+     so semantic-preserving transforms cannot hide the same words.
+  2. Patterns are **intent-directed phrases**, not bare words: an injection addresses the
+     model's own instructions ("override **your** alignment"), while ordinary engineering
+     prose does not ("override the default timeout"). `\W+` filler tolerates the
+     interposed word that broke the literal `"ignore previous"`.
+- **A bare `system_prompt` pattern was deliberately REMOVED.** It cost 2 corpus
+  detections (26→25→24 net of other changes) and eliminated the last prose false positive
+  ("Add a test for the system prompt template loader"). Talking *about* a system prompt is
+  not asking *for* one; the exfiltration verb is what discriminates. Trading detections
+  for a false positive that hard-fails real work is the correct direction here.
+- **Not an arms race.** Decoding covers only the transforms present in the corpus.
+  Encoding obfuscation is unbounded — this narrows the gap, it does not close it. The
+  ratchet is what tells you where the gap actually is.
+
+### AG5: mutation coverage is per-signal, and 9/9 is the standard
+- Mutation run 2026-08-09 after AG4: deleting **each** of the 8 signals individually, plus
+  the total wipe → **9/9 mutants KILLED**, each failure naming the lost rule. (Before the
+  canaries existed, the equivalent run was 1/3.)
+- Two canary strings are worded specifically to avoid overlap: `"Ignore all previous
+  instructions"` matches BOTH `ignore_previous` and `ignore_everything`, so neither canary
+  could detect the loss of its own rule. `test_each_canary_dies_with_its_own_rule` enforces
+  this — it rejects any canary that survives removal of its own signal.
+- Reproduce: set `MUTANT=<signal>` and run the gate with a plugin that filters
+  `injection_signals.INJECTION_PATTERNS`; every signal must produce a failure.
+
+### AG2: the probe returns the BLOCKING GUARD NAME, never a bool
+- `GuardProbe = Callable[[str], str | None]`, and `production_guardrail_probe(content_only=True)`
+  drops `rate_limit` / `resource` from the pipeline.
+- Not a style choice — a correctness one. The pipeline SHORT-CIRCUITS on first BLOCK and
+  `rate_limit` fires after 60 calls regardless of text, so on a 116-pattern corpus a
+  boolean probe reports 36/106 (34%) instead of 9/106 (8.5%) — a **4x overstatement
+  manufactured out of call volume**. Patterns swallowed by a volume guard are
+  *unmeasured*, not "allowed"; scoring them either way fabricates a number.
+- `CONTENT_GUARDS = {"constitutional", "prompt_injection", "output_filter"}` is the set
+  whose verdict depends on the text. Any new volume/quota guard must stay out of it.
+
+### AG3: the ratchet is DISCRIMINATING at per-pattern granularity (mutation-verified)
+- An aggregate count alone is nearly blind here. Mutation run 2026-08-09: deleting
+  `"ignore previous"` or `"jailbreak"` left `attacks_caught` at 9 — **2 of 3 mutants
+  SURVIVED**; only wiping the whole blocklist moved the number.
+- Root cause worth keeping: `"ignore previous"` catches **ZERO** of the 106 corpus
+  attacks, because the corpus says *"Ignore ALL previous instructions"* and one
+  interposed word breaks the literal substring. The guard's most famous rule is dead
+  weight against our own corpus.
+- Fixed by `INJECTION_CANARIES` — one attack string per production pattern, each
+  verified to evade once *its own* pattern is removed. Post-fix: **3/3 mutants killed**,
+  and the failure names the lost rule (`test_injection_canary_still_blocked[ignore previous]`).
+- **T2 discriminating**: `TestRatchetIsDiscriminating::test_neutralised_injection_guard_collapses_the_score`
+  (empty blocklist → caught < baseline) and
+  `test_each_canary_dies_with_its_own_rule[<pattern>]` (a canary caught incidentally by
+  some *other* substring is rejected as useless).
+- **Do not raise the baselines without a mutation run.** Green here proved nothing
+  before the mutants were run, and it will prove nothing next time either.
