@@ -100,7 +100,7 @@ class StrixHaloSiliconOptimizer:
         self,
         backend: ComputeBackend,
         iterations: int = 5,
-        tokens_per_iteration: int = 64,
+        tokens_per_iteration: int = 512,  # Increased from 64 to leverage 120GB UMA aperture
     ) -> BenchmarkResult:
         """Benchmark a specific hardware lane under Strix Halo optimization.
         
@@ -137,6 +137,44 @@ class StrixHaloSiliconOptimizer:
             optimal=self.verify_wave32_alignment(),
         )
         return res
+
+    def compute_max_safe_token_budget(
+        self,
+        weight_bytes: int,
+        num_layers: int = 48,
+        num_kv_heads: int = 8,
+        head_dim: int = 128,
+        cache_dtype: str = "q8_0",
+        buffer_gb: float = 16.0,
+    ) -> int:
+        """Calculate maximum safe KV-cache context token budget under UMA memory limit.
+        
+        Uses kv_budget preflight math to ensure OOM immunity.
+        """
+        try:
+            from cohezion.inference.kv_budget import kv_cache_bytes, preflight
+
+            gtt_free_bytes = int(self.profile.gtt_pool_max_gb * (1024**3))
+            buffer_bytes = int(buffer_gb * (1024**3))
+
+            # Test sequence lengths up to 131072
+            for seq in [131072, 65536, 32768, 16384, 8192, 4096]:
+                ok, _ = preflight(
+                    free_bytes=gtt_free_bytes,
+                    weight_bytes=weight_bytes,
+                    num_layers=num_layers,
+                    num_kv_heads=num_kv_heads,
+                    head_dim=head_dim,
+                    seq_len=seq,
+                    cache_dtype=cache_dtype,
+                    buffer_bytes=buffer_bytes,
+                )
+                if ok:
+                    return seq
+            return 4096
+        except Exception as exc:
+            logger.debug("KV budget calculation fallback: %s", exc)
+            return 32768
 
     def get_optimal_compilation_flags(self) -> List[str]:
         """Return C++/HIP compilation flags optimized for gfx1151 Strix Halo."""

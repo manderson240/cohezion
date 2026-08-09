@@ -33,3 +33,12 @@ def test_benchmark_lane_execution() -> None:
     assert res.tokens_per_sec > 0
     assert res.wavefront_size == 32
     assert res.optimal is True
+
+
+def test_max_safe_token_budget() -> None:
+    optimizer = StrixHaloSiliconOptimizer()
+    # 20GB model weight
+    weight_bytes = 20 * (1024**3)
+    safe_budget = optimizer.compute_max_safe_token_budget(weight_bytes=weight_bytes)
+    assert safe_budget >= 32768
+
