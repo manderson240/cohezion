@@ -113,15 +113,23 @@ KNOWN_PHANTOM_TESTS = frozenset(
         "test_backward_compatibility_no_coupling_kwarg",  # RGA1 (already marked REMOVED)
         "test_low_coherence_llm_makes_gate_skip",  # JG3
         "test_nonzero_coupling_changes_step",  # RGA1 (already marked REMOVED)
-        "test_reasoning_orchestrator_passes_tier_temperatures",  # TR1
-        "test_repeated_winner_gets_lower_score_on_next_call",  # RV2
-        "test_reroute_clamped_at_cheapest_tier",  # RS1
-        "test_reroute_downgrades_one_step_toward_cheaper",  # RS1
         "test_t1_epoch_fields_exist_with_zero_defaults",  # RQGM1
         "test_track_execution_action_captured_from_tier_used",  # JI1
         "test_track_execution_explicit_action_overrides_tier_used",  # JI1
-        "test_unbounded_metric_can_extrapolate_outside_unit_interval",  # MB1
-        "test_use_ema_thresholds_more_sensitive_than_fixed",  # LT1
+        # Cited ONLY inside a "REMOVED — was a PHANTOM invariant" block, deliberately, so
+        # the dead name is on record and nobody re-adds it. Naming a phantom in order to
+        # bury it is not the same failure as claiming one as verification.
+        "test_unbounded_metric_can_extrapolate_outside_unit_interval",  # MB1 (REMOVED)
+        "test_reasoning_orchestrator_passes_tier_temperatures",  # TR1 (REMOVED)
+        # 13 -> 8 on 2026-08-09. Removed, in the two ways the set is allowed to shrink:
+        #   WRITTEN  (tests/compound/test_harness_claims.py, mutation-verified 3/3):
+        #     test_use_ema_thresholds_more_sensitive_than_fixed          LT1
+        #     test_repeated_winner_gets_lower_score_on_next_call         RV2
+        #   CLAIM DELETED (the doc no longer cites them):
+        #     test_reroute_downgrades_one_step_toward_cheaper            RS1 — assertion was
+        #     test_reroute_clamped_at_cheapest_tier                      RS1 — REVERSED; see H4
+        #     test_reasoning_orchestrator_passes_tier_temperatures       TR1 — phantom invariant
+        #     test_unbounded_metric_can_extrapolate_outside_unit_interval MB1 — phantom invariant
     }
 )
 

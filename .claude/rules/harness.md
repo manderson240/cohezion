@@ -138,14 +138,19 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 
 ## TieredOrchestrator Temperature Invariants
 
-### TR1: _TIER_TEMPERATURE constants wire per-tier temperatures into build_reasoning_orchestrator (#131, 2026-06-27)
-- `_TIER_TEMPERATURE = {"npu": 0.0, "igpu": 0.1, "cpu": 0.3}` in `triune_orchestrator.py`
-- `build_reasoning_orchestrator` passes these as `temperature=_TIER_TEMPERATURE[tier]` to each `build_gaia_llm_tier` call
-- Motivation: arXiv 2603.08274 — T=0.0 causes 48x coherence collapse at long contexts; scale temperature with context depth
-- `build_triune_orchestrator` uses `build_gaia_native_tier` (no temperature param) — temperature only applies to the LLM reasoning path
-- **Structural**: `_TIER_TEMPERATURE["npu"] == 0.0` and `_TIER_TEMPERATURE["cpu"] == 0.3`
-- **Discriminating**: `test_reasoning_orchestrator_passes_tier_temperatures` captures kwargs and verifies per-model temperatures
-- **Verification**: `uv run pytest tests/inference/test_triune_orchestrator.py -q` → 5 passed
+### TR1: REMOVED 2026-08-09 — was a PHANTOM invariant
+`_TIER_TEMPERATURE` has **zero occurrences** in `triune_orchestrator.py` — as does the
+word "temperature". `build_reasoning_orchestrator` exists (line 157) but passes **no**
+`temperature=` to any `build_gaia_llm_tier` call, and the named discriminating test
+(`test_reasoning_orchestrator_passes_tier_temperatures`) is defined nowhere. Second
+phantom found on 2026-08-09, after MB1; fourth overall with RTG1 and RGA1/RGA2.
+
+Found by triaging the E5 hits (DOC1): of 13 phantom test citations, 11 had a real
+feature behind them and only the test was missing — these 2 did not.
+
+**Do NOT re-add without implementing it.** The underlying motivation may still be sound
+(arXiv 2603.08274 — T=0.0 coherence collapse at long contexts), but nothing in this repo
+implements per-tier temperature, so there is currently no invariant to state.
 
 ## MetricBaseline Invariants
 
@@ -236,8 +241,19 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `executor._resolve_tier(predicted, suggested, jepa_reroute) -> str|None`: combines DifficultyEstimator `predicted_tier` (predictive) + DegradationDetector `suggested_tier` (reactive) by taking the cheaper (conservative); a JepaGate REROUTE verdict then downgrades ONE step toward a cheaper tier via `_TIER_ORDER=("npu","igpu","cpu","cloud")`.
 - Closes a producer→consumer gap: REROUTE was only LOGGED at Step 3.5; `execute_task` Step 3.6(c) now calls `_resolve_tier(...)` and sets `metrics["recommended_tier"]`. None when no valid signal.
 - **T1 structural**: `_TIER_ORDER == ("npu","igpu","cpu","cloud")`
-- **T2 discriminating**: `test_reroute_downgrades_one_step_toward_cheaper` — `_resolve_tier("cpu","cpu",False)=="cpu"` but `(...,True)=="igpu"` (a verdict-ignoring impl leaves it "cpu"); `test_reroute_clamped_at_cheapest_tier`; `test_no_valid_signal_returns_none`
-- **Verification**: `uv run pytest tests/compound/test_tier_resolution.py -q` → 8 passed
+- **DIRECTION CORRECTED 2026-08-09.** The assertion previously stated here
+  (`(...,True)=="igpu"`, a downgrade toward cheaper) was **wrong** — H4 above already
+  recorded the reversal, but this block was never updated, so a stale assertion sat here
+  looking authoritative. It was caught by writing the test from this text and watching it
+  fail: `_resolve_tier("cpu","cpu",True)` returns **`"cloud"`**. Health may only ESCALATE
+  a hard task, never cheapen it.
+- **T2 discriminating** (`tests/compound/test_harness_claims.py::TestRS1RerouteResolution`,
+  mutation-verified): `test_reroute_escalates_one_step_toward_capability` —
+  `_resolve_tier("cpu","cpu",False)=="cpu"` but `(...,True)=="cloud"`; a verdict-ignoring
+  impl returns "cpu" for both, so the PAIR is the test.
+  `test_reroute_clamped_at_most_capable_tier` — at `_TIER_ORDER[-1]` it must clamp, not
+  wrap or IndexError.
+- **Verification**: `uv run pytest tests/compound/test_tier_resolution.py tests/compound/test_harness_claims.py -q`
 - **Open follow-on**: `recommended_tier` is exposed in metrics + feeds the learning/observability layer; driving execute_fn's actual tier requires an execute_fn contract change (not yet done).
 
 ### O9: TieredOrchestrator.run min_tier_index — difficulty-based cascade entry (2026-06-29)
