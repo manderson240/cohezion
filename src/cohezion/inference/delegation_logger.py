@@ -67,8 +67,9 @@ class DelegationLogger:
         except Exception as exc:
             logger.warning("Failed to write local delegation log: %s", exc)
 
-        # Asynchronous SurrealDB push
-        def _surreal_push() -> None:
+        # Asynchronous SurrealDB push + EventBus & Kanban integration
+        def _surreal_and_mesh_push() -> None:
+            # 1. SurrealDB SQL push
             sql = f"CREATE delegation_log CONTENT {json.dumps(event_dict)};"
             req = urllib.request.Request(
                 f"{self.surreal_url}/sql",
@@ -86,7 +87,45 @@ class DelegationLogger:
             except Exception as exc:
                 logger.debug("SurrealDB delegation_log push offline: %s", exc)
 
-        threading.Thread(target=_surreal_push, daemon=True).start()
+            # 2. EventBus Event publishing
+            try:
+                from cohezion.core.event_bus import Event, EventType, EventBus
+                import asyncio
+                bus = EventBus()
+                ev = Event(
+                    type=EventType.METRIC_UPDATE,
+                    source="unified_hybrid_router",
+                    payload=event_dict,
+                )
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.create_task(bus.publish(ev))
+                    else:
+                        asyncio.run(bus.publish(ev))
+                except Exception:
+                    pass
+            except Exception as exc:
+                logger.debug("EventBus publishing non-blocking exception: %s", exc)
+
+            # 3. Agentic Kanban Card persistence on escalation events
+            if event.escalated:
+                try:
+                    from cohezion.data_mesh.kanban_bridge import persist_item
+                    card_id = f"escalate_{event.task_name}_{int(event.timestamp)}"
+                    persist_item({
+                        "id": card_id,
+                        "title": f"[Tier Escalation] {event.task_name}: Tier {event.source_tier} -> Tier {event.target_tier} ({event.model_selected})",
+                        "status": "in_progress",
+                        "priority": "high" if event.target_tier == 3 else "medium",
+                        "source": "inference/hybrid_router",
+                        "category": "tier_escalation",
+                        "notes": f"EVI Score: {event.evi_score:.4f} | Reason: {event.reason}",
+                    })
+                except Exception as exc:
+                    logger.debug("Kanban bridge persistence non-blocking exception: %s", exc)
+
+        threading.Thread(target=_surreal_and_mesh_push, daemon=True).start()
 
     def get_recent_events(self, limit: int = 20) -> list[Dict[str, Any]]:
         """Read recent local delegation events."""

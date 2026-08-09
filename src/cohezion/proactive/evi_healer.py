@@ -91,18 +91,26 @@ class EVIHealer:
         """Publish healing notification event and persist kanban item if modules available."""
         try:
             from cohezion.core.event_bus import Event, EventBus
+            import asyncio
             bus = EventBus()
-            bus.publish(
-                Event.agent_complete(
-                    agent="proactive-evi-healer",
-                    result={
-                        "action_id": action.action_id,
-                        "component": action.component,
-                        "remediation": action.proposed_remediation,
-                        "evi": action.evi_score,
-                    },
-                )
+            ev = Event.agent_complete(
+                agent_name="proactive-evi-healer",
+                result={
+                    "action_id": action.action_id,
+                    "component": action.component,
+                    "remediation": action.proposed_remediation,
+                    "evi": action.evi_score,
+                },
+                duration_ms=0.0,
             )
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(bus.publish(ev))
+                else:
+                    asyncio.run(bus.publish(ev))
+            except Exception:
+                pass
         except Exception as exc:
             logger.debug("EventBus notification non-blocking exception: %s", exc)
 
