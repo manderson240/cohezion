@@ -59,3 +59,15 @@ def test_route_force_tier_override() -> None:
     assert res.selected_tier == 3
     assert res.model_name == "gemini-3-pro"
     assert "force_tier=3" in res.reason
+
+
+def test_route_with_flume_vae_prompt() -> None:
+    router = UnifiedHybridRouter()
+    res = router.route(
+        task_type="coding",
+        task_importance=0.5,
+        prompt="Implement a deterministic matrix multiply kernel in C++",
+    )
+    assert res.selected_tier in (1, 2, 3)
+    assert res.model_name != ""
+

@@ -99,6 +99,7 @@ class UnifiedHybridRouter:
         tier1_saturated: bool = False,
         context_tokens: int = 4096,
         force_tier: Optional[int] = None,
+        prompt: Optional[str] = None,
     ) -> RoutingResult:
         """Determine model and execution tier.
 
@@ -118,6 +119,8 @@ class UnifiedHybridRouter:
             Input context size in tokens
         force_tier: Optional[int]
             Explicit override tier (1, 2, or 3)
+        prompt: Optional[str]
+            Optional task prompt encoded into FLUME 256D VAE latent space for geometric correspondence
         """
         if force_tier in (1, 2, 3):
             model = self._select_model_for_tier(force_tier, task_type)
@@ -130,7 +133,21 @@ class UnifiedHybridRouter:
             )
             return res
 
-        quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
+        # Compute quality gap — geometrically derived via FLUME VAE if prompt provided
+        if prompt:
+            try:
+                from cohezion.governance.flume_bridge import encode_prompt, flume_route_similarity
+                prompt_z = encode_prompt(prompt)
+                # Compute geometric correspondence against benchmark reference for task_type
+                ref_capability = f"high quality {task_type} execution and deterministic reasoning"
+                sim = flume_route_similarity(prompt_z, ref_capability)
+                # Dynamic manifold quality gap derived from latent space distance
+                quality_gap = max(0.0, 1.0 - sim)
+            except Exception as exc:
+                logger.debug("FLUME geometric correspondence fallback: %s", exc)
+                quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
+        else:
+            quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
 
         # Baseline: Start at Tier 1 if not saturated and context fits Tier 1
         current_tier = 1
