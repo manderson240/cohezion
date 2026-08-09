@@ -29,7 +29,9 @@ from __future__ import annotations
 
 import re
 import sys
+from functools import lru_cache
 from pathlib import Path
+
 
 REPO = Path(__file__).resolve().parents[2]
 SRC = REPO / "src"
@@ -41,6 +43,8 @@ FILE_RE = re.compile(r"`?((?:src/cohezion|scripts|tests)/[\w./-]+\.py)`?")
 MODULE_RE = re.compile(r"`(cohezion(?:\.[A-Za-z_][\w]*)+)`")
 CLSMETH_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\.([a-z_][\w]*)\(?\)?`")
 CTORKW_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\(([a-z_][\w]*)\s*=")
+BACKTICK_RE = re.compile(r"`([^`\n]+)`")
+TESTNAME_RE = re.compile(r"\b(Test[A-Z]\w+|test_[a-z0-9][\w]*)\b")
 
 
 # false-positive stoplist for E1: paths used illustratively (globs, ellipses, placeholders)
@@ -93,6 +97,73 @@ def _member_defined(files: list[Path], member: str) -> bool:
         re.M,
     )
     return any(pat.search(p.read_text(errors="replace")) for p in files)
+
+
+# Invariants whose cited test does not exist. Measured 2026-08-09 by adding the E5 check:
+# 13 of 14 hits were genuine (the 14th, test_single_pattern, is a production helper in
+# src/ that merely starts with "test_"). These are pre-existing debt, enumerated so that
+# NEW phantoms fail immediately while the old ones stay visible.
+#
+# THIS SET MAY ONLY SHRINK. Removing an entry means the test was actually written.
+# Adding one means an invariant was documented without being verified -- write the test
+# instead. Same ratchet discipline as the guardrail baselines.
+KNOWN_PHANTOM_TESTS = frozenset(
+    {
+        "test_anisotropy_damped_in_large_position",  # RGA2 (already marked REMOVED)
+        "test_backward_compatibility_no_coupling_kwarg",  # RGA1 (already marked REMOVED)
+        "test_low_coherence_llm_makes_gate_skip",  # JG3
+        "test_nonzero_coupling_changes_step",  # RGA1 (already marked REMOVED)
+        "test_reasoning_orchestrator_passes_tier_temperatures",  # TR1
+        "test_repeated_winner_gets_lower_score_on_next_call",  # RV2
+        "test_reroute_clamped_at_cheapest_tier",  # RS1
+        "test_reroute_downgrades_one_step_toward_cheaper",  # RS1
+        "test_t1_epoch_fields_exist_with_zero_defaults",  # RQGM1
+        "test_track_execution_action_captured_from_tier_used",  # JI1
+        "test_track_execution_explicit_action_overrides_tier_used",  # JI1
+        "test_unbounded_metric_can_extrapolate_outside_unit_interval",  # MB1
+        "test_use_ema_thresholds_more_sensitive_than_fixed",  # LT1
+    }
+)
+
+
+@lru_cache(maxsize=1)
+def _defined_test_names() -> frozenset[str]:
+    """Every pytest class/function name defined anywhere under tests/.
+
+    Built once. Cheap enough (one regex pass over the test tree) and it makes the
+    "Verification:" line of every harness invariant checkable, which is the line that
+    matters -- an invariant naming a test that does not exist has never been verified.
+    """
+    names: set[str] = set()
+    pat = re.compile(r"^\s*(?:async def|def|class)\s+((?:Test[A-Z]|test_)\w*)", re.M)
+    tests_dir = REPO / "tests"
+    if tests_dir.exists():
+        for p in tests_dir.rglob("*.py"):
+            # MODULE stems count too: docs cite `tests/x/test_foo.py` far more often than
+            # a function, and a first cut that ignored this produced 35 false positives
+            # out of 43 -- a linter that cries wolf is worse than no linter.
+            names.add(p.stem)
+            names.update(pat.findall(p.read_text(errors="replace")))
+    # Production helpers that merely START with "test_" are not phantoms. Real case:
+    # adversarial_tester.test_single_pattern, cited by AG1.
+    for d in ("src", "scripts"):
+        root = REPO / d
+        if root.exists():
+            for p in root.rglob("*.py"):
+                if "cohezion-archive" in str(p):
+                    continue
+                names.update(pat.findall(p.read_text(errors="replace")))
+    return frozenset(names)
+
+
+def _claimed_test_names(text: str) -> set[str]:
+    """Pytest identifiers claimed inside backticks. Globs are skipped, not guessed."""
+    found: set[str] = set()
+    for span in BACKTICK_RE.findall(text):
+        if "*" in span:  # e.g. `test_wilson_lcb_*` -- a family, not a name
+            continue
+        found.update(TESTNAME_RE.findall(span))
+    return found
 
 
 def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
@@ -150,6 +221,21 @@ def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
             if not _member_defined(cfs, kw):
                 where = ", ".join(str(p.relative_to(REPO)) for p in cfs[:3])
                 warns.append(f"W4 {rel_doc}: `{cls}({kw}=...)` not a field/param of {where}")
+        defined = _defined_test_names()
+        for name in sorted(_claimed_test_names(text)):
+            if name in seen:
+                continue
+            seen.add(name)
+            if name in defined:
+                continue
+            if name in KNOWN_PHANTOM_TESTS:
+                warns.append(f"W5 {rel_doc}: known phantom test `{name}` (pre-existing debt)")
+                continue
+            errors.append(
+                f"E5 {rel_doc}: cites test `{name}` which is defined nowhere "
+                "— the invariant claiming it has never been verified. Write the test, "
+                "or delete the claim; do NOT add it to KNOWN_PHANTOM_TESTS."
+            )
     return errors, warns
 
 
@@ -162,6 +248,8 @@ def self_test() -> int:
         ("W3", "`RiemannianGlideTrajectory.anisotropy_tensor()` returns ones"),
         ("E1", "see `src/cohezion/physics/does_not_exist.py` for details"),
         ("E2", "import `cohezion.physics.no_such_module` to use it"),
+        ("E5", "**Verification**: `test_this_test_was_never_written` -> 12 passed"),
+        ("E5", "covered by `TestNoSuchPhantomClass::test_also_missing`"),
     ]
     ok = True
     with tempfile.TemporaryDirectory() as td:
@@ -172,9 +260,14 @@ def self_test() -> int:
             fired = any(x.startswith(code) for x in errs + warns)
             print(f"self-test {code}: {'PASS (fired)' if fired else 'FAIL (silent)'} — {body[:52]}")
             ok &= fired
-        # negative control: a TRUE statement must stay silent
+        # negative control: TRUE statements must stay silent -- including a REAL test
+        # name and a glob, so E5 is not merely "flag every backticked identifier".
         doc = Path(td) / "clean.md"
-        doc.write_text("`RiemannianGlideTrajectory(metric=None)` is the default", encoding="utf-8")
+        doc.write_text(
+            "`RiemannianGlideTrajectory(metric=None)` is the default; verified by "
+            "`test_constant_metric_stays_straight` and the `test_wilson_lcb_*` family",
+            encoding="utf-8",
+        )
         errs, warns = scan([doc])
         clean = not (errs + warns)
         print(f"self-test negative-control: {'PASS (silent)' if clean else 'FAIL: ' + str(errs + warns)}")

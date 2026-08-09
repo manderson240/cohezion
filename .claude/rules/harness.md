@@ -149,14 +149,24 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 
 ## MetricBaseline Invariants
 
-### MB1: MetricBaseline.value_bounds clamps trend_value() for bounded metrics (#129, 2026-06-27)
-- `value_bounds: tuple[float, float] | None = None` field on `MetricBaseline` dataclass
-- When set, `trend_value(horizon)` clamps result to `[lo, hi]` via `max(lo, min(hi, result))`
-- `DegradationDetector.__init__` wires `value_bounds=(0.0, 1.0)` on: `cache_hit_rate`, `coherence`, `success_rate`, `quality_score`
-- Unbounded metrics (`token_efficiency`, `duration_seconds`) retain `value_bounds=None`
-- Motivation: arXiv 2603.08274 — linear extrapolation projects coherence outside [0,1] causing false alert suppression
-- **Discriminating**: `test_unbounded_metric_can_extrapolate_outside_unit_interval` proves clamp is selective, not global
-- **Verification**: `uv run pytest tests/compound/test_degradation_detector.py::TestMetricBaseline -q` → 12 passed
+### MB1: REMOVED 2026-08-09 — was a PHANTOM invariant
+`value_bounds` has **zero occurrences** anywhere in `src/` or `tests/`; `trend_value()`
+does no clamping of any kind; the named discriminating test
+(`test_unbounded_metric_can_extrapolate_outside_unit_interval`) does not exist; and the
+claimed "12 passed" is really **6 passed** for `TestMetricBaseline`. Same class as RTG1
+and RGA1/RGA2.
+
+Caught by extending `scripts/ci/doc_code_consistency.py` with the **E5 named-test check**
+— the path/module linter that caught RTG1 could not see this one, because a phantom
+*symbol* and a phantom *test name* are invisible to a path checker. Every invariant here
+cites its verifying test, so that line is now machine-checked.
+
+**Do NOT re-add without implementing it.** If bounded-metric extrapolation is wanted, the
+principled form is a **logit-space** fit (project `log(p/(1-p))`, map back through the
+logistic): in-range by construction, saturating rather than wall-clamping, and it keeps
+steep negative trends distinguishable instead of collapsing them all to 0.0. A clamp
+treats the symptom — linear extrapolation is simply the wrong asymptotic form for a
+quantity confined to a unit interval.
 
 ### LT1: DegradationDetector._ema_thresholds adapts toward observed values (GIC self-regulation, #137, 2026-06-27)
 - `_ema_thresholds: dict[str, float]` seeded from constructor params (`cache_hit_rate_threshold`, `coherence_threshold`)
@@ -1003,3 +1013,30 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
   some *other* substring is rejected as useless).
 - **Do not raise the baselines without a mutation run.** Green here proved nothing
   before the mutants were run, and it will prove nothing next time either.
+
+## DOC1: every invariant's cited test must exist (E5, 2026-08-09)
+
+- `scripts/ci/doc_code_consistency.py` gained a **named-test check**: any pytest
+  identifier in backticks in `CLAUDE.md` / `harness.md` must be defined under `tests/`
+  (or be a test-module stem, or a `test_`-prefixed production helper such as
+  `adversarial_tester.test_single_pattern`).
+- **Why it was needed.** The pre-existing linter checks file paths, modules,
+  `Class.method()` and constructor kwargs. It caught RTG1. It could **not** catch MB1,
+  because a phantom *symbol* (`value_bounds`) and a phantom *test name* are invisible to
+  a path checker. Every invariant here ends with a "Verification:" line naming a test —
+  that line is the load-bearing claim, and it was unchecked.
+- **Measured on first run: 13 of 14 hits were genuine phantoms** (the 14th,
+  `test_single_pattern`, is a production helper in `src/`). Thirteen invariants cite
+  tests that do not exist: RGA1×2, RGA2, JG3, TR1, RV2, RS1×2, RQGM1, JI1×2, MB1, LT1.
+- **Ratchet, not a wall.** Those 13 are enumerated in `KNOWN_PHANTOM_TESTS` and downgrade
+  to W5 warnings so CI stays green on pre-existing debt; anything NOT in that set is a
+  hard E5 error. **The set may only shrink** — removing an entry means the test got
+  written. Adding one means an invariant was documented without being verified.
+- **Discriminating**: `--self-test` includes two E5 cases that must FIRE, plus a negative
+  control containing a REAL test name and a glob (`test_wilson_lcb_*`) that must stay
+  SILENT — so the check is not merely "flag every backticked identifier".
+- **False-positive discipline**: the first cut produced 43 errors of which ~35 were
+  test-module stems. A linter that cries wolf is worse than no linter; module stems and
+  `src/` helpers are both resolved before anything is reported.
+- **Verification**: `python scripts/ci/doc_code_consistency.py --self-test` → self-test OK;
+  `python scripts/ci/doc_code_consistency.py` → 0 errors, 13 warnings across 11 docs.
