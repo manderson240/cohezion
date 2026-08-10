@@ -64,10 +64,10 @@ async def run_slow_rendered_bbq_symphony() -> None:
     opt = StrixHaloSiliconOptimizer()
     flags = opt.get_optimal_compilation_flags()
 
-    # Publish resource claimed and released events
+    # Publish data mesh events
     await bus.publish(
         Event(
-            type=EventType.RESOURCE_CLAIMED,
+            type=EventType.DATA_PRODUCT_CREATED,
             source="bbq_orchestrator",
             payload={"session_id": "sess_01"},
         )
@@ -75,7 +75,7 @@ async def run_slow_rendered_bbq_symphony() -> None:
     await asyncio.sleep(0.05)
     await bus.publish(
         Event(
-            type=EventType.RESOURCE_RELEASED,
+            type=EventType.AGENT_COMPLETE,
             source="bbq_orchestrator",
             payload={"session_id": "sess_01"},
         )
