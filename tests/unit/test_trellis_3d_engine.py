@@ -8,7 +8,7 @@ from cohezion.multimodal.trellis_3d_engine import Trellis3DEngine
 
 def test_trellis_3d_asset_generation() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
-        engine = Trellis3DEngine(output_dir=tmp_dir)
+        engine = Trellis3DEngine(output_dir=tmp_dir, simulate_gpu_latency=False)
         asset = engine.generate_3d_asset(
             image_or_text="a futuristic quantum computer crystal node",
             output_format="gltf",
