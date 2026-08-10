@@ -1,17 +1,20 @@
-import ast, os, pathlib
+import ast
+import os
+import pathlib
 
-COH_ROOT = '/home/mike-anderson/dev/cohezion'
-SRC_ROOT = pathlib.Path(COH_ROOT) / 'src' / 'cohezion'
-TESTS_ROOT = pathlib.Path(COH_ROOT) / 'tests'
+
+COH_ROOT = "/home/mike-anderson/dev/cohezion"
+SRC_ROOT = pathlib.Path(COH_ROOT) / "src" / "cohezion"
+TESTS_ROOT = pathlib.Path(COH_ROOT) / "tests"
 
 
 def walk_tests(root):
     files = []
     for rootdir, dirs, files_list in os.walk(root):
         # Skip hidden directories
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
         for f in files_list:
-            if f.endswith('.py'):
+            if f.endswith(".py"):
                 files.append(pathlib.Path(rootdir) / f)
     return sorted(files)
 
@@ -26,30 +29,30 @@ for tf in test_files:
 
     p_idx = None
     for i, p in enumerate(parts):
-        if p == 'tests':
+        if p == "tests":
             p_idx = i
             break
     if p_idx is None:
         continue
-    sub_parts = list(parts[p_idx + 1:])
+    sub_parts = list(parts[p_idx + 1 :])
 
-    test_mod_subdir = '.'.join(p for p in sub_parts[:-1] if p != '__init__')
+    test_mod_subdir = ".".join(p for p in sub_parts[:-1] if p != "__init__")
     stem = os.path.splitext(sub_parts[-1])[0]
-    if stem.startswith('test_'):
+    if stem.startswith("test_"):
         stem = stem[5:]
 
-    expected_full = (test_mod_subdir + '.' + stem) if test_mod_subdir else stem
+    expected_full = (test_mod_subdir + "." + stem) if test_mod_subdir else stem
     coverage_entries.append((stem, expected_full))
 
 
 # Count LOC and test coverage for each src module
 mod_info = []
-for pyfile in sorted(SRC_ROOT.rglob('*.py')):
+for pyfile in sorted(SRC_ROOT.rglob("*.py")):
     rel = str(pyfile.relative_to(SRC_ROOT))  # swarm/cost_aware_router.py
     try:
         with open(pyfile) as f:
             tree = ast.parse(f.read())
-        loc = sum(1 for line in pyfile.open() if line.strip() and not line.strip().startswith('#'))
+        loc = sum(1 for line in pyfile.open() if line.strip() and not line.strip().startswith("#"))
     except Exception:
         continue
 
@@ -60,7 +63,7 @@ for pyfile in sorted(SRC_ROOT.rglob('*.py')):
             has_test = True
             break
         rel_dir = str(pathlib.Path(rel).parent)
-        if rel_dir != '.' and len(t_full.split('.')) >= 2:
+        if rel_dir != "." and len(t_full.split(".")) >= 2:
             src_parent_stem = pathlib.Path(rel_dir).stem
             if src_parent_stem in t_full and mod_stem in t_full:
                 has_test = True
@@ -70,16 +73,16 @@ for pyfile in sorted(SRC_ROOT.rglob('*.py')):
 
 mod_info.sort(key=lambda x: -x[1])
 
-print('=== Top untested modules (>200 LOC, 0 tests) ===')
+print("=== Top untested modules (>200 LOC, 0 tests) ===")
 count = 0
 for rel, loc, has_test in mod_info:
     if loc > 200 and not has_test:
         count += 1
-        print(f'{count}. {rel}: {loc} LOC - NO TESTS')
-print(f'({count} total)')
+        print(f"{count}. {rel}: {loc} LOC - NO TESTS")
+print(f"({count} total)")
 
 print()
-print('=== Largest modules (top 15) ===')
+print("=== Largest modules (top 15) ===")
 for rel, loc, has_test in mod_info[:15]:
-    status = 'NO TEST' if not has_test else 'HAS TEST'
-    print(f'  {loc:>5} LOC | {status:<8} | {rel}')
+    status = "NO TEST" if not has_test else "HAS TEST"
+    print(f"  {loc:>5} LOC | {status:<8} | {rel}")

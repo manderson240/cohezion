@@ -36,7 +36,9 @@ def fetch_raw(path: str) -> str:
     try:
         out = subprocess.run(
             ["gh", "api", f"repos/{REPO}/contents/{path}", "--jq", ".download_url"],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
     except (subprocess.SubprocessError, OSError):
         return ""
@@ -82,12 +84,14 @@ def distill(name: str, text: str) -> str:
         "platform above likely ALREADY have this (yes/partial/no, one clause why); (3) ONE concrete "
         "transferable lever IF any, else 'no new lever'. No preamble."
     )
-    body = json.dumps({
-        "model": MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 320,
-        "temperature": 0.2,
-    }).encode()
+    body = json.dumps(
+        {
+            "model": MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 320,
+            "temperature": 0.2,
+        }
+    ).encode()
     req = urllib.request.Request(  # noqa: S310
         LEMONADE, data=body, headers={"Content-Type": "application/json"}
     )

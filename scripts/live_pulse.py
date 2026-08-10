@@ -13,9 +13,7 @@ async def pulse_dashboard():
     CYAN = "\033[96m"
     GOLD = "\033[93m"
     GREEN = "\033[92m"
-    RED = "\033[91m"
     RESET = "\033[0m"
-    CLEAR = "\033[H\033[J"
 
     def get_last_line(path):
         try:

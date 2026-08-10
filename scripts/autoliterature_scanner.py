@@ -23,6 +23,7 @@ recording "no new papers".
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import time
@@ -770,10 +771,8 @@ def append_vault_observation(title: str, text: str, obs_type: str = "literature"
         VAULT_OBS.touch()
     last_id = 0
     for line in VAULT_OBS.read_text().splitlines():
-        try:
+        with contextlib.suppress(Exception):
             last_id = max(last_id, json.loads(line).get("id", 0))
-        except Exception:
-            pass
     new_id = last_id + 1
     ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     obs = {
@@ -792,10 +791,8 @@ def append_vault_observation(title: str, text: str, obs_type: str = "literature"
 def append_jsonl(metric: float, metrics: dict, status: str, description: str, **asi) -> int:
     last_run = 0
     for line in JSONL.read_text().splitlines():
-        try:
+        with contextlib.suppress(Exception):
             last_run = max(last_run, json.loads(line).get("run", 0))
-        except Exception:
-            pass
     run = last_run + 1
     entry = {
         "run": run,

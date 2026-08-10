@@ -111,7 +111,7 @@ class ThermalProfiler:
 
             # Execute batch
             try:
-                batch_result = await client.batch_generate(items)
+                await client.batch_generate(items)
             except Exception as e:
                 logger.error(f"Batch execution failed: {e}")
                 monitor.stop_measurement()
@@ -239,7 +239,7 @@ class ThermalProfiler:
         logger.info("=" * 60)
 
         # Group by model
-        models = set(r["model"] for r in self.results if "model" in r)
+        models = {r["model"] for r in self.results if "model" in r}
 
         for model in sorted(models):
             logger.info(f"\n{model}:")

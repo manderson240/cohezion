@@ -8,16 +8,14 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
-from cohezion.core.event_bus import Event, EventBus, EventType
-from cohezion.data_mesh.kanban_bridge import persist_item
+from cohezion.core.event_bus import EventBus
 from cohezion.inference.strix_halo_optimizer import StrixHaloSiliconOptimizer
 from cohezion.physics.poincare_manifold import PoincareManifoldTracker
 from cohezion.proactive.evi_healer import EVIHealer
@@ -38,17 +36,20 @@ class NightlySwarmDaemon:
         self.tracker = PoincareManifoldTracker()
         self.event_bus = EventBus()
 
-    async def run_nightly_cycle(self, max_files: int = 5) -> Dict[str, Any]:
+    async def run_nightly_cycle(self, max_files: int = 5) -> dict[str, Any]:
         """Execute a full autonomous self-healing and verification cycle."""
         logger.info("=== STARTING NIGHTLY SELF-IMPROVING SWARM CYCLE ===")
 
         # 1. Preflight Fleet Safety Check
         preflight_ok = self.optimizer.verify_wave32_alignment()
-        logger.info("Strix Halo Wave32 Alignment: %s", "✅ ALIGNED" if preflight_ok else "⚠️ MISALIGNED")
+        logger.info(
+            "Strix Halo Wave32 Alignment: %s", "✅ ALIGNED" if preflight_ok else "⚠️ MISALIGNED"
+        )
 
         # 2. Collect Python Target Files for Verification
         targets = sorted(
-            p for p in (self.repo_root / "src" / "cohezion").rglob("*.py")
+            p
+            for p in (self.repo_root / "src" / "cohezion").rglob("*.py")
             if "__pycache__" not in str(p) and "test_" not in p.name
         )[:max_files]
 
@@ -73,7 +74,9 @@ class NightlySwarmDaemon:
                 # Track Trajectory in Poincaré Manifold
                 self.tracker.project_and_track(
                     state_id=target.stem,
-                    raw_vector=np.frombuffer(proof.code_hash.encode(), dtype=np.uint8).astype(float),
+                    raw_vector=np.frombuffer(proof.code_hash.encode(), dtype=np.uint8).astype(
+                        float
+                    ),
                     timestamp=time.time(),
                 )
             except Exception as exc:
@@ -143,4 +146,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     import numpy as np
+
     main()

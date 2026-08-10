@@ -39,9 +39,6 @@ def verify():
         with open(qasm_path) as f:
             lines = f.readlines()
 
-        import numpy as np
-
-        safe_dict = {"pi": np.pi}
         N_qubits = 36
 
         for line in lines:
@@ -66,7 +63,7 @@ def verify():
         site_to_qubit = list(range(N_qubits))
         qubit_to_site = list(range(N_qubits))
 
-        for i, (name, params, qubits) in enumerate(ops):
+        for i, (_name, _params, qubits) in enumerate(ops):
             target_sites = [qubit_to_site[q] for q in qubits]
 
             if len(target_sites) == 2:

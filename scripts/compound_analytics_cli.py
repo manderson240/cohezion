@@ -18,12 +18,13 @@ import argparse
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
 def cmd_status(args):
     from cohezion.compound.experiment_analytics import get_analytics_report
-    from cohezion.compound.loop_visualizer import render_session_summary, render_experiment_table
+    from cohezion.compound.loop_visualizer import render_experiment_table, render_session_summary
 
     report = get_analytics_report(n=2000)
     top = report["top_experiments"]

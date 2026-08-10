@@ -31,9 +31,10 @@ import sys
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import date
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger("frontier_digest")
 
@@ -71,7 +72,7 @@ class Finding:
 
 def _http_get(
     url: str, *, timeout: float = 15.0, headers: dict[str, str] | None = None
-) -> Optional[bytes]:
+) -> bytes | None:
     """Best-effort HTTP GET. Returns body bytes or None on failure."""
     req = urllib.request.Request(
         url, headers=headers or {"User-Agent": "cohezion-frontier-digest/1.0"}
@@ -252,7 +253,7 @@ def _query_mycelium_patterns(query: str, limit: int = 20) -> list[str]:
     try:
         from cohezion.knowledge.surreal import SurrealClient  # type: ignore
 
-        client = SurrealClient()
+        SurrealClient()
         # Placeholder: real query would use SurrealQL
         return []
     except (ImportError, AttributeError, OSError) as e:
@@ -269,10 +270,7 @@ def novelty_score(finding: dict[str, Any] | Finding) -> float:
     - Penalize by max similarity to any pattern title
     - Token overlap Jaccard on title keywords
     """
-    if isinstance(finding, Finding):
-        f = finding.to_dict()
-    else:
-        f = finding
+    f = finding.to_dict() if isinstance(finding, Finding) else finding
     title = (f.get("title") or "").lower()
     if not title:
         return 0.0
@@ -380,7 +378,7 @@ def write_digest(
     return output_path
 
 
-def post_to_vault(digest_path: Path, today: str) -> Optional[str]:
+def post_to_vault(digest_path: Path, today: str) -> str | None:
     """Mirror the digest into the local vault (best-effort)."""
     try:
         # Try to find vault
@@ -396,7 +394,7 @@ def post_to_vault(digest_path: Path, today: str) -> Optional[str]:
                 target.write_text(digest_path.read_text())
                 return str(target)
         return None
-    except (OSError, IOError) as e:
+    except OSError as e:
         logger.debug("vault mirror failed: %s", e)
         return None
 
@@ -406,7 +404,7 @@ def post_to_surrealdb(digest_path: Path, today: str) -> bool:
     try:
         from cohezion.knowledge.surreal import SurrealClient  # type: ignore
 
-        client = SurrealClient()
+        SurrealClient()
         # Placeholder: real client.record(...) call
         return True
     except (ImportError, AttributeError, OSError) as e:

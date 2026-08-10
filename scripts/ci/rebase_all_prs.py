@@ -4,7 +4,11 @@
 Run after a serial merge cascade makes all open merge/* PRs CONFLICTING.
 """
 
-import subprocess, sys, json, time
+import json
+import subprocess
+import sys
+import time
+
 
 REPO = "/home/mike-anderson/dev/cohezion"
 LOG_FILE = f"{REPO}/autoresearch-prs.jsonl"
@@ -31,7 +35,7 @@ PRECOMPUTED = {
 
 
 def git(*args, check=True):
-    r = subprocess.run(["git", "-C", REPO] + list(args), capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", REPO, *list(args)], capture_output=True, text=True)
     if check and r.returncode != 0:
         print(f"  git {' '.join(args)} failed: {r.stderr.strip()}")
     return r.stdout.strip()

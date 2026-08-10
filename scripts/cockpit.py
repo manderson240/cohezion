@@ -16,6 +16,7 @@ Daemon start/stop is intentionally NOT exposed (too destructive) — the exact
 
 import marimo
 
+
 __generated_with = "0.23.14"
 app = marimo.App(width="medium")
 
@@ -32,9 +33,8 @@ def _header(mo):
 
 @app.cell
 def _imports():
-    import matplotlib.pyplot as plt
-
     import marimo as mo
+    import matplotlib.pyplot as plt
 
     from cohezion.cockpit import daemon_state as ds
 
@@ -407,7 +407,7 @@ app._unparsable_cell(
 
     The corrected code uses `json.dumps()` to convert the dictionary to a JSON string, and then uses `mo.md()` with the JSON string.
     """,
-    name="_lemonade"
+    name="_lemonade",
 )
 
 
@@ -500,7 +500,10 @@ def _fleet_controls(mo):
 @app.cell
 def _fleet_action(ds, fleet_btn, fleet_prompt, mo):
     # Fires ONLY on click (not on the refresh tick). Embedded agent, runs on-demand.
-    mo.stop(not fleet_btn.value, mo.md("_Free-form embedded agent — type a prompt, click. Runs on local :13305, $0._"))
+    mo.stop(
+        not fleet_btn.value,
+        mo.md("_Free-form embedded agent — type a prompt, click. Runs on local :13305, $0._"),
+    )
     mo.stop(not fleet_prompt.value.strip(), mo.md("⚠️ Prompt is empty."))
     fleet_answer = ds.run_fleet_prompt(fleet_prompt.value.strip())
     mo.md(f"**🤖 Local fleet:**\n\n{fleet_answer}")

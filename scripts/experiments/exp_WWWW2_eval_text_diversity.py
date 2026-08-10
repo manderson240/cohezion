@@ -10,10 +10,11 @@ will select a seed that generalizes better to all evaluation tasks.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
 
 # ============================================================================
 # Configuration
@@ -137,7 +138,9 @@ class ExperimentResult:
             "treatment": {
                 "best_seed": self.treatment_best_seed,
                 "mean_ppl": self.treatment_mean_ppl,
-                "seed_details": {s: c.to_dict() for s, c in self.treatment_seed_comparisons.items()},
+                "seed_details": {
+                    s: c.to_dict() for s, c in self.treatment_seed_comparisons.items()
+                },
             },
             "status": self.status,
             "notes": self.notes,

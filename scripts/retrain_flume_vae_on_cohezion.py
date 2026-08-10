@@ -30,6 +30,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import sys
 import time
@@ -101,10 +102,8 @@ def teacher_embed(max_docs: int = 5000) -> int:
 
     docs = []
     for line in CORPUS_OUT.read_text().splitlines()[:max_docs]:
-        try:
+        with contextlib.suppress(Exception):
             docs.append(json.loads(line))
-        except Exception:
-            pass
     print(f"[teacher] embedding {len(docs)} documents via nomic-embed-text:v1.5...")
     t0 = time.time()
     written = 0
@@ -162,10 +161,8 @@ def train(epochs: int = 5, batch_size: int = 32) -> None:
     # Load teacher embeddings
     items = []
     for line in TEACHER_EMB_OUT.read_text().splitlines():
-        try:
+        with contextlib.suppress(Exception):
             items.append(json.loads(line))
-        except Exception:
-            pass
     print(f"[train] loaded {len(items)} teacher embeddings")
     if len(items) < 100:
         print("[train] too few examples — extract more corpus first")
@@ -186,10 +183,7 @@ def train(epochs: int = 5, batch_size: int = 32) -> None:
     # HARDWARE_PROFILE_PRIME ("never assume RTX/CUDA"). Tiny MLP, CPU is fine.
     import os as _os
 
-    if _os.environ.get("FLUME_TRAIN_DEVICE"):
-        device = _os.environ["FLUME_TRAIN_DEVICE"]
-    else:
-        device = "cpu"
+    device = _os.environ["FLUME_TRAIN_DEVICE"] if _os.environ.get("FLUME_TRAIN_DEVICE") else "cpu"
     print(
         f"[train] device={device} epochs={epochs} (CPU forced; set FLUME_TRAIN_DEVICE=cuda to override)",
         flush=True,

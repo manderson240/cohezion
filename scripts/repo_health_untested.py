@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Identify top untested modules (>200 LOC, 0 tests) in src/cohezion/."""
 
-import os
 import ast
+import os
 
 
 def count_loc(filepath):
     """Count non-blank, non-comment lines in a Python file."""
-    with open(filepath, "r") as fh:
+    with open(filepath) as fh:
         src_txt = fh.read()
     try:
         tree = ast.parse(src_txt)
@@ -26,11 +26,11 @@ def module_has_tests(mod_path, tests_root):
                 continue
             # Normalize test file to module name
             rel_test = os.path.join(root, fname).replace(tests_root + "/", "")
-            test_mod_name = rel_test.replace("/", ".").removesuffix(".py")
+            rel_test.replace("/", ".").removesuffix(".py")
             # Check if this test references our module at all
             test_path = os.path.join(root, fname)
             try:
-                with open(test_path, "r") as f2:
+                with open(test_path) as f2:
                     content = f2.read()
                 if parts in content or "cohezion." + parts.replace(".py", "") in content:
                     return True
@@ -54,7 +54,7 @@ def main():
             mod_name = rel_path.replace(os.sep, ".").removesuffix(".py")
 
             # Count LOC via ast-based lines of code (stat stmts won't work well - use simple line count)
-            with open(fp, "r") as fh:
+            with open(fp) as fh:
                 lines = [l for l in fh.readlines() if l.strip() and not l.strip().startswith("#")]
             loc = len(lines)
 

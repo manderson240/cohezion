@@ -17,6 +17,7 @@ import time
 import urllib.request
 from pathlib import Path
 
+
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 # Env-overridable; default is a small fast model reliably in the local catalog.
 # Override: PC_AUDIT_MODEL=<id> (e.g. Bonsai-8B-gguf / Gemma-4-31B-it-GGUF for deeper triage).
@@ -25,12 +26,15 @@ SRC_ROOT = Path(__file__).parent.parent / "src" / "cohezion"
 
 SYSTEM_PROMPT = "You classify software modules by data-flow role. Output JSON only, no explanation, no markdown."
 
+
 def _make_user_content(module_name: str, source: str) -> str:
     """Build classify prompt — avoid str.format() on source (brace collision)."""
     return (
-        "Classify cohezion." + module_name
+        "Classify cohezion."
+        + module_name
         + ". Role: PRODUCER, CONSUMER, PRODUCER+CONSUMER, or INFRASTRUCTURE.\n\n"
-        "Source:\n" + source[:1500]
+        "Source:\n"
+        + source[:1500]
         + '\n\nJSON: {"role":"...","produces":"...","consumes":"...","wiring_gap":"..."}'
     )
 
@@ -38,26 +42,27 @@ def _make_user_content(module_name: str, source: str) -> str:
 def _extract_json(text: str) -> dict:
     """Extract first JSON object from model output (handles nesting + code fences)."""
     import re
+
     # Strip code fences
-    text = re.sub(r'^```(?:json)?\n?', '', text.strip())
-    text = re.sub(r'\n?```$', '', text.strip())
+    text = re.sub(r"^```(?:json)?\n?", "", text.strip())
+    text = re.sub(r"\n?```$", "", text.strip())
     # Try full text first
     try:
         return json.loads(text.strip())
     except json.JSONDecodeError:
         pass
     # Find outermost {...} by brace counting
-    start = text.find('{')
+    start = text.find("{")
     if start >= 0:
         depth, i = 0, start
         for i, ch in enumerate(text[start:], start):
-            if ch == '{':
+            if ch == "{":
                 depth += 1
-            elif ch == '}':
+            elif ch == "}":
                 depth -= 1
                 if depth == 0:
                     try:
-                        return json.loads(text[start:i + 1])
+                        return json.loads(text[start : i + 1])
                     except json.JSONDecodeError:
                         break
     # Last resort: try to extract role keyword
@@ -69,15 +74,17 @@ def _extract_json(text: str) -> dict:
 
 def lemonade_classify(module_name: str, source: str, timeout: int = 30) -> dict:
     """Call Lemonade REST API to classify a module."""
-    payload = json.dumps({
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": _make_user_content(module_name, source)},
-        ],
-        "max_tokens": 180,
-        "temperature": 0.1,
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": MODEL,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": _make_user_content(module_name, source)},
+            ],
+            "max_tokens": 180,
+            "temperature": 0.1,
+        }
+    ).encode()
 
     req = urllib.request.Request(
         LEMONADE_URL,
@@ -115,7 +122,7 @@ def check_lemonade() -> bool:
             models = [m["id"] for m in data.get("data", [])]
             if MODEL not in models:
                 print(f"[warn] {MODEL} not in catalog. Available: {models[:8]}")
-                print(f"[info] Switch MODEL= to one of the above and retry.")
+                print("[info] Switch MODEL= to one of the above and retry.")
                 return False
             print(f"[ok] {MODEL} ready on :13305 ({len(models)} models total)")
             return True
@@ -129,16 +136,22 @@ def audit(output_path: Path | None = None) -> list[dict]:
         sys.exit(1)
 
     modules = sorted(
-        [p.name for p in SRC_ROOT.iterdir()
-         if p.is_dir() and not p.name.startswith("_") and not p.name == "__pycache__"]
-        + [p.stem for p in SRC_ROOT.iterdir()
-           if p.is_file() and p.suffix == ".py" and not p.name.startswith("_")]
+        [
+            p.name
+            for p in SRC_ROOT.iterdir()
+            if p.is_dir() and not p.name.startswith("_") and p.name != "__pycache__"
+        ]
+        + [
+            p.stem
+            for p in SRC_ROOT.iterdir()
+            if p.is_file() and p.suffix == ".py" and not p.name.startswith("_")
+        ]
     )
 
     results = []
     for i, mod in enumerate(modules):
         source = read_module_source(SRC_ROOT / mod)
-        print(f"[{i+1:02d}/{len(modules):02d}] {mod}...", end=" ", flush=True)
+        print(f"[{i + 1:02d}/{len(modules):02d}] {mod}...", end=" ", flush=True)
         t0 = time.time()
         classification = lemonade_classify(mod, source)
         elapsed = time.time() - t0
@@ -160,7 +173,7 @@ def audit(output_path: Path | None = None) -> list[dict]:
     ]
     for r in results:
         gap = (r.get("wiring_gap") or "")[:80]
-        report_lines.append(f"| `{r['module']}` | {r.get('role','?')} | {gap} |")
+        report_lines.append(f"| `{r['module']}` | {r.get('role', '?')} | {gap} |")
 
     for role_filter, heading in [
         ("PRODUCER", "## Producers"),
@@ -181,11 +194,17 @@ def audit(output_path: Path | None = None) -> list[dict]:
                     report_lines.append(f"- **Gap:** {r['wiring_gap']}")
                 report_lines.append("")
 
-    gaps = [r for r in results if r.get("wiring_gap") and r.get("role") not in ("ERROR", "UNKNOWN", "INFRASTRUCTURE")]
+    gaps = [
+        r
+        for r in results
+        if r.get("wiring_gap") and r.get("role") not in ("ERROR", "UNKNOWN", "INFRASTRUCTURE")
+    ]
     if gaps:
         report_lines += ["## Critical Wiring Gaps", ""]
         for r in gaps:
-            report_lines.append(f"- **{r['module']}** ({r.get('role','?')}): {r.get('wiring_gap','')}")
+            report_lines.append(
+                f"- **{r['module']}** ({r.get('role', '?')}): {r.get('wiring_gap', '')}"
+            )
 
     report = "\n".join(report_lines)
 

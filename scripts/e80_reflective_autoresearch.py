@@ -36,8 +36,11 @@ VAULT_OBS = Path("/home/mike-anderson/vaults/cohezion-vault/memory/observations.
 
 # Sibling-script import: O(1) last-id cache replaces O(N) full-file scans
 sys.path.insert(0, str(REPO / "scripts"))
-from jsonl_id_cache import bump_id, next_id  # noqa: E402
+import contextlib
+
 import surreal_index  # noqa: E402  (silent-fail telemetry-grade index)
+from jsonl_id_cache import bump_id, next_id  # noqa: E402
+
 
 # Import autoliterature helpers (it's a sibling script — load by file path)
 spec = importlib.util.spec_from_file_location(
@@ -111,10 +114,8 @@ def build_trace(n_rows: int = 60) -> tuple[str, dict]:
         source = "surreal"
     else:
         for ln in _tail_jsonl(JSONL, n_rows):
-            try:
+            with contextlib.suppress(Exception):
                 rows.append(json.loads(ln))
-            except Exception:
-                pass
         source = "jsonl_tail"
     keep_n = sum(1 for r in rows if r.get("status") == "keep")
     discard_n = sum(1 for r in rows if r.get("status") == "discard")

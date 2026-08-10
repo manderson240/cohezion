@@ -15,8 +15,9 @@ from __future__ import annotations
 import json
 import subprocess
 import timeit
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 ROOT = Path(__file__).parent.parent.parent
 
@@ -65,8 +66,8 @@ def get_autoresearch_summary(jsonl_path: Path) -> dict:
     if not jsonl_path.exists():
         return {}
     try:
-        from collections import defaultdict
         import statistics
+        from collections import defaultdict
 
         by_exp = defaultdict(list)
         lines = jsonl_path.read_text().strip().split("\n")
@@ -129,7 +130,7 @@ def write_handoff(force: bool = False) -> bool:
     research = get_autoresearch_summary(ROOT / "autoresearch_overnight.jsonl")
 
     content = f"""# Session Continuation
-**Written:** {datetime.now(timezone.utc).isoformat()}
+**Written:** {datetime.now(UTC).isoformat()}
 **Context:** {ctx_pct:.0%}
 **Branch:** {git.get("branch", "unknown")}
 

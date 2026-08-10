@@ -12,10 +12,11 @@ on byte n-gram overlap with domain text.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
 
 # ============================================================================
 # Configuration
@@ -275,16 +276,17 @@ def run_experiment() -> ExperimentResult:
 
     if len(new_snippets) < 20:
         print(
-            f"[{EXPERIMENT_ID}] WARNING: Only extracted {len(new_snippets)} snippets, "
-            f"target is 20"
+            f"[{EXPERIMENT_ID}] WARNING: Only extracted {len(new_snippets)} snippets, target is 20"
         )
 
     # Phase 2: Analyze corpus statistics
     print(f"[{EXPERIMENT_ID}] Phase 2: Analyzing corpus statistics...")
 
     corpus_expanded = analyze_corpus_statistics(new_snippets)
-    print(f"  Expanded corpus: {corpus_expanded.num_snippets} snippets, "
-          f"{corpus_expanded.total_bytes} bytes")
+    print(
+        f"  Expanded corpus: {corpus_expanded.num_snippets} snippets, "
+        f"{corpus_expanded.total_bytes} bytes"
+    )
     print(f"  Byte overlap with existing: {corpus_expanded.byte_overlap_with_existing:.1%}")
 
     # Phase 3: Train HIHO v5 with expanded corpus
@@ -305,8 +307,10 @@ def run_experiment() -> ExperimentResult:
     overlap_ok = corpus_expanded.byte_overlap_with_existing >= BYTE_OVERLAP_TARGET
 
     print(f"  NL maintained: {nl_ok} (PPL={expanded_metrics.ppl_test:.3f} <= {NL_THRESHOLD})")
-    print(f"  Byte overlap good: {overlap_ok} "
-          f"({corpus_expanded.byte_overlap_with_existing:.1%} >= {BYTE_OVERLAP_TARGET:.1%})")
+    print(
+        f"  Byte overlap good: {overlap_ok} "
+        f"({corpus_expanded.byte_overlap_with_existing:.1%} >= {BYTE_OVERLAP_TARGET:.1%})"
+    )
 
     status = "PASS" if (nl_ok and overlap_ok) else "FAIL"
     notes = f"PPL change: {expanded_metrics.ppl_test - baseline_metrics.ppl_test:+.3f}"

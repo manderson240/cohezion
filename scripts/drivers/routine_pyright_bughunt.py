@@ -27,8 +27,9 @@ import argparse
 import json
 import subprocess
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -350,7 +351,7 @@ def _push_to_surrealdb(record: dict) -> None:
         f"}};"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             "http://localhost:8001/sql",
             data=sql.encode(),
             headers={
@@ -391,7 +392,7 @@ def _query_surrealdb_wins() -> set[str]:
     """Pull issue keys already marked WIN in vault_neuron. Skip re-attempting them."""
     sql = "SELECT task_id FROM vault_neuron WHERE category = 'code_quality' AND success = true;"
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             "http://localhost:8001/sql",
             data=sql.encode(),
             headers={
@@ -427,7 +428,7 @@ def _push_batch_summary_to_vault(batch_results: list[dict], elapsed_s: float) ->
         f"Batch bughunt: {wins}/{total} WINs in {elapsed_s:.0f}s. "
         f"Rules fixed: {', '.join(set(rules_fixed)) or 'none'}"
     )
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
+    ts = datetime.now(UTC).strftime("%Y%m%d%H%M")
     sql = (
         f"INSERT INTO vault_neuron {{"
         f" task_id: 'pyright:batch:{ts}', "
@@ -441,7 +442,7 @@ def _push_batch_summary_to_vault(batch_results: list[dict], elapsed_s: float) ->
         f"}};"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             "http://localhost:8001/sql",
             data=sql.encode(),
             headers={
@@ -565,7 +566,7 @@ def _process_one(target: dict, t_start: datetime) -> dict | None:
         print("  [REVERT] Fix didn't pass verification — reverting")
         Path(file_path).write_text(Path(file_path).read_text().replace(fix_new, fix_old, 1))
 
-    elapsed = (datetime.now(timezone.utc) - t_start).total_seconds()
+    elapsed = (datetime.now(UTC) - t_start).total_seconds()
     print(f"[{outcome}] {rel_file}:{line + 1} in {elapsed:.1f}s")
 
     rec = {
@@ -596,7 +597,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    t_start = datetime.now(timezone.utc)
+    t_start = datetime.now(UTC)
     print(f"[START] Pyright bughunt — batch={args.batch} — {t_start.isoformat()}")
 
     # Load prior attempts from JSONL + SurrealDB WINs (skip already-won issues)
@@ -643,7 +644,7 @@ def main() -> None:
             prior_keys.add(key)  # don't retry same key within this batch
 
     # Batch summary
-    elapsed_total = (datetime.now(timezone.utc) - t_start).total_seconds()
+    elapsed_total = (datetime.now(UTC) - t_start).total_seconds()
     wins = sum(1 for r in batch_results if r.get("outcome") == "WIN")
     losses = sum(1 for r in batch_results if r.get("outcome") == "LOSS")
     skips = sum(1 for r in batch_results if r.get("outcome") == "SKIP")

@@ -18,8 +18,8 @@ async def run_specialist_delegation():
 
     # Extend with Ollama cloud models via LLMExecutor
     cloud_executor = LLMExecutor(model="qwen3.5:cloud")
-    team_executor = TeamCompoundExecutor(compound_executor=cloud_executor, auto_feedback=True)
-    orchestrator = TeamOrchestrator()
+    TeamCompoundExecutor(compound_executor=cloud_executor, auto_feedback=True)
+    TeamOrchestrator()
 
     tasks = [
         TaskSpec(

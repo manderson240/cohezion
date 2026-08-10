@@ -7,13 +7,14 @@ to both SurrealDB and the Obsidian Vault.
 """
 
 import asyncio
+import json
 import logging
 import os
 import sys
 import time
-import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # Ensure src/ is in the python path
 root_dir = Path(__file__).resolve().parent.parent.parent
@@ -131,7 +132,7 @@ async def execute_calibration_cycle(iteration: int) -> None:
 
     # 1. Run Semantic Cache Sweep
     logger.info("Executing Semantic Cache Parameter Sweep...")
-    code_cache, out_cache, err_cache = await run_subprocess(
+    code_cache, _out_cache, err_cache = await run_subprocess(
         [
             ".venv/bin/python",
             "scripts/calibration/run_cache_calibration.py",
@@ -144,7 +145,7 @@ async def execute_calibration_cycle(iteration: int) -> None:
 
     # 2. Run Routing Sweep
     logger.info("Executing Task Classifier Routing Sweep...")
-    code_route, out_route, err_route = await run_subprocess(
+    code_route, _out_route, err_route = await run_subprocess(
         [
             ".venv/bin/python",
             "scripts/calibration/run_routing_calibration.py",
@@ -157,7 +158,7 @@ async def execute_calibration_cycle(iteration: int) -> None:
 
     # 3. Run Verify Calibration
     logger.info("Verifying calibrated parameters load correctly...")
-    code_verify, out_verify, err_verify = await run_subprocess(
+    code_verify, _out_verify, err_verify = await run_subprocess(
         [
             ".venv/bin/python",
             "scripts/calibration/verify_calibration.py",
@@ -170,7 +171,7 @@ async def execute_calibration_cycle(iteration: int) -> None:
 
     # 4. Run Pytest Fast Tests
     logger.info("Running fast unit test suite to guarantee safety...")
-    code_test, out_test, err_test = await run_subprocess(
+    code_test, _out_test, err_test = await run_subprocess(
         [
             "make",
             "test-fast",
@@ -190,7 +191,7 @@ async def execute_calibration_cycle(iteration: int) -> None:
         profiles.get("semantic_cache", {}).get("parameters", {}).get("similarity_threshold")
     )
     routing_params = profiles.get("task_classifier", {}).get("parameters", {})
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     log_entry = {
         "timestamp": timestamp,

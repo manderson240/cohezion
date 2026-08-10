@@ -30,8 +30,10 @@ import sys
 import urllib.request
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from cohezion.compound.prompt_version_registry import _validate  # noqa: E402
+from cohezion.compound.prompt_version_registry import _validate
+
 
 ROUTER = "http://localhost:13305/v1/chat/completions"
 DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"
@@ -39,10 +41,20 @@ DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"
 
 def run_local(prompt: str, model: str, max_tokens: int = 200, temperature: float = 0.7) -> str:
     """One completion from the local fleet. Temperature > 0 on purpose: we are MEASURING variance."""
-    body = json.dumps({"model": model, "max_tokens": max_tokens, "temperature": temperature,
-                       "messages": [{"role": "user", "content": prompt}]}).encode()
-    req = urllib.request.Request(ROUTER, data=body,  # noqa: S310
-                                 headers={"Content-Type": "application/json"}, method="POST")
+    body = json.dumps(
+        {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+    ).encode()
+    req = urllib.request.Request(
+        ROUTER,
+        data=body,  # noqa: S310
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
     with urllib.request.urlopen(req, timeout=300) as r:  # noqa: S310
         msg = json.loads(r.read())["choices"][0]["message"]
     return (msg.get("content") or msg.get("reasoning_content") or "").strip()
@@ -64,7 +76,9 @@ def reliability(fixture: dict, n: int, model: str, run_fn=run_local) -> dict:
     return {
         "prompt": fixture["prompt"][:70],
         "critical": bool(fixture.get("critical")),
-        "runs": n, "errors": errors, "passes": passes,
+        "runs": n,
+        "errors": errors,
+        "passes": passes,
         "pass_rate": (passes / scored) if scored else 0.0,
         "len_mean": round(statistics.mean(lengths), 1) if lengths else 0,
         "len_stdev": round(statistics.pstdev(lengths), 1) if len(lengths) > 1 else 0.0,
@@ -107,9 +121,11 @@ def main() -> int:
         bad = r["pass_rate"] < need
         failed += bad
         flag = "BRITTLE" if bad else "stable "
-        print(f"  {flag} pass={r['pass_rate']:>5.0%} ({r['passes']}/{r['runs']})  "
-              f"len μ={r['len_mean']} σ={r['len_stdev']}  err={r['errors']}  "
-              f"{'[CRITICAL] ' if r['critical'] else ''}{r['prompt']}")
+        print(
+            f"  {flag} pass={r['pass_rate']:>5.0%} ({r['passes']}/{r['runs']})  "
+            f"len μ={r['len_mean']} σ={r['len_stdev']}  err={r['errors']}  "
+            f"{'[CRITICAL] ' if r['critical'] else ''}{r['prompt']}"
+        )
     print(f"\n{'FAIL' if failed else 'PASS'}: {failed} brittle of {len(fixtures)}")
     return 1 if failed else 0
 

@@ -35,9 +35,7 @@ def get_test_files() -> list[str]:
 def can_test_module(test_file: str, candidate_module_parts: list[str]) -> bool:
     """Check whether a test file likely tests a given source module."""
     # Direct mapping: src/cohezion/foo/bar.py -> tests/test_foo_bar.py or tests/foo/test_bar.py
-    tf = Path(test_file).name  # e.g. test_abc.py or foo/test_xyz.py
-
-    candidates_for_test = []
+    Path(test_file).name  # e.g. test_abc.py or foo/test_xyz.py
 
     # Strategy 1: Extract module name from test and reverse-map to source path
     rel = Path(test_file).relative_to("tests")
@@ -46,10 +44,8 @@ def can_test_module(test_file: str, candidate_module_parts: list[str]) -> bool:
 
     # Build all possible source paths this test could cover:
     for depth in range(len(dirname_parts), 0, -1):
-        candidate_source_parts = dirname_parts[:depth] + [rel.stem.replace("test_", "")]
-        src_relative = Path(*candidate_source_parts) / (
-            rel.stem.replace("test_", "").replace("_", "/") + ".py"
-        )
+        candidate_source_parts = [*dirname_parts[:depth], rel.stem.replace("test_", "")]
+        Path(*candidate_source_parts) / (rel.stem.replace("test_", "").replace("_", "/") + ".py")
 
     # Strategy: just check if any file in tests would cover this source path
     test_stem = rel.stem  # "test_foo_bar" -> "foo_bar" or module is "bar"
@@ -84,10 +80,7 @@ def can_test_module(test_file: str, candidate_module_parts: list[str]) -> bool:
     # Replace dots with slashes for deeper matching
     src_full = "/".join(p.replace(".py", "").replace(".", "_") for p in candidate_module_parts)
     # Lowercase comparison
-    if check_name.lower() in src_full.lower():
-        return True
-
-    return False
+    return check_name.lower() in src_full.lower()
 
 
 def main():

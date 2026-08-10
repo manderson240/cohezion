@@ -52,7 +52,7 @@ def is_lfs_pointer_in_index(path: str) -> bool:
     pointers to real content in the working tree, so a working-tree check always
     fails for properly-configured LFS files.
     """
-    result = subprocess.run(  # noqa: S603,S607
+    result = subprocess.run(
         ["git", "cat-file", "blob", f":{path}"],
         capture_output=True,
     )

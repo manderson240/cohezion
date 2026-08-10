@@ -10,7 +10,12 @@ Usage:
     # --once: single poll cycle (for testing or ScheduleWakeup integration)
 """
 
-import subprocess, sys, json, time, argparse
+import argparse
+import json
+import subprocess
+import sys
+import time
+
 
 REPO = "/home/mike-anderson/dev/cohezion"
 LOG = f"{REPO}/autoresearch-prs.jsonl"
@@ -33,7 +38,7 @@ BRANCH_MAP = {
 
 
 def gh(*args):
-    r = subprocess.run(["gh"] + list(args), capture_output=True, text=True)
+    r = subprocess.run(["gh", *list(args)], capture_output=True, text=True)
     return r.stdout.strip()
 
 

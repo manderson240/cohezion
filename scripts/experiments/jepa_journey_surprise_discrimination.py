@@ -25,6 +25,7 @@ import numpy as np
 
 from cohezion.world_model.jepa_world_model import JEPAWorldModel
 
+
 RNG = np.random.RandomState(20260710)
 STATE_DIM = 12  # the FLUME manifold dimension
 
@@ -93,7 +94,9 @@ def main() -> None:
     lift = treat_auc - base_auc
     passed = treat_auc >= 0.70 and lift >= 0.15 and abs(placebo_auc - 0.5) < 0.1
     print(f"\n  lift over baseline: {lift:+.3f}")
-    print(f"  VERDICT: {'CONFIRMED — the world-model learned journey structure' if passed else 'FALSIFIED — no real discrimination (claim does not hold)'}")
+    print(
+        f"  VERDICT: {'CONFIRMED — the world-model learned journey structure' if passed else 'FALSIFIED — no real discrimination (claim does not hold)'}"
+    )
 
 
 if __name__ == "__main__":

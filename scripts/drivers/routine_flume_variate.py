@@ -32,13 +32,15 @@ Schedule via CronCreate (from an interactive Claude Code session):
 
 from __future__ import annotations
 
+import contextlib
 import json
 import subprocess
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -53,13 +55,13 @@ _KL_WEIGHT_MAX = 0.01
 # VAE entries: kl_weight × z_dim (A3 invariant: kl_weight ≤ 0.01)
 # LFQ entries: use_lfq=True, n_bits ∈ {8,16,32} (no KL term, A3 exempt)
 _GRID: list[dict] = [
-    {"kl_weight": 0.007, "z_dim": 256},          # near-optimal from autoresearch canon
+    {"kl_weight": 0.007, "z_dim": 256},  # near-optimal from autoresearch canon
     {"kl_weight": 0.005, "z_dim": 256},
     {"kl_weight": 0.003, "z_dim": 256},
-    {"kl_weight": 0.010, "z_dim": 256},           # A3 ceiling
-    {"kl_weight": 0.001, "z_dim": 256},           # minimum: very low beta
-    {"kl_weight": 0.007, "z_dim": 128},           # smaller latent
-    {"kl_weight": 0.007, "z_dim": 512},           # larger latent
+    {"kl_weight": 0.010, "z_dim": 256},  # A3 ceiling
+    {"kl_weight": 0.001, "z_dim": 256},  # minimum: very low beta
+    {"kl_weight": 0.007, "z_dim": 128},  # smaller latent
+    {"kl_weight": 0.007, "z_dim": 512},  # larger latent
     {"kl_weight": 0.005, "z_dim": 128},
     {"kl_weight": 0.005, "z_dim": 512},
     {"kl_weight": 0.003, "z_dim": 128},
@@ -69,7 +71,7 @@ _GRID: list[dict] = [
     # LFQ sweep: UniAR-style bitwise quantization, no KL (2606.18249)
     {"use_lfq": True, "n_bits": 16, "z_dim": 256},  # medium — baseline LFQ
     {"use_lfq": True, "n_bits": 32, "z_dim": 256},  # light quantization
-    {"use_lfq": True, "n_bits": 8,  "z_dim": 256},  # heavy — max compression
+    {"use_lfq": True, "n_bits": 8, "z_dim": 256},  # heavy — max compression
 ]
 
 # ── Subprocess child script (runs inside .venv) ───────────────────────────────
@@ -187,14 +189,17 @@ print("__RESULT__" + json.dumps(result))
 
 # ── Lemonade query (optional) ─────────────────────────────────────────────────
 
+
 def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
     """POST to :13305 for a quick text summary. Returns None if offline."""
-    payload = json.dumps({
-        "model": _NPU_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 120,
-        "temperature": 0.1,
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": _NPU_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 120,
+            "temperature": 0.1,
+        }
+    ).encode()
     req = urllib.request.Request(  # noqa: S310
         _LEMONADE_URL,
         data=payload,
@@ -207,11 +212,12 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
         choices = data.get("choices", [{}])
         msg = choices[0].get("message", {})
         return (msg.get("content") or msg.get("reasoning_content") or "").strip() or None
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
 # ── State helpers ──────────────────────────────────────────────────────────────
+
 
 def _read_records() -> list[dict]:
     """Return all records from the autoresearch JSONL, or []."""
@@ -221,10 +227,8 @@ def _read_records() -> list[dict]:
     for line in _AUTORESEARCH_JSONL.read_text().splitlines():
         line = line.strip()
         if line:
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 records.append(json.loads(line))
-            except json.JSONDecodeError:
-                pass
     return records
 
 
@@ -293,6 +297,7 @@ def _pick_variant(records: list[dict]) -> dict:
     best = _best_winner(records)
     if best is not None:
         import random
+
         res = best.get("result", {})
         base_kl = float(res.get("kl_weight", 0.007))
         base_z = int(res.get("z_dim", 256))
@@ -316,6 +321,7 @@ def _pick_variant(records: list[dict]) -> dict:
 
 
 # ── Subprocess training ────────────────────────────────────────────────────────
+
 
 def _python_exec() -> str:
     """Return the venv Python path if it exists, else fall back to 'python3'."""
@@ -361,7 +367,7 @@ def _run_training(variant: dict, epochs: int = 5, timeout_s: float = 540.0) -> d
     except subprocess.TimeoutExpired:
         print(f"  [TRAIN] TIMEOUT after {timeout_s:.0f}s — recording LOSS", file=sys.stderr)
         return None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print(f"  [TRAIN] subprocess error: {exc}", file=sys.stderr)
         return None
 
@@ -375,7 +381,7 @@ def _run_training(variant: dict, epochs: int = 5, timeout_s: float = 540.0) -> d
     for line in reversed(proc.stdout.splitlines()):
         if line.startswith("__RESULT__"):
             try:
-                return json.loads(line[len("__RESULT__"):])
+                return json.loads(line[len("__RESULT__") :])
             except json.JSONDecodeError:
                 pass
 
@@ -386,6 +392,7 @@ def _run_training(variant: dict, epochs: int = 5, timeout_s: float = 540.0) -> d
 
 
 # ── Result persistence ─────────────────────────────────────────────────────────
+
 
 def _append_record(
     exp_id: str,
@@ -420,7 +427,7 @@ def _append_record(
             "epochs_run": metrics.get("epoch") if metrics else None,
         }
     record = {
-        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ts": datetime.now(UTC).isoformat(timespec="seconds"),
         "exp": exp_id,
         "status": status,
         "result": result_dict,
@@ -438,9 +445,10 @@ def _append_record(
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
+
 def main() -> int:
     t0 = time.monotonic()
-    print(f"[START] FLUME VAE autoresearch — {datetime.now(timezone.utc).isoformat()}")
+    print(f"[START] FLUME VAE autoresearch — {datetime.now(UTC).isoformat()}")
 
     records = _read_records()
     best_before = _best_winner(records)
@@ -466,7 +474,7 @@ def main() -> int:
     if metrics is None:
         notes = "Training subprocess failed or timed out."
         _append_record(exp_id, variant, None, "LOSS", best_before, notes)
-        print(f"[DONE] {exp_id} LOSS (training failed) in {time.monotonic()-t0:.1f}s")
+        print(f"[DONE] {exp_id} LOSS (training failed) in {time.monotonic() - t0:.1f}s")
         return 0
 
     recon_loss = metrics["recon_loss"]
@@ -497,10 +505,7 @@ def main() -> int:
     elif recon_loss < best_before["result"]["recon_loss"]:
         status = "WIN"
         prior = best_before["result"]["recon_loss"]
-        notes = (
-            f"Beats prior best recon_loss {prior:.6f} → {recon_loss:.6f}. "
-            f"kl_div={kl_div:.6f}."
-        )
+        notes = f"Beats prior best recon_loss {prior:.6f} → {recon_loss:.6f}. kl_div={kl_div:.6f}."
     else:
         status = "LOSS"
         prior = best_before["result"]["recon_loss"]

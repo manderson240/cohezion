@@ -35,11 +35,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import logging
 import shutil
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -291,7 +289,7 @@ async def main_async() -> int:
     executor = build_executor()
 
     log_step("WS1A: Start OuroborosRecorder (flight recorder)")
-    recorder = start_recorder(executor)
+    start_recorder(executor)
 
     log_step("WS1C: Run 3 successful skill executions")
     for i, (skill, desc) in enumerate(
