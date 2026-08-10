@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import ast
 import hashlib
-import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +24,7 @@ class ZKFVProof:
     polynomial_signature: str
     invariant_count: int
     verified: bool
-    proof_metadata: Dict[str, Any]
+    proof_metadata: dict[str, Any]
 
 
 class ZKFVCompiler:
@@ -34,10 +33,10 @@ class ZKFVCompiler:
     def __init__(self, salt: str = "cohezion_zkfv_v1") -> None:
         self.salt = salt
 
-    def compile_proof(self, code_str: str, invariants: List[str] | None = None) -> ZKFVProof:
+    def compile_proof(self, code_str: str, invariants: list[str] | None = None) -> ZKFVProof:
         """Compile a polynomial verification proof for code AST invariants."""
         invariants = invariants or ["AST_PARSABLE", "NO_EVAL", "DETERMINISTIC_IMPORTS"]
-        
+
         # 1. Base SHA-256 code hash
         code_bytes = code_str.encode("utf-8")
         code_hash = hashlib.sha256(code_bytes).hexdigest()
@@ -69,7 +68,7 @@ class ZKFVCompiler:
             tree = ast.parse(code_str)
             node_types = [type(node).__name__ for node in ast.walk(tree)]
             raw_struct = "-".join(node_types)
-            return hashlib.md5(raw_struct.encode("utf-8")).hexdigest()
+            return hashlib.sha256(raw_struct.encode("utf-8")).hexdigest()
         except Exception as exc:
             logger.debug("AST fingerprint extraction error: %s", exc)
             return "syntax_error"

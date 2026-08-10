@@ -6,10 +6,9 @@ and geodesic trajectory tracking for agent states.
 
 from __future__ import annotations
 
-import math
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
 
 
 POINCARE_DIM = 2048
@@ -32,7 +31,7 @@ class PoincareManifoldTracker:
     def __init__(self, dimension: int = POINCARE_DIM, max_norm: float = 0.999) -> None:
         self.dimension = dimension
         self.max_norm = max_norm
-        self._history: List[PoincareState] = []
+        self._history: list[PoincareState] = []
 
     def conformal_factor(self, x: np.ndarray) -> float:
         """Compute Poincaré metric conformal factor lambda(x) = 2 / (1 - ||x||^2)."""
@@ -54,7 +53,9 @@ class PoincareManifoldTracker:
 
         return float(np.arccosh(max(arg, 1.0)))
 
-    def project_and_track(self, state_id: str, raw_vector: np.ndarray | bytes | List[float], timestamp: float) -> PoincareState:
+    def project_and_track(
+        self, state_id: str, raw_vector: np.ndarray | bytes | list[float], timestamp: float
+    ) -> PoincareState:
         """Project raw vector to 2048D Poincaré ball and record trajectory step."""
         # 1. Convert bytes or list to float ndarray
         if isinstance(raw_vector, bytes):
@@ -99,5 +100,5 @@ class PoincareManifoldTracker:
             distances.append(d)
         return float(np.mean(distances))
 
-    def get_recent_history(self) -> List[PoincareState]:
+    def get_recent_history(self) -> list[PoincareState]:
         return list(self._history)

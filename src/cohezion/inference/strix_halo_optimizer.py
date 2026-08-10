@@ -11,13 +11,14 @@ from __future__ import annotations
 
 import logging
 import os
-import subprocess
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 
-from cohezion.inference.hardware_telemetry import ComputeBackend, HardwareTelemetry, MultiBackendTelemetry
+from cohezion.inference.hardware_telemetry import (
+    ComputeBackend,
+    HardwareTelemetry,
+    MultiBackendTelemetry,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class SiliconOptimizationProfile:
     npu_enabled: bool = True
     igpu_enabled: bool = True
     cpu_threads: int = 16
-    compiler_flags: List[str] = field(
+    compiler_flags: list[str] = field(
         default_factory=lambda: [
             "-mwavefrontsize32",
             "-mcumode",
@@ -60,7 +61,7 @@ class BenchmarkResult:
 class StrixHaloSiliconOptimizer:
     """Strix Halo (gfx1151 / RDNA3.5) hardware optimization engine."""
 
-    def __init__(self, profile: Optional[SiliconOptimizationProfile] = None) -> None:
+    def __init__(self, profile: SiliconOptimizationProfile | None = None) -> None:
         self.profile = profile or SiliconOptimizationProfile()
         self.telemetry = MultiBackendTelemetry()
         self._setup_environment()
@@ -76,7 +77,7 @@ class StrixHaloSiliconOptimizer:
         # Configure UMA GTT memory limits
         os.environ["HSA_OVERRIDE_GFX_VERSION"] = "11.5.1"
         os.environ["PYTORCH_ROCM_ARCH"] = "gfx1151"
-        
+
         logger.info(
             "StrixHaloSiliconOptimizer initialized with WavefrontSize=%d, GTT Limit=%dGB",
             self.profile.wavefront_size,
@@ -89,11 +90,7 @@ class StrixHaloSiliconOptimizer:
         hip_wave = os.environ.get("HIP_FORCE_WAVE32")
         vulkan_wave = os.environ.get("GGML_VULKAN_WAVE_SIZE")
 
-        is_aligned = (
-            rocm_wave == "32"
-            and hip_wave == "1"
-            and vulkan_wave == "32"
-        )
+        is_aligned = rocm_wave == "32" and hip_wave == "1" and vulkan_wave == "32"
         return is_aligned
 
     def benchmark_lane(
@@ -103,7 +100,7 @@ class StrixHaloSiliconOptimizer:
         tokens_per_iteration: int = 512,  # Increased from 64 to leverage 120GB UMA aperture
     ) -> BenchmarkResult:
         """Benchmark a specific hardware lane under Strix Halo optimization.
-        
+
         Calculates baseline lane throughput based on measured telemetry snapshot
         duration and silicon wavefront scaling factors.
         """
@@ -148,11 +145,11 @@ class StrixHaloSiliconOptimizer:
         buffer_gb: float = 16.0,
     ) -> int:
         """Calculate maximum safe KV-cache context token budget under UMA memory limit.
-        
+
         Uses kv_budget preflight math to ensure OOM immunity.
         """
         try:
-            from cohezion.inference.kv_budget import kv_cache_bytes, preflight
+            from cohezion.inference.kv_budget import preflight
 
             gtt_free_bytes = int(self.profile.gtt_pool_max_gb * (1024**3))
             buffer_bytes = int(buffer_gb * (1024**3))
@@ -176,6 +173,6 @@ class StrixHaloSiliconOptimizer:
             logger.debug("KV budget calculation fallback: %s", exc)
             return 32768
 
-    def get_optimal_compilation_flags(self) -> List[str]:
+    def get_optimal_compilation_flags(self) -> list[str]:
         """Return C++/HIP compilation flags optimized for gfx1151 Strix Halo."""
         return list(self.profile.compiler_flags)

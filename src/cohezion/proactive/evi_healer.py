@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
 
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 
@@ -37,9 +36,9 @@ class EVIHealer:
 
     EVI_THRESHOLD: float = 0.75
 
-    def __init__(self, router: Optional[UnifiedHybridRouter] = None) -> None:
+    def __init__(self, router: UnifiedHybridRouter | None = None) -> None:
         self.router = router or UnifiedHybridRouter()
-        self._history: List[HealingAction] = []
+        self._history: list[HealingAction] = []
 
     def evaluate_healing_candidate(
         self,
@@ -90,8 +89,10 @@ class EVIHealer:
     def _notify_healing(self, action: HealingAction) -> None:
         """Publish healing notification event and persist kanban item if modules available."""
         try:
-            from cohezion.core.event_bus import Event, EventBus
             import asyncio
+
+            from cohezion.core.event_bus import Event, EventBus
+
             bus = EventBus()
             ev = Event.agent_complete(
                 agent_name="proactive-evi-healer",
@@ -116,6 +117,7 @@ class EVIHealer:
 
         try:
             from cohezion.data_mesh.kanban_bridge import persist_item
+
             persist_item(
                 {
                     "id": action.action_id,
@@ -129,7 +131,9 @@ class EVIHealer:
         except Exception as exc:
             logger.debug("Kanban bridge persistence non-blocking exception: %s", exc)
 
-    def evaluate_trajectory_anomaly(self, drift: float, component: str = "swarm_agent") -> HealingAction:
+    def evaluate_trajectory_anomaly(
+        self, drift: float, component: str = "swarm_agent"
+    ) -> HealingAction:
         """Evaluate Poincaré hyperbolic trajectory drift and trigger anomaly quarantine if drift > 1.5."""
         is_anomalous = drift > 1.5
         severity = 0.9 if is_anomalous else 0.2
@@ -145,6 +149,6 @@ class EVIHealer:
             remediation_cost=cost,
         )
 
-    def get_action_history(self) -> List[HealingAction]:
+    def get_action_history(self) -> list[HealingAction]:
         """Return history of evaluated healing actions."""
         return list(self._history)
