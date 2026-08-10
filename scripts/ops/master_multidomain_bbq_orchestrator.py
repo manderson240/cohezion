@@ -81,8 +81,8 @@ async def run_slow_rendered_bbq_symphony() -> None:
         )
     )
 
-    print(f"   • Strix Halo GTT Memory Pool  : {opt.gtt_limit_gb} GB Unified Memory")
-    print(f"   • Wavefront Size Alignment    : {flags['wavefront_size']} (Wave32 Matrix Units)")
+    print(f"   • Strix Halo GTT Memory Pool  : {opt.profile.gtt_pool_max_gb} GB Unified Memory")
+    print(f"   • Wavefront Size Alignment    : {flags} (Wave32 Matrix Units)")
     print("   • Ebb/Flow Token Budgets      : 131,072 max tokens (scaled dynamically)")
     print(f"   • Workflow 2 Render Time       : {(time.monotonic() - t0) * 1000:.2f} ms\n")
 
