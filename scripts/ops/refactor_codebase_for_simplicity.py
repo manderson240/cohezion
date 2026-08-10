@@ -23,8 +23,10 @@ logger = logging.getLogger("simplicity_refactor")
 
 def run_simplicity_refactor_audit() -> None:
     print("\n" + "✂️" * 35)
-    print("🧹 ELEGANT SIMPLICITY REFACTORING ENGINE (LOCAL + OLLAMA CLOUD)")
-    print("   Mandate: 'Eliminate Over-Engineering, Simplify Abstractions, Reduce Debt'")
+    print("🧹 ELEGANT NON-DESTRUCTIVE REFACTORING ENGINE (LOCAL + OLLAMA CLOUD)")
+    print(
+        "   Mandate: 'Preserve 100% Functionality, Refactor Over-Engineered Code into Elegant Modularity'"
+    )
     print("✂️" * 35 + "\n")
 
     t0 = time.monotonic()
@@ -38,17 +40,17 @@ def run_simplicity_refactor_audit() -> None:
         with contextlib.suppress(Exception):
             total_lines += len(p.read_text().splitlines())
 
-    print("📊 CODEBASE SIMPLICITY BASELINE:")
+    print("📊 CODEBASE REFACTORING BASELINE:")
     print("-" * 80)
     print(f"  • Total Source Files Audited  : {len(py_files)} Python Files")
     print(f"  • Total Source Lines of Code  : {total_lines:,} LOC")
     print("-" * 80 + "\n")
 
-    # Delegate Local (Tier 1) & Ollama Cloud (Tier 2) for Simplicity Refactor Review
+    # Delegate Local (Tier 1) & Ollama Cloud (Tier 2) for Non-Destructive Refactoring Review
     prompt = (
-        f"Audit Cohezion codebase ({len(py_files)} files, {total_lines} LOC) for over-engineering. "
-        "Recommend elegant simplicity refactors: consolidate duplicate utilities, remove dead code, "
-        "and flatten complex class hierarchies while preserving 100% test pass rate."
+        f"Audit Cohezion codebase ({len(py_files)} files, {total_lines} LOC). "
+        "Do NOT delete any features or overengineered logic. Instead, REFACTOR overengineered code "
+        "into elegant, clean, decoupled, and modular abstractions while preserving 100% functionality and test coverage."
     )
 
     # 1. Tier 1 Local Refactor Review
