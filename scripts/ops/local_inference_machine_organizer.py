@@ -107,22 +107,27 @@ async def run_machine_organizer() -> None:
         print("  • Step 3: Enforce strict 10k file git index limit to prevent Node.js OOM crashes")
     print("-" * 85)
 
-    # 3. Perform Safe Maintenance Action (Prune stale tmp logs)
+    # 3. Perform Safe Maintenance Action (Prune stale tmp/task logs > 7 days)
     cleaned_bytes = 0
     cleaned_files = 0
     cutoff_sec = time.time() - (7 * 86400)  # 7 days old
 
-    tmp_dir = Path("/tmp/opencode")
-    if tmp_dir.exists():
-        for p in tmp_dir.rglob("*.log"):
-            try:
-                if p.is_file() and p.stat().st_mtime < cutoff_sec:
-                    sz = p.stat().st_size
-                    p.unlink()
-                    cleaned_files += 1
-                    cleaned_bytes += sz
-            except OSError:
-                pass
+    cleanup_dirs = [
+        Path("/tmp/opencode"),
+        Path.home() / ".gemini" / "antigravity-cli" / "brain",
+    ]
+
+    for cdir in cleanup_dirs:
+        if cdir.exists():
+            for p in cdir.rglob("*.log"):
+                try:
+                    if p.is_file() and p.stat().st_mtime < cutoff_sec:
+                        sz = p.stat().st_size
+                        p.unlink()
+                        cleaned_files += 1
+                        cleaned_bytes += sz
+                except OSError:
+                    pass
 
     # 4. AutoHarness AST Verification
     policy = AutoHarnessPolicy()
