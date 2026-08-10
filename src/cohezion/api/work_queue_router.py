@@ -9,8 +9,13 @@ Endpoints:
 
 from __future__ import annotations
 
+import fcntl
 import json
+import os
+import sys
 import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -27,17 +32,87 @@ WORK_QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
 # ── Storage helpers ───────────────────────────────────────────────────────────
+# All three functions below address ONE defect shape: a write path whose failure
+# produces a plausible-looking success. The queue is a single ~7 MB JSON file holding
+# every card, rewritten in full to change one field, by >=3 concurrent writers (the
+# actioner daemon, the research daemon, ad-hoc scripts).
+
+
+def _quarantine_corrupt(exc: Exception) -> Path | None:
+    """Copy an unparseable queue file aside before the caller falls back to empty.
+
+    THE POINT: `_load` returning ``{"items": []}`` on a parse error is indistinguishable
+    from a genuinely empty queue, and the next `_save` writes that emptiness over the
+    file -- silently destroying every card. Quarantining first keeps the failure
+    recoverable without changing the fail-open semantics callers depend on.
+    """
+    try:
+        stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
+        dest = WORK_QUEUE_FILE.with_suffix(f".corrupt-{stamp}.json")
+        dest.write_bytes(WORK_QUEUE_FILE.read_bytes())
+        print(f"[work-queue] CORRUPT FILE QUARANTINED -> {dest} ({exc})", file=sys.stderr)
+        return dest
+    except Exception as quarantine_exc:  # never let the rescue path break the read
+        print(f"[work-queue] quarantine FAILED: {quarantine_exc}", file=sys.stderr)
+        return None
+
+
 def _load() -> dict:
     if WORK_QUEUE_FILE.exists():
         try:
             return json.loads(WORK_QUEUE_FILE.read_text())
-        except Exception:
-            pass
+        except Exception as exc:
+            # Fail-open is preserved deliberately (callers assume a dict), but the
+            # data is copied aside first so "queue looks empty" stays recoverable.
+            _quarantine_corrupt(exc)
     return {"items": [], "version": 1}
 
 
 def _save(q: dict) -> None:
-    WORK_QUEUE_FILE.write_text(json.dumps(q, indent=2, default=str))
+    """Atomically replace the queue file.
+
+    ``write_text`` truncates before writing, so a crash mid-write leaves invalid JSON
+    -- which `_load` then reads as an empty queue. Writing a temp file in the same
+    directory and ``os.replace``-ing it is atomic on POSIX: readers see either the old
+    file or the new one, never a half-written one.
+    """
+    tmp = WORK_QUEUE_FILE.with_suffix(f".tmp-{os.getpid()}")
+    payload = json.dumps(q, indent=2, default=str)
+    try:
+        tmp.write_text(payload)
+        os.replace(tmp, WORK_QUEUE_FILE)  # atomic rename
+    except Exception:
+        tmp.unlink(missing_ok=True)
+        raise
+
+
+@contextmanager
+def _queue_lock() -> Iterator[None]:
+    """Serialise read-modify-write across processes with an advisory flock.
+
+    Every mutation is read-all -> mutate-one -> write-all over the whole file, so two
+    interleaved writers lose one writer's change ENTIRELY, not just one field. The lock
+    is a sidecar file so it survives the atomic replace of the queue itself.
+
+    Fail-open by design: if flock is unavailable the mutation still proceeds. A queue
+    that refuses writes is worse than one that races.
+    """
+    lock_path = WORK_QUEUE_FILE.with_suffix(".lock")
+    handle = None
+    try:
+        handle = lock_path.open("w")
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+    except Exception as exc:  # noqa: BLE001 — see docstring
+        print(f"[work-queue] advisory lock unavailable, proceeding: {exc}", file=sys.stderr)
+        handle = None
+    try:
+        yield
+    finally:
+        if handle is not None:
+            try:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            finally:
+                handle.close()
 
 
 def _persist(item: dict) -> None:
@@ -66,6 +141,15 @@ class WorkItemPatch(BaseModel):
     feedback: str | None = None
     notes: str | None = None
     priority: int | None = None  # 0=low 1=normal 2=high
+    # Triage sets relevance after the fact: POST files a card before anything has judged it,
+    # and consumers filter on relevance. Without this the triage hop can promote an item's
+    # status but never its relevance, so it stays invisible to the actioner.
+    relevance: str | None = None  # APPLY | MONITOR | SKIP
+    # Machine bookkeeping gets its OWN field. `notes` is agent-authored analysis and
+    # `feedback` is human-authored instructions; when the actioner wrote its route into
+    # `notes` it replaced the analysis wholesale, destroying it on 764 cards before this
+    # was caught. Three writers, three fields, no writer clobbers another's.
+    action_route: str | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -90,6 +174,13 @@ def list_items(
 
 @router.post("/api/work-queue", status_code=201)
 def create_item(body: WorkItemCreate):
+    # The lock must span load->mutate->save; holding it only around _save would still
+    # lose the other writer's change, because each writer rewrites the WHOLE file.
+    with _queue_lock():
+        return _create_item_locked(body)
+
+
+def _create_item_locked(body: WorkItemCreate) -> dict[str, Any]:
     q = _load()
     item: dict[str, Any] = {
         "id": uuid.uuid4().hex[:12],
@@ -105,6 +196,7 @@ def create_item(body: WorkItemCreate):
         "created_at": datetime.now(UTC).isoformat(),
         "approved_at": None,
         "feedback": "",
+        "action_route": "",
     }
     q["items"].append(item)
     _save(q)
@@ -114,6 +206,11 @@ def create_item(body: WorkItemCreate):
 
 @router.patch("/api/work-queue/{item_id}")
 def patch_item(item_id: str, body: WorkItemPatch):
+    with _queue_lock():
+        return _patch_item_locked(item_id, body)
+
+
+def _patch_item_locked(item_id: str, body: WorkItemPatch) -> dict[str, Any]:
     q = _load()
     for item in q["items"]:
         if item.get("id") == item_id:
@@ -127,6 +224,10 @@ def patch_item(item_id: str, body: WorkItemPatch):
                 item["notes"] = body.notes
             if body.priority is not None:
                 item["priority"] = body.priority
+            if body.relevance is not None:
+                item["relevance"] = body.relevance
+            if body.action_route is not None:
+                item["action_route"] = body.action_route
             _save(q)
             _persist(item)
             return item
@@ -135,6 +236,11 @@ def patch_item(item_id: str, body: WorkItemPatch):
 
 @router.delete("/api/work-queue/{item_id}")
 def delete_item(item_id: str):
+    with _queue_lock():
+        return _delete_item_locked(item_id)
+
+
+def _delete_item_locked(item_id: str) -> dict[str, str]:
     q = _load()
     before = len(q["items"])
     q["items"] = [i for i in q["items"] if i.get("id") != item_id]
