@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
@@ -27,7 +27,7 @@ RAM_CEILING_GB: float = 96.0
 RAM_EFFECTIVE_GB: float = 88.0  # N3 guard: 8 GB headroom
 
 
-class FleetRole(str, Enum):
+class FleetRole(StrEnum):
     # Always-on lightweight (≤2 GB)
     ROUTER = "router"
     TRIAGE = "triage"

@@ -218,7 +218,7 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
                 get_default_observer_model().record(
                     entry, tier_used, max(0.2, 1.0 - 0.25 * result.escalation_count)
                 )
-            except Exception:  # noqa: BLE001 — observability must not break inference
+            except Exception:
                 pass
 
             return result.text, {

@@ -53,7 +53,9 @@ def run_silicon_optimization_research() -> None:
     print("  • Hardware Processor: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (16-Core / 32-Thread)")
     print("  • Graphics Substrate: AMD Radeon 8060S (40 RDNA 3.5 CUs, Wave32 Matrix Units)")
     print("  • NPU Accelerator   : AMD XDNA 2 Neural Processing Unit")
-    print(f"  • Memory Aperture   : 122 GiB Unified RAM ({opt.profile.gtt_pool_max_gb} GB GTT UMA Pool) + 39 GiB Swap")
+    print(
+        f"  • Memory Aperture   : 122 GiB Unified RAM ({opt.profile.gtt_pool_max_gb} GB GTT UMA Pool) + 39 GiB Swap"
+    )
     print(f"  • Matrix Flags      : {flags}\n")
 
     for domain_id, prompt, importance in SILICON_RESEARCH_DOMAINS:

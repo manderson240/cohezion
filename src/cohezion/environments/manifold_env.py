@@ -48,6 +48,7 @@ References:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from typing import Any
 
@@ -310,10 +311,8 @@ class ManifoldEnv(gym.Env):
         if self._journey_tracker is not None:
             recorder = getattr(self._journey_tracker, "record_env_state", None)
             if recorder is not None:
-                try:
+                with contextlib.suppress(Exception):
                     recorder("manifold", self._step_count, self._position, float(reward))
-                except Exception:
-                    pass
 
         return self._get_obs_and_info(float(reward))
 

@@ -16,6 +16,7 @@ Design constraints:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import urllib.error
@@ -104,10 +105,8 @@ class SystemResourceAgent:
         temp = 45.0
         mem_pct = 50.0
         avail_gb = 64.0
-        try:
+        with contextlib.suppress(Exception):
             temp = self._guard.get_temperature()
-        except Exception:
-            pass
         try:
             stats = self._monitor.get_stats()
             mem_pct = stats.get("memory_percent", 50.0)

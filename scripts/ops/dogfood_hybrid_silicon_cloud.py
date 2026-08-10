@@ -5,10 +5,10 @@ Executes a live test suite across Tier 1 (Local), Tier 2 (Ollama Cloud), and Tie
 routing decisions, calculates EVI gating metrics, logs delegation traces, and exercises EVIHealer.
 """
 
-import sys
-import json
 import logging
+import sys
 from pathlib import Path
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from cohezion.inference.delegation_logger import DelegationLogger
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 from cohezion.proactive.evi_healer import EVIHealer
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("DogfoodHybrid")
@@ -84,7 +85,9 @@ def main() -> None:
             context_tokens=s["context_tokens"],
         )
         print(f"\n🔹 {s['name']}")
-        print(f"   Task Type       : {s['task_type']} (Tokens: {s['context_tokens']}, Importance: {s['task_importance']})")
+        print(
+            f"   Task Type       : {s['task_type']} (Tokens: {s['context_tokens']}, Importance: {s['task_importance']})"
+        )
         print(f"   Selected Tier   : Tier {res.selected_tier}")
         print(f"   Model Assigned  : {res.model_name}")
         print(f"   EVI Score       : {res.evi_score:.4f} (Gating threshold: > 0.75)")
@@ -136,7 +139,9 @@ def main() -> None:
     recent_logs = delegation_logger.get_recent_events(limit=5)
     print(f"Found {len(recent_logs)} recent delegation events in persistent store:")
     for idx, log in enumerate(recent_logs, 1):
-        print(f"   [{idx}] {log['task_name']} -> Tier {log['target_tier']} ({log['model_selected']}) | EVI: {log['evi_score']:.4f}")
+        print(
+            f"   [{idx}] {log['task_name']} -> Tier {log['target_tier']} ({log['model_selected']}) | EVI: {log['evi_score']:.4f}"
+        )
 
     print("\n✅ DOGFOODING COMPLETED SUCCESSFULLY!")
 

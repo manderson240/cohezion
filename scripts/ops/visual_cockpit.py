@@ -7,11 +7,10 @@ EVI hybrid routing metrics, Poincaré hyperbolic trajectory drift, and ZKFV proo
 from __future__ import annotations
 
 import argparse
-import asyncio
-import json
 import logging
 import time
 from pathlib import Path
+
 import numpy as np
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
@@ -30,7 +29,7 @@ def render_terminal_cockpit() -> None:
     """Render live ASCII cockpit status dashboard."""
     optimizer = StrixHaloSiliconOptimizer()
     logger_inst = DelegationLogger()
-    healer = EVIHealer()
+    EVIHealer()
     policy = AutoHarnessPolicy()
     zkfv = ZKFVCompiler()
     tracker = PoincareManifoldTracker()
@@ -41,17 +40,25 @@ def render_terminal_cockpit() -> None:
 
     # 1. Strix Halo Silicon Status
     print("\n💻 STRIX HALO (gfx1151 / RDNA3.5) SILICON TELEMETRY:")
-    print(f"  • Wavefront Alignment   : {'✅ Wave32' if optimizer.verify_wave32_alignment() else '❌ Wave64'}")
+    print(
+        f"  • Wavefront Alignment   : {'✅ Wave32' if optimizer.verify_wave32_alignment() else '❌ Wave64'}"
+    )
     print(f"  • UMA GTT Memory Limit  : {optimizer.profile.gtt_pool_max_gb} GB")
-    
+
     # Benchmarks
     npu_res = optimizer.benchmark_lane(ComputeBackend.XDNA2_NPU, iterations=1)
     gpu_res = optimizer.benchmark_lane(ComputeBackend.VULKAN_GPU, iterations=1)
     cpu_res = optimizer.benchmark_lane(ComputeBackend.ZEN5_CPU, iterations=1)
 
-    print(f"  ⚡ Radeon 8060S iGPU   : {gpu_res.tokens_per_sec:.1f} tok/s | First Token: {gpu_res.latency_first_token_ms:.1f} ms")
-    print(f"  ⚡ XDNA2 NPU           : {npu_res.tokens_per_sec:.1f} tok/s | First Token: {npu_res.latency_first_token_ms:.1f} ms")
-    print(f"  ⚡ Ryzen 9 7945HX CPU  : {cpu_res.tokens_per_sec:.1f} tok/s | First Token: {cpu_res.latency_first_token_ms:.1f} ms")
+    print(
+        f"  ⚡ Radeon 8060S iGPU   : {gpu_res.tokens_per_sec:.1f} tok/s | First Token: {gpu_res.latency_first_token_ms:.1f} ms"
+    )
+    print(
+        f"  ⚡ XDNA2 NPU           : {npu_res.tokens_per_sec:.1f} tok/s | First Token: {npu_res.latency_first_token_ms:.1f} ms"
+    )
+    print(
+        f"  ⚡ Ryzen 9 7945HX CPU  : {cpu_res.tokens_per_sec:.1f} tok/s | First Token: {cpu_res.latency_first_token_ms:.1f} ms"
+    )
 
     # 2. Hybrid Routing & Self-Healing
     print("\n🔀 EVI HYBRID ROUTER & SELF-HEALING STATUS:")
@@ -59,7 +66,9 @@ def render_terminal_cockpit() -> None:
     if recent_events:
         for ev in recent_events:
             esc = "🚨 ESCALATED" if ev.get("escalated") else "✅ LOCAL"
-            print(f"  [{esc}] {ev.get('task_name')} -> Tier {ev.get('target_tier')} ({ev.get('model_selected')}) | EVI: {ev.get('evi_score', 0):.4f}")
+            print(
+                f"  [{esc}] {ev.get('task_name')} -> Tier {ev.get('target_tier')} ({ev.get('model_selected')}) | EVI: {ev.get('evi_score', 0):.4f}"
+            )
     else:
         print("  • No recent delegation events found")
 
@@ -71,7 +80,9 @@ def render_terminal_cockpit() -> None:
     tracker.project_and_track("sample_module", raw_vec, time.time())
 
     print("\n🛡️ AUTOHARNESS & ZKFV POLYNOMIAL PROOF ENGINE:")
-    print(f"  • AST Verification     : {'✅ PASSED' if ver_res.valid else '❌ FAILED'} ({ver_res.latency_ms:.3f} ms)")
+    print(
+        f"  • AST Verification     : {'✅ PASSED' if ver_res.valid else '❌ FAILED'} ({ver_res.latency_ms:.3f} ms)"
+    )
     print(f"  • ZKFV Proof Signature  : {proof.polynomial_signature[:24]}...")
     print(f"  • Poincaré 2048D Drift : {tracker.get_trajectory_drift():.6f}")
 

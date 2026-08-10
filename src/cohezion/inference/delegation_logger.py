@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import time
+import urllib.request
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional
-import urllib.request
-import threading
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -36,9 +36,9 @@ class DelegationEvent:
     model_selected: str
     reason: str
     timestamp: float = field(default_factory=time.time)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary representation."""
         return asdict(self)
 
@@ -46,7 +46,12 @@ class DelegationEvent:
 class DelegationLogger:
     """Non-blocking logger for hybrid delegation and escalation events."""
 
-    def __init__(self, surreal_url: str = "http://localhost:8001", db_ns: str = "cohezion", db_name: str = "main") -> None:
+    def __init__(
+        self,
+        surreal_url: str = "http://localhost:8001",
+        db_ns: str = "cohezion",
+        db_name: str = "main",
+    ) -> None:
         self.surreal_url = surreal_url.rstrip("/")
         self.db_ns = db_ns
         self.db_name = db_name
@@ -57,13 +62,12 @@ class DelegationLogger:
     def log_delegation(self, event: DelegationEvent) -> None:
         """Log delegation event asynchronously without blocking caller."""
         event_dict = event.to_dict()
-        
+
         # Local JSONL file fallback (thread-safe, persistent)
         try:
-            with self._lock:
-                with open(self.fallback_path, "a", encoding="utf-8") as f:
-                    f.write(json.dumps(event_dict) + "\n")
-                    f.flush()
+            with self._lock, open(self.fallback_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(event_dict) + "\n")
+                f.flush()
         except Exception as exc:
             logger.warning("Failed to write local delegation log: %s", exc)
 
@@ -78,7 +82,8 @@ class DelegationLogger:
                     "Accept": "application/json",
                     "surreal-ns": self.db_ns,
                     "surreal-db": self.db_name,
-                    "Authorization": "Basic " + __import__("base64").b64encode(b"root:root").decode(),
+                    "Authorization": "Basic "
+                    + __import__("base64").b64encode(b"root:root").decode(),
                 },
                 method="POST",
             )
@@ -89,8 +94,10 @@ class DelegationLogger:
 
             # 2. EventBus Event publishing
             try:
-                from cohezion.core.event_bus import Event, EventType, EventBus
                 import asyncio
+
+                from cohezion.core.event_bus import Event, EventBus, EventType
+
                 bus = EventBus()
                 ev = Event(
                     type=EventType.METRIC_UPDATE,
@@ -112,28 +119,31 @@ class DelegationLogger:
             if event.escalated:
                 try:
                     from cohezion.data_mesh.kanban_bridge import persist_item
+
                     card_id = f"escalate_{event.task_name}_{int(event.timestamp)}"
-                    persist_item({
-                        "id": card_id,
-                        "title": f"[Tier Escalation] {event.task_name}: Tier {event.source_tier} -> Tier {event.target_tier} ({event.model_selected})",
-                        "status": "in_progress",
-                        "priority": "high" if event.target_tier == 3 else "medium",
-                        "source": "inference/hybrid_router",
-                        "category": "tier_escalation",
-                        "notes": f"EVI Score: {event.evi_score:.4f} | Reason: {event.reason}",
-                    })
+                    persist_item(
+                        {
+                            "id": card_id,
+                            "title": f"[Tier Escalation] {event.task_name}: Tier {event.source_tier} -> Tier {event.target_tier} ({event.model_selected})",
+                            "status": "in_progress",
+                            "priority": "high" if event.target_tier == 3 else "medium",
+                            "source": "inference/hybrid_router",
+                            "category": "tier_escalation",
+                            "notes": f"EVI Score: {event.evi_score:.4f} | Reason: {event.reason}",
+                        }
+                    )
                 except Exception as exc:
                     logger.debug("Kanban bridge persistence non-blocking exception: %s", exc)
 
         threading.Thread(target=_surreal_and_mesh_push, daemon=True).start()
 
-    def get_recent_events(self, limit: int = 20) -> list[Dict[str, Any]]:
+    def get_recent_events(self, limit: int = 20) -> list[dict[str, Any]]:
         """Read recent local delegation events."""
         if not self.fallback_path.exists():
             return []
         events = []
         try:
-            with open(self.fallback_path, "r", encoding="utf-8") as f:
+            with open(self.fallback_path, encoding="utf-8") as f:
                 lines = f.readlines()
                 for line in lines[-limit:]:
                     if line.strip():

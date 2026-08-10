@@ -59,7 +59,7 @@ def sync_preexisting_conditions_to_kanban() -> None:
     print("📌 AGENTIC KANBAN BRIDGE: SYNCING PREEXISTING CONDITIONS & TECH DEBT")
     print("=" * 70)
 
-    bus = EventBus()
+    EventBus()
 
     for item in PREEXISTING_CONDITIONS:
         persist_item(

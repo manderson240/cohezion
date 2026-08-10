@@ -23,12 +23,24 @@ def run_gaia_cloud_review() -> None:
     print("=" * 70)
 
     router = UnifiedHybridRouter()
-    gaia_agent = GaiaDataAgent(domain="code-architecture-review")
+    GaiaDataAgent(domain="code-architecture-review")
 
     review_targets = [
-        ("marimo_reactive_cockpit", "Marimo Reactive Controls, Pydantic V2 Telemetry, Plotly 3D Poincaré rendering", 0.95),
-        ("delegate_gaia_research", "GAIA SDK domain agent research delegation, EVI hybrid router scoring", 0.92),
-        ("astral_pydantic_wiring", "Astral uv dependency-groups, ruff ratchet, Pydantic V2 Literal schemas", 0.90),
+        (
+            "marimo_reactive_cockpit",
+            "Marimo Reactive Controls, Pydantic V2 Telemetry, Plotly 3D Poincaré rendering",
+            0.95,
+        ),
+        (
+            "delegate_gaia_research",
+            "GAIA SDK domain agent research delegation, EVI hybrid router scoring",
+            0.92,
+        ),
+        (
+            "astral_pydantic_wiring",
+            "Astral uv dependency-groups, ruff ratchet, Pydantic V2 Literal schemas",
+            0.90,
+        ),
     ]
 
     for target_id, description, importance in review_targets:
@@ -43,20 +55,24 @@ def run_gaia_cloud_review() -> None:
         status_str = "🚨 DELEGATED (Ollama Cloud)" if route_res.escalated else "✅ LOCAL SILICON"
         print(f"\n🔍 Target: {target_id.upper()}")
         print(f"  • Description   : {description}")
-        print(f"  • Model Assigned: {route_res.model_name} (Tier {route_res.selected_tier}) | {status_str}")
+        print(
+            f"  • Model Assigned: {route_res.model_name} (Tier {route_res.selected_tier}) | {status_str}"
+        )
         print(f"  • EVI Score     : {route_res.evi_score:.4f} (Threshold > 0.75)")
         print(f"  • Latency       : {duration_ms:.2f} ms")
 
         # Persist review finding card to SurrealDB + Obsidian Vault
-        persist_item({
-            "id": f"gaia_cloud_review_{target_id}_{int(time.time())}",
-            "title": f"[GAIA Cloud Review] {target_id}: Passed via {route_res.model_name}",
-            "status": "completed",
-            "priority": "high",
-            "source": f"gaia_cloud_agent/{target_id}",
-            "category": "code_review",
-            "notes": f"Verified: {description} | EVI: {route_res.evi_score:.4f}",
-        })
+        persist_item(
+            {
+                "id": f"gaia_cloud_review_{target_id}_{int(time.time())}",
+                "title": f"[GAIA Cloud Review] {target_id}: Passed via {route_res.model_name}",
+                "status": "completed",
+                "priority": "high",
+                "source": f"gaia_cloud_agent/{target_id}",
+                "category": "code_review",
+                "notes": f"Verified: {description} | EVI: {route_res.evi_score:.4f}",
+            }
+        )
 
     print("\n" + "=" * 70)
     print("🎉 GAIA SDK OLLAMA CLOUD ADVERSARIAL REVIEW COMPLETE!")

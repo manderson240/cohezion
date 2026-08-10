@@ -6,12 +6,10 @@ to audit missing bleeding-edge tools, frameworks, and packages as of August 10, 
 
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
 import time
 
-from cohezion.core.event_bus import Event, EventBus, EventType
+from cohezion.core.event_bus import EventBus
 from cohezion.data_mesh.gaia_domain_agent import GaiaDataAgent
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
@@ -55,8 +53,8 @@ def run_gaia_research() -> None:
     print("=" * 70)
 
     router = UnifiedHybridRouter()
-    gaia_agent = GaiaDataAgent(domain="research-innovation")
-    bus = EventBus()
+    GaiaDataAgent(domain="research-innovation")
+    EventBus()
 
     findings = []
 
@@ -72,35 +70,41 @@ def run_gaia_research() -> None:
         status_str = "🚨 ESCALATED (Ollama Cloud)" if route_res.escalated else "✅ LOCAL SILICON"
         print(f"\n🔬 Lane: {lane_id.upper()}")
         print(f"  • Focus Area    : {prompt}")
-        print(f"  • Model Selected: {route_res.model_name} (Tier {route_res.selected_tier}) | {status_str}")
+        print(
+            f"  • Model Selected: {route_res.model_name} (Tier {route_res.selected_tier}) | {status_str}"
+        )
         print(f"  • EVI Score     : {route_res.evi_score:.4f}")
         print(f"  • Audit Duration: {duration_ms:.2f} ms")
 
         # Persist GAIA research finding card
         card_id = f"gaia_tool_audit_{lane_id}_{int(time.time())}"
-        persist_item({
-            "id": card_id,
-            "title": f"[GAIA Tool Audit] {lane_id}: Evaluated via {route_res.model_name}",
-            "status": "completed",
-            "priority": "high",
-            "source": f"gaia_agent/{lane_id}",
-            "category": "tool_research",
-            "notes": f"Prompt: {prompt} | EVI: {route_res.evi_score:.4f} | Tier: {route_res.selected_tier}",
-        })
+        persist_item(
+            {
+                "id": card_id,
+                "title": f"[GAIA Tool Audit] {lane_id}: Evaluated via {route_res.model_name}",
+                "status": "completed",
+                "priority": "high",
+                "source": f"gaia_agent/{lane_id}",
+                "category": "tool_research",
+                "notes": f"Prompt: {prompt} | EVI: {route_res.evi_score:.4f} | Tier: {route_res.selected_tier}",
+            }
+        )
 
-        findings.append({
-            "lane": lane_id,
-            "prompt": prompt,
-            "model": route_res.model_name,
-            "tier": route_res.selected_tier,
-            "evi": route_res.evi_score,
-        })
+        findings.append(
+            {
+                "lane": lane_id,
+                "prompt": prompt,
+                "model": route_res.model_name,
+                "tier": route_res.selected_tier,
+                "evi": route_res.evi_score,
+            }
+        )
 
     print("\n" + "=" * 70)
     print("🎉 GAIA SDK BLEEDING-EDGE TOOLING AUDIT COMPLETED!")
     print("=" * 70)
     print(f"  • Total Research Lanes Audited : {len(findings)}")
-    print(f"  • Dual-Sink Cards Persisted    : SurrealDB + Obsidian Vault")
+    print("  • Dual-Sink Cards Persisted    : SurrealDB + Obsidian Vault")
     print("=" * 70 + "\n")
 
 

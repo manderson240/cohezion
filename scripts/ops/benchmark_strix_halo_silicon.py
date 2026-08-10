@@ -5,16 +5,21 @@ Benchmarks Wave32 matrix alignment, UMA memory aperture management, and
 tri-compute backend throughput (NPU, iGPU Vulkan/ROCm, Zen 5 CPU).
 """
 
-import sys
 import logging
+import sys
 from pathlib import Path
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from cohezion.inference.hardware_telemetry import ComputeBackend
-from cohezion.inference.strix_halo_optimizer import SiliconOptimizationProfile, StrixHaloSiliconOptimizer
+from cohezion.inference.strix_halo_optimizer import (
+    SiliconOptimizationProfile,
+    StrixHaloSiliconOptimizer,
+)
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("StrixHaloBenchmark")
@@ -31,7 +36,9 @@ def main() -> None:
 
     aligned = optimizer.verify_wave32_alignment()
     print("🔍 Hardware Alignment Check:")
-    print(f"   Wave32 Matrix Alignment: {'✅ ALIGNED (Wave32)' if aligned else '❌ UNALIGNED (Wave64)'}")
+    print(
+        f"   Wave32 Matrix Alignment: {'✅ ALIGNED (Wave32)' if aligned else '❌ UNALIGNED (Wave64)'}"
+    )
     print(f"   UMA GTT Pool Limit     : {profile.gtt_pool_max_gb} GB")
     print(f"   Compiler Flags         : {' '.join(optimizer.get_optimal_compilation_flags())}\n")
 

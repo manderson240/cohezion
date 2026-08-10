@@ -10,20 +10,24 @@ Validates:
 6. Telemetry persistence to local store and SurrealDB.
 """
 
-import sys
-import json
 import logging
 import subprocess
+import sys
 from pathlib import Path
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from cohezion.inference.hardware_telemetry import ComputeBackend, MultiBackendTelemetry
-from cohezion.inference.strix_halo_optimizer import SiliconOptimizationProfile, StrixHaloSiliconOptimizer
 from cohezion.inference.delegation_logger import DelegationLogger
+from cohezion.inference.hardware_telemetry import ComputeBackend
+from cohezion.inference.strix_halo_optimizer import (
+    SiliconOptimizationProfile,
+    StrixHaloSiliconOptimizer,
+)
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 from cohezion.proactive.evi_healer import EVIHealer
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("DogfoodSilicon")
@@ -57,7 +61,7 @@ def main() -> None:
     profile = SiliconOptimizationProfile(wavefront_size=32, gtt_pool_max_gb=120)
     optimizer = StrixHaloSiliconOptimizer(profile=profile)
     aligned = optimizer.verify_wave32_alignment()
-    
+
     print(f"  • Wavefront Size        : {profile.wavefront_size}")
     print(f"  • Wave32 Matrix State   : {'✅ ALIGNED (Wave32)' if aligned else '❌ UNALIGNED'}")
     print(f"  • UMA GTT Pool Limit    : {profile.gtt_pool_max_gb} GB")
@@ -75,7 +79,9 @@ def main() -> None:
     for backend_enum, lane_name in lanes:
         result = optimizer.benchmark_lane(backend_enum, iterations=5)
         telemetry_summary[backend_enum.value] = result
-        print(f"  🔹 {lane_name:38s}: {result.tokens_per_sec:6.1f} tok/s | First-Token: {result.latency_first_token_ms:4.1f} ms | Status: {'⚡ OPTIMAL' if result.optimal else '⚠️ SUBOPTIMAL'}")
+        print(
+            f"  🔹 {lane_name:38s}: {result.tokens_per_sec:6.1f} tok/s | First-Token: {result.latency_first_token_ms:4.1f} ms | Status: {'⚡ OPTIMAL' if result.optimal else '⚠️ SUBOPTIMAL'}"
+        )
 
     # Step 4: Dogfood EVI Hybrid Routing & Self-Healing
     print("\n[4/5] Dogfooding EVI Hybrid Router & Proactive Self-Healer...")
@@ -99,7 +105,9 @@ def main() -> None:
             tier1_saturated=sat,
             context_tokens=ctx,
         )
-        print(f"  🔸 Task: {t_type:10s} -> Tier {r_res.selected_tier} ({r_res.model_name:24s}) | EVI: {r_res.evi_score:.4f} | Reason: {r_res.reason}")
+        print(
+            f"  🔸 Task: {t_type:10s} -> Tier {r_res.selected_tier} ({r_res.model_name:24s}) | EVI: {r_res.evi_score:.4f} | Reason: {r_res.reason}"
+        )
 
     # Evaluate healing candidates
     print("\n  Evaluating Self-Healing Actions:")
@@ -112,7 +120,9 @@ def main() -> None:
         remediation_cost=0.35,
     )
     status_str = "✅ APPROVED & DISPATCHED" if h_action.approved else "❌ REJECTED"
-    print(f"  🔸 Self-Healing: {h_action.component} -> EVI: {h_action.evi_score:.4f} [{status_str}]")
+    print(
+        f"  🔸 Self-Healing: {h_action.component} -> EVI: {h_action.evi_score:.4f} [{status_str}]"
+    )
 
     # Step 5: Verify Telemetry Log Persistence
     print("\n[5/5] Verifying Persistent Telemetry Logs...")
