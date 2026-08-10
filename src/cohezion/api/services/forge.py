@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -40,8 +40,8 @@ class HardwareTelemetry(BaseModel):
 
 
 class BenchmarkRequest(BaseModel):
-    kernel: str = Field(..., enum=["gemm", "moe", "mla"], description="Kernel type to benchmark")
-    mode: str = Field("benchmark", enum=["test", "benchmark", "leaderboard"])
+    kernel: Literal["gemm", "moe", "mla"] = Field(..., description="Kernel type to benchmark")
+    mode: Literal["test", "benchmark", "leaderboard"] = Field("benchmark", description="Benchmark mode")
 
 
 class BenchmarkResponse(BaseModel):
