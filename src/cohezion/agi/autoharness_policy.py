@@ -40,6 +40,7 @@ class AutoHarnessPolicy:
         self.register_rule("no_eval_exec", self._check_no_eval_exec)
         self.register_rule("type_annotations_present", self._check_type_annotations)
         self.register_rule("no_bare_except", self._check_no_bare_except)
+        self.register_rule("multimodal_payload_schema", self._check_multimodal_payload_schema)
 
     def register_rule(self, name: str, verifier_fn: Callable[[ast.AST], list[str]]) -> None:
         """Register a custom deterministic verifier rule."""
@@ -81,10 +82,12 @@ class AutoHarnessPolicy:
         """Ensure no illegal eval() or exec() calls exist."""
         violations = []
         for node in ast.walk(tree):
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in ("eval", "exec"):
-                violations.append(
-                    f"Illegal dangerous call '{node.func.id}' at line {node.lineno}"
-                )
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id in ("eval", "exec")
+            ):
+                violations.append(f"Illegal dangerous call '{node.func.id}' at line {node.lineno}")
         return violations
 
     @staticmethod
@@ -92,7 +95,11 @@ class AutoHarnessPolicy:
         """Check that function definitions include return type annotations."""
         violations = []
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and node.returns is None and not node.name.startswith("_"):
+            if (
+                isinstance(node, ast.FunctionDef)
+                and node.returns is None
+                and not node.name.startswith("_")
+            ):
                 violations.append(
                     f"Function '{node.name}' at line {node.lineno} missing return type annotation"
                 )
@@ -105,6 +112,23 @@ class AutoHarnessPolicy:
         for node in ast.walk(tree):
             if isinstance(node, ast.ExceptHandler) and node.type is None:
                 violations.append(f"Bare 'except:' handler at line {node.lineno}")
+        return violations
+
+    @staticmethod
+    def _check_multimodal_payload_schema(tree: ast.AST) -> list[str]:
+        """Verify TRELLIS 3D and ACE-Step payload schema AST calls."""
+        violations = []
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr in ("generate_3d_asset", "generate_music_track")
+                and not node.args
+                and not node.keywords
+            ):
+                violations.append(
+                    f"Multimodal call '{node.func.attr}' at line {node.lineno} missing payload parameters"
+                )
         return violations
 
     def synthesize_policy_for_paper(self, title: str, abstract: str) -> str:

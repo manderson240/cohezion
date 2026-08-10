@@ -39,6 +39,16 @@ class PoincareManifoldTracker:
         norm_sq = min(norm_sq, self.max_norm**2)
         return 2.0 / max(1.0 - norm_sq, 1e-6)
 
+    def auto_calibrate_conformal_factor(self, x: np.ndarray) -> float:
+        """Auto-calibrate conformal factor when 2048D vectors cross boundary thresholds."""
+        c_fac = self.conformal_factor(x)
+        if c_fac > 100.0:
+            # Re-normalize to prevent hyperbolic boundary divergence
+            x_norm = float(np.linalg.norm(x))
+            scaled_x = x * (0.9 / max(x_norm, 1e-6))
+            c_fac = self.conformal_factor(scaled_x)
+        return c_fac
+
     def poincare_distance(self, x: np.ndarray, y: np.ndarray) -> float:
         """Compute hyperbolic geodesic distance in Poincaré open ball model."""
         x = self._project_to_ball(x)
