@@ -1,7 +1,7 @@
 """Local Daemon Health & Utilization Verification Script.
 
 Audits active local daemons: Lemonade OmniRouter (:13305), SurrealDB (:8001),
-EventBus CrossSessionBridge, NightlySwarmDaemon, and AutonomicHealingSystem.
+EventBus DataMeshBridge, NightlySwarmDaemon, and AutonomicHealingSystem.
 """
 
 from __future__ import annotations
@@ -9,9 +9,9 @@ from __future__ import annotations
 import logging
 import time
 
-from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import EventBus
 from cohezion.daemon.nightly_swarm_daemon import NightlySwarmDaemon
+from cohezion.data_mesh.event_bridge import DataMeshEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.healing.autonomic_healing import get_healing_system
 
@@ -32,12 +32,7 @@ LOCAL_DAEMONS = [
         "Multi-model database for state persistence & Kanban cards",
         "ACTIVE",
     ),
-    (
-        "EventBus & Bridge",
-        "in-process / async",
-        "Cross-session real-time event pub/sub bridge",
-        "ACTIVE",
-    ),
+    ("EventBus & Bridge", "in-process", "DataMesh real-time event pub/sub bridge", "ACTIVE"),
     (
         "NightlySwarmDaemon",
         "background daemon",
@@ -60,7 +55,7 @@ def run_local_daemon_verification() -> None:
 
     t0 = time.monotonic()
     _bus = EventBus()
-    _bridge = CrossSessionEventBridge()
+    _bridge = DataMeshEventBridge()
     _daemon = NightlySwarmDaemon()
     healing = get_healing_system()
 
@@ -85,7 +80,7 @@ def run_local_daemon_verification() -> None:
             "priority": "medium",
             "source": "verify_local_daemons",
             "category": "system_monitoring",
-            "notes": f"Lemonade :13305 | SurrealDB :8001 | EventBridge | NightlySwarm | HealingSystem | Latency: {duration_ms:.2f}ms",
+            "notes": f"Lemonade :13305 | SurrealDB :8001 | DataMeshBridge | NightlySwarm | HealingSystem | Latency: {duration_ms:.2f}ms",
         }
     )
 
