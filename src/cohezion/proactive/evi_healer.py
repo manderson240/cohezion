@@ -129,6 +129,22 @@ class EVIHealer:
         except Exception as exc:
             logger.debug("Kanban bridge persistence non-blocking exception: %s", exc)
 
+    def evaluate_trajectory_anomaly(self, drift: float, component: str = "swarm_agent") -> HealingAction:
+        """Evaluate Poincaré hyperbolic trajectory drift and trigger anomaly quarantine if drift > 1.5."""
+        is_anomalous = drift > 1.5
+        severity = 0.9 if is_anomalous else 0.2
+        quality_gap = min(1.0, drift / 2.0)
+        cost = 0.3
+
+        return self.evaluate_healing_candidate(
+            component=f"poincare_quarantine_{component}",
+            issue_description=f"Hyperbolic geodesic drift d_B = {drift:.4f} exceeds threshold 1.5",
+            proposed_remediation="Isolate anomalous execution thread and reset 2048D state vector to HIHO attractor",
+            quality_gap=quality_gap,
+            issue_severity=severity,
+            remediation_cost=cost,
+        )
+
     def get_action_history(self) -> List[HealingAction]:
         """Return history of evaluated healing actions."""
         return list(self._history)
