@@ -1,8 +1,7 @@
 """Unit tests for Architectural Upgrades (EventBus Decoupled Kanban, Poincaré Quarantine, AutoHarness Synthesis)."""
 
-import asyncio
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
-from cohezion.core.event_bus import Event, EventBus, EventType
+from cohezion.core.event_bus import EventBus, EventType
 from cohezion.data_mesh.kanban_bridge import register_event_bus_subscriptions
 from cohezion.proactive.evi_healer import EVIHealer
 
@@ -18,7 +17,7 @@ def test_upgrade_1_decoupled_event_bus_kanban_subscription() -> None:
 
 def test_upgrade_2_poincare_trajectory_anomaly_quarantine() -> None:
     healer = EVIHealer()
-    
+
     # Test normal trajectory drift (drift = 0.5 <= 1.5)
     action_normal = healer.evaluate_trajectory_anomaly(drift=0.5, component="agent_alpha")
     assert action_normal.approved is False or action_normal.evi_score <= 0.75

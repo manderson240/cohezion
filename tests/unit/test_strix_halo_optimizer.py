@@ -1,6 +1,7 @@
 """Unit tests for StrixHaloSiliconOptimizer."""
 
 import os
+
 from cohezion.inference.hardware_telemetry import ComputeBackend
 from cohezion.inference.strix_halo_optimizer import (
     SiliconOptimizationProfile,
@@ -41,4 +42,3 @@ def test_max_safe_token_budget() -> None:
     weight_bytes = 20 * (1024**3)
     safe_budget = optimizer.compute_max_safe_token_budget(weight_bytes=weight_bytes)
     assert safe_budget >= 32768
-

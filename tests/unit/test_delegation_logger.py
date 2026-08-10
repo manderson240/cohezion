@@ -1,8 +1,8 @@
 """Unit tests for DelegationLogger."""
 
-import os
 import tempfile
 from pathlib import Path
+
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
 
 

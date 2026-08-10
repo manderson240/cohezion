@@ -8,7 +8,7 @@ from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.physics.poincare_manifold import PoincareManifoldTracker
 from scripts.lanes.nightly_swarm_daemon import NightlySwarmDaemon
-from scripts.ops.visual_cockpit import render_terminal_cockpit, generate_html_cockpit
+from scripts.ops.visual_cockpit import generate_html_cockpit, render_terminal_cockpit
 
 
 def test_pillar_a_autoharness_policy() -> None:
@@ -51,7 +51,9 @@ def test_pillar_c_nightly_swarm_daemon() -> None:
         # Create dummy python file
         src_dir = Path(tmpdir) / "src" / "cohezion"
         src_dir.mkdir(parents=True, exist_ok=True)
-        (src_dir / "dummy.py").write_text("def hello() -> str:\n    return 'hi'\n", encoding="utf-8")
+        (src_dir / "dummy.py").write_text(
+            "def hello() -> str:\n    return 'hi'\n", encoding="utf-8"
+        )
 
         summary = asyncio.run(daemon.run_nightly_cycle(max_files=1))
         assert summary["files_inspected"] == 1

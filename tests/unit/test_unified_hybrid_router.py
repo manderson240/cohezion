@@ -2,6 +2,7 @@
 
 import tempfile
 from pathlib import Path
+
 from cohezion.inference.delegation_logger import DelegationLogger
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 
@@ -70,4 +71,3 @@ def test_route_with_flume_vae_prompt() -> None:
     )
     assert res.selected_tier in (1, 2, 3)
     assert res.model_name != ""
-
