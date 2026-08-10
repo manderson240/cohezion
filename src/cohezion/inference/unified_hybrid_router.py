@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, Literal, Optional, Tuple
 
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
 
@@ -32,6 +31,7 @@ TIER_1_ROSTER = {
     "research": "qwen3.6-moe-35b-a3b-FLM",
     "fast_qa": "llama3.2-1b-FLM",
     "embedding": "embed-gemma-300m-FLM",
+    "cpu_parallel": "Phi-4-mini-3.8B-CPU-32T",
 }
 
 TIER_2_ROSTER = {
@@ -66,8 +66,8 @@ class UnifiedHybridRouter:
 
     def __init__(
         self,
-        logger_instance: Optional[DelegationLogger] = None,
-        evi_threshold: Optional[float] = None,
+        logger_instance: DelegationLogger | None = None,
+        evi_threshold: float | None = None,
     ) -> None:
         self.logger = logger_instance or DelegationLogger()
         if evi_threshold is not None:
@@ -84,7 +84,7 @@ class UnifiedHybridRouter:
         target_tier: int,
     ) -> float:
         """Compute Expected Value of Intervention (EVI).
-        
+
         EVI = (quality_gap * task_importance) / escalation_cost
         """
         cost = TIER_COSTS.get((source_tier, target_tier), 1.0)
@@ -98,8 +98,8 @@ class UnifiedHybridRouter:
         target_quality_required: float = 0.9,
         tier1_saturated: bool = False,
         context_tokens: int = 4096,
-        force_tier: Optional[int] = None,
-        prompt: Optional[str] = None,
+        force_tier: int | None = None,
+        prompt: str | None = None,
     ) -> RoutingResult:
         """Determine model and execution tier.
 
@@ -137,6 +137,7 @@ class UnifiedHybridRouter:
         if prompt:
             try:
                 from cohezion.governance.flume_bridge import encode_prompt, flume_route_similarity
+
                 prompt_z = encode_prompt(prompt)
                 # Compute geometric correspondence against benchmark reference for task_type
                 ref_capability = f"high quality {task_type} execution and deterministic reasoning"
@@ -159,25 +160,31 @@ class UnifiedHybridRouter:
         if not tier1_capable or quality_gap > 0.1:
             # Evaluate escalation to Tier 2
             evi_1_to_2 = self.compute_evi(quality_gap, task_importance, 1, 2)
-            
+
             if not tier1_capable or evi_1_to_2 > self.evi_threshold:
                 # Escalate to Tier 2
                 current_tier = 2
                 selected_model = self._select_model_for_tier(2, task_type)
-                
+
                 # Check if Tier 2 is sufficient or if Tier 3 escalation is warranted
-                if context_tokens > 100000 or (task_type == "architecture" and task_importance > 0.85):
+                if context_tokens > 100000 or (
+                    task_type == "architecture" and task_importance > 0.85
+                ):
                     evi_2_to_3 = self.compute_evi(quality_gap, task_importance, 2, 3)
                     if evi_2_to_3 > self.evi_threshold:
                         current_tier = 3
                         selected_model = self._select_model_for_tier(3, task_type)
                         reason = f"Tier 3 escalation (EVI={evi_2_to_3:.2f} > {self.evi_threshold:.2f}, high context/importance)"
                     else:
-                        reason = f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
+                        reason = (
+                            f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
+                        )
                 else:
                     reason = f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
             else:
-                reason = f"Tier 1 selected (EVI 1->2 = {evi_1_to_2:.2f} <= {self.evi_threshold:.2f})"
+                reason = (
+                    f"Tier 1 selected (EVI 1->2 = {evi_1_to_2:.2f} <= {self.evi_threshold:.2f})"
+                )
         else:
             reason = "Tier 1 selected (quality gap minimal, capacity OK)"
 
@@ -185,7 +192,9 @@ class UnifiedHybridRouter:
         result = RoutingResult(
             selected_tier=current_tier,
             model_name=selected_model,
-            evi_score=self.compute_evi(quality_gap, task_importance, 1, current_tier) if current_tier > 1 else 0.0,
+            evi_score=self.compute_evi(quality_gap, task_importance, 1, current_tier)
+            if current_tier > 1
+            else 0.0,
             escalated=escalated,
             reason=reason,
         )
