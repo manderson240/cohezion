@@ -5,19 +5,22 @@ Audits all 10 local daemons, background workers, and service managers across Coh
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 
+import numpy as np
+
 from cohezion.compound.loop_daemon import LoopDaemon
 from cohezion.core.event_bus import EventBus
-from cohezion.daemon.nightly_swarm_daemon import NightlySwarmDaemon
 from cohezion.data_mesh.event_bridge import DataMeshEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
-from cohezion.healing.autonomic_healing import get_healing_system
+from cohezion.healing import get_healing_system
 from cohezion.mcp.manager import MCPServerManager
-from cohezion.physics.ctac_engine import CTACEngine
+from cohezion.physics.poincare_manifold import PoincareManifoldTracker
 from cohezion.platform.resource_manager import ResourceDaemon
 from cohezion.researcher.daily_researcher import DailyResearcher
+from cohezion.swarm.team_orchestrator import TeamOrchestrator
 
 
 logger = logging.getLogger("wide_daemon_audit")
@@ -43,13 +46,13 @@ EXPANDED_DAEMONS = [
         "ACTIVE",
     ),
     (
-        "NightlySwarmDaemon",
-        "daemon process",
-        "Autonomous overnight self-refinement swarm loop",
+        "TeamOrchestratorDaemon",
+        "swarm daemon",
+        "Autonomous multi-agent swarm team orchestrator",
         "ACTIVE",
     ),
     (
-        "AutonomicHealingSystem",
+        "SelfHealingSystem",
         "daemon process",
         "Proactive EVI drift monitoring & self-healing engine",
         "ACTIVE",
@@ -79,15 +82,15 @@ EXPANDED_DAEMONS = [
         "ACTIVE",
     ),
     (
-        "CTACEngineDaemon",
+        "PoincareManifoldDaemon",
         "physics engine",
-        "Continuous Topological Auto-Calibration manifold engine",
+        "Hyperbolic Poincaré 2048D trajectory tracking engine",
         "ACTIVE",
     ),
 ]
 
 
-def run_wide_sweep_daemon_audit() -> None:
+async def run_wide_sweep_daemon_audit() -> None:
     print("\n" + "📡" * 35)
     print("🌐 WIDE-SWEEP LOCAL DAEMONS & BACKGROUND SERVICES AUDIT")
     print("📡" * 35 + "\n")
@@ -95,13 +98,14 @@ def run_wide_sweep_daemon_audit() -> None:
     t0 = time.monotonic()
     _bus = EventBus()
     _bridge = DataMeshEventBridge()
-    _nightly = NightlySwarmDaemon()
-    _healing = get_healing_system()
-    _loop = LoopDaemon()
+    _team = TeamOrchestrator()
+    healing = get_healing_system()
+    _issues = await healing.health_check()
+    _loop = LoopDaemon(coordinator=object())
     _res_daemon = ResourceDaemon()
     _mcp_mgr = MCPServerManager()
     _researcher = DailyResearcher()
-    _ctac = CTACEngine()
+    tracker = PoincareManifoldTracker(dimension=2048)
 
     print("📊 FULL 10-DAEMON STATUS & UTILIZATION MATRIX:")
     print("-" * 80)
@@ -109,9 +113,9 @@ def run_wide_sweep_daemon_audit() -> None:
         print(f"  • {name:<26} [{endpoint:<14}]: [{status}] {purpose}")
     print("-" * 80)
 
-    # Test CTAC Physics Engine Calibration Step
-    ctac_res = _ctac.step_calibration(learning_rate=0.01)
-    print(f"\n1️⃣ CTAC Engine Calibration Step: Loss={ctac_res:.6f}")
+    # Test Poincaré Physics Manifold Conformal Calibration
+    c_fac = tracker.auto_calibrate_conformal_factor(np.ones(2048) * 0.5)
+    print(f"\n1️⃣ Poincaré Manifold Calibration Check: Conformal λ={c_fac:.2f}")
 
     duration_ms = (time.monotonic() - t0) * 1000.0
 
@@ -124,7 +128,7 @@ def run_wide_sweep_daemon_audit() -> None:
             "priority": "critical",
             "source": "wide_sweep_daemon_audit",
             "category": "system_monitoring",
-            "notes": f"Audited 10 Local Daemons: Lemonade, SurrealDB, DataMeshBridge, NightlySwarm, Healing, LoopDaemon, ResourceDaemon, MCPManager, DailyResearcher, CTACEngine | Latency: {duration_ms:.2f}ms",
+            "notes": f"Audited 10 Local Daemons: Lemonade, SurrealDB, DataMeshBridge, TeamOrchestrator, Healing, LoopDaemon, ResourceDaemon, MCPManager, DailyResearcher, PoincareManifold | Latency: {duration_ms:.2f}ms",
         }
     )
 
@@ -137,4 +141,4 @@ def run_wide_sweep_daemon_audit() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    run_wide_sweep_daemon_audit()
+    asyncio.run(run_wide_sweep_daemon_audit())

@@ -1,19 +1,20 @@
 """Local Daemon Health & Utilization Verification Script.
 
 Audits active local daemons: Lemonade OmniRouter (:13305), SurrealDB (:8001),
-EventBus DataMeshBridge, NightlySwarmDaemon, and AutonomicHealingSystem.
+EventBus DataMeshBridge, TeamOrchestrator, and SelfHealingSystem.
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 
 from cohezion.core.event_bus import EventBus
-from cohezion.daemon.nightly_swarm_daemon import NightlySwarmDaemon
 from cohezion.data_mesh.event_bridge import DataMeshEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
-from cohezion.healing.autonomic_healing import get_healing_system
+from cohezion.healing import get_healing_system
+from cohezion.swarm.team_orchestrator import TeamOrchestrator
 
 
 logger = logging.getLogger("daemon_verifier")
@@ -34,13 +35,13 @@ LOCAL_DAEMONS = [
     ),
     ("EventBus & Bridge", "in-process", "DataMesh real-time event pub/sub bridge", "ACTIVE"),
     (
-        "NightlySwarmDaemon",
-        "background daemon",
-        "Autonomous overnight self-refinement swarm loop",
+        "TeamOrchestrator",
+        "swarm daemon",
+        "Autonomous multi-agent swarm team orchestrator",
         "ACTIVE",
     ),
     (
-        "AutonomicHealingSystem",
+        "SelfHealingSystem",
         "background daemon",
         "Proactive EVI drift monitoring & self-healing engine",
         "ACTIVE",
@@ -48,7 +49,7 @@ LOCAL_DAEMONS = [
 ]
 
 
-def run_local_daemon_verification() -> None:
+async def run_local_daemon_verification() -> None:
     print("\n" + "=" * 70)
     print("🤖 COHEZION LOCAL DAEMON HEALTH & UTILIZATION VERIFICATION")
     print("=" * 70)
@@ -56,7 +57,7 @@ def run_local_daemon_verification() -> None:
     t0 = time.monotonic()
     _bus = EventBus()
     _bridge = DataMeshEventBridge()
-    _daemon = NightlySwarmDaemon()
+    _team = TeamOrchestrator()
     healing = get_healing_system()
 
     print("📊 DAEMON STATUS & UTILIZATION MATRIX:")
@@ -65,9 +66,9 @@ def run_local_daemon_verification() -> None:
         print(f"  • {name:<22} [{endpoint:<16}]: [{status}] {purpose}")
     print("-" * 75)
 
-    # Test Healing System Daemon Trigger
-    healed = healing.check_and_trigger_healing(metric_name="poincare_drift", current_val=0.82)
-    print(f"\n1️⃣ Autonomic Healing Daemon Check: Triggered={healed}")
+    # Test Healing System Health Check
+    issues = await healing.health_check()
+    print(f"\n1️⃣ Self-Healing System Health Check: {len(issues)} issues detected")
 
     duration_ms = (time.monotonic() - t0) * 1000.0
 
@@ -80,7 +81,7 @@ def run_local_daemon_verification() -> None:
             "priority": "medium",
             "source": "verify_local_daemons",
             "category": "system_monitoring",
-            "notes": f"Lemonade :13305 | SurrealDB :8001 | DataMeshBridge | NightlySwarm | HealingSystem | Latency: {duration_ms:.2f}ms",
+            "notes": f"Lemonade :13305 | SurrealDB :8001 | DataMeshBridge | TeamOrchestrator | HealingSystem | Latency: {duration_ms:.2f}ms",
         }
     )
 
@@ -93,4 +94,4 @@ def run_local_daemon_verification() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    run_local_daemon_verification()
+    asyncio.run(run_local_daemon_verification())
