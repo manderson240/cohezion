@@ -245,6 +245,50 @@ def _extract_section(body: str, keyword: str) -> str:
     return "\n".join(collected).strip()
 
 
+def _normalise_licence(value: str) -> str:
+    """Canonical form for comparison, so cosmetic differences are not 'divergence'.
+
+    Case, surrounding whitespace and the ubiquitous '-only'/'-or-later' suffixes are
+    noise; 'NOASSERTION'/'NONE'/'UNKNOWN' all mean the platform could not determine it
+    and are folded together. Anything else is compared verbatim -- deliberately, since
+    guessing equivalences between real licences is exactly the judgement a human must
+    make.
+    """
+    v = value.strip().upper().replace("_", "-")
+    if v in {"NOASSERTION", "NONE", "UNKNOWN", "N/A", "-"}:
+        return "UNDETERMINED"
+    for suffix in ("-ONLY", "-OR-LATER"):
+        if v.endswith(suffix):
+            v = v[: -len(suffix)]
+    return v
+
+
+def _parse_licence(fm: dict[str, Any], body: str) -> tuple[str, str]:
+    """Read licence_tag / licence_actual from frontmatter, then from a Licence section.
+
+    Frontmatter wins: it is the machine-written value. The section fallback exists so
+    briefs already written in prose are not silently dropped on the floor during the
+    migration away from prose.
+    """
+    tag = str(fm.get("licence_tag") or fm.get("license_tag") or "").strip()
+    actual = str(fm.get("licence_actual") or fm.get("license_actual") or "").strip()
+    if tag and actual:
+        return tag, actual
+
+    section = _extract_section(body, "licence") or _extract_section(body, "license")
+    if section:
+        for line in section.splitlines():
+            m = re.match(r"^\s*[-*]?\s*(licen[cs]e[_ ]?(tag|actual))\s*[:=]\s*(.+)$", line, re.I)
+            if not m:
+                continue
+            which, val = m.group(2).lower(), m.group(3).strip().strip("`*_")
+            if which == "tag" and not tag:
+                tag = val
+            elif which == "actual" and not actual:
+                actual = val
+    return tag, actual
+
+
 def _slug(source: str, path: Path) -> str:
     """Deterministic finding id — stable across re-runs so the kanban UPSERT is
     naturally idempotent. Derived from the brief filename.
@@ -276,6 +320,47 @@ class ResearchFinding:
     confidence: str = "high"  # high | low
     confidence_reason: str = ""  # '' | 'prompt-echo'
     path: str = ""
+
+    # --- licence, as FIELDS rather than prose (card 55cb4f3b9de1) -------------
+    # Two separate facts that a single "license" string conflates, and the
+    # conflation is the whole problem:
+    #
+    #   licence_tag     what the PLATFORM reports  (GitHub's SPDX detection)
+    #   licence_actual  what the repo IS after reading its licence files
+    #
+    # Measured on 2026-08-11 across five triaged subjects, these DIVERGED in two,
+    # and both divergences were adoption-blocking:
+    #   archestra-ai  tag=NOASSERTION  actual=AGPL-3.0-only + Enterprise (dual)
+    #   GeoPT         tag=<none>       actual=NONE -> all rights reserved, while
+    #                                  containing files copied from MIT code
+    #   Memoria       tag=Apache-2.0   actual=Apache-2.0        (agree)
+    #   AirfRANS      tag=ODbL-1.0     actual=ODbL-1.0          (agree, but a
+    #                                  DATABASE licence -- different obligations)
+    #   Transolver    tag=MIT          actual=MIT               (agree)
+    #
+    # Why fields and not prose: the prior hand-kept tally of this same question
+    # drifted -- it reported "5 of 8" when the truth was "4 of 11". A tally over
+    # prose requires a human to re-count and silently rots; a field is counted
+    # mechanically and cannot.
+    licence_tag: str = ""  # as reported by the platform; "" = not recorded
+    licence_actual: str = ""  # as read from the repo; "" = not verified
+
+    @property
+    def licence_divergence(self) -> bool:
+        """True when the reported tag and the verified terms disagree.
+
+        The single most decision-relevant bit, and the reason both are stored.
+        Requires BOTH to be present: an unverified licence is UNKNOWN, not
+        agreement, so a missing licence_actual must never read as "no problem".
+        """
+        if not self.licence_tag or not self.licence_actual:
+            return False
+        return _normalise_licence(self.licence_tag) != _normalise_licence(self.licence_actual)
+
+    @property
+    def licence_verified(self) -> bool:
+        """True only when someone actually read the repo's licence files."""
+        return bool(self.licence_actual)
 
     @property
     def domain(self) -> str:
@@ -362,6 +447,7 @@ def parse_brief(path: str | Path) -> ResearchFinding | None:
 
     actionability = classify_actionability(verdict_text)
     contaminated = _detect_prompt_echo(relevance or body)
+    licence_tag, licence_actual = _parse_licence(fm, body)
 
     return ResearchFinding(
         finding_id=_slug(source, p),
@@ -377,6 +463,8 @@ def parse_brief(path: str | Path) -> ResearchFinding | None:
         confidence="low" if contaminated else "high",
         confidence_reason="prompt-echo" if contaminated else "",
         path=str(p),
+        licence_tag=licence_tag,
+        licence_actual=licence_actual,
     )
 
 
