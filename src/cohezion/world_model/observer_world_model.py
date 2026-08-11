@@ -1,3 +1,4 @@
+import contextlib
 from collections import defaultdict
 
 from cohezion.inference.task_classifier import classify
@@ -24,10 +25,8 @@ class ObserverWorldModel:
         surprise = 1.0
         if self._n_transitions[frm] > 0:
             surprise = 1.0 - self._transition_counts[frm][to] / self._n_transitions[frm]
-        try:
+        with contextlib.suppress(Exception):
             self.observer.observe(surprise)
-        except Exception:
-            pass
         self.observer.state_matrix.record_transition(frm, to, reward)
         self._n_transitions[frm] += 1
         self._transition_counts[frm][to] += 1

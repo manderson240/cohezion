@@ -255,14 +255,14 @@ class TestTrajectoryPointAction:
         assert sig.parameters["action"].default == ""
 
     def test_t2_action_captured_from_tier_used(self) -> None:
-        """T2 discriminating: action defaults to tier_used when not explicitly provided.
+        """T2 discriminating: action defaults to category:tier_used when not explicitly provided.
 
         Wrong impl (action stays empty) would leave point.action == '' → fails.
         """
         tracker = JourneyTracker()
         result = self._make_result(tier="npu")
         point = tracker.track_execution(result, "classify task", "classify")
-        assert point.action == "npu", f"Expected action='npu' from tier_used, got {point.action!r}"
+        assert point.action == "evidence:npu", f"Expected action='evidence:npu' from tier_used, got {point.action!r}"
 
     def test_t2_explicit_action_overrides_tier_used(self) -> None:
         """T2 discriminating: explicit action arg takes priority over tier_used.
@@ -277,7 +277,7 @@ class TestTrajectoryPointAction:
         )
 
     def test_action_empty_when_no_tier_and_no_explicit(self) -> None:
-        """When tier_used absent and no explicit action, action stays empty string."""
+        """When tier_used absent and no explicit action, action defaults to semantic category."""
         tracker = JourneyTracker()
         result = ExecutionResult(
             success=True,
@@ -287,4 +287,5 @@ class TestTrajectoryPointAction:
             token_metrics={},
         )
         point = tracker.track_execution(result, "simple task", "classify")
-        assert point.action == "", f"Expected empty action, got {point.action!r}"
+        assert point.action == "evidence", f"Expected category action 'evidence', got {point.action!r}"
+

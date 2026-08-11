@@ -135,7 +135,7 @@ def verify_invariants(report_path: Path = REPORT) -> bool:
     snapshot_match = re.search(r"## Fleet health at run time\s*```\s*(.*?)\s*```", text, re.DOTALL)
     if snapshot_match:
         snap = snapshot_match.group(1)
-        local_up = any(
+        any(
             f"✓ {lane}" in snap or f"{lane}            " in snap.replace("✓", "CHECKMARK")
             for lane in ("npu", "igpu_rocwmma", "igpu_unified", "cpu", "ollama")
         )

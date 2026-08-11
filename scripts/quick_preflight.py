@@ -41,7 +41,7 @@ for t in targets:
         unique_scores = set()
         wins_sum = sum(v.get("wins", 0) for v in nodes.values())
 
-        for name, data in nodes.items():
+        for _name, data in nodes.items():
             mv = data.get("metric_values", [])
             if isinstance(mv, list):
                 all_scores.extend(mv)

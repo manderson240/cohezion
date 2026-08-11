@@ -446,14 +446,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             prioritized = refiner.prioritized_skills(candidates)
             k = top_k if top_k is not None else len(prioritized)
             for skill in prioritized[:k]:
-                try:
+                with contextlib.suppress(Exception):
                     refiner.refine(
                         skill_name=skill,
                         operation_type="mgpo_batch",
                         execution_result={},
                     )
-                except Exception:
-                    pass
         except Exception:
             pass
         finally:
@@ -1037,10 +1035,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         _tier_hints: dict[str, str] = {}
         # (a) W3: DegradationDetector.suggest_routing_tier() — reactive, health-based tier hint.
         if self._degradation_detector is not None:
-            try:
+            with contextlib.suppress(Exception):
                 _tier_hints["suggested_tier"] = self._degradation_detector.suggest_routing_tier()
-            except Exception:
-                pass
         # (b) W4: DifficultyEstimator.predict_tier() — predictive, skill-specific tier hint.
         # Use the lazy `skill_refiner` PROPERTY (not the raw `_skill_refiner` attr): the attr is None
         # until the property first fires at the post-execute_fn refinement step, so reading it here
@@ -1050,12 +1046,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if _refiner is not None:
             _estimator = getattr(_refiner, "_difficulty_estimator", None)
             if _estimator is not None:
-                try:
+                with contextlib.suppress(Exception):
                     _tier_hints["predicted_tier"] = _estimator.predict_tier(
                         skill_name, operation_type
                     )
-                except Exception:
-                    pass
         # (d) OC1-OC3: CompoundHealthOracle.last_assessment.tier_recommendation — regime-driven,
         # rolling Higuchi-FD window (cross-session persistent). Reflects the PREVIOUS executions'
         # quality texture (HIHO/STUCK/CHAOTIC). STUCK (FD < 1.3) escalates the recommended tier
@@ -2086,10 +2080,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         suggested = None
         if self._degradation_detector is not None:
-            try:
+            with contextlib.suppress(Exception):
                 suggested = self._degradation_detector.suggest_routing_tier()
-            except Exception:
-                pass
         predicted = None
         estimator = (
             getattr(self._skill_refiner, "_difficulty_estimator", None)
@@ -2097,10 +2089,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             else None
         )
         if estimator is not None:
-            try:
+            with contextlib.suppress(Exception):
                 predicted = estimator.predict_tier(skill_name, operation_type)
-            except Exception:
-                pass
         # Adequate tier = the MORE CAPABLE of the difficulty prediction and the health suggestion
         # (either signal escalating wins — never under-route a hard task at the boundary). Unlike
         # RS1's cost-biased _resolve_tier (cheaper-of-two), the reroute ensures capability.

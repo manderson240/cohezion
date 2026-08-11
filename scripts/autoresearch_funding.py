@@ -528,7 +528,7 @@ def _ucb1_select(tree: dict) -> str:
     total = tree["total_trials"]
     if total == 0:
         return random.choice(list(nodes.keys()))
-    best_score, best_name = -1.0, list(nodes.keys())[0]
+    best_score, best_name = -1.0, next(iter(nodes.keys()))
     for name, node in nodes.items():
         if node["trials"] == 0:
             return name
@@ -650,7 +650,7 @@ class FundingAutoresearchDriver:
         solo = [r for r in active if r["source"] in FUNDING_TARGETS.get("solo_eligible", [])]
         inst = [r for r in active if r["source"] not in FUNDING_TARGETS.get("solo_eligible", [])]
         total_solo = sum(r["estimated_amount_k"] for r in solo)
-        total_ev = sum(r["expected_value"] for r in active)
+        sum(r["expected_value"] for r in active)
         total_solo_ev = sum(r["expected_value"] for r in solo)
 
         lines = [

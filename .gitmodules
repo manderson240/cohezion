@@ -57,6 +57,18 @@
 	url = https://TODO.example.invalid/ollama-mcp.git
 	# Gitlink commit: 91030faf1f19c066d9503c5e1d3f10e7a336bb3c
 
+# Kaggle Nemotron working tree (active)
+# Was a mode-160000 gitlink with NO .gitmodules entry — the exact defect this file
+# exists to fix, missed on the original sweep. Reproduced 2026-08-01:
+#   $ git submodule foreach --quiet 'echo $sm_path'
+#   fatal: No url found for submodule path '.tmp_kaggle/nemo-win' in .gitmodules
+# URL verified from the submodule's own `git remote -v`, and its HEAD (82bd1880aa)
+# matches the gitlink the parent records — so this is a real URL, not a placeholder.
+[submodule ".tmp_kaggle/nemo-win"]
+	path = .tmp_kaggle/nemo-win
+	url = https://github.com/tonghuikang/nemotron
+	# Gitlink commit: 82bd1880aa8a
+
 # Pi Extensions (active)
 [submodule ".pi/git/github.com/VTSTech/pi-coding-agent"]
 	path = .pi/git/github.com/VTSTech/pi-coding-agent

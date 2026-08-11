@@ -35,7 +35,7 @@ PRECOMPUTED = {
 
 
 def git(*args, check=True):
-    r = subprocess.run(["git", "-C", REPO] + list(args), capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", REPO, *list(args)], capture_output=True, text=True)
     if check and r.returncode != 0:
         print(f"  git {' '.join(args)} failed: {r.stderr.strip()}")
     return r.stdout.strip()

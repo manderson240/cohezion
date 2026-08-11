@@ -43,7 +43,7 @@ def benchmark_128k():
     kv = KVQuant(scheme="turboquant", bits=3.5)
     compressor = StreamingKVCompressor(kv)
 
-    compressed_k, compressed_v, stats = compressor.compress_kv_cache(k_cache, v_cache)
+    _compressed_k, _compressed_v, stats = compressor.compress_kv_cache(k_cache, v_cache)
 
     print(f"Compressed: {stats.compressed_bytes / 1e9:.2f} GB")
     print(f"Compression ratio: {stats.compression_ratio:.2f}x")

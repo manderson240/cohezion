@@ -28,15 +28,15 @@ class SentenceTransformerEncoder:
     _instance: Optional["SentenceTransformerEncoder"] = None
     _initialized: bool = False
 
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", device: str = "cpu"):
         """Initialize sentence-transformer encoder.
 
         Args:
             model_name: HuggingFace model identifier
-                - "all-MiniLM-L6-v2": Lightweight (32MB), 384D, good for semantic cache
-                - "all-mpnet-base-v2": Better quality (440MB), 768D, slower
+            device: Computing device ('cpu' recommended to avoid iGPU aperture races)
         """
         self.model_name = model_name
+        self.device = device
         self.model = None
         self._load_model()
 
@@ -45,8 +45,8 @@ class SentenceTransformerEncoder:
         try:
             from sentence_transformers import SentenceTransformer
 
-            logger.info("Loading SentenceTransformer model: %s", self.model_name)
-            self.model = SentenceTransformer(self.model_name)
+            logger.info("Loading SentenceTransformer model: %s on %s", self.model_name, self.device)
+            self.model = SentenceTransformer(self.model_name, device=self.device)
             logger.info("✅ SentenceTransformer model loaded successfully")
         except ImportError:
             logger.error(

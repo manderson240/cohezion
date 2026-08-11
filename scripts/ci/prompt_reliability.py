@@ -51,7 +51,7 @@ def run_local(prompt: str, model: str, max_tokens: int = 200, temperature: float
     ).encode()
     req = urllib.request.Request(
         ROUTER,
-        data=body,
+        data=body,  # noqa: S310
         headers={"Content-Type": "application/json"},
         method="POST",
     )

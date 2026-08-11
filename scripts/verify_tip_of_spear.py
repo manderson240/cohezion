@@ -57,7 +57,7 @@ async def verify_all():
         async def generate(self, prompt, system_prompt=None):
             return f"Mock reasoning for: {prompt[:20]}..."
 
-    scaler = AIMOScaler(model=MockModel())
+    AIMOScaler(model=MockModel())
     logger.info("AIMO Scaler initialized with Diverse Prompt Mixing (DPM)")
     # BFS small run
     # result = await scaler.solve_with_bfs("What is 2+2?", beam_width=2, max_depth=2)

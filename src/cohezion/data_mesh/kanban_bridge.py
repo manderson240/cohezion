@@ -60,7 +60,7 @@ def _surreal_write(item: dict[str, Any]) -> bool:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
             ok = resp.status == 200
             if not ok:
                 logger.warning("kanban_bridge: SurrealDB returned %s for %s", resp.status, item_id)
@@ -158,3 +158,49 @@ def backfill_items(items: list[dict[str, Any]]) -> dict[str, int]:
         if result["obsidian"]:
             obsidian_ok += 1
     return {"total": total, "surreal_ok": surreal_ok, "obsidian_ok": obsidian_ok}
+
+
+# ── EventBus Decoupled Subscription ─────────────────────────────────────────
+
+
+async def _handle_event_bus_item(event: Any) -> None:
+    """EventBus handler that converts published Event into a persistent Kanban card."""
+    try:
+        source = str(getattr(event, "source", "event_bus"))
+        payload = getattr(event, "payload", {}) or {}
+        event_type = str(getattr(event, "type", "CUSTOM"))
+
+        card_id = (
+            payload.get("id") or f"ev_{event_type.lower()}_{int(getattr(event, 'timestamp', 0))}"
+        )
+        title = payload.get("title") or f"[{event_type}] Event from {source}"
+        notes = payload.get("notes") or f"Source: {source} | Event Payload: {_json.dumps(payload)}"
+
+        persist_item(
+            {
+                "id": card_id,
+                "title": title,
+                "status": payload.get("status", "pending_review"),
+                "priority": payload.get("priority", "medium"),
+                "source": source,
+                "category": "event_bus_subscription",
+                "notes": notes,
+            }
+        )
+    except Exception as exc:
+        logger.debug("kanban_bridge: event_bus handler non-blocking error: %s", exc)
+
+
+def register_event_bus_subscriptions(bus: Any) -> None:
+    """Subscribe kanban_bridge directly to EventBus to decouple event sources."""
+    try:
+        from cohezion.core.event_bus import EventType
+
+        bus.register_handler(_handle_event_bus_item, EventType.DATA_PRODUCT_CREATED)
+        bus.register_handler(_handle_event_bus_item, EventType.AGENT_COMPLETE)
+        bus.register_handler(_handle_event_bus_item, EventType.METRIC_UPDATE)
+        logger.info(
+            "kanban_bridge: registered EventBus subscriptions for DATA_PRODUCT_CREATED, AGENT_COMPLETE, METRIC_UPDATE"
+        )
+    except Exception as exc:
+        logger.warning("kanban_bridge: failed to register EventBus subscriptions: %s", exc)

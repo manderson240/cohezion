@@ -17,6 +17,7 @@ Run: uv run python scripts/agent_council_registry.py [--smoke-test]
 from __future__ import annotations
 
 import argparse
+import contextlib
 import importlib.util
 import json
 import sys
@@ -475,10 +476,8 @@ def persist_smoke(report: dict) -> tuple[int, int]:
     # Vault observation
     last_id = 0
     for line in VAULT_OBS.read_text().splitlines():
-        try:
+        with contextlib.suppress(Exception):
             last_id = max(last_id, json.loads(line).get("id", 0))
-        except Exception:
-            pass
     new_id = last_id + 1
     ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     c = report["counts"]
@@ -508,10 +507,8 @@ def persist_smoke(report: dict) -> tuple[int, int]:
     # autoresearch.jsonl
     last_run = 0
     for line in JSONL.read_text().splitlines():
-        try:
+        with contextlib.suppress(Exception):
             last_run = max(last_run, json.loads(line).get("run", 0))
-        except Exception:
-            pass
     run = last_run + 1
     entry = {
         "run": run,
@@ -571,7 +568,7 @@ if __name__ == "__main__":
     if args.save_only:
         sys.exit(0)
 
-    if args.smoke_test or True:  # smoke test on by default
+    if True:  # smoke test on by default
         print("\nRunning smoke test (1 call per non-reserved/non-ensemble agent)...")
         report = smoke_test()
         c = report["counts"]

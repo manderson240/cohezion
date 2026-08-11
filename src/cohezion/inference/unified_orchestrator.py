@@ -812,7 +812,7 @@ class UnifiedOrchestrator:
         escalation_count = 0
 
         for node in ranked:
-            text, quality, latency_ms = await self._call_node(
+            text, quality, _latency_ms = await self._call_node(
                 node, prompt, max_tokens=max_tokens, timeout=timeout
             )
             escalation_count += 1

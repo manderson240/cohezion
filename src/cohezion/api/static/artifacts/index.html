@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cohezion Artifacts — local gallery</title>
+<style>
+  :root {
+    --ground: #0B1116; --panel: #121A21; --panel-edge: #1E2A33;
+    --ink: #E8EDF1; --muted: #8FA1AE; --amber: #E8A33D; --teal: #4FB3A9;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --ground: #EEF1F3; --panel: #FFFFFF; --panel-edge: #D8DEE3;
+            --ink: #1A242C; --muted: #5A6B76; --amber: #B87A1E; --teal: #2E7D74; }
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--ground); color: var(--ink); margin: 0; padding: 0 20px 48px;
+         font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+  .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+           padding: 26px 0 14px; border-bottom: 1px solid var(--panel-edge); }
+  h1 { font-family: Palatino, "Palatino Linotype", Georgia, serif; font-size: 1.7rem;
+       letter-spacing: 0.12em; margin: 0; }
+  h1 em { font-style: normal; color: var(--amber); }
+  header .sub { color: var(--muted); font-size: 0.9rem; }
+  .card { display: block; background: var(--panel); border: 1px solid var(--panel-edge);
+          padding: 16px 18px; margin-top: 14px; text-decoration: none; color: inherit; }
+  .card:hover, .card:focus-visible { border-color: var(--amber); }
+  .card h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  .card .meta { font-size: 0.75rem; color: var(--muted); }
+  .card p { margin: 8px 0 0; font-size: 0.85rem; color: var(--muted); }
+  footer { margin-top: 26px; border-top: 1px solid var(--panel-edge); padding-top: 14px;
+           font-size: 0.8rem; color: var(--muted); }
+  footer code { color: var(--teal); }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>COHEZ<em>I</em>ON</h1>
+    <span class="sub">Artifacts · hosted on this machine · :8080/static/artifacts/</span>
+  </header>
+  <main id="list" aria-live="polite"></main>
+  <footer>
+    For agents: <code>GET /static/artifacts/manifest.json</code> lists every artifact with
+    capture time, session, and (where applicable) the datamesh event id backing it.
+    To add an artifact: drop the HTML here and append an entry to the manifest.
+  </footer>
+</div>
+<script>
+fetch("manifest.json").then(function (r) { return r.json(); }).then(function (m) {
+  var root = document.getElementById("list");
+  m.artifacts.slice().reverse().forEach(function (a) {
+    var card = document.createElement("a");
+    card.className = "card";
+    card.href = a.file;
+    var meta = [a.captured, a.session, a.event_id].filter(Boolean).join(" · ");
+    card.innerHTML =
+      "<h2>" + a.title + "</h2>" +
+      '<div class="meta mono">' + meta + "</div>" +
+      "<p>" + a.summary + "</p>";
+    root.appendChild(card);
+  });
+}).catch(function () {
+  document.getElementById("list").textContent = "manifest.json missing or unreadable.";
+});
+</script>
+</body>
+</html>

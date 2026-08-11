@@ -56,7 +56,7 @@ def _load_skill_prompt(skill_name: str) -> str:
 
 
 def _surreal(query: str) -> list:
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310
         SURREAL_URL,
         data=query.encode(),
         headers={
@@ -80,7 +80,7 @@ def _infer(prompt: str, system_prompt: str, timeout: int = 90) -> str:
             {"role": "user", "content": prompt},
         ],
     }
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310
         LEMONADE_URL, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"}
     )
     try:
