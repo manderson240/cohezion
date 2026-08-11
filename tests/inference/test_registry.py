@@ -226,8 +226,13 @@ def test_mellum_entry_registered_as_code_completion_specialist() -> None:
 
 
 def test_mellum_preferred_over_heavy_coder_for_code_gen() -> None:
-    """Fast FIM completion (Mellum) ranks ahead of the heavy qwen3-coder for CODE_GEN."""
+    """Fast FIM completion (Mellum) ranks ahead of heavy general-purpose coding models for CODE_GEN."""
     registry = FleetRegistry()
     order = [m.model_id for m in registry.for_task(Task.CODE_GEN)]
     assert _MELLUM_ID in order
-    assert order.index(_MELLUM_ID) < order.index("qwen3-coder:30b")
+    # qwen3-coder:30b was removed from the static registry in favor of the
+    # live-catalog Lemonade path (Qwen3-Coder-30B-A3B-Instruct-GGUF). Compare
+    # against the heavy cloud fallback that remains in the registry.
+    heavy_coder = "deepseek-v3.2:cloud"
+    assert heavy_coder in order
+    assert order.index(_MELLUM_ID) < order.index(heavy_coder)

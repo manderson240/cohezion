@@ -5,6 +5,8 @@ All seams injected (sql/summarize/file-work-item); no HTTP, no inference.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from cohezion.data_mesh.event_consumer import EventConsumer
@@ -85,3 +87,88 @@ def test_fetch_filters_by_consumer_and_orders_by_time():
 def test_unsafe_consumer_id_rejected():
     with pytest.raises(ValueError):
         EventConsumer("bad'id", sql_fn=FakeSQL([]))
+
+
+# --- priority propagation (ticket 99569e2433f1) -----------------------------
+
+
+class _Recorder:
+    """4-arg file_work_item_fn that records what it was handed."""
+
+    def __init__(self):
+        self.calls: list[dict] = []
+
+    def __call__(self, title, description, domain, priority=1):
+        self.calls.append({"title": title, "domain": domain, "priority": priority})
+        return "wq-pri"
+
+
+def test_actionable_event_passes_event_priority_to_work_item():
+    """DISCRIMINATING: an event published at priority=2 must arrive as 2.
+
+    The plausible-wrong impl ignores event['priority'] and lets the default
+    stand — that impl records 1 and fails this assertion.
+    """
+    rec = _Recorder()
+    ev = _event(1)
+    ev["priority"] = 2
+    consumer = EventConsumer(
+        "test-consumer",
+        sql_fn=FakeSQL([ev]),
+        summarize_fn=lambda t, p: "summary",
+        file_work_item_fn=rec,
+    )
+    consumer.run_once()
+    assert rec.calls, "no work item was filed"
+    assert rec.calls[0]["priority"] == 2, f"priority lost: {rec.calls[0]}"
+
+
+def test_missing_priority_defaults_to_one():
+    """An event with no priority key must not crash and must default to 1."""
+    rec = _Recorder()
+    ev = _event(2)
+    ev.pop("priority", None)
+    EventConsumer(
+        "test-consumer",
+        sql_fn=FakeSQL([ev]),
+        summarize_fn=lambda t, p: "summary",
+        file_work_item_fn=rec,
+    ).run_once()
+    assert rec.calls and rec.calls[0]["priority"] == 1
+
+
+def test_legacy_three_arg_file_work_item_fn_still_accepted():
+    """Backward compat: existing 3-arg injected fns must keep working."""
+    sql, filed = FakeSQL([_event(1)]), []
+    summary = _consumer(sql, filed).run_once()  # _consumer injects a 3-arg lambda
+    assert summary["actioned"] and filed
+
+
+def test_default_file_work_item_posts_priority_in_body(monkeypatch):
+    """PRODUCTION PATH: the JSON body the kanban receives must carry priority.
+
+    This is the actual defect — every datamesh-filed ticket got the server
+    default regardless of the published priority.
+    """
+    from cohezion.data_mesh import event_consumer as ec
+
+    captured: dict = {}
+
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return b'{"id": "wq999"}'
+
+    def fake_urlopen(req, timeout=None):
+        captured["body"] = json.loads(req.data.decode())
+        return _Resp()
+
+    monkeypatch.setattr(ec.urllib.request, "urlopen", fake_urlopen)
+    item_id = ec._default_file_work_item("t", "d", "dom", 2)
+    assert item_id == "wq999"
+    assert captured["body"].get("priority") == 2, f"body missing priority: {captured['body']}"

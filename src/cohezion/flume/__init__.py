@@ -252,3 +252,12 @@ with contextlib.suppress(Exception):
     from cohezion.flume.sparse_analysis import (
         SparseLatentAnalysis as SparseLatentAnalysis,
     )
+
+with contextlib.suppress(Exception):
+    from cohezion.flume.poincare_manifold_visualizer import (
+        PoincareManifoldVisualizer as PoincareManifoldVisualizer,
+        compute_hyperbolic_distance as compute_hyperbolic_distance,
+        generate_poincare_figure as generate_poincare_figure,
+        project_2048d_to_poincare_3d as project_2048d_to_poincare_3d,
+    )
+
