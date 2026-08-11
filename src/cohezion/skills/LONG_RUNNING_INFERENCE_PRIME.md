@@ -144,3 +144,14 @@ data: {"type": "complete", "final_output": "...", "total_tokens": 200}
 ## Keywords: session, checkpoint, streaming, resumption, long-running
 ## Domain: inference-infrastructure
 ## Dependencies: SemanticCache, GuardrailPipeline (optional)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Long Running Inference Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

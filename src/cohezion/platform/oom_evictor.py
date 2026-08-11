@@ -144,6 +144,19 @@ class PressureDriver:
 def _default_lister() -> list[LoadedModel]:
     """Loaded lemonade models mapped to registry priority. Returns ONLY known fleet models.
 
+    SOURCE OF TRUTH IS ``/api/v1/health`` -> ``all_models_loaded``, NOT ``/api/v1/models``.
+    The latter is the CATALOG of everything available (131 entries on this fleet); reading it
+    as "loaded" broke the evictor in both directions, measured live 2026-07-29:
+
+      PHANTOMS  reported Gemma-4-31B and deepseek-r1-0528-8b-FLM as loaded when they were not
+                -> the evictor spends its one eviction on a model holding ZERO bytes
+      BLIND     missed 6 of 10 truly-loaded models (incl. SD-Turbo, Whisper, kokoro)
+                -> their RAM could never be reclaimed, which is exactly the accumulation
+                   that drove this box to 108GB used / 14GB free with 6.9GB swapping
+
+    This survived because the module had ZERO production consumers: the lister was never
+    exercised against a real server. Regression cover: tests/platform/test_oom_evictor_lister.py
+
     Fail-soft: if lemonade is unreachable or the registry can't be read, returns []
     (the evictor becomes a no-op rather than guessing at unknown processes).
     """
@@ -152,9 +165,9 @@ def _default_lister() -> list[LoadedModel]:
 
         from cohezion.inference.registry import get_registry
 
-        resp = httpx.get("http://localhost:13305/api/v1/models", timeout=1.5)
+        resp = httpx.get("http://localhost:13305/api/v1/health", timeout=1.5)
         resp.raise_for_status()
-        loaded_ids = [m.get("id", "") for m in resp.json().get("data", [])]
+        loaded_ids = [m.get("model_name", "") for m in resp.json().get("all_models_loaded", [])]
         models = get_registry().models
         out: list[LoadedModel] = []
         for mid in loaded_ids:

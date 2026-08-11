@@ -68,3 +68,4 @@ honest_residuals:
 version: 1
 captured: 2026-06-04
 captured_from: cohezion-internal WS1 follow-up to PR #218 (RecipeGuard tests)
+---

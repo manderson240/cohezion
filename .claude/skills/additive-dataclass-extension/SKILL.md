@@ -65,3 +65,4 @@ honest_residuals:
 version: 1
 captured: 2026-06-04
 captured_from: cohezion-internal PR #219 (WS2A card-aligned registry)
+---

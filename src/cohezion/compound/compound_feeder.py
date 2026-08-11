@@ -51,11 +51,14 @@ from __future__ import annotations
 
 import fcntl
 import json
+import logging
 import os
 import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 STATE_DIR = Path.home() / ".cohezion"
@@ -164,9 +167,35 @@ def feed_compound_tasks(
         finally:
             fcntl.flock(lock_fp, fcntl.LOCK_UN)
 
+    # THROUGHPUT ASSERTION (2026-07-26). The compound daemon idled 91 consecutive rounds reporting
+    # "No pending tasks" while this feeder returned {"fed": 0, "skipped": 31, "candidates": 31}
+    # every run and exited 0. The diagnosis was sitting in the feeder's OWN OUTPUT the whole time
+    # and had no consumer — the mirror image of a consumer with no producer.
+    #
+    # `fed == 0` alone is NORMAL (a settled queue legitimately feeds nothing). The pathological
+    # state is specifically: candidates were FOUND and ALL of them were skipped. That means either
+    # everything is already fed (fine, but should be visibly steady-state) or the producer and this
+    # consumer disagree about the contract — which is what actually happened: 71 items were filed as
+    # `type=task, status=pending` while this feeder queries `type=improvement` +
+    # `status=approved|actioned`, so nothing new was ever reachable.
+    #
+    # Emitted as a WARNING rather than a raised error: a feeder that crashes stops feeding, which is
+    # strictly worse than one that complains. Liveness is reported in WORK UNITS, never in "it ran".
+    starved = bool(candidates) and not fed_ids
+    if starved:
+        logger.warning(
+            "compound_feeder STARVED: %d candidates found, 0 fed (all skipped). Either the queue is "
+            "steady-state, or writers and this consumer disagree about type/status. Feeder queries "
+            "type=improvement + status=%s.",
+            len(candidates),
+            "|".join(FETCH_STATUSES),
+        )
+
     return {
         "fed": len(fed_ids),
         "skipped": skipped,
         "candidates": len(candidates),
         "task_ids": fed_ids,
+        # Machine-readable so a caller/alarm can act without parsing the log line.
+        "starved": starved,
     }

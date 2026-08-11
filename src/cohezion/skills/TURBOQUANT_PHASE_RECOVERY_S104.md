@@ -174,3 +174,14 @@ The two mistakes compound: a module can be Phases 0-2 complete, pass 12/12 unit 
 canonical: true
 coherence_verified: 2026-04-21
 success_rate: 1.0
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Turboquant Phase Recovery S104 within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

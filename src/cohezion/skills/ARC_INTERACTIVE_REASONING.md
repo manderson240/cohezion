@@ -56,3 +56,14 @@ keywords:
 - **0.5** = HIHO threshold (Shannon max)
 - **256** = FLUME latent dimension
 - **SU(2)** = agent state gauge group
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Arc Interactive Reasoning within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

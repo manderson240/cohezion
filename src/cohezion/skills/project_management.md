@@ -65,3 +65,14 @@ Use for complex tickets.
 If a project hits a plateau:
 1.  **Inject Entropy:** Introduce a new constraint (e.g., "Cut memory usage by 50%").
 2.  **Verify:** If the team/agent solves it, the plateau is broken.
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Project Management within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

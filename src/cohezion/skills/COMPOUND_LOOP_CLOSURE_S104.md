@@ -110,3 +110,14 @@ canonical: true
 coherence_verified: 2026-04-20
 success_rate: 1.0
 executions: 20
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Compound Loop Closure S104 within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

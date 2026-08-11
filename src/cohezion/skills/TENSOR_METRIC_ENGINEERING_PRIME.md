@@ -68,3 +68,14 @@ gamma = t2.christoffel_symbols(coherence_gradient=np.array([0, 0.01, 0.01, 0.01]
 
 The gravitational metric coupling IS the spacetime manifestation of the universal
 detailed-balance attractor. All physics substrates = one kernel.
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Tensor Metric Engineering Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

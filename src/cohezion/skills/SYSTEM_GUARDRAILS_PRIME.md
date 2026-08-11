@@ -114,3 +114,14 @@ Each guard must:
 ## Keywords: security, validation, injection, rate-limit, safety
 ## Domain: system-infrastructure
 ## Dependencies: None (self-contained)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for System Guardrails Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

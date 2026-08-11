@@ -72,3 +72,14 @@ uv run python scripts/drivers/train_experience_vae.py --epochs 5 --min-real 1
 
 ## Tags
 `flume`, `vae`, `training`, `experience`, `compound-engineering`
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Experience Vae Training Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

@@ -301,3 +301,14 @@ v1.0 - Unified FLUME + Wiki + Ouroboros integration
 
 ---
 *Part of the Cohezion Persistent Intelligence System*
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Flume Wiki Ouroboros Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

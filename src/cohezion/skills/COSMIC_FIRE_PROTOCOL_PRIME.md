@@ -57,3 +57,14 @@ if cfp.is_ignited(sim.colibre_coherence, sim.sfr_density):
 - Tests: `tests/unit/compound/test_phase19.py::TestCosmicFireProtocol`
 - Harness: P3 (cascade has 5 actions, first = bbq_low_slow)
 - Related: COLIBRE bridge (`physics/colibre_bridge.py`)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Cosmic Fire Protocol Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

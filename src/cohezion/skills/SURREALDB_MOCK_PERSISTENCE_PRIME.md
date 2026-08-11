@@ -1,3 +1,9 @@
+---
+name: SURREALDB_MOCK_PERSISTENCE_PRIME
+description: Comprehensive domain skill specification for Surrealdb Mock Persistence Prime.
+version: v1.0
+---
+
 # SKILL: SURREALDB_MOCK_PERSISTENCE_PRIME
 
 ## DOMAIN EXPERTISE

@@ -7,12 +7,21 @@ description: |
       to Gemma-4-E4B-it-GGUF or similar vulkan models,
   (2) lemond journal shows "Evicted model: <name>" + "waiting for GPU driver cleanup"
       immediately before the 500s,
-  (3) 500s are transient (NPU tasks and later GPU tasks succeed normally).
+  (3) 500s are transient (NPU tasks and later GPU tasks succeed normally),
+  (4) v1.2.0 — you see EMPTY embedding vectors / KeyError on `data` and are about to
+      blame eviction. That symptom is a TOKEN-LIMIT rejection, not eviction: the router
+      answers HTTP 200 with an ERROR BODY, so raise_for_status() passes and ["data"]
+      raises KeyError. It fails deterministically by input LENGTH, not timing.
+      DO NOT quote a specific limit — it moves with server flags (measured 256 tokens
+      / n_ubatch on 2026-07-27, then 512 tokens / nomic context window on 2026-08-06
+      after -b 2048 -ub 2048). PROBE it: send one input of growing length and read the
+      rejection body, which names the actual ceiling. ~20s, and it is the only
+      trustworthy answer.
   Root cause: OmniRouter auto-loads a newly downloaded model → LRU evicts an existing
   model → vulkan GPU driver cleanup takes iGPU backend offline for ~200-500ms →
   in-flight requests to the evicted/other vulkan models return HTTP 500.
 author: Claude Code
-version: 1.0.0
+version: 1.2.0
 ---
 
 # Lemonade GPU LRU Eviction → HTTP 500 Recovery
@@ -91,6 +100,67 @@ After fix, GPU-tier 500s during LRU eviction windows should:
 - NOT increment fail_counts toward cloud escalation
 
 Committed: `67dda91ed` (2026-06-17)
+
+## v1.1.0 — silent empty-vector failures are usually NOT eviction (2026-07-20)
+
+**Correction.** v1.1.0 originally attributed a batch of empty embeddings to LRU
+eviction. That was wrong — a plausible story (a long single-model batch on the iGPU)
+built on a `KeyError` that was never traced to its actual message. The real cause was
+the embedding model's **physical batch size**:
+
+```
+input (562 tokens) is too large to process.
+increase the physical batch size (current batch size: 256)
+```
+
+The failure is **deterministic by input length**, not load-dependent:
+
+| input | result |
+|---|---|
+| 50 chars | OK, 768 dims |
+| 500 chars | OK, 768 dims |
+| 2000+ chars | HTTP 500, batch-size error |
+
+A caller doing `d["data"][0]["embedding"]` raises `KeyError` on the error payload, and
+a log-and-continue loop then stores `embedding: []`. Observed: **54 chapters stored,
+20 embedded** — the row count said complete while semantic retrieval covered ~37% of
+the corpus. Retrying is futile because nothing is transient; the same input fails
+identically every time.
+
+### Diagnosis order (do this before blaming eviction)
+
+1. **Read the actual error body.** A `KeyError` in your client is not a diagnosis —
+   print the response payload. It usually names the real limit.
+2. **Sweep input length.** If short inputs pass and long ones fail deterministically,
+   it is a batch/context limit, not eviction.
+3. Only if failures are *transient and load-correlated* should you suspect eviction.
+
+### Fix
+
+Raise the embedding model's batch size in its recipe (server-side, persisted):
+
+```bash
+curl -X POST localhost:13305/api/v1/load -H 'Content-Type: application/json' -d '{
+  "model_name": "nomic-embed-text-v2-moe-GGUF",
+  "llamacpp_args": "--batch-size 8192 --ubatch-size 8192",
+  "save_options": true}'
+```
+
+…and cap client-side input as a belt-and-braces guard, since a raised batch size still
+has a ceiling.
+
+### The part that was right
+
+Verify against the **store**, never the loop counter:
+
+```sql
+SELECT count() FROM chapter WHERE embedding = [];   -- must be 0
+```
+
+Any pipeline writing a vector field must assert non-empty coverage at the end.
+"N rows written" and "N rows usable" are different numbers. Note also that
+`uv run script.py | tail -6` returns *tail's* exit status — a pipeline can report
+success while the script returned failure.
 
 ## Related
 

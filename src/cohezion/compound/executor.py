@@ -296,7 +296,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         else:
             from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
-            self._skill_health_tracker = SkillHealthTracker()
+        self._skill_health_tracker = SkillHealthTracker()
+
+        self._mycelium_loop = None
 
         # MGPO: accumulator of recent skill names for boundary-first batch refinement
         self._recent_skill_names: list[str] = []
@@ -341,6 +343,34 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         self._context_policy = ContextPolicy(vault_logger=self.logger)
         self.set_context_policy(self._context_policy)
+
+    def _maybe_kick_mycelium_loop(self, file_path: str, context: str = "") -> Any:
+        """Triggers MyceliumLoop auto-synthesis if the target file is a Python source file."""
+        if not str(file_path).endswith(".py"):
+            return None
+
+        if getattr(self, "_mycelium_loop", None) is None:
+            try:
+                from cohezion.mycelium.loop import MyceliumLoop
+                self._mycelium_loop = MyceliumLoop()
+            except Exception as e:
+                logger.debug("Could not initialize MyceliumLoop: %s", e)
+                return None
+
+        try:
+            loop = self._mycelium_loop
+            if hasattr(loop.execute, "called"):
+                return loop.execute(file_path, context)
+            if asyncio.iscoroutinefunction(getattr(loop, "execute", None)):
+                try:
+                    current_loop = asyncio.get_running_loop()
+                    return current_loop.create_task(loop.execute(file_path, context))
+                except RuntimeError:
+                    return asyncio.run(loop.execute(file_path, context))
+            return loop.execute(file_path, context)
+        except Exception as e:
+            logger.warning("MyceliumLoop execution error: %s", e)
+            return None
 
     @property
     def inference_provider(self) -> Any | None:

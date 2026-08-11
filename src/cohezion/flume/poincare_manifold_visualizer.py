@@ -118,11 +118,12 @@ def project_2048d_to_poincare_3d(
     np.ndarray
         Array of shape (N, 3) representing 3D Poincaré coordinates.
     """
-    is_1d = vectors_2048d.ndim == 1
+    vectors_arr = np.asarray(vectors_2048d, dtype=np.float64)
+    is_1d = vectors_arr.ndim == 1
     if is_1d:
-        vectors = vectors_2048d.reshape(1, -1)
+        vectors = vectors_arr.reshape(1, -1)
     else:
-        vectors = vectors_2048d
+        vectors = vectors_arr
 
     n_samples, dim = vectors.shape
     if dim != 2048:

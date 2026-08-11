@@ -507,3 +507,14 @@ def emergency_constitution_override(
 **Implementation Status**: ✅ Specification Complete
 **Next Phase**: Implement AgentSovereigntyLayer + TipOfTheSpearRouter + StitchMCPClient
 **Expected Impact**: 100% constitutional compliance, >90% EDL consensus rate, zero deceptive UI generation
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Agent Sovereignty Ethics Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

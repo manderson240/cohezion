@@ -70,3 +70,14 @@ print(f"Summary: {ts.summary()}")
 - Implementation: `src/cohezion/compound/triune_self.py`
 - Tests: `tests/unit/compound/test_phase19.py::TestTriuneSelf`
 - Harness: P5 (Knower only grows on accepted), P6 (R0 2/3 consensus)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Triune Self Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

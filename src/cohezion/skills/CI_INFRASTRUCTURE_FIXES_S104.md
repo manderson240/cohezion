@@ -115,3 +115,14 @@ Activate this skill when working within the Cohezion geometric framework.
 - FLUME_MANIFOLD_PRIME.md
 - SU2_GAUGE_GROUP_PRIME.md
 - HIHO_STABILITY.md
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Ci Infrastructure Fixes S104 within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

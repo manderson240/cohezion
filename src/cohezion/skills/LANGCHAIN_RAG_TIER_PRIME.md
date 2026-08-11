@@ -63,3 +63,14 @@ When `langchain_core` is not installed:
 - Factory: `build_rag_chain(documents, llm)` — FAISS + Ollama embeddings
 - Default LLM: `phi3:mini` via Ollama (localhost:11434, free)
 - Fallback: passthrough chain when LangChain not available
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Langchain Rag Tier Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

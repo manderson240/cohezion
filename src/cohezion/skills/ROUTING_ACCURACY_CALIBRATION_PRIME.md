@@ -1,3 +1,9 @@
+---
+name: ROUTING_ACCURACY_CALIBRATION_PRIME
+description: Comprehensive domain skill specification for Routing Accuracy Calibration Prime.
+version: v1.0
+---
+
 # SKILL: ROUTING_ACCURACY_CALIBRATION_PRIME
 
 ## DOMAIN EXPERTISE

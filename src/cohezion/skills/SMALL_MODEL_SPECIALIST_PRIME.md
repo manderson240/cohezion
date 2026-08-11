@@ -286,3 +286,14 @@ print(f"Savings vs cloud-only: {stats.cost_vs_deepseek_only:.1f}%")
 **Implementation Status**: ✅ Phase 1 Complete (Model Pool + Complexity Classifier)
 **Next Phase**: Implement TipOfTheSpearRouter with confidence-based escalation
 **Expected Impact**: 70-85% cloud token reduction, <5% quality degradation
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Small Model Specialist Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

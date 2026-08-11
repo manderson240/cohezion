@@ -96,3 +96,14 @@ Don't write a `scripts/audit_registry.py` that imports the registry and reproduc
 
 ## VERSION
 v1.1 -- 2026-04-21 added Liveness Drift Audit section from turbo-distributed-torvalds-continued session
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Capability Registry Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

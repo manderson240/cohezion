@@ -1,0 +1,206 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.14",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "e087ac822edb4243b7c53dd95c383c73",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"cohezion-compound-loop-cockpit\">\ud83d\udef0\ufe0f Cohezion Compound-Loop Cockpit</h1>\n<span class=\"paragraph\">Monitor + steer the live local daemons. Panels below auto-refresh ~15s.\nSteering actions fire only on click. Runs on <strong>local inference ($0)</strong>.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "d559e44f7b8a704c38424c926b9571f4",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "979ba275c5e2440c192decdbca1a7474",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='vblA-0' random-id='159dd2bb-b58f-f538-8f45-9ac7f0e46d73'><marimo-refresh data-initial-value='&quot;&quot;' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eAuto-refresh&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;15s&quot;]' data-default-interval='&quot;15s&quot;'></marimo-refresh></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "72b8aa1efbac0a8d1d3a598698213fad",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"compound-task-queue\">\ud83d\udccb Compound task queue</h2>\n<span class=\"paragraph\"><strong>total</strong> 87 \u00b7 <strong>done</strong> 87 \u00b7 <strong>pending</strong> 0</span>\n<table>\n<thead>\n<tr>\n<th>id</th>\n<th>prompt</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>\u2014</td>\n<td>(no pending tasks)</td>\n</tr>\n</tbody>\n</table></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "6945e68ff782df4a762a55cb8f6d3c65",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"surrealdb-graph\">\ud83d\udd78\ufe0f SurrealDB graph</h2>\n<span class=\"paragraph\">compound_loop <strong>670</strong> \u00b7 yielded <strong>670</strong> \u00b7 spawned <strong>0</strong> \u00b7 agent_journey <strong>673</strong></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "3a332656e15936d0fde6821a52244ea8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"work-queue-8080\">\ud83d\uddc2\ufe0f Work queue (:8080)</h2>\n<span class=\"paragraph\"><strong>total</strong> 5439</span>\n<ul>\n<li>by status: reviewed: 4872 \u00b7 actioned: 557 \u00b7 approved: 9 \u00b7 in_progress: 1</li>\n<li>by relevance: MONITOR: 4252 \u00b7 APPLY: 1136 \u00b7 high: 5 \u00b7 medium: 1 \u00b7 VALIDATES: 1 \u00b7 low: 3 \u00b7 Root CLAUDE.md loads in full on every session across all worktrees; a 473-line monolith taxes every session with subsystem detail 96% of the time irrelevant to the task. Nested subdir CLAUDE.md is the docs-verified de-bloat lever (load-on-demand) and is already used in 3 subsystems \u2014 extending it is low-risk and compounds. Corrects the trim-proposal assumption that @-imports help (they do not).: 1 \u00b7 HIGH -- Cohezion uses local and cloud LLMs to add deps to a shared venv; open-source/local models (which this stack prefers) hallucinate packages ~21.7% of the time, and hallucinations are stable enough to squat. Existing uv.lock/dependency-review/CodeQL do not gate the first AI-suggested install; this adds the one missing verification gate.: 1 \u00b7 SKIP: 9 \u00b7 MONITOR-reference. Reference value low (general list, stale, CUDA-heavy). One actionable candidate: Captum for local AMD-compatible interpretability of ~2M-param JEPA/VAE. No dependency conflict, $0 local, pure PyTorch.: 1 \u00b7 LOW. Framing (build the system that talks to the model) rhymes with Cohezion compound-loop/harness philosophy, but no transferable method beyond what Cohezion already implements; core claim is unverified influencer hype.: 1 \u00b7 Low. Cohezion already integrates Karpathy LLM-usage principles as an always-on rule (~/.claude/rules/karpathy-guidelines.md: think-before-coding, simplicity-first, surgical changes, goal-driven). This tweet adds no new named artifact or method beyond that existing rule. SKIP unless the specific 70-min Karpathy talk surfaces with concrete new guidance worth diffing against the current rule.: 1 \u00b7 MONITOR-reference. Directory itself is a low-value bookmark for a local-first stack (mostly cloud). Single actionable mine: Gutendex as an optional <marimo-tex class=\"arithmatex\">||(0 no-auth public-domain text-corpus source for future NLP/training experiments. No wiring recommended now; note only.: 1 \u00b7 MONITOR: reference for a UI-design-language markdown convention; APPLY only for future brand-consistent UI generation on the Next.js frontend, not for the software /spec or design-note practice.: 1 \u00b7 MONITOR only. No specific skill fills a clear gap in the 252 registry, so no APPLY. Two low-risk borrows worth tracking: (1) adopt Rationalizations + Red Flags sections as a skill-authoring convention for new PRIME skills; (2) fold doubt-driven anti-bias framing (strip CLAIM from reviewer input; doubt-theater guard) into peer-review/compound-build. Reference: github.com/addyosmani/agent-skills @ 0.6.3.: 1 \u00b7 MONITOR \u2014 genuinely local Linux open-format (||)</marimo-tex>0, MCP-native) Office-doc tool worth tracking; drop it in via its MCP server IF a docx/xlsx/pptx generation or edit/render need appears. Not APPLY (no current office-format gap; pandoc covers markdown-&gt;PDF). Not SKIP (not Office/Windows/cloud-tied).: 1 \u00b7 APPLY \u2014 Delta A (invariant-ablation testing to prove invariants are load-bearing) is a concrete, adoptable harness technique Cohezion genuinely lacks; Delta B (verification-gated work-item state machine) is a confirmed structural gap at the task layer. Both port existing V-model discipline to places it does not yet reach. Rest is confirmatory overlap.: 1 \u00b7 APPLY \u2014 local-runnable via openai-compatible endpoint (lemonade :13305), MIT, active; fills Cohezion auto-codebase-wiki gap that vault/GraphRAG do not cover; LangSmith optional so no cloud lock.: 1 \u00b7 MONITOR \u2014 track releases + borrow the Graph-of-Agents autonomous-pentest orchestration and PoC-validation methodology. APPLY only if we want a defensive appsec scanner against our own FastAPI surface AND can drive it acceptably via a local endpoint (accepting quality tradeoff) or a budgeted cloud key. Do NOT treat as an agent-security-comp reference (different domain) and do NOT expect it to replace the AI-agent-focused security module. Poor fit as a default for a $0 local-first stack given Docker + frontier-LLM quality dependence for real exploitation.: 1 \u00b7 SKIP-note. No concrete transferable/local-runnable lead. Cohezion already implements everything described and well beyond: compound loop, autoresearch loop, EVO recursive-improvement loop, ScheduleWakeup cadence, /loop + /schedule skills, goal-driven execution. Nothing new to adopt or monitor.: 1 \u00b7 SKIP \u2014 off-topic (forest ecology / carbon accounting). No mechanism transfer to local-AI orchestration stack.: 1 \u00b7 MONITOR: track Graphiti/Zep temporal-KG edge-invalidation pattern as the one partial architecture delta over our record-level bi-temporal + separate KG. Other 3 covered by vault+SurrealDB-bitemporal+semantic-cache+Mycelium+RetrospectionEngine. APPLY only if we decide to fuse contradiction-driven fact invalidation into the SurrealDB knowledge graph.: 1 \u00b7 MONITOR (low). Concept itself is enterprise-marketing rebranding of RAG+memory+grounding+calibration Cohezion already does (lineage/memory/calibration/self-improvement all map to existing modules). Filed as MONITOR not SKIP because it names 4 concrete vendors with distinct architectural bets and one genuine adjacent gap (governed business-semantics/ontology + cross-system entity resolution, exposed over MCP a la Fabric IQ). Do NOT build an enterprise semantic layer - not our mission; track only the MCP-ontology pattern.: 1 \u00b7 MONITOR \u2014 names a specific real competitor (Lyzr) + product (SivaClaw) in the enterprise-agent-orchestration space Cohezion operates in. No transferable agent-autonomy technique; track as landscape/competitor, not as a method to adopt.: 1 \u00b7 SKIP. On-topic domain but foundational onboarding education. Cohezion already far surpasses every element: 32 MCP servers for tool-calling, tiered lemonade orchestrator (NPU/iGPU/CPU :13305), and memory via Obsidian vault + bi-temporal SurrealDB + JourneyTracker + L1/L2/L3 semantic cache. Docstring-precision and arg-spot-checking are already embodied. Nothing non-obvious for an advanced local-agent operator.: 1 \u00b7 SKIP \u2014 no implementable mechanism. Isolated condensed-matter experimental measurement. Only conceptual resonance (topological defects) with the gauge/cosmogony stack; nothing load-bearing or implementable. Do not inflate topical physics resonance into false relevance.: 1 \u00b7 SKIP \u2014 Windows/C++/MSVC-compiler-specific. No actionable transfer to a Linux Python/Rust/TS AMD local-AI stack.: 1 \u00b7 MONITOR \u2014 genuinely open/offline-portable, aligns with local-first $0 philosophy, and could standardize data-mesh/vault knowledge interchange. Not adopt-now: spec is early (v0.1) and the vault already uses an equivalent markdown+YAML+links convention, so it largely mirrors existing capability rather than filling an urgent gap. Track for a portable export schema the DataProduct layer could formalize against.: 1 \u00b7 Coh\u0435\u0437ion already self-improves (SkillRefiner edits skill markdown, RetrospectionEngine, autoresearch loop, SkillConsensusVoter, mycelium, research-daemon-&gt;actioner-&gt;feeder-&gt;compound-daemon). Generic self-improvement framing = already covered; the article is NOT a source of new technique on its own. GENUINE DELTA = DGM: (a) evolutionary ARCHIVE / branching population of variants with fitness selection and preserved stepping-stones vs Cohezion linear refine-in-place; (b) agents mutate their own executable CODE, not just prose skill definitions; (c) empirical benchmark fitness gate per mutation. Cohezion autoresearch has winners/experiments but not an open-ended stepping-stone archive over self-modifying agent code. APPLY-candidate only after reading the paper: consider an archive/population layer over SkillRefiner+autoresearch so rejected-but-novel variants are retained as stepping-stones rather than discarded. MONITOR the three orgs/products for productionized RSI signals.: 1 \u00b7 MONITOR. Real, reproducible, AMD/CPU-runnable technique already validated on Strix Halo (0.40 tok/s). It would let the box CONVERSE with a 744B frontier model it cannot fit today (a genuinely new model class for offline/batch reasoning), complementing rather than replacing our NPU/iGPU/CPU lemonade tiers. But 0.40 tok/s (~1 word every few seconds) is a dealbreaker for the interactive compound loop, which needs the 42-TPS NPU tier. Value = rare, high-stakes offline reasoning pass local truly cannot otherwise do; not an interactive upgrade. Trial candidate, not adopt-now.: 1 \u00b7 SKIP \u2014 foundational learn-DS-by-competing tutorial. Nothing non-obvious for an advanced operator. Cohezion portfolio is well past this level (0-param ONNX golf, anti-leakage handling, PF+GP backbones, Blackwell handshake, <think>-mode SFT). No actionable technique to extract.: 1 \u00b7 SKIP - off-topic. No transferable mechanism/method for any Cohezion module. Domain is environmental remote sensing for conservation policy; no dynamics law, criticality/phase-transition result, ML technique, or inference method. Topical words (resilience, monitoring) are keyword resonance, not transfer. Matches prior off-topic-ecology SKIP pattern this session.: 1 \u00b7 none \u2014 off-topic observational astrophysics; no implementable mechanism for a local-AI orchestration stack: 1 \u00b7 SKIP-note. Standard/marketing content describing agentic deep-research, a capability the Cohezion research stack already implements. Nothing to add to the research daemon prompt or a search skill.: 1 \u00b7 MONITOR. Transferable IDEAS for Cohezion RL envs (ManifoldEnv/SwarmEnv), scale-independent: (1) environment throughput is the true RL bottleneck - vectorize/batch the env step before scaling models or steps; this is a $0 single-box lever. (2) Entity-transformer policy (one token per entity) is a clean inductive bias for SwarmEnv variable-agent observations. (3) signs-of-life reward-shaping discipline: small experiments confirming the policy moves toward the reward before any long run. Not APPLY: each is a project-sized build (env vectorization + ROCm-JAX validation, or a new transformer policy), no active RL-training task this session, and no winnable comp attached - so technique noted, not a portfolio move. Source extraction is second-hand (Kaggle writeup is JS-rendered; relied on search-engine summaries of the 1st/13th-place writeups + competition overview).: 1 \u00b7 MONITOR \u2014 reference only; different target (Android/LiteRT edge vs x86 desktop lemonade). APPLY only if a technique becomes directly usable on the desktop lemonade stack (e.g. google-ai-edge ships an x86/GGUF path). Actionable delta is small and mostly overlaps existing Cohezion observability/routing.: 1 \u00b7 APPROVE: 3</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "7387ad1cee82c3587141c6e7c989c994",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/vnd.marimo+mimebundle": "{\"image/png\": \"data:image/png;base64,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\", \"__metadata__\": {\"image/png\": {\"width\": 489, \"height\": 210}}}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "b904043d5c9cb977e42d5c35cd6262b9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"capability-gaps\">\ud83c\udfaf Capability gaps</h2>\n<table>\n<thead>\n<tr>\n<th>task_type</th>\n<th>score</th>\n<th>action</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>research</td>\n<td>0.60</td>\n<td>finetune</td>\n</tr>\n</tbody>\n</table></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "d25b4cfffadefec5d3938dab89b66fe0",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "exception",
+          "evalue": "line 3\n    Here's the corrected code:\n        ^\nSyntaxError: unterminated string literal (detected at line 3)\n",
+          "traceback": null
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "87e5b035b0a1a4087dbd75983391a837",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "a92e37f0b378fb8822ddbd799e8f1766",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><hr />\n<h2 id=\"steer\">\ud83c\udf9b\ufe0f Steer</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "4b472c283f0afa967f802d5e0a75d876",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "37bbc534b25c26053a3be7f883021506",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "d24b71bc81f006ea376ea92f71d5998a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "20b945e06e38887a91ef03cfc2287717",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "363a83923ca9889f284ee43d6b0f75f3",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "e44018f7ac4c78736b8450f079ec996d",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "d9fd4c118ac60f49ca80817caf58ccbe",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "1db297416ce948516713e6d22d633351",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "fc56fee37f67a97db90aa7777048fd7c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><hr />\n<h3 id=\"pause-resume-daemons-run-in-a-terminal-not-exposed-as-buttons\">\u23f8\ufe0f Pause / resume daemons (run in a terminal \u2014 not exposed as buttons)</h3>\n<div class=\"language-bash codehilite\"><pre><span></span><code>systemctl<span class=\"w\"> </span>--user<span class=\"w\"> </span>stop<span class=\"w\">  </span>cohezion-compound.service<span class=\"w\">     </span><span class=\"c1\"># pause the compound loop</span>\nsystemctl<span class=\"w\"> </span>--user<span class=\"w\"> </span>start<span class=\"w\"> </span>cohezion-compound.service<span class=\"w\">     </span><span class=\"c1\"># resume it</span>\nsystemctl<span class=\"w\"> </span>--user<span class=\"w\"> </span>stop<span class=\"w\">  </span>cohezion-compound-feeder.timer\nsystemctl<span class=\"w\"> </span>--user<span class=\"w\"> </span>start<span class=\"w\"> </span>cohezion-compound-feeder.timer\nsystemctl<span class=\"w\"> </span>--user<span class=\"w\"> </span>status<span class=\"w\"> </span>cohezion-compound.service<span class=\"w\">    </span><span class=\"c1\"># inspect</span>\n</code></pre></div></span>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

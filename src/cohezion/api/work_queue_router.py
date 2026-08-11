@@ -59,6 +59,7 @@ class WorkItemCreate(BaseModel):
     relevance: str = "APPLY"
     domain: str = ""
     notes: str = ""
+    priority: int = 1  # 0=low 1=normal 2=high — callers may file blocking items directly
 
 
 class WorkItemPatch(BaseModel):
@@ -101,7 +102,7 @@ def create_item(body: WorkItemCreate):
         "domain": body.domain,
         "notes": body.notes,
         "status": "pending_review",
-        "priority": 1,
+        "priority": body.priority,
         "created_at": datetime.now(UTC).isoformat(),
         "approved_at": None,
         "feedback": "",

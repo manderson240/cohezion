@@ -84,3 +84,14 @@ Results are saved to `data/simulations/{run_id}/`:
 - Circuit breaker trips after 3 consecutive failures
 - Backpressure delay when system dilation factor < 0.3
 - DivergenceDetector attached to each sandbox instance
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Sandboxed Simulation within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

@@ -90,3 +90,14 @@ Manage the lifecycle of local Ollama models across hot/warm/cold tiers, ensuring
 - `src/cohezion/swarm/model_pool_config.py` -- Configuration and data models
 - `src/cohezion/swarm/dynamic_model_router.py:60` -- MemoryBandwidthAnalyzer
 - `src/cohezion/swarm/model_manager.py` -- OllamaModelManager (coexists)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Model Pool Management Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

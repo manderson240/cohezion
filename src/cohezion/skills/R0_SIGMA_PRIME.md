@@ -70,3 +70,14 @@ Every COLIBRE simulation finding passes through R0Σ:
 - Implementation: `src/cohezion/compound/r0_sigma.py`
 - Tests: `tests/unit/compound/test_phase19.py::TestR0*`
 - Harness: P4 (sigma_n>1 triggers R0), P6 (2/3 CONFIRMED consensus)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for R0 Sigma Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

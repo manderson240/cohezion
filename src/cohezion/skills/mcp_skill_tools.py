@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 from .mcp_paths import cohezion_root
@@ -38,18 +39,26 @@ def execute_skill(
             ]
         }
 
-    skill_path = os.path.join(cohezion_root(), skill_path_rel)
-    if not os.path.exists(skill_path):
+    root_path = Path(cohezion_root()).resolve()
+    resolved_skill_path = (root_path / skill_path_rel).resolve()
+
+    try:
+        if not resolved_skill_path.is_relative_to(root_path):
+            return {"content": [{"type": "text", "text": "Error: Path traversal outside repository root rejected"}]}
+    except ValueError:
+        return {"content": [{"type": "text", "text": "Error: Invalid path boundary"}]}
+
+    if not resolved_skill_path.exists():
         return {
             "content": [
                 {
                     "type": "text",
-                    "text": f"Error: Skill file not found: {skill_path}",
+                    "text": f"Error: Skill file not found: {resolved_skill_path}",
                 }
             ]
         }
     try:
-        with open(skill_path) as f:
+        with open(resolved_skill_path) as f:
             return {"content": [{"type": "text", "text": f.read()}]}
     except (OSError, UnicodeDecodeError) as e:
         return {"content": [{"type": "text", "text": f"Error executing skill: {e}"}]}

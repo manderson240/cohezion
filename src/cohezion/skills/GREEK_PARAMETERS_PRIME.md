@@ -64,3 +64,14 @@ record = gp.to_dict()  # {alpha, omega, delta, beta, gamma_at_hiho}
 - Implementation: `src/cohezion/compound/greek_parameters.py`
 - Tests: `tests/unit/compound/test_phase19.py::TestGreekParameters`
 - Harness: P1 (convergence), P2 (β A3 guard)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Greek Parameters Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

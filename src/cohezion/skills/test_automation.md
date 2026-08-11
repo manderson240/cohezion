@@ -48,3 +48,14 @@ This skill integrates with the compound engineering system to provide automated 
 
 ## Version History
 - 1.0.2: Fixed watchdog timer issues and improved error reporting
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Test Automation within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

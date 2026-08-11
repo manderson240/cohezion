@@ -209,7 +209,12 @@ class ManifoldEnv(gym.Env):
     ) -> tuple[np.ndarray, dict[str, Any]]:
         """Reset environment to a random initial state.
 
-        Returns observation and info dict.
+        Returns observation and info dict. The info dict is built by ``_get_info()``, a
+        SEPARATE builder from ``step()``'s ``_get_obs_and_info()`` — see ``step()``'s
+        docstring for the full key enumeration. Two differences from ``step()``'s info dict:
+        (1) it never carries ``invariant_passed``/``invariant_failed`` (this method clears the
+        invariant report and does not recompute it), and (2) its ``is_hiho`` key uses
+        ``tol=0.1`` versus ``step()``'s ``tol=1e-10``.
         """
         super().reset(seed=seed)
         if seed is not None:
@@ -238,6 +243,67 @@ class ManifoldEnv(gym.Env):
         """Execute one step: apply action as velocity, evolve via Lagrangian dynamics.
 
         Returns (observation, reward, terminated, truncated, info).
+
+        ``info`` dict keys, enumerated mechanically from the exact builder this method calls
+        (``_get_obs_and_info`` — NOT ``reset()``'s ``_get_info``, which returns a *different*
+        set; see the note at the end). Presence and "read elsewhere" claims were verified via
+        an exhaustive grep of ``src/`` and ``tests/`` for each key name, not by reading the
+        happy path and assuming.
+
+        Always present::
+
+            step               int    current step count within the episode (1-indexed).
+            coherence          float  HIHO coherence of the current position, in [0, 1].
+            hiho_deviation     float  |delta| from HIHO equilibrium (dims 4-10), >= 0.
+            hiho_streak        int    consecutive in-band steps; drives curriculum_stage
+                                       and the termination condition.
+            charge_polarity    float  Bloch r_z component (= cos(theta)), in [-1, 1].
+            spin_rotation      float  Bloch r_x component, in [-1, 1]. NOT read anywhere
+                                       outside this file (grep-verified) — write-only today.
+            spin_precession    float  Bloch r_y component, in [-1, 1]. NOT read anywhere
+                                       outside this file (grep-verified) — write-only today.
+            yang_mills_action  float  gauge field-strength energy, >= 0; 0 at a flat (HIHO)
+                                       connection. Computed with an internal tol=1e-10 (see
+                                       is_hiho note below).
+            is_hiho            bool   True iff all 4 fabric connections are flat within
+                                       tol=1e-10 — the STRICT tolerance. Do not conflate with
+                                       reset()'s info["is_hiho"] (tol=0.1, see note below).
+            potential_energy   float  HIHO potential at the current position.
+            kinetic_energy     float  >= 0. From the active dynamics engine's
+                                       kinetic_energy(); falls back to 0.5*sum(v**2) for the
+                                       Hamiltonian engine, which has no such method.
+            episode_reward     float  cumulative reward this episode, through this step.
+            trajectory_length  int    len(trajectory) including the initial reset position.
+                                       NOT read anywhere outside this file — get_trajectory()
+                                       reads self._trajectory directly, not this key.
+            curriculum_stage   int    1 (hiho_streak<5), 2 (<20), 3 (>=20). Reward-shaping
+                                       stage only — NOT the same threshold as termination
+                                       (hiho_stability_window, default 10).
+            avg_coherence      float  running mean coherence this episode.
+            avg_energy         float  running mean |energy| this episode.
+            hiho_time_ratio    float  fraction of steps this episode spent in-band
+                                       (deviation < 0.1), in [0, 1]. NOT read anywhere
+                                       outside this file (grep-verified).
+            convergence_step   int    step count at first in-band entry this episode, or 0
+                                       if never reached. NOT read anywhere outside this file
+                                       (grep-verified).
+
+        Conditionally present — ONLY when the optional ``InvariantChecker`` import succeeded
+        at ``__init__`` AND the ``try``/``except`` around ``check_all()`` in this method did
+        not raise (both silent-fail paths leave these keys ABSENT, not False/0)::
+
+            invariant_passed   bool  from InvariantChecker.check_all().passed.
+            invariant_failed   int   from InvariantChecker.check_all().failed_count.
+
+        Neither ``invariant_passed`` nor ``invariant_failed`` is read anywhere outside this
+        file (grep-verified) — currently write-only diagnostics, exposed for external callers
+        (e.g. logging/monitoring) rather than consumed internally.
+
+        ``reset()``'s info dict (built by the separate ``_get_info()``) carries the SAME 18
+        always-present keys above, but NEVER includes ``invariant_passed``/``invariant_failed``
+        (reset clears the invariant report and does not recompute it before returning), and its
+        ``is_hiho`` uses ``tol=0.1`` — eight orders of magnitude looser than this method's
+        ``tol=1e-10``. The two info dicts are not interchangeable on that key.
         """
         action = np.asarray(action, dtype=np.float32).clip(-0.5, 0.5)
         self._step_count += 1

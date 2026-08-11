@@ -263,10 +263,15 @@ class MyceliumRegistry:
             logger.debug("vault write failed for %s: %s", cluster.cluster_id, exc)
 
         # 2) Write to SurrealDB
+        # `http.client` is imported OUTSIDE the try because the except clause below names
+        # http.client.HTTPException: an import inside the try is not guaranteed to have run when
+        # the handler is entered, and an unbound name there raises NameError from the handler
+        # itself — turning a swallowed telemetry failure into a crash.
+        import http.client
+
         try:
             import base64
             import json
-            import urllib.error
             import urllib.request
 
             surreal_url = __import__("os").environ.get("SURREALDB_URL", "http://localhost:8001/sql")
@@ -326,7 +331,18 @@ class MyceliumRegistry:
             except (json.JSONDecodeError, KeyError, IndexError, TypeError):
                 pass  # Non-JSON response, assume success (urllib raised on real error)
             logger.info("wrote mycelium pattern to surrealdb: %s", db_id)
-        except (urllib.error.URLError, OSError, Exception) as exc:
+        # L359 (issue #94): this was `except (urllib.error.URLError, OSError, Exception)`, which is
+        # semantically `except Exception:` — the supertype swallows the siblings, so a TypeError or
+        # AttributeError from a genuine bug in the block above was silently logged at DEBUG and
+        # dropped. Narrowed to what this telemetry write can actually raise:
+        #   OSError                  — socket/timeout/connection failures, and URLError + HTTPError,
+        #                              both of which are OSError subclasses (so naming URLError
+        #                              alongside OSError would itself be redundant).
+        #   ValueError               — urlopen on an unknown/malformed URL scheme.
+        #   http.client.HTTPException — IncompleteRead / BadStatusLine, which are NOT OSErrors.
+        # json errors are already handled by the inner try. Anything else is a real defect and now
+        # propagates instead of being hidden behind a fire-and-forget telemetry path.
+        except (OSError, ValueError, http.client.HTTPException) as exc:
             logger.debug("surrealdb write failed for %s: %s", cluster.cluster_id, exc)
 
 

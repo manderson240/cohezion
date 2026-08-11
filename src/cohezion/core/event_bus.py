@@ -47,6 +47,13 @@ class EventType(Enum):
     LINEAGE_UPDATED = auto()
     DOMAIN_HEALTH_DEGRADED = auto()
 
+    # Fleet / model lifecycle events
+    MODEL_ROSTER_CHANGED = auto()
+    MODEL_LOADING = auto()
+    MODEL_LOADED = auto()
+    MODEL_EVICTED = auto()
+    MODEL_LOAD_REFUSED = auto()
+
 
 @dataclass(frozen=True, slots=True)
 class Event:
@@ -88,6 +95,39 @@ class Event:
             type=EventType.CACHE_HIT if hit else EventType.CACHE_MISS,
             source=agent_name,
             payload={"tier": tier, **kwargs},
+        )
+
+    @classmethod
+    def model_lifecycle(
+        cls,
+        event_type: EventType,
+        model_id: str,
+        reason: str = "",
+        **kwargs,
+    ) -> Event:
+        return cls(
+            type=event_type,
+            source="model_orchestrator",
+            payload={"model_id": model_id, "reason": reason, **kwargs},
+        )
+
+    @classmethod
+    def roster_changed(
+        cls,
+        new_models: list[str],
+        removed_models: list[str],
+        current_models: list[str],
+        **kwargs,
+    ) -> Event:
+        return cls(
+            type=EventType.MODEL_ROSTER_CHANGED,
+            source="model_orchestrator",
+            payload={
+                "new_models": new_models,
+                "removed_models": removed_models,
+                "current_models": current_models,
+                **kwargs,
+            },
         )
 
 
@@ -195,6 +235,17 @@ class EventBus:
         try:
             # Priority queue: (-priority, seq, event) — seq prevents Event comparison on tie
             await self._queue.put((-event.priority, next(self._seq), event))
+            self._metrics["published"] += 1
+            return True
+        except asyncio.QueueFull:
+            self._metrics["dropped"] += 1
+            logger.warning(f"Event dropped (queue full): {event.type}")
+            return False
+
+    def publish_sync(self, event: Event) -> bool:
+        """Synchronously publish event to queue (non-blocking put_nowait)."""
+        try:
+            self._queue.put_nowait((-event.priority, next(self._seq), event))
             self._metrics["published"] += 1
             return True
         except asyncio.QueueFull:

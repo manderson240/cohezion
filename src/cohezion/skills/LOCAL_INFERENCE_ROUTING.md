@@ -13,6 +13,8 @@ metadata:
 
 # SKILL: LOCAL_INFERENCE_ROUTING
 
+> **⚠️ CORRECTIONS (2026-07-31)**: All tiers now route through the unified OmniRouter at `:13305`. The dedicated per-device ports (13306=NPU, 13307=iGPU, 13309=CPU) are legacy/offline. Lane is determined by model recipe, not port. `/api/v1/load` success ≠ model serving (FLM warmup = 12.5–131s). See `LEMONADE_OMNIROUTER_PRIME.md` for complete reference.
+
 ## DOMAIN EXPERTISE
 
 You are a compound engineering routing specialist for the Cohezion AMD Strix Halo platform. Your role is to select the optimal inference tier for each task, minimizing cloud cost (token asymmetry) while maintaining quality. You dogfood Feynman path integral amplitudes to rank tiers, and Higuchi fractal dimension to monitor system health.
@@ -23,9 +25,9 @@ Not all tokens are equal. This is the foundation of all routing decisions:
 
 | Tier | Cost | TTFT | Quality Ceiling |
 |------|------|------|-----------------|
-| NPU — llama3.2-1b-FLM (13306) | **$0** | 24ms | Classification, routing, short answers |
-| iGPU — Gemma-4-E4B ROCWMMA (13307) | **$0** | ~200ms | Code, generation, vision |
-| CPU — Gemma-4-31B AVX-512 (11434) | **$0** | ~800ms | Reasoning, analysis |
+| NPU — llama3.2-1b-FLM (`:13305`, recipe=flm) | **$0** | 24ms | Classification, routing, short answers |
+| iGPU — Gemma-4-E4B GGUF Vulkan (`:13305`, recipe=llamacpp) | **$0** | ~200ms | Code, generation, vision |
+| CPU — Gemma-4-31B AVX-512 (`:13305`, llamacpp_backend=cpu) | **$0** | ~800ms | Reasoning, analysis |
 | Cloud Haiku 4.5 | $0.80/M | ~500ms | High quality |
 | Cloud Sonnet 4.6 | $3.00/M | ~800ms | Very high quality |
 

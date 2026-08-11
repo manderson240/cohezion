@@ -1,3 +1,9 @@
+---
+name: HARNESS_BENEFIT_ALIGNMENT_PRIME
+description: Comprehensive domain skill specification for Harness Benefit Alignment Prime.
+version: v1.0
+---
+
 # SKILL: HARNESS_BENEFIT_ALIGNMENT_PRIME
 
 ## DOMAIN EXPERTISE

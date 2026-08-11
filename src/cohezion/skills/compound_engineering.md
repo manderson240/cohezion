@@ -1,3 +1,9 @@
+---
+name: COMPOUND_ENGINEERING_PRIME
+description: Comprehensive domain skill specification for Compound Engineering.
+version: v1.0
+---
+
 # SKILL: COMPOUND_ENGINEERING_PRIME
 
 ## DOMAIN EXPERTISE

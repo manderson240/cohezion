@@ -147,3 +147,14 @@ This skill was extracted from filing 350+ items from Cohezion root (424 → 37 i
 ## Tags
 
 #maintenance #repository-health #onboarding #git #documentation #compound-engineering
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Root-Archaeology within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0

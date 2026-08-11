@@ -257,7 +257,16 @@ class _GaiaLLMClientShim:
             **self._extra_sampling,
         )
         # OpenAI-compatible shape; raise (don't silently return '') on an unexpected body
-        return resp["choices"][0]["message"].get("content", "") or ""
+        msg = resp["choices"][0]["message"]
+        # Defence in depth for defect 4dd925b0081f. reasoning_format="none" (set by
+        # build_gaia_llm_tier when _THINKING_MODEL_MARKERS matches) is the PREFERRED fix, but it
+        # depends on a substring list, so any thinking model whose id is not listed silently
+        # returns "" and every caller reads that as "no answer" — the adversarial gate reads it
+        # as fail-open APPROVE. Verified 2026-07-28: Bonsai-27B-gguf matches no marker and
+        # returned content=0 / reasoning_content=456, scoring 0/8 on a benchmark purely as a
+        # harness artifact. Falling back here makes the marker list an optimisation rather than
+        # a correctness dependency. Same pattern already used by gauntlet.py:201.
+        return (msg.get("content") or "").strip() or (msg.get("reasoning_content") or "")
 
 
 class _LocalRouterClient:

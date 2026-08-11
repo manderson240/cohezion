@@ -40,3 +40,14 @@ L-Symphony: Fuse TEK + Physics $\rightarrow$ a la-phase strategy.
 - **Symphony Efficiency**: Target $\ge 0.5$ Hz (End-to-End latency $\le 2$ seconds).
 - **Stability Convergence**: $\le 3$ iterations to reach equilibrium.
 - **Zero-OOM**: No la-phase crashes during UMA memory pressure.
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Symphony Orchestration Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
