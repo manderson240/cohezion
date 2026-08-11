@@ -113,7 +113,7 @@ For Cohezion's simplified VAE (operating directly on latent vectors, not text):
 class FlumeVAETrainer:
     def __init__(self, config):
         z_dim = config.z_dim  # 256
-        hidden = z_dim * 2    # 512
+        hidden = z_dim * 2  # 512
 
         # Encoder: z -> hidden -> (mu, log_var)
         self.encoder = nn.Sequential(
@@ -162,7 +162,7 @@ We trained FLUME on **11,000 thought vectors** extracted from Cohezion's compoun
 ```python
 def compute_loss(self, x, recon, mu, log_var):
     # 1. Reconstruction loss (MSE)
-    recon_loss = F.mse_loss(recon, x, reduction='mean')
+    recon_loss = F.mse_loss(recon, x, reduction="mean")
 
     # 2. KL divergence (regularization)
     # KL(q(z|x) || p(z)) where p(z) = N(0, I)
@@ -174,15 +174,13 @@ def compute_loss(self, x, recon, mu, log_var):
 
     # Combined loss
     total_loss = (
-        recon_loss +
-        self.config.kl_weight * kl_loss +
-        self.config.coherence_weight * coherence_loss
+        recon_loss + self.config.kl_weight * kl_loss + self.config.coherence_weight * coherence_loss
     )
 
     return total_loss, {
-        'recon': recon_loss.item(),
-        'kl': kl_loss.item(),
-        'coherence': coherence_loss.item(),
+        "recon": recon_loss.item(),
+        "kl": kl_loss.item(),
+        "coherence": coherence_loss.item(),
     }
 ```
 
@@ -299,9 +297,12 @@ z_after = encoder.encode(refined_skill_definition)
 projection = tsne.fit_transform([z_before, z_after])
 
 # Plot trajectory: before -> after
-plt.plot([projection[0,0], projection[1,0]],
-         [projection[0,1], projection[1,1]],
-         marker='o', label='Skill refinement')
+plt.plot(
+    [projection[0, 0], projection[1, 0]],
+    [projection[0, 1], projection[1, 1]],
+    marker="o",
+    label="Skill refinement",
+)
 ```
 
 **Use case**: Observable AI—show users how agent skills evolve over time.
@@ -314,16 +315,16 @@ plt.plot([projection[0,0], projection[1,0]],
 
 ```python
 checkpoint = {
-    'epoch': epoch,
-    'encoder_state': self.encoder.state_dict(),
-    'decoder_state': self.decoder.state_dict(),
-    'mu_head_state': self.mu_head.state_dict(),
-    'logvar_head_state': self.logvar_head.state_dict(),
-    'optimizer_state': optimizer.state_dict(),
-    'config': self.config,
-    'metrics': {'mse': mse, 'kl': kl, 'coherence': coherence},
+    "epoch": epoch,
+    "encoder_state": self.encoder.state_dict(),
+    "decoder_state": self.decoder.state_dict(),
+    "mu_head_state": self.mu_head.state_dict(),
+    "logvar_head_state": self.logvar_head.state_dict(),
+    "optimizer_state": optimizer.state_dict(),
+    "config": self.config,
+    "metrics": {"mse": mse, "kl": kl, "coherence": coherence},
 }
-torch.save(checkpoint, f'data/flume/checkpoints/flume_vae_ep{epoch}.pt')
+torch.save(checkpoint, f"data/flume/checkpoints/flume_vae_ep{epoch}.pt")
 ```
 
 **Checkpoint strategy**:
@@ -337,7 +338,7 @@ torch.save(checkpoint, f'data/flume/checkpoints/flume_vae_ep{epoch}.pt')
 from cohezion.flume.training import FlumeVAETrainer
 
 # Load trained model
-trainer = FlumeVAETrainer.from_checkpoint('data/flume/checkpoints/flume_vae_ep50.pt')
+trainer = FlumeVAETrainer.from_checkpoint("data/flume/checkpoints/flume_vae_ep50.pt")
 
 # Encode text to thought vector
 z = trainer.encode(latent_vector)

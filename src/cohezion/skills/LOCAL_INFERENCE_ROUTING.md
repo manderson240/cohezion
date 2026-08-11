@@ -53,11 +53,19 @@ Implementation: `cohezion.inference.fractal_metrics.feynman_path_weight(quality_
 | Classify/route | categorical | NPU | non-empty, no uncertainty marker | 200ms |
 | Yes/no, lookup | short_categorical | NPU | non-empty | 200ms |
 | Short factual | short_answer | NPU | ≥10 chars | 500ms |
-| Code generation | code | iGPU | parseable Python or code markers | 2000ms |
-| Text < 500 tokens | medium_generation | iGPU | ≥100 chars, no uncertainty opener | 3000ms |
+| Code generation | code | iGPU / TieredCascadeRouter | parseable Python or code markers | 2000ms |
+| Text < 500 tokens | medium_generation | iGPU / TieredCascadeRouter | ≥100 chars, no uncertainty opener | 3000ms |
 | Text ≥ 500 tokens | long_generation | CPU | ≥300 chars | 5000ms |
 | Deep synthesis | bbq_low_slow | CPU | ≥500 chars, ≥3 sentences | **∞** |
 | Expert domain | any | Cloud Sonnet | AUTODQA score > 0.5 | fallback |
+
+## 2-TIER CASCADE ROUTER PROTOCOL (`TieredCascadeRouter`)
+
+1. **Tier 1 Primary (Local Silicon)**: Route request to `http://localhost:13305` (`Qwen3-Coder-30B`, `Bonsai-27B`) when free RAM $\ge 20\text{GB}$.
+2. **Tier 2 Secondary (Ollama Cloud Peer Models)**: Fallback to `http://localhost:11434` (`kimi-k2.7-code:cloud`, `gpt-oss:120b-cloud`) when local RAM headroom is tight or local endpoints trip circuit breakers.
+3. **Safety Deferral (Agentic Kanban)**: Push task to SurrealDB (`:8001`) via `defer_to_kanban_on_memory_pressure()` if memory pressure is critical across both tiers.
+4. **EventBus Observability**: Broadcast `Event.agent_start`, `Event.llm_call`, `Event.llm_response`, and `Event.agent_complete` on `EventBus`.
+
 
 Implementation: `cohezion.inference.quality_eval.evaluate(output, output_type)`
 Classification: `cohezion.inference.task_classifier.classify(task)`
@@ -97,6 +105,7 @@ reviewers = [
 ```python
 from cohezion.inference.fractal_metrics import feynman_path_weight
 
+
 def select_tier(quality_score: float, cost_usd: float = 0.0) -> str:
     """Select optimal tier using Feynman path integral amplitude."""
     # Local silicon always wins — this just confirms Feynman math
@@ -111,6 +120,7 @@ Every compound loop output is evaluated by AUTODQA before acceptance:
 
 ```python
 from cohezion.compound.autodqa import AutoDQA
+
 dqa = AutoDQA(persist=True, notify_on_reject=True)
 result = dqa.evaluate(output, task_description)
 if not result.verdict.accept:

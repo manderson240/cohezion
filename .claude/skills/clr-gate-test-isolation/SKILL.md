@@ -33,7 +33,7 @@ Two concerns must stay separated:
 from unittest.mock import MagicMock, patch
 
 mock_gate = MagicMock()
-mock_gate.passes.return_value = True   # force pass for wiring tests
+mock_gate.passes.return_value = True  # force pass for wiring tests
 
 with patch("cohezion.compound.clr_quality_gate.CLRQualityGate", return_value=mock_gate):
     for i in range(10):

@@ -38,7 +38,11 @@ Provides persistent operation capabilities:
 
 ### Direct Component Usage
 ```python
-from cohezion.compound.tdd_adversarial import get_tdd_integration, get_adversarial_review_system, get_tdd_adversarial_coordinator
+from cohezion.compound.tdd_adversarial import (
+    get_tdd_integration,
+    get_adversarial_review_system,
+    get_tdd_adversarial_coordinator,
+)
 
 # Get TDD integration
 tdd = get_tdd_integration()

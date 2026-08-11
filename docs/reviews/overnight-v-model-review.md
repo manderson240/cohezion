@@ -88,7 +88,10 @@ alone (making `len(prompt_ids) > len(shared_prefix)`). A one-line check before t
 alignment:
 
 ```python
-assert tokenizer(prompt_text)["input_ids"] == tokenizer(prompt_text + completion)["input_ids"][:len(tokenizer(prompt_text)["input_ids"])]
+assert (
+    tokenizer(prompt_text)["input_ids"]
+    == tokenizer(prompt_text + completion)["input_ids"][: len(tokenizer(prompt_text)["input_ids"])]
+)
 ```
 
 The Nemotron tokenizer (Mistral-style) does not add trailing EOS on bare tokenize, so this is

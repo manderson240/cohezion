@@ -145,7 +145,7 @@ def _query_lemonade(prompt: str, timeout: float = 20.0) -> str | None:
             "temperature": 0.0,
         }
     ).encode()
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         _LEMONADE_URL,
         data=payload,
         headers={"Content-Type": "application/json"},

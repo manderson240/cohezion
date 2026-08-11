@@ -84,7 +84,7 @@ Components can also be used directly:
 from cohezion.compound.tdd_adversarial import (
     get_tdd_integration,
     get_adversarial_review_system,
-    get_tdd_adversarial_coordinator
+    get_tdd_adversarial_coordinator,
 )
 
 # Initialize systems

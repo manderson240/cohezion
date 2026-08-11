@@ -68,9 +68,7 @@ for config in configs:
 ```python
 # Generate 100 random initial latent vectors
 initial_vectors = local_inference.generate(
-    prompt="Generate diverse 256D latent vectors for EVO initialization",
-    n=100,
-    max_tokens=256
+    prompt="Generate diverse 256D latent vectors for EVO initialization", n=100, max_tokens=256
 )
 
 # Evolve each with HIHO dynamics
@@ -141,11 +139,11 @@ for coherence_target in [0.1, 0.3, 0.5, 0.7, 0.9]:
 ```python
 # Fix latent state, vary physical environment
 latent_state = fixed_latent()
-for environment in ['vacuum', 'gas_cloud', 'dense_cluster']:
+for environment in ["vacuum", "gas_cloud", "dense_cluster"]:
     physical = setup_environment(environment)
     # Observe latent drift under physical stress
     latent_evolution = simulate_stress_feedback(latent, physical)
-    
+
     # Local inference validates
     feedback_valid = local_inference.check(
         prompt=f"Does {environment} plausibly affect latent state?"
@@ -215,18 +213,18 @@ for step in range(100):
 # Create anti-parallel field configurations
 pair_counter = 0
 for i, agent_i in enumerate(agents):
-    for j, agent_j in enumerate(agents[i+1:], start=i+1):
+    for j, agent_j in enumerate(agents[i + 1 :], start=i + 1):
         if check_reconnection_trigger(agent_i, agent_j):
             # Local inference witnesses event
             reconnection_report = local_inference.describe(
                 prompt=f"Describe magnetic reconnection between {agent_i.id} and {agent_j.id}"
             )
-            
+
             # Measure energy release
             energy_before = compute_total_energy([agent_i, agent_j])
             agent_i.magnetic_reconnection(agent_j)
             energy_after = compute_total_energy([agent_i, agent_j])
-            
+
             log_reconnection_event(reconnection_report, energy_before - energy_after)
             pair_counter += 1
 ```
@@ -258,9 +256,7 @@ evos = generate_evo_population(n=1000)
 
 # Local inference curates population
 selected_evos = local_inference.select(
-    prompt="Select most interesting EVOs for cosmological simulation",
-    candidates=evos,
-    n=100
+    prompt="Select most interesting EVOs for cosmological simulation", candidates=evos, n=100
 )
 
 # Export to SWIFT ICs
@@ -268,24 +264,28 @@ system = AgenticMHDSystem(evos=selected_evos)
 system.generate_swift_ics("/tmp/evos_cosmology.hdf5")
 
 # Validate with local inference
-validation = local_inference.check(
-    prompt="Validate HDF5 ICs for SWIFT compatibility"
-)
+validation = local_inference.check(prompt="Validate HDF5 ICs for SWIFT compatibility")
 ```
 
 ### Exp 4.2: Small-Scale SWIFT Test
 ```python
 # Run SWIFT on small subset
-result = subprocess.run([
-    "mpirun", "-np", "4", "./swift",
-    "--self-gravity", "--hydro", "--mhd",
-    "/tmp/evos_cosmology.hdf5"
-], capture_output=True)
+result = subprocess.run(
+    [
+        "mpirun",
+        "-np",
+        "4",
+        "./swift",
+        "--self-gravity",
+        "--hydro",
+        "--mhd",
+        "/tmp/evos_cosmology.hdf5",
+    ],
+    capture_output=True,
+)
 
 # Local inference analyzes
-swift_output = local_inference.analyze(
-    prompt=f"Analyze SWIFT output: {result.stdout}"
-)
+swift_output = local_inference.analyze(prompt=f"Analyze SWIFT output: {result.stdout}")
 
 # Compare EVO-predicted vs SWIFT-computed
 divergence = compare_trajectories(evo_journeys, swift_particle_data)
@@ -296,16 +296,15 @@ divergence = compare_trajectories(evo_journeys, swift_particle_data)
 # Use local inference to suggest parameters
 for run in range(10):
     params = local_inference.suggest(
-        prompt="Suggest cosmological parameters for next SWIFT run",
-        history=previous_results
+        prompt="Suggest cosmological parameters for next SWIFT run", history=previous_results
     )
-    
+
     # Configure SWIFT
     configure_swift(params)
-    
+
     # Execute
     run_swift()
-    
+
     # Evaluate
     result = evaluate_cosmology()
     local_inference.record(params, result)
@@ -360,8 +359,7 @@ unified_theory = local_inference.synthesize(
 # Train predictive model using local inference as oracle
 train_data = collect_all_phases()
 model = local_inference.train_predictor(
-    prompt="Train model to predict phase N+1 from phase N",
-    data=train_data
+    prompt="Train model to predict phase N+1 from phase N", data=train_data
 )
 
 # Test extrapolation
@@ -375,9 +373,7 @@ for phase_sequence in test_sequences:
 ```python
 # Use local inference to identify anomalies across phases
 for sample in all_phase_data:
-    anomaly_score = local_inference.score_anomaly(
-        prompt=f"Is this sample anomalous? {sample}"
-    )
+    anomaly_score = local_inference.score_anomaly(prompt=f"Is this sample anomalous? {sample}")
     if anomaly_score > threshold:
         flag_for_investigation(sample)
 ```
@@ -404,18 +400,16 @@ for sample in all_phase_data:
 class PhaseConnectionOrchestrator:
     def __init__(self):
         self.inference = LocalInferenceEngine(
-            model="DeepSeek-R1-0528-Qwen3-8B-Q4_1",
-            concurrency=4,
-            optimized=True
+            model="DeepSeek-R1-0528-Qwen3-8B-Q4_1", concurrency=4, optimized=True
         )
         self.results = {}
-    
+
     def run_experiment(self, phase: int, exp_id: str):
         config = load_config(phase, exp_id)
-        
+
         # Local inference generates parameters
         params = self.inference.generate_params(config)
-        
+
         # Execute experiment
         if phase == 0:
             result = self.run_baseline(params)
@@ -429,18 +423,18 @@ class PhaseConnectionOrchestrator:
             result = self.run_swift_experiment(params)
         elif phase == 5:
             result = self.run_unified_analysis(params)
-        
+
         # Local inference validates
         validation = self.inference.validate(result, config)
-        
+
         self.results[f"P{phase}_{exp_id}"] = {
             "params": params,
             "result": result,
-            "validation": validation
+            "validation": validation,
         }
-        
+
         return result
-    
+
     def run_full_suite(self):
         for phase in range(6):
             for exp in self.get_experiments_for_phase(phase):

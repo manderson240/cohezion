@@ -45,9 +45,10 @@ _SYSTEM_PREFIXES = (
     "this session is being continued",
     "summary:",
     "---",
-    "# ",        # markdown heading at line start
+    "# ",  # markdown heading at line start
 )
 _MAX_NEWLINES_FOR_USER_PROMPT = 3
+
 
 def _is_real_user_prompt(text: str) -> bool:
     """Return True if text looks like a real user message (not a hook/system message)."""
@@ -72,6 +73,7 @@ def _is_real_user_prompt(text: str) -> bool:
 ```python
 import json
 from pathlib import Path
+
 
 def _extract_real_prompts(transcript_paths: list[Path]) -> list[str]:
     """Extract real user prompts from JSONL transcripts."""

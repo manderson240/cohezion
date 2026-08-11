@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "daemon_exp_1785377883",
+    "universe_id": "universe-flume-247",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-29T22:18:36"
+  },
+  "nodes": [
+    {
+      "id": "evo_daemon_exp_1785377883_step_1",
+      "label": "EVO Step 1: Preflight safety check passed ",
+      "agent_id": "daemon_exp_1785377883",
+      "topology": "trivial",
+      "confidence": 0.28477193669776213,
+      "coherence": 0.95,
+      "state_12d": [
+        0.9606,
+        -0.0484,
+        1.0738,
+        -0.5072,
+        1.9787,
+        2.497,
+        -1.0466,
+        -2.4387,
+        1.6435,
+        0.1341,
+        -0.3242,
+        0.8092
+      ],
+      "color": "#78909c",
+      "size": 7.1390877467910485
+    },
+    {
+      "id": "evo_daemon_exp_1785377883_step_2",
+      "label": "EVO Step 2: NPU sensing complete ()",
+      "agent_id": "daemon_exp_1785377883",
+      "topology": "soliton",
+      "confidence": 0.43929659920919306,
+      "coherence": 0.85,
+      "state_12d": [
+        1.3273,
+        0.7669,
+        0.1108,
+        0.1086,
+        0.1932,
+        -0.5921,
+        -0.2361,
+        -0.7801,
+        -0.3846,
+        -0.3201,
+        -0.1209,
+        1.801
+      ],
+      "color": "#00e5ff",
+      "size": 7.757186396836772
+    },
+    {
+      "id": "evo_daemon_exp_1785377883_step_3",
+      "label": "EVO Step 3: iGPU code generation complete ",
+      "agent_id": "daemon_exp_1785377883",
+      "topology": "trivial",
+      "confidence": 0.20306566705186233,
+      "coherence": 0.95,
+      "state_12d": [
+        3.2698,
+        -0.2907,
+        -0.395,
+        -0.9384,
+        0.3329,
+        -0.1567,
+        -0.2392,
+        -1.7509,
+        -0.3043,
+        2.4317,
+        0.2287,
+        1.1442
+      ],
+      "color": "#78909c",
+      "size": 6.812262668207449
+    },
+    {
+      "id": "evo_daemon_exp_1785377883_step_4",
+      "label": "EVO Step 4: CPU architecture evaluation co",
+      "agent_id": "daemon_exp_1785377883",
+      "topology": "trivial",
+      "confidence": 0.1937586127340754,
+      "coherence": 0.85,
+      "state_12d": [
+        -1.9148,
+        1.0634,
+        1.6607,
+        0.7636,
+        0.607,
+        1.8045,
+        -1.4761,
+        0.3827,
+        -0.6839,
+        -1.0544,
+        2.2138,
+        -0.3152
+      ],
+      "color": "#78909c",
+      "size": 6.775034450936301
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_daemon_exp_1785377883_step_1",
+      "target": "evo_daemon_exp_1785377883_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_daemon_exp_1785377883_step_2",
+      "target": "evo_daemon_exp_1785377883_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_daemon_exp_1785377883_step_3",
+      "target": "evo_daemon_exp_1785377883_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

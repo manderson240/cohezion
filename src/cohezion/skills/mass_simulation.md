@@ -43,9 +43,11 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 from pathlib import Path
 
+
 @dataclass
 class SimulationConfig:
     """Configuration for mass simulation run."""
+
     num_simulations: int = 1000
     batch_size: int = 50
     max_steps: int = 100
@@ -53,9 +55,11 @@ class SimulationConfig:
     output_path: Path = Path("simulations.jsonl")
     checkpoint_interval: int = 100
 
+
 @dataclass
 class SimulationState:
     """State of a single simulation."""
+
     id: str
     step: int = 0
     coherence: float = 1.0
@@ -72,6 +76,7 @@ import logging
 from concurrent.futures import ProcessPoolExecutor
 
 logger = logging.getLogger(__name__)
+
 
 class MassSimulator:
     """Orchestrate large-scale parallel simulations."""
@@ -161,29 +166,36 @@ def aggregate_results(self) -> dict:
 ```python
 def _save_checkpoint(self):
     """Save intermediate results for recovery."""
-    checkpoint_path = self.config.output_path.with_suffix('.checkpoint.jsonl')
-    with open(checkpoint_path, 'w') as f:
+    checkpoint_path = self.config.output_path.with_suffix(".checkpoint.jsonl")
+    with open(checkpoint_path, "w") as f:
         for state in self.results:
-            f.write(json.dumps(state.__dict__) + '\n')
+            f.write(json.dumps(state.__dict__) + "\n")
     logger.info(f"Checkpoint saved: {len(self.results)} simulations")
+
 
 def _save_results(self):
     """Save final results."""
-    with open(self.config.output_path, 'w') as f:
+    with open(self.config.output_path, "w") as f:
         for state in self.results:
-            f.write(json.dumps({
-                "id": state.id,
-                "status": state.status,
-                "coherence": state.coherence,
-                "steps": state.step,
-            }) + '\n')
+            f.write(
+                json.dumps(
+                    {
+                        "id": state.id,
+                        "status": state.status,
+                        "coherence": state.coherence,
+                        "steps": state.step,
+                    }
+                )
+                + "\n"
+            )
     logger.info(f"Results saved to {self.config.output_path}")
 
+
 @classmethod
-def resume_from_checkpoint(cls, checkpoint_path: Path, config: SimulationConfig) -> 'MassSimulator':
+def resume_from_checkpoint(cls, checkpoint_path: Path, config: SimulationConfig) -> "MassSimulator":
     """Resume simulation from checkpoint."""
     simulator = cls(config)
-    with open(checkpoint_path, 'r') as f:
+    with open(checkpoint_path, "r") as f:
         for line in f:
             data = json.loads(line)
             state = SimulationState(**data)
@@ -203,19 +215,20 @@ async def run_universe_simulations():
         batch_size=50,
         max_steps=200,
         coherence_threshold=0.7,
-        output_path=Path("flume_trajectories.jsonl")
+        output_path=Path("flume_trajectories.jsonl"),
     )
 
     async def simulate_universe(state: SimulationState) -> dict:
         """Single universe step simulation."""
         import random
+
         # Simulate coherence decay with random perturbations
         decay = 0.01 + random.gauss(0, 0.02)
         new_coherence = max(0, state.coherence - decay)
         return {
             "step": state.step,
             "coherence": new_coherence,
-            "content": f"Universe {state.id} at step {state.step}"
+            "content": f"Universe {state.id} at step {state.step}",
         }
 
     simulator = MassSimulator(config)

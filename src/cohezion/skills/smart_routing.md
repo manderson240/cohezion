@@ -48,6 +48,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
 
+
 class Capability(Enum):
     REASONING = "reasoning"
     CREATIVITY = "creativity"
@@ -56,9 +57,11 @@ class Capability(Enum):
     VISION = "vision"
     LONG_CONTEXT = "long_context"
 
+
 @dataclass
 class ModelProfile:
     """Profile of an available model."""
+
     name: str
     provider: str
     capabilities: dict[Capability, float]  # 0.0 to 1.0
@@ -73,6 +76,7 @@ class ModelProfile:
         scores = [self.capabilities.get(cap, 0) for cap in required]
         return sum(scores) / len(scores)
 
+
 # Example registry
 MODEL_REGISTRY = [
     ModelProfile(
@@ -80,21 +84,21 @@ MODEL_REGISTRY = [
         provider="google",
         capabilities={Capability.SPEED: 0.95, Capability.REASONING: 0.7},
         avg_latency_ms=200,
-        cost_per_1k_tokens=0.0001
+        cost_per_1k_tokens=0.0001,
     ),
     ModelProfile(
         name="gpt-4o",
         provider="openai",
         capabilities={Capability.REASONING: 0.9, Capability.VISION: 0.95},
         avg_latency_ms=500,
-        cost_per_1k_tokens=0.005
+        cost_per_1k_tokens=0.005,
     ),
     ModelProfile(
         name="claude-3.5-sonnet",
         provider="anthropic",
         capabilities={Capability.REASONING: 0.95, Capability.CODING: 0.9},
         avg_latency_ms=400,
-        cost_per_1k_tokens=0.003
+        cost_per_1k_tokens=0.003,
     ),
 ]
 ```
@@ -130,16 +134,17 @@ class TaskClassifier:
 
 ```python
 class RoutingStrategy(Enum):
-    QUALITY = "quality"       # Best capability match
-    SPEED = "speed"           # Fastest response
-    EFFICIENCY = "efficiency" # Best cost/performance ratio
+    QUALITY = "quality"  # Best capability match
+    SPEED = "speed"  # Fastest response
+    EFFICIENCY = "efficiency"  # Best cost/performance ratio
+
 
 class SmartRouter:
     """Route tasks to optimal model based on strategy."""
 
-    def __init__(self,
-                 models: list[ModelProfile],
-                 strategy: RoutingStrategy = RoutingStrategy.QUALITY):
+    def __init__(
+        self, models: list[ModelProfile], strategy: RoutingStrategy = RoutingStrategy.QUALITY
+    ):
         self.models = models
         self.strategy = strategy
         self.classifier = TaskClassifier()
@@ -168,6 +173,7 @@ class SmartRouter:
 
     def _route_by_efficiency(self, required: list[Capability]) -> ModelProfile:
         """Balance cost against capability."""
+
         def efficiency_score(m: ModelProfile) -> float:
             cap = m.capability_score(required)
             cost = m.cost_per_1k_tokens

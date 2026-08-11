@@ -79,7 +79,7 @@ result = await executor.execute_task_efficient(
     task_description="Refine this module",
     skill_name="refiner",
     operation_type="transform",
-    execute_fn=my_async_llm_call  # Receives (prefix, suffix)
+    execute_fn=my_async_llm_call,  # Receives (prefix, suffix)
 )
 ```
 

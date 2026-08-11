@@ -112,19 +112,16 @@ elif pressure > 0.65:
 async def persist_journey_point(self, point: JourneyPoint):
     # Local cache for speed
     await self._local_cache.store(point)
-    
+
     # Async vault write for durability
     asyncio.create_task(
         self._mcp_client.vault_write(
-            f"journeys/{point.agent_id}/{point.timestamp}.json",
-            point.to_json()
+            f"journeys/{point.agent_id}/{point.timestamp}.json", point.to_json()
         )
     )
-    
+
     # SurrealDB for querying
-    asyncio.create_task(
-        self._surreal_client.store_node(point.to_universe_node())
-    )
+    asyncio.create_task(self._surreal_client.store_node(point.to_universe_node()))
 ```
 
 ---
@@ -136,7 +133,7 @@ async def persist_journey_point(self, point: JourneyPoint):
 **Current Code:**
 ```python
 # model_fallback_strategy.py
-failure_threshold=3  # Fixed threshold for all models
+failure_threshold = 3  # Fixed threshold for all models
 ```
 
 **Attack Vector:**
@@ -160,7 +157,7 @@ CIRCUIT_CONFIG = {
         "failure_threshold": 3,
         "memory_sensitive": False,
         "latency_threshold_ms": 15000,
-    }
+    },
 }
 ```
 
@@ -237,11 +234,10 @@ async def checkpoint_journey(self):
         "step_count": len(self.points),
         "timestamp": time.time(),
     }
-    
+
     # Write to vault for durability
     await self._mcp.vault_write(
-        f"checkpoints/{self.agent_id}/{self.journey_id}.json",
-        json.dumps(checkpoint)
+        f"checkpoints/{self.agent_id}/{self.journey_id}.json", json.dumps(checkpoint)
     )
 ```
 
@@ -335,11 +331,12 @@ hot_models: list[str] = [
 class AdaptivePreloader:
     def __init__(self):
         self.usage_patterns: dict[str, list[datetime]] = {}
-    
+
     def should_preload(self, model: str) -> bool:
         # Only preload if used in last hour
-        recent_uses = [t for t in self.usage_patterns.get(model, [])
-                      if (datetime.now() - t).hours < 1]
+        recent_uses = [
+            t for t in self.usage_patterns.get(model, []) if (datetime.now() - t).hours < 1
+        ]
         return len(recent_uses) > 3  # Used 3+ times in last hour
 ```
 

@@ -219,8 +219,12 @@ PUBLIC_DIR = PROJECT_ROOT / "src" / "web" / "anima_dashboard" / "public"
 def generate_favicons() -> None:
     """Resize logo to standard favicon sizes and generate ICO."""
     img = Image.open(LOGO_SRC)
-    sizes = {"favicon-16x16.png": 16, "favicon-32x32.png": 32,
-             "android-chrome-192x192.png": 192, "android-chrome-512x512.png": 512}
+    sizes = {
+        "favicon-16x16.png": 16,
+        "favicon-32x32.png": 32,
+        "android-chrome-192x192.png": 192,
+        "android-chrome-512x512.png": 512,
+    }
     for name, size in sizes.items():
         resized = img.resize((size, size), Image.Resampling.LANCZOS)
         resized.save(PUBLIC_DIR / name)
@@ -228,8 +232,11 @@ def generate_favicons() -> None:
 
     # ICO with multiple sizes
     ico_img = img.resize((256, 256), Image.Resampling.LANCZOS)
-    ico_img.save(PUBLIC_DIR / "cohezion-favicon.ico", format="ICO",
-                 sizes=[(16, 16), (32, 32), (48, 48), (256, 256)])
+    ico_img.save(
+        PUBLIC_DIR / "cohezion-favicon.ico",
+        format="ICO",
+        sizes=[(16, 16), (32, 32), (48, 48), (256, 256)],
+    )
     logger.info("Generated cohezion-favicon.ico")
 
 
@@ -312,6 +319,7 @@ from cohezion.api.services.universe import (
 @pytest.fixture
 def client() -> TestClient:
     from fastapi import FastAPI
+
     app = FastAPI()
     app.include_router(universe_router, prefix="/api/universe")
     return TestClient(app)
@@ -566,6 +574,7 @@ from fastapi.testclient import TestClient
 def client() -> TestClient:
     from fastapi import FastAPI
     from cohezion.api.services.anima import anima_router
+
     app = FastAPI()
     app.include_router(anima_router, prefix="/api/anima")
     return TestClient(app)
@@ -708,6 +717,7 @@ from fastapi.testclient import TestClient
 def client() -> TestClient:
     from fastapi import FastAPI
     from cohezion.api.services.architecture import architecture_router
+
     app = FastAPI()
     app.include_router(architecture_router, prefix="/api/architecture")
     return TestClient(app)
@@ -779,6 +789,7 @@ from cohezion.api.services.universe import universe_router
 @pytest.fixture
 def client() -> TestClient:
     from fastapi import FastAPI
+
     app = FastAPI()
     app.include_router(universe_router, prefix="/api/universe")
     return TestClient(app)

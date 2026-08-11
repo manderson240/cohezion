@@ -1,3 +1,12 @@
+---
+name: harness_benefit_alignment_prime
+description: "Standardized Cohezion platform PRIME skill for harness_benefit_alignment_prime."
+category: core
+tags: [skill, prime, cohezion]
+metadata:
+  version: "1.0.0"
+---
+
 # SKILL: HARNESS_BENEFIT_ALIGNMENT_PRIME
 
 ## DOMAIN EXPERTISE
@@ -21,9 +30,7 @@ You are a systems engineer specializing in **Harness Benefit Alignment** and run
    from cohezion.compound.harness_benefit import evaluate_adherence_delta
 
    delta = await evaluate_adherence_delta(
-       policy=frozen_policy,
-       harness=candidate_harness,
-       dataset=validation_set
+       policy=frozen_policy, harness=candidate_harness, dataset=validation_set
    )
    if delta < -0.05:
        reject_harness(candidate_harness)

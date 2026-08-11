@@ -70,6 +70,7 @@ step_advisory "ruff lint check" uv run ruff check src/ tests/
 # Step 3: Ruff debt ratchet (gating)
 step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
 
+
 # Step 4: Unit tests (gating)
 step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings
 
@@ -122,14 +123,14 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 # latter is what broke cohezion-resource-guard and is invisible to a naive path check.
 # Report-mode-first (mirrors 6b): the 5 known-broken units are pre-existing. Drop --report to
 # enforce once they are wired or retired, so the class cannot silently return.
-step "systemd unit audit" uv run python scripts/ci/systemd_unit_audit.py --report
+# Step 6d/e: Referential integrity
+if [ -f scripts/ci/systemd_unit_audit.py ]; then
+  step "systemd unit audit" uv run python scripts/ci/systemd_unit_audit.py
+fi
 
-# Step 6e: Referential integrity — graph cardinality. Are DECLARED relation tables populated?
-# Same instrument class as 6d (existence + cardinality over declarations), different referent type.
-# 8 of 9 declared relation tables are empty and `journey_knowledge` — the bridge between 278,741
-# execution rows and 1,146 knowledge docs — holds 0 rows; nothing in ~30 existing gates could
-# notice. Report-only until the tables are populated or the declarations retired.
-step "graph cardinality" uv run python scripts/ci/graph_cardinality_audit.py
+if [ -f scripts/ci/graph_cardinality_audit.py ]; then
+  step "graph cardinality" uv run python scripts/ci/graph_cardinality_audit.py
+fi
 
 # Step 7: Conventional commit / version governance
 step "version governance" uv run python scripts/ci/version_governance.py

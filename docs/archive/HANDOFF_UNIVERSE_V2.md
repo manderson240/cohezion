@@ -32,23 +32,17 @@ Delivered a **transformative platform upgrade** that enables:
 ```python
 # Start a journey through the manifold
 journey = await engine.start_journey(
-    agent_name="NexusResearchAgent",
-    intent="Analyze quantum computing papers"
+    agent_name="NexusResearchAgent", intent="Analyze quantum computing papers"
 )
 
 # Evolve through trajectory
 point = await engine.evolve_trajectory(
-    journey=journey,
-    action="searched_arxiv",
-    result="found 42 papers",
-    phi_score=0.85
+    journey=journey, action="searched_arxiv", result="found 42 papers", phi_score=0.85
 )
 
 # Precipitate reality
 await engine.precipitate_reality(
-    journey=journey,
-    outputs={"report": report, "code": analysis_code},
-    phi_score=0.85
+    journey=journey, outputs={"report": report, "code": analysis_code}, phi_score=0.85
 )
 ```
 
@@ -88,8 +82,8 @@ await engine.precipitate_reality(
 rewards = RewardSystem()
 retro_xp = rewards.calculate_retroactive_xp(
     agent_id="NexusResearchAgent",
-    git_history=[...],      # Parse from git log
-    journey_history=[...]   # From SurrealDB
+    git_history=[...],  # Parse from git log
+    journey_history=[...],  # From SurrealDB
 )
 ```
 

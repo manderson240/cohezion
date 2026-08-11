@@ -55,7 +55,9 @@ The committed files may need their FLUME additions restored:
 When restoring `pipeline.py`, use correct EVO interface:
 ```python
 # CORRECT:
-evo.update_physics(coherence=0.8, step=steps, doer_state=state, thinker_state=None, knower_state=None)
+evo.update_physics(
+    coherence=0.8, step=steps, doer_state=state, thinker_state=None, knower_state=None
+)
 float(evo.coherence_amplitude)
 evo.to_exotic_vacuum_biography()
 
@@ -141,7 +143,9 @@ Expected when rebuilt: 87 passed
 When restoring `pipeline.py`, use correct EVO interface:
 ```python
 # CORRECT:
-evo.update_physics(coherence=0.8, step=steps, doer_state=state, thinker_state=None, knower_state=None)
+evo.update_physics(
+    coherence=0.8, step=steps, doer_state=state, thinker_state=None, knower_state=None
+)
 float(evo.coherence_amplitude)
 evo.to_exotic_vacuum_biography()
 

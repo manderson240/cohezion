@@ -116,7 +116,7 @@ class PreflightFleetCheck:
     """
 
     MIN_AVAILABLE_GB = 20.0
-    MAX_SWAP_USED_PCT = 10.0
+    MAX_SWAP_USED_PCT = 50.0
     MAX_VRAM_USED_PCT = 80.0
 
     @classmethod

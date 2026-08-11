@@ -166,20 +166,21 @@ Periodic Health Check
 ```python
 # src/cohezion/integrations/wiki_mirix_bridge.py
 
+
 class WikiMirixBridge:
     """Connect Karpathy LLM-Wiki to MIRIX memory agents."""
-    
+
     async def sync_wiki_to_mirix(self, wiki_path: Path):
         """
         Sync wiki entities to MIRIX memory types:
-        
+
         Mapping:
         - /wiki/entities/person/*.md → Core Memory (human profile)
         - /wiki/sources/*.md → Episodic Memory (reading events)
         - /wiki/concepts/*.md → Semantic Memory (concept graph)
         - /wiki/synthesis/*.md → Knowledge Vault (compiled knowledge)
         """
-        
+
     async def query_cross_system(self, query: str) -> dict:
         """
         Query both wiki and MIRIX for comprehensive results.
@@ -229,17 +230,18 @@ DEFINE INDEX wiki_search ON wiki_page COLUMNS title, content SEARCH ANALYZER sim
 ```python
 # src/cohezion/integrations/obsidian_wiki.py
 
+
 class ObsidianWiki:
     """Obsidian vault as Karpathy LLM-Wiki frontend."""
-    
+
     VAULT_PATH = Path("/home/mike-anderson/vaults/cohezion-wiki")
-    
+
     # Karpathy structure
     RAW_DIR = VAULT_PATH / "raw"
     WIKI_DIR = VAULT_PATH / "wiki"
     INDEX_FILE = VAULT_PATH / "index.md"
     LOG_FILE = VAULT_PATH / "log.md"
-    
+
     async def ingest_source(self, source_path: Path, source_type: str):
         """
         Ingest a new source into the wiki:
@@ -249,7 +251,7 @@ class ObsidianWiki:
         4. Update index.md
         5. Append to log.md
         """
-        
+
     async def query_wiki(self, query: str) -> str:
         """
         Query using Karpathy's progressive disclosure:
@@ -300,20 +302,21 @@ cohezion-wiki/                          # Obsidian vault root
 # src/cohezion/mcp/wiki_mcp.py
 """MCP server implementing Karpathy LLM-Wiki operations."""
 
+
 class WikiMCP:
     """
     Three core operations: ingest, query, lint
     """
-    
+
     async def wiki_ingest(
         self,
-        source: str,           # URL, file path, or text
-        source_type: str,       # article, book, paper, etc.
-        auto_extract: bool = True
+        source: str,  # URL, file path, or text
+        source_type: str,  # article, book, paper, etc.
+        auto_extract: bool = True,
     ) -> dict:
         """
         Ingest a source into the wiki.
-        
+
         Returns:
             {
                 "raw_path": "/raw/articles/...",
@@ -322,28 +325,28 @@ class WikiMCP:
                 "linked_to": ["wiki/concepts/existing"]
             }
         """
-    
+
     async def wiki_query(
         self,
         query: str,
         depth: str = "standard",  # quick, standard, deep
-        file_back: bool = False   # Save answer to wiki/synthesis/
+        file_back: bool = False,  # Save answer to wiki/synthesis/
     ) -> dict:
         """
         Query the wiki with progressive disclosure.
-        
+
         Args:
             depth: quick (index only), standard (index+pages), deep (+related)
             file_back: If True, save synthesis to wiki/synthesis/
         """
-    
+
     async def wiki_lint(
         self,
-        fix: bool = False        # Auto-fix if True
+        fix: bool = False,  # Auto-fix if True
     ) -> dict:
         """
         Health check the wiki.
-        
+
         Returns:
             {
                 "orphans": [...],           # Pages with no inbound links
@@ -387,22 +390,23 @@ Suggestion: Search for "transformer alternatives" (gap in knowledge)
 # Agent uses wiki as persistent memory
 from cohezion.integrations import WikiMirixBridge
 
+
 async def research_topic(topic: str):
     wiki = WikiMirixBridge()
-    
+
     # Query existing knowledge
     existing = await wiki.query_wiki(topic)
-    
+
     # Identify gaps
     gaps = await wiki.identify_gaps(topic)
-    
+
     # Search for new sources
     new_sources = await web_search(gaps)
-    
+
     # Ingest and compound
     for source in new_sources:
         await wiki.ingest(source)
-    
+
     return await wiki.query(topic)  # Now enriched
 ```
 

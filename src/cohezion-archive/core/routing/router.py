@@ -13,7 +13,7 @@ try:
     ADAPTIVE_OPTIMIZER_AVAILABLE = True
 except ImportError:
     ADAPTIVE_OPTIMIZER_AVAILABLE = False
-    logger.warning("Adaptive framework optimizer not available")
+    logger.debug("Adaptive framework optimizer not available")
 
 
 class LocalExpertRouter:

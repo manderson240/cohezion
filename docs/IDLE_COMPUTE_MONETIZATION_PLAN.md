@@ -88,6 +88,7 @@ from cohezion.swarm import SmartRouter
 app = FastAPI()
 router = SmartRouter()
 
+
 @app.post("/v1/inference")
 async def inference(query: str, model: str = "auto"):
     # Route to cheapest available SLM

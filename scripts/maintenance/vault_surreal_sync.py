@@ -89,7 +89,7 @@ def main() -> int:
         print(f"vault_surreal_sync: would upsert {n} research_finding records (dry-run)")
         return 0
 
-    req = urllib.request.Request(  # noqa: S310 (localhost, trusted)
+    req = urllib.request.Request(
         SURREAL_URL,
         data=query.encode(),
         headers={

@@ -65,7 +65,7 @@ from cohezion.inference.turboquant_reference import TurboQuantReference
 from cohezion.core.symmetry_hardware_bridge import get_symmetry_bridge
 from cohezion.inference.registry import KVQuant
 
-assert hasattr(TurboQuantReference, 'compress')
+assert hasattr(TurboQuantReference, "compress")
 assert callable(get_symmetry_bridge)
 assert KVQuant.scheme == "turboquant"  # Default test
 ```
@@ -130,8 +130,18 @@ See `learnings/2026-04-21-turboquant-phase0-and-crash-loop-triage.md` for the se
 Add a test that asserts every `kv_quant.runtime_flag["llama.cpp"]` value on every model is in llama-server's whitelist:
 
 ```python
-LLAMACPP_CACHE_TYPE_WHITELIST = {"f32", "f16", "bf16", "q8_0", "q4_0",
-                                  "q4_1", "q5_0", "q5_1", "iq4_nl"}
+LLAMACPP_CACHE_TYPE_WHITELIST = {
+    "f32",
+    "f16",
+    "bf16",
+    "q8_0",
+    "q4_0",
+    "q4_1",
+    "q5_0",
+    "q5_1",
+    "iq4_nl",
+}
+
 
 def test_kv_quant_llamacpp_runtime_flags_are_in_whitelist() -> None:
     registry = FleetRegistry()

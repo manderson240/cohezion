@@ -138,11 +138,12 @@ Pattern 1:
 @reactive_on(SystemEvent.CIRCUIT_OPENED)
 async def handle_failure(event, data):
     await alert_admin(f"Backend {data['backend']} failed!")
-    await activate_fallback(data['backend'])
+    await activate_fallback(data["backend"])
+
 
 @reactive_on(SystemEvent.AGENT_DEGRADED)
 async def handle_degradation(event, data):
-    await skill_refiner.analyze_agent(data['agent'])
+    await skill_refiner.analyze_agent(data["agent"])
 ```
 
 ---
@@ -207,12 +208,12 @@ status = system.get_system_status()
 
 {
     "executions": 150,
-    "proactive_hits": 127,      # 85% hit rate!
+    "proactive_hits": 127,  # 85% hit rate!
     "patterns": 5,
     "circuit_states": {
         "NPU": "closed",
         "GPU_VULKAN": "closed",
-        "GPU_ROCM": "open",     # Known issue
+        "GPU_ROCM": "open",  # Known issue
     },
 }
 ```

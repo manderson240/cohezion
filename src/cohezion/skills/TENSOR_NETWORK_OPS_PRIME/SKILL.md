@@ -28,7 +28,7 @@ For circuits > 30 qubits:
 1. **Contraction Path**: Use `cotengra` with `kahypar` partitioning to find the optimal elimination order.
 2. **Slicing**: Trade time for space by slicing high-degree indices.
    ```python
-   opt = ctg.ReusableHyperOptimizer(slicing_opts={'target_size': 2**28})
+   opt = ctg.ReusableHyperOptimizer(slicing_opts={"target_size": 2**28})
    ```
 3. **Verification**: Use the Pauli-Path Simulator as a 'Zero-Cost Verifier' to confirm peaks in QPU candidates.
 

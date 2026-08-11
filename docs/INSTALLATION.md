@@ -335,6 +335,7 @@ gpu:
 Load configuration:
 ```python
 from kyutai_mcp import MCPServer
+
 server = MCPServer(config_file="config.yaml")
 ```
 
@@ -368,10 +369,7 @@ Create voice profiles for consistent TTS:
 
 **Via MCP API:**
 ```python
-mcp.create_voice_profile(
-    name="my_voice",
-    audio_path="/path/to/reference.wav"
-)
+mcp.create_voice_profile(name="my_voice", audio_path="/path/to/reference.wav")
 ```
 
 ---

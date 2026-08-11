@@ -141,8 +141,6 @@ class DataMeshEventBridge:
             # _queue.join() under DB contention (2026-07-10: the reason no event
             # ever persisted — the write itself is correct, verified 0->1). Offload
             # the blocking POST to a thread so the loop keeps draining.
-            import asyncio
-
             await asyncio.to_thread(
                 self._http.post,
                 self._surreal_url,

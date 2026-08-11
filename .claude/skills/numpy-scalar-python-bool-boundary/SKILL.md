@@ -68,8 +68,8 @@ def check_threshold(self) -> dict[str, float | bool | str]:
     precipitate = bool(coherence > 0.5)
 
     return {
-        "precipitate": precipitate,       # now a real Python bool
-        "coherence": coherence,           # now a real Python float
+        "precipitate": precipitate,  # now a real Python bool
+        "coherence": coherence,  # now a real Python float
         "shannon_entropy_bits": float(shannon_h),
         "free_energy": float(free_energy),
         "spontaneous": spontaneous,
@@ -109,8 +109,8 @@ Use `.item()` when you know the variable is always a numpy scalar; use
 
 ```python
 result = thing.check_threshold()
-assert result["flag"] is True            # identity, not equality
-assert isinstance(result["value"], bool) # strict type check
+assert result["flag"] is True  # identity, not equality
+assert isinstance(result["value"], bool)  # strict type check
 assert isinstance(result["score"], float)
 ```
 

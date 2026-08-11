@@ -56,15 +56,15 @@ shows ≥5 resolved observations at >55% hit rate per thesis tag.
 # Position dataclass — NOT shares/current_price
 Position(
     symbol="NVDA",
-    quantity=0.09765,      # NOT .shares
-    market_value=20.40,    # NOT .current_price * .shares
+    quantity=0.09765,  # NOT .shares
+    market_value=20.40,  # NOT .current_price * .shares
     cost_basis=15.0,
 )
 
 # PortfolioSnapshot — NOT total_equity
 PortfolioSnapshot(
     positions=[...],
-    total_value=25.16,     # NOT total_equity
+    total_value=25.16,  # NOT total_equity
     cash=0.76,
 )
 ```
@@ -87,17 +87,17 @@ not on each subsequent day. Prevents inflated signal counts in backtest.
 from cohezion.integrations.robinhood_analysis import BetaBeliefLedger
 
 ledger = BetaBeliefLedger()
-tag = "rsi_overbought_bnd"   # format: rsi_{signal_type}_{symbol.lower()}
+tag = "rsi_overbought_bnd"  # format: rsi_{signal_type}_{symbol.lower()}
 
 # Update after thesis resolves
-ledger.update(tag, correct=True)   # or correct=False
+ledger.update(tag, correct=True)  # or correct=False
 
 # Gate check (must be True before live trading)
-ledger.has_proven_edge(tag)        # α/(α+β) > 0.55 AND count ≥ 5
+ledger.has_proven_edge(tag)  # α/(α+β) > 0.55 AND count ≥ 5
 
 # Inspect
-ledger.observation_count(tag)      # number of resolved observations
-ledger.format_ledger()             # human-readable string
+ledger.observation_count(tag)  # number of resolved observations
+ledger.format_ledger()  # human-readable string
 ```
 
 Initial priors: α=1.0, β=1.0 (uninformative). Each correct observation adds to α,
@@ -106,12 +106,14 @@ each incorrect adds to β. Hit rate = α/(α+β).
 ## Hard Gate Goal IDs (code-enforced, never LLM)
 
 ```python
-HARD_GATE_GOAL_IDS = frozenset({
-    "max_concentration",  # ≤35% of portfolio in any single position
-    "cash_floor",         # ≥10% cash at all times
-    "max_positions",      # ≤4 open positions
-    "drawdown_gate",      # portfolio drawdown < 20%
-})
+HARD_GATE_GOAL_IDS = frozenset(
+    {
+        "max_concentration",  # ≤35% of portfolio in any single position
+        "cash_floor",  # ≥10% cash at all times
+        "max_positions",  # ≤4 open positions
+        "drawdown_gate",  # portfolio drawdown < 20%
+    }
+)
 ```
 
 All 4 must be CLEAR before any signal triggers a recommendation.
@@ -207,6 +209,7 @@ uv add yfinance
 ```python
 # At horizon (7 trading days after signal):
 from cohezion.integrations.robinhood_analysis import BetaBeliefLedger
+
 ledger = BetaBeliefLedger()
 
 # BND overbought: entry $73.38, resolve by 2026-06-23

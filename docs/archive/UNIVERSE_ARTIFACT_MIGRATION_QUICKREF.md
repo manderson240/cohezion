@@ -56,9 +56,7 @@
 ### Basic Usage
 
 ```python
-from cohezion.knowledge_graph.universe_artifact_migration import (
-    UniverseArtifactMigration
-)
+from cohezion.knowledge_graph.universe_artifact_migration import UniverseArtifactMigration
 
 # Initialize
 migration = UniverseArtifactMigration()
@@ -163,16 +161,14 @@ ORDER BY timestamp DESC LIMIT 5;
 
 ```python
 from pathlib import Path
-from cohezion.knowledge_graph.universe_artifact_migration import (
-    UniverseArtifactMigration
-)
+from cohezion.knowledge_graph.universe_artifact_migration import UniverseArtifactMigration
 
 migration = UniverseArtifactMigration(
     cohezion_root=Path("/custom/path/to/cohezion"),
     output_dir=Path("/custom/export/dir"),
     surreal_ns="custom_ns",
     surreal_db="custom_db",
-    surreal_url="ws://surreal.example.com:8000/rpc"
+    surreal_url="ws://surreal.example.com:8000/rpc",
 )
 
 results = migration.execute_full_migration()
@@ -227,9 +223,8 @@ tar -tzf /tmp/cohezion_universe_artifacts_export/artifacts/universe_artifacts.ta
 
 ```python
 # In cohezion.compound.executor or other services:
-from cohezion.knowledge_graph.universe_artifact_migration import (
-    UniverseArtifactMigration
-)
+from cohezion.knowledge_graph.universe_artifact_migration import UniverseArtifactMigration
+
 
 async def execute():
     migration = UniverseArtifactMigration()
@@ -244,23 +239,22 @@ async def execute():
 ```python
 from cohezion.core.persistence.surreal_client import get_surreal_client
 
+
 async def insert_artifacts():
     client = await get_surreal_client()
 
     # Create training run
-    await client.query("""
+    await client.query(
+        """
         CREATE universe_training_runs SET
             run_id = $run_id,
             timestamp = now(),
             model_id = $model_id,
             universe_epoch = $epoch,
             coherence_score = $coherence
-    """, {
-        "run_id": "run_001",
-        "model_id": "gpt-4",
-        "epoch": 5,
-        "coherence": 0.87
-    })
+    """,
+        {"run_id": "run_001", "model_id": "gpt-4", "epoch": 5, "coherence": 0.87},
+    )
 ```
 
 ---

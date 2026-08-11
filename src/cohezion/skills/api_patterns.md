@@ -44,6 +44,7 @@ class RequestModel(BaseModel):
     field: str
     optional_field: int | None = None
 
+
 class ResponseModel(BaseModel):
     result: str
     status: str = "success"
@@ -54,6 +55,7 @@ class ResponseModel(BaseModel):
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
 
 @app.post("/resource", response_model=ResponseModel)
 async def create_resource(request: RequestModel):

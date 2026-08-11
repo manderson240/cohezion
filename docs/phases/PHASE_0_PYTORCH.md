@@ -66,17 +66,18 @@ This is the correct target. The plan's reference to "2.11" should be updated to 
 ```python
 import torch
 
+
 def check_rocm():
     print(f"PyTorch version: {torch.__version__}")
-    
+
     # Check for HIP (AMD's CUDA equivalent)
-    hip_version = getattr(torch.version, 'hip', None)
+    hip_version = getattr(torch.version, "hip", None)
     print(f"HIP version: {hip_version}")
-    
+
     # Check CUDA-like interfaces
     cuda_available = torch.cuda.is_available()
     print(f"CUDA available (torch): {cuda_available}")
-    
+
     # Check device count
     try:
         device_count = torch.cuda.device_count()
@@ -85,17 +86,18 @@ def check_rocm():
             print(f"  GPU {i}: {torch.cuda.get_device_name(i)}")
     except Exception as e:
         print(f"GPU check error: {e}")
-    
+
     # Check torch.compile support
     try:
         compiled = torch.compile(lambda x: x + 1)
         print("torch.compile: AVAILABLE")
     except Exception as e:
         print(f"torch.compile error: {e}")
-    
+
     # CPU threading
     print(f"CPU threads: {torch.get_num_threads()}")
     print(f"CPU threads per core: {torch.get_num_threads()}")
+
 
 check_rocm()
 ```
