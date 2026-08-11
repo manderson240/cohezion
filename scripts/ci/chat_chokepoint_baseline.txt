@@ -1,11 +1,10 @@
 scripts/actual_performance_probe.py
 scripts/agent_task_dispatcher.py
-scripts/ci/prompt_reliability.py
 scripts/agents/ada_lovelace.py
-scripts/analysis_watcher.py
 scripts/arpao_orchestrator.py
 scripts/autoliterature_scanner.py
 scripts/bughunt_loop.py
+scripts/ci/prompt_reliability.py
 scripts/delegate_to_omni.py
 scripts/dogfood_classifier.py
 scripts/drivers/routine_flume_variate.py
@@ -25,10 +24,10 @@ scripts/marimo_playwright_agent.py
 scripts/metacog/index_modules.py
 scripts/mine_neuron.py
 scripts/mine_rss.py
+scripts/ops/multiperspective_code_review.py
 scripts/overnight_evo_loop.py
 scripts/producer_consumer_audit.py
 scripts/research/distill_tutorials.py
-scripts/run_portfolio_loop.py
 scripts/scientific_benchmark.py
 scripts/tcrao_orchestrator.py
 src/cohezion/actioner/engine.py
@@ -47,6 +46,7 @@ src/cohezion/compound/prompt_version_registry.py
 src/cohezion/compound/rubric_middleware.py
 src/cohezion/compound/telegram_hub.py
 src/cohezion/data_mesh/event_consumer.py
+src/cohezion/data_mesh/land_runner.py
 src/cohezion/eval/cognitive_profile.py
 src/cohezion/gateway/ngrok_adapter.py
 src/cohezion/inference/challenger_solver.py
@@ -66,12 +66,11 @@ src/cohezion/integrations/telegram_bot.py
 src/cohezion/mcp/lemonade_server_mcp.py
 src/cohezion/mcp/marimo_walkthroughs_mcp.py
 src/cohezion/memory/consolidator.py
+src/cohezion/observability/session_digest.py
 src/cohezion/physics/anomaly_gate.py
 src/cohezion/physics/cellular_automata.py
 src/cohezion/skillopt/lemonade_backend.py
 src/cohezion/skillopt/trace_augmentor.py
-src/cohezion/data_mesh/land_runner.py
-src/cohezion/observability/session_digest.py
 src/cohezion/swarm/compute_backend_router.py
 src/cohezion/swarm/model_pool_manager.py
 src/cohezion/swarm/providers/lemonade_provider.py

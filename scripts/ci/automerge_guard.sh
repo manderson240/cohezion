@@ -38,6 +38,18 @@ step() {
   fi
 }
 
+step_advisory() {
+  local name="$1"; shift
+  echo "== ${name} =="
+  if "$@"; then
+    echo "  -> PASS"
+    GATES_PASSED+=("$name")
+  else
+    echo "  -> ADVISORY (ignored)"
+    GATES_PASSED+=("${name} (advisory)")
+  fi
+}
+
 echo "=== AutoMerge Guard for PR #${PR_NUMBER} ==="
 echo "Time: $(date -Iseconds)"
 echo ""
@@ -52,8 +64,8 @@ gh pr checkout "$PR_NUMBER" 2>/dev/null || {
 # Step 1: Ruff format check
 step "ruff format --check" uv run ruff format --check src/ tests/
 
-# Step 2: Ruff lint check
-step "ruff lint check" uv run ruff check src/ tests/
+# Step 2: Ruff lint check (advisory per AGENTS.md — ruff debt ratchet is the blocking gate)
+step_advisory "ruff lint check" uv run ruff check src/ tests/
 
 # Step 3: Ruff debt ratchet (gating)
 step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
@@ -141,10 +153,10 @@ if [ "$FAIL" -eq 0 ]; then
     curl -s -X POST http://localhost:8001/sql \
       -H "Content-Type: text/plain" -u "root:root" \
       -H "Surreal-NS: cohezion" -H "Surreal-DB: main" \
-      -d "CREATE automerge_log:{{time::now()}} CONTENT {
+      -d "CREATE automerge_log CONTENT {
         \"pr\": \"#${PR_NUMBER}\",
         \"status\": \"merged\",
-        \"gates_passed\": $(printf '%s\n' "${GATES_PASSED[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
+        \"gates_passed\": $(printf '%s\n' "${GATES_PASSED[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
         \"timestamp\": time::now()
       };" 2>/dev/null | head -1
     exit 0
@@ -159,10 +171,10 @@ else
   curl -s -X POST http://localhost:8001/sql \
     -H "Content-Type: text/plain" -u "root:root" \
     -H "Surreal-NS: cohezion" -H "Surreal-DB: main" \
-    -d "CREATE automerge_log:{{time::now()}} CONTENT {
+    -d "CREATE automerge_log CONTENT {
       \"pr\": \"#${PR_NUMBER}\",
       \"status\": \"blocked\",
-      \"gates_failed\": $(printf '%s\n' "${GATES_FAILED[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
+      \"gates_failed\": $(printf '%s\n' "${GATES_FAILED[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
       \"timestamp\": time::now()
     };" 2>/dev/null | head -1
   exit 1
