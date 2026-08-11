@@ -95,16 +95,45 @@ _OPTIONS_MENU_RE = re.compile(
 )
 
 
+# Negation is invisible to substring matching: "adopt nothing" and "nothing to
+# import" both contain an actionable word, so a verdict saying TAKE NOTHING used
+# to classify as 'actionable' and auto-card itself to kanban as work to do — the
+# exact inverse of the finding. Negators are therefore matched per CLAUSE: an
+# actionable word only counts if its own clause carries no negator.
+_NEGATORS = (
+    "nothing",
+    "not ",
+    "n't",
+    "no need",
+    "avoid",
+    "without",
+    "rather than",
+    "instead of",
+    "neither",
+    "none of",
+)
+# Clause boundaries — negation does not reach across them ("Integrate X; do not
+# adopt Y" is still actionable on the first clause).
+_CLAUSE_SPLIT_RE = re.compile(r"[;,.\n]| but | however | though ")
+
+
+def _has_unnegated(clauses: list[str], words: tuple[str, ...]) -> bool:
+    """True if any clause contains one of ``words`` AND carries no negator."""
+    return any(any(w in c for w in words) and not any(n in c for n in _NEGATORS) for c in clauses)
+
+
 def classify_actionability(verdict_text: str) -> str:
     """Map free-text verdict → {actionable, monitor, drop}.
 
     Empty / unrecognised verdicts default to 'monitor' (conservative: never
-    auto-card something we could not read a decision from).
+    auto-card something we could not read a decision from). Negated actionable
+    phrasing ("adopt nothing") is NOT actionable.
     """
     v = _OPTIONS_MENU_RE.sub(" ", verdict_text.lower())
     if any(w in v for w in _DROP_WORDS):
         return "drop"
-    if any(w in v for w in _ACTIONABLE_WORDS):
+    clauses = _CLAUSE_SPLIT_RE.split(v)
+    if _has_unnegated(clauses, _ACTIONABLE_WORDS):
         return "actionable"
     if any(w in v for w in _MONITOR_WORDS):
         return "monitor"
