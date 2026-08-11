@@ -33,6 +33,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(
 logger = logging.getLogger("ouroboros_omega")
 
 
+from cohezion.compound.executor import ExecutionResult
 from cohezion.compound.journey_tracker import JourneyTracker, OperationType
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus, EventType
@@ -73,7 +74,7 @@ class LongHorizonTriSiliconMission:
         """Initialize load safety verification, FleetLock check, and EventBridge."""
         ram_gb = available_ram_gb()
         logger.info(f"🚀 Initializing Project Ouroboros-Omega on AMD RYZEN AI MAX+ 395 ({ram_gb:.2f} GiB available)")
-        is_safe, reason = check_load_safe({"name": "ouroboros_omega", "size": 8.0}, ram_gb)
+        is_safe, reason = check_load_safe({"name": "ouroboros_omega", "recipe": "flm"}, ram_gb, ram_floor_gb=2.0)
         if not is_safe:
             raise SystemError(f"OOM Guard Refusal: {reason}")
         logger.info("✅ Load safety verification PASSED — proceeding with Tri-Silicon allocation.")
@@ -124,16 +125,20 @@ class LongHorizonTriSiliconMission:
             persisted = True
             
             # Track 12D FLUME Trajectory
+            exec_res = ExecutionResult(
+                success=harness_res.valid,
+                output="Tri-silicon cycle complete",
+                metrics={"coherence": 0.95, "duration_ms": cpu_latency + npu_latency + igpu_latency},
+                duration_seconds=(cpu_latency + npu_latency + igpu_latency) / 1000.0,
+                token_metrics={"cache_hit_rate": 0.92},
+            )
             point = self.journey_tracker.track_execution(
-                task_id=f"omega_cycle_{cycle}",
+                execution_result=exec_res,
                 task_description=f"Long-horizon tri-silicon cycle {cycle} execution",
-                coherence=0.95,
-                efficiency=0.92,
-                duration_ms=cpu_latency + npu_latency + igpu_latency,
-                operation_type=OperationType.TRANSFORM,
+                operation_type="transform",
             )
             journey_tracked = point is not None
-            logger.info(f"  [Journey] Tracked 12D FLUME Trajectory Point: ID={point.point_id[:8]} (Quality={point.quality_score:.4f})")
+            logger.info(f"  [Journey] Tracked 12D FLUME Trajectory Point: Coherence={point.coherence:.4f}")
             
             # STAGE 5: EventBus Cross-Session Broadcast
             await self.event_bus.publish(
