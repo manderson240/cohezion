@@ -4,15 +4,28 @@ Used by ``make health-fleet`` and by ``fleet.route()`` before dispatching to
 a lane that may be down. Probes are single-flight cached for 30 s so rapid
 back-to-back calls don't hammer the endpoints.
 
-Returns structured status for each silicon lane:
+Returns structured status for each silicon lane. **Every local lane is served by
+the single Lemonade OmniRouter on :13305** (invariant N1) — it dispatches to the
+XDNA2 NPU, the RDNA3.5 iGPU and the CPU on demand over unified RAM. A local lane
+is therefore UP exactly when the router is reachable; there is no per-device port
+to probe.
 
-- NPU (:13306, FLM backend)
-- iGPU ROCWMMA (:13307)
-- iGPU Unified (:13308)
-- CPU AVX-VNNI (:13309)
-- Ollama (:11434)
+- NPU (:13305, OmniRouter -> FLM backend)
+- iGPU ROCWMMA (:13305, OmniRouter -> llama.cpp rocm)
+- iGPU Unified (:13305, OmniRouter -> llama.cpp vulkan)
+- CPU AVX-VNNI (:13305, OmniRouter -> llama.cpp cpu)
+- Ollama (:11434 — a genuinely separate service, not part of the router)
 - Anthropic API (https://api.anthropic.com)
 - Omnibus gateway dashboard snapshot
+
+Historical note (fixed 2026-08-12): these four lanes were probed at separate
+per-device ports that have no listener, so ALL local lanes reported DOWN on a
+healthy box and ``fleet.route()`` skipped every local candidate as "lane-down" —
+silently escalating to Ollama/cloud and inverting the local-first cost protocol.
+
+Lane availability is NOT device occupancy. Lemonade loads models on demand, so a
+device with no resident model is still available. For occupancy read
+``lemonade_health.LemonadeHealth.devices`` (FT1).
 
 Does not start or stop endpoints — those are the job of
 ``scripts/symphony_warmstart.sh`` and ``scripts/launch_gemma4_symphony.sh``.
@@ -30,6 +43,11 @@ import httpx
 
 
 logger = logging.getLogger(__name__)
+
+# N1: the Lemonade OmniRouter is the ONLY inference port. It fronts the NPU, iGPU
+# and CPU on demand, so every local lane probes this one endpoint. Keep it a single
+# constant — four separate literals is how they drifted to :13306-:13309.
+_OMNIROUTER = "http://localhost:13305"
 
 _CACHE_TTL_SECONDS = 30.0
 _LAST_CHECK_AT: float = 0.0
@@ -239,10 +257,12 @@ def check_fleet(*, force: bool = False) -> FleetHealth:
         return _LAST_RESULT
 
     lanes: dict[str, LaneHealth] = {
-        "npu": _probe_openai_endpoint("npu", "http://localhost:13306"),
-        "igpu_rocwmma": _probe_openai_endpoint("igpu_rocwmma", "http://localhost:13307"),
-        "igpu_unified": _probe_openai_endpoint("igpu_unified", "http://localhost:13308"),
-        "cpu": _probe_openai_endpoint("cpu", "http://localhost:13309"),
+        # N1: one router, all devices. Probing per-device ports reported every
+        # local lane DOWN on a healthy box and made fleet.route() skip them all.
+        "npu": _probe_openai_endpoint("npu", _OMNIROUTER),
+        "igpu_rocwmma": _probe_openai_endpoint("igpu_rocwmma", _OMNIROUTER),
+        "igpu_unified": _probe_openai_endpoint("igpu_unified", _OMNIROUTER),
+        "cpu": _probe_openai_endpoint("cpu", _OMNIROUTER),
         "ollama": _probe_ollama(),
         "claude": _probe_anthropic(),
         "gemini": _probe_gemini(),
