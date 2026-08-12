@@ -7,13 +7,22 @@ SurrealDB persistence, and cron job prompts.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import threading
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
+
+# N1: :13305 is the only inference port. The per-device servers (:13306 NPU,
+# :13307 iGPU, :13309 CPU) are offline and redundant — probing them reports every
+# device down regardless of true occupancy.
+_OMNIROUTER_PORT = 13305
+_PROBE_TIMEOUT_S = 8.0
 
 
 def get_full_state() -> dict[str, object]:
@@ -49,48 +58,66 @@ def format_state_for_context(state: dict[str, object] | None = None) -> str:
     return "\n".join(lines)
 
 
-def _silicon_state() -> dict[str, object]:
-    try:
-        import httpx
+def _run_sync(coro: Any) -> Any:
+    """Await ``coro`` from sync code, whether or not a loop is already running.
 
-        npu_up = _probe_lemonade(13306, httpx)  # allow-direct-port: liveness probe, not dispatch
-        igpu_up = _probe_lemonade(13307, httpx)  # allow-direct-port: liveness probe, not dispatch
-        igpu_models = _count_models(13307, httpx)  # allow-direct-port: liveness probe, not dispatch
-        npu_models = _list_flm_models(13306, httpx)  # allow-direct-port: liveness probe
+    ``_silicon_state`` is called from hooks, cron prompts and Telegram reports — some
+    inside a running loop, some not. ``asyncio.run`` raises in the former case, so fall
+    back to a dedicated thread with its own loop.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+
+    result: dict[str, Any] = {}
+
+    def _worker() -> None:
+        result["value"] = asyncio.run(coro)
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+    thread.join(timeout=_PROBE_TIMEOUT_S)
+    return result.get("value")
+
+
+def _silicon_state() -> dict[str, object]:
+    """Device occupancy for the tri-device fleet, read from the :13305 oracle.
+
+    Reads ``lemonade_health.probe_lemonade`` — the single verified source of fleet
+    truth — rather than probing per-device ports. :13306/:13307 are offline under
+    invariant N1, so the previous direct-probe implementation reported every device
+    down unconditionally while the NPU and iGPU were both serving models.
+
+    ``probe_ok`` distinguishes "I could not ask" from "nothing is running"; failing
+    closed to empty occupancy makes those two states indistinguishable and silently
+    degrades every downstream gate.
+    """
+    unknown: dict[str, object] = {
+        "npu_up": False,
+        "igpu_up": False,
+        "npu_models": [],
+        "igpu_models": 0,
+        "probe_ok": False,
+    }
+    try:
+        from cohezion.inference import lemonade_health
+
+        health = _run_sync(lemonade_health.probe_lemonade(port=_OMNIROUTER_PORT))
     except Exception as exc:
         logger.debug("silicon_state probe failed: %s", exc)
-        return {"npu_up": False, "igpu_up": False, "igpu_models": 0, "npu_models": []}
+        return unknown
+
+    if health is None or not getattr(health, "reachable", False):
+        return unknown
 
     return {
-        "npu_up": npu_up,
-        "igpu_up": igpu_up,
-        "npu_models": npu_models,
-        "igpu_models": igpu_models,
+        "npu_up": health.npu_up,
+        "igpu_up": health.igpu_up,
+        "npu_models": health.npu_models,
+        "igpu_models": len(health.igpu_models),
+        "probe_ok": True,
     }
-
-
-def _probe_lemonade(port: int, httpx_module: object) -> bool:
-    try:
-        resp = httpx_module.get(f"http://localhost:{port}/v1/models", timeout=1.5)
-        return resp.status_code == 200
-    except Exception:
-        return False
-
-
-def _count_models(port: int, httpx_module: object) -> int:
-    try:
-        resp = httpx_module.get(f"http://localhost:{port}/v1/models", timeout=1.5)
-        return len(resp.json().get("data", []))
-    except Exception:
-        return 0
-
-
-def _list_flm_models(port: int, httpx_module: object) -> list[str]:
-    try:
-        resp = httpx_module.get(f"http://localhost:{port}/v1/models", timeout=1.5)
-        return [m["id"] for m in resp.json().get("data", []) if "FLM" in m.get("id", "")]
-    except Exception:
-        return []
 
 
 def _autodqa_state() -> dict[str, object]:

@@ -76,9 +76,14 @@ NPU (classify/route/short) → iGPU (code/structured) → CPU (reasoning) → Cl
   `/api/v1/load`; `model_card_defaults` supplies CLIENT-REQUEST sampling defaults for callers like
   `build_gaia_llm_tier`. Both matter — a request can omit a param even when the server recipe is
   correct. **Verification**: `uv run pytest tests/inference/test_model_card_defaults.py -q` → 11 passed.
-- **Known gap (Kanban `7d3f05b80839`)**: `lemonade_health.py`'s `probe_lemonade()` is a separate,
-  still-unimplemented stub (9 failing tests) — a fleet-level hazard/health detector, not touched by
-  TR1/TR2. Not blocking; filed for a future pass.
+- **CLOSED 2026-08-12 (was Kanban `7d3f05b80839`)**: `lemonade_health.py`'s `probe_lemonade()` is
+  **implemented, with 18 passing tests** (`uv run pytest tests/inference/test_lemonade_health.py -q`).
+  The previous entry here — "still-unimplemented stub (9 failing tests)" — was **stale and caused
+  real harm**: because the fleet's health detector looked unavailable, four rival probes were written
+  independently (`unified_orchestrator._probe_lemonade`, `distributed_swarm._probe_lemonade`,
+  `cohezion_state._probe_lemonade`, `latent_research_team._probe_lemonade_registry`), one of which
+  probed the dead :13306/:13307 ports and reported the whole fleet down unconditionally.
+  **`probe_lemonade(port=13305)` is the single source of fleet truth. Do not write another probe.**
 
 ## Port Bypass Guard
 

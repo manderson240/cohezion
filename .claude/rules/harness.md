@@ -439,6 +439,52 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - DO NOT confuse FD < 1.2 with "the CC1 lower bound" — CC1 lower bound is 1.3 (Brownian);
   microseism is an ANCHOR, not a threshold to keep quality above.
 
+## Fleet Truth Invariants (FT1–FT3, 2026-08-12) — single verified capability oracle
+
+**Origin.** Five independent fleet probes existed. One (`cohezion_state._probe_lemonade`) polled
+:13306/:13307 behind `# allow-direct-port` overrides; both ports are offline under N1, so
+`_silicon_state()` returned `{npu_up: False, igpu_up: False, npu_models: [], igpu_models: 0}`
+**unconditionally** while the NPU held an FLM model and the iGPU served three. Measured
+before/after on the same box, seconds apart:
+
+```
+BEFORE {'npu_up': False, 'igpu_up': False, 'npu_models': [],                          'igpu_models': 0}
+AFTER  {'npu_up': True,  'igpu_up': True,  'npu_models': ['qwen3.6-moe-35b-a3b-FLM'], 'igpu_models': 3, 'probe_ok': True}
+```
+
+The root enabler was a **stale doc**: `inference/CLAUDE.md` described `probe_lemonade()` as an
+unimplemented stub with 9 failing tests. It has 18 passing tests. Because the oracle looked
+unavailable, four rivals were written. Doc drift is a load-bearing defect, not cosmetic.
+
+### FT1: device occupancy comes from the :13305 oracle, never a per-device port
+- `LemonadeHealth.devices: dict[str, list[str]]` maps device → resident model names, populated in
+  `probe_lemonade` from the `/api/v1/health` `all_models_loaded[].device` field.
+- Derived properties: `npu_models`, `igpu_models`, `cpu_models`, `npu_up`, `igpu_up`.
+- **CONSUMPTION (not declaration)**: `cohezion_state._silicon_state()` must call
+  `lemonade_health.probe_lemonade`; asserting the symbol exists proves nothing.
+- **T2 discriminating**: with `probe_lemonade` patched to report an NPU-resident model AND any
+  direct `httpx` use raising, `_silicon_state()["npu_up"] is True`. The dead-port implementation
+  fails this because it asks the wrong ports.
+- **Verification**: `uv run pytest tests/compound/test_cohezion_state_silicon.py -q` → 5 passed;
+  `uv run pytest tests/inference/test_lemonade_health.py -q` → 18 passed.
+
+### FT2: "cannot ask" must be distinguishable from "nothing running"
+- `LemonadeHealth.reachable` is False when status is `down` or an `unreachable:` error is present.
+- `_silicon_state()` returns `probe_ok: False` in that case. Failing closed to empty occupancy
+  makes an unreachable router identical to an idle box and silently degrades every downstream gate.
+
+### FT3: dead-port literals must not reappear in executable code
+- No `13306`/`13307`/`13309` int or string literal in `cohezion_state`, and no `allow-direct-port`.
+- Checked via **AST**, not substring: comments and docstrings legitimately name the dead ports to
+  explain why they are avoided, and a raw scan flags its own rationale. Docstrings are
+  `ast.Constant` too — exclude bare string `ast.Expr` statements or the check self-trips.
+  (Three separate false positives in one session came from unaudited scanners.)
+
+### Open follow-on (do NOT mark wired without a discriminating test)
+`unified_orchestrator._probe_lemonade`, `distributed_swarm._probe_lemonade` and
+`latent_research_team._probe_lemonade_registry` are still rival probes. Retire them onto the
+oracle one at a time, each behind its own FT1-style discriminating test.
+
 ## Wiring Completeness Invariants (W1–W5, 2026-06-27)
 
 Five previously-unwired products closed: JepaGate factory injection, JourneyTracker

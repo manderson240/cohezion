@@ -104,6 +104,46 @@ class LemonadeHealth:
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     latency_ms: float = 0.0
+    # Device -> resident model names, as reported by :13305. This is the single
+    # source of device occupancy for the tri-device fleet (XDNA2 NPU / RDNA3.5
+    # iGPU / CPU over unified RAM). Consumers MUST read this rather than probing
+    # per-device ports: :13306/:13307 are offline under invariant N1, so a direct
+    # probe reports every device down regardless of true occupancy.
+    devices: dict[str, list[str]] = field(default_factory=dict)
+
+    @property
+    def npu_models(self) -> list[str]:
+        return list(self.devices.get("npu", []))
+
+    @property
+    def igpu_models(self) -> list[str]:
+        return list(self.devices.get("gpu", []))
+
+    @property
+    def cpu_models(self) -> list[str]:
+        return list(self.devices.get("cpu", []))
+
+    @property
+    def npu_up(self) -> bool:
+        """True when a model is resident on the NPU.
+
+        Note the XDNA2 slot is exclusive — at most one FLM model is resident, and
+        loading another evicts it (measured swap 13-37 s).
+        """
+        return bool(self.devices.get("npu"))
+
+    @property
+    def igpu_up(self) -> bool:
+        return bool(self.devices.get("gpu"))
+
+    @property
+    def reachable(self) -> bool:
+        """Distinguish 'the fleet is idle' from 'I could not ask'.
+
+        Failing closed to empty occupancy makes an unreachable router look identical
+        to a genuinely idle box, which silently degrades every downstream gate.
+        """
+        return self.status != "down" and not any(e.startswith("unreachable") for e in self.errors)
 
     @property
     def recipes_up(self) -> list[str]:
@@ -219,9 +259,13 @@ async def probe_lemonade(
 
             headroom: list[TypeHeadroom] = []
             loaded_by_type: dict[str, int] = {}
+            devices: dict[str, list[str]] = {}
             for m in loaded_models:
                 mtype = m.get("type", "llm")
                 loaded_by_type[mtype] = loaded_by_type.get(mtype, 0) + 1
+                device = str(m.get("device") or "unknown")
+                name = str(m.get("model_name") or m.get("checkpoint") or "?")
+                devices.setdefault(device, []).append(name)
             for mtype, max_count in max_models.items():
                 headroom.append(
                     TypeHeadroom(
@@ -245,6 +289,7 @@ async def probe_lemonade(
                 warnings=warnings,
                 errors=errors,
                 latency_ms=latency_ms,
+                devices=devices,
             )
     except Exception as exc:
         latency_ms = (time.monotonic() - t0) * 1000

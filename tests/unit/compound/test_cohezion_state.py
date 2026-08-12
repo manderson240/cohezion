@@ -40,10 +40,23 @@ class TestGetFullState:
         assert "total_runs" in ar
 
     def test_does_not_raise_when_services_offline(self):
-        """get_full_state must be fail-safe — never raise on offline services."""
-        with patch("cohezion.compound.cohezion_state._probe_lemonade", return_value=False):
+        """get_full_state must be fail-safe — never raise on offline services.
+
+        Retargeted 2026-08-12 (FT1): silicon state now reads the :13305 oracle
+        (`lemonade_health.probe_lemonade`) instead of the removed per-port
+        `_probe_lemonade` helper, which polled the dead :13306/:13307. Same intent,
+        harsher case — the probe RAISES rather than merely reporting down.
+        """
+
+        async def _boom(*_a, **_k):
+            raise OSError("connection refused")
+
+        with patch("cohezion.inference.lemonade_health.probe_lemonade", _boom):
             s = get_full_state()
         assert s is not None
+        assert s["silicon"]["probe_ok"] is False, (
+            "FT2: an unreachable oracle must be flagged, not reported as an idle fleet"
+        )
 
     def test_timestamp_is_iso_format(self):
         s = get_full_state()
