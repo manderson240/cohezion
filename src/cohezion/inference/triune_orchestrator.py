@@ -56,9 +56,13 @@ def _cpu_reasoner_tier_fits() -> tuple[bool, str]:
 
 def build_triune_orchestrator(
     *,
-    npu_port: int = 13306,  # allow-direct-port: N2-retained default, not dispatch bypass
-    igpu_port: int = 13307,  # allow-direct-port: N2-retained default, not dispatch bypass
-    cpu_port: int = 13309,  # N2: lemonade CPU port (NOT 11434/Ollama — migrated 2026-05-21)
+    # N1: all three tiers are served by the OmniRouter, which dispatches to NPU/
+    # iGPU/CPU on demand. These previously defaulted to per-device ports that have
+    # no listener, so a caller relying on the defaults built tiers against dead
+    # endpoints (FT4: the same class of bug made check_fleet report the fleet down).
+    npu_port: int = 13305,
+    igpu_port: int = 13305,
+    cpu_port: int = 13305,
     enforce_memory_gate: bool = False,
 ) -> TieredOrchestrator:
     """

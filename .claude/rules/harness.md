@@ -480,10 +480,36 @@ unavailable, four rivals were written. Doc drift is a load-bearing defect, not c
   `ast.Constant` too — exclude bare string `ast.Expr` statements or the check self-trips.
   (Three separate false positives in one session came from unaudited scanners.)
 
-### Open follow-on (do NOT mark wired without a discriminating test)
-`unified_orchestrator._probe_lemonade`, `distributed_swarm._probe_lemonade` and
-`latent_research_team._probe_lemonade_registry` are still rival probes. Retire them onto the
-oracle one at a time, each behind its own FT1-style discriminating test.
+### FT4: fleet health probes the OmniRouter, never per-device ports
+`inference/health.py` probed :13306–:13309, so `check_fleet()` reported **all four local lanes
+DOWN on a healthy box**. `fleet.route()` acts on that signal directly — `status != UP` →
+`attempts.append(f"{model}(lane-down)"); continue` — so **every local candidate was skipped and
+routing escalated toward Ollama/cloud**, inverting the Quarter-on-a-String protocol and spending
+real money on work the NPU/iGPU serve at $0. Nothing failed loudly; the fleet just looked dead.
+
+Fixed: all four lanes probe `_OMNIROUTER = "http://localhost:13305"` (one constant — four
+separate literals is how they drifted). **Lane availability is NOT device occupancy**: lemonade
+loads on demand, so a device with no resident model is still available. Occupancy = FT1
+`LemonadeHealth.devices`. Live: `local_lanes_up 0 → 4`.
+- **T2 discriminating**: only :13305 answers, all other ports raise → all four lanes UP.
+- **T2 inverse**: router genuinely down → all four DOWN (blocks a fake-up impl).
+- **Verification**: `uv run pytest tests/inference/test_health_ports.py -q` → 4 passed.
+
+### FT5: repo-wide standing guard — no dead port literals in `src/`
+`tests/inference/test_no_dead_ports_repo.py` walks every `src/cohezion/**/*.py` via **AST**,
+excluding comments and docstrings. Six offenders were fixed in one sweep (`triune_orchestrator`,
+`session_broadcast`, `clasp_tier`, `cron_manager`, `hermes_mcp_bridge` defaults/probes/help-text).
+The suite includes a **self-test that the scanner can FAIL** and negative tests that prose
+mentioning a dead port does NOT trip it. `ALLOWLIST` holds historical records ONLY — never live
+dispatch, probing or defaults; it currently has one entry (`stealthskater_corpus`, an experiment
+record whose port must not be rewritten or the record is falsified).
+- **Verification**: `uv run pytest tests/inference/test_no_dead_ports_repo.py -q` → 4 passed.
+
+### Not defective — do NOT "fix" these
+`unified_orchestrator._probe_lemonade` and `distributed_swarm._probe_lemonade` both resolve
+through `config.defaults.LANE_PORTS`, which already maps every lane to **13305**. They are
+duplicative of the oracle but **correct**; consolidating them is optional cleanup, not a defect
+fix. An earlier revision of this file implied they were broken — they are not.
 
 ## Wiring Completeness Invariants (W1–W5, 2026-06-27)
 

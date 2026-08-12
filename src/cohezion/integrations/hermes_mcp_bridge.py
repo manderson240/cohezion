@@ -690,14 +690,15 @@ def _handle_inference_status(_args: dict) -> dict:
     """Report live status of all inference nodes and NPU TTFT probe."""
     import time
 
-    # Diagnostic-only: probe each legacy per-lane server's live status for the
-    # status report. NOT a dispatch bypass — production traffic goes via :13305.
-    # Kept per-port so the report reflects which individual servers are up.
+    # N1: the legacy per-lane servers are offline and redundant. Probing them made
+    # this report show every node DOWN on a healthy box — misleading, not
+    # diagnostic. All roles are served by the OmniRouter, which dispatches to the
+    # right silicon on demand, so report each role against the router.
     node_configs = [
-        (13306, "npu", _NPU_MODEL),  # allow-direct-port: diagnostic status probe, not dispatch
-        (13307, "igpu", _IGPU_MODEL),  # allow-direct-port: diagnostic status probe, not dispatch
-        (13308, "clasp", "Gemma-4-E2B-it-GGUF"),  # allow-direct-port: diagnostic status probe
-        (13309, "cpu", _CPU_MODEL),  # allow-direct-port: diagnostic status probe, not dispatch
+        (13305, "npu", _NPU_MODEL),
+        (13305, "igpu", _IGPU_MODEL),
+        (13305, "clasp", "Gemma-4-E2B-it-GGUF"),
+        (13305, "cpu", _CPU_MODEL),
     ]
 
     nodes = []

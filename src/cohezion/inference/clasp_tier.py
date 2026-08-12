@@ -169,8 +169,10 @@ class CLaSpTier:
 
 def build_clasp_igpu_tier(
     *,
-    draft_port: int = 13308,  # allow-direct-port: N2-retained default, not dispatch bypass
-    verify_port: int = 13307,  # allow-direct-port: N2-retained default, not dispatch bypass
+    # N1: draft and verify both go through the OmniRouter; the MODEL selects the
+    # lane, not the port. These previously defaulted to endpoints with no listener.
+    draft_port: int = 13305,
+    verify_port: int = 13305,
     draft_model: str = "Gemma-4-E2B-it-GGUF",
     verify_model: str = "Gemma-4-E4B-it-GGUF",
     draft_acceptance_chars: int = _CLASP_DRAFT_ACCEPTANCE_CHARS,
