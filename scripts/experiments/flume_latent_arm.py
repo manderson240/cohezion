@@ -16,6 +16,28 @@ same dimensionality as every other arm. Same embeddings, same pairs, same ground
 (vault [[wikilinks]]), so the arms are directly comparable.
 
 Reuses the embedding cache written by geometric_correspondence_v2.py -- no re-embedding.
+
+CHALLENGED AND CLEARED (2026-08-12, adversarial review lane Gemma-4-26B-A4B-it):
+`flume_mu` projects into the Poincare ball BEFORE reducing, while cos12_trunc and cos12_rp
+reduce the RAW vector -- so those arms differ in two respects, not one. That is the same
+confound class this series exists to avoid, and it was a fair objection.
+
+It is empirically inert for the cosine arm. `PoincareManifoldND.project` is a uniform
+per-vector scalar rescale, and cosine is invariant to positive per-vector scaling, so the
+pre-projection cancels exactly. Measured by recomputing the arm without it:
+
+    cos12_flume WITH    pre-projection : 0.734641
+    cos12_flume WITHOUT pre-projection : 0.734641
+    max per-pair score difference      : 3.33e-16   (floating-point noise)
+    vectors actually rescaled          : 787/787    (the transform really did apply)
+
+The 787/787 matters: the delta is zero because the scaling cancels, NOT because the
+projection was a no-op that never triggered.
+
+SCOPE OF THAT CLEARANCE: it covers the COSINE arm. Hyperbolic distance is not
+scale-invariant, so the argument does not transfer to `hyp12_flume` by symmetry --
+`hyp_score` applies its own `to_ball` to the 12-dim latent, and the composed effect there
+has not been separately measured.
 """
 
 from __future__ import annotations
