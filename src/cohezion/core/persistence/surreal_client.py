@@ -441,6 +441,10 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
 
         try:
             data = node.to_dict(compress=compress)
+            for dt_field in ("created_at", "updated_at"):
+                val = data.get(dt_field)
+                if isinstance(val, str) and not val.endswith("Z"):
+                    data[dt_field] = f"{val}Z"
 
             if isinstance(self._client, InMemoryStore):
                 self._client.store(node.id, data)
