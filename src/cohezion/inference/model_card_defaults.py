@@ -42,14 +42,8 @@ _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     # catalog ("tool-calling"), and because they are the conservative pair. Switch to 1.0/1.0
     # if this model is ever used as a reasoning tier. No top_k: the card specifies none, and
     # inventing one would be exactly the guess this registry exists to avoid.
-    "nemotron": {"temperature": 0.6, "top_p": 0.95},
-    # Bonsai family. Unanimous across the FIVE Bonsai entries lemonade ships
-    # (1.7B/4B/8B/27B/27B-Q1_0), every one `--temp 0.7 --top-p 0.9 --top-k 40`. The GGUF builds
-    # carry these in llamacpp_args already; this entry covers the request layer so a Bonsai
-    # served without recipe args (e.g. Ternary-Bonsai-27B-PQ2_0) is not left on bare defaults.
-    "bonsai": {"temperature": 0.7, "top_p": 0.9, "top_k": 40},
-    "muse-glimmer": {"temperature": 0.7, "top_p": 0.90, "top_k": 40, "min_p": 0.05},
     "nemotron-3.5-lightning": {"temperature": 0.6, "top_p": 0.95, "min_p": 0.05},
+    "nemotron": {"temperature": 0.6, "top_p": 0.95, "min_p": 0.05},
 }
 
 

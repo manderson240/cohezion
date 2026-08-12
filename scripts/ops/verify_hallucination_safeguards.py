@@ -44,9 +44,9 @@ def main() -> None:
     logger.info("  [3/6] Sampling Sweet-Spot Hard-Pinning: %s (min_p=0.05 active)", "PASSED" if has_min_p else "FAILED")
 
     # 4. ZKFV Polynomial Proofs
-    zk_compiler = ZKFVCompiler()
-    proof = zk_compiler.generate_proof("nemotron_state_tree_valid")
-    logger.info("  [4/6] ZKFV Polynomial Proof Compiler: %s (SHA-256 verified)", "PASSED" if proof else "FAILED")
+    gates = ZKFVCompiler.compile_ast_to_gates("memory_safe")
+    proof = ZKFVCompiler.generate_proof(gates, (1.0, 1.0, 2.0))
+    logger.info("  [4/6] ZKFV Polynomial Proof Compiler: %s (SHA-256 verified)", "PASSED" if proof.is_valid else "FAILED")
 
     # 5. Trajectory Reward Gating ($r_t \ge 0.45$)
     logger.info("  [5/6] Experiential Reward Gating: ACTIVE (rt >= 0.45 threshold enforced)")
