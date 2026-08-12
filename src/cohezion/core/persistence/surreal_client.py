@@ -441,10 +441,17 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
 
         try:
             data = node.to_dict(compress=compress)
+            from datetime import datetime
             for dt_field in ("created_at", "updated_at"):
                 val = data.get(dt_field)
-                if isinstance(val, str) and not val.endswith("Z"):
-                    data[dt_field] = f"{val}Z"
+                if isinstance(val, str):
+                    clean_val = val.rstrip("Z")
+                    try:
+                        data[dt_field] = datetime.fromisoformat(clean_val)
+                    except Exception:
+                        pass
+            if data.get("embedding") is None:
+                data["embedding"] = []
 
             if isinstance(self._client, InMemoryStore):
                 self._client.store(node.id, data)
