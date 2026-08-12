@@ -73,15 +73,14 @@ class TestCheckLoadSafe:
         assert ok is True, reason
 
     def test_e_floor_reserve_is_subtracted(self):
-        # Budget = available - RAM_FLOOR_GB. At available=60, budget=44.
-        # size=25 -> est=42.5 <= 44 => OK. size=26 -> est=44.2 > 44 => REFUSE,
-        # even though 44.2 < 60 (would "fit" without the floor).
-        assert RAM_FLOOR_GB == 16.0
-        ok_fits, _ = check_load_safe({"size": 25.0}, available_gb=60.0)
-        ok_floor, reason = check_load_safe({"size": 26.0}, available_gb=60.0)
+        # Budget = available - RAM_FLOOR_GB. At available=60, budget=40.
+        # size=19 -> est=39.9 <= 40 => OK. size=20 -> est=42.0 > 40 => REFUSE.
+        assert RAM_FLOOR_GB == 20.0
+        ok_fits, _ = check_load_safe({"size": 19.0}, available_gb=60.0)
+        ok_floor, reason = check_load_safe({"size": 20.0}, available_gb=60.0)
         assert ok_fits is True
         assert ok_floor is False
-        assert "floor" in reason.lower() or "16" in reason
+        assert "floor" in reason.lower() or "20" in reason
 
 
 def test_available_ram_gb_reads_a_positive_float():
