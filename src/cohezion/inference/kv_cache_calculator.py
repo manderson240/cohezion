@@ -76,6 +76,14 @@ KNOWN_SPECS: dict[str, ModelArchitectureSpec] = {
         head_dim=128,
         attention_type=AttentionType.GQA,
     ),
+    "nemotron-3.5-lightning-30b": ModelArchitectureSpec(
+        model_name="Nemotron-3.5-Lightning-30B-A3B-ROCmFP4",
+        n_layers=48,
+        n_heads=32,
+        n_kv_heads=8,
+        head_dim=128,
+        attention_type=AttentionType.GQA,
+    ),
 }
 
 
