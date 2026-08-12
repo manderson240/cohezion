@@ -282,8 +282,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
     (physics_state.dim_10_control + physics_state.dim_12_precipitation) / 2
 ) OR 0.0;
 
--- Index for vector similarity search (SurrealDB 2.0+)
--- DEFINE INDEX embedding_idx ON universe_nodes FIELDS embedding MTREE DIMENSION 768 DIST COSINE;
+-- Index for vector similarity search (SurrealDB 3.0 HNSW)
+DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DIMENSION 768 DIST COSINE;
 """
 
     async def is_alive(self) -> bool:
@@ -707,8 +707,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 query = """
                 SELECT *, vector::similarity::cosine(embedding, $vector) AS score
                 FROM universe_nodes
+                WHERE embedding <|$limit, 100|> $vector
                 ORDER BY score DESC
-                LIMIT $limit
                 """
                 results = await self._client.query(query, {"vector": vector, "limit": safe_limit})
                 results = results[0].get("result", []) if results else []
@@ -810,14 +810,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 # Validate relation_type to prevent injection (allow only alphanumeric + underscore)
                 if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", relation_type):
                     raise ValueError(f"Invalid relation type: {relation_type}")
+                # Standardize to SurrealDB 3.0 typed record syntax
+                from_rec = from_id if ":" in from_id else f"universe_nodes:{from_id}"
+                to_rec = to_id if ":" in to_id else f"universe_nodes:{to_id}"
                 result = await self._client.query(
-                    f"RELATE $from_id->{relation_type}->$to_id SET "
+                    f"RELATE type::record($from_rec) -> {relation_type} -> type::record($to_rec) SET "
                     "weight = $weight, "
                     "metadata = $metadata, "
                     "created_at = time::now()",
                     {
-                        "from_id": from_id,
-                        "to_id": to_id,
+                        "from_rec": from_rec,
+                        "to_rec": to_rec,
                         "weight": weight,
                         "metadata": metadata or {},
                     },
