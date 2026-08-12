@@ -1,6 +1,7 @@
 ---
 name: additive-dataclass-extension
-description: Use when adding a new field to an existing, heavily-instantiated dataclass. The pattern: add `Optional[T] = None`, never break existing call sites. Discovered in the WS2A card-aligned registry extension (PR #219) where 14 default ModelEntry records gained a `profile` field with zero test breakage.
+description: |
+  Use when adding a new field to an existing, heavily-instantiated dataclass. The pattern: add `Optional[T] = None`, never break existing call sites. Discovered in the WS2A card-aligned registry extension (PR #219) where 14 default ModelEntry records gained a `profile` field with zero test breakage.
 when_to_use: |
   - Adding a new field to a `@dataclass` that has ≥ 3 production call sites
   - The new field is "nice to have" but not required for correctness
@@ -28,7 +29,7 @@ worked_example: |
     3. The `Optional[...]` annotation is a string (forward ref) so
        the import isn't required
   Result: 0 regressions, 1 PR, no migration.
-anti_patterns:
+anti_patterns: |
   - Adding a required field as the last positional arg. Breaks every
     keyword-only call site that omits later args.
   - Wrapping the existing class in a subclass "to add a field". The
@@ -44,7 +45,7 @@ related_skills:
   - compound-build (the build ritual that surfaced this pattern)
   - cohezion-extend-availability (the recursive-forge sweep that found
     the 0-production-callers issue)
-verification:
+verification: |
   before_landing:
     - `grep -rn "class ModelEntry\|ModelEntry(" src/ --include="*.py" | grep -v test | wc -l`
       should match the call-site count. If < 3, just edit the signature.
@@ -65,3 +66,4 @@ honest_residuals:
 version: 1
 captured: 2026-06-04
 captured_from: cohezion-internal PR #219 (WS2A card-aligned registry)
+---
