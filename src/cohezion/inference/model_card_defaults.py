@@ -48,6 +48,7 @@ _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     # carry these in llamacpp_args already; this entry covers the request layer so a Bonsai
     # served without recipe args (e.g. Ternary-Bonsai-27B-PQ2_0) is not left on bare defaults.
     "bonsai": {"temperature": 0.7, "top_p": 0.9, "top_k": 40},
+    "muse-glimmer": {"temperature": 0.7, "top_p": 0.90, "top_k": 40, "min_p": 0.05},
 }
 
 
