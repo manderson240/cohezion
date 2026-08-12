@@ -151,13 +151,27 @@ def structural_invariants(rp) -> list[str]:
 
     # S4: a random projection that failed to mix dimensions would silently collapse the
     # 2x2 into one column and manufacture agreement between the two geometry contrasts.
+    #
+    # Two DISTINCT degeneracies, because the first check alone does not imply the second
+    # (flagged by an adversarial review lane, 2026-08-12 -- the original comment claimed
+    # "not mixing" while only testing for all-zero output):
+    #   S4a the projection must not IGNORE high coordinates, the way truncation does
+    #   S4b it must not funnel everything into ONE output dimension, which passes S4a
+    #       while still destroying the distances the arm depends on
     probe = [0.0] * 768
     probe[500] = 1.0  # a coordinate truncation throws away entirely
     out = project_rp(probe, rp)
     if max(abs(x) for x in out) < 1e-9:
-        fails.append("S4 random projection ignores high coordinates -- not mixing")
+        fails.append("S4a random projection ignores high coordinates -- not mixing")
     if len(out) != DIM:
         fails.append(f"S4 random projection returned dim {len(out)}, expected {DIM}")
+
+    dense = [random.Random(31).gauss(0, 1) for _ in range(768)]
+    proj = project_rp(dense, rp)
+    peak = max(abs(x) for x in proj) or 1e-12
+    live = sum(1 for x in proj if abs(x) > 0.01 * peak)
+    if live < DIM // 2:
+        fails.append(f"S4b random projection concentrates into {live}/{DIM} output dims")
 
     return fails
 

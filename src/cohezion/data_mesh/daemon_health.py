@@ -59,6 +59,9 @@ logger = logging.getLogger(__name__)
 
 _SURREAL_URL = "http://localhost:8001"
 _TABLE = "data_product_event"
+# The persisted event_type. Named so a consumer can select heartbeats specifically;
+# see make_bus_publisher for why this is not "CUSTOM".
+_EVENT_TYPE = "daemon_heartbeat"
 
 # 30% of attempts failing is already an outage worth surfacing. The real incident sat at
 # 99%, so this is not a tight threshold -- it is a floor beneath an obvious catastrophe.
@@ -251,12 +254,24 @@ def make_bus_publisher(
 
     ``timestamp`` MUST be a float -- consumers compare it numerically, and an ISO string
     produces an HTTP 200 that no consumer will ever match.
+
+    ``event_type`` is ``daemon_heartbeat``, NOT ``CUSTOM``. It was CUSTOM until 2026-08-12,
+    which was discovered by reading the bus rather than by any test: ~170 heartbeats from a
+    real run were sitting there indistinguishable from every other CUSTOM event, so the one
+    query a responder would actually write --
+    ``WHERE event_type = 'daemon_heartbeat'`` -- returned nothing. A health signal that
+    cannot be selected is not a health signal.
+
+    ``event_type`` is ``TYPE string`` in the schema (event_bridge.py), not an enum column,
+    so a distinct value is storable; ``read_since`` selects by timestamp, so replay is
+    unaffected. ``EventType.CUSTOM`` remains correct for the in-process EventBus enum --
+    this is the persisted string, which is a different namespace.
     """
 
     def _publish(payload: dict[str, Any]) -> bool:
         body = json.dumps(
             {
-                "event_type": "CUSTOM",
+                "event_type": _EVENT_TYPE,
                 "source": f"daemon:{payload.get('daemon', 'unknown')}",
                 "timestamp": time.time(),
                 "payload": json.dumps(payload),
