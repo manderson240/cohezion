@@ -4,6 +4,8 @@ from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.physics.tensor_calculus import VectorTensor
 from cohezion.agi.hyperbolic_world_model import HyperbolicWorldModel, WorldModelPrediction
 from cohezion.agi.experiential_learning import ExperientialLearningEngine, ExperienceRecord
+from cohezion.agi.recursive_learning import RecursiveLearningEngine, LearningCycleResult
+
 
 def test_hyperbolic_world_model_predict_and_imagine():
     wm = HyperbolicWorldModel(state_dim=2048)
@@ -20,14 +22,26 @@ def test_hyperbolic_world_model_predict_and_imagine():
     assert len(rollout) == 2
     assert rollout[1].horizon_step == 2
 
-def test_experiential_learning_engine():
+
+@pytest.mark.asyncio
+async def test_experiential_learning_engine():
     engine = ExperientialLearningEngine()
     p0 = PoincareManifoldND.project([0.01] * 2048, target_dim=2048)
     p1 = PoincareManifoldND.project([0.02] * 2048, target_dim=2048)
 
-    record = engine.process_experience("grid_bounds", p0, p1, reward=0.95)
+    record = await engine.process_experience("grid_bounds", p0, p1, reward=0.95)
     assert isinstance(record, ExperienceRecord)
     assert record.action_type == "grid_bounds"
     assert record.reward == 0.95
     assert record.verified is True
     assert record.proof_valid is True
+
+
+@pytest.mark.asyncio
+async def test_recursive_learning_engine():
+    engine = RecursiveLearningEngine()
+    res = await engine.execute_recursive_learning_cycle("Test trajectory summary")
+    assert isinstance(res, LearningCycleResult)
+    assert res.autoharness_score == 1.0
+    assert res.autocontext_dim == 2048
+    assert res.ctac_coherence >= 0.0

@@ -5,24 +5,28 @@ Implements recursive learning loops ("Cohezion improving Cohezion"):
   2. AutoContext: Continuous 2048D Poincaré context resolution
   3. Bleeding Edge Research: CTAC, ZKFV, Geodesic Neural ODEs
   4. Recursive Learning: Extracting retrospectives into SurrealDB & Vault
+  5. EventBus Cross-Session Synchronization: Broadcasting learning cycles
 """
 
 from __future__ import annotations
 
-import base64
-import json
+import asyncio
+import logging
 import time
-import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Sequence
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+from cohezion.contracts import PoincarePoint
+from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
+from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.physics.ctac_engine import CTACEngine
 from cohezion.reliability.oom_guard import OOMGuard
 
-SURREAL_URL = "http://localhost:8001/sql"
-SURREAL_AUTH = base64.b64encode(b"root:root").decode()
+logger = logging.getLogger(__name__)
+
 VAULT_LEARNINGS = Path.home() / "vaults" / "cohezion-vault" / "01-Learnings"
 
 
@@ -38,39 +42,31 @@ class LearningCycleResult:
 
 
 class RecursiveLearningEngine:
-    """Master Recursive Self-Improvement Engine."""
+    """Master Recursive Self-Improvement Engine with SurrealDB 3.0+ & EventBus integration."""
 
     def __init__(self) -> None:
         self.policy_engine = AutoHarnessPolicy()
         self.ctac_engine = CTACEngine(target_coherence=0.50)
+        self.surreal_client = get_surreal_client()
 
-    def surreal_upsert(self, record_id: str, data: dict) -> bool:
-        safe_id = "".join(c for c in record_id if c.isalnum() or c in ("_", "-"))
-        surql = f"UPSERT learning:{safe_id} CONTENT {json.dumps(data)};"
+    async def surreal_upsert(self, record_id: str, data: dict) -> bool:
+        """Persist learning cycle to SurrealDB using async SurrealClient."""
         try:
-            req = urllib.request.Request(
-                SURREAL_URL,
-                data=surql.encode(),
-                headers={
-                    "Authorization": f"Basic {SURREAL_AUTH}",
-                    "Surreal-NS": "cohezion",
-                    "Surreal-DB": "main",
-                    "Accept": "application/json",
-                    "Content-Type": "text/plain",
-                },
+            await self.surreal_client.query(
+                "UPSERT type::record('learning', $rec_id) CONTENT $data;",
+                {"rec_id": record_id, "data": data},
             )
-            with urllib.request.urlopen(req, timeout=5) as r:
-                res = json.loads(r.read().decode())
-                return bool(isinstance(res, list) and res and res[0].get("status") == "OK")
-        except Exception:
+            return True
+        except Exception as exc:
+            logger.warning("Failed async upsert for learning record %s: %s", record_id, exc)
             return False
 
-    def execute_recursive_learning_cycle(
+    async def execute_recursive_learning_cycle(
         self,
         trajectory_summary: str,
         trajectory_points: Sequence[PoincarePoint] | None = None,
     ) -> LearningCycleResult:
-        """Run a recursive self-improvement cycle."""
+        """Run an async recursive self-improvement cycle."""
         t0 = time.time()
         cycle_id = f"recursive_cycle_{int(t0)}"
 
@@ -97,9 +93,26 @@ class RecursiveLearningEngine:
             "is_hiho_stable": ctac_res.is_hiho_stable,
         }
 
-        surreal_ok = self.surreal_upsert(cycle_id, learning_data)
+        surreal_ok = await self.surreal_upsert(cycle_id, learning_data)
 
-        # Write to Vault safely
+        # 5. EventBus Cross-Session Synchronization
+        try:
+            event_bus = await get_event_bus()
+            await event_bus.publish(
+                Event(
+                    type=EventType.AGENT_COMPLETE,
+                    source="recursive_learning_engine",
+                    payload={
+                        "cycle_id": cycle_id,
+                        "ctac_coherence": ctac_res.coherence,
+                        "is_hiho_stable": ctac_res.is_hiho_stable,
+                    },
+                )
+            )
+        except Exception as exc:
+            logger.warning("Failed to publish recursive learning event: %s", exc)
+
+        # 6. Write to Vault safely
         vault_ok = False
         try:
             VAULT_LEARNINGS.mkdir(parents=True, exist_ok=True)
