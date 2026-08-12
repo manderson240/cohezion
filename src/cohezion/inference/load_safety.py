@@ -41,19 +41,37 @@ from pathlib import Path
 from typing import Any
 
 
-# Never plan to use the last 16 GB of unified memory (harness N3 discipline).
-RAM_FLOOR_GB: float = 16.0
+# Never plan to use the last 20 GB of unified memory (harness N3 discipline + SurrealDB buffer headroom).
+RAM_FLOOR_GB: float = 20.0
 
 # Catalog ``size`` understates real footprint: Mistral-Medium IQ4_XS reported
 # 42.3 GB but its weights are ~69 GB on disk (1.63x), and the catalog ignores
-# KV-cache/mmproj/GTT overhead. Trusting raw catalog size in the guard would
-# have APPROVED the exact model that froze the box. Inflate by this factor.
-SIZE_SAFETY_FACTOR: float = 1.7
+# KV-cache/mmproj/GTT/ZK-FV witness tensor overhead. Inflate by this calibrated factor.
+SIZE_SAFETY_FACTOR: float = 2.1
 
 # FLM/NPU models report no catalog size but are sub-8B by construction (the
 # fleet's largest is deepseek-r1-8b ~5 GB). Bound them so a missing size does
 # not false-refuse a safe NPU load, while still counting them against the floor.
 _FLM_NOMINAL_GB: float = 6.0
+
+
+def compute_kv_cache_gb(
+    n_layers: int = 80,
+    n_kv_heads: int = 8,
+    head_dim: int = 128,
+    context_length: int = 32768,
+    batch_size: int = 1,
+    bits_per_element: int = 16,
+) -> float:
+    """Calculate exact KV-Cache memory consumption in GB.
+
+    Formula:
+      bytes = 2 * n_layers * n_kv_heads * head_dim * context_length * batch_size * (bits / 8)
+    """
+    bytes_per_elem = bits_per_element / 8.0
+    total_bytes = 2 * n_layers * n_kv_heads * head_dim * context_length * batch_size * bytes_per_elem
+    return total_bytes / (1024.0 ** 3)
+
 
 
 def available_ram_gb() -> float:
