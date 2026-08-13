@@ -30,29 +30,25 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class SimpleEncoder(nn.Module):
-    """Encoder to match VAE checkpoint structure.
+if TORCH_AVAILABLE:
+    class SimpleEncoder(nn.Module):
+        """Encoder to match VAE checkpoint structure."""
 
-    Matches the sequential encoder: Linear(256->512) + ReLU + Linear(512->512)
-    """
+        def __init__(self, input_dim: int = 768, latent_dim: int = 256):
+            super().__init__()
+            self.fc1 = nn.Linear(input_dim, 512)
+            self.fc2 = nn.Linear(512, 384)
+            self.fc_mu = nn.Linear(384, latent_dim)
+            self.fc_var = nn.Linear(384, latent_dim)
+            self.relu = nn.ReLU()
 
-    def __init__(self, input_size: int = 256, hidden_size: int = 512):
-        """Initialize encoder.
-
-        Args:
-            input_size: Input embedding dimension (256)
-            hidden_size: Hidden layer dimension (512)
-        """
-        super().__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Encode input through layers."""
-        return self.encoder(x)
+        def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+            h = self.relu(self.fc1(x))
+            h = self.relu(self.fc2(h))
+            return self.fc_mu(h), self.fc_var(h)
+else:
+    class SimpleEncoder:  # type: ignore[no-redef]
+        pass
 
 
 class FlumeVAEEncoder:
