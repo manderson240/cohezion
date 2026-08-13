@@ -23,11 +23,11 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from cohezion.api._helpers import (
-    _compute_coherence,
-    _get_rl_policy,
-    _get_vae,
-    set_token_client,
+    compute_coherence as _compute_coherence,
+    get_rl_policy as _get_rl_policy,
+    get_vae as _get_vae,
 )
+from cohezion.api.routes.metrics import set_token_client
 from cohezion.api.routes.eigent import router as eigent_router
 from cohezion.api.routes.main import router as main_router
 from cohezion.api.telemetry import router as telemetry_router
