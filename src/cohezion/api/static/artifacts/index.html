@@ -55,12 +55,25 @@ fetch("manifest.json").then(function (r) { return r.json(); }).then(function (m)
   m.artifacts.slice().reverse().forEach(function (a) {
     var card = document.createElement("a");
     card.className = "card";
-    card.href = a.file;
-    var meta = [a.captured, a.session, a.event_id].filter(Boolean).join(" · ");
-    card.innerHTML =
-      "<h2>" + a.title + "</h2>" +
-      '<div class="meta mono">' + meta + "</div>" +
-      "<p>" + a.summary + "</p>";
+    // Manifest entries are user-appendable: allow only same-directory relative
+    // files (no scheme, no protocol-relative //, no path traversal) so a
+    // malicious entry cannot smuggle javascript:/data: URLs into the card.
+    var file = String(a.file || "");
+    if (/^(?![a-z][a-z0-9+.-]*:)(?!\/\/)[^\\]+$/i.test(file) && file.indexOf("..") === -1) {
+      card.href = file;
+    }
+    // textContent (not innerHTML) — titles/summaries come from the manifest
+    // and must render inert, never execute.
+    var h2 = document.createElement("h2");
+    h2.textContent = a.title || "";
+    var metaDiv = document.createElement("div");
+    metaDiv.className = "meta mono";
+    metaDiv.textContent = [a.captured, a.session, a.event_id].filter(Boolean).join(" · ");
+    var p = document.createElement("p");
+    p.textContent = a.summary || "";
+    card.appendChild(h2);
+    card.appendChild(metaDiv);
+    card.appendChild(p);
     root.appendChild(card);
   });
 }).catch(function () {
