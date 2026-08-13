@@ -319,3 +319,6 @@ conductor/
 .playwright-mcp/
 execution_traces/
 .mcp.json
+
+# Antigravity CLI tool state (absolute symlink broke uv build sdist, 2026-08-13)
+.antigravitycli/
