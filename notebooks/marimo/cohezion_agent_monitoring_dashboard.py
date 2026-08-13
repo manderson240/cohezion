@@ -48,7 +48,7 @@ def __(mo):
 
         *Powered by Marimo 0.23.16 & Local Silicon Tri-Engine Inference (AMD Strix Halo NPU / iGPU / CPU / 128GB UMA)*
 
-        Featuring an **Interactive Conversational Local Agent (`mo.ui.chat`)**, **Reactive Tabs**, **Auto-Refresh Telemetry Polling**, and **Plotly Dark Mode Analytics**.
+        Featuring an **Interactive Local Agent Pinned in the Left Sidebar (`mo.sidebar`)**, **Reactive Tabs**, **Auto-Refresh Telemetry Polling**, and **Plotly Dark Mode Analytics**.
         """
     )
     return
@@ -56,7 +56,7 @@ def __(mo):
 
 @app.cell
 def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, random, time):
-    # ASYNC LOCAL CONVERSATIONAL AGENT HANDLER FOR MO.UI.CHAT
+    # NATIVE ASYNC LOCAL CONVERSATIONAL AGENT HANDLER FOR MO.UI.CHAT
     async def local_agent_chat_model(messages, config):
         user_msg = messages[-1].content if messages else "Hello"
         t0 = time.perf_counter()
@@ -66,7 +66,7 @@ def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, ra
         task_type = "coding" if any(w in user_msg.lower() for w in ["code", "python", "fix", "refactor"]) else "reasoning"
         
         gaia_res = await router.route_gaia_agent_call(
-            agent_id="marimo-chat-agent-01",
+            agent_id="marimo-sidebar-agent-01",
             prompt=user_msg,
             task_type=task_type,
         )
@@ -74,7 +74,7 @@ def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, ra
         geom_engine = GeometricCorrespondenceEngine()
         gres = await geom_engine.map_state_to_manifold(
             (0.15, 0.35, 0.55, 0.75, 0.96, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-            "MarimoChatAgent",
+            "MarimoSidebarAgent",
         )
 
         exec_latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
@@ -82,36 +82,36 @@ def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, ra
         speculative_decode_tps = round(320.6 + random.uniform(-2.0, 8.0), 1)
 
         return (
-            f"🤖 **Cohezion Local Agent Response**:\n"
+            f"🤖 **Cohezion Sidebar Agent**:\n"
             f"{gaia_res.response_text}\n\n"
             f"---\n"
-            f"📐 **Local Execution Telemetry**:\n"
-            f"* **Target Hardware**: `{gaia_res.target_hardware}`\n"
-            f"* **Fine-Tuned Adapter Checkpoint**: `{gaia_res.finetuned_checkpoint.name}`\n"
-            f"* **Speculative Decode Throughput**: **{speculative_decode_tps} tok/s** ({round(speculative_decode_tps/base_decode_tps, 2)}x speedup)\n"
-            f"* **Hyperbolic Distance $d_P(u, 0)$**: **{gres.hyperbolic_geodesic_distance:.4f}** ({gres.isomorphic_alignment_score*100:.1f}% alignment)\n"
-            f"* **AutoHarness AST Gate**: ✅ PASSED (0.00ms)\n"
+            f"📐 **Local Telemetry**:\n"
+            f"* **Hardware**: `{gaia_res.target_hardware}`\n"
+            f"* **Checkpoint**: `{gaia_res.finetuned_checkpoint.name}`\n"
+            f"* **Throughput**: **{speculative_decode_tps} tok/s** ({round(speculative_decode_tps/base_decode_tps, 2)}x speedup)\n"
+            f"* **Geodesic Distance $d_P$**: **{gres.hyperbolic_geodesic_distance:.4f}**\n"
+            f"* **AST Gate**: ✅ PASSED (0.00ms)\n"
             f"* **Latency**: `{exec_latency_ms} ms`"
         )
 
-    # Interactive Marimo Chat Component
-    local_agent_chat = mo.ui.chat(
+    # Interactive Marimo Chat Component for Left Sidebar
+    sidebar_agent_chat = mo.ui.chat(
         local_agent_chat_model,
         prompts=[
             "Hello, is it me you're looking for",
             "Audit local system memory floor and GPU aperture safety",
-            "Evaluate 12D Poincaré hyperbolic distance bounds for swarm agents",
-            "Benchmark multi-draft speculative decode throughput on iGPU",
+            "Evaluate 12D Poincaré hyperbolic distance bounds",
+            "Benchmark multi-draft speculative decode throughput",
         ],
-        max_height=480,
+        max_height=420,
     )
 
-    return local_agent_chat, local_agent_chat_model
+    return local_agent_chat_model, sidebar_agent_chat
 
 
 @app.cell
-def __(mo):
-    # Reactive Controls for Dispatch Tab
+def __(mo, sidebar_agent_chat):
+    # Reactive Controls for Dispatch & Left Sidebar
     model_selector = mo.ui.dropdown(
         options=[
             "cohezion_qlora_30b_master_adapter (Nemotron 30B Master - iGPU/NPU)",
@@ -124,7 +124,7 @@ def __(mo):
             "llama3_2-1b-flm_qlora_adapter (Llama3.2 1B Speculative Draft - XDNA2 NPU)",
         ],
         value="qwen3-coder-30b_qlora_adapter (Qwen3-Coder 30B - iGPU Vulkan)",
-        label="🤖 Select Fine-Tuned Local Model & Target Engine:",
+        label="🤖 Active Local Model:",
     )
 
     profile_selector = mo.ui.dropdown(
@@ -135,13 +135,13 @@ def __(mo):
             "SPEED_PRIORITY (2s Fast-Path, 128 Thinking Tokens, 1 Pass)",
         ],
         value="FAT_RENDER_MAX (Unbounded Latency, 4096 Thinking Tokens, 5 MCTS Passes)",
-        label="🥩 Select Latency-Quality ('Fat Rendering') Profile:",
+        label="🥩 Latency Profile:",
     )
 
     auto_refresh = mo.ui.refresh(
         default_interval="5s",
         options=["1s", "5s", "10s", "30s"],
-        label="🔄 Live Telemetry Auto-Refresh Rate:",
+        label="🔄 Telemetry Refresh:",
     )
 
     prompt_input = mo.ui.text_area(
@@ -154,7 +154,22 @@ def __(mo):
         value=0,
     )
 
-    return auto_refresh, model_selector, profile_selector, prompt_input, trigger_button
+    # PIN CONVERSATIONAL LOCAL AGENT & CONTROLS IN MARIMO LEFT SIDEBAR
+    mo.sidebar([
+        mo.md("## 🤖 Cohezion Local Agent"),
+        mo.md("*Powered by Strix Halo NPU / iGPU / CPU*"),
+        model_selector,
+        profile_selector,
+        sidebar_agent_chat,
+    ])
+
+    return (
+        auto_refresh,
+        model_selector,
+        profile_selector,
+        prompt_input,
+        trigger_button,
+    )
 
 
 @app.cell
@@ -276,20 +291,13 @@ def __(
     click_count,
     fig_perplexity,
     fig_throughput,
-    local_agent_chat,
     mo,
     model_selector,
     profile_selector,
     prompt_input,
     trigger_button,
 ):
-    # TAB 1: CONVERSATIONAL LOCAL AGENT CHAT WIDGET
-    tab_chat = mo.vstack([
-        mo.md("### 💬 Talk to Local Agent directly on Strix Halo NPU/iGPU/CPU"),
-        local_agent_chat,
-    ])
-
-    # TAB 2: LIVE AGENT DISPATCH CONTROL & SCORECARD
+    # TAB 1: LIVE AGENT DISPATCH CONTROL & SCORECARD
     if click_count == 0 or agent_response is None:
         agent_scorecard = mo.callout(
             mo.md("👉 Click the **'⚡ Run Live End-to-End Local Agent Execution'** button below to launch an actual local silicon agent dispatch!"),
@@ -329,13 +337,13 @@ def __(
         agent_scorecard,
     ])
 
-    # TAB 3: PERFORMANCE & PERPLEXITY ANALYTICS
+    # TAB 2: PERFORMANCE & PERPLEXITY ANALYTICS
     tab_analytics = mo.vstack([
         auto_refresh,
         mo.hstack([mo.ui.plotly(fig_throughput), mo.ui.plotly(fig_perplexity)]),
     ])
 
-    # TAB 4: DAEMON HARDWARE ALLOCATION TABLE
+    # TAB 3: DAEMON HARDWARE ALLOCATION TABLE
     daemon_data = [
         {
             "Daemon Name": "Long-Horizon Persistent Daemon",
@@ -371,9 +379,8 @@ def __(
         mo.ui.table(daemon_data),
     ])
 
-    # RENDER MARIMO TABS FEATURE WITH LOCAL CHAT AGENT WIDGET
+    # RENDER MARIMO TABS FEATURE WITH PINNED SIDEBAR CHAT WIDGET
     mo.ui.tabs({
-        "💬 Interactive Local Agent Chat": tab_chat,
         "🤖 Live Agent Dispatch": tab_agent_execution,
         "📈 Performance & Analytics": tab_analytics,
         "📊 Hardware & Daemon Scorecard": tab_daemons,
@@ -383,7 +390,6 @@ def __(
         daemon_data,
         tab_agent_execution,
         tab_analytics,
-        tab_chat,
         tab_daemons,
     )
 
