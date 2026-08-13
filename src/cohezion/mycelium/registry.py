@@ -26,7 +26,12 @@ from cohezion.precipitation.events import (
 )
 
 
+import threading
+
 logger = logging.getLogger(__name__)
+
+_singleton: MyceliumRegistry | None = None
+_singleton_lock = threading.Lock()
 
 
 @dataclass
@@ -39,6 +44,8 @@ class MyceliumCluster:
     member_event_ids: list[str] = field(default_factory=list)
     member_agent_ids: set[str] = field(default_factory=set)
     member_universe_ids: set[str] = field(default_factory=set)
+    member_families: set[str] = field(default_factory=set)
+    member_tasks: set[str] = field(default_factory=set)
     mean_coherence: float = 0.0
     pattern_emitted: bool = False
 
@@ -92,6 +99,41 @@ class MyceliumRegistry:
         self.fabric_radius = fabric_radius
         self.pattern_size_threshold = pattern_size_threshold
         self.clusters: list[MyceliumCluster] = []
+        self._cluster_counter = 0
+
+    @classmethod
+    def get_instance(cls, bus: PrecipitationBus | None = None) -> MyceliumRegistry:
+        """Return the thread-safe module-level singleton."""
+        global _singleton
+        with _singleton_lock:
+            if _singleton is None:
+                _singleton = cls(bus=bus)
+            return _singleton
+
+    @classmethod
+    def reset_instance(cls) -> None:
+        """Reset the singleton instance (for test isolation)."""
+        global _singleton
+        with _singleton_lock:
+            _singleton = None
+
+    def query_patterns(self, family: str, task: str) -> list[dict]:
+        """Query matching pattern clusters.
+
+        Returns:
+            list[dict]: A list of matching clusters represented as dicts.
+        """
+        results = []
+        for cluster in self.clusters:
+            if family in cluster.member_families and task in cluster.member_tasks:
+                results.append({
+                    "family": family,
+                    "task": task,
+                    "size": cluster.size,
+                    "cluster_id": cluster.cluster_id,
+                    "mean_coherence": cluster.mean_coherence,
+                })
+        return results
 
     def subscribe(self) -> None:
         self.bus.subscribe(self._on_event, kind=PrecipitationKind.WITNESS_MARK)
@@ -102,6 +144,20 @@ class MyceliumRegistry:
         if event.agent_id:
             cluster.member_agent_ids.add(event.agent_id)
         cluster.member_universe_ids.add(event.universe_id)
+
+        # Extract family and task from event payload
+        model_id = event.payload.get("model_id")
+        if model_id:
+            try:
+                from cohezion.inference.default_profiles import get_profile
+                profile = get_profile(model_id)
+                if profile:
+                    cluster.member_families.add(profile.family)
+            except Exception:
+                pass
+        task = event.payload.get("task")
+        if task:
+            cluster.member_tasks.add(task)
 
         # Recompute mean coherence incrementally.
         n = cluster.size
@@ -134,11 +190,17 @@ class MyceliumRegistry:
                 )
                 return cluster
 
+        # Enforce FIFO limit of 500 clusters before adding new one
+        if len(self.clusters) >= 500:
+            removed = self.clusters.pop(0)
+            logger.info("MyceliumRegistry: evicted oldest cluster %s to maintain limit", removed.cluster_id)
+
         cluster = MyceliumCluster(
-            cluster_id=f"mycelium-{len(self.clusters)}",
+            cluster_id=f"mycelium-{self._cluster_counter}",
             centroid_twelve_d=dict(event.twelve_d),
             centroid_fabric=dict(event.fabric_breakdown),
         )
+        self._cluster_counter += 1
         self.clusters.append(cluster)
         return cluster
 

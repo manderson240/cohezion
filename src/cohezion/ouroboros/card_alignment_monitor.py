@@ -48,13 +48,19 @@ class CardAlignmentMonitor:
             ...
     """
 
-    def __init__(self, threshold: float = 0.5, window_size: int = 10) -> None:
+    def __init__(
+        self,
+        threshold: float = 0.5,
+        window_size: int = 10,
+        model_id: str | None = None,
+    ) -> None:
         if not 0.0 <= threshold <= 1.0:
             raise ValueError(f"threshold {threshold} must be in [0, 1]")
         if window_size < 1:
             raise ValueError(f"window_size {window_size} must be >= 1")
         self.threshold = threshold
         self.window_size = window_size
+        self.model_id = model_id
         self._window: deque[bool] = deque(maxlen=window_size)
         self._emitted_this_drop: bool = False
 
@@ -90,6 +96,7 @@ class CardAlignmentMonitor:
 
     def _emit_healing_event(self, rate: float) -> None:
         try:
+            import time
             from cohezion.precipitation import bus
 
             event = PrecipitationEvent(
@@ -112,16 +119,19 @@ class CardAlignmentMonitor:
                 },
                 payload={
                     "source": "ouroboros.card_alignment_monitor",
+                    "model_id": self.model_id,
                     "rate": rate,
                     "threshold": self.threshold,
                     "window_size": self.window_size,
+                    "timestamp": time.time(),
                 },
             )
             bus.emit(event)
             logger.info(
-                "CardAlignmentMonitor emitted HEALING_EVENT (rate=%.2f < %.2f)",
+                "CardAlignmentMonitor emitted HEALING_EVENT (rate=%.2f < %.2f) for model=%s",
                 rate,
                 self.threshold,
+                self.model_id,
             )
         except Exception as e:
             logger.debug("HEALING_EVENT emission failed (non-blocking): %s", e)
