@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import urllib.request
 from dataclasses import dataclass, field
 
@@ -110,6 +111,49 @@ def _catalog_sizes() -> dict[str, float]:
     return {m["id"]: float(m["size"]) for m in data if isinstance(m.get("size"), (int, float))}
 
 
+_PARAM_RE = re.compile(r"(?<![\d.])(\d+(?:\.\d+)?)\s*B(?![a-z])", re.IGNORECASE)
+
+# Floor bytes-per-parameter. The most aggressive quantisation anyone actually ships is ~1
+# bit/weight, i.e. 0.125 GB per billion params. Half that is used as the floor so a genuinely
+# exotic quant (e.g. Bonsai-27B-gguf-Q1_0 at 4.41GB = 0.163 GB/B) is never wrongly rejected.
+_MIN_GB_PER_B = 0.0625
+
+
+def params_b_from_name(model_id: str) -> float | None:
+    """Parameter count in billions, parsed from a model id. None when absent.
+
+    Two traps this handles:
+      * ``Gemma-4-26B`` — the leading 4 is a VERSION, not a size. Only ``<n>B`` counts.
+      * ``35B-A3B`` — 35B total, 3B ACTIVE. Residency is driven by TOTAL (all experts must
+        be reachable), so the MAXIMUM match is taken; reading A3B would under-gate by 10x.
+    """
+    matches = _PARAM_RE.findall(model_id or "")
+    if not matches:
+        return None
+    try:
+        return max(float(m) for m in matches)
+    except ValueError:
+        return None
+
+
+def implausible_size_gb(model_id: str, size_gb: float) -> bool:
+    """True when a reported size is too small to be real for that parameter count.
+
+    A WRONG size is more dangerous than a missing one: ``ensure_resident`` already refuses an
+    unknown size, but a wrong one looks like knowledge and passes the gate. Measured
+    2026-08-04: the live catalog reports ``Qwen3.6-35B-A3B-GGUF`` at 1.68 GB — a 35B cannot
+    be (its MTP sibling reports 22.10 GB). Trusting it would compute needed=2.68GB, admit,
+    and then attempt a ~20 GB load — the blind cold load N3 item 5 forbids.
+
+    Fails OPEN when the parameter count is unknown: there is no floor to compare against, and
+    the existing unknown-size path already covers genuinely missing metadata.
+    """
+    params = params_b_from_name(model_id)
+    if params is None:
+        return False
+    return size_gb < params * _MIN_GB_PER_B
+
+
 def _kv_overhead_gb(weights_gb: float) -> float:
     """Mirrors ram_scheduler._kv_overhead: KV cache at a bounded ctx_size."""
     return 3.0 if weights_gb > 10.0 else 1.0
@@ -155,15 +199,27 @@ def ensure_resident(
     min_free_gb: float = RAM_FLOOR_GB,
     protect: tuple[str, ...] = (),
     load_timeout: float = 300.0,
+    ledger: object | None = None,
 ) -> SwapResult:
     """Make ``model_id`` resident, evicting least-recently-used models if needed.
 
     Returns a :class:`SwapResult`; never raises. A refusal is a SUCCESSFUL outcome of the
     safety gate — callers should fall back to another lane rather than retry.
+
+    ``ledger`` (a :class:`~cohezion.inference.residency_ledger.ResidencyLedger`) is the
+    degraded-mode fallback. ``resident_models()`` reads ``/api/v1/health``, which stops
+    answering under exactly the memory pressure this gate exists to relieve; it then
+    returns ``[]``, which yields an empty VICTIM list and a permanently-refusing gate.
+    With a ledger supplied, eviction stays possible. The server still wins whenever it
+    answers — passing a ledger never overrides ground truth.
     """
     ctx_size = max(1024, min(int(ctx_size), MAX_CTX))
 
     loaded = resident_models()
+    if ledger is not None:
+        from cohezion.inference.residency_ledger import resident_view
+
+        loaded = resident_view(loaded, ledger)  # type: ignore[arg-type]
     names = {m.get("model_name", "") for m in loaded}
     if model_id in names:
         return SwapResult(True, model_id, "already resident", already_resident=True)
@@ -174,6 +230,16 @@ def ensure_resident(
         # Refusing a blind cold load is deliberate: an unknown footprint cannot be gated,
         # and an mmap load that "succeeds" still page-storms the box (N3 item 5).
         return SwapResult(False, model_id, "unknown weight size — refusing blind cold load")
+    if implausible_size_gb(model_id, weights):
+        # Bad metadata is worse than missing metadata: it passes the gate. Route it to the
+        # same refusal rather than sizing a load from a number that cannot be true.
+        params = params_b_from_name(model_id)
+        return SwapResult(
+            False,
+            model_id,
+            f"implausible catalog size {weights:.2f}GB for a {params:g}B model — "
+            f"refusing blind cold load (bad metadata defeats the weights-fit gate)",
+        )
     needed = weights + _kv_overhead_gb(weights)
 
     evicted: list[str] = []
@@ -185,11 +251,38 @@ def ensure_resident(
         and m.get("model_name") not in protect
         and m.get("model_name") != model_id
     ]
+    # Refuse BEFORE evicting when even a full teardown provably cannot fit the target.
+    # Eviction is destructive and slow; discovering the refusal afterwards costs the whole
+    # fleet for nothing. Observed live 2026-08-03: a 128B model evicted 4 models and was
+    # then refused by 0.1 GB.
+    #
+    # This is an OPTIMISATION, so it only fires when it can be CERTAIN. A victim whose size
+    # is unknown might still free real memory, so treating it as 0 would refuse loads that
+    # the eviction loop would have satisfied (caught by HS4). When any victim size is
+    # unknown, skip the shortcut and let the loop decide empirically.
+    victim_sizes = [sizes.get(m.get("model_name", "")) for m in victims]
+    if all(s is not None for s in victim_sizes):
+        reachable = free_gb() - min_free_gb + sum(s for s in victim_sizes if s is not None)
+        if reachable < needed:
+            return SwapResult(
+                False,
+                model_id,
+                # Preserves HS3's contract ("insufficient RAM" in the reason) while adding
+                # the new detail. Widening a message is non-destructive; rewriting a
+                # pre-existing test's assertion to match new wording would not be.
+                f"insufficient RAM — refused before evicting: need {needed:.1f}GB, "
+                f"max reachable {reachable:.1f}GB even after evicting {len(victims)}",
+            )
+
     while (free_gb() - min_free_gb) < needed and victims:
         victim = victims.pop(0)
         vid = victim.get("model_name", "")
         if unload(vid):
             evicted.append(vid)
+            if ledger is not None:
+                # Write-through on the VERIFIED postcondition, not on the status code —
+                # `unload` already refuses to report success for a phantom unload.
+                ledger.record_unload(vid)  # type: ignore[attr-defined]
         else:
             logger.debug("hotswap: could not evict %s; trying next", vid)
 
@@ -214,8 +307,31 @@ def ensure_resident(
 
     # Verify rather than trust the status code — a 200 that did not produce residency
     # would otherwise look identical to success.
-    if model_id not in {m.get("model_name", "") for m in resident_models()}:
+    #
+    # The verification reads the SAME endpoint that degrades under memory pressure, and an
+    # empty result is AMBIGUOUS: it means both "health answered, fleet is empty" and "health
+    # did not answer". Collapsing the two would report every successful load as failed while
+    # /health is down.
+    #
+    # Strictness is therefore the DEFAULT and is only relaxed when the caller passes a
+    # ledger — that is the explicit signal that it expects to operate through a degraded
+    # /health. Without one, an unobservable load stays a failure (HS7).
+    server_now = resident_models()
+    if model_id in {m.get("model_name", "") for m in server_now}:
+        if ledger is not None:
+            ledger.record_load(model_id, weights)  # type: ignore[attr-defined]
+        return SwapResult(True, model_id, f"loaded (ctx_size={ctx_size})", evicted=evicted)
+
+    if ledger is None or server_now:
+        # Either strict mode, or health DID answer and genuinely lacks the model.
         return SwapResult(
             False, model_id, "load returned 200 but model is not resident", evicted=evicted
         )
-    return SwapResult(True, model_id, f"loaded (ctx_size={ctx_size})", evicted=evicted)
+
+    ledger.record_load(model_id, weights)  # type: ignore[attr-defined]
+    return SwapResult(
+        True,
+        model_id,
+        f"loaded (ctx_size={ctx_size}) — residency UNVERIFIED: /health reported nothing",
+        evicted=evicted,
+    )

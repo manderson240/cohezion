@@ -685,6 +685,128 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - **Auto-test pollution:** `auto-generate-tests` CI job committed 998 scaffold files
   to main on every push. Disabled permanently.
 
+## Cross-Model Agreement Invariants (AG1–AG4, 2026-07-30)
+
+Closes the weak-gate hole named in `quarter-on-a-string-protocol.md`: `QualityGate` is
+LENGTH-based (`min_chars`/`require_nonempty`), so a confidently-wrong answer of adequate
+length passes every existing gate. `cohezion.inference.agreement` supplies a gate that can
+fail on CONTENT. Zero extra inference — the tiered cascade already produces the peer answers
+and discards them; only the resident embedder is called.
+
+### AG1: constants trace to a measured run, not to judgement
+- `AGREEMENT_THRESHOLD == 0.40` is the Youden-optimal split (J=0.256) on the n=140
+  calibrated experiment: `agreement >= 0.40` -> 65.3% accurate (n=72); below -> 39.7% (n=68).
+- The signal itself SURVIVED falsification (AUROC 0.646, CI [0.547, 0.733]) while
+  byte-level cross-family divergence was FALSIFIED (0.548, CI spans 0.5) and single-model
+  entropy scored at chance (0.496). Placebo behaved correctly (0.522).
+- Report: `~/vaults/cohezion-vault/reports/20260730-bcfd-cross-family-elicitation.md`.
+- **Changing the threshold is a claim about NEW data.** `test_threshold_traces_to_measured_run`
+  pins it so a silent retune fails CI.
+
+### AG2: `None` (unmeasurable) is never conflated with 0.0 (disagreed)
+- `semantic_agreement` returns `None` for <2 non-empty texts or an unavailable embedder.
+- `agreement_penalty(None) == 0.0` — an unmeasurable signal must NOT penalise output.
+- Conflating the two turns a transport fault into a confident quality judgement — the same
+  defect class that made an empty probe read as 0% accuracy during the source experiment.
+
+### AG3 (CONSUMPTION): `AutoDQA.evaluate` ACTS on the signal
+- `AutoDQA.evaluate(output, task_description, peer_outputs=None)`; when peers are supplied
+  and agreement is below threshold the verdict's SCORE is reduced by `agreement_penalty`.
+- Damping, not rejection: at AUROC 0.646 the signal is a triage hint. `MAX_PENALTY = 0.30`
+  is sized so maximal disagreement alone cannot flip an otherwise-good answer to rejected.
+- No peers supplied -> `semantic_agreement` is never called (no embedder traffic).
+
+### AG4: verified by MUTATION TESTING, not by passing
+- MUTANT-1 (penalty forced to 0.0) -> 2 tests fail, incl.
+  `test_disagreeing_peers_lower_the_score`.
+- MUTANT-2 (`None` treated as 0.0) -> 5 tests fail, incl.
+  `test_unmeasurable_agreement_never_penalises` and
+  `test_unmeasurable_agreement_does_not_change_verdict`.
+- The fail-open path has its OWN discriminating test asserting the verdict is IDENTICAL
+  (score AND reason) when the embedder is down — not merely "not rejected".
+- **Verification**: `uv run pytest tests/inference/test_agreement.py -q` -> 16 passed;
+  `tests/inference` -> 956 passed, 0 regressions. I6 (AutoDQA rejects sycophantic output)
+  re-verified green.
+
+## Model Residency Invariants (RS1–RS4, 2026-08-03)
+
+Closes a total dormancy: `hotswap.ensure_resident` gates model loads correctly (weights +
+KV overhead against `free_gb() - 16GB floor`, never evicts busy/protected, bounds every
+`ctx_size` per N3) and had **zero production callers** — both apparent ones were docstrings.
+Measured the same day: the box reached 113 GB used / 8 GB available with lemonade's
+`max_loaded_models` count-cap holding perfectly at 2, because the cap bounds COUNT and
+nothing bounded SIZE. A correct gate nothing invokes protects nothing.
+
+Per the meta-invariant, every entry below is a CONSUMPTION invariant paired with a test that
+FAILS when the mechanism is neutralised — not a `hasattr` existence check.
+
+### RS1 (CONSUMPTION): a datamesh event reaches the admission gate
+- `ResidencyService.handle_event({"event_type": "model_needed", "model_id": X})` must call
+  `hotswap.ensure_resident`, not merely accept the message.
+- **T2 discriminating**: `test_DISCRIMINATING_model_needed_event_invokes_the_gate` and
+  `test_DISCRIMINATING_refusal_is_published_not_swallowed`. **Mutation-verified**: an
+  accept-but-never-gate stub killed exactly those 2 while all 13 others — INCLUDING every
+  T1 structural test — passed. Structural checks cannot detect dormancy.
+- **Verification**: `uv run pytest tests/inference/test_residency_service.py -q` → 15 passed
+
+### RS2: the decision must be able to go BOTH ways
+- A gate that can only refuse is a quarter leak; one that can only admit is a placebo.
+  `test_DISCRIMINATING_oversized_model_is_refused` + `test_DISCRIMINATING_fitting_model_is_admitted`
+  pin both directions. `_emit` is best-effort — a dead bus must never turn an admission into
+  a failure (`test_publish_failure_does_not_break_the_decision`).
+
+### RS3: residency survives a degraded `/health`
+- Residency is observable ONLY via `/api/v1/health` — `/api/v1/models` reports `downloaded`
+  (disk, not RAM) and `/api/v1/system-info` reports neither. `/health` is also the endpoint
+  that stops answering under the pressure the gate relieves (measured HTTP 000 at 12s and
+  20s while `/models` answered in 3ms). `resident_models()` returns `[]` on failure → empty
+  VICTIM list → the gate can never evict → permanent refusal.
+- `resident_view(server_entries, ledger)` returns the SERVER whenever it answers and the
+  ledger only on an empty server view, so ground truth still wins. `reconcile()` is pure;
+  `adopt()` ignores an empty server list so a health failure is never read as "fleet empty".
+- Strictness is the DEFAULT: `ensure_resident` only downgrades post-load verification to
+  UNVERIFIED when a ledger is passed (explicit opt-in). HS7 is preserved for ledger-less callers.
+- **Mutation-verified**: disabling the fallback killed exactly 2 discriminating tests, 19 unaffected.
+- **Verification**: `uv run pytest tests/inference/test_residency_ledger.py -q` → 23 passed
+
+### RS4: refuse BEFORE evicting when a full teardown provably cannot fit
+- Eviction is destructive. Observed live: a 128B model evicted 4 models and was THEN refused
+  by 0.1 GB. The pre-eviction guard fires ONLY when every victim size is known — an unknown
+  size might still free real memory, and treating it as 0 refuses loads the eviction loop
+  would have satisfied (caught by pre-existing HS4). An optimisation must be certain.
+- The refusal reason retains the substring `insufficient RAM` so HS3's contract holds.
+- **Verification**: `uv run pytest tests/inference/test_hotswap.py tests/inference/test_residency_ledger.py tests/inference/test_residency_service.py -q` → 47 passed
+
+### RS7: an implausible catalog size must not defeat the weights-fit gate
+- The live router reports `Qwen3.6-35B-A3B-GGUF` at **1.68 GB**. A 35B cannot be — its MTP
+  sibling reports 22.10 GB. `_catalog_sizes()` trusted it, so `ensure_resident` computed
+  `needed = 2.68 GB`, PASSED, and would then attempt a ~20 GB load. **A wrong size is more
+  dangerous than a missing one** — `ensure_resident` already refuses an unknown size, but a
+  wrong one looks like knowledge.
+- `params_b_from_name` takes the MAXIMUM `<n>B` match: `35B-A3B` is 35B total / 3B active, and
+  residency is driven by TOTAL (all experts must be reachable) — reading `A3B` under-gates 10x.
+  `Gemma-4-26B` → 26, not 4 (leading digit is a version).
+- `implausible_size_gb` fails OPEN when no parameter count is present. Floor is
+  `_MIN_GB_PER_B = 0.0625` — half the most aggressive shipped quant, so a genuine
+  `Bonsai-27B-gguf-Q1_0` (4.41 GB = 0.163 GB/B) is never wrongly rejected.
+- **Mutation-verified**: disabling the guard killed exactly the 3 discriminating tests while
+  BOTH positive controls survived.
+- **Verification**: `uv run pytest tests/inference/test_catalog_size_plausibility.py -q` → 15 passed
+
+### RS8 (CONSUMPTION): the ambient residency tick runs inside the EXISTING pressure loop
+- `PressureDriver.__init__(on_tick=...)`; `run()` invokes it once per iteration after the
+  pressure sample. `PressureDriver` is pressure-driven (CRITICAL rising edge) and has no
+  demand-driven half — RS6 `tick()` supplies it. `hotswap`'s docstring already named the gap.
+- **A second timer is forbidden**: two independent eviction loops over one fleet can race,
+  both reading residency and both choosing an LRU victim.
+- Callback failures are isolated — they neither kill the loop nor suppress the pre-existing
+  pressure sample (`test_callback_failure_does_not_suppress_the_pressure_sample`).
+- **T2 discriminating**: a driver that ACCEPTS `on_tick` and never calls it passes both
+  structural tests and fails `test_DISCRIMINATING_on_tick_is_invoked_once_per_loop_iteration`.
+- **LIVE**: `PressureDriver(on_tick=svc.tick).run(...)` → 2 ticks, residency fired 2x,
+  `drift_repaired` True then False — it converged.
+- **Verification**: `uv run pytest tests/platform/test_pressure_driver_residency.py -q` → 6 passed
+
 ## Stealthskater Bridge Invariants (2026-05-16)
 
 ### S1: Physics bridges must import without error

@@ -139,6 +139,7 @@ class EventConsumer:
         summarize_fn: Callable[[str, str], str] | None = None,
         file_work_item_fn: Callable[[str, str, str], str] | None = None,
         land_review_fn: Callable[..., Any] | None = None,
+        residency_fn: Callable[[dict[str, Any]], Any] | None = None,
     ) -> None:
         if not re.match(r"^[A-Za-z0-9_.\-]+$", consumer_id):
             raise ValueError(f"unsafe consumer_id: {consumer_id!r}")
@@ -148,6 +149,9 @@ class EventConsumer:
         self._file_work_item = file_work_item_fn or _default_file_work_item
         self._land_review = (
             land_review_fn  # lazy default (see _handle_land_ready) — avoids import at module load
+        )
+        self._residency = (
+            residency_fn  # lazy default (see _handle_residency) — avoids import at module load
         )
         self._ensure_claim_field()
 
@@ -187,6 +191,8 @@ class EventConsumer:
         payload = str(event.get("payload", ""))
         if etype == "land_ready":
             return self._handle_land_ready(payload, str(event.get("source", "datamesh")))
+        if etype in ("model_needed", "model_idle"):
+            return self._handle_residency(event)
         if etype in ACTIONABLE_EVENT_TYPES:
             summary = self._summarize(etype, payload)
             item_id = self._file_work_item(
@@ -196,6 +202,44 @@ class EventConsumer:
             )
             return {"action": "work-item", "work_item": item_id}
         return {"action": "tally"}
+
+    def _handle_residency(self, event: dict[str, Any]) -> dict[str, Any]:
+        """Route a model residency event to the ResidencyService admission gate.
+
+        Without this branch the service is DORMANT: it has an event entry point that
+        nothing dispatches to, which is the same defect class it was built to fix.
+        ``model_id`` is NOT a column on ``data_product_event`` — SurrealDB silently rejects a
+        row carrying it (verified 2026-08-03: the CREATE returned status OK and stored
+        nothing). Real bus events therefore carry it inside ``payload`` JSON, and reading only
+        the top level would make this handler inert in production while passing every test.
+        So: top-level first (direct in-process calls), then payload (the real bus).
+
+        Fail-open by design: a residency error must not stall the drain for every other
+        event type. The gate refusing is a NORMAL outcome, not an error.
+        """
+        residency = self._residency
+        if residency is None:  # lazy default — keep hotswap's HTTP calls out of module import
+            from cohezion.inference.residency_service import ResidencyService
+
+            residency = ResidencyService().handle_event
+
+        event = dict(event)
+        if not event.get("model_id"):
+            raw = str(event.get("payload", ""))
+            try:
+                data = json.loads(raw) if raw.strip().startswith("{") else {}
+            except Exception:
+                data = {}
+            if data.get("model_id"):
+                event["model_id"] = data["model_id"]
+                event.setdefault("ctx_size", data.get("ctx_size"))
+        try:
+            result = residency(event)
+        except Exception as exc:  # a residency failure must not stall the whole drain
+            logger.warning("residency routing failed (isolated): %s", exc)
+            return {"action": "residency-error", "error": str(exc)[:200]}
+        ok = getattr(result, "ok", result)
+        return {"action": "residency", "model_id": event.get("model_id"), "ok": bool(ok)}
 
     def _handle_land_ready(self, payload: str, source: str) -> dict[str, Any]:
         """Route a land_ready event to the independent CI/CD runner, then file a kanban item.
