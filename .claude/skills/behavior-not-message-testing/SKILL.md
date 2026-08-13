@@ -30,11 +30,11 @@ worked_example: |
         RecipeGuard.assert_aligned(bad_params)
   # The test breaks only if the EXCEPTION TYPE changes. That's the
   # contract the caller actually depends on.
-anti_patterns:
-  - '`assert "..." in str(exc.value)` — couples test to message wording'
-  - '`assert exc.value.args[0] == "..."` — couples to format string'
-  - '`assert isinstance(exc.value, SomeError) and "key" in str(exc.value)`
-    — the isinstance part is fine; the key check is a smell'
+anti_patterns: |
+  - `assert "..." in str(exc.value)` — couples test to message wording
+  - `assert exc.value.args[0] == "..."` — couples to format string
+  - `assert isinstance(exc.value, SomeError) and "key" in str(exc.value)`
+    — the isinstance part is fine; the key check is a smell
   - Snapshot testing the message with `repr()` — same coupling
   - Adding a `match=` regex to `pytest.raises(match=...)` for the sake
     of it. The match arg IS appropriate when the message is the API;
@@ -49,14 +49,14 @@ related_skills:
     about XPASS marking)
   - prompt-injection-guard (when message checking IS the right thing
     — guarding against injection in error message content)
-verification:
+verification: |
   before_landing:
-    - '`grep -rn "in str(.*exc\|in str(.*err\|exc.value.args" tests/`
-      should return ZERO matches'
-    - 'Or: `grep -rn "match=" tests/` — `pytest.raises(match=...)` is
-      allowed only with a comment explaining why the message IS the contract'
+    - `grep -rn "in str(.*exc\|in str(.*err\|exc.value.args" tests/`
+      should return ZERO matches
+    - Or: `grep -rn "match=" tests/` — `pytest.raises(match=...)` is
+      allowed only with a comment explaining why the message IS the contract
   after_landing:
-    - '`pytest.raises(...)` calls have NO message assertion after them'
+    - `pytest.raises(...)` calls have NO message assertion after them
     - The exception TYPE is the only thing under test
 honest_residuals:
   - Some teams use message-matching as a "smoke test" that the
