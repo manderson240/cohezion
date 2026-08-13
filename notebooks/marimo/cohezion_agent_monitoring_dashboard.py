@@ -1,11 +1,11 @@
 import marimo
 
-__generated_with = "0.1.0"
+__generated_with = "0.23.14"
 app = marimo.App(width="full")
 
 
 @app.cell
-def __():
+def _():
     import asyncio
     import random
     import time
@@ -24,39 +24,31 @@ def __():
     from cohezion.integrations.gaia_local_router import GAIALocalRouter
 
     return (
-        AdaptiveLatencyQualityEngine,
         AutoHarnessPolicy,
         GAIALocalRouter,
         GeometricCorrespondenceEngine,
-        LatencyQualityProfile,
-        LocalAgentPerspectiveBridge,
-        PoincareManifoldVisualizer,
-        asyncio,
         go,
         mo,
-        np,
         random,
         time,
     )
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        # 🧠 Cohezion End-to-End Reactive Agent Monitoring Dashboard
+def _(mo):
+    mo.md(r"""
+    # 🧠 Cohezion End-to-End Reactive Agent Monitoring Dashboard
 
-        *Powered by Local Silicon Inference (AMD Strix Halo NPU / iGPU / Ryzen 9 CPU / 128GB UMA)*
+    *Powered by Local Silicon Inference (AMD Strix Halo NPU / iGPU / Ryzen 9 CPU / 128GB UMA)*
 
-        This reactive Marimo notebook connects live end-to-end to Cohezion's local fine-tuned QLoRA adapters,
-        GAIA Local Router, AutoHarness AST bytecode verifiers, and 2048D Poincaré hyperbolic manifold across all 3 compute engines.
-        """
-    )
+    This reactive Marimo notebook connects live end-to-end to Cohezion's local fine-tuned QLoRA adapters,
+    GAIA Local Router, AutoHarness AST bytecode verifiers, and 2048D Poincaré hyperbolic manifold across all 3 compute engines.
+    """)
     return
 
 
 @app.cell
-def __(mo):
+def _(mo):
     # Reactive Interactive Controls
     model_selector = mo.ui.dropdown(
         options=[
@@ -93,12 +85,11 @@ def __(mo):
         label="⚡ Run Live End-to-End Local Agent Execution",
         value=0,
     )
-
     return model_selector, profile_selector, prompt_input, trigger_button
 
 
 @app.cell
-def __(model_selector, profile_selector, prompt_input, trigger_button, mo):
+def _(mo, model_selector, profile_selector, prompt_input, trigger_button):
     mo.vstack([
         mo.md("### 🎛️ Agent Execution Parameters"),
         model_selector,
@@ -110,12 +101,10 @@ def __(model_selector, profile_selector, prompt_input, trigger_button, mo):
 
 
 @app.cell
-async def __(
-    AdaptiveLatencyQualityEngine,
+async def _(
     AutoHarnessPolicy,
     GAIALocalRouter,
     GeometricCorrespondenceEngine,
-    LatencyQualityProfile,
     model_selector,
     profile_selector,
     prompt_input,
@@ -192,12 +181,11 @@ async def __(
                 f"Hyperbolic Distance d_P = {gres.hyperbolic_geodesic_distance:.4f}."
             ),
         }
-
     return agent_response, click_count
 
 
 @app.cell
-def __(agent_response, click_count, mo):
+def _(agent_response, click_count, mo):
     if click_count == 0 or agent_response is None:
         display_output = mo.callout(
             mo.md("👉 Click the **'⚡ Run Live End-to-End Local Agent Execution'** button above to launch an actual local silicon agent dispatch!"),
@@ -229,11 +217,11 @@ def __(agent_response, click_count, mo):
         )
 
     display_output
-    return (display_output,)
+    return
 
 
 @app.cell
-def __(go, mo):
+def _(go, mo):
     # Reactive Plotly Performance Charts (NPU vs iGPU vs CPU)
     fig_throughput = go.Figure()
     fig_throughput.add_trace(
@@ -269,12 +257,12 @@ def __(go, mo):
         height=380,
     )
 
-    mo.hstack([mo.plotly(fig_throughput), mo.plotly(fig_perplexity)])
-    return fig_perplexity, fig_throughput
+    mo.hstack([mo.ui.plotly(fig_throughput), mo.ui.plotly(fig_perplexity)])
+    return
 
 
 @app.cell
-def __(mo):
+def _(mo):
     # Interactive Table of Daemon Improvements & Metrics
     daemon_data = [
         {
@@ -309,7 +297,12 @@ def __(mo):
 
     mo.md("### 📊 Active Production Daemons & Tri-Engine Hardware Allocation Scorecard")
     mo.table(daemon_data)
-    return (daemon_data,)
+    return
+
+
+@app.cell
+def _():
+    return
 
 
 if __name__ == "__main__":

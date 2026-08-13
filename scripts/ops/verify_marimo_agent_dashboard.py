@@ -37,7 +37,7 @@ def verify_marimo_dashboard_structure() -> bool:
         "mo.ui.dropdown",
         "mo.ui.text_area",
         "mo.ui.button",
-        "mo.plotly",
+        "mo.ui.plotly",
         "mo.table",
         "AdaptiveLatencyQualityEngine",
         "PoincareManifoldVisualizer",
