@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] — 2026-08-13
+
+### Added — Landing train (10 branches reviewed and merged)
+- Model residency service: `inference/residency_ledger.py` + residency-aware hotswap and
+  event-consumer wiring (`feat/model-residency-service`)
+- Semantic-agreement quality signal: `inference/agreement.py` (Youden-calibrated threshold
+  0.40) now CONSUMED by `AutoDQA.evaluate(peer_outputs=...)` — peer disagreement lowers the
+  verdict score; the producer-without-consumer gap the branch shipped is closed
+- FLUME sparse-workspace readout (`flume/workspace_readout.py`) + executor/journey wiring
+- Work-queue durability: file locking, atomic writes, and notes preservation for the
+  actioner work queue (`fix/work-queue-silent-data-loss`)
+- Runnable quickstart (`examples/quickstart.py`) + ManifoldEnv info-dict docs (GH#203/204)
+- Inference gauntlet + lemonade recipe hardening (`worktree-spicy-inventing-goblet`)
+- Mycelium pattern-query + SurrealDB healing-query integration in the researcher
+  verification lane (`agent-1784138792`)
+
+### Fixed
+- `cohezion.api` package was UNIMPORTABLE on every lineage (local main, origin/main): the
+  Wave-2B `_helpers.py` extraction renamed functions to public names while `__init__` still
+  imported underscore names, and `set_token_client` lives in `routes/metrics.py`. Latent
+  because no CI test imported `cohezion.api`; exposed by the new work-queue tests
+- Stored XSS in the artifacts gallery (`static/artifacts/index.html`): manifest entries are
+  user-appendable, but title/summary rendered via `innerHTML` and `file` accepted
+  `javascript:` URLs. Now textContent rendering + relative-path-only href guard
+  (found by the ollama-cloud adversarial review lane)
+- `research_products._emit_data_product_event`: required `timestamp` float was omitted
+  (every write rejected) and HTTP-200 was read as success while SurrealDB reported the
+  statement error in the body (`fix/silent-write-defects`)
+- Skill frontmatter validity across `.claude/.agents/.pi` skill trees + a rewritten
+  `validate_skill_schema.py` that can actually fail
+
+### Changed
+- `.claude/rules/harness.md` corrected: Python floor is 3.13 (torch+ROCm caps at 3.13;
+  the stale "3.11 required" note was wrong)
+- Ruff: 13 files reformatted, 16 auto-fixes; lint debt held at baseline parity
+
 ## [1.2.1] — 2026-08-01
 
 ### Fixed — Coherence sweep + adversarial review
