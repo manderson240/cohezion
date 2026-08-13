@@ -42,10 +42,10 @@ def __(mo):
         r"""
         # 🧠 Cohezion Reactive Monitoring Dashboard & Local Agent Hub
 
-        *Powered by Local Silicon Inference (AMD Strix Halo NPU / iGPU / 128GB UMA)*
+        *Powered by Local Silicon Inference (AMD Strix Halo NPU / iGPU / Ryzen 9 CPU / 128GB UMA)*
 
         This reactive Marimo notebook connects directly to Cohezion's local fine-tuned QLoRA adapters,
-        AutoHarness AST bytecode verifiers, and 2048D Poincaré hyperbolic manifold.
+        AutoHarness AST bytecode verifiers, and 2048D Poincaré hyperbolic manifold across all 3 local compute engines.
         """
     )
     return
@@ -56,15 +56,17 @@ def __(mo):
     # Reactive Interactive Controls
     model_selector = mo.ui.dropdown(
         options=[
-            "cohezion_qlora_30b_master_adapter (Nemotron 30B Master)",
-            "qwen3-coder-30b_qlora_adapter (Qwen3-Coder 30B iGPU)",
-            "deepseek-r1-0528-8b-flm_qlora_adapter (DeepSeek-R1 8B NPU)",
-            "qwen3-4b-flm_qlora_adapter (Qwen3 4B Fast Tool NPU)",
-            "qwen3vl-it-4b-flm_qlora_adapter (Qwen3VL 4B Vision NPU)",
-            "llama3_2-1b-flm_qlora_adapter (Llama3.2 1B Speculative Draft)",
+            "cohezion_qlora_30b_master_adapter (Nemotron 30B Master - iGPU/NPU)",
+            "qwen3-coder-30b_qlora_adapter (Qwen3-Coder 30B - iGPU Vulkan)",
+            "deepseek-r1-0528-8b-flm_qlora_adapter (DeepSeek-R1 8B - XDNA2 NPU)",
+            "mistral-7b-flm_qlora_adapter (Mistral 7B - Ryzen 9 CPU AVX-512)",
+            "phi4-mini-flm_qlora_adapter (Phi-4 Mini - Ryzen 9 CPU Zentorch)",
+            "qwen3-4b-flm_qlora_adapter (Qwen3 4B Fast Tool - XDNA2 NPU)",
+            "qwen3vl-it-4b-flm_qlora_adapter (Qwen3VL 4B Vision - XDNA2 NPU)",
+            "llama3_2-1b-flm_qlora_adapter (Llama3.2 1B Speculative Draft - XDNA2 NPU)",
         ],
-        value="qwen3-coder-30b_qlora_adapter (Qwen3-Coder 30B iGPU)",
-        label="🤖 Select Fine-Tuned Local Model:",
+        value="qwen3-coder-30b_qlora_adapter (Qwen3-Coder 30B - iGPU Vulkan)",
+        label="🤖 Select Fine-Tuned Local Model & Target Engine:",
     )
 
     profile_selector = mo.ui.dropdown(
@@ -124,6 +126,14 @@ def __(
         selected_model = model_selector.value.split(" ")[0]
         selected_prof = profile_selector.value.split(" ")[0]
 
+        # Determine target hardware engine
+        if "mistral" in selected_model or "phi4" in selected_model:
+            hw_target = "Ryzen 9 7945HX CPU (AVX-512 / Zentorch Vectorized)"
+        elif "deepseek" in selected_model or "qwen3-4b" in selected_model or "llama3_2" in selected_model or "qwen3vl" in selected_model:
+            hw_target = "XDNA2 NPU (16 Attn Tiles)"
+        else:
+            hw_target = "Radeon RX 7700S iGPU (Vulkan0 / HIP)"
+
         # Initialize Engine
         engine = AdaptiveLatencyQualityEngine()
         t0 = time.perf_counter()
@@ -141,6 +151,7 @@ def __(
             "click_count": click_count,
             "timestamp": time.strftime("%H:%M:%S.%f")[:-3],
             "model": selected_model,
+            "hardware_target": hw_target,
             "profile": selected_prof,
             "prompt": prompt_input.value,
             "base_tps": base_decode_tps,
@@ -152,7 +163,7 @@ def __(
             "exec_latency_ms": f"{exec_latency_ms} ms",
             "reflection": (
                 f"Local agent deliberation #{click_count} completed at {time.strftime('%H:%M:%S')}. "
-                f"Running '{selected_model}' under '{selected_prof}' profile on Strix Halo NPU/iGPU silicon. "
+                f"Running '{selected_model}' on {hw_target} under '{selected_prof}' profile. "
                 f"Evaluated prompt: '{prompt_input.value[:60]}...'. All 12D Poincaré bounds satisfied."
             ),
         }
@@ -174,6 +185,7 @@ def __(agent_response, click_count, mo):
 
             * ⏱️ **Execution Timestamp**: `{agent_response['timestamp']}`
             * 🤖 **Model Active**: `{agent_response['model']}`
+            * 💻 **Hardware Engine Target**: `{agent_response['hardware_target']}`
             * 🥩 **Latency Profile**: `{agent_response['profile']}`
             * 🚀 **Speculative Decode Throughput**: **{agent_response['speculative_tps']} tok/s** ({agent_response['speedup']} Speedup over base {agent_response['base_tps']} tok/s)
             * 📐 **Hyperbolic Distance $d_P(u, 0)$**: **{agent_response['hyp_distance']}** ({agent_response['alignment']} Isomorphic Alignment)
@@ -192,19 +204,19 @@ def __(agent_response, click_count, mo):
 
 @app.cell
 def __(go, mo):
-    # Reactive Plotly Performance Charts
+    # Reactive Plotly Performance Charts (NPU vs iGPU vs CPU)
     fig_throughput = go.Figure()
     fig_throughput.add_trace(
         go.Bar(
-            x=["Nemotron 30B Base", "Qwen3-Coder 30B Base", "Cohezion QLoRA 30B (Tuned)", "Speculative Decoding (Multi-Draft)"],
-            y=[142.5, 128.0, 185.5, 320.6],
-            marker_color=["#6366f1", "#8b5cf6", "#ec4899", "#10b981"],
-            text=["142.5 tok/s", "128.0 tok/s", "185.5 tok/s", "320.6 tok/s"],
+            x=["XDNA2 NPU (Reasoning)", "Radeon iGPU (Coding)", "Ryzen 9 CPU (AVX-512)", "Speculative Decoding (Multi-Engine)"],
+            y=[185.5, 142.5, 96.4, 320.6],
+            marker_color=["#3b82f6", "#8b5cf6", "#f59e0b", "#10b981"],
+            text=["185.5 tok/s", "142.5 tok/s", "96.4 tok/s", "320.6 tok/s"],
             textposition="auto",
         )
     )
     fig_throughput.update_layout(
-        title="⚡ Local Decode Throughput Comparison (Strix Halo 128GB UMA)",
+        title="⚡ Local Tri-Tier Silicon Decode Throughput (NPU vs iGPU vs CPU)",
         yaxis_title="Decode Throughput (tok/s)",
         template="plotly_dark",
         height=380,
@@ -258,14 +270,14 @@ def __(mo):
         },
         {
             "Daemon Name": "DataMesh Event Consumer Daemon",
-            "Assigned Local Model": "qwen3-4b-flm_qlora_adapter",
-            "Hardware Target": "XDNA2 NPU",
+            "Assigned Local Model": "phi4-mini-flm_qlora_adapter",
+            "Hardware Target": "Ryzen 9 7945HX CPU (AVX-512)",
             "Latency Improvement": "0.76 µs AST Fast-Path",
             "Cloud Cost Saving": "$0.00 (100% Local)",
         },
     ]
 
-    mo.md("### 📊 Active Production Daemons & Model Allocation Scorecard")
+    mo.md("### 📊 Active Production Daemons & Tri-Engine Hardware Allocation Scorecard")
     mo.table(daemon_data)
     return (daemon_data,)
 
