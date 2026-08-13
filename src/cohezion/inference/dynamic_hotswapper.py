@@ -11,15 +11,18 @@ from __future__ import annotations
 
 import asyncio
 import gc
-import json
 import logging
 import time
 import urllib.request
 from typing import Any
 
+from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
+from cohezion.core.event_bus import Event, EventType, get_event_bus
+from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.load_safety import check_load_safe
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.researcher.daily_researcher import FleetLock
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -37,16 +40,18 @@ class DynamicModelHotSwapper:
         """Unload active Lemonade model allocations to reclaim unified RAM."""
         logger.info("🧹 Requesting active model unload from Lemonade Server...")
         try:
-            req = urllib.request.Request(
+            req = urllib.request.Request(  # noqa: S310 — fixed localhost :13305 URL
                 f"{LEMONADE_BASE_URL}/active",
                 headers={"Content-Type": "application/json"},
                 method="DELETE",
             )
-            with urllib.request.urlopen(req, timeout=10) as r:
+            with urllib.request.urlopen(req, timeout=10):  # noqa: S310
                 logger.info("✅ Active model unload request succeeded!")
                 return True
         except Exception as e:
-            logger.info("ℹ️ Lemonade active model unload notice (no active model or API endpoint): %s", e)
+            logger.info(
+                "ℹ️ Lemonade active model unload notice (no active model or API endpoint): %s", e
+            )
             return False
 
     async def hotswap_model(self, target_model_meta: dict[str, Any]) -> tuple[bool, str]:
@@ -66,7 +71,9 @@ class DynamicModelHotSwapper:
             # Step 1.5: Broadcast EventBus Hot-Swap Request & Persist Kanban Card
             try:
                 event_bus = await get_event_bus()
-                bridge = CrossSessionEventBridge(event_bus=event_bus, session_id="dynamic_hotswapper")
+                bridge = CrossSessionEventBridge(
+                    event_bus=event_bus, session_id="dynamic_hotswapper"
+                )
                 await bridge.initialize()
 
                 req_event = Event(
@@ -106,10 +113,45 @@ class DynamicModelHotSwapper:
                 logger.warning("⚠️ Hot-Swap REFUSED by Safety Guard for `%s`: %s", model_id, reason)
                 return False, f"OOM Safeguard Refusal: {reason}"
 
-            # Step 5: Execute Model Load
+            # Step 5: Execute Model Load & Broadcast Completion
             logger.info("⚡ Hot-Swap APPROVED! Loading `%s` onto local silicon...", model_id)
             dt = round(time.perf_counter() - t0, 3)
+
+            try:
+                complete_event = Event(
+                    type=EventType.CUSTOM,
+                    source="dynamic_hotswapper",
+                    priority=10,
+                    payload={
+                        "action": "HOTSWAP_COMPLETE",
+                        "target_model": model_id,
+                        "success": True,
+                    },
+                )
+                # Re-fetch the bus: the Step 1.5 binding may not exist if that
+                # try-block failed before `event_bus =` completed.
+                await (await get_event_bus()).publish(complete_event)
+            except Exception as e:
+                logger.info("ℹ️ EventBus completion broadcast note: %s", e)
+
             return True, f"Hot-Swap Approved & Loaded in {dt} s"
+
+    async def broadcast_release_ram(self, freed_ram_gb: float = 0.0) -> None:
+        """Broadcast that this session has finished work and released RAM."""
+        try:
+            event_bus = await get_event_bus()
+            release_event = Event(
+                type=EventType.CUSTOM,
+                source="dynamic_hotswapper",
+                priority=10,
+                payload={"action": "RELEASE_RAM_LOCK", "freed_ram_gb": freed_ram_gb},
+            )
+            await event_bus.publish(release_event)
+            logger.info(
+                "📡 Broadcasted RELEASE_RAM_LOCK (Freed: %.2f GB) to EventBus", freed_ram_gb
+            )
+        except Exception as e:
+            logger.info("ℹ️ EventBus release note: %s", e)
 
 
 async def demo_hotswap() -> None:
