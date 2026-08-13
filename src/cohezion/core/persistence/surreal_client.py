@@ -249,6 +249,29 @@ class UniverseNode:
         }
 
 
+def run_sync(coro: Any) -> Any:
+    """Run an async SurrealClient call from SYNCHRONOUS code.
+
+    Every public write on ``SurrealClient`` is ``async def``. Calling one from a sync
+    function without ``await`` constructs the coroutine and DISCARDS it: the write never
+    happens and nothing raises, so the caller's ``try/except`` never fires and the feature
+    looks wired while being dead. (Found live 2026-07-30 in ``AutoDQA._persist_result`` and
+    ``gemini_cli_tier._persist_tier_experience`` — neither had ever written a row.)
+
+    Handles both cases: no running loop (the common one) uses ``asyncio.run`` directly;
+    when a loop IS already running in this thread, the coroutine is executed on a worker
+    thread with its own loop so we neither block nor re-enter the caller's loop.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
+
+
 class SurrealClient:
     """
     Async client for SurrealDB.
