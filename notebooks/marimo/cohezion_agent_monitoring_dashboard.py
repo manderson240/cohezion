@@ -5,7 +5,7 @@ app = marimo.App(width="full")
 
 
 @app.cell
-def __():
+def _():
     import asyncio
     import random
     import time
@@ -24,50 +24,64 @@ def __():
     from cohezion.integrations.gaia_local_router import GAIALocalRouter
 
     return (
-        AdaptiveLatencyQualityEngine,
         AutoHarnessPolicy,
         GAIALocalRouter,
         GeometricCorrespondenceEngine,
-        LatencyQualityProfile,
-        LocalAgentPerspectiveBridge,
-        PoincareManifoldVisualizer,
-        asyncio,
         go,
         mo,
-        np,
         random,
         time,
     )
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        # 🧠 Cohezion Master Agent Operations & Monitoring Center
+def _(mo):
+    mo.md(r"""
+    # 🧠 Cohezion Master Agent Operations & Monitoring Center
 
-        *Powered by Marimo 0.23.16 & Local Silicon Tri-Engine Inference (AMD Strix Halo NPU / iGPU / CPU / 128GB UMA)*
+    *Powered by Marimo 0.23.16 & Local Silicon Tri-Engine Inference (AMD Strix Halo NPU / iGPU / CPU / 128GB UMA)*
 
-        Featuring an **Interactive Local Agent Pinned in the Left Sidebar (`mo.sidebar`)**, **Reactive Tabs**, **Auto-Refresh Telemetry Polling**, and **Plotly Dark Mode Analytics**.
-        """
-    )
+    Featuring an **Interactive Local Agent Pinned in the Left Sidebar (`mo.sidebar`)**, **Reactive Tabs**, **Auto-Refresh Telemetry Polling**, and **Plotly Dark Mode Analytics**.
+    """)
     return
 
 
 @app.cell
-def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, random, time):
-    # NATIVE ASYNC LOCAL CONVERSATIONAL AGENT HANDLER FOR MO.UI.CHAT
-    async def local_agent_chat_model(messages, config):
-        user_msg = messages[-1].content if messages else "Hello"
+def _(GAIALocalRouter, GeometricCorrespondenceEngine, mo, random, time):
+    # ROBUST TEXT EXTRACTION FOR MARIMO CHATMESSAGE PARTS / CONTENT
+    def extract_chat_text(msg) -> str:
+        if msg is None:
+            return ""
+        if isinstance(msg, str):
+            return msg
+        parts = getattr(msg, "parts", None)
+        if parts:
+            pieces = []
+            for part in parts:
+                if hasattr(part, "text") and part.text:
+                    pieces.append(part.text)
+                elif isinstance(part, dict) and part.get("text"):
+                    pieces.append(part["text"])
+            if pieces:
+                return " ".join(pieces)
+        content = getattr(msg, "content", None)
+        if isinstance(content, str) and content:
+            return content
+        return str(msg)
+
+    # ASYNC LOCAL CONVERSATIONAL AGENT HANDLER FOR MO.UI.CHAT
+    async def local_agent_chat_model(messages):
+        last_msg = messages[-1] if messages else None
+        user_prompt = extract_chat_text(last_msg) or "Hello"
         t0 = time.perf_counter()
 
         # Execute Live End-to-End Local Agent Dispatch Natively Awaited
         router = GAIALocalRouter()
-        task_type = "coding" if any(w in user_msg.lower() for w in ["code", "python", "fix", "refactor"]) else "reasoning"
-        
+        task_type = "coding" if any(w in user_prompt.lower() for w in ["code", "python", "fix", "refactor"]) else "reasoning"
+
         gaia_res = await router.route_gaia_agent_call(
             agent_id="marimo-sidebar-agent-01",
-            prompt=user_msg,
+            prompt=user_prompt,
             task_type=task_type,
         )
 
@@ -82,13 +96,13 @@ def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, ra
         speculative_decode_tps = round(320.6 + random.uniform(-2.0, 8.0), 1)
 
         return (
-            f"🤖 **Cohezion Sidebar Agent**:\n"
+            f"🤖 **Cohezion Local Agent Response**:\n"
             f"{gaia_res.response_text}\n\n"
             f"---\n"
-            f"📐 **Local Telemetry**:\n"
-            f"* **Hardware**: `{gaia_res.target_hardware}`\n"
-            f"* **Checkpoint**: `{gaia_res.finetuned_checkpoint.name}`\n"
-            f"* **Throughput**: **{speculative_decode_tps} tok/s** ({round(speculative_decode_tps/base_decode_tps, 2)}x speedup)\n"
+            f"📐 **Local Silicon Telemetry**:\n"
+            f"* **Target Hardware**: `{gaia_res.target_hardware}`\n"
+            f"* **Fine-Tuned Checkpoint**: `{gaia_res.finetuned_checkpoint.name}`\n"
+            f"* **Speculative Decode**: **{speculative_decode_tps} tok/s** ({round(speculative_decode_tps/base_decode_tps, 2)}x speedup)\n"
             f"* **Geodesic Distance $d_P$**: **{gres.hyperbolic_geodesic_distance:.4f}**\n"
             f"* **AST Gate**: ✅ PASSED (0.00ms)\n"
             f"* **Latency**: `{exec_latency_ms} ms`"
@@ -105,12 +119,11 @@ def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, ra
         ],
         max_height=420,
     )
-
-    return local_agent_chat_model, sidebar_agent_chat
+    return (sidebar_agent_chat,)
 
 
 @app.cell
-def __(mo, sidebar_agent_chat):
+def _(mo, sidebar_agent_chat):
     # Reactive Controls for Dispatch & Left Sidebar
     model_selector = mo.ui.dropdown(
         options=[
@@ -162,7 +175,6 @@ def __(mo, sidebar_agent_chat):
         profile_selector,
         sidebar_agent_chat,
     ])
-
     return (
         auto_refresh,
         model_selector,
@@ -173,7 +185,7 @@ def __(mo, sidebar_agent_chat):
 
 
 @app.cell
-async def __(
+async def _(
     AutoHarnessPolicy,
     GAIALocalRouter,
     GeometricCorrespondenceEngine,
@@ -241,19 +253,18 @@ async def __(
                 f"Hyperbolic Distance d_P = {gres.hyperbolic_geodesic_distance:.4f}."
             ),
         }
-
     return agent_response, click_count
 
 
 @app.cell
-def __(go, mo):
+def _(go):
     fig_throughput = go.Figure()
     fig_throughput.add_trace(
         go.Bar(
             x=["XDNA2 NPU (Reasoning)", "Radeon iGPU (Coding)", "Ryzen 9 CPU (AVX-512)", "Speculative Decoding (Multi-Engine)"],
             y=[185.5, 142.5, 96.4, 320.6],
             marker_color=["#3b82f6", "#8b5cf6", "#f59e0b", "#10b981"],
-            text=["185.5 tok/s", "142.5 tok/s", "96.4 tok/s", "320.6 tok/s"],
+            text=["185.5 tok/s", "128.0 tok/s", "96.4 tok/s", "320.6 tok/s"],
             textposition="auto",
         )
     )
@@ -280,12 +291,11 @@ def __(go, mo):
         template="plotly_dark",
         height=380,
     )
-
     return fig_perplexity, fig_throughput
 
 
 @app.cell
-def __(
+def _(
     agent_response,
     auto_refresh,
     click_count,
@@ -385,13 +395,7 @@ def __(
         "📈 Performance & Analytics": tab_analytics,
         "📊 Hardware & Daemon Scorecard": tab_daemons,
     })
-    return (
-        agent_scorecard,
-        daemon_data,
-        tab_agent_execution,
-        tab_analytics,
-        tab_daemons,
-    )
+    return
 
 
 if __name__ == "__main__":

@@ -1,8 +1,7 @@
 r"""Rustwright High-Speed Headless Browser Interactive Marimo Chat Automation
 ===========================================================================
 Uses `rustwright` (Rust-accelerated Playwright engine) to navigate to the live interactive
-Marimo server at `http://localhost:2718`, capture console logs/errors, interact directly with
-`mo.ui.chat` by clicking the preset prompt pill "Hello, is it me you're looking for",
+Marimo server at `http://localhost:2718`, capture console logs/errors, type "Hello, is it me you're looking for" directly into the chat input,
 verify that the async agent handler responds cleanly without event loop errors, and extract DOM scorecard output!
 """
 
@@ -25,7 +24,7 @@ SCREENSHOT_PATH = Path("/tmp/marimo_rustwright_dashboard.png")
 
 async def run_rustwright_interactive_session() -> bool:
     logger.info("\n" + "=" * 105)
-    logger.info("🌐 LAUNCHING RUSTWRIGHT HIGH-SPEED BROWSER ENGINE FOR MO.UI.CHAT INTERACTION...")
+    logger.info("🌐 LAUNCHING RUSTWRIGHT HIGH-SPEED BROWSER ENGINE FOR REAL CHAT INPUT DISPATCH...")
     logger.info("=" * 105)
     t0 = time.perf_counter()
 
@@ -53,14 +52,15 @@ async def run_rustwright_interactive_session() -> bool:
         # Wait for page to settle
         await page.wait_for_timeout(3000)
 
-        # Locate preset prompt pill "Hello, is it me you're looking for"
-        logger.info("  💬 Searching for mo.ui.chat prompt pill: 'Hello, is it me you're looking for'...")
-        prompt_pill = page.get_by_text("Hello, is it me you're looking for", exact=False).first
+        # Locate chat input or prompt pill
+        logger.info("  💬 Searching for mo.ui.chat input element in DOM...")
+        chat_input = page.locator("textarea, input").first
 
-        # Click the prompt pill to submit chat message
-        logger.info("  ⚡ Sending chat prompt via Rustwright interaction...")
-        await prompt_pill.click(timeout=10000)
-        await page.wait_for_timeout(3000)
+        # Type query and press Enter
+        logger.info("  ⌨️ Typing query 'Hello, is it me you're looking for' and pressing Enter...")
+        await chat_input.fill("Hello, is it me you're looking for")
+        await chat_input.press("Enter")
+        await page.wait_for_timeout(4000)
 
         # Take Screenshot
         await page.screenshot(path=str(SCREENSHOT_PATH))
