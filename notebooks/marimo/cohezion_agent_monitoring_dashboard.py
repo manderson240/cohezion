@@ -56,36 +56,25 @@ def __(mo):
 
 @app.cell
 def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, random, time):
-    # LOCAL CONVERSATIONAL AGENT HANDLER FOR MO.UI.CHAT
-    def local_agent_chat_model(messages, config):
+    # ASYNC LOCAL CONVERSATIONAL AGENT HANDLER FOR MO.UI.CHAT
+    async def local_agent_chat_model(messages, config):
         user_msg = messages[-1].content if messages else "Hello"
         t0 = time.perf_counter()
 
-        # Execute Live End-to-End Local Agent Dispatch
+        # Execute Live End-to-End Local Agent Dispatch Natively Awaited
         router = GAIALocalRouter()
         task_type = "coding" if any(w in user_msg.lower() for w in ["code", "python", "fix", "refactor"]) else "reasoning"
         
-        # Async execution inside sync handler
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            
-        gaia_res = loop.run_until_complete(
-            router.route_gaia_agent_call(
-                agent_id="marimo-chat-agent-01",
-                prompt=user_msg,
-                task_type=task_type,
-            )
+        gaia_res = await router.route_gaia_agent_call(
+            agent_id="marimo-chat-agent-01",
+            prompt=user_msg,
+            task_type=task_type,
         )
 
         geom_engine = GeometricCorrespondenceEngine()
-        gres = loop.run_until_complete(
-            geom_engine.map_state_to_manifold(
-                (0.15, 0.35, 0.55, 0.75, 0.96, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                "MarimoChatAgent",
-            )
+        gres = await geom_engine.map_state_to_manifold(
+            (0.15, 0.35, 0.55, 0.75, 0.96, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            "MarimoChatAgent",
         )
 
         exec_latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
@@ -109,10 +98,10 @@ def __(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, ra
     local_agent_chat = mo.ui.chat(
         local_agent_chat_model,
         prompts=[
+            "Hello, is it me you're looking for",
             "Audit local system memory floor and GPU aperture safety",
             "Evaluate 12D Poincaré hyperbolic distance bounds for swarm agents",
             "Benchmark multi-draft speculative decode throughput on iGPU",
-            "Verify AutoHarness zero-cost AST bytecode policy gates",
         ],
         max_height=480,
     )

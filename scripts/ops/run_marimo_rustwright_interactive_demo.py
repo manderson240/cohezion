@@ -1,8 +1,9 @@
-r"""Rustwright High-Speed Headless Browser Interactive Marimo Automation
-======================================================================
+r"""Rustwright High-Speed Headless Browser Interactive Marimo Chat Automation
+===========================================================================
 Uses `rustwright` (Rust-accelerated Playwright engine) to navigate to the live interactive
-Marimo server at `http://localhost:2718`, capture console logs/errors, click the
-'⚡ Run Live End-to-End Local Agent Execution' button, verify zero cell exceptions, and extract the live deliberation output scorecard!
+Marimo server at `http://localhost:2718`, capture console logs/errors, interact directly with
+`mo.ui.chat` by clicking the preset prompt pill "Hello, is it me you're looking for",
+verify that the async agent handler responds cleanly without event loop errors, and extract DOM scorecard output!
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ SCREENSHOT_PATH = Path("/tmp/marimo_rustwright_dashboard.png")
 
 async def run_rustwright_interactive_session() -> bool:
     logger.info("\n" + "=" * 105)
-    logger.info("🌐 LAUNCHING RUSTWRIGHT HIGH-SPEED BROWSER ENGINE FOR REAL MARIMO DOM VERIFICATION...")
+    logger.info("🌐 LAUNCHING RUSTWRIGHT HIGH-SPEED BROWSER ENGINE FOR MO.UI.CHAT INTERACTION...")
     logger.info("=" * 105)
     t0 = time.perf_counter()
 
@@ -52,14 +53,14 @@ async def run_rustwright_interactive_session() -> bool:
         # Wait for page to settle
         await page.wait_for_timeout(3000)
 
-        # Locate trigger button text
-        logger.info("  🔍 Locating Marimo trigger element in DOM...")
-        element = page.get_by_text("Execution", exact=False).first
+        # Locate preset prompt pill "Hello, is it me you're looking for"
+        logger.info("  💬 Searching for mo.ui.chat prompt pill: 'Hello, is it me you're looking for'...")
+        prompt_pill = page.get_by_text("Hello, is it me you're looking for", exact=False).first
 
-        # Click the element
-        logger.info("  ⚡ Clicking element via Rustwright event dispatch...")
-        await element.click(timeout=10000)
-        await page.wait_for_timeout(2000)
+        # Click the prompt pill to submit chat message
+        logger.info("  ⚡ Sending chat prompt via Rustwright interaction...")
+        await prompt_pill.click(timeout=10000)
+        await page.wait_for_timeout(3000)
 
         # Take Screenshot
         await page.screenshot(path=str(SCREENSHOT_PATH))
@@ -69,11 +70,11 @@ async def run_rustwright_interactive_session() -> bool:
         body_text = await page.inner_text("body")
         logger.info("  ✓ Extracted page DOM text (%d characters)", len(body_text))
 
-        # Strict verification check for tracebacks or AttributeError
-        if "AttributeError" in body_text or "Traceback" in body_text:
-            logger.error("  ❌ DETECTED UNHANDLED CELL EXCEPTION IN DOM OUTPUT!")
+        # Strict verification check for tracebacks or RuntimeError / event loop errors
+        if "AttributeError" in body_text or "Traceback" in body_text or "This event loop is already running" in body_text:
+            logger.error("  ❌ DETECTED UNHANDLED CHAT EVENT LOOP EXCEPTION IN DOM OUTPUT!")
             for line in body_text.splitlines():
-                if "AttributeError" in line or "Traceback" in line or "cell=" in line:
+                if any(k in line for k in ["AttributeError", "Traceback", "cell=", "event loop"]):
                     logger.error("     > %s", line)
             await browser.close()
             return False
@@ -86,7 +87,7 @@ async def run_rustwright_interactive_session() -> bool:
     else:
         logger.info("  ✓ Zero browser console errors recorded!")
 
-    logger.info("  ⚡ Rustwright Real DOM Verification Passed Cleanly in %.2f ms (0 Exceptions)", dt_ms)
+    logger.info("  ⚡ Rustwright Interactive mo.ui.chat Test Passed Cleanly in %.2f ms (0 Exceptions)", dt_ms)
     return True
 
 
