@@ -52,7 +52,34 @@ Session: s-77b9f9d6a892, branch `autoresearch/local-inference-20260813`
   anchor's own run-to-run spread; all future duration deltas judged against that spread.
   Ambient at launch: load avg 3.82/5.45/5.66.
 
-### Run 4: variance control, config == Run 2 (in flight, segment 1)
+### Run 4: variance control, config == Run 2 — duration_s=2039.4 (DISCARD/control, segment 1)
+- Timestamp: 2026-08-13 03:30
+- What changed: NOTHING (identical config to Run 2)
+- Result: 24/24 passed again; duration 2039s vs Run 2's 1120s (+82% on the SAME config);
+  escalations 21, timeouts 7
+- Insight: **duration_s at n=1 is an unusable primary here** — ambient daemon load and
+  model residency dominate. BUT escalations−timeouts is tight across runs 2/3/4
+  (~13/15/14): validator outcomes are load-robust. Queue time can cause a timeout;
+  it cannot make a returned answer wrong.
+- Next: SEGMENT 2 — primary=routing_misses (validation-failed responses, timeouts
+  excluded), lower is better, floor passed>=23. Harness now emits METRIC routing_misses.
+
+### Run 5: segment 2 baseline — routing_misses=18 (KEEP as baseline)
+- Timestamp: 2026-08-13 04:30
+- What changed: nothing (instrument added)
+- Result: routing_misses=18, passed=23 (floor exactly), duration 1741s, timeouts 7
+- Insight: miss decomposition — T0 ≈ 13 (fluent-but-wrong on factual/reasoning/json),
+  T1 ≈ 4 (json/code), T2 = 1 (cat-vowel WRONG ANSWER from Qwen3-Coder on letter
+  membership — first genuine terminal-tier quality failure; floor caught it).
+  Estimate-vs-measurement gap (13-15 est vs 18): final-attempt validation failures
+  count as misses too — always prefer the instrumented number.
+- Next: Run 6 — entry_by_node npu→1 (bypass T0). Prediction: misses 18 → ~5.
+
+### Run 6: bypass T0 (npu→1) (in flight, segment 2)
+- If misses collapse as predicted, T0-as-entry is net-negative under validator gating
+  for this suite: it saves nothing (its misses always escalate) and burns a full call.
+- Open question queued: does T0 earn its place on the categorical slice alone?
+  (category-conditional entry is the follow-up if Run 6 keeps.)
 
 ## Key Insights
 - Probe EVERY tier model with a 1-token chat call BEFORE a suite run — catalog presence

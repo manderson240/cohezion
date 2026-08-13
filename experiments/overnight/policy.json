@@ -5,7 +5,7 @@
     {"model": "Gemma-4-E4B-it-GGUF", "max_tokens": 2048, "gate_min_chars": 1},
     {"model": "Qwen3-Coder-30B-A3B-Instruct-GGUF", "max_tokens": 2048, "gate_min_chars": null}
   ],
-  "entry_by_node": {"npu": 0, "gpu": 1},
+  "entry_by_node": {"npu": 1, "gpu": 1},
   "use_classifier_entry": true,
   "use_classifier_gate_chars": true,
   "validator_gate": true,
