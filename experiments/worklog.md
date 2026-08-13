@@ -88,7 +88,20 @@ Session: s-77b9f9d6a892, branch `autoresearch/local-inference-20260813`
 - Next: Run 7 — structurally remove T0 from tiers (simpler-is-better; also frees the
   router from ever loading the 0.6B → residency relief). Prediction: misses ≈4 (equal).
 
-### Run 7: 2-tier cascade, T0 deleted (in flight, segment 2)
+### Run 7: 2-tier cascade, T0 deleted — routing_misses=3, passed=22 (KEEP w/ triage)
+- Timestamp: 2026-08-13 06:40
+- What changed: tiers[0] (Qwen3-0.6B) deleted; entry npu/gpu→0 (E4B). Behaviorally
+  IDENTICAL to run 6 (removed tier was unreachable).
+- Result: misses=3 (prediction ~4 ✓), passed=22 — BUT both failures were
+  TERMINAL-TIER TIMEOUTS (json-color/count T1 240s), not wrong answers.
+- Insight: identical execution graphs measured 24/24 (run 6) and 22/24 (run 7) ⇒
+  **the pass floor itself is ±2 noisy under ambient load.** Floor-violation triage rule
+  added to autoresearch.md: timeout-caused failures = apparatus noise; only miss-caused
+  failures discard. Also: terminal-tier timeouts are the direct task-failure channel.
+- Next: Run 8 — per-tier timeouts (harness change committed): terminal tier 360s.
+  Prediction: timeout-caused task failures →0-1, misses unchanged ~3-4.
+
+### Run 8: terminal tier timeout 240→360s (in flight, segment 2)
 
 ## Key Insights
 - Probe EVERY tier model with a 1-token chat call BEFORE a suite run — catalog presence

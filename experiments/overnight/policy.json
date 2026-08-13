@@ -9,8 +9,7 @@
     {
       "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
       "max_tokens": 2048,
-      "gate_min_chars": null,
-      "timeout_s": 360
+      "gate_min_chars": null
     }
   ],
   "entry_by_node": {

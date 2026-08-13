@@ -93,6 +93,17 @@ async def main() -> None:
     sem = asyncio.Semaphore(policy.get("concurrency", 3))
     stats: dict = {"timeouts": 0, "tier_calls": Counter()}
 
+    # Warm-up: serve one tiny call per tier model BEFORE the suite clock starts.
+    # Run-start timeout clusters (5 of 8 runs) were tasks queueing behind a model
+    # load/swap until their timeout expired — the load-readiness race, GGUF edition.
+    for tier, cfg in tiers:
+        t0 = time.perf_counter()
+        try:
+            await asyncio.wait_for(tier.run("Reply with the single word: ready"), timeout=600)
+            print(f"WARMUP {cfg['model']} ok in {time.perf_counter() - t0:.1f}s")
+        except Exception as exc:  # noqa: BLE001 - a cold tier is reported, not fatal
+            print(f"WARMUP {cfg['model']} FAILED after {time.perf_counter() - t0:.1f}s: {exc}")
+
     suite_start = time.perf_counter()
     results = await asyncio.gather(*(run_task(t, tiers, policy, sem, stats) for t in TASKS))
     duration = time.perf_counter() - suite_start
