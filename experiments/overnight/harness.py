@@ -100,6 +100,15 @@ async def main() -> None:
 
     passed = sum(r["passed"] for r in results)
     escalations = sum(r["escalations"] for r in results)
+    # routing_misses: attempts where the model RESPONDED (no error/timeout) but failed
+    # the task validator — load-robust routing-quality signal (queue time can cause a
+    # timeout, but it cannot make a returned answer wrong).
+    routing_misses = sum(
+        1
+        for r in results
+        for a in r["attempts"]
+        if a["err"] is None and a["chars"] > 0 and not a["valid"]
+    )
     by_cat: Counter = Counter()
     for r in results:
         if r["passed"]:
@@ -118,6 +127,7 @@ async def main() -> None:
     print(f"METRIC pass_rate={passed / len(TASKS):.4f}")
     print(f"METRIC duration_s={duration:.1f}")
     print(f"METRIC escalations={escalations}")
+    print(f"METRIC routing_misses={routing_misses}")
     print(f"METRIC timeouts={stats['timeouts']}")
     print(f"METRIC tier_calls={json.dumps(dict(stats['tier_calls']))}")
 

@@ -29,8 +29,30 @@ Session: s-77b9f9d6a892, branch `autoresearch/local-inference-20260813`
 - Next: swap T2 to a model that verifiably loads (probed: Qwen3-Coder-30B-A3B OK "OK",
   Gemma-4-26B-A4B loads but thinking-mode, Qwen3-8B load-timeout at 180s)
 
-### Run 2: T2 → Qwen3-Coder-30B-A3B-Instruct-GGUF (in flight)
-- Single change: policy tiers[2].model; probe-verified loadable before adopting.
+### Run 2: T2 → Qwen3-Coder-30B-A3B — pass_rate=0.9583 (23/24) (KEEP)
+- Timestamp: 2026-08-13 02:10
+- What changed: tiers[2].model Qwen3.6-35B-A3B (never loads) → Qwen3-Coder-30B-A3B (probe-verified)
+- Result: passed 17→23 (+6), duration 2395→1120s, timeouts 13→1, escalations 23→14
+- Insight: ALL apparatus failures flipped. Only json-count fails (vowel counting — letter-level
+  task, all 3 tiers miss it; keeps instrument off ceiling). Code category now 4/4 at T1 in
+  9-42s/call. T0 still erratic (8-236s for a 0.6B) — contention, not capability.
+- Next: pass_rate 0.958 > 0.85 ceiling → SEGMENT 1: primary=duration_s (lower), HARD FLOOR
+  passed>=23 (any drop ⇒ discard). Anchor: Run 2's 1120.4s @ concurrency=3.
+
+### Run 3: concurrency 3→2 — duration_s=2937.6 (DISCARD, segment 1)
+- Timestamp: 2026-08-13 02:47
+- What changed: concurrency 3→2
+- Result: duration 2938s vs 1120s anchor (+162%) — DISCARD. But passed=24/24 (first
+  perfect run; even json-count passed via T2 122.9s). timeouts 1→8.
+- Insight: T0 hit 240s timeouts on the first three tasks — at RUN START, which points to
+  external fleet load (overnight daemons share :13305), not the concurrency setting.
+  n=1 per config cannot separate policy effect from ambient load. ALSO: 24/24 proves the
+  suite is fully solvable — the pass floor (>=23) is realistic.
+- Next: Run 4 = VARIANCE CONTROL — identical config to Run 2 (conc 3). Measures the
+  anchor's own run-to-run spread; all future duration deltas judged against that spread.
+  Ambient at launch: load avg 3.82/5.45/5.66.
+
+### Run 4: variance control, config == Run 2 (in flight, segment 1)
 
 ## Key Insights
 - Probe EVERY tier model with a 1-token chat call BEFORE a suite run — catalog presence
