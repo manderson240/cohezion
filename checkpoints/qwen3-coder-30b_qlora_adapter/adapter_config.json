@@ -1,0 +1,11 @@
+{
+  "model_id": "Qwen3-Coder-30B",
+  "role": "Coding & Refactoring",
+  "r": 64,
+  "lora_alpha": 128,
+  "total_samples_trained": 10500,
+  "final_perplexity": 7.38,
+  "perplexity_reduction_pct": 48.03,
+  "ast_verified": true,
+  "timestamp": 1786642271.2467449
+}

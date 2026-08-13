@@ -1,0 +1,11 @@
+{
+  "model_id": "deepseek-r1-0528-8b-FLM",
+  "role": "NPU Reasoning & Planning",
+  "r": 32,
+  "lora_alpha": 64,
+  "total_samples_trained": 10500,
+  "final_perplexity": 5.98,
+  "perplexity_reduction_pct": 48.0,
+  "ast_verified": true,
+  "timestamp": 1786642271.248075
+}

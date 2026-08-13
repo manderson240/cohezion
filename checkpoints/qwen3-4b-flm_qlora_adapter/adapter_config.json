@@ -1,0 +1,11 @@
+{
+  "model_id": "qwen3-4b-FLM",
+  "role": "Fast Tool Execution",
+  "r": 16,
+  "lora_alpha": 32,
+  "total_samples_trained": 10500,
+  "final_perplexity": 5.98,
+  "perplexity_reduction_pct": 48.0,
+  "ast_verified": true,
+  "timestamp": 1786642271.2490733
+}

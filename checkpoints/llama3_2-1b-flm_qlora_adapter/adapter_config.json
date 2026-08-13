@@ -1,0 +1,11 @@
+{
+  "model_id": "llama3.2-1b-FLM",
+  "role": "Speculative Draft & Fast Retrieval",
+  "r": 8,
+  "lora_alpha": 16,
+  "total_samples_trained": 10500,
+  "final_perplexity": 5.98,
+  "perplexity_reduction_pct": 48.0,
+  "ast_verified": true,
+  "timestamp": 1786642271.2506955
+}
