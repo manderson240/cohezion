@@ -1,3 +1,63 @@
 #!/bin/sh
-command -v git-lfs >/dev/null 2>&1 || { printf >&2 "\n%s\n\n" "This repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'post-commit' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks')."; exit 2; }
+# post-commit hook: LFS + event bus commit publication.
+#
+# LFS post-commit (original):
+command -v git-lfs >/dev/null 2>&1 || { printf >&2 "\n%s\n\n" "This repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove the 'post-commit' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks')."; exit 2; }
 git lfs post-commit "$@"
+
+# Event bus commit publication (added 2026-08-10):
+# Publishes a JOURNEY_STEP event to SurrealDB event_log so other sessions can see
+# commits landing in real time. Fail-open: never blocks the commit.
+_event_bus_commit() {
+  [ -f ".eventbus-off" ] && return 0
+  command -v python3 >/dev/null 2>&1 || return 0
+
+  SURREAL="${SURREALDB_URL:-http://localhost:8001}"
+  timeout 3 curl -sf -o /dev/null "$SURREAL/health" 2>/dev/null || return 0
+
+  # Get the commit hash and message (most recent commit)
+  COMMIT_HASH="$(git rev-parse --short HEAD 2>/dev/null || echo '')"
+  COMMIT_MSG="$(git log -1 --format='%s' 2>/dev/null || echo '')"
+  BRANCH="$(git branch --show-current 2>/dev/null || echo '')"
+  AUTHOR="$(git log -1 --format='%an' 2>/dev/null || echo '')"
+  SID="${CLAUDE_SESSION_ID:-pid-$$}"
+  # Sanitize SID for use in SurrealQL record IDs: allow only [A-Za-z0-9_-]
+  SID="$(printf '%s' "$SID" | tr -dc 'A-Za-z0-9_-')"
+  TS="$(date +%s.%N)"
+  RECORD_ID="evt_commit_${COMMIT_HASH}_$$"
+
+  PAYLOAD="$(python3 -c '
+import json, sys
+print(json.dumps({
+    "type": "JOURNEY_STEP",
+    "source": "git-post-commit",
+    "session_id": sys.argv[1],
+    "timestamp": float(sys.argv[2]),
+    "payload": {
+        "event": "commit",
+        "commit_hash": sys.argv[3],
+        "commit_message": sys.argv[4],
+        "branch": sys.argv[5],
+        "author": sys.argv[6],
+    },
+    "valid_from": sys.argv[7],
+    "valid_to": None,
+}))
+' "$SID" "$TS" "$COMMIT_HASH" "$COMMIT_MSG" "$BRANCH" "$AUTHOR" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" 2>/dev/null)" || return 0
+
+  timeout 2 curl -sf -X POST "$SURREAL/sql" \
+    -H "Content-Type: text/plain" -H "Accept: application/json" \
+    -H "surreal-ns: ${SURREAL_NS:-cohezion}" -H "surreal-db: ${SURREAL_DB:-main}" \
+    -u "${SURREAL_USER:-root}:${SURREAL_PASS:-root}" \
+    -d "UPSERT event_log:\`$RECORD_ID\` CONTENT $PAYLOAD;" \
+    >/dev/null 2>&1 || true
+
+  # Trace
+  _TRACE_LOG="${HOME}/.cohezion/event-bus-hooks.log"
+  { mkdir -p "${HOME}/.cohezion" \
+    && printf '%s\t%s\t%s\n' "$(date +%s)" "commit" "$COMMIT_HASH" >> "$_TRACE_LOG"
+  } >/dev/null 2>&1 || true
+}
+_event_bus_commit
+
+exit 0

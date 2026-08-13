@@ -35,11 +35,14 @@ TARGETS = ["src/", "tests/"]
 def _current_count() -> int:
     """Return the number of ruff-check violations across TARGETS (deterministic JSON count)."""
     cmd = ["ruff", "check", *TARGETS, "--output-format", "json"]
+    # Prefer `uv run ruff` so the locked ruff version (uv.lock) is used — a
+    # standalone ruff on PATH (e.g. ~/.local/bin/ruff) can be a different
+    # version and produce a different violation count, causing CI/local skew.
     try:
-        proc = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
-    except FileNotFoundError:
-        # ruff not directly on PATH — fall back to the project venv via uv.
         proc = subprocess.run(["uv", "run", *cmd], cwd=REPO, capture_output=True, text=True)
+    except FileNotFoundError:
+        # uv not available — fall back to bare ruff on PATH.
+        proc = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
     try:
         return len(json.loads(proc.stdout or "[]"))
     except json.JSONDecodeError as exc:
