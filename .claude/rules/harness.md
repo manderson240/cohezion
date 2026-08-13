@@ -482,6 +482,24 @@ tier prediction, and skill_proximity transfer hints. All verified by
 - Call site at line 645 updated: `self._generate_recommendation(metrics, operation_type, skill_name)`
 - **Verification**: `tests/compound/test_wiring_completeness.py::TestW5SkillProximityConsumer`
 
+### W6: WorkspaceReadout produced AND consumed — sparse-code workspace annotation is live (2026-08-02)
+- Experimental grounding: vault `research/2026-08-01-flume-sparse-workspace-design.md` (SUPPORTED;
+  held-out-dictionary replication HOLDS — 8-16 learned atoms transfer semantic identity, random 0%)
+- PRODUCER: `CompoundExecutor.__init__` CB17 auto-create injects `WorkspaceReadout()` into the
+  auto-created `JourneyTracker(workspace_readout=...)` (executor.py; fail-open on ImportError)
+- CONSUMER: `track_execution` calls `observe(latent)` + `read(latent)` and, once fitted, stores
+  native-cast `(int, float)` pairs in `TrajectoryPoint.metadata["workspace_atoms"]`; the field is
+  persisted by `_persist_to_surreal` (journey_transition.workspace_atoms) — durable, not buffer-local
+- Hot-path contract (adversarial-review measured): dictionary fit (~65s at 256x2048) runs on a
+  daemon thread (`fit_in_background=True` default), NEVER synchronously in track_execution;
+  `_MAX_FIT_ATTEMPTS=3` retry cap; buffer hard-capped + cleared on every fit attempt; `read()` is
+  a bounded ~27ms lasso solve (SparseCoder cached in `SparseLatentAnalysis._coder`)
+- **T2 discriminating (mutation-verified: neutralized consumer/edit → tests fail)**:
+  `tests/flume/test_workspace_readout.py::TestJourneyTrackerConsumption` (annotation appears iff
+  readout fitted; tracker feeds the readout; CB17 injection present) +
+  `TestHotPathContract` (observe never blocks on fit; retry cap holds)
+- **Verification**: `uv run pytest tests/flume/test_workspace_readout.py -q` → 16 passed
+
 ## RiVER Reward Normalization Invariants (#140/#141, 2026-06-27)
 
 Source: RiVER (arXiv:2606.27369) — fixes scale-dominance and frequency-dominance in process reward accumulation.
