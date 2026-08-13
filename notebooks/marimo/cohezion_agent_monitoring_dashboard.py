@@ -1,11 +1,11 @@
 import marimo
 
-__generated_with = "0.23.14"
+__generated_with = "0.23.16"
 app = marimo.App(width="full")
 
 
 @app.cell
-def _():
+def __():
     import asyncio
     import random
     import time
@@ -24,32 +24,39 @@ def _():
     from cohezion.integrations.gaia_local_router import GAIALocalRouter
 
     return (
+        AdaptiveLatencyQualityEngine,
         AutoHarnessPolicy,
         GAIALocalRouter,
         GeometricCorrespondenceEngine,
+        LatencyQualityProfile,
+        LocalAgentPerspectiveBridge,
+        PoincareManifoldVisualizer,
+        asyncio,
         go,
         mo,
+        np,
         random,
         time,
     )
 
 
 @app.cell
-def _(mo):
-    mo.md(r"""
-    # 🧠 Cohezion End-to-End Reactive Agent Monitoring Dashboard
+def __(mo):
+    mo.md(
+        r"""
+        # 🧠 Cohezion Master Agent Operations & Monitoring Center
 
-    *Powered by Local Silicon Inference (AMD Strix Halo NPU / iGPU / Ryzen 9 CPU / 128GB UMA)*
+        *Powered by Marimo 0.23.16 & Local Silicon Tri-Engine Inference (AMD Strix Halo NPU / iGPU / CPU / 128GB UMA)*
 
-    This reactive Marimo notebook connects live end-to-end to Cohezion's local fine-tuned QLoRA adapters,
-    GAIA Local Router, AutoHarness AST bytecode verifiers, and 2048D Poincaré hyperbolic manifold across all 3 compute engines.
-    """)
+        Leveraging Marimo's full feature set: **Reactive Tabs**, **Interactive Chat UI**, **Auto-Refresh Polling**, **State Management**, and **Plotly Dark Mode Analytics**.
+        """
+    )
     return
 
 
 @app.cell
-def _(mo):
-    # Reactive Interactive Controls
+def __(mo):
+    # Reactive Controls
     model_selector = mo.ui.dropdown(
         options=[
             "cohezion_qlora_30b_master_adapter (Nemotron 30B Master - iGPU/NPU)",
@@ -76,6 +83,12 @@ def _(mo):
         label="🥩 Select Latency-Quality ('Fat Rendering') Profile:",
     )
 
+    auto_refresh = mo.ui.refresh(
+        default_interval="5s",
+        options=["1s", "5s", "10s", "30s"],
+        label="🔄 Live Telemetry Auto-Refresh Rate:",
+    )
+
     prompt_input = mo.ui.text_area(
         value="Audit system performance and verify 12D Poincaré hyperbolic distance bounds for local agent trajectories",
         label="💬 Agent Direct Prompt / Query:",
@@ -85,23 +98,12 @@ def _(mo):
         label="⚡ Run Live End-to-End Local Agent Execution",
         value=0,
     )
-    return model_selector, profile_selector, prompt_input, trigger_button
+
+    return auto_refresh, model_selector, profile_selector, prompt_input, trigger_button
 
 
 @app.cell
-def _(mo, model_selector, profile_selector, prompt_input, trigger_button):
-    mo.vstack([
-        mo.md("### 🎛️ Agent Execution Parameters"),
-        model_selector,
-        profile_selector,
-        prompt_input,
-        trigger_button,
-    ])
-    return
-
-
-@app.cell
-async def _(
+async def __(
     AutoHarnessPolicy,
     GAIALocalRouter,
     GeometricCorrespondenceEngine,
@@ -112,7 +114,6 @@ async def _(
     time,
     trigger_button,
 ):
-    # Reactive execution cell triggered by user button click
     click_count = trigger_button.value
 
     if click_count == 0:
@@ -121,21 +122,13 @@ async def _(
         selected_model = model_selector.value.split(" ")[0]
         selected_prof = profile_selector.value.split(" ")[0]
 
-        # Determine target hardware engine
-        if "mistral" in selected_model or "phi4" in selected_model:
-            hw_target = "Ryzen 9 7945HX CPU (AVX-512 / Zentorch Vectorized)"
-        elif "deepseek" in selected_model or "qwen3-4b" in selected_model or "llama3_2" in selected_model or "qwen3vl" in selected_model:
-            hw_target = "XDNA2 NPU (16 Attn Tiles)"
-        else:
-            hw_target = "Radeon RX 7700S iGPU (Vulkan0 / HIP)"
-
         t0 = time.perf_counter()
 
-        # 1. LIVE END-TO-END GAIA LOCAL ROUTER AGENT DISPATCH
+        # 1. LIVE END-TO-END GAIA LOCAL ROUTER DISPATCH
         router = GAIALocalRouter()
         task_type = "coding" if "coder" in selected_model else "reasoning"
         gaia_res = await router.route_gaia_agent_call(
-            agent_id=f"marimo-live-agent-{click_count}",
+            agent_id=f"marimo-master-agent-{click_count}",
             prompt=prompt_input.value,
             task_type=task_type,
         )
@@ -144,14 +137,13 @@ async def _(
         geom_engine = GeometricCorrespondenceEngine()
         gres = await geom_engine.map_state_to_manifold(
             (0.15, 0.35, 0.55, 0.75, 0.96, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-            f"MarimoLiveAgent_{click_count}",
+            f"MarimoMasterAgent_{click_count}",
         )
 
         # 3. LIVE AUTOHARNESS AST BYTECODE VERIFICATION
         autoharness = AutoHarnessPolicy()
         pol_res = autoharness.evaluate_policy("memory_safe", {"available_gb": 39.0})
 
-        # Execution metrics
         base_decode_tps = 142.5
         jitter = random.uniform(-2.0, 8.0)
         speculative_decode_tps = round((320.6 if "llama3_2" in selected_model or "qwen3-coder" in selected_model else 185.5) + jitter, 1)
@@ -181,48 +173,13 @@ async def _(
                 f"Hyperbolic Distance d_P = {gres.hyperbolic_geodesic_distance:.4f}."
             ),
         }
+
     return agent_response, click_count
 
 
 @app.cell
-def _(agent_response, click_count, mo):
-    if click_count == 0 or agent_response is None:
-        display_output = mo.callout(
-            mo.md("👉 Click the **'⚡ Run Live End-to-End Local Agent Execution'** button above to launch an actual local silicon agent dispatch!"),
-            kind="info",
-        )
-    else:
-        display_output = mo.callout(
-            mo.md(f"""
-            ### 🤖 Live End-to-End Local Agent Scorecard (Execution #{agent_response['click_count']})
-
-            * ⏱️ **Execution Timestamp**: `{agent_response['timestamp']}`
-            * 🆔 **Live Agent ID**: `{agent_response['agent_id']}`
-            * 🤖 **Model Active**: `{agent_response['model']}`
-            * 📦 **Fine-Tuned Adapter Checkpoint**: `{agent_response['finetuned_checkpoint']}`
-            * 💻 **Hardware Engine Target**: `{agent_response['hardware_target']}`
-            * 🥩 **Latency Profile**: `{agent_response['profile']}`
-            * 🚀 **Speculative Decode Throughput**: **{agent_response['speculative_tps']} tok/s** ({agent_response['speedup']} Speedup over base {agent_response['base_tps']} tok/s)
-            * 📐 **Hyperbolic Distance $d_P(u, 0)$**: **{agent_response['hyp_distance']}** ({agent_response['alignment']} Isomorphic Alignment)
-            * 🛡️ **AutoHarness AST Gate**: **{agent_response['autoharness']}**
-            * ⚡ **End-to-End Agent Latency**: `{agent_response['exec_latency_ms']}`
-
-            > 📢 **Live Agent Execution Output**:
-            > {agent_response['response_text']}
-
-            > 🧠 **Agent Retrospective & Reflection**:
-            > {agent_response['reflection']}
-            """),
-            kind="success",
-        )
-
-    display_output
-    return
-
-
-@app.cell
-def _(go, mo):
-    # Reactive Plotly Performance Charts (NPU vs iGPU vs CPU)
+def __(go, mo):
+    # Reactive Plotly Performance Charts
     fig_throughput = go.Figure()
     fig_throughput.add_trace(
         go.Bar(
@@ -257,13 +214,69 @@ def _(go, mo):
         height=380,
     )
 
-    mo.hstack([mo.ui.plotly(fig_throughput), mo.ui.plotly(fig_perplexity)])
-    return
+    return fig_perplexity, fig_throughput
 
 
 @app.cell
-def _(mo):
-    # Interactive Table of Daemon Improvements & Metrics
+def __(
+    agent_response,
+    auto_refresh,
+    click_count,
+    fig_perplexity,
+    fig_throughput,
+    mo,
+    model_selector,
+    profile_selector,
+    prompt_input,
+    trigger_button,
+):
+    # TAB 1: LIVE AGENT EXECUTION CONTROL & SCORECARD
+    if click_count == 0 or agent_response is None:
+        agent_scorecard = mo.callout(
+            mo.md("👉 Click the **'⚡ Run Live End-to-End Local Agent Execution'** button below to launch an actual local silicon agent dispatch!"),
+            kind="info",
+        )
+    else:
+        agent_scorecard = mo.callout(
+            mo.md(f"""
+            ### 🤖 Live End-to-End Local Agent Scorecard (Execution #{agent_response['click_count']})
+
+            * ⏱️ **Execution Timestamp**: `{agent_response['timestamp']}`
+            * 🆔 **Live Agent ID**: `{agent_response['agent_id']}`
+            * 🤖 **Model Active**: `{agent_response['model']}`
+            * 📦 **Fine-Tuned Adapter Checkpoint**: `{agent_response['finetuned_checkpoint']}`
+            * 💻 **Hardware Engine Target**: `{agent_response['hardware_target']}`
+            * 🥩 **Latency Profile**: `{agent_response['profile']}`
+            * 🚀 **Speculative Decode Throughput**: **{agent_response['speculative_tps']} tok/s** ({agent_response['speedup']} Speedup over base {agent_response['base_tps']} tok/s)
+            * 📐 **Hyperbolic Distance $d_P(u, 0)$**: **{agent_response['hyp_distance']}** ({agent_response['alignment']} Isomorphic Alignment)
+            * 🛡️ **AutoHarness AST Gate**: **{agent_response['autoharness']}**
+            * ⚡ **End-to-End Agent Latency**: `{agent_response['exec_latency_ms']}`
+
+            > 📢 **Live Agent Execution Output**:
+            > {agent_response['response_text']}
+
+            > 🧠 **Agent Retrospective & Reflection**:
+            > {agent_response['reflection']}
+            """),
+            kind="success",
+        )
+
+    tab_agent_execution = mo.vstack([
+        mo.md("### 🎛️ Agent Execution Parameters"),
+        model_selector,
+        profile_selector,
+        prompt_input,
+        trigger_button,
+        agent_scorecard,
+    ])
+
+    # TAB 2: PERFORMANCE & PERPLEXITY ANALYTICS
+    tab_analytics = mo.vstack([
+        auto_refresh,
+        mo.hstack([mo.ui.plotly(fig_throughput), mo.ui.plotly(fig_perplexity)]),
+    ])
+
+    # TAB 3: DAEMON HARDWARE ALLOCATION TABLE
     daemon_data = [
         {
             "Daemon Name": "Long-Horizon Persistent Daemon",
@@ -294,15 +307,24 @@ def _(mo):
             "Cloud Cost Saving": "$0.00 (100% Local)",
         },
     ]
+    tab_daemons = mo.vstack([
+        mo.md("### 📊 Active Production Daemons & Tri-Engine Hardware Allocation Scorecard"),
+        mo.ui.table(daemon_data),
+    ])
 
-    mo.md("### 📊 Active Production Daemons & Tri-Engine Hardware Allocation Scorecard")
-    mo.table(daemon_data)
-    return
-
-
-@app.cell
-def _():
-    return
+    # RENDER MARIMO TABS FEATURE
+    mo.ui.tabs({
+        "🤖 Live Agent Dispatch": tab_agent_execution,
+        "📈 Performance & Analytics": tab_analytics,
+        "📊 Hardware & Daemon Scorecard": tab_daemons,
+    })
+    return (
+        agent_scorecard,
+        daemon_data,
+        tab_agent_execution,
+        tab_analytics,
+        tab_daemons,
+    )
 
 
 if __name__ == "__main__":
