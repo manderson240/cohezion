@@ -14,6 +14,9 @@ from typing import Any
 _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     "gemma-4": {"temperature": 1.0, "top_k": 64, "top_p": 0.95},
     "gemma4": {"temperature": 1.0, "top_k": 64, "top_p": 0.95},
+    # MoE FLM variant (NPU npu_reason lane since 2026-08-03). Non-thinking Qwen3.6
+    # instruct sampling card. MUST stay before the generic "qwen3" key.
+    "qwen3.6-moe": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0.0},
     "qwen3.6-35b-a3b-gguf": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0.0},
     "qwen3.6-35b-a3b-nothinking": {"temperature": 0.7, "top_p": 0.8, "top_k": 20, "min_p": 0.0},
     "qwen3.6-35b-a3b-thinkingcoder": {"temperature": 0.6, "top_k": 30},

@@ -158,15 +158,19 @@ def build_reasoning_orchestrator(
     *,
     omni_port: int = 13305,
 ) -> TieredOrchestrator:
-    """Reasoning-optimized orchestrator using deepseek-r1-0528-8b-FLM on the NPU.
+    """Reasoning-optimized orchestrator using qwen3.6-moe-35b-a3b-FLM on the NPU.
 
-    Discovered 2026-06-22: deepseek-r1-0528-8b-FLM lives in the fleet at 10.6 TPS
-    on XDNA2 but was never wired. Routes reasoning tasks through NPU before iGPU/CPU.
+    Lane history: deepseek-r1-0528-8b-FLM held this tier from 2026-06-22. Replaced
+    2026-08-03 on fixture-sweep evidence (lap 80303, n=52/arm, deterministic graders):
+    qwen3.6-moe 0.942 overall / 1.000 reasoning-role vs deepseek 0.635 / 0.058 —
+    model_performance rows in SurrealDB (cohezion:main), report
+    vault reports/20260803-qwen36-three-lane-eval.md. qwen is content-channel-only
+    (no <think> trap) and ~9-10 TPS on XDNA2.
 
     All tiers talk to the OmniRouter (:13305) via GAIA SDK — no per-port servers needed.
 
     Tiers:
-    0. NPU reasoning: deepseek-r1-0528-8b-FLM (:13305, 10.6 TPS, XDNA2 FLM)
+    0. NPU reasoning: qwen3.6-moe-35b-a3b-FLM (:13305, ~9.7 TPS, XDNA2 FLM MoE)
     1. iGPU synthesis: Gemma-4-E4B-it-GGUF (:13305, RDNA3.5, Vulkan, min_chars=200)
     2. CPU completion: Gemma-4-E4B-it-GGUF (:13305, TRUST gate — fallback or JEPA REROUTE path)
 
@@ -182,7 +186,7 @@ def build_reasoning_orchestrator(
     base_url = f"http://localhost:{omni_port}/api/v1"
 
     npu_reasoning = build_gaia_llm_tier(
-        model_id="deepseek-r1-0528-8b-FLM",
+        model_id="qwen3.6-moe-35b-a3b-FLM",
         base_url=base_url,
         max_tokens=2048,
         silent=True,
