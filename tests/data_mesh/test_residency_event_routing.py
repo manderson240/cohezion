@@ -58,18 +58,14 @@ class TestRS5BusDispatchesToTheGate:
         out = consumer.handle({"event_type": "model_needed", "model_id": "M"})
         assert out["action"] == "residency-error" and "exploded" in out["error"]
 
-    def test_DISCRIMINATING_model_id_is_read_from_PAYLOAD_as_the_real_bus_sends_it(
-        self, consumer
-    ):
+    def test_DISCRIMINATING_model_id_is_read_from_PAYLOAD_as_the_real_bus_sends_it(self, consumer):
         """`model_id` is NOT a column on data_product_event — SurrealDB silently rejects a
         row carrying it (verified: CREATE returned status OK and stored nothing). Real bus
         events put it inside payload JSON. An implementation reading only the top level
         passes every other test here and is INERT in production."""
         seen: list[dict] = []
         consumer._residency = lambda ev: seen.append(ev) or type("R", (), {"ok": True})()
-        consumer.handle(
-            {"event_type": "model_needed", "payload": '{"model_id": "FromPayload"}'}
-        )
+        consumer.handle({"event_type": "model_needed", "payload": '{"model_id": "FromPayload"}'})
         assert seen and seen[0].get("model_id") == "FromPayload", (
             f"model_id not recovered from payload; handler saw {seen}"
         )
@@ -78,8 +74,11 @@ class TestRS5BusDispatchesToTheGate:
         seen: list[dict] = []
         consumer._residency = lambda ev: seen.append(ev) or True
         consumer.handle(
-            {"event_type": "model_needed", "model_id": "TopLevel",
-             "payload": '{"model_id": "FromPayload"}'}
+            {
+                "event_type": "model_needed",
+                "model_id": "TopLevel",
+                "payload": '{"model_id": "FromPayload"}',
+            }
         )
         assert seen[0]["model_id"] == "TopLevel"
 

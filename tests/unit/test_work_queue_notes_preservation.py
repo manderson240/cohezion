@@ -66,9 +66,7 @@ class TestActionerDoesNotClobberNotes:
         sent = _capture_patch_body(monkeypatch)
         body = sent["body"]
 
-        assert "notes" not in body, (
-            f"mark_actioned must not write the content field; body={body!r}"
-        )
+        assert "notes" not in body, f"mark_actioned must not write the content field; body={body!r}"
         assert body["status"] == "actioned"
         assert body["action_route"] == "experiment", "the route must still be recorded somewhere"
 

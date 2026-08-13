@@ -102,7 +102,7 @@ def _queue_lock() -> Iterator[None]:
     try:
         handle = lock_path.open("w")
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-    except Exception as exc:  # noqa: BLE001 — see docstring
+    except Exception as exc:
         print(f"[work-queue] advisory lock unavailable, proceeding: {exc}", file=sys.stderr)
         handle = None
     try:

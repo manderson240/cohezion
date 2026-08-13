@@ -97,6 +97,7 @@ class CardAlignmentMonitor:
     def _emit_healing_event(self, rate: float) -> None:
         try:
             import time
+
             from cohezion.precipitation import bus
 
             event = PrecipitationEvent(

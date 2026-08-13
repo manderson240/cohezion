@@ -51,7 +51,9 @@ class TestAutoFit:
     def test_observe_triggers_fit_at_threshold(self):
         rng = np.random.RandomState(0)
         Z, _, _ = _synthetic_sparse_latents(rng, n_samples=40)
-        r = WorkspaceReadout(auto_fit_after=32, n_atoms=16, _force_numpy=True, fit_in_background=False)
+        r = WorkspaceReadout(
+            auto_fit_after=32, n_atoms=16, _force_numpy=True, fit_in_background=False
+        )
         for i in range(31):
             r.observe(Z[i])
         assert r.is_fitted is False  # discriminating: below threshold stays unfitted
@@ -61,7 +63,9 @@ class TestAutoFit:
     def test_buffer_cleared_after_fit(self):
         rng = np.random.RandomState(1)
         Z, _, _ = _synthetic_sparse_latents(rng, n_samples=40)
-        r = WorkspaceReadout(auto_fit_after=16, n_atoms=8, _force_numpy=True, fit_in_background=False)
+        r = WorkspaceReadout(
+            auto_fit_after=16, n_atoms=8, _force_numpy=True, fit_in_background=False
+        )
         for z in Z[:20]:
             r.observe(z)
         assert len(r._buffer) == 0  # advisor finding: buffer must not grow unbounded
@@ -114,7 +118,9 @@ class TestHotPathContract:
         assert r.is_fitted is True
 
     def test_retry_cap_stops_refit_attempts(self, monkeypatch):
-        r = WorkspaceReadout(auto_fit_after=2, n_atoms=8, _force_numpy=True, fit_in_background=False)
+        r = WorkspaceReadout(
+            auto_fit_after=2, n_atoms=8, _force_numpy=True, fit_in_background=False
+        )
         calls = {"n": 0}
 
         def failing_fit(batch):
@@ -214,7 +220,9 @@ class TestJourneyTrackerConsumption:
 
     def test_metadata_annotated_when_fitted(self):
         rng = np.random.RandomState(7)
-        r = WorkspaceReadout(auto_fit_after=32, n_atoms=16, _force_numpy=True, fit_in_background=False)
+        r = WorkspaceReadout(
+            auto_fit_after=32, n_atoms=16, _force_numpy=True, fit_in_background=False
+        )
         for _ in range(32):
             r.observe(rng.randn(2048))
         assert r.is_fitted

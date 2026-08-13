@@ -39,7 +39,9 @@ class _Bus:
 
 
 def _svc(bus=None, ledger=None, **kw):
-    return ResidencyService(ledger=ledger or ResidencyLedger(), publish=bus.publish if bus else None, **kw)
+    return ResidencyService(
+        ledger=ledger or ResidencyLedger(), publish=bus.publish if bus else None, **kw
+    )
 
 
 # --------------------------------------------------------------------- T1 structural

@@ -10,7 +10,6 @@ import logging
 import time
 from dataclasses import dataclass
 
-
 import psutil
 
 from cohezion.core.event_bus import EventBus

@@ -265,7 +265,7 @@ class VerifyEvolveLane:
             profile = get_profile(model_id)
             if profile is None:
                 return []
-            
+
             registry = MyceliumRegistry.get_instance()
             return registry.query_patterns(profile.family, task)
         except Exception as e:
@@ -281,13 +281,14 @@ class VerifyEvolveLane:
         treats any recent HEALING_EVENT on the model as a veto.
         """
         import re
+
         if not re.match(r"^[a-zA-Z0-9:-]+$", model_id):
             raise ValueError(f"Invalid model_id: {model_id}")
 
         import json
         import os
-        import urllib.request
         import urllib.error
+        import urllib.request
 
         url = os.environ.get("SURREAL_URL", "http://localhost:8001/sql")
         user = os.environ.get("SURREAL_USER", "root")
@@ -299,7 +300,7 @@ class VerifyEvolveLane:
                 "LIMIT 100;"
             )
         }
-        
+
         req = urllib.request.Request(  # noqa: S310 — env-controlled
             url,
             data=json.dumps(body).encode(),
@@ -319,12 +320,19 @@ class VerifyEvolveLane:
             try:
                 with urllib.request.urlopen(req, timeout=2.0) as resp:  # noqa: S310
                     data = json.loads(resp.read())
-                if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict) and "result" in data[0]:
+                if (
+                    isinstance(data, list)
+                    and len(data) > 0
+                    and isinstance(data[0], dict)
+                    and "result" in data[0]
+                ):
                     return data[0]["result"]
                 return []
             except Exception as e:
                 if attempt == max_retries - 1:
-                    logger.debug("Ouroboros healing event query failed after %d retries: %s", max_retries, e)
+                    logger.debug(
+                        "Ouroboros healing event query failed after %d retries: %s", max_retries, e
+                    )
                     return []
                 await asyncio.sleep(backoff)
                 backoff *= 2

@@ -52,14 +52,20 @@ class BenchTask:
     prompt: str
     expected_keywords: list[str]  # presence check (case-insensitive)
     max_tokens: int = 60
-    grader: str = "keyword"  # "keyword" (surface-form) | "python_exec" (behavior) | "exact" (gold answer)
+    grader: str = (
+        "keyword"  # "keyword" (surface-form) | "python_exec" (behavior) | "exact" (gold answer)
+    )
     test_code: str = (
         ""  # for grader="python_exec": assert-based test appended to the generated code
     )
     timeout_s: float = 30.0  # per-call HTTP timeout (raise for reasoning models on big budgets)
     gold: str = ""  # for grader="exact": the exact expected answer (normalized comparison)
-    temperature: float | None = None  # None = inherit model-card sampling (TR1); 0.0 for determinism canaries
-    seed: int | None = None  # sampling seed for reproducible eval runs (server-side; sampling stays card-owned)
+    temperature: float | None = (
+        None  # None = inherit model-card sampling (TR1); 0.0 for determinism canaries
+    )
+    seed: int | None = (
+        None  # sampling seed for reproducible eval runs (server-side; sampling stays card-owned)
+    )
 
 
 @dataclass
@@ -331,7 +337,11 @@ async def _bench_model_on_task(
     run_id: int = 0,
 ) -> BenchResult:
     ttft, tps, text = await _call_model(
-        model_id, task.prompt, task.max_tokens, task.timeout_s, temperature=task.temperature,
+        model_id,
+        task.prompt,
+        task.max_tokens,
+        task.timeout_s,
+        temperature=task.temperature,
         seed=task.seed,
     )
     exec_pass: bool | None = None

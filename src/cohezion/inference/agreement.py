@@ -27,6 +27,7 @@ import logging
 import math
 import urllib.request
 
+
 logger = logging.getLogger(__name__)
 
 ROUTER_URL = "http://localhost:13305"
@@ -61,7 +62,7 @@ def _embed(texts: list[str]) -> list[list[float]] | None:
         with urllib.request.urlopen(req, timeout=30) as r:
             data = json.loads(r.read().decode())
         return [d["embedding"] for d in data["data"]]
-    except Exception as exc:  # noqa: BLE001 -- transport/shape faults are all non-fatal here
+    except Exception as exc:
         logger.debug("agreement: embedding unavailable (%s)", exc)
         return None
 
@@ -90,11 +91,7 @@ def semantic_agreement(texts: list[str], embed_fn=None) -> float | None:
     vecs = (embed_fn or _embed)(live)
     if not vecs or len(vecs) < 2:
         return None
-    sims = [
-        _cosine(vecs[i], vecs[j])
-        for i in range(len(vecs))
-        for j in range(i + 1, len(vecs))
-    ]
+    sims = [_cosine(vecs[i], vecs[j]) for i in range(len(vecs)) for j in range(i + 1, len(vecs))]
     if not sims:
         return None
     return max(0.0, min(1.0, sum(sims) / len(sims)))

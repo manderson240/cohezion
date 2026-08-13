@@ -17,6 +17,7 @@ from cohezion.inference.agreement import (
     semantic_agreement,
 )
 
+
 # Deterministic stand-in for the embedder: orthogonal unit vectors == total disagreement,
 # identical vectors == perfect agreement. Keeps the tests offline and exact.
 _AGREE = {"a": [1.0, 0.0], "b": [1.0, 0.0]}
@@ -131,9 +132,7 @@ class TestAG4ConsumerActsOnIt:
     def test_unmeasurable_agreement_does_not_change_verdict(self, monkeypatch):
         # The fail-open path needs its own discriminating test: when the embedder is down
         # the verdict must be IDENTICAL, not merely "not rejected".
-        monkeypatch.setattr(
-            "cohezion.compound.autodqa.semantic_agreement", lambda texts: None
-        )
+        monkeypatch.setattr("cohezion.compound.autodqa.semantic_agreement", lambda texts: None)
         dqa = self._dqa()
         task = "What is the capital of France?"
         base = dqa.evaluate("Paris is the capital of France.", task)

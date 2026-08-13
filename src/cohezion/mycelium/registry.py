@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import math
+import threading
 from dataclasses import dataclass, field
 
 from cohezion.precipitation.bus import PrecipitationBus, get_bus
@@ -25,8 +26,6 @@ from cohezion.precipitation.events import (
     PrecipitationKind,
 )
 
-
-import threading
 
 logger = logging.getLogger(__name__)
 
@@ -126,13 +125,15 @@ class MyceliumRegistry:
         results = []
         for cluster in self.clusters:
             if family in cluster.member_families and task in cluster.member_tasks:
-                results.append({
-                    "family": family,
-                    "task": task,
-                    "size": cluster.size,
-                    "cluster_id": cluster.cluster_id,
-                    "mean_coherence": cluster.mean_coherence,
-                })
+                results.append(
+                    {
+                        "family": family,
+                        "task": task,
+                        "size": cluster.size,
+                        "cluster_id": cluster.cluster_id,
+                        "mean_coherence": cluster.mean_coherence,
+                    }
+                )
         return results
 
     def subscribe(self) -> None:
@@ -150,6 +151,7 @@ class MyceliumRegistry:
         if model_id:
             try:
                 from cohezion.inference.default_profiles import get_profile
+
                 profile = get_profile(model_id)
                 if profile:
                     cluster.member_families.add(profile.family)
@@ -193,7 +195,9 @@ class MyceliumRegistry:
         # Enforce FIFO limit of 500 clusters before adding new one
         if len(self.clusters) >= 500:
             removed = self.clusters.pop(0)
-            logger.info("MyceliumRegistry: evicted oldest cluster %s to maintain limit", removed.cluster_id)
+            logger.info(
+                "MyceliumRegistry: evicted oldest cluster %s to maintain limit", removed.cluster_id
+            )
 
         cluster = MyceliumCluster(
             cluster_id=f"mycelium-{self._cluster_counter}",
