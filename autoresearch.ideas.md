@@ -151,3 +151,9 @@ next steps for compound engineering optimization.
 - Structural: `inspect.signature(TieredOrchestrator.run_batch).parameters['prompts']` exists
 - Throughput: n=3 concurrent should complete faster than n=3 sequential (on live NPU)
 
+# Ideas backlog — overnight-local-inference (resume points)
+- T1 model swap: Gemma-4-26B-A4B-it-GGUF as single mid tier (loads OK, thinking-mode handled by build_gaia_llm_tier) — could T2 become unnecessary?
+- Entry-tier timeout 240→150s now that warm-up removed load stalls (only genuine slowness remains)
+- n≥3 repeats per config for any future duration claims (rule 12)
+- fact-planet knowledge miss: add answer-freshness dimension to suite (Saturn vs Jupiter class)
+- Transfer track (supervised, src/): validator gates + warm-up + probe-before-adopt into triune_orchestrator.py / build_reasoning_orchestrator
