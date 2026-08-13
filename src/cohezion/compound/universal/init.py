@@ -148,15 +148,20 @@ def initialize_cohezion_environment() -> bool:
 
         # Import initialization systems (lazy import to avoid circular deps)
         try:
-            from .daemon.workflow_initializer import get_workflow_initializer
-            from .tdd_adversarial import (
+            from ..tdd_adversarial import (
                 get_adversarial_review_system,
+                get_tdd_adversarial_coordinator,
                 get_tdd_integration,
-                get_tdt_adversarial_coordinator,
             )
-        except ImportError:
-            # If we can't import our new systems, fail gracefully
-            # Don't break Cohezion - just skip initialization
+        except ImportError as exc:
+            # Fail gracefully -- don't break Cohezion -- but NOT silently.
+            # A typo here (get_tdt_ vs get_tdd_) disabled this whole subsystem
+            # unnoticed because the skip was reported as success.
+            try:
+                if not os.environ.get("COHEZION_NON_INTERACTIVE"):
+                    print(f"[COHEZION_INIT_SKIP] tdd_adversarial unavailable: {exc}")
+            except Exception:
+                pass  # Even error reporting failed, continue silently
             return True  # Consider it "initialized" by skipping
 
         # Get current working directory as project root
@@ -177,10 +182,9 @@ def initialize_cohezion_environment() -> bool:
 
         # Initialize systems
         try:
-            initializer = get_workflow_initializer(project_root)
             tdd_system = get_tdd_integration(project_root)
             review_system = get_adversarial_review_system(project_root)
-            coordinator = get_tdt_adversarial_coordinator(project_root)
+            coordinator = get_tdd_adversarial_coordinator(project_root)
         except Exception:
             # If we can't initialize systems, fail gracefully
             # Don't break Cohezion - just skip initialization
@@ -200,17 +204,20 @@ def initialize_cohezion_environment() -> bool:
         coordinator_ready = False
         initialization_details = {}
 
-        # Try to create worktree if we're in a proper git repo and it makes sense
-        try:
-            init_result = initializer.initialize_session(
-                session_id=session_id, create_worktree=True, prepare_tdd=True, prepare_review=True
-            )
-            worktree_created = init_result.get("success", False)
-            initialization_details.update(init_result)
-        except Exception:
-            # Fallback: continue without worktree (current directory work)
-            # This is fine for many environments (APIs, batch jobs, etc.)
-            pass
+        # Worktree setup: DELIBERATELY INERT -- wiring TODO, not dead code.
+        #
+        # `get_workflow_initializer(project_root).initialize_session()` (in
+        # ..daemon.workflow_initializer) is async, and this module runs at import time
+        # (see the call at the bottom of the file), so it cannot be awaited here.
+        # Historically it was called without await: the returned coroutine failed
+        # `.get()` with AttributeError, the bare `except` swallowed it, and
+        # worktree_created stayed False -- so this has never actually run.
+        #
+        # Making it run would create a git worktree on every `import cohezion.compound`.
+        # That is a side effect requiring an explicit decision, not a silent switch-on,
+        # so it stays off until someone chooses it. TDD/review/coordinator setup below
+        # is independent of this and does work.
+        worktree_created = False
 
         # Initialize core systems (always try these - they should work in current directory)
         try:
