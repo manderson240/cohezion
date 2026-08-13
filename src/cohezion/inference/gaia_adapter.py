@@ -317,7 +317,12 @@ class _LocalRouterClient:
 # ``model_card_defaults.get_sampling_defaults`` (callers such as actioner/engine.py pass
 # free-form ids, incl. lowercase/hyphenless ``gemma4``); a case-sensitive miss would let the
 # model resolve as Gemma for temperature yet silently skip reasoning_format → defect returns.
-_THINKING_MODEL_MARKERS = ("gemma-4", "gemma4", "gemma-3", "qwen3", "deepseek-r1")
+# `bonsai` added 2026-07-28: Bonsai IS a llama.cpp thinking family — verified live on :13305
+# (content='OK' while reasoning_content held a full "Here's a thinking process:…" trace). Omitting
+# it meant reasoning_format='none' was never sent, so on substantial prompts the CoT consumed the
+# whole budget and `content` returned EMPTY. Budget-dependent, hence long-invisible: short prompts
+# answered fine while every long one silently returned "". See test_predicate_flags_bonsai_family.
+_THINKING_MODEL_MARKERS = ("gemma-4", "gemma4", "gemma-3", "qwen3", "deepseek-r1", "bonsai")
 
 
 def _is_llamacpp_thinking_model(model_id: str) -> bool:

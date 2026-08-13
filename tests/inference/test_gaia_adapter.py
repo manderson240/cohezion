@@ -391,3 +391,29 @@ class TestThinkingModelReasoningFormat:
         with patch.dict(sys.modules, {"gaia.llm.lemonade_client": None}):
             tier = build_gaia_llm_tier("llama3.2-1b-FLM")
         assert "reasoning_format" not in tier.agent._extra_sampling
+
+    def test_predicate_flags_bonsai_family(self):
+        """Bonsai IS a llama.cpp thinking family — the marker list omitted it (2026-07-28).
+
+        Measured live against :13305 with `Bonsai-27B-gguf`, prompt "Reply with exactly: OK":
+        `content == 'OK'` while `reasoning_content` held a full "Here's a thinking process:…"
+        trace. So it streams CoT to the separate channel exactly like Gemma-4/Qwen3.
+
+        Unmatched ⇒ reasoning_format='none' never sent ⇒ on a SUBSTANTIAL prompt the CoT
+        consumes the whole budget and `content` comes back EMPTY. Symptom is budget-dependent,
+        which is why it looked healthy: short prompts return fine, long ones return "". Observed
+        as 3 consecutive empty adversarial-review lanes (8000 tokens did NOT rescue it).
+        """
+        from cohezion.inference.gaia_adapter import _is_llamacpp_thinking_model
+
+        assert _is_llamacpp_thinking_model("Bonsai-27B-gguf")
+        assert _is_llamacpp_thinking_model("Bonsai-8B-gguf")
+        assert _is_llamacpp_thinking_model("bonsai-1.7b-gguf")  # case-insensitive, per above
+        # Discriminating: a substring-sloppy fix must not sweep in unrelated ids.
+        assert not _is_llamacpp_thinking_model("Granite-4.1-8B-GGUF")
+
+    def test_reasoning_format_injected_for_bonsai(self):
+        """The consumption half: the predicate must actually reach the request payload."""
+        with patch.dict(sys.modules, {"gaia.llm.lemonade_client": None}):
+            tier = build_gaia_llm_tier("Bonsai-27B-gguf")
+        assert tier.agent._extra_sampling.get("reasoning_format") == "none"
