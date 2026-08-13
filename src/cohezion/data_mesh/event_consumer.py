@@ -222,6 +222,10 @@ class EventConsumer:
             from cohezion.inference.residency_service import ResidencyService
 
             residency = ResidencyService().handle_event
+            # Memoize: a per-event service gets a FRESH EMPTY ledger every call,
+            # which leaves the RS3 resident-view fallback and LRU state inert in
+            # production while injected-service tests keep passing.
+            self._residency = residency
 
         event = dict(event)
         if not event.get("model_id"):

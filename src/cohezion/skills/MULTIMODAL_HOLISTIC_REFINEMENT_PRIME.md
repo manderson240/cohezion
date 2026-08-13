@@ -1,3 +1,8 @@
+---
+name: multimodal-holistic-refinement
+description: Orchestrates multimodal local-silicon inference -- TRELLIS 3D Gaussian Splatting (.ply)/GLTF mesh generation combined with local LLM reasoning tiers for holistic refinement loops.
+---
+
 # MULTIMODAL_HOLISTIC_REFINEMENT_PRIME
 
 ## DOMAIN EXPERTISE

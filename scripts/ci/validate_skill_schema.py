@@ -36,11 +36,14 @@ import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+# (dir, glob patterns). src/cohezion/skills is mostly FLAT *_PRIME.md files with a
+# few subdir SKILL.md packages — scanning only rglob("SKILL.md") silently covered
+# 12 of ~250 files there (found in post-land review, 2026-08-13).
 SKILL_DIRS = [
-    PROJECT_ROOT / "src" / "cohezion" / "skills",
-    PROJECT_ROOT / ".claude" / "skills",
-    PROJECT_ROOT / ".agents" / "skills",
-    PROJECT_ROOT / ".pi" / "skills",
+    (PROJECT_ROOT / "src" / "cohezion" / "skills", ("*.md", "*/SKILL.md")),
+    (PROJECT_ROOT / ".claude" / "skills", ("**/SKILL.md",)),
+    (PROJECT_ROOT / ".agents" / "skills", ("**/SKILL.md",)),
+    (PROJECT_ROOT / ".pi" / "skills", ("**/SKILL.md",)),
 ]
 REQUIRED_FIELDS = ("name", "description")
 
@@ -108,13 +111,20 @@ def _validate_file(path: Path) -> tuple[str | None, str | None, list[str] | None
     return None, None, None
 
 
-def validate_dir(skill_dir: Path) -> DirResult:
-    """Validate every SKILL.md file under *skill_dir* recursively."""
+def validate_dir(skill_dir: Path, patterns: tuple[str, ...] = ("**/SKILL.md",)) -> DirResult:
+    """Validate every skill markdown file under *skill_dir* matching *patterns*."""
     result = DirResult(dir=skill_dir)
     if not skill_dir.is_dir():
         return result
 
-    for path in sorted(skill_dir.rglob("SKILL.md")):
+    seen: set[Path] = set()
+    matched: list[Path] = []
+    for pattern in patterns:
+        for path in skill_dir.glob(pattern):
+            if path not in seen:
+                seen.add(path)
+                matched.append(path)
+    for path in sorted(matched):
         result.total += 1
         cat, detail, missing = _validate_file(path)
         rel = str(path.relative_to(PROJECT_ROOT))
@@ -132,8 +142,14 @@ def validate_dir(skill_dir: Path) -> DirResult:
 
 def main() -> int:
     results: list[DirResult] = []
-    for d in SKILL_DIRS:
-        results.append(validate_dir(d))
+    zero_scans: list[str] = []
+    for d, patterns in SKILL_DIRS:
+        r = validate_dir(d, patterns)
+        results.append(r)
+        # A dir that EXISTS but matches nothing means the glob is wrong, not that
+        # the skills are fine — the exact failure mode that hid a 96% coverage drop.
+        if d.is_dir() and r.total == 0:
+            zero_scans.append(str(d.relative_to(PROJECT_ROOT)))
 
     grand_total = sum(r.total for r in results)
     grand_ok = sum(r.ok for r in results)
@@ -147,6 +163,13 @@ def main() -> int:
     print()
 
     failed = False
+
+    if zero_scans:
+        failed = True
+        print("[FAIL] zero files matched in existing skill dirs (glob wrong?):")
+        for d in zero_scans:
+            print(f"    - {d}")
+        print()
 
     for r in results:
         if r.total == 0:

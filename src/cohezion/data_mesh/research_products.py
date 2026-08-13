@@ -517,7 +517,10 @@ def _emit_data_product_event(finding: ResearchFinding) -> bool:
             # non-empty result, or a rejected write reports success forever.
             body = json.loads(resp.read().decode())
         return bool(
-            isinstance(body, list) and body[0].get("status") == "OK" and body[0].get("result")
+            isinstance(body, list)
+            and body
+            and body[0].get("status") == "OK"
+            and body[0].get("result")
         )
     except Exception as exc:  # fail-open: audit is best-effort
         logger.debug("research_products: event emit failed for %s: %s", finding.finding_id, exc)

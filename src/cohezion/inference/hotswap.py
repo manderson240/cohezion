@@ -73,8 +73,15 @@ def _post(path: str, payload: dict, timeout: float) -> tuple[int, str]:
         return 0, str(exc)[:200]
 
 
-def free_gb() -> float:
-    """Actual MemAvailable in GB. Returns 0.0 when unreadable (fail-closed)."""
+def free_gb_or_none() -> float | None:
+    """Actual MemAvailable in GB, or None when UNREADABLE.
+
+    The distinction matters because the two consumers need OPPOSITE polarities:
+    admission must fail CLOSED (treat unknown as no headroom, refuse the load),
+    but reclaim must ABSTAIN (treat unknown as "do not evict") — reading the
+    0.0 sentinel as a real measurement made ``tick()`` tear down the entire
+    non-protected fleet whenever /proc/meminfo was unreadable.
+    """
     try:
         with open("/proc/meminfo") as f:
             for line in f:
@@ -82,11 +89,26 @@ def free_gb() -> float:
                     return int(line.split()[1]) / 1048576
     except Exception:
         pass
-    return 0.0
+    return None
 
 
-def resident_models() -> list[dict]:
-    """Loaded models from the server, newest-used first. Empty on any failure."""
+def free_gb() -> float:
+    """Actual MemAvailable in GB. Returns 0.0 when unreadable (fail-closed).
+
+    Admission-path view of ``free_gb_or_none()`` — unknown means "assume no
+    headroom". Reclaim paths must use ``free_gb_or_none()`` and abstain.
+    """
+    v = free_gb_or_none()
+    return 0.0 if v is None else v
+
+
+def resident_models_or_none() -> list[dict] | None:
+    """Loaded models newest-used first, or None when /health is UNREACHABLE.
+
+    Callers that verify a postcondition (``unload``) must distinguish "the
+    model is gone" from "the server could not be asked" — collapsing both to
+    ``[]`` made phantom unloads report success under a degraded /health.
+    """
     try:
         with urllib.request.urlopen(  # noqa: S310
             f"{LEMONADE_BASE}/api/v1/health", timeout=10
@@ -94,10 +116,15 @@ def resident_models() -> list[dict]:
             health = json.loads(r.read())
     except Exception as exc:
         logger.debug("hotswap: health unavailable: %s", exc)
-        return []
+        return None
     out = [m for m in (health.get("all_models_loaded") or []) if m.get("loaded")]
     out.sort(key=lambda m: m.get("last_use") or 0, reverse=True)
     return out
+
+
+def resident_models() -> list[dict]:
+    """Loaded models from the server, newest-used first. Empty on any failure."""
+    return resident_models_or_none() or []
 
 
 def _catalog_sizes() -> dict[str, float]:
@@ -179,7 +206,16 @@ def unload(model_id: str, timeout: float = 30.0) -> bool:
     if status not in (200, 204, 404):
         logger.warning("hotswap: unload %s -> HTTP %s %s", model_id, status, body)
         return False
-    still_resident = model_id in {m.get("model_name", "") for m in resident_models()}
+    server = resident_models_or_none()
+    if server is None:
+        logger.warning(
+            "hotswap: unload %s returned HTTP %s but /health is unreachable — "
+            "cannot VERIFY the postcondition, refusing to claim success",
+            model_id,
+            status,
+        )
+        return False
+    still_resident = model_id in {m.get("model_name", "") for m in server}
     if still_resident:
         logger.warning(
             "hotswap: PHANTOM UNLOAD — %s returned HTTP %s but is still resident; "

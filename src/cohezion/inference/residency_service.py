@@ -131,7 +131,12 @@ class ResidencyService:
             if not m.get("is_busy") and m.get("model_name") not in protect
         ]
         for victim in victims:
-            free = hotswap.free_gb()
+            free = hotswap.free_gb_or_none()
+            if free is None:
+                # Unknown is NOT pressure: evicting on an unreadable meminfo would
+                # tear down the whole non-protected fleet on a sensor failure.
+                logger.warning("residency tick: memory state unreadable — abstaining")
+                break
             if free >= threshold:
                 break  # pressure cleared — stop, do not keep tearing down a warm fleet
             name = victim.get("model_name", "")

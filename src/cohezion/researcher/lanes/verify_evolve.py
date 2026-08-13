@@ -282,7 +282,10 @@ class VerifyEvolveLane:
         """
         import re
 
-        if not re.match(r"^[a-zA-Z0-9:-]+$", model_id):
+        # Fleet model ids routinely carry dots and underscores
+        # (qwen3.6-35b-a3b-nothinking, RAM-Qwen3-8B-FT-V2-GGUF-Q8_0) — rejecting
+        # them raised an UNCAUGHT ValueError all the way out of the lane.
+        if not re.match(r"^[a-zA-Z0-9._:-]+$", model_id):
             raise ValueError(f"Invalid model_id: {model_id}")
 
         import json
