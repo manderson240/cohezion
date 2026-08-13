@@ -15,7 +15,7 @@ try:
 except ImportError:
     ADAPTIVE_OPTIMIZER_AVAILABLE = False
     get_adaptive_optimizer = None  # type: ignore[assignment]
-    logger.warning("Adaptive framework optimizer not available")
+    logger.debug("Adaptive framework optimizer not available")
 
 
 class LocalExpertRouter:

@@ -103,7 +103,7 @@ class LocalAgentPerspectiveBridge:
 {perspective.reflection_text}
 
 ## Geometric Hyperbolic Alignment
-- Hyperbolic Geodesic Distance \( d_P(u, 0) \): {perspective.hyperbolic_geodesic_distance:.4f}
+- Hyperbolic Geodesic Distance d_P(u, 0): {perspective.hyperbolic_geodesic_distance:.4f}
 - Isomorphic Alignment Score: {perspective.isomorphic_alignment_score * 100.0:.2f}%
 """
         retro_file.write_text(retro_content, encoding="utf-8")
