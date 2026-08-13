@@ -75,11 +75,20 @@ Session: s-77b9f9d6a892, branch `autoresearch/local-inference-20260813`
   count as misses too — always prefer the instrumented number.
 - Next: Run 6 — entry_by_node npu→1 (bypass T0). Prediction: misses 18 → ~5.
 
-### Run 6: bypass T0 (npu→1) (in flight, segment 2)
-- If misses collapse as predicted, T0-as-entry is net-negative under validator gating
-  for this suite: it saves nothing (its misses always escalate) and burns a full call.
-- Open question queued: does T0 earn its place on the categorical slice alone?
-  (category-conditional entry is the follow-up if Run 6 keeps.)
+### Run 6: bypass T0 (npu→1) — routing_misses=4 (KEEP)
+- Timestamp: 2026-08-13 05:40
+- What changed: entry_by_node npu 0→1 (T0 never entered)
+- Result: misses 18→4 (predicted ~5 ✓), passed=24/24, duration 1078.6s (fastest yet,
+  noisy metric), escalations 5, timeouts 1. T1 solved 19/24 solo.
+- Insight: T0 (Qwen3-0.6B) is a THINKING model — rambles 2500-4000c on yes/no prompts;
+  even its categorical record was spotty (~50-75%). Under validator gating it saved
+  nothing and taxed everything. Category-conditional T0 re-entry: NOT worth a run.
+  Remaining 4 misses (code-rev/fib T1, json-color/count T1) look STOCHASTIC — same
+  tasks passed T1 in other runs. Segment-2 noise rule: keep needs ≥3 miss reduction.
+- Next: Run 7 — structurally remove T0 from tiers (simpler-is-better; also frees the
+  router from ever loading the 0.6B → residency relief). Prediction: misses ≈4 (equal).
+
+### Run 7: 2-tier cascade, T0 deleted (in flight, segment 2)
 
 ## Key Insights
 - Probe EVERY tier model with a 1-token chat call BEFORE a suite run — catalog presence

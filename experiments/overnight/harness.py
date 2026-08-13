@@ -49,9 +49,8 @@ async def run_task(task, tiers, policy, sem, stats) -> dict:
             tier, tier_cfg = tiers[idx]
             t0 = time.perf_counter()
             try:
-                result = await asyncio.wait_for(
-                    tier.run(task.prompt), timeout=policy.get("per_task_timeout_s", 240)
-                )
+                tier_timeout = tier_cfg.get("timeout_s") or policy.get("per_task_timeout_s", 240)
+                result = await asyncio.wait_for(tier.run(task.prompt), timeout=tier_timeout)
                 text = result.text or ""
                 err = result.error
             except TimeoutError:

@@ -37,7 +37,13 @@ tier paths precede the metrics for diagnosis.
 - Commit with EXPLICIT paths only (`git add autoresearch.* experiments/`) — never `git add -A`
 - :13305 is NOT bit-reproducible even at fixed sampling (memory: A/B needs n≥5) —
   KEEP requires passed to improve by ≥2 tasks; in a duration segment, ≥5% faster at
-  equal-or-better passed. Smaller deltas = discard as noise.
+  equal-or-better passed. Smaller deltas = discard as noise. Segment 2 (routing_misses):
+  keep needs ≥3 miss reduction.
+- **Floor-violation triage (added after Run 7):** a passed<floor result does NOT
+  auto-discard. Check WHY tasks failed: timeout-caused failures under ambient load are
+  apparatus noise (measured: identical config produced 24/24 and 22/24), miss-caused
+  failures are real quality regressions. Only the latter discards. duration_s varies
+  ±82% and passed varies ±2 on identical configs — attribute before reverting.
 - Concurrency ≤3 (iGPU aux-call contention; `-np` divides ctx_size)
 - Models must exist in the live catalog (`curl :13305/v1/models`) — roster drifts;
   Bonsai-8B-gguf has known "No model loaded" 500 races; Gemma-4-31B blocks Vulkan >236s/call
