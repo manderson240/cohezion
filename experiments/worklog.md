@@ -16,8 +16,30 @@ Session: s-77b9f9d6a892, branch `autoresearch/local-inference-20260813`
 
 ## Runs
 
+### Run 1: baseline — pass_rate=0.7083 (17/24) (KEEP)
+- Timestamp: 2026-08-13 01:29
+- What changed: nothing (baseline policy)
+- Result: passed=17, duration=2395.5s (~40min), escalations=23, timeouts=13, tier_calls T0=18/T1=22/T2=7
+- Insight: **T2 (Qwen3.6-35B-A3B-GGUF) NEVER loaded** — every call 500 "llama-server failed
+  to start". All 7 T2 attempts burned 240s timeouts or errors; ~5-6 task failures
+  (math-chain, math-pct, code-dedup, json-color, json-count, ext-email) are APPARATUS
+  failures, not model-quality failures (config-before-capability). Also T0 (0.6B!) ran
+  155-240s/call — model-thrash from 3 concurrent tasks forcing competing loads on the router.
+  Category profile: categorical 4/4, factual 4/4, extraction 3/4, code 3/4, reasoning 2/4, json 1/4.
+- Next: swap T2 to a model that verifiably loads (probed: Qwen3-Coder-30B-A3B OK "OK",
+  Gemma-4-26B-A4B loads but thinking-mode, Qwen3-8B load-timeout at 180s)
+
+### Run 2: T2 → Qwen3-Coder-30B-A3B-Instruct-GGUF (in flight)
+- Single change: policy tiers[2].model; probe-verified loadable before adopting.
+
 ## Key Insights
-(populated as the loop runs)
+- Probe EVERY tier model with a 1-token chat call BEFORE a suite run — catalog presence
+  ≠ loadability (Qwen3.6-35B-A3B advertised but llama-server won't start; possibly the
+  FLM-pin / footprint issue class).
+- The 240s per-tier timeout × dead tier = worst-case 12min per affected task; a dead
+  terminal tier poisons duration far more than quality.
+- classifier entry sent 18/24 tasks to T0 — the 0.6B passes categorical cleanly but
+  fails validators on extraction/reasoning → escalation churn. Entry policy is a rich axis.
 
 ## Next Ideas
 - validator_gate on/off A-B (does semantic gating beat char-count gating?)
