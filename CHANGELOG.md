@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-08-13
+
+### Added — Landing train 2 (surgical harvests and cherry-picks)
+- Daemon health surface (`data_mesh/daemon_health.py`): typed heartbeat events and
+  stalled-daemon detection from the bus (harvested from `fix/classify-actionability-negation`)
+- `classify_actionability` negation guard: per-clause negator matching — "adopt nothing"
+  no longer auto-cards itself as actionable work; licence as structured fields
+- Datamesh orphan types promoted onto the canonical `cohezion.data_mesh` surface
+  (`FederationLayer`, `DomainEndpoint`, `UnifiedRecord`, `Physics12D` — 6 red tests green)
+- `DataMeshEventBridge` loss counters — the bridge now counts what it silently loses
+
+### Fixed
+- `bonsai` added to `_THINKING_MODEL_MARKERS` (silent empty output from Bonsai models)
+- Three stacked import bugs in `compound/universal/init.py`
+- `uv.lock` was corrupt after a textual lockfile merge (duplicate beautifulsoup4 entries) —
+  every CI job failed at dependency install; regenerated from origin's known-good lock.
+  Lockfiles are generated artifacts: never text-merge them
+
 ## [1.3.0] — 2026-08-13
 
 ### Added — Landing train (10 branches reviewed and merged)
