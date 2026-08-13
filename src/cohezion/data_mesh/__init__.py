@@ -161,7 +161,7 @@ try:
         "RecordType",
         "UnifiedRecord",
     ]
-except Exception as exc:  # noqa: BLE001 - see comment above
+except Exception as exc:
     logger.debug(
         "data_mesh: datamesh/ orphan types unavailable (%s: %s) — FederationLayer, "
         "DomainEndpoint, UnifiedRecord, Physics12D, RecordType and DataLineage will not "

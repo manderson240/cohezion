@@ -120,18 +120,20 @@ class TestRankModelsByAmdOptimization:
 class TestBuildGaiaNativeTier:
     def test_raises_when_gaia_not_installed(self):
         """RuntimeError raised if amd-gaia is not installed."""
-        with patch.dict(
-            sys.modules,
-            {
-                "gaia": None,
-                "gaia.agents": None,
-                "gaia.agents.chat": None,
-                "gaia.agents.chat.agent": None,
-            },
-        ):
+        with (
+            patch.dict(
+                sys.modules,
+                {
+                    "gaia": None,
+                    "gaia.agents": None,
+                    "gaia.agents.chat": None,
+                    "gaia.agents.chat.agent": None,
+                },
+            ),
             # When GAIA module is missing entirely, import fails
-            with pytest.raises((RuntimeError, ImportError)):
-                build_gaia_native_tier()
+            pytest.raises((RuntimeError, ImportError)),
+        ):
+            build_gaia_native_tier()
 
     def test_returns_gaia_agent_tier_with_label(self):
         """Successful build returns GaiaAgentTier with correct label."""
