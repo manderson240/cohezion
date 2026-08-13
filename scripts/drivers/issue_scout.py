@@ -96,7 +96,7 @@ class IssueScout:
                         if not line:
                             continue
 
-                        for label, pattern in self.patterns.items():
+                        for _label, pattern in self.patterns.items():
                             match = pattern.search(line)
                             if match:
                                 desc = match.group(2).strip()

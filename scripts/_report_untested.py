@@ -9,7 +9,7 @@ repo = "src/cohezion"
 test_repo = "tests"
 
 all_test_files = []
-for root, dirs, files in os.walk(test_repo):
+for root, _dirs, files in os.walk(test_repo):
     for f in files:
         if f.endswith(".py"):
             all_test_files.append(os.path.join(root, f))
@@ -35,7 +35,7 @@ def count_loc(path):
 
 
 py_files = []
-for root, dirs, files in os.walk(repo):
+for root, _dirs, files in os.walk(repo):
     for f in files:
         if f.endswith(".py"):
             py_files.append(os.path.join(root, f))

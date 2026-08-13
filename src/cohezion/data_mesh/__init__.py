@@ -103,6 +103,11 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.data_mesh.gaia_domain_agent import GaiaDataAgent as GaiaDataAgent
 
+# GapMiner: repeated roster actions -> proactive work-queue items (endorsement-ranked).
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.gap_miner import GapMiner as GapMiner
+    from cohezion.data_mesh.gap_miner import make_gap_miner as make_gap_miner
+
 # GaiaAgentRoster: top-tier GAIA agents (live-catalog model selection) per mesh domain.
 with contextlib.suppress(Exception):
     from cohezion.data_mesh.gaia_agent_roster import (

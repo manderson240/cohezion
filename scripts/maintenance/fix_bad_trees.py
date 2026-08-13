@@ -36,7 +36,7 @@ def fix_tree(tree_sha):
             return None
 
         # Use git mktree to create a new tree object
-        input_str = b"".join(
+        b"".join(
             [
                 mode + b" " + b"blob" + b" " + sha.hex().encode() + b"\t" + name + b"\n"
                 for mode, name, sha in fixed_entries

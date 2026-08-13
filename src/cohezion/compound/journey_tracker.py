@@ -32,6 +32,8 @@ from typing import TYPE_CHECKING, Any, ClassVar
 if TYPE_CHECKING:
     from cohezion.compound.thermodynamic_metrics import ThermodynamicState
 
+import contextlib
+
 import numpy as np
 
 from cohezion.compound.executor import ExecutionResult
@@ -654,10 +656,8 @@ class JourneyTracker:
                 },
                 method="POST",
             )
-            try:
+            with contextlib.suppress(Exception):
                 urllib.request.urlopen(req, timeout=2)
-            except Exception:
-                pass
 
         threading.Thread(target=_fire, daemon=True).start()
 

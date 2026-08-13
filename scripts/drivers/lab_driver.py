@@ -26,6 +26,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("LabDriver")
 
+import contextlib
+
 import psutil
 
 
@@ -97,7 +99,7 @@ async def main():
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
                     )
-                    stdout, stderr = await verify_process.communicate()
+                    _stdout, stderr = await verify_process.communicate()
                     if verify_process.returncode == 0:
                         logger.info("✅ Context Integrity Verified.")
                     else:
@@ -122,10 +124,8 @@ async def main():
             # 5. Autonomic Scaling: Dynamic wait based on system load
             delay = await get_throttle_delay(base_idle_delay)
             logger.info(f"Waiting for {delay:.1f}s (Autonomic Scaling)...")
-            try:
+            with contextlib.suppress(TimeoutError):
                 await asyncio.wait_for(stop_event.wait(), timeout=delay)
-            except TimeoutError:
-                pass
 
     except Exception as e:
         logger.error(f"Lab Driver CRASHED: {e}", exc_info=True)

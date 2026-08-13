@@ -71,7 +71,7 @@ def _load_npz(path: str):
 
     d = np.load(path)
     embeddings = d["embeddings"]
-    pairs = d["pairs"] if "pairs" in d else None
+    pairs = d.get("pairs", None)
     return embeddings, pairs
 
 

@@ -20,7 +20,7 @@ BATCH_SIZE_FILES = 1000  # Size for OS file operations
 def run_git_command(args, cwd=REPO_ROOT):
     """Run a git command and return the output."""
     try:
-        result = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True, check=True)
+        result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         logger.error(f"Git command failed: {' '.join(args)} - {e.stderr}")
@@ -53,7 +53,7 @@ def purge_history_candidates(dry_run=True):
         batch_size = 50
         for i in range(0, len(files_to_remove), batch_size):
             batch = files_to_remove[i : i + batch_size]
-            run_git_command(["rm", "--cached"] + batch)
+            run_git_command(["rm", "--cached", *batch])
         logger.info("✅ Successfully removed files from index.")
 
 

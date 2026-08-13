@@ -32,6 +32,7 @@ Schedule via CronCreate (from an interactive Claude Code session):
 
 from __future__ import annotations
 
+import contextlib
 import json
 import subprocess
 import sys
@@ -199,7 +200,7 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
             "temperature": 0.1,
         }
     ).encode()
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310
         _LEMONADE_URL,
         data=payload,
         headers={"Content-Type": "application/json"},
@@ -226,10 +227,8 @@ def _read_records() -> list[dict]:
     for line in _AUTORESEARCH_JSONL.read_text().splitlines():
         line = line.strip()
         if line:
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 records.append(json.loads(line))
-            except json.JSONDecodeError:
-                pass
     return records
 
 

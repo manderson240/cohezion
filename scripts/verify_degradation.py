@@ -14,7 +14,7 @@ from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("DegradationVerification")
+    logging.getLogger("DegradationVerification")
 
     # 1. Test Model Fallback (CREDITS)
     credit_manager = get_credit_manager()

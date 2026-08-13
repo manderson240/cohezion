@@ -36,8 +36,11 @@ def add(x: torch.Tensor, y: torch.Tensor):
     output = torch.empty_like(x)
     assert x.is_cuda and y.is_cuda and output.is_cuda
     n_elements = output.numel()
+
     # The LUNCHPAD logic is used to determine how many programs to run.
-    grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+    def grid(meta):
+        return (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+
     # Finally, we launch the kernel with the (grid, block_size, ...) arguments.
     add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)
     return output

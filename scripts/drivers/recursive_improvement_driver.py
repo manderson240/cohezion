@@ -58,7 +58,7 @@ class MetaRecursiveLoop:
 
             # 3. SOLVER Dynamics (Apply Improvement)
             if challenge:
-                improvement = await self.solver.process(context=self.state, challenge=challenge)
+                await self.solver.process(context=self.state, challenge=challenge)
                 self.state["coherence"] = 0.5 + (random.random() - 0.5) * 0.02  # Stabilization
 
         # 4. LEARNER Dynamics (Scaling factors)

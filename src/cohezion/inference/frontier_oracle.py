@@ -13,6 +13,7 @@ async machinery: Fable → Opus → agy (Google Antigravity 2.0).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import shutil
@@ -258,7 +259,7 @@ def frontier_complete_sync(
             logger.debug("frontier_complete_sync: trying %s", label)
             text, cost = fn()
             if cost > 0 and _spend_path:
-                try:
+                with contextlib.suppress(Exception):
                     record_usage(
                         model=model_id,
                         lane="cloud",
@@ -268,8 +269,6 @@ def frontier_complete_sync(
                         local=False,
                         path=_spend_path,
                     )
-                except Exception:
-                    pass
             if text:
                 logger.debug("frontier_complete_sync: %s succeeded (len=%d)", label, len(text))
                 return text

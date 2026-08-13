@@ -37,9 +37,9 @@ async def main():
     prompt = f"""
     You are an AUTONOMIC_EVOLUTION_PRIME specialist.
     Research (L137) shows that curated, concise skills perform +51.9pp better than generated ones.
-    
+
     Finding: {bug_findings}
-    
+
     Instruction:
     - Prune and refine 'src/cohezion/skills/DEPENDENCY_AUTOMATION_PRIME.md'.
     - DO NOT just add data. Remove ambiguity and redundant steps.

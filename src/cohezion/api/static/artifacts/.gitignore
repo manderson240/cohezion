@@ -1,0 +1,6 @@
+# Machine-local artifact snapshots (Tier 2/3 data products, NOT code).
+# Provenance is durable on the datamesh bus: each artifact's manifest entry
+# carries its verified data_product_event id. Only the gallery ships in git.
+*
+!.gitignore
+!index.html

@@ -42,7 +42,7 @@ class C(HTMLParser):
             while stack and popped != t:
                 popped = stack.pop()
         else:
-            errs.append("stray </%s>" % t)
+            errs.append(f"stray </{t}>")
 
 
 C().feed(html)

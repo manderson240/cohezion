@@ -128,11 +128,11 @@ def deep_solve(
         if warm and _score_chain(warm, train) >= 1.0:
             return warm, 1.0
 
-    for depth in range(1, 5):
+    for _depth in range(1, 5):
         candidates = []
         for chain, _ in beams:
             for name in names:
-                new_chain = chain + [name]
+                new_chain = [*chain, name]
                 score = _score_chain(new_chain, train)
                 state["total_evals"] += 1
                 candidates.append((new_chain, score))

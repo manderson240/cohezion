@@ -50,7 +50,7 @@ async def synthesize_laws():
     synthesizer = AutoHarnessSynthesizer(llm_executor=executor, max_iterations=5)
 
     training_dir = Path("data/arc-agi-2-repo/data/training")
-    task_files = sorted(list(training_dir.glob("*.json")))[:10]
+    task_files = sorted(training_dir.glob("*.json"))[:10]
 
     grid_laws = {}
 

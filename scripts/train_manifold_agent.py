@@ -161,7 +161,7 @@ def plot_learning_curve(metrics: dict, output_path: str = "results/training/lear
         window = min(20, len(rewards) // 3) if len(rewards) > 3 else 1
         smoothed = np.convolve(rewards, np.ones(window) / window, mode="valid")
 
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        _fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
         # Left: reward curve
         axes[0].plot(rewards, alpha=0.3, color="steelblue", label="Episode reward")

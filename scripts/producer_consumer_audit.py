@@ -139,7 +139,7 @@ def audit(output_path: Path | None = None) -> list[dict]:
         [
             p.name
             for p in SRC_ROOT.iterdir()
-            if p.is_dir() and not p.name.startswith("_") and not p.name == "__pycache__"
+            if p.is_dir() and not p.name.startswith("_") and p.name != "__pycache__"
         ]
         + [
             p.stem

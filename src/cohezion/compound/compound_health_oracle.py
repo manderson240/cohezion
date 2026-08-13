@@ -28,6 +28,7 @@ Example
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from dataclasses import dataclass, field
@@ -358,7 +359,7 @@ class CompoundHealthOracle:
 
             la = state.get("last_assessment")
             if la is not None:
-                try:
+                with contextlib.suppress(Exception):
                     self._last_assessment = HealthAssessment(
                         regime=_str_to_regime.get(la["regime"], FractalRegime.STUCK),
                         tier_recommendation=la.get("tier_recommendation", "igpu"),
@@ -366,8 +367,6 @@ class CompoundHealthOracle:
                         alert_level=la.get("alert_level", "warn"),
                         alerts=list(la.get("alerts", [])),
                     )
-                except Exception:
-                    pass
 
             logger.debug(
                 "CompoundHealthOracle: restored state from %s (%d scores, %d regime entries)",

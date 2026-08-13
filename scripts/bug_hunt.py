@@ -33,7 +33,7 @@ async def run_bug_hunt(target_dir: str, recursive: bool = True):
     scout = BugScoutAgent()
     fixer = BugFixerAgent()
     auditor = BugAuditorAgent()
-    universe = UniverseSimulationEngine()
+    UniverseSimulationEngine()
 
     # 2. Run DeepAuditor for initial hotspots
     auditor_engine = DeepAuditor()

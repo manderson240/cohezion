@@ -151,9 +151,7 @@ FAST_GATES = [
     check_adaptive_schedule_importable,
 ]
 
-FULL_GATES = FAST_GATES + [
-    check_unit_tests_fast,
-]
+FULL_GATES = [*FAST_GATES, check_unit_tests_fast]
 
 
 def run_gates(level: str = "fast") -> int:

@@ -24,7 +24,7 @@ async def run_npu_experiment(iters=100):
     results = []
     try:
         async with aiohttp.ClientSession() as session:
-            for i in range(iters):
+            for _i in range(iters):
                 start = time.perf_counter()
                 async with session.post(url, json=payload, timeout=5) as resp:
                     if resp.status == 200:
@@ -51,7 +51,7 @@ def run_cpu_experiment(iters=100):
     harness = TurboQuantHarness()
 
     results = []
-    for i in range(iters):
+    for _i in range(iters):
         test_kv = torch.randn((1, 2048, 128))
         start = time.perf_counter()
         compressed = tq.compress_kv(test_kv)

@@ -1,3 +1,4 @@
+import contextlib
 import json
 import pathlib
 
@@ -6,7 +7,7 @@ import pandas as pd
 
 def analyze_fractal_shards(storage_dir="data/simulations/fractal_nexus"):
     p = pathlib.Path(storage_dir)
-    shards = sorted(list(p.glob("*.parquet")), key=lambda x: x.stat().st_mtime)
+    shards = sorted(p.glob("*.parquet"), key=lambda x: x.stat().st_mtime)
 
     if not shards:
         print("No shards found.")
@@ -16,10 +17,8 @@ def analyze_fractal_shards(storage_dir="data/simulations/fractal_nexus"):
     recent_shards = shards[-5:]
     dfs = []
     for s in recent_shards:
-        try:
+        with contextlib.suppress(Exception):
             dfs.append(pd.read_parquet(s))
-        except Exception:
-            pass
 
     if not dfs:
         print("No data loaded.")

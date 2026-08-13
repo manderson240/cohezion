@@ -25,7 +25,7 @@ def validate_audio(file_path: Path, expected_sr: int = 32000):
 
     try:
         # Load small segment to check SR and validity
-        y, sr = librosa.load(file_path, sr=expected_sr, duration=1.0)
+        _y, sr = librosa.load(file_path, sr=expected_sr, duration=1.0)
         if sr != expected_sr:
             print(f"Error: {file_path.name} has SR {sr}, expected {expected_sr}")
             return False
@@ -60,9 +60,8 @@ def main():
 
     # Check Metadata
     train_csv = data_root / "train.csv"
-    if train_csv.exists():
-        if not validate_metadata(train_csv):
-            return 1
+    if train_csv.exists() and not validate_metadata(train_csv):
+        return 1
 
     # Check sample of audio files (first 10)
     audio_dir = data_root / "train_audio"

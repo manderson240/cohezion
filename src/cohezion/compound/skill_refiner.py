@@ -12,6 +12,7 @@ Features:
 - Non-blocking persistence (failures don't crash execution)
 """
 
+import contextlib
 import logging
 import re
 from collections import deque
@@ -961,10 +962,8 @@ class SkillRefiner:
         # CH5: Health oracle — feed quality score into streaming HIHO regime tracker so
         # oracle.is_healthy() reflects actual session quality history, not warming-up state.
         if self._health_oracle is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._health_oracle.assess(metrics.quality_score)
-            except Exception:
-                pass
         # #93: feed tier_used + escalation_count into predictive estimator
         self._difficulty_estimator.record(
             skill_name,
