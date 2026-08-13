@@ -344,8 +344,17 @@ def main() -> int:
         rows = [r for r in state["rows"] if r["model"] == model and r["verdict"]]
         attempted = len([r for r in state["rows"] if r["model"] == model])
         if not rows:
-            print(f"{model:<40} {'—':>5} {'—':>5} {'—':>5} {'—':>7} {0:>3}/{attempted:<3}")
-            summary.append({"model": model, "usable": False})
+            # NOT ATTEMPTED and UNUSABLE are different claims. Collapsing them reports an
+            # absent measurement as a negative result -- which is how "we ran out of time"
+            # becomes "this model cannot review code" in whatever reads this next.
+            status = "NOT-RUN" if attempted == 0 else "UNUSABLE"
+            print(f"{model:<40} {status:>5} {'—':>5} {'—':>5} {'—':>7} {0:>3}/{attempted:<3}")
+            summary.append({
+                "model": model,
+                "usable": None if attempted == 0 else False,
+                "status": "not_attempted" if attempted == 0 else "no_parseable_output",
+                "attempted": attempted,
+            })
             continue
         sens, spec, bal = balanced_accuracy(rows)
         nb = [r for r in rows if r["buggy"]]
@@ -359,6 +368,8 @@ def main() -> int:
     print("=" * 78)
     print("bal = balanced accuracy ((sens+spec)/2). 0.50 = chance. A model that always says")
     print("BUG scores sens=1.00 spec=0.00 bal=0.50 -- which is why bal is the headline.")
+    print("NOT-RUN = never attempted (no data). UNUSABLE = attempted, never parseable.")
+    print("These are different claims and must not be read as the same finding.")
     RESULT.write_text(json.dumps({"summary": summary, "rows": state["rows"]}, indent=1))
     if health:
         health.heartbeat()
