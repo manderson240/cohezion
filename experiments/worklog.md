@@ -120,3 +120,17 @@ Session: s-77b9f9d6a892, branch `autoresearch/local-inference-20260813`
 - swap T2: Qwen3.6-35B-A3B vs Gemma-4-26B-A4B vs Qwen3-Coder-30B (code-heavy suite half)
 - concurrency 1 vs 3 vs 6 (contention curve on unified memory)
 - category-conditional entry (code→T1+, categorical→T0)
+
+### Run 8: terminal timeout 360s — routing_misses=5, passed=22 (DISCARD)
+- No effect on misses; found the ROOT CAUSE of run-start timeout clusters: tasks queue
+  behind model load/swap at suite start. fact-planet = genuine knowledge miss
+  (Coder-30B answers Jupiter; correct is Saturn).
+
+### Run 9: warm-up before suite clock — routing_misses=4, passed=24, timeouts=0 (KEEP, final)
+- Timestamp: 2026-08-13 08:30
+- What changed: harness warms each tier (untimed probe) before measurement starts.
+- Result: FIRST ZERO-TIMEOUT RUN. 24/24, misses stable 4, escalations 4, suite 1093s.
+  Warm-up itself proved the diagnosis: E4B 117s, Coder-30B 272s to become ready.
+- NIGHT CLOSED. Final policy: 2-tier validator-gated E4B→Coder-30B + warm-up.
+  Resume points in autoresearch.ideas.md. Production transfer list in vault memory
+  overnight-cascade-experiment-20260813 + skill falsifiable-eval-harness v1.4.0 rule 12.
