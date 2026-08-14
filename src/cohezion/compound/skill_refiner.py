@@ -964,13 +964,16 @@ class SkillRefiner:
         if self._health_oracle is not None:
             with contextlib.suppress(Exception):
                 self._health_oracle.assess(metrics.quality_score)
-        # #93: feed tier_used + escalation_count into predictive estimator
+        # #93: feed tier_used + escalation_count into predictive estimator.
+        # GIC-LAT1: thread measured wall-clock so predict_tier can rank adequate
+        # tiers by real cost (the fleet's tier order is not a latency order).
         self._difficulty_estimator.record(
             skill_name,
             operation_type,
             metrics.tier_used,
             metrics.escalation_count,
             metrics.quality_score,
+            latency_s=metrics.duration_seconds,
         )
 
         # CB16 ext: TOKEN_BLOAT detection over a rolling window of per-task token

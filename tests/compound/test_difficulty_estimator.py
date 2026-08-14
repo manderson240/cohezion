@@ -301,3 +301,66 @@ def test_beta_gate_rejects_lucky_2_of_2():
     # Beta(npu)=0.75 < 0.77, Beta(igpu)=1/10=0.1 < 0.77 → fallback by (count, quality)
     # igpu has 8 records (dominant), npu has 2 → igpu wins fallback
     assert de.predict_tier("skill_y", "op") == "igpu"
+
+
+class TestLatencyAwareTierSelection:
+    """GIC-LAT1: latency reorders selection AMONG quality-adequate tiers only.
+
+    Motivation (measured, 2026-08-13 GIC routing soak, 270 rows): the fleet's
+    tier cost-ordering was empirically INVERTED — Qwen3.6-35B-A3B-MTP (label
+    "cpu") was both stronger AND faster (median 88-99s) than DeepSeek-8B
+    ("igpu", 149-172s). "Cheapest successful tier" by _TIER_ORDER alone
+    optimizes a fictional cost axis; latency feedback makes the axis real.
+    """
+
+    def test_t1_no_latency_data_behavior_unchanged(self):
+        """Backward-compat: without latency_s, cheapest adequate tier wins as before."""
+        de = DifficultyEstimator()
+        for _ in range(3):
+            de.record("s", "op", "igpu", escalation_count=0, quality_score=0.9)
+            de.record("s", "op", "cpu", escalation_count=0, quality_score=0.9)
+        assert de.predict_tier("s", "op") == "igpu"
+
+    def test_t2_faster_adequate_tier_beats_cheaper_ordered_tier(self):
+        """DISCRIMINATING: both tiers adequate, the 'cheaper'-ordered tier is SLOWER
+        by median latency -> predict must return the faster tier. A wrong impl that
+        ignores latency returns 'igpu' (the 2026-08-12 production behavior)."""
+        de = DifficultyEstimator()
+        for _ in range(3):
+            de.record("s", "op", "igpu", 0, 0.9, latency_s=160.0)
+            de.record("s", "op", "cpu", 0, 0.9, latency_s=90.0)
+        assert de.predict_tier("s", "op") == "cpu"
+
+    def test_t3_latency_never_overrides_quality(self):
+        """DISCRIMINATING: the fast tier is NOT quality-adequate -> the adequate slow
+        tier still wins. A wrong impl sorting by latency alone returns 'npu'."""
+        de = DifficultyEstimator()
+        for _ in range(4):
+            de.record("s", "op", "npu", 1, 0.3, latency_s=5.0)  # fast but escalating/bad
+            de.record("s", "op", "cpu", 0, 0.9, latency_s=90.0)
+        assert de.predict_tier("s", "op") == "cpu"
+
+    def test_t4_single_adequate_tier_unchanged_with_latency(self):
+        de = DifficultyEstimator()
+        for _ in range(3):
+            de.record("s", "op", "igpu", 0, 0.9, latency_s=100.0)
+        assert de.predict_tier("s", "op") == "igpu"
+
+    def test_t5_partial_latency_data_falls_back_to_cheapest(self):
+        """Latency reordering needs latency samples on BOTH adequate tiers; with only
+        one tier carrying latencies, keep the conservative cheapest-adequate order."""
+        de = DifficultyEstimator()
+        for _ in range(3):
+            de.record("s", "op", "igpu", 0, 0.9)  # no latency recorded
+            de.record("s", "op", "cpu", 0, 0.9, latency_s=90.0)
+        assert de.predict_tier("s", "op") == "igpu"
+
+    def test_t6_skill_refiner_threads_duration_as_latency(self):
+        """GIC3 wiring: SkillRefiner must pass metrics.duration_seconds into record()
+        so the latency axis is fed by production, not just tests."""
+        import inspect
+
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        src = inspect.getsource(SkillRefiner._generate_learning_signal)
+        assert "latency_s=" in src, "record() call must thread latency_s"

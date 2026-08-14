@@ -386,6 +386,26 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - Closes the CB16 producer→consumer gap: tier_used and escalation_count flow into future tier prediction
 - **Structural**: `tests/compound/test_difficulty_estimator.py::TestDifficultyEstimatorStructural::test_skill_refiner_has_difficulty_estimator`
 
+### GIC-LAT1: latency reorders selection AMONG quality-adequate tiers only (2026-08-14)
+- Motivation (measured, gic-routing-20260813 soak, 270 rows): `_TIER_ORDER` is a capability
+  ordering, NOT a cost ordering — the "cpu" tier (Qwen3.6-35B-A3B-MTP) was stronger AND faster
+  (median 88-99s) than "igpu" (DeepSeek-8B dense thinking, 149-172s). "Cheapest successful tier"
+  by order alone optimizes a fictional cost axis.
+- `record(..., latency_s: float | None = None)` — additive kwarg; `_TierRecord.latency_s`.
+- `predict_tier`: when ≥2 tiers clear the Beta adequacy threshold AND every adequate tier has
+  ≥`_LAT_MIN_SAMPLES` (2) measured latencies in-window, pick min median latency (tie → cheaper
+  order). Any tier missing latency data → conservative cheapest-adequate (unchanged behavior).
+  Latency NEVER overrides quality adequacy.
+- Producer wiring (GIC3 ext): `SkillRefiner._generate_learning_signal` threads
+  `latency_s=metrics.duration_seconds` into `record()`.
+- **T1 backward-compat**: no latency data → behavior identical (`test_t1_no_latency_data_behavior_unchanged`)
+- **T2 discriminating**: both tiers adequate, cheaper-ordered tier slower → returns the FASTER
+  tier (`test_t2_faster_adequate_tier_beats_cheaper_ordered_tier`; the pre-2026-08-14 impl fails);
+  `test_t3_latency_never_overrides_quality` (fast inadequate tier must not win)
+- **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py::TestLatencyAwareTierSelection -q` → 6 passed;
+  counterfactual replay on the soak's 270 real rows: running-prediction divergence 36%/9%/8%
+  (easy/med/hard), zero regression on final policies (`~/cohezion-labs/experiments/gic-routing-20260813/counterfactual_replay.py`)
+
 ### GIC_NEW_4: predict_tier() accepts optional prompt="" for cold-start complexity routing (#142, 2026-06-28)
 - `predict_tier(skill_name, operation_type, prompt: str = "")` — GIC1 preserved: no-arg call still returns "unknown"
 - `_complexity_score(prompt) → float` in [0.0, 1.0]: length (40%, saturates at 200 words) + keyword density (60%, saturates at 3 hard keywords)

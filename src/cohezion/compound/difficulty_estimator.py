@@ -23,6 +23,7 @@ class _TierRecord:
     tier_used: str
     escalation_count: int
     quality_score: float
+    latency_s: float | None = None
 
 
 _TIER_ORDER = ("npu", "igpu", "cpu")
@@ -39,6 +40,9 @@ _MIN_SAMPLES = 5  # competitive analysis lower bound: MTF potential needs O(n) o
 _LCB_ADEQUATE = 0.35
 _WILSON_Z = 1.96  # ~95% one-sided; engineering default, tune on replay logs
 _WINDOW = 10
+# GIC-LAT1: minimum measured-latency samples per adequate tier before latency may
+# reorder the selection; below this, keep the conservative cheapest-adequate order.
+_LAT_MIN_SAMPLES = 2
 # Bayesian cold-start gate (Beta(1,1) conjugate posterior — Gelman BDA §3.1).
 # Threshold 0.77 sits between (2+1)/(2+2)=0.75 (lucky-2/2, reject) and
 # (3+1)/(3+2)=0.80 (sustained-3/3, accept).  Works from n=1; replaces the
@@ -135,14 +139,22 @@ class DifficultyEstimator:
         tier_used: str,
         escalation_count: int,
         quality_score: float,
+        latency_s: float | None = None,
     ) -> None:
-        """Append one execution record; old entries drop off at window=10."""
+        """Append one execution record; old entries drop off at window=10.
+
+        latency_s (optional) feeds GIC-LAT1: measured wall-clock lets predict_tier
+        rank quality-adequate tiers by REAL cost instead of assuming _TIER_ORDER is
+        a cost ordering (empirically inverted on the 2026-08-13 fleet: the "cpu"
+        35B-A3B-MTP tier was faster than the "igpu" 8B-dense-thinking tier).
+        """
         key = (skill_name, operation_type)
         self._history[key].append(
             _TierRecord(
                 tier_used=tier_used if tier_used in _TIER_ORDER else "cpu",
                 escalation_count=escalation_count,
                 quality_score=quality_score,
+                latency_s=latency_s,
             )
         )
 
@@ -205,13 +217,34 @@ class DifficultyEstimator:
             if rec.escalation_count == 0 and rec.quality_score >= _QUALITY_FLOOR:
                 tier_success[t] += 1
 
-        # Cheapest tier whose Beta(1,1) posterior success rate clears the threshold.
+        # Tiers whose Beta(1,1) posterior success rate clears the threshold, cheapest-first.
         # Replaces the Wilson LCB + _MIN_SAMPLES=5 gate — works from n=1 while still
         # rejecting lucky 2/2 (Beta=0.75 < 0.77) but accepting sustained 3/3 (Beta=0.80).
-        for tier in _TIER_ORDER:
-            n = tier_count[tier]
-            if n >= 1 and _beta_posterior_mean(tier_success[tier], n) >= _BETA_THRESHOLD:
-                return tier
+        adequate = [
+            tier
+            for tier in _TIER_ORDER
+            if tier_count[tier] >= 1
+            and _beta_posterior_mean(tier_success[tier], tier_count[tier]) >= _BETA_THRESHOLD
+        ]
+        if adequate:
+            # GIC-LAT1: _TIER_ORDER is a capability ordering, NOT a cost ordering (the
+            # 2026-08-13 soak measured the "cpu" tier faster than "igpu"). When EVERY
+            # adequate tier carries enough measured latency, rank by median latency —
+            # quality adequacy always gates first; latency only reorders within it.
+            if len(adequate) >= 2:
+                medians: dict[str, float] = {}
+                for tier in adequate:
+                    lats = sorted(
+                        r.latency_s
+                        for r in window
+                        if r.tier_used == tier and r.latency_s is not None
+                    )
+                    if len(lats) < _LAT_MIN_SAMPLES:
+                        break
+                    medians[tier] = lats[len(lats) // 2]
+                else:
+                    return min(adequate, key=lambda t: (medians[t], _TIER_ORDER.index(t)))
+            return adequate[0]
 
         # Fallback when no tier's LCB clears the floor (e.g. a skill reached only via escalation, so
         # its final tier has no CLEAN successes yet): pick the DOMINANT tier — where the skill
