@@ -406,3 +406,77 @@ class TestLatencyAwareTierSelection:
             de.record("s", "op", "cpu", 0, 0.9, latency_s=90.0)
         # igpu has no positive latency samples -> latency branch breaks -> cheapest-adequate
         assert de.predict_tier("s", "op") == "igpu"
+
+
+class TestME1ExtractMetricsSeam:
+    """ME1 (t_c6639024): the production producer seam SkillRefiner._extract_metrics ->
+    _generate_learning_signal -> DifficultyEstimator.record must thread tier_used and
+    escalation_count out of the execute_fn metrics dict.
+
+    Before this fix, _extract_metrics dropped both, so every production record bucketed to
+    'cpu' (unknown->coerced) and the whole GIC tier-prediction path (predict_tier, and the
+    GIC-LAT1 latency branch layered on it) was DORMANT. These are TRUE consumption tests:
+    they drive the real production entry (`refine()` / `_extract_metrics`) with the exact
+    dict CompoundExecutor builds, and go RED when the producer is neutralized.
+    """
+
+    @staticmethod
+    def _exec_result(tier_used: str, escalation_count: int, duration: float) -> dict:
+        """The dict shape CompoundExecutor assembles at executor.py ~1538: execute_fn's
+        metrics dict (tier_used/escalation_count at top level) under 'metrics', plus the
+        top-level duration_seconds."""
+        return {
+            "success": True,
+            "output": "ok",
+            "metrics": {
+                "tier_used": tier_used,
+                "escalation_count": escalation_count,
+                "anomaly_score": 0.9,  # -> quality_score 0.9 (adequate)
+            },
+            "duration_seconds": duration,
+            "token_metrics": {"tokens_used": 10, "cache_hits": 0},
+        }
+
+    def test_extract_metrics_threads_tier_used(self):
+        """DISCRIMINATING: _extract_metrics must carry tier_used from the metrics dict.
+        The pre-fix impl (no threading) returns the 'unknown' default."""
+        sr = SkillRefiner()
+        m = sr._extract_metrics(self._exec_result("igpu", 0, 100.0))
+        assert m.tier_used == "igpu", f"expected 'igpu', got {m.tier_used!r} (seam drops tier_used)"
+
+    def test_extract_metrics_threads_escalation_count(self):
+        """DISCRIMINATING: escalation_count must survive the seam (default 0 masks it)."""
+        sr = SkillRefiner()
+        m = sr._extract_metrics(self._exec_result("cpu", 2, 100.0))
+        assert m.escalation_count == 2, f"expected 2, got {m.escalation_count!r}"
+
+    def test_end_to_end_producer_records_correct_tier(self):
+        """CONSUMPTION: driving the real _generate_learning_signal (as refine() does) with
+        an igpu execution must make the estimator hold an igpu record — NOT 'cpu'. A
+        neutralized producer (tier_used dropped -> 'unknown' -> coerced 'cpu') fails this."""
+        sr = SkillRefiner()
+        metrics = sr._extract_metrics(self._exec_result("igpu", 0, 120.0))
+        sr._generate_learning_signal("MY_SKILL", "answer", metrics)
+        est = sr._difficulty_estimator
+        window = est._history.get(("MY_SKILL", "answer"))
+        assert window is not None and len(window) == 1
+        rec = window[0]
+        assert rec.tier_used == "igpu", f"producer recorded {rec.tier_used!r}, not 'igpu'"
+        assert rec.latency_s == 120.0, "duration must reach the estimator as latency_s"
+
+    def test_latency_routing_active_through_production_path(self):
+        """The payoff, DISCRIMINATING: with the seam fixed, two DISTINCT tiers reach the
+        estimator through the production producer, so predict_tier's GIC-LAT1 latency branch
+        actually fires. igpu is the FASTER tier here (90s vs cpu 160s), both adequate ->
+        predict 'igpu'. Pre-fix every record buckets to 'cpu' (len(adequate)==1, branch
+        dormant) -> predict 'cpu'. The assertion 'igpu' therefore fails on the dormant seam
+        and only the fixed producer can satisfy it (not a wrong-reason pass)."""
+        sr = SkillRefiner()
+        for _ in range(3):
+            sr._generate_learning_signal(
+                "SK", "answer", sr._extract_metrics(self._exec_result("igpu", 0, 90.0))
+            )
+            sr._generate_learning_signal(
+                "SK", "answer", sr._extract_metrics(self._exec_result("cpu", 0, 160.0))
+            )
+        assert sr._difficulty_estimator.predict_tier("SK", "answer") == "igpu"

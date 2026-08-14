@@ -397,15 +397,21 @@ Do NOT re-add without actually implementing it + a real discriminating test.
   (`_median`, mean-of-two-middle at even n; tie → cheaper order). Non-positive/missing latency =
   "no data" (never "fastest"). Any adequate tier missing usable latency → conservative
   cheapest-adequate. Latency NEVER overrides quality adequacy.
-- **⚠ DORMANT IN PRODUCTION (2026-08-14 adversarial review, correctness F1, reproduced by
-  execution):** the latency branch requires ≥2 tiers in `adequate`, but the production producer
-  seam `SkillRefiner._extract_metrics` constructs `ExecutionMetrics(...)` WITHOUT `tier_used=` /
-  `escalation_count=`, so both default (`"unknown"`→coerced `"cpu"`, `0`). Every production record
-  buckets to `"cpu"`, so `len(adequate)` is ≤1 and the branch never fires. This is the pre-existing
-  ME1 `_extract_metrics` seam (threads neither tier nor escalation), NOT introduced here. Fixing it
-  un-dormants the ENTIRE GIC tier-prediction path (all skills), a higher-blast-radius change filed
-  as a tracked follow-up — NOT this landing. Until then GIC-LAT1 is exercised only by unit tests +
-  offline replay, and production routing is byte-identical to v1.4.0.
+- **✅ NOW ACTIVE IN PRODUCTION (2026-08-14, ME1 seam fix t_c6639024).** The dormancy below was
+  real and is now closed: `SkillRefiner._extract_metrics` reads `tier_used`/`escalation_count` from
+  the execute_fn metrics dict (`local_inference.py:228,231` emit them), so production records carry
+  the real engine and `predict_tier` (+ this latency branch) route per-skill for ALL skills — not
+  just this feature. History: the branch requires ≥2 tiers in `adequate`; pre-fix `_extract_metrics`
+  dropped both fields → every record bucketed to `"unknown"`→`"cpu"` → `len(adequate)`≤1 → dormant.
+  Surfaced by the 2026-08-14 correctness review (F1), reproduced by execution, fixed on its own
+  branch with TRUE consumption tests (see GIC-LAT-ME1 below).
+- **⚠ Now-live limitation (edge-case review F1, absorbing state):** `predict_tier` and `_resolve_tier`
+  are both monotonic-UP (latency/health can only RAISE the chosen tier), and `DifficultyEstimator`
+  holds no persistent state (`SkillRefiner.to_dict()` does not serialize it). So once routing pins a
+  higher tier, the `_WINDOW`=10 fills with that tier and cheaper tiers are not re-sampled until
+  process restart — behavior-SAFE (quality adequacy always gated; can over-spend latency, never
+  drop quality) but not self-correcting in-process if the pinning measurement was noise. A periodic
+  exploration/re-sample path is the mitigation, filed as a follow-up; NOT added here (own design).
 - **T1 backward-compat**: no latency data → behavior identical (`test_t1_...`)
 - **T2 discriminating**: both tiers adequate, cheaper-ordered tier slower → FASTER tier
   (`test_t2_...`; pre-2026-08-14 impl fails); `test_t3` (fast inadequate tier must not win);
@@ -416,21 +422,28 @@ Do NOT re-add without actually implementing it + a real discriminating test.
   divergence 36%/9%/8% — evidence the ALGORITHM reorders, NOT that the production seam feeds it
   (`~/cohezion-labs/experiments/gic-routing-20260813/counterfactual_replay.py`).
 
-### GIC-LAT2: latency axis composes estimator→executor entry (seam-half test, NOT full consumption) (2026-08-14)
+### GIC-LAT2: latency axis composes estimator→executor entry (seam-half test) (2026-08-14)
 - The estimator→executor half of the path (W4 predicted_tier hint → `_resolve_tier` max-capability
   fusion → O9 `_call_execute_fn` min_tier_index binding) carries a latency-raised prediction: the
-  higher `_TIER_ORDER` index survives `max`, so no executor change was needed for THIS half.
-- **⚠ NOT a full consumption invariant (2026-08-14 review, correctness/edge F3):** the test builds a
-  real `DifficultyEstimator` and calls `record(...)` DIRECTLY, then injects a `MagicMock(spec=
-  SkillRefiner)` — so the production→estimator producer half (`_extract_metrics` → `record`) is
-  bypassed and NOT exercised. Neutralizing the real producer (`latency_s=None` at the call site)
-  leaves this test GREEN. It pins the algorithm→executor composition, not end-to-end production
-  wiring. A true consumption test must drive `SkillRefiner.refine()`/`_generate_learning_signal` and
-  requires the ME1 seam fix first (tracked follow-up).
+  higher `_TIER_ORDER` index survives `max`, so no executor change was needed for THIS half. This
+  test pins that half; the production→estimator producer half is pinned separately by GIC-LAT-ME1.
 - **T2 discriminating (paired arms, estimator→executor half only)**: real estimator with both tiers
   adequate + igpu measured slower → execute_fn gets `min_tier_index=2`; control (no latencies) → `1`.
 - **Verification**: `uv run pytest tests/compound/test_tier_resolution.py::TestLatencyAwareEntryConsumption -q` → 2 passed
   (hermetic: chdir tmp_path — execute_task health persistence writes cwd-relative `data/`).
+
+### GIC-LAT-ME1: production producer threads tier_used/escalation_count (TRUE consumption invariant) (2026-08-14)
+- `SkillRefiner._extract_metrics` reads `tier_used = metrics_dict.get("tier_used","unknown")` and
+  `escalation_count = metrics_dict.get("escalation_count",0)` from the execute_fn metrics dict and
+  passes both to `ExecutionMetrics(...)`. Closes the ME1 seam (t_c6639024) — the producer half that
+  GIC-LAT2 does NOT exercise, un-dormanting `predict_tier` for the whole GIC.
+- **CONSUMPTION-discriminating (goes RED when the producer is neutralized):** drives the real
+  `_extract_metrics` → `_generate_learning_signal` chain with the exact dict `CompoundExecutor`
+  builds (tier_used at the top of `metrics`); asserts the estimator holds an `igpu` record (not the
+  `unknown`→`cpu` default). `test_end_to_end_producer_records_correct_tier` +
+  `test_latency_routing_active_through_production_path` (igpu FASTER → predict `igpu`; dormant seam
+  returns `cpu`, so the assertion fails on the pre-fix producer — not a wrong-reason pass).
+- **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py::TestME1ExtractMetricsSeam -q` → 4 passed.
 
 ### GIC_NEW_4: predict_tier() accepts optional prompt="" for cold-start complexity routing (#142, 2026-06-28)
 - `predict_tier(skill_name, operation_type, prompt: str = "")` — GIC1 preserved: no-arg call still returns "unknown"

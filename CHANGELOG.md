@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-08-14
+
+### Fixed
+- ME1 producer seam (`t_c6639024`): `SkillRefiner._extract_metrics` now threads `tier_used`
+  and `escalation_count` out of the execute_fn metrics dict into `ExecutionMetrics`. Before
+  this, both were dropped and defaulted (`"unknown"`→coerced `"cpu"`, `0`), so every
+  production `DifficultyEstimator.record()` bucketed to one tier — leaving the ENTIRE GIC
+  tier-prediction path (`predict_tier`) and the GIC-LAT1 latency-routing branch layered on it
+  **dormant in production** for all skills. This ACTIVATES v1.5.0's latency-aware routing on
+  the real production path. Surfaced by the 2026-08-14 correctness review (F1), reproduced by
+  execution; fixed with 4 TRUE consumption tests that go red when the producer is neutralized
+  (`tests/compound/test_difficulty_estimator.py::TestME1ExtractMetricsSeam`).
+
+### Known limitation
+- Now that routing is live, `predict_tier`/`_resolve_tier` are monotonic-up (latency/health
+  can only RAISE the entry tier) and the estimator holds no persistent state, so a pinned tier
+  is not re-sampled until process restart. Behavior-safe (quality adequacy always gated) but
+  not self-correcting in-process. A periodic exploration/re-sample path is filed as follow-up.
+
 ## [1.5.0] — 2026-08-14
 
 ### Added

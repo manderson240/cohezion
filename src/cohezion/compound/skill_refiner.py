@@ -896,6 +896,13 @@ class SkillRefiner:
         tokens_used = token_metrics.get("tokens_used", 0)
         anomaly_score = metrics_dict.get("anomaly_score", 0.5)
         cached_hits = token_metrics.get("cache_hits", 0)
+        # ME1 seam (t_c6639024): execute_fn emits tier_used + escalation_count at the top
+        # level of the metrics dict (local_inference.py:228,231), but this method dropped
+        # them, so every production record bucketed to the "unknown"->"cpu" default and the
+        # GIC tier-prediction path (predict_tier + GIC-LAT1 latency routing) was DORMANT.
+        # Reading them here un-dormants per-skill engine allocation for the whole GIC.
+        tier_used = metrics_dict.get("tier_used", "unknown")
+        escalation_count = metrics_dict.get("escalation_count", 0)
 
         # CB16 ext (TOKEN_BLOAT): per-task token total for rolling-window bloat detection.
         execution_trace = execution_result.get("execution_trace", {})
@@ -924,6 +931,8 @@ class SkillRefiner:
             anomaly_score=anomaly_score,
             cached_hits=cached_hits,
             tokens_per_task=tokens_per_task,
+            tier_used=tier_used,
+            escalation_count=escalation_count,
         )
 
     def _generate_learning_signal(
