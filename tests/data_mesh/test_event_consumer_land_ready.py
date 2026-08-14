@@ -62,3 +62,30 @@ def test_non_land_ready_event_still_tallies():
     c = _consumer(review_ready=True, filed=filed)
     out = c.handle({"event_type": "some_other_event", "payload": "{}", "source": "x"})
     assert out["action"] == "tally" and not filed
+
+
+def test_run_once_counts_land_review_as_actioned(monkeypatch):
+    """T2 discriminating (accounting): a land-review outcome is ACTIONED, not tallied.
+
+    First live smoke (2026-08-14): run_once matched only action == "work-item", so a
+    successful land review — which files a work item under action == "land-review" —
+    reported as "tallied": the loop looked like a no-op while doing its job.
+    """
+    filed: list[str] = []
+    c = _consumer(review_ready=False, filed=filed)
+    monkeypatch.setattr(
+        c,
+        "fetch_unclaimed",
+        lambda batch: [
+            {
+                "id": "data_product_event:t1",
+                "event_type": "land_ready",
+                "payload": '{"branch":"feat/x"}',
+                "source": "scanner",
+            }
+        ],
+    )
+    monkeypatch.setattr(c, "claim", lambda rid: None)
+    summary = c.run_once(batch=1)
+    assert summary["actioned"], "land-review must be counted as actioned"
+    assert summary["tallied"] == 0

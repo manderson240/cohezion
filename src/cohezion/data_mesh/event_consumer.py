@@ -263,7 +263,10 @@ class EventConsumer:
             try:
                 self.claim(rid)  # claim-before-handle: exactly-once per consumer
                 outcome = self.handle(event)
-                if outcome["action"] == "work-item":
+                # Any outcome that filed a work item is ACTIONED — matching on the
+                # action string alone silently misfiled land-review outcomes as
+                # "tallied" (caught by the first live loop smoke, 2026-08-14).
+                if outcome.get("work_item"):
                     summary["actioned"].append({"event": rid, "work_item": outcome["work_item"]})
                 else:
                     summary["tallied"] += 1
