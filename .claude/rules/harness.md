@@ -138,58 +138,35 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 
 ## TieredOrchestrator Temperature Invariants
 
-### TR1: _TIER_TEMPERATURE constants wire per-tier temperatures into build_reasoning_orchestrator (#131, 2026-06-27)
-- `_TIER_TEMPERATURE = {"npu": 0.0, "igpu": 0.1, "cpu": 0.3}` in `triune_orchestrator.py`
-- `build_reasoning_orchestrator` passes these as `temperature=_TIER_TEMPERATURE[tier]` to each `build_gaia_llm_tier` call
-- Motivation: arXiv 2603.08274 — T=0.0 causes 48x coherence collapse at long contexts; scale temperature with context depth
-- `build_triune_orchestrator` uses `build_gaia_native_tier` (no temperature param) — temperature only applies to the LLM reasoning path
-- **Structural**: `_TIER_TEMPERATURE["npu"] == 0.0` and `_TIER_TEMPERATURE["cpu"] == 0.3`
-- **Discriminating**: `test_reasoning_orchestrator_passes_tier_temperatures` captures kwargs and verifies per-model temperatures
-- **Verification**: `uv run pytest tests/inference/test_triune_orchestrator.py -q` → 5 passed
+### TR1 (triune temperature): REMOVED 2026-08-14 — was a PHANTOM invariant
+`_TIER_TEMPERATURE` has **zero occurrences** in `triune_orchestrator.py`, and the named
+discriminating test (`test_reasoning_orchestrator_passes_tier_temperatures`) is defined
+nowhere. Fifth phantom overall (RTG1, RGA1/RGA2, MB1, microseism/JEPA per the 2026-08-14
+geometric audit). Found by 9ee8dfba4's E5-hit triage; landed via the 2026-08-14 pick chain.
 
-## Recipe Constraint Invariants (RC1, 2026-07-28)
-
-### RC1: the flm/NPU lane accepts `grammar` and IGNORES it — SILENTLY (Lemonade 11.5.0)
-- Lemonade publishes **no per-recipe capability matrix**, so "which lane enforces a decoding
-  constraint?" gets re-derived by guess every time it matters. RC1 makes it an executable fact.
-- **The fact**: GBNF is a llama.cpp *sampler* feature, so the `llamacpp` recipe (iGPU
-  `Gemma-4-E4B-it-GGUF`, CPU `Gemma-4-E2B-it-GGUF`) enforces it. The `flm` recipe is FastFlowLM —
-  a separate NPU runtime, not llama.cpp — whose documented params contain no constraint field.
-- **The hazard**: FastFlowLM does not reject unknown request fields (a bogus
-  `totally_bogus_param_xyz` returns 200 OK). Sending `grammar=` to the NPU lane yields
-  **unconstrained output with no error** — a silent correctness failure, not a loud one.
-- **Consumption, not declaration** (per this file's meta-rule): the consumer is CI running the
-  test on every `tests/inference/` pass. There is deliberately NO `src/` consumption pin and NO
-  `dormancy_scan.REGISTRY` floor — by construction nothing in `src/` consumes this yet, so a
-  floor would be unmeetable. The trio it guards is registered in `KNOWN_DORMANT` (notice-only).
-- **What is pinned is BEHAVIORAL** (200 + non-empty + unconstrained), *not* the capability claim
-  "the NPU cannot be constrained" — FLM's silent swallow means absence of effect is not proof of
-  absence of capability, and a probe cannot establish a negative capability claim.
-- **Falsification-proven**: pointing the `expect_enforced=True` lane at `llama3.2-1b-FLM` turns
-  the enforcement assertion red (`got 'No'`). The test can fail, so its green means something.
-- **Version-scoped**: if FastFlowLM gains constraint support this goes RED — the correct signal.
-  Update `structured_npu.py`, this invariant, and the vault report; do NOT weaken the assertion.
-- **Safety**: the lane tests SKIP unless the required models are already resident — this box runs
-  below the 16 GB N3 floor, so a probe that triggers an auto-load is an OOM hazard.
-- **Anti-retirement canary** (`test_rc1_lanes_are_actually_running`, found by a local QA lane):
-  a skip is indistinguishable from a pass in the summary, so LRU eviction would silently retire
-  this proof. The canary SKIPS when :13305 is down (legitimately untestable) but FAILS when
-  :13305 is UP and a lane model is missing (instrument degrading). Same rule dormancy_scan.py
-  applies to capabilities, applied to this test itself. Falsification-proven both ways.
-- **Verification**: `uv run pytest tests/inference/test_recipe_constraint_support.py -q` → 3 passed
-  live (2 lanes + canary; skips when :13305 is down). Report:
-  `~/vaults/cohezion-vault/reports/20260728-lemonade-recipe-constraint-matrix.md`.
+The MOTIVATION was superseded, not lost: per-model temperature defaults are REAL and live
+as the model-card mechanism — see `src/cohezion/inference/CLAUDE.md` "TR (Triune Recipe)
+Invariants" (2026-07-07): `build_gaia_llm_tier` resolves `model_card_defaults
+.get_sampling_defaults()`, verified by `tests/inference/test_triune_orchestrator.py::
+test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero` (exists, passes).
+**Do NOT re-add `_TIER_TEMPERATURE` without implementing it.**
 
 ## MetricBaseline Invariants
 
-### MB1: MetricBaseline.value_bounds clamps trend_value() for bounded metrics (#129, 2026-06-27)
-- `value_bounds: tuple[float, float] | None = None` field on `MetricBaseline` dataclass
-- When set, `trend_value(horizon)` clamps result to `[lo, hi]` via `max(lo, min(hi, result))`
-- `DegradationDetector.__init__` wires `value_bounds=(0.0, 1.0)` on: `cache_hit_rate`, `coherence`, `success_rate`, `quality_score`
-- Unbounded metrics (`token_efficiency`, `duration_seconds`) retain `value_bounds=None`
-- Motivation: arXiv 2603.08274 — linear extrapolation projects coherence outside [0,1] causing false alert suppression
-- **Discriminating**: `test_unbounded_metric_can_extrapolate_outside_unit_interval` proves clamp is selective, not global
-- **Verification**: `uv run pytest tests/compound/test_degradation_detector.py::TestMetricBaseline -q` → 12 passed
+### MB1: REMOVED 2026-08-14 — was a PHANTOM invariant
+`value_bounds` has **zero occurrences** anywhere in `src/` or `tests/`; `trend_value()`
+does no clamping of any kind; and the named discriminating test
+(`test_unbounded_metric_can_extrapolate_outside_unit_interval`) does not exist. Same
+class as RTG1 and RGA1/RGA2. Found 2026-08-09 (c7934bcbe), landed via the 2026-08-14
+pick chain together with the E6 cited-test check in
+`scripts/ci/doc_code_consistency.py` — a phantom *symbol* and a phantom *test name*
+are invisible to a path checker, so cited test names are now machine-checked.
+
+**Do NOT re-add without implementing it.** If bounded-metric extrapolation is wanted,
+the principled form is a logit-space fit (project `log(p/(1-p))`, map back through the
+logistic): in-range by construction, saturating rather than wall-clamping. A clamp
+treats the symptom — linear extrapolation is the wrong asymptotic form for a quantity
+confined to a unit interval.
 
 ### LT1: DegradationDetector._ema_thresholds adapts toward observed values (GIC self-regulation, #137, 2026-06-27)
 - `_ema_thresholds: dict[str, float]` seeded from constructor params (`cache_hit_rate_threshold`, `coherence_threshold`)
@@ -259,7 +236,14 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `executor._resolve_tier(predicted, suggested, jepa_reroute) -> str|None`: combines DifficultyEstimator `predicted_tier` (predictive) + DegradationDetector `suggested_tier` (reactive) by taking the cheaper (conservative); a JepaGate REROUTE verdict then downgrades ONE step toward a cheaper tier via `_TIER_ORDER=("npu","igpu","cpu","cloud")`.
 - Closes a producer→consumer gap: REROUTE was only LOGGED at Step 3.5; `execute_task` Step 3.6(c) now calls `_resolve_tier(...)` and sets `metrics["recommended_tier"]`. None when no valid signal.
 - **T1 structural**: `_TIER_ORDER == ("npu","igpu","cpu","cloud")`
-- **T2 discriminating**: `test_reroute_downgrades_one_step_toward_cheaper` — `_resolve_tier("cpu","cpu",False)=="cpu"` but `(...,True)=="igpu"` (a verdict-ignoring impl leaves it "cpu"); `test_reroute_clamped_at_cheapest_tier`; `test_no_valid_signal_returns_none`
+- **T2 discriminating** (corrected 2026-08-14 — the original text here asserted the
+  REVERSED pre-H4 behavior: `(...,True)=="igpu"`, a downgrade toward cheaper. H4 already
+  recorded the reversal but this block was never updated; caught by writing the test from
+  this text and watching it fail): `test_reroute_escalates_one_step_toward_capability` —
+  `_resolve_tier("cpu","cpu",False)=="cpu"` but `(...,True)=="cloud"` (health may only
+  ESCALATE a hard task, never cheapen it; a verdict-ignoring impl returns "cpu" for both,
+  so the PAIR is the test); `test_reroute_clamped_at_most_capable_tier`;
+  `test_no_valid_signal_returns_none`
 - **Verification**: `uv run pytest tests/compound/test_tier_resolution.py -q` → 8 passed
 - **Open follow-on**: `recommended_tier` is exposed in metrics + feeds the learning/observability layer; driving execute_fn's actual tier requires an execute_fn contract change (not yet done).
 
@@ -679,11 +663,6 @@ Do NOT re-add without actually implementing it + a real discriminating test.
   `test_geodesic_matches_solve_ivp_reference` (RK45 cross-check catches wrong-but-nonzero `a`),
   `test_velocity_delta_equals_dt_times_acceleration`, `test_constant_metric_stays_straight`.
 - **Verification**: `PYTHONPATH=src .venv/bin/python3 -m pytest tests/physics/test_riemannian_glide.py -q` → 13 passed
-- Curved trajectory (κ>0) is SHORTER than flat trajectory (κ=0) from same initial conditions
-- At origin |x|=0, damping is zero regardless of κ (no anisotropy at fixed point)
-- Source: PRL 136 256708 analogy — curvature resists transport in high-curvature directions
-- **T2 discriminating**: `test_nonzero_coupling_changes_step` (κ=0 vs κ=1 produce different positions); `test_anisotropy_damped_in_large_position` (larger |x| → smaller a_i)
-- **Verification**: `uv run pytest tests/physics/test_riemannian_glide.py -q` → 12 passed
 
 ## AIR Model Invariants (task_classifier output_intent, #89, 2026-06-28)
 

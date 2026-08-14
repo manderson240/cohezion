@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import re
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 
@@ -55,6 +56,8 @@ MODULE_RE = re.compile(r"`(cohezion(?:\.[A-Za-z_][\w]*)+)`")
 CLSMETH_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\.([a-z_][\w]*)\(?\)?`")
 CTORKW_RE = re.compile(r"`([A-Z][A-Za-z0-9]+)\(([a-z_][\w]*)\s*=")
 ENTRYPOINTS_RE = re.compile(r"Entry points \((\d+) modules?\)")
+BACKTICK_RE = re.compile(r"`([^`\n]+)`")
+TESTNAME_RE = re.compile(r"\b(Test[A-Z]\w+|test_[a-z0-9][\w]*)\b")
 
 
 def _package_modules(pkg: Path) -> list[str]:
@@ -119,6 +122,60 @@ def _member_defined(files: list[Path], member: str) -> bool:
         re.M,
     )
     return any(pat.search(p.read_text(errors="replace")) for p in files)
+
+
+# E6 grandfather list — phantoms known when the check landed (2026-08-14), enumerated so
+# NEW phantoms fail immediately while old debt stays visible as warnings. Do NOT add to
+# this list: write the test or delete the claim. (Measured fresh at port time; the
+# original 2026-08-09 list shrank because TR1/MB1 were retired and LT1/RV2 gained their
+# real tests in tests/compound/test_harness_claims.py in the same pick chain.)
+KNOWN_PHANTOM_TESTS = frozenset(
+    {
+        "test_low_coherence_llm_makes_gate_skip",  # JG3
+        "test_t1_epoch_fields_exist_with_zero_defaults",  # RQGM1
+        "test_track_execution_action_captured_from_tier_used",  # JI1
+        "test_track_execution_explicit_action_overrides_tier_used",  # JI1
+    }
+)
+
+
+@lru_cache(maxsize=1)
+def _defined_test_names() -> frozenset[str]:
+    """Every pytest class/function name defined anywhere under tests/.
+
+    Built once. It makes the "Verification:" line of every harness invariant
+    checkable — the line that matters: an invariant naming a test that does not
+    exist has never been verified (RTG1/RGA1/RGA2/MB1/TR1 all shipped that way).
+    """
+    names: set[str] = set()
+    pat = re.compile(r"^\s*(?:async def|def|class)\s+((?:Test[A-Z]|test_)\w*)", re.M)
+    tests_dir = REPO / "tests"
+    if tests_dir.exists():
+        for tp in tests_dir.rglob("*.py"):
+            # MODULE stems count too: docs cite `tests/x/test_foo.py` far more often
+            # than a function; ignoring stems produced 35/43 false positives.
+            names.add(tp.stem)
+            names.update(pat.findall(tp.read_text(errors="replace")))
+    # Production helpers that merely START with "test_" are not phantoms
+    # (real case: adversarial_tester.test_single_pattern, cited by AG1).
+    for d in ("src", "scripts"):
+        root = REPO / d
+        if root.exists():
+            for sp in root.rglob("*.py"):
+                if "cohezion-archive" in str(sp):
+                    continue
+                names.update(pat.findall(sp.read_text(errors="replace")))
+    return frozenset(names)
+
+
+def _claimed_test_names(text: str) -> set[str]:
+    """Pytest identifiers claimed inside backticks. Globs are skipped, not guessed."""
+    found: set[str] = set()
+    for span in BACKTICK_RE.findall(text):
+        if "*" in span:  # e.g. `test_wilson_lcb_*` — a family, not a name
+            continue
+        found.update(TESTNAME_RE.findall(span))
+    return found
 
 
 def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
@@ -195,6 +252,31 @@ def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
                     f"{len(actual)} (own *.py, excluding __init__.py; subpackages are NOT "
                     f"counted).{detail}"
                 )
+        # E6: every cited test must exist. A phantom SYMBOL and a phantom TEST NAME are
+        # both invisible to the path checks above — RTG1/RGA1/RGA2/MB1/TR1 all shipped
+        # citing tests defined nowhere. Only harness/CLAUDE docs make test claims.
+        if doc.name in ("harness.md", "CLAUDE.md"):
+            defined = _defined_test_names()
+            # Burial exemption: a section whose heading says REMOVED/PHANTOM is a
+            # tombstone — naming the dead test there keeps it on record so nobody
+            # re-adds it. That is the opposite of claiming it as verification.
+            buried: set[str] = set()
+            for sec in re.split(r"(?m)^#{2,3} ", text):
+                heading = sec.splitlines()[0] if sec else ""
+                if "REMOVED" in heading or "PHANTOM" in heading.upper():
+                    buried.update(_claimed_test_names(sec))
+            live_names = _claimed_test_names(text) - buried
+            for name in sorted(live_names):
+                if name in defined:
+                    continue
+                if name in KNOWN_PHANTOM_TESTS:
+                    warns.append(f"W6 {rel_doc}: known phantom test `{name}` (pre-existing debt)")
+                    continue
+                errors.append(
+                    f"E6 {rel_doc}: cites test `{name}` which is defined nowhere — the "
+                    "invariant claiming it has never been verified. Write the test or "
+                    "delete the claim; do NOT add it to KNOWN_PHANTOM_TESTS."
+                )
     return errors, warns
 
 
@@ -235,7 +317,9 @@ def self_test() -> int:
         (empty / "CLAUDE.md").write_text("## Entry points (99 modules)\n", encoding="utf-8")
         errs, warns = scan([empty / "CLAUDE.md"])
         fired = any(x.startswith("E5") for x in errs + warns)
-        print(f"self-test E5 zero-module: {'PASS (fired)' if fired else 'FAIL (silent)'} — declares 99, has 0")
+        print(
+            f"self-test E5 zero-module: {'PASS (fired)' if fired else 'FAIL (silent)'} — declares 99, has 0"
+        )
         ok &= fired
         # E5 negative control: a truthful count, and a deliberately truncated table, stay silent.
         (pkg / "CLAUDE.md").write_text(
@@ -244,6 +328,26 @@ def self_test() -> int:
         errs, warns = scan([pkg / "CLAUDE.md"])
         quiet = not any(x.startswith("E5") for x in errs + warns)
         print(f"self-test E5 negative-control: {'PASS (silent)' if quiet else 'FAIL (fired)'}")
+        ok &= quiet
+
+        # E6: a phantom cited test must fire; a REAL one and a BURIED one must not.
+        # Doc must be NAMED harness.md/CLAUDE.md — E6 is scoped to invariant docs.
+        hdoc = Path(td) / "CLAUDE.md"
+        hdoc.write_text(
+            "- **Verification**: `test_this_never_existed_anywhere`\n", encoding="utf-8"
+        )
+        errs, warns = scan([hdoc])
+        fired = any(x.startswith("E6") for x in errs)
+        print(f"self-test E6: {'PASS (fired)' if fired else 'FAIL (silent)'} — phantom cited test")
+        ok &= fired
+        hdoc.write_text(
+            "### OLD1: REMOVED — was a PHANTOM invariant\n"
+            "named `test_this_never_existed_anywhere` — buried on record\n",
+            encoding="utf-8",
+        )
+        errs, warns = scan([hdoc])
+        quiet = not any(x.startswith("E6") for x in errs)
+        print(f"self-test E6 burial-control: {'PASS (silent)' if quiet else 'FAIL (fired)'}")
         ok &= quiet
 
         # negative control: a TRUE statement must stay silent
