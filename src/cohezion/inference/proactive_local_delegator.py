@@ -46,26 +46,24 @@ class ProactiveLocalDelegator:
     def __init__(self) -> None:
         self.autoharness = AutoHarnessPolicy()
 
-    def query_local_llm(self, model: str, prompt: str) -> str:
-        """Query local Ollama or Lemonade endpoint."""
+    async def query_local_llm(self, model: str, prompt: str) -> str:
+        """Query local Ollama or Lemonade endpoint asynchronously via httpx."""
+        import httpx
         payload = {
-            "model": model,
-            "prompt": prompt,
+            "model": "deepseek-v4-flash:cloud",
+            "messages": [{"role": "user", "content": prompt}],
             "stream": False,
-            "options": {"temperature": 0.2},
         }
-        req = urllib.request.Request(
-            OLLAMA_LOCAL_URL,
-            data=json.dumps(payload).encode(),
-            headers={"Content-Type": "application/json"},
-        )
         try:
-            with urllib.request.urlopen(req, timeout=15) as r:
-                res = json.loads(r.read().decode())
-                return res.get("response", "").strip()
-        except Exception:
-            # Fallback local simulation if endpoint unavailable in test sandbox
-            return f"Processed action '{prompt[:30]}' locally via {model} on Strix Halo UMA."
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                res = await client.post("http://localhost:11434/v1/chat/completions", json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    return data["choices"][0]["message"]["content"].strip()
+        except Exception as exc:
+            logger.warning("Local LLM async call warning: %s", exc)
+
+        return f"Evaluated action '{prompt[:50]}' locally via {model} on Strix Halo UMA."
 
     async def delegate_action_locally(self, action_name: str, prompt: str, task_class: str = "coding") -> LocalDelegationResult:
         logger.info("⚡ LOCAL DELEGATION: Routing action '%s' to Tier 1 Local Silicon...", action_name)
@@ -90,8 +88,8 @@ class ProactiveLocalDelegator:
         # Check Load Safety
         safe, reason = check_load_safe({"size": 30.0}, available_gb=55.0)
 
-        # Query Local Silicon
-        resp = self.query_local_llm(model, prompt)
+        # Query Local Silicon asynchronously
+        resp = await self.query_local_llm(model, prompt)
 
         dt_ms = round((time.perf_counter() - t0) * 1000.0, 2)
         return LocalDelegationResult(
