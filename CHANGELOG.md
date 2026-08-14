@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.5.0] — 2026-08-14
+
+### Added
+- GIC-LAT1 latency-aware tier selection: `src/cohezion/compound/difficulty_estimator.py`
+  `record()` gains an optional `latency_s`; `predict_tier` ranks quality-adequate tiers by
+  measured median latency instead of assuming the tier order is a cost order (the
+  2026-08-13 live soak measured the ordering inverted: the 35B-A3B-MTP tier was both
+  stronger and faster than the 8B dense-thinking tier). Latency never overrides quality
+  adequacy; with no latency data the behavior is unchanged.
+- GIC-LAT2 consumption invariant: paired-arm discriminating test through the full
+  `execute_task` path proving latency-informed predictions reach the O9 cascade-entry
+  binding (`tests/compound/test_tier_resolution.py`)
+- `SkillRefiner` threads `duration_seconds` into the estimator as the latency producer
+
+### Fixed
+- `src/cohezion/mcp/loop_mcp.py` `event_publish` wrote ZERO rows while returning
+  `success: true` — omitted the required int `priority` and wrote a datetime into the
+  TYPE float `timestamp`. Now schema-conformant (priority param, epoch-float timestamp);
+  first row this tool ever wrote verified live by count delta (1863 -> 1864)
+- `_surreal_sql` treated HTTP 200 as success; SurrealDB reports SurrealQL failures as
+  per-statement `status: ERR` inside HTTP 200 — statement errors now surface as error dicts
+- stdio MCP stdout pollution: `src/cohezion/integrations/kaggle_api.py` imported
+  kaggle/kagglehub at module level; the kaggle package conditionally prints a version
+  warning to STDOUT, corrupting the JSON-RPC channel of any stdio MCP server importing
+  the package tree. Imports are now lazy (method-level)
+
 ## [1.4.0] — 2026-08-13
 
 ### Added — Landing train 2 (surgical harvests and cherry-picks)
