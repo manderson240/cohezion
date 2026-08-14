@@ -193,8 +193,16 @@ Monitor.
 class TestBackwardCompatibility:
     def test_fields_default_empty_so_existing_callers_are_unaffected(self) -> None:
         f = ResearchFinding(
-            finding_id="f", title="t", source="s", date="d", tags=[], model="m",
-            verdict_text="v", relevance="r", body="b", actionability="monitor",
+            finding_id="f",
+            title="t",
+            source="s",
+            date="d",
+            tags=[],
+            model="m",
+            verdict_text="v",
+            relevance="r",
+            body="b",
+            actionability="monitor",
         )
         assert f.licence_tag == ""
         assert f.licence_actual == ""

@@ -139,6 +139,7 @@ class TestPublishing:
     def test_publish_exception_does_not_crash_the_daemon(self) -> None:
         """Fail-open is required — a health reporter must never take down the daemon it
         watches — but it must still COUNT."""
+
         def boom(_):
             raise RuntimeError("bus down")
 
@@ -184,7 +185,9 @@ class TestStaleness:
         """DISCRIMINATING: returning 'not stale' for a file that does not exist is the
         fail-open-and-silent shape all over again."""
         h = DaemonHealth(
-            "d", publish_fn=lambda _: True, watch_artifact=tmp_path / "nope.json",
+            "d",
+            publish_fn=lambda _: True,
+            watch_artifact=tmp_path / "nope.json",
             stale_after_s=60,
         )
         assert h.artifact_stale_seconds is None
