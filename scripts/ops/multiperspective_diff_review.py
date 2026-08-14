@@ -120,7 +120,7 @@ def run_lane(
                 max_tokens,
                 extra,
             )
-        except Exception as e:  # noqa: BLE001 — lane must survive per-branch failure
+        except Exception as e:  # lane must survive per-branch failure
             text = f"LANE_ERROR: {e}\nVERDICT: HOLD lane error"
         dt = time.time() - t0
         out.write_text(f"# {branch} — {lane} ({model}, {dt:.0f}s)\n\n{text}\n")
