@@ -266,3 +266,68 @@ class TestOracleTierSignal:
         assert _resolve_tier("npu", "igpu", jepa_reroute=False) == "igpu"
         assert _resolve_tier("cpu", "npu", jepa_reroute=False) == "cpu"
         assert _resolve_tier(None, None, jepa_reroute=False) is None
+
+
+class TestLatencyAwareEntryConsumption:
+    """GIC-LAT2: latency-informed prediction must REACH cascade entry through the full
+    execute_task path (W4 hint -> _resolve_tier fusion -> O9 min_tier_index binding).
+
+    Consumption invariant for GIC-LAT1 — a REAL DifficultyEstimator (not a mock) with
+    measured latency history must change what execute_fn receives. The paired control
+    (identical quality history, no latencies) is what makes this discriminating: if the
+    latency axis were dropped anywhere along the seam, both arms would receive the same
+    entry index and the pair of assertions could not both hold.
+    """
+
+    @staticmethod
+    def _executor_with_history(with_latency: bool):
+        from unittest.mock import MagicMock
+
+        from cohezion.compound.difficulty_estimator import DifficultyEstimator
+        from cohezion.compound.executor import CompoundExecutor
+        from cohezion.compound.skill_refiner import SkillRefiner
+
+        est = DifficultyEstimator()
+        for _ in range(3):
+            if with_latency:
+                # Both tiers quality-adequate; the "cheaper"-ordered igpu tier is SLOWER
+                # (the 2026-08-13 measured inversion: 35B-A3B-MTP beat 8B-dense-thinking).
+                est.record("SKILL", "answer", "igpu", 0, 0.9, latency_s=160.0)
+                est.record("SKILL", "answer", "cpu", 0, 0.9, latency_s=90.0)
+            else:
+                est.record("SKILL", "answer", "igpu", 0, 0.9)
+                est.record("SKILL", "answer", "cpu", 0, 0.9)
+
+        sr = MagicMock(spec=SkillRefiner)
+        sr._difficulty_estimator = est
+        return CompoundExecutor(MagicMock(), skill_refiner=sr)
+
+    def _entry_index_for(self, with_latency: bool, tmp_path, monkeypatch) -> int:
+        # execute_task's health persistence writes cwd-relative 'data/...' — run
+        # hermetically from a writable tmp dir (the repo cwd is RO under the sandbox).
+        monkeypatch.chdir(tmp_path)
+        seen: dict[str, int] = {}
+
+        def execute_fn(guidance, min_tier_index=0):
+            seen["idx"] = min_tier_index
+            return "output", {}
+
+        executor = self._executor_with_history(with_latency)
+        executor.execute_task(
+            task_description="t",
+            skill_name="SKILL",
+            operation_type="answer",
+            execute_fn=execute_fn,
+        )
+        return seen["idx"]
+
+    def test_latency_history_raises_cascade_entry_to_faster_tier(self, tmp_path, monkeypatch):
+        """With measured latencies (cpu faster, both adequate), execute_fn must be told to
+        enter at the cpu index (2), not the cheaper-ordered igpu index (1)."""
+        assert self._entry_index_for(True, tmp_path, monkeypatch) == 2
+
+    def test_control_without_latency_enters_at_cheapest_adequate(self, tmp_path, monkeypatch):
+        """Control arm: identical quality history without latencies keeps legacy
+        cheapest-adequate entry (igpu -> 1). Proves the pair discriminates: a seam that
+        drops the latency axis makes both arms return the same index."""
+        assert self._entry_index_for(False, tmp_path, monkeypatch) == 1

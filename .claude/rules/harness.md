@@ -406,6 +406,18 @@ Do NOT re-add without actually implementing it + a real discriminating test.
   counterfactual replay on the soak's 270 real rows: running-prediction divergence 36%/9%/8%
   (easy/med/hard), zero regression on final policies (`~/cohezion-labs/experiments/gic-routing-20260813/counterfactual_replay.py`)
 
+### GIC-LAT2: latency-informed prediction REACHES cascade entry (consumption invariant, 2026-08-14)
+- The full execute_task path (W4 predicted_tier hint → `_resolve_tier` max-capability fusion →
+  O9 `_call_execute_fn` min_tier_index binding) must carry the GIC-LAT1 latency axis end-to-end.
+  Max-capability fusion preserves a latency-raised prediction (higher index survives `max`), so no
+  executor code change was needed — this invariant pins the COMPOSITION against re-dormancy.
+- **T2 discriminating (paired arms)**: a REAL DifficultyEstimator with both tiers quality-adequate
+  and igpu measured SLOWER → execute_fn receives `min_tier_index=2`; the control arm (identical
+  quality history, no latencies) receives `1`. A seam dropping the latency axis gives both arms the
+  same index → the pair cannot both pass.
+- **Verification**: `uv run pytest tests/compound/test_tier_resolution.py::TestLatencyAwareEntryConsumption -q` → 2 passed
+  (hermetic: chdir to tmp_path — execute_task's health persistence writes cwd-relative `data/`).
+
 ### GIC_NEW_4: predict_tier() accepts optional prompt="" for cold-start complexity routing (#142, 2026-06-28)
 - `predict_tier(skill_name, operation_type, prompt: str = "")` — GIC1 preserved: no-arg call still returns "unknown"
 - `_complexity_score(prompt) → float` in [0.0, 1.0]: length (40%, saturates at 200 words) + keyword density (60%, saturates at 3 hard keywords)
