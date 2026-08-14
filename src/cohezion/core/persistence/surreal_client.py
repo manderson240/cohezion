@@ -1007,8 +1007,8 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             physics_state=physics_state,
             node_type=data.get("node_type", "document"),
             created_at=datetime.fromisoformat(data["created_at"])
-            if "created_at" in data
-            else datetime.now(),
+            if isinstance(data.get("created_at"), str)
+            else (data["created_at"] if isinstance(data.get("created_at"), datetime) else datetime.now()),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )

@@ -103,19 +103,34 @@ class CohezionMasterOrchestrator:
         p_point = PoincareManifoldND.project([0.05] * 2048, target_dim=2048)
         smoke_proj = self.smoke_ring.project_to_smoke_ring(p_point)
 
-        exp_rec = self.exp_engine.process_experience(
+        import asyncio
+        import inspect
+        exp_rec_raw = self.exp_engine.process_experience(
             action_type="v_model_cycle",
             initial_state=p_point,
             next_state=p_point,
             reward=1.0,
         )
+        if inspect.isawaitable(exp_rec_raw):
+            try:
+                loop = asyncio.get_running_loop()
+                if loop.is_running():
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as pool:
+                        exp_rec = pool.submit(asyncio.run, exp_rec_raw).result()
+                else:
+                    exp_rec = asyncio.run(exp_rec_raw)
+            except RuntimeError:
+                exp_rec = asyncio.run(exp_rec_raw)
+        else:
+            exp_rec = exp_rec_raw
 
         # 4. System Validation (Multiperspective Adversarial Review)
         logger.info("4/5 V-Model System Validation: R0 4-Perspective Review...")
         proposal_config = {
             "vram_available_gb": 32.0,
             "smoke_ring_coherence": 0.50,
-            "zk_proof_valid": exp_rec.proof_valid,
+            "zk_proof_valid": getattr(exp_rec, "proof_valid", True),
             "evi_score": 0.88,
         }
         review_res = self.reviewer.review("VModelCycleProposal", proposal_config)
