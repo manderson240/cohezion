@@ -68,16 +68,17 @@ class GAIALocalRouter:
             task_class=task_type,
         )
 
-        # 4. Generate Real LLM Completion Response via Local Silicon (Pooled & Bounded)
+        # 4. Generate Real LLM Completion Response via Local Lemonade OmniRouter (port 13305)
         response_text = ""
         try:
             import httpx
             limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
-            async with httpx.AsyncClient(timeout=15.0, limits=limits) as client:
+            async with httpx.AsyncClient(timeout=30.0, limits=limits) as client:
+                model_name = "Qwen3-Coder-30B-A3B-Instruct-GGUF" if task_type == "coding" else "qwen3.6-moe-35b-a3b-FLM"
                 res = await client.post(
-                    "http://localhost:11434/v1/chat/completions",
+                    "http://localhost:13305/v1/chat/completions",
                     json={
-                        "model": "deepseek-v4-flash:cloud",
+                        "model": model_name,
                         "messages": [
                             {"role": "system", "content": f"You are Cohezion Local Agent '{agent_id}' running on local silicon hardware ({delegation.target_hardware}). Respond concisely, intelligently, and directly to the user."},
                             {"role": "user", "content": prompt},
@@ -89,7 +90,7 @@ class GAIALocalRouter:
                     data = res.json()
                     response_text = data["choices"][0]["message"]["content"]
         except Exception as e:
-            logger.warning("Local LLM inference fallback triggered: %s", e)
+            logger.warning("Local Lemonade LLM inference fallback triggered: %s", e)
 
         if not response_text:
             response_text = f"I am Cohezion Agent '{agent_id}' running on {delegation.target_hardware}. I evaluated your request ('{prompt}') and verified all 12D Poincaré system bounds."

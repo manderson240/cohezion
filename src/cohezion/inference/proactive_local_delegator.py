@@ -47,21 +47,21 @@ class ProactiveLocalDelegator:
         self.autoharness = AutoHarnessPolicy()
 
     async def query_local_llm(self, model: str, prompt: str) -> str:
-        """Query local Ollama or Lemonade endpoint asynchronously via httpx."""
+        """Query local Lemonade OmniRouter endpoint (port 13305) asynchronously via httpx."""
         import httpx
         payload = {
-            "model": "deepseek-v4-flash:cloud",
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
         }
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                res = await client.post("http://localhost:11434/v1/chat/completions", json=payload)
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                res = await client.post("http://localhost:13305/v1/chat/completions", json=payload)
                 if res.status_code == 200:
                     data = res.json()
                     return data["choices"][0]["message"]["content"].strip()
         except Exception as exc:
-            logger.warning("Local LLM async call warning: %s", exc)
+            logger.warning("Local Lemonade LLM async call warning: %s", exc)
 
         return f"Evaluated action '{prompt[:50]}' locally via {model} on Strix Halo UMA."
 

@@ -23,37 +23,50 @@ def _():
     from cohezion.integrations.gaia_local_router import GAIALocalRouter
 
     return (
-        AdaptiveLatencyQualityEngine,
         AutoHarnessPolicy,
         GAIALocalRouter,
         GeometricCorrespondenceEngine,
-        LatencyQualityProfile,
-        LocalAgentPerspectiveBridge,
-        PoincareManifoldVisualizer,
-        asyncio,
         go,
         mo,
-        np,
         time,
     )
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        # 🧠 Cohezion Master Agent Operations & Monitoring Center
+    mo.md(r"""
+    <style>
+    :root {
+        color-scheme: dark !important;
+    }
+    body, .marimo, [data-marimo-app], main {
+        background-color: #090d16 !important;
+        color: #f8fafc !important;
+    }
+    [data-testid="sidebar"], .marimo-sidebar {
+        background-color: #0f172a !important;
+        border-right: 1px solid #1e293b !important;
+        color: #f8fafc !important;
+    }
+    .marimo-card, div[class*="card"] {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #f8fafc !important;
+        border-radius: 8px !important;
+    }
+    </style>
 
-        *Powered by Marimo 0.23.16 & Local Silicon Tri-Engine Inference (AMD Strix Halo NPU / iGPU / CPU / 128GB UMA)*
+    # 🧠 Cohezion Master Agent Operations & Monitoring Center
 
-        Featuring an **Interactive Local Agent Pinned in the Left Sidebar (`mo.sidebar`)**, **Measured Real-Time Hardware Telemetry**, and **Plotly Dark Mode Analytics**.
-        """
-    )
+    *Powered by Marimo 0.23.16 & Local Silicon Tri-Engine Inference (AMD Strix Halo NPU / iGPU / CPU / 128GB UMA / Lemonade OmniRouter)*
+
+    Featuring an **Interactive Local Agent Pinned in the Left Sidebar (`mo.sidebar`)**, **Measured Real-Time Local Telemetry**, and **Plotly Dark Mode Analytics**.
+    """)
     return
 
 
 @app.cell
-def _(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, time):
+def _(GAIALocalRouter, GeometricCorrespondenceEngine, mo, time):
     # ROBUST TEXT EXTRACTION FOR MARIMO CHATMESSAGE PARTS / CONTENT
     def extract_chat_text(msg) -> str:
         if msg is None:
@@ -127,8 +140,7 @@ def _(AutoHarnessPolicy, GAIALocalRouter, GeometricCorrespondenceEngine, mo, tim
         ],
         max_height=420,
     )
-
-    return extract_chat_text, local_agent_chat_model, sidebar_agent_chat
+    return (sidebar_agent_chat,)
 
 
 @app.cell
@@ -184,7 +196,6 @@ def _(mo, sidebar_agent_chat):
         profile_selector,
         sidebar_agent_chat,
     ])
-
     return (
         auto_refresh,
         model_selector,
@@ -262,7 +273,6 @@ async def _(
                 f"Hyperbolic Distance d_P = {gres.hyperbolic_geodesic_distance:.4f}."
             ),
         }
-
     return agent_response, click_count
 
 
@@ -301,7 +311,6 @@ def _(go):
         template="plotly_dark",
         height=380,
     )
-
     return fig_perplexity, fig_throughput
 
 
@@ -406,13 +415,7 @@ def _(
         "📈 Performance & Analytics": tab_analytics,
         "📊 Hardware & Daemon Scorecard": tab_daemons,
     })
-    return (
-        agent_scorecard,
-        daemon_data,
-        tab_agent_execution,
-        tab_analytics,
-        tab_daemons,
-    )
+    return
 
 
 if __name__ == "__main__":
