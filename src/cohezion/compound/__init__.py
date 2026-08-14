@@ -59,13 +59,12 @@ with contextlib.suppress(Exception):
         ValidationResult as ValidationResult,
     )
 
-# Wiring-sweep 2026-06-06: optimized_session_manager was a genuine import-graph orphan.
+# The package-level CompoundSessionManager is the production one from
+# session_manager.py — the class every consumer imports directly (mcp/, api/,
+# agent/, swarm/) and the one hookify/validator.py string keys match.
 with contextlib.suppress(Exception):
-    from cohezion.compound.optimized_session_manager import (
+    from cohezion.compound.session_manager import (
         CompoundSessionManager as CompoundSessionManager,
-    )
-    from cohezion.compound.optimized_session_manager import (
-        OptimizedSessionRuntime as OptimizedSessionRuntime,
     )
 
 # Wiring-sweep 2026-06-06: thermal_autoresearch_executor was a genuine import-graph orphan.
@@ -78,27 +77,6 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.compound.distillation_engine import (
         DistillationEngine as DistillationEngine,
-    )
-
-# Wiring-sweep 2026-06-06: dynamic_compound_system was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.dynamic_compound_system import (
-        DynamicCompoundSystem as DynamicCompoundSystem,
-    )
-    from cohezion.compound.dynamic_compound_system import (
-        DynamicExecutionResult as DynamicExecutionResult,
-    )
-
-# Wiring-sweep 2026-06-06: dynamic_system_integration was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.dynamic_system_integration import (
-        DynamicSystemCoordinator as DynamicSystemCoordinator,
-    )
-
-# Wiring-sweep 2026-06-06: consortium_instigator was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.consortium_instigator import (
-        ConsortiumInstigator as ConsortiumInstigator,
     )
 
 # Wiring-sweep 2026-06-06: agi_reasoning was a genuine import-graph orphan.

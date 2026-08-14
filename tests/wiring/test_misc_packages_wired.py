@@ -6,7 +6,6 @@ import cohezion.datamesh
 import cohezion.deployment
 import cohezion.dogfooding
 import cohezion.eval
-import cohezion.evaluation
 import cohezion.optimization
 import cohezion.pipeline
 import cohezion.precipitation
@@ -94,12 +93,14 @@ def test_dogfooding_wired():
     assert cohezion.dogfooding.ProductionHardening is not None
 
 
-# --- evaluation ---
+# --- eval.self_eval (merged from the retired evaluation/ package, 2026-08-14) ---
 
 
-def test_evaluation_wired():
-    assert cohezion.evaluation.SelfEvaluationEngine is not None
-    assert cohezion.evaluation.EvaluationResult is not None
+def test_self_eval_wired_into_eval():
+    import cohezion.eval
+
+    assert cohezion.eval.SelfEvaluationEngine is not None
+    assert cohezion.eval.EvaluationResult is not None
 
 
 # --- eval ---

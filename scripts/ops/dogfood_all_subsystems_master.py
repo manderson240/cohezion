@@ -18,7 +18,7 @@ import time
 from cohezion.agents.fleet_adapter import run_task_sync
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.cache.semantic_cache import SemanticCache
-from cohezion.cache.sentence_encoder import SentenceTransformerEncoder
+from cohezion.cache import SentenceTransformerEncoder
 from cohezion.core.optimization import AdaptiveFrameworkOptimizer
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.physics.bioelectric_model import BioelectricNetwork

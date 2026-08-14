@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] — 2026-08-14
+
+Elegant-simplicity execution: net −11.3k LOC with zero functionality lost.
+Adversarially-verified audit + execution + pre-landing main-tree re-audit:
+`~/vaults/cohezion-vault/reports/20260814-elegant-simplicity-audit.md`;
+per-file rationale in `docs/simplification/RETIRED-2026-08-14.md`.
+
+### Added
+- `TieredOrchestrator(pre_dispatch_verifier=...)` — optional AutoHarness-style
+  gate (ported from the retired unified_orchestrator); default `None` preserves
+  O1–O9 byte-identically
+- `kv_budget.kv_cache_bytes(..., mla_latent_dim=...)` — DeepSeek MLA
+  latent-attention footprint axis (ported from the retired kv_cache_calculator)
+- `cohezion.reliability.circuit_protected` decorator + `CircuitOpenError` —
+  fail-fast variant of `get_circuit` (ported from reliability/circuit_breaker.py);
+  the surviving consumer (swarm/intelligence_pipeline.py) migrated
+- `SemanticTextEncoder.encode_batch()` — ported from the retired
+  sentence_encoder.py for its two live ops-script consumers (found in the
+  pre-landing main-tree re-audit)
+- `tdd_adversarial.PIPELINE_ATTACK_VECTORS` — 9 pipeline probes as pure data
+  (ported from the retired consortium_instigator)
+- `flume.latent_engine.complexity_heuristic` (ported from distributed_swarm)
+- Observability router MOUNTED: `/metrics/{unified,cache,efficiency,health,
+  guardrails,resources,trends,dashboard}` now reachable (was dead code)
+
+### Changed
+- `cohezion.compound.CompoundSessionManager` now exports the PRODUCTION
+  session_manager class (was a checkpoint-incompatible decoy)
+- `swarm/__init__.py`: 28 copy-pasted guarded re-export blocks replaced by a
+  `_OPTIONAL_EXPORTS` table + loader; export surface proven byte-equal (223/223)
+- `eval/self_eval.py` — moved from the one-module `evaluation/` package (rename)
+- `MCPInfrastructureState` gained cross-server unified-snapshot fields
+- 13 wiring tests in test_new_packages_wired.py un-skipped (a phantom-module
+  importorskip had silently skipped the whole file since creation)
+
+### Removed
+- 33 dormant/rival files (~11.7k LOC), each with an adversarially-verified
+  preservation path and a pre-landing consumer re-audit against main:
+  dynamic_compound_system trio, unified_orchestrator, distributed_swarm,
+  smart_orchestrator + specialist_registry, optimized_session_manager,
+  consortium_instigator, compound_unified, quantum_performance_monitor,
+  core/connection_pool, shadowed core/persistence/repositories.py +
+  mcp/manager.py, security/pipeline.py, reliability/circuit_breaker.py,
+  cache/sentence_encoder.py, kv_cache_calculator, jepa_world_model_persistent,
+  agi speculative_decoding_engine, phantom packages (pipelines/evo/policies),
+  byte-identical api/services/modules.py, and their orphaned tests
+
 ## [1.4.0] — 2026-08-13
 
 ### Added — Landing train 2 (surgical harvests and cherry-picks)

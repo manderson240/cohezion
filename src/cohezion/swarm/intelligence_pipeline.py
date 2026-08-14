@@ -13,7 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from cohezion.reliability.circuit_breaker import get_circuit
+from cohezion.reliability import circuit_protected
 
 
 logger = logging.getLogger(__name__)
@@ -132,7 +132,7 @@ class MixtureOfExpertsRouter:
     def __init__(self, sandbox_manager: SandboxManager):
         self.sandbox = sandbox_manager
 
-    @get_circuit(name="moe_routing", failure_threshold=3, recovery_timeout=30)
+    @circuit_protected(name="moe_routing", failure_threshold=3, recovery_timeout=30)
     async def route_task(self, req: OrchestrationRequest) -> dict[str, Any]:
         """Determine the optimal model and execution plan for the task."""
         selected_models = []

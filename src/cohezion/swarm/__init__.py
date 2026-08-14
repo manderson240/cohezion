@@ -34,12 +34,152 @@ try:
 except (ImportError, ModuleNotFoundError):
     pass
 
-try:
-    from cohezion.swarm.dynamic_agent_registry import AgentModule as AgentModule
-    from cohezion.swarm.dynamic_agent_registry import DynamicAgentRegistry as DynamicAgentRegistry
-    from cohezion.swarm.dynamic_agent_registry import get_global_registry as get_global_registry
-except (ImportError, ModuleNotFoundError):
-    pass
+# Wiring-sweep re-exports, table-driven (elegant-simplicity audit 2026-08-14).
+# Same runtime surface and silent-suppress semantics as the former per-module
+# try-blocks: each (name, alias) lands in module globals iff its module imports.
+_OPTIONAL_EXPORTS: dict[str, list[tuple[str, str]]] = {
+    "dynamic_agent_registry": [
+        ("AgentModule", "AgentModule"),
+        ("DynamicAgentRegistry", "DynamicAgentRegistry"),
+        ("get_global_registry", "get_global_registry"),
+    ],
+    "model_pool_config": [
+        ("ModelTierPolicy", "ModelTierPolicy"),
+        ("PooledModel", "PooledModel"),
+        ("PoolStatus", "PoolStatus"),
+        ("TierConfig", "TierConfig"),
+    ],
+    "model_pool_manager": [
+        ("ModelPoolManager", "ModelPoolManager"),
+        ("get_pool_manager", "get_pool_manager"),
+        ("reset_pool_manager", "reset_pool_manager"),
+    ],
+    "multi_layer_cache": [
+        ("CacheEntry", "MultiLayerCacheEntry"),
+        ("ContextPoolManager", "ContextPoolManager"),
+        ("KVCacheOptimizer", "KVCacheOptimizer"),
+        ("MultiLayerCache", "MultiLayerCache"),
+        ("SemanticCacheStore", "SemanticCacheStore"),
+    ],
+    "persistent_cache": [
+        ("PersistentCache", "PersistentCache"),
+        ("get_persistent_cache", "get_persistent_cache"),
+    ],
+    "agent_factory": [
+        ("AgentConfig", "AgentConfig"),
+        ("AgentFactory", "AgentFactory"),
+    ],
+    "anomaly_detector": [
+        ("AnomalyDetector", "AnomalyDetector"),
+        ("AnomalyType", "AnomalyType"),
+        ("get_anomaly_detector", "get_anomaly_detector"),
+    ],
+    "auto_improving_parser": [
+        ("AutoImprovingParser", "AutoImprovingParser"),
+        ("PatternLearner", "PatternLearner"),
+    ],
+    "compat": [
+        ("AgentCapability", "AgentCapability"),
+        ("SwarmOrchestrator", "SwarmOrchestrator"),
+    ],
+    "compound_client": [
+        ("create_compound_client", "create_compound_client"),
+        ("get_compound_client", "get_compound_client"),
+        ("reset_compound_client", "reset_compound_client"),
+    ],
+    "cost_aware_router": [
+        ("CostAwareRouter", "CostAwareRouter"),
+        ("QueryComplexity", "QueryComplexity"),
+        ("get_cost_aware_router", "get_cost_aware_router"),
+    ],
+    "democratic_debate": [
+        ("DebateSession", "DebateSession"),
+        ("DemocraticDebate", "DemocraticDebate"),
+    ],
+    "dynamic_levers": [
+        ("DynamicLever", "DynamicLever"),
+        ("DynamicLeverSystem", "DynamicLeverSystem"),
+    ],
+    "execution_orchestrator": [
+        ("ExecutionOrchestrator", "ExecutionOrchestrator"),
+        ("ExecutionReport", "ExecutionReport"),
+    ],
+    "fallback_strategy": [
+        ("FallbackStrategy", "FallbackStrategy"),
+        ("get_fallback_strategy", "get_fallback_strategy"),
+    ],
+    "mode_controller": [
+        ("ModeController", "ModeController"),
+        ("get_mode_controller", "get_mode_controller"),
+    ],
+    "model_ranker": [
+        ("ModelRanker", "ModelRanker"),
+        ("RankingStrategy", "RankingStrategy"),
+    ],
+    "orchestrator": [
+        ("SimpleSwarm", "SimpleSwarm"),
+        ("Swarm", "Swarm"),
+        ("SwarmConfig", "OrchestratorSwarmConfig"),
+    ],
+    "parser_v3_validation_oracle": [
+        ("ParserV3", "ParserV3"),
+        ("ValidationOracle", "ValidationOracle"),
+    ],
+    "quadrature_nexus": [
+        ("QuadratureNexus", "QuadratureNexus"),
+        ("QuadratureResult", "QuadratureResult"),
+    ],
+    "research_orchestrator": [
+        ("ResearchFinding", "ResearchFinding"),
+        ("ResearchOrchestrator", "ResearchOrchestrator"),
+    ],
+    "routing_orchestrator": [
+        ("RoutingOrchestrator", "RoutingOrchestrator"),
+        ("UnifiedRoutingDecision", "UnifiedRoutingDecision"),
+    ],
+    "semantic_cache": [
+        ("EmbeddingResult", "EmbeddingResult"),
+        ("SemanticCache", "SwarmSemanticCache"),
+        ("SemanticCacheHit", "SemanticCacheHit"),
+    ],
+    "swarm_types": [
+        ("Perspective", "Perspective"),
+        ("SwarmConfig", "SwarmConfig"),
+        ("ThoughtVector", "ThoughtVector"),
+    ],
+    "team_metrics": [
+        ("TeamCompoundMetrics", "TeamCompoundMetrics"),
+        ("TeamMetricsAggregator", "TeamMetricsAggregator"),
+    ],
+    "team_orchestrator": [
+        ("TeamOrchestrator", "TeamOrchestrator"),
+        ("TeamPlan", "TeamPlan"),
+    ],
+    "triune_consensus": [
+        ("ConsensusReport", "ConsensusReport"),
+        ("TriuneConsensus", "TriuneConsensus"),
+    ],
+    "triune_integration": [
+        ("TriuneAGI", "TriuneAGI"),
+        ("TriuneState", "TriuneState"),
+    ],
+}
+
+
+def _load_optional_exports() -> None:
+    import importlib
+
+    for _mod, _names in _OPTIONAL_EXPORTS.items():
+        try:
+            _m = importlib.import_module(f"cohezion.swarm.{_mod}")
+        except (ImportError, ModuleNotFoundError):
+            continue
+        for _name, _alias in _names:
+            with contextlib.suppress(AttributeError):
+                globals()[_alias] = getattr(_m, _name)
+
+
+_load_optional_exports()
 
 try:
     from cohezion.swarm.hardware_aware_router import Priority as Priority
@@ -52,21 +192,6 @@ with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.lru_persistent_cache import LRUPersistentCache as LRUPersistentCache
 
 try:
-    from cohezion.swarm.model_pool_config import ModelTierPolicy as ModelTierPolicy
-    from cohezion.swarm.model_pool_config import PooledModel as PooledModel
-    from cohezion.swarm.model_pool_config import PoolStatus as PoolStatus
-    from cohezion.swarm.model_pool_config import TierConfig as TierConfig
-except (ImportError, ModuleNotFoundError):
-    pass
-
-try:
-    from cohezion.swarm.model_pool_manager import ModelPoolManager as ModelPoolManager
-    from cohezion.swarm.model_pool_manager import get_pool_manager as get_pool_manager
-    from cohezion.swarm.model_pool_manager import reset_pool_manager as reset_pool_manager
-except (ImportError, ModuleNotFoundError):
-    pass
-
-try:
     from cohezion.swarm.multi_agent_orchestrator import ExecutionResult as ExecutionResult
     from cohezion.swarm.multi_agent_orchestrator import (
         MultiAgentOrchestrator as MultiAgentOrchestrator,
@@ -74,21 +199,6 @@ try:
     from cohezion.swarm.multi_agent_orchestrator import execute_task as execute_task
     from cohezion.swarm.multi_agent_orchestrator import get_orchestrator as get_orchestrator
     from cohezion.swarm.multi_agent_orchestrator import quick_orchestrate as quick_orchestrate
-except (ImportError, ModuleNotFoundError):
-    pass
-
-try:
-    from cohezion.swarm.multi_layer_cache import CacheEntry as MultiLayerCacheEntry
-    from cohezion.swarm.multi_layer_cache import ContextPoolManager as ContextPoolManager
-    from cohezion.swarm.multi_layer_cache import KVCacheOptimizer as KVCacheOptimizer
-    from cohezion.swarm.multi_layer_cache import MultiLayerCache as MultiLayerCache
-    from cohezion.swarm.multi_layer_cache import SemanticCacheStore as SemanticCacheStore
-except (ImportError, ModuleNotFoundError):
-    pass
-
-try:
-    from cohezion.swarm.persistent_cache import PersistentCache as PersistentCache
-    from cohezion.swarm.persistent_cache import get_persistent_cache as get_persistent_cache
 except (ImportError, ModuleNotFoundError):
     pass
 
@@ -206,66 +316,14 @@ __all__ = [
 # unique module-scoped aliases; ruff-safe "as X as X" pattern used throughout.
 # ---------------------------------------------------------------------------
 
-# Wiring-sweep 2026-06-22: agent_factory.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.agent_factory import AgentConfig as AgentConfig
-    from cohezion.swarm.agent_factory import AgentFactory as AgentFactory
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: anomaly_detector.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.anomaly_detector import AnomalyDetector as AnomalyDetector
-    from cohezion.swarm.anomaly_detector import AnomalyType as AnomalyType
-    from cohezion.swarm.anomaly_detector import get_anomaly_detector as get_anomaly_detector
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: auto_improving_parser.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.auto_improving_parser import AutoImprovingParser as AutoImprovingParser
-    from cohezion.swarm.auto_improving_parser import PatternLearner as PatternLearner
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: autoresearch_executor.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.autoresearch_executor import AutoresearchExecutor as AutoresearchExecutor
 
 # Wiring-sweep 2026-06-22: compat.py was a genuine import-graph orphan.
-# SwarmOrchestrator name is unique here (compat legacy shim).
-try:
-    from cohezion.swarm.compat import AgentCapability as AgentCapability
-    from cohezion.swarm.compat import SwarmOrchestrator as SwarmOrchestrator
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: compound_client.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.compound_client import create_compound_client as create_compound_client
-    from cohezion.swarm.compound_client import get_compound_client as get_compound_client
-    from cohezion.swarm.compound_client import reset_compound_client as reset_compound_client
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: context_model_router.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.context_model_router import ModelContextProfile as ModelContextProfile
-
-# Wiring-sweep 2026-06-22: cost_aware_router.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.cost_aware_router import CostAwareRouter as CostAwareRouter
-    from cohezion.swarm.cost_aware_router import QueryComplexity as QueryComplexity
-    from cohezion.swarm.cost_aware_router import get_cost_aware_router as get_cost_aware_router
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: democratic_debate.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.democratic_debate import DebateSession as DebateSession
-    from cohezion.swarm.democratic_debate import DemocraticDebate as DemocraticDebate
-except (ImportError, ModuleNotFoundError):
-    pass
 
 # Wiring-sweep 2026-06-22: deterministic_discovery_with_skill_fallback.py was a genuine import-graph orphan.
 try:
@@ -288,30 +346,9 @@ try:
 except (ImportError, ModuleNotFoundError):
     pass
 
-# Wiring-sweep 2026-06-22: dynamic_levers.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.dynamic_levers import DynamicLever as DynamicLever
-    from cohezion.swarm.dynamic_levers import DynamicLeverSystem as DynamicLeverSystem
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: dynamic_model_router.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.dynamic_model_router import DynamicModelRouter as DynamicModelRouter
-
-# Wiring-sweep 2026-06-22: execution_orchestrator.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator as ExecutionOrchestrator
-    from cohezion.swarm.execution_orchestrator import ExecutionReport as ExecutionReport
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: fallback_strategy.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.fallback_strategy import FallbackStrategy as FallbackStrategy
-    from cohezion.swarm.fallback_strategy import get_fallback_strategy as get_fallback_strategy
-except (ImportError, ModuleNotFoundError):
-    pass
 
 # Wiring-sweep 2026-06-22: gemma4_router.py was a genuine import-graph orphan.
 # RoutingDecision already exported from hardware_aware_router; use unique alias.
@@ -367,13 +404,6 @@ with contextlib.suppress(ImportError, ModuleNotFoundError):
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.mitosis_apoptosis import SwarmGovernor as SwarmGovernor
 
-# Wiring-sweep 2026-06-22: mode_controller.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.mode_controller import ModeController as ModeController
-    from cohezion.swarm.mode_controller import get_mode_controller as get_mode_controller
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: model_adapter.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.model_adapter import SmartRouterAdapter as SmartRouterAdapter
@@ -400,13 +430,6 @@ with contextlib.suppress(ImportError, ModuleNotFoundError):
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.model_manager import OllamaModelManager as OllamaModelManager
 
-# Wiring-sweep 2026-06-22: model_ranker.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.model_ranker import ModelRanker as ModelRanker
-    from cohezion.swarm.model_ranker import RankingStrategy as RankingStrategy
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: ollama_context_manager.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.ollama_context_manager import OllamaContextManager as OllamaContextManager
@@ -419,21 +442,6 @@ with contextlib.suppress(ImportError, ModuleNotFoundError):
     )
 
 # Wiring-sweep 2026-06-22: orchestrator.py was a genuine import-graph orphan.
-# SwarmConfig collides with swarm_types.SwarmConfig; use unique alias.
-try:
-    from cohezion.swarm.orchestrator import SimpleSwarm as SimpleSwarm
-    from cohezion.swarm.orchestrator import Swarm as Swarm
-    from cohezion.swarm.orchestrator import SwarmConfig as OrchestratorSwarmConfig
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: parser_v3_validation_oracle.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.parser_v3_validation_oracle import ParserV3 as ParserV3
-    from cohezion.swarm.parser_v3_validation_oracle import ValidationOracle as ValidationOracle
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: plasma_swarm_router.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.plasma_swarm_router import PlasmaSwarmRouter as PlasmaSwarmRouter
@@ -444,23 +452,9 @@ with contextlib.suppress(ImportError, ModuleNotFoundError):
         PredictiveLeverAdjuster as PredictiveLeverAdjuster,
     )
 
-# Wiring-sweep 2026-06-22: quadrature_nexus.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.quadrature_nexus import QuadratureNexus as QuadratureNexus
-    from cohezion.swarm.quadrature_nexus import QuadratureResult as QuadratureResult
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: redundancy_suppression.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.redundancy_suppression import RedundancyManager as RedundancyManager
-
-# Wiring-sweep 2026-06-22: research_orchestrator.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.research_orchestrator import ResearchFinding as ResearchFinding
-    from cohezion.swarm.research_orchestrator import ResearchOrchestrator as ResearchOrchestrator
-except (ImportError, ModuleNotFoundError):
-    pass
 
 # Wiring-sweep 2026-06-22: resonance.py was a genuine import-graph orphan.
 # SwarmOrchestrator already wired from compat; use unique alias for resonance variant.
@@ -473,26 +467,11 @@ try:
 except (ImportError, ModuleNotFoundError):
     pass
 
-# Wiring-sweep 2026-06-22: routing_orchestrator.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.routing_orchestrator import RoutingOrchestrator as RoutingOrchestrator
-    from cohezion.swarm.routing_orchestrator import UnifiedRoutingDecision as UnifiedRoutingDecision
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: r_zero_evolver.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.r_zero_evolver import RZeroEvolver as RZeroEvolver
 
 # Wiring-sweep 2026-06-22: semantic_cache.py was a genuine import-graph orphan.
-# (Different from cache/semantic_cache.py — this is the swarm-local implementation.)
-try:
-    from cohezion.swarm.semantic_cache import EmbeddingResult as EmbeddingResult
-    from cohezion.swarm.semantic_cache import SemanticCache as SwarmSemanticCache
-    from cohezion.swarm.semantic_cache import SemanticCacheHit as SemanticCacheHit
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: smart_router.py was a genuine import-graph orphan.
 # RoutingDecision collides with hardware_aware_router; use unique alias.
 try:
@@ -501,31 +480,9 @@ try:
 except (ImportError, ModuleNotFoundError):
     pass
 
-# Wiring-sweep 2026-06-22: swarm_types.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.swarm_types import Perspective as Perspective
-    from cohezion.swarm.swarm_types import SwarmConfig as SwarmConfig
-    from cohezion.swarm.swarm_types import ThoughtVector as ThoughtVector
-except (ImportError, ModuleNotFoundError):
-    pass
-
 # Wiring-sweep 2026-06-22: team_execution.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     from cohezion.swarm.team_execution import TeamCompoundExecutor as TeamCompoundExecutor
-
-# Wiring-sweep 2026-06-22: team_metrics.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.team_metrics import TeamCompoundMetrics as TeamCompoundMetrics
-    from cohezion.swarm.team_metrics import TeamMetricsAggregator as TeamMetricsAggregator
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: team_orchestrator.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.team_orchestrator import TeamOrchestrator as TeamOrchestrator
-    from cohezion.swarm.team_orchestrator import TeamPlan as TeamPlan
-except (ImportError, ModuleNotFoundError):
-    pass
 
 # Wiring-sweep 2026-06-22: tip_of_spear_router.py was a genuine import-graph orphan.
 with contextlib.suppress(ImportError, ModuleNotFoundError):
@@ -538,20 +495,6 @@ try:
         RoutingDecision as TopologicalRoutingDecision,
     )
     from cohezion.swarm.topological_router import TopologicalRouter as TopologicalRouter
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: triune_consensus.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.triune_consensus import ConsensusReport as ConsensusReport
-    from cohezion.swarm.triune_consensus import TriuneConsensus as TriuneConsensus
-except (ImportError, ModuleNotFoundError):
-    pass
-
-# Wiring-sweep 2026-06-22: triune_integration.py was a genuine import-graph orphan.
-try:
-    from cohezion.swarm.triune_integration import TriuneAGI as TriuneAGI
-    from cohezion.swarm.triune_integration import TriuneState as TriuneState
 except (ImportError, ModuleNotFoundError):
     pass
 

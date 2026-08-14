@@ -13,7 +13,7 @@ import logging
 import time
 
 from cohezion.cache.semantic_cache import SemanticCache
-from cohezion.cache.sentence_encoder import SentenceTransformerEncoder
+from cohezion.cache import SentenceTransformerEncoder
 from cohezion.core.event_bus import EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.healing import get_healing_system

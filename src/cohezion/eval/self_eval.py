@@ -1,4 +1,9 @@
-"""SELF_EVALUATION_PRIME pre-flight checks before code execution."""
+"""SELF_EVALUATION_PRIME pre-flight checks before code execution.
+
+Moved byte-for-byte from cohezion/evaluation/self_eval.py (elegant-simplicity
+audit 2026-08-14) — the one-module evaluation/ package merged into eval/, as
+capability_matrix's own recommendation string had long suggested.
+"""
 
 from __future__ import annotations
 

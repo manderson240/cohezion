@@ -101,10 +101,6 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.security.output_filter import FilterResult as FilterResult
 with contextlib.suppress(Exception):
-    from cohezion.security.pipeline import SecurityPipeline as SecurityPipeline
-with contextlib.suppress(Exception):
-    from cohezion.security.pipeline import SecurityPolicy as SecurityPolicy
-with contextlib.suppress(Exception):
     from cohezion.security.pre_commit_config import PreCommitConfiguration as PreCommitConfiguration
 with contextlib.suppress(Exception):
     from cohezion.security.prompt_guard import PromptGuard as PromptGuard

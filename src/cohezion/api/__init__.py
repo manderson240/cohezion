@@ -118,6 +118,14 @@ with contextlib.suppress(ImportError):
 # Register telemetry websocket
 app.include_router(telemetry_router)
 
+# Observability analytics endpoints (/metrics/unified, /cache, /efficiency, ...)
+try:
+    from cohezion.api.observability_endpoints import router as observability_router
+
+    app.include_router(observability_router)
+except ImportError:
+    pass  # observability module not available
+
 # Register Eigent workforce orchestration
 app.include_router(eigent_router, prefix="/api")
 

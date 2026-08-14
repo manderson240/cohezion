@@ -825,7 +825,22 @@ def run_evo_loop(
     """
     from cohezion.compound.journey_tracker import JourneyTracker
     from cohezion.compound.skill_refiner import SkillRefiner
-    from cohezion.evo.recursive_tracer import RecursiveTracer
+
+    try:
+        # WIRING TODO (surfaced 2026-08-14, elegant-simplicity audit): this tracer was never
+        # written — cohezion.evo held only a docstring. The closest live capability is
+        # cohezion.recursive_trace (RecursiveTraceLoop), but its API does not match the
+        # trace_step/step_count/complete_journey contract this loop expects. Until a tracer
+        # implementing that contract exists, this run path fails LOUDLY here instead of
+        # raising a bare ImportError mid-run. RuntimeError (not SystemExit) so
+        # callers' except Exception handlers still work (review finding P1).
+        from cohezion.evo.recursive_tracer import RecursiveTracer
+    except ImportError as exc:
+        raise RuntimeError(
+            "evo_recursive_improvement_loop: RecursiveTracer is an unimplemented wiring TODO "
+            "(no cohezion.evo.recursive_tracer module exists; see cohezion.recursive_trace "
+            "for the nearest capability). This loop's tracer path cannot run yet."
+        ) from exc
     from cohezion.universe.agentic_evo_swift import AgenticEVO
 
     _ensure_evo_journey_table()

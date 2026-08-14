@@ -415,3 +415,41 @@ async def test_max_escalations_exception_path_also_counts():
         result = await orch.run("test")
     assert m.await_count == 1, "exception consumes the escalation slot; tier 1 must not run"
     assert result.error == "all tiers exhausted"
+
+
+@pytest.mark.asyncio
+async def test_pre_dispatch_verifier_rejects_before_any_tier():
+    """Pre-dispatch verifier gate (merged from unified_orchestrator's ActionVerifier).
+
+    Discriminating: if the hook is ignored, route() would be awaited and the
+    result would carry tier output instead of the rejection error.
+    """
+
+    class _Rejector:
+        def verify(self, prompt, context):
+            return False, "unsafe prompt"
+
+    orch = TieredOrchestrator(
+        tiers=[("tier0", QualityGate.TRUST)],
+        pre_dispatch_verifier=_Rejector(),
+    )
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("should never run")),
+    ) as m:
+        result = await orch.run("test")
+    assert m.await_count == 0, "no tier may run after verifier rejection"
+    assert result.error is not None and "unsafe prompt" in result.error
+
+
+@pytest.mark.asyncio
+async def test_pre_dispatch_verifier_none_is_identity():
+    """Default None verifier leaves run() behavior byte-identical (O1-O9)."""
+    orch = TieredOrchestrator(tiers=[("tier0", QualityGate.TRUST)])
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("a perfectly fine long answer")),
+    ) as m:
+        result = await orch.run("test")
+    assert m.await_count == 1
+    assert result.error is None

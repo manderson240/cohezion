@@ -23,13 +23,6 @@ with contextlib.suppress(Exception):
         SIGReg as SIGReg,
     )
 
-# Wiring-sweep 2026-06-06: jepa_world_model_persistent was a genuine production orphan
-# (JEPAWorldModelPersistent, a JEPAWorldModel subclass, had 0 src importers). Separate guarded
-# block (torch-absent isolation). Completes the world_model/ sweep (3/3).
-with contextlib.suppress(Exception):
-    from cohezion.world_model.jepa_world_model_persistent import (
-        JEPAWorldModelPersistent as JEPAWorldModelPersistent,
-    )
 
 # Wiring-sweep 2026-06-22: observer, surprise_action_gate, surprise_router, jepa_world_model
 # were genuine import-graph orphans.

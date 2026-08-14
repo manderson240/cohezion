@@ -23,9 +23,6 @@ with contextlib.suppress(Exception):
     from cohezion.api.services import graphify as graphify
 
 with contextlib.suppress(Exception):
-    from cohezion.api.services import modules as modules
-
-with contextlib.suppress(Exception):
     from cohezion.api.services import modules_api as modules_api
 
 with contextlib.suppress(Exception):

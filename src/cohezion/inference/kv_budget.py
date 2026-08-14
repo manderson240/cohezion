@@ -38,13 +38,20 @@ def kv_cache_bytes(
     seq_len: int,
     batch: int = 1,
     cache_dtype: str = "fp16",
+    mla_latent_dim: int | None = None,
 ) -> int:
     """Return the KV-cache footprint in bytes for one loaded model at ``seq_len`` context.
 
     GQA-aware: pass ``num_kv_heads`` (the K/V head count), not the query-head count — that is the
     architectural saving GQA buys. ``cache_dtype`` is the llama.cpp KV cache type; unknown values
     raise ``KeyError`` (fail loud rather than silently mis-budget).
+
+    ``mla_latent_dim`` (merged from the retired kv_cache_calculator.py): DeepSeek-style
+    multi-head latent attention caches one ``latent_dim`` vector per layer per token instead of
+    ``2 · num_kv_heads · head_dim`` — pass the latent dim to budget MLA models (R1/V3).
     """
+    if mla_latent_dim is not None:
+        return int(num_layers * mla_latent_dim * seq_len * batch * _CACHE_DTYPE_BYTES[cache_dtype])
     return int(
         2 * num_layers * num_kv_heads * head_dim * seq_len * batch * _CACHE_DTYPE_BYTES[cache_dtype]
     )
@@ -61,6 +68,7 @@ def preflight(
     batch: int = 1,
     cache_dtype: str = "fp16",
     buffer_bytes: int,
+    mla_latent_dim: int | None = None,
 ) -> tuple[bool, dict[str, int]]:
     """Decide whether loading a model fits in memory, deterministically.
 
@@ -77,6 +85,7 @@ def preflight(
         seq_len=seq_len,
         batch=batch,
         cache_dtype=cache_dtype,
+        mla_latent_dim=mla_latent_dim,
     )
     total_bytes = weight_bytes + kv_bytes
     headroom_bytes = free_bytes - total_bytes - buffer_bytes

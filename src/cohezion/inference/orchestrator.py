@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import ClassVar, Protocol, runtime_checkable
+from typing import Any, ClassVar, Protocol, runtime_checkable
 
 from cohezion.inference.fleet import RouteResult, route
 from cohezion.inference.registry import Task
@@ -116,6 +116,7 @@ class TieredOrchestrator:
         max_tokens: int = 512,
         stream: bool = True,
         max_escalations: int | None = None,
+        pre_dispatch_verifier: Any | None = None,
     ) -> None:
         if not tiers:
             raise ValueError("TieredOrchestrator requires at least one tier")
@@ -125,6 +126,11 @@ class TieredOrchestrator:
         self.max_tokens = max_tokens
         self.stream = stream
         self.max_escalations = max_escalations
+        # Optional AutoHarness-style gate (merged from unified_orchestrator's
+        # ActionVerifier): any object with a SYNC verify(prompt, context) ->
+        # (bool, reason) — an async verify would be unpacked as a coroutine and
+        # TypeError. None (default) = no pre-dispatch check; run() unchanged (O1-O9).
+        self.pre_dispatch_verifier = pre_dispatch_verifier
 
     async def _invoke_tier(
         self,
@@ -172,6 +178,17 @@ class TieredOrchestrator:
         default 0 = unchanged (start at the cheapest tier). Escalation/budget/gate logic for the
         tiers that DO run is unchanged (O1–O8 preserved).
         """
+        if self.pre_dispatch_verifier is not None:
+            ok, reason = self.pre_dispatch_verifier.verify(prompt, {"budget_usd": budget_usd})
+            if not ok:
+                return OrchestrationResult(
+                    text="",
+                    primary_model="",
+                    final_model="",
+                    escalation_count=0,
+                    error=f"pre-dispatch verifier rejected: {reason}",
+                )
+
         start_tier = max(0, min(int(min_tier_index), len(self.tiers) - 1))
         # Effective ceiling: min(self.max_cost_usd, budget_usd), ignoring Nones.
         if self.max_cost_usd is None:
