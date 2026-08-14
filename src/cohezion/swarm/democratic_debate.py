@@ -9,6 +9,7 @@ tracks votes, and reaches democratic consensus on improvements.
 import asyncio
 import json
 import logging
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
@@ -141,12 +142,44 @@ class VoteValue(Enum):
     STRONGLY_DISAGREE = -2
 
 
+def parse_vote(response: str) -> tuple[VoteValue, bool]:
+    """Extract a vote from agent text. Returns (vote, parsed).
+
+    SUBSTRING MATCHING FLIPPED THE SIGN OF EVERY DISSENT. The previous implementation was
+
+        for v in VoteValue:
+            if v.name in response.upper(): vote = v; break
+
+    and ``"AGREE" in "DISAGREE"`` is True. Because AGREE precedes DISAGREE in the enum,
+    "Vote: DISAGREE" parsed as AGREE (+1) and "Vote: STRONGLY_DISAGREE" also parsed as
+    AGREE (+1). Measured consequence: five agents ALL voting STRONGLY_DISAGREE scored
+    0.750 and returned consensus=True, against a true score of 0.000. The module reported
+    agreement on unanimous dissent.
+
+    Word boundaries fix it, and ``_`` counts as a word character, so ``\\bAGREE\\b`` matches
+    neither DISAGREE (preceded by S) nor STRONGLY_AGREE (preceded by _). Longest-name-first
+    ordering is belt-and-braces and makes the precedence explicit rather than incidental.
+
+    PARSED IS RETURNED SEPARATELY because an unreadable answer is an ABSTENTION, not a
+    neutral opinion. Defaulting a silent agent to NEUTRAL lets a dead lane vote, and a dead
+    lane's vote is indistinguishable from a considered one.
+    """
+    text = (response or "").upper()
+    for v in sorted(VoteValue, key=lambda x: -len(x.name)):
+        if re.search(rf"\b{v.name}\b", text):
+            return v, True
+    return VoteValue.NEUTRAL, False
+
+
 @dataclass
 class AgentVote:
     role: AgentRole
     vote: VoteValue
     reasoning: str
     proposal_modifications: list[str] = field(default_factory=list)
+    # False when the agent's reply carried no readable vote. Defaults True so existing
+    # constructions keep their meaning.
+    parsed: bool = True
 
 
 @dataclass
@@ -159,11 +192,18 @@ class DebateRound:
     winning_proposal: str | None = None
 
     def calculate_consensus(self) -> tuple[bool, float]:
-        """Calculate if consensus was reached and the score."""
-        if not self.votes:
+        """Calculate if consensus was reached and the score.
+
+        ABSTENTIONS ARE EXCLUDED, not counted as NEUTRAL. An agent whose reply carried no
+        readable vote has not voted; scoring it as neutral lets a dead lane dilute a real
+        result toward the 0.5 midpoint, and does so invisibly. With every vote unreadable
+        this returns (False, 0.0) — the same as no votes at all, because that is what it is.
+        """
+        counted = [v for v in self.votes if getattr(v, "parsed", True)]
+        if not counted:
             return False, 0.0
-        total = sum(v.vote.value for v in self.votes)
-        max_possible = len(self.votes) * 2
+        total = sum(v.vote.value for v in counted)
+        max_possible = len(counted) * 2
         score = (total + max_possible) / (2 * max_possible)  # Normalize to 0-1
         consensus = score >= 0.7  # 70% threshold
         return consensus, score
@@ -374,17 +414,12 @@ Reasoning: (2-3 sentences)"""
             prompt = vote_prompt.format(role=persona.name)
             response = await self._call_agent(persona, prompt)
 
-            # Parse vote
-            vote = VoteValue.NEUTRAL
-            for v in VoteValue:
-                if v.name in response.upper():
-                    vote = v
-                    break
-
+            vote, parsed = parse_vote(response)
             return AgentVote(
                 role=persona.role,
                 vote=vote,
                 reasoning=response,
+                parsed=parsed,
             )
 
         tasks = [get_vote(p) for p in self.personas.values()]
