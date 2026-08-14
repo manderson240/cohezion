@@ -131,19 +131,30 @@ def _seen_key(branch: str, head: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_]", "_", f"{branch}@{head[:12]}")
 
 
+# A published head is suppressed for this long, then re-offered. Publish-time
+# marking means a TRANSIENT consumer/review failure would otherwise suppress the
+# branch forever (until a new commit changes the head) — the cloud-oracle review
+# (qwen3.5:397b, 2026-08-14) flagged this as the dead-letter failure mode.
+SEEN_TTL_SECONDS = 7 * 24 * 3600
+
+
 def already_seen(branch: str, head: str) -> bool:
     try:
-        body = _sql(
-            f"SELECT * FROM land_scan_seen:{_seen_key(branch, head)};"
-        )
-        return bool(body[0].get("result"))
+        body = _sql(f"SELECT * FROM land_scan_seen:{_seen_key(branch, head)};")
+        rows = body[0].get("result") or []
+        if not rows:
+            return False
+        age = time.time() - float(rows[0].get("timestamp") or 0)
+        return age < SEEN_TTL_SECONDS  # expired entries re-offer the branch
     except Exception:
         return False  # fail-open: a broken seen-set must not silence discovery
 
 
 def mark_seen(branch: str, head: str) -> None:
+    # UPSERT: a TTL-expired re-publish must refresh the clock, not error on the
+    # existing record id.
     _sql(
-        f"CREATE land_scan_seen:{_seen_key(branch, head)} SET "
+        f"UPSERT land_scan_seen:{_seen_key(branch, head)} SET "
         f'branch = "{branch}", head = "{head}", timestamp = {time.time()};'
     )
 

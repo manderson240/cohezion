@@ -24,9 +24,7 @@ spec.loader.exec_module(land_scanner)
 
 
 def _git(repo: Path, *args: str) -> str:
-    r = subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, text=True, check=True
-    )
+    r = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=True)
     return r.stdout.strip()
 
 
@@ -117,3 +115,40 @@ class TestPublishContract:
 
         monkeypatch.setattr(land_scanner, "_sql", broken_sql)
         assert land_scanner.already_seen("feat/x", "abc") is False
+
+
+class TestSeenTTL:
+    def test_expired_seen_entry_reoffers_branch(self, monkeypatch):
+        """T2 discriminating: publish-time marking + transient consumer failure
+        must not suppress a branch forever (cloud-oracle dead-letter finding).
+        A fresh entry suppresses; an entry older than SEEN_TTL_SECONDS does not.
+        """
+        import time as _time
+
+        now = _time.time()
+
+        def sql_fresh(query: str, timeout: float = 10.0):
+            return [{"status": "OK", "result": [{"timestamp": now - 60}]}]
+
+        def sql_expired(query: str, timeout: float = 10.0):
+            return [
+                {
+                    "status": "OK",
+                    "result": [{"timestamp": now - land_scanner.SEEN_TTL_SECONDS - 60}],
+                }
+            ]
+
+        monkeypatch.setattr(land_scanner, "_sql", sql_fresh)
+        assert land_scanner.already_seen("feat/x", "abc") is True
+        monkeypatch.setattr(land_scanner, "_sql", sql_expired)
+        assert land_scanner.already_seen("feat/x", "abc") is False
+
+    def test_mark_seen_is_upsert(self, monkeypatch):
+        captured: list[str] = []
+        monkeypatch.setattr(
+            land_scanner,
+            "_sql",
+            lambda q, timeout=10.0: captured.append(q) or [{"status": "OK", "result": [1]}],
+        )
+        land_scanner.mark_seen("feat/x", "abc123")
+        assert captured[0].startswith("UPSERT ")  # CREATE would error on re-publish
