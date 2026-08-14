@@ -406,6 +406,16 @@ Do NOT re-add without actually implementing it + a real discriminating test.
   un-dormants the ENTIRE GIC tier-prediction path (all skills), a higher-blast-radius change filed
   as a tracked follow-up — NOT this landing. Until then GIC-LAT1 is exercised only by unit tests +
   offline replay, and production routing is byte-identical to v1.4.0.
+- **⛔ DO NOT ACTIVATE without fixing the O9 cost-inversion first (2026-08-14 rev-me1 BLOCK, verified).**
+  Un-dormanting the seam (the ME1 fix, t_c6639024) causes a ~10-14× fleet-wide latency regression:
+  the production `_get_orchestrator()` → `build_reasoning_orchestrator` is index 0 = `qwen3.6-moe-35b`
+  (heaviest, ~9.7 TPS), index 2 = Gemma-4-E4B TRUST-gate (<15s). The O9 `_TIER_NAME_TO_INDEX` +
+  `min_tier_index` binding treats the label/index order as a COST order, but it is INVERTED here — so
+  routing a skill to `"npu"` (idx 0) enters at the heaviest engine. Dormant `"cpu"` routing (idx 2)
+  was accidentally the FAST path. Blockers filed: t_e20edd64 (O9 cost-inversion), t_93553ab5 (autodata
+  + goal side effects). The escalation-parity latency-filter bug (correctness F2) IS fixed here (clean-
+  run `escalation_count == 0` filter + `test_t7_escalated_latency_excluded_from_median_reachable_flip`)
+  so the dormant code is correct-when-activated, but activation itself remains blocked on the above.
 - **T1 backward-compat**: no latency data → behavior identical (`test_t1_...`)
 - **T2 discriminating**: both tiers adequate, cheaper-ordered tier slower → FASTER tier
   (`test_t2_...`; pre-2026-08-14 impl fails); `test_t3` (fast inadequate tier must not win);

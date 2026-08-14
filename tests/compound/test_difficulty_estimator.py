@@ -365,20 +365,21 @@ class TestLatencyAwareTierSelection:
         src = inspect.getsource(SkillRefiner._generate_learning_signal)
         assert "latency_s=" in src, "record() call must thread latency_s"
 
-    def test_t7_escalation_contamination_bounded_by_adequacy_gate(self):
-        """F2 (review): escalation-inflated latency is bounded UPSTREAM, not by a latency
-        filter. A tier with enough escalated records to skew its median (3 esc vs 3 clean)
-        drops below the Beta adequacy threshold ((3+1)/(6+2)=0.5 < 0.77) and never enters
-        `adequate` — so the slow escalated samples cannot drive selection. Documents the
-        real mechanism (adequacy gate), correcting the review's median-contamination
-        attribution. igpu (clean, adequate) wins because cpu is excluded, not out-medianed."""
+    def test_t7_escalated_latency_excluded_from_median_reachable_flip(self):
+        """F2 (review, 2026-08-14, executed): the clean-run filter is NOT dead code — one
+        escalated record that SURVIVES the Beta gate still flips the ranking via a
+        sample-count parity shift. igpu = 6 clean [10,10,10,100,100,100] + 1 escalated @400
+        -> n=7, Beta (6+1)/(7+2)=0.778 >= 0.77 (adequate). Clean median = mean(10,100)=55;
+        contaminated (n=7) median = 100. cpu = 3 clean @70 -> median 70. WITHOUT the clean
+        filter predict flips to 'cpu' (100>70); WITH it, 'igpu' (55<70). This is the exact
+        case that falsified the earlier 'a single escalated outlier cannot move the median'
+        comment. A no-filter impl returns 'cpu'."""
         de = DifficultyEstimator()
+        for lat in (10.0, 10.0, 10.0, 100.0, 100.0, 100.0):
+            de.record("s", "op", "igpu", 0, 0.9, latency_s=lat)
+        de.record("s", "op", "igpu", 1, 0.9, latency_s=400.0)  # escalated INTO igpu (survives Beta)
         for _ in range(3):
-            de.record("s", "op", "igpu", 0, 0.9, latency_s=100.0)
-            de.record("s", "op", "cpu", 0, 0.9, latency_s=90.0)
-        for _ in range(3):
-            de.record("s", "op", "cpu", 1, 0.9, latency_s=400.0)  # escalated INTO cpu
-        # cpu Beta = 3 clean / 6 total -> 0.5 < 0.77 -> not adequate -> igpu (only adequate tier)
+            de.record("s", "op", "cpu", 0, 0.9, latency_s=70.0)
         assert de.predict_tier("s", "op") == "igpu"
 
     def test_t8_true_median_not_upper_middle(self):

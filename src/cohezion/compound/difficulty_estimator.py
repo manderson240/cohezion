@@ -247,16 +247,26 @@ class DifficultyEstimator:
             if len(adequate) >= 2:
                 medians: dict[str, float] = {}
                 for tier in adequate:
-                    # Positive latencies only — a missing/non-positive measurement is "no
-                    # data", not "infinitely fast" (0.0 would let an unmeasured tier outrank a
-                    # measured one). Escalation contamination is bounded upstream by the Beta
-                    # adequacy gate: a tier with enough escalated records to skew its median
-                    # falls below _BETA_THRESHOLD and never reaches `adequate` in the first
-                    # place (within _WINDOW a single escalated outlier cannot move the median).
+                    # CLEAN-run latencies only, and positive only:
+                    #  - escalation_count == 0: a run that escalated INTO a tier charges it for
+                    #    the whole failed cascade. The Beta gate bounds this to at most ONE
+                    #    escalated record on an adequate tier (the (6 clean + 1 escalated)/(3
+                    #    clean) split), but that single record still flips the ranking — it
+                    #    shifts the sample-count parity (n 6→7), moving the TRUE median from
+                    #    mean(mid-1,mid) to a single element. Verified reachable (rev 2026-08-14,
+                    #    correctness F2). Filtering to clean runs makes the median reflect
+                    #    clean-entry cost and removes the flip; the (7,1) case still leaves 6
+                    #    clean samples, well above _LAT_MIN_SAMPLES.
+                    #  - > 0.0: a missing/non-positive measurement is "no data", not "infinitely
+                    #    fast" (0.0 would let an unmeasured tier outrank a measured one; a
+                    #    negative time.time() delta from an NTP step would sort smallest).
                     lats = sorted(
                         r.latency_s
                         for r in window
-                        if r.tier_used == tier and r.latency_s is not None and r.latency_s > 0.0
+                        if r.tier_used == tier
+                        and r.escalation_count == 0
+                        and r.latency_s is not None
+                        and r.latency_s > 0.0
                     )
                     if len(lats) < _LAT_MIN_SAMPLES:
                         break
