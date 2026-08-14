@@ -68,11 +68,12 @@ class GAIALocalRouter:
             task_class=task_type,
         )
 
-        # 4. Generate Real LLM Completion Response via Local Silicon
+        # 4. Generate Real LLM Completion Response via Local Silicon (Pooled & Bounded)
         response_text = ""
         try:
             import httpx
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
+            async with httpx.AsyncClient(timeout=15.0, limits=limits) as client:
                 res = await client.post(
                     "http://localhost:11434/v1/chat/completions",
                     json={
