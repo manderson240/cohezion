@@ -50,6 +50,19 @@ _LAT_MIN_SAMPLES = 2
 _BETA_THRESHOLD: float = 0.77
 
 
+def _median(sorted_vals: list[float]) -> float:
+    """True median of a pre-sorted non-empty list (mean of the two middle elements at even n).
+
+    `lst[len(lst)//2]` is the UPPER-middle at even n, not the median, and can flip a tier
+    ranking on the statistic definition alone — so compute the real median.
+    """
+    n = len(sorted_vals)
+    mid = n // 2
+    if n % 2:
+        return sorted_vals[mid]
+    return (sorted_vals[mid - 1] + sorted_vals[mid]) / 2.0
+
+
 def _beta_posterior_mean(successes: int, n: int) -> float:
     """Beta(1,1) conjugate posterior mean: (s+1)/(n+2).
 
@@ -234,14 +247,20 @@ class DifficultyEstimator:
             if len(adequate) >= 2:
                 medians: dict[str, float] = {}
                 for tier in adequate:
+                    # Positive latencies only — a missing/non-positive measurement is "no
+                    # data", not "infinitely fast" (0.0 would let an unmeasured tier outrank a
+                    # measured one). Escalation contamination is bounded upstream by the Beta
+                    # adequacy gate: a tier with enough escalated records to skew its median
+                    # falls below _BETA_THRESHOLD and never reaches `adequate` in the first
+                    # place (within _WINDOW a single escalated outlier cannot move the median).
                     lats = sorted(
                         r.latency_s
                         for r in window
-                        if r.tier_used == tier and r.latency_s is not None
+                        if r.tier_used == tier and r.latency_s is not None and r.latency_s > 0.0
                     )
                     if len(lats) < _LAT_MIN_SAMPLES:
                         break
-                    medians[tier] = lats[len(lats) // 2]
+                    medians[tier] = _median(lats)
                 else:
                     return min(adequate, key=lambda t: (medians[t], _TIER_ORDER.index(t)))
             return adequate[0]

@@ -364,3 +364,45 @@ class TestLatencyAwareTierSelection:
 
         src = inspect.getsource(SkillRefiner._generate_learning_signal)
         assert "latency_s=" in src, "record() call must thread latency_s"
+
+    def test_t7_escalation_contamination_bounded_by_adequacy_gate(self):
+        """F2 (review): escalation-inflated latency is bounded UPSTREAM, not by a latency
+        filter. A tier with enough escalated records to skew its median (3 esc vs 3 clean)
+        drops below the Beta adequacy threshold ((3+1)/(6+2)=0.5 < 0.77) and never enters
+        `adequate` — so the slow escalated samples cannot drive selection. Documents the
+        real mechanism (adequacy gate), correcting the review's median-contamination
+        attribution. igpu (clean, adequate) wins because cpu is excluded, not out-medianed."""
+        de = DifficultyEstimator()
+        for _ in range(3):
+            de.record("s", "op", "igpu", 0, 0.9, latency_s=100.0)
+            de.record("s", "op", "cpu", 0, 0.9, latency_s=90.0)
+        for _ in range(3):
+            de.record("s", "op", "cpu", 1, 0.9, latency_s=400.0)  # escalated INTO cpu
+        # cpu Beta = 3 clean / 6 total -> 0.5 < 0.77 -> not adequate -> igpu (only adequate tier)
+        assert de.predict_tier("s", "op") == "igpu"
+
+    def test_t8_true_median_not_upper_middle(self):
+        """F4 (review): at even sample count the statistic must be the true median (mean of
+        the two middle values), not the upper-middle element. igpu [10,10,100,100] true
+        median 55 < cpu [60,60,70,70] true median 65 -> igpu. An upper-middle impl uses
+        igpu=100 vs cpu=70 and returns cpu, flipping the ranking on the definition alone."""
+        de = DifficultyEstimator()
+        for lat in (10.0, 10.0, 100.0, 100.0):
+            de.record("s", "op", "igpu", 0, 0.9, latency_s=lat)
+        for lat in (60.0, 60.0, 70.0, 70.0):
+            de.record("s", "op", "cpu", 0, 0.9, latency_s=lat)
+        assert de.predict_tier("s", "op") == "igpu"
+
+    def test_t9_zero_or_missing_latency_not_treated_as_fastest(self):
+        """F3 (review): a missing/zero measurement is 'no data', not 'infinitely fast'.
+        igpu has zero-latency (unmeasured) records; cpu has real 90s. The unmeasured tier
+        must NOT outrank the measured one -> falls back to cheapest-adequate (igpu by order)
+        because igpu has <2 usable latency samples. A '0.0 sorts smallest' impl returns
+        igpu for the WRONG reason (picking it as 'fastest'); here igpu wins as the
+        conservative cheapest-adequate fallback, and cpu never spuriously loses to zeros."""
+        de = DifficultyEstimator()
+        for _ in range(3):
+            de.record("s", "op", "igpu", 0, 0.9, latency_s=0.0)  # unmeasured -> not "fast"
+            de.record("s", "op", "cpu", 0, 0.9, latency_s=90.0)
+        # igpu has no positive latency samples -> latency branch breaks -> cheapest-adequate
+        assert de.predict_tier("s", "op") == "igpu"

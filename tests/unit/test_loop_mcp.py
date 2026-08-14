@@ -101,6 +101,46 @@ async def test_event_publish_escapes_injection() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("privileged", ["land_ready", "model_needed", "model_idle", "Land_Ready"])
+async def test_event_publish_rejects_privileged_control_types(privileged: str) -> None:
+    """Privileged control event types must NOT be publishable through this LLM-callable tool.
+
+    The datamesh consumer routes land_ready -> land_runner subprocess(cwd=repo) and
+    model_needed/model_idle -> the residency admission gate. A wrong impl (no denylist)
+    would write the row and let a single tool call reach that side-effectful sink.
+    Discriminating: _surreal_sql must NEVER be called for a privileged type — the guard
+    runs before any DB write; the case-variant proves the lower()-normalization matches
+    the consumer's own lowercasing.
+    """
+    called = False
+
+    async def fake_sql(sql: str, *, hint: str) -> dict[str, object]:
+        nonlocal called
+        called = True
+        return {"result": [{"result": [], "status": "OK"}]}
+
+    with patch("cohezion.mcp.loop_mcp._surreal_sql", new=fake_sql):
+        result = await event_publish(privileged, "attacker", {"repo": "/tmp/x", "branch": "y"})
+
+    assert "error" in result, f"privileged type {privileged!r} must be rejected, got {result}"
+    assert not called, "no DB write may occur for a rejected privileged event type"
+
+
+@pytest.mark.asyncio
+async def test_event_publish_allows_ordinary_event_types() -> None:
+    """Control: a normal datamesh event type still publishes (guard is a precise denylist,
+    not a blanket block that would break the tool's legitimate use)."""
+
+    async def fake_sql(sql: str, *, hint: str) -> dict[str, object]:
+        return {"result": [{"result": [], "status": "OK"}]}
+
+    with patch("cohezion.mcp.loop_mcp._surreal_sql", new=fake_sql):
+        result = await event_publish("data_product_quality_alert", "loop", {"k": "v"})
+
+    assert result.get("success") is True
+
+
+@pytest.mark.asyncio
 async def test_loop_stats() -> None:
     surreal_result = {
         "result": [

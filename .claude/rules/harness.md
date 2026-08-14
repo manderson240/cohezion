@@ -386,37 +386,51 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - Closes the CB16 producer→consumer gap: tier_used and escalation_count flow into future tier prediction
 - **Structural**: `tests/compound/test_difficulty_estimator.py::TestDifficultyEstimatorStructural::test_skill_refiner_has_difficulty_estimator`
 
-### GIC-LAT1: latency reorders selection AMONG quality-adequate tiers only (2026-08-14)
+### GIC-LAT1: latency reorders selection AMONG quality-adequate tiers — WIRED BUT DORMANT (2026-08-14)
 - Motivation (measured, gic-routing-20260813 soak, 270 rows): `_TIER_ORDER` is a capability
   ordering, NOT a cost ordering — the "cpu" tier (Qwen3.6-35B-A3B-MTP) was stronger AND faster
   (median 88-99s) than "igpu" (DeepSeek-8B dense thinking, 149-172s). "Cheapest successful tier"
   by order alone optimizes a fictional cost axis.
 - `record(..., latency_s: float | None = None)` — additive kwarg; `_TierRecord.latency_s`.
 - `predict_tier`: when ≥2 tiers clear the Beta adequacy threshold AND every adequate tier has
-  ≥`_LAT_MIN_SAMPLES` (2) measured latencies in-window, pick min median latency (tie → cheaper
-  order). Any tier missing latency data → conservative cheapest-adequate (unchanged behavior).
-  Latency NEVER overrides quality adequacy.
-- Producer wiring (GIC3 ext): `SkillRefiner._generate_learning_signal` threads
-  `latency_s=metrics.duration_seconds` into `record()`.
-- **T1 backward-compat**: no latency data → behavior identical (`test_t1_no_latency_data_behavior_unchanged`)
-- **T2 discriminating**: both tiers adequate, cheaper-ordered tier slower → returns the FASTER
-  tier (`test_t2_faster_adequate_tier_beats_cheaper_ordered_tier`; the pre-2026-08-14 impl fails);
-  `test_t3_latency_never_overrides_quality` (fast inadequate tier must not win)
-- **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py::TestLatencyAwareTierSelection -q` → 6 passed;
-  counterfactual replay on the soak's 270 real rows: running-prediction divergence 36%/9%/8%
-  (easy/med/hard), zero regression on final policies (`~/cohezion-labs/experiments/gic-routing-20260813/counterfactual_replay.py`)
+  ≥`_LAT_MIN_SAMPLES` (2) POSITIVE measured latencies in-window, pick min TRUE-median latency
+  (`_median`, mean-of-two-middle at even n; tie → cheaper order). Non-positive/missing latency =
+  "no data" (never "fastest"). Any adequate tier missing usable latency → conservative
+  cheapest-adequate. Latency NEVER overrides quality adequacy.
+- **⚠ DORMANT IN PRODUCTION (2026-08-14 adversarial review, correctness F1, reproduced by
+  execution):** the latency branch requires ≥2 tiers in `adequate`, but the production producer
+  seam `SkillRefiner._extract_metrics` constructs `ExecutionMetrics(...)` WITHOUT `tier_used=` /
+  `escalation_count=`, so both default (`"unknown"`→coerced `"cpu"`, `0`). Every production record
+  buckets to `"cpu"`, so `len(adequate)` is ≤1 and the branch never fires. This is the pre-existing
+  ME1 `_extract_metrics` seam (threads neither tier nor escalation), NOT introduced here. Fixing it
+  un-dormants the ENTIRE GIC tier-prediction path (all skills), a higher-blast-radius change filed
+  as a tracked follow-up — NOT this landing. Until then GIC-LAT1 is exercised only by unit tests +
+  offline replay, and production routing is byte-identical to v1.4.0.
+- **T1 backward-compat**: no latency data → behavior identical (`test_t1_...`)
+- **T2 discriminating**: both tiers adequate, cheaper-ordered tier slower → FASTER tier
+  (`test_t2_...`; pre-2026-08-14 impl fails); `test_t3` (fast inadequate tier must not win);
+  `test_t8_true_median_not_upper_middle` (F4); `test_t9_zero_or_missing_latency_not_treated_as_fastest`
+  (F3); `test_t7_escalation_contamination_bounded_by_adequacy_gate` (F2 — adequacy gate, not a filter)
+- **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py::TestLatencyAwareTierSelection -q` → 9 passed.
+  Offline (NOT production) counterfactual replay on the soak's 270 rows via `record()` directly:
+  divergence 36%/9%/8% — evidence the ALGORITHM reorders, NOT that the production seam feeds it
+  (`~/cohezion-labs/experiments/gic-routing-20260813/counterfactual_replay.py`).
 
-### GIC-LAT2: latency-informed prediction REACHES cascade entry (consumption invariant, 2026-08-14)
-- The full execute_task path (W4 predicted_tier hint → `_resolve_tier` max-capability fusion →
-  O9 `_call_execute_fn` min_tier_index binding) must carry the GIC-LAT1 latency axis end-to-end.
-  Max-capability fusion preserves a latency-raised prediction (higher index survives `max`), so no
-  executor code change was needed — this invariant pins the COMPOSITION against re-dormancy.
-- **T2 discriminating (paired arms)**: a REAL DifficultyEstimator with both tiers quality-adequate
-  and igpu measured SLOWER → execute_fn receives `min_tier_index=2`; the control arm (identical
-  quality history, no latencies) receives `1`. A seam dropping the latency axis gives both arms the
-  same index → the pair cannot both pass.
+### GIC-LAT2: latency axis composes estimator→executor entry (seam-half test, NOT full consumption) (2026-08-14)
+- The estimator→executor half of the path (W4 predicted_tier hint → `_resolve_tier` max-capability
+  fusion → O9 `_call_execute_fn` min_tier_index binding) carries a latency-raised prediction: the
+  higher `_TIER_ORDER` index survives `max`, so no executor change was needed for THIS half.
+- **⚠ NOT a full consumption invariant (2026-08-14 review, correctness/edge F3):** the test builds a
+  real `DifficultyEstimator` and calls `record(...)` DIRECTLY, then injects a `MagicMock(spec=
+  SkillRefiner)` — so the production→estimator producer half (`_extract_metrics` → `record`) is
+  bypassed and NOT exercised. Neutralizing the real producer (`latency_s=None` at the call site)
+  leaves this test GREEN. It pins the algorithm→executor composition, not end-to-end production
+  wiring. A true consumption test must drive `SkillRefiner.refine()`/`_generate_learning_signal` and
+  requires the ME1 seam fix first (tracked follow-up).
+- **T2 discriminating (paired arms, estimator→executor half only)**: real estimator with both tiers
+  adequate + igpu measured slower → execute_fn gets `min_tier_index=2`; control (no latencies) → `1`.
 - **Verification**: `uv run pytest tests/compound/test_tier_resolution.py::TestLatencyAwareEntryConsumption -q` → 2 passed
-  (hermetic: chdir to tmp_path — execute_task's health persistence writes cwd-relative `data/`).
+  (hermetic: chdir tmp_path — execute_task health persistence writes cwd-relative `data/`).
 
 ### GIC_NEW_4: predict_tier() accepts optional prompt="" for cold-start complexity routing (#142, 2026-06-28)
 - `predict_tier(skill_name, operation_type, prompt: str = "")` — GIC1 preserved: no-arg call still returns "unknown"

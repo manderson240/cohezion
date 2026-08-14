@@ -12,14 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - GIC-LAT1 latency-aware tier selection: `src/cohezion/compound/difficulty_estimator.py`
   `record()` gains an optional `latency_s`; `predict_tier` ranks quality-adequate tiers by
-  measured median latency instead of assuming the tier order is a cost order (the
+  measured TRUE-median latency instead of assuming the tier order is a cost order (the
   2026-08-13 live soak measured the ordering inverted: the 35B-A3B-MTP tier was both
   stronger and faster than the 8B dense-thinking tier). Latency never overrides quality
-  adequacy; with no latency data the behavior is unchanged.
-- GIC-LAT2 consumption invariant: paired-arm discriminating test through the full
-  `execute_task` path proving latency-informed predictions reach the O9 cascade-entry
-  binding (`tests/compound/test_tier_resolution.py`)
-- `SkillRefiner` threads `duration_seconds` into the estimator as the latency producer
+  adequacy; missing/non-positive latency is treated as "no data" (never "fastest"); with
+  no usable latency the behavior is unchanged.
+  **WIRED BUT DORMANT in production:** the branch needs ≥2 tiers in the adequacy set, but
+  the pre-existing `_extract_metrics` seam does not thread `tier_used`, so every production
+  record buckets to one tier and the branch never fires. Exercised by unit tests + offline
+  replay only; production routing is byte-identical to v1.4.0 until the seam fix (tracked
+  follow-up, higher blast radius — un-dormants the whole GIC prediction path). Surfaced by
+  the 2026-08-14 multi-perspective adversarial review.
+- `SkillRefiner` threads `duration_seconds` into the estimator as the (dormant) latency producer
+- `tests/compound/test_tier_resolution.py::TestLatencyAwareEntryConsumption`: paired-arm test
+  of the estimator→executor half of the routing seam (NOT a full production-consumption invariant
+  — see harness GIC-LAT2)
 
 ### Fixed
 - `src/cohezion/mcp/loop_mcp.py` `event_publish` wrote ZERO rows while returning
@@ -32,6 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   kaggle/kagglehub at module level; the kaggle package conditionally prints a version
   warning to STDOUT, corrupting the JSON-RPC channel of any stdio MCP server importing
   the package tree. Imports are now lazy (method-level)
+
+### Security
+- `event_publish` now rejects the privileged control event types (`land_ready`,
+  `model_needed`, `model_idle`) that the datamesh consumer routes to side-effectful
+  handlers — `land_ready` reaches `land_runner` `subprocess.run(cwd=repo)` with a payload-
+  controlled path. Because the `event_publish` fix above made rows land for the first time,
+  this LLM-callable MCP tool would otherwise expose that subprocess sink to a single tool
+  call. Trusted in-process code still publishes control events directly. (Defense in depth;
+  validating `repo` against an allowlist in `_handle_land_ready` is a separate pre-existing
+  hardening, filed as follow-up.) Surfaced by the 2026-08-14 adversarial security review.
 
 ## [1.4.0] — 2026-08-13
 

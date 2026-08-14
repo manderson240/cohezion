@@ -967,13 +967,15 @@ class SkillRefiner:
         # #93: feed tier_used + escalation_count into predictive estimator.
         # GIC-LAT1: thread measured wall-clock so predict_tier can rank adequate
         # tiers by real cost (the fleet's tier order is not a latency order).
+        # `duration_seconds` defaults to 0.0 when the caller omits it (_extract_metrics);
+        # pass that through as None ("no measurement"), never 0.0 ("infinitely fast").
         self._difficulty_estimator.record(
             skill_name,
             operation_type,
             metrics.tier_used,
             metrics.escalation_count,
             metrics.quality_score,
-            latency_s=metrics.duration_seconds,
+            latency_s=metrics.duration_seconds or None,
         )
 
         # CB16 ext: TOKEN_BLOAT detection over a rolling window of per-task token

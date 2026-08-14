@@ -349,6 +349,16 @@ async def proposals_append(entry: dict[str, Any]) -> dict[str, Any]:
     return {"success": True, "count": len(_read_proposals())}
 
 
+# Event types the datamesh EventConsumer dispatches to side-effectful handlers
+# (subprocess-running CI gates via land_runner; the model-residency admission gate).
+# This is an LLM-callable MCP tool, so tool args are attacker-controllable — those
+# control types must NOT be publishable here, or a single tool call reaches an
+# unvalidated `subprocess.run(cwd=repo)` sink (event_consumer.handle -> _handle_land_ready
+# -> land_runner._default_gates). Mirror the privileged branches in
+# data_mesh/event_consumer.py::handle; keep this in sync if new control types are added.
+_PRIVILEGED_EVENT_TYPES = frozenset({"land_ready", "model_needed", "model_idle"})
+
+
 @app.tool()
 async def event_publish(
     event_type: str, source: str, payload: dict[str, Any], priority: int = 0
@@ -362,6 +372,11 @@ async def event_publish(
     and `timestamp` is TYPE float (epoch seconds — the consumer's
     fetch_unclaimed orders by it), NOT a datetime.
 
+    Privileged control event types that the consumer routes to side-effectful
+    handlers (land_ready, model_needed, model_idle) are REJECTED here — this is an
+    LLM-callable surface and those reach a subprocess/admission sink. Trusted
+    in-process code publishes them directly, not through this tool.
+
     Args:
         event_type: Event type, e.g. data_product_quality_alert, domain_health_degraded.
         source: Source identifier for the event.
@@ -372,6 +387,15 @@ async def event_publish(
         return {
             "error": "event_type and source are required",
             "hint": "Provide both, e.g. event_publish('domain_health_degraded', 'loop', {...}).",
+        }
+    # Case-insensitive: the consumer lowercases event_type before dispatch, so
+    # "Land_Ready" would still reach the privileged handler.
+    if event_type.strip().lower() in _PRIVILEGED_EVENT_TYPES:
+        return {
+            "error": f"event_type {event_type!r} is a privileged control type and cannot be "
+            "published through this tool",
+            "hint": "Privileged control events (land_ready/model_needed/model_idle) trigger "
+            "side-effectful handlers and are published only by trusted in-process code.",
         }
     sql = (
         "CREATE data_product_event CONTENT { "
