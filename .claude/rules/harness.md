@@ -1163,3 +1163,88 @@ existing coherence gates were green at the time.
   negative control with a truncated table stays silent) and
   `python scripts/ci/doc_code_consistency.py` → exit 0. Both are gates in
   `scripts/ci/automerge_guard.sh`.
+
+## Adversarial Guardrail Ratchet Invariants (AG1–AG3, 2026-08-09)
+
+### AG1: the attack corpus has a CONSUMER that measures the PRODUCTION path
+- `attack_patterns.py` (116 OWASP LLM Top-10 patterns) and `adversarial_tester.py` were
+  both orphans — complete-looking, zero callers, so no number was ever produced from
+  them. `tests/security/test_production_guardrail_ratchet.py` is now that consumer.
+- **The aim matters more than the wiring.** `test_single_pattern`'s DEFAULT target is
+  `PromptGuard` + `validate_input`, neither of which the executor calls; the production
+  input path is `CompoundExecutor.execute_task` → `GuardrailPipeline.check_input`
+  (executor.py:963-986). Wiring the tester without re-aiming it would have produced a
+  reassuring number about a component that never runs. The gate passes an explicit
+  `production_guardrail_probe()`.
+- **First measurement 2026-08-09** (six literal substrings, no normalization): 9 of 106
+  attacks caught (8.5%), 0/10 corpus-benign, **4 of 7 legitimate engineering task
+  descriptions BLOCKED**. A BLOCK hard-fails the task (`success=False`, early return at
+  executor.py:978), so those 4 were real work items that could not execute.
+- **After `cohezion.security.injection_signals` (AG4)**: **25/106 caught, 0/10 corpus
+  benign, 0/7 prose blocked, 7/7 encoding evasions closed.** Baselines raised to match.
+- **Verification**: `uv run pytest tests/security/test_production_guardrail_ratchet.py -q`
+  → 21 passed.
+
+### AG4: detection lives in injection_signals, NOT in a substring blocklist
+- `PromptInjectionGuard.check` delegates to `injection_signals.find_injection`. The
+  `INJECTION_PATTERNS` ClassVar on the *guard* is retained for backward compatibility and
+  is **no longer the detection path** — monkeypatching it does nothing. (When the guard
+  was switched over, the old mutation tests failed LOUDLY rather than silently passing,
+  which is the correct direction: the gate detected that its own mutation mechanism had
+  died. Any future rewiring must preserve that property.)
+- Two corrections, one per failure direction — the old guard failed in **both** at once
+  because matching raw text has no notion of meaning:
+  1. `normalize_variants()` folds text into NFKD/de-leet/de-streamed/ROT13/base64 forms,
+     so semantic-preserving transforms cannot hide the same words.
+  2. Patterns are **intent-directed phrases**, not bare words: an injection addresses the
+     model's own instructions ("override **your** alignment"), while ordinary engineering
+     prose does not ("override the default timeout"). `\W+` filler tolerates the
+     interposed word that broke the literal `"ignore previous"`.
+- **A bare `system_prompt` pattern was deliberately REMOVED.** It cost 2 corpus
+  detections (26→25→24 net of other changes) and eliminated the last prose false positive
+  ("Add a test for the system prompt template loader"). Talking *about* a system prompt is
+  not asking *for* one; the exfiltration verb is what discriminates. Trading detections
+  for a false positive that hard-fails real work is the correct direction here.
+- **Not an arms race.** Decoding covers only the transforms present in the corpus.
+  Encoding obfuscation is unbounded — this narrows the gap, it does not close it. The
+  ratchet is what tells you where the gap actually is.
+
+### AG5: mutation coverage is per-signal, and 9/9 is the standard
+- Mutation run 2026-08-09 after AG4: deleting **each** of the 8 signals individually, plus
+  the total wipe → **9/9 mutants KILLED**, each failure naming the lost rule. (Before the
+  canaries existed, the equivalent run was 1/3.)
+- Two canary strings are worded specifically to avoid overlap: `"Ignore all previous
+  instructions"` matches BOTH `ignore_previous` and `ignore_everything`, so neither canary
+  could detect the loss of its own rule. `test_each_canary_dies_with_its_own_rule` enforces
+  this — it rejects any canary that survives removal of its own signal.
+- Reproduce: set `MUTANT=<signal>` and run the gate with a plugin that filters
+  `injection_signals.INJECTION_PATTERNS`; every signal must produce a failure.
+
+### AG2: the probe returns the BLOCKING GUARD NAME, never a bool
+- `GuardProbe = Callable[[str], str | None]`, and `production_guardrail_probe(content_only=True)`
+  drops `rate_limit` / `resource` from the pipeline.
+- Not a style choice — a correctness one. The pipeline SHORT-CIRCUITS on first BLOCK and
+  `rate_limit` fires after 60 calls regardless of text, so on a 116-pattern corpus a
+  boolean probe reports 36/106 (34%) instead of 9/106 (8.5%) — a **4x overstatement
+  manufactured out of call volume**. Patterns swallowed by a volume guard are
+  *unmeasured*, not "allowed"; scoring them either way fabricates a number.
+- `CONTENT_GUARDS = {"constitutional", "prompt_injection", "output_filter"}` is the set
+  whose verdict depends on the text. Any new volume/quota guard must stay out of it.
+
+### AG3: the ratchet is DISCRIMINATING at per-pattern granularity (mutation-verified)
+- An aggregate count alone is nearly blind here. Mutation run 2026-08-09: deleting
+  `"ignore previous"` or `"jailbreak"` left `attacks_caught` at 9 — **2 of 3 mutants
+  SURVIVED**; only wiping the whole blocklist moved the number.
+- Root cause worth keeping: `"ignore previous"` catches **ZERO** of the 106 corpus
+  attacks, because the corpus says *"Ignore ALL previous instructions"* and one
+  interposed word breaks the literal substring. The guard's most famous rule is dead
+  weight against our own corpus.
+- Fixed by `INJECTION_CANARIES` — one attack string per production pattern, each
+  verified to evade once *its own* pattern is removed. Post-fix: **3/3 mutants killed**,
+  and the failure names the lost rule (`test_injection_canary_still_blocked[ignore previous]`).
+- **T2 discriminating**: `TestRatchetIsDiscriminating::test_neutralised_injection_guard_collapses_the_score`
+  (empty blocklist → caught < baseline) and
+  `test_each_canary_dies_with_its_own_rule[<pattern>]` (a canary caught incidentally by
+  some *other* substring is rejected as useless).
+- **Do not raise the baselines without a mutation run.** Green here proved nothing
+  before the mutants were run, and it will prove nothing next time either.
