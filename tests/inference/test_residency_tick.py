@@ -50,7 +50,8 @@ class TestRS6PressureGating:
 
         released: list[str] = []
         monkeypatch.setattr(h, "resident_models", lambda: _server(("hot", False), ("cold", False)))
-        monkeypatch.setattr(h, "free_gb", lambda: 8.0)  # below the floor -> pressure
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 8.0)  # below the floor -> pressure
+        monkeypatch.setattr(h, "free_gb", lambda: 8.0)
         monkeypatch.setattr(h, "unload", lambda m, **k: (released.append(m), True)[1])
 
         out = svc.tick()
@@ -63,7 +64,8 @@ class TestRS6PressureGating:
 
         released: list[str] = []
         monkeypatch.setattr(h, "resident_models", lambda: _server(("a", False), ("b", False)))
-        monkeypatch.setattr(h, "free_gb", lambda: 90.0)  # plenty
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 90.0)  # plenty
+        monkeypatch.setattr(h, "free_gb", lambda: 90.0)
         monkeypatch.setattr(h, "unload", lambda m, **k: (released.append(m), True)[1])
 
         out = svc.tick()
@@ -76,6 +78,7 @@ class TestRS6PressureGating:
 
         released: list[str] = []
         monkeypatch.setattr(h, "resident_models", lambda: _server(("busy", True), ("idle", False)))
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 4.0)
         monkeypatch.setattr(h, "free_gb", lambda: 4.0)
         monkeypatch.setattr(h, "unload", lambda m, **k: (released.append(m), True)[1])
 
@@ -87,6 +90,7 @@ class TestRS6PressureGating:
 
         released: list[str] = []
         monkeypatch.setattr(h, "resident_models", lambda: _server(("keep", False), ("drop", False)))
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 4.0)
         monkeypatch.setattr(h, "free_gb", lambda: 4.0)
         monkeypatch.setattr(h, "unload", lambda m, **k: (released.append(m), True)[1])
 
@@ -101,6 +105,7 @@ class TestRS6PressureGating:
         # newest-first: "new" then "old" -> "old" is the LRU victim
         monkeypatch.setattr(h, "resident_models", lambda: _server(("new", False), ("old", False)))
         # one release is enough to clear pressure
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 40.0 if released else 4.0)
         monkeypatch.setattr(h, "free_gb", lambda: 40.0 if released else 4.0)
         monkeypatch.setattr(h, "unload", lambda m, **k: (released.append(m), True)[1])
 
@@ -114,6 +119,7 @@ class TestRS6PressureGating:
         monkeypatch.setattr(
             h, "resident_models", lambda: _server(("a", False), ("b", False), ("c", False))
         )
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 40.0 if released else 4.0)
         monkeypatch.setattr(h, "free_gb", lambda: 40.0 if released else 4.0)
         monkeypatch.setattr(h, "unload", lambda m, **k: (released.append(m), True)[1])
 
@@ -128,6 +134,7 @@ class TestRS6DriftAndReporting:
         from cohezion.inference import hotswap as h
 
         monkeypatch.setattr(h, "resident_models", lambda: _server(("elsewhere", False)))
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 90.0)
         monkeypatch.setattr(h, "free_gb", lambda: 90.0)
         out = svc.tick()
         assert out["drift_repaired"] is True
@@ -139,6 +146,7 @@ class TestRS6DriftAndReporting:
         published: list[tuple[str, dict]] = []
         released: list[str] = []
         monkeypatch.setattr(h, "resident_models", lambda: _server(("cold", False)))
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 40.0 if released else 4.0)
         monkeypatch.setattr(h, "free_gb", lambda: 40.0 if released else 4.0)
         monkeypatch.setattr(h, "unload", lambda m, **k: (released.append(m), True)[1])
 
@@ -156,6 +164,7 @@ class TestRS6DriftAndReporting:
             raise RuntimeError("health down")
 
         monkeypatch.setattr(h, "resident_models", boom)
+        monkeypatch.setattr(h, "free_gb_or_none", lambda: 4.0)
         monkeypatch.setattr(h, "free_gb", lambda: 4.0)
         out = svc.tick()
         assert out["released"] == [] and "error" in out
