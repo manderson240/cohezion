@@ -17,8 +17,12 @@ a model load/swap) — first zero-timeout run of the night once warm-up was adde
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import logging
 import time
+import uuid
+from collections.abc import Coroutine
+from typing import Any
 
 from cohezion.core.event_bus import EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
@@ -29,6 +33,21 @@ from cohezion.inference.lemonade_health import is_lemonade_alive
 logger = logging.getLogger(__name__)
 
 _PREWARM_PROMPT = "Reply with the single word: ready"
+
+
+def _run_blocking(coro: Coroutine[Any, Any, Any]) -> Any:
+    """Run a coroutine from sync code, safe in BOTH calling contexts.
+
+    ``asyncio.run()`` raises RuntimeError when a loop is already running (e.g. a
+    sync prewarm call from an async startup hook) — cloud-review finding,
+    2026-08-14. In that case run the coroutine on a fresh loop in a worker thread.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
 
 
 class PrewarmLocalModelHarness:
@@ -50,7 +69,7 @@ class PrewarmLocalModelHarness:
             "Pre-warming local model %s on port %d...", self.target_model, self.lemonade_port
         )
 
-        if not asyncio.run(is_lemonade_alive(port=self.lemonade_port)):
+        if not _run_blocking(is_lemonade_alive(port=self.lemonade_port)):
             logger.warning(
                 "Pre-warm SKIPPED: OmniRouter :%d unreachable — %s not pre-warmed",
                 self.lemonade_port,
@@ -64,7 +83,7 @@ class PrewarmLocalModelHarness:
             max_tokens=16,
             silent=True,
         )
-        result = asyncio.run(tier.run(_PREWARM_PROMPT))
+        result = _run_blocking(tier.run(_PREWARM_PROMPT))
         duration_ms = (time.monotonic() - t0) * 1000.0
 
         if result.error or not result.text.strip():
@@ -76,7 +95,7 @@ class PrewarmLocalModelHarness:
             )
             persist_item(
                 {
-                    "id": f"prewarm_{self.target_model}_{int(time.time())}",
+                    "id": f"prewarm_{self.target_model}_{int(time.time())}_{uuid.uuid4().hex[:6]}",
                     "title": f"[Fleet Prewarm] {self.target_model} FAILED to pre-warm on port {self.lemonade_port}",
                     "status": "failed",
                     "priority": "high",
@@ -92,7 +111,7 @@ class PrewarmLocalModelHarness:
         )
         persist_item(
             {
-                "id": f"prewarm_{self.target_model}_{int(time.time())}",
+                "id": f"prewarm_{self.target_model}_{int(time.time())}_{uuid.uuid4().hex[:6]}",
                 "title": f"[Fleet Prewarm] {self.target_model} pre-warmed on port {self.lemonade_port}",
                 "status": "completed",
                 "priority": "medium",

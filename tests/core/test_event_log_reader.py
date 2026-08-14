@@ -158,6 +158,53 @@ class TestFetchEventsMergesBothDatabases:
             events = fetch_events(limit=10, since_epoch=1786000000.0)
         assert [e.id for e in events] == ["event_log:b"]
 
+    def test_fetch_window_partitioned_by_timestamp_type(self) -> None:
+        """Discriminating (cloud-review finding, 2026-08-14): a single server-side
+        ORDER BY over MIXED timestamp types returns an arbitrary window — 23 old
+        ISO-string rows shadowed 505 live float rows in db=main, and client-side
+        sorting cannot recover rows never fetched. Each db must be fetched as TWO
+        per-type partitions (within a type, ordering is consistent), each with its
+        own ORDER BY ... LIMIT."""
+        captured: list[str] = []
+
+        def fake(db: str, query: str, timeout: float = 10.0) -> list[dict]:
+            captured.append(query)
+            return []
+
+        with patch("cohezion.core.event_log_reader._sql", side_effect=fake):
+            fetch_events(limit=10)
+        number_qs = [q for q in captured if "type::is_number(timestamp)" in q]
+        string_qs = [q for q in captured if "type::is_string(timestamp)" in q]
+        assert len(number_qs) == 2 and len(string_qs) == 2, (
+            f"expected one number- and one string-partition query per db, got: {captured}"
+        )
+        for q in captured:
+            assert "ORDER BY timestamp DESC" in q and "LIMIT" in q
+
+    def test_rows_from_both_partitions_merged(self) -> None:
+        """A shadowed-partition row (float-stamped, newer) must win over the
+        string-partition row even though the string partition also returns rows."""
+
+        def fake(db: str, query: str, timeout: float = 10.0) -> list[dict]:
+            if db != "main":
+                return []
+            if "type::is_number" in query:
+                return [
+                    {
+                        "id": "event_log:new",
+                        "type": "SYSTEM_HEALTH",
+                        "session": "live",
+                        "timestamp": 1786738492.2,
+                        "payload": {},
+                    }
+                ]
+            return [self.MAIN_ROW]  # the old ISO-stamped row
+
+        with patch("cohezion.core.event_log_reader._sql", side_effect=fake):
+            events = fetch_events(limit=10, dbs=("main",))
+        assert [e.id for e in events][:1] == ["event_log:new"]
+        assert len(events) == 2
+
     def test_session_filter_pushed_into_sql_where_on_both_field_names(self) -> None:
         """Discriminating: a client-side-only filter over a shallow window silently
         misses rows older than the window (live-caught with this session's own day-1

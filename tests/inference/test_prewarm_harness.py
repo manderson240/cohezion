@@ -107,6 +107,29 @@ class TestPrewarmModelCallsTheRouter:
         _, kwargs = mock_build.call_args
         assert "13305" in kwargs.get("base_url", "")
 
+    def test_callable_from_inside_a_running_event_loop(self) -> None:
+        """Discriminating (cloud-review finding, 2026-08-14): a bare asyncio.run()
+        impl raises RuntimeError when prewarm_model() is called from an async
+        context (e.g. an async startup hook). Must complete and return a bool."""
+        import asyncio
+
+        harness = PrewarmLocalModelHarness(target_model="Gemma-4-E4B-it-GGUF")
+        ok_result = OrchestrationResult(
+            text="ready", primary_model="x", final_model="x", escalation_count=0
+        )
+
+        async def call_from_async_context() -> bool:
+            with (
+                _patch_router_alive(),
+                patch(
+                    "cohezion.inference.prewarm_harness.build_gaia_llm_tier",
+                    return_value=_tier_returning(ok_result),
+                ),
+            ):
+                return harness.prewarm_model()
+
+        assert asyncio.run(call_from_async_context()) is True
+
     def test_skips_tier_build_when_router_unreachable(self) -> None:
         """Discriminating: when the router itself is down, prewarm_model must fail fast
         WITHOUT attempting to build/call a tier (that call would just time out)."""

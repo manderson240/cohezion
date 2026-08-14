@@ -188,19 +188,33 @@ def fetch_events(
     if event_type is not None:
         lit = _safe_literal(event_type)
         where_parts.append(f"(type = '{lit}' OR event_type = '{lit}')")
-    where = f" WHERE {' AND '.join(where_parts)}" if where_parts else ""
-
+    # Cloud-review finding (2026-08-14): a single server-side ORDER BY over MIXED
+    # timestamp types returns an ARBITRARY window (23 old ISO-string rows shadowed
+    # 505 live float rows in db=main), and client-side sorting cannot recover rows
+    # never fetched. Fetch each db as per-TYPE partitions — within one type the
+    # server's ordering is consistent (ISO strings sort chronologically, floats
+    # numerically) — so the union is a guaranteed superset of the true newest rows.
+    partitions = ("type::is_number(timestamp)", "type::is_string(timestamp)")
     events: list[NormalizedEvent] = []
     for db in dbs:
         try:
-            rows = _sql(
-                db,
-                f"SELECT * FROM event_log{where} ORDER BY timestamp DESC LIMIT {fetch_n};",
-            )
+            for guard in partitions:
+                clause = f" WHERE {guard}" + (
+                    f" AND {' AND '.join(where_parts)}" if where_parts else ""
+                )
+                rows = _sql(
+                    db,
+                    f"SELECT * FROM event_log{clause} ORDER BY timestamp DESC LIMIT {fetch_n};",
+                )
+                events.extend(normalize_row(r, origin_db=db) for r in rows)
         except Exception as exc:  # one db down must not hide the other
             print(f"[event_log_reader] db={db} unreachable: {exc}", file=sys.stderr)
             continue
-        events.extend(normalize_row(r, origin_db=db) for r in rows)
+
+    # Dedupe by record id (keep first): real partitions are disjoint, but this
+    # guards any future overlap between per-db fetch windows.
+    seen: set[str] = set()
+    events = [e for e in events if not (e.id in seen or seen.add(e.id))]
 
     # Re-apply on the normalized shape too — server-side WHERE is an optimization,
     # normalization stays the source of truth for what matches.
