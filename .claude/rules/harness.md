@@ -147,6 +147,39 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 - **Discriminating**: `test_reasoning_orchestrator_passes_tier_temperatures` captures kwargs and verifies per-model temperatures
 - **Verification**: `uv run pytest tests/inference/test_triune_orchestrator.py -q` → 5 passed
 
+## Recipe Constraint Invariants (RC1, 2026-07-28)
+
+### RC1: the flm/NPU lane accepts `grammar` and IGNORES it — SILENTLY (Lemonade 11.5.0)
+- Lemonade publishes **no per-recipe capability matrix**, so "which lane enforces a decoding
+  constraint?" gets re-derived by guess every time it matters. RC1 makes it an executable fact.
+- **The fact**: GBNF is a llama.cpp *sampler* feature, so the `llamacpp` recipe (iGPU
+  `Gemma-4-E4B-it-GGUF`, CPU `Gemma-4-E2B-it-GGUF`) enforces it. The `flm` recipe is FastFlowLM —
+  a separate NPU runtime, not llama.cpp — whose documented params contain no constraint field.
+- **The hazard**: FastFlowLM does not reject unknown request fields (a bogus
+  `totally_bogus_param_xyz` returns 200 OK). Sending `grammar=` to the NPU lane yields
+  **unconstrained output with no error** — a silent correctness failure, not a loud one.
+- **Consumption, not declaration** (per this file's meta-rule): the consumer is CI running the
+  test on every `tests/inference/` pass. There is deliberately NO `src/` consumption pin and NO
+  `dormancy_scan.REGISTRY` floor — by construction nothing in `src/` consumes this yet, so a
+  floor would be unmeetable. The trio it guards is registered in `KNOWN_DORMANT` (notice-only).
+- **What is pinned is BEHAVIORAL** (200 + non-empty + unconstrained), *not* the capability claim
+  "the NPU cannot be constrained" — FLM's silent swallow means absence of effect is not proof of
+  absence of capability, and a probe cannot establish a negative capability claim.
+- **Falsification-proven**: pointing the `expect_enforced=True` lane at `llama3.2-1b-FLM` turns
+  the enforcement assertion red (`got 'No'`). The test can fail, so its green means something.
+- **Version-scoped**: if FastFlowLM gains constraint support this goes RED — the correct signal.
+  Update `structured_npu.py`, this invariant, and the vault report; do NOT weaken the assertion.
+- **Safety**: the lane tests SKIP unless the required models are already resident — this box runs
+  below the 16 GB N3 floor, so a probe that triggers an auto-load is an OOM hazard.
+- **Anti-retirement canary** (`test_rc1_lanes_are_actually_running`, found by a local QA lane):
+  a skip is indistinguishable from a pass in the summary, so LRU eviction would silently retire
+  this proof. The canary SKIPS when :13305 is down (legitimately untestable) but FAILS when
+  :13305 is UP and a lane model is missing (instrument degrading). Same rule dormancy_scan.py
+  applies to capabilities, applied to this test itself. Falsification-proven both ways.
+- **Verification**: `uv run pytest tests/inference/test_recipe_constraint_support.py -q` → 3 passed
+  live (2 lanes + canary; skips when :13305 is down). Report:
+  `~/vaults/cohezion-vault/reports/20260728-lemonade-recipe-constraint-matrix.md`.
+
 ## MetricBaseline Invariants
 
 ### MB1: MetricBaseline.value_bounds clamps trend_value() for bounded metrics (#129, 2026-06-27)

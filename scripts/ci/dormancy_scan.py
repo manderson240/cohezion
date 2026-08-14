@@ -143,6 +143,18 @@ REGISTRY: list[tuple[str, str, str, int]] = [
 KNOWN_DORMANT: list[str] = [
     "CR1 _recompute_tier_at_compaction — no production boundary fires it (intentional callable; harness-documented)",
     "get_pending_approvals — write side consumed, READ side has no operator surface (HITL gap)",
+    # Constrained-decoding trio (2026-07-28). All three answer "how do we constrain a model's
+    # output?", all three are dormant, and NONE knew about the others — so a 4th was nearly built.
+    # Listed here so the next person FINDS them instead of implementing a fifth. Live capability
+    # facts: tests/inference/test_recipe_constraint_support.py (RC1).
+    "structured_npu.npu_structured_json — dormant AND its core claim is FALSIFIED (flm/NPU ignores "
+    "`grammar` silently on Lemonade 11.5.0). Wiring target: retarget at a llamacpp recipe model",
+    "transition_controller.enum_schema — works (response_format enum, llamacpp lanes) but has no "
+    "production caller. Wiring target: the agentic-loop next-state pick it was written for "
+    "(one unrepeated probe suggested this path is costlier than bare GBNF — n=1, not established)",
+    "quality_eval.evaluate — sole consumer is AutoDQA, which is itself absent from make_executor, "
+    "so it is dormant ON THE PRODUCTION PATH. (2026-08-14: the semantic-agreement gate landed in "
+    "AutoDQA.evaluate — the weak-gate half is addressed; the make_executor wiring gap remains)",
     "RiemannianGlideTrajectory — geodesic integration made CORRECT 2026-07-29 (was silently "
     "straight-line under any curved metric) but has NO production consumer: only "
     "physics/__init__ re-exports it. INVESTIGATED 2026-07-29 — do NOT wire it: "
