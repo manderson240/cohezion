@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import tempfile
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -84,23 +85,97 @@ class LandVerdict:
 # ── real default implementations (live; not exercised by unit tests) ────────────────
 
 
-def _default_gates(repo: str) -> dict:
-    """Deterministic pre-flight gates: ruff format/check + version_governance. $0, no inference.
+def _default_gates(repo: str, branch: str = "") -> dict:
+    """Deterministic pre-flight gates on the CANDIDATE MERGED TREE. $0, no inference.
 
-    The heavy full pytest suite is CI's authoritative job; the runner does the fast
-    deterministic pre-flight so a BLOCKED verdict is cheap and certain.
+    First live smoke (2026-08-14) proved gating the repo working tree measures the
+    WRONG tree: the primary checkout sits on a session branch, so every candidate
+    reported that branch's lint debt ("153 files would be reformatted") instead of
+    its own. Gates therefore run on ``git merge-tree main <branch>`` — the tree
+    that would actually land:
+
+      CONFLICTS   -> BLOCKED with the conflicting paths (cheap, certain)
+      INTEGRATED  -> BLOCKED "already integrated" (merge result == main's tree —
+                     the only integration test that survives squash merges)
+      CLEAN       -> extract the candidate tree (git archive; no worktree needed,
+                     works while .git/worktrees is read-only) and ruff it.
+
+    version_governance intentionally left OUT of this gate set: it can only read
+    the checkout's HEAD commit range, never the candidate branch's; conventional-
+    commit analysis for the branch is ``semver_fn``'s job. The heavy pytest suite
+    stays CI's authoritative job.
     """
+    if not branch:  # legacy call shape — no branch context, gate the repo as before
+        return _repo_tree_gates(repo, ["src/", "tests/"])
+    try:
+        mt = subprocess.run(
+            ["git", "-C", repo, "merge-tree", "--write-tree", "main", branch],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if mt.returncode != 0:
+            conflicts = [
+                ln.rsplit(" in ", 1)[-1]
+                for ln in mt.stdout.splitlines()
+                if ln.startswith("CONFLICT")
+            ]
+            return {
+                "ok": False,
+                "failures": [f"merge: CONFLICTS with main in {', '.join(conflicts[:8])}"],
+            }
+        tree = mt.stdout.splitlines()[0].strip()
+        main_tree = subprocess.run(
+            ["git", "-C", repo, "rev-parse", "main^{tree}"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout.strip()
+        if tree == main_tree:
+            return {"ok": False, "failures": ["merge: already integrated — nothing to land"]}
+        with tempfile.TemporaryDirectory(prefix="land-gate-") as td:
+            archive = subprocess.run(
+                ["git", "-C", repo, "archive", tree, "src", "tests"],
+                capture_output=True,
+                check=True,
+                timeout=300,
+            )
+            subprocess.run(
+                ["tar", "-x", "-C", td],
+                input=archive.stdout,
+                check=True,
+                timeout=300,
+                capture_output=True,
+            )
+            # cwd=extract with RELATIVE paths: pyproject per-file-ignores are
+            # path-pattern-relative ("tests/**" never matches /tmp/... paths —
+            # measured live as 82 phantom errors on 3 clean test files).
+            gate = _repo_tree_gates(repo, ["src", "tests"], cwd=td)
+            # Lint is a DELTA gate: raw `ruff check` would hold every candidate
+            # hostage to main's pre-existing debt (~460 baseline errors). A
+            # candidate fails only if it ADDS errors relative to main's tree.
+            gate = _apply_lint_delta(repo, gate, candidate_dir=td)
+            return gate
+    except Exception as exc:  # infra error → fail-closed (a landing must be provable)
+        return {"ok": False, "failures": [f"merge-tree gate: {exc}"]}
+
+
+def _repo_tree_gates(repo: str, paths: list[str], cwd: str | None = None) -> dict:
+    """Ruff format+lint over *paths*, using the repo's ruff binary AND config.
+
+    ``--config`` is pinned to the repo's pyproject (an extract under /tmp would
+    otherwise discover ruff defaults), and *cwd* lets extract-gating run with
+    RELATIVE paths so per-file-ignore patterns like ``tests/**`` still match.
+    """
+    cfg = f"{repo}/pyproject.toml"
+    ruff = f"{repo}/.venv/bin/ruff"
     checks = [
-        (["uv", "run", "--no-sync", "ruff", "format", "--check", "src/", "tests/"], "ruff format"),
-        (
-            ["uv", "run", "--no-sync", "python", "scripts/ci/version_governance.py"],
-            "version_governance",
-        ),
+        ([ruff, "format", "--check", "--config", cfg, *paths], "ruff format"),
     ]
     failures: list[str] = []
     for cmd, name in checks:
         try:
-            p = subprocess.run(cmd, cwd=repo, capture_output=True, text=True, timeout=180)
+            p = subprocess.run(cmd, cwd=cwd or repo, capture_output=True, text=True, timeout=180)
             if p.returncode != 0:
                 failures.append(
                     f"{name}: {(p.stderr or p.stdout).strip().splitlines()[-1:] or ['failed']}"
@@ -110,6 +185,67 @@ def _default_gates(repo: str) -> dict:
         ) as exc:  # infra error → fail-closed for a gate (a landing must be provable)
             failures.append(f"{name}: {exc}")
     return {"ok": not failures, "failures": failures}
+
+
+def _lint_error_count(repo: str, tree_dir: str) -> int | None:
+    """Count ruff-check errors over ``src``+``tests`` in *tree_dir*. None = unmeasurable."""
+    try:
+        p = subprocess.run(
+            [
+                f"{repo}/.venv/bin/ruff",
+                "check",
+                "--config",
+                f"{repo}/pyproject.toml",
+                "--output-format=concise",
+                "src",
+                "tests",
+            ],
+            cwd=tree_dir,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        return sum(1 for ln in p.stdout.splitlines() if ":" in ln)
+    except Exception:
+        return None
+
+
+def _apply_lint_delta(repo: str, gate: dict, candidate_dir: str) -> dict:
+    """Fail the gate only when the candidate ADDS lint errors relative to main.
+
+    A raw ``ruff check`` would hold every candidate hostage to main's pre-existing
+    baseline debt; the ratchet philosophy applies here too — never worse, and both
+    sides are measured with the SAME instrument (extract + pinned config + relative
+    paths). Unmeasurable on either side = fail-closed (a landing must be provable).
+    """
+    cand = _lint_error_count(repo, candidate_dir)
+    with tempfile.TemporaryDirectory(prefix="land-gate-base-") as bd:
+        try:
+            archive = subprocess.run(
+                ["git", "-C", repo, "archive", "main", "src", "tests"],
+                capture_output=True,
+                check=True,
+                timeout=300,
+            )
+            subprocess.run(
+                ["tar", "-x", "-C", bd],
+                input=archive.stdout,
+                check=True,
+                timeout=300,
+                capture_output=True,
+            )
+            base = _lint_error_count(repo, bd)
+        except Exception:
+            base = None
+    if cand is None or base is None:
+        gate["ok"] = False
+        gate.setdefault("failures", []).append("ruff lint delta: unmeasurable (fail-closed)")
+    elif cand > base:
+        gate["ok"] = False
+        gate.setdefault("failures", []).append(
+            f"ruff lint delta: candidate adds {cand - base} error(s) ({base} -> {cand})"
+        )
+    return gate
 
 
 def _local_review(diff: str) -> str:
@@ -215,7 +351,9 @@ def run_land_review(
     orchestration is verified with no live inference. The verdict CONSUMES both results
     (``ready = gates_ok and review_ok``) — a failure in either blocks the landing.
     """
-    gate_fn = gate_fn or _default_gates
+    # Bind the branch into the default so gates measure the CANDIDATE MERGED TREE,
+    # not the checkout's working tree, while injected gate_fns keep the 1-arg contract.
+    gate_fn = gate_fn or (lambda r: _default_gates(r, branch))
     review_fn = review_fn or _default_review
     semver_fn = semver_fn or _default_semver
 

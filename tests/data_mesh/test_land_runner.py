@@ -83,3 +83,60 @@ class TestDiscriminating:
             semver_fn=lambda r, b: "",
         )
         assert v.semver == "patch"  # safe default, never blank
+
+
+class TestMergedTreeGates:
+    """The gates must measure the CANDIDATE MERGED TREE, not the checkout.
+
+    First live smoke (2026-08-14): every candidate reported the checkout
+    branch's lint debt. These pin the classification half of the fix.
+    """
+
+    def test_conflicting_branch_blocks_with_paths(self, tmp_path):
+        import subprocess
+
+        from cohezion.data_mesh.land_runner import _default_gates
+
+        r = tmp_path / "repo"
+        r.mkdir()
+
+        def g(*a):
+            subprocess.run(["git", "-C", str(r), *a], check=True, capture_output=True)
+
+        g("init", "-b", "main")
+        g("config", "user.email", "t@t")
+        g("config", "user.name", "t")
+        (r / "a.txt").write_text("base\n")
+        g("add", "a.txt")
+        g("commit", "-m", "base")
+        g("checkout", "-b", "feat/x")
+        (r / "a.txt").write_text("branch\n")
+        g("commit", "-am", "branch edit")
+        g("checkout", "main")
+        (r / "a.txt").write_text("main\n")
+        g("commit", "-am", "main edit")
+        gate = _default_gates(str(r), "feat/x")
+        assert gate["ok"] is False
+        assert any("CONFLICTS" in f and "a.txt" in f for f in gate["failures"])
+
+    def test_integrated_branch_blocks_as_nothing_to_land(self, tmp_path):
+        import subprocess
+
+        from cohezion.data_mesh.land_runner import _default_gates
+
+        r = tmp_path / "repo"
+        r.mkdir()
+
+        def g(*a):
+            subprocess.run(["git", "-C", str(r), *a], check=True, capture_output=True)
+
+        g("init", "-b", "main")
+        g("config", "user.email", "t@t")
+        g("config", "user.name", "t")
+        (r / "a.txt").write_text("base\n")
+        g("add", "a.txt")
+        g("commit", "-m", "base")
+        g("branch", "feat/done")  # same tree as main
+        gate = _default_gates(str(r), "feat/done")
+        assert gate["ok"] is False
+        assert any("already integrated" in f for f in gate["failures"])
