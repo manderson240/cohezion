@@ -248,19 +248,55 @@ class BioelectricSwarm:
         Returns
         -------
         float
-            Base spatial radius R_c,base.
+            Base light cone radius.
         """
         return float(np.sqrt(self.diffusion_coeff * self.time_constant * self.n_nodes))
 
-    def calculate_gap_junction_boost(self) -> float:
-        """Calculate gap-junction light cone expansion boost B(kappa).
-
-        When mean kappa >= 0.5, gap-junction boost yields >= 9.0x expansion.
+    def calculate_expanded_light_cone_radius(self) -> float:
+        """Calculate collective light cone radius with gap-junction boost.
 
         Returns
         -------
         float
-            Light cone expansion boost factor B(kappa).
+            Expanded light cone radius R_c.
+        """
+        base_r = self.calculate_base_light_cone_radius()
+        mean_k = self.mean_coupling()
+        boost = 1.0 + 8.0 * mean_k
+        return float(base_r * boost)
+
+    def step_fitzhugh_nagumo_dynamics(self, dt: float = 0.05, steps: int = 10) -> None:
+        """Run numerical Euler-integration ODE steps for membrane potentials."""
+        a, b, c = 0.7, 0.8, 3.0
+        matrix = self.get_coupling_matrix()
+        node_list = list(self.nodes.values())
+        n = len(node_list)
+
+        for _ in range(steps):
+            v_vec = np.array([(node.v_mem + 70.0) / 30.0 - 1.0 for node in node_list])
+            coupling_current = np.zeros(n)
+            for i in range(n):
+                for j in range(n):
+                    if i != j:
+                        coupling_current[i] += matrix[i, j] * (v_vec[j] - v_vec[i])
+
+            dv = c * (v_vec - (v_vec**3) / 3.0 + 0.5 * coupling_current)
+            new_v = v_vec + dv * dt
+
+            for idx, node in enumerate(node_list):
+                if node.is_healthy:
+                    scaled_v = float((new_v[idx] + 1.0) * 30.0 - 70.0)
+                    node.polarize(scaled_v)
+
+    def calculate_light_cone_radius(self) -> float:
+        """Calculate total cognitive light cone radius R_c.
+
+        R_c = sqrt(D * tau * N) * B(kappa)
+
+        Returns
+        -------
+        float
+            Expanded light cone radius R_c.
         """
         kappa_mean = self.mean_coupling()
         if kappa_mean >= 0.5:
@@ -270,7 +306,6 @@ class BioelectricSwarm:
             # Smooth scaling from 1.0 at kappa=0 to 9.0 as kappa approaches 0.5
             return float(1.0 + 16.0 * (kappa_mean**2))
 
-    def calculate_light_cone_radius(self) -> float:
         """Calculate total cognitive light cone radius R_c.
 
         R_c = sqrt(D * tau * N) * B(kappa)

@@ -1,0 +1,20 @@
+{
+  "status": "COMPLETED",
+  "base_model": "/home/mike-anderson/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775",
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "samples_trained": 40,
+  "epochs": 2,
+  "initial_loss": 3.4704742431640625,
+  "final_loss": 1.4597806930541992,
+  "training_time_sec": 54.54,
+  "saved_files": [
+    "adapter_config.json",
+    "tokenizer_config.json",
+    "adapter_model.safetensors",
+    "chat_template.jinja",
+    "README.md",
+    "tokenizer.json"
+  ],
+  "total_adapter_bytes": 20108003
+}
