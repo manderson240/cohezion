@@ -232,7 +232,7 @@ class UnifiedHybridRouter:
             tier_label = "Tier 1 (iGPU Coder)"
 
         if tier1_available:
-            local_res = self.query_lemonade_local(prompt, chosen_tier1_model)
+            local_res = await self.aquery_lemonade_local(prompt, chosen_tier1_model)
             if local_res:
                 dt_ms = (time.perf_counter() - t0) * 1000.0
                 resp = HybridRouteResponse(
@@ -249,7 +249,7 @@ class UnifiedHybridRouter:
 
         # --- Tier-2: Ollama cloud fallback ----------------------------
         chosen_tier2_model = _TIER2_PINS.get(task_class, self.cloud_model)
-        cloud_res = self.query_ollama_cloud(prompt, chosen_tier2_model)
+        cloud_res = await self.aquery_ollama_cloud(prompt, chosen_tier2_model)
         if cloud_res:
             dt_ms = (time.perf_counter() - t0) * 1000.0
             resp = HybridRouteResponse(
@@ -349,7 +349,33 @@ class UnifiedHybridRouter:
     # ------------------------------------------------------------------
 
     def query_lemonade_local(self, prompt: str, model: str) -> str | None:
-        """Attempt local NPU/iGPU inference via Lemonade (:13305).
+        """Synchronous wrapper for aquery_lemonade_local."""
+        import asyncio
+        try:
+            loop = asyncio.get_running_loop()
+            if loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    return pool.submit(asyncio.run, self.aquery_lemonade_local(prompt, model)).result()
+        except RuntimeError:
+            pass
+        return asyncio.run(self.aquery_lemonade_local(prompt, model))
+
+    def query_ollama_cloud(self, prompt: str, model: str) -> str | None:
+        """Synchronous wrapper for aquery_ollama_cloud."""
+        import asyncio
+        try:
+            loop = asyncio.get_running_loop()
+            if loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    return pool.submit(asyncio.run, self.aquery_ollama_cloud(prompt, model)).result()
+        except RuntimeError:
+            pass
+        return asyncio.run(self.aquery_ollama_cloud(prompt, model))
+
+    async def aquery_lemonade_local(self, prompt: str, model: str) -> str | None:
+        """Attempt local NPU/iGPU inference via Lemonade (:13305) asynchronously.
 
         Parameters
         ----------
@@ -363,6 +389,7 @@ class UnifiedHybridRouter:
         str | None
             Model response text, or ``None`` if the call fails.
         """
+        import httpx
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
@@ -370,21 +397,47 @@ class UnifiedHybridRouter:
             "temperature": 0.2,
         }
         try:
-            req = urllib.request.Request(
-                self._lemonade_url,
-                data=json.dumps(payload).encode(),
-                headers={"Content-Type": "application/json"},
-            )
-            with urllib.request.urlopen(req, timeout=30) as r:
-                res = json.loads(r.read().decode())
-                msg = res["choices"][0]["message"]
-                return (msg.get("content") or msg.get("reasoning_content") or "").strip()
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                res = await client.post(self._lemonade_url, json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    msg = data["choices"][0]["message"]
+                    return (msg.get("content") or msg.get("reasoning_content") or "").strip()
         except Exception as exc:
             logger.debug("Local Lemonade query bypassed: %s", exc)
-            return None
 
-    def query_ollama_cloud(self, prompt: str, model: str) -> str | None:
-        """Attempt Ollama Cloud model inference via Ollama (:11434).
+        return None
+
+    async def aquery_embedding(self, text: str, model: str = "embed-gemma-300m-FLM") -> list[float] | None:
+        """Fetch real embedding vector via Lemonade /v1/embeddings endpoint.
+
+        Parameters
+        ----------
+        text : str
+            Input text to embed.
+        model : str
+            Embedding model identifier.
+
+        Returns
+        -------
+        list[float] | None
+            Embedding float vector, or None on failure.
+        """
+        import httpx
+        payload = {"model": model, "input": text}
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                res = await client.post("http://localhost:13305/v1/embeddings", json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    return data["data"][0]["embedding"]
+        except Exception as exc:
+            logger.debug("Local Lemonade embedding bypassed: %s", exc)
+
+        return None
+
+    async def aquery_ollama_cloud(self, prompt: str, model: str) -> str | None:
+        """Attempt Ollama Cloud model inference via Ollama (:11434) asynchronously.
 
         Parameters
         ----------
@@ -398,6 +451,7 @@ class UnifiedHybridRouter:
         str | None
             Model response text, or ``None`` if the call fails.
         """
+        import httpx
         payload = {
             "model": model,
             "prompt": prompt,
@@ -405,14 +459,11 @@ class UnifiedHybridRouter:
             "options": {"temperature": 0.2},
         }
         try:
-            req = urllib.request.Request(
-                OLLAMA_URL,
-                data=json.dumps(payload).encode(),
-                headers={"Content-Type": "application/json"},
-            )
-            with urllib.request.urlopen(req, timeout=60) as r:
-                res = json.loads(r.read().decode())
-                return res.get("response", "").strip()
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                res = await client.post(OLLAMA_URL, json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    return data.get("response", "").strip()
         except Exception as exc:
             logger.debug("Ollama Cloud query bypassed: %s", exc)
             return None
