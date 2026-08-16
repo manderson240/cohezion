@@ -39,9 +39,11 @@ class HardwareTelemetry(BaseModel):
     timestamp: float = Field(default_factory=time.time)
 
 
+from typing import Literal
+
 class BenchmarkRequest(BaseModel):
-    kernel: str = Field(..., enum=["gemm", "moe", "mla"], description="Kernel type to benchmark")
-    mode: str = Field("benchmark", enum=["test", "benchmark", "leaderboard"])
+    kernel: Literal["gemm", "moe", "mla"] = Field(..., description="Kernel type to benchmark")
+    mode: Literal["test", "benchmark", "leaderboard"] = Field("benchmark", description="Execution mode")
 
 
 class BenchmarkResponse(BaseModel):
