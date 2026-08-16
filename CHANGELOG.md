@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed — CI/CD Repair 2026-08-15
+- Moved ROCm torch (`torch==2.8.0+rocm6.3`, `pytorch-triton-rocm==3.4.0`) from
+  mandatory `[project.dependencies]` to optional `[project.optional-dependencies] rocm`
+  so CI on `ubuntu-latest` installs CPU torch from PyPI instead of failing on
+  missing ROCm wheels. The `[tool.uv.sources]` override was removed for
+  torch/torchvision (they now resolve from PyPI by default); only
+  `pytorch-triton-rocm` retains the ROCm index mapping.
+- Playwright workflow (`playwright.yml`) now skips for `dependabot[bot]` actor
+  to prevent npm lockfile bumps from triggering broken UI builds.
+
+## [1.6.1] — 2026-08-15
+
+### Fixed
+- CI lint job: `pytorch-triton-rocm==3.4.0` had no wheel for `ubuntu-latest` —
+  moved to optional `rocm` extra; CI now uses CPU torch from PyPI.
+- Playwright workflow: skips Dependabot PRs to avoid broken UI builds from
+  removed icon exports in npm dependency bumps.
+
 ## [1.6.0] — 2026-08-14
 
 Elegant-simplicity execution: net −11.3k LOC with zero functionality lost.
