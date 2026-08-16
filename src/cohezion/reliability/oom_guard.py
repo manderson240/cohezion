@@ -25,6 +25,11 @@ class MemoryState:
     swap_used_gb: float
     is_safe: bool
 
+    @property
+    def used_gb(self) -> float:
+        """Estimate used memory in GiB (total_gb - available_gb)."""
+        return max(0.0, self.total_gb - self.available_gb)
+
 
 class OOMGuard:
     """Memory guard to prevent kernel faults and Out-Of-Memory thrashing."""
