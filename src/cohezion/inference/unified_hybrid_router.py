@@ -9,18 +9,24 @@ Routing Hierarchy:
   - Tier 3 (Kanban Fallback): Persistent work item registration
 
 Lane Pins (hard-pinned, 2026-08):
-  Reasoning/planning     -> deepseek-r1-0528-8b-FLM   (NPU, port 13305)
-  Coding/multi-file      -> Qwen3-Coder-30B            (iGPU, port 13305)
-  Coding+tools small-ctx -> qwen3-4b-FLM               (NPU, port 13305)
-  Vision/diagram         -> qwen3vl-it-4b-FLM          (NPU, port 13305)
-  Research summary       -> qwen3.6-moe-35b-a3b-FLM   (NPU MoE, port 13305, pinned)
-  Fast Q&A               -> llama3.2-1b-FLM            (NPU, port 13305, pre-warmed)
-  Embeddings             -> embed-gemma-300m-FLM        (NPU, port 13305)
+  Reasoning/planning     -> Gemma-4-26B-A4B-ThinkingCoder   (iGPU, port 13305)
+  Coding/multi-file      -> Qwen3-Coder-30B-A3B-Instruct-GGUF (iGPU, port 13305)
+  Coding+tools small-ctx -> Qwen3.6-35B-A3B-MTP-GGUF         (iGPU, port 13305)
+  Vision/diagram         -> qwen3vl-it-4b-FLM               (NPU, port 13305)
+  Research summary       -> Gemma-4-31B-it-GGUF             (iGPU, port 13305)
+  Fast Q&A               -> gpt-oss-20b                     (iGPU, port 13305)
+  Embeddings             -> embed-gemma-300m-FLM            (NPU, port 13305)
+  General                -> Qwen3.8-27B-GGUF-Q5_K_M         (iGPU, port 13305)
 
 Tier-2 Ollama cloud fallback:
   Deep reasoning/math    -> deepseek-v4-pro:cloud
   Advanced coding        -> qwen3.5:397b-cloud
-  Science/frontier       -> glm-5.2:cloud
+  Tool calling/code      -> kimi-k2.7-code:cloud
+  Vision/diagram         -> glm-5.2:cloud
+  Science/frontier       -> nemotron-3-ultra:cloud
+  Fast QA                -> deepseek-v4-flash:cloud
+  Embeddings             -> nomic-embed-text-v2-moe-GGUF
+  General                -> gpt-oss:120b-cloud
 """
 
 from __future__ import annotations
@@ -85,7 +91,7 @@ _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.VISION: "glm-5.2:cloud",
     TaskClass.RESEARCH: "nemotron-3-ultra:cloud",
     TaskClass.FAST_QA: "deepseek-v4-flash:cloud",
-    TaskClass.EMBEDDINGS: "deepseek-v4-pro:cloud",
+    TaskClass.EMBEDDINGS: "nomic-embed-text-v2-moe-GGUF",
     TaskClass.GENERAL: "gpt-oss:120b-cloud",
 }
 
@@ -99,13 +105,14 @@ class HybridRouteResponse:
     content : str
         The text content returned by the model.
     tier_used : str
-        Routing tier label, e.g. ``"Tier 1 (Local NPU MoE)"``.
+        Human-readable label for the tier that served the request.
     model_name : str
-        Model identifier that served the request.
+        The exact model identifier used.
     latency_ms : float
-        Wall-clock latency in milliseconds.
+        Elapsed round-trip latency in milliseconds.
     verified : bool
-        True when the response came from a live model (not a synthetic fallback).
+        ``True`` if the response came from a verified local/cloud model;
+        ``False`` if served by synthetic fallback.
     task_class : TaskClass
         The task class used for routing.
     evi_score : float
@@ -218,18 +225,59 @@ class UnifiedHybridRouter:
 
         # --- memory guard: if VRAM saturated force Tier-2 -------------
         mem = OOMGuard.get_memory_state()
-        if not mem.is_safe:
+        vram_saturated = (mem.used_gb / max(mem.total_gb, 1.0)) >= VRAM_SATURATION_THRESHOLD
+        if not mem.is_safe or vram_saturated:
             tier1_available = False
             logger.warning(
-                "OOMGuard: memory unsafe (%.1f GiB free); routing to Tier-2",
-                mem.available_gb,
+                "OOMGuard: memory saturated/unsafe (%.1f/%.1f GiB used, saturated=%s); routing to Tier-2",
+                mem.used_gb,
+                mem.total_gb,
+                vram_saturated,
             )
+
+        # --- Special Handling: Embeddings ----------------------------
+        if task_class == TaskClass.EMBEDDINGS:
+            chosen_tier1_model = _TIER1_PINS.get(TaskClass.EMBEDDINGS, "embed-gemma-300m-FLM")
+            if tier1_available:
+                emb_res = await self.aquery_embedding(prompt, chosen_tier1_model)
+                if emb_res is not None:
+                    dt_ms = (time.perf_counter() - t0) * 1000.0
+                    resp = HybridRouteResponse(
+                        content=json.dumps(emb_res),
+                        tier_used="Tier 1 (NPU Embedding)",
+                        model_name=chosen_tier1_model,
+                        latency_ms=round(dt_ms, 2),
+                        verified=True,
+                        task_class=task_class,
+                        evi_score=evi_score,
+                    )
+                    await self._publish_routing_event(resp, "tier1_embedding_success")
+                    return resp
+
+            # Tier-2 fallback for embedding
+            chosen_tier2_model = _TIER2_PINS.get(TaskClass.EMBEDDINGS, "nomic-embed-text-v2-moe-GGUF")
+            emb_res = await self.aquery_embedding(prompt, chosen_tier2_model)
+            if emb_res is not None:
+                dt_ms = (time.perf_counter() - t0) * 1000.0
+                resp = HybridRouteResponse(
+                    content=json.dumps(emb_res),
+                    tier_used="Tier 2 (iGPU Embedding Fallback)",
+                    model_name=chosen_tier2_model,
+                    latency_ms=round(dt_ms, 2),
+                    verified=True,
+                    task_class=task_class,
+                    evi_score=evi_score,
+                )
+                await self._publish_routing_event(resp, "tier2_embedding_fallback")
+                return resp
 
         # --- Tier-1: hard-pinned Lemonade model -----------------------
         chosen_tier1_model = _TIER1_PINS.get(task_class, self.npu_model)
         tier_label = "Tier 1 (Local NPU MoE)"
         if task_class == TaskClass.CODING:
             tier_label = "Tier 1 (iGPU Coder)"
+        elif task_class == TaskClass.GENERAL:
+            tier_label = "Tier 1 (iGPU General)"
 
         if tier1_available:
             local_res = await self.aquery_lemonade_local(prompt, chosen_tier1_model)
@@ -305,9 +353,10 @@ class UnifiedHybridRouter:
 
         # Step 1: Preflight Memory Headroom Safety Check
         mem = OOMGuard.get_memory_state()
+        vram_saturated = (mem.used_gb / max(mem.total_gb, 1.0)) >= VRAM_SATURATION_THRESHOLD
 
         # Step 2: Try Local NPU / iGPU Silicon first if memory safe
-        if self.prefer_local and not force_cloud and mem.is_safe:
+        if self.prefer_local and not force_cloud and mem.is_safe and not vram_saturated:
             local_res = self.query_lemonade_local(prompt, self.npu_model)
             if local_res:
                 dt_ms = (time.perf_counter() - t0) * 1000.0
