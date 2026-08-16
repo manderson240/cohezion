@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Latency-Aware GIC Tier Selection 2026-08-15
+- `DifficultyEstimator.predict_tier()` now picks the FASTEST tier by median
+  latency among quality-adequate tiers, not the positionally-cheapest. Based
+  on the 2026-08-13 GIC tier-routing soak proving MoE+MTP is faster than
+  dense-8B despite higher parameter count.
+- `DifficultyEstimator.record()` accepts optional `latency_s` parameter
+- `_TierRecord` has `latency_s` field (default 0.0, backward compatible)
+- Falls back to positional `_TIER_ORDER` when no latency data recorded
+
 ### Fixed — CI/CD Repair 2026-08-15
 - Moved ROCm torch (`torch==2.8.0+rocm6.3`, `pytorch-triton-rocm==3.4.0`) from
   mandatory `[project.dependencies]` to optional `[project.optional-dependencies] rocm`
@@ -16,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `pytorch-triton-rocm` retains the ROCm index mapping.
 - Playwright workflow (`playwright.yml`) now skips for `dependabot[bot]` actor
   to prevent npm lockfile bumps from triggering broken UI builds.
+
+## [1.7.0] — 2026-08-15
+
+### Added
+- Latency-aware `DifficultyEstimator` tier selection (GIC-LAT1/LAT2):
+  `predict_tier()` picks the fastest tier by median latency among
+  quality-adequate tiers instead of the positionally-cheapest.
 
 ## [1.6.1] — 2026-08-15
 

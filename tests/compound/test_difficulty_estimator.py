@@ -301,3 +301,101 @@ def test_beta_gate_rejects_lucky_2_of_2():
     # Beta(npu)=0.75 < 0.77, Beta(igpu)=1/10=0.1 < 0.77 → fallback by (count, quality)
     # igpu has 8 records (dominant), npu has 2 → igpu wins fallback
     assert de.predict_tier("skill_y", "op") == "igpu"
+
+
+# ---------------------------------------------------------------------------
+# GIC-LAT1/LAT2: Latency-aware tier selection (2026-08-15)
+#
+# The 2026-08-13 GIC tier-routing soak proved that _TIER_ORDER's positional
+# "cheap → expensive" ordering does not match empirical latency: a 35B-MoE
+# tier with MTP was both more accurate AND faster (median 88-99s) than an
+# 8B-dense thinking tier (median 149-172s). predict_tier must pick the
+# FASTEST adequate tier by median latency, not the positionally-cheapest.
+# ---------------------------------------------------------------------------
+
+
+class TestLatencyAwareTierSelection:
+    """GIC-LAT1/LAT2: latency-aware tier selection.
+
+    When latency_s is recorded, predict_tier picks the tier with the lowest
+    median latency among quality-adequate tiers — not the first by _TIER_ORDER.
+    When no latency data exists (all latency_s=0), preserves original GIC2
+    positional behavior.
+    """
+
+    def test_faster_tier_preferred_over_positionally_cheaper(self) -> None:
+        """GIC-LAT1 discriminating: both NPU and iGPU are quality-adequate,
+        but iGPU has lower median latency → iGPU wins despite NPU being
+        positionally cheaper.
+
+        Reproduces the 2026-08-13 finding: the "expensive" tier was empirically
+        faster. A wrong impl (positional-only) returns 'npu'.
+        """
+        de = DifficultyEstimator()
+        for _ in range(5):
+            de.record("skill_l", "op", "npu", 0, 0.85, latency_s=170.0)
+        for _ in range(5):
+            de.record("skill_l", "op", "igpu", 0, 0.88, latency_s=90.0)
+        result = de.predict_tier("skill_l", "op")
+        assert result == "igpu", (
+            f"Latency-aware: iGPU (90s median) should beat NPU (170s median); got '{result}'"
+        )
+
+    def test_positional_fallback_when_no_latency_data(self) -> None:
+        """GIC-LAT2: when latency_s=0 for all records (legacy callers),
+        predict_tier falls back to positional _TIER_ORDER (original GIC2).
+
+        Ensures backward compatibility: existing callers that don't pass
+        latency_s get the same behavior as before.
+        """
+        de = DifficultyEstimator()
+        for _ in range(5):
+            de.record("skill_nl", "op", "npu", 0, 0.85)
+        for _ in range(5):
+            de.record("skill_nl", "op", "igpu", 0, 0.88)
+        result = de.predict_tier("skill_nl", "op")
+        assert result == "npu", (
+            f"No-latency fallback: NPU (positionally cheapest) should win; got '{result}'"
+        )
+
+    def test_quality_floor_still_blocks_fast_but_failing_tier(self) -> None:
+        """GIC-LAT quality floor: a fast tier with poor quality is NOT selected,
+        even if it has the lowest latency.
+
+        Discriminating: a wrong impl that picks fastest regardless of quality
+        would return 'npu' here (100s but failing) instead of 'igpu' (120s, passing).
+        """
+        de = DifficultyEstimator()
+        for _ in range(5):
+            de.record("skill_q", "op", "npu", 2, 0.3, latency_s=100.0)
+        for _ in range(5):
+            de.record("skill_q", "op", "igpu", 0, 0.85, latency_s=120.0)
+        result = de.predict_tier("skill_q", "op")
+        assert result == "igpu", (
+            f"Quality floor: NPU fails (esc=2, q=0.3) so iGPU wins despite being slower; got '{result}'"
+        )
+
+    def test_record_accepts_latency_s_kwarg(self) -> None:
+        """GIC-LAT structural: record() accepts latency_s parameter."""
+        import inspect
+
+        params = inspect.signature(DifficultyEstimator.record).parameters
+        assert "latency_s" in params, "record() must accept latency_s kwarg"
+
+    def test_mixed_latency_and_no_latency_records(self) -> None:
+        """GIC-LAT edge: when some records have latency and others don't,
+        the tier with latency data is preferred over the one without (0.0
+        means 'unknown latency', not 'zero latency').
+        """
+        de = DifficultyEstimator()
+        for _ in range(5):
+            de.record("skill_m", "op", "npu", 0, 0.85, latency_s=150.0)
+        for _ in range(5):
+            de.record("skill_m", "op", "igpu", 0, 0.85)  # no latency_s
+        # NPU has latency data (150s), iGPU has none (0.0).
+        # has_latency=True for the adequate set; NPU median=150, iGPU median=inf
+        # → NPU wins (it has known latency, iGPU has unknown)
+        result = de.predict_tier("skill_m", "op")
+        assert result == "npu", (
+            f"Mixed latency: NPU has known 150s, iGPU unknown; NPU should win; got '{result}'"
+        )
