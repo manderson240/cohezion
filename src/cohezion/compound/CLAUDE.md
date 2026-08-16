@@ -55,6 +55,9 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
 **W** (Wiring) — W1-W5: JepaGate injected; identity lifecycle wired; suggested_tier in metrics; predicted_tier in metrics; skill_proximity consumed by `_generate_recommendation()`
 
 **GIC** (Difficulty Estimator) — GIC1: `unknown` before records; GIC2: cheapest successful tier; GIC3: wired via SkillRefiner
+- GIC-LAT1: when `latency_s` is recorded, `predict_tier` picks the FASTEST tier by median latency among quality-adequate tiers, not the positionally-cheapest. The 2026-08-13 GIC tier-routing soak proved that `_TIER_ORDER`'s positional ordering does not match empirical latency (35B-MoE+MTP was faster than 8B-dense). Falls back to positional when no latency data (`latency_s=0` for all records).
+- GIC-LAT2: `record()` accepts optional `latency_s: float = 0.0` kwarg; `_TierRecord` has `latency_s` field
+  - **Verification**: `uv run pytest tests/compound/test_difficulty_estimator.py::TestLatencyAwareTierSelection -q` → 5 passed
 
 **SRS** (Durable Spine) — SRS1-SRS3: `to_dict/from_dict/save_state/restore_state` round-trips; CB16 safe defaults
 
