@@ -65,14 +65,14 @@ class TaskClass(StrEnum):
 # Tier-1 (Lemonade / local silicon) lane pins
 # ---------------------------------------------------------------------------
 _TIER1_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "deepseek-r1-0528-8b-FLM",
-    TaskClass.CODING: "Qwen3-Coder-30B",
-    TaskClass.CODING_TOOLS: "qwen3-4b-FLM",
+    TaskClass.REASONING: "Gemma-4-26B-A4B-ThinkingCoder",
+    TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+    TaskClass.CODING_TOOLS: "Qwen3.6-35B-A3B-MTP-GGUF",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
-    TaskClass.RESEARCH: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.FAST_QA: "qwen3-4b-FLM",
+    TaskClass.RESEARCH: "Gemma-4-31B-it-GGUF",
+    TaskClass.FAST_QA: "gpt-oss-20b",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
-    TaskClass.GENERAL: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.GENERAL: "Qwen3.8-27B-GGUF-Q5_K_M",
 }
 
 # ---------------------------------------------------------------------------
@@ -81,12 +81,12 @@ _TIER1_PINS: dict[TaskClass, str] = {
 _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "deepseek-v4-pro:cloud",
     TaskClass.CODING: "qwen3.5:397b-cloud",
-    TaskClass.CODING_TOOLS: "qwen3.5:397b-cloud",
+    TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",
     TaskClass.VISION: "glm-5.2:cloud",
-    TaskClass.RESEARCH: "glm-5.2:cloud",
-    TaskClass.FAST_QA: "deepseek-v4-pro:cloud",
+    TaskClass.RESEARCH: "nemotron-3-ultra:cloud",
+    TaskClass.FAST_QA: "deepseek-v4-flash:cloud",
     TaskClass.EMBEDDINGS: "deepseek-v4-pro:cloud",
-    TaskClass.GENERAL: "deepseek-v4-pro:cloud",
+    TaskClass.GENERAL: "gpt-oss:120b-cloud",
 }
 
 
