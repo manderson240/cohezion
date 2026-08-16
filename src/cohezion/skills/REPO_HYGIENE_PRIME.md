@@ -41,3 +41,14 @@ if index_size > 100_000:
 
 ## VERSION
 v3.0 (Sovereign Era)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for REPO HYGIENE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

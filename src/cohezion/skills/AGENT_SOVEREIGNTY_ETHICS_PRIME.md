@@ -3,6 +3,8 @@ name: agent-sovereignty-ethics-prime
 description: "Sovereignty = Autonomous decision-making within ethical boundaries Safety = Constitutional constraints + security pipeline + human oversight Agency = Ability to act, learn, and evolve without explicit instruction"
 ---
 
+# SKILL: AGENT_SOVEREIGNTY_ETHICS_PRIME
+
 # AGENT_SOVEREIGNTY_ETHICS_PRIME
 
 **Skill**: Agent Sovereignty & Constitutional Governance
@@ -518,3 +520,14 @@ Provides expert capabilities for Agent Sovereignty Ethics Prime within the Cohez
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for AGENT SOVEREIGNTY ETHICS PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

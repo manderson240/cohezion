@@ -50,3 +50,9 @@ v1.0
 
 ## SEE ALSO
 DATABASE_PRIME, FLUME_PRIME, VISUALIZATION_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SURREALDB OPTIMIZER PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

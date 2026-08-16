@@ -30,3 +30,9 @@ v1.0
 ## SEE ALSO
 - [COMPOUND_ENGINEERING_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/compound_engineering.md)
 - [MODEL_ROUTING_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/MODEL_ROUTING_PRIME.md)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for QUARTER ON A STRING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

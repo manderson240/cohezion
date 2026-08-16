@@ -33,3 +33,14 @@ MXFP4 GEMM kernel optimization for AMD MI355X (gfx950). Target: <10us from 22.8u
 
 ## VERSION
 v1.0.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for AMD GEMM MXFP4 PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

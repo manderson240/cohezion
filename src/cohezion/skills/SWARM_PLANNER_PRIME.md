@@ -33,3 +33,9 @@ v1.0.1 - Sourced from skills.sh (swarm-planner / agentic-workflow)
 - TEAM_ORCHESTRATION_PRIME.md
 - MODEL_ROUTING_PRIME.md
 - ANTHROPIC_SKILL_BUILDER_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SWARM PLANNER PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

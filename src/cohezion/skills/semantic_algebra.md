@@ -88,3 +88,9 @@ v1.0
 - FLUME_METHODOLOGY_PRIME.md - Underlying encoding
 - GATEWAY_ARCHITECTURE_PRIME.md - Where this fits in architecture
 - CROSS_MODAL_EMBEDDING_PRIME.md (future) - Multi-modal extension
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for semantic algebra.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

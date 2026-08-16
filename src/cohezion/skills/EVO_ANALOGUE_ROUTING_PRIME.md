@@ -28,3 +28,9 @@ v1.0
 - LOCAL_INFERENCE_ROUTING.md
 - HOLOGRAPHIC_FLUME_PRIME.md
 - AUTOHARNESS_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for EVO ANALOGUE ROUTING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

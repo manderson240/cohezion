@@ -5,6 +5,8 @@ category: compound
 tags: [cosmic-fire, ignition, hiho, pop3, colibre, bbc-low-slow, ure]
 ---
 
+# SKILL: COSMIC_FIRE_PROTOCOL_PRIME
+
 # Skill: Cosmic Fire Protocol
 
 ## Context
@@ -68,3 +70,14 @@ Provides expert capabilities for Cosmic Fire Protocol Prime within the Cohezion 
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for COSMIC FIRE PROTOCOL PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

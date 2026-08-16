@@ -101,3 +101,9 @@ v1.0 (Hermetic Standard)
 *   **Insight**: Asynchronous Workforce via A2A Protocol
 *   **Details**: Decentralizing the swarm requires moving away from synchronous chat interfaces. Extending the GitHub MCP with a dedicated polling daemon (`github_scout.py`) allows agents to process issues asynchronously. Combining this with the A2A protocol (`.well-known/agent.json`) ensures agents can discover and dispatch each other over HTTP.
 *   **Date**: 2026-04-11
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LAZY INFRASTRUCTURE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

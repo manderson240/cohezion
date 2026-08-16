@@ -1,3 +1,12 @@
+---
+name: local-model-roster-evaluation-prime
+description: "Cohezion autonomous capability for LOCAL MODEL ROSTER EVALUATION PRIME."
+metadata:
+  version: "1.0"
+  concepts: ["Cohezion", "FLUME", "AutoHarness"]
+  source: "src/cohezion/skills/LOCAL_MODEL_ROSTER_EVALUATION_PRIME.md"
+---
+
 # SKILL: LOCAL_MODEL_ROSTER_EVALUATION_PRIME
 
 ## DOMAIN EXPERTISE
@@ -53,3 +62,9 @@ v1.0
 ## SEE ALSO
 - `EXPERIENCE_VAE_TRAINING_PRIME.md`
 - `JACOBIAN_J_SPACE_WORKSPACE_PRIME.md`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LOCAL MODEL ROSTER EVALUATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

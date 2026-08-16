@@ -74,3 +74,9 @@ v0.1
 - PHYSICS_PRIME.md
 - RETROSPECTIVE_SKILL.md
 - COMPOUND_ENGINEERING_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for compound prompt.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

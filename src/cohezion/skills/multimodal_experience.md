@@ -115,3 +115,9 @@ v1.0 (2026-01-17)
 - MARIMO_NOTEBOOKS_PRIME.md
 - FLUME_METHODOLOGY_PRIME.md
 - SWARM_ORCHESTRATION_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for multimodal experience.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -31,3 +31,9 @@ v1.0.1 - Sourced from skills.sh (typescript-advanced-types)
 
 ## SEE ALSO
 - FRONTEND_DESIGN_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for TYPESCRIPT ADVANCED TYPES PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

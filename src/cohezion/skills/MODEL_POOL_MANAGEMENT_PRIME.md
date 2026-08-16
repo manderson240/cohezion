@@ -6,6 +6,8 @@ metadata:
   source: "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md"
 ---
 
+# SKILL: MODEL_POOL_MANAGEMENT_PRIME
+
 # MODEL_POOL_MANAGEMENT_PRIME
 
 ## Purpose
@@ -101,3 +103,14 @@ Provides expert capabilities for Model Pool Management Prime within the Cohezion
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MODEL POOL MANAGEMENT PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

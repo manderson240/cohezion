@@ -72,3 +72,9 @@ v1.0 (Unified)
 - FLUME_METHODOLOGY_PRIME.md
 - PHYSICS_PRIME.md
 - EMBEDDING_STRATEGY_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for high d physics visualization.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

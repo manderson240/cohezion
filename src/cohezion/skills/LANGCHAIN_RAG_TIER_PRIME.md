@@ -5,6 +5,8 @@ category: inference
 tags: [langchain, rag, retrieval, documents, tier, inference, faiss]
 ---
 
+# SKILL: LANGCHAIN_RAG_TIER_PRIME
+
 # Skill: LangChain RAG Tier
 
 ## Overview
@@ -74,3 +76,14 @@ Provides expert capabilities for Langchain Rag Tier Prime within the Cohezion AG
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LANGCHAIN RAG TIER PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

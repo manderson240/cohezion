@@ -232,3 +232,9 @@ This skill is meta: it teaches pi how to use Cohezion, which
 learns from every pi session, which refines this skill, which
 teaches pi better...闭环. Closed loop. The system teaches itself
 to teach itself.
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for PI INTEGRATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

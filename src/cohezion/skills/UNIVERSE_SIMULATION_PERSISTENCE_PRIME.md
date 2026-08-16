@@ -6,6 +6,8 @@ metadata:
   source: "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md"
 ---
 
+# SKILL: UNIVERSE_SIMULATION_PERSISTENCE_PRIME
+
 # UNIVERSE_SIMULATION_PERSISTENCE_PRIME
 
 **Version**: 1.0
@@ -440,3 +442,14 @@ Provides expert capabilities for Universe Simulation Persistence Prime within th
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for UNIVERSE SIMULATION PERSISTENCE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

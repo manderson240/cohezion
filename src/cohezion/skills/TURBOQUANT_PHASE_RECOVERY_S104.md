@@ -23,6 +23,8 @@ revisions:
     change: "Added Phase 4 (backend-support verification gate) after discovering that Phases 0-2 completeness does NOT imply a working end-to-end KV compression. The installed llama-server binary on Strix Halo has no TurboQuant kernel and upstream PR #20969 is a GitHub Discussion, not a merged PR -- making any dispatcher hop a silent no-op. Refined Key Insight to reflect the module-vs-backend distinction."
 ---
 
+# SKILL: TURBOQUANT_PHASE_RECOVERY_S104
+
 # Skill: TurboQuant Phase Recovery
 
 ## Context
@@ -185,3 +187,14 @@ Provides expert capabilities for Turboquant Phase Recovery S104 within the Cohez
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for TURBOQUANT PHASE RECOVERY S104.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

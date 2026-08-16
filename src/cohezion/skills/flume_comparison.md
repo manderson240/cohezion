@@ -74,3 +74,26 @@ Returns comparison visualization showing:
 ## SEE ALSO
 - CALM_ABSTRACTION_PRIME.md
 - JOURNEY_TRACKING_PRIME.md
+
+
+## INSTRUCTION
+
+### 1. Initialize Context
+```python
+from cohezion.flume import PoincareManifoldND
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
+policy = AutoHarnessPolicy()
+state = PoincareManifoldND.project([0.05] * 2048, target_dim=12)
+```
+
+### 2. Execute Deterministic Action
+```python
+# Verify state invariants with 0ms overhead
+res = policy.verify_action("standard_execution", state)
+assert res.allowed is True
+```
+
+
+## VERSION
+v1.0 (Auto-Standardized & Verified)

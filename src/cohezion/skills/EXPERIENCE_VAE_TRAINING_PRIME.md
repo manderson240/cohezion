@@ -1,3 +1,12 @@
+---
+name: experience-vae-training-prime
+description: "Cohezion autonomous capability for EXPERIENCE VAE TRAINING PRIME."
+metadata:
+  version: "1.0"
+  concepts: ["Cohezion", "FLUME", "AutoHarness"]
+  source: "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md"
+---
+
 # SKILL: EXPERIENCE_VAE_TRAINING_PRIME
 
 ## DOMAIN EXPERTISE
@@ -58,3 +67,9 @@ v1.0
 ## SEE ALSO
 - [`SURREALDB_MOCK_PERSISTENCE_PRIME.md`](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/SURREALDB_MOCK_PERSISTENCE_PRIME.md)
 - [`JOURNEY_TRACKING_PRIME.md`](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/JOURNEY_TRACKING_PRIME.md)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for EXPERIENCE VAE TRAINING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

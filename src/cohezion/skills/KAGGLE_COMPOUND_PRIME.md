@@ -43,3 +43,9 @@ v1.0 -- Derived from Gemma-4-Good session
 - SYSTEMS_ENGINEERING_VMODEL
 - OUROBOROS_LOOP_PRIME
 - MYCELIUM_COVERAGE_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for KAGGLE COMPOUND PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

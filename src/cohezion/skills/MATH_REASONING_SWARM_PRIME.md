@@ -229,3 +229,9 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 *   **Insight**: Autonomous Kaggle Flywheel -- Score-as-Reward
 *   **Details**: Bridging the `AutoresearchDriver` with the Kaggle CLI transforms competition submissions into a closed-loop RL environment. By using the official Private/Public Leaderboard score as the primary reward signal for a Trajectory-Aware UCB1 algorithm, the swarm can optimize for the specific "unseen" private test data characteristics of competitions like AIMO and AGI.
 *   **Date**: 2026-04-11
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MATH REASONING SWARM PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -210,3 +210,9 @@ v2.0 (upgraded from v1.0)
 - PROJECT_MANAGEMENT_PRIME.md
 - R_ZERO_CHALLENGER_PRIME.md
 - DEMOCRATIC_DEBATE_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for product management.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

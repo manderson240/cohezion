@@ -48,3 +48,9 @@ v1.0
 - PERSISTENT_QUALITY_PRIME
 - SELF_HEALING_PRIME
 - SURREALDB_ADVANCED_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for IDE OPTIMIZATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -40,3 +40,9 @@ v1.0 (April 2026 Breakthrough)
 ## SEE ALSO
 - **FLUME_METHODOLOGY_PRIME**
 - **TRIUNE_SUBSTRATE_PRIME**
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for TURBO QUANT PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

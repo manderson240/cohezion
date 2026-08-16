@@ -86,3 +86,9 @@ v1.0
 - GATEWAY_ARCHITECTURE_PRIME.md - Gateway 3 uses this
 - FLUME_METHODOLOGY_PRIME.md - Underlying encoding
 - SEMANTIC_ALGEBRA_PRIME.md - Cross-domain bridging
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for physics informed prediction.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

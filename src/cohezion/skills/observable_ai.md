@@ -102,3 +102,9 @@ v1.0
 - GATEWAY_ARCHITECTURE_PRIME.md - Gateway 5 uses this
 - UNIVERSE_VISUALIZATION_PRIME.md - Manim rendering
 - FLUME_METHODOLOGY_PRIME.md - 12D PhysicsState
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for observable ai.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

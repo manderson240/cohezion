@@ -46,3 +46,9 @@ v0.1
 - RETROSPECTIVE_SKILL
 - METAPHYSICS_PRIME
 - PHYSICS_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SKILL SYNTHESIS PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

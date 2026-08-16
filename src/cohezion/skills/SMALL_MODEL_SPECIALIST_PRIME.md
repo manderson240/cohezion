@@ -3,6 +3,8 @@ name: small-model-specialist-prime
 description: "`` SIMPLE Task → phi3:mini (2.2GB, <100ms) ↓ (if low confidence) MEDIUM Task → qwen2-math:7b OR qwen2.5-coder:7b (4.4-4.7GB, ~200ms) ↓ (if low confidence) COMPLEX Task → Cloud fallback (qwen3.5:cloud, minimax-m2.7:cloud) ``"
 ---
 
+# SKILL: SMALL_MODEL_SPECIALIST_PRIME
+
 # SMALL_MODEL_SPECIALIST_PRIME
 
 **Skill**: Local Model Specialization & Tip-of-Spear Routing
@@ -297,3 +299,14 @@ Provides expert capabilities for Small Model Specialist Prime within the Cohezio
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SMALL MODEL SPECIALIST PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

@@ -307,3 +307,14 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 *   **Insight**: SurrealKV + Versioned Queries for Temporal Knowledge Graphs
 *   **Details**: Migrated from RocksDB (corrupted, read-only transaction bug) to SurrealKV with `?versioned=true`. SurrealDB 3.0 VERSION clause enables system-time-travel queries; bi-temporal fields (valid_from/valid_to) enable domain-time queries. Combined: "what did we know at time T about state at time T'?" REFERENCE keyword enables bidirectional graph traversal via `<~` tilde notation. Schema applied to neurons/synapses (vault), agent_journey (genesis), universe_node (genesis).
 *   **Date**: 2026-04-11
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SURREALDB OPERATIONS PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

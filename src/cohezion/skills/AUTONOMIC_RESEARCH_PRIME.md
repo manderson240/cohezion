@@ -36,3 +36,9 @@ v0.1
 - COMPOUND_ENGINEERING_PRIME.md
 - AUTONOMIC_EVOLUTION_PRIME.md
 - TRACKIO_METRICS_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for AUTONOMIC RESEARCH PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

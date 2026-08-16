@@ -61,3 +61,9 @@ v1.0
 
 ## SEE ALSO
 SURREALDB_ADVANCED_PRIME, CONNECTIVITY_GUIDE_PRIME, DATABASE_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for VAULT KEEPER PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

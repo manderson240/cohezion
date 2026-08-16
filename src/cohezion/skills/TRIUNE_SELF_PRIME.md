@@ -5,6 +5,8 @@ category: compound
 tags: [percival, triune, recursive, learning, doer, thinker, knower, hiho]
 ---
 
+# SKILL: TRIUNE_SELF_PRIME
+
 # Skill: Percival's Triune Self — Recursive Learning Loop
 
 ## Philosophy
@@ -81,3 +83,14 @@ Provides expert capabilities for Triune Self Prime within the Cohezion AGI archi
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for TRIUNE SELF PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

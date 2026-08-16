@@ -3,6 +3,8 @@ name: compound-self-improvement-prime
 description: "Use Cohezion's own compound engineering methodology (Execute → Retrospect → Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and specialist agent swarms."
 ---
 
+# SKILL: COMPOUND_SELF_IMPROVEMENT_PRIME
+
 # COMPOUND_SELF_IMPROVEMENT_PRIME
 
 **Version**: 1.0.0
@@ -680,3 +682,14 @@ Provides expert capabilities for Compound Self Improvement Prime within the Cohe
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for COMPOUND SELF IMPROVEMENT PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

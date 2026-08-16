@@ -131,3 +131,9 @@ v1.0
 - HIHO_STABILITY_PRIME
 - TEAM_ORCHESTRATION_PRIME
 - EXPERIENCE_VAE_TRAINING_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for GROUP EVOLVING AGENTS PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

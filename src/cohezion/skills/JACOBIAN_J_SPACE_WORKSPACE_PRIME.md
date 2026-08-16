@@ -1,3 +1,12 @@
+---
+name: jacobian-j-space-workspace-prime
+description: "Cohezion autonomous capability for JACOBIAN J SPACE WORKSPACE PRIME."
+metadata:
+  version: "1.0"
+  concepts: ["Cohezion", "FLUME", "AutoHarness"]
+  source: "src/cohezion/skills/JACOBIAN_J_SPACE_WORKSPACE_PRIME.md"
+---
+
 # SKILL: JACOBIAN_J_SPACE_WORKSPACE_PRIME
 
 ## DOMAIN EXPERTISE
@@ -46,3 +55,9 @@ v1.0
 ## SEE ALSO
 - [`EXPERIENCE_VAE_TRAINING_PRIME.md`](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md)
 - [`POINCARE_HYPERBOLIC_VISUALIZER_PRIME.md`](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/POINCARE_HYPERBOLIC_VISUALIZER_PRIME.md)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for JACOBIAN J SPACE WORKSPACE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

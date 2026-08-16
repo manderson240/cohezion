@@ -1,3 +1,12 @@
+---
+name: ollama-cloud-models-guide-prime
+description: "Cohezion autonomous capability for OLLAMA CLOUD MODELS GUIDE PRIME."
+metadata:
+  version: "1.0"
+  concepts: ["Cohezion", "FLUME", "AutoHarness"]
+  source: "src/cohezion/skills/OLLAMA_CLOUD_MODELS_GUIDE_PRIME.md"
+---
+
 # SKILL: OLLAMA_CLOUD_MODELS_GUIDE_PRIME
 
 ## DOMAIN EXPERTISE
@@ -53,3 +62,9 @@ v1.0
 ## SEE ALSO
 - `LOCAL_MODEL_ROSTER_EVALUATION_PRIME.md`
 - `src/cohezion/inference/unified_hybrid_router.py`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for OLLAMA CLOUD MODELS GUIDE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

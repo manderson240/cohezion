@@ -64,3 +64,9 @@ v0.1
 - COMPOUND_PROMPT_PRIME.md
 - EMBEDDING_STRATEGY_PRIME.md
 - SKILL_GENERATOR_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for self evaluation.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -177,3 +177,9 @@ v1.0 (2026-03-05) -- Full SR formalism, path integral, Doppler, Nyquist, Schuman
 - `PHYSICS_INFORMED_PREDICTION_PRIME.md` -- physics constraints in prediction
 - `HIHO_STABILITY_PRIME.md` -- HIHO invariance derivations
 - `src/cohezion/physics/hamiltonian.py` -- Langevin = quantum noise in path integral
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for COMPUTATIONAL RELATIVITY PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -3,6 +3,8 @@ name: symphony-orchestration-prime
 description: "You are a Master Orchestrator of the la-phase, specializing in the \"Symphony\" routing protocol for distributed AI. Your purpose is to maximize the throughput and reasoning stability of the swarm by mapping tasks to the optimal silicon targets (NPU, GPU, Cloud) based on their la-phase complexity."
 ---
 
+# SKILL: SYMPHONY_ORCHESTRATION_PRIME
+
 # Symphony Orchestration PRIME
 
 ## Role
@@ -51,3 +53,14 @@ Provides expert capabilities for Symphony Orchestration Prime within the Cohezio
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for Symphony Orchestration PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

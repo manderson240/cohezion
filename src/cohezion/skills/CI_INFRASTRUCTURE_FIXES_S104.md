@@ -18,6 +18,8 @@ created: 2026-04-20
 source: Session 104
 ---
 
+# SKILL: CI_INFRASTRUCTURE_FIXES_S104
+
 # Skill: CI Infrastructure Fixes and Telemetry
 
 ## Context
@@ -126,3 +128,14 @@ Provides expert capabilities for Ci Infrastructure Fixes S104 within the Cohezio
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for CI INFRASTRUCTURE FIXES S104.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

@@ -3,6 +3,8 @@ name: capability-registry-prime
 description: "Capability Registry Prime: The Unified Natural Language Discovery Engine. Use when building or querying the TF-IDF capability registry that aggregates skills, agents, MCP servers, and memory nodes for natural language discovery."
 ---
 
+# SKILL: CAPABILITY_REGISTRY_PRIME
+
 # Capability Registry Prime
 
 ## 1. Core Philosophy
@@ -107,3 +109,14 @@ Provides expert capabilities for Capability Registry Prime within the Cohezion A
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for CAPABILITY REGISTRY PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

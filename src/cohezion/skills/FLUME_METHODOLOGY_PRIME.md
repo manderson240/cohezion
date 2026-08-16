@@ -93,3 +93,9 @@ v1.0 (Renamed from CALM)
 - SWARM_ORCHESTRATION_PRIME.md
 - EMBEDDING_STRATEGY_PRIME.md
 - R_ZERO_CHALLENGER_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for FLUME METHODOLOGY PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

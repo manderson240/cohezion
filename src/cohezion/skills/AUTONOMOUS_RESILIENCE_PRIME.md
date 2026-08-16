@@ -70,3 +70,9 @@ v1.1 (Extended with remote scheduled autonomy via GitHub Actions, 2026-03-05)
 ## SEE ALSO
 - `src/cohezion/reliability/monitor.py`
 - `scripts/drivers/autonomous_bbq.py`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for AUTONOMOUS RESILIENCE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

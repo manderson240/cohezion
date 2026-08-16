@@ -241,3 +241,9 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 *   **Insight**: Ouroboros Recursive Retrospective -- Self-Healing Offense
 *   **Details**: Ouroboros is the critical "Learning" component of the autonomous offensive. When a Kaggle submission fails, Ouroboros ingests the "Wall of Red" (kernel logs) and extracts a "Hardening Mutation" (e.g., 4-bit fallback, VRAM heartbeat). This mutation is codified as a refined skill and fed back into the next research iteration, ensuring the system never repeats the same failure mode during a leaderboard push.
 *   **Date**: 2026-04-11
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for KAGGLE BLACKWELL RUNNER PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

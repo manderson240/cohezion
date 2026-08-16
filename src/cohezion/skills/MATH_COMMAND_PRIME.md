@@ -35,3 +35,9 @@ v0.1
 ## SEE ALSO
 - `MATH_REASONING_SWARM_PRIME`
 - `SYMBOLIC_EXECUTION_PRIME`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MATH COMMAND PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

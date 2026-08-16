@@ -56,3 +56,9 @@ v1.0 (Unified)
 - HIGH_D_PHYSICS_VISUALIZATION_PRIME.md
 - COMMON_CODEBASE_HEALTH_PRIME.md
 - SURREALDB_ADVANCED_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for enterprise ai server mastery.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

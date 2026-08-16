@@ -123,3 +123,18 @@ The skill's discipline is thus SELF-REINFORCING in the compound loop: sloppy com
 ## Version: 1.0.0
 
 ## Keywords: git, commit, atomic, surgical, pre-commit, stash, auto-fix, churn, SKIP, Learning-363, Learning-368
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SURGICAL COMMIT UNDER CHURN PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## VERSION
+v1.0 (Auto-Standardized & Verified)
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

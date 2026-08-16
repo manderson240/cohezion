@@ -5,6 +5,8 @@ category: compound
 tags: [r0, sigma, adversarial, uncertainty, challenger, consensus, ure]
 ---
 
+# SKILL: R0_SIGMA_PRIME
+
 # Skill: R0Σ — Adversarial Challenger + Uncertainty Quantification
 
 ## Overview
@@ -81,3 +83,14 @@ Provides expert capabilities for R0 Sigma Prime within the Cohezion AGI architec
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for R0 SIGMA PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

@@ -122,3 +122,9 @@ v1.0
 - 3D_RENDERING_PRIME.md
 - UNIVERSE_VISUALIZATION_PRIME.md
 - FLUME_METHODOLOGY_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for animations.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

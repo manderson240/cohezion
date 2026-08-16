@@ -249,3 +249,9 @@ v2.0 (upgraded from v1.0)
 - R_ZERO_CHALLENGER_PRIME.md
 - PARALLEL_ORCHESTRATION_PRIME.md
 - FLUME_METHODOLOGY_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for mass simulation.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

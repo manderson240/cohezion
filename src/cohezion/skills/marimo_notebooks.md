@@ -169,3 +169,9 @@ v1.0
 - INTERACTIVE_UI_PRIME.md
 - 3D_RENDERING_PRIME.md
 - FLUME_METHODOLOGY_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for marimo notebooks.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

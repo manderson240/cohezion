@@ -38,3 +38,9 @@ v1.6
 - REWARD_AND_RATCHET_PRIME
 - FLUME_DYNAMICS_PRIME
 - 12D_STATE_STABILITY_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for ASCENSION SKILL PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

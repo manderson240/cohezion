@@ -51,3 +51,14 @@ Match reward structure to algorithm learning dynamics:
 v1.1.0
 
 - v20260401: Training data shows SAC+dense achieves reward=40.77. SAC Dense closes gap to greedy: only 1.20 reward behind (40.77 vs 41.97). 20% convergence. Dense mod
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for RL ENVIRONMENT DESIGN PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

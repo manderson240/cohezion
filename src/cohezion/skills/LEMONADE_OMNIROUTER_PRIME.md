@@ -208,3 +208,9 @@ v1.0 (2026-07-31) — Extracted from safe-research-swarm session + local source 
 - scripts/recover_fleet.sh — soft recovery
 - /usr/share/lemonade-server/resources/defaults.json — max_loaded_models
 - /usr/share/lemonade-server/resources/schemas/route_policy.schema.json — router schema
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LEMONADE OMNIROUTER PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

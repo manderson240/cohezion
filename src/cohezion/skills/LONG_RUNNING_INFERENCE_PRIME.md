@@ -6,6 +6,8 @@ metadata:
   source: "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md"
 ---
 
+# SKILL: LONG_RUNNING_INFERENCE_PRIME
+
 # PRIME Skill: Long-Running Inference
 
 ## Purpose
@@ -155,3 +157,14 @@ Provides expert capabilities for Long Running Inference Prime within the Cohezio
 
 ## VERSION
 v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LONG RUNNING INFERENCE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

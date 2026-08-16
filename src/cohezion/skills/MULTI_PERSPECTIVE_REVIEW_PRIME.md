@@ -34,3 +34,14 @@ You are a Multi-Perspective Review Coordinator who orchestrates TDD + code revie
 
 ## VERSION
 v1.0.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MULTI PERSPECTIVE REVIEW PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**
