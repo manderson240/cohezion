@@ -40,12 +40,13 @@ class GeometricCorrespondenceEngine:
         self.autoharness = AutoHarnessPolicy()
 
     def compute_poincare_distance(self, u: tuple[float, ...], v: tuple[float, ...]) -> float:
-        """Compute hyperbolic distance on the Poincaré ball model."""
-        norm_u_sq = sum(x * x for x in u[:3])
-        norm_v_sq = sum(x * x for x in v[:3])
-        diff_sq = sum((x - y) ** 2 for x, y in zip(u[:3], v[:3]))
+        """Compute hyperbolic distance on the Poincaré ball model with full dimensionality."""
+        dim = min(len(u), len(v))
+        norm_u_sq = sum(x * x for x in u[:dim])
+        norm_v_sq = sum(x * x for x in v[:dim])
+        diff_sq = sum((x - y) ** 2 for x, y in zip(u[:dim], v[:dim]))
 
-        # Boundary clamping for numerical stability inside unit ball
+        # Boundary clamping for numerical stability inside unit ball (||u|| <= 0.99)
         norm_u_sq = min(norm_u_sq, 0.99)
         norm_v_sq = min(norm_v_sq, 0.99)
 
@@ -53,6 +54,23 @@ class GeometricCorrespondenceEngine:
         den = (1.0 - norm_u_sq) * (1.0 - norm_v_sq)
         arg = max(1.0, 1.0 + num / den)
         return math.acosh(arg)
+
+    def compute_poincare_gradient(self, u: tuple[float, ...], v: tuple[float, ...], max_norm: float = 5.0) -> tuple[float, ...]:
+        """Compute Riemannian gradient on the Poincaré ball with strict norm clipping."""
+        dist = self.compute_poincare_distance(u, v)
+        if dist < 1e-7:
+            return (0.0,) * len(u)
+
+        dim = min(len(u), len(v))
+        norm_u_sq = min(sum(x * x for x in u[:dim]), 0.99)
+        conformal_factor = (1.0 - norm_u_sq) ** 2 / 4.0
+
+        # Euclidean difference modulated by conformal factor
+        grad = tuple((x - y) * conformal_factor for x, y in zip(u[:dim], v[:dim]))
+        grad_norm = math.sqrt(sum(g * g for g in grad)) or 1.0
+        if grad_norm > max_norm:
+            grad = tuple((g / grad_norm) * max_norm for g in grad)
+        return grad
 
     async def map_state_to_manifold(self, state_12d: tuple[float, ...], concept_label: str) -> GeometricCorrespondenceMapping:
         logger.info("📐 GEOMETRIC CORRESPONDENCE: Mapping 12D state vector for '%s'...", concept_label)
