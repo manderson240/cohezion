@@ -68,17 +68,17 @@ class TaskClass(StrEnum):
 
 
 # ---------------------------------------------------------------------------
-# Tier-1 (Lemonade / local silicon) lane pins
+# Tier-1 (Lemonade / local silicon) lane pins — 100% Local-First Indefinite Execution
 # ---------------------------------------------------------------------------
 _TIER1_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "Gemma-4-26B-A4B-ThinkingCoder",
+    TaskClass.REASONING: "deepseek-r1-0528-8b-FLM",
     TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-    TaskClass.CODING_TOOLS: "Qwen3.6-35B-A3B-MTP-GGUF",
+    TaskClass.CODING_TOOLS: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
-    TaskClass.RESEARCH: "Gemma-4-31B-it-GGUF",
-    TaskClass.FAST_QA: "gpt-oss-20b",
+    TaskClass.RESEARCH: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.FAST_QA: "qwen3-4b-FLM",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
-    TaskClass.GENERAL: "Qwen3.8-27B-GGUF-Q5_K_M",
+    TaskClass.GENERAL: "qwen3.6-moe-35b-a3b-FLM",
 }
 
 # ---------------------------------------------------------------------------
