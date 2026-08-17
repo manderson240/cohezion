@@ -56,15 +56,16 @@ def verified_action(strict: bool = True) -> Callable:
     return decorator
 
 
+import itertools
+
 def sheaf_consensus_gate(tolerance: float = 0.15) -> Callable:
     """Decorator ensuring multi-agent claim states form a consistent global section (dim H^1 == 0)."""
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(agent_claims: dict[str, list[float] | np.ndarray], *args, **kwargs):
-            intersections = []
             keys = list(agent_claims.keys())
-            for i in range(len(keys) - 1):
-                intersections.append((keys[i], keys[i+1]))
+            # Form complete 1-simplices nerve across all pairs
+            intersections = list(itertools.combinations(keys, 2)) if len(keys) > 1 else []
 
             rep = _sheaf_gate.evaluate_consistency(
                 agent_claims={k: np.array(v) for k, v in agent_claims.items()},

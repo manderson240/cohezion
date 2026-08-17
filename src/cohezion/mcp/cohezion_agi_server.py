@@ -11,6 +11,7 @@ Exposes Cohezion's bleeding-edge AGI capabilities directly over Anthropic's Mode
 
 from __future__ import annotations
 
+import asyncio
 import ast
 import json
 import logging
@@ -135,12 +136,12 @@ async def list_tools() -> list[Tool]:
 
 @app.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
-    """Execute a Cohezion MCP tool."""
+    """Execute a Cohezion MCP tool with strict input validation and non-blocking thread execution."""
     t0 = time.perf_counter()
 
     if name == "cohezion_autoharness_verify":
-        code = arguments.get("code", "")
-        v_res = _verifier.verify_code(code)
+        code = str(arguments.get("code", ""))[:50000]
+        v_res = await asyncio.to_thread(_verifier.verify_code, code)
         dt_ms = (time.perf_counter() - t0) * 1000.0
         result = {
             "valid": v_res.valid,
@@ -151,10 +152,26 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
     elif name == "cohezion_poincare_project":
-        vec = arguments.get("vector", [])
+        raw_vec = arguments.get("vector", [])
+        if not isinstance(raw_vec, list) or len(raw_vec) == 0:
+            return [TextContent(type="text", text=json.dumps({"error": "vector must be non-empty list"}))]
+        # Validate finite floats and clamp dimension to valid choices
+        vec = [float(np.clip(x, -0.99, 0.99)) for x in raw_vec[:2048] if np.isfinite(x)]
         target_dim = int(arguments.get("target_dim", 256))
-        p_pt = PoincareManifoldND.project(tuple(vec), target_dim=target_dim)
-        d_p = PoincareManifoldND.distance(PoincareManifoldND.origin(target_dim), p_pt)
+        if target_dim not in (12, 16, 26, 32, 256, 2048):
+            target_dim = len(vec)
+
+        def _do_poincare():
+            # Pad or slice vector to target_dim
+            if len(vec) < target_dim:
+                padded = vec + [0.0] * (target_dim - len(vec))
+            else:
+                padded = vec[:target_dim]
+            p_pt = PoincareManifoldND.project(tuple(padded), target_dim=target_dim)
+            d_p = PoincareManifoldND.distance(PoincareManifoldND.origin(target_dim), p_pt)
+            return p_pt, d_p
+
+        p_pt, d_p = await asyncio.to_thread(_do_poincare)
         result = {
             "target_dim": target_dim,
             "norm": round(p_pt.norm, 4),
@@ -164,9 +181,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
     elif name == "cohezion_sheaf_cohomology_gate":
-        claims = {k: np.array(v) for k, v in arguments.get("agent_claims", {}).items()}
+        raw_claims = arguments.get("agent_claims", {})
+        claims = {k: np.array([float(np.clip(x, -1.0, 1.0)) for x in v[:12]]) for k, v in list(raw_claims.items())[:64]}
         intersections = [tuple(p) for p in arguments.get("shared_intersections", [])]
-        rep = _sheaf_gate.evaluate_consistency(claims, intersections)
+        rep = await asyncio.to_thread(_sheaf_gate.evaluate_consistency, claims, intersections)
         result = {
             "is_consistent": rep.is_consistent,
             "dim_h0_consensus": rep.dim_h0_consensus,
@@ -177,9 +195,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
     elif name == "cohezion_hiho_sonify":
-        c = float(arguments.get("coherence", 0.5))
-        base_hz = float(arguments.get("fundamental_hz", 432.0))
-        audio_frame = _sonifier.sonify_coherence_state(coherence=c, fundamental_hz=base_hz)
+        raw_c = float(arguments.get("coherence", 0.5))
+        c = float(np.clip(raw_c, 0.0, 1.0))
+        base_hz = float(np.clip(float(arguments.get("fundamental_hz", 432.0)), 20.0, 20000.0))
+        audio_frame = await asyncio.to_thread(_sonifier.sonify_coherence_state, coherence=c, fundamental_hz=base_hz)
         result = {
             "coherence": c,
             "fundamental_hz": round(audio_frame.fundamental_hz, 2),
@@ -190,18 +209,21 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
     elif name == "cohezion_bioelectric_self_heal":
-        n_nodes = int(arguments.get("num_nodes", 12))
-        coupling = float(arguments.get("coupling_strength", 0.75))
-        swarm = BioelectricSwarm(n_nodes=n_nodes, coupling_strength=coupling)
-        r_c = swarm.calculate_light_cone_radius()
+        n_nodes = int(np.clip(int(arguments.get("num_nodes", 12)), 2, 256))
+        coupling = float(np.clip(float(arguments.get("coupling_strength", 0.75)), 0.0, 1.0))
+        
+        def _do_swarm():
+            swarm = BioelectricSwarm(n_nodes=n_nodes, coupling_strength=coupling)
+            r_c = swarm.calculate_light_cone_radius()
+            fault_node = arguments.get("inject_fault_node")
+            healed_nodes = []
+            if fault_node is not None and int(fault_node) in swarm.nodes:
+                swarm.nodes[int(fault_node)].inject_fault("oom")
+                swarm.heal_swarm()
+                healed_nodes = [int(fault_node)]
+            return swarm, r_c, healed_nodes
 
-        fault_node = arguments.get("inject_fault_node")
-        healed_nodes = []
-        if fault_node is not None and int(fault_node) in swarm.nodes:
-            swarm.nodes[int(fault_node)].inject_fault("oom")
-            healed = swarm.heal_swarm()
-            healed_nodes = [int(fault_node)]
-
+        swarm, r_c, healed_nodes = await asyncio.to_thread(_do_swarm)
         result = {
             "num_nodes": n_nodes,
             "coupling_strength": coupling,
