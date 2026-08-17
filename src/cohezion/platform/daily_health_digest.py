@@ -49,6 +49,7 @@ class RepositoryMetrics(BaseModel):
 class TestMetrics(BaseModel):
     """Test suite health metrics."""
 
+    __test__ = False
     total_tests: int
     passing_tests: int
     failing_tests: int
