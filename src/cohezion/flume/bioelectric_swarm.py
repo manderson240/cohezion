@@ -173,13 +173,16 @@ class BioelectricSwarm:
         diffusion_coeff: float = 0.5,
         time_constant: float = 1.0,
         initial_v_mem: float = RESTING_V_MEM,
+        coupling_strength: float | None = None,
+        num_nodes: int | None = None,
     ) -> None:
+        effective_n = num_nodes if num_nodes is not None else n_nodes
         self.diffusion_coeff = max(0.001, float(diffusion_coeff))
         self.time_constant = max(0.001, float(time_constant))
         self.nodes: dict[int | str, BioelectricNode] = {}
 
         # Initialize nodes
-        for i in range(n_nodes):
+        for i in range(effective_n):
             state = np.random.uniform(0.1, 0.9, size=12)
             node = BioelectricNode(
                 node_id=i,
@@ -187,6 +190,9 @@ class BioelectricSwarm:
                 state_vector=state,
             )
             self.nodes[i] = node
+
+        if coupling_strength is not None:
+            self.set_uniform_coupling(coupling_strength)
 
         self._router: UnifiedHybridRouter | None = None
 
