@@ -40,6 +40,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
 from cohezion.physics.hiho_sonification import HIHOSonifier
 from cohezion.reliability.oom_guard import OOMGuard
@@ -175,14 +176,20 @@ assert verify_topological_charge(1, 0.5) is True
     passed, test_log = run_sandboxed_autoharness_test(test_snippet)
     logger.info("Phase 3: Sandboxed AutoHarness Compilation: Passed=%s (Output: %s)", passed, test_log or "Clean")
 
-    # 5. Phase 4: Poincaré Hyperbolic State Tracking & HIHO Sonification
+    # 5. Phase 4: Poincaré Hyperbolic State Tracking, HIHO Sonification & Sheaf Consistency Gate
     sample_vectors = [np.random.uniform(-0.2, 0.2, 12) for _ in range(5)]
     frechet_centroid = compute_poincare_frechet_mean(sample_vectors)
     centroid_norm = float(np.linalg.norm(frechet_centroid))
 
+    # Sheaf Consistency Cohomology Check over Swarm Claims
+    sheaf_gate = SheafConsistencyGate(tolerance=0.15)
+    claims_dict = {f"agent_{i}": v for i, v in enumerate(sample_vectors)}
+    intersections = [(f"agent_{i}", f"agent_{i+1}") for i in range(len(sample_vectors) - 1)]
+    sheaf_rep = sheaf_gate.evaluate_consistency(claims_dict, intersections)
+
     sonifier = HIHOSonifier()
     audio_state = sonifier.sonify_coherence_state(coherence=0.50, fundamental_hz=432.0)
-    logger.info("Phase 4: Hyperbolic Fréchet Centroid Norm: %.4f | Dissonance Index: %.4f (Freq: %.1f Hz)", centroid_norm, audio_state.dissonance_index, audio_state.fundamental_hz)
+    logger.info("Phase 4: Hyperbolic Fréchet Norm: %.4f | Sheaf dim H^0: %d, H^1: %d | Dissonance: %.4f", centroid_norm, sheaf_rep.dim_h0_consensus, sheaf_rep.dim_h1_obstructions, audio_state.dissonance_index)
 
     # 6. Phase 5: Cryptographic Data Provenance & Dual-Store Persistence
     payload_data = {

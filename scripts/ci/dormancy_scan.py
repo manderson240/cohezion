@@ -78,6 +78,12 @@ REGISTRY: list[tuple[str, str, str, int]] = [
      r"self\._failure_memory\.retrieve\(", "src/cohezion/compound/skill_refiner.py", 1),
     ("FM-record: L1 refinement CONSUMES failure_memory.record() to store the new (failure, fix) pair",
      r"self\._failure_memory\.record\(", "src/cohezion/compound/skill_refiner.py", 1),
+    ("SheafGate: SheafConsistencyGate CONSUMED in Hardened Daemon v2 for multi-agent knowledge validation",
+     r"SheafConsistencyGate\(", "scripts/ops/hardened_daemon_v2.py", 1),
+    ("OOMGuard: Dynamic memory floor & Shmem tracking CONSUMED in Hardened Daemon v2",
+     r"OOMGuard\.get_memory_state\(", "scripts/ops/hardened_daemon_v2.py", 1),
+    ("ProvenanceSigner: DataProvenanceSigner v2 key ring CONSUMED in Hardened Daemon v2",
+     r"DataProvenanceSigner\.sign_sample\(", "scripts/ops/hardened_daemon_v2.py", 1),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
