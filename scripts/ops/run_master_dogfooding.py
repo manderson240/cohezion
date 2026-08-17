@@ -12,6 +12,11 @@ Exercises and verifies all subsystems in lockstep:
 8. SurrealDB & Obsidian Kanban task card persistence
 """
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["ROCR_VISIBLE_DEVICES"] = ""
+os.environ["HIP_VISIBLE_DEVICES"] = ""
+
 import asyncio
 import logging
 import sys

@@ -23,9 +23,9 @@ class MemoryState:
     available_gb: float
     total_gb: float
     swap_used_gb: float
-    shmem_gb: float
     is_safe: bool
-    dynamic_floor_gb: float
+    shmem_gb: float = 0.0
+    dynamic_floor_gb: float = 20.0
 
     @property
     def used_gb(self) -> float:
@@ -37,6 +37,7 @@ class OOMGuard:
     """Memory guard to prevent kernel faults and Out-Of-Memory thrashing."""
 
     DEFAULT_MIN_AVAILABLE_GB: float = 20.0
+    MIN_AVAILABLE_GB: float = 20.0
 
     @classmethod
     def calculate_dynamic_floor(cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0) -> float:
