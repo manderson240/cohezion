@@ -70,10 +70,10 @@ class SeventhGenerationProjection:
 
     def to_dict(self) -> dict:
         return {
-            "current_capital": self.current_capital,
-            "projected_capital": self.projected_capital,
-            "growth_rate": self.growth_rate,
-            "is_sustainable": self.is_sustainable,
+            "current_capital": float(self.current_capital),
+            "projected_capital": float(self.projected_capital),
+            "growth_rate": float(self.growth_rate),
+            "is_sustainable": bool(self.is_sustainable),
             "generations_until_depletion": self.generations_until_depletion,
         }
 

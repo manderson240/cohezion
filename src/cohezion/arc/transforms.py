@@ -921,16 +921,61 @@ def get_timing_report() -> dict[str, dict[str, Any]]:
     return report
 
 
-# ---------------------------------------------------------------------------
-# Tier 8 high-impact transforms (stub implementations)
-# ---------------------------------------------------------------------------
-
-
-def grid_symmetry_reflect(grid: np.ndarray) -> np.ndarray:
+def grid_symmetry_reflect(grid: np.ndarray, axis: str = "vertical") -> np.ndarray | None:
     """Mirror missing halves of asymmetric grids using reflective symmetry."""
-    raise NotImplementedError
+    h, w = grid.shape
+    result = grid.copy()
+    modified = False
+
+    if axis == "vertical":
+        # Mirror top half to bottom or bottom half to top along horizontal line
+        for r in range(h // 2):
+            opp_r = h - 1 - r
+            for c in range(w):
+                if result[r, c] != 0 and result[opp_r, c] == 0:
+                    result[opp_r, c] = result[r, c]
+                    modified = True
+                elif result[r, c] == 0 and result[opp_r, c] != 0:
+                    result[r, c] = result[opp_r, c]
+                    modified = True
+    else:  # horizontal axis (mirror left to right across vertical line)
+        for c in range(w // 2):
+            opp_c = w - 1 - c
+            for r in range(h):
+                if result[r, c] != 0 and result[r, opp_c] == 0:
+                    result[r, opp_c] = result[r, c]
+                    modified = True
+                elif result[r, c] == 0 and result[r, opp_c] != 0:
+                    result[r, c] = result[r, opp_c]
+                    modified = True
+
+    return result if modified else None
 
 
-def object_center_of_mass(grid: np.ndarray) -> tuple[float, float]:
-    """Return the (row, col) center of mass of non-zero cells in *grid*."""
-    raise NotImplementedError
+def grid_symmetry_reflect_h(grid: np.ndarray) -> np.ndarray | None:
+    return grid_symmetry_reflect(grid, axis="horizontal")
+
+
+def grid_symmetry_reflect_v(grid: np.ndarray) -> np.ndarray | None:
+    return grid_symmetry_reflect(grid, axis="vertical")
+
+
+def object_center_of_mass(grid: np.ndarray) -> np.ndarray | None:
+    """Place markers at component centroids for each non-zero connected component."""
+    coords = np.argwhere(grid > 0)
+    if len(coords) == 0:
+        return None
+
+    result = np.zeros_like(grid)
+    # Find unique colors
+    colors = np.unique(grid[grid > 0])
+    for color in colors:
+        c_coords = np.argwhere(grid == color)
+        if len(c_coords) > 0:
+            mean_r = int(round(float(np.mean(c_coords[:, 0]))))
+            mean_c = int(round(float(np.mean(c_coords[:, 1]))))
+            mean_r = min(max(0, mean_r), grid.shape[0] - 1)
+            mean_c = min(max(0, mean_c), grid.shape[1] - 1)
+            result[mean_r, mean_c] = color
+
+    return result
