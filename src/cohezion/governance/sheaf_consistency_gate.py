@@ -66,6 +66,8 @@ class SheafConsistencyGate:
                 conflicting_pairs=[],
             )
 
+        # 1. Build adjacency graph to compute connected components (true H^0 dimension)
+        adj: dict[str, set[str]] = {k: set() for k in agent_claims}
         conflicts: list[tuple[str, str, float]] = []
         max_residual = 0.0
 
@@ -81,22 +83,47 @@ class SheafConsistencyGate:
                     conflicts.append((u, v, float("inf")))
                     continue
 
-                # Čech 1-coboundary delta: d^0(f)_{uv} = f_v - f_u
-                residual = float(np.linalg.norm(vec_v - vec_u))
-                if np.isnan(residual) or np.isinf(residual):
+                norm_u = float(np.linalg.norm(vec_u))
+                norm_v = float(np.linalg.norm(vec_v))
+                scale = max(1e-6, 0.5 * (norm_u + norm_v))
+
+                # Scale-normalized Čech 1-coboundary delta: d^0(f)_{uv} = (f_v - f_u) / scale
+                diff_norm = float(np.linalg.norm(vec_v - vec_u))
+                normalized_residual = diff_norm / scale
+
+                if np.isnan(normalized_residual) or np.isinf(normalized_residual):
                     conflicts.append((u, v, float("inf")))
                     continue
 
-                if residual > max_residual:
-                    max_residual = residual
+                if normalized_residual > max_residual:
+                    max_residual = normalized_residual
 
-                if residual > self.tolerance:
-                    conflicts.append((u, v, round(residual, 4)))
+                if normalized_residual > self.tolerance:
+                    conflicts.append((u, v, round(normalized_residual, 4)))
+                else:
+                    # Valid restriction agreement edge
+                    adj[u].add(v)
+                    adj[v].add(u)
             except Exception:
                 conflicts.append((u, v, float("inf")))
 
+        # 2. Compute exact H^0 dimension = Number of connected components with zero coboundary obstructions
+        visited: set[str] = set()
+        num_components = 0
+        for node in agent_claims:
+            if node not in visited:
+                num_components += 1
+                queue = [node]
+                visited.add(node)
+                while queue:
+                    curr = queue.pop(0)
+                    for neighbor in adj[curr]:
+                        if neighbor not in visited:
+                            visited.add(neighbor)
+                            queue.append(neighbor)
+
         dim_h1 = len(conflicts)
-        dim_h0 = 1 if (dim_h1 == 0 and len(agent_claims) > 0) else 0
+        dim_h0 = num_components if dim_h1 == 0 else 0
         is_consistent = dim_h1 == 0
 
         return SheafConsistencyReport(
