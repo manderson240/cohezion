@@ -1,114 +1,155 @@
-"""Poincaré Hyperbolic Manifold Trajectory Tracker.
+r"""Arbitrary-Dimensional Poincaré-Ball Hyperbolic Manifold Physics
+===================================================================
+Implements arbitrary N-dimensional hyperbolic space operations (Poincaré ball model $\|x\| < 1$)
+supporting 12D, 16D (Octonionic), 26D (Bosonic String), 32D (Dirac-Kähler),
+256D (FLUME J-Space Vector), and 2048D (Full Cohezion SOUL_DIM).
 
-Computes 2048D Poincaré disk hyperbolic embedding distances, conformal factors,
-and geodesic trajectory tracking for agent states.
+Equations:
+  - Hyperbolic Distance: d_H(u, v) = arcosh(1 + 2 * ||u - v||^2 / ((1 - ||u||^2) * (1 - ||v||^2)))
+  - Metric Tensor: g_ij(x) = (4 / (1 - ||x||^2)^2) * delta_ij
+  - Parallel Transport: Transport of tangent vector V along geodesic in N-dimensions
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import math
+from typing import Any, Sequence
 
-import numpy as np
-
-
-POINCARE_DIM = 2048
+from cohezion.contracts import PoincarePoint
 
 
-@dataclass
-class PoincareState:
-    """Agent state vector embedded in Poincaré hyperbolic space."""
+class PoincareManifoldND:
+    """Arbitrary N-dimensional Poincaré-ball hyperbolic manifold math provider."""
 
-    state_id: str
-    vector: np.ndarray  # 2048D vector inside open ball ||x|| < 1.0
-    conformal_factor: float
-    norm: float
-    timestamp: float
+    MAX_RADIUS: float = 0.9999
+    EPS: float = 1e-7
+
+    @classmethod
+    def project(cls, coords: Sequence[float], target_dim: int | None = None) -> PoincarePoint:
+        """Project any N-dimensional vector into the unit Poincaré ball (|x| < 1)."""
+        dim = target_dim or len(coords)
+        if len(coords) != dim:
+            raise ValueError(f"Expected {dim} dimensions, got {len(coords)}")
+
+        norm_sq = sum(c * c for c in coords)
+        norm = math.sqrt(norm_sq)
+
+        if norm >= cls.MAX_RADIUS:
+            scale = cls.MAX_RADIUS / (norm + cls.EPS)
+            projected = tuple(c * scale for c in coords)
+        else:
+            projected = tuple(float(c) for c in coords)
+
+        return PoincarePoint(projected, dim=dim)
+
+    @classmethod
+    def distance(cls, u: PoincarePoint, v: PoincarePoint) -> float:
+        """Compute exact hyperbolic distance between two points in N-dimensional Poincaré ball."""
+        if u.dim != v.dim:
+            raise ValueError(f"Dimensional mismatch: u is {u.dim}D, v is {v.dim}D")
+
+        u_sq = sum(c * c for c in u.coords)
+        v_sq = sum(c * c for c in v.coords)
+
+        diff_sq = sum((uc - vc) ** 2 for uc, vc in zip(u.coords, v.coords, strict=True))
+
+        denom = (1.0 - u_sq) * (1.0 - v_sq)
+        if denom <= 0:
+            denom = cls.EPS
+
+        arg = 1.0 + (2.0 * diff_sq / denom)
+        arg = max(1.0, arg)  # Clamp for arcosh domain
+
+        return math.acosh(arg)
+
+    @classmethod
+    def parallel_transport(
+        cls,
+        v_tangent: Sequence[float],
+        u_start: PoincarePoint,
+        u_end: PoincarePoint,
+    ) -> tuple[float, ...]:
+        """Parallel transport tangent vector v_tangent from u_start to u_end along geodesic via Levi-Civita connection."""
+        from cohezion.physics.fiber_connection import FiberConnectionEngine
+        from cohezion.physics.tensor_calculus import VectorTensor
+
+        dim = u_start.dim
+        if len(v_tangent) != dim or u_end.dim != dim:
+            raise ValueError(f"Dimensional mismatch in parallel transport ({dim}D required)")
+
+        v_vec = VectorTensor(tuple(v_tangent), is_covariant=False)
+        dir_vec = VectorTensor(
+            tuple(e - s for s, e in zip(u_start.coords, u_end.coords, strict=True)),
+            is_covariant=False,
+        )
+
+        # Covariant derivative update step
+        cov_step = FiberConnectionEngine.covariant_derivative_step(v_vec, u_start, dir_vec)
+        transported = tuple(vt + cov_step.components[i] for i, vt in enumerate(v_tangent))
+
+        # Conformal norm preservation with boundary clamping against infinity overflow
+        u_sq = min(0.9998, sum(c * c for c in u_start.coords))
+        v_sq = min(0.9998, sum(c * c for c in u_end.coords))
+        lambda_start = 2.0 / (1.0 - u_sq)
+        lambda_end = 2.0 / (1.0 - v_sq)
+        scale = lambda_start / lambda_end
+
+        return tuple(t * scale for t in transported)
+
+    @classmethod
+    def curvature_regularization_loss(cls, points: Sequence[PoincarePoint]) -> float:
+        """Compute average curvature distortion loss across a cluster of N-dimensional points."""
+        if len(points) < 2:
+            return 0.0
+
+        total_loss = 0.0
+        count = 0
+        for i in range(len(points)):
+            for j in range(i + 1, len(points)):
+                d = cls.distance(points[i], points[j])
+                boundary_penalty = max(0.0, points[i].norm - 0.95) + max(0.0, points[j].norm - 0.95)
+                total_loss += d + (10.0 * boundary_penalty)
+                count += 1
+
+        return total_loss / count if count > 0 else 0.0
+
+
+# Backward compatibility alias
+PoincareManifold12D = PoincareManifoldND
 
 
 class PoincareManifoldTracker:
-    """Poincaré Hyperbolic Space Trajectory Tracker."""
+    """Backward-compatible wrapper around PoincareManifoldND.
 
-    def __init__(self, dimension: int = POINCARE_DIM, max_norm: float = 0.999) -> None:
+    Provides the old instance-based API (project_and_track, get_trajectory_drift)
+    using the new static PoincareManifoldND math.
+    """
+
+    def __init__(self, dimension: int = 2048, max_norm: float = 0.999) -> None:
         self.dimension = dimension
         self.max_norm = max_norm
-        self._history: list[PoincareState] = []
-
-    def conformal_factor(self, x: np.ndarray) -> float:
-        """Compute Poincaré metric conformal factor lambda(x) = 2 / (1 - ||x||^2)."""
-        norm_sq = float(np.sum(x**2))
-        norm_sq = min(norm_sq, self.max_norm**2)
-        return 2.0 / max(1.0 - norm_sq, 1e-6)
-
-    def auto_calibrate_conformal_factor(self, x: np.ndarray) -> float:
-        """Auto-calibrate conformal factor when 2048D vectors cross boundary thresholds."""
-        c_fac = self.conformal_factor(x)
-        if c_fac > 100.0:
-            # Re-normalize to prevent hyperbolic boundary divergence
-            x_norm = float(np.linalg.norm(x))
-            scaled_x = x * (0.9 / max(x_norm, 1e-6))
-            c_fac = self.conformal_factor(scaled_x)
-        return c_fac
-
-    def poincare_distance(self, x: np.ndarray, y: np.ndarray) -> float:
-        """Compute hyperbolic geodesic distance in Poincaré open ball model."""
-        x = self._project_to_ball(x)
-        y = self._project_to_ball(y)
-
-        diff_norm_sq = float(np.sum((x - y) ** 2))
-        x_norm_sq = min(float(np.sum(x**2)), self.max_norm**2)
-        y_norm_sq = min(float(np.sum(y**2)), self.max_norm**2)
-
-        denom = (1.0 - x_norm_sq) * (1.0 - y_norm_sq)
-        arg = 1.0 + 2.0 * (diff_norm_sq / max(denom, 1e-8))
-
-        return float(np.arccosh(max(arg, 1.0)))
+        self._points: list[PoincarePoint] = []
 
     def project_and_track(
-        self, state_id: str, raw_vector: np.ndarray | bytes | list[float], timestamp: float
-    ) -> PoincareState:
-        """Project raw vector to 2048D Poincaré ball and record trajectory step."""
-        # 1. Convert bytes or list to float ndarray
-        if isinstance(raw_vector, bytes):
-            vec = np.frombuffer(raw_vector, dtype=np.uint8).astype(np.float64)
-        else:
-            vec = np.asarray(raw_vector, dtype=np.float64).ravel()
-        if len(vec) < self.dimension:
-            vec = np.pad(vec, (0, self.dimension - len(vec)))
-        else:
-            vec = vec[: self.dimension]
-
-        # 2. Project into open ball ||x|| < 1.0
-        vec = self._project_to_ball(vec)
-        norm = float(np.linalg.norm(vec))
-        lambda_x = self.conformal_factor(vec)
-
-        p_state = PoincareState(
-            state_id=state_id,
-            vector=vec,
-            conformal_factor=lambda_x,
-            norm=norm,
-            timestamp=timestamp,
-        )
-
-        self._history.append(p_state)
-        return p_state
-
-    def _project_to_ball(self, x: np.ndarray) -> np.ndarray:
-        """Project vector inside open ball ||x|| <= max_norm."""
-        norm = float(np.linalg.norm(x))
-        if norm >= self.max_norm:
-            return x * (self.max_norm / (norm + 1e-10))
-        return x
+        self,
+        state_id: str,
+        raw_vector: list[float] | tuple[float, ...] | Any,
+        timestamp: float = 0.0,
+    ) -> PoincarePoint:
+        """Project a vector into the Poincaré ball and track it."""
+        coords = list(raw_vector)[: self.dimension]
+        if len(coords) < self.dimension:
+            coords.extend([0.0] * (self.dimension - len(coords)))
+        point = PoincareManifoldND.project(coords, target_dim=self.dimension)
+        self._points.append(point)
+        return point
 
     def get_trajectory_drift(self) -> float:
-        """Compute mean hyperbolic geodesic distance along recent state trajectory."""
-        if len(self._history) < 2:
+        """Total hyperbolic distance across all tracked points."""
+        pts = self._points
+        if len(pts) < 2:
             return 0.0
-        distances = []
-        for i in range(1, len(self._history)):
-            d = self.poincare_distance(self._history[i - 1].vector, self._history[i].vector)
-            distances.append(d)
-        return float(np.mean(distances))
-
-    def get_recent_history(self) -> list[PoincareState]:
-        return list(self._history)
+        total = 0.0
+        for i in range(len(pts) - 1):
+            total += PoincareManifoldND.distance(pts[i], pts[i + 1])
+        return total

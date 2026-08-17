@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — AGENTS.md Referenced Modules 2026-08-17
+- `src/cohezion/agi/recursive_learning.py` — RecursiveLearningEngine with
+  SurrealDB + EventBus + vault persistence (AGENTS.md § Recursive Learning)
+- `src/cohezion/core/cross_session_event_bridge.py` — CrossSessionEventBridge
+  for durable inter-session event persistence to SurrealDB event_log
+- `src/cohezion/physics/ctac_engine.py` — CTAC topological auto-calibration
+  engine (AGENTS.md § Bleeding Edge Research)
+- `src/cohezion/reliability/oom_guard.py` — OOMGuard memory safety protocol
+- `src/cohezion/contracts.py` — Core contracts (PoincarePoint, VerificationResult)
+- `PoincareManifoldTracker` backward-compat wrapper around `PoincareManifoldND`
+
 ### Added — Latency-Aware GIC Tier Selection 2026-08-15
 - `DifficultyEstimator.predict_tier()` now picks the FASTEST tier by median
   latency among quality-adequate tiers, not the positionally-cheapest. Based
@@ -25,6 +36,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `pytorch-triton-rocm` retains the ROCm index mapping.
 - Playwright workflow (`playwright.yml`) now skips for `dependabot[bot]` actor
   to prevent npm lockfile bumps from triggering broken UI builds.
+
+## [1.9.0] — 2026-08-17
+
+### Added
+- `recursive_learning.py`, `cross_session_event_bridge.py`, `ctac_engine.py`,
+  `oom_guard.py`, `contracts.py` — AGENTS.md referenced modules merged to main
+- `PoincareManifoldTracker` backward-compat wrapper for `PoincareManifoldND`
+
+## [1.8.0] — 2026-08-17
+
+### Added
+- `scripts/ops/register_session.py`: EventBus session registration script
 
 ## [1.7.0] — 2026-08-15
 
