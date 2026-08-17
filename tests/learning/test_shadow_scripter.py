@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from cohezion.learning.shadow_scripter import (
+    GeneratedTest,
+    GenerationStatus,
     ShadowScripter,
-    TestGenStatus,
 )
 
 
@@ -17,7 +18,7 @@ class TestShadowScripter:
             test_code="def test_coherence():\n    assert 1 + 1 == 2\n",
             source_skill="COHERENCE_PRIME",
         )
-        assert test.status == TestGenStatus.VALIDATED
+        assert test.status == GenerationStatus.VALIDATED
         assert test.error is None
 
     def test_invalid_syntax_is_quarantined(self):
@@ -28,7 +29,7 @@ class TestShadowScripter:
             test_code="def test_broken(\n    assert True  # Missing closing paren",
             source_skill="BROKEN_SKILL",
         )
-        assert test.status == TestGenStatus.QUARANTINED
+        assert test.status == GenerationStatus.QUARANTINED
         assert test.error is not None
 
     def test_quarantined_tests_not_committable(self):

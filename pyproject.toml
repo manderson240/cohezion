@@ -73,6 +73,8 @@ dependencies = [
     "polars>=1.39.3",
     "aiofiles>=25.1.0",
     "marimo>=0.23.16",
+    "peft>=0.20.0",
+    "trl>=0.23.0",
 ]
 
 [[tool.uv.index]]
@@ -316,6 +318,7 @@ asyncio_mode = "strict"
 addopts = "-v"
 filterwarnings = [
     "ignore::DeprecationWarning:passlib.*",
+    "ignore::pytest.PytestCollectionWarning",
 ]
 markers = [
     "fast: Fast unit tests (<1s each, no live services)",

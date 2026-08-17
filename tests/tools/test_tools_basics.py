@@ -15,7 +15,7 @@ from cohezion.tools.test_generator import (
     ClassInfo,
     FunctionInfo,
     ModuleInfo,
-    TestGenerator,
+    CodeSuiteGenerator as GeneratorHelper,
 )
 
 
@@ -65,13 +65,13 @@ def sample_module(tmp_path: Path) -> Path:
 
 
 def test_test_generator_default_construction():
-    gen = TestGenerator()
+    gen = GeneratorHelper()
     assert gen.template_style == "comprehensive"
     assert gen.indent == "    "
 
 
 def test_analyze_module_extracts_classes_and_functions(sample_module: Path):
-    gen = TestGenerator()
+    gen = GeneratorHelper()
     info = gen.analyze_module(sample_module)
     assert isinstance(info, ModuleInfo)
     func_names = {f.name for f in info.functions}
@@ -83,7 +83,7 @@ def test_analyze_module_extracts_classes_and_functions(sample_module: Path):
 
 
 def test_analyze_module_marks_async_function(sample_module: Path):
-    gen = TestGenerator()
+    gen = GeneratorHelper()
     info = gen.analyze_module(sample_module)
     fetch = next(f for f in info.functions if f.name == "fetch")
     assert fetch.is_async is True
@@ -95,7 +95,7 @@ def test_analyze_module_marks_async_function(sample_module: Path):
 
 
 def test_analyze_module_extracts_class_methods_and_skips_self(sample_module: Path):
-    gen = TestGenerator()
+    gen = GeneratorHelper()
     info = gen.analyze_module(sample_module)
     greeter = next(c for c in info.classes if c.name == "Greeter")
     method_names = {m.name for m in greeter.methods}
@@ -109,7 +109,7 @@ def test_analyze_module_extracts_class_methods_and_skips_self(sample_module: Pat
 
 
 def test_generate_tests_includes_class_and_function_blocks(sample_module: Path):
-    gen = TestGenerator()
+    gen = GeneratorHelper()
     info = gen.analyze_module(sample_module)
     output = gen.generate_tests(info)
     # Public function `add` -> TestAdd class
@@ -124,7 +124,7 @@ def test_generate_tests_includes_class_and_function_blocks(sample_module: Path):
 
 
 def test_generate_tests_emits_module_docstring_header(sample_module: Path):
-    gen = TestGenerator()
+    gen = GeneratorHelper()
     info = gen.analyze_module(sample_module)
     output = gen.generate_tests(info)
     # Docstring header + import + pytest scaffold

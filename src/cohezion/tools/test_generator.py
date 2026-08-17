@@ -49,10 +49,8 @@ class ModuleInfo:
     imports: list[str] = field(default_factory=list)
 
 
-class TestGenerator:
+class CodeSuiteGenerator:
     """Generate pytest test files from Python source."""
-
-    __test__ = False
 
     def __init__(self, template_style: str = "comprehensive"):
         self.template_style = template_style
@@ -328,7 +326,7 @@ def main():
         return 1
 
     print(f"Analyzing {source_path}...")
-    generator = TestGenerator(template_style=args.template)
+    generator = CodeTestGenerator(template_style=args.template)
     module_info = generator.analyze_module(source_path)
 
     print(f"Found {len(module_info.classes)} classes, {len(module_info.functions)} functions")
@@ -343,6 +341,11 @@ def main():
     print(f"Tests generated: {len(module_info.classes) + len(module_info.functions)}")
 
     return 0
+
+
+# Backwards compatibility aliases
+CodeTestGenerator = CodeSuiteGenerator
+TestGenerator = CodeSuiteGenerator
 
 
 if __name__ == "__main__":
