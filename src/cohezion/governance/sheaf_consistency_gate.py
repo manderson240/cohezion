@@ -73,16 +73,27 @@ class SheafConsistencyGate:
             if u not in agent_claims or v not in agent_claims:
                 continue
 
-            vec_u = np.asarray(agent_claims[u], dtype=np.float64)
-            vec_v = np.asarray(agent_claims[v], dtype=np.float64)
+            try:
+                vec_u = np.asarray(agent_claims[u], dtype=np.float64)
+                vec_v = np.asarray(agent_claims[v], dtype=np.float64)
 
-            # Čech 1-coboundary delta: d^0(f)_{uv} = f_v - f_u
-            residual = float(np.linalg.norm(vec_v - vec_u))
-            if residual > max_residual:
-                max_residual = residual
+                if vec_u.shape != vec_v.shape:
+                    conflicts.append((u, v, float("inf")))
+                    continue
 
-            if residual > self.tolerance:
-                conflicts.append((u, v, round(residual, 4)))
+                # Čech 1-coboundary delta: d^0(f)_{uv} = f_v - f_u
+                residual = float(np.linalg.norm(vec_v - vec_u))
+                if np.isnan(residual) or np.isinf(residual):
+                    conflicts.append((u, v, float("inf")))
+                    continue
+
+                if residual > max_residual:
+                    max_residual = residual
+
+                if residual > self.tolerance:
+                    conflicts.append((u, v, round(residual, 4)))
+            except Exception:
+                conflicts.append((u, v, float("inf")))
 
         dim_h1 = len(conflicts)
         dim_h0 = 1 if (dim_h1 == 0 and len(agent_claims) > 0) else 0
