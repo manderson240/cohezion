@@ -52,9 +52,12 @@ class RecursiveLearningEngine:
     async def surreal_upsert(self, record_id: str, data: dict) -> bool:
         """Persist learning cycle to SurrealDB using async SurrealClient."""
         try:
-            await self.surreal_client.query(
-                "UPSERT type::record('learning', $rec_id) CONTENT $data;",
-                {"rec_id": record_id, "data": data},
+            await asyncio.wait_for(
+                self.surreal_client.query(
+                    "UPSERT type::record('learning', $rec_id) CONTENT $data;",
+                    {"rec_id": record_id, "data": data},
+                ),
+                timeout=5.0,
             )
             return True
         except Exception as exc:

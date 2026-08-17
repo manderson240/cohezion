@@ -52,9 +52,12 @@ class CrossSessionEventBridge:
         }
 
         try:
-            await self.surreal_client.query(
-                "UPSERT type::record('event_log', $record_id) CONTENT $data;",
-                {"record_id": record_id, "data": event_data},
+            await asyncio.wait_for(
+                self.surreal_client.query(
+                    "UPSERT type::record('event_log', $record_id) CONTENT $data;",
+                    {"record_id": record_id, "data": event_data},
+                ),
+                timeout=3.0,
             )
             logger.debug("Persisted cross-session event %s to event_log", record_id)
         except Exception as err:
