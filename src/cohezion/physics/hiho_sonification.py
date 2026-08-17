@@ -256,6 +256,15 @@ class HIHOSonifier:
             release_s=release,
         )
 
+    def sonify_coherence_state(self, coherence: float, fundamental_hz: float = 432.0, lyapunov_perturbation: float = 0.0) -> AudioFieldState:
+        """Convenience method to sonify a single coherence metric across the 4 fabrics."""
+        self.fundamental_hz = fundamental_hz
+        dist = self.compute_coherence_distance(coherence)
+        dissonance = self.calculate_dissonance(dist, lyapunov_perturbation)
+        state_dict = {"coherence": coherence}
+        res = self.sonify_quadrature_state(state_dict, lyapunov_perturbation=lyapunov_perturbation)
+        return res
+
     def sonify_quadrature_state(
         self,
         state: np.ndarray | QuadratureState | dict[str, float],
