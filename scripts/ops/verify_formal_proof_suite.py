@@ -8,12 +8,18 @@ Executes a live 4-Tier Zero-Hallucination Formal Verification on our newly train
 4. Proof 4 (Live Model Inference Comparison): Evaluates base model vs fine-tuned LoRA adapter on proprietary Cohezion types.
 """
 
+import os
+import sys
+
+# CRITICAL: Disable ROCm/HIP device probing BEFORE importing torch or safetensors to prevent libamdhip64 SIGSEGV
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["ROCR_VISIBLE_DEVICES"] = ""
+os.environ["HIP_VISIBLE_DEVICES"] = ""
+
 import asyncio
 import json
 import logging
 import math
-import os
-import sys
 import time
 from collections import Counter
 from pathlib import Path
