@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestGenStatus(Enum):
+    __test__ = False
     GENERATED = "generated"
     VALIDATED = "validated"
     QUARANTINED = "quarantined"

@@ -52,6 +52,8 @@ class ModuleInfo:
 class TestGenerator:
     """Generate pytest test files from Python source."""
 
+    __test__ = False
+
     def __init__(self, template_style: str = "comprehensive"):
         self.template_style = template_style
         self.indent = "    "
