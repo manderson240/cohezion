@@ -3778,5 +3778,85 @@
     "name": "visual_validation",
     "path": "src/cohezion/skills/visual_validation.md",
     "version": "1.0.0"
+  },
+  "tracelens-analysis-orchestrator": {
+    "description": "Orchestrates modular PyTorch profiler trace analysis with TraceLens across system-level and compute-kernel subagents to eliminate UMA memory copies and kernel bottlenecks.",
+    "keywords": [
+      "amd",
+      "hipMemcpy",
+      "kernel_profiling",
+      "performance",
+      "pytorch",
+      "rocm",
+      "tracelens",
+      "uma_zero_copy"
+    ],
+    "last_updated": "2026-08-17T00:00:00",
+    "name": "tracelens-analysis-orchestrator",
+    "path": "src/cohezion/skills/amd/skills-repo/skills/tracelens-analysis-orchestrator/SKILL.md",
+    "version": "1.0.0"
+  },
+  "magpie-kernel-evaluator": {
+    "description": "Performs GPU kernel correctness and performance evaluation and LLM inference benchmarking with Magpie on RDNA and CDNA architectures.",
+    "keywords": [
+      "amd",
+      "benchmarking",
+      "hip",
+      "kernel_eval",
+      "magpie",
+      "rdna",
+      "vllm"
+    ],
+    "last_updated": "2026-08-17T00:00:00",
+    "name": "magpie-kernel-evaluator",
+    "path": "src/cohezion/skills/amd/skills-repo/skills/magpie-kernel-evaluator/SKILL.md",
+    "version": "1.0.0"
+  },
+  "local-ai-use": {
+    "description": "Routes image generation (SD-Turbo), TTS (Kokoro), and STT (Whisper) through local Lemonade Server on port 13305 to eliminate cloud token costs.",
+    "keywords": [
+      "amd",
+      "kokoro",
+      "lemonade",
+      "multimodal",
+      "npu",
+      "sd-turbo",
+      "whisper"
+    ],
+    "last_updated": "2026-08-17T00:00:00",
+    "name": "local-ai-use",
+    "path": "src/cohezion/skills/amd/skills-repo/skills/local-ai-use/SKILL.md",
+    "version": "1.0.0"
+  },
+  "local-ai-app-integration": {
+    "description": "Bundles embeddable Lemonade daemon (lemond) for private, offline app inference without cloud dependencies.",
+    "keywords": [
+      "amd",
+      "embeddable",
+      "lemonade",
+      "lemond",
+      "npu",
+      "offline_inference"
+    ],
+    "last_updated": "2026-08-17T00:00:00",
+    "name": "local-ai-app-integration",
+    "path": "src/cohezion/skills/amd/skills-repo/skills/local-ai-app-integration/SKILL.md",
+    "version": "1.0.0"
+  },
+  "serving-llms-on-epyc": {
+    "description": "Serves language models on AMD CPUs using vLLM with the zentorch backend and AVX-512 optimizations for CPU fallback reasoning.",
+    "keywords": [
+      "amd",
+      "avx512",
+      "cpu_inference",
+      "epyc",
+      "vllm",
+      "zen4",
+      "zentorch"
+    ],
+    "last_updated": "2026-08-17T00:00:00",
+    "name": "serving-llms-on-epyc",
+    "path": "src/cohezion/skills/amd/skills-repo/skills/serving-llms-on-epyc/SKILL.md",
+    "version": "1.0.0"
   }
 }
