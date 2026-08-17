@@ -23,7 +23,9 @@ class MemoryState:
     available_gb: float
     total_gb: float
     swap_used_gb: float
+    shmem_gb: float
     is_safe: bool
+    dynamic_floor_gb: float
 
     @property
     def used_gb(self) -> float:
@@ -34,12 +36,18 @@ class MemoryState:
 class OOMGuard:
     """Memory guard to prevent kernel faults and Out-Of-Memory thrashing."""
 
-    MIN_AVAILABLE_GB: float = 20.0
+    DEFAULT_MIN_AVAILABLE_GB: float = 20.0
 
     @classmethod
-    def get_memory_state(cls) -> MemoryState:
-        """Inspect current system available memory via `free -m`."""
+    def calculate_dynamic_floor(cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0) -> float:
+        """Compute dynamic memory floor: base 10GB + largest resident model + shmem overhead."""
+        return max(cls.DEFAULT_MIN_AVAILABLE_GB, 10.0 + largest_model_gb + (shmem_gb * 1.5))
+
+    @classmethod
+    def get_memory_state(cls, largest_model_gb: float = 16.0) -> MemoryState:
+        """Inspect system available memory, /proc/meminfo Shmem, and GTT pressure."""
         try:
+            # 1. Inspect free -m
             out = subprocess.run(
                 ["free", "-m"], capture_output=True, text=True, timeout=5
             ).stdout
@@ -55,17 +63,39 @@ class OOMGuard:
             total_gb = total_mb / 1024.0
             swap_used_gb = swap_used_mb / 1024.0
 
-            is_safe = available_gb >= cls.MIN_AVAILABLE_GB
+            # 2. Inspect /proc/meminfo for Shmem / IPC allocations
+            shmem_gb = 0.0
+            try:
+                with open("/proc/meminfo", "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.startswith("Shmem:"):
+                            shmem_kb = float(line.split()[1])
+                            shmem_gb = shmem_kb / (1024.0 * 1024.0)
+                            break
+            except Exception:
+                pass
+
+            dynamic_floor = cls.calculate_dynamic_floor(largest_model_gb, shmem_gb)
+            is_safe = available_gb >= dynamic_floor
 
             return MemoryState(
                 available_gb=round(available_gb, 2),
                 total_gb=round(total_gb, 2),
                 swap_used_gb=round(swap_used_gb, 2),
+                shmem_gb=round(shmem_gb, 2),
                 is_safe=is_safe,
+                dynamic_floor_gb=round(dynamic_floor, 2),
             )
         except Exception as e:
             logger.error(f"Failed to inspect memory state: {e}")
-            return MemoryState(available_gb=0.0, total_gb=0.0, swap_used_gb=0.0, is_safe=False)
+            return MemoryState(
+                available_gb=0.0,
+                total_gb=0.0,
+                swap_used_gb=0.0,
+                shmem_gb=0.0,
+                is_safe=False,
+                dynamic_floor_gb=cls.DEFAULT_MIN_AVAILABLE_GB,
+            )
 
     @classmethod
     async def wait_for_headroom(cls, min_gb: float = 20.0, timeout: float = 120.0) -> bool:
