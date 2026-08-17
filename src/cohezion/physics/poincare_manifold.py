@@ -25,6 +25,11 @@ class PoincareManifoldND:
     EPS: float = 1e-7
 
     @classmethod
+    def origin(cls, dim: int) -> PoincarePoint:
+        """Create origin point in N-dimensional hyperbolic space."""
+        return PoincarePoint(tuple(0.0 for _ in range(dim)), dim=dim)
+
+    @classmethod
     def project(cls, coords: Sequence[float], target_dim: int | None = None) -> PoincarePoint:
         """Project any N-dimensional vector into the unit Poincaré ball (|x| < 1)."""
         dim = target_dim or len(coords)
