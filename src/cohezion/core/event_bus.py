@@ -179,14 +179,21 @@ class EventBus:
             logger.info("EventBus started")
 
     async def stop(self) -> None:
-        """Stop the event processor."""
+        """Stop the event processor safely, draining pending events."""
         self._running = False
         if self._processor_task:
-            # Wait for queue to drain
-            await self._queue.join()
+            # Drain remaining events in queue
+            while not self._queue.empty():
+                try:
+                    _, _, event = self._queue.get_nowait()
+                    await self._dispatch(event)
+                    self._queue.task_done()
+                except (asyncio.QueueEmpty, ValueError):
+                    break
             self._processor_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._processor_task
+            self._processor_task = None
         logger.info(f"EventBus stopped. Metrics: {self._metrics}")
 
     def subscribe(
