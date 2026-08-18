@@ -99,9 +99,11 @@ class DynamicModelHotSwapper:
                 logger.info("ℹ️ EventBus coordination note: %s", e)
 
             # Step 2: Unload active model allocations & trigger GC
-            self.unload_active_models()
+            unloaded = self.unload_active_models()
+            if not unloaded:
+                logger.warning("⚠️ Model unload warning: Lemonade reported busy/error; proceeding with safety check")
             gc.collect()
-            await asyncio.sleep(1.0)  # Memory settlement pause
+            await asyncio.sleep(0.5)  # Fast memory settlement pause
 
             # Step 3: Read post-settlement memory
             mem = OOMGuard.get_memory_state()

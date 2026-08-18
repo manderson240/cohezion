@@ -99,21 +99,21 @@ _TIER1_PINS: dict[TaskClass, str] = {
 # Tier-2 (Ollama cloud) Complete 13-Model Roster
 # ---------------------------------------------------------------------------
 _TIER2_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "deepseek-v4-pro:cloud",                # 1.6T MoE Top Reasoning & Formal Logic
-    TaskClass.DEEP_REASONING: "kimi-k3:cloud",                  # Kimi K3 Autonomous Deep Reasoning
-    TaskClass.CODING: "qwen3.5:397b-cloud",                     # 397B Multi-File System Refactors
-    TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",             # Agentic Tool Use & Precise Patch Gen
-    TaskClass.VISION: "glm-5.2:cloud",                          # Multimodal Geometry, Category Theory & Diagram Parsing
-    TaskClass.RESEARCH: "nemotron-3-ultra:cloud",               # Frontier Enterprise Knowledge Synthesis
-    TaskClass.SCIENCE_FRONTIER: "nemotron-3-super:cloud",       # Frontier Physics, Science & Math Verification
-    TaskClass.FAST_QA: "deepseek-v4-flash:cloud",               # Ultra-Fast High-Throughput Retrieval
-    TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud", # Sub-Second Low-Latency Draft Generation
-    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:0731-cloud", # Fast edge fallback
-    TaskClass.EXTREME_COMPACT: "deepseek-v4-flash:cloud",       # Compact fallback
-    TaskClass.LONG_CONTEXT_ANALYSIS: "kimi-k2.6:cloud",         # 2M Context Window Document Analysis
-    TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",           # Nuanced Narrative, PRD & Creative Synthesis
-    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",                   # Dense Multilingual Semantic Vectors
-    TaskClass.GENERAL: "gpt-oss:120b-cloud",                    # Transparent Broad General Intelligence
+    TaskClass.REASONING: "deepseek-v4-pro:cloud",  # 1.6T MoE Top Reasoning & Formal Logic
+    TaskClass.DEEP_REASONING: "kimi-k3:cloud",  # Kimi K3 Autonomous Deep Reasoning
+    TaskClass.CODING: "qwen3.5:397b-cloud",  # 397B Multi-File System Refactors
+    TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",  # Agentic Tool Use & Precise Patch Gen
+    TaskClass.VISION: "glm-5.2:cloud",  # Multimodal Geometry, Category Theory & Diagram Parsing
+    TaskClass.RESEARCH: "nemotron-3-ultra:cloud",  # Frontier Enterprise Knowledge Synthesis
+    TaskClass.SCIENCE_FRONTIER: "nemotron-3-super:cloud",  # Frontier Physics, Science & Math Verification
+    TaskClass.FAST_QA: "deepseek-v4-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
+    TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud",  # Sub-Second Low-Latency Draft Generation
+    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:0731-cloud",  # Fast edge fallback
+    TaskClass.EXTREME_COMPACT: "deepseek-v4-flash:cloud",  # Compact fallback
+    TaskClass.LONG_CONTEXT_ANALYSIS: "kimi-k2.6:cloud",  # 2M Context Window Document Analysis
+    TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
+    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors
+    TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
 }
 
 
@@ -276,7 +276,9 @@ class UnifiedHybridRouter:
                     return resp
 
             # Tier-2 fallback for embedding
-            chosen_tier2_model = _TIER2_PINS.get(TaskClass.EMBEDDINGS, "nomic-embed-text-v2-moe-GGUF")
+            chosen_tier2_model = _TIER2_PINS.get(
+                TaskClass.EMBEDDINGS, "nomic-embed-text-v2-moe-GGUF"
+            )
             emb_res = await self.aquery_embedding(prompt, chosen_tier2_model)
             if emb_res is not None:
                 dt_ms = (time.perf_counter() - t0) * 1000.0
@@ -421,12 +423,16 @@ class UnifiedHybridRouter:
     def query_lemonade_local(self, prompt: str, model: str) -> str | None:
         """Synchronous wrapper for aquery_lemonade_local."""
         import asyncio
+
         try:
             loop = asyncio.get_running_loop()
             if loop.is_running():
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    return pool.submit(asyncio.run, self.aquery_lemonade_local(prompt, model)).result()
+                    return pool.submit(
+                        asyncio.run, self.aquery_lemonade_local(prompt, model)
+                    ).result()
         except RuntimeError:
             pass
         return asyncio.run(self.aquery_lemonade_local(prompt, model))
@@ -434,12 +440,16 @@ class UnifiedHybridRouter:
     def query_ollama_cloud(self, prompt: str, model: str) -> str | None:
         """Synchronous wrapper for aquery_ollama_cloud."""
         import asyncio
+
         try:
             loop = asyncio.get_running_loop()
             if loop.is_running():
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    return pool.submit(asyncio.run, self.aquery_ollama_cloud(prompt, model)).result()
+                    return pool.submit(
+                        asyncio.run, self.aquery_ollama_cloud(prompt, model)
+                    ).result()
         except RuntimeError:
             pass
         return asyncio.run(self.aquery_ollama_cloud(prompt, model))
@@ -509,7 +519,9 @@ class UnifiedHybridRouter:
 
         return None
 
-    async def aquery_embedding(self, text: str, model: str = "embed-gemma-300m-FLM") -> list[float] | None:
+    async def aquery_embedding(
+        self, text: str, model: str = "embed-gemma-300m-FLM"
+    ) -> list[float] | None:
         """Fetch real embedding vector via Lemonade /v1/embeddings endpoint.
 
         Parameters
@@ -525,6 +537,7 @@ class UnifiedHybridRouter:
             Embedding float vector, or None on failure.
         """
         import httpx
+
         payload = {"model": model, "input": text}
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
@@ -553,7 +566,15 @@ class UnifiedHybridRouter:
             Model response text, or ``None`` if the call fails.
         """
         import httpx
-        
+
+        # Circuit breaker protection against cloud timeout storms
+        from cohezion.reliability import get_circuit
+
+        circuit = get_circuit("ollama_cloud", failure_threshold=3, recovery_timeout=20.0)
+        if not circuit.allow_request():
+            logger.warning("Ollama Cloud circuit breaker OPEN; bypassing to prevent timeout stall")
+            return None
+
         # Model-aligned architectural options to maximize strengths & eliminate weaknesses
         options: dict[str, Any] = {"temperature": 0.2, "top_p": 0.95}
         if "deepseek-v4-pro" in model or "nemotron-3-super" in model:
@@ -576,15 +597,18 @@ class UnifiedHybridRouter:
             "options": options,
         }
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=45.0) as client:
                 res = await client.post(OLLAMA_URL, json=payload)
                 if res.status_code == 200:
+                    circuit.record_success()
                     data = res.json()
                     raw = (data.get("response") or data.get("thinking") or "").strip()
                     if "</think>" in raw:
                         raw = raw.split("</think>")[-1].strip()
                     return raw
+                circuit.record_failure()
         except Exception as exc:
+            circuit.record_failure()
             logger.debug("Ollama Cloud query bypassed: %s", exc)
             return None
 
