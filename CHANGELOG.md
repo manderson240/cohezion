@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — Adversarial Review Hardening 2026-08-17
+- `recursive_learning.py`: Added `asyncio.TimeoutError` handling + configurable
+  timeout via `SURREAL_UPSERT_TIMEOUT_S` env var (default 5.0s)
+- `cross_session_event_bridge.py`: Added `asyncio.TimeoutError` handling +
+  configurable timeout via `EVENT_HANDLER_TIMEOUT_S` env var (default 3.0s)
+- `difficulty_estimator.py`: Added `_LATENCY_MIN_SAMPLES=3` gate — empirical
+  median latency is only trusted when a tier has ≥3 observations (GIC-LAT3)
+- `poincare_manifold.py`: Added `DeprecationWarning` to `PoincareManifoldTracker`
+- `pyproject.toml`: Bounded `torch>=2.8.0,<3.0.0` to prevent surprise breakage
+
+### Note — v1.8.0 gap
+v1.8.0 was skipped due to a version conflict between two PRs (#283 and #284)
+that both attempted to bump to 1.8.0. PR #284 merged first as v1.9.0, and #283
+was rebased to v1.10.0. The gap is cosmetic — no release artifact was published
+at v1.8.0.
+
 ### Added — Session Registration Script 2026-08-17
 - `scripts/ops/register_session.py`: Reusable script for agents to register
   their session with the EventBus and persist a kanban card to SurrealDB +

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -19,6 +20,8 @@ from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 logger = logging.getLogger(__name__)
+
+_EVENT_HANDLER_TIMEOUT_S = float(os.environ.get("EVENT_HANDLER_TIMEOUT_S", "3.0"))
 
 
 @dataclass
@@ -55,11 +58,21 @@ class CrossSessionEventBridge:
         }
 
         try:
-            await self.surreal_client.query(
-                "UPSERT type::record('event_log', $record_id) CONTENT $data;",
-                {"record_id": record_id, "data": event_data},
+            await asyncio.wait_for(
+                self.surreal_client.query(
+                    "UPSERT type::record('event_log', $record_id) CONTENT $data;",
+                    {"record_id": record_id, "data": event_data},
+                ),
+                timeout=_EVENT_HANDLER_TIMEOUT_S,
             )
             logger.debug("Persisted cross-session event %s to event_log", record_id)
+        except TimeoutError:
+            logger.error(
+                "Event persistence timed out after %.1fs — event %s/%s LOST from event_log",
+                _EVENT_HANDLER_TIMEOUT_S,
+                event.type.name,
+                event.source,
+            )
         except Exception as err:
             logger.warning("Failed to persist event to SurrealDB event_log: %s", err)
 

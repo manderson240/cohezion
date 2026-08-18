@@ -121,11 +121,19 @@ PoincareManifold12D = PoincareManifoldND
 class PoincareManifoldTracker:
     """Backward-compatible wrapper around PoincareManifoldND.
 
-    Provides the old instance-based API (project_and_track, get_trajectory_drift)
-    using the new static PoincareManifoldND math.
+    .. deprecated::
+        Use ``PoincareManifoldND`` directly (static methods, no instance needed).
+        This wrapper will be removed in a future release.
     """
 
     def __init__(self, dimension: int = 2048, max_norm: float = 0.999) -> None:
+        import warnings
+
+        warnings.warn(
+            "PoincareManifoldTracker is deprecated; use PoincareManifoldND static methods directly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.dimension = dimension
         self.max_norm = max_norm
         self._points: list[PoincarePoint] = []
