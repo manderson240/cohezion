@@ -137,7 +137,13 @@ class DirectLemonadeImageTier:
         """Return True if the OmniRouter is responding on self.port."""
         try:
             async with httpx.AsyncClient(timeout=2.0) as client:
-                resp = await client.get(f"http://localhost:{self.port}/api/v1/health")
-                return resp.status_code < 500
+                for path in ("/api/v1/health", "/health", "/v1/models"):
+                    try:
+                        resp = await client.get(f"http://localhost:{self.port}{path}")
+                        if resp.status_code < 500:
+                            return True
+                    except Exception:
+                        continue
+                return False
         except Exception:
             return False
