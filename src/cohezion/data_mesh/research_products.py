@@ -36,6 +36,7 @@ import base64
 import json
 import logging
 import re
+import time
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -95,16 +96,45 @@ _OPTIONS_MENU_RE = re.compile(
 )
 
 
+# Negation is invisible to substring matching: "adopt nothing" and "nothing to
+# import" both contain an actionable word, so a verdict saying TAKE NOTHING used
+# to classify as 'actionable' and auto-card itself to kanban as work to do — the
+# exact inverse of the finding. Negators are therefore matched per CLAUSE: an
+# actionable word only counts if its own clause carries no negator.
+_NEGATORS = (
+    "nothing",
+    "not ",
+    "n't",
+    "no need",
+    "avoid",
+    "without",
+    "rather than",
+    "instead of",
+    "neither",
+    "none of",
+)
+# Clause boundaries — negation does not reach across them ("Integrate X; do not
+# adopt Y" is still actionable on the first clause).
+_CLAUSE_SPLIT_RE = re.compile(r"[;,.\n]| but | however | though ")
+
+
+def _has_unnegated(clauses: list[str], words: tuple[str, ...]) -> bool:
+    """True if any clause contains one of ``words`` AND carries no negator."""
+    return any(any(w in c for w in words) and not any(n in c for n in _NEGATORS) for c in clauses)
+
+
 def classify_actionability(verdict_text: str) -> str:
     """Map free-text verdict → {actionable, monitor, drop}.
 
     Empty / unrecognised verdicts default to 'monitor' (conservative: never
-    auto-card something we could not read a decision from).
+    auto-card something we could not read a decision from). Negated actionable
+    phrasing ("adopt nothing") is NOT actionable.
     """
     v = _OPTIONS_MENU_RE.sub(" ", verdict_text.lower())
     if any(w in v for w in _DROP_WORDS):
         return "drop"
-    if any(w in v for w in _ACTIONABLE_WORDS):
+    clauses = _CLAUSE_SPLIT_RE.split(v)
+    if _has_unnegated(clauses, _ACTIONABLE_WORDS):
         return "actionable"
     if any(w in v for w in _MONITOR_WORDS):
         return "monitor"
@@ -216,6 +246,50 @@ def _extract_section(body: str, keyword: str) -> str:
     return "\n".join(collected).strip()
 
 
+def _normalise_licence(value: str) -> str:
+    """Canonical form for comparison, so cosmetic differences are not 'divergence'.
+
+    Case, surrounding whitespace and the ubiquitous '-only'/'-or-later' suffixes are
+    noise; 'NOASSERTION'/'NONE'/'UNKNOWN' all mean the platform could not determine it
+    and are folded together. Anything else is compared verbatim -- deliberately, since
+    guessing equivalences between real licences is exactly the judgement a human must
+    make.
+    """
+    v = value.strip().upper().replace("_", "-")
+    if v in {"NOASSERTION", "NONE", "UNKNOWN", "N/A", "-"}:
+        return "UNDETERMINED"
+    for suffix in ("-ONLY", "-OR-LATER"):
+        if v.endswith(suffix):
+            v = v[: -len(suffix)]
+    return v
+
+
+def _parse_licence(fm: dict[str, Any], body: str) -> tuple[str, str]:
+    """Read licence_tag / licence_actual from frontmatter, then from a Licence section.
+
+    Frontmatter wins: it is the machine-written value. The section fallback exists so
+    briefs already written in prose are not silently dropped on the floor during the
+    migration away from prose.
+    """
+    tag = str(fm.get("licence_tag") or fm.get("license_tag") or "").strip()
+    actual = str(fm.get("licence_actual") or fm.get("license_actual") or "").strip()
+    if tag and actual:
+        return tag, actual
+
+    section = _extract_section(body, "licence") or _extract_section(body, "license")
+    if section:
+        for line in section.splitlines():
+            m = re.match(r"^\s*[-*]?\s*(licen[cs]e[_ ]?(tag|actual))\s*[:=]\s*(.+)$", line, re.I)
+            if not m:
+                continue
+            which, val = m.group(2).lower(), m.group(3).strip().strip("`*_")
+            if which == "tag" and not tag:
+                tag = val
+            elif which == "actual" and not actual:
+                actual = val
+    return tag, actual
+
+
 def _slug(source: str, path: Path) -> str:
     """Deterministic finding id — stable across re-runs so the kanban UPSERT is
     naturally idempotent. Derived from the brief filename.
@@ -247,6 +321,47 @@ class ResearchFinding:
     confidence: str = "high"  # high | low
     confidence_reason: str = ""  # '' | 'prompt-echo'
     path: str = ""
+
+    # --- licence, as FIELDS rather than prose (card 55cb4f3b9de1) -------------
+    # Two separate facts that a single "license" string conflates, and the
+    # conflation is the whole problem:
+    #
+    #   licence_tag     what the PLATFORM reports  (GitHub's SPDX detection)
+    #   licence_actual  what the repo IS after reading its licence files
+    #
+    # Measured on 2026-08-11 across five triaged subjects, these DIVERGED in two,
+    # and both divergences were adoption-blocking:
+    #   archestra-ai  tag=NOASSERTION  actual=AGPL-3.0-only + Enterprise (dual)
+    #   GeoPT         tag=<none>       actual=NONE -> all rights reserved, while
+    #                                  containing files copied from MIT code
+    #   Memoria       tag=Apache-2.0   actual=Apache-2.0        (agree)
+    #   AirfRANS      tag=ODbL-1.0     actual=ODbL-1.0          (agree, but a
+    #                                  DATABASE licence -- different obligations)
+    #   Transolver    tag=MIT          actual=MIT               (agree)
+    #
+    # Why fields and not prose: the prior hand-kept tally of this same question
+    # drifted -- it reported "5 of 8" when the truth was "4 of 11". A tally over
+    # prose requires a human to re-count and silently rots; a field is counted
+    # mechanically and cannot.
+    licence_tag: str = ""  # as reported by the platform; "" = not recorded
+    licence_actual: str = ""  # as read from the repo; "" = not verified
+
+    @property
+    def licence_divergence(self) -> bool:
+        """True when the reported tag and the verified terms disagree.
+
+        The single most decision-relevant bit, and the reason both are stored.
+        Requires BOTH to be present: an unverified licence is UNKNOWN, not
+        agreement, so a missing licence_actual must never read as "no problem".
+        """
+        if not self.licence_tag or not self.licence_actual:
+            return False
+        return _normalise_licence(self.licence_tag) != _normalise_licence(self.licence_actual)
+
+    @property
+    def licence_verified(self) -> bool:
+        """True only when someone actually read the repo's licence files."""
+        return bool(self.licence_actual)
 
     @property
     def domain(self) -> str:
@@ -333,6 +448,7 @@ def parse_brief(path: str | Path) -> ResearchFinding | None:
 
     actionability = classify_actionability(verdict_text)
     contaminated = _detect_prompt_echo(relevance or body)
+    licence_tag, licence_actual = _parse_licence(fm, body)
 
     return ResearchFinding(
         finding_id=_slug(source, p),
@@ -348,6 +464,8 @@ def parse_brief(path: str | Path) -> ResearchFinding | None:
         confidence="low" if contaminated else "high",
         confidence_reason="prompt-echo" if contaminated else "",
         path=str(p),
+        licence_tag=licence_tag,
+        licence_actual=licence_actual,
     )
 
 
@@ -376,19 +494,34 @@ def _emit_data_product_event(finding: ResearchFinding) -> bool:
             "domain": finding.domain,
         }
     )
+    # `timestamp` is TYPE float and REQUIRED on data_product_event (no DEFAULT). Omitting it
+    # made SurrealDB reject EVERY write with "Couldn't coerce value for field `timestamp` ...
+    # Expected `float` but found `NONE`" -- while the caller reported success, because
+    # SurrealDB answers HTTP 200 for QUERY errors and the check below was `status == 200`.
+    # Verified 2026-07-30: zero rows had ever been written by this function.
     sql = (
         "CREATE data_product_event SET "
         'event_type = "DATA_PRODUCT_CREATED", '
         'source = "research", '
+        f"timestamp = {time.time()}, "
         f'payload = "{_escape(payload)}", '
         "priority = 0;"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
         with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
-            return resp.status == 200
+            # HTTP status alone is NOT a success signal for SurrealDB: it answers 200 for
+            # query errors, putting the failure in the body. Require status == "OK" AND a
+            # non-empty result, or a rejected write reports success forever.
+            body = json.loads(resp.read().decode())
+        return bool(
+            isinstance(body, list)
+            and body
+            and body[0].get("status") == "OK"
+            and body[0].get("result")
+        )
     except Exception as exc:  # fail-open: audit is best-effort
         logger.debug("research_products: event emit failed for %s: %s", finding.finding_id, exc)
         return False
@@ -400,7 +533,7 @@ def _existing_card_urls() -> set[str]:
     """
     sql = "SELECT url FROM kanban_item WHERE type = 'research-finding';"
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
         with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310

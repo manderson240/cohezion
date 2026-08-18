@@ -55,6 +55,7 @@ from cohezion.physics.cellular_automata import (
 from cohezion.physics.cosmogony import SymmetryBreaking, SymmetryGroup
 from cohezion.physics.dielectric import DielectricField
 from cohezion.physics.dimension_extractor import DimensionExtractor
+from cohezion.physics.electric_dipole import ElectricDipole, permittivity_from_dipoles
 from cohezion.physics.evo_model import ExoticVacuumObject
 from cohezion.physics.fiber_bundle import FiberBundle
 from cohezion.physics.gauge_theory import FourFabricGauge, GaugeConnection
@@ -83,6 +84,7 @@ __all__ = [
     "DimensionExtractor",
     "EVOEmergence",
     "EVOPattern",
+    "ElectricDipole",
     "ExoticVacuumObject",
     "FiberBundle",
     "FisherInformationMetric",
@@ -104,6 +106,7 @@ __all__ = [
     "TotalisticRule2D",
     "WolframClass",
     "ca_rl_step",
+    "permittivity_from_dipoles",
 ]
 
 

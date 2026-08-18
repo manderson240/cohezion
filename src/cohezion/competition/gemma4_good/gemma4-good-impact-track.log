@@ -1,0 +1,162 @@
+[{"stream_name":"stderr","time":6.144126367,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":6.144204577,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":6.144208702,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":6.144211158,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":6.733473444,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":6.733519044,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":6.733524571,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":6.733528646,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":41.666139309,"data":"\u001b[33mWARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('\u003cpip._vendor.urllib3.connection.HTTPSConnection object at 0x7ea491e7c230\u003e: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/bitsandbytes/\u001b[0m\u001b[33m\r\n"}
+,{"stream_name":"stdout","time":74.152956255,"data":"\u001b[0m\u001b[33mWARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('\u003cpip._vendor.urllib3.connection.HTTPSConnection object at 0x7ea491ffbfe0\u003e: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/bitsandbytes/\u001b[0m\u001b[33m\r\n"}
+,{"stream_name":"stdout","time":107.148163996,"data":"\u001b[0m\u001b[33mWARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('\u003cpip._vendor.urllib3.connection.HTTPSConnection object at 0x7ea491ff8380\u003e: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/bitsandbytes/\u001b[0m\u001b[33m\r\n"}
+,{"stream_name":"stdout","time":141.197715991,"data":"\u001b[0m\u001b[33mWARNING: Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('\u003cpip._vendor.urllib3.connection.HTTPSConnection object at 0x7ea491e4c170\u003e: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/bitsandbytes/\u001b[0m\u001b[33m\r\n"}
+,{"stream_name":"stdout","time":177.177816601,"data":"\u001b[0m\u001b[33mWARNING: Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('\u003cpip._vendor.urllib3.connection.HTTPSConnection object at 0x7ea491e60110\u003e: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /simple/bitsandbytes/\u001b[0m\u001b[33m\r\n"}
+,{"stream_name":"stdout","time":209.21657362,"data":"\u001b[0m\u001b[31mERROR: Could not find a version that satisfies the requirement bitsandbytes (from versions: none)\u001b[0m\u001b[31m\r\n"}
+,{"stream_name":"stdout","time":209.216608446,"data":"\u001b[0m\u001b[31mERROR: No matching distribution found for bitsandbytes\u001b[0m\u001b[31m\r\n"}
+,{"stream_name":"stderr","time":234.401953788,"data":"Traceback (most recent call last):\n"}
+,{"stream_name":"stderr","time":234.40199993,"data":"  File \"\u003cstring\u003e\", line 1, in \u003cmodule\u003e\n"}
+,{"stream_name":"stderr","time":234.402007121,"data":"  File \"/usr/local/lib/python3.12/dist-packages/papermill/execute.py\", line 131, in execute_notebook\n"}
+,{"stream_name":"stderr","time":234.402063514,"data":"    raise_for_execution_errors(nb, output_path)\n"}
+,{"stream_name":"stderr","time":234.402080019,"data":"  File \"/usr/local/lib/python3.12/dist-packages/papermill/execute.py\", line 251, in raise_for_execution_errors\n"}
+,{"stream_name":"stderr","time":234.402270495,"data":"    raise error\n"}
+,{"stream_name":"stderr","time":234.402778607,"data":"papermill.exceptions.PapermillExecutionError: \n"}
+,{"stream_name":"stderr","time":234.402793677,"data":"---------------------------------------------------------------------------\n"}
+,{"stream_name":"stderr","time":234.402797917,"data":"Exception encountered at \"In [2]\":\n"}
+,{"stream_name":"stderr","time":234.402801523,"data":"---------------------------------------------------------------------------\n"}
+,{"stream_name":"stderr","time":234.402805083,"data":"HFValidationError                         Traceback (most recent call last)\n"}
+,{"stream_name":"stderr","time":234.402814568,"data":"/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py in cached_files(path_or_repo_id, filenames, cache_dir, force_download, proxies, token, revision, local_files_only, subfolder, repo_type, user_agent, _raise_exceptions_for_gated_repo, _raise_exceptions_for_missing_entries, _raise_exceptions_for_connection_errors, _commit_hash, **deprecated_kwargs)\n"}
+,{"stream_name":"stderr","time":234.40281857,"data":"    418             # This is slightly better for only 1 file\n"}
+,{"stream_name":"stderr","time":234.402820952,"data":"--\u003e 419             hf_hub_download(\n"}
+,{"stream_name":"stderr","time":234.402823604,"data":"    420                 path_or_repo_id,\n"}
+,{"stream_name":"stderr","time":234.402825873,"data":"\n"}
+,{"stream_name":"stderr","time":234.402828055,"data":"/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py in _inner_fn(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402830531,"data":"     84             if arg_name in [\"repo_id\", \"from_id\", \"to_id\"]:\n"}
+,{"stream_name":"stderr","time":234.402833064,"data":"---\u003e 85                 validate_repo_id(arg_value)\n"}
+,{"stream_name":"stderr","time":234.402835459,"data":"     86 \n"}
+,{"stream_name":"stderr","time":234.402838398,"data":"\n"}
+,{"stream_name":"stderr","time":234.402841737,"data":"/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py in validate_repo_id(repo_id)\n"}
+,{"stream_name":"stderr","time":234.402845607,"data":"    128     if repo_id.count(\"/\") \u003e 1:\n"}
+,{"stream_name":"stderr","time":234.402848267,"data":"--\u003e 129         raise HFValidationError(\n"}
+,{"stream_name":"stderr","time":234.402850557,"data":"    130             \"Repo id must be in the form 'repo_name' or 'namespace/repo_name':\"\n"}
+,{"stream_name":"stderr","time":234.402852991,"data":"\n"}
+,{"stream_name":"stderr","time":234.402855196,"data":"HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/kaggle/input/gemma/'. Use `repo_type` argument if needed.\n"}
+,{"stream_name":"stderr","time":234.402857835,"data":"\n"}
+,{"stream_name":"stderr","time":234.402859933,"data":"The above exception was the direct cause of the following exception:\n"}
+,{"stream_name":"stderr","time":234.402862274,"data":"\n"}
+,{"stream_name":"stderr","time":234.402864355,"data":"OSError                                   Traceback (most recent call last)\n"}
+,{"stream_name":"stderr","time":234.402866728,"data":"/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py in from_pretrained(cls, pretrained_model_name_or_path, *inputs, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402869352,"data":"    616             try:\n"}
+,{"stream_name":"stderr","time":234.402884483,"data":"--\u003e 617                 config = AutoConfig.from_pretrained(\n"}
+,{"stream_name":"stderr","time":234.402886949,"data":"    618                     pretrained_model_name_or_path, trust_remote_code=trust_remote_code, **kwargs\n"}
+,{"stream_name":"stderr","time":234.402889402,"data":"\n"}
+,{"stream_name":"stderr","time":234.402892207,"data":"/usr/local/lib/python3.12/dist-packages/transformers/models/auto/configuration_auto.py in from_pretrained(cls, pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402894688,"data":"   1355 \n"}
+,{"stream_name":"stderr","time":234.402896902,"data":"-\u003e 1356         config_dict, unused_kwargs = PreTrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402899353,"data":"   1357         has_remote_code = \"auto_map\" in config_dict and \"AutoConfig\" in config_dict[\"auto_map\"]\n"}
+,{"stream_name":"stderr","time":234.402901928,"data":"\n"}
+,{"stream_name":"stderr","time":234.402904079,"data":"/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py in get_config_dict(cls, pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402906482,"data":"    568         # Get config dict associated with the base config file\n"}
+,{"stream_name":"stderr","time":234.402908872,"data":"--\u003e 569         config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.40291126,"data":"    570         if config_dict is None:\n"}
+,{"stream_name":"stderr","time":234.402913501,"data":"\n"}
+,{"stream_name":"stderr","time":234.402915622,"data":"/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py in _get_config_dict(cls, pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402918106,"data":"    623                 # Load from local folder or from cache or download from model Hub and cache\n"}
+,{"stream_name":"stderr","time":234.402920429,"data":"--\u003e 624                 resolved_config_file = cached_file(\n"}
+,{"stream_name":"stderr","time":234.402922737,"data":"    625                     pretrained_model_name_or_path,\n"}
+,{"stream_name":"stderr","time":234.40292498,"data":"\n"}
+,{"stream_name":"stderr","time":234.40292712,"data":"/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py in cached_file(path_or_repo_id, filename, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402929507,"data":"    275     \"\"\"\n"}
+,{"stream_name":"stderr","time":234.402931842,"data":"--\u003e 276     file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402934197,"data":"    277     file = file[0] if file is not None else file\n"}
+,{"stream_name":"stderr","time":234.40293645,"data":"\n"}
+,{"stream_name":"stderr","time":234.402938612,"data":"/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py in cached_files(path_or_repo_id, filenames, cache_dir, force_download, proxies, token, revision, local_files_only, subfolder, repo_type, user_agent, _raise_exceptions_for_gated_repo, _raise_exceptions_for_missing_entries, _raise_exceptions_for_connection_errors, _commit_hash, **deprecated_kwargs)\n"}
+,{"stream_name":"stderr","time":234.402941386,"data":"    467         elif isinstance(e, ValueError):\n"}
+,{"stream_name":"stderr","time":234.402943644,"data":"--\u003e 468             raise OSError(f\"{e}\") from e\n"}
+,{"stream_name":"stderr","time":234.40294619,"data":"    469 \n"}
+,{"stream_name":"stderr","time":234.402948342,"data":"\n"}
+,{"stream_name":"stderr","time":234.402953014,"data":"OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/kaggle/input/gemma/'. Use `repo_type` argument if needed.\n"}
+,{"stream_name":"stderr","time":234.402955547,"data":"\n"}
+,{"stream_name":"stderr","time":234.402957689,"data":"During handling of the above exception, another exception occurred:\n"}
+,{"stream_name":"stderr","time":234.402959985,"data":"\n"}
+,{"stream_name":"stderr","time":234.402962318,"data":"HFValidationError                         Traceback (most recent call last)\n"}
+,{"stream_name":"stderr","time":234.402964712,"data":"/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py in cached_files(path_or_repo_id, filenames, cache_dir, force_download, proxies, token, revision, local_files_only, subfolder, repo_type, user_agent, _raise_exceptions_for_gated_repo, _raise_exceptions_for_missing_entries, _raise_exceptions_for_connection_errors, _commit_hash, **deprecated_kwargs)\n"}
+,{"stream_name":"stderr","time":234.402967488,"data":"    418             # This is slightly better for only 1 file\n"}
+,{"stream_name":"stderr","time":234.40296979,"data":"--\u003e 419             hf_hub_download(\n"}
+,{"stream_name":"stderr","time":234.402972095,"data":"    420                 path_or_repo_id,\n"}
+,{"stream_name":"stderr","time":234.402974333,"data":"\n"}
+,{"stream_name":"stderr","time":234.402976443,"data":"/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py in _inner_fn(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.402978778,"data":"     84             if arg_name in [\"repo_id\", \"from_id\", \"to_id\"]:\n"}
+,{"stream_name":"stderr","time":234.402981277,"data":"---\u003e 85                 validate_repo_id(arg_value)\n"}
+,{"stream_name":"stderr","time":234.402983603,"data":"     86 \n"}
+,{"stream_name":"stderr","time":234.402985783,"data":"\n"}
+,{"stream_name":"stderr","time":234.402987922,"data":"/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py in validate_repo_id(repo_id)\n"}
+,{"stream_name":"stderr","time":234.402992645,"data":"    128     if repo_id.count(\"/\") \u003e 1:\n"}
+,{"stream_name":"stderr","time":234.402995103,"data":"--\u003e 129         raise HFValidationError(\n"}
+,{"stream_name":"stderr","time":234.40299741,"data":"    130             \"Repo id must be in the form 'repo_name' or 'namespace/repo_name':\"\n"}
+,{"stream_name":"stderr","time":234.402999815,"data":"\n"}
+,{"stream_name":"stderr","time":234.403002021,"data":"HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/kaggle/input/gemma/'. Use `repo_type` argument if needed.\n"}
+,{"stream_name":"stderr","time":234.403004434,"data":"\n"}
+,{"stream_name":"stderr","time":234.403006603,"data":"The above exception was the direct cause of the following exception:\n"}
+,{"stream_name":"stderr","time":234.403008879,"data":"\n"}
+,{"stream_name":"stderr","time":234.403011058,"data":"OSError                                   Traceback (most recent call last)\n"}
+,{"stream_name":"stderr","time":234.403013363,"data":"/tmp/ipykernel_24/1684729923.py in \u003ccell line: 0\u003e()\n"}
+,{"stream_name":"stderr","time":234.403015812,"data":"     17 )\n"}
+,{"stream_name":"stderr","time":234.403018002,"data":"     18 \n"}
+,{"stream_name":"stderr","time":234.403020211,"data":"---\u003e 19 tokenizer = AutoTokenizer.from_pretrained(model_path)\n"}
+,{"stream_name":"stderr","time":234.403022617,"data":"     20 model = AutoModelForCausalLM.from_pretrained(\n"}
+,{"stream_name":"stderr","time":234.403024935,"data":"     21     model_path,\n"}
+,{"stream_name":"stderr","time":234.403027157,"data":"\n"}
+,{"stream_name":"stderr","time":234.40302932,"data":"/usr/local/lib/python3.12/dist-packages/transformers/models/auto/tokenization_auto.py in from_pretrained(cls, pretrained_model_name_or_path, *inputs, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403033887,"data":"    619                 )\n"}
+,{"stream_name":"stderr","time":234.403036221,"data":"    620             except Exception:\n"}
+,{"stream_name":"stderr","time":234.403038488,"data":"--\u003e 621                 config = PreTrainedConfig.from_pretrained(pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403040948,"data":"    622 \n"}
+,{"stream_name":"stderr","time":234.403043105,"data":"    623         config_model_type = config.model_type\n"}
+,{"stream_name":"stderr","time":234.40304548,"data":"\n"}
+,{"stream_name":"stderr","time":234.403047863,"data":"/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py in from_pretrained(cls, pretrained_model_name_or_path, cache_dir, force_download, local_files_only, token, revision, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403050389,"data":"    529         kwargs[\"revision\"] = revision\n"}
+,{"stream_name":"stderr","time":234.40305273,"data":"    530 \n"}
+,{"stream_name":"stderr","time":234.403054863,"data":"--\u003e 531         config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403057215,"data":"    532         if cls.base_config_key and cls.base_config_key in config_dict:\n"}
+,{"stream_name":"stderr","time":234.403059503,"data":"    533             config_dict = config_dict[cls.base_config_key]\n"}
+,{"stream_name":"stderr","time":234.403061786,"data":"\n"}
+,{"stream_name":"stderr","time":234.403063932,"data":"/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py in get_config_dict(cls, pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403066349,"data":"    567         original_kwargs = copy.deepcopy(kwargs)\n"}
+,{"stream_name":"stderr","time":234.403068608,"data":"    568         # Get config dict associated with the base config file\n"}
+,{"stream_name":"stderr","time":234.403070897,"data":"--\u003e 569         config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403073263,"data":"    570         if config_dict is None:\n"}
+,{"stream_name":"stderr","time":234.403075495,"data":"    571             return {}, kwargs\n"}
+,{"stream_name":"stderr","time":234.403077714,"data":"\n"}
+,{"stream_name":"stderr","time":234.403079835,"data":"/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py in _get_config_dict(cls, pretrained_model_name_or_path, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403082277,"data":"    622             try:\n"}
+,{"stream_name":"stderr","time":234.403084475,"data":"    623                 # Load from local folder or from cache or download from model Hub and cache\n"}
+,{"stream_name":"stderr","time":234.403092071,"data":"--\u003e 624                 resolved_config_file = cached_file(\n"}
+,{"stream_name":"stderr","time":234.40309464,"data":"    625                     pretrained_model_name_or_path,\n"}
+,{"stream_name":"stderr","time":234.4030969,"data":"    626                     configuration_file,\n"}
+,{"stream_name":"stderr","time":234.403099142,"data":"\n"}
+,{"stream_name":"stderr","time":234.403101245,"data":"/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py in cached_file(path_or_repo_id, filename, **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403103648,"data":"    274     ```\n"}
+,{"stream_name":"stderr","time":234.403105898,"data":"    275     \"\"\"\n"}
+,{"stream_name":"stderr","time":234.403110637,"data":"--\u003e 276     file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)\n"}
+,{"stream_name":"stderr","time":234.403113126,"data":"    277     file = file[0] if file is not None else file\n"}
+,{"stream_name":"stderr","time":234.403115407,"data":"    278     return file\n"}
+,{"stream_name":"stderr","time":234.403117623,"data":"\n"}
+,{"stream_name":"stderr","time":234.403119791,"data":"/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py in cached_files(path_or_repo_id, filenames, cache_dir, force_download, proxies, token, revision, local_files_only, subfolder, repo_type, user_agent, _raise_exceptions_for_gated_repo, _raise_exceptions_for_missing_entries, _raise_exceptions_for_connection_errors, _commit_hash, **deprecated_kwargs)\n"}
+,{"stream_name":"stderr","time":234.403122556,"data":"    466             ) from e\n"}
+,{"stream_name":"stderr","time":234.403124786,"data":"    467         elif isinstance(e, ValueError):\n"}
+,{"stream_name":"stderr","time":234.403127332,"data":"--\u003e 468             raise OSError(f\"{e}\") from e\n"}
+,{"stream_name":"stderr","time":234.40312982,"data":"    469 \n"}
+,{"stream_name":"stderr","time":234.403131983,"data":"    470         # Now we try to recover if we can find all files correctly in the cache\n"}
+,{"stream_name":"stderr","time":234.403134393,"data":"\n"}
+,{"stream_name":"stderr","time":234.40313656,"data":"OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/kaggle/input/gemma/'. Use `repo_type` argument if needed.\n"}
+,{"stream_name":"stderr","time":234.403138987,"data":"\n"}
+,{"stream_name":"stderr","time":236.416952993,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":236.416984073,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":236.561152331,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":236.561182994,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":237.177841371,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":237.470107493,"data":"[NbConvertApp] Writing 34728 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":239.814997502,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":240.598328333,"data":"[NbConvertApp] Writing 319087 bytes to __results__.html\n"}
+,{"stream_name":"stdout","time":241.167569322,"data":"\u001b[0m"}
+]

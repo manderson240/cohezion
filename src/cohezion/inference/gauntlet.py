@@ -36,6 +36,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+# Import direction is gauntlet -> gaia_adapter, never the reverse: gaia_adapter references this
+# module only in comments, so there is no cycle. Sharing the normaliser keeps the chokepoint and
+# the GAIA tier from drifting apart again.
+from cohezion.inference.gaia_adapter import _answer_only
+
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +159,6 @@ TASK_SUITE: list[BenchTask] = [
 # ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 
-_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 _FENCE_RE = re.compile(r"```(?:python)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 
 
@@ -174,8 +178,17 @@ async def _call_model(
       1. Read message.content, FALL BACK to message.reasoning_content when content is
          empty (DeepSeek/Lemonade reasoning-model convention — a reasoning model
          exhausting its budget mid-think leaves content="").
-      2. Strip inline <think>…</think> blocks.
-      3. Return (0, 0, "") on error rather than raising, so batch loops keep running.
+      2. Strip inline reasoning, whichever delimiter the family uses: <think>…</think>
+         for Qwen/DeepSeek, `<|channel>thought … <channel|>` for Gemma-4.
+      3. NEVER return empty as a RESULT of step 2 — a reply that is entirely reasoning
+         is returned raw, because "" is read by callers as "no answer" and by the
+         adversarial gate as fail-open APPROVE.
+      4. Return (0, 0, "") on error rather than raising, so batch loops keep running.
+
+    Steps 1-3 are delegated to ``gaia_adapter._answer_only`` so this chokepoint and the
+    GAIA tier cannot drift apart — they were already out of sync once, in opposite
+    directions: this function had the <think> strip the adapter lacked, and the adapter
+    had an empty-guard this function lacked.
 
     NET-NEW raw chat/completions call sites are flagged by
     scripts/ci/check_local_llm_chokepoint.sh. Consumption guidance:
@@ -197,9 +210,13 @@ async def _call_model(
         elapsed = time.monotonic() - t0
         data = resp.json()
         msg = data.get("choices", [{}])[0].get("message", {}) or {}
-        # content first; fall back to reasoning_content when the final channel is empty.
-        text: str = (msg.get("content") or "").strip() or (msg.get("reasoning_content") or "")
-        text = _THINK_RE.sub("", text)  # strip inline <think>…</think> if the server inlines it
+        # Delegated to the shared normaliser rather than kept inline. The previous two lines
+        # here were the ORIGINAL of this pattern, and they had two gaps this chokepoint must not
+        # have: `_THINK_RE.sub("", text)` returns "" when a reply is ENTIRELY a think block --
+        # re-creating the empty-content trap this function exists to prevent -- and Gemma-4 does
+        # not use <think> at all, so its reasoning passed straight through (measured 2026-08-16:
+        # `<|channel>thought ... <channel|>`, 3214 chars reaching the caller).
+        text: str = _answer_only(msg.get("content") or "", msg.get("reasoning_content") or "")
         n_tokens = data.get("usage", {}).get("completion_tokens", max(1, len(text.split())))
         tps = n_tokens / max(elapsed, 0.001)
         # TTFT: for non-streaming we approximate as half the elapsed time

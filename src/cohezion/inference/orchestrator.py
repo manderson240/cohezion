@@ -88,6 +88,20 @@ class OrchestrationResult:
     latency_ms: float = 0.0
     ttft_ms: float | None = None
     error: str | None = None
+    # Trailing safe-default fields (CB16 pattern): every existing construction site keeps
+    # working, and a tier that cannot supply them reports 0 rather than lying.
+    #
+    # gen_tokens is the provider's own count over EVERY token generated, reasoning included.
+    # It exists because `len(text)` is not a cost measure: for a thinking model outside
+    # _THINKING_MODEL_MARKERS the adapter drops reasoning_content entirely, so `text` reflects
+    # only what survived the strip. Measured 2026-08-16, ranking by characters vs by tokens
+    # INVERTED for gpt-oss-20b/Nemotron/Qwen3-8B. Prefer this for any cost or routing decision.
+    gen_tokens: int = 0
+    # Characters the adapter discarded from reasoning_content. Non-zero means `text` understates
+    # this call and must not be character-compared against a tier where reasoning came back
+    # inline. Surfaced on the result rather than left to an out-of-band probe so a benchmark
+    # reports its own invalidity instead of printing clean-looking incomparable numbers.
+    dropped_reasoning_chars: int = 0
 
 
 @runtime_checkable

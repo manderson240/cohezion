@@ -54,6 +54,17 @@ Entry: `from cohezion.flume.vae import build_optimal_vae`
 - **FD1**: `FrequencyDispersedDelay(_K_DM=4148.808)`; PSR J0125−5854 DM=9.9, ν=154 MHz → τ≈1.731 s
 - **RGA1/RGA2**: `RiemannianGlideTrajectory(curvature_coupling=0.0)` preserves old `step()` behavior;
   κ>0 damps step ∝ |position| via `a_i = 1/(1 + κ * g_{ii} * |x_i|)`
+- **DP1**: `ElectricDipole.hiho_kernel(E) == sin²θ` exactly, where `x = (1+cos θ)/2`. The Universal
+  HIHO kernel `4x(1-x)` IS the dipole alignment law: `τ = pE·sin θ = pE·√(kernel)`,
+  `U = −p·E = −pE(2x−1)`. At x=0.5 energy is 0 and torque is maximal — "half-in-half-out" as
+  *zero commitment, maximum responsiveness*, by identity not analogy. Verified to 3.3e-16 and
+  pointwise against IonicCluster/LENR per S9.
+  **Scope:** algebraic, and holds for anything reparametrised as `x=(1+cos θ)/2`. BEC condensate
+  and IonicCluster ionisation fractions are POPULATION fractions, not alignment angles — that the
+  dipole law *unifies* U1 is an untested hypothesis, not a result.
+  **Do not audit this by keyword:** `flume/bioelectric_swarm.polarize()` is membrane potential in
+  mV; ~10 `polariz` hits in src/, none of them dipoles.
+  `uv run pytest tests/physics/test_electric_dipole.py tests/physics/test_dipole_hiho_wiring.py -q` → 42
 
 ## Hardware Truth Anchor
 

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cohezion Bus Ledger — 742 events, drained</title>
+<style>
+  :root {
+    --ground: #0B1116; --panel: #121A21; --panel-edge: #1E2A33;
+    --ink: #E8EDF1; --muted: #8FA1AE; --faint: #55666F;
+    --amber: #E8A33D; --teal: #4FB3A9;
+    --good: #5DBB7A; --warn: #D9A03F; --crit: #D96C5F;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --ground: #EEF1F3; --panel: #FFFFFF; --panel-edge: #D8DEE3;
+            --ink: #1A242C; --muted: #5A6B76; --faint: #93A2AB;
+            --amber: #B87A1E; --teal: #2E7D74;
+            --good: #2E8B4F; --warn: #A87717; --crit: #B54836; }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0B1116; --panel: #121A21; --panel-edge: #1E2A33;
+    --ink: #E8EDF1; --muted: #8FA1AE; --faint: #55666F;
+    --amber: #E8A33D; --teal: #4FB3A9;
+    --good: #5DBB7A; --warn: #D9A03F; --crit: #D96C5F;
+  }
+  :root[data-theme="light"] {
+    --ground: #EEF1F3; --panel: #FFFFFF; --panel-edge: #D8DEE3;
+    --ink: #1A242C; --muted: #5A6B76; --faint: #93A2AB;
+    --amber: #B87A1E; --teal: #2E7D74;
+    --good: #2E8B4F; --warn: #A87717; --crit: #B54836;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--ground); color: var(--ink); margin: 0; padding: 0 20px 48px;
+         font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+  .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+           padding: 26px 0 14px; border-bottom: 1px solid var(--panel-edge); }
+  h1 { font-family: Palatino, "Palatino Linotype", Georgia, serif; font-size: 1.7rem;
+       letter-spacing: 0.12em; margin: 0; }
+  h1 em { font-style: normal; color: var(--amber); }
+  header .sub { color: var(--muted); font-size: 0.9rem; }
+  .chip { padding: 2px 10px; border: 1px solid var(--panel-edge); border-radius: 999px;
+          font-size: 0.75rem; color: var(--muted); }
+
+  .headline { display: flex; gap: 14px; flex-wrap: wrap; margin: 18px 0; }
+  .stat { flex: 1 1 180px; background: var(--panel); border: 1px solid var(--panel-edge); padding: 14px 16px; }
+  .stat .n { font-size: 1.8rem; font-weight: 650; }
+  .stat .n.good { color: var(--good); }
+  .stat .l { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--panel-edge); padding: 16px 18px; }
+  .panel h2 { margin: 0 0 10px; font-size: 0.78rem; text-transform: uppercase;
+              letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
+
+  .row { display: grid; grid-template-columns: 150px 1fr 52px; align-items: center;
+         gap: 10px; padding: 3px 0; font-size: 0.8rem; }
+  .row .label { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .track { height: 9px; background: var(--panel-edge); border-radius: 4px; overflow: hidden; }
+  .row .track i { display: block; height: 100%; background: var(--teal); }
+  .row .track i.amber { background: var(--amber); }
+  .row .track i.warn { background: var(--warn); }
+  .row .val { text-align: right; }
+
+  .funnel .row .track i { background: var(--amber); }
+  .note { font-size: 0.78rem; color: var(--muted); margin: 10px 0 0; }
+
+  .finding { border-left: 3px solid var(--warn); padding: 6px 12px; margin: 10px 0;
+             font-size: 0.85rem; background: color-mix(in srgb, var(--warn) 6%, transparent); }
+  .finding.ok { border-color: var(--good); background: color-mix(in srgb, var(--good) 6%, transparent); }
+  .finding b { display: block; font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  footer { margin-top: 26px; border-top: 1px solid var(--panel-edge); padding-top: 14px;
+           font-size: 0.8rem; color: var(--muted); }
+  footer code { color: var(--teal); background: color-mix(in srgb, var(--teal) 8%, transparent);
+                padding: 1px 6px; border-radius: 3px; }
+  a { color: var(--teal); }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>COHEZ<em>I</em>ON</h1>
+    <span class="sub">Bus Ledger · datamesh event backbone audit</span>
+    <span class="chip mono">captured 2026-08-02T03:53Z</span>
+    <span class="chip mono">session glistening-gliding-teacup</span>
+  </header>
+
+  <div class="headline">
+    <div class="stat"><div class="n">742</div><div class="l">events on the bus</div></div>
+    <div class="stat"><div class="n good">742 / 742</div><div class="l">claimed by ambient consumer</div></div>
+    <div class="stat"><div class="n">97</div><div class="l">work items auto-filed to :8080 queue</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">unclaimed backlog (was 290 on Jul 31)</div></div>
+  </div>
+
+  <div class="finding ok">
+    <b>The finding self-healed</b>
+    Yesterday's pulse dashboard flagged ~290 unclaimed events. Between then and this capture,
+    the ambient <span class="mono">datamesh-event-consumer</span> drained the entire ledger to
+    zero and filed 97 actionable items into the work queue (5,735 items total). Claims were
+    verified against handling — not just counted.
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>Events by type (top 10 of 24)</h2>
+      <div class="row"><span class="label mono">paper_link_requested</span><span class="track"><i style="width:100%"></i></span><span class="val mono">265</span></div>
+      <div class="row"><span class="label mono">data_product_created</span><span class="track"><i style="width:98%"></i></span><span class="val mono">260</span></div>
+      <div class="row"><span class="label mono">paper_linked</span><span class="track"><i style="width:25%"></i></span><span class="val mono">65</span></div>
+      <div class="row"><span class="label mono">CUSTOM</span><span class="track"><i style="width:15%"></i></span><span class="val mono">41</span></div>
+      <div class="row"><span class="label mono">DATA_PRODUCT_QUALITY_ALERT</span><span class="track"><i class="warn" style="width:14%"></i></span><span class="val mono">37</span></div>
+      <div class="row"><span class="label mono">data_product_quality_alert</span><span class="track"><i class="warn" style="width:9%"></i></span><span class="val mono">25</span></div>
+      <div class="row"><span class="label mono">paper_actionable</span><span class="track"><i class="amber" style="width:7%"></i></span><span class="val mono">18</span></div>
+      <div class="row"><span class="label mono">T (test leakage)</span><span class="track"><i class="warn" style="width:2.5%"></i></span><span class="val mono">6</span></div>
+      <div class="row"><span class="label mono">DATA_PRODUCT_CREATED</span><span class="track"><i style="width:2%"></i></span><span class="val mono">5</span></div>
+      <div class="row"><span class="label mono">DATA_PRODUCT_UPDATED</span><span class="track"><i style="width:2%"></i></span><span class="val mono">5</span></div>
+      <p class="note">Case split (UPPER vs lower duplicates of the same semantic type) comes from
+      two publishers: the enum-name bridge writes <span class="mono">EventType.name</span>,
+      ad-hoc publishers write lowercase strings. Same routing table handles both — but it is
+      two dialects on one bus.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Daily volume</h2>
+      <div class="row"><span class="label mono">≤ 2026-07-10</span><span class="track"><i style="width:2%"></i></span><span class="val mono">4</span></div>
+      <div class="row"><span class="label mono">2026-07-29</span><span class="track"><i style="width:4%"></i></span><span class="val mono">13</span></div>
+      <div class="row"><span class="label mono">2026-07-30</span><span class="track"><i style="width:5%"></i></span><span class="val mono">17</span></div>
+      <div class="row"><span class="label mono">2026-07-31</span><span class="track"><i class="amber" style="width:100%"></i></span><span class="val mono">384</span></div>
+      <div class="row"><span class="label mono">2026-08-01</span><span class="track"><i style="width:34%"></i></span><span class="val mono">130</span></div>
+      <div class="row"><span class="label mono">2026-08-02 (UTC)</span><span class="track"><i style="width:49%"></i></span><span class="val mono">188</span></div>
+      <div class="row"><span class="label mono">epoch-0 (leaked)</span><span class="track"><i class="warn" style="width:2.5%"></i></span><span class="val mono">6</span></div>
+      <p class="note">Correction logged honestly: a first read suggested 188 "future-dated"
+      events. Verified against the wall clock — it was already Aug 2 in UTC at capture.
+      Zero events carry future timestamps. The anomaly was the analyst's day-bucketing,
+      not the bus.</p>
+    </section>
+
+    <section class="panel funnel">
+      <h2>Paper pipeline funnel (research daemon)</h2>
+      <div class="row"><span class="label">link requested</span><span class="track"><i style="width:100%"></i></span><span class="val mono">265</span></div>
+      <div class="row"><span class="label">linked</span><span class="track"><i style="width:24.5%"></i></span><span class="val mono">65</span></div>
+      <div class="row"><span class="label">actionable</span><span class="track"><i style="width:6.8%"></i></span><span class="val mono">18</span></div>
+      <p class="note">REVISED 2026-08-03 after 3-lane GAIA adversarial review (distinct
+      backbones: Gemma-4-26B / Qwen3-Coder-30B / Nemotron-3-Nano) + falsifying checks:
+      the gap is an <b>intentional batch sweep</b>, not a stuck loop &mdash; requests arrive in
+      10 tight clusters (all unlinked papers per run, irregular 0.05&ndash;24h gaps), and
+      <b>5 of the 15 papers later linked nonzero</b> as the vault grew, proving eventual
+      consistency works. <span class="mono">linked=0, error=""</span> is null-result-by-design
+      (error never populated in 92/92 events). Remaining issue is small: no backoff for the
+      never-matching tail (~10 papers re-swept every run). Original dead-letter fix RETRACTED
+      (it would have killed the 5 convergences). Work item
+      <span class="mono">aa5337d145b3</span> supersedes <span class="mono">bb7bb71f899a</span>.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Findings</h2>
+      <div class="finding">
+        <b>Test fixtures leaked into the production ledger</b>
+        Six <span class="mono">event_type="T"</span> rows from sources
+        <span class="mono">esc-plain / esc-emdash / esc-apostrophe_s</span>, all with
+        <span class="mono">timestamp=1.0</span> — an escaping test suite wrote to the real
+        <span class="mono">data_product_event</span> table. One root cause explains both the
+        malformed type and the epoch-0 timeline bucket. Fix: point tests at a test db or mock
+        the SQL boundary.
+      </div>
+      <div class="finding">
+        <b>Two naming dialects on one bus</b>
+        UPPER-case enum names (bridge) and lower-case strings (ad-hoc publishers) for the same
+        semantics. Harmless today; a consumer matching only one dialect silently misses half
+        the traffic.
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    For agents: machine-readable ledger at <code>document.getElementById('bus-ledger')</code>.
+    Sibling artifacts: <a href="cohezion-pulse.html">Mission Control pulse</a> ·
+    <a href="index.html">gallery</a> · <code>GET manifest.json</code>.
+    This artifact is itself evented on the bus (see manifest entry for its event id).
+  </footer>
+</div>
+
+<script type="application/json" id="bus-ledger">{
+  "schema": "cohezion-bus-ledger:v1",
+  "captured": "2026-08-02T03:53:20Z",
+  "session": "glistening-gliding-teacup",
+  "totals": {"events": 742, "claimed_by_ambient": 742, "unclaimed": 0, "work_items_filed": 97, "work_queue_total": 5735},
+  "by_type": {"paper_link_requested": 265, "data_product_created": 260, "paper_linked": 65, "CUSTOM": 41, "DATA_PRODUCT_QUALITY_ALERT": 37, "data_product_quality_alert": 25, "paper_actionable": 18, "T": 6, "DATA_PRODUCT_CREATED": 5, "DATA_PRODUCT_UPDATED": 5, "other": 15},
+  "by_day": {"epoch0_leak": 6, "2026-07-10": 4, "2026-07-29": 13, "2026-07-30": 17, "2026-07-31": 384, "2026-08-01": 130, "2026-08-02": 188},
+  "paper_funnel": {"requested": 265, "linked": 65, "actionable": 18},
+  "findings": [
+    "self-heal: 290 unclaimed on 2026-07-31 -> 0 at capture; 742/742 claimed by datamesh-event-consumer",
+    "test-fixture leakage: 6 event_type='T' rows, sources esc-*, timestamp=1.0 (also the epoch-0 bucket)",
+    "naming dialects: UPPER enum-name vs lowercase string types coexist for same semantics",
+    "correction: no future-dated events; earlier 'Aug 2' read was UTC-boundary bucketing at capture time",
+    "REVISED 2026-08-03 (adversarial review): batch sweep by design, 10 clusters/3 days; 5 of 15 papers later linked (eventual consistency works); error=null-by-design 92/92; dead-letter fix RETRACTED; remaining = backoff for never-matching tail; item aa5337d145b3 supersedes bb7bb71f899a"
+  ]
+}</script>
+</body>
+</html>

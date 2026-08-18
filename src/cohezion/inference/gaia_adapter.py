@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 import urllib.request
 from dataclasses import dataclass
@@ -45,6 +46,66 @@ _AMD_PATH_RANK: dict[Lane, int] = {
     Lane.CLOUD_GEMINI: 4,
     Lane.CLOUD_CLAUDE: 5,
 }
+
+
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+
+# Gemma-4 does NOT use <think>. It emits a Harmony-style channel: `<|channel>thought ... ` and
+# closes with `<channel|>` -- note the pipe MOVES between the open and close forms. Observed
+# 2026-08-16 on Gemma-4-26B-A4B: a 2095-char reply that was reasoning up to `<channel|>` and the
+# answer after it. Stripping only <think> left all of it reaching the caller while every unit
+# test passed, because the fixtures used the delimiter that was already known.
+#
+# Both families are the same shape -- reasoning, delimiter, answer -- so the general rule is
+# "take what follows the LAST closing delimiter". Anything unrecognised falls through to the
+# empty-guard and is returned as-is, so a new family degrades to today's behaviour rather than
+# to a wrong answer.
+#
+# The closer is only treated as MARKUP when its OPENER appears earlier in the text. Without that
+# check, any output that merely QUOTES the delimiter gets truncated at the quote: an adversarial
+# review of this very function returned only the text after the `<channel|>` it was discussing,
+# silently destroying its own preamble (observed 2026-08-16 — two of three review lanes were
+# mangled this way, and the failure looked like the model stopping early). A delimiter used as
+# markup and one quoted as content are not distinguishable from the closer alone.
+#
+# The `<think>` path needs no equivalent guard: _THINK_RE requires BOTH tags, so a bare quoted
+# `</think>` never matches. Only the channel form was splitting on an unpaired closer.
+_CHANNEL_OPEN = "<|channel>"
+_CHANNEL_CLOSE = "<channel|>"
+
+
+def _answer_only(content: str, reasoning: str) -> str:
+    """Return the ANSWER, whichever channel the backend used to deliver it.
+
+    A lane's reasoning arrives in one of two places and which one is not a property of the model
+    -- it is decided by whether ``reasoning_format="none"`` was sent, which depends on a substring
+    match, and which the FLM backend ignores entirely (measured 2026-08-16, see
+    docs/benchmarks/lane_selection.md). Callers should not have to care, so normalise here:
+
+      1. prefer ``content``; fall back to ``reasoning_content`` when content is empty
+      2. strip inline ``<think>...</think>`` blocks (Qwen / DeepSeek families)
+      3. keep only what follows the last ``<channel|>`` (Gemma-4 Harmony family)
+      4. NEVER return empty as a result of steps 2-3
+
+    Step 3 is the part gauntlet.py:202 is missing. It applies the same regex with no guard, so a
+    reply that is ENTIRELY a think block collapses to "" -- which is precisely the empty-content
+    failure (defect 4dd925b0081f) that the reasoning_format guard exists to prevent, reintroduced
+    by the cleanup meant to help. A response with no answer outside its thinking is better
+    returned raw than as nothing: the caller can see what happened.
+
+    An UNCLOSED ``<think>`` (budget exhausted before the block closed) is deliberately left
+    alone. The regex requires a closing tag, so nothing matches, and that is correct -- with no
+    closing tag there is no way to tell where reasoning ends and an answer begins.
+    """
+    text = content.strip() or reasoning
+    out = _THINK_RE.sub("", text)
+    close_at = out.rfind(_CHANNEL_CLOSE)
+    # Paired only: the opener must appear BEFORE the closer for this to be markup rather than
+    # prose quoting the delimiter. rfind for the closer because Gemma drafts an answer inside
+    # its reasoning before emitting the final channel, so the LAST closer is the real boundary.
+    if close_at != -1 and 0 <= out.find(_CHANNEL_OPEN) < close_at:
+        out = out[close_at + len(_CHANNEL_CLOSE) :]
+    return out.strip() or text
 
 
 @dataclass
@@ -95,6 +156,9 @@ class GaiaAgentTier:
                 error = f"{type(exc).__name__}: {exc}"
 
         latency_ms = (time.perf_counter() - start) * 1000
+        # Duck-typed: a real gaia.Agent exposes neither attribute, and reports 0. Reading them
+        # via getattr keeps this adapter working against any agent implementation rather than
+        # coupling it to _GaiaLLMClientShim.
         return OrchestrationResult(
             text=text,
             primary_model=self.label,
@@ -105,6 +169,10 @@ class GaiaAgentTier:
             latency_ms=latency_ms,
             ttft_ms=ttft,
             error=error,
+            gen_tokens=int(getattr(self.agent, "last_gen_tokens", 0) or 0),
+            dropped_reasoning_chars=int(
+                getattr(self.agent, "last_dropped_reasoning_chars", 0) or 0
+            ),
         )
 
 
@@ -246,6 +314,10 @@ class _GaiaLLMClientShim:
         self._max_tokens = max_tokens
         self._temperature = temperature
         self._extra_sampling = extra_sampling or {}
+        # Telemetry from the most recent prompt(). Initialised so a reader before the first call
+        # sees 0 rather than an AttributeError -- 0 is also the honest value for "nothing run".
+        self.last_gen_tokens: int = 0
+        self.last_dropped_reasoning_chars: int = 0
 
     def prompt(self, text: str) -> str:
         resp = self._client.chat_completions(  # type: ignore[attr-defined]
@@ -265,8 +337,32 @@ class _GaiaLLMClientShim:
         # as fail-open APPROVE. Verified 2026-07-28: Bonsai-27B-gguf matches no marker and
         # returned content=0 / reasoning_content=456, scoring 0/8 on a benchmark purely as a
         # harness artifact. Falling back here makes the marker list an optimisation rather than
-        # a correctness dependency. Same pattern already used by gauntlet.py:201.
-        return (msg.get("content") or "").strip() or (msg.get("reasoning_content") or "")
+        # a correctness dependency. gauntlet.py:201-202 has the complete pattern; this call site
+        # previously copied only line 201 (the fallback) and not line 202 (the <think> strip), so
+        # a guarded lane returned its whole chain of thought to every caller. _answer_only()
+        # implements both, plus the empty-guard gauntlet lacks.
+        content = (msg.get("content") or "").strip()
+        reasoning = msg.get("reasoning_content") or ""
+
+        # Record what this call actually cost and what we threw away, for the caller that cares.
+        # The fallback above keeps an unlisted thinking model CORRECT, but it cannot make it
+        # COMPARABLE: when content is non-empty, `reasoning` is silently discarded, so the
+        # returned string understates the work done by however long that reasoning was. Without
+        # this a measurement harness cannot tell a genuinely terse lane from a heavily-stripped
+        # one -- which is exactly how a routing table came to rank gpt-oss-20b cheapest on
+        # 2026-08-16 when token counts put it second (see docs/benchmarks/lane_selection.md).
+        self.last_gen_tokens = int((resp.get("usage") or {}).get("completion_tokens", 0) or 0)
+        answer = _answer_only(content, reasoning)
+        # Count BOTH ways reasoning gets discarded, or the number understates itself:
+        #   channel — `reasoning_content` dropped wholesale when `content` carried the answer
+        #   inline  — <think>/<|channel> text removed from within the returned string
+        # Counting only the channel made the benchmark print "no lane had reasoning stripped"
+        # for a run in which Qwen3-8B had ~2240 chars stripped inline (2026-08-16). A telemetry
+        # field that reports zero while its own subject is happening is worse than none.
+        channel_dropped = len(reasoning) if content else 0
+        inline_dropped = max(0, len(content or reasoning) - len(answer))
+        self.last_dropped_reasoning_chars = channel_dropped + inline_dropped
+        return answer
 
 
 class _LocalRouterClient:

@@ -1,0 +1,405 @@
+<title>Cohezion Mission Control — Live Pulse</title>
+<style>
+  :root {
+    --ground: #0B1116; --panel: #121A21; --panel-edge: #1E2A33;
+    --ink: #E8EDF1; --muted: #8FA1AE; --faint: #55666F;
+    --amber: #E8A33D; --teal: #4FB3A9;
+    --good: #5DBB7A; --warn: #D9A03F; --crit: #D96C5F;
+    --well: rgba(232,163,61,0.10);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground: #EEF1F3; --panel: #FFFFFF; --panel-edge: #D8DEE3;
+      --ink: #1A242C; --muted: #5A6B76; --faint: #93A2AB;
+      --amber: #B87A1E; --teal: #2E7D74;
+      --good: #2E8B4F; --warn: #A87717; --crit: #B54836;
+      --well: rgba(184,122,30,0.10);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0B1116; --panel: #121A21; --panel-edge: #1E2A33;
+    --ink: #E8EDF1; --muted: #8FA1AE; --faint: #55666F;
+    --amber: #E8A33D; --teal: #4FB3A9;
+    --good: #5DBB7A; --warn: #D9A03F; --crit: #D96C5F;
+    --well: rgba(232,163,61,0.10);
+  }
+  :root[data-theme="light"] {
+    --ground: #EEF1F3; --panel: #FFFFFF; --panel-edge: #D8DEE3;
+    --ink: #1A242C; --muted: #5A6B76; --faint: #93A2AB;
+    --amber: #B87A1E; --teal: #2E7D74;
+    --good: #2E8B4F; --warn: #A87717; --crit: #B54836;
+    --well: rgba(184,122,30,0.10);
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0; padding: 0 20px 48px; line-height: 1.5;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1160px; margin: 0 auto; }
+
+  header.mast { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 26px 0 14px; border-bottom: 1px solid var(--panel-edge); }
+  .brand { font-family: Palatino, "Palatino Linotype", Georgia, serif; font-size: 1.9rem; letter-spacing: 0.14em; margin: 0; }
+  .brand em { font-style: normal; color: var(--amber); }
+  .mast .sub { color: var(--muted); font-size: 0.92rem; }
+  .chip { display: inline-block; padding: 2px 10px; border: 1px solid var(--panel-edge); border-radius: 999px; font-size: 0.75rem; color: var(--muted); }
+  .chip.live::before { content: "●"; color: var(--good); margin-right: 6px; }
+
+  .hero { position: relative; margin: 22px 0; border: 1px solid var(--panel-edge); background: var(--panel); overflow: hidden; }
+  .hero canvas { display: block; width: 100%; height: 430px; }
+  .hero .cap {
+    position: absolute; left: 0; bottom: 0; right: 0; padding: 14px 18px;
+    background: linear-gradient(transparent, color-mix(in srgb, var(--panel) 88%, transparent) 45%);
+    display: flex; gap: 26px; flex-wrap: wrap; align-items: baseline;
+  }
+  .cap h2 { margin: 0; font-family: Palatino, "Palatino Linotype", Georgia, serif; font-size: 1.15rem; font-weight: 500; }
+  .cap .stat { font-size: 0.8rem; color: var(--muted); }
+  .cap .stat b { color: var(--ink); font-weight: 600; }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--panel-edge); padding: 16px 18px; }
+  .panel h3 { margin: 0 0 4px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
+  .panel .lede { font-size: 1.55rem; font-weight: 650; margin: 0 0 2px; }
+  .panel .lede small { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 0.85rem; margin-top: 10px; }
+  .kv dt { color: var(--muted); } .kv dd { margin: 0; text-align: right; }
+  .bar { height: 7px; background: var(--panel-edge); border-radius: 4px; overflow: hidden; margin-top: 4px; display: flex; }
+  .bar i { display: block; height: 100%; }
+  .legend { display: flex; gap: 14px; font-size: 0.72rem; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: baseline; }
+
+  .verdict { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--panel-edge); font-size: 0.84rem; }
+  .verdict:first-of-type { border-top: 0; }
+  .pill { padding: 1px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; }
+  .pill.proceed { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good); }
+  .pill.reroute { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+  .meter { flex: 0 0 84px; height: 5px; background: var(--panel-edge); border-radius: 3px; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--teal); }
+  .vtask { flex: 1; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .flow { display: flex; align-items: center; gap: 8px; margin: 12px 0 8px; font-size: 0.78rem; flex-wrap: wrap; }
+  .flow .step { border: 1px solid var(--panel-edge); padding: 4px 10px; border-radius: 4px; }
+  .flow .step.ok { border-color: color-mix(in srgb, var(--good) 45%, transparent); color: var(--good); }
+  .flow .arrow { color: var(--faint); }
+
+  #latent { width: 100%; height: 300px; display: block; }
+  .finding { border-left: 3px solid var(--warn); padding: 6px 12px; margin: 10px 0; font-size: 0.85rem; background: color-mix(in srgb, var(--warn) 6%, transparent); }
+  .finding.crit { border-color: var(--crit); background: color-mix(in srgb, var(--crit) 6%, transparent); }
+  .finding b { display: block; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .commits { list-style: none; margin: 10px 0 0; padding: 0; font-size: 0.8rem; }
+  .commits li { padding: 3px 0; color: var(--muted); }
+  .commits .sha { color: var(--amber); margin-right: 8px; }
+
+  footer.agents { margin-top: 26px; border-top: 1px solid var(--panel-edge); padding-top: 16px; font-size: 0.82rem; color: var(--muted); }
+  footer.agents code { color: var(--teal); background: color-mix(in srgb, var(--teal) 8%, transparent); padding: 1px 6px; border-radius: 3px; }
+  a { color: var(--teal); }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <h1 class="brand">COHEZ<em>I</em>ON</h1>
+    <span class="sub">Mission Control · live system pulse</span>
+    <span class="chip live">all probes live · $0 inference</span>
+    <span class="chip mono">2026-07-31 15:52 ET</span>
+    <span class="chip mono">session glistening-gliding-teacup</span>
+  </header>
+
+  <figure class="hero" style="margin:22px 0;">
+    <canvas id="manifold" width="1160" height="430" role="img" aria-label="HIHO manifold with geodesic trajectories curving into the coherence well at (0.5, 0.5)"></canvas>
+    <figcaption class="cap">
+      <h2>The HIHO manifold, integrated live</h2>
+      <span class="stat">metric <b class="mono">g&#8342;&#8343; = δ&#8342;&#8343;(1 + 2e^(−|x−0.5|²/σ²))</b></span>
+      <span class="stat">Riemann scalar at attractor <b class="mono">+9.877</b> · at edge <b class="mono">−3.215</b></span>
+      <span class="stat"><b>5 geodesic pairs</b> — straight-line (dashed) vs true geodesic (amber), same start, same velocity</span>
+    </figcaption>
+  </figure>
+
+  <div class="grid">
+    <section class="panel">
+      <h3>Inference Fleet · :13305 OmniRouter</h3>
+      <p class="lede">56 <small>models in catalog</small></p>
+      <dl class="kv mono">
+        <dt>Loaded now</dt><dd>Gemma-4-E2B-it · CPU lane</dd>
+        <dt>Context window</dt><dd>131,072 (ctx 16,384)</dd>
+        <dt>NPU XDNA2</dt><dd>58 TOPS · 0% util</dd>
+        <dt>iGPU gfx1151</dt><dd>128 GB virtual mem</dd>
+        <dt>Model storage</dt><dd>511 / 956 GB</dd>
+      </dl>
+      <div class="bar" aria-label="model storage 53% used"><i style="width:53%; background: var(--teal);"></i></div>
+      <dl class="kv mono">
+        <dt>System RAM</dt><dd>81 / 122 GB · load 8.3</dd>
+      </dl>
+      <div class="bar" aria-label="RAM 66% used"><i style="width:66%; background: var(--amber);"></i></div>
+    </section>
+
+    <section class="panel">
+      <h3>Memory Graph · SurrealDB</h3>
+      <p class="lede">7,527 <small>neurons in main.vault_neuron</small></p>
+      <dl class="kv mono">
+        <dt>Synapses (MCP graph)</dt><dd>5,407</dd>
+        <dt>Agent journeys</dt><dd>1,285</dd>
+        <dt>Compound learnings</dt><dd>1,288</dd>
+        <dt>Model perf records</dt><dd>1,433</dd>
+        <dt>Vault files</dt><dd>254 ADR · 309 skills · 457 reports</dd>
+      </dl>
+      <div class="bar" aria-label="neuron maturity distribution">
+        <i style="width:2%;  background: var(--faint);" title="embryo 77"></i>
+        <i style="width:64%; background: var(--teal);"  title="growing 2,451"></i>
+        <i style="width:34%; background: var(--good);"  title="mature 1,295"></i>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--faint)"></span>embryo 77</span>
+        <span><span class="dot" style="background:var(--teal)"></span>growing 2,451</span>
+        <span><span class="dot" style="background:var(--good)"></span>mature 1,295</span>
+      </div>
+      <div class="finding">
+        <b>Split-brain observed live</b>
+        MCP graph tools read 3,823 neurons (db <span class="mono">vault</span>) while
+        <span class="mono">main.vault_neuron</span> holds 7,527 — the known
+        vault-vs-main database split, now visible in the counts.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>Latent Space · FLUME encoder path</h3>
+      <p class="lede">16 <small>concepts · nomic-embed-text-v2-moe · 768-d → PCA 2-d</small></p>
+      <canvas id="latent" width="640" height="300" role="img" aria-label="2-D PCA projection of 16 cohezion concepts; edges are top cosine-similarity pairs"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--amber)"></span>geometry</span>
+        <span><span class="dot" style="background:var(--teal)"></span>fleet</span>
+        <span><span class="dot" style="background:var(--good)"></span>memory</span>
+        <span><span class="dot" style="background:var(--crit)"></span>compound</span>
+        <span>top edge: <em>cost gate ↔ quality verdict</em> · cos 0.442</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>JEPA World Model · k=3 latent lookahead, live</h3>
+      <p class="lede">3 <small>pre-execution verdicts · GAIA-backed · trajectory-minimum coherence</small></p>
+      <div class="verdict">
+        <span class="pill reroute">REROUTE</span>
+        <span class="meter"><i style="width:47%"></i></span>
+        <span class="mono">0.470</span>
+        <span class="vtask">Summarize the last five automerge log entries…</span>
+      </div>
+      <div class="verdict">
+        <span class="pill proceed">PROCEED</span>
+        <span class="meter"><i style="width:73%"></i></span>
+        <span class="mono">0.733</span>
+        <span class="vtask">Refactor tiered orchestrator, add 4th tier with tests</span>
+      </div>
+      <div class="verdict">
+        <span class="pill reroute">REROUTE</span>
+        <span class="meter"><i style="width:47%"></i></span>
+        <span class="mono">0.467</span>
+        <span class="vtask">asdf qwerty zxcv purple monkey dishwasher…</span>
+      </div>
+      <p style="font-size:0.78rem; color:var(--muted); margin:10px 0 0;">
+        Honest note: the nonsense probe drew REROUTE, not SKIP — the well-specified
+        refactor cleared the 0.6 PROCEED threshold; the discrimination is real but soft.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h3>Datamesh Event Bus · publish → claim → verify</h3>
+      <p class="lede">✓ <small>durable cycle completed against SurrealDB backbone</small></p>
+      <div class="flow" role="list">
+        <span class="step ok" role="listitem">PUBLISH</span><span class="arrow">→</span>
+        <span class="step ok" role="listitem">CLAIM (array::add)</span><span class="arrow">→</span>
+        <span class="step ok" role="listitem">HANDLE: tally</span><span class="arrow">→</span>
+        <span class="step ok" role="listitem">VERIFIED</span>
+      </div>
+      <dl class="kv mono">
+        <dt>Event</dt><dd>data_product_event:e12kah8tnjt4u19otu1q</dd>
+        <dt>claimed_by</dt><dd>datamesh-event-consumer, pulse-dashboard-consumer</dd>
+        <dt>Backlog unclaimed</dt><dd>290+ (256 product-created, 19 quality alerts)</dd>
+      </dl>
+      <div class="finding">
+        <b>The bus is inhabited</b>
+        The ambient <span class="mono">datamesh-event-consumer</span> claimed this pulse
+        event <em>before</em> our targeted consumer did — the ambient loop is running.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>Repository · worktree fleet</h3>
+      <p class="lede">12,031 <small>test functions · 1,418 src modules · 42 worktrees</small></p>
+      <ul class="commits mono">
+        <li><span class="sha">fa24fdb</span>doc-code linter can fail · 1.1.0 → 1.2.0</li>
+        <li><span class="sha">550e449</span>true geodesics in RiemannianGlideTrajectory</li>
+        <li><span class="sha">a92e6da</span>hotswap salvage — demand-driven model swap</li>
+        <li><span class="sha">5f2f7be</span>prove REFLECT actually SUPPRESSES refinement</li>
+        <li><span class="sha">c474514</span>restore REFLECT step — two factory defects</li>
+      </ul>
+      <div class="finding crit">
+        <b>Stale surfaces</b>
+        Portfolio tracker last touched 2026-06-08 (Nemotron 0.84 banked; NeuroGolf since closed).
+        Kanban <span class="mono">:8080/api/tasks</span> 404s — work-queue lives at
+        <span class="mono">/api/work-queue</span>.
+      </div>
+    </section>
+  </div>
+
+  <footer class="agents">
+    <strong style="color:var(--ink)">For agents.</strong>
+    This page is a data product. Machine-readable state:
+    <code>document.getElementById('cohezion-pulse')</code> (JSON, schema:v1) — includes every number above
+    plus the full geodesic point sets, the 768-d→2-d latent projection, and JEPA check results.
+    The pulse is also durable on the datamesh bus as
+    <code>data_product_event:e12kah8tnjt4u19otu1q</code> (ns cohezion, db main) — claim it with
+    <code>EventConsumer(consumer_id=&lt;yours&gt;).claim(...)</code>; the SCP1 set-insert makes claims idempotent.
+    Schema gotchas confirmed live this session: <code>priority</code> is int, <code>timestamp</code> is float,
+    and <code>ORDER BY</code> fields must be projected.
+  </footer>
+</div>
+
+<script type="application/json" id="cohezion-pulse">{"schema":"cohezion-pulse:v1","captured":"2026-07-31T19:52:00Z","session":"glistening-gliding-teacup","fleet":{"router":"http://localhost:13305","catalog_models":56,"loaded":"Gemma-4-E2B-it-GGUF","lane":"cpu","ctx_window":131072,"npu_tops":58,"npu_util":0.0,"storage_used_gb":511,"storage_total_gb":956,"ram_used_gb":81,"ram_total_gb":122,"load_1m":8.29},"graph":{"main_vault_neuron":7527,"mcp_graph_neurons":3823,"synapses":5407,"stages":{"embryo":77,"growing":2451,"mature":1295},"split_brain":true,"agent_journey":1285,"compound_learnings":1288,"model_performance":1433},"vault":{"decisions":254,"skills":309,"reports":457},"repo":{"worktrees":42,"test_functions":12031,"src_modules":1418,"head":"fa24fdbed"},"event_bus":{"event_id":"data_product_event:e12kah8tnjt4u19otu1q","claimed_by":["datamesh-event-consumer","pulse-dashboard-consumer"],"verified":true,"backlog_unclaimed":290,"gotchas":["priority is int","timestamp is float","ORDER BY field must be projected"]},"jepa":{"lookahead_steps":3,"checks":[{"task":"Summarize the last five automerge log entries into one status line.","verdict":"REROUTE","coherence":0.47},{"task":"Refactor the tiered orchestrator to add a fourth escalation tier with tests.","verdict":"PROCEED","coherence":0.733},{"task":"asdf qwerty zxcv purple monkey dishwasher segfault the moon","verdict":"REROUTE","coherence":0.467}]},"curvature":{"at_attractor":9.8765,"at_edge":-3.2151},"findings":["vault-vs-main neuron split-brain (3823 vs 7527)","portfolio tracker stale since 2026-06-08","kanban /api/tasks 404; work-queue at /api/work-queue","ambient datamesh-event-consumer claimed pulse event first"]}</script>
+<script type="application/json" id="cohezion-geometry">{"geodesics":[{"flat":[[0.05,0.1],[0.067,0.11],[0.084,0.119],[0.1,0.129],[0.117,0.138],[0.134,0.148],[0.151,0.158],[0.168,0.167],[0.184,0.177],[0.201,0.186],[0.218,0.196],[0.235,0.206],[0.252,0.215],[0.268,0.225],[0.285,0.234],[0.302,0.244],[0.319,0.254],[0.336,0.263],[0.352,0.273],[0.369,0.282],[0.386,0.292],[0.403,0.302],[0.42,0.311],[0.436,0.321],[0.453,0.33],[0.47,0.34],[0.487,0.35],[0.504,0.359],[0.52,0.369],[0.537,0.378],[0.554,0.388],[0.571,0.398],[0.588,0.407],[0.604,0.417],[0.621,0.426],[0.638,0.436],[0.655,0.446],[0.672,0.455],[0.688,0.465],[0.705,0.474],[0.722,0.484],[0.739,0.494],[0.756,0.503],[0.772,0.513],[0.789,0.522],[0.806,0.532],[0.823,0.542],[0.84,0.551],[0.856,0.561],[0.873,0.57],[0.89,0.58],[0.907,0.59],[0.924,0.599],[0.94,0.609],[0.957,0.618],[0.974,0.628],[0.991,0.638],[1.008,0.647],[1.024,0.657],[1.041,0.666],[1.058,0.676],[1.075,0.686],[1.092,0.695],[1.108,0.705],[1.125,0.714],[1.142,0.724],[1.159,0.734],[1.176,0.743],[1.192,0.753],[1.209,0.762],[1.226,0.772],[1.243,0.782],[1.26,0.791],[1.276,0.801],[1.293,0.81],[1.31,0.82],[1.327,0.83],[1.344,0.839],[1.36,0.849],[1.377,0.858],[1.394,0.868],[1.411,0.878],[1.428,0.887],[1.444,0.897],[1.461,0.906],[1.478,0.916],[1.495,0.926]],"curved":[[0.05,0.1],[0.067,0.11],[0.083,0.119],[0.1,0.129],[0.116,0.138],[0.133,0.147],[0.148,0.157],[0.164,0.166],[0.18,0.175],[0.195,0.185],[0.21,0.194],[0.225,0.203],[0.239,0.211],[0.254,0.22],[0.267,0.229],[0.281,0.238],[0.294,0.246],[0.307,0.255],[0.319,0.263],[0.331,0.271],[0.343,0.28],[0.355,0.288],[0.366,0.296],[0.377,0.304],[0.388,0.312],[0.399,0.32],[0.409,0.327],[0.419,0.335],[0.429,0.343],[0.439,0.351],[0.449,0.358],[0.458,0.366],[0.468,0.374],[0.477,0.381],[0.486,0.389],[0.495,0.397],[0.504,0.404],[0.513,0.412],[0.521,0.42],[0.53,0.427],[0.539,0.435],[0.547,0.443],[0.556,0.451],[0.564,0.459],[0.573,0.467],[0.581,0.475],[0.589,0.483],[0.598,0.491],[0.606,0.499],[0.614,0.508],[0.623,0.516],[0.631,0.525],[0.639,0.534],[0.648,0.543],[0.656,0.552],[0.664,0.561],[0.673,0.571],[0.681,0.58],[0.69,0.59],[0.699,0.6],[0.708,0.61],[0.716,0.621],[0.725,0.632],[0.734,0.643],[0.744,0.654],[0.753,0.665],[0.762,0.677],[0.771,0.69],[0.781,0.702],[0.791,0.715],[0.8,0.728],[0.81,0.741],[0.82,0.755],[0.831,0.769],[0.841,0.783],[0.851,0.798],[0.862,0.812],[0.872,0.828],[0.883,0.843],[0.893,0.858],[0.904,0.874],[0.915,0.889],[0.926,0.905],[0.936,0.921],[0.947,0.937],[0.958,0.953],[0.969,0.969]]},{"flat":[[0.95,0.15],[0.937,0.164],[0.924,0.179],[0.91,0.193],[0.897,0.208],[0.884,0.222],[0.871,0.236],[0.858,0.251],[0.844,0.265],[0.831,0.28],[0.818,0.294],[0.805,0.308],[0.792,0.323],[0.778,0.337],[0.765,0.352],[0.752,0.366],[0.739,0.38],[0.726,0.395],[0.712,0.409],[0.699,0.424],[0.686,0.438],[0.673,0.452],[0.66,0.467],[0.646,0.481],[0.633,0.496],[0.62,0.51],[0.607,0.524],[0.594,0.539],[0.58,0.553],[0.567,0.568],[0.554,0.582],[0.541,0.596],[0.528,0.611],[0.514,0.625],[0.501,0.64],[0.488,0.654],[0.475,0.668],[0.462,0.683],[0.448,0.697],[0.435,0.712],[0.422,0.726],[0.409,0.74],[0.396,0.755],[0.382,0.769],[0.369,0.784],[0.356,0.798],[0.343,0.812],[0.33,0.827],[0.316,0.841],[0.303,0.856],[0.29,0.87],[0.277,0.884],[0.264,0.899],[0.25,0.913],[0.237,0.928],[0.224,0.942],[0.211,0.956],[0.198,0.971],[0.184,0.985],[0.171,1.0],[0.158,1.014],[0.145,1.028],[0.132,1.043],[0.118,1.057],[0.105,1.072],[0.092,1.086],[0.079,1.1],[0.066,1.115],[0.052,1.129],[0.039,1.144],[0.026,1.158],[0.013,1.172],[-0.0,1.187],[-0.014,1.201],[-0.027,1.216],[-0.04,1.23],[-0.053,1.244],[-0.066,1.259],[-0.08,1.273],[-0.093,1.288],[-0.106,1.302],[-0.119,1.316],[-0.132,1.331],[-0.146,1.345],[-0.159,1.36],[-0.172,1.374],[-0.185,1.388]],"curved":[[0.95,0.15],[0.937,0.164],[0.924,0.178],[0.911,0.193],[0.898,0.206],[0.885,0.22],[0.873,0.234],[0.86,0.247],[0.848,0.26],[0.836,0.273],[0.824,0.285],[0.812,0.297],[0.8,0.309],[0.789,0.321],[0.778,0.332],[0.767,0.343],[0.756,0.353],[0.745,0.364],[0.734,0.374],[0.724,0.384],[0.714,0.393],[0.704,0.403],[0.694,0.412],[0.684,0.421],[0.674,0.43],[0.664,0.438],[0.655,0.447],[0.645,0.455],[0.636,0.463],[0.626,0.471],[0.617,0.479],[0.608,0.487],[0.599,0.494],[0.589,0.502],[0.58,0.509],[0.571,0.517],[0.562,0.524],[0.552,0.531],[0.543,0.538],[0.534,0.545],[0.525,0.552],[0.515,0.559],[0.506,0.567],[0.496,0.574],[0.487,0.581],[0.477,0.587],[0.468,0.594],[0.458,0.601],[0.448,0.608],[0.438,0.615],[0.428,0.622],[0.417,0.629],[0.407,0.636],[0.396,0.643],[0.386,0.65],[0.375,0.658],[0.363,0.665],[0.352,0.672],[0.34,0.679],[0.328,0.687],[0.316,0.694],[0.303,0.702],[0.291,0.71],[0.278,0.717],[0.264,0.725],[0.25,0.733],[0.236,0.741],[0.222,0.749],[0.207,0.757],[0.192,0.766],[0.177,0.774],[0.161,0.783],[0.145,0.791],[0.129,0.8],[0.112,0.809],[0.096,0.818],[0.079,0.827],[0.062,0.836],[0.045,0.845],[0.028,0.854],[0.01,0.863],[-0.007,0.872],[-0.025,0.881],[-0.042,0.89],[-0.06,0.899],[-0.077,0.908],[-0.095,0.917]]},{"flat":[[0.1,0.9],[0.118,0.889],[0.136,0.878],[0.154,0.868],[0.172,0.857],[0.19,0.846],[0.208,0.835],[0.226,0.824],[0.244,0.814],[0.262,0.803],[0.28,0.792],[0.298,0.781],[0.316,0.77],[0.334,0.76],[0.352,0.749],[0.37,0.738],[0.388,0.727],[0.406,0.716],[0.424,0.706],[0.442,0.695],[0.46,0.684],[0.478,0.673],[0.496,0.662],[0.514,0.652],[0.532,0.641],[0.55,0.63],[0.568,0.619],[0.586,0.608],[0.604,0.598],[0.622,0.587],[0.64,0.576],[0.658,0.565],[0.676,0.554],[0.694,0.544],[0.712,0.533],[0.73,0.522],[0.748,0.511],[0.766,0.5],[0.784,0.49],[0.802,0.479],[0.82,0.468],[0.838,0.457],[0.856,0.446],[0.874,0.436],[0.892,0.425],[0.91,0.414],[0.928,0.403],[0.946,0.392],[0.964,0.382],[0.982,0.371],[1.0,0.36],[1.018,0.349],[1.036,0.338],[1.054,0.328],[1.072,0.317],[1.09,0.306],[1.108,0.295],[1.126,0.284],[1.144,0.274],[1.162,0.263],[1.18,0.252],[1.198,0.241],[1.216,0.23],[1.234,0.22],[1.252,0.209],[1.27,0.198],[1.288,0.187],[1.306,0.176],[1.324,0.166],[1.342,0.155],[1.36,0.144],[1.378,0.133],[1.396,0.122],[1.414,0.112],[1.432,0.101],[1.45,0.09],[1.468,0.079],[1.486,0.068],[1.504,0.058],[1.522,0.047],[1.54,0.036],[1.558,0.025],[1.576,0.014],[1.594,0.004],[1.612,-0.007],[1.63,-0.018],[1.648,-0.029]],"curved":[[0.1,0.9],[0.118,0.889],[0.136,0.878],[0.153,0.868],[0.17,0.857],[0.188,0.847],[0.204,0.836],[0.221,0.826],[0.237,0.816],[0.252,0.806],[0.268,0.795],[0.282,0.786],[0.297,0.776],[0.311,0.766],[0.325,0.756],[0.338,0.747],[0.351,0.738],[0.364,0.728],[0.376,0.719],[0.388,0.71],[0.4,0.701],[0.411,0.692],[0.422,0.682],[0.433,0.674],[0.444,0.665],[0.454,0.656],[0.465,0.647],[0.475,0.638],[0.485,0.629],[0.494,0.621],[0.504,0.612],[0.513,0.603],[0.523,0.594],[0.532,0.585],[0.541,0.576],[0.55,0.567],[0.559,0.558],[0.568,0.549],[0.577,0.54],[0.586,0.53],[0.595,0.521],[0.603,0.512],[0.612,0.502],[0.621,0.492],[0.629,0.482],[0.638,0.472],[0.647,0.462],[0.655,0.452],[0.664,0.441],[0.673,0.43],[0.681,0.419],[0.69,0.408],[0.699,0.397],[0.708,0.385],[0.717,0.373],[0.726,0.36],[0.735,0.347],[0.745,0.334],[0.754,0.321],[0.763,0.307],[0.773,0.293],[0.783,0.278],[0.792,0.263],[0.802,0.248],[0.812,0.232],[0.822,0.216],[0.832,0.2],[0.843,0.183],[0.853,0.166],[0.863,0.148],[0.874,0.131],[0.884,0.113],[0.895,0.095],[0.905,0.077],[0.916,0.059],[0.926,0.041],[0.937,0.022],[0.948,0.004],[0.959,-0.015],[0.969,-0.033],[0.98,-0.052],[0.991,-0.07],[1.001,-0.089],[1.012,-0.107],[1.023,-0.126],[1.034,-0.144],[1.044,-0.163]]},{"flat":[[0.9,0.9],[0.884,0.887],[0.869,0.874],[0.853,0.86],[0.838,0.847],[0.822,0.834],[0.806,0.821],[0.791,0.808],[0.775,0.794],[0.76,0.781],[0.744,0.768],[0.728,0.755],[0.713,0.742],[0.697,0.728],[0.682,0.715],[0.666,0.702],[0.65,0.689],[0.635,0.676],[0.619,0.662],[0.604,0.649],[0.588,0.636],[0.572,0.623],[0.557,0.61],[0.541,0.596],[0.526,0.583],[0.51,0.57],[0.494,0.557],[0.479,0.544],[0.463,0.53],[0.448,0.517],[0.432,0.504],[0.416,0.491],[0.401,0.478],[0.385,0.464],[0.37,0.451],[0.354,0.438],[0.338,0.425],[0.323,0.412],[0.307,0.398],[0.292,0.385],[0.276,0.372],[0.26,0.359],[0.245,0.346],[0.229,0.332],[0.214,0.319],[0.198,0.306],[0.182,0.293],[0.167,0.28],[0.151,0.266],[0.136,0.253],[0.12,0.24],[0.104,0.227],[0.089,0.214],[0.073,0.2],[0.058,0.187],[0.042,0.174],[0.026,0.161],[0.011,0.148],[-0.005,0.134],[-0.02,0.121],[-0.036,0.108],[-0.052,0.095],[-0.067,0.082],[-0.083,0.068],[-0.098,0.055],[-0.114,0.042],[-0.13,0.029],[-0.145,0.016],[-0.161,0.002],[-0.176,-0.011],[-0.192,-0.024],[-0.208,-0.037],[-0.223,-0.05],[-0.239,-0.064],[-0.254,-0.077],[-0.27,-0.09],[-0.286,-0.103],[-0.301,-0.116],[-0.317,-0.13],[-0.332,-0.143],[-0.348,-0.156],[-0.364,-0.169],[-0.379,-0.182],[-0.395,-0.196],[-0.41,-0.209],[-0.426,-0.222],[-0.442,-0.235]],"curved":[[0.9,0.9],[0.884,0.887],[0.869,0.874],[0.854,0.861],[0.839,0.848],[0.824,0.835],[0.809,0.823],[0.795,0.811],[0.781,0.799],[0.767,0.787],[0.754,0.775],[0.741,0.764],[0.728,0.752],[0.716,0.741],[0.704,0.731],[0.692,0.72],[0.68,0.71],[0.669,0.699],[0.658,0.689],[0.647,0.679],[0.636,0.67],[0.626,0.66],[0.616,0.651],[0.606,0.642],[0.596,0.632],[0.587,0.623],[0.577,0.615],[0.568,0.606],[0.559,0.597],[0.55,0.588],[0.541,0.579],[0.532,0.571],[0.523,0.562],[0.514,0.553],[0.506,0.545],[0.497,0.536],[0.488,0.528],[0.48,0.519],[0.471,0.511],[0.463,0.502],[0.454,0.493],[0.446,0.485],[0.437,0.476],[0.429,0.467],[0.42,0.458],[0.411,0.449],[0.403,0.44],[0.394,0.431],[0.385,0.421],[0.376,0.412],[0.367,0.402],[0.358,0.392],[0.349,0.382],[0.34,0.372],[0.33,0.362],[0.321,0.351],[0.311,0.34],[0.301,0.329],[0.291,0.318],[0.28,0.306],[0.27,0.294],[0.259,0.282],[0.248,0.27],[0.237,0.257],[0.226,0.244],[0.214,0.23],[0.203,0.216],[0.191,0.203],[0.178,0.188],[0.166,0.174],[0.153,0.159],[0.141,0.144],[0.128,0.129],[0.115,0.113],[0.102,0.098],[0.089,0.082],[0.076,0.067],[0.063,0.051],[0.05,0.035],[0.036,0.019],[0.023,0.003],[0.01,-0.013],[-0.004,-0.029],[-0.017,-0.045],[-0.03,-0.061],[-0.044,-0.077],[-0.057,-0.093]]},{"flat":[[0.5,0.02],[0.506,0.038],[0.512,0.056],[0.518,0.074],[0.524,0.092],[0.53,0.11],[0.536,0.128],[0.542,0.146],[0.548,0.164],[0.554,0.182],[0.56,0.2],[0.566,0.218],[0.572,0.236],[0.578,0.254],[0.584,0.272],[0.59,0.29],[0.596,0.308],[0.602,0.326],[0.608,0.344],[0.614,0.362],[0.62,0.38],[0.626,0.398],[0.632,0.416],[0.638,0.434],[0.644,0.452],[0.65,0.47],[0.656,0.488],[0.662,0.506],[0.668,0.524],[0.674,0.542],[0.68,0.56],[0.686,0.578],[0.692,0.596],[0.698,0.614],[0.704,0.632],[0.71,0.65],[0.716,0.668],[0.722,0.686],[0.728,0.704],[0.734,0.722],[0.74,0.74],[0.746,0.758],[0.752,0.776],[0.758,0.794],[0.764,0.812],[0.77,0.83],[0.776,0.848],[0.782,0.866],[0.788,0.884],[0.794,0.902],[0.8,0.92],[0.806,0.938],[0.812,0.956],[0.818,0.974],[0.824,0.992],[0.83,1.01],[0.836,1.028],[0.842,1.046],[0.848,1.064],[0.854,1.082],[0.86,1.1],[0.866,1.118],[0.872,1.136],[0.878,1.154],[0.884,1.172],[0.89,1.19],[0.896,1.208],[0.902,1.226],[0.908,1.244],[0.914,1.262],[0.92,1.28],[0.926,1.298],[0.932,1.316],[0.938,1.334],[0.944,1.352],[0.95,1.37],[0.956,1.388],[0.962,1.406],[0.968,1.424],[0.974,1.442],[0.98,1.46],[0.986,1.478],[0.992,1.496],[0.998,1.514],[1.004,1.532],[1.01,1.55],[1.016,1.568]],"curved":[[0.5,0.02],[0.506,0.038],[0.512,0.056],[0.517,0.073],[0.522,0.09],[0.528,0.107],[0.533,0.123],[0.537,0.14],[0.542,0.156],[0.546,0.172],[0.55,0.187],[0.554,0.202],[0.557,0.217],[0.561,0.232],[0.564,0.246],[0.567,0.26],[0.57,0.274],[0.573,0.288],[0.575,0.301],[0.577,0.315],[0.58,0.328],[0.582,0.341],[0.584,0.354],[0.585,0.367],[0.587,0.379],[0.588,0.392],[0.59,0.404],[0.591,0.417],[0.592,0.429],[0.593,0.441],[0.594,0.453],[0.595,0.466],[0.596,0.478],[0.596,0.49],[0.597,0.502],[0.597,0.514],[0.598,0.526],[0.598,0.538],[0.598,0.551],[0.598,0.563],[0.598,0.575],[0.598,0.588],[0.597,0.6],[0.597,0.613],[0.596,0.625],[0.596,0.638],[0.595,0.651],[0.594,0.664],[0.593,0.678],[0.592,0.691],[0.591,0.705],[0.589,0.719],[0.588,0.733],[0.586,0.748],[0.584,0.762],[0.582,0.777],[0.58,0.792],[0.577,0.807],[0.575,0.823],[0.572,0.839],[0.569,0.856],[0.565,0.872],[0.562,0.889],[0.558,0.906],[0.555,0.924],[0.551,0.942],[0.547,0.96],[0.542,0.978],[0.538,0.996],[0.534,1.015],[0.529,1.034],[0.524,1.053],[0.52,1.072],[0.515,1.091],[0.51,1.111],[0.505,1.13],[0.5,1.149],[0.495,1.169],[0.49,1.188],[0.485,1.208],[0.48,1.228],[0.475,1.247],[0.47,1.267],[0.465,1.286],[0.46,1.306],[0.455,1.326],[0.45,1.345]]}],"metric_field":{"n":24,"g00":[[1.008,1.012,1.019,1.027,1.038,1.051,1.066,1.081,1.096,1.109,1.119,1.124,1.124,1.119,1.109,1.096,1.081,1.066,1.051,1.038,1.027,1.019,1.012,1.008],[1.012,1.019,1.03,1.043,1.061,1.081,1.105,1.129,1.153,1.173,1.188,1.196,1.196,1.188,1.173,1.153,1.129,1.105,1.081,1.061,1.043,1.03,1.019,1.012],[1.019,1.03,1.045,1.066,1.092,1.124,1.159,1.196,1.232,1.263,1.287,1.299,1.299,1.287,1.263,1.232,1.196,1.159,1.124,1.092,1.066,1.045,1.03,1.019],[1.027,1.043,1.066,1.096,1.135,1.181,1.232,1.287,1.339,1.385,1.418,1.436,1.436,1.418,1.385,1.339,1.287,1.232,1.181,1.135,1.096,1.066,1.043,1.027],[1.038,1.061,1.092,1.135,1.188,1.253,1.325,1.401,1.474,1.538,1.585,1.61,1.61,1.585,1.538,1.474,1.401,1.325,1.253,1.188,1.135,1.092,1.061,1.038],[1.051,1.081,1.124,1.181,1.253,1.339,1.436,1.538,1.637,1.722,1.785,1.819,1.819,1.785,1.722,1.637,1.538,1.436,1.339,1.253,1.181,1.124,1.081,1.051],[1.066,1.105,1.159,1.232,1.325,1.436,1.561,1.692,1.819,1.929,2.011,2.054,2.054,2.011,1.929,1.819,1.692,1.561,1.436,1.325,1.232,1.159,1.105,1.066],[1.081,1.129,1.196,1.287,1.401,1.538,1.692,1.854,2.011,2.146,2.247,2.3,2.3,2.247,2.146,2.011,1.854,1.692,1.538,1.401,1.287,1.196,1.129,1.081],[1.096,1.153,1.232,1.339,1.474,1.637,1.819,2.011,2.195,2.356,2.475,2.538,2.538,2.475,2.356,2.195,2.011,1.819,1.637,1.474,1.339,1.232,1.153,1.096],[1.109,1.173,1.263,1.385,1.538,1.722,1.929,2.146,2.356,2.538,2.673,2.745,2.745,2.673,2.538,2.356,2.146,1.929,1.722,1.538,1.385,1.263,1.173,1.109],[1.119,1.188,1.287,1.418,1.585,1.785,2.011,2.247,2.475,2.673,2.82,2.898,2.898,2.82,2.673,2.475,2.247,2.011,1.785,1.585,1.418,1.287,1.188,1.119],[1.124,1.196,1.299,1.436,1.61,1.819,2.054,2.3,2.538,2.745,2.898,2.979,2.979,2.898,2.745,2.538,2.3,2.054,1.819,1.61,1.436,1.299,1.196,1.124],[1.124,1.196,1.299,1.436,1.61,1.819,2.054,2.3,2.538,2.745,2.898,2.979,2.979,2.898,2.745,2.538,2.3,2.054,1.819,1.61,1.436,1.299,1.196,1.124],[1.119,1.188,1.287,1.418,1.585,1.785,2.011,2.247,2.475,2.673,2.82,2.898,2.898,2.82,2.673,2.475,2.247,2.011,1.785,1.585,1.418,1.287,1.188,1.119],[1.109,1.173,1.263,1.385,1.538,1.722,1.929,2.146,2.356,2.538,2.673,2.745,2.745,2.673,2.538,2.356,2.146,1.929,1.722,1.538,1.385,1.263,1.173,1.109],[1.096,1.153,1.232,1.339,1.474,1.637,1.819,2.011,2.195,2.356,2.475,2.538,2.538,2.475,2.356,2.195,2.011,1.819,1.637,1.474,1.339,1.232,1.153,1.096],[1.081,1.129,1.196,1.287,1.401,1.538,1.692,1.854,2.011,2.146,2.247,2.3,2.3,2.247,2.146,2.011,1.854,1.692,1.538,1.401,1.287,1.196,1.129,1.081],[1.066,1.105,1.159,1.232,1.325,1.436,1.561,1.692,1.819,1.929,2.011,2.054,2.054,2.011,1.929,1.819,1.692,1.561,1.436,1.325,1.232,1.159,1.105,1.066],[1.051,1.081,1.124,1.181,1.253,1.339,1.436,1.538,1.637,1.722,1.785,1.819,1.819,1.785,1.722,1.637,1.538,1.436,1.339,1.253,1.181,1.124,1.081,1.051],[1.038,1.061,1.092,1.135,1.188,1.253,1.325,1.401,1.474,1.538,1.585,1.61,1.61,1.585,1.538,1.474,1.401,1.325,1.253,1.188,1.135,1.092,1.061,1.038],[1.027,1.043,1.066,1.096,1.135,1.181,1.232,1.287,1.339,1.385,1.418,1.436,1.436,1.418,1.385,1.339,1.287,1.232,1.181,1.135,1.096,1.066,1.043,1.027],[1.019,1.03,1.045,1.066,1.092,1.124,1.159,1.196,1.232,1.263,1.287,1.299,1.299,1.287,1.263,1.232,1.196,1.159,1.124,1.092,1.066,1.045,1.03,1.019],[1.012,1.019,1.03,1.043,1.061,1.081,1.105,1.129,1.153,1.173,1.188,1.196,1.196,1.188,1.173,1.153,1.129,1.105,1.081,1.061,1.043,1.03,1.019,1.012],[1.008,1.012,1.019,1.027,1.038,1.051,1.066,1.081,1.096,1.109,1.119,1.124,1.124,1.119,1.109,1.096,1.081,1.066,1.051,1.038,1.027,1.019,1.012,1.008]]},"curvature_at_attractor":9.8765,"curvature_at_edge":-3.2151,"latent":{"model":"nomic-embed-text-v2-moe-GGUF","dim":768,"variance_explained_2d":0.198,"nodes":[{"label":"NPU inference tier","domain":"fleet","x":0.2565,"y":0.4938},{"label":"iGPU model routing","domain":"fleet","x":0.2895,"y":1.0},{"label":"lemonade OmniRouter","domain":"fleet","x":0.203,"y":0.9484},{"label":"token cost escalation gate","domain":"fleet","x":0.9137,"y":0.507},{"label":"vault neuron memory graph","domain":"memory","x":0.35,"y":0.8964},{"label":"synapse co-occurrence edge","domain":"memory","x":0.0807,"y":0.5899},{"label":"architecture decision record","domain":"memory","x":0.708,"y":0.4392},{"label":"skill refinement loop","domain":"compound","x":0.3845,"y":0.3105},{"label":"compound engineering executor","domain":"compound","x":0.3771,"y":0.0},{"label":"degradation detector baseline","domain":"compound","x":0.4894,"y":0.12},{"label":"quality gate verdict","domain":"compound","x":1.0,"y":0.5211},{"label":"Riemannian geodesic trajectory","domain":"geometry","x":0.0096,"y":0.4969},{"label":"HIHO coherence attractor","domain":"geometry","x":0.0372,"y":0.2126},{"label":"JEPA world model lookahead","domain":"geometry","x":0.1527,"y":0.3744},{"label":"latent space embedding","domain":"geometry","x":0.0,"y":0.3786},{"label":"12-dimensional manifold","domain":"geometry","x":0.0472,"y":0.3496}],"edges":[[3,10,0.442],[1,4,0.39],[1,2,0.374],[4,5,0.36],[0,1,0.335],[5,12,0.307],[4,14,0.298],[6,10,0.29],[0,4,0.29],[11,15,0.283],[5,14,0.281],[1,11,0.277],[5,13,0.275],[2,11,0.267]]},"jepa":{"lookahead_steps":3,"checks":[{"task":"Summarize the last five automerge log entries into one status line.","verdict":"REROUTE","coherence":0.47},{"task":"Refactor the tiered orchestrator to add a fourth escalation tier with tests.","verdict":"PROCEED","coherence":0.733},{"task":"asdf qwerty zxcv purple monkey dishwasher segfault the moon","verdict":"REROUTE","coherence":0.467}]}}</script>
+
+<script>
+(function () {
+  "use strict";
+  const geo = JSON.parse(document.getElementById("cohezion-geometry").textContent);
+  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------------- hero: HIHO manifold + geodesics ---------------- */
+  const mc = document.getElementById("manifold");
+  const mctx = mc.getContext("2d");
+
+  function sizeCanvas(c) {
+    const dpr = window.devicePixelRatio || 1;
+    const r = c.getBoundingClientRect();
+    c.width = r.width * dpr; c.height = r.height * dpr;
+    c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+    return r;
+  }
+
+  let progress = reduced ? 1 : 0;
+
+  function drawManifold() {
+    const r = sizeCanvas(mc);
+    const W = r.width, H = r.height;
+    const px = (x) => 40 + x * (W - 80);
+    const py = (y) => H - 34 - y * (H - 68);
+    mctx.clearRect(0, 0, W, H);
+
+    // metric field as filled contour cells (real g00 grid)
+    const f = geo.metric_field, n = f.n, g = f.g00;
+    let gmin = 9, gmax = 0;
+    for (const row of g) for (const v of row) { gmin = Math.min(gmin, v); gmax = Math.max(gmax, v); }
+    const wellColor = css("--amber");
+    for (let iy = 0; iy < n - 1; iy++) {
+      for (let ix = 0; ix < n - 1; ix++) {
+        const t = (g[iy][ix] - gmin) / (gmax - gmin);
+        if (t < 0.03) continue;
+        mctx.fillStyle = wellColor;
+        mctx.globalAlpha = 0.02 + t * 0.16;
+        mctx.fillRect(px(ix / (n - 1)), py((iy + 1) / (n - 1)),
+                      (W - 80) / (n - 1) + 1, (H - 68) / (n - 1) + 1);
+      }
+    }
+    mctx.globalAlpha = 1;
+
+    // contour rings around the attractor
+    mctx.strokeStyle = css("--faint");
+    mctx.lineWidth = 0.6;
+    for (let k = 1; k <= 5; k++) {
+      mctx.beginPath();
+      mctx.ellipse(px(0.5), py(0.5), k * 0.085 * (W - 80), k * 0.085 * (H - 68), 0, 0, Math.PI * 2);
+      mctx.globalAlpha = 0.35 - k * 0.05;
+      mctx.stroke();
+    }
+    mctx.globalAlpha = 1;
+
+    // attractor
+    mctx.fillStyle = wellColor;
+    mctx.beginPath(); mctx.arc(px(0.5), py(0.5), 4, 0, Math.PI * 2); mctx.fill();
+    mctx.font = "11px ui-monospace, monospace";
+    mctx.fillStyle = css("--muted");
+    mctx.fillText("HIHO attractor (0.5, 0.5)", px(0.5) + 10, py(0.5) - 8);
+
+    // geodesic pairs
+    for (const pair of geo.geodesics) {
+      const cut = Math.max(2, Math.floor(pair.flat.length * progress));
+      // flat: dashed, muted
+      mctx.strokeStyle = css("--faint");
+      mctx.setLineDash([4, 5]); mctx.lineWidth = 1.1;
+      mctx.beginPath();
+      pair.flat.slice(0, cut).forEach(function (p, i) {
+        if (i === 0) mctx.moveTo(px(p[0]), py(p[1])); else mctx.lineTo(px(p[0]), py(p[1]));
+      });
+      mctx.stroke();
+      // curved: solid amber
+      mctx.setLineDash([]);
+      mctx.strokeStyle = wellColor; mctx.lineWidth = 1.8;
+      mctx.beginPath();
+      pair.curved.slice(0, cut).forEach(function (p, i) {
+        if (i === 0) mctx.moveTo(px(p[0]), py(p[1])); else mctx.lineTo(px(p[0]), py(p[1]));
+      });
+      mctx.stroke();
+      // start marker + moving head
+      const s = pair.curved[0];
+      mctx.fillStyle = css("--teal");
+      mctx.beginPath(); mctx.arc(px(s[0]), py(s[1]), 3, 0, Math.PI * 2); mctx.fill();
+      const head = pair.curved[cut - 1];
+      mctx.fillStyle = wellColor;
+      mctx.beginPath(); mctx.arc(px(head[0]), py(head[1]), 2.6, 0, Math.PI * 2); mctx.fill();
+    }
+  }
+
+  function animate() {
+    if (progress < 1) { progress = Math.min(1, progress + 0.008); requestAnimationFrame(animate); }
+    drawManifold();
+    if (progress < 1) return;
+  }
+
+  /* ---------------- latent map ---------------- */
+  const lc = document.getElementById("latent");
+  const lctx = lc.getContext("2d");
+  const domainColor = { geometry: "--amber", fleet: "--teal", memory: "--good", compound: "--crit" };
+
+  function drawLatent() {
+    const r = sizeCanvas(lc);
+    const W = r.width, H = r.height;
+    const nodes = geo.latent.nodes, edges = geo.latent.edges;
+    const px = (x) => 24 + x * (W - 48);
+    const py = (y) => 20 + (1 - y) * (H - 52);
+    lctx.clearRect(0, 0, W, H);
+
+    lctx.lineWidth = 1;
+    for (const e of edges) {
+      const a = nodes[e[0]], b = nodes[e[1]];
+      lctx.strokeStyle = css("--faint");
+      lctx.globalAlpha = 0.25 + e[2] * 1.2;
+      lctx.beginPath(); lctx.moveTo(px(a.x), py(a.y)); lctx.lineTo(px(b.x), py(b.y)); lctx.stroke();
+    }
+    lctx.globalAlpha = 1;
+    lctx.font = "10px system-ui, sans-serif";
+    nodes.forEach(function (nd) {
+      lctx.fillStyle = css(domainColor[nd.domain] || "--muted");
+      lctx.beginPath(); lctx.arc(px(nd.x), py(nd.y), 4, 0, Math.PI * 2); lctx.fill();
+      lctx.fillStyle = css("--muted");
+      const short = nd.label.length > 22 ? nd.label.slice(0, 21) + "…" : nd.label;
+      const tx = Math.min(px(nd.x) + 7, W - 120);
+      lctx.fillText(short, tx, py(nd.y) + 3);
+    });
+    lctx.fillStyle = css("--faint");
+    lctx.font = "10px ui-monospace, monospace";
+    lctx.fillText("PC1 →", W - 60, H - 8);
+    lctx.save(); lctx.translate(10, 60); lctx.rotate(-Math.PI / 2);
+    lctx.fillText("PC2 →", 0, 0); lctx.restore();
+  }
+
+  function drawAll() { drawManifold(); drawLatent(); }
+
+  if (reduced) { drawAll(); } else { animate(); drawLatent(); }
+  addEventListener("resize", drawAll);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+  new MutationObserver(drawAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+})();
+</script>
