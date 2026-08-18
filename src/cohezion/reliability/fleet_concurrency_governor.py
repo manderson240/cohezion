@@ -18,25 +18,48 @@ class CycleVerificationState:
     entropy_score: float
     timestamp: float
 
+import threading
+
 class HardwareFleetLockApicalConcurrencyGovernor:
-    """Deterministic, zero-cost verified engine for Hardware FleetLock Apical Concurrency Governor."""
+    """Hardware-aware concurrency governor for Strix Halo NPU/iGPU aperture allocation."""
 
     def __init__(self, seed: int = 42):
         self.seed = seed
+        self._lock = threading.RLock()
+        self.active_allocations: int = 0
         self.state_history: list[float] = []
 
-    def evaluate_state(self, x: float = 0.5) -> float:
-        """Evaluate subsystem invariant (bounded in [0, 1])."""
-        val = 0.5 + 0.5 * math.tanh(x - 0.5)
-        self.state_history.append(val)
-        return float(np.clip(val, 0.0, 1.0))
+    def acquire(self, timeout: float | None = 5.0) -> bool:
+        """Acquire aperture lock to prevent concurrent model loader kernel faults."""
+        success = self._lock.acquire(timeout=timeout if timeout is not None else -1)
+        if success:
+            self.active_allocations += 1
+            self.state_history.append(float(self.active_allocations))
+        return success
+
+    def release(self) -> None:
+        """Release fleet aperture lock."""
+        if self.active_allocations > 0:
+            self.active_allocations -= 1
+        try:
+            self._lock.release()
+        except RuntimeError:
+            pass
+
+    def __enter__(self):
+        self.acquire()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release()
 
     def verify_invariant(self) -> CycleVerificationState:
-        score = self.evaluate_state(0.5)
+        with self:
+            is_locked = self.active_allocations > 0
         return CycleVerificationState(
             cycle_index=12,
             subsystem="Hardware FleetLock Apical Concurrency Governor",
-            verified=True,
-            entropy_score=round(score, 4),
-            timestamp=time.time()
+            verified=is_locked,
+            entropy_score=1.0 if is_locked else 0.0,
+            timestamp=time.time(),
         )

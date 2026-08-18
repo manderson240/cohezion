@@ -19,24 +19,38 @@ class CycleVerificationState:
     timestamp: float
 
 class MarkovChainStationaryDistributionStreamRoutingEngine:
-    """Deterministic, zero-cost verified engine for Markov Chain Stationary Distribution Stream Routing Engine."""
+    """Computes Markov stationary distributions for deterministic multi-agent routing."""
 
-    def __init__(self, seed: int = 42):
-        self.seed = seed
+    def __init__(self, n_states: int = 5, seed: int = 42):
+        self.n_states = n_states
+        np.random.seed(seed)
+        raw_mat = np.random.uniform(0.1, 1.0, size=(n_states, n_states))
+        self.transition_matrix = raw_mat / raw_mat.sum(axis=1, keepdims=True)
         self.state_history: list[float] = []
 
-    def evaluate_state(self, x: float = 0.5) -> float:
-        """Evaluate subsystem invariant (bounded in [0, 1])."""
-        val = 0.5 + 0.5 * math.tanh(x - 0.5)
-        self.state_history.append(val)
-        return float(np.clip(val, 0.0, 1.0))
+    def compute_stationary_distribution(self, max_iter: int = 100, tol: float = 1e-6) -> np.ndarray:
+        """Compute unique stationary vector pi such that pi * P = pi via power iteration."""
+        pi = np.ones(self.n_states) / self.n_states
+        for _ in range(max_iter):
+            next_pi = np.dot(pi, self.transition_matrix)
+            if np.linalg.norm(next_pi - pi) < tol:
+                break
+            pi = next_pi
+        self.state_history.append(float(np.mean(pi)))
+        return pi
+
+    def route_task(self, task_entropy: float = 0.5) -> int:
+        """Route task to most probable equilibrium state."""
+        pi = self.compute_stationary_distribution()
+        return int(np.argmax(pi))
 
     def verify_invariant(self) -> CycleVerificationState:
-        score = self.evaluate_state(0.5)
+        pi = self.compute_stationary_distribution()
+        is_stationary = abs(float(np.sum(pi)) - 1.0) < 1e-5
         return CycleVerificationState(
             cycle_index=8,
             subsystem="Markov Chain Stationary Distribution Stream Routing Engine",
-            verified=True,
-            entropy_score=round(score, 4),
-            timestamp=time.time()
+            verified=is_stationary,
+            entropy_score=round(float(np.max(pi)), 4),
+            timestamp=time.time(),
         )

@@ -18,7 +18,7 @@ class CycleVerificationState:
     entropy_score: float
     timestamp: float
 
-class SurrealDBGraphRelationalEventLog&CrossSessionMesh:
+class SurrealDBGraphRelationalEventLogCrossSessionMesh:
     """Deterministic, zero-cost verified engine for SurrealDB v2 Graph Relational Event Log & Cross-Session Mesh."""
 
     def __init__(self, seed: int = 42):
