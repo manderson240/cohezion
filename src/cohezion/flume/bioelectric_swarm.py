@@ -335,6 +335,11 @@ class BioelectricSwarm:
         """
         return [node_id for node_id, node in self.nodes.items() if not node.is_healthy]
 
+    def trigger_self_healing_wave(self) -> list[int | str]:
+        """Trigger self-healing wave across corrupted nodes and return healed node IDs."""
+        res = self.heal_swarm()
+        return res.get("corrupted_nodes", [])
+
     def heal_swarm(self) -> dict[str, Any]:
         """Dynamic bioelectric self-healing for corrupted or OOM-faulted nodes.
 
