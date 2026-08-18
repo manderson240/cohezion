@@ -40,6 +40,9 @@ _MIN_SAMPLES = 5  # competitive analysis lower bound: MTF potential needs O(n) o
 _LCB_ADEQUATE = 0.35
 _WILSON_Z = 1.96  # ~95% one-sided; engineering default, tune on replay logs
 _WINDOW = 10
+# Minimum latency observations before trusting empirical median over positional fallback.
+# With <3 samples, a single slow/fast run would dominate the median — statistically meaningless.
+_LATENCY_MIN_SAMPLES = 3
 # Bayesian cold-start gate (Beta(1,1) conjugate posterior — Gelman BDA §3.1).
 # Threshold 0.77 sits between (2+1)/(2+2)=0.75 (lucky-2/2, reject) and
 # (3+1)/(3+2)=0.80 (sustained-3/3, accept).  Works from n=1; replaces the
@@ -245,11 +248,17 @@ class DifficultyEstimator:
                 adequate_tiers.append(tier)
 
         if adequate_tiers:
-            has_latency = any(tier_latencies[t] for t in adequate_tiers)
-            if has_latency:
+            # GIC-LAT3: require _LATENCY_MIN_SAMPLES observations before trusting
+            # empirical median latency. With <3 samples, a single slow/fast run
+            # would dominate the median — statistically meaningless and could
+            # cause tier flapping.
+            latency_adequate = [
+                t for t in adequate_tiers if len(tier_latencies[t]) >= _LATENCY_MIN_SAMPLES
+            ]
+            if latency_adequate:
                 return min(
-                    adequate_tiers,
-                    key=lambda t: _median(tier_latencies[t]) if tier_latencies[t] else math.inf,
+                    latency_adequate,
+                    key=lambda t: _median(tier_latencies[t]),
                 )
             return adequate_tiers[0]  # positional fallback (original GIC2)
 

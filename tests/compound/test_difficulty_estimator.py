@@ -15,7 +15,7 @@ GIC_NEW_7: post-execution history overrides prompt-based estimate
 
 import pytest
 
-from cohezion.compound.difficulty_estimator import DifficultyEstimator
+from cohezion.compound.difficulty_estimator import DifficultyEstimator, _LATENCY_MIN_SAMPLES
 from cohezion.compound.skill_refiner import SkillRefiner
 
 
@@ -384,18 +384,39 @@ class TestLatencyAwareTierSelection:
 
     def test_mixed_latency_and_no_latency_records(self) -> None:
         """GIC-LAT edge: when some records have latency and others don't,
-        the tier with latency data is preferred over the one without (0.0
-        means 'unknown latency', not 'zero latency').
+        the tier with sufficient latency data is preferred over the one without.
+
+        NPU has 5 latency observations (≥_LATENCY_MIN_SAMPLES), iGPU has 0.
+        NPU is latency-adequate, iGPU is not → NPU wins by positional fallback
+        among the latency-adequate set (it's the only one).
         """
         de = DifficultyEstimator()
         for _ in range(5):
             de.record("skill_m", "op", "npu", 0, 0.85, latency_s=150.0)
         for _ in range(5):
             de.record("skill_m", "op", "igpu", 0, 0.85)  # no latency_s
-        # NPU has latency data (150s), iGPU has none (0.0).
-        # has_latency=True for the adequate set; NPU median=150, iGPU median=inf
-        # → NPU wins (it has known latency, iGPU has unknown)
         result = de.predict_tier("skill_m", "op")
         assert result == "npu", (
-            f"Mixed latency: NPU has known 150s, iGPU unknown; NPU should win; got '{result}'"
+            f"Mixed latency: NPU has known latency, iGPU unknown; NPU should win; got '{result}'"
+        )
+
+    def test_insufficient_latency_samples_falls_back_to_positional(self) -> None:
+        """GIC-LAT3 discriminating: a tier with only 1-2 latency observations
+        should NOT be trusted for median-based selection.
+
+        NPU has 1 fast observation (50s), iGPU has 5 slower observations (120s).
+        Without the min-samples gate, NPU would win (50s < 120s median).
+        With the gate, NPU is excluded (1 < _LATENCY_MIN_SAMPLES=3) and
+        iGPU wins as the only latency-adequate tier.
+
+        A wrong impl without the gate returns 'npu' (flapping on a single fast run).
+        """
+        de = DifficultyEstimator()
+        de.record("skill_s", "op", "npu", 0, 0.85, latency_s=50.0)  # 1 sample
+        for _ in range(5):
+            de.record("skill_s", "op", "igpu", 0, 0.85, latency_s=120.0)  # 5 samples
+        result = de.predict_tier("skill_s", "op")
+        assert result == "igpu", (
+            f"GIC-LAT3: NPU has only 1 latency sample (<{_LATENCY_MIN_SAMPLES}), "
+            f"should fall back to iGPU (5 samples); got '{result}'"
         )
