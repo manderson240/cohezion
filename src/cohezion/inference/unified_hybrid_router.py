@@ -58,6 +58,7 @@ class TaskClass(StrEnum):
     """Hard-pinned task classes for lane routing."""
 
     REASONING = "reasoning"
+    DEEP_REASONING = "deep_reasoning"
     CODING = "coding"
     CODING_TOOLS = "coding_tools"
     VISION = "vision"
@@ -65,6 +66,8 @@ class TaskClass(StrEnum):
     SCIENCE_FRONTIER = "science_frontier"
     FAST_QA = "fast_qa"
     ULTRA_FAST_DRAFT = "ultra_fast_draft"
+    SUB_BILLION_EDGE = "sub_billion_edge"
+    EXTREME_COMPACT = "extreme_compact"
     LONG_CONTEXT_ANALYSIS = "long_context_analysis"
     CREATIVE_SYNTHESIS = "creative_synthesis"
     EMBEDDINGS = "embeddings"
@@ -72,17 +75,20 @@ class TaskClass(StrEnum):
 
 
 # ---------------------------------------------------------------------------
-# Tier-1 (Lemonade / local silicon) lane pins — 100% Local-First Indefinite Execution
+# Tier-1 (Lemonade / local silicon) Complete Roster
 # ---------------------------------------------------------------------------
 _TIER1_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "deepseek-r1-0528-8b-FLM",
+    TaskClass.DEEP_REASONING: "DeepSeek-Qwen3-8B-GGUF",
     TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-    TaskClass.CODING_TOOLS: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+    TaskClass.CODING_TOOLS: "waslmedia-qwen3-4b-Q4_K_M",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
     TaskClass.RESEARCH: "qwen3.6-moe-35b-a3b-FLM",
     TaskClass.SCIENCE_FRONTIER: "deepseek-r1-0528-8b-FLM",
     TaskClass.FAST_QA: "qwen3-4b-FLM",
     TaskClass.ULTRA_FAST_DRAFT: "llama3.2-1b-FLM",
+    TaskClass.SUB_BILLION_EDGE: "Qwen3-0.6B-GGUF",
+    TaskClass.EXTREME_COMPACT: "Bonsai-1.7B-gguf",
     TaskClass.LONG_CONTEXT_ANALYSIS: "qwen3.6-moe-35b-a3b-FLM",
     TaskClass.CREATIVE_SYNTHESIS: "qwen3.6-moe-35b-a3b-FLM",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
@@ -90,10 +96,11 @@ _TIER1_PINS: dict[TaskClass, str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Tier-2 (Ollama cloud) 12-Model Specialized Roster
+# Tier-2 (Ollama cloud) Complete 13-Model Roster
 # ---------------------------------------------------------------------------
 _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "deepseek-v4-pro:cloud",                # 1.6T MoE Top Reasoning & Formal Logic
+    TaskClass.DEEP_REASONING: "kimi-k3:cloud",                  # Kimi K3 Autonomous Deep Reasoning
     TaskClass.CODING: "qwen3.5:397b-cloud",                     # 397B Multi-File System Refactors
     TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",             # Agentic Tool Use & Precise Patch Gen
     TaskClass.VISION: "glm-5.2:cloud",                          # Multimodal Geometry, Category Theory & Diagram Parsing
@@ -101,6 +108,8 @@ _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.SCIENCE_FRONTIER: "nemotron-3-super:cloud",       # Frontier Physics, Science & Math Verification
     TaskClass.FAST_QA: "deepseek-v4-flash:cloud",               # Ultra-Fast High-Throughput Retrieval
     TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud", # Sub-Second Low-Latency Draft Generation
+    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:0731-cloud", # Fast edge fallback
+    TaskClass.EXTREME_COMPACT: "deepseek-v4-flash:cloud",       # Compact fallback
     TaskClass.LONG_CONTEXT_ANALYSIS: "kimi-k2.6:cloud",         # 2M Context Window Document Analysis
     TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",           # Nuanced Narrative, PRD & Creative Synthesis
     TaskClass.EMBEDDINGS: "gemma4:31b-cloud",                   # Dense Multilingual Semantic Vectors
