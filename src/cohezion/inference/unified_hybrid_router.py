@@ -436,7 +436,7 @@ class UnifiedHybridRouter:
         return asyncio.run(self.aquery_ollama_cloud(prompt, model))
 
     async def aquery_lemonade_local(self, prompt: str, model: str) -> str | None:
-        """Attempt local NPU/iGPU inference via Lemonade (:13305) asynchronously.
+        """Attempt local NPU/iGPU inference via Lemonade (:13305) asynchronously with model-aligned options.
 
         Parameters
         ----------
@@ -451,19 +451,50 @@ class UnifiedHybridRouter:
             Model response text, or ``None`` if the call fails.
         """
         import httpx
+
+        # Model-aligned architectural parameters for Local Silicon (NPU/iGPU/CPU)
+        temp = 0.2
+        top_p = 0.95
+        max_tokens = 2048
+
+        if "deepseek-r1" in model or "Thinking" in model:
+            # Deep reasoning local model: unhurried token allowance & low entropy
+            temp = 0.1
+            top_p = 0.90
+            max_tokens = 4096
+        elif "Coder" in model:
+            # Deterministic code synthesis on iGPU
+            temp = 0.05
+            top_p = 0.85
+            max_tokens = 4096
+        elif "moe" in model:
+            # NPU Mixture of Experts: balanced routing
+            temp = 0.15
+            top_p = 0.92
+            max_tokens = 2048
+        elif "1b" in model or "4b" in model:
+            # Ultra-fast draft / fast QA on CPU/NPU
+            temp = 0.2
+            top_p = 0.90
+            max_tokens = 1024
+
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 1000,
-            "temperature": 0.2,
+            "max_tokens": max_tokens,
+            "temperature": temp,
+            "top_p": top_p,
         }
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=45.0) as client:
                 res = await client.post(self._lemonade_url, json=payload)
                 if res.status_code == 200:
                     data = res.json()
                     msg = data["choices"][0]["message"]
-                    return (msg.get("content") or msg.get("reasoning_content") or "").strip()
+                    raw = (msg.get("content") or msg.get("reasoning_content") or "").strip()
+                    if "</think>" in raw:
+                        raw = raw.split("</think>")[-1].strip()
+                    return raw
         except Exception as exc:
             logger.debug("Local Lemonade query bypassed: %s", exc)
 
