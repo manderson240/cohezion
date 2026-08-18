@@ -498,7 +498,7 @@ class UnifiedHybridRouter:
         return None
 
     async def aquery_ollama_cloud(self, prompt: str, model: str) -> str | None:
-        """Attempt Ollama Cloud model inference via Ollama (:11434) asynchronously.
+        """Attempt Ollama Cloud model inference via Ollama (:11434) asynchronously with model-aligned options.
 
         Parameters
         ----------
@@ -513,18 +513,37 @@ class UnifiedHybridRouter:
             Model response text, or ``None`` if the call fails.
         """
         import httpx
+        
+        # Model-aligned architectural options to maximize strengths & eliminate weaknesses
+        options: dict[str, Any] = {"temperature": 0.2, "top_p": 0.95}
+        if "deepseek-v4-pro" in model or "nemotron-3-super" in model:
+            # High-precision reasoning & formal logic
+            options = {"temperature": 0.1, "top_p": 0.9}
+        elif "minimax-m3" in model or "creative" in model:
+            # Nuanced creative & narrative synthesis
+            options = {"temperature": 0.7, "top_p": 0.98}
+        elif "qwen3.5:397b" in model or "kimi-k2.7" in model:
+            # Deterministic code synthesis & refactoring
+            options = {"temperature": 0.05, "top_p": 0.85}
+        elif "flash" in model:
+            # High-throughput low-latency retrieval
+            options = {"temperature": 0.2, "top_p": 0.9}
+
         payload = {
             "model": model,
             "prompt": prompt,
             "stream": False,
-            "options": {"temperature": 0.2},
+            "options": options,
         }
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 res = await client.post(OLLAMA_URL, json=payload)
                 if res.status_code == 200:
                     data = res.json()
-                    return data.get("response", "").strip()
+                    raw = (data.get("response") or data.get("thinking") or "").strip()
+                    if "</think>" in raw:
+                        raw = raw.split("</think>")[-1].strip()
+                    return raw
         except Exception as exc:
             logger.debug("Ollama Cloud query bypassed: %s", exc)
             return None
