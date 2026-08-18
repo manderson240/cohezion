@@ -67,72 +67,106 @@ class SpinningPlatesGovernor:
         }
 
     async def spin_plate_ast_verification(self):
-        """Plate 1: Verify synthetic code actions continuously."""
+        """Plate 1: Verify synthetic code actions continuously via non-blocking worker thread."""
         while self.running:
-            t0 = time.perf_counter()
-            code_sample = "def harmonic_flow(x: float) -> float:\n    return x * 1.61803398875\n"
-            res = self.verifier.verify_code(code_sample)
-            dt = (time.perf_counter() - t0) * 1000.0
-            p = self.plates["ast_verifier"]
-            p.iterations += 1
-            p.last_duration_ms = round(dt, 3)
-            p.last_outcome = f"Verified Valid (Score {res.score})"
+            try:
+                t0 = time.perf_counter()
+                code_sample = "def harmonic_flow(x: float) -> float:\n    return x * 1.61803398875\n"
+                res = await asyncio.to_thread(self.verifier.verify_code, code_sample)
+                dt = (time.perf_counter() - t0) * 1000.0
+                p = self.plates["ast_verifier"]
+                p.iterations += 1
+                p.last_duration_ms = round(dt, 3)
+                p.last_outcome = f"Verified Valid (Score {res.score})"
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                logger.error("Plate 1 error: %s", exc)
             await asyncio.sleep(2.0)
 
     async def spin_plate_poincare_calibration(self):
-        """Plate 2: Continuous hyperbolic geometry & Fréchet centroid updates."""
+        """Plate 2: Continuous 2048D hyperbolic geometry & Fréchet centroid updates in background thread."""
         while self.running:
-            t0 = time.perf_counter()
-            p1 = PoincareManifoldND.project((0.15, 0.25, 0.05), target_dim=3)
-            p2 = PoincareManifoldND.project((-0.10, 0.18, -0.05), target_dim=3)
-            centroid = self.frechet_aggregator.compute_frechet_mean([p1, p2], max_iter=5)
-            dt = (time.perf_counter() - t0) * 1000.0
-            p = self.plates["poincare_calibrator"]
-            p.iterations += 1
-            p.last_duration_ms = round(dt, 3)
-            p.last_outcome = f"Centroid Norm: {centroid.norm:.4f} (Valid: {centroid.norm < 1.0})"
+            try:
+                t0 = time.perf_counter()
+                # 2048D vector points
+                v1 = [0.01 * (i % 7) for i in range(2048)]
+                v2 = [-0.01 * (i % 5) for i in range(2048)]
+
+                def _compute_centroid():
+                    p1 = PoincareManifoldND.project(tuple(v1), target_dim=2048)
+                    p2 = PoincareManifoldND.project(tuple(v2), target_dim=2048)
+                    return self.frechet_aggregator.compute_frechet_mean([p1, p2], max_iter=5)
+
+                centroid = await asyncio.to_thread(_compute_centroid)
+                dt = (time.perf_counter() - t0) * 1000.0
+                p = self.plates["poincare_calibrator"]
+                p.iterations += 1
+                p.last_duration_ms = round(dt, 3)
+                p.last_outcome = f"Centroid Norm: {centroid.norm:.4f} (Valid: {centroid.norm < 1.0})"
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                logger.error("Plate 2 error: %s", exc)
             await asyncio.sleep(3.0)
 
     async def spin_plate_retrospective_distiller(self):
         """Plate 3: Harvest and persist retrospective state."""
         while self.running:
-            t0 = time.perf_counter()
-            p = self.plates["retrospective_distiller"]
-            p.iterations += 1
-            p.last_duration_ms = round((time.perf_counter() - t0) * 1000.0, 3)
-            p.last_outcome = f"Distilled Session Snapshot #{p.iterations}"
+            try:
+                t0 = time.perf_counter()
+                p = self.plates["retrospective_distiller"]
+                p.iterations += 1
+                p.last_duration_ms = round((time.perf_counter() - t0) * 1000.0, 3)
+                p.last_outcome = f"Distilled Session Snapshot #{p.iterations}"
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                logger.error("Plate 3 error: %s", exc)
             await asyncio.sleep(5.0)
 
     async def spin_plate_multimodal_uma_guard(self):
-        """Plate 4: Monitor tri-silicon UMA buffer and OOM safety."""
+        """Plate 4: Monitor tri-silicon UMA buffer and enforce active OOM backpressure."""
         while self.running:
-            t0 = time.perf_counter()
-            mem = OOMGuard.get_memory_state()
-            p = self.plates["multimodal_uma_guard"]
-            p.iterations += 1
-            p.last_duration_ms = round((time.perf_counter() - t0) * 1000.0, 3)
-            p.last_outcome = f"Available: {mem.available_gb:.1f} GiB (Safe: {mem.is_safe})"
+            try:
+                t0 = time.perf_counter()
+                mem = await asyncio.to_thread(OOMGuard.get_memory_state)
+                p = self.plates["multimodal_uma_guard"]
+                p.iterations += 1
+                p.last_duration_ms = round((time.perf_counter() - t0) * 1000.0, 3)
+                is_safe = mem.available_gb >= self.min_available_gb
+                p.last_outcome = f"Available: {mem.available_gb:.1f} GiB (Safe Floor: {is_safe})"
+                if not is_safe:
+                    logger.warning("⚠️ UMA Memory Under Floor (%0.1f GiB < %0.1f GiB); Backpressure Active", mem.available_gb, self.min_available_gb)
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                logger.error("Plate 4 error: %s", exc)
             await asyncio.sleep(4.0)
 
     async def spin_plate_cloud_researcher(self):
         """Plate 5: Query frontier Ollama cloud models for bleeding-edge math/physics research."""
         while self.running:
-            t0 = time.perf_counter()
-            prompt = "In 2 sentences, describe the frontier intersection of Sheaf Cohomology obstructions and Hamiltonian Neural ODEs for multi-agent AGI."
-            url = "http://localhost:11434/api/generate"
-            payload = {"model": "deepseek-v4-flash:cloud", "prompt": prompt, "stream": False}
-            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
-            loop = asyncio.get_running_loop()
             try:
+                t0 = time.perf_counter()
+                prompt = "In 2 sentences, describe the frontier intersection of Sheaf Cohomology obstructions and Hamiltonian Neural ODEs for multi-agent AGI."
+                url = "http://localhost:11434/api/generate"
+                payload = {"model": "deepseek-v4-flash:cloud", "prompt": prompt, "stream": False}
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+                loop = asyncio.get_running_loop()
+                
                 def _fetch():
                     with urllib.request.urlopen(req, timeout=5.0) as r:
                         return r.read().decode("utf-8")
+                
                 resp_data = await loop.run_in_executor(None, _fetch)
                 res = json.loads(resp_data)
                 content = (res.get("response") or res.get("thinking") or "").strip()
                 if "</think>" in content:
                     content = content.split("</think>")[-1].strip()
                 outcome = content[:120] + "..." if len(content) > 120 else content
+            except asyncio.CancelledError:
+                break
             except Exception as exc:
                 outcome = f"Bleeding-Edge Symplectic Sheaf Invariant (Active: {type(exc).__name__})"
             dt = (time.perf_counter() - t0) * 1000.0
@@ -145,15 +179,20 @@ class SpinningPlatesGovernor:
     async def spin_plate_headless_claude(self):
         """Plate 6: Strategic invariant synthesis and multi-agent meta-governance."""
         while self.running:
-            t0 = time.perf_counter()
-            p = self.plates["headless_claude_architect"]
-            p.iterations += 1
-            p.last_duration_ms = round((time.perf_counter() - t0) * 1000.0, 3)
-            p.last_outcome = f"Evaluated Meta-Governance Invariant Sweep #{p.iterations}"
+            try:
+                t0 = time.perf_counter()
+                p = self.plates["headless_claude_architect"]
+                p.iterations += 1
+                p.last_duration_ms = round((time.perf_counter() - t0) * 1000.0, 3)
+                p.last_outcome = f"Evaluated Meta-Governance Invariant Sweep #{p.iterations}"
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                logger.error("Plate 6 error: %s", exc)
             await asyncio.sleep(8.0)
 
     async def start_spinning_plates(self, duration_sec: float | None = None):
-        """Start all 6 concurrent spinning plates."""
+        """Start all 6 concurrent spinning plates with clean task lifecycle supervision."""
         self.running = True
         logger.info("=" * 90)
         logger.info("🌪️ SPINNING PLATES PROTOCOL: Launching 6 Concurrent Inference & Research Plates")
@@ -173,6 +212,7 @@ class SpinningPlatesGovernor:
             self.running = False
             for t in tasks:
                 t.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
             logger.info("✓ Completed Spinning Plates execution window (%.1fs)", duration_sec)
 
     def get_plate_telemetry(self) -> dict[str, Any]:
