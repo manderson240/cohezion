@@ -48,6 +48,21 @@ class PoincareManifoldND:
         return PoincarePoint(projected, dim=dim)
 
     @classmethod
+    def to_lorentz(cls, u: PoincarePoint) -> tuple[float, ...]:
+        """Convert Poincaré ball point to Lorentz/Hyperboloid model (d+1 dimensions).
+
+        Uses homogeneous coordinates:
+            y_i = 2 * x_i / delta
+            y_0 = 2 / delta - 1
+        where delta = max(1 - ||x||^2, EPS) in float64 to eliminate boundary singularities.
+        """
+        u_sq = sum(c * c for c in u.coords)
+        delta = max(cls.EPS, 1.0 - u_sq)
+        y_spatial = tuple(2.0 * c / delta for c in u.coords)
+        y_0 = (2.0 / delta) - 1.0
+        return (y_0, *y_spatial)
+
+    @classmethod
     def distance(cls, u: PoincarePoint, v: PoincarePoint) -> float:
         """Compute exact hyperbolic distance between two points in N-dimensional Poincaré ball."""
         if u.dim != v.dim:
@@ -56,14 +71,11 @@ class PoincareManifoldND:
         u_sq = sum(c * c for c in u.coords)
         v_sq = sum(c * c for c in v.coords)
 
+        # Fused formulation for high numerical stability at high dimensionality (Lane 1 research)
         diff_sq = sum((uc - vc) ** 2 for uc, vc in zip(u.coords, v.coords, strict=True))
 
-        denom = (1.0 - u_sq) * (1.0 - v_sq)
-        if denom <= 0:
-            denom = cls.EPS
-
-        arg = 1.0 + (2.0 * diff_sq / denom)
-        arg = max(1.0, arg)  # Clamp for arcosh domain
+        denom = max(cls.EPS, (1.0 - u_sq) * (1.0 - v_sq))
+        arg = max(1.0, 1.0 + (2.0 * diff_sq / denom))
 
         return math.acosh(arg)
 
@@ -83,7 +95,10 @@ class PoincareManifoldND:
             raise ValueError(f"Dimensional mismatch in parallel transport ({dim}D required)")
 
         v_vec = VectorTensor(tuple(v_tangent), is_covariant=False)
-        dir_vec = VectorTensor(tuple(e - s for s, e in zip(u_start.coords, u_end.coords, strict=True)), is_covariant=False)
+        dir_vec = VectorTensor(
+            tuple(e - s for s, e in zip(u_start.coords, u_end.coords, strict=True)),
+            is_covariant=False,
+        )
 
         # Covariant derivative update step
         cov_step = FiberConnectionEngine.covariant_derivative_step(v_vec, u_start, dir_vec)

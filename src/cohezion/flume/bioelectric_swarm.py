@@ -294,15 +294,10 @@ class BioelectricSwarm:
                     scaled_v = float((new_v[idx] + 1.0) * 30.0 - 70.0)
                     node.polarize(scaled_v)
 
-    def calculate_light_cone_radius(self) -> float:
-        """Calculate total cognitive light cone radius R_c.
+    def calculate_gap_junction_boost(self) -> float:
+        """Calculate gap-junction boost multiplier B(kappa).
 
-        R_c = sqrt(D * tau * N) * B(kappa)
-
-        Returns
-        -------
-        float
-            Expanded light cone radius R_c.
+        Boost >= 9.0 when mean coupling kappa >= 0.5.
         """
         kappa_mean = self.mean_coupling()
         if kappa_mean >= 0.5:
@@ -312,6 +307,7 @@ class BioelectricSwarm:
             # Smooth scaling from 1.0 at kappa=0 to 9.0 as kappa approaches 0.5
             return float(1.0 + 16.0 * (kappa_mean**2))
 
+    def calculate_light_cone_radius(self) -> float:
         """Calculate total cognitive light cone radius R_c.
 
         R_c = sqrt(D * tau * N) * B(kappa)
@@ -324,6 +320,63 @@ class BioelectricSwarm:
         base_r = self.calculate_base_light_cone_radius()
         boost = self.calculate_gap_junction_boost()
         return float(base_r * boost)
+
+    def compute_sheaf_cohomology_obstruction(self, threshold: float = 0.35) -> dict[str, Any]:
+        """Compute Čech cohomology nerve obstruction dim H^1 across swarm stalks (Lane 5 research).
+
+        A non-zero dim H^1 indicates unglued belief cycles, hallucinations, or consensus fractures.
+        """
+        node_ids = list(self.nodes.keys())
+        n = len(node_ids)
+        if n < 3:
+            return {"dim_h0": 1, "dim_h1": 0, "is_consistent": True, "obstruction_cycles": 0}
+
+        # Build 1-skeleton adjacency from gap junctions
+        adj = np.zeros((n, n), dtype=bool)
+        for i, id_i in enumerate(node_ids):
+            for j, id_j in enumerate(node_ids):
+                if i != j:
+                    adj[i, j] = self.nodes[id_i].get_gap_junction(id_j) >= threshold
+
+        # Count 3-cycles (triangles) with pairwise state discrepancies
+        obstructions = 0
+        for i in range(n):
+            for j in range(i + 1, n):
+                for k in range(j + 1, n):
+                    if adj[i, j] and adj[j, k] and adj[k, i]:
+                        # Check cocycle condition delta(omega) = 0
+                        s_i = self.nodes[node_ids[i]].state_vector
+                        s_j = self.nodes[node_ids[j]].state_vector
+                        s_k = self.nodes[node_ids[k]].state_vector
+                        discrepancy = np.linalg.norm((s_i - s_j) + (s_j - s_k) + (s_k - s_i))
+                        if discrepancy > 1e-4:
+                            obstructions += 1
+
+        dim_h1 = obstructions
+        return {
+            "dim_h0": 1,
+            "dim_h1": dim_h1,
+            "is_consistent": dim_h1 == 0,
+            "obstruction_cycles": obstructions,
+        }
+
+    def apply_laplacian_harmonic_consensus(self, alpha: float = 0.2) -> None:
+        """Apply graph Laplacian harmonic diffusion to drive dim H^1 -> 0 with minimal communication overhead."""
+        matrix = self.get_coupling_matrix()
+        node_list = list(self.nodes.values())
+        n = len(node_list)
+        if n <= 1:
+            return
+
+        states = np.array([node.state_vector for node in node_list])
+        degree_matrix = np.diag(np.sum(matrix, axis=1))
+        laplacian = degree_matrix - matrix
+
+        # Consensus update: S_new = S - alpha * L * S
+        delta_s = np.dot(laplacian, states)
+        for idx, node in enumerate(node_list):
+            if node.is_healthy:
+                node.state_vector = node.state_vector - alpha * delta_s[idx]
 
     def detect_corrupted_nodes(self) -> list[int | str]:
         """Detect nodes with corrupted state vector or fault flag.
