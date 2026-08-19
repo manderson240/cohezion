@@ -11,9 +11,20 @@ whole FD range depending only on its period relative to sampling —
     period  8 -> FD 1.412  <-- INSIDE the CC1 "healthy HIHO equilibrium" band [1.3, 1.7]
     period  4 -> FD 2.000 (reads "chaotic")
 
-A perfectly periodic signal carries zero surprise. A compound loop thrashing A->B->A->B is
-neither healthy exploration nor chaos — it is a limit cycle, and at period ~8 the FD band
-calls it healthy.
+A perfectly periodic signal carries zero surprise. A limit cycle is neither healthy exploration
+nor chaos, and at period ~8 the FD band calls it healthy.
+
+**Narrowed 2026-08-19 — the original framing here overclaimed.** "A compound loop thrashing
+A->B->A->B is reported healthy" is FALSE, and an outside consult caught it. Measured:
+
+    discrete A/B alternation   FD 2.000 -> CHAOTIC  (flagged)
+    square wave, period 8      FD 1.086 -> STUCK    (mislabeled, but still flagged, and STUCK
+                                                     triggers its own escalation path)
+    SMOOTH sine, period 8      FD 1.391 -> HIHO     <-- the actual hidden case
+
+So the hidden region is narrower than advertised: it is *smooth* oscillation at period ~4-9
+within the window, not discrete state-flapping. Discrete thrash is caught by FD already. The
+blindness is real and worth an instrument; it is just not the story originally told about it.
 
 WHY THIS SHAPE OF DETECTOR
 --------------------------
@@ -39,9 +50,22 @@ on it is real. Threshold is 0.6:
     pure period-3 tone               0.478  MISSED  (same root cause — see below)
     duty cycle 75/25                 0.327  MISSED
     amplitude-modulated period-8     0.423  MISSED
-    period drift 8 -> 12             0.243  MISSED
-    pure period-12 tone              0.345  MISSED  (period > n/2 has no valid lag pair)
+    period drift 8 -> 12             0.243  MISSED  (window-dependent, see below)
+    pure period-12 tone              0.345  MISSED  ** WINDOW ARTIFACT, NOT INTRINSIC **
     period-8 buried in linear trend  0.601  fires, but by 0.001 — effectively a coin flip
+
+**Every number above is at n=20, and that qualifier was missing from the first version of this
+list.** It matters: period-12 scores 0.345 at n=20 but **1.000 from n>=40** — it is not a blind
+spot at all once the window is long enough, it is an artifact of scanning `k in range(4, n//2+1)`
+with too little data. A limitation list that does not state its window assumption is itself
+miscalibrated, which is precisely the standard applied to everything else here.
+
+Intrinsic vs window-dependent, so a future reader does not chase the wrong ones:
+  INTRINSIC  — period-3 and three-state rotation. A 3-cycle's half-lag autocorrelation is
+               exactly -0.5, sitting on the strict `< -0.5` boundary; it scores ~0.48-0.51 at
+               every n from 20 to 200, so no scan-range change reaches it without loosening the
+               sign-flip requirement itself. Duty-cycle asymmetry is likewise structural.
+  WINDOW     — period-12 (confirmed), and period-drift (likely, same mechanism).
 
 Root cause of the period-3 family: the scan starts at `k=4`, and a 3-cycle's first positive
 autocorrelation is at lag 3 with lag-1 at exactly -0.5, while the alternation branch requires

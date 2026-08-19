@@ -1157,7 +1157,18 @@ class DegradationDetector(HealthObservabilityMixin):
         Non-blocking: any failure leaves the previous reading in place.
         """
         try:
-            window = list(self._baselines["coherence"].samples)
+            # MUST slice. `MetricBaseline.samples` is an UNBOUNDED list — `window_size` is only
+            # a slicing constant inside `mean`/`std_dev`, never a cap in `add_sample`. Passing
+            # `.samples` whole handed the detector the entire run history, while every threshold
+            # and every documented blind spot in oscillation_detector was calibrated at n=20.
+            # Measured consequences of the unsliced version: period-12 (documented "MISSED,
+            # 0.345") actually FIRED at 1.000 from n>=40, so the limitation list was wrong as
+            # deployed; and score() is O(n^2) per call — 0.023s at n=1000, 0.160s at n=5000 —
+            # called once per coherence sample in a daemon that never restarts.
+            # Found by an outside consult tracing the seams; six adversarial lanes all attacked
+            # the detector's mathematics and none traced what the consumer actually feeds it.
+            _base = self._baselines["coherence"]
+            window = list(_base.samples[-_base.window_size :])
             self._last_oscillation = oscillation_score(window)
             fd = higuchi_fd(window) if len(window) >= MIN_OSCILLATION_SAMPLES else 0.0
             self._last_hidden_thrash = is_hidden_thrash(window, fd)
