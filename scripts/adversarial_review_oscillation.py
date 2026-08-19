@@ -94,6 +94,19 @@ def call_cloud(model: str, prompt: str, timeout: int = 900) -> tuple[str, str]:
     return strip_reasoning(d.get("message", {}).get("content") or ""), ""
 
 
+# DO NOT "fix" this with constrained decoding. It looks like the obvious upgrade and it is a
+# regression here. Measured 2026-08-19: :13305 does honour `response_format: json_schema` —
+# Qwen3-8B returned bare prose without it and exactly `{"verdict": "FLAWED"}` with it. But a
+# grammar guarantees FORM, not CONTENT: in that probe the question was nonsense and the model
+# answered FLAWED anyway, because the grammar left it no other move.
+#
+# The three local lanes that fail here surface as INCONCLUSIVE — visibly broken, excluded from
+# the tally, and that visibility is what prompted the diagnosis that found a real budget defect.
+# Under a schema they would have returned three well-formed verdicts backed by nothing,
+# indistinguishable from real votes. That converts a visible failure into an invisible one.
+#
+# Rule: constrain EXTRACTION output (a parse failure is pure loss); never constrain JUDGMENT
+# output, because the absence of an answer is itself information and a grammar destroys it.
 VERDICT_RE = re.compile(r"VERDICT:\s*(SOUND|FLAWED|UNSAFE-TO-PROMOTE)", re.I)
 
 
