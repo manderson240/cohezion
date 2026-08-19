@@ -112,19 +112,40 @@ def score(series: list[float] | np.ndarray) -> float:
     "stuck", which `higuchi_fd` already reports correctly (FD ~= 1.0); this detector exists
     only for the case FD gets WRONG.
 
-    OBSERVE-ONLY. Validation status, stated so no caller over-trusts it: the detector
-    separates 7 synthetic cases cleanly (non-thrash <=0.206, thrash 1.000), but on the only
-    real corpus available (326 coherence series from `journey_point`) it **never fires** —
-    max score 0.139, p99 0.000 — because 98% of those series carry <=2 distinct values. That
-    is evidence of a low false-positive rate on near-constant data and NOT evidence that it
-    catches real thrash. Do not gate on this until real oscillating data exists.
+    OBSERVE-ONLY. The detector separates 7 synthetic cases cleanly (non-thrash <=0.206,
+    thrash 1.000). Its behaviour on real data is **UNKNOWN**, and the reason is worth stating
+    precisely, because two earlier versions of this paragraph stated it wrongly.
 
-    Sharpened after adversarial review (nemotron-3-ultra, honesty-audit lens) pointed out that
-    "low false-positive rate" was the flattering half of the truth. The precise statement is
-    UNKNOWN SENSITIVITY ON AN UNEXERCISED CODE PATH: the corpus may simply contain no limit
-    cycles, in which case never firing measures the corpus, not the detector. The ~6 series
-    with >2 distinct values were never separately characterised. That reviewer's other three
-    findings did not survive verification, but this one did, and it is the better framing.
+    VALIDATION STATUS: NO EVIDENCE EITHER WAY.
+
+    Earlier versions cited "326 coherence series from `journey_point`, never fires, max score
+    0.139" as evidence of a low false-positive rate. **That evidence is void — it was measured
+    on the wrong lineage.** There are two unrelated `coherence` signals in this system:
+
+      journey_point.coherence  <- swarm/quadrature_nexus.py: `1 - min(var(scores)*4, 1)` over
+                                  FOUR HARDCODED CONSTANTS (0.7/0.75/0.8/0.65) with keyword
+                                  bumps. var of those four bases gives EXACTLY 0.9875, which
+                                  is the corpus mode at 81,469 of 278,741 rows. The whole
+                                  corpus holds 43 distinct values, 99.4% of them >= 0.9. It
+                                  is not a measurement of anything and never carried loop
+                                  telemetry.
+
+      mean_coherence           <- what THIS detector actually consumes. executor.py Step 5.8
+                                  (line ~1347) -> `coherence_val` (1649) -> `check_degradation`
+                                  (1661). Mean of a success-coupled binary (0.7 on success,
+                                  0.2 on failure), an anomaly-health score, and an optional
+                                  intent match.
+
+    So "never fires" measured a formula over literals, not this detector's input. It is
+    evidence of nothing — not of low false positives, not of low sensitivity.
+
+    What can be said: the live signal contains a genuine success/failure binary, so it CAN
+    move; and a real success/failure limit cycle would present as two-valued alternation,
+    which this detector scores at 1.000. That is an argument the instrument is pointed at a
+    live signal. It is NOT a measurement, and must not be recorded as one.
+
+    To actually close this: persist DegradationDetector coherence-baseline snapshots and
+    re-run the firing analysis on the executor lineage. Until then, do not gate on this.
     """
     x = np.asarray(series, dtype=float)
     if len(x) < MIN_SAMPLES:
