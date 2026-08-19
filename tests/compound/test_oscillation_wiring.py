@@ -91,3 +91,47 @@ class TestOSW3FrozenSurfaces:
         for _ in range(N):
             d.check_degradation({"success_rate": 0.9})
         assert d.get_oscillation_reading()["oscillation_score"] == 0.0
+
+
+class TestOSW4WindowSemantics:
+    """`MetricBaseline.samples` is UNBOUNDED — `window_size` caps nothing in `add_sample`, it
+    only slices inside `mean`/`std_dev`. The detector is calibrated at n=20, so the consumer
+    MUST slice. These fail if anyone passes `.samples` whole again.
+
+    These pin the window IDENTITY rather than a threshold crossing. A first attempt asserted
+    that a period-12 tone drops below threshold when sliced; it does not — `series[-20:]` is
+    not phase-aligned with `arange(20)`, so both scored above 0.6 and the test was vacuous.
+    Comparing against the two candidate windows directly cannot go vacuous that way.
+    """
+
+    def test_detector_scores_the_window_not_the_history(self) -> None:
+        from cohezion.compound.oscillation_detector import score
+
+        series = list(0.65 + 0.25 * np.sin(2 * np.pi * np.arange(40) / 12))
+        full, windowed = score(series), score(series[-20:])
+        assert abs(full - windowed) > 0.2, (
+            "fixture no longer discriminates: full-history and windowed scores agree, so this "
+            "test cannot detect the unsliced bug. Pick a series where they differ."
+        )
+
+        d = DegradationDetector()
+        _feed(d, series)
+        got = d.get_oscillation_reading()["oscillation_score"]
+        assert abs(got - windowed) < 1e-9, f"expected windowed {windowed:.3f}, got {got:.3f}"
+        assert abs(got - full) > 0.2, "detector scored the FULL history — consumer must slice"
+
+    def test_baseline_still_records_everything(self) -> None:
+        """Slicing is the CONSUMER's job; the baseline itself must keep its full record."""
+        d = DegradationDetector()
+        _feed(d, list(0.65 + 0.25 * np.sin(2 * np.pi * np.arange(40) / 12)))
+        assert len(d._baselines["coherence"].samples) == 40
+
+    def test_cost_stays_bounded_as_history_grows(self) -> None:
+        """score() is O(n^2); unsliced it was called per-sample on an ever-growing list."""
+        import time
+
+        d = DegradationDetector()
+        _feed(d, list(np.random.default_rng(0).normal(0.7, 0.05, 400)))
+        t0 = time.perf_counter()
+        d.check_degradation({"mean_coherence": 0.71})
+        assert time.perf_counter() - t0 < 0.05, "per-call cost is growing with history"
