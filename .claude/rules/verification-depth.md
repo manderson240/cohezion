@@ -30,6 +30,25 @@ counts, near-zero system assurance. This rule is the standing corrective so we n
    system). This is why adversarial review found what the V-model didn't — not more rigor, rigor pointed
    at the integration/system levels the bottom rung skips.
 
+   **Prefer a STRUCTURAL oracle over a social one where the change claims to preserve behaviour.**
+   The adversarial-second-pass mechanism is *social* — a different agent, fresh context, told to
+   assume it is broken. That is a real control, and it degrades precisely when the second reviewer
+   inherits the first's model of what the code is *for*. Canonical/Bristol's automated C→Rust work
+   (2026-08-19) uses a structural one instead: the oracle **is the pre-existing implementation**.
+   Nobody authored it to test this change, so it cannot share the author's blind spot, and unlike
+   a reviewer it cannot be argued with. So: **for a change claimed to be behaviour-preserving, the
+   prior revision is a free unbiased oracle and is stronger than a second opinion.** Reserve the
+   reviewer for changes that are *supposed* to change behaviour, where no oracle exists.
+
+   **Its limit, measured, so this is not oversold: differential verification detects REGRESSION and
+   is blind to NEVER-WORKED.** `SelfHealingSystem.heal_manifold` was called by
+   `core/journey_worker.py` and defined nowhere — `git log -S 'def heal_manifold' --all` returns
+   **0 commits** (control: `async def heal` returns 3). A diff between any two revisions compares
+   two implementations that both never healed and reports no difference: green. Only consumption
+   invariants, narrow-guard shape analysis (`scripts/ci/narrow_guard_scan.py`), and un-mocked
+   boundary smoke catch that class. The two approaches are **orthogonal, not nested** — use the
+   prior revision for drift, the checks below for capability that never functioned.
+
    **This applies RECURSIVELY to delegated work (BMAD Dev→QA on GAIA SDK).** A local-inference agent
    that BUILDS a fix must NOT be the agent that signs off on it — that re-creates the author–test
    correlation one tier down. Route every producer's output to a DIFFERENT agent (a QA / test-architect
