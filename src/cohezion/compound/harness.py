@@ -11,6 +11,30 @@ from typing import Any
 
 log = logging.getLogger("autoharness")
 
+# A single pytest run can emit 50k+ characters. Unbounded, that lands straight in an agent's
+# context (~12.5k tokens at 4 chars/token) and crowds out the work. Raised as a backlog item
+# 2026-06-24 after reviewing LangChain Deep Agents, which caps tool output at the same value.
+MAX_TOOL_OUTPUT_CHARS = 20_000
+
+
+def _cap_output(text: str, limit: int = MAX_TOOL_OUTPUT_CHARS) -> str:
+    """Cap captured subprocess output, keeping BOTH ends and saying so.
+
+    Head and tail are both preserved because the two useful regions sit at opposite ends: a
+    traceback opens the output, while a test runner's failure summary closes it. A head-only
+    truncation would discard exactly the part worth reading.
+
+    The elision marker is not decoration — silent truncation is indistinguishable from genuinely
+    short output, which is the same class of failure as a silently-empty result.
+    """
+    if len(text) <= limit:
+        return text
+    head = limit // 2
+    tail = limit - head
+    dropped = len(text) - limit
+    marker = f"\n... [truncated {dropped} chars; cap {limit}, kept first {head} + last {tail}] ...\n"
+    return text[:head] + marker + text[-tail:]
+
 
 class HarnessSynthesizer:
     """Synthesizes and executes verification harnesses for proposed code changes."""
@@ -74,7 +98,7 @@ if __name__ == "__main__":
                 ["python3", str(tmp_path)], capture_output=True, text=True, timeout=60
             )
             success = result.returncode == 0
-            output = result.stdout + result.stderr
+            output = _cap_output(result.stdout + result.stderr)
             return success, output
         except subprocess.TimeoutExpired:
             return False, "Harness timed out after 60 seconds."
