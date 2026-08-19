@@ -1149,10 +1149,12 @@ class DegradationDetector(HealthObservabilityMixin):
 
         It emits NO alert, sets NO health verdict, and does NOT reach suggest_routing_tier or
         the healing pipeline. That restraint is deliberate: the detector separates synthetic
-        cases cleanly but has never fired on production data (326 real coherence series,
-        max score 0.139), so there is no evidence yet that its threshold is calibrated for
-        real thrash. Gating on an uncalibrated signal would be the "success gate so weak it
-        can never register a failure" anti-pattern, inverted.
+        cases cleanly but its behaviour on real data is UNKNOWN — the "326 series, never
+        fires" evidence once cited here was measured on `journey_point.coherence`, a
+        DIFFERENT signal (variance over four hardcoded constants) that never carried loop
+        telemetry. See oscillation_detector.score() for the full correction. Gating on a
+        signal with no validation would be the "success gate so weak it can never register
+        a failure" anti-pattern, inverted.
 
         Non-blocking: any failure leaves the previous reading in place.
         """
