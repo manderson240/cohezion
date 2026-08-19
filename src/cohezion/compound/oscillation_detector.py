@@ -29,12 +29,39 @@ This design requires a SIGN FLIP: autocorrelation strongly positive at lag k and
 negative near k/2. A cycle alternates; a drift or monotone ramp never does. That is the
 property which separates oscillation from mere correlation.
 
+MEASURED BLIND SPOTS (6-lane adversarial review, 2026-08-19)
+------------------------------------------------------------
+Every number below was RUN, not reasoned about. Claims that failed verification are recorded
+in the vault digest rather than here, because a limitation list is only useful if every entry
+on it is real. Threshold is 0.6:
+
+    three-state rotation A->B->C->A  0.478  MISSED  (found independently by two lanes)
+    pure period-3 tone               0.478  MISSED  (same root cause — see below)
+    duty cycle 75/25                 0.327  MISSED
+    amplitude-modulated period-8     0.423  MISSED
+    period drift 8 -> 12             0.243  MISSED
+    pure period-12 tone              0.345  MISSED  (period > n/2 has no valid lag pair)
+    period-8 buried in linear trend  0.601  fires, but by 0.001 — effectively a coin flip
+
+Root cause of the period-3 family: the scan starts at `k=4`, and a 3-cycle's first positive
+autocorrelation is at lag 3 with lag-1 at exactly -0.5, while the alternation branch requires
+strictly `< -0.5`. It falls between the two branches. Periods 4-9 are all caught (0.805-1.000),
+so this is a specific gap, not a general weakness.
+
+These are NOT patched. Widening the detector to catch them means loosening the sign-flip
+requirement, which is the single property separating oscillation from ordinary correlation —
+and the rejected raw-autocorrelation design shows what loosening it costs (fired on healthy
+Brownian drift at 0.821). With no real oscillating data to calibrate against, tuning to
+synthetic cases would be fitting noise. Documented and left, deliberately.
+
 STATUS: OBSERVE-ONLY. It does not gate, route, or alert. See `score()` docstring for why.
 """
 
 from __future__ import annotations
 
 import numpy as np
+
+from cohezion.inference.fractal_metrics import FractalRegime, classify_fd
 
 
 # Below this, treat as no oscillation. Chosen from a synthetic separation where non-thrash
@@ -67,6 +94,13 @@ def score(series: list[float] | np.ndarray) -> float:
     max score 0.139, p99 0.000 — because 98% of those series carry <=2 distinct values. That
     is evidence of a low false-positive rate on near-constant data and NOT evidence that it
     catches real thrash. Do not gate on this until real oscillating data exists.
+
+    Sharpened after adversarial review (nemotron-3-ultra, honesty-audit lens) pointed out that
+    "low false-positive rate" was the flattering half of the truth. The precise statement is
+    UNKNOWN SENSITIVITY ON AN UNEXERCISED CODE PATH: the corpus may simply contain no limit
+    cycles, in which case never firing measures the corpus, not the detector. The ~6 series
+    with >2 distinct values were never separately characterised. That reviewer's other three
+    findings did not survive verification, but this one did, and it is the better framing.
     """
     x = np.asarray(series, dtype=float)
     if len(x) < MIN_SAMPLES:
@@ -98,5 +132,13 @@ def is_hidden_thrash(series: list[float] | np.ndarray, fd: float) -> bool:
     This is the whole point: the interesting case is not "oscillation detected" but
     "oscillation detected *while the fractal-dimension band says healthy*", because that is
     the region where FD alone is silently wrong.
+
+    The healthy band is NOT re-implemented here. An earlier version hard-coded
+    ``1.3 <= fd <= 1.7``, which duplicated the harness-canonical CC1 boundaries that
+    ``classify_fd`` exists to own — its docstring says outright "Do not re-implement these
+    boundaries in compound loop consumers." Adversarial review caught it. Delegating means a
+    CC1 recalibration propagates here instead of silently desynchronising, and it also means
+    this module inherits whatever float-boundary behaviour the canonical definition has rather
+    than inventing a second, subtly different one.
     """
-    return 1.3 <= fd <= 1.7 and score(series) > OSCILLATION_THRESHOLD
+    return classify_fd(fd) is FractalRegime.HIHO and score(series) > OSCILLATION_THRESHOLD
