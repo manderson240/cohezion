@@ -94,3 +94,33 @@ class TestOS4HiddenThrashGate:
         rng = np.random.default_rng(3)
         drift = list(np.clip(0.7 + np.cumsum(rng.normal(0, 0.04, N)), 0, 1))
         assert is_hidden_thrash(drift, higuchi_fd(drift)) is False
+
+
+class TestOS5CanonicalBandDelegation:
+    """Adversarial review (qwen3.5:397b-cloud, coupling-to-cc1 lens) found is_hidden_thrash
+    re-implementing the CC1 boundaries that classify_fd's docstring explicitly reserves:
+    "Do not re-implement these boundaries in compound loop consumers."
+
+    These tests fail if the literals come back."""
+
+    def test_no_hardcoded_band_literals_in_source(self) -> None:
+        import inspect
+
+        from cohezion.compound import oscillation_detector as mod
+
+        src = inspect.getsource(mod.is_hidden_thrash)
+        body = src.split('"""')[-1]  # exclude the docstring, which discusses the constants
+        assert "1.3" not in body and "1.7" not in body, (
+            "CC1 boundaries re-hardcoded — delegate to classify_fd instead"
+        )
+
+    def test_tracks_canonical_classifier_across_the_whole_range(self) -> None:
+        """Discriminating: a duplicated band could agree on typical values and diverge at an
+        edge. This pins agreement everywhere, so any drift fails."""
+        from cohezion.inference.fractal_metrics import FractalRegime, classify_fd
+
+        thrash = _period(8)
+        for fd_milli in range(1000, 2001, 7):
+            fd = fd_milli / 1000.0
+            expected = classify_fd(fd) is FractalRegime.HIHO
+            assert is_hidden_thrash(thrash, fd) is expected, f"diverged from classify_fd at {fd}"
