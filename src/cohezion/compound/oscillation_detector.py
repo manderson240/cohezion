@@ -146,6 +146,14 @@ def score(series: list[float] | np.ndarray) -> float:
 
     To actually close this: persist DegradationDetector coherence-baseline snapshots and
     re-run the firing analysis on the executor lineage. Until then, do not gate on this.
+
+    ⚠ THAT PATH IS CURRENTLY BLOCKED, and the block is not obvious. `DegradationDetector`'s
+    CB7 persistence (`to_dict`/`from_dict`/`end_session`) has **no production caller** — its
+    only `to_dict`/`from_dict` references in `src/` are inside its own definition file, and
+    the `.end_session(` hits elsewhere belong to unrelated session managers. So every baseline
+    this detector accumulates, INCLUDING the `"oscillation"` one written here, lives in memory
+    and dies at process exit. Collecting the evidence needed to validate this detector
+    therefore requires wiring CB7 persistence first. Do not assume the corpus is accruing.
     """
     x = np.asarray(series, dtype=float)
     if len(x) < MIN_SAMPLES:
