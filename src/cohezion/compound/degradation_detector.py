@@ -47,6 +47,17 @@ import numpy as np
 
 from cohezion.compound.degradation_health import HealthObservabilityMixin
 from cohezion.compound.friction_metric import FrictionMetric, FrictionReading
+from cohezion.compound.oscillation_detector import (
+    MIN_SAMPLES as MIN_OSCILLATION_SAMPLES,
+)
+from cohezion.compound.oscillation_detector import (
+    OSCILLATION_THRESHOLD,
+    is_hidden_thrash,
+)
+from cohezion.compound.oscillation_detector import (
+    score as oscillation_score,
+)
+from cohezion.inference.fractal_metrics import higuchi_fd
 
 
 logger = logging.getLogger(__name__)
@@ -169,6 +180,10 @@ class MetricBaseline:
     samples: list[float] = field(default_factory=list)
     window_size: int = 20  # Keep last N samples for moving average
     min_samples: int = 5  # Need at least N samples to establish baseline
+    # MB1: (lo, hi) for metrics with a natural range, e.g. (0.0, 1.0) for rates and scores.
+    # None (the default) leaves extrapolation unbounded, which is correct for token_efficiency
+    # (tokens/sec) and duration_seconds. See trend_value().
+    value_bounds: tuple[float, float] | None = None
 
     @property
     def mean(self) -> float:
@@ -210,13 +225,30 @@ class MetricBaseline:
         """
         recent = self.samples[-self.window_size :]
         if len(recent) < 2:
-            return self.mean
+            return self._clamp(self.mean)
         try:
             x = np.arange(len(recent), dtype=float)
             coeffs = np.polyfit(x, recent, 1)
-            return float(np.polyval(coeffs, float(len(recent) - 1 + horizon)))
+            return self._clamp(float(np.polyval(coeffs, float(len(recent) - 1 + horizon))))
         except Exception:
-            return self.mean
+            return self._clamp(self.mean)
+
+    def _clamp(self, value: float) -> float:
+        """Confine a projection to ``value_bounds`` when the metric has a natural range.
+
+        MB1. A degree-1 fit on a declining [0,1] metric projects below 0 (measured: coherence
+        [0.9, 0.7, 0.5, 0.3, 0.1] -> -0.1000 at horizon=1, the horizon check_degradation()
+        actually uses). Since trend_value(1) serves as the comparison BASELINE, a baseline
+        beneath the metric's own floor makes ``current < baseline`` unsatisfiable and silently
+        suppresses the alert it was added to raise.
+
+        No-op when value_bounds is None, which is correct for token_efficiency and
+        duration_seconds — clamping those to [0,1] would corrupt them.
+        """
+        if self.value_bounds is None:
+            return value
+        lo, hi = self.value_bounds
+        return max(lo, min(hi, value))
 
     def chebyshev_lower_bound(self, k: float = 2.0) -> float:
         """Chebyshev adaptive lower bound: mean - std_dev / k.
@@ -292,17 +324,21 @@ class DegradationDetector(HealthObservabilityMixin):
 
         # Baselines for each metric
         self._baselines = {
-            "cache_hit_rate": MetricBaseline("cache_hit_rate"),
+            # MB1: rates and scores live on [0,1]; token_efficiency (tokens/sec),
+            # duration_seconds and token_surprisal are genuinely unbounded and must stay so.
+            "cache_hit_rate": MetricBaseline("cache_hit_rate", value_bounds=(0.0, 1.0)),
             "token_efficiency": MetricBaseline("token_efficiency"),
-            "coherence": MetricBaseline("coherence"),
+            "coherence": MetricBaseline("coherence", value_bounds=(0.0, 1.0)),
             "duration_seconds": MetricBaseline("duration_seconds"),
-            "success_rate": MetricBaseline("success_rate"),
+            "success_rate": MetricBaseline("success_rate", value_bounds=(0.0, 1.0)),
             "token_surprisal": MetricBaseline("token_surprisal"),
-            "quality_score": MetricBaseline("quality_score"),
+            "quality_score": MetricBaseline("quality_score", value_bounds=(0.0, 1.0)),
             # JW1 / H2: JepaGate.last_coherence — a [0,1] PRE-execution coherence signal that
             # the executor writes into degradation_metrics. Tracked here so a low predicted
             # coherence can contribute a (predictive) WARNING alert instead of being dropped.
-            "jepa_coherence": MetricBaseline("jepa_coherence"),
+            # MB1: JepaGate coherence is a clipped mean on [0,1] (JG1), so it is bounded too.
+            # Postdates the original MB1 text, which named only four baselines.
+            "jepa_coherence": MetricBaseline("jepa_coherence", value_bounds=(0.0, 1.0)),
         }
 
         # Alert history for deduplication and CB9 dashboard API
@@ -334,6 +370,12 @@ class DegradationDetector(HealthObservabilityMixin):
         # CB7: call counter for warm-start awareness — how many check_degradation() calls
         # have established baselines in this detector instance.
         self._call_count: int = 0
+
+        # OS: OBSERVE-ONLY limit-cycle state, refreshed by every check_degradation() call
+        # that supplies mean_coherence. See oscillation_detector for why higuchi_fd cannot
+        # see this. Reported, never acted on — no alert, no routing, no healing.
+        self._last_oscillation: float = 0.0
+        self._last_hidden_thrash: bool = False
 
         # CB11: capped rolling buffer of health snapshots (HealthObservabilityMixin
         # reads/writes these; record_snapshot() trims to _max_snapshot_history).
@@ -674,6 +716,7 @@ class DegradationDetector(HealthObservabilityMixin):
             self._baselines["token_efficiency"].add_sample(tokens_per_sec)
         if coherence is not None:
             self._baselines["coherence"].add_sample(coherence)
+            self._refresh_oscillation()
         if duration is not None:
             self._baselines["duration_seconds"].add_sample(duration)
         if success_rate is not None:
@@ -1096,6 +1139,47 @@ class DegradationDetector(HealthObservabilityMixin):
 
         psi = float(np.sum((actual_prob - expected_prob) * np.log(actual_prob / expected_prob)))
         return psi
+
+    def _refresh_oscillation(self) -> None:
+        """OBSERVE-ONLY: refresh limit-cycle state from the current coherence window.
+
+        Called from check_degradation() whenever ``mean_coherence`` is supplied. Updates
+        ``_last_oscillation`` / ``_last_hidden_thrash`` and appends to an ``"oscillation"``
+        baseline, mirroring the compute_friction() accessor precedent.
+
+        It emits NO alert, sets NO health verdict, and does NOT reach suggest_routing_tier or
+        the healing pipeline. That restraint is deliberate: the detector separates synthetic
+        cases cleanly but has never fired on production data (326 real coherence series,
+        max score 0.139), so there is no evidence yet that its threshold is calibrated for
+        real thrash. Gating on an uncalibrated signal would be the "success gate so weak it
+        can never register a failure" anti-pattern, inverted.
+
+        Non-blocking: any failure leaves the previous reading in place.
+        """
+        try:
+            window = list(self._baselines["coherence"].samples)
+            self._last_oscillation = oscillation_score(window)
+            fd = higuchi_fd(window) if len(window) >= MIN_OSCILLATION_SAMPLES else 0.0
+            self._last_hidden_thrash = is_hidden_thrash(window, fd)
+            self._baselines.setdefault("oscillation", MetricBaseline("oscillation")).add_sample(
+                self._last_oscillation
+            )
+        except Exception:
+            logger.debug("Oscillation refresh failed (observe-only, non-blocking)", exc_info=True)
+
+    def get_oscillation_reading(self) -> dict[str, Any]:
+        """Return the latest OBSERVE-ONLY limit-cycle reading.
+
+        ``hidden_thrash`` is the signal worth watching: the coherence series is oscillating
+        *while* its fractal dimension sits inside the CC1 "healthy" band — the one region
+        where higuchi_fd is silently wrong.
+        """
+        return {
+            "oscillation_score": self._last_oscillation,
+            "hidden_thrash": self._last_hidden_thrash,
+            "threshold": OSCILLATION_THRESHOLD,
+            "observe_only": True,
+        }
 
     def compute_friction(
         self,
