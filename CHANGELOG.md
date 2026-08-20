@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed — Root Hygiene
 - Removed tracked runtime state (`.skill_validation.json`,
-  `.checkpoint_session_104_validation.json`) and 13 zero-byte accidental
+  `.checkpoint_session_104_validation.json`) and 11 zero-byte accidental
   dotfiles/scripts from the repository root
 - Moved one-off root scripts to `scripts/` and `scripts/archive/`, generated
   reports and internal writeups to `docs/archive/`, images to `docs/media/`,
