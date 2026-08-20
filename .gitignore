@@ -322,3 +322,15 @@ execution_traces/
 
 # Antigravity CLI tool state (absolute symlink broke uv build sdist, 2026-08-13)
 .antigravitycli/
+
+# Root hygiene (star-worthy campaign, 2026-08-20)
+# slash-less variants also match symlinks to these caches
+htmlcov
+.mypy_cache
+.ruff_cache
+# generated root artifacts — canonical copies live in docs/archive/ or submissions/
+REPORT.html
+/cockpit_dashboard.html
+/submission.*
+/tmp_*.py
+*.harness-bak

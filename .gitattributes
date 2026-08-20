@@ -19,3 +19,8 @@
 # Large data formats
 *.jsonl filter=lfs diff=lfs merge=lfs -text
 *.csv filter=lfs diff=lfs merge=lfs -text
+# Model/media formats (future-only; no history migration)
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+*.mp3 filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.wav filter=lfs diff=lfs merge=lfs -text
