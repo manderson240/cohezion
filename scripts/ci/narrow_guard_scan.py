@@ -93,7 +93,42 @@ def _risky_ops(body: list[ast.stmt]) -> list[str]:
     return out[:4]
 
 
-def scan_source(src: str, label: str = "<src>") -> list[tuple[str, int, str, list[str]]]:
+def _imports_first_party(body: list[ast.stmt]) -> bool:
+    """True when the guarded try imports from THIS package rather than a third party.
+
+    TRIAGE FINDING 2026-08-19, from classifying all 63 hits: the third-party cases are
+    overwhelmingly benign. `load_dotenv(...)`, `psutil.virtual_memory(...)`, `torch.sigmoid(...)`,
+    `gym.register(...)`, `jsonschema.validate(...)` are stable published APIs — if the import
+    succeeded, the call works, and an ImportError guard is exactly the right guard.
+
+    First-party calls are the dangerous ones, because OUR OWN APIs drift under refactor and
+    nothing re-checks the guard. `heal_manifold` is precisely that: `get_healing_system()`
+    imported fine, and the method called on its result had never existed.
+
+    MEASURED, and weaker than I first wrote here: this cuts 63 hits to **46**, not to a handful.
+    The reason is a real limitation worth stating — a try block often imports from `cohezion`
+    AND calls a third-party function (`np.zeros`, `np.float32`) inside the same block, so the
+    block qualifies as first-party while the flagged operation does not. Filtering the OPS by
+    the binding that produced them, rather than filtering the BLOCK by its imports, would be the
+    correct fix and is not implemented.
+
+    So `--first-party` is a useful narrowing, not a triage solution. The genuinely small set —
+    the five internal-factory calls (`get_healing_system`, `get_encoder`, `get_graph_client`,
+    `check_prompt_injection`, `self.axes`) — was produced by manual classification, not by this
+    flag. Do not wire this as a blocking gate on the strength of the flag alone.
+    """
+    for stmt in body:
+        if isinstance(stmt, ast.ImportFrom) and (stmt.module or "").startswith("cohezion"):
+            return True
+        if isinstance(stmt, ast.Import):
+            if any(a.name.startswith("cohezion") for a in stmt.names):
+                return True
+    return False
+
+
+def scan_source(
+    src: str, label: str = "<src>", first_party_only: bool = False
+) -> list[tuple[str, int, str, list[str]]]:
     """Return (label, lineno, guarded_types, risky_ops) for each narrow-guard try."""
     try:
         tree = ast.parse(src)
@@ -118,6 +153,8 @@ def scan_source(src: str, label: str = "<src>") -> list[tuple[str, int, str, lis
             continue
         risky = _risky_ops(node.body)
         if risky:
+            if first_party_only and not _imports_first_party(node.body):
+                continue
             findings.append((label, node.lineno, "/".join(sorted(caught)), risky))
     return findings
 
@@ -174,6 +211,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--path", default=str(SRC))
+    ap.add_argument(
+        "--first-party",
+        action="store_true",
+        help="only flag guards importing from cohezion — the class that actually rots",
+    )
     args = ap.parse_args()
 
     if args.self_test:
@@ -184,7 +226,9 @@ def main() -> int:
     all_findings: list[tuple[str, int, str, list[str]]] = []
     for f in files:
         rel = str(f.relative_to(REPO))
-        all_findings += scan_source(f.read_text(encoding="utf-8", errors="replace"), rel)
+        all_findings += scan_source(
+            f.read_text(encoding="utf-8", errors="replace"), rel, args.first_party
+        )
 
     print(f"scanned {len(files)} files under {root.relative_to(REPO)}")
     print(f"narrow-guard try-blocks: {len(all_findings)}\n")
