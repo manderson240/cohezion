@@ -5,15 +5,15 @@
 # Cohezion
 
 [![CI](https://github.com/manderson240/cohezion/actions/workflows/ci.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/ci.yml)
-[![Health Check](https://github.com/manderson240/cohezion/actions/workflows/health-check.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/health-check.yml)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-6%2C133%20passing-brightgreen)](https://github.com/manderson240/cohezion/actions)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![CodeQL](https://github.com/manderson240/cohezion/actions/workflows/codeql.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/codeql.yml)
+[![Security Scan](https://github.com/manderson240/cohezion/actions/workflows/security-scan.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/security-scan.yml)
+[![Python 3.13](https://img.shields.io/badge/python-3.13%2B-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![AMD Native](https://img.shields.io/badge/inference-AMD%20NPU%20%2F%20iGPU%20%2F%20CPU-red)](https://www.amd.com/en/products/processors/consumer/ryzen/ai.html)
 
 **The compound AI engine that gets smarter every session.**
 
-Cohezion is an open-source platform for compound AI orchestration — a self-improving loop where 235 battle-tested skills compound across sessions, agents learn inside a physics-grounded 12D manifold, and the entire inference stack runs locally on AMD hardware at **$0 per token**.
+Cohezion is an open-source platform for compound AI orchestration — a self-improving loop where 182 version-controlled skills compound across sessions, agents learn inside a physics-grounded 12D manifold, and the entire inference stack runs locally on AMD hardware with **no per-token API costs**.
 
 [Quick Start](#quick-start) · [Architecture](#architecture) · [Local Inference](#local-inference-stack) · [Benchmarks](#training-results) · [Contributing](#contributing)
 
@@ -25,34 +25,38 @@ Cohezion is an open-source platform for compound AI orchestration — a self-imp
 
 | Other AI Frameworks | Cohezion |
 |---|---|
-| Each session starts fresh | **235 skills compound** — session N+1 builds on session N |
+| Each session starts fresh | **182 skills compound** — session N+1 builds on session N |
 | Assumes NVIDIA GPU | **AMD-first**: XDNA2 NPU (42 TPS) + iGPU + CPU, no CUDA |
-| Cloud API = cost per token | **$0 inference** via Lemonade router at `:13305` |
-| Safety = penalty terms in reward | **Safety = physics** — Lagrangian attractor prevents unsafe behavior |
+| Cloud API = cost per token | **No per-token API fees** — local inference via the Lemonade router at `:13305` |
+| Safety = penalty terms in reward | **Safety = physics** — the Lagrangian attractor makes unsafe actions fight the dynamics |
 | Agent coordination is ad-hoc | **HIHO equilibrium** — six mathematical frameworks converge at coherence = 0.5 |
 | Manual knowledge management | **Self-improving loop** — SkillRefiner version-bumps skills from execution results |
 
 ---
 
-The result is a [Gymnasium](https://gymnasium.farama.org/)-compatible training
+## Quick Start
+
+At its core Cohezion ships a [Gymnasium](https://gymnasium.farama.org/)-compatible training
 environment plus the tooling to train, evaluate, and reproduce agents in it — all of
-it CPU-friendly and CUDA-free.
+it CPU-friendly and CUDA-free:
 
 ```bash
 git clone https://github.com/manderson240/cohezion.git && cd cohezion
-uv sync  # installs all deps, ~30s
+uv sync  # installs all deps
 
-# Validate the compound engineering loop (18 checks, ~18s)
+# 60-second tour: step an agent through the 12D manifold (no network, no GPU)
+uv run python examples/quickstart.py
+
+# Validate the compound engineering loop (50+ checks, seconds)
 make validate
 
 # Train a PPO agent on the 12D manifold (20K steps, ~5 min)
-make train
-
-# Full demo: train + evaluate + compound loop
-make demo
+uv sync --extra rl && make train
 ```
 
-**Requires**: Python 3.11, [uv](https://github.com/astral-sh/uv)
+**Requires**: Python 3.13+, [uv](https://github.com/astral-sh/uv).
+Installs from source only (not yet on PyPI); GPU extras pin AMD ROCm wheels — see
+[`docs/tutorials/`](docs/tutorials/) for a guided setup.
 
 ---
 
@@ -69,7 +73,7 @@ Execute (CompoundExecutor 11-step pipeline)
   → Compound (better skill → smarter next execution)
 ```
 
-235 PRIME skill definitions in [`src/cohezion/skills/`](src/cohezion/skills/) are the accumulated output of 100+ development sessions — version-controlled, keyword-indexed, and auto-discoverable. Run the cycle: `uv run python scripts/drivers/compound_cycle.py`
+182 PRIME skill definitions in [`src/cohezion/skills/`](src/cohezion/skills/) are the accumulated output of 100+ development sessions — version-controlled, keyword-indexed, and auto-discoverable. Run the cycle: `uv run python scripts/drivers/compound_cycle.py`
 
 ---
 
@@ -77,14 +81,14 @@ Execute (CompoundExecutor 11-step pipeline)
 
 <img src="docs/media/genesis-animating.png" width="700" alt="Genesis physics simulation">
 
-Instead of adding penalty terms to reward functions, Cohezion makes unsafe behavior physically impossible. Agents operate inside a 12D Riemannian manifold governed by:
+Instead of adding penalty terms to reward functions, Cohezion shapes the environment dynamics so unsafe behavior works against the physics. Agents operate inside a 12D Riemannian manifold governed by:
 
 - **Lagrangian dynamics** — large unsafe actions fight the Lagrangian attractor (self-correcting)
 - **SU(2) gauge theory** — flat connection = Yang-Mills vacuum = HIHO equilibrium
 - **Bioelectric percolation** — Levin-inspired gap junction network distributes coherence across agents
 - **Fisher information metric** — connects FLUME latent space, manifold geometry, and thermodynamics
 
-**Result**: A random agent achieves ~40% safe behavior without any training (physics guides it). PPO trained with the Lagrangian attractor reaches **0.9+ coherence** without explicit safety constraints.
+**Result** (from our 8-run diagnostic, reproducible via `make benchmark`): a random agent shows ~40% safe behavior without any training — the physics guides it — and PPO trained with the Lagrangian attractor reaches **0.9+ coherence** without explicit safety constraints.
 
 ---
 
@@ -92,7 +96,7 @@ Instead of adding penalty terms to reward functions, Cohezion makes unsafe behav
 
 <img src="docs/media/genesis-swarm.png" width="700" alt="Agent swarm topology">
 
-18 specialist sub-agents collaborate through the compound engineering pipeline. Cost-aware routing sends 70% of requests to local silicon ($0), 20% to mid-tier, and only 10% to high-cost models:
+Specialist sub-agents collaborate through the compound engineering pipeline. Cost-aware routing sends 70% of requests to local silicon ($0), 20% to mid-tier, and only 10% to high-cost models:
 
 ```python
 from cohezion.compound import make_executor
@@ -101,7 +105,7 @@ executor = make_executor(mcp_client)  # wires Lemonade → SemanticCache → Com
 result = await executor.execute_task("Your task here")
 ```
 
-Semantic cache (L1 hash + L2 cosine + L3 vault) achieves **95%+ hit rate**, dramatically reducing repeat inference cost.
+Semantic cache (L1 hash + L2 cosine + L3 vault) has reached **95%+ hit rates in internal runs** on repeat workloads, dramatically reducing repeat inference cost.
 
 ---
 
@@ -133,7 +137,7 @@ graph TD
 | Layer | Module | Entry Point |
 |---|---|---|
 | **Compound Loop** | `compound/` — Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `CompoundExecutor` |
-| **Swarm** | `swarm/` — TeamOrchestrator, CostAwareRouter (45 models), OI-MAS scoring | `CostAwareRouter` |
+| **Swarm** | `swarm/` — TeamOrchestrator, CostAwareRouter, OI-MAS scoring | `CostAwareRouter` |
 | **Semantic Cache** | `cache/` — L1 hash + L2 cosine + L3 vault, 95%+ hit rate | `SemanticCache` |
 | **Physics Engine** | `physics/` — SU(2) spinors, Lagrangian, fiber bundles, gauge theory, cosmogony | `SpinorState` |
 | **RL Environments** | `environments/` — ManifoldEnv (19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
@@ -172,10 +176,12 @@ Check availability: `curl -s http://localhost:13305/v1/models`
 
 ---
 
-The physics and RL layers stand alone — you can train agents without ever touching the
-compound loop. The loop is for the second audience above.
+## Training Results
 
-8-run diagnostic across the 2×2 algorithm-reward matrix (PPO/SAC × curriculum/dense). Reproduce with `make train` (20K steps, ~5 min) or `make benchmark` (100K steps):
+The physics and RL layers stand alone — you can train agents in the manifold without ever
+touching the compound loop. An 8-run diagnostic across the 2×2 algorithm-reward matrix
+(PPO/SAC × curriculum/dense). Reproduce with `make train` (20K steps, ~5 min) or
+`make benchmark` (100K steps):
 
 | Algorithm | Reward Mode | Steps | Reward | vs Random | vs Greedy |
 |---|---|---|---|---|---|
@@ -206,7 +212,7 @@ This convergence is not a coincidence — it is the mathematical structure of st
 
 ## Agentic-First Development
 
-Cohezion is built **by** agents, not just **for** agents. The 235 PRIME skill definitions are the compounded output of 100+ agentic development sessions.
+Cohezion is built **by** agents, not just **for** agents. The 182 PRIME skill definitions are the compounded output of 100+ agentic development sessions.
 
 The [CLAUDE.md](CLAUDE.md) agent contract is inherited by every sub-agent spawned on this repo. It encodes patterns discovered in production:
 - **Deferred tool loading** — load `SendMessage` schema before calling it, or it raises `InputValidationError`
@@ -214,18 +220,8 @@ The [CLAUDE.md](CLAUDE.md) agent contract is inherited by every sub-agent spawne
 - **Post-formatter re-read** — ruff reformats files in place; re-read before the next `Edit`
 - **Inference routing** — port `:13305` (Lemonade) serves NPU/iGPU/CPU on demand
 
-When contributing, match the task to the right specialist:
-
-| Task | `subagent_type` |
-|---|---|
-| Write / fix tests | `autoharness-specialist` |
-| Research & experiments | `autoresearch-specialist` |
-| Code review (no writes) | `code-reviewer` |
-| Multi-agent orchestration | `compound-engineering-specialist` |
-| Architecture planning | `Plan` |
-| Skill library audits | `skill-quality-specialist` |
-| HIHO / 12D physics | `hiho-stability-specialist` |
-| FLUME VAE / embeddings | `flume-specialist` |
+The full agent contract, specialist routing table, and coding standards live in
+[CLAUDE.md](CLAUDE.md) — start there if you develop with an AI coding agent.
 
 ---
 
@@ -234,9 +230,9 @@ When contributing, match the task to the right specialist:
 ```bash
 make format      # ruff format
 make lint        # ruff check + auto-fix
-make test        # 6,133-test suite
-make validate    # 18 compound loop invariant checks
-make train       # Train PPO on ManifoldEnv (20K steps)
+make test        # 12,000+ test suite
+make validate    # 50+ compound loop invariant checks
+make train       # Train PPO on ManifoldEnv (20K steps; uv sync --extra rl)
 make evaluate    # Evaluate trained model vs baselines
 make benchmark   # Full 100K training + comparisons
 make demo        # Quick 5K demo with evaluation
@@ -252,11 +248,27 @@ cd src/web/anima_dashboard && npm run dev  # :3000
 
 ---
 
+## Documentation
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system architecture deep-dive
+- [`docs/tutorials/`](docs/tutorials/) — guided day-1 to day-5 onboarding path
+- [`examples/`](examples/) — runnable examples, starting with `quickstart.py`
+- [`docs/`](docs/README.md) — full documentation index
+
+---
+
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 The most valuable contributions are new **PRIME skill definitions** — if you discover a non-obvious pattern while working with Cohezion, encode it as a skill file in `src/cohezion/skills/`. Every verified skill improves every future session for everyone.
+
+---
+
+## License
+
+Dual-licensed: [AGPL-3.0-or-later](LICENSE) for open-source use, with a commercial
+license available for closed-source deployments — see [LICENSING.md](LICENSING.md).
 
 ---
 
@@ -266,12 +278,12 @@ The most valuable contributions are new **PRIME skill definitions** — if you d
 - [Friston Free Energy Principle](https://doi.org/10.1038/nrn2787)
 - [Levin Bioelectric Networks](https://doi.org/10.1016/j.biosystems.2022.104787)
 - [HIHO convergence](src/cohezion/physics/cosmogony.py)
-- [Research paper](research/papers/physics-grounded-training-universes.md)
+- [Research manuscripts](research/manuscripts/)
 
 ---
 
 <div align="center">
 
-Built on AMD Strix Halo. No NVIDIA required. Apache 2.0.
+Built on AMD Strix Halo. No NVIDIA required. AGPL-3.0 (commercial licensing available).
 
 </div>

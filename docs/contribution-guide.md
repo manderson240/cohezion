@@ -113,7 +113,7 @@ Read `tests/conftest.py` before writing tests — it resets FLUME VAE, RL policy
 
 - **CLAUDE.md** is the canonical AI working reference. Update it when adding major architecture.
 - Vault-first: log session learnings to `~/vaults/cohezion-vault/`, not directly to `MEMORY.md` (which is auto-generated weekly).
-- ADRs live in `docs/adr/` as YAML.
+- ADRs live in `docs/adrs/`.
 - Skills and agent definitions use YAML frontmatter `.md` (not JSON) for consistency with vault + `.context/`.
 
 ## Verification before completion
