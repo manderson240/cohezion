@@ -204,9 +204,31 @@ class MetricBaseline:
         """Check if baseline has enough samples."""
         return len(self.samples) >= self.min_samples
 
+    # How much history to keep beyond window_size. Every consumer slices to window_size
+    # (mean/std_dev/trend_value/chebyshev_lower_bound and the oscillation refresh), so the
+    # extra is pure headroom for a future longer-window consumer, not something anything reads.
+    RETENTION_MULTIPLE: int = 5
+
     def add_sample(self, value: float) -> None:
-        """Add a new sample to the baseline."""
+        """Add a sample, retaining a bounded tail rather than the whole run history.
+
+        MEASURED 2026-08-19: this list was UNBOUNDED. After 400 `check_degradation` calls, five
+        separate baselines each held 400 floats while `window_size` was 20 — because window_size
+        is only a slicing constant inside `mean`/`std_dev`, never a cap here. In a daemon that
+        does not restart, that grows without limit.
+
+        No consumer was reading the excess (they all slice), so this was a latent leak rather
+        than a live wrong-answer bug — EXCEPT at the one consumer that did not slice, which was
+        the oscillation refresh, fixed separately in 83a17abea. Capping at the source removes the
+        class instead of the instance.
+
+        Trimmed in a batch rather than per-append: slicing on every call is O(n) copying, and the
+        point of this change is to stop paying for size.
+        """
         self.samples.append(value)
+        keep = max(self.window_size, self.min_samples) * self.RETENTION_MULTIPLE
+        if len(self.samples) > keep * 2:
+            self.samples = self.samples[-keep:]
 
     def lower_bound(self, std_devs: float = 2.0) -> float:
         """Get lower bound (mean - N*std_dev)."""
