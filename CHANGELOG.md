@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] — 2026-08-20
+
+### Added — Repository Front Page & Hygiene Campaign
+- `README.md`: honest, verified front page — real Quick Start
+  (`uv run python examples/quickstart.py`, `make validate`), working section
+  anchors, CodeQL + Security Scan badges, Documentation and License sections
+- `pyproject.toml`: `[project.optional-dependencies] rl` extra
+  (`stable-baselines3`) so `make train` works out of the box via
+  `uv sync --extra rl`; Homepage/Documentation/Changelog project URLs
+- `docs/README.md`: curated documentation index
+- `.gitattributes`: LFS patterns for `*.safetensors`, `*.mp3`, `*.mp4`, `*.wav`
+  (future files only — no history migration)
+
+### Fixed — Truth Reconciliation
+- License consistently AGPL-3.0-or-later + commercial dual (README badge and
+  footer said Apache 2.0; `docs/index.md` said MIT)
+- Python floor consistently 3.13+ (README badge and prose said 3.11)
+- Stale counts refreshed from measurement: 182 PRIME skills (was "235"),
+  12,000+ collected tests (was "6,133"), 50+ validate checks (was "18"/"25")
+- `CITATION.cff` version aligned with `pyproject.toml`; `SECURITY.md`
+  supported-versions table updated
+
+### Changed — Root Hygiene
+- Removed tracked runtime state (`.skill_validation.json`,
+  `.checkpoint_session_104_validation.json`) and 13 zero-byte accidental
+  dotfiles/scripts from the repository root
+- Moved one-off root scripts to `scripts/` and `scripts/archive/`, generated
+  reports and internal writeups to `docs/archive/`, images to `docs/media/`,
+  Kaggle artifacts to `submissions/`
+- `.gitignore`: symlink-safe cache patterns and generated-artifact guards
+
 ### Fixed — Adversarial Review Hardening 2026-08-17
 - `recursive_learning.py`: Added `asyncio.TimeoutError` handling + configurable
   timeout via `SURREAL_UPSERT_TIMEOUT_S` env var (default 5.0s)

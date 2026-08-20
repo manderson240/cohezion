@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cohezion"
-version = "1.10.1"
-description = "Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes"
+version = "1.11.0"
+description = "Compound AI orchestration: a self-improving skill loop, physics-grounded 12D training environments, and $0 local inference on AMD silicon"
 readme = "README.md"
 requires-python = ">=3.13"
 license = {text = "AGPL-3.0-or-later"}
@@ -86,7 +86,10 @@ pytorch-triton-rocm = { index = "pytorch-rocm" }
 # cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }  # Optional: install manually with `uv pip install -e ./cloud-vault-mcp`
 
 [project.urls]
+Homepage = "https://github.com/manderson240/cohezion"
 Repository = "https://github.com/manderson240/cohezion"
+Documentation = "https://github.com/manderson240/cohezion/tree/main/docs"
+Changelog = "https://github.com/manderson240/cohezion/blob/main/CHANGELOG.md"
 Issues = "https://github.com/manderson240/cohezion/issues"
 
 [project.optional-dependencies]
@@ -105,6 +108,10 @@ dev = [
 ml = [
     "torch>=2.0.0",
     "transformers>=4.30.0",
+]
+# RL training extras — `make train` / `make benchmark` (scripts/train_manifold_agent.py)
+rl = [
+    "stable-baselines3>=2.3.0",
 ]
 agentjet = [
     "aiohttp>=3.9",
