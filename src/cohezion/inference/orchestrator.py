@@ -189,6 +189,24 @@ class TieredOrchestrator:
                     error=f"pre-dispatch verifier rejected: {reason}",
                 )
 
+        # Compress <thought> blocks before dispatch (StepEntropyCompressor). Wiring authored
+        # in 01c7a3e88 on a side branch and never landed — main had the compressor module and
+        # the test asserting compression, but run() never called it (restored 2026-08-20).
+        if "<thought>" in prompt:
+            try:
+                from cohezion.inference.entropy_compressor import StepEntropyCompressor
+
+                compressed_prompt = StepEntropyCompressor().compress_prompt(prompt)
+                if compressed_prompt != prompt:
+                    logger.info(
+                        "StepEntropyCompressor: compressed prompt from %d to %d chars",
+                        len(prompt),
+                        len(compressed_prompt),
+                    )
+                    prompt = compressed_prompt
+            except Exception as exc:
+                logger.warning("Failed to compress prompt via StepEntropyCompressor: %s", exc)
+
         start_tier = max(0, min(int(min_tier_index), len(self.tiers) - 1))
         # Effective ceiling: min(self.max_cost_usd, budget_usd), ignoring Nones.
         if self.max_cost_usd is None:

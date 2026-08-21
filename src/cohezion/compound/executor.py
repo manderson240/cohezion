@@ -1325,7 +1325,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Quadrature consensus: alignment with human request
         if alignment_data := metrics.get("alignment", {}):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
-        metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
+        # A caller-MEASURED coherence must not be overwritten by this self-computed blend:
+        # for a fixed success/anomaly/intent profile the blend is CONSTANT regardless of
+        # output quality, so overwriting silently disconnected the DegradationDetector's
+        # coherence baseline from every execute_fn that actually measures quality
+        # (found 2026-08-20 via test_critical_alert_logged_to_vault — the alert could
+        # never fire). Measured wins; the blend remains the fallback and stays observable
+        # under its own key.
+        _computed_cohesion = sum(cohesion_components) / len(cohesion_components)
+        metrics["computed_cohesion"] = _computed_cohesion
+        if not isinstance(metrics.get("coherence"), (int, float)):
+            metrics["coherence"] = _computed_cohesion
 
         # Step 5.85: V-Model DRR gate (non-blocking).
         # DRR checks file artifacts (skill PRIME .md + matching test .py). Only fire when both
