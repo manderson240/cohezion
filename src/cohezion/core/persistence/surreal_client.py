@@ -470,9 +470,14 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             for dt_field in ("created_at", "updated_at"):
                 val = data.get(dt_field)
                 if isinstance(val, str):
-                    clean_val = val.rstrip("Z")
-                    with contextlib.suppress(Exception):
-                        data[dt_field] = datetime.fromisoformat(clean_val)
+                    # fromisoformat parses a trailing 'Z' natively on Python >= 3.11 and
+                    # yields an AWARE UTC datetime. The previous rstrip('Z') both discarded
+                    # the timezone (naive result, assumed local downstream) and stripped
+                    # EVERY trailing Z (adversarial review 2026-08-21, two lanes
+                    # independently). Malformed strings are left as-is (fail-open,
+                    # unchanged behavior).
+                    with contextlib.suppress(ValueError):
+                        data[dt_field] = datetime.fromisoformat(val)
             if data.get("embedding") is None:
                 data["embedding"] = []
 
