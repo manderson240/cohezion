@@ -924,6 +924,10 @@ class SkillRefiner:
             anomaly_score=anomaly_score,
             cached_hits=cached_hits,
             tokens_per_task=tokens_per_task,
+            # ME1: without these two, every record fed to DifficultyEstimator at
+            # _generate_learning_signal is "unknown"/0 and per-skill engine learning is severed.
+            tier_used=metrics_dict.get("tier_used", "unknown") or "unknown",
+            escalation_count=int(metrics_dict.get("escalation_count", 0) or 0),
         )
 
     def _generate_learning_signal(

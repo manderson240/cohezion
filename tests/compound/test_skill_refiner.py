@@ -88,6 +88,69 @@ class TestExecutionMetricsExtraction:
         # anomaly_score is a HEALTH score where high=good — NOT `1.0 - anomaly_score`)
         assert metrics.quality_score == pytest.approx(0.9)
 
+    def test_extract_metrics_carries_tier_used_and_escalation_count(self, skill_refiner):
+        """ME1 loop: tier_used/escalation_count from the metrics dict must reach
+        ExecutionMetrics — an impl that omits them defaults to "unknown"/0 and severs
+        the DifficultyEstimator's engine feedback."""
+        result = {
+            "success": True,
+            "output": "ok",
+            "metrics": {
+                "anomaly_score": 0.9,
+                "tier_used": "npu",
+                "escalation_count": 1,
+            },
+            "duration_seconds": 1.0,
+            "token_metrics": {"tokens_used": 10},
+        }
+
+        metrics = skill_refiner._extract_metrics(result)
+
+        assert metrics.tier_used == "npu"
+        assert metrics.escalation_count == 1
+
+    def test_extract_metrics_tier_defaults_when_absent(self, skill_refiner):
+        """Absent/None tier fields fall back to the dataclass defaults, never crash."""
+        result = {
+            "success": True,
+            "output": "ok",
+            "metrics": {"anomaly_score": 0.5, "tier_used": None, "escalation_count": None},
+            "duration_seconds": 1.0,
+            "token_metrics": {},
+        }
+
+        metrics = skill_refiner._extract_metrics(result)
+
+        assert metrics.tier_used == "unknown"
+        assert metrics.escalation_count == 0
+
+    def test_extraction_feeds_real_tier_to_difficulty_estimator(self, skill_refiner):
+        """ME1 end-to-end claim test (review finding): the tier must flow
+        _extract_metrics -> _generate_learning_signal -> DifficultyEstimator.record.
+        Neutralizing the extraction (pre-fix behavior) delivers "unknown" here."""
+        from unittest.mock import MagicMock
+
+        result = {
+            "success": True,
+            "output": "ok",
+            "metrics": {
+                "anomaly_score": 0.9,
+                "tier_used": "npu",
+                "escalation_count": 1,
+            },
+            "duration_seconds": 1.0,
+            "token_metrics": {"tokens_used": 10},
+        }
+        skill_refiner._difficulty_estimator = MagicMock()
+
+        metrics = skill_refiner._extract_metrics(result)
+        skill_refiner._generate_learning_signal("me1-skill", "execute", metrics)
+
+        skill_refiner._difficulty_estimator.record.assert_called_once()
+        args = skill_refiner._difficulty_estimator.record.call_args.args
+        assert args[2] == "npu", f"record() got tier {args[2]!r}, loop still severed"
+        assert args[3] == 1
+
 
 class TestLearningSignalGeneration:
     """Test generation of learning signals from metrics."""
