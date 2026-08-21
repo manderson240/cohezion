@@ -299,14 +299,24 @@ class {class_name}(gym.Env):
     async def _compile_and_test(self, code: str, n_episodes: int) -> type | None:
         """Compile and test generated code."""
         try:
-            # Compile in isolated namespace
-            namespace = {
-                "gymnasium": __import__("gymnasium"),
-                "numpy": __import__("numpy"),
-                "spaces": __import__("gymnasium").spaces,
-            }
+            # H5: restricted builtins — without safe_exec_globals, CPython injects FULL builtins
+            # (open/__import__/eval) into this dict, an LLM-output → RCE chain. `gym`/`np` aliases
+            # are seeded because the template emits `class X(gym.Env)` and `np.` while import
+            # lines are stripped by _extract_code_block.
+            from cohezion.compound.safe_exec import safe_exec_globals
 
-            exec(code, namespace)
+            gymnasium = __import__("gymnasium")
+            numpy = __import__("numpy")
+            namespace = safe_exec_globals(
+                _class_defs=True,
+                gymnasium=gymnasium,
+                gym=gymnasium,
+                numpy=numpy,
+                np=numpy,
+                spaces=gymnasium.spaces,
+            )
+
+            exec(code, namespace)  # noqa: S102 — guarded by safe_exec_globals (H5)
 
             # Find environment class
             env_class = None

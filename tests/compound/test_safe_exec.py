@@ -97,3 +97,97 @@ def test_extra_names_passed_through():
     g = safe_exec_globals(np=np)
     exec("result = int(np.array([5, 5]).sum())", g)
     assert g["result"] == 10
+
+
+# --- _class_defs contract (H5 site #4: auto_generator gym.Env synthesis) ---
+
+
+def test_class_def_fails_without_class_defs_flag():
+    """DISCRIMINATING: a `class` statement raises NameError under the DEFAULT gate.
+
+    This pins WHY the flag is needed — the default builtins deliberately omit __build_class__
+    and there is no __name__ key. If this ever stops raising, the flag has become a no-op and
+    the two paths have silently merged.
+    """
+    g = safe_exec_globals()
+    with pytest.raises(NameError):
+        exec("class A:\n    pass", g)  # noqa: S102 — deliberate: testing the exec gate
+
+
+def test_class_def_succeeds_with_class_defs_flag():
+    """AVAILABILITY: `_class_defs=True` lets a class (with super().__init__) define + instantiate."""
+    g = safe_exec_globals(_class_defs=True)
+    code = (
+        "class Base:\n"
+        "    def __init__(self):\n"
+        "        self.tag = 'base'\n"
+        "class Child(Base):\n"
+        "    def __init__(self):\n"
+        "        super().__init__()\n"
+        "        self.n = 42\n"
+        "inst = Child()\n"
+    )
+    exec(code, g)  # noqa: S102 — deliberate: testing the exec gate
+    assert g["inst"].n == 42
+    assert g["inst"].tag == "base"
+
+
+def test_class_defs_flag_does_not_reopen_import_hole():
+    """DISCRIMINATING: the class-def builtins must NOT smuggle back __import__/open.
+
+    A lazy fix (`__builtins__ = full builtins` when _class_defs=True) would pass the
+    availability tests above while re-opening the exact RCE H5 closes. `import os` must still
+    raise under the flag.
+    """
+    g = safe_exec_globals(_class_defs=True)
+    with pytest.raises(ImportError):
+        exec("import os", g)  # noqa: S102 — deliberate: testing the exec gate
+    with pytest.raises(NameError):
+        exec("open('/etc/passwd')", g)  # noqa: S102 — deliberate: testing the exec gate
+
+
+def test_class_defs_reserved_kwarg_not_leaked_as_name():
+    """`_class_defs` is a control flag, not a name the exec'd code should see."""
+    g = safe_exec_globals(_class_defs=True)
+    assert "_class_defs" not in g
+
+
+def test_enum_not_importable_no_bltns_escape():
+    """REGRESSION (CSO 2026-08-21): `enum` re-exports the real builtins as `enum.bltns`, a
+    ONE-HOP escape to open/eval/exec/__import__ — strictly worse than the accepted sys->os
+    escapes. A prior version briefly allow-listed enum; this pins it OFF the list on BOTH paths.
+
+    Discriminating: an impl that adds enum back (or any module binding `builtins`/`os`) makes
+    the `import enum` line succeed and the `enum.bltns.__import__` reach os — this test fails.
+    """
+    for g in (safe_exec_globals(), safe_exec_globals(_class_defs=True)):
+        with pytest.raises(ImportError):
+            exec("import enum", g)  # noqa: S102 — deliberate: testing the exec gate
+
+
+def test_no_allowlisted_module_binds_real_builtins():
+    """Structural guard: no module on the import allow-list may expose the real `builtins`
+    module as a plain top-level attribute (the enum.bltns class of one-hop escape).
+
+    This is the check that WOULD have caught the enum regression at authoring time — it scans
+    every allow-listed module for an attribute that IS the builtins module, independent of any
+    single known name.
+    """
+    import builtins as _b
+    import importlib
+
+    from cohezion.compound.safe_exec import _ALLOWED_MODULES
+
+    offenders = []
+    for name in _ALLOWED_MODULES:
+        try:
+            mod = importlib.import_module(name)
+        except ImportError:
+            continue
+        for attr in vars(mod).values():
+            if attr is _b:
+                offenders.append(name)
+                break
+    assert not offenders, (
+        f"allow-listed modules bind the real builtins (one-hop escape): {offenders}"
+    )
