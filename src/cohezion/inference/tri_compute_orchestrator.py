@@ -84,10 +84,12 @@ class NPUInferenceEngine:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(self.endpoint, json=payload, timeout=aiohttp.ClientTimeout(total=3)) as resp:
+                async with session.post(
+                    self.endpoint, json=payload, timeout=aiohttp.ClientTimeout(total=3)
+                ) as resp:
                     if resp.status == 200:
                         result = await resp.json()
-                        if "choices" in result and result["choices"]:
+                        if result.get("choices"):
                             return result["choices"][0]["message"]["content"]
         except Exception:
             pass

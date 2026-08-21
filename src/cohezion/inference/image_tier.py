@@ -6,11 +6,15 @@ Exports consumed by tests/inference/test_image_tier.py.
 from __future__ import annotations
 
 import base64
+import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -142,7 +146,8 @@ class DirectLemonadeImageTier:
                         resp = await client.get(f"http://localhost:{self.port}{path}")
                         if resp.status_code < 500:
                             return True
-                    except Exception:
+                    except Exception as exc:
+                        logger.debug("health probe %s failed: %s", path, exc)
                         continue
                 return False
         except Exception:

@@ -10,6 +10,7 @@ Supports:
 
 import asyncio
 import base64
+import contextlib
 import logging
 import os
 import re
@@ -465,14 +466,13 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         try:
             data = node.to_dict(compress=compress)
             from datetime import datetime
+
             for dt_field in ("created_at", "updated_at"):
                 val = data.get(dt_field)
                 if isinstance(val, str):
                     clean_val = val.rstrip("Z")
-                    try:
+                    with contextlib.suppress(Exception):
                         data[dt_field] = datetime.fromisoformat(clean_val)
-                    except Exception:
-                        pass
             if data.get("embedding") is None:
                 data["embedding"] = []
 
