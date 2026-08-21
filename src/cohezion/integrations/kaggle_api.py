@@ -5,10 +5,14 @@ import os
 from pathlib import Path
 
 import httpx
-import kagglehub
-from kaggle.api.kaggle_api_extended import KaggleApi
 
 from cohezion.reliability import CircuitBreaker
+
+
+# NOTE: `kaggle` / `kagglehub` are imported LAZILY inside the methods that use
+# them. Importing `kaggle` can print a version warning to STDOUT, which corrupts
+# any stdio MCP server (e.g. cohezion.mcp.loop_mcp) that reaches this module
+# through the package-init wiring sweeps — stdout is the JSON-RPC channel.
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +29,8 @@ class KaggleAPI:
         key: str | None = None,
         failure_threshold: int = 5,
     ):
+        from kaggle.api.kaggle_api_extended import KaggleApi  # lazy: see module note
+
         self.api = KaggleApi()
         self.username = username
         self.key = key
@@ -63,6 +69,8 @@ class KaggleAPI:
     async def download_dataset_path(self, competition_id: str) -> Path:
         """Download competition data from Kaggle using kagglehub (returns Path)."""
         import asyncio
+
+        import kagglehub  # lazy: see module note
 
         logger.info(f"Downloading data for competition: {competition_id} via kagglehub")
         try:

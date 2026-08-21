@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — loop_mcp datamesh bus write path (1.11.1)
+- `mcp/loop_mcp.py`: `event_publish` reported `success: true` while writing zero rows. SurrealDB
+  answers HTTP 200 for SurrealQL *statement* errors, placing the failure in the body as
+  `{"status": "ERR", ...}`; the code checked only the HTTP status. Any non-OK statement is now
+  surfaced as an error.
+- `integrations/kaggle_api.py`: import no longer pulls Kaggle or writes to stdout.
+- Regression cover: 5 of 16 tests in `tests/unit/test_loop_mcp.py` fail against the pre-fix source,
+  so the suite discriminates rather than merely passing.
+
+
 ## [1.11.0] — 2026-08-20
 
 ### Added — Repository Front Page & Hygiene Campaign
