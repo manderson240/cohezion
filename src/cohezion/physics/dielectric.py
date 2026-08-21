@@ -70,6 +70,33 @@ class DielectricField:
         if self.permittivity_tensor.shape != (3, 3):
             raise ValueError("permittivity_tensor must be 3×3")
 
+    @classmethod
+    def from_dipoles(
+        cls,
+        number_density: float,
+        dipole_magnitude: float,
+        temperature_k: float = 293.15,
+        **kwargs: object,
+    ) -> DielectricField:
+        """Build an isotropic field with ε_r DERIVED from microscopic charge separation.
+
+        ``permittivity_tensor`` is otherwise a free input parameter, which leaves the physical
+        chain ``p = qd`` → ``P = N⟨p⟩`` → ``ε_r = 1 + χ`` → bulk response implemented only at its
+        last link. This closes it: permittivity becomes a consequence of the dipoles present
+        rather than a number the caller chooses.
+
+        Additive by construction — the existing constructor is untouched, so every current call
+        site and its tests are unaffected.
+
+        Isotropic only. Anisotropy (liquid-crystal alignment, the off-diagonal case the class
+        docstring cites) needs an orientational distribution this scalar relation does not carry,
+        so pass ``permittivity_tensor`` directly for that rather than expecting this to fake it.
+        """
+        from cohezion.physics.electric_dipole import permittivity_from_dipoles
+
+        eps_r = permittivity_from_dipoles(number_density, dipole_magnitude, temperature_k)
+        return cls(permittivity_tensor=np.eye(3, dtype=float) * eps_r, **kwargs)  # type: ignore[arg-type]
+
     @property
     def mean_permittivity(self) -> float:
         """Scalar effective permittivity: trace(ε_r) / 3."""
