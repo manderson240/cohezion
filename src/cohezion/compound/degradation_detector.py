@@ -226,7 +226,10 @@ class MetricBaseline:
         point of this change is to stop paying for size.
         """
         self.samples.append(value)
-        keep = max(self.window_size, self.min_samples) * self.RETENTION_MULTIPLE
+        # Floor at 1: with window_size == min_samples == 0 the product is 0, and
+        # samples[-0:] is the WHOLE list — the cap silently disables itself and growth is
+        # unbounded again (adversarial review 2026-08-20, verified: 500 adds -> 500 held).
+        keep = max(max(self.window_size, self.min_samples) * self.RETENTION_MULTIPLE, 1)
         if len(self.samples) > keep * 2:
             self.samples = self.samples[-keep:]
 
