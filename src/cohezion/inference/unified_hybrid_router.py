@@ -109,11 +109,30 @@ _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.FAST_QA: "deepseek-v4-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
     TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud",  # Sub-Second Low-Latency Draft Generation
     TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:0731-cloud",  # Fast edge fallback
-    TaskClass.EXTREME_COMPACT: "deepseek-v4-flash:cloud",  # Compact fallback
-    TaskClass.LONG_CONTEXT_ANALYSIS: "kimi-k2.6:cloud",  # 2M Context Window Document Analysis
     TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
     TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors
     TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
+}
+
+# ---------------------------------------------------------------------------
+# Tier-3 (agy 1.1.21 Premium Thinking Models)
+# ---------------------------------------------------------------------------
+_TIER3_PINS: dict[TaskClass, str] = {
+    TaskClass.REASONING: "gemini-3.7-flash-high",
+    TaskClass.DEEP_REASONING: "claude-opus-4-6-thinking",
+    TaskClass.CODING: "claude-sonnet-4-6",
+    TaskClass.CODING_TOOLS: "gemini-3.7-flash-high",
+    TaskClass.VISION: "gemini-3.1-pro-high",
+    TaskClass.RESEARCH: "gemini-3.7-flash-medium",
+    TaskClass.SCIENCE_FRONTIER: "gemini-3.1-pro-high",
+    TaskClass.FAST_QA: "gemini-3.7-flash-low",
+    TaskClass.ULTRA_FAST_DRAFT: "gemini-3.7-flash-low",
+    TaskClass.SUB_BILLION_EDGE: "gemini-3.7-flash-low",
+    TaskClass.EXTREME_COMPACT: "gemini-3.7-flash-low",
+    TaskClass.LONG_CONTEXT_ANALYSIS: "gemini-3.1-pro-high",
+    TaskClass.CREATIVE_SYNTHESIS: "claude-opus-4-6-thinking",
+    TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
+    TaskClass.GENERAL: "gpt-oss-120b-medium",
 }
 
 

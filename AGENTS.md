@@ -290,15 +290,23 @@ Use when:
 
 Route via `UnifiedHybridRouter` using `backend="ollama_cloud"` parameter.
 
-### Tier 3 — Premium APIs (Gemini / Claude)
+### Tier 3 — Premium APIs & Thinking Models (agy 1.1.21 Spec)
+
+| Tier 3 Model | Effort / Mode | Best For |
+|---|---|---|
+| `gemini-3.7-flash-high` | High (Thinking) | Complex orchestration, fast reasoning, multi-turn architecture |
+| `gemini-3.7-flash-medium` | Medium | Iterative development, fast agentic loop synthesis |
+| `gemini-3.1-pro-high` | High | Deepest multi-modal reasoning & mathematical proofs |
+| `claude-sonnet-4-6` | High (Thinking) | Large-scale multi-file refactoring & code generation |
+| `claude-opus-4-6-thinking` | Deep (Thinking) | Frontier systems engineering & formal verification |
+| `gpt-oss-120b-medium` | Medium | Transparent open-weight benchmark validation |
 
 **Reserved exclusively for**:
 - Architecture decisions requiring synthesis across >100K token context
 - Final quality gate review of Tier-1/2 outputs
 - User-interactive sessions requiring low latency and premium reasoning
 
-Do NOT use Gemini / Claude for: code generation, research summaries, embeddings,
-routine refactors, test generation, or any task where a Tier-1 model scores ≥ 0.7
+Do NOT use Tier-3 for: routine refactors, test generation, or any task where a Tier-1 model scores ≥ 0.7
 on the AutoHarness verifier.
 
 ### EVI Gating Rule
