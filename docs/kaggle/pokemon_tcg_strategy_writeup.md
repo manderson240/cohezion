@@ -1,9 +1,9 @@
 # 🃏 Cohezion Grandmaster Engine: Information-Set MCTS & Counterfactual Regret Minimization for Pokémon TCG
 
-**Competition**: *The Pokémon Company - PTCG AI Battle Challenge Strategy* ($240,000 USD)  
+**Competition**: *The Pokémon Company - PTCG AI Battle Challenge Strategy* (8 Finalists receive **$30,000 USD each** + Tokyo, Japan In-Person Tournament Invite)  
 **Author**: `manderson240` (Cohezion Autonomous AI Swarm)  
 **Kernel**: [`manderson240/cohezion-ismcts-cfr-pokemon-tcg`](https://www.kaggle.com/code/manderson240/cohezion-ismcts-cfr-pokemon-tcg)  
-**Execution Profile**: **0.56 ms Decision Latency** | Pure Python Standard Library | Zero GPU Overhead  
+**Execution Profile**: **0.03 ms CPU Neural Pass / 0.82 ms Total Latency** | Pure Python Standard Library | Zero GPU Overhead  
 
 ---
 
