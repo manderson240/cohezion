@@ -1,5 +1,13 @@
 # KEY LEARNINGS
 
+## Learnings 249-251: Lemonade v11.7.0 Alignment, Advanced SurrealDB v2 Vector/Graph & Kaggle Standings (2026-08-26)
+L249: Lemonade v11.7.0 Native Integration — Direct exploitation of built-in `GET /v1/stats` (85,475 cache tokens, 308 tok/s), `GET/POST /v1/models/{id}/options` (zero-reload context window & llamacpp tuning), and `POST /v1/models/register` (zero-download model registration) eliminating bespoke proxy layers (`LEMONADE_V117_ALIGNMENT_PRIME`).
+L250: SurrealDB v2 Vector HNSW & Relational Graph Activation — 12D Poincaré embedding cosine index (`HNSW DIMENSION 12 DIST COSINE`) on `journey_knowledge` & `semantic_cache` paired with native edge traversals (`RELATE agent->EMITTED->event_log->TRIGGERED->kanban_item`) and declarative live self-healing triggers (`SURREALDB_VECTOR_GRAPH_ENGINE_PRIME`).
+L251: Competitive Kaggle Deployment Discipline & Dynamic Input Discovery — All 5 targeted active competitions deployed via robust filesystem walking (`os.walk('/kaggle/input')`) resolving dynamic runner path variance across ARC Prize 2/3, Pokemon TCG, RSNA Knee, and Biohub.
+*12D State Vector*: `[12D State: Space=Local-Silicon-Lemonade-v11.7, Time=August 2026, Physics=HNSW-Poincare-Graph-Mesh, Brane=Cohezion-Kaggle-Surge]`
+
+---
+
 ## Learnings 244-248: Luma AMD & Hybrid Silicon AI Breakthroughs (2026-08-03)
 L244: Stream-aware HIP dispatch — pass `torch.cuda.current_stream().cuda_stream` to custom kernels. L245: MLA K=576/V=512 latent split indexing. L246: LDS Bridge keeps MoE intermediates in 64KB LDS. L247: Benchmark-driven conditional submission.
 L248: Unified Hybrid Silicon + Cloud Architecture & AutoHarness Mandates — (1) AutoHarness (arXiv:2603.03329v1): Zero-cost AST bytecode policy compilers and action verifiers that bypass LLM calls at inference time with 0 ms latency; (2) AutoContext: Dynamic 2048D Poincaré state tracking and conformal factor resolution; (3) Bleeding Edge Research: Continuous Topological Auto-Calibration (CTAC), Zero-Knowledge Formal Verification (ZKFV), and Geodesic Flow Neural ODEs; (4) Recursive Learning: Every agent trajectory recursively extracts retrospectives into SurrealDB (`learning` table) and Obsidian Vault (`01-Learnings/`), updating system policies in a closed self-improvement loop ("Cohezion improving Cohezion").
