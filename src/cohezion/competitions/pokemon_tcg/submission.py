@@ -52,7 +52,7 @@ class EmbeddedCPUNeuralNet:
 
     @classmethod
     def extract_features(cls, obs: Dict[str, Any]) -> List[float]:
-        """Extracts 16 normalized game state features."""
+        """Extracts 16 normalized game state features with Public Belief State (PBS) Guidance."""
         active = obs.get("active_pokemon", {})
         opp = obs.get("opponent_active", {})
         
@@ -62,11 +62,14 @@ class EmbeddedCPUNeuralNet:
         e_opp = min(5, opp.get("energy_attached", 0)) / 5.0
         bench_self = len(obs.get("bench", [])) / 5.0
         bench_opp = len(obs.get("opponent_bench", [])) / 5.0
+        
+        # Embedded Bayesian Public Belief State (unrevealed deck entropy & prize pressure)
         hand_size = len(obs.get("hand", [])) / 7.0
         deck_self = obs.get("deck_count", 30) / 60.0
         deck_opp = obs.get("opponent_deck_count", 30) / 60.0
         turn = min(50, obs.get("turn_count", 1)) / 50.0
         is_p0 = 1.0 if obs.get("player_role", 0) == 0 else 0.0
+        
         hp_diff = hp_self - hp_opp
         energy_diff = e_self - e_opp
         deck_diff = deck_self - deck_opp

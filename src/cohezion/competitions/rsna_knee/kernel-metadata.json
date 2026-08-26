@@ -1,5 +1,5 @@
 {
-  "id": "manderson240/cohezion-rsna-knee-baseline",
+  "id": "manderson240/cohezion-rsna-knee-abnormality-detection-baseline",
   "title": "Cohezion RSNA Knee Abnormality Detection Baseline",
   "code_file": "submission.py",
   "language": "python",
