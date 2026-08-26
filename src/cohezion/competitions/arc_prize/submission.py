@@ -179,6 +179,8 @@ def get_heterogeneous_swarm():
         return _SWARM_CACHE["r1"], _SWARM_CACHE["coder"]
     
     r1_paths = [
+        "/kaggle/input/deepseek-r1-distill-qwen-7b-awq",
+        "/kaggle/input/casperhansen-deepseek-r1-distill-qwen-7b-awq",
         "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-7b/2",
         "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-7b/1",
         "/kaggle/input/deepseek-r1-distill-qwen-7b"
