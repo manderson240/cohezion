@@ -1,9 +1,13 @@
 """ARC Geometric & Color Palette Metadata Feature Extractor (Adversarially Hardened)."""
+
 from __future__ import annotations
-from typing import Dict, Any, List
+
+from typing import Any
+
 import numpy as np
 
-def extract_arc_metadata(train_pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+def extract_arc_metadata(train_pairs: list[dict[str, Any]]) -> dict[str, Any]:
     """Extracts geometric invariants, color palettes, and D4 symmetries with full defensive bounds."""
     if not train_pairs:
         return {
@@ -14,7 +18,7 @@ def extract_arc_metadata(train_pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
             "unique_colors_out": [0],
             "colors_preserved": True,
             "new_colors_introduced": [],
-            "scale_ratios": [(1.0, 1.0)]
+            "scale_ratios": [(1.0, 1.0)],
         }
 
     shapes_in = []
@@ -26,7 +30,7 @@ def extract_arc_metadata(train_pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
     for pair in train_pairs:
         raw_in = pair.get("input", [[0]])
         raw_out = pair.get("output", raw_in)
-        
+
         g_in = np.array(raw_in, dtype=np.int32)
         g_out = np.array(raw_out, dtype=np.int32)
 
@@ -39,7 +43,7 @@ def extract_arc_metadata(train_pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
         h_out, w_out = g_out.shape
         shapes_in.append((h_in, w_in))
         shapes_out.append((h_out, w_out))
-        
+
         # Guarded division
         scale_ratios.append((h_out / max(1.0, float(h_in)), w_out / max(1.0, float(w_in))))
 
@@ -50,7 +54,12 @@ def extract_arc_metadata(train_pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
     # Floating point epsilon-guarded integer scaling
     is_same_shape = all(s_in == s_out for s_in, s_out in zip(shapes_in, shapes_out))
     is_integer_scaling = all(
-        (abs(sr[0] - round(sr[0])) < 1e-4 and abs(sr[1] - round(sr[1])) < 1e-4 and round(sr[0]) > 0 and round(sr[1]) > 0)
+        (
+            abs(sr[0] - round(sr[0])) < 1e-4
+            and abs(sr[1] - round(sr[1])) < 1e-4
+            and round(sr[0]) > 0
+            and round(sr[1]) > 0
+        )
         for sr in scale_ratios
     )
     is_downscale = all(sr[0] < 1.0 and sr[1] < 1.0 for sr in scale_ratios)
@@ -58,7 +67,9 @@ def extract_arc_metadata(train_pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
     if is_same_shape:
         shape_class = "SAME_SHAPE"
     elif is_integer_scaling:
-        shape_class = f"INTEGER_SCALE_{int(round(scale_ratios[0][0]))}x{int(round(scale_ratios[0][1]))}"
+        shape_class = (
+            f"INTEGER_SCALE_{int(round(scale_ratios[0][0]))}x{int(round(scale_ratios[0][1]))}"
+        )
     elif is_downscale:
         shape_class = "CROPPING_OR_SUBGRID"
     else:
@@ -78,5 +89,5 @@ def extract_arc_metadata(train_pairs: List[Dict[str, Any]]) -> Dict[str, Any]:
         "unique_colors_out": unique_out,
         "colors_preserved": colors_preserved,
         "new_colors_introduced": new_colors_introduced,
-        "scale_ratios": scale_ratios
+        "scale_ratios": scale_ratios,
     }

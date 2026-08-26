@@ -11,12 +11,11 @@ Expands the search space across:
 
 from __future__ import annotations
 
-import collections
-import itertools
 from dataclasses import dataclass
-from typing import Any, Callable
+
 
 MAX_DIM = 30
+
 
 @dataclass(frozen=True)
 class GridObject:
@@ -38,6 +37,7 @@ class GridObject:
     @property
     def area(self) -> int:
         return len(self.cells)
+
 
 def extract_objects(grid: list[list[int]], bg: int = 0) -> list[GridObject]:
     """Extracts all disconnected multi-color objects from grid."""
@@ -62,7 +62,12 @@ def extract_objects(grid: list[list[int]], bg: int = 0) -> list[GridObject]:
                     cells.append((cr, cc))
                     for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                         nr, nc = cr + dr, cc + dc
-                        if 0 <= nr < h and 0 <= nc < w and not visited[nr][nc] and grid[nr][nc] == color:
+                        if (
+                            0 <= nr < h
+                            and 0 <= nc < w
+                            and not visited[nr][nc]
+                            and grid[nr][nc] == color
+                        ):
                             visited[nr][nc] = True
                             queue.append((nr, nc))
 
@@ -71,12 +76,18 @@ def extract_objects(grid: list[list[int]], bg: int = 0) -> list[GridObject]:
                 min_c = min(cc for cr, cc in cells)
                 max_c = max(cc for cr, cc in cells)
 
-                objects.append(GridObject(
-                    color=color,
-                    cells=tuple(sorted(cells)),
-                    min_r=min_r, max_r=max_r, min_c=min_c, max_c=max_c
-                ))
+                objects.append(
+                    GridObject(
+                        color=color,
+                        cells=tuple(sorted(cells)),
+                        min_r=min_r,
+                        max_r=max_r,
+                        min_c=min_c,
+                        max_c=max_c,
+                    )
+                )
     return objects
+
 
 # --- Object-Centric Operations ---
 def filter_largest_object_only(grid: list[list[int]], bg: int = 0) -> list[list[int]]:
@@ -90,6 +101,7 @@ def filter_largest_object_only(grid: list[list[int]], bg: int = 0) -> list[list[
         out[r][c] = largest.color
     return out
 
+
 def filter_smallest_object_only(grid: list[list[int]], bg: int = 0) -> list[list[int]]:
     objs = extract_objects(grid, bg)
     if not objs:
@@ -101,12 +113,16 @@ def filter_smallest_object_only(grid: list[list[int]], bg: int = 0) -> list[list
         out[r][c] = smallest.color
     return out
 
+
 def crop_largest_object(grid: list[list[int]], bg: int = 0) -> list[list[int]]:
     objs = extract_objects(grid, bg)
     if not objs:
         return [[bg]]
     largest = max(objs, key=lambda o: o.area)
-    return [row[largest.min_c : largest.max_c + 1] for row in grid[largest.min_r : largest.max_r + 1]]
+    return [
+        row[largest.min_c : largest.max_c + 1] for row in grid[largest.min_r : largest.max_r + 1]
+    ]
+
 
 def sort_objects_horizontally(grid: list[list[int]], bg: int = 0) -> list[list[int]]:
     objs = extract_objects(grid, bg)

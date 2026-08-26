@@ -10,8 +10,9 @@ Expands the primitive transformation space with:
 
 from __future__ import annotations
 
-import collections
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
+
 
 MAX_DIM = 30
 

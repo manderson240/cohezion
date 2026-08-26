@@ -12,10 +12,8 @@ Features:
 from __future__ import annotations
 
 import csv
-import math
 import random
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass
@@ -55,7 +53,7 @@ class PokemonTCGSimulator:
 
     def load_cards(self, csv_path: str) -> None:
         """Load and parse official competition card database with hardened parsing."""
-        with open(csv_path, mode="r", encoding="utf-8-sig") as f:
+        with open(csv_path, encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 card_id = row.get("Card ID", "").strip()
@@ -76,7 +74,13 @@ class PokemonTCGSimulator:
                 dmg_raw = row.get("Damage", "0").strip()
                 damage = 20
                 if dmg_raw:
-                    clean_dmg = dmg_raw.replace("×", "").replace("x", "").replace("+", "").replace("-", "").strip()
+                    clean_dmg = (
+                        dmg_raw.replace("×", "")
+                        .replace("x", "")
+                        .replace("+", "")
+                        .replace("-", "")
+                        .strip()
+                    )
                     if clean_dmg.isdigit():
                         damage = int(clean_dmg)
 
@@ -142,7 +146,7 @@ class PokemonTCGSimulator:
     ) -> str:
         """MCTS policy selector finding the optimal action."""
         legal_actions = ["attach_energy", "attack"]
-        action_scores: dict[str, int] = {a: 0 for a in legal_actions}
+        action_scores: dict[str, int] = dict.fromkeys(legal_actions, 0)
 
         for action in legal_actions:
             for _ in range(num_simulations):

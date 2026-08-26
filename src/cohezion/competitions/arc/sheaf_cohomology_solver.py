@@ -1,13 +1,15 @@
-"""Sheaf Cohomology Local-to-Global Grid Gluer for ARC-AGI.
+r"""Sheaf Cohomology Local-to-Global Grid Gluer for ARC-AGI.
 
 Implements Čech 1-cocycle obstruction checking:
 delta^0(s)_{ij} = s_j|_{U_i \cap U_j} - s_i|_{U_i \cap U_j} = 0
 Prunes local transformation hypotheses that cannot be smoothly glued into a global grid.
 """
 
-from typing import Any, Callable
 
-def check_sheaf_gluing_consistency(local_patches: list[tuple[tuple[int, int, int, int], list[list[int]]]]) -> bool:
+
+def check_sheaf_gluing_consistency(
+    local_patches: list[tuple[tuple[int, int, int, int], list[list[int]]]],
+) -> bool:
     """Verifies that overlapping local grid sections agree on all intersection coordinates."""
     # Each patch is ((min_r, max_r, min_c, max_c), subgrid) where max_r, max_c are inclusive
     for i in range(len(local_patches)):
@@ -28,7 +30,12 @@ def check_sheaf_gluing_consistency(local_patches: list[tuple[tuple[int, int, int
                         c_idx1 = c - c1_min
                         r_idx2 = r - r2_min
                         c_idx2 = c - c2_min
-                        if 0 <= r_idx1 < len(g1) and 0 <= c_idx1 < len(g1[0]) and 0 <= r_idx2 < len(g2) and 0 <= c_idx2 < len(g2[0]):
+                        if (
+                            0 <= r_idx1 < len(g1)
+                            and 0 <= c_idx1 < len(g1[0])
+                            and 0 <= r_idx2 < len(g2)
+                            and 0 <= c_idx2 < len(g2[0])
+                        ):
                             if g1[r_idx1][c_idx1] != g2[r_idx2][c_idx2]:
                                 # Non-vanishing Čech 1-cocycle obstruction!
                                 return False

@@ -9,7 +9,9 @@ Integrates the local silicon research discoveries:
 
 from dataclasses import dataclass
 from typing import Any
+
 import numpy as np
+
 
 @dataclass
 class SubgridPatch:
@@ -18,6 +20,7 @@ class SubgridPatch:
     c_start: int
     c_end: int
     grid_slice: np.ndarray
+
 
 class MayerVietorisCechSolver:
     """Solves complex ARC tasks by decomposing grids into overlapping open covers U_i,
@@ -34,22 +37,25 @@ class MayerVietorisCechSolver:
         H, W = grid.shape
         patches = []
         stride = max(1, self.patch_size - self.overlap)
-        
+
         for r in range(0, H, stride):
             r_end = min(H, r + self.patch_size)
             for c in range(0, W, stride):
                 c_end = min(W, c + self.patch_size)
-                patches.append(SubgridPatch(
-                    r_start=r,
-                    r_end=r_end,
-                    c_start=c,
-                    c_end=c_end,
-                    grid_slice=grid[r:r_end, c:c_end].copy()
-                ))
+                patches.append(
+                    SubgridPatch(
+                        r_start=r,
+                        r_end=r_end,
+                        c_start=c,
+                        c_end=c_end,
+                        grid_slice=grid[r:r_end, c:c_end].copy(),
+                    )
+                )
         return patches
 
-    def compute_cech_cocycle_discrepancy(self, patch_a: SubgridPatch, pred_a: np.ndarray,
-                                         patch_b: SubgridPatch, pred_b: np.ndarray) -> float:
+    def compute_cech_cocycle_discrepancy(
+        self, patch_a: SubgridPatch, pred_a: np.ndarray, patch_b: SubgridPatch, pred_b: np.ndarray
+    ) -> float:
         """Computes || delta^0(s)_{ab} || = || s_b|_{U_a cap U_b} - s_a|_{U_a cap U_b} ||."""
         r_start_int = max(patch_a.r_start, patch_b.r_start)
         r_end_int = min(patch_a.r_end, patch_b.r_end)
@@ -62,24 +68,27 @@ class MayerVietorisCechSolver:
         # Extract intersection slice relative to patch_a
         slice_a = pred_a[
             r_start_int - patch_a.r_start : r_end_int - patch_a.r_start,
-            c_start_int - patch_a.c_start : c_end_int - patch_a.c_start
+            c_start_int - patch_a.c_start : c_end_int - patch_a.c_start,
         ]
 
         # Extract intersection slice relative to patch_b
         slice_b = pred_b[
             r_start_int - patch_b.r_start : r_end_int - patch_b.r_start,
-            c_start_int - patch_b.c_start : c_end_int - patch_b.c_start
+            c_start_int - patch_b.c_start : c_end_int - patch_b.c_start,
         ]
 
         return float(np.sum(slice_a != slice_b))
 
-    def glue_patches(self, original_shape: tuple[int, int],
-                      patches: list[SubgridPatch],
-                      predictions: list[np.ndarray]) -> np.ndarray:
+    def glue_patches(
+        self,
+        original_shape: tuple[int, int],
+        patches: list[SubgridPatch],
+        predictions: list[np.ndarray],
+    ) -> np.ndarray:
         """Glues local patch predictions into a unique global section S in Gamma(X, F)."""
         H, W = original_shape
         global_grid = np.zeros((H, W), dtype=int)
-        vote_matrix = [ [dict() for _ in range(W)] for _ in range(H) ]
+        vote_matrix = [[dict() for _ in range(W)] for _ in range(H)]
 
         for p, pred in zip(patches, predictions):
             for r_rel in range(p.r_end - p.r_start):
@@ -101,7 +110,7 @@ class MayerVietorisCechSolver:
         """Solves ARC task by local Mayer-Vietoris decomposition and global Čech gluing."""
         test_in = np.array(task["test"][0]["input"])
         patches = self.create_open_cover(test_in)
-        
+
         # Local transformation prediction
         local_preds = []
         for p in patches:

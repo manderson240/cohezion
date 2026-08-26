@@ -11,9 +11,11 @@ between Candidate Grid Transformations and Target Observation Manifolds.
 from __future__ import annotations
 
 import math
+
 import numpy as np
-from typing import Any
-from cohezion.competitions.arc.nexus_manifold_solver import QuadratureNexusEncoder, Flume12DState
+
+from cohezion.competitions.arc.nexus_manifold_solver import Flume12DState, QuadratureNexusEncoder
+
 
 class PoincareGeometricPruner:
     """Calculates 12D/2048D Poincaré Ball Hyperbolic Geodesics for candidate pruning."""
@@ -38,18 +40,30 @@ class PoincareGeometricPruner:
     ) -> float:
         """Computes hyperbolic geodesic distance between a candidate grid and target manifold."""
         c_state = self.encoder.encode_grid(candidate_grid)
-        
+
         # Project 12D vectors inside open unit ball ||x|| < 1.0
-        u = np.array([
-            c_state.x * 0.9, c_state.y * 0.9, c_state.z_area * 0.9,
-            c_state.t_entropy * 0.2, c_state.brane_d4_symmetry * 0.5,
-            c_state.brane_color_diversity * 0.5, c_state.brane_quadrature_coherence * 0.5
-        ])
-        v = np.array([
-            target_manifold.x * 0.9, target_manifold.y * 0.9, target_manifold.z_area * 0.9,
-            target_manifold.t_entropy * 0.2, target_manifold.brane_d4_symmetry * 0.5,
-            target_manifold.brane_color_diversity * 0.5, target_manifold.brane_quadrature_coherence * 0.5
-        ])
+        u = np.array(
+            [
+                c_state.x * 0.9,
+                c_state.y * 0.9,
+                c_state.z_area * 0.9,
+                c_state.t_entropy * 0.2,
+                c_state.brane_d4_symmetry * 0.5,
+                c_state.brane_color_diversity * 0.5,
+                c_state.brane_quadrature_coherence * 0.5,
+            ]
+        )
+        v = np.array(
+            [
+                target_manifold.x * 0.9,
+                target_manifold.y * 0.9,
+                target_manifold.z_area * 0.9,
+                target_manifold.t_entropy * 0.2,
+                target_manifold.brane_d4_symmetry * 0.5,
+                target_manifold.brane_color_diversity * 0.5,
+                target_manifold.brane_quadrature_coherence * 0.5,
+            ]
+        )
 
         # Normalize inside ball
         u = u / (np.linalg.norm(u) + 1.1)

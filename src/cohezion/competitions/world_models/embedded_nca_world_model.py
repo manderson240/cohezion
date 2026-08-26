@@ -4,8 +4,9 @@ Zero-dependency, sub-millisecond World Model for offline Kaggle submission kerne
 """
 
 from __future__ import annotations
+
 import numpy as np
-from typing import Dict, Any, List, Tuple
+
 
 class EmbeddedNCAWorldModel:
     """Compact 2D Neural Cellular Automata grid transition world model."""
@@ -24,16 +25,16 @@ class EmbeddedNCAWorldModel:
         """Computes 2D local perception stack (Identity, Sobel X, Sobel Y)."""
         h, w = grid.shape
         padded = np.pad(grid.astype(np.float32), 1, mode="edge")
-        
+
         # Fast vectorized 2D 3x3 convolution
         grad_x = np.zeros((h, w), dtype=np.float32)
         grad_y = np.zeros((h, w), dtype=np.float32)
-        
+
         for i in range(3):
             for j in range(3):
-                grad_x += padded[i:i+h, j:j+w] * self.sobel_x[i, j]
-                grad_y += padded[i:i+h, j:j+w] * self.sobel_y[i, j]
-                
+                grad_x += padded[i : i + h, j : j + w] * self.sobel_x[i, j]
+                grad_y += padded[i : i + h, j : j + w] * self.sobel_y[i, j]
+
         # Stack into (H, W, 3) feature tensor
         return np.stack([grid.astype(np.float32), grad_x, grad_y], axis=-1)
 
@@ -44,9 +45,9 @@ class EmbeddedNCAWorldModel:
             percep = self.perceive(state)  # (H, W, 3)
             # Forward through 2-layer MLP
             h1 = np.maximum(0.0, np.dot(percep, self.w1))  # ReLU
-            delta = np.dot(h1, self.w2).squeeze(-1)       # (H, W)
+            delta = np.dot(h1, self.w2).squeeze(-1)  # (H, W)
             state = np.clip(state + delta, 0.0, 9.0)
-            
+
         return np.round(state).astype(np.int32)
 
 
@@ -58,16 +59,20 @@ class EmbeddedActionDynamicsWorldModel:
         self.action_dim = action_dim
         rng = np.random.default_rng(seed)
         # Latent transition matrix W: [state_dim + action_dim] -> state_dim
-        self.w_trans = rng.standard_normal((state_dim + action_dim, state_dim), dtype=np.float32) * 0.05
+        self.w_trans = (
+            rng.standard_normal((state_dim + action_dim, state_dim), dtype=np.float32) * 0.05
+        )
         # Reward / Value estimator W_val: state_dim -> 1
         self.w_val = rng.standard_normal((state_dim, 1), dtype=np.float32) * 0.1
 
-    def predict_next_state(self, state_vec: np.ndarray, action_idx: int) -> Tuple[np.ndarray, float]:
+    def predict_next_state(
+        self, state_vec: np.ndarray, action_idx: int
+    ) -> tuple[np.ndarray, float]:
         """Predicts latent next state z_{t+1} and expected value/reward in <0.01ms."""
         a_onehot = np.zeros(self.action_dim, dtype=np.float32)
         if 0 <= action_idx < self.action_dim:
             a_onehot[action_idx] = 1.0
-            
+
         combined = np.concatenate([state_vec.astype(np.float32), a_onehot])
         z_next = np.tanh(np.dot(combined, self.w_trans))
         val = float(np.dot(z_next, self.w_val)[0])

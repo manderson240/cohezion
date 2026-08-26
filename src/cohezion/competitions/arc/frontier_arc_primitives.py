@@ -9,7 +9,7 @@ Implements the 3 highest-leverage algorithmic transforms:
 from __future__ import annotations
 
 import collections
-from typing import Any, Callable
+
 
 MAX_DIM = 30
 
@@ -41,7 +41,12 @@ def sort_components_by_area(grid: list[list[int]], bg: int = 0) -> list[list[int
                     cells.append((cr, cc))
                     for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                         nr, nc = cr + dr, cc + dc
-                        if 0 <= nr < h and 0 <= nc < w and not visited[nr][nc] and grid[nr][nc] == color:
+                        if (
+                            0 <= nr < h
+                            and 0 <= nc < w
+                            and not visited[nr][nc]
+                            and grid[nr][nc] == color
+                        ):
                             visited[nr][nc] = True
                             queue.append((nr, nc))
                 components.append((len(cells), color, cells))
@@ -58,7 +63,9 @@ def sort_components_by_area(grid: list[list[int]], bg: int = 0) -> list[list[int
 
 
 # --- 2. Obstacle-Constrained Geodesic BFS Propagation ---
-def geodesic_bfs_propagation(grid: list[list[int]], seed_color: int = 1, barrier_color: int = 2, bg: int = 0) -> list[list[int]]:
+def geodesic_bfs_propagation(
+    grid: list[list[int]], seed_color: int = 1, barrier_color: int = 2, bg: int = 0
+) -> list[list[int]]:
     h, w = get_dims(grid)
     out = [row[:] for row in grid]
     queue = collections.deque()
@@ -79,13 +86,21 @@ def geodesic_bfs_propagation(grid: list[list[int]], seed_color: int = 1, barrier
 
 
 # --- 3. Wildcard 3x3 Convolutional Pattern Replacement ---
-def conv_pattern_replacement(grid: list[list[int]], target_color: int = 3, bg: int = 0) -> list[list[int]]:
+def conv_pattern_replacement(
+    grid: list[list[int]], target_color: int = 3, bg: int = 0
+) -> list[list[int]]:
     """Applies a 3x3 cross stencil (context-dependent cellular automata filter)."""
     h, w = get_dims(grid)
     out = [row[:] for row in grid]
     for r in range(1, h - 1):
         for c in range(1, w - 1):
             # Check 4-neighbor cross pattern
-            if grid[r][c] == bg and grid[r - 1][c] != bg and grid[r + 1][c] != bg and grid[r][c - 1] != bg and grid[r][c + 1] != bg:
+            if (
+                grid[r][c] == bg
+                and grid[r - 1][c] != bg
+                and grid[r + 1][c] != bg
+                and grid[r][c - 1] != bg
+                and grid[r][c + 1] != bg
+            ):
                 out[r][c] = target_color
     return out

@@ -11,7 +11,7 @@ Handles:
 from __future__ import annotations
 
 import collections
-from typing import Any, Callable
+
 
 def extract_subgrid_by_indicator(grid: list[list[int]]) -> list[list[int]] | None:
     """Extracts subgrid enclosed by indicator/marker color pixels."""
@@ -44,7 +44,10 @@ def extract_subgrid_by_indicator(grid: list[list[int]]) -> list[list[int]] | Non
                     return [row[min_c : max_c + 1] for row in grid[min_r : max_r + 1]]
     return None
 
-def extract_most_frequent_subgrid_pattern(grid: list[list[int]], size: tuple[int, int] = (3, 3)) -> list[list[int]]:
+
+def extract_most_frequent_subgrid_pattern(
+    grid: list[list[int]], size: tuple[int, int] = (3, 3)
+) -> list[list[int]]:
     """Extracts the dominant repeating subgrid block."""
     h, w = len(grid), len(grid[0]) if grid else 0
     sh, sw = size

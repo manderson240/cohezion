@@ -8,10 +8,13 @@ Recommended by Kaggle Grandmaster Audit (arXiv:2603.03329v1):
 """
 
 from __future__ import annotations
-import numpy as np
-from typing import Dict, List, Tuple, Any
 
-def compute_euler_characteristic(grid: List[List[int]], nonzero_only: bool = True) -> int:
+from typing import Any
+
+import numpy as np
+
+
+def compute_euler_characteristic(grid: list[list[int]], nonzero_only: bool = True) -> int:
     """Computes topological Euler characteristic chi = V - E + F for connected components."""
     arr = np.array(grid)
     if nonzero_only:
@@ -33,7 +36,8 @@ def compute_euler_characteristic(grid: List[List[int]], nonzero_only: bool = Tru
 
     return v - e + f
 
-def compute_subgrid_parity_hash(grid: List[List[int]], tile_size: int = 2) -> Tuple[int, ...]:
+
+def compute_subgrid_parity_hash(grid: list[list[int]], tile_size: int = 2) -> tuple[int, ...]:
     """Computes spatial parity hash over non-overlapping tile_size x tile_size blocks."""
     arr = np.array(grid)
     h, w = arr.shape
@@ -48,7 +52,10 @@ def compute_subgrid_parity_hash(grid: List[List[int]], tile_size: int = 2) -> Tu
     parities = np.sum(blocks, axis=(1, 3)) % 2
     return tuple(parities.flatten().tolist())
 
-def compute_centroid_displacement(input_grid: List[List[int]], output_grid: List[List[int]]) -> Tuple[float, float]:
+
+def compute_centroid_displacement(
+    input_grid: list[list[int]], output_grid: list[list[int]]
+) -> tuple[float, float]:
     """Computes center-of-mass translation vector between input and output active objects."""
     in_arr = np.array(input_grid)
     out_arr = np.array(output_grid)
@@ -63,7 +70,8 @@ def compute_centroid_displacement(input_grid: List[List[int]], output_grid: List
     c_out = out_pts.mean(axis=0)
     return (float(c_out[0] - c_in[0]), float(c_out[1] - c_in[1]))
 
-def verify_euler_preservation(train_pairs: List[Dict[str, Any]]) -> bool:
+
+def verify_euler_preservation(train_pairs: list[dict[str, Any]]) -> bool:
     """Verifies if task preserves topological Euler characteristic across all training pairs."""
     if not train_pairs:
         return False

@@ -6,16 +6,18 @@ to search and compose ARC macro DSL operations without combinatorial explosion.
 
 from __future__ import annotations
 
-import heapq
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 
 from cohezion.competitions.arc.advanced_geometric_primitives import (
-    raycast_until_obstacle,
     connect_matching_pairs_bfs,
+    extract_enclosed_rooms,
     fill_convex_bounding_box,
-    extract_enclosed_rooms
+    raycast_until_obstacle,
 )
+
 
 class TodorcevicLatticeSolver:
     """Solves ARC tasks by exploring transformation paths prioritized by minimal walk oscillation."""
@@ -26,16 +28,18 @@ class TodorcevicLatticeSolver:
             ("bfs_connect", connect_matching_pairs_bfs),
             ("convex_bbox", fill_convex_bounding_box),
             ("enclosed_room", lambda g: extract_enclosed_rooms(g, wall_color=1, fill_color=3)),
-            ("identity", lambda g: [r[:] for r in g])
+            ("identity", lambda g: [r[:] for r in g]),
         ]
 
-    def compute_lattice_oscillation(self, grid_a: list[list[int]], grid_b: list[list[int]]) -> float:
+    def compute_lattice_oscillation(
+        self, grid_a: list[list[int]], grid_b: list[list[int]]
+    ) -> float:
         """Measures the combinatorial oscillation (entropy discrepancy) between two grid states."""
         arr_a = np.array(grid_a)
         arr_b = np.array(grid_b)
         if arr_a.shape != arr_b.shape:
             return 1000.0  # Dimensional mismatch penalty
-        
+
         # Color distribution divergence
         diff = np.sum(arr_a != arr_b)
         return float(diff)

@@ -9,8 +9,8 @@ Implements:
 
 from __future__ import annotations
 
-import math
 import numpy as np
+
 
 class EmbeddedPoincareJEPAWorldModel:
     """Lightweight, 100% self-contained embedded Poincaré JEPA World Model."""
@@ -44,8 +44,8 @@ class EmbeddedPoincareJEPAWorldModel:
 
     def poincare_distance(self, u: np.ndarray, v: np.ndarray) -> float:
         """Exact geodesic distance on the Poincaré ball."""
-        sq_u = np.sum(u ** 2)
-        sq_v = np.sum(v ** 2)
+        sq_u = np.sum(u**2)
+        sq_v = np.sum(v**2)
         sq_diff = np.sum((u - v) ** 2)
 
         denom = max((1.0 - sq_u) * (1.0 - sq_v), 1e-12)
@@ -60,6 +60,7 @@ class EmbeddedPoincareJEPAWorldModel:
         z_next_euc = np.dot(current_latent, self.W_trans) + action_vec
         norm = np.linalg.norm(z_next_euc)
         return (z_next_euc / norm) * np.tanh(norm) if norm > 0 else z_next_euc
+
 
 def run_embedded_world_model_sweep():
     wm = EmbeddedPoincareJEPAWorldModel(latent_dim=12)
@@ -84,8 +85,9 @@ def run_embedded_world_model_sweep():
         "z_0_norm": float(np.linalg.norm(z_0)),
         "z_target_norm": float(np.linalg.norm(z_target)),
         "best_action": best_action,
-        "min_geodesic_dist": min_geodesic_dist
+        "min_geodesic_dist": min_geodesic_dist,
     }
+
 
 if __name__ == "__main__":
     res = run_embedded_world_model_sweep()

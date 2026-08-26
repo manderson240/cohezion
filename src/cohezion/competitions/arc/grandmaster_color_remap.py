@@ -4,7 +4,8 @@ Solves the large class of ARC tasks where shapes are preserved but colors are re
 via discrete substitution functions f(c_in) -> c_out.
 """
 
-from typing import Any, Callable
+from typing import Any
+
 
 def solve_color_remapping_task(task: dict[str, Any]) -> list[list[int]] | None:
     train = task.get("train", [])

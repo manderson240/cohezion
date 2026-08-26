@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import collections
 import random
-import time
 from dataclasses import dataclass, field
 from typing import Any
+
 
 @dataclass
 class ISMCTSNode:
@@ -22,6 +22,7 @@ class ISMCTSNode:
     visit_count: int = 0
     regret_sum: dict[str, float] = field(default_factory=lambda: collections.defaultdict(float))
     strategy_sum: dict[str, float] = field(default_factory=lambda: collections.defaultdict(float))
+
 
 class ISMCTSWithCFR:
     """Information-Set MCTS with Counterfactual Regret Minimization."""
@@ -37,7 +38,7 @@ class ISMCTSWithCFR:
             observation.get("opponent_hp", 100),
             observation.get("energy_attached", 0),
             observation.get("opponent_bench_count", 2),
-            tuple(sorted(observation.get("legal_actions", self.legal_actions)))
+            tuple(sorted(observation.get("legal_actions", self.legal_actions))),
         )
         return hash(state_repr)
 
@@ -95,12 +96,14 @@ class ISMCTSWithCFR:
             node.visit_count += 1
             for a in actions:
                 if a == "attack":
-                    a_payoff = 3.0 if (opp_hp <= 40 or energy >= 2) else (1.8 if energy >= 1 else 0.5)
+                    a_payoff = (
+                        3.0 if (opp_hp <= 40 or energy >= 2) else (1.8 if energy >= 1 else 0.5)
+                    )
                 elif a == "attach_energy":
                     a_payoff = 2.0 if energy < 2 else 0.2
                 else:
                     a_payoff = 0.4
-                node.regret_sum[a] += (a_payoff - payoff)
+                node.regret_sum[a] += a_payoff - payoff
                 node.strategy_sum[a] += strat[a]
 
         # Extract average strategy

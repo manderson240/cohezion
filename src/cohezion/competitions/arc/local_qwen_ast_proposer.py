@@ -5,12 +5,14 @@ Executes generated code in an isolated AST sandbox with 0ms AutoHarness verifica
 """
 
 import ast
-import json
 import logging
-import time
+
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [LLM_PROPOSER] %(message)s")
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [LLM_PROPOSER] %(message)s"
+)
 logger = logging.getLogger("llm_proposer")
 
 LEMONADE_BASE = "http://localhost:13305"
@@ -29,17 +31,20 @@ def transform(grid):
 ```
 """
 
+
 async def propose_python_solution(client: httpx.AsyncClient, task_data: dict) -> str | None:
     train_pairs_text = ""
     for idx, p in enumerate(task_data.get("train", [])):
-        train_pairs_text += f"\nExample {idx+1}:\nInput: {p.get('input')}\nOutput: {p.get('output')}\n"
+        train_pairs_text += (
+            f"\nExample {idx + 1}:\nInput: {p.get('input')}\nOutput: {p.get('output')}\n"
+        )
 
     prompt = PROMPT_TEMPLATE.format(train_pairs=train_pairs_text)
     payload = {
         "model": "Qwen3-Coder-30B",
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.1,
-        "max_tokens": 16384
+        "max_tokens": 16384,
     }
 
     try:
@@ -54,6 +59,7 @@ async def propose_python_solution(client: httpx.AsyncClient, task_data: dict) ->
     except Exception as e:
         logger.warning("LLM proposal call failed: %s", e)
     return None
+
 
 def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None:
     """Executes proposed code in a restricted scope against training pairs."""

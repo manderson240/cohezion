@@ -11,12 +11,14 @@ Breaks through the 2.5% wall by implementing:
 from __future__ import annotations
 
 import collections
-import heapq
-from typing import Any, Callable
+
 
 MAX_DIM = 30
 
-def raycast_until_obstacle(grid: list[list[int]], ray_color: int = 2, stop_color: int = 1) -> list[list[int]]:
+
+def raycast_until_obstacle(
+    grid: list[list[int]], ray_color: int = 2, stop_color: int = 1
+) -> list[list[int]]:
     """Shoots rays in 4 cardinal directions from all ray_color pixels until hitting stop_color."""
     h = len(grid)
     w = len(grid[0]) if h > 0 else 0
@@ -37,6 +39,7 @@ def raycast_until_obstacle(grid: list[list[int]], ray_color: int = 2, stop_color
                         cr += dr
                         cc += dc
     return out
+
 
 def connect_matching_pairs_bfs(grid: list[list[int]]) -> list[list[int]]:
     """Finds pairs of matching non-zero colored pixels and draws shortest Manhattan path connectors."""
@@ -65,6 +68,7 @@ def connect_matching_pairs_bfs(grid: list[list[int]]) -> list[list[int]]:
                 out[r2][c] = color
     return out
 
+
 def fill_convex_bounding_box(grid: list[list[int]]) -> list[list[int]]:
     """Fills the minimum bounding box enclosing all foreground pixels."""
     h = len(grid)
@@ -88,7 +92,10 @@ def fill_convex_bounding_box(grid: list[list[int]]) -> list[list[int]]:
             out[r][c] = fill_col
     return out
 
-def extract_enclosed_rooms(grid: list[list[int]], wall_color: int = 1, fill_color: int = 3) -> list[list[int]]:
+
+def extract_enclosed_rooms(
+    grid: list[list[int]], wall_color: int = 1, fill_color: int = 3
+) -> list[list[int]]:
     """Fills enclosed hollow chambers bounded by wall_color with fill_color."""
     h = len(grid)
     w = len(grid[0]) if h > 0 else 0

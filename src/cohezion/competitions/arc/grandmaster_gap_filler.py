@@ -7,8 +7,8 @@ Closes the gap to 70%+ scores by introducing:
 4. Multiscale Connected Component Infilling & Geometry Completion.
 """
 
-from typing import Any, Callable
-from cohezion.competitions.arc.dsl_synthesizer import get_dims, MAX_DIM
+from cohezion.competitions.arc.dsl_synthesizer import MAX_DIM, get_dims
+
 
 def solve_cellular_automata_moore(grid: list[list[int]]) -> list[list[int]]:
     """Applies Moore neighborhood state transitions (Majority color voting & boundary propagation)."""
@@ -22,15 +22,21 @@ def solve_cellular_automata_moore(grid: list[list[int]]) -> list[list[int]]:
             if grid[r][c] == 0:
                 # Check surrounding neighbor colors
                 neighbors = [
-                    grid[r-1][c-1], grid[r-1][c], grid[r-1][c+1],
-                    grid[r][c-1],                 grid[r][c+1],
-                    grid[r+1][c-1], grid[r+1][c], grid[r+1][c+1]
+                    grid[r - 1][c - 1],
+                    grid[r - 1][c],
+                    grid[r - 1][c + 1],
+                    grid[r][c - 1],
+                    grid[r][c + 1],
+                    grid[r + 1][c - 1],
+                    grid[r + 1][c],
+                    grid[r + 1][c + 1],
                 ]
                 non_zero = [n for n in neighbors if n != 0]
                 if len(non_zero) >= 5:
                     # Majority non-zero color fill
                     out[r][c] = max(set(non_zero), key=non_zero.count)
     return out
+
 
 def solve_fractal_kronecker_inflation(grid: list[list[int]]) -> list[list[int]]:
     """Inflates a pattern using self-similar Kronecker product scaling."""

@@ -12,8 +12,10 @@ from __future__ import annotations
 
 import collections
 import math
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
+
 
 MAX_DIM = 30
 
@@ -27,6 +29,7 @@ def get_dims(grid: list[list[int]]) -> tuple[int, int]:
 @dataclass(frozen=True, slots=True)
 class Flume12DState:
     """12D State Vector representation of an ARC grid manifold."""
+
     # 3 Spatial Dimensions (Centroid x, y, Area ratio)
     x: float
     y: float
@@ -65,7 +68,9 @@ class QuadratureNexusEncoder:
 
         # Shannon Entropy
         counts = collections.Counter(c for row in grid for c in row)
-        entropy = -sum((cnt / total_cells) * math.log2(cnt / total_cells) for cnt in counts.values())
+        entropy = -sum(
+            (cnt / total_cells) * math.log2(cnt / total_cells) for cnt in counts.values()
+        )
 
         # D4 Symmetry Check
         rot180_match = 1.0 if [r[::-1] for r in grid[::-1]] == grid else 0.0

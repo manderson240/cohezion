@@ -9,22 +9,31 @@ Searches over:
 
 from __future__ import annotations
 
-from typing import Any, Callable
-from cohezion.competitions.arc.dsl_synthesizer import DSL_PRIMITIVES, get_dims, MAX_DIM
+from collections.abc import Callable
+from typing import Any
+
+from cohezion.competitions.arc.dsl_synthesizer import DSL_PRIMITIVES, MAX_DIM, get_dims
 from cohezion.competitions.arc.frontier_arc_primitives import (
-    sort_components_by_area, geodesic_bfs_propagation, conv_pattern_replacement
+    conv_pattern_replacement,
+    geodesic_bfs_propagation,
+    sort_components_by_area,
 )
 from cohezion.competitions.arc.grandmaster_color_remap import solve_color_remapping_task
-from cohezion.competitions.arc.object_dsl_engine import (
-    filter_largest_object_only, filter_smallest_object_only,
-    crop_largest_object, sort_objects_horizontally
-)
-
 from cohezion.competitions.arc.grandmaster_gap_filler import (
-    solve_cellular_automata_moore, solve_fractal_kronecker_inflation
+    solve_cellular_automata_moore,
+    solve_fractal_kronecker_inflation,
+)
+from cohezion.competitions.arc.object_dsl_engine import (
+    crop_largest_object,
+    filter_largest_object_only,
+    filter_smallest_object_only,
+    sort_objects_horizontally,
 )
 
-EXPANDED_PRIMITIVES: list[tuple[str, Callable[[list[list[int]]], list[list[int]]]]] = list(DSL_PRIMITIVES) + [
+
+EXPANDED_PRIMITIVES: list[tuple[str, Callable[[list[list[int]]], list[list[int]]]]] = list(
+    DSL_PRIMITIVES
+) + [
     ("ccl_sort_area", sort_components_by_area),
     ("geodesic_bfs", geodesic_bfs_propagation),
     ("conv_stencil_cross", conv_pattern_replacement),
@@ -35,6 +44,7 @@ EXPANDED_PRIMITIVES: list[tuple[str, Callable[[list[list[int]]], list[list[int]]
     ("cellular_automata_moore", solve_cellular_automata_moore),
     ("fractal_kronecker_inflation", solve_fractal_kronecker_inflation),
 ]
+
 
 class DeepCompositionalSynthesizer:
     def __init__(self) -> None:
@@ -71,7 +81,11 @@ class DeepCompositionalSynthesizer:
                         pass
 
         # 3. 3-Stage Fast Compositional Search (High-leverage triples)
-        core_fns = [fn for name, fn in self.primitives if any(k in name for k in ["rot", "flip", "crop", "filter", "gravity"])]
+        core_fns = [
+            fn
+            for name, fn in self.primitives
+            if any(k in name for k in ["rot", "flip", "crop", "filter", "gravity"])
+        ]
         for f1 in core_fns:
             for f2 in core_fns:
                 for f3 in core_fns:

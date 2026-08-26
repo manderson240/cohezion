@@ -16,6 +16,7 @@ Total Decision Latency: <1.20 ms per turn on standard Kaggle 2-vCPU environment.
 """
 
 from __future__ import annotations
+
 import collections
 import gc
 import math
@@ -23,7 +24,8 @@ import random
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any
+
 
 MAX_NODES = 10000
 
@@ -31,7 +33,10 @@ MAX_NODES = 10000
 # 🧠 EMBEDDED CPU NEURAL INFERENCE ENGINE (PURE PYTHON STDLIB FORWARD PASS)
 # ==============================================================================
 
-def _build_mlp_weights(seed: int = 42) -> Tuple[List[List[float]], List[float], List[List[float]], List[float]]:
+
+def _build_mlp_weights(
+    seed: int = 42,
+) -> tuple[list[list[float]], list[float], list[list[float]], list[float]]:
     rng = random.Random(seed)
     w1 = [[(rng.random() - 0.5) * 0.4 for _ in range(32)] for _ in range(16)]
     b1 = [0.01 * (i % 3 - 1) for i in range(32)]
@@ -39,7 +44,9 @@ def _build_mlp_weights(seed: int = 42) -> Tuple[List[List[float]], List[float], 
     b2 = [0.1, 0.2, -0.05, 0.05, -0.2, 0.0]
     return w1, b1, w2, b2
 
+
 _G_W1, _G_B1, _G_W2, _G_B2 = _build_mlp_weights()
+
 
 class EmbeddedCPUNeuralNet:
     """Ultra-fast 2-layer MLP (16 -> 32 -> 6) for CPU-only inference without PyTorch/NumPy."""
@@ -51,25 +58,25 @@ class EmbeddedCPUNeuralNet:
     ACTION_MAP = ["attack", "attach_energy", "retreat", "play_supporter", "pass", "item"]
 
     @classmethod
-    def extract_features(cls, obs: Dict[str, Any]) -> List[float]:
+    def extract_features(cls, obs: dict[str, Any]) -> list[float]:
         """Extracts 16 normalized game state features with Public Belief State (PBS) Guidance."""
         active = obs.get("active_pokemon", {})
         opp = obs.get("opponent_active", {})
-        
+
         hp_self = active.get("hp", 100) / 160.0
         hp_opp = opp.get("hp", 100) / 160.0
         e_self = min(5, active.get("energy_attached", 0)) / 5.0
         e_opp = min(5, opp.get("energy_attached", 0)) / 5.0
         bench_self = len(obs.get("bench", [])) / 5.0
         bench_opp = len(obs.get("opponent_bench", [])) / 5.0
-        
+
         # Embedded Bayesian Public Belief State (unrevealed deck entropy & prize pressure)
         hand_size = len(obs.get("hand", [])) / 7.0
         deck_self = obs.get("deck_count", 30) / 60.0
         deck_opp = obs.get("opponent_deck_count", 30) / 60.0
         turn = min(50, obs.get("turn_count", 1)) / 50.0
         is_p0 = 1.0 if obs.get("player_role", 0) == 0 else 0.0
-        
+
         hp_diff = hp_self - hp_opp
         energy_diff = e_self - e_opp
         deck_diff = deck_self - deck_opp
@@ -77,13 +84,26 @@ class EmbeddedCPUNeuralNet:
         hand_vuln = 1.0 if hand_size > 0.7 else 0.0
 
         return [
-            hp_self, hp_opp, e_self, e_opp, bench_self, bench_opp,
-            hand_size, deck_self, deck_opp, turn, is_p0, hp_diff,
-            energy_diff, deck_diff, dpe_potential, hand_vuln
+            hp_self,
+            hp_opp,
+            e_self,
+            e_opp,
+            bench_self,
+            bench_opp,
+            hand_size,
+            deck_self,
+            deck_opp,
+            turn,
+            is_p0,
+            hp_diff,
+            energy_diff,
+            deck_diff,
+            dpe_potential,
+            hand_vuln,
         ]
 
     @classmethod
-    def forward(cls, features: List[float]) -> Dict[str, float]:
+    def forward(cls, features: list[float]) -> dict[str, float]:
         """Executes pure-Python matrix multiplication and softmax forward pass in ~0.04 ms."""
         # Layer 1: Linear + ReLU
         hidden = [0.0] * 32
@@ -114,18 +134,26 @@ class EmbeddedCPUNeuralNet:
 # 🌲 ISMCTS + OOS-CFR ENGINE WITH NEURAL PRIOR GUIDANCE
 # ==============================================================================
 
+
 @dataclass
 class ISMCTSNode:
     info_set_hash: int
     visit_count: int = 0
-    regret_sum: Dict[str, float] = field(default_factory=lambda: collections.defaultdict(float))
-    strategy_sum: Dict[str, float] = field(default_factory=lambda: collections.defaultdict(float))
+    regret_sum: dict[str, float] = field(default_factory=lambda: collections.defaultdict(float))
+    strategy_sum: dict[str, float] = field(default_factory=lambda: collections.defaultdict(float))
+
 
 class PokemonTCGStrategicAgentV4:
     """Grandmaster Battle Agent combining CPU Neural Net Inference + ISMCTS-CFR."""
 
-    def __init__(self, legal_actions: Optional[List[str]] = None) -> None:
-        self.default_actions = legal_actions or ["attach_energy", "attack", "retreat", "play_supporter", "pass"]
+    def __init__(self, legal_actions: list[str] | None = None) -> None:
+        self.default_actions = legal_actions or [
+            "attach_energy",
+            "attack",
+            "retreat",
+            "play_supporter",
+            "pass",
+        ]
         self.nodes: collections.OrderedDict[int, ISMCTSNode] = collections.OrderedDict()
         self.exploration_c = 1.414
 
@@ -146,10 +174,10 @@ class PokemonTCGStrategicAgentV4:
             return False
         return True
 
-    def get_zobrist_info_set_hash(self, observation: Dict[str, Any]) -> int:
+    def get_zobrist_info_set_hash(self, observation: dict[str, Any]) -> int:
         active_pkmn = observation.get("active_pokemon", {})
         opp_pkmn = observation.get("opponent_active", {})
-        
+
         state_repr = (
             observation.get("player_role", 0),
             active_pkmn.get("name", "basic_pokemon"),
@@ -164,26 +192,31 @@ class PokemonTCGStrategicAgentV4:
             observation.get("deck_count", 30),
             observation.get("opponent_deck_count", 30),
             observation.get("turn_count", 1),
-            tuple(sorted(observation.get("legal_actions", self.default_actions)))
+            tuple(sorted(observation.get("legal_actions", self.default_actions))),
         )
         return hash(state_repr)
 
-    def get_neural_guided_strategy(self, node: ISMCTSNode, actions: List[str], nn_priors: Dict[str, float]) -> Dict[str, float]:
+    def get_neural_guided_strategy(
+        self, node: ISMCTSNode, actions: list[str], nn_priors: dict[str, float]
+    ) -> dict[str, float]:
         """Blends positive cumulative regret matching with embedded neural policy prior."""
         regrets = {a: max(0.0, node.regret_sum[a]) for a in actions}
         sum_pos = sum(regrets.values())
-        
+
         if sum_pos > 0:
             cfr_strat = {a: regrets[a] / sum_pos for a in actions}
             # 80% CFR regret matching + 20% Neural Policy guidance
-            return {a: 0.80 * cfr_strat[a] + 0.20 * nn_priors.get(a, 1.0 / len(actions)) for a in actions}
-            
+            return {
+                a: 0.80 * cfr_strat[a] + 0.20 * nn_priors.get(a, 1.0 / len(actions))
+                for a in actions
+            }
+
         # Fallback to Neural Policy prior when regrets are uninitialized
         nn_filtered = {a: nn_priors.get(a, 0.1) for a in actions}
         sum_nn = sum(nn_filtered.values())
         return {a: nn_filtered[a] / sum_nn for a in actions}
 
-    def simulate_rollout(self, observation: Dict[str, Any], initial_action: str) -> float:
+    def simulate_rollout(self, observation: dict[str, Any], initial_action: str) -> float:
         active_hp = observation.get("active_pokemon", {}).get("hp", 100)
         opp_hp = observation.get("opponent_active", {}).get("hp", 100)
         energy = observation.get("active_pokemon", {}).get("energy_attached", 0)
@@ -213,13 +246,17 @@ class PokemonTCGStrategicAgentV4:
         tempo_bias = 0.20 if (is_p0 and initial_action in ["attack", "attach_energy"]) else 0.0
 
         # Deck-out defense
-        mill_threat = 0.40 if (opp_deck_count < 10 and opp_deck_count < deck_count) else (-0.60 if deck_count < 8 else 0.0)
+        mill_threat = (
+            0.40
+            if (opp_deck_count < 10 and opp_deck_count < deck_count)
+            else (-0.60 if deck_count < 8 else 0.0)
+        )
 
         # Board dominance
         board_advantage = ((active_hp - opp_hp) / 160.0) + ((energy - 2) * 0.15)
         return max(-1.0, min(1.0, board_advantage + tempo_bias + mill_threat))
 
-    def choose_action(self, observation: Dict[str, Any], num_rollouts: int = 250) -> str:
+    def choose_action(self, observation: dict[str, Any], num_rollouts: int = 250) -> str:
         raw_actions = observation.get("legal_actions", self.default_actions)
         actions = [a for a in raw_actions if self.is_real_attack(a)] or ["pass"]
 
@@ -229,24 +266,34 @@ class PokemonTCGStrategicAgentV4:
         # 1. Forward Pass on Embedded CPU Neural Net (<0.05 ms)
         features = EmbeddedCPUNeuralNet.extract_features(observation)
         raw_nn_priors = EmbeddedCPUNeuralNet.forward(features)
-        
+
         # 1b. Rule Legality Masking (Prunes ~60% illegal action branches)
         active = observation.get("active_pokemon", {}) or {}
         bench = observation.get("bench", []) or []
         hand = observation.get("hand", []) or []
         hp = int(active.get("hp", 100)) if str(active.get("hp", 100)).isdigit() else 100
-        energy_attached = int(active.get("energy_attached", 0)) if str(active.get("energy_attached", 0)).isdigit() else 0
-        retreat_cost = int(active.get("retreat_cost", 1)) if str(active.get("retreat_cost", 1)).isdigit() else 1
-        
+        energy_attached = (
+            int(active.get("energy_attached", 0))
+            if str(active.get("energy_attached", 0)).isdigit()
+            else 0
+        )
+        retreat_cost = (
+            int(active.get("retreat_cost", 1))
+            if str(active.get("retreat_cost", 1)).isdigit()
+            else 1
+        )
+
         can_attack = hp > 0
         can_attach = len(hand) > 0 and not bool(observation.get("energy_attached_this_turn", False))
         can_retreat = len(bench) > 0 and energy_attached >= retreat_cost
-        can_supporter = len(hand) > 0 and not bool(observation.get("supporter_played_this_turn", False))
+        can_supporter = len(hand) > 0 and not bool(
+            observation.get("supporter_played_this_turn", False)
+        )
         can_pass = True
         can_item = len(hand) > 0
-        
+
         legality_mask = [can_attack, can_attach, can_retreat, can_supporter, can_pass, can_item]
-        
+
         nn_priors = {}
         total_p = 0.0
         for act, legal in zip(EmbeddedCPUNeuralNet.ACTION_MAP, legality_mask):
@@ -257,7 +304,9 @@ class PokemonTCGStrategicAgentV4:
             for act in nn_priors:
                 nn_priors[act] /= total_p
         else:
-            nn_priors = {act: (1.0 if act == "pass" else 0.0) for act in EmbeddedCPUNeuralNet.ACTION_MAP}
+            nn_priors = {
+                act: (1.0 if act == "pass" else 0.0) for act in EmbeddedCPUNeuralNet.ACTION_MAP
+            }
 
         # 2. Node Lookup with LRU Bounds
         is_hash = self.get_zobrist_info_set_hash(observation)
@@ -278,13 +327,15 @@ class PokemonTCGStrategicAgentV4:
         try:
             for _ in range(num_rollouts):
                 strategy = self.get_neural_guided_strategy(node, actions, nn_priors)
-                sampled_action = random.choices(list(strategy.keys()), weights=list(strategy.values()))[0]
+                sampled_action = random.choices(
+                    list(strategy.keys()), weights=list(strategy.values())
+                )[0]
                 payoff = self.simulate_rollout(observation, sampled_action)
 
                 node.visit_count += 1
                 for a in actions:
                     a_payoff = self.simulate_rollout(observation, a)
-                    node.regret_sum[a] += (a_payoff - payoff)
+                    node.regret_sum[a] += a_payoff - payoff
                     node.strategy_sum[a] += strategy.get(a, 0.0)
 
             avg_strat = {a: node.strategy_sum[a] / max(1, node.visit_count) for a in actions}
@@ -295,11 +346,16 @@ class PokemonTCGStrategicAgentV4:
 
         return best_action
 
+
 # Kaggle API Entry Point
 _global_agent = PokemonTCGStrategicAgentV4()
 
-def agent_function(observation: Dict[str, Any], configuration: Optional[Dict[str, Any]] = None) -> str:
+
+def agent_function(
+    observation: dict[str, Any], configuration: dict[str, Any] | None = None
+) -> str:
     return _global_agent.choose_action(observation)
+
 
 if __name__ == "__main__":
     print("Testing v4 Hybrid CPU Inference + ISMCTS Engine locally...")
@@ -313,7 +369,7 @@ if __name__ == "__main__":
         "deck_count": 28,
         "opponent_deck_count": 22,
         "turn_count": 6,
-        "legal_actions": ["attack", "attach_energy", "retreat", "[Ability] Recharge", "pass"]
+        "legal_actions": ["attack", "attach_energy", "retreat", "[Ability] Recharge", "pass"],
     }
     t0 = time.perf_counter()
     feats = EmbeddedCPUNeuralNet.extract_features(obs)
