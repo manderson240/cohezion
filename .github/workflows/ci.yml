@@ -114,6 +114,19 @@ jobs:
           uv run python scripts/ci/doc_code_consistency.py --self-test
           uv run python scripts/ci/doc_code_consistency.py
 
+      # Phantom attribute reads (THIRD sibling): dormancy_scan asks "does this capability
+      # have a consumer?", doc_code_consistency asks "do the docs tell the truth?", this
+      # asks "does the attribute this code reads actually exist?". Added 2026-08-26 after
+      # getattr(result, "error", "") in actioner/engine.py was found reading a field
+      # ExecutionResult does not define, so every failure logged an empty reason and a
+      # fully-blocked compound pipeline looked like a slow one for weeks. mypy cannot catch
+      # this — getattr with a literal + default is deliberate dynamism whose contract is to
+      # succeed silently. --self-test FIRST for the same reason as the sibling above.
+      - name: Phantom attribute scan (gating)
+        run: |
+          uv run python scripts/ci/phantom_attr_scan.py --self-test
+          uv run python scripts/ci/phantom_attr_scan.py
+
       - name: Validate critical imports
         run: |
           uv run python -c "

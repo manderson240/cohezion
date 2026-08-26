@@ -49,6 +49,31 @@ was green only because tests exercised the easy paths. Corrections (all committe
 | Fast tests | `uv run pytest tests/unit --import-mode=append --tb=short -q -p no:warnings` | Exit 0 |
 | Skill validate | `uv run python scripts/ci/validate_skills.py` | Exit 0 |
 | Registry validate | `uv run python scripts/ci/validate_registry.py` | Exit 0 |
+| Phantom-attr self-test | `uv run python scripts/ci/phantom_attr_scan.py --self-test` | Exit 0 |
+| Phantom-attr scan | `uv run python scripts/ci/phantom_attr_scan.py` | Exit 0 |
+
+## PA1: phantom-attribute scan is RUN by both gates (CONSUMPTION, 2026-08-26)
+
+- `scripts/ci/phantom_attr_scan.py` flags `getattr(x, "<literal>", default)` where the target
+  class defines no such attribute. Third sibling of `dormancy_scan` ("has a consumer?") and
+  `doc_code_consistency` ("do the docs tell the truth?"): **"does the attribute exist?"**
+- ORIGIN: `getattr(result, "error", "")` in `actioner/engine.py` read a field `ExecutionResult`
+  does not have (9 constructions in `compound/executor.py`, **0** pass `error=`). Every failure
+  logged an empty reason, so a fully-blocked compound pipeline was indistinguishable from a slow
+  one for weeks. **mypy cannot catch this** — `getattr` with a literal + default is deliberate
+  dynamism whose contract IS to succeed silently.
+- **CONSUMPTION, not declaration**: the invariant is not "the scanner exists", it is
+  "`automerge_guard.sh` AND `.github/workflows/ci.yml` both invoke it, with `--self-test` first".
+  `tests/scripts/test_phantom_attr_scan.py::test_t3_scanner_is_wired_into_the_gate` FAILS if
+  either gate stops calling it — neutralizing the consumer turns the test red.
+- **T2 discriminating**: `--self-test` plants the historical defect and requires RED, then GREEN.
+  Additionally validated against the REAL pre-fix tree from git history (`dee080d0c~1`): fires on
+  `engine.py:260`, silent on the fix. The prior revision is an unbiased oracle — nobody authored
+  it to test this scanner, so it cannot share the author's blind spot.
+- **Deliberately out of scope**: dynamic `getattr(x, name, ...)` is never flagged (unresolvable
+  statically; flagging it would be noise). Registry is curated for precision over recall — a
+  scanner that cries wolf trains people to ignore it.
+- **Verification**: `uv run pytest tests/scripts/test_phantom_attr_scan.py -q` → 13 passed
 
 ## Valid Code Changes (is_legal_change)
 
