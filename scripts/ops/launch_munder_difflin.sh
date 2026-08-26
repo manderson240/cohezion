@@ -17,5 +17,8 @@ echo "   • OpenCode:             $(which opencode || echo 'N/A')"
 echo "   • Codex:                $(which codex || echo 'N/A')"
 echo "=========================================================================================="
 
+export ELECTRON_FLAGS="--no-sandbox --disable-gpu-sandbox"
+
 cd "$REPO_DIR"
-npm run dev
+npm run dev -- --no-sandbox
+
