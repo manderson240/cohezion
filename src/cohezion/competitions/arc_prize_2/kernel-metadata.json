@@ -11,6 +11,7 @@
     "arc-prize-2026-arc-agi-2"
   ],
   "model_sources": [
-    "deepseek-ai/deepseek-r1/transformers/deepseek-r1-distill-qwen-14b/2"
+    "deepseek-ai/deepseek-r1/transformers/deepseek-r1-distill-qwen-7b/2",
+    "qwen-lm/qwen2.5-coder/transformers/qwen2.5-coder-7b-instruct/1"
   ]
 }

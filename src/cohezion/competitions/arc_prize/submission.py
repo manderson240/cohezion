@@ -169,63 +169,97 @@ def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) 
     predictions = []
 
 # ---------------------------------------------------------------------------
-# 4. Open-Weight Model Agent Reasoner & AutoHarness Verification
+# 4. Heterogeneous Dual-Silicon Specialist Swarm (GPU 0 Reasoner + GPU 1 Coder)
 # ---------------------------------------------------------------------------
 
-_MODEL_CACHE = {}
+_SWARM_CACHE = {}
 
-def get_open_coder_agent():
-    if "model" in _MODEL_CACHE:
-        return _MODEL_CACHE["model"], _MODEL_CACHE["tokenizer"]
-    model_paths = [
-        "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-14b/2",
-        "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-14b/1",
-        "/kaggle/input/deepseek-r1-distill-qwen-14b",
-        "/kaggle/input/qwq-32b",
+def get_heterogeneous_swarm():
+    if "r1" in _SWARM_CACHE and "coder" in _SWARM_CACHE:
+        return _SWARM_CACHE["r1"], _SWARM_CACHE["coder"]
+    
+    r1_paths = [
+        "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-7b/2",
+        "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-7b/1",
+        "/kaggle/input/deepseek-r1-distill-qwen-7b"
+    ]
+    coder_paths = [
         "/kaggle/input/qwen2.5-coder/transformers/qwen2.5-coder-7b-instruct/1",
+        "/kaggle/input/qwen-2.5-coder-7b-instruct",
         "/kaggle/input/qwen2.5-coder-7b-instruct"
     ]
-    path = next((p for p in model_paths if os.path.exists(p)), None)
-    if not path:
-        return None, None
+    
+    r1_p = next((p for p in r1_paths if os.path.exists(p)), None)
+    coder_p = next((p for p in coder_paths if os.path.exists(p)), None)
+    
     try:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
-        print(f"Loading Open Model Agent from: {path}...")
-        tokenizer = AutoTokenizer.from_pretrained(path)
-        model = AutoModelForCausalLM.from_pretrained(
-            path,
-            torch_dtype=torch.float16,
-            device_map="auto"
-        )
-        _MODEL_CACHE["model"] = model
-        _MODEL_CACHE["tokenizer"] = tokenizer
-        return model, tokenizer
-    except Exception as e:
-        print(f"Open model load notice: {e}")
-        return None, None
+        
+        num_gpus = torch.cuda.device_count()
+        print(f"Detected {num_gpus} GPUs on Kaggle Silicon Substrate.")
 
-def agent_generate_program(task: Dict[str, Any], model: Any, tokenizer: Any) -> Optional[Callable]:
+        # Agent 1: DeepSeek R1 Reasoning Specialist on GPU 0
+        if r1_p:
+            print(f"Loading DeepSeek R1 Specialist from {r1_p} onto GPU 0...")
+            tok_r1 = AutoTokenizer.from_pretrained(r1_p)
+            dev_r1 = "cuda:0" if num_gpus > 0 else "cpu"
+            model_r1 = AutoModelForCausalLM.from_pretrained(
+                r1_p, torch_dtype=torch.float16 if num_gpus > 0 else torch.float32,
+                device_map={"": dev_r1}
+            )
+            _SWARM_CACHE["r1"] = (model_r1, tok_r1, dev_r1)
+        else:
+            _SWARM_CACHE["r1"] = None
+
+        # Agent 2: Qwen Coder Specialist on GPU 1 (or GPU 0 if single GPU)
+        if coder_p:
+            dev_coder = "cuda:1" if num_gpus > 1 else ("cuda:0" if num_gpus > 0 else "cpu")
+            print(f"Loading Qwen Coder Specialist from {coder_p} onto {dev_coder}...")
+            tok_coder = AutoTokenizer.from_pretrained(coder_p)
+            model_coder = AutoModelForCausalLM.from_pretrained(
+                coder_p, torch_dtype=torch.float16 if num_gpus > 0 else torch.float32,
+                device_map={"": dev_coder}
+            )
+            _SWARM_CACHE["coder"] = (model_coder, tok_coder, dev_coder)
+        else:
+            _SWARM_CACHE["coder"] = None
+
+    except Exception as e:
+        print(f"Swarm silicon initialization notice: {e}")
+        _SWARM_CACHE["r1"] = None
+        _SWARM_CACHE["coder"] = None
+
+    return _SWARM_CACHE.get("r1"), _SWARM_CACHE.get("coder")
+
+def generate_program_from_agent(task: Dict[str, Any], agent_tuple: Tuple[Any, Any, str], is_reasoning: bool = False) -> Optional[Callable]:
+    if agent_tuple is None:
+        return None
+    model, tokenizer, device = agent_tuple
     try:
         import torch
-        prompt = f"""You are a master Python ARC programmer. Reason step by step and write a pure Python function `def transform(grid: list[list[int]]) -> list[list[int]]:` that exactly transforms the input grid into the output grid.
-
-Training Examples:
+        if is_reasoning:
+            prompt = f"""You are a master algorithmic reasoner. Think carefully and write a pure Python function `def transform(grid: list[list[int]]) -> list[list[int]]:` to solve this ARC challenge.
+Training Pairs:
 {json.dumps(task.get('train', []))}
 
-Format your code strictly as a Python code block starting with ```python and ending with ```."""
+Return ONLY Python code starting with ```python and ending with ```."""
+        else:
+            prompt = f"""Write an exact Python ARC transformation function `def transform(grid: list[list[int]]) -> list[list[int]]:` for these training examples:
+{json.dumps(task.get('train', []))}
+
+Code only in ```python block:"""
+
         messages = [{"role": "user", "content": prompt}]
         text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = tokenizer([text], return_tensors="pt").to(model.device)
+        inputs = tokenizer([text], return_tensors="pt").to(device)
         with torch.no_grad():
-            outputs = model.generate(**inputs, max_new_tokens=512, temperature=0.6)
+            outputs = model.generate(**inputs, max_new_tokens=384, temperature=0.6 if is_reasoning else 0.1)
         gen = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
         
-        # Clean think tags from DeepSeek R1 if present
         if "</think>" in gen:
             gen = gen.split("</think>")[-1].strip()
         
-        # Extract code block
         if "```python" in gen:
             code = gen.split("```python")[1].split("```")[0].strip()
         elif "def transform" in gen:
@@ -233,7 +267,6 @@ Format your code strictly as a Python code block starting with ```python and end
         else:
             return None
 
-        # Execute code in isolated namespace
         local_scope = {}
         exec(code, {}, local_scope)
         fn = local_scope.get("transform")
@@ -251,21 +284,21 @@ def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) 
 
     matching_fn = None
 
-    # Step 1: Color Remap Fast-Path Check
+    # Step 1: Color Remap Fast-Path Check (CPU, <1ms)
     remap_map = check_color_remap_fit(train_pairs)
     if remap_map is not None:
         def remap_fn(g, _m=remap_map):
             return apply_color_remap(g, _m)
         matching_fn = remap_fn
 
-    # Step 2: 1-Stage Exact Transform Search
+    # Step 2: 1-Stage Exact Transform Search (CPU, <10ms)
     if matching_fn is None:
         for fn in TRANSFORMS:
             if check_transform_fit(train_pairs, fn):
                 matching_fn = fn
                 break
 
-    # Step 3: 2-Stage Compositional Search (f2(f1(x)))
+    # Step 3: 2-Stage Compositional Search (f2(f1(x))) (CPU, <2.0s)
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
         for f1 in TRANSFORMS:
             for f2 in TRANSFORMS:
@@ -279,7 +312,7 @@ def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) 
             if matching_fn is not None:
                 break
 
-    # Step 4: 3-Stage Compositional Search (f3(f2(f1(x))))
+    # Step 4: 3-Stage Compositional Search (f3(f2(f1(x)))) (CPU)
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
         core_transforms = [
             transform_identity, transform_rot90, transform_rot180, transform_rot270,
@@ -300,13 +333,21 @@ def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) 
             if matching_fn is not None or (time.perf_counter() - t_start) >= time_budget_sec:
                 break
 
-    # Step 5: Open-Weight Model Reasoning Agent Synthesis & Sandbox Verification
+    # Step 5: Heterogeneous Specialist Swarm (GPU 0 Reasoner + GPU 1 Coder)
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
-        model, tokenizer = get_open_coder_agent()
-        if model is not None and tokenizer is not None:
-            agent_fn = agent_generate_program(task, model, tokenizer)
-            if agent_fn is not None and check_transform_fit(train_pairs, agent_fn):
-                matching_fn = agent_fn
+        r1_agent, coder_agent = get_heterogeneous_swarm()
+        
+        # Dispatch to Qwen Coder first (Fast DSL Program Synthesis)
+        if coder_agent is not None:
+            fn_coder = generate_program_from_agent(task, coder_agent, is_reasoning=False)
+            if fn_coder is not None and check_transform_fit(train_pairs, fn_coder):
+                matching_fn = fn_coder
+                
+        # If still unresolved, dispatch to DeepSeek R1 (Deep Chain-of-Thought Reasoning)
+        if matching_fn is None and r1_agent is not None and (time.perf_counter() - t_start) < time_budget_sec:
+            fn_r1 = generate_program_from_agent(task, r1_agent, is_reasoning=True)
+            if fn_r1 is not None and check_transform_fit(train_pairs, fn_r1):
+                matching_fn = fn_r1
 
     for test_pair in test_inputs:
         in_grid = test_pair.get("input", [[0]])
