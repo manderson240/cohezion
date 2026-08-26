@@ -20,5 +20,5 @@ echo "==========================================================================
 export ELECTRON_FLAGS="--no-sandbox --disable-gpu-sandbox"
 
 cd "$REPO_DIR"
-npm run dev -- --no-sandbox
+npm run dev
 
