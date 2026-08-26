@@ -168,6 +168,80 @@ def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) 
     test_inputs = task.get("test", [])
     predictions = []
 
+# ---------------------------------------------------------------------------
+# 4. Open-Weight Model Agent Reasoner & AutoHarness Verification
+# ---------------------------------------------------------------------------
+
+_MODEL_CACHE = {}
+
+def get_open_coder_agent():
+    if "model" in _MODEL_CACHE:
+        return _MODEL_CACHE["model"], _MODEL_CACHE["tokenizer"]
+    model_paths = [
+        "/kaggle/input/qwen2.5-coder/transformers/qwen2.5-coder-7b-instruct/1",
+        "/kaggle/input/qwen-2.5-coder-7b-instruct",
+        "/kaggle/input/qwen2.5-coder-7b-instruct"
+    ]
+    path = next((p for p in model_paths if os.path.exists(p)), None)
+    if not path:
+        return None, None
+    try:
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        print(f"Loading Open Model Agent from: {path}...")
+        tokenizer = AutoTokenizer.from_pretrained(path)
+        model = AutoModelForCausalLM.from_pretrained(
+            path,
+            torch_dtype=torch.float16,
+            device_map="auto"
+        )
+        _MODEL_CACHE["model"] = model
+        _MODEL_CACHE["tokenizer"] = tokenizer
+        return model, tokenizer
+    except Exception as e:
+        print(f"Open model load notice: {e}")
+        return None, None
+
+def agent_generate_program(task: Dict[str, Any], model: Any, tokenizer: Any) -> Optional[Callable]:
+    try:
+        import torch
+        prompt = f"""You are an expert Python ARC programmer. Write a pure Python function `def transform(grid: list[list[int]]) -> list[list[int]]:` to solve this ARC task.
+
+Training Examples:
+{json.dumps(task.get('train', []))}
+
+Return ONLY valid Python code block starting with ```python."""
+        messages = [{"role": "user", "content": prompt}]
+        text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        inputs = tokenizer([text], return_tensors="pt").to(model.device)
+        with torch.no_grad():
+            outputs = model.generate(**inputs, max_new_tokens=256, temperature=0.1)
+        gen = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
+        
+        # Extract code block
+        if "```python" in gen:
+            code = gen.split("```python")[1].split("```")[0].strip()
+        elif "def transform" in gen:
+            code = gen.strip()
+        else:
+            return None
+
+        # Execute code in isolated namespace
+        local_scope = {}
+        exec(code, {}, local_scope)
+        fn = local_scope.get("transform")
+        if callable(fn):
+            return fn
+    except Exception:
+        pass
+    return None
+
+def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) -> List[Dict[str, Any]]:
+    t_start = time.perf_counter()
+    train_pairs = task.get("train", [])
+    test_inputs = task.get("test", [])
+    predictions = []
+
     matching_fn = None
 
     # Step 1: Color Remap Fast-Path Check
@@ -198,7 +272,7 @@ def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) 
             if matching_fn is not None:
                 break
 
-    # Step 4: 3-Stage Compositional Search (f3(f2(f1(x)))) with Anytime Budget
+    # Step 4: 3-Stage Compositional Search (f3(f2(f1(x))))
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
         core_transforms = [
             transform_identity, transform_rot90, transform_rot180, transform_rot270,
@@ -218,6 +292,14 @@ def solve_arc_task_anytime(task: Dict[str, Any], time_budget_sec: float = 30.0) 
                     break
             if matching_fn is not None or (time.perf_counter() - t_start) >= time_budget_sec:
                 break
+
+    # Step 5: Open-Weight Model Reasoning Agent Synthesis & Sandbox Verification
+    if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
+        model, tokenizer = get_open_coder_agent()
+        if model is not None and tokenizer is not None:
+            agent_fn = agent_generate_program(task, model, tokenizer)
+            if agent_fn is not None and check_transform_fit(train_pairs, agent_fn):
+                matching_fn = agent_fn
 
     for test_pair in test_inputs:
         in_grid = test_pair.get("input", [[0]])
