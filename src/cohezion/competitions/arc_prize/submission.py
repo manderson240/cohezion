@@ -178,8 +178,11 @@ def get_open_coder_agent():
     if "model" in _MODEL_CACHE:
         return _MODEL_CACHE["model"], _MODEL_CACHE["tokenizer"]
     model_paths = [
+        "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-14b/2",
+        "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-14b/1",
+        "/kaggle/input/deepseek-r1-distill-qwen-14b",
+        "/kaggle/input/qwq-32b",
         "/kaggle/input/qwen2.5-coder/transformers/qwen2.5-coder-7b-instruct/1",
-        "/kaggle/input/qwen-2.5-coder-7b-instruct",
         "/kaggle/input/qwen2.5-coder-7b-instruct"
     ]
     path = next((p for p in model_paths if os.path.exists(p)), None)
@@ -205,18 +208,22 @@ def get_open_coder_agent():
 def agent_generate_program(task: Dict[str, Any], model: Any, tokenizer: Any) -> Optional[Callable]:
     try:
         import torch
-        prompt = f"""You are an expert Python ARC programmer. Write a pure Python function `def transform(grid: list[list[int]]) -> list[list[int]]:` to solve this ARC task.
+        prompt = f"""You are a master Python ARC programmer. Reason step by step and write a pure Python function `def transform(grid: list[list[int]]) -> list[list[int]]:` that exactly transforms the input grid into the output grid.
 
 Training Examples:
 {json.dumps(task.get('train', []))}
 
-Return ONLY valid Python code block starting with ```python."""
+Format your code strictly as a Python code block starting with ```python and ending with ```."""
         messages = [{"role": "user", "content": prompt}]
         text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = tokenizer([text], return_tensors="pt").to(model.device)
         with torch.no_grad():
-            outputs = model.generate(**inputs, max_new_tokens=256, temperature=0.1)
+            outputs = model.generate(**inputs, max_new_tokens=512, temperature=0.6)
         gen = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
+        
+        # Clean think tags from DeepSeek R1 if present
+        if "</think>" in gen:
+            gen = gen.split("</think>")[-1].strip()
         
         # Extract code block
         if "```python" in gen:
