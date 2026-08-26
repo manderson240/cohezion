@@ -19,6 +19,7 @@ import time
 import httpx
 from playwright.sync_api import sync_playwright
 
+
 URL = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:2718"
 LEMONADE = "http://localhost:13305/v1/chat/completions"
 

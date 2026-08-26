@@ -28,19 +28,17 @@ Goals: top-level goal tree tracked in SurrealDB + vault.
 
 from __future__ import annotations
 
-import asyncio
 import base64
 import json
-import os
 import subprocess
 import sys
 import textwrap
 import time
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 COHEZION_ROOT = Path(__file__).parent.parent
@@ -51,7 +49,7 @@ SURREAL_AUTH = base64.b64encode(b"root:root").decode()
 LEMONADE_URL = "http://localhost:13305/v1"
 OLLAMA_URL = "http://localhost:11434/api/generate"
 SESSION = "safe-research-swarm"
-NOW_ISO = datetime.now(timezone.utc).isoformat()
+NOW_ISO = datetime.now(UTC).isoformat()
 MEM_FLOOR_GIB = 20  # AGENTS.md hard floor
 MAX_RETRIES = 3
 
@@ -131,7 +129,7 @@ def publish_event(event_type: str, source: str, payload: dict) -> None:
     surreal_write("event_log", f"evt-{source}-{int(time.time()*1000)}", {
         "type": event_type,
         "source": source,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "payload": payload,
         "session": SESSION,
     })
@@ -149,7 +147,7 @@ def write_kanban(agent_id: str, title: str, status: str, model: str, extra: dict
         "domain": agent_id,
         "model": model,
         "session": SESSION,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(UTC).isoformat(),
         **(extra or {}),
     }
     surreal_write("kanban_item", item["id"], item)
@@ -419,7 +417,7 @@ Session: {SESSION}
 Domains covered: {len(domains)}
 
 ## Key Cross-Domain Insights
-""" + "\n".join(f"- {f}" for f in all_findings[:20]) + f"""
+""" + "\n".join(f"- {f}" for f in all_findings[:20]) + """
 
 ## Knowledge Graph Edges
 """ + "\n".join(f"- {s} → {t}" for s, _, t in kg.build_edges()) + """
@@ -463,7 +461,7 @@ def run_agent(agent: dict, prior_findings: list[str]) -> tuple[bool, str, dict]:
     surreal_write("experiment_run", f"research-swarm-v2-{agent_id}", {
         "id": f"research-swarm-v2-{agent_id}", "name": name,
         "model": agent["primary_model"], "status": "running",
-        "started_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": datetime.now(UTC).isoformat(),
         "goal_id": agent["goal_id"], "session": SESSION,
     })
 
@@ -530,7 +528,7 @@ def run_agent(agent: dict, prior_findings: list[str]) -> tuple[bool, str, dict]:
     surreal_write("experiment_run", f"research-swarm-v2-{agent_id}", {
         "id": f"research-swarm-v2-{agent_id}", "name": name,
         "model": model_used, "status": "done",
-        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": datetime.now(UTC).isoformat(),
         "goal_id": agent["goal_id"], "session": SESSION,
         "word_count": reflection["word_count"],
         "key_findings": reflection["key_findings"],
@@ -558,7 +556,7 @@ def main() -> None:
     ok, reason = preflight_ok()
     print(f"[preflight] {reason}")
     if not ok:
-        print(f"❌ PREFLIGHT FAILED — run: bash scripts/recover_fleet.sh")
+        print("❌ PREFLIGHT FAILED — run: bash scripts/recover_fleet.sh")
         sys.exit(1)
 
     # Register top-level goal
@@ -624,7 +622,7 @@ def main() -> None:
             for sg in RESEARCH_GOAL["sub_goals"]:
                 if sg["id"] == agent["goal_id"]:
                     surreal_write("goal", sg["id"], {**sg, "status": "done",
-                                                      "completed_at": datetime.now(timezone.utc).isoformat()})
+                                                      "completed_at": datetime.now(UTC).isoformat()})
 
         else:
             print(f"  ⚠️  [{agent['id']}] failed — continuing to next agent")
@@ -650,13 +648,13 @@ def main() -> None:
         "kg_nodes": len(kg.nodes),
         "kg_edges": len(kg.build_edges()),
         "synthesis_path": str(synthesis_path),
-        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": datetime.now(UTC).isoformat(),
     })
 
     surreal_write("goal", RESEARCH_GOAL["id"], {
         **RESEARCH_GOAL,
         "status": "done" if all(results.values()) else "partial",
-        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": datetime.now(UTC).isoformat(),
         "success_rate": sum(results.values()) / len(results),
     })
     publish_event("AGENT_COMPLETE", "research-swarm.coordinator", {
@@ -671,7 +669,7 @@ def main() -> None:
     print(f"🧠 KG: {len(kg.nodes)} nodes, {len(kg.build_edges())} edges")
     print(f"📓 Vault: {VAULT_DIR}/INDEX.md")
     print(f"📄 Synthesis: {synthesis_path}")
-    print(f"🗄  SurrealDB: experiment_run, kanban_item, kg_node, kg_edge, goal, event_log")
+    print("🗄  SurrealDB: experiment_run, kanban_item, kg_node, kg_edge, goal, event_log")
 
 
 if __name__ == "__main__":

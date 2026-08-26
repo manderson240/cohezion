@@ -23,9 +23,11 @@ import time
 import urllib.request
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from durable_swarm_output import DurableRun  # noqa: E402
+from durable_swarm_output import DurableRun
+
 
 CLOUD_URL = "http://localhost:11434/api/chat"
 
@@ -141,7 +143,7 @@ def call_cloud(model: str, prompt: str, timeout: int = 900) -> str:
             "options": {"temperature": 0.3},
         }
     ).encode()
-    req = urllib.request.Request(  # noqa: S310 — fixed loopback literal
+    req = urllib.request.Request(
         CLOUD_URL, data=body, headers={"Content-Type": "application/json"}
     )
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310

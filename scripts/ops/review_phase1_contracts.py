@@ -17,8 +17,9 @@ import base64
 import json
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 REPO = Path(__file__).resolve().parent.parent.parent
 SURREAL_URL = "http://localhost:8001/sql"
@@ -148,7 +149,7 @@ def main():
 
     report_content = f"""---
 title: 100% Local Heavy Multiperspective Adversarial Code Review
-date: {datetime.now(timezone.utc).isoformat()}
+date: {datetime.now(UTC).isoformat()}
 tags: [code-review, local-inference, npu, igpu, qwen-coder, gemma4, poincare, autoharness]
 session: {SESSION}
 ---
@@ -186,7 +187,7 @@ session: {SESSION}
     # Record in SurrealDB
     report_id = f"local_heavy_review_{int(time.time())}"
     surreal_write("code_review", report_id, {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "files": TARGET_FILES,
         "vault_report": str(report_file),
         "perspectives_count": len(findings)

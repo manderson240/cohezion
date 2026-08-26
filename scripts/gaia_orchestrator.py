@@ -16,6 +16,7 @@ from pathlib import Path
 
 import httpx
 
+
 LEMONADE = "http://localhost:13305/v1/chat/completions"
 PLAN_MODEL = "DeepSeek-Qwen3-8B-GGUF"   # reasoning lane (planning)
 DEV_MODEL = "Gemma-4-26B-A4B-it-GGUF"   # generation lane

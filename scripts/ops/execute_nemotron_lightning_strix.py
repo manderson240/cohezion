@@ -16,9 +16,8 @@ import os
 import time
 from pathlib import Path
 
-from cohezion.inference.load_safety import check_load_safe
 from cohezion.reliability.oom_guard import OOMGuard
-from cohezion.researcher.daily_researcher import FleetLock
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -56,11 +55,11 @@ def main() -> None:
     print(f"  • Model File: {GGUF_PATH.name}")
     print(f"  • Full Disk Path: {GGUF_PATH}")
     print(f"  • Exact Model Size: {file_size_gb:.2f} GB")
-    print(f"  • Strix Halo Hardware Target: Ryzen AI MAX+ 395 (`gfx1151` / 128GB UMA)")
-    print(f"  • Active Environment Levers: ROCBLAS_USE_HIPBLASLT=1, GGML_HIP_NO_VMM=1")
+    print("  • Strix Halo Hardware Target: Ryzen AI MAX+ 395 (`gfx1151` / 128GB UMA)")
+    print("  • Active Environment Levers: ROCBLAS_USE_HIPBLASLT=1, GGML_HIP_NO_VMM=1")
     print(f"  • Model Card Sampling Sweet-Spot: {sampling_params}")
-    print(f"  • Theoretical Decode Speed: ~86.0 tokens/second")
-    print(f"  • Theoretical Prompt Prefill Speed: >1,300.0 tokens/second")
+    print("  • Theoretical Decode Speed: ~86.0 tokens/second")
+    print("  • Theoretical Prompt Prefill Speed: >1,300.0 tokens/second")
     print("=" * 95)
     print("🎉 Direct Local Execution Setup Complete: Nemotron 3.5 Lightning Verified & Ready!")
 

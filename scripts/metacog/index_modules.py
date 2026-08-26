@@ -19,6 +19,7 @@ from pathlib import Path
 
 import requests
 
+
 REPO = Path(__file__).parent.parent.parent
 SRC = REPO / "src" / "cohezion"
 VAULT_MODULES = Path.home() / "vaults" / "cohezion-vault" / "modules"
@@ -208,7 +209,7 @@ def main() -> None:
     if not args.dry_run:
         print(f"\n✓ Indexed {indexed} new modules. Total in DB: {len(existing) + indexed}")
         print(f"  Vault: {VAULT_MODULES}")
-        print(f"  Query: SELECT name, description FROM code_module ORDER BY name;")
+        print("  Query: SELECT name, description FROM code_module ORDER BY name;")
 
 
 if __name__ == "__main__":

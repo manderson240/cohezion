@@ -15,9 +15,11 @@ import sys
 import time
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from cohezion.sessions.session_bus import SessionBus, _sql  # noqa: E402
+from cohezion.sessions.session_bus import SessionBus, _sql
+
 
 _LOCK = Path.home() / ".cohezion" / "reply_relay.lock"
 _RELAY_SID = "relay"

@@ -7,13 +7,14 @@ to both SurrealDB and the Obsidian Vault.
 """
 
 import asyncio
+import json
 import logging
 import os
 import sys
 import time
-import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # Ensure src/ is in the python path
 root_dir = Path(__file__).resolve().parent.parent.parent
@@ -190,7 +191,7 @@ async def execute_calibration_cycle(iteration: int) -> None:
         profiles.get("semantic_cache", {}).get("parameters", {}).get("similarity_threshold")
     )
     routing_params = profiles.get("task_classifier", {}).get("parameters", {})
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     log_entry = {
         "timestamp": timestamp,

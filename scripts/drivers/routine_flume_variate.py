@@ -37,8 +37,9 @@ import subprocess
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -195,7 +196,7 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
         "max_tokens": 120,
         "temperature": 0.1,
     }).encode()
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         _LEMONADE_URL,
         data=payload,
         headers={"Content-Type": "application/json"},
@@ -207,7 +208,7 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
         choices = data.get("choices", [{}])
         msg = choices[0].get("message", {})
         return (msg.get("content") or msg.get("reasoning_content") or "").strip() or None
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
@@ -361,7 +362,7 @@ def _run_training(variant: dict, epochs: int = 5, timeout_s: float = 540.0) -> d
     except subprocess.TimeoutExpired:
         print(f"  [TRAIN] TIMEOUT after {timeout_s:.0f}s — recording LOSS", file=sys.stderr)
         return None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print(f"  [TRAIN] subprocess error: {exc}", file=sys.stderr)
         return None
 
@@ -420,7 +421,7 @@ def _append_record(
             "epochs_run": metrics.get("epoch") if metrics else None,
         }
     record = {
-        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ts": datetime.now(UTC).isoformat(timespec="seconds"),
         "exp": exp_id,
         "status": status,
         "result": result_dict,
@@ -440,7 +441,7 @@ def _append_record(
 
 def main() -> int:
     t0 = time.monotonic()
-    print(f"[START] FLUME VAE autoresearch — {datetime.now(timezone.utc).isoformat()}")
+    print(f"[START] FLUME VAE autoresearch — {datetime.now(UTC).isoformat()}")
 
     records = _read_records()
     best_before = _best_winner(records)

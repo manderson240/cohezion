@@ -12,15 +12,15 @@ from __future__ import annotations
 import asyncio
 import gc
 import logging
-import time
 
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
-from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
+from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.load_safety import check_load_safe, effective_size_gb
 from cohezion.inference.model_card_defaults import _match_model
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.researcher.daily_researcher import FleetLock
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -83,14 +83,14 @@ async def run_coordination_and_eval() -> None:
         print("\n" + "=" * 90)
         print(f"      COORDINATED CROSS-SESSION MODEL EVALUATION: {MODEL_ID}")
         print("=" * 90)
-        print(f"  • EventBus Resource Request: BROADCASTED & PERSISTED")
+        print("  • EventBus Resource Request: BROADCASTED & PERSISTED")
         print(f"  • Kanban Card State: {kanban_res}")
         print(f"  • Live Available RAM (Post-Settlement): {mem_after.available_gb:.2f} GiB")
         print(f"  • Required Model Footprint (1.7x Factor): {eff_size:.2f} GB")
         print(f"  • Model Load Safety Gate: {'✅ LOAD APPROVED FOR EVALUATION' if safe else '⚠️ LOAD HELD IN QUEUE'}")
         print(f"    Reason: {reason}")
         print(f"  • Model Card Sampling Sweet-Spot: {card_defaults}")
-        print(f"  • Evaluation Strategy: Sequential single-flight load under FleetLock mutex")
+        print("  • Evaluation Strategy: Sequential single-flight load under FleetLock mutex")
         print("=" * 90)
         print("🎉 Cross-Session Resource Coordination & Evaluation Complete!")
 

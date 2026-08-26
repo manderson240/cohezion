@@ -19,10 +19,12 @@ import sys
 import time
 from pathlib import Path
 
+
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from cohezion.proactive.spinning_plates_protocol import SpinningPlatesGovernor
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("demo_spinning_plates")

@@ -14,6 +14,7 @@ import sys
 import urllib.error
 import urllib.request
 
+
 # SurrealDB connection details
 SURREALDB_URL = os.environ.get("SURREALDB_URL", "http://localhost:8001/sql")
 SURREALDB_USER = os.environ.get("SURREALDB_USER", "root")
@@ -47,9 +48,7 @@ def parse_frontmatter(content: str) -> tuple[dict, str]:
             val = val.strip()
 
             # Strip quotes
-            if val.startswith('"') and val.endswith('"'):
-                val = val[1:-1]
-            elif val.startswith("'") and val.endswith("'"):
+            if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
                 val = val[1:-1]
             # Parse list format like [a, b, c]
             elif val.startswith("[") and val.endswith("]"):
@@ -132,7 +131,7 @@ def main() -> None:
             continue
 
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 raw_content = f.read()
 
             frontmatter, body = parse_frontmatter(raw_content)

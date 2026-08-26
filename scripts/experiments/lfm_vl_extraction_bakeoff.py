@@ -20,6 +20,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 _MTMD = Path.home() / ".cache/lemonade/bin/llamacpp/rocm-stable/llama-mtmd-cli"
 _PROMPT = "Extract all fields from this receipt as YAML key: value pairs."
 

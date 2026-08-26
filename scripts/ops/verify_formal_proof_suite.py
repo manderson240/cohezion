@@ -11,22 +11,23 @@ Executes a live 4-Tier Zero-Hallucination Formal Verification on our newly train
 import os
 import sys
 
+
 # CRITICAL: Disable ROCm/HIP device probing BEFORE importing torch or safetensors to prevent libamdhip64 SIGSEGV
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 os.environ["ROCR_VISIBLE_DEVICES"] = ""
 os.environ["HIP_VISIBLE_DEVICES"] = ""
 
-import asyncio
-import json
 import logging
 import math
 import time
 from collections import Counter
 from pathlib import Path
+
 import torch
+from peft import PeftModel
 from safetensors import safe_open
-from peft import PeftModel, LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
 
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(REPO_ROOT / "src"))
@@ -52,7 +53,7 @@ def proof_1_physical_weights():
     logger.info("=" * 80)
     weights_path = ADAPTER_DIR / "adapter_model.safetensors"
     assert weights_path.exists(), f"Missing adapter weights file: {weights_path}"
-    
+
     file_size_mb = weights_path.stat().st_size / (1024 * 1024)
     logger.info("✓ Weight file exists: %s (Size: %.2f MB)", weights_path, file_size_mb)
 
@@ -65,7 +66,7 @@ def proof_1_physical_weights():
     logger.info("✓ Discovered %d genuine LoRA tensor layers in safetensors:", len(tensors))
     for name, meta in list(tensors.items())[:6]:
         logger.info("    -> Layer: %-55s | Shape: %-15s | L2 Norm: %.4f", name, str(meta["shape"]), meta["norm"])
-    
+
     # Assert genuine low-rank dimensionality (rank 16)
     first_lora_a = next(k for k in tensors if "lora_A" in k)
     rank = tensors[first_lora_a]["shape"][0]
@@ -79,8 +80,8 @@ def proof_2_autoharness_ast():
     logger.info("PROOF 2: AUTOHARNESS ZERO-COST AST COMPILATION VERIFIER")
     logger.info("=" * 80)
     import ast
-    from cohezion.reliability.oom_guard import MemoryState
-    
+
+
     sample_code = """
 def construct_verified_memory_state() -> MemoryState:
     return MemoryState(
@@ -96,7 +97,7 @@ def construct_verified_memory_state() -> MemoryState:
     parsed_ast = ast.parse(sample_code)
     compile(parsed_ast, filename="<autoharness_proof>", mode="exec")
     dt_us = (time.perf_counter() - t0) * 1_000_000.0
-    
+
     logger.info("✓ Compiled MemoryState AST in %.2f µs (0.00 ms latency).", dt_us)
     logger.info("🟢 PROOF 2 PASSED: 0ms AST invariant verified.\n")
 
@@ -113,7 +114,7 @@ def proof_3_and_4_live_inference_comparison():
     logger.info("Loading Base Model: %s on pure CPU...", BASE_MODEL_NAME)
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
     base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_NAME, torch_dtype=torch.float32, low_cpu_mem_usage=True, device_map="cpu")
-    
+
     logger.info("Attaching Trained LoRA Adapter from %s on CPU...", ADAPTER_DIR)
     lora_model = PeftModel.from_pretrained(base_model, str(ADAPTER_DIR), device_map="cpu")
     lora_model.eval()
@@ -132,7 +133,7 @@ def proof_3_and_4_live_inference_comparison():
             pad_token_id=tokenizer.eos_token_id,
         )
     dt = time.perf_counter() - t0
-    
+
     generated_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
     tokens_count = len(outputs[0]) - inputs.input_ids.shape[1]
     tps = tokens_count / max(dt, 0.001)

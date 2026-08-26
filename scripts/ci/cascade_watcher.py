@@ -10,7 +10,12 @@ Usage:
     # --once: single poll cycle (for testing or ScheduleWakeup integration)
 """
 
-import subprocess, sys, json, time, argparse
+import argparse
+import json
+import subprocess
+import sys
+import time
+
 
 REPO = "/home/mike-anderson/dev/cohezion"
 LOG = f"{REPO}/autoresearch-prs.jsonl"

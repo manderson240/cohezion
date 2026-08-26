@@ -19,11 +19,10 @@ import logging
 import time
 from dataclasses import dataclass
 
-from cohezion.inference.load_safety import check_load_safe, effective_size_gb
-from cohezion.inference.model_card_defaults import _match_model
+from cohezion.inference.load_safety import check_load_safe
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
 from cohezion.reliability.oom_guard import OOMGuard
-from cohezion.researcher.daily_researcher import FleetLock
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)

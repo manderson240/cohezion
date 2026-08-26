@@ -119,3 +119,8 @@ else
   echo "❌ NOT SAFE — see reasons above. Recovery: bash scripts/recover_fleet.sh"
   exit 1
 fi
+
+# Ensure Cohezion Hermes Router Policy is pinned on Lemonade port 13305
+if [ -f "src/cohezion/registry/cohezion_hermes_router_policy.json" ]; then
+  curl -s -X POST http://localhost:13305/api/v1/pull -H "Content-Type: application/json" --data-binary @src/cohezion/registry/cohezion_hermes_router_policy.json > /dev/null 2>&1 || true
+fi

@@ -33,10 +33,11 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
+
 
 # ── Path setup ──────────────────────────────────────────────────────────────
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -48,8 +49,8 @@ sys.path.insert(0, str(_REPO_ROOT / "src"))
 
 # ── Import encoder (fail clearly if unavailable) ─────────────────────────────
 try:
-    from cohezion.flume.skill_state_encoder import SkillStateEncoder
     from cohezion.compound.rubric_middleware import RubricVerdict
+    from cohezion.flume.skill_state_encoder import SkillStateEncoder
 except ImportError as _e:
     print(f"[ERROR] Cannot import encoder: {_e}\nRun: uv run python {__file__}", file=sys.stderr)
     sys.exit(1)
@@ -88,7 +89,7 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
         "max_tokens": 200,
         "temperature": 0.2,
     }).encode()
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         _LEMONADE_URL,
         data=payload,
         headers={"Content-Type": "application/json"},
@@ -328,7 +329,7 @@ def _last_experiment_id() -> str:
 def _append_result(exp_id: str, geometry: dict, hypothesis: str, validated: bool, evidence: str) -> None:
     sep = geometry.get("cluster_separation", {})
     record = {
-        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ts": datetime.now(UTC).isoformat(timespec="seconds"),
         "exp": exp_id,
         "status": "WIN" if validated else "MISS",
         "result": {
@@ -345,8 +346,8 @@ def _append_result(exp_id: str, geometry: dict, hypothesis: str, validated: bool
         "evidence": evidence,
         "notes": (
             "SkillStateEncoder manifold geometry sweep. "
-            f"WIN = all 4 manifold properties hold across random sample. "
-            f"MISS = at least one property violated."
+            "WIN = all 4 manifold properties hold across random sample. "
+            "MISS = at least one property violated."
         ),
         "next": "continue autoresearch loop",
     }
@@ -361,7 +362,7 @@ def _append_result(exp_id: str, geometry: dict, hypothesis: str, validated: bool
 def main() -> int:
     t0 = time.monotonic()
 
-    print(f"[START] SkillStateEncoder geometry sweep — {datetime.now(timezone.utc).isoformat()}")
+    print(f"[START] SkillStateEncoder geometry sweep — {datetime.now(UTC).isoformat()}")
     enc = SkillStateEncoder()
 
     # 1. Measure geometry

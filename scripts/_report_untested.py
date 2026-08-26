@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Identify top untested modules by LOC."""
-import os, ast
+import ast
+import os
+
 
 repo = 'src/cohezion'
 test_repo = 'tests'

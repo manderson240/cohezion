@@ -36,6 +36,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 try:
     import tomllib
 except ImportError:  # pragma: no cover - guarded for <3.11

@@ -29,8 +29,9 @@ import argparse
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 STALE_DAYS = 7
@@ -120,7 +121,7 @@ def get_merged_branches() -> set[str]:
 
 
 def analyse(entries: list[WorktreeEntry]) -> list[WorktreeEntry]:
-    now_ts = datetime.now(timezone.utc).timestamp()
+    now_ts = datetime.now(UTC).timestamp()
     merged = get_merged_branches()
 
     for e in entries:

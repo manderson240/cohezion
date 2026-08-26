@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import time
 import urllib.request
 from pathlib import Path
@@ -22,6 +21,7 @@ from pathlib import Path
 from cohezion.inference.load_safety import check_load_safe, effective_size_gb
 from cohezion.inference.model_card_defaults import _match_model
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)

@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import logging
 import time
+
 import numpy as np
 
 from cohezion.flume.jacobian_workspace_engine import JacobianWorkspaceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)

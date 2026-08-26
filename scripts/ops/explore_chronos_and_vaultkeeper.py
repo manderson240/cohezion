@@ -11,7 +11,7 @@ import logging
 from typing import Any
 
 from cohezion.agents.specialists.vault_keeper import VaultKeeper
-from cohezion.compound.chronos import ChronosRegistry, get_chronos
+from cohezion.compound.chronos import get_chronos
 
 
 logging.basicConfig(level=logging.INFO)

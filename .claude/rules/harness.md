@@ -149,14 +149,24 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 
 ## MetricBaseline Invariants
 
-### MB1: MetricBaseline.value_bounds clamps trend_value() for bounded metrics (#129, 2026-06-27)
+### MB1: MetricBaseline.value_bounds clamps trend_value() for bounded metrics (#129; documented 2026-06-27, ACTUALLY IMPLEMENTED 2026-08-19)
 - `value_bounds: tuple[float, float] | None = None` field on `MetricBaseline` dataclass
-- When set, `trend_value(horizon)` clamps result to `[lo, hi]` via `max(lo, min(hi, result))`
-- `DegradationDetector.__init__` wires `value_bounds=(0.0, 1.0)` on: `cache_hit_rate`, `coherence`, `success_rate`, `quality_score`
-- Unbounded metrics (`token_efficiency`, `duration_seconds`) retain `value_bounds=None`
-- Motivation: arXiv 2603.08274 — linear extrapolation projects coherence outside [0,1] causing false alert suppression
+- When set, `trend_value(horizon)` clamps result to `[lo, hi]` via `max(lo, min(hi, result))` — via `_clamp()`, applied to **every** return path including the <2-sample mean fallback and the polyfit-exception fallback
+- `DegradationDetector.__init__` wires `value_bounds=(0.0, 1.0)` on: `cache_hit_rate`, `coherence`, `success_rate`, `quality_score`, **`jepa_coherence`** (the 5th postdates the original text; it is a clipped mean on [0,1] per JG1)
+- Unbounded metrics (`token_efficiency`, `duration_seconds`, `token_surprisal`) retain `value_bounds=None`
+- Motivation: linear extrapolation projects bounded metrics outside [0,1] causing false alert suppression. **Measured at horizon=1 — the only horizon `check_degradation()` uses:** coherence `[0.9,0.7,0.5,0.3,0.1]` → **−0.1000**; coherence `[0.30,0.22,0.14,0.06,0.02]` → **−0.0680**; success_rate `[0.2,0.45,0.7,0.9,0.98]` → **+1.2490**; quality `[0.5,0.7,0.85,0.95,0.99]` → **+1.1670**. Since `trend_value(1)` is the comparison *baseline*, a baseline below the metric's floor makes `current < baseline` unsatisfiable.
 - **Discriminating**: `test_unbounded_metric_can_extrapolate_outside_unit_interval` proves clamp is selective, not global
-- **Verification**: `uv run pytest tests/compound/test_degradation_detector.py::TestMetricBaseline -q` → 12 passed
+- **Verification**: `uv run pytest tests/compound/test_metric_baseline_bounds.py -q` → **10 passed**
+
+> ⚠ **PHANTOM HISTORY — read before trusting any "Verification" line in this file.**
+> From 2026-06-27 to 2026-08-19 this entry described code that did not exist: `value_bounds`
+> had **zero** occurrences in `src/` on both the working branch and `origin/main`, and zero
+> references in any test. The fifth phantom invariant recorded.
+> The stated verification was worse than fabricated — it was **real, green, and unrelated**:
+> `TestMetricBaseline` genuinely exists and passes, but contains **6 tests, 0 of which
+> reference `value_bounds`** (the entry claimed 12). A command that runs, passes, and proves
+> nothing about the claim is the hardest false verification to catch by reading.
+> **Before trusting an invariant here, grep the field in `src/` and the assertion in `tests/`.**
 
 ### LT1: DegradationDetector._ema_thresholds adapts toward observed values (GIC self-regulation, #137, 2026-06-27)
 - `_ema_thresholds: dict[str, float]` seeded from constructor params (`cache_hit_rate_threshold`, `coherence_threshold`)

@@ -42,6 +42,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)-7s %(name)s — %(message)s",
@@ -253,7 +254,7 @@ def _vault_write_voyage(
 
     lines = [
         "---",
-        f"type: evo_voyage",
+        "type: evo_voyage",
         f"voyage_id: {voyage.voyage_id}",
         f"agent_id: {voyage.agent_id}",
         f"journey_id: {voyage.journey_id}",
@@ -301,9 +302,9 @@ def _vault_write_voyage(
     lines += [
         "## Links",
         "",
-        f"- [[HIHO_STABILITY_PRIME]] — φ = 4·c·(1-c) kernel",
-        f"- [[COMPOUND_SELF_IMPROVEMENT_PRIME]] — recursive loop",
-        f"- [[JOURNEY_TRACKING_PRIME]] — 12D trajectory",
+        "- [[HIHO_STABILITY_PRIME]] — φ = 4·c·(1-c) kernel",
+        "- [[COMPOUND_SELF_IMPROVEMENT_PRIME]] — recursive loop",
+        "- [[JOURNEY_TRACKING_PRIME]] — 12D trajectory",
         "",
     ]
 
@@ -741,7 +742,7 @@ SKILL_JOURNEYS = [
 _FLUME_VAE = None
 
 
-def _flume_encode_skill_desc(text: str, sigma: float) -> "np.ndarray | None":
+def _flume_encode_skill_desc(text: str, sigma: float) -> np.ndarray | None:
     """Return a FLUME-grounded 256D initial latent, or None on any failure.
 
     Path: skill description → nomic-embed-text-v2-moe-GGUF (768D) →
@@ -754,8 +755,8 @@ def _flume_encode_skill_desc(text: str, sigma: float) -> "np.ndarray | None":
     """
     global _FLUME_VAE
     try:
-        import torch
         import requests as _req
+        import torch
 
         # Build VAE once per process
         if _FLUME_VAE is None:
@@ -799,7 +800,7 @@ def _flume_encode_skill_desc(text: str, sigma: float) -> "np.ndarray | None":
         center = np.clip(center, 0.35, 0.65)
         return np.random.default_rng().standard_normal(256) * sigma + center
 
-    except Exception as exc:  # noqa: BLE001 — fail-soft, caller falls back
+    except Exception as exc:
         logger.debug("FLUME VAE encode failed (%s) — using random init", exc)
         _FLUME_VAE = False  # don't retry this process run
         return None

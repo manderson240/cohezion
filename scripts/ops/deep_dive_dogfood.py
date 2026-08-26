@@ -16,8 +16,9 @@ import base64
 import json
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # Endpoints & Config
 SURREAL_URL = "http://localhost:8001/sql"
@@ -71,7 +72,7 @@ def publish_event(event_type: str, source: str, payload: dict) -> None:
         {
             "type": event_type,
             "source": f"deepdive.{source}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "payload": payload,
             "session": SESSION,
         },
@@ -166,10 +167,10 @@ def main():
     # Write Master Spec to Vault
     VAULT_DIR.mkdir(parents=True, exist_ok=True)
     spec_path = VAULT_DIR / "DEEP_DIVE_SPECIFICATION.md"
-    
+
     spec_content = f"""---
 title: Cohezion Deep-Dive Architecture Specification
-date: {datetime.now(timezone.utc).isoformat()}
+date: {datetime.now(UTC).isoformat()}
 tags: [architecture, graph-engineering, local-inference, ollama-cloud, flume, autoharness]
 session: {SESSION}
 ---
@@ -199,7 +200,7 @@ session: {SESSION}
 
     # Persist to SurrealDB
     surreal_write("architecture_spec", "deep_dive_v1", {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "session": SESSION,
         "spec_file": str(spec_path),
         "results_summary": {k: len(v.split()) for k, v in results.items()}

@@ -30,8 +30,10 @@ import sys
 import urllib.request
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from cohezion.compound.prompt_version_registry import _validate  # noqa: E402
+from cohezion.compound.prompt_version_registry import _validate
+
 
 ROUTER = "http://localhost:13305/v1/chat/completions"
 DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"
@@ -41,7 +43,7 @@ def run_local(prompt: str, model: str, max_tokens: int = 200, temperature: float
     """One completion from the local fleet. Temperature > 0 on purpose: we are MEASURING variance."""
     body = json.dumps({"model": model, "max_tokens": max_tokens, "temperature": temperature,
                        "messages": [{"role": "user", "content": prompt}]}).encode()
-    req = urllib.request.Request(ROUTER, data=body,  # noqa: S310
+    req = urllib.request.Request(ROUTER, data=body,
                                  headers={"Content-Type": "application/json"}, method="POST")
     with urllib.request.urlopen(req, timeout=300) as r:  # noqa: S310
         msg = json.loads(r.read())["choices"][0]["message"]

@@ -30,11 +30,12 @@ import os
 import sys
 from typing import Any
 
+
 # Provide dummy credentials so is_configured() returns True even without env vars
 os.environ.setdefault("TELEGRAM_BOT_TOKEN", "test-token")
 os.environ.setdefault("TELEGRAM_CHAT_ID", "test-chat")
 
-from cohezion.integrations.telegram_bot import TelegramCommunicationHub  # noqa: E402
+from cohezion.integrations.telegram_bot import TelegramCommunicationHub
 
 
 class LocalTestAgent(TelegramCommunicationHub):

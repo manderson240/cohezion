@@ -24,6 +24,7 @@ import sys
 import time
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 
@@ -47,7 +48,7 @@ async def _tick() -> bool:
     try:
         await asyncio.wait_for(bridge._handle(event), timeout=15)
         return True
-    except (TimeoutError, Exception):  # noqa: BLE001 - daemon must not die on one bad write
+    except (TimeoutError, Exception):
         return False
 
 

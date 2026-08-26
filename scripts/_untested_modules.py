@@ -1,4 +1,7 @@
-import ast, os, pathlib
+import ast
+import os
+import pathlib
+
 
 COH_ROOT = '/home/mike-anderson/dev/cohezion'
 SRC_ROOT = pathlib.Path(COH_ROOT) / 'src' / 'cohezion'

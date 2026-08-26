@@ -14,7 +14,9 @@ import json
 import subprocess
 import time
 from pathlib import Path
+
 import httpx
+
 
 ROUTER_PATH = Path("/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py")
 DAEMON_PATH = Path("/home/mike-anderson/dev/cohezion/scripts/ops/enrich_daemons_with_cloud.py")
@@ -30,7 +32,7 @@ async def run_cloud_audit():
     # 1. Gather Ground Truth System Artifacts
     print("1/3: Collecting empirical system artifacts...")
     router_code = ROUTER_PATH.read_text() if ROUTER_PATH.exists() else "MISSING"
-    
+
     # Run lemonade status
     try:
         lemonade_status = subprocess.check_output(["lemonade", "status"], text=True)

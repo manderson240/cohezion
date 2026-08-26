@@ -8,13 +8,13 @@ into SurrealDB 3.0 and the Obsidian Vault.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)

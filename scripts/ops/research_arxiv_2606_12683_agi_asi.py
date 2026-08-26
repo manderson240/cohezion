@@ -7,11 +7,11 @@ to analyze the 4 AGI->ASI pathways and map them directly into Cohezion's substra
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from pathlib import Path
 
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("arxiv_2606_12683")
@@ -31,7 +31,7 @@ RESEARCH_REPORT_PATH = Path.home() / ".gemini" / "antigravity-cli" / "brain" / "
 async def main() -> None:
     router = UnifiedHybridRouter()
     logger.info("📡 Consulting Tier 2 Ollama Cloud Model for arXiv:2606.12683 Synthesis...")
-    
+
     prompt = f"""
     Analyze arXiv:2606.12683 ('From AGI to ASI') in the context of Cohezion's AI Swarm Platform.
     Abstract summary:
@@ -61,7 +61,7 @@ arXiv paper **2606.12683** ("From AGI to ASI: Pathways, Bottlenecks, and Societa
 
 | Paper Pathway | Cohezion Implementation | Empirical Metric / Status |
 |:---|:---|:---|
-| **1. Paradigm Shifts** | Poincaré 2048D Hyperbolic Manifolds & JEPA World Model | $d_P(u, v)$ metric distortion $< 0.01\%$, 3D Marimo Cockpit |
+| **1. Paradigm Shifts** | Poincaré 2048D Hyperbolic Manifolds & JEPA World Model | $d_P(u, v)$ metric distortion $< 0.01\\%$, 3D Marimo Cockpit |
 | **2. Recursive Improvement** | AutoHarness AST Policy Verifiers (arXiv:2603.03329v1) | **$0.00\text{ ms}$** latency (~5.80 µs execution time), 2,000 checks in 11.59ms |
 | **3. Multi-Agent Collectives** | Bioelectric Swarm Morphogenesis & 5-Station Assembly Line | **$10.20\times$** Light Cone Expansion ($R_c = 24.98$), 0.976ms Self-Healing |
 | **4. Hardware Bottlenecks** | AMD Strix Halo Tri-Compute (NPU + iGPU + CPU) | NPU 28ms reasoning, iGPU 1.1ms parallel simulation, 32 CPU threads |

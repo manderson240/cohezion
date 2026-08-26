@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+
 STATE_DIR = Path.home() / ".cohezion" / "compound_state"
 DAEMON_LOG = STATE_DIR / "compound_daemon.log"
 TASKS_JSON = STATE_DIR / "compound_tasks.json"

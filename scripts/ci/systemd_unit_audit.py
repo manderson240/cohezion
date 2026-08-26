@@ -26,8 +26,8 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
+
 
 UNIT_DIR = Path.home() / ".config/systemd/user"
 
@@ -80,7 +80,7 @@ def _module_importable(interpreter: str, module: str) -> bool | None:
     if not Path(interpreter).exists():
         return None
     try:
-        r = subprocess.run(  # noqa: S603
+        r = subprocess.run(
             [interpreter, "-c", f"import importlib.util,sys; "
                                 f"sys.exit(0 if importlib.util.find_spec('{module}') else 1)"],
             capture_output=True, timeout=60, check=False,

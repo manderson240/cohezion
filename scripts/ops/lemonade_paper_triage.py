@@ -31,9 +31,11 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from durable_swarm_output import DurableRun  # noqa: E402
+from durable_swarm_output import DurableRun
+
 
 LOCAL_URL = "http://localhost:13305/api/v1/chat/completions"
 MODEL = "gpt-oss-20b"
@@ -66,7 +68,7 @@ def call(model: str, prompt: str, max_tokens: int, timeout: int = 600) -> tuple[
             "temperature": 0.2,
         }
     ).encode()
-    req = urllib.request.Request(  # noqa: S310 — fixed loopback literal
+    req = urllib.request.Request(
         LOCAL_URL, data=body, headers={"Content-Type": "application/json"}
     )
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310

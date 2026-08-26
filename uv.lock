@@ -836,6 +836,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "passlib", extra = ["bcrypt"] },
+    { name = "peft" },
     { name = "pocket-tts" },
     { name = "polars" },
     { name = "psutil" },
@@ -856,6 +857,7 @@ dependencies = [
     { name = "surrealdb" },
     { name = "torch" },
     { name = "torchvision" },
+    { name = "trl" },
     { name = "uvicorn" },
 ]
 
@@ -924,6 +926,7 @@ requires-dist = [
     { name = "optuna", marker = "extra == 'dev'", specifier = ">=3.6" },
     { name = "pandas", specifier = ">=3.0.0" },
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4" },
+    { name = "peft", specifier = ">=0.20.0" },
     { name = "pocket-tts", specifier = ">=0.1.0" },
     { name = "polars", specifier = ">=1.39.3" },
     { name = "psutil", specifier = ">=5.9.0" },
@@ -954,6 +957,7 @@ requires-dist = [
     { name = "torchaudio", marker = "extra == 'audio'", specifier = ">=2.0.0", index = "https://download.pytorch.org/whl/rocm6.3" },
     { name = "torchvision", specifier = ">=0.23.0", index = "https://download.pytorch.org/whl/rocm6.3" },
     { name = "transformers", marker = "extra == 'ml'", specifier = ">=4.30.0" },
+    { name = "trl", specifier = ">=0.23.0" },
     { name = "unsloth", marker = "extra == 'unsloth'" },
     { name = "uvicorn", specifier = ">=0.24.0" },
 ]

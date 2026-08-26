@@ -21,8 +21,9 @@ from __future__ import annotations
 import json
 import time
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
+
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
@@ -87,7 +88,7 @@ def benchmark_ollama_cloud_model(model: str, category: str, prompt: str) -> Mode
                 response_length=len(text),
                 thinking_tokens_detected=has_thinking,
             )
-    except Exception as exc:
+    except Exception:
         dt_s = time.perf_counter() - t0
         return ModelBenchmarkResult(
             model_name=model,

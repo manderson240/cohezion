@@ -12,11 +12,12 @@ Verifies:
 import asyncio
 import hashlib
 import json
-import subprocess
 import time
 from pathlib import Path
+
 import httpx
 import safetensors.torch
+
 
 ROUTER_PATH = Path("/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py")
 CHECKPOINT_DIR = Path("/home/mike-anderson/dev/cohezion/checkpoints/cohezion_lora_qwen_adapter")
@@ -29,7 +30,7 @@ async def run_flawless_cloud_audit():
     print("=" * 105)
 
     router_full_code = ROUTER_PATH.read_text()
-    
+
     # 1. Cryptographic SHA-256 and Tensor inspection of safetensors
     hasher = hashlib.sha256()
     hasher.update(SAFESENSOR_FILE.read_bytes())

@@ -116,7 +116,7 @@ def census(repo: str, base: str = "main") -> list[BranchVerdict]:
 
 
 def _sql(query: str, timeout: float = 10.0) -> list[dict]:
-    req = urllib.request.Request(  # noqa: S310 — fixed localhost literal
+    req = urllib.request.Request(
         SURREAL_URL, data=query.encode(), headers=SURREAL_HEADERS, method="POST"
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310

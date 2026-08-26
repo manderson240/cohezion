@@ -15,10 +15,8 @@ import logging
 import time
 from typing import Any
 
-from cohezion.agents.specialists.vault_keeper import VaultKeeper
 from cohezion.agi.experiential_learning import ExperientialLearningEngine
 from cohezion.compound.chronos import get_chronos
-from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 

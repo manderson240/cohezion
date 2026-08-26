@@ -11,14 +11,13 @@ Uses Tier 2 Ollama Cloud (`deepseek-v4-pro:cloud` & `qwen3.5:397b-cloud`) to:
 import asyncio
 import json
 import logging
-import sys
-import time
 from pathlib import Path
 
 import httpx
 
 from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("daemon_enricher")
@@ -50,7 +49,7 @@ async def run_enrichment():
         logger.error("work-queue.json does not exist!")
         return
 
-    with open(WORK_QUEUE_PATH, "r") as f:
+    with open(WORK_QUEUE_PATH) as f:
         data = json.load(f)
 
     apply_items = [

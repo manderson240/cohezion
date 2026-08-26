@@ -19,7 +19,9 @@ import json
 import subprocess
 import time
 from pathlib import Path
+
 import httpx
+
 
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 
@@ -27,7 +29,7 @@ REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 def get_worktree_inventory():
     print("🌿 Analyzing all Git Worktrees...")
     res = subprocess.run(["git", "worktree", "list", "--porcelain"], cwd=REPO_ROOT, capture_output=True, text=True)
-    
+
     worktrees = []
     current_wt = {}
     for line in res.stdout.strip().split("\n"):
@@ -60,13 +62,13 @@ def get_worktree_inventory():
         # Check git status
         status_res = subprocess.run(["git", "status", "--short"], cwd=wt_path, capture_output=True, text=True)
         dirty_files = [l for l in status_res.stdout.strip().split("\n") if l]
-        
+
         # Check specs / docs
         specs = list(wt_path.glob("specs/**/*.md")) + list(wt_path.glob("docs/**/*.md")) + list(wt_path.glob("*.md"))
-        
+
         # Check tests
         tests = list(wt_path.glob("tests/**/*.py"))
-        
+
         detailed.append({
             "name": wt_path.name,
             "path": str(wt_path),

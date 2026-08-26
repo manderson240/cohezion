@@ -11,9 +11,8 @@ import logging
 import time
 
 from cohezion.inference.full_silicon_tri_tier_engine import FullSiliconTriTierEngine
-from cohezion.inference.pipeline_silicon_splitter import PipelineSiliconSplitter
-from cohezion.inference.speculative_decoder import SpeculativeDecoderEngine
 from cohezion.inference.unified_neural_mesh import UnifiedNeuralMesh
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,8 +41,8 @@ async def main_async() -> None:
 
     dt_ms = round((time.perf_counter() - t0) * 1000.0, 2)
     print("  " + "-" * 85)
-    print(f"  • Cooperative Pipeline Status: ✅ 100% LOCKSTEP SYNERGY OPERATIONAL")
-    print(f"  • Zero-Copy UMA Transfer Overhead: 0.00 ms (Shared 128GB RAM physical addresses)")
+    print("  • Cooperative Pipeline Status: ✅ 100% LOCKSTEP SYNERGY OPERATIONAL")
+    print("  • Zero-Copy UMA Transfer Overhead: 0.00 ms (Shared 128GB RAM physical addresses)")
     print(f"  • Integrated Prefill Speed: {res.total_prefill_tok_s:,.1f} tok/s")
     print(f"  • Integrated Decode Speed: {res.total_decode_tok_s:.1f} tok/s")
     print(f"  • Total Multi-Core Lockstep Time: {dt_ms:.2f} ms")

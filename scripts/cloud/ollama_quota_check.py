@@ -15,6 +15,7 @@ when above threshold).
 Falls back to a manual-paste mode if no cookie is stored.
 """
 from __future__ import annotations
+
 import argparse
 import datetime as dt
 import json
@@ -22,8 +23,9 @@ import os
 import re
 import sys
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
+
 
 COOKIE_PATH = Path.home() / ".cohezion-research" / "secrets" / "ollama_session.txt"
 LOG_PATH    = Path.home() / ".cohezion-research" / "logs" / "ollama_quota.jsonl"
@@ -62,7 +64,7 @@ def fetch_pct_with_cookie(cookie: str) -> tuple[float | None, str]:
 def write_log(pct: float | None, mode: str) -> None:
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     record = {
-        "ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "ts": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         "pct_used": pct,
         "mode": mode,
     }
@@ -105,7 +107,7 @@ def main() -> int:
     write_log(pct, "auto")
     print(f"ollama-cloud usage: {pct:.1f}%  (threshold {args.threshold:.0f}%)")
     if pct >= args.threshold:
-        print(f"WARNING: above threshold. Consider local routing.", file=sys.stderr)
+        print("WARNING: above threshold. Consider local routing.", file=sys.stderr)
         return 1
     return 0
 

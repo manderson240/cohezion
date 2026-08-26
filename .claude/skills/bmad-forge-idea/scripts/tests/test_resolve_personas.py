@@ -8,8 +8,10 @@ import sys
 import unittest
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import resolve_personas as rp  # noqa: E402
+import resolve_personas as rp
+
 
 AGENTS = {
     "bmad-agent-analyst": {"name": "Mary", "icon": "📊", "title": "Analyst"},
@@ -119,7 +121,7 @@ class TestOverrideMergeFallback(unittest.TestCase):
     """When party-mode isn't installed, user override TOMLs are read directly."""
 
     def test_arrays_append_scalars_override(self):
-        import tempfile, os
+        import tempfile
         with tempfile.TemporaryDirectory() as d:
             custom = Path(d) / "_bmad" / "custom"
             custom.mkdir(parents=True)

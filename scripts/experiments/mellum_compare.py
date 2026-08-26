@@ -18,6 +18,7 @@ import re
 import time
 import urllib.request
 
+
 ROUTER = "http://localhost:13305/api/v1"
 NPU = "http://localhost:13306/api/v1"
 

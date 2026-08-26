@@ -14,6 +14,7 @@ import time
 
 from cohezion.flume.j_space_latent_manifold import JSpaceLatentManifold
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 

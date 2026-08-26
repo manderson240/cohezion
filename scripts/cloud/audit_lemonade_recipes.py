@@ -16,9 +16,16 @@ Usage:
 Exit codes: 0 = no change, 1 = new audit record written, 2 = error.
 """
 from __future__ import annotations
-import argparse, json, subprocess, sys, urllib.request, urllib.error
-from datetime import datetime, timezone
+
+import argparse
+import json
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 LEMONADE = "http://localhost:13305"
 SURREAL = "http://localhost:8001"
@@ -131,7 +138,7 @@ def build_audit() -> dict:
               for e in health.get("all_models_loaded", [])]
 
     return {
-        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ts": datetime.now(UTC).isoformat(timespec="seconds"),
         "total_models": len(catalog),
         "recipes": {r: len(ms) for r, ms in by_recipe.items()},
         "by_recipe": by_recipe,
@@ -145,12 +152,12 @@ def build_audit() -> dict:
 def persist(audit: dict) -> None:
     """Write to SurrealDB + vault file."""
     token = signin()
-    audit_id = f"lemonade_recipe_audit_{datetime.now(timezone.utc).strftime('%Y_%m_%d_%H%M%S')}"
+    audit_id = f"lemonade_recipe_audit_{datetime.now(UTC).strftime('%Y_%m_%d_%H%M%S')}"
     summary_kokoro = "alive" if audit["kokoro_liveness"]["alive"] else f"DEAD ({audit['kokoro_liveness'].get('error','?')})"
     sql = f"""
     INSERT INTO learnings {{
         id: learnings:{audit_id},
-        date: '{datetime.now(timezone.utc).strftime('%Y-%m-%d')}',
+        date: '{datetime.now(UTC).strftime('%Y-%m-%d')}',
         title: 'Lemonade recipe audit (auto, cron)',
         summary: 'Catalog: {audit['total_models']} models, {len(audit['recipes'])} recipes, {audit['loaded_count']} loaded. Consumers: {len(audit['consumers'])} files. Kokoro liveness: {summary_kokoro}.',
         pattern: 'lemonade catalog dispatch by model name',

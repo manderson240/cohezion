@@ -86,7 +86,7 @@ def apply_sync(model_id: str, expected_args: str) -> int:
     print(f"  $ {' '.join(cmd)}")
     # `cmd` is a static list built from registry data + the `lemonade` CLI.
     # No shell expansion, no user-controlled strings — safe by construction.
-    result = subprocess.run(  # noqa: S603
+    result = subprocess.run(
         cmd, capture_output=True, text=True, timeout=120, check=False
     )
     if result.returncode != 0:

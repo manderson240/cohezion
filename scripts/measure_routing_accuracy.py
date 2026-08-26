@@ -8,16 +8,17 @@ accuracy, distributions, and potential misclassification anomalies.
 """
 
 import json
-import sys
 import re
+import sys
 from pathlib import Path
-from typing import List, Tuple, Dict, Any
+from typing import Any
+
 
 # Ensure we can import from src/
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 try:
-    from cohezion.inference.task_classifier import classify, RouteDecision
+    from cohezion.inference.task_classifier import RouteDecision, classify
 except ImportError as e:
     print(f"Failed to import task_classifier: {e}", file=sys.stderr)
     sys.exit(1)
@@ -25,7 +26,7 @@ except ImportError as e:
 PROJECTS_DIR = Path("/home/mike-anderson/.claude/projects")
 
 
-def find_jsonl_files(base_path: Path) -> List[Path]:
+def find_jsonl_files(base_path: Path) -> list[Path]:
     """Find all jsonl files recursively in base_path."""
     if not base_path.exists():
         print(f"Projects directory {base_path} does not exist.", file=sys.stderr)
@@ -33,7 +34,7 @@ def find_jsonl_files(base_path: Path) -> List[Path]:
     return list(base_path.glob("**/*.jsonl"))
 
 
-def extract_prompts(jsonl_files: List[Path]) -> List[Dict[str, Any]]:
+def extract_prompts(jsonl_files: list[Path]) -> list[dict[str, Any]]:
     """Extract user prompts from jsonl files."""
     extracted = []
     user_msg_count = 0
@@ -42,7 +43,7 @@ def extract_prompts(jsonl_files: List[Path]) -> List[Dict[str, Any]]:
     for path in jsonl_files:
         total_files_parsed += 1
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 for line_num, line in enumerate(f, 1):
                     line = line.strip()
                     if not line:
@@ -81,7 +82,7 @@ def extract_prompts(jsonl_files: List[Path]) -> List[Dict[str, Any]]:
     return extracted
 
 
-def is_potential_misclassification(prompt: str, decision: RouteDecision) -> Tuple[bool, str]:
+def is_potential_misclassification(prompt: str, decision: RouteDecision) -> tuple[bool, str]:
     """
     Detect heuristic indicators of routing anomalies:
     - Code blocks/keywords routed to NPU (False Negative for GPU)
@@ -129,7 +130,7 @@ def is_potential_misclassification(prompt: str, decision: RouteDecision) -> Tupl
     return False, ""
 
 
-def run_analysis(prompts_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+def run_analysis(prompts_data: list[dict[str, Any]]) -> dict[str, Any]:
     """Run classifier and perform statistical analysis."""
     stats = {
         "total": len(prompts_data),
@@ -173,7 +174,7 @@ def run_analysis(prompts_data: List[Dict[str, Any]]) -> Dict[str, Any]:
     return stats
 
 
-def print_report(stats: Dict[str, Any]):
+def print_report(stats: dict[str, Any]):
     """Print markdown-formatted summary report."""
     total = stats["total"]
     if total == 0:

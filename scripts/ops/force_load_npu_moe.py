@@ -13,8 +13,9 @@ import time
 import urllib.request
 
 from cohezion.inference.load_safety import check_load_safe
-from cohezion.researcher.daily_researcher import FleetLock
 from cohezion.reliability.oom_guard import OOMGuard
+from cohezion.researcher.daily_researcher import FleetLock
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ async def main() -> None:
                 print("    DIRECT LOCAL NPU MoE INFERENCE RESULTS (qwen3.6-moe-35b-a3b-FLM)")
                 print("=" * 90)
                 print(f"  • Model ID: {MODEL_ID}")
-                print(f"  • Hardware Lane: NPU / UMA iGPU (port 13305)")
+                print("  • Hardware Lane: NPU / UMA iGPU (port 13305)")
                 print(f"  • Execution Time: {dt_sec:.3f} s")
                 print(f"  • Output Content Snippet:\n    {content[:300]}...")
                 print("=" * 90)

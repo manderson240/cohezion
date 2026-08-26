@@ -19,6 +19,7 @@ Budget:
 
 from __future__ import annotations
 
+
 REPO_ROOT_NOTE = "# Run from the cohezion repo root (/home/mike-anderson/dev/cohezion)"
 
 # ── Schedule: geometry sweep (3×/day, every 8 hours) ────────────────────────
@@ -99,7 +100,7 @@ def print_setup_instructions() -> None:
     print("Paste each block below into an INTERACTIVE Claude Code session.")
     print("CronCreate is a session-bound tool; this script cannot call it.")
     print()
-    print(f"Quota: 15 routine runs/day  |  Using 5  |  10 reserved for ad-hoc")
+    print("Quota: 15 routine runs/day  |  Using 5  |  10 reserved for ad-hoc")
     print()
 
     # ── Geometry sweeps ──────────────────────────────────────────────────────

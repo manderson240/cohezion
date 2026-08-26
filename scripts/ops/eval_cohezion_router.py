@@ -16,7 +16,9 @@ import asyncio
 import json
 import logging
 import time
+
 import httpx
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("eval_cohezion_router")

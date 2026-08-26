@@ -14,9 +14,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import logging
-import math
 import os
 import re
 import signal
@@ -24,28 +22,27 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
+
 # Add src to path
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.data_mesh.kanban_bridge import persist_item
-from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
 from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
 from cohezion.physics.hiho_sonification import HIHOSonifier
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.researcher.daily_researcher import FleetLock
 from cohezion.security.data_provenance_signer import DataProvenanceSigner
+
 
 logging.basicConfig(
     level=logging.INFO,

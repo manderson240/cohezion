@@ -17,11 +17,9 @@ Exercises and dogfoods all 11 core Cohezion subsystems built across this session
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.empirical_proof_harness import EmpiricalProofHarness
 from cohezion.agi.recursive_self_improvement import RecursiveSelfImprovementEngine
 from cohezion.agi.world_model_journey_simulator import WorldModelJourneySimulator
@@ -33,6 +31,7 @@ from cohezion.flume.symmetry_breaking_engine import SymmetryBreakingEngine
 from cohezion.inference.full_silicon_tri_tier_engine import FullSiliconTriTierEngine
 from cohezion.inference.proactive_local_delegator import ProactiveLocalDelegator
 from cohezion.swarm.graph_systems_vmodel_engine import GraphSystemsVModelEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)

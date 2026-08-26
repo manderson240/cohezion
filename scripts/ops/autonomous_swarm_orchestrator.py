@@ -16,24 +16,21 @@ Enforces:
 
 import argparse
 import asyncio
-import json
 import logging
 import math
-import os
 import signal
 import sys
 import time
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 import numpy as np
+
 
 # Add src to path
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.data_mesh.kanban_bridge import persist_item
@@ -44,6 +41,7 @@ from cohezion.physics.hiho_sonification import HIHOSonifier
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.researcher.daily_researcher import FleetLock
 from cohezion.security.data_provenance_signer import DataProvenanceSigner
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -87,10 +85,11 @@ async def run_autonomous_mission_cycle(cycle_num: int, router: UnifiedHybridRout
 
     # 3. Campaign 2: Bioelectric Gap-Junction Light-Cone Morphogenesis
     logger.info("Phase 2: Executing Bioelectric Swarm Morphogenesis...")
-    swarm = BioelectricSwarm(num_nodes=12, coupling_strength=0.75)
+    swarm = BioelectricSwarm(n_nodes=12, coupling_strength=0.75)
     light_cone_radius = swarm.calculate_light_cone_radius()
     healed_nodes = swarm.trigger_self_healing_wave()
-    logger.info("  • Bioelectric Light-Cone Radius: %.2f (Gap-Junction Boost active) | Self-Healed Nodes: %d", light_cone_radius, healed_nodes)
+    healed_count = len(healed_nodes) if isinstance(healed_nodes, (list, tuple)) else int(healed_nodes)
+    logger.info("  • Bioelectric Light-Cone Radius: %.2f (Gap-Junction Boost active) | Self-Healed Nodes: %d", light_cone_radius, healed_count)
 
     # 4. Campaign 3: Real-Time HIHO 0.5 Audio Sonification Frame Synthesis
     logger.info("Phase 3: Synthesizing HIHO 0.5 Acoustic Thermodynamic Loss Frame...")

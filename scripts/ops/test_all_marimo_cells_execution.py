@@ -13,6 +13,7 @@ import sys
 import time
 from pathlib import Path
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -60,9 +61,9 @@ def main() -> None:
     print("      🧪 ALL MARIMO CELLS EXECUTION VERIFICATION SCORECARD")
     print("=" * 105)
     print(f"  • Notebook File: {NOTEBOOK_PATH}")
-    print(f"  • Cell Import & Spec Load: ✅ PASSED")
-    print(f"  • Cell Syntax & Type Checking: ✅ PASSED")
-    print(f"  • Reactive Execution Flow: ✅ 100% OPERATIONAL (0 Errors across all cells)")
+    print("  • Cell Import & Spec Load: ✅ PASSED")
+    print("  • Cell Syntax & Type Checking: ✅ PASSED")
+    print("  • Reactive Execution Flow: ✅ 100% OPERATIONAL (0 Errors across all cells)")
     print(f"  • Overall Status: {'✅ 100% CELLS OPERATIONAL' if valid else '❌ ERROR DETECTED'}")
     print("=" * 105)
     print("🎉 All Cells in Marimo Monitoring Dashboard Verified Working 100% End-to-End!")

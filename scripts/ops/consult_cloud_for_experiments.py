@@ -11,11 +11,12 @@ tailored for our local AMD Strix Halo architecture (128GB unified RAM, XDNA2 NPU
 import asyncio
 import json
 import logging
-import os
 import sys
 import time
 from pathlib import Path
+
 import httpx
+
 
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(REPO_ROOT / "src"))

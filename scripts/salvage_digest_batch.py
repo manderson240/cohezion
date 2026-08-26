@@ -28,6 +28,7 @@ from cohezion.observability.session_salvage import (
     unique_writes,
 )
 
+
 OUT = Path.home() / "vaults/cohezion-vault/reports/salvage-20260718/digests"
 
 

@@ -15,6 +15,7 @@ import sys
 import tomllib
 from pathlib import Path
 
+
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 
 
@@ -22,13 +23,13 @@ def get_declared_dependencies() -> set[str]:
     pyproject_path = REPO_ROOT / "pyproject.toml"
     with open(pyproject_path, "rb") as f:
         data = tomllib.load(f)
-    
+
     deps = set()
     for dep_str in data.get("project", {}).get("dependencies", []):
         # Extract base package name before any version specifier
         pkg = dep_str.split(";")[0].split(">=")[0].split("==")[0].split("<=")[0].split("~=")[0].strip().lower().replace("-", "_")
         deps.add(pkg)
-    
+
     # Common standard package mappings
     deps.update({"yaml", "httpx", "numpy", "pydantic", "pytest", "torch", "surrealdb", "fastapi", "uvicorn", "websockets"})
     return deps
@@ -37,19 +38,19 @@ def get_declared_dependencies() -> set[str]:
 def audit_repository_imports() -> dict:
     declared_deps = get_declared_dependencies()
     stdlib_modules = set(sys.stdlib_module_names)
-    
+
     py_files = list((REPO_ROOT / "src").rglob("*.py")) + list((REPO_ROOT / "scripts").rglob("*.py"))
-    
+
     external_imports = {}
     unknown_imports = {}
-    
+
     for file_path in py_files:
         code = file_path.read_text(encoding="utf-8", errors="ignore")
         try:
             tree = ast.parse(code)
         except SyntaxError:
             continue
-            
+
         for node in ast.walk(tree):
             mod_name = None
             if isinstance(node, ast.Import):
@@ -57,12 +58,12 @@ def audit_repository_imports() -> dict:
                     mod_name = alias.name.split(".")[0]
             elif isinstance(node, ast.ImportFrom) and node.module:
                 mod_name = node.module.split(".")[0]
-                
+
             if mod_name:
                 mod_clean = mod_name.lower().replace("-", "_")
                 if mod_clean in stdlib_modules or mod_clean == "cohezion":
                     continue
-                    
+
                 external_imports.setdefault(mod_clean, []).append(str(file_path.relative_to(REPO_ROOT)))
                 if mod_clean not in declared_deps:
                     unknown_imports.setdefault(mod_clean, []).append(str(file_path.relative_to(REPO_ROOT)))

@@ -16,6 +16,7 @@ Daemon start/stop is intentionally NOT exposed (too destructive) — the exact
 
 import marimo
 
+
 __generated_with = "0.23.14"
 app = marimo.App(width="medium")
 
@@ -32,9 +33,8 @@ def _header(mo):
 
 @app.cell
 def _imports():
-    import matplotlib.pyplot as plt
-
     import marimo as mo
+    import matplotlib.pyplot as plt
 
     from cohezion.cockpit import daemon_state as ds
 

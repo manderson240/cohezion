@@ -27,6 +27,7 @@ from pathlib import Path
 
 import yaml
 
+
 MANIFEST = Path(__file__).with_name("lemonade-recipes.md")
 RAM_FLOOR_GIB = 16.0
 KV_ALLOWANCE_GIB = 8.0

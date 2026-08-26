@@ -51,8 +51,8 @@ SURREAL_PASS = os.environ.get("SURREAL_PASS", "root")
 def _git(args: list[str]) -> str:
     # `git` via PATH is the idiom for git hooks; full path varies per install.
     # Args are controlled by this module, not user input.
-    result = subprocess.run(  # noqa: S603
-        ["git", *args],  # noqa: S607
+    result = subprocess.run(
+        ["git", *args],
         capture_output=True,
         text=True,
         check=False,

@@ -15,8 +15,9 @@ import base64
 import json
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # Paths & Auth
 SURREAL_URL = "http://localhost:8001/sql"
@@ -69,7 +70,7 @@ def publish_event(event_type: str, source: str, payload: dict) -> None:
         {
             "type": event_type,
             "source": f"dogfood.{source}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "payload": payload,
             "session": SESSION,
         },
@@ -101,7 +102,7 @@ def main():
     publish_event(
         "AGENT_START",
         "graph_reasoner",
-        {"mode": "dogfood", "timestamp": datetime.now(timezone.utc).isoformat()},
+        {"mode": "dogfood", "timestamp": datetime.now(UTC).isoformat()},
     )
     print("✓ Published AGENT_START to SurrealDB Event Bus")
 
@@ -147,7 +148,7 @@ def main():
 
     vault_content = f"""---
 title: Cohezion Dogfooding Graph Reasoning Synthesis
-date: {datetime.now(timezone.utc).isoformat()}
+date: {datetime.now(UTC).isoformat()}
 tags: [dogfood, graph-engineering, local-inference, event-bus, surrealdb]
 session: {SESSION}
 ---
@@ -171,7 +172,7 @@ session: {SESSION}
     db_record = {
         "id": report_id,
         "session": SESSION,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "nodes_count": len(nodes),
         "edges_count": len(edges),
         "synthesis": synthesis,

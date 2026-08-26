@@ -25,9 +25,8 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _imports():
-    import matplotlib.pyplot as plt
-
     import marimo as mo
+    import matplotlib.pyplot as plt
 
     # reuse the embedded-agent primitive (free-form prompt → local :13305, $0, fail-soft)
     from cohezion.cockpit import daemon_state as ds

@@ -13,6 +13,7 @@ import time
 import urllib.request
 from pathlib import Path
 
+
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 VAULT_DIR = Path.home() / "vaults" / "cohezion-vault" / "research"
 

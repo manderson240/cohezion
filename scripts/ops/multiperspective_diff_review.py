@@ -39,6 +39,15 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+# MEASURED 2026-08-07: reviewing a file whose source contains LLM prompt templates as string
+# literals, 2 of 3 reviewer models obeyed the EMBEDDED prompt instead of the review task. A diff is
+# exactly that hazard, so its payload is fenced before it reaches the model.
+from finding_grounding import grounding
+from untrusted_content import wrap_untrusted
+
+
 REPO = os.environ.get("MPR_REPO", "/home/mike-anderson/dev/cohezion")
 OUT = Path(os.environ.get("MPR_OUT_DIR", "./mpr-reviews"))
 BASE = os.environ.get("MPR_BASE", "main")
@@ -111,22 +120,48 @@ def run_lane(
             print(f"[{lane}] {branch}: cached, skip", flush=True)
             continue
         t0 = time.time()
+        # Bound BEFORE the try: get_diff() can raise, and the except-path below still reaches the
+        # grounding check. Leaving it unbound would turn a survivable per-branch failure into a
+        # NameError that kills the lane.
+        diff = ""
         try:
             diff = get_diff(branch, limit)
             text = chat(
                 url,
                 model,
-                PROMPT.format(perspective=perspective, diff=diff, base=BASE),
+                PROMPT.format(
+                    perspective=perspective,
+                    diff=wrap_untrusted(diff, "DIFF"),
+                    base=BASE,
+                ),
                 max_tokens,
                 extra,
             )
         except Exception as e:  # lane must survive per-branch failure
             text = f"LANE_ERROR: {e}\nVERDICT: HOLD lane error"
         dt = time.time() - t0
-        out.write_text(f"# {branch} — {lane} ({model}, {dt:.0f}s)\n\n{text}\n")
+        # GROUNDING, at the point of write. Measured 2026-08-20: two lanes AGREED on a blocking
+        # defect and both FABRICATED it (an INSERT INTO absent from the diff). Agreement carried no
+        # information — same model, shared blind spot — so provenance is checked here rather than
+        # by adding more voters. Grounding is NECESSARY, not sufficient: a grounded finding can
+        # still draw a wrong conclusion, so this annotates, it does not auto-reject.
+        g = grounding(text, diff)
+        stamp = (
+            f"<!-- grounding: spans={g['spans']} matched={g['grounded_spans']} "
+            f"ratio={g['ratio']} -->\n"
+        )
+        warn = (
+            ""
+            if g["grounded"]
+            else "> ⚠ **UNGROUNDED** — no quoted span in this review occurs in the reviewed diff. "
+            "Treat every finding as unsourced until each is checked against the source.\n\n"
+        )
+        out.write_text(f"# {branch} — {lane} ({model}, {dt:.0f}s)\n\n{stamp}{warn}{text}\n")
         has_verdict = "VERDICT:" in text
         print(
-            f"[{lane}] {branch}: {dt:.0f}s verdict={'OK' if has_verdict else 'MISSING'}",
+            f"[{lane}] {branch}: {dt:.0f}s verdict={'OK' if has_verdict else 'MISSING'} "
+            f"grounding={g['grounded_spans']}/{g['spans']}"
+            f"{' UNGROUNDED' if not g['grounded'] else ''}",
             flush=True,
         )
 

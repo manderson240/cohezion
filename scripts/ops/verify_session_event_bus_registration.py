@@ -9,11 +9,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from pathlib import Path
 
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
-from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
+from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("session_event_bus")
@@ -22,7 +22,7 @@ logger = logging.getLogger("session_event_bus")
 async def main() -> None:
     session_id = "antigravity_master_orchestrator"
     logger.info("📡 Registering active session '%s' with EventBus & CrossSessionEventBridge...", session_id)
-    
+
     event_bus = await get_event_bus()
     bridge = CrossSessionEventBridge(event_bus=event_bus, session_id=session_id)
     await bridge.initialize()

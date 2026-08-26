@@ -8,10 +8,10 @@ to extract proactive next-generation perspectives on Cohezion whenever tasks com
 import asyncio
 import json
 import logging
-import sys
 import time
 import urllib.request
 from pathlib import Path
+
 
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

@@ -18,8 +18,8 @@ import time
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
-from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
 from cohezion.inference.model_card_defaults import _match_model
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -58,12 +58,12 @@ def main() -> None:
     print("\n" + "=" * 95)
     print("      COHEZION 6-LAYER HALLUCINATION MINIMIZATION SAFEGUARDS SCORECARD")
     print("=" * 95)
-    print(f"  • Safeguard 1: Grounded Context Injection — ✅ VERIFIED (Poincaré 2048D Manifold)")
-    print(f"  • Safeguard 2: AutoHarness AST Bytecode Compiler — ✅ VERIFIED (0ms AST AST checks)")
-    print(f"  • Safeguard 3: Sampling Sweet-Spot Hard-Pinning — ✅ VERIFIED (min_p=0.05 tail truncation)")
-    print(f"  • Safeguard 4: ZKFV Polynomial Proofs — ✅ VERIFIED (Cryptographic SHA-256 state tree)")
-    print(f"  • Safeguard 5: Experiential Trajectory Gating — ✅ VERIFIED (rt >= 0.45 retention)")
-    print(f"  • Safeguard 6: EVI Tiered Escalation — ✅ VERIFIED (EVI > 0.75 routing gate)")
+    print("  • Safeguard 1: Grounded Context Injection — ✅ VERIFIED (Poincaré 2048D Manifold)")
+    print("  • Safeguard 2: AutoHarness AST Bytecode Compiler — ✅ VERIFIED (0ms AST AST checks)")
+    print("  • Safeguard 3: Sampling Sweet-Spot Hard-Pinning — ✅ VERIFIED (min_p=0.05 tail truncation)")
+    print("  • Safeguard 4: ZKFV Polynomial Proofs — ✅ VERIFIED (Cryptographic SHA-256 state tree)")
+    print("  • Safeguard 5: Experiential Trajectory Gating — ✅ VERIFIED (rt >= 0.45 retention)")
+    print("  • Safeguard 6: EVI Tiered Escalation — ✅ VERIFIED (EVI > 0.75 routing gate)")
     print("=" * 95)
     print(f"🎉 All 6 Hallucination Safeguards Verified in {dt:.3f} s!")
 

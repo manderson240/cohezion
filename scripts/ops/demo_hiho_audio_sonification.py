@@ -12,11 +12,10 @@ Demonstrates:
 from __future__ import annotations
 
 import asyncio
-import json
-import logging
 import sys
 import time
 from pathlib import Path
+
 
 # Ensure src/ is on sys.path if run directly
 SRC_DIR = Path(__file__).resolve().parents[2] / "src"
@@ -183,12 +182,12 @@ async def run_router_delegation_demo() -> bool:
             sonifier.delegate_inference(prompt, task_class=TaskClass.CODING),
             timeout=2.0,
         )
-        print_log(f"Router Delegation Outcome:")
+        print_log("Router Delegation Outcome:")
         print_log(f"  Tier Used:  {res.tier_used}")
         print_log(f"  Model:      {res.model_name}")
         print_log(f"  Latency:    {res.latency_ms:.2f} ms")
         print_log(f"  Verified:   {res.verified}")
-    except asyncio.TimeoutError:
+    except TimeoutError:
         print_log("Router delegation probe timed out (Local Silicon offline/standby). Using Tier 0 Fallback.")
     print_log("✓ Phase 4 Model Delegation probe complete.\n")
     return True

@@ -17,6 +17,7 @@ import time
 
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 

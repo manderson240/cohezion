@@ -30,6 +30,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 _SURREAL = "http://localhost:8001/sql"
@@ -128,7 +129,7 @@ def _claim_task(task_id: str, agent_type: str) -> bool:
         f"UPDATE {task_id} SET status='in_progress', claimed_by='{agent_type}', updated_at=time::now() WHERE status='pending';"
     )
     rows = result[0].get("result", [])
-    return bool(rows and rows[0].get("status") == "in_progress" or rows[0].get("claimed_by") == agent_type if rows else False)
+    return bool((rows and rows[0].get("status") == "in_progress") or rows[0].get("claimed_by") == agent_type if rows else False)
 
 
 def _complete_task(task_id: str, result_data: dict) -> None:
@@ -273,7 +274,7 @@ def main() -> None:
     parser.add_argument("--model", default=_DISPATCH_MODEL,
                         help=f"Lemonade model (default: {_DISPATCH_MODEL}, hq: {_DISPATCH_MODEL_HQ})")
     parser.add_argument("--fast", action="store_true", help=f"Use fast 8B model ({_DISPATCH_MODEL_FAST}) for routing")
-    parser.add_argument("--hq", action="store_true", help=f"Use high-quality Omni-Dense for routing")
+    parser.add_argument("--hq", action="store_true", help="Use high-quality Omni-Dense for routing")
     parser.add_argument("--status", default="", help="Show tasks by status (pending/in_progress/completed/failed)")
     args = parser.parse_args()
 

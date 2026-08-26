@@ -23,6 +23,7 @@ from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 

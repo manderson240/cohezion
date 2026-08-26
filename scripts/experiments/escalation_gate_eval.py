@@ -25,8 +25,9 @@ import sys
 import time
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 ROUTER_URL = "http://localhost:13305/v1/chat/completions"
 MODEL = os.environ.get("GATE_EVAL_MODEL", "Qwen3-Coder-30B-A3B-Instruct-GGUF")
@@ -199,7 +200,7 @@ def run_experiment() -> dict:
 
     verdict = {
         "experiment": "escalation_gate_eval",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "model": MODEL,
         "num_tasks": len(TASKS),
         "tau_logprob": TAU_LOGPROB,

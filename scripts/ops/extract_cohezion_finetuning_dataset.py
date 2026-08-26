@@ -14,11 +14,9 @@ from __future__ import annotations
 import json
 import logging
 import subprocess
-import time
 from pathlib import Path
 from typing import Any
 
-from cohezion.core.persistence.surreal_client import SurrealClient
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -73,7 +71,7 @@ def extract_task_logs() -> list[dict[str, Any]]:
                             "quality_score": 0.88,
                         }
                     )
-            except Exception as e:
+            except Exception:
                 pass
     return pairs
 

@@ -15,21 +15,21 @@ from __future__ import annotations
 
 import base64
 import json
-import math
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 REPO = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
-from cohezion.contracts import CodeAsAction, PoincarePoint, VerificationResult
 from cohezion.multimodal.orchestrator import MultimodalModality, UnifiedMultimodalOrchestrator
 from cohezion.physics.flatland_projection import FlatlandProjector
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 SURREAL_URL = "http://localhost:8001/sql"
 SURREAL_AUTH = base64.b64encode(b"root:root").decode()
@@ -111,7 +111,7 @@ def execute_manifold_hop(z_state: list[float], scale_factor: float) -> list[floa
     total_dt = round(time.time() - t0, 3)
 
     summary = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "available_mem_gb": mem_state.available_gb,
         "multimodal_matrix": resolved_matrix,
         "verification_duration_ms": v_res.duration_ms,

@@ -17,6 +17,7 @@ import time
 import urllib.request
 from pathlib import Path
 
+
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 # Env-overridable; default is a small fast model reliably in the local catalog.
 # Override: PC_AUDIT_MODEL=<id> (e.g. Bonsai-8B-gguf / Gemma-4-31B-it-GGUF for deeper triage).
@@ -124,7 +125,7 @@ def check_lemonade() -> bool:
             models = [m["id"] for m in data.get("data", [])]
             if MODEL not in models:
                 print(f"[warn] {MODEL} not in catalog. Available: {models[:8]}")
-                print(f"[info] Switch MODEL= to one of the above and retry.")
+                print("[info] Switch MODEL= to one of the above and retry.")
                 return False
             print(f"[ok] {MODEL} ready on :13305 ({len(models)} models total)")
             return True

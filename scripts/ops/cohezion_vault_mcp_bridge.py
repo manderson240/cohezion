@@ -60,7 +60,7 @@ def run_vault_health_check() -> dict[str, Any]:
         content = f.read_text(encoding="utf-8", errors="ignore")
 
         # Frontmatter Check
-        if content.startswith("---") and "date:" in content or "tags:" in content or "status:" in content:
+        if (content.startswith("---") and "date:" in content) or "tags:" in content or "status:" in content:
             frontmatter_compliant += 1
 
         # Wikilink extraction [[link]]

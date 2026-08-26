@@ -28,6 +28,12 @@
         "outputs": {"reason": "vision"}
       },
       {
+        "id": "agentic-tools",
+        "match": {"has_tools": true},
+        "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "outputs": {"reason": "tool-carrying agentic turn"}
+      },
+      {
         "id": "code",
         "match": {
           "any": [

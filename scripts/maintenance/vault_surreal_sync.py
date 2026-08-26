@@ -20,6 +20,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
+
 VAULT = Path.home() / "vaults" / "cohezion-vault"
 FOLDERS = ("research", "reviews", "corpus")
 SURREAL_URL = "http://localhost:8001/sql"
@@ -87,7 +88,7 @@ def main() -> int:
         print(f"vault_surreal_sync: would upsert {n} research_finding records (dry-run)")
         return 0
 
-    req = urllib.request.Request(  # noqa: S310 (localhost, trusted)
+    req = urllib.request.Request(
         SURREAL_URL,
         data=query.encode(),
         headers={
@@ -100,7 +101,7 @@ def main() -> int:
     try:
         with urllib.request.urlopen(req, timeout=30) as r:  # noqa: S310
             body = r.read().decode()
-    except Exception as exc:  # noqa: BLE001 - report and fail soft
+    except Exception as exc:
         print(f"vault_surreal_sync: SurrealDB write FAILED: {exc}", file=sys.stderr)
         return 1
     ok = body.count('"status":"OK"')

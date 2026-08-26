@@ -6,13 +6,9 @@ imports all dependencies, and executes marimo app cells without error.
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import time
 from pathlib import Path
 
-from cohezion.agi.adaptive_latency_quality_engine import AdaptiveLatencyQualityEngine, LatencyQualityProfile
-from cohezion.flume.poincare_manifold_visualizer import PoincareManifoldVisualizer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -59,9 +55,9 @@ def main() -> None:
     print("      📊 REACTIVE MARIMO AGENT MONITORING DASHBOARD VERIFICATION SCORECARD")
     print("=" * 95)
     print(f"  • Marimo App File: {NOTEBOOK_PATH}")
-    print(f"  • Reactive UI Components: Verified (Dropdowns, Sliders, Text Areas, Buttons, Tables)")
-    print(f"  • Plotly Dark Mode Charts: Verified (Throughput Bar Chart & Perplexity Line Chart)")
-    print(f"  • Local Silicon Inference Integration: Verified (NPU / iGPU / 128GB UMA)")
+    print("  • Reactive UI Components: Verified (Dropdowns, Sliders, Text Areas, Buttons, Tables)")
+    print("  • Plotly Dark Mode Charts: Verified (Throughput Bar Chart & Perplexity Line Chart)")
+    print("  • Local Silicon Inference Integration: Verified (NPU / iGPU / 128GB UMA)")
     print(f"  • Verification Status: {'✅ VERIFIED & OPERATIONAL' if valid else '❌ FAILED'}")
     print("=" * 95)
     print("🎉 Reactive Marimo Agent Monitoring Dashboard Verification Passed!")

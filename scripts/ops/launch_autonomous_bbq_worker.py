@@ -15,7 +15,6 @@ import logging
 import time
 
 from cohezion.agents.gaia_bugfix_agent import GaiaBugfixAgentManager
-from cohezion.compound.chronos import get_chronos
 from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus

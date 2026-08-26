@@ -35,7 +35,7 @@ def query_ollama(model: str, prompt: str) -> str:
         "options": {"temperature": 0.2},
     }
 
-    req = urllib.request.Request(  # noqa: S310 — fixed localhost :11434 URL
+    req = urllib.request.Request(
         OLLAMA_URL,
         data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json"},

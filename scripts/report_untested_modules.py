@@ -11,7 +11,9 @@ cron-based repo maintenance cycles.
 
 Usage: python3 scripts/report_untested_modules.py
 """
-import os, ast
+import ast
+import os
+
 
 REPO = 'src/cohezion'
 TEST_REPO = 'tests'

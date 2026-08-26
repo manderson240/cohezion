@@ -25,6 +25,7 @@ import numpy as np
 
 from cohezion.world_model.jepa_world_model import JEPAWorldModel
 
+
 RNG = np.random.RandomState(20260710)
 STATE_DIM = 12  # the FLUME manifold dimension
 

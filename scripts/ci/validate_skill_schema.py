@@ -15,6 +15,7 @@ import re
 import sys
 from pathlib import Path
 
+
 SKILLS_DIR = Path(__file__).parent.parent.parent / "src" / "cohezion" / "skills"
 REQUIRED_FIELDS = ("name", "description")
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)

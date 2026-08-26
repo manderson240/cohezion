@@ -37,12 +37,14 @@ import sys
 import time
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from durable_swarm_output import DurableRun  # noqa: E402
+from durable_swarm_output import DurableRun
 
-from cohezion.inference.gaia_adapter import build_gaia_llm_tier  # noqa: E402
+from cohezion.inference.gaia_adapter import build_gaia_llm_tier
+
 
 MARKER = "===FINAL==="
 DELIBERATION = ("wait,", "let's refine", "*is it", "followed by the answer", "self-correction")
@@ -110,7 +112,7 @@ async def _run_lane(lane: dict, max_tokens: int, fields: tuple[str, ...],
         out = {"lane": lane["name"], "device": lane.get("device", "?"), "model": lane["model"],
                "secs": round(time.time() - t0, 1), "raw_chars": len(raw or ""),
                "raw": raw or "", "answer": answer, "rejected": why}
-    except Exception as exc:  # noqa: BLE001 - one dead lane must not kill the swarm
+    except Exception as exc:
         out = {"lane": lane["name"], "device": lane.get("device", "?"), "model": lane["model"],
                "secs": round(time.time() - t0, 1), "raw_chars": 0, "raw": "", "answer": "",
                "rejected": f"{type(exc).__name__}: {exc}"}

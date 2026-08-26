@@ -9,10 +9,10 @@ space, and writes a tiering manifest (hot=NVMe / warm=WD MyBook / cold=Google Dr
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import time
 from pathlib import Path
+
 
 HF = Path.home() / ".cache" / "huggingface" / "hub"
 MANIFEST = Path.home() / ".cohezion" / "storage_manifest.json"

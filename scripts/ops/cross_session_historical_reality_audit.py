@@ -10,11 +10,11 @@ This tool:
 
 import asyncio
 import json
-import os
-import sys
 import time
 from pathlib import Path
+
 import httpx
+
 
 BRAIN_DIR = Path("/home/mike-anderson/.gemini/antigravity-cli/brain")
 COHEZION_REPO = Path("/home/mike-anderson/dev/cohezion")
@@ -23,11 +23,11 @@ COHEZION_REPO = Path("/home/mike-anderson/dev/cohezion")
 def scan_all_conversations():
     print(f"🔍 Scanning all conversation transcripts in {BRAIN_DIR}...")
     conv_dirs = [d for d in BRAIN_DIR.iterdir() if d.is_dir() and not d.name.startswith(".")]
-    
+
     total_convs = len(conv_dirs)
     artifacts_found = []
     scripts_found = []
-    
+
     for cdir in conv_dirs:
         # Check artifacts
         for f in cdir.glob("*.md"):
@@ -67,7 +67,7 @@ def verify_repo_ground_truth():
 
 async def run_local_model_audit(total_convs, artifacts, scripts, subsystems):
     print("🤖 Submitting ground-truth payload to LOCAL model (`gpt-oss-20b` on :13305)...")
-    
+
     verified_subsystems = sum(1 for v in subsystems.values() if v)
     total_subsystems = len(subsystems)
 

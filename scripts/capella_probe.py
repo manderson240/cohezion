@@ -24,10 +24,12 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from durable_swarm_output import DurableRun  # noqa: E402
-from swarm_harness import CONTRACT, extract  # noqa: E402
+from durable_swarm_output import DurableRun
+from swarm_harness import CONTRACT, extract
+
 
 OLLAMA = "http://localhost:11434/api/chat"
 CDX = "http://web.archive.org/cdx/search/cdx"
@@ -53,7 +55,7 @@ def _get(url: str, timeout: int = 60) -> tuple[int, bytes]:
             return r.status, r.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read() if hasattr(e, "read") else b""
-    except Exception as e:  # noqa: BLE001 - network shapes vary; caller decides
+    except Exception as e:
         return 0, str(e).encode()
 
 
@@ -129,11 +131,11 @@ def cloud(prompt: str, model: str = CLOUD_MODELS[0], *,
         detail = ""
         try:
             detail = json.loads(e.read()).get("error", "")[:80]
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         return {"model": model, "answer": "", "rejected": f"http-{e.code} {detail}",
                 "raw_len": 0, "http": e.code}
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return {"model": model, "answer": "", "rejected": f"transport {type(e).__name__}",
                 "raw_len": 0, "http": 0}
     text = (d.get("message") or {}).get("content") or ""

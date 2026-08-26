@@ -13,22 +13,14 @@ Runs a live end-to-end execution of the full Cohezion AGI stack:
 
 from __future__ import annotations
 
-import json
-import time
-from pathlib import Path
-
 from cohezion.agi.autoharness_compiler import AutoHarnessCompiler
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.recursive_learning import RecursiveLearningEngine
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
-from cohezion.contracts import PoincarePoint
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 from cohezion.physics.ctac_engine import CTACEngine
-from cohezion.physics.fiber_connection import FiberConnectionEngine
 from cohezion.physics.geodesic_flow_ode import GeodesicFlowODE
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.physics.tensor_calculus import VectorTensor
-from cohezion.proactive.agent import ProactiveAgent
 from cohezion.proactive.counterfactual_gym import CounterfactualProactiveGym
 
 
@@ -52,7 +44,7 @@ def main() -> None:
     evaluator_fn = compiler.compile_rule("grid_bounds", "available_gb >= 20.0")
     allowed = evaluator_fn({"available_gb": 50.0})
     us_latency = compiler.benchmark_rule_latency(evaluator_fn, {"available_gb": 50.0})
-    print(f"  ✓ Rule Compiled: grid_bounds ('available_gb >= 20.0')")
+    print("  ✓ Rule Compiled: grid_bounds ('available_gb >= 20.0')")
     print(f"  ✓ Bytecode Allowed: {allowed}")
     print(f"  ✓ Evaluation Latency: {us_latency:.2f} µs (Bypassed LLM: True)")
 

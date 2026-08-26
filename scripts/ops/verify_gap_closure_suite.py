@@ -11,26 +11,24 @@ Exercises and proves all 4 gap-closure deliverables in lockstep:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import sys
 import time
 from pathlib import Path
-import numpy as np
+
 
 # Add src to path
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from cohezion.adapters.interop import (
-    AutoGenCohezionGroupChatManager,
     LangGraphCohezionNode,
-    sheaf_consensus_gate,
     verified_action,
 )
 from cohezion.flume.observability_hud import CohezionObservabilityHUD
 from cohezion.mcp.cohezion_agi_server import call_tool, list_tools
 from cohezion.security.micro_sandbox import MicroSandboxEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("gap_closure_harness")
@@ -51,7 +49,7 @@ async def main():
     # Invoke MCP tool
     mcp_res = await call_tool("cohezion_autoharness_verify", {"code": "def solve(x: int) -> int:\n    return x + 42\n"})
     assert "true" in mcp_res[0].text.lower(), "MCP verification call failed"
-    print(f"      ✓ Invoked `cohezion_autoharness_verify` via MCP: Verified Valid in 0.00ms")
+    print("      ✓ Invoked `cohezion_autoharness_verify` via MCP: Verified Valid in 0.00ms")
 
     # 2. Interop Decorators & Framework Adapters
     @verified_action(strict=True)
@@ -63,7 +61,7 @@ async def main():
     lg_node = LangGraphCohezionNode()
     state_out = lg_node({"agent": "researcher", "state_vector": [0.1]*12, "coherence": 0.50})
     assert "provenance_signature" in state_out and state_out["hiho_dissonance"] == 0.0
-    print(f"  • [Phase 1/4] Framework Adapters: LangGraph Node & AutoGen Consensus Gate Verified (HMAC signed)")
+    print("  • [Phase 1/4] Framework Adapters: LangGraph Node & AutoGen Consensus Gate Verified (HMAC signed)")
 
     # 3. Observability HUD
     hud = CohezionObservabilityHUD()

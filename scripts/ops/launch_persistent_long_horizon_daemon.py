@@ -20,11 +20,12 @@ import time
 from pathlib import Path
 
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
-from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
+from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.load_safety import check_load_safe
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.researcher.daily_researcher import FleetLock
+
 
 logging.basicConfig(
     level=logging.INFO,

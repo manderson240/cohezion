@@ -21,6 +21,7 @@ import math
 import sys
 from pathlib import Path
 
+
 logger = logging.getLogger("neurogolf_bench")
 
 # ── Config ─────────────────────────────────────────────────────────────────

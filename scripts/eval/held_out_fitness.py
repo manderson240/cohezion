@@ -31,6 +31,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
+
 SURREAL_URL = "http://localhost:8001/sql"
 LEMONADE_URL = "http://localhost:13305/api/v1/chat/completions"
 MODEL = os.environ.get("HELD_OUT_MODEL", "Bonsai-8B-gguf")
@@ -50,7 +51,7 @@ def _load_skill_prompt(skill_name: str) -> str:
 
 
 def _surreal(query: str) -> list:
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         SURREAL_URL, data=query.encode(),
         headers={"surreal-ns": "cohezion", "surreal-db": "main", "Content-Type": "text/plain",
                  "Authorization": "Basic " + base64.b64encode(b"root:root").decode()})
@@ -62,13 +63,13 @@ def _infer(prompt: str, system_prompt: str, timeout: int = 90) -> str:
     body = {"model": MODEL, "temperature": 0.0, "max_tokens": 512,
             "messages": [{"role": "system", "content": system_prompt},
                          {"role": "user", "content": prompt}]}
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         LEMONADE_URL, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
             d = json.load(r)
         return (d["choices"][0]["message"].get("content") or "")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return f"[infer-error:{str(exc)[:60]}]"
 
 

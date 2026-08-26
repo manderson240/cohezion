@@ -19,6 +19,7 @@ from typing import Any
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
 from cohezion.swarm.oo_agents import BaseOOAgent, capability, dynamic
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("DogfoodHybridSwarm")
 

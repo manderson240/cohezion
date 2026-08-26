@@ -13,6 +13,7 @@ from pathlib import Path
 
 import httpx
 
+
 VAULT = Path.home() / "vaults" / "cohezion-vault" / "Research" / "marimo"
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
 MODEL = "Gemma-4-26B-A4B-it-GGUF"  # non-thinking instruct on :13305; confirmed available

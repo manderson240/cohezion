@@ -29,6 +29,7 @@ import re
 import sys
 from pathlib import Path
 
+
 SPINE = "ARCHITECTURE-SPINE.md"
 
 AD_HEADING = re.compile(r"^#{2,4}\s*AD-(\d+)\b(.*)$", re.MULTILINE)

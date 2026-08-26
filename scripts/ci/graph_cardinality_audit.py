@@ -25,6 +25,7 @@ import json
 import subprocess
 import sys
 
+
 SURREAL = "http://localhost:8001/sql"
 NS, DB = "cohezion", "main"
 
@@ -40,7 +41,7 @@ EXPECTED_POPULATED = {
 
 
 def sql(q: str) -> list:
-    out = subprocess.run(  # noqa: S603
+    out = subprocess.run(
         ["curl", "-s", "--max-time", "20", SURREAL,
          "-H", f"surreal-ns: {NS}", "-H", f"surreal-db: {DB}",
          "-H", "Content-Type: text/plain", "-u", "root:root", "--data", q],

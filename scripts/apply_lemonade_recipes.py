@@ -26,10 +26,10 @@ import json
 import sys
 import time
 from pathlib import Path
-
 from typing import Any
 
 import requests
+
 
 # ── Repo root on sys.path ──────────────────────────────────────────────────────
 _ROOT = Path(__file__).resolve().parent.parent
@@ -37,6 +37,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 from cohezion.compound.lemonade_recipes import BASE_RECIPES, USER_VARIANTS
 from cohezion.compound.oom_guard import get_available_ram_gb
+
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 _API = "http://localhost:13305/api/v1"
@@ -98,7 +99,7 @@ def _health_check() -> bool:
         return False
 
 
-def _load_with_recipe(model_name: str, opts: "dict[str, Any]", dry_run: bool) -> bool:
+def _load_with_recipe(model_name: str, opts: dict[str, Any], dry_run: bool) -> bool:
     """POST /api/v1/load to save recipe options; returns True on success."""
     payload = {
         "model_name": model_name,
@@ -143,7 +144,7 @@ def _unload(model_name: str, dry_run: bool) -> None:
         _log(f"  [unload] (non-fatal) {exc}")
 
 
-def _verify_saved(model_name: str, expected: "dict[str, Any]") -> bool:
+def _verify_saved(model_name: str, expected: dict[str, Any]) -> bool:
     """Check that the daemon's stored recipe_options match what we sent."""
     try:
         d = _api_get(f"models/{model_name}")
@@ -201,7 +202,7 @@ def apply_base_recipes(
         if ok and not dry_run:
             time.sleep(1)  # brief pause before verify/unload
             if _verify_saved(model_name, flat_opts):
-                _log(f"  [verify] ✓ recipe_options saved")
+                _log("  [verify] ✓ recipe_options saved")
             _unload(model_name, dry_run=False)
 
         results[model_name] = "ok" if ok else "fail"
@@ -243,7 +244,7 @@ def apply_user_variants(dry_run: bool = True) -> dict[str, str]:
 
         try:
             path.write_text(json.dumps(variant, indent=2))
-            _log(f"  [write] ✓ written")
+            _log("  [write] ✓ written")
             results[name] = "ok"
         except Exception as exc:
             _log(f"  [write] ERROR: {exc}")

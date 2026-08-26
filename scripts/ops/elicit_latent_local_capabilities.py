@@ -12,19 +12,17 @@ Techniques:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.kaggle_autoharness import AIMOProofState, KaggleAutoHarness
-from cohezion.contracts import PoincarePoint
 from cohezion.flume.poincare_manifold_visualizer import PoincareManifoldVisualizer
 from cohezion.inference.anti_sycophancy import AntiSycophancyGuard, SycophancyRisk
 from cohezion.inference.deep_cooking import DeepCookingEngine
 from cohezion.physics.poincare_manifold import PoincareManifoldND
-from cohezion.reliability.oom_guard import OOMGuard
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)

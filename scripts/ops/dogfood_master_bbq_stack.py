@@ -26,7 +26,6 @@ from cohezion.agents.gaia_bugfix_agent import GaiaBugfixAgentManager
 from cohezion.agents.specialists.vault_keeper import VaultKeeper
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.flume_vae import FLUMEVAE
-from cohezion.agi.phoenix_architecture import PhoenixArchitectureEngine
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.compound.chronos import get_chronos
 from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol

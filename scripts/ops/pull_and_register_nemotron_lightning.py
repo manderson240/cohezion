@@ -64,7 +64,7 @@ def main() -> None:
     }
 
     try:
-        req = urllib.request.Request(  # noqa: S310 — fixed localhost :13305 URL
+        req = urllib.request.Request(
             LEMONADE_URL,
             data=json.dumps(registration_payload).encode(),
             headers={"Content-Type": "application/json"},

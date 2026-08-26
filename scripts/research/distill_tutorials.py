@@ -88,7 +88,7 @@ def distill(name: str, text: str) -> str:
         "max_tokens": 320,
         "temperature": 0.2,
     }).encode()
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         LEMONADE, data=body, headers={"Content-Type": "application/json"}
     )
     try:

@@ -25,6 +25,7 @@ from pathlib import Path
 
 import httpx
 
+
 logger = logging.getLogger("bughunt")
 
 # ── Config ─────────────────────────────────────────────────────────────────

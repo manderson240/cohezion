@@ -24,6 +24,7 @@ import subprocess
 import urllib.request
 from pathlib import Path
 
+
 REPO_DEFAULT = Path(__file__).resolve().parents[2]
 BLOCK, WARN, OK = "BLOCK", "WARN", "OK"
 
@@ -40,7 +41,7 @@ def _http_ok(url: str, headers: dict | None = None, data: bytes | None = None, t
         req = urllib.request.Request(url, data=data, headers=headers or {})  # noqa: S310 localhost
         with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
             return r.status == 200, r.read(100_000).decode(errors="ignore")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return False, str(exc)[:80]
 
 
@@ -74,7 +75,7 @@ def checks(repo: Path) -> list[tuple[str, str, str]]:
     if ok:
         try:
             served = len(json.loads(detail if detail.strip().startswith("{") else "{}").get("data", []))
-        except Exception:  # noqa: BLE001
+        except Exception:
             served = -1
     out.append(("lemonade-:13305", OK if ok else BLOCK,
                 f"{served} models served" if ok else f"unreachable: {detail}"))

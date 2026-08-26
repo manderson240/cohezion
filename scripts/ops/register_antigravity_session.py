@@ -7,17 +7,16 @@ with active daemons and peer sessions.
 """
 
 import asyncio
-import os
 import sys
-import time
 from pathlib import Path
+
 
 # Add src to path
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
+from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.reliability.oom_guard import OOMGuard
 
 

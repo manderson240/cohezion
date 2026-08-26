@@ -17,10 +17,12 @@ Safe to re-run. Reversible by editing config.yaml or running with
 --revert to delete the auxiliary block.
 """
 from __future__ import annotations
+
 import argparse
 import shutil
 import sys
 from pathlib import Path
+
 
 CONFIG = Path.home() / ".hermes" / "config.yaml"
 BACKUP_DIR = Path.home() / ".hermes" / "backups"
@@ -87,7 +89,7 @@ def main() -> int:
         for k in AUX_TASKS:
             print(f"  auxiliary.{k}.provider = {LEMONADE}")
             print(f"  auxiliary.{k}.base_url = {LEMONADE_URL}")
-        print(f"  model.max_tokens = 600")
+        print("  model.max_tokens = 600")
         return 0
 
     bp = backup(CONFIG)

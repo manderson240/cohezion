@@ -19,8 +19,10 @@ import sys
 import urllib.request
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from durable_swarm_output import DurableRun  # noqa: E402
+from durable_swarm_output import DurableRun
+
 
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
 MODEL = "Qwen3.6-35B-A3B-MTP-GGUF"
@@ -106,7 +108,7 @@ def main() -> None:
         src = f.read_text(encoding="utf-8", errors="replace")
         try:
             note = call(src, f.stem)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             note, err = "", f"{type(e).__name__}: {e}"
             run.record_lane({"lane": f.stem, "rejected": err})
             print(f"  {f.stem:<16} FAILED {err}")

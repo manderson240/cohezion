@@ -13,6 +13,7 @@ import sys
 import time
 from pathlib import Path
 
+
 REPO = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
@@ -99,10 +100,10 @@ def main() -> int:
 
     try:
         elapsed_ms = verify_poincare_visualizer_pipeline()
-        print(f"✅ Vector Projection 2048D -> 3D: PASSED")
-        print(f"✅ Hyperbolic Distance Computation: PASSED")
-        print(f"✅ Skill & Retrospective Mapping: PASSED (71 PRIME skills + 15 Retros)")
-        print(f"✅ Plotly 3D Figure Generation: PASSED")
+        print("✅ Vector Projection 2048D -> 3D: PASSED")
+        print("✅ Hyperbolic Distance Computation: PASSED")
+        print("✅ Skill & Retrospective Mapping: PASSED (71 PRIME skills + 15 Retros)")
+        print("✅ Plotly 3D Figure Generation: PASSED")
         print(f"⏱️  Pipeline Execution Time: {elapsed_ms:.2f} ms")
 
         # Verify strict performance benchmark threshold (<100ms)

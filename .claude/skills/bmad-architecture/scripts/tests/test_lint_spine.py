@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 
+
 _SPEC = importlib.util.spec_from_file_location(
     "lint_spine", Path(__file__).resolve().parent.parent / "lint_spine.py"
 )

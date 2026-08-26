@@ -12,6 +12,7 @@ from pathlib import Path
 
 import httpx
 
+
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
 MODEL = "Gemma-4-26B-A4B-it-GGUF"
 VAULT = Path.home() / "vaults" / "cohezion-vault" / "reports"

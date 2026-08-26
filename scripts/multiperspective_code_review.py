@@ -16,19 +16,19 @@ from __future__ import annotations
 import argparse
 import base64
 import json
-import os
 import sys
 import time
 import urllib.request
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
-from cohezion.review.delegate import collect, build_prompt, run_review
 from cohezion.inference.gaia_adapter import build_gaia_llm_tier
+from cohezion.review.delegate import collect, run_review
+
 
 SURREAL_URL = "http://localhost:8001/sql"
 SURREAL_AUTH = base64.b64encode(b"root:root").decode()
@@ -115,7 +115,7 @@ def main() -> int:
     ap.add_argument("--skip-cloud", action="store_true", help="Skip cloud perspectives")
     args = ap.parse_args()
 
-    print(f"=== Multiperspective Adversarial Code Review ===")
+    print("=== Multiperspective Adversarial Code Review ===")
     print(f"Ref: {args.commit} | Local Model: {args.local_model}")
 
     # 1. Collect diff & review rules via ocr delegate
@@ -142,7 +142,7 @@ def main() -> int:
         full_diff_summary = "\n".join(
             [f"File: {f.path}\nDiff:\n{diff_fn(f.path)[:2000]}" for f in review.files]
         )
-        
+
         for role, pinfo in PERSPECTIVES.items():
             print(f"  -> Invoking [{role}] via {pinfo['model']}...")
             prompt = (
@@ -162,8 +162,8 @@ def main() -> int:
 
     # 4. Synthesize Final Report
     report_id = f"review_{args.commit.replace('/', '_')}_{int(time.time())}"
-    timestamp = datetime.now(timezone.utc).isoformat()
-    
+    timestamp = datetime.now(UTC).isoformat()
+
     report_md = [
         f"# Multiperspective Adversarial Review: {args.commit}",
         f"**Date**: {timestamp}",

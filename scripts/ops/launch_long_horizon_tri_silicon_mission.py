@@ -10,12 +10,10 @@ Orchestrates long-running multi-pass discovery across AMD RYZEN AI MAX+ 395 hard
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-import sys
 import time
-from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
+
 import numpy as np
 
 from cohezion.agi.kaggle_autoharness import KaggleAutoHarness
@@ -26,15 +24,16 @@ from cohezion.flume.poincare_manifold_visualizer import (
     project_2048d_to_poincare_3d,
 )
 from cohezion.inference.load_safety import available_ram_gb, check_load_safe
-from cohezion.inference.tri_compute_orchestrator import ExperimentPhase, TriComputeOrchestrator
+from cohezion.inference.tri_compute_orchestrator import TriComputeOrchestrator
 from cohezion.physics.hiho_sonification import HIHOSonifier
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("ouroboros_omega")
 
 
 from cohezion.compound.executor import ExecutionResult
-from cohezion.compound.journey_tracker import JourneyTracker, OperationType
+from cohezion.compound.journey_tracker import JourneyTracker
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus, EventType
 
@@ -104,12 +103,12 @@ class LongHorizonTriSiliconMission:
         # STAGE 3: CPU Zero-Cost AutoHarness & Audio Sonification (32-Thread Zen 5)
         t_cpu_start = time.time()
         logger.info("  [CPU / Zen 5] Running AST bytecode verifiers & 432 Hz HIHO audio synthesis...")
-        
+
         # AST Bytecode check
         harness_res = self.autoharness.verify_aimo_proof_state(
             state={"value": 42, "min_bound": 0, "max_bound": 999},
         )
-        
+
         field_state = self.sonifier.sonify_quadrature_state(np.array([0.5] * 12))
         hiho_audio = self.sonifier.generate_audio_buffer(field_state=field_state, duration_s=0.05)
         cpu_latency = (time.time() - t_cpu_start) * 1000.0
@@ -123,7 +122,7 @@ class LongHorizonTriSiliconMission:
             cache_key = f"ouroboros_omega_cycle_{cycle}"
             self.cache_system.put(cache_key, {"cycle": cycle, "d_p": d_p, "verified": harness_res.valid})
             persisted = True
-            
+
             # Track 12D FLUME Trajectory
             exec_res = ExecutionResult(
                 success=harness_res.valid,
@@ -139,7 +138,7 @@ class LongHorizonTriSiliconMission:
             )
             journey_tracked = point is not None
             logger.info(f"  [Journey] Tracked 12D FLUME Trajectory Point: Coherence={point.coherence:.4f}")
-            
+
             # STAGE 5: EventBus Cross-Session Broadcast
             await self.event_bus.publish(
                 Event(
@@ -183,7 +182,7 @@ class LongHorizonTriSiliconMission:
         for c in range(1, self.max_cycles + 1):
             await self.run_cycle(c)
             await asyncio.sleep(0.1)
-        
+
         logger.info("\n=======================================================================")
         logger.info("🎉 PROJECT OUROBOROS-OMEGA MISSION COMPLETED SUCCESSFULLY!")
         logger.info(f"  • Total Cycles Executed : {len(self.telemetry_history)}")

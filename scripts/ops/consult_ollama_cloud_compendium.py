@@ -5,7 +5,7 @@ Sends the complete Digitized Temporal Compendium synthesis and Cohezion's FLUME 
 architecture to frontier cloud reasoning model `deepseek-v4-pro:cloud` via Ollama (:11434).
 
 Requests:
-1. Deep theoretical critique of the 4-Fabric metric tensor $g_{\mu\nu} = g_S + \alpha g_F + \beta g_C + \gamma g_P$.
+1. Deep theoretical critique of the 4-Fabric metric tensor $g_{\\mu\nu} = g_S + \alpha g_F + \beta g_C + \\gamma g_P$.
 2. Review of the HIHO 0.5 Coherence Stability Protocol and EVO plasma boundary conditions.
 3. Recommendations for quantum hardware emulation and mathematical invariants on the Poincaré ball.
 """
@@ -13,7 +13,9 @@ Requests:
 import asyncio
 import time
 from pathlib import Path
+
 import httpx
+
 
 SYNTHESIS_PATH = Path("/home/mike-anderson/dev/cohezion/docs/research/temporal_compendium_synthesis.md")
 
