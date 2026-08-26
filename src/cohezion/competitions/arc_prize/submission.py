@@ -151,15 +151,28 @@ def solve_arc_task(task: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     return predictions
 
-def main():
-    print("Cohezion Grandmaster AutoHarness ARC Solver (v8) Running...")
+def find_test_challenges_file() -> Optional[str]:
     candidates = [
-        "/kaggle/input/arc-prize-2026/arc-agi_test_challenges.json",
-        "/kaggle/input/arc-prize-2026-arc-agi-2/arc-agi_test_challenges.json",
         "/kaggle/input/arc-prize-2026-arc-agi-3/arc-agi_test_challenges.json",
+        "/kaggle/input/arc-prize-2026/arc-agi_test_challenges.json",
+        "/kaggle/input/arc-agi_test_challenges.json",
+        "data/arc_prize/arc-agi_test_challenges.json",
         "data/kaggle/arc_test_sample.json"
     ]
-    data_path = next((p for p in candidates if os.path.exists(p)), None)
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+            
+    if os.path.exists("/kaggle/input"):
+        for root, dirs, files in os.walk("/kaggle/input"):
+            if "arc-agi_test_challenges.json" in files:
+                return os.path.join(root, "arc-agi_test_challenges.json")
+    return None
+
+def main():
+    print("Cohezion Grandmaster AutoHarness ARC-AGI-3 Solver (v8) Running...")
+    data_path = find_test_challenges_file()
+    print(f"Discovered test data at: {data_path}")
 
     if not data_path:
         tasks = {
