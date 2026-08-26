@@ -64,19 +64,27 @@ class PoincareManifoldND:
 
     @classmethod
     def distance(cls, u: PoincarePoint, v: PoincarePoint) -> float:
-        """Compute exact hyperbolic distance between two points in N-dimensional Poincaré ball."""
+        """Compute exact hyperbolic distance with DeepSeek-V4 Pro log-barrier boundary stabilization."""
         if u.dim != v.dim:
             raise ValueError(f"Dimensional mismatch: u is {u.dim}D, v is {v.dim}D")
 
-        u_sq = sum(c * c for c in u.coords)
-        v_sq = sum(c * c for c in v.coords)
+        u_norm = min(cls.MAX_RADIUS, math.sqrt(sum(c * c for c in u.coords)))
+        v_norm = min(cls.MAX_RADIUS, math.sqrt(sum(c * c for c in v.coords)))
 
-        # Fused formulation for high numerical stability at high dimensionality (Lane 1 research)
         diff_sq = sum((uc - vc) ** 2 for uc, vc in zip(u.coords, v.coords, strict=True))
+        if diff_sq < 1e-18:
+            return 0.0
 
-        denom = max(cls.EPS, (1.0 - u_sq) * (1.0 - v_sq))
-        arg = max(1.0, 1.0 + (2.0 * diff_sq / denom))
+        # Log-barrier decomposition: (1-||u||^2) = (1-||u||)(1+||u||) preventing underflow
+        log_a = math.log(max(cls.EPS, 1.0 - u_norm)) + math.log(1.0 + u_norm)
+        log_b = math.log(max(cls.EPS, 1.0 - v_norm)) + math.log(1.0 + v_norm)
+        log_diff_sq = math.log(max(1e-18, diff_sq))
 
+        # log_ratio = log(2 * ||u-v||^2 / ((1-||u||^2)(1-||v||^2)))
+        log_ratio = math.log(2.0) + log_diff_sq - log_a - log_b
+        ratio = math.exp(min(50.0, log_ratio))
+
+        arg = max(1.0, 1.0 + ratio)
         return math.acosh(arg)
 
     @classmethod
