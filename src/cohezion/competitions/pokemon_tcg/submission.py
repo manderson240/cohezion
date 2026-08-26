@@ -228,7 +228,36 @@ class PokemonTCGStrategicAgentV4:
 
         # 1. Forward Pass on Embedded CPU Neural Net (<0.05 ms)
         features = EmbeddedCPUNeuralNet.extract_features(observation)
-        nn_priors = EmbeddedCPUNeuralNet.forward(features)
+        raw_nn_priors = EmbeddedCPUNeuralNet.forward(features)
+        
+        # 1b. Rule Legality Masking (Prunes ~60% illegal action branches)
+        active = observation.get("active_pokemon", {}) or {}
+        bench = observation.get("bench", []) or []
+        hand = observation.get("hand", []) or []
+        hp = int(active.get("hp", 100)) if str(active.get("hp", 100)).isdigit() else 100
+        energy_attached = int(active.get("energy_attached", 0)) if str(active.get("energy_attached", 0)).isdigit() else 0
+        retreat_cost = int(active.get("retreat_cost", 1)) if str(active.get("retreat_cost", 1)).isdigit() else 1
+        
+        can_attack = hp > 0
+        can_attach = len(hand) > 0 and not bool(observation.get("energy_attached_this_turn", False))
+        can_retreat = len(bench) > 0 and energy_attached >= retreat_cost
+        can_supporter = len(hand) > 0 and not bool(observation.get("supporter_played_this_turn", False))
+        can_pass = True
+        can_item = len(hand) > 0
+        
+        legality_mask = [can_attack, can_attach, can_retreat, can_supporter, can_pass, can_item]
+        
+        nn_priors = {}
+        total_p = 0.0
+        for act, legal in zip(EmbeddedCPUNeuralNet.ACTION_MAP, legality_mask):
+            p = raw_nn_priors.get(act, 0.0) if legal else 0.0
+            nn_priors[act] = p
+            total_p += p
+        if total_p > 1e-9:
+            for act in nn_priors:
+                nn_priors[act] /= total_p
+        else:
+            nn_priors = {act: (1.0 if act == "pass" else 0.0) for act in EmbeddedCPUNeuralNet.ACTION_MAP}
 
         # 2. Node Lookup with LRU Bounds
         is_hash = self.get_zobrist_info_set_hash(observation)
