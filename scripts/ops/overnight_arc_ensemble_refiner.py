@@ -1,8 +1,36 @@
-"""Cohezion Master AutoHarness Grandmaster Ensemble (v7).
+#!/usr/bin/env python3
+"""Autonomous Overnight ARC Ensemble Refiner & Leaderboard Climber.
+
+Objective:
+Climb the real ARC-AGI-2 (Target: >35.0%) and ARC-AGI-3 (Target: >6.0%) Leaderboards.
+
+Strategy:
+1. Multi-Hypothesis Grid Synthesizer:
+   - D4 Dihedral transformations (rotations, reflections).
+   - Dynamic Color Mapping & Palette Permutations.
+   - Connected Component Analysis (Flood-fill object bounding boxes).
+   - Scale & Block-Tiling expansion / decimation.
+   - Gravity & Directional physics simulation.
+2. AutoHarness Zero-Cost Bytecode Verification (arXiv:2603.03329v1):
+   - Tests candidates against train pairs first. If score == 100%, candidate is verified.
+   - Generates ranked attempt_1 and attempt_2 outputs.
+3. Automatically writes `src/cohezion/competitions/arc_prize/submission.py` and pushes to Kaggle.
+"""
+
+from __future__ import annotations
+import collections
+import json
+import os
+import subprocess
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+ARC_SUBMISSION_CODE = """\"\"\"Cohezion Master AutoHarness Grandmaster Ensemble (v7).
 
 Multi-Hypothesis Deterministic Transforms + Exact Training Fit Verification.
 arXiv:2603.03329v1 compliant zero-cost action verifier.
-"""
+\"\"\"
 
 import json
 import os
@@ -127,6 +155,20 @@ def main():
     with open("submission.json", "w") as f:
         json.dump(results, f)
     print("✓ submission.json generated successfully.")
+
+if __name__ == "__main__":
+    main()
+"""
+
+def main():
+    print("Synthesizing Master AutoHarness ARC Ensemble (v7)...")
+    sub_file = Path("src/cohezion/competitions/arc_prize/submission.py")
+    sub_file.write_text(ARC_SUBMISSION_CODE)
+    
+    # Push to Kaggle for ARC-AGI-2
+    print("Pushing v7 to Kaggle ARC-AGI-2...")
+    res2 = subprocess.run(["kaggle", "kernels", "push", "-p", "src/cohezion/competitions/arc_prize/"], capture_output=True, text=True)
+    print(f"Kaggle Push AGI-2: {res2.stdout.strip()} {res2.stderr.strip()}")
 
 if __name__ == "__main__":
     main()
