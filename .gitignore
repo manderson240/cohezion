@@ -319,3 +319,8 @@ conductor/
 .playwright-mcp/
 execution_traces/
 .mcp.json
+
+# Munder Difflin UI & Node dependencies
+node_modules/
+src/cohezion/skills/munder-difflin-repo/
+
