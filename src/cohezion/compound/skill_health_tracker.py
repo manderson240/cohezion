@@ -64,8 +64,24 @@ class SkillHealthRecord:
 class SkillHealthTracker:
     """Tracks and persists skill health metrics."""
 
+    @staticmethod
+    def default_storage_path() -> Path:
+        """Absolute, process-independent default location for health records.
+
+        The previous cwd-relative ``data/skill_health.json`` meant a daemon
+        writing health from one directory and a ``CapabilityMatrix`` constructed
+        in another used DIFFERENT files, and any process without that path in
+        its cwd loaded zero records silently -- which is why the matrix's skill
+        axis read 0 against a 275-skill library.
+
+        Resolved per call rather than at import: a module-level ``Path.home()``
+        freezes ``$HOME`` at first import, so anything that sets it afterwards
+        (test harnesses, service managers) would be silently ignored.
+        """
+        return Path.home() / ".cohezion" / "skill_health.json"
+
     def __init__(self, storage_path: Path | None = None) -> None:
-        self._storage_path = storage_path or Path("data/skill_health.json")
+        self._storage_path = storage_path or self.default_storage_path()
         self._records: dict[str, SkillHealthRecord] = {}
         self._load()
 

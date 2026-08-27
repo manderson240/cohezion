@@ -17,6 +17,23 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# speed_tier runs 1 (cheapest/fastest) to 5 (most expensive/slowest).
+_MIN_SPEED_TIER = 1
+_MAX_SPEED_TIER = 5
+
+# Weight of the cost term in recommend_for_task. Small on purpose: it orders
+# equal-scoring candidates cheapest-first without letting tier override a real
+# quality gap. Raising it is a routing-policy decision that wants benchmarking
+# evidence, so callers opt in per-call via constraints["cost_weight"].
+_DEFAULT_COST_WEIGHT = 0.05
+
+
+def _tier_cost(speed_tier: int) -> float:
+    """Normalise a speed tier to 0.0 (cheapest) .. 1.0 (most expensive)."""
+    span = _MAX_SPEED_TIER - _MIN_SPEED_TIER
+    clamped = max(_MIN_SPEED_TIER, min(_MAX_SPEED_TIER, speed_tier))
+    return (clamped - _MIN_SPEED_TIER) / span
+
 
 @dataclass
 class CapabilityEntry:
@@ -320,11 +337,27 @@ class CapabilityMatrix:
         task_type: str,
         constraints: dict | None = None,
     ) -> list[CapabilityEntry]:
-        """Recommend entities for a task type, sorted by affinity score."""
+        """Recommend entities for a task type, best first.
+
+        Ranked by ``affinity + quality - cost_weight * normalised_speed_tier``.
+
+        The cost term is a tie-break, not a cost/quality exchange rate. Stated
+        exactly, because the imprecise version is wrong: the tier penalty spans
+        at most ``cost_weight`` (default 0.05), so tier CAN reorder candidates
+        whose combined affinity+quality differ by up to 0.05, and cannot reorder
+        any pair differing by more than that. Quality scores in this matrix move
+        in 0.2 steps, so no real capability gap is within reach of the default
+        weight -- but "never overrides quality" would be false as an unqualified
+        claim, and the 0.05 boundary is pinned by test rather than trusted.
+
+        Callers with benchmarking evidence can raise ``constraints["cost_weight"]``
+        to trade quality for cost deliberately.
+        """
         constraints = constraints or {}
         max_latency = constraints.get("max_latency_ms", float("inf"))
         min_quality = constraints.get("min_quality", 0.0)
         entity_types = constraints.get("entity_types", ["model"])
+        cost_weight = constraints.get("cost_weight", _DEFAULT_COST_WEIGHT)
 
         candidates = []
         for entry in self._entries.values():
@@ -336,7 +369,8 @@ class CapabilityMatrix:
             if latency > max_latency:
                 continue
             affinity = entry.affinity.get(task_type, 0.0)
-            candidates.append((affinity + entry.quality_score, entry))
+            score = affinity + entry.quality_score - cost_weight * _tier_cost(entry.speed_tier)
+            candidates.append((score, entry))
 
         candidates.sort(key=lambda x: x[0], reverse=True)
         return [entry for _, entry in candidates]
