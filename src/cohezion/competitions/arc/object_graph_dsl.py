@@ -144,3 +144,79 @@ def transform_keep_smallest_object(grid: List[List[int]]) -> List[List[int]]:
         return grid
     smallest = min(objs, key=lambda o: o.size)
     return dsl_render_objects([smallest], (h, w))
+
+# ---------------------------------------------------------------------------
+# 3 Red-Team Visual Primitives: Symmetry, Topology Enclosure, Recursive Motifs
+# ---------------------------------------------------------------------------
+
+def transform_complete_horizontal_symmetry(grid: List[List[int]]) -> List[List[int]]:
+    """Reflects left half onto right half across vertical center axis."""
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    res = [row[:] for row in grid]
+    mid = w // 2
+    for r in range(h):
+        for c in range(mid):
+            if res[r][c] != 0 and res[r][w - 1 - c] == 0:
+                res[r][w - 1 - c] = res[r][c]
+            elif res[r][w - 1 - c] != 0 and res[r][c] == 0:
+                res[r][c] = res[r][w - 1 - c]
+    return res
+
+def transform_complete_vertical_symmetry(grid: List[List[int]]) -> List[List[int]]:
+    """Reflects top half onto bottom half across horizontal center axis."""
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    res = [row[:] for row in grid]
+    mid = h // 2
+    for r in range(mid):
+        for c in range(w):
+            if res[r][c] != 0 and res[h - 1 - r][c] == 0:
+                res[h - 1 - r][c] = res[r][c]
+            elif res[h - 1 - r][c] != 0 and res[r][c] == 0:
+                res[r][c] = res[h - 1 - r][c]
+    return res
+
+def transform_fill_enclosed_regions(grid: List[List[int]], fill_color: int = 3) -> List[List[int]]:
+    """Topological Euler Enclosure: Fills background regions enclosed by non-zero contours."""
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    # BFS flood-fill from all 4 outside borders
+    outside = set()
+    queue = deque()
+    for r in range(h):
+        for c in [0, w - 1]:
+            if grid[r][c] == 0:
+                outside.add((r, c))
+                queue.append((r, c))
+    for c in range(w):
+        for r in [0, h - 1]:
+            if grid[r][c] == 0 and (r, c) not in outside:
+                outside.add((r, c))
+                queue.append((r, c))
+
+    while queue:
+        cr, cc = queue.popleft()
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nr, nc = cr + dr, cc + dc
+            if 0 <= nr < h and 0 <= nc < w:
+                if (nr, nc) not in outside and grid[nr][nc] == 0:
+                    outside.add((nr, nc))
+                    queue.append((nr, nc))
+
+    res = [row[:] for row in grid]
+    for r in range(h):
+        for c in range(w):
+            if res[r][c] == 0 and (r, c) not in outside:
+                res[r][c] = fill_color
+    return res
+
+def transform_tile_periodic_2x2(grid: List[List[int]]) -> List[List[int]]:
+    """Recursive Motif Progression: Expands a core repeating tile pattern."""
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    res = [[0] * (w * 2) for _ in range(h * 2)]
+    for r in range(h * 2):
+        for c in range(w * 2):
+            res[r][c] = grid[r % h][c % w]
+    return res

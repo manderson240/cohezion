@@ -216,6 +216,61 @@ def transform_keep_smallest_connected(grid: list[list[int]]) -> list[list[int]]:
         res[r][c] = smallest["color"]
     return res
 
+def transform_complete_horizontal_symmetry(grid: list[list[int]]) -> list[list[int]]:
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    res = [row[:] for row in grid]
+    mid = w // 2
+    for r in range(h):
+        for c in range(mid):
+            if res[r][c] != 0 and res[r][w - 1 - c] == 0:
+                res[r][w - 1 - c] = res[r][c]
+            elif res[r][w - 1 - c] != 0 and res[r][c] == 0:
+                res[r][c] = res[r][w - 1 - c]
+    return res
+
+def transform_complete_vertical_symmetry(grid: list[list[int]]) -> list[list[int]]:
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    res = [row[:] for row in grid]
+    mid = h // 2
+    for r in range(mid):
+        for c in range(w):
+            if res[r][c] != 0 and res[h - 1 - r][c] == 0:
+                res[h - 1 - r][c] = res[r][c]
+            elif res[h - 1 - r][c] != 0 and res[r][c] == 0:
+                res[r][c] = res[h - 1 - r][c]
+    return res
+
+def transform_fill_enclosed_regions(grid: list[list[int]]) -> list[list[int]]:
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    outside = set()
+    q = []
+    for r in range(h):
+        for c in [0, w - 1]:
+            if grid[r][c] == 0 and (r, c) not in outside:
+                outside.add((r, c))
+                q.append((r, c))
+    for c in range(w):
+        for r in [0, h - 1]:
+            if grid[r][c] == 0 and (r, c) not in outside:
+                outside.add((r, c))
+                q.append((r, c))
+    while q:
+        cr, cc = q.pop(0)
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nr, nc = cr + dr, cc + dc
+            if 0 <= nr < h and 0 <= nc < w and (nr, nc) not in outside and grid[nr][nc] == 0:
+                outside.add((nr, nc))
+                q.append((nr, nc))
+    res = [row[:] for row in grid]
+    for r in range(h):
+        for c in range(w):
+            if res[r][c] == 0 and (r, c) not in outside:
+                res[r][c] = 3
+    return res
+
 TRANSFORMS = [
     transform_identity,
     transform_rot90,
@@ -235,6 +290,9 @@ TRANSFORMS = [
     transform_object_gravity_bottom,
     transform_keep_largest_connected,
     transform_keep_smallest_connected,
+    transform_complete_horizontal_symmetry,
+    transform_complete_vertical_symmetry,
+    transform_fill_enclosed_regions,
 ]
 
 # ---------------------------------------------------------------------------
