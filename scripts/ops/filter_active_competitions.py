@@ -40,6 +40,24 @@ COMPETITIONS = [
         "teamCount": 515,
         "category": "Featured",
         "status": "Active / Deployed Kernel v7 (Legality Masking + PBS)"
+    },
+    {
+        "name": "RSNA Knee Abnormality Detection",
+        "slug": "rsna-knee-abnormality-detection",
+        "reward": "$77,000",
+        "deadline": "2026-10-22 23:59:00",
+        "teamCount": 2472,
+        "category": "Research",
+        "status": "Active / Deployed Kernel v4 (Multi-View MIL Sequence Classifier)"
+    },
+    {
+        "name": "Biohub 3D Cell Tracking During Development",
+        "slug": "biohub-cell-tracking-during-development",
+        "reward": "$60,000",
+        "deadline": "2026-09-29 23:59:00",
+        "teamCount": 2768,
+        "category": "Research",
+        "status": "Active / Deployed Kernel v7 (Hungarian Bipartite Mitosis Tracker)"
     }
 ]
 
