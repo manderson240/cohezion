@@ -15,9 +15,32 @@ deliberately do not claim the axis is fixed.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from cohezion.compound.skill_health_tracker import SkillHealthTracker
+
+
+def test_suite_is_actually_isolated_from_the_real_state_root() -> None:
+    """DISCRIMINATING: red if the conftest isolation fixture stops working.
+
+    Every other test in this file verifies that the tracker HONOURS
+    COHEZION_STATE_DIR. None of them verified that anything SETS it -- so with
+    the conftest fixture deleted or broken, all 8 stayed green while the suite
+    quietly resumed writing into the developer's real ~/.cohezion. Verified
+    2026-08-27 by neutralising the fixture: 8/8 still passed.
+
+    Testing the mechanism is not testing the protection. This is the assertion
+    that fails when the protection is gone.
+    """
+    assert os.environ.get("COHEZION_STATE_DIR"), (
+        "the session-scoped isolation fixture in tests/conftest.py is not active; "
+        "the suite would write skill-health records into the real state root"
+    )
+    resolved = SkillHealthTracker.default_storage_path()
+    assert resolved.parent != Path.home() / ".cohezion", (
+        f"tests resolve state to {resolved}, which is the REAL state root"
+    )
 
 
 def test_default_storage_path_is_absolute() -> None:
