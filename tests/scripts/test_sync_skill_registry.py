@@ -133,6 +133,80 @@ def test_prune_aborts_when_nothing_is_discovered(tmp_path: Path, monkeypatch, ca
     assert "abort" in capsys.readouterr().out.lower()
 
 
+def _mass_deletion_setup(module, tmp_path: Path, monkeypatch) -> Path:
+    """275 registry entries, exactly ONE skill left on disk."""
+    skills = tmp_path / "skills"
+    skills.mkdir()
+    (skills / "ONLY_ONE.md").write_text("---\ndescription: sole survivor\n---\n", encoding="utf-8")
+    registry = tmp_path / "skill_registry.json"
+    registry.write_text(
+        json.dumps({f"SKILL_{i}": {"path": f"p{i}.md"} for i in range(275)}), encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "SKILLS_DIR", skills)
+    monkeypatch.setattr(module, "REGISTRY_FILE", registry)
+    monkeypatch.setattr(module, "load_registry", lambda: json.loads(registry.read_text()))
+    return registry
+
+
+def test_prune_aborts_on_mass_deletion_not_just_an_empty_scan(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    """DISCRIMINATING: red while only the ZERO case is guarded.
+
+    The first guard fired only when the scan found EXACTLY zero skills. With a
+    single file present -- a partial checkout, a bad glob, a half-finished move
+    -- --prune --apply deleted all 275 entries and exited 0. Reproduced against
+    the committed code: "WROTE reg.json: 275 -> 0 entries, EXIT: 0".
+
+    The zero case was the one that got reported, so it was the one that got
+    fixed, and the surrounding class was left open.
+    """
+    module = _load()
+    registry = _mass_deletion_setup(module, tmp_path, monkeypatch)
+
+    exit_code = module.main(["--prune", "--apply"])
+
+    assert len(json.loads(registry.read_text())) == 275, (
+        "a near-total deletion must not proceed unattended"
+    )
+    assert exit_code != 0
+    assert "disproportionate" in capsys.readouterr().out.lower()
+
+
+def test_disproportionate_prune_proceeds_with_explicit_override(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """The guard must be overridable, or a real mass deletion has no sanctioned path.
+
+    A guard with no recovery route is exactly what drove someone to hand-edit
+    the lint baseline. Do not rebuild that shape here.
+    """
+    module = _load()
+    registry = _mass_deletion_setup(module, tmp_path, monkeypatch)
+
+    assert module.main(["--prune", "--apply", "--allow-mass-prune"]) == 0
+    assert json.loads(registry.read_text()) == {}
+
+
+def test_proportionate_prune_still_works(tmp_path: Path, monkeypatch) -> None:
+    """Ordinary cleanup -- a couple of dead pointers -- must not need an override."""
+    module = _load()
+    skills = tmp_path / "skills"
+    skills.mkdir()
+    for i in range(20):
+        (skills / f"SKILL_{i}.md").write_text(f"---\ndescription: s{i}\n---\n", encoding="utf-8")
+    registry = tmp_path / "skill_registry.json"
+    registry.write_text(
+        json.dumps({f"SKILL_{i}": {"path": f"SKILL_{i}.md"} for i in range(22)}), encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "SKILLS_DIR", skills)
+    monkeypatch.setattr(module, "REGISTRY_FILE", registry)
+    monkeypatch.setattr(module, "load_registry", lambda: json.loads(registry.read_text()))
+
+    assert module.main(["--prune", "--apply"]) == 0
+    assert len(json.loads(registry.read_text())) == 20
+
+
 def test_add_still_works_when_scan_is_empty(tmp_path: Path, monkeypatch) -> None:
     """The guard must block deletion only -- a no-op --add is harmless."""
     module = _load()

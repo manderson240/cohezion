@@ -38,13 +38,51 @@ REGISTRY_FILE = Path("src/cohezion/registry/skill_registry.json")
 
 _FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---", re.DOTALL)
 DESCRIPTION_MAX = 300
+
+# Largest share of the registry --prune will remove without an explicit override.
+# Real cleanup is a few dead pointers (today's was 5 of 245, ~2%); anything past
+# this looks like an incomplete tree, not a deletion someone intended.
+_MAX_PRUNE_FRACTION = 0.20
 # Words too generic to route on; keywords are a coarse index, not a summary.
 _STOPWORDS = frozenset(
     {
-        "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "how",
-        "in", "into", "is", "it", "its", "of", "on", "or", "that", "the", "to",
-        "use", "used", "using", "when", "with", "you", "your", "this", "these",
-        "specialist", "skill", "prime", "know", "understand", "understands",
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "by",
+        "for",
+        "from",
+        "how",
+        "in",
+        "into",
+        "is",
+        "it",
+        "its",
+        "of",
+        "on",
+        "or",
+        "that",
+        "the",
+        "to",
+        "use",
+        "used",
+        "using",
+        "when",
+        "with",
+        "you",
+        "your",
+        "this",
+        "these",
+        "specialist",
+        "skill",
+        "prime",
+        "know",
+        "understand",
+        "understands",
     }
 )
 
@@ -169,6 +207,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--add", action="store_true", help="register skills found on disk")
     parser.add_argument("--prune", action="store_true", help="drop entries whose file is gone")
     parser.add_argument("--apply", action="store_true", help="write changes (default: preview)")
+    parser.add_argument(
+        "--allow-mass-prune",
+        action="store_true",
+        help=f"permit removing more than {_MAX_PRUNE_FRACTION:.0%} of the registry at once",
+    )
     args = parser.parse_args(argv)
 
     if not (args.add or args.prune):
@@ -208,6 +251,25 @@ def main(argv: list[str] | None = None) -> int:
             "not that every skill was deleted. Re-run with --add only, or fix the path."
         )
         return 1
+
+    # The empty scan above is only the EXTREME of a broader hazard, and guarding
+    # it alone left the class open: with a single file on disk this deleted all
+    # 275 entries and exited 0 (reproduced 2026-08-27). A partial checkout, a
+    # bad glob or a half-finished move all look exactly like mass deletion.
+    # Routine cleanup is a handful of dead pointers; anything larger wants a
+    # human to say so out loud.
+    if args.prune and orphaned and not args.allow_mass_prune:
+        share = len(orphaned) / len(registry) if registry else 1.0
+        if share > _MAX_PRUNE_FRACTION:
+            print(
+                f"\nABORT: disproportionate prune -- {len(orphaned)} of {len(registry)} "
+                f"entries ({share:.0%}) would be removed, over the "
+                f"{_MAX_PRUNE_FRACTION:.0%} threshold. Only {len(on_disk)} skill(s) were "
+                f"found on disk, which usually means the tree is incomplete rather than "
+                f"that the skills are gone.\n"
+                f"   If the deletion is real, say so: --allow-mass-prune"
+            )
+            return 1
 
     updated = dict(registry)
     updated.update(additions)
