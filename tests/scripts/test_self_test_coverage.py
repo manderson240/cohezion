@@ -43,8 +43,13 @@ def gate(tmp_path, monkeypatch):
     monkeypatch.setattr(module, "REPO", tmp_path)
     monkeypatch.setattr(module.sys, "argv", ["self_test_coverage.py"])
 
-    def add_gate(name: str, *, self_tests: bool) -> None:
-        body = "if '--self-test' in sys.argv: ...\n" if self_tests else "print('hi')\n"
+    def add_gate(name: str, *, self_tests: bool, self_test_passes: bool = True) -> None:
+        if not self_tests:
+            body = "print('hi')\n"
+        else:
+            # A real script: the meta-gate EXECUTES it, so a stub string is not enough.
+            rc = 0 if self_test_passes else 1
+            body = f"import sys\nif '--self-test' in sys.argv:\n    sys.exit({rc})\n"
         (ci_dir / name).write_text(body, encoding="utf-8")
         workflow.write_text(
             workflow.read_text(encoding="utf-8") if workflow.exists() else "",
@@ -55,6 +60,30 @@ def gate(tmp_path, monkeypatch):
 
     module.add_gate = add_gate  # type: ignore[attr-defined]
     return module
+
+
+def test_gate_whose_self_test_FAILS_is_rejected(gate, capsys):
+    """DISCRIMINATING: red while the meta-gate only greps for the flag.
+
+    doc_code_consistency.py carried a --self-test that printed "BROKEN -- a check
+    cannot fail" and exited 1 for an unknown period. It satisfied a substring
+    check while being unable to detect anything, and CI stayed red-and-ignored
+    behind it. Presence of the flag is not evidence of health; only running it is.
+    """
+    gate.add_gate("rotted_gate.py", self_tests=True, self_test_passes=False)
+
+    assert gate.main() == 1
+    out = capsys.readouterr().out
+    assert "rotted_gate.py" in out
+    assert "FAILS" in out
+
+
+def test_gate_whose_self_test_passes_is_accepted(gate, capsys):
+    """Negative control: a healthy self-test must not be reported as rotted."""
+    gate.add_gate("healthy_gate.py", self_tests=True, self_test_passes=True)
+
+    assert gate.main() == 0
+    assert "FAILS" not in capsys.readouterr().out
 
 
 def test_new_gate_without_self_test_is_rejected(gate, capsys):

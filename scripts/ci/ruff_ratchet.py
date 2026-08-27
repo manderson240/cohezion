@@ -78,7 +78,70 @@ def _read_baseline() -> tuple[int, bool]:
     return int(counts[0]), _PROVENANCE in text
 
 
+def _self_test() -> int:
+    """Replay the 66f5186d5 incident and require this gate to diagnose it.
+
+    A gate that cannot demonstrate it still detects its founding defect has
+    rotted. Here the defect is a baseline nobody measured: 471 committed by hand
+    while the tree held 758. The gate must call that a MISCONFIGURATION rather
+    than blaming the author, because blaming the author is what got it ignored.
+    """
+    import io
+    import tempfile
+    from contextlib import redirect_stdout
+
+    global BASELINE_FILE, _current_count
+    real_file, real_count = BASELINE_FILE, _current_count
+    real_argv = sys.argv
+    # main() dispatches on --self-test, so the probe must call it without that flag
+    # or it recurses into itself forever.
+    sys.argv = [a for a in sys.argv if a != "--self-test"]
+    ok = True
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            BASELINE_FILE = Path(tmp) / "lint_baseline.txt"
+            _current_count = lambda: 758  # noqa: E731 - one-line stub for the probe
+
+            # 1. The historical case: unstamped baseline, tree above it.
+            BASELINE_FILE.write_text("471\n")
+            out = io.StringIO()
+            with redirect_stdout(out):
+                rc = main()
+            text = out.getvalue()
+            hit = rc == 1 and "UNVERIFIED" in text and "adds new lint debt" not in text
+            print(f"self-test unverified-baseline: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
+
+            # 2. Negative control: a MEASURED baseline over budget IS the author's debt.
+            BASELINE_FILE.write_text(f"471\n{_PROVENANCE}\n")
+            out = io.StringIO()
+            with redirect_stdout(out):
+                rc = main()
+            text = out.getvalue()
+            hit = rc == 1 and "adds new lint debt" in text and "UNVERIFIED" not in text
+            print(f"self-test measured-baseline-control: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
+
+            # 3. Green path must still pass.
+            BASELINE_FILE.write_text(f"758\n{_PROVENANCE}\n")
+            out = io.StringIO()
+            with redirect_stdout(out):
+                rc = main()
+            hit = rc == 0 and "no new lint debt" in out.getvalue()
+            print(f"self-test green-path: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
+    finally:
+        BASELINE_FILE, _current_count = real_file, real_count
+        sys.argv = real_argv
+
+    print("self-test:", "OK" if ok else "BROKEN — this gate can no longer diagnose its own defect")
+    return 0 if ok else 1
+
+
 def main() -> int:
+    if "--self-test" in sys.argv:
+        return _self_test()
+
     current = _current_count()
 
     if "--update" in sys.argv:
