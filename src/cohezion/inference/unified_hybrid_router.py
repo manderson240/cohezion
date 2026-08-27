@@ -78,21 +78,21 @@ class TaskClass(StrEnum):
 # Tier-1 (Lemonade / local silicon) Complete Roster
 # ---------------------------------------------------------------------------
 _TIER1_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "deepseek-r1-0528-8b-FLM",
-    TaskClass.DEEP_REASONING: "DeepSeek-Qwen3-8B-GGUF",
-    TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-    TaskClass.CODING_TOOLS: "waslmedia-qwen3-4b-Q4_K_M",
+    TaskClass.REASONING: "DeepSeek-Qwen3-8B-GGUF",
+    TaskClass.DEEP_REASONING: "Qwen3.6-35B-A3B-GGUF",
+    TaskClass.CODING: "Qwen3-8B-GGUF",
+    TaskClass.CODING_TOOLS: "Gemma-4-E4B-it-GGUF",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
-    TaskClass.RESEARCH: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.RESEARCH: "Qwen3.6-35B-A3B-GGUF",
     TaskClass.SCIENCE_FRONTIER: "deepseek-r1-0528-8b-FLM",
-    TaskClass.FAST_QA: "qwen3-4b-FLM",
+    TaskClass.FAST_QA: "Gemma-4-E2B-it-GGUF",
     TaskClass.ULTRA_FAST_DRAFT: "llama3.2-1b-FLM",
     TaskClass.SUB_BILLION_EDGE: "Qwen3-0.6B-GGUF",
-    TaskClass.EXTREME_COMPACT: "Bonsai-1.7B-gguf",
-    TaskClass.LONG_CONTEXT_ANALYSIS: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.CREATIVE_SYNTHESIS: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.EXTREME_COMPACT: "Bonsai-8B-gguf",
+    TaskClass.LONG_CONTEXT_ANALYSIS: "Qwen3.6-35B-A3B-MTP-GGUF",
+    TaskClass.CREATIVE_SYNTHESIS: "gpt-oss-20b-mxfp4-GGUF",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
-    TaskClass.GENERAL: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.GENERAL: "Gemma-4-E4B-it-GGUF",
 }
 
 # ---------------------------------------------------------------------------
@@ -103,14 +103,14 @@ _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.DEEP_REASONING: "kimi-k3:cloud",  # Kimi K3 Autonomous Deep Reasoning
     TaskClass.CODING: "qwen3.5:397b-cloud",  # 397B Multi-File System Refactors
     TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",  # Agentic Tool Use & Precise Patch Gen
-    TaskClass.VISION: "glm-5.2:cloud",  # Multimodal Geometry, Category Theory & Diagram Parsing
+    TaskClass.VISION: "glm-5.3-flash:cloud",  # Fast Multimodal Geometry & Diagrams
     TaskClass.RESEARCH: "nemotron-3-ultra:cloud",  # Frontier Enterprise Knowledge Synthesis
     TaskClass.SCIENCE_FRONTIER: "nemotron-3-super:cloud",  # Frontier Physics, Science & Math Verification
-    TaskClass.FAST_QA: "deepseek-v4-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
+    TaskClass.FAST_QA: "glm-5.3-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
     TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud",  # Sub-Second Low-Latency Draft Generation
-    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:0731-cloud",  # Fast edge fallback
+    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:cloud",  # Fast edge fallback
     TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
-    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors
+    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors & Vision
     TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
 }
 
