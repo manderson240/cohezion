@@ -114,6 +114,18 @@ jobs:
           uv run python scripts/ci/doc_code_consistency.py --self-test
           uv run python scripts/ci/doc_code_consistency.py
 
+      # Meta-gate: the scans above ask questions about the CODE; this asks whether
+      # the gates themselves can still answer. It EXECUTES each gate's --self-test
+      # rather than checking the flag is present, because doc_code_consistency.py
+      # was found shipping a --self-test that printed "BROKEN -- a check cannot
+      # fail" and exited 1: a substring check would have certified it healthy while
+      # it detected nothing. Scope is derived from what CI actually invokes, so the
+      # rule attaches by itself when a script is promoted to a gate.
+      - name: Gate self-test coverage (gating)
+        run: |
+          uv run python scripts/ci/self_test_coverage.py --self-test
+          uv run python scripts/ci/self_test_coverage.py
+
       - name: Validate critical imports
         run: |
           uv run python -c "

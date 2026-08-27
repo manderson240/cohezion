@@ -116,6 +116,15 @@ step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 step "doc-code self-test" uv run python scripts/ci/doc_code_consistency.py --self-test
 step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 
+# Step 6c-ter: META-gate. The scans above ask questions about the CODE; this asks whether
+# the gates themselves can still answer. It RUNS each gate's --self-test rather than
+# checking the flag exists, because doc_code_consistency.py was found shipping a
+# --self-test that printed "BROKEN -- a check cannot fail" and exited 1 while satisfying
+# any substring check. Scope is derived from what CI invokes, so the rule attaches by
+# itself when a script becomes a gate.
+step "gate self-test coverage (self-test)" uv run python scripts/ci/self_test_coverage.py --self-test
+step "gate self-test coverage" uv run python scripts/ci/self_test_coverage.py
+
 # Step 6d: Referential integrity — systemd units. Does every ExecStart target actually resolve?
 # Added 2026-07-26 after 5 of 45 user units were found pointing at things that do not exist (one
 # shipped `__PYTHON3__` installer placeholders verbatim), producing ~10k journal failure events in
