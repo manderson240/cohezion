@@ -19,7 +19,9 @@ from pydantic import BaseModel, Field
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
-from cohezion.reliability.circuit_breaker import get_circuit
+from cohezion.reliability import (
+    get_circuit,
+)  # reconcile 2026-08-26: circuit_breaker retired on main (246249f6), get_circuit ported to reliability/__init__
 
 
 T = TypeVar("T", bound="BaseOOAgent")
