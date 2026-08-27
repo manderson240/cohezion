@@ -168,6 +168,24 @@ with contextlib.suppress(Exception):
     from cohezion.inference.oom_guard import pre_load_gate as pre_load_gate
     from cohezion.inference.oom_guard import scan_and_harden as scan_and_harden
 
+# Wiring-sweep 2026-08-05: model_sprint_orchestrator — demand-driven hotswap composition.
+with contextlib.suppress(Exception):
+    from cohezion.inference.model_sprint_orchestrator import (
+        MODEL_LOAD_LOCK as MODEL_LOAD_LOCK,
+    )
+    from cohezion.inference.model_sprint_orchestrator import (
+        ModelSprintOrchestrator as ModelSprintOrchestrator,
+    )
+    from cohezion.inference.model_sprint_orchestrator import (
+        SprintResult as SprintResult,
+    )
+    from cohezion.inference.model_sprint_orchestrator import (
+        poll_model_roster_forever as poll_model_roster_forever,
+    )
+    from cohezion.inference.model_sprint_orchestrator import (
+        run_model_sprint as run_model_sprint,
+    )
+
 # Wiring-sweep 2026-06-22: orchestrator_autoharness — Strix Halo multi-node orchestrator.
 with contextlib.suppress(Exception):
     from cohezion.inference.orchestrator_autoharness import (
@@ -299,6 +317,7 @@ from cohezion.inference.registry import (
 
 
 __all__ = [
+    "MODEL_LOAD_LOCK",
     "FleetHealth",
     "FleetRegistry",
     "GaiaAgentTier",
@@ -308,9 +327,11 @@ __all__ = [
     "LaneHealth",
     "LaneStatus",
     "ModelEntry",
+    "ModelSprintOrchestrator",
     "OrchestrationResult",
     "QualityGate",
     "RouteResult",
+    "SprintResult",
     "Task",
     "TierAttempt",
     "TieredOrchestrator",
@@ -324,5 +345,7 @@ __all__ = [
     "get_pool",
     "get_registry",
     "integrate_omnibus_gateways",
+    "poll_model_roster_forever",
     "route",
+    "run_model_sprint",
 ]

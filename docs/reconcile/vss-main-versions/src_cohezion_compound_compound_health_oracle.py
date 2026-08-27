@@ -37,18 +37,6 @@ from typing import Any
 
 from cohezion.inference.fractal_metrics import FractalRegime, RollingRegimeTracker
 
-# --- reconcile 2026-08-26: top-level symbols preserved from the branch ---
-_HEALTHY_MEAN: float = 0.70  # mean at or above this is a lane doing its job
-
-
-_STEADY_STDEV: float = 0.15  # dispersion at or below this is stable, not oscillating
-
-
-_SLOPE_SIGMAS: float = 2.0
-
-
-_MIN_TOTAL_DROP: float = 0.10
-
 
 logger = logging.getLogger(__name__)
 
@@ -406,54 +394,3 @@ class CompoundHealthOracle:
             "window_fill": len(self._tracker),
             "is_healthy": self.is_healthy(),
         }
-
-    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
-    def _quality_stats(self) -> tuple[float, float, float] | None:
-        """(mean, slope, stdev) over the tracker's rolling window, or None if unavailable.
-
-        Higuchi FD is amplitude-INVARIANT by construction: it characterises the SHAPE of a curve,
-        not its magnitude. That is correct for its own purpose and wrong as a health signal, where
-        magnitude is the entire question. Measured on this class 2026-08-16:
-
-            0.85 +/- iid noise sd=0.005 (healthy)   -> CHAOTIC / critical / escalate to cpu
-            0.9 -> 0.4 linear decline   (degrading) -> STUCK   / warn
-            0.9 then 0.2 collapse       (very bad)  -> STUCK   / warn, confidence 0.93
-
-        Both errors point the wrong way, because what FD actually discriminates is sample-to-
-        sample AUTOCORRELATION: any i.i.d. jitter reads CHAOTIC however small, while a smooth
-        decline reads as ordered. Health needs level, trend and dispersion instead.
-        """
-        scores = list(getattr(self._tracker, "_scores", []) or [])
-        if len(scores) < 3:
-            return None
-        n = len(scores)
-        mean = sum(scores) / n
-        # Least-squares slope over the window; negative means quality is falling.
-        xs = range(n)
-        x_mean = (n - 1) / 2.0
-        denom = sum((x - x_mean) ** 2 for x in xs)
-        slope = (
-            sum((x - x_mean) * (s - mean) for x, s in zip(xs, scores, strict=False)) / denom
-            if denom
-            else 0.0
-        )
-        stdev = (sum((s - mean) ** 2 for s in scores) / n) ** 0.5
-        return mean, slope, stdev
-
-    def _is_degrading(self, scores: list[float], slope: float) -> bool:
-        """True when the window falls both SIGNIFICANTLY and MATERIALLY. See the constants."""
-        n = len(scores)
-        if n < 4 or slope >= 0.0:
-            return False
-        if abs(slope) * n < _MIN_TOTAL_DROP:  # materiality
-            return False
-        x_mean = (n - 1) / 2.0
-        denom = sum((x - x_mean) ** 2 for x in range(n))
-        if denom <= 0:
-            return False
-        y_mean = sum(scores) / n
-        intercept = y_mean - slope * x_mean
-        resid_sq = sum((s - (intercept + slope * x)) ** 2 for x, s in enumerate(scores))
-        # SE of the slope from the residuals — self-calibrating to however noisy this lane is.
-        se = ((resid_sq / (n - 2)) / denom) ** 0.5 if n > 2 and resid_sq > 0 else 0.0
-        return se == 0.0 or abs(slope) >= _SLOPE_SIGMAS * se
