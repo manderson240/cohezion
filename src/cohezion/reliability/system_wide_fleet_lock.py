@@ -34,7 +34,8 @@ class SystemWideFleetLock:
     def acquire(self, timeout: float = 30.0, poll_interval: float = 0.2) -> bool:
         """Attempt to acquire exclusive system-wide lock across all OS processes."""
         t_start = time.perf_counter()
-        self._fd = os.open(str(self.lock_path), os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o666)
+        # Open WITHOUT O_TRUNC to avoid clobbering incumbent lock owner metadata
+        self._fd = os.open(str(self.lock_path), os.O_CREAT | os.O_RDWR, 0o666)
 
         while (time.perf_counter() - t_start) < timeout:
             # First check OOM headroom
@@ -48,7 +49,9 @@ class SystemWideFleetLock:
 
             try:
                 fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                # Write owner metadata
+                # Truncate and write owner metadata only AFTER lock is held
+                os.ftruncate(self._fd, 0)
+                os.lseek(self._fd, 0, os.SEEK_SET)
                 os.write(
                     self._fd,
                     json.dumps({
@@ -62,6 +65,13 @@ class SystemWideFleetLock:
                 time.sleep(poll_interval)
 
         logger.error(f"❌ SystemWideFleetLock timed out after {timeout}s waiting on {self.resource_name}")
+        # Cleanly close fd on timeout to prevent fd leaks
+        if self._fd is not None:
+            try:
+                os.close(self._fd)
+            except Exception:
+                pass
+            self._fd = None
         return False
 
     def release(self) -> None:
