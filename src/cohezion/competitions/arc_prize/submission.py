@@ -252,6 +252,18 @@ def get_heterogeneous_swarm():
     r1_p = next((p for p in r1_paths if os.path.exists(p)), None)
     coder_p = next((p for p in coder_paths if os.path.exists(p)), None)
 
+    # Dynamic fallback: walk /kaggle/input for any attached transformer weights
+    if coder_p is None and os.path.exists("/kaggle/input"):
+        for root, dirs, files in os.walk("/kaggle/input"):
+            if "config.json" in files and any("coder" in root.lower() or "qwen" in root.lower() for _ in [1]):
+                coder_p = root
+                break
+    if r1_p is None and os.path.exists("/kaggle/input"):
+        for root, dirs, files in os.walk("/kaggle/input"):
+            if "config.json" in files and any("r1" in root.lower() or "deepseek" in root.lower() for _ in [1]):
+                r1_p = root
+                break
+
     try:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -408,25 +420,34 @@ def solve_arc_task_anytime(
                     break
             beam = next_beam[:30] # Keep top 30 candidate branches per depth
 
-    # Step 5: Heterogeneous Specialist Swarm (GPU 0 Reasoner + GPU 1 Coder)
+    # Step 5: Iterative Heterogeneous Specialist Swarm Loop (Uses Full Task Budget)
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
         r1_agent, coder_agent = get_heterogeneous_swarm()
 
-        # Dispatch to Qwen Coder first (Fast DSL Program Synthesis)
-        if coder_agent is not None:
-            fn_coder = generate_program_from_agent(task, coder_agent, is_reasoning=False)
-            if fn_coder is not None and check_transform_fit(train_pairs, fn_coder):
-                matching_fn = fn_coder
+        attempt = 0
+        while matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
+            attempt += 1
+            # Dispatch to Qwen Coder with temperature exploration
+            if coder_agent is not None:
+                fn_coder = generate_program_from_agent(task, coder_agent, is_reasoning=False)
+                if fn_coder is not None and check_transform_fit(train_pairs, fn_coder):
+                    matching_fn = fn_coder
+                    break
 
-        # If still unresolved, dispatch to DeepSeek R1 (Deep Chain-of-Thought Reasoning)
-        if (
-            matching_fn is None
-            and r1_agent is not None
-            and (time.perf_counter() - t_start) < time_budget_sec
-        ):
-            fn_r1 = generate_program_from_agent(task, r1_agent, is_reasoning=True)
-            if fn_r1 is not None and check_transform_fit(train_pairs, fn_r1):
-                matching_fn = fn_r1
+            # If still unresolved, dispatch to DeepSeek R1 reasoning
+            if (
+                matching_fn is None
+                and r1_agent is not None
+                and (time.perf_counter() - t_start) < time_budget_sec
+            ):
+                fn_r1 = generate_program_from_agent(task, r1_agent, is_reasoning=True)
+                if fn_r1 is not None and check_transform_fit(train_pairs, fn_r1):
+                    matching_fn = fn_r1
+                    break
+            
+            # If no GPU agent found or failed attempt, pause briefly to prevent tight CPU spin
+            if coder_agent is None and r1_agent is None:
+                break
 
     for test_pair in test_inputs:
         in_grid = test_pair.get("input", [[0]])
