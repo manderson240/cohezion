@@ -114,40 +114,6 @@ class Event:
             payload={"tier": tier, **kwargs},
         )
 
-    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
-    @classmethod
-    def model_lifecycle(
-        cls,
-        event_type: EventType,
-        model_id: str,
-        reason: str = "",
-        **kwargs,
-    ) -> Event:
-        return cls(
-            type=event_type,
-            source="model_orchestrator",
-            payload={"model_id": model_id, "reason": reason, **kwargs},
-        )
-
-    @classmethod
-    def roster_changed(
-        cls,
-        new_models: list[str],
-        removed_models: list[str],
-        current_models: list[str],
-        **kwargs,
-    ) -> Event:
-        return cls(
-            type=EventType.MODEL_ROSTER_CHANGED,
-            source="model_orchestrator",
-            payload={
-                "new_models": new_models,
-                "removed_models": removed_models,
-                "current_models": current_models,
-                **kwargs,
-            },
-        )
-
 
 EventHandler = Callable[[Event], Awaitable[None]]
 
@@ -347,18 +313,6 @@ class EventBus:
             "handlers": {t.name: len(h) for t, h in self._handlers.items()},
             "wildcard_handlers": len(self._wildcard_handlers),
         }
-
-    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
-    def publish_sync(self, event: Event) -> bool:
-        """Synchronously publish event to queue (non-blocking put_nowait)."""
-        try:
-            self._queue.put_nowait((-event.priority, next(self._seq), event))
-            self._metrics["published"] += 1
-            return True
-        except asyncio.QueueFull:
-            self._metrics["dropped"] += 1
-            logger.warning(f"Event dropped (queue full): {event.type}")
-            return False
 
 
 class EventFilter(ABC):
