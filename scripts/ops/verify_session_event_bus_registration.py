@@ -21,7 +21,9 @@ logger = logging.getLogger("session_event_bus")
 
 async def main() -> None:
     session_id = "antigravity_master_orchestrator"
-    logger.info("📡 Registering active session '%s' with EventBus & CrossSessionEventBridge...", session_id)
+    logger.info(
+        "📡 Registering active session '%s' with EventBus & CrossSessionEventBridge...", session_id
+    )
 
     event_bus = await get_event_bus()
     bridge = CrossSessionEventBridge(event_bus=event_bus, session_id=session_id)
@@ -39,7 +41,9 @@ async def main() -> None:
         },
     )
     await event_bus.publish(heartbeat_event)
-    logger.info("✅ Published active session registration heartbeat to local EventBus & SurrealDB event_log")
+    logger.info(
+        "✅ Published active session registration heartbeat to local EventBus & SurrealDB event_log"
+    )
 
     # 2. Fetch Recent Peer Session Events for Cross-Session Coordination
     logger.info("🔍 Fetching peer session events from SurrealDB event_log...")
@@ -66,7 +70,6 @@ async def main() -> None:
     }
     persisted = persist_item(kanban_card)
     logger.info("📋 Agentic Kanban Card Persisted: %s (SurrealDB + Obsidian)", persisted)
-
 
     # Allow background async event handlers to complete
     await asyncio.sleep(1.0)

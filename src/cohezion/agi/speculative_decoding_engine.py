@@ -13,11 +13,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -50,7 +50,11 @@ class SpeculativeDecodingEngine:
         tree_depth: int = 3,
     ) -> SpeculativeDecodeResult:
         logger.info("\n" + "=" * 95)
-        logger.info("🚀 EXECUTING SPECULATIVE DECODING ENGINE (Tree Width=%d, Depth=%d)...", tree_width, tree_depth)
+        logger.info(
+            "🚀 EXECUTING SPECULATIVE DECODING ENGINE (Tree Width=%d, Depth=%d)...",
+            tree_width,
+            tree_depth,
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
@@ -59,7 +63,9 @@ class SpeculativeDecodingEngine:
         tokens_generated = 64
         draft_acceptance_rate = 0.833  # 83.3% tree node acceptance
         base_decode_tps = 142.5
-        speculative_decode_tps = base_decode_tps * (1.0 + (draft_acceptance_rate * 1.5))  # ~319.8 tok/s
+        speculative_decode_tps = base_decode_tps * (
+            1.0 + (draft_acceptance_rate * 1.5)
+        )  # ~319.8 tok/s
         speedup_multiplier = round(speculative_decode_tps / base_decode_tps, 2)  # 2.24x
 
         latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
@@ -78,7 +84,12 @@ class SpeculativeDecodingEngine:
         logger.info("  ✓ Draft Model: %s (NPU Draft)", draft_model_id)
         logger.info("  ✓ Target Model: %s (iGPU Verification)", target_model_id)
         logger.info("  ✓ Acceptance Rate: %.1f%%", draft_acceptance_rate * 100.0)
-        logger.info("  ⚡ Base Decode TPS: %.1f tok/s -> Speculative Decode TPS: %.1f tok/s (%.2fx Speedup!)", base_decode_tps, res.speculative_decode_tps, speedup_multiplier)
+        logger.info(
+            "  ⚡ Base Decode TPS: %.1f tok/s -> Speculative Decode TPS: %.1f tok/s (%.2fx Speedup!)",
+            base_decode_tps,
+            res.speculative_decode_tps,
+            speedup_multiplier,
+        )
 
         # Broadcast event over EventBus
         evt = Event.agent_complete(
@@ -126,7 +137,9 @@ async def main_async() -> None:
     print(f"  🚀 Speculative Decode Throughput: {res.speculative_decode_tps:.1f} tok/s")
     print(f"  🔥 Speedup Multiplier: {res.speedup_multiplier:.2f}x")
     print("=" * 95)
-    print("🎉 Speculative Decoding Engine Successfully Deployed (Decode Speed >300 tok/s Achieved!)")
+    print(
+        "🎉 Speculative Decoding Engine Successfully Deployed (Decode Speed >300 tok/s Achieved!)"
+    )
 
 
 def main() -> None:

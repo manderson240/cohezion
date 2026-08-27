@@ -17,9 +17,9 @@ from __future__ import annotations
 import enum
 import logging
 from dataclasses import dataclass
-from typing import Any
 
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,9 @@ class UnifiedMultimodalOrchestrator:
     ROSTER: dict[MultimodalModality, list[MultimodalModelEntry]] = {
         MultimodalModality.TEXT: [
             MultimodalModelEntry(MultimodalModality.TEXT, "qwen3.6-moe-35b-a3b-FLM", "NPU"),
-            MultimodalModelEntry(MultimodalModality.TEXT, "Qwen3-Coder-30B-A3B-Instruct-GGUF", "iGPU"),
+            MultimodalModelEntry(
+                MultimodalModality.TEXT, "Qwen3-Coder-30B-A3B-Instruct-GGUF", "iGPU"
+            ),
         ],
         MultimodalModality.VISION: [
             MultimodalModelEntry(MultimodalModality.VISION, "qwen3vl-it-4b-FLM", "NPU"),
@@ -73,7 +75,9 @@ class UnifiedMultimodalOrchestrator:
     }
 
     @classmethod
-    def resolve_model(cls, modality: MultimodalModality, prefer_npu: bool = True) -> MultimodalModelEntry:
+    def resolve_model(
+        cls, modality: MultimodalModality, prefer_npu: bool = True
+    ) -> MultimodalModelEntry:
         """Resolve the optimal local model entry for a given modality."""
         candidates = cls.ROSTER.get(modality, [])
         if not candidates:

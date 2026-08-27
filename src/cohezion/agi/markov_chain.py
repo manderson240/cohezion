@@ -11,8 +11,8 @@ Formulation:
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.poincare_manifold import PoincareManifoldND
@@ -41,7 +41,9 @@ class PoincareMarkovChain:
         matrix = [[0.0 for _ in range(n)] for _ in range(n)]
 
         for i in range(n):
-            distances = [PoincareManifoldND.distance(self.states[i], self.states[j]) for j in range(n)]
+            distances = [
+                PoincareManifoldND.distance(self.states[i], self.states[j]) for j in range(n)
+            ]
             logits = [-d / max(1e-4, self.temperature) for d in distances]
             max_logit = max(logits)
             exp_logits = [math.exp(l - max_logit) for l in logits]

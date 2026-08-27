@@ -65,7 +65,12 @@ def proof_1_physical_weights():
 
     logger.info("✓ Discovered %d genuine LoRA tensor layers in safetensors:", len(tensors))
     for name, meta in list(tensors.items())[:6]:
-        logger.info("    -> Layer: %-55s | Shape: %-15s | L2 Norm: %.4f", name, str(meta["shape"]), meta["norm"])
+        logger.info(
+            "    -> Layer: %-55s | Shape: %-15s | L2 Norm: %.4f",
+            name,
+            str(meta["shape"]),
+            meta["norm"],
+        )
 
     # Assert genuine low-rank dimensionality (rank 16)
     first_lora_a = next(k for k in tensors if "lora_A" in k)
@@ -80,7 +85,6 @@ def proof_2_autoharness_ast():
     logger.info("PROOF 2: AUTOHARNESS ZERO-COST AST COMPILATION VERIFIER")
     logger.info("=" * 80)
     import ast
-
 
     sample_code = """
 def construct_verified_memory_state() -> MemoryState:
@@ -106,6 +110,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 os.environ["ROCR_VISIBLE_DEVICES"] = ""
 os.environ["HIP_VISIBLE_DEVICES"] = ""
 
+
 def proof_3_and_4_live_inference_comparison():
     logger.info("=" * 80)
     logger.info("PROOF 3 & 4: LIVE INFERENCE COMPARISON & SHANNON ENTROPY DENSITY")
@@ -113,7 +118,9 @@ def proof_3_and_4_live_inference_comparison():
 
     logger.info("Loading Base Model: %s on pure CPU...", BASE_MODEL_NAME)
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
-    base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_NAME, torch_dtype=torch.float32, low_cpu_mem_usage=True, device_map="cpu")
+    base_model = AutoModelForCausalLM.from_pretrained(
+        BASE_MODEL_NAME, torch_dtype=torch.float32, low_cpu_mem_usage=True, device_map="cpu"
+    )
 
     logger.info("Attaching Trained LoRA Adapter from %s on CPU...", ADAPTER_DIR)
     lora_model = PeftModel.from_pretrained(base_model, str(ADAPTER_DIR), device_map="cpu")
@@ -134,7 +141,9 @@ def proof_3_and_4_live_inference_comparison():
         )
     dt = time.perf_counter() - t0
 
-    generated_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
+    generated_text = tokenizer.decode(
+        outputs[0][inputs.input_ids.shape[1] :], skip_special_tokens=True
+    )
     tokens_count = len(outputs[0]) - inputs.input_ids.shape[1]
     tps = tokens_count / max(dt, 0.001)
     entropy = calculate_entropy(generated_text)
@@ -142,12 +151,17 @@ def proof_3_and_4_live_inference_comparison():
     logger.info("\n--- LIVE GENERATED RESPONSE ---")
     logger.info("%s", generated_text.strip())
     logger.info("-------------------------------\n")
-    logger.info("✓ Tokens Generated: %d | Latency: %.2fs | Speed: %.1f tok/s", tokens_count, dt, tps)
+    logger.info(
+        "✓ Tokens Generated: %d | Latency: %.2fs | Speed: %.1f tok/s", tokens_count, dt, tps
+    )
     logger.info("✓ Measured Shannon Entropy Density: %.4f bits/char (Target: >4.2)", entropy)
 
     assert entropy > 4.0, f"Entropy too low ({entropy:.4f}), suspected degenerative hallucination"
     assert tokens_count > 10, "Failed to generate sufficient response tokens"
-    logger.info("🟢 PROOF 3 & 4 PASSED: Live token generation executed with high information density (%.4f bits/char).\n", entropy)
+    logger.info(
+        "🟢 PROOF 3 & 4 PASSED: Live token generation executed with high information density (%.4f bits/char).\n",
+        entropy,
+    )
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
-import pytest
 from unittest.mock import patch
+
+from cohezion.inference.unified_hybrid_router import HybridRouteResponse, UnifiedHybridRouter
 from cohezion.reliability.oom_guard import MemoryState
-from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter, HybridRouteResponse
+
 
 def test_unified_hybrid_router_local_fallback():
     router = UnifiedHybridRouter(prefer_local=True)
@@ -23,6 +24,7 @@ def test_unified_hybrid_router_local_fallback():
             assert res.verified is True
             assert res.tier_used == "Tier 1 (Local NPU MoE)"
             assert res.content == "Local NPU MoE response text"
+
 
 def test_unified_hybrid_router_force_cloud():
     router = UnifiedHybridRouter(prefer_local=True)

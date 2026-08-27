@@ -25,11 +25,12 @@ EVAL_SOLUTIONS = "data/arc_prize/arc-agi_evaluation_solutions.json"
 TEST_CHALLENGES = "data/arc_prize/arc-agi_test_challenges.json"
 OUTPUT_SUBMISSION = "data/arc_prize/submission.json"
 
+
 def evaluate_on_eval_set():
     print("=" * 90)
     print("🔍 EVALUATING GRANDMASTER ENSEMBLE ON ARC EVALUATION SET")
     print("=" * 90)
-    
+
     if not os.path.exists(EVAL_CHALLENGES) or not os.path.exists(EVAL_SOLUTIONS):
         print("Eval dataset not found, skipping benchmark.")
         return
@@ -49,14 +50,14 @@ def evaluate_on_eval_set():
 
     for idx, (task_id, task) in enumerate(eval_tasks.items()):
         solution = eval_solutions.get(task_id, [[]])[0]
-        
+
         # Candidate 1: Deep Compositional Synthesizer
         cand_1 = synth.solve(task)
         # Candidate 2: Todorcevic Walk Lattice
         cand_2 = lattice.solve_task(task)
 
-        match_1 = (cand_1 == solution)
-        match_2 = (cand_2 == solution)
+        match_1 = cand_1 == solution
+        match_2 = cand_2 == solution
 
         if match_1:
             correct_1 += 1
@@ -65,9 +66,14 @@ def evaluate_on_eval_set():
 
         if (idx + 1) % 50 == 0 or (idx + 1) == total:
             dt = time.perf_counter() - t0
-            print(f"[{idx + 1}/{total}] Top-1 Accuracy: {correct_1}/{idx + 1} ({correct_1 / (idx + 1) * 100:.2f}%) | Top-2 Accuracy: {correct_any}/{idx + 1} ({correct_any / (idx + 1) * 100:.2f}%) | Elapsed: {dt:.1f}s")
+            print(
+                f"[{idx + 1}/{total}] Top-1 Accuracy: {correct_1}/{idx + 1} ({correct_1 / (idx + 1) * 100:.2f}%) | Top-2 Accuracy: {correct_any}/{idx + 1} ({correct_any / (idx + 1) * 100:.2f}%) | Elapsed: {dt:.1f}s"
+            )
 
-    print(f"\n✓ Eval Set Benchmark Complete: Top-2 Score = {correct_any}/{total} ({correct_any / total * 100:.2f}%)\n")
+    print(
+        f"\n✓ Eval Set Benchmark Complete: Top-2 Score = {correct_any}/{total} ({correct_any / total * 100:.2f}%)\n"
+    )
+
 
 def generate_test_submission():
     print("=" * 90)
@@ -85,7 +91,7 @@ def generate_test_submission():
         submission[task_id] = []
         for test_idx, test_case in enumerate(task.get("test", [])):
             sub_task = {"train": task.get("train", []), "test": [test_case]}
-            
+
             # Candidate 1: Deep Compositional Synthesizer
             try:
                 attempt_1 = synth.solve(sub_task)
@@ -98,16 +104,14 @@ def generate_test_submission():
             except Exception:
                 attempt_2 = [row[::-1] for row in test_case.get("input", [[0]])[::-1]]
 
-            submission[task_id].append({
-                "attempt_1": attempt_1,
-                "attempt_2": attempt_2
-            })
+            submission[task_id].append({"attempt_1": attempt_1, "attempt_2": attempt_2})
 
     with open(OUTPUT_SUBMISSION, "w") as f:
         json.dump(submission, f, indent=2)
 
     print(f"✓ Successfully generated predictions for {len(submission)} tasks.")
     print(f"✓ Saved submission to: {OUTPUT_SUBMISSION}")
+
 
 if __name__ == "__main__":
     evaluate_on_eval_set()

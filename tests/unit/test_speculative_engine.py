@@ -7,9 +7,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import AsyncIterator
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -21,7 +19,7 @@ from cohezion.inference.speculative_engine import (
     SpeculativeEngine,
     SpeculativeEngineError,
 )
-from cohezion.reliability import _circuits, get_circuit
+from cohezion.reliability import _circuits
 
 
 # ---------------------------------------------------------------------------
@@ -38,11 +36,7 @@ def _make_logprob_response(tokens: list[tuple[str, float]]) -> dict[str, Any]:
         "choices": [
             {
                 "message": {"role": "assistant", "content": "".join(t for t, _ in tokens)},
-                "logprobs": {
-                    "content": [
-                        {"token": t, "logprob": lp} for t, lp in tokens
-                    ]
-                },
+                "logprobs": {"content": [{"token": t, "logprob": lp} for t, lp in tokens]},
             }
         ]
     }
@@ -50,11 +44,7 @@ def _make_logprob_response(tokens: list[tuple[str, float]]) -> dict[str, Any]:
 
 def _make_plain_response(content: str) -> dict[str, Any]:
     """Build a minimal OpenAI-format response without logprobs."""
-    return {
-        "choices": [
-            {"message": {"role": "assistant", "content": content}}
-        ]
-    }
+    return {"choices": [{"message": {"role": "assistant", "content": content}}]}
 
 
 def _fresh_engine(**kwargs: Any) -> SpeculativeEngine:
@@ -162,15 +152,13 @@ class TestVerificationAcceptance:
         engine = _fresh_engine(acceptance_threshold=0.5)
         # Only 1 verify token for 3 draft tokens
         respx.post(COMPLETIONS_URL).mock(
-            return_value=httpx.Response(
-                200, json=_make_logprob_response([(" The", -0.1)])
-            )
+            return_value=httpx.Response(200, json=_make_logprob_response([(" The", -0.1)]))
         )
 
         async with engine:
             mask = await engine._verify_tokens("prefix", [" The", " cat", " sat"])
 
-        assert mask[0] is True   # accepted
+        assert mask[0] is True  # accepted
         assert mask[1] is False  # no verify token → rejected
         assert mask[2] is False
 
@@ -344,9 +332,7 @@ class TestTelemetryEventPublication:
 
         # Draft returns 2 tokens, verify accepts both (high logprob)
         draft_verify_resp = _make_logprob_response([("foo", -0.05), (" bar", -0.05)])
-        respx.post(COMPLETIONS_URL).mock(
-            return_value=httpx.Response(200, json=draft_verify_resp)
-        )
+        respx.post(COMPLETIONS_URL).mock(return_value=httpx.Response(200, json=draft_verify_resp))
 
         async with engine:
             emitted = [t async for t in engine.generate("x", max_tokens=2)]

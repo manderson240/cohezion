@@ -11,7 +11,6 @@ Provides a standalone FastAPI and WebSocket service serving live telemetry:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 from typing import Any
@@ -24,6 +23,7 @@ from cohezion.flume.observability_hud import CohezionObservabilityHUD
 from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
 from cohezion.mcp.cohezion_agi_server import list_tools
 from cohezion.security.micro_sandbox import MicroSandboxEngine
+
 
 logger = logging.getLogger("cohezion_hud_server")
 logging.basicConfig(level=logging.INFO)
@@ -48,7 +48,9 @@ _sandbox = MicroSandboxEngine(timeout_sec=3.0)
 
 
 class SheafEvaluationRequest(BaseModel):
-    agent_claims: dict[str, list[float]] = Field(..., description="Map of agent IDs to 12D state vectors")
+    agent_claims: dict[str, list[float]] = Field(
+        ..., description="Map of agent IDs to 12D state vectors"
+    )
 
 
 class SandboxExecuteRequest(BaseModel):
@@ -71,13 +73,16 @@ async def get_live_telemetry() -> dict[str, Any]:
 async def get_mcp_tools() -> list[dict[str, Any]]:
     """Return catalog of available AGI MCP tools."""
     tools = await list_tools()
-    return [{"name": t.name, "description": t.description, "inputSchema": t.inputSchema} for t in tools]
+    return [
+        {"name": t.name, "description": t.description, "inputSchema": t.inputSchema} for t in tools
+    ]
 
 
 @app.post("/api/sheaf/evaluate")
 async def evaluate_sheaf_consistency(req: SheafEvaluationRequest) -> dict[str, Any]:
     """Evaluate Čech cohomology over multi-agent claims."""
     import itertools
+
     import numpy as np
 
     keys = list(req.agent_claims.keys())

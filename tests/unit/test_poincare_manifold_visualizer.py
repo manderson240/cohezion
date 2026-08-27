@@ -1,6 +1,7 @@
 """Unit tests for Poincaré 2048D Hyperbolic Manifold Visualizer."""
 
 import math
+
 import numpy as np
 import plotly.graph_objects as go
 import pytest
@@ -8,7 +9,6 @@ import pytest
 from cohezion.flume.poincare_manifold_visualizer import (
     PoincareManifoldVisualizer,
     compute_hyperbolic_distance,
-    compute_hyperbolic_distance_batch,
     figure_to_html,
     figure_to_json,
     generate_poincare_figure,

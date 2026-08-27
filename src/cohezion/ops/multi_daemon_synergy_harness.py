@@ -10,18 +10,16 @@ Verifies that all 4 Cohezion production daemons are working synergistically in l
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
-from cohezion.core.event_bus import Event, EventBus, EventType
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.fleet_autotuning_datamesh_consumer import DataMeshFleetAutotuningConsumer
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.integrations.gaia_local_router import GAIALocalRouter
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,7 +40,9 @@ class MultiDaemonSynergyHarness:
 
     def __init__(self) -> None:
         self.event_bus = EventBus()
-        self.bridge = CrossSessionEventBridge(event_bus=self.event_bus, session_id="synergy_verifier")
+        self.bridge = CrossSessionEventBridge(
+            event_bus=self.event_bus, session_id="synergy_verifier"
+        )
         self.datamesh_consumer = DataMeshFleetAutotuningConsumer(event_bus=self.event_bus)
         self.gaia_router = GAIALocalRouter()
 
@@ -105,7 +105,9 @@ class MultiDaemonSynergyHarness:
 
         # Step 4: GAIA Local Router Hot-Swaps Adapter & Executes Local Agent
         t4 = time.perf_counter()
-        gaia_res = await self.gaia_router.route_gaia_agent_call("synergy-agent-01", "Execute local agent task", "coding")
+        gaia_res = await self.gaia_router.route_gaia_agent_call(
+            "synergy-agent-01", "Execute local agent task", "coding"
+        )
         steps.append(
             DaemonSynergyStep(
                 step_num=4,

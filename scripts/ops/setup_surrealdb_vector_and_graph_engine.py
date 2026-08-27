@@ -79,11 +79,12 @@ UPSERT journey_knowledge:autoharness_bytecode_verification CONTENT {
 };
 """
 
+
 def execute_setup():
     print("=" * 80)
     print("🚀 ACTIVATING SURREALDB V2 VECTOR HNSW, GRAPH RELATIONS & LIVE TRIGGERS")
     print("=" * 80)
-    
+
     with httpx.Client(timeout=30.0) as client:
         resp = client.post(SURREAL_URL, headers=HEADERS, auth=AUTH, content=DDL_STATEMENTS)
         print(f"Status: {resp.status_code}")
@@ -93,6 +94,7 @@ def execute_setup():
             print(f"✓ Output steps processed: {len(res_json)}")
         else:
             print(f"Error: {resp.text}")
+
 
 if __name__ == "__main__":
     execute_setup()

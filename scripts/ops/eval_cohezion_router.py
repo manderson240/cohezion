@@ -55,7 +55,8 @@ TEST_PROMPTS = [
     {
         "expected_rule": "long-context",
         "expected_target": "qwen3.6-moe-35b-a3b-FLM",
-        "prompt": "Analyze the following system context: " + ("lorem ipsum architecture specification data stream " * 120),
+        "prompt": "Analyze the following system context: "
+        + ("lorem ipsum architecture specification data stream " * 120),
     },
 ]
 
@@ -86,24 +87,40 @@ async def evaluate_router():
                 dt_ms = (time.perf_counter() - t0) * 1000.0
                 resp_json = r.json()
                 routed_model = resp_json.get("model", "unknown")
-                status = "PASS" if expected.lower() in routed_model.lower() or "qwen3" in routed_model.lower() or "llama" in routed_model.lower() or "deepseek" in routed_model.lower() else "FAIL"
-                results.append({
-                    "rule": rule_id,
-                    "expected": expected,
-                    "actual": routed_model,
-                    "latency_ms": round(dt_ms, 2),
-                    "status_code": r.status_code,
-                    "status": status,
-                })
-                logger.info("  -> Status: %d | Routed to: %s | Latency: %.2f ms", r.status_code, routed_model, dt_ms)
+                status = (
+                    "PASS"
+                    if expected.lower() in routed_model.lower()
+                    or "qwen3" in routed_model.lower()
+                    or "llama" in routed_model.lower()
+                    or "deepseek" in routed_model.lower()
+                    else "FAIL"
+                )
+                results.append(
+                    {
+                        "rule": rule_id,
+                        "expected": expected,
+                        "actual": routed_model,
+                        "latency_ms": round(dt_ms, 2),
+                        "status_code": r.status_code,
+                        "status": status,
+                    }
+                )
+                logger.info(
+                    "  -> Status: %d | Routed to: %s | Latency: %.2f ms",
+                    r.status_code,
+                    routed_model,
+                    dt_ms,
+                )
             except Exception as exc:
                 logger.error("  -> Request failed: %s", exc)
-                results.append({
-                    "rule": rule_id,
-                    "expected": expected,
-                    "error": str(exc),
-                    "status": "ERROR",
-                })
+                results.append(
+                    {
+                        "rule": rule_id,
+                        "expected": expected,
+                        "error": str(exc),
+                        "status": "ERROR",
+                    }
+                )
 
     print("\n" + "=" * 80)
     print("ROUTER EVALUATION SUMMARY:")

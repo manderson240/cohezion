@@ -25,6 +25,7 @@ from cohezion.inference.unified_hybrid_router import (
 )
 from cohezion.physics.fiber_bundle import FABRIC_SLICES
 
+
 logger = logging.getLogger(__name__)
 
 # Standard HIHO fundamental frequency (Hz)
@@ -256,7 +257,9 @@ class HIHOSonifier:
             release_s=release,
         )
 
-    def sonify_coherence_state(self, coherence: float, fundamental_hz: float = 432.0, lyapunov_perturbation: float = 0.0) -> AudioFieldState:
+    def sonify_coherence_state(
+        self, coherence: float, fundamental_hz: float = 432.0, lyapunov_perturbation: float = 0.0
+    ) -> AudioFieldState:
         """Convenience method to sonify a single coherence metric across the 4 fabrics."""
         self.fundamental_hz = fundamental_hz
         dist = self.compute_coherence_distance(coherence)
@@ -292,7 +295,9 @@ class HIHOSonifier:
             fabric_coherence["Space"] = (state.awareness + state.precision + state.creativity) / 3.0
             fabric_coherence["Field"] = (state.coherence + state.entropy + state.stability) / 3.0
             fabric_coherence["Control"] = (state.momentum + state.novelty + state.resonance) / 3.0
-            fabric_coherence["Precipitation"] = (state.dilation + state.decay + state.synthesis) / 3.0
+            fabric_coherence["Precipitation"] = (
+                state.dilation + state.decay + state.synthesis
+            ) / 3.0
             fabric_directions["Space"] = state.awareness
             fabric_directions["Field"] = state.coherence
             fabric_directions["Control"] = state.momentum
@@ -313,7 +318,9 @@ class HIHOSonifier:
                 block = state_arr[sl]
                 norm = float(np.linalg.norm(block))
                 fabric_coherence[fab] = max(0.0, min(1.0, 1.0 - 2.0 * abs(norm - 0.5)))
-                fabric_directions[fab] = float(np.arctan2(block[1], block[0])) if norm > 1e-6 else 0.0
+                fabric_directions[fab] = (
+                    float(np.arctan2(block[1], block[0])) if norm > 1e-6 else 0.0
+                )
 
             sys_coherence = float(np.mean(list(fabric_coherence.values())))
 
@@ -488,6 +495,7 @@ class HIHOSonifier:
             Inference response from the router.
         """
         import socket
+
         port_open = False
         try:
             with socket.create_connection(("127.0.0.1", self.router.lemonade_port), timeout=0.1):

@@ -35,10 +35,26 @@ async def extract_and_refine_all() -> None:
     refiner = SkillRefiner()
 
     experiences = [
-        ("AUTOHARNESS_SYNTHESIS_PRIME", "harness_synthesis", {"success": True, "duration_seconds": 0.12, "tokens_used": 150, "quality_score": 0.95}),
-        ("GAIA_AGENT_SWARM_PRIME", "multi_agent_process_design", {"success": True, "duration_seconds": 0.15, "tokens_used": 180, "quality_score": 0.92}),
-        ("GRAPHRAG_TRAVERSAL_PRIME", "graph_retrieval", {"success": True, "duration_seconds": 0.08, "tokens_used": 120, "quality_score": 0.94}),
-        ("LATENT_COMMUNICATION_PRIME", "latent_handoff", {"success": True, "duration_seconds": 0.05, "tokens_used": 90, "quality_score": 0.96}),
+        (
+            "AUTOHARNESS_SYNTHESIS_PRIME",
+            "harness_synthesis",
+            {"success": True, "duration_seconds": 0.12, "tokens_used": 150, "quality_score": 0.95},
+        ),
+        (
+            "GAIA_AGENT_SWARM_PRIME",
+            "multi_agent_process_design",
+            {"success": True, "duration_seconds": 0.15, "tokens_used": 180, "quality_score": 0.92},
+        ),
+        (
+            "GRAPHRAG_TRAVERSAL_PRIME",
+            "graph_retrieval",
+            {"success": True, "duration_seconds": 0.08, "tokens_used": 120, "quality_score": 0.94},
+        ),
+        (
+            "LATENT_COMMUNICATION_PRIME",
+            "latent_handoff",
+            {"success": True, "duration_seconds": 0.05, "tokens_used": 90, "quality_score": 0.96},
+        ),
     ]
 
     for skill_name, op_type, result in experiences:
@@ -54,14 +70,16 @@ async def extract_and_refine_all() -> None:
         )
 
     # Record completion to Kanban
-    persist_item({
-        "id": "skill-refinement-session-complete",
-        "title": "Skill Extraction & Refinement: 4 PRIME Skills Refined & Persisted to Registry",
-        "status": "done",
-        "priority": "high",
-        "source": "scripts/extract_and_refine_skills_from_session.py",
-        "category": "learning",
-    })
+    persist_item(
+        {
+            "id": "skill-refinement-session-complete",
+            "title": "Skill Extraction & Refinement: 4 PRIME Skills Refined & Persisted to Registry",
+            "status": "done",
+            "priority": "high",
+            "source": "scripts/extract_and_refine_skills_from_session.py",
+            "category": "learning",
+        }
+    )
 
     logger.info("==========================================================")
     logger.info("SKILL REFINEMENT & EXTRACTION COMPLETE — 100% SUCCESS! 🏛⚡")

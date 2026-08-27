@@ -4,6 +4,7 @@
 import time
 from cohezion.agi.kaggle_autoharness import KaggleAutoHarness, ARCGridInvariant, AIMOProofState
 
+
 def main():
     print("\n" + "=" * 95)
     print("🏆 KAGGLE AUTOHARNESS SYNTHESIS & 0.00ms ACTION VERIFICATION")
@@ -29,7 +30,9 @@ def main():
 
     # 2. AIMO Progress Prize 3 Proof State Verification
     print("\n[Track 2] AIMO Progress Prize 3: Mathematical Proof State Verification...")
-    proof = AIMOProofState(value=432, min_bound=0, max_bound=999, modulo_base=1000, require_integer=True)
+    proof = AIMOProofState(
+        value=432, min_bound=0, max_bound=999, modulo_base=1000, require_integer=True
+    )
 
     t1 = time.perf_counter()
     aimo_res = harness.verify_aimo_proof_state(proof)
@@ -44,6 +47,7 @@ def main():
     print("\n" + "=" * 95)
     print("🎉 KAGGLE AUTOHARNESS READY FOR CONTINUOUS BENCHMARK AUTOMATION!")
     print("=" * 95 + "\n")
+
 
 if __name__ == "__main__":
     main()

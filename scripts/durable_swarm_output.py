@@ -92,8 +92,14 @@ def _load_lanes(d: Path) -> list[dict]:
 class DurableRun:
     """A swarm run whose artifacts land on durable storage as they are produced."""
 
-    def __init__(self, slug: str, *, session: str = "", meta: dict | None = None,
-                 run_dir: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        slug: str,
+        *,
+        session: str = "",
+        meta: dict | None = None,
+        run_dir: str | Path | None = None,
+    ) -> None:
         """Start a new run, or REATTACH to an existing one via ``run_dir``.
 
         Reattach exists because a workflow spread over several *processes* (an agent shelling
@@ -112,31 +118,43 @@ class DurableRun:
             self.dir = Path(run_dir)
             if not self.dir.is_dir():
                 raise FileNotFoundError(f"run_dir does not exist: {self.dir}")
-            existing = json.loads((self.dir / "run.json").read_text()) if (
-                self.dir / "run.json").exists() else {}
+            existing = (
+                json.loads((self.dir / "run.json").read_text())
+                if (self.dir / "run.json").exists()
+                else {}
+            )
             stamp = existing.get("started_utc") or time.strftime("%Y%m%d-%H%M%S")
             self._lanes = _load_lanes(self.dir)
             self.started = _stamp_to_epoch(stamp)
             # Re-open the run: a previously finalized run becomes in_progress again, and the
             # original session/meta are preserved unless the caller supplies new ones.
-            _atomic_write_json(self.dir / "run.json", {
-                "slug": existing.get("slug", safe),
-                "session": session or existing.get("session", ""),
-                "started_utc": stamp,
-                "status": "in_progress",
-                "meta": meta or existing.get("meta", {}),
-                "reattached": True,
-            })
+            _atomic_write_json(
+                self.dir / "run.json",
+                {
+                    "slug": existing.get("slug", safe),
+                    "session": session or existing.get("session", ""),
+                    "started_utc": stamp,
+                    "status": "in_progress",
+                    "meta": meta or existing.get("meta", {}),
+                    "reattached": True,
+                },
+            )
             return
 
         stamp = time.strftime("%Y%m%d-%H%M%S")
         self.dir = DURABLE_ROOT / f"{stamp}-{safe}"
         self.dir.mkdir(parents=True, exist_ok=True)
         self.started = time.time()
-        _atomic_write_json(self.dir / "run.json", {
-            "slug": safe, "session": session, "started_utc": stamp,
-            "status": "in_progress", "meta": meta or {},
-        })
+        _atomic_write_json(
+            self.dir / "run.json",
+            {
+                "slug": safe,
+                "session": session,
+                "started_utc": stamp,
+                "status": "in_progress",
+                "meta": meta or {},
+            },
+        )
 
     @classmethod
     def attach(cls, slug: str, *, create: bool = True, **kw) -> DurableRun:
@@ -147,8 +165,9 @@ class DurableRun:
         """
         safe = "".join(c if c.isalnum() or c in "-_" else "-" for c in slug)[:60]
         if DURABLE_ROOT.exists():
-            matches = sorted(d for d in DURABLE_ROOT.iterdir()
-                             if d.is_dir() and d.name.endswith(f"-{safe}"))
+            matches = sorted(
+                d for d in DURABLE_ROOT.iterdir() if d.is_dir() and d.name.endswith(f"-{safe}")
+            )
             if matches:
                 return cls(slug, run_dir=matches[-1], **kw)
         if not create:
@@ -199,7 +218,12 @@ def recover_incomplete() -> list[dict]:
             continue
         if data.get("status") != "complete":
             lanes = sorted(d.glob("lane-*.json"))
-            out.append({"dir": str(d), "slug": data.get("slug"),
-                        "lanes_salvaged": len(lanes),
-                        "started_utc": data.get("started_utc")})
+            out.append(
+                {
+                    "dir": str(d),
+                    "slug": data.get("slug"),
+                    "lanes_salvaged": len(lanes),
+                    "started_utc": data.get("started_utc"),
+                }
+            )
     return out

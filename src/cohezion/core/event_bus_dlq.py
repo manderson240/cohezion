@@ -14,7 +14,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from cohezion.core.event_bus import Event, EventBus, EventType
+from cohezion.core.event_bus import Event, EventType
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -41,7 +42,12 @@ class DeadLetterQueue:
             "payload": event.payload,
         }
         self._queue.append(record)
-        logger.warning("  ⚠️ DLQ Push: Event %s from %s failed -> %s", event.type.name, event.source, failure_reason)
+        logger.warning(
+            "  ⚠️ DLQ Push: Event %s from %s failed -> %s",
+            event.type.name,
+            event.source,
+            failure_reason,
+        )
 
     def get_dead_letters(self, limit: int = 20) -> list[dict[str, Any]]:
         """Retrieve recent dead-letter records."""
@@ -58,7 +64,11 @@ async def main_async() -> None:
     print("      📬 COHEZION EVENTBUS DEAD-LETTER QUEUE (DLQ) & BACKPRESSURE HARNESS")
     print("=" * 95)
 
-    err_evt = Event(type=EventType.AGENT_ERROR, source="peer_swarm_03", payload={"error": "Monadic Bind Failure"})
+    err_evt = Event(
+        type=EventType.AGENT_ERROR,
+        source="peer_swarm_03",
+        payload={"error": "Monadic Bind Failure"},
+    )
     dlq.push_dead_letter(err_evt, "MonadResult.fail: Division by zero in latent space")
 
     print(f"  • Total Dead Letters in DLQ: {dlq.total_dead_letters}")

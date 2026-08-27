@@ -13,6 +13,7 @@ import logging
 from dataclasses import dataclass
 from enum import StrEnum
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -123,7 +124,13 @@ def calculate_architecture_kv_cache_gb(
     else:
         # Standard GQA / MHA: 2 * n_layers * n_kv_heads * head_dim * total_tokens * batch_size * bytes_per_elem
         total_bytes = (
-            2 * spec.n_layers * spec.n_kv_heads * spec.head_dim * total_tokens * batch_size * bytes_per_elem
+            2
+            * spec.n_layers
+            * spec.n_kv_heads
+            * spec.head_dim
+            * total_tokens
+            * batch_size
+            * bytes_per_elem
         )
 
-    return total_bytes / (1024.0 ** 3)
+    return total_bytes / (1024.0**3)

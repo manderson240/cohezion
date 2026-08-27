@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import json
 import time
-from dataclasses import dataclass, field
-from typing import Sequence
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,7 +55,9 @@ class ZKFVCompiler:
             ]
 
     @classmethod
-    def generate_proof(cls, gates: Sequence[PlonkConstraintGate], inputs: tuple[float, float, float]) -> ZKProof:
+    def generate_proof(
+        cls, gates: Sequence[PlonkConstraintGate], inputs: tuple[float, float, float]
+    ) -> ZKProof:
         r"""Generate a zero-knowledge safety proof \pi_{safety} with SHA-256 polynomial commitment."""
         import hashlib
 
@@ -86,4 +88,3 @@ class ZKFVProof:
     invariant_count: int
     verified: bool
     proof_metadata: dict[str, Any]
-

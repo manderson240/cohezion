@@ -11,10 +11,11 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass, field
-from typing import Sequence
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,9 @@ class WorkspaceState:
 class JacobianWorkspaceEngine:
     """Master Engine for J-Lens probing, J-Space Global Workspace extraction, and steering."""
 
-    def __init__(self, vocab_size: int = 32000, model_dim: int = 4096, k_sparsity: int = 16) -> None:
+    def __init__(
+        self, vocab_size: int = 32000, model_dim: int = 4096, k_sparsity: int = 16
+    ) -> None:
         self.vocab_size = vocab_size
         self.model_dim = model_dim
         self.k_sparsity = k_sparsity

@@ -5,13 +5,14 @@ Exports consumed by tests/integrations/test_robinhood_analysis.py.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
 import json
 import logging
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from typing import Any
 
 import httpx
+
 
 logger = logging.getLogger(__name__)
 
@@ -119,11 +120,16 @@ class PortfolioGoalTracker:
     def format_goal_status(self) -> str:
         lines = ["Portfolio Goals:"]
         for g in self._goals.values():
-            lines.append(f"- [{g.status.upper()}] {g.description} ({g.metric} {g.operator} {g.target})")
+            lines.append(
+                f"- [{g.status.upper()}] {g.description} ({g.metric} {g.operator} {g.target})"
+            )
         return "\n".join(lines)
 
     async def persist(
-        self, snapshot: PortfolioSnapshot, results: list[Any], surreal_url: str = "http://localhost:8001"
+        self,
+        snapshot: PortfolioSnapshot,
+        results: list[Any],
+        surreal_url: str = "http://localhost:8001",
     ) -> None:
         try:
             async with httpx.AsyncClient() as client:
@@ -213,7 +219,10 @@ class MultiModelConsensusGate:
                         payload = {
                             "model": model,
                             "messages": [
-                                {"role": "system", "content": "Assess trade risk: LOW, MEDIUM, or HIGH."},
+                                {
+                                    "role": "system",
+                                    "content": "Assess trade risk: LOW, MEDIUM, or HIGH.",
+                                },
                                 {"role": "user", "content": order_summary},
                             ],
                         }
@@ -227,7 +236,7 @@ class MultiModelConsensusGate:
                     except Exception:
                         votes[model] = "MEDIUM"
         except Exception:
-            votes = {model: "MEDIUM" for model in models}
+            votes = dict.fromkeys(models, "MEDIUM")
 
         vote_values = list(votes.values())
         if any(v == "HIGH" for v in vote_values):

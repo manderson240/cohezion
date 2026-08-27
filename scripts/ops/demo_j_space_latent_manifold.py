@@ -47,7 +47,12 @@ def main() -> None:
 
     isometry_error = abs(norm_before - norm_after)
     logger.info("J-Unitary Boost Parameter: %.2f", b_param)
-    logger.info("J-Norm Before Boost: %.6f | After Boost: %.6f | Isometry Error: %.8e", norm_before, norm_after, isometry_error)
+    logger.info(
+        "J-Norm Before Boost: %.6f | After Boost: %.6f | Isometry Error: %.8e",
+        norm_before,
+        norm_after,
+        isometry_error,
+    )
 
     # 4. Compute J-Geodesic Distance
     dist_j = manifold.compute_j_geodesic_distance(v_timelike, v_spacelike)
@@ -60,7 +65,9 @@ def main() -> None:
     print(f"  • Executive Timelike J-Norm^2: {pt_t.j_norm_sq:.4f} [{pt_t.classification}]")
     print(f"  • Spacelike Exploration J-Norm^2: {pt_s.j_norm_sq:.4f} [{pt_s.classification}]")
     print(f"  • 0.5 HIHO Light-Cone Horizon: {pt_l.j_norm_sq:.4f} [{pt_l.classification}]")
-    print(f"  • J-Unitary Hyperbolic Boost Isometry Error: {isometry_error:.2e} (Causality Preserved)")
+    print(
+        f"  • J-Unitary Hyperbolic Boost Isometry Error: {isometry_error:.2e} (Causality Preserved)"
+    )
     print(f"  • J-Geodesic Distance: {dist_j:.4f}")
     print("=" * 80)
     print("🎉 J-Space Indefinite Latent Geometry Successfully Operationalized!")

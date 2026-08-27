@@ -126,7 +126,9 @@ def main() -> None:
             print(f" {status} ({res.latency_s}s, {res.response_length} chars)")
 
     # Save summary report
-    report_path = Path.home() / "vaults" / "cohezion-vault" / "research" / "OLLAMA_CLOUD_BENCHMARK_MATRIX.md"
+    report_path = (
+        Path.home() / "vaults" / "cohezion-vault" / "research" / "OLLAMA_CLOUD_BENCHMARK_MATRIX.md"
+    )
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     lines = [

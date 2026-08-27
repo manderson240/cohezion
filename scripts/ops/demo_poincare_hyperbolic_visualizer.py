@@ -48,7 +48,9 @@ def verify_poincare_visualizer_pipeline() -> float:
     batch_2048 = np.random.default_rng(42).normal(0, 0.05, size=(100, 2048))
     batch_3d = project_2048d_to_poincare_3d(batch_2048)
     assert batch_3d.shape == (100, 3), f"Expected shape (100, 3), got {batch_3d.shape}"
-    assert np.all(np.linalg.norm(batch_3d, axis=1) < 1.0), "All batch points must lie inside unit ball"
+    assert np.all(np.linalg.norm(batch_3d, axis=1) < 1.0), (
+        "All batch points must lie inside unit ball"
+    )
 
     # 2. Verify Hyperbolic Distance Computation
     # Self distance is 0
@@ -92,7 +94,6 @@ def verify_poincare_visualizer_pipeline() -> float:
     return elapsed_ms
 
 
-
 def main() -> int:
     print("==========================================================================")
     print("🌀 Cohezion Poincaré 2048D Hyperbolic Manifold Visualizer Harness")
@@ -109,9 +110,13 @@ def main() -> int:
         # Verify strict performance benchmark threshold (<100ms)
         benchmark_threshold_ms = 100.0
         if elapsed_ms < benchmark_threshold_ms:
-            print(f"⚡ Benchmark Gate PASSED ({elapsed_ms:.2f} ms < {benchmark_threshold_ms:.0f} ms threshold)")
+            print(
+                f"⚡ Benchmark Gate PASSED ({elapsed_ms:.2f} ms < {benchmark_threshold_ms:.0f} ms threshold)"
+            )
         else:
-            print(f"⚠️  Benchmark Gate WARN ({elapsed_ms:.2f} ms >= {benchmark_threshold_ms:.0f} ms threshold)")
+            print(
+                f"⚠️  Benchmark Gate WARN ({elapsed_ms:.2f} ms >= {benchmark_threshold_ms:.0f} ms threshold)"
+            )
 
         print("==========================================================================")
         print("🎉 Verification Complete! Exiting 0.")
@@ -120,6 +125,7 @@ def main() -> int:
     except Exception as exc:
         print(f"❌ Verification FAILED with error: {exc}", file=sys.stderr)
         import traceback
+
         traceback.print_exc()
         return 1
 

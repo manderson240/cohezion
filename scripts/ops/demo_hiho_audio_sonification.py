@@ -70,8 +70,12 @@ def run_coherence_demo() -> bool:
     print_log(f"Dissonance Index: {audio_state.dissonance_index:.4f}")
 
     assert audio_state.fundamental_hz == 432.0, f"Expected 432 Hz, got {audio_state.fundamental_hz}"
-    assert audio_state.coherence_distance == 0.0, f"Expected 0.0 distance, got {audio_state.coherence_distance}"
-    assert audio_state.dissonance_index == 0.0, f"Expected 0.0 dissonance, got {audio_state.dissonance_index}"
+    assert audio_state.coherence_distance == 0.0, (
+        f"Expected 0.0 distance, got {audio_state.coherence_distance}"
+    )
+    assert audio_state.dissonance_index == 0.0, (
+        f"Expected 0.0 dissonance, got {audio_state.dissonance_index}"
+    )
 
     for fab_name, fab_data in audio_state.fabrics.items():
         print_log(
@@ -134,9 +138,18 @@ def run_buffer_performance_demo() -> bool:
     print_log("=== Phase 3: High-Speed Web Audio API / PyGame JSON Buffer Synthesis ===")
     sonifier = HIHOSonifier(fundamental_hz=DEFAULT_FUNDAMENTAL_HZ, sample_rate=44100)
     hiho_state = QuadratureState(
-        awareness=0.5, precision=0.5, creativity=0.5, dilation=0.5,
-        coherence=0.5, entropy=0.5, stability=0.5, momentum=0.5,
-        novelty=0.5, resonance=0.5, decay=0.5, synthesis=0.5
+        awareness=0.5,
+        precision=0.5,
+        creativity=0.5,
+        dilation=0.5,
+        coherence=0.5,
+        entropy=0.5,
+        stability=0.5,
+        momentum=0.5,
+        novelty=0.5,
+        resonance=0.5,
+        decay=0.5,
+        synthesis=0.5,
     )
     audio_state = sonifier.sonify_quadrature_state(hiho_state)
 
@@ -158,7 +171,9 @@ def run_buffer_performance_demo() -> bool:
         f"| Duration: {metadata['duration_s']:.2f} s | Length: {metadata['buffer_length']} samples"
     )
 
-    assert len(json_output["samples"]) == 2205, f"Expected 2205 samples, got {len(json_output['samples'])}"
+    assert len(json_output["samples"]) == 2205, (
+        f"Expected 2205 samples, got {len(json_output['samples'])}"
+    )
     assert elapsed_ms < 50.0, f"Performance budget breached: {elapsed_ms:.2f} ms >= 50.0 ms"
     print_log("✓ Phase 3 Buffer Synthesis (<50ms target) PASSED.\n")
     return True
@@ -188,7 +203,9 @@ async def run_router_delegation_demo() -> bool:
         print_log(f"  Latency:    {res.latency_ms:.2f} ms")
         print_log(f"  Verified:   {res.verified}")
     except TimeoutError:
-        print_log("Router delegation probe timed out (Local Silicon offline/standby). Using Tier 0 Fallback.")
+        print_log(
+            "Router delegation probe timed out (Local Silicon offline/standby). Using Tier 0 Fallback."
+        )
     print_log("✓ Phase 4 Model Delegation probe complete.\n")
     return True
 

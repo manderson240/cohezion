@@ -66,14 +66,20 @@ class LongHorizonTriSiliconMission:
         self.cache_system = SemanticCacheSystem()
         self.journey_tracker = JourneyTracker()
         self.event_bus = EventBus()
-        self.event_bridge = CrossSessionEventBridge(event_bus=self.event_bus, session_id="ouroboros_omega_mission")
+        self.event_bridge = CrossSessionEventBridge(
+            event_bus=self.event_bus, session_id="ouroboros_omega_mission"
+        )
         self.telemetry_history: list[MissionTelemetry] = []
 
     async def initialize(self) -> None:
         """Initialize load safety verification, FleetLock check, and EventBridge."""
         ram_gb = available_ram_gb()
-        logger.info(f"🚀 Initializing Project Ouroboros-Omega on AMD RYZEN AI MAX+ 395 ({ram_gb:.2f} GiB available)")
-        is_safe, reason = check_load_safe({"name": "ouroboros_omega", "recipe": "flm"}, ram_gb, ram_floor_gb=2.0)
+        logger.info(
+            f"🚀 Initializing Project Ouroboros-Omega on AMD RYZEN AI MAX+ 395 ({ram_gb:.2f} GiB available)"
+        )
+        is_safe, reason = check_load_safe(
+            {"name": "ouroboros_omega", "recipe": "flm"}, ram_gb, ram_floor_gb=2.0
+        )
         if not is_safe:
             raise SystemError(f"OOM Guard Refusal: {reason}")
         logger.info("✅ Load safety verification PASSED — proceeding with Tri-Silicon allocation.")
@@ -93,7 +99,9 @@ class LongHorizonTriSiliconMission:
 
         # STAGE 2: iGPU Parallel World Model & Poincaré Geodesics (Radeon 8060S)
         t_igpu_start = time.time()
-        logger.info("  [iGPU / Radeon 8060S] Computing 2048D Poincaré hyperbolic skill projections...")
+        logger.info(
+            "  [iGPU / Radeon 8060S] Computing 2048D Poincaré hyperbolic skill projections..."
+        )
         vec_a = project_2048d_to_poincare_3d([0.1] * 2048)
         vec_b = project_2048d_to_poincare_3d([0.2] * 2048)
         d_p = compute_hyperbolic_distance(vec_a, vec_b)
@@ -102,7 +110,9 @@ class LongHorizonTriSiliconMission:
 
         # STAGE 3: CPU Zero-Cost AutoHarness & Audio Sonification (32-Thread Zen 5)
         t_cpu_start = time.time()
-        logger.info("  [CPU / Zen 5] Running AST bytecode verifiers & 432 Hz HIHO audio synthesis...")
+        logger.info(
+            "  [CPU / Zen 5] Running AST bytecode verifiers & 432 Hz HIHO audio synthesis..."
+        )
 
         # AST Bytecode check
         harness_res = self.autoharness.verify_aimo_proof_state(
@@ -112,7 +122,9 @@ class LongHorizonTriSiliconMission:
         field_state = self.sonifier.sonify_quadrature_state(np.array([0.5] * 12))
         hiho_audio = self.sonifier.generate_audio_buffer(field_state=field_state, duration_s=0.05)
         cpu_latency = (time.time() - t_cpu_start) * 1000.0
-        logger.info(f"  [CPU] AutoHarness AST: {harness_res.valid} ({harness_res.execution_time_ms:.3f}ms) | Audio: {len(hiho_audio)} samples in {cpu_latency:.2f}ms")
+        logger.info(
+            f"  [CPU] AutoHarness AST: {harness_res.valid} ({harness_res.execution_time_ms:.3f}ms) | Audio: {len(hiho_audio)} samples in {cpu_latency:.2f}ms"
+        )
 
         # STAGE 4: SurrealDB Dual Memory Persistence & 12D Journey Tracking
         persisted = False
@@ -120,14 +132,19 @@ class LongHorizonTriSiliconMission:
         event_published = False
         try:
             cache_key = f"ouroboros_omega_cycle_{cycle}"
-            self.cache_system.put(cache_key, {"cycle": cycle, "d_p": d_p, "verified": harness_res.valid})
+            self.cache_system.put(
+                cache_key, {"cycle": cycle, "d_p": d_p, "verified": harness_res.valid}
+            )
             persisted = True
 
             # Track 12D FLUME Trajectory
             exec_res = ExecutionResult(
                 success=harness_res.valid,
                 output="Tri-silicon cycle complete",
-                metrics={"coherence": 0.95, "duration_ms": cpu_latency + npu_latency + igpu_latency},
+                metrics={
+                    "coherence": 0.95,
+                    "duration_ms": cpu_latency + npu_latency + igpu_latency,
+                },
                 duration_seconds=(cpu_latency + npu_latency + igpu_latency) / 1000.0,
                 token_metrics={"cache_hit_rate": 0.92},
             )
@@ -137,7 +154,9 @@ class LongHorizonTriSiliconMission:
                 operation_type="transform",
             )
             journey_tracked = point is not None
-            logger.info(f"  [Journey] Tracked 12D FLUME Trajectory Point: Coherence={point.coherence:.4f}")
+            logger.info(
+                f"  [Journey] Tracked 12D FLUME Trajectory Point: Coherence={point.coherence:.4f}"
+            )
 
             # STAGE 5: EventBus Cross-Session Broadcast
             await self.event_bus.publish(
@@ -153,7 +172,9 @@ class LongHorizonTriSiliconMission:
                 )
             )
             event_published = True
-            logger.info(f"  [EventBus] Broadcasted Cycle {cycle} complete event to SurrealDB event_log")
+            logger.info(
+                f"  [EventBus] Broadcasted Cycle {cycle} complete event to SurrealDB event_log"
+            )
         except Exception as e:
             logger.warning(f"  [Journey/Memory/Event] Persistence warning: {e}")
 
@@ -186,8 +207,12 @@ class LongHorizonTriSiliconMission:
         logger.info("\n=======================================================================")
         logger.info("🎉 PROJECT OUROBOROS-OMEGA MISSION COMPLETED SUCCESSFULLY!")
         logger.info(f"  • Total Cycles Executed : {len(self.telemetry_history)}")
-        logger.info(f"  • Mean Light Cone Radius: {sum(t.bioelectric_light_cone for t in self.telemetry_history)/len(self.telemetry_history):.4f}")
-        logger.info(f"  • AutoHarness Pass Rate : {sum(1 for t in self.telemetry_history if t.autoharness_verified)}/{len(self.telemetry_history)}")
+        logger.info(
+            f"  • Mean Light Cone Radius: {sum(t.bioelectric_light_cone for t in self.telemetry_history) / len(self.telemetry_history):.4f}"
+        )
+        logger.info(
+            f"  • AutoHarness Pass Rate : {sum(1 for t in self.telemetry_history if t.autoharness_verified)}/{len(self.telemetry_history)}"
+        )
         logger.info("=======================================================================")
         return self.telemetry_history
 

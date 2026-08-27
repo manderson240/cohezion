@@ -11,10 +11,10 @@ framework to instantly benefit from Cohezion's:
 from __future__ import annotations
 
 import functools
-import json
 import logging
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
@@ -23,6 +23,7 @@ from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
 from cohezion.physics.hiho_sonification import HIHOSonifier
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.security.data_provenance_signer import DataProvenanceSigner
+
 
 logger = logging.getLogger("cohezion.adapters")
 
@@ -33,6 +34,7 @@ _sonifier = HIHOSonifier()
 
 def verified_action(strict: bool = True) -> Callable:
     """Decorator verifying Python AST actions before execution in 0.00 ms (0 tokens)."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -48,18 +50,26 @@ def verified_action(strict: bool = True) -> Callable:
                 v_res = _verifier.verify_code(code_candidate)
                 dt_us = (time.perf_counter() - t0) * 1_000_000.0
                 if not v_res.valid and strict:
-                    raise ValueError(f"Cohezion AutoHarness AST Verification Failed in {dt_us:.2f} µs: {v_res.errors}")
-                logger.debug("AutoHarness AST verified action in %.2f µs (score=%.2f)", dt_us, v_res.score)
+                    raise ValueError(
+                        f"Cohezion AutoHarness AST Verification Failed in {dt_us:.2f} µs: {v_res.errors}"
+                    )
+                logger.debug(
+                    "AutoHarness AST verified action in %.2f µs (score=%.2f)", dt_us, v_res.score
+                )
 
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 import itertools
 
+
 def sheaf_consensus_gate(tolerance: float = 0.15) -> Callable:
     """Decorator ensuring multi-agent claim states form a consistent global section (dim H^1 == 0)."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(agent_claims: dict[str, list[float] | np.ndarray], *args, **kwargs):
@@ -74,10 +84,13 @@ def sheaf_consensus_gate(tolerance: float = 0.15) -> Callable:
             if not rep.is_consistent:
                 logger.warning(
                     "⚠️ Sheaf Cohomology Obstruction Detected: dim H^1=%d, max residual=%.4f",
-                    rep.dim_h1_obstructions, rep.max_coboundary_residual
+                    rep.dim_h1_obstructions,
+                    rep.max_coboundary_residual,
                 )
             return func(agent_claims, sheaf_report=rep, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -116,7 +129,9 @@ class AutoGenCohezionGroupChatManager:
     def check_swarm_consensus(self, agent_states: dict[str, list[float]]) -> dict[str, Any]:
         """Evaluate if multi-agent conversation claims are topologically consistent."""
         keys = list(agent_states.keys())
-        intersections = [(keys[i], keys[i+1]) for i in range(len(keys) - 1)] if len(keys) > 1 else []
+        intersections = (
+            [(keys[i], keys[i + 1]) for i in range(len(keys) - 1)] if len(keys) > 1 else []
+        )
         rep = self.sheaf_gate.evaluate_consistency(
             agent_claims={k: np.array(v) for k, v in agent_states.items()},
             shared_intersections=intersections,

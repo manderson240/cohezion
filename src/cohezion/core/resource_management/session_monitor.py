@@ -32,6 +32,7 @@ from cohezion.compound.oom_guard import (
     audit_heavy_models,
 )
 
+
 logger = logging.getLogger("cohezion.resource_guard")
 
 # N3 documents a 16 GB available-RAM floor, but oom_guard.RAM_LOAD_BUFFER_GB is 8.0. Those are two
@@ -49,7 +50,7 @@ AUDIT_EVERY_N_POLLS = int(os.environ.get("COHEZION_RESOURCE_AUDIT_EVERY", "30"))
 _running = True
 
 
-def _stop(signum: int, _frame: FrameType | None) -> None:  # noqa: ARG001
+def _stop(signum: int, _frame: FrameType | None) -> None:
     global _running
     _running = False
     logger.info("resource-guard: signal %s received, shutting down", signum)
@@ -80,7 +81,7 @@ def poll_once(poll_index: int) -> dict[str, object]:
     if poll_index % AUDIT_EVERY_N_POLLS == 0:
         try:
             audit = audit_heavy_models()
-        except Exception as e:  # noqa: BLE001 — a monitor must never die on a probe failure
+        except Exception as e:
             logger.warning("resource-guard: heavy-model audit failed: %s", type(e).__name__)
         else:
             hazards = [m for m, ctx in audit.items() if ctx == 0]
@@ -125,7 +126,7 @@ def main() -> int:
     while _running:
         try:
             poll_once(i)
-        except Exception as e:  # noqa: BLE001 — never let one bad poll kill a 24/7 guard
+        except Exception as e:
             logger.warning("resource-guard: poll %d failed: %s", i, type(e).__name__)
         i += 1
         # Sleep in short slices so SIGTERM is honoured promptly instead of after a full interval.

@@ -138,7 +138,9 @@ def main() -> int:
     with ThreadPoolExecutor(max_workers=2) as ex:
         for r in ex.map(run_lane, LANES):
             run.record_lane(r)
-            print(f"  {r['lane']:8} {r['chars']:6}ch {r['elapsed_s']:6.1f}s {r['error']}", flush=True)
+            print(
+                f"  {r['lane']:8} {r['chars']:6}ch {r['elapsed_s']:6.1f}s {r['error']}", flush=True
+            )
     print(f"\nwall-clock {time.time() - t0:.0f}s -> {run.dir}")
     return 0
 

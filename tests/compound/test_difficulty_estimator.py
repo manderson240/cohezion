@@ -15,7 +15,7 @@ GIC_NEW_7: post-execution history overrides prompt-based estimate
 
 import pytest
 
-from cohezion.compound.difficulty_estimator import DifficultyEstimator, _LATENCY_MIN_SAMPLES
+from cohezion.compound.difficulty_estimator import _LATENCY_MIN_SAMPLES, DifficultyEstimator
 from cohezion.compound.skill_refiner import SkillRefiner
 
 

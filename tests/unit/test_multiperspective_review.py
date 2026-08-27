@@ -1,5 +1,8 @@
-import pytest
-from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine, MultiperspectiveReviewReport
+from cohezion.governance.multiperspective_review import (
+    MultiperspectiveReviewEngine,
+    MultiperspectiveReviewReport,
+)
+
 
 def test_multiperspective_review_engine_pass():
     engine = MultiperspectiveReviewEngine(pass_score_threshold=0.85)
@@ -16,12 +19,13 @@ def test_multiperspective_review_engine_pass():
     assert report.overall_pass is True
     assert report.review_score == 1.0
 
+
 def test_multiperspective_review_engine_fail():
     engine = MultiperspectiveReviewEngine(pass_score_threshold=0.85)
     ctx = {
         "vram_available_gb": 12.0,  # CRITICAL
-        "ring_coherence": 0.30,      # HIGH
-        "zk_verified": False,        # CRITICAL
+        "ring_coherence": 0.30,  # HIGH
+        "zk_verified": False,  # CRITICAL
         "evi_score": 0.50,
     }
 

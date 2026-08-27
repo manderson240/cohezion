@@ -22,7 +22,9 @@ import httpx
 import safetensors.torch
 
 
-ROUTER_PATH = Path("/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py")
+ROUTER_PATH = Path(
+    "/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py"
+)
 CHECKPOINT_DIR = Path("/home/mike-anderson/dev/cohezion/checkpoints/cohezion_lora_qwen_adapter")
 SAFESENSOR_FILE = CHECKPOINT_DIR / "adapter_model.safetensors"
 
@@ -60,29 +62,71 @@ async def run_perfect_cloud_audit():
     async with httpx.AsyncClient(timeout=45.0) as client:
         # NPU Chat (llama3.2-1b-FLM)
         try:
-            r = await client.post("http://localhost:13305/v1/chat/completions", json={"model": "llama3.2-1b-FLM", "messages": [{"role": "user", "content": "What is 2 + 2? Output only the word."}], "max_tokens": 15})
-            live_tests["npu_chat_llama"] = {"status": r.status_code, "response": r.json()["choices"][0]["message"]["content"].strip()}
+            r = await client.post(
+                "http://localhost:13305/v1/chat/completions",
+                json={
+                    "model": "llama3.2-1b-FLM",
+                    "messages": [
+                        {"role": "user", "content": "What is 2 + 2? Output only the word."}
+                    ],
+                    "max_tokens": 15,
+                },
+            )
+            live_tests["npu_chat_llama"] = {
+                "status": r.status_code,
+                "response": r.json()["choices"][0]["message"]["content"].strip(),
+            }
         except Exception as e:
             live_tests["npu_chat_llama"] = {"error": str(e)}
 
         # NPU Embedding (embed-gemma-300m-FLM)
         try:
-            r = await client.post("http://localhost:13305/v1/embeddings", json={"model": "embed-gemma-300m-FLM", "input": "Cohezion AI Swarm"})
+            r = await client.post(
+                "http://localhost:13305/v1/embeddings",
+                json={"model": "embed-gemma-300m-FLM", "input": "Cohezion AI Swarm"},
+            )
             vec = r.json()["data"][0]["embedding"]
-            live_tests["npu_embedding_gemma"] = {"status": r.status_code, "dims": len(vec), "sample_values": vec[:3]}
+            live_tests["npu_embedding_gemma"] = {
+                "status": r.status_code,
+                "dims": len(vec),
+                "sample_values": vec[:3],
+            }
         except Exception as e:
             live_tests["npu_embedding_gemma"] = {"error": str(e)}
 
         # iGPU Chat (gpt-oss-20b)
         try:
-            r = await client.post("http://localhost:13305/v1/chat/completions", json={"model": "gpt-oss-20b", "messages": [{"role": "user", "content": "List Newton three laws of motion."}], "max_tokens": 150})
-            live_tests["igpu_chat_gpt_oss_20b"] = {"status": r.status_code, "response": r.json()["choices"][0]["message"]["content"][:150].strip()}
+            r = await client.post(
+                "http://localhost:13305/v1/chat/completions",
+                json={
+                    "model": "gpt-oss-20b",
+                    "messages": [{"role": "user", "content": "List Newton three laws of motion."}],
+                    "max_tokens": 150,
+                },
+            )
+            live_tests["igpu_chat_gpt_oss_20b"] = {
+                "status": r.status_code,
+                "response": r.json()["choices"][0]["message"]["content"][:150].strip(),
+            }
         except Exception as e:
             live_tests["igpu_chat_gpt_oss_20b"] = {"error": str(e)}
 
         # iGPU General (Qwen3.8-27B)
         try:
-            r = await client.post("http://localhost:13305/v1/chat/completions", json={"model": "Qwen3.8-27B-GGUF-Q5_K_M", "messages": [{"role": "user", "content": "Define entropy in thermodynamics in one sentence."}], "max_tokens": 300, "temperature": 0.5})
+            r = await client.post(
+                "http://localhost:13305/v1/chat/completions",
+                json={
+                    "model": "Qwen3.8-27B-GGUF-Q5_K_M",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Define entropy in thermodynamics in one sentence.",
+                        }
+                    ],
+                    "max_tokens": 300,
+                    "temperature": 0.5,
+                },
+            )
             msg = r.json()["choices"][0]["message"]
             content = msg.get("content") or msg.get("reasoning_content") or ""
             live_tests["igpu_chat_qwen38"] = {

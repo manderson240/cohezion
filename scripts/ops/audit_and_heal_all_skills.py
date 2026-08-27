@@ -53,7 +53,9 @@ class SkillQualityAuditor:
         # 2. Structural Section Check
         has_domain_expertise = "DOMAIN EXPERTISE" in content or "Domain Expertise" in content
         has_instruction = "INSTRUCTION" in content or "Instruction" in content or "## " in content
-        has_version = "VERSION" in content or "v0." in content or "v1." in content or "Version" in content
+        has_version = (
+            "VERSION" in content or "v0." in content or "v1." in content or "Version" in content
+        )
 
         # 3. Placeholder Check
         has_placeholders = bool(re.search(r"\{\{[A-Z_]+\}\}", content))
@@ -137,12 +139,14 @@ class SkillQualityAuditor:
                 else:
                     failed += 1
 
-            details.append({
-                "file": filepath.name,
-                "is_prime_standard": audit.is_prime_standard,
-                "has_frontmatter": audit.has_frontmatter,
-                "has_placeholders": audit.has_placeholders,
-            })
+            details.append(
+                {
+                    "file": filepath.name,
+                    "is_prime_standard": audit.is_prime_standard,
+                    "has_frontmatter": audit.has_frontmatter,
+                    "has_placeholders": audit.has_placeholders,
+                }
+            )
 
         pass_rate = round(((passed + healed) / total) * 100, 2) if total > 0 else 100.0
 
@@ -152,7 +156,9 @@ class SkillQualityAuditor:
             "auto_healed": healed,
             "failed": failed,
             "quality_pass_rate_percent": pass_rate,
-            "status": "ALL_SKILLS_PRIME_QUALITY_HEALED" if pass_rate == 100.0 else "AUDIT_COMPLETED_WITH_ISSUES",
+            "status": "ALL_SKILLS_PRIME_QUALITY_HEALED"
+            if pass_rate == 100.0
+            else "AUDIT_COMPLETED_WITH_ISSUES",
         }
 
 

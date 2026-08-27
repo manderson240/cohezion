@@ -19,7 +19,9 @@ import httpx
 import safetensors.torch
 
 
-ROUTER_PATH = Path("/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py")
+ROUTER_PATH = Path(
+    "/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py"
+)
 CHECKPOINT_DIR = Path("/home/mike-anderson/dev/cohezion/checkpoints/cohezion_lora_qwen_adapter")
 SAFESENSOR_FILE = CHECKPOINT_DIR / "adapter_model.safetensors"
 
@@ -57,11 +59,19 @@ async def run_flawless_cloud_audit():
     async with httpx.AsyncClient(timeout=45.0) as client:
         # NPU Chat (llama3.2-1b-FLM)
         try:
-            r = await client.post("http://localhost:13305/v1/chat/completions", json={
-                "model": "llama3.2-1b-FLM",
-                "messages": [{"role": "user", "content": "Explain the core difference between Paxos and Raft consensus algorithms in 2 sentences."}],
-                "max_tokens": 120,
-            })
+            r = await client.post(
+                "http://localhost:13305/v1/chat/completions",
+                json={
+                    "model": "llama3.2-1b-FLM",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Explain the core difference between Paxos and Raft consensus algorithms in 2 sentences.",
+                        }
+                    ],
+                    "max_tokens": 120,
+                },
+            )
             live_tests["npu_chat_llama"] = {
                 "status": r.status_code,
                 "substantive_response": r.json()["choices"][0]["message"]["content"].strip(),
@@ -71,7 +81,13 @@ async def run_flawless_cloud_audit():
 
         # NPU Embedding (embed-gemma-300m-FLM) - FULL 768-DIMENSIONAL VECTOR
         try:
-            r = await client.post("http://localhost:13305/v1/embeddings", json={"model": "embed-gemma-300m-FLM", "input": "Cohezion Fluid Latent Understanding through Manifold Encoding"})
+            r = await client.post(
+                "http://localhost:13305/v1/embeddings",
+                json={
+                    "model": "embed-gemma-300m-FLM",
+                    "input": "Cohezion Fluid Latent Understanding through Manifold Encoding",
+                },
+            )
             vec = r.json()["data"][0]["embedding"]
             live_tests["npu_embedding_gemma"] = {
                 "status": r.status_code,
@@ -83,11 +99,19 @@ async def run_flawless_cloud_audit():
 
         # iGPU Chat (gpt-oss-20b) - Extract thinking model output
         try:
-            r = await client.post("http://localhost:13305/v1/chat/completions", json={
-                "model": "gpt-oss-20b",
-                "messages": [{"role": "user", "content": "Explain Newton third law of motion in two sentences."}],
-                "max_tokens": 250,
-            })
+            r = await client.post(
+                "http://localhost:13305/v1/chat/completions",
+                json={
+                    "model": "gpt-oss-20b",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Explain Newton third law of motion in two sentences.",
+                        }
+                    ],
+                    "max_tokens": 250,
+                },
+            )
             msg = r.json()["choices"][0]["message"]
             text = (msg.get("content") or msg.get("reasoning_content") or "").strip()
             live_tests["igpu_chat_gpt_oss_20b"] = {
@@ -99,12 +123,20 @@ async def run_flawless_cloud_audit():
 
         # iGPU General (Qwen3.8-27B) - Extract thinking model output
         try:
-            r = await client.post("http://localhost:13305/v1/chat/completions", json={
-                "model": "Qwen3.8-27B-GGUF-Q5_K_M",
-                "messages": [{"role": "user", "content": "Explain the relationship between thermodynamic entropy and Shannon information entropy in 2 sentences."}],
-                "max_tokens": 300,
-                "temperature": 0.5,
-            })
+            r = await client.post(
+                "http://localhost:13305/v1/chat/completions",
+                json={
+                    "model": "Qwen3.8-27B-GGUF-Q5_K_M",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Explain the relationship between thermodynamic entropy and Shannon information entropy in 2 sentences.",
+                        }
+                    ],
+                    "max_tokens": 300,
+                    "temperature": 0.5,
+                },
+            )
             msg = r.json()["choices"][0]["message"]
             text = (msg.get("content") or msg.get("reasoning_content") or "").strip()
             live_tests["igpu_chat_qwen38"] = {

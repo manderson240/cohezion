@@ -4,11 +4,12 @@ Engineered and verified in OmA Autonomous Self-Evolution Loop (Cycle 07).
 
 from __future__ import annotations
 
-import time
 import math
-import numpy as np
+import time
 from dataclasses import dataclass
-from typing import Any
+
+import numpy as np
+
 
 @dataclass(frozen=True, slots=True)
 class CycleVerificationState:
@@ -17,6 +18,7 @@ class CycleVerificationState:
     verified: bool
     entropy_score: float
     timestamp: float
+
 
 class HIHORealityPrecipitationSonificationCarrierStreamer:
     """Deterministic, zero-cost verified engine for 432 Hz HIHO Reality Precipitation Sonification Carrier Streamer."""
@@ -38,5 +40,5 @@ class HIHORealityPrecipitationSonificationCarrierStreamer:
             subsystem="432 Hz HIHO Reality Precipitation Sonification Carrier Streamer",
             verified=True,
             entropy_score=round(score, 4),
-            timestamp=time.time()
+            timestamp=time.time(),
         )

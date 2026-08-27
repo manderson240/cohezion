@@ -15,23 +15,21 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import math
 import time
 import urllib.request
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Callable, Coroutine
+from dataclasses import dataclass
+from typing import Any
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
-from cohezion.multimodal.orchestrator import MultimodalModality, UnifiedMultimodalOrchestrator
 from cohezion.physics.ctac_engine import CTACEngine
 from cohezion.physics.frechet_centroid import PoincareHyperbolicFrechetCentroidAggregator
-from cohezion.physics.poincare_manifold import PoincareManifoldND, PoincarePoint
+from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.reliability.fleet_concurrency_governor import (
     HardwareFleetLockApicalConcurrencyGovernor,
 )
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger("spinning_plates")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [PLATES] %(message)s")

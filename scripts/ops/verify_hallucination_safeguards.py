@@ -41,12 +41,18 @@ def main() -> None:
     # 3. Sampling Sweet-Spot Governance (`min_p=0.05`)
     nemo_card = _match_model("nemotron-3.5-lightning")
     has_min_p = "min_p" in nemo_card and nemo_card["min_p"] == 0.05
-    logger.info("  [3/6] Sampling Sweet-Spot Hard-Pinning: %s (min_p=0.05 active)", "PASSED" if has_min_p else "FAILED")
+    logger.info(
+        "  [3/6] Sampling Sweet-Spot Hard-Pinning: %s (min_p=0.05 active)",
+        "PASSED" if has_min_p else "FAILED",
+    )
 
     # 4. ZKFV Polynomial Proofs
     gates = ZKFVCompiler.compile_ast_to_gates("memory_safe")
     proof = ZKFVCompiler.generate_proof(gates, (1.0, 1.0, 2.0))
-    logger.info("  [4/6] ZKFV Polynomial Proof Compiler: %s (SHA-256 verified)", "PASSED" if proof.is_valid else "FAILED")
+    logger.info(
+        "  [4/6] ZKFV Polynomial Proof Compiler: %s (SHA-256 verified)",
+        "PASSED" if proof.is_valid else "FAILED",
+    )
 
     # 5. Trajectory Reward Gating ($r_t \ge 0.45$)
     logger.info("  [5/6] Experiential Reward Gating: ACTIVE (rt >= 0.45 threshold enforced)")
@@ -60,8 +66,12 @@ def main() -> None:
     print("=" * 95)
     print("  • Safeguard 1: Grounded Context Injection — ✅ VERIFIED (Poincaré 2048D Manifold)")
     print("  • Safeguard 2: AutoHarness AST Bytecode Compiler — ✅ VERIFIED (0ms AST AST checks)")
-    print("  • Safeguard 3: Sampling Sweet-Spot Hard-Pinning — ✅ VERIFIED (min_p=0.05 tail truncation)")
-    print("  • Safeguard 4: ZKFV Polynomial Proofs — ✅ VERIFIED (Cryptographic SHA-256 state tree)")
+    print(
+        "  • Safeguard 3: Sampling Sweet-Spot Hard-Pinning — ✅ VERIFIED (min_p=0.05 tail truncation)"
+    )
+    print(
+        "  • Safeguard 4: ZKFV Polynomial Proofs — ✅ VERIFIED (Cryptographic SHA-256 state tree)"
+    )
     print("  • Safeguard 5: Experiential Trajectory Gating — ✅ VERIFIED (rt >= 0.45 retention)")
     print("  • Safeguard 6: EVI Tiered Escalation — ✅ VERIFIED (EVI > 0.75 routing gate)")
     print("=" * 95)

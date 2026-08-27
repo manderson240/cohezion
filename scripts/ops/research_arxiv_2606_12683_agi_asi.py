@@ -25,7 +25,14 @@ Pathways from AGI to Artificial Superintelligence (ASI):
 4. ASI Emerging from Multi-Agent Collectives: Swarm morphogenesis, bioelectric coupling, assembly lines.
 """
 
-RESEARCH_REPORT_PATH = Path.home() / ".gemini" / "antigravity-cli" / "brain" / "54146dc4-dff4-4b47-a2cb-abb16f9e3812" / "arxiv_2606_12683_agi_to_asi_report.md"
+RESEARCH_REPORT_PATH = (
+    Path.home()
+    / ".gemini"
+    / "antigravity-cli"
+    / "brain"
+    / "54146dc4-dff4-4b47-a2cb-abb16f9e3812"
+    / "arxiv_2606_12683_agi_to_asi_report.md"
+)
 
 
 async def main() -> None:
@@ -45,7 +52,10 @@ async def main() -> None:
     """
 
     resp = router.route_query(prompt=prompt, force_cloud=True)
-    res_text = resp.content or "Cohezion's substrate is structurally aligned with the 4 ASI pathways of arXiv:2606.12683."
+    res_text = (
+        resp.content
+        or "Cohezion's substrate is structurally aligned with the 4 ASI pathways of arXiv:2606.12683."
+    )
     model_used = resp.model_name or "deepseek-v4-pro:cloud"
 
     logger.info(f"✅ Tier 2 Ollama Cloud Model Output Received ({model_used})")
@@ -62,7 +72,7 @@ arXiv paper **2606.12683** ("From AGI to ASI: Pathways, Bottlenecks, and Societa
 | Paper Pathway | Cohezion Implementation | Empirical Metric / Status |
 |:---|:---|:---|
 | **1. Paradigm Shifts** | Poincaré 2048D Hyperbolic Manifolds & JEPA World Model | $d_P(u, v)$ metric distortion $< 0.01\\%$, 3D Marimo Cockpit |
-| **2. Recursive Improvement** | AutoHarness AST Policy Verifiers (arXiv:2603.03329v1) | **$0.00\text{ ms}$** latency (~5.80 µs execution time), 2,000 checks in 11.59ms |
+| **2. Recursive Improvement** | AutoHarness AST Policy Verifiers (arXiv:2603.03329v1) | **$0.00\text{ms}$** latency (~5.80 µs execution time), 2,000 checks in 11.59ms |
 | **3. Multi-Agent Collectives** | Bioelectric Swarm Morphogenesis & 5-Station Assembly Line | **$10.20\times$** Light Cone Expansion ($R_c = 24.98$), 0.976ms Self-Healing |
 | **4. Hardware Bottlenecks** | AMD Strix Halo Tri-Compute (NPU + iGPU + CPU) | NPU 28ms reasoning, iGPU 1.1ms parallel simulation, 32 CPU threads |
 

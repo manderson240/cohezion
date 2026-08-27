@@ -42,7 +42,11 @@ async def main_async() -> None:
             "prefill_tok_s": 1310.5,
             "decode_tok_s": 142.5,
             "context_window_fp4_kv": 128000,
-            "hardware_tiers": ["AMD XDNA2 NPU", "AMD Radeon RX 7700S iGPU", "AMD Ryzen 9 7945HX CPU"],
+            "hardware_tiers": [
+                "AMD XDNA2 NPU",
+                "AMD Radeon RX 7700S iGPU",
+                "AMD Ryzen 9 7945HX CPU",
+            ],
             "uma_zero_copy_overhead_ms": 0.00,
         },
         "zero_inference": {
@@ -69,7 +73,9 @@ async def main_async() -> None:
         duration_ms=7.0,
     )
     bridge.publish_and_persist(evt)
-    print("  • [1/2] EventBus & CrossSessionEventBridge: Published & persisted event for all active agent sessions.")
+    print(
+        "  • [1/2] EventBus & CrossSessionEventBridge: Published & persisted event for all active agent sessions."
+    )
 
     # 3. Persist Durable Kanban Card into SurrealDB & Obsidian Vault
     kanban_card = {
@@ -82,7 +88,9 @@ async def main_async() -> None:
         "details": payload,
     }
     persist_item(kanban_card)
-    print("  • [3/3] Agentic Kanban Bridge: Persisted durable task card into SurrealDB `kanban_item` & Obsidian Vault `kanban/`.")
+    print(
+        "  • [3/3] Agentic Kanban Bridge: Persisted durable task card into SurrealDB `kanban_item` & Obsidian Vault `kanban/`."
+    )
 
     print("=" * 100)
     print("🎉 Cohezion Capabilities Successfully Broadcasted Across All Inter-Session Bridges!")

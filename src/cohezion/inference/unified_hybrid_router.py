@@ -34,8 +34,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
@@ -43,6 +42,7 @@ from cohezion.core.event_bus import Event, EventBus, get_event_bus
 from cohezion.inference.lemonade_health import LemonadeHealth, probe_lemonade
 from cohezion.reliability import get_circuit
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger(__name__)
 
@@ -710,4 +710,3 @@ class RoutingResult:
     evi_score: float
     escalated: bool
     reason: str
-

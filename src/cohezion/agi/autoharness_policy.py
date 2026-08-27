@@ -7,10 +7,10 @@ LLM calls at inference time with 0 ms latency.
 
 from __future__ import annotations
 
-import ast
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.contracts import VerificationResult
@@ -129,4 +129,3 @@ class VerificationResult:
     verifier_name: str
     violations: list[str] = field(default_factory=list)
     ast_nodes_scanned: int = 0
-

@@ -15,6 +15,7 @@ SurrealDB v2.x advanced engineering specializing in 12D Poincaré hyperbolic HNS
 ```python
 import httpx
 
+
 async def find_similar_experience(embedding_12d: list[float], limit: int = 5):
     sql = """
     SELECT title, content, domain, vector::similarity::cosine(embedding_12d, $vec) AS similarity
@@ -28,7 +29,7 @@ async def find_similar_experience(embedding_12d: list[float], limit: int = 5):
             "http://127.0.0.1:8001/sql",
             headers={"surreal-ns": "cohezion", "surreal-db": "main"},
             auth=("root", "root"),
-            json={"sql": sql, "vars": {"vec": embedding_12d, "limit": limit}}
+            json={"sql": sql, "vars": {"vec": embedding_12d, "limit": limit}},
         )
         return resp.json()
 ```

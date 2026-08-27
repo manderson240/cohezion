@@ -11,14 +11,13 @@ Provides an interactive live canvas for:
 
 from __future__ import annotations
 
-import json
 import logging
-import math
 import sys
 import time
 from pathlib import Path
 
 import numpy as np
+
 
 # Add src to path
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -30,6 +29,7 @@ from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
 from cohezion.physics.hiho_sonification import HIHOSonifier
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("cohezion_observability_hud")
@@ -55,7 +55,7 @@ class CohezionObservabilityHUD:
 
         # 2. Sheaf Cohomology Check
         sample_claims = {f"agent_{i}": np.random.uniform(-0.2, 0.2, 12) for i in range(4)}
-        intersections = [(f"agent_{i}", f"agent_{i+1}") for i in range(3)]
+        intersections = [(f"agent_{i}", f"agent_{i + 1}") for i in range(3)]
         sheaf_rep = self.sheaf_gate.evaluate_consistency(sample_claims, intersections)
 
         # 3. HIHO Sonification Frame

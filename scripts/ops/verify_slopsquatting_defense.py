@@ -27,11 +27,33 @@ def get_declared_dependencies() -> set[str]:
     deps = set()
     for dep_str in data.get("project", {}).get("dependencies", []):
         # Extract base package name before any version specifier
-        pkg = dep_str.split(";")[0].split(">=")[0].split("==")[0].split("<=")[0].split("~=")[0].strip().lower().replace("-", "_")
+        pkg = (
+            dep_str.split(";")[0]
+            .split(">=")[0]
+            .split("==")[0]
+            .split("<=")[0]
+            .split("~=")[0]
+            .strip()
+            .lower()
+            .replace("-", "_")
+        )
         deps.add(pkg)
 
     # Common standard package mappings
-    deps.update({"yaml", "httpx", "numpy", "pydantic", "pytest", "torch", "surrealdb", "fastapi", "uvicorn", "websockets"})
+    deps.update(
+        {
+            "yaml",
+            "httpx",
+            "numpy",
+            "pydantic",
+            "pytest",
+            "torch",
+            "surrealdb",
+            "fastapi",
+            "uvicorn",
+            "websockets",
+        }
+    )
     return deps
 
 
@@ -64,9 +86,13 @@ def audit_repository_imports() -> dict:
                 if mod_clean in stdlib_modules or mod_clean == "cohezion":
                     continue
 
-                external_imports.setdefault(mod_clean, []).append(str(file_path.relative_to(REPO_ROOT)))
+                external_imports.setdefault(mod_clean, []).append(
+                    str(file_path.relative_to(REPO_ROOT))
+                )
                 if mod_clean not in declared_deps:
-                    unknown_imports.setdefault(mod_clean, []).append(str(file_path.relative_to(REPO_ROOT)))
+                    unknown_imports.setdefault(mod_clean, []).append(
+                        str(file_path.relative_to(REPO_ROOT))
+                    )
 
     return {
         "total_files_scanned": len(py_files),
@@ -81,8 +107,8 @@ if __name__ == "__main__":
     print(f"Scanned {res['total_files_scanned']} files.")
     print(f"Identified {res['unique_external_dependencies']} external packages.")
     print(f"Unregistered/Hallucinated Packages: {res['unregistered_imports_count']}")
-    if res['unregistered_imports_count'] > 0:
-        for pkg, files in list(res['unregistered_imports'].items())[:10]:
+    if res["unregistered_imports_count"] > 0:
+        for pkg, files in list(res["unregistered_imports"].items())[:10]:
             print(f"  - {pkg}: used in {len(files)} files (e.g. {files[0]})")
     else:
         print("✅ 100% Package Grounding: Zero hallucinated or unregistered dependencies found.")

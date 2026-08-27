@@ -5,10 +5,8 @@ Engineered and verified in OmA Autonomous Self-Evolution Loop (Cycle 12).
 from __future__ import annotations
 
 import time
-import math
-import numpy as np
 from dataclasses import dataclass
-from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class CycleVerificationState:
@@ -18,7 +16,9 @@ class CycleVerificationState:
     entropy_score: float
     timestamp: float
 
+
 import threading
+
 
 class HardwareFleetLockApicalConcurrencyGovernor:
     """Hardware-aware concurrency governor for Strix Halo NPU/iGPU aperture allocation."""

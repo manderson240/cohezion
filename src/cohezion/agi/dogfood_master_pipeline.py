@@ -19,17 +19,16 @@ import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.empirical_proof_harness import EmpiricalProofHarness
 from cohezion.agi.zero_inference_engine import ZeroInferenceEngine
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
 from cohezion.flume.j_space_workspace_engine import JSpaceWorkspaceEngine
 from cohezion.flume.symmetry_breaking_engine import SymmetryBreakingEngine
 from cohezion.swarm.graph_systems_vmodel_engine import GraphSystemsVModelEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -64,20 +63,34 @@ class MasterDogfoodPipeline:
         results: list[DogfoodRunResult] = []
 
         # 1. Dogfood Graph & Systems V-Model
-        vmodel_res = await self.vmodel_engine.execute_graph_vmodel_cycle("Dogfood V-Model Systems", "dogfooding")
-        results.append(DogfoodRunResult("Graph & Systems V-Model", 100.0, vmodel_res.execution_time_ms, 300))
+        vmodel_res = await self.vmodel_engine.execute_graph_vmodel_cycle(
+            "Dogfood V-Model Systems", "dogfooding"
+        )
+        results.append(
+            DogfoodRunResult("Graph & Systems V-Model", 100.0, vmodel_res.execution_time_ms, 300)
+        )
 
         # 2. Dogfood J-Space Global Workspace
-        jstate = await self.jspace_engine.execute_j_space_reasoning_pass("Dogfood J-Space Global Workspace")
+        jstate = await self.jspace_engine.execute_j_space_reasoning_pass(
+            "Dogfood J-Space Global Workspace"
+        )
         results.append(DogfoodRunResult("Anthropic 2026 J-Space Workspace", 100.0, 0.15, 300))
 
         # 3. Dogfood Spontaneous Symmetry Breaking
         sym_res = await self.symmetry_engine.execute_symmetry_breaking()
-        results.append(DogfoodRunResult("Bioelectric Symmetry Breaking", 100.0, sym_res.execution_time_ms, 256))
+        results.append(
+            DogfoodRunResult("Bioelectric Symmetry Breaking", 100.0, sym_res.execution_time_ms, 256)
+        )
 
         # 4. Dogfood Zero-Inference Engine
-        zres = await self.zero_inf_engine.process_intent_zero_inference("verify safety policy constraints")
-        results.append(DogfoodRunResult("Zero-Inference AST Engine", 100.0, zres.execution_time_us / 1000.0, 250))
+        zres = await self.zero_inf_engine.process_intent_zero_inference(
+            "verify safety policy constraints"
+        )
+        results.append(
+            DogfoodRunResult(
+                "Zero-Inference AST Engine", 100.0, zres.execution_time_us / 1000.0, 250
+            )
+        )
 
         # 5. Dogfood Empirical Proof Harness
         proofs = await self.proof_harness.execute_full_proof_suite()
@@ -92,12 +105,24 @@ class MasterDogfoodPipeline:
                 rec = {
                     "instruction": f"Cohezion Dogfood Operational Execution #{idx:04d}",
                     "context": "Empirical Live Subsystem Dogfooding",
-                    "response": json.dumps({"dogfood_pass": True, "vmodel_score": 1.0, "ast_verified": True, "zkfv_verified": True}),
+                    "response": json.dumps(
+                        {
+                            "dogfood_pass": True,
+                            "vmodel_score": 1.0,
+                            "ast_verified": True,
+                            "zkfv_verified": True,
+                        }
+                    ),
                     "quality_score": 1.0000,
                 }
                 f.write(json.dumps(rec) + "\n")
 
-        logger.info("✅ Live Dogfooding Complete! Generated %d live execution pairs in %.3fs -> %s", total_dogfood_pairs, time.perf_counter() - t0, DOGFOOD_DATASET_FILE)
+        logger.info(
+            "✅ Live Dogfooding Complete! Generated %d live execution pairs in %.3fs -> %s",
+            total_dogfood_pairs,
+            time.perf_counter() - t0,
+            DOGFOOD_DATASET_FILE,
+        )
         return results
 
     def consolidate_master_10k_corpus(self) -> int:
@@ -120,7 +145,11 @@ class MasterDogfoodPipeline:
                             out_f.write(line.strip() + "\n")
                             total_count += 1
 
-        logger.info("🎉 MASTER 10K FINE-TUNING CORPUS CONSOLIDATED! Total Verified Pairs: %d -> %s", total_count, MASTER_CORPUS_FILE)
+        logger.info(
+            "🎉 MASTER 10K FINE-TUNING CORPUS CONSOLIDATED! Total Verified Pairs: %d -> %s",
+            total_count,
+            MASTER_CORPUS_FILE,
+        )
         return total_count
 
 
@@ -132,11 +161,15 @@ async def main_async() -> None:
 
     subsystem_results = await pipeline.execute_full_dogfood_suite()
     for r in subsystem_results:
-        print(f"  • Subsystem: {r.subsystem_name:35s} | Pass Rate: {r.pass_rate_pct:.1f}% | Latency: {r.execution_latency_ms:.2f} ms | Live Pairs: {r.generated_pairs_count}")
+        print(
+            f"  • Subsystem: {r.subsystem_name:35s} | Pass Rate: {r.pass_rate_pct:.1f}% | Latency: {r.execution_latency_ms:.2f} ms | Live Pairs: {r.generated_pairs_count}"
+        )
 
     print("  " + "-" * 85)
     final_count = pipeline.consolidate_master_10k_corpus()
-    print(f"\n  • GRAND TOTAL CONSOLIDATED FINE-TUNING CORPUS: {final_count:,} Verified Instruction-Response Pairs")
+    print(
+        f"\n  • GRAND TOTAL CONSOLIDATED FINE-TUNING CORPUS: {final_count:,} Verified Instruction-Response Pairs"
+    )
     print(f"  • Master Corpus File: {MASTER_CORPUS_FILE}")
     print("=" * 95)
     print("🎉 Master Dogfooding & 10K Corpus Consolidation Operational!")

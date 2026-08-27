@@ -56,7 +56,9 @@ def main() -> None:
         "Think deeply inside <think>...</think> tags and output a pass/fail determination with risk mitigations."
     )
 
-    logger.info("⚡ Dispatching Adversarial Prompt to Local NPU Reasoning Model (`deepseek-r1-0528-8b-FLM`)....")
+    logger.info(
+        "⚡ Dispatching Adversarial Prompt to Local NPU Reasoning Model (`deepseek-r1-0528-8b-FLM`)...."
+    )
     cook_res = deep_cooking.cook_inference_task(
         prompt=npu_prompt,
         model="deepseek-r1-0528-8b-FLM",
@@ -71,7 +73,9 @@ def main() -> None:
     print("=" * 90)
     print(f"  • Hardware Model Lane: {cook_res.model} (NPU)")
     print(f"  • Total Review Latency: {dt_sec:.3f} s")
-    print(f"  • Rule-Based Pre-Check Score: {rule_report.review_score:.4f} (Pass: {rule_report.overall_pass})")
+    print(
+        f"  • Rule-Based Pre-Check Score: {rule_report.review_score:.4f} (Pass: {rule_report.overall_pass})"
+    )
     print(f"  • NPU Deep Cooking Task ID: {cook_res.task_id}")
     print(f"  • NPU Cooking Time: {cook_res.cooking_time_seconds:.2f} s")
     print(f"  • CoT Thinking Trace Snippet:\n    {cook_res.thinking_trace[:300]}...")

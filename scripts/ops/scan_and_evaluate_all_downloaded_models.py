@@ -35,12 +35,14 @@ def get_ollama_models() -> list[dict]:
             data = json.loads(r.read().decode())
             for m in data.get("models", []):
                 size_gb = m.get("size", 0) / (1024**3)
-                models.append({
-                    "id": m.get("name"),
-                    "source": "Ollama Local Storage",
-                    "size_gb": size_gb,
-                    "recipe": "ollama",
-                })
+                models.append(
+                    {
+                        "id": m.get("name"),
+                        "source": "Ollama Local Storage",
+                        "size_gb": size_gb,
+                        "recipe": "ollama",
+                    }
+                )
     except Exception as e:
         logger.debug("Ollama scanner note: %s", e)
     return models
@@ -53,12 +55,14 @@ def get_lemonade_models() -> list[dict]:
         with urllib.request.urlopen(req, timeout=5.0) as r:
             data = json.loads(r.read().decode())
             for m in data.get("data", []):
-                models.append({
-                    "id": m.get("id"),
-                    "source": "Lemonade OmniRouter Catalog",
-                    "size_gb": 0.0,  # Will infer from recipe
-                    "recipe": "flm" if "flm" in m.get("id", "").lower() else "gguf",
-                })
+                models.append(
+                    {
+                        "id": m.get("id"),
+                        "source": "Lemonade OmniRouter Catalog",
+                        "size_gb": 0.0,  # Will infer from recipe
+                        "recipe": "flm" if "flm" in m.get("id", "").lower() else "gguf",
+                    }
+                )
     except Exception as e:
         logger.debug("Lemonade scanner note: %s", e)
     return models
@@ -74,12 +78,14 @@ def get_hf_cache_models() -> list[dict]:
                 total_bytes = sum(f.stat().st_size for f in item.rglob("*") if f.is_file())
                 size_gb = total_bytes / (1024**3)
                 model_name = item.name.replace("models--", "").replace("--", "/")
-                models.append({
-                    "id": model_name,
-                    "source": "HuggingFace Local Cache",
-                    "size_gb": size_gb,
-                    "recipe": "transformers",
-                })
+                models.append(
+                    {
+                        "id": model_name,
+                        "source": "HuggingFace Local Cache",
+                        "size_gb": size_gb,
+                        "recipe": "transformers",
+                    }
+                )
     return models
 
 
@@ -122,9 +128,13 @@ def main() -> None:
 
         print(f"\n[{idx}] MODEL: {mid}")
         print(f"    • Source Location: {m['source']}")
-        print(f"    • Weight Size on Disk: {size_gb:.2f} GB (Estimated Inflated Footprint: {eff_size:.2f} GB)")
+        print(
+            f"    • Weight Size on Disk: {size_gb:.2f} GB (Estimated Inflated Footprint: {eff_size:.2f} GB)"
+        )
         print(f"    • Weight-Fit Safety Gate: {status_str}")
-        print(f"    • Model Card Defaults: {card_defaults if card_defaults else 'Default sampling (temp=0.7)'}")
+        print(
+            f"    • Model Card Defaults: {card_defaults if card_defaults else 'Default sampling (temp=0.7)'}"
+        )
 
     dt_total = time.perf_counter() - t0
     print("\n" + "=" * 110)

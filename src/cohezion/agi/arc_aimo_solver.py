@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Sequence
 
-from cohezion.agi.autoharness_policy import ActionPolicyResult, AutoHarnessPolicy
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 logger = logging.getLogger(__name__)
 
@@ -67,4 +67,5 @@ class ARCSolverHarness:
 
 def time_perf_counter() -> float:
     import time
+
     return time.perf_counter()

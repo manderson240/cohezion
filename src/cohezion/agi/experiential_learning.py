@@ -15,20 +15,19 @@ Architecture:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
-from cohezion.agi.zkfv_compiler import ZKFVCompiler, ZKProof
+from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.contracts import PoincarePoint
-from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
+from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +56,11 @@ class ExperientialLearningEngine:
 
     async def surreal_upsert_experience(self, exp_id: str, data: dict) -> bool:
         """Persist experience record to SurrealDB 3.0+ using async client and record-id syntax."""
-        table = "experiential_replay" if data.get("reward", 0.0) >= MIN_EXPERIENCE_REWARD else "failed_experience_log"
+        table = (
+            "experiential_replay"
+            if data.get("reward", 0.0) >= MIN_EXPERIENCE_REWARD
+            else "failed_experience_log"
+        )
         try:
             await self.surreal_client.query(
                 f"UPSERT type::record('{table}', $exp_id) CONTENT $data;",
@@ -96,7 +99,7 @@ class ExperientialLearningEngine:
             "next_state_norm": round(next_state.norm, 4),
             "verified": p_res.allowed,
             "proof_valid": proof.is_valid,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         # 4. Async Upsert to SurrealDB 3.0+

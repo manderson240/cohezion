@@ -162,7 +162,9 @@ class ModelSprintOrchestrator:
                 break
         if norm_role is None:
             norm_role = "interactive"
-        return await self._ensure_role("ensure_model", norm_role, protect, load_timeout, forced_model=model_id)
+        return await self._ensure_role(
+            "ensure_model", norm_role, protect, load_timeout, forced_model=model_id
+        )
 
     async def update_on_roster_change(
         self,
@@ -417,6 +419,7 @@ class ModelSprintOrchestrator:
 
 
 # ── Convenience entry points ────────────────────────────────────────────────
+
 
 async def run_model_sprint(
     roles: list[str] | None = None,

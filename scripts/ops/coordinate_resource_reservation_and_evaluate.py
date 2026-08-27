@@ -30,9 +30,13 @@ REPORTED_SIZE_GB = 20.5
 
 
 async def run_coordination_and_eval() -> None:
-    logger.info("📡 Step 1: Broadcasting Cross-Session Resource Reservation Request via EventBus...")
+    logger.info(
+        "📡 Step 1: Broadcasting Cross-Session Resource Reservation Request via EventBus..."
+    )
     event_bus = await get_event_bus()
-    bridge = CrossSessionEventBridge(event_bus=event_bus, session_id="antigravity_master_orchestrator")
+    bridge = CrossSessionEventBridge(
+        event_bus=event_bus, session_id="antigravity_master_orchestrator"
+    )
     await bridge.initialize()
 
     req_event = Event(
@@ -47,7 +51,9 @@ async def run_coordination_and_eval() -> None:
         },
     )
     await event_bus.publish(req_event)
-    logger.info("✅ Published high-priority resource reservation request to local EventBus & SurrealDB event_log")
+    logger.info(
+        "✅ Published high-priority resource reservation request to local EventBus & SurrealDB event_log"
+    )
 
     # Step 2: Persist Agentic Kanban Card across SurrealDB & Obsidian
     logger.info("📋 Step 2: Persisting Agentic Kanban Card to SurrealDB & Obsidian Vault...")
@@ -87,7 +93,9 @@ async def run_coordination_and_eval() -> None:
         print(f"  • Kanban Card State: {kanban_res}")
         print(f"  • Live Available RAM (Post-Settlement): {mem_after.available_gb:.2f} GiB")
         print(f"  • Required Model Footprint (1.7x Factor): {eff_size:.2f} GB")
-        print(f"  • Model Load Safety Gate: {'✅ LOAD APPROVED FOR EVALUATION' if safe else '⚠️ LOAD HELD IN QUEUE'}")
+        print(
+            f"  • Model Load Safety Gate: {'✅ LOAD APPROVED FOR EVALUATION' if safe else '⚠️ LOAD HELD IN QUEUE'}"
+        )
         print(f"    Reason: {reason}")
         print(f"  • Model Card Sampling Sweet-Spot: {card_defaults}")
         print("  • Evaluation Strategy: Sequential single-flight load under FleetLock mutex")

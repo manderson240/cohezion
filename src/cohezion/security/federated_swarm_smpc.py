@@ -12,11 +12,11 @@ import asyncio
 import hashlib
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -44,12 +44,15 @@ class FederatedSwarmSMPCEngine:
         num_nodes: int = 4,
     ) -> SMPCFederatedUpdateRecord:
         logger.info("\n" + "=" * 95)
-        logger.info("🔒 EXECUTING FEDERATED SWARM SMPC HOMOMORPHIC GRADIENT AGGREGATION (%d Nodes)...", num_nodes)
+        logger.info(
+            "🔒 EXECUTING FEDERATED SWARM SMPC HOMOMORPHIC GRADIENT AGGREGATION (%d Nodes)...",
+            num_nodes,
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
         # Simulated Homomorphic Masking & Reconstructed Gradient Verification
-        grad_bytes = f"smpc_grad_{swarm_session_id}_{time.time()}".encode("utf-8")
+        grad_bytes = f"smpc_grad_{swarm_session_id}_{time.time()}".encode()
         encrypted_gradient_hash = hashlib.sha256(grad_bytes).hexdigest()
         reconstructed_consensus_norm = 0.002845
         latency_ms = round((time.perf_counter() - t0) * 1000.0, 3)
@@ -65,7 +68,10 @@ class FederatedSwarmSMPCEngine:
 
         logger.info("  ✓ Participating Swarm Nodes: %d", num_nodes)
         logger.info("  ✓ Encrypted Gradient Hash: %s", rec.encrypted_gradient_hash)
-        logger.info("  ✓ Reconstructed Gradient Norm: %.6f (100%% Cryptographically Private)", reconstructed_consensus_norm)
+        logger.info(
+            "  ✓ Reconstructed Gradient Norm: %.6f (100%% Cryptographically Private)",
+            reconstructed_consensus_norm,
+        )
         logger.info("  ⚡ SMPC Homomorphic Latency: %.3f ms", latency_ms)
 
         # Broadcast event over EventBus
@@ -108,7 +114,9 @@ async def main_async() -> None:
     print(f"  • Participating Swarm Nodes: {rec.num_participating_nodes}")
     print(f"  • Encrypted Gradient Hash: {rec.encrypted_gradient_hash}")
     print(f"  • Reconstructed Consensus Norm: {rec.reconstructed_consensus_norm:.6f}")
-    print(f"  • Latency: {rec.smpc_latency_ms:.3f} ms | Integrity: {'✅ CRYPTOGRAPHICALLY VERIFIED' if rec.cryptographic_integrity_verified else '❌ FAILED'}")
+    print(
+        f"  • Latency: {rec.smpc_latency_ms:.3f} ms | Integrity: {'✅ CRYPTOGRAPHICALLY VERIFIED' if rec.cryptographic_integrity_verified else '❌ FAILED'}"
+    )
     print("=" * 95)
     print("🎉 Federated Swarm SMPC Engine Deployed & Verified (Phase 4 Avenue Active!)")
 

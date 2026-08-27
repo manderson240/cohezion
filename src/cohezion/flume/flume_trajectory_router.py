@@ -18,16 +18,18 @@ import json
 import logging
 import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-FLUME_ENCODED_DATASET_FILE = Path.home() / "dev" / "cohezion" / "data" / "cohezion_flume_encoded_dataset.jsonl"
+FLUME_ENCODED_DATASET_FILE = (
+    Path.home() / "dev" / "cohezion" / "data" / "cohezion_flume_encoded_dataset.jsonl"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,8 +91,13 @@ class FLUMETrajectoryRouter:
             flume_coherence=avg_coherence,
         )
 
-    async def process_all_journeys_through_flume(self, target_count: int = 1000) -> list[FLUMEEnrichedJourney]:
-        logger.info("🌊 FLUME TRAJECTORY ROUTER: Routing %d trajectories across 5 Expert Streams...", target_count)
+    async def process_all_journeys_through_flume(
+        self, target_count: int = 1000
+    ) -> list[FLUMEEnrichedJourney]:
+        logger.info(
+            "🌊 FLUME TRAJECTORY ROUTER: Routing %d trajectories across 5 Expert Streams...",
+            target_count,
+        )
         t0 = time.perf_counter()
 
         enriched: list[FLUMEEnrichedJourney] = []
@@ -108,12 +115,24 @@ class FLUMETrajectoryRouter:
                     "journey_id": j.journey_id,
                     "goal": j.goal,
                     "flume_coherence": j.flume_coherence,
-                    "streams": [{"stream": s.stream_name, "z_norm": 1.0, "geodesic_dist": s.geodesic_distance} for s in j.stream_results],
+                    "streams": [
+                        {
+                            "stream": s.stream_name,
+                            "z_norm": 1.0,
+                            "geodesic_dist": s.geodesic_distance,
+                        }
+                        for s in j.stream_results
+                    ],
                 }
                 f.write(json.dumps(rec) + "\n")
 
         dt = round(time.perf_counter() - t0, 3)
-        logger.info("✅ FLUME Trajectory Processing Complete! Processed %d journeys in %.3fs -> %s", len(enriched), dt, FLUME_ENCODED_DATASET_FILE)
+        logger.info(
+            "✅ FLUME Trajectory Processing Complete! Processed %d journeys in %.3fs -> %s",
+            len(enriched),
+            dt,
+            FLUME_ENCODED_DATASET_FILE,
+        )
         return enriched
 
 
@@ -125,9 +144,11 @@ async def main_async() -> None:
 
     journeys = await router.process_all_journeys_through_flume(target_count=1000)
     print(f"  • Total FLUME-Enriched Journeys: {len(journeys):,}")
-    print(f"  • Expert Streams Processed: 5 Streams (Architect, Engineer, Biologist, Quantum HW, Quantum Algo)")
+    print(
+        "  • Expert Streams Processed: 5 Streams (Architect, Engineer, Biologist, Quantum HW, Quantum Algo)"
+    )
     print(f"  • Average FLUME Stream Coherence: {journeys[0].flume_coherence:.4f}")
-    print(f"  • 256-Dim z-Vector Encoding: ✅ VERIFIED")
+    print("  • 256-Dim z-Vector Encoding: ✅ VERIFIED")
     print(f"  • FLUME Dataset File: {FLUME_ENCODED_DATASET_FILE}")
     print("=" * 95)
     print("🎉 FLUME Trajectory Router Operational!")

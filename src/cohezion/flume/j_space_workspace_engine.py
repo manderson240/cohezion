@@ -19,12 +19,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
-import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -79,10 +77,18 @@ class JSpaceWorkspaceEngine:
         )
 
     async def execute_j_space_reasoning_pass(self, prompt: str) -> JSpaceWorkspaceState:
-        logger.info("📐 J-SPACE ENGINE: Analyzing 3-Layer Regimes & Global Workspace for '%s'...", prompt[:40])
+        logger.info(
+            "📐 J-SPACE ENGINE: Analyzing 3-Layer Regimes & Global Workspace for '%s'...",
+            prompt[:40],
+        )
 
         # Intermediate reasoning trajectory
-        steps = ("Parse Tokens", "Compute Intermediate Sum (21)", "Multiply Factor (42)", "Final State (49)")
+        steps = (
+            "Parse Tokens",
+            "Compute Intermediate Sum (21)",
+            "Multiply Factor (42)",
+            "Final State (49)",
+        )
 
         active_vectors = (
             self.compute_j_lens(10, "Sensory_Parser"),
@@ -111,11 +117,15 @@ async def main_async() -> None:
 
     state = await engine.execute_j_space_reasoning_pass("calc: ( 4 + 17 ) * 2 + 7 = 49")
     print(f"  Prompt: '{state.prompt}'")
-    print(f"  • Workspace Capacity Usage: {state.workspace_capacity_pct}% of total activation variance")
+    print(
+        f"  • Workspace Capacity Usage: {state.workspace_capacity_pct}% of total activation variance"
+    )
     print(f"  • AutoHarness AST Policy: {'✅ VERIFIED' if state.ast_verified else '❌ FAILED'}")
     print("\n  3-Layer Regimes & Active J-Lens Vectors:")
     for jv in state.active_j_vectors:
-        print(f"    - Layer Depth {jv.layer_depth_pct*100:0.0f}% | [{jv.workspace_regime}] -> Concept: '{jv.token_concept}' (Loading: {jv.jacobian_loading:.2f})")
+        print(
+            f"    - Layer Depth {jv.layer_depth_pct * 100:0.0f}% | [{jv.workspace_regime}] -> Concept: '{jv.token_concept}' (Loading: {jv.jacobian_loading:.2f})"
+        )
 
     print("\n  Intermediate Unspoken Reasoning Trajectory:")
     for idx, step in enumerate(state.intermediate_reasoning_steps, 1):

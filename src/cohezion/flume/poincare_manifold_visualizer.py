@@ -12,12 +12,10 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any
 
 import numpy as np
 import plotly.graph_objects as go
-
-from cohezion.physics.poincare_manifold import PoincareManifoldND, PoincarePoint
 
 
 def compute_hyperbolic_distance(u: np.ndarray, v: np.ndarray, eps: float = 1e-7) -> float:
@@ -157,9 +155,7 @@ class PoincareManifoldVisualizer:
         self.seed = seed
         self.max_radius = max_radius
 
-    def generate_skill_vectors(
-        self, skill_names: List[str], domains: List[str]
-    ) -> np.ndarray:
+    def generate_skill_vectors(self, skill_names: list[str], domains: list[str]) -> np.ndarray:
         """Batch generate 2048D Poincaré unit-ball vectors for skills.
 
         Parameters
@@ -185,7 +181,7 @@ class PoincareManifoldVisualizer:
 
     def load_cohezion_skills(
         self, skills_dir: Path | str | None = None, max_skills: int = 71
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Load Cohezion's PRIME skills and compute 2048D & 3D Poincaré coordinates.
 
         Parameters
@@ -206,21 +202,44 @@ class PoincareManifoldVisualizer:
             skills_dir = Path(skills_dir)
 
         domain_keywords = {
-            "Physics & Manifolds": ["PHYSICS", "MANIFOLD", "NOETHER", "RELATIVITY", "PHONON", "HIHO"],
-            "Hardware & Kernels": ["AMD", "BLACKWELL", "KERNEL", "TRANSFORMER", "VLIW", "MLA", "MXFP4"],
-            "Autonomous & Healing": ["HEALING", "AUTONOMIC", "SELF", "EVOLUTION", "RESILIENCE", "OVERNIGHT"],
+            "Physics & Manifolds": [
+                "PHYSICS",
+                "MANIFOLD",
+                "NOETHER",
+                "RELATIVITY",
+                "PHONON",
+                "HIHO",
+            ],
+            "Hardware & Kernels": [
+                "AMD",
+                "BLACKWELL",
+                "KERNEL",
+                "TRANSFORMER",
+                "VLIW",
+                "MLA",
+                "MXFP4",
+            ],
+            "Autonomous & Healing": [
+                "HEALING",
+                "AUTONOMIC",
+                "SELF",
+                "EVOLUTION",
+                "RESILIENCE",
+                "OVERNIGHT",
+            ],
             "Data & SurrealDB": ["SURREAL", "DATA", "DATABASE", "STORAGE", "RETROSPECTIVE"],
             "Agentic & Swarm": ["SWARM", "AGENT", "TEAM", "AGENTJET", "ORCHESTRATION"],
             "FLUME Intelligence": ["FLUME", "LATENT", "HOLOGRAPHIC", "JEPA", "REASONING", "SOUL"],
             "Compound Systems": ["COMPOUND", "AUTOHARNESS", "TDD", "FAIL_FAST", "CODEBASE"],
         }
 
-        names: List[str] = []
-        files: List[str] = []
-        domains: List[str] = []
+        names: list[str] = []
+        files: list[str] = []
+        domains: list[str] = []
 
         if skills_dir.exists():
             import os
+
             skill_files = []
             with os.scandir(skills_dir) as entries:
                 for entry in entries:
@@ -244,13 +263,12 @@ class PoincareManifoldVisualizer:
                 files.append(filename)
                 domains.append(matched_domain)
 
-
         # Fallback if fewer skills loaded
         if len(names) < max_skills:
             domain_list = list(domain_keywords.keys())
             start_idx = len(names)
             for i in range(start_idx, max_skills):
-                name = f"PRIME_SKILL_{i+1:02d}"
+                name = f"PRIME_SKILL_{i + 1:02d}"
                 domain = domain_list[i % len(domain_list)]
                 names.append(name)
                 files.append(f"{name}_PRIME.md")
@@ -282,7 +300,7 @@ class PoincareManifoldVisualizer:
 
         return records
 
-    def load_surreal_retrospectives(self, count: int = 15) -> List[Dict[str, Any]]:
+    def load_surreal_retrospectives(self, count: int = 15) -> list[dict[str, Any]]:
         """Load SurrealDB retrospectives mapped to Poincaré hyperbolic coordinates.
 
         Parameters
@@ -331,8 +349,8 @@ class PoincareManifoldVisualizer:
 
     def generate_poincare_figure(
         self,
-        skills_data: List[Dict[str, Any]] | None = None,
-        retros_data: List[Dict[str, Any]] | None = None,
+        skills_data: list[dict[str, Any]] | None = None,
+        retros_data: list[dict[str, Any]] | None = None,
         title: str = "Cohezion Poincaré 2048D Hyperbolic Manifold Visualizer",
     ) -> go.Figure:
         """Generate interactive Plotly 3D Poincaré Ball visualization.
@@ -397,7 +415,6 @@ class PoincareManifoldVisualizer:
             )
         )
 
-
         # 2. Add HIHO Manifold Origin / Core (0,0,0)
         fig.add_trace(
             go.Scatter3d(
@@ -450,7 +467,6 @@ class PoincareManifoldVisualizer:
                 name=f"PRIME Skills ({len(skills_data)})",
             )
         )
-
 
         # 4. Add Retrospectives
         if retros_data:
@@ -527,8 +543,8 @@ class PoincareManifoldVisualizer:
 
 
 def generate_poincare_figure(
-    skills_data: List[Dict[str, Any]] | None = None,
-    retros_data: List[Dict[str, Any]] | None = None,
+    skills_data: list[dict[str, Any]] | None = None,
+    retros_data: list[dict[str, Any]] | None = None,
     title: str = "Cohezion Poincaré 2048D Hyperbolic Skill & Retrospective Manifold",
 ) -> go.Figure:
     """Helper function to generate a Poincaré 3D Figure.
@@ -559,4 +575,3 @@ def figure_to_html(fig: go.Figure) -> str:
 def figure_to_json(fig: go.Figure) -> str:
     """Convert Plotly Figure to JSON string."""
     return fig.to_json()
-

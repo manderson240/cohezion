@@ -16,14 +16,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
 from cohezion.flume.j_space_workspace_engine import JSpaceWorkspaceEngine
 from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -48,7 +47,9 @@ class GraphSystemsVModelEngine:
         self.autoharness = AutoHarnessPolicy()
         self.review_engine = MultiperspectiveReviewEngine()
 
-    async def execute_graph_vmodel_cycle(self, concept_name: str, target_category: str) -> GraphVModelResult:
+    async def execute_graph_vmodel_cycle(
+        self, concept_name: str, target_category: str
+    ) -> GraphVModelResult:
         logger.info("\n" + "=" * 95)
         logger.info("🕸️ GRAPH & SYSTEMS ENGINEERING V-MODEL CYCLE: %s", concept_name)
         logger.info("=" * 95)
@@ -60,22 +61,37 @@ class GraphSystemsVModelEngine:
 
         # 2. Middle Layer: J-Space Global Workspace intermediate trajectory
         j_vector = self.jspace_engine.compute_j_lens(24, concept_name)
-        logger.info("  • J-Space Global Workspace: Layer Depth %.0f%% | [%s] | Concept: '%s'", j_vector.layer_depth_pct * 100, j_vector.workspace_regime, j_vector.token_concept)
+        logger.info(
+            "  • J-Space Global Workspace: Layer Depth %.0f%% | [%s] | Concept: '%s'",
+            j_vector.layer_depth_pct * 100,
+            j_vector.workspace_regime,
+            j_vector.token_concept,
+        )
 
         # 3. Bottom: AutoHarness AST Execution (0ms)
         pol_res = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
         ast_ok = pol_res.allowed
-        logger.info("  • V-Model Bottom (AutoHarness AST Policy): %s (0ms latency)", "VERIFIED" if ast_ok else "FAILED")
+        logger.info(
+            "  • V-Model Bottom (AutoHarness AST Policy): %s (0ms latency)",
+            "VERIFIED" if ast_ok else "FAILED",
+        )
 
         # 4. Right Leg: ZK-FV Plonkish Formal Verification
         gates = ZKFVCompiler.compile_ast_to_gates("memory_safe")
         proof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
         zkfv_ok = proof.is_valid
-        logger.info("  • V-Model Right Leg (ZKFV SHA-256 Proof): %s", "VERIFIED" if zkfv_ok else "FAILED")
+        logger.info(
+            "  • V-Model Right Leg (ZKFV SHA-256 Proof): %s", "VERIFIED" if zkfv_ok else "FAILED"
+        )
 
         # 5. Right Leg: R0 Multiperspective Review
-        rev_report = self.review_engine.review(concept_name, {"vram_available_gb": 32.0, "ring_coherence": 0.90})
-        logger.info("  • V-Model Multiperspective Review Score: %.4f (Pass >= 0.8500)", rev_report.review_score)
+        rev_report = self.review_engine.review(
+            concept_name, {"vram_available_gb": 32.0, "ring_coherence": 0.90}
+        )
+        logger.info(
+            "  • V-Model Multiperspective Review Score: %.4f (Pass >= 0.8500)",
+            rev_report.review_score,
+        )
 
         dt_ms = round((time.perf_counter() - t0) * 1000.0, 2)
         return GraphVModelResult(

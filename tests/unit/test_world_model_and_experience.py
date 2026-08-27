@@ -1,10 +1,10 @@
 import pytest
-from cohezion.contracts import PoincarePoint
+
+from cohezion.agi.experiential_learning import ExperienceRecord, ExperientialLearningEngine
+from cohezion.agi.hyperbolic_world_model import HyperbolicWorldModel, WorldModelPrediction
+from cohezion.agi.recursive_learning import LearningCycleResult, RecursiveLearningEngine
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.physics.tensor_calculus import VectorTensor
-from cohezion.agi.hyperbolic_world_model import HyperbolicWorldModel, WorldModelPrediction
-from cohezion.agi.experiential_learning import ExperientialLearningEngine, ExperienceRecord
-from cohezion.agi.recursive_learning import RecursiveLearningEngine, LearningCycleResult
 
 
 def test_hyperbolic_world_model_predict_and_imagine():

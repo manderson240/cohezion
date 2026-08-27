@@ -36,8 +36,9 @@ ROADMAP_STAGES = {
     "ARC-AGI-3": "Phase 2: Interactive Environment Action-Verifier Scaling",
     "Pokemon-TCG": "Phase 2: ONNX Runtime FP16 Fast Policy Engine Distillation",
     "RSNA-Knee": "Phase 2: Multi-View MIL Feature Extractor with Focal Calibration",
-    "Biohub-Cell": "Phase 2: StarDist 3D + Hungarian Bipartite Mitosis Lineage"
+    "Biohub-Cell": "Phase 2: StarDist 3D + Hungarian Bipartite Mitosis Lineage",
 }
+
 
 def log(msg: str):
     ts = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -46,6 +47,7 @@ def log(msg: str):
     with open(LOG_FILE, "a") as f:
         f.write(entry + "\n")
 
+
 async def run_improvement_cycle(cycle_id: int):
     log("=" * 90)
     log(f"🔄 CONTINUOUS LOCAL IMPROVEMENT & ROADMAP DAEMON — CYCLE #{cycle_id}")
@@ -53,7 +55,9 @@ async def run_improvement_cycle(cycle_id: int):
 
     # 1. System Health & Memory Governor
     avail_gib, swap_used, is_safe = SmartOOMGovernor.get_memory_state()
-    log(f"▶ System Health: {avail_gib:.1f} GiB available RAM / {swap_used:.1f} GiB swap (UMA Floor: 40.0 GiB)")
+    log(
+        f"▶ System Health: {avail_gib:.1f} GiB available RAM / {swap_used:.1f} GiB swap (UMA Floor: 40.0 GiB)"
+    )
 
     # 2. Native Lemonade v11.7.0 Telemetry
     client_v117 = LemonadeV117Client()
@@ -75,7 +79,12 @@ async def run_improvement_cycle(cycle_id: int):
     log("▶ Active Kaggle Competition Status & Strategic Roadmap:")
     for comp_name, kernel_id in kernels:
         try:
-            res = subprocess.run(["kaggle", "kernels", "status", kernel_id], capture_output=True, text=True, timeout=10)
+            res = subprocess.run(
+                ["kaggle", "kernels", "status", kernel_id],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
             status_line = res.stdout.strip() or res.stderr.strip()
             next_stage = ROADMAP_STAGES.get(comp_name, "Advancing Next Iteration")
             log(f"   • [{comp_name}] Status: {status_line}")
@@ -87,7 +96,7 @@ async def run_improvement_cycle(cycle_id: int):
     bus = await get_event_bus()
     bridge = CrossSessionEventBridge(event_bus=bus, session_id="continuous_improvement_daemon")
     await bridge.initialize()
-    
+
     ev = Event(
         type=EventType.SYSTEM_HEALTH,
         source="continuous_improvement_daemon",
@@ -98,22 +107,25 @@ async def run_improvement_cycle(cycle_id: int):
             "lemonade_stats": stats,
             "roadmap": ROADMAP_STAGES,
             "status": "HEALTHY",
-            "active_competitions": 5
-        }
+            "active_competitions": 5,
+        },
     )
     await bus.publish(ev)
 
-    persist_item({
-        "id": "continuous_improvement_loop",
-        "title": f"Continuous Autonomous Roadmap Daemon (Cycle #{cycle_id})",
-        "status": "in_progress",
-        "priority": "high",
-        "source": "continuous_improvement_daemon",
-        "category": "autonomous_loop",
-        "details": f"Monitoring 5 live competition kernels with Lemonade v11.7.0 prefix-cache telemetry ({stats.get('cache_tokens_total', 0)} cached tokens). Next stages mapped.",
-    })
-    
+    persist_item(
+        {
+            "id": "continuous_improvement_loop",
+            "title": f"Continuous Autonomous Roadmap Daemon (Cycle #{cycle_id})",
+            "status": "in_progress",
+            "priority": "high",
+            "source": "continuous_improvement_daemon",
+            "category": "autonomous_loop",
+            "details": f"Monitoring 5 live competition kernels with Lemonade v11.7.0 prefix-cache telemetry ({stats.get('cache_tokens_total', 0)} cached tokens). Next stages mapped.",
+        }
+    )
+
     log(f"✓ Cycle #{cycle_id} complete. Standing by for next cadence cycle.\n")
+
 
 async def main():
     log("🚀 Launching Upgraded Autonomous Improvement & Strategic Roadmap Daemon...")
@@ -126,6 +138,7 @@ async def main():
         except Exception as e:
             log(f"⚠️ Exception in cycle loop: {e}")
             await asyncio.sleep(30)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

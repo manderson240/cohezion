@@ -105,13 +105,16 @@ def _git_diff(commit: str):
             check=False,
         )
         return proc.stdout[:40000]
+
     return diff_fn
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Multiperspective Adversarial Code Review")
     ap.add_argument("--commit", default="HEAD", help="Git commit or ref to review")
-    ap.add_argument("--local-model", default="Bonsai-8B-gguf", help="Local Lemonade model for base review")
+    ap.add_argument(
+        "--local-model", default="Bonsai-8B-gguf", help="Local Lemonade model for base review"
+    )
     ap.add_argument("--skip-cloud", action="store_true", help="Skip cloud perspectives")
     args = ap.parse_args()
 
@@ -181,7 +184,7 @@ def main() -> int:
         for role, cdata in cloud_findings.items():
             report_md.append(f"### Role: {role} ({cdata['model']})")
             report_md.append(f"**Focus**: {cdata['focus']}\n")
-            report_md.append(cdata['report'])
+            report_md.append(cdata["report"])
             report_md.append("")
 
     final_report_str = "\n".join(report_md)

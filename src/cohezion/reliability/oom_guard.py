@@ -15,6 +15,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -66,7 +67,7 @@ class OOMGuard:
             # 2. Inspect /proc/meminfo for Shmem / IPC allocations
             shmem_gb = 0.0
             try:
-                with open("/proc/meminfo", "r", encoding="utf-8") as f:
+                with open("/proc/meminfo", encoding="utf-8") as f:
                     for line in f:
                         if line.startswith("Shmem:"):
                             shmem_kb = float(line.split()[1])

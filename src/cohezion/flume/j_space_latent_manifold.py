@@ -11,8 +11,8 @@ Implements J-Space geometry (J-Hermitian / Krein Space) for 12D FLUME latent spa
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-from typing import Sequence
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -38,7 +38,9 @@ class JSpaceLatentManifold:
         j_diag = [1.0] * self.p + [-1.0] * self.q
         self.J = np.diag(j_diag)
 
-    def inner_product(self, u: np.ndarray | Sequence[float], v: np.ndarray | Sequence[float]) -> float:
+    def inner_product(
+        self, u: np.ndarray | Sequence[float], v: np.ndarray | Sequence[float]
+    ) -> float:
         """Compute the indefinite J-inner product <u, v>_J = u^T J v."""
         u_arr = np.asarray(u, dtype=np.float64)
         v_arr = np.asarray(v, dtype=np.float64)
@@ -68,7 +70,9 @@ class JSpaceLatentManifold:
             classification=cls,
         )
 
-    def apply_j_boost(self, v: np.ndarray | Sequence[float], boost_parameter: float = 0.5) -> np.ndarray:
+    def apply_j_boost(
+        self, v: np.ndarray | Sequence[float], boost_parameter: float = 0.5
+    ) -> np.ndarray:
         """Apply a J-unitary hyperbolic boost transformation preserving <u, v>_J."""
         v_arr = np.asarray(v, dtype=np.float64)
         cosh_b = math.cosh(boost_parameter)
@@ -85,7 +89,9 @@ class JSpaceLatentManifold:
         transformed = np.dot(boost_matrix, v_arr)
         return transformed
 
-    def compute_j_geodesic_distance(self, u: np.ndarray | Sequence[float], v: np.ndarray | Sequence[float]) -> float:
+    def compute_j_geodesic_distance(
+        self, u: np.ndarray | Sequence[float], v: np.ndarray | Sequence[float]
+    ) -> float:
         """Compute J-geodesic distance d_J(u, v) = sqrt(|<u-v, u-v>_J|)."""
         diff = np.asarray(u, dtype=np.float64) - np.asarray(v, dtype=np.float64)
         norm_sq = self.j_norm_squared(diff)

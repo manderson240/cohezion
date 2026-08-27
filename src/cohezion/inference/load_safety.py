@@ -69,9 +69,10 @@ def compute_kv_cache_gb(
       bytes = 2 * n_layers * n_kv_heads * head_dim * context_length * batch_size * (bits / 8)
     """
     bytes_per_elem = bits_per_element / 8.0
-    total_bytes = 2 * n_layers * n_kv_heads * head_dim * context_length * batch_size * bytes_per_elem
-    return total_bytes / (1024.0 ** 3)
-
+    total_bytes = (
+        2 * n_layers * n_kv_heads * head_dim * context_length * batch_size * bytes_per_elem
+    )
+    return total_bytes / (1024.0**3)
 
 
 def available_ram_gb() -> float:

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Sequence
 
 from cohezion.contracts import PoincarePoint
 
@@ -59,7 +58,9 @@ class VectorTensor:
     def norm_poincare(self, position: PoincarePoint) -> float:
         """Riemannian norm under Poincaré metric ||V||_g = sqrt(g_ij V^i V^j)."""
         if self.dim != position.dim:
-            raise ValueError(f"Dimensional mismatch: vector is {self.dim}D, position is {position.dim}D")
+            raise ValueError(
+                f"Dimensional mismatch: vector is {self.dim}D, position is {position.dim}D"
+            )
 
         r_sq = sum(c * c for c in position.coords)
         conformal_factor = 2.0 / (1.0 - r_sq)
@@ -78,7 +79,9 @@ class TensorCalculus:
         return 4.0 / ((1.0 - r_sq) ** 2)
 
     @classmethod
-    def inner_product(cls, u: VectorTensor, v: VectorTensor, position: PoincarePoint) -> ScalarTensor:
+    def inner_product(
+        cls, u: VectorTensor, v: VectorTensor, position: PoincarePoint
+    ) -> ScalarTensor:
         """Compute Riemannian inner product <U, V>_g = g_ij U^i V^j."""
         if u.dim != v.dim or u.dim != position.dim:
             raise ValueError("Dimensional mismatch across vectors and position")

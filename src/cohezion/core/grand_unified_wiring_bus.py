@@ -16,11 +16,9 @@ AutoHarnessPolicy, and DataMesh Event-Driven Architecture:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
@@ -31,6 +29,7 @@ from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.bioelectric_swarm import BioelectricSwarm
 from cohezion.flume.poincare_manifold_visualizer import PoincareManifoldVisualizer
 from cohezion.physics.hiho_sonification import HIHOSonifier
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -55,7 +54,9 @@ class GrandUnifiedWiringBus:
     async def initialize_and_wire_all(self) -> dict[str, Any]:
         """Wire all 4 remaining subsystems into central event architecture."""
         logger.info("\n" + "=" * 95)
-        logger.info("🔌 EXECUTING GRAND UNIFIED WIRING BUS: Interconnecting All Remaining Subsystems...")
+        logger.info(
+            "🔌 EXECUTING GRAND UNIFIED WIRING BUS: Interconnecting All Remaining Subsystems..."
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
@@ -64,19 +65,31 @@ class GrandUnifiedWiringBus:
 
             # Wire 1: Register Bioelectric Swarm Healing on AGENT_ERROR
             self.event_bus.register_handler(self._on_agent_error, event_type=EventType.AGENT_ERROR)
-            logger.info("  • [1/4] Wired Bioelectric Swarm Morphogenesis to EventBus `AGENT_ERROR` (Self-Healing Active).")
+            logger.info(
+                "  • [1/4] Wired Bioelectric Swarm Morphogenesis to EventBus `AGENT_ERROR` (Self-Healing Active)."
+            )
 
             # Wire 2: Register HIHO Audio Sonification on METRIC_UPDATE
-            self.event_bus.register_handler(self._on_metric_update, event_type=EventType.METRIC_UPDATE)
-            logger.info("  • [2/4] Wired HIHO Reality Sonification to EventBus `METRIC_UPDATE` (432Hz Audio Telemetry Active).")
+            self.event_bus.register_handler(
+                self._on_metric_update, event_type=EventType.METRIC_UPDATE
+            )
+            logger.info(
+                "  • [2/4] Wired HIHO Reality Sonification to EventBus `METRIC_UPDATE` (432Hz Audio Telemetry Active)."
+            )
 
             # Wire 3: Register Poincaré Visualizer on DATA_PRODUCT_UPDATED
-            self.event_bus.register_handler(self._on_datamesh_update, event_type=EventType.DATA_PRODUCT_UPDATED)
-            logger.info("  • [3/4] Wired Poincaré 2048D Visualizer to DataMesh `DATA_PRODUCT_UPDATED` (Plotly Auto-Export Active).")
+            self.event_bus.register_handler(
+                self._on_datamesh_update, event_type=EventType.DATA_PRODUCT_UPDATED
+            )
+            logger.info(
+                "  • [3/4] Wired Poincaré 2048D Visualizer to DataMesh `DATA_PRODUCT_UPDATED` (Plotly Auto-Export Active)."
+            )
 
             # Wire 4: Connect Kaggle AutoHarness into AutoHarnessPolicy
             pol = AutoHarnessPolicy()
-            logger.info("  • [4/4] Wired Kaggle AutoHarness Action Verifiers into AutoHarnessPolicy (0.00ms ARC/AIMO Bounds Active).")
+            logger.info(
+                "  • [4/4] Wired Kaggle AutoHarness Action Verifiers into AutoHarnessPolicy (0.00ms ARC/AIMO Bounds Active)."
+            )
 
             self._wired = True
 
@@ -108,7 +121,10 @@ class GrandUnifiedWiringBus:
 
     async def _on_agent_error(self, event: Event) -> None:
         """Bioelectric Swarm self-healing handler."""
-        logger.info("  🚑 Bioelectric Swarm: Triggering gap-junction self-healing for node error: %s", event.payload)
+        logger.info(
+            "  🚑 Bioelectric Swarm: Triggering gap-junction self-healing for node error: %s",
+            event.payload,
+        )
         # Execute bioelectric polarization
         await self.bio_swarm.heal_corrupted_nodes()
 
@@ -116,11 +132,15 @@ class GrandUnifiedWiringBus:
         """HIHO Sonification telemetry handler."""
         coherence = event.payload.get("coherence", 0.5)
         freq = self.hiho_sonifier.compute_audio_frequency(coherence)
-        logger.info("  🎵 HIHO Audio Sonifier: Coherence = %.4f -> Frequency = %.2f Hz", coherence, freq)
+        logger.info(
+            "  🎵 HIHO Audio Sonifier: Coherence = %.4f -> Frequency = %.2f Hz", coherence, freq
+        )
 
     async def _on_datamesh_update(self, event: Event) -> None:
         """Poincaré Visualizer auto-export handler."""
-        logger.info("  📊 Poincaré Visualizer: Auto-exporting updated 2048D Plotly manifold figure...")
+        logger.info(
+            "  📊 Poincaré Visualizer: Auto-exporting updated 2048D Plotly manifold figure..."
+        )
         self.poincare_viz.generate_poincare_figure()
 
 
@@ -137,15 +157,25 @@ async def main_async() -> None:
     print("\n  Simulating Event Triggers Across Wired Subsystems:")
 
     # Trigger 1: Bioelectric Swarm Healing
-    err_evt = Event(type=EventType.AGENT_ERROR, source="test_runner", payload={"node_id": "node_05", "error": "OOM Memory Fault"})
+    err_evt = Event(
+        type=EventType.AGENT_ERROR,
+        source="test_runner",
+        payload={"node_id": "node_05", "error": "OOM Memory Fault"},
+    )
     await event_bus.publish(err_evt)
 
     # Trigger 2: HIHO Sonification
-    metric_evt = Event(type=EventType.METRIC_UPDATE, source="flume_router", payload={"coherence": 0.50})
+    metric_evt = Event(
+        type=EventType.METRIC_UPDATE, source="flume_router", payload={"coherence": 0.50}
+    )
     await event_bus.publish(metric_evt)
 
     # Trigger 3: Poincaré Visualizer
-    data_evt = Event(type=EventType.DATA_PRODUCT_UPDATED, source="datamesh_consumer", payload={"domain": "qlora_tuning"})
+    data_evt = Event(
+        type=EventType.DATA_PRODUCT_UPDATED,
+        source="datamesh_consumer",
+        payload={"domain": "qlora_tuning"},
+    )
     await event_bus.publish(data_evt)
 
     print("=" * 105)

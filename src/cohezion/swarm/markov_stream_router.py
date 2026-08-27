@@ -5,10 +5,10 @@ Engineered and verified in OmA Autonomous Self-Evolution Loop (Cycle 08).
 from __future__ import annotations
 
 import time
-import math
-import numpy as np
 from dataclasses import dataclass
-from typing import Any
+
+import numpy as np
+
 
 @dataclass(frozen=True, slots=True)
 class CycleVerificationState:
@@ -17,6 +17,7 @@ class CycleVerificationState:
     verified: bool
     entropy_score: float
     timestamp: float
+
 
 class MarkovChainStationaryDistributionStreamRoutingEngine:
     """Computes Markov stationary distributions for deterministic multi-agent routing."""

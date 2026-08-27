@@ -19,7 +19,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from cohezion.agi.autoharness_compiler import AutoHarnessCompiler
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
 
 

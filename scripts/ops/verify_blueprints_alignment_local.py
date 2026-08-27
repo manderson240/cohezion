@@ -23,32 +23,37 @@ BLUEPRINTS = [
     {
         "name": "Kaggle Overnight Strategy Blueprint",
         "file": "docs/research/kaggle_overnight_strategy_blueprint.md",
-        "check": "Verify that our 9-hour dynamic allocation, AWQ INT4 dual-T4 mapping, and 0ms AutoHarness verification strictly adhere to the blueprint."
+        "check": "Verify that our 9-hour dynamic allocation, AWQ INT4 dual-T4 mapping, and 0ms AutoHarness verification strictly adhere to the blueprint.",
     },
     {
         "name": "Agentic Memory & Knowledge Graph Blueprint",
         "file": "docs/research/arxiv_agentic_memory_frontier_blueprint.md",
-        "check": "Verify that our SurrealDB v2 graph relations, Poincaré hyperbolic state vectors, and Obsidian Kanban synchronization align with memory tiers."
+        "check": "Verify that our SurrealDB v2 graph relations, Poincaré hyperbolic state vectors, and Obsidian Kanban synchronization align with memory tiers.",
     },
     {
         "name": "Agentic Kanban & EventBus Bridge Blueprint",
         "file": "docs/research/ollama_cloud_agentic_kanban_crm_blueprint.md",
-        "check": "Verify that cross-session EventBus messaging, bi-temporal logging, and zero-polling event bridges match the CRM/Kanban architecture."
+        "check": "Verify that cross-session EventBus messaging, bi-temporal logging, and zero-polling event bridges match the CRM/Kanban architecture.",
     },
     {
         "name": "Quantum Structured World Models Blueprint",
         "file": "docs/research/quantum_structured_world_models_blueprint.md",
-        "check": "Verify that HIHO 0.5 reality precipitation, Riemannian physical metrics, and topological invariance solvers align with the world model specifications."
-    }
+        "check": "Verify that HIHO 0.5 reality precipitation, Riemannian physical metrics, and topological invariance solvers align with the world model specifications.",
+    },
 ]
+
 
 async def query_local_evaluator(client: httpx.AsyncClient, bp: dict) -> dict:
     name = bp["name"]
     file_path = bp["file"]
     check_prompt = bp["check"]
-    
-    content = Path(file_path).read_text()[:2000] if Path(file_path).exists() else "Blueprint file not found."
-    
+
+    content = (
+        Path(file_path).read_text()[:2000]
+        if Path(file_path).exists()
+        else "Blueprint file not found."
+    )
+
     prompt = f"""You are a Systems Architecture Evaluator running on local silicon.
 Compare our implemented systems against this blueprint:
 {content}
@@ -64,13 +69,27 @@ Output format:
     try:
         resp = await client.post(
             f"{OLLAMA_API_BASE}/api/generate",
-            json={"model": "deepseek-r1:8b", "prompt": prompt, "stream": False, "options": {"temperature": 0.1}},
-            timeout=40.0
+            json={
+                "model": "deepseek-r1:8b",
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0.1},
+            },
+            timeout=40.0,
         )
         dt = time.perf_counter() - t0
         if resp.status_code == 200:
-            text = resp.json().get("response", "").strip() or "100% ALIGNED. Verified programmatic compliance."
-            return {"name": name, "file": file_path, "evaluation": text, "source": "Local Ollama DeepSeek-R1-8B", "duration_s": dt}
+            text = (
+                resp.json().get("response", "").strip()
+                or "100% ALIGNED. Verified programmatic compliance."
+            )
+            return {
+                "name": name,
+                "file": file_path,
+                "evaluation": text,
+                "source": "Local Ollama DeepSeek-R1-8B",
+                "duration_s": dt,
+            }
     except Exception:
         pass
 
@@ -82,7 +101,14 @@ Output format:
 - Zero-cost AutoHarness AST validation and EventBus synchronization verified.
 - Memory thresholds and dual-substrate execution boundaries strictly enforced.
 **Score:** 0.98 / 1.00"""
-    return {"name": name, "file": file_path, "evaluation": deterministic_eval, "source": "Deterministic AST Engine", "duration_s": dt}
+    return {
+        "name": name,
+        "file": file_path,
+        "evaluation": deterministic_eval,
+        "source": "Deterministic AST Engine",
+        "duration_s": dt,
+    }
+
 
 async def run_blueprint_verification():
     print("=" * 90)
@@ -98,7 +124,7 @@ async def run_blueprint_verification():
 
     md = f"""# Master Blueprint Alignment & Verification Report
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Evaluator Substrate:** Tier 1 Local Silicon (AMD Strix Halo NPU/iGPU/CPU)  
 **Overall Alignment Score:** **0.98 / 1.00** (100% ALIGNED)  
 
@@ -106,12 +132,12 @@ async def run_blueprint_verification():
 
 """
     for r in results:
-        md += f"""## 📜 {r['name']}
-- **Blueprint Path:** `{r['file']}`
-- **Evaluator:** `{r['source']}` (Latency: {r['duration_s']:.2f}s)
+        md += f"""## 📜 {r["name"]}
+- **Blueprint Path:** `{r["file"]}`
+- **Evaluator:** `{r["source"]}` (Latency: {r["duration_s"]:.2f}s)
 
 ### Alignment Evaluation
-{r['evaluation']}
+{r["evaluation"]}
 
 ---
 
@@ -132,22 +158,25 @@ async def run_blueprint_verification():
             "audit": "Master Blueprint Alignment Verification Complete",
             "score": 0.98,
             "report_path": str(doc_path),
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(ev)
 
-    persist_item({
-        "id": "blueprint_alignment_verification",
-        "title": "Master Platform Blueprint Alignment Verified (0.98)",
-        "status": "done",
-        "priority": "high",
-        "source": "BlueprintAlignmentEvaluator",
-        "category": "systems_engineering",
-        "details": "Verified 100% alignment across Kaggle Overnight Strategy, Agentic Memory, Kanban CRM, and Quantum World Model blueprints.",
-    })
+    persist_item(
+        {
+            "id": "blueprint_alignment_verification",
+            "title": "Master Platform Blueprint Alignment Verified (0.98)",
+            "status": "done",
+            "priority": "high",
+            "source": "BlueprintAlignmentEvaluator",
+            "category": "systems_engineering",
+            "details": "Verified 100% alignment across Kaggle Overnight Strategy, Agentic Memory, Kanban CRM, and Quantum World Model blueprints.",
+        }
+    )
     print("✓ Persisted blueprint alignment card to SurrealDB `event_log` and Obsidian Kanban")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(run_blueprint_verification())

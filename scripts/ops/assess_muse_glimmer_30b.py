@@ -54,7 +54,9 @@ def main() -> None:
     print(f"    Reason: {reason}")
     print(f"  • Model Card Sampling Sweet-Spot: {card_defaults}")
     print("  • Hardware Lane Assignment: iGPU Vulkan / ROCm GGUF Lane (port 13305)")
-    print("  • Capability Profile: Ultra-Detailed Uncensored Reasoning, Creative Problem Solving, Long Context")
+    print(
+        "  • Capability Profile: Ultra-Detailed Uncensored Reasoning, Creative Problem Solving, Long Context"
+    )
     print("=" * 90)
     print("🎉 Assessment Complete: Muse-Glimmer-30B Profile Registered & Verified!")
 

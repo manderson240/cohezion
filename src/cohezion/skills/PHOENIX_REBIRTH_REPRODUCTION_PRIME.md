@@ -17,11 +17,12 @@ Specification-Driven Disposable Code Resurrection, The Deletion Test ("Burn to A
 1. **Perform The Deletion Test on Failing Subsystems**:
    ```python
    from cohezion.agi.phoenix_architecture import PhoenixArchitectureEngine
+
    engine = PhoenixArchitectureEngine()
    result = engine.execute_deletion_and_rebirth(
        module_name="cohezion.subsystem.contract",
        specification_name="target_invariant_spec",
-       failing_code=failing_source_code
+       failing_code=failing_source_code,
    )
    assert result.verified_by_oracle is True, "Regenerated code failed AutoHarness policy"
    ```

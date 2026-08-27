@@ -1,7 +1,6 @@
-import pytest
-from cohezion.contracts import PoincarePoint
 from cohezion.physics.poincare_manifold import PoincareManifoldND
-from cohezion.physics.smoke_ring_manifold import SmokeRingManifold, SmokeRingAttractor
+from cohezion.physics.smoke_ring_manifold import SmokeRingAttractor, SmokeRingManifold
+
 
 def test_smoke_ring_manifold_projection():
     ring_engine = SmokeRingManifold(major_radius=0.50, minor_radius=0.10)

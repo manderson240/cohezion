@@ -17,9 +17,9 @@ import re
 import time
 import urllib.request
 from dataclasses import dataclass
-from typing import Any
 
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 
@@ -99,7 +99,7 @@ class DeepCookingEngine:
             return DeepCookingResult(
                 task_id=task_id,
                 model=model,
-                thinking_trace=f"Async Deep Cooking Exception: {str(e)}",
+                thinking_trace=f"Async Deep Cooking Exception: {e!s}",
                 final_output=f"[Deep Cooking Task {task_id}] Ran for {round(dt_sec, 2)}s with headroom {mem.available_gb} GiB.",
                 cooking_time_seconds=round(dt_sec, 2),
                 total_tokens_generated=0,

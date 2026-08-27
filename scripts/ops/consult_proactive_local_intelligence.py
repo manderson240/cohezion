@@ -41,24 +41,37 @@ async def query_local_lemonade():
         "max_tokens": 512,
     }
     req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
+        url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"}
     )
     loop = asyncio.get_running_loop()
     try:
-        resp = await loop.run_in_executor(None, lambda: urllib.request.urlopen(req, timeout=15.0).read().decode("utf-8"))
+        resp = await loop.run_in_executor(
+            None, lambda: urllib.request.urlopen(req, timeout=15.0).read().decode("utf-8")
+        )
         data = json.loads(resp)
         return data["choices"][0]["message"]["content"]
     except Exception as exc:
-        logger.warning("Local query error (%s); querying fast fallback deepseek-v4-flash:cloud...", exc)
+        logger.warning(
+            "Local query error (%s); querying fast fallback deepseek-v4-flash:cloud...", exc
+        )
         # Fallback to registered Ollama model
         url_ol = "http://localhost:11434/api/generate"
         payload_ol = {"model": "deepseek-v4-flash:cloud", "prompt": PROMPT, "stream": False}
-        req_ol = urllib.request.Request(url_ol, data=json.dumps(payload_ol).encode("utf-8"), headers={"Content-Type": "application/json"})
-        resp_ol = await loop.run_in_executor(None, lambda: urllib.request.urlopen(req_ol, timeout=45.0).read().decode("utf-8"))
+        req_ol = urllib.request.Request(
+            url_ol,
+            data=json.dumps(payload_ol).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        resp_ol = await loop.run_in_executor(
+            None, lambda: urllib.request.urlopen(req_ol, timeout=45.0).read().decode("utf-8")
+        )
         data_ol = json.loads(resp_ol)
-        return data_ol.get("response") or (data_ol.get("message", {}).get("content")) or data_ol.get("thinking") or "Continuous Topological Auto-Calibration (CTAC) across Riemannian geodesics."
+        return (
+            data_ol.get("response")
+            or (data_ol.get("message", {}).get("content"))
+            or data_ol.get("thinking")
+            or "Continuous Topological Auto-Calibration (CTAC) across Riemannian geodesics."
+        )
 
 
 async def main():
@@ -71,7 +84,7 @@ async def main():
 
     report_path = REPO_ROOT / "docs/research/proactive_local_intelligence_advisory.md"
     report_content = f"""# Proactive Local Silicon Advisory Report
-**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S %Z')}
+**Timestamp**: {time.strftime("%Y-%m-%d %H:%M:%S %Z")}
 **Hardware Backend**: AMD Strix Halo Local Silicon (Lemonade OmniRouter / Ollama)
 **Inference Latency**: {dt}s
 

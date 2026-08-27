@@ -1,8 +1,10 @@
 import math
+
 import pytest
-from cohezion.contracts import PoincarePoint
-from cohezion.physics.poincare_manifold import PoincareManifoldND
+
 from cohezion.physics.flatland_projection import FlatlandProjector, FlatlandSlice
+from cohezion.physics.poincare_manifold import PoincareManifoldND
+
 
 def test_flatland_slice_hypersphere():
     pt = PoincareManifoldND.project(tuple([0.1] * 12))
@@ -14,6 +16,7 @@ def test_flatland_slice_hypersphere():
     # At w > r_full, slice radius is 0 (outside Flatland plane)
     r_slice_out = FlatlandProjector.slice_hypersphere(pt, r_full, w_depth=r_full + 0.1)
     assert r_slice_out == 0.0
+
 
 def test_flatland_project_to_flatland():
     for dim in (12, 16, 26, 32, 256, 2048):

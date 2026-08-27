@@ -12,7 +12,9 @@ Inspired by NVIDIA NeMo Labs `labs-OO-Agents` research preview.
 from __future__ import annotations
 
 import inspect
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, get_type_hints
+from collections.abc import Callable
+from typing import Any, TypeVar, get_type_hints
+
 from pydantic import BaseModel, Field
 
 from cohezion.core.event_bus import Event, EventBus

@@ -24,11 +24,17 @@ if not mem.is_safe or mem.available_gb < 20.0:
 2. **EventBus Lifecycle Broadcast**:
 ```python
 bus = await get_event_bus()
-await bus.publish(Event(
-    type="training_started",
-    source="sovereign_lora",
-    payload={"model": base_model_name, "samples": len(dataset), "available_gb": mem.available_gb},
-))
+await bus.publish(
+    Event(
+        type="training_started",
+        source="sovereign_lora",
+        payload={
+            "model": base_model_name,
+            "samples": len(dataset),
+            "available_gb": mem.available_gb,
+        },
+    )
+)
 ```
 
 3. **Safe Device Allocation & PEFT Configuration**:

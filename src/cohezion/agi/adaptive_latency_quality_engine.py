@@ -18,13 +18,13 @@ import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 import httpx
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -94,14 +94,20 @@ class AdaptiveLatencyQualityEngine:
         task_description: str,
         profile: LatencyQualityProfile = LatencyQualityProfile.FAT_RENDER_MAX,
     ) -> QualityExecutionResult:
-        cfg = self.PROFILE_CONFIGS.get(profile, self.PROFILE_CONFIGS[LatencyQualityProfile.BALANCED])
+        cfg = self.PROFILE_CONFIGS.get(
+            profile, self.PROFILE_CONFIGS[LatencyQualityProfile.BALANCED]
+        )
         model = cfg["model"]
         max_tokens = cfg["max_tokens"]
         v_passes = cfg["verification_passes"]
         alloc_sec = cfg["alloc_sec"]
 
         logger.info("\n" + "=" * 95)
-        logger.info("🥩 EXECUTING REAL QUALITY-GATED SYNTHESIS: Profile '%s' on model '%s'...", profile.value.upper(), model)
+        logger.info(
+            "🥩 EXECUTING REAL QUALITY-GATED SYNTHESIS: Profile '%s' on model '%s'...",
+            profile.value.upper(),
+            model,
+        )
         logger.info("=" * 95)
 
         t0 = time.perf_counter()
@@ -143,7 +149,11 @@ class AdaptiveLatencyQualityEngine:
             if not pol_eval.allowed:
                 ast_verified = False
 
-        status = "✅ PASS" if (response_text and not response_text.startswith("Inference Error")) else "❌ FAILED"
+        status = (
+            "✅ PASS"
+            if (response_text and not response_text.startswith("Inference Error"))
+            else "❌ FAILED"
+        )
 
         result = QualityExecutionResult(
             profile=profile,
@@ -176,14 +186,16 @@ class AdaptiveLatencyQualityEngine:
         await self.event_bus.publish(evt)
 
         # Persist real metrics to Kanban
-        persist_item({
-            "id": f"quality-synthesis-{profile.value}-{int(time.time())}",
-            "title": f"Deliberative Synthesis: {profile.value.upper()} ({model}) -> {actual_sec}s, {tok_per_sec} tok/s",
-            "status": "completed" if status == "✅ PASS" else "failed",
-            "priority": "medium",
-            "source": "adaptive-latency-quality-engine",
-            "category": "latency_quality",
-        })
+        persist_item(
+            {
+                "id": f"quality-synthesis-{profile.value}-{int(time.time())}",
+                "title": f"Deliberative Synthesis: {profile.value.upper()} ({model}) -> {actual_sec}s, {tok_per_sec} tok/s",
+                "status": "completed" if status == "✅ PASS" else "failed",
+                "priority": "medium",
+                "source": "adaptive-latency-quality-engine",
+                "category": "latency_quality",
+            }
+        )
 
         return result
 
@@ -212,4 +224,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

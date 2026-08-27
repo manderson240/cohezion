@@ -78,14 +78,22 @@ def orchestrator(base_url, roster, bus):
 class TestModelSprintOrchestrator:
     def test_already_resident_short_circuits(self, monkeypatch, orchestrator):
         """MS1: if the selected model is already resident, no load/unload happens."""
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}])
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [
+                {"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}
+            ],
+        )
         monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"llama3.2-1b-FLM": 1.0})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
 
         seen_load: list[tuple[Any, ...]] = []
+
         def _post(*a, **k):
             seen_load.append(a)
             return 200, "ok"
+
         monkeypatch.setattr(hotswap, "_post", _post)
 
         result = asyncio.run(orchestrator.run_sprint(["route"]))
@@ -126,26 +134,39 @@ class TestModelSprintOrchestrator:
         monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
 
         calls: list[tuple[str, dict]] = []
+
         def _post(path, payload, timeout):
             calls.append((path, payload))
             return 200, "ok"
+
         monkeypatch.setattr(hotswap, "_post", _post)
 
         # After load, resident_models returns the new model too
         loaded: list[bool] = []
+
         def _resident():
             if loaded:
-                return [{"model_name": "Bonsai-1.7B-gguf", "last_use": 2, "is_busy": False, "loaded": True}]
+                return [
+                    {
+                        "model_name": "Bonsai-1.7B-gguf",
+                        "last_use": 2,
+                        "is_busy": False,
+                        "loaded": True,
+                    }
+                ]
             loaded.append(True)
             return [{"model_name": "old-model", "last_use": 1, "is_busy": False, "loaded": True}]
+
         monkeypatch.setattr(hotswap, "resident_models", _resident)
 
         events: list[Any] = []
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append((event.type.name, event.payload.get("model_id")))
+
             def publish_sync(self, event):
                 events.append((event.type.name, event.payload.get("model_id")))
 
@@ -172,8 +193,10 @@ class TestModelSprintOrchestrator:
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append(event.payload)
+
             def publish_sync(self, event):
                 events.append(event.payload)
 
@@ -189,7 +212,13 @@ class TestModelSprintOrchestrator:
         monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"Bonsai-1.7B-gguf": 0.231})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 20.0)
         monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "Bonsai-1.7B-gguf", "last_use": 1, "is_busy": False, "loaded": True}])
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [
+                {"model_name": "Bonsai-1.7B-gguf", "last_use": 1, "is_busy": False, "loaded": True}
+            ],
+        )
 
         lock_key_seen: list[str | None] = [None]
         original_acquire = orchestrator.lock.acquire
@@ -213,30 +242,48 @@ class TestModelSprintOrchestrator:
         monkeypatch.setattr(hotswap, "free_gb", lambda: 20.0)
         monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
         monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "Bonsai-1.7B-gguf", "last_use": 1, "is_busy": False, "loaded": True}])
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [
+                {"model_name": "Bonsai-1.7B-gguf", "last_use": 1, "is_busy": False, "loaded": True}
+            ],
+        )
 
         events: list[Any] = []
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append((event.type.name, event.payload.get("new_models")))
+
             def publish_sync(self, event):
                 events.append((event.type.name, event.payload.get("new_models")))
 
         orchestrator.bus = _FakeBus()
 
-        asyncio.run(orchestrator.update_on_roster_change(
-            new_models=["Bonsai-1.7B-gguf"],
-            removed_models=[],
-            current_models=["Bonsai-1.7B-gguf"],
-        ))
+        asyncio.run(
+            orchestrator.update_on_roster_change(
+                new_models=["Bonsai-1.7B-gguf"],
+                removed_models=[],
+                current_models=["Bonsai-1.7B-gguf"],
+            )
+        )
 
-        assert any(t == "MODEL_ROSTER_CHANGED" and "Bonsai-1.7B-gguf" in (new or []) for t, new in events)
+        assert any(
+            t == "MODEL_ROSTER_CHANGED" and "Bonsai-1.7B-gguf" in (new or []) for t, new in events
+        )
 
     def test_run_model_sprint_one_shot(self, monkeypatch, base_url):
         """MS7: the convenience one-shot runs without crashing."""
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}])
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [
+                {"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}
+            ],
+        )
         monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"llama3.2-1b-FLM": 1.0})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
 

@@ -46,19 +46,29 @@ def scan_all_conversations():
 def verify_repo_ground_truth():
     print(f"📦 Checking repo ground truth in {COHEZION_REPO}...")
     key_subsystems = {
-        "unified_hybrid_router": (COHEZION_REPO / "src/cohezion/inference/unified_hybrid_router.py").exists(),
+        "unified_hybrid_router": (
+            COHEZION_REPO / "src/cohezion/inference/unified_hybrid_router.py"
+        ).exists(),
         "event_bus": (COHEZION_REPO / "src/cohezion/core/event_bus.py").exists(),
-        "cross_session_event_bridge": (COHEZION_REPO / "src/cohezion/core/cross_session_event_bridge.py").exists(),
+        "cross_session_event_bridge": (
+            COHEZION_REPO / "src/cohezion/core/cross_session_event_bridge.py"
+        ).exists(),
         "kanban_bridge": (COHEZION_REPO / "src/cohezion/data_mesh/kanban_bridge.py").exists(),
         "autoharness_policy": (COHEZION_REPO / "src/cohezion/agi/autoharness_policy.py").exists(),
-        "poincare_manifold_visualizer": (COHEZION_REPO / "src/cohezion/flume/poincare_manifold_visualizer.py").exists(),
+        "poincare_manifold_visualizer": (
+            COHEZION_REPO / "src/cohezion/flume/poincare_manifold_visualizer.py"
+        ).exists(),
         "hiho_sonification": (COHEZION_REPO / "src/cohezion/physics/hiho_sonification.py").exists(),
         "bioelectric_swarm": (COHEZION_REPO / "src/cohezion/flume/bioelectric_swarm.py").exists(),
         "kaggle_autoharness": (COHEZION_REPO / "src/cohezion/agi/kaggle_autoharness.py").exists(),
-        "experiential_learning": (COHEZION_REPO / "src/cohezion/agi/experiential_learning.py").exists(),
+        "experiential_learning": (
+            COHEZION_REPO / "src/cohezion/agi/experiential_learning.py"
+        ).exists(),
         "zkfv_compiler": (COHEZION_REPO / "src/cohezion/agi/zkfv_compiler.py").exists(),
         "ctac_engine": (COHEZION_REPO / "src/cohezion/physics/ctac_engine.py").exists(),
-        "lora_checkpoint": (COHEZION_REPO / "checkpoints/cohezion_lora_qwen_adapter/adapter_model.safetensors").exists(),
+        "lora_checkpoint": (
+            COHEZION_REPO / "checkpoints/cohezion_lora_qwen_adapter/adapter_model.safetensors"
+        ).exists(),
         "research_daemon": Path("/home/mike-anderson/cohezion-labs/research_daemon.py").exists(),
         "compound_daemon": Path("/home/mike-anderson/cohezion-labs/compound_daemon.py").exists(),
     }

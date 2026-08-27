@@ -29,6 +29,7 @@ We have full capacity on:
 
 Let us know what we can pick up or pair on!"""
 
+
 async def send_help_offer():
     print("=" * 80)
     print("🤝 PROACTIVELY OFFERING ASSISTANCE TO CLAUDE CODE SESSION")
@@ -48,16 +49,18 @@ async def send_help_offer():
             "type": "OFFER_OF_ASSISTANCE",
             "subject": "Antigravity available for parallel tasks / pairing",
             "body": OFFER_TEXT,
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(ev)
     print("✓ Broadcasted help offer onto EventBus & SurrealDB `event_log`")
 
     # 2. Deposit into Hive inbox for Claude
-    harness_inbox = Path.home() / ".munder-difflin" / "harness" / "hive" / "agents" / "god" / "inbox"
+    harness_inbox = (
+        Path.home() / ".munder-difflin" / "harness" / "hive" / "agents" / "god" / "inbox"
+    )
     harness_inbox.mkdir(parents=True, exist_ok=True)
-    msg_id = f"offer-help-antigravity-{int(time.time()*1000)}-{uuid.uuid4().hex[:6]}"
+    msg_id = f"offer-help-antigravity-{int(time.time() * 1000)}-{uuid.uuid4().hex[:6]}"
 
     msg_data = {
         "id": msg_id,
@@ -71,7 +74,7 @@ async def send_help_offer():
         "hops": 0,
         "requires_reply": True,
         "needs_human": False,
-        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
 
     msg_file = harness_inbox / f"{msg_id}.json"
@@ -79,17 +82,20 @@ async def send_help_offer():
     print(f"✓ Delivered offer to Hive Agent inbox: {msg_file}")
 
     # 3. Update Kanban Bridge
-    persist_item({
-        "id": "antigravity_claude_help_offer",
-        "title": "Proactive Help Offer Dispatched to Claude",
-        "status": "in_progress",
-        "priority": "normal",
-        "source": "AntigravityOrchestrator",
-        "category": "agent_coordination",
-        "details": "Offered assistance on parallel tree tasks, AST action-verifiers, mathematical proofs, or test suites.",
-    })
+    persist_item(
+        {
+            "id": "antigravity_claude_help_offer",
+            "title": "Proactive Help Offer Dispatched to Claude",
+            "status": "in_progress",
+            "priority": "normal",
+            "source": "AntigravityOrchestrator",
+            "category": "agent_coordination",
+            "details": "Offered assistance on parallel tree tasks, AST action-verifiers, mathematical proofs, or test suites.",
+        }
+    )
     print("✓ Updated Agentic Kanban card in SurrealDB and Obsidian Vault")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     asyncio.run(send_help_offer())

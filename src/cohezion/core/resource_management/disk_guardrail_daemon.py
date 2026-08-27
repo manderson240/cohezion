@@ -85,7 +85,9 @@ class DiskGuardrailSystem:
 
         # 2. Run uv cache prune
         try:
-            res = subprocess.run(["uv", "cache", "prune"], capture_output=True, text=True, timeout=15)
+            res = subprocess.run(
+                ["uv", "cache", "prune"], capture_output=True, text=True, timeout=15
+            )
             if res.returncode == 0:
                 cleaned_targets.append("uv_cache_pruned")
         except Exception as e:

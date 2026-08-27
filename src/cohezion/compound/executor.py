@@ -362,6 +362,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if getattr(self, "_mycelium_loop", None) is None:
             try:
                 from cohezion.mycelium.loop import MyceliumLoop
+
                 self._mycelium_loop = MyceliumLoop()
             except Exception as e:
                 logger.debug("Could not initialize MyceliumLoop: %s", e)

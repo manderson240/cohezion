@@ -1,14 +1,12 @@
 """Unit tests for Sheaf Consistency Gate and Dynamic OOMGuard with Shmem accounting."""
 
-import pytest
-import numpy as np
 from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
 from cohezion.reliability.oom_guard import OOMGuard
 
 
 def test_sheaf_consistency_cohomology_clean_consensus():
     gate = SheafConsistencyGate(tolerance=0.10)
-    
+
     # 3 agents in coherent agreement
     claims = {
         "agent_arch": [0.50, 0.51, 0.49],
@@ -16,7 +14,7 @@ def test_sheaf_consistency_cohomology_clean_consensus():
         "agent_qa": [0.49, 0.50, 0.51],
     }
     intersections = [("agent_arch", "agent_dev"), ("agent_dev", "agent_qa")]
-    
+
     report = gate.evaluate_consistency(claims, intersections)
     assert report.is_consistent is True
     assert report.dim_h0_consensus == 1
@@ -26,7 +24,7 @@ def test_sheaf_consistency_cohomology_clean_consensus():
 
 def test_sheaf_consistency_cohomology_detects_contradiction():
     gate = SheafConsistencyGate(tolerance=0.10)
-    
+
     # Agent QA fundamentally disagrees with Agent Dev
     claims = {
         "agent_arch": [0.50, 0.50, 0.50],
@@ -34,7 +32,7 @@ def test_sheaf_consistency_cohomology_detects_contradiction():
         "agent_qa": [0.90, 0.10, 0.20],  # Major epistemic contradiction
     }
     intersections = [("agent_arch", "agent_dev"), ("agent_dev", "agent_qa")]
-    
+
     report = gate.evaluate_consistency(claims, intersections)
     assert report.is_consistent is False
     assert report.dim_h0_consensus == 0

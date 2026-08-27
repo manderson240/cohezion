@@ -17,13 +17,10 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.autoharness_provisioner import AutoHarnessProvisioner
 from cohezion.agi.experiential_learning import ExperientialLearningEngine
-from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
@@ -63,18 +60,26 @@ class CohezionMasterOrchestrator:
         cloud_model: str = "deepseek-v4-pro:cloud",
         npu_model: str = "qwen3.6-moe-35b-a3b-FLM",
     ) -> None:
-        self.router = UnifiedHybridRouter(npu_model=npu_model, cloud_model=cloud_model, prefer_local=prefer_local)
+        self.router = UnifiedHybridRouter(
+            npu_model=npu_model, cloud_model=cloud_model, prefer_local=prefer_local
+        )
         self.provisioner = AutoHarnessProvisioner()
         self.event_bus = EventBus()
-        self.event_bridge = CrossSessionEventBridge(event_bus=self.event_bus, session_id="master_orchestrator_session")
+        self.event_bridge = CrossSessionEventBridge(
+            event_bus=self.event_bus, session_id="master_orchestrator_session"
+        )
         self.smoke_ring = SmokeRingManifold(major_radius=0.50, minor_radius=0.10)
         self.reviewer = MultiperspectiveReviewEngine()
         self.exp_engine = ExperientialLearningEngine()
 
-    def execute_v_model_cycle(self, task_intent: str, domain: str = "agi_synthesis") -> VModelExecutionOutcome:
+    def execute_v_model_cycle(
+        self, task_intent: str, domain: str = "agi_synthesis"
+    ) -> VModelExecutionOutcome:
         """Execute complete 5-stage Systems Engineering V-Model cycle."""
         t_start = time.perf_counter()
-        logger.info(f"🏛 Initiating Systems Engineering V-Model Cycle for intent: '{task_intent}'...")
+        logger.info(
+            f"🏛 Initiating Systems Engineering V-Model Cycle for intent: '{task_intent}'..."
+        )
 
         # 1. Left-Side Decomposition (Latent Invariants & AutoHarness Provisioning)
         logger.info("1/5 V-Model Left Side: Provisioning AutoHarness and Context Invariants...")
@@ -105,6 +110,7 @@ class CohezionMasterOrchestrator:
 
         import asyncio
         import inspect
+
         exp_rec_raw = self.exp_engine.process_experience(
             action_type="v_model_cycle",
             initial_state=p_point,
@@ -116,6 +122,7 @@ class CohezionMasterOrchestrator:
                 loop = asyncio.get_running_loop()
                 if loop.is_running():
                     import concurrent.futures
+
                     with concurrent.futures.ThreadPoolExecutor() as pool:
                         exp_rec = pool.submit(asyncio.run, exp_rec_raw).result()
                 else:
@@ -151,14 +158,16 @@ class CohezionMasterOrchestrator:
         )
         event_published = self.event_bridge.publish_and_persist(evt)
 
-        persist_item({
-            "id": f"v_model_cycle_{int(t_start * 1000)}",
-            "title": f"V-Model Cycle: {task_intent}",
-            "status": "completed" if review_res.overall_pass else "needs_review",
-            "priority": "high",
-            "source": "master_orchestrator",
-            "category": "v_model_execution",
-        })
+        persist_item(
+            {
+                "id": f"v_model_cycle_{int(t_start * 1000)}",
+                "title": f"V-Model Cycle: {task_intent}",
+                "status": "completed" if review_res.overall_pass else "needs_review",
+                "priority": "high",
+                "source": "master_orchestrator",
+                "category": "v_model_execution",
+            }
+        )
 
         total_duration = round(time.perf_counter() - t_start, 3)
 
@@ -178,7 +187,9 @@ class CohezionMasterOrchestrator:
             total_cycle_time_seconds=total_duration,
         )
 
-        logger.info(f"✨ V-Model Cycle Completed in {total_duration}s! Verified: {outcome.right_side_autoharness_verified}, Pass: {outcome.system_validation_review_passed}")
+        logger.info(
+            f"✨ V-Model Cycle Completed in {total_duration}s! Verified: {outcome.right_side_autoharness_verified}, Pass: {outcome.system_validation_review_passed}"
+        )
         return outcome
 
 

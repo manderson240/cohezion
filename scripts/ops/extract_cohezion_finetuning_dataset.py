@@ -30,7 +30,9 @@ def extract_git_commits() -> list[dict[str, Any]]:
     pairs = []
     try:
         cmd = ["git", "log", "-n", "1000", "--pretty=format:%H|%s|%b"]
-        res = subprocess.run(cmd, capture_output=True, text=True, cwd=Path.home() / "dev" / "cohezion")
+        res = subprocess.run(
+            cmd, capture_output=True, text=True, cwd=Path.home() / "dev" / "cohezion"
+        )
         lines = res.stdout.splitlines()
         for line in lines:
             parts = line.split("|", 2)
@@ -55,12 +57,22 @@ def extract_git_commits() -> list[dict[str, Any]]:
 def extract_task_logs() -> list[dict[str, Any]]:
     logger.info("  • Mining Execution Task Logs...")
     pairs = []
-    tasks_dir = Path.home() / ".gemini" / "antigravity-cli" / "brain" / "54146dc4-dff4-4b47-a2cb-abb16f9e3812" / ".system_generated" / "tasks"
+    tasks_dir = (
+        Path.home()
+        / ".gemini"
+        / "antigravity-cli"
+        / "brain"
+        / "54146dc4-dff4-4b47-a2cb-abb16f9e3812"
+        / ".system_generated"
+        / "tasks"
+    )
     if tasks_dir.exists():
         for log_file in tasks_dir.glob("*.log"):
             try:
                 text = log_file.read_text(errors="ignore")
-                lines = [l for l in text.splitlines() if "INFO" in l or "SCORECARD" in l or "PASSED" in l]
+                lines = [
+                    l for l in text.splitlines() if "INFO" in l or "SCORECARD" in l or "PASSED" in l
+                ]
                 if lines:
                     pairs.append(
                         {
@@ -112,12 +124,17 @@ async def extract_deep_finetuning_dataset() -> list[dict[str, Any]]:
         for entry in dataset:
             f.write(json.dumps(entry) + "\n")
 
-    logger.info("✅ Deep Dataset Mining Complete! Total High-Quality Pairs: %d in %s", len(dataset), DATASET_OUT_FILE)
+    logger.info(
+        "✅ Deep Dataset Mining Complete! Total High-Quality Pairs: %d in %s",
+        len(dataset),
+        DATASET_OUT_FILE,
+    )
     return dataset
 
 
 def main() -> None:
     import asyncio
+
     asyncio.run(extract_deep_finetuning_dataset())
 
 

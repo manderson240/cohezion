@@ -17,8 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
@@ -26,6 +25,7 @@ from cohezion.inference.load_safety import check_load_safe
 from cohezion.inference.pipeline_silicon_splitter import PipelineSiliconSplitter
 from cohezion.inference.speculative_decoder import SpeculativeDecoderEngine
 from cohezion.inference.unified_neural_mesh import UnifiedNeuralMesh
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -126,11 +126,15 @@ async def main_async() -> None:
     print("      COHEZION FULL MULTI-SILICON TRI-TIER NEURAL NET DEMO")
     print("=" * 95)
 
-    res = await engine.execute_tri_tier_silicon_pass("Unleash full Strix Halo hardware capabilities")
+    res = await engine.execute_tri_tier_silicon_pass(
+        "Unleash full Strix Halo hardware capabilities"
+    )
     print(f"  • Total Multi-Silicon Prefill Throughput: {res.total_prefill_tok_s:,.1f} tok/s")
     print(f"  • Total Multi-Silicon Decode Throughput: {res.total_decode_tok_s:.1f} tok/s")
     print(f"  • Context Window Capacity: {res.context_window_tokens:,} Tokens (FP4 KV-cache)")
-    print(f"  • Hard Memory Safety Floor: {res.ram_floor_gb:.1f} GB RAM Floor (OOM Rate: {res.oom_fault_rate_pct:.2f}%)")
+    print(
+        f"  • Hard Memory Safety Floor: {res.ram_floor_gb:.1f} GB RAM Floor (OOM Rate: {res.oom_fault_rate_pct:.2f}%)"
+    )
     print(f"  • Total Pass Execution Time: {res.execution_time_ms:.2f} ms")
     print("\n  Tri-Tier Silicon Layer Partitioning:")
     for t in res.tri_tier_telemetry:
@@ -140,7 +144,9 @@ async def main_async() -> None:
         print(f"      Latency: {t.latency_ms:.2f} ms | Status: {t.status}")
 
     print("=" * 95)
-    print("🎉 Full Multi-Silicon Tri-Tier Neural Net Engine Operational Across NPU, iGPU, and CPUs!")
+    print(
+        "🎉 Full Multi-Silicon Tri-Tier Neural Net Engine Operational Across NPU, iGPU, and CPUs!"
+    )
 
 
 def main() -> None:

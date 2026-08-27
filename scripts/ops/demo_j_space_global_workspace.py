@@ -40,7 +40,9 @@ def main() -> None:
 
     # 2. Workspace Steering
     concept_to_steer = 1042  # Target verbalizable concept
-    steered_activation = engine.steer_workspace(activation_4096d, concept_token_id=concept_to_steer, steering_coefficient=2.5)
+    steered_activation = engine.steer_workspace(
+        activation_4096d, concept_token_id=concept_to_steer, steering_coefficient=2.5
+    )
     state_steered = engine.compute_j_lens_readout(steered_activation, layer_depth=0.50)
 
     dt_ms = (time.perf_counter() - t0) * 1000.0
@@ -49,11 +51,19 @@ def main() -> None:
     print("   ANTHROPIC 2026 J-SPACE GLOBAL WORKSPACE BENCHMARK RESULTS")
     print("=" * 90)
     print(f"  • Execution Latency: {dt_ms:.3f} ms (< 1.0 ms)")
-    print(f"  • Layer 10% (Early Parsing): Workspace Active={state_early.is_workspace_active}, Variance Ratio={state_early.j_space_variance_ratio:.1%}")
-    print(f"  • Layer 50% (Global Workspace): Workspace Active={state_mid.is_workspace_active}, Variance Ratio={state_mid.j_space_variance_ratio:.1%}")
+    print(
+        f"  • Layer 10% (Early Parsing): Workspace Active={state_early.is_workspace_active}, Variance Ratio={state_early.j_space_variance_ratio:.1%}"
+    )
+    print(
+        f"  • Layer 50% (Global Workspace): Workspace Active={state_mid.is_workspace_active}, Variance Ratio={state_mid.j_space_variance_ratio:.1%}"
+    )
     print(f"    Top J-Lens Concepts: {[c.token_label for c in state_mid.active_concepts]}")
-    print(f"  • Layer 95% (Motor Readout): Workspace Active={state_late.is_workspace_active}, Variance Ratio={state_late.j_space_variance_ratio:.1%}")
-    print(f"  • Workspace Steering (Concept {concept_to_steer}): Top Steered Concept: {state_steered.active_concepts[0].token_label} (Weight: {state_steered.active_concepts[0].activation_weight:.4f})")
+    print(
+        f"  • Layer 95% (Motor Readout): Workspace Active={state_late.is_workspace_active}, Variance Ratio={state_late.j_space_variance_ratio:.1%}"
+    )
+    print(
+        f"  • Workspace Steering (Concept {concept_to_steer}): Top Steered Concept: {state_steered.active_concepts[0].token_label} (Weight: {state_steered.active_concepts[0].activation_weight:.4f})"
+    )
     print("=" * 90)
     print("🎉 Anthropic 2026 J-Space Global Workspace Engine Successfully Operationalized!")
 

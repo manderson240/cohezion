@@ -64,7 +64,9 @@ def run_dogfood_pipeline() -> dict:
 
     # 1. OOM Guard Preflight Check
     mem_state = OOMGuard.get_memory_state()
-    print(f"\n[Step 1/5] OOM Guard Memory Check: {mem_state.available_gb} GiB available (is_safe={mem_state.is_safe})")
+    print(
+        f"\n[Step 1/5] OOM Guard Memory Check: {mem_state.available_gb} GiB available (is_safe={mem_state.is_safe})"
+    )
     assert mem_state.is_safe, "OOMGuard preflight failed"
 
     # 2. Multimodal Resolution across 6 Modalities
@@ -87,7 +89,9 @@ def execute_manifold_hop(z_state: list[float], scale_factor: float) -> list[floa
     return [x * scale_factor for x in z_state]
 """
     v_res = verifier.verify_code(test_code)
-    print(f"  • Verification Outcome: valid={v_res.valid}, score={v_res.score}, duration={v_res.duration_ms:.3f}ms")
+    print(
+        f"  • Verification Outcome: valid={v_res.valid}, score={v_res.score}, duration={v_res.duration_ms:.3f}ms"
+    )
     assert v_res.valid is True
 
     # 4. 256D J-Space Poincaré Manifold Operations
@@ -125,7 +129,7 @@ def execute_manifold_hop(z_state: list[float], scale_factor: float) -> list[floa
     report_path = VAULT_DIR / "DOGFOODING_PIPELINE_REPORT.md"
     report_content = f"""---
 title: End-to-End Architecture Dogfooding Execution Report
-date: {summary['timestamp']}
+date: {summary["timestamp"]}
 tags: [dogfood, autoharness, poincare-256d, flatland, oom-guard, multimodal]
 session: dogfooding-session
 ---

@@ -8,7 +8,6 @@ Provides dual-layer execution safety for agent actions:
 
 from __future__ import annotations
 
-import ast
 import logging
 import os
 import re
@@ -17,14 +16,15 @@ import sys
 import tempfile
 import time
 from dataclasses import dataclass
-from typing import Any
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
+
 
 logger = logging.getLogger("cohezion.sandbox")
 
 
 import resource
+
 
 @dataclass(frozen=True, slots=True)
 class SandboxExecutionResult:

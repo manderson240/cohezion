@@ -30,7 +30,9 @@ async def test_all_cells_execution_async() -> bool:
         logger.error("Notebook file %s not found!", NOTEBOOK_PATH)
         return False
 
-    spec = importlib.util.spec_from_file_location("cohezion_agent_monitoring_dashboard", NOTEBOOK_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "cohezion_agent_monitoring_dashboard", NOTEBOOK_PATH
+    )
     if spec is None or spec.loader is None:
         logger.error("Failed to load spec for %s", NOTEBOOK_PATH)
         return False

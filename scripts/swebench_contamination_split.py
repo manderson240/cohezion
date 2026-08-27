@@ -101,7 +101,9 @@ def main() -> int:
 
     rec = [r for r in rows if r["recognised"]]
     unrec = [r for r in rows if not r["recognised"]]
-    print(f"\n{'subset':14s} {'instances':>9s} {'tp':>3s} {'tn':>3s} {'fp':>3s} {'fn':>3s} {'MCC':>6s}")
+    print(
+        f"\n{'subset':14s} {'instances':>9s} {'tp':>3s} {'tn':>3s} {'fp':>3s} {'fn':>3s} {'MCC':>6s}"
+    )
     out = {}
     for label, subset in (("RECOGNISED", rec), ("unrecognised", unrec), ("ALL", rows)):
         tp, tn, fp, fn, m = score(subset)

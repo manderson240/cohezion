@@ -10,20 +10,22 @@ Executes autonomous recursive self-improvement loops:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
 from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-LEARNINGS_FILE = Path.home() / "dev" / "cohezion" / "src" / "cohezion" / "knowledge_graph" / "KEY_LEARNINGS.md"
+LEARNINGS_FILE = (
+    Path.home() / "dev" / "cohezion" / "src" / "cohezion" / "knowledge_graph" / "KEY_LEARNINGS.md"
+)
 OBSIDIAN_RETRO_DIR = Path.home() / "vaults" / "cohezion-vault" / "retros"
 
 
@@ -64,10 +66,14 @@ class RecursiveSelfImprovementEngine:
 
         # Step 3: Poincaré Manifold Alignment
         base_vec = (0.5, 0.5, 0.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        mapping = await self.geom_engine.map_state_to_manifold(base_vec, "Recursive_Self_Improvement")
+        mapping = await self.geom_engine.map_state_to_manifold(
+            base_vec, "Recursive_Self_Improvement"
+        )
 
         # Step 4: R0 Multiperspective Review
-        rev_report = self.review_engine.review("Recursive_Self_Improvement", {"vram_available_gb": 32.0, "ring_coherence": 0.90})
+        rev_report = self.review_engine.review(
+            "Recursive_Self_Improvement", {"vram_available_gb": 32.0, "ring_coherence": 0.90}
+        )
 
         # Step 5: Write Key Learnings & Obsidian Retro
         LEARNINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -77,7 +83,7 @@ class RecursiveSelfImprovementEngine:
 ## Self-Improvement Diagnostics
 - **V-Model Multiperspective Review Score**: {rev_report.review_score:.4f}
 - **Poincaré Isomorphic Alignment**: {mapping.isomorphic_alignment_score * 100.0:.2f}%
-- **AutoHarness Policy Pass**: {'✅ VERIFIED' if pol_res.allowed else '❌ FAILED'}
+- **AutoHarness Policy Pass**: {"✅ VERIFIED" if pol_res.allowed else "❌ FAILED"}
 
 ### Key Architectural Enhancements
 """
@@ -85,7 +91,9 @@ class RecursiveSelfImprovementEngine:
             retro_content += f"- {d}\n"
 
         OBSIDIAN_RETRO_DIR.mkdir(parents=True, exist_ok=True)
-        retro_file = OBSIDIAN_RETRO_DIR / f"2026-08-13-recursive-self-improvement-{int(time.time())}.md"
+        retro_file = (
+            OBSIDIAN_RETRO_DIR / f"2026-08-13-recursive-self-improvement-{int(time.time())}.md"
+        )
         retro_file.write_text(retro_content, encoding="utf-8")
         logger.info("✅ Saved Obsidian Retrospective to %s", retro_file)
 
@@ -108,7 +116,9 @@ async def main_async() -> None:
 
     res = await engine.execute_recursive_improvement_cycle()
     print(f"  • Cycle ID: {res.cycle_id}")
-    print(f"  • Diagnosed & Applied Enhancements: {len(res.diagnosed_optimizations)} core optimizations")
+    print(
+        f"  • Diagnosed & Applied Enhancements: {len(res.diagnosed_optimizations)} core optimizations"
+    )
     print(f"  • AutoHarness AST Rules Added: {res.autoharness_rules_added}")
     print(f"  • Poincaré Isomorphic Alignment: {res.poincare_alignment_score * 100.0:.2f}%")
     print(f"  • R0 Review Score: {res.review_score:.4f}")

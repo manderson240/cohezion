@@ -15,17 +15,19 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
-from cohezion.agi.autoharness_policy import ActionPolicyResult, AutoHarnessPolicy
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
-from cohezion.core.event_bus import Event, EventBus
+from cohezion.core.event_bus import EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.physics.poincare_manifold import PoincareManifoldND, PoincarePoint
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - [AUTOHARNESS_PROVISIONER] - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - [AUTOHARNESS_PROVISIONER] - %(message)s"
+)
 logger = logging.getLogger("AutoHarnessProvisioner")
 
 
@@ -56,7 +58,9 @@ class AutoHarnessProvisioner:
     ) -> ProvisionedHarness:
         """Provision a fully aligned AutoHarness environment for an agent."""
         t0 = time.perf_counter()
-        logger.info(f"🛠 Provisioning AutoHarness for role '{agent_role}' with model '{target_model}'...")
+        logger.info(
+            f"🛠 Provisioning AutoHarness for role '{agent_role}' with model '{target_model}'..."
+        )
 
         # 1. 2048D Poincaré State Context Injection
         p_state = PoincareManifoldND.project([0.05] * 2048, target_dim=2048)
@@ -87,7 +91,7 @@ class AutoHarnessProvisioner:
         proof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
 
         # 6. Build Context Payload
-        conformal_factor = 2.0 / (1.0 - min(0.9999, p_state.norm ** 2))
+        conformal_factor = 2.0 / (1.0 - min(0.9999, p_state.norm**2))
         context_payload = {
             "agent_role": agent_role,
             "model": target_model,
@@ -102,17 +106,21 @@ class AutoHarnessProvisioner:
         }
 
         # 7. Persist to Kanban & EventBus
-        persist_item({
-            "id": f"harness_prov_{int(t0 * 1000)}",
-            "title": f"AutoHarness Provisioned for {agent_role}",
-            "status": "completed",
-            "priority": "medium",
-            "source": "autoharness_provisioner",
-            "category": "harness_provisioning",
-        })
+        persist_item(
+            {
+                "id": f"harness_prov_{int(t0 * 1000)}",
+                "title": f"AutoHarness Provisioned for {agent_role}",
+                "status": "completed",
+                "priority": "medium",
+                "source": "autoharness_provisioner",
+                "category": "harness_provisioning",
+            }
+        )
 
         dt = round(time.perf_counter() - t0, 4)
-        logger.info(f"✨ Harness provisioned in {dt}s! Verified: {p_res.allowed}, ZK Proof: {proof.is_valid}")
+        logger.info(
+            f"✨ Harness provisioned in {dt}s! Verified: {p_res.allowed}, ZK Proof: {proof.is_valid}"
+        )
 
         return ProvisionedHarness(
             agent_role=agent_role,

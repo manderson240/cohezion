@@ -351,9 +351,7 @@ class PokemonTCGStrategicAgentV4:
 _global_agent = PokemonTCGStrategicAgentV4()
 
 
-def agent_function(
-    observation: dict[str, Any], configuration: dict[str, Any] | None = None
-) -> str:
+def agent_function(observation: dict[str, Any], configuration: dict[str, Any] | None = None) -> str:
     return _global_agent.choose_action(observation)
 
 

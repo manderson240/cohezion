@@ -10,12 +10,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
-import time
-from dataclasses import dataclass, field
-from typing import Callable, Generic, TypeVar
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Generic, TypeVar
 
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ E = TypeVar("E")
 # =============================================================================
 # 1. Monadic Execution Pipeline (Result & State Monad)
 # =============================================================================
+
 
 @dataclass(frozen=True, slots=True)
 class MonadResult(Generic[T]):
@@ -104,6 +105,7 @@ class MarkovStreamRouter:
 # 3. Recursive Trace Logic & Unified Engine
 # =============================================================================
 
+
 @dataclass
 class RecursiveJourneyStep:
     step_id: str
@@ -121,8 +123,13 @@ class MonadicMarkovTraceEngine:
         self.markov_router = MarkovStreamRouter()
         self.geom_engine = GeometricCorrespondenceEngine()
 
-    async def execute_monadic_trace_pipeline(self, initial_intent: str) -> MonadResult[dict[str, Any]]:
-        logger.info("🧠 MONADIC MARKOV ENGINE: Executing functional trace pipeline for intent '%s'...", initial_intent)
+    async def execute_monadic_trace_pipeline(
+        self, initial_intent: str
+    ) -> MonadResult[dict[str, Any]]:
+        logger.info(
+            "🧠 MONADIC MARKOV ENGINE: Executing functional trace pipeline for intent '%s'...",
+            initial_intent,
+        )
 
         # Monadic Pipeline Execution via `unit` and `bind`
         result = (
@@ -136,7 +143,12 @@ class MonadicMarkovTraceEngine:
     def _step_markov_routing(self, intent: str) -> MonadResult[dict[str, Any]]:
         next_stream, prob = self.markov_router.compute_next_stream(0)  # From Architect
         stationary = self.markov_router.compute_stationary_distribution()
-        logger.info("  • [Markov Chain] Stream Transition: Architect -> %s (P_ij = %.2f) | Stationary Vector pi = %s", next_stream, prob, stationary)
+        logger.info(
+            "  • [Markov Chain] Stream Transition: Architect -> %s (P_ij = %.2f) | Stationary Vector pi = %s",
+            next_stream,
+            prob,
+            stationary,
+        )
 
         payload = {
             "intent": intent,
@@ -146,7 +158,9 @@ class MonadicMarkovTraceEngine:
         }
         return MonadResult.unit(payload)
 
-    def _step_recursive_trace_computation(self, data: dict[str, Any]) -> MonadResult[dict[str, Any]]:
+    def _step_recursive_trace_computation(
+        self, data: dict[str, Any]
+    ) -> MonadResult[dict[str, Any]]:
         # Build recursive trace tree
         root_step = RecursiveJourneyStep(
             step_id="step_00",
@@ -165,7 +179,12 @@ class MonadicMarkovTraceEngine:
             depth=1,
         )
 
-        logger.info("  • [Recursive Trace] Tree Depth = %d | Child Step '%s' linked to Parent '%s'", child_step.depth, child_step.step_id, root_step.step_id)
+        logger.info(
+            "  • [Recursive Trace] Tree Depth = %d | Child Step '%s' linked to Parent '%s'",
+            child_step.depth,
+            child_step.step_id,
+            root_step.step_id,
+        )
 
         data["recursive_depth"] = child_step.depth
         data["parent_step_id"] = root_step.step_id
@@ -183,11 +202,15 @@ async def main_async() -> None:
 
     if res.is_success and res.value:
         val = res.value
-        print(f"  • Monadic Result Status: ✅ SUCCESS (Encapsulated in MonadResult.unit)")
+        print("  • Monadic Result Status: ✅ SUCCESS (Encapsulated in MonadResult.unit)")
         print(f"  • Initial Intent: '{val['intent']}'")
-        print(f"  • Markov Chain Stream Routing: Architect -> {val['next_stream']} (Probability: {val['markov_prob']:.2f})")
+        print(
+            f"  • Markov Chain Stream Routing: Architect -> {val['next_stream']} (Probability: {val['markov_prob']:.2f})"
+        )
         print(f"  • Markov Stationary Vector pi: {val['stationary_vector']}")
-        print(f"  • Recursive Trace Depth: Level {val['recursive_depth']} (Parent: '{val['parent_step_id']}')")
+        print(
+            f"  • Recursive Trace Depth: Level {val['recursive_depth']} (Parent: '{val['parent_step_id']}')"
+        )
     else:
         print(f"  • Monadic Result Status: ❌ FAILED ({res.error})")
 

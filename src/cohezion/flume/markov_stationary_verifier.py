@@ -7,7 +7,9 @@ irreducible, and aperiodic, converging to a unique stationary distribution pi P 
 from __future__ import annotations
 
 import logging
+
 from cohezion.flume.monadic_markov_trace_engine import MarkovStreamRouter
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -33,7 +35,9 @@ def verify_markov_matrix_properties() -> bool:
 
     for j in range(5):
         if abs(pi[j] - next_pi[j]) > 1e-3:
-            logger.error("Stationary vector divergence at stream %d: %.4f vs %.4f", j, pi[j], next_pi[j])
+            logger.error(
+                "Stationary vector divergence at stream %d: %.4f vs %.4f", j, pi[j], next_pi[j]
+            )
             return False
 
     return True
@@ -44,8 +48,10 @@ def main() -> None:
     print("\n" + "=" * 95)
     print("      📐 COHEZION MARKOV CHAIN STATIONARY CONVERGENCE VERIFIER")
     print("=" * 95)
-    print(f"  • Stochastic Matrix Row Sums: 1.0000 (100% Stochastic)")
-    print(f"  • Stationary Convergence pi P = pi: {'✅ VERIFIED CONVERGENT' if valid else '❌ DIVERGENT'}")
+    print("  • Stochastic Matrix Row Sums: 1.0000 (100% Stochastic)")
+    print(
+        f"  • Stationary Convergence pi P = pi: {'✅ VERIFIED CONVERGENT' if valid else '❌ DIVERGENT'}"
+    )
     print("=" * 95)
     print("🎉 Remediation 4: Markov Chain Mathematical Verification Passed!")
 

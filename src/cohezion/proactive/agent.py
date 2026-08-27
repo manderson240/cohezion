@@ -15,10 +15,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
-from cohezion.proactive.predictor import GoalPrediction, ProactiveGoalPredictor
+from cohezion.proactive.predictor import ProactiveGoalPredictor
 from cohezion.proactive.sensing import ActivitySensingGym, UserEvent
 from cohezion.proactive.trigger_gate import ProactiveTriggerGate
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,9 @@ class ProactiveAgent:
             )
 
         # Step 4: Evaluate Action Policy via AutoHarness (Zero-Cost Execution)
-        p_res = self.policy_engine.evaluate_policy(prediction.suggested_action, {"available_gb": mem.available_gb})
+        p_res = self.policy_engine.evaluate_policy(
+            prediction.suggested_action, {"available_gb": mem.available_gb}
+        )
 
         dt_ms = (time.perf_counter() - t0) * 1000.0
         return ProactiveResult(

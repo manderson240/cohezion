@@ -12,15 +12,13 @@ Task Routing:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
-import urllib.request
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.inference.load_safety import check_load_safe
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -49,6 +47,7 @@ class ProactiveLocalDelegator:
     async def query_local_llm(self, model: str, prompt: str) -> str:
         """Query local Lemonade OmniRouter endpoint (port 13305) asynchronously via httpx."""
         import httpx
+
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
@@ -65,8 +64,12 @@ class ProactiveLocalDelegator:
 
         return f"Evaluated action '{prompt[:50]}' locally via {model} on Strix Halo UMA."
 
-    async def delegate_action_locally(self, action_name: str, prompt: str, task_class: str = "coding") -> LocalDelegationResult:
-        logger.info("⚡ LOCAL DELEGATION: Routing action '%s' to Tier 1 Local Silicon...", action_name)
+    async def delegate_action_locally(
+        self, action_name: str, prompt: str, task_class: str = "coding"
+    ) -> LocalDelegationResult:
+        logger.info(
+            "⚡ LOCAL DELEGATION: Routing action '%s' to Tier 1 Local Silicon...", action_name
+        )
         t0 = time.perf_counter()
 
         # EVI Gating Check
@@ -110,8 +113,16 @@ async def main_async() -> None:
     print("=" * 95)
 
     actions = [
-        ("Action 1: AST Code Verification", "Verify code syntax for zero-inference engine", "coding"),
-        ("Action 2: Hyperbolic Manifold Planning", "Compute Poincaré 2048D geodesic path", "reasoning"),
+        (
+            "Action 1: AST Code Verification",
+            "Verify code syntax for zero-inference engine",
+            "coding",
+        ),
+        (
+            "Action 2: Hyperbolic Manifold Planning",
+            "Compute Poincaré 2048D geodesic path",
+            "reasoning",
+        ),
         ("Action 3: Swarm Signal Routing", "Check bioelectric membrane V_mem state", "fast"),
     ]
 

@@ -12,16 +12,15 @@ Exposes Cohezion's bleeding-edge AGI capabilities directly over Anthropic's Mode
 from __future__ import annotations
 
 import asyncio
-import ast
 import json
 import logging
-import math
 import sys
 import time
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
 
 # Add src to path
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -32,11 +31,14 @@ from mcp.types import TextContent, Tool
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.flume.bioelectric_swarm import BioelectricSwarm
-from cohezion.flume.poincare_manifold_visualizer import PoincareManifoldVisualizer, compute_hyperbolic_distance
+from cohezion.flume.poincare_manifold_visualizer import (
+    PoincareManifoldVisualizer,
+)
 from cohezion.governance.sheaf_consistency_gate import SheafConsistencyGate
 from cohezion.physics.hiho_sonification import HIHOSonifier
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.security.data_provenance_signer import DataProvenanceSigner
+
 
 logger = logging.getLogger("cohezion_mcp_server")
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +61,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "code": {"type": "string", "description": "Python code snippet or action to verify"},
+                    "code": {
+                        "type": "string",
+                        "description": "Python code snippet or action to verify",
+                    },
                 },
                 "required": ["code"],
             },
@@ -70,8 +75,16 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "vector": {"type": "array", "items": {"type": "number"}, "description": "Input coordinate vector"},
-                    "target_dim": {"type": "integer", "default": 256, "description": "Target manifold dimension (12, 256, 2048)"},
+                    "vector": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Input coordinate vector",
+                    },
+                    "target_dim": {
+                        "type": "integer",
+                        "default": 256,
+                        "description": "Target manifold dimension (12, 256, 2048)",
+                    },
                 },
                 "required": ["vector"],
             },
@@ -101,8 +114,15 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "coherence": {"type": "number", "description": "Coherence value in [0.0, 1.0] (0.5 = max stability)"},
-                    "fundamental_hz": {"type": "number", "default": 432.0, "description": "Base carrier frequency in Hz"},
+                    "coherence": {
+                        "type": "number",
+                        "description": "Coherence value in [0.0, 1.0] (0.5 = max stability)",
+                    },
+                    "fundamental_hz": {
+                        "type": "number",
+                        "default": 432.0,
+                        "description": "Base carrier frequency in Hz",
+                    },
                 },
                 "required": ["coherence"],
             },
@@ -113,9 +133,20 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "num_nodes": {"type": "integer", "default": 12, "description": "Number of bioelectric nodes in swarm"},
-                    "coupling_strength": {"type": "number", "default": 0.75, "description": "Gap-junction coupling tensor [0.0, 1.0]"},
-                    "inject_fault_node": {"type": "integer", "description": "Optional node index to inject fault before self-healing"},
+                    "num_nodes": {
+                        "type": "integer",
+                        "default": 12,
+                        "description": "Number of bioelectric nodes in swarm",
+                    },
+                    "coupling_strength": {
+                        "type": "number",
+                        "default": 0.75,
+                        "description": "Gap-junction coupling tensor [0.0, 1.0]",
+                    },
+                    "inject_fault_node": {
+                        "type": "integer",
+                        "description": "Optional node index to inject fault before self-healing",
+                    },
                 },
             },
         ),
@@ -125,8 +156,15 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "payload": {"type": "object", "description": "Dictionary of payload data to sign"},
-                    "key_id": {"type": "string", "default": "v2", "description": "Key ID identifier for HMAC signing"},
+                    "payload": {
+                        "type": "object",
+                        "description": "Dictionary of payload data to sign",
+                    },
+                    "key_id": {
+                        "type": "string",
+                        "default": "v2",
+                        "description": "Key ID identifier for HMAC signing",
+                    },
                 },
                 "required": ["payload"],
             },
@@ -154,7 +192,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     elif name == "cohezion_poincare_project":
         raw_vec = arguments.get("vector", [])
         if not isinstance(raw_vec, list) or len(raw_vec) == 0:
-            return [TextContent(type="text", text=json.dumps({"error": "vector must be non-empty list"}))]
+            return [
+                TextContent(
+                    type="text", text=json.dumps({"error": "vector must be non-empty list"})
+                )
+            ]
         # Validate finite floats and clamp dimension to valid choices
         vec = [float(np.clip(x, -0.99, 0.99)) for x in raw_vec[:2048] if np.isfinite(x)]
         target_dim = int(arguments.get("target_dim", 256))
@@ -182,7 +224,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
     elif name == "cohezion_sheaf_cohomology_gate":
         raw_claims = arguments.get("agent_claims", {})
-        claims = {k: np.array([float(np.clip(x, -1.0, 1.0)) for x in v[:12]]) for k, v in list(raw_claims.items())[:64]}
+        claims = {
+            k: np.array([float(np.clip(x, -1.0, 1.0)) for x in v[:12]])
+            for k, v in list(raw_claims.items())[:64]
+        }
         intersections = [tuple(p) for p in arguments.get("shared_intersections", [])]
         rep = await asyncio.to_thread(_sheaf_gate.evaluate_consistency, claims, intersections)
         result = {
@@ -198,7 +243,9 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         raw_c = float(arguments.get("coherence", 0.5))
         c = float(np.clip(raw_c, 0.0, 1.0))
         base_hz = float(np.clip(float(arguments.get("fundamental_hz", 432.0)), 20.0, 20000.0))
-        audio_frame = await asyncio.to_thread(_sonifier.sonify_coherence_state, coherence=c, fundamental_hz=base_hz)
+        audio_frame = await asyncio.to_thread(
+            _sonifier.sonify_coherence_state, coherence=c, fundamental_hz=base_hz
+        )
         result = {
             "coherence": c,
             "fundamental_hz": round(audio_frame.fundamental_hz, 2),
@@ -211,7 +258,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     elif name == "cohezion_bioelectric_self_heal":
         n_nodes = int(np.clip(int(arguments.get("num_nodes", 12)), 2, 256))
         coupling = float(np.clip(float(arguments.get("coupling_strength", 0.75)), 0.0, 1.0))
-        
+
         def _do_swarm():
             swarm = BioelectricSwarm(n_nodes=n_nodes, coupling_strength=coupling)
             r_c = swarm.calculate_light_cone_radius()
@@ -251,10 +298,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
 async def main():
     import mcp.server.stdio
+
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
         await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

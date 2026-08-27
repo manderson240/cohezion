@@ -20,6 +20,7 @@ import os
 import subprocess
 from pathlib import Path
 
+
 def run_audit():
     print("=" * 115)
     print("🏆 KAGGLE SUBMISSIONS & COMPETITION READINESS AUDIT")
@@ -28,11 +29,15 @@ def run_audit():
     # 1. Check Kaggle API Credentials & CLI
     print("\n▶ [1/4] Checking Kaggle API Authentication & Connectivity...")
     kaggle_json = Path.home() / ".kaggle" / "kaggle.json"
-    has_creds = kaggle_json.exists() or "KAGGLE_USERNAME" in os.environ or "KAGGLE_KEY" in os.environ
+    has_creds = (
+        kaggle_json.exists() or "KAGGLE_USERNAME" in os.environ or "KAGGLE_KEY" in os.environ
+    )
     print(f"   • Kaggle API Credentials Detected: {'YES' if has_creds else 'NO'}")
 
     try:
-        res = subprocess.run(["kaggle", "competitions", "list", "--csv"], capture_output=True, text=True, timeout=10)
+        res = subprocess.run(
+            ["kaggle", "competitions", "list", "--csv"], capture_output=True, text=True, timeout=10
+        )
         if res.returncode == 0:
             print("   ✓ Kaggle CLI Online & Authenticated!")
         else:
@@ -54,6 +59,7 @@ def run_audit():
     # 3. AutoHarness Verification State
     print("\n▶ [3/4] AutoHarness Zero-Inference Verifier Status:")
     from cohezion.agi.kaggle_autoharness import KaggleAutoHarness, ARCGridInvariant, AIMOProofState
+
     harness = KaggleAutoHarness()
     arc_ok = harness.verify_arc_transformation([[1, 0], [0, 1]], [[0, 1], [1, 0]]).valid
     aimo_ok = harness.verify_aimo_proof_state(AIMOProofState(value=42)).valid
@@ -62,13 +68,16 @@ def run_audit():
 
     # 4. Strategy & Quota Summary
     print("\n▶ [4/4] Quota & Strategy Alignment:")
-    print("   • ARC Prize 2026:            Zero-cost AutoHarness AST bytecode policy + 30h/wk GPU training")
+    print(
+        "   • ARC Prize 2026:            Zero-cost AutoHarness AST bytecode policy + 30h/wk GPU training"
+    )
     print("   • AIMO Progress Prize 3:     Dedicated H100 infrastructure (0 personal quota used)")
     print("   • Measuring Progress to AGI: $50/day AI Models API quota")
 
     print("\n" + "=" * 115)
     print("🏁 READINESS VERDICT: AUTO-HARNESS ENGINE IS PRIMED & READY FOR SUBMISSION PACKAGING")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     run_audit()

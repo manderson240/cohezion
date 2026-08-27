@@ -1,6 +1,6 @@
-import pytest
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy, ActionPolicyResult
-from cohezion.agi.arc_aimo_solver import ARCSolverHarness, ARCTask, ARCResult
+from cohezion.agi.arc_aimo_solver import ARCSolverHarness, ARCTask
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 def test_autoharness_policy_bounded_grid():
     policy = AutoHarnessPolicy()
@@ -19,10 +19,12 @@ def test_autoharness_policy_bounded_grid():
     assert res_inv.bypassed_llm is True
     assert "violated deterministic policy" in res_inv.reason
 
+
 def test_autoharness_policy_positive_mass():
     policy = AutoHarnessPolicy()
     assert policy.evaluate_policy("positive_mass", {"mass": 5.0}).allowed is True
     assert policy.evaluate_policy("positive_mass", {"mass": -1.0}).allowed is False
+
 
 def test_arc_solver_harness():
     harness = ARCSolverHarness()

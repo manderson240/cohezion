@@ -4,11 +4,12 @@ Engineered and verified in OmA Autonomous Self-Evolution Loop (Cycle 16).
 
 from __future__ import annotations
 
-import time
 import math
-import numpy as np
+import time
 from dataclasses import dataclass
-from typing import Any
+
+import numpy as np
+
 
 @dataclass(frozen=True, slots=True)
 class CycleVerificationState:
@@ -17,6 +18,7 @@ class CycleVerificationState:
     verified: bool
     entropy_score: float
     timestamp: float
+
 
 class AIMOMathematicalFormalProofStepVerifier:
     """Deterministic, zero-cost verified engine for AIMO 3 Mathematical Formal Proof Step Verifier."""
@@ -38,5 +40,5 @@ class AIMOMathematicalFormalProofStepVerifier:
             subsystem="AIMO 3 Mathematical Formal Proof Step Verifier",
             verified=True,
             entropy_score=round(score, 4),
-            timestamp=time.time()
+            timestamp=time.time(),
         )

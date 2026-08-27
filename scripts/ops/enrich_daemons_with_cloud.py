@@ -31,7 +31,12 @@ async def ask_ollama_cloud(prompt: str, model: str = "deepseek-v4-pro:cloud") ->
     async with httpx.AsyncClient(timeout=60.0) as client:
         res = await client.post(
             "http://localhost:11434/api/generate",
-            json={"model": model, "prompt": prompt, "stream": False, "options": {"temperature": 0.2}},
+            json={
+                "model": model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0.2},
+            },
         )
         if res.status_code == 200:
             return res.json().get("response", "").strip()
@@ -53,15 +58,20 @@ async def run_enrichment():
         data = json.load(f)
 
     apply_items = [
-        item for item in data.get("items", [])
+        item
+        for item in data.get("items", [])
         if item.get("relevance") == "APPLY" and item.get("status") in ("reviewed", "approved")
     ]
     logger.info("Found %d high-relevance APPLY items ready for synthesis", len(apply_items))
     sample_items = apply_items[:5]
 
     # 2. Use deepseek-v4-pro:cloud to synthesize compound tasks
-    logger.info("2/4: Calling deepseek-v4-pro:cloud to synthesize actionable compound engineering tasks...")
-    items_summary = "\n".join([f"- [{i.get('id')}] {i.get('title')}: {i.get('notes', '')[:180]}" for i in sample_items])
+    logger.info(
+        "2/4: Calling deepseek-v4-pro:cloud to synthesize actionable compound engineering tasks..."
+    )
+    items_summary = "\n".join(
+        [f"- [{i.get('id')}] {i.get('title')}: {i.get('notes', '')[:180]}" for i in sample_items]
+    )
     synthesis_prompt = f"""\
 You are the Master Orchestrator for the Cohezion AI platform.
 Below are 5 frontier research papers marked APPLY from our research daemon:
@@ -90,9 +100,27 @@ Output ONLY the raw JSON array.
     except Exception as exc:
         logger.warning("JSON parsing fallback: %s. Using default structured tasks.", exc)
         new_tasks = [
-            {"id": 101, "prompt": "compound loop: integrate AdaJEPA adaptive baseline recalibration into world models", "priority": 1, "done": False, "source_paper_id": "demo001"},
-            {"id": 102, "prompt": "compound loop: implement dynamic human-AI preference layer in DifficultyEstimator", "priority": 2, "done": False, "source_paper_id": "4c722c73524a5171"},
-            {"id": 103, "prompt": "compound loop: deploy Lewis signaling game memory architecture into JourneyTracker", "priority": 1, "done": False, "source_paper_id": "6b49c5ae2301fa5b"},
+            {
+                "id": 101,
+                "prompt": "compound loop: integrate AdaJEPA adaptive baseline recalibration into world models",
+                "priority": 1,
+                "done": False,
+                "source_paper_id": "demo001",
+            },
+            {
+                "id": 102,
+                "prompt": "compound loop: implement dynamic human-AI preference layer in DifficultyEstimator",
+                "priority": 2,
+                "done": False,
+                "source_paper_id": "4c722c73524a5171",
+            },
+            {
+                "id": 103,
+                "prompt": "compound loop: deploy Lewis signaling game memory architecture into JourneyTracker",
+                "priority": 1,
+                "done": False,
+                "source_paper_id": "6b49c5ae2301fa5b",
+            },
         ]
 
     # 3. Populate compound_tasks.json to awaken compound_daemon
@@ -101,7 +129,9 @@ Output ONLY the raw JSON array.
     print(f"  ✓ Written {len(new_tasks)} actionable tasks to {COMPOUND_TASKS_PATH}")
 
     # 4. Broadcast via EventBus and Persist to SurrealDB / Obsidian
-    logger.info("4/4: Broadcasting RESEARCH_ACTIONABLE_DISCOVERY onto EventBus and syncing to Kanban...")
+    logger.info(
+        "4/4: Broadcasting RESEARCH_ACTIONABLE_DISCOVERY onto EventBus and syncing to Kanban..."
+    )
     bus = EventBus()
     await bus.start()
 
@@ -121,14 +151,16 @@ Output ONLY the raw JSON array.
     await bus.stop()
 
     for task in new_tasks:
-        persist_item({
-            "id": f"compound-task-{task['id']}",
-            "title": task["prompt"],
-            "status": "ready",
-            "priority": "high" if task["priority"] == 1 else "medium",
-            "source": "daemon_enrichment_engine",
-            "category": "compound_engineering",
-        })
+        persist_item(
+            {
+                "id": f"compound-task-{task['id']}",
+                "title": task["prompt"],
+                "status": "ready",
+                "priority": "high" if task["priority"] == 1 else "medium",
+                "source": "daemon_enrichment_engine",
+                "category": "compound_engineering",
+            }
+        )
 
     print("\n" + "=" * 105)
     print(f"  🎉 DAEMONS ENRICHED & SYNCHRONIZED HARMONIOUSLY! (Tasks Queued: {len(new_tasks)})")

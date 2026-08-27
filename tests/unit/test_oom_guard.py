@@ -1,5 +1,5 @@
-import pytest
-from cohezion.reliability.oom_guard import OOMGuard, MemoryState
+from cohezion.reliability.oom_guard import MemoryState, OOMGuard
+
 
 def test_oom_guard_get_memory_state():
     state = OOMGuard.get_memory_state()

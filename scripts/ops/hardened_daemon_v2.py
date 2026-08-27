@@ -63,7 +63,12 @@ def _sig_handler(sig, frame):
 def sanitize_input_text(raw_text: str) -> str:
     """Guardrail C: Sanitize untrusted input text from preprints against prompt injections."""
     # Strip potential prompt injection prefixes/delimiters
-    clean = re.sub(r"(ignore previous instructions|system prompt|eval\(|exec\()", "[REDACTED]", raw_text, flags=re.IGNORECASE)
+    clean = re.sub(
+        r"(ignore previous instructions|system prompt|eval\(|exec\()",
+        "[REDACTED]",
+        raw_text,
+        flags=re.IGNORECASE,
+    )
     # Allow only clean alphanumeric, mathematical notation, and punctuation
     return clean[:1000].strip()
 
@@ -123,7 +128,12 @@ async def execute_hardened_cycle(
 
     # 1. Hardware Guardrail: RAM & Memory Headroom Check
     mem = OOMGuard.get_memory_state()
-    logger.info("Memory State: Available=%.1f GiB / Total=%.1f GiB (Safe=%s)", mem.available_gb, mem.total_gb, mem.is_safe)
+    logger.info(
+        "Memory State: Available=%.1f GiB / Total=%.1f GiB (Safe=%s)",
+        mem.available_gb,
+        mem.total_gb,
+        mem.is_safe,
+    )
     if not mem.is_safe:
         logger.warning("Memory below 20.0 GiB safety floor. Waiting for headroom...")
         await OOMGuard.wait_for_headroom(min_gb=20.0, timeout=180.0)
@@ -141,7 +151,11 @@ async def execute_hardened_cycle(
             "action": "DAEMON_COLLABORATION_INVITE",
             "cycle": cycle_num,
             "topic": clean_topic,
-            "required_capabilities": ["formal_verification", "poincare_projection", "qlora_refinement"],
+            "required_capabilities": [
+                "formal_verification",
+                "poincare_projection",
+                "qlora_refinement",
+            ],
             "session_id": "hardened-daemon-v2",
             "timestamp": datetime.now(UTC).isoformat(),
         },
@@ -157,7 +171,9 @@ async def execute_hardened_cycle(
         tier_used = res.tier_used
         latency_ms = res.latency_ms
     except Exception as exc:
-        logger.warning("Tier-1 synthesis encountered error (%s); applying deterministic fallback...", exc)
+        logger.warning(
+            "Tier-1 synthesis encountered error (%s); applying deterministic fallback...", exc
+        )
         content = "The non-Hermitian Hamiltonian exhibits exceptional points where topological winding numbers enforce stable state transitions."
         tier_used = "Deterministic Fallback"
         latency_ms = 1.0
@@ -171,7 +187,11 @@ def verify_topological_charge(winding_num: int, threshold: float = 0.5) -> bool:
 assert verify_topological_charge(1, 0.5) is True
 """
     passed, test_log = run_sandboxed_autoharness_test(test_snippet)
-    logger.info("Phase 3: Sandboxed AutoHarness Compilation: Passed=%s (Output: %s)", passed, test_log or "Clean")
+    logger.info(
+        "Phase 3: Sandboxed AutoHarness Compilation: Passed=%s (Output: %s)",
+        passed,
+        test_log or "Clean",
+    )
 
     # 5. Phase 4: Poincaré Hyperbolic State Tracking, HIHO Sonification & Sheaf Consistency Gate
     sample_vectors = [np.random.uniform(-0.2, 0.2, 12) for _ in range(5)]
@@ -181,12 +201,18 @@ assert verify_topological_charge(1, 0.5) is True
     # Sheaf Consistency Cohomology Check over Swarm Claims
     sheaf_gate = SheafConsistencyGate(tolerance=0.15)
     claims_dict = {f"agent_{i}": v for i, v in enumerate(sample_vectors)}
-    intersections = [(f"agent_{i}", f"agent_{i+1}") for i in range(len(sample_vectors) - 1)]
+    intersections = [(f"agent_{i}", f"agent_{i + 1}") for i in range(len(sample_vectors) - 1)]
     sheaf_rep = sheaf_gate.evaluate_consistency(claims_dict, intersections)
 
     sonifier = HIHOSonifier()
     audio_state = sonifier.sonify_coherence_state(coherence=0.50, fundamental_hz=432.0)
-    logger.info("Phase 4: Hyperbolic Fréchet Norm: %.4f | Sheaf dim H^0: %d, H^1: %d | Dissonance: %.4f", centroid_norm, sheaf_rep.dim_h0_consensus, sheaf_rep.dim_h1_obstructions, audio_state.dissonance_index)
+    logger.info(
+        "Phase 4: Hyperbolic Fréchet Norm: %.4f | Sheaf dim H^0: %d, H^1: %d | Dissonance: %.4f",
+        centroid_norm,
+        sheaf_rep.dim_h0_consensus,
+        sheaf_rep.dim_h1_obstructions,
+        audio_state.dissonance_index,
+    )
 
     # 6. Phase 5: Cryptographic Data Provenance & Dual-Store Persistence
     payload_data = {
@@ -198,17 +224,19 @@ assert verify_topological_charge(1, 0.5) is True
     }
     signature = DataProvenanceSigner.sign_sample(payload_data, key_id="v2")
 
-    persist_item({
-        "id": f"daemon_v2_cycle_{cycle_num}_{int(time.time())}",
-        "title": f"Hardened Daemon v2 Cycle #{cycle_num}",
-        "status": "completed",
-        "priority": "high",
-        "source": "hardened_daemon_v2",
-        "category": "hardened_autonomous_learning",
-        "content": res.content,
-        "hmac_signature": signature,
-        "verification_status": "VERIFIED" if passed else "FAILED",
-    })
+    persist_item(
+        {
+            "id": f"daemon_v2_cycle_{cycle_num}_{int(time.time())}",
+            "title": f"Hardened Daemon v2 Cycle #{cycle_num}",
+            "status": "completed",
+            "priority": "high",
+            "source": "hardened_daemon_v2",
+            "category": "hardened_autonomous_learning",
+            "content": res.content,
+            "hmac_signature": signature,
+            "verification_status": "VERIFIED" if passed else "FAILED",
+        }
+    )
 
     evt = Event(
         type=EventType.SYSTEM_HEALTH,
@@ -235,8 +263,12 @@ async def main():
     signal.signal(signal.SIGTERM, _sig_handler)
 
     parser = argparse.ArgumentParser(description="Hardened Autonomous AGI Daemon v2.0")
-    parser.add_argument("--interval", type=int, default=300, help="Interval between cycles in seconds")
-    parser.add_argument("--max-cycles", type=int, default=0, help="Max cycles to run (0 = infinite)")
+    parser.add_argument(
+        "--interval", type=int, default=300, help="Interval between cycles in seconds"
+    )
+    parser.add_argument(
+        "--max-cycles", type=int, default=0, help="Max cycles to run (0 = infinite)"
+    )
     args = parser.parse_args()
 
     router = UnifiedHybridRouter(prefer_local=True)

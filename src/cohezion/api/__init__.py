@@ -24,12 +24,16 @@ from fastapi.staticfiles import StaticFiles
 
 from cohezion.api._helpers import (
     compute_coherence as _compute_coherence,
+)
+from cohezion.api._helpers import (
     get_rl_policy as _get_rl_policy,
+)
+from cohezion.api._helpers import (
     get_vae as _get_vae,
 )
-from cohezion.api.routes.metrics import set_token_client
 from cohezion.api.routes.eigent import router as eigent_router
 from cohezion.api.routes.main import router as main_router
+from cohezion.api.routes.metrics import set_token_client
 from cohezion.api.telemetry import router as telemetry_router
 from cohezion.security.rate_limiter import get_rate_limiter
 

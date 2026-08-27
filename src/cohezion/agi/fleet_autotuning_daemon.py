@@ -18,15 +18,14 @@ import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.dogfood_master_pipeline import MASTER_CORPUS_FILE
 from cohezion.agi.qlora_finetuning_engine import QLoRAFinetuningEngine
-from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -62,7 +61,9 @@ class FleetAutotuningDaemon:
         self.qlora_engine = QLoRAFinetuningEngine()
         self.autoharness = AutoHarnessPolicy()
 
-    async def execute_fleet_fine_tuning_cycle(self, new_journeys_ingested: int = 500) -> list[FleetModelTuningStatus]:
+    async def execute_fleet_fine_tuning_cycle(
+        self, new_journeys_ingested: int = 500
+    ) -> list[FleetModelTuningStatus]:
         logger.info("\n" + "=" * 105)
         logger.info("🔄 EXECUTING CONTINUOUS FLEET FINE-TUNING CYCLE ACROSS ALL 5 LOCAL MODELS...")
         logger.info("=" * 105)
@@ -74,7 +75,11 @@ class FleetAutotuningDaemon:
         else:
             total_samples = 10000 + new_journeys_ingested
 
-        logger.info("  • Incremental Corpus Update: Ingested %d new agentic journeys (Total Corpus: %d pairs, SNR = +60.0 dB)", new_journeys_ingested, total_samples)
+        logger.info(
+            "  • Incremental Corpus Update: Ingested %d new agentic journeys (Total Corpus: %d pairs, SNR = +60.0 dB)",
+            new_journeys_ingested,
+            total_samples,
+        )
 
         statuses: list[FleetModelTuningStatus] = []
         for model in FLEET_ROSTER:
@@ -118,7 +123,15 @@ class FleetAutotuningDaemon:
                 status="✅ QLoRA ADAPTER HOT-SWAPPED & CERTIFIED",
             )
             statuses.append(status)
-            logger.info("  ✓ Fine-tuned %s (%s, r=%d) -> Perplexity = %.2f (-%.2f%%) | Checkpoint: %s", model_id, role, rank, final_ppl, perp_reduction, ckpt_dir)
+            logger.info(
+                "  ✓ Fine-tuned %s (%s, r=%d) -> Perplexity = %.2f (-%.2f%%) | Checkpoint: %s",
+                model_id,
+                role,
+                rank,
+                final_ppl,
+                perp_reduction,
+                ckpt_dir,
+            )
 
         # Record Kanban Card
         kanban_card = {
@@ -142,13 +155,19 @@ async def main_async() -> None:
     print("=" * 105)
 
     statuses = await daemon.execute_fleet_fine_tuning_cycle(new_journeys_ingested=500)
-    print(f"\n{'Model ID':<25} | {'Role':<32} | {'Rank':<5} | {'Samples':<8} | {'Perplexity':<10} | {'Status'}")
+    print(
+        f"\n{'Model ID':<25} | {'Role':<32} | {'Rank':<5} | {'Samples':<8} | {'Perplexity':<10} | {'Status'}"
+    )
     print("-" * 105)
     for s in statuses:
-        print(f"{s.model_id:<25} | {s.role:<32} | r={s.target_rank:<3} | {s.samples_trained:<8,} | {s.final_perplexity:<10.2f} | {s.status}")
+        print(
+            f"{s.model_id:<25} | {s.role:<32} | r={s.target_rank:<3} | {s.samples_trained:<8,} | {s.final_perplexity:<10.2f} | {s.status}"
+        )
 
     print("-" * 105)
-    print("🎉 All 5 Local Fleet Models Fine-Tuned, Certified, & Hot-Swapped with New Agentic Journey Data!")
+    print(
+        "🎉 All 5 Local Fleet Models Fine-Tuned, Certified, & Hot-Swapped with New Agentic Journey Data!"
+    )
 
 
 def main() -> None:

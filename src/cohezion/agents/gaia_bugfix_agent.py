@@ -12,15 +12,12 @@ Architecture:
 
 from __future__ import annotations
 
-import asyncio
-import json
 import time
 from dataclasses import dataclass
-from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler, ZKProof
-from cohezion.core.event_bus import Event, EventBus
+from cohezion.core.event_bus import EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 
 
@@ -51,7 +48,9 @@ class GaiaBugfixAgentManager:
         self.bus = bus or EventBus()
         self.policy_engine = AutoHarnessPolicy()
 
-    def create_kanban_bugfix_item(self, task_id: str, title: str, module_path: str, severity: str = "high") -> BugfixTask:
+    def create_kanban_bugfix_item(
+        self, task_id: str, title: str, module_path: str, severity: str = "high"
+    ) -> BugfixTask:
         """Create durable kanban item in SurrealDB & Obsidian Vault."""
         item_data = {
             "id": task_id,

@@ -11,8 +11,8 @@ Formulation:
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.fiber_connection import FiberConnectionEngine
@@ -34,19 +34,25 @@ class HyperbolicWorldModel:
     def __init__(self, state_dim: int = 2048) -> None:
         self.state_dim = state_dim
 
-    def predict_next_state(self, current_state: PoincarePoint, action_vec: VectorTensor) -> WorldModelPrediction:
+    def predict_next_state(
+        self, current_state: PoincarePoint, action_vec: VectorTensor
+    ) -> WorldModelPrediction:
         r"""Predict next Poincaré state \hat{S}_{t+1} given current state and action vector."""
         if current_state.dim != self.state_dim or action_vec.dim != self.state_dim:
             raise ValueError(f"Dimensional mismatch ({self.state_dim}D required)")
 
         # Compute geodesic acceleration along action direction
-        accel = FiberConnectionEngine.covariant_derivative_step(action_vec, current_state, action_vec)
+        accel = FiberConnectionEngine.covariant_derivative_step(
+            action_vec, current_state, action_vec
+        )
 
         # 2nd-order Taylor step in Poincaré space
         dt = 0.05
         new_coords = tuple(
             c + (dt * a_c) - (0.5 * dt * dt * acc_c)
-            for c, a_c, acc_c in zip(current_state.coords, action_vec.components, accel.components, strict=True)
+            for c, a_c, acc_c in zip(
+                current_state.coords, action_vec.components, accel.components, strict=True
+            )
         )
 
         next_point = PoincareManifoldND.project(new_coords, target_dim=self.state_dim)
@@ -63,7 +69,9 @@ class HyperbolicWorldModel:
             horizon_step=1,
         )
 
-    def imagine_rollout(self, initial_state: PoincarePoint, action_sequence: Sequence[VectorTensor]) -> list[WorldModelPrediction]:
+    def imagine_rollout(
+        self, initial_state: PoincarePoint, action_sequence: Sequence[VectorTensor]
+    ) -> list[WorldModelPrediction]:
         """Perform K-step latent imagination rollout without real environment execution."""
         rollout: list[WorldModelPrediction] = []
         curr_state = initial_state

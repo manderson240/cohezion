@@ -14,12 +14,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -53,7 +53,11 @@ class LocalThinkingReasoningEngine:
         hardware_target: str = "XDNA2 NPU",
     ) -> LocalThinkingTraceResult:
         logger.info("\n" + "=" * 95)
-        logger.info("🧠 EXECUTING LOCAL SILICON DELIBERATIVE THINKING CYCLE (%s on %s)...", thinking_model_id, hardware_target)
+        logger.info(
+            "🧠 EXECUTING LOCAL SILICON DELIBERATIVE THINKING CYCLE (%s on %s)...",
+            thinking_model_id,
+            hardware_target,
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
@@ -91,9 +95,12 @@ class LocalThinkingReasoningEngine:
         )
 
         logger.info("  ✓ Thinking Tokens Generated: %d tokens", thinking_tokens)
-        logger.info("  ✓ Extract <think> Trace: %s", thinking_trace.replace('\n', ' '))
+        logger.info("  ✓ Extract <think> Trace: %s", thinking_trace.replace("\n", " "))
         logger.info("  ✓ Hyperbolic Distance d_P(u, 0): %.4f", gres.hyperbolic_geodesic_distance)
-        logger.info("  ✓ AutoHarness AST Proof Verification: %s", "✅ PASSED" if res.autoharness_verified else "❌ FAILED")
+        logger.info(
+            "  ✓ AutoHarness AST Proof Verification: %s",
+            "✅ PASSED" if res.autoharness_verified else "❌ FAILED",
+        )
         logger.info("  ⚡ Local Deliberative Latency: %.3f ms", latency_ms)
 
         # Broadcast event over EventBus
@@ -141,8 +148,12 @@ async def main_async() -> None:
     print(f"  • Thinking Model ID: {res.thinking_model_id} ({res.hardware_target})")
     print(f"  • Thinking Tokens: {res.thinking_tokens_generated} tokens")
     print(f"  • Geodesic Distance d_P(u, 0): {res.hyperbolic_geodesic_distance:.4f}")
-    print(f"  • AutoHarness Verification: {'✅ PASSED' if res.autoharness_verified else '❌ FAILED'}")
-    print(f"  • Latency: {res.reasoning_latency_ms:.3f} ms | Status: ✅ DELIBERATIVE THINKING ACTIVE")
+    print(
+        f"  • AutoHarness Verification: {'✅ PASSED' if res.autoharness_verified else '❌ FAILED'}"
+    )
+    print(
+        f"  • Latency: {res.reasoning_latency_ms:.3f} ms | Status: ✅ DELIBERATIVE THINKING ACTIVE"
+    )
     print("=" * 95)
     print("🎉 Local Thinking & Deliberative Reasoning Engine Successfully Deployed & Verified!")
 

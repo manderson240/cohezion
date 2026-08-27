@@ -35,7 +35,13 @@ async def run_experiment_consultation():
     system_profile = {
         "hardware": "AMD Strix Halo (Framework Desktop 16), 128GB DDR5-5600 unified RAM, XDNA2 NPU (50 TOPS), Radeon 8060S iGPU (RDNA 3.5, 12GB+ shared), 16-core Ryzen 9 7945HX",
         "local_runtimes": "Lemonade OmniRouter (:13305), Ollama (:11434), ROCm / Vulkan backends",
-        "local_models_available": ["Qwen3-Coder-30B (GGUF/Vulkan)", "DeepSeek-Qwen3-8B-GGUF", "llama3.2-1b-FLM (NPU)", "qwen3.6-moe-35b (NPU)", "embed-gemma-300m-FLM (NPU)"],
+        "local_models_available": [
+            "Qwen3-Coder-30B (GGUF/Vulkan)",
+            "DeepSeek-Qwen3-8B-GGUF",
+            "llama3.2-1b-FLM (NPU)",
+            "qwen3.6-moe-35b (NPU)",
+            "embed-gemma-300m-FLM (NPU)",
+        ],
         "cohezion_architecture": "12D Poincaré hyperbolic state tracking, AutoHarness AST policy verifiers (arXiv:2603.03329v1), HIHO 0.5 reality sonification, SurrealDB + Obsidian dual-persistence",
     }
 
@@ -57,7 +63,9 @@ For each experiment, detail:
 Format your response in structured, rigorous Markdown.
 """
 
-    logger.info("Transmitting consultation query to `%s` via Ollama (:11434)...", target_cloud_model)
+    logger.info(
+        "Transmitting consultation query to `%s` via Ollama (:11434)...", target_cloud_model
+    )
     t0 = time.perf_counter()
 
     async with httpx.AsyncClient(timeout=180.0) as client:

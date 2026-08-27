@@ -1,5 +1,5 @@
-import pytest
-from cohezion.agents.gaia_bugfix_agent import GaiaBugfixAgentManager, BugfixTask, GaiaBugfixResult
+from cohezion.agents.gaia_bugfix_agent import BugfixTask, GaiaBugfixAgentManager, GaiaBugfixResult
+
 
 def test_gaia_bugfix_agent_delegation():
     mgr = GaiaBugfixAgentManager()

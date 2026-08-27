@@ -132,6 +132,7 @@ The full code is 100% self-contained in a single executable script:
 - **License**: Apache 2.0 / Open Source
 """
 
+
 async def generate_hero_banner():
     banner_path = MEDIA_DIR / "pokemon_tcg_hero_banner.jpg"
     print(f"\n▶ Generating 1024x1024 Hero Banner via `thenoise:rocm`...")
@@ -145,7 +146,7 @@ async def generate_hero_banner():
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -161,7 +162,7 @@ async def generate_hero_banner():
                     return True
         except Exception as e:
             print(f"   • Image gen notice: {e}")
-            
+
     # Fallback to SDXL-Turbo
     payload["model"] = "SDXL-Turbo"
     payload["size"] = "512x512"
@@ -175,6 +176,7 @@ async def generate_hero_banner():
             print(f"   ✓ Generated `{banner_path.name}` (Fast Fallback in {dt}s)!")
             return True
     return False
+
 
 async def main():
     print("=" * 115)
@@ -210,25 +212,28 @@ async def main():
             "competition": "pokemon-tcg-ai-battle-challenge-strategy",
             "writeup_path": str(writeup_file),
             "media_gallery_path": str(MEDIA_DIR),
-            "status": "WRITEUP_AND_MEDIA_PUBLISHED"
-        }
+            "status": "WRITEUP_AND_MEDIA_PUBLISHED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "kaggle_pokemon_writeup_published",
-        "title": "Kaggle Pokémon TCG Strategy Writeup & Media Gallery Ready",
-        "status": "done",
-        "priority": "highest",
-        "source": "kaggle_writeup_director",
-        "category": "kaggle_competitions",
-        "details": f"Generated master mathematical writeup and 1024x1024 hero media banner in {KAGGLE_DOCS_DIR}.",
-    })
+    persist_item(
+        {
+            "id": "kaggle_pokemon_writeup_published",
+            "title": "Kaggle Pokémon TCG Strategy Writeup & Media Gallery Ready",
+            "status": "done",
+            "priority": "highest",
+            "source": "kaggle_writeup_director",
+            "category": "kaggle_competitions",
+            "details": f"Generated master mathematical writeup and 1024x1024 hero media banner in {KAGGLE_DOCS_DIR}.",
+        }
+    )
     print("   ✓ Dual-persisted writeup card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 KAGGLE WRITEUP & MEDIA GALLERY 100% GENERATED & READY FOR POSTING!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

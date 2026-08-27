@@ -6,7 +6,6 @@ Prunes local transformation hypotheses that cannot be smoothly glued into a glob
 """
 
 
-
 def check_sheaf_gluing_consistency(
     local_patches: list[tuple[tuple[int, int, int, int], list[list[int]]]],
 ) -> bool:

@@ -53,12 +53,12 @@ safe swarm patterns, OOM prevention, fleet lock discipline, and event bus integr
 
 ```python
 NPU_MODELS = {
-    "reasoning": "deepseek-r1-0528-8b-FLM",      # 8B, ctx=40960
-    "reasoning_large": "qwen3.6-moe-35b-a3b-FLM", # 35B MoE, pinned
-    "tools": "qwen3-4b-FLM",                       # 4B, fast
-    "vision": "qwen3vl-it-4b-FLM",                 # multimodal
-    "quick": "llama3.2-1b-FLM",                    # pre-warmed, ~24ms TTFT
-    "embed": "embed-gemma-300m-FLM",               # embeddings
+    "reasoning": "deepseek-r1-0528-8b-FLM",  # 8B, ctx=40960
+    "reasoning_large": "qwen3.6-moe-35b-a3b-FLM",  # 35B MoE, pinned
+    "tools": "qwen3-4b-FLM",  # 4B, fast
+    "vision": "qwen3vl-it-4b-FLM",  # multimodal
+    "quick": "llama3.2-1b-FLM",  # pre-warmed, ~24ms TTFT
+    "embed": "embed-gemma-300m-FLM",  # embeddings
 }
 IGPU_MODELS = {
     "coding_large": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
@@ -72,27 +72,42 @@ IGPU_MODELS = {
 ```python
 import time, json, urllib.request
 
+
 def load_and_wait(model_name: str, ctx_size: int = 16384, timeout: int = 180) -> bool:
-    payload = json.dumps({
-        "model_name": model_name, "ctx_size": ctx_size, "save_options": True,
-    }).encode()
-    urllib.request.urlopen(urllib.request.Request(
-        "http://localhost:13305/api/v1/load", data=payload,
-        headers={"Content-Type": "application/json"},
-    ), timeout=30)
+    payload = json.dumps(
+        {
+            "model_name": model_name,
+            "ctx_size": ctx_size,
+            "save_options": True,
+        }
+    ).encode()
+    urllib.request.urlopen(
+        urllib.request.Request(
+            "http://localhost:13305/api/v1/load",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        ),
+        timeout=30,
+    )
     # Probe — load success != serving (FLM warmup: 12.5s-131.3s)
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            probe = json.dumps({
-                "model": model_name,
-                "messages": [{"role": "user", "content": "1"}],
-                "max_tokens": 1,
-            }).encode()
-            r = urllib.request.urlopen(urllib.request.Request(
-                "http://localhost:13305/v1/chat/completions", data=probe,
-                headers={"Content-Type": "application/json"},
-            ), timeout=10)
+            probe = json.dumps(
+                {
+                    "model": model_name,
+                    "messages": [{"role": "user", "content": "1"}],
+                    "max_tokens": 1,
+                }
+            ).encode()
+            r = urllib.request.urlopen(
+                urllib.request.Request(
+                    "http://localhost:13305/v1/chat/completions",
+                    data=probe,
+                    headers={"Content-Type": "application/json"},
+                ),
+                timeout=10,
+            )
             if r.status == 200:
                 return True
         except Exception:
@@ -105,12 +120,14 @@ def load_and_wait(model_name: str, ctx_size: int = 16384, timeout: int = 180) ->
 ```python
 MEM_FLOOR_GIB = 20  # AGENTS.md hard floor
 
+
 def available_gib() -> float:
     with open("/proc/meminfo") as f:
         for line in f:
             if line.startswith("MemAvailable:"):
                 return int(line.split()[1]) / (1024 * 1024)
     return 0.0
+
 
 def safe_agent_loop(agents: list[dict]) -> None:
     assert available_gib() >= MEM_FLOOR_GIB, "Preflight failed — run scripts/recover_fleet.sh"
@@ -133,19 +150,27 @@ def safe_agent_loop(agents: list[dict]) -> None:
 ```python
 def publish_event(event_type: str, source: str, payload: dict) -> None:
     import base64, json, time, urllib.request, datetime
-    data = json.dumps({
-        "type": event_type, "source": f"swarm.{source}",
-        "timestamp": datetime.datetime.utcnow().isoformat(),
-        "payload": payload, "session": "research-swarm",
-    })
-    safe_id = f"evt_{source}_{int(time.time()*1000)}"
+
+    data = json.dumps(
+        {
+            "type": event_type,
+            "source": f"swarm.{source}",
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "payload": payload,
+            "session": "research-swarm",
+        }
+    )
+    safe_id = f"evt_{source}_{int(time.time() * 1000)}"
     surql = f"UPSERT event_log:`{safe_id}` CONTENT {data};"
     req = urllib.request.Request(
-        "http://localhost:8001/sql", data=surql.encode(),
+        "http://localhost:8001/sql",
+        data=surql.encode(),
         headers={
             "Authorization": f"Basic {base64.b64encode(b'root:root').decode()}",
-            "Surreal-NS": "cohezion", "Surreal-DB": "main",
-            "Content-Type": "text/plain", "Accept": "application/json",
+            "Surreal-NS": "cohezion",
+            "Surreal-DB": "main",
+            "Content-Type": "text/plain",
+            "Accept": "application/json",
         },
     )
     try:
@@ -161,14 +186,27 @@ def publish_event(event_type: str, source: str, payload: dict) -> None:
 ROUTER_POLICY = {
     "version": "1",
     "default_model": "llama3.2-1b-FLM",  # pre-warmed, fast fallback
-    "candidates": ["deepseek-r1-0528-8b-FLM", "Qwen3-Coder-30B-A3B-Instruct-GGUF", "llama3.2-1b-FLM"],
+    "candidates": [
+        "deepseek-r1-0528-8b-FLM",
+        "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "llama3.2-1b-FLM",
+    ],
     "rules": [
-        {"id": "coding", "condition": {"keywords_any": ["function", "def ", "class ", "import ", "code"]},
-         "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF"},
-        {"id": "long-context", "condition": {"min_chars": 4000},
-         "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF"},
-        {"id": "reasoning", "condition": {"keywords_any": ["why", "reason", "analyze", "synthesize"]},
-         "route_to": "deepseek-r1-0528-8b-FLM"},
+        {
+            "id": "coding",
+            "condition": {"keywords_any": ["function", "def ", "class ", "import ", "code"]},
+            "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        },
+        {
+            "id": "long-context",
+            "condition": {"min_chars": 4000},
+            "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        },
+        {
+            "id": "reasoning",
+            "condition": {"keywords_any": ["why", "reason", "analyze", "synthesize"]},
+            "route_to": "deepseek-r1-0528-8b-FLM",
+        },
     ],
 }
 # Response carries x-lemonade-route header with matched rule ID

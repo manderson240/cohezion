@@ -20,6 +20,7 @@ from cohezion.core.event_bus import get_event_bus, Event, EventType
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 
+
 async def main():
     print("=" * 90)
     print("📐 EXECUTING V-MODEL SYSTEMS ENGINEERING COMPOUND SPRINT")
@@ -40,7 +41,9 @@ async def main():
 
     # Test 2: Pokémon TCG PBS
     pbs = PublicBeliefStateEngine(full_deck_list=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    b = pbs.compute_belief_vector(visible_hand=[1, 2], visible_board=[3], discard_pile=[4], prizes_remaining=6)
+    b = pbs.compute_belief_vector(
+        visible_hand=[1, 2], visible_board=[3], discard_pile=[4], prizes_remaining=6
+    )
     assert len(b["unrevealed_card_distribution"]) == 10
     assert b["unrevealed_count"] == 6
     print("   ✓ Pokémon TCG Public Belief State (PBS) Unit Test Passed.")
@@ -48,6 +51,7 @@ async def main():
     # Test 3: RSNA Knee MIL
     clf = RSNAKneeMILClassifier(feature_dim=64, seed=42)
     import numpy as np
+
     dummy_sag = np.random.randn(10, 64).astype(np.float32)
     dummy_cor = np.random.randn(12, 64).astype(np.float32)
     dummy_ax = np.random.randn(8, 64).astype(np.float32)
@@ -60,7 +64,7 @@ async def main():
     c0 = [{"id": "cell_0", "centroid": [0.0, 0.0, 0.0], "volume": 100.0, "mean_intensity": 1.0}]
     c1 = [
         {"id": "cell_1a", "centroid": [2.0, 1.0, 0.0], "volume": 50.0, "mean_intensity": 1.0},
-        {"id": "cell_1b", "centroid": [1.0, 3.0, 0.0], "volume": 50.0, "mean_intensity": 1.0}
+        {"id": "cell_1b", "centroid": [1.0, 3.0, 0.0], "volume": 50.0, "mean_intensity": 1.0},
     ]
     tracks = tracker.resolve_lineage_matching(c0, c1)
     assert len(tracks) == 2
@@ -81,7 +85,7 @@ async def main():
 
     md = f"""# V-Model Systems Engineering & Compound Verification Report
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Methodology:** INCOSE V-Model Systems Engineering + Compound Engineering (Self-Extending Capabilities)  
 **Overall V-Model Score:** **0.96 / 1.00** (PASS - Exceeds >= 0.85 Quality Gate)  
 
@@ -129,22 +133,25 @@ Every component created in this sprint is now a **reusable macro** for all futur
             "sprint": "V-Model Systems Engineering & Compound Verification",
             "score": 0.965,
             "report_path": str(doc_path),
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(ev)
 
-    persist_item({
-        "id": "vmodel_systems_engineering_sprint",
-        "title": "V-Model Systems Engineering & Compound Verification Passed (0.965)",
-        "status": "done",
-        "priority": "critical",
-        "source": "VModelSystemsEngineeringSprint",
-        "category": "systems_engineering",
-        "details": "Conducted 4-level V-Model verification across all competition tracks. Reusable macro blocks extracted.",
-    })
+    persist_item(
+        {
+            "id": "vmodel_systems_engineering_sprint",
+            "title": "V-Model Systems Engineering & Compound Verification Passed (0.965)",
+            "status": "done",
+            "priority": "critical",
+            "source": "VModelSystemsEngineeringSprint",
+            "category": "systems_engineering",
+            "details": "Conducted 4-level V-Model verification across all competition tracks. Reusable macro blocks extracted.",
+        }
+    )
     print("✓ Persisted V-Model sprint card to SurrealDB `event_log` and Obsidian Kanban")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -45,12 +45,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 MODEL_PATH = "/kaggle/input/qwen2.5-coder-7b-instruct/transformers/default/1"
 
+
 def load_agent_model():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_PATH,
-        torch_dtype=torch.float16,
-        device_map="auto"
+        MODEL_PATH, torch_dtype=torch.float16, device_map="auto"
     )
     return model, tokenizer
 ```

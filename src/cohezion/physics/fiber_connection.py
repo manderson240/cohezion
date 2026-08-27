@@ -12,10 +12,6 @@ Equations:
 
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass
-from typing import Sequence
-
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.tensor_calculus import VectorTensor
 
@@ -64,11 +60,15 @@ class FiberConnectionEngine:
 
         x_dot_v = sum(xc * vc for xc, vc in zip(position.coords, v_vector.components, strict=True))
         x_dot_u = sum(xc * uc for xc, uc in zip(position.coords, direction.components, strict=True))
-        u_dot_v = sum(uc * vc for uc, vc in zip(direction.components, v_vector.components, strict=True))
+        u_dot_v = sum(
+            uc * vc for uc, vc in zip(direction.components, v_vector.components, strict=True)
+        )
 
         result_components = tuple(
             scale * (u_c * x_dot_v + v_c * x_dot_u - x_c * u_dot_v)
-            for u_c, v_c, x_c in zip(direction.components, v_vector.components, position.coords, strict=True)
+            for u_c, v_c, x_c in zip(
+                direction.components, v_vector.components, position.coords, strict=True
+            )
         )
 
         return VectorTensor(result_components, is_covariant=False)

@@ -9,9 +9,8 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import time
-from dataclasses import dataclass
 from typing import Any
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -19,7 +18,10 @@ logger = logging.getLogger(__name__)
 import hmac
 import os
 
-SECRET_PROVENANCE_KEY = os.environ.get("COHEZION_PROVENANCE_KEY", "cohezion_sovereign_agi_provenance_key_2026").encode("utf-8")
+
+SECRET_PROVENANCE_KEY = os.environ.get(
+    "COHEZION_PROVENANCE_KEY", "cohezion_sovereign_agi_provenance_key_2026"
+).encode("utf-8")
 _KEY_RING: dict[str, bytes] = {
     "v1": SECRET_PROVENANCE_KEY,
     "v2": b"cohezion_sovereign_agi_provenance_key_v2_2026_rotated",

@@ -12,7 +12,9 @@ def test_master_orchestrator_v_model_cycle() -> None:
         domain="core_architecture",
     )
 
-    assert outcome.task_intent == "Unify Hybrid Swarm Inference with Systems Engineering V-Model Rigor"
+    assert (
+        outcome.task_intent == "Unify Hybrid Swarm Inference with Systems Engineering V-Model Rigor"
+    )
     assert outcome.domain == "core_architecture"
     assert len(outcome.left_side_invariants) == 4
     assert outcome.right_side_autoharness_verified is True

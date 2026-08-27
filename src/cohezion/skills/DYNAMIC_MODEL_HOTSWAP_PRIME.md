@@ -18,11 +18,7 @@ Atomic Zero-Freeze Local Model Hot-Swapping, Dynamic Modularity, and OOM Safegua
    from cohezion.inference.dynamic_hotswapper import DynamicModelHotSwapper
 
    swapper = DynamicModelHotSwapper()
-   model_metadata = {
-       "id": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-       "size": 18.2,
-       "recipe": "gguf"
-   }
+   model_metadata = {"id": "Qwen3-Coder-30B-A3B-Instruct-GGUF", "size": 18.2, "recipe": "gguf"}
    success, msg = await swapper.hotswap_model(model_metadata)
    if not success:
        raise RuntimeError(f"Hot-swap rejected: {msg}")

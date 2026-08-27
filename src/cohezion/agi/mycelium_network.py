@@ -10,9 +10,7 @@ Hyphae Mechanics:
 
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,7 +38,9 @@ class MyceliumNetwork:
     def register_node(self, node_id: str) -> None:
         self.nodes.add(node_id)
 
-    def grow_hypha(self, source: str, target: str, strength: float = 0.8, nutrient_type: str = "context_vector") -> HyphaEdge:
+    def grow_hypha(
+        self, source: str, target: str, strength: float = 0.8, nutrient_type: str = "context_vector"
+    ) -> HyphaEdge:
         self.register_node(source)
         self.register_node(target)
         edge = HyphaEdge(
@@ -56,7 +56,9 @@ class MyceliumNetwork:
         """Transport contextual nutrients from source across all connected mycelial hyphae."""
         connected = [e for e in self.hyphae if e.source_node == source]
         delivered = len(connected)
-        avg_strength = (sum(e.hypha_strength for e in connected) / delivered) if delivered > 0 else 0.0
+        avg_strength = (
+            (sum(e.hypha_strength for e in connected) / delivered) if delivered > 0 else 0.0
+        )
 
         return TransportResult(
             delivered_nutrients=delivered,

@@ -14,11 +14,12 @@ HEADERS = {
 }
 AUTH = ("root", "root")
 
+
 async def test_vector_and_graph():
     print("=" * 80)
     print("🧪 VERIFYING SURREALDB V2 HNSW VECTOR SEARCH & GRAPH RELATIONS")
     print("=" * 80)
-    
+
     async with httpx.AsyncClient(timeout=10.0) as client:
         # 1. Test 12D Vector Cosine Similarity Search
         query_vec = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
@@ -32,7 +33,9 @@ async def test_vector_and_graph():
         if r_vec.status_code == 200:
             res = r_vec.json()
             for row in res[0].get("result", []):
-                print(f"   • [{row.get('domain')}] {row.get('title')} (Cosine Similarity: {row.get('similarity'):.4f})")
+                print(
+                    f"   • [{row.get('domain')}] {row.get('title')} (Cosine Similarity: {row.get('similarity'):.4f})"
+                )
 
         # 2. Test Graph Edge Relation
         sql_graph = """
@@ -46,7 +49,9 @@ async def test_vector_and_graph():
         SELECT ->EMITTED->event_log->TRIGGERED->kanban_item.title AS downstream_tasks FROM agent:antigravity;
         """
         r_graph = await client.post(SURREAL_URL, headers=HEADERS, auth=AUTH, content=sql_graph)
-        print("\n▶ Graph Edge Traversal Output (`agent->EMITTED->event_log->TRIGGERED->kanban_item`):")
+        print(
+            "\n▶ Graph Edge Traversal Output (`agent->EMITTED->event_log->TRIGGERED->kanban_item`):"
+        )
         if r_graph.status_code == 200:
             res_g = r_graph.json()
             # Last statement result
@@ -55,6 +60,7 @@ async def test_vector_and_graph():
 
     print("\n✓ SurrealDB Vector & Graph Verification Complete!")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     asyncio.run(test_vector_and_graph())

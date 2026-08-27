@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 if TORCH_AVAILABLE:
+
     class SimpleEncoder(nn.Module):
         """Encoder to match VAE checkpoint structure."""
 
@@ -47,6 +48,7 @@ if TORCH_AVAILABLE:
             h = self.relu(self.fc2(h))
             return self.fc_mu(h), self.fc_var(h)
 else:
+
     class SimpleEncoder:  # type: ignore[no-redef]
         pass
 

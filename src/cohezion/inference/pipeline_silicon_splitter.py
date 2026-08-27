@@ -13,10 +13,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -75,7 +76,9 @@ async def main_async() -> None:
     print("      COHEZION PIPELINE PARALLEL SILICON SPLITTER DEMO")
     print("=" * 95)
 
-    res = await splitter.execute_pipeline_forward_pass("Execute multi-silicon zero-copy forward pass.")
+    res = await splitter.execute_pipeline_forward_pass(
+        "Execute multi-silicon zero-copy forward pass."
+    )
     dist: SiliconLayerDistribution = res["distribution"]
 
     print(f"  • Total Model Layers: {splitter.total_layers}")

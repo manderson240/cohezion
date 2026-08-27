@@ -92,9 +92,7 @@ def main():
         if full_p.exists():
             sources[rel_path] = full_p.read_text()
 
-    source_bundle = "\n\n".join(
-        [f"--- FILE: {path} ---\n{code}" for path, code in sources.items()]
-    )
+    source_bundle = "\n\n".join([f"--- FILE: {path} ---\n{code}" for path, code in sources.items()])
 
     findings = {}
 
@@ -118,11 +116,15 @@ def main():
         f"{sources.get('src/cohezion/contracts.py', '')}"
     )
     t0 = time.time()
-    findings["igpu_coder_security"] = query_lemonade("Qwen3-Coder-30B-A3B-Instruct-GGUF", prompt_coder)
+    findings["igpu_coder_security"] = query_lemonade(
+        "Qwen3-Coder-30B-A3B-Instruct-GGUF", prompt_coder
+    )
     print(f"  ✓ Pass 2 finished in {round(time.time() - t0, 2)}s")
 
     # Pass 3: iGPU Physics & Hyperbolic Geometry Auditor (Gemma-4-31B-it-GGUF)
-    print("\n[3/4] Pass 3: iGPU Physics & Hyperbolic Math Auditor (Gemma-4-31B on Radeon 8060S iGPU)...")
+    print(
+        "\n[3/4] Pass 3: iGPU Physics & Hyperbolic Math Auditor (Gemma-4-31B on Radeon 8060S iGPU)..."
+    )
     prompt_math = (
         "You are a mathematical physicist specializing in Riemannian geometry and Poincaré manifolds. "
         "Review `poincare_manifold.py` and `flatland_projection.py` for mathematical rigor and edge-case stability:\n\n"
@@ -164,34 +166,38 @@ session: {SESSION}
 ---
 
 ## 1. NPU MoE Reasoning Audit (`qwen3.6-moe-35b-a3b-FLM` on XDNA2)
-{findings['npu_moe_reasoning']}
+{findings["npu_moe_reasoning"]}
 
 ---
 
 ## 2. iGPU Heavy Code & AST Audit (`Qwen3-Coder-30B-A3B-Instruct-GGUF`)
-{findings['igpu_coder_security']}
+{findings["igpu_coder_security"]}
 
 ---
 
 ## 3. iGPU Physics & Hyperbolic Math Audit (`Gemma-4-31B-it-GGUF`)
-{findings['igpu_physics_math']}
+{findings["igpu_physics_math"]}
 
 ---
 
 ## 4. Local Multi-Model Council Synthesis (`user.BCFD-Council`)
-{findings['council_synthesis']}
+{findings["council_synthesis"]}
 """
     report_file.write_text(report_content)
     print(f"\n✅ Master Local Heavy Review Report written to Vault: {report_file}")
 
     # Record in SurrealDB
     report_id = f"local_heavy_review_{int(time.time())}"
-    surreal_write("code_review", report_id, {
-        "timestamp": datetime.now(UTC).isoformat(),
-        "files": TARGET_FILES,
-        "vault_report": str(report_file),
-        "perspectives_count": len(findings)
-    })
+    surreal_write(
+        "code_review",
+        report_id,
+        {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "files": TARGET_FILES,
+            "vault_report": str(report_file),
+            "perspectives_count": len(findings),
+        },
+    )
     print("✅ Review record registered in SurrealDB (code_review table)")
 
 

@@ -55,6 +55,7 @@ MAX_RETRIES = 3
 
 # ── OOM / Preflight ──────────────────────────────────────────────────────────
 
+
 def available_gib() -> float:
     """Read /proc/meminfo available memory in GiB."""
     with open("/proc/meminfo") as f:
@@ -85,18 +86,23 @@ def wait_for_memory(label: str, timeout_s: int = 120) -> bool:
         time.sleep(15)
     return False
 
+
 # ── SurrealDB ────────────────────────────────────────────────────────────────
+
 
 def surreal_write(table: str, record_id: str, data: dict) -> bool:
     clean_id = record_id.replace("-", "_")
     surql = f"UPSERT {table}:{clean_id} CONTENT {json.dumps(data)};"
     try:
         req = urllib.request.Request(
-            SURREAL_URL, data=surql.encode(),
+            SURREAL_URL,
+            data=surql.encode(),
             headers={
                 "Authorization": f"Basic {SURREAL_AUTH}",
-                "Surreal-NS": "cohezion", "Surreal-DB": "main",
-                "Accept": "application/json", "Content-Type": "text/plain",
+                "Surreal-NS": "cohezion",
+                "Surreal-DB": "main",
+                "Accept": "application/json",
+                "Content-Type": "text/plain",
             },
         )
         with urllib.request.urlopen(req, timeout=5) as r:
@@ -110,11 +116,14 @@ def surreal_write(table: str, record_id: str, data: dict) -> bool:
 def surreal_query(surql: str) -> list:
     try:
         req = urllib.request.Request(
-            SURREAL_URL, data=surql.encode(),
+            SURREAL_URL,
+            data=surql.encode(),
             headers={
                 "Authorization": f"Basic {SURREAL_AUTH}",
-                "Surreal-NS": "cohezion", "Surreal-DB": "main",
-                "Accept": "application/json", "Content-Type": "text/plain",
+                "Surreal-NS": "cohezion",
+                "Surreal-DB": "main",
+                "Accept": "application/json",
+                "Content-Type": "text/plain",
             },
         )
         with urllib.request.urlopen(req, timeout=5) as r:
@@ -122,21 +131,31 @@ def surreal_query(surql: str) -> list:
     except Exception:
         return []
 
+
 # ── Event Bus (sync bridge to async bus) ─────────────────────────────────────
+
 
 def publish_event(event_type: str, source: str, payload: dict) -> None:
     """Sync wrapper: publishes to SurrealDB event_log (async bus not reachable from subprocess)."""
-    surreal_write("event_log", f"evt-{source}-{int(time.time()*1000)}", {
-        "type": event_type,
-        "source": source,
-        "timestamp": datetime.now(UTC).isoformat(),
-        "payload": payload,
-        "session": SESSION,
-    })
+    surreal_write(
+        "event_log",
+        f"evt-{source}-{int(time.time() * 1000)}",
+        {
+            "type": event_type,
+            "source": source,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "payload": payload,
+            "session": SESSION,
+        },
+    )
+
 
 # ── Kanban Bridge ─────────────────────────────────────────────────────────────
 
-def write_kanban(agent_id: str, title: str, status: str, model: str, extra: dict | None = None) -> None:
+
+def write_kanban(
+    agent_id: str, title: str, status: str, model: str, extra: dict | None = None
+) -> None:
     item = {
         "id": f"research-swarm-v2-{agent_id}",
         "title": f"[Safe Swarm] {title}",
@@ -154,23 +173,25 @@ def write_kanban(agent_id: str, title: str, status: str, model: str, extra: dict
     KANBAN_DIR.mkdir(parents=True, exist_ok=True)
     md = textwrap.dedent(f"""\
         ---
-        id: {item['id']}
-        title: "{item['title']}"
+        id: {item["id"]}
+        title: "{item["title"]}"
         status: {status}
         priority: high
         domain: {agent_id}
         model: {model}
         session: {SESSION}
-        updated_at: {item['updated_at']}
+        updated_at: {item["updated_at"]}
         ---
 
-        ## {item['title']}
+        ## {item["title"]}
 
         **Status**: `{status}` | **Model**: `{model}` | **Domain**: `{agent_id}`
         """)
     (KANBAN_DIR / f"{item['id']}.md").write_text(md)
 
+
 # ── Knowledge Graph ───────────────────────────────────────────────────────────
+
 
 @dataclass
 class KGNode:
@@ -179,6 +200,7 @@ class KGNode:
     summary: str
     key_findings: list[str] = field(default_factory=list)
     cross_links: list[str] = field(default_factory=list)  # other domain ids
+
 
 @dataclass
 class KnowledgeGraph:
@@ -190,12 +212,12 @@ class KnowledgeGraph:
     def build_edges(self) -> list[tuple[str, str, str]]:
         """Heuristic cross-domain edges based on shared keywords."""
         CROSS_LINKS = {
-            "lenr-evos":      ["quantum-bio", "cohezion-arch", "inference-stack"],
-            "autoharness":    ["arc-prize", "cohezion-arch"],
-            "quantum-bio":    ["lenr-evos", "cohezion-arch"],
-            "cohezion-arch":  ["autoharness", "inference-stack", "arc-prize"],
-            "arc-prize":      ["autoharness", "cohezion-arch"],
-            "inference-stack":["cohezion-arch", "lenr-evos"],
+            "lenr-evos": ["quantum-bio", "cohezion-arch", "inference-stack"],
+            "autoharness": ["arc-prize", "cohezion-arch"],
+            "quantum-bio": ["lenr-evos", "cohezion-arch"],
+            "cohezion-arch": ["autoharness", "inference-stack", "arc-prize"],
+            "arc-prize": ["autoharness", "cohezion-arch"],
+            "inference-stack": ["cohezion-arch", "lenr-evos"],
         }
         edges = []
         for src, targets in CROSS_LINKS.items():
@@ -206,24 +228,41 @@ class KnowledgeGraph:
 
     def persist(self) -> None:
         for node in self.nodes.values():
-            surreal_write("kg_node", f"research-swarm-{node.id}", {
-                "id": node.id, "domain": node.domain,
-                "summary": node.summary, "key_findings": node.key_findings,
-                "cross_links": node.cross_links, "session": SESSION,
-            })
+            surreal_write(
+                "kg_node",
+                f"research-swarm-{node.id}",
+                {
+                    "id": node.id,
+                    "domain": node.domain,
+                    "summary": node.summary,
+                    "key_findings": node.key_findings,
+                    "cross_links": node.cross_links,
+                    "session": SESSION,
+                },
+            )
         for src, rel, tgt in self.build_edges():
-            surreal_write("kg_edge", f"{src}-{rel}-{tgt}", {
-                "from": src, "relation": rel, "to": tgt, "session": SESSION,
-            })
+            surreal_write(
+                "kg_edge",
+                f"{src}-{rel}-{tgt}",
+                {
+                    "from": src,
+                    "relation": rel,
+                    "to": tgt,
+                    "session": SESSION,
+                },
+            )
+
 
 # ── Ollama Cloud Fallback ─────────────────────────────────────────────────────
+
 
 def ollama_query(model: str, prompt: str, timeout: int = 300) -> str:
     """Query Ollama API (cloud models). Returns response text."""
     payload = json.dumps({"model": model, "prompt": prompt, "stream": False}).encode()
     try:
         req = urllib.request.Request(
-            OLLAMA_URL, data=payload,
+            OLLAMA_URL,
+            data=payload,
             headers={"Content-Type": "application/json"},
         )
         with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -232,14 +271,18 @@ def ollama_query(model: str, prompt: str, timeout: int = 300) -> str:
     except Exception as e:
         return f"[ollama error: {e}]"
 
+
 # ── Lemonade (gaia llm) ───────────────────────────────────────────────────────
+
 
 def lemonade_query(model: str, prompt: str, timeout: int = 300) -> tuple[bool, str]:
     """Run gaia llm in a subprocess. Returns (success, output)."""
     try:
         result = subprocess.run(
             ["gaia", "llm", "--model", model, prompt],
-            capture_output=True, text=True, timeout=timeout,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
         )
         if result.returncode == 0 and result.stdout.strip():
             return True, result.stdout.strip()
@@ -248,6 +291,7 @@ def lemonade_query(model: str, prompt: str, timeout: int = 300) -> tuple[bool, s
         return False, "timeout"
     except Exception as e:
         return False, str(e)
+
 
 # ── Goal Tree ────────────────────────────────────────────────────────────────
 
@@ -378,6 +422,7 @@ AGENTS = [
 
 # ── Reflection Engine ─────────────────────────────────────────────────────────
 
+
 def reflect_on_output(agent: dict, raw_output: str, prior_findings: list[str]) -> dict:
     """Extract key findings from agent output; build KGNode."""
     lines = raw_output.split("\n")
@@ -411,24 +456,32 @@ def synthesize_goal_completion(kg: KnowledgeGraph) -> str:
         for f in node.key_findings[:2]:
             all_findings.append(f"[{node.domain}] {f}")
 
-    summary = f"""# Cross-Domain Research Synthesis
+    summary = (
+        f"""# Cross-Domain Research Synthesis
 Generated: {datetime.now().isoformat()}
 Session: {SESSION}
 Domains covered: {len(domains)}
 
 ## Key Cross-Domain Insights
-""" + "\n".join(f"- {f}" for f in all_findings[:20]) + """
+"""
+        + "\n".join(f"- {f}" for f in all_findings[:20])
+        + """
 
 ## Knowledge Graph Edges
-""" + "\n".join(f"- {s} → {t}" for s, _, t in kg.build_edges()) + """
+"""
+        + "\n".join(f"- {s} → {t}" for s, _, t in kg.build_edges())
+        + """
 
 ## Goal Status
 All sub-goals completed. Knowledge graph persisted to SurrealDB (kg_node, kg_edge).
 Research notes available in Obsidian vault.
 """
+    )
     return summary
 
+
 # ── Main Orchestrator ─────────────────────────────────────────────────────────
+
 
 def run_agent(agent: dict, prior_findings: list[str]) -> tuple[bool, str, dict]:
     """
@@ -445,25 +498,41 @@ def run_agent(agent: dict, prior_findings: list[str]) -> tuple[bool, str, dict]:
 
     # 1. OOM guard before starting
     if not wait_for_memory(f"before {agent_id}"):
-        publish_event("AGENT_ERROR", f"research-swarm.{agent_id}", {
-            "error": "OOM guard timed out — refused to start agent",
-            "agent": agent_id,
-        })
+        publish_event(
+            "AGENT_ERROR",
+            f"research-swarm.{agent_id}",
+            {
+                "error": "OOM guard timed out — refused to start agent",
+                "agent": agent_id,
+            },
+        )
         write_kanban(agent_id, name, "blocked-oom", agent["primary_model"])
         return False, "", {}
 
     # 2. Publish AGENT_START
-    publish_event("AGENT_START", f"research-swarm.{agent_id}", {
-        "agent": agent_id, "goal_id": agent["goal_id"],
-        "model": agent["primary_model"],
-    })
+    publish_event(
+        "AGENT_START",
+        f"research-swarm.{agent_id}",
+        {
+            "agent": agent_id,
+            "goal_id": agent["goal_id"],
+            "model": agent["primary_model"],
+        },
+    )
     write_kanban(agent_id, name, "in-progress", agent["primary_model"])
-    surreal_write("experiment_run", f"research-swarm-v2-{agent_id}", {
-        "id": f"research-swarm-v2-{agent_id}", "name": name,
-        "model": agent["primary_model"], "status": "running",
-        "started_at": datetime.now(UTC).isoformat(),
-        "goal_id": agent["goal_id"], "session": SESSION,
-    })
+    surreal_write(
+        "experiment_run",
+        f"research-swarm-v2-{agent_id}",
+        {
+            "id": f"research-swarm-v2-{agent_id}",
+            "name": name,
+            "model": agent["primary_model"],
+            "status": "running",
+            "started_at": datetime.now(UTC).isoformat(),
+            "goal_id": agent["goal_id"],
+            "session": SESSION,
+        },
+    )
 
     # 3. Build prompt with prior context (memory/reflection)
     full_prompt = agent["prompt"]
@@ -471,26 +540,31 @@ def run_agent(agent: dict, prior_findings: list[str]) -> tuple[bool, str, dict]:
         context = "\n".join(f"  - {f}" for f in prior_findings[-10:])
         full_prompt = (
             f"PRIOR RESEARCH CONTEXT (from completed agents):\n{context}\n\n"
-            f"Use this context to inform cross-domain connections where relevant.\n\n"
-            + full_prompt
+            f"Use this context to inform cross-domain connections where relevant.\n\n" + full_prompt
         )
 
     # 4. Try primary → Lemonade fallback → Ollama fallback
     output = ""
     success = False
     model_used = ""
-    for attempt, (use_ollama, model) in enumerate([
-        (False, agent["primary_model"]),
-        (False, agent["fallback_model_lemonade"]),
-        (True,  agent["fallback_model_ollama"]),
-    ]):
+    for attempt, (use_ollama, model) in enumerate(
+        [
+            (False, agent["primary_model"]),
+            (False, agent["fallback_model_lemonade"]),
+            (True, agent["fallback_model_ollama"]),
+        ]
+    ):
         if attempt > 0:
             avail = available_gib()
-            print(f"    Retry {attempt} — {avail:.1f} GiB free — {'Ollama cloud' if use_ollama else 'Lemonade fallback'}")
+            print(
+                f"    Retry {attempt} — {avail:.1f} GiB free — {'Ollama cloud' if use_ollama else 'Lemonade fallback'}"
+            )
             if not wait_for_memory(f"retry-{attempt} {agent_id}", timeout_s=60):
                 continue
 
-        print(f"  🔬 [{agent_id}] attempt {attempt+1} via {'ollama' if use_ollama else 'lemonade'}: {model}")
+        print(
+            f"  🔬 [{agent_id}] attempt {attempt + 1} via {'ollama' if use_ollama else 'lemonade'}: {model}"
+        )
 
         if use_ollama:
             output = ollama_query(model, full_prompt)
@@ -502,45 +576,78 @@ def run_agent(agent: dict, prior_findings: list[str]) -> tuple[bool, str, dict]:
             model_used = model
             break
         else:
-            publish_event("AGENT_ERROR", f"research-swarm.{agent_id}", {
-                "attempt": attempt + 1, "model": model, "error": output[:200],
-            })
+            publish_event(
+                "AGENT_ERROR",
+                f"research-swarm.{agent_id}",
+                {
+                    "attempt": attempt + 1,
+                    "model": model,
+                    "error": output[:200],
+                },
+            )
 
     if not success or len(output) < 100:
         write_kanban(agent_id, name, "failed", model_used or "none")
-        publish_event("AGENT_ERROR", f"research-swarm.{agent_id}", {
-            "error": "All attempts failed", "agent": agent_id,
-        })
+        publish_event(
+            "AGENT_ERROR",
+            f"research-swarm.{agent_id}",
+            {
+                "error": "All attempts failed",
+                "agent": agent_id,
+            },
+        )
         return False, output, {}
 
     # 5. Save to vault
     out_path = VAULT_DIR / f"{agent_id}.md"
-    out_path.write_text(f"---\ndomain: {agent_id}\nmodel: {model_used}\nsession: {SESSION}\ndate: {NOW_ISO}\n---\n\n{output}\n")
+    out_path.write_text(
+        f"---\ndomain: {agent_id}\nmodel: {model_used}\nsession: {SESSION}\ndate: {NOW_ISO}\n---\n\n{output}\n"
+    )
 
     # 6. Reflect
     reflection = reflect_on_output(agent, output, prior_findings)
 
     # 7. Update records
-    write_kanban(agent_id, name, "done", model_used, extra={
-        "key_findings": reflection["key_findings"],
-        "word_count": reflection["word_count"],
-    })
-    surreal_write("experiment_run", f"research-swarm-v2-{agent_id}", {
-        "id": f"research-swarm-v2-{agent_id}", "name": name,
-        "model": model_used, "status": "done",
-        "completed_at": datetime.now(UTC).isoformat(),
-        "goal_id": agent["goal_id"], "session": SESSION,
-        "word_count": reflection["word_count"],
-        "key_findings": reflection["key_findings"],
-        "output_path": str(out_path),
-    })
-    publish_event("AGENT_COMPLETE", f"research-swarm.{agent_id}", {
-        "agent": agent_id, "model": model_used,
-        "word_count": reflection["word_count"],
-        "key_findings": reflection["key_findings"],
-    })
+    write_kanban(
+        agent_id,
+        name,
+        "done",
+        model_used,
+        extra={
+            "key_findings": reflection["key_findings"],
+            "word_count": reflection["word_count"],
+        },
+    )
+    surreal_write(
+        "experiment_run",
+        f"research-swarm-v2-{agent_id}",
+        {
+            "id": f"research-swarm-v2-{agent_id}",
+            "name": name,
+            "model": model_used,
+            "status": "done",
+            "completed_at": datetime.now(UTC).isoformat(),
+            "goal_id": agent["goal_id"],
+            "session": SESSION,
+            "word_count": reflection["word_count"],
+            "key_findings": reflection["key_findings"],
+            "output_path": str(out_path),
+        },
+    )
+    publish_event(
+        "AGENT_COMPLETE",
+        f"research-swarm.{agent_id}",
+        {
+            "agent": agent_id,
+            "model": model_used,
+            "word_count": reflection["word_count"],
+            "key_findings": reflection["key_findings"],
+        },
+    )
 
-    print(f"  ✅ [{agent_id}] done — {reflection['word_count']} words, {len(reflection['key_findings'])} findings")
+    print(
+        f"  ✅ [{agent_id}] done — {reflection['word_count']} words, {len(reflection['key_findings'])} findings"
+    )
     return True, output, reflection
 
 
@@ -561,14 +668,20 @@ def main() -> None:
 
     # Register top-level goal
     surreal_write("goal", RESEARCH_GOAL["id"], RESEARCH_GOAL)
-    publish_event("AGENT_START", "research-swarm.coordinator", {
-        "swarm": SESSION, "agent_count": len(AGENTS),
-        "goal": RESEARCH_GOAL["id"],
-    })
+    publish_event(
+        "AGENT_START",
+        "research-swarm.coordinator",
+        {
+            "swarm": SESSION,
+            "agent_count": len(AGENTS),
+            "goal": RESEARCH_GOAL["id"],
+        },
+    )
 
     # Write vault index header
     index = VAULT_DIR / "INDEX.md"
-    index.write_text(textwrap.dedent(f"""\
+    index.write_text(
+        textwrap.dedent(f"""\
         ---
         title: Safe Bleeding-Edge Research Swarm
         date: {NOW_ISO}
@@ -577,14 +690,15 @@ def main() -> None:
         strategy: sequential-fleet-locked
         ---
 
-        # Safe Research Swarm — {datetime.now().strftime('%Y-%m-%d')}
+        # Safe Research Swarm — {datetime.now().strftime("%Y-%m-%d")}
 
         Sequential, fleet-locked, event-bus-registered GAIA research.
         OOM floor: {MEM_FLOOR_GIB} GiB. Max retries: {MAX_RETRIES}.
 
         ## Results
 
-    """))
+    """)
+    )
 
     kg = KnowledgeGraph()
     prior_findings: list[str] = []  # accumulated across agents for reflection
@@ -592,7 +706,7 @@ def main() -> None:
 
     # Sequential goal loop — ONE model at a time (fleet lock discipline)
     for i, agent in enumerate(AGENTS):
-        print(f"\n[{i+1}/{len(AGENTS)}] 🎯 Goal: {agent['goal_id']} — {agent['name']}")
+        print(f"\n[{i + 1}/{len(AGENTS)}] 🎯 Goal: {agent['goal_id']} — {agent['name']}")
         avail = available_gib()
         print(f"  RAM available: {avail:.1f} GiB")
 
@@ -621,8 +735,11 @@ def main() -> None:
             # Mark sub-goal done
             for sg in RESEARCH_GOAL["sub_goals"]:
                 if sg["id"] == agent["goal_id"]:
-                    surreal_write("goal", sg["id"], {**sg, "status": "done",
-                                                      "completed_at": datetime.now(UTC).isoformat()})
+                    surreal_write(
+                        "goal",
+                        sg["id"],
+                        {**sg, "status": "done", "completed_at": datetime.now(UTC).isoformat()},
+                    )
 
         else:
             print(f"  ⚠️  [{agent['id']}] failed — continuing to next agent")
@@ -639,32 +756,46 @@ def main() -> None:
     synthesis = synthesize_goal_completion(kg)
     synthesis_path = VAULT_DIR / "SYNTHESIS.md"
     synthesis_path.write_text(synthesis)
-    surreal_write("experiment_run", "research-swarm-v2-synthesis", {
-        "id": "research-swarm-v2-synthesis",
-        "type": "synthesis",
-        "session": SESSION,
-        "domains_completed": [k for k, v in results.items() if v],
-        "domains_failed": [k for k, v in results.items() if not v],
-        "kg_nodes": len(kg.nodes),
-        "kg_edges": len(kg.build_edges()),
-        "synthesis_path": str(synthesis_path),
-        "completed_at": datetime.now(UTC).isoformat(),
-    })
+    surreal_write(
+        "experiment_run",
+        "research-swarm-v2-synthesis",
+        {
+            "id": "research-swarm-v2-synthesis",
+            "type": "synthesis",
+            "session": SESSION,
+            "domains_completed": [k for k, v in results.items() if v],
+            "domains_failed": [k for k, v in results.items() if not v],
+            "kg_nodes": len(kg.nodes),
+            "kg_edges": len(kg.build_edges()),
+            "synthesis_path": str(synthesis_path),
+            "completed_at": datetime.now(UTC).isoformat(),
+        },
+    )
 
-    surreal_write("goal", RESEARCH_GOAL["id"], {
-        **RESEARCH_GOAL,
-        "status": "done" if all(results.values()) else "partial",
-        "completed_at": datetime.now(UTC).isoformat(),
-        "success_rate": sum(results.values()) / len(results),
-    })
-    publish_event("AGENT_COMPLETE", "research-swarm.coordinator", {
-        "swarm": SESSION,
-        "done": sum(results.values()), "total": len(results),
-        "kg_nodes": len(kg.nodes), "kg_edges": len(kg.build_edges()),
-    })
+    surreal_write(
+        "goal",
+        RESEARCH_GOAL["id"],
+        {
+            **RESEARCH_GOAL,
+            "status": "done" if all(results.values()) else "partial",
+            "completed_at": datetime.now(UTC).isoformat(),
+            "success_rate": sum(results.values()) / len(results),
+        },
+    )
+    publish_event(
+        "AGENT_COMPLETE",
+        "research-swarm.coordinator",
+        {
+            "swarm": SESSION,
+            "done": sum(results.values()),
+            "total": len(results),
+            "kg_nodes": len(kg.nodes),
+            "kg_edges": len(kg.build_edges()),
+        },
+    )
 
     done = sum(results.values())
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"✅ Swarm complete: {done}/{len(AGENTS)} agents succeeded")
     print(f"🧠 KG: {len(kg.nodes)} nodes, {len(kg.build_edges())} edges")
     print(f"📓 Vault: {VAULT_DIR}/INDEX.md")

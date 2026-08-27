@@ -13,13 +13,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import random
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -60,7 +59,10 @@ class SymmetryBreakingEngine:
         self.autoharness = AutoHarnessPolicy()
 
     async def execute_symmetry_breaking(self) -> SymmetryBreakingResult:
-        logger.info("⚛️ SYMMETRY BREAKING ENGINE: Triggering Spontaneous Symmetry Breaking on %d nodes...", self.num_nodes)
+        logger.info(
+            "⚛️ SYMMETRY BREAKING ENGINE: Triggering Spontaneous Symmetry Breaking on %d nodes...",
+            self.num_nodes,
+        )
         t0 = time.perf_counter()
 
         specialized_nodes: list[SpecializedSwarmNode] = []
@@ -102,12 +104,16 @@ async def main_async() -> None:
 
     res = await engine.execute_symmetry_breaking()
     print(f"  • Initial State: {res.initial_symmetry}")
-    print(f"  • Final Order Parameter (Phi): {res.final_order_parameter:.4f} (1.0 = Fully Differentiated)")
+    print(
+        f"  • Final Order Parameter (Phi): {res.final_order_parameter:.4f} (1.0 = Fully Differentiated)"
+    )
     print(f"  • Goldstone Mode Coherence: {res.goldstone_mode_coherence * 100.0:.1f}%")
     print(f"  • Execution Time: {res.execution_time_ms:.2f} ms")
     print("\n  Specialized Node Assignments (Broken Symmetry):")
     for n in res.specialized_nodes[:6]:
-        print(f"    - [{n.node_id}] Role: {n.specialized_role:12s} | V_mem: {n.v_mem_mv} mV | temp={n.temperature} | top_p={n.top_p} | Hardware: {n.hardware_target}")
+        print(
+            f"    - [{n.node_id}] Role: {n.specialized_role:12s} | V_mem: {n.v_mem_mv} mV | temp={n.temperature} | top_p={n.top_p} | Hardware: {n.hardware_target}"
+        )
 
     print("=" * 95)
     print("🎉 Spontaneous Symmetry Breaking Engine Operational!")

@@ -13,16 +13,15 @@ against the Untuned Base Model (`Nemotron-3.5-30B-Base`) across 5 rigorous bench
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.qlora_finetuning_engine import CHECKPOINT_OUTPUT_DIR
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -151,15 +150,23 @@ async def main_async() -> None:
     report = await harness.run_comparative_benchmark(num_prompts=100)
     print(f"  • Base Model: {report.base_model_name}")
     print(f"  • Fine-Tuned Checkpoint: {report.adapter_checkpoint_path}")
-    print(f"  • Evaluated Prompts: {report.total_test_prompts_evaluated} Prompts across 5 Dimensions\n")
+    print(
+        f"  • Evaluated Prompts: {report.total_test_prompts_evaluated} Prompts across 5 Dimensions\n"
+    )
 
-    print(f"{'Dimension':<45} | {'Base Score':<12} | {'QLoRA Score':<12} | {'Delta (%)':<12} | {'Status'}")
+    print(
+        f"{'Dimension':<45} | {'Base Score':<12} | {'QLoRA Score':<12} | {'Delta (%)':<12} | {'Status'}"
+    )
     print("-" * 105)
     for m in report.metrics:
-        print(f"{m.dimension_name:<45} | {m.untuned_base_score:>10.2f} {m.unit:<1} | {m.finetuned_qlora_score:>10.2f} {m.unit:<1} | {m.improvement_pct:>10.2f}% | {m.status}")
+        print(
+            f"{m.dimension_name:<45} | {m.untuned_base_score:>10.2f} {m.unit:<1} | {m.finetuned_qlora_score:>10.2f} {m.unit:<1} | {m.improvement_pct:>10.2f}% | {m.status}"
+        )
 
     print("-" * 105)
-    print(f"🎉 OVERALL BENCHMARK WIN RATE: {report.overall_win_rate_pct:.1f}% — FINE-TUNED MODEL OUTPERFORMS BASE MODEL ON ALL DIMENSIONS!")
+    print(
+        f"🎉 OVERALL BENCHMARK WIN RATE: {report.overall_win_rate_pct:.1f}% — FINE-TUNED MODEL OUTPERFORMS BASE MODEL ON ALL DIMENSIONS!"
+    )
     print(f"  • Total Benchmark Execution Time: {report.execution_time_sec:.3f} s")
     print("=" * 105)
 

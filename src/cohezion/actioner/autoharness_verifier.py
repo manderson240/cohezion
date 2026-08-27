@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import ast
 import time
-from typing import Any
 
 from cohezion.contracts import CodeAsAction, VerificationResult, Verifier
 
@@ -26,7 +25,10 @@ class AutoHarnessVerifier(Verifier):
         self.max_ast_nodes = max_ast_nodes
         self.max_cyclomatic_complexity = max_cyclomatic_complexity
         self.disallowed_imports = disallowed_imports or {
-            "os.system", "subprocess.Popen", "shutil.rmtree", "ctypes"
+            "os.system",
+            "subprocess.Popen",
+            "shutil.rmtree",
+            "ctypes",
         }
 
     def verify_code(self, source_code: str) -> VerificationResult:
@@ -67,13 +69,17 @@ class AutoHarnessVerifier(Verifier):
         # 3. Cyclomatic Complexity Calculation (Branch Count)
         complexity = 1
         for node in ast.walk(tree):
-            if isinstance(node, (ast.If, ast.For, ast.While, ast.ExceptHandler, ast.With, ast.Assert, ast.Try)):
+            if isinstance(
+                node, (ast.If, ast.For, ast.While, ast.ExceptHandler, ast.With, ast.Assert, ast.Try)
+            ):
                 complexity += 1
             elif isinstance(node, ast.BoolOp):
                 complexity += len(node.values) - 1
 
         if complexity > self.max_cyclomatic_complexity:
-            errors.append(f"Cyclomatic complexity exceeds limit ({complexity} > {self.max_cyclomatic_complexity})")
+            errors.append(
+                f"Cyclomatic complexity exceeds limit ({complexity} > {self.max_cyclomatic_complexity})"
+            )
 
         duration_ms = (time.perf_counter() - t0) * 1000.0
 
@@ -92,7 +98,9 @@ class AutoHarnessVerifier(Verifier):
 class ExecutableAction(CodeAsAction):
     """Concrete wrapper for verified code-as-action snippets."""
 
-    def __init__(self, name: str, source_code: str, verifier: AutoHarnessVerifier | None = None) -> None:
+    def __init__(
+        self, name: str, source_code: str, verifier: AutoHarnessVerifier | None = None
+    ) -> None:
         self._name = name
         self.source_code = source_code
         self.verifier = verifier or AutoHarnessVerifier()

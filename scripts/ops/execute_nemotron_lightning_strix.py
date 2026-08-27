@@ -22,7 +22,16 @@ from cohezion.reliability.oom_guard import OOMGuard
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-GGUF_PATH = Path.home() / ".cache" / "huggingface" / "hub" / "models--julianmb--NVIDIA-Nemotron-3.5-Lightning-30B-A3B-ROCmFP4-GGUF" / "snapshots" / "eb20c21036266fda5e3ab7f66a910d286d4f33ee" / "NVIDIA-Nemotron-3.5-Lightning-30B-A3B-ROCmFP4-STRIX_LEAN.gguf"
+GGUF_PATH = (
+    Path.home()
+    / ".cache"
+    / "huggingface"
+    / "hub"
+    / "models--julianmb--NVIDIA-Nemotron-3.5-Lightning-30B-A3B-ROCmFP4-GGUF"
+    / "snapshots"
+    / "eb20c21036266fda5e3ab7f66a910d286d4f33ee"
+    / "NVIDIA-Nemotron-3.5-Lightning-30B-A3B-ROCmFP4-STRIX_LEAN.gguf"
+)
 
 
 def main() -> None:
@@ -36,7 +45,7 @@ def main() -> None:
         logger.error("❌ GGUF file not found at %s!", GGUF_PATH)
         return
 
-    file_size_gb = GGUF_PATH.stat().st_size / (1024 ** 3)
+    file_size_gb = GGUF_PATH.stat().st_size / (1024**3)
     logger.info("✅ Verified GGUF File on Disk: %s (%.2f GB)", GGUF_PATH.name, file_size_gb)
 
     mem = OOMGuard.get_memory_state()

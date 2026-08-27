@@ -103,11 +103,11 @@ _GOOD = """Verification: `uv run pytest tests/x.py::TestGood -q` → 2 passed"""
 _BAD_COUNT = """Verification: `uv run pytest tests/x.py::TestGood -q` → 12 passed"""
 _BAD_CLASS = """Verification: `uv run pytest tests/x.py::TestMissing -q` → 2 passed"""
 _BAD_FILE = """Verification: `uv run pytest tests/nope.py -q` → 2 passed"""
-_FIXTURE = '''
+_FIXTURE = """
 class TestGood:
     def test_a(self): pass
     def test_b(self): pass
-'''
+"""
 
 
 def self_test() -> int:

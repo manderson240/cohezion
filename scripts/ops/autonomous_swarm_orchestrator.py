@@ -59,7 +59,9 @@ def _sig_handler(sig, frame):
     _STOP = True
 
 
-async def run_autonomous_mission_cycle(cycle_num: int, router: UnifiedHybridRouter, fleet_lock: FleetLock, bus, bridge):
+async def run_autonomous_mission_cycle(
+    cycle_num: int, router: UnifiedHybridRouter, fleet_lock: FleetLock, bus, bridge
+):
     t_start = time.perf_counter()
     logger.info("=" * 95)
     logger.info("🪐 EXECUTING PROACTIVE AUTONOMOUS SWARM MISSION CYCLE #%d", cycle_num)
@@ -67,7 +69,12 @@ async def run_autonomous_mission_cycle(cycle_num: int, router: UnifiedHybridRout
 
     # 1. Hardware OOM Guardrail Check
     mem = OOMGuard.get_memory_state()
-    logger.info("Hardware Telemetry: RAM Available=%.1f GiB / Total=%.1f GiB (Floor=20.0 GiB, Safe=%s)", mem.available_gb, mem.total_gb, mem.is_safe)
+    logger.info(
+        "Hardware Telemetry: RAM Available=%.1f GiB / Total=%.1f GiB (Floor=20.0 GiB, Safe=%s)",
+        mem.available_gb,
+        mem.total_gb,
+        mem.is_safe,
+    )
     if not mem.is_safe:
         logger.warning("Memory below 20.0 GiB floor. Waiting for memory headroom...")
         await OOMGuard.wait_for_headroom(min_gb=20.0, timeout=180.0)
@@ -77,27 +84,42 @@ async def run_autonomous_mission_cycle(cycle_num: int, router: UnifiedHybridRout
     geom = GeometricCorrespondenceEngine()
     random_states = [tuple(np.random.uniform(-0.3, 0.3, 12)) for _ in range(6)]
     pairwise_distances = [
-        geom.compute_poincare_distance(random_states[i], random_states[i+1])
+        geom.compute_poincare_distance(random_states[i], random_states[i + 1])
         for i in range(len(random_states) - 1)
     ]
     avg_poincare_dist = float(np.mean(pairwise_distances))
-    logger.info("  • Avg Hyperbolic Geodesic Distance ($d_P$): %.4f (Curvature Stable)", avg_poincare_dist)
+    logger.info(
+        "  • Avg Hyperbolic Geodesic Distance ($d_P$): %.4f (Curvature Stable)", avg_poincare_dist
+    )
 
     # 3. Campaign 2: Bioelectric Gap-Junction Light-Cone Morphogenesis
     logger.info("Phase 2: Executing Bioelectric Swarm Morphogenesis...")
     swarm = BioelectricSwarm(n_nodes=12, coupling_strength=0.75)
     light_cone_radius = swarm.calculate_light_cone_radius()
     healed_nodes = swarm.trigger_self_healing_wave()
-    healed_count = len(healed_nodes) if isinstance(healed_nodes, (list, tuple)) else int(healed_nodes)
-    logger.info("  • Bioelectric Light-Cone Radius: %.2f (Gap-Junction Boost active) | Self-Healed Nodes: %d", light_cone_radius, healed_count)
+    healed_count = (
+        len(healed_nodes) if isinstance(healed_nodes, (list, tuple)) else int(healed_nodes)
+    )
+    logger.info(
+        "  • Bioelectric Light-Cone Radius: %.2f (Gap-Junction Boost active) | Self-Healed Nodes: %d",
+        light_cone_radius,
+        healed_count,
+    )
 
     # 4. Campaign 3: Real-Time HIHO 0.5 Audio Sonification Frame Synthesis
     logger.info("Phase 3: Synthesizing HIHO 0.5 Acoustic Thermodynamic Loss Frame...")
     sonifier = HIHOSonifier()
     simulated_coherence = 0.50 + 0.02 * math.sin(cycle_num * 0.5)
-    audio_frame = sonifier.sonify_coherence_state(coherence=simulated_coherence, fundamental_hz=432.0)
-    logger.info("  • Fundamental Tone: %.1f Hz | Offset: %.4f | Dissonance Index: %.4f | Stable: %s",
-                audio_frame.fundamental_hz, abs(simulated_coherence - 0.5), audio_frame.dissonance_index, abs(simulated_coherence - 0.5) <= 0.05)
+    audio_frame = sonifier.sonify_coherence_state(
+        coherence=simulated_coherence, fundamental_hz=432.0
+    )
+    logger.info(
+        "  • Fundamental Tone: %.1f Hz | Offset: %.4f | Dissonance Index: %.4f | Stable: %s",
+        audio_frame.fundamental_hz,
+        abs(simulated_coherence - 0.5),
+        audio_frame.dissonance_index,
+        abs(simulated_coherence - 0.5) <= 0.05,
+    )
 
     # 5. Campaign 4: Frontier Mathematical Hypothesis Synthesis via Local Silicon
     logger.info("Phase 4: Synthesizing Frontier AGI Proposition via Tier-1 Silicon...")
@@ -117,7 +139,9 @@ async def run_autonomous_mission_cycle(cycle_num: int, router: UnifiedHybridRout
         tier_used = "Deterministic Fallback"
         latency_ms = 1.0
 
-    logger.info("  • Generated Proposition via %s (%.2f ms):\n%s", tier_used, latency_ms, content[:150])
+    logger.info(
+        "  • Generated Proposition via %s (%.2f ms):\n%s", tier_used, latency_ms, content[:150]
+    )
 
     # 6. Campaign 5: DataMesh Cryptographic Provenance & Dual-Store Synchronization
     logger.info("Phase 5: Dual-Store Signing & EventBus Broadcast...")
@@ -133,19 +157,21 @@ async def run_autonomous_mission_cycle(cycle_num: int, router: UnifiedHybridRout
     }
     signature = DataProvenanceSigner.sign_sample(payload_data, key_id="v2")
 
-    persist_item({
-        "id": f"proactive_swarm_cycle_{cycle_num}_{int(time.time())}",
-        "title": f"Autonomous Swarm Mission Cycle #{cycle_num}",
-        "status": "completed",
-        "priority": "high",
-        "source": "autonomous_swarm_orchestrator",
-        "category": "proactive_long_horizon_ascension",
-        "content": content,
-        "signature": signature,
-        "poincare_distance": avg_poincare_dist,
-        "light_cone_radius": light_cone_radius,
-        "dissonance_index": audio_frame.dissonance_index,
-    })
+    persist_item(
+        {
+            "id": f"proactive_swarm_cycle_{cycle_num}_{int(time.time())}",
+            "title": f"Autonomous Swarm Mission Cycle #{cycle_num}",
+            "status": "completed",
+            "priority": "high",
+            "source": "autonomous_swarm_orchestrator",
+            "category": "proactive_long_horizon_ascension",
+            "content": content,
+            "signature": signature,
+            "poincare_distance": avg_poincare_dist,
+            "light_cone_radius": light_cone_radius,
+            "dissonance_index": audio_frame.dissonance_index,
+        }
+    )
 
     # Broadcast inter-session event across EventBus
     evt = Event(
@@ -170,9 +196,18 @@ async def main():
     signal.signal(signal.SIGINT, _sig_handler)
     signal.signal(signal.SIGTERM, _sig_handler)
 
-    parser = argparse.ArgumentParser(description="Autonomous Long-Horizon Sovereign AGI Swarm Orchestrator")
-    parser.add_argument("--interval", type=int, default=180, help="Interval between autonomous cycles in seconds (default 180s / 3m)")
-    parser.add_argument("--max-cycles", type=int, default=0, help="Max cycles (0 = infinite autonomous loop)")
+    parser = argparse.ArgumentParser(
+        description="Autonomous Long-Horizon Sovereign AGI Swarm Orchestrator"
+    )
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=180,
+        help="Interval between autonomous cycles in seconds (default 180s / 3m)",
+    )
+    parser.add_argument(
+        "--max-cycles", type=int, default=0, help="Max cycles (0 = infinite autonomous loop)"
+    )
     args = parser.parse_args()
 
     router = UnifiedHybridRouter(prefer_local=True)
@@ -193,7 +228,10 @@ async def main():
             break
 
         cycle += 1
-        logger.info("Entering adaptive rest (%d seconds) until next autonomous swarm cycle...", args.interval)
+        logger.info(
+            "Entering adaptive rest (%d seconds) until next autonomous swarm cycle...",
+            args.interval,
+        )
         for _ in range(args.interval):
             if _STOP:
                 break

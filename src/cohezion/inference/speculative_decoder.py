@@ -15,10 +15,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -39,14 +39,23 @@ class SpeculativeResult:
 class SpeculativeDecoderEngine:
     """NPU Draft + iGPU Target Speculative Decoding Engine."""
 
-    def __init__(self, draft_model: str = "llama3.2-1b-FLM", target_model: str = "Nemotron-3.5-Lightning-30B-A3B-ROCmFP4", gamma: int = 4) -> None:
+    def __init__(
+        self,
+        draft_model: str = "llama3.2-1b-FLM",
+        target_model: str = "Nemotron-3.5-Lightning-30B-A3B-ROCmFP4",
+        gamma: int = 4,
+    ) -> None:
         self.draft_model = draft_model
         self.target_model = target_model
         self.gamma = gamma
         self.autoharness = AutoHarnessPolicy()
 
     async def generate_speculative(self, prompt: str, target_tokens: int = 64) -> SpeculativeResult:
-        logger.info("🚀 SPECULATIVE DECODER: NPU Draft (`%s`) -> iGPU Target (`%s`)", self.draft_model, self.target_model)
+        logger.info(
+            "🚀 SPECULATIVE DECODER: NPU Draft (`%s`) -> iGPU Target (`%s`)",
+            self.draft_model,
+            self.target_model,
+        )
         t0 = time.perf_counter()
 
         # Simulate gamma=4 speculation & verification cycle
@@ -74,7 +83,9 @@ async def main_async() -> None:
     print("      COHEZION SPECULATIVE DECODING ENGINE DEMO (NPU + iGPU)")
     print("=" * 95)
 
-    res = await decoder.generate_speculative("Synthesize zero-latency AST bytecode policy compilation for Kaggle AIMO.")
+    res = await decoder.generate_speculative(
+        "Synthesize zero-latency AST bytecode policy compilation for Kaggle AIMO."
+    )
     print(f"  • Draft Model (NPU): {res.draft_model}")
     print(f"  • Target Model (iGPU): {res.target_model}")
     print(f"  • Speculation Horizon (gamma): {res.gamma}")

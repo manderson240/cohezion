@@ -14,15 +14,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
-from cohezion.inference.load_safety import check_load_safe
-from cohezion.reliability.oom_guard import OOMGuard
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -53,9 +50,18 @@ class UnifiedNeuralMesh:
         self.autoharness = AutoHarnessPolicy()
         self.review_engine = MultiperspectiveReviewEngine()
         self.experts = [
-            MeshExpertSpec("Nemotron-3.5-Lightning-30B", "Fast Instruction & Decode (86 t/s)", 0.40, "Vulkan0 iGPU"),
-            MeshExpertSpec("Qwen3-Coder-30B", "Multi-File AST & Code Synthesis", 0.35, "Vulkan0 iGPU"),
-            MeshExpertSpec("qwen3.6-moe-35b-a3b-FLM", "NPU Context & GraphRAG Summarization", 0.25, "XDNA2 NPU"),
+            MeshExpertSpec(
+                "Nemotron-3.5-Lightning-30B",
+                "Fast Instruction & Decode (86 t/s)",
+                0.40,
+                "Vulkan0 iGPU",
+            ),
+            MeshExpertSpec(
+                "Qwen3-Coder-30B", "Multi-File AST & Code Synthesis", 0.35, "Vulkan0 iGPU"
+            ),
+            MeshExpertSpec(
+                "qwen3.6-moe-35b-a3b-FLM", "NPU Context & GraphRAG Summarization", 0.25, "XDNA2 NPU"
+            ),
         ]
 
     def _compute_poincare_affinity(self, prompt: str) -> dict[str, float]:
@@ -63,15 +69,29 @@ class UnifiedNeuralMesh:
         prompt_lower = prompt.lower()
         weights = {}
         if "code" in prompt_lower or "refactor" in prompt_lower or "def " in prompt_lower:
-            weights = {"Nemotron-3.5-Lightning-30B": 0.30, "Qwen3-Coder-30B": 0.55, "qwen3.6-moe-35b-a3b-FLM": 0.15}
+            weights = {
+                "Nemotron-3.5-Lightning-30B": 0.30,
+                "Qwen3-Coder-30B": 0.55,
+                "qwen3.6-moe-35b-a3b-FLM": 0.15,
+            }
         elif "summarize" in prompt_lower or "context" in prompt_lower or "graph" in prompt_lower:
-            weights = {"Nemotron-3.5-Lightning-30B": 0.25, "Qwen3-Coder-30B": 0.15, "qwen3.6-moe-35b-a3b-FLM": 0.60}
+            weights = {
+                "Nemotron-3.5-Lightning-30B": 0.25,
+                "Qwen3-Coder-30B": 0.15,
+                "qwen3.6-moe-35b-a3b-FLM": 0.60,
+            }
         else:
-            weights = {"Nemotron-3.5-Lightning-30B": 0.50, "Qwen3-Coder-30B": 0.30, "qwen3.6-moe-35b-a3b-FLM": 0.20}
+            weights = {
+                "Nemotron-3.5-Lightning-30B": 0.50,
+                "Qwen3-Coder-30B": 0.30,
+                "qwen3.6-moe-35b-a3b-FLM": 0.20,
+            }
         return weights
 
     async def generate_unified_response(self, prompt: str) -> NeuralMeshResponse:
-        logger.info("🧠 UNIFIED NEURAL MESH: Processing prompt across heterogeneous local experts...")
+        logger.info(
+            "🧠 UNIFIED NEURAL MESH: Processing prompt across heterogeneous local experts..."
+        )
         t0 = time.perf_counter()
 
         # 1. Hyperbolic Latent Affinity Calculation
@@ -86,7 +106,9 @@ class UnifiedNeuralMesh:
         ast_ok = pol_res.allowed
 
         # 4. R0 Multiperspective Review
-        rev_report = self.review_engine.review("UnifiedNeuralMeshOutput", {"vram_available_gb": 32.0, "ring_coherence": 0.90})
+        rev_report = self.review_engine.review(
+            "UnifiedNeuralMeshOutput", {"vram_available_gb": 32.0, "ring_coherence": 0.90}
+        )
 
         dt_ms = round((time.perf_counter() - t0) * 1000.0, 2)
         return NeuralMeshResponse(

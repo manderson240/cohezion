@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from cohezion.learning.shadow_scripter import (
-    GeneratedTest,
     GenerationStatus,
     ShadowScripter,
 )

@@ -40,7 +40,10 @@ def benchmark_manifold_dimension(dim: int) -> dict:
     v_transported = PoincareManifoldND.parallel_transport(tangent_v, p1, p2)
 
     # 4. Curvature Loss across 5 points
-    cluster = [PoincareManifoldND.project(tuple([(0.02 * k * i) % 0.8 for i in range(dim)])) for k in range(1, 6)]
+    cluster = [
+        PoincareManifoldND.project(tuple([(0.02 * k * i) % 0.8 for i in range(dim)]))
+        for k in range(1, 6)
+    ]
     loss = PoincareManifoldND.curvature_regularization_loss(cluster)
 
     return {

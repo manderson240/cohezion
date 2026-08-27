@@ -10,7 +10,6 @@ Includes:
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -44,7 +43,14 @@ def execute_skill(
 
     try:
         if not resolved_skill_path.is_relative_to(root_path):
-            return {"content": [{"type": "text", "text": "Error: Path traversal outside repository root rejected"}]}
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Error: Path traversal outside repository root rejected",
+                    }
+                ]
+            }
     except ValueError:
         return {"content": [{"type": "text", "text": "Error: Invalid path boundary"}]}
 
