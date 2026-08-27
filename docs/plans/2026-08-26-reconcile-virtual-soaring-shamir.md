@@ -86,6 +86,27 @@ Recommendation: **durable clone** for T1–T2 (84 conflicts by hand in a temp in
 plumbing only for the final fast-forward of `main`. The `bash` block below is written for the
 clone; from a worktree, translate each step per the plumbing recipe.
 
+## Local-lane triage findings (2026-08-26 22:54–23:10, $0) — VERIFIED subset
+
+Calibration run (Dev=Bonsai-8B reflex lane, QA=Gemma-4-E4B) disagreed on 34/34 LLM-judged files;
+Bonsai is not a judge (memory `local-review-lane-benchmark-results`). Gemma's QA side named concrete
+symbols that `HEAD` (this branch) LACKS and `main` HAS — 4/4 grep-verified against both revisions:
+
+| file | main has / HEAD lacks | landing rule |
+|---|---|---|
+| `src/cohezion/core/event_bus.py` | `_DRAIN_TIMEOUT_S` (bounded stop drain — coherence-fhr's D2 fix) | MERGE, keep main's drain timeout |
+| `src/cohezion/data_mesh/event_consumer.py` | `_handle_residency` (+ its event branch) | MERGE, keep main's residency gate |
+| `src/cohezion/agi/autoharness_policy.py` | `no_eval_exec` AST safety check | MERGE, keep main's checks (security tier) |
+| `src/cohezion/inference/model_card_defaults.py` | `qwen3.6-moe` card entry | MERGE, keep main's entry |
+
+Pattern: the branch's copies PREDATE main's 152 newer commits; every `content` conflict in `src/`
+should be resolved as "main's symbols survive, branch's additions layered on" (non-destructive
+wiring rule 4). Gemma's remaining TAKE_MAIN reasons (harness.py fixed-split truncation,
+unified_hybrid_router hard-pinning, poincare_manifold log-barrier risk, PRIME .md metadata loss)
+are plausible and unverified — check each the same way before applying. Full table:
+`~/vaults/cohezion-vault/reports/20260826-vss-conflict-triage-sdk.md`; judgment-lane run
+(Qwen3.6-35B-A3B-MTP → Gemma) in `…-triage-qwen3.6.{jsonl,md}`.
+
 ## Execution order (Opus)
 
 ```bash
