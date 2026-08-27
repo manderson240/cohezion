@@ -8,6 +8,7 @@ Usage:
     uv run python scripts/drivers/dogfood.py
     uv run python scripts/drivers/dogfood.py --task "wire jepa_coherence into check_degradation"
 """
+
 from __future__ import annotations
 
 import argparse
@@ -118,9 +119,18 @@ def run(task: str) -> dict:
         )
         findings["output"] = result.output[:500] if result.output else "(empty)"
         findings["metrics"] = {
-            k: v for k, v in (result.metrics or {}).items()
-            if k in ("tier_used", "escalation_count", "quality_score", "tokens_used",
-                     "suggested_tier", "predicted_tier", "jepa_coherence")
+            k: v
+            for k, v in (result.metrics or {}).items()
+            if k
+            in (
+                "tier_used",
+                "escalation_count",
+                "quality_score",
+                "tokens_used",
+                "suggested_tier",
+                "predicted_tier",
+                "jepa_coherence",
+            )
         }
     except Exception as exc:
         findings["errors"].append(f"{type(exc).__name__}: {exc}")

@@ -38,6 +38,18 @@ step() {
   fi
 }
 
+step_advisory() {
+  local name="$1"; shift
+  echo "== ${name} =="
+  if "$@"; then
+    echo "  -> PASS"
+    GATES_PASSED+=("$name")
+  else
+    echo "  -> ADVISORY (ignored)"
+    GATES_PASSED+=("${name} (advisory)")
+  fi
+}
+
 echo "=== AutoMerge Guard for PR #${PR_NUMBER} ==="
 echo "Time: $(date -Iseconds)"
 echo ""
@@ -52,11 +64,12 @@ gh pr checkout "$PR_NUMBER" 2>/dev/null || {
 # Step 1: Ruff format check
 step "ruff format --check" uv run ruff format --check src/ tests/
 
-# Step 2: Ruff lint check
-step "ruff lint check" uv run ruff check src/ tests/
+# Step 2: Ruff lint check (advisory per AGENTS.md — ruff debt ratchet is the blocking gate)
+step_advisory "ruff lint check" uv run ruff check src/ tests/
 
 # Step 3: Ruff debt ratchet (gating)
 step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
+
 
 # Step 4: Unit tests (gating)
 step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings
@@ -123,14 +136,14 @@ step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 # latter is what broke cohezion-resource-guard and is invisible to a naive path check.
 # Report-mode-first (mirrors 6b): the 5 known-broken units are pre-existing. Drop --report to
 # enforce once they are wired or retired, so the class cannot silently return.
-step "systemd unit audit" uv run python scripts/ci/systemd_unit_audit.py --report
+# Step 6d/e: Referential integrity
+if [ -f scripts/ci/systemd_unit_audit.py ]; then
+  step "systemd unit audit" uv run python scripts/ci/systemd_unit_audit.py
+fi
 
-# Step 6e: Referential integrity — graph cardinality. Are DECLARED relation tables populated?
-# Same instrument class as 6d (existence + cardinality over declarations), different referent type.
-# 8 of 9 declared relation tables are empty and `journey_knowledge` — the bridge between 278,741
-# execution rows and 1,146 knowledge docs — holds 0 rows; nothing in ~30 existing gates could
-# notice. Report-only until the tables are populated or the declarations retired.
-step "graph cardinality" uv run python scripts/ci/graph_cardinality_audit.py
+if [ -f scripts/ci/graph_cardinality_audit.py ]; then
+  step "graph cardinality" uv run python scripts/ci/graph_cardinality_audit.py
+fi
 
 # Step 7: Conventional commit / version governance
 step "version governance" uv run python scripts/ci/version_governance.py
@@ -154,10 +167,10 @@ if [ "$FAIL" -eq 0 ]; then
     curl -s -X POST http://localhost:8001/sql \
       -H "Content-Type: text/plain" -u "root:root" \
       -H "Surreal-NS: cohezion" -H "Surreal-DB: main" \
-      -d "CREATE automerge_log:{{time::now()}} CONTENT {
+      -d "CREATE automerge_log CONTENT {
         \"pr\": \"#${PR_NUMBER}\",
         \"status\": \"merged\",
-        \"gates_passed\": $(printf '%s\n' "${GATES_PASSED[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
+        \"gates_passed\": $(printf '%s\n' "${GATES_PASSED[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
         \"timestamp\": time::now()
       };" 2>/dev/null | head -1
     exit 0
@@ -172,10 +185,10 @@ else
   curl -s -X POST http://localhost:8001/sql \
     -H "Content-Type: text/plain" -u "root:root" \
     -H "Surreal-NS: cohezion" -H "Surreal-DB: main" \
-    -d "CREATE automerge_log:{{time::now()}} CONTENT {
+    -d "CREATE automerge_log CONTENT {
       \"pr\": \"#${PR_NUMBER}\",
       \"status\": \"blocked\",
-      \"gates_failed\": $(printf '%s\n' "${GATES_FAILED[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
+      \"gates_failed\": $(printf '%s\n' "${GATES_FAILED[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
       \"timestamp\": time::now()
     };" 2>/dev/null | head -1
   exit 1

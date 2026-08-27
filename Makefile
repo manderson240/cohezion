@@ -143,7 +143,7 @@ ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg
 	uv run python src/cohezion/healing/scripts/trajectory_guard.py
 	@echo "✓ All CI checks passed"
 # Compound Loop Validation
-validate:  ## Validate compound engineering loop end-to-end (25 checks, ~18s)
+validate:  ## Validate compound engineering loop end-to-end (50+ checks, seconds)
 	.venv/bin/python scripts/validate_compound_loop.py
 	@echo "✓ Compound loop validated"
 
@@ -172,8 +172,9 @@ kernel-report:  ## Generate kernel status report
 	@.venv/bin/python scripts/generate_status_report.py
 
 # RL Training + Evaluation targets
-train:  ## Train PPO on ManifoldEnv (quick: 20K steps, ~5 min)
-	uv run python scripts/train_manifold_agent.py --timesteps 20000 --eval-episodes 10
+train:  ## Train PPO on ManifoldEnv (quick: 20K steps, ~5 min; needs: uv sync --extra rl)
+	uv run python scripts/train_manifold_agent.py --timesteps 20000 --eval-episodes 10 || \
+	(echo "Hint: RL extras required — run: uv sync --extra rl" && exit 1)
 	@echo "✓ Training complete. Results in results/training/"
 
 evaluate:  ## Evaluate trained model vs baselines

@@ -2,6 +2,12 @@
 name: ROUTING_ACCURACY_CALIBRATION_PRIME
 description: Comprehensive domain skill specification for Routing Accuracy Calibration Prime.
 version: v1.0
+name: routing_accuracy_calibration_prime
+description: "Standardized Cohezion platform PRIME skill for routing_accuracy_calibration_prime."
+category: core
+tags: [skill, prime, cohezion]
+metadata:
+  version: "1.0.0"
 ---
 
 # SKILL: ROUTING_ACCURACY_CALIBRATION_PRIME

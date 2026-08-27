@@ -4,12 +4,11 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 
 **Purpose:** World Model layer — JEPA predictor, SurpriseExplorer, SIGReg.
 
-## Entry points (8 modules)
+## Entry points (7 modules)
 
 | Module | Key class(es) | LOC |
 |---|---|---|
 | `jepa_world_model.py` | `ManifoldEncoder`, `ActionEncoder`, `Predictor` | 693 ⚠ |
-| `jepa_world_model_persistent.py` | `JEPAWorldModelPersistent` | 229 |
 | `observer.py` | `Observer` | 190 |
 | `observer_world_model.py` | `ObserverWorldModel` | 114 |
 | `sigreg.py` | `SIGReg` | 66 |
@@ -30,4 +29,4 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 - ## EnvironmentResponsePredictor Invariants (#117, 2026-06-27)
 - ### ERP1: EnvironmentResponsePredictor predict() returns None with no history
 
-_Auto-generated 2026-07-22 (gen_nested_claude.py): facts deterministic (ast/grep), Purpose from __init__/module docstrings. Validated by scripts/ci/doc_code_consistency.py. Hand-enrich as needed._
+_Seeded 2026-07-22, HAND-MAINTAINED since — there is no generator. The original note credited a `gen_nested_claude.py` that exists in no commit and nowhere on disk; corrected 2026-07-31 so nobody hunts for it or assumes a regeneration will clear drift. Update this file in the same commit as the code. Guarded by `scripts/ci/doc_code_consistency.py`: E1/E2 that every path and module reference resolves, E5 that the declared module count matches the package._

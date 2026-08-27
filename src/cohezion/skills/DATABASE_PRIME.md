@@ -25,18 +25,17 @@ You are a specialist in **database systems** for AI applications. You understand
 ```python
 from surrealdb import AsyncSurreal
 
+
 async def surreal_example():
     async with AsyncSurreal("ws://localhost:8001/rpc") as db:
         await db.signin({"user": "root", "pass": "root"})
         await db.use("cohezion", "universes")
 
         # Create record
-        await db.create("universe", {
-            "id": "u001",
-            "coherence": 0.85,
-            "stream": "physicist",
-            "trajectory": [0.1, 0.2, 0.3]
-        })
+        await db.create(
+            "universe",
+            {"id": "u001", "coherence": 0.85, "stream": "physicist", "trajectory": [0.1, 0.2, 0.3]},
+        )
 
         # Graph query
         results = await db.query("""
@@ -50,11 +49,11 @@ async def surreal_example():
 ```python
 import sqlite3
 
-conn = sqlite3.connect('cohezion.db')
+conn = sqlite3.connect("cohezion.db")
 cursor = conn.cursor()
 
 # Create table
-cursor.execute('''
+cursor.execute("""
     CREATE TABLE IF NOT EXISTS trajectories (
         id TEXT PRIMARY KEY,
         stream TEXT,
@@ -63,13 +62,10 @@ cursor.execute('''
         content TEXT,
         timestamp REAL
     )
-''')
+""")
 
 # Insert data
-cursor.executemany(
-    "INSERT INTO trajectories VALUES (?, ?, ?, ?, ?, ?)",
-    trajectory_data
-)
+cursor.executemany("INSERT INTO trajectories VALUES (?, ?, ?, ?, ?, ?)", trajectory_data)
 conn.commit()
 ```
 
@@ -77,16 +73,20 @@ conn.commit()
 ```python
 import asyncpg
 
+
 async def pg_example():
-    conn = await asyncpg.connect('postgresql://user:pass@localhost/cohezion')
+    conn = await asyncpg.connect("postgresql://user:pass@localhost/cohezion")
 
     # Query with vector extension (pgvector)
-    results = await conn.fetch('''
+    results = await conn.fetch(
+        """
         SELECT id, content, embedding <-> $1 as distance
         FROM thoughts
         ORDER BY distance
         LIMIT 10
-    ''', query_vector)
+    """,
+        query_vector,
+    )
 ```
 
 ### 4. Vector Store Integration
@@ -98,16 +98,11 @@ client = QdrantClient("localhost", port=6333)
 
 # Create collection
 client.create_collection(
-    collection_name="flume_vectors",
-    vectors_config=VectorParams(size=256, distance=Distance.COSINE)
+    collection_name="flume_vectors", vectors_config=VectorParams(size=256, distance=Distance.COSINE)
 )
 
 # Search
-results = client.search(
-    collection_name="flume_vectors",
-    query_vector=query_embedding,
-    limit=10
-)
+results = client.search(collection_name="flume_vectors", query_vector=query_embedding, limit=10)
 ```
 
 ### 5. Schema Design Patterns

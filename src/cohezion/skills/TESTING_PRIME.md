@@ -28,14 +28,15 @@ You are a specialist in **Python testing** - pytest patterns, coverage, fixtures
 ```python
 import pytest
 
+
 class TestFeature:
     """Test feature functionality."""
-    
+
     def test_happy_path(self):
         """Feature works with valid input."""
         result = feature(valid_input)
         assert result == expected
-    
+
     def test_edge_case(self):
         """Feature handles edge cases."""
         result = feature(edge_case)
@@ -48,11 +49,13 @@ class TestFeature:
 def sample_data():
     return {"key": "value"}
 
+
 @pytest.fixture
 def temp_file(tmp_path):
     file = tmp_path / "test.txt"
     file.write_text("content")
     return file
+
 
 def test_with_fixture(sample_data, temp_file):
     assert sample_data["key"] == "value"
@@ -60,11 +63,14 @@ def test_with_fixture(sample_data, temp_file):
 
 ### 3. Parametrize
 ```python
-@pytest.mark.parametrize("input,expected", [
-    ("valid", True),
-    ("invalid", False),
-    ("", False),
-])
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        ("valid", True),
+        ("invalid", False),
+        ("", False),
+    ],
+)
 def test_validation(input, expected):
     assert validate(input) == expected
 ```

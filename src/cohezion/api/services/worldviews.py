@@ -1,6 +1,6 @@
 """Worldview Explorer API — indigenous cosmological traditions mapped to the ToE chain.
 
-Exposes 17 traditions' 10-step mappings (16 indigenous + stealthskater synthesis), cross-tradition convergences,
+Exposes 18 traditions' 10-step mappings (17 + stealthskater synthesis), cross-tradition convergences,
 per-step comparative views, and vault knowledge graph data for the
 Genesis Engine webapp (Tab 9: Worldview Explorer + VaultKnowledgeGraph).
 """

@@ -24,11 +24,15 @@ class VerificationResult:
     duration_ms: float = 0.0
 
     @classmethod
-    def success(cls, score: float = 1.0, metadata: dict[str, Any] | None = None, duration_ms: float = 0.0) -> VerificationResult:
+    def success(
+        cls, score: float = 1.0, metadata: dict[str, Any] | None = None, duration_ms: float = 0.0
+    ) -> VerificationResult:
         return cls(valid=True, score=score, metadata=metadata or {}, duration_ms=duration_ms)
 
     @classmethod
-    def failure(cls, errors: list[str] | tuple[str, ...], score: float = 0.0, duration_ms: float = 0.0) -> VerificationResult:
+    def failure(
+        cls, errors: list[str] | tuple[str, ...], score: float = 0.0, duration_ms: float = 0.0
+    ) -> VerificationResult:
         return cls(valid=False, score=score, errors=tuple(errors), duration_ms=duration_ms)
 
 
@@ -51,8 +55,7 @@ class CodeAsAction(ABC):
 class Verifier(Protocol):
     """Protocol for static and runtime verifiers."""
 
-    def verify_code(self, source_code: str) -> VerificationResult:
-        ...
+    def verify_code(self, source_code: str) -> VerificationResult: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,7 +72,9 @@ class PoincarePoint:
 
         norm_sq = sum(c * c for c in self.coords)
         if norm_sq >= 1.0:
-            raise ValueError(f"PoincarePoint ({self.dim}D) must lie strictly inside the unit ball (norm^2={norm_sq:.4f} >= 1.0)")
+            raise ValueError(
+                f"PoincarePoint ({self.dim}D) must lie strictly inside the unit ball (norm^2={norm_sq:.4f} >= 1.0)"
+            )
 
     @property
     def norm(self) -> float:

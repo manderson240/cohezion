@@ -56,6 +56,7 @@ You are a specialist in **local SLM swarm orchestration**. You understand how to
 4. **Use as Open Notebook Provider**
    ```python
    from cohezion.providers import CohezionSwarmProvider
+
    provider = CohezionSwarmProvider()
    result = await provider.chat_complete(messages)
    ```

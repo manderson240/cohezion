@@ -105,19 +105,6 @@ with contextlib.suppress(Exception):
     )
 
 with contextlib.suppress(Exception):
-    from cohezion.core.connection_pool import (
-        SurrealClientProtocol as SurrealClientProtocol,
-    )
-with contextlib.suppress(Exception):
-    from cohezion.core.connection_pool import (
-        PoolConfig as PoolConfig,
-    )
-with contextlib.suppress(Exception):
-    from cohezion.core.connection_pool import (
-        PooledConnection as PooledConnection,
-    )
-
-with contextlib.suppress(Exception):
     from cohezion.core.task_manager import (
         TaskStatus as TaskStatus,
     )

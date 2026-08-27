@@ -124,7 +124,7 @@ ROLE_SPECS: dict[str, RoleSpec] = {
 def _perf_scores() -> dict[str, float]:
     """Optional adaptive signal: avg quality per model from SurrealDB. Empty on any error."""
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             SURREAL,
             data=b"SELECT model, math::mean(quality_score) AS q FROM model_performance GROUP BY model;",
             headers={

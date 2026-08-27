@@ -149,7 +149,7 @@ def generate_12d_journey(n_steps: int = 100, journey_id: str = "journey_1") -> J
         )
 
     journey.final_coherence = coherent / N_DIMS
-    journey.patterns_discovered = list(set(s.pattern for s in journey.steps))
+    journey.patterns_discovered = list({s.pattern for s in journey.steps})
 
     return journey
 
@@ -260,12 +260,12 @@ def _compose_journey_narrative(journey: Journey) -> str:
 
     narrative = f"""
     Welcome to the 12-dimensional journey through Morphospace.
-    
-    Our traveler begins in a state of {first.pattern} flux, with only {first.coherent_dims} 
+
+    Our traveler begins in a state of {first.pattern} flux, with only {first.coherent_dims}
     dimensions aligned to the HIHO stability point of 0.5.
-    
-    Over {journey.total_steps} steps, we witness the dance of 12 dimensions converging 
-    toward coherence. The X dimension and Integration dimension pulse in entangled harmony, 
+
+    Over {journey.total_steps} steps, we witness the dance of 12 dimensions converging
+    toward coherence. The X dimension and Integration dimension pulse in entangled harmony,
     linked by the holographic principle.
     """
 
@@ -278,10 +278,10 @@ def _compose_journey_narrative(journey: Journey) -> str:
     narrative += f"""
     The journey concludes with {last.coherent_dims} of 12 dimensions at HIHO.
     Final pattern: {last.pattern.capitalize()}.
-    
+
     Patterns discovered: {", ".join(journey.patterns_discovered)}.
-    
-    This is the holographic principle in action: 12 dimensions of information, 
+
+    This is the holographic principle in action: 12 dimensions of information,
     projecting into the 3D boundary we perceive. It from Bit. Cohezion achieved.
     """
 
@@ -318,7 +318,7 @@ def generate_journey_visualization(journey: Journey, output_dir: Path) -> list[P
 
 def _generate_heatmap(journey: Journey, output_dir: Path) -> Path:
     """Generate 12D evolution heatmap."""
-    fig, ax = plt.subplots(figsize=(14, 6))
+    _fig, ax = plt.subplots(figsize=(14, 6))
 
     # Build matrix
     data = np.array([s.state_12d for s in journey.steps])
@@ -405,7 +405,7 @@ def _generate_3d_trajectory(journey: Journey, output_dir: Path) -> Path:
 
 def _generate_coherence_plot(journey: Journey, output_dir: Path) -> Path:
     """Generate coherence evolution chart."""
-    fig, ax = plt.subplots(figsize=(12, 5), facecolor="#0a0a1a")
+    _fig, ax = plt.subplots(figsize=(12, 5), facecolor="#0a0a1a")
     ax.set_facecolor("#0a0a1a")
 
     steps = [s.step for s in journey.steps]
@@ -439,7 +439,7 @@ def _generate_pattern_distribution(journey: Journey, output_dir: Path) -> Path:
     """Generate pattern distribution pie chart."""
     from collections import Counter
 
-    fig, ax = plt.subplots(figsize=(8, 8), facecolor="#0a0a1a")
+    _fig, ax = plt.subplots(figsize=(8, 8), facecolor="#0a0a1a")
     ax.set_facecolor("#0a0a1a")
 
     patterns = [s.pattern for s in journey.steps]
@@ -455,7 +455,7 @@ def _generate_pattern_distribution(journey: Journey, output_dir: Path) -> Path:
         counts.values(),
         labels=counts.keys(),
         autopct="%1.1f%%",
-        colors=[colors.get(p, "#888") for p in counts.keys()],
+        colors=[colors.get(p, "#888") for p in counts],
         textprops={"color": "white", "fontsize": 12},
         wedgeprops={"edgecolor": "#0a0a1a", "linewidth": 2},
     )

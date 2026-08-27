@@ -44,7 +44,7 @@ $$D_{t+1} = D_t + \alpha \cdot \mathbb{1}[\bar{S} > \theta]$$
 from cohezion.simulation.enhanced_simulator import (
     EnhancedSimulator,
     FlumeIntegration,
-    RZeroEnhancedTriad
+    RZeroEnhancedTriad,
 )
 
 # Full simulator with FLUME + R-Zero
@@ -55,6 +55,7 @@ simulator = EnhancedSimulator(output_dir=Path("enhanced_sims"))
 
 ```python
 import asyncio
+
 
 async def run_overnight():
     simulator = EnhancedSimulator()
@@ -69,6 +70,7 @@ async def run_overnight():
         print(f"Difficulty: {stats['current_difficulty']:.2f}")
 
         await asyncio.sleep(1)  # Prevent overheating
+
 
 asyncio.run(run_overnight())
 ```

@@ -314,10 +314,6 @@ from cohezion.inference.registry import (
     Task,
     get_registry,
 )
-from cohezion.inference.unified_orchestrator import (
-    UnifiedOrchestrator,
-    create_default_orchestrator,
-)
 
 
 __all__ = [
@@ -339,10 +335,8 @@ __all__ = [
     "Task",
     "TierAttempt",
     "TieredOrchestrator",
-    "UnifiedOrchestrator",
     "build_gaia_native_tier",
     "check_fleet",
-    "create_default_orchestrator",
     "default_hierarchy",
     "dispatch_through_harness",
     "extend_claude",

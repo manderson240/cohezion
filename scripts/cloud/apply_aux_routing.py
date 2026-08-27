@@ -16,6 +16,7 @@ task individually. This script:
 Safe to re-run. Reversible by editing config.yaml or running with
 --revert to delete the auxiliary block.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,6 +31,7 @@ LEMONADE = "lemonade-local"
 LEMONADE_URL = "http://localhost:13305/v1"
 AUX_TASKS = ["compression", "vision", "embedding", "web_extract", "moa"]
 
+
 def load_yaml(p: Path) -> dict:
     try:
         import yaml
@@ -40,18 +42,23 @@ def load_yaml(p: Path) -> dict:
         return {}
     return yaml.safe_load(p.read_text()) or {}
 
+
 def dump_yaml(p: Path, data: dict) -> None:
     import yaml
+
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(yaml.safe_dump(data, default_flow_style=False, sort_keys=False))
+
 
 def backup(p: Path) -> Path:
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     from datetime import datetime
+
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     dest = BACKUP_DIR / f"config.{ts}.yaml"
     shutil.copy2(p, dest)
     return dest
+
 
 def apply(cfg: dict) -> dict:
     aux = cfg.setdefault("auxiliary", {})
@@ -64,12 +71,16 @@ def apply(cfg: dict) -> dict:
         model["max_tokens"] = 600
     return cfg
 
+
 def revert(cfg: dict) -> dict:
     cfg.pop("auxiliary", None)
     return cfg
 
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--revert", action="store_true", help="remove the auxiliary block we added")
     ap.add_argument("--dry-run", action="store_true", help="print diff without writing")
     args = ap.parse_args()
@@ -99,6 +110,7 @@ def main() -> int:
     if args.revert:
         print("(reverted auxiliary block)")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

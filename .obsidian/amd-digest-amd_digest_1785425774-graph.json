@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "amd_amd_digest_1785425774",
+    "universe_id": "universe-flume-amd",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-30T11:36:24"
+  },
+  "nodes": [
+    {
+      "id": "evo_amd_amd_digest_1785425774_step_1",
+      "label": "EVO Step 1: Digested github.com/amd repos ",
+      "agent_id": "amd_amd_digest_1785425774",
+      "topology": "instanton",
+      "confidence": 0.2564000865864231,
+      "coherence": 0.95,
+      "state_12d": [
+        1.0168,
+        -0.5597,
+        0.0663,
+        -0.8383,
+        -1.1354,
+        0.9207,
+        1.0047,
+        -2.0885,
+        -0.7547,
+        -1.4656,
+        -1.6399,
+        -0.9492
+      ],
+      "color": "#ff0055",
+      "size": 7.025600346345692
+    },
+    {
+      "id": "evo_amd_amd_digest_1785425774_step_2",
+      "label": "EVO Step 2: Local silicon synthesized 4-ph",
+      "agent_id": "amd_amd_digest_1785425774",
+      "topology": "soliton",
+      "confidence": 0.5552435158525653,
+      "coherence": 0.85,
+      "state_12d": [
+        1.0288,
+        2.1186,
+        0.2106,
+        0.7467,
+        -1.0714,
+        0.9187,
+        1.4279,
+        -0.1131,
+        1.1949,
+        -0.2376,
+        0.9799,
+        -1.013
+      ],
+      "color": "#00e5ff",
+      "size": 8.22097406341026
+    },
+    {
+      "id": "evo_amd_amd_digest_1785425774_step_3",
+      "label": "EVO Step 3: Configured single-endpoint Lem",
+      "agent_id": "amd_amd_digest_1785425774",
+      "topology": "instanton",
+      "confidence": 0.6224943810605975,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.8944,
+        -2.5448,
+        2.085,
+        -1.7235,
+        -0.3243,
+        0.1725,
+        1.6535,
+        -0.8653,
+        0.8177,
+        0.1154,
+        1.3105,
+        -0.3205
+      ],
+      "color": "#ff0055",
+      "size": 8.48997752424239
+    },
+    {
+      "id": "evo_amd_amd_digest_1785425774_step_4",
+      "label": "EVO Step 4: Exported amd_silicon_integrati",
+      "agent_id": "amd_amd_digest_1785425774",
+      "topology": "instanton",
+      "confidence": 0.34530048855086587,
+      "coherence": 0.85,
+      "state_12d": [
+        0.8509,
+        -0.2431,
+        0.5276,
+        0.6306,
+        -0.1416,
+        0.3629,
+        1.6621,
+        -1.2066,
+        1.8585,
+        -1.3598,
+        -1.7808,
+        0.2582
+      ],
+      "color": "#ff0055",
+      "size": 7.381201954203464
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_amd_amd_digest_1785425774_step_1",
+      "target": "evo_amd_amd_digest_1785425774_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_amd_amd_digest_1785425774_step_2",
+      "target": "evo_amd_amd_digest_1785425774_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_amd_amd_digest_1785425774_step_3",
+      "target": "evo_amd_amd_digest_1785425774_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

@@ -24,12 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v6
+      - name: Install uv via Astral action
+        uses: astral-sh/setup-uv@v5
         with:
+          version: "latest"
+          enable-cache: true
           python-version: "3.13"
-
-      - name: Install uv
-        run: pip install uv
 
       - name: Free disk space (large ROCm torch wheel)
         run: |

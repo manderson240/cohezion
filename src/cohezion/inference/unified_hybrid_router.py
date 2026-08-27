@@ -664,3 +664,50 @@ class UnifiedHybridRouter:
             await bus.publish(event)
         except Exception as exc:
             logger.debug("EventBus publish failed (non-critical): %s", exc)
+
+
+# --- reconcile 2026-08-26: preserved from main (importers: see docs/reconcile/2026-08-26-merge-resolution.md) ---
+TIER_COSTS = {
+    (1, 2): 0.25,  # Escalation Tier 1 -> Tier 2 (Ollama Cloud)
+    (2, 3): 1.00,  # Escalation Tier 2 -> Tier 3 (Premium API)
+    (1, 3): 1.25,  # Escalation Tier 1 -> Tier 3
+}
+
+
+TIER_1_ROSTER = {
+    "reasoning": "deepseek-r1-0528-8b-FLM",
+    "coding": "Qwen3-Coder-30B",
+    "coding_small": "qwen3-4b-FLM",
+    "vision": "qwen3vl-it-4b-FLM",
+    "research": "qwen3.6-moe-35b-a3b-FLM",
+    "fast_qa": "llama3.2-1b-FLM",
+    "embedding": "embed-gemma-300m-FLM",
+    "cpu_parallel": "Phi-4-mini-3.8B-CPU-32T",
+}
+
+
+TIER_2_ROSTER = {
+    "reasoning": "deepseek-v4-pro:cloud",
+    "coding": "qwen3.5:397b-cloud",
+    "research": "glm-5.2:cloud",
+    "general": "deepseek-v4-pro:cloud",
+}
+
+
+TIER_3_ROSTER = {
+    "architecture": "gemini-3-pro",
+    "coding": "claude-3-5-sonnet",
+    "general": "gemini-3-pro",
+}
+
+
+@dataclass
+class RoutingResult:
+    """Result of hybrid router decision."""
+
+    selected_tier: int
+    model_name: str
+    evi_score: float
+    escalated: bool
+    reason: str
+

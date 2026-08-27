@@ -33,7 +33,6 @@ _ORPHAN_MODULES: tuple[str, ...] = (
     "datamesh",
     "dogfooding",
     "infrastructure",
-    "policies",
     "recursive_trace",
     "reporting",
     "sandboxing",
@@ -71,12 +70,6 @@ try:
     WIRED_ORPHANS["infrastructure"] = cohezion.infrastructure
 except (ImportError, AttributeError, ValueError, TypeError, OSError) as exc:
     WIRED_ORPHANS["infrastructure"] = f"unavailable: {type(exc).__name__}: {exc}"
-try:
-    import cohezion.policies
-
-    WIRED_ORPHANS["policies"] = cohezion.policies
-except (ImportError, AttributeError, ValueError, TypeError, OSError) as exc:
-    WIRED_ORPHANS["policies"] = f"unavailable: {type(exc).__name__}: {exc}"
 try:
     import cohezion.recursive_trace
 

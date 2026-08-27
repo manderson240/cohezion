@@ -19,6 +19,7 @@ from concurrent.futures import Future
 import threading
 from typing import Any
 
+
 def _run_async(coro: Any) -> Any:
     try:
         loop = asyncio.get_running_loop()

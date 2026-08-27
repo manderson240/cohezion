@@ -92,10 +92,12 @@ coherence = 0.70 → stability = 0.6  (Overconfident, inject uncertainty)
 ```python
 # WRONG: Hard-coded to specific agent system
 from anthropic import Anthropic
+
 client = Anthropic(api_key="...")
 
 # RIGHT: Provider-agnostic
 from cohezion.swarm.providers import get_model_provider
+
 provider = get_model_provider("anthropic")
 result = await provider.generate(model="claude-sonnet-4", prompt="...")
 ```
@@ -302,28 +304,28 @@ class AxiomaticState:
 
     # SPACE FABRIC (3 dimensions)
     SPACE_precipitation: float  # Observable spatial manifestation
-    SPACE_coherence: float      # Internal spatial consistency
-    SPACE_stability: float      # Resistance to spatial perturbation
+    SPACE_coherence: float  # Internal spatial consistency
+    SPACE_stability: float  # Resistance to spatial perturbation
 
     # FIELD FABRIC (3 dimensions)
     FIELD_precipitation: float  # Observable field manifestation
-    FIELD_coherence: float      # Internal field consistency
-    FIELD_stability: float      # Resistance to field perturbation
+    FIELD_coherence: float  # Internal field consistency
+    FIELD_stability: float  # Resistance to field perturbation
 
     # TIME FABRIC (3 dimensions)
-    TIME_precipitation: float   # Observable temporal manifestation
-    TIME_coherence: float       # Internal temporal consistency
-    TIME_stability: float       # Resistance to temporal perturbation
+    TIME_precipitation: float  # Observable temporal manifestation
+    TIME_coherence: float  # Internal temporal consistency
+    TIME_stability: float  # Resistance to temporal perturbation
 
     # CONTROL FABRIC (3 dimensions)
     CONTROL_precipitation: float  # Observable control manifestation
-    CONTROL_coherence: float      # Internal control consistency
-    CONTROL_stability: float      # Resistance to control perturbation
+    CONTROL_coherence: float  # Internal control consistency
+    CONTROL_stability: float  # Resistance to control perturbation
 
     # SMITHIAN METADATA (derived, not part of 12D core)
     SMITH_consciousness: float = 0.0  # Derived from CONTROL
-    SMITH_intelligence: float = 0.0   # Derived from coherence metrics
-    SMITH_wisdom: float = 0.0         # Derived from stability metrics
+    SMITH_intelligence: float = 0.0  # Derived from coherence metrics
+    SMITH_wisdom: float = 0.0  # Derived from stability metrics
 ```
 
 ### Precipitation Gate (HIHO Check)
@@ -351,9 +353,9 @@ def check_precipitation(self) -> dict[str, Any]:
 
     # Step 4: Precipitation decision
     precipitate = (
-        hiho_stability > 0.8 and       # High HIHO stability
-        overall_coherence > 0.4 and    # Minimum coherence
-        shannon_entropy > 2.0          # Sufficient information content
+        hiho_stability > 0.8  # High HIHO stability
+        and overall_coherence > 0.4  # Minimum coherence
+        and shannon_entropy > 2.0  # Sufficient information content
     )
 
     return {
@@ -431,7 +433,7 @@ navigator = FlumeNavigator()
 
 # Define start and goal states
 start_state = AxiomaticState(...)  # "Research task"
-goal_state = AxiomaticState(...)   # "Implementation task"
+goal_state = AxiomaticState(...)  # "Implementation task"
 
 # Plan trajectory (semantic interpolation)
 trajectory = navigator.plan_trajectory(
@@ -490,8 +492,7 @@ router = TipOfTheSpearRouter()
 
 # Pre-action: Generate idempotency key
 idempotency_key = router.generate_idempotency_key(
-    request="Deploy to production",
-    agent_id="deploy-agent-1"
+    request="Deploy to production", agent_id="deploy-agent-1"
 )
 
 # Check if already executed
@@ -501,8 +502,7 @@ if vault.exists(idempotency_key):
 
 # Execute with full observability
 result = await router.route_with_sovereignty(
-    request="Deploy to production",
-    agent_id="deploy-agent-1"
+    request="Deploy to production", agent_id="deploy-agent-1"
 )
 
 # Post-action: Store result for idempotency
@@ -528,9 +528,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
+
 @dataclass
 class GenerationResult:
     """Result from model generation."""
+
     response: str
     model: str
     provider: str
@@ -538,6 +540,7 @@ class GenerationResult:
     tokens_used: int
     latency_ms: float
     metadata: dict[str, Any]
+
 
 class ModelProvider(ABC):
     """Abstract interface for model providers."""
@@ -606,6 +609,7 @@ dynamic_swapping:
 
 ```python
 # src/cohezion/compound/executor.py
+
 
 class CompoundExecutor:
     """Execute tasks with full observability and skill refinement."""

@@ -39,21 +39,25 @@ Quantify what fraction of 12D trajectory variance is attributable to each causal
 @dataclass
 class VarianceComponent:
     """Variance attributable to one factor."""
-    factor_name: str                    # "operation_type", "task_semantics", "quality"
-    variance_explained: float           # Sum of squares for this factor
-    fraction_of_total: float            # η² (eta-squared)
+
+    factor_name: str  # "operation_type", "task_semantics", "quality"
+    variance_explained: float  # Sum of squares for this factor
+    fraction_of_total: float  # η² (eta-squared)
     f_statistic: float
     p_value: float
-    per_dimension: np.ndarray           # (12,) fraction per canonical dimension
+    per_dimension: np.ndarray  # (12,) fraction per canonical dimension
+
 
 @dataclass
 class VarianceReport:
     """Full variance decomposition report."""
+
     components: list[VarianceComponent]
-    residual_fraction: float            # Unexplained variance
+    residual_fraction: float  # Unexplained variance
     total_variance: float
     n_observations: int
     interaction_effects: dict[str, float]  # Pairwise interaction η²
+
 
 class VarianceDecomposer:
     """ANOVA-based variance decomposition for 12D trajectories.
@@ -76,10 +80,10 @@ class VarianceDecomposer:
 
     def decompose(
         self,
-        trajectories: np.ndarray,           # (N, 12) trajectory data
-        operation_types: list[str],          # (N,) operation type labels
-        task_embeddings: np.ndarray,         # (N, 227) from SemanticEmbedder
-        quality_metrics: np.ndarray,         # (N, 2) coherence + efficiency
+        trajectories: np.ndarray,  # (N, 12) trajectory data
+        operation_types: list[str],  # (N,) operation type labels
+        task_embeddings: np.ndarray,  # (N, 227) from SemanticEmbedder
+        quality_metrics: np.ndarray,  # (N, 2) coherence + efficiency
     ) -> VarianceReport:
         """Run full variance decomposition.
 
@@ -138,24 +142,28 @@ Compute the partial derivatives of the 12D trajectory with respect to execution 
 @dataclass
 class JacobianResult:
     """Jacobian matrix and derived sensitivity metrics."""
-    jacobian: np.ndarray              # (12, N_metrics) partial derivatives
-    metric_names: list[str]           # Names of the N input metrics
-    dimension_labels: list[str]       # Canonical 12D labels
+
+    jacobian: np.ndarray  # (12, N_metrics) partial derivatives
+    metric_names: list[str]  # Names of the N input metrics
+    dimension_labels: list[str]  # Canonical 12D labels
 
     # Derived metrics
-    sensitivity_per_dim: np.ndarray   # (12,) Frobenius norm per row
-    sensitivity_per_metric: np.ndarray # (N,) Frobenius norm per column
-    most_sensitive_dim: int           # Dimension with highest total sensitivity
-    most_influential_metric: str      # Metric with highest total influence
+    sensitivity_per_dim: np.ndarray  # (12,) Frobenius norm per row
+    sensitivity_per_metric: np.ndarray  # (N,) Frobenius norm per column
+    most_sensitive_dim: int  # Dimension with highest total sensitivity
+    most_influential_metric: str  # Metric with highest total influence
+
 
 @dataclass
 class SensitivityProfile:
     """How a specific dimension responds to metric changes."""
+
     dimension_index: int
     dimension_label: str
-    sensitivities: dict[str, float]   # metric_name → sensitivity magnitude
-    direction: dict[str, str]         # metric_name → "positive" or "negative"
-    is_robust: bool                   # True if all sensitivities < threshold
+    sensitivities: dict[str, float]  # metric_name → sensitivity magnitude
+    direction: dict[str, str]  # metric_name → "positive" or "negative"
+    is_robust: bool  # True if all sensitivities < threshold
+
 
 class JacobianAnalyzer:
     """Compute sensitivity of 12D trajectory to execution quality metrics.
@@ -269,30 +277,34 @@ Given a trajectory outcome (success or failure), attribute it to specific causal
 @dataclass
 class CausalFactor:
     """A single causal factor contributing to an outcome."""
-    factor_name: str             # e.g., "task_complexity", "model_capacity_mismatch"
-    linear_contribution: float   # Linear attribution score: Δmetric × sensitivity
-                                 # NOTE: This is NOT a Shapley value. Shapley values require
-                                 # combinatorial enumeration over feature subsets (see SHAP library).
-                                 # This implements the simpler Δmetric × Jacobian_sensitivity method
-                                 # (see Attribution Method section below). Rename to shap_contribution
-                                 # if proper SHAP computation is added in a future iteration.
-    direction: str               # "positive" (helped) or "negative" (hurt)
-    evidence: str                # Human-readable evidence for this attribution
-    confidence: float            # 0.0-1.0
+
+    factor_name: str  # e.g., "task_complexity", "model_capacity_mismatch"
+    linear_contribution: float  # Linear attribution score: Δmetric × sensitivity
+    # NOTE: This is NOT a Shapley value. Shapley values require
+    # combinatorial enumeration over feature subsets (see SHAP library).
+    # This implements the simpler Δmetric × Jacobian_sensitivity method
+    # (see Attribution Method section below). Rename to shap_contribution
+    # if proper SHAP computation is added in a future iteration.
+    direction: str  # "positive" (helped) or "negative" (hurt)
+    evidence: str  # Human-readable evidence for this attribution
+    confidence: float  # 0.0-1.0
+
 
 @dataclass
 class CausalAttribution:
     """Full causal attribution for a single execution."""
+
     execution_id: str
-    outcome: str                 # "success" or "failure"
+    outcome: str  # "success" or "failure"
     factors: list[CausalFactor]  # Sorted by |linear_contribution|, descending
-    counterfactual: str | None   # "Would have succeeded if..." — FUTURE WORK:
-                                 # Currently None. Counterfactual generation requires
-                                 # identifying the minimum metric change that would flip
-                                 # the predicted outcome. Implementation strategy:
-                                 # find argmin_Δm ||Δm|| s.t. predict(m + Δm) = "success".
-                                 # Track as a follow-on deliverable once attribution is validated.
+    counterfactual: str | None  # "Would have succeeded if..." — FUTURE WORK:
+    # Currently None. Counterfactual generation requires
+    # identifying the minimum metric change that would flip
+    # the predicted outcome. Implementation strategy:
+    # find argmin_Δm ||Δm|| s.t. predict(m + Δm) = "success".
+    # Track as a follow-on deliverable once attribution is validated.
     trajectory_anomalies: list[str]  # Detected anomalies in 12D path
+
 
 class CausalAttributionEngine:
     """Attribute execution outcomes to specific causal factors.
@@ -307,13 +319,12 @@ class CausalAttributionEngine:
         jacobian_analyzer: JacobianAnalyzer,
         variance_decomposer: VarianceDecomposer,
         correlator: CoherenceSuccessCorrelator,
-    ):
-        ...
+    ): ...
 
     def attribute(
         self,
         experience: dict,
-        trajectory: np.ndarray,           # (T, 12) trajectory over time
+        trajectory: np.ndarray,  # (T, 12) trajectory over time
         outcome: TaskOutcome,
     ) -> CausalAttribution:
         """Attribute outcome to causal factors.
@@ -347,7 +358,7 @@ class CausalAttributionEngine:
 
     def generate_predictive_alert(
         self,
-        current_trajectory: np.ndarray,   # (T, 12) trajectory so far
+        current_trajectory: np.ndarray,  # (T, 12) trajectory so far
         current_metrics: dict[str, float],
     ) -> str | None:
         """Check if current trajectory pattern matches known failure factors.
@@ -404,21 +415,25 @@ Controlled input perturbations to test causal hypotheses. Instead of observing n
 @dataclass
 class Intervention:
     """A single controlled intervention."""
-    target_variable: str          # What to change
-    original_value: Any           # Before intervention
-    intervened_value: Any         # After intervention
-    expected_effect: str          # Hypothesis
+
+    target_variable: str  # What to change
+    original_value: Any  # Before intervention
+    intervened_value: Any  # After intervention
+    expected_effect: str  # Hypothesis
+
 
 @dataclass
 class InterventionResult:
     """Result of a controlled intervention."""
+
     intervention: Intervention
     trajectory_before: np.ndarray  # (12,) before intervention
-    trajectory_after: np.ndarray   # (12,) after intervention
-    delta: np.ndarray              # (12,) change per dimension
+    trajectory_after: np.ndarray  # (12,) after intervention
+    delta: np.ndarray  # (12,) change per dimension
     outcome_before: TaskOutcome
     outcome_after: TaskOutcome
     hypothesis_supported: bool
+
 
 class InterventionalTestHarness:
     """Run controlled interventions to test causal hypotheses."""
@@ -427,8 +442,7 @@ class InterventionalTestHarness:
         self,
         encoder: ExperienceEncoder,
         ablation_controller: AblationController,
-    ):
-        ...
+    ): ...
 
     def intervene(
         self,
@@ -497,15 +511,16 @@ def test_operation_type_dominates():
     op_types = ["generate"] * 50 + ["analyze"] * 50
     # Generate profiles should differ from analyze profiles
     generate_profile = np.array([0.8, 0.2, 0.5, 0.5, 0.7, 0.6, 0.4, 0.8, 0.6, 0.7, 0.5, 0.5])
-    analyze_profile  = np.array([0.2, 0.8, 0.5, 0.5, 0.6, 0.7, 0.8, 0.4, 0.7, 0.6, 0.5, 0.5])
+    analyze_profile = np.array([0.2, 0.8, 0.5, 0.5, 0.6, 0.7, 0.8, 0.4, 0.7, 0.6, 0.5, 0.5])
     for i, op in enumerate(op_types):
         noise = np.random.randn(12) * 0.05  # Small noise so op type dominates
         trajectories[i] = (generate_profile if op == "generate" else analyze_profile) + noise
     task_embeddings = np.random.randn(100, 227)  # Random semantic embeddings
-    quality_metrics = np.random.rand(100, 2)     # Random coherence + efficiency
+    quality_metrics = np.random.rand(100, 2)  # Random coherence + efficiency
     report = decomposer.decompose(trajectories, op_types, task_embeddings, quality_metrics)
     op_component = [c for c in report.components if c.factor_name == "operation_type"][0]
     assert op_component.fraction_of_total > 0.5
+
 
 # tests/compound/test_jacobian_analyzer.py
 def test_coherence_sensitivity():
@@ -523,6 +538,7 @@ def test_coherence_sensitivity():
     result = analyzer.compute_jacobian(experience, ["coherence"])
     # Coherence dimension (idx 4) should be sensitive to coherence metric
     assert abs(result.jacobian[4, 0]) > 0.01
+
 
 def test_hash_dimensions_insensitive():
     analyzer = JacobianAnalyzer(ExperienceEncoder())

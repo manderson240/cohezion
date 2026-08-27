@@ -11,11 +11,9 @@ import asyncio
 import sys
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from swarm_harness import run_swarm
-
+from swarm_harness import run_swarm  # noqa: E402
 
 FMT = """
 After ===FINAL=== write exactly these two labelled lines, then at most four bullets:

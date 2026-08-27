@@ -41,30 +41,30 @@ from cohezion.compound.oom_guard import get_available_ram_gb
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 _API = "http://localhost:13305/api/v1"
-_RAM_BUFFER_GB = 12.0   # always keep ≥12 GB free after loading any model
-_LOAD_TIMEOUT  = 600    # seconds — heavy models (23 GB) can take 2-3 min to load
+_RAM_BUFFER_GB = 12.0  # always keep ≥12 GB free after loading any model
+_LOAD_TIMEOUT = 600  # seconds — heavy models (23 GB) can take 2-3 min to load
 _VERIFY_TIMEOUT = 5
 
 # Approximate on-disk sizes for the models we manage (GB).
 # Used to gate RAM before loading.  Conservative (includes KV cache overhead).
 _MODEL_SIZE_GB: dict[str, float] = {
-    "nomic-embed-text-v2-moe-GGUF":      1.0,
-    "Qwen3-Embedding-0.6B-GGUF":         1.0,
-    "Qwen3-0.6B-GGUF":                   1.5,
-    "Bonsai-1.7B-gguf":                  1.5,
-    "Bonsai-4B-gguf":                    3.0,
-    "Gemma-4-E2B-it-GGUF":              6.0,
-    "Bonsai-8B-gguf":                    3.0,
-    "DeepSeek-Qwen3-8B-GGUF":           8.0,
-    "Gemma-4-E4B-it-GGUF":             10.0,
-    "Gemma-4-26B-A4B-it-GGUF":         24.0,
-    "Qwen3.6-27B-GGUF":                25.0,
-    "Gemma-4-31B-it-GGUF":             26.0,
+    "nomic-embed-text-v2-moe-GGUF": 1.0,
+    "Qwen3-Embedding-0.6B-GGUF": 1.0,
+    "Qwen3-0.6B-GGUF": 1.5,
+    "Bonsai-1.7B-gguf": 1.5,
+    "Bonsai-4B-gguf": 3.0,
+    "Gemma-4-E2B-it-GGUF": 6.0,
+    "Bonsai-8B-gguf": 3.0,
+    "DeepSeek-Qwen3-8B-GGUF": 8.0,
+    "Gemma-4-E4B-it-GGUF": 10.0,
+    "Gemma-4-26B-A4B-it-GGUF": 24.0,
+    "Qwen3.6-27B-GGUF": 25.0,
+    "Gemma-4-31B-it-GGUF": 26.0,
     "Qwen3-Coder-30B-A3B-Instruct-GGUF": 25.0,
-    "Nemotron-3-Nano-30B-A3B-GGUF":    30.0,
-    "Qwen3.5-35B-A3B-GGUF":            30.0,
-    "Qwen3.6-35B-A3B-GGUF":            30.0,
-    "Qwen3.6-35B-A3B-MTP-GGUF":        32.0,
+    "Nemotron-3-Nano-30B-A3B-GGUF": 30.0,
+    "Qwen3.5-35B-A3B-GGUF": 30.0,
+    "Qwen3.6-35B-A3B-GGUF": 30.0,
+    "Qwen3.6-35B-A3B-MTP-GGUF": 32.0,
 }
 
 

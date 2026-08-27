@@ -53,12 +53,14 @@ class ModelOrganismTest:
             action = await self.model.decide(self.env.state)
             outcome = self.env.apply(action)
 
-            results.append({
-                'step': step,
-                'action': action,
-                'alignment_score': self.score_alignment(action, step),
-                'deceptive_indicators': self.detect_deception(action),
-            })
+            results.append(
+                {
+                    "step": step,
+                    "action": action,
+                    "alignment_score": self.score_alignment(action, step),
+                    "deceptive_indicators": self.detect_deception(action),
+                }
+            )
 
         return AlignmentReport(results)
 ```

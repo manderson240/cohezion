@@ -144,7 +144,7 @@ Driver: `.worktrees/nemotron-june/scripts/drive_nemotron.py` (quota: 5 submissio
 - [`DEPLOY.md`](./DEPLOY.md) / [`DEPLOYMENT.md`](./DEPLOYMENT.md) / [`DEPLOYMENT_PLAN.md`](./DEPLOYMENT_PLAN.md) — pre-BMAD deployment docs
 - [`COST_POLICY.md`](./COST_POLICY.md) — cost tiers
 - [`DAILY_HEALTH_DIGEST.md`](./DAILY_HEALTH_DIGEST.md) — health reports
-- [`IDLE_COMPUTE_MONETIZATION_PLAN.md`](./IDLE_COMPUTE_MONETIZATION_PLAN.md) — idle-compute strategy
+- [`IDLE_COMPUTE_MONETIZATION_PLAN.md`](./archive/IDLE_COMPUTE_MONETIZATION_PLAN.md) — idle-compute strategy
 - [`HTTPS_SETUP_GUIDE.md`](./HTTPS_SETUP_GUIDE.md) — HTTPS setup
-- [`docs/adr/002-googlesql-integration.yaml`](./adr/002-googlesql-integration.yaml) — GoogleSQL sidecar
+- [`docs/adrs/002-googlesql-integration.yaml`](./adrs/002-googlesql-integration.yaml) — GoogleSQL sidecar
 - [`CONTRIBUTING.md`](../CONTRIBUTING.md) — branch strategy + PR process

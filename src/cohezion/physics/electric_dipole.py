@@ -5,16 +5,18 @@ positive, magnitude ``qd``). An external field exerts ``τ = p × E``, which rot
 alignment. This underlies water's polarity, capacitor dielectrics, and molecular orientation in
 chemistry and biology — charge separation at the smallest scale shaping macroscopic matter.
 
-WHY THIS MODULE EXISTS, beyond completeness (Wire-at-Creation, three real consumers):
+WHY THIS MODULE EXISTS (Wire-at-Creation status, stated honestly — adversarial review
+2026-08-21 found the original "three real consumers" claim two-thirds inflated):
 
-1. ``toroidal_moment.py`` opens with *"Unlike dipole/quadrupole moments, toroidal moments…"* —
-   the exotic anapole family was implemented while the fundamental multipole it is defined
-   against was missing. This closes that.
+1. ONE real code consumer: ``dielectric.py``'s :meth:`DielectricField.from_dipoles` imports
+   :func:`permittivity_from_dipoles`, closing the physical chain ``p = qd`` → ``P = N⟨p⟩`` →
+   ``ε_r = 1 + χ`` → bulk response (permittivity was previously a free input parameter).
+   That bridge is itself exercised only by tests so far — no production caller yet; wiring
+   it into a DegradationDetector/CompoundExecutor path is the open Wire-at-Creation TODO.
 
-2. ``dielectric.py`` accepts ``permittivity_tensor`` as an INPUT. The physical chain is
-   ``p = qd`` → ``P = N⟨p⟩`` → ``ε_r = 1 + χ`` → bulk response; only the last link existed, so
-   permittivity was a free parameter rather than a derived quantity.
-   :func:`permittivity_from_dipoles` supplies the missing derivation.
+2. Motivations that are NOT code consumers (do not read them as wiring): ``toroidal_moment.py``
+   mentions dipoles in prose only (never imports this), and the U1 anchoring below is a
+   doc/test relationship, not consumption.
 
 3. It anchors harness invariant **U1** in a worked example. U1 asserts that all seven physics
    substrates share the kernel ``4x(1-x)``, peaking at ``x = 0.5``. Under the natural alignment

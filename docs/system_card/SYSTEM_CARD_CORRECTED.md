@@ -122,10 +122,7 @@ from cohezion.physics.riemannian_metric import fabric_block_metric
 # Environment with actual Riemannian geometry
 env = RiemannianManifoldEnv(
     metric_fn=fabric_block_metric,  # Real metric tensor
-    gauge_field=YangMillsConnection(
-        gauge_group="SU(2)",
-        curvature_zero_at_hiho=True
-    )
+    gauge_field=YangMillsConnection(gauge_group="SU(2)", curvature_zero_at_hiho=True),
 )
 ```
 
@@ -157,14 +154,11 @@ trainer = SSDTrainer(
     temperature_sample=0.9,
     top_p=0.8,
     top_k=20,
-    n_repeat=10  # Samples per query
+    n_repeat=10,  # Samples per query
 )
 
 # Fine-tune on self-generated outputs
-trainer.train(
-    base_model="cohezion-coder-7b",
-    output_path="cohezion-coder-ssd-7b"
-)
+trainer.train(base_model="cohezion-coder-7b", output_path="cohezion-coder-ssd-7b")
 ```
 
 **Models Available**:
@@ -196,7 +190,7 @@ from cohezion.rl.grpo_trainer import GRPOTrainer, RuleBasedReward
 # Rule-based rewards (no neural reward model to prevent hacking)
 reward_model = RuleBasedReward(
     accuracy_fn=verify_code_execution,  # Unit tests
-    format_fn=enforce_thinking_tags      # <thinking>...</thinking>
+    format_fn=enforce_thinking_tags,  # <thinking>...</thinking>
 )
 
 trainer = GRPOTrainer(
@@ -204,7 +198,7 @@ trainer = GRPOTrainer(
     reference_model="deepseek-v3-base-frozen",
     group_size=16,
     kl_coefficient=0.001,
-    clip_epsilon=0.2
+    clip_epsilon=0.2,
 )
 
 # Train without any SFT data
@@ -212,7 +206,7 @@ trainer.train(
     dataset="math_code_reasoning_80k",
     reward_model=reward_model,
     max_tokens=32768,
-    learning_rate=3e-6
+    learning_rate=3e-6,
 )
 ```
 
@@ -264,22 +258,19 @@ from cohezion.rl.triune_trainer import SOTATriuneTrainer
 trainer = SOTATriuneTrainer(
     # TRIUNE base
     alpha=0.7,  # Task weight
-    beta=0.2,   # Physics weight
+    beta=0.2,  # Physics weight
     gamma=0.1,  # Safety weight
-    
     # SSD integration
     use_self_distillation=True,
     ssi_temperature=0.9,
-    
     # GRPO integration
     use_grpo=True,
     group_size=16,
     kl_regularization=True,
-    
     # HIHO stability
     coherence_target=0.5,
     manifold_dim=12,
-    latent_dim=256
+    latent_dim=256,
 )
 ```
 
@@ -342,7 +333,7 @@ from cohezion.compound.session_manager import CompoundSessionManager
 mgr = CompoundSessionManager()
 alignment = mgr.check_alignment(
     request="Generate recursive function",
-    threshold=0.5  # HIHO stability band
+    threshold=0.5,  # HIHO stability band
 )
 
 if not alignment.should_proceed:
@@ -361,6 +352,7 @@ Prevents code-switching during RL training.
 All agentic actions use **idempotency keys**:
 ```python
 from cohezion.core.idempotency import IdempotentExecutor
+
 
 @IdempotentExecutor(artifact_ttl=86400)
 async def generate_solution(task_id: str, prompt: str) -> Solution:
@@ -399,7 +391,7 @@ from cohezion.safety.risk_control import RiskControlSystem
 rcs = RiskControlSystem(
     keyword_filter=True,
     model_review="deepseek-v3-judge",
-    safety_categories=11  # List: General Principle, Local Policies, etc.
+    safety_categories=11,  # List: General Principle, Local Policies, etc.
 )
 
 result = rcs.evaluate(query, response)

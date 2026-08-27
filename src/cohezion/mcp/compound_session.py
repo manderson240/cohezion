@@ -50,6 +50,12 @@ class MCPInfrastructureState:
     redis_connected: bool = False
     total_uptime_seconds: float = 0.0
     created_at: float = field(default_factory=time.time)
+    # Cross-server unified snapshot (merged from compound_unified.UnifiedSessionCheckpoint)
+    memory_graph: dict[str, Any] = field(default_factory=dict)
+    thinking_sessions: dict[str, Any] = field(default_factory=dict)
+    doc_cache: dict[str, Any] = field(default_factory=dict)
+    git_snapshots: dict[str, Any] = field(default_factory=dict)
+    security_state: dict[str, Any] = field(default_factory=dict)
 
 
 class CompoundMCPSessionManager:

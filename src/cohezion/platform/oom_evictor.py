@@ -109,8 +109,22 @@ class OOMEvictor:
 class PressureDriver:
     """Periodically samples the monitor so pressure transitions fire without a load attempt."""
 
-    def __init__(self, monitor: MemoryPressureMonitor | None = None) -> None:
+    def __init__(
+        self,
+        monitor: MemoryPressureMonitor | None = None,
+        *,
+        on_tick: Callable[[], None] | None = None,
+    ) -> None:
+        """``on_tick`` runs once per loop iteration, after the pressure sample.
+
+        This is the seam for the AMBIENT residency pass (`ResidencyService.tick`). This
+        driver is pressure-driven — it reacts to a CRITICAL rising edge — and has no
+        demand-driven half; RS6 supplies it. Joining this loop rather than starting a second
+        timer is deliberate: two independent eviction loops over one fleet can race, both
+        reading residency and both choosing an LRU victim to unload.
+        """
         self._monitor = monitor if monitor is not None else get_pressure_monitor()
+        self._on_tick = on_tick
 
     def tick(self, *, snapshot: tuple[float, float] | None = None) -> PressureLevel:
         """One sample → classify → maybe-emit. Returns the (new) level."""
@@ -135,6 +149,14 @@ class PressureDriver:
                 self.tick()
             except Exception as exc:
                 logger.warning("PressureDriver: tick failed: %s", exc)
+            if self._on_tick is not None:
+                # Isolated from the pressure sample above: a residency pass that throws
+                # (health unreachable, an unload 500) must neither kill the loop nor
+                # suppress the pre-existing sampling job.
+                try:
+                    self._on_tick()
+                except Exception as exc:
+                    logger.warning("PressureDriver: on_tick failed: %s", exc)
             ticks += 1
             sleep(interval_s)
         return ticks

@@ -117,3 +117,16 @@ class AutoHarnessPolicy:
             execution_time_ms=dt_ms,
             reason="Validated by AutoHarness policy",
         )
+
+
+# --- reconcile 2026-08-26: preserved from main (importers: see docs/reconcile/2026-08-26-merge-resolution.md) ---
+@dataclass
+class VerificationResult:
+    """Outcome of AutoHarness deterministic verification."""
+
+    valid: bool
+    latency_ms: float
+    verifier_name: str
+    violations: list[str] = field(default_factory=list)
+    ast_nodes_scanned: int = 0
+

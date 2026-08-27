@@ -32,8 +32,9 @@ From analyzing `research/challenges/luma_amd_speedrun/`:
 ```python
 # Priority: HIGH
 "cktile_moe_gemm1/2 direct dispatch"  # Skip fused_moe API overhead
-"e2e_moe_persistent_kernel"          # Persistent tiles
-"Probe 182 precompiled kernels"       # Already compiled at /home/runner/aiter/hsa/gfx950/fmoe_2stages/
+
+"e2e_moe_persistent_kernel"  # Persistent tiles
+"Probe 182 precompiled kernels"  # Already compiled at /home/runner/aiter/hsa/gfx950/fmoe_2stages/
 ```
 
 **Dead End Confirmed**:
@@ -58,9 +59,10 @@ From analyzing `research/challenges/luma_amd_speedrun/`:
 **Strategy from COORDINATION.md**:
 ```python
 # Priority: HIGH
-"pod_attention probe"                   # Persistent FlashAttention-style
-"fav3_sage_attention_mxfp4"             # SageAttention for MXFP4
-"PS metadata buffer pre-allocation"     # Eliminate allocation overhead
+"pod_attention probe"  # Persistent FlashAttention-style
+
+"fav3_sage_attention_mxfp4"  # SageAttention for MXFP4
+"PS metadata buffer pre-allocation"  # Eliminate allocation overhead
 ```
 
 **Working** (current submission):
@@ -90,9 +92,10 @@ From analyzing `research/challenges/luma_amd_speedrun/`:
 **Strategy from COORDINATION.md**:
 ```python
 # Priority: HIGH
-"fused_gemm_a8w8_blockscale_*"          # Fused quant+GEMM
-"gemm_a4w4_blockscale with tuned splitK" # Split-K optimization
-"HIP_ONLINE_TUNING=1"                    # Enable tuning
+"fused_gemm_a8w8_blockscale_*"  # Fused quant+GEMM
+
+"gemm_a4w4_blockscale with tuned splitK"  # Split-K optimization
+"HIP_ONLINE_TUNING=1"  # Enable tuning
 ```
 
 **Dead Ends Confirmed**:

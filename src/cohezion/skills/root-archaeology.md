@@ -26,15 +26,16 @@ v_model_phase: 1  # Requirements
 ### 1. Inventory (5 min)
 ```python
 import os
-items = [f for f in os.listdir('.') if not f.startswith('.git')]
+
+items = [f for f in os.listdir(".") if not f.startswith(".git")]
 categories = {
-    'essential': [],      # README, LICENSE, src/, tests/, docs/
-    'research': [],         # Competition outputs, papers
-    'project_docs': [],     # Guides, architecture docs
-    'sessions': [],          # Status reports, handoffs
-    'infrastructure': [],    # Docker, k8s, deployment
-    'data': [],            # Artifacts, submissions
-    'archives': [],        # Old backups, experiments
+    "essential": [],  # README, LICENSE, src/, tests/, docs/
+    "research": [],  # Competition outputs, papers
+    "project_docs": [],  # Guides, architecture docs
+    "sessions": [],  # Status reports, handoffs
+    "infrastructure": [],  # Docker, k8s, deployment
+    "data": [],  # Artifacts, submissions
+    "archives": [],  # Old backups, experiments
 }
 ```
 

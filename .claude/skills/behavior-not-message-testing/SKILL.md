@@ -1,6 +1,7 @@
 ---
 name: behavior-not-message-testing
-description: Use when writing or reviewing exception tests. The pattern: assert on exception TYPE, not on the message STRING. Discovered in WS1 (PR #218 follow-up) where `assert "default" in str(exc.value)` coupled a test to the implementation; the fix was `pytest.raises(RecipeMisalignment)` with no message check.
+description: |
+  Use when writing or reviewing exception tests. The pattern: assert on exception TYPE, not on the message STRING. Discovered in WS1 (PR #218 follow-up) where `assert "default" in str(exc.value)` coupled a test to the implementation; the fix was `pytest.raises(RecipeMisalignment)` with no message check.
 when_to_use: |
   - Writing a test that asserts an exception is raised
   - Reviewing a test that uses `assert "..." in str(exc.value)` or `assert exc.value.args[0] == "..."`
@@ -29,7 +30,7 @@ worked_example: |
         RecipeGuard.assert_aligned(bad_params)
   # The test breaks only if the EXCEPTION TYPE changes. That's the
   # contract the caller actually depends on.
-anti_patterns:
+anti_patterns: |
   - `assert "..." in str(exc.value)` — couples test to message wording
   - `assert exc.value.args[0] == "..."` — couples to format string
   - `assert isinstance(exc.value, SomeError) and "key" in str(exc.value)`
@@ -48,7 +49,7 @@ related_skills:
     about XPASS marking)
   - prompt-injection-guard (when message checking IS the right thing
     — guarding against injection in error message content)
-verification:
+verification: |
   before_landing:
     - `grep -rn "in str(.*exc\|in str(.*err\|exc.value.args" tests/`
       should return ZERO matches

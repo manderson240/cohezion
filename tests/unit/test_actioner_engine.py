@@ -29,8 +29,12 @@ class FakeAPI(WorkQueueAPI):
     def eligible_items(self):
         return list(self._items)
 
-    def mark_actioned(self, item_id, note):
-        self.patched.append((item_id, note))
+    def mark_actioned(self, item_id, route):
+        # Signature tracks the real WorkQueueAPI.mark_actioned, which now records the
+        # route in its own field instead of overwriting `notes` (the analysis field).
+        # See tests/unit/test_work_queue_notes_preservation.py -- a fake like this one is
+        # exactly what hid that defect, so it must at least mirror the real signature.
+        self.patched.append((item_id, route))
         return {"id": item_id, "status": "actioned"}
 
 

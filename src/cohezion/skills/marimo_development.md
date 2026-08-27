@@ -73,10 +73,7 @@ def _(mo, go, slider):
 ### 5. Multimodal Elements
 Leverage `marimo.ui` for rich user interaction beyond standard inputs.
 ```python
-tabs = mo.ui.tabs({
-    "Overview": mo.md("# View 1"),
-    "Technical": mo.md("# View 2")
-})
+tabs = mo.ui.tabs({"Overview": mo.md("# View 1"), "Technical": mo.md("# View 2")})
 ```
 
 ## VERSION

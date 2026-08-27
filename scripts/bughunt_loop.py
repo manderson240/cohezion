@@ -41,18 +41,18 @@ LOOP_DELAY_SECONDS = 60
 _SYSTEM = (
     "You are a Python code auditor. Analyze the provided code for real bugs.\n"
     "Output ONLY a JSON array (no markdown fences, no commentary).\n"
-    "Each element: {\"file\": str, \"line\": int|null, \"severity\": "
-    "\"critical\"|\"high\"|\"medium\"|\"low\", "
-    "\"category\": \"null_deref\"|\"type_error\"|\"async_safety\"|"
-    "\"missing_error_handling\"|\"resource_leak\"|\"logic_bug\"|\"security\"|\"dead_code\", "
-    "\"description\": str, \"suggested_fix\": str}.\n"
+    'Each element: {"file": str, "line": int|null, "severity": '
+    '"critical"|"high"|"medium"|"low", '
+    '"category": "null_deref"|"type_error"|"async_safety"|'
+    '"missing_error_handling"|"resource_leak"|"logic_bug"|"security"|"dead_code", '
+    '"description": str, "suggested_fix": str}.\n'
     "Return [] if no bugs found. Only report real bugs, not style issues."
 )
 
 _VERIFY_SYSTEM = (
     "You are a skeptical code reviewer. You are given a bug finding report and the relevant code.\n"
     "Your job is to TRY TO REFUTE the finding — look for reasons it might be a false positive.\n"
-    "Output ONLY a JSON object: {\"refuted\": true|false, \"reason\": str}.\n"
+    'Output ONLY a JSON object: {"refuted": true|false, "reason": str}.\n'
     "Set refuted=true if the code is actually correct and the finding is wrong.\n"
     "Set refuted=false if the bug is real and cannot be explained away.\n"
     "Default to refuted=true if uncertain."
@@ -61,13 +61,13 @@ _VERIFY_SYSTEM = (
 
 # ── File selection ──────────────────────────────────────────────────────────
 
+
 def _collect_targets(root: Path) -> list[Path]:
     """Return all .py files under root, excluding __pycache__ and test files."""
     return sorted(
-        p for p in root.rglob("*.py")
-        if "__pycache__" not in str(p)
-        and "test_" not in p.name
-        and p.name != "conftest.py"
+        p
+        for p in root.rglob("*.py")
+        if "__pycache__" not in str(p) and "test_" not in p.name and p.name != "conftest.py"
     )
 
 
@@ -95,7 +95,7 @@ def _pick_next(targets: list[Path], n: int) -> list[Path]:
 # Backend map: model → llamacpp_backend required by OmniRouter
 _MODEL_BACKENDS: dict[str, str] = {
     PRIMARY_MODEL: "vulkan",  # Gemma-4-E4B: iGPU via Vulkan (~15 TPS)
-    FALLBACK_MODEL: "cpu",    # Qwen3-0.6B: tiny, CPU fallback
+    FALLBACK_MODEL: "cpu",  # Qwen3-0.6B: tiny, CPU fallback
 }
 
 
@@ -117,8 +117,8 @@ async def _load_model(model: str, lemonade_url: str) -> bool:
 
 async def _verify_finding(finding: dict, code: str, model: str, lemonade_url: str) -> bool:
     """Second-pass adversarial check. Returns True if the finding is confirmed (not refuted)."""
-    snippet = f"File: {finding.get('file','?')}, line {finding.get('line','?')}\n"
-    snippet += f"Bug reported: [{finding.get('severity','?').upper()}] {finding.get('description','')}\n\n"
+    snippet = f"File: {finding.get('file', '?')}, line {finding.get('line', '?')}\n"
+    snippet += f"Bug reported: [{finding.get('severity', '?').upper()}] {finding.get('description', '')}\n\n"
     snippet += f"```python\n{code[:3000]}\n```"
     try:
         async with httpx.AsyncClient(timeout=45.0) as client:
@@ -151,7 +151,9 @@ async def _verify_finding(finding: dict, code: str, model: str, lemonade_url: st
         return True
 
 
-async def _analyze_file(path: Path, lemonade_url: str = LEMONADE_URL, verify: bool = False) -> list[dict]:
+async def _analyze_file(
+    path: Path, lemonade_url: str = LEMONADE_URL, verify: bool = False
+) -> list[dict]:
     """Send one file to Lemonade reasoning tier and parse bug findings."""
     try:
         code = path.read_text(errors="replace")[:MAX_FILE_CHARS]
@@ -235,6 +237,7 @@ async def _analyze_file(path: Path, lemonade_url: str = LEMONADE_URL, verify: bo
 
 # ── Persistence ─────────────────────────────────────────────────────────────
 
+
 def _log_findings(findings: list[dict]) -> None:
     FINDINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
     with FINDINGS_PATH.open("a") as fh:
@@ -256,6 +259,7 @@ def _print_summary(findings: list[dict], path: Path) -> None:
 
 
 # ── Main ────────────────────────────────────────────────────────────────────
+
 
 async def run_once(targets: list[Path], verify: bool = False) -> list[dict]:
     all_findings: list[dict] = []
@@ -294,7 +298,9 @@ def main() -> None:
     ap.add_argument("--file", help="Scan a single file instead of directory")
     ap.add_argument("--n", type=int, default=3, help="Files per pass")
     ap.add_argument("--loop", action="store_true", help="Run continuously")
-    ap.add_argument("--verify", action="store_true", help="Adversarial second-pass: refute false positives")
+    ap.add_argument(
+        "--verify", action="store_true", help="Adversarial second-pass: refute false positives"
+    )
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
 

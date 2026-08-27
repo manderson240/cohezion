@@ -38,6 +38,7 @@ text, metrics = rag_tier.run_sync("How does LENR relate to HIHO?")
 
 # As async
 import asyncio
+
 result = asyncio.run(rag_tier.run("Explain ionic cluster equilibrium"))
 print(result.text, result.source_documents)
 ```

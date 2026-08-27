@@ -74,3 +74,16 @@ class ZKFVCompiler:
             is_valid=all_ok,
             verification_time_ms=round(dt_ms, 3),
         )
+
+
+# --- reconcile 2026-08-26: preserved from main (importers: see docs/reconcile/2026-08-26-merge-resolution.md) ---
+@dataclass
+class ZKFVProof:
+    """Polynomial hash proof for code invariant verification."""
+
+    code_hash: str
+    polynomial_signature: str
+    invariant_count: int
+    verified: bool
+    proof_metadata: dict[str, Any]
+

@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import contextlib
 import os
 import re
 import sys
@@ -181,7 +182,7 @@ class TerminalNexus:
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             expand=True,
         )
-        task_id = progress.add_task("Coherence", total=100, completed=intensity * 100)
+        progress.add_task("Coherence", total=100, completed=intensity * 100)
 
         # Add a subtle "pulse" animation character
         pulse_char = "⚡" if datetime.now().second % 2 == 0 else " "
@@ -204,7 +205,7 @@ class TerminalNexus:
     async def run(self):
         self.make_layout()
 
-        with Live(self.layout, refresh_per_second=4, screen=True) as live:
+        with Live(self.layout, refresh_per_second=4, screen=True):
             async for _ in self.driver.digest_logs():
                 self.layout["header"].update(self.get_header())
                 self.layout["lattice"].update(self.get_lattice())
@@ -374,7 +375,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass

@@ -832,10 +832,14 @@ ollama-mcp/
 
 ```python
 def select_model(task_type, content_length):
-    if task_type == "embed": return "nomic-embed-text:latest"
-    if content_length > 100_000: return "phi4-256k:latest"
-    elif content_length > 10_000: return "qwen2.5-coder:14b"
-    else: return "qwen3:8b"
+    if task_type == "embed":
+        return "nomic-embed-text:latest"
+    if content_length > 100_000:
+        return "phi4-256k:latest"
+    elif content_length > 10_000:
+        return "qwen2.5-coder:14b"
+    else:
+        return "qwen3:8b"
 ```
 
 **Available models (28)**

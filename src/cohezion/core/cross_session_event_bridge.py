@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -19,6 +20,8 @@ from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 logger = logging.getLogger(__name__)
+
+_EVENT_HANDLER_TIMEOUT_S = float(os.environ.get("EVENT_HANDLER_TIMEOUT_S", "3.0"))
 
 
 @dataclass
@@ -35,7 +38,10 @@ class CrossSessionEventBridge:
         if not self._subscribed:
             self.event_bus.register_handler(self._on_local_event, event_type=None)
             self._subscribed = True
-            logger.info("CrossSessionEventBridge subscribed to local EventBus for session: %s", self.session_id)
+            logger.info(
+                "CrossSessionEventBridge subscribed to local EventBus for session: %s",
+                self.session_id,
+            )
 
     async def _on_local_event(self, event: Event) -> None:
         """Persist local events to SurrealDB event_log for cross-session visibility."""
@@ -57,9 +63,16 @@ class CrossSessionEventBridge:
                     "UPSERT type::record('event_log', $record_id) CONTENT $data;",
                     {"record_id": record_id, "data": event_data},
                 ),
-                timeout=3.0,
+                timeout=_EVENT_HANDLER_TIMEOUT_S,
             )
             logger.debug("Persisted cross-session event %s to event_log", record_id)
+        except TimeoutError:
+            logger.error(
+                "Event persistence timed out after %.1fs — event %s/%s LOST from event_log",
+                _EVENT_HANDLER_TIMEOUT_S,
+                event.type.name,
+                event.source,
+            )
         except Exception as err:
             logger.warning("Failed to persist event to SurrealDB event_log: %s", err)
 
@@ -68,7 +81,7 @@ class CrossSessionEventBridge:
     ) -> list[dict[str, Any]]:
         """Fetch recent cross-session events published by other active agent sessions via parameterized SurrealQL."""
         bindings: dict[str, Any] = {"session_id": self.session_id, "limit": limit}
-        
+
         if target_event_type:
             sql = "SELECT * FROM event_log WHERE session_id != $session_id AND type = $target_type ORDER BY timestamp DESC LIMIT $limit;"
             bindings["target_type"] = target_event_type

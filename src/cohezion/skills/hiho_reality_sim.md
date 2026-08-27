@@ -158,9 +158,10 @@ def check_precipitation(coherence: float, awareness: float) -> dict:
 
     # Shannon information content (bits remaining before full collapse)
     import math
+
     p = coherence
     if 0 < p < 1:
-        shannon_h = -p * math.log2(p) - (1-p) * math.log2(1-p)
+        shannon_h = -p * math.log2(p) - (1 - p) * math.log2(1 - p)
     else:
         shannon_h = 0.0
 
@@ -175,7 +176,7 @@ def check_precipitation(coherence: float, awareness: float) -> dict:
         "shannon_entropy_bits": shannon_h,
         "free_energy": free_energy,
         "spontaneous": free_energy < 0,
-        "mechanism": "Smith/HIHO + Thermodynamic + Information-theoretic convergence"
+        "mechanism": "Smith/HIHO + Thermodynamic + Information-theoretic convergence",
     }
 ```
 

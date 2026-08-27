@@ -11,6 +11,7 @@ from typing import Any, ClassVar
 from cohezion.core.resource_monitor import get_resource_monitor
 from cohezion.security.constitutional_shield import ConstitutionalShield as CoreConstitutionalShield
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailResult
+from cohezion.security.injection_signals import find_injection
 from cohezion.security.rate_limiter import get_rate_limiter
 
 
@@ -102,27 +103,24 @@ class PromptInjectionGuard:
     Detects common prompt injection patterns.
     """
 
-    # Common injection patterns (class-level constant)
-    INJECTION_PATTERNS: ClassVar[list[str]] = [
-        "ignore previous",
-        "disregard",
-        "system prompt",
-        "jailbreak",
-        "override",
-        "bypass",
-    ]
+    # NOTE: the former `INJECTION_PATTERNS` ClassVar (six literal lowercase substrings)
+    # was REMOVED, not retained-but-inert. Measured against our own OWASP corpus it
+    # caught 8/106 attacks while blocking 4 of 7 legitimate task descriptions, so
+    # detection moved to cohezion.security.injection_signals. Leaving the attribute in
+    # place would have been worse than deleting it: a caller appending to it to
+    # customise detection would get SILENCE rather than an AttributeError. It had zero
+    # consumers, so removal costs nothing and makes the change visible.
 
     async def check(self, text: str, context: dict[str, Any]) -> GuardrailResult:
-        """Check for prompt injection."""
-        text_lower = text.lower()
+        """Check for prompt injection across normalized variants of the input."""
+        signal = find_injection(text)
 
-        for pattern in self.INJECTION_PATTERNS:
-            if pattern in text_lower:
-                return GuardrailResult(
-                    action=GuardrailAction.BLOCK,
-                    reason=f"Potential injection pattern detected: {pattern}",
-                    guard_name="prompt_injection",
-                )
+        if signal is not None:
+            return GuardrailResult(
+                action=GuardrailAction.BLOCK,
+                reason=f"Potential injection pattern detected: {signal}",
+                guard_name="prompt_injection",
+            )
 
         return GuardrailResult(
             action=GuardrailAction.ALLOW,

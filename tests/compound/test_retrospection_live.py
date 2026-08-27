@@ -87,7 +87,13 @@ class TestRetrospectionLive:
         assert len(result.metrics["retrospection_insights"]) > 0
 
     def test_retrospection_gates_refinement_on_failure(self, mock_mcp_client):
-        """Retrospection gates refinement: failed execution -> no refinement."""
+        """Failed execution never reaches SUCCESS-pattern refinement.
+
+        Pre-FAPO this asserted refine() is not called at all on failure. Since the M1 fix
+        (2026-06-29) a failure DOES call refine — but only through the failure-attribution
+        branch, carrying a non-None ``failure_attribution`` kwarg for L1-L3 escalation
+        routing inside SkillRefiner. The invariant that survives: no call may look like a
+        success-pattern refinement (which passes ``failure_signatures`` and no attribution)."""
         engine = RetrospectionEngine()
 
         mock_refiner = MagicMock()
@@ -111,8 +117,19 @@ class TestRetrospectionLive:
             execute_fn=failing_task,
         )
 
-        # Refiner should NOT have been called (retrospection blocks it)
-        assert not mock_refiner.refine.called
+        # The FAPO branch must actually FIRE on a classifiable failure (a vacuous version
+        # of this test — asserting only over an empty call list — would pass an impl that
+        # never routes failures anywhere; adversarial review 2026-08-21).
+        assert mock_refiner.refine.called, (
+            "refine() never called on a classifiable failure — FAPO branch dormant"
+        )
+        # And every refine() call on a failure must be the FAPO branch: attribution attached.
+        # A wrong impl that routes failures into success-pattern refinement fails here.
+        for call in mock_refiner.refine.call_args_list:
+            assert call.kwargs.get("failure_attribution") is not None, (
+                "refine() called on a FAILED execution without failure_attribution — "
+                "the success-pattern path is not gated"
+            )
 
     def test_degraded_execution_produces_investigation_recommendation(self):
         """Degraded execution produces investigation recommendation."""

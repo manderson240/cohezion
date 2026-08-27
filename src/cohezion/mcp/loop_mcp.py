@@ -24,6 +24,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -148,6 +149,10 @@ async def _surreal_sql(sql: str, *, hint: str) -> dict[str, Any]:
     On success returns {"result": [<one entry per statement>]}; on failure returns
     an actionable error dict. Values in `sql` MUST already be escaped via _lit.
 
+    SurrealDB reports SurrealQL failures as HTTP 200 with a per-statement
+    {"status": "ERR", "result": "<message>"} entry, so the HTTP code alone cannot
+    certify success — any non-OK statement is surfaced as an error here.
+
     Args:
         sql: SurrealQL statement(s) to execute.
         hint: Actionable next-step guidance included in any error dict.
@@ -157,11 +162,25 @@ async def _surreal_sql(sql: str, *, hint: str) -> dict[str, Any]:
         try:
             resp = await client.post(url, content=sql, headers=_surreal_headers())
             resp.raise_for_status()
-            return {"result": resp.json()}
+            body = resp.json()
         except httpx.HTTPStatusError as exc:
             return _http_error(exc.response.status_code, exc.response.text[:400], url, hint)
         except Exception as exc:  # pragma: no cover - real network failures
             return {"error": f"Cannot reach SurrealDB at {url}: {exc}", "hint": hint}
+
+    if isinstance(body, list):
+        failed = [
+            str(stmt.get("result"))
+            for stmt in body
+            if isinstance(stmt, dict) and stmt.get("status") != "OK"
+        ]
+        if failed:
+            return {
+                "error": f"SurrealQL statement error: {'; '.join(failed)[:400]}",
+                "detail": body,
+                "hint": hint,
+            }
+    return {"result": body}
 
 
 async def _probe_service(url: str) -> str:
@@ -331,16 +350,23 @@ async def proposals_append(entry: dict[str, Any]) -> dict[str, Any]:
 
 
 @app.tool()
-async def event_publish(event_type: str, source: str, payload: dict[str, Any]) -> dict[str, Any]:
+async def event_publish(
+    event_type: str, source: str, payload: dict[str, Any], priority: int = 0
+) -> dict[str, Any]:
     """Publish an event onto the datamesh backbone (SurrealDB data_product_event).
 
     The event is consumed by the datamesh EventConsumer. Values are escaped via
     _lit so the SurrealQL cannot be injected.
 
+    data_product_event is SCHEMAFULL: `priority` is a required int (no default)
+    and `timestamp` is TYPE float (epoch seconds — the consumer's
+    fetch_unclaimed orders by it), NOT a datetime.
+
     Args:
         event_type: Event type, e.g. data_product_quality_alert, domain_health_degraded.
         source: Source identifier for the event.
         payload: Arbitrary JSON payload; stored as a JSON string.
+        priority: Event priority (int, default 0).
     """
     if not event_type or not source:
         return {
@@ -352,7 +378,8 @@ async def event_publish(event_type: str, source: str, payload: dict[str, Any]) -
         f"event_type: {_lit(event_type)}, "
         f"source: {_lit(source)}, "
         f"payload: {_lit(json.dumps(payload, sort_keys=True))}, "
-        "timestamp: time::now() };"
+        f"priority: {int(priority)}, "
+        f"timestamp: {float(time.time())!r} }};"
     )
     res = await _surreal_sql(
         sql,

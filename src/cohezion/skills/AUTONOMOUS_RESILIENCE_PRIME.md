@@ -25,11 +25,11 @@ Do NOT start the `ResourceMonitor` background loop if the system is already unde
 
 ```python
 # ANTI-PATTERN (Suicide)
-# await monitor.start() 
+# await monitor.start()
 
 # PATTERN (Survival)
 vitals = monitor.get_vitals()
-if vitals['vram_percent'] > 96.0:
+if vitals["vram_percent"] > 96.0:
     logger.warning("COMA MODE ACTIVATE")
     await asyncio.sleep(30)
 ```
@@ -37,10 +37,10 @@ if vitals['vram_percent'] > 96.0:
 ### 2. Dilation Logic
 Scale execution speed inversely to pressure:
 ```python
-if vitals['vram_percent'] > 92.0:
-    dilation = 0.05 # Slow Cook
+if vitals["vram_percent"] > 92.0:
+    dilation = 0.05  # Slow Cook
 else:
-    dilation = 1.0 # Fast
+    dilation = 1.0  # Fast
 
 delay = BASE_DELAY / dilation
 await asyncio.sleep(delay)

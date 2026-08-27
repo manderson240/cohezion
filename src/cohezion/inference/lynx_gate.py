@@ -119,7 +119,7 @@ class EscalationProbe:
             gate_result = RouteResult(
                 text=npu_text, model="npu", lane="npu", latency_ms=0, cost_usd=0
             )
-            passed, reason = self.fallback_gate.check(gate_result)
+            passed, _reason = self.fallback_gate.check(gate_result)
             return not passed, 0.5
 
         # Hard override: short categorical responses (A/B/C, Yes/No, labels) always accept.

@@ -23,6 +23,7 @@ class _TierRecord:
     tier_used: str
     escalation_count: int
     quality_score: float
+    latency_s: float = 0.0
 
 
 _TIER_ORDER = ("npu", "igpu", "cpu")
@@ -39,6 +40,9 @@ _MIN_SAMPLES = 5  # competitive analysis lower bound: MTF potential needs O(n) o
 _LCB_ADEQUATE = 0.35
 _WILSON_Z = 1.96  # ~95% one-sided; engineering default, tune on replay logs
 _WINDOW = 10
+# Minimum latency observations before trusting empirical median over positional fallback.
+# With <3 samples, a single slow/fast run would dominate the median — statistically meaningless.
+_LATENCY_MIN_SAMPLES = 3
 # Bayesian cold-start gate (Beta(1,1) conjugate posterior — Gelman BDA §3.1).
 # Threshold 0.77 sits between (2+1)/(2+2)=0.75 (lucky-2/2, reject) and
 # (3+1)/(3+2)=0.80 (sustained-3/3, accept).  Works from n=1; replaces the
@@ -54,6 +58,16 @@ def _beta_posterior_mean(successes: int, n: int) -> float:
     without requiring a minimum sample count floor.
     """
     return (successes + 1) / (n + 2)
+
+
+def _median(values: list[float]) -> float:
+    """Median of a non-empty list of floats. Pure, no external deps."""
+    s = sorted(values)
+    n = len(s)
+    if n == 1:
+        return s[0]
+    mid = n // 2
+    return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0
 
 
 def _wilson_lcb(successes: int, n: int, z: float = _WILSON_Z) -> float:
@@ -115,9 +129,12 @@ class DifficultyEstimator:
     """Predict the optimal inference tier for a (skill_name, operation_type) pair.
 
     Tracks a rolling window of execution records per (skill, op_type).
-    predict_tier() returns the cheapest tier (NPU → iGPU → CPU) that has
-    a success_rate >= 0.7 over at least 2 samples, where success means
+    predict_tier() returns the FASTEST tier (by median latency) among tiers
+    whose Beta(1,1) posterior success rate >= 0.77, where success means
     escalation_count == 0 AND quality_score >= 0.6.
+
+    When no latency data is recorded (latency_s=0 for all records), falls back
+    to the positional _TIER_ORDER ("cheapest" by NPU → iGPU → CPU).
 
     If no tier clears the threshold, returns the tier with highest mean
     quality score.  Returns "unknown" when no history exists.
@@ -135,14 +152,22 @@ class DifficultyEstimator:
         tier_used: str,
         escalation_count: int,
         quality_score: float,
+        latency_s: float = 0.0,
     ) -> None:
-        """Append one execution record; old entries drop off at window=10."""
+        """Append one execution record; old entries drop off at window=10.
+
+        Args:
+            latency_s: Wall-clock latency of this execution in seconds.
+                When > 0, predict_tier uses median latency to pick the
+                fastest adequate tier instead of the positionally-cheapest.
+        """
         key = (skill_name, operation_type)
         self._history[key].append(
             _TierRecord(
                 tier_used=tier_used if tier_used in _TIER_ORDER else "cpu",
                 escalation_count=escalation_count,
                 quality_score=quality_score,
+                latency_s=latency_s,
             )
         )
 
@@ -196,22 +221,46 @@ class DifficultyEstimator:
                 return self._tier_from_complexity(self._complexity_score(prompt))
             return "unknown"
 
-        # Count per-tier success vs total
+        # Count per-tier success vs total + latency tracking
         tier_success: dict[str, int] = dict.fromkeys(_TIER_ORDER, 0)
         tier_count: dict[str, int] = dict.fromkeys(_TIER_ORDER, 0)
+        tier_latencies: dict[str, list[float]] = {t: [] for t in _TIER_ORDER}
         for rec in window:
             t = rec.tier_used
             tier_count[t] += 1
+            if rec.latency_s > 0:
+                tier_latencies[t].append(rec.latency_s)
             if rec.escalation_count == 0 and rec.quality_score >= _QUALITY_FLOOR:
                 tier_success[t] += 1
 
-        # Cheapest tier whose Beta(1,1) posterior success rate clears the threshold.
-        # Replaces the Wilson LCB + _MIN_SAMPLES=5 gate — works from n=1 while still
-        # rejecting lucky 2/2 (Beta=0.75 < 0.77) but accepting sustained 3/3 (Beta=0.80).
+        # GIC-LAT1: Among quality-adequate tiers (Beta posterior >= threshold),
+        # pick the FASTEST by median latency — not the positionally-cheapest.
+        # The 2026-08-13 GIC tier-routing soak proved that _TIER_ORDER's positional
+        # "cheap → expensive" ordering does not match empirical latency: a 35B-MoE
+        # tier with MTP speculative decoding was both more accurate AND faster than
+        # an 8B-dense thinking tier. Parameter count is not a latency ordering.
+        # When no latency data is recorded (latency_s=0 for all), falls back to
+        # the original positional _TIER_ORDER behavior (GIC2 preserved).
+        adequate_tiers: list[str] = []
         for tier in _TIER_ORDER:
             n = tier_count[tier]
             if n >= 1 and _beta_posterior_mean(tier_success[tier], n) >= _BETA_THRESHOLD:
-                return tier
+                adequate_tiers.append(tier)
+
+        if adequate_tiers:
+            # GIC-LAT3: require _LATENCY_MIN_SAMPLES observations before trusting
+            # empirical median latency. With <3 samples, a single slow/fast run
+            # would dominate the median — statistically meaningless and could
+            # cause tier flapping.
+            latency_adequate = [
+                t for t in adequate_tiers if len(tier_latencies[t]) >= _LATENCY_MIN_SAMPLES
+            ]
+            if latency_adequate:
+                return min(
+                    latency_adequate,
+                    key=lambda t: _median(tier_latencies[t]),
+                )
+            return adequate_tiers[0]  # positional fallback (original GIC2)
 
         # Fallback when no tier's LCB clears the floor (e.g. a skill reached only via escalation, so
         # its final tier has no CLEAN successes yet): pick the DOMINANT tier — where the skill

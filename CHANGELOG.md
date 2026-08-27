@@ -7,6 +7,246 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — loop_mcp datamesh bus write path (1.11.1)
+- `mcp/loop_mcp.py`: `event_publish` reported `success: true` while writing zero rows. SurrealDB
+  answers HTTP 200 for SurrealQL *statement* errors, placing the failure in the body as
+  `{"status": "ERR", ...}`; the code checked only the HTTP status. Any non-OK statement is now
+  surfaced as an error.
+- `integrations/kaggle_api.py`: import no longer pulls Kaggle or writes to stdout.
+- Regression cover: 5 of 16 tests in `tests/unit/test_loop_mcp.py` fail against the pre-fix source,
+  so the suite discriminates rather than merely passing.
+
+
+## [1.11.0] — 2026-08-20
+
+### Added — Repository Front Page & Hygiene Campaign
+- `README.md`: honest, verified front page — real Quick Start
+  (`uv run python examples/quickstart.py`, `make validate`), working section
+  anchors, CodeQL + Security Scan badges, Documentation and License sections
+- `pyproject.toml`: `[project.optional-dependencies] rl` extra
+  (`stable-baselines3`) so `make train` works out of the box via
+  `uv sync --extra rl`; Homepage/Documentation/Changelog project URLs
+- `docs/README.md`: curated documentation index
+- `.gitattributes`: LFS patterns for `*.safetensors`, `*.mp3`, `*.mp4`, `*.wav`
+  (future files only — no history migration)
+
+### Fixed — Truth Reconciliation
+- License consistently AGPL-3.0-or-later + commercial dual (README badge and
+  footer said Apache 2.0; `docs/index.md` said MIT)
+- Python floor consistently 3.13+ (README badge and prose said 3.11)
+- Stale counts refreshed from measurement: 182 PRIME skills (was "235"),
+  12,000+ collected tests (was "6,133"), 50+ validate checks (was "18"/"25")
+- `CITATION.cff` version aligned with `pyproject.toml`; `SECURITY.md`
+  supported-versions table updated
+
+### Changed — Root Hygiene
+- Removed tracked runtime state (`.skill_validation.json`,
+  `.checkpoint_session_104_validation.json`) and 11 zero-byte accidental
+  dotfiles/scripts from the repository root
+- Moved one-off root scripts to `scripts/` and `scripts/archive/`, generated
+  reports and internal writeups to `docs/archive/`, images to `docs/media/`,
+  Kaggle artifacts to `submissions/`
+- `.gitignore`: symlink-safe cache patterns and generated-artifact guards
+
+### Fixed — Adversarial Review Hardening 2026-08-17
+- `recursive_learning.py`: Added `asyncio.TimeoutError` handling + configurable
+  timeout via `SURREAL_UPSERT_TIMEOUT_S` env var (default 5.0s)
+- `cross_session_event_bridge.py`: Added `asyncio.TimeoutError` handling +
+  configurable timeout via `EVENT_HANDLER_TIMEOUT_S` env var (default 3.0s)
+- `difficulty_estimator.py`: Added `_LATENCY_MIN_SAMPLES=3` gate — empirical
+  median latency is only trusted when a tier has ≥3 observations (GIC-LAT3)
+- `poincare_manifold.py`: Added `DeprecationWarning` to `PoincareManifoldTracker`
+- `pyproject.toml`: Bounded `torch>=2.8.0,<3.0.0` to prevent surprise breakage
+
+### Note — v1.8.0 gap
+v1.8.0 was skipped due to a version conflict between two PRs (#283 and #284)
+that both attempted to bump to 1.8.0. PR #284 merged first as v1.9.0, and #283
+was rebased to v1.10.0. The gap is cosmetic — no release artifact was published
+at v1.8.0.
+
+### Added — Session Registration Script 2026-08-17
+- `scripts/ops/register_session.py`: Reusable script for agents to register
+  their session with the EventBus and persist a kanban card to SurrealDB +
+  Obsidian vault (AGENTS.md § EventBus & Agentic Kanban Bridge mandate)
+
+### Added — Latency-Aware GIC Tier Selection 2026-08-15
+- `DifficultyEstimator.predict_tier()` now picks the FASTEST tier by median
+  latency among quality-adequate tiers, not the positionally-cheapest. Based
+  on the 2026-08-13 GIC tier-routing soak proving MoE+MTP is faster than
+  dense-8B despite higher parameter count.
+- `DifficultyEstimator.record()` accepts optional `latency_s` parameter
+- `_TierRecord` has `latency_s` field (default 0.0, backward compatible)
+- Falls back to positional `_TIER_ORDER` when no latency data recorded
+
+### Fixed — CI/CD Repair 2026-08-15
+- Moved ROCm torch (`torch==2.8.0+rocm6.3`, `pytorch-triton-rocm==3.4.0`) from
+  mandatory `[project.dependencies]` to optional `[project.optional-dependencies] rocm`
+  so CI on `ubuntu-latest` installs CPU torch from PyPI instead of failing on
+  missing ROCm wheels. The `[tool.uv.sources]` override was removed for
+  torch/torchvision (they now resolve from PyPI by default); only
+  `pytorch-triton-rocm` retains the ROCm index mapping.
+- Playwright workflow (`playwright.yml`) now skips for `dependabot[bot]` actor
+  to prevent npm lockfile bumps from triggering broken UI builds.
+
+## [1.10.0] — 2026-08-17
+
+### Added
+- `scripts/ops/register_session.py`: EventBus session registration script
+
+## [1.9.0] — 2026-08-17
+
+### Added
+- `recursive_learning.py`, `cross_session_event_bridge.py`, `ctac_engine.py`,
+  `oom_guard.py`, `contracts.py` — AGENTS.md referenced modules merged to main
+- `PoincareManifoldTracker` backward-compat wrapper for `PoincareManifoldND`
+
+## [1.8.0] — 2026-08-17
+
+### Added
+- `scripts/ops/register_session.py`: EventBus session registration script
+
+## [1.7.0] — 2026-08-15
+
+### Added
+- Latency-aware `DifficultyEstimator` tier selection (GIC-LAT1/LAT2):
+  `predict_tier()` picks the fastest tier by median latency among
+  quality-adequate tiers instead of the positionally-cheapest.
+
+## [1.6.1] — 2026-08-15
+
+### Fixed
+- CI lint job: `pytorch-triton-rocm==3.4.0` had no wheel for `ubuntu-latest` —
+  moved to optional `rocm` extra; CI now uses CPU torch from PyPI.
+- Playwright workflow: skips Dependabot PRs to avoid broken UI builds from
+  removed icon exports in npm dependency bumps.
+
+## [1.6.0] — 2026-08-14
+
+Elegant-simplicity execution: net −11.3k LOC with zero functionality lost.
+Adversarially-verified audit + execution + pre-landing main-tree re-audit:
+`~/vaults/cohezion-vault/reports/20260814-elegant-simplicity-audit.md`;
+per-file rationale in `docs/simplification/RETIRED-2026-08-14.md`.
+
+### Added
+- `TieredOrchestrator(pre_dispatch_verifier=...)` — optional AutoHarness-style
+  gate (ported from the retired unified_orchestrator); default `None` preserves
+  O1–O9 byte-identically
+- `kv_budget.kv_cache_bytes(..., mla_latent_dim=...)` — DeepSeek MLA
+  latent-attention footprint axis (ported from the retired kv_cache_calculator)
+- `cohezion.reliability.circuit_protected` decorator + `CircuitOpenError` —
+  fail-fast variant of `get_circuit` (ported from reliability/circuit_breaker.py);
+  the surviving consumer (swarm/intelligence_pipeline.py) migrated
+- `SemanticTextEncoder.encode_batch()` — ported from the retired
+  sentence_encoder.py for its two live ops-script consumers (found in the
+  pre-landing main-tree re-audit)
+- `tdd_adversarial.PIPELINE_ATTACK_VECTORS` — 9 pipeline probes as pure data
+  (ported from the retired consortium_instigator)
+- `flume.latent_engine.complexity_heuristic` (ported from distributed_swarm)
+- Observability router MOUNTED: `/metrics/{unified,cache,efficiency,health,
+  guardrails,resources,trends,dashboard}` now reachable (was dead code)
+
+### Changed
+- `cohezion.compound.CompoundSessionManager` now exports the PRODUCTION
+  session_manager class (was a checkpoint-incompatible decoy)
+- `swarm/__init__.py`: 28 copy-pasted guarded re-export blocks replaced by a
+  `_OPTIONAL_EXPORTS` table + loader; export surface proven byte-equal (223/223)
+- `eval/self_eval.py` — moved from the one-module `evaluation/` package (rename)
+- `MCPInfrastructureState` gained cross-server unified-snapshot fields
+- 13 wiring tests in test_new_packages_wired.py un-skipped (a phantom-module
+  importorskip had silently skipped the whole file since creation)
+
+### Removed
+- 33 dormant/rival files (~11.7k LOC), each with an adversarially-verified
+  preservation path and a pre-landing consumer re-audit against main:
+  dynamic_compound_system trio, unified_orchestrator, distributed_swarm,
+  smart_orchestrator + specialist_registry, optimized_session_manager,
+  consortium_instigator, compound_unified, quantum_performance_monitor,
+  core/connection_pool, shadowed core/persistence/repositories.py +
+  mcp/manager.py, security/pipeline.py, reliability/circuit_breaker.py,
+  cache/sentence_encoder.py, kv_cache_calculator, jepa_world_model_persistent,
+  agi speculative_decoding_engine, phantom packages (pipelines/evo/policies),
+  byte-identical api/services/modules.py, and their orphaned tests
+
+## [1.4.0] — 2026-08-13
+
+### Added — Landing train 2 (surgical harvests and cherry-picks)
+- Daemon health surface (`data_mesh/daemon_health.py`): typed heartbeat events and
+  stalled-daemon detection from the bus (harvested from `fix/classify-actionability-negation`)
+- `classify_actionability` negation guard: per-clause negator matching — "adopt nothing"
+  no longer auto-cards itself as actionable work; licence as structured fields
+- Datamesh orphan types promoted onto the canonical `cohezion.data_mesh` surface
+  (`FederationLayer`, `DomainEndpoint`, `UnifiedRecord`, `Physics12D` — 6 red tests green)
+- `DataMeshEventBridge` loss counters — the bridge now counts what it silently loses
+
+### Fixed
+- `bonsai` added to `_THINKING_MODEL_MARKERS` (silent empty output from Bonsai models)
+- Three stacked import bugs in `compound/universal/init.py`
+- `uv.lock` was corrupt after a textual lockfile merge (duplicate beautifulsoup4 entries) —
+  every CI job failed at dependency install; regenerated from origin's known-good lock.
+  Lockfiles are generated artifacts: never text-merge them
+
+## [1.3.0] — 2026-08-13
+
+### Added — Landing train (10 branches reviewed and merged)
+- Model residency service: `inference/residency_ledger.py` + residency-aware hotswap and
+  event-consumer wiring (`feat/model-residency-service`)
+- Semantic-agreement quality signal: `inference/agreement.py` (Youden-calibrated threshold
+  0.40) now CONSUMED by `AutoDQA.evaluate(peer_outputs=...)` — peer disagreement lowers the
+  verdict score; the producer-without-consumer gap the branch shipped is closed
+- FLUME sparse-workspace readout (`flume/workspace_readout.py`) + executor/journey wiring
+- Work-queue durability: file locking, atomic writes, and notes preservation for the
+  actioner work queue (`fix/work-queue-silent-data-loss`)
+- Runnable quickstart (`examples/quickstart.py`) + ManifoldEnv info-dict docs (GH#203/204)
+- Inference gauntlet + lemonade recipe hardening (`worktree-spicy-inventing-goblet`)
+- Mycelium pattern-query + SurrealDB healing-query integration in the researcher
+  verification lane (`agent-1784138792`)
+
+### Fixed
+- `cohezion.api` package was UNIMPORTABLE on every lineage (local main, origin/main): the
+  Wave-2B `_helpers.py` extraction renamed functions to public names while `__init__` still
+  imported underscore names, and `set_token_client` lives in `routes/metrics.py`. Latent
+  because no CI test imported `cohezion.api`; exposed by the new work-queue tests
+- Stored XSS in the artifacts gallery (`static/artifacts/index.html`): manifest entries are
+  user-appendable, but title/summary rendered via `innerHTML` and `file` accepted
+  `javascript:` URLs. Now textContent rendering + relative-path-only href guard
+  (found by the ollama-cloud adversarial review lane)
+- `research_products._emit_data_product_event`: required `timestamp` float was omitted
+  (every write rejected) and HTTP-200 was read as success while SurrealDB reported the
+  statement error in the body (`fix/silent-write-defects`)
+- Skill frontmatter validity across `.claude/.agents/.pi` skill trees + a rewritten
+  `validate_skill_schema.py` that can actually fail
+
+### Changed
+- `.claude/rules/harness.md` corrected: Python floor is 3.13 (torch+ROCm caps at 3.13;
+  the stale "3.11 required" note was wrong)
+- Ruff: 13 files reformatted, 16 auto-fixes; lint debt held at baseline parity
+
+## [1.2.1] — 2026-08-01
+
+### Fixed — Coherence sweep + adversarial review
+- `EventBus.stop()` deadlocked and silently dropped queued events; now drains before stopping,
+  with a bounded `drain_timeout` so a hot producer or hung handler cannot hang shutdown
+- `EventBus.stop()` clears `_running` in a `finally:` (a cancelled stop left the bus
+  "running-but-dead")
+- `EventBus.publish()` returns `False` when the bus is not running, instead of returning
+  `True` and discarding the event
+- Session liveness (`SessionRegistry.list_active`) is pid-namespace aware; rows are annotated
+  `liveness=confirmed|assumed`. A future `last_seen` no longer confers permanent liveness, and
+  an unreadable `boot_id` no longer yields a collidable namespace token
+- `scripts/ci/doc_code_consistency.py` gained E5: a nested `CLAUDE.md` declaring a module count
+  must match the package's actual module count (caught `data_mesh` declaring 12 with 13 on disk)
+- Corrected phantom provenance in 5 nested `CLAUDE.md` — they credited a generator that exists
+  in no commit; they are hand-maintained
+
+### Changed — Version governance
+- `src/cohezion/__init__.py.__version__` is now derived from installed package metadata instead
+  of being a hand-maintained duplicate that had drifted to 1.0.2 while `pyproject.toml` was 1.2.0
+- `scripts/ci/version_governance.py` now verifies the version was actually BUMPED by at least the
+  bump type implied by the commits, comparing head against the PR base. It previously classified
+  the bump type and then passed regardless, so a release-worthy PR could land with no bump.
+
+## [Unreleased]
+
 ### Added — Consolidation Campaign 2026-07-09
 - Reconciled local compound-loop spine (61 commits) with origin polish/CI waves (228 commits)
 - Card-aware router with 14 default profiles + `extend_claude_aligned()` (Stack A1-A7)

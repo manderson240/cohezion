@@ -85,6 +85,10 @@ class DataProduct:
     quality_tier: DataQualityTier = DataQualityTier.BRONZE
     status: DataProductStatus = DataProductStatus.DRAFT
     required_autonomy: AutonomyTier = AutonomyTier.SO12  # Min tier to produce this
+    # Curator-asserted trust signal (LangChain "endorsements" pattern, 2026-08-02):
+    # distinct from freshness/quality_tier — a human/curator marks this product as a
+    # preferred source of truth. Consumed by gap_miner priority ranking.
+    endorsed: bool = False
 
     # SLA
     max_latency_ms: int = 5000  # Maximum response time

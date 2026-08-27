@@ -14,13 +14,6 @@ from __future__ import annotations
 # ---------------------------------------------------------------------------
 
 
-def test_security_SecurityPipeline_identity() -> None:
-    from cohezion.security import SecurityPipeline
-    from cohezion.security.pipeline import SecurityPipeline as _Direct
-
-    assert SecurityPipeline is _Direct
-
-
 def test_security_PromptGuard_identity() -> None:
     from cohezion.security import PromptGuard
     from cohezion.security.prompt_guard import PromptGuard as _Direct

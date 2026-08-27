@@ -145,8 +145,8 @@ from typing import Optional
 
 
 def holographic_mutual_information(
-    physical_states: np.ndarray,   # shape: [N, 12]
-    latent_vectors: np.ndarray,    # shape: [N, 256]
+    physical_states: np.ndarray,  # shape: [N, 12]
+    latent_vectors: np.ndarray,  # shape: [N, 256]
     n_bins: int = 10,
 ) -> dict:
     """
@@ -175,9 +175,7 @@ def holographic_mutual_information(
     from numpy.linalg import svd
 
     # Entropy of physical state (12D) via discretization
-    phys_norm = (physical_states - physical_states.min(0)) / (
-        physical_states.ptp(0) + 1e-8
-    )
+    phys_norm = (physical_states - physical_states.min(0)) / (physical_states.ptp(0) + 1e-8)
     phys_bins = np.floor(phys_norm * n_bins).astype(int).clip(0, n_bins - 1)
     phys_keys = [tuple(row) for row in phys_bins]
     phys_counts = {}

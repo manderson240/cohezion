@@ -35,7 +35,7 @@ from cohezion.config import get_config
 config = get_config()
 config.tracks["rapid"]  # Rapid track settings
 config.email.recipient  # manderson240@gmail.com
-config.max_memory_gb    # 112GB Strix Halo
+config.max_memory_gb  # 112GB Strix Halo
 ```
 
 ---
@@ -93,10 +93,12 @@ print(f"Memory: {snapshot.metrics['memory_percent'].value}%")
 ```python
 from cohezion.resilience import resilient, ResilientCloudCall, ResilientDBCall
 
+
 # Decorator - makes any function resilient
 @resilient(name="api_call", max_attempts=3, initial_delay=1.0)
 async def call_external_api():
     return await make_api_request()
+
 
 # Pre-configured for cloud models
 cloud_call = ResilientCloudCall()
@@ -200,6 +202,7 @@ from cohezion.config import get_config
 
 # Get config
 config = get_config()
+
 
 # Make any function resilient
 @resilient(name="my_operation", max_attempts=3)
@@ -393,16 +396,20 @@ print(f'Max Memory: {config.max_memory_gb}GB')
 # Make any function resilient
 from cohezion.resilience import resilient
 
+
 @resilient(name="my_func", max_attempts=3)
 async def my_func():
     pass
 
+
 # Use config
 from cohezion.config import get_config
+
 config = get_config()
 
 # Check health
 from cohezion.health_monitor import get_health_monitor
+
 monitor = await get_health_monitor()
 ```
 

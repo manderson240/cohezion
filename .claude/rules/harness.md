@@ -163,14 +163,18 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 
 ## TieredOrchestrator Temperature Invariants
 
-### TR1: _TIER_TEMPERATURE constants wire per-tier temperatures into build_reasoning_orchestrator (#131, 2026-06-27)
-- `_TIER_TEMPERATURE = {"npu": 0.0, "igpu": 0.1, "cpu": 0.3}` in `triune_orchestrator.py`
-- `build_reasoning_orchestrator` passes these as `temperature=_TIER_TEMPERATURE[tier]` to each `build_gaia_llm_tier` call
-- Motivation: arXiv 2603.08274 — T=0.0 causes 48x coherence collapse at long contexts; scale temperature with context depth
-- `build_triune_orchestrator` uses `build_gaia_native_tier` (no temperature param) — temperature only applies to the LLM reasoning path
-- **Structural**: `_TIER_TEMPERATURE["npu"] == 0.0` and `_TIER_TEMPERATURE["cpu"] == 0.3`
-- **Discriminating**: `test_reasoning_orchestrator_passes_tier_temperatures` captures kwargs and verifies per-model temperatures
-- **Verification**: `uv run pytest tests/inference/test_triune_orchestrator.py -q` → 5 passed
+### TR1 (triune temperature): REMOVED 2026-08-14 — was a PHANTOM invariant
+`_TIER_TEMPERATURE` has **zero occurrences** in `triune_orchestrator.py`, and the named
+discriminating test (`test_reasoning_orchestrator_passes_tier_temperatures`) is defined
+nowhere. Fifth phantom overall (RTG1, RGA1/RGA2, MB1, microseism/JEPA per the 2026-08-14
+geometric audit). Found by 9ee8dfba4's E5-hit triage; landed via the 2026-08-14 pick chain.
+
+The MOTIVATION was superseded, not lost: per-model temperature defaults are REAL and live
+as the model-card mechanism — see `src/cohezion/inference/CLAUDE.md` "TR (Triune Recipe)
+Invariants" (2026-07-07): `build_gaia_llm_tier` resolves `model_card_defaults
+.get_sampling_defaults()`, verified by `tests/inference/test_triune_orchestrator.py::
+test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero` (exists, passes).
+**Do NOT re-add `_TIER_TEMPERATURE` without implementing it.**
 
 ## MetricBaseline Invariants
 
@@ -192,6 +196,20 @@ Full suite: `uv run pytest tests/compound/test_loopception.py -q` → 21 tests, 
 > reference `value_bounds`** (the entry claimed 12). A command that runs, passes, and proves
 > nothing about the claim is the hardest false verification to catch by reading.
 > **Before trusting an invariant here, grep the field in `src/` and the assertion in `tests/`.**
+### MB1: REMOVED 2026-08-14 — was a PHANTOM invariant
+`value_bounds` has **zero occurrences** anywhere in `src/` or `tests/`; `trend_value()`
+does no clamping of any kind; and the named discriminating test
+(`test_unbounded_metric_can_extrapolate_outside_unit_interval`) does not exist. Same
+class as RTG1 and RGA1/RGA2. Found 2026-08-09 (c7934bcbe), landed via the 2026-08-14
+pick chain together with the E6 cited-test check in
+`scripts/ci/doc_code_consistency.py` — a phantom *symbol* and a phantom *test name*
+are invisible to a path checker, so cited test names are now machine-checked.
+
+**Do NOT re-add without implementing it.** If bounded-metric extrapolation is wanted,
+the principled form is a logit-space fit (project `log(p/(1-p))`, map back through the
+logistic): in-range by construction, saturating rather than wall-clamping. A clamp
+treats the symptom — linear extrapolation is the wrong asymptotic form for a quantity
+confined to a unit interval.
 
 ### LT1: DegradationDetector._ema_thresholds adapts toward observed values (GIC self-regulation, #137, 2026-06-27)
 - `_ema_thresholds: dict[str, float]` seeded from constructor params (`cache_hit_rate_threshold`, `coherence_threshold`)
@@ -261,7 +279,14 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `executor._resolve_tier(predicted, suggested, jepa_reroute) -> str|None`: combines DifficultyEstimator `predicted_tier` (predictive) + DegradationDetector `suggested_tier` (reactive) by taking the cheaper (conservative); a JepaGate REROUTE verdict then downgrades ONE step toward a cheaper tier via `_TIER_ORDER=("npu","igpu","cpu","cloud")`.
 - Closes a producer→consumer gap: REROUTE was only LOGGED at Step 3.5; `execute_task` Step 3.6(c) now calls `_resolve_tier(...)` and sets `metrics["recommended_tier"]`. None when no valid signal.
 - **T1 structural**: `_TIER_ORDER == ("npu","igpu","cpu","cloud")`
-- **T2 discriminating**: `test_reroute_downgrades_one_step_toward_cheaper` — `_resolve_tier("cpu","cpu",False)=="cpu"` but `(...,True)=="igpu"` (a verdict-ignoring impl leaves it "cpu"); `test_reroute_clamped_at_cheapest_tier`; `test_no_valid_signal_returns_none`
+- **T2 discriminating** (corrected 2026-08-14 — the original text here asserted the
+  REVERSED pre-H4 behavior: `(...,True)=="igpu"`, a downgrade toward cheaper. H4 already
+  recorded the reversal but this block was never updated; caught by writing the test from
+  this text and watching it fail): `test_reroute_escalates_one_step_toward_capability` —
+  `_resolve_tier("cpu","cpu",False)=="cpu"` but `(...,True)=="cloud"` (health may only
+  ESCALATE a hard task, never cheapen it; a verdict-ignoring impl returns "cpu" for both,
+  so the PAIR is the test); `test_reroute_clamped_at_most_capable_tier`;
+  `test_no_valid_signal_returns_none`
 - **Verification**: `uv run pytest tests/compound/test_tier_resolution.py -q` → 8 passed
 - **Open follow-on**: `recommended_tier` is exposed in metrics + feeds the learning/observability layer; driving execute_fn's actual tier requires an execute_fn contract change (not yet done).
 
@@ -323,6 +348,11 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - Returns the candidate with the highest total overlap with ALL OTHER candidates (self-consistency)
 - Tie-breaks by insertion order (lowest index) — deterministic for fixed candidate lists
 - Prevents single-greedy recommendation from always returning the first matching perspective
+- **AMENDED 2026-08-01**: overlap is now the BASE signal only — final score = overlap ×
+  1/(1+wins) (RV2) × MoE weight (MR4) × regime multiplier (RA1-RA3). The added factors can
+  reorder candidates even when overlap differs; insertion-order tie-break applies to the
+  COMBINED score. Adjudicated MISLEADING-as-written by cross-lane audit (deterministic
+  source check + frontier review); superseded in part by RV2/MR4/RA1-RA3 below.
 - **Discriminating**: a quality candidate wins over a caching candidate when more of its keywords recur across sibling candidates
 - **Behavioral**: `tests/compound/test_skill_refiner.py::TestRecommendationGeneration::test_recommend_high_quality` (quality metrics → "quality" or "optimize" in output)
 
@@ -362,7 +392,7 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `prediction_error(skill, op, actual)` must use history PRIOR to the current call
 - An impl that records before predicting would always return 0.0 (predicted == actual)
 - Consequence: ENVIRONMENT_SURPRISE would NEVER fire
-- **Verification**: `erp = EnvironmentResponsePredictor(); erp.record("s","op",0.5); erp.record("s","op",0.5); assert abs(erp.prediction_error("s","op",0.9) - 0.4) < 1e-9`
+- **Verification**: `from cohezion.compound.skill_refiner import EnvironmentResponsePredictor; erp = EnvironmentResponsePredictor(); erp.record("s","op",0.5); erp.record("s","op",0.5); assert abs(erp.prediction_error("s","op",0.9) - 0.4) < 1e-9` (import added 2026-08-03 — snippet was not self-contained)
 
 ### ERP3: ENVIRONMENT_SURPRISE fires in SkillRefiner._generate_learning_signal when |error| > 0.2
 - Quality that deviates >0.2 from rolling mean must produce "ENVIRONMENT_SURPRISE" in key_insight
@@ -485,7 +515,7 @@ tier prediction, and skill_proximity transfer hints. All verified by
 - Both `make_executor()` functions inject `JepaGate(world_model=None)` when caller doesn't supply one
 - Fail-open: `world_model=None` → `JepaGate.check()` always returns `PROCEED` (no false blocks)
 - `ExecutorFactory.create()` and `get_singleton()` accept and forward `jepa_gate` kwarg
-- **Verification**: `from cohezion.compound import make_executor; e=make_executor(MagicMock()); assert e._jepa_gate is not None`
+- **Verification**: `from unittest.mock import MagicMock; from cohezion.compound import make_executor; e=make_executor(MagicMock()); assert e._jepa_gate is not None`
 
 ### W2: JourneyTracker identity lifecycle wired by ExecutorFactory (GIC Identity)
 - `ExecutorFactory.create()` calls `journey_tracker.restore_identity()` when tracker is provided
@@ -512,6 +542,24 @@ tier prediction, and skill_proximity transfer hints. All verified by
 - Call site at line 645 updated: `self._generate_recommendation(metrics, operation_type, skill_name)`
 - **Verification**: `tests/compound/test_wiring_completeness.py::TestW5SkillProximityConsumer`
 
+### W6: WorkspaceReadout produced AND consumed — sparse-code workspace annotation is live (2026-08-02)
+- Experimental grounding: vault `research/2026-08-01-flume-sparse-workspace-design.md` (SUPPORTED;
+  held-out-dictionary replication HOLDS — 8-16 learned atoms transfer semantic identity, random 0%)
+- PRODUCER: `CompoundExecutor.__init__` CB17 auto-create injects `WorkspaceReadout()` into the
+  auto-created `JourneyTracker(workspace_readout=...)` (executor.py; fail-open on ImportError)
+- CONSUMER: `track_execution` calls `observe(latent)` + `read(latent)` and, once fitted, stores
+  native-cast `(int, float)` pairs in `TrajectoryPoint.metadata["workspace_atoms"]`; the field is
+  persisted by `_persist_to_surreal` (journey_transition.workspace_atoms) — durable, not buffer-local
+- Hot-path contract (adversarial-review measured): dictionary fit (~65s at 256x2048) runs on a
+  daemon thread (`fit_in_background=True` default), NEVER synchronously in track_execution;
+  `_MAX_FIT_ATTEMPTS=3` retry cap; buffer hard-capped + cleared on every fit attempt; `read()` is
+  a bounded ~27ms lasso solve (SparseCoder cached in `SparseLatentAnalysis._coder`)
+- **T2 discriminating (mutation-verified: neutralized consumer/edit → tests fail)**:
+  `tests/flume/test_workspace_readout.py::TestJourneyTrackerConsumption` (annotation appears iff
+  readout fitted; tracker feeds the readout; CB17 injection present) +
+  `TestHotPathContract` (observe never blocks on fit; retry cap holds)
+- **Verification**: `uv run pytest tests/flume/test_workspace_readout.py -q` → 16 passed
+
 ## RiVER Reward Normalization Invariants (#140/#141, 2026-06-27)
 
 Source: RiVER (arXiv:2606.27369) — fixes scale-dominance and frequency-dominance in process reward accumulation.
@@ -537,6 +585,14 @@ Source: General Intuitions (TechCrunch 2026-06-25) — explicit action labels gi
 far better (state, action, next_state) triples than inferred state-pair transitions.
 
 ### JI1: TrajectoryPoint.action captures tier_used from CB16 metrics by default (#142, 2026-06-27)
+- **AMENDED 2026-08-03 (adjudicated)**: `track_execution` resolves
+  `action or (f"{category}:{tier}" if tier else category)`, category defaulting to
+  "evidence" (AOEP actionability axis, arXiv 2606.30306) — so the default is
+  `evidence:npu`, NOT bare `npu`; no tier → bare `evidence`. Consumer trace found NO
+  reader parsing action as a bare tier (only truthiness check in aoep_scorecard.py),
+  so the prefix is harmless and richer for JEPA triples. The two
+  TestTrajectoryPointAction tests were updated to the prefixed contract; explicit
+  `action` arg still overrides (unchanged discriminating test).
 - `action: str = ""` field on `TrajectoryPoint` dataclass (safe default, backward-compatible)
 - `track_execution(result, task_desc, op_type, action="")` — optional kwarg
 - Resolution: `resolved_action = action or execution_result.metrics.get("tier_used", "")`
@@ -564,7 +620,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 ### MR3: route() always returns a valid expert name
 - `MoESkillRouter().route("skill", metrics)` ∈ `_EXPERT_NAMES`
 - Returns the expert with the highest current weight
-- **Verification**: `r=MoESkillRouter(alpha=0.9); r.update("tier",1.0); r.update("tier",1.0); assert r.route("s",None)=="tier"`
+- **Verification**: `from cohezion.compound.moe_skill_router import MoESkillRouter; r=MoESkillRouter(alpha=0.9); r.update("tier",1.0); r.update("tier",1.0); assert r.route("s",None)=="tier"`
 
 ### MR4: SkillRefiner accepts moe_router kwarg; _autodata_select() applies MoE weight
 - `"moe_router" in inspect.signature(SkillRefiner.__init__).parameters`
@@ -594,7 +650,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - Both fields must exist on SkillRefiner and start at 0
 - Source: Red Queen Gödel Machine (arXiv 2606.26294) — co-evolving goal objectives prevents static-evaluator stagnation
 - **T1 structural**: `hasattr(SkillRefiner(), '_goal_epoch') and sr._goal_epoch == 0; hasattr(..., '_goal_consecutive_hits') and sr._goal_consecutive_hits == 0`
-- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate::test_t1_epoch_fields_exist_with_zero_defaults -q`
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate::test_rqgm1_t1_epoch_fields_exist_with_zero_defaults -q` (test name corrected 2026-08-01 — latent claim↔evidence audit caught the stale pointer)
 
 ### RQGM2: _auto_update_goal() advances _goal_epoch and resets _goal_consecutive_hits on each fire
 - Every time the auto-update tally reaches `_goal_auto_threshold`, `_goal_epoch` increments by 1 and `_goal_consecutive_hits` resets to 0
@@ -638,6 +694,23 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - Source: PRL 136 256708 analogy — curvature resists transport in high-curvature directions
 - **T2 discriminating**: `test_nonzero_coupling_changes_step` (κ=0 vs κ=1 produce different positions); `test_anisotropy_damped_in_large_position` (larger |x| → smaller a_i)
 - **Verification**: `uv run pytest tests/physics/test_riemannian_glide.py -q` → 12 passed
+### RG1: step() is a geodesic only when Γ vanishes — CONSUMPTION invariant
+- `x + dt*v` is a geodesic iff the Christoffel symbols vanish, which requires a **constant**
+  metric — NOT merely a diagonal one. For conformal `g_ij = δ_ij h(x)`, `Γ¹₁₁ = ∂₁h / 2h ≠ 0`.
+- `RiemannianGlideTrajectory(metric=<RiemannianMetric>)` integrates the true geodesic via
+  `RiemannianMetric.geodesic_acceleration`; `metric=None` (default) keeps the straight-line step.
+- `step()` MUST advance velocity (`v ← v + dt·a`) — computing `a` and advancing position alone
+  leaves the path straight, i.e. a silent no-op.
+- `arc_length()` is non-mutating; `_g()` re-evaluates the metric at the CURRENT position.
+- `ricci_scalar()` returns 0.0 when unwired — correct, not a fallback: a `list[list[float]]`
+  metric is position-independent, hence flat. `curvature_proxy()` is a metric SCALE, not curvature.
+- **T2 discriminating** (verified by mutation testing 2026-07-29 — old code: 9 failed;
+  forgot-velocity: 3 failed; negated-Γ: 3 failed; mutating arc_length: 1 failed;
+  `_g` ignoring wired metric: 2 failed):
+  `test_geodesic_curves_in_the_predicted_direction` (direction-specific, catches sign errors),
+  `test_geodesic_matches_solve_ivp_reference` (RK45 cross-check catches wrong-but-nonzero `a`),
+  `test_velocity_delta_equals_dt_times_acceleration`, `test_constant_metric_stays_straight`.
+- **Verification**: `PYTHONPATH=src .venv/bin/python3 -m pytest tests/physics/test_riemannian_glide.py -q` → 13 passed
 
 ## AIR Model Invariants (task_classifier output_intent, #89, 2026-06-28)
 
@@ -672,6 +745,128 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - **Auto-test pollution:** `auto-generate-tests` CI job committed 998 scaffold files
   to main on every push. Disabled permanently.
 
+## Cross-Model Agreement Invariants (AG1–AG4, 2026-07-30)
+
+Closes the weak-gate hole named in `quarter-on-a-string-protocol.md`: `QualityGate` is
+LENGTH-based (`min_chars`/`require_nonempty`), so a confidently-wrong answer of adequate
+length passes every existing gate. `cohezion.inference.agreement` supplies a gate that can
+fail on CONTENT. Zero extra inference — the tiered cascade already produces the peer answers
+and discards them; only the resident embedder is called.
+
+### AG1: constants trace to a measured run, not to judgement
+- `AGREEMENT_THRESHOLD == 0.40` is the Youden-optimal split (J=0.256) on the n=140
+  calibrated experiment: `agreement >= 0.40` -> 65.3% accurate (n=72); below -> 39.7% (n=68).
+- The signal itself SURVIVED falsification (AUROC 0.646, CI [0.547, 0.733]) while
+  byte-level cross-family divergence was FALSIFIED (0.548, CI spans 0.5) and single-model
+  entropy scored at chance (0.496). Placebo behaved correctly (0.522).
+- Report: `~/vaults/cohezion-vault/reports/20260730-bcfd-cross-family-elicitation.md`.
+- **Changing the threshold is a claim about NEW data.** `test_threshold_traces_to_measured_run`
+  pins it so a silent retune fails CI.
+
+### AG2: `None` (unmeasurable) is never conflated with 0.0 (disagreed)
+- `semantic_agreement` returns `None` for <2 non-empty texts or an unavailable embedder.
+- `agreement_penalty(None) == 0.0` — an unmeasurable signal must NOT penalise output.
+- Conflating the two turns a transport fault into a confident quality judgement — the same
+  defect class that made an empty probe read as 0% accuracy during the source experiment.
+
+### AG3 (CONSUMPTION): `AutoDQA.evaluate` ACTS on the signal
+- `AutoDQA.evaluate(output, task_description, peer_outputs=None)`; when peers are supplied
+  and agreement is below threshold the verdict's SCORE is reduced by `agreement_penalty`.
+- Damping, not rejection: at AUROC 0.646 the signal is a triage hint. `MAX_PENALTY = 0.30`
+  is sized so maximal disagreement alone cannot flip an otherwise-good answer to rejected.
+- No peers supplied -> `semantic_agreement` is never called (no embedder traffic).
+
+### AG4: verified by MUTATION TESTING, not by passing
+- MUTANT-1 (penalty forced to 0.0) -> 2 tests fail, incl.
+  `test_disagreeing_peers_lower_the_score`.
+- MUTANT-2 (`None` treated as 0.0) -> 5 tests fail, incl.
+  `test_unmeasurable_agreement_never_penalises` and
+  `test_unmeasurable_agreement_does_not_change_verdict`.
+- The fail-open path has its OWN discriminating test asserting the verdict is IDENTICAL
+  (score AND reason) when the embedder is down — not merely "not rejected".
+- **Verification**: `uv run pytest tests/inference/test_agreement.py -q` -> 16 passed;
+  `tests/inference` -> 956 passed, 0 regressions. I6 (AutoDQA rejects sycophantic output)
+  re-verified green.
+
+## Model Residency Invariants (RS1–RS4, 2026-08-03)
+
+Closes a total dormancy: `hotswap.ensure_resident` gates model loads correctly (weights +
+KV overhead against `free_gb() - 16GB floor`, never evicts busy/protected, bounds every
+`ctx_size` per N3) and had **zero production callers** — both apparent ones were docstrings.
+Measured the same day: the box reached 113 GB used / 8 GB available with lemonade's
+`max_loaded_models` count-cap holding perfectly at 2, because the cap bounds COUNT and
+nothing bounded SIZE. A correct gate nothing invokes protects nothing.
+
+Per the meta-invariant, every entry below is a CONSUMPTION invariant paired with a test that
+FAILS when the mechanism is neutralised — not a `hasattr` existence check.
+
+### RS1 (CONSUMPTION): a datamesh event reaches the admission gate
+- `ResidencyService.handle_event({"event_type": "model_needed", "model_id": X})` must call
+  `hotswap.ensure_resident`, not merely accept the message.
+- **T2 discriminating**: `test_DISCRIMINATING_model_needed_event_invokes_the_gate` and
+  `test_DISCRIMINATING_refusal_is_published_not_swallowed`. **Mutation-verified**: an
+  accept-but-never-gate stub killed exactly those 2 while all 13 others — INCLUDING every
+  T1 structural test — passed. Structural checks cannot detect dormancy.
+- **Verification**: `uv run pytest tests/inference/test_residency_service.py -q` → 15 passed
+
+### RS2: the decision must be able to go BOTH ways
+- A gate that can only refuse is a quarter leak; one that can only admit is a placebo.
+  `test_DISCRIMINATING_oversized_model_is_refused` + `test_DISCRIMINATING_fitting_model_is_admitted`
+  pin both directions. `_emit` is best-effort — a dead bus must never turn an admission into
+  a failure (`test_publish_failure_does_not_break_the_decision`).
+
+### RS3: residency survives a degraded `/health`
+- Residency is observable ONLY via `/api/v1/health` — `/api/v1/models` reports `downloaded`
+  (disk, not RAM) and `/api/v1/system-info` reports neither. `/health` is also the endpoint
+  that stops answering under the pressure the gate relieves (measured HTTP 000 at 12s and
+  20s while `/models` answered in 3ms). `resident_models()` returns `[]` on failure → empty
+  VICTIM list → the gate can never evict → permanent refusal.
+- `resident_view(server_entries, ledger)` returns the SERVER whenever it answers and the
+  ledger only on an empty server view, so ground truth still wins. `reconcile()` is pure;
+  `adopt()` ignores an empty server list so a health failure is never read as "fleet empty".
+- Strictness is the DEFAULT: `ensure_resident` only downgrades post-load verification to
+  UNVERIFIED when a ledger is passed (explicit opt-in). HS7 is preserved for ledger-less callers.
+- **Mutation-verified**: disabling the fallback killed exactly 2 discriminating tests, 19 unaffected.
+- **Verification**: `uv run pytest tests/inference/test_residency_ledger.py -q` → 23 passed
+
+### RS4: refuse BEFORE evicting when a full teardown provably cannot fit
+- Eviction is destructive. Observed live: a 128B model evicted 4 models and was THEN refused
+  by 0.1 GB. The pre-eviction guard fires ONLY when every victim size is known — an unknown
+  size might still free real memory, and treating it as 0 refuses loads the eviction loop
+  would have satisfied (caught by pre-existing HS4). An optimisation must be certain.
+- The refusal reason retains the substring `insufficient RAM` so HS3's contract holds.
+- **Verification**: `uv run pytest tests/inference/test_hotswap.py tests/inference/test_residency_ledger.py tests/inference/test_residency_service.py -q` → 47 passed
+
+### RS7: an implausible catalog size must not defeat the weights-fit gate
+- The live router reports `Qwen3.6-35B-A3B-GGUF` at **1.68 GB**. A 35B cannot be — its MTP
+  sibling reports 22.10 GB. `_catalog_sizes()` trusted it, so `ensure_resident` computed
+  `needed = 2.68 GB`, PASSED, and would then attempt a ~20 GB load. **A wrong size is more
+  dangerous than a missing one** — `ensure_resident` already refuses an unknown size, but a
+  wrong one looks like knowledge.
+- `params_b_from_name` takes the MAXIMUM `<n>B` match: `35B-A3B` is 35B total / 3B active, and
+  residency is driven by TOTAL (all experts must be reachable) — reading `A3B` under-gates 10x.
+  `Gemma-4-26B` → 26, not 4 (leading digit is a version).
+- `implausible_size_gb` fails OPEN when no parameter count is present. Floor is
+  `_MIN_GB_PER_B = 0.0625` — half the most aggressive shipped quant, so a genuine
+  `Bonsai-27B-gguf-Q1_0` (4.41 GB = 0.163 GB/B) is never wrongly rejected.
+- **Mutation-verified**: disabling the guard killed exactly the 3 discriminating tests while
+  BOTH positive controls survived.
+- **Verification**: `uv run pytest tests/inference/test_catalog_size_plausibility.py -q` → 15 passed
+
+### RS8 (CONSUMPTION): the ambient residency tick runs inside the EXISTING pressure loop
+- `PressureDriver.__init__(on_tick=...)`; `run()` invokes it once per iteration after the
+  pressure sample. `PressureDriver` is pressure-driven (CRITICAL rising edge) and has no
+  demand-driven half — RS6 `tick()` supplies it. `hotswap`'s docstring already named the gap.
+- **A second timer is forbidden**: two independent eviction loops over one fleet can race,
+  both reading residency and both choosing an LRU victim.
+- Callback failures are isolated — they neither kill the loop nor suppress the pre-existing
+  pressure sample (`test_callback_failure_does_not_suppress_the_pressure_sample`).
+- **T2 discriminating**: a driver that ACCEPTS `on_tick` and never calls it passes both
+  structural tests and fails `test_DISCRIMINATING_on_tick_is_invoked_once_per_loop_iteration`.
+- **LIVE**: `PressureDriver(on_tick=svc.tick).run(...)` → 2 ticks, residency fired 2x,
+  `drift_repaired` True then False — it converged.
+- **Verification**: `uv run pytest tests/platform/test_pressure_driver_residency.py -q` → 6 passed
+
 ## Stealthskater Bridge Invariants (2026-05-16)
 
 ### S1: Physics bridges must import without error
@@ -682,6 +877,12 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 
 ### S2: Stealthskater tradition must have exactly 10 step_mappings
 - Tradition slug: `stealthskater`, 10 StepMappings + 4 UniqueContributions
+- **REGRESSION CAUGHT + RESTORED 2026-08-01**: the tradition was silently dropped when
+  tradition_data.py was recreated in the 17-tradition rewrite (never appeared as a removal
+  in any diff; API docstring still claimed "incl. stealthskater"). Restored from b87186436,
+  registry is now 18; count pins in tests/worldviews updated. First live run of this
+  verification since the rewrite is what caught it — inline verifications must be RUN,
+  not assumed green.
 - **Verification**: `from cohezion.worldviews.tradition_data import get_tradition; assert len(get_tradition('stealthskater').step_mappings) == 10`
 
 ### S3: LENR reaction_threshold must equal HIHO threshold (0.5)
@@ -694,7 +895,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 ### S5: SkillMutationQueue refund must be bi-temporal
 - `refund(mutation_id)` sets `valid_to = now()` and `status = rejected`
 - Mutation must have `is_valid_at() == False` after refund
-- **Verification**: `uv run pytest tests/unit/compound/test_skill_mutation_queue.py::test_is_valid_at_false_after_refund -q`
+- **Verification**: `uv run pytest tests/unit/compound/test_skill_mutation_queue.py::TestSkillMutationQueue::test_is_valid_at_false_after_refund -q` (class qualifier added 2026-08-03 — bare node id aborted batched pytest runs)
 
 ### S6: CA engine Rule 110 must classify as COMPLEX
 - Wolfram Class IV (Turing-complete) is the target for cosmogony stages 2 and 9
@@ -824,7 +1025,7 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 
 ### LM3: generate_text() returns str for all prompts including empty
 - Empty prompt uses BOS token (0) as seed — no IndexError on zero-length sequence
-- **Verification**: `uv run python -c "import torch; from cohezion.model.cohezion_lm import CohezionLM, CohezionLMConfig; torch.manual_seed(0); m=CohezionLM(CohezionLMConfig.byte_level()); [assert isinstance(m.generate_text(p, max_new=3), str) for p in ['HIHO', '']]; print('LM3 OK')"`
+- **Verification**: `uv run python -c "import torch; from cohezion.model.cohezion_lm import CohezionLM, CohezionLMConfig; torch.manual_seed(0); m=CohezionLM(CohezionLMConfig.byte_level()); assert all(isinstance(m.generate_text(p, max_new=3), str) for p in ['HIHO', '']); print('LM3 OK')"` (syntax fixed 2026-08-03 — `assert` inside a list comprehension is a SyntaxError; the original was never executable. Behavior verified PASS)
 
 ### LM4: hiho_perplexity() returns inf for <=1 byte inputs
 - Cannot compute perplexity without at least 2 bytes (input + target)
@@ -841,7 +1042,11 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 - FFN saturation is a feature: forces learning through HIHO attention
 - **Verification**: `uv run python -c "from cohezion.model.cohezion_lm import CohezionLMConfig; assert CohezionLMConfig.byte_level().ffn_scale == 1.0; print('LM6 OK: ffn_scale=1.0')"`
 
-### LM7: from_autoresearch() defaults are steps=80, lr=1e-2, n_seeds=3 (optimal per exp_NNNN5/QQQQ5)
+### LM7: from_autoresearch() defaults are steps=80, n_seeds=3; lr is schedule-driven (title amended 2026-08-03 — GAIA docs-consistency lane caught the heading still asserting lr=1e-2 against the amendment below)
+- **AMENDED 2026-08-01**: `lr` default is now `None` (schedule-driven: `lr_schedule='cosine'`,
+  `optimizer='rmsprop'` — Round 7+ autoresearch, commit 911b4920f). steps=80 and n_seeds=3
+  still hold. The verification below fails as written on `p['lr'].default==1e-2`; treat
+  steps/n_seeds as the live invariant until re-benchmarked.
 - 80 steps = 2x dataset coverage (~2.6s per seed)
 - n_seeds=3 = best of seeds [42,99,1337], reliably achieves PPL<30 (fixes initialization sensitivity)
 - exp_QQQQ5: StdDev=91 across seeds; n_seeds=3 selection gives PPL=28.35 in 5.83s total
@@ -879,3 +1084,194 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
   real findings.
 - **Verification**: `grep "safe-env.sh" scripts/ci/deploy_harness_agents.sh`
   returns a non-empty result.
+
+## Coherence Invariants (2026-07-31)
+
+All three are CONSUMPTION invariants (per `verification-depth.md`): each pairs with a test
+that FAILS when the mechanism is neutralized, not merely one that asserts a symbol exists.
+All three defects were found by USING the subsystem, not by re-running its guard — both
+existing coherence gates were green at the time.
+
+### EB1: EventBus.stop() drains BEFORE it stops (deadlock + event loss)
+- `stop()` must `await self._queue.join()` while `_running` is still True, and only then
+  clear `_running` and cancel the processor. The reverse order (the pre-2026-07-31 code)
+  makes `_process_loop`'s `while self._running` exit without calling `task_done()`, so
+  `join()` waits forever on a counter nobody will decrement **and the queued events are
+  silently lost**. Fail-open bridge logging means nothing surfaces.
+- Diagnosed long before it was fixed: the DataMesh adversarial review filed it as
+  "Finding #2" and `tests/data_mesh/test_eventbus_datamesh_stress.py` added a private
+  `_cancel_bus()` helper to avoid `stop()`. The suite stayed green while every production
+  caller of the documented shutdown API could hang. **A test that documents a production
+  bug and routes around it keeps the bug alive** — do not re-introduce that pattern.
+- Note for callers: `publish()` returning True means ENQUEUED, not delivered. Dispatch
+  requires `await bus.start()`; verify the SurrealDB row, never the return value.
+- **EB1a (D1): `_running = False` must be in a `finally:`.** An outer `wait_for(stop(), t)`
+  that times out mid-drain, or a `start()` whose `create_task()` failed after setting the
+  flag, would otherwise strand the bus "running-but-dead" — and `publish()` would keep
+  accepting events nobody drains. This was a REGRESSION introduced by the drain fix itself
+  (the pre-fix code set the flag first); found by adversarial review, not by the suite.
+- **EB1b (D2): the drain must be BOUNDED.** `join()` returns only when the queue empties, so
+  a producer publishing faster than the loop drains — or a handler that never returns —
+  starves it forever. `stop(drain_timeout=_DRAIN_TIMEOUT_S)` wraps it in `wait_for`, then
+  abandons + counts + logs. Bounded observable loss beats an unbounded hang.
+- **EB1c (D7): `publish()` must return False when `not _running`.** Enqueueing with no
+  processor silently discards; returning True there is a lie the one return-checking caller
+  (`gaia_domain_agent`) would log as success.
+- **T2 discriminating**: `test_stop_returns_and_does_not_deadlock_on_a_nonempty_queue` (old
+  ordering → `TimeoutError`), `::test_stop_drains_every_queued_event_not_just_the_first` (old
+  ordering → lost events), `::test_d1_cancelled_stop_still_clears_running`,
+  `::test_d2_hot_producer_cannot_hang_stop_forever`,
+  `::test_d7_publish_after_stop_reports_failure_instead_of_discarding`
+- **Mutation-tested**: a cancel-first/no-drain "fix" kills the deadlock but drops events; 2 of
+  the tests fail against that mutant, so the suite discriminates the RIGHT fix from a
+  plausible wrong one.
+- **Verification**: `uv run pytest tests/core/test_event_bus_shutdown.py -q` → 9 passed
+
+### SCP2b: session liveness must survive a pid-namespace boundary (refines SCP2)
+- SCP2 stays correct — process-existence, not `last_seen` recency, and `os.kill` remains
+  inside `_pid_alive` so SCP2's structural test passes. SCP2b adds the missing precondition:
+  `os.kill(pid, 0)` answers *"does this PID exist in MY pid namespace"*, so it is only the
+  question `list_active()` asks when the row was WRITTEN from that same namespace. Across a
+  boundary it is wrong in BOTH directions — a recycled sandbox PID reads ALIVE, a live host
+  session reads DEAD.
+- `register()` must persist a boot-qualified namespace token (`_pid_namespace()`);
+  `_liveness()` trusts `os.kill` only on a namespace match (`"confirmed"`), else returns
+  UNKNOWN bounded by a `last_seen` TTL (`"assumed"`). Bias is deliberately to INCLUDE:
+  dropping a live session loses operator broadcasts, retaining a dead one costs one unacked
+  row. Callers needing certainty must require `liveness == "confirmed"`.
+- `last_seen` IS a genuine freshness signal: `~/.claude/hooks/session-inbox.sh` runs
+  `python -m cohezion.sessions heartbeat <sid>` on every **UserPromptSubmit**. The 12h TTL
+  is sized around that hook's limits, not around a never-refreshed timestamp: it fires on
+  USER INPUT rather than wall-clock, so a live-but-idle session still ages, and a session
+  that opted out via `.session-bus-off` or runs outside the cohezion checkout never
+  heartbeats at all. 12h tolerates an overnight idle gap while still excluding the 33h
+  ghost that motivated this. Widen before narrowing.
+- Observed defect: row `pid-79 / claude:l3-evolver-world-model`, 33h stale, reported ALIVE
+  because PID 79 was the reader itself. Note that every sandboxed Bash invocation gets a
+  FRESH pid namespace, so agent-shell readers legitimately never reach `"confirmed"`.
+- **SCP2b-D3: a FUTURE `last_seen` must not confer immortality.** A negative age can never
+  exceed `stale_after_s`, so a row written under writer-clock skew stayed `"assumed"` alive
+  forever (verified with a timestamp 10 years ahead). The freshness test is
+  `0 <= age <= stale_after_s`, not `age <= stale_after_s`.
+- **SCP2b-D5: `_pid_namespace()` returns `""` — never a placeholder — when boot_id is
+  unreadable.** A literal like `"unknown-boot"` is COLLIDABLE: two hosts that both cannot read
+  boot_id produce an equal token, the same-namespace guard passes, and a foreign PID is
+  trusted as `"confirmed"`. Falsy routes to the honest TTL path.
+- **SCP2b-D4: the weak PID signal breaks a tie only in the ABSENCE of evidence.** A legacy row
+  (no `ns`) with NO usable timestamp may use `os.kill` to be KEPT as `"assumed"` — never
+  `"confirmed"`, since the pid may collide. It must NOT override a definite stale timestamp:
+  a dead session with a colliding pid and a live session idle past the TTL are **the same
+  input shape**, and letting the pid win re-admits the original `pid-79` ghost. Safe because
+  the UserPromptSubmit heartbeat keeps a genuinely live session's `last_seen` fresh, so it is
+  already kept by the TTL branch; an idle-past-TTL session re-registers on its next turn.
+- **T2 discriminating**: `tests/sessions/test_liveness_namespace.py` — stale-row-with-colliding-pid must be dead; foreign-namespace-recent must be `"assumed"`; same-namespace process-existence must outrank `last_seen` in both directions; `::test_d3_future_last_seen_is_not_permanently_alive`; `::test_d4_weak_signal_must_not_override_a_definite_stale_timestamp` (the guard against resurrecting the ghost); `::test_d5_unreadable_boot_id_yields_a_non_matching_namespace`
+- **Verification**: `uv run pytest tests/sessions/ -q` → 31 passed (7 pre-existing SCP structural + 24 new)
+
+### DOC-E5: nested CLAUDE.md enumerations must be COMPLETE, not merely resolvable
+- `scripts/ci/doc_code_consistency.py` E1/E2/W3/W4 all verify REFERENTIAL truth ("does this
+  name resolve?"). E5 adds ENUMERATIVE truth: a doc claiming `Entry points (N modules)` must
+  have N == the package's actual module count (non-recursive `*.py`, minus `__init__.py`).
+- **Compare declared vs ACTUAL, never declared vs the table's row count.** Large packages
+  (`swarm`, 74) deliberately publish a truncated top-N table; a declared-vs-listed check
+  fires on intentional truncation and gets disabled within a week.
+- Caught `data_mesh/CLAUDE.md` declaring 12 with 13 on disk while every reference in it
+  resolved — the three undocumented modules (`inference_products`, `kanban_bridge`,
+  `land_runner`) were the newest load-bearing ones.
+- **There is no nested-CLAUDE.md generator.** All 5 credited a `gen_nested_claude.py` that
+  exists in no commit and nowhere on disk (phantom provenance, same class as RTG1/RGA1).
+  These docs are HAND-MAINTAINED: update them in the same commit as the code; a
+  regeneration will never clear the drift.
+- **DOC-E5-D6: no `if actual` guard.** It silently skipped any package whose only `.py` is
+  `__init__.py`, so such a doc could declare any count and pass. `ENTRYPOINTS_RE` already
+  scopes the check to docs that MAKE the claim (neither the root `CLAUDE.md` nor this file
+  does), so a zero-module package declaring a non-zero count is exactly the lie to report.
+- **Verification**: `python scripts/ci/doc_code_consistency.py --self-test` (E5 fires on a
+  real temp package declaring 1 with 2 on disk; fires on a zero-module package declaring 99;
+  negative control with a truncated table stays silent) and
+  `python scripts/ci/doc_code_consistency.py` → exit 0. Both are gates in
+  `scripts/ci/automerge_guard.sh`.
+
+## Adversarial Guardrail Ratchet Invariants (AG1–AG3, 2026-08-09)
+
+### AG1: the attack corpus has a CONSUMER that measures the PRODUCTION path
+- `attack_patterns.py` (116 OWASP LLM Top-10 patterns) and `adversarial_tester.py` were
+  both orphans — complete-looking, zero callers, so no number was ever produced from
+  them. `tests/security/test_production_guardrail_ratchet.py` is now that consumer.
+- **The aim matters more than the wiring.** `test_single_pattern`'s DEFAULT target is
+  `PromptGuard` + `validate_input`, neither of which the executor calls; the production
+  input path is `CompoundExecutor.execute_task` → `GuardrailPipeline.check_input`
+  (executor.py:963-986). Wiring the tester without re-aiming it would have produced a
+  reassuring number about a component that never runs. The gate passes an explicit
+  `production_guardrail_probe()`.
+- **First measurement 2026-08-09** (six literal substrings, no normalization): 9 of 106
+  attacks caught (8.5%), 0/10 corpus-benign, **4 of 7 legitimate engineering task
+  descriptions BLOCKED**. A BLOCK hard-fails the task (`success=False`, early return at
+  executor.py:978), so those 4 were real work items that could not execute.
+- **After `cohezion.security.injection_signals` (AG4)**: **25/106 caught, 0/10 corpus
+  benign, 0/7 prose blocked, 7/7 encoding evasions closed.** Baselines raised to match.
+- **Verification**: `uv run pytest tests/security/test_production_guardrail_ratchet.py -q`
+  → 21 passed.
+
+### AG4: detection lives in injection_signals, NOT in a substring blocklist
+- `PromptInjectionGuard.check` delegates to `injection_signals.find_injection`. The
+  `INJECTION_PATTERNS` ClassVar on the *guard* is retained for backward compatibility and
+  is **no longer the detection path** — monkeypatching it does nothing. (When the guard
+  was switched over, the old mutation tests failed LOUDLY rather than silently passing,
+  which is the correct direction: the gate detected that its own mutation mechanism had
+  died. Any future rewiring must preserve that property.)
+- Two corrections, one per failure direction — the old guard failed in **both** at once
+  because matching raw text has no notion of meaning:
+  1. `normalize_variants()` folds text into NFKD/de-leet/de-streamed/ROT13/base64 forms,
+     so semantic-preserving transforms cannot hide the same words.
+  2. Patterns are **intent-directed phrases**, not bare words: an injection addresses the
+     model's own instructions ("override **your** alignment"), while ordinary engineering
+     prose does not ("override the default timeout"). `\W+` filler tolerates the
+     interposed word that broke the literal `"ignore previous"`.
+- **A bare `system_prompt` pattern was deliberately REMOVED.** It cost 2 corpus
+  detections (26→25→24 net of other changes) and eliminated the last prose false positive
+  ("Add a test for the system prompt template loader"). Talking *about* a system prompt is
+  not asking *for* one; the exfiltration verb is what discriminates. Trading detections
+  for a false positive that hard-fails real work is the correct direction here.
+- **Not an arms race.** Decoding covers only the transforms present in the corpus.
+  Encoding obfuscation is unbounded — this narrows the gap, it does not close it. The
+  ratchet is what tells you where the gap actually is.
+
+### AG5: mutation coverage is per-signal, and 9/9 is the standard
+- Mutation run 2026-08-09 after AG4: deleting **each** of the 8 signals individually, plus
+  the total wipe → **9/9 mutants KILLED**, each failure naming the lost rule. (Before the
+  canaries existed, the equivalent run was 1/3.)
+- Two canary strings are worded specifically to avoid overlap: `"Ignore all previous
+  instructions"` matches BOTH `ignore_previous` and `ignore_everything`, so neither canary
+  could detect the loss of its own rule. `test_each_canary_dies_with_its_own_rule` enforces
+  this — it rejects any canary that survives removal of its own signal.
+- Reproduce: set `MUTANT=<signal>` and run the gate with a plugin that filters
+  `injection_signals.INJECTION_PATTERNS`; every signal must produce a failure.
+
+### AG2: the probe returns the BLOCKING GUARD NAME, never a bool
+- `GuardProbe = Callable[[str], str | None]`, and `production_guardrail_probe(content_only=True)`
+  drops `rate_limit` / `resource` from the pipeline.
+- Not a style choice — a correctness one. The pipeline SHORT-CIRCUITS on first BLOCK and
+  `rate_limit` fires after 60 calls regardless of text, so on a 116-pattern corpus a
+  boolean probe reports 36/106 (34%) instead of 9/106 (8.5%) — a **4x overstatement
+  manufactured out of call volume**. Patterns swallowed by a volume guard are
+  *unmeasured*, not "allowed"; scoring them either way fabricates a number.
+- `CONTENT_GUARDS = {"constitutional", "prompt_injection", "output_filter"}` is the set
+  whose verdict depends on the text. Any new volume/quota guard must stay out of it.
+
+### AG3: the ratchet is DISCRIMINATING at per-pattern granularity (mutation-verified)
+- An aggregate count alone is nearly blind here. Mutation run 2026-08-09: deleting
+  `"ignore previous"` or `"jailbreak"` left `attacks_caught` at 9 — **2 of 3 mutants
+  SURVIVED**; only wiping the whole blocklist moved the number.
+- Root cause worth keeping: `"ignore previous"` catches **ZERO** of the 106 corpus
+  attacks, because the corpus says *"Ignore ALL previous instructions"* and one
+  interposed word breaks the literal substring. The guard's most famous rule is dead
+  weight against our own corpus.
+- Fixed by `INJECTION_CANARIES` — one attack string per production pattern, each
+  verified to evade once *its own* pattern is removed. Post-fix: **3/3 mutants killed**,
+  and the failure names the lost rule (`test_injection_canary_still_blocked[ignore previous]`).
+- **T2 discriminating**: `TestRatchetIsDiscriminating::test_neutralised_injection_guard_collapses_the_score`
+  (empty blocklist → caught < baseline) and
+  `test_each_canary_dies_with_its_own_rule[<pattern>]` (a canary caught incidentally by
+  some *other* substring is rejected as useless).
+- **Do not raise the baselines without a mutation run.** Green here proved nothing
+  before the mutants were run, and it will prove nothing next time either.

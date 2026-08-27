@@ -73,3 +73,28 @@ class TestVerifyIsCapped:
             _, output = synth.verify("x = 1", "mod")
         assert output == "HARNESS_INFO: ok\n"
         assert "truncated" not in output.lower()
+
+
+class TestCapIsHard:
+    """Adversarial review 2026-08-20 (deepseek-v4-pro lane, verified): the marker previously
+    pushed output to limit + 75 chars, so a downstream consumer enforcing the same limit
+    would re-truncate and destroy the tail this function exists to preserve."""
+
+    def test_output_never_exceeds_the_cap(self) -> None:
+        for size in (MAX_TOOL_OUTPUT_CHARS + 1, 40_000, 123_457):
+            out = _cap_output("x" * size)
+            assert len(out) <= MAX_TOOL_OUTPUT_CHARS, f"input {size}: output {len(out)} > cap"
+
+    def test_dropped_count_in_marker_is_exact(self) -> None:
+        """The honesty half: the marker's figure must equal the chars actually dropped.
+
+        Kept chars are recoverable from the output because the filler is uniform; the marker
+        is whatever remains after removing the kept head+tail."""
+        import re
+
+        text = "z" * 50_000  # "z" never appears in the marker text itself
+        out = _cap_output(text)
+        m = re.search(r"truncated (\d+) chars", out)
+        assert m is not None
+        kept = out.count("z")
+        assert int(m.group(1)) == len(text) - kept

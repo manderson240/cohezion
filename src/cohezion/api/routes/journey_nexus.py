@@ -210,7 +210,7 @@ def _build_viz_frame(frame_id: int) -> dict[str, Any]:
         "nexus": {
             "I": nexus_i,
             "Q": nexus_q,
-            "distance": math.sqrt((nexus_i - 0.5) ** 2 + (nexus_q - 0.5) ** 2),
+            "distance": math.hypot(nexus_i - 0.5, nexus_q - 0.5),
             "power": _hiho_glow(mean_coherence),
         },
         "mhd_ripple_phase": mhd_phase,

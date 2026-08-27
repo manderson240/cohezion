@@ -58,7 +58,18 @@ model_fast = CohezionLM.from_autoresearch(smart_seed=True)  # exp_WWWW9: spread 
 
 # === 1-LAYER FAST GATE: 4.3x speedup, 72% fewer params, only +2.8% PPL (exp_AAAA0) ===
 from cohezion.model.cohezion_lm import CohezionLMConfig
-_1L_cfg = CohezionLMConfig(vocab_size=256, d_model=256, n_layers=1, n_heads=4, d_ff=1024, max_seq_len=512, dropout=0.0, ffn_scale=1.0, logit_shift=0.0)
+
+_1L_cfg = CohezionLMConfig(
+    vocab_size=256,
+    d_model=256,
+    n_layers=1,
+    n_heads=4,
+    d_ff=1024,
+    max_seq_len=512,
+    dropout=0.0,
+    ffn_scale=1.0,
+    logit_shift=0.0,
+)
 model_gate = CohezionLM.from_autoresearch(config_override=_1L_cfg)  # 852K params, ~1.5s, PPL~30
 
 # Generate text

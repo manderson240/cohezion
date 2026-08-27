@@ -142,11 +142,12 @@ def test_cosmological_ralph_loop_convergence():
     validator = HookifyValidator()
     context = {
         "goal": "Implement cosmological Boltzmann solver",
-        "coherence": 0.3  # Below threshold
+        "coherence": 0.3,  # Below threshold
     }
     result = validator.validate("pre_execute", context)
     assert result.block is True
     assert "coherence" in result.violations[0].message
+
 
 # 2. Run test (fails)
 # 3. Implement rule engine

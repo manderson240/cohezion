@@ -102,7 +102,9 @@ def register_checkpoint(key: str) -> None:
     print(f"  notes: {spec.get('notes', '')}")
     print(f"\nLoad now: curl -s -X POST {LEMONADE_API}/api/v1/load \\")
     print('  -H "Content-Type: application/json" \\')
-    print(f'  -d \'{{"model_name": "{name}", "ctx_size": {spec["recipe_options"]["ctx_size"]}, "save_options": true}}\'')
+    print(
+        f'  -d \'{{"model_name": "{name}", "ctx_size": {spec["recipe_options"]["ctx_size"]}, "save_options": true}}\''
+    )
 
 
 def convert_and_register(key: str) -> None:
@@ -125,7 +127,15 @@ def convert_and_register(key: str) -> None:
     print("  Step 2: convert to F16 GGUF")
     f16_path = CUSTOM_MODELS_DIR / f"{name}-F16.gguf"
     subprocess.run(
-        [sys.executable, str(LLAMA_CONVERT), local_path, "--outfile", str(f16_path), "--outtype", "f16"],
+        [
+            sys.executable,
+            str(LLAMA_CONVERT),
+            local_path,
+            "--outfile",
+            str(f16_path),
+            "--outtype",
+            "f16",
+        ],
         check=True,
     )
     print(f"  converted: {f16_path}")

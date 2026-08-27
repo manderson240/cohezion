@@ -29,10 +29,22 @@ def _cap_output(text: str, limit: int = MAX_TOOL_OUTPUT_CHARS) -> str:
     """
     if len(text) <= limit:
         return text
-    head = limit // 2
-    tail = limit - head
+    # The marker must fit INSIDE the cap: adversarial review 2026-08-20 measured the previous
+    # version returning limit + len(marker) chars, so a downstream consumer enforcing the same
+    # limit would re-truncate and destroy the tail this function exists to preserve. The dropped
+    # count and the marker length depend on each other (digit width), so iterate to a fixpoint —
+    # converges in <= 2 passes because dropped only shifts by the marker's own length.
     dropped = len(text) - limit
-    marker = f"\n... [truncated {dropped} chars; cap {limit}, kept first {head} + last {tail}] ...\n"
+    head = tail = 0
+    marker = ""
+    for _ in range(3):
+        marker = f"\n... [truncated {dropped} chars; cap {limit}] ...\n"
+        budget = max(limit - len(marker), 2)
+        head = budget // 2
+        tail = budget - head
+        if len(text) - head - tail == dropped:
+            break
+        dropped = len(text) - head - tail
     return text[:head] + marker + text[-tail:]
 
 

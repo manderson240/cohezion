@@ -95,9 +95,10 @@ steps:
 ```python
 # orchestrator/bmad_integration/task_adapter.py
 
+
 class CohezionTaskAdapter:
     """Adapter to register Cohezion tasks in BMAD."""
-    
+
     def register_tasks(self):
         """Register Cohezion tasks with BMAD task system."""
         tasks = [
@@ -108,7 +109,7 @@ class CohezionTaskAdapter:
                 "command": "/security-check",
                 "schedule": "0 8 * * *",
                 "priority": "high",
-                "category": "security"
+                "category": "security",
             },
             {
                 "id": "cohezion-doc-update",
@@ -117,7 +118,7 @@ class CohezionTaskAdapter:
                 "command": "/update-docs",
                 "schedule": "0 10 * * *",
                 "priority": "medium",
-                "category": "documentation"
+                "category": "documentation",
             },
             {
                 "id": "cohezion-pr-review",
@@ -126,10 +127,10 @@ class CohezionTaskAdapter:
                 "command": "/review-pr",
                 "trigger": "pr.created",
                 "priority": "high",
-                "category": "code-review"
-            }
+                "category": "code-review",
+            },
         ]
-        
+
         # Write to BMAD task manifest
         self._update_task_manifest(tasks)
 ```
@@ -163,17 +164,12 @@ _bmad/_memory/
 bmad_patterns = load_bmad_patterns("_bmad/_memory/tech-writer-sidecar/")
 for pattern in bmad_patterns:
     intelligence.learn_doc_pattern(
-        doc_type=pattern.type,
-        template=pattern.template,
-        example=pattern.example
+        doc_type=pattern.type, template=pattern.template, example=pattern.example
     )
 
 # Sync Cohezion findings to BMAD
 security_patterns = intelligence.get_security_patterns()
-append_to_sidecar(
-    "_bmad/_memory/cohezion-integration/learned-patterns.md",
-    security_patterns
-)
+append_to_sidecar("_bmad/_memory/cohezion-integration/learned-patterns.md", security_patterns)
 ```
 
 ### 4. Agent-to-Agent Communication
@@ -192,10 +188,11 @@ async def sentinel_call_architect(alert):
         data={
             "target_agent": "architect",
             "action": "review_security_implications",
-            "input": alert
-        }
+            "input": alert,
+        },
     )
     await event_bus.emit(event)
+
 
 # BMAD agent calling Cohezion agent
 async def dev_call_inspector(code):
@@ -203,11 +200,7 @@ async def dev_call_inspector(code):
     event = Event.create(
         type="agent.request",
         source="bmm-dev",
-        data={
-            "target_agent": "code-review-assistant",
-            "action": "security-review",
-            "input": code
-        }
+        data={"target_agent": "code-review-assistant", "action": "security-review", "input": code},
     )
     await event_bus.emit(event)
 ```

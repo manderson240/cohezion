@@ -27,11 +27,11 @@ We use a **Pragmatic Search Engine** (TF-IDF + Cosine Similarity) rather than a 
 ```python
 @dataclass
 class Capability:
-    name: str          # Unique ID (e.g., "SKILL:PHYSICS_PRIME")
-    type: str          # "skill", "agent", "mcp", "memory"
-    description: str   # Natural language desc
-    path: str          # File path or URI
-    tags: list[str]    # Keywords
+    name: str  # Unique ID (e.g., "SKILL:PHYSICS_PRIME")
+    type: str  # "skill", "agent", "mcp", "memory"
+    description: str  # Natural language desc
+    path: str  # File path or URI
+    tags: list[str]  # Keywords
 ```
 
 ## 5. Usage
@@ -39,7 +39,7 @@ class Capability:
 from cohezion.registry.capability_registry import CapabilityRegistry
 
 registry = CapabilityRegistry()
-registry.refresh() # Scans codebase
+registry.refresh()  # Scans codebase
 
 # Natural Language Search
 results = registry.find("I need to solve a complex physics problem")

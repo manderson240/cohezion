@@ -1,8 +1,9 @@
 """Verification leg for the orphan-integration bridge (V-model audit 2026-06-05).
 
 Importing this test counts as an external importer of the bridge, and the bridge
-imports every orphan -- so this single seam flips all 11 audited orphans from
+imports every orphan -- so this single seam flips all 10 audited orphans from
 ``orphan`` to ``wired`` in the import graph, non-destructively.
+(Was 11: the empty ``policies`` package was retired 2026-08-14, elegant-simplicity audit.)
 """
 
 from __future__ import annotations
@@ -15,9 +16,9 @@ from cohezion.wiring.orphan_bridge import _ORPHAN_MODULES
 
 def test_bridge_covers_every_audited_orphan() -> None:
     status = verify_wiring()
-    assert status["total"] == len(_ORPHAN_MODULES) == 11
+    assert status["total"] == len(_ORPHAN_MODULES) == 10
     # wired + degraded must partition the full set (fail-soft, nothing dropped).
-    assert int(status["wired_count"]) + int(status["degraded_count"]) == 11  # type: ignore[arg-type]
+    assert int(status["wired_count"]) + int(status["degraded_count"]) == 10  # type: ignore[arg-type]
 
 
 def test_degraded_orphans_record_a_reason_never_raise() -> None:

@@ -71,6 +71,7 @@ The Daily Platform Health Digest provides Charter-aligned platform health monito
 ```python
 from cohezion.platform.daily_health_digest import get_daily_health_digest
 
+
 async def check_health():
     digest = get_daily_health_digest()
 
@@ -101,6 +102,7 @@ uv run python scripts/examples/daily_health_digest_example.py
 from cohezion.platform.daily_health_digest import get_daily_health_digest
 from cohezion.platform.journey_logger import get_journey_logger
 
+
 async def daily_maintenance():
     """Daily maintenance workflow with health monitoring."""
 
@@ -109,8 +111,7 @@ async def daily_maintenance():
 
     # Start maintenance journey
     journey_id = await logger.start_journey(
-        journey_type="maintenance",
-        context="Daily platform maintenance with health check"
+        journey_type="maintenance", context="Daily platform maintenance with health check"
     )
 
     # Generate health digest
@@ -120,7 +121,7 @@ async def daily_maintenance():
     await logger.log_decision(
         journey_id=journey_id,
         decision=f"Health status: {result.overall_status.value}",
-        rationale=f"Score: {result.overall_health_score:.3f}, HIHO stable: {result.hiho_stable}"
+        rationale=f"Score: {result.overall_health_score:.3f}, HIHO stable: {result.hiho_stable}",
     )
 
     # Act on recommendations
@@ -128,16 +129,14 @@ async def daily_maintenance():
         if "CRITICAL" in rec:
             # Execute critical remediation
             await logger.log_decision(
-                journey_id=journey_id,
-                decision="Execute critical remediation",
-                rationale=rec
+                journey_id=journey_id, decision="Execute critical remediation", rationale=rec
             )
 
     # Complete journey
     await logger.complete_journey(
         journey_id=journey_id,
         outcome=f"Maintenance complete: {result.overall_status.value}",
-        context_end=f"Final score: {result.overall_health_score:.3f}"
+        context_end=f"Final score: {result.overall_health_score:.3f}",
     )
 ```
 

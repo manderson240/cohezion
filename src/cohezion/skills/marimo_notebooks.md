@@ -57,35 +57,29 @@ import pandas as pd
 import plotly.express as px
 
 # Cell 1: UI Controls
-coherence_slider = mo.ui.slider(
-    start=0.0, stop=1.0, value=0.7,
-    label="Coherence Threshold"
-)
+coherence_slider = mo.ui.slider(start=0.0, stop=1.0, value=0.7, label="Coherence Threshold")
 mo.md(f"## Threshold: {coherence_slider.value}")
+
 
 # Cell 2: Reactive Data Loading (auto-updates when slider changes)
 @mo.cache
 def load_data():
     return pd.read_json("flume_trajectories.jsonl", lines=True)
 
+
 df = load_data()
-filtered = df[df['coherence'] > coherence_slider.value]
+filtered = df[df["coherence"] > coherence_slider.value]
 mo.md(f"Showing **{len(filtered)}** of {len(df)} trajectories")
 
 # Cell 3: Visualization (auto-updates)
-fig = px.scatter(filtered, x='step', y='coherence', color='stream')
+fig = px.scatter(filtered, x="step", y="coherence", color="stream")
 mo.ui.plotly(fig)
 ```
 
 ### 2. Interactive Tables
 ```python
 # Selectable table
-table = mo.ui.table(
-    df,
-    selection="multi",
-    pagination=True,
-    page_size=20
-)
+table = mo.ui.table(df, selection="multi", pagination=True, page_size=20)
 
 # React to selection
 if table.value is not None:
@@ -98,12 +92,9 @@ if table.value is not None:
 # Form with multiple inputs
 form = mo.ui.batch(
     mo.md("### Simulation Parameters"),
-    stream=mo.ui.dropdown(
-        options=["architect", "engineer", "biologist"],
-        value="architect"
-    ),
+    stream=mo.ui.dropdown(options=["architect", "engineer", "biologist"], value="architect"),
     steps=mo.ui.number(value=100, start=1, stop=1000),
-    run=mo.ui.run_button()
+    run=mo.ui.run_button(),
 )
 
 if form.value["run"]:
@@ -149,6 +140,7 @@ docker run -p 2718:2718 -v $(pwd)/notebooks:/app/notebooks cohezion-notebooks
 def expensive_computation(param):
     """Cached function - only recomputes when param changes."""
     return heavy_calculation(param)
+
 
 # Lazy evaluation
 @mo.lazy

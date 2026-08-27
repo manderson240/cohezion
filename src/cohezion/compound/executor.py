@@ -262,7 +262,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             try:
                 from cohezion.compound.journey_tracker import JourneyTracker
 
-                journey_tracker = JourneyTracker()
+                # Sparse-code workspace readout (vault 2026-08-01-flume-sparse-
+                # workspace-design, SUPPORTED): auto-wire so the capability is
+                # live, not dormant. Fail-open — tracker works without it.
+                workspace_readout = None
+                try:
+                    from cohezion.flume.workspace_readout import WorkspaceReadout
+
+                    workspace_readout = WorkspaceReadout()
+                except ImportError:
+                    pass
+                journey_tracker = JourneyTracker(workspace_readout=workspace_readout)
             except ImportError as e:
                 logger.debug("Cycle persistence without JourneyTracker: %s", e)
         # Strong refs to in-flight cache writes so they aren't GC'd mid-flight.
@@ -476,14 +486,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             prioritized = refiner.prioritized_skills(candidates)
             k = top_k if top_k is not None else len(prioritized)
             for skill in prioritized[:k]:
-                try:
+                with contextlib.suppress(Exception):
                     refiner.refine(
                         skill_name=skill,
                         operation_type="mgpo_batch",
                         execution_result={},
                     )
-                except Exception:
-                    pass
         except Exception:
             pass
         finally:
@@ -1067,10 +1075,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         _tier_hints: dict[str, str] = {}
         # (a) W3: DegradationDetector.suggest_routing_tier() — reactive, health-based tier hint.
         if self._degradation_detector is not None:
-            try:
+            with contextlib.suppress(Exception):
                 _tier_hints["suggested_tier"] = self._degradation_detector.suggest_routing_tier()
-            except Exception:
-                pass
         # (b) W4: DifficultyEstimator.predict_tier() — predictive, skill-specific tier hint.
         # Use the lazy `skill_refiner` PROPERTY (not the raw `_skill_refiner` attr): the attr is None
         # until the property first fires at the post-execute_fn refinement step, so reading it here
@@ -1080,12 +1086,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if _refiner is not None:
             _estimator = getattr(_refiner, "_difficulty_estimator", None)
             if _estimator is not None:
-                try:
+                with contextlib.suppress(Exception):
                     _tier_hints["predicted_tier"] = _estimator.predict_tier(
                         skill_name, operation_type
                     )
-                except Exception:
-                    pass
         # (d) OC1-OC3: CompoundHealthOracle.last_assessment.tier_recommendation — regime-driven,
         # rolling Higuchi-FD window (cross-session persistent). Reflects the PREVIOUS executions'
         # quality texture (HIHO/STUCK/CHAOTIC). STUCK (FD < 1.3) escalates the recommended tier
@@ -1126,7 +1130,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 inference_provider=self._inference_provider,
             )
             success = True
-            logger.info("Task completed successfully")
+            # E1-S1: empty/whitespace-only output is the fleet's known "local inference emits
+            # empty" failure mode — do NOT score it as a healthy success (was: unconditional
+            # True). Downstream anomaly/quality scoring must see it as degraded, not nominal.
+            if not output or not str(output).strip():
+                success = False
+                metrics["degraded"] = True
+                logger.warning("Task produced empty output — marking degraded, not success")
+            else:
+                logger.info("Task completed successfully")
         except Exception as e:
             # User-supplied execute_fn can raise anything; record failure metric and continue.
             # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit Exception).
@@ -1343,7 +1355,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Quadrature consensus: alignment with human request
         if alignment_data := metrics.get("alignment", {}):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
-        metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
+        # A caller-MEASURED coherence must not be overwritten by this self-computed blend:
+        # for a fixed success/anomaly/intent profile the blend is CONSTANT regardless of
+        # output quality, so overwriting silently disconnected the DegradationDetector's
+        # coherence baseline from every execute_fn that actually measures quality
+        # (found 2026-08-20 via test_critical_alert_logged_to_vault — the alert could
+        # never fire). Measured wins; the blend remains the fallback and stays observable
+        # under its own key.
+        _computed_cohesion = sum(cohesion_components) / len(cohesion_components)
+        metrics["computed_cohesion"] = _computed_cohesion
+        if not isinstance(metrics.get("coherence"), (int, float)):
+            metrics["coherence"] = _computed_cohesion
 
         # Step 5.85: V-Model DRR gate (non-blocking).
         # DRR checks file artifacts (skill PRIME .md + matching test .py). Only fire when both
@@ -1404,6 +1426,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             metrics["coherence"] = metrics["coherence"] * 0.9 + nc_metrics.habitat_quality * 0.1
         except Exception:
             pass  # Non-blocking: natural_capital module may not be available
+
+        # E1-S2: feed the FINAL coherence (Step 5.8 composite + Step 5.9 natural-capital blend) to
+        # the detector so cross-execution coherence trend analysis is live. detect_anomaly (Step 5)
+        # runs before this value exists — it depends on the anomaly score — so without this the
+        # coherence tripwire is dead on the normal path. Non-blocking.
+        try:
+            coherence_issues = self.inflection_detector.observe_coherence(metrics["coherence"])
+            if coherence_issues:
+                metrics["coherence_issues"] = coherence_issues
+                logger.debug("Composite coherence issues: %s", coherence_issues)
+        except (AttributeError, TypeError, ValueError) as e:
+            logger.debug("Coherence observation failed (non-blocking): %s", e)
 
         # Step 5.91: Autoresearch dispatch (non-blocking, research tasks only)
         _RESEARCH_KEYWORDS = {"train", "optimize", "research", "experiment", "tune", "improve loss"}
@@ -2116,10 +2150,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         suggested = None
         if self._degradation_detector is not None:
-            try:
+            with contextlib.suppress(Exception):
                 suggested = self._degradation_detector.suggest_routing_tier()
-            except Exception:
-                pass
         predicted = None
         estimator = (
             getattr(self._skill_refiner, "_difficulty_estimator", None)
@@ -2127,10 +2159,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             else None
         )
         if estimator is not None:
-            try:
+            with contextlib.suppress(Exception):
                 predicted = estimator.predict_tier(skill_name, operation_type)
-            except Exception:
-                pass
         # Adequate tier = the MORE CAPABLE of the difficulty prediction and the health suggestion
         # (either signal escalating wins — never under-route a hard task at the boundary). Unlike
         # RS1's cost-biased _resolve_tier (cheaper-of-two), the reroute ensures capability.

@@ -66,11 +66,11 @@ AgentJetTrainer  ← orchestration layer
 ```python
 def phi_to_reward(phi_score: float) -> float:
     if phi_score >= 0.7:
-        return phi_score * 2.0 - 1.0       # [0.4, 1.0]
+        return phi_score * 2.0 - 1.0  # [0.4, 1.0]
     elif phi_score >= 0.4:
         return (phi_score - 0.4) / 0.3 * 0.2  # [0.0, 0.2]
     else:
-        return -1.0                          # HIHO violation
+        return -1.0  # HIHO violation
 ```
 
 ## OOM PREVENTION PROTOCOL (NON-NEGOTIABLE)
@@ -154,8 +154,8 @@ Training against `deepseek-r1:70b` is deferred to Phase 3 (requires QLoRA or gra
    ```python
    reader = JourneyTaskReader(path="data/finetune_journeys.jsonl")
    dataset = reader.load(
-       min_phi=0.0,       # Include violations (reward=-1) for contrast
-       exclude_hiho=False # Keep HIHO examples for SFT warm-up only
+       min_phi=0.0,  # Include violations (reward=-1) for contrast
+       exclude_hiho=False,  # Keep HIHO examples for SFT warm-up only
    )
    ```
 

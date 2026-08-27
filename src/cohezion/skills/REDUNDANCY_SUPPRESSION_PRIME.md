@@ -32,7 +32,7 @@ def check_redundancy(task_str: str, history: list[str]) -> bool:
     h = hashlib.sha256(task_str.encode()).hexdigest()
     count = history.count(h)
     if count > 10:
-        return True # Suppress
+        return True  # Suppress
     return False
 ```
 

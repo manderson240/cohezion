@@ -11,13 +11,11 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from cohezion.security.pipeline import SecurityPipeline
 
 
 logger = logging.getLogger(__name__)
@@ -73,7 +71,7 @@ class ResearchSecurityGuardrails:
         "logging",
     ]
 
-    def __init__(self, security_pipeline: SecurityPipeline | None = None):
+    def __init__(self, security_pipeline: Any | None = None):
         """Initialize guardrails.
 
         Args:

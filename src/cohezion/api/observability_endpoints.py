@@ -335,26 +335,7 @@ async def get_full_dashboard():
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.post("/reset")
-async def reset_metrics():
-    """Reset current metrics (archive to history).
-
-    Useful for clearing metrics between sessions or test cycles.
-
-    Returns:
-        dict with confirmation
-    """
-    try:
-        collector = get_metrics_collector()
-        collector.reset_current_metrics()
-        analytics = get_analytics()
-        analytics.add_metrics(collector.get_current_metrics())
-
-        return {
-            "status": "success",
-            "message": "Metrics reset and archived to history",
-            "timestamp": datetime.now().isoformat(),
-        }
-    except Exception as e:
-        logger.error("Failed to reset metrics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e)) from e
+# NOTE (security review 2026-08-14): the POST /reset route was removed when this
+# router was first mounted — an unauthenticated metrics-wipe endpoint would have
+# become newly reachable. Reset stays available programmatically via
+# get_metrics_collector().reset_current_metrics(); re-add a route only behind auth.

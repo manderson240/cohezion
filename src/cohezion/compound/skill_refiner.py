@@ -12,6 +12,7 @@ Features:
 - Non-blocking persistence (failures don't crash execution)
 """
 
+import contextlib
 import logging
 import re
 from collections import deque
@@ -923,6 +924,10 @@ class SkillRefiner:
             anomaly_score=anomaly_score,
             cached_hits=cached_hits,
             tokens_per_task=tokens_per_task,
+            # ME1: without these two, every record fed to DifficultyEstimator at
+            # _generate_learning_signal is "unknown"/0 and per-skill engine learning is severed.
+            tier_used=metrics_dict.get("tier_used", "unknown") or "unknown",
+            escalation_count=int(metrics_dict.get("escalation_count", 0) or 0),
         )
 
     def _generate_learning_signal(
@@ -961,10 +966,8 @@ class SkillRefiner:
         # CH5: Health oracle — feed quality score into streaming HIHO regime tracker so
         # oracle.is_healthy() reflects actual session quality history, not warming-up state.
         if self._health_oracle is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._health_oracle.assess(metrics.quality_score)
-            except Exception:
-                pass
         # #93: feed tier_used + escalation_count into predictive estimator
         self._difficulty_estimator.record(
             skill_name,
@@ -1227,7 +1230,12 @@ class SkillRefiner:
         """
         if not text or text.strip() == "NOMINAL":
             return True  # fail-open: no LM text → heuristic path unblocked
-        numbers = [float(m) for m in re.findall(r"\b\d+(?:\.\d+)?\b", text)]
+        # No trailing \b: between a digit and a unit letter ("0.05s", "42ms") there is no
+        # word boundary, so the old \b...\b regex silently dropped the fractional part —
+        # "Duration: 0.05s" extracted as "0" and a correct sub-second citation could never
+        # match its own ±50% band (found 2026-08-21: refine() timing-dependently returned
+        # None because the gate rejected the deterministic string refine itself built).
+        numbers = [float(m) for m in re.findall(r"(?<![\w.])\d+(?:\.\d+)?", text)]
         if not numbers:
             return False  # text has no numbers → cannot cite any metric
         actuals = [
@@ -1236,9 +1244,21 @@ class SkillRefiner:
             metrics.duration_seconds,
             float(metrics.cached_hits),
         ]
-        for actual in actuals:
-            if actual <= 0:
-                continue
+        # quality_score is routinely rendered as a percentage ("95.00%" for 0.95); accept
+        # the percent rendering as a citation of the same value — but only when the text
+        # actually renders a percent, otherwise the x100 band would let an unrelated
+        # magnitude (e.g. a fabricated "Duration: 100s" against quality 0.8) slip through
+        # (adversarial review 2026-08-21, nemotron lane, confirmed).
+        if metrics.quality_score > 0 and "%" in text:
+            actuals.append(metrics.quality_score * 100.0)
+        citable = [a for a in actuals if a > 0]
+        if not citable:
+            # Every metric is zero. An honest summary of a zero-metric run cites zeros
+            # ("Tokens: 0, Duration: 0.00s"); a fabricated one cites non-zero values.
+            # Accept only the former — blanket fail-open here would wave hallucinated
+            # numbers through (adversarial review 2026-08-21, confirmed).
+            return any(n == 0 for n in numbers)
+        for actual in citable:
             lo, hi = actual * 0.5, actual * 1.5
             if any(lo <= n <= hi for n in numbers):
                 return True

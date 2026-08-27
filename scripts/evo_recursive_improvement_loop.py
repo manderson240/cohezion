@@ -138,7 +138,9 @@ def _query_entropy_trend(skill_id: str, n_recent: int = 10) -> float | None:
         )
         rows = results[0].get("result", [])
         if rows:
-            entropies = [float(r["latent_entropy"]) for r in rows if r.get("latent_entropy") is not None]
+            entropies = [
+                float(r["latent_entropy"]) for r in rows if r.get("latent_entropy") is not None
+            ]
             if entropies:
                 return sum(entropies) / len(entropies)
     except Exception:
@@ -187,6 +189,7 @@ def _latent_entropy(latent_snapshot: list[float]) -> float:
     before φ collapses when the latent distribution starts polarizing.
     """
     import math
+
     eps = 1e-9
     entropies = []
     for z in latent_snapshot:
@@ -822,7 +825,22 @@ def run_evo_loop(
     """
     from cohezion.compound.journey_tracker import JourneyTracker
     from cohezion.compound.skill_refiner import SkillRefiner
-    from cohezion.evo.recursive_tracer import RecursiveTracer
+
+    try:
+        # WIRING TODO (surfaced 2026-08-14, elegant-simplicity audit): this tracer was never
+        # written — cohezion.evo held only a docstring. The closest live capability is
+        # cohezion.recursive_trace (RecursiveTraceLoop), but its API does not match the
+        # trace_step/step_count/complete_journey contract this loop expects. Until a tracer
+        # implementing that contract exists, this run path fails LOUDLY here instead of
+        # raising a bare ImportError mid-run. RuntimeError (not SystemExit) so
+        # callers' except Exception handlers still work (review finding P1).
+        from cohezion.evo.recursive_tracer import RecursiveTracer
+    except ImportError as exc:
+        raise RuntimeError(
+            "evo_recursive_improvement_loop: RecursiveTracer is an unimplemented wiring TODO "
+            "(no cohezion.evo.recursive_tracer module exists; see cohezion.recursive_trace "
+            "for the nearest capability). This loop's tracer path cannot run yet."
+        ) from exc
     from cohezion.universe.agentic_evo_swift import AgenticEVO
 
     _ensure_evo_journey_table()
@@ -896,7 +914,11 @@ def run_evo_loop(
                 # Widen σ further (1.1×) to break out of collapsing attractor basin.
                 if entropy_trend is not None and entropy_trend < 0.5:
                     _sigma_factor = min(1.25 / _sigma_base, _sigma_factor * 1.10)
-                    logger.debug("entropy-trend=%.3f < 0.5 → collapse precursor, σ_factor boosted to %.2f", entropy_trend, _sigma_factor)
+                    logger.debug(
+                        "entropy-trend=%.3f < 0.5 → collapse precursor, σ_factor boosted to %.2f",
+                        entropy_trend,
+                        _sigma_factor,
+                    )
                 _sigma = min(1.25, max(0.25, _sigma_base * _sigma_factor))
                 logger.debug(
                     "φ-trend=%.3f entropy=%.3f → σ_factor=%.2f (base %.3f → %.3f)",
@@ -913,12 +935,16 @@ def run_evo_loop(
                 initial_latent = np.random.default_rng().standard_normal(256) * _sigma + 0.5
                 logger.debug(
                     "random init σ=%.3f for %d steps (E[c]≈%.3f)",
-                    _sigma, n_steps, _sigma * 0.7979,
+                    _sigma,
+                    n_steps,
+                    _sigma * 0.7979,
                 )
             else:
                 logger.debug(
                     "FLUME-grounded init σ=%.3f for %d steps (E[c]≈%.3f)",
-                    _sigma, n_steps, _sigma * 0.7979,
+                    _sigma,
+                    n_steps,
+                    _sigma * 0.7979,
                 )
             agent = AgenticEVO(agent_id=agent_id, initial_latent=initial_latent)
 
@@ -975,11 +1001,7 @@ def run_evo_loop(
                     # preserve the signal we already have and avoid wasted inference.
                     # Skip if c_after > c_before (c is moving UP toward 0.5 → ascending).
                     _c_ascending = result.coherence_after > result.coherence_before
-                    if (
-                        result.phi < 0.32
-                        and step_i >= max(2, n_steps // 3)
-                        and not _c_ascending
-                    ):
+                    if result.phi < 0.32 and step_i >= max(2, n_steps // 3) and not _c_ascending:
                         logger.info(
                             "  φ-floor exit: φ=%.3f < 0.32 at step %d/%d (c descending)",
                             result.phi,

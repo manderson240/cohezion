@@ -172,9 +172,9 @@ The health score formula prioritizes HIHO stability (50% weight) over raw metric
 
 ```python
 overall_score = (
-    0.50 * hiho_stability +    # Repository 4-8GB + Coherence 0.4-0.6
-    0.25 * metrics_health +    # All health checks passing
-    0.25 * trend_improvement   # Getting better over time
+    0.50 * hiho_stability  # Repository 4-8GB + Coherence 0.4-0.6
+    + 0.25 * metrics_health  # All health checks passing
+    + 0.25 * trend_improvement  # Getting better over time
 )
 ```
 
@@ -224,6 +224,7 @@ All digests persisted to SurrealDB:
 
 ```python
 from cohezion.platform.daily_health_digest import get_daily_health_digest
+
 
 async def check_health():
     digest = get_daily_health_digest()

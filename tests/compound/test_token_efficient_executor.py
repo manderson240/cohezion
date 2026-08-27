@@ -81,10 +81,13 @@ async def test_token_efficient_executor_pruning_integration():
         executor.logger = MagicMock()
         executor.logger.log_execution_start.return_value = "exp_path"
 
-        # Running a task that does NOT mention git/commits should prune the git rules block from static prefix
-        async def execute_fn(prefix, suffix):
-            assert "Surgical commits" not in prefix
-            assert "MANDATORY" in prefix
+        # Running a task that does NOT mention git/commits should prune the git rules block from
+        # static prefix. Signature must match the production call contract: execute_task_efficient
+        # invokes execute_fn(system_stable=<cacheable prefix>, system=<dynamic suffix>) — kwargs,
+        # not positionals (de0d5d0ac, prompt-caching split).
+        async def execute_fn(system_stable, system):
+            assert "Surgical commits" not in system_stable
+            assert "MANDATORY" in system_stable
             return "output", {}
 
         with patch.object(executor, "get_experience_guidance", return_value={}):

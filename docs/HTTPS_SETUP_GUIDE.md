@@ -70,7 +70,7 @@ client = MCPHTTPSClient(
     host="localhost",
     port=8360,
     use_https=True,
-    verify_ssl=False  # For self-signed certs
+    verify_ssl=False,  # For self-signed certs
 )
 
 if client.validate_connection():
@@ -173,7 +173,7 @@ client = MCPHTTPSClient(
     host="localhost",
     port=8360,
     use_https=True,
-    verify_ssl=False  # Accept self-signed
+    verify_ssl=False,  # Accept self-signed
 )
 
 # Production with valid certificates
@@ -182,7 +182,7 @@ client = MCPHTTPSClient(
     port=8360,
     use_https=True,
     verify_ssl=True,  # Verify certificate
-    ca_cert_path="/path/to/ca.pem"  # Optional: custom CA
+    ca_cert_path="/path/to/ca.pem",  # Optional: custom CA
 )
 
 # Test connection

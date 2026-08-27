@@ -13,7 +13,7 @@ Equations:
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from typing import Any, Sequence
 
 from cohezion.contracts import PoincarePoint
 
@@ -23,11 +23,6 @@ class PoincareManifoldND:
 
     MAX_RADIUS: float = 0.9999
     EPS: float = 1e-7
-
-    @classmethod
-    def origin(cls, dim: int) -> PoincarePoint:
-        """Create origin point in N-dimensional hyperbolic space."""
-        return PoincarePoint(tuple(0.0 for _ in range(dim)), dim=dim)
 
     @classmethod
     def project(cls, coords: Sequence[float], target_dim: int | None = None) -> PoincarePoint:
@@ -48,43 +43,23 @@ class PoincareManifoldND:
         return PoincarePoint(projected, dim=dim)
 
     @classmethod
-    def to_lorentz(cls, u: PoincarePoint) -> tuple[float, ...]:
-        """Convert Poincaré ball point to Lorentz/Hyperboloid model (d+1 dimensions).
-
-        Uses homogeneous coordinates:
-            y_i = 2 * x_i / delta
-            y_0 = 2 / delta - 1
-        where delta = max(1 - ||x||^2, EPS) in float64 to eliminate boundary singularities.
-        """
-        u_sq = sum(c * c for c in u.coords)
-        delta = max(cls.EPS, 1.0 - u_sq)
-        y_spatial = tuple(2.0 * c / delta for c in u.coords)
-        y_0 = (2.0 / delta) - 1.0
-        return (y_0, *y_spatial)
-
-    @classmethod
     def distance(cls, u: PoincarePoint, v: PoincarePoint) -> float:
-        """Compute exact hyperbolic distance with DeepSeek-V4 Pro log-barrier boundary stabilization."""
+        """Compute exact hyperbolic distance between two points in N-dimensional Poincaré ball."""
         if u.dim != v.dim:
             raise ValueError(f"Dimensional mismatch: u is {u.dim}D, v is {v.dim}D")
 
-        u_norm = min(cls.MAX_RADIUS, math.sqrt(sum(c * c for c in u.coords)))
-        v_norm = min(cls.MAX_RADIUS, math.sqrt(sum(c * c for c in v.coords)))
+        u_sq = sum(c * c for c in u.coords)
+        v_sq = sum(c * c for c in v.coords)
 
         diff_sq = sum((uc - vc) ** 2 for uc, vc in zip(u.coords, v.coords, strict=True))
-        if diff_sq < 1e-18:
-            return 0.0
 
-        # Log-barrier decomposition: (1-||u||^2) = (1-||u||)(1+||u||) preventing underflow
-        log_a = math.log(max(cls.EPS, 1.0 - u_norm)) + math.log(1.0 + u_norm)
-        log_b = math.log(max(cls.EPS, 1.0 - v_norm)) + math.log(1.0 + v_norm)
-        log_diff_sq = math.log(max(1e-18, diff_sq))
+        denom = (1.0 - u_sq) * (1.0 - v_sq)
+        if denom <= 0:
+            denom = cls.EPS
 
-        # log_ratio = log(2 * ||u-v||^2 / ((1-||u||^2)(1-||v||^2)))
-        log_ratio = math.log(2.0) + log_diff_sq - log_a - log_b
-        ratio = math.exp(min(50.0, log_ratio))
+        arg = 1.0 + (2.0 * diff_sq / denom)
+        arg = max(1.0, arg)  # Clamp for arcosh domain
 
-        arg = max(1.0, 1.0 + ratio)
         return math.acosh(arg)
 
     @classmethod
@@ -141,3 +116,48 @@ class PoincareManifoldND:
 
 # Backward compatibility alias
 PoincareManifold12D = PoincareManifoldND
+
+
+class PoincareManifoldTracker:
+    """Backward-compatible wrapper around PoincareManifoldND.
+
+    .. deprecated::
+        Use ``PoincareManifoldND`` directly (static methods, no instance needed).
+        This wrapper will be removed in a future release.
+    """
+
+    def __init__(self, dimension: int = 2048, max_norm: float = 0.999) -> None:
+        import warnings
+
+        warnings.warn(
+            "PoincareManifoldTracker is deprecated; use PoincareManifoldND static methods directly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.dimension = dimension
+        self.max_norm = max_norm
+        self._points: list[PoincarePoint] = []
+
+    def project_and_track(
+        self,
+        state_id: str,
+        raw_vector: list[float] | tuple[float, ...] | Any,
+        timestamp: float = 0.0,
+    ) -> PoincarePoint:
+        """Project a vector into the Poincaré ball and track it."""
+        coords = list(raw_vector)[: self.dimension]
+        if len(coords) < self.dimension:
+            coords.extend([0.0] * (self.dimension - len(coords)))
+        point = PoincareManifoldND.project(coords, target_dim=self.dimension)
+        self._points.append(point)
+        return point
+
+    def get_trajectory_drift(self) -> float:
+        """Total hyperbolic distance across all tracked points."""
+        pts = self._points
+        if len(pts) < 2:
+            return 0.0
+        total = 0.0
+        for i in range(len(pts) - 1):
+            total += PoincareManifoldND.distance(pts[i], pts[i + 1])
+        return total

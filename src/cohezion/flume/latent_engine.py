@@ -769,3 +769,47 @@ class LatentReasoningResult:
     @property
     def likely_correct(self) -> bool:
         return self.coe_assessment.get("likely_correct", True)
+
+
+def complexity_heuristic(prompt: str) -> float:
+    """Estimate task complexity as a [0, 1] float — decides whether to
+    activate LatentEngine deliberation. (Merged from the retired
+    inference/distributed_swarm.py, 2026-08-14.)
+
+    Heuristics (cheap, no model call): prompt length, reasoning keywords,
+    question-mark density, code markers.
+    """
+    length_score = min(1.0, len(prompt) / 1000.0)  # cap at 1000 chars
+
+    reasoning_keywords = {
+        "prove",
+        "derive",
+        "explain why",
+        "step by step",
+        "reasoning",
+        "compare",
+        "contrast",
+        "evaluate",
+        "critique",
+        "analyze",
+        "analyse",
+        "implement",
+        "design",
+        "architect",
+        "optimize",
+        "algorithm",
+        "differential",
+        "integral",
+        "theorem",
+        "proof",
+        "complexity",
+    }
+    keyword_score = min(1.0, sum(1 for k in reasoning_keywords if k in prompt.lower()) / 4.0)
+
+    question_score = min(1.0, prompt.count("?") * 0.2)
+
+    code_score = 0.3 if "```" in prompt or "def " in prompt or "class " in prompt else 0.0
+
+    return min(
+        1.0, 0.3 * length_score + 0.4 * keyword_score + 0.1 * question_score + 0.2 * code_score
+    )

@@ -156,3 +156,44 @@ def check_load_safe(
         f"ok: est {est:.1f}GB <= {budget:.1f}GB budget "
         f"({available_gb:.1f}GB avail - {ram_floor_gb:.0f}GB floor)"
     )
+
+
+def defer_to_kanban_on_memory_pressure(
+    model_meta: Mapping[str, Any],
+    task_details: Mapping[str, Any],
+    reason: str,
+) -> dict[str, Any]:
+    """Defer a model load or task execution to Agentic Kanban when memory headroom is insufficient.
+
+    Persists a pending item to SurrealDB (:8001) and Obsidian Vault Kanban (~/vaults/cohezion-vault/),
+    allowing background daemons to pop and execute it when free RAM increases.
+    """
+    import time
+
+    from cohezion.data_mesh.kanban_bridge import persist_item
+
+    model_name = str(model_meta.get("id") or model_meta.get("name") or "unknown_model")
+    task_id = str(task_details.get("id") or f"deferred_load_{int(time.time())}")
+
+    kanban_item = {
+        "id": task_id,
+        "title": f"Deferred Task: {model_name} (Awaiting Memory Headroom)",
+        "status": "backlog",
+        "priority": "high",
+        "source": "inference/load_safety",
+        "category": "deferred_task",
+        "details": {
+            "model_name": model_name,
+            "reason": reason,
+            "task_details": dict(task_details),
+            "timestamp": time.time(),
+        },
+    }
+
+    res = persist_item(kanban_item)
+    return {
+        "deferred": True,
+        "kanban_id": task_id,
+        "surreal_persisted": res.get("surreal", False),
+        "vault_persisted": res.get("vault") is not None,
+    }

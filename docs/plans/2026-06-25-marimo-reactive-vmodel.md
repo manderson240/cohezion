@@ -54,22 +54,24 @@ evaluated before the `return`. Assignment statements (`x = ...`) don't count. So
 # BROKEN — assignments only, nothing displayed:
 @app.cell
 def _(mo):
-    slider = mo.ui.slider(0, 10)   # assignment — not displayed
-    return (slider,)                # return tuple — NOT displayed in app mode
+    slider = mo.ui.slider(0, 10)  # assignment — not displayed
+    return (slider,)  # return tuple — NOT displayed in app mode
+
 
 # CORRECT — explicit display call as last statement:
 @app.cell
 def _(mo):
     slider = mo.ui.slider(0, 10)
-    slider                          # bare name expression → displayed
+    slider  # bare name expression → displayed
     return (slider,)
+
 
 # OR use vstack for multiple controls:
 @app.cell
 def _(mo):
     n_cycles = mo.ui.slider(...)
-    seed_val  = mo.ui.slider(...)
-    mo.vstack([n_cycles, seed_val]) # last expression → output
+    seed_val = mo.ui.slider(...)
+    mo.vstack([n_cycles, seed_val])  # last expression → output
     return n_cycles, seed_val
 ```
 
@@ -84,7 +86,7 @@ def _(mo):
 **⚠️ NEVER use a bare name expression to display:**
 ```python
 # WRONG — ruff B018 "useless expression" will remove this silently:
-slider   # bare name on its own line
+slider  # bare name on its own line
 # RIGHT — always wrap in a marimo layout call:
 mo.vstack([slider])
 ```
@@ -94,8 +96,8 @@ mo.vstack([slider])
 # WRONG — return lists variable names only, never expressions:
 return mo.vstack([n_cycles, seed_val]), n_cycles, seed_val
 # RIGHT — separate statement before return:
-mo.hstack([n_cycles, seed_val])   # display
-return n_cycles, seed_val          # bind globals only
+mo.hstack([n_cycles, seed_val])  # display
+return n_cycles, seed_val  # bind globals only
 ```
 
 **⚠️ FLUME + GRAVITY agent cells were REMOVED by a parallel audit fork:**
@@ -285,9 +287,10 @@ from playwright.sync_api import sync_playwright  # NOT pytest-playwright plugin
 
 _NOTEBOOKS = [
     ("cohezion_compound_loop.py", 2720, 2),
-    ("flume_latent_space.py",     2721, 4),
+    ("flume_latent_space.py", 2721, 4),
     ("thermodynamic_gravity_sweep.py", 2722, 3),
 ]
+
 
 @pytest.fixture(
     params=_NOTEBOOKS,
@@ -299,16 +302,32 @@ def marimo_server(request, tmp_path_factory):
     nb, port, n_sliders = request.param
     nb_path = Path("docs/walkthroughs") / nb
     proc = subprocess.Popen(
-        ["uv", "run", "marimo", "run", str(nb_path), "--no-token", "--headless", "--port", str(port)],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        [
+            "uv",
+            "run",
+            "marimo",
+            "run",
+            str(nb_path),
+            "--no-token",
+            "--headless",
+            "--port",
+            str(port),
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
     # Poll until ready
     base = f"http://localhost:{port}"
     for _ in range(30):
-        try: urllib.request.urlopen(base); break
-        except Exception: time.sleep(0.5)
+        try:
+            urllib.request.urlopen(base)
+            break
+        except Exception:
+            time.sleep(0.5)
     yield base, n_sliders
-    proc.terminate(); proc.wait(timeout=5)  # yield teardown: runs even on test failure
+    proc.terminate()
+    proc.wait(timeout=5)  # yield teardown: runs even on test failure
+
 
 def test_structural_layer(marimo_server):
     base_url, n_sliders = marimo_server

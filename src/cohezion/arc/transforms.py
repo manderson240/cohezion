@@ -972,8 +972,8 @@ def object_center_of_mass(grid: np.ndarray) -> np.ndarray | None:
     for color in colors:
         c_coords = np.argwhere(grid == color)
         if len(c_coords) > 0:
-            mean_r = int(round(float(np.mean(c_coords[:, 0]))))
-            mean_c = int(round(float(np.mean(c_coords[:, 1]))))
+            mean_r = round(float(np.mean(c_coords[:, 0])))
+            mean_c = round(float(np.mean(c_coords[:, 1])))
             mean_r = min(max(0, mean_r), grid.shape[0] - 1)
             mean_c = min(max(0, mean_c), grid.shape[1] - 1)
             result[mean_r, mean_c] = color

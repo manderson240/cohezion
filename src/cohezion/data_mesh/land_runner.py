@@ -248,63 +248,22 @@ def _apply_lint_delta(repo: str, gate: dict, candidate_dir: str) -> dict:
     return gate
 
 
-def _review_prompt(diff: str) -> str:
-    """VERDICT-FIRST prompt. Truncation must eat the reasoning, never the verdict.
-
-    Measured 2026-07-28: lanes that were asked to reason first and conclude last
-    (Bonsai-27B, Gemma-4-26B) thought out loud until the token budget died and
-    never emitted a verdict at all.
-    """
-    return (
-        "You are an INDEPENDENT code reviewer. ASSUME THE DIFF IS BROKEN.\n"
-        "Reply with your VERDICT ON THE FIRST LINE, in exactly one of these forms:\n"
-        "  VERDICT: CLEAR\n"
-        "  VERDICT: DEFECT | <one-line description of the single most severe REAL defect>\n"
-        "Then, after the verdict line, explain your reasoning.\n"
-        "Report only defects you can point at in the diff — do NOT invent findings; "
-        "clean code is a normal and expected outcome.\n\n"
-        "DIFF (truncated):\n" + diff[:8000]
+def _local_review(diff: str) -> str:
+    """One local adversarial lens over the diff (:13305, $0). Returns raw verdict text."""
+    prompt = (
+        "You are an INDEPENDENT reviewer. ASSUME THE DIFF IS BROKEN. Find real correctness/"
+        "security defects. If none, reply exactly 'OK'. Otherwise list each as 'SEVERITY | issue'."
+        "\n\nDIFF (truncated):\n" + diff[:8000]
     )
-
-
-def _lane_verdict(model: str, diff: str, timeout: float = 300.0) -> tuple[str, str]:
-    """One local lane. Returns (verdict, detail) where verdict is CLEAR|DEFECT|UNMEASURABLE.
-
-    ``UNMEASURABLE`` is a first-class outcome, NOT a pass. Before 2026-08-14 this
-    returned raw text and the caller did ``any("CRITICAL"/"HIGH"/"BLOCK" in text)``:
-    an EMPTY reply (Gemma-4-E4B is a thinking model whose answer lands in
-    ``reasoning_content``, and no ``max_tokens`` was set) contained none of those
-    markers, so a review that never happened scored as ``local-clear``. The gate
-    could not fail. A POSITIVE marker contract fixes that: no ``VERDICT:`` line
-    means the lane did not answer.
-    """
-    body = json.dumps(
-        {
-            "model": model,
-            "messages": [{"role": "user", "content": _review_prompt(diff)}],
-            "max_tokens": 1200,  # enough for verdict + reasoning; never unbounded
-        }
-    )
-    req = urllib.request.Request(  # noqa: S310 — fixed localhost router
+    body = json.dumps({"model": _LOCAL_REVIEWER, "messages": [{"role": "user", "content": prompt}]})
+    req = urllib.request.Request(
         _ROUTER, data=body.encode(), headers={"Content-Type": "application/json"}, method="POST"
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
-            msg = json.loads(r.read())["choices"][0]["message"]
-    except Exception as exc:
-        return "UNMEASURABLE", f"{model}: unreachable ({exc})"
-    # Thinking models put the answer in reasoning_content; empty content is not empty output.
-    text = str(msg.get("content") or "").strip() or str(msg.get("reasoning_content") or "").strip()
-    for line in text.splitlines():
-        s = line.strip().lstrip("*# ").strip()
-        if s.upper().startswith("VERDICT:"):
-            payload = s.split(":", 1)[1].strip()
-            if payload.upper().startswith("CLEAR"):
-                return "CLEAR", f"{model}: clear"
-            if payload.upper().startswith("DEFECT"):
-                return "DEFECT", f"{model}: {payload[:300]}"
-            return "UNMEASURABLE", f"{model}: unparseable verdict {payload[:120]!r}"
-    return "UNMEASURABLE", f"{model}: no VERDICT line in {len(text)}-char reply"
+        with urllib.request.urlopen(req, timeout=300) as r:  # noqa: S310
+            return str(json.loads(r.read())["choices"][0]["message"]["content"]).strip()
+    except Exception as exc:  # local reviewer unreachable → cannot clear (fail-closed)
+        return f"BLOCK | local reviewer unavailable: {exc}"
 
 
 def _default_review(repo: str, branch: str, base: str = "origin/main") -> dict:

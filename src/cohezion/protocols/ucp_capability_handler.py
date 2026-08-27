@@ -252,9 +252,13 @@ class UCPCapabilityHandler:
 
     def generate_manifest(self) -> dict[str, Any]:
         """Generate .well-known/ucp-manifest.json."""
+        from cohezion import __version__
+
         return {
             "name": "Cohezion Platform",
-            "version": "1.0.2",
+            # Derived, not literal: this manifest is PUBLISHED, so a hardcoded string here
+            # advertised 1.0.2 while the package was 1.2.0 (two minor versions stale).
+            "version": __version__,
             "description": ("AI swarm orchestration with FLUME methodology"),
             "provider": {
                 "name": "Cohezion",

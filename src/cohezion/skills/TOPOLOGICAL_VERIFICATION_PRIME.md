@@ -21,6 +21,7 @@ This skill provides a "white-box" verification framework for Large Reasoning Mod
 3. **Computation**: Use a library like `GUDHI` or `Ripser` to compute the persistence barcode.
    ```python
    import gudhi
+
    rips = gudhi.RipsComplex(points=embeddings, max_edge_distance=0.5)
    simplex_tree = rips.create_simplex_tree(max_dimension=2)
    persistence = simplex_tree.persistence()

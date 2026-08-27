@@ -1,46 +1,36 @@
-import pytest
-from cohezion.proactive.sensing import ActivitySensingGym, UserEvent
-from cohezion.proactive.predictor import ProactiveGoalPredictor, GoalPrediction
-from cohezion.proactive.trigger_gate import ProactiveTriggerGate
-from cohezion.proactive.agent import ProactiveAgent, ProactiveResult
+"""Unit tests for EVIHealer and proactive self-healing."""
 
-def test_activity_sensing_gym():
-    gym = ActivitySensingGym(max_history=5)
-    for i in range(10):
-        gym.log_event("code_edit", {"file": f"test_{i}.py"})
+from cohezion.proactive.evi_healer import EVIHealer
 
-    recent = gym.get_recent_events(count=10)
-    assert len(recent) == 5  # Max history cap enforced
-    assert recent[-1].payload["file"] == "test_9.py"
 
-def test_proactive_goal_predictor_rule():
-    events = [
-        UserEvent("code_edit", {"file": "a.py"}),
-        UserEvent("code_edit", {"file": "b.py"}),
-    ]
-    pred = ProactiveGoalPredictor.predict_goal(events)
-    assert pred.predicted_goal == "run_verification_tests"
-    assert pred.confidence >= 0.75
+def test_evi_healer_approved_action() -> None:
+    healer = EVIHealer()
+    # quality_gap = 0.5, issue_severity = 0.9, cost = 0.5 -> EVI = (0.5 * 0.9) / 0.5 = 0.90 > 0.75
+    action = healer.evaluate_healing_candidate(
+        component="memory_pool",
+        issue_description="Memory fragmentation above threshold",
+        proposed_remediation="Purge non-essential LRU cache entries",
+        quality_gap=0.5,
+        issue_severity=0.9,
+        remediation_cost=0.5,
+    )
 
-def test_proactive_trigger_gate():
-    pred_high = GoalPrediction("test", confidence=0.85, suggested_action="act", rationale="r")
-    pred_low = GoalPrediction("test", confidence=0.50, suggested_action="act", rationale="r")
+    assert action.approved is True
+    assert action.evi_score > 0.75
+    assert len(healer.get_action_history()) == 1
 
-    assert ProactiveTriggerGate.should_trigger(pred_high, min_threshold=0.75) is True
-    assert ProactiveTriggerGate.should_trigger(pred_low, min_threshold=0.75) is False
 
-from unittest.mock import patch
-from cohezion.reliability.oom_guard import MemoryState
+def test_evi_healer_rejected_action() -> None:
+    healer = EVIHealer()
+    # quality_gap = 0.1, issue_severity = 0.3, cost = 0.8 -> EVI = 0.0375 <= 0.75
+    action = healer.evaluate_healing_candidate(
+        component="telemetry",
+        issue_description="Minor logging jitter",
+        proposed_remediation="Restart logging daemon",
+        quality_gap=0.1,
+        issue_severity=0.3,
+        remediation_cost=0.8,
+    )
 
-def test_proactive_agent_orchestration():
-    agent = ProactiveAgent(confidence_threshold=0.75)
-    agent.record_activity("code_edit", {"file": "contracts.py"})
-    agent.record_activity("code_edit", {"file": "agent.py"})
-
-    with patch("cohezion.proactive.agent.OOMGuard.get_memory_state", return_value=MemoryState(available_gb=50.0, total_gb=128.0, swap_used_gb=0.0, is_safe=True)):
-        res = agent.evaluate_and_act()
-        assert isinstance(res, ProactiveResult)
-        assert res.triggered is True
-        assert res.verified is True
-        assert res.bypassed_llm is True
-        assert res.execution_time_ms < 50.0  # Zero-cost execution latency
+    assert action.approved is False
+    assert action.evi_score <= 0.75

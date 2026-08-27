@@ -10,6 +10,7 @@ git lfs post-commit "$@"
 # commits landing in real time. Fail-open: never blocks the commit.
 _event_bus_commit() {
   [ -f ".eventbus-off" ] && return 0
+  command -v python3 >/dev/null 2>&1 || return 0
 
   SURREAL="${SURREALDB_URL:-http://localhost:8001}"
   timeout 3 curl -sf -o /dev/null "$SURREAL/health" 2>/dev/null || return 0
@@ -20,6 +21,8 @@ _event_bus_commit() {
   BRANCH="$(git branch --show-current 2>/dev/null || echo '')"
   AUTHOR="$(git log -1 --format='%an' 2>/dev/null || echo '')"
   SID="${CLAUDE_SESSION_ID:-pid-$$}"
+  # Sanitize SID for use in SurrealQL record IDs: allow only [A-Za-z0-9_-]
+  SID="$(printf '%s' "$SID" | tr -dc 'A-Za-z0-9_-')"
   TS="$(date +%s.%N)"
   RECORD_ID="evt_commit_${COMMIT_HASH}_$$"
 
@@ -57,4 +60,5 @@ print(json.dumps({
 }
 _event_bus_commit
 
+exit 0
 exit 0

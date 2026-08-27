@@ -1,11 +1,34 @@
-"""Structured output for NPU tier via GBNF grammar mode.
+"""Structured output for NPU tier via GBNF grammar mode — CLAIM FALSIFIED, DO NOT USE AS-IS.
 
-Uses llama.cpp native GBNF grammar enforcement on Lemonade :13305 NPU tier
-(llama3.2-1b-FLM). Prevents malformed JSON from task_classifier and tool calls.
+DORMANT: zero production consumers. That is WHY the claim below survived unchallenged for a
+year — a capability with no consumer never has its claims tested.
 
-Session 2026-06-23: discovered outlines library doesn't work with Lemonade's
-response_format (NPU ignores it). Direct GBNF grammar mode via :13305 works
-natively without new dependencies or second model load.
+    2026-06-23 (original, WRONG): "Direct GBNF grammar mode via :13305 works natively."
+    2026-07-28 (measured, Lemonade 11.5.0): the NPU/flm lane IGNORES `grammar` entirely.
+
+Probed live with a discriminating grammar (`root ::= "BANANA" | "PENGUIN"`) against a prompt
+whose natural answer is neither: `llama3.2-1b-FLM` returned 'No' — HTTP 200, non-empty, wholly
+unconstrained. The split is STRUCTURAL, not a config gap: GBNF is a llama.cpp SAMPLER feature,
+and the `flm` recipe is FastFlowLM, a separate from-scratch NPU runtime whose documented request
+params (model/messages/stream/temperature/top_p/presence_penalty) include no constraint field.
+
+THE HAZARD — failure is SILENT, not loud. FastFlowLM does not reject unknown request fields; it
+accepts and discards them (a bogus `totally_bogus_param_xyz` also returns 200 OK with a normal
+completion). So `npu_structured_json()` below does not raise, does not warn, and does not
+constrain: it returns whatever the model felt like emitting. json.loads() then fails on prose, or
+worse, succeeds on plausible-but-unconstrained JSON.
+
+WIRING TARGET if a consumer ever appears (per .claude/rules/non-destructive-wiring.md — this
+module is a wiring TODO, not a deletion candidate): retarget at a `llamacpp` recipe model
+(iGPU `Gemma-4-E4B-it-GGUF`, CPU `Gemma-4-E2B-it-GGUF`), where GBNF IS enforced. A single
+unrepeated probe also suggested bare GBNF alternation is cheaper there than the
+`response_format` enum path used by `transition_controller.enum_schema` — n=1, NOT established;
+re-measure before letting it drive a choice (see the vault report's latency caveat).
+
+Running the `__main__` fixture below on a live box PRINTS `✗ Test failed` — that outcome is now
+EXPECTED and is the falsification, not a regression to repair. The live evidence is pinned in
+tests/inference/test_recipe_constraint_support.py (invariant RC1); read that before "fixing"
+anything here.
 """
 
 import json

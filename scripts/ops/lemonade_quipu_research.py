@@ -28,11 +28,9 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from durable_swarm_output import DurableRun
-
+from durable_swarm_output import DurableRun  # noqa: E402
 
 LOCAL_URL = "http://localhost:13305/api/v1/chat/completions"
 MAX_LOCAL_CONCURRENCY = 2
@@ -146,7 +144,7 @@ def call_local(model: str, prompt: str, timeout: int = 900) -> tuple[str, str]:
             "temperature": 0.3,
         }
     ).encode()
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310 — fixed loopback literal
         LOCAL_URL, data=body, headers={"Content-Type": "application/json"}
     )
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310

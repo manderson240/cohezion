@@ -198,14 +198,17 @@ In production, your skill would be invoked via:
 
 ```python
 from cohezion.compound.executor import CompoundExecutor
+
 # (constructor with mcp_client and other collaborators omitted)
 result = executor.execute_task(
     task_description="Greet a new contributor",
     skill_name="HELLO_COHEZION_PRIME",
     operation_type="generate",
-    execute_fn=lambda ctx: ("Welcome — your first skill invocation has been recorded. "
-                            "Read docs/tutorials/04-day-7-running-a-campaign.md for your next milestone.",
-                            {"tokens_used": 0}),
+    execute_fn=lambda ctx: (
+        "Welcome — your first skill invocation has been recorded. "
+        "Read docs/tutorials/04-day-7-running-a-campaign.md for your next milestone.",
+        {"tokens_used": 0},
+    ),
     project="cohezion",
 )
 print(result.success, result.output)

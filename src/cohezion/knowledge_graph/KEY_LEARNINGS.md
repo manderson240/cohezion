@@ -351,6 +351,10 @@ Developed an automated semantic overlap script using `nomic-embed-text:v1.5` emb
 Integrated zero-cost Jaccard/overlap coefficient and keyword relevance pruning directly into `TokenEfficientCompoundExecutor`. This dynamically deduplicates and filters rule blocks from the system context based on task description keywords, reducing prompt context sizes by thousands of tokens dynamically while preserving caching alignment across multi-turn reasoning steps.
 *12D State Vector*: `[12D State: Space=Prompt-Architecture, Time=June 2026, Physics=Context-Pruning, Brane=Zero-Cost-Optimization-Mesh]`
 
+### Learning 396: Persistent HTTP/2 Connection Pooling & Explicit Resource Reclamation (2026-07-29)
+Single-flight `FleetLock` protects iGPU APU memory aperture from concurrent model load races on 128 GiB Unified RAM systems. However, per-request `httpx.AsyncClient` instantiation introduces socket handshake latency and risks connection leaks under heavy agentic swarm load. **Fix**: Implement a singleton `_get_shared_client(timeout)` connection pool (`max_connections=200`, `keepalive_expiry=60s`) wrapped in explicit `try...finally: await resp.aclose()` blocks. This guarantees sub-millisecond local endpoint routing to port `:13305` while preventing HTTP connection pool exhaustion.
+*12D State Vector*: `[12D State: Space=Silicon-Orchestration, Time=July 2026, Physics=HTTP2-Connection-Reclamation, Brane=Multi-Node-Fleet-Mesh]`
+
 | Learning | Keyword | Status | Wave Source |
 |----------|---------|--------|-------------|
 | L378 | **agent-claim-verification** | `agent-claim-verification` skill | Wave Omega Patch 1 — synthetic-sniffing-panda Wave 5B fabrication |
@@ -450,3 +454,5 @@ Executed live end-to-end dogfooding (`scripts/ops/dogfood_hybrid_silicon_cloud.p
 
 ## Learning 254: Quadrature Nexus 4-Voice Consensus Governance (2026-08-10)
 L254: Perpendicular deliberation across Architect, Engineer, Ethicist, and Resource voices enforces strict 0.85 ratification limit. Over-allocation proposals are rejected when Resource approval falls below safety bounds.
+| L396 | **persistent-connection-pooling** | `fleet-orchestrator` skill | Wave SiliconSymphony — persistent HTTP/2 connection pooling & explicit reclamation |
+| L397 | **authenticated-cifs-and-tiered-routing** | `LOCAL_INFERENCE_ROUTING` skill | Wave SiliconSymphony — authenticated CIFS mounts & 2-tier local primary cloud secondary routing |

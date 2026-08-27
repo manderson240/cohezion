@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.exp_persistence.vault import ExecutionContext
+from cohezion.compound.prompt_optimizer import PromptOptimizer
 
 
 if TYPE_CHECKING:
@@ -36,6 +37,13 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         self._anchored_base_prefix: str | None = None
         self._anchored_overlay: str | None = None
         self._overlay_version: int = 0
+        # DCC-PSP rules pruning (efa4c3e05, restored 2026-08-20): the wiring was authored on
+        # feat/adaptive-calibration-harness and never landed — main got the PromptOptimizer
+        # module (#242) and the test expecting pruning (#251) but not this connection, so the
+        # test failed and the prefix carried every rule block regardless of task relevance.
+        self._prompt_optimizer = PromptOptimizer()
+        self._active_task_description: str | None = None
+        self._last_task_description: str | None = None
         # PR 3: the current card. Set by the caller before
         # execute_task_efficient (e.g. by the PR 1 aligned execute_fn)
         # so the prefix block carries the right model_id + family +
@@ -57,7 +65,13 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         line. A card change produces a different hash, which
         invalidates the Anthropic prompt cache automatically.
         """
-        # 1. Base Anchor (Immutable)
+        # If the task description changed, clear the anchored base prefix so pruning
+        # re-evaluates rule relevance against the new task (DCC-PSP).
+        if self._last_task_description != self._active_task_description:
+            self._anchored_base_prefix = None
+            self._last_task_description = self._active_task_description
+
+        # 1. Base Anchor (Immutable for a given task)
         if not self._anchored_base_prefix:
             prefix_parts = ["# SYSTEM INSTRUCTIONS\n"]
             prefix_parts.append(
@@ -66,9 +80,14 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
             )
             if self._context_manager.loaded_files:
                 prefix_parts.append("\n## CORE CONTEXT")
+                seen_word_sets: list[set[str]] = []
                 for file_path in self._context_manager.loaded_files:
                     try:
                         content = self._context_manager._load_file(file_path)
+                        # Dynamically prune redundant and task-irrelevant rules
+                        content, seen_word_sets = self._prompt_optimizer.prune_rules(
+                            content, self._active_task_description, seen_word_sets
+                        )
                         prefix_parts.append(f"\n### {file_path}\n{content}")
                     except Exception as e:
                         logger.debug(f"Failed to load context file {file_path} for prefix: {e}")
@@ -193,6 +212,7 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
             ExecutionResult with token metrics
         """
         start_seconds = time.time()
+        self._active_task_description = task_description
 
         # 1. Standard setup (Context, Logging)
         if not self._context_loaded:

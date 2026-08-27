@@ -85,9 +85,11 @@ class Task:
     timestamp: datetime
     metadata: dict
 
+
 # After: Minimal __slots__ class with 1 field
 class _TaskTuple:
-    __slots__ = ('id',)
+    __slots__ = ("id",)
+
     def __init__(self, id: str):
         self.id = id
 ```
@@ -112,9 +114,9 @@ class _TaskTuple:
 ```python
 while self.session.experiments_completed < max_exp:
     exp_id = self.session.experiments_completed + 1
-    task = _TaskTuple(f"exp-{exp_id}")      # Minimal object
-    result = self.executor.execute(task)      # Mock is fast
-    self._log_experiment(exp_id, result)      # Deferred timestamp
+    task = _TaskTuple(f"exp-{exp_id}")  # Minimal object
+    result = self.executor.execute(task)  # Mock is fast
+    self._log_experiment(exp_id, result)  # Deferred timestamp
     self.session.experiments_completed += 1
 ```
 
@@ -263,10 +265,10 @@ Research orchestrator implements strict allocation:
 class TokenBudgetManager:
     def __init__(self, total_budget=100000):
         self.allocations = {
-            "arxiv": 0.35,      # Research-heavy
-            "github": 0.30,     # Tooling
-            "huggingface": 0.25, # Models
-            "web": 0.10,        # Trends
+            "arxiv": 0.35,  # Research-heavy
+            "github": 0.30,  # Tooling
+            "huggingface": 0.25,  # Models
+            "web": 0.10,  # Trends
         }
 ```
 

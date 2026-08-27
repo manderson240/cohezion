@@ -144,7 +144,7 @@ class TestHotswap:
             return 200, "ok"
 
         monkeypatch.setattr(hotswap, "_post", _post)
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [])  # gone afterwards
+        monkeypatch.setattr(hotswap, "resident_models_or_none", lambda: [])  # gone afterwards
         assert hotswap.unload("VICTIM") is True
         assert sent["__path"] == "/api/v1/unload"
         assert sent.get("force") is True, f"force=true missing from unload payload: {sent}"
@@ -156,8 +156,37 @@ class TestHotswap:
         into a load that OOMs. Success is the POSTCONDITION, not the status code.
         """
         monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [_model("STUCK")])
+        monkeypatch.setattr(hotswap, "resident_models_or_none", lambda: [_model("STUCK")])
         assert hotswap.unload("STUCK") is False, "a phantom unload must not report success"
+
+    def test_hs9b_unverifiable_unload_returns_false(self, monkeypatch):
+        """HS9b (discriminating): HTTP 200 but /health UNREACHABLE => False.
+
+        resident_models() collapsing "unreachable" to [] made phantom unloads
+        report success exactly when the server was degraded — the postcondition
+        must be VERIFIED, and an unverifiable postcondition is not success.
+        """
+        monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
+        monkeypatch.setattr(hotswap, "resident_models_or_none", lambda: None)
+        assert hotswap.unload("GHOST") is False, "unverifiable unload must not report success"
+
+    def test_h3_tick_abstains_when_memory_unreadable(self, monkeypatch):
+        """H3 (discriminating): free_gb unreadable => tick evicts NOTHING.
+
+        The 0.0 unreadable-sentinel read as a real measurement made tick() tear
+        down every non-busy, non-protected model on a sensor failure. Unknown
+        is not pressure.
+        """
+        from cohezion.inference.residency_service import ResidencyService
+
+        monkeypatch.setattr(hotswap, "resident_models", lambda: [_model("A"), _model("B")])
+        monkeypatch.setattr(hotswap, "free_gb_or_none", lambda: None)
+        released = []
+        svc = ResidencyService()
+        monkeypatch.setattr(svc, "release", lambda name: released.append(name) or True)
+        out = svc.tick()
+        assert out["released"] == [], "unreadable memory must abstain from eviction"
+        assert released == []
 
     def test_hs7_http_200_without_residency_is_reported_as_failure(self, monkeypatch):
         """HS7 (discriminating): a 200 that did not produce residency is NOT success.

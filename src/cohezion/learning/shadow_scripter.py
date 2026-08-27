@@ -16,7 +16,8 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
-class GenerationStatus(Enum):
+class TestGenStatus(Enum):
+    __test__ = False
     GENERATED = "generated"
     VALIDATED = "validated"
     QUARANTINED = "quarantined"
@@ -29,7 +30,7 @@ class GeneratedTest:
     test_name: str
     test_code: str
     source_skill: str
-    status: GenerationStatus = GenerationStatus.GENERATED
+    status: TestGenStatus = TestGenStatus.GENERATED
     error: str | None = None
     timestamp: float = field(default_factory=time.time)
 
@@ -80,11 +81,11 @@ class ShadowScripter:
         )
 
         if self._validate_syntax(test_code):
-            test.status = GenerationStatus.VALIDATED
+            test.status = TestGenStatus.VALIDATED
             self._generated.append(test)
             logger.info("ShadowScripter: test %s validated", test_name)
         else:
-            test.status = GenerationStatus.QUARANTINED
+            test.status = TestGenStatus.QUARANTINED
             test.error = "Syntax validation failed"
             self._quarantine.append(test)
             logger.warning("ShadowScripter: test %s quarantined", test_name)
@@ -101,7 +102,7 @@ class ShadowScripter:
 
     def get_committable_tests(self) -> list[GeneratedTest]:
         """Return tests that passed validation and can be committed."""
-        return [t for t in self._generated if t.status == GenerationStatus.VALIDATED]
+        return [t for t in self._generated if t.status == TestGenStatus.VALIDATED]
 
     def get_quarantine_report(self) -> list[dict]:
         """Export quarantined tests for Ouroboros refinement."""

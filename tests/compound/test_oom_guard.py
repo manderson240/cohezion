@@ -92,10 +92,18 @@ class TestCheckOOMRisk:
         assert risk_under.safe is False
         assert risk_at.safe is True
 
-    def test_unknown_model_treated_as_small(self):
-        """Unknown model (footprint=0) passes the gate at any RAM level."""
-        risk = check_oom_risk("unknown-hypothetical-model", available_gb=0.5)
-        assert risk.safe is True
+    def test_unknown_model_gated_conservatively(self):
+        """Unknown model is assumed UNKNOWN_ASSUMED_GB, never 0 (fail-closed).
+
+        This test previously asserted the OPPOSITE ('treated as small — passes at any RAM
+        level'), which is the exact fail-open the guard now documents as its motivating
+        defect: a 44.77GB model cleared the old `.get(name, 0.0)` path with 46GB free
+        (2026-07-19 near-freeze). Unknown must gate, not wave through."""
+        blocked = check_oom_risk("unknown-hypothetical-model", available_gb=0.5)
+        assert blocked.safe is False
+        # ...but gated is not banned: with ample RAM an unknown model still clears.
+        cleared = check_oom_risk("unknown-hypothetical-model", available_gb=32.0)
+        assert cleared.safe is True
 
     def test_oomrisk_is_namedtuple(self):
         risk = check_oom_risk("Bonsai-1.7B-gguf", available_gb=10.0)

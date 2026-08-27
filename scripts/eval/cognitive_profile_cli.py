@@ -22,9 +22,15 @@ from cohezion.eval.cognitive_profile import run_profile
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Cohezion cognitive-profile harness (DeepMind 10-faculty).")
-    ap.add_argument("--repeats", type=int, default=1, help="repeat each axis N times (stochasticity).")
-    ap.add_argument("--no-persist", action="store_true", help="do not write SurrealDB / vault scorecard.")
+    ap = argparse.ArgumentParser(
+        description="Cohezion cognitive-profile harness (DeepMind 10-faculty)."
+    )
+    ap.add_argument(
+        "--repeats", type=int, default=1, help="repeat each axis N times (stochasticity)."
+    )
+    ap.add_argument(
+        "--no-persist", action="store_true", help="do not write SurrealDB / vault scorecard."
+    )
     ap.add_argument("--json", action="store_true", help="emit the profile as JSON only.")
     args = ap.parse_args()
 
@@ -35,7 +41,9 @@ def main() -> int:
         return 0
 
     s = profile["summary"]
-    print(f"\nCohezion Cognitive Profile  —  {profile['timestamp']}  ·  fleet={profile['fleet_model']}")
+    print(
+        f"\nCohezion Cognitive Profile  —  {profile['timestamp']}  ·  fleet={profile['fleet_model']}"
+    )
     print(f"system: {profile['system']}\n")
     print(f"{'AXIS':<22} {'FACULTY':<34} {'SCORE':>6} {'n':>3}  {'STATUS':<13} SUBSTRATE")
     print("-" * 96)

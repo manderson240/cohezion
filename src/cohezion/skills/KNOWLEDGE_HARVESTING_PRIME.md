@@ -26,31 +26,35 @@ If files are missing from disk (`D` in `git status`) but were tracked:
 import subprocess
 from pathlib import Path
 
+
 def harvest_ghosts(root_dir="."):
     # 1. Stream deleted files from Index
     ls = subprocess.Popen(["git", "ls-files", "-d", "--stage"], stdout=subprocess.PIPE, text=True)
-    
+
     # 2. Pipe to cat-file for content
-    cat = subprocess.Popen(["git", "cat-file", "--batch"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    
+    cat = subprocess.Popen(
+        ["git", "cat-file", "--batch"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+    )
+
     for line in ls.stdout:
         # line: "100644 <OID> 0\t<PATH>"
-        meta, path_str = line.split('\t', 1)
+        meta, path_str = line.split("\t", 1)
         oid = meta.split()[1]
-        
+
         # Request content
         cat.stdin.write(f"{oid}\n".encode())
         cat.stdin.flush()
-        
+
         # Read Header: "<OID> <TYPE> <SIZE>"
         header = cat.stdout.readline().decode()
-        if "missing" in header: continue
+        if "missing" in header:
+            continue
         size = int(header.split()[2])
-        
+
         # Read Content
         content = cat.stdout.read(size)
-        cat.stdout.read(1) # trailing newline
-        
+        cat.stdout.read(1)  # trailing newline
+
         # ... Ingest content ...
 ```
 
@@ -59,9 +63,9 @@ For massive untracked sets, avoid `git ls-files` if >1M files. Use `os.scandir`:
 ```python
 def find_bloat(root):
     for entry in os.scandir(root):
-        if entry.is_dir() and entry.name not in ['.git', 'node_modules']:
-             # Recursive scan
-             pass
+        if entry.is_dir() and entry.name not in [".git", "node_modules"]:
+            # Recursive scan
+            pass
 ```
 
 ## VERSION

@@ -542,9 +542,9 @@ class CapabilityMatrix:
     def run_self_evaluation(
         self, plan: str, prd_context: str = ""
     ) -> dict[str, float | bool | str]:
-        """Run pre-flight self-evaluation via evaluation/self_eval.
+        """Run pre-flight self-evaluation via eval/self_eval.
 
-        Connects evaluation/self_eval.py as a quality gate.
+        Connects eval/self_eval.py as a quality gate.
 
         Args:
             plan: Execution plan text to evaluate
@@ -554,7 +554,7 @@ class CapabilityMatrix:
             Dict with score, passed, and feedback
         """
         try:
-            from cohezion.evaluation.self_eval import SelfEvaluationEngine
+            from cohezion.eval.self_eval import SelfEvaluationEngine
 
             engine = SelfEvaluationEngine()
             result = engine.evaluate_execution_plan(plan, prd_context)
@@ -564,7 +564,7 @@ class CapabilityMatrix:
                 "feedback": result.feedback,
             }
         except ImportError:
-            logger.debug("evaluation.self_eval not available")
+            logger.debug("eval.self_eval not available")
             return {"score": 0.0, "passed": True, "feedback": "Self-eval unavailable"}
         except Exception:
             logger.debug("Self-evaluation failed (non-blocking)", exc_info=True)
@@ -624,14 +624,6 @@ class CapabilityMatrix:
             {
                 "modules": "healing/ + resilience/",
                 "recommendation": "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector (component-level). resilience/ provides AutonomicManager MAPE-K (system-level). Keep both but document ownership: healing/=component health, resilience/=system health.",
-            },
-            {
-                "modules": "eval/ + evaluation/",
-                "recommendation": "eval/ has CapabilityScorecard (6-axis EVO) + pipeline. evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix. Consider merging evaluation/self_eval.py into eval/.",
-            },
-            {
-                "modules": "pipeline/ + pipelines/",
-                "recommendation": "pipeline/ has active modules (weight_bridge, hyperparameter_debate). pipelines/ has only traceability stub. Merge traceability.py into pipeline/ and remove pipelines/.",
             },
         ]
         return known_overlaps

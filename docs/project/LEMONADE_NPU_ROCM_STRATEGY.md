@@ -89,14 +89,14 @@ According to user: "Lemonade server said this has been resolved"
 ### Model Routing Logic
 ```python
 if prompt_tokens < 1000 and model_size <= 4e9:
-    return "flm://gemma3:4b"       # NPU - fastest
+    return "flm://gemma3:4b"  # NPU - fastest
 elif "gemma-4" in model_id:
     if rocm_working:
         return "lemonade://Gemma-4-E2B"  # GPU
     else:
-        return "ollama://gemma4:e2b"     # Fallback
+        return "ollama://gemma4:e2b"  # Fallback
 else:
-    return "ollama://cloud"            # Cloud
+    return "ollama://cloud"  # Cloud
 ```
 
 ## Immediate Actions

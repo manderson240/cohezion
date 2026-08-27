@@ -1,40 +1,73 @@
-"""Unit tests for Architecture-Aware KV-Cache Calculator."""
+"""KV-budget MLA-axis tests — retargeted from the retired kv_cache_calculator.py.
+
+kv_cache_calculator.py duplicated kv_budget's GQA formula and added one axis:
+DeepSeek-style multi-head latent attention (MLA), which caches a single
+latent vector per layer per token. That axis now lives in kv_budget (the
+harness-blessed N3 pre-flight gate); these tests pin it.
+"""
 
 from __future__ import annotations
 
-from cohezion.inference.kv_cache_calculator import (
-    AttentionType,
-    calculate_architecture_kv_cache_gb,
-)
+from cohezion.inference.kv_budget import kv_cache_bytes, preflight
 
 
-def test_gqa_kv_cache_calculation():
-    # 80 layers, 8 kv heads, 128 head dim, 8192 total tokens in FP16
-    gb_fp16 = calculate_architecture_kv_cache_gb(
-        model_key="qwen3-coder-80b",
-        prompt_tokens=4096,
-        max_gen_tokens=4096,
-        kv_bits=16,
+def test_gqa_formula_unchanged() -> None:
+    # Llama-3.1-8B shape @ 32k, fp16 — documented anchor: ~4 GiB.
+    got = kv_cache_bytes(num_layers=32, num_kv_heads=8, head_dim=128, seq_len=32768)
+    assert abs(got - 4 * 1024**3) / 4 / 1024**3 < 0.01
+
+
+def test_mla_latent_dim_reduces_footprint() -> None:
+    """Discriminating: MLA must use latent_dim per layer, not 2·kv_heads·head_dim.
+
+    A wrong implementation that ignores mla_latent_dim returns the (much
+    larger) GQA number for the same shape.
+    """
+    gqa = kv_cache_bytes(num_layers=61, num_kv_heads=128, head_dim=128, seq_len=8192)
+    mla = kv_cache_bytes(
+        num_layers=61, num_kv_heads=128, head_dim=128, seq_len=8192, mla_latent_dim=512
     )
-    assert 2.0 <= gb_fp16 <= 3.0  # ~2.5 GB for 8k tokens in GQA
+    # MLA formula: layers · latent · seq · 2B
+    assert mla == (61 * 512 * 8192 * 2)
+    assert mla < gqa / 50, "MLA compression must dominate the GQA footprint"
 
-    # Q4_0 KV-cache quantization reduces it by 4x
-    gb_q4 = calculate_architecture_kv_cache_gb(
-        model_key="qwen3-coder-80b",
-        prompt_tokens=4096,
-        max_gen_tokens=4096,
-        kv_bits=4,
+
+def test_mla_respects_cache_dtype() -> None:
+    fp16 = kv_cache_bytes(
+        num_layers=61, num_kv_heads=128, head_dim=128, seq_len=8192, mla_latent_dim=512
     )
-    assert 0.5 <= gb_q4 <= 0.8  # ~0.625 GB for 8k tokens in Q4_0
-
-
-def test_mla_deepseek_kv_cache_calculation():
-    # DeepSeek MLA compressed latent KV cache
-    gb_mla = calculate_architecture_kv_cache_gb(
-        model_key="deepseek-r1-671b-mla",
-        prompt_tokens=4096,
-        max_gen_tokens=4096,
-        kv_bits=16,
+    q8 = kv_cache_bytes(
+        num_layers=61,
+        num_kv_heads=128,
+        head_dim=128,
+        seq_len=8192,
+        mla_latent_dim=512,
+        cache_dtype="q8_0",
     )
-    # MLA uses ~0.25 GB for 8k tokens
-    assert gb_mla < 0.5
+    assert q8 * 2 == fp16
+
+
+def test_preflight_threads_mla_axis() -> None:
+    ok_gqa, info_gqa = preflight(
+        free_bytes=8 * 1024**3,
+        weight_bytes=2 * 1024**3,
+        num_layers=61,
+        num_kv_heads=128,
+        head_dim=128,
+        seq_len=8192,
+        buffer_bytes=1 * 1024**3,
+    )
+    ok_mla, info_mla = preflight(
+        free_bytes=8 * 1024**3,
+        weight_bytes=2 * 1024**3,
+        num_layers=61,
+        num_kv_heads=128,
+        head_dim=128,
+        seq_len=8192,
+        buffer_bytes=1 * 1024**3,
+        mla_latent_dim=512,
+    )
+    # The GQA shape overflows 8 GiB; the MLA-compressed cache fits.
+    assert not ok_gqa
+    assert ok_mla
+    assert info_mla["kv_bytes"] < info_gqa["kv_bytes"]

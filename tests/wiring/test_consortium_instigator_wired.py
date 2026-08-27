@@ -1,20 +1,36 @@
-"""Discriminating test for the wiring-sweep edge: compound → consortium_instigator.
+"""Discriminating test: the pipeline attack-vector library lives in the
+adversarial-review package.
 
-Genuine Class-A orphan (no production importer, no test, no registry ref). Re-exported
-through `cohezion.compound`. Fails if the static edge is removed: asserts the name resolves
-FROM the package AND is the SAME object as the source module.
+History: consortium_instigator.py (a 4th parallel red-team framework) was
+retired 2026-08-14 (elegant-simplicity audit); its probe definitions were
+merged as pure data into tdd_adversarial.pipeline_attack_vectors. This test
+pins that the vectors are registered in the surviving system and keep the
+shape a runner needs.
 """
 
 from __future__ import annotations
 
-import cohezion.compound as compound
-import cohezion.compound.consortium_instigator as src
+from cohezion.compound.tdd_adversarial import PIPELINE_ATTACK_VECTORS
 
 
-def test_consortium_instigator_reexported_from_compound() -> None:
-    assert hasattr(compound, "ConsortiumInstigator"), "unreachable — wiring edge missing"
-    assert compound.ConsortiumInstigator is src.ConsortiumInstigator
+def test_pipeline_attack_vectors_registered() -> None:
+    assert len(PIPELINE_ATTACK_VECTORS) >= 7, "attack-vector library lost entries"
+    ids = {v["id"] for v in PIPELINE_ATTACK_VECTORS}
+    for expected in (
+        "empty-prompt",
+        "large-prompt",
+        "concurrent-three",
+        "lemonade-down",
+        "tight-timeout",
+        "malformed-json",
+        "control-chars",
+    ):
+        assert expected in ids, f"vector {expected} missing"
 
 
-def test_reexport_is_a_class() -> None:
-    assert isinstance(compound.ConsortiumInstigator, type)
+def test_vectors_have_runner_contract() -> None:
+    for v in PIPELINE_ATTACK_VECTORS:
+        for key in ("id", "description", "category", "severity", "payload", "failure_indicators"):
+            assert key in v, f"vector {v.get('id', '?')} missing {key}"
+        assert isinstance(v["payload"], dict)
+        assert isinstance(v["failure_indicators"], list) and v["failure_indicators"]

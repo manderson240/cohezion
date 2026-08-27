@@ -24,6 +24,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from cohezion.inference.agreement import agreement_penalty, semantic_agreement
 from cohezion.inference.quality_eval import QualityVerdict, evaluate
 from cohezion.inference.task_classifier import classify
 
@@ -79,7 +80,12 @@ class AutoDQA:
         self._notify = notify_on_reject
         self._results: list[DQAResult] = []
 
-    def evaluate(self, output: str, task_description: str) -> DQAResult:
+    def evaluate(
+        self,
+        output: str,
+        task_description: str,
+        peer_outputs: list[str] | None = None,
+    ) -> DQAResult:
         """Classify task, evaluate output quality, persist, optionally alert.
 
         Parameters
@@ -88,6 +94,11 @@ class AutoDQA:
             The compound loop's output to evaluate.
         task_description : str
             The task description — used to route to the correct output_type.
+        peer_outputs : list[str] | None
+            Independent answers to the same task from other lanes. When given,
+            semantic agreement between output and peers is measured and low
+            agreement lowers the verdict score (AG4). No peers = no embedder
+            traffic; unmeasurable agreement (None) leaves the verdict untouched.
 
         Returns
         -------
@@ -97,6 +108,20 @@ class AutoDQA:
         """
         profile = classify(task_description)
         verdict = evaluate(output, profile.output_type, task_description)
+
+        if peer_outputs:
+            agreement = semantic_agreement([output, *peer_outputs])
+            penalty = agreement_penalty(agreement)
+            if penalty > 0.0:
+                lowered = max(0.0, verdict.score - penalty)
+                verdict = QualityVerdict(
+                    accept=verdict.accept and lowered >= _HIHO_LOW,
+                    score=lowered,
+                    reason=(
+                        f"{verdict.reason}; peer agreement {agreement:.2f} "
+                        f"below threshold (penalty {penalty:.2f})"
+                    ),
+                )
 
         result = DQAResult(
             task_id=str(uuid.uuid4())[:8],

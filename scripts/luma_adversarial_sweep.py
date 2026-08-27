@@ -11,11 +11,6 @@ async def run_luma_review():
     session_id = "luma-final-sprint-20260406"
 
     # Best Kernels to Review
-    kernels = [
-        "luma_speedrun/amd-mxfp4-mm/submission.py",
-        "luma_speedrun/amd-moe-mxfp4/submission.py",
-        "luma_speedrun/amd-mixed-mla/submission.py",
-    ]
 
     print("🚀 Starting Multiperspective Adversarial Review for Luma Speedrun...")
 
@@ -37,7 +32,7 @@ async def run_luma_review():
     for insight in session.insights:
         print(f"  - {insight}")
 
-    metrics = system.get_adversarial_metrics(session_id)
+    system.get_adversarial_metrics(session_id)
     print(f"\n📊 Persistence: Metrics recorded for {session_id}")
 
 

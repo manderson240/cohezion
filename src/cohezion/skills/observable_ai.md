@@ -45,12 +45,9 @@ class ObservableAgent:
         confidence = self.compute_confidence(state)
 
         # 2. Log for auditing
-        self.audit_log.append({
-            'input': input,
-            'state': state,
-            'confidence': confidence,
-            'timestamp': time.now()
-        })
+        self.audit_log.append(
+            {"input": input, "state": state, "confidence": confidence, "timestamp": time.now()}
+        )
 
         # 3. Only act if confidence threshold met
         if confidence < self.min_confidence:
@@ -84,7 +81,7 @@ def explain_decision(self, state, action):
         sentiment="positive" if state.sentiment > 0 else "negative",
         sentiment_val=state.sentiment,
         factuality=state.factuality,
-        coherence=state.coherence
+        coherence=state.coherence,
     )
 ```
 

@@ -268,15 +268,42 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             weight_quant=WeightQuant.INT4,
             kv_quant=KVQuant(),
             context_window=8192,
-            priority=8,  # NPU reasoning specialist; beats Gemma-4-E2B (10) for REASONING
+            priority=9,  # demoted 2026-08-03: reasoning-role q=0.058 in the lap-80303 sweep
             observed_tokens_per_sec=10.6,
             reasoning_mode=True,
             verified_working=True,
-            last_verified_at=datetime(2026, 6, 22),
+            last_verified_at=datetime(2026, 8, 3),
             notes=(
                 "FLM reasoning model — 10.6 TPS on XDNA2 NPU. "
-                "Wired via build_reasoning_orchestrator() in triune_orchestrator.py. "
-                "Dispatched by OmniRouter :13305 → XDNA2."
+                "DISPLACED from build_reasoning_orchestrator() NPU tier by "
+                "qwen3.6-moe-35b-a3b-FLM 2026-08-03 (fixture sweep lap 80303: 0.635 "
+                "overall / 0.058 reasoning-role vs qwen 0.942 / 1.000). Card-sampled "
+                "arithmetic remains its weak class. Dispatched by OmniRouter :13305 → XDNA2."
+            ),
+        ),
+        ModelEntry(
+            model_id="qwen3.6-moe-35b-a3b-FLM",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13305",  # OmniRouter dispatches to XDNA2/NPU
+            runtime_backend="flm",
+            task_affinity=frozenset({Task.REASONING}),
+            weight_quant=WeightQuant.INT4,
+            kv_quant=KVQuant(),
+            context_window=16384,  # usable ctx probed 2026-07-21: >=12447, <16512
+            priority=7,  # NPU reasoning lane owner since 2026-08-03 (beats deepseek-r1, 9)
+            size_gb=24.5,  # FLM weight footprint estimate (0.7 GB/B x 35B); drives N3 swap gate
+            observed_tokens_per_sec=9.7,
+            reasoning_mode=True,
+            verified_working=True,
+            last_verified_at=datetime(2026, 8, 3),
+            notes=(
+                "35B/~3B-active MoE FLM — content-channel-only (no <think> trap), "
+                "~9.7 TPS on XDNA2. Won the 2026-08-03 three-lane fixture sweep "
+                "(lap 80303, n=52, deterministic graders): 0.942 overall, 1.000 "
+                "reasoning/synthesis/code roles, 0/52 unparseable. Wired via "
+                "build_reasoning_orchestrator() NPU tier. Trivial-vs-working latency "
+                "is 25x (4.1s vs ~101s prefill-heavy) — budget timeouts per prompt-size "
+                "class, not from trivial calibration. Dispatched by OmniRouter :13305 → XDNA2."
             ),
         ),
         ModelEntry(

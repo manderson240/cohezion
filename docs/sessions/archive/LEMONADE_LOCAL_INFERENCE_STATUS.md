@@ -158,11 +158,11 @@ lemonade load Gemma-4-26B-A4B-it-GGUF --llamacpp rocm --ctx-size 65536
 ```python
 # Pseudo-code for hybrid routing
 if task == "fast_response":
-    model = "qwen3.5-4b-FLM"      # NPU - fast
-elif task == "complex_reasoning": 
-    model = "Gemma-4-31B-it-GGUF" # ROCm - smart
+    model = "qwen3.5-4b-FLM"  # NPU - fast
+elif task == "complex_reasoning":
+    model = "Gemma-4-31B-it-GGUF"  # ROCm - smart
 else:
-    model = "gemma4:31b"          # Cloud - huge
+    model = "gemma4:31b"  # Cloud - huge
 ```
 
 **Setup**:

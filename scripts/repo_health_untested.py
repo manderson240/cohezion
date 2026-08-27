@@ -26,7 +26,7 @@ def module_has_tests(mod_path, tests_root):
                 continue
             # Normalize test file to module name
             rel_test = os.path.join(root, fname).replace(tests_root + "/", "")
-            test_mod_name = rel_test.replace("/", ".").removesuffix(".py")
+            rel_test.replace("/", ".").removesuffix(".py")
             # Check if this test references our module at all
             test_path = os.path.join(root, fname)
             try:

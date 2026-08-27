@@ -36,28 +36,31 @@ import matplotlib.animation as animation
 import numpy as np
 
 fig, ax = plt.subplots()
-line, = ax.plot([], [], 'b-', lw=2)
+(line,) = ax.plot([], [], "b-", lw=2)
 ax.set_xlim(0, 10)
 ax.set_ylim(-1, 1)
 
+
 def init():
     line.set_data([], [])
-    return line,
+    return (line,)
+
 
 def animate(frame):
     x = np.linspace(0, 10, 100)
     y = np.sin(x + frame * 0.1)
     line.set_data(x, y)
-    return line,
+    return (line,)
 
-ani = animation.FuncAnimation(fig, animate, init_func=init,
-                              frames=100, interval=50, blit=True)
-ani.save('wave_animation.mp4', writer='ffmpeg', fps=30)
+
+ani = animation.FuncAnimation(fig, animate, init_func=init, frames=100, interval=50, blit=True)
+ani.save("wave_animation.mp4", writer="ffmpeg", fps=30)
 ```
 
 ### 2. Manim Scene Animation
 ```python
 from manim import *
+
 
 class SimulationEvolution(Scene):
     def construct(self):
@@ -68,13 +71,12 @@ class SimulationEvolution(Scene):
         self.play(FadeOut(title))
 
         # Animate trajectory
-        dots = VGroup(*[Dot(point=np.array([x, y, 0]))
-                       for x, y in trajectory_points[:10]])
+        dots = VGroup(*[Dot(point=np.array([x, y, 0])) for x, y in trajectory_points[:10]])
         self.play(Create(dots), run_time=3)
 
         # Interpolate between states
         for i in range(len(trajectory_points) - 1):
-            p1, p2 = trajectory_points[i], trajectory_points[i+1]
+            p1, p2 = trajectory_points[i], trajectory_points[i + 1]
             self.play(dots[i].animate.move_to(p2), run_time=0.5)
 ```
 
@@ -82,13 +84,18 @@ class SimulationEvolution(Scene):
 ```python
 import plotly.express as px
 
-fig = px.scatter(df, x='x', y='y',
-                 animation_frame='step',
-                 animation_group='stream',
-                 color='coherence',
-                 size='phase',
-                 range_x=[-10, 10], range_y=[-10, 10])
-fig.write_html('animated_trajectory.html')
+fig = px.scatter(
+    df,
+    x="x",
+    y="y",
+    animation_frame="step",
+    animation_group="stream",
+    color="coherence",
+    size="phase",
+    range_x=[-10, 10],
+    range_y=[-10, 10],
+)
+fig.write_html("animated_trajectory.html")
 ```
 
 ### 4. FFmpeg Post-Processing

@@ -175,7 +175,7 @@ class RealWorkProcessor:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdout, stderr = await asyncio.wait_for(
+            stdout, _stderr = await asyncio.wait_for(
                 proc.communicate(),
                 timeout=180.0,  # 3 minute timeout
             )

@@ -2,6 +2,12 @@
 name: SURREALDB_MOCK_PERSISTENCE_PRIME
 description: Comprehensive domain skill specification for Surrealdb Mock Persistence Prime.
 version: v1.0
+name: surrealdb_mock_persistence_prime
+description: "Standardized Cohezion platform PRIME skill for surrealdb_mock_persistence_prime."
+category: core
+tags: [skill, prime, cohezion]
+metadata:
+  version: "1.0.0"
 ---
 
 # SKILL: SURREALDB_MOCK_PERSISTENCE_PRIME

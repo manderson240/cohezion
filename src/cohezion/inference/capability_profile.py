@@ -113,7 +113,7 @@ def _detect_thinking_mode(how_to_use: list[str]) -> str:
 
 
 def _detect_prompt_template(model_id: str, how_to_use: list[str]) -> str:
-    text = "\n".join(how_to_use + [model_id]).lower()
+    text = "\n".join([*how_to_use, model_id]).lower()
     if "chatml" in text or "qwen" in text or "deepseek-qwen" in text:
         return "chatml"
     if "llama3" in text or "llama-3" in text:

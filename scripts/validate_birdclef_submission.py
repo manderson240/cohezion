@@ -23,7 +23,7 @@ def validate_submission_schema():
         # Flatten and unique labels
         labels_raw = df_meta["primary_labels"].values
         labels_flat = [l[0] if len(l) > 0 else "unknown" for l in labels_raw]
-        species = sorted(list(set(labels_flat)))
+        species = sorted(set(labels_flat))
 
     # 2. Generate Mock Submission
     num_test_samples = 10

@@ -266,7 +266,7 @@ def phase4_synthesize(state: dict[str, Any]) -> bool:
 
     if not pending:
         # All hypotheses processed; advance phase
-        results: list[dict[str, Any]] = state.get("synthesis_results", [])
+        state.get("synthesis_results", [])
         new_solves: list[str] = state.get("new_solves", [])
         solved_count = len(new_solves)
         print(f"[Phase 4] No pending hypotheses. Solved so far: {solved_count}. Advancing.")
@@ -289,7 +289,7 @@ def phase4_synthesize(state: dict[str, Any]) -> bool:
     hyp = pending[0]
     tid = hyp["task_id"]
     depth = hyp.get("depth", 3)
-    budget = hyp.get("budget", 500)
+    hyp.get("budget", 500)
 
     tasks = load_all("evaluation")
     task = tasks.get(tid)

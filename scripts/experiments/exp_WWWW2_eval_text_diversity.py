@@ -138,7 +138,9 @@ class ExperimentResult:
             "treatment": {
                 "best_seed": self.treatment_best_seed,
                 "mean_ppl": self.treatment_mean_ppl,
-                "seed_details": {s: c.to_dict() for s, c in self.treatment_seed_comparisons.items()},
+                "seed_details": {
+                    s: c.to_dict() for s, c in self.treatment_seed_comparisons.items()
+                },
             },
             "status": self.status,
             "notes": self.notes,

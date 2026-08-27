@@ -14,6 +14,10 @@ Attribution: Zhamak Dehghani, "Data Mesh: Delivering Data-Driven Value at Scale"
 """
 
 import contextlib
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 # Wiring-sweep 2026-06-06: audio_telemetry was a genuine production orphan — its bioacoustic
@@ -103,7 +107,65 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.data_mesh.gaia_domain_agent import GaiaDataAgent as GaiaDataAgent
 
+# GapMiner: repeated roster actions -> proactive work-queue items (endorsement-ranked).
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.gap_miner import GapMiner as GapMiner
+    from cohezion.data_mesh.gap_miner import make_gap_miner as make_gap_miner
+
+# GaiaAgentRoster: top-tier GAIA agents (live-catalog model selection) per mesh domain.
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.gaia_agent_roster import (
+        DEFAULT_AGENT_SPECS as DEFAULT_AGENT_SPECS,
+    )
+    from cohezion.data_mesh.gaia_agent_roster import AgentSpec as AgentSpec
+    from cohezion.data_mesh.gaia_agent_roster import GaiaAgentRoster as GaiaAgentRoster
+    from cohezion.data_mesh.gaia_agent_roster import (
+        deploy_gaia_agent_roster as deploy_gaia_agent_roster,
+    )
+
 # KanbanBridge: write-through projection to SurrealDB + Obsidian.
 with contextlib.suppress(Exception):
     from cohezion.data_mesh.kanban_bridge import backfill_items as backfill_items
     from cohezion.data_mesh.kanban_bridge import persist_item as persist_item
+
+# Wiring-sweep 2026-08-11: promote the datamesh/ orphan types onto the canonical
+# data_mesh/ surface. NON-DESTRUCTIVE — neither package is removed and no module moves;
+# the two near-identically-named packages remain a live consolidation question (card
+# 7e066595c8c4). This only makes the orphans reachable.
+#
+# This re-export IS the missing wiring, not dormancy camouflage: the real integration
+# already exists and works (DataProduct.from_unified_record consumes a UnifiedRecord, and
+# DataMeshEventBridge.watch_federation takes a FederationLayer). What was missing is that
+# no caller could reach the INPUT types through the canonical surface, so a working
+# conversion had no reachable way to be fed.
+#
+# Logged rather than silently suppressed. datamesh.schema transitively imports torch, so
+# on a torch-free install these symbols legitimately vanish — but a bare suppress makes
+# that indistinguishable from a genuine breakage, and the caller then sees only a bare
+# ImportError at the use site with no indication of the cause. The blanket `Exception`
+# is kept deliberately: a broken torch install can raise OSError/RuntimeError, and the
+# package must stay importable either way.
+try:
+    from cohezion.datamesh.federation import DomainEndpoint as DomainEndpoint
+    from cohezion.datamesh.federation import FederationLayer as FederationLayer
+    from cohezion.datamesh.schema import DataLineage as DataLineage
+    from cohezion.datamesh.schema import Physics12D as Physics12D
+    from cohezion.datamesh.schema import RecordType as RecordType
+    from cohezion.datamesh.schema import UnifiedRecord as UnifiedRecord
+
+    __all__ += [
+        "DataLineage",
+        "DomainEndpoint",
+        "FederationLayer",
+        "Physics12D",
+        "RecordType",
+        "UnifiedRecord",
+    ]
+except Exception as exc:
+    logger.debug(
+        "data_mesh: datamesh/ orphan types unavailable (%s: %s) — FederationLayer, "
+        "DomainEndpoint, UnifiedRecord, Physics12D, RecordType and DataLineage will not "
+        "be importable from cohezion.data_mesh",
+        type(exc).__name__,
+        exc,
+    )

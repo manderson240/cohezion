@@ -20,7 +20,8 @@ inference at $0.
 | 0 | **NPU** (XDNA2) | `llama3.2-1b-FLM` | classification, routing, short categorical/answers |
 | 1 | **iGPU** (RDNA3.5) | `Gemma-4-E4B-it-GGUF` / `Bonsai-8B-gguf` | structured generation, code |
 | 2 | **CPU** (AVX-512) | `Gemma-4-31B-it-GGUF` / `Qwen3.6-35B-A3B-NoThinking` | multi-step reasoning, review |
-| 3 | **Cloud** (metered $) | Claude / Gemini / `*:cloud` | **last resort only — see §2** |
+| 2.5 | **Cloud-subscription** (pre-paid, expires weekly, marginal $0) | Claude session / subscription subagents | adversarial review, reconciliation, deep reasoning — **see §4b; §2 gate does NOT apply** |
+| 3 | **Cloud** (metered $) | Metered API keys / pay-per-token `*:cloud` | **last resort only — see §2** |
 
 - **Right model for the task** (the discipline that makes $0 trustworthy): `llama3.2-1b` for
   routing; an iGPU model for structured generation; the reasoning tier for genuine multi-step work.
@@ -72,6 +73,31 @@ is large:
 3. Token accounting (`TokenUsageRecord` via `make_local_execute_fn`): local = free tokens,
    cloud = metered; `session_cloud_cost_usd` is the quarter ledger — it should stay ~$0.
 
+## 4b. Expiring-quota amendment — cohezion wiring (2026-08-21)
+
+The GLOBAL rule (§2b there) now splits cloud into **Tier 2.5** (pre-paid Claude subscription
+quota, expires at the weekly reset, marginal cost $0 — the §2 gate does NOT apply) and
+**Tier 3** (metered API — full §2 gate unchanged). Rationale: `feynman_path_weight(q,
+cost_usd=0)` reduces to `q`, so expiring quota has no 2.72× bar; letting it expire unused is
+the inverse quarter leak. Cohezion-side implications:
+
+- **The code cascade is UNCHANGED.** `make_local_execute_fn → build_triune_omni_orchestrator`
+  still has no cloud tier. Tier 2.5 is a SESSION-level routing decision — what the Claude
+  session does directly or delegates to subscription-billed cloud subagents — not a new
+  entry in `_OMNI_TIERS` or the orchestrator's tier list.
+- **Ledger semantics:** subscription-quota work logs `cost_usd == 0.0`; the
+  `session_cloud_cost_usd` metrics key (derived from `TokenUsageRecord.cloud_cost_usd`
+  at the `execute_fn` call site) continues to track METERED Tier-3 spend only and should
+  stay ~$0. Do not count Tier 2.5 tokens against the quarter ledger.
+- **Preferred sinks for surplus quota in this repo:** adversarial second passes per
+  `verification-depth.md` §4 (ANY independent agent breaks the author–test correlation —
+  local included; a frontier lens is preferred here because measured local review lanes
+  fall short on judgment-heavy review, see memory `local-qa-review-lane-suitability`),
+  `/code-review ultra` before landing, and stalled-unlanded reconciliation
+  (side-branch fixes, rival adjudication).
+- **The string still holds:** verify Tier 2.5 output on a local QA lane and cache it in
+  `SemanticCache`, same as any cloud output.
+
 ## Invariants this protocol depends on (do not regress)
 
 - **N1 / Inference Ports:** `:13305` is the only port needed; per-port `:13306/7/9` are redundant.
@@ -82,7 +108,8 @@ is large:
 ## Anti-patterns (each is a quarter leak — STOP)
 
 - Defaulting any tier to a cloud model "to be safe".
-- Escalating to `*:cloud` / Claude / Gemini on input *size* or *latency* with no local quality gate.
+- Escalating to METERED Tier-3 cloud (`*:cloud` / API-key Claude / Gemini) on input *size* or
+  *latency* with no local quality gate. (Tier 2.5 subscription use is governed by §4b, not this line.)
 - A "success" gate so weak (e.g. `bool(output.strip())`) it can never register a genuine
   quality failure — it can't pull the string, so it can't reclaim and can't trust.
 - Paying cloud for an answer already in the `SemanticCache` or reproducible locally.

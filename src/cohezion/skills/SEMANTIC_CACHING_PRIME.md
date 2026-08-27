@@ -27,19 +27,23 @@ Instead of `hash(query)`, use `embed(query)`.
 ```python
 import numpy as np
 
+
 class SemanticCache:
     def __init__(self, threshold=0.95):
         self.threshold = threshold
-        self.vectors = [] # Matrix [N, D]
-        self.responses = [] 
+        self.vectors = []  # Matrix [N, D]
+        self.responses = []
 
     def get(self, query_vec: np.array) -> str | None:
-        if not self.vectors: return None
-        
+        if not self.vectors:
+            return None
+
         # Calculate Similarities
-        sims = np.dot(self.vectors, query_vec) / (np.linalg.norm(self.vectors, axis=1) * np.linalg.norm(query_vec))
+        sims = np.dot(self.vectors, query_vec) / (
+            np.linalg.norm(self.vectors, axis=1) * np.linalg.norm(query_vec)
+        )
         best_idx = np.argmax(sims)
-        
+
         if sims[best_idx] > self.threshold:
             return self.responses[best_idx]
         return None
@@ -49,7 +53,7 @@ class SemanticCache:
 Use `FlumeEncoder` to project thoughts into the manifold before caching.
 ```python
 query_z = flume.encode(thought)
-cached_z = semantic_cache.search(query_z) 
+cached_z = semantic_cache.search(query_z)
 ```
 
 ### 3. Edge Cases

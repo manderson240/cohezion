@@ -40,7 +40,7 @@ def apply_routed_cz(mps, q1, q2, q_map):
     s1, s2 = q_map[q1], q_map[q2]
     while abs(s1 - s2) > 1:
         step = 1 if s1 < s2 else -1
-        mps.gate_split(SWAP, (s1, s1+step), max_bond=BOND, inplace=True)
+        mps.gate_split(SWAP, (s1, s1 + step), max_bond=BOND, inplace=True)
         # Update map...
         s1 += step
     mps.gate_split(CZ, (s1, s2), max_bond=BOND, inplace=True)

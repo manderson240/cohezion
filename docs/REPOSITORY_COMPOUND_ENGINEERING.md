@@ -41,8 +41,11 @@ class BaseRepository(ABC, Generic[T, TFilter]):
 ```python
 class SurrealSkillRepository(SkillRepository, BaseRepository[Skill, None]):
     """Inherits all base features + domain-specific logic."""
-    
-class SurrealUniverseRepository(UniverseRepository, BaseRepository[UniverseNode, UniverseRepositoryFilter]):
+
+
+class SurrealUniverseRepository(
+    UniverseRepository, BaseRepository[UniverseNode, UniverseRepositoryFilter]
+):
     """Inherits all base features + domain-specific logic."""
 ```
 
@@ -55,12 +58,12 @@ class SurrealUniverseRepository(UniverseRepository, BaseRepository[UniverseNode,
 
 ```python
 # Unit tests (40 tests)
-tests/core/persistence/repositories/test_base_repository.py
-tests/core/persistence/repositories/test_surreal_skill_repository.py
-tests/core/persistence/repositories/test_surreal_universe_repository.py
+tests / core / persistence / repositories / test_base_repository.py
+tests / core / persistence / repositories / test_surreal_skill_repository.py
+tests / core / persistence / repositories / test_surreal_universe_repository.py
 
 # Adversarial review tests (14 tests)
-tests/compound/tdd_adversarial/test_repository_adversarial_review.py
+tests / compound / tdd_adversarial / test_repository_adversarial_review.py
 ```
 
 **Compounding Benefits:**

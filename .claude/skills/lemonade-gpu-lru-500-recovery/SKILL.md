@@ -67,6 +67,7 @@ but the actual `task.description` from `run_agentic_loop.py` is ~10 lines long.
 Test actual routing:
 ```python
 from cohezion.inference.task_classifier import classify
+
 classify(task.description).node  # "gpu", not "npu"
 ```
 

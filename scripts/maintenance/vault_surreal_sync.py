@@ -11,6 +11,7 @@ Usage:
     python3 vault_surreal_sync.py            # sync all research/reviews/corpus notes
     python3 vault_surreal_sync.py --since 2026-07-12   # only notes whose `date:` >= given
 """
+
 from __future__ import annotations
 
 import argparse

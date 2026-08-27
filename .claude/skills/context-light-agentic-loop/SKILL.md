@@ -54,10 +54,13 @@ def _query_surrealdb_wins() -> set[str]:
 
 ```python
 def _query_bughunt_state() -> dict:
-    sql = ("SELECT count() AS total, count(success = true) AS wins "
-           "FROM vault_neuron WHERE category = 'code_quality' GROUP ALL;")
+    sql = (
+        "SELECT count() AS total, count(success = true) AS wins "
+        "FROM vault_neuron WHERE category = 'code_quality' GROUP ALL;"
+    )
     row = http_post("http://localhost:8001/sql", sql)[0].get("result", [{}])[0]
     return {"total": row.get("total", 0), "wins": row.get("wins", 0)}
+
 
 # In _build_backlog():
 state = _query_bughunt_state()
@@ -69,11 +72,15 @@ batch_size = 5 if win_rate >= 0.5 else 3  # scale conservatively when struggling
 
 ```python
 def _query_vault_context() -> str:
-    sql = ("SELECT category, count() AS n, math::mean(quality_score) AS avg_quality "
-           "FROM vault_neuron GROUP BY category ORDER BY n DESC LIMIT 5;")
+    sql = (
+        "SELECT category, count() AS n, math::mean(quality_score) AS avg_quality "
+        "FROM vault_neuron GROUP BY category ORDER BY n DESC LIMIT 5;"
+    )
     rows = http_post("http://localhost:8001/sql", sql)[0].get("result", [])
-    return "\n".join(f"  {r['category']}: {r['n']} records, q={r.get('avg_quality',0):.2f}"
-                     for r in rows)
+    return "\n".join(
+        f"  {r['category']}: {r['n']} records, q={r.get('avg_quality', 0):.2f}" for r in rows
+    )
+
 
 # At loop start — gives state awareness without holding it in context:
 logger.info("Vault summary:\n%s", _query_vault_context())
@@ -89,8 +96,8 @@ def _push_batch_summary(results: list[dict], elapsed_s: float) -> None:
     sql = (
         f"INSERT INTO vault_neuron {{"
         f" task_id: 'pyright:batch:{ts}', category: 'bughunt_summary', "
-        f" success: {str(wins > 0).lower()}, quality_score: {round(wins/total,2)}, "
-        f" elapsed_ms: {int(elapsed_s*1000)}, recorded_at: time::now()"
+        f" success: {str(wins > 0).lower()}, quality_score: {round(wins / total, 2)}, "
+        f" elapsed_ms: {int(elapsed_s * 1000)}, recorded_at: time::now()"
         f"}};"
     )
     http_post("http://localhost:8001/sql", sql)
