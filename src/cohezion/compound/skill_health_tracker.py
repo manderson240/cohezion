@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -77,8 +78,17 @@ class SkillHealthTracker:
         Resolved per call rather than at import: a module-level ``Path.home()``
         freezes ``$HOME`` at first import, so anything that sets it afterwards
         (test harnesses, service managers) would be silently ignored.
+
+        ``COHEZION_STATE_DIR`` redirects the whole state root. Anchoring is a
+        WIDENING change -- it moved this file from a repo-local ``data/`` path
+        into the user's shared home directory, and the test suite promptly began
+        writing records named "test" and "FULL_CYCLE_TEST" there. An override is
+        what lets a test run, a sandbox, or a second checkout keep its state to
+        itself.
         """
-        return Path.home() / ".cohezion" / "skill_health.json"
+        root = os.environ.get("COHEZION_STATE_DIR")
+        base = Path(root) if root else Path.home() / ".cohezion"
+        return base / "skill_health.json"
 
     def __init__(self, storage_path: Path | None = None) -> None:
         self._storage_path = storage_path or self.default_storage_path()
