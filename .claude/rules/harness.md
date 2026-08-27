@@ -677,23 +677,14 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - ERP history tuple keys survive `"skill::op"` encoding through the full save→restore cycle
 - **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestSkillRefinerDurableSpine -q` → 8 passed
 
-## RiemannianGlideTrajectory Curvature-Induced Anisotropy (#157, 2026-06-28)
+## RiemannianGlideTrajectory Curvature-Induced Anisotropy (#157) — REMOVED 2026-08-27, was a PHANTOM invariant
 
-### RGA1: curvature_coupling=0.0 default preserves original step() behaviour (backward-compatible)
-- `RiemannianGlideTrajectory` accepts `curvature_coupling: float = 0.0` as 4th field
-- `step()` with κ=0 is byte-for-byte identical to the pre-#157 implementation
-- `anisotropy_tensor()` returns `[1.0, ..., 1.0]` when κ=0 or when `position=[0,...,0]`
-- **T1 structural**: `"curvature_coupling" in {f.name for f in dataclasses.fields(RiemannianGlideTrajectory)}`
-- **T1 backward-compat**: `test_backward_compatibility_no_coupling_kwarg` — step still gives [0.1, 0.2] for identity metric
+The RGA1/RGA2 entries (a `curvature_coupling` field, `anisotropy_tensor()`, and a `12 passed` verification
+of `tests/physics/test_riemannian_glide.py`) arrived via branch `worktree-virtual-soaring-shamir`. The
+doc↔code linter (E6) shows the cited tests were defined in NO revision — not on the branch, not on main —
+and main's `riemannian_glide.py` has no `curvature_coupling` field (W4). Sixth phantom recorded; same
+disposition as RTG1 above. Do NOT re-add without implementing the field + a real discriminating test.
 
-### RGA2: κ > 0 damps step in proportion to |position| — discriminating test
-- `a_i = 1 / (1 + κ * g_{ii} * |x_i|)` — factor < 1.0 when κ>0 and x≠0
-- `step(dt)` applies `x_{t+dt} = x_t + dt * v * a` (elementwise) instead of `x_t + dt * v`
-- Curved trajectory (κ>0) is SHORTER than flat trajectory (κ=0) from same initial conditions
-- At origin |x|=0, damping is zero regardless of κ (no anisotropy at fixed point)
-- Source: PRL 136 256708 analogy — curvature resists transport in high-curvature directions
-- **T2 discriminating**: `test_nonzero_coupling_changes_step` (κ=0 vs κ=1 produce different positions); `test_anisotropy_damped_in_large_position` (larger |x| → smaller a_i)
-- **Verification**: `uv run pytest tests/physics/test_riemannian_glide.py -q` → 12 passed
 ### RG1: step() is a geodesic only when Γ vanishes — CONSUMPTION invariant
 - `x + dt*v` is a geodesic iff the Christoffel symbols vanish, which requires a **constant**
   metric — NOT merely a diagonal one. For conformal `g_ij = δ_ij h(x)`, `Γ¹₁₁ = ∂₁h / 2h ≠ 0`.
