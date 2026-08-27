@@ -324,3 +324,7 @@ execution_traces/
 node_modules/
 src/cohezion/skills/munder-difflin-repo/
 
+
+# 2026-08-26 reconcile hygiene: raw LoRA weights/tokenizers never in git (use LFS or artifacts)
+checkpoints/**/*.safetensors
+checkpoints/**/tokenizer.json
