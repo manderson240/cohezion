@@ -15,8 +15,12 @@ deliberately do not claim the axis is fixed.
 
 from __future__ import annotations
 
+import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+import pytest
 
 from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
@@ -110,3 +114,74 @@ def test_missing_file_yields_no_records_without_raising(tmp_path: Path) -> None:
     """Fail-soft load is preserved (absent file is a valid cold start)."""
     tracker = SkillHealthTracker(storage_path=tmp_path / "absent.json")
     assert tracker._records == {}
+
+
+# --- concurrency safety (blocking finding, adversarial review 2026-08-27) ------
+# Anchoring this file to ~/.cohezion turned a PER-CHECKOUT file into a SHARED one.
+# Before the move each of the 11 sibling checkouts and 16 worktrees had its own
+# copy, so the collision surface was zero; the move created it. _save() was a bare
+# write_text() and _load() an unguarded json.loads() in __init__, so concurrent
+# writers corrupt the file -- measured 273 exceptions across 6 processes x 60
+# writes, ending in JSONDecodeError. And it is TERMINAL, not transient:
+# executor.py constructs SkillHealthTracker() unconditionally, so a corrupt file
+# raises on EVERY CompoundExecutor() on the machine until someone deletes it.
+
+
+def test_corrupt_state_file_does_not_raise(tmp_path: Path) -> None:
+    """DISCRIMINATING: red while _load() parses without a guard.
+
+    A shared state file WILL eventually be torn. Failing to start is a far worse
+    outcome than starting with no history.
+    """
+    corrupt = tmp_path / "skill_health.json"
+    corrupt.write_text('{"A": {"skill_name": "A"}}{"B": garbage', encoding="utf-8")
+
+    tracker = SkillHealthTracker(storage_path=corrupt)
+    assert tracker._records == {}, "a torn file must degrade to an empty history"
+
+
+def test_truncated_state_file_does_not_raise(tmp_path: Path) -> None:
+    """The realistic tear: a write interrupted mid-object."""
+    truncated = tmp_path / "skill_health.json"
+    truncated.write_text('{"A": {"skill_name": "A", "total_inv', encoding="utf-8")
+    assert SkillHealthTracker(storage_path=truncated)._records == {}
+
+
+def test_save_is_atomic(tmp_path: Path, monkeypatch) -> None:
+    """DISCRIMINATING: red while _save() writes in place.
+
+    An interrupted in-place write leaves a truncated file; an interrupted
+    tmp+rename leaves the previous good file untouched.
+    """
+    path = tmp_path / "skill_health.json"
+    tracker = SkillHealthTracker(storage_path=path)
+    tracker.record_usage("KEEPER", success=True)
+    good = path.read_text(encoding="utf-8")
+
+    def boom(*_a, **_kw):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(os, "replace", boom)
+    with pytest.raises(KeyboardInterrupt):
+        tracker.record_usage("SECOND", success=True)
+
+    assert path.read_text(encoding="utf-8") == good, (
+        "an interrupted save must leave the previous state intact"
+    )
+    assert json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_concurrent_writers_leave_a_parseable_file(tmp_path: Path) -> None:
+    """End-to-end: many writers, file still loads afterwards."""
+    path = tmp_path / "skill_health.json"
+
+    def hammer(worker: int) -> None:
+        tracker = SkillHealthTracker(storage_path=path)
+        for i in range(20):
+            tracker.record_usage(f"W{worker}_{i}", success=True)
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        list(pool.map(hammer, range(6)))
+
+    json.loads(path.read_text(encoding="utf-8"))  # must not raise
+    assert SkillHealthTracker(storage_path=path)._records
