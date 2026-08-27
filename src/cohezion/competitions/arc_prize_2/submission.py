@@ -153,6 +153,69 @@ def transform_nca_cellular_automata(grid: list[list[int]]) -> list[list[int]]:
     return out
 
 
+def extract_connected_objects(grid: list[list[int]], bg: int = 0) -> list[dict]:
+    if not grid or not grid[0]:
+        return []
+    h, w = len(grid), len(grid[0])
+    visited = set()
+    objs = []
+    for r in range(h):
+        for c in range(w):
+            val = grid[r][c]
+            if val != bg and (r, c) not in visited:
+                comp = set()
+                q = [(r, c)]
+                visited.add((r, c))
+                while q:
+                    cr, cc = q.pop(0)
+                    comp.add((cr, cc))
+                    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                        nr, nc = cr + dr, cc + dc
+                        if 0 <= nr < h and 0 <= nc < w and (nr, nc) not in visited and grid[nr][nc] == val:
+                            visited.add((nr, nc))
+                            q.append((nr, nc))
+                rs = [pr for pr, pc in comp]
+                cs = [pc for pr, pc in comp]
+                objs.append({
+                    "color": val, "pixels": comp, "size": len(comp),
+                    "r_min": min(rs), "r_max": max(rs), "c_min": min(cs), "c_max": max(cs)
+                })
+    return objs
+
+def transform_object_gravity_bottom(grid: list[list[int]]) -> list[list[int]]:
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    objs = extract_connected_objects(grid)
+    res = [[0] * w for _ in range(h)]
+    for o in objs:
+        dr = (h - 1) - o["r_max"]
+        for r, c in o["pixels"]:
+            if 0 <= r + dr < h:
+                res[r + dr][c] = o["color"]
+    return res
+
+def transform_keep_largest_connected(grid: list[list[int]]) -> list[list[int]]:
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    objs = extract_connected_objects(grid)
+    if not objs: return grid
+    largest = max(objs, key=lambda x: x["size"])
+    res = [[0] * w for _ in range(h)]
+    for r, c in largest["pixels"]:
+        res[r][c] = largest["color"]
+    return res
+
+def transform_keep_smallest_connected(grid: list[list[int]]) -> list[list[int]]:
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    objs = extract_connected_objects(grid)
+    if not objs: return grid
+    smallest = min(objs, key=lambda x: x["size"])
+    res = [[0] * w for _ in range(h)]
+    for r, c in smallest["pixels"]:
+        res[r][c] = smallest["color"]
+    return res
+
 TRANSFORMS = [
     transform_identity,
     transform_rot90,
@@ -169,6 +232,9 @@ TRANSFORMS = [
     transform_invert_nonzero_colors,
     transform_fill_holes,
     transform_nca_cellular_automata,
+    transform_object_gravity_bottom,
+    transform_keep_largest_connected,
+    transform_keep_smallest_connected,
 ]
 
 # ---------------------------------------------------------------------------
