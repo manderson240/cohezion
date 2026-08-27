@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — reconcile worktree-virtual-soaring-shamir into main (1.12.0)
+- Lands the Kaggle/competition branch (286 commits, 2026-07-13 → 2026-08-26) merged onto main with
+  85 conflicts resolved non-destructively: `main` is the prior-revision oracle for every content
+  conflict and for `add/add` modules with no branch-only consumers; three modules keep the branch's
+  implementation with main's `VerificationResult` / `ZKFVProof` / `RoutingResult`+`TIER_*` appended
+  so main-side importers keep working. Every side not taken is preserved under `docs/reconcile/`.
+  Resolution table: `docs/reconcile/2026-08-26-merge-resolution.md`.
+- New subsystems: `competitions/` (arc, arc_prize, biohub_cell, pokemon_tcg, rsna_knee, swarms,
+  world_models), `adapters/`, `evaluation/`, `evo/`, `infrastructure/`, `ops/`, `pipelines/`,
+  `policies/`, `review/`, `training/`; Kaggle auto-submission + leaderboard-climb daemons.
+- Hygiene: 4,769 tracked `.pyc` and raw LoRA weights untracked; `*.safetensors` now LFS.
+- Deps: `marimo`, `peft`, `trl` declared; `uv.lock` regenerated.
+- Follow-ups (preserved, not landed): branch versions of `surreal_client` (SurrealDB 3.0 syntax),
+  `land_runner` (verdict-first parser), `prewarm_harness` (false pre-warm fix), `model_card_defaults`
+  (5 new cards), `event_bus` (model lifecycle events) — see the resolution table's "why" column.
+
 ### Fixed — loop_mcp datamesh bus write path (1.11.1)
 - `mcp/loop_mcp.py`: `event_publish` reported `success: true` while writing zero rows. SurrealDB
   answers HTTP 200 for SurrealQL *statement* errors, placing the failure in the body as

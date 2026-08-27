@@ -679,7 +679,7 @@ wheels = [
 
 [[package]]
 name = "cohezion"
-version = "1.11.0"
+version = "1.11.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
@@ -697,10 +697,12 @@ dependencies = [
     { name = "httpx" },
     { name = "kaggle" },
     { name = "kagglehub" },
+    { name = "marimo" },
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "passlib", extra = ["bcrypt"] },
+    { name = "peft" },
     { name = "pocket-tts" },
     { name = "polars" },
     { name = "psutil" },
@@ -720,6 +722,7 @@ dependencies = [
     { name = "surrealdb" },
     { name = "torch" },
     { name = "torchvision" },
+    { name = "trl" },
     { name = "uvicorn" },
 ]
 
@@ -796,6 +799,7 @@ requires-dist = [
     { name = "kaggle", specifier = ">=1.6.17" },
     { name = "kagglehub", specifier = ">=1.0.0" },
     { name = "librosa", marker = "extra == 'audio'", specifier = ">=0.10.0" },
+    { name = "marimo", specifier = ">=0.23.16" },
     { name = "marimo", marker = "extra == 'cockpit'", specifier = ">=0.23" },
     { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "mem0ai", marker = "extra == 'memory'", specifier = ">=2.0.0" },
@@ -804,6 +808,7 @@ requires-dist = [
     { name = "optuna", marker = "extra == 'dev'", specifier = ">=3.6" },
     { name = "pandas", specifier = ">=3.0.0" },
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4" },
+    { name = "peft", specifier = ">=0.20.0" },
     { name = "pocket-tts", specifier = ">=0.1.0" },
     { name = "polars", specifier = ">=1.39.3" },
     { name = "psutil", specifier = ">=5.9.0" },
@@ -835,6 +840,7 @@ requires-dist = [
     { name = "torchaudio", marker = "extra == 'audio'", specifier = ">=2.0.0" },
     { name = "torchvision", specifier = ">=0.23.0" },
     { name = "transformers", marker = "extra == 'ml'", specifier = ">=4.30.0" },
+    { name = "trl", specifier = ">=0.23.0" },
     { name = "unsloth", marker = "extra == 'unsloth'" },
     { name = "uvicorn", specifier = ">=0.24.0" },
 ]
@@ -2895,7 +2901,7 @@ wheels = [
 
 [[package]]
 name = "marimo"
-version = "0.23.14"
+version = "0.24.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click", marker = "sys_platform != 'emscripten'" },
@@ -2918,9 +2924,9 @@ dependencies = [
     { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
     { name = "websockets", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9a/33/b60febb3f7e44658fc0c4b59e04ba9071e01f4186235d9dd1864e7efba72/marimo-0.23.14.tar.gz", hash = "sha256:f33f17abb5106edabf6921d016d91a6d8f02b4d1b0ed599039957b8f7f5b9489", size = 38705304, upload-time = "2026-07-10T20:01:01.646Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/36/e0/70c18b2862d9a439c811cf2e5bf0aef2b9d0cc7ac72beb2ba6eea9a9a055/marimo-0.24.0.tar.gz", hash = "sha256:30aaeae5a5936df524814fddd98f4b260d3068f97df2611d252fe4b253f3fb80", size = 39054161, upload-time = "2026-08-17T21:30:18.072Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/55/ea/898058b213ed79555cf4fde8f59fcb2c257c888dcbc351e0670d3a0b632d/marimo-0.23.14-py3-none-any.whl", hash = "sha256:c93a25ab3ae928f06d2d9855c8b582836485ad9af4d038de2eac8d028af837ee", size = 39160204, upload-time = "2026-07-10T20:00:58.325Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/8b/3899b23020f5e43c7357171712b14b774434cb6b1a285f5678cc1234013a/marimo-0.24.0-py3-none-any.whl", hash = "sha256:a5470207ac4c228ee7c2c16f820b0ca1cdf58ec4b51074aca1a5c997422ae90a", size = 39517936, upload-time = "2026-08-17T21:30:13.832Z" },
 ]
 
 [[package]]
@@ -3929,7 +3935,7 @@ wheels = [
 
 [[package]]
 name = "peft"
-version = "0.19.1"
+version = "0.20.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "accelerate" },
@@ -3943,9 +3949,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "transformers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/86/cf/037f1e3d5186496c05513a6754639e2dab3038a05f384284d49a9bd06a2d/peft-0.19.1.tar.gz", hash = "sha256:0d97542fe96dcdaa20d3b81c06f26f988618f416a73544ab23c3618ccb674a40", size = 763738, upload-time = "2026-04-16T15:46:45.105Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b4/08/02541a2c29be7c78698f73d438bc0e733b214f3f35ec5db79fca8da8fc61/peft-0.20.0.tar.gz", hash = "sha256:4769c8093a4ca145fd6fb3fd4dd50449675f5fe46434ad1e98b285a132d4b1d0", size = 880503, upload-time = "2026-07-28T13:46:01.85Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/b6/f54d676ed93cc2dd2234c3b172ea9c8c3d7d29361e66b1b23dec57a67465/peft-0.19.1-py3-none-any.whl", hash = "sha256:2113f72a81621b5913ef28f9022204c742df111890c5f49d812716a4a301e356", size = 680692, upload-time = "2026-04-16T15:46:42.886Z" },
+    { url = "https://files.pythonhosted.org/packages/28/79/13bcabb8048126422d5c4b880575d40886c726f354db88cfeed4325525bb/peft-0.20.0-py3-none-any.whl", hash = "sha256:0fbba16ffebfad3de96e06f2da6860fd860292324b85b6141909fa1e26ea9233", size = 775777, upload-time = "2026-07-28T13:45:59.809Z" },
 ]
 
 [[package]]
