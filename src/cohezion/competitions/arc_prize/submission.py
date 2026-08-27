@@ -387,34 +387,26 @@ def solve_arc_task_anytime(
             if matching_fn is not None:
                 break
 
-    # Step 4: 3-Stage Compositional Search (f3(f2(f1(x)))) (CPU)
+    # Step 4: Deep Compositional Beam Search (Depth 1 to 4) (CPU, utilizing remaining task budget)
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
-        core_transforms = [
-            transform_identity,
-            transform_rot90,
-            transform_rot180,
-            transform_rot270,
-            transform_flip_h,
-            transform_flip_v,
-            transform_crop_nonzero,
-            transform_invert_nonzero_colors,
-        ]
-        for f1 in core_transforms:
-            for f2 in core_transforms:
-                for f3 in core_transforms:
-                    if (time.perf_counter() - t_start) >= time_budget_sec:
-                        break
-
-                    def comp3(g, _f1=f1, _f2=f2, _f3=f3):
-                        return _f3(_f2(_f1(g)))
-
-                    if check_transform_fit(train_pairs, comp3):
-                        matching_fn = comp3
-                        break
-                if matching_fn is not None or (time.perf_counter() - t_start) >= time_budget_sec:
-                    break
+        beam = [(fn, fn) for fn in TRANSFORMS]
+        for depth in range(2, 5):
             if matching_fn is not None or (time.perf_counter() - t_start) >= time_budget_sec:
                 break
+            next_beam = []
+            for fn in TRANSFORMS:
+                for _, prev_comp in beam:
+                    if (time.perf_counter() - t_start) >= time_budget_sec:
+                        break
+                    def new_comp(g, _f=fn, _p=prev_comp):
+                        return _f(_p(g))
+                    if check_transform_fit(train_pairs, new_comp):
+                        matching_fn = new_comp
+                        break
+                    next_beam.append((fn, new_comp))
+                if matching_fn is not None:
+                    break
+            beam = next_beam[:30] # Keep top 30 candidate branches per depth
 
     # Step 5: Heterogeneous Specialist Swarm (GPU 0 Reasoner + GPU 1 Coder)
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
