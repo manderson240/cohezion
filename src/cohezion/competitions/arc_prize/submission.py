@@ -271,6 +271,25 @@ def transform_fill_enclosed_regions(grid: list[list[int]]) -> list[list[int]]:
                 res[r][c] = 3
     return res
 
+def transform_bioelectric_morphogenetic_repair(grid: list[list[int]]) -> list[list[int]]:
+    if not grid or not grid[0]: return grid
+    h, w = len(grid), len(grid[0])
+    v = [[-20.0 if grid[r][c] != 0 else -70.0 for c in range(w)] for r in range(h)]
+    for _ in range(8):
+        new_v = [[v[r][c] for c in range(w)] for r in range(h)]
+        for r in range(1, h - 1):
+            for c in range(1, w - 1):
+                lap = v[r-1][c] + v[r+1][c] + v[r][c-1] + v[r][c+1] - 4.0 * v[r][c]
+                new_v[r][c] += 0.25 * lap - 0.05 * (v[r][c] - (-70.0))
+        v = new_v
+    res = [row[:] for row in grid]
+    dom_col = max([max(row) for row in grid]) if grid else 1
+    for r in range(h):
+        for c in range(w):
+            if res[r][c] == 0 and v[r][c] > -48.0:
+                res[r][c] = dom_col
+    return res
+
 TRANSFORMS = [
     transform_identity,
     transform_rot90,
@@ -293,6 +312,7 @@ TRANSFORMS = [
     transform_complete_horizontal_symmetry,
     transform_complete_vertical_symmetry,
     transform_fill_enclosed_regions,
+    transform_bioelectric_morphogenetic_repair,
 ]
 
 # ---------------------------------------------------------------------------
