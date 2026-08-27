@@ -55,13 +55,22 @@ if "transformers" not in sys.modules:
 
 @pytest.fixture(scope="session", autouse=True)
 def _isolate_cohezion_state(tmp_path_factory) -> Generator[Path, None, None]:
-    """Keep the test suite out of the user's real ~/.cohezion state root.
+    """Keep SkillHealthTracker out of the user's real ~/.cohezion state root.
 
     Anchoring SkillHealthTracker's default to ~/.cohezion (2026-08-27) fixed a
     cwd-dependence bug and introduced a blast-radius one: the suite began
     writing records named "test" and "FULL_CYCLE_TEST" into the developer's
     shared state directory, where that pollution had previously been contained
     in a repo-local data/ file. 27 such records were found there.
+
+    SCOPE, deliberately narrow and stated so nobody over-trusts it: this covers
+    SkillHealthTracker ONLY. Eight other ~/.cohezion paths are module-level or
+    ClassVar constants built from ``Path.home()`` AT IMPORT -- dev_loop,
+    actioner/engine, cockpit/daemon_state, compound_health_oracle, skill_refiner
+    (x2) and compound_feeder -- so they ignore this variable and still resolve to
+    the real home. That is the same frozen-$HOME shape this branch fixed for
+    skill-health, unfixed elsewhere; closing it wants one shared state_root()
+    helper resolved per access, which is a larger change than this branch.
 
     Autouse and session-scoped so it applies without every test opting in --
     an override nothing consumes is not a fix.
