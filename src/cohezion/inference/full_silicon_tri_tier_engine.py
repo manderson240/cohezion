@@ -69,7 +69,7 @@ class FullSiliconTriTierEngine:
         t0 = time.perf_counter()
 
         # Check Load Safety & Memory Floor
-        safe, reason = check_load_safe({"size": 48.0}, available_gb=55.0)
+        _safe, _reason = check_load_safe({"size": 48.0}, available_gb=55.0)
 
         # 1. NPU Layer Execution (Attention & Draft)
         npu_telemetry = SiliconLayerTelemetry(
@@ -95,9 +95,9 @@ class FullSiliconTriTierEngine:
         )
 
         # 3. CPU Layer Execution (Control Flow & ZK-FV/AST)
-        pol_res = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
+        self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
         gates = ZKFVCompiler.compile_ast_to_gates("memory_safe")
-        proof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
+        ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
         cpu_telemetry = SiliconLayerTelemetry(
             silicon_tier="AMD Ryzen 9 7945HX CPU (32 Threads)",
             assigned_layers="Layers 42--47 (Control Flow, AST & ZK-FV SHA-256 Proofs)",

@@ -170,9 +170,7 @@ class PokemonTCGStrategicAgentV4:
         if not attack_name:
             return False
         clean = attack_name.strip()
-        if clean.startswith("[Ability]") or clean.startswith("[Tera]") or clean == "Tera":
-            return False
-        return True
+        return not (clean.startswith("[Ability]") or clean.startswith("[Tera]") or clean == "Tera")
 
     def get_zobrist_info_set_hash(self, observation: dict[str, Any]) -> int:
         active_pkmn = observation.get("active_pokemon", {})

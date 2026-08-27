@@ -57,7 +57,7 @@ class TestCanLoadModel:
             cpu_load_1m=5.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0
         )
         with patch.object(guard, "get_vitals", return_value=vitals):
-            ok, reason = guard.can_load_model(estimated_mb=0)
+            ok, _reason = guard.can_load_model(estimated_mb=0)
         assert ok is True
 
     def test_rejects_when_cpu_unhealthy(self):

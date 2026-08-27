@@ -118,10 +118,7 @@ def project_2048d_to_poincare_3d(
     """
     vectors_arr = np.asarray(vectors_2048d, dtype=np.float64)
     is_1d = vectors_arr.ndim == 1
-    if is_1d:
-        vectors = vectors_arr.reshape(1, -1)
-    else:
-        vectors = vectors_arr
+    vectors = vectors_arr.reshape(1, -1) if is_1d else vectors_arr
 
     n_samples, dim = vectors.shape
     if dim != 2048:
@@ -196,10 +193,7 @@ class PoincareManifoldVisualizer:
         List[Dict[str, Any]]
             List of skill records with 2048D vector, 3D coords, domain, and hyperbolic metrics.
         """
-        if skills_dir is None:
-            skills_dir = Path("src/cohezion/skills")
-        else:
-            skills_dir = Path(skills_dir)
+        skills_dir = Path("src/cohezion/skills") if skills_dir is None else Path(skills_dir)
 
         domain_keywords = {
             "Physics & Manifolds": [
@@ -387,7 +381,7 @@ class PoincareManifoldVisualizer:
                 y=sin_t,
                 z=zeros_t,
                 mode="lines",
-                line=dict(color="rgba(0, 240, 255, 0.4)", width=2),
+                line={"color": "rgba(0, 240, 255, 0.4)", "width": 2},
                 name="Unit Horizon Ring (XY)",
                 hoverinfo="skip",
             )
@@ -398,7 +392,7 @@ class PoincareManifoldVisualizer:
                 y=zeros_t,
                 z=sin_t,
                 mode="lines",
-                line=dict(color="rgba(0, 240, 255, 0.25)", width=1.5),
+                line={"color": "rgba(0, 240, 255, 0.25)", "width": 1.5},
                 name="Meridian Ring (XZ)",
                 hoverinfo="skip",
             )
@@ -409,7 +403,7 @@ class PoincareManifoldVisualizer:
                 y=cos_t,
                 z=sin_t,
                 mode="lines",
-                line=dict(color="rgba(0, 240, 255, 0.25)", width=1.5),
+                line={"color": "rgba(0, 240, 255, 0.25)", "width": 1.5},
                 name="Meridian Ring (YZ)",
                 hoverinfo="skip",
             )
@@ -422,7 +416,7 @@ class PoincareManifoldVisualizer:
                 y=[0.0],
                 z=[0.0],
                 mode="markers+text",
-                marker=dict(size=8, color="cyan", symbol="diamond"),
+                marker={"size": 8, "color": "cyan", "symbol": "diamond"},
                 text=["Origin (HIHO 0.5 Core)"],
                 textposition="top center",
                 name="HIHO Manifold Origin",
@@ -461,7 +455,7 @@ class PoincareManifoldVisualizer:
                 y=s_ys,
                 z=s_zs,
                 mode="markers",
-                marker=dict(size=6, color=s_colors, opacity=0.85, symbol="circle"),
+                marker={"size": 6, "color": s_colors, "opacity": 0.85, "symbol": "circle"},
                 text=s_hover,
                 hoverinfo="text",
                 name=f"PRIME Skills ({len(skills_data)})",
@@ -486,7 +480,7 @@ class PoincareManifoldVisualizer:
                     y=r_ys,
                     z=r_zs,
                     mode="markers",
-                    marker=dict(size=8, color="#ff00ff", symbol="square", opacity=0.9),
+                    marker={"size": 8, "color": "#ff00ff", "symbol": "square", "opacity": 0.9},
                     text=r_hover,
                     hoverinfo="text",
                     name=f"SurrealDB Retrospectives ({len(retros_data)})",
@@ -495,48 +489,48 @@ class PoincareManifoldVisualizer:
 
         # 5. Visual Styling Layout
         fig.update_layout(
-            title=dict(
-                text=title,
-                font=dict(size=18, color="#00f0ff"),
-                x=0.05,
-                y=0.95,
-            ),
+            title={
+                "text": title,
+                "font": {"size": 18, "color": "#00f0ff"},
+                "x": 0.05,
+                "y": 0.95,
+            },
             template="plotly_dark",
             paper_bgcolor="#0a0c10",
             plot_bgcolor="#0a0c10",
-            margin=dict(l=0, r=0, b=0, t=50),
-            scene=dict(
-                xaxis=dict(
-                    title="Hyperbolic X",
-                    range=[-1.05, 1.05],
-                    gridcolor="#1e2538",
-                    zerolinecolor="#00f0ff",
-                ),
-                yaxis=dict(
-                    title="Hyperbolic Y",
-                    range=[-1.05, 1.05],
-                    gridcolor="#1e2538",
-                    zerolinecolor="#00f0ff",
-                ),
-                zaxis=dict(
-                    title="Hyperbolic Z",
-                    range=[-1.05, 1.05],
-                    gridcolor="#1e2538",
-                    zerolinecolor="#00f0ff",
-                ),
-                aspectmode="cube",
-                camera=dict(
-                    eye=dict(x=1.35, y=1.35, z=1.15),
-                    center=dict(x=0, y=0, z=0),
-                ),
-            ),
-            legend=dict(
-                x=0.02,
-                y=0.88,
-                bgcolor="rgba(10, 12, 16, 0.7)",
-                bordercolor="#1e2538",
-                borderwidth=1,
-            ),
+            margin={"l": 0, "r": 0, "b": 0, "t": 50},
+            scene={
+                "xaxis": {
+                    "title": "Hyperbolic X",
+                    "range": [-1.05, 1.05],
+                    "gridcolor": "#1e2538",
+                    "zerolinecolor": "#00f0ff",
+                },
+                "yaxis": {
+                    "title": "Hyperbolic Y",
+                    "range": [-1.05, 1.05],
+                    "gridcolor": "#1e2538",
+                    "zerolinecolor": "#00f0ff",
+                },
+                "zaxis": {
+                    "title": "Hyperbolic Z",
+                    "range": [-1.05, 1.05],
+                    "gridcolor": "#1e2538",
+                    "zerolinecolor": "#00f0ff",
+                },
+                "aspectmode": "cube",
+                "camera": {
+                    "eye": {"x": 1.35, "y": 1.35, "z": 1.15},
+                    "center": {"x": 0, "y": 0, "z": 0},
+                },
+            },
+            legend={
+                "x": 0.02,
+                "y": 0.88,
+                "bgcolor": "rgba(10, 12, 16, 0.7)",
+                "bordercolor": "#1e2538",
+                "borderwidth": 1,
+            },
         )
 
         return fig

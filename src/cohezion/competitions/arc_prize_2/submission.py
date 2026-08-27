@@ -217,10 +217,9 @@ def check_transform_fit(train_pairs: list[dict[str, Any]], fn: Callable) -> bool
 def solve_arc_task_anytime(
     task: dict[str, Any], time_budget_sec: float = 30.0
 ) -> list[dict[str, Any]]:
-    t_start = time.perf_counter()
-    train_pairs = task.get("train", [])
-    test_inputs = task.get("test", [])
-    predictions = []
+    time.perf_counter()
+    task.get("train", [])
+    task.get("test", [])
 
 
 # ---------------------------------------------------------------------------
@@ -473,7 +472,7 @@ def find_test_challenges_file() -> str | None:
             return c
 
     if os.path.exists("/kaggle/input"):
-        for root, dirs, files in os.walk("/kaggle/input"):
+        for root, _dirs, files in os.walk("/kaggle/input"):
             if "arc-agi_test_challenges.json" in files:
                 return os.path.join(root, "arc-agi_test_challenges.json")
     return None

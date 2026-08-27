@@ -138,7 +138,7 @@ def test_failed_item_not_patched_and_batch_continues(tmp_path):
 def test_batch_limit_strictly_enforced(tmp_path):
     api = FakeAPI([_item(i) for i in range(60)])
     ex = FakeExecutor()
-    summary = run_batch(
+    run_batch(
         ex,
         api,
         _chat,

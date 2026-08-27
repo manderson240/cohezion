@@ -55,16 +55,18 @@ async def test_route_by_capability_tier1_reasoning(mock_safe_memory, mock_lemona
     """Tests routing a reasoning prompt to local Tier 1 (deepseek-r1-0528-8b-FLM)."""
     router = UnifiedHybridRouter(prefer_local=True)
 
-    with patch(
-        "cohezion.inference.unified_hybrid_router.probe_lemonade",
-        new_callable=AsyncMock,
-        return_value=mock_lemonade_health,
-    ), patch(
-        "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
-        return_value=mock_safe_memory,
-    ), patch.object(
-        router, "aquery_lemonade_local", new_callable=AsyncMock
-    ) as mock_local:
+    with (
+        patch(
+            "cohezion.inference.unified_hybrid_router.probe_lemonade",
+            new_callable=AsyncMock,
+            return_value=mock_lemonade_health,
+        ),
+        patch(
+            "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
+            return_value=mock_safe_memory,
+        ),
+        patch.object(router, "aquery_lemonade_local", new_callable=AsyncMock) as mock_local,
+    ):
         mock_local.return_value = "Step-by-step mathematical derivation."
         res = await router.route_by_capability(
             "Explain EP2 non-Hermitian braiding.", task_class=TaskClass.REASONING
@@ -80,16 +82,18 @@ async def test_route_by_capability_coding_igpu(mock_safe_memory, mock_lemonade_h
     """Tests routing a coding prompt to Tier 1 Qwen3-Coder-30B-A3B-Instruct-GGUF."""
     router = UnifiedHybridRouter(prefer_local=True)
 
-    with patch(
-        "cohezion.inference.unified_hybrid_router.probe_lemonade",
-        new_callable=AsyncMock,
-        return_value=mock_lemonade_health,
-    ), patch(
-        "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
-        return_value=mock_safe_memory,
-    ), patch.object(
-        router, "aquery_lemonade_local", new_callable=AsyncMock
-    ) as mock_local:
+    with (
+        patch(
+            "cohezion.inference.unified_hybrid_router.probe_lemonade",
+            new_callable=AsyncMock,
+            return_value=mock_lemonade_health,
+        ),
+        patch(
+            "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
+            return_value=mock_safe_memory,
+        ),
+        patch.object(router, "aquery_lemonade_local", new_callable=AsyncMock) as mock_local,
+    ):
         mock_local.return_value = "def fib(n): return n if n <= 1 else fib(n-1) + fib(n-2)"
         res = await router.route_by_capability(
             "Write fibonacci in Python.", task_class=TaskClass.CODING
@@ -121,14 +125,18 @@ async def test_route_by_capability_embeddings(mock_safe_memory, mock_lemonade_he
     """Tests routing TaskClass.EMBEDDINGS to local embed-gemma-300m-FLM."""
     router = UnifiedHybridRouter(prefer_local=True)
 
-    with patch(
-        "cohezion.inference.unified_hybrid_router.probe_lemonade",
-        new_callable=AsyncMock,
-        return_value=mock_lemonade_health,
-    ), patch(
-        "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
-        return_value=mock_safe_memory,
-    ), patch.object(router, "aquery_embedding", new_callable=AsyncMock) as mock_emb:
+    with (
+        patch(
+            "cohezion.inference.unified_hybrid_router.probe_lemonade",
+            new_callable=AsyncMock,
+            return_value=mock_lemonade_health,
+        ),
+        patch(
+            "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
+            return_value=mock_safe_memory,
+        ),
+        patch.object(router, "aquery_embedding", new_callable=AsyncMock) as mock_emb,
+    ):
         mock_emb.return_value = [0.1, 0.2, 0.3, 0.4]
         res = await router.route_by_capability(
             "Compute Poincaré vector representation.", task_class=TaskClass.EMBEDDINGS
@@ -144,10 +152,13 @@ async def test_route_by_capability_oom_guard_trigger(mock_unsafe_memory):
     """Tests that when OOMGuard reports memory unsafe (is_safe=False), it safely routes to Tier 2."""
     router = UnifiedHybridRouter(prefer_local=True)
 
-    with patch(
-        "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
-        return_value=mock_unsafe_memory,
-    ), patch.object(router, "aquery_ollama_cloud", new_callable=AsyncMock) as mock_cloud:
+    with (
+        patch(
+            "cohezion.inference.unified_hybrid_router.OOMGuard.get_memory_state",
+            return_value=mock_unsafe_memory,
+        ),
+        patch.object(router, "aquery_ollama_cloud", new_callable=AsyncMock) as mock_cloud,
+    ):
         mock_cloud.return_value = "Cloud response because local memory is constrained."
         res = await router.route_by_capability(
             "Process task under high memory pressure.", task_class=TaskClass.REASONING

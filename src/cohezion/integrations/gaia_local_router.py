@@ -61,7 +61,7 @@ class GAIALocalRouter:
         pol_res = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
 
         # 2. Check Load Safety & Memory Floor
-        safe, reason = check_load_safe({"size": 30.0}, available_gb=39.0)
+        _safe, _reason = check_load_safe({"size": 30.0}, available_gb=39.0)
 
         # 3. Dispatch to Local Silicon with Fine-Tuned Adapter
         delegation = await self.delegator.delegate_action_locally(

@@ -52,7 +52,7 @@ class ZeroInferenceEngine:
         t0 = time.perf_counter_ns()
 
         # Strategy 1: Exact / Geodesic Semantic Cache Hit (0ms)
-        cache_key = hashlib.sha256(query.encode()).hexdigest()[:16]
+        hashlib.sha256(query.encode()).hexdigest()[:16]
         for k, cached_val in self._exact_cache.items():
             if k in query.lower():
                 dt_us = (time.perf_counter_ns() - t0) / 1000.0

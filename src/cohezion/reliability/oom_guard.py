@@ -53,8 +53,8 @@ class OOMGuard:
             # 1. Inspect free -m
             out = subprocess.run(["free", "-m"], capture_output=True, text=True, timeout=5).stdout
             lines = out.strip().split("\n")
-            mem_line = [x for x in lines if x.startswith("Mem:")][0].split()
-            swap_line = [x for x in lines if x.startswith("Swap:")][0].split()
+            mem_line = next(x for x in lines if x.startswith("Mem:")).split()
+            swap_line = next(x for x in lines if x.startswith("Swap:")).split()
 
             total_mb = float(mem_line[1])
             available_mb = float(mem_line[6])

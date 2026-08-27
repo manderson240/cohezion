@@ -19,7 +19,7 @@ def test_jaccard_deduplication():
     block_c = "SurrealDB persistence should use port 8001 and handle connection failures gracefully with falling back to local memory store."
 
     content = f"{block_a}\n\n{block_b}\n\n{block_c}"
-    pruned, seen = optimizer.prune_rules(content)
+    pruned, _seen = optimizer.prune_rules(content)
 
     # block_b should be pruned since it is a semantic duplicate of block_a
     assert block_a in pruned

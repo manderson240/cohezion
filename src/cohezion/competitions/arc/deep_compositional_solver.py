@@ -31,9 +31,8 @@ from cohezion.competitions.arc.object_dsl_engine import (
 )
 
 
-EXPANDED_PRIMITIVES: list[tuple[str, Callable[[list[list[int]]], list[list[int]]]]] = list(
-    DSL_PRIMITIVES
-) + [
+EXPANDED_PRIMITIVES: list[tuple[str, Callable[[list[list[int]]], list[list[int]]]]] = [
+    *list(DSL_PRIMITIVES),
     ("ccl_sort_area", sort_components_by_area),
     ("geodesic_bfs", geodesic_bfs_propagation),
     ("conv_stencil_cross", conv_pattern_replacement),

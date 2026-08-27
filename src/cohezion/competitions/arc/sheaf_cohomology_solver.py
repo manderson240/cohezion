@@ -34,8 +34,7 @@ def check_sheaf_gluing_consistency(
                             and 0 <= c_idx1 < len(g1[0])
                             and 0 <= r_idx2 < len(g2)
                             and 0 <= c_idx2 < len(g2[0])
-                        ):
-                            if g1[r_idx1][c_idx1] != g2[r_idx2][c_idx2]:
-                                # Non-vanishing Čech 1-cocycle obstruction!
-                                return False
+                        ) and g1[r_idx1][c_idx1] != g2[r_idx2][c_idx2]:
+                            # Non-vanishing Čech 1-cocycle obstruction!
+                            return False
     return True

@@ -8,15 +8,12 @@ or parses the wrong response shape will fail.
 """
 
 import types
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
 
-from cohezion.integrations.telegram_bot import ModelSelection, TelegramCommunicationHub
-
-
-# reconcile 2026-08-26: imports needed by branch-preserved code
+from cohezion.integrations.telegram_bot import TelegramCommunicationHub
 
 
 @pytest.fixture
@@ -122,7 +119,12 @@ async def test_select_model_prefers_lemonade_router_granite(mock_env):
 
 @pytest.mark.asyncio
 async def test_select_model_falls_back_to_ollama_when_router_down(mock_env):
-    """When the router errors/empties, _select_model falls back to Ollama."""
+    """When the router errors/empties, _select_model returns None (OmniRouter-only arch).
+
+    The new architecture has no Ollama fallback in _select_model — it returns
+    None and lets _handle_chat emit the "Local Fleet Offline" message instead
+    of silently routing through Ollama.
+    """
     hub = TelegramCommunicationHub()
 
     def _router_unavailable():
@@ -131,44 +133,53 @@ async def test_select_model_falls_back_to_ollama_when_router_down(mock_env):
     client = _RecordingClient(
         get_router={
             "/v1/models": _router_unavailable,  # lemonade router 503
-            "/api/tags": _ok_response({"models": [{"name": "phi4:latest"}]}),  # ollama 200
         }
     )
 
     with patch("cohezion.integrations.telegram_bot.httpx") as mock_httpx:
         mock_httpx.AsyncClient.return_value = client
-        model, backend = await hub._select_model()
+        result = await hub._select_model()
 
-    # Proves non-destructive fallback: Ollama path still works.
-    assert backend == "ollama"
-    assert model == "phi4:latest"
+    # New arch: router 503 → None (not an ollama selection).
+    assert result is None
+    # Did probe the lemonade router.
     assert any("13305" in u and "/v1/models" in u for u in client.get_urls)
-    assert any("11434" in u and "/api/tags" in u for u in client.get_urls)
+    # Did NOT fall through to Ollama.
+    assert not any("11434" in u for u in client.get_urls)
 
 
 @pytest.mark.asyncio
 async def test_select_model_falls_back_when_router_empty(mock_env):
-    """An empty router listing also triggers the Ollama fallback."""
+    """An empty router listing causes _select_model to return None.
+
+    The new OmniRouter-only architecture does not fall back to Ollama inside
+    _select_model. An empty model list → None.
+    """
     hub = TelegramCommunicationHub()
 
     client = _RecordingClient(
         get_router={
             "/v1/models": _ok_response({"data": []}),  # router up but empty
-            "/api/tags": _ok_response({"models": [{"name": "mistral:7b"}]}),
         }
     )
 
     with patch("cohezion.integrations.telegram_bot.httpx") as mock_httpx:
         mock_httpx.AsyncClient.return_value = client
-        model, backend = await hub._select_model()
+        result = await hub._select_model()
 
-    assert backend == "ollama"
-    assert model == "mistral:7b"
+    # Empty list → None; does NOT fall through to Ollama.
+    assert result is None
+    assert not any("11434" in u for u in client.get_urls)
 
 
 @pytest.mark.asyncio
 async def test_handle_chat_lemonade_posts_openai_endpoint(mock_env):
-    """_handle_chat with a lemonade model POSTs OpenAI format and parses choices."""
+    """_handle_chat POSTs OpenAI-format to the OmniRouter and parses choices.
+
+    The new architecture routes ALL chat through _chat_omnirouter (:13305) with
+    complexity-tiered hints. It never calls _select_model. The posted body MUST
+    use the OpenAI /v1/chat/completions format with max_tokens and stream=False.
+    """
     hub = TelegramCommunicationHub()
 
     sentinel = "HIHO equilibrium is at 0.5 coherence."
@@ -182,7 +193,8 @@ async def test_handle_chat_lemonade_posts_openai_endpoint(mock_env):
         sent.append(text)
 
     hub._send_msg = _capture  # type: ignore[assignment]
-    hub._select_model = AsyncMock(return_value=ModelSelection("Granite-4.1-8B-GGUF", "lemonade"))
+    # _handle_chat no longer calls _select_model — it goes straight to
+    # _chat_omnirouter. Do NOT mock _select_model; mock the HTTP layer instead.
 
     client = _RecordingClient(
         get_router={},
@@ -201,20 +213,25 @@ async def test_handle_chat_lemonade_posts_openai_endpoint(mock_env):
     # Body carries OpenAI fields with the required max_tokens floor.
     assert client.post_bodies, "no POST body recorded"
     body = client.post_bodies[0]
-    assert body.get("model") == "Granite-4.1-8B-GGUF"
-    assert body.get("max_tokens", 0) >= 512
+    # The model in the body is whatever hint _chat_omnirouter chose (one of
+    # the SIMPLE-tier hints since "What is HIHO?" is short and non-complex).
+    assert "model" in body, "POST body must include 'model' field"
+    assert body.get("max_tokens", 0) >= 96  # SIMPLE floor
     assert body.get("stream") is False
     # The sentinel from choices[].message.content reached the user.
     assert any(sentinel in m for m in sent), sent
 
 
 @pytest.mark.asyncio
-async def test_handle_chat_ollama_fallback_uses_api_chat(mock_env):
-    """When the selected model came from Ollama, _handle_chat keeps /api/chat."""
-    hub = TelegramCommunicationHub()
+async def test_handle_chat_omnirouter_offline_sends_fleet_offline_msg(mock_env):
+    """When the OmniRouter exhausts all hints, _handle_chat sends the fleet-offline message.
 
-    reply = "Fallback answer from Ollama."
-    chat_resp = _ok_response({"message": {"content": reply}})
+    The new OmniRouter-only architecture removed the Ollama fallback from
+    _handle_chat. When _chat_omnirouter returns None (all hints exhausted or
+    all return non-200), _handle_chat should notify the user that the local
+    fleet is offline rather than silently failing or calling Ollama.
+    """
+    hub = TelegramCommunicationHub()
 
     sent: list[str] = []
 
@@ -222,20 +239,22 @@ async def test_handle_chat_ollama_fallback_uses_api_chat(mock_env):
         sent.append(text)
 
     hub._send_msg = _capture  # type: ignore[assignment]
-    hub._select_model = AsyncMock(return_value=ModelSelection("phi4:latest", "ollama"))
 
+    # All POSTs return 503 — every hint will fail, exhausting the list.
     client = _RecordingClient(
         get_router={},
-        post_router={"/api/chat": chat_resp},
+        post_router={},  # no match → 404 for every POST
     )
 
     with patch("cohezion.integrations.telegram_bot.httpx") as mock_httpx:
         mock_httpx.AsyncClient.return_value = client
         await hub._handle_chat("hello")
 
-    assert any("/api/chat" in u for u in client.post_urls), client.post_urls
-    assert not any("/v1/chat/completions" in u for u in client.post_urls)
-    assert any(reply in m for m in sent), sent
+    # All POSTs went to the OmniRouter, never to Ollama /api/chat.
+    assert not any("/api/chat" in u for u in client.post_urls), client.post_urls
+    assert any("/v1/chat/completions" in u for u in client.post_urls), client.post_urls
+    # The user received a "Local Fleet Offline" notification.
+    assert any("Local Fleet Offline" in m or "fleet" in m.lower() for m in sent), sent
 
 
 @pytest.mark.asyncio
@@ -270,39 +289,3 @@ async def test_select_lemonade_retries_once_on_transient_timeout(mock_env):
     assert calls["n"] == 2, f"expected exactly one retry of the models probe, got {calls['n']}"
     # Never reached Ollama because the router was actually up.
     assert not any("11434" in u for u in client.get_urls), client.get_urls
-
-
-# --- reconcile 2026-08-26: top-level symbols preserved from the branch ---
-@pytest.mark.asyncio
-async def test_handle_chat_omnirouter_offline_sends_fleet_offline_msg(mock_env):
-    """When the OmniRouter exhausts all hints, _handle_chat sends the fleet-offline message.
-
-    The new OmniRouter-only architecture removed the Ollama fallback from
-    _handle_chat. When _chat_omnirouter returns None (all hints exhausted or
-    all return non-200), _handle_chat should notify the user that the local
-    fleet is offline rather than silently failing or calling Ollama.
-    """
-    hub = TelegramCommunicationHub()
-
-    sent: list[str] = []
-
-    async def _capture(text, parse_mode=None):
-        sent.append(text)
-
-    hub._send_msg = _capture  # type: ignore[assignment]
-
-    # All POSTs return 503 — every hint will fail, exhausting the list.
-    client = _RecordingClient(
-        get_router={},
-        post_router={},  # no match → 404 for every POST
-    )
-
-    with patch("cohezion.integrations.telegram_bot.httpx") as mock_httpx:
-        mock_httpx.AsyncClient.return_value = client
-        await hub._handle_chat("hello")
-
-    # All POSTs went to the OmniRouter, never to Ollama /api/chat.
-    assert not any("/api/chat" in u for u in client.post_urls), client.post_urls
-    assert any("/v1/chat/completions" in u for u in client.post_urls), client.post_urls
-    # The user received a "Local Fleet Offline" notification.
-    assert any("Local Fleet Offline" in m or "fleet" in m.lower() for m in sent), sent

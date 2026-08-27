@@ -4,6 +4,8 @@ prompt regression (a skill edit that fixes one case while silently breaking othe
 
 from __future__ import annotations
 
+import contextlib
+
 from cohezion.compound.prompt_version_registry import _validate, evaluate_regression
 
 
@@ -442,10 +444,8 @@ def _capture_writer_query(monkeypatch, call):
 
     monkeypatch.setattr(httpx, "post", fake_post)
     # writers fail-open (swallow); loaders re-raise — catch the sentinel either way, query is captured.
-    try:
+    with contextlib.suppress(RuntimeError):
         call()
-    except RuntimeError:
-        pass
     return captured["q"]
 
 

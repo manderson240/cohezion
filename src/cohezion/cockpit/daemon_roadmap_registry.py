@@ -76,8 +76,8 @@ def sync_roadmap_to_obsidian_and_surrealdb():
 
     md = f"""# Master Autonomous Daemon Strategic Roadmap & Intent Registry
 
-**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
-**Platform:** Cohezion Sovereign Hybrid Silicon & Autonomous Swarm Fleet  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
+**Platform:** Cohezion Sovereign Hybrid Silicon & Autonomous Swarm Fleet
 
 ---
 

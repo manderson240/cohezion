@@ -113,10 +113,10 @@ class OuroborosFeedbackEngine:
             trajectories.append((s_in, s_out))
 
         # Check if D4 Symmetry is preserved across all pairs
-        requires_d4 = all(t[1].brane_d4_symmetry == 1.0 for t in trajectories if len(t) == 2)
+        all(t[1].brane_d4_symmetry == 1.0 for t in trajectories if len(t) == 2)
 
         # Evaluate candidate transforms
-        for name, fn in self.primitives:
+        for _name, fn in self.primitives:
             matches = True
             for pair in train_pairs:
                 try:

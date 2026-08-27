@@ -17,6 +17,7 @@ class CycleVerificationState:
     timestamp: float
 
 
+import contextlib
 import threading
 
 
@@ -41,10 +42,8 @@ class HardwareFleetLockApicalConcurrencyGovernor:
         """Release fleet aperture lock."""
         if self.active_allocations > 0:
             self.active_allocations -= 1
-        try:
+        with contextlib.suppress(RuntimeError):
             self._lock.release()
-        except RuntimeError:
-            pass
 
     def __enter__(self):
         self.acquire()

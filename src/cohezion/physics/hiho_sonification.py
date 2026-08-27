@@ -263,7 +263,7 @@ class HIHOSonifier:
         """Convenience method to sonify a single coherence metric across the 4 fabrics."""
         self.fundamental_hz = fundamental_hz
         dist = self.compute_coherence_distance(coherence)
-        dissonance = self.calculate_dissonance(dist, lyapunov_perturbation)
+        self.calculate_dissonance(dist, lyapunov_perturbation)
         state_dict = {"coherence": coherence}
         res = self.sonify_quadrature_state(state_dict, lyapunov_perturbation=lyapunov_perturbation)
         return res

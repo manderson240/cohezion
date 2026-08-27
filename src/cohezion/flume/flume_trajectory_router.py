@@ -63,7 +63,7 @@ class FLUMETrajectoryRouter:
         ]
 
     async def route_journey_through_flume(self, journey_id: str, goal: str) -> FLUMEEnrichedJourney:
-        t0 = time.perf_counter()
+        time.perf_counter()
         stream_results: list[FLUMEStreamResult] = []
 
         base_vec = (0.5, 0.5, 0.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -72,7 +72,7 @@ class FLUMETrajectoryRouter:
         for stream in self.streams:
             # Generate 256-dim z-vector snippet for stream
             z_snip = tuple((0.1 * i + hash(stream) % 100 / 100.0) for i in range(256))
-            z_norm = round(math.sqrt(sum(x * x for x in z_snip[:10])), 4)
+            round(math.sqrt(sum(x * x for x in z_snip[:10])), 4)
             stream_results.append(
                 FLUMEStreamResult(
                     stream_name=stream,

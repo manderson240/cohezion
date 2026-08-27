@@ -53,7 +53,7 @@ class Observed(Generic[T]):
         """Functor Map operator."""
         new_val = fn(self.value)
         obs = TraceObservation(timestamp=time.time(), action=action_name, payload=str(new_val))
-        return Observed(value=new_val, trace=self.trace + (obs,))
+        return Observed(value=new_val, trace=(*self.trace, obs))
 
 
 class RecursiveTraceLogicEngine:

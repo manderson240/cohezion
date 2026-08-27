@@ -291,7 +291,6 @@ class SpeculativeEngine:
                         continue
 
                     # Emit accepted prefix, stop at first rejection.
-                    rejected_this_round = False
                     for i, (tok, _logp) in enumerate(draft_tokens):
                         if accepted_mask[i]:
                             yield tok
@@ -300,7 +299,6 @@ class SpeculativeEngine:
                             accepted_total += 1
                         else:
                             rejected_total += 1
-                            rejected_this_round = True
                             # Let the verify model supply its correction.
                             correction = await self._correction_token(
                                 context, temperature=temperature

@@ -119,7 +119,7 @@ class MultiDaemonSynergyHarness:
             )
         )
 
-        dt_sec = round(time.perf_counter() - t0, 3)
+        round(time.perf_counter() - t0, 3)
 
         # Record Kanban Card
         persist_item(

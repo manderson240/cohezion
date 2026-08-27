@@ -73,7 +73,7 @@ class QLoRAFinetuningEngine:
         t0 = time.perf_counter()
 
         # Check Load Safety & Memory Floor
-        safe, reason = check_load_safe({"size": 48.0}, available_gb=55.0)
+        _safe, _reason = check_load_safe({"size": 48.0}, available_gb=55.0)
 
         # Ingest 10,000 Verified Pairs
         if not MASTER_CORPUS_FILE.exists():

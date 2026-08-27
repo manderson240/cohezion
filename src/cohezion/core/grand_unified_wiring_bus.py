@@ -86,7 +86,7 @@ class GrandUnifiedWiringBus:
             )
 
             # Wire 4: Connect Kaggle AutoHarness into AutoHarnessPolicy
-            pol = AutoHarnessPolicy()
+            AutoHarnessPolicy()
             logger.info(
                 "  • [4/4] Wired Kaggle AutoHarness Action Verifiers into AutoHarnessPolicy (0.00ms ARC/AIMO Bounds Active)."
             )
@@ -151,7 +151,7 @@ async def main_async() -> None:
 
     event_bus = EventBus()
     bus = GrandUnifiedWiringBus(event_bus=event_bus)
-    res = await bus.initialize_and_wire_all()
+    await bus.initialize_and_wire_all()
 
     # Simulate events to trigger all 4 wired handlers
     print("\n  Simulating Event Triggers Across Wired Subsystems:")

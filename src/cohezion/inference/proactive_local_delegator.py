@@ -89,7 +89,7 @@ class ProactiveLocalDelegator:
             hw = "XDNA2 NPU"
 
         # Check Load Safety
-        safe, reason = check_load_safe({"size": 30.0}, available_gb=55.0)
+        _safe, _reason = check_load_safe({"size": 30.0}, available_gb=55.0)
 
         # Query Local Silicon asynchronously
         resp = await self.query_local_llm(model, prompt)

@@ -83,7 +83,7 @@ class CohezionMasterOrchestrator:
 
         # 1. Left-Side Decomposition (Latent Invariants & AutoHarness Provisioning)
         logger.info("1/5 V-Model Left Side: Provisioning AutoHarness and Context Invariants...")
-        harness = self.provisioner.provision_agent_harness(
+        self.provisioner.provision_agent_harness(
             agent_role="Master Hybrid Orchestrator",
             target_model=self.router.cloud_model,
             domain=domain,

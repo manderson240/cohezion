@@ -23,7 +23,7 @@ def test_import_math_succeeds():
 
 def test_import_numpy_succeeds():
     """A solver body doing `import numpy as np` must run under safe_exec_globals."""
-    np = pytest.importorskip("numpy")
+    pytest.importorskip("numpy")
     code = "import numpy as np\nresult = int(np.array([1, 2, 3]).sum())"
     g = safe_exec_globals()
     exec(code, g)

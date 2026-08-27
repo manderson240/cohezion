@@ -99,7 +99,7 @@ def test_inserted_forged_row_is_detected() -> None:
         forged["chain_hash"]
         == hashlib.sha256(f"{forged['prev_hash']}:{forged['payload_hash']}".encode()).hexdigest()
     )
-    assert _verify_with(e[:2] + [forged] + e[2:]) is False, "forged insert must break the chain"
+    assert _verify_with([*e[:2], forged, *e[2:]]) is False, "forged insert must break the chain"
 
 
 def test_truncated_head_is_detected() -> None:

@@ -86,7 +86,7 @@ class TensorCalculus:
         if u.dim != v.dim or u.dim != position.dim:
             raise ValueError("Dimensional mismatch across vectors and position")
 
-        g_scalar = cls.poincare_metric(position)
+        cls.poincare_metric(position)
         dot_euclidean = sum(uc * vc for uc, vc in zip(u.components, v.components, strict=True))
 
         # g_ij = (4 / (1 - r^2)^2) * delta_ij

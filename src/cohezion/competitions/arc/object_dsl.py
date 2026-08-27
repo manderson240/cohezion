@@ -77,7 +77,7 @@ def flood_fill_region(
         return res
 
     queue = [(start_r, start_c)]
-    visited = set([(start_r, start_c)])
+    visited = {(start_r, start_c)}
     while queue:
         r, c = queue.pop(0)
         res[r][c] = fill_color

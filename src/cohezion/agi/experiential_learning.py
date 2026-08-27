@@ -103,7 +103,7 @@ class ExperientialLearningEngine:
         }
 
         # 4. Async Upsert to SurrealDB 3.0+
-        surreal_ok = await self.surreal_upsert_experience(exp_id, exp_data)
+        await self.surreal_upsert_experience(exp_id, exp_data)
 
         # 5. EventBus Cross-Session Broadcast
         try:

@@ -169,7 +169,9 @@ class TestUserVariants:
                 )
                 return
         names = [v.get("model_name") for v in USER_VARIANTS]
-        assert False, f"user.DeepSeek-Qwen3-8B-Reasoning not found in USER_VARIANTS: {names}"
+        raise AssertionError(
+            f"user.DeepSeek-Qwen3-8B-Reasoning not found in USER_VARIANTS: {names}"
+        )
 
     def test_35b_variants_use_correct_checkpoint(self) -> None:
         """35B variants should point to Qwen3.6-35B, not DeepSeek or another model."""

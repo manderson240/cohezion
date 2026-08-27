@@ -464,7 +464,7 @@ class TelegramCommunicationHub:
 
     def _get_help_message(self) -> str:
         return (
-            "🚀 <b>Cohezion Communication Hub</b>\n\n"
+            "🚀 <b>Cohezion Telemetry Hub Commands</b>\n\n"
             "💬 <b>Local Inference Chat (:13305 OmniRouter)</b>\n"
             "Send any plain text to chat — routed to AMD silicon, never cloud.\n"
             "/clear - Clear conversation history\n\n"
@@ -518,6 +518,11 @@ class TelegramCommunicationHub:
                 if not ids:
                     return None
 
+                if "Bonsai-8B-gguf" in ids:
+                    return "Bonsai-8B-gguf"
+                for model_id in ids:
+                    if "bonsai" in model_id.lower():
+                        return model_id
                 if "Granite-4.1-8B-GGUF" in ids:
                     return "Granite-4.1-8B-GGUF"
                 for model_id in ids:
@@ -573,12 +578,39 @@ class TelegramCommunicationHub:
             logger.warning("Error querying Ollama tags: %s", e)
         return None
 
-    async def _handle_chat(self, text: str) -> None:
-        """Route plain-text chat through the :13305 OmniRouter with complexity-tiered hints.
+    async def _classify_delegation_intent(self, text: str) -> str:
+        """Classify user intent into STATUS, LIST, AGENT, or CHAT."""
+        try:
+            res = await self._chat_omnirouter(text)
+            if isinstance(res, tuple):
+                reply = res[0]
+            else:
+                reply = res
+            if reply:
+                reply_clean = str(reply).strip().upper()
+                for label in ("STATUS", "LIST", "AGENT", "CHAT"):
+                    if label in reply_clean:
+                        return label
+        except Exception as e:
+            logger.debug("Error in _classify_delegation_intent: %s", e)
+        return "CHAT"
 
-        Falls back to Ollama only when the OmniRouter is fully unreachable.
-        Never touches cloud endpoints.
-        """
+    async def _handle_chat(self, text: str) -> None:
+        """Route plain-text chat through intent classification and OmniRouter."""
+        intent = await self._classify_delegation_intent(text)
+        if intent == "STATUS":
+            await self._handle_status()
+            return
+        elif intent == "LIST":
+            await self._handle_list()
+            return
+        elif intent == "AGENT":
+            if not await self._verify_inference_health():
+                await self._send_msg("🔴 Inference port 13305 is offline or blocked.")
+                return
+            await self._handle_agent(text)
+            return
+
         complexity = self._classify_complexity(text)
         self.conversation_history.append({"role": "user", "content": text})
         if len(self.conversation_history) > self.max_history:
@@ -653,10 +685,12 @@ class TelegramCommunicationHub:
                 r = await client.get(f"{LEMONADE_ROUTER_URL}/v1/models", timeout=4.0)
             if r.status_code != 200:
                 return f"OmniRouter :13305 returned HTTP {r.status_code}"
+            data = r.json()
+            raw_models = data.get("data") or data.get("models") or []
             ids = [
-                str(m.get("id", ""))
-                for m in r.json().get("data", [])
-                if isinstance(m, dict) and m.get("id")
+                str(m.get("id") or m.get("name") or "")
+                for m in raw_models
+                if hasattr(m, "get") and (m.get("id") or m.get("name"))
             ]
             if not ids:
                 return "OmniRouter :13305 online — no models loaded"
@@ -687,7 +721,11 @@ class TelegramCommunicationHub:
             if res.returncode == 0:
                 lines = [l for l in res.stdout.strip().splitlines() if l and "GPU" not in l]
                 if lines:
-                    gpu_status = f"ROCm: {lines[0].strip()}"
+                    parts = [p.strip() for p in lines[0].split(",")]
+                    if len(parts) >= 3:
+                        gpu_status = f"Util: {parts[0]}%, VRAM: {parts[1]}MB / {parts[2]}MB"
+                    else:
+                        gpu_status = f"ROCm: {lines[0].strip()}"
         except Exception:
             pass
 
@@ -872,15 +910,7 @@ class TelegramCommunicationHub:
                 await self._record_telemetry(telem)
 
     async def _handle_agent(self, prompt: str) -> None:
-        """Spawns a side agent: one-shot reply via :13305 OmniRouter (COMPLEX tier) + tmux worktree.
-
-        The agent prompt is first answered inline via local inference so the operator
-        gets an immediate response. A tmux worktree session is then created for any
-        long-running work the prompt implies.
-        """
-        import time
-
-        # 1. Inline response via :13305 OmniRouter (COMPLEX tier — heavy reasoning model)
+        """Handles agent requests via :13305 OmniRouter without spawning git worktree or tmux."""
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
@@ -892,58 +922,10 @@ class TelegramCommunicationHub:
         )
         if reply:
             await self._send_msg(reply, parse_mode=None)
-            await self._record_telemetry(telem)
+            if telem:
+                await self._record_telemetry(telem)
         else:
-            await self._send_msg(
-                "⚠️ OmniRouter :13305 unavailable — inline response skipped. "
-                "Starting worktree session anyway."
-            )
-
-        # 2. Spawn tmux worktree session for background work
-        session_id = f"agent-{int(time.time())}"
-        worktree_path = f"../cohezion-{session_id}"
-        try:
-            res_wt = await self._run_cmd(
-                ["git", "worktree", "add", "-b", session_id, worktree_path],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if res_wt.returncode != 0:
-                await self._send_msg(
-                    f"⚠️ Worktree failed (inline reply above is the agent response): "
-                    f"<code>{safe_html(res_wt.stderr)}</code>"
-                )
-                return
-        except Exception as e:
-            await self._send_msg(f"⚠️ Git error: <code>{safe_html(str(e))}</code>")
-            return
-
-        # Launch claude-code in the worktree with the prompt as the initial task
-        safe_prompt = prompt.replace("'", "\\'")
-        cmd = (
-            f"cd {worktree_path} && "
-            f"echo 'Agent task: {safe_prompt}' && "
-            f"claude --print '{safe_prompt}' 2>&1 | tee agent.log"
-        )
-        try:
-            res_tmux = await self._run_cmd(
-                ["tmux", "new-session", "-d", "-s", session_id, cmd],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if res_tmux.returncode == 0:
-                await self._send_msg(
-                    f"✅ Background agent running in <code>{safe_html(session_id)}</code>.\n"
-                    f"Use <code>/read {safe_html(session_id)}</code> to tail logs."
-                )
-            else:
-                await self._send_msg(
-                    f"⚠️ Failed to spawn tmux session: <code>{safe_html(res_tmux.stderr)}</code>"
-                )
-        except Exception as e:
-            await self._send_msg(f"⚠️ Tmux error: <code>{safe_html(str(e))}</code>")
+            await self._send_msg("⚠️ OmniRouter is unavailable. Please check :13305 service.")
 
     async def _handle_agents(self) -> None:
         """Lists active side agents (tmux sessions starting with 'agent-')."""
@@ -964,24 +946,6 @@ class TelegramCommunicationHub:
         except Exception as e:
             msg = f"⚠️ Failed to list agents: <code>{safe_html(str(e))}</code>"
         await self._send_msg(msg)
-
-    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
-    async def _classify_delegation_intent(self, text: str) -> str:
-        """Classify user intent into STATUS, LIST, AGENT, or CHAT."""
-        try:
-            res = await self._chat_omnirouter(text)
-            if isinstance(res, tuple):
-                reply = res[0]
-            else:
-                reply = res
-            if reply:
-                reply_clean = str(reply).strip().upper()
-                for label in ("STATUS", "LIST", "AGENT", "CHAT"):
-                    if label in reply_clean:
-                        return label
-        except Exception as e:
-            logger.debug("Error in _classify_delegation_intent: %s", e)
-        return "CHAT"
 
 
 if __name__ == "__main__":

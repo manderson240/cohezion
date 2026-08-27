@@ -115,7 +115,7 @@ async def verify_lemonade_cli_monitor() -> dict[str, Any]:
 
     monitor = LemonadeCLIMonitor(event_bus=bus)
     status_info = monitor.get_cli_status()
-    published_event = await monitor.publish_fleet_status("verify_test")
+    await monitor.publish_fleet_status("verify_test")
 
     await bus.stop()
 

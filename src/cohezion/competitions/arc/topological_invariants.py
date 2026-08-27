@@ -17,12 +17,9 @@ import numpy as np
 def compute_euler_characteristic(grid: list[list[int]], nonzero_only: bool = True) -> int:
     """Computes topological Euler characteristic chi = V - E + F for connected components."""
     arr = np.array(grid)
-    if nonzero_only:
-        binary = (arr > 0).astype(int)
-    else:
-        binary = (arr == arr[0, 0]).astype(int)
+    binary = (arr > 0).astype(int) if nonzero_only else (arr == arr[0, 0]).astype(int)
 
-    h, w = binary.shape
+    _h, _w = binary.shape
     # Vertices (pixels)
     v = int(np.sum(binary))
 

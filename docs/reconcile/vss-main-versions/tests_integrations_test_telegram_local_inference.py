@@ -16,9 +16,6 @@ import pytest
 from cohezion.integrations.telegram_bot import ModelSelection, TelegramCommunicationHub
 
 
-# reconcile 2026-08-26: imports needed by branch-preserved code
-
-
 @pytest.fixture
 def mock_env():
     """Patches environment variables for the Telegram bot config."""
@@ -270,39 +267,3 @@ async def test_select_lemonade_retries_once_on_transient_timeout(mock_env):
     assert calls["n"] == 2, f"expected exactly one retry of the models probe, got {calls['n']}"
     # Never reached Ollama because the router was actually up.
     assert not any("11434" in u for u in client.get_urls), client.get_urls
-
-
-# --- reconcile 2026-08-26: top-level symbols preserved from the branch ---
-@pytest.mark.asyncio
-async def test_handle_chat_omnirouter_offline_sends_fleet_offline_msg(mock_env):
-    """When the OmniRouter exhausts all hints, _handle_chat sends the fleet-offline message.
-
-    The new OmniRouter-only architecture removed the Ollama fallback from
-    _handle_chat. When _chat_omnirouter returns None (all hints exhausted or
-    all return non-200), _handle_chat should notify the user that the local
-    fleet is offline rather than silently failing or calling Ollama.
-    """
-    hub = TelegramCommunicationHub()
-
-    sent: list[str] = []
-
-    async def _capture(text, parse_mode=None):
-        sent.append(text)
-
-    hub._send_msg = _capture  # type: ignore[assignment]
-
-    # All POSTs return 503 — every hint will fail, exhausting the list.
-    client = _RecordingClient(
-        get_router={},
-        post_router={},  # no match → 404 for every POST
-    )
-
-    with patch("cohezion.integrations.telegram_bot.httpx") as mock_httpx:
-        mock_httpx.AsyncClient.return_value = client
-        await hub._handle_chat("hello")
-
-    # All POSTs went to the OmniRouter, never to Ollama /api/chat.
-    assert not any("/api/chat" in u for u in client.post_urls), client.post_urls
-    assert any("/v1/chat/completions" in u for u in client.post_urls), client.post_urls
-    # The user received a "Local Fleet Offline" notification.
-    assert any("Local Fleet Offline" in m or "fleet" in m.lower() for m in sent), sent

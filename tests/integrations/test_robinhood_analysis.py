@@ -179,7 +179,7 @@ class TestPortfolioGoalTracker:
         )
         tracker.add_goal(goal)
         results = tracker.evaluate(_concentrated(), analyzer)
-        _, met, actual = results[0]
+        _, met, _actual = results[0]
         assert met is False  # AAPL > 30% in concentrated snapshot
 
     def test_hhi_goal(self, tracker, analyzer):
@@ -230,7 +230,7 @@ class TestPortfolioGoalTracker:
         )
         tracker.add_goal(goal)
         results = tracker.evaluate(_balanced(), analyzer)
-        _, met, actual = results[0]
+        _, _met, actual = results[0]
         assert actual is None
 
     def test_format_shows_all_goals(self, tracker):

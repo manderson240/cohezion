@@ -26,7 +26,7 @@ def test_force_points_toward_single_mass():
     waypoint = np.ones(12) * 0.5
     nav = LatentGravityNavigator()
     nav.update_field([waypoint], [1.0])
-    potential, force = nav.potential_and_force(np.zeros(12))
+    _potential, force = nav.potential_and_force(np.zeros(12))
     direction = waypoint - np.zeros(12)
     direction /= np.linalg.norm(direction)
     assert np.dot(force, direction) > 0

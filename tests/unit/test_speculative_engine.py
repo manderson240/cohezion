@@ -299,7 +299,7 @@ class TestTelemetryEventPublication:
         )
 
         async with engine:
-            tokens = [t async for t in engine.generate("hello", max_tokens=1)]
+            [t async for t in engine.generate("hello", max_tokens=1)]
 
         # Give the event bus a moment to dispatch
         import asyncio

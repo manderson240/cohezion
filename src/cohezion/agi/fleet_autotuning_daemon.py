@@ -91,7 +91,7 @@ class FleetAutotuningDaemon:
             ckpt_dir.mkdir(parents=True, exist_ok=True)
 
             # Simulated QLoRA training run per model
-            t0 = time.perf_counter()
+            time.perf_counter()
             base_ppl = 14.20 if "30B" in model_id else 11.50
             final_ppl = round(base_ppl * 0.52, 2)
             perp_reduction = round(((base_ppl - final_ppl) / base_ppl) * 100.0, 2)

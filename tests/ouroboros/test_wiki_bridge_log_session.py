@@ -10,6 +10,7 @@ executor still works.
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -89,7 +90,7 @@ def test_wiki_bridge_log_session_writes_markdown(tmp_path):
     except Exception as e:
         # If log_session doesn't exist yet, this test will fail RED
         # (the new method to be added in WS1C).
-        assert False, f"log_session must be implemented: {e}"
+        raise AssertionError(f"log_session must be implemented: {e}")
 
 
 def test_executor_wires_wiki_bridge_on_success():
@@ -128,15 +129,13 @@ def test_executor_wires_wiki_bridge_on_success():
         def trivial_fn(guidance: str) -> tuple[str, dict]:
             return "ok", {"coherence": 0.5, "duration_seconds": 0.001}
 
-        try:
+        with contextlib.suppress(Exception):
             ex.execute_task(
                 task_description="test wiki bridge wiring",
                 skill_name="test_skill",
                 operation_type="generate",
                 execute_fn=trivial_fn,
             )
-        except Exception:
-            pass
 
         # _wiki_bridge.log_session should have been called at least once
         # (the wiring is best-effort so we just check it was attempted)

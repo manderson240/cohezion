@@ -59,7 +59,7 @@ class SpeculativeDecoderEngine:
         t0 = time.perf_counter()
 
         # Simulate gamma=4 speculation & verification cycle
-        accepted_tokens = int(target_tokens * 0.85)  # 85% acceptance rate
+        int(target_tokens * 0.85)  # 85% acceptance rate
         decode_speed = 142.5  # tok/s (boosted from 86 tok/s)
 
         out_text = f"Speculatively Decoded Output [Speed: 142.5 tok/s, Acceptance: 85%]: Verified result for '{prompt[:35]}...'"

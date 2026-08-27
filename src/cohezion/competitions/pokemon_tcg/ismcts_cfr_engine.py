@@ -85,10 +85,7 @@ class ISMCTSWithCFR:
                 else:
                     payoff = 0.5
             elif chosen == "attach_energy":
-                if energy < 2:
-                    payoff = 2.0
-                else:
-                    payoff = 0.2
+                payoff = 2.0 if energy < 2 else 0.2
             else:
                 payoff = 0.4
 

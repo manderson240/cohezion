@@ -88,7 +88,7 @@ class MayerVietorisCechSolver:
         """Glues local patch predictions into a unique global section S in Gamma(X, F)."""
         H, W = original_shape
         global_grid = np.zeros((H, W), dtype=int)
-        vote_matrix = [[dict() for _ in range(W)] for _ in range(H)]
+        vote_matrix = [[{} for _ in range(W)] for _ in range(H)]
 
         for p, pred in zip(patches, predictions):
             for r_rel in range(p.r_end - p.r_start):

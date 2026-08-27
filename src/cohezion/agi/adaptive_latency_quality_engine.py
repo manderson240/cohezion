@@ -17,7 +17,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import httpx
 
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 LEMONADE_CHAT_URL = "http://localhost:13305/v1/chat/completions"
 
 
-class LatencyQualityProfile(str, Enum):
+class LatencyQualityProfile(StrEnum):
     SPEED_PRIORITY = "speed_priority"
     BALANCED = "balanced"
     QUALITY_PRIME = "quality_prime"
@@ -144,7 +144,7 @@ class AdaptiveLatencyQualityEngine:
 
         # Real verification passes using AutoHarnessPolicy
         ast_verified = True
-        for p in range(v_passes):
+        for _p in range(v_passes):
             pol_eval = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 40.0})
             if not pol_eval.allowed:
                 ast_verified = False

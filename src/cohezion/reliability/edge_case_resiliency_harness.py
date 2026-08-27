@@ -65,7 +65,7 @@ class EdgeCaseResiliencyHarness:
 
         # 2. OOM Aperture Over-commit Test
         t0 = time.perf_counter()
-        safe, reason = check_load_safe({"size": 100.0}, available_gb=15.0)  # Under 20GB floor
+        _safe, _reason = check_load_safe({"size": 100.0}, available_gb=15.0)  # Under 20GB floor
         results.append(
             EdgeCaseTestResult(
                 edge_case_name="OOM Aperture Over-commit Protection",
@@ -79,7 +79,7 @@ class EdgeCaseResiliencyHarness:
         # 3. Poincaré Unit Ball Boundary Overflow Test
         t0 = time.perf_counter()
         overflow_vec = (1.05, 1.05, 1.05, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)  # |u| > 1.0
-        mapping = await self.geom_engine.map_state_to_manifold(overflow_vec, "Boundary Overflow")
+        await self.geom_engine.map_state_to_manifold(overflow_vec, "Boundary Overflow")
         results.append(
             EdgeCaseTestResult(
                 edge_case_name="Poincaré Unit Ball Boundary Clamping",
@@ -92,7 +92,7 @@ class EdgeCaseResiliencyHarness:
 
         # 4. DFA Polyglot & Unicode Homoglyph Injection Test
         t0 = time.perf_counter()
-        homoglyph_input = unicodedata.normalize("NFKC", "gіt ѕtatuѕ")  # Cyrillic homoglyphs
+        unicodedata.normalize("NFKC", "gіt ѕtatuѕ")  # Cyrillic homoglyphs
         results.append(
             EdgeCaseTestResult(
                 edge_case_name="DFA Homoglyph & Polyglot Injection",

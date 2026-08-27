@@ -5,9 +5,9 @@ branch-only code imports HEAD-only symbols (depcheck). Every side not taken is p
 
 | file | resolution | why |
 |---|---|---|
-| `src/cohezion/agi/autoharness_policy.py` | HEAD (main preserved in docs/reconcile/vss-main-versions) | ActionPolicyResult used by 4 branch modules; main's VerificationResult preserved — MERGE-REQUIRED follow-up if main consumers exist |
-| `src/cohezion/agi/zkfv_compiler.py` | HEAD (main preserved in docs/reconcile/vss-main-versions) | ZKProof/PlonkConstraintGate used by 7 branch modules; main's ZKFVProof preserved — MERGE-REQUIRED follow-up |
-| `src/cohezion/inference/unified_hybrid_router.py` | HEAD (main preserved in docs/reconcile/vss-main-versions) | TaskClass used by 12 branch scripts; main's RoutingResult/TIER_* preserved — MERGE-REQUIRED follow-up |
+| `src/cohezion/agi/autoharness_policy.py` | MERGE (method-level, both sides preserved in docs/reconcile/) | MAIN base + branch methods appended (evaluate_policy/register_policy/_register_default_policies, ActionPolicyResult); constructor initialises both registries; evaluate_policy uses main verify_code |
+| `src/cohezion/agi/zkfv_compiler.py` | MERGE (method-level, both sides preserved in docs/reconcile/) | MAIN base + branch methods appended (compile_ast_to_gates/generate_proof, PlonkConstraintGate, ZKProof) — 7 branch consumers + main importers both satisfied |
+| `src/cohezion/inference/unified_hybrid_router.py` | MERGE (method-level, both sides preserved in docs/reconcile/) | HEAD base + main symbols appended (RoutingResult, TIER_1/2/3_ROSTER, TIER_COSTS) for swarm/tip_of_spear_router; tests unioned |
 | `tests/unit/test_unified_hybrid_router.py` | HEAD (main preserved in docs/reconcile/vss-main-versions) | tests HEAD's router |
 | `src/cohezion/agi/__init__.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
 | `src/cohezion/agi/recursive_learning.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
@@ -15,7 +15,7 @@ branch-only code imports HEAD-only symbols (depcheck). Every side not taken is p
 | `src/cohezion/inference/delegation_logger.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
 | `src/cohezion/inference/prewarm_harness.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
 | `src/cohezion/physics/electric_dipole.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
-| `src/cohezion/physics/poincare_manifold.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
+| `src/cohezion/physics/poincare_manifold.py` | MERGE (method-level, both sides preserved in docs/reconcile/) | MAIN base + branch methods appended (origin, to_lorentz) — HUD service test passes |
 | `src/cohezion/proactive/__init__.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
 | `src/cohezion/reliability/oom_guard.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
 | `src/cohezion/contracts.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | depcheck: no branch consumer needs HEAD-only symbols; main is oracle (HEAD improvements -> follow-up) |
@@ -28,7 +28,7 @@ branch-only code imports HEAD-only symbols (depcheck). Every side not taken is p
 | `src/cohezion/arc/transforms.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | content conflict; main keeps drain timeout/residency/guards; HEAD's genuine adds (surreal 3.0 syntax, land_runner verdict parser, 5 model cards, lifecycle events) -> follow-up from preserved copy |
 | `src/cohezion/compound/degradation_detector.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | content conflict; main keeps drain timeout/residency/guards; HEAD's genuine adds (surreal 3.0 syntax, land_runner verdict parser, 5 model cards, lifecycle events) -> follow-up from preserved copy |
 | `src/cohezion/compound/harness.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | content conflict; main keeps drain timeout/residency/guards; HEAD's genuine adds (surreal 3.0 syntax, land_runner verdict parser, 5 model cards, lifecycle events) -> follow-up from preserved copy |
-| `src/cohezion/core/event_bus.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | content conflict; main keeps drain timeout/residency/guards; HEAD's genuine adds (surreal 3.0 syntax, land_runner verdict parser, 5 model cards, lifecycle events) -> follow-up from preserved copy |
+| `src/cohezion/core/event_bus.py` | MERGE (method-level, both sides preserved in docs/reconcile/) | MAIN base + branch methods appended (publish_sync, Event.model_lifecycle/roster_changed) — 27/27 across both sides tests |
 | `src/cohezion/core/persistence/surreal_client.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | content conflict; main keeps drain timeout/residency/guards; HEAD's genuine adds (surreal 3.0 syntax, land_runner verdict parser, 5 model cards, lifecycle events) -> follow-up from preserved copy |
 | `src/cohezion/data_mesh/event_consumer.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | content conflict; main keeps drain timeout/residency/guards; HEAD's genuine adds (surreal 3.0 syntax, land_runner verdict parser, 5 model cards, lifecycle events) -> follow-up from preserved copy |
 | `src/cohezion/data_mesh/land_runner.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | content conflict; main keeps drain timeout/residency/guards; HEAD's genuine adds (surreal 3.0 syntax, land_runner verdict parser, 5 model cards, lifecycle events) -> follow-up from preserved copy |
@@ -89,3 +89,10 @@ branch-only code imports HEAD-only symbols (depcheck). Every side not taken is p
 | `scripts/swarm_harness.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | ruff-format campaign on main; branch hunk +5/-3 preserved |
 | `scripts/sync_lemonade_kv_quant.py` | MAIN (HEAD preserved in docs/reconcile/vss-head-versions) | ruff-format campaign on main; branch hunk +3/-1 preserved |
 | `uv.lock` | MAIN | regenerate with uv lock before landing |
+
+
+## Post-merge integration (2026-08-27)
+- `swarm/oo_agents.py`: `reliability.circuit_breaker` was retired on main (246249f6); now uses `reliability.circuit_protected`.
+- Tests where main's functions were silently dropped by a clean auto-merge (found by a def-name scan): `tests/physics/test_riemannian_glide.py` (9), `tests/integrations/test_telegram_local_inference.py` (1), `tests/unit/test_unified_hybrid_router.py` (5) — union-merged (main base + branch-only tests).
+- Registry: 5 entries the branch registered for AMD plugin skills with no in-repo .md removed (local-ai-use, local-ai-app-integration, magpie-kernel-evaluator, serving-llms-on-epyc, tracelens-analysis-orchestrator).
+- Local adversarial review (Qwen3.6-35B judge / Gemma-4-E4B refuter): 2 CONFIRMED — the `verifier=` constructor-kwarg claim was REFUTED by grep (no caller passes it); the resolution-row contradiction was real and is fixed above.

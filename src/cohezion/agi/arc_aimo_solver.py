@@ -40,7 +40,7 @@ class ARCSolverHarness:
         t0 = time_perf_counter()
 
         # Step 1: Pre-verify grid constraints via AutoHarness policy
-        for inp, out in task.train_pairs:
+        for inp, _out in task.train_pairs:
             p_res = self.policy.evaluate_policy("bounded_grid", {"grid": inp})
             if not p_res.allowed:
                 return ARCResult(

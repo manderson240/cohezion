@@ -273,7 +273,7 @@ class BioelectricSwarm:
 
     def step_fitzhugh_nagumo_dynamics(self, dt: float = 0.05, steps: int = 10) -> None:
         """Run numerical Euler-integration ODE steps for membrane potentials."""
-        a, b, c = 0.7, 0.8, 3.0
+        _a, _b, c = 0.7, 0.8, 3.0
         matrix = self.get_coupling_matrix()
         node_list = list(self.nodes.values())
         n = len(node_list)

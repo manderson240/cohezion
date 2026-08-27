@@ -5,6 +5,7 @@ Exports consumed by tests/integrations/test_robinhood_analysis.py.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from collections.abc import Awaitable, Callable
@@ -288,9 +289,7 @@ class TradingMonitorLoop:
         if unmet_goals or risk["warnings"]:
             alert_msg = f"Alert: {len(unmet_goals)} goals unmet. Warnings: {risk['warnings']}"
             for alert_fn in self.alert_fns:
-                try:
+                with contextlib.suppress(Exception):
                     await alert_fn(alert_msg)
-                except Exception:
-                    pass
 
         return analysis_str

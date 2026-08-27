@@ -34,7 +34,7 @@ class PublicBeliefStateEngine:
             counts = {}
             for c in remaining_deck:
                 counts[c] = counts.get(c, 0) + 1
-            unique_cards = sorted(list(set(self.full_deck)))
+            unique_cards = sorted(set(self.full_deck))
             probs = np.array(
                 [counts.get(c, 0) / float(total_unrevealed) for c in unique_cards], dtype=np.float32
             )

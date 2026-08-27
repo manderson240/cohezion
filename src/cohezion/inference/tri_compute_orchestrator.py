@@ -83,9 +83,12 @@ class NPUInferenceEngine:
         }
 
         try:
-            async with aiohttp.ClientSession() as session, session.post(
-                self.endpoint, json=payload, timeout=aiohttp.ClientTimeout(total=3)
-            ) as resp:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(
+                    self.endpoint, json=payload, timeout=aiohttp.ClientTimeout(total=3)
+                ) as resp,
+            ):
                 if resp.status == 200:
                     result = await resp.json()
                     if result.get("choices"):

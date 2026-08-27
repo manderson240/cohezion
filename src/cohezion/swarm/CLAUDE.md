@@ -4,7 +4,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 
 **Purpose:** Swarm orchestration and token-efficient inference.
 
-## Entry points (74 modules)
+## Entry points (78 modules)
 
 | Module | Key class(es) | LOC |
 |---|---|---|
@@ -43,6 +43,10 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 - `smart_router.py` — 551 LOC
 - `tip_of_spear_router.py` — 563 LOC
 - `vmodel_engineering.py` — 694 LOC
+- `graph_systems_vmodel_engine.py` — 141 LOC
+- `markov_stream_router.py` — 57 LOC
+- `master_ascension_orchestrator.py` — 204 LOC
+- `oo_agents.py` — 142 LOC
 
 ## Invariants / notes referencing this package (from harness.md / root CLAUDE.md)
 

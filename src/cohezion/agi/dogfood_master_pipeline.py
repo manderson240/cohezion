@@ -71,9 +71,7 @@ class MasterDogfoodPipeline:
         )
 
         # 2. Dogfood J-Space Global Workspace
-        jstate = await self.jspace_engine.execute_j_space_reasoning_pass(
-            "Dogfood J-Space Global Workspace"
-        )
+        await self.jspace_engine.execute_j_space_reasoning_pass("Dogfood J-Space Global Workspace")
         results.append(DogfoodRunResult("Anthropic 2026 J-Space Workspace", 100.0, 0.15, 300))
 
         # 3. Dogfood Spontaneous Symmetry Breaking
@@ -93,7 +91,7 @@ class MasterDogfoodPipeline:
         )
 
         # 5. Dogfood Empirical Proof Harness
-        proofs = await self.proof_harness.execute_full_proof_suite()
+        await self.proof_harness.execute_full_proof_suite()
         results.append(DogfoodRunResult("4-Tier V&V Proof Harness", 100.0, 1.20, 250))
 
         total_dogfood_pairs = sum(r.generated_pairs_count for r in results)

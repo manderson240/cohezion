@@ -54,7 +54,7 @@ class TodorcevicLatticeSolver:
         best_op_chain: list[Callable[[list[list[int]]], list[list[int]]]] = []
 
         # 1. Depth-1 Primitive search
-        for name, op in self.primitive_ops:
+        for _name, op in self.primitive_ops:
             total_osc = 0.0
             for pair in train_pairs:
                 inp = pair["input"]
