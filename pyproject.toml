@@ -74,6 +74,7 @@ dependencies = [
     "marimo>=0.23.16",
     "peft>=0.20.0",
     "trl>=0.23.0",
+    "plotly>=5.0",  # reconcile 2026-08-26: flume/poincare_manifold_visualizer imports it at module top
 ]
 
 [[tool.uv.index]]
