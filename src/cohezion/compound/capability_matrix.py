@@ -14,6 +14,9 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+from cohezion.registry.skill_discovery import canonical_skill_key
+from cohezion.registry.skill_registry import load_registry
+
 
 logger = logging.getLogger(__name__)
 
@@ -161,15 +164,35 @@ class CapabilityMatrix:
             logger.debug("SmartRouter/CostAwareRouter not available")
 
     def _load_static_skills(self) -> None:
-        """Load skill data from SkillHealthTracker."""
+        """Load skill health onto the skill axis, JOINED to the registry.
+
+        The skill-health store and the registry are two node namespaces that
+        were never joinable (health keys ``ANIMATIONS_PRIME``, registry keys
+        ``animations``). Admitting health names verbatim did two bad things: real
+        skills never matched the registry, and test-fixture names an old shared
+        file left behind (``BAD_SKILL``, ``failing_skill``) would enter the matrix
+        as ROUTING entities. A record is now admitted ONLY if its canonical key
+        resolves to a real registry skill, and it is keyed by that canonical key
+        so it lines up with registry-derived data. If the registry can't be read,
+        fall back to loading verbatim rather than blinding the axis entirely.
+        """
         try:
             from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
+            try:
+                registry_keys = {canonical_skill_key(k) for k in load_registry()}
+            except Exception:
+                registry_keys = None  # registry unreadable -> do not gate
+
             tracker = SkillHealthTracker()
             for name, record in tracker._records.items():
+                canon = canonical_skill_key(name)
+                if registry_keys is not None and canon not in registry_keys:
+                    continue  # not a real skill (test fixture / dead name) -> not a routing entity
+                entity_id = canon if registry_keys is not None else name
                 entry = CapabilityEntry(
                     entity_type="skill",
-                    entity_id=name,
+                    entity_id=entity_id,
                     capabilities=["skill"],
                     quality_score=record.avg_quality_score,
                     speed_tier=2,
@@ -183,7 +206,7 @@ class CapabilityMatrix:
                         "avg_tokens": record.avg_tokens_per_use,
                     },
                 )
-                self._entries[f"skill:{name}"] = entry
+                self._entries[f"skill:{entity_id}"] = entry
 
         except Exception:
             logger.debug("SkillHealthTracker not available")

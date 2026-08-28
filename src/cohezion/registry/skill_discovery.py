@@ -20,10 +20,32 @@ marker file rather than by globbing every markdown file.
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
+
+# Trailing "_PRIME" token the skill-health namespace carries but the registry does not.
+_PRIME_SUFFIX = re.compile(r"_prime$")
+
+
+def canonical_skill_key(name: str) -> str:
+    """Map any skill identifier to the registry's canonical namespace.
+
+    The skill-health store and the registry are two node namespaces that were
+    never joinable: health records key on ``ANIMATIONS_PRIME`` while the registry
+    keys on ``animations`` (measured 2026-08-27: 0 of 73 old health records
+    exact-matched the registry; 9 matched after this normalisation). Consumers
+    that need to JOIN the two -- the capability matrix's skill axis, chiefly --
+    route both sides through here, so a health record can be validated against,
+    and keyed by, the real skill library.
+
+    Deterministic and idempotent: a canonical registry key maps to itself.
+    """
+    key = name.strip().lower().replace("-", "_")
+    return _PRIME_SUFFIX.sub("", key)
+
 
 # Directories whose contents are intentionally retired or are not skills at all.
 EXCLUDED_DIR_NAMES = frozenset({".archive", "archive", "__pycache__"})
