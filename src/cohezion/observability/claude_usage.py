@@ -151,7 +151,7 @@ def load_usage_records(projects_dir: str | Path) -> list[UsageRecord]:
         for line in text.splitlines():
             try:
                 d = json.loads(line)
-            except (json.JSONDecodeError, ValueError):
+            except ValueError:
                 continue
             usage = (d.get("message") or {}).get("usage") or {}
             if not usage:

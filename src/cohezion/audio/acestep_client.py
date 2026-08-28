@@ -66,6 +66,6 @@ class AceStepClient:
         try:
             with urllib.request.urlopen(req, timeout=self._timeout) as r:
                 return r.read()
-        except (urllib.error.URLError, OSError, TimeoutError) as exc:
+        except (urllib.error.URLError, OSError) as exc:
             logger.warning("AceStep generation failed (fail-open): %s", exc)
             return None

@@ -102,7 +102,7 @@ def fable_spend_usd(path: str | Path | None = None) -> float:
                     rec = json.loads(line)
                     if rec.get("model") == _FABLE_MODEL:
                         total += float(rec.get("cost_usd", 0.0))
-                except (json.JSONDecodeError, ValueError, TypeError):
+                except (ValueError, TypeError):
                     pass
     except OSError:
         pass

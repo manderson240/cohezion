@@ -212,7 +212,7 @@ def digest_session(
     for _ in range(retries + 1):
         try:
             text = parse_chat_response(chat(prompt, budget))
-        except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError):
+        except (OSError, urllib.error.URLError, ValueError):
             return ""
         if is_well_formed(text):
             return text

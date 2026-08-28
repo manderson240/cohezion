@@ -53,7 +53,7 @@ async def _fetch_hf_daily_papers(client: httpx.AsyncClient) -> list[dict[str, An
         # for production we'd use a real XML parser. Here we just return
         # raw text wrapped so the test can assert on it.
         return [{"raw_text": r.text, "url": str(r.url)}]
-    except (httpx.HTTPError, httpx.TimeoutException) as e:
+    except httpx.HTTPError as e:
         logger.warning("HF daily-papers fetch failed: %s", e)
         return []
 
@@ -64,7 +64,7 @@ async def _fetch_arxiv_abstract(client: httpx.AsyncClient, arxiv_id: str) -> str
         r = await client.get(f"{_ARXIV_BASE}/abs/{arxiv_id}", timeout=10.0)
         r.raise_for_status()
         return r.text
-    except (httpx.HTTPError, httpx.TimeoutException) as e:
+    except httpx.HTTPError as e:
         logger.warning("arXiv %s fetch failed: %s", arxiv_id, e)
         return ""
 
@@ -75,7 +75,7 @@ async def _fetch_hf_model_card(client: httpx.AsyncClient, model_id: str) -> str:
         r = await client.get(f"{_HF_BASE}/{model_id}/raw/main/README.md", timeout=10.0)
         r.raise_for_status()
         return r.text
-    except (httpx.HTTPError, httpx.TimeoutException) as e:
+    except httpx.HTTPError as e:
         logger.debug("HF card %s fetch failed: %s", model_id, e)
         return ""
 

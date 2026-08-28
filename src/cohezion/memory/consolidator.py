@@ -219,7 +219,7 @@ class MemoryConsolidator:
             return []
         try:
             data = json.loads(raw[start : end + 1])
-        except (json.JSONDecodeError, ValueError):
+        except ValueError:
             return []
         if not isinstance(data, list):
             return []

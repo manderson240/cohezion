@@ -221,13 +221,13 @@ backlinks: {backlinks}
         source_refs = frontmatter.get("source_refs", "[]")
         try:
             parsed_tags = json.loads(tags) if isinstance(tags, str) else list(tags)
-        except (json.JSONDecodeError, TypeError, ValueError):
+        except (TypeError, ValueError):
             parsed_tags = []
         try:
             parsed_source_refs = (
                 json.loads(source_refs) if isinstance(source_refs, str) else list(source_refs)
             )
-        except (json.JSONDecodeError, TypeError, ValueError):
+        except (TypeError, ValueError):
             parsed_source_refs = []
 
         title = body.lstrip("\n").split("\n")[0].lstrip("# ").strip()

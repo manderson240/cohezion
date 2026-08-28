@@ -1912,7 +1912,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     ),
                     run_id=f"cycle-{time.time_ns()}",
                 )
-            except (RuntimeError, ValueError, OSError, TimeoutError) as e:
+            except (RuntimeError, ValueError, OSError) as e:
                 logger.debug("Cycle persistence failed (non-blocking): %s", e)
 
         # Step 9.1: Persist universe snapshot (L183)
