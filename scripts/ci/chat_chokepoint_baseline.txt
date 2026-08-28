@@ -1,9 +1,11 @@
 scripts/actual_performance_probe.py
+scripts/adversarial_review_oscillation.py
 scripts/agent_task_dispatcher.py
 scripts/agents/ada_lovelace.py
 scripts/arpao_orchestrator.py
 scripts/autoliterature_scanner.py
 scripts/bughunt_loop.py
+scripts/build_dgm_corpus.py
 scripts/ci/prompt_reliability.py
 scripts/consult_next_steps.py
 scripts/delegate_model_status_and_kanban_sync.py
@@ -31,6 +33,9 @@ scripts/metacog/index_modules.py
 scripts/mine_neuron.py
 scripts/mine_rss.py
 scripts/multiperspective_adversarial_review_v2.py
+scripts/ops/lemonade_paper_triage.py
+scripts/ops/lemonade_physics_of_agents.py
+scripts/ops/lemonade_quipu_research.py
 scripts/ops/multiperspective_code_review.py
 scripts/ops/multiperspective_diff_review.py
 scripts/overnight_evo_loop.py
