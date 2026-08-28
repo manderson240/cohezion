@@ -214,23 +214,27 @@ class AutoDQA:
     def _persist_result(self, result: DQAResult) -> None:
         """Persist to SurrealDB autodqa_results table. Non-blocking on failure."""
         try:
-            from cohezion.core.persistence.surreal_client import SurrealClient
+            from cohezion.core.persistence.surreal_client import SurrealClient, run_sync
 
             client = SurrealClient()
-            client.create(
-                "autodqa_results",
-                {
-                    "task_id": result.task_id,
-                    "task_description": result.task_description,
-                    "output_type": result.output_type,
-                    "score": result.verdict.score,
-                    "accept": result.verdict.accept,
-                    "reason": result.verdict.reason,
-                    "quality_band": result.quality_band,
-                    "tier_used": result.tier_used,
-                    "valid_from": result.timestamp.isoformat(),
-                    "valid_to": None,
-                },
+            # ``create`` is ``async def``: calling it bare builds a coroutine and drops it,
+            # so the row was never written and nothing raised (found 2026-07-30, fixed here).
+            run_sync(
+                client.create(
+                    "autodqa_results",
+                    {
+                        "task_id": result.task_id,
+                        "task_description": result.task_description,
+                        "output_type": result.output_type,
+                        "score": result.verdict.score,
+                        "accept": result.verdict.accept,
+                        "reason": result.verdict.reason,
+                        "quality_band": result.quality_band,
+                        "tier_used": result.tier_used,
+                        "valid_from": result.timestamp.isoformat(),
+                        "valid_to": None,
+                    },
+                )
             )
         except Exception as exc:
             logger.debug("AUTODQA: SurrealDB persist failed (non-blocking): %s", exc)
