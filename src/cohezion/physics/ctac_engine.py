@@ -39,7 +39,9 @@ class CTACEngine:
     ) -> TopologicalState:
         """Compute topological persistence proxy and update conformal factor kappa(t)."""
         if not points:
-            return TopologicalState(betti_0=1.0, coherence=0.50, conformal_kappa=current_kappa, is_hiho_stable=True)
+            return TopologicalState(
+                betti_0=1.0, coherence=0.50, conformal_kappa=current_kappa, is_hiho_stable=True
+            )
 
         # Average distance between points in Poincaré space
         total_dist = 0.0
