@@ -141,6 +141,14 @@ graph TD
 | **Semantic Cache** | `cache/` — L1 hash + L2 cosine + L3 vault, 95%+ hit rate | `SemanticCache` |
 | **Physics Engine** | `physics/` — SU(2) spinors, Lagrangian, fiber bundles, gauge theory, cosmogony | `SpinorState` |
 | **RL Environments** | `environments/` — ManifoldEnv (19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
+
+The `info` dict returned by `ManifoldEnv.reset()` / `step()` carries these keys (see the class and `step()` docstrings in `src/cohezion/environments/manifold_env.py` for the authoritative, fully-specified list):
+
+| Key | Meaning |
+|---|---|
+| `coherence` | current coherence (1.0 = HIHO safe equilibrium) |
+| `avg_coherence` | running episode average |
+| `invariant_passed` / `invariant_failed` | physics-invariant check counts (only present when the optional `InvariantChecker` is active; absent otherwise) |
 | **World Model** | `world_model/` — JEPA predictor (86K params), bioelectric network, EVO model | `JEPAWorldModel` |
 | **FLUME VAE** | `flume/` — 256D thought vectors, PolarQuant (2.7x compression), QJL (32x) | `ThoughtEncoder` |
 | **Knowledge** | `ouroboros/` + vault — Mycelium transport, SurrealDB, Obsidian | `OuroborosBridge` |

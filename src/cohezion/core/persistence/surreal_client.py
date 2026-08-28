@@ -996,6 +996,24 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.error("Failed to find bridges: %s", e, exc_info=True)
             return []
 
+    @staticmethod
+    def _coerce_datetime(value: Any) -> datetime:
+        """Coerce a stored created_at/updated_at value to datetime, tolerating all shapes.
+
+        store_node() normalizes ISO strings to datetime before persisting, and SurrealDB's
+        client deserializes `time::now()` columns to datetime objects, so the value can
+        legitimately arrive here as datetime, str, or missing — `fromisoformat` alone
+        raises TypeError on the datetime case (test_get_node_with_inmemory).
+        """
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, str):
+            try:
+                return datetime.fromisoformat(value)
+            except ValueError:
+                logger.warning("Unparseable datetime %r; falling back to now()", value)
+        return datetime.now()
+
     def _dict_to_node(self, data: dict[str, Any]) -> UniverseNode:
         """Convert a dictionary to UniverseNode."""
         physics_data = data.get("physics_state", {})
@@ -1031,9 +1049,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             embedding=data.get("embedding"),
             physics_state=physics_state,
             node_type=data.get("node_type", "document"),
-            created_at=datetime.fromisoformat(data["created_at"])
-            if "created_at" in data
-            else datetime.now(),
+            created_at=self._coerce_datetime(data.get("created_at")),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )
