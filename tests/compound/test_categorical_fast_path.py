@@ -45,10 +45,15 @@ def _run(prompt: str):
     reasoning.run = _fake_run
     categorical.run = _fake_run
 
-    with (
-        patch.object(li, "_get_orchestrator", return_value=reasoning),
-        patch.object(li, "_get_categorical_orchestrator", return_value=categorical) as cat_get,
-    ):
+    # Set the module SINGLETON rather than patching `_get_orchestrator`.
+    # The fast path only engages when `orch is _orchestrator` (the mock guard
+    # that keeps a patched getter authoritative), so a test that patches the
+    # getter would make the fast path stand down and measure nothing. Assigning
+    # the singleton is also closer to production, where `_get_orchestrator()`
+    # returns exactly that object.
+    li._orchestrator = reasoning
+
+    with patch.object(li, "_get_categorical_orchestrator", return_value=categorical) as cat_get:
         fn = li.make_local_execute_fn()
         assert fn is not None
         fn(prompt)
@@ -98,6 +103,47 @@ def test_t2_explicit_orchestrator_injection_still_wins() -> None:
         assert fn is not None
         fn("Answer with one word only. Is Python a programming language?")
         assert not cat_get.called, "explicit orchestrator must take precedence"
+
+
+def test_t2_patching_get_orchestrator_still_controls_routing() -> None:
+    """REGRESSION (CI, 2026-08-29): the fast path bypassed the documented mock seam.
+
+    Callers and tests control routing by patching `_get_orchestrator`. The first
+    version of the fast path resolved its orchestrator through a DIFFERENT
+    function, so a patched `_get_orchestrator` was ignored and a suite that
+    believed itself fully mocked issued REAL inference calls --
+    tests/unit/compound/test_local_inference.py went red on main with a live
+    model's answer where the mock's string belonged.
+
+    DISCRIMINATING: removing the `orch is _orchestrator` guard makes this fail.
+    """
+    _reset_singletons()
+
+    async def _fake_run(*_a, **_kw):
+        r = MagicMock()
+        r.text, r.final_model, r.escalation_count, r.cost_usd, r.error = (
+            "MOCKED",
+            "m",
+            0,
+            0.0,
+            None,
+        )
+        return r
+
+    mocked = MagicMock(name="patched-get_orchestrator")
+    mocked.run = _fake_run
+
+    with (
+        patch.object(li, "_get_orchestrator", return_value=mocked),
+        patch.object(li, "_get_categorical_orchestrator") as cat_get,
+    ):
+        fn = li.make_local_execute_fn()
+        assert fn is not None
+        out = fn("Answer with one word only. Is Python a programming language?")
+
+    text = out[0] if isinstance(out, tuple) else out
+    assert text == "MOCKED", "a patched _get_orchestrator must win"
+    assert not cat_get.called, "the fast path must stand down when the seam is patched"
 
 
 def test_t1_categorical_orchestrator_is_a_separate_singleton() -> None:

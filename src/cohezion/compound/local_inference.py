@@ -239,11 +239,19 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
         # -- restoring the min_chars=500 floor that this change exists to avoid,
         # and doing so on every subsequent call since the singleton stays None.
         # A broken fast path must degrade to the normal path, not sabotage it.
+        # `orch is _orchestrator` is the MOCK GUARD, and it is load-bearing.
+        # Callers (and tests) control routing by patching `_get_orchestrator`.
+        # Swapping in a separately-resolved orchestrator would bypass that
+        # patch entirely -- not just failing a test, but making a suite that
+        # believes it is fully mocked issue REAL inference calls. When
+        # `_get_orchestrator` is patched, `orch` is the caller's object rather
+        # than the module singleton, so the fast path correctly stands down.
         if (
             _d is not None
             and _d.output_type == "short_categorical"
             and inference_provider is None
             and orchestrator is None
+            and orch is _orchestrator
         ):
             try:
                 orch = _get_categorical_orchestrator()
