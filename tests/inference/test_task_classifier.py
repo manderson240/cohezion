@@ -522,3 +522,105 @@ class TestBacktickNormalizationNonEngineeringPath:
     def test_backtick_parse_routes_gpu_via_extended_verb(self):
         d = classify("`parse` the JSON schemas for the API validation layer")
         assert d.node == "gpu"
+
+
+# ── one-word instruction vocabulary (measured gap, 2026-08-29) ───────────────
+#
+# The classifier recognised "Answer with one word only" but NOT equivalent
+# phrasings, which then fell through to short_answer (gate=10). A correct
+# one-word answer -- "Paris" is 5 chars -- FAILED that gate and escalated
+# NPU -> iGPU -> CPU. Measured through the production path: 12-20s for what the
+# NPU answers in 0.47s. Same instruction, same intent, ~40x the cost.
+
+
+class TestOneWordInstructionVariants:
+    """DISCRIMINATING: each of these routed to short_answer(gate=10) before."""
+
+    def test_single_word_phrasing(self):
+        d = classify("Reply with a single word. Colour of the sky?")
+        assert d.output_type == "short_categorical"
+        assert d.quality_gate_chars == 0
+
+    def test_respond_with_one_word(self):
+        d = classify("Respond with one word: yes or no. Is 2 prime?")
+        assert d.output_type == "short_categorical"
+        assert d.quality_gate_chars == 0
+
+    def test_bare_one_word_sentence_trailing(self):
+        d = classify("What is the capital of France? One word.")
+        assert d.output_type == "short_categorical"
+        assert d.quality_gate_chars == 0
+
+    def test_bare_one_word_sentence_leading(self):
+        d = classify("One word. What is the capital of France?")
+        assert d.output_type == "short_categorical"
+        assert d.quality_gate_chars == 0
+
+    def test_position_does_not_change_classification(self):
+        """The same instruction must classify the same at either end."""
+        lead = classify("Answer with one word only. Is Python a language?")
+        trail = classify("Is Python a language? Answer with one word only.")
+        assert lead.output_type == trail.output_type == "short_categorical"
+
+
+class TestOneWordFalsePositives:
+    """The widened patterns must not swallow prose that merely says 'one word'."""
+
+    def test_review_finding_one_word_mid_sentence_is_not_categorical(self):
+        """REGRESSION (code review, 2026-08-29): patterns matched mid-sentence.
+
+        Both of these scored short_categorical/gate=0 before an anchor was
+        added, so a multi-part generation task got "accept any non-empty" AND
+        was routed to the 1B fast path -- the under-routing hazard this file's
+        own comments warn about. The instruction must TERMINATE (punctuation or
+        end of string) to count as a one-word instruction.
+        """
+        d = classify(
+            "Implement a full REST API. Answer with one word per endpoint "
+            "describing its verb, then write the code."
+        )
+        assert d.output_type != "short_categorical"
+
+        d = classify(
+            "Reply with a single word explanation of why this algorithm is "
+            "O(n log n), then give the proof."
+        )
+        assert d.output_type != "short_categorical"
+
+    def test_prose_one_word_argument_is_not_categorical(self):
+        d = classify(
+            "Implement a helper that takes a one word argument and expands it "
+            "into the full configuration block, then write tests for it."
+        )
+        assert d.output_type != "short_categorical"
+
+    def test_prose_describing_word_counts_is_not_categorical(self):
+        d = classify(
+            "Explain in detail why tokenizers sometimes split a single word "
+            "into several subword tokens, with examples and diagrams."
+        )
+        assert d.output_type != "short_categorical"
+
+
+class TestCategoricalOverrideIsConfidenceSelected:
+    """REGRESSION: the override window was a positional slice, not a filter.
+
+    `_CATEGORICAL_PATTERNS[:6]` selected 'highest-conf' patterns by INDEX, so
+    inserting any pattern in the first six silently pushed 'true/false only'
+    (conf 0.95) out of the window and regressed its routing. Selecting on the
+    confidence field makes the list order-independent.
+    """
+
+    def test_true_false_only_still_overrides(self):
+        d = classify("Is this statement true or false only: 2+2=4")
+        assert d.node == "npu"
+        assert d.output_type == "short_categorical"
+
+    def test_override_set_is_derived_from_confidence(self):
+        from cohezion.inference.task_classifier import (
+            _HIGH_CONF_CATEGORICAL,
+            _HIGH_CONF_CATEGORICAL_MIN,
+        )
+
+        assert _HIGH_CONF_CATEGORICAL, "override window must not be empty"
+        assert all(conf >= _HIGH_CONF_CATEGORICAL_MIN for _, conf, _ in _HIGH_CONF_CATEGORICAL)

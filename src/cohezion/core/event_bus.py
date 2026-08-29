@@ -53,6 +53,15 @@ class EventType(Enum):
     LINEAGE_UPDATED = auto()
     DOMAIN_HEALTH_DEGRADED = auto()
 
+    # Model residency lifecycle (silicon_supervisor -> DataMeshEventBridge).
+    # APPENDED, never inserted: EventType uses auto(), so adding at the end
+    # leaves every existing member's value unchanged.
+    MODEL_ROSTER_CHANGED = auto()
+    MODEL_LOADING = auto()
+    MODEL_LOADED = auto()
+    MODEL_EVICTED = auto()
+    MODEL_LOAD_REFUSED = auto()
+
 
 @dataclass(frozen=True, slots=True)
 class Event:

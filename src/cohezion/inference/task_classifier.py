@@ -157,6 +157,50 @@ _CATEGORICAL_PATTERNS = [
         "explicit one-word instruction",
     ),
     (re.compile(r"\bone word (only|answer|reply)\b", re.I), 1.0, "explicit one-word instruction"),
+    # Equivalent one-word instructions the narrower patterns above miss.
+    # Measured 2026-08-29: "Reply with a single word.", "Respond with one word:
+    # yes or no." and a bare "One word." all fell through to `short_answer`
+    # (gate=10). A correct 1-word answer ("Paris" = 5 chars) then FAILED the
+    # gate and escalated NPU -> iGPU -> CPU, turning a 0.47s NPU call into a
+    # 12-20s cascade. Same instruction, same intent, 40x the cost.
+    # Both require the instruction to TERMINATE (punctuation or end of string).
+    # Without that anchor they match mid-sentence inside a much larger request:
+    #   "Implement a full REST API. Answer with one word per endpoint
+    #    describing its verb, then write the code."
+    #   "Reply with a single word explanation of why this algorithm is
+    #    O(n log n), then give the proof."
+    # Both scored short_categorical/gate=0 before the anchor -- the exact
+    # under-routing this file's own comments warn about, now made worse because
+    # gate_chars=0 also routes to the 1B fast path.
+    (
+        re.compile(
+            r"\b(?:reply|respond|answer|say)\s+(?:with\s+)?"
+            r"(?:exactly\s+|just\s+|only\s+)?(?:a\s+|one\s+)?single word"
+            r"(?:\s+(?:only|answer|reply))?\s*(?=[.!?:,]|$)",
+            re.I,
+        ),
+        1.0,
+        "explicit single-word instruction",
+    ),
+    (
+        re.compile(
+            r"\b(?:respond|answer|say)\s+with\s+(?:exactly\s+|just\s+|only\s+)?one word"
+            r"(?:\s+(?:only|answer|reply))?\s*(?=[.!?:,]|$)",
+            re.I,
+        ),
+        1.0,
+        "explicit one-word instruction",
+    ),
+    # A bare "One word." / "Single word." as its OWN sentence. Anchored to a
+    # sentence boundary so prose like "a one word argument" does not match.
+    (
+        # Requires BOTH a sentence boundary before and terminal punctuation (or
+        # end of string) after, so "One word." matches at either end of a prompt
+        # while prose like "takes a one word argument" does not.
+        re.compile(r"(?:^|[.!?]\s+)(?:in\s+)?(?:one|a single) word\s*(?:[.!?,]|$)", re.I),
+        1.0,
+        "standalone one-word instruction",
+    ),
     (
         re.compile(r"\breply with (exactly |only )?one letter\b", re.I),
         1.0,
@@ -179,6 +223,12 @@ _CATEGORICAL_PATTERNS = [
     (re.compile(r"\bclassify (this|as|the)\b", re.I), 0.85, "classify task"),
     (re.compile(r"\b(is this|which is) (a |an |the )?\w+\?", re.I), 0.80, "is-this classification"),
 ]
+
+# Patterns allowed to override ANY GPU signal (see the pre-GPU override block).
+# Derived from the confidence field so the list above can be reordered or
+# extended without silently changing which patterns are in the override window.
+_HIGH_CONF_CATEGORICAL_MIN = 0.95
+_HIGH_CONF_CATEGORICAL = [p for p in _CATEGORICAL_PATTERNS if p[1] >= _HIGH_CONF_CATEGORICAL_MIN]
 
 _SHORT_ANSWER_PATTERNS = [
     (re.compile(r"\bin one sentence\b", re.I), 0.95, "one sentence requested"),
@@ -1412,9 +1462,12 @@ def _classify_base(prompt: str) -> RouteDecision:
     # -- Pre-GPU overrides (fire before GPU patterns) -------------------------
     # -1. Explicit categorical instruction -- always overrides ANY GPU signals
     # "Reply with one word only" / "True or false only" must win over "implement this:..."
-    for cat_pat, cat_conf, cat_reason in _CATEGORICAL_PATTERNS[
-        :6
-    ]:  # only highest-conf categorical patterns
+    # Selected by CONFIDENCE, not position. This was `_CATEGORICAL_PATTERNS[:6]`
+    # -- a positional slice masquerading as a confidence filter, so inserting a
+    # pattern anywhere in the first six silently pushed "true/false only" (0.95)
+    # out of the override window and regressed its routing. Filtering on the
+    # confidence field makes the list order-independent.
+    for cat_pat, cat_conf, cat_reason in _HIGH_CONF_CATEGORICAL:
         if cat_pat.search(prompt):
             node, gate = _TYPE_CONFIG["short_categorical"]
             return RouteDecision(

@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Thread lock guards lazy singleton creation.
 _lock = threading.Lock()
 _orchestrator = None  # TieredOrchestrator, created once and reused
+_categorical_orchestrator = None  # fast NPU path for provably-categorical work
 
 # Session-level token usage record — aggregates across all compound loop calls.
 _token_record_lock = threading.Lock()
@@ -44,6 +45,44 @@ def _get_orchestrator():
 
                 _orchestrator = build_reasoning_orchestrator()
     return _orchestrator
+
+
+def _get_categorical_orchestrator():
+    """Fast NPU path for provably-categorical work (llama3.2-1b-FLM, 63 TPS).
+
+    The comment above says `build_triune_omni_orchestrator` was abandoned because
+    its `min_chars=500/2000` gates "guaranteed 100% escalation". That reasoning
+    was correct WHEN WRITTEN and is now stale: `TieredOrchestrator.run()` has
+    since gained a per-task gate override where a supplied `gate_chars` REPLACES
+    the tier's `min_chars`, and `task_classifier` returns `gate_chars=0` for
+    `short_categorical`. The 500-char gate is therefore neutralised for exactly
+    the workload it used to break.
+
+    Measured 2026-08-29, same three categorical prompts through each path:
+
+        build_reasoning_orchestrator (deepseek-r1 8B):
+            24/24 stayed on NPU, median 19.1s, max 201.1s, and the 8B model
+            leaked chain-of-thought as the answer ('First, the question is: "Is
+            7 a pr...') and emitted markdown ('**Jupiter**').
+        build_triune_omni_orchestrator (llama3.2-1b) with gate_chars=0:
+            escalation_count=0, 0.4s steady state, clean 'Yes' / 'POSITIVE' /
+            'Paris'.
+
+    ~48x faster with cleaner output, on categorical work only.
+
+    Deliberately NOT the default for everything: reasoning tasks genuinely need
+    the 8B model, so only output_type == "short_categorical" is routed here.
+    """
+    global _categorical_orchestrator
+    if _categorical_orchestrator is None:
+        with _lock:
+            if _categorical_orchestrator is None:
+                from cohezion.inference.triune_orchestrator import (
+                    build_triune_omni_orchestrator,
+                )
+
+                _categorical_orchestrator = build_triune_omni_orchestrator()
+    return _categorical_orchestrator
 
 
 def get_session_token_record():
@@ -187,6 +226,35 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
             )
         except Exception:
             gate_chars = None
+            _d = None
+        # Fast-path provably-categorical work to the 1B NPU orchestrator.
+        # Measured 2026-08-29: 0.4s vs 19.1s median on the 8B reasoning path,
+        # with cleaner output (the 8B model leaked chain-of-thought and markdown
+        # into one-word answers). ONLY short_categorical -- short_answer can
+        # legitimately be a sentence, and everything else needs the larger models.
+        #
+        # Selection is OUTSIDE the classify try/except on purpose.
+        # An earlier revision nested it inside, so a failure building the
+        # OPTIONAL fast path reset an already-correct gate_chars=0 back to None
+        # -- restoring the min_chars=500 floor that this change exists to avoid,
+        # and doing so on every subsequent call since the singleton stays None.
+        # A broken fast path must degrade to the normal path, not sabotage it.
+        if (
+            _d is not None
+            and _d.output_type == "short_categorical"
+            and inference_provider is None
+            and orchestrator is None
+        ):
+            try:
+                orch = _get_categorical_orchestrator()
+                # Reset the difficulty-based cascade entry. `min_tier_index` was
+                # learned against the REASONING orchestrator's tiers; carrying it
+                # over would skip past the 1B NPU tier and run a CPU model on a
+                # one-word question while metrics reported the fast path was
+                # taken. Categorical work starts at tier 0 by definition.
+                min_tier_index = 0
+            except Exception:
+                logger.debug("categorical fast path unavailable; using default orchestrator")
         try:
             # O9: difficulty-based cascade entry — a hard task starts above the cheap tiers.
             result = asyncio.run(

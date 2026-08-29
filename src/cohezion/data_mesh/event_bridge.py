@@ -27,6 +27,7 @@ import asyncio
 import contextlib
 import json
 import logging
+from collections.abc import Sequence
 from typing import Any
 
 import httpx
@@ -131,7 +132,7 @@ class DataMeshEventBridge:
             self.schema_failures += 1
             logger.error("DataMeshEventBridge schema setup failed (non-fatal): %s", exc)
 
-    def subscribe(self, bus: EventBus) -> None:
+    def subscribe(self, bus: EventBus, extra_types: Sequence[EventType] | None = None) -> None:
         """Register this bridge as a handler on the given EventBus.
 
         Each DataMesh EventType gets its own subscription slot so the bus
@@ -140,6 +141,16 @@ class DataMeshEventBridge:
         """
         for event_type in self.SUBSCRIBED_TYPES:
             bus.register_handler(self._handle, event_type)
+        # Deduped against SUBSCRIBED_TYPES *and* against itself: a repeated
+        # entry would register _handle twice and double-write every matching
+        # event to data_product_event. Easy to hit, because
+        # `bus_event_type_name()` collapses several silicon kinds onto
+        # MODEL_ROSTER_CHANGED.
+        seen: set[EventType] = set(self.SUBSCRIBED_TYPES)
+        for event_type in extra_types or ():
+            if event_type not in seen:
+                seen.add(event_type)
+                bus.register_handler(self._handle, event_type)
 
     async def _handle(self, event: Event) -> None:
         """Persist a single DataMesh event to SurrealDB."""
