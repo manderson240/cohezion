@@ -12,7 +12,7 @@ try:
     from cohezion.swarm.adaptive_router import AdaptiveRouter as AdaptiveRouter
     from cohezion.swarm.adaptive_router import RoutingDecision as AdaptiveRoutingDecision
     from cohezion.swarm.adaptive_router import route_task as route_task
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 try:
@@ -20,7 +20,7 @@ try:
     from cohezion.swarm.batch_processor import BatchProcessor as BatchProcessor
     from cohezion.swarm.batch_processor import BatchResult as BatchResult
     from cohezion.swarm.batch_processor import CacheEntry as CacheEntry
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 try:
@@ -31,7 +31,7 @@ try:
     from cohezion.swarm.compute_backend_router import ComputeBackendRouter as ComputeBackendRouter
     from cohezion.swarm.compute_backend_router import RoutingDecision as BackendRoutingDecision
     from cohezion.swarm.compute_backend_router import route_compute as route_compute
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep re-exports, table-driven (elegant-simplicity audit 2026-08-14).
@@ -172,7 +172,7 @@ def _load_optional_exports() -> None:
     for _mod, _names in _OPTIONAL_EXPORTS.items():
         try:
             _m = importlib.import_module(f"cohezion.swarm.{_mod}")
-        except (ImportError, ModuleNotFoundError):
+        except ImportError:
             continue
         for _name, _alias in _names:
             with contextlib.suppress(AttributeError):
@@ -185,7 +185,7 @@ try:
     from cohezion.swarm.hardware_aware_router import Priority as Priority
     from cohezion.swarm.hardware_aware_router import RoutingDecision as RoutingDecision
     from cohezion.swarm.hardware_aware_router import RoutingRequest as RoutingRequest
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 with contextlib.suppress(ImportError, ModuleNotFoundError):
@@ -199,7 +199,7 @@ try:
     from cohezion.swarm.multi_agent_orchestrator import execute_task as execute_task
     from cohezion.swarm.multi_agent_orchestrator import get_orchestrator as get_orchestrator
     from cohezion.swarm.multi_agent_orchestrator import quick_orchestrate as quick_orchestrate
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # from cohezion.swarm.dynamic_concurrency_gate import (
@@ -221,7 +221,7 @@ try:
     from cohezion.swarm.specialist_agents import (
         list_validated_specialists as list_validated_specialists,
     )
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 try:
@@ -232,13 +232,13 @@ try:
     from cohezion.swarm.token_cache_optimizer import (
         get_token_cache_optimizer as get_token_cache_optimizer,
     )
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 try:
     from cohezion.swarm.token_client import ResilientOllamaClient as ResilientOllamaClient
     from cohezion.swarm.token_client import TokenEfficientClient as TokenEfficientClient
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 
@@ -333,7 +333,7 @@ try:
     from cohezion.swarm.deterministic_discovery_with_skill_fallback import (
         DeterministicDiscovery as DeterministicDiscovery,
     )
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep 2026-06-22: dynamic_concurrency_gate.py was a genuine import-graph orphan.
@@ -343,7 +343,7 @@ try:
         DynamicConcurrencyGate as DynamicConcurrencyGate,
     )
     from cohezion.swarm.dynamic_concurrency_gate import get_concurrency_gate as get_concurrency_gate
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep 2026-06-22: dynamic_model_router.py was a genuine import-graph orphan.
@@ -355,7 +355,7 @@ with contextlib.suppress(ImportError, ModuleNotFoundError):
 try:
     from cohezion.swarm.gemma4_router import Gemma4Router as Gemma4Router
     from cohezion.swarm.gemma4_router import RoutingDecision as Gemma4RoutingDecision
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep 2026-06-22: hf_modelfile_builder.py was a genuine import-graph orphan.
@@ -464,7 +464,7 @@ try:
     from cohezion.swarm.resonance import (
         SwarmOrchestrator as ResonanceSwarmOrchestrator,
     )
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep 2026-06-22: r_zero_evolver.py was a genuine import-graph orphan.
@@ -477,7 +477,7 @@ with contextlib.suppress(ImportError, ModuleNotFoundError):
 try:
     from cohezion.swarm.smart_router import RoutingDecision as SmartRoutingDecision
     from cohezion.swarm.smart_router import SmartRouter as SmartRouter
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep 2026-06-22: team_execution.py was a genuine import-graph orphan.
@@ -495,7 +495,7 @@ try:
         RoutingDecision as TopologicalRoutingDecision,
     )
     from cohezion.swarm.topological_router import TopologicalRouter as TopologicalRouter
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep 2026-06-22: unified_thinker.py was a genuine import-graph orphan.
@@ -508,7 +508,7 @@ try:
         VModelEngineeringProcess as VModelEngineeringProcess,
     )
     from cohezion.swarm.vmodel_engineering import VPhase as VPhase
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass
 
 # Wiring-sweep 2026-06-22: vmodel_phase_optimizer.py was a genuine import-graph orphan.
@@ -517,5 +517,5 @@ try:
         InstrumentedVModelEngineering as InstrumentedVModelEngineering,
     )
     from cohezion.swarm.vmodel_phase_optimizer import PhaseOptimizer as PhaseOptimizer
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     pass

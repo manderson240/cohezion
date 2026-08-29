@@ -319,7 +319,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             async with httpx.AsyncClient(timeout=1.0) as client:
                 response = await client.get(health_url)
                 return response.status_code == 200
-        except (httpx.HTTPError, httpx.TimeoutException, OSError, ConnectionError):
+        except (httpx.HTTPError, OSError):
             return False
 
     async def ensure_active(self, timeout: int = 30) -> bool:
@@ -440,8 +440,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info("Schema created successfully")
             return True
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -491,8 +489,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return node.id
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -520,8 +516,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             else:
                 return await self._client.create(table, data)
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -672,8 +666,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info(f"SurrealDB Response: {res}")
             return res
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -706,8 +698,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return self._dict_to_node(data)
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -755,8 +745,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -789,8 +777,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -866,8 +852,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return None
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -918,8 +902,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -981,8 +963,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -1034,13 +1014,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             try:
                 decoded = base64.b64decode(content)
                 content = zlib.decompress(decoded).decode("utf-8")
-            except (
-                zlib.error,
-                base64.binascii.Error,
-                UnicodeDecodeError,
-                ValueError,
-                TypeError,
-            ) as e:
+            except (zlib.error, base64.binascii.Error, ValueError, TypeError) as e:
                 logger.error("Failed to decompress node %s: %s", data.get("id"), e, exc_info=True)
 
         return UniverseNode(

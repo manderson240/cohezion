@@ -28,7 +28,7 @@ def _registry_skill_names(registry_path: Path | None = None) -> list[str]:
     path = registry_path or _DEFAULT_REGISTRY
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError, ValueError):
+    except (OSError, ValueError):
         return []
     return list(data.keys()) if isinstance(data, dict) else []
 

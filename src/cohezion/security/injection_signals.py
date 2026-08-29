@@ -30,7 +30,6 @@ tells you where the gap actually is.
 from __future__ import annotations
 
 import base64
-import binascii
 import codecs
 import re
 import unicodedata
@@ -103,7 +102,7 @@ def _decode_base64(text: str) -> str | None:
         try:
             padded = candidate + "=" * (-len(candidate) % 4)
             decoded = base64.b64decode(padded, validate=True).decode("utf-8", errors="strict")
-        except (binascii.Error, UnicodeDecodeError, ValueError):
+        except ValueError:
             continue
         if decoded.isprintable():
             out.append(decoded)

@@ -392,7 +392,7 @@ class MyceliumRegistry:
             except (json.JSONDecodeError, KeyError, IndexError, TypeError):
                 pass  # Non-JSON response, assume success (urllib raised on real error)
             logger.info("wrote mycelium pattern to surrealdb: %s", db_id)
-        except (urllib.error.URLError, OSError, Exception) as exc:
+        except (urllib.error.URLError, Exception) as exc:
             logger.debug("surrealdb write failed for %s: %s", cluster.cluster_id, exc)
 
 

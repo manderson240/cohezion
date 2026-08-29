@@ -227,7 +227,7 @@ def _parse_proposal(raw: str) -> dict[str, str]:
         step = str(parsed.get("falsifiable_step", "")).strip()
         if proposal:
             return {"proposal": proposal, "falsifiable_step": step or "(model omitted)"}
-    except (ValueError, json.JSONDecodeError):
+    except ValueError:
         pass
     return {"proposal": raw.strip()[:1000], "falsifiable_step": "(unstructured output)"}
 

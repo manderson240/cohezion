@@ -216,7 +216,7 @@ class SystemResourceAgent:
                 source="lemonade",
                 raw_metrics=m,
             )
-        except (urllib.error.URLError, TimeoutError, OSError):
+        except (urllib.error.URLError, OSError):
             return None  # Lemonade offline — silent fallback
         except Exception as exc:
             logger.debug(
