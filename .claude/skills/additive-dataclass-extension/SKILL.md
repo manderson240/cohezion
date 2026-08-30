@@ -1,6 +1,6 @@
 ---
 name: additive-dataclass-extension
-description: Use when adding a new field to an existing, heavily-instantiated dataclass. The pattern: add `Optional[T] = None`, never break existing call sites. Discovered in the WS2A card-aligned registry extension (PR #219) where 14 default ModelEntry records gained a `profile` field with zero test breakage.
+description: "Use when adding a new field to an existing, heavily-instantiated dataclass. The pattern: add `Optional[T] = None`, never break existing call sites. Discovered in the WS2A card-aligned registry extension (PR #219) where 14 default ModelEntry records gained a `profile` field with zero test breakage."
 when_to_use: |
   - Adding a new field to a `@dataclass` that has ≥ 3 production call sites
   - The new field is "nice to have" but not required for correctness
@@ -35,8 +35,8 @@ anti_patterns:
     type system can't see the field without isinstance checks.
   - Using `**kwargs` to "future-proof". Hides fields from linters
     and type checkers.
-  - Adding `field(metadata={"deprecated": True})` to an old field
-    without removing it. Additive only works for *new* fields.
+  - 'Adding `field(metadata={"deprecated": True})` to an old field
+    without removing it. Additive only works for *new* fields.'
   - Editing the @dataclass decorator to add a custom `__init__` that
     silently drops the new field. Now your type is a lie.
 related_skills:
@@ -46,11 +46,11 @@ related_skills:
     the 0-production-callers issue)
 verification:
   before_landing:
-    - `grep -rn "class ModelEntry\|ModelEntry(" src/ --include="*.py" | grep -v test | wc -l`
-      should match the call-site count. If < 3, just edit the signature.
-    - `pytest tests/ -q` must pass on the pre-change branch.
+    - '`grep -rn "class ModelEntry\|ModelEntry(" src/ --include="*.py" | grep -v test | wc -l`
+      should match the call-site count. If < 3, just edit the signature.'
+    - '`pytest tests/ -q` must pass on the pre-change branch.'
   after_landing:
-    - `pytest tests/ -q` must pass on the post-change branch.
+    - '`pytest tests/ -q` must pass on the post-change branch.'
     - No `__init__` was added to the dataclass.
     - The new field has a default of `None` (or a callable factory).
 honest_residuals:
