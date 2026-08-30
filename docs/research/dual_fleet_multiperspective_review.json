@@ -1,0 +1,122 @@
+{
+  "src/cohezion/compound/goals_and_loops_orchestrator.py": [
+    {
+      "reviewer": "gpt-oss-20b (Lemonade iGPU)",
+      "stance": "Cynical Kernel & Local Memory Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 8.15,
+      "notes": ""
+    },
+    {
+      "reviewer": "deepseek-v4-pro:cloud (1.6T MoE)",
+      "stance": "Distributed Systems & Concurrency Auditor",
+      "verdict": "CLEAN",
+      "latency_sec": 9.88,
+      "notes": "Verdict: **DEFECT**\n\nCritical Risk Score: **7/10**\n\nKey Strengths / Vulnerabilities:  \nThe dataclass/enum modeling is clean and type-hinted, with a deterministic `is_converged()` check. However, the module is incomplete relative to its docstring\u2014no `GoalStore`, `ExecutionLoop`, or checkpoint synchronization is implemented. The mutable `AcceptanceCriterion.verified` field is unsynchronized, creating race conditions if multiple loops verify concurrently, and async `verifier_fn` callables are typed but never awaited, so coroutine results would be mishandled."
+    },
+    {
+      "reviewer": "qwen3.5:397b-cloud (397B Dense)",
+      "stance": "Principal Software & Type System Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 39.43,
+      "notes": "(1) Verdict: DEFECT\n(2) Critical Risk Score: 6\n(3) Key Strengths / Vulnerabilities: Strong data modeling using `StrEnum` and `dataclass` ensures serialization safety and clear state transitions. However, module-level `logging.basicConfig` violates library encapsulation principles, and the `verifier_fn` union type obscures sync/async execution boundaries, inviting runtime `TypeError`s. Additionally, the docstring promises orchestration classes (`GoalStore`, `ExecutionLoop`) that are absent, creating significant interface drift."
+    },
+    {
+      "reviewer": "glm-5.2:cloud (756B Frontier)",
+      "stance": "Theoretical Physicist & Mathematical Rigor Lead",
+      "verdict": "FINDINGS",
+      "latency_sec": 4.27,
+      "notes": "**(1) Verdict:** DEFECT\n**(2) Critical Risk Score:** 7/10\n**(3) Key Strengths / Vulnerabilities:** \nThe module establishes a structured state space for agentic execution, but the `is_converged` method violates mathematical vacuous truth by explicitly requiring `len(self.acceptance_criteria) > 0`, meaning a goal with zero criteria can never converge and will inevitably cause an infinite loop (non-convergence) in the execution cycle. Furthermore, the `verifier_fn` lacks bounded execution constraints (e.g., timeouts or iteration limits), making it impossible to formally prove numerical or topological stability of the convergence loop."
+    }
+  ],
+  "src/cohezion/graph/graph_engine.py": [
+    {
+      "reviewer": "gpt-oss-20b (Lemonade iGPU)",
+      "stance": "Cynical Kernel & Local Memory Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 7.97,
+      "notes": ""
+    },
+    {
+      "reviewer": "deepseek-v4-pro:cloud (1.6T MoE)",
+      "stance": "Distributed Systems & Concurrency Auditor",
+      "verdict": "CLEAN",
+      "latency_sec": 4.86,
+      "notes": "(1) **Verdict:** DEFECT  \n(2) **Critical Risk Score:** 9/10  \n(3) **Key Strengths / Vulnerabilities:** The dataclass design and `EdgeType` enum are clean, and the docstring promises useful graph operations. However, the module is syntactically incomplete (`self._adj_` is truncated), so it cannot even be imported or instantiated. Additionally, `to_surreal_relate` directly interpolates JSON and weight values into SurrealQL without escaping or validation, creating a clear SurrealQL injection and malformed-query risk; none of the claimed BFS/DFS, topological sort, or cycle detection logic is implemented."
+    },
+    {
+      "reviewer": "qwen3.5:397b-cloud (397B Dense)",
+      "stance": "Principal Software & Type System Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 32.42,
+      "notes": "(1) Verdict: DEFECT\n(2) Critical Risk Score: 9\n(3) Key Strengths / Vulnerabilities: While dataclasses provide clear schema definitions, the `to_surreal_relate` method introduces critical SQL injection vectors via string interpolation contrary to security claims. Module-level logging violates library isolation, loose `Any` typing undermines 3.13 standards, and the source file is syntactically incomplete mid-attribute."
+    },
+    {
+      "reviewer": "glm-5.2:cloud (756B Frontier)",
+      "stance": "Theoretical Physicist & Mathematical Rigor Lead",
+      "verdict": "CLEAN",
+      "latency_sec": 5.73,
+      "notes": "(1) Verdict: DEFECT\n(2) Critical Risk Score: 8/10\n(3) Key Strengths / Vulnerabilities: The module claims \"SQL-injection safe\" query generation, yet `to_surreal_relate` directly interpolates `self.weight` into the SurrealQL string without sanitization, violating the security claim. From a mathematical and topological standpoint, 2048D Poincar\u00e9 hyperbolic embeddings are numerically divergent; computing geodesic distances via the Poincar\u00e9 ball model in such extreme dimensions will suffer from catastrophic floating-point precision loss and underflow, making sub-millisecond geodesic queries mathematically unviable. The dataclass structure is clean, but the underlying mathematical assumptions regarding high-dimensional hyperbolic space lack numerical convergence proofs."
+    }
+  ],
+  "src/cohezion/inference/nano_uma_compactor.py": [
+    {
+      "reviewer": "gpt-oss-20b (Lemonade iGPU)",
+      "stance": "Cynical Kernel & Local Memory Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 8.44,
+      "notes": ""
+    },
+    {
+      "reviewer": "deepseek-v4-pro:cloud (1.6T MoE)",
+      "stance": "Distributed Systems & Concurrency Auditor",
+      "verdict": "FINDINGS",
+      "latency_sec": 11.27,
+      "notes": "(1) Verdict: **DEFECT**\n\n(2) Critical Risk Score: **10**\n\n(3) Key Strengths / Vulnerabilities: The SVD low-rank plus thresholded sparse residual is a reasonable compression approach, and `compression_ratio` attempts to account for index overhead. However, the module is not importable because `on_step` is truncated (`return self.`), causing a `SyntaxError`. Additionally, `decompress_block` ignores `target_shape`, lacks bounds/type validation on `sparse_indices`, and can raise `IndexError` or silently drop values; `compression_ratio` uses `self.rank` instead of the effective `min(rank, seq_len, head_dim)` and assumes int32 indices while `np.argwhere` returns int64, making memory estimates inaccurate."
+    },
+    {
+      "reviewer": "qwen3.5:397b-cloud (397B Dense)",
+      "stance": "Principal Software & Type System Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 47.9,
+      "notes": "(1) Verdict: DEFECT\n(2) Critical Risk Score: 9\n(3) Key Strengths / Vulnerabilities:\nAlthough `__future__` annotations are included, the module fails compilation due to a syntax error in `on_step` and violates Python 3.13 standards by omitting parameter type hints in `__init__`. The docstring falsely claims \"Zero-Copy\" behavior despite memory-allocating SVD operations, and hardcoded byte sizes ignore dynamic dtype properties, creating severe maintainability and performance risks."
+    },
+    {
+      "reviewer": "glm-5.2:cloud (756B Frontier)",
+      "stance": "Theoretical Physicist & Mathematical Rigor Lead",
+      "verdict": "FINDINGS",
+      "latency_sec": 5.56,
+      "notes": "(1) Verdict: DEFECT\n(2) Critical Risk Score: 9/10\n(3) Key Strengths / Vulnerabilities: \nThe module employs a standard truncated SVD for low-rank approximation, but suffers from a fatal syntax error at the end (`return self.`) and ignores the `target_shape` parameter in `decompress_block`, risking silent shape mismatches. Furthermore, the hard thresholding of residuals (`> self.threshold`) introduces topological instability, as infinitesimal perturbations near the threshold cause discontinuous structural changes in the sparse representation. Finally, the `compression_ratio` calculation uses `self.rank` instead of the dynamically bounded rank `r = min(self.rank, seq_len, head_dim)`, rendering the memory reduction bounds mathematically invalid for small sequence lengths."
+    }
+  ],
+  "src/cohezion/physics/nano_chaos.py": [
+    {
+      "reviewer": "gpt-oss-20b (Lemonade iGPU)",
+      "stance": "Cynical Kernel & Local Memory Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 8.09,
+      "notes": ""
+    },
+    {
+      "reviewer": "deepseek-v4-pro:cloud (1.6T MoE)",
+      "stance": "Distributed Systems & Concurrency Auditor",
+      "verdict": "FINDINGS",
+      "latency_sec": 19.31,
+      "notes": "(1) Verdict: **DEFECT**\n\n(2) Critical Risk Score: **5/10**\n\n(3) Key Strengths / Vulnerabilities: The module is stateless and pure, so no race conditions or deadlocks exist; the RK4 integration and entropy normalization are mathematically sound for well-formed inputs. However, `shannon_entropy` silently returns `0.0` for NaN or `+inf` probabilities because `np.any(probs < 0)` and `total <= 0` do not catch non-finite values, and `compute_maximal_lyapunov_exponent` lacks validation for `n_steps`, `dt`, and `d0`, allowing NaN or division-by-zero results. Additionally, `lorenz_step` assumes a length-3 state vector without shape checking."
+    },
+    {
+      "reviewer": "qwen3.5:397b-cloud (397B Dense)",
+      "stance": "Principal Software & Type System Architect",
+      "verdict": "FINDINGS",
+      "latency_sec": 23.86,
+      "notes": "(1) Verdict: DEFECT\n(2) Critical Risk Score: 7\n(3) Key Strengths / Vulnerabilities:\nWhile numerical algorithms are correctly implemented with appropriate epsilon handling, the static-only class structure violates modern Python architecture by hindering testability and state management. Critical reliability risks exist where `compute_maximal_lyapunov_exponent` returns silent `nan` values on empty divergence lists, and typing lacks `numpy.typing.NDArray` specificity required for strict 3.13 compliance."
+    },
+    {
+      "reviewer": "glm-5.2:cloud (756B Frontier)",
+      "stance": "Theoretical Physicist & Mathematical Rigor Lead",
+      "verdict": "FINDINGS",
+      "latency_sec": 12.99,
+      "notes": "(1) Verdict: DEFECT\n(2) Critical Risk Score: 4/10\n(3) Key Strengths / Vulnerabilities: \nThe Runge-Kutta 4th-order integration and Shannon entropy implementations are mathematically sound, with proper zero-probability handling and a physically appropriate initial perturbation size (`d0=1e-8`) for the Lyapunov calculation. However, the Benettin algorithm contains a critical topological flaw: if divergence `d1` drops below `1e-15`, the code skips the renormalization step, which permanently corrupts the `d0` baseline for all subsequent logarithmic divergence calculations. Furthermore, the algorithm lacks a transient discard phase, meaning the initial relaxation of the perturbation onto the maximal Lyapunov vector is included in the average, biasing the numerical convergence proof."
+    }
+  ]
+}
