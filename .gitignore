@@ -324,3 +324,4 @@ execution_traces/
 node_modules/
 src/cohezion/skills/munder-difflin-repo/
 
+data/compound/cache/
