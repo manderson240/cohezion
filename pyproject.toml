@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cohezion"
-version = "1.12.1"
+version = "1.12.2"
 description = "Compound AI orchestration: a self-improving skill loop, physics-grounded 12D training environments, and $0 local inference on AMD silicon"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -78,10 +78,37 @@ name = "pytorch-rocm"
 url = "https://download.pytorch.org/whl/rocm6.3"
 explicit = true
 
-# NOTE: torch and torchvision resolve from PyPI (CPU wheels) by default for CI.
-# The ROCm index source mapping applies to the `rocm` extra packages.
-# To install ROCm torch locally: uv sync --frozen --extra dev --extra rocm
+# CPU wheels do NOT come from PyPI -- they come from here. The previous comment
+# in this block asserted "torch and torchvision resolve from PyPI (CPU wheels)
+# by default for CI", and that is false: PyPI's default Linux torch wheel is the
+# CUDA build. `uv.lock` resolved torch 2.13.0 from PyPI, whose linux deps are
+# cuda-bindings, cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,
+# cusparse,nvjitlink,nvrtc,nvtx], nvidia-cudnn-cu13, nvidia-cusparselt-cu13,
+# nvidia-nccl-cu13, nvidia-nvshmem-cu13 and triton -- ~4.6 GB of libraries that
+# cannot execute on this machine, which has no NVIDIA GPU.
+#
+# That cost was paid on EVERY self-hosted CI run and EVERY new worktree, and on
+# 2026-08-30 it took the pool from 4.7 GB free to 0 and the filesystem
+# read-only. The mapping below is what makes the old comment's intent true.
+#
+# torch-2.13.0+cpu-cp313-cp313-manylinux_2_28_x86_64 is the SAME version the
+# lock already resolved, so this removes the CUDA payload without changing the
+# torch version.
+#
+# History: commit 32c242386 ("fix(ci): Python 3.13->3.11 alignment") removed a
+# working `torch==2.8.0+rocm6.3` pin plus the torch/torchvision/torchaudio index
+# mappings as collateral in a CI-alignment PR, and left the false comment behind.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+# Local AMD dev still installs ROCm torch explicitly, which overrides this:
+#   uv pip install torch==2.8.0+rocm6.3 torchvision==0.23.0+rocm6.3 \
+#     --index-url https://download.pytorch.org/whl/rocm6.3
 [tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
 pytorch-triton-rocm = { index = "pytorch-rocm" }
 # cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }  # Optional: install manually with `uv pip install -e ./cloud-vault-mcp`
 

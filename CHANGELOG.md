@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — `uv sync` installed ~4.6 GB of CUDA libraries on an AMD-only box (1.12.2)
+- `pyproject.toml`: added a `pytorch-cpu` index and mapped `torch` + `torchvision` to it. The
+  previous comment asserted "torch and torchvision resolve from PyPI (CPU wheels) by default for
+  CI" — false. PyPI's default Linux torch wheel is the **CUDA** build; CPU wheels come from
+  `download.pytorch.org/whl/cpu`.
+- torch stays at **2.13.0** — the CPU index carries the same version the lock already resolved,
+  so this removes the CUDA payload without a version change.
+- Measured with CI's exact command in a clean clone of main: `uv sync --frozen` rc=0, disk
+  consumed **1093 MB (was ~4600 MB)**, zero CUDA libraries in the built venv,
+  `torch 2.13.0+cpu` with `cuda.is_available()=False`, CUDA packages in `uv.lock` **6 → 0**,
+  `tests/unit` **2122 passed / 0 failed**.
+- This cost was paid on every self-hosted CI run and every new worktree. On 2026-08-30 it took
+  the pool to 0 bytes and the filesystem read-only; a `git push` to this repo is a multi-GB
+  local write.
+- Regression origin: commit `32c242386` removed a working `torch==2.8.0+rocm6.3` pin and the
+  index mappings as collateral in a CI-alignment PR. The ROCm pin is deliberately NOT restored —
+  CI wants CPU wheels, and local AMD dev installs ROCm torch explicitly, which overrides.
+
 ### Fixed — store guard stayed silent on the first reading after a blind interval (1.12.1)
 - `inference/silicon_supervisor.py`: `critical -> blind -> blind -> STILL critical` emitted
   `['store_critical', 'store_unmeasured']` and then **nothing** on the return to measured, which
