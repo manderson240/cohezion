@@ -13,7 +13,7 @@ import logging
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
 

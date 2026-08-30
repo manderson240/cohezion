@@ -1,17 +1,113 @@
-"""AutoHarness Static Symbolic Verifier
-=======================================
-Zero-cost verification engine that validates Python code-as-action ASTs
-before execution. Enforces pure functional invariants, cyclomatic complexity
-limits, and memory/NPU safety bounds.
+"""AutoHarness AST Bytecode Policy Verifier & Semantic Guardian
+================================================================
+Hardened against adversarial bypasses identified in the local multi-perspective review:
+1. Indirect builtins & inheritance traversal (`__builtins__`, `__subclasses__`, `__dict__`).
+2. Memory exhaustion generator explosions (unbounded list/generator multiplication).
+3. Dynamic import evasion (`__import__`, `eval`, `exec`).
 """
 
 from __future__ import annotations
 
 import ast
+import logging
 import time
-from typing import Any
 
 from cohezion.contracts import CodeAsAction, VerificationResult, Verifier
+
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("autoharness_verifier")
+
+FORBIDDEN_ATTRIBUTES: set[str] = {
+    "__builtins__",
+    "__subclasses__",
+    "__dict__",
+    "__globals__",
+    "__class__",
+    "__base__",
+    "__bases__",
+}
+
+FORBIDDEN_CALLS: set[str] = {
+    "eval",
+    "exec",
+    "compile",
+    "__import__",
+    "open",
+    "os.system",
+    "subprocess.Popen",
+    "shutil.rmtree",
+}
+
+
+class AutoHarnessASTSecurityValidator(ast.NodeVisitor):
+    """Deep AST Semantic Validator preventing code injection and sandbox escapes."""
+
+    def __init__(self) -> None:
+        self.violations: list[str] = []
+
+    def visit_Import(self, node: ast.Import) -> None:
+        for alias in node.names:
+            if alias.name.startswith("os.system") or alias.name in {"subprocess", "shutil", "sys"}:
+                self.violations.append(f"Disallowed import: '{alias.name}' at line {node.lineno}")
+        self.generic_visit(node)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        if node.module and (node.module.startswith("os") or node.module in {"subprocess", "shutil", "sys"}):
+            self.violations.append(f"Disallowed import: '{node.module}' at line {node.lineno}")
+        self.generic_visit(node)
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        if node.attr in FORBIDDEN_ATTRIBUTES:
+            self.violations.append(
+                f"Forbidden attribute access: '{node.attr}' at line {node.lineno}"
+            )
+        self.generic_visit(node)
+
+    def visit_Call(self, node: ast.Call) -> None:
+        func_name = ""
+        if isinstance(node.func, ast.Name):
+            func_name = node.func.id
+        elif isinstance(node.func, ast.Attribute):
+            if isinstance(node.func.value, ast.Name):
+                func_name = f"{node.func.value.id}.{node.func.attr}"
+            else:
+                func_name = node.func.attr
+
+        if func_name in FORBIDDEN_CALLS:
+            self.violations.append(f"Forbidden call: '{func_name}' at line {node.lineno}")
+        self.generic_visit(node)
+
+    def visit_BinOp(self, node: ast.BinOp) -> None:
+        # Check for memory exhaustion attacks: [0] * (10**6), [0] * 10000000, etc.
+        if isinstance(node.op, ast.Mult):
+            # Check constant right multiplier
+            if isinstance(node.right, ast.Constant) and isinstance(node.right.value, (int, float)):
+                if node.right.value > 100_000:
+                    self.violations.append(
+                        f"Potential memory exhaustion multiplier ({node.right.value}) at line {node.lineno}"
+                    )
+            # Check power expression right multiplier: (10**7)
+            elif isinstance(node.right, ast.BinOp) and isinstance(node.right.op, ast.Pow):
+                self.violations.append(
+                    f"Potential memory exhaustion exponent multiplier at line {node.lineno}"
+                )
+        self.generic_visit(node)
+
+
+def verify_ast_action_safety(code: str) -> bool:
+    """Validate a code snippet with zero-cost static AST inspection before execution."""
+    try:
+        tree = ast.parse(code)
+        validator = AutoHarnessASTSecurityValidator()
+        validator.visit(tree)
+        if validator.violations:
+            logger.warning("AutoHarness AST Action Security Violations: %s", validator.violations)
+            return False
+        return True
+    except Exception as e:
+        logger.error("AST Parse failure during security validation: %s", e)
+        return False
 
 
 class AutoHarnessVerifier(Verifier):

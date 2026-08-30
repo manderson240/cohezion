@@ -307,6 +307,24 @@ def _lane_verdict(model: str, diff: str, timeout: float = 300.0) -> tuple[str, s
     return "UNMEASURABLE", f"{model}: no VERDICT line in {len(text)}-char reply"
 
 
+def _local_review(diff: str) -> str:
+    """One local adversarial lens over the diff (:13305, $0). Returns raw verdict text."""
+    prompt = (
+        "You are an INDEPENDENT reviewer. ASSUME THE DIFF IS BROKEN. Find real correctness/"
+        "security defects. If none, reply exactly 'OK'. Otherwise list each as 'SEVERITY | issue'."
+        "\n\nDIFF (truncated):\n" + diff[:8000]
+    )
+    body = json.dumps({"model": _LOCAL_REVIEWER, "messages": [{"role": "user", "content": prompt}]})
+    req = urllib.request.Request(
+        _ROUTER, data=body.encode(), headers={"Content-Type": "application/json"}, method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=300) as r:  # noqa: S310
+            return str(json.loads(r.read())["choices"][0]["message"]["content"]).strip()
+    except Exception as exc:  # local reviewer unreachable → cannot clear (fail-closed)
+        return f"BLOCK | local reviewer unavailable: {exc}"
+
+
 def _default_review(repo: str, branch: str, base: str = "origin/main") -> dict:
     """Independent review: local lens; escalate to cloud only if local flags CRITICAL/HIGH.
 

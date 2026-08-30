@@ -14,6 +14,7 @@ from cohezion.reliability.resolver import HallucinationResolver
 
 if TYPE_CHECKING:
     from cohezion.agentjet.context_optimizer import ModelContextProfile
+    from cohezion.core.typed_context import TypedContextStore
 
 
 class ContextHarness:
@@ -31,8 +32,21 @@ class ContextHarness:
             "default": 16000,
         }
 
-    def harness_prompt(self, prompt: str, system_prompt: str | None = None) -> dict[str, str]:
-        """Prepare optimized prompt and system prompt for local SLM."""
+    def harness_prompt(
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        *,
+        context_store: TypedContextStore | None = None,
+    ) -> dict[str, str]:
+        """Prepare optimized prompt and system prompt for local SLM.
+
+        When ``context_store`` is provided, typed MEMORY items are rendered into a
+        persistent-recall section and EVIDENCE items into a verified-evidence section
+        of the system prompt, so the model can ground answers in recall + proofs.
+        Sections are omitted when empty; existing two-positional-arg callers are
+        unaffected (``context_store`` is keyword-only, default ``None``).
+        """
 
         # 1. Start with Truth Anchors
         truth_anchors = self.resolver.get_truth_anchors()
@@ -46,6 +60,24 @@ class ContextHarness:
 
         # Final Assembly
         final_system = f"{truth_anchors}\n\n{specialized_system}"
+
+        # 4. Typed context injection (MEMORY → recall, EVIDENCE → proofs)
+        if context_store is not None:
+            from cohezion.core.typed_context import ContextType
+
+            memory_items = context_store.get_items_by_type(ContextType.MEMORY)
+            if memory_items:
+                recall_lines = "\n".join(f"- {item.content}" for item in memory_items)
+                final_system += (
+                    f"\n\n=== [PERSISTENT MEMORY & RECALL] ===\n{recall_lines}"
+                )
+
+            evidence_items = context_store.get_items_by_type(ContextType.EVIDENCE)
+            if evidence_items:
+                evidence_lines = "\n".join(f"- {item.content}" for item in evidence_items)
+                final_system += (
+                    f"\n\n=== [VERIFIED EVIDENCE & PROOFS] ===\n{evidence_lines}"
+                )
 
         return {"prompt": pruned_prompt, "system": final_system}
 
