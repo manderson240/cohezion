@@ -1,0 +1,13 @@
+{
+  "id": "manderson240/rsna-knee-real-dicom",
+  "title": "RSNA Knee Real DICOM",
+  "code_file": "submission_real.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "false",
+  "competition_sources": [
+    "rsna-knee-abnormality-detection"
+  ]
+}

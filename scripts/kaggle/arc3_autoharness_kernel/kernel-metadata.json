@@ -1,0 +1,19 @@
+{
+  "id": "manderson240/cohezion-arc-agi-3-autoharness-solver",
+  "title": "cohezion-arc-agi-3-autoharness-solver",
+  "code_file": "main.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "false",
+  "enable_gpu": "true",
+  "enable_tpu": "false",
+  "enable_internet": "false",
+  "dataset_sources": [],
+  "competition_sources": [
+    "arc-prize-2026-arc-agi-3"
+  ],
+  "model_sources": [
+    "qwen-lm/qwen2.5-coder/transformers/7b-instruct/1"
+  ],
+  "kernel_sources": []
+}

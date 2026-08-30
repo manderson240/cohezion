@@ -1,0 +1,16 @@
+{
+  "id": "manderson240/cohezion-kaggriculture-multi-agent-policy-baseline",
+  "title": "Cohezion Kaggriculture Multi-Agent Policy Baseline",
+  "code_file": "main.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "false",
+  "enable_gpu": "false",
+  "enable_tpu": "false",
+  "enable_internet": "false",
+  "dataset_sources": [],
+  "competition_sources": [
+    "kaggriculture"
+  ],
+  "kernel_sources": []
+}
