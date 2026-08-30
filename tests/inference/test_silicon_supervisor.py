@@ -21,6 +21,7 @@ from cohezion.inference.silicon_supervisor import (
     next_storage_baseline,
     publish_events,
     severity_of,
+    stall_events,
 )
 
 
@@ -558,6 +559,40 @@ def test_t1_store_severities_are_mapped_not_defaulted() -> None:
     # is degraded observability, not an outage. See the daemon's liveness note.
     assert severity_of("census_stalled") == "warning"
     assert severity_of("census_resumed") == "notice"
+
+
+def test_t2_a_persistent_stall_escalates_but_only_once() -> None:
+    """A stall that never clears must eventually page, and must not flood.
+
+    Making `router_unreachable` stricter (it now requires the CHEAP endpoint to
+    fail too) left a hole: if /system-info stays alive while /health and /models
+    are permanently dead, the supervisor warns forever and nothing ever
+    escalates. Duration is the discriminator -- the measured stall cleared
+    within one probe round; a dead backend never does.
+    """
+    ranks = {"info": 0, "notice": 1, "warning": 2, "critical": 3}
+
+    first = stall_events(1)
+    assert [e.kind for e in first] == ["census_stalled"]
+    assert severity_of(first[0].kind) == "warning"
+
+    # Silent in between -- 8 polls of a continuing stall say nothing.
+    for n in range(2, 10):
+        assert stall_events(n) == (), f"poll {n} should be silent"
+
+    escalated = stall_events(10)
+    assert [e.kind for e in escalated] == ["census_stalled_persistent"]
+    assert severity_of(escalated[0].kind) == "critical"
+    assert ranks[severity_of("census_stalled_persistent")] > ranks[severity_of("census_stalled")]
+
+    # ...and it does NOT re-page every poll thereafter.
+    for n in (11, 50, 2880):
+        assert stall_events(n) == (), f"poll {n} should not re-page"
+
+
+def test_t2_stall_counter_zero_is_not_a_stall() -> None:
+    """Guards the off-by-one: the first stalled poll passes 1, not 0."""
+    assert stall_events(0) == ()
 
 
 def test_t2_census_stall_is_not_as_severe_as_a_real_outage() -> None:

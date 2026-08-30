@@ -51,6 +51,7 @@ from cohezion.inference.silicon_supervisor import (
     diff_storage,
     next_storage_baseline,
     publish_events,
+    stall_events,
 )
 
 
@@ -232,6 +233,10 @@ class CycleState(NamedTuple):
     storage: ModelStorage | None = None  # last MEASURED reading, never a blind one
     census_stalled: bool = False
     blind: bool = False
+    # Consecutive stalled polls. A count, not a flag, because duration is the
+    # only thing that separates a busy fleet from a dead census -- the measured
+    # stall cleared within one probe round, a dead backend never would.
+    stall_polls: int = 0
 
 
 async def cycle(
@@ -315,31 +320,35 @@ async def cycle(
         health = await _get("/api/v1/health")
         catalog = (await _get("/api/v1/models")).get("data", [])
     except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
-        stall_events: list[SiliconEvent] = []
-        if not census_stalled:
-            stall_events.append(
-                SiliconEvent(
-                    kind="census_stalled",
-                    detail=f"{type(exc).__name__} on /health or /models; router itself is UP",
-                    at=now,
-                )
-            )
-        stall_events.extend(diff_storage(previous_storage, storage, at=now, was_blind=was_blind))
-        for event in stall_events:
+        # Count the stall, then let the supervisor decide what (if anything) it
+        # is worth saying. Edge-triggered twice: once when it starts, once when
+        # it has gone on long enough to stop being contention.
+        stall_n = state.stall_polls + 1
+        pending: list[SiliconEvent] = [
+            SiliconEvent(kind=e.kind, detail=f"{e.detail} [{type(exc).__name__}]", at=now)
+            for e in stall_events(stall_n)
+        ]
+        pending.extend(diff_storage(previous_storage, storage, at=now, was_blind=was_blind))
+        for event in pending:
             print(f"[{stamp}] {event}", flush=True)
-        await publish_events(bus, stall_events)
+        await publish_events(bus, pending)
         if not quiet:
-            print(f"[{stamp}] {storage.summary} (census unavailable)", flush=True)
+            print(f"[{stamp}] {storage.summary} (census unavailable, poll {stall_n})", flush=True)
         return CycleState(
             census=previous,
             router_down=False,
             storage=next_storage,
             census_stalled=True,
             blind=next_blind,
+            stall_polls=stall_n,
         )
 
     if census_stalled:
-        resumed = SiliconEvent(kind="census_resumed", detail="/health answering again", at=now)
+        resumed = SiliconEvent(
+            kind="census_resumed",
+            detail=f"/health answering again after {state.stall_polls} stalled poll(s)",
+            at=now,
+        )
         print(f"[{stamp}] {resumed}", flush=True)
         await publish_events(bus, [resumed])
 
@@ -387,6 +396,7 @@ async def cycle(
         storage=next_storage,
         census_stalled=False,
         blind=next_blind,
+        stall_polls=0,  # explicit: a successful census resets the escalation clock
     )
 
 

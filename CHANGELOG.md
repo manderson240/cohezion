@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — a permanently dead census warned forever and never escalated (1.12.3)
+- Making `router_unreachable` require the cheap `/api/v1/system-info` endpoint to fail (1.12.0)
+  removed a real false alarm — `/health` and `/models` block 20s+ under load, so polling them
+  paged on every busy fleet. But it left nothing that could escalate: with `/system-info` alive
+  and the census endpoints permanently dead, the supervisor emitted one warning and then warned
+  forever.
+- `stall_events(consecutive_polls)` escalates on DURATION, the same measurement that motivated
+  the original change (`/health` blocked on 2 of 3 probe rounds and answered on the third).
+  Edge-triggered at both boundaries, silent between: poll 1 → `census_stalled` (warning),
+  poll 10 → `census_stalled_persistent` (**critical**). A stall lasting hours pages twice.
+- Threshold is in polls, not seconds — the diff layer has no clock. At the 30s default that is
+  5 minutes.
+- `tests/scripts/test_silicon_supervisor_daemon.py` (new) tests the COMPOSITION: it drives the
+  real `cycle()` for 12 polls with the cheap endpoint alive and the census dead, and asserts the
+  daemon actually threads the counter. Its discriminating partner asserts a 2-poll stall never
+  escalates and resets the clock.
+
 ### Fixed — `uv sync` installed ~4.6 GB of CUDA libraries on an AMD-only box (1.12.2)
 - `pyproject.toml`: added a `pytorch-cpu` index and mapped `torch` + `torchvision` to it. The
   previous comment asserted "torch and torchvision resolve from PyPI (CPU wheels) by default for

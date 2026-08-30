@@ -34,6 +34,7 @@ __all__ = [
     "next_storage_baseline",
     "publish_events",
     "severity_of",
+    "stall_events",
 ]
 
 
@@ -70,6 +71,14 @@ _EVENT_SEVERITY: dict[str, str] = {
     # case where even the cheap endpoint fails.
     "census_stalled": "warning",
     "census_resumed": "notice",
+    # A stall that does not clear is a different animal from a busy fleet, and
+    # the measurement that motivated `census_stalled` is exactly what separates
+    # them: /health blocked on 2 of 3 probe rounds and answered on the third.
+    # Transient contention clears in seconds; a backend that has actually died
+    # never does. Without this, a permanently dead census is a WARNING forever
+    # and nobody is ever paged -- the failure mode of making `router_unreachable`
+    # stricter was to leave nothing that could escalate.
+    "census_stalled_persistent": "critical",
     # Model-store capacity. Gated on ABSOLUTE free bytes, not the used fraction
     # -- see the rationale block in silicon_residency.py. A store that cannot
     # accept a write does not announce itself; it surfaces much later as a
@@ -327,6 +336,48 @@ def _capacity_state(store: ModelStorage) -> str:
     if store.warning:
         return "low"
     return "ok"
+
+
+# Consecutive stalled polls before a census stall escalates to critical. At the
+# daemon's 30 s default that is 5 minutes -- comfortably past a busy-fleet blip
+# (the measured stall cleared within one round) and well short of an outage
+# going unnoticed for long. Expressed in POLLS rather than seconds because the
+# diff layer has no clock; the daemon owns the interval.
+_STALL_ESCALATE_POLLS = 10
+
+
+def stall_events(consecutive_polls: int) -> tuple[SiliconEvent, ...]:
+    """Events for a census stall that has now lasted `consecutive_polls` polls.
+
+    Edge-triggered at BOTH boundaries and silent in between:
+      1  -> census_stalled (warning)              "the census is unavailable"
+      N  -> census_stalled_persistent (critical)  "and it is not coming back"
+    Anything else is silence, so a stall lasting hours pages twice, not 1440
+    times -- the same flooding constraint as every other event here.
+
+    `consecutive_polls` is the count INCLUDING the current poll, so the first
+    stalled cycle passes 1. Zero means not stalled and yields nothing; the
+    daemon emits `census_resumed` on the recovery edge, which this cannot see
+    because it is only called while stalled.
+    """
+    if consecutive_polls == 1:
+        return (
+            SiliconEvent(
+                kind="census_stalled",
+                detail="/health or /models not answering; router itself is UP",
+            ),
+        )
+    if consecutive_polls == _STALL_ESCALATE_POLLS:
+        return (
+            SiliconEvent(
+                kind="census_stalled_persistent",
+                detail=(
+                    f"census unavailable for {consecutive_polls} consecutive polls; "
+                    "this is no longer transient contention"
+                ),
+            ),
+        )
+    return ()
 
 
 def next_storage_baseline(
