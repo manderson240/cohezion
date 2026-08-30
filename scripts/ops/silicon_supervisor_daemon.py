@@ -36,11 +36,22 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from typing import Any
+from typing import Any, NamedTuple
 
 from cohezion.inference.silicon_policy import DEFAULT_POLICY, plan_residency
-from cohezion.inference.silicon_residency import SiliconCensus, parse_census
-from cohezion.inference.silicon_supervisor import SiliconEvent, diff_census, publish_events
+from cohezion.inference.silicon_residency import (
+    ModelStorage,
+    SiliconCensus,
+    parse_census,
+    parse_storage,
+)
+from cohezion.inference.silicon_supervisor import (
+    SiliconEvent,
+    diff_census,
+    diff_storage,
+    next_storage_baseline,
+    publish_events,
+)
 
 
 # :13305 is the OmniRouter and the only port that matters (harness N1). The
@@ -195,24 +206,64 @@ async def _apply_plan(plan: Any, apply_pins: bool, heal: bool, quiet: bool = Fal
         )
 
 
+class CycleState(NamedTuple):
+    """State carried from one supervision cycle to the next.
+
+    A named record rather than a growing tuple because these five fields are
+    THREE independent failure axes plus two baselines, and every one of them was
+    added to fix a specific misreport:
+
+      census / storage  Diff baselines. Kept across a gap so recovery reports
+                        what actually changed instead of replaying the whole
+                        fleet as newly loaded.
+      router_down       The router is genuinely unreachable.
+      census_stalled    The router is UP but /health and /models are blocked.
+                        Conflating this with router_down pages a human every
+                        time the fleet gets busy.
+      blind             The last reading carried no model_storage block. Held
+                        separately from `storage` precisely so a blind cycle
+                        cannot overwrite the capacity baseline -- that
+                        overwrite is what stranded a critical incident open
+                        across `critical -> blind -> ok`.
+    """
+
+    census: SiliconCensus | None = None
+    router_down: bool = False
+    storage: ModelStorage | None = None  # last MEASURED reading, never a blind one
+    census_stalled: bool = False
+    blind: bool = False
+
+
 async def cycle(
-    previous: SiliconCensus | None,
+    state: CycleState,
     bus: Any | None,
     apply_changes: bool,
     quiet: bool,
-    was_down: bool = False,
     heal: bool = False,
-) -> tuple[SiliconCensus | None, bool]:
-    """One supervision cycle. Returns (census, router_is_down).
-
-    On outage the previous census is kept as the diff baseline, so recovery
-    reports the models that actually changed during the outage rather than
-    replaying the whole fleet as newly loaded.
-    """
+) -> CycleState:
+    """One supervision cycle. Returns the state to carry into the next."""
+    previous = state.census
+    previous_storage = state.storage
+    was_down = state.router_down
+    census_stalled = state.census_stalled
+    was_blind = state.blind
     stamp = time.strftime("%H:%M:%S")
+
+    # LIVENESS IS PROBED WITH THE CHEAP ENDPOINT, DELIBERATELY.
+    #
+    # Measured 2026-08-30: /api/v1/health and /api/v1/models intermittently
+    # block for 20s+ (two of three probes) while /api/v1/system-info answered in
+    # ~3ms every time. Both of the blocking endpoints enumerate loaded models
+    # and contend with whatever lock a busy backend holds; system-info reads
+    # static device state and does not.
+    #
+    # The naive daemon polls /health, times out, and reports the router down --
+    # a CRITICAL page every time the fleet gets busy, which is the same
+    # false-positive class as diagnosing a saturated router as a wedged one.
+    # Probing the endpoint that does not share the lock makes
+    # `router_unreachable` mean what it says.
     try:
-        health = await _get("/api/v1/health")
-        catalog = (await _get("/api/v1/models")).get("data", [])
+        system_info = await _get("/api/v1/system-info")
     except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
         # Emit on the EDGE, not every poll. A 24/7 outage polled at 45s would
         # otherwise produce ~1900 identical CRITICALs a day, burying every
@@ -229,7 +280,10 @@ async def cycle(
             await publish_events(bus, [outage])
         else:
             print(f"[{stamp}] (router still down: {type(exc).__name__})", flush=True)
-        return previous, True
+        # Every baseline and flag is carried through untouched: an outage tells
+        # us nothing new about capacity or the census, so it must not reset
+        # what we knew before it started.
+        return state._replace(router_down=True)
 
     if was_down:
         recovered = SiliconEvent(
@@ -240,8 +294,62 @@ async def cycle(
         print(f"[{stamp}] {recovered}", flush=True)
         await publish_events(bus, [recovered])
 
-    census = parse_census(health, catalog=catalog, checked_at=time.time())
-    events = diff_census(previous, census)
+    now = time.time()
+    storage = parse_storage(system_info)
+    # The baseline handed to the NEXT cycle is the last MEASURED storage, never
+    # a blind reading. `critical -> blind -> ok` must compare `ok` against the
+    # retained `critical`, or the incident is stranded open forever. The rule
+    # lives in the supervisor module so it is tested next to the diff it pairs
+    # with; the two are only correct together.
+    next_storage = next_storage_baseline(previous_storage, storage)
+    next_blind = not storage.measured
+
+    # The census endpoints are fetched SEPARATELY from the liveness probe above,
+    # so that their known 20s+ stalls degrade observability without being
+    # mistaken for an outage -- and, importantly, without taking capacity
+    # monitoring down with them. Storage comes from the endpoint that does not
+    # block, so the store guard keeps working through a census stall. That is
+    # not incidental: a stall means the fleet is BUSY, which is exactly when a
+    # download is most likely to be starting.
+    try:
+        health = await _get("/api/v1/health")
+        catalog = (await _get("/api/v1/models")).get("data", [])
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+        stall_events: list[SiliconEvent] = []
+        if not census_stalled:
+            stall_events.append(
+                SiliconEvent(
+                    kind="census_stalled",
+                    detail=f"{type(exc).__name__} on /health or /models; router itself is UP",
+                    at=now,
+                )
+            )
+        stall_events.extend(diff_storage(previous_storage, storage, at=now, was_blind=was_blind))
+        for event in stall_events:
+            print(f"[{stamp}] {event}", flush=True)
+        await publish_events(bus, stall_events)
+        if not quiet:
+            print(f"[{stamp}] {storage.summary} (census unavailable)", flush=True)
+        return CycleState(
+            census=previous,
+            router_down=False,
+            storage=next_storage,
+            census_stalled=True,
+            blind=next_blind,
+        )
+
+    if census_stalled:
+        resumed = SiliconEvent(kind="census_resumed", detail="/health answering again", at=now)
+        print(f"[{stamp}] {resumed}", flush=True)
+        await publish_events(bus, [resumed])
+
+    census = parse_census(health, catalog=catalog, checked_at=now)
+    # Storage events ride the same publish path as residency events so a single
+    # `accepted` count covers the cycle and one bus failure cannot deliver half
+    # the picture.
+    events = diff_census(previous, census) + diff_storage(
+        previous_storage, storage, at=now, was_blind=was_blind
+    )
 
     for event in events:
         print(f"[{stamp}] {event}", flush=True)
@@ -265,6 +373,7 @@ async def cycle(
     )
     if not quiet:
         print(f"[{stamp}] {census.summary} | {plan.summary}", flush=True)
+        print(f"[{stamp}] {storage.summary}", flush=True)
         for warning in plan.warnings:
             print(f"    WARN    {warning}", flush=True)
         for refusal in plan.refused:
@@ -272,7 +381,13 @@ async def cycle(
     if plan.actions:
         await _apply_plan(plan, apply_pins=apply_changes, heal=heal, quiet=quiet)
 
-    return census, False
+    return CycleState(
+        census=census,
+        router_down=False,
+        storage=next_storage,
+        census_stalled=False,
+        blind=next_blind,
+    )
 
 
 async def run(args: argparse.Namespace) -> int:
@@ -290,14 +405,11 @@ async def run(args: argparse.Namespace) -> int:
         flush=True,
     )
 
-    previous: SiliconCensus | None = None
-    was_down = False
+    state = CycleState()
     cycles = 0
     try:
         while _running:
-            previous, was_down = await cycle(
-                previous, bus, args.apply, args.quiet, was_down, args.heal
-            )
+            state = await cycle(state, bus, args.apply, args.quiet, args.heal)
             cycles += 1
             if args.once or (args.max_cycles and cycles >= args.max_cycles):
                 break

@@ -20,7 +20,7 @@ import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from cohezion.inference.silicon_residency import ResidentModel, SiliconCensus
+from cohezion.inference.silicon_residency import ModelStorage, ResidentModel, SiliconCensus
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,8 @@ __all__ = [
     "SiliconEvent",
     "bus_event_type_name",
     "diff_census",
+    "diff_storage",
+    "next_storage_baseline",
     "publish_events",
     "severity_of",
 ]
@@ -56,6 +58,29 @@ _EVENT_SEVERITY: dict[str, str] = {
     "pin_lost": "warning",  # a protected model is no longer protected
     "router_unreachable": "critical",
     "router_recovered": "notice",  # paired with router_unreachable, closes the incident
+    # MEASURED 2026-08-30: /api/v1/health and /api/v1/models intermittently
+    # block for 20s+ while /api/v1/system-info answers in ~3ms throughout. The
+    # first two enumerate loaded models and evidently contend with a lock a busy
+    # backend holds; system-info reads static device state and does not.
+    #
+    # So a /health timeout is NOT evidence the router is down, and reporting it
+    # as `router_unreachable` would page a human every time the fleet got busy.
+    # This kind means "the census is unavailable this cycle" -- degraded
+    # observability, not an outage. `router_unreachable` is now reserved for the
+    # case where even the cheap endpoint fails.
+    "census_stalled": "warning",
+    "census_resumed": "notice",
+    # Model-store capacity. Gated on ABSOLUTE free bytes, not the used fraction
+    # -- see the rationale block in silicon_residency.py. A store that cannot
+    # accept a write does not announce itself; it surfaces much later as a
+    # mid-download failure in whatever job happened to need a model next.
+    "store_critical": "critical",  # cannot fit even a small model
+    "store_low": "warning",  # roughly one mid-size model of notice left
+    "store_recovered": "notice",  # paired, closes a store incident
+    # Not a store problem -- a BLINDNESS problem. The server stopped reporting
+    # capacity, so the guard above is now inert. Worth saying once, because a
+    # silent guard and a healthy store look identical from the outside.
+    "store_unmeasured": "notice",
 }
 
 
@@ -254,13 +279,23 @@ async def publish_events(bus: object, events: Sequence[SiliconEvent]) -> int:
         logger.warning("event bus unavailable (%s); silicon events not published", exc)
         return 0
 
+    # `bus` is typed `object` on purpose: this module must not import EventBus
+    # at module scope (the daemon has to run when the bus is unavailable, and
+    # the import above is what decides that). The trade is that the attribute
+    # access below is invisible to the type checker, so name it explicitly here
+    # rather than leaving a standing error for a reader to re-diagnose.
+    publish = getattr(bus, "publish", None)
+    if publish is None:
+        logger.error("bus has no publish(); %d silicon event(s) dropped", len(events))
+        return 0
+
     published = 0
     for event in events:
         try:
             etype = getattr(EventType, bus_event_type_name(event.kind), None) or (
                 EventType.SYSTEM_HEALTH
             )
-            ok = await bus.publish(
+            ok = await publish(
                 Event(
                     type=etype,
                     source="silicon_supervisor",
@@ -278,3 +313,102 @@ async def publish_events(bus: object, events: Sequence[SiliconEvent]) -> int:
         except Exception:
             logger.exception("failed publishing silicon event %s", event.kind)
     return published
+
+
+def _capacity_state(store: ModelStorage) -> str:
+    """Collapse a MEASURED store to the label alerting cares about.
+
+    Callers must not pass an unmeasured store: capacity and measurability are
+    separate axes (see `diff_storage`), and folding "we could not read it" in
+    here as a fourth value is what produced the stuck-incident bug below.
+    """
+    if store.critical:
+        return "critical"
+    if store.warning:
+        return "low"
+    return "ok"
+
+
+def next_storage_baseline(
+    previous: ModelStorage | None,
+    current: ModelStorage,
+) -> ModelStorage | None:
+    """The capacity baseline to carry into the next cycle.
+
+    Lives here, named and tested, rather than inline in the daemon, because it
+    is where the stranded-incident bug actually was. `diff_storage` was only
+    ever as correct as the baseline it was handed: a caller that carried a blind
+    reading forward destroyed the memory of an open incident no matter how the
+    diff was written, and the two are only correct together.
+    """
+    return current if current.measured else previous
+
+
+def diff_storage(
+    previous: ModelStorage | None,
+    current: ModelStorage,
+    at: float = 0.0,
+    was_blind: bool = False,
+) -> tuple[SiliconEvent, ...]:
+    """Emit store-capacity events on STATE CHANGE only.
+
+    `previous` is the last MEASURED storage (or None), NOT simply the last
+    reading; `was_blind` says whether the previous cycle failed to measure.
+    Capacity and measurability are tracked as two independent state machines,
+    and that separation is load-bearing rather than tidiness:
+
+        An unmeasured reading is not an observation of the store, so it must
+        not be allowed to overwrite what we last knew about capacity.
+
+    The single-machine version, where `unmeasured` was a fourth capacity state,
+    had a hole two independent reviewers found before this landed:
+    `critical -> unmeasured -> ok` compared `ok` against a prior of
+    `unmeasured`, matched no recovery branch, and emitted nothing -- leaving a
+    critical incident open forever while the store was in fact fine. A test in
+    this suite asserted that silence was correct, which is how the bug survived
+    being written down.
+
+    Edge-triggered on both axes, deliberately. Level-triggered, a store that
+    stays full re-emits `store_critical` every poll: at 30s that is 2880
+    identical CRITICALs a day for one unchanging condition -- the same flooding
+    already fixed twice for `backend_unhealthy` and `router_unreachable`.
+
+    A `None` previous means first observation: a standing problem is still
+    reported (a store that was full before the supervisor started is still
+    full), but a healthy store produces nothing.
+    """
+    # --- Axis 1: measurability. Does not touch the capacity baseline. ---
+    if not current.measured:
+        if was_blind:
+            return ()
+        return (
+            SiliconEvent(
+                kind="store_unmeasured",
+                detail="server stopped reporting model_storage; capacity guard is inert",
+                at=at,
+            ),
+        )
+
+    # --- Axis 2: capacity. Only advances on measured observations. ---
+    #
+    # No paired "measurement resumed" event: `store_unmeasured` is a notice, not
+    # an incident needing closure, and resumption is directly observable because
+    # capacity events start flowing again. Coming back from blindness into the
+    # SAME capacity state is correctly silent -- the incident was never closed,
+    # so re-announcing it would be the duplicate this function exists to avoid.
+    state = _capacity_state(current)
+    prior = _capacity_state(previous) if previous is not None else None
+
+    if state == prior:
+        return ()
+
+    detail = current.summary
+    if state == "critical":
+        return (SiliconEvent(kind="store_critical", detail=detail, at=at),)
+    if state == "low":
+        return (SiliconEvent(kind="store_low", detail=detail, at=at),)
+    # state == "ok". Only meaningful as the close of an incident -- announcing a
+    # healthy store on the first observation is noise, not news.
+    if prior in ("critical", "low"):
+        return (SiliconEvent(kind="store_recovered", detail=detail, at=at),)
+    return ()

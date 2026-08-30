@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — model-store capacity guard + router liveness split (1.12.0)
+- `inference/silicon_residency.py`: `ModelStorage` + `parse_storage()` read `model_storage` from
+  `:13305/api/v1/system-info`. Measured on the live router: 764 GiB used of 769, **5.57 GiB free**
+  — less than a single mid-size GGUF. No existing probe could see it: every fleet probe reads
+  *memory* residency, and the store is mode `0750` under `User=lemonade`, so
+  `du -sh /var/lib/* 2>/dev/null` reports ~15 GB for all of `/var/lib` because the
+  `Permission denied` goes to stderr.
+- Alerts gate on **absolute free bytes**, not the used fraction. On ZFS statvfs `total` is
+  `used + pool-wide available` minus withheld slop, so the denominator moves for reasons unrelated
+  to this store; a 100 GiB store at 88% used looks unremarkable and still cannot accept the 17 GB
+  model the fleet runs. The fraction is retained as a secondary dashboard signal.
+- An unmeasured store is a third state, never "healthy": `headroom_for_gb()` returns
+  `bool | None`, because reading unmeasured as `False` blocks legitimate work and as `True` walks
+  into a mid-download ENOSPC.
+- `inference/silicon_supervisor.py`: `diff_storage()` + `next_storage_baseline()` and the event
+  kinds `store_critical` / `store_low` / `store_recovered` / `store_unmeasured`, all
+  edge-triggered — level-triggered, one unchanging condition emits 2880 identical CRITICALs a day
+  at a 30s poll.
+
+### Fixed — `/api/v1/health` was being used as a liveness oracle
+- Measured: `/health` and `/models` blocked for 20s+ on two of three probe rounds while
+  `/system-info` answered in ~3ms throughout. Both blocking endpoints enumerate loaded models and
+  contend with a lock a busy backend holds. A supervisor polling `/health` with a 10s timeout
+  emitted `router_unreachable` (CRITICAL) every time the fleet got busy.
+- `scripts/ops/silicon_supervisor_daemon.py` now probes `system-info` for liveness. A `/health`
+  stall emits `census_stalled` (warning) / `census_resumed` (notice); `router_unreachable` requires
+  the cheap endpoint to fail too. Storage monitoring continues through a census stall, since it
+  reads the endpoint that does not block.
+
+### Fixed — stranded capacity incident across a blind cycle
+- Found by two independent review lanes before landing. With `unmeasured` as a fourth *capacity*
+  state, `critical -> blind -> ok` compared `ok` against a prior of `unmeasured`, matched no
+  recovery branch, and emitted nothing — leaving a critical incident open for the life of the
+  process. A test in the suite had asserted that silence was correct.
+- Capacity and measurability are now separate axes; `next_storage_baseline()` retains the last
+  **measured** store so a blind cycle cannot erase an open incident. Mutation-verified: the buggy
+  caller's event sequence is a strict *prefix* of the correct one, so the failure is a missing
+  event and nothing in the logs looks anomalous.
+
 ### Fixed — loop_mcp datamesh bus write path (1.11.1)
 - `mcp/loop_mcp.py`: `event_publish` reported `success: true` while writing zero rows. SurrealDB
   answers HTTP 200 for SurrealQL *statement* errors, placing the failure in the body as

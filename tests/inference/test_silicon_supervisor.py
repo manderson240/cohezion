@@ -12,11 +12,13 @@ import asyncio
 
 import pytest
 
-from cohezion.inference.silicon_residency import parse_census
+from cohezion.inference.silicon_residency import ModelStorage, parse_census
 from cohezion.inference.silicon_supervisor import (
     SiliconEvent,
     bus_event_type_name,
     diff_census,
+    diff_storage,
+    next_storage_baseline,
     publish_events,
     severity_of,
 )
@@ -358,3 +360,179 @@ def test_outage_and_recovery_are_a_matched_pair() -> None:
     assert severity_of("router_recovered") == "notice"
     assert bus_event_type_name("router_unreachable") == "SYSTEM_HEALTH"
     assert bus_event_type_name("router_recovered") == "SYSTEM_HEALTH"
+
+
+# ---------------------------------------------------------------------------
+# Model-store capacity events
+# ---------------------------------------------------------------------------
+
+
+def _store(free_gb: float, total_gb: float = 769.0) -> ModelStorage:
+    total = int(total_gb * 1024**3)
+    free = int(free_gb * 1024**3)
+    return ModelStorage(path="/store", total_bytes=total, used_bytes=total - free, free_bytes=free)
+
+
+CRITICAL = _store(5.5)  # the live 2026-08-30 condition
+LOW = _store(15.0)
+OK = _store(400.0)
+UNMEASURED = ModelStorage()
+
+
+def test_t2_repeated_critical_state_emits_once_not_every_poll() -> None:
+    """The whole point of edge-triggering, and the bug this file already had twice.
+
+    Level-triggered, a store that stays full emits `store_critical` on every
+    cycle: at a 30s interval that is 2880 identical CRITICALs a day for one
+    unchanging condition. An operator who scrolls past 2879 of them scrolls past
+    the 2880th. Neutralise the `state == prior` check and this test goes red.
+    """
+    first = diff_storage(None, CRITICAL, at=1.0)
+    assert [e.kind for e in first] == ["store_critical"]
+
+    for _ in range(5):
+        assert diff_storage(CRITICAL, CRITICAL, at=2.0) == ()
+
+
+def test_t2_standing_problem_is_reported_on_first_observation() -> None:
+    """A store that was already full before the supervisor started is still full.
+
+    The `None` previous must not be treated as "no transition, stay quiet" --
+    that would make a restart silence a live incident.
+    """
+    events = diff_storage(None, CRITICAL, at=1.0)
+    assert len(events) == 1
+    assert events[0].severity == "critical"
+
+
+def test_t2_healthy_store_is_never_announced() -> None:
+    """No news is not news. A first observation of a fine store says nothing,
+    and neither does a fine store that stays fine."""
+    assert diff_storage(None, OK, at=1.0) == ()
+    assert diff_storage(OK, OK, at=2.0) == ()
+
+
+def test_t2_recovery_closes_the_incident_but_only_after_one() -> None:
+    recovered = diff_storage(CRITICAL, OK, at=3.0)
+    assert [e.kind for e in recovered] == ["store_recovered"]
+    assert recovered[0].severity == "notice"
+    # ...and low -> ok also closes, since low was itself an alert.
+    assert [e.kind for e in diff_storage(LOW, OK, at=4.0)] == ["store_recovered"]
+    # A store that was never in trouble does not "recover".
+    assert diff_storage(OK, OK, at=5.0) == ()
+
+
+def test_t2_blindness_does_not_strand_an_open_capacity_incident() -> None:
+    """critical -> blind -> ok must still close the incident.
+
+    THE REGRESSION THIS FILE ONCE ASSERTED AS CORRECT. When `unmeasured` was a
+    fourth capacity state, the recovery branch compared `ok` against a prior of
+    `unmeasured`, matched nothing, and emitted no event -- so an operator who
+    saw `store_critical` never saw it cleared, for the rest of the process's
+    life. Two independent reviewers found it; the test here had frozen the bug
+    in place by asserting the silence was intended.
+
+    The fix is that a blind reading is not an observation of capacity, so the
+    caller carries the last MEASURED store forward as the baseline. This test
+    encodes that contract: `previous` is CRITICAL (retained across the blind
+    cycle), not UNMEASURED.
+    """
+    # Cycle N: critical.
+    assert [e.kind for e in diff_storage(None, CRITICAL, at=1.0)] == ["store_critical"]
+    # Cycle N+1: server stops reporting. Capacity baseline is NOT overwritten.
+    assert [e.kind for e in diff_storage(CRITICAL, UNMEASURED, at=2.0)] == ["store_unmeasured"]
+    # Cycle N+2: reporting resumes and space was freed. The incident closes.
+    events = diff_storage(CRITICAL, OK, at=3.0, was_blind=True)
+    assert [e.kind for e in events] == ["store_recovered"]
+
+
+def test_t2_a_blind_reading_never_becomes_the_capacity_baseline() -> None:
+    """The rule the stranded-incident bug actually violated.
+
+    `diff_storage` is only ever as correct as the baseline it is handed. The
+    original defect was not in the diff at all -- it was the caller storing an
+    unmeasured reading as `previous`, which erased the memory of the open
+    incident before the diff ever ran. An implementation that returns `current`
+    unconditionally fails this test.
+    """
+    assert next_storage_baseline(CRITICAL, UNMEASURED) is CRITICAL
+    assert next_storage_baseline(LOW, UNMEASURED) is LOW
+    # A measured reading always supersedes.
+    assert next_storage_baseline(CRITICAL, OK) is OK
+    # Nothing to retain yet is still nothing.
+    assert next_storage_baseline(None, UNMEASURED) is None
+
+
+def test_t2_full_blind_sequence_through_the_real_baseline_rule() -> None:
+    """End-to-end over the three cycles, using the caller's actual rule.
+
+    The per-function tests above each pass with the buggy pairing (a correct
+    diff fed a destroyed baseline, or vice versa); only composing them the way
+    the daemon does exercises the defect.
+    """
+    baseline: ModelStorage | None = None
+    blind = False
+    seen: list[str] = []
+
+    for reading in (CRITICAL, UNMEASURED, OK):
+        seen.extend(e.kind for e in diff_storage(baseline, reading, at=0.0, was_blind=blind))
+        baseline = next_storage_baseline(baseline, reading)
+        blind = not reading.measured
+
+    assert seen == ["store_critical", "store_unmeasured", "store_recovered"]
+
+
+def test_t2_returning_from_blindness_unchanged_is_silent() -> None:
+    """Coming back blind-side-up into the SAME state re-announces nothing.
+
+    The incident was never closed, so a second `store_critical` would be the
+    duplicate that edge-triggering exists to prevent.
+    """
+    assert diff_storage(CRITICAL, CRITICAL, at=1.0, was_blind=True) == ()
+
+
+def test_t2_each_severity_step_is_reported_separately() -> None:
+    """ok -> low -> critical must produce two distinct events, not one.
+
+    An implementation that only distinguishes "alerting" from "not alerting"
+    stays silent on the low -> critical step, which is the transition an
+    operator most needs to see.
+    """
+    assert [e.kind for e in diff_storage(OK, LOW, at=1.0)] == ["store_low"]
+    assert [e.kind for e in diff_storage(LOW, CRITICAL, at=2.0)] == ["store_critical"]
+
+
+def test_t2_going_blind_is_reported_as_blindness_not_as_health() -> None:
+    """If the server stops reporting capacity, the guard is inert.
+
+    That is not the same as the store being fine, and it is not the same as the
+    store being full -- it is its own state, and it needs saying exactly once.
+    """
+    events = diff_storage(OK, UNMEASURED, at=1.0)
+    assert [e.kind for e in events] == ["store_unmeasured"]
+    assert "inert" in events[0].detail
+    # Edge-triggered on its own axis: staying blind says nothing further.
+    assert diff_storage(OK, UNMEASURED, at=2.0, was_blind=True) == ()
+
+
+def test_t1_store_severities_are_mapped_not_defaulted() -> None:
+    assert severity_of("store_critical") == "critical"
+    assert severity_of("store_low") == "warning"
+    assert severity_of("store_recovered") == "notice"
+    assert severity_of("store_unmeasured") == "notice"
+    # census_stalled is deliberately NOT critical: /health blocking under load
+    # is degraded observability, not an outage. See the daemon's liveness note.
+    assert severity_of("census_stalled") == "warning"
+    assert severity_of("census_resumed") == "notice"
+
+
+def test_t2_census_stall_is_not_as_severe_as_a_real_outage() -> None:
+    """Measured 2026-08-30: /health blocks 20s+ while system-info answers in 3ms.
+
+    Reporting a stall at the same severity as `router_unreachable` would page a
+    human every time the fleet got busy. The two must not rank equally.
+    """
+    ranks = {"info": 0, "notice": 1, "warning": 2, "critical": 3}
+    assert ranks[severity_of("census_stalled")] < ranks[severity_of("router_unreachable")]
+    # ...but it is still actionable, not chatter.
+    assert SiliconEvent(kind="census_stalled").actionable is True

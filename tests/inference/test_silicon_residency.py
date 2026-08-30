@@ -13,10 +13,12 @@ from __future__ import annotations
 
 from cohezion.inference.silicon_residency import (
     DeviceOccupancy,
+    ModelStorage,
     ResidentModel,
     SiliconCensus,
     normalize_device,
     parse_census,
+    parse_storage,
 )
 
 
@@ -368,3 +370,161 @@ def test_occupancy_for_absent_device_is_empty_not_error() -> None:
     assert occ.count == 0
     assert occ.busy is False
     assert occ.idle is False
+
+
+# ---------------------------------------------------------------------------
+# Model-store capacity
+#
+# LIVE_SYSTEM_INFO is the verbatim `model_storage` block from
+# GET :13305/api/v1/system-info on 2026-08-30, the observation that motivated
+# this code: 5.57 GiB free on a 769 GiB store, with no existing probe able to
+# see it (every fleet probe reads memory residency, and the store is mode 0750
+# so unprivileged `du` skips it silently).
+# ---------------------------------------------------------------------------
+
+LIVE_SYSTEM_INFO: dict = {
+    "model_storage": {
+        "path": "/var/lib/lemonade/.cache/huggingface/hub",
+        "total_bytes": 825885065216,
+        "used_bytes": 819901759488,
+        "free_bytes": 5983305728,
+    }
+}
+
+
+def test_t1_default_storage_is_unmeasured_not_empty() -> None:
+    assert ModelStorage().measured is False
+    assert ModelStorage().total_bytes == 0
+
+
+def test_t1_live_payload_parses_all_fields() -> None:
+    store = parse_storage(LIVE_SYSTEM_INFO)
+    assert store.measured is True
+    assert store.path == "/var/lib/lemonade/.cache/huggingface/hub"
+    assert store.free_gb == 5.57
+    assert store.total_gb == 769.17
+
+
+def test_t2_unmeasured_store_never_reads_as_healthy() -> None:
+    """The central false negative: an unread store must not look like a fine one.
+
+    All-defaults gives used_bytes == 0, so an implementation without the
+    `measured` guard computes used_fraction == 0.0 and reports a perfectly
+    healthy, completely empty store. Every verdict must decline instead.
+    """
+    store = parse_storage(None)
+    assert store.critical is False
+    assert store.warning is False
+    assert store.pressure_critical is False
+    assert store.pressure_warning is False
+    # ...and it must not claim room either. Tri-state, not False, not True.
+    assert store.headroom_for_gb(500.0) is None
+    assert store.headroom_for_gb(0.0) is None
+
+
+def test_t2_absolute_free_gates_the_download_not_the_fraction() -> None:
+    """A store can be low on bytes while its fraction looks unremarkable.
+
+    100 GiB total at 88% used is below BOTH fractional bands -- nothing an
+    operator would look twice at -- yet 12 GiB free cannot accept the 17 GiB
+    model this fleet actually runs. An implementation that gates on the fraction
+    stays silent here; gating on free bytes warns, which is the correct call.
+
+    This is why the fraction is secondary: it scales with the store, and the
+    question "will the next model fit" does not.
+    """
+    store = parse_storage(
+        {
+            "model_storage": {
+                "total_bytes": 100 * 1024**3,
+                "used_bytes": 88 * 1024**3,
+                "free_bytes": 12 * 1024**3,
+            }
+        }
+    )
+    assert store.warning is True
+    assert store.critical is False
+    assert store.headroom_for_gb(17.0) is False
+    # Neither fractional band fires for this store.
+    assert store.pressure_critical is False
+    assert store.pressure_warning is False
+
+
+def test_t2_warning_and_critical_are_mutually_exclusive() -> None:
+    """Both firing for one observation is a double-alert, which trains operators
+    to ignore the noisier one."""
+    live = parse_storage(LIVE_SYSTEM_INFO)
+    assert live.critical is True
+    assert live.warning is False
+
+    mid = parse_storage(
+        {
+            "model_storage": {
+                "total_bytes": 100 * 1024**3,
+                "used_bytes": 85 * 1024**3,
+                "free_bytes": 15 * 1024**3,
+            }
+        }
+    )
+    assert mid.warning is True
+    assert mid.critical is False
+
+    roomy = parse_storage(
+        {
+            "model_storage": {
+                "total_bytes": 100 * 1024**3,
+                "used_bytes": 10 * 1024**3,
+                "free_bytes": 90 * 1024**3,
+            }
+        }
+    )
+    assert roomy.warning is False
+    assert roomy.critical is False
+
+
+def test_t2_bool_fields_do_not_forge_a_measured_store() -> None:
+    """`isinstance(True, int)` is True in Python.
+
+    Without an explicit bool guard, a payload carrying `"total_bytes": true`
+    parses as a measured 1-byte store that is 100% full -- a fabricated critical
+    alert produced entirely by a type coercion.
+    """
+    store = parse_storage(
+        {"model_storage": {"total_bytes": True, "used_bytes": True, "free_bytes": True}}
+    )
+    assert store.measured is False
+    assert store.pressure_critical is False
+
+
+def test_t2_negative_bytes_clamp_rather_than_invert_the_fraction() -> None:
+    store = parse_storage(
+        {"model_storage": {"total_bytes": 100 * 1024**3, "used_bytes": -5, "free_bytes": -5}}
+    )
+    assert store.used_fraction == 0.0
+    assert store.free_gb == 0.0
+    assert store.critical is True
+
+
+def test_t2_live_store_is_critical_and_cannot_take_a_midsize_model() -> None:
+    store = parse_storage(LIVE_SYSTEM_INFO)
+    assert store.critical is True
+    assert store.pressure_critical is True
+    assert store.used_fraction >= 0.99
+    # The smallest catalog GGUF (~0.36 GB) still fits; a mid-size one does not.
+    assert store.headroom_for_gb(0.36) is True
+    assert store.headroom_for_gb(17.0) is False
+
+
+def test_malformed_storage_payloads_do_not_raise() -> None:
+    for payload in (
+        None,
+        {},
+        {"model_storage": None},
+        {"model_storage": []},
+        {"model_storage": "nope"},
+        {"model_storage": {"path": 42}},
+        {"model_storage": {"total_bytes": "1000"}},
+    ):
+        store = parse_storage(payload)  # type: ignore[arg-type]
+        assert store.measured is False
+        assert "unmeasured" in store.summary
