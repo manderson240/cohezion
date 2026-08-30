@@ -910,6 +910,18 @@ class SkillRefiner:
         )
 
         # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good) — use directly
+        #
+        # AQ6 (2026-08-30) — DELIBERATELY *not* `metrics_dict.get("output_quality_score", ...)`.
+        # CompoundExecutor Step 3.9 now publishes a real measurement of the output text, and
+        # aliasing it here is the obvious-looking next move. It is wrong, and the measurement
+        # says so: `quality_eval.evaluate` is calibrated as a TIER-ESCALATION gate ("is this
+        # substantial enough not to escalate?"), not as answer correctness. Measured — a correct
+        # answer of "Yes." to a short_answer task scores 0.00/rejected purely for being under 10
+        # chars. Feeding that here would drive DifficultyEstimator (_QUALITY_FLOOR = 0.6),
+        # _auto_update_goal (< 0.5) and the ERP surprise signal to punish terse-but-correct
+        # output and escalate to costlier tiers — a Quarter-on-a-String regression.
+        # Guarded by tests/compound/test_autodqa_quality_wiring.py::TestAQ6ScaleMismatch.
+        # Wiring it requires a calibration experiment first, not a one-line alias.
         quality_score = anomaly_score
 
         # Calculate token efficiency (tokens per second)

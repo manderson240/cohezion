@@ -35,6 +35,26 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
+    # AQ1/AQ5 (2026-08-30): promoted OUT of KNOWN_DORMANT. quality_eval.evaluate was dormant on the
+    # production path — its only consumer was AutoDQA, which make_executor never built, so the whole
+    # type-aware evaluator (and the autodqa_results table that model/training_data.py reads) had no
+    # producer. Two pins, one per link, so breaking EITHER re-fails: the factory must inject the
+    # evaluator and the executor must actually call it.
+    # NOTE: there is deliberately NO pin binding this to SkillRefiner.quality_score. The scores are
+    # escalation-gate verdicts, not correctness — aliasing them into the learner is guarded AGAINST
+    # by tests/compound/test_autodqa_quality_wiring.py::TestAQ6ScaleMismatch.
+    (
+        "AQ1: executor CONSUMES the quality evaluator (evaluates output text)",
+        r"self\._quality_evaluator\.evaluate\(",
+        "src/cohezion/compound/executor.py",
+        1,
+    ),
+    (
+        "AQ5: make_executor INJECTS the AutoDQA quality evaluator",
+        r"kwargs\[.quality_evaluator.\] = AutoDQA\(",
+        "src/cohezion/compound/executor_factory.py",
+        1,
+    ),
     (
         "H2: jepa_coherence CONSUMED by DegradationDetector",
         r"jepa_coherence",
@@ -152,9 +172,6 @@ KNOWN_DORMANT: list[str] = [
     "transition_controller.enum_schema — works (response_format enum, llamacpp lanes) but has no "
     "production caller. Wiring target: the agentic-loop next-state pick it was written for "
     "(one unrepeated probe suggested this path is costlier than bare GBNF — n=1, not established)",
-    "quality_eval.evaluate — sole consumer is AutoDQA, which is itself absent from make_executor, "
-    "so it is dormant ON THE PRODUCTION PATH. (2026-08-14: the semantic-agreement gate landed in "
-    "AutoDQA.evaluate — the weak-gate half is addressed; the make_executor wiring gap remains)",
     "RiemannianGlideTrajectory — geodesic integration made CORRECT 2026-07-29 (was silently "
     "straight-line under any curved metric) but has NO production consumer: only "
     "physics/__init__ re-exports it. INVESTIGATED 2026-07-29 — do NOT wire it: "

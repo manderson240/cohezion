@@ -185,6 +185,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         rubric_middleware: Any | None = None,
         inference_provider: Any | None = None,
         jepa_gate: Any | None = None,
+        quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
         semantic_cache: Any | None = None,
         enable_semantic_cache: bool = False,
@@ -236,6 +237,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         self._inference_provider = inference_provider
         self._jepa_gate = jepa_gate
+        # AQ1: measures OUTPUT quality from the response text. Distinct from
+        # anomaly_score, which is behavioural health derived from telemetry.
+        self._quality_evaluator = quality_evaluator
         self._token_ledger = token_ledger
         # PR 2: card-aligned semantic cache. When enable_semantic_cache=True
         # and no cache is provided, a default SemanticCache() is created.
@@ -1156,6 +1160,60 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         output = output_check.modified_input
                         metrics["output_sanitized_by_guardrails"] = True
                         logger.debug("Task output sanitized")
+
+        # Step 3.9: AQ1 — measure the OUTPUT TEXT via AutoDQA -> quality_eval.
+        #
+        # Closes a production-path dormancy: quality_eval.evaluate's only consumer
+        # was AutoDQA, and make_executor never built one, so the whole type-aware
+        # evaluator (AST-parses code, checks uncertainty markers, length-gates per
+        # output_type) plus its mutation-verified AG1-AG4 agreement gate never ran.
+        # (The factory injects it with persist=False — the `autodqa_results` table
+        # still has no producer; see the AQ5 block for the measurement that decided
+        # that, and AQ7 for the un-awaited-write bug behind it.)
+        #
+        # Runs AFTER the output guardrails so it scores the final, possibly
+        # sanitized text.
+        #
+        # KEY NAMING IS DELIBERATE — `output_quality_*`, never `quality_score`.
+        # These two are different quantities and conflating them is a real defect:
+        # `quality_score` (SkillRefiner/DifficultyEstimator/AdaJEPA) is a 0-1 HEALTH
+        # score where ~0.5 is neutral, whereas this is an ESCALATION-gate verdict
+        # ("substantial enough not to escalate?"). Measured: a correct "Yes." scores
+        # 0.00/rejected for being under 10 chars. Publishing it as `quality_score`
+        # would make GIC punish terse-but-correct answers and escalate to costlier
+        # tiers. See TestAQ6ScaleMismatch for the executable evidence.
+        #
+        # This is TELEMETRY, not a gate: it never sets success=False and never
+        # rewrites `output` (the guardrail pipeline above owns that role). Failing
+        # the task here would suppress pattern extraction, skill refinement and
+        # cache writes for merely terse answers.
+        #
+        # Deference (AQ4): an execute_fn that measured its own lane keeps its value.
+        # Fail-open (AQ2): any failure publishes NO key rather than a fabricated
+        # score — an unmeasurable signal must never read as a confident verdict.
+        if (
+            self._quality_evaluator is not None
+            and success
+            and output
+            and "output_quality_score" not in metrics
+        ):
+            try:
+                dqa = self._quality_evaluator.evaluate(str(output), task_description)
+                # Assign only after a complete evaluation so a mid-flight raise
+                # cannot leave a partially-populated verdict behind.
+                metrics["output_quality_score"] = dqa.verdict.score
+                metrics["output_quality_accept"] = dqa.verdict.accept
+                metrics["output_quality_band"] = dqa.quality_band
+                metrics["output_quality_reason"] = dqa.verdict.reason
+                if not dqa.verdict.accept:
+                    logger.info(
+                        "Output below escalation gate (non-blocking): skill=%s score=%.2f (%s)",
+                        skill_name,
+                        dqa.verdict.score,
+                        dqa.verdict.reason,
+                    )
+            except Exception as e:
+                logger.debug("Output quality evaluation failed (non-blocking): %s", e)
 
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
