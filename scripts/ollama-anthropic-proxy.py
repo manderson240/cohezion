@@ -17,7 +17,7 @@ OLLAMA_BASE = "http://localhost:11434"
 MODEL_MAP = {
     "claude-opus-4-6": "gemma4:26b",
     "claude-sonnet-4-6": "gemma4:e4b",
-    "claude-haiku-4-5-20251213": "phi3:mini",
+    "claude-haiku-4-5": "phi3:mini",
     "opus": "gemma4:26b",
     "sonnet": "gemma4:e4b",
     "haiku": "phi3:mini",
