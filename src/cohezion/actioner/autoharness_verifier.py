@@ -157,8 +157,17 @@ class AutoHarnessVerifier(Verifier):
                     if full_imp in self.disallowed_imports or mod in self.disallowed_imports:
                         errors.append(f"Disallowed import: '{full_imp}'")
             elif isinstance(node, ast.Call):
-                if isinstance(node.func, ast.Name) and node.func.id in {"eval", "exec"}:
-                    errors.append(f"Forbidden call: '{node.func.id}()'")
+                # Bare eval/exec names, or dotted forbidden calls (os.system,
+                # subprocess.Popen, ...) — dotted targets live in disallowed_imports
+                # but are CALL targets, not import aliases, so the import checks
+                # above never matched them (proof6 regression)
+                func_name = ""
+                if isinstance(node.func, ast.Name):
+                    func_name = node.func.id
+                elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+                    func_name = f"{node.func.value.id}.{node.func.attr}"
+                if func_name and (func_name in self.disallowed_imports or func_name in {"eval", "exec"}):
+                    errors.append(f"Forbidden call: '{func_name}()'")
 
         # 3. Cyclomatic Complexity Calculation (Branch Count)
         complexity = 1
