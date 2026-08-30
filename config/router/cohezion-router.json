@@ -1,0 +1,263 @@
+{
+  "version": "1",
+  "model_name": "user.cohezion-router",
+  "recipe": "collection.router",
+  "components": [
+    "llama3.2-1b-FLM",
+    "qwen3-4b-FLM",
+    "qwen3vl-it-4b-FLM",
+    "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+    "deepseek-r1-0528-8b-FLM"
+  ],
+  "routing": {
+    "candidates": [
+      "llama3.2-1b-FLM",
+      "qwen3-4b-FLM",
+      "qwen3vl-it-4b-FLM",
+      "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+      "deepseek-r1-0528-8b-FLM"
+    ],
+    "default_model": "qwen3-4b-FLM",
+    "rules": [
+      {
+        "id": "vision",
+        "match": {
+          "has_images": true
+        },
+        "route_to": "qwen3vl-it-4b-FLM",
+        "outputs": {
+          "reason": "vision"
+        }
+      },
+      {
+        "id": "agentic-tools",
+        "match": {
+          "has_tools": true
+        },
+        "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "outputs": {
+          "reason": "tool-carrying agentic turn"
+        }
+      },
+      {
+        "id": "code",
+        "match": {
+          "any": [
+            {
+              "keywords_any": [
+                "def ",
+                "function",
+                "write code",
+                "implement",
+                "bug",
+                "fix",
+                "test",
+                "pytest",
+                "class ",
+                "import ",
+                "module",
+                "library",
+                "code review",
+                "one-liner"
+              ]
+            },
+            {
+              "regex": "\\b(python|javascript|typescript|rust|go|java|c\\+\\+|code|coding|programming)\\b"
+            }
+          ]
+        },
+        "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "outputs": {
+          "reason": "code"
+        }
+      },
+      {
+        "id": "code-refactor",
+        "match": {
+          "all": [
+            {
+              "max_chars": 500
+            },
+            {
+              "any": [
+                {
+                  "keywords_any": [
+                    "refactor",
+                    "rewrite",
+                    "clean up",
+                    "simplify"
+                  ]
+                },
+                {
+                  "regex": "\\b(refactor|rewrite|clean up|simplify)\\b"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "keywords_any": [
+                    "loop",
+                    "for ",
+                    "while",
+                    "comprehension",
+                    "function",
+                    "class",
+                    "method",
+                    "variable"
+                  ]
+                },
+                {
+                  "regex": "\\b(loop|for|while|function|class|method|variable)\\b"
+                }
+              ]
+            }
+          ]
+        },
+        "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "outputs": {
+          "reason": "code refactor"
+        }
+      },
+      {
+        "id": "reason",
+        "match": {
+          "all": [
+            {
+              "any": [
+                {
+                  "keywords_any": [
+                    "debug",
+                    "explain why",
+                    "explain how",
+                    "step by step",
+                    "walk me through",
+                    "root cause",
+                    "diagnose",
+                    "analyze",
+                    "compare",
+                    "trade-off",
+                    "tradeoffs"
+                  ]
+                },
+                {
+                  "regex": "\\b(why is|why does|why are|why do|how do|how does|how is|what is the|what are the|explain the)\\b"
+                }
+              ]
+            },
+            {
+              "not": {
+                "any": [
+                  {
+                    "keywords_any": [
+                      "capital of",
+                      "population of",
+                      "who is",
+                      "when was",
+                      "where is",
+                      "how many",
+                      "what year"
+                    ]
+                  },
+                  {
+                    "regex": "\\b(capital of|population of|who is|when was|where is|how many|what year)\\b"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "route_to": "deepseek-r1-0528-8b-FLM",
+        "outputs": {
+          "reason": "reasoning"
+        }
+      },
+      {
+        "id": "long-context",
+        "match": {
+          "min_chars": 6000
+        },
+        "route_to": "deepseek-r1-0528-8b-FLM",
+        "outputs": {
+          "reason": "long context (repointed 2026-08-30: qwen3.6-moe-35b-a3b-FLM FLM build is degenerate)"
+        }
+      },
+      {
+        "id": "fast-qna",
+        "match": {
+          "all": [
+            {
+              "max_chars": 200
+            },
+            {
+              "any": [
+                {
+                  "keywords_any": [
+                    "what is",
+                    "who is",
+                    "when",
+                    "where",
+                    "how many",
+                    "define",
+                    "meaning of",
+                    "capital of"
+                  ]
+                },
+                {
+                  "regex": "^(what is|who is|when|where|how many|define)\\b"
+                }
+              ]
+            }
+          ]
+        },
+        "route_to": "qwen3-4b-FLM",
+        "outputs": {
+          "reason": "fast qna"
+        }
+      },
+      {
+        "id": "trivial-ack",
+        "match": {
+          "all": [
+            {
+              "max_chars": 80
+            },
+            {
+              "any": [
+                {
+                  "keywords_any": [
+                    "ok",
+                    "yes",
+                    "done",
+                    "lgtm",
+                    "looks good",
+                    "continue",
+                    "thanks",
+                    "great"
+                  ]
+                },
+                {
+                  "regex": "^(ok|yes|no|done|thanks|great)[\\s!.]*$"
+                }
+              ]
+            }
+          ]
+        },
+        "route_to": "llama3.2-1b-FLM",
+        "outputs": {
+          "reason": "trivial ack"
+        }
+      },
+      {
+        "id": "default-npu",
+        "match": {
+          "min_chars": 0
+        },
+        "route_to": "qwen3-4b-FLM",
+        "outputs": {
+          "reason": "default npu chat (repointed 2026-08-30: qwen3.6-moe-35b-a3b-FLM FLM build is degenerate)"
+        }
+      }
+    ]
+  }
+}

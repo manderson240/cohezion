@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — router policy on main + `verify_router.py` (1.13.0)
+- `config/router/cohezion-router.json` was tracked on three feature branches and landed on
+  none of them. Not gitignored — never landed. That is why finding it needed a human's memory:
+  a `src/`-scoped grep concluded we did not use lemonade's built-in router at all.
+  Config-as-data does not live in the source tree.
+- `scripts/ops/verify_router.py` checks a `collection.router` policy **by content**: is it
+  registered (an upgrade drops this silently), is every candidate in the catalog and downloaded,
+  and does every candidate answer a known-answer probe with something that is not garbage.
+- **Discriminating**: PASSES on the fixed policy, FAILS on the previous one naming
+  `qwen3.6-moe-35b-a3b-FLM`. In that failing run the model's *preflight* line reads `[OK ]`
+  while its *content* line reads `[DEGEN]` — a degenerate model returns HTTP 200 with a
+  well-formed OpenAI envelope, so no structural check can see it.
+- Policy repointed away from that model, which was the target of three rules including the
+  `default-npu` catch-all (`min_chars: 0`), so most general traffic returned `////////`. Its
+  GGUF siblings are healthy, so the fault is the FLM conversion, not the weights. Now:
+  `default-npu`/`default_model` → `qwen3-4b-FLM`, `long-context` → `deepseek-r1-0528-8b-FLM`;
+  removed from components and candidates. Unloading it also returned 24.3 GB of NPU residency
+  (headroom 0 GB → 7.06 GB).
+- Run after every lemonade upgrade: `python scripts/ops/verify_router.py`
+
 ### Fixed — a permanently dead census warned forever and never escalated (1.12.3)
 - Making `router_unreachable` require the cheap `/api/v1/system-info` endpoint to fail (1.12.0)
   removed a real false alarm — `/health` and `/models` block 20s+ under load, so polling them
