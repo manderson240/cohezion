@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — dark mypy gate, stale Anthropic pricing, phantom model id (1.12.1)
+- `pyproject.toml` + `scripts/ci/mypy_ratchet.py`: the CI `typecheck` job has run `mypy` for
+  months while checking **nothing**, in three independent ways. `python_version = "3.11"` vs a
+  3.13 project floor made numpy's 3.12+ `type` stubs abort the run *before any project file was
+  read*; two skill asset directories with hyphens in their names (not legal Python identifiers)
+  made mypy refuse the run outright; and the step was `continue-on-error`. Fixing the first two
+  reveals **1826 errors across 572 of 1583 files**. A ratchet mirroring `ruff_ratchet.py` now
+  gates on a committed baseline (`scripts/ci/mypy_baseline.txt`, `1826 1583`) so no PR can add
+  new type debt without demanding an 1826-error cleanup first.
+- The ratchet stores errors **and** files-checked: widening `exclude` also lowers the error
+  count, so a count-only ratchet would report "debt reduced" and bake the blindness into the
+  baseline via `--update`. It also refuses an *aborted* mypy run rather than counting it — a
+  crash prints `Found 1 error`, which would have ratcheted 1826 → 1 and retired the gate.
+- `integrations/agentverse/api_llm_executor.py` + `cost_optimization/cost_tracker.py`: two
+  hand-maintained Anthropic price tables, different packages, different units, both on live
+  paths, had drifted in **opposite** directions. `COSTS` priced `claude-opus-4-6` at 15/75 (3×
+  the real 5/25) and had no entry at all for Opus 5, Opus 4.8, Sonnet 5 or Haiku 4.5 — so those
+  reported `cost_usd = $0.00`, real spend read as free. `model_costs` knew only retired
+  `claude-3-*` models, so every current model hit the `0.015` default ($15/MTok), a 3×–15×
+  overestimate biasing cost-aware routing against the cloud.
+- `track_usage_fast` now prices output tokens at the output rate via an optional `output_tokens`
+  argument; omitting it reproduces the previous behaviour exactly. Previously one input-derived
+  rate was applied to input+output combined, under-counting output-heavy requests by up to 5×.
+- `research/cost_optimization.py`: **1000x unit error** in `DEFAULT_COSTS`. `calculate_cost`
+  computes `(tokens / 1000) * cost_per_1k`, so the dict is dollars per 1K tokens — but every
+  entry held the per-MILLION-token list price, while the inline comments claimed per-1K. The
+  comments agreeing with the code's unit is what hid it; only the numbers were wrong. Measured:
+  one 1M-token `claude-3-sonnet` experiment reported **$3,000.00** against a $10 budget (true
+  cost $3.00), so any non-trivial run blew its budget on the first call and forced a downgrade.
+  Live path — `research_squad.py` and `orborous.py` import it, and `CostAwareRouter` uses it for
+  downgrade decisions. Current models added; unknown models still price at $0.00 but now warn.
+- `scripts/ollama-proxy.py`, `scripts/ollama-anthropic-proxy.py`: `claude-haiku-4-5-20251213`
+  does not exist. Replaced with the canonical undated `claude-haiku-4-5`, matching the
+  neighbouring opus/sonnet entries and the ids used in both pricing tables.
+
 ### Added — model-store capacity guard + router liveness split (1.12.0)
 - `inference/silicon_residency.py`: `ModelStorage` + `parse_storage()` read `model_storage` from
   `:13305/api/v1/system-info`. Measured on the live router: 764 GiB used of 769, **5.57 GiB free**

@@ -120,12 +120,53 @@ class SessionCostTracker:
             "cogito-2.1:cloud": 0.0,
             "deepseek-v3.2:cloud": 0.0,
             "glm-5:cloud": 0.0,
-            # API models (conservative estimates)
+            # API models (conservative estimates). Anthropic entries are the
+            # per-1K INPUT rate, matching the existing claude-3-* convention;
+            # verified 2026-08-29 against
+            # platform.claude.com/docs/en/about-claude/pricing.
             "gpt-4": 0.03,
             "gpt-4o": 0.015,
+            # Current Claude models. Without these every one of them fell through
+            # to the 0.015 default ($15/MTok) — a 3x to 15x overestimate that fed
+            # cost-aware routing and made cloud look unaffordable.
+            "claude-opus-5": 0.005,
+            "claude-opus-4-8": 0.005,
+            "claude-opus-4-7": 0.005,
+            "claude-opus-4-6": 0.005,
+            "claude-opus-4-5": 0.005,
+            "claude-sonnet-5": 0.002,
+            "claude-sonnet-4-6": 0.003,
+            "claude-sonnet-4-5": 0.003,
+            "claude-haiku-4-5": 0.001,
+            "claude-fable-5": 0.010,
+            "claude-mythos-5": 0.010,
+            # Retired (kept so historical records still price correctly)
             "claude-3-opus": 0.015,
             "claude-3-sonnet": 0.003,
             "claude-3-haiku": 0.00025,
+        }
+
+        # Per-1K OUTPUT rates. Output costs 5x input on every current Claude
+        # model, so pricing a whole request at the input rate under-counts by up
+        # to 5x. Callers that know the split pass `output_tokens` to
+        # `track_usage_fast`; callers that don't keep the old input-only
+        # behaviour. Cache multipliers stay input-relative, which is correct --
+        # caching applies to input.
+        self.model_output_costs: dict[str, float] = {
+            "claude-opus-5": 0.025,
+            "claude-opus-4-8": 0.025,
+            "claude-opus-4-7": 0.025,
+            "claude-opus-4-6": 0.025,
+            "claude-opus-4-5": 0.025,
+            "claude-sonnet-5": 0.010,
+            "claude-sonnet-4-6": 0.015,
+            "claude-sonnet-4-5": 0.015,
+            "claude-haiku-4-5": 0.005,
+            "claude-fable-5": 0.050,
+            "claude-mythos-5": 0.050,
+            "claude-3-opus": 0.075,
+            "claude-3-sonnet": 0.015,
+            "claude-3-haiku": 0.00125,
         }
 
         # In-memory tracking (hot path)
@@ -156,22 +197,31 @@ class SessionCostTracker:
         duration_ms: float = 0.0,
         cache_read_tokens: int = 0,
         cache_write_tokens: int = 0,
+        output_tokens: int = 0,
     ) -> float:
         """Track usage in hot path (<0.05ms).
 
         Args:
             model: Model name
-            tokens: Normal (uncached) tokens used
+            tokens: Normal (uncached) tokens used, input + output combined
             duration_ms: Request duration (optional, for analytics)
             cache_read_tokens: Tokens served from cache (charged at 0.10× input rate)
             cache_write_tokens: Tokens written to cache with 1-hour TTL (charged at 2.0× input rate)
+            output_tokens: How many of `tokens` were output. Output costs 5× input
+                on every current Claude model, so omitting this under-counts an
+                output-heavy request by up to 5×. Defaults to 0, which reproduces
+                the historical input-rate-on-everything behaviour exactly.
 
         Returns:
             Estimated cost in USD
         """
         # Calculate cost (in-memory, O(1))
         cost_per_1k = self.model_costs.get(model, 0.015)  # Conservative default
-        cost_usd = (tokens / 1000.0) * cost_per_1k
+        billable_output = max(0, min(output_tokens, tokens))
+        output_per_1k = self.model_output_costs.get(model, cost_per_1k)
+        cost_usd = ((tokens - billable_output) / 1000.0) * cost_per_1k
+        cost_usd += (billable_output / 1000.0) * output_per_1k
+        # Cache multipliers are input-relative: caching applies to input tokens.
         cost_usd += (cache_read_tokens / 1000.0) * cost_per_1k * 0.10
         cost_usd += (cache_write_tokens / 1000.0) * cost_per_1k * 2.0
 

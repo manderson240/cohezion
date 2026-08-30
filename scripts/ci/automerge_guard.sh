@@ -70,6 +70,14 @@ step_advisory "ruff lint check" uv run ruff check src/ tests/
 # Step 3: Ruff debt ratchet (gating)
 step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
 
+# Step 3b: Mypy debt ratchet. --self-test first, same reason as the other scanners:
+# a broken ratchet otherwise reads as a clean "no new type debt". The self-test also
+# covers the abort case — a crashed mypy prints "Found 1 error", and counting that
+# would ratchet the baseline down to 1 and silently retire the gate — and the
+# coverage case, where a widened `exclude` lowers the count by checking fewer files.
+step "mypy ratchet self-test" uv run python scripts/ci/mypy_ratchet.py --self-test
+step "mypy debt ratchet" uv run python scripts/ci/mypy_ratchet.py
+
 
 # Step 4: Unit tests (gating)
 step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings
