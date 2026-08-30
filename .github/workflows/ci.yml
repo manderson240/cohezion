@@ -269,9 +269,26 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
-      - name: Type check with mypy
-        run: uv run mypy src/cohezion/ --ignore-missing-imports
-        continue-on-error: true
+      # The informational `mypy` step that used to sit here was removed: the
+      # ratchet below runs mypy itself, so keeping both type-checked all 1583
+      # files TWICE on every PR for no added signal. On failure the ratchet
+      # prints the exact command to reproduce the error list locally.
+      #
+      # --self-test FIRST: it proves the ratchet can still FAIL. Without it a
+      # broken ratchet reads as a clean "no new type debt" — which is exactly how
+      # this gate stayed dark. It also asserts that an ABORTED mypy run is refused
+      # rather than counted: a crash prints "Found 1 error", and any counter that
+      # accepts that would ratchet the baseline from 1826 down to 1 and disable
+      # the gate permanently.
+      - name: Mypy ratchet self-test
+        run: uv run python scripts/ci/mypy_ratchet.py --self-test
+
+      # Gating (no continue-on-error): fails when the error count exceeds
+      # scripts/ci/mypy_baseline.txt, OR when fewer files were checked than the
+      # baseline recorded — a widened `exclude` lowers the error count too, and
+      # without the coverage half the gate would reward going blind.
+      - name: Mypy debt ratchet (gating)
+        run: uv run python scripts/ci/mypy_ratchet.py
 
   # ── Summary ───────────────────────────────────────────────────
   ci-status:
