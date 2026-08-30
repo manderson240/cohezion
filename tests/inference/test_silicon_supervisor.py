@@ -482,13 +482,47 @@ def test_t2_full_blind_sequence_through_the_real_baseline_rule() -> None:
     assert seen == ["store_critical", "store_unmeasured", "store_recovered"]
 
 
-def test_t2_returning_from_blindness_unchanged_is_silent() -> None:
-    """Coming back blind-side-up into the SAME state re-announces nothing.
+def test_t2_returning_from_blindness_re_announces_even_when_unchanged() -> None:
+    """A blind gap breaks the operator's continuity, so the next reading is news.
 
-    The incident was never closed, so a second `store_critical` would be the
-    duplicate that edge-triggering exists to prevent.
+    THIS TEST PREVIOUSLY ASSERTED THE OPPOSITE, and was wrong for the same
+    reason the stranded-incident bug was wrong: it reasoned about state
+    TRANSITIONS while an operator reasons about INCIDENTS. An adversarial
+    review traced `critical -> blind -> blind -> still critical` and got
+    ['store_critical', 'store_unmeasured'] and then silence -- indistinguishable
+    from the store having recovered. The code comment justifying that silence
+    claimed "resumption is directly observable because capacity events start
+    flowing again"; in this exact sequence they do not.
+
+    Edge-triggering still holds everywhere the picture is continuous -- see
+    test_t2_repeated_critical_state_emits_once_not_every_poll, which is
+    unaffected because `was_blind` is False throughout it.
     """
-    assert diff_storage(CRITICAL, CRITICAL, at=1.0, was_blind=True) == ()
+    events = diff_storage(CRITICAL, CRITICAL, at=1.0, was_blind=True)
+    assert [e.kind for e in events] == ["store_critical"]
+    assert "blind interval" in events[0].detail
+
+    low = diff_storage(LOW, LOW, at=2.0, was_blind=True)
+    assert [e.kind for e in low] == ["store_low"]
+
+    # ...but a HEALTHY store after a blind gap is still not news. Re-announcing
+    # "everything is fine" on every recovery from blindness is the flooding this
+    # function exists to prevent.
+    assert diff_storage(OK, OK, at=3.0, was_blind=True) == ()
+
+
+def test_t2_level_events_are_not_paired_incidents() -> None:
+    """critical -> low emits store_low and NO store_recovered, deliberately.
+
+    A reviewer read the stream as paired critical/recovered incidents and
+    concluded the critical leaks open forever. Under level semantics it does
+    not: `store_low` supersedes, and `store_recovered` means exactly one thing
+    -- the level reached none. Pinned as a test because the alternative reading
+    is reasonable enough that someone will eventually "fix" it.
+    """
+    assert [e.kind for e in diff_storage(CRITICAL, LOW, at=1.0)] == ["store_low"]
+    assert [e.kind for e in diff_storage(LOW, OK, at=2.0)] == ["store_recovered"]
+    assert [e.kind for e in diff_storage(CRITICAL, OK, at=3.0)] == ["store_recovered"]
 
 
 def test_t2_each_severity_step_is_reported_separately() -> None:

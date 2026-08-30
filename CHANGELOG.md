@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — store guard stayed silent on the first reading after a blind interval (1.12.1)
+- `inference/silicon_supervisor.py`: `critical -> blind -> blind -> STILL critical` emitted
+  `['store_critical', 'store_unmeasured']` and then **nothing** on the return to measured, which
+  an operator cannot distinguish from the store having recovered. The first measured reading
+  after a blind gap now always re-announces a non-ok level.
+- The code comment justifying the old silence claimed *"resumption is directly observable because
+  capacity events start flowing again"*. That is false in exactly this sequence — the level is
+  unchanged, so no capacity event fires. Silence is only safe when the reader's picture is
+  continuous, and a blind gap breaks continuity.
+- Same defect CLASS as the stranded-incident bug fixed in 1.12.0: reasoning about state
+  TRANSITIONS while the operator reasons about INCIDENTS. That fix addressed the reported
+  instance (`critical -> blind -> ok`); this one addresses the sibling instance. Found by an
+  adversarial review lane and confirmed by executing the sequence, not by argument.
+- A healthy store after a blind gap is still not news — re-announcing "everything is fine" on
+  every recovery from blindness is the flooding the function exists to prevent. Edge-triggering
+  is unchanged wherever the picture is continuous (`was_blind` False).
+- `store_low` after `store_critical` is now documented as LEVEL semantics, not a paired
+  incident: the level dropped to warning, `store_low` supersedes, and `store_recovered` means
+  exactly one thing — the level reached none. Stated explicitly and pinned by a test because a
+  reviewer read the stream as paired open/close events and concluded the critical leaks forever;
+  a downstream consumer that pairs them WOULD leak, so any such consumer must key on the latest
+  level.
+- `tests/inference/test_silicon_supervisor.py`: the test that asserted the old silence was
+  correct is replaced. It had frozen the bug in place, exactly as the 1.12.0 test did.
+
 ### Added — model-store capacity guard + router liveness split (1.12.0)
 - `inference/silicon_residency.py`: `ModelStorage` + `parse_storage()` read `model_storage` from
   `:13305/api/v1/system-info`. Measured on the live router: 764 GiB used of 769, **5.57 GiB free**

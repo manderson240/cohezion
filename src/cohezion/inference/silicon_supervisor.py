@@ -390,18 +390,43 @@ def diff_storage(
         )
 
     # --- Axis 2: capacity. Only advances on measured observations. ---
-    #
-    # No paired "measurement resumed" event: `store_unmeasured` is a notice, not
-    # an incident needing closure, and resumption is directly observable because
-    # capacity events start flowing again. Coming back from blindness into the
-    # SAME capacity state is correctly silent -- the incident was never closed,
-    # so re-announcing it would be the duplicate this function exists to avoid.
     state = _capacity_state(current)
     prior = _capacity_state(previous) if previous is not None else None
+
+    # RETURNING FROM BLINDNESS ALWAYS RE-ANNOUNCES, even when nothing changed.
+    #
+    # An earlier revision stayed silent here, on the stated reasoning that
+    # "resumption is directly observable because capacity events start flowing
+    # again". That reasoning is false in exactly the case that matters, and an
+    # adversarial review caught it: critical -> blind -> blind -> STILL critical
+    # emitted ['store_critical', 'store_unmeasured'] and then nothing. The
+    # operator saw the guard go inert and then silence -- indistinguishable from
+    # the store having recovered.
+    #
+    # Silence is only safe when the reader's picture is continuous. A blind gap
+    # breaks continuity, so the first measured observation after one is news
+    # regardless of whether the value moved. This is the same defect class as
+    # the stranded-incident bug that motivated splitting the two axes: reasoning
+    # about state TRANSITIONS while the operator reasons about INCIDENTS.
+    if was_blind and state != "ok":
+        detail = f"{current.summary} (first reading after a blind interval)"
+        kind = "store_critical" if state == "critical" else "store_low"
+        return (SiliconEvent(kind=kind, detail=detail, at=at),)
 
     if state == prior:
         return ()
 
+    # THESE ARE LEVEL EVENTS, NOT PAIRED INCIDENTS. `store_low` after
+    # `store_critical` means the level DROPPED to warning; it supersedes the
+    # critical rather than leaving it open, and no `store_recovered` is emitted
+    # because the store is not recovered -- it is still alerting, less urgently.
+    # `store_recovered` means exactly one thing: the level reached none.
+    #
+    # Stated explicitly because a reviewer read the stream as paired
+    # critical/recovered incidents and concluded critical->low leaks an incident
+    # forever. It does not, under level semantics -- but a downstream consumer
+    # that pairs them WOULD leak, so any such consumer must key on the latest
+    # level, not on matching opens to closes.
     detail = current.summary
     if state == "critical":
         return (SiliconEvent(kind="store_critical", detail=detail, at=at),)
