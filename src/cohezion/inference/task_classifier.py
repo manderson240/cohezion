@@ -207,7 +207,30 @@ _CATEGORICAL_PATTERNS = [
         "explicit one-letter instruction",
     ),
     (re.compile(r"\banswer with (a |one )?letter\b", re.I), 1.0, "explicit letter answer"),
-    (re.compile(r"\breply (?:with )?(yes|no) or (no|yes)\b", re.I), 1.0, "yes/no question"),
+    # Same verb alternation + terminal anchor as the one-word instructions above.
+    # This rule was `\breply (?:with )?(yes|no) or (no|yes)\b` -- hardcoded to the
+    # single verb "reply" -- while its siblings were generalized on 2026-08-29.
+    # Measured 2026-08-30: "Answer yes or no", "Respond with yes or no" and "Say
+    # yes or no" all fell through to `short_answer` (gate=10), where the CORRECT
+    # one-word answer ("Yes" = 3 chars) fails the gate and escalates the cascade.
+    # Every pre-existing test used the verb "reply", so the tests shared the
+    # pattern's blind spot and the divergence stayed green.
+    # The terminal anchor is carried over deliberately, for the same reason the
+    # sibling patterns document: without it this matches mid-sentence inside a
+    # much larger request --
+    #   "Implement a REST API. Answer yes or no for each endpoint whether it
+    #    needs auth, then write the full handler code with tests."
+    # -- routing a codegen task to short_categorical/gate=0 on the 1B fast path.
+    (
+        re.compile(
+            r"\b(?:reply|respond|answer|say)\s+(?:with\s+)?"
+            r"(?:exactly\s+|just\s+|only\s+)?(?:a\s+)?"
+            r"(?:yes|no)\s+or\s+(?:no|yes)\s*(?=[.!?:,]|$)",
+            re.I,
+        ),
+        1.0,
+        "yes/no question",
+    ),
     (re.compile(r"\b(true|false) only\b", re.I), 0.95, "true/false only"),
     # Categorical options in prompt
     (
