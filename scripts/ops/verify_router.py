@@ -45,7 +45,7 @@ EXPECT_IN = "4"
 
 
 def _get(path: str, timeout: float = 20.0) -> Any:
-    with urllib.request.urlopen(f"{BASE}{path}", timeout=timeout) as r:
+    with urllib.request.urlopen(f"{BASE}{path}", timeout=timeout) as r:  # noqa: S310
         return json.load(r)
 
 
@@ -58,10 +58,10 @@ def _chat(model: str, prompt: str, timeout: float = 420.0) -> str:
             "messages": [{"role": "user", "content": prompt}],
         }
     ).encode()
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310 - fixed localhost URL, no user-supplied scheme
         f"{BASE}/v1/chat/completions", data=body, headers={"Content-Type": "application/json"}
     )
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
         d = json.load(r)
     msg = d["choices"][0]["message"]
     # Thinking models park the answer in reasoning_content, not content.
@@ -131,7 +131,7 @@ def main() -> int:
                 continue
             try:
                 out = _chat(c, PROBE)
-            except Exception as exc:  # noqa: BLE001 - report, never abort the sweep
+            except Exception as exc:  # report, never abort the sweep
                 failures.append(f"candidate {c}: probe raised {type(exc).__name__}")
                 print(f"  [ERR] {c:42s} {type(exc).__name__}")
                 continue
@@ -150,7 +150,17 @@ def main() -> int:
         for f in failures:
             print(f"  - {f}")
         return 1
-    print("PASS: registered, every candidate present, downloaded, and answering coherently.")
+    # Say exactly what was checked. With --preflight-only NO generation ran, and
+    # claiming "answering coherently" there would be this tool committing the
+    # error it exists to catch: a verdict asserting more than was verified.
+    if args.preflight_only:
+        print(
+            "PASS (PREFLIGHT ONLY): registered, every candidate present and downloaded.\n"
+            "      Content NOT checked -- a degenerate model passes every check above.\n"
+            "      Re-run without --preflight-only before trusting this router."
+        )
+    else:
+        print("PASS: registered, every candidate present, downloaded, and answering coherently.")
     return 0
 
 

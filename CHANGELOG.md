@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — `verify_router.py --preflight-only` claimed more than it checked (1.13.1)
+- With `--preflight-only` (no generation), the tool printed
+  *"PASS: registered, every candidate present, downloaded, and answering coherently"* — while
+  having probed no content at all. That is this tool committing the exact error it exists to
+  catch: a verdict asserting more than was verified. Found by running the tool during an
+  end-of-session sweep and reading its own output.
+- Preflight now prints a distinct verdict naming what was skipped, and says plainly that a
+  degenerate model passes every check above it.
+- Also: `# noqa: S310` on the two localhost `urlopen` sites to match the convention in
+  `scripts/ops/silicon_supervisor_daemon.py`, and dropped a dead `BLE001` directive that
+  `RUF100` flagged (that rule is not enabled here).
+- Re-confirmed discriminating after the edits: PASS on the current policy, FAIL on the previous
+  one naming `qwen3.6-moe-35b-a3b-FLM`.
+
 ### Added — router policy on main + `verify_router.py` (1.13.0)
 - `config/router/cohezion-router.json` was tracked on three feature branches and landed on
   none of them. Not gitignored — never landed. That is why finding it needed a human's memory:
