@@ -42,6 +42,7 @@ class ExecutorFactory:
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
+        dqa_gate: Any | None = None,
         token_ledger: Any | None = None,
         # I1: CompoundExecutor accepts inference_provider so local silicon serves execute_fn.
         # `make_executor` below sets kwargs["inference_provider"] and then calls create(), but
@@ -86,6 +87,23 @@ class ExecutorFactory:
                 logger.debug("ExecutorFactory: auto-created RetrospectionEngine (middle loop)")
             except ImportError:
                 logger.debug("RetrospectionEngine not available")
+
+        # DQ7: auto-create the AUTODQA output gate (mirrors the CB5 pattern below).
+        # Without this, `quality_eval.evaluate` is dormant ON THE PRODUCTION PATH:
+        # AutoDQA is its only consumer and no factory ever constructed one, so the
+        # DegradationDetector quality_score branch could never fire.
+        # persist=False / notify_on_reject=False: the gate runs on EVERY task, and
+        # the real gate rejects correct short answers (measured 2026-08-30), so
+        # per-task SurrealDB writes and Telegram alerts would be noise on a signal
+        # the DegradationDetector already consumes in aggregate.
+        if dqa_gate is None:
+            try:
+                from cohezion.compound.autodqa import AutoDQA
+
+                dqa_gate = AutoDQA(persist=False, notify_on_reject=False)
+                logger.debug("ExecutorFactory: auto-created AutoDQA output gate (DQ7)")
+            except Exception:
+                logger.debug("AutoDQA auto-creation failed (non-blocking)")
 
         # CB5: auto-create DegradationDetector when not provided (closes routing feedback loop).
         # Without this, suggest_routing_tier() and check_degradation() are never called and
@@ -204,6 +222,7 @@ class ExecutorFactory:
             universe_bridge=universe_bridge,
             skill_health_tracker=skill_health_tracker,
             jepa_gate=jepa_gate,
+            dqa_gate=dqa_gate,
             token_ledger=token_ledger,
             inference_provider=inference_provider,
             enable_cycle_persistence=enable_cycle_persistence,

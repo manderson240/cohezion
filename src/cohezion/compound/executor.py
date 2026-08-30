@@ -185,6 +185,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         rubric_middleware: Any | None = None,
         inference_provider: Any | None = None,
         jepa_gate: Any | None = None,
+        dqa_gate: Any | None = None,
         token_ledger: Any | None = None,
         semantic_cache: Any | None = None,
         enable_semantic_cache: bool = False,
@@ -236,6 +237,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         self._inference_provider = inference_provider
         self._jepa_gate = jepa_gate
+        # DQ2: output-side quality gate (AutoDQA or any duck-typed .evaluate()).
+        # None keeps the metrics dict byte-identical for un-wired callers (DQ6).
+        self._dqa_gate = dqa_gate
         self._token_ledger = token_ledger
         # PR 2: card-aligned semantic cache. When enable_semantic_cache=True
         # and no cache is provided, a default SemanticCache() is created.
@@ -1160,6 +1164,57 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
 
+        # Step 5.5: AUTODQA output quality gate (DQ2/DQ8).
+        #
+        # `DegradationDetector` has owned a complete quality_score branch since #120
+        # (MetricBaseline at :360, add_sample at :760, CRITICAL alert at :705) that
+        # could never fire: no component on the production path produced the metric.
+        # `AutoDQA` computes exactly that score and was never constructed by any
+        # factory. This is the producer half; the fold into `degradation_metrics`
+        # below (Step 7.5) is the forwarding half -- BOTH were missing.
+        #
+        # Cost: `classify()` is regex/heuristic and `quality_eval.evaluate()` is
+        # regex + `ast.parse`. With no `peer_outputs` the semantic-agreement path
+        # (and its embedder) is never touched, so this spends NO tokens and does
+        # not open a hole in the Quarter-on-a-String budget. MEASURED 2026-08-30,
+        # n=200/case: median 8us (36-char answer), 21us (31-char code), 70us
+        # (800-char generation) -- negligible against the pipeline's own ~1s.
+        #
+        # NAME COLLISION, documented rather than silently inherited: the detector's
+        # own comment (degradation_detector.py:702) calls quality_score "Long2Short:
+        # 1/tokens", and `autonomous_loop/coordinator.py:262` really does publish
+        # `1.0 / tokens` (~0.002) under that key. Both fit value_bounds=(0.0, 1.0),
+        # so a shared baseline would mix a rate with a score and neither would be
+        # meaningful. Verified 2026-08-30 that this cannot happen today: there is no
+        # DegradationDetector singleton, the coordinator constructs its own and hands
+        # it only to LocalImprovementExecutor, and no caller in src/ threads one
+        # instance into both. If that ever changes, split the key -- do not let the
+        # units merge. (1/tokens arguably belongs on the detector's existing
+        # `token_efficiency` baseline, but re-keying another subsystem is out of
+        # scope here.)
+        #
+        # DAMPING, NOT REJECTION. A reject is recorded but never flips `success`
+        # and never replaces `output`. Measured 2026-08-30: the real gate rejects
+        # "Paris" for "What is the capital of France?" (`short_answer: too short`),
+        # so hard-failing here would fail correct work -- the defect AG1 records for
+        # the input guardrail. The rolling-baseline consumer only needs RELATIVE
+        # movement, so a strict absolute calibration is still a usable signal.
+        if self._dqa_gate is not None and success and output:
+            try:
+                _dqa = self._dqa_gate.evaluate(str(output), task_description)
+                metrics["quality_score"] = _dqa.verdict.score
+                metrics["dqa_band"] = _dqa.quality_band
+                if not _dqa.verdict.accept:
+                    metrics["dqa_rejected"] = True
+                    logger.info(
+                        "AUTODQA flagged output (non-blocking): score=%.2f reason=%s",
+                        _dqa.verdict.score,
+                        _dqa.verdict.reason,
+                    )
+            except Exception as e:
+                # Fail-open (DQ5): an observability gate must never fail the task.
+                logger.debug("AUTODQA gate failed (non-blocking): %s", e)
+
         # PR 2: card-aligned cache write. Best-effort, fire-and-forget;
         # the next call for the same (prompt, card_signature) hits. The
         # cache is the in-process L1/L2; the SurrealDB row is the
@@ -1672,6 +1727,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     degradation_metrics["tokens_per_second"] = token_metrics.get(
                         "tokens_per_second", 0.0
                     )
+                # DQ4: fold the AUTODQA output score in. `degradation_metrics` is a
+                # FRESH dict -- `metrics` is deliberately not merged wholesale, so a
+                # signal that is not folded in here is invisible to the detector no
+                # matter who produced it. This is the forwarding half of the fix; a
+                # producer alone leaves the quality_score branch unreachable.
+                # Conditional so an un-wired executor sends the same 5 keys as before.
+                if "quality_score" in metrics:
+                    degradation_metrics["quality_score"] = metrics["quality_score"]
                 # Fold JEPA pre-execution coherence into degradation metrics (JW1 routing feedback).
                 if _jepa_verdict is not None and self._jepa_gate is not None:
                     degradation_metrics["jepa_coherence"] = self._jepa_gate.last_coherence
