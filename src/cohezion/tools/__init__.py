@@ -9,3 +9,8 @@ with contextlib.suppress(Exception):
 
 
 __all__ = ["TestGenerator", "main"]
+
+# reconcile 2026-08-27: branch-only re-exports preserved (worktree-virtual-soaring-shamir)
+from typing import TYPE_CHECKING, Any
+
+from cohezion.tools.test_generator import CodeTestGenerator, main

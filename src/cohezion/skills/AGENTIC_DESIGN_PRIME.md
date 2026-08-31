@@ -31,3 +31,9 @@ v1.0 (Derived from Anthropic Alignment Sprint)
 ## SEE ALSO
 - VLIW_COG_BRIDGE_PRIME
 - COMPOUND_ENGINEERING_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for AGENTIC DESIGN PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -5,6 +5,8 @@ category: compound
 tags: [cosmic-fire, ignition, hiho, pop3, colibre, bbc-low-slow, ure]
 ---
 
+# SKILL: COSMIC_FIRE_PROTOCOL_PRIME
+
 # Skill: Cosmic Fire Protocol
 
 ## Context
@@ -58,3 +60,25 @@ if cfp.is_ignited(sim.colibre_coherence, sim.sfr_density):
 - Tests: `tests/unit/compound/test_phase19.py::TestCosmicFireProtocol`
 - Harness: P3 (cascade has 5 actions, first = bbq_low_slow)
 - Related: COLIBRE bridge (`physics/colibre_bridge.py`)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Cosmic Fire Protocol Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for COSMIC FIRE PROTOCOL PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

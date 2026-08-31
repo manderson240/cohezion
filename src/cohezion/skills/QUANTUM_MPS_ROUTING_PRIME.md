@@ -52,3 +52,9 @@ v1.0 (Extracted from Cohezion "Little Dimple" Mission)
 ## SEE ALSO
 - PERSISTENT_QUALITY_PRIME
 - FLUME_ENCODER_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for QUANTUM MPS ROUTING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

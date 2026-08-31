@@ -97,7 +97,7 @@ def test_generic_module_missing():
 
 
 def test_undefined_symbol_pattern():
-    rc, mut = _analyze(
+    rc, _mut = _analyze(
         "ImportError: /usr/lib/libfoo.so: undefined symbol: some_thing_new. The "
         "shared library was compiled against a newer C++ ABI than the runtime "
         "supports. Switch to a stable backend or pin the matching library versions."
@@ -121,7 +121,7 @@ def test_mcp_tool_failure_pattern():
         "The MCP server crashed mid-call. Verify VAULT_PATH env var is set and "
         "the cloud-vault-mcp subprocess is still alive in the gateway."
     )
-    rc, mut = _analyze(log)
+    rc, _mut = _analyze(log)
     assert "MCP" in rc or "mcp" in rc.lower()
 
 
@@ -160,7 +160,7 @@ def test_semantic_scholar_rate_limit_429():
 
 
 def test_unknown_long_log_falls_through():
-    rc, mut = _analyze(
+    rc, _mut = _analyze(
         "An obscure error happened somewhere with 200+ characters of "
         "unstructured content that does not match any known pattern and "
         "should fall through to the generic 'Unknown failure' bucket "

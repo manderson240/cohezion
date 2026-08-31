@@ -194,7 +194,7 @@ class TestApply:
 
     def test_apply_no_prefix(self):
         p = InferenceParams(model_id="m", max_tokens=100)
-        prompt, extra = p.apply("Hello world")
+        prompt, _extra = p.apply("Hello world")
         assert prompt == "Hello world"
 
     def test_apply_returns_extra_body(self):

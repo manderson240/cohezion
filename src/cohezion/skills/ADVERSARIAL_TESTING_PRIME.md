@@ -123,3 +123,9 @@ v1.0 (2026-01-18)
 - SECURITY_GUARDRAILS_PRIME.md
 - CODE_STANDARDS_PRIME.md
 - SELF_HEALING_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for ADVERSARIAL TESTING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

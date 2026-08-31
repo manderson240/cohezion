@@ -45,3 +45,9 @@ v1.0
 - RETROSPECTIVE_SKILL
 - SKILL_GENERATOR_PRIME
 - COMPOUND_ENGINEERING_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for ADAPTIVE TEMPLATE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -1,4 +1,7 @@
 ---
+name: HARNESS_BENEFIT_ALIGNMENT_PRIME
+description: Comprehensive domain skill specification for Harness Benefit Alignment Prime.
+version: v1.0
 name: harness_benefit_alignment_prime
 description: "Standardized Cohezion platform PRIME skill for harness_benefit_alignment_prime."
 category: core
@@ -49,3 +52,9 @@ v0.2
 - RETROSPECTIVE_SKILL.md
 - AUTOHARNESS_PRIME.md
 - COMPOUND_SELF_IMPROVEMENT_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for HARNESS BENEFIT ALIGNMENT PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -1037,7 +1037,7 @@ class TestShadowCanaryValidator:
         """SC4: validate fails open when candidate_scores is empty."""
         sv = ShadowCanaryValidator()
         sv.record("skill_c", 0.9)
-        ok, reason = sv.validate("skill_c", [])
+        ok, _reason = sv.validate("skill_c", [])
         assert ok is True, "Must fail open with empty candidate, got ok=False"
 
     def test_sc5_wiring_in_skill_refiner(self):
@@ -1206,17 +1206,17 @@ class TestRegimeAwareAutodata:
     EXTRA_CAND = "hardware routing performance configuration setup"
 
     def _make_metrics(self, **kwargs) -> ExecutionMetrics:
-        defaults = dict(
-            success=True,
-            duration_seconds=1.0,
-            tokens_used=100,
-            token_efficiency=300.0,
-            quality_score=0.7,
-            anomaly_score=0.3,
-            cached_hits=0,
-            tier_used="npu",
-            escalation_count=1,
-        )
+        defaults = {
+            "success": True,
+            "duration_seconds": 1.0,
+            "tokens_used": 100,
+            "token_efficiency": 300.0,
+            "quality_score": 0.7,
+            "anomaly_score": 0.3,
+            "cached_hits": 0,
+            "tier_used": "npu",
+            "escalation_count": 1,
+        }
         defaults.update(kwargs)
         return ExecutionMetrics(**defaults)
 

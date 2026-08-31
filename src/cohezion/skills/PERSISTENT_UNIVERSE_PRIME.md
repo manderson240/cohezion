@@ -86,3 +86,9 @@ v1.0
 - GATEWAY_ARCHITECTURE_PRIME.md - Gateway 4 uses this
 - OBSERVABLE_AI_PRIME.md - Observability integration
 - PHYSICS_INFORMED_PREDICTION_PRIME.md - State prediction
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for PERSISTENT UNIVERSE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

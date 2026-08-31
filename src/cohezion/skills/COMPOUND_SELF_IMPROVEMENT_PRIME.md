@@ -3,6 +3,8 @@ name: compound-self-improvement-prime
 description: "Use Cohezion's own compound engineering methodology (Execute → Retrospect → Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and specialist agent swarms."
 ---
 
+# SKILL: COMPOUND_SELF_IMPROVEMENT_PRIME
+
 # COMPOUND_SELF_IMPROVEMENT_PRIME
 
 **Version**: 1.0.0
@@ -654,3 +656,25 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 *   **Insight**: Ouroboros Recursive Retrospective -- Self-Healing Offense
 *   **Details**: Ouroboros is the critical "Learning" component of the autonomous offensive. When a Kaggle submission fails, Ouroboros ingests the "Wall of Red" (kernel logs) and extracts a "Hardening Mutation" (e.g., 4-bit fallback, VRAM heartbeat). This mutation is codified as a refined skill and fed back into the next research iteration, ensuring the system never repeats the same failure mode during a leaderboard push.
 *   **Date**: 2026-04-11
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Compound Self Improvement Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for COMPOUND SELF IMPROVEMENT PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

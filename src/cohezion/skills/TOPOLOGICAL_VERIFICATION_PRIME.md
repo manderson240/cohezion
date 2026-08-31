@@ -38,3 +38,9 @@ v0.1
 - `FLUME_METHODOLOGY_PRIME`
 - `MATH_REASONING_SWARM_PRIME`
 - `HIHO_STABILITY_PRIME`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for TOPOLOGICAL VERIFICATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

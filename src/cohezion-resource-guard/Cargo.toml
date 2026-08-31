@@ -1,0 +1,14 @@
+[package]
+name = "cohezion-resource-guard"
+version = "0.1.0"
+edition = "2021"
+description = "Resident RAM/ctx_size guard. Zero dependencies by design: it must not become part of the problem it watches."
+
+[dependencies]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

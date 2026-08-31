@@ -99,28 +99,49 @@ def self_test() -> None:
     _must("reasoning" not in answer, "leaked pre-marker text into the answer")
 
 
-async def _run_lane(lane: dict, max_tokens: int, fields: tuple[str, ...],
-                    run: DurableRun | None) -> dict:
+async def _run_lane(
+    lane: dict, max_tokens: int, fields: tuple[str, ...], run: DurableRun | None
+) -> dict:
     t0 = time.time()
     try:
         tier = build_gaia_llm_tier(lane["model"], max_tokens=max_tokens, temperature=0.3)
         res = await tier.run(lane["prompt"] + CONTRACT)
         raw = getattr(res, "text", None) or getattr(res, "output", None) or str(res)
         answer, why = extract(raw or "", fields)
-        out = {"lane": lane["name"], "device": lane.get("device", "?"), "model": lane["model"],
-               "secs": round(time.time() - t0, 1), "raw_chars": len(raw or ""),
-               "raw": raw or "", "answer": answer, "rejected": why}
+        out = {
+            "lane": lane["name"],
+            "device": lane.get("device", "?"),
+            "model": lane["model"],
+            "secs": round(time.time() - t0, 1),
+            "raw_chars": len(raw or ""),
+            "raw": raw or "",
+            "answer": answer,
+            "rejected": why,
+        }
     except Exception as exc:  # noqa: BLE001 - one dead lane must not kill the swarm
-        out = {"lane": lane["name"], "device": lane.get("device", "?"), "model": lane["model"],
-               "secs": round(time.time() - t0, 1), "raw_chars": 0, "raw": "", "answer": "",
-               "rejected": f"{type(exc).__name__}: {exc}"}
+        out = {
+            "lane": lane["name"],
+            "device": lane.get("device", "?"),
+            "model": lane["model"],
+            "secs": round(time.time() - t0, 1),
+            "raw_chars": 0,
+            "raw": "",
+            "answer": "",
+            "rejected": f"{type(exc).__name__}: {exc}",
+        }
     if run is not None:
         run.record_lane(out)  # durable the moment it returns, not at the end of the swarm
     return out
 
 
-async def run_swarm(lanes: list[dict], slug: str, *, fields: tuple[str, ...] = (),
-                    max_tokens: int = 4000, session: str = "") -> dict:
+async def run_swarm(
+    lanes: list[dict],
+    slug: str,
+    *,
+    fields: tuple[str, ...] = (),
+    max_tokens: int = 4000,
+    session: str = "",
+) -> dict:
     """Dispatch lanes concurrently; persist each result as it lands.
 
     ``lanes`` items: ``{"name": str, "model": str, "prompt": str, "device": str (optional)}``.
@@ -133,20 +154,33 @@ async def run_swarm(lanes: list[dict], slug: str, *, fields: tuple[str, ...] = (
 
     for r in results:
         status = f"REJECTED[{r['rejected']}]" if r["rejected"] else f"{len(r['answer'])} chars"
-        print(f"[{r['device']:>4}] {r['lane']:<24} {r['secs']:>6}s "
-              f"raw={r['raw_chars']:<6} {status}", flush=True)
+        print(
+            f"[{r['device']:>4}] {r['lane']:<24} {r['secs']:>6}s raw={r['raw_chars']:<6} {status}",
+            flush=True,
+        )
     serial = sum(r["secs"] for r in results)
     speedup = serial / elapsed if elapsed else 1.0
     usable = sum(1 for r in results if not r["rejected"])
-    print(f"\n[concurrency] wall-clock {elapsed:.1f}s vs serial-sum {serial:.1f}s "
-          f"-> {speedup:.2f}x", flush=True)
+    print(
+        f"\n[concurrency] wall-clock {elapsed:.1f}s vs serial-sum {serial:.1f}s -> {speedup:.2f}x",
+        flush=True,
+    )
     if speedup < 1.2 and len(lanes) > 1:
-        print("[warn] speedup ~1.0x — lanes likely SERIALISED on one device, not concurrent",
-              flush=True)
+        print(
+            "[warn] speedup ~1.0x — lanes likely SERIALISED on one device, not concurrent",
+            flush=True,
+        )
     print(f"[gate] {usable}/{len(results)} usable", flush=True)
 
-    run.finalize({"elapsed_s": round(elapsed, 1), "serial_sum_s": round(serial, 1),
-                  "speedup": round(speedup, 2), "usable": usable, "lanes": len(results)})
+    run.finalize(
+        {
+            "elapsed_s": round(elapsed, 1),
+            "serial_sum_s": round(serial, 1),
+            "speedup": round(speedup, 2),
+            "usable": usable,
+            "lanes": len(results),
+        }
+    )
     print(f"[durable] {run.dir}", flush=True)
     return {"dir": str(run.dir), "results": results, "speedup": speedup, "usable": usable}
 

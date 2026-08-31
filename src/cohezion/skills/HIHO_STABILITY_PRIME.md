@@ -174,3 +174,9 @@ v2.0 (2026-03-05) -- Added six independent physics derivations for the 0.5 attra
 - `src/cohezion/physics/hamiltonian.py` -- Langevin dynamics (Derivation 4)
 - SWARM_ORCHESTRATION_PRIME
 - FLUME_NAVIGATOR_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for HIHO STABILITY PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

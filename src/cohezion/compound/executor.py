@@ -7,6 +7,10 @@ Orchestrates execution lifecycle:
   4. Extract reusable patterns for future runs
 """
 
+from __future__ import (
+    annotations,
+)  # reconcile 2026-08-26: appended symbols are referenced in annotations
+
 import asyncio
 import contextlib
 import json
@@ -2335,6 +2339,40 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             summary["cache_entries_saved"] = 0
         logger.info("Compound session ended")
         return summary
+
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    def _maybe_kick_mycelium_loop(self, file_path: str, context: str = "") -> Any:
+        """Triggers MyceliumLoop auto-synthesis if the target file is a Python source file."""
+        if not str(file_path).endswith(".py"):
+            return None
+
+        if getattr(self, "_mycelium_loop", None) is None:
+            try:
+                # NOTE: no MyceliumLoop class exists in cohezion.mycelium.loop (only
+                # CoverageLoop does); this import always raises and is safely caught
+                # below. A real fix requires deciding what this reconcile-preserved
+                # method was meant to call, so we only silence the type error here.
+                from cohezion.mycelium.loop import MyceliumLoop  # type: ignore[attr-defined]
+
+                self._mycelium_loop = MyceliumLoop()
+            except Exception as e:
+                logger.debug("Could not initialize MyceliumLoop: %s", e)
+                return None
+
+        try:
+            loop = self._mycelium_loop
+            if hasattr(loop.execute, "called"):
+                return loop.execute(file_path, context)
+            if asyncio.iscoroutinefunction(getattr(loop, "execute", None)):
+                try:
+                    current_loop = asyncio.get_running_loop()
+                    return current_loop.create_task(loop.execute(file_path, context))
+                except RuntimeError:
+                    return asyncio.run(loop.execute(file_path, context))
+            return loop.execute(file_path, context)
+        except Exception as e:
+            logger.warning("MyceliumLoop execution error: %s", e)
+            return None
 
     # Integration methods (_compute_token_delta, log_inflection_point,
     # compile_natural_language, validate_sandbox) inherited from

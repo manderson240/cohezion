@@ -105,15 +105,15 @@ class TestMR2WeightLearning:
 
 class TestMR4SkillRefinerIntegration:
     def _metrics(self, **kwargs) -> ExecutionMetrics:
-        defaults = dict(
-            success=True,
-            duration_seconds=1.0,
-            tokens_used=100,
-            token_efficiency=100.0,
-            quality_score=0.5,
-            anomaly_score=0.1,
-            cached_hits=0,
-        )
+        defaults = {
+            "success": True,
+            "duration_seconds": 1.0,
+            "tokens_used": 100,
+            "token_efficiency": 100.0,
+            "quality_score": 0.5,
+            "anomaly_score": 0.1,
+            "cached_hits": 0,
+        }
         defaults.update(kwargs)
         return ExecutionMetrics(**defaults)  # type: ignore[arg-type]
 
@@ -137,3 +137,46 @@ class TestMR4SkillRefinerIntegration:
         # At least some results should mention caching/cache
         caching_hits = sum(1 for r in results if "cache" in r.lower())
         assert caching_hits >= 5, f"Expected caching bias, got: {results}"
+
+
+class TestMR5ExplorationNoLockIn:
+    """MR5 — route() must not lock in on a single expert (hidden-cycle guard).
+
+    THE DEFECT (found 2026-07-26 by a hidden-cycle audit): `route()` was pure
+    `max(self.weights, ...)`. Only the routed expert is ever `update()`d, so only its weight ever
+    moves and every other expert stays frozen at its initial 1/n forever. The node's output
+    determines the distribution of its own future inputs — a Cycle wearing a Router's clothes.
+
+    THE FIX is propagation, not invention: `SkillRefiner._autodata_select` already carries the
+    same guard as invariant RV2 (`freq_penalty = 1/(1+wins)`) so "under-explored perspectives can
+    overtake a habitually dominant winner". This applies it to expert selection.
+
+    DISCRIMINATING: under pure argmax these assertions FAIL — one expert wins every round forever.
+    """
+
+    def test_repeated_routing_explores_more_than_one_expert(self):
+        from cohezion.compound.moe_skill_router import MoESkillRouter
+
+        r = MoESkillRouter()
+        seen = set()
+        for _ in range(40):
+            e = r.route("skill", None)
+            seen.add(e)
+            r.update(e, 0.5)  # mediocre reward: no expert is genuinely dominant
+        assert len(seen) > 1, (
+            f"route() locked in on {seen} — argmax with no exploration term. "
+            "Every other expert's weight stays frozen at its initial value forever."
+        )
+
+    def test_a_genuinely_dominant_expert_still_wins_most_rounds(self):
+        """Exploration must not destroy exploitation — the penalty is a nudge, not a reset."""
+        from cohezion.compound.moe_skill_router import MoESkillRouter
+
+        r = MoESkillRouter()
+        for _ in range(30):
+            r.update("quality", 1.0)  # quality is genuinely best
+        picks = [r.route("s", None) for _ in range(20)]
+        assert picks.count("quality") > len(picks) // 2, (
+            f"dominant expert won only {picks.count('quality')}/{len(picks)} — "
+            "exploration term is too strong and has destroyed exploitation"
+        )

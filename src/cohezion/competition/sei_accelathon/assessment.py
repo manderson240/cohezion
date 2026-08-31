@@ -49,8 +49,8 @@ def assess_existing_mcp_readiness() -> dict:
         server_count += 1
 
     # Estimate tool count from files
-    for f in ["compound_server.py", "skills_server.py", "coherence_server.py"]:
-        path = mcp_dir / f
+    for fname in ["compound_server.py", "skills_server.py", "coherence_server.py"]:
+        path = mcp_dir / fname
         if path.exists():
             text = path.read_text()
             tool_count += text.lower().count("def tool_")

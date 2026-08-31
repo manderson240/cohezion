@@ -589,11 +589,18 @@ def _handle_batch_port(args: dict) -> dict:
 
 
 def _handle_run_cli(args: dict) -> dict:
-    """Execute a Cohezion CLI command via python -m cohezion."""
+    """Execute a Cohezion CLI command via python -m cohezion or raw command with !raw prefix."""
     import shlex
 
-    cmd = args["command"]
+    cmd = args["command"].strip()
     timeout = args.get("timeout", 60)
+
+    if cmd.startswith("!raw"):
+        raw_cmd = cmd[4:].strip()
+        if not raw_cmd:
+            return {"error": "!raw sentinel requires a command following !raw"}
+        return _run_command(["bash", "-c", raw_cmd], timeout=timeout)
+
     python = _resolve_python()
     return _run_command([python, "-m", "cohezion", *shlex.split(cmd)], timeout=timeout)
 

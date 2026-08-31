@@ -124,7 +124,20 @@ step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 step "doc-code self-test" uv run python scripts/ci/doc_code_consistency.py --self-test
 step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 
-# Step 6c-ter: META-gate. The scans above ask questions about the CODE; this asks whether
+# Step 6c-ter: Phantom attribute reads — the THIRD sibling. 6c asks "does this capability have a
+# consumer?", 6c-bis asks "do the docs tell the truth?", this asks "does the attribute this code
+# reads actually exist?". Added 2026-08-26 after `getattr(result, "error", "")` in
+# actioner/engine.py was found reading a field ExecutionResult does not have (9 constructions in
+# executor.py, 0 pass error=), so EVERY failure recorded an empty reason and a fully-blocked
+# compound pipeline was indistinguishable from a slow one for weeks. mypy cannot catch it:
+# getattr with a literal + default is deliberate dynamism whose contract IS to succeed silently.
+# --self-test first, same reason as 6c-bis: a scanner bug otherwise reads as a clean "0 errors".
+# Validated against the real pre-fix tree from git history (dee080d0c~1): fires on the historical
+# defect, silent on the fix.
+step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
+step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
+
+# Step 6c-quater: META-gate. The scans above ask questions about the CODE; this asks whether
 # the gates themselves can still answer. It RUNS each gate's --self-test rather than
 # checking the flag exists, because doc_code_consistency.py was found shipping a
 # --self-test that printed "BROKEN -- a check cannot fail" and exited 1 while satisfying

@@ -1,0 +1,23 @@
+{
+  "r": 64,
+  "lora_alpha": 128,
+  "lora_dropout": 0.05,
+  "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj",
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+  ],
+  "bias": "none",
+  "task_type": "CAUSAL_LM",
+  "base_model_name_or_path": "Nemotron-3.5-Lightning-30B-A3B-ROCmFP4",
+  "snr_db": 60.0,
+  "sample_count": 10000,
+  "final_perplexity": 6.89,
+  "ast_verified": true,
+  "zkfv_verified": true,
+  "review_score": 1.0
+}

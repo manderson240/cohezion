@@ -690,7 +690,7 @@ class TestOCExecutorWiring:
         Discriminating: removing the oracle wiring block from executor.py leaves
         oracle_tier absent from result.metrics → this assertion FAILS.
         """
-        executor, oracle = self._make_executor_with_oracle("igpu")
+        executor, _oracle = self._make_executor_with_oracle("igpu")
 
         def fake_execute(guidance):
             return "output", {}
@@ -718,7 +718,7 @@ class TestOCExecutorWiring:
         Discriminating: oracle_tier='cpu' must appear in metrics, not 'npu' from
         the DifficultyEstimator baseline. MAX-CAPABILITY selects 'cpu' over 'npu'.
         """
-        executor, oracle = self._make_executor_with_oracle("cpu")
+        executor, _oracle = self._make_executor_with_oracle("cpu")
 
         def fake_execute(guidance):
             return "output", {}

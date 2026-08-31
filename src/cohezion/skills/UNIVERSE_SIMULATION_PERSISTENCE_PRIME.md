@@ -6,6 +6,8 @@ metadata:
   source: "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md"
 ---
 
+# SKILL: UNIVERSE_SIMULATION_PERSISTENCE_PRIME
+
 # UNIVERSE_SIMULATION_PERSISTENCE_PRIME
 
 **Version**: 1.0
@@ -427,3 +429,25 @@ By implementing three-tier storage + pre-commit enforcement + JourneyTracker reg
 
 **Status**: READY FOR IMPLEMENTATION ✅
 **Recommendation**: Deploy in Session 56, monitor metrics for 3 sessions, then extend to other artifact types
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Universe Simulation Persistence Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for UNIVERSE SIMULATION PERSISTENCE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

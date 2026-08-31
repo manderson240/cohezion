@@ -275,6 +275,22 @@
             "tools": [
                 "agentskills_execute"
             ]
+        },
+        {
+            "name": "cohezion-lemonade",
+            "type": "inference",
+            "description": "Lemonade local inference gateway exposing NPU, iGPU, and CPU models as tools",
+            "path": "mcp/lemonade_server_mcp.py",
+            "tools": [
+                "lemonade_list_models",
+                "lemonade_load_model",
+                "lemonade_chat",
+                "lemonade_analyze_image",
+                "lemonade_generate_image",
+                "lemonade_text_to_speech",
+                "lemonade_transcribe_audio",
+                "lemonade_server_status"
+            ]
         }
     ],
     "relationships": {

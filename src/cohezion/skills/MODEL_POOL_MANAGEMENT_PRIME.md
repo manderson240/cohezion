@@ -6,6 +6,8 @@ metadata:
   source: "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md"
 ---
 
+# SKILL: MODEL_POOL_MANAGEMENT_PRIME
+
 # MODEL_POOL_MANAGEMENT_PRIME
 
 ## Purpose
@@ -90,3 +92,25 @@ Manage the lifecycle of local Ollama models across hot/warm/cold tiers, ensuring
 - `src/cohezion/swarm/model_pool_config.py` -- Configuration and data models
 - `src/cohezion/swarm/dynamic_model_router.py:60` -- MemoryBandwidthAnalyzer
 - `src/cohezion/swarm/model_manager.py` -- OllamaModelManager (coexists)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Model Pool Management Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MODEL POOL MANAGEMENT PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

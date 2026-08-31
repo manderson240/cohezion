@@ -48,28 +48,44 @@ chains onto the previous snapshot as a second parent so the ref keeps history.
 """
 
 LANES = [
-    {"name": "durability_holes", "device": "gpu", "model": "Gemma-4-E4B-it-GGUF",
-     "prompt": CONTEXT + """
+    {
+        "name": "durability_holes",
+        "device": "gpu",
+        "model": "Gemma-4-E4B-it-GGUF",
+        "prompt": CONTEXT
+        + """
 QUESTION: Attack SCRIPT 1's durability claim. Under what concrete failure does it STILL lose
 data? Consider specifically: what happens if the machine dies BETWEEN os.replace() of a lane
 file and the next lane completing; whether fsync on the file alone is sufficient without also
 fsyncing the parent DIRECTORY entry; and whether ZFS changes that answer. Also: is writing one
-file per lane a problem at high lane counts? Be concrete about what is still lost.""" + FMT},
-    {"name": "snapshot_correctness", "device": "cpu", "model": "Gemma-4-E2B-it-GGUF",
-     "prompt": CONTEXT + """
+file per lane a problem at high lane counts? Be concrete about what is still lost."""
+        + FMT,
+    },
+    {
+        "name": "snapshot_correctness",
+        "device": "cpu",
+        "model": "Gemma-4-E2B-it-GGUF",
+        "prompt": CONTEXT
+        + """
 QUESTION: Attack SCRIPT 2's correctness. It snapshots tracked-modified plus
 untracked-not-ignored files and SKIPS deletions on the grounds that HEAD already holds the prior
 content. Is that reasoning sound - can a snapshot that omits deletions ever mislead someone
 recovering from it? Also assess: hardcoding file mode 100644 (what about executable files or
 symlinks?), and chaining each snapshot onto the previous one as a second parent (does that ref
-grow without bound?).""" + FMT},
+grow without bound?)."""
+        + FMT,
+    },
 ]
 
 
 async def main() -> None:
-    await run_swarm(LANES, "review-durability-scripts",
-                    fields=("FINDING:", "CONFIDENCE:"), max_tokens=4000,
-                    session="s-fd4fad2d23a1")
+    await run_swarm(
+        LANES,
+        "review-durability-scripts",
+        fields=("FINDING:", "CONFIDENCE:"),
+        max_tokens=4000,
+        session="s-fd4fad2d23a1",
+    )
 
 
 if __name__ == "__main__":

@@ -35,3 +35,8 @@ Expert in **Claude Code configuration, Anthropic API optimization, and agent tea
 
 ## VERSION
 v1.0
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

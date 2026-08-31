@@ -139,3 +139,9 @@ v1.0
 - VECTOR_STORE_PRIME.md
 - KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md
 - CACHING_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for DATABASE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

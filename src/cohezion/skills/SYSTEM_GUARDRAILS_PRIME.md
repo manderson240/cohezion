@@ -6,6 +6,8 @@ metadata:
   source: "src/cohezion/skills/SYSTEM_GUARDRAILS_PRIME.md"
 ---
 
+# SKILL: SYSTEM_GUARDRAILS_PRIME
+
 # PRIME Skill: System Guardrails
 
 ## Purpose
@@ -114,3 +116,25 @@ Each guard must:
 ## Keywords: security, validation, injection, rate-limit, safety
 ## Domain: system-infrastructure
 ## Dependencies: None (self-contained)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for System Guardrails Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SYSTEM GUARDRAILS PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

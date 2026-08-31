@@ -1,4 +1,7 @@
 ---
+name: SURREALDB_MOCK_PERSISTENCE_PRIME
+description: Comprehensive domain skill specification for Surrealdb Mock Persistence Prime.
+version: v1.0
 name: surrealdb_mock_persistence_prime
 description: "Standardized Cohezion platform PRIME skill for surrealdb_mock_persistence_prime."
 category: core
@@ -32,3 +35,9 @@ v0.1
 ## SEE ALSO
 - DATABASE_PRIME.md
 - SURREALDB_OPERATIONS_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SURREALDB MOCK PERSISTENCE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

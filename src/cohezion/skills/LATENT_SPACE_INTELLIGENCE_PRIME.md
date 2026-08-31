@@ -3,6 +3,8 @@ name: latent-space-intelligence-prime
 description: "Latent space computation in language-based models -- the machine-native representational substrate where reasoning, planning, perception, memory, collaboration, and embodiment operate as continuous vector operations rather than discrete token sequences. This skill covers the theoretical foundations (Awesome-Latent-Space survey, arXiv:2604."
 ---
 
+# SKILL: LATENT_SPACE_INTELLIGENCE_PRIME
+
 # LATENT_SPACE_INTELLIGENCE_PRIME
 
 ## Domain Expertise
@@ -307,3 +309,35 @@ our HIHO optimization is optimal:
 - PHYSICS_LINEAGE_PRIME -- Physics foundations (Riemannian geometry, gauge theory, spinors)
 - KERNEL_OPTIMIZATION_PRIME -- General optimization methodology
 - AUTORESEARCH_PRIME -- Measurement-driven optimization protocol
+
+## DOMAIN EXPERTISE
+Core autonomous capability specializing in LATENT SPACE INTELLIGENCE PRIME operations within the Cohezion FLUME multi-agent swarm.
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LATENT SPACE INTELLIGENCE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## INSTRUCTION
+
+### 1. Initialize Context
+```python
+from cohezion.flume import PoincareManifoldND
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
+policy = AutoHarnessPolicy()
+state = PoincareManifoldND.project([0.05] * 2048, target_dim=12)
+```
+
+### 2. Execute Deterministic Action
+```python
+# Verify state invariants with 0ms overhead
+res = policy.verify_action("standard_execution", state)
+assert res.allowed is True
+```
+
+
+## VERSION
+v1.0 (Auto-Standardized & Verified)

@@ -5,6 +5,8 @@ category: compound
 tags: [greek, parameters, control, hiho, convergence, universe-research-engineer]
 ---
 
+# SKILL: GREEK_PARAMETERS_PRIME
+
 # Skill: Greek Parameters Control System
 
 ## Overview
@@ -64,3 +66,25 @@ record = gp.to_dict()  # {alpha, omega, delta, beta, gamma_at_hiho}
 - Implementation: `src/cohezion/compound/greek_parameters.py`
 - Tests: `tests/unit/compound/test_phase19.py::TestGreekParameters`
 - Harness: P1 (convergence), P2 (β A3 guard)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Greek Parameters Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for GREEK PARAMETERS PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

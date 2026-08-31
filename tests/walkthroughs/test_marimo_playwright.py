@@ -39,6 +39,7 @@ import pytest
 
 pytest.importorskip("playwright")
 
+import contextlib
 import re
 import subprocess
 import time
@@ -458,10 +459,8 @@ class TestIntegration:
             # Click run
             agent_btn = page.get_by_role("button", name=re.compile(r"Agent", re.IGNORECASE))
             if agent_btn.count() > 0:
-                try:
+                with contextlib.suppress(Exception):
                     agent_btn.first.click(timeout=2000)
-                except Exception:
-                    pass
 
             # Wait for the HTTP request to fail
             page.wait_for_timeout(6000)

@@ -54,3 +54,9 @@ v0.1
 - HARDWARE_PROFILE_PRIME.md
 - SELF_EVALUATION_PRIME.md
 - JOURNEY_TRACKING_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MAMBA STATE TRACKING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

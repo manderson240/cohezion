@@ -67,9 +67,20 @@ class VaultLogger:
         if not experiment_path:
             return
         try:
-            # Read existing
+            # Read existing. `vault_read_sync` is ANNOTATED `-> str`, but that annotation does not
+            # hold at runtime: this path failed in production with "the JSON object must be str,
+            # bytes or bytearray", which json.loads raises for None/dict — never for the documented
+            # empty-string-on-error case (that would be JSONDecodeError). Normalise instead of
+            # trusting the signature; an unreadable log must not sink the execution result.
             content = self.mcp.vault_read_sync(experiment_path)
-            data = json.loads(content)
+            if isinstance(content, dict):
+                data = dict(content)  # already parsed upstream
+            elif isinstance(content, (str, bytes, bytearray)) and str(content).strip():
+                data = json.loads(content)
+            else:
+                data = {}  # None / empty / unexpected -> start a fresh record
+            if not isinstance(data, dict):
+                data = {}  # valid JSON that isn't an object (list, scalar)
 
             # Update
             data["success"] = success

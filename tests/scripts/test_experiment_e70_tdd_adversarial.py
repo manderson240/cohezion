@@ -59,7 +59,7 @@ async def test_tdd_test_case_failure():
     """Should run TDDTestCase to RED on AssertionError."""
 
     def fail_fn():
-        assert False, "expected failure"
+        raise AssertionError("expected failure")
 
     tc = TDDTestCase(
         test_id="T1",
@@ -88,7 +88,7 @@ async def test_tdd_test_case_async():
         target_function="target",
         test_function=async_fn,
     )
-    success, error = await tc.run()
+    success, _error = await tc.run()
     assert success is True
     assert tc.status == TestStatus.GREEN
 

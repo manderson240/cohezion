@@ -128,3 +128,9 @@ v1.1 (merged from SURREALDB_OPERATIONS_PRIME v1.0.0 + SURREAL_DBA_PRIME v1.0)
 
 ## SEE ALSO
 SURREALDB_ADVANCED_PRIME, VAULT_KEEPER_PRIME, DATABASE_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SURREALDB CORE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

@@ -192,3 +192,9 @@ v2.0 (2026-03-05) -- Added physics genealogy for all 4 fabrics, enhanced precipi
 - `DISSIPATIVE_STRUCTURES_PRIME.md` -- Prigogine's non-equilibrium basis for HIHO attractor
 - ADVANCED_PHYSICS_SIMULATION_PRIME
 - FLUME_ORCHESTRATION_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for hiho reality sim.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

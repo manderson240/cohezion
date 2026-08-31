@@ -36,3 +36,9 @@ v1.0
 - RIGOROUS_EVALUATION_PRIME.md
 - HALLUCINATION_RESOLVER_PRIME.md
 - TDD_COMPOUND_ENGINEERING_SPEC.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for RALPH LOOP PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

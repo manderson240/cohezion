@@ -51,7 +51,7 @@ def test_restore_action_does_not_crash(env):
     """Restore action (type=1) should nudge integrity up without errors."""
     env.reset(seed=7)
     # pick patch 0, restore action: 0*3 + 1 = 1
-    obs_before, _, _, _, info_before = env.step(0 * 3 + 1)
-    obs_after, _, _, _, info_after = env.step(0 * 3 + 2)  # monitor same patch
+    _obs_before, _, _, _, _info_before = env.step(0 * 3 + 1)
+    _obs_after, _, _, _, info_after = env.step(0 * 3 + 2)  # monitor same patch
     # No crash; integrity stays bounded
     assert 0.0 <= info_after["mean_integrity"] <= 1.0

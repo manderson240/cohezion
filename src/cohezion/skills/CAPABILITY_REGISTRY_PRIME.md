@@ -3,6 +3,8 @@ name: capability-registry-prime
 description: "Capability Registry Prime: The Unified Natural Language Discovery Engine. Use when building or querying the TF-IDF capability registry that aggregates skills, agents, MCP servers, and memory nodes for natural language discovery."
 ---
 
+# SKILL: CAPABILITY_REGISTRY_PRIME
+
 # Capability Registry Prime
 
 ## 1. Core Philosophy
@@ -96,3 +98,25 @@ Don't write a `scripts/audit_registry.py` that imports the registry and reproduc
 
 ## VERSION
 v1.1 -- 2026-04-21 added Liveness Drift Audit section from turbo-distributed-torvalds-continued session
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Capability Registry Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for CAPABILITY REGISTRY PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

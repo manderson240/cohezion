@@ -1,0 +1,24 @@
+{
+  "description": "Mutable experiment policy. Experiments edit THIS file, not src/.",
+  "tiers": [
+    {
+      "model": "Gemma-4-E4B-it-GGUF",
+      "max_tokens": 2048,
+      "gate_min_chars": 1
+    },
+    {
+      "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+      "max_tokens": 2048,
+      "gate_min_chars": null
+    }
+  ],
+  "entry_by_node": {
+    "npu": 0,
+    "gpu": 0
+  },
+  "use_classifier_entry": true,
+  "use_classifier_gate_chars": true,
+  "validator_gate": true,
+  "concurrency": 3,
+  "per_task_timeout_s": 240
+}

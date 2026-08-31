@@ -7,6 +7,8 @@ keywords:
 - reasoning
 ---
 
+# SKILL: ARC_INTERACTIVE_REASONING
+
 # ARC Interactive Reasoning Skill
 
 **Auto-generated from experiential learning spike**
@@ -56,3 +58,25 @@ keywords:
 - **0.5** = HIHO threshold (Shannon max)
 - **256** = FLUME latent dimension
 - **SU(2)** = agent state gauge group
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Arc Interactive Reasoning within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for ARC INTERACTIVE REASONING.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

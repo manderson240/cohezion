@@ -114,3 +114,9 @@ v1.0
 - OBSERVABLE_AI_PRIME.md - Transparency for auditing
 - PHYSICS_INFORMED_PREDICTION_PRIME.md - Predict misalignment before it happens
 - GATEWAY_ARCHITECTURE_PRIME.md - Gateway 5 safety
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for alignment verification.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

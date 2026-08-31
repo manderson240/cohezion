@@ -74,3 +74,9 @@ v1.0 (Born from the 17.3M File Flood of Feb 2026)
 ## SEE ALSO
 - [SYSTEM_HARDENING_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/SYSTEM_HARDENING_PRIME.md)
 - `src/cohezion/maintenance/harvester.py`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for KNOWLEDGE HARVESTING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

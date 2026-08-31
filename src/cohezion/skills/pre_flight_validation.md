@@ -176,3 +176,9 @@ v1.0
 - FAIL_FAST_PRIME (Learning 57)
 - PERSISTENT_QUALITY_PRIME
 - R_ZERO_PRIME (difficulty should decrease)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for pre flight validation.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

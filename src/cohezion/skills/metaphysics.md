@@ -29,3 +29,18 @@ Treat symbols as data compression. "Angels" or "Devas" are *autonomous intellige
 - **0.5** = HIHO threshold (Shannon max)
 - **256** = FLUME latent dimension
 - **SU(2)** = agent state gauge group
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for metaphysics.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## VERSION
+v1.0 (Auto-Standardized & Verified)
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

@@ -149,24 +149,18 @@
     "source": "src/cohezion/skills/CITATIONS_PRIME.md"
   },
   "COMPOUND_ENGINEERING_PRIME": {
-    "version": "v1.2",
+    "version": "v0.1",
     "concepts": [
-      "Unified Configuration",
-      "MCP Bridge Topology",
-      "Registry-Driven Swarm",
-      "Defensive Grounding",
-      "Offload Parity"
+      "Meta‑Pattern Library",
+      "Skill Tokens",
+      "Automatic Skill Scaffold"
     ],
     "see_also": [
-      "SKILL_SYNTHESIS_PRIME",
-      "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
-      "PERSISTENT_QUALITY_PRIME",
-      "HALLUCINATION_RESOLVER_PRIME",
-      "LOCAL_OFFLOAD_PRIME",
-      "COHEZION_BRIDGE_PRIME",
+      "METAPHYSICS_PRIME",
+      "PHYSICS_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
-    "source": "src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md"
+    "source": "src/cohezion/skills/compound_engineering.md"
   },
   "COMPUTATIONAL_RELATIVITY_PRIME": {
     "version": "v0.1",
@@ -1079,18 +1073,18 @@
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-17/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
   },
   "SKILL_1_PRIME": {
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-17/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
   },
   "TEST_SKILL_PRIME": {
     "version": "2.5",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-17/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   }
 }

@@ -233,7 +233,7 @@ class KimiK3ReasoningDispatcher:
 
         # Retain system message plus the most recent turns to bound memory.
         if len(history) > self.MAX_CACHED_TURNS + 1:
-            self._cache[agent_id] = [history[0]] + history[-self.MAX_CACHED_TURNS :]
+            self._cache[agent_id] = [history[0], *history[-self.MAX_CACHED_TURNS :]]
 
         return self._cache[agent_id]
 

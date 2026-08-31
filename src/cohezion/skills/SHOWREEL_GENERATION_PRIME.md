@@ -30,3 +30,9 @@ v1.0
 ## SEE ALSO
 - [GALLERY_AGENT_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/GALLERY_AGENT_PRIME.md)
 - [SONIFICATION_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/SONIFICATION_PRIME.md)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SHOWREEL GENERATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

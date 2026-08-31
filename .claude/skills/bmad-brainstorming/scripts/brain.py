@@ -38,6 +38,7 @@ import random
 import sys
 from pathlib import Path
 
+
 DEFAULT_FILE = Path(__file__).resolve().parent.parent / "assets" / "brain-methods.csv"
 FIELDS = (
     "category",

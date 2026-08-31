@@ -1,0 +1,1682 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - listbox "Sidebar panels" [ref=e7]:
+          - option [ref=e8]
+          - option [ref=e15]
+          - option [ref=e22]
+          - option [ref=e27]
+          - option [ref=e32]
+          - option [ref=e37]
+          - option [ref=e42]
+        - button [ref=e49] [cursor=pointer]
+      - generic:
+        - generic:
+          - button [ref=e54] [cursor=pointer]
+          - separator [ref=e58]
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - listbox "Suggestions" [ref=e67]:
+              - combobox [expanded] [ref=e71]: /home/mike-anderson/dev/cohezion/scripts/cockpit.py
+            - generic [ref=e73]:
+              - generic [ref=e75]:
+                - generic [ref=e76]:
+                  - generic [ref=e77]: Reconnected
+                  - button [ref=e80] [cursor=pointer]
+                - generic [ref=e84]:
+                  - generic [ref=e85]: You have reconnected to an existing session.
+                  - button "Restart" [ref=e86] [cursor=pointer]
+              - generic [ref=e90]:
+                - generic [ref=e91]:
+                  - generic [ref=e93]:
+                    - generic [ref=e98]:
+                      - generic [ref=e101]:
+                        - generic [ref=e102]:
+                          - generic [ref=e103]:
+                            - generic [ref=e104]:
+                              - generic [ref=e105]: "1"
+                              - generic [ref=e106]: "2"
+                              - generic [ref=e107]: "3"
+                            - generic [ref=e108]:
+                              - generic [ref=e109]: ⌄
+                              - generic [ref=e110]: ⌄
+                          - textbox [active] [ref=e111]:
+                            - generic [ref=e112]: "# 🛰️ Cohezion Compound-Loop Cockpit"
+                            - generic [ref=e113]: Monitor + steer the live local daemons. Panels below auto-refresh ~15s.
+                            - generic [ref=e114]: Steering actions fire only on click. Runs on **local inference ($0)**.
+                        - generic [ref=e117]:
+                          - generic [ref=e118]:
+                            - generic [ref=e119]:
+                              - generic [ref=e120]: r
+                              - checkbox "Toggle raw string" [ref=e121] [cursor=pointer]
+                            - generic [ref=e122]:
+                              - generic [ref=e123]: f
+                              - checkbox "Toggle f-string" [ref=e124] [cursor=pointer]
+                          - text: markdown
+                      - generic [ref=e128]:
+                        - generic [ref=e129]:
+                          - img "Fix generated" [ref=e130]
+                          - paragraph [ref=e133]: Showing fix
+                        - generic [ref=e134]:
+                          - generic [ref=e135]: Show prompt
+                          - switch [ref=e136] [cursor=pointer]
+                        - generic [ref=e137]:
+                          - generic [ref=e138]:
+                            - button "Accept" [ref=e139] [cursor=pointer]
+                            - button [ref=e140] [cursor=pointer]
+                          - button "Reject" [ref=e143] [cursor=pointer]
+                    - generic [ref=e152]:
+                      - button [ref=e154] [cursor=pointer]
+                      - generic [ref=e161]:
+                        - heading "🛰️ Cohezion Compound-Loop Cockpit" [level=1] [ref=e162]
+                        - generic [ref=e163]:
+                          - text: Monitor + steer the live local daemons. Panels below auto-refresh ~15s. Steering actions fire only on click. Runs on
+                          - strong [ref=e164]: local inference ($0)
+                          - text: .
+                    - generic [ref=e165]: _header
+                  - generic [ref=e169]:
+                    - generic [ref=e173]:
+                      - toolbar [ref=e175]:
+                        - button [ref=e176] [cursor=pointer]
+                        - button [disabled] [ref=e179]
+                        - button [ref=e182] [cursor=pointer]:
+                          - button [ref=e183]:
+                            - button [ref=e184]
+                      - generic [ref=e189]:
+                        - generic [ref=e193]:
+                          - generic [ref=e195]:
+                            - generic [ref=e196]: "1"
+                            - generic [ref=e197]: "2"
+                            - generic [ref=e198]: "3"
+                            - generic [ref=e199]: "4"
+                            - generic [ref=e200]: "5"
+                          - textbox [ref=e203]:
+                            - generic [ref=e204]: import matplotlib.pyplot as plt
+                            - generic [ref=e206]: import marimo as mo
+                            - generic [ref=e208]: from cohezion.cockpit import daemon_state as ds
+                        - generic [ref=e209]:
+                          - generic [ref=e210]:
+                            - img "Fix generated" [ref=e211]
+                            - paragraph [ref=e214]: Showing fix
+                          - generic [ref=e215]:
+                            - generic [ref=e216]: Show prompt
+                            - switch [ref=e217] [cursor=pointer]
+                          - generic [ref=e218]:
+                            - generic [ref=e219]:
+                              - button "Accept" [ref=e220] [cursor=pointer]
+                              - button [ref=e221] [cursor=pointer]
+                            - button "Reject" [ref=e224] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e234]: _imports
+                  - generic [ref=e237]:
+                    - generic [ref=e241]:
+                      - toolbar [ref=e243]:
+                        - button [ref=e244] [cursor=pointer]
+                        - button [disabled] [ref=e247]
+                        - button [ref=e250] [cursor=pointer]:
+                          - button [ref=e251]:
+                            - button [ref=e252]
+                      - generic [ref=e257]:
+                        - generic [ref=e261]:
+                          - generic [ref=e263]:
+                            - generic [ref=e264]: "1"
+                            - generic [ref=e265]: "2"
+                            - generic [ref=e266]: "3"
+                          - textbox [ref=e269]:
+                            - generic [ref=e270]: "# The heartbeat: every monitor cell that reads this re-runs on each tick."
+                            - generic [ref=e271]: refresh = mo.ui.refresh(default_interval="15s", label="Auto-refresh")
+                            - generic [ref=e272]: refresh
+                        - generic [ref=e273]:
+                          - generic [ref=e274]:
+                            - img "Fix generated" [ref=e275]
+                            - paragraph [ref=e278]: Showing fix
+                          - generic [ref=e279]:
+                            - generic [ref=e280]: Show prompt
+                            - switch [ref=e281] [cursor=pointer]
+                          - generic [ref=e282]:
+                            - generic [ref=e283]:
+                              - button "Accept" [ref=e284] [cursor=pointer]
+                              - button [ref=e285] [cursor=pointer]
+                            - button "Reject" [ref=e288] [cursor=pointer]
+                    - generic "This output is stale" [ref=e299]:
+                      - generic [ref=e303]:
+                        - generic [ref=e304]: Auto-refresh
+                        - generic [ref=e308]:
+                          - button [ref=e309] [cursor=pointer]
+                          - combobox [ref=e315] [cursor=pointer]:
+                            - option "off"
+                            - option "15s" [selected]
+                    - generic "This console output is stale" [ref=e317]: _refresh
+                  - generic [ref=e320]:
+                    - generic [ref=e321]:
+                      - button [ref=e323] [cursor=pointer]
+                      - button [ref=e326] [cursor=pointer]
+                    - generic [ref=e328]:
+                      - toolbar [ref=e330]:
+                        - button [ref=e331] [cursor=pointer]
+                        - button [disabled] [ref=e334]
+                        - button [ref=e337] [cursor=pointer]:
+                          - button [ref=e338]:
+                            - button [ref=e339]
+                      - generic [ref=e344]:
+                        - generic [ref=e348]:
+                          - generic [ref=e349]:
+                            - generic [ref=e350]:
+                              - generic [ref=e351]: "1"
+                              - generic [ref=e352]: "2"
+                              - generic [ref=e353]: "3"
+                              - generic [ref=e354]: "4"
+                              - generic [ref=e355]: "5"
+                              - generic [ref=e356]: "6"
+                              - generic [ref=e357]: "7"
+                              - generic [ref=e358]: "8"
+                              - generic [ref=e359]: "9"
+                              - generic [ref=e360]: "10"
+                              - generic [ref=e361]: "11"
+                              - generic [ref=e362]: "12"
+                              - generic [ref=e363]: "13"
+                              - generic [ref=e364]: "14"
+                              - generic [ref=e365]: "15"
+                              - generic [ref=e366]: "16"
+                            - generic [ref=e367]:
+                              - generic [ref=e369]: ⌄
+                              - generic [ref=e370]: ⌄
+                              - generic [ref=e371]: ⌄
+                          - textbox [ref=e372]:
+                            - generic [ref=e373]: "refresh # depend on the tick → re-poll"
+                            - generic [ref=e374]: tq = ds.read_task_queue()
+                            - generic [ref=e375]: tq_pending = tq["pending"]
+                            - generic [ref=e376]: tq_rows = (
+                            - generic [ref=e377]: "\"\\n\".join(f\"| {t.get('id')} | {(t.get('prompt') or '')[:80]} |\" for t in tq_pending[:15])"
+                            - generic [ref=e378]: or "| — | (no pending tasks) |"
+                            - generic [ref=e379]: )
+                            - generic [ref=e380]: mo.md(
+                            - generic [ref=e381]: f"""## 📋 Compound task queue
+                            - generic [ref=e382]: "**total** {tq[\"total\"]} · **done** {tq[\"done\"]} · **pending** {len(tq_pending)}"
+                            - generic [ref=e384]: "| id | prompt |"
+                            - generic [ref=e385]: "|----|--------|"
+                            - generic [ref=e386]: "{tq_rows}"
+                            - generic [ref=e387]: "\"\"\""
+                            - generic [ref=e388]: )
+                        - generic [ref=e389]:
+                          - generic [ref=e390]:
+                            - img "Fix generated" [ref=e391]
+                            - paragraph [ref=e394]: Showing fix
+                          - generic [ref=e395]:
+                            - generic [ref=e396]: Show prompt
+                            - switch [ref=e397] [cursor=pointer]
+                          - generic [ref=e398]:
+                            - generic [ref=e399]:
+                              - button "Accept" [ref=e400] [cursor=pointer]
+                              - button [ref=e401] [cursor=pointer]
+                            - button "Reject" [ref=e404] [cursor=pointer]
+                      - button [ref=e414]
+                      - button [ref=e423] [cursor=pointer]
+                    - generic [ref=e427]:
+                      - button [ref=e429] [cursor=pointer]
+                      - generic [ref=e433]:
+                        - button [ref=e435] [cursor=pointer]
+                        - generic "This output is stale" [ref=e445]:
+                          - generic [ref=e447]:
+                            - heading "📋 Compound task queue" [level=2] [ref=e448]
+                            - generic [ref=e449]:
+                              - strong [ref=e450]: total
+                              - text: 87 ·
+                              - strong [ref=e451]: done
+                              - text: 87 ·
+                              - strong [ref=e452]: pending
+                              - text: "0"
+                            - table [ref=e453]:
+                              - rowgroup [ref=e454]:
+                                - row [ref=e455]:
+                                  - columnheader "id" [ref=e456]
+                                  - columnheader "prompt" [ref=e457]
+                              - rowgroup [ref=e458]:
+                                - row [ref=e459]:
+                                  - cell "—" [ref=e460]
+                                  - cell "(no pending tasks)" [ref=e461]
+                    - generic "This console output is stale" [ref=e463]: _task_queue
+                  - generic [ref=e466]:
+                    - generic [ref=e470]:
+                      - toolbar [ref=e472]:
+                        - button [ref=e473] [cursor=pointer]
+                        - button [disabled] [ref=e476]
+                        - button [ref=e479] [cursor=pointer]:
+                          - button [ref=e480]:
+                            - button [ref=e481]
+                      - generic [ref=e486]:
+                        - generic [ref=e490]:
+                          - generic [ref=e491]:
+                            - generic [ref=e492]:
+                              - generic [ref=e493]: "1"
+                              - generic [ref=e494]: "2"
+                              - generic [ref=e495]: "3"
+                              - generic [ref=e496]: "4"
+                              - generic [ref=e497]: "5"
+                              - generic [ref=e498]: "6"
+                              - generic [ref=e499]: "7"
+                            - generic [ref=e500]: ⌄
+                          - textbox [ref=e503]:
+                            - generic [ref=e504]: refresh
+                            - generic [ref=e505]: gc = ds.read_graph_counts()
+                            - generic [ref=e506]: mo.md(
+                            - generic [ref=e507]: "\"## 🕸️ SurrealDB graph\\n\""
+                            - generic [ref=e508]: "f\"compound_loop **{gc['compound_loop']}** · yielded **{gc['yielded']}** · \""
+                            - generic [ref=e509]: "f\"spawned **{gc['spawned']}** · agent_journey **{gc['agent_journey']}**\""
+                            - generic [ref=e510]: )
+                        - generic [ref=e511]:
+                          - generic [ref=e512]:
+                            - img "Fix generated" [ref=e513]
+                            - paragraph [ref=e516]: Showing fix
+                          - generic [ref=e517]:
+                            - generic [ref=e518]: Show prompt
+                            - switch [ref=e519] [cursor=pointer]
+                          - generic [ref=e520]:
+                            - generic [ref=e521]:
+                              - button "Accept" [ref=e522] [cursor=pointer]
+                              - button [ref=e523] [cursor=pointer]
+                            - button "Reject" [ref=e526] [cursor=pointer]
+                    - generic [ref=e535]:
+                      - button [ref=e537] [cursor=pointer]
+                      - generic "This output is stale" [ref=e542]:
+                        - generic [ref=e544]:
+                          - heading "🕸️ SurrealDB graph" [level=2] [ref=e545]
+                          - generic [ref=e546]:
+                            - text: compound_loop
+                            - strong [ref=e547]: "670"
+                            - text: · yielded
+                            - strong [ref=e548]: "670"
+                            - text: · spawned
+                            - strong [ref=e549]: "0"
+                            - text: · agent_journey
+                            - strong [ref=e550]: "673"
+                    - generic "This console output is stale" [ref=e552]: _graph_counts
+                  - generic [ref=e555]:
+                    - generic [ref=e559]:
+                      - toolbar [ref=e561]:
+                        - button [ref=e562] [cursor=pointer]
+                        - button [disabled] [ref=e565]
+                        - button [ref=e568] [cursor=pointer]:
+                          - button [ref=e569]:
+                            - button [ref=e570]
+                      - generic [ref=e575]:
+                        - generic [ref=e579]:
+                          - generic [ref=e580]:
+                            - generic [ref=e581]:
+                              - generic [ref=e582]: "1"
+                              - generic [ref=e583]: "2"
+                              - generic [ref=e584]: "3"
+                              - generic [ref=e585]: "4"
+                              - generic [ref=e586]: "5"
+                              - generic [ref=e587]: "6"
+                              - generic [ref=e588]: "7"
+                              - generic [ref=e589]: "8"
+                            - generic [ref=e590]: ⌄
+                          - textbox [ref=e593]:
+                            - generic [ref=e594]: refresh
+                            - generic [ref=e595]: wq = ds.read_work_queue()
+                            - generic [ref=e596]: "wq_status = \" · \".join(f\"{k}: {v}\" for k, v in wq[\"by_status\"].items()) or \"—\""
+                            - generic [ref=e597]: "wq_rel = \" · \".join(f\"{k}: {v}\" for k, v in wq[\"by_relevance\"].items()) or \"—\""
+                            - generic [ref=e598]: mo.md(
+                            - generic [ref=e599]: "f\"## 🗂️ Work queue (:8080)\\n**total** {wq['total']}\\n\\n\""
+                            - generic [ref=e600]: "f\"- by status: {wq_status}\\n- by relevance: {wq_rel}\""
+                            - generic [ref=e601]: )
+                        - generic [ref=e602]:
+                          - generic [ref=e603]:
+                            - img "Fix generated" [ref=e604]
+                            - paragraph [ref=e607]: Showing fix
+                          - generic [ref=e608]:
+                            - generic [ref=e609]: Show prompt
+                            - switch [ref=e610] [cursor=pointer]
+                          - generic [ref=e611]:
+                            - generic [ref=e612]:
+                              - button "Accept" [ref=e613] [cursor=pointer]
+                              - button [ref=e614] [cursor=pointer]
+                            - button "Reject" [ref=e617] [cursor=pointer]
+                    - generic [ref=e626]:
+                      - button [ref=e628] [cursor=pointer]
+                      - generic "This output is stale" [ref=e633]:
+                        - generic [ref=e635]:
+                          - heading "🗂️ Work queue (:8080)" [level=2] [ref=e636]
+                          - generic [ref=e637]:
+                            - strong [ref=e638]: total
+                            - text: "5439"
+                          - list [ref=e639]:
+                            - listitem [ref=e640]: "by status: reviewed: 4872 · actioned: 557 · approved: 9 · in_progress: 1"
+                            - listitem [ref=e641]:
+                              - text: "by relevance: MONITOR: 4252 · APPLY: 1136 · high: 5 · medium: 1 · VALIDATES: 1 · low: 3 · Root CLAUDE.md loads in full on every session across all worktrees; a 473-line monolith taxes every session with subsystem detail 96% of the time irrelevant to the task. Nested subdir CLAUDE.md is the docs-verified de-bloat lever (load-on-demand) and is already used in 3 subsystems — extending it is low-risk and compounds. Corrects the trim-proposal assumption that @-imports help (they do not).: 1 · HIGH -- Cohezion uses local and cloud LLMs to add deps to a shared venv; open-source/local models (which this stack prefers) hallucinate packages ~21.7% of the time, and hallucinations are stable enough to squat. Existing uv.lock/dependency-review/CodeQL do not gate the first AI-suggested install; this adds the one missing verification gate.: 1 · SKIP: 9 · MONITOR-reference. Reference value low (general list, stale, CUDA-heavy). One actionable candidate: Captum for local AMD-compatible interpretability of ~2M-param JEPA/VAE. No dependency conflict, $0 local, pure PyTorch.: 1 · LOW. Framing (build the system that talks to the model) rhymes with Cohezion compound-loop/harness philosophy, but no transferable method beyond what Cohezion already implements; core claim is unverified influencer hype.: 1 · Low. Cohezion already integrates Karpathy LLM-usage principles as an always-on rule (~/.claude/rules/karpathy-guidelines.md: think-before-coding, simplicity-first, surgical changes, goal-driven). This tweet adds no new named artifact or method beyond that existing rule. SKIP unless the specific 70-min Karpathy talk surfaces with concrete new guidance worth diffing against the current rule.: 1 · MONITOR-reference. Directory itself is a low-value bookmark for a local-first stack (mostly cloud). Single actionable mine: Gutendex as an optional ||(0 no-auth public-domain text-corpus source for future NLP/training experiments. No wiring recommended now; note only.: 1 · MONITOR: reference for a UI-design-language markdown convention; APPLY only for future brand-consistent UI generation on the Next.js frontend, not for the software /spec or design-note practice.: 1 · MONITOR only. No specific skill fills a clear gap in the 252 registry, so no APPLY. Two low-risk borrows worth tracking: (1) adopt Rationalizations + Red Flags sections as a skill-authoring convention for new PRIME skills; (2) fold doubt-driven anti-bias framing (strip CLAIM from reviewer input; doubt-theater guard) into peer-review/compound-build. Reference: github.com/addyosmani/agent-skills @ 0.6.3.: 1 · MONITOR — genuinely local Linux open-format (||)"
+                              - generic [ref=e645]:
+                                - math [ref=e647]:
+                                  - generic [ref=e649]:
+                                    - generic [ref=e650]: "0"
+                                    - generic [ref=e651]: "n"
+                                    - generic [ref=e652]: o
+                                    - generic [ref=e653]: −
+                                    - generic [ref=e654]: a
+                                    - generic [ref=e655]: u
+                                    - generic [ref=e656]: t
+                                    - generic [ref=e657]: h
+                                    - generic [ref=e658]: p
+                                    - generic [ref=e659]: u
+                                    - generic [ref=e660]: b
+                                    - generic [ref=e661]: l
+                                    - generic [ref=e662]: i
+                                    - generic [ref=e663]: c
+                                    - generic [ref=e664]: −
+                                    - generic [ref=e665]: d
+                                    - generic [ref=e666]: o
+                                    - generic [ref=e667]: m
+                                    - generic [ref=e668]: a
+                                    - generic [ref=e669]: i
+                                    - generic [ref=e670]: "n"
+                                    - generic [ref=e671]: t
+                                    - generic [ref=e672]: e
+                                    - generic [ref=e673]: x
+                                    - generic [ref=e674]: t
+                                    - generic [ref=e675]: −
+                                    - generic [ref=e676]: c
+                                    - generic [ref=e677]: o
+                                    - generic [ref=e678]: r
+                                    - generic [ref=e679]: p
+                                    - generic [ref=e680]: u
+                                    - generic [ref=e681]: s
+                                    - generic [ref=e682]: s
+                                    - generic [ref=e683]: o
+                                    - generic [ref=e684]: u
+                                    - generic [ref=e685]: r
+                                    - generic [ref=e686]: c
+                                    - generic [ref=e687]: e
+                                    - generic [ref=e688]: f
+                                    - generic [ref=e689]: o
+                                    - generic [ref=e690]: r
+                                    - generic [ref=e691]: f
+                                    - generic [ref=e692]: u
+                                    - generic [ref=e693]: t
+                                    - generic [ref=e694]: u
+                                    - generic [ref=e695]: r
+                                    - generic [ref=e696]: e
+                                    - generic [ref=e697]: "N"
+                                    - generic [ref=e698]: L
+                                    - generic [ref=e699]: P
+                                    - generic [ref=e700]: /
+                                    - generic [ref=e701]: t
+                                    - generic [ref=e702]: r
+                                    - generic [ref=e703]: a
+                                    - generic [ref=e704]: i
+                                    - generic [ref=e705]: "n"
+                                    - generic [ref=e706]: i
+                                    - generic [ref=e707]: "n"
+                                    - generic [ref=e708]: g
+                                    - generic [ref=e709]: e
+                                    - generic [ref=e710]: x
+                                    - generic [ref=e711]: p
+                                    - generic [ref=e712]: e
+                                    - generic [ref=e713]: r
+                                    - generic [ref=e714]: i
+                                    - generic [ref=e715]: m
+                                    - generic [ref=e716]: e
+                                    - generic [ref=e717]: "n"
+                                    - generic [ref=e718]: t
+                                    - generic [ref=e719]: s
+                                    - generic [ref=e720]: .
+                                    - generic [ref=e721]: "N"
+                                    - generic [ref=e722]: o
+                                    - generic [ref=e723]: w
+                                    - generic [ref=e724]: i
+                                    - generic [ref=e725]: r
+                                    - generic [ref=e726]: i
+                                    - generic [ref=e727]: "n"
+                                    - generic [ref=e728]: g
+                                    - generic [ref=e729]: r
+                                    - generic [ref=e730]: e
+                                    - generic [ref=e731]: c
+                                    - generic [ref=e732]: o
+                                    - generic [ref=e733]: m
+                                    - generic [ref=e734]: m
+                                    - generic [ref=e735]: e
+                                    - generic [ref=e736]: "n"
+                                    - generic [ref=e737]: d
+                                    - generic [ref=e738]: e
+                                    - generic [ref=e739]: d
+                                    - generic [ref=e740]: "n"
+                                    - generic [ref=e741]: o
+                                    - generic [ref=e742]: w
+                                    - generic [ref=e743]: ;
+                                    - generic [ref=e744]: "n"
+                                    - generic [ref=e745]: o
+                                    - generic [ref=e746]: t
+                                    - generic [ref=e747]: e
+                                    - generic [ref=e748]: o
+                                    - generic [ref=e749]: "n"
+                                    - generic [ref=e750]: l
+                                    - generic [ref=e751]: "y"
+                                    - generic [ref=e752]: .
+                                    - generic [ref=e753]: ":"
+                                    - generic [ref=e754]: "1"
+                                    - generic [ref=e755]: ⋅
+                                    - generic [ref=e756]: M
+                                    - generic [ref=e757]: O
+                                    - generic [ref=e758]: "N"
+                                    - generic [ref=e759]: I
+                                    - generic [ref=e760]: T
+                                    - generic [ref=e761]: O
+                                    - generic [ref=e762]: R
+                                    - generic [ref=e763]: ":"
+                                    - generic [ref=e764]: r
+                                    - generic [ref=e765]: e
+                                    - generic [ref=e766]: f
+                                    - generic [ref=e767]: e
+                                    - generic [ref=e768]: r
+                                    - generic [ref=e769]: e
+                                    - generic [ref=e770]: "n"
+                                    - generic [ref=e771]: c
+                                    - generic [ref=e772]: e
+                                    - generic [ref=e773]: f
+                                    - generic [ref=e774]: o
+                                    - generic [ref=e775]: r
+                                    - generic [ref=e776]: a
+                                    - generic [ref=e777]: U
+                                    - generic [ref=e778]: I
+                                    - generic [ref=e779]: −
+                                    - generic [ref=e780]: d
+                                    - generic [ref=e781]: e
+                                    - generic [ref=e782]: s
+                                    - generic [ref=e783]: i
+                                    - generic [ref=e784]: g
+                                    - generic [ref=e785]: "n"
+                                    - generic [ref=e786]: −
+                                    - generic [ref=e787]: l
+                                    - generic [ref=e788]: a
+                                    - generic [ref=e789]: "n"
+                                    - generic [ref=e790]: g
+                                    - generic [ref=e791]: u
+                                    - generic [ref=e792]: a
+                                    - generic [ref=e793]: g
+                                    - generic [ref=e794]: e
+                                    - generic [ref=e795]: m
+                                    - generic [ref=e796]: a
+                                    - generic [ref=e797]: r
+                                    - generic [ref=e798]: k
+                                    - generic [ref=e799]: d
+                                    - generic [ref=e800]: o
+                                    - generic [ref=e801]: w
+                                    - generic [ref=e802]: "n"
+                                    - generic [ref=e803]: c
+                                    - generic [ref=e804]: o
+                                    - generic [ref=e805]: "n"
+                                    - generic [ref=e806]: v
+                                    - generic [ref=e807]: e
+                                    - generic [ref=e808]: "n"
+                                    - generic [ref=e809]: t
+                                    - generic [ref=e810]: i
+                                    - generic [ref=e811]: o
+                                    - generic [ref=e812]: "n"
+                                    - generic [ref=e813]: ;
+                                    - generic [ref=e814]: A
+                                    - generic [ref=e815]: P
+                                    - generic [ref=e816]: P
+                                    - generic [ref=e817]: L
+                                    - generic [ref=e818]: "Y"
+                                    - generic [ref=e819]: o
+                                    - generic [ref=e820]: "n"
+                                    - generic [ref=e821]: l
+                                    - generic [ref=e822]: "y"
+                                    - generic [ref=e823]: f
+                                    - generic [ref=e824]: o
+                                    - generic [ref=e825]: r
+                                    - generic [ref=e826]: f
+                                    - generic [ref=e827]: u
+                                    - generic [ref=e828]: t
+                                    - generic [ref=e829]: u
+                                    - generic [ref=e830]: r
+                                    - generic [ref=e831]: e
+                                    - generic [ref=e832]: b
+                                    - generic [ref=e833]: r
+                                    - generic [ref=e834]: a
+                                    - generic [ref=e835]: "n"
+                                    - generic [ref=e836]: d
+                                    - generic [ref=e837]: −
+                                    - generic [ref=e838]: c
+                                    - generic [ref=e839]: o
+                                    - generic [ref=e840]: "n"
+                                    - generic [ref=e841]: s
+                                    - generic [ref=e842]: i
+                                    - generic [ref=e843]: s
+                                    - generic [ref=e844]: t
+                                    - generic [ref=e845]: e
+                                    - generic [ref=e846]: "n"
+                                    - generic [ref=e847]: t
+                                    - generic [ref=e848]: U
+                                    - generic [ref=e849]: I
+                                    - generic [ref=e850]: g
+                                    - generic [ref=e851]: e
+                                    - generic [ref=e852]: "n"
+                                    - generic [ref=e853]: e
+                                    - generic [ref=e854]: r
+                                    - generic [ref=e855]: a
+                                    - generic [ref=e856]: t
+                                    - generic [ref=e857]: i
+                                    - generic [ref=e858]: o
+                                    - generic [ref=e859]: "n"
+                                    - generic [ref=e860]: o
+                                    - generic [ref=e861]: "n"
+                                    - generic [ref=e862]: t
+                                    - generic [ref=e863]: h
+                                    - generic [ref=e864]: e
+                                    - generic [ref=e865]: "N"
+                                    - generic [ref=e866]: e
+                                    - generic [ref=e867]: x
+                                    - generic [ref=e868]: t
+                                    - generic [ref=e869]: .
+                                    - generic [ref=e870]: j
+                                    - generic [ref=e871]: s
+                                    - generic [ref=e872]: f
+                                    - generic [ref=e873]: r
+                                    - generic [ref=e874]: o
+                                    - generic [ref=e875]: "n"
+                                    - generic [ref=e876]: t
+                                    - generic [ref=e877]: e
+                                    - generic [ref=e878]: "n"
+                                    - generic [ref=e879]: d
+                                    - generic [ref=e880]: ","
+                                    - generic [ref=e881]: "n"
+                                    - generic [ref=e882]: o
+                                    - generic [ref=e883]: t
+                                    - generic [ref=e884]: f
+                                    - generic [ref=e885]: o
+                                    - generic [ref=e886]: r
+                                    - generic [ref=e887]: t
+                                    - generic [ref=e888]: h
+                                    - generic [ref=e889]: e
+                                    - generic [ref=e890]: s
+                                    - generic [ref=e891]: o
+                                    - generic [ref=e892]: f
+                                    - generic [ref=e893]: t
+                                    - generic [ref=e894]: w
+                                    - generic [ref=e895]: a
+                                    - generic [ref=e896]: r
+                                    - generic [ref=e897]: e
+                                    - generic [ref=e898]: /
+                                    - generic [ref=e899]: s
+                                    - generic [ref=e900]: p
+                                    - generic [ref=e901]: e
+                                    - generic [ref=e902]: c
+                                    - generic [ref=e903]: o
+                                    - generic [ref=e904]: r
+                                    - generic [ref=e905]: d
+                                    - generic [ref=e906]: e
+                                    - generic [ref=e907]: s
+                                    - generic [ref=e908]: i
+                                    - generic [ref=e909]: g
+                                    - generic [ref=e910]: "n"
+                                    - generic [ref=e911]: −
+                                    - generic [ref=e912]: "n"
+                                    - generic [ref=e913]: o
+                                    - generic [ref=e914]: t
+                                    - generic [ref=e915]: e
+                                    - generic [ref=e916]: p
+                                    - generic [ref=e917]: r
+                                    - generic [ref=e918]: a
+                                    - generic [ref=e919]: c
+                                    - generic [ref=e920]: t
+                                    - generic [ref=e921]: i
+                                    - generic [ref=e922]: c
+                                    - generic [ref=e923]: e
+                                    - generic [ref=e924]: .
+                                    - generic [ref=e925]: ":"
+                                    - generic [ref=e926]: "1"
+                                    - generic [ref=e927]: ⋅
+                                    - generic [ref=e928]: M
+                                    - generic [ref=e929]: O
+                                    - generic [ref=e930]: "N"
+                                    - generic [ref=e931]: I
+                                    - generic [ref=e932]: T
+                                    - generic [ref=e933]: O
+                                    - generic [ref=e934]: R
+                                    - generic [ref=e935]: o
+                                    - generic [ref=e936]: "n"
+                                    - generic [ref=e937]: l
+                                    - generic [ref=e938]: "y"
+                                    - generic [ref=e939]: .
+                                    - generic [ref=e940]: "N"
+                                    - generic [ref=e941]: o
+                                    - generic [ref=e942]: s
+                                    - generic [ref=e943]: p
+                                    - generic [ref=e944]: e
+                                    - generic [ref=e945]: c
+                                    - generic [ref=e946]: i
+                                    - generic [ref=e947]: f
+                                    - generic [ref=e948]: i
+                                    - generic [ref=e949]: c
+                                    - generic [ref=e950]: s
+                                    - generic [ref=e951]: k
+                                    - generic [ref=e952]: i
+                                    - generic [ref=e953]: l
+                                    - generic [ref=e954]: l
+                                    - generic [ref=e955]: f
+                                    - generic [ref=e956]: i
+                                    - generic [ref=e957]: l
+                                    - generic [ref=e958]: l
+                                    - generic [ref=e959]: s
+                                    - generic [ref=e960]: a
+                                    - generic [ref=e961]: c
+                                    - generic [ref=e962]: l
+                                    - generic [ref=e963]: e
+                                    - generic [ref=e964]: a
+                                    - generic [ref=e965]: r
+                                    - generic [ref=e966]: g
+                                    - generic [ref=e967]: a
+                                    - generic [ref=e968]: p
+                                    - generic [ref=e969]: i
+                                    - generic [ref=e970]: "n"
+                                    - generic [ref=e971]: t
+                                    - generic [ref=e972]: h
+                                    - generic [ref=e973]: e
+                                    - generic [ref=e974]: "252"
+                                    - generic [ref=e975]: r
+                                    - generic [ref=e976]: e
+                                    - generic [ref=e977]: g
+                                    - generic [ref=e978]: i
+                                    - generic [ref=e979]: s
+                                    - generic [ref=e980]: t
+                                    - generic [ref=e981]: r
+                                    - generic [ref=e982]: "y"
+                                    - generic [ref=e983]: ","
+                                    - generic [ref=e984]: s
+                                    - generic [ref=e985]: o
+                                    - generic [ref=e986]: "n"
+                                    - generic [ref=e987]: o
+                                    - generic [ref=e988]: A
+                                    - generic [ref=e989]: P
+                                    - generic [ref=e990]: P
+                                    - generic [ref=e991]: L
+                                    - generic [ref=e992]: "Y"
+                                    - generic [ref=e993]: .
+                                    - generic [ref=e994]: T
+                                    - generic [ref=e995]: w
+                                    - generic [ref=e996]: o
+                                    - generic [ref=e997]: l
+                                    - generic [ref=e998]: o
+                                    - generic [ref=e999]: w
+                                    - generic [ref=e1000]: −
+                                    - generic [ref=e1001]: r
+                                    - generic [ref=e1002]: i
+                                    - generic [ref=e1003]: s
+                                    - generic [ref=e1004]: k
+                                    - generic [ref=e1005]: b
+                                    - generic [ref=e1006]: o
+                                    - generic [ref=e1007]: r
+                                    - generic [ref=e1008]: r
+                                    - generic [ref=e1009]: o
+                                    - generic [ref=e1010]: w
+                                    - generic [ref=e1011]: s
+                                    - generic [ref=e1012]: w
+                                    - generic [ref=e1013]: o
+                                    - generic [ref=e1014]: r
+                                    - generic [ref=e1015]: t
+                                    - generic [ref=e1016]: h
+                                    - generic [ref=e1017]: t
+                                    - generic [ref=e1018]: r
+                                    - generic [ref=e1019]: a
+                                    - generic [ref=e1020]: c
+                                    - generic [ref=e1021]: k
+                                    - generic [ref=e1022]: i
+                                    - generic [ref=e1023]: "n"
+                                    - generic [ref=e1024]: g
+                                    - generic [ref=e1025]: ":"
+                                    - generic [ref=e1026]: (
+                                    - generic [ref=e1027]: "1"
+                                    - generic [ref=e1028]: )
+                                    - generic [ref=e1029]: a
+                                    - generic [ref=e1030]: d
+                                    - generic [ref=e1031]: o
+                                    - generic [ref=e1032]: p
+                                    - generic [ref=e1033]: t
+                                    - generic [ref=e1034]: R
+                                    - generic [ref=e1035]: a
+                                    - generic [ref=e1036]: t
+                                    - generic [ref=e1037]: i
+                                    - generic [ref=e1038]: o
+                                    - generic [ref=e1039]: "n"
+                                    - generic [ref=e1040]: a
+                                    - generic [ref=e1041]: l
+                                    - generic [ref=e1042]: i
+                                    - generic [ref=e1043]: z
+                                    - generic [ref=e1044]: a
+                                    - generic [ref=e1045]: t
+                                    - generic [ref=e1046]: i
+                                    - generic [ref=e1047]: o
+                                    - generic [ref=e1048]: "n"
+                                    - generic [ref=e1049]: s
+                                    - generic [ref=e1050]: +
+                                    - generic [ref=e1051]: R
+                                    - generic [ref=e1052]: e
+                                    - generic [ref=e1053]: d
+                                    - generic [ref=e1054]: F
+                                    - generic [ref=e1055]: l
+                                    - generic [ref=e1056]: a
+                                    - generic [ref=e1057]: g
+                                    - generic [ref=e1058]: s
+                                    - generic [ref=e1059]: s
+                                    - generic [ref=e1060]: e
+                                    - generic [ref=e1061]: c
+                                    - generic [ref=e1062]: t
+                                    - generic [ref=e1063]: i
+                                    - generic [ref=e1064]: o
+                                    - generic [ref=e1065]: "n"
+                                    - generic [ref=e1066]: s
+                                    - generic [ref=e1067]: a
+                                    - generic [ref=e1068]: s
+                                    - generic [ref=e1069]: a
+                                    - generic [ref=e1070]: s
+                                    - generic [ref=e1071]: k
+                                    - generic [ref=e1072]: i
+                                    - generic [ref=e1073]: l
+                                    - generic [ref=e1074]: l
+                                    - generic [ref=e1075]: −
+                                    - generic [ref=e1076]: a
+                                    - generic [ref=e1077]: u
+                                    - generic [ref=e1078]: t
+                                    - generic [ref=e1079]: h
+                                    - generic [ref=e1080]: o
+                                    - generic [ref=e1081]: r
+                                    - generic [ref=e1082]: i
+                                    - generic [ref=e1083]: "n"
+                                    - generic [ref=e1084]: g
+                                    - generic [ref=e1085]: c
+                                    - generic [ref=e1086]: o
+                                    - generic [ref=e1087]: "n"
+                                    - generic [ref=e1088]: v
+                                    - generic [ref=e1089]: e
+                                    - generic [ref=e1090]: "n"
+                                    - generic [ref=e1091]: t
+                                    - generic [ref=e1092]: i
+                                    - generic [ref=e1093]: o
+                                    - generic [ref=e1094]: "n"
+                                    - generic [ref=e1095]: f
+                                    - generic [ref=e1096]: o
+                                    - generic [ref=e1097]: r
+                                    - generic [ref=e1098]: "n"
+                                    - generic [ref=e1099]: e
+                                    - generic [ref=e1100]: w
+                                    - generic [ref=e1101]: P
+                                    - generic [ref=e1102]: R
+                                    - generic [ref=e1103]: I
+                                    - generic [ref=e1104]: M
+                                    - generic [ref=e1105]: E
+                                    - generic [ref=e1106]: s
+                                    - generic [ref=e1107]: k
+                                    - generic [ref=e1108]: i
+                                    - generic [ref=e1109]: l
+                                    - generic [ref=e1110]: l
+                                    - generic [ref=e1111]: s
+                                    - generic [ref=e1112]: ;
+                                    - generic [ref=e1113]: (
+                                    - generic [ref=e1114]: "2"
+                                    - generic [ref=e1115]: )
+                                    - generic [ref=e1116]: f
+                                    - generic [ref=e1117]: o
+                                    - generic [ref=e1118]: l
+                                    - generic [ref=e1119]: d
+                                    - generic [ref=e1120]: d
+                                    - generic [ref=e1121]: o
+                                    - generic [ref=e1122]: u
+                                    - generic [ref=e1123]: b
+                                    - generic [ref=e1124]: t
+                                    - generic [ref=e1125]: −
+                                    - generic [ref=e1126]: d
+                                    - generic [ref=e1127]: r
+                                    - generic [ref=e1128]: i
+                                    - generic [ref=e1129]: v
+                                    - generic [ref=e1130]: e
+                                    - generic [ref=e1131]: "n"
+                                    - generic [ref=e1132]: a
+                                    - generic [ref=e1133]: "n"
+                                    - generic [ref=e1134]: t
+                                    - generic [ref=e1135]: i
+                                    - generic [ref=e1136]: −
+                                    - generic [ref=e1137]: b
+                                    - generic [ref=e1138]: i
+                                    - generic [ref=e1139]: a
+                                    - generic [ref=e1140]: s
+                                    - generic [ref=e1141]: f
+                                    - generic [ref=e1142]: r
+                                    - generic [ref=e1143]: a
+                                    - generic [ref=e1144]: m
+                                    - generic [ref=e1145]: i
+                                    - generic [ref=e1146]: "n"
+                                    - generic [ref=e1147]: g
+                                    - generic [ref=e1148]: (
+                                    - generic [ref=e1149]: s
+                                    - generic [ref=e1150]: t
+                                    - generic [ref=e1151]: r
+                                    - generic [ref=e1152]: i
+                                    - generic [ref=e1153]: p
+                                    - generic [ref=e1154]: C
+                                    - generic [ref=e1155]: L
+                                    - generic [ref=e1156]: A
+                                    - generic [ref=e1157]: I
+                                    - generic [ref=e1158]: M
+                                    - generic [ref=e1159]: f
+                                    - generic [ref=e1160]: r
+                                    - generic [ref=e1161]: o
+                                    - generic [ref=e1162]: m
+                                    - generic [ref=e1163]: r
+                                    - generic [ref=e1164]: e
+                                    - generic [ref=e1165]: v
+                                    - generic [ref=e1166]: i
+                                    - generic [ref=e1167]: e
+                                    - generic [ref=e1168]: w
+                                    - generic [ref=e1169]: e
+                                    - generic [ref=e1170]: r
+                                    - generic [ref=e1171]: i
+                                    - generic [ref=e1172]: "n"
+                                    - generic [ref=e1173]: p
+                                    - generic [ref=e1174]: u
+                                    - generic [ref=e1175]: t
+                                    - generic [ref=e1176]: ;
+                                    - generic [ref=e1177]: d
+                                    - generic [ref=e1178]: o
+                                    - generic [ref=e1179]: u
+                                    - generic [ref=e1180]: b
+                                    - generic [ref=e1181]: t
+                                    - generic [ref=e1182]: −
+                                    - generic [ref=e1183]: t
+                                    - generic [ref=e1184]: h
+                                    - generic [ref=e1185]: e
+                                    - generic [ref=e1186]: a
+                                    - generic [ref=e1187]: t
+                                    - generic [ref=e1188]: e
+                                    - generic [ref=e1189]: r
+                                    - generic [ref=e1190]: g
+                                    - generic [ref=e1191]: u
+                                    - generic [ref=e1192]: a
+                                    - generic [ref=e1193]: r
+                                    - generic [ref=e1194]: d
+                                    - generic [ref=e1195]: )
+                                    - generic [ref=e1196]: i
+                                    - generic [ref=e1197]: "n"
+                                    - generic [ref=e1198]: t
+                                    - generic [ref=e1199]: o
+                                    - generic [ref=e1200]: p
+                                    - generic [ref=e1201]: e
+                                    - generic [ref=e1202]: e
+                                    - generic [ref=e1203]: r
+                                    - generic [ref=e1204]: −
+                                    - generic [ref=e1205]: r
+                                    - generic [ref=e1206]: e
+                                    - generic [ref=e1207]: v
+                                    - generic [ref=e1208]: i
+                                    - generic [ref=e1209]: e
+                                    - generic [ref=e1210]: w
+                                    - generic [ref=e1211]: /
+                                    - generic [ref=e1212]: c
+                                    - generic [ref=e1213]: o
+                                    - generic [ref=e1214]: m
+                                    - generic [ref=e1215]: p
+                                    - generic [ref=e1216]: o
+                                    - generic [ref=e1217]: u
+                                    - generic [ref=e1218]: "n"
+                                    - generic [ref=e1219]: d
+                                    - generic [ref=e1220]: −
+                                    - generic [ref=e1221]: b
+                                    - generic [ref=e1222]: u
+                                    - generic [ref=e1223]: i
+                                    - generic [ref=e1224]: l
+                                    - generic [ref=e1225]: d
+                                    - generic [ref=e1226]: .
+                                    - generic [ref=e1227]: R
+                                    - generic [ref=e1228]: e
+                                    - generic [ref=e1229]: f
+                                    - generic [ref=e1230]: e
+                                    - generic [ref=e1231]: r
+                                    - generic [ref=e1232]: e
+                                    - generic [ref=e1233]: "n"
+                                    - generic [ref=e1234]: c
+                                    - generic [ref=e1235]: e
+                                    - generic [ref=e1236]: ":"
+                                    - generic [ref=e1237]: g
+                                    - generic [ref=e1238]: i
+                                    - generic [ref=e1239]: t
+                                    - generic [ref=e1240]: h
+                                    - generic [ref=e1241]: u
+                                    - generic [ref=e1242]: b
+                                    - generic [ref=e1243]: .
+                                    - generic [ref=e1244]: c
+                                    - generic [ref=e1245]: o
+                                    - generic [ref=e1246]: m
+                                    - generic [ref=e1247]: /
+                                    - generic [ref=e1248]: a
+                                    - generic [ref=e1249]: d
+                                    - generic [ref=e1250]: d
+                                    - generic [ref=e1251]: "y"
+                                    - generic [ref=e1252]: o
+                                    - generic [ref=e1253]: s
+                                    - generic [ref=e1254]: m
+                                    - generic [ref=e1255]: a
+                                    - generic [ref=e1256]: "n"
+                                    - generic [ref=e1257]: i
+                                    - generic [ref=e1258]: /
+                                    - generic [ref=e1259]: a
+                                    - generic [ref=e1260]: g
+                                    - generic [ref=e1261]: e
+                                    - generic [ref=e1262]: "n"
+                                    - generic [ref=e1263]: t
+                                    - generic [ref=e1264]: −
+                                    - generic [ref=e1265]: s
+                                    - generic [ref=e1266]: k
+                                    - generic [ref=e1267]: i
+                                    - generic [ref=e1268]: l
+                                    - generic [ref=e1269]: l
+                                    - generic [ref=e1270]: s
+                                    - generic [ref=e1271]: "@"
+                                    - generic [ref=e1272]: 0.6.3.
+                                    - generic [ref=e1273]: ":"
+                                    - generic [ref=e1274]: "1"
+                                    - generic [ref=e1275]: ⋅
+                                    - generic [ref=e1276]: M
+                                    - generic [ref=e1277]: O
+                                    - generic [ref=e1278]: "N"
+                                    - generic [ref=e1279]: I
+                                    - generic [ref=e1280]: T
+                                    - generic [ref=e1281]: O
+                                    - generic [ref=e1282]: R
+                                    - generic [ref=e1283]: —
+                                    - generic [ref=e1284]: g
+                                    - generic [ref=e1285]: e
+                                    - generic [ref=e1286]: "n"
+                                    - generic [ref=e1287]: u
+                                    - generic [ref=e1288]: i
+                                    - generic [ref=e1289]: "n"
+                                    - generic [ref=e1290]: e
+                                    - generic [ref=e1291]: l
+                                    - generic [ref=e1292]: "y"
+                                    - generic [ref=e1293]: l
+                                    - generic [ref=e1294]: o
+                                    - generic [ref=e1295]: c
+                                    - generic [ref=e1296]: a
+                                    - generic [ref=e1297]: l
+                                    - generic [ref=e1298]: L
+                                    - generic [ref=e1299]: i
+                                    - generic [ref=e1300]: "n"
+                                    - generic [ref=e1301]: u
+                                    - generic [ref=e1302]: x
+                                    - generic [ref=e1303]: o
+                                    - generic [ref=e1304]: p
+                                    - generic [ref=e1305]: e
+                                    - generic [ref=e1306]: "n"
+                                    - generic [ref=e1307]: −
+                                    - generic [ref=e1308]: f
+                                    - generic [ref=e1309]: o
+                                    - generic [ref=e1310]: r
+                                    - generic [ref=e1311]: m
+                                    - generic [ref=e1312]: a
+                                    - generic [ref=e1313]: t
+                                    - generic [ref=e1314]: (
+                                - generic [ref=e1315]:
+                                  - generic [ref=e1316]: 0no −
+                                  - generic [ref=e1317]: authpublic −
+                                  - generic [ref=e1318]: domaintext −
+                                  - generic [ref=e1319]: "corpussourceforfutureNLP/trainingexperiments.Nowiringrecommendednow; noteonly. :"
+                                  - generic [ref=e1320]: "1⋅ MONITOR :"
+                                  - generic [ref=e1321]: referenceforaUI −
+                                  - generic [ref=e1322]: design −
+                                  - generic [ref=e1323]: languagemarkdownconvention; APPLYonlyforfuturebrand −
+                                  - generic [ref=e1324]: consistentUIgenerationontheNext.jsfrontend, notforthesoftware/specordesign −
+                                  - generic [ref=e1325]: "notepractice. :"
+                                  - generic [ref=e1326]: 1⋅ MONITORonly.Nospecificskillfillsacleargapinthe252registry, sonoAPPLY.Twolow −
+                                  - generic [ref=e1327]: "riskborrowsworthtracking :"
+                                  - generic [ref=e1328]: (1)adoptRationalizations +
+                                  - generic [ref=e1329]: RedFlagssectionsasaskill −
+                                  - generic [ref=e1330]: authoringconventionfornewPRIMEskills; (2)folddoubt −
+                                  - generic [ref=e1331]: drivenanti −
+                                  - generic [ref=e1332]: biasframing(stripCLAIMfromreviewerinput; doubt −
+                                  - generic [ref=e1333]: theaterguard)intopeer −
+                                  - generic [ref=e1334]: review/compound −
+                                  - generic [ref=e1335]: "build.Reference :"
+                                  - generic [ref=e1336]: github.com/addyosmani/agent −
+                                  - generic [ref=e1337]: "skills@0.6.3. :"
+                                  - generic [ref=e1338]: 1⋅ MONITOR—genuinelylocalLinuxopen −
+                                  - generic [ref=e1339]: format(
+                              - text: "0, MCP-native) Office-doc tool worth tracking; drop it in via its MCP server IF a docx/xlsx/pptx generation or edit/render need appears. Not APPLY (no current office-format gap; pandoc covers markdown->PDF). Not SKIP (not Office/Windows/cloud-tied).: 1 · APPLY — Delta A (invariant-ablation testing to prove invariants are load-bearing) is a concrete, adoptable harness technique Cohezion genuinely lacks; Delta B (verification-gated work-item state machine) is a confirmed structural gap at the task layer. Both port existing V-model discipline to places it does not yet reach. Rest is confirmatory overlap.: 1 · APPLY — local-runnable via openai-compatible endpoint (lemonade :13305), MIT, active; fills Cohezion auto-codebase-wiki gap that vault/GraphRAG do not cover; LangSmith optional so no cloud lock.: 1 · MONITOR — track releases + borrow the Graph-of-Agents autonomous-pentest orchestration and PoC-validation methodology. APPLY only if we want a defensive appsec scanner against our own FastAPI surface AND can drive it acceptably via a local endpoint (accepting quality tradeoff) or a budgeted cloud key. Do NOT treat as an agent-security-comp reference (different domain) and do NOT expect it to replace the AI-agent-focused security module. Poor fit as a default for a $0 local-first stack given Docker + frontier-LLM quality dependence for real exploitation.: 1 · SKIP-note. No concrete transferable/local-runnable lead. Cohezion already implements everything described and well beyond: compound loop, autoresearch loop, EVO recursive-improvement loop, ScheduleWakeup cadence, /loop + /schedule skills, goal-driven execution. Nothing new to adopt or monitor.: 1 · SKIP — off-topic (forest ecology / carbon accounting). No mechanism transfer to local-AI orchestration stack.: 1 · MONITOR: track Graphiti/Zep temporal-KG edge-invalidation pattern as the one partial architecture delta over our record-level bi-temporal + separate KG. Other 3 covered by vault+SurrealDB-bitemporal+semantic-cache+Mycelium+RetrospectionEngine. APPLY only if we decide to fuse contradiction-driven fact invalidation into the SurrealDB knowledge graph.: 1 · MONITOR (low). Concept itself is enterprise-marketing rebranding of RAG+memory+grounding+calibration Cohezion already does (lineage/memory/calibration/self-improvement all map to existing modules). Filed as MONITOR not SKIP because it names 4 concrete vendors with distinct architectural bets and one genuine adjacent gap (governed business-semantics/ontology + cross-system entity resolution, exposed over MCP a la Fabric IQ). Do NOT build an enterprise semantic layer - not our mission; track only the MCP-ontology pattern.: 1 · MONITOR — names a specific real competitor (Lyzr) + product (SivaClaw) in the enterprise-agent-orchestration space Cohezion operates in. No transferable agent-autonomy technique; track as landscape/competitor, not as a method to adopt.: 1 · SKIP. On-topic domain but foundational onboarding education. Cohezion already far surpasses every element: 32 MCP servers for tool-calling, tiered lemonade orchestrator (NPU/iGPU/CPU :13305), and memory via Obsidian vault + bi-temporal SurrealDB + JourneyTracker + L1/L2/L3 semantic cache. Docstring-precision and arg-spot-checking are already embodied. Nothing non-obvious for an advanced local-agent operator.: 1 · SKIP — no implementable mechanism. Isolated condensed-matter experimental measurement. Only conceptual resonance (topological defects) with the gauge/cosmogony stack; nothing load-bearing or implementable. Do not inflate topical physics resonance into false relevance.: 1 · SKIP — Windows/C++/MSVC-compiler-specific. No actionable transfer to a Linux Python/Rust/TS AMD local-AI stack.: 1 · MONITOR — genuinely open/offline-portable, aligns with local-first $0 philosophy, and could standardize data-mesh/vault knowledge interchange. Not adopt-now: spec is early (v0.1) and the vault already uses an equivalent markdown+YAML+links convention, so it largely mirrors existing capability rather than filling an urgent gap. Track for a portable export schema the DataProduct layer could formalize against.: 1 · Cohезion already self-improves (SkillRefiner edits skill markdown, RetrospectionEngine, autoresearch loop, SkillConsensusVoter, mycelium, research-daemon->actioner->feeder->compound-daemon). Generic self-improvement framing = already covered; the article is NOT a source of new technique on its own. GENUINE DELTA = DGM: (a) evolutionary ARCHIVE / branching population of variants with fitness selection and preserved stepping-stones vs Cohezion linear refine-in-place; (b) agents mutate their own executable CODE, not just prose skill definitions; (c) empirical benchmark fitness gate per mutation. Cohezion autoresearch has winners/experiments but not an open-ended stepping-stone archive over self-modifying agent code. APPLY-candidate only after reading the paper: consider an archive/population layer over SkillRefiner+autoresearch so rejected-but-novel variants are retained as stepping-stones rather than discarded. MONITOR the three orgs/products for productionized RSI signals.: 1 · MONITOR. Real, reproducible, AMD/CPU-runnable technique already validated on Strix Halo (0.40 tok/s). It would let the box CONVERSE with a 744B frontier model it cannot fit today (a genuinely new model class for offline/batch reasoning), complementing rather than replacing our NPU/iGPU/CPU lemonade tiers. But 0.40 tok/s (~1 word every few seconds) is a dealbreaker for the interactive compound loop, which needs the 42-TPS NPU tier. Value = rare, high-stakes offline reasoning pass local truly cannot otherwise do; not an interactive upgrade. Trial candidate, not adopt-now.: 1 · SKIP — foundational learn-DS-by-competing tutorial. Nothing non-obvious for an advanced operator. Cohezion portfolio is well past this level (0-param ONNX golf, anti-leakage handling, PF+GP backbones, Blackwell handshake, -mode SFT). No actionable technique to extract.: 1 · SKIP - off-topic. No transferable mechanism/method for any Cohezion module. Domain is environmental remote sensing for conservation policy; no dynamics law, criticality/phase-transition result, ML technique, or inference method. Topical words (resilience, monitoring) are keyword resonance, not transfer. Matches prior off-topic-ecology SKIP pattern this session.: 1 · none — off-topic observational astrophysics; no implementable mechanism for a local-AI orchestration stack: 1 · SKIP-note. Standard/marketing content describing agentic deep-research, a capability the Cohezion research stack already implements. Nothing to add to the research daemon prompt or a search skill.: 1 · MONITOR. Transferable IDEAS for Cohezion RL envs (ManifoldEnv/SwarmEnv), scale-independent: (1) environment throughput is the true RL bottleneck - vectorize/batch the env step before scaling models or steps; this is a $0 single-box lever. (2) Entity-transformer policy (one token per entity) is a clean inductive bias for SwarmEnv variable-agent observations. (3) signs-of-life reward-shaping discipline: small experiments confirming the policy moves toward the reward before any long run. Not APPLY: each is a project-sized build (env vectorization + ROCm-JAX validation, or a new transformer policy), no active RL-training task this session, and no winnable comp attached - so technique noted, not a portfolio move. Source extraction is second-hand (Kaggle writeup is JS-rendered; relied on search-engine summaries of the 1st/13th-place writeups + competition overview).: 1 · MONITOR — reference only; different target (Android/LiteRT edge vs x86 desktop lemonade). APPLY only if a technique becomes directly usable on the desktop lemonade stack (e.g. google-ai-edge ships an x86/GGUF path). Actionable delta is small and mostly overlaps existing Cohezion observability/routing.: 1 · APPROVE: 3"
+                    - generic "This console output is stale" [ref=e1341]: _work_queue
+                  - generic [ref=e1344]:
+                    - generic [ref=e1348]:
+                      - toolbar [ref=e1350]:
+                        - button [ref=e1351] [cursor=pointer]
+                        - button [disabled] [ref=e1354]
+                        - button [ref=e1357] [cursor=pointer]:
+                          - button [ref=e1358]:
+                            - button [ref=e1359]
+                      - generic [ref=e1364]:
+                        - generic [ref=e1368]:
+                          - generic [ref=e1370]:
+                            - generic [ref=e1371]: "1"
+                            - generic [ref=e1372]: "2"
+                            - generic [ref=e1373]: "3"
+                            - generic [ref=e1374]: "4"
+                            - generic [ref=e1375]: "5"
+                            - generic [ref=e1376]: "6"
+                            - generic [ref=e1377]: "7"
+                            - generic [ref=e1378]: "8"
+                            - generic [ref=e1379]: "9"
+                            - generic [ref=e1380]: "10"
+                          - textbox [ref=e1383]:
+                            - generic [ref=e1384]: "# Interactive PLOT (reactive: redraws on each poll tick). marimo renders the figure."
+                            - generic [ref=e1385]: refresh
+                            - generic [ref=e1386]: sc_wq = ds.read_work_queue()
+                            - generic [ref=e1387]: sc_items = list(sc_wq["by_status"].items()) or [("—", 0)]
+                            - generic [ref=e1388]: sc_fig, sc_ax = plt.subplots(figsize=(5, 2.2))
+                            - generic [ref=e1389]: sc_ax.bar([k for k, _ in sc_items], [v for _, v in sc_items], color="#6aa84f")
+                            - generic [ref=e1390]: sc_ax.set_title("Work queue by status")
+                            - generic [ref=e1391]: sc_ax.set_ylabel("count")
+                            - generic [ref=e1392]: sc_fig.tight_layout()
+                            - generic [ref=e1393]: sc_fig
+                        - generic [ref=e1394]:
+                          - generic [ref=e1395]:
+                            - img "Fix generated" [ref=e1396]
+                            - paragraph [ref=e1399]: Showing fix
+                          - generic [ref=e1400]:
+                            - generic [ref=e1401]: Show prompt
+                            - switch [ref=e1402] [cursor=pointer]
+                          - generic [ref=e1403]:
+                            - generic [ref=e1404]:
+                              - button "Accept" [ref=e1405] [cursor=pointer]
+                              - button [ref=e1406] [cursor=pointer]
+                            - button "Reject" [ref=e1409] [cursor=pointer]
+                    - generic "This output is stale" [ref=e1420]
+                    - generic "This console output is stale" [ref=e1423]: _status_chart
+                  - generic [ref=e1426]:
+                    - generic [ref=e1430]:
+                      - toolbar [ref=e1432]:
+                        - button [ref=e1433] [cursor=pointer]
+                        - button [disabled] [ref=e1436]
+                        - button [ref=e1439] [cursor=pointer]:
+                          - button [ref=e1440]:
+                            - button [ref=e1441]
+                      - generic [ref=e1446]:
+                        - generic [ref=e1450]:
+                          - generic [ref=e1451]:
+                            - generic [ref=e1452]:
+                              - generic [ref=e1453]: "1"
+                              - generic [ref=e1454]: "2"
+                              - generic [ref=e1455]: "3"
+                              - generic [ref=e1456]: "4"
+                              - generic [ref=e1457]: "5"
+                              - generic [ref=e1458]: "6"
+                              - generic [ref=e1459]: "7"
+                              - generic [ref=e1460]: "8"
+                              - generic [ref=e1461]: "9"
+                              - generic [ref=e1462]: "10"
+                            - generic [ref=e1463]:
+                              - generic [ref=e1465]: ⌄
+                              - generic [ref=e1466]: ⌄
+                          - textbox [ref=e1467]:
+                            - generic [ref=e1468]: refresh
+                            - generic [ref=e1469]: gaps = ds.read_gap_analysis()
+                            - generic [ref=e1470]: gap_rows = (
+                            - generic [ref=e1471]: "\"\\n\".join(f\"| {g['task_type']} | {g['score']:.2f} | {g['action']} |\" for g in gaps)"
+                            - generic [ref=e1472]: or "| — | — | (no gaps / matrix unavailable) |"
+                            - generic [ref=e1473]: )
+                            - generic [ref=e1474]: mo.md(
+                            - generic [ref=e1475]: "\"## 🎯 Capability gaps\\n\""
+                            - generic [ref=e1476]: "\"| task_type | score | action |\\n|-----------|-------|--------|\\n\" + gap_rows"
+                            - generic [ref=e1477]: )
+                        - generic [ref=e1478]:
+                          - generic [ref=e1479]:
+                            - img "Fix generated" [ref=e1480]
+                            - paragraph [ref=e1483]: Showing fix
+                          - generic [ref=e1484]:
+                            - generic [ref=e1485]: Show prompt
+                            - switch [ref=e1486] [cursor=pointer]
+                          - generic [ref=e1487]:
+                            - generic [ref=e1488]:
+                              - button "Accept" [ref=e1489] [cursor=pointer]
+                              - button [ref=e1490] [cursor=pointer]
+                            - button "Reject" [ref=e1493] [cursor=pointer]
+                    - generic [ref=e1502]:
+                      - button [ref=e1504] [cursor=pointer]
+                      - generic "This output is stale" [ref=e1509]:
+                        - generic [ref=e1511]:
+                          - heading "🎯 Capability gaps" [level=2] [ref=e1512]
+                          - table [ref=e1513]:
+                            - rowgroup [ref=e1514]:
+                              - row [ref=e1515]:
+                                - columnheader "task_type" [ref=e1516]
+                                - columnheader "score" [ref=e1517]
+                                - columnheader "action" [ref=e1518]
+                            - rowgroup [ref=e1519]:
+                              - row [ref=e1520]:
+                                - cell "research" [ref=e1521]
+                                - cell "0.60" [ref=e1522]
+                                - cell "finetune" [ref=e1523]
+                    - generic "This console output is stale" [ref=e1525]: _gap_analysis
+                  - generic [ref=e1528]:
+                    - generic [ref=e1532]:
+                      - toolbar [ref=e1534]:
+                        - button [ref=e1535] [cursor=pointer]
+                        - button [disabled] [ref=e1538]
+                        - button [ref=e1541] [cursor=pointer]:
+                          - button [ref=e1542]:
+                            - button [ref=e1543]
+                      - generic [ref=e1548]:
+                        - generic [ref=e1552]:
+                          - generic [ref=e1553]:
+                            - generic [ref=e1554]:
+                              - generic [ref=e1555]: "1"
+                              - generic [ref=e1556]: "2"
+                              - generic [ref=e1557]: "3"
+                              - generic [ref=e1558]: "4"
+                              - generic [ref=e1559]: "5"
+                              - generic [ref=e1560]: "6"
+                              - generic [ref=e1561]: "7"
+                              - generic [ref=e1562]: "8"
+                              - generic [ref=e1563]: "9"
+                              - generic [ref=e1564]: "10"
+                              - generic [ref=e1565]: "11"
+                              - generic [ref=e1566]: "12"
+                              - generic [ref=e1567]: "13"
+                              - generic [ref=e1568]: "14"
+                              - generic [ref=e1569]: "15"
+                              - generic [ref=e1570]: "16"
+                              - generic [ref=e1571]: "17"
+                              - generic [ref=e1572]: "18"
+                              - generic [ref=e1573]: "19"
+                              - generic [ref=e1574]: "20"
+                              - generic [ref=e1575]: "21"
+                              - generic [ref=e1576]: "22"
+                              - generic [ref=e1577]: "23"
+                              - generic [ref=e1578]: "24"
+                            - generic [ref=e1579]: ⌄
+                          - textbox [ref=e1582]:
+                            - generic [ref=e1583]: "#The error occurs because `mo.md()` expects a string, but it receives a dictionary instead. This is because `mo.md()` is used to print markdown text, and it doesn't handle dictionaries correctly."
+                            - generic [ref=e1585]: "Here's the corrected code:"
+                            - generic [ref=e1587]: "```python"
+                            - generic [ref=e1588]: "{REWRITTEN_CODE}"
+                            - generic [ref=e1589]: import matplotlib.pyplot as plt
+                            - generic [ref=e1591]: import marimo as mo
+                            - generic [ref=e1593]: from cohezion.cockpit import daemon_state as ds
+                            - generic [ref=e1594]: mo.md("""
+                            - generic [ref=e1595]: "# 🛰️ Cohezion Compound-Loop Cockpit"
+                            - generic [ref=e1596]: Monitor + steer the live local daemons. Panels below auto-refresh ~15s.
+                            - generic [ref=e1597]: Steering actions fire only on click. Runs on **local inference ($0)**.
+                            - generic [ref=e1598]: "\"\"\")"
+                            - generic [ref=e1600]: "# The heartbeat: every monitor cell that reads this re-runs on each tick."
+                            - generic [ref=e1601]: refresh = mo.ui.refresh(default_interval="15s", label="Auto-refresh")
+                            - generic [ref=e1602]: refresh
+                            - generic [ref=e1604]: "refresh # depend on the tick → re-poll"
+                            - generic [ref=e1605]: tq = ds.read_task_queue()
+                            - generic [ref=e1606]: tq_pending = tq["pending"]
+                        - generic [ref=e1608]:
+                          - generic [ref=e1609]:
+                            - img "Fix generated" [ref=e1610]
+                            - paragraph [ref=e1613]: Showing fix
+                          - generic [ref=e1614]:
+                            - generic [ref=e1615]: Show prompt
+                            - switch [ref=e1616] [cursor=pointer]
+                          - generic [ref=e1617]:
+                            - generic [ref=e1618]:
+                              - button "Accept" [ref=e1619] [cursor=pointer]
+                              - button [ref=e1620] [cursor=pointer]
+                            - button "Reject" [ref=e1623] [cursor=pointer]
+                    - generic "This output is stale" [ref=e1634]:
+                      - alert [ref=e1635]:
+                        - heading "syntax" [level=5] [ref=e1637]
+                        - list [ref=e1639]:
+                          - listitem [ref=e1640]:
+                            - paragraph [ref=e1642]: "line 3 Here's the corrected code: ^ SyntaxError: unterminated string literal (detected at line 3)"
+                    - generic "This console output is stale" [ref=e1644]: _lemonade
+                  - generic [ref=e1647]:
+                    - generic [ref=e1651]:
+                      - toolbar [ref=e1653]:
+                        - button [ref=e1654] [cursor=pointer]
+                        - button [disabled] [ref=e1657]
+                        - button [ref=e1660] [cursor=pointer]:
+                          - button [ref=e1661]:
+                            - button [ref=e1662]
+                      - generic [ref=e1667]:
+                        - generic [ref=e1671]:
+                          - generic [ref=e1673]:
+                            - generic [ref=e1674]: "1"
+                            - generic [ref=e1675]: "2"
+                            - generic [ref=e1676]: "3"
+                          - textbox [ref=e1679]:
+                            - generic [ref=e1680]: refresh
+                            - generic [ref=e1681]: log_tail = ds.tail_daemon_log(n=20) or "(no compound_daemon.log)"
+                            - generic [ref=e1682]: "mo.md(f\"## 📜 Daemon log (tail 20)\\n```\\n{log_tail}\\n```\")"
+                        - generic [ref=e1683]:
+                          - generic [ref=e1684]:
+                            - img "Fix generated" [ref=e1685]
+                            - paragraph [ref=e1688]: Showing fix
+                          - generic [ref=e1689]:
+                            - generic [ref=e1690]: Show prompt
+                            - switch [ref=e1691] [cursor=pointer]
+                          - generic [ref=e1692]:
+                            - generic [ref=e1693]:
+                              - button "Accept" [ref=e1694] [cursor=pointer]
+                              - button [ref=e1695] [cursor=pointer]
+                            - button "Reject" [ref=e1698] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e1708]: _log_tail
+                  - generic [ref=e1711]:
+                    - generic [ref=e1716]:
+                      - generic [ref=e1719]:
+                        - generic [ref=e1720]:
+                          - generic [ref=e1722]:
+                            - generic [ref=e1723]: "1"
+                            - generic [ref=e1724]: "2"
+                          - textbox [ref=e1727]:
+                            - generic [ref=e1728]: "---"
+                            - generic [ref=e1729]: "## 🎛️ Steer"
+                        - generic [ref=e1732]:
+                          - generic [ref=e1733]:
+                            - generic [ref=e1734]:
+                              - generic [ref=e1735]: r
+                              - checkbox "Toggle raw string" [ref=e1736] [cursor=pointer]
+                            - generic [ref=e1737]:
+                              - generic [ref=e1738]: f
+                              - checkbox "Toggle f-string" [ref=e1739] [cursor=pointer]
+                          - text: markdown
+                      - generic [ref=e1743]:
+                        - generic [ref=e1744]:
+                          - img "Fix generated" [ref=e1745]
+                          - paragraph [ref=e1748]: Showing fix
+                        - generic [ref=e1749]:
+                          - generic [ref=e1750]: Show prompt
+                          - switch [ref=e1751] [cursor=pointer]
+                        - generic [ref=e1752]:
+                          - generic [ref=e1753]:
+                            - button "Accept" [ref=e1754] [cursor=pointer]
+                            - button [ref=e1755] [cursor=pointer]
+                          - button "Reject" [ref=e1758] [cursor=pointer]
+                    - generic [ref=e1767]:
+                      - button [ref=e1769] [cursor=pointer]
+                      - generic [ref=e1776]:
+                        - separator [ref=e1777]
+                        - heading "🎛️ Steer" [level=2] [ref=e1778]
+                    - generic [ref=e1779]: _steer_header
+                  - generic [ref=e1783]:
+                    - generic [ref=e1787]:
+                      - toolbar [ref=e1789]:
+                        - button [ref=e1790] [cursor=pointer]
+                        - button [disabled] [ref=e1793]
+                        - button [ref=e1796] [cursor=pointer]:
+                          - button [ref=e1797]:
+                            - button [ref=e1798]
+                      - generic [ref=e1803]:
+                        - generic [ref=e1807]:
+                          - generic [ref=e1809]:
+                            - generic [ref=e1810]: "1"
+                            - generic [ref=e1811]: "2"
+                          - textbox [ref=e1814]:
+                            - generic [ref=e1815]: feeder_btn = mo.ui.run_button(label="▶ Run feeder now")
+                            - generic [ref=e1816]: feeder_btn
+                        - generic [ref=e1817]:
+                          - generic [ref=e1818]:
+                            - img "Fix generated" [ref=e1819]
+                            - paragraph [ref=e1822]: Showing fix
+                          - generic [ref=e1823]:
+                            - generic [ref=e1824]: Show prompt
+                            - switch [ref=e1825] [cursor=pointer]
+                          - generic [ref=e1826]:
+                            - generic [ref=e1827]:
+                              - button "Accept" [ref=e1828] [cursor=pointer]
+                              - button [ref=e1829] [cursor=pointer]
+                            - button "Reject" [ref=e1832] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e1842]: _feeder_controls
+                  - generic [ref=e1845]:
+                    - generic [ref=e1849]:
+                      - toolbar [ref=e1851]:
+                        - button [ref=e1852] [cursor=pointer]
+                        - button [disabled] [ref=e1855]
+                        - button [ref=e1858] [cursor=pointer]:
+                          - button [ref=e1859]:
+                            - button [ref=e1860]
+                      - generic [ref=e1865]:
+                        - generic [ref=e1869]:
+                          - generic [ref=e1871]:
+                            - generic [ref=e1872]: "1"
+                            - generic [ref=e1873]: "2"
+                            - generic [ref=e1874]: "3"
+                            - generic [ref=e1875]: "4"
+                          - textbox [ref=e1878]:
+                            - generic [ref=e1879]: "# Depends ONLY on the button — NOT on `refresh` — so it never fires on a poll tick."
+                            - generic [ref=e1880]: mo.stop(not feeder_btn.value, mo.md("_Feeder idle — click to feed the compound queue._"))
+                            - generic [ref=e1881]: result = ds.run_feeder(limit=5)
+                            - generic [ref=e1882]: "mo.md(f\"**Feeder result:** `{result}`\")"
+                        - generic [ref=e1883]:
+                          - generic [ref=e1884]:
+                            - img "Fix generated" [ref=e1885]
+                            - paragraph [ref=e1888]: Showing fix
+                          - generic [ref=e1889]:
+                            - generic [ref=e1890]: Show prompt
+                            - switch [ref=e1891] [cursor=pointer]
+                          - generic [ref=e1892]:
+                            - generic [ref=e1893]:
+                              - button "Accept" [ref=e1894] [cursor=pointer]
+                              - button [ref=e1895] [cursor=pointer]
+                            - button "Reject" [ref=e1898] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e1908]: _feeder_action
+                  - generic [ref=e1911]:
+                    - generic [ref=e1915]:
+                      - toolbar [ref=e1917]:
+                        - button [ref=e1918] [cursor=pointer]
+                        - button [disabled] [ref=e1921]
+                        - button [ref=e1924] [cursor=pointer]:
+                          - button [ref=e1925]:
+                            - button [ref=e1926]
+                      - generic [ref=e1931]:
+                        - generic [ref=e1935]:
+                          - generic [ref=e1937]:
+                            - generic [ref=e1938]: "1"
+                            - generic [ref=e1939]: "2"
+                            - generic [ref=e1940]: "3"
+                          - textbox [ref=e1943]:
+                            - generic [ref=e1944]: "task_prompt = mo.ui.text(placeholder=\"compound loop: <what to work on>\", full_width=True)"
+                            - generic [ref=e1945]: add_btn = mo.ui.run_button(label="➕ Add manual task")
+                            - generic [ref=e1946]: mo.vstack([task_prompt, add_btn])
+                        - generic [ref=e1947]:
+                          - generic [ref=e1948]:
+                            - img "Fix generated" [ref=e1949]
+                            - paragraph [ref=e1952]: Showing fix
+                          - generic [ref=e1953]:
+                            - generic [ref=e1954]: Show prompt
+                            - switch [ref=e1955] [cursor=pointer]
+                          - generic [ref=e1956]:
+                            - generic [ref=e1957]:
+                              - button "Accept" [ref=e1958] [cursor=pointer]
+                              - button [ref=e1959] [cursor=pointer]
+                            - button "Reject" [ref=e1962] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e1972]: _manual_task_controls
+                  - generic [ref=e1975]:
+                    - generic [ref=e1979]:
+                      - toolbar [ref=e1981]:
+                        - button [ref=e1982] [cursor=pointer]
+                        - button [disabled] [ref=e1985]
+                        - button [ref=e1988] [cursor=pointer]:
+                          - button [ref=e1989]:
+                            - button [ref=e1990]
+                      - generic [ref=e1995]:
+                        - generic [ref=e1999]:
+                          - generic [ref=e2001]:
+                            - generic [ref=e2002]: "1"
+                            - generic [ref=e2003]: "2"
+                            - generic [ref=e2004]: "3"
+                            - generic [ref=e2005]: "4"
+                          - textbox [ref=e2008]:
+                            - generic [ref=e2009]: mo.stop(not add_btn.value, mo.md("_Enter a prompt and click to enqueue one task._"))
+                            - generic [ref=e2010]: mo.stop(not task_prompt.value.strip(), mo.md("⚠️ Prompt is empty — nothing added."))
+                            - generic [ref=e2011]: added = ds.add_manual_task(task_prompt.value.strip())
+                            - generic [ref=e2012]: "mo.md(f\"✅ Added task id **{added['added']['id']}** — queue total {added['total']}.\")"
+                        - generic [ref=e2013]:
+                          - generic [ref=e2014]:
+                            - img "Fix generated" [ref=e2015]
+                            - paragraph [ref=e2018]: Showing fix
+                          - generic [ref=e2019]:
+                            - generic [ref=e2020]: Show prompt
+                            - switch [ref=e2021] [cursor=pointer]
+                          - generic [ref=e2022]:
+                            - generic [ref=e2023]:
+                              - button "Accept" [ref=e2024] [cursor=pointer]
+                              - button [ref=e2025] [cursor=pointer]
+                            - button "Reject" [ref=e2028] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e2038]: _manual_task_action
+                  - generic [ref=e2041]:
+                    - generic [ref=e2045]:
+                      - toolbar [ref=e2047]:
+                        - button [ref=e2048] [cursor=pointer]
+                        - button [disabled] [ref=e2051]
+                        - button [ref=e2054] [cursor=pointer]:
+                          - button [ref=e2055]:
+                            - button [ref=e2056]
+                      - generic [ref=e2061]:
+                        - generic [ref=e2065]:
+                          - generic [ref=e2067]:
+                            - generic [ref=e2068]: "1"
+                            - generic [ref=e2069]: "2"
+                          - textbox [ref=e2072]:
+                            - generic [ref=e2073]: advisor_btn = mo.ui.run_button(label="🧠 Ask local advisor")
+                            - generic [ref=e2074]: advisor_btn
+                        - generic [ref=e2075]:
+                          - generic [ref=e2076]:
+                            - img "Fix generated" [ref=e2077]
+                            - paragraph [ref=e2080]: Showing fix
+                          - generic [ref=e2081]:
+                            - generic [ref=e2082]: Show prompt
+                            - switch [ref=e2083] [cursor=pointer]
+                          - generic [ref=e2084]:
+                            - generic [ref=e2085]:
+                              - button "Accept" [ref=e2086] [cursor=pointer]
+                              - button [ref=e2087] [cursor=pointer]
+                            - button "Reject" [ref=e2090] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e2100]: _advisor_controls
+                  - generic [ref=e2103]:
+                    - generic [ref=e2107]:
+                      - toolbar [ref=e2109]:
+                        - button [ref=e2110] [cursor=pointer]
+                        - button [disabled] [ref=e2113]
+                        - button [ref=e2116] [cursor=pointer]:
+                          - button [ref=e2117]:
+                            - button [ref=e2118]
+                      - generic [ref=e2123]:
+                        - generic [ref=e2127]:
+                          - generic [ref=e2128]:
+                            - generic [ref=e2129]:
+                              - generic [ref=e2130]: "1"
+                              - generic [ref=e2131]: "2"
+                              - generic [ref=e2132]: "3"
+                              - generic [ref=e2133]: "4"
+                              - generic [ref=e2134]: "5"
+                              - generic [ref=e2135]: "6"
+                              - generic [ref=e2136]: "7"
+                              - generic [ref=e2137]: "8"
+                              - generic [ref=e2138]: "9"
+                              - generic [ref=e2139]: "10"
+                              - generic [ref=e2140]: "11"
+                              - generic [ref=e2141]: "12"
+                              - generic [ref=e2142]: "13"
+                              - generic [ref=e2143]: "14"
+                              - generic [ref=e2144]: "15"
+                            - generic [ref=e2145]:
+                              - generic [ref=e2146]: ⌄
+                              - generic [ref=e2147]: ⌄
+                          - textbox [ref=e2148]:
+                            - generic [ref=e2149]: mo.stop(
+                            - generic [ref=e2150]: not advisor_btn.value, mo.md("_Click to ask the local Gemma advisor about current state._")
+                            - generic [ref=e2151]: )
+                            - generic [ref=e2152]: "# Assemble a compact state summary from the same readers the monitors use."
+                            - generic [ref=e2153]: "# Distinct names (adv_*) — marimo requires one global definition per name."
+                            - generic [ref=e2154]: adv_tq = ds.read_task_queue()
+                            - generic [ref=e2155]: adv_gc = ds.read_graph_counts()
+                            - generic [ref=e2156]: adv_wq = ds.read_work_queue()
+                            - generic [ref=e2157]: adv_summary = (
+                            - generic [ref=e2158]: "f\"task_queue: total={adv_tq['total']} done={adv_tq['done']} \""
+                            - generic [ref=e2159]: "f\"pending={len(adv_tq['pending'])}; graph: {adv_gc}; \""
+                            - generic [ref=e2160]: "f\"work_queue: total={adv_wq['total']} by_status={adv_wq['by_status']}\""
+                            - generic [ref=e2161]: )
+                            - generic [ref=e2162]: adv_advice = ds.ask_local_advisor(adv_summary)
+                            - generic [ref=e2163]: "mo.md(f\"**Advisor:**\\n\\n{adv_advice}\")"
+                        - generic [ref=e2164]:
+                          - generic [ref=e2165]:
+                            - img "Fix generated" [ref=e2166]
+                            - paragraph [ref=e2169]: Showing fix
+                          - generic [ref=e2170]:
+                            - generic [ref=e2171]: Show prompt
+                            - switch [ref=e2172] [cursor=pointer]
+                          - generic [ref=e2173]:
+                            - generic [ref=e2174]:
+                              - button "Accept" [ref=e2175] [cursor=pointer]
+                              - button [ref=e2176] [cursor=pointer]
+                            - button "Reject" [ref=e2179] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e2189]: _advisor_action
+                  - generic [ref=e2192]:
+                    - generic [ref=e2196]:
+                      - toolbar [ref=e2198]:
+                        - button [ref=e2199] [cursor=pointer]
+                        - button [disabled] [ref=e2202]
+                        - button [ref=e2205] [cursor=pointer]:
+                          - button [ref=e2206]:
+                            - button [ref=e2207]
+                      - generic [ref=e2212]:
+                        - generic [ref=e2216]:
+                          - generic [ref=e2218]:
+                            - generic [ref=e2219]: "1"
+                            - generic [ref=e2220]: "2"
+                            - generic [ref=e2221]: "3"
+                            - generic [ref=e2222]: "4"
+                          - textbox [ref=e2225]:
+                            - generic [ref=e2226]: "# Embedded RUNNING agent: free-form prompt → local inference fleet (:13305, $0)."
+                            - generic [ref=e2227]: fleet_prompt = mo.ui.text(placeholder="ask the local fleet anything ($0)…", full_width=True)
+                            - generic [ref=e2228]: fleet_btn = mo.ui.run_button(label="🤖 Run on local fleet")
+                            - generic [ref=e2229]: mo.vstack([fleet_prompt, fleet_btn])
+                        - generic [ref=e2230]:
+                          - generic [ref=e2231]:
+                            - img "Fix generated" [ref=e2232]
+                            - paragraph [ref=e2235]: Showing fix
+                          - generic [ref=e2236]:
+                            - generic [ref=e2237]: Show prompt
+                            - switch [ref=e2238] [cursor=pointer]
+                          - generic [ref=e2239]:
+                            - generic [ref=e2240]:
+                              - button "Accept" [ref=e2241] [cursor=pointer]
+                              - button [ref=e2242] [cursor=pointer]
+                            - button "Reject" [ref=e2245] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e2255]: _fleet_controls
+                  - generic [ref=e2258]:
+                    - generic [ref=e2262]:
+                      - toolbar [ref=e2264]:
+                        - button [ref=e2265] [cursor=pointer]
+                        - button [disabled] [ref=e2268]
+                        - button [ref=e2271] [cursor=pointer]:
+                          - button [ref=e2272]:
+                            - button [ref=e2273]
+                      - generic [ref=e2278]:
+                        - generic [ref=e2282]:
+                          - generic [ref=e2284]:
+                            - generic [ref=e2285]: "1"
+                            - generic [ref=e2286]: "2"
+                            - generic [ref=e2287]: "3"
+                            - generic [ref=e2288]: "4"
+                            - generic [ref=e2289]: "5"
+                          - textbox [ref=e2292]:
+                            - generic [ref=e2293]: "# Fires ONLY on click (not on the refresh tick). Embedded agent, runs on-demand."
+                            - generic [ref=e2294]: mo.stop(not fleet_btn.value, mo.md("_Free-form embedded agent — type a prompt, click. Runs on local :13305, $0._"))
+                            - generic [ref=e2295]: mo.stop(not fleet_prompt.value.strip(), mo.md("⚠️ Prompt is empty."))
+                            - generic [ref=e2296]: fleet_answer = ds.run_fleet_prompt(fleet_prompt.value.strip())
+                            - generic [ref=e2297]: "mo.md(f\"**🤖 Local fleet:**\\n\\n{fleet_answer}\")"
+                        - generic [ref=e2298]:
+                          - generic [ref=e2299]:
+                            - img "Fix generated" [ref=e2300]
+                            - paragraph [ref=e2303]: Showing fix
+                          - generic [ref=e2304]:
+                            - generic [ref=e2305]: Show prompt
+                            - switch [ref=e2306] [cursor=pointer]
+                          - generic [ref=e2307]:
+                            - generic [ref=e2308]:
+                              - button "Accept" [ref=e2309] [cursor=pointer]
+                              - button [ref=e2310] [cursor=pointer]
+                            - button "Reject" [ref=e2313] [cursor=pointer]
+                    - generic "This console output is stale" [ref=e2323]: _fleet_action
+                  - generic [ref=e2326]:
+                    - generic [ref=e2331]:
+                      - generic [ref=e2334]:
+                        - generic [ref=e2335]:
+                          - generic [ref=e2336]:
+                            - generic [ref=e2337]:
+                              - generic [ref=e2338]: "1"
+                              - generic [ref=e2339]: "2"
+                              - generic [ref=e2340]: "3"
+                              - generic [ref=e2341]: "4"
+                              - generic [ref=e2342]: "5"
+                              - generic [ref=e2343]: "6"
+                              - generic [ref=e2344]: "7"
+                              - generic [ref=e2345]: "8"
+                              - generic [ref=e2346]: "9"
+                            - generic [ref=e2347]:
+                              - generic [ref=e2349]: ⌄
+                              - generic [ref=e2350]: ⌄
+                          - textbox [ref=e2351]:
+                            - generic [ref=e2352]: "---"
+                            - generic [ref=e2353]: "### ⏸️ Pause / resume daemons (run in a terminal — not exposed as buttons)"
+                            - generic [ref=e2354]: "```bash"
+                            - generic [ref=e2355]: "systemctl --user stop cohezion-compound.service # pause the compound loop"
+                            - generic [ref=e2356]: "systemctl --user start cohezion-compound.service # resume it"
+                            - generic [ref=e2357]: systemctl --user stop cohezion-compound-feeder.timer
+                            - generic [ref=e2358]: systemctl --user start cohezion-compound-feeder.timer
+                            - generic [ref=e2359]: "systemctl --user status cohezion-compound.service # inspect"
+                            - generic [ref=e2360]: "```"
+                        - generic [ref=e2363]:
+                          - generic [ref=e2364]:
+                            - generic [ref=e2365]:
+                              - generic [ref=e2366]: r
+                              - checkbox "Toggle raw string" [ref=e2367] [cursor=pointer]
+                            - generic [ref=e2368]:
+                              - generic [ref=e2369]: f
+                              - checkbox "Toggle f-string" [ref=e2370] [cursor=pointer]
+                          - text: markdown
+                      - generic [ref=e2374]:
+                        - generic [ref=e2375]:
+                          - img "Fix generated" [ref=e2376]
+                          - paragraph [ref=e2379]: Showing fix
+                        - generic [ref=e2380]:
+                          - generic [ref=e2381]: Show prompt
+                          - switch [ref=e2382] [cursor=pointer]
+                        - generic [ref=e2383]:
+                          - generic [ref=e2384]:
+                            - button "Accept" [ref=e2385] [cursor=pointer]
+                            - button [ref=e2386] [cursor=pointer]
+                          - button "Reject" [ref=e2389] [cursor=pointer]
+                    - generic [ref=e2398]:
+                      - button [ref=e2400] [cursor=pointer]
+                      - generic [ref=e2407]:
+                        - separator [ref=e2408]
+                        - heading "⏸️ Pause / resume daemons (run in a terminal — not exposed as buttons)" [level=3] [ref=e2409]
+                        - generic [ref=e2410]:
+                          - code [ref=e2413]: "systemctl --user stop cohezion-compound.service # pause the compound loop systemctl --user start cohezion-compound.service # resume it systemctl --user stop cohezion-compound-feeder.timer systemctl --user start cohezion-compound-feeder.timer systemctl --user status cohezion-compound.service # inspect"
+                          - button "Copy to clipboard" [ref=e2415] [cursor=pointer]
+                    - generic [ref=e2419]: _controls_note
+                - generic [ref=e2423]:
+                  - button "Python" [ref=e2424] [cursor=pointer]
+                  - button "Markdown" [ref=e2429] [cursor=pointer]
+                  - button "SQL" [ref=e2433] [cursor=pointer]
+                  - button "Generate with AI" [ref=e2438] [cursor=pointer]
+              - generic [ref=e2443]:
+                - generic [ref=e2444] [cursor=pointer]: 🛰️ Cohezion Compound-Loop Cockpit
+                - generic [ref=e2445] [cursor=pointer]: 📋 Compound task queue
+                - generic [ref=e2446] [cursor=pointer]: 🕸️ SurrealDB graph
+                - generic [ref=e2447] [cursor=pointer]: 🗂️ Work queue (:8080)
+                - generic [ref=e2448] [cursor=pointer]: 🎯 Capability gaps
+                - generic [ref=e2449] [cursor=pointer]: 🎛️ Steer
+                - generic [ref=e2450] [cursor=pointer]: ⏸️ Pause / resume daemons (run in a terminal — not exposed as buttons)
+            - status [ref=e2459]
+          - generic [ref=e2460]:
+            - button "Config" [ref=e2461] [cursor=pointer]
+            - button "Config" [ref=e2463] [cursor=pointer]
+            - button "Shutdown" [ref=e2467] [cursor=pointer]
+          - generic [ref=e2471]:
+            - button [ref=e2472] [cursor=pointer]
+            - button [ref=e2477] [cursor=pointer]
+            - button [ref=e2482] [cursor=pointer]
+            - generic [ref=e2485]:
+              - button [ref=e2486]
+              - button [ref=e2489] [cursor=pointer]
+        - generic:
+          - separator [ref=e2492]
+          - generic [ref=e2493]:
+            - listbox "Developer panel tabs" [ref=e2494]:
+              - option [ref=e2495]
+              - option [ref=e2501]
+              - option [ref=e2506]
+              - option [ref=e2510]
+              - option [ref=e2515]
+              - option [ref=e2520]
+              - option [ref=e2525]
+            - button "Kernel" [ref=e2532] [cursor=pointer]
+            - button "LSP" [ref=e2537] [cursor=pointer]
+            - button [ref=e2541] [cursor=pointer]
+    - contentinfo [ref=e2545]:
+      - generic [ref=e2547] [cursor=pointer]:
+        - generic [ref=e2552]: "1"
+        - generic [ref=e2555]: "0"
+  - region "Notifications (F8)":
+    - list

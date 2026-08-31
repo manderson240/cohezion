@@ -474,3 +474,9 @@ v1.0 (2026-03-05) -- Complete 400-year lineage from Newton to Smith
 - `src/cohezion/flume/flume_vae.py` -- FLUME encoder (Era 15 holographic implementation)
 - `src/cohezion/physics/dimension_extractor.py` -- 12D state extraction (Smith's axiomatic state)
 - Learning 63 in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md` -- C(t) convergence formula
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for PHYSICS LINEAGE PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

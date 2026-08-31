@@ -40,3 +40,8 @@ else:
 
 ## VERSION
 v1.0 (Integration of The Will)
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

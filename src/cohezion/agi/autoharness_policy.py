@@ -12,6 +12,10 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+# reconcile 2026-08-26: imports needed by branch-preserved code (VerificationResult is defined
+# below; the branch imported it from cohezion.contracts, which on main re-exports from here)
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +38,10 @@ class AutoHarnessPolicy:
         self.policy_name = policy_name
         self._verifiers: dict[str, Callable[[ast.AST], list[str]]] = {}
         self._register_default_rules()
+        # reconcile 2026-08-26: the branch's state-policy registry (bounded_grid, positive_mass, ...)
+        # lives alongside main's AST rule registry; both sides' callers use AutoHarnessPolicy().
+        self._policy_registry: dict[str, Callable[[dict[str, Any]], bool]] = {}
+        self._register_default_policies()
 
     def _register_default_rules(self) -> None:
         """Register default deterministic AST safety verifiers."""
@@ -144,3 +152,102 @@ class AutoHarnessPolicy:
             "AutoHarnessPolicy: synthesized AST rule '%s' for paper '%s'", rule_name, title[:60]
         )
         return rule_name
+
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    def _register_default_policies(self) -> None:
+        """Register deterministic pre-verification policies."""
+        # 1. Bounds policy: ensure array dimensions and values stay bounded
+        self._policy_registry["bounded_grid"] = lambda state: (
+            isinstance(state.get("grid"), list)
+            and len(state["grid"]) <= 30
+            and all(isinstance(row, list) and len(row) <= 30 for row in state["grid"])
+        )
+
+        # 2. Physics policy: mass > 0, energy conserved
+        self._policy_registry["positive_mass"] = lambda state: (
+            isinstance(state.get("mass"), (int, float)) and state["mass"] > 0.0
+        )
+
+        # 3. Memory floor policy: available_gb >= 20.0
+        self._policy_registry["memory_safe"] = lambda state: (
+            isinstance(state.get("available_gb"), (int, float)) and state["available_gb"] >= 20.0
+        )
+
+    def register_policy(self, name: str, policy_fn: Callable[[dict[str, Any]], bool]) -> None:
+        """Register a custom deterministic policy function."""
+        self._policy_registry[name] = policy_fn
+
+    def evaluate_policy(
+        self, action_type: str, state: dict[str, Any], source_code: str | None = None
+    ) -> ActionPolicyResult:
+        """Evaluate an action against deterministic harness policies before LLM invocation."""
+        t0 = time.perf_counter()
+
+        # Step 1: Check registered policy rules
+        policy_fn = self._policy_registry.get(action_type)
+        if policy_fn:
+            try:
+                allowed = policy_fn(state)
+                if not allowed:
+                    dt_ms = (time.perf_counter() - t0) * 1000.0
+                    return ActionPolicyResult(
+                        allowed=False,
+                        bypassed_llm=True,
+                        action_type=action_type,
+                        verification_score=0.0,
+                        execution_time_ms=dt_ms,
+                        reason=f"Action violated deterministic policy '{action_type}'",
+                    )
+            except Exception as e:
+                dt_ms = (time.perf_counter() - t0) * 1000.0
+                return ActionPolicyResult(
+                    allowed=False,
+                    bypassed_llm=True,
+                    action_type=action_type,
+                    verification_score=0.0,
+                    execution_time_ms=dt_ms,
+                    reason=f"Policy evaluation error: {e}",
+                )
+
+        # Step 2: If source code is supplied, run zero-cost static AST verification
+        v_score = 1.0
+        if source_code:
+            # reconcile 2026-08-26: main's AST verifier is this class's own verify_code
+            # (VerificationResult: valid/violations); the branch's separate AutoHarnessVerifier
+            # (score/errors) was retired in favour of it.
+            v_res = self.verify_code(source_code)
+            v_score = 1.0 if v_res.valid else 0.0
+            if not v_res.valid:
+                dt_ms = (time.perf_counter() - t0) * 1000.0
+                return ActionPolicyResult(
+                    allowed=False,
+                    bypassed_llm=True,
+                    action_type=action_type,
+                    verification_score=0.0,
+                    execution_time_ms=dt_ms,
+                    reason=f"AST verification failed: {v_res.violations}",
+                )
+
+        dt_ms = (time.perf_counter() - t0) * 1000.0
+        return ActionPolicyResult(
+            allowed=True,
+            bypassed_llm=True,  # Successfully validated without LLM inference call!
+            action_type=action_type,
+            verification_score=v_score,
+            execution_time_ms=dt_ms,
+            reason="Validated by AutoHarness policy",
+        )
+
+
+# --- reconcile 2026-08-26: top-level symbols preserved from the branch ---
+@dataclass(frozen=True, slots=True)
+class ActionPolicyResult:
+    """Outcome of a synthesized AutoHarness policy check."""
+
+    allowed: bool
+    bypassed_llm: bool
+    action_type: str
+    verification_score: float
+    execution_time_ms: float
+    reason: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)

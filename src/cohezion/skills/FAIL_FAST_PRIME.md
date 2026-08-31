@@ -73,3 +73,9 @@ v1.0
 
 ## SEE ALSO
 AGILE_ITERATION_PRIME, MINIMUM_VIABLE_PRODUCT_PRIME, CONTINUOUS_DEPLOYMENT_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for FAIL FAST PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

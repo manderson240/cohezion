@@ -45,3 +45,14 @@ Activate this skill when working within the Cohezion geometric framework.
 - FLUME_MANIFOLD_PRIME.md
 - SU2_GAUGE_GROUP_PRIME.md
 - HIHO_STABILITY.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for EXTRACTED BLOCK D41D8CD9.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

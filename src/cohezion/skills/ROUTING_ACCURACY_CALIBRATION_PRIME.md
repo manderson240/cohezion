@@ -1,4 +1,7 @@
 ---
+name: ROUTING_ACCURACY_CALIBRATION_PRIME
+description: Comprehensive domain skill specification for Routing Accuracy Calibration Prime.
+version: v1.0
 name: routing_accuracy_calibration_prime
 description: "Standardized Cohezion platform PRIME skill for routing_accuracy_calibration_prime."
 category: core
@@ -49,3 +52,9 @@ v0.1
 - LOCAL_INFERENCE_ROUTING.md
 - RETROSPECTIVE_SKILL.md
 - COMPOUND_ENGINEERING_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for ROUTING ACCURACY CALIBRATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

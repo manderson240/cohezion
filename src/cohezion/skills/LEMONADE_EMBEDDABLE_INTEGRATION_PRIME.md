@@ -34,3 +34,9 @@ v1.1
 - GFX1151_OPTIMIZATION_PRIME.md
 - `src/cohezion/mcp/lemonade_server_mcp.py`
 - `src/cohezion/swarm/lemonade_manager.py`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LEMONADE EMBEDDABLE INTEGRATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

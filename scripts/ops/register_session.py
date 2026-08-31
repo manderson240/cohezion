@@ -27,21 +27,25 @@ from cohezion.data_mesh.kanban_bridge import persist_item
 
 async def register(session_id: str, goal: str) -> None:
     bus = await get_event_bus()
-    await bus.publish(Event.agent_start(
-        agent_name=session_id,
-        model="glm-5.2:cloud",
-        goal=goal,
-    ))
-    persist_item({
-        "id": f"session-{session_id}",
-        "title": goal,
-        "status": "in_progress",
-        "priority": "high",
-        "source": f"session/{session_id}",
-        "category": "improvement",
-        "description": goal,
-        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-    })
+    await bus.publish(
+        Event.agent_start(
+            agent_name=session_id,
+            model="glm-5.2:cloud",
+            goal=goal,
+        )
+    )
+    persist_item(
+        {
+            "id": f"session-{session_id}",
+            "title": goal,
+            "status": "in_progress",
+            "priority": "high",
+            "source": f"session/{session_id}",
+            "category": "improvement",
+            "description": goal,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+    )
     metrics = bus.get_metrics()
     print(f"EventBus: published={metrics['published']}, handlers={metrics['handlers']}")
     print(f"Kanban: persisted to SurrealDB + Obsidian")

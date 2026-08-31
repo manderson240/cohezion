@@ -1,4 +1,7 @@
 ---
+name: COMPOUND_ENGINEERING_PRIME
+description: Comprehensive domain skill specification for Compound Engineering.
+version: v1.0
 name: compound_engineering
 description: "Standardized Cohezion platform PRIME skill for compound_engineering."
 category: core
@@ -30,3 +33,9 @@ v0.1
 - METAPHYSICS_PRIME.md
 - PHYSICS_PRIME.md
 - RETROSPECTIVE_SKILL.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for compound engineering.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

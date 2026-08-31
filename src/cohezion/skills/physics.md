@@ -240,3 +240,9 @@ mechanism translation table, Cymatics/Chladni, Solitons, ZPF, Morphic fields
 - `HIHO_REALITY_SIM.md` -- Smith's 4 fabrics with physics genealogy
 - `src/cohezion/flume/bioelectric.py` -- Levin's bioelectric signals (Tier 1 biology)
 - `src/cohezion/physics/usd_simulator.py` -- Matsumoto USD simulation
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for physics.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

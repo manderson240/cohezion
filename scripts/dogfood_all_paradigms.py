@@ -42,17 +42,25 @@ class DogfoodOrchestrator:
     async def dogfood_autoharness(self) -> None:
         """Dogfood AutoHarness (arXiv:2603.03329v1): Action-Verifier & Harness-as-Policy."""
         logger.info("[1/4] Dogfooding AutoHarness Action-Verifier & Policy Engine...")
-        await self.bus.publish(Event.agent_start("autoharness_verifier", model="qwen3-coder:32b", task="action_verifier_check"))
+        await self.bus.publish(
+            Event.agent_start(
+                "autoharness_verifier", model="qwen3-coder:32b", task="action_verifier_check"
+            )
+        )
 
         # Verify action-verifier logic: reject illegal actions, accept valid ones
         state = {"cpu_usage_pct": 85.0, "ram_free_gb": 12.0, "active_models": 2}
-        
+
         # Valid action
         valid_action = {"action": "scale_down", "target_model": "mistral:7b"}
         is_legal_valid = state["cpu_usage_pct"] > 80.0
-        
+
         # Invalid action (OOM violation: loading 40GB model with only 12GB free)
-        invalid_action = {"action": "load_model", "target_model": "deepseek:70b", "model_size_gb": 40.0}
+        invalid_action = {
+            "action": "load_model",
+            "target_model": "deepseek:70b",
+            "model_size_gb": 40.0,
+        }
         is_legal_invalid = not (invalid_action.get("model_size_gb", 0) > state["ram_free_gb"])
 
         assert is_legal_valid is True, "Valid action failed verifier check"
@@ -69,17 +77,25 @@ class DogfoodOrchestrator:
     async def dogfood_gaia_swarms(self) -> None:
         """Dogfood GAIA SDK Agents (arXiv:2603.12813): 2-Tier Process Modeling."""
         logger.info("[2/4] Dogfooding GAIA SDK 2-Tier Agent Swarm (Architect + DSL Modeling)...")
-        await self.bus.publish(Event.agent_start("gaia_architect", model="deepseek-r1:70b", role="Architect"))
+        await self.bus.publish(
+            Event.agent_start("gaia_architect", model="deepseek-r1:70b", role="Architect")
+        )
 
         # Tier 1: Architect abstract design
-        abstract_spec = {"goal": "Optimize pipeline throughput", "target_fps": 60, "max_latency_ms": 16.6}
+        abstract_spec = {
+            "goal": "Optimize pipeline throughput",
+            "target_fps": 60,
+            "max_latency_ms": 16.6,
+        }
 
         # Tier 2: Modeling agent DSL generation
-        await self.bus.publish(Event.agent_start("gaia_modeling_agent", model="qwen3-coder:32b", role="DSL Engineer"))
+        await self.bus.publish(
+            Event.agent_start("gaia_modeling_agent", model="qwen3-coder:32b", role="DSL Engineer")
+        )
         dsl_code = f"PIPELINE(fps={abstract_spec['target_fps']}, max_latency={abstract_spec['max_latency_ms']})"
-        
+
         assert "PIPELINE(fps=60" in dsl_code, "DSL synthesis failed"
-        
+
         self.results.gaia_swarms_passed = True
         self.results.events_emitted += 2
         logger.info("  ✓ GAIA 2-tier multi-agent pipeline synthesis passed!")
@@ -87,16 +103,20 @@ class DogfoodOrchestrator:
     async def dogfood_graphrag(self) -> None:
         """Dogfood GraphRAG (arXiv:2603.22528 & arXiv:2607.24551): PathRAG & ContextRAG."""
         logger.info("[3/4] Dogfooding GraphRAG (PathRAG & ContextRAG over Knowledge Graph)...")
-        await self.bus.publish(Event.agent_start("graphrag_engine", model="lemonade-omni:13305", mode="PathRAG"))
+        await self.bus.publish(
+            Event.agent_start("graphrag_engine", model="lemonade-omni:13305", mode="PathRAG")
+        )
 
         vault_path = Path.home() / "vaults" / "cohezion-vault"
         notes = list(vault_path.glob("*.md"))
-        
+
         assert len(notes) > 0, "No vault notes found for GraphRAG search"
 
         # ContextRAG compression & PathRAG multi-hop traversal simulate
         matched_notes = [n.name for n in notes if "RESEARCH" in n.name or "LEARNINGS" in n.name]
-        logger.info("  Found %d Knowledge Graph notes matching PathRAG traversal", len(matched_notes))
+        logger.info(
+            "  Found %d Knowledge Graph notes matching PathRAG traversal", len(matched_notes)
+        )
 
         self.results.graphrag_passed = True
         self.results.events_emitted += 1
@@ -105,7 +125,9 @@ class DogfoodOrchestrator:
     async def dogfood_latent_communication(self) -> None:
         """Dogfood Latent Communication (arXiv:2606.05711v3): 256-dim z-vectors."""
         logger.info("[4/4] Dogfooding FLUME 256-dim Latent Vector Communication...")
-        await self.bus.publish(Event.agent_start("latent_vector_channel", model="flume-vae:v2", dimension=256))
+        await self.bus.publish(
+            Event.agent_start("latent_vector_channel", model="flume-vae:v2", dimension=256)
+        )
 
         # Continuous 256-dim vector handoff without text serialization
         z_vector = [0.5] * 256
@@ -131,14 +153,16 @@ class DogfoodOrchestrator:
         await self.dogfood_latent_communication()
 
         # Persist completion item to Kanban bridge
-        persist_item({
-            "id": "dogfood-all-paradigms-pass",
-            "title": "Dogfood All Paradigms: AutoHarness, GAIA, GraphRAG, Latent Channel 100% Passed",
-            "status": "done",
-            "priority": "high",
-            "source": "scripts/dogfood_all_paradigms.py",
-            "category": "verification",
-        })
+        persist_item(
+            {
+                "id": "dogfood-all-paradigms-pass",
+                "title": "Dogfood All Paradigms: AutoHarness, GAIA, GraphRAG, Latent Channel 100% Passed",
+                "status": "done",
+                "priority": "high",
+                "source": "scripts/dogfood_all_paradigms.py",
+                "category": "verification",
+            }
+        )
 
         await self.bus.publish(
             Event.agent_complete(

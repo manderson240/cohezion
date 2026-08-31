@@ -81,7 +81,7 @@ class TestHotswap:
         def _resident():
             calls["n"] += 1
             base = [_model("new", 300), _model("mid", 200), _model("old", 100)]
-            return base if calls["n"] == 1 else base + [_model("TARGET", 400)]
+            return base if calls["n"] == 1 else [*base, _model("TARGET", 400)]
 
         monkeypatch.setattr(hotswap, "resident_models", _resident)
         r = hotswap.ensure_resident("TARGET")

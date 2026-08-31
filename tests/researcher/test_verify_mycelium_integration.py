@@ -107,7 +107,7 @@ async def test_query_ouroboros_healing_events_retry_logic():
         return mock_response
 
     with (
-        patch("urllib.request.urlopen", side_effect=mock_urlopen_side_effect) as mock_urlopen,
+        patch("urllib.request.urlopen", side_effect=mock_urlopen_side_effect),
         patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
     ):
         results = await lane._query_ouroboros_healing_events("qwen3-coder:30b")

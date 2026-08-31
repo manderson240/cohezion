@@ -33,3 +33,9 @@ v0.1
 - AUTONOMIC_RESEARCH_PRIME.md
 - JOURNEY_DASHBOARD_PRIME.md
 - AUTONOMIC_QUALITY_GUARD_PRIME.md
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for AUTONOMIC ANALYST PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

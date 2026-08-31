@@ -34,3 +34,8 @@ Expert in **Gemini CLI orchestration, Google Agent Development Kit (ADK), and th
 
 ## VERSION
 v1.0
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

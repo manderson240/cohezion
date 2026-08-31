@@ -86,3 +86,9 @@ v1.0
 - SWARM_ORCHESTRATION_PRIME.md - Debate protocols
 - DEMOCRATIC_DEBATE_PRIME.md - Voting mechanisms
 - LANGGRAPH_PATTERNS.md (future) - Advanced graph patterns
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for controller agent.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

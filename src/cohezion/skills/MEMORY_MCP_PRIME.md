@@ -34,3 +34,9 @@ v0.1
 ## SEE ALSO
 *   COMPOUND_ENGINEERING_PRIME
 *   RESIDENCY_AWARENESS_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MEMORY MCP PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

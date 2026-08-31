@@ -5,6 +5,13 @@ on the surface of a torus. Unlike dipole/quadrupole moments, toroidal moments
 break time-reversal symmetry (T-parity) — they exist in a different class
 from conventional electromagnetic multipoles.
 
+The dipole this contrasts itself with now exists: see
+:mod:`cohezion.physics.electric_dipole`. Worth reading alongside, because the two sit at
+opposite ends of the multipole hierarchy and obey the same kernel from opposite directions —
+the anapole is what REMAINS once dipole contributions cancel, while the dipole is the textbook
+realization of ``4x(1-x)`` (harness U1), being exactly ``sin²θ`` under the alignment coordinate
+``x = (1 + cos θ)/2``. Both peak at the HIHO midpoint; only one of them is elementary.
+
 In EVO (Exotic Vacuum Objects) charge clusters:
     The charge distribution has toroidal topology (Ken Shoulders, 1991).
     The fractality comes from the self-similar nested ring structure where

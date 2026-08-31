@@ -965,6 +965,22 @@ class TelegramCommunicationHub:
             msg = f"⚠️ Failed to list agents: <code>{safe_html(str(e))}</code>"
         await self._send_msg(msg)
 
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    async def _classify_delegation_intent(self, text: str) -> str:
+        """Classify user intent into STATUS, LIST, AGENT, or CHAT."""
+        try:
+            messages: list[dict[str, str]] = [{"role": "user", "content": text}]
+            max_tok = MAX_TOKENS_BY_COMPLEXITY[QueryComplexity.SIMPLE]
+            reply, _telem = await self._chat_omnirouter(QueryComplexity.SIMPLE, messages, max_tok)
+            if reply:
+                reply_clean = str(reply).strip().upper()
+                for label in ("STATUS", "LIST", "AGENT", "CHAT"):
+                    if label in reply_clean:
+                        return label
+        except Exception as e:
+            logger.debug("Error in _classify_delegation_intent: %s", e)
+        return "CHAT"
+
 
 if __name__ == "__main__":
     logging.basicConfig(

@@ -61,3 +61,4 @@ print(json.dumps({
 _event_bus_commit
 
 exit 0
+exit 0

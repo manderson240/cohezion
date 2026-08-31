@@ -75,6 +75,14 @@ def triage(item: dict[str, Any]) -> str | None:
 
     None = no keyword match = leave the item untouched (visible, not dropped).
     """
+    # RC1 (2026-08-26): an item already classified ``type=improvement`` +
+    # ``relevance=APPLY`` has ALREADY been triaged upstream by the research
+    # daemon. Re-triaging it with a research-TOPIC regex rejected 108/108 of
+    # them, so none could reach ``actioned``, so compound_feeder found nothing
+    # new and compound_daemon stalled indefinitely. Route them directly.
+    if str(item.get("type", "")).strip().lower() == "improvement":
+        return "implement"
+
     text = " ".join(str(item.get(k, "")) for k in ("title", "abstract", "description", "domain"))
     if _ROUTE_B_EXPERIMENT.search(text):
         return "experiment"
@@ -255,6 +263,26 @@ def _write_vault_experiment(item: dict[str, Any], parsed: dict[str, str], vault_
     return path
 
 
+def _failure_reason(result: Any) -> str:
+    """Return the real reason an execution failed.
+
+    RC2 (2026-08-26): ``ExecutionResult`` has NO ``error`` field — the reason
+    lives in ``metrics["error"]`` and ``output``. The previous
+    ``getattr(result, "error", "")`` was a PHANTOM attribute read that returned
+    "" for every failure, so a fully-blocked pipeline was indistinguishable
+    from a slow one. Ordered most-specific first; ``error`` is kept last so
+    objects that genuinely carry one (e.g. test doubles) still work.
+    """
+    metrics = getattr(result, "metrics", None)
+    if isinstance(metrics, dict) and metrics.get("error"):
+        return str(metrics["error"])
+    for attr in ("output", "error"):
+        value = str(getattr(result, attr, "") or "").strip()
+        if value:
+            return value
+    return "unknown failure (execution reported no reason)"
+
+
 def action_item(
     item: dict[str, Any],
     route: str,
@@ -286,9 +314,7 @@ def action_item(
         execute_fn=execute_fn,
     )
     if not getattr(result, "success", False):
-        raise RuntimeError(
-            f"compound cycle failed for {item['id']}: {getattr(result, 'error', '')}"
-        )
+        raise RuntimeError(f"compound cycle failed for {item['id']}: {_failure_reason(result)}")
 
     parsed = _parse_proposal(captured.get("raw", ""))
     entry = {

@@ -42,7 +42,7 @@ def test_cycle_persistence_called_when_enabled():
 
     assert result.success
     assert pc.call_count == 1
-    point, temp_result = pc.call_args.args
+    _point, temp_result = pc.call_args.args
     assert temp_result.success is True
     kwargs = pc.call_args.kwargs
     assert kwargs.get("turn_index") == 0

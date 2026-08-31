@@ -6,6 +6,8 @@ tags: [language-model, hiho, training, inference, byte-level]
 version: "1.0"
 ---
 
+# SKILL: HIHO_LM_PRIME
+
 ## Skill: HIHO Language Model (HIHO-LM)
 
 ### Overview
@@ -265,3 +267,25 @@ OLD defaults (AdamW+bs4+seq64) PPL=27.41 on this phrase; v3 defaults PPL=21.24 (
 | `src/cohezion/model/training_data.py` | TrainingExample, build_balanced_training_dataset() |
 | `src/cohezion/model/train.py` | CLI trainer: --size byte_level --steps N --device cpu/cuda |
 | `tests/unit/model/test_hiho_model.py` | 45 tests covering all model components |
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Hiho Lm Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for HIHO LM PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

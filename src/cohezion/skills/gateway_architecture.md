@@ -71,3 +71,9 @@ v1.0
 - FLUME_METHODOLOGY_PRIME.md - Continuous thought
 - CONTROLLER_AGENT_PRIME.md - Orchestration
 - UNIVERSE_VISUALIZATION_PRIME.md - Observable AI
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for gateway architecture.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

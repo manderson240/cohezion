@@ -13,9 +13,13 @@ Equations:
 from __future__ import annotations
 
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from cohezion.contracts import PoincarePoint
+
+
+# reconcile 2026-08-26: imports needed by branch-preserved code
 
 
 class PoincareManifoldND:
@@ -112,6 +116,27 @@ class PoincareManifoldND:
                 count += 1
 
         return total_loss / count if count > 0 else 0.0
+
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    @classmethod
+    def origin(cls, dim: int) -> PoincarePoint:
+        """Create origin point in N-dimensional hyperbolic space."""
+        return PoincarePoint(tuple(0.0 for _ in range(dim)), dim=dim)
+
+    @classmethod
+    def to_lorentz(cls, u: PoincarePoint) -> tuple[float, ...]:
+        """Convert Poincaré ball point to Lorentz/Hyperboloid model (d+1 dimensions).
+
+        Uses homogeneous coordinates:
+            y_i = 2 * x_i / delta
+            y_0 = 2 / delta - 1
+        where delta = max(1 - ||x||^2, EPS) in float64 to eliminate boundary singularities.
+        """
+        u_sq = sum(c * c for c in u.coords)
+        delta = max(cls.EPS, 1.0 - u_sq)
+        y_spatial = tuple(2.0 * c / delta for c in u.coords)
+        y_0 = (2.0 / delta) - 1.0
+        return (y_0, *y_spatial)
 
 
 # Backward compatibility alias

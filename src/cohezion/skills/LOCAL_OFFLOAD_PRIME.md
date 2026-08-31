@@ -62,3 +62,9 @@ v1.0
 - COHEZION_BRIDGE_PRIME
 - MODEL_ROUTING_PRIME
 - COMPOUND_ENGINEERING_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for LOCAL OFFLOAD PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

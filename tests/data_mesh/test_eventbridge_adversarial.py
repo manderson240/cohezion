@@ -601,7 +601,7 @@ class TestRawInterpolatedFieldInjection:
 
     async def test_type_guard_logs_at_debug_on_rejection(self, bridge_and_mock, caplog):
         """DISCRIMINATING: rejected events (non-numeric fields) log at DEBUG."""
-        bridge, mock_http = bridge_and_mock
+        bridge, _mock_http = bridge_and_mock
         event = Event(
             type=EventType.DATA_PRODUCT_CREATED,
             source="x",

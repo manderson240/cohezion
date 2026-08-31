@@ -44,3 +44,9 @@ v1.0
 - REPO_HYGIENE_PRIME
 - PERSISTENT_QUALITY_PRIME
 - COHEZION_BRIDGE_PRIME
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for HALLUCINATION RESOLVER PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

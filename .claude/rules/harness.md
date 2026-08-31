@@ -49,6 +49,31 @@ was green only because tests exercised the easy paths. Corrections (all committe
 | Fast tests | `uv run pytest tests/unit --import-mode=append --tb=short -q -p no:warnings` | Exit 0 |
 | Skill validate | `uv run python scripts/ci/validate_skills.py` | Exit 0 |
 | Registry validate | `uv run python scripts/ci/validate_registry.py` | Exit 0 |
+| Phantom-attr self-test | `uv run python scripts/ci/phantom_attr_scan.py --self-test` | Exit 0 |
+| Phantom-attr scan | `uv run python scripts/ci/phantom_attr_scan.py` | Exit 0 |
+
+## PA1: phantom-attribute scan is RUN by both gates (CONSUMPTION, 2026-08-26)
+
+- `scripts/ci/phantom_attr_scan.py` flags `getattr(x, "<literal>", default)` where the target
+  class defines no such attribute. Third sibling of `dormancy_scan` ("has a consumer?") and
+  `doc_code_consistency` ("do the docs tell the truth?"): **"does the attribute exist?"**
+- ORIGIN: `getattr(result, "error", "")` in `actioner/engine.py` read a field `ExecutionResult`
+  does not have (9 constructions in `compound/executor.py`, **0** pass `error=`). Every failure
+  logged an empty reason, so a fully-blocked compound pipeline was indistinguishable from a slow
+  one for weeks. **mypy cannot catch this** — `getattr` with a literal + default is deliberate
+  dynamism whose contract IS to succeed silently.
+- **CONSUMPTION, not declaration**: the invariant is not "the scanner exists", it is
+  "`automerge_guard.sh` AND `.github/workflows/ci.yml` both invoke it, with `--self-test` first".
+  `tests/scripts/test_phantom_attr_scan.py::test_t3_scanner_is_wired_into_the_gate` FAILS if
+  either gate stops calling it — neutralizing the consumer turns the test red.
+- **T2 discriminating**: `--self-test` plants the historical defect and requires RED, then GREEN.
+  Additionally validated against the REAL pre-fix tree from git history (`dee080d0c~1`): fires on
+  `engine.py:260`, silent on the fix. The prior revision is an unbiased oracle — nobody authored
+  it to test this scanner, so it cannot share the author's blind spot.
+- **Deliberately out of scope**: dynamic `getattr(x, name, ...)` is never flagged (unresolvable
+  statically; flagging it would be noise). Registry is curated for precision over recall — a
+  scanner that cries wolf trains people to ignore it.
+- **Verification**: `uv run pytest tests/scripts/test_phantom_attr_scan.py -q` → 13 passed
 
 ## Valid Code Changes (is_legal_change)
 
@@ -153,6 +178,24 @@ test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero` (exists, p
 
 ## MetricBaseline Invariants
 
+### MB1: MetricBaseline.value_bounds clamps trend_value() for bounded metrics (#129; documented 2026-06-27, ACTUALLY IMPLEMENTED 2026-08-19)
+- `value_bounds: tuple[float, float] | None = None` field on `MetricBaseline` dataclass
+- When set, `trend_value(horizon)` clamps result to `[lo, hi]` via `max(lo, min(hi, result))` — via `_clamp()`, applied to **every** return path including the <2-sample mean fallback and the polyfit-exception fallback
+- `DegradationDetector.__init__` wires `value_bounds=(0.0, 1.0)` on: `cache_hit_rate`, `coherence`, `success_rate`, `quality_score`, **`jepa_coherence`** (the 5th postdates the original text; it is a clipped mean on [0,1] per JG1)
+- Unbounded metrics (`token_efficiency`, `duration_seconds`, `token_surprisal`) retain `value_bounds=None`
+- Motivation: linear extrapolation projects bounded metrics outside [0,1] causing false alert suppression. **Measured at horizon=1 — the only horizon `check_degradation()` uses:** coherence `[0.9,0.7,0.5,0.3,0.1]` → **−0.1000**; coherence `[0.30,0.22,0.14,0.06,0.02]` → **−0.0680**; success_rate `[0.2,0.45,0.7,0.9,0.98]` → **+1.2490**; quality `[0.5,0.7,0.85,0.95,0.99]` → **+1.1670**. Since `trend_value(1)` is the comparison *baseline*, a baseline below the metric's floor makes `current < baseline` unsatisfiable.
+- **Discriminating**: `test_unbounded_metric_can_extrapolate_outside_unit_interval` proves clamp is selective, not global
+- **Verification**: `uv run pytest tests/compound/test_metric_baseline_bounds.py -q` → **10 passed**
+
+> ⚠ **PHANTOM HISTORY — read before trusting any "Verification" line in this file.**
+> From 2026-06-27 to 2026-08-19 this entry described code that did not exist: `value_bounds`
+> had **zero** occurrences in `src/` on both the working branch and `origin/main`, and zero
+> references in any test. The fifth phantom invariant recorded.
+> The stated verification was worse than fabricated — it was **real, green, and unrelated**:
+> `TestMetricBaseline` genuinely exists and passes, but contains **6 tests, 0 of which
+> reference `value_bounds`** (the entry claimed 12). A command that runs, passes, and proves
+> nothing about the claim is the hardest false verification to catch by reading.
+> **Before trusting an invariant here, grep the field in `src/` and the assertion in `tests/`.**
 ### MB1: REMOVED 2026-08-14 — was a PHANTOM invariant
 `value_bounds` has **zero occurrences** anywhere in `src/` or `tests/`; `trend_value()`
 does no clamping of any kind; and the named discriminating test
@@ -634,17 +677,13 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - ERP history tuple keys survive `"skill::op"` encoding through the full save→restore cycle
 - **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestSkillRefinerDurableSpine -q` → 8 passed
 
-## RiemannianGlideTrajectory geodesic integration (#95, revised 2026-07-29)
+## RiemannianGlideTrajectory Curvature-Induced Anisotropy (#157) — REMOVED 2026-08-27, was a PHANTOM invariant
 
-### RGA1/RGA2: REMOVED 2026-07-29 — were PHANTOM invariants
-The curvature-anisotropy names (`curvature_coupling`, `anisotropy_tensor`,
-`test_backward_compatibility_no_coupling_kwarg`) never existed in src or tests; the "12 passed"
-claim was false (the file had 4 tests). `git log --all --follow` on
-`src/cohezion/physics/riemannian_glide.py` shows exactly ONE commit (86c450fca, #95) — created
-once, never modified — while the block claimed a #157/2026-06-28 edit. Same class as RTG1.
-The described formula was also NOT a geodesic fix: `a_i = 1/(1 + κ g_ii |x_i|)` scales the step at
-first order, so `DR_x(0) ≠ id` — a position-dependent preconditioner, not a retraction.
-Do NOT re-add without actually implementing it + a real discriminating test.
+The RGA1/RGA2 entries (a `curvature_coupling` field, `anisotropy_tensor()`, and a `12 passed` verification
+of `tests/physics/test_riemannian_glide.py`) arrived via branch `worktree-virtual-soaring-shamir`. The
+doc↔code linter (E6) shows the cited tests were defined in NO revision — not on the branch, not on main —
+and main's `riemannian_glide.py` has no `curvature_coupling` field (W4). Sixth phantom recorded; same
+disposition as RTG1 above. Do NOT re-add without implementing the field + a real discriminating test.
 
 ### RG1: step() is a geodesic only when Γ vanishes — CONSUMPTION invariant
 - `x + dt*v` is a geodesic iff the Christoffel symbols vanish, which requires a **constant**

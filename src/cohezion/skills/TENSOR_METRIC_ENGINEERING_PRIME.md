@@ -5,6 +5,8 @@ category: physics
 tags: [sarfatti, zpf, tensor, metric, spacetime, hiho, general-relativity, coherence]
 ---
 
+# SKILL: TENSOR_METRIC_ENGINEERING_PRIME
+
 # Tensor Metric Engineering
 
 Sarfatti's post-quantum metric engineering proposes that ZPF (Zero-Point Field)
@@ -69,3 +71,25 @@ gamma = t2.christoffel_symbols(coherence_gradient=np.array([0, 0.01, 0.01, 0.01]
 
 The gravitational metric coupling IS the spacetime manifestation of the universal
 detailed-balance attractor. All physics substrates = one kernel.
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for Tensor Metric Engineering Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for TENSOR METRIC ENGINEERING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

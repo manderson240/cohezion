@@ -46,7 +46,7 @@ class RepositoryMetrics(BaseModel):
     pack_count: int
 
 
-class TestMetrics(BaseModel):
+class SystemVerificationReport(BaseModel):
     """Test suite health metrics."""
 
     __test__ = False
@@ -54,6 +54,9 @@ class TestMetrics(BaseModel):
     passing_tests: int
     failing_tests: int
     pass_rate: float
+
+
+TestMetrics = SystemVerificationReport
 
 
 class DependencyMetrics(BaseModel):

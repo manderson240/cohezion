@@ -68,9 +68,7 @@ class BranchVerdict:
 
 
 def _git(repo: str, *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(
-        ["git", "-C", repo, *args], capture_output=True, text=True, timeout=120
-    )
+    return subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True, timeout=120)
 
 
 def census(repo: str, base: str = "main") -> list[BranchVerdict]:
@@ -91,9 +89,7 @@ def census(repo: str, base: str = "main") -> list[BranchVerdict]:
                 out.append(BranchVerdict(branch, head, "INTEGRATED"))
                 continue
             ahead = _git(repo, "rev-list", "--count", f"{base}..{branch}").stdout.strip()
-            nfiles = _git(
-                repo, "diff-tree", "-r", "--name-only", base_tree, tree
-            ).stdout.strip()
+            nfiles = _git(repo, "diff-tree", "-r", "--name-only", base_tree, tree).stdout.strip()
             out.append(
                 BranchVerdict(
                     branch,
@@ -109,9 +105,7 @@ def census(repo: str, base: str = "main") -> list[BranchVerdict]:
                 for ln in mt.stdout.splitlines()
                 if ln.startswith("CONFLICT")
             ]
-            out.append(
-                BranchVerdict(branch, head, "CONFLICTS", conflict_files=conflicts[:10])
-            )
+            out.append(BranchVerdict(branch, head, "CONFLICTS", conflict_files=conflicts[:10]))
     return out
 
 

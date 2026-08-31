@@ -76,9 +76,15 @@ NPU (classify/route/short) → iGPU (code/structured) → CPU (reasoning) → Cl
   `/api/v1/load`; `model_card_defaults` supplies CLIENT-REQUEST sampling defaults for callers like
   `build_gaia_llm_tier`. Both matter — a request can omit a param even when the server recipe is
   correct. **Verification**: `uv run pytest tests/inference/test_model_card_defaults.py -q` → 11 passed.
-- **Known gap (Kanban `7d3f05b80839`)**: `lemonade_health.py`'s `probe_lemonade()` is a separate,
-  still-unimplemented stub (9 failing tests) — a fleet-level hazard/health detector, not touched by
-  TR1/TR2. Not blocking; filed for a future pass.
+- **RESOLVED (was Kanban `7d3f05b80839`)**: `lemonade_health.py`'s `probe_lemonade()` is fully
+  implemented — recipe-endpoint probes, ctx_size=0 hazard detection, orphan-process detection,
+  per-type slot headroom. **Verification (2026-08-14)**: `uv run pytest
+  tests/inference/test_lemonade_health.py -q` → 18 passed. Scope note: it answers fleet-level
+  health ("is the router/recipe up, any hazards"), NOT per-model loadability — a model can be
+  advertised in the catalog while its backend fails to start (`llama-server failed to start`),
+  which only a real chat call catches. For that, use
+  `PrewarmLocalModelHarness.prewarm_model()` (`prewarm_harness.py`), which composes
+  `is_lemonade_alive()` as its pre-flight.
 
 ## Port Bypass Guard
 

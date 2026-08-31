@@ -1,0 +1,19 @@
+{
+  "id": "manderson240/cohezion-arc-prize-autoharness-solver",
+  "title": "Cohezion ARC Prize AutoHarness Solver",
+  "code_file": "submission.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "false",
+  "competition_sources": [
+    "arc-prize-2026-arc-agi-2"
+  ],
+  "dataset_sources": [
+    "hongbinguokaggle/deepseek-r1-distill-qwen-7b-awq"
+  ],
+  "model_sources": [
+    "qwen-lm/qwen2.5-coder/transformers/qwen2.5-coder-7b-instruct/1"
+  ]
+}

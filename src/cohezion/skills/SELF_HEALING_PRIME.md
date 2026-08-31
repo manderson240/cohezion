@@ -122,3 +122,9 @@ v0.3 -- 2026-06-03 added systemd stale path verification and backup/rollback mec
 - SWARM_ORCHESTRATION_PRIME.md
 - OLLAMA_MANAGEMENT_PRIME.md
 - TURBOQUANT_PHASE_RECOVERY_S104.md (Phase 4 -- sibling verification pattern)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for SELF HEALING PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

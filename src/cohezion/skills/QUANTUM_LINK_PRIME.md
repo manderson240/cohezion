@@ -61,3 +61,9 @@ v1.0 (Extracted Phase 56)
 ## SEE ALSO
 *   `src/cohezion/core/quantum_link.py` (Reference Implementation)
 *   `RETROSPECTIVE_PHASE_50_59_SINGULARITY.md`
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for QUANTUM LINK PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

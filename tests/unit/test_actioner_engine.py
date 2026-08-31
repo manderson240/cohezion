@@ -138,7 +138,7 @@ def test_failed_item_not_patched_and_batch_continues(tmp_path):
 def test_batch_limit_strictly_enforced(tmp_path):
     api = FakeAPI([_item(i) for i in range(60)])
     ex = FakeExecutor()
-    summary = run_batch(
+    run_batch(
         ex,
         api,
         _chat,
@@ -199,3 +199,85 @@ def test_parse_proposal_structured_and_fallback(raw):
     parsed = _parse_proposal(raw)
     assert parsed["proposal"]
     assert parsed["falsifiable_step"]
+
+
+# ── root-cause regressions (2026-08-26) ───────────────────────────────────────
+# Found by RUNNING the actioner on local inference: two live runs actioned 0 of
+# 2,426 eligible items. Three independent root causes, each pinned below.
+
+
+class _RealShapeExecutor:
+    """Executor whose result has the REAL ExecutionResult shape.
+
+    The pre-existing FakeExecutor returns SimpleNamespace(success=False,
+    error=...), but cohezion.compound.executor.ExecutionResult has NO `error`
+    field — it carries the reason in `output` and `metrics["error"]`. The fake's
+    extra attribute is what let RC2 survive: the test double supplied a field
+    production never had.
+    """
+
+    def __init__(self, reason="Input blocked by guardrails: pattern detected: override"):
+        self.reason = reason
+        self.calls = 0
+
+    def execute_task(self, task_description, skill_name, operation_type, execute_fn):
+        self.calls += 1
+        return SimpleNamespace(
+            success=False,
+            output=f"Error: {self.reason}",
+            metrics={"error": self.reason, "blocked_by_guardrails": True},
+            duration_seconds=0.0,
+        )
+
+
+def test_rc1_improvement_items_are_routable():
+    """RC1: type=improvement items must route.
+
+    Measured 2026-08-26: triage() returned None for 108/108
+    type=improvement, relevance=APPLY, status=reviewed items, so none could ever
+    reach `actioned`, so compound_feeder found nothing, so compound_daemon
+    stalled. These titles are verbatim from the live queue.
+    """
+    for title in (
+        "BUG: agent_journey.final_coherence frozen at 0.385 across all cycles",
+        "Harness invariants CB1/CB8/OOM1 fail on main despite restoration merge #8",
+        "repo_health enforcement: 3 bash scripts mislabeled .py break ruff parse",
+    ):
+        item = _item(1, title=title, type="improvement")
+        assert triage(item) is not None, f"improvement item must route, got None for: {title}"
+
+
+def test_rc1_improvement_route_does_not_hijack_research_items():
+    """RC1 must be discriminating: a research item with no keyword still returns None."""
+    research = _item(2, title="quantum entanglement in superconductors", domain="quant-ph")
+    assert triage(research) is None
+    # and an explicit type=research improvement-shaped title stays keyword-driven
+    assert (
+        triage(_item(3, title="SFT curriculum for reward models", type="research")) == "experiment"
+    )
+
+
+def test_rc2_failure_reason_is_surfaced_not_empty(tmp_path):
+    """RC2: the recorded failure must name the cause.
+
+    action_item() read getattr(result, "error", "") — a PHANTOM attribute.
+    ExecutionResult has no `error` field, so every failure recorded an empty
+    reason: 'compound cycle failed for <id>: '. That is why a fully-blocked
+    pipeline looked like slow progress for weeks.
+    """
+    api = FakeAPI([_item(1, title="prompt caching for agent tools")])
+    summary = run_batch(
+        _RealShapeExecutor(),
+        api=api,
+        chat_fn=_chat,
+        proposals_path=tmp_path / "p.jsonl",
+        vault_dir=tmp_path / "v",
+    )
+    assert summary["failed"], "item should have failed"
+    reason = next(iter(summary["failed"].values()))
+    assert reason.strip().rstrip(":").strip() != "compound cycle failed for item001", (
+        f"failure reason is empty: {reason!r}"
+    )
+    assert "guardrail" in reason.lower() or "override" in reason.lower(), (
+        f"real cause not surfaced: {reason!r}"
+    )

@@ -5,6 +5,8 @@ category: compound
 tags: [r0, sigma, adversarial, uncertainty, challenger, consensus, ure]
 ---
 
+# SKILL: R0_SIGMA_PRIME
+
 # Skill: R0Σ — Adversarial Challenger + Uncertainty Quantification
 
 ## Overview
@@ -76,3 +78,25 @@ Every COLIBRE simulation finding passes through R0Σ:
 - Implementation: `src/cohezion/compound/r0_sigma.py`
 - Tests: `tests/unit/compound/test_phase19.py::TestR0*`
 - Harness: P4 (sigma_n>1 triggers R0), P6 (2/3 CONFIRMED consensus)
+
+
+## DOMAIN EXPERTISE
+Provides expert capabilities for R0 Sigma Prime within the Cohezion AGI architecture.
+
+## INSTRUCTION
+1. Execute step-by-step verification.
+2. Validate outcomes against AutoHarness policies.
+
+## VERSION
+v1.0
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for R0 SIGMA PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
+
+
+## SEE ALSO
+- **AUTOHARNESS_POLICY_PRIME**
+- **JOURNEY_TRACKING_PRIME**

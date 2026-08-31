@@ -33,3 +33,9 @@ v1.0 (Physical Law Enforcement)
 
 ## Session 89: Repository Integrity & Health (2026-04-07)
 *   **Date**: 2026-04-11
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for MANIFOLD INTEGRITY PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.

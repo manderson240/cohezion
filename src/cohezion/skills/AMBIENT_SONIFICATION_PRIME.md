@@ -30,3 +30,9 @@ v1.0
 ## SEE ALSO
 - [HOLOGRAPHIC_VISUALIZATION_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/HOLOGRAPHIC_VISUALIZATION_PRIME.md)
 - [QUARK_GLUON_PLASMA_SIM_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/QUARK_GLUON_PLASMA_SIM_PRIME.md)
+
+
+## KEY CONCEPTS
+- **Manifold Mapping**: Tracking 12D Poincaré state representation for AMBIENT SONIFICATION PRIME.
+- **AutoHarness Invariants**: 0ms AST bytecode policy assertions (arXiv:2603.03329v1).
+- **Deterministic Execution**: Zero-latency verification and sovereign local execution.
