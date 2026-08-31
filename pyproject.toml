@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cohezion"
-version = "1.13.1"
+version = "1.14.0"
 description = "Compound AI orchestration: a self-improving skill loop, physics-grounded 12D training environments, and $0 local inference on AMD silicon"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -306,7 +306,26 @@ dev = [
 
 # Type checking with mypy
 [tool.mypy]
-python_version = "3.11"
+# Must match the project floor (requires-python >= 3.13). At 3.11 mypy rejects
+# numpy's stubs -- "Type statement is only supported in Python 3.12 and greater"
+# -- and aborts with "errors prevented further checking" BEFORE reading any
+# project file, so the gate silently checked nothing.
+python_version = "3.13"
+# Skill ASSET directories whose names contain hyphens. A hyphen is not legal in
+# a Python identifier, so these paths can never be imported as modules; mypy
+# refuses the ENTIRE run over them ("... is not a valid Python package name"),
+# which is the second reason this gate was dark.
+#
+# STRUCTURAL, not an enumeration: matches any path component under skills/ that
+# contains a hyphen. Listing today's three directories would mean the next
+# hyphenated skill dir re-aborts the whole run and reds every open PR until
+# someone hand-extends this line -- and the obvious "fix" then is to widen it to
+# all of skills/, which silently drops 15 importable modules
+# (cohezion.skills.cohezion_mcp, mcp_paths, mcp_tool_definitions, ...).
+# A hyphenated component is never importable, so this loses nothing.
+# scripts/ci/mypy_ratchet.py independently refuses a baseline whose file count
+# shrank, so a widened exclude cannot be locked in even by accident.
+exclude = "src/cohezion/skills/([^/]+/)*[^/]*-[^/]*/"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false  # Start permissive, can tighten later

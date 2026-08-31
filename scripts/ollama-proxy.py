@@ -37,7 +37,7 @@ MODEL_MAP = {
     # === CLOUD MODELS (RECOMMENDED - No OOM risk) ===
     "claude-opus-4-6": "gemma4:31b-cloud",
     "claude-sonnet-4-6": "gemma4:31b-cloud",
-    "claude-haiku-4-5-20251213": "gemma4:e4b",  # Use local for fast response
+    "claude-haiku-4-5": "gemma4:e4b",  # Use local for fast response
     "opus-cloud": "gemma4:31b-cloud",
     "sonnet-cloud": "gemma4:31b-cloud",
     "haiku-cloud": "gemma4:31b-cloud",
