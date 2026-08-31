@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — harvest landing: output-quality wiring, categorical routing, durable writes (1.14.0)
+- Worktree-harvest merge train (8 branches from the 2026-08-30 agent cluster, landed via
+  plumbing merges — real merge parents, no squash). Highlights beyond the mypy/pricing
+  section below:
+- `src/cohezion/compound/executor.py` + `executor_factory.py`: BOTH quality wirings landed
+  and are complementary — `dqa_gate` publishes `quality_score` into the degradation fold
+  (the DegradationDetector branch that could never fire), while `quality_evaluator`
+  publishes `output_quality_*` telemetry; `SkillRefiner._extract_metrics` still derives its
+  `quality_score` from `anomaly_score`, so the AQ6 scale guard holds. Discriminating probe:
+  on the `make_executor` production path, `quality_score` now varies 1.0 vs 0.0 with output
+  content (was a constant 0.5 below its own 0.6 floor).
+- `src/cohezion/inference/quality_eval.py`: strict/weak uncertainty markers selected by
+  NAME (`_STRONG_UNCERTAINTY_MARKERS`), not a `[:4]` positional slice — two independent
+  agent fixes of the same defect unified on one naming scheme, both regression-test files
+  kept.
+- `src/cohezion/inference/task_classifier.py`: every yes/no instruction verb routes to the
+  categorical gate.
+- `src/cohezion/compound/autodqa.py` + `src/cohezion/inference/gemini_cli_tier.py`: async
+  SurrealDB writes were built-and-discarded coroutines; now driven via `run_sync` (audit in
+  `docs/audits/UNAWAITED_SURREAL_WRITES_2026-08-28.md`).
+- `scripts/ci/verification_exec.py`: executes harness.md's inline `**Verification**:`
+  commands and classifies failures (SYNTAX/PROSE/STALE_REF/ASSERT/TIMEOUT/EXTERNAL).
+  Deliberately report-only until proven on real drift.
+
 ### Fixed — `verify_router.py --preflight-only` claimed more than it checked (1.13.1)
 - With `--preflight-only` (no generation), the tool printed
   *"PASS: registered, every candidate present, downloaded, and answering coherently"* — while
