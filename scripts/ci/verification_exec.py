@@ -62,6 +62,7 @@ import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+
 REPO = Path(__file__).resolve().parents[2]
 DOC = REPO / ".claude" / "rules" / "harness.md"
 

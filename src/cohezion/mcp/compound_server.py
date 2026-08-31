@@ -430,8 +430,7 @@ async def cohezion_skill_matrix() -> dict[str, Any]:
         for root in hermes_skills_dir.rglob("SKILL.md"):
             text = root.read_text(encoding="utf-8", errors="ignore")[:4096]
             is_cohezion = any(  # strict port markers only ("cohezion" substring false-positives)
-                tag in text
-                for tag in ["project: cohezion", "legacy-name:", "converted: true"]
+                tag in text for tag in ["project: cohezion", "legacy-name:", "converted: true"]
             )
             if not is_cohezion:
                 continue

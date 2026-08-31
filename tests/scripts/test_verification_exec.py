@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+
 REPO = Path(__file__).resolve().parents[2]
 # Same mechanism as tests/scripts/test_dormancy_scan.py. Deliberately NOT
 # spec_from_file_location + exec_module: that leaves the module absent from sys.modules, and
@@ -27,7 +28,7 @@ _SCRIPTS_CI_DIR = REPO / "scripts" / "ci"
 if str(_SCRIPTS_CI_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_CI_DIR))
 
-import verification_exec as vx  # noqa: E402
+import verification_exec as vx
 
 
 def status_of(doc: str) -> str:
