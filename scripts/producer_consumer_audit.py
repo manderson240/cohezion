@@ -72,8 +72,20 @@ def _extract_json(text: str) -> dict:
     return {"role": "UNKNOWN", "produces": "", "consumes": "", "wiring_gap": "parse failed"}
 
 
-def lemonade_classify(module_name: str, source: str, timeout: int = 30) -> dict:
-    """Call Lemonade REST API to classify a module."""
+def lemonade_classify(
+    module_name: str,
+    source: str,
+    timeout: int = int(os.environ.get("PC_AUDIT_TIMEOUT", "300")),
+) -> dict:
+    """Call Lemonade REST API to classify a module.
+
+    Budget: local inference is $0, so the ONLY real constraint is KV-cache RAM, not
+    wall-clock. The old 180-token/30s budget truncated reasoning-model output mid-thought
+    and was read as "the model failed" (5th recorded instance of the frugal-budget defect).
+    Tokens are OUTPUT length -- they cost time, not resident memory; KV growth is bounded by
+    the per-call context, which stays small here (one module's source, capped upstream).
+    Override with PC_AUDIT_MAX_TOKENS / PC_AUDIT_TIMEOUT.
+    """
     payload = json.dumps(
         {
             "model": MODEL,
@@ -81,7 +93,7 @@ def lemonade_classify(module_name: str, source: str, timeout: int = 30) -> dict:
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": _make_user_content(module_name, source)},
             ],
-            "max_tokens": 180,
+            "max_tokens": int(os.environ.get("PC_AUDIT_MAX_TOKENS", "1500")),
             "temperature": 0.1,
         }
     ).encode()
@@ -93,7 +105,7 @@ def lemonade_classify(module_name: str, source: str, timeout: int = 30) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — fixed localhost literal
             data = json.loads(resp.read())
             text = data["choices"][0]["message"]["content"].strip()
             return _extract_json(text)

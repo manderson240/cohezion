@@ -26,6 +26,7 @@ for triage, and the failure is counted honestly in the run summary.
 
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 import re
@@ -107,7 +108,15 @@ def _default_summarize(event_type: str, payload: str) -> str:
     return payload[:400]
 
 
-def _default_file_work_item(title: str, description: str, domain: str) -> str:
+def _coerce_priority(raw: Any, default: int = 1) -> int:
+    """Event priority is free-form in SurrealDB; never let a bad value drop the item."""
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return default
+
+
+def _default_file_work_item(title: str, description: str, domain: str, priority: int = 1) -> str:
     body = json.dumps(
         {
             "type": "improvement",
@@ -115,6 +124,7 @@ def _default_file_work_item(title: str, description: str, domain: str) -> str:
             "description": description[:1500],
             "relevance": "APPLY",
             "domain": domain,
+            "priority": int(priority),
             "notes": "auto-filed by datamesh EventConsumer",
         }
     ).encode()
@@ -137,7 +147,9 @@ class EventConsumer:
         *,
         sql_fn: Callable[[str], list[dict[str, Any]]] | None = None,
         summarize_fn: Callable[[str, str], str] | None = None,
-        file_work_item_fn: Callable[[str, str, str], str] | None = None,
+        # Callable[..., str]: accepts the legacy 3-arg (title, description, domain)
+        # form as well as the 4-arg (…, priority) form — see _call_file_work_item.
+        file_work_item_fn: Callable[..., str] | None = None,
         land_review_fn: Callable[..., Any] | None = None,
         residency_fn: Callable[[dict[str, Any]], Any] | None = None,
     ) -> None:
@@ -195,13 +207,32 @@ class EventConsumer:
             return self._handle_residency(event)
         if etype in ACTIONABLE_EVENT_TYPES:
             summary = self._summarize(etype, payload)
-            item_id = self._file_work_item(
+            item_id = self._call_file_work_item(
                 f"[datamesh:{etype}] {summary[:120]}",
                 f"{summary}\n\nRaw event payload:\n{payload[:1200]}",
                 str(event.get("source", "datamesh")),
+                _coerce_priority(event.get("priority")),
             )
             return {"action": "work-item", "work_item": item_id}
         return {"action": "tally"}
+
+    def _call_file_work_item(self, title: str, description: str, domain: str, priority: int) -> str:
+        """Signature-aware dispatch so legacy 3-arg ``file_work_item_fn`` keeps working.
+
+        Mirrors the house pattern used by ``executor._call_execute_fn`` (harness O9):
+        widen the contract without breaking every already-injected callable.
+        """
+        try:
+            params = inspect.signature(self._file_work_item).parameters
+            accepts = len(params) >= 4 or any(
+                p.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+                for p in params.values()
+            )
+        except (TypeError, ValueError):  # builtins / C-callables expose no signature
+            accepts = False
+        if accepts:
+            return self._file_work_item(title, description, domain, priority)
+        return self._file_work_item(title, description, domain)
 
     def _handle_residency(self, event: dict[str, Any]) -> dict[str, Any]:
         """Route a model residency event to the ResidencyService admission gate.

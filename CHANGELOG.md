@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Train-3 ports: event priority threading + real audit instruments (1.16.0)
+- `src/cohezion/data_mesh/event_consumer.py`: threads the event `priority` (a live producer
+  in `event_bridge.py` whose value was silently discarded) into filed work items, with
+  signature-aware dispatch so legacy 3-arg `file_work_item_fn` injections keep working
+  (the `executor._call_execute_fn` house pattern). Discriminating tests in
+  `tests/data_mesh/test_event_consumer_land_ready.py` (priority=3 must land as 3; garbage
+  coerces to default; legacy filer must not raise).
+- `scripts/ci/graph_cardinality_audit.py` + `scripts/ci/systemd_unit_audit.py`: the CI-guard
+  STUBS that printed unconditional success are replaced with the real instruments from the
+  Train-3 branch (declared-but-empty relation tables; ExecStart targets that don't resolve).
+  Both report-only. First live run of the graph audit found 12 declared-but-empty relation
+  tables; the systemd audit's target class was independently confirmed by today's crash-log
+  triage (stale `~/ods` units failing every minute — kanban `stale-ods-systemd-units`).
+- `scripts/producer_consumer_audit.py`: lemonade_classify budget raised 180 tok/30s →
+  1500 tok/300s (env-overridable) — the 5th recorded frugal-budget truncation defect.
+- `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`: L254 (Quadrature) annotated as
+  FABRICATED CAPABILITY (UI-only, no backend — consumption-is-not-completion class);
+  Session-104's duplicate L396/L397 renumbered 396b/397b. The 08-21 adjudication's
+  "phantom L402-411" verdict is now stale — the vss reconcile landed their referent modules
+  (`deep_cooking.py`, `speculative_engine.py`, `delegation_logger.py`), so those entries stay.
+
 ### Added — reconcile worktree-virtual-soaring-shamir into main (1.15.0)
 - Landing-time merge notes (2026-08-31): merged post-1.14.0 main back in (7 conflicts). CI gate
   unions: the branch's phantom-attr scan AND main's gate self-test coverage both kept in

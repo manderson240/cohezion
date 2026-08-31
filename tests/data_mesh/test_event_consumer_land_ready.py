@@ -89,3 +89,77 @@ def test_run_once_counts_land_review_as_actioned(monkeypatch):
     summary = c.run_once(batch=1)
     assert summary["actioned"], "land-review must be counted as actioned"
     assert summary["tallied"] == 0
+
+
+class TestPriorityThreading:
+    """Train-3 port (2026-08-31): event `priority` must reach the filed work item.
+
+    Producer evidence: data_mesh/event_bridge.py defines, writes, and SELECTs a
+    `priority` int column on data_product_event — a live producer whose value the
+    consumer previously discarded when filing kanban work items.
+    """
+
+    def test_priority_reaches_four_arg_filer(self):
+        """DISCRIMINATING: priority=3 on the event lands priority=3 in the filer call.
+
+        A consumer that drops the field (the pre-port behavior) passes priority=1
+        (the coercion default) or raises TypeError on the 4-arg filer.
+        """
+        seen: list[tuple] = []
+        c = EventConsumer(
+            "test-consumer",
+            sql_fn=lambda q: [],
+            file_work_item_fn=lambda title, desc, domain, priority: (
+                seen.append((title, priority)) or "work_item:p"
+            ),
+        )
+        out = c.handle(
+            {
+                "event_type": "data_product_quality_alert",
+                "payload": '{"why":"drift"}',
+                "source": "scanner",
+                "priority": 3,
+            }
+        )
+        assert out["action"] == "work-item"
+        assert seen and seen[0][1] == 3, f"priority must thread through, got {seen}"
+
+    def test_legacy_three_arg_filer_does_not_raise(self):
+        """A legacy 3-arg injected filer must keep working (signature-aware dispatch)."""
+        filed: list[str] = []
+        c = EventConsumer(
+            "test-consumer",
+            sql_fn=lambda q: [],
+            file_work_item_fn=lambda title, desc, domain: filed.append(title) or "work_item:1",
+        )
+        out = c.handle(
+            {
+                "event_type": "data_product_quality_alert",
+                "payload": "{}",
+                "source": "scanner",
+                "priority": 5,
+            }
+        )
+        assert out["action"] == "work-item"
+        assert filed, "legacy filer must still be invoked"
+
+    def test_garbage_priority_coerces_to_default(self):
+        """A free-form/corrupt priority value must never drop the item."""
+        seen: list[tuple] = []
+        c = EventConsumer(
+            "test-consumer",
+            sql_fn=lambda q: [],
+            file_work_item_fn=lambda title, desc, domain, priority: (
+                seen.append((title, priority)) or "work_item:g"
+            ),
+        )
+        out = c.handle(
+            {
+                "event_type": "domain_health_degraded",
+                "payload": "{}",
+                "source": "scanner",
+                "priority": "urgent-ish",
+            }
+        )
+        assert out["action"] == "work-item"
+        assert seen and seen[0][1] == 1, "bad priority must coerce to default, not drop"

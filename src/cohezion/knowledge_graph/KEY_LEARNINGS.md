@@ -383,11 +383,11 @@ Single-flight `FleetLock` protects iGPU APU memory aperture from concurrent mode
 
 ## Session 104: Lemonade OmniRouter Lanes, Safe Swarm Patterns, and Event Bus Registration (2026-07-31)
 
-### Learning 396: Lemonade OmniRouter Lane Routing via Recipe (2026-07-31)
+### Learning 396b (branch numbering; main's L396 is HTTP/2 pooling): Lemonade OmniRouter Lane Routing via Recipe (2026-07-31)
 The Lemonade OmniRouter (port 13305) selects hardware lanes automatically by the model's `recipe` field, not by per-request parameters. `recipe: flm` routes to the AMD Strix Halo NPU (`/dev/accel0`); `recipe: llamacpp` with `llamacpp_backend: vulkan` routes to the iGPU (Radeon 8060S) via Vulkan; `llamacpp_backend: cpu` routes to CPU. There is NO per-request backend override in the standard OpenAI-compatible API. Lane selection is baked at model registration time. With 128GB unified DDR5-5600 all lanes share the same memory pool. The `max_loaded_models: 1` default in `defaults.json` enforces the fleet lock at the Lemonade level — only one model active at a time, making our sequential swarm design correct by construction.
 *12D State Vector*: `[12D State: Space=Local-Inference-Architecture, Time=July 2026, Physics=Recipe-Based-Lane-Selection, Brane=OmniRouter-Hardware-Mesh]`
 
-### Learning 397: FLM Models are the NPU Lane (10 available) (2026-07-31)
+### Learning 397b (branch numbering; main's L397 is CIFS+tiered routing): FLM Models are the NPU Lane (10 available) (2026-07-31)
 All models with the `-FLM` suffix use `recipe: flm` and route to the AMD NPU via VitisAI/RyzenAI. Available NPU models: `deepseek-r1-0528-8b-FLM` (reasoning, ctx=40960), `qwen3.6-moe-35b-a3b-FLM` (reasoning+vision+tools, ctx=16384, `pinned: true` — stays in NPU memory permanently), `qwen3-4b-FLM` (reasoning+tools), `qwen3vl-it-4b-FLM` (vision+tools), `gemma4-it-e2b-FLM` (audio+vision+reasoning), `llama3.2-1b-FLM` (pre-warmed on startup, ctx=4096), `llama3.2-3b-FLM`, `gemma3-1b-FLM`, `lfm2.5-it-1.2b-FLM`, `embed-gemma-300m-FLM`. The `pinned: true` on the 35B MoE model means it holds NPU SRAM/aperture persistently — factor ~18GB into RAM budget. Best practice: route reasoning/coding tasks to FLM models for dedicated silicon, context-heavy GGUF tasks to iGPU.
 *12D State Vector*: `[12D State: Space=NPU-Model-Roster, Time=July 2026, Physics=FLM-VitisAI-Pinning, Brane=Strix-Halo-NPU-Mesh]`
 
@@ -452,7 +452,12 @@ Executed live end-to-end dogfooding (`scripts/ops/dogfood_hybrid_silicon_cloud.p
 
 ---
 
-## Learning 254: Quadrature Nexus 4-Voice Consensus Governance (2026-08-10)
+## Learning 254: Quadrature Nexus 4-Voice Consensus Governance (2026-08-10) — ⚠ FABRICATED CAPABILITY
 L254: Perpendicular deliberation across Architect, Engineer, Ethicist, and Resource voices enforces strict 0.85 ratification limit. Over-allocation proposals are rejected when Resource approval falls below safety bounds.
+**Annotation (2026-08-31 harvest audit):** the "4-voice consensus" exists ONLY as dashboard UI
+(`anima_dashboard/.../QuadratureNexus.tsx`, `QuadraturePanel.tsx`) — there is no Python backend
+implementing this governance anywhere in `src/cohezion/`. This is the fabricated-consumption
+pattern (vault: consumption-is-not-completion, 2026-08-19). Do not cite L254 as an existing
+control; treat it as a UI mockup of a proposed capability.
 | L396 | **persistent-connection-pooling** | `fleet-orchestrator` skill | Wave SiliconSymphony — persistent HTTP/2 connection pooling & explicit reclamation |
 | L397 | **authenticated-cifs-and-tiered-routing** | `LOCAL_INFERENCE_ROUTING` skill | Wave SiliconSymphony — authenticated CIFS mounts & 2-tier local primary cloud secondary routing |
