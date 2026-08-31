@@ -624,3 +624,56 @@ class TestCategoricalOverrideIsConfidenceSelected:
 
         assert _HIGH_CONF_CATEGORICAL, "override window must not be empty"
         assert all(conf >= _HIGH_CONF_CATEGORICAL_MIN for _, conf, _ in _HIGH_CONF_CATEGORICAL)
+
+
+class TestYesNoVerbAlternation:
+    """The yes/no categorical rule must accept the same verbs as its siblings.
+
+    `_CATEGORICAL_PATTERNS` generalized its one-word instructions on 2026-08-29
+    to `(?:reply|respond|answer|say)` with a terminal anchor, but the adjacent
+    yes/no rule was left as a hardcoded `\\breply ...`. So "Reply yes or no"
+    routed to short_categorical/gate=0 while the semantically identical
+    "Answer yes or no" fell through to short_answer/gate=10 -- where a correct
+    one-word answer ("Yes" = 3 chars) FAILS the gate and escalates the whole
+    cascade. Every pre-existing test used the verb "reply", so the tests shared
+    the pattern's blind spot and the divergence stayed green.
+
+    The negative-control test below is the discriminating half: a fix that only
+    adds verbs, without carrying over the sibling patterns' terminal anchor,
+    passes the positive tests and FAILS the control -- it would match
+    mid-sentence and route a large codegen task to the 1B fast path, which is
+    the exact under-routing the sibling patterns' comment warns about.
+    """
+
+    @pytest.mark.parametrize(
+        "prompt",
+        [
+            "Is the sky blue? answer yes or no",
+            "Answer yes or no: is 7 prime?",
+            "Respond with yes or no: is the server running?",
+            "Say yes or no: does this compile?",
+            "Reply with yes or no: is the server running?",  # pre-existing behavior
+        ],
+    )
+    def test_yes_no_is_categorical_for_every_instruction_verb(self, prompt):
+        d = classify(prompt)
+        assert d.output_type == "short_categorical", f"{prompt!r} -> {d.output_type}"
+        assert d.node == "npu"
+        assert d.quality_gate_chars == 0, "a 1-word answer must not face a 10-char gate"
+
+    @pytest.mark.parametrize(
+        "prompt",
+        [
+            "Implement a REST API. Answer yes or no for each endpoint whether it "
+            "needs auth, then write the full handler code with tests.",
+            "Write a migration script. Respond with yes or no on whether each "
+            "table needs an index, and explain your reasoning in detail.",
+        ],
+    )
+    def test_midsentence_yes_no_does_not_hijack_a_large_task(self, prompt):
+        """NEGATIVE CONTROL: verb alternation without the terminal anchor
+        would match here and route a codegen task to gate=0 on the 1B."""
+        d = classify(prompt)
+        assert d.output_type != "short_categorical", (
+            f"mid-sentence 'yes or no' hijacked a large task -> {d.output_type}"
+        )
