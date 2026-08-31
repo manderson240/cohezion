@@ -67,6 +67,25 @@ _MODEL_SIZE_GB: dict[str, float] = {
     "Qwen3.6-35B-A3B-MTP-GGUF": 32.0,
 }
 
+# KV-inclusive margin over weight-only footprints, matched to the table above
+# (e.g. Gemma-4-E4B: 10.0 here vs 5.97 weight-only in MODEL_FOOTPRINT_GB).
+_KV_MARGIN = 1.3
+
+
+def _size_gb(model_name: str) -> float:
+    """Curated KV-inclusive size, or a resolved (never fail-open) estimate for unknowns.
+
+    The previous `.get(name, 5.0)` made an unknown 23 GB model gate as 5 GB — the same
+    `.get(name, <wrong-default>)` class as the 08-15/08-31 topology bug, in a parallel
+    table (adversarial review 2026-08-31, finding 7).
+    """
+    known = _MODEL_SIZE_GB.get(model_name)
+    if known is not None:
+        return known
+    from cohezion.compound.oom_guard import _resolve_footprint_gb
+
+    return _resolve_footprint_gb(model_name) * _KV_MARGIN
+
 
 def _log(msg: str) -> None:
     print(msg, flush=True)
@@ -172,7 +191,7 @@ def apply_base_recipes(
     # Sort by estimated model size (smallest first) to minimise peak RAM during apply
     ordered = sorted(
         BASE_RECIPES.items(),
-        key=lambda kv: _MODEL_SIZE_GB.get(kv[0], 5.0),
+        key=lambda kv: _size_gb(kv[0]),
     )
 
     _log(f"\n{'DRY-RUN: ' if dry_run else ''}Applying {len(ordered)} BASE_RECIPES")
@@ -182,7 +201,7 @@ def apply_base_recipes(
         if model_filter and model_filter.lower() not in model_name.lower():
             continue
 
-        size_gb = _MODEL_SIZE_GB.get(model_name, 5.0)
+        size_gb = _size_gb(model_name)
         _log(f"\n• {model_name} (~{size_gb:.0f} GB)")
         _log(f"  ctx_size={opts.get('ctx_size')}  backend={opts.get('llamacpp_backend')}")
 

@@ -72,6 +72,41 @@ class TestVisibility:
         assert rec["gtt_used_gb"] is None  # recorded as unknown, never a crash
 
 
+class TestDefaultStateWiring:
+    def test_module_singleton_persists_breaches_across_bare_calls(self) -> None:
+        # main() calls poll_once(i) with NO state kwarg — production runs entirely on the
+        # module singleton. Every other test injects state=, so without this one a
+        # refactor that localizes _state (resetting the debounce every poll) stays green
+        # while production silently never actuates (adversarial review, finding 10).
+        saved = sm.GuardState(
+            consecutive_breaches=sm._state.consecutive_breaches,
+            breach_started_at=sm._state.breach_started_at,
+            cooldown_polls=sm._state.cooldown_polls,
+            evictor=sm._state.evictor,
+        )
+        sm._state.consecutive_breaches = 0
+        sm._state.breach_started_at = None
+        sm._state.cooldown_polls = 0
+        sm._state.evictor = MagicMock(evict_until_relieved=MagicMock(return_value=[]))
+        try:
+            with (
+                patch.object(sm.MemorySnapshot, "capture", return_value=_snap(10.5)),
+                patch.object(sm, "_read_swap_pct", return_value=0.0),
+                patch.object(sm, "_read_gtt_used_gb", return_value=42.5),
+                patch.object(sm, "_uma_committed_gb", return_value=None),
+                patch.object(sm, "_build_evictor", return_value=None),
+            ):
+                first = poll_once(1)
+                second = poll_once(2)
+            assert first["consecutive_breaches"] == 1
+            assert second["consecutive_breaches"] == 2  # persisted, not reset per call
+        finally:
+            sm._state.consecutive_breaches = saved.consecutive_breaches
+            sm._state.breach_started_at = saved.breach_started_at
+            sm._state.cooldown_polls = saved.cooldown_polls
+            sm._state.evictor = saved.evictor
+
+
 class TestBreachCounter:
     def test_consecutive_breaches_count_and_reset(self) -> None:
         state = GuardState()
