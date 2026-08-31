@@ -43,6 +43,7 @@ class ExecutorFactory:
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
         dqa_gate: Any | None = None,
+        quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
         # I1: CompoundExecutor accepts inference_provider so local silicon serves execute_fn.
         # `make_executor` below sets kwargs["inference_provider"] and then calls create(), but
@@ -223,6 +224,7 @@ class ExecutorFactory:
             skill_health_tracker=skill_health_tracker,
             jepa_gate=jepa_gate,
             dqa_gate=dqa_gate,
+            quality_evaluator=quality_evaluator,
             token_ledger=token_ledger,
             inference_provider=inference_provider,
             enable_cycle_persistence=enable_cycle_persistence,
@@ -248,6 +250,7 @@ class ExecutorFactory:
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
+        quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor."""
@@ -271,6 +274,7 @@ class ExecutorFactory:
                 universe_bridge=universe_bridge,
                 skill_health_tracker=skill_health_tracker,
                 jepa_gate=jepa_gate,
+                quality_evaluator=quality_evaluator,
                 token_ledger=token_ledger,
             )
         return ExecutorFactory._instance
@@ -319,6 +323,34 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
                 kwargs["jepa_gate"] = JepaGate(world_model=None)
             except Exception:
                 pass
+
+    # AQ5: auto-inject the output-quality evaluator. AutoDQA -> quality_eval.evaluate
+    # is pure-heuristic (task_classifier documents "< 0.1ms, no model calls"; the
+    # scorers are regex/AST only) and no peer_outputs are passed, so the semantic
+    # agreement path never runs and no embedder traffic is generated.
+    #
+    # notify_on_reject=False: the executor already owns alerting via
+    # DegradationDetector, and a Telegram message per terse answer would be noise.
+    #
+    # persist=False, MEASURED not assumed (2026-08-30): 0.04 ms/eval with
+    # persistence off vs 2167 ms/eval with it on — AutoDQA._persist_result builds a
+    # fresh SurrealClient per call and run_sync blocks on it. A 2.2 s write on every
+    # execution is disqualifying for this path.
+    #
+    # Note the trap this closes: persistence used to look free because it was BROKEN
+    # (an un-awaited coroutine, discarded — see AQ7). Fixing that bug made the cost
+    # real. So `autodqa_results` still has no producer, and model/training_data.py's
+    # read of it (score >= 0.45) is still reading an empty source. Giving it one
+    # needs batched or off-thread persistence + a connection-reuse fix first; do not
+    # "enable" it by flipping this flag.
+    if "quality_evaluator" not in kwargs:
+        try:
+            from cohezion.compound.autodqa import AutoDQA
+
+            kwargs["quality_evaluator"] = AutoDQA(persist=False, notify_on_reject=False)
+            logger.debug("make_executor: auto-created AutoDQA quality evaluator (AQ5)")
+        except Exception:
+            logger.debug("AutoDQA auto-creation failed (non-blocking)")
 
     # Pass exec_provider as inference_provider so execute_task injects it into compatible
     # execute_fns (signature-aware, backward-compatible — closes CB dormancy gap).

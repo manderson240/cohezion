@@ -214,23 +214,32 @@ class AutoDQA:
     def _persist_result(self, result: DQAResult) -> None:
         """Persist to SurrealDB autodqa_results table. Non-blocking on failure."""
         try:
-            from cohezion.core.persistence.surreal_client import SurrealClient
+            from cohezion.core.persistence.surreal_client import SurrealClient, run_sync
 
             client = SurrealClient()
-            client.create(
-                "autodqa_results",
-                {
-                    "task_id": result.task_id,
-                    "task_description": result.task_description,
-                    "output_type": result.output_type,
-                    "score": result.verdict.score,
-                    "accept": result.verdict.accept,
-                    "reason": result.verdict.reason,
-                    "quality_band": result.quality_band,
-                    "tier_used": result.tier_used,
-                    "valid_from": result.timestamp.isoformat(),
-                    "valid_to": None,
-                },
+            # AQ7: `SurrealClient.create` is `async def`. Calling it without await
+            # built the coroutine and discarded it — the row was never written and
+            # nothing raised, so the try/except below never fired and this method
+            # "looked wired while being dead". run_sync exists precisely for this
+            # call site; its docstring names _persist_result as a known offender
+            # that had never written a row. Harmless while AutoDQA was dormant;
+            # a live bug the moment it is wired into the executor.
+            run_sync(
+                client.create(
+                    "autodqa_results",
+                    {
+                        "task_id": result.task_id,
+                        "task_description": result.task_description,
+                        "output_type": result.output_type,
+                        "score": result.verdict.score,
+                        "accept": result.verdict.accept,
+                        "reason": result.verdict.reason,
+                        "quality_band": result.quality_band,
+                        "tier_used": result.tier_used,
+                        "valid_from": result.timestamp.isoformat(),
+                        "valid_to": None,
+                    },
+                )
             )
         except Exception as exc:
             logger.debug("AUTODQA: SurrealDB persist failed (non-blocking): %s", exc)

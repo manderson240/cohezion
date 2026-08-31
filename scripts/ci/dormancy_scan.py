@@ -35,6 +35,26 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
+    # AQ1/AQ5 (2026-08-30): promoted OUT of KNOWN_DORMANT. quality_eval.evaluate was dormant on the
+    # production path — its only consumer was AutoDQA, which make_executor never built, so the whole
+    # type-aware evaluator (and the autodqa_results table that model/training_data.py reads) had no
+    # producer. Two pins, one per link, so breaking EITHER re-fails: the factory must inject the
+    # evaluator and the executor must actually call it.
+    # NOTE: there is deliberately NO pin binding this to SkillRefiner.quality_score. The scores are
+    # escalation-gate verdicts, not correctness — aliasing them into the learner is guarded AGAINST
+    # by tests/compound/test_autodqa_quality_wiring.py::TestAQ6ScaleMismatch.
+    (
+        "AQ1: executor CONSUMES the quality evaluator (evaluates output text)",
+        r"self\._quality_evaluator\.evaluate\(",
+        "src/cohezion/compound/executor.py",
+        1,
+    ),
+    (
+        "AQ5: make_executor INJECTS the AutoDQA quality evaluator",
+        r"kwargs\[.quality_evaluator.\] = AutoDQA\(",
+        "src/cohezion/compound/executor_factory.py",
+        1,
+    ),
     (
         "H2: jepa_coherence CONSUMED by DegradationDetector",
         r"jepa_coherence",
