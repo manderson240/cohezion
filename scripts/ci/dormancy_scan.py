@@ -47,6 +47,33 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
+    # DQ (2026-08-30): quality_eval.evaluate was KNOWN_DORMANT below ("dormant ON THE
+    # PRODUCTION PATH"). The chain was broken in TWO places and needs a floor on each,
+    # because either half alone leaves the DegradationDetector quality_score branch
+    # (degradation_detector.py:705) structurally unreachable. Pinned to the CONSUMPTION
+    # seams per the M1/Lever1 lesson above -- a floor on `_dqa_gate` alone would be
+    # satisfied by the `=None` declaration with every call site deleted.
+    (
+        "DQ2 producer: execute_task CONSUMES the DQA gate (output quality score is produced)",
+        r"_dqa_gate\.evaluate\(",
+        "src/cohezion/compound/executor.py",
+        1,
+    ),
+    (
+        "DQ4 forwarding: quality_score folded into degradation_metrics (detector can SEE it)",
+        r"degradation_metrics\[\"quality_score\"\]",
+        "src/cohezion/compound/executor.py",
+        1,
+    ),
+    # Pinned to the ASSIGNMENT, not to the constructor's flags: a floor on
+    # `AutoDQA(persist=False` would also go red on a legitimate change to the
+    # persist/notify defaults, i.e. it would guard more than its name claims.
+    (
+        "DQ7 factory: ExecutorFactory.create auto-creates the AutoDQA gate",
+        r"dqa_gate = AutoDQA\(",
+        "src/cohezion/compound/executor_factory.py",
+        1,
+    ),
     # M1/Lever1 (review fix): pin to the CONSUMPTION read, not the bare identifier — the old
     # `_regression_run_fn`/`gate_chars` floors were satisfied by the `=None` decl + a comment, so the
     # guard stayed GREEN with every consumer deleted (the exact false-GREEN this scan forbids).
@@ -152,9 +179,12 @@ KNOWN_DORMANT: list[str] = [
     "transition_controller.enum_schema — works (response_format enum, llamacpp lanes) but has no "
     "production caller. Wiring target: the agentic-loop next-state pick it was written for "
     "(one unrepeated probe suggested this path is costlier than bare GBNF — n=1, not established)",
-    "quality_eval.evaluate — sole consumer is AutoDQA, which is itself absent from make_executor, "
-    "so it is dormant ON THE PRODUCTION PATH. (2026-08-14: the semantic-agreement gate landed in "
-    "AutoDQA.evaluate — the weak-gate half is addressed; the make_executor wiring gap remains)",
+    # quality_eval.evaluate — CLOSED 2026-08-30, promoted out of this list into three GUARDED
+    # floors above (DQ2 producer / DQ4 forwarding / DQ7 factory). Kept as a comment because the
+    # shape of the gap is the lesson: a consumer-grep said "wired" (DegradationDetector really
+    # does read metrics["quality_score"]) while the chain was broken TWICE — nothing produced
+    # the key, and `degradation_metrics` was a fresh 5-key dict that would not have carried it
+    # anyway. Trace the dict that is actually PASSED, not the identifier that is read.
     "RiemannianGlideTrajectory — geodesic integration made CORRECT 2026-07-29 (was silently "
     "straight-line under any curved metric) but has NO production consumer: only "
     "physics/__init__ re-exports it. INVESTIGATED 2026-07-29 — do NOT wire it: "
