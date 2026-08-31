@@ -251,6 +251,26 @@ class OOMRisk(NamedTuple):
     reason: str
 
 
+def fetch_loaded_models(timeout_s: float = 2.0) -> list[dict[str, object]] | None:
+    """THE single fetch+parse point for ``/api/v1/health`` → ``all_models_loaded``.
+
+    Every reader of the loaded-model list (topology, the already-loaded check, the OOM
+    evictor's lister) must go through here: three sibling parsers of the same payload is
+    how the ``.get(name, 0.0)`` class of bug survives a fix — a bug fixed in one function
+    is not fixed in its siblings (08-15/08-31 incident lesson).
+
+    Returns None when the router is unreachable OR busy — the health endpoint BLOCKS
+    during model load/unload operations, so a timeout here means "cannot see", never
+    "nothing loaded". Callers choose their own failure posture from that distinction.
+    """
+    try:
+        resp = httpx.get(f"{LEMONADE_BASE}/api/v1/health", timeout=timeout_s)
+        resp.raise_for_status()
+        return list(resp.json().get("all_models_loaded", []))
+    except Exception:
+        return None
+
+
 def _is_model_loaded(model_name: str, timeout_s: float = 2.0) -> bool:
     """True if the router reports model_name already resident. A loaded model needs no new
     memory to reuse, so the UMA budget check does not apply. Matches on the id or the
@@ -259,17 +279,14 @@ def _is_model_loaded(model_name: str, timeout_s: float = 2.0) -> bool:
     ('Gemma-4-26B-A4B-it-GGUF'). Fail-CLOSED (False) on any error — an unreachable router
     means fall through to the real budget check, never a false clearance.
     """
-    try:
-        with httpx.Client(timeout=timeout_s) as c:
-            r = c.get(f"{LEMONADE_BASE}/api/v1/health")
-            r.raise_for_status()
-            key = model_name.lower()
-            for m in r.json().get("all_models_loaded", []):
-                ck = str(m.get("checkpoint", "")).lower()
-                if key in ck or ck.split(":")[0].split("/")[-1] == key:
-                    return True
-    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+    loaded = fetch_loaded_models(timeout_s=timeout_s)
+    if loaded is None:
         return False
+    key = model_name.lower()
+    for m in loaded:
+        ck = str(m.get("checkpoint", "")).lower()
+        if key in ck or ck.split(":")[0].split("/")[-1] == key:
+            return True
     return False
 
 
@@ -294,6 +311,62 @@ def _catalog_size_gb(model_name: str, timeout_s: float = 2.0) -> float | None:
     except (httpx.HTTPError, ValueError, KeyError, TypeError):
         return None
     return None
+
+
+def _catalog_sizes(timeout_s: float = 2.0) -> dict[str, float]:
+    """One fetch of the router catalog → {model_id: size_gb}. Empty dict when unreachable."""
+    try:
+        r = httpx.get(
+            f"{LEMONADE_BASE}/api/v1/models", params={"show_all": "true"}, timeout=timeout_s
+        )
+        r.raise_for_status()
+        return {
+            str(m["id"]): float(m["size"])
+            for m in r.json().get("data", [])
+            if m.get("id") is not None and m.get("size") is not None
+        }
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        return {}
+
+
+def _resolve_footprint_gb(model_name: str, catalog_sizes: dict[str, float] | None = None) -> float:
+    """Resolve a model's footprint: curated table → router catalog → assumed-heavy.
+
+    NEVER returns 0.0 for an unknown name. The `.get(name, 0.0)` fail-open this replaces
+    was the same one check_oom_risk's own comments record having removed at its own call
+    site — a bug fixed in one function is not fixed in its siblings. Live consequence
+    (2026-08-15, re-triggered 2026-08-31): get_live_topology reported uma_committed_gb of
+    0.89 GB against 13.9 GiB of actual GTT, so every byte-aware consumer under-counted 15×.
+
+    Pass ``catalog_sizes`` (from ``_catalog_sizes()``) to resolve a batch with one HTTP
+    fetch; with None, unknown names fall back to a per-model catalog lookup.
+    """
+    known = MODEL_FOOTPRINT_GB.get(model_name)
+    if known is not None:
+        return known
+    if catalog_sizes is not None:
+        size = catalog_sizes.get(model_name)
+    else:
+        size = _catalog_size_gb(model_name)
+    return size if size is not None else UNKNOWN_ASSUMED_GB
+
+
+def _resolve_tier(model_name: str, device: str = "") -> ComputeTier:
+    """Resolve a model's compute tier: static table → live ``device`` field → IGPU.
+
+    The live field matters for names absent from MODEL_TIER: an unknown FLM model reported
+    with device=npu must not count against the UMA pool, and an unknown CPU-resident model
+    must not read as iGPU. Defaulting straight to IGPU was only safe for known GGUFs.
+    """
+    tier = MODEL_TIER.get(model_name)
+    if tier is not None:
+        return tier
+    d = device.lower()
+    if d == "npu":
+        return ComputeTier.NPU
+    if d == "cpu":
+        return ComputeTier.CPU
+    return ComputeTier.IGPU
 
 
 def check_oom_risk(model_name: str, available_gb: float | None = None) -> OOMRisk:
@@ -438,8 +511,10 @@ def safe_load(
         logger.error("safe_load blocked: %s", risk.reason)
         return False
 
-    # Clamp ctx to SAFE_CTX_LIMIT for heavy models
-    footprint = MODEL_FOOTPRINT_GB.get(model_name, 0.0)
+    # Clamp ctx to SAFE_CTX_LIMIT for heavy models. Resolved (never .get(name, 0.0)):
+    # an unknown model reading as 0.0 GB would skip the clamp entirely, and unbounded
+    # ctx/KV — not weights — is the actual N3 crasher (2026-08-31 adversarial review).
+    footprint = _resolve_footprint_gb(model_name)
     effective_ctx = ctx_size if footprint < HEAVY_THRESHOLD_GB else min(ctx_size, SAFE_CTX_LIMIT)
 
     try:
@@ -496,7 +571,8 @@ def prefetch_for_next_task(
         logger.debug("prefetch skipped (OOM gate): %s", risk.reason)
         return False
 
-    footprint = MODEL_FOOTPRINT_GB.get(model, 0.0)
+    # Resolved, never .get(model, 0.0) — same clamp-bypass class as safe_load above.
+    footprint = _resolve_footprint_gb(model)
     effective_ctx = ctx_size if footprint < HEAVY_THRESHOLD_GB else min(ctx_size, SAFE_CTX_LIMIT)
 
     try:
@@ -572,33 +648,42 @@ def get_live_topology(timeout_s: float = 2.0) -> list[BackendEntry]:
 
     Returns an empty list when the OmniRouter is unreachable.
     """
-    try:
-        resp = httpx.get(f"{LEMONADE_BASE}/api/v1/health", timeout=timeout_s)
-        if resp.status_code != 200:
-            return []
-    except Exception:
+    loaded = fetch_loaded_models(timeout_s=timeout_s)
+    if loaded is None:
         return []
+    # One catalog fetch covers every unknown name; skip it entirely when the curated
+    # table already knows all of them (the common case — zero extra HTTP).
+    names = [m.get("model_name", "") for m in loaded]
+    catalog = (
+        _catalog_sizes(timeout_s=timeout_s)
+        if any(n not in MODEL_FOOTPRINT_GB for n in names)
+        else {}
+    )
 
     entries: list[BackendEntry] = []
-    for m in resp.json().get("all_models_loaded", []):
-        name = m.get("model_name", "")
-        tier = MODEL_TIER.get(name, ComputeTier.IGPU)  # default iGPU (all GGUF are vulkan)
-        footprint = MODEL_FOOTPRINT_GB.get(name, 0.0)
+    for m in loaded:
+        name = str(m.get("model_name", ""))
+        tier = _resolve_tier(name, device=str(m.get("device", "")))
+        footprint = _resolve_footprint_gb(name, catalog_sizes=catalog)
         entries.append(
             BackendEntry(
                 model_name=name,
                 tier=tier,
                 footprint_gb=footprint,
-                backend_url=m.get("backend_url", ""),
-                device=m.get("device", ""),
+                backend_url=str(m.get("backend_url", "")),
+                device=str(m.get("device", "")),
             )
         )
     return entries
 
 
 def tier_for_model(model_name: str) -> ComputeTier:
-    """Return the compute tier for a model. Defaults to IGPU for unknown GGUF names."""
-    return MODEL_TIER.get(model_name, ComputeTier.IGPU)
+    """Return the compute tier for a model. Defaults to IGPU for unknown GGUF names.
+
+    Delegates to _resolve_tier so a future device-aware caller gets one behavior —
+    a naive sibling of the resolver is how the .get-fail-open class survives fixes.
+    """
+    return _resolve_tier(model_name)
 
 
 def get_active_uma_gb(timeout_s: float = 2.0) -> float:
