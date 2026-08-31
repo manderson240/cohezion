@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — OOM relief loop + byte-aware topology + guard actuator (1.16.1)
+- `src/cohezion/compound/oom_guard.py`: `_resolve_footprint_gb`/`_resolve_tier` (table ->
+  router catalog -> assumed-heavy, never 0.0) consumed by `get_live_topology` — fixes the
+  15x GTT under-count from 2026-08-15; `fetch_loaded_models` is the single health-parse
+  point; `safe_load`/`prefetch_for_next_task` ctx-clamp paths lose their `.get(name, 0.0)`
+  clamp bypass (adversarial review).
+- `src/cohezion/platform/oom_evictor.py`: `evict_until_relieved` — re-measures between
+  unloads, explicit `target_available_gb`, two-strike no-relief stop, swap-aware relief,
+  size tie-break (NaN-safe), busy-backend skip, blind-lister warning, 45s pass deadline.
+- `src/cohezion/core/resource_management/session_monitor.py`: the resource guard is now an
+  ACTUATOR — after a sustained floor breach (poll-count OR wall-clock OR immediate at
+  critical severity) it evicts to restore the 16 GB floor, with post-pass cooldown; poll
+  records carry `gtt_used_gb`, `swap_used_pct`, `severity`, `uma_committed_gb`,
+  `consecutive_breaches`. Root cause of the 2026-08-31 double hard-freeze.
+
+
 ### Added — Train-3 ports: event priority threading + real audit instruments (1.16.0)
 - `src/cohezion/data_mesh/event_consumer.py`: threads the event `priority` (a live producer
   in `event_bridge.py` whose value was silently discarded) into filed work items, with
