@@ -67,6 +67,8 @@ AUDIT_EVERY_N_POLLS = int(os.environ.get("COHEZION_RESOURCE_AUDIT_EVERY", "30"))
 EVICT_AFTER_BREACHES = int(os.environ.get("COHEZION_RESOURCE_EVICT_AFTER_BREACHES", "3"))
 ACTUATION_COOLDOWN_POLLS = int(os.environ.get("COHEZION_RESOURCE_ACTUATION_COOLDOWN", "3"))
 EVICTOR_RETRY_POLLS = 30  # re-attempt a failed evictor build every N polls, never latch off
+# FLM/NPU work-path probe cadence (~20 min at the 60s poll). 0 disables.
+FLM_PROBE_EVERY_N_POLLS = int(os.environ.get("COHEZION_FLM_PROBE_EVERY", "20"))
 
 _running = True
 
@@ -287,6 +289,22 @@ def poll_once(poll_index: int, state: GuardState | None = None) -> dict[str, obj
                     HEAVY_THRESHOLD_GB,
                     SAFE_CTX_LIMIT,
                 )
+
+    # FLM/NPU work-path liveness (2026-09-01): lemond's BackendWatchdog probes /api/tags
+    # (metadata) — an amdxdna wedge answers it while inference hangs. A bounded 1-token
+    # generation is the only honest NPU liveness signal. Runs AFTER the actuator so a
+    # wedged probe (up to its timeout) never delays memory relief.
+    if FLM_PROBE_EVERY_N_POLLS > 0 and poll_index % FLM_PROBE_EVERY_N_POLLS == 0:
+        try:
+            from cohezion.platform.flm_liveness import probe_flm_generation
+
+            probe = probe_flm_generation()
+        except Exception as e:  # a monitor must never die on a probe failure
+            logger.warning("resource-guard: FLM liveness probe failed: %s", type(e).__name__)
+        else:
+            record["flm_liveness"] = probe.status
+            if probe.status == "wedged":
+                record["flm_wedge_detail"] = probe.detail
 
     # COMPLETED-WORK line, not a heartbeat: carries the observed values, so an idle-but-"healthy"
     # guard is visible as such rather than reading green.
