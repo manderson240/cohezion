@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Gate v2: KV-reservation + GTT-headroom pricing (1.18.0)
+- `cohezion.compound.oom_guard`: `normalize_model_name` (the `user.` catalog-prefix alias
+  priced the 08-31 freeze-day load at UNKNOWN_ASSUMED_GB=8GB vs its real ~46GB),
+  KV-reservation pricing (`KV_KIB_PER_TOKEN` arch-derived table + weight-class fallback,
+  `estimate_kv_gb`, `_effective_ctx` with the PROVEN ctx_size:0→native rule —
+  journal 08-31 14:41:12 `n_ctx_slot=262144`), `_catalog_entry(base_url=)` (F1 lesson:
+  in-proxy pricing probes target upstream), catalog size≤0 treated as missing.
+  Differential-proven against main as oracle: both holes open pre-fix, closed post-fix;
+  the formula retro-predicts the measured 45.6GB pre-freeze GTT peak within 0.1GB.
+- `cohezion.platform.admission_gate`: GTT-headroom check (`read_gtt_usage_gb` sysfs,
+  `GTT_HEADROOM_FRACTION=0.85`, `read_gtt` seam) — GTT is uncgroupable and invisible to
+  the kernel OOM killer, so the RAM floor alone cannot bound it; NPU loads exempt;
+  unreadable telemetry fails open (blind-memory doctrine).
+- `scripts/experiments/roster_recalibration.py`: quality-per-call recal harness under
+  controlled apparatus (protocol 20260901 — exclusive residency, fixed sampler/seed,
+  max_tokens 1500, cold/warm split, word-boundary validators). Pre-11.8 rankings are
+  invalid (multi-slot ctx division + merged args = unequal configs).
+- Tests: `tests/compound/test_oom_guard_kv.py` (12), `tests/platform/test_admission_gate_gtt.py`
+  (7) — all discriminating against the pre-v2 implementation.
+
 ### Added — byte-aware admission gate for the lemonade router (1.17.0)
 - `src/cohezion/platform/admission_gate.py` + `admission_proxy.py`: ASGI proxy on :13305
   (N1 preserved; lemond moves internal) refusing loads the box cannot afford — hard 16GB
