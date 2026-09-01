@@ -37,6 +37,23 @@ _TEMP_PAUSE = 85.0  # °C — thermal limit (harness N3)
 _TEMP_THROTTLE = 75.0  # °C
 _MEM_PAUSE = 92.0  # %
 _MEM_THROTTLE = 80.0  # %
+# PSI (pressure stall information): % of wall time tasks stalled on memory reclaim.
+# The 08-31 freezes were reclaim LIVELOCKS that available-GB missed until too late —
+# avg10 is the earliest honest signal for that class (council item 6: idle compute
+# must be PSI-gated, not free-bytes-gated).
+_PSI_PAUSE = 10.0  # % stalled — reclaim-livelock territory
+_PSI_THROTTLE = 2.0  # %
+_PSI_PATH = Path("/proc/pressure/memory")
+
+
+def _read_psi_avg10(path: Path = _PSI_PATH) -> float | None:
+    """avg10 from the 'some' PSI line, or None (non-Linux / unreadable — never fabricated)."""
+    try:
+        first = path.read_text().splitlines()[0]
+        return float(first.split("avg10=")[1].split()[0])
+    except (OSError, IndexError, ValueError):
+        return None
+
 
 _VALID_TIERS = {"npu", "igpu", "cpu"}
 _VALID_ACTIONS = {"proceed", "throttle", "pause"}
@@ -113,10 +130,12 @@ class SystemResourceAgent:
             avail_gb = stats.get("available_memory_gb", 64.0)
         except Exception:
             pass
+        psi = _read_psi_avg10()
         return {
             "temp_c": round(temp, 1),
             "memory_percent": round(mem_pct, 1),
             "available_gb": round(avail_gb, 1),
+            "psi_avg10": round(psi, 2) if psi is not None else None,
             "pressure_lock": _PRESSURE_LOCK.exists(),
         }
 
@@ -124,26 +143,37 @@ class SystemResourceAgent:
         temp = m["temp_c"]
         mem = m["memory_percent"]
         lock = m["pressure_lock"]
+        psi = m.get("psi_avg10")
+        psi_pause = psi is not None and psi > _PSI_PAUSE
+        psi_throttle = psi is not None and psi > _PSI_THROTTLE
 
-        if lock or mem > _MEM_PAUSE or temp > _TEMP_PAUSE:
+        if lock or mem > _MEM_PAUSE or temp > _TEMP_PAUSE or psi_pause:
             score = min(
                 1.0,
                 (max(mem - _MEM_PAUSE, 0) / 8.0)
                 + (0.4 if lock else 0.0)
+                + (0.5 if psi_pause else 0.0)
                 + (max(temp - _TEMP_PAUSE, 0) / 5.0),
             )
             score = max(0.8, score)
             return ResourceRecommendation(
                 tier="cpu",
                 action="pause",
-                reason=f"pressure: temp={temp:.0f}°C mem={mem:.0f}% lock={lock}",
+                reason=(
+                    f"pressure: temp={temp:.0f}°C mem={mem:.0f}% lock={lock}"
+                    f" psi={psi if psi is not None else 'n/a'}"
+                ),
                 pressure_score=round(score, 3),
                 raw_metrics=m,
             )
-        if mem > _MEM_THROTTLE or temp > _TEMP_THROTTLE:
+        if mem > _MEM_THROTTLE or temp > _TEMP_THROTTLE or psi_throttle:
+            psi_frac = 0.0
+            if psi is not None and psi > _PSI_THROTTLE:
+                psi_frac = (psi - _PSI_THROTTLE) / (_PSI_PAUSE - _PSI_THROTTLE)
             score = 0.4 + 0.3 * max(
                 (mem - _MEM_THROTTLE) / (_MEM_PAUSE - _MEM_THROTTLE),
                 (temp - _TEMP_THROTTLE) / (_TEMP_PAUSE - _TEMP_THROTTLE),
+                psi_frac,
             )
             return ResourceRecommendation(
                 tier="igpu",
@@ -278,4 +308,21 @@ class _FallbackGuard:
 
 class _FallbackMonitor:
     def get_stats(self) -> dict[str, float]:
-        return {"memory_percent": 50.0, "available_memory_gb": 64.0}
+        # Never fabricate: /proc/meminfo is readable wherever this runs in production.
+        # The previous hardcoded {50%, 64GB} was the same fabricated-reader class as
+        # the admission gate's 20GB MemorySnapshot fallback (rv-gate HIGH-1) — a
+        # daemon gating batches on invented headroom is not gated at all.
+        try:
+            fields: dict[str, int] = {}
+            for line in Path("/proc/meminfo").read_text().splitlines():
+                key, _, rest = line.partition(":")
+                fields[key] = int(rest.split()[0])
+            total_gb = fields["MemTotal"] / 1048576.0
+            avail_gb = fields["MemAvailable"] / 1048576.0
+            return {
+                "memory_percent": round(100.0 * (1.0 - avail_gb / total_gb), 1),
+                "available_memory_gb": round(avail_gb, 1),
+            }
+        except (OSError, KeyError, ValueError, IndexError, ZeroDivisionError):
+            # Non-Linux last resort — the historical constants, now clearly labeled.
+            return {"memory_percent": 50.0, "available_memory_gb": 64.0}
