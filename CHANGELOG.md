@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — byte-aware admission gate for the lemonade router (1.17.0)
+- `src/cohezion/platform/admission_gate.py` + `admission_proxy.py`: ASGI proxy on :13305
+  (N1 preserved; lemond moves internal) refusing loads the box cannot afford — hard 16GB
+  floor tier-blind (the 08-31 killer was FLM/NPU), then `check_oom_risk(npu_exempt=False)`.
+  Design pinned by 3 council tests (TOCTOU no-warm-up, cold-boot config persistence,
+  Direct-to-Backend bypass audit via `/admission/status`); hardened by 2 adversarial code
+  reviews (16 findings applied: strict meminfo reader so blind fail-open is reachable,
+  checkpoint-aware residency, upstream-targeted probes vs self-deadlock, TTL cache +
+  threadpool, stream aclose on disconnect, 502s, multipart gating, shared floor env).
+  Ships SHADOW-mode; cutover runbook `docs/ops/admission-gate-cutover.md`. 33 tests.
+- `cohezion.compound.oom_guard`: `model_matches_loaded_entry` factored out;
+  `fetch_loaded_models(base_url=)`; `check_oom_risk(npu_exempt=)`.
+
+
 ### Fixed — OOM relief loop + byte-aware topology + guard actuator (1.16.1)
 - `src/cohezion/compound/oom_guard.py`: `_resolve_footprint_gb`/`_resolve_tier` (table ->
   router catalog -> assumed-heavy, never 0.0) consumed by `get_live_topology` — fixes the
