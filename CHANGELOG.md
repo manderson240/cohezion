@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — PSI-gated idle compute (1.20.0)
+- `SystemResourceAgent`: `/proc/pressure/memory` avg10 in `_poll_metrics`; pause at
+  >10% stalled (reclaim-livelock territory — the 08-31 class available-GB missed),
+  throttle at >2%; None preserves prior behavior. `_FallbackMonitor` reads real
+  /proc/meminfo instead of fabricating {50%, 64GB} (rv-gate HIGH-1 reader class).
+  Consumed by compound_daemon's existing batch gating — council item 6.
+
 ### Added — FLM/NPU work-path liveness probe (1.19.0)
 - `cohezion.platform.flm_liveness`: `probe_flm_generation` — bounded 1-token generation
   against the first idle resident FLM backend, classifying alive/wedged/unreachable/
