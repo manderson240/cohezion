@@ -251,7 +251,9 @@ class OOMRisk(NamedTuple):
     reason: str
 
 
-def fetch_loaded_models(timeout_s: float = 2.0) -> list[dict[str, object]] | None:
+def fetch_loaded_models(
+    timeout_s: float = 2.0, base_url: str = LEMONADE_BASE
+) -> list[dict[str, object]] | None:
     """THE single fetch+parse point for ``/api/v1/health`` → ``all_models_loaded``.
 
     Every reader of the loaded-model list (topology, the already-loaded check, the OOM
@@ -259,35 +261,49 @@ def fetch_loaded_models(timeout_s: float = 2.0) -> list[dict[str, object]] | Non
     how the ``.get(name, 0.0)`` class of bug survives a fix — a bug fixed in one function
     is not fixed in its siblings (08-15/08-31 incident lesson).
 
+    ``base_url`` matters once the admission proxy holds :13305: the gate must probe the
+    UPSTREAM router directly, or its own health probe loops back through itself
+    (adversarial review 2026-09-01, F1 — a self-deadlock on the event loop).
+
     Returns None when the router is unreachable OR busy — the health endpoint BLOCKS
     during model load/unload operations, so a timeout here means "cannot see", never
     "nothing loaded". Callers choose their own failure posture from that distinction.
     """
     try:
-        resp = httpx.get(f"{LEMONADE_BASE}/api/v1/health", timeout=timeout_s)
+        resp = httpx.get(f"{base_url}/api/v1/health", timeout=timeout_s)
         resp.raise_for_status()
         return list(resp.json().get("all_models_loaded", []))
     except Exception:
         return None
 
 
+def model_matches_loaded_entry(model_name: str, entry: dict[str, object]) -> bool:
+    """True when a caller-supplied model name refers to a loaded-model health entry.
+
+    THE single matching rule (factored out 2026-09-01 so the admission gate cannot grow
+    a weaker sibling — the same sibling-parser lesson as fetch_loaded_models): clients
+    and health disagree on naming, so match the ``model_name`` id case-insensitively AND
+    the ``checkpoint`` field by substring and by its ``org/name:variant`` stem (health
+    reports 'unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_M' while callers pass
+    'Gemma-4-26B-A4B-it-GGUF').
+    """
+    key = model_name.lower()
+    if key and key == str(entry.get("model_name", "")).lower():
+        return True
+    ck = str(entry.get("checkpoint", "")).lower()
+    return bool(ck) and (key in ck or ck.split(":")[0].split("/")[-1] == key)
+
+
 def _is_model_loaded(model_name: str, timeout_s: float = 2.0) -> bool:
     """True if the router reports model_name already resident. A loaded model needs no new
-    memory to reuse, so the UMA budget check does not apply. Matches on the id or the
-    checkpoint substring, since /api/v1/health reports checkpoints (e.g.
-    'unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_M') while callers pass the short id
-    ('Gemma-4-26B-A4B-it-GGUF'). Fail-CLOSED (False) on any error — an unreachable router
-    means fall through to the real budget check, never a false clearance.
+    memory to reuse, so the UMA budget check does not apply. Fail-CLOSED (False) on any
+    error — an unreachable router means fall through to the real budget check, never a
+    false clearance. Matching semantics: :func:`model_matches_loaded_entry`.
     """
     loaded = fetch_loaded_models(timeout_s=timeout_s)
     if loaded is None:
         return False
-    key = model_name.lower()
-    for m in loaded:
-        ck = str(m.get("checkpoint", "")).lower()
-        if key in ck or ck.split(":")[0].split("/")[-1] == key:
-            return True
-    return False
+    return any(model_matches_loaded_entry(model_name, m) for m in loaded)
 
 
 def _catalog_size_gb(model_name: str, timeout_s: float = 2.0) -> float | None:
@@ -369,12 +385,19 @@ def _resolve_tier(model_name: str, device: str = "") -> ComputeTier:
     return ComputeTier.IGPU
 
 
-def check_oom_risk(model_name: str, available_gb: float | None = None) -> OOMRisk:
+def check_oom_risk(
+    model_name: str, available_gb: float | None = None, *, npu_exempt: bool = True
+) -> OOMRisk:
     """Check whether loading model_name is safe given current or supplied RAM state.
 
     Uses /proc/meminfo MemAvailable which already reflects all currently loaded models.
     For a topology-aware view of committed UMA, call get_active_uma_gb().
-    NPU (FLM) models are always UMA-safe — they use XDNA2 SRAM, not the UMA pool.
+
+    ``npu_exempt`` (default True, historical behavior) waves NPU/FLM models through as
+    "XDNA2 SRAM, outside the UMA pool". That premise is FALSIFIED for large FLM MoE
+    models — the 08-31 freeze trigger was qwen3.6-moe-35b-a3b-FLM, whose weights live in
+    host DRAM (SRAM is activation-scale). Pass ``npu_exempt=False`` (the admission gate
+    does) to budget-check FLM models against their resolved real footprint instead.
     """
     # An ABSENT model must not read as a 0GB model. The previous `.get(name, 0.0)` made
     # every unrecognised name fall under HEAVY_THRESHOLD_GB and return
@@ -400,7 +423,7 @@ def check_oom_risk(model_name: str, available_gb: float | None = None) -> OOMRis
     # NOT in MODEL_FOOTPRINT_GB") — they do not draw on the UMA pool, so a UMA budget check
     # does not apply to them. Recognise them explicitly rather than letting them fall
     # through the unknown-model path below, which would over-gate them.
-    if MODEL_TIER.get(model_name) is ComputeTier.NPU:
+    if npu_exempt and MODEL_TIER.get(model_name) is ComputeTier.NPU:
         return OOMRisk(True, model_name, avail, 0.0, "NPU (XDNA2 SRAM) — outside the UMA pool")
 
     # An ABSENT, UNTIERED model must not read as a 0GB model. The previous
