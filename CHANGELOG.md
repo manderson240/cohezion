@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — FLM/NPU work-path liveness probe (1.19.0)
+- `cohezion.platform.flm_liveness`: `probe_flm_generation` — bounded 1-token generation
+  against the first idle resident FLM backend, classifying alive/wedged/unreachable/
+  no_flm_resident. Closes the metadata-vs-work-path blind spot: lemond's own
+  BackendWatchdog probes `/api/tags`, which an amdxdna/NPU wedge still answers while
+  inference hangs (kimi council gap, 2026-09-01). Healthy-lane latency measured 0.38s.
+- `session_monitor.poll_once`: probes every `FLM_PROBE_EVERY_N_POLLS` (default 20 ≈
+  20 min; env `COHEZION_FLM_PROBE_EVERY`, 0 disables), AFTER the actuator so a wedged
+  probe never delays memory relief; wedges land in the poll record + a WARN naming
+  amdxdna. Watcher only — no auto-restart.
+
 ### Added — Gate v2: KV-reservation + GTT-headroom pricing (1.18.0)
 - `cohezion.compound.oom_guard`: `normalize_model_name` (the `user.` catalog-prefix alias
   priced the 08-31 freeze-day load at UNKNOWN_ASSUMED_GB=8GB vs its real ~46GB),

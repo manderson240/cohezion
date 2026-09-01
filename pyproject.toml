@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cohezion"
-version = "1.18.0"
+version = "1.19.0"
 description = "Compound AI orchestration: a self-improving skill loop, physics-grounded 12D training environments, and $0 local inference on AMD silicon"
 readme = "README.md"
 requires-python = ">=3.13"
