@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import pytest
 
 from cohezion.compound.oom_guard import (
@@ -82,13 +84,19 @@ class TestCheckOOMRisk:
         assert risk.safe is False
 
     def test_threshold_is_footprint_plus_buffer(self):
-        """Gate threshold is exactly footprint + RAM_LOAD_BUFFER_GB."""
+        """Gate threshold is exactly weights + KV + RAM_LOAD_BUFFER_GB.
+
+        KV is pinned to 0 here (Gate v2 adds a live-catalog KV reservation term; with
+        it unpinned this boundary test would drift with the HOST's catalog — pass on
+        CI where the router is down, fail on the dev box where it answers).
+        """
         model = "Gemma-4-E4B-it-GGUF"
         footprint = MODEL_FOOTPRINT_GB[model]
-        # Just under threshold: blocked
-        risk_under = check_oom_risk(model, available_gb=footprint + RAM_LOAD_BUFFER_GB - 0.1)
-        # Just at threshold: safe
-        risk_at = check_oom_risk(model, available_gb=footprint + RAM_LOAD_BUFFER_GB)
+        with patch("cohezion.compound.oom_guard._kv_reservation_gb", return_value=0.0):
+            # Just under threshold: blocked
+            risk_under = check_oom_risk(model, available_gb=footprint + RAM_LOAD_BUFFER_GB - 0.1)
+            # Just at threshold: safe
+            risk_at = check_oom_risk(model, available_gb=footprint + RAM_LOAD_BUFFER_GB)
         assert risk_under.safe is False
         assert risk_at.safe is True
 
@@ -137,7 +145,10 @@ class TestSafeModelForTask:
         if fp_preferred < 5.0:
             pytest.skip("preferred model is small — gate doesn't apply")
         available = fp_fallback + RAM_LOAD_BUFFER_GB + 0.5  # fits fallback, not preferred
-        model = safe_model_for_task("long_generation", available_gb=available)
+        # KV pinned to 0: the boundary below is a weights+buffer contract; the live
+        # catalog's KV term would shift it host-dependently (Gate v2, 2026-09-01).
+        with patch("cohezion.compound.oom_guard._kv_reservation_gb", return_value=0.0):
+            model = safe_model_for_task("long_generation", available_gb=available)
         assert model == fallback
 
     def test_last_resort_at_critically_low_ram(self):

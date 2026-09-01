@@ -287,8 +287,10 @@ def model_matches_loaded_entry(model_name: str, entry: dict[str, object]) -> boo
     reports 'unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_M' while callers pass
     'Gemma-4-26B-A4B-it-GGUF').
     """
-    key = model_name.lower()
-    if key and key == str(entry.get("model_name", "")).lower():
+    key = normalize_model_name(model_name).lower()
+    # Normalize BOTH sides: lemond reports user-catalog entries as 'user.<id>' while
+    # clients may pass either form — the alias must match in both directions.
+    if key and key == normalize_model_name(str(entry.get("model_name", ""))).lower():
         return True
     ck = str(entry.get("checkpoint", "")).lower()
     return bool(ck) and (key in ck or ck.split(":")[0].split("/")[-1] == key)
@@ -306,7 +308,168 @@ def _is_model_loaded(model_name: str, timeout_s: float = 2.0) -> bool:
     return any(model_matches_loaded_entry(model_name, m) for m in loaded)
 
 
-def _catalog_size_gb(model_name: str, timeout_s: float = 2.0) -> float | None:
+def normalize_model_name(model_name: str) -> str:
+    """Strip the router's user-catalog prefix: ``user.X`` is the same artifact as ``X``.
+
+    lemond namespaces user-defined catalog entries as ``user.<id>`` in logs and load
+    requests while ``/api/v1/models`` lists the bare id. Every pricing table keyed on
+    the bare id therefore MISSED the alias: on 2026-08-31 (freeze day)
+    ``user.Qwen3.6-35B-A3B-ThinkingCoder`` priced at UNKNOWN_ASSUMED_GB (8 GB) while
+    the real load was ~46 GB (21.7 GB weights + ~24 GiB KV at n_ctx_slot=262144).
+    """
+    return model_name.removeprefix("user.")
+
+
+# ── KV reservation pricing (Gate v2, 2026-09-01) ─────────────────────────────
+# llama.cpp RESERVES the full-context KV cache at load time — the real memory bill
+# is weights + KV(ctx), never weights alone. KiB/token = 2 (K+V) × n_layer ×
+# n_kv_heads × head_dim × 2 B (f16) / 1024. Curated entries are architecture-derived;
+# the fallback buckets by weight class (upper-mid bound, f16 — the fleet mostly runs
+# silent f16 KV defaults per the 2026-09-01 roster audit).
+KV_KIB_PER_TOKEN: dict[str, float] = {
+    # Qwen3-MoE GQA: 48 L × 4 KV heads × 128 head_dim → 96 KiB/token
+    "Qwen3.6-35B-A3B-GGUF": 96.0,
+    "Qwen3.6-35B-A3B-MTP-GGUF": 96.0,
+    "Qwen3.6-35B-A3B-ThinkingCoder": 96.0,
+    "Qwen3-Coder-30B-A3B-Instruct-GGUF": 96.0,
+    "Nemotron-3-Nano-30B-A3B-GGUF": 96.0,
+    # Dense 27B-class (est. 64 L × 8 KV heads × 128 head_dim) → 256 KiB/token
+    "Qwen3.8-27B-GGUF": 256.0,
+    "Qwen3.8-27B-NoThinking": 256.0,
+    "Qwen3.8-27B-ThinkingCoder": 256.0,
+    "Qwen3.8-27B-OBLITERATED-Q5_K_M": 256.0,
+}
+# KNOWN LIMIT (research digest 20260901-kv-reservation-pricing): this GQA-style
+# per-token rate OVERESTIMATES iSWA models (gemma family: 5:1 sliding-window layers
+# cap most of the cache at the window, not ctx) by up to ~6× at long ctx, and MLA
+# models (deepseek) by 2.7-4.7×. Overpricing errs toward refusal, and the fleet's
+# gemma ctx configs are small (8-32K) so the absolute error is bounded today; an
+# iSWA/MLA-aware estimator is the v2.1 refinement if a gemma lane gets over-refused.
+# Fallback KiB/token by weights class when the model has no curated shape.
+_KV_FALLBACK_KIB: tuple[tuple[float, float], ...] = (
+    (1.0, 64.0),
+    (8.0, 112.0),
+    (16.0, 160.0),
+    (float("inf"), 192.0),
+)
+# lemond AutoTune's own "clamped to unknown-max default" for auto-sized ctx —
+# reused for entries with NO ctx_size option rather than inventing a constant.
+UNKNOWN_CTX_CLAMP = 32768
+# Recipes whose backend makes a generative full-ctx KV reservation. FLM sizes its
+# own NPU/DRAM split; diffusion/whisper/TTS have no generative KV.
+_KV_PRICED_RECIPES = frozenset({"llamacpp"})
+
+
+def estimate_kv_gb(model_name: str, ctx: int, weights_gb: float) -> float:
+    """Estimated KV-cache reservation in GB for ``ctx`` tokens (f16 assumption)."""
+    kib = KV_KIB_PER_TOKEN.get(normalize_model_name(model_name))
+    if kib is None:
+        kib = next(b for ceiling, b in _KV_FALLBACK_KIB if weights_gb < ceiling)
+    return kib * ctx / (1024.0 * 1024.0)
+
+
+def _catalog_entry(
+    model_name: str, timeout_s: float = 2.0, base_url: str | None = None
+) -> dict[str, object] | None:
+    """One router-catalog entry by (normalized) id; None when absent/unreachable.
+
+    ``base_url`` exists for callers that live INSIDE the :13305 proxy (the admission
+    gate): the module default points at the proxy itself post-cutover, so an in-proxy
+    decision must probe the upstream router directly (the F1 self-probe lesson).
+    """
+    name = normalize_model_name(model_name)
+    try:
+        with httpx.Client(timeout=timeout_s) as c:
+            r = c.get(f"{base_url or LEMONADE_BASE}/api/v1/models", params={"show_all": "true"})
+            r.raise_for_status()
+            for m in r.json().get("data", []):
+                # Normalize BOTH sides — the catalog itself carries user.-prefixed ids
+                # (live: 'user.cohezion-router'); one-sided matching resurrects the
+                # freeze-day under-pricing for prefixed-id entries (rv-gate-v2 M2).
+                if normalize_model_name(str(m.get("id", ""))) == name:
+                    return m
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        return None
+    return None
+
+
+def _effective_ctx(entry: dict[str, object]) -> int:
+    """The ctx llama-server will actually reserve KV for, from a catalog entry.
+
+    ``ctx_size > 0`` → as configured. ``ctx_size == 0`` → the model's NATIVE window
+    (PROVEN 2026-08-31 14:41:12: catalog ctx_size:0 launched n_ctx_slot=262144).
+    Absent → lemond's unknown-max clamp (32768), not native: over-pricing every
+    un-optioned model would refuse loads that actually launch small.
+    """
+    opts = entry.get("recipe_options")
+    ctx = opts.get("ctx_size") if isinstance(opts, dict) else None
+    native_raw = entry.get("max_context_window") or entry.get("context_length")
+    native = UNKNOWN_CTX_CLAMP
+    if isinstance(native_raw, int | float) and native_raw > 0:
+        native = int(native_raw)
+    if isinstance(ctx, int | float) and ctx > 0:
+        return int(ctx)
+    if ctx == 0:
+        return native
+    return min(native, UNKNOWN_CTX_CLAMP)
+
+
+def _mem_total_gb() -> float:
+    """MemTotal in GB, read once (it cannot change at runtime); 0.0 when unreadable."""
+    global _MEM_TOTAL_CACHE
+    if _MEM_TOTAL_CACHE is None:
+        total = 0.0
+        try:
+            for line in pathlib.Path("/proc/meminfo").read_text().splitlines():
+                if line.startswith("MemTotal"):
+                    total = int(line.split()[1]) / 1048576.0
+                    break
+        except (OSError, ValueError, IndexError):
+            total = 0.0
+        _MEM_TOTAL_CACHE = total
+    return _MEM_TOTAL_CACHE
+
+
+_MEM_TOTAL_CACHE: float | None = None
+
+# vLLM pre-allocates ~gpu_memory_utilization (default 0.9) of the GPU pool AT LOAD,
+# regardless of ctx — a fraction-of-pool reservation, not KiB/token. On this UMA box
+# the pool IS host RAM, so an un-tuned vllm load claims most of the machine
+# (rv-gate-v2 M1: 11 vllm catalog entries escaped KV pricing entirely).
+_VLLM_POOL_FRACTION = 0.9
+
+
+def _size_from_entry(entry: dict[str, object] | None) -> float | None:
+    """Weights GB from a catalog entry; size <= 0 is MISSING, never a measurement."""
+    if entry is None:
+        return None
+    try:
+        size = float(entry.get("size"))  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+    return size if size > 0 else None
+
+
+def _kv_reservation_gb(
+    model_name: str, weights_gb: float, entry: dict[str, object] | None
+) -> float:
+    """KV/workspace GB the load would reserve, or 0.0 when unknowable (no entry / non-LLM).
+
+    PURE — the caller supplies the catalog entry (one fetch serves weights + KV).
+    """
+    if entry is None:
+        return 0.0
+    recipe = entry.get("recipe")
+    if recipe == "vllm":
+        return max(0.0, _VLLM_POOL_FRACTION * _mem_total_gb() - weights_gb)
+    if recipe not in _KV_PRICED_RECIPES:
+        return 0.0
+    return estimate_kv_gb(model_name, _effective_ctx(entry), weights_gb)
+
+
+def _catalog_size_gb(
+    model_name: str, timeout_s: float = 2.0, base_url: str | None = None
+) -> float | None:
     """Ask the router for a model's real size instead of guessing.
 
     UNKNOWN_ASSUMED_GB is a floor, not a measurement. Observed 2026-07-19:
@@ -314,19 +477,10 @@ def _catalog_size_gb(model_name: str, timeout_s: float = 2.0) -> float | None:
     a load that would have left ~1GB and reproduced the hard freeze. The catalog carries
     `size` for every entry, including the ones absent from MODEL_FOOTPRINT_GB, so the
     honest default is to LOOK IT UP and only fall back to the assumption when the router
-    is unreachable.
+    is unreachable. A reported size of 0 is treated as MISSING — passing it through
+    would resurrect the 0.0-footprint fail-open this module exists to prevent.
     """
-    try:
-        with httpx.Client(timeout=timeout_s) as c:
-            r = c.get(f"{LEMONADE_BASE}/api/v1/models", params={"show_all": "true"})
-            r.raise_for_status()
-            for m in r.json().get("data", []):
-                if m.get("id") == model_name:
-                    size = m.get("size")
-                    return float(size) if size is not None else None
-    except (httpx.HTTPError, ValueError, KeyError, TypeError):
-        return None
-    return None
+    return _size_from_entry(_catalog_entry(model_name, timeout_s=timeout_s, base_url=base_url))
 
 
 def _catalog_sizes(timeout_s: float = 2.0) -> dict[str, float]:
@@ -339,7 +493,9 @@ def _catalog_sizes(timeout_s: float = 2.0) -> dict[str, float]:
         return {
             str(m["id"]): float(m["size"])
             for m in r.json().get("data", [])
-            if m.get("id") is not None and m.get("size") is not None
+            # size <= 0 is MISSING, not a measurement — passing 0.0 through would
+            # resurrect the 0.0-footprint fail-open at every consumer downstream.
+            if m.get("id") is not None and m.get("size") and float(m["size"]) > 0
         }
     except (httpx.HTTPError, ValueError, KeyError, TypeError):
         return {}
@@ -357,6 +513,7 @@ def _resolve_footprint_gb(model_name: str, catalog_sizes: dict[str, float] | Non
     Pass ``catalog_sizes`` (from ``_catalog_sizes()``) to resolve a batch with one HTTP
     fetch; with None, unknown names fall back to a per-model catalog lookup.
     """
+    model_name = normalize_model_name(model_name)
     known = MODEL_FOOTPRINT_GB.get(model_name)
     if known is not None:
         return known
@@ -374,7 +531,7 @@ def _resolve_tier(model_name: str, device: str = "") -> ComputeTier:
     with device=npu must not count against the UMA pool, and an unknown CPU-resident model
     must not read as iGPU. Defaulting straight to IGPU was only safe for known GGUFs.
     """
-    tier = MODEL_TIER.get(model_name)
+    tier = MODEL_TIER.get(normalize_model_name(model_name))
     if tier is not None:
         return tier
     d = device.lower()
@@ -386,7 +543,11 @@ def _resolve_tier(model_name: str, device: str = "") -> ComputeTier:
 
 
 def check_oom_risk(
-    model_name: str, available_gb: float | None = None, *, npu_exempt: bool = True
+    model_name: str,
+    available_gb: float | None = None,
+    *,
+    npu_exempt: bool = True,
+    catalog_base_url: str | None = None,
 ) -> OOMRisk:
     """Check whether loading model_name is safe given current or supplied RAM state.
 
@@ -407,6 +568,7 @@ def check_oom_risk(
     # when the guard had simply never heard of them, and ~14GB was consumed anyway.
     # Unknown now means "assume heavy until measured": still allowed when there is ample
     # headroom, but it must clear the same budget check as a known heavy model.
+    model_name = normalize_model_name(model_name)
     known = model_name in MODEL_FOOTPRINT_GB
     avail = available_gb if available_gb is not None else get_available_ram_gb()
 
@@ -431,15 +593,36 @@ def check_oom_risk(
     # return "small model — no gate needed" — a fail-open that looks like a clearance.
     # A newly-pulled 30B model would have sailed through it. Unknown now means "assume
     # heavy until measured": allowed with ample headroom, gated otherwise.
-    if known:
-        footprint = MODEL_FOOTPRINT_GB[model_name]
-    else:
-        looked_up = _catalog_size_gb(model_name)
-        footprint = looked_up if looked_up is not None else UNKNOWN_ASSUMED_GB
-    required = footprint + RAM_LOAD_BUFFER_GB
+    if known and MODEL_FOOTPRINT_GB[model_name] < HEAVY_THRESHOLD_GB:
+        weights = MODEL_FOOTPRINT_GB[model_name]
+        return OOMRisk(True, model_name, avail, weights, "small model — no gate needed")
 
-    if known and footprint < HEAVY_THRESHOLD_GB:
-        return OOMRisk(True, model_name, avail, footprint, "small model — no gate needed")
+    # ONE catalog fetch serves both weights and KV (rv-gate-v2 M3: the previous shape
+    # made two identical full-catalog GETs per unknown-model check).
+    entry = _catalog_entry(model_name, base_url=catalog_base_url)
+    if known:
+        weights = MODEL_FOOTPRINT_GB[model_name]
+    else:
+        looked_up = _size_from_entry(entry)
+        weights = looked_up if looked_up is not None else UNKNOWN_ASSUMED_GB
+    if entry is None:
+        # Catalog unreachable → KV prices as 0 and unknown weights as 8GB — pricing is
+        # degraded to pre-v2 fail-open EXACTLY when the router is busy loading, i.e. the
+        # moment of maximum OOM risk. Never silent (rv-gate-v2 M3).
+        logger.warning(
+            "oom_guard pricing catalog-BLIND for '%s': KV reservation unknowable "
+            "(priced 0.0), weights %s",
+            model_name,
+            "curated" if known else f"assumed {UNKNOWN_ASSUMED_GB:.0f}GB",
+        )
+
+    # Gate v2 (2026-09-01): llama.cpp reserves the FULL-context KV cache at load time,
+    # so the bill is weights + KV(ctx), never weights alone. Weights-only pricing let
+    # the 08-31 ~46 GB ThinkingCoder load (21.7 GB weights + ~24 GiB KV at
+    # n_ctx_slot=262144, catalog ctx_size:0) clear a 24 GB-available check.
+    kv_gb = _kv_reservation_gb(model_name, weights, entry)
+    footprint = weights + kv_gb
+    required = footprint + RAM_LOAD_BUFFER_GB
 
     if not known and avail >= required:
         return OOMRisk(
@@ -461,8 +644,8 @@ def check_oom_risk(
         footprint_gb=footprint,
         reason=(
             f"insufficient RAM: need {required:.1f}GB "
-            f"({footprint:.1f}GB model + {RAM_LOAD_BUFFER_GB:.0f}GB buffer), "
-            f"have {avail:.1f}GB"
+            f"({weights:.1f}GB weights + {kv_gb:.1f}GB KV reservation + "
+            f"{RAM_LOAD_BUFFER_GB:.0f}GB buffer), have {avail:.1f}GB"
         ),
     )
 

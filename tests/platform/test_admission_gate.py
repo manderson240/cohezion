@@ -48,6 +48,9 @@ def _gate(
         config=cfg,
         read_available_gb=lambda: available_gb,
         read_resident=lambda: _entries(resident) if resident is not None else None,
+        # GTT muted here: these tests pin the RAM/floor/residency contracts; the
+        # Gate v2 GTT-headroom behavior has its own suite (test_admission_gate_gtt).
+        read_gtt=lambda: None,
     )
 
 
@@ -64,13 +67,19 @@ class TestHardFloor:
     def test_above_floor_npu_model_budget_checked_not_waved(self) -> None:
         # Post-08-31 the gate budget-checks FLM/NPU models against a REAL footprint
         # (npu_exempt=False): a small FLM passes with ample headroom...
-        with patch("cohezion.compound.oom_guard._catalog_size_gb", return_value=1.3):
+        with patch(
+            "cohezion.compound.oom_guard._catalog_entry",
+            return_value={"id": "deepseek-r1-0528-8b-FLM", "size": 1.3, "recipe": "flm"},
+        ):
             g = _gate(available_gb=50.0, resident=[])
             assert g.decide("deepseek-r1-0528-8b-FLM").allow is True
         # ...and a large FLM MoE is REFUSED when its resolved footprint busts the
         # budget — the wrong impl (unconditional NPU pass) forwards it, which is
         # literally the 08-31 crash above the floor.
-        with patch("cohezion.compound.oom_guard._catalog_size_gb", return_value=20.0):
+        with patch(
+            "cohezion.compound.oom_guard._catalog_entry",
+            return_value={"id": "qwen3.6-moe-35b-a3b-FLM", "size": 20.0, "recipe": "flm"},
+        ):
             g = _gate(available_gb=18.0, resident=[])
             assert g.decide("qwen3.6-moe-35b-a3b-FLM").allow is False
 
@@ -94,7 +103,7 @@ class TestByteBudget:
 
     def test_unknown_model_gated_conservatively(self) -> None:
         # Unknown never reads as 0 GB — the .get(name, 0.0) class stays dead.
-        with patch("cohezion.compound.oom_guard._catalog_size_gb", return_value=None):
+        with patch("cohezion.compound.oom_guard._catalog_entry", return_value=None):
             g = _gate(available_gb=12.0, resident=[])
             assert g.decide("brand-new-mystery-70b").allow is False
 
@@ -126,7 +135,7 @@ class TestResidencyMatching:
         # An impl dropping the kwarg lets check_oom_risk re-read real /proc — tests
         # would then pass or fail with the HOST's memory. Pin the plumbing.
         with patch("cohezion.platform.admission_gate.check_oom_risk") as m:
-            m.return_value = type("R", (), {"safe": True, "reason": "ok"})()
+            m.return_value = type("R", (), {"safe": True, "reason": "ok", "footprint_gb": 1.0})()
             g = _gate(available_gb=33.3, resident=[])
             g.decide("Qwen3.6-35B-A3B-GGUF")
         assert m.call_args.kwargs["available_gb"] == 33.3

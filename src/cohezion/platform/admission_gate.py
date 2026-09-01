@@ -48,9 +48,13 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from cohezion.compound.oom_guard import (
+    ComputeTier,
+    _mem_total_gb,
+    _resolve_tier,
     check_oom_risk,
     fetch_loaded_models,
     model_matches_loaded_entry,
+    normalize_model_name,
 )
 
 
@@ -60,8 +64,43 @@ DEFAULT_FLOOR_GB = 16.0  # the N3 operational floor; below it nothing new loads
 DEFAULT_UPSTREAM = "http://127.0.0.1:13315"
 DEFAULT_LISTEN_PORT = 13305
 RESIDENT_CACHE_TTL_S = 1.5  # bound per-request health fetches on the hot path
+# Refuse UMA loads that would push GTT past this fraction of the ceiling. GTT is
+# uncgroupable and unreclaimable — the kernel OOM killer never sees it (08-15/08-31
+# root cause), so the RAM floor alone cannot bound it. 0.85 of the (post-reboot)
+# 96 GiB ceiling leaves ~14 GiB of GTT slack for compute buffers and fragmentation.
+GTT_HEADROOM_FRACTION = 0.85
 # Request-body keys that name a model; presence of any makes a request load-triggering.
 _MODEL_KEYS = ("model", "model_name")
+
+
+def _sum_drm(kind: str) -> float:
+    return sum(
+        float(p.read_text().strip())
+        for p in pathlib.Path("/sys/class/drm").glob(f"card*/device/mem_info_gtt_{kind}")
+    ) / (1024.0**3)
+
+
+def read_gtt_usage_gb() -> tuple[float, float] | None:
+    """(used_gb, total_gb) summed across DRM cards, or None when unreadable.
+
+    Same sysfs source the guard actuator polls; unreadable telemetry fails OPEN at
+    the caller (the blind-memory doctrine: a probe hiccup must not down the fleet).
+    """
+    try:
+        used, total = _sum_drm("used"), _sum_drm("total")
+    except (OSError, ValueError):
+        return None
+    if total <= 0.0:
+        return None
+    return used, total
+
+
+def _npu_like(model_name: str) -> bool:
+    """True for loads that draw no GTT: curated NPU tier, or FLM-recipe by naming
+    convention (all 37 catalog FLM entries end in ``-FLM``; MODEL_TIER names only 3)."""
+    return _resolve_tier(model_name) is ComputeTier.NPU or normalize_model_name(
+        model_name
+    ).lower().endswith("-flm")
 
 
 def read_available_gb_strict() -> float:
@@ -141,11 +180,28 @@ class AdmissionGate:
         *,
         read_available_gb: Callable[[], float] | None = None,
         read_resident: Callable[[], list[dict[str, object]] | None] | None = None,
+        read_gtt: Callable[[], tuple[float, float] | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
         self._read_available = (
             read_available_gb if read_available_gb is not None else read_available_gb_strict
         )
+        self._read_gtt = read_gtt if read_gtt is not None else read_gtt_usage_gb
+        # H1 visibility: when the GTT ceiling exceeds physical RAM (live pre-reboot:
+        # 128 GiB ceiling on 122.8 GiB), a raw fraction-of-ceiling budget could never
+        # fire. decide() bounds the budget by MemTotal; this WARN makes the condition
+        # observable instead of silently absorbed.
+        try:
+            gtt = self._read_gtt()
+            if gtt is not None and _mem_total_gb() > 0 and gtt[1] >= _mem_total_gb():
+                logger.warning(
+                    "admission gate: GTT ceiling %.0fGB >= MemTotal %.0fGB — headroom "
+                    "budget bounded by RAM, not the ceiling",
+                    gtt[1],
+                    _mem_total_gb(),
+                )
+        except Exception:  # telemetry must never break construction
+            pass
         # The residency probe MUST target the upstream router directly: once this gate's
         # proxy holds :13305, the module-default LEMONADE_BASE points back at the proxy
         # itself (adversarial review 2026-09-01, F1 — self-probe deadlock/latency loop).
@@ -210,9 +266,41 @@ class AdmissionGate:
 
         # npu_exempt=False: the 'NPU is UMA-safe' premise is falsified for large FLM MoE
         # models (weights live in host DRAM); budget-check them like everything else.
-        risk = check_oom_risk(model_name, available_gb=available, npu_exempt=False)
+        # catalog_base_url: pricing probes must target the UPSTREAM router — the module
+        # default (:13305) is this gate's own proxy post-cutover (the F1 lesson).
+        risk = check_oom_risk(
+            model_name,
+            available_gb=available,
+            npu_exempt=False,
+            catalog_base_url=self._config.upstream_base,
+        )
         if not risk.safe:
             return self._refusal(f"byte budget: {risk.reason}", model_name)
+
+        # Gate v2 GTT headroom: MemAvailable does not account lent GTT pages, so a load
+        # can clear the RAM checks yet push GTT — uncgroupable, invisible to the kernel
+        # OOM killer — past the ceiling. NPU/FLM loads draw no GTT (the -FLM suffix
+        # covers the 34 catalog FLM models absent from MODEL_TIER — rv-gate-v2 M5);
+        # unreadable telemetry fails open (blind-memory doctrine).
+        if not _npu_like(model_name):
+            gtt = self._read_gtt()
+            if gtt is not None:
+                gtt_used, gtt_total = gtt
+                # Budget against min(ceiling, MemTotal): a fraction of the raw ceiling is
+                # VACUOUS whenever gtt_total >= MemTotal — live pre-reboot state is a
+                # 128 GiB ceiling on a 122.8 GiB box, budget 108.8 GiB the machine
+                # freezes long before reaching (rv-gate-v2 H1).
+                mem_total = _mem_total_gb()
+                bound = min(gtt_total, mem_total) if mem_total > 0 else gtt_total
+                budget = GTT_HEADROOM_FRACTION * bound
+                if gtt_used + risk.footprint_gb > budget:
+                    return self._refusal(
+                        f"GTT headroom: {gtt_used:.1f}GB used + {risk.footprint_gb:.1f}GB "
+                        f"load > {budget:.1f}GB ({GTT_HEADROOM_FRACTION:.0%} of "
+                        f"min(ceiling {gtt_total:.0f}GB, RAM {mem_total:.0f}GB)) — "
+                        f"GTT is invisible to the OOM killer",
+                        model_name,
+                    )
         return AdmissionDecision(True, False, risk.reason, model_name)
 
     def _refusal(self, reason: str, model_name: str) -> AdmissionDecision:
