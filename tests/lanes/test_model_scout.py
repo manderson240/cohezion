@@ -208,6 +208,42 @@ async def test_daily_papers_401_is_reported_in_notes():
 
 
 @pytest.mark.asyncio
+async def test_hostile_hub_ids_never_reach_url_or_argv():
+    """Hub-supplied ids go into URL paths and the hf-mem argv. Traversal, a
+    leading '-' (argv flag), a non-string, and a control character must be
+    dropped before any fetch — the README route must see only the clean id."""
+    seen: list[str] = []
+
+    async def spy_fit(model_id: str) -> FitEstimate | None:
+        seen.append(model_id)
+        return await _small_fit(model_id)
+
+    lane = ModelScoutLane(DailyResearcher(), fit_estimator=spy_fit, budget_bytes=40 * _GIB)
+    hostile = [
+        {"id": "../../evil"},
+        {"id": "-flag"},
+        {"id": ["not", "a", "string"]},
+        {"id": "acme/x\n../y"},
+        {"id": _MODEL_ID},
+    ]
+    feed = [{"paper": {"id": "../../feed"}}, {"paper": {"id": 12}}, {"paper": {"id": _ARXIV_ID}}]
+    with respx.mock(assert_all_called=False, base_url="https://huggingface.co") as mock_hf:
+        mock_hf.get("/api/daily-papers").mock(return_value=httpx.Response(200, json=feed))
+        models = mock_hf.get("/api/models").mock(return_value=httpx.Response(200, json=hostile))
+        readme = mock_hf.get(url__regex=r".*/raw/main/README\.md$").mock(
+            return_value=httpx.Response(200, text=_CARD_MD)
+        )
+        report = await lane.run(dry_run=False)
+    assert models.call_count == 1  # only the valid arxiv id was resolved
+    assert (
+        readme.call_count == 1
+        and readme.calls[0].request.url.path == f"/{_MODEL_ID}/raw/main/README.md"
+    )
+    assert seen == [_MODEL_ID]
+    assert report.candidates == [_MODEL_ID]
+
+
+@pytest.mark.asyncio
 async def test_linked_models_fetch_failure_is_reported_in_notes():
     """A failing /api/models call must be visible in the report; otherwise
     'endpoint down all day' is indistinguishable from 'no new models'."""

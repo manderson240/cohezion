@@ -30,7 +30,7 @@ import logging
 import os
 import re
 import time
-from typing import Any
+from typing import Any, TypeGuard
 
 import httpx
 
@@ -57,6 +57,21 @@ logger = logging.getLogger(__name__)
 _HF_BASE = "https://huggingface.co"
 _ARXIV_BASE = "https://arxiv.org"
 _LEMONADE_BASE = "http://127.0.0.1:13305"
+
+
+# Hub-supplied ids are interpolated into URL paths and the hf-mem argv. Same shape as
+# mcp/servers/huggingface/server.py::_validate_model_id (defense in depth against path
+# traversal / request manipulation), plus: no leading "-" (would read as an argv flag).
+_HUB_ID_RE = re.compile(r"^[A-Za-z0-9._/-]+$")
+
+
+def _valid_hub_id(value: object) -> TypeGuard[str]:
+    return (
+        isinstance(value, str)
+        and bool(_HUB_ID_RE.match(value))
+        and ".." not in value
+        and not value.startswith(("/", "-"))
+    )
 
 
 def _hf_headers() -> dict[str, str]:
@@ -89,7 +104,7 @@ async def _fetch_hf_daily_papers(client: httpx.AsyncClient) -> tuple[list[str], 
     for entry in entries if isinstance(entries, list) else []:
         paper = entry.get("paper", {}) if isinstance(entry, dict) else {}
         arxiv_id = paper.get("id") if isinstance(paper, dict) else None
-        if isinstance(arxiv_id, str) and arxiv_id:
+        if _valid_hub_id(arxiv_id):
             ids.append(arxiv_id)
     return ids, f"hf_daily_papers={len(ids)}"
 
@@ -110,7 +125,9 @@ async def _fetch_models_for_paper(
             timeout=10.0,
         )
         r.raise_for_status()
-        return [m["id"] for m in r.json() if isinstance(m, dict) and m.get("id")], None
+        return [
+            m["id"] for m in r.json() if isinstance(m, dict) and _valid_hub_id(m.get("id"))
+        ], None
     except (httpx.HTTPError, ValueError) as e:
         logger.warning("HF linked-models for %s failed: %s", arxiv_id, e)
         return [], f"linked_models_fetch_failed: {arxiv_id}: {e}"
