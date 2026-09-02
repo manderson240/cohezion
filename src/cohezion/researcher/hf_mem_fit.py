@@ -120,11 +120,15 @@ async def hf_mem_estimate(
     try:
         out, err = await asyncio.wait_for(proc.communicate(), timeout=HF_MEM_TIMEOUT_S)
     except TimeoutError:
-        with contextlib.suppress(ProcessLookupError):  # may have exited between checks
-            proc.kill()
-            await proc.wait()  # reap — a killed-but-unwaited child is a zombie
         logger.warning("hf-mem timed out (%.0fs) for %s", HF_MEM_TIMEOUT_S, model_id)
         return None
+    finally:
+        # Timeout OR cancellation: a child still running must be killed AND reaped —
+        # a killed-but-unwaited child is a zombie for the life of the daemon.
+        if proc.returncode is None:
+            with contextlib.suppress(ProcessLookupError):  # may have exited between checks
+                proc.kill()
+                await proc.wait()
     if proc.returncode != 0:
         logger.warning(
             "hf-mem rc=%s for %s: %s",

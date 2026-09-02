@@ -330,8 +330,11 @@ def test_parse_hf_mem_null_bool_and_string_sizes_do_not_crash():
 
 
 class _FakeProc:
+    """Mimics asyncio's Process: returncode is None until the child exits."""
+
     def __init__(self, rc: int, out: bytes, err: bytes = b"", hang: bool = False) -> None:
-        self.returncode = rc
+        self._rc = rc
+        self.returncode: int | None = None
         self._out, self._err = out, err
         self._hang = hang
         self.killed = False
@@ -340,6 +343,7 @@ class _FakeProc:
     async def communicate(self) -> tuple[bytes, bytes]:
         if self._hang:
             await asyncio.sleep(3600)
+        self.returncode = self._rc
         return self._out, self._err
 
     def kill(self) -> None:
@@ -347,6 +351,7 @@ class _FakeProc:
 
     async def wait(self) -> int:
         self.waited = True
+        self.returncode = -9
         return -9
 
 
@@ -408,6 +413,36 @@ async def test_hf_mem_estimate_timeout_kills_and_reaps_child(monkeypatch):
     monkeypatch.setattr(ms, "HF_MEM_TIMEOUT_S", 0.01)
     assert await ms.hf_mem_estimate("a/b") is None
     assert proc.killed and proc.waited
+
+
+@pytest.mark.asyncio
+async def test_hf_mem_estimate_cancellation_also_reaps_child(monkeypatch):
+    """Cancellation is not a timeout: without the `finally`, a cancelled estimate
+    left the child running. A completed child (returncode set) must NOT be killed."""
+    from cohezion.researcher import hf_mem_fit as ms
+
+    hung = _FakeProc(0, b"", hang=True)
+
+    async def fake_exec(*_argv, **_kw):
+        return hung
+
+    monkeypatch.setattr(ms.shutil, "which", lambda _name: "/usr/bin/uvx")
+    monkeypatch.setattr(ms.asyncio, "create_subprocess_exec", fake_exec)
+    task = asyncio.ensure_future(ms.hf_mem_estimate("a/b"))
+    await asyncio.sleep(0.01)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert hung.killed and hung.waited
+
+    done = _FakeProc(0, _HF_MEM_STDOUT)
+
+    async def fake_exec_done(*_argv, **_kw):
+        return done
+
+    monkeypatch.setattr(ms.asyncio, "create_subprocess_exec", fake_exec_done)
+    assert (await ms.hf_mem_estimate("a/b")) is not None
+    assert not done.killed  # exited normally: reaping a finished child would double-wait
 
 
 @pytest.mark.asyncio

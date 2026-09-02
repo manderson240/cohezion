@@ -144,8 +144,10 @@ async def _fetch_hf_model_card(client: httpx.AsyncClient, model_id: str) -> str:
 
 # Fan-out bounds: run() executes under DailyResearcher's shared fleet lock, whose other
 # acquirers wait at most 300 s — an uncapped scout with 60 s hf-mem calls would starve them.
+# The deadline is checked BEFORE each candidate, so one more candidate can still run after
+# it: two 10 s Hub fetches + a 60 s hf-mem call. 200 + 80 < 300 keeps the lock inside budget.
 _MAX_CANDIDATES_PER_RUN = 25
-_RUN_DEADLINE_S = 240.0
+_RUN_DEADLINE_S = 200.0
 
 
 # ── The lane ────────────────────────────────────────────────────────────────
