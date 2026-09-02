@@ -30,11 +30,8 @@ import httpx
 import respx
 
 from cohezion.researcher.daily_researcher import DailyResearcher, DryRunReport
-from cohezion.researcher.lanes.model_scout import (
-    FitEstimate,
-    ModelScoutLane,
-    _parse_hf_mem_output,
-)
+from cohezion.researcher.hf_mem_fit import FitEstimate, parse_hf_mem_output
+from cohezion.researcher.lanes.model_scout import ModelScoutLane
 
 
 _ARXIV_ID = "2609.00001"
@@ -254,7 +251,7 @@ def test_parse_hf_mem_scalar_shape():
         "kv_cache": 1879048192,
         "total_memory": 3382312960,
     }
-    est = _parse_hf_mem_output(payload)
+    est = parse_hf_mem_output(payload)
     assert est is not None
     assert est.weights_bytes == 1503264768
     assert est.kv_bytes == 1879048192
@@ -278,7 +275,7 @@ def test_parse_hf_mem_gguf_shape_prefers_q4_k_m():
         },
         "total_memory": None,
     }
-    est = _parse_hf_mem_output(payload)
+    est = parse_hf_mem_output(payload)
     assert est is not None
     assert est.filename == "Qwen3-8B-Q4_K_M.gguf"
     assert est.total_bytes == 5021827072 + 2415919104
@@ -291,13 +288,13 @@ def test_parse_hf_mem_gguf_shape_falls_back_to_smallest_when_no_q4():
         "kv_cache": {"y-Q8_0.gguf": 100, "y-Q6_K.gguf": 100},
         "total_memory": None,
     }
-    est = _parse_hf_mem_output(payload)
+    est = parse_hf_mem_output(payload)
     assert est is not None and est.filename == "y-Q6_K.gguf" and est.total_bytes == 6_100
 
 
 def test_parse_hf_mem_garbage_returns_none():
-    assert _parse_hf_mem_output({"error": "boom"}) is None
-    assert _parse_hf_mem_output({"model_id": "a/b", "memory": None}) is None
+    assert parse_hf_mem_output({"error": "boom"}) is None
+    assert parse_hf_mem_output({"model_id": "a/b", "memory": None}) is None
 
 
 def test_parse_hf_mem_quant_match_is_token_bounded():
@@ -308,10 +305,10 @@ def test_parse_hf_mem_quant_match_is_token_bounded():
         "memory": {"y-IQ4_K_M.gguf": 3, "y-UD-Q4_K_M_XL.gguf": 6, "y-Q4_K_M.gguf": 5},
         "kv_cache": {},
     }
-    est = _parse_hf_mem_output(payload)
+    est = parse_hf_mem_output(payload)
     assert est is not None and est.filename == "y-Q4_K_M.gguf" and est.total_bytes == 5
     # No true Q4_K_M → smallest file, and IQ4_K_M is NOT mistaken for it.
-    est = _parse_hf_mem_output({"model_id": "x", "memory": {"y-Q8_0.gguf": 8, "y-IQ4_K_M.gguf": 3}})
+    est = parse_hf_mem_output({"model_id": "x", "memory": {"y-Q8_0.gguf": 8, "y-IQ4_K_M.gguf": 3}})
     assert est is not None and est.filename == "y-IQ4_K_M.gguf"
 
 
@@ -323,10 +320,10 @@ def test_parse_hf_mem_null_bool_and_string_sizes_do_not_crash():
         "memory": {"a.gguf": None, "b.gguf": "lots", "c.gguf": True, "d.gguf": 0, "e.gguf": 7},
         "kv_cache": {"e.gguf": None},
     }
-    est = _parse_hf_mem_output(payload)
+    est = parse_hf_mem_output(payload)
     assert est is not None and est.filename == "e.gguf" and est.total_bytes == 7
-    assert _parse_hf_mem_output({"model_id": "x", "memory": {"a.gguf": None}}) is None
-    assert _parse_hf_mem_output({"model_id": "x", "memory": True}) is None
+    assert parse_hf_mem_output({"model_id": "x", "memory": {"a.gguf": None}}) is None
+    assert parse_hf_mem_output({"model_id": "x", "memory": True}) is None
 
 
 # ── default estimator: subprocess plumbing (mocked) ─────────────────────────
@@ -353,12 +350,18 @@ class _FakeProc:
         return -9
 
 
-_HF_MEM_STDOUT = b'noise\n{"model_id": "a/b", "memory": 10, "kv_cache": 5, "total_memory": 15}\n'
+# Two JSON lines: the FIRST is a decoy. hf-mem prints its result last (warnings and
+# progress precede it), so a first-match parser would report the wrong size.
+_HF_MEM_STDOUT = (
+    b'{"model_id": "a/b", "memory": 999, "kv_cache": 999}\n'
+    b"noise\n"
+    b'{"model_id": "a/b", "memory": 10, "kv_cache": 5, "total_memory": 15}\n'
+)
 
 
 @pytest.mark.asyncio
 async def test_hf_mem_estimate_parses_last_json_line_and_passes_ctx(monkeypatch):
-    from cohezion.researcher.lanes import model_scout as ms
+    from cohezion.researcher import hf_mem_fit as ms
 
     seen: dict[str, list[str]] = {}
 
@@ -369,16 +372,17 @@ async def test_hf_mem_estimate_parses_last_json_line_and_passes_ctx(monkeypatch)
     monkeypatch.setattr(ms.shutil, "which", lambda _name: "/usr/bin/uvx")
     monkeypatch.setattr(ms.asyncio, "create_subprocess_exec", fake_exec)
     est = await ms.hf_mem_estimate("a/b")
-    assert est is not None and est.total_bytes == 15
+    assert est is not None and est.total_bytes == 15  # the LAST json line, not the decoy
     argv = seen["argv"]
-    assert argv[argv.index("--max-model-len") + 1] == str(ms._FIT_MAX_MODEL_LEN)
+    assert argv[argv.index("--model-id") + 1] == "a/b"
+    assert argv[argv.index("--max-model-len") + 1] == str(ms.FIT_MAX_MODEL_LEN)
     assert "--experimental" in argv  # without it hf-mem omits the KV cache entirely
-    assert argv[argv.index("--from") + 1] == ms._HF_MEM_SPEC  # pinned, not floating
+    assert argv[argv.index("--from") + 1] == ms.HF_MEM_SPEC  # pinned, not floating
 
 
 @pytest.mark.asyncio
 async def test_hf_mem_estimate_nonzero_rc_returns_none(monkeypatch):
-    from cohezion.researcher.lanes import model_scout as ms
+    from cohezion.researcher import hf_mem_fit as ms
 
     async def fake_exec(*_argv, **_kw):
         return _FakeProc(1, b"", b"httpx.HTTPStatusError: 401")
@@ -392,7 +396,7 @@ async def test_hf_mem_estimate_nonzero_rc_returns_none(monkeypatch):
 async def test_hf_mem_estimate_timeout_kills_and_reaps_child(monkeypatch):
     """On timeout the child must be killed AND waited on — kill without wait
     leaves a zombie per timed-out candidate for the life of the daemon."""
-    from cohezion.researcher.lanes import model_scout as ms
+    from cohezion.researcher import hf_mem_fit as ms
 
     proc = _FakeProc(0, b"", hang=True)
 
@@ -401,14 +405,14 @@ async def test_hf_mem_estimate_timeout_kills_and_reaps_child(monkeypatch):
 
     monkeypatch.setattr(ms.shutil, "which", lambda _name: "/usr/bin/uvx")
     monkeypatch.setattr(ms.asyncio, "create_subprocess_exec", fake_exec)
-    monkeypatch.setattr(ms, "_HF_MEM_TIMEOUT_S", 0.01)
+    monkeypatch.setattr(ms, "HF_MEM_TIMEOUT_S", 0.01)
     assert await ms.hf_mem_estimate("a/b") is None
     assert proc.killed and proc.waited
 
 
 @pytest.mark.asyncio
 async def test_hf_mem_estimate_without_uvx_returns_none(monkeypatch):
-    from cohezion.researcher.lanes import model_scout as ms
+    from cohezion.researcher import hf_mem_fit as ms
 
     monkeypatch.setattr(ms.shutil, "which", lambda _name: None)
     assert await ms.hf_mem_estimate("a/b") is None
