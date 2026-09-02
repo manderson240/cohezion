@@ -188,6 +188,12 @@ def kaggle_competition_submissions(competition: str) -> dict[str, Any]:
 # tmpfs roots: a submission source under /tmp was lost on 2026-08-28. Refuse them.
 _TMPFS_ROOTS = (Path("/tmp"),)
 _WATCH_POLL_SECONDS = 30
+# MCP clients time out a sync tool call at ~60 s: keep a single watch short and let
+# the caller re-invoke (long watches = repeated short calls).
+_WATCH_DEFAULT_MINUTES = 1.0
+_WATCH_MAX_MINUTES = 1.5
+_WATCH_SLACK_SECONDS = 10
+_WATCH_RUN_TIMEOUT = 120
 
 
 def _refuse_tmpfs(path: Path) -> str | None:
@@ -201,26 +207,45 @@ def _refuse_tmpfs(path: Path) -> str | None:
     return None
 
 
-def _submission_status(csv_text: str, submission_ref: str) -> tuple[str, str]:
+def _refuse_flag_like(name: str, value: str) -> str | None:
+    """Return an error when *value* is a single token starting with '-' (would parse as a flag)."""
+    token = value.strip()
+    if token.startswith("-") and len(token.split()) == 1:
+        return (
+            f"{name} {token!r} looks like a CLI flag; pass a plain value (e.g. prefix it with text)"
+        )
+    return None
+
+
+def _submission_status(csv_text: str, submission_ref: str) -> tuple[str, str, str | None]:
     """Locate *submission_ref* in `competitions submissions --csv` output.
 
-    Returns (raw_line, STATUS). STATUS is read from the ``status`` column when a
-    header is present, otherwise the whole line is used (upper-cased). Both are
-    empty strings when the ref is not listed.
+    Returns (status_line, STATUS, error). status_line is the matching row
+    re-serialised with csv.writer (quoted descriptions with commas survive);
+    STATUS is the upper-cased ``status`` column. When the ref is not listed all
+    three are empty/None. When the header has no ``status`` column, error is set
+    rather than guessing from the raw line.
     """
     rows = list(csv.reader(io.StringIO(csv_text)))
     if not rows:
-        return "", ""
+        return "", "", None
     header = [h.strip().lower() for h in rows[0]]
     status_idx = header.index("status") if "status" in header else None
     for row in rows[1:]:
         if not row or row[0].strip() != submission_ref:
             continue
-        line = ",".join(row)
-        if status_idx is not None and status_idx < len(row):
-            return line, row[status_idx].strip().upper()
-        return line, line.upper()
-    return "", ""
+        buf = io.StringIO()
+        csv.writer(buf, lineterminator="").writerow(row)
+        line = buf.getvalue()
+        if status_idx is None or status_idx >= len(row):
+            return line, "", "status column missing from `competitions submissions --csv` output"
+        return line, row[status_idx].strip().upper(), None
+    return "", "", None
+
+
+def _bounded_timeout(remaining_seconds: float) -> int:
+    """Shrink a `_run` timeout so the whole watch finishes by deadline + slack."""
+    return max(1, int(min(_WATCH_RUN_TIMEOUT, remaining_seconds + _WATCH_SLACK_SECONDS)))
 
 
 @app.tool()
@@ -238,6 +263,8 @@ def kaggle_competition_submit_file(
                      file, and NOT live under /tmp (tmpfs is wiped on reboot)
         message:     Submission description shown on the submissions page
     """
+    if err := _refuse_flag_like("message", message):
+        return {"error": err, "ok": False}
     path = Path(file_path).expanduser().resolve()
     if err := _refuse_tmpfs(path):
         return {"error": err, "ok": False}
@@ -305,6 +332,8 @@ def kaggle_competition_pages(competition: str, page_name: str = "") -> dict[str,
     """
     args = ["competitions", "pages", "-c", competition]
     if page_name:
+        if err := _refuse_flag_like("page_name", page_name):
+            return {"error": err, "ok": False}
         args += ["--content", "--page-name", page_name]
     return _run(args, timeout=60)
 
@@ -313,43 +342,78 @@ def kaggle_competition_pages(competition: str, page_name: str = "") -> dict[str,
 def kaggle_watch_submission(
     competition: str,
     submission_ref: str,
-    max_minutes: float = 20,
+    max_minutes: float = _WATCH_DEFAULT_MINUTES,
+    allow_long: bool = False,
 ) -> dict[str, Any]:
     """Poll a submission every 30 s until it leaves PENDING, then fetch its episodes.
 
     The next-day status check nobody ran in June: a simulation submission can sit
     PENDING for minutes and then ERROR on validation (illegal deck, bad agent).
 
+    This is a SYNC tool call and MCP clients time out at ~60 s, so one call is
+    short by design: long watches = repeated short calls. On timeout the result
+    carries ``next_poll_after_s`` — re-invoke after that many seconds. Total
+    wall-clock is bounded by max_minutes + 10 s (poll timeouts shrink to fit).
+
     Args:
         competition:    Competition slug
         submission_ref: Numeric submission reference (first CSV column)
-        max_minutes:    Give up after this many minutes (default 20)
+        max_minutes:    Give up after this many minutes (default 1.0, hard-capped
+                        at 1.5 unless allow_long=True)
+        allow_long:     Lift the 1.5-minute cap (only for clients with long tool timeouts)
 
     Returns:
-        {status_line, status, episodes, ok, timed_out} — ok is True only when the
-        final status is COMPLETE; episodes is None when the watch timed out.
+        {status_line, status, episodes, ok, timed_out[, next_poll_after_s][, error]}
+        — ok is True only when the final status is COMPLETE; episodes is None when
+        the watch timed out.
     """
+    if not allow_long:
+        max_minutes = min(max_minutes, _WATCH_MAX_MINUTES)
     deadline = time.monotonic() + max_minutes * 60
     line, status = "", ""
     while True:
-        listing = _run(["competitions", "submissions", "-c", competition, "--csv"], timeout=120)
-        line, status = _submission_status(listing.get("stdout", ""), submission_ref)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        listing = _run(
+            ["competitions", "submissions", "-c", competition, "--csv"],
+            timeout=_bounded_timeout(remaining),
+        )
+        line, status, err = _submission_status(listing.get("stdout", ""), submission_ref)
+        if err:
+            return {
+                "status_line": line,
+                "status": status,
+                "episodes": None,
+                "ok": False,
+                "timed_out": False,
+                "error": err,
+            }
         if line and "PENDING" not in status:
             break
-        if time.monotonic() >= deadline:
+        if time.monotonic() + _WATCH_POLL_SECONDS >= deadline:
             break
         time.sleep(_WATCH_POLL_SECONDS)
 
-    timed_out = not line or "PENDING" in status
-    episodes = (
-        None if timed_out else _run(["competitions", "episodes", submission_ref], timeout=120)
+    if not line or "PENDING" in status:
+        return {
+            "status_line": line or "not found",
+            "status": "PENDING",
+            "episodes": None,
+            "ok": False,
+            "timed_out": True,
+            "next_poll_after_s": _WATCH_POLL_SECONDS,
+        }
+    episodes = _run(
+        ["competitions", "episodes", submission_ref],
+        timeout=_bounded_timeout(deadline - time.monotonic()),
     )
     return {
-        "status_line": line or "not found",
+        "status_line": line,
         "status": status,
         "episodes": episodes,
         "ok": "COMPLETE" in status and "ERROR" not in status,
-        "timed_out": timed_out,
+        "timed_out": False,
     }
 
 

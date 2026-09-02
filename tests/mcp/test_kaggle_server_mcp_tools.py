@@ -7,6 +7,8 @@ picky about positional-vs-flag competition arguments.
 
 from __future__ import annotations
 
+import csv
+import io
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +70,19 @@ def test_submit_file_refuses_directory(calls: list[list[str]]) -> None:
     assert calls == []
 
 
+def test_submit_file_refuses_flag_like_message(calls: list[list[str]]) -> None:
+    result = server.kaggle_competition_submit_file("kaggriculture", _THIS_FILE, "-v")
+    assert result["ok"] is False
+    assert "flag" in result["error"]
+    assert calls == []
+
+
+def test_submit_file_allows_dash_inside_multi_token_message(calls: list[list[str]]) -> None:
+    # A leading dash in a real sentence is fine; only single tokens are refused.
+    server.kaggle_competition_submit_file("kaggriculture", _THIS_FILE, "-- retry after fix")
+    assert calls and calls[0][-1] == "-- retry after fix"
+
+
 # ── thin wrappers ─────────────────────────────────────────────────────────────
 
 
@@ -103,6 +118,13 @@ def test_pages_with_name_adds_content_flags(calls: list[list[str]]) -> None:
     ]
 
 
+def test_pages_refuses_flag_like_page_name(calls: list[list[str]]) -> None:
+    result = server.kaggle_competition_pages("kaggriculture", page_name="--all")
+    assert result["ok"] is False
+    assert "flag" in result["error"]
+    assert calls == []
+
+
 # ── watch_submission ──────────────────────────────────────────────────────────
 
 
@@ -129,37 +151,51 @@ def clock(monkeypatch: pytest.MonkeyPatch) -> _FakeClock:
     return fake
 
 
+_DESCRIPTION = "v1"
+
+
 def _scripted_run(
     monkeypatch: pytest.MonkeyPatch,
     statuses: list[str],
     ref: str = "55844550",
-) -> list[list[str]]:
+    header: str = _CSV_HEADER,
+    description: str = _DESCRIPTION,
+) -> tuple[list[list[str]], list[int]]:
     """Patch `_run` so successive `submissions --csv` polls report *statuses* in order.
 
     The final status repeats forever (so a never-resolving PENDING can time out).
-    Any other argv (e.g. `episodes`) returns a canned ok result.
+    Any other argv (e.g. `episodes`) returns a canned ok result. Rows are built
+    with csv.writer so quoted descriptions match the real CLI output shape.
+    Returns (argv list, timeout list) in call order.
     """
     seen: list[list[str]] = []
+    timeouts: list[int] = []
     polls = iter(statuses)
     last = statuses[-1]
 
     def fake_run(args: list[str], *, timeout: int = 60) -> dict[str, Any]:
         seen.append(list(args))
+        timeouts.append(timeout)
         if args[:2] == ["competitions", "submissions"]:
             status = next(polls, last)
-            csv_text = f"{_CSV_HEADER}\n{ref},agent.tar.gz,2026-09-02,v1,{status},,"
+            buf = io.StringIO()
+            csv.writer(buf).writerow(
+                [ref, "agent.tar.gz", "2026-09-02", description, status, "", ""]
+            )
+            csv_text = f"{header}\n{buf.getvalue()}"
             return {"stdout": csv_text, "stderr": "", "returncode": 0, "ok": True}
         return {"stdout": f"episodes for {args[-1]}", "stderr": "", "returncode": 0, "ok": True}
 
     monkeypatch.setattr(server, "_run", fake_run)
-    return seen
+    return seen, timeouts
 
 
 def test_watch_returns_ok_after_pending_then_complete(
     monkeypatch: pytest.MonkeyPatch, clock: _FakeClock
 ) -> None:
-    seen = _scripted_run(monkeypatch, ["PENDING", "PENDING", "COMPLETE"])
-    result = server.kaggle_watch_submission("kaggriculture", "55844550", max_minutes=20)
+    seen, _ = _scripted_run(monkeypatch, ["PENDING", "PENDING", "COMPLETE"])
+    # 1.5 min budget: polls at t=0, 30, 60 — COMPLETE arrives on the third.
+    result = server.kaggle_watch_submission("kaggriculture", "55844550", max_minutes=1.5)
 
     assert result["ok"] is True
     assert result["status"] == "COMPLETE"
@@ -171,9 +207,24 @@ def test_watch_returns_ok_after_pending_then_complete(
     assert seen[-1] == ["competitions", "episodes", "55844550"]
 
 
+def test_watch_resolves_quoted_description_with_commas(
+    monkeypatch: pytest.MonkeyPatch, clock: _FakeClock
+) -> None:
+    description = "v2: modal-route tape, review-fixed, 154-0"
+    seen, _ = _scripted_run(monkeypatch, ["COMPLETE"], description=description)
+    result = server.kaggle_watch_submission("kaggriculture", "55844550")
+
+    assert result["ok"] is True
+    assert result["status"] == "COMPLETE"
+    # status_line round-trips through csv: the quoted description is one field again.
+    (row,) = csv.reader(io.StringIO(result["status_line"]))
+    assert row == ["55844550", "agent.tar.gz", "2026-09-02", description, "COMPLETE", "", ""]
+    assert seen[-1] == ["competitions", "episodes", "55844550"]
+
+
 def test_watch_returns_not_ok_on_error(monkeypatch: pytest.MonkeyPatch, clock: _FakeClock) -> None:
-    seen = _scripted_run(monkeypatch, ["PENDING", "ERROR"])
-    result = server.kaggle_watch_submission("kaggriculture", "55844550", max_minutes=20)
+    seen, _ = _scripted_run(monkeypatch, ["PENDING", "ERROR"])
+    result = server.kaggle_watch_submission("kaggriculture", "55844550")
 
     assert result["ok"] is False
     assert result["status"] == "ERROR"
@@ -182,17 +233,35 @@ def test_watch_returns_not_ok_on_error(monkeypatch: pytest.MonkeyPatch, clock: _
     assert seen[-1] == ["competitions", "episodes", "55844550"]
 
 
-def test_watch_times_out_while_pending(monkeypatch: pytest.MonkeyPatch, clock: _FakeClock) -> None:
-    seen = _scripted_run(monkeypatch, ["PENDING"])
-    result = server.kaggle_watch_submission("kaggriculture", "55844550", max_minutes=2)
+def test_watch_times_out_while_pending_and_caps_budget(
+    monkeypatch: pytest.MonkeyPatch, clock: _FakeClock
+) -> None:
+    seen, timeouts = _scripted_run(monkeypatch, ["PENDING"])
+    result = server.kaggle_watch_submission("kaggriculture", "55844550", max_minutes=20)
 
     assert result["ok"] is False
     assert result["timed_out"] is True
     assert result["status"] == "PENDING"
     assert result["episodes"] is None
-    # 2 minutes / 30 s = 4 sleeps before the deadline check trips.
-    assert clock.sleeps == [30, 30, 30, 30]
+    assert result["next_poll_after_s"] == 30
+    # max_minutes=20 is capped to 1.5 min: polls at t=0, 30, 60; no sleep past deadline.
+    assert clock.sleeps == [30, 30]
     assert all(argv[:2] == ["competitions", "submissions"] for argv in seen)
+    # Poll timeouts shrink with the remaining budget: 90+10, 60+10, 30+10.
+    assert timeouts == [100, 70, 40]
+    assert clock.now - 1000.0 <= 1.5 * 60 + 10
+
+
+def test_watch_allow_long_lifts_cap(monkeypatch: pytest.MonkeyPatch, clock: _FakeClock) -> None:
+    seen, _ = _scripted_run(monkeypatch, ["PENDING"])
+    result = server.kaggle_watch_submission(
+        "kaggriculture", "55844550", max_minutes=2, allow_long=True
+    )
+
+    assert result["timed_out"] is True
+    # 2 min budget: polls at t=0, 30, 60, 90.
+    assert len(seen) == 4
+    assert clock.sleeps == [30, 30, 30]
 
 
 def test_watch_times_out_when_ref_never_listed(
@@ -203,5 +272,21 @@ def test_watch_times_out_when_ref_never_listed(
 
     assert result["ok"] is False
     assert result["timed_out"] is True
+    assert result["status"] == "PENDING"
     assert result["status_line"] == "not found"
     assert result["episodes"] is None
+
+
+def test_watch_errors_when_status_column_missing(
+    monkeypatch: pytest.MonkeyPatch, clock: _FakeClock
+) -> None:
+    no_status_header = "ref,fileName,date,description,publicScore,privateScore"
+    seen, _ = _scripted_run(monkeypatch, ["COMPLETE"], header=no_status_header)
+    result = server.kaggle_watch_submission("kaggriculture", "55844550")
+
+    assert result["ok"] is False
+    assert result["timed_out"] is False
+    assert "status column missing" in result["error"]
+    assert result["episodes"] is None
+    assert len(seen) == 1  # returned on the first poll, no sleeping, no episodes call
+    assert clock.sleeps == []
