@@ -53,7 +53,7 @@ PERSPECTIVES = {
 
 # Per-file diff budget sent to each cloud perspective. 2000 chars reviewed only the first
 # ~40 lines of any real change; frontier context windows make a full-file budget cheap.
-CLOUD_DIFF_CHARS_PER_FILE = 12_000
+CLOUD_DIFF_CHARS_PER_FILE = 40_000
 # Frontier models on a multi-file diff routinely exceed the old 45 s; a timeout was
 # reported as a completed lane ("ERROR (...)" text counted as findings).
 CLOUD_TIMEOUT_S = 300.0
@@ -167,7 +167,7 @@ def main() -> int:
                 f"Format: Bulleted findings with path, line reference, and actionable fix."
             )
             resp = query_ollama(pinfo["model"], prompt)
-            failed = resp.startswith("ERROR (")
+            failed = resp.startswith("ERROR (") or not resp.strip()
             cloud_findings[role] = {
                 "model": pinfo["model"],
                 "focus": pinfo["focus"],
