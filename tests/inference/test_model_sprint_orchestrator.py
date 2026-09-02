@@ -39,7 +39,7 @@ def _offline_catalog(monkeypatch):
     whatever the fleet happened to serve: green with the router up, red on the CI
     runner where nothing listens (the gating-inference failure on main, 2026-09).
     """
-    monkeypatch.setattr(FleetRoster, "catalog", lambda self, force=False: self._cache)
+    monkeypatch.setattr(FleetRoster, "catalog", lambda self, force=False, **_: self._cache)
 
 
 @pytest.fixture
@@ -57,7 +57,8 @@ def catalog():
             "recipe": "llamacpp",
         },
         {"id": "Bonsai-1.7B-gguf", "labels": ["tool-calling"], "size": 0.231, "recipe": "llamacpp"},
-        {"id": "gemma3-1b-FLM", "labels": [], "size": None, "recipe": "flm"},
+        # Exactly ONE npu_route candidate: a second FLM 1B entry ties on the role's name
+        # hints and the winner becomes a stable-sort accident (see MS1).
         {"id": "llama3.2-1b-FLM", "labels": [], "size": None, "recipe": "flm"},
     ]
 
@@ -91,19 +92,21 @@ class TestModelSprintOrchestrator:
     def test_already_resident_short_circuits(self, monkeypatch, orchestrator):
         """MS1: if the selected model is already resident, no load/unload happens.
 
-        The resident model is whatever the roster selects for the route role from
-        the fixture catalog. Both FLM 1B entries tie on the npu_route name hints, so
-        hard-coding one of them asserted a stable-sort accident (and, before the
-        offline-catalog fixture, the LIVE catalog's order).
+        The expectation is a literal, not ``roster.select(...)`` (that would be
+        circular). Determinism comes from the fixture catalog carrying exactly one
+        npu_route candidate — asserted first so a future tying entry fails HERE
+        with the cause named, not downstream as a wrong model_id.
         """
-        selected = orchestrator.roster.select("npu_route")
-        assert selected is not None, "fixture catalog must yield a route candidate"
+        expected = "llama3.2-1b-FLM"
+        assert orchestrator.roster.select("npu_route") == expected, (
+            "fixture catalog must have exactly one npu_route candidate (no name-hint ties)"
+        )
         monkeypatch.setattr(
             hotswap,
             "resident_models",
-            lambda: [{"model_name": selected, "last_use": 1, "is_busy": False, "loaded": True}],
+            lambda: [{"model_name": expected, "last_use": 1, "is_busy": False, "loaded": True}],
         )
-        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {selected: 1.0})
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {expected: 1.0})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
 
         seen_load: list[tuple[Any, ...]] = []
@@ -118,7 +121,7 @@ class TestModelSprintOrchestrator:
         assert len(result) == 1
         r = result[0]
         assert r.role == "route"
-        assert r.model_id == selected
+        assert r.model_id == expected
         assert r.ok is True
         assert r.already_resident is True
         assert seen_load == []
