@@ -30,6 +30,18 @@ from cohezion.inference.model_sprint_orchestrator import (
 from cohezion.researcher.daily_researcher import FleetLock
 
 
+@pytest.fixture(autouse=True)
+def _offline_catalog(monkeypatch):
+    """Honour the module docstring: Lemonade HTTP is mocked, INCLUDING the catalog.
+
+    ``run_sprint`` calls ``roster.catalog(force=True)``, which bypassed the fixture
+    catalog and fetched the LIVE :13305 catalog. Expectations were then taken from
+    whatever the fleet happened to serve: green with the router up, red on the CI
+    runner where nothing listens (the gating-inference failure on main, 2026-09).
+    """
+    monkeypatch.setattr(FleetRoster, "catalog", lambda self, force=False: self._cache)
+
+
 @pytest.fixture
 def base_url():
     return "http://localhost:13305"
@@ -77,15 +89,21 @@ def orchestrator(base_url, roster, bus):
 
 class TestModelSprintOrchestrator:
     def test_already_resident_short_circuits(self, monkeypatch, orchestrator):
-        """MS1: if the selected model is already resident, no load/unload happens."""
+        """MS1: if the selected model is already resident, no load/unload happens.
+
+        The resident model is whatever the roster selects for the route role from
+        the fixture catalog. Both FLM 1B entries tie on the npu_route name hints, so
+        hard-coding one of them asserted a stable-sort accident (and, before the
+        offline-catalog fixture, the LIVE catalog's order).
+        """
+        selected = orchestrator.roster.select("npu_route")
+        assert selected is not None, "fixture catalog must yield a route candidate"
         monkeypatch.setattr(
             hotswap,
             "resident_models",
-            lambda: [
-                {"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}
-            ],
+            lambda: [{"model_name": selected, "last_use": 1, "is_busy": False, "loaded": True}],
         )
-        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"llama3.2-1b-FLM": 1.0})
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {selected: 1.0})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
 
         seen_load: list[tuple[Any, ...]] = []
@@ -100,7 +118,7 @@ class TestModelSprintOrchestrator:
         assert len(result) == 1
         r = result[0]
         assert r.role == "route"
-        assert r.model_id == "llama3.2-1b-FLM"
+        assert r.model_id == selected
         assert r.ok is True
         assert r.already_resident is True
         assert seen_load == []
