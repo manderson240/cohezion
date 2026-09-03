@@ -299,18 +299,10 @@ class _StatusResult:
 
 
 # ── Lane 3: datamesh_synthesis ───────────────────────────────────────────────
-
-
-class DatameshSynthesisLane(_BaseLane):
-    lane_name = "datamesh_synthesis"
-
-    async def run(self, dry_run: bool) -> DryRunReport:
-        report = DryRunReport(lane=self.lane_name, dry_run=dry_run)
-        report.notes.append(
-            "dry-run: no vault/bus writes; would split long notes by "
-            "consumer ctx and tag with the consumer's family fingerprint"
-        )
-        return report
+# Lives in ``cohezion.researcher.lanes.datamesh_synthesis`` (imported lazily
+# in DailyResearcher.__init__). The in-file stub that used to shadow it never
+# ran the real lane, so the vault / bus / ledger writes it performs had never
+# executed from the production path.
 
 
 # ── Lane 4: verify_evolve ────────────────────────────────────────────────────
@@ -337,6 +329,7 @@ class DailyResearcher:
 
     def __init__(self) -> None:
         # Lazy: the lane modules import DryRunReport/_BaseLane from this module.
+        from cohezion.researcher.lanes.datamesh_synthesis import DatameshSynthesisLane
         from cohezion.researcher.lanes.harness_paper import HarnessPaperLane
         from cohezion.researcher.lanes.model_scout import ModelScoutLane
         from cohezion.researcher.lanes.verify_evolve import VerifyEvolveLane

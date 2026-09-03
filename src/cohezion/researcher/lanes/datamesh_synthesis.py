@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-from cohezion.researcher.daily_researcher import DryRunReport
+from cohezion.researcher.daily_researcher import DryRunReport, _BaseLane
 
 
 logger = logging.getLogger(__name__)
@@ -93,13 +93,10 @@ def _split_note_by_consumer_ctx(*, text: str, consumer_optimal_ctx: int) -> list
 # ── The lane ────────────────────────────────────────────────────────────────
 
 
-class DatameshSynthesisLane:
+class DatameshSynthesisLane(_BaseLane):
     """Lane 3: write today's findings to the datamesh."""
 
     lane_name = "datamesh_synthesis"
-
-    def __init__(self, researcher) -> None:
-        self.researcher = researcher
 
     # ── Vault path resolution ──────────────────────────────────────────
 

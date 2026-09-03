@@ -35,6 +35,22 @@ from cohezion.researcher.lanes.datamesh_synthesis import (
 )
 
 
+# ── Consumption: DailyResearcher wires the REAL lane ────────────────────────
+
+
+def test_daily_researcher_wires_real_datamesh_synthesis_lane():
+    """The orchestrator must run the real lane, not the in-file stub.
+
+    Identity is the only discriminator: the stub in ``daily_researcher``
+    shared this lane's name AND its dry-run note verbatim. Consequence:
+    the vault / bus / ledger writes below have never executed from the
+    production path, only from these tests.
+    """
+    researcher = DailyResearcher()
+    assert isinstance(researcher.datamesh_synthesis, DatameshSynthesisLane)
+    assert researcher.datamesh_synthesis in researcher._lanes
+
+
 # ── Note splitting by consumer ctx ───────────────────────────────────────────
 
 
