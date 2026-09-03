@@ -19,6 +19,8 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
+from cohezion.concurrency.file_lock import ConfigManager
+
 
 router = APIRouter()
 
@@ -27,6 +29,16 @@ WORK_QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
 # ── Storage helpers ───────────────────────────────────────────────────────────
+# Adversarial review, 2026-09-01/03: this path is ALSO the local-fallback file
+# written directly by cohezion-labs/research_daemon.py when this API is
+# unreachable -- both processes were doing unlocked whole-file read-modify-write
+# on the identical path, so a write from either side could silently clobber the
+# other's. Every read-modify-write endpoint below now goes through ConfigManager
+# (cohezion.concurrency.file_lock), the SAME flock-on-the-file-itself primitive
+# research_daemon.py's _atomic_queue_update now also uses, so the two processes
+# genuinely coordinate on one lock instead of two independent unlocked writers.
+# _load() remains as a plain (unlocked) helper for the read-only call site
+# (list_items) where staleness during a concurrent write is a non-issue.
 def _load() -> dict:
     if WORK_QUEUE_FILE.exists():
         try:
@@ -36,8 +48,11 @@ def _load() -> dict:
     return {"items": [], "version": 1}
 
 
-def _save(q: dict) -> None:
-    WORK_QUEUE_FILE.write_text(json.dumps(q, indent=2, default=str))
+def _atomic_update(mutate_fn):
+    """Locked read-modify-write on the CURRENT WORK_QUEUE_FILE (read fresh at
+    call time, so tests that monkeypatch WORK_QUEUE_FILE per-request still
+    target the right file)."""
+    return ConfigManager(str(WORK_QUEUE_FILE)).atomic_update(mutate_fn)
 
 
 def _persist(item: dict) -> None:
@@ -91,7 +106,6 @@ def list_items(
 
 @router.post("/api/work-queue", status_code=201)
 def create_item(body: WorkItemCreate):
-    q = _load()
     item: dict[str, Any] = {
         "id": uuid.uuid4().hex[:12],
         "type": body.type,
@@ -107,41 +121,58 @@ def create_item(body: WorkItemCreate):
         "approved_at": None,
         "feedback": "",
     }
-    q["items"].append(item)
-    _save(q)
+
+    def _append(q: dict) -> dict:
+        q.setdefault("items", []).append(item)
+        return q
+
+    _atomic_update(_append)
     _persist(item)
     return item
 
 
 @router.patch("/api/work-queue/{item_id}")
 def patch_item(item_id: str, body: WorkItemPatch):
-    q = _load()
-    for item in q["items"]:
-        if item.get("id") == item_id:
-            if body.status is not None:
-                item["status"] = body.status
-                if body.status == "approved":
-                    item["approved_at"] = datetime.now(UTC).isoformat()
-            if body.feedback is not None:
-                item["feedback"] = body.feedback
-            if body.notes is not None:
-                item["notes"] = body.notes
-            if body.priority is not None:
-                item["priority"] = body.priority
-            _save(q)
-            _persist(item)
-            return item
-    raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
+    found: dict[str, Any] = {}
+
+    def _patch(q: dict) -> dict:
+        for item in q.get("items", []):
+            if item.get("id") == item_id:
+                if body.status is not None:
+                    item["status"] = body.status
+                    if body.status == "approved":
+                        item["approved_at"] = datetime.now(UTC).isoformat()
+                if body.feedback is not None:
+                    item["feedback"] = body.feedback
+                if body.notes is not None:
+                    item["notes"] = body.notes
+                if body.priority is not None:
+                    item["priority"] = body.priority
+                found.update(item)
+                break
+        return q
+
+    _atomic_update(_patch)
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
+    _persist(found)
+    return found
 
 
 @router.delete("/api/work-queue/{item_id}")
 def delete_item(item_id: str):
-    q = _load()
-    before = len(q["items"])
-    q["items"] = [i for i in q["items"] if i.get("id") != item_id]
-    if len(q["items"]) == before:
+    removed = {"ok": False}
+
+    def _delete(q: dict) -> dict:
+        items = q.get("items", [])
+        before = len(items)
+        q["items"] = [i for i in items if i.get("id") != item_id]
+        removed["ok"] = len(q["items"]) != before
+        return q
+
+    _atomic_update(_delete)
+    if not removed["ok"]:
         raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
-    _save(q)
     return {"deleted": item_id}
 
 
