@@ -285,21 +285,9 @@ class _StatusResult:
 
 
 # ── Lane 1: model_scout ──────────────────────────────────────────────────────
-
-
-class ModelScoutLane(_BaseLane):
-    lane_name = "model_scout"
-
-    async def run(self, dry_run: bool) -> DryRunReport:
-        report = DryRunReport(lane=self.lane_name, dry_run=dry_run)
-        # In dry_run, the lane does not load any model; it would normally
-        # fetch the live catalog from 13305, parse cards, and dry-run
-        # `lemonade load <model>` for candidates.
-        report.notes.append(
-            "dry-run: no model loads attempted; would scan HF daily + "
-            "arXiv + Lemonade recipe diff and drop card_missing candidates"
-        )
-        return report
+# Lives in ``cohezion.researcher.lanes.model_scout`` (imported lazily in
+# DailyResearcher.__init__ — that module imports DryRunReport/_BaseLane from
+# here). The in-file stub that used to shadow it never ran the real lane.
 
 
 # ── Lane 2: harness_paper ────────────────────────────────────────────────────
@@ -370,6 +358,9 @@ class DailyResearcher:
     """
 
     def __init__(self) -> None:
+        # Lazy: the lane module imports DryRunReport/_BaseLane from this module.
+        from cohezion.researcher.lanes.model_scout import ModelScoutLane
+
         self._lock = FleetLock()
         self.model_scout = ModelScoutLane(self)
         self.harness_paper = HarnessPaperLane(self)

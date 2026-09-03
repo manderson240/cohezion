@@ -222,6 +222,22 @@ class ModelSprintOrchestrator:
         if model_id is None:
             return SprintResult(role, "", False, "no loadable model for role")
 
+        # 0. Already resident → nothing to load: skip the RAM gate and the load lock.
+        #    Gating a resident model on free RAM reported "insufficient RAM" failures (and
+        #    persisted spurious model-load-failed items) on any box under the floor — the
+        #    CI runner included — for a model that was already serving.
+        if any(m.get("model_name") == model_id for m in hotswap.resident_models()):
+            await self._publish(
+                Event.model_lifecycle(
+                    EventType.MODEL_LOADED,
+                    model_id,
+                    reason="already resident",
+                    already_resident=True,
+                    role=role,
+                )
+            )
+            return SprintResult(role, model_id, True, "already resident", already_resident=True)
+
         # 1. Safety gate (static refusal if unsafe).
         ctx_size = self._aligned_ctx_size(model_id, norm_role)
         allowed, reason = pre_load_gate(model_id, ctx_size, min_free_gb=self.min_free_gb)

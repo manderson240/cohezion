@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — model-scout lane wired + hf-mem hardware-fit gate (1.21.0)
+- `cohezion.researcher.lanes.model_scout`: `DailyResearcher` now runs the REAL lane (the
+  in-file stub that shadowed it never ran). Parses the actual HF daily-papers JSON, resolves
+  each paper to linked models (`/api/models?filter=arxiv:<id>`), and prices every surviving
+  candidate with `uvx --from hf-mem==0.5.5 hf-mem --experimental` (weights + KV cache at
+  ctx 16384, HTTP range reads only) against `available RAM − N3 floor`. Over budget or
+  unpriced ⇒ dropped — the 08-31 freeze was an unpriced load. Improvement gate rewritten:
+  the old set-difference and ctx branches passed every card. Fan-out bounded (25 / 240 s)
+  because the lane runs under the shared fleet lock. Feed 401 (no `HF_TOKEN`) and per-paper
+  fetch failures are surfaced in the report. Tests: `tests/lanes/test_model_scout.py`.
+- Still stub-shadowed (follow-up): harness_paper, datamesh_synthesis, verify_evolve.
+
 ### Added — PSI-gated idle compute (1.20.0)
 - `SystemResourceAgent`: `/proc/pressure/memory` avg10 in `_poll_metrics`; pause at
   >10% stalled (reclaim-livelock territory — the 08-31 class available-GB missed),
