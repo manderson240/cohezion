@@ -182,6 +182,42 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
+    # Daily-researcher lanes. Each real lane lived in researcher/lanes/ while an in-file
+    # class of the SAME NAME in daily_researcher.py shadowed it, so DailyResearcher built
+    # the stub and the real lane never ran (model_scout fixed in cbb33ec69, the other three
+    # in 03154f905 + 9a9091979). This scan reported "all clear" throughout, because no lane
+    # was curated -- the gap that let the defect live.
+    #
+    # Pin the LAZY IMPORT, not the `self.<lane> = ...(self)` assignment: the assignment is
+    # byte-identical in the stub and real worlds (the bare name just resolves module-locally),
+    # so it cannot discriminate. The function-local import is what makes the name resolve to
+    # researcher.lanes.*; delete it and the stub wins again -> count drops -> RED.
+    # The lanes' dry-run notes were byte-identical to the stubs' too, so no output-based
+    # check would work here either.
+    (
+        "Lane1: DailyResearcher.__init__ imports the REAL ModelScoutLane (not an in-file stub)",
+        r"from cohezion\.researcher\.lanes\.model_scout import ModelScoutLane",
+        "src/cohezion/researcher/daily_researcher.py",
+        1,
+    ),
+    (
+        "Lane2: DailyResearcher.__init__ imports the REAL HarnessPaperLane (not an in-file stub)",
+        r"from cohezion\.researcher\.lanes\.harness_paper import HarnessPaperLane",
+        "src/cohezion/researcher/daily_researcher.py",
+        1,
+    ),
+    (
+        "Lane3: DailyResearcher.__init__ imports the REAL DatameshSynthesisLane (not an in-file stub)",
+        r"from cohezion\.researcher\.lanes\.datamesh_synthesis import DatameshSynthesisLane",
+        "src/cohezion/researcher/daily_researcher.py",
+        1,
+    ),
+    (
+        "Lane4: DailyResearcher.__init__ imports the REAL VerifyEvolveLane (not an in-file stub)",
+        r"from cohezion\.researcher\.lanes\.verify_evolve import VerifyEvolveLane",
+        "src/cohezion/researcher/daily_researcher.py",
+        1,
+    ),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
