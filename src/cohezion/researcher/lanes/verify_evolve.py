@@ -16,7 +16,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 
-from cohezion.researcher.daily_researcher import DryRunReport
+from cohezion.researcher.daily_researcher import DryRunReport, _BaseLane
 
 
 logger = logging.getLogger(__name__)
@@ -37,13 +37,10 @@ class _VerifierCall:
     reason: str = ""
 
 
-class VerifyEvolveLane:
+class VerifyEvolveLane(_BaseLane):
     """Lane 4: 4-pass verification + experiment driver."""
 
     lane_name = "verify_evolve"
-
-    def __init__(self, researcher) -> None:
-        self.researcher = researcher
 
     async def run(self, dry_run: bool) -> DryRunReport:
         report = DryRunReport(lane=self.lane_name, dry_run=dry_run)

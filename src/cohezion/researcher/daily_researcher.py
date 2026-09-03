@@ -291,18 +291,11 @@ class _StatusResult:
 
 
 # ── Lane 2: harness_paper ────────────────────────────────────────────────────
-
-
-class HarnessPaperLane(_BaseLane):
-    lane_name = "harness_paper"
-
-    async def run(self, dry_run: bool) -> DryRunReport:
-        report = DryRunReport(lane=self.lane_name, dry_run=dry_run)
-        report.notes.append(
-            "dry-run: no LLM-judge calls; would run the 6-step "
-            "research-paper-integration ritual + the 4 verifiers"
-        )
-        return report
+# Lives in ``cohezion.researcher.lanes.harness_paper`` (imported lazily in
+# DailyResearcher.__init__ — that module imports DryRunReport/_BaseLane from
+# here). The in-file stub that used to shadow it never ran the real lane: its
+# dry-run note was byte-identical to the real lane's, so nothing in any log
+# or report could distinguish them.
 
 
 # ── Lane 3: datamesh_synthesis ───────────────────────────────────────────────
@@ -321,25 +314,10 @@ class DatameshSynthesisLane(_BaseLane):
 
 
 # ── Lane 4: verify_evolve ────────────────────────────────────────────────────
-
-
-class VerifyEvolveLane(_BaseLane):
-    lane_name = "verify_evolve"
-
-    async def run(self, dry_run: bool) -> DryRunReport:
-        report = DryRunReport(lane=self.lane_name, dry_run=dry_run)
-        report.notes.append(
-            "dry-run: no in-proc model loads; would run card-fit, "
-            "cross-model, falsifiability, and recipe-fit verifiers on "
-            "yesterday's pending syntheses"
-        )
-        return report
-
-    async def _run_one_experiment(self, exp_id: str) -> Any:
-        if self.researcher._experiments_today >= 2:
-            return _StatusResult(status="EXPERIMENT_BUDGET_EXHAUSTED", id=exp_id)
-        self.researcher._experiments_today += 1
-        return _StatusResult(status="EXPERIMENT_QUEUED", id=exp_id)
+# Lives in ``cohezion.researcher.lanes.verify_evolve`` (imported lazily in
+# DailyResearcher.__init__). The in-file stub that used to shadow it never ran
+# the real lane, so the four verifier passes it gates promotion on were
+# unreachable from production.
 
 
 # ── Orchestrator ─────────────────────────────────────────────────────────────
@@ -358,8 +336,10 @@ class DailyResearcher:
     """
 
     def __init__(self) -> None:
-        # Lazy: the lane module imports DryRunReport/_BaseLane from this module.
+        # Lazy: the lane modules import DryRunReport/_BaseLane from this module.
+        from cohezion.researcher.lanes.harness_paper import HarnessPaperLane
         from cohezion.researcher.lanes.model_scout import ModelScoutLane
+        from cohezion.researcher.lanes.verify_evolve import VerifyEvolveLane
 
         self._lock = FleetLock()
         self.model_scout = ModelScoutLane(self)

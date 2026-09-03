@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from cohezion.researcher.daily_researcher import DryRunReport
+from cohezion.researcher.daily_researcher import DryRunReport, _BaseLane
 
 
 logger = logging.getLogger(__name__)
@@ -33,13 +33,10 @@ class _Verdict:
     score: float = 1.0
 
 
-class HarnessPaperLane:
+class HarnessPaperLane(_BaseLane):
     """Lane 2: paper integration with 4-verifier gate."""
 
     lane_name = "harness_paper"
-
-    def __init__(self, researcher) -> None:
-        self.researcher = researcher
 
     async def run(self, dry_run: bool) -> DryRunReport:
         report = DryRunReport(lane=self.lane_name, dry_run=dry_run)
@@ -59,11 +56,13 @@ class HarnessPaperLane:
 
     # ── Cloud budget (shared with the orchestrator's counter) ──────────
 
-    async def _attempt_cloud_escalation(self, target: str) -> _Verdict:
+    async def _attempt_cloud_escalation(self, synthesis_id: str) -> _Verdict:
+        # Narrows _BaseLane's return to _Verdict; the param name must match
+        # the base signature (Pyright reportIncompatibleMethodOverride).
         if self.researcher._cloud_escalations_today >= 5:
-            return _Verdict(status="CLOUD_BUDGET_EXHAUSTED", reason=target)
+            return _Verdict(status="CLOUD_BUDGET_EXHAUSTED", reason=synthesis_id)
         self.researcher._cloud_escalations_today += 1
-        return _Verdict(status="ESCALATED", reason=target)
+        return _Verdict(status="ESCALATED", reason=synthesis_id)
 
     # ── The 4 verifiers ────────────────────────────────────────────────
 

@@ -40,6 +40,22 @@ def _paper_dict(slug: str = "test-paper") -> dict:
     }
 
 
+# ── Consumption: DailyResearcher wires the REAL lane ────────────────────────
+
+
+def test_daily_researcher_wires_real_harness_paper_lane():
+    """The orchestrator must run the real lane, not the in-file stub.
+
+    Identity is the only discriminator available here: a stub named
+    ``HarnessPaperLane`` in ``daily_researcher`` satisfies ``lane_name ==
+    "harness_paper"`` AND emits a byte-identical dry-run note, so no
+    assertion on ``run_dry_run()`` output can tell the two apart.
+    """
+    researcher = DailyResearcher()
+    assert isinstance(researcher.harness_paper, HarnessPaperLane)
+    assert researcher.harness_paper in researcher._lanes
+
+
 # ── Cloud budget enforcement ────────────────────────────────────────────────
 
 

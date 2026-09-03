@@ -34,6 +34,22 @@ def _synthesis(slug: str, recipe_fit: float = 0.8) -> dict:
     }
 
 
+# ── Consumption: DailyResearcher wires the REAL lane ────────────────────────
+
+
+def test_daily_researcher_wires_real_verify_evolve_lane():
+    """The orchestrator must run the real lane, not the in-file stub.
+
+    Identity is the only discriminator: the stub in ``daily_researcher``
+    shared this lane's name AND its dry-run note verbatim, so the four
+    verifier passes below were unreachable from production while every
+    test on this file stayed green.
+    """
+    researcher = DailyResearcher()
+    assert isinstance(researcher.verify_evolve, VerifyEvolveLane)
+    assert researcher.verify_evolve in researcher._lanes
+
+
 # ── Recipe-fit threshold ────────────────────────────────────────────────────
 
 
