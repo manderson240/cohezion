@@ -182,6 +182,25 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
+    # Trace->goal->loop refactor. The ops CLI previously called persist_goal directly, so the
+    # pipeline -- and with it loop EXECUTION and persist_loop_result -- never ran: goals were
+    # synthesized and the loop half was dormant. Pin the CALL SITE, not the class; the import
+    # alone is byte-identical between the wired and unwired worlds.
+    # Mutation-verified: renaming the call turns this RED naming TraceGoalPipeline.
+    (
+        "TraceGoalPipeline: the ops CLI CONSUMES pipeline.refactor() (loops actually execute)",
+        r"pipeline\.refactor\(",
+        "scripts/ops/refactor_traces_to_goals.py",
+        1,
+    ),
+    # fetch_open_goals was defined and called nowhere. It is the cross-run loop's terminator
+    # readout: with no consumer, nothing observes whether goals ever close.
+    (
+        "OpenGoals: the ops CLI CONSUMES fetch_open_goals() (cross-run loop readout)",
+        r"persistence\.fetch_open_goals\(",
+        "scripts/ops/refactor_traces_to_goals.py",
+        1,
+    ),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
