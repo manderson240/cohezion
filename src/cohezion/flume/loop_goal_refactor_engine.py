@@ -31,6 +31,7 @@ S = TypeVar("S")
 @dataclass(frozen=True, slots=True)
 class GoalSpecification:
     """Formal Goal contract with convergence criteria and invariant bounds."""
+
     goal_id: str
     title: str
     target_metric: str  # e.g., 'coherence', 'snr_db', 'test_pass_rate'
@@ -63,18 +64,22 @@ class TraceToLoopTransformer:
     """Transforms raw sequence traces into iterative goal loops."""
 
     @staticmethod
-    def synthesize_goal_from_trace(trace_events: list[dict[str, Any]], goal_title: str) -> GoalSpecification:
+    def synthesize_goal_from_trace(
+        trace_events: list[dict[str, Any]], goal_title: str
+    ) -> GoalSpecification:
         goal_id = f"goal_{int(time.time())}_{len(trace_events)}"
         return GoalSpecification(
             goal_id=goal_id,
             title=goal_title,
             target_metric="coherence",
             target_threshold=0.50,
-            max_iterations=len(trace_events) * 2
+            max_iterations=len(trace_events) * 2,
         )
 
     @staticmethod
-    def synthesize_goal_from_real_trace(trace_events: list[dict[str, Any]]) -> GoalSpecification | None:
+    def synthesize_goal_from_real_trace(
+        trace_events: list[dict[str, Any]],
+    ) -> GoalSpecification | None:
         """Synthesize an actionable goal from real event_log/kanban trace rows.
 
         Extraction rules (deterministic, zero-inference):
@@ -82,9 +87,17 @@ class TraceToLoopTransformer:
           goal "Resolve <finding>" with test_pass_rate >= 1.0
         - AGENT_COMPLETE results with 'fixed' lists -> goal "Verify <fixes>" with
           test_pass_rate >= 1.0
-        - repeated JOURNEY_STEP failures (same source, >= 3 occurrences of
-          'fail'/'error' in payload) -> goal "Stabilize <source>" with
-          error_rate <= 0.05
+        - any single event whose payload contains 'fail'/'error' (checked last,
+          across any event type) -> goal "Stabilize <source>" with
+          error_rate <= 0.05. NOTE (corrected 2026-09-05): this was previously
+          documented as requiring ">= 3 occurrences of the same source" but that
+          was never implemented -- the loop below returns on the FIRST matching
+          event in trace_events, and the one existing regression test
+          (test_failure_trace_synthesizes_stabilize_goal) asserts exactly that
+          single-occurrence behavior. Corrected the claim rather than the code,
+          since the test already locks in single-occurrence as the intended
+          contract. A true repeated-occurrence check would need the CALLER to
+          group events by source before calling this (it currently doesn't).
         Returns None when the trace carries no actionable signal.
 
         goal_id is content-derived (title+metric hash): stable across re-runs
@@ -128,8 +141,11 @@ class TraceToLoopTransformer:
                     max_iterations=5,
                     timeout_seconds=300.0,
                 )
-            if etype == "AGENT_COMPLETE" and isinstance(payload.get("result"), dict) \
-                    and payload["result"].get("fixed"):
+            if (
+                etype == "AGENT_COMPLETE"
+                and isinstance(payload.get("result"), dict)
+                and payload["result"].get("fixed")
+            ):
                 n_fixed = len(payload["result"]["fixed"])
                 title = f"Verify {n_fixed} fixes stay green"
                 return GoalSpecification(
@@ -162,9 +178,14 @@ class DurableSurrealGoalPersistence:
     checked; failures raise instead of silently vanishing.
     """
 
-    def __init__(self, url: str = "http://localhost:8001/sql",
-                 namespace: str = "cohezion", database: str = "main",
-                 auth: str = "root:root", timeout: float = 5.0) -> None:
+    def __init__(
+        self,
+        url: str = "http://localhost:8001/sql",
+        namespace: str = "cohezion",
+        database: str = "main",
+        auth: str = "root:root",
+        timeout: float = 5.0,
+    ) -> None:
         self._url = url
         self._headers = {
             "Accept": "application/json",
@@ -185,13 +206,13 @@ class DurableSurrealGoalPersistence:
         rows = []
         for stmt_result in body:
             if stmt_result.get("status") == "ERR":
-                raise RuntimeError(
-                    f"SurrealDB statement error: {stmt_result.get('result')}"
-                )
+                raise RuntimeError(f"SurrealDB statement error: {stmt_result.get('result')}")
             rows.extend(stmt_result.get("result") or [])
         return rows
 
-    def persist_goal(self, goal: GoalSpecification, origin_trace_ids: list[str] | None = None) -> str:
+    def persist_goal(
+        self, goal: GoalSpecification, origin_trace_ids: list[str] | None = None
+    ) -> str:
         record_id = goal.goal_id
         payload = {
             "title": goal.title,
@@ -208,9 +229,7 @@ class DurableSurrealGoalPersistence:
         # Idempotent: re-running the pipeline re-synthesizes the same
         # content-derived goal_id; UPSERT MERGE (not CONTENT) preserves any
         # status transitions an executor made between runs.
-        self._sql(
-            f"UPSERT goal:`{record_id}` MERGE {json.dumps(payload)};"
-        )
+        self._sql(f"UPSERT goal:`{record_id}` MERGE {json.dumps(payload)};")
         return f"goal:`{record_id}`"
 
     def persist_loop_result(self, result: AutonomousGoalLoopResult[Any]) -> str:
@@ -226,15 +245,11 @@ class DurableSurrealGoalPersistence:
             "total_time_ms": result.total_time_ms,
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
-        self._sql(
-            f"CREATE loop_trace:`{record_id}` CONTENT {json.dumps(payload)};"
-        )
+        self._sql(f"CREATE loop_trace:`{record_id}` CONTENT {json.dumps(payload)};")
         return f"loop_trace:`{record_id}`"
 
     def fetch_open_goals(self, limit: int = 20) -> list[dict[str, Any]]:
-        rows = self._sql(
-            f"SELECT * FROM goal WHERE status = 'active' LIMIT {int(limit)};"
-        )
+        rows = self._sql(f"SELECT * FROM goal WHERE status = 'active' LIMIT {int(limit)};")
         return rows
 
 
@@ -248,7 +263,7 @@ class AutonomousGoalExecutor:
         self,
         initial_state: S,
         step_fn: Callable[[int, S], tuple[S, float, str]],
-        verifier_fn: Callable[[float], bool] | None = None
+        verifier_fn: Callable[[float], bool] | None = None,
     ) -> AutonomousGoalLoopResult[S]:
         t0 = time.perf_counter()
         current_state = initial_state
@@ -261,15 +276,21 @@ class AutonomousGoalExecutor:
             next_state, metric_val, action = step_fn(it, current_state)
             dt_step = round((time.perf_counter() - t_step) * 1000, 3)
 
-            is_met = verifier_fn(metric_val) if verifier_fn else (metric_val >= self.goal.target_threshold)
-            history.append(LoopIterationResult(
-                iteration=it,
-                state=next_state,
-                metric_value=metric_val,
-                is_goal_met=is_met,
-                duration_ms=dt_step,
-                action_taken=action
-            ))
+            is_met = (
+                verifier_fn(metric_val)
+                if verifier_fn
+                else (metric_val >= self.goal.target_threshold)
+            )
+            history.append(
+                LoopIterationResult(
+                    iteration=it,
+                    state=next_state,
+                    metric_value=metric_val,
+                    is_goal_met=is_met,
+                    duration_ms=dt_step,
+                    action_taken=action,
+                )
+            )
 
             current_state = next_state
             final_metric = metric_val
@@ -285,7 +306,7 @@ class AutonomousGoalExecutor:
             iterations_run=len(history),
             final_metric=final_metric,
             total_time_ms=total_dt,
-            history=history
+            history=history,
         )
 
 
@@ -318,8 +339,7 @@ class TraceGoalRefactorPipeline:
 
         if step_fn is None:
             raise ValueError(
-                "an actionable trace needs a step_fn to execute the loop "
-                f"(goal: {goal.title})"
+                f"an actionable trace needs a step_fn to execute the loop (goal: {goal.title})"
             )
 
         executor = AutonomousGoalExecutor(goal)
