@@ -7,9 +7,15 @@ Follows the router pattern established in genesis.py.
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
+
+
+if TYPE_CHECKING:
+    from cohezion.physics.ionic_cluster import IonicClusterState
+    from cohezion.physics.lenr import LENRHamiltonian
 
 
 logger = logging.getLogger(__name__)
@@ -715,6 +721,265 @@ async def get_tensor_metric_status(
         back_action_amplitude=tm.back_action_amplitude,
         metric_determinant=tm.metric_determinant(),
         is_flat=tm.is_flat(),
+    )
+
+
+# ─── LENR, Ionic-Cluster, Dielectric, Sarfatti, QGP endpoints ─────────────
+# The underlying physics/{lenr,ionic_cluster,dielectric,sarfatti_bridge}.py bridges
+# already existed (harness.md S1-S9) but were never exposed here. The exact
+# contract below is dictated by tests/physics/test_wiring_stealthskater.py
+# (module-level `pytestmark = pytest.mark.xfail(..., strict=True)`, dated
+# 2026-07-29, PR #241): "To re-enable: implement the routes, then delete the
+# pytestmark below. Do NOT 'fix' these by weakening the assertions -- they
+# encode the intended contract." tests/api/services/test_physics_extended.py
+# covers the same endpoints with looser assertions.
+# lenr/event and ionic-cluster/status+step are stateful per agent_id (mirrors
+# LENRHamiltonian's own agent_id field and IonicClusterState.step() mutating
+# in place); the other three are stateless, matching every other endpoint in
+# this file.
+
+
+class LenrSimulateResponse(BaseModel):
+    """LENR lattice-confined nuclear reaction rate at a given coherence."""
+
+    reaction_threshold: float
+    lattice_coupling: float
+    coherence: float
+    reaction_rate: float
+
+
+class LenrEventRequest(BaseModel):
+    coherence: float
+    agent_id: str = "lenr-bridge"
+
+
+class LenrEventResponse(BaseModel):
+    """Result of recording one LENR coherence event for an agent."""
+
+    agent_id: str
+    coherence: float
+    reaction_rate: float
+    mean_rate: float
+    event_count: int
+
+
+class IonicClusterStatusResponse(BaseModel):
+    """Ionic cluster HIHO plasma state for one agent."""
+
+    agent_id: str
+    plasma_density: float
+    cluster_size: int
+    hiho_tolerance: float
+    ionisation_rate: float
+    hiho_equilibrium: bool
+    active_ions: int
+    steps_taken: int
+    previous_density: float | None = None
+
+
+class IonicClusterStepRequest(BaseModel):
+    delta: float
+    agent_id: str
+
+
+class DielectricPolarizationResponse(BaseModel):
+    """Dielectric field EHD thrust and polarization metrics."""
+
+    voltage: float
+    electrode_separation: float
+    permittivity_diagonal: list[float]
+    mean_permittivity: float
+    biefield_brown_force: list[float]
+    gauge_connection_potential: list[list[float]]
+
+
+class SarfattiBackactionResponse(BaseModel):
+    """Sarfatti retrocausal back-action dynamics."""
+
+    coherence: float
+    destiny_weight: float
+    back_action_amplitude: float
+    metric_coupling: float
+    hiho_attractor_engaged: bool
+
+
+class QgpStatusResponse(BaseModel):
+    """Quark-Gluon Plasma deconfinement/confinement crossover status."""
+
+    quark_coherence: float
+    temperature_mev: float
+    deconfinement_rate: float
+    qcd_hiho: bool
+    is_deconfined: bool
+    chromatic_coherence: float
+    lenr_analogy_rate: float
+
+
+# Per-agent state, mirroring the mutable-dataclass design of LENRHamiltonian
+# (event history) and IonicClusterState (step() mutates in place).
+_lenr_agents: dict[str, LENRHamiltonian] = {}
+_ionic_cluster_agents: dict[str, IonicClusterState] = {}
+
+
+@physics_ext_router.get("/lenr/simulate", response_model=LenrSimulateResponse)
+async def get_lenr_simulate(
+    coherence: float = 0.5,
+    reaction_threshold: float = 0.5,
+    lattice_coupling: float = 1.0,
+) -> LenrSimulateResponse:
+    """LENR reaction rate at a given lattice coherence — stateless."""
+    from cohezion.physics.lenr import LENRHamiltonian
+
+    h = LENRHamiltonian(reaction_threshold=reaction_threshold, lattice_coupling=lattice_coupling)
+    return LenrSimulateResponse(
+        reaction_threshold=h.reaction_threshold,
+        lattice_coupling=h.lattice_coupling,
+        coherence=coherence,
+        reaction_rate=h.reaction_rate(coherence),
+    )
+
+
+@physics_ext_router.post("/lenr/event", response_model=LenrEventResponse)
+async def post_lenr_event(payload: LenrEventRequest) -> LenrEventResponse:
+    """Record a LENR coherence event for an agent and return its running mean rate."""
+    from cohezion.physics.lenr import LENRHamiltonian
+
+    h = _lenr_agents.get(payload.agent_id)
+    if h is None:
+        h = LENRHamiltonian(agent_id=payload.agent_id)
+        _lenr_agents[payload.agent_id] = h
+    rate = h.record_coherence_event(payload.coherence)
+    return LenrEventResponse(
+        agent_id=payload.agent_id,
+        coherence=payload.coherence,
+        reaction_rate=rate,
+        mean_rate=h.mean_rate,
+        event_count=h.event_count,
+    )
+
+
+@physics_ext_router.get("/ionic-cluster/status", response_model=IonicClusterStatusResponse)
+async def get_ionic_cluster_status(
+    agent_id: str = "ionic-cluster-default",
+    plasma_density: float = 0.5,
+    cluster_size: int = 100,
+    hiho_tolerance: float = 0.05,
+) -> IonicClusterStatusResponse:
+    """Ionic cluster HIHO status for an agent.
+
+    plasma_density/cluster_size/hiho_tolerance seed the agent's state on first
+    access only; an existing agent's state is returned unchanged (the params
+    exist to initialize a fresh agent, not to reset one already in progress).
+    """
+    from cohezion.physics.ionic_cluster import IonicClusterState
+
+    state = _ionic_cluster_agents.get(agent_id)
+    if state is None:
+        state = IonicClusterState(
+            plasma_density=plasma_density,
+            cluster_size=cluster_size,
+            hiho_tolerance=hiho_tolerance,
+        )
+        _ionic_cluster_agents[agent_id] = state
+    return IonicClusterStatusResponse(
+        agent_id=agent_id,
+        plasma_density=state.plasma_density,
+        cluster_size=state.cluster_size,
+        hiho_tolerance=state.hiho_tolerance,
+        ionisation_rate=state.ionisation_rate(),
+        hiho_equilibrium=state.hiho_equilibrium(),
+        active_ions=state.active_ions,
+        steps_taken=state.steps_taken,
+    )
+
+
+@physics_ext_router.post("/ionic-cluster/step", response_model=IonicClusterStatusResponse)
+async def post_ionic_cluster_step(payload: IonicClusterStepRequest) -> IonicClusterStatusResponse:
+    """Advance an agent's ionic cluster plasma density by delta."""
+    from cohezion.physics.ionic_cluster import IonicClusterState
+
+    state = _ionic_cluster_agents.get(payload.agent_id)
+    if state is None:
+        state = IonicClusterState()
+        _ionic_cluster_agents[payload.agent_id] = state
+    previous_density = state.plasma_density
+    state.step(payload.delta)
+    return IonicClusterStatusResponse(
+        agent_id=payload.agent_id,
+        plasma_density=state.plasma_density,
+        cluster_size=state.cluster_size,
+        hiho_tolerance=state.hiho_tolerance,
+        ionisation_rate=state.ionisation_rate(),
+        hiho_equilibrium=state.hiho_equilibrium(),
+        active_ions=state.active_ions,
+        steps_taken=state.steps_taken,
+        previous_density=previous_density,
+    )
+
+
+@physics_ext_router.get("/dielectric/polarization", response_model=DielectricPolarizationResponse)
+async def get_dielectric_polarization(
+    voltage: float = 1e4,
+    electrode_separation: float = 0.01,
+    permittivity_diagonal: str = "1.0,1.0,1.0",
+) -> DielectricPolarizationResponse:
+    """Dielectric field EHD thrust (Biefield-Brown) and U(1) gauge potential — stateless."""
+    import numpy as np
+
+    from cohezion.physics.dielectric import DielectricField
+
+    diag = [float(v.strip()) for v in permittivity_diagonal.split(",")]
+    if len(diag) != 3:
+        diag = [1.0, 1.0, 1.0]
+    field = DielectricField(
+        permittivity_tensor=np.diag(diag),
+        electrode_separation=electrode_separation,
+        voltage=voltage,
+    )
+    connection = field.to_gauge_connection()
+    return DielectricPolarizationResponse(
+        voltage=field.voltage,
+        electrode_separation=field.electrode_separation,
+        permittivity_diagonal=diag,
+        mean_permittivity=field.mean_permittivity,
+        biefield_brown_force=field.biefield_brown_force().tolist(),
+        gauge_connection_potential=connection.potential.tolist(),
+    )
+
+
+@physics_ext_router.get("/sarfatti/backaction", response_model=SarfattiBackactionResponse)
+async def get_sarfatti_backaction(
+    coherence: float = 0.5, destiny_weight: float = 0.5
+) -> SarfattiBackactionResponse:
+    """Sarfatti retrocausal back-action amplitude at a given coherence — stateless."""
+    from cohezion.physics.sarfatti_bridge import SarfattiBackAction
+
+    sba = SarfattiBackAction(coherence=coherence, destiny_weight=destiny_weight)
+    return SarfattiBackactionResponse(
+        coherence=sba.coherence,
+        destiny_weight=sba.destiny_weight,
+        back_action_amplitude=sba.back_action_amplitude(),
+        metric_coupling=sba.metric_coupling(),
+        hiho_attractor_engaged=sba.hiho_attractor_engaged(),
+    )
+
+
+@physics_ext_router.get("/qgp/status", response_model=QgpStatusResponse)
+async def get_qgp_status(
+    quark_coherence: float = 0.5, temperature_mev: float = 155.0
+) -> QgpStatusResponse:
+    """Quark-Gluon Plasma deconfinement crossover status — stateless."""
+    from cohezion.physics.sarfatti_bridge import QuarkGluonPlasma
+
+    qgp = QuarkGluonPlasma(quark_coherence=quark_coherence, temperature_mev=temperature_mev)
+    return QgpStatusResponse(
+        quark_coherence=qgp.quark_coherence,
+        temperature_mev=qgp.temperature_mev,
+        deconfinement_rate=qgp.deconfinement_rate(),
+        qcd_hiho=qgp.qcd_hiho(),
+        is_deconfined=qgp.is_deconfined(),
+        chromatic_coherence=qgp.chromatic_coherence(),
+        lenr_analogy_rate=qgp.to_lenr_analogy(),
     )
 
 
