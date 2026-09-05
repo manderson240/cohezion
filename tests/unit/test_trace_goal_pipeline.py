@@ -15,6 +15,7 @@ import asyncio
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
 
 import pytest
 
@@ -24,6 +25,7 @@ from cohezion.flume.loop_goal_refactor_engine import (
     GoalSpecification,
     TraceGoalRefactorPipeline,
     TraceToLoopTransformer,
+    payload_looks_like_failure,
 )
 
 
@@ -490,6 +492,74 @@ def test_persisted_payloads_carry_direction() -> None:
     loop_stmt = next(s for s in persistence.statements if s.startswith("CREATE loop_trace:"))
     assert '"direction": "at_most"' in goal_stmt
     assert '"direction": "at_most"' in loop_stmt
+
+
+def test_catch_all_predicate_is_shared_with_the_synthesizer() -> None:
+    """The measurement must score the SAME quantity that opened the goal.
+
+    A private copy of this predicate in the ops CLI would drift from the
+    synthesizer's silently, and the loop would then drive down a different
+    number than the one it was opened for.
+    """
+    assert payload_looks_like_failure({"msg": "error occurred"})
+    assert payload_looks_like_failure({"tests": "3 failed"})
+    assert not payload_looks_like_failure({"status": "HEALTHY"})
+    assert not payload_looks_like_failure({})
+    assert not payload_looks_like_failure(None)
+
+    # The synthesizer's catch-all must agree with it on the same payload.
+    goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(
+        [{"type": "JOURNEY_STEP", "source": "s", "payload": {"msg": "error occurred"}}]
+    )
+    assert goal is not None and goal.target_metric == "error_rate"
+    assert (
+        TraceToLoopTransformer.synthesize_goal_from_real_trace(
+            [{"type": "JOURNEY_STEP", "source": "s", "payload": {"status": "HEALTHY"}}]
+        )
+        is None
+    )
+
+
+def _load_ops_cli():
+    """Load the ops CLI by path (it lives in scripts/, not the package)."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parents[2] / "scripts" / "ops" / "refactor_traces_to_goals.py"
+    spec = importlib.util.spec_from_file_location("_tg_ops_cli", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_measure_finding_open_returns_unknown_when_the_page_saturates(monkeypatch) -> None:
+    """DISCRIMINATING: a saturated page is UNKNOWN, never "still open".
+
+    event_log grows without bound. Once fixed_in-bearing rows exceed the page
+    size, a resolved finding's fix record can fall outside it. Returning 1.0
+    there would pin a CLOSED goal open forever — the already-fixed defect
+    re-entering through the measurement path. An implementation missing the
+    saturation guard returns 1.0 here.
+    """
+    cli = _load_ops_cli()
+    saturated = [{"payload": {"finding": "some other finding", "fixed_in": "abc"}}] * (
+        cli._FIXED_SCAN_LIMIT
+    )
+    monkeypatch.setattr(cli, "_sql", lambda *a, **k: saturated)
+    assert cli.measure_finding_open("a finding not on this page", "vault") is None
+
+
+def test_measure_finding_open_reports_open_when_the_page_is_not_saturated(monkeypatch) -> None:
+    """The complement: an unsaturated page is authoritative, so 1.0 is real."""
+    cli = _load_ops_cli()
+    monkeypatch.setattr(
+        cli, "_sql", lambda *a, **k: [{"payload": {"finding": "other", "fixed_in": "abc"}}]
+    )
+    assert cli.measure_finding_open("a genuinely open finding", "vault") == 1.0
+    monkeypatch.setattr(
+        cli, "_sql", lambda *a, **k: [{"payload": {"finding": "target", "fixed_in": "abc"}}]
+    )
+    assert cli.measure_finding_open("target", "vault") == 0.0
 
 
 def test_mark_goal_converged_uses_upsert_merge() -> None:

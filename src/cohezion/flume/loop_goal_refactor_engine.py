@@ -28,6 +28,18 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
+def payload_looks_like_failure(payload: dict[str, Any] | None) -> bool:
+    """The catch-all predicate: does this payload read as a failure?
+
+    Exported so a MEASUREMENT can score the same quantity that opened the goal.
+    A private copy in the ops CLI would drift from this one silently, and the
+    loop would then drive down a different number than the one it was opened
+    for -- with nothing failing to say so.
+    """
+    text = json.dumps(payload or {}, default=str).lower()
+    return "fail" in text or "error" in text
+
+
 @dataclass(frozen=True, slots=True)
 class GoalSpecification:
     """Formal Goal contract with convergence criteria and invariant bounds."""
@@ -112,7 +124,6 @@ class TraceToLoopTransformer:
         for ev in trace_events:
             etype = str(ev.get("type") or (ev.get("payload") or {}).get("type") or "")
             payload = ev.get("payload") or {}
-            text = json.dumps(payload, default=str)
 
             # A finding that records the commit that fixed it is CLOSED. Re-opening
             # it as a goal manufactures permanent work: the loop can never converge
@@ -176,7 +187,7 @@ class TraceToLoopTransformer:
                     max_iterations=3,
                     timeout_seconds=300.0,
                 )
-            if "fail" in text.lower() or "error" in text.lower():
+            if payload_looks_like_failure(payload):
                 src = ev.get("source") or "unknown-source"
                 title = f"Stabilize: {str(src)[:120]}"
                 return GoalSpecification(

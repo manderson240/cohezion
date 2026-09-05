@@ -39,6 +39,7 @@ from cohezion.flume.loop_goal_refactor_engine import (
     GoalSpecification,
     TraceGoalRefactorPipeline,
     TraceToLoopTransformer,
+    payload_looks_like_failure,
 )
 
 
@@ -96,32 +97,28 @@ def fetch_recent_traces(limit: int, database: str = "vault") -> list[dict]:
     )
 
 
-def _looks_like_failure(row: dict[str, Any]) -> bool:
-    """Mirror of the synthesizer's catch-all predicate.
-
-    The measurement MUST use the same definition of "bad" that triggered the
-    goal, or the loop measures a different quantity than the one it was opened
-    to drive down.
-    """
-    text = json.dumps(row.get("payload") or {}, default=str).lower()
-    return "fail" in text or "error" in text
-
-
 def measure_error_rate(source: str, database: str) -> float | None:
-    """Fraction of a source's recent events that look like failures.
+    """Fraction of a source's most recent events that look like failures.
+
+    Scored with the ENGINE's catch-all predicate, not a local copy: the
+    measurement must drive down the same quantity that opened the goal.
 
     Returns None when the source is unmeasurable (bad shape, or no rows) --
-    None means UNKNOWN and stops execution, it is never coerced to 0.0.
+    None means UNKNOWN and stops execution; it is never coerced to 0.0.
     """
     if not _SAFE_SOURCE_RE.match(source):
         return None
+    # ORDER BY is what makes the window "recent"; without it the LIMIT returns
+    # whatever order the store happens to yield. SurrealQL requires the
+    # ordering field to appear in the projection.
     rows = _sql(
-        f"SELECT payload FROM event_log WHERE source = '{source}' LIMIT {_ERROR_RATE_WINDOW};",
+        f"SELECT payload, timestamp FROM event_log WHERE source = '{source}' "
+        f"ORDER BY timestamp DESC LIMIT {_ERROR_RATE_WINDOW};",
         database=database,
     )
     if not rows:
         return None
-    return sum(1 for r in rows if _looks_like_failure(r)) / len(rows)
+    return sum(1 for r in rows if payload_looks_like_failure(r.get("payload"))) / len(rows)
 
 
 def measure_finding_open(finding: str, database: str) -> float | None:
@@ -143,6 +140,13 @@ def measure_finding_open(finding: str, database: str) -> float | None:
         payload = row.get("payload") or {}
         if str(payload.get("finding") or "") == finding:
             return 0.0
+    # A saturated page is UNKNOWN, not "open". event_log grows without bound, so
+    # once fixed_in-bearing rows exceed the page size a resolved finding's fix
+    # record can fall outside it -- and reporting that as 1.0 would pin a closed
+    # goal open forever, re-introducing the already-fixed defect through the
+    # measurement path instead of the synthesis path.
+    if len(rows) >= _FIXED_SCAN_LIMIT:
+        return None
     return 1.0
 
 
