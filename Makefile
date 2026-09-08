@@ -25,9 +25,9 @@ coherence-check:  ## Enforce 12D manifold integrity in data artifacts
 	uv run python src/cohezion/scripts/coherence_inspector.py
 	@echo "✓ Manifold integrity verified"
 
-type-check:  ## Run type checking with mypy
-	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder' || true
-	@echo "✓ Type check complete"
+type-check:  ## Run mypy type checking (ratcheted: no NEW type errors vs scripts/ci/mypy_baseline.txt)
+	uv run python scripts/ci/mypy_ratchet.py
+	@echo "✓ Type check complete (no new type errors vs baseline)"
 
 test:  ## Run test suite
 	uv run pytest tests/
@@ -41,12 +41,32 @@ test-fast:  ## Run fast unit tests only (<1s each, no live services)
 	PYTHONPATH=src:scripts/ci uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
 
+paradigms:  ## Run advanced testing paradigms: property, fuzz, metamorphic, mutation-vector, contract
+	uv run python scripts/ci/check_paradigms.py
+	uv run pytest tests/property tests/fuzz tests/metamorphic tests/mutation tests/contracts -q --tb=short -p no:cacheprovider
+	uv run python scripts/ci/mutation_ratchet.py
+	@echo "✓ Paradigm suites + mutation ratchet complete"
+
 frontier-digest:  ## Generate today's frontier digest
 	uv run python scripts/ci/frontier_digest.py
 
 test-integration:  ## Run integration tests (require live services)
 	uv run pytest tests/ -m integration -v
 	@echo "✓ Integration tests complete"
+
+mutate:  ## Mutation-test the scoped high-value inference modules (mutmut) + survivor ratchet
+	rm -rf mutants/
+	uv run mutmut run
+	uv run python scripts/ci/mutation_ratchet.py
+	@echo "✓ Mutation run complete; ratchet enforced (survivors must not exceed baseline)"
+
+mutate-report:  ## Show mutation results summary
+	uv run mutmut results
+
+coverage:  ## Branch+line coverage with a 60% line floor (inference scope)
+	uv run pytest tests/inference --cov=cohezion.inference --cov-branch \
+	  --cov-report=term-missing --cov-fail-under=60 -q
+	@echo "✓ Coverage gate passed"
 
 test-smoke:  ## Run quick smoke tests (minimal subset)
 	uv run pytest tests/unit --import-mode=append -q --tb=line -p no:warnings 2>/dev/null || echo "⚠ Smoke tests failed"

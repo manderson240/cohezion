@@ -326,3 +326,12 @@ src/cohezion/skills/munder-difflin-repo/
 
 data/compound/cache/
 src/cohezion/skills/kaggle/kaggle-skills-repo/
+
+# Mutation-testing artifacts (mutmut workspace — 966MB, regenerable via `make mutate`)
+mutants/
+muttest/
+.mutmut-cache/
+
+# Generated submissions / artifacts
+submission*.json
+kaggriculture.zip

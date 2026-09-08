@@ -1,0 +1,5 @@
+# Mutation survivor ratchet baseline (scripts/ci/mutation_ratchet.py)
+# Recorded from a verified local `make mutate` run. Lower these
+# numbers as tests improve; never raise them.
+survived=269
+no_tests=760

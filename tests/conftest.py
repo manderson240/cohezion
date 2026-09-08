@@ -15,6 +15,23 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+# Hypothesis CI profile (loaded via HYPOTHESIS_PROFILE=ci in CI workflows):
+# derandomize=True makes CI failures reproducible; deadline=None avoids flaky
+# timing on shared runners; max_examples=200 balances bug-finding vs CI time.
+# Local runs use the default profile (randomized, 100 examples) for power.
+try:
+    from hypothesis import HealthCheck, settings
+
+    settings.register_profile(
+        "ci",
+        max_examples=200,
+        derandomize=True,
+        deadline=None,
+        suppress_health_check=[HealthCheck.too_slow],
+    )
+except ImportError:
+    pass  # hypothesis is a dev extra; property tests skip if absent
+
 
 # Block heavy ML libraries from loading their C extensions into this process at
 # import time.  sklearn (via transformers) and torch use different BLAS allocators;

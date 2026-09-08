@@ -290,21 +290,6 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       needs.unit-tests.result == 'success'
 
-    services:
-      surrealdb:
-        image: surrealdb/surrealdb:v2.0
-        ports:
-          - 8000:8000
-        options: >-
-          --health-cmd "curl -f http://localhost:8000/health || exit 1"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 5
-          --health-start-period 10s
-        env:
-          SURREAL_USER: root
-          SURREAL_PASS: root
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -324,6 +309,21 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
+      # NOTE: GH Actions `services:` cannot pass a container command, and the
+      # surrealdb image has no default Cmd — a services-backed container runs
+      # bare `/surreal`, prints help, and exits 2. Start it explicitly instead.
+      # The image is distroless: no /bin/sh, no curl — the builtin healthcheck
+      # is `/surreal isready`, which we mirror from the runner side below.
+      - name: Start SurrealDB (v3.2.4)
+        run: |
+          docker rm -f surrealdb-ci >/dev/null 2>&1 || true
+          docker run -d --name surrealdb-ci \
+            --health-cmd "/surreal isready --endpoint http://localhost:8000" \
+            --health-interval 5s --health-retries 12 --health-start-period 10s \
+            -p 8000:8000 \
+            surrealdb/surrealdb:v3.2.4 \
+            start --user root --pass root --bind 0.0.0.0:8000
+
       - name: Wait for SurrealDB
         timeout-minutes: 3
         run: |
@@ -337,6 +337,7 @@ jobs:
             sleep 2
           done
           echo "✗ SurrealDB failed to start"
+          docker logs surrealdb-ci | tail -20
           exit 1
 
       - name: Initialize SurrealDB schema
@@ -346,10 +347,10 @@ jobs:
             curl -X POST \
               -u "root:root" \
               -H "Accept: application/json" \
-              -H "NS: test" \
-              -H "DB: test" \
+              -H "surreal-ns: test" \
+              -H "surreal-db: test" \
               -d "$(cat scripts/graphrag_schema.surql)" \
-              http://localhost:8000/import || echo "Schema load skipped"
+              http://localhost:8000/sql || echo "Schema load skipped"
           fi
 
       - name: Run integration tests
@@ -357,16 +358,15 @@ jobs:
           SURREAL_URL: ws://localhost:8000/rpc
           TEST_WITH_LIVE_DB: "1"
         run: |
-          uv run pytest -m integration \
-            --dist loadgroup \
-            -n auto \
-            tests/integration/ \
+          # Run by path, NOT `-m integration`: no test in tests/integration/
+          # carries that marker, so the marker filter deselected 114/114 tests
+          # and the stage silently validated nothing even when the DB was up.
+          uv run pytest tests/integration/ \
             -v --tb=short \
             --junitxml=junit-integration.xml \
             --cov=src/cohezion \
             --cov-report=xml:coverage-integration.xml \
-            --cov-report=html:htmlcov-integration/ \
-            --cov-append
+            --cov-report=html:htmlcov-integration/
 
       - name: Upload integration results
         if: always()
@@ -384,7 +384,7 @@ jobs:
         run: |
           echo "## Integration Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **SurrealDB Version**: v2.0" >> $GITHUB_STEP_SUMMARY
+          echo "- **SurrealDB Version**: v3.2.4" >> $GITHUB_STEP_SUMMARY
           echo "- **Endpoint**: ws://localhost:8000/rpc" >> $GITHUB_STEP_SUMMARY
           if [ -f junit-integration.xml ]; then
             tests=$(grep -o 'tests="[0-9]*"' junit-integration.xml | grep -o '[0-9]*')
@@ -594,22 +594,22 @@ jobs:
       github.event.schedule == '0 4 * * 0' ||
       contains(github.event.head_commit.message, '[compat]')
 
-    services:
-      surrealdb-latest:
-        image: surrealdb/surrealdb:latest
-        ports:
-          - 8000:8000
-        options: >-
-          --health-cmd "curl -f http://localhost:8000/health || exit 1"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-          --health-start-period 15s
-        env:
-          SURREAL_USER: root
-          SURREAL_PASS: root
-
     steps:
+      # NOTE: GH Actions `services:` cannot pass a container command, and the
+      # surrealdb image has no default Cmd — a services-backed container runs
+      # bare `/surreal`, prints help, and exits 2. Start it explicitly instead.
+      # `latest` currently resolves to SurrealDB 3.2.4 (pinned in Stage 4);
+      # this job verifies the integration tests against the moving latest tag.
+      - name: Start SurrealDB (latest)
+        run: |
+          docker rm -f surrealdb-ci-latest >/dev/null 2>&1 || true
+          docker run -d --name surrealdb-ci-latest \
+            --health-cmd "/surreal isready --endpoint http://localhost:8000" \
+            --health-interval 5s --health-retries 12 --health-start-period 10s \
+            -p 8000:8000 \
+            surrealdb/surrealdb:latest \
+            start --user root --pass root --bind 0.0.0.0:8000
+
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -639,6 +639,7 @@ jobs:
             sleep 2
           done
           echo "✗ SurrealDB (latest) failed to start"
+          docker logs surrealdb-ci-latest | tail -20
           exit 1
 
       - name: Run compatibility tests
@@ -646,7 +647,9 @@ jobs:
           SURREAL_URL: ws://localhost:8000/rpc
           TEST_WITH_LIVE_DB: "1"
         run: |
-          uv run pytest tests/integration/test_surreal*.py \
+          # Run the full integration suite against the latest image.
+          # (The old `tests/integration/test_surreal*.py` glob matched no files.)
+          uv run pytest tests/integration/ \
             -v --tb=short \
             --junitxml=junit-compatibility.xml
         continue-on-error: true

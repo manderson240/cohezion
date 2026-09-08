@@ -92,6 +92,9 @@ step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh
 # failure class that let the regression gate, jepa_coherence, and the FAPO
 # failure-path wiring all sit dormant behind passing tests. Unlike 6b, this is
 # blocking from the start: the registry is curated specifically to never cry wolf.
+# --self-test FIRST: it proves the scanner can still FAIL (with a guaranteed-dormant
+# sentinel + known-wired capability). A scanner bug otherwise reads as a clean 0 errors.
+step "dormancy self-test" uv run python scripts/ci/dormancy_scan.py --self-test
 step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 
 # Step 6c-bis: Doc↔code drift — the sibling of 6c. dormancy_scan asks "does this code have a
