@@ -356,3 +356,6 @@ REPORT.html
 /submission.*
 /tmp_*.py
 *.harness-bak
+
+# Local secrets — never commit (untracked 2026-09-08 after credential rename exposure)
+.env
