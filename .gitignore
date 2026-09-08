@@ -329,8 +329,12 @@ src/cohezion/skills/kaggle/kaggle-skills-repo/
 
 # Mutation-testing artifacts (mutmut workspace — 966MB, regenerable via `make mutate`)
 mutants/
-muttest/
 .mutmut-cache/
+# EXCEPT: mutmut "coupled" tests are SOURCE-LOCKED (hand-written against a specific
+# mutant of tests/lanes/test_model_shootout.py) — they are NOT regenerable artifacts.
+# The paradigm wiring gate (scripts/ci/check_paradigms.py) requires
+# muttest/test_model_shootout.py to exist in-tree, so it must stay tracked.
+!muttest/test_model_shootout.py
 
 # Generated submissions / artifacts
 submission*.json

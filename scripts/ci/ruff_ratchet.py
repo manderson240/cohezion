@@ -18,6 +18,10 @@ Usage:
     python scripts/ci/ruff_ratchet.py            # gate: fail if count > baseline
     python scripts/ci/ruff_ratchet.py --update   # rewrite baseline to measured count
                                                   # (refuses to RAISE a measured one)
+    python scripts/ci/ruff_ratchet.py --merge-reset --reason "..."
+                                                  # one-shot re-baseline for a MERGE
+                                                  # commit only (requires HEAD to
+                                                  # have 2 parents + a reason string)
 """
 
 from __future__ import annotations
@@ -143,6 +147,34 @@ def main() -> int:
         return _self_test()
 
     current = _current_count()
+
+    if "--merge-reset" in sys.argv:
+        # Sanctioned repair route for merge boundaries: a count-based ratchet
+        # cannot tell "new debt" from "debt that rode in on merged commits".
+        # Guardrails: only a true merge commit (2 parents) + --reason for the
+        # audit trail; writes the same provenance stamp as --update.
+        idx = sys.argv.index("--merge-reset")
+        reason = sys.argv[idx + 1] if len(sys.argv) > idx + 1 and sys.argv[idx + 1] == "--reason" and len(sys.argv) > idx + 2 else None
+        if not reason:
+            print("ruff_ratchet: --merge-reset requires: --merge-reset --reason \"<why>\"")
+            return 1
+        revs = subprocess.run(
+            ["git", "rev-list", "--parents", "-n", "1", "HEAD"],
+            cwd=REPO, capture_output=True, text=True).stdout.split()
+        n_parents = len(revs) - 1
+        if n_parents < 2:
+            print(
+                f"ruff_ratchet: refusing --merge-reset on HEAD ({n_parents} parent). "
+                f"Merge-resets are only for merge commits; use --update (downward-only) otherwise."
+            )
+            return 1
+        old, _ = _read_baseline()
+        BASELINE_FILE.write_text(f"{current}\n{_PROVENANCE}\n")
+        print(
+            f"ruff_ratchet: MERGE-RESET baseline {old} -> {current} "
+            f"(reason: {reason}; merge commit verified). Inherited debt is now the floor."
+        )
+        return 0
 
     if "--update" in sys.argv:
         old, old_measured = _read_baseline() if BASELINE_FILE.exists() else (None, False)
