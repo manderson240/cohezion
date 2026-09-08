@@ -8,39 +8,46 @@ Enforces cross-session memory safety on AMD Strix Halo (128GB UMA):
 """
 
 from __future__ import annotations
+
+import fcntl
 import os
 import time
-import fcntl
-import psutil
 from pathlib import Path
-from typing import Optional, Tuple
+
+import psutil
+
 
 LOCK_PATH = Path("/tmp/cohezion_fleet_modelload.lock")
 MIN_AVAILABLE_MEM_GIB = 50.0  # Raised to 50.0 GiB for absolute safety on 128GB UMA
 MAX_SWAP_USED_GIB = 1.0  # Zero tolerance for swap paging before model loads
 
+
 class SmartOOMGovernor:
     @staticmethod
-    def get_memory_state() -> Tuple[float, float, bool]:
+    def get_memory_state() -> tuple[float, float, bool]:
         """Returns (available_mem_gib, swap_used_gib, is_safe)."""
         vm = psutil.virtual_memory()
         sm = psutil.swap_memory()
-        avail_gib = vm.available / (1024 ** 3)
-        swap_used_gib = sm.used / (1024 ** 3)
+        avail_gib = vm.available / (1024**3)
+        swap_used_gib = sm.used / (1024**3)
         is_safe = (avail_gib >= MIN_AVAILABLE_MEM_GIB) and (swap_used_gib <= MAX_SWAP_USED_GIB)
         return round(avail_gib, 2), round(swap_used_gib, 2), is_safe
 
     @classmethod
-    def can_execute_local(cls) -> Tuple[bool, str]:
+    def can_execute_local(cls) -> tuple[bool, str]:
         avail_gib, swap_gib, is_safe = cls.get_memory_state()
         if not is_safe:
-            return False, f"Memory backpressure! Avail: {avail_gib} GiB (Min {MIN_AVAILABLE_MEM_GIB} GiB), Swap used: {swap_gib} GiB. Delegate to Cloud."
+            return (
+                False,
+                f"Memory backpressure! Avail: {avail_gib} GiB (Min {MIN_AVAILABLE_MEM_GIB} GiB), Swap used: {swap_gib} GiB. Delegate to Cloud.",
+            )
         return True, f"Local Silicon Safe (Avail: {avail_gib} GiB, Swap: {swap_gib} GiB)"
+
 
 class CrossSessionFleetLock:
     def __init__(self, timeout_sec: float = 30.0):
         self.timeout_sec = timeout_sec
-        self._fd: Optional[int] = None
+        self._fd: int | None = None
 
     def __enter__(self):
         t_start = time.perf_counter()
@@ -53,7 +60,9 @@ class CrossSessionFleetLock:
                 return self
             except (BlockingIOError, OSError):
                 if time.perf_counter() - t_start > self.timeout_sec:
-                    raise TimeoutError(f"FleetLock timeout after {self.timeout_sec}s: Another session is loading models.")
+                    raise TimeoutError(
+                        f"FleetLock timeout after {self.timeout_sec}s: Another session is loading models."
+                    )
                 time.sleep(0.5)
 
     def __exit__(self, exc_type, exc_val, exc_tb):

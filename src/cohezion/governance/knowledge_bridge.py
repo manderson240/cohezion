@@ -216,7 +216,7 @@ def deposit_neuron_record(neuron: dict) -> bool:
         )
         with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310 (localhost only)
             return resp.status == 200
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         logger.warning("SurrealDB: neuron deposit failed: %s", exc)
         return False
 

@@ -18,20 +18,23 @@ Expertise in high-fidelity KV-cache compression and hardware-aware kernel optimi
 1. **Initialize Hardware-Aware Kernel**:
    ```python
    from cohezion.flume.kernels.turbo_kv import TurboKVKernel
-   kernel = TurboKVKernel() # Automatically forces Wave32 on gfx1151
+
+   kernel = TurboKVKernel()  # Automatically forces Wave32 on gfx1151
    ```
 2. **Execute PolarQuant Compression**:
    ```python
    from cohezion.flume.turbo_quant import TurboQuantCPU
+
    tq = TurboQuantCPU(head_dim=128)
-   compressed = tq.compress_kv(original_tensor) # Achieves ~3.76x reduction
+   compressed = tq.compress_kv(original_tensor)  # Achieves ~3.76x reduction
    ```
 3. **Verify Manifold Integrity**:
    ```python
    from cohezion.flume.coherence_guard import TurboQuantHarness
+
    harness = TurboQuantHarness()
    metrics = harness.verify_quantization(original, recovered)
-   assert metrics['stability_delta'] <= 0.005 # Ensure HIHO-Lock
+   assert metrics["stability_delta"] <= 0.005  # Ensure HIHO-Lock
    ```
 
 ## VERSION

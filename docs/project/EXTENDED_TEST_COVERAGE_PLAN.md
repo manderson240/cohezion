@@ -118,7 +118,7 @@ with patch("docker.from_env") as mock_docker:
     mock_client = MagicMock()
     mock_docker.return_value = mock_client
 
-# Registry mocking  
+# Registry mocking
 orchestrator._registry = MagicMock()
 
 # Context mocking

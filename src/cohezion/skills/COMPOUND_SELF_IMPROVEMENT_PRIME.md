@@ -74,7 +74,7 @@ alignment = analyzer.analyze(
     request=improvement_goal,
     available_skills=skill_selector.find_relevant_skills(keywords),
     agent_coherence=journey_tracker.get_coherence_history(),
-    computational_budget=token_budget
+    computational_budget=token_budget,
 )
 
 if alignment.coherence < 0.5:  # HIHO threshold
@@ -102,7 +102,7 @@ from cohezion.compound.executor import CompoundExecutor
 executor = CompoundExecutor(mcp_client=mcp_client)
 guidance = executor.get_experience_guidance(
     task_description=improvement_goal,
-    context={"target_files": target_files, "domain": "meta-engineering"}
+    context={"target_files": target_files, "domain": "meta-engineering"},
 )
 
 # guidance contains:
@@ -133,8 +133,7 @@ for target_file in target_files:
 
     # Synthesize comprehensive test suite
     test_code = await scripter.synthesize_test_suite(
-        file_path=target_file,
-        code_context=code_context
+        file_path=target_file, code_context=code_context
     )
 
     # Write tests to tests/ directory
@@ -143,20 +142,13 @@ for target_file in target_files:
         f.write(test_code)
 
 # Step 3.2: Run tests (should FAIL initially - red phase of TDD)
-result = subprocess.run(
-    ["uv", "run", "pytest", test_file, "-v"],
-    capture_output=True
-)
+result = subprocess.run(["uv", "run", "pytest", test_file, "-v"], capture_output=True)
 assert result.returncode != 0, "Tests should fail before implementation"
 
 # Step 3.3: Implement code to make tests pass (green phase)
 implementation = await executor.execute_task(
     task=improvement_goal,
-    context={
-        "guidance": guidance,
-        "test_file": test_file,
-        "target_files": target_files
-    }
+    context={"guidance": guidance, "test_file": test_file, "target_files": target_files},
 )
 
 # Step 3.4: Iterative coverage improvement (refactor phase)
@@ -164,7 +156,7 @@ final_coverage = await loop.execute(
     file_path=target_file,
     code_context=code_context,
     target_coverage=quality_thresholds["test_coverage_min"],
-    max_iterations=max_iterations
+    max_iterations=max_iterations,
 )
 ```
 
@@ -193,9 +185,9 @@ config = SwarmConfig(
         {"role": "engineer", "model": "qwen3-coder", "weight": 1.0},
         {"role": "biologist", "model": "deepseek-r1:14b", "weight": 0.8},
         {"role": "qhw", "model": "phi3:mini", "weight": 0.6},
-        {"role": "qalgo", "model": "qwen3-coder", "weight": 1.0}
+        {"role": "qalgo", "model": "qwen3-coder", "weight": 1.0},
     ],
-    consensus_threshold=quality_thresholds["swarm_consensus_min"]
+    consensus_threshold=quality_thresholds["swarm_consensus_min"],
 )
 
 executor = TeamExecutor(config=config)
@@ -222,8 +214,7 @@ Rationale: <explanation>
 """
 
 reviews = await executor.execute_swarm(
-    prompt=review_prompt,
-    task_context={"improvement_goal": improvement_goal}
+    prompt=review_prompt, task_context={"improvement_goal": improvement_goal}
 )
 
 # Calculate consensus
@@ -264,7 +255,7 @@ healer = HealerAgent(model_name="qwen3-coder")
 anomaly_report = detector.detect_anomalies(
     before_state=journey_tracker.get_snapshot(before_timestamp),
     after_state=journey_tracker.get_snapshot(after_timestamp),
-    thresholds={"coherence_drop_max": 0.1, "thermal_max": 0.8}
+    thresholds={"coherence_drop_max": 0.1, "thermal_max": 0.8},
 )
 
 if anomaly_report["anomalies_detected"]:
@@ -305,7 +296,7 @@ retro = RetrospectionEngine()
 learnings = retro.extract_learnings(
     execution_trajectory=journey_tracker.get_journey(session_id),
     metrics=metrics_collector.get_session_metrics(),
-    outcomes={"tests_passing": True, "coverage": final_coverage}
+    outcomes={"tests_passing": True, "coverage": final_coverage},
 )
 
 # Log to vault
@@ -316,7 +307,7 @@ for learning in learnings["key_insights"]:
             title=learning["title"],
             context=learning["context"],
             decision=learning["decision"],
-            rationale=learning["rationale"]
+            rationale=learning["rationale"],
         )
     elif learning["type"] == "pattern":
         vault_extract_pattern(
@@ -324,7 +315,7 @@ for learning in learnings["key_insights"]:
             pattern_name=learning["pattern_name"],
             description=learning["description"],
             code_example=learning["code_example"],
-            domain="meta-engineering"
+            domain="meta-engineering",
         )
 
 # Log experiment for future reference
@@ -333,7 +324,7 @@ vault_log_experiment(
     hypothesis=f"Improve Cohezion via compound loop: {improvement_goal}",
     method="TDD + Adversarial Review + Ouroboros + Mycelium",
     result=f"Coverage: {final_coverage}%, Consensus: {consensus.score:.2f}",
-    learnings=learnings["summary"]
+    learnings=learnings["summary"],
 )
 ```
 
@@ -361,29 +352,26 @@ skill_metrics = {
     "success_rate": 1.0 if consensus.decision == "APPROVE" else 0.0,
     "test_coverage": final_coverage,
     "coherence_maintained": journey_tracker.get_coherence() >= 0.5,
-    "token_efficiency": metrics_collector.get_token_metrics()["efficiency"]
+    "token_efficiency": metrics_collector.get_token_metrics()["efficiency"],
 }
 
 # Propose refinements
 refinements = refiner.propose_refinements(
     skill_name="COMPOUND_SELF_IMPROVEMENT_PRIME",
     metrics=skill_metrics,
-    execution_logs=journey_tracker.get_journey(session_id)
+    execution_logs=journey_tracker.get_journey(session_id),
 )
 
 # Multi-agent validation of refinements
 if refinements["proposed_changes"]:
     consensus = await SkillConsensusVoter().vote(
         skill_name="COMPOUND_SELF_IMPROVEMENT_PRIME",
-        proposed_changes=refinements["proposed_changes"]
+        proposed_changes=refinements["proposed_changes"],
     )
 
     if consensus >= 0.7:
         # Update this skill definition
-        apply_skill_refinements(
-            "COMPOUND_SELF_IMPROVEMENT_PRIME",
-            refinements["proposed_changes"]
-        )
+        apply_skill_refinements("COMPOUND_SELF_IMPROVEMENT_PRIME", refinements["proposed_changes"])
         logger.info("Skill refined based on execution outcomes")
 ```
 
@@ -437,20 +425,17 @@ params = {
     "quality_thresholds": {
         "test_coverage_min": 95.0,
         "coherence_threshold": 0.5,
-        "swarm_consensus_min": 0.7
+        "swarm_consensus_min": 0.7,
     },
     "enable_tdd": True,
     "enable_adversarial_review": True,
     "enable_ouroboros": True,
-    "max_iterations": 3
+    "max_iterations": 3,
 }
 
 # Execute compound loop
 executor = CompoundExecutor(mcp_client=mcp_client)
-result = await executor.execute_skill(
-    skill_name="COMPOUND_SELF_IMPROVEMENT_PRIME",
-    params=params
-)
+result = await executor.execute_skill(skill_name="COMPOUND_SELF_IMPROVEMENT_PRIME", params=params)
 
 # Check result
 if result.success:

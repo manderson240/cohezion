@@ -15,17 +15,19 @@ import json
 import logging
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-DATASET_OUT_FILE = Path.home() / "dev" / "cohezion" / "data" / "cohezion_synthetic_lora_dataset.jsonl"
+DATASET_OUT_FILE = (
+    Path.home() / "dev" / "cohezion" / "data" / "cohezion_synthetic_lora_dataset.jsonl"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,7 +62,7 @@ class DataSynthesisEngine:
         context = f"Cohezion Domain Category: {category}"
         response = (
             f"def execute_{category.lower().replace(' ', '_')}_{idx}():\n"
-            f"    \"\"\"Automated {category} execution function.\"\"\"\n"
+            f'    """Automated {category} execution function."""\n'
             f"    status = True\n"
             f"    metrics = {{'cycle': {idx}, 'category': '{category}', 'verified': True}}\n"
             f"    return status, metrics\n"
@@ -70,7 +72,9 @@ class DataSynthesisEngine:
         pol_res = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
         ast_ok = pol_res.allowed
 
-        rev_res = self.review_engine.review(f"SyntheticPair_{idx}", {"vram_available_gb": 32.0, "ring_coherence": 0.90})
+        rev_res = self.review_engine.review(
+            f"SyntheticPair_{idx}", {"vram_available_gb": 32.0, "ring_coherence": 0.90}
+        )
 
         return GeneratedInstructionPair(
             instruction=instruction,
@@ -82,7 +86,9 @@ class DataSynthesisEngine:
         )
 
     async def synthesize_dataset(self, target_count: int = 5000) -> list[GeneratedInstructionPair]:
-        logger.info("⚡ DATA SYNTHESIS ENGINE: Generating %d verified synthetic pairs...", target_count)
+        logger.info(
+            "⚡ DATA SYNTHESIS ENGINE: Generating %d verified synthetic pairs...", target_count
+        )
         t0 = time.perf_counter()
 
         pairs: list[GeneratedInstructionPair] = []
@@ -107,7 +113,12 @@ class DataSynthesisEngine:
                 f.write(json.dumps(rec) + "\n")
 
         dt = round(time.perf_counter() - t0, 3)
-        logger.info("✅ Data Synthesis Complete! Generated %d verified pairs in %.3fs -> %s", len(pairs), dt, DATASET_OUT_FILE)
+        logger.info(
+            "✅ Data Synthesis Complete! Generated %d verified pairs in %.3fs -> %s",
+            len(pairs),
+            dt,
+            DATASET_OUT_FILE,
+        )
         return pairs
 
 
@@ -119,8 +130,8 @@ async def main_async() -> None:
 
     pairs = await engine.synthesize_dataset(target_count=5000)
     print(f"  • Total Generated & Verified Pairs: {len(pairs):,}")
-    print(f"  • AutoHarness AST Pass Rate: 100.0%")
-    print(f"  • R0 Review Score Average: 1.0000")
+    print("  • AutoHarness AST Pass Rate: 100.0%")
+    print("  • R0 Review Score Average: 1.0000")
     print(f"  • Output File: {DATASET_OUT_FILE}")
     print("=" * 95)
     print("🎉 Data Synthesis Engine Operational!")

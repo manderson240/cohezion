@@ -72,7 +72,7 @@ async def main():
         if not batch:
             continue
 
-        success_count, error_count = await dba.batch_ingest(
+        success_count, _error_count = await dba.batch_ingest(
             "universe_nodes", batch, batch_size=BATCH_SIZE
         )
         total_ingested += success_count

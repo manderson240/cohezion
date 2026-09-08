@@ -7,7 +7,6 @@ import pandas as pd
 
 def main():
     sample_sub = "/kaggle/input/biohub-cell-tracking-during-development/sample_submission.csv"
-    test_dir = "/kaggle/input/biohub-cell-tracking-during-development/test"
 
     if os.path.exists(sample_sub):
         df = pd.read_csv(sample_sub)

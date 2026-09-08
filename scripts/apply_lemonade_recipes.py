@@ -41,31 +41,50 @@ from cohezion.compound.oom_guard import get_available_ram_gb
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 _API = "http://localhost:13305/api/v1"
-_RAM_BUFFER_GB = 12.0   # always keep ≥12 GB free after loading any model
-_LOAD_TIMEOUT  = 600    # seconds — heavy models (23 GB) can take 2-3 min to load
+_RAM_BUFFER_GB = 12.0  # always keep ≥12 GB free after loading any model
+_LOAD_TIMEOUT = 600  # seconds — heavy models (23 GB) can take 2-3 min to load
 _VERIFY_TIMEOUT = 5
 
 # Approximate on-disk sizes for the models we manage (GB).
 # Used to gate RAM before loading.  Conservative (includes KV cache overhead).
 _MODEL_SIZE_GB: dict[str, float] = {
-    "nomic-embed-text-v2-moe-GGUF":      1.0,
-    "Qwen3-Embedding-0.6B-GGUF":         1.0,
-    "Qwen3-0.6B-GGUF":                   1.5,
-    "Bonsai-1.7B-gguf":                  1.5,
-    "Bonsai-4B-gguf":                    3.0,
-    "Gemma-4-E2B-it-GGUF":              6.0,
-    "Bonsai-8B-gguf":                    3.0,
-    "DeepSeek-Qwen3-8B-GGUF":           8.0,
-    "Gemma-4-E4B-it-GGUF":             10.0,
-    "Gemma-4-26B-A4B-it-GGUF":         24.0,
-    "Qwen3.6-27B-GGUF":                25.0,
-    "Gemma-4-31B-it-GGUF":             26.0,
+    "nomic-embed-text-v2-moe-GGUF": 1.0,
+    "Qwen3-Embedding-0.6B-GGUF": 1.0,
+    "Qwen3-0.6B-GGUF": 1.5,
+    "Bonsai-1.7B-gguf": 1.5,
+    "Bonsai-4B-gguf": 3.0,
+    "Gemma-4-E2B-it-GGUF": 6.0,
+    "Bonsai-8B-gguf": 3.0,
+    "DeepSeek-Qwen3-8B-GGUF": 8.0,
+    "Gemma-4-E4B-it-GGUF": 10.0,
+    "Gemma-4-26B-A4B-it-GGUF": 24.0,
+    "Qwen3.6-27B-GGUF": 25.0,
+    "Gemma-4-31B-it-GGUF": 26.0,
     "Qwen3-Coder-30B-A3B-Instruct-GGUF": 25.0,
-    "Nemotron-3-Nano-30B-A3B-GGUF":    30.0,
-    "Qwen3.5-35B-A3B-GGUF":            30.0,
-    "Qwen3.6-35B-A3B-GGUF":            30.0,
-    "Qwen3.6-35B-A3B-MTP-GGUF":        32.0,
+    "Nemotron-3-Nano-30B-A3B-GGUF": 30.0,
+    "Qwen3.5-35B-A3B-GGUF": 30.0,
+    "Qwen3.6-35B-A3B-GGUF": 30.0,
+    "Qwen3.6-35B-A3B-MTP-GGUF": 32.0,
 }
+
+# KV-inclusive margin over weight-only footprints, matched to the table above
+# (e.g. Gemma-4-E4B: 10.0 here vs 5.97 weight-only in MODEL_FOOTPRINT_GB).
+_KV_MARGIN = 1.3
+
+
+def _size_gb(model_name: str) -> float:
+    """Curated KV-inclusive size, or a resolved (never fail-open) estimate for unknowns.
+
+    The previous `.get(name, 5.0)` made an unknown 23 GB model gate as 5 GB — the same
+    `.get(name, <wrong-default>)` class as the 08-15/08-31 topology bug, in a parallel
+    table (adversarial review 2026-08-31, finding 7).
+    """
+    known = _MODEL_SIZE_GB.get(model_name)
+    if known is not None:
+        return known
+    from cohezion.compound.oom_guard import _resolve_footprint_gb
+
+    return _resolve_footprint_gb(model_name) * _KV_MARGIN
 
 
 def _log(msg: str) -> None:
@@ -172,7 +191,7 @@ def apply_base_recipes(
     # Sort by estimated model size (smallest first) to minimise peak RAM during apply
     ordered = sorted(
         BASE_RECIPES.items(),
-        key=lambda kv: _MODEL_SIZE_GB.get(kv[0], 5.0),
+        key=lambda kv: _size_gb(kv[0]),
     )
 
     _log(f"\n{'DRY-RUN: ' if dry_run else ''}Applying {len(ordered)} BASE_RECIPES")
@@ -182,7 +201,7 @@ def apply_base_recipes(
         if model_filter and model_filter.lower() not in model_name.lower():
             continue
 
-        size_gb = _MODEL_SIZE_GB.get(model_name, 5.0)
+        size_gb = _size_gb(model_name)
         _log(f"\n• {model_name} (~{size_gb:.0f} GB)")
         _log(f"  ctx_size={opts.get('ctx_size')}  backend={opts.get('llamacpp_backend')}")
 

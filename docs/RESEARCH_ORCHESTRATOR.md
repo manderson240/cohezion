@@ -82,9 +82,9 @@ results = await run_research(
 )
 
 # Access top syntheses
-for synth in results['syntheses']:
+for synth in results["syntheses"]:
     print(f"{synth['id']}: {synth['type']} (confidence: {synth['confidence']})")
-    print(synth['description'])
+    print(synth["description"])
 ```
 
 ## Research Topics Mapped to Mythos Gaps

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from cohezion.inference.dynamic_hotswapper import DynamicModelHotSwapper
 
 

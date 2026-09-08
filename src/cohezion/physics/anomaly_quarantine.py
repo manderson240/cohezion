@@ -36,7 +36,7 @@ _DEFAULT_VAULT = Path.home() / "vaults" / "cohezion-vault" / "anomalies"
 def _http_surreal(sql: str) -> bool:
     """Default SurrealDB writer via the localhost HTTP bus. Returns True on success."""
     try:
-        req = urllib.request.Request(  # noqa: S310 — fixed localhost SurrealDB bus URL
+        req = urllib.request.Request(
             _BUS,
             data=sql.encode(),
             headers={**_BUS_HEADERS, "Authorization": "Basic cm9vdDpyb290"},

@@ -9,14 +9,14 @@ Implements Liquid Time-Constant (LTC) continuous-time recurrent neural networks 
 from __future__ import annotations
 
 import asyncio
-import math
 import logging
+import math
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -44,7 +44,11 @@ class LiquidStateMachineEngine:
         dt: float = 0.05,
     ) -> LiquidStateResult:
         logger.info("\n" + "=" * 95)
-        logger.info("🌊 EXECUTING LIQUID TIME-CONSTANT NEURAL ODE INTEGRATION FOR EVENT '%s' (dt=%.3f)...", stream_event_id, dt)
+        logger.info(
+            "🌊 EXECUTING LIQUID TIME-CONSTANT NEURAL ODE INTEGRATION FOR EVENT '%s' (dt=%.3f)...",
+            stream_event_id,
+            dt,
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
@@ -69,7 +73,9 @@ class LiquidStateMachineEngine:
 
         logger.info("  ✓ Adaptive Time-Constant (tau): %.3f s", tau)
         logger.info("  ✓ Integrated State Norm x(t): %.4f (RK4 %d steps)", x, steps)
-        logger.info("  ✓ Estimated Power Consumption: %.3f W (Ultra-Low Power)", res.idle_power_watts)
+        logger.info(
+            "  ✓ Estimated Power Consumption: %.3f W (Ultra-Low Power)", res.idle_power_watts
+        )
         logger.info("  ⚡ LTC Neural ODE Latency: %.3f ms", latency_ms)
 
         # Broadcast event over EventBus

@@ -42,10 +42,26 @@ EXPECTED_POPULATED = {
 
 def sql(q: str) -> list:
     out = subprocess.run(
-        ["curl", "-s", "--max-time", "20", SURREAL,
-         "-H", f"surreal-ns: {NS}", "-H", f"surreal-db: {DB}",
-         "-H", "Content-Type: text/plain", "-u", "root:root", "--data", q],
-        capture_output=True, text=True, check=False,
+        [
+            "curl",
+            "-s",
+            "--max-time",
+            "20",
+            SURREAL,
+            "-H",
+            f"surreal-ns: {NS}",
+            "-H",
+            f"surreal-db: {DB}",
+            "-H",
+            "Content-Type: text/plain",
+            "-u",
+            "root:root",
+            "--data",
+            q,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     ).stdout
     try:
         return json.loads(out)
@@ -75,8 +91,11 @@ def relation_tables() -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--fail-on-empty", action="store_true",
-                    help="exit 1 when a declared relation table is empty (use once populated)")
+    ap.add_argument(
+        "--fail-on-empty",
+        action="store_true",
+        help="exit 1 when a declared relation table is empty (use once populated)",
+    )
     a = ap.parse_args()
 
     rels = relation_tables()
@@ -106,16 +125,22 @@ def main() -> int:
 
     # The ratio is the real signal: nodes without edges is a graph in name only.
     docs, edges = count("vault_document") or 0, 0
-    for t in rels + ["mentions", "relates_to"]:
+    for t in [*rels, "mentions", "relates_to"]:
         edges += count(t) or 0
     if docs:
         print(f"\n  edges per document: {edges}/{docs} = {edges / docs:.3f}")
         if edges / docs < 0.5:
-            print("    ⚠️  a graph in name only — retrieval's graph-ancestry half has nothing to traverse")
+            print(
+                "    ⚠️  a graph in name only — retrieval's graph-ancestry half has nothing to traverse"
+            )
 
     if empty_rels:
-        print(f"\n  {len(empty_rels)} DECLARED-BUT-EMPTY relation table(s): {', '.join(empty_rels)}")
-        print("    Each is a declaration with no live referent — populate it or retire the declaration.")
+        print(
+            f"\n  {len(empty_rels)} DECLARED-BUT-EMPTY relation table(s): {', '.join(empty_rels)}"
+        )
+        print(
+            "    Each is a declaration with no live referent — populate it or retire the declaration."
+        )
 
     return 1 if (empty_rels and a.fail_on_empty) else 0
 

@@ -105,6 +105,17 @@ class TestMB2RetentionCap:
         keep = max(b.window_size, b.min_samples) * b.RETENTION_MULTIPLE
         assert len(b.samples) <= keep * 2, f"unbounded growth: {len(b.samples)} samples retained"
 
+    def test_zeroed_config_still_bounded(self) -> None:
+        """Adversarial review 2026-08-20 (qwen3.5:397b lane, verified): window_size=0 made
+        keep=0, and samples[-0:] is the WHOLE list — the cap silently disabled itself
+        (measured: 500 adds -> 500 retained). The keep floor of 1 removes the escape hatch."""
+        from cohezion.compound.degradation_detector import MetricBaseline
+
+        b = MetricBaseline("t", window_size=0, min_samples=0)
+        for i in range(500):
+            b.add_sample(float(i))
+        assert len(b.samples) <= 2, f"zeroed config disabled the cap: {len(b.samples)} retained"
+
     def test_retained_tail_is_the_MOST_RECENT_samples(self) -> None:
         """Discriminating: trimming the wrong end would keep the list bounded and destroy
         every consumer, since they all read samples[-window_size:]."""

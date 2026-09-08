@@ -147,6 +147,7 @@ from pathlib import Path
 from datetime import datetime
 from cohezion.core.persistence import get_surreal_client
 
+
 class TrainingDataMigration:
     """Safely migrate training data from git to SurrealDB"""
 
@@ -167,11 +168,11 @@ class TrainingDataMigration:
             "date_extracted": datetime.now().isoformat(),
             "export_archive_location": str(tar_file.absolute()),
             "status": "extracted",
-            "files": []
+            "files": [],
         }
 
         # Extract and process each file
-        with tarfile.open(tar_file, 'r') as tar:
+        with tarfile.open(tar_file, "r") as tar:
             for member in tar.getmembers():
                 if member.isfile():
                     # Extract file content
@@ -183,7 +184,7 @@ class TrainingDataMigration:
 
                     # Store preview (first 1000 chars)
                     try:
-                        preview = content.decode('utf-8', errors='ignore')[:1000]
+                        preview = content.decode("utf-8", errors="ignore")[:1000]
                     except:
                         preview = f"[Binary file, {len(content)} bytes]"
 
@@ -196,7 +197,7 @@ class TrainingDataMigration:
                         "extracted_from_commit": tar_file.stem,
                         "content_preview": preview,
                         "export_archive": tar_file.name,
-                        "backup_location": str(tar_file.absolute())
+                        "backup_location": str(tar_file.absolute()),
                     }
 
                     collection["files"].append(file_record)
@@ -217,7 +218,7 @@ class TrainingDataMigration:
             "collection_id": collection_id,
             "files_stored": len(collection["files"]),
             "total_size": sum(f["file_size"] for f in collection["files"]),
-            "export_location": str(tar_file.absolute())
+            "export_location": str(tar_file.absolute()),
         }
 
     async def verify_migration(self, collection_id: str) -> dict:
@@ -248,7 +249,7 @@ class TrainingDataMigration:
             "files_original": collection.get("total_files"),
             "backup_location": collection.get("export_archive_location"),
             "export_checksum": collection.get("export_checksum"),
-            "can_retrieve": file_count > 0
+            "can_retrieve": file_count > 0,
         }
 
         return verification
@@ -263,6 +264,7 @@ class TrainingDataMigration:
 
         return result[0] if result else []
 
+
 # Usage example
 async def main():
     migration = TrainingDataMigration()
@@ -274,8 +276,9 @@ async def main():
         print(f"  ✅ {result['files_stored']} files stored")
 
         # Verify immediately
-        verification = await migration.verify_migration(result['collection_id'])
+        verification = await migration.verify_migration(result["collection_id"])
         print(f"  ✅ Verification: {verification['status']}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

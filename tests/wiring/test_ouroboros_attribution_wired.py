@@ -8,9 +8,13 @@ from cohezion.learning.ouroboros import OuroborosAttribution as src_attr
 
 
 def _make_exhaust(**kwargs) -> ExecutionExhaust:
-    defaults = dict(
-        task_id="t1", error_message=None, coherence_drop=0.0, token_usage=100, diagnostics={}
-    )
+    defaults = {
+        "task_id": "t1",
+        "error_message": None,
+        "coherence_drop": 0.0,
+        "token_usage": 100,
+        "diagnostics": {},
+    }
     defaults.update(kwargs)
     return ExecutionExhaust(**defaults)
 
@@ -85,7 +89,7 @@ def test_failure_map_integration():
 
     # Use attribution to build a failure_map entry
     failure_map = {attribution.failure_class: attribution.recommended_strategies}
-    all_strategies = list(dict.fromkeys(attribution.recommended_strategies + ["escalate"]))
+    all_strategies = list(dict.fromkeys([*attribution.recommended_strategies, "escalate"]))
 
     loop = RecursiveTraceLoop(strategies=all_strategies, failure_map=failure_map)
     task = TraceTask(

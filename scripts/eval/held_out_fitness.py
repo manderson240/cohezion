@@ -20,6 +20,7 @@ generic assistant prompt (NOT yet the per-skill PRIME prompt). It is a real, ext
 deterministic system-fitness baseline. NEXT iteration: prepend each fixture's skill
 PRIME prompt so skill-refinement can measurably move this number (the compounding proof).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -43,7 +44,11 @@ def _load_skill_prompt(skill_name: str) -> str:
     """Load a skill's PRIME prompt (capped), so skill-refinement can measurably move the
     fitness. Falls back to a generic prompt when the skill file is absent."""
     stem = skill_name.replace("-", "_")
-    for cand in (SKILLS_DIR / f"{stem.upper()}.md", SKILLS_DIR / f"{stem}.md", SKILLS_DIR / f"{skill_name}.md"):
+    for cand in (
+        SKILLS_DIR / f"{stem.upper()}.md",
+        SKILLS_DIR / f"{stem}.md",
+        SKILLS_DIR / f"{skill_name}.md",
+    ):
         if cand.exists():
             txt = cand.read_text(encoding="utf-8", errors="ignore")
             return f"You are the '{skill_name}' skill. Apply it precisely and answer concisely.\n\n{txt[:3000]}"
@@ -51,24 +56,37 @@ def _load_skill_prompt(skill_name: str) -> str:
 
 
 def _surreal(query: str) -> list:
-    req = urllib.request.Request(
-        SURREAL_URL, data=query.encode(),
-        headers={"surreal-ns": "cohezion", "surreal-db": "main", "Content-Type": "text/plain",
-                 "Authorization": "Basic " + base64.b64encode(b"root:root").decode()})
+    req = urllib.request.Request(  # noqa: S310
+        SURREAL_URL,
+        data=query.encode(),
+        headers={
+            "surreal-ns": "cohezion",
+            "surreal-db": "main",
+            "Content-Type": "text/plain",
+            "Authorization": "Basic " + base64.b64encode(b"root:root").decode(),
+        },
+    )
     with urllib.request.urlopen(req, timeout=15) as r:  # noqa: S310
         return json.load(r)[0].get("result", [])
 
 
 def _infer(prompt: str, system_prompt: str, timeout: int = 90) -> str:
-    body = {"model": MODEL, "temperature": 0.0, "max_tokens": 512,
-            "messages": [{"role": "system", "content": system_prompt},
-                         {"role": "user", "content": prompt}]}
-    req = urllib.request.Request(
-        LEMONADE_URL, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    body = {
+        "model": MODEL,
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ],
+    }
+    req = urllib.request.Request(  # noqa: S310
+        LEMONADE_URL, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"}
+    )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
             d = json.load(r)
-        return (d["choices"][0]["message"].get("content") or "")
+        return d["choices"][0]["message"].get("content") or ""
     except Exception as exc:
         return f"[infer-error:{str(exc)[:60]}]"
 
@@ -88,9 +106,14 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=200)
     args = ap.parse_args()
 
-    fixtures = _surreal(f"SELECT skill_name, input, expected_output FROM golden_fixture LIMIT {args.limit};")
+    fixtures = _surreal(
+        f"SELECT skill_name, input, expected_output FROM golden_fixture LIMIT {args.limit};"
+    )
     if not fixtures:
-        print("held_out_fitness: no golden_fixtures found (populate the held-out set first)", file=sys.stderr)
+        print(
+            "held_out_fitness: no golden_fixtures found (populate the held-out set first)",
+            file=sys.stderr,
+        )
         return 2
 
     results = []
@@ -103,14 +126,21 @@ def main() -> int:
     passed = sum(1 for r in results if r["passed"])
     total = len(results)
     rate = passed / total if total else 0.0
-    payload = {"model": MODEL, "total": total, "passed": passed, "pass_rate": round(rate, 4),
-               "results": results}
+    payload = {
+        "model": MODEL,
+        "total": total,
+        "passed": passed,
+        "pass_rate": round(rate, 4),
+        "results": results,
+    }
     if args.json:
         print(json.dumps(payload))
     else:
         print(f"=== held-out fitness (golden_fixture) — model {MODEL} ===")
         for r in results:
-            print(f"  {'✓' if r['passed'] else '✗'} [{r['skill']:24}] expects: {r['expected'][:40]}")
+            print(
+                f"  {'✓' if r['passed'] else '✗'} [{r['skill']:24}] expects: {r['expected'][:40]}"
+            )
         print(f"\nPASS-RATE: {passed}/{total} = {rate:.1%}   (the loop's external true-north)")
     return 0
 

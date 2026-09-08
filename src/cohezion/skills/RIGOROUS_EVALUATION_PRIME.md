@@ -25,7 +25,7 @@ Auditing AI agents through objective, physics-grounded benchmarks and strict con
    def manifold_drift(trajectory: list[Point]) -> float:
        coherences = [p.coherence for p in trajectory]
        avg_coherence = sum(coherences) / len(coherences)
-       return 1.0 - avg_coherence # Higher = unstable
+       return 1.0 - avg_coherence  # Higher = unstable
    ```
 2. **Apply Draconian Filter**:
    - Assemble an Expert Domain Lattice (EDL) of diverse models.

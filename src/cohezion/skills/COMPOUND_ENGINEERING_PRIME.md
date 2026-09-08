@@ -55,7 +55,7 @@ Verified patterns from multi-agent development sessions. These were discovered b
 ### Agent Communication (Deferred Tool Pattern)
 `SendMessage` is **not preloaded** — calling it directly raises `InputValidationError`. Always load first:
 ```python
-ToolSearch(query="select:SendMessage")   # Step 1: loads schema
+ToolSearch(query="select:SendMessage")  # Step 1: loads schema
 SendMessage(to="<name>", message="...")  # Step 2: now callable
 ```
 Fallback when `ToolSearch` is unavailable (e.g. `code-reviewer` agent type): write structured report to `~/vaults/cohezion-vault/reports/YYYYMMDD-<slug>.md` and confirm path. Never loop retrying `SendMessage` without loading it.

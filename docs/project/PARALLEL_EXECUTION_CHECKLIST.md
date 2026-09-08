@@ -136,6 +136,7 @@ uv run python src/cohezion/swarm/lemonade_model_enhancer.py
 ```python
 # Should work
 from cohezion.swarm.unified_thinker import UnifiedThinker
+
 thinker = UnifiedThinker()
 result = thinker.think(test_input)
 assert result.embedding.shape == (512,)
@@ -155,6 +156,7 @@ assert result.embedding.shape == (512,)
 ```python
 # Should work
 from cohezion.swarm.parser_v3 import ProductionParser
+
 parser = ProductionParser()
 accuracy = parser.test_accuracy(test_data)
 assert accuracy >= 0.95
@@ -188,6 +190,7 @@ assert accuracy >= 0.95
 ```python
 # Should stabilize
 from cohezion.swarm.triune_integration import TriuneAGI
+
 agi = TriuneAGI()
 for i in range(100):
     agi.recursive_step()
@@ -208,6 +211,7 @@ for i in range(100):
 ```python
 # Should have profiles
 from cohezion.swarm.performance_profiler import ModelPerformanceProfiler
+
 profiler = ModelPerformanceProfiler()
 assert len(profiler.performance_db) >= 50
 ```

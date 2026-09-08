@@ -16,6 +16,7 @@ app = marimo.App(width="medium", app_title="Cohezion Compound Loop")
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -41,9 +42,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    n_cycles = mo.ui.slider(
-        10, 200, step=10, value=50, label="Simulation cycles"
-    )
+    n_cycles = mo.ui.slider(10, 200, step=10, value=50, label="Simulation cycles")
     seed_val = mo.ui.slider(0, 99, step=1, value=42, label="Random seed")
     mo.hstack([n_cycles, seed_val], justify="start")
     return n_cycles, seed_val
@@ -75,8 +74,10 @@ def _(n_cycles, seed_val):
         quality.append(max(0.0, min(1.0, q)))
 
     # Cache hit rate ramps up as the semantic cache warms
-    cache_hits = [min(0.95, 0.1 + 0.85 * (1 - math.exp(-i / (n * 0.3))) +
-                      random.gauss(0, 0.02)) for i in range(n)]
+    cache_hits = [
+        min(0.95, 0.1 + 0.85 * (1 - math.exp(-i / (n * 0.3))) + random.gauss(0, 0.02))
+        for i in range(n)
+    ]
 
     # Latency: NPU fast (24ms), iGPU medium (200ms), CPU slow (800ms)
     tier_weights = [(0.7, 24), (0.2, 200), (0.1, 800)]
@@ -91,8 +92,7 @@ def _(n_cycles, seed_val):
                 break
 
     # Skill refinement confidence (increases as SkillRefiner accumulates data)
-    confidence = [min(0.95, 0.4 + 0.55 * (i / n) + random.gauss(0, 0.03))
-                  for i in range(n)]
+    confidence = [min(0.95, 0.4 + 0.55 * (i / n) + random.gauss(0, 0.03)) for i in range(n)]
 
     return cache_hits, confidence, cycles, latency_ms, quality
 
@@ -117,7 +117,8 @@ def _(cache_hits, chart_type, confidence, cycles, latency_ms, mo, quality):
 
     if sel == "All":
         fig = make_subplots(
-            rows=2, cols=2,
+            rows=2,
+            cols=2,
             subplot_titles=(
                 "Quality Score (HIHO target = 0.5)",
                 "Semantic Cache Hit Rate",
@@ -126,52 +127,88 @@ def _(cache_hits, chart_type, confidence, cycles, latency_ms, mo, quality):
             ),
         )
         fig.add_trace(
-            go.Scatter(x=cycles, y=quality, mode="lines", name="quality",
-                       line=dict(color="#4C78A8")),
-            row=1, col=1,
+            go.Scatter(
+                x=cycles, y=quality, mode="lines", name="quality", line=dict(color="#4C78A8")
+            ),
+            row=1,
+            col=1,
         )
-        fig.add_hline(y=0.5, line_dash="dash", line_color="orange",
-                      annotation_text="HIHO equilibrium", row=1, col=1)
-        fig.add_trace(
-            go.Scatter(x=cycles, y=cache_hits, mode="lines", name="cache",
-                       line=dict(color="#72B7B2")),
-            row=1, col=2,
-        )
-        fig.add_trace(
-            go.Scatter(x=cycles, y=latency_ms, mode="markers", name="latency",
-                       marker=dict(color="#F58518", size=4)),
-            row=2, col=1,
+        fig.add_hline(
+            y=0.5,
+            line_dash="dash",
+            line_color="orange",
+            annotation_text="HIHO equilibrium",
+            row=1,
+            col=1,
         )
         fig.add_trace(
-            go.Scatter(x=cycles, y=confidence, mode="lines", name="confidence",
-                       line=dict(color="#E45756")),
-            row=2, col=2,
+            go.Scatter(
+                x=cycles, y=cache_hits, mode="lines", name="cache", line=dict(color="#72B7B2")
+            ),
+            row=1,
+            col=2,
         )
-        fig.update_layout(height=500, showlegend=False,
-                          title_text="Compound Loop Metrics Dashboard")
+        fig.add_trace(
+            go.Scatter(
+                x=cycles,
+                y=latency_ms,
+                mode="markers",
+                name="latency",
+                marker=dict(color="#F58518", size=4),
+            ),
+            row=2,
+            col=1,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=cycles, y=confidence, mode="lines", name="confidence", line=dict(color="#E45756")
+            ),
+            row=2,
+            col=2,
+        )
+        fig.update_layout(
+            height=500, showlegend=False, title_text="Compound Loop Metrics Dashboard"
+        )
     elif sel == "Quality Score":
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=cycles, y=quality, mode="lines+markers",
-                                 name="quality", line=dict(color="#4C78A8")))
-        fig.add_hline(y=0.5, line_dash="dash", line_color="orange",
-                      annotation_text="HIHO equilibrium (0.50)")
-        fig.update_layout(title="Quality Score", xaxis_title="Cycle",
-                          yaxis_title="Score", height=400)
+        fig.add_trace(
+            go.Scatter(
+                x=cycles,
+                y=quality,
+                mode="lines+markers",
+                name="quality",
+                line=dict(color="#4C78A8"),
+            )
+        )
+        fig.add_hline(
+            y=0.5, line_dash="dash", line_color="orange", annotation_text="HIHO equilibrium (0.50)"
+        )
+        fig.update_layout(
+            title="Quality Score", xaxis_title="Cycle", yaxis_title="Score", height=400
+        )
     elif sel == "Cache Hit Rate":
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=cycles, y=cache_hits, mode="lines",
-                                 fill="tozeroy", line=dict(color="#72B7B2")))
-        fig.update_layout(title="Semantic Cache Hit Rate", xaxis_title="Cycle",
-                          yaxis_title="Hit Rate", yaxis_range=[0, 1], height=400)
+        fig.add_trace(
+            go.Scatter(
+                x=cycles, y=cache_hits, mode="lines", fill="tozeroy", line=dict(color="#72B7B2")
+            )
+        )
+        fig.update_layout(
+            title="Semantic Cache Hit Rate",
+            xaxis_title="Cycle",
+            yaxis_title="Hit Rate",
+            yaxis_range=[0, 1],
+            height=400,
+        )
     elif sel == "Latency (ms)":
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=cycles, y=latency_ms, mode="markers",
-                                 marker=dict(color="#F58518", size=5)))
+        fig.add_trace(
+            go.Scatter(x=cycles, y=latency_ms, mode="markers", marker=dict(color="#F58518", size=5))
+        )
         fig.add_hline(y=24, line_dash="dot", annotation_text="NPU (24ms)")
         fig.add_hline(y=200, line_dash="dot", annotation_text="iGPU (200ms)")
         fig.add_hline(y=800, line_dash="dot", annotation_text="CPU (800ms)")
-        fig.update_layout(title="Tier Latency", xaxis_title="Cycle",
-                          yaxis_title="ms", height=400)
+        fig.update_layout(title="Tier Latency", xaxis_title="Cycle", yaxis_title="ms", height=400)
     else:
         fig = go.Figure()
 
@@ -208,6 +245,7 @@ def _(cache_hits, confidence, latency_ms, mo, quality):
 @app.cell
 def _(mo):
     import os
+
     _default_url = os.getenv("LEMONADE_URL", "http://localhost:13305")
     loop_query = mo.ui.text_area(
         placeholder="Ask about HIHO equilibrium, cache hit rates, tier routing...",
@@ -221,12 +259,14 @@ def _(mo):
     )
     loop_run = mo.ui.run_button(label="Ask Agent ▶")
     loop_url = mo.ui.text(value=_default_url, label="Lemonade URL")
-    mo.vstack([
-        mo.md("## Live Agent — Ask About the Compound Loop"),
-        mo.hstack([loop_url, loop_model], justify="start"),
-        loop_query,
-        loop_run,
-    ])
+    mo.vstack(
+        [
+            mo.md("## Live Agent — Ask About the Compound Loop"),
+            mo.hstack([loop_url, loop_model], justify="start"),
+            loop_query,
+            loop_run,
+        ]
+    )
     return loop_model, loop_query, loop_run, loop_url
 
 
@@ -243,11 +283,14 @@ def _(loop_model, loop_query, loop_run, loop_url, mo):
                 json={
                     "model": model,
                     "messages": [
-                        {"role": "system", "content": (
-                            "You are an expert in Cohezion compound AI engineering loops. "
-                            "Answer concisely with reference to HIHO (Half-In-Half-Out) "
-                            "equilibrium, semantic cache, and tiered AMD inference."
-                        )},
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are an expert in Cohezion compound AI engineering loops. "
+                                "Answer concisely with reference to HIHO (Half-In-Half-Out) "
+                                "equilibrium, semantic cache, and tiered AMD inference."
+                            ),
+                        },
                         {"role": "user", "content": q},
                     ],
                     "max_tokens": 600,

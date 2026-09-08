@@ -67,10 +67,10 @@ async def main():
     prompt = f"""
     You are an AUTONOMIC_QUALITY_GUARD_PRIME specialist.
     Perform a 'Deep Audit' on the following recent automation outputs.
-    
+
     Outputs:
     {chr(10).join(recent_outputs)}
-    
+
     Instruction:
     - Check for 'Semantic Drift': Do these outputs align with our core Cohezion principles (Compound Engineering, HIHO Stability)?
     - Identify any 'Hallucinations' or logical inconsistencies.

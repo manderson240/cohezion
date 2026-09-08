@@ -36,7 +36,7 @@ Provide detailed architectural blueprints for:
 3. Verification & Search: Beam search / MCTS / AutoHarness verification against training invariants.
 4. Kaggle Hardware Utilization: Dual-GPU (2xT4/L4) parallel reasoning + CPU invariant filtering under 9h budget.
 
-Format as a concrete, highly actionable specification."""
+Format as a concrete, highly actionable specification.""",
     },
     {
         "model": "qwen3.5:397b-cloud",
@@ -50,7 +50,7 @@ Provide detailed architectural blueprints for:
 3. Turn-Time Budget Allocation: Executing within ~1.0s per turn on Kaggle evaluation harness.
 4. Feature Representation: Card embedding, bench state, energy attachment vectors, prize delta tracking.
 
-Format as a concrete, highly actionable specification."""
+Format as a concrete, highly actionable specification.""",
     },
     {
         "model": "glm-5.2:cloud",
@@ -65,15 +65,16 @@ What are the state-of-the-art winning architectures for:
    - Cell segmentation: 3D U-Net / StarDist 3D / Cellpose 3D.
    - Temporal Tracking: Graph Neural Network (GNN) / Linear Assignment with Motion Prior / Hungarian algorithm on 3D centroids + lineage trees.
 
-Format as a concrete, highly actionable specification."""
-    }
+Format as a concrete, highly actionable specification.""",
+    },
 ]
+
 
 async def query_cloud_architect(client: httpx.AsyncClient, q: dict) -> dict:
     model = q["model"]
     domain = q["domain"]
     prompt = q["prompt"]
-    
+
     print(f"▶ Consulting `{model}` on architecture for [{domain}]...")
     t0 = time.perf_counter()
     try:
@@ -83,9 +84,9 @@ async def query_cloud_architect(client: httpx.AsyncClient, q: dict) -> dict:
                 "model": model,
                 "prompt": prompt,
                 "stream": False,
-                "options": {"temperature": 0.2, "num_predict": 4096}
+                "options": {"temperature": 0.2, "num_predict": 4096},
             },
-            timeout=240.0
+            timeout=240.0,
         )
         dt = time.perf_counter() - t0
         if resp.status_code == 200:
@@ -94,11 +95,30 @@ async def query_cloud_architect(client: httpx.AsyncClient, q: dict) -> dict:
             thinking = data.get("thinking", "").strip()
             full_text = content if content else (thinking[-2000:] if thinking else "Empty Response")
             print(f"   ✓ Received blueprint from `{model}` in {dt:.2f}s ({len(full_text)} chars)")
-            return {"model": model, "domain": domain, "content": full_text, "duration_s": dt, "status": "SUCCESS"}
+            return {
+                "model": model,
+                "domain": domain,
+                "content": full_text,
+                "duration_s": dt,
+                "status": "SUCCESS",
+            }
         else:
-            return {"model": model, "domain": domain, "content": f"HTTP {resp.status_code}: {resp.text}", "duration_s": dt, "status": "ERROR"}
+            return {
+                "model": model,
+                "domain": domain,
+                "content": f"HTTP {resp.status_code}: {resp.text}",
+                "duration_s": dt,
+                "status": "ERROR",
+            }
     except Exception as e:
-        return {"model": model, "domain": domain, "content": f"Connection notice: {e}", "duration_s": dt, "status": "ERROR"}
+        return {
+            "model": model,
+            "domain": domain,
+            "content": f"Connection notice: {e}",
+            "duration_s": dt,
+            "status": "ERROR",
+        }
+
 
 async def run_consultation():
     print("=" * 90)
@@ -114,7 +134,7 @@ async def run_consultation():
 
     md_content = f"""# Expert Competition Architectures & Fine-Tuning Blueprints
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Auditors:** `deepseek-v4-pro:cloud`, `qwen3.5:397b-cloud`, `glm-5.2:cloud`  
 **Focus:** ARC-AGI-2/3, Pokémon TCG, RSNA Knee Detection, and Biohub 3D Cell Tracking.
 
@@ -122,10 +142,10 @@ async def run_consultation():
 
 """
     for r in results:
-        md_content += f"""# 🏆 {r['domain']}
-**Architect:** `{r['model']}` (Generation Time: {r['duration_s']:.2f}s | Status: {r['status']})
+        md_content += f"""# 🏆 {r["domain"]}
+**Architect:** `{r["model"]}` (Generation Time: {r["duration_s"]:.2f}s | Status: {r["status"]})
 
-{r['content']}
+{r["content"]}
 
 ---
 
@@ -145,22 +165,25 @@ async def run_consultation():
         payload={
             "audit": "Expert Competition Architecture Consultation Complete",
             "report_path": str(doc_path),
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(ev)
 
-    persist_item({
-        "id": "kaggle_competition_architectures",
-        "title": "Kaggle Competition Architecture Blueprints Synthesized",
-        "status": "done",
-        "priority": "high",
-        "source": "AntigravityCompetitionArchitect",
-        "category": "competition_strategy",
-        "details": "Synthesized targeted blueprints for ARC Prize, Pokémon TCG, RSNA Knee, and Biohub Cell Tracking from Tier 2 Cloud fleet.",
-    })
+    persist_item(
+        {
+            "id": "kaggle_competition_architectures",
+            "title": "Kaggle Competition Architecture Blueprints Synthesized",
+            "status": "done",
+            "priority": "high",
+            "source": "AntigravityCompetitionArchitect",
+            "category": "competition_strategy",
+            "details": "Synthesized targeted blueprints for ARC Prize, Pokémon TCG, RSNA Knee, and Biohub Cell Tracking from Tier 2 Cloud fleet.",
+        }
+    )
     print("✓ Persisted architecture cards to SurrealDB `event_log` and Obsidian Kanban")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(run_consultation())

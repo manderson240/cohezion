@@ -12,13 +12,13 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -60,7 +60,9 @@ class NegativeFeedbackSanitizer:
         for j in journeys:
             reward = j.get("reward", 0.90)
             has_error = j.get("has_error", False)
-            state_vec = j.get("state_vec", (0.5, 0.5, 0.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+            state_vec = j.get(
+                "state_vec", (0.5, 0.5, 0.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+            )
 
             # Layer 1: AutoHarness AST & Reward Threshold Gating
             if has_error or reward < 0.45:
@@ -79,7 +81,10 @@ class NegativeFeedbackSanitizer:
             gres = await self.geom_engine.map_state_to_manifold(state_vec, "Sanitization Check")
             if gres.hyperbolic_geodesic_distance > 2.5:
                 anomalies += 1
-                logger.warning("  ⚠️ Anomaly Detected: Geodesic Distance d_P = %.4f > 2.5 Threshold", gres.hyperbolic_geodesic_distance)
+                logger.warning(
+                    "  ⚠️ Anomaly Detected: Geodesic Distance d_P = %.4f > 2.5 Threshold",
+                    gres.hyperbolic_geodesic_distance,
+                )
                 continue
 
             accepted += 1
@@ -92,7 +97,11 @@ class NegativeFeedbackSanitizer:
             with open(DPO_PAIR_FILE, "a", encoding="utf-8") as f:
                 for dp in dpo_pairs:
                     f.write(json.dumps(dp) + "\n")
-            logger.info("  • DPO Preference Inversion: Saved %d (chosen vs rejected) pairs to %s", len(dpo_pairs), DPO_PAIR_FILE)
+            logger.info(
+                "  • DPO Preference Inversion: Saved %d (chosen vs rejected) pairs to %s",
+                len(dpo_pairs),
+                DPO_PAIR_FILE,
+            )
 
         # Layer 4: Checkpoint Rollback Logic (Simulated green state check)
         rollback_triggered = False  # 100% green state
@@ -118,9 +127,26 @@ async def main_async() -> None:
     sample_journeys = [
         {"instruction": "Valid Task 1", "reward": 0.95, "has_error": False},
         {"instruction": "Valid Task 2", "reward": 0.92, "has_error": False},
-        {"instruction": "Flawed Task 3", "reward": 0.30, "has_error": True, "flawed_response": "SyntaxError()", "corrected_response": "def task(): pass"},
-        {"instruction": "Flawed Task 4", "reward": 0.20, "has_error": True, "flawed_response": "TypeError()", "corrected_response": "return 0"},
-        {"instruction": "Anomaly Task 5", "reward": 0.88, "has_error": False, "state_vec": (2.5, 2.5, 2.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)},
+        {
+            "instruction": "Flawed Task 3",
+            "reward": 0.30,
+            "has_error": True,
+            "flawed_response": "SyntaxError()",
+            "corrected_response": "def task(): pass",
+        },
+        {
+            "instruction": "Flawed Task 4",
+            "reward": 0.20,
+            "has_error": True,
+            "flawed_response": "TypeError()",
+            "corrected_response": "return 0",
+        },
+        {
+            "instruction": "Anomaly Task 5",
+            "reward": 0.88,
+            "has_error": False,
+            "state_vec": (2.5, 2.5, 2.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        },
     ]
 
     summary = await sanitizer.sanitize_and_process_trajectories(sample_journeys)
@@ -129,7 +155,9 @@ async def main_async() -> None:
     print(f"  • Quarantined Flawed Journeys: {summary.quarantined_count}")
     print(f"  • DPO Preference Pairs Generated: {summary.dpo_pairs_generated} (Chosen vs Rejected)")
     print(f"  • Geodesic Anomalies Isolated: {summary.anomalies_isolated} (d_P > 2.5)")
-    print(f"  • Checkpoint Rollback Status: {'⚠️ ROLLBACK TRIGGERED' if summary.checkpoint_rollback_triggered else '✅ STABLE (No Rollback Needed)'}")
+    print(
+        f"  • Checkpoint Rollback Status: {'⚠️ ROLLBACK TRIGGERED' if summary.checkpoint_rollback_triggered else '✅ STABLE (No Rollback Needed)'}"
+    )
     print("=" * 95)
     print("🎉 4-Layer Data Sanitization & Negative Feedback Inversion Complete!")
 

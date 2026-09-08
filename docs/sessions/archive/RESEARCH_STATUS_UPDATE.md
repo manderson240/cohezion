@@ -46,9 +46,12 @@ Out = torch.empty(m, n, dtype=torch.bfloat16, device="cuda")
 
 # Direct blockscale call
 C = aiter.gemm_a4w4_blockscale(
-    A_q, B_shuffle, A_scale_sh, B_scale_sh,
-    Out,      # Pre-allocated
-    splitK=0, # Tuned parameter
+    A_q,
+    B_shuffle,
+    A_scale_sh,
+    B_scale_sh,
+    Out,  # Pre-allocated
+    splitK=0,  # Tuned parameter
 )
 ```
 

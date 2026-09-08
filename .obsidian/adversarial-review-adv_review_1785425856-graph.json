@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "adv_rev_adv_review_1785425856",
+    "universe_id": "universe-flume-adv-review",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-30T11:39:53"
+  },
+  "nodes": [
+    {
+      "id": "evo_adv_rev_adv_review_1785425856_step_1",
+      "label": "EVO Step 1: Dispatched Security & Vulnerab",
+      "agent_id": "adv_rev_adv_review_1785425856",
+      "topology": "trivial",
+      "confidence": 0.16198156735773764,
+      "coherence": 0.95,
+      "state_12d": [
+        1.1184,
+        -0.3986,
+        -0.4749,
+        -0.8067,
+        -0.3001,
+        1.7249,
+        -0.5158,
+        0.6235,
+        1.2339,
+        -0.2903,
+        -0.5061,
+        0.1687
+      ],
+      "color": "#78909c",
+      "size": 6.64792626943095
+    },
+    {
+      "id": "evo_adv_rev_adv_review_1785425856_step_2",
+      "label": "EVO Step 2: Dispatched Systems Concurrency",
+      "agent_id": "adv_rev_adv_review_1785425856",
+      "topology": "instanton",
+      "confidence": 0.59226159623222,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.3049,
+        -0.8419,
+        0.7527,
+        -1.1464,
+        0.4747,
+        -1.214,
+        -1.2532,
+        -0.5292,
+        0.8237,
+        -0.6459,
+        1.3481,
+        0.0141
+      ],
+      "color": "#ff0055",
+      "size": 8.369046384928879
+    },
+    {
+      "id": "evo_adv_rev_adv_review_1785425856_step_3",
+      "label": "EVO Step 3: Dispatched Hardware & Performa",
+      "agent_id": "adv_rev_adv_review_1785425856",
+      "topology": "instanton",
+      "confidence": 0.6643594104651296,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.1669,
+        -1.6593,
+        1.4118,
+        -0.7499,
+        -0.9133,
+        -0.7002,
+        2.4367,
+        -0.5234,
+        0.5148,
+        -0.602,
+        0.3293,
+        -0.8819
+      ],
+      "color": "#ff0055",
+      "size": 8.657437641860518
+    },
+    {
+      "id": "evo_adv_rev_adv_review_1785425856_step_4",
+      "label": "EVO Step 4: Aggregated multiperspective fi",
+      "agent_id": "adv_rev_adv_review_1785425856",
+      "topology": "soliton",
+      "confidence": 0.6448872786500942,
+      "coherence": 0.85,
+      "state_12d": [
+        1.0268,
+        2.336,
+        0.8591,
+        0.9659,
+        2.2079,
+        0.4626,
+        -0.8169,
+        -0.7621,
+        1.0748,
+        0.1252,
+        -0.1792,
+        -0.6755
+      ],
+      "color": "#00e5ff",
+      "size": 8.579549114600377
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_adv_rev_adv_review_1785425856_step_1",
+      "target": "evo_adv_rev_adv_review_1785425856_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_adv_rev_adv_review_1785425856_step_2",
+      "target": "evo_adv_rev_adv_review_1785425856_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_adv_rev_adv_review_1785425856_step_3",
+      "target": "evo_adv_rev_adv_review_1785425856_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

@@ -12,12 +12,10 @@ Formulation:
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass
-from typing import Any
 
-from cohezion.proactive.counterfactual_gym import CounterfactualProactiveGym, CounterfactualRollout
-from cohezion.proactive.predictor import GoalPrediction, ProactiveGoalPredictor
+from cohezion.proactive.counterfactual_gym import CounterfactualProactiveGym
+from cohezion.proactive.predictor import ProactiveGoalPredictor
 from cohezion.proactive.sensing import ActivitySensingGym, UserEvent
 
 

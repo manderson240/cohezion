@@ -47,13 +47,14 @@ Provide a comprehensive, high-leverage tactical master plan:
 
 Synthesize concrete code architectures, invariant formulas, and execution priorities."""
 
+
 async def query_ollama_cloud(model: str, role: str) -> str:
     print(f"▶ Querying Ollama Cloud Model: `{model}` ({role})...")
     payload = {
         "model": model,
         "prompt": CONSULTATION_PROMPT,
         "stream": False,
-        "options": {"temperature": 0.2, "top_p": 0.9}
+        "options": {"temperature": 0.2, "top_p": 0.9},
     }
     try:
         async with httpx.AsyncClient(timeout=90.0) as client:
@@ -67,6 +68,7 @@ async def query_ollama_cloud(model: str, role: str) -> str:
     except Exception as e:
         print(f"⚠️ Ollama Cloud query to {model} failed: {e}")
     return f"[Consultation with {model} unavailable]"
+
 
 async def query_local_silicon() -> str:
     print("▶ Querying Local Strix Halo Silicon (NPU/iGPU)...")
@@ -83,8 +85,8 @@ async def query_local_silicon() -> str:
                         "model": "gpt-oss-20b-mxfp4-GGUF",
                         "messages": [{"role": "user", "content": CONSULTATION_PROMPT}],
                         "max_tokens": 1200,
-                        "temperature": 0.2
-                    }
+                        "temperature": 0.2,
+                    },
                 )
                 if res.status_code == 200:
                     data = res.json()
@@ -92,6 +94,7 @@ async def query_local_silicon() -> str:
     except Exception as e:
         print(f"⚠️ Local Silicon consultation notice: {e}")
     return "[Local silicon query yielded to cloud]"
+
 
 async def main():
     print("=" * 115)
@@ -157,22 +160,25 @@ async def main():
             "deepseek_words": len(deepseek_resp.split()),
             "qwen_words": len(qwen_resp.split()),
             "glm_words": len(glm_resp.split()),
-            "status": "FRONTIER_CONSULTATION_COMPLETE"
-        }
+            "status": "FRONTIER_CONSULTATION_COMPLETE",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "frontier_kaggle_silicon_consultation",
-        "title": "Bleeding-Edge Multi-Fleet Kaggle Strategy & Silicon Optimization Report",
-        "status": "done",
-        "priority": "highest",
-        "source": "frontier_consultation_director",
-        "category": "strategic_research",
-        "details": f"Generated multi-perspective master report synthesizing DeepSeek-V4 Pro, Qwen 397B, GLM-5.2, and Strix Halo local silicon into `{REPORT_PATH}`.",
-    })
+    persist_item(
+        {
+            "id": "frontier_kaggle_silicon_consultation",
+            "title": "Bleeding-Edge Multi-Fleet Kaggle Strategy & Silicon Optimization Report",
+            "status": "done",
+            "priority": "highest",
+            "source": "frontier_consultation_director",
+            "category": "strategic_research",
+            "details": f"Generated multi-perspective master report synthesizing DeepSeek-V4 Pro, Qwen 397B, GLM-5.2, and Strix Halo local silicon into `{REPORT_PATH}`.",
+        }
+    )
     print("✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
     print("=" * 115)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

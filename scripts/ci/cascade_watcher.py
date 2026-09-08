@@ -38,7 +38,7 @@ BRANCH_MAP = {
 
 
 def gh(*args):
-    r = subprocess.run(["gh"] + list(args), capture_output=True, text=True)
+    r = subprocess.run(["gh", *list(args)], capture_output=True, text=True)
     return r.stdout.strip()
 
 

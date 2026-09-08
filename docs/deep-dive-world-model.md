@@ -127,9 +127,7 @@ There's no package-level `__all__` or re-export. If you want a canonical `from c
 - **Three coupled losses** (line 316-320):
   ```python
   total_loss = (
-      prediction_loss
-      + self.sigreg_weight * sigreg_loss
-      + self.regularizer_lambda * regularizer_loss
+      prediction_loss + self.sigreg_weight * sigreg_loss + self.regularizer_lambda * regularizer_loss
   )
   ```
   Default weights: `sigreg_weight=0.1`, `regularizer_lambda=0.1`. Setting `regularizer_lambda=0` returns a zero-tensor from `_compute_regularizer_loss` — the branch exists to avoid spurious gradient cost, not just for speed.

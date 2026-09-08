@@ -101,37 +101,32 @@ class NPUInferenceEngine:
 ```python
 class iGPUSimulationEngine:
     """iGPU (Vulkan) simulation module."""
-    
+
     # Input: agents (list), n_steps (int)
     # Output: evolved_agents (list)
-    def simulate_flume_batch(self, agents: list, n_steps: int) -> list:
-        ...
-    
+    def simulate_flume_batch(self, agents: list, n_steps: int) -> list: ...
+
     # Input: positions (ndarray), masses (ndarray), dt (float)
     # Output: forces (ndarray)
-    def nbody_gravity(self, positions, masses, dt) -> np.ndarray:
-        ...
-    
+    def nbody_gravity(self, positions, masses, dt) -> np.ndarray: ...
+
     # Input: b_field (ndarray), velocity (ndarray), dt (float)
     # Output: updated_b (ndarray)
-    def mhd_field_update(self, b_field, velocity, dt) -> np.ndarray:
-        ...
+    def mhd_field_update(self, b_field, velocity, dt) -> np.ndarray: ...
 ```
 
 **Module: CPUOrchestrationEngine**
 ```python
 class CPUOrchestrationEngine:
     """CPU (Zen 5) orchestration module."""
-    
+
     # Input: phase (ExperimentPhase), previous_results (dict)
     # Output: tasks (list[ComputeTask])
-    def schedule_phase(self, phase, previous_results) -> list:
-        ...
-    
+    def schedule_phase(self, phase, previous_results) -> list: ...
+
     # Input: phase_results (list[ComputeTask])
     # Output: aggregated (dict)
-    def aggregate_results(self, phase_results) -> dict:
-        ...
+    def aggregate_results(self, phase_results) -> dict: ...
 ```
 
 ### Level 5: Unit Design
@@ -141,11 +136,11 @@ class CPUOrchestrationEngine:
 ```python
 @dataclass
 class ComputeTask:
-    task_id: str      # Format: "P{phase_id}_{compute_unit}_{sequence}"
-    task_type: str    # Enum: "npu", "igpu", "cpu"
-    payload: dict     # Serialization required
-    priority: int     # 0 (high) to 9 (low)
-    created_at: float # time.time()
+    task_id: str  # Format: "P{phase_id}_{compute_unit}_{sequence}"
+    task_type: str  # Enum: "npu", "igpu", "cpu"
+    payload: dict  # Serialization required
+    priority: int  # 0 (high) to 9 (low)
+    created_at: float  # time.time()
     started_at: Optional[float]
     completed_at: Optional[float]
     result: Any
@@ -156,13 +151,13 @@ class ComputeTask:
 ```python
 @dataclass
 class ExperimentPhase:
-    phase_id: int           # 0-5 for phase connections
-    name: str               # Human-readable
+    phase_id: int  # 0-5 for phase connections
+    name: str  # Human-readable
     npu_workload: Callable  # Type: (dict) -> dict
-    igpu_workload: Callable # Type: (dict) -> list
+    igpu_workload: Callable  # Type: (dict) -> list
     cpu_workload: Callable  # Type: (dict) -> dict
-    dependencies: list[int] # Phase IDs that must complete first
-    status: str             # "pending", "running", "completed", "failed"
+    dependencies: list[int]  # Phase IDs that must complete first
+    status: str  # "pending", "running", "completed", "failed"
 ```
 
 ---

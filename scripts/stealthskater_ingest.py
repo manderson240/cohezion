@@ -298,11 +298,11 @@ def main() -> None:
     intro_html = fetch_page(f"{BASE_URL}/Intro.htm")
     all_links = re.findall(r'href=["\']([^"\'#?]+\.htm[l]?)["\'\s>]', intro_html, re.IGNORECASE)
     pages = sorted(
-        set(
+        {
             l.strip()
             for l in all_links
             if not l.startswith("http") and "/" not in l.strip() and l.strip() not in SKIP_PAGES
-        )
+        }
     )
     if args.pages:
         pages = pages[: args.pages]

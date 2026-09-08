@@ -4,7 +4,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 
 **Purpose:** Swarm orchestration and token-efficient inference.
 
-## Entry points (74 modules)
+## Entry points (78 modules)
 
 | Module | Key class(es) | LOC |
 |---|---|---|
@@ -43,6 +43,10 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 - `smart_router.py` — 551 LOC
 - `tip_of_spear_router.py` — 563 LOC
 - `vmodel_engineering.py` — 694 LOC
+- `graph_systems_vmodel_engine.py` — 141 LOC
+- `markov_stream_router.py` — 57 LOC
+- `master_ascension_orchestrator.py` — 204 LOC
+- `oo_agents.py` — 142 LOC
 
 ## Invariants / notes referencing this package (from harness.md / root CLAUDE.md)
 
@@ -53,4 +57,4 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 - ### ⚡ Execution Priority (Sessions 56+)
 - ### ⚡ Development Agent Routing
 
-_Auto-generated 2026-07-22 (gen_nested_claude.py): facts deterministic (ast/grep), Purpose from __init__/module docstrings. Validated by scripts/ci/doc_code_consistency.py. Hand-enrich as needed._
+_Seeded 2026-07-22, HAND-MAINTAINED since — there is no generator. The original note credited a `gen_nested_claude.py` that exists in no commit and nowhere on disk; corrected 2026-07-31 so nobody hunts for it or assumes a regeneration will clear drift. Update this file in the same commit as the code. Guarded by `scripts/ci/doc_code_consistency.py`: E1/E2 that every path and module reference resolves, E5 that the declared module count matches the package. The module table below is a deliberate top-N excerpt, not the full 74 — E5 checks the declared count against the package, never against the table._

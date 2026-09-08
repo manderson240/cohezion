@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler, ZKProof
@@ -39,7 +38,9 @@ class OuroborosEngine:
     def __init__(self) -> None:
         self.policy_engine = AutoHarnessPolicy()
 
-    def run_self_improvement_cycle(self, target_module: str = "cohezion.agi.autoharness_policy") -> OuroborosCycleResult:
+    def run_self_improvement_cycle(
+        self, target_module: str = "cohezion.agi.autoharness_policy"
+    ) -> OuroborosCycleResult:
         """Run an Ouroboros self-referential improvement loop."""
         t0 = time.perf_counter()
         cycle_id = f"ouroboros_{int(time.time())}"
@@ -48,7 +49,9 @@ class OuroborosEngine:
         mem = OOMGuard.get_memory_state()
 
         # 2. Verify Optimization Proposal via AutoHarness
-        p_res = self.policy_engine.evaluate_policy("ouroboros_patch", {"available_gb": mem.available_gb})
+        p_res = self.policy_engine.evaluate_policy(
+            "ouroboros_patch", {"available_gb": mem.available_gb}
+        )
 
         # 3. Generate ZKFV Safety Proof
         gates = ZKFVCompiler.compile_ast_to_gates("grid_bounds")

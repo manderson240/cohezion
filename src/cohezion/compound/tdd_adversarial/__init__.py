@@ -2,6 +2,10 @@
 
 import contextlib
 
+from cohezion.compound.tdd_adversarial.pipeline_attack_vectors import (
+    PIPELINE_ATTACK_VECTORS as PIPELINE_ATTACK_VECTORS,
+)
+
 
 with contextlib.suppress(Exception):
     from cohezion.compound.tdd_adversarial.adversarial_review import (

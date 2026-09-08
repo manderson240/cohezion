@@ -10,10 +10,8 @@ Formulas:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import math
-import time
 
 from cohezion.agi.dogfood_master_pipeline import MASTER_CORPUS_FILE
 
@@ -60,7 +58,9 @@ def main() -> None:
 
     print(f"  • Total Fine-Tuning Corpus Size: {total_pairs:,} Instruction-Response Pairs")
     print(f"  • AutoHarness AST Verification Rate: {signal_pct:.2f}% (0% Syntax Errors)")
-    print(f"  • ZK-FV Cryptographic Proof Rate: {(zkfv_verified_count/total_pairs)*100.0:.2f}% (100% Formal Integrity)")
+    print(
+        f"  • ZK-FV Cryptographic Proof Rate: {(zkfv_verified_count / total_pairs) * 100.0:.2f}% (100% Formal Integrity)"
+    )
     print(f"  • Average Shannon Information Entropy: {avg_entropy:.4f} bits/char")
     print(f"  • Noise Floor: {noise_pct:.4f}% (Filtered out by 4-Tier V&V Gating)")
     print(f"  • CALCULATED DATASET SNR: +{snr_db:.2f} dB (EXCEPTIONAL HIGH SIGNAL)")

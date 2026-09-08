@@ -43,7 +43,7 @@ from cohezion.compound.telemetry import CompoundTelemetry
 
 telemetry = CompoundTelemetry()
 for i in range(10):
-    with telemetry.span('validation', request_id=f'sv-{i}', skill_name='validator'):
+    with telemetry.span("validation", request_id=f"sv-{i}", skill_name="validator"):
         # Run actual skill
         run_skill_validator()
 ```

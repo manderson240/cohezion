@@ -165,7 +165,7 @@ def lemonade_chat(
     # S310 suppressed on both lines: the scheme is pinned to http(s) immediately above,
     # which is exactly the check S310 asks for. Verified by
     # TestEndpointSchemePinning::test_non_http_endpoint_is_refused.
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         OMNIROUTER, data=body, headers={"Content-Type": "application/json"}
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
@@ -212,7 +212,7 @@ def digest_session(
     for _ in range(retries + 1):
         try:
             text = parse_chat_response(chat(prompt, budget))
-        except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError):
+        except (OSError, urllib.error.URLError, ValueError):
             return ""
         if is_well_formed(text):
             return text

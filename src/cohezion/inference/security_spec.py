@@ -165,7 +165,7 @@ def verify_all() -> None:
     # S2: SurrealQL injection blocked
     try:
         sanitize_for_surreal("; DROP TABLE autodqa_results --")
-        assert False, "S2: injection not raised"
+        raise AssertionError("S2: injection not raised")
     except ValueError:
         pass  # expected
     safe = sanitize_for_surreal("A normal task description with no special chars.")

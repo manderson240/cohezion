@@ -33,18 +33,21 @@ Create `src/cohezion/compound/context_policy.py` (~200 lines) that sits between 
 ```python
 class TaskProfile(Enum):
     """Task shape determines context strategy."""
-    FOCUSED = "focused"     # Single-domain, deep context (e.g., debug one module)
+
+    FOCUSED = "focused"  # Single-domain, deep context (e.g., debug one module)
     EXPLORATORY = "exploratory"  # Cross-domain, broad context (e.g., design new feature)
-    ROUTINE = "routine"     # Well-known pattern, minimal context (template match likely)
+    ROUTINE = "routine"  # Well-known pattern, minimal context (template match likely)
+
 
 @dataclass(frozen=True)
 class ContextBudget:
     """Dynamic context parameters for a single execution."""
-    flux_top_k: int          # How many FLUX blocks to fetch (breadth)
+
+    flux_top_k: int  # How many FLUX blocks to fetch (breadth)
     flux_min_relevance: float  # Relevance floor (depth filter)
     flux_sources: list[FluxSource] | None  # Which sources to query (None = all)
-    token_budget: int         # Max tokens for injected context
-    skill_overlay: bool       # Whether to load skill-specific context
+    token_budget: int  # Max tokens for injected context
+    skill_overlay: bool  # Whether to load skill-specific context
 ```
 
 The profile-to-budget mapping:
@@ -63,8 +66,12 @@ Classify the task into a TaskProfile using signals already available in the Comp
 
 ```python
 class ContextPolicy:
-    def classify_task(self, task_description: str, operation_type: str, 
-                      alignment: ExecutionAlignment | None = None) -> TaskProfile:
+    def classify_task(
+        self,
+        task_description: str,
+        operation_type: str,
+        alignment: ExecutionAlignment | None = None,
+    ) -> TaskProfile:
         """Proactive: classify task before execution starts."""
 ```
 
@@ -82,6 +89,7 @@ Two-tier reactive system:
 ```python
 def adjust_immediate(self, current: ContextBudget, signals: ContextSignals) -> ContextBudget:
     """Tier 1: Immediate adjustment for critical signals (current execution)."""
+
 
 def record_soft_signal(self, signals: ContextSignals, profile: TaskProfile) -> None:
     """Tier 2: Log soft signals for next-execution learning (vault feedback)."""
@@ -128,8 +136,13 @@ Replace the hardcoded `_FLUX_TOP_K = 3` and `_FLUX_MIN_RELEVANCE = 0.5` with val
 After task execution, log which context profile was used and whether it was effective:
 
 ```python
-def record_outcome(self, profile: TaskProfile, budget: ContextBudget,
-                   execution_success: bool, coherence_final: float) -> None:
+def record_outcome(
+    self,
+    profile: TaskProfile,
+    budget: ContextBudget,
+    execution_success: bool,
+    coherence_final: float,
+) -> None:
     """Log context strategy outcome for future refinement."""
 ```
 

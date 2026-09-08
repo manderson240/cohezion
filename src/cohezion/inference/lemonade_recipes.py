@@ -429,6 +429,50 @@ _register(
     )
 )
 
+_register(
+    ModelRecipe(
+        model_id="qwen3.6-moe-35b-a3b-FLM",
+        family="qwen",
+        variant="3.6-moe-35b-a3b-flm",
+        lane=Lane.NPU,
+        # NPU reasoning-lane owner since 2026-08-03 (fixture sweep lap 80303:
+        # 0.942 overall, 1.000 reasoning/synthesis/code roles, 0/52 unparseable,
+        # vs deepseek-r1 0.635/0.058). Content-channel-only — no <think> trap.
+        capabilities=_cap(
+            reasoning=0.90,
+            coding=0.80,
+            creativity=0.60,
+            instruction_following=0.90,
+            long_context=0.65,
+            multilingual=0.85,
+        ),
+        temperature=0.7,
+        top_p=0.8,
+        max_tokens_default=1024,
+        context_window=16384,  # usable ctx probed 2026-07-21: >=12447, <16512
+        supports_reasoning=True,
+        task_scores=_tasks(
+            reasoning=0.94,
+            code_gen=0.85,
+            math=0.90,
+            architect=0.70,
+        ),
+        system_prompts=_prompts(
+            default="You are a helpful assistant with strong reasoning capabilities.",
+            reasoning="You are a reasoning specialist. Think step-by-step and show your work.",
+            coding="You are a coding expert. Write clean, efficient, well-commented code.",
+        ),
+        metrics=_metrics(
+            # Measured lap 80303 (2026-08-03): ~9.7 TPS working prompts; trivial-prompt
+            # latency 4.1s but prefill-heavy real work is ~25x that — not estimated.
+            ttft_ms=1320.0,
+            tokens_per_sec=9.7,
+            thinking_overhead_tokens=0,
+            estimated=False,
+        ),
+    )
+)
+
 # iGPU ROCWMMA lane (13307)
 _register(
     ModelRecipe(

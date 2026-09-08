@@ -68,7 +68,7 @@ class TsunamiSimulator:
         entropies = self.physics.calculate_entropy_batch(self.latent_states)
 
         # Logic for pruning
-        coherence_scores = [np.mean(row) for row in reps]
+        [np.mean(row) for row in reps]
 
         pruned_indices = []
         for i in range(self.num_agents):

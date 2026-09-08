@@ -49,12 +49,16 @@ class TestReasoningFallback:
         A thinking model that emits a stray newline into content before exhausting its budget
         would defeat a naive truthiness check while still having the real answer in reasoning.
         """
-        out = _shim({"content": "\n  ", "reasoning_content": "bare except swallows exits"}).prompt("q")
+        out = _shim({"content": "\n  ", "reasoning_content": "bare except swallows exits"}).prompt(
+            "q"
+        )
         assert out == "bare except swallows exits"
 
     def test_real_content_wins_over_reasoning(self):
         """The fallback must not shadow a genuine answer with raw chain-of-thought."""
-        out = _shim({"content": "the answer", "reasoning_content": "long rambling thoughts"}).prompt("q")
+        out = _shim(
+            {"content": "the answer", "reasoning_content": "long rambling thoughts"}
+        ).prompt("q")
         assert out == "the answer"
 
     def test_both_empty_returns_empty_string_not_none(self):

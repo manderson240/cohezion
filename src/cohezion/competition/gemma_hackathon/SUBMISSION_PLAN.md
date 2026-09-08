@@ -156,6 +156,7 @@
 # Gemma is a trademark of Google LLC.
 # ---
 
+
 def _try_load_gemma() -> Any | None:
     if not _has_gpu():
         return None
@@ -163,6 +164,7 @@ def _try_load_gemma() -> Any | None:
         import kagglehub
         import torch
         from transformers import pipeline
+
         print("Downloading Gemma-4 e4b-it via kagglehub...")
         model_path = kagglehub.model_download("google/gemma-4/frameworks/pyTorch/variations/e4b-it")
         print("Loading Gemma-4B-it...")

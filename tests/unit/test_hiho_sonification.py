@@ -7,9 +7,6 @@ import pytest
 
 from cohezion.governance.quadrature_nexus import QuadratureState
 from cohezion.physics.hiho_sonification import (
-    DEFAULT_FUNDAMENTAL_HZ,
-    HIHO_TARGET_COHERENCE,
-    ADSREnvelope,
     AudioFieldState,
     HIHOSonifier,
 )
@@ -39,10 +36,18 @@ def test_sonify_quadrature_state_perfect_coherence() -> None:
     """Test sonifying a state at 0.5 HIHO coherence."""
     sonifier = HIHOSonifier(fundamental_hz=432.0)
     q_state = QuadratureState(
-        awareness=0.5, precision=0.5, creativity=0.5,
-        dilation=0.5, coherence=0.5, entropy=0.5,
-        stability=0.5, momentum=0.5, novelty=0.5,
-        resonance=0.5, decay=0.5, synthesis=0.5,
+        awareness=0.5,
+        precision=0.5,
+        creativity=0.5,
+        dilation=0.5,
+        coherence=0.5,
+        entropy=0.5,
+        stability=0.5,
+        momentum=0.5,
+        novelty=0.5,
+        resonance=0.5,
+        decay=0.5,
+        synthesis=0.5,
     )
     audio_state = sonifier.sonify_quadrature_state(q_state)
 

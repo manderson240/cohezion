@@ -1,6 +1,7 @@
 ---
 name: datamesh-native-development
-description: "Use when integrating new code into the Cohezion local fleet / inference / daily-researcher stack. The pattern: every new code path is a WRITER or READER of the PrecipitationBus + vault + SurrealDB. Discovered in PRs #223-#226 (the WS1+WS2+PR1-4 build) where 4 PRs delivered the compound × token × card-aligned stack with 5 datamesh connections wired end-to-end."
+description: |
+  Use when integrating new code into the Cohezion local fleet / inference / daily-researcher stack. The pattern: every new code path is a WRITER or READER of the PrecipitationBus + vault + SurrealDB. Discovered in PRs #223-#226 (the WS1+WS2+PR1-4 build) where 4 PRs delivered the compound × token × card-aligned stack with 5 datamesh connections wired end-to-end.
 when_to_use: |
   - Adding a new function, lane, or path that touches the local fleet
   - Building a new verifier, monitor, or skill refiner
@@ -132,7 +133,7 @@ worked_example: |
                                        D (SurrealDB ≥ 3 threshold)
   Total: 28 tests, ~2,400 LOC, 0 regressions, 5 connections wired.
 
-anti_patterns:
+anti_patterns: |
   - Adding a feature that touches the local fleet WITHOUT emitting
     a WITNESS_MARK. The Mycelium cluster misses your work.
   - Writing directly to SurrealDB without UPSERT. UPDATE no-ops on
@@ -155,7 +156,7 @@ related_skills:
   - cohezion-dynamic-modularity (module-level additive composition)
   - compound-build (the build ritual that surfaced this pattern)
   - autoharness-skill (auto-harness for testing this pattern)
-verification:
+verification: |
   before_landing:
     - Every new code path that produces a result has a WITNESS_MARK
       emission (or an explicit "stateless, no emission" comment).
@@ -163,12 +164,12 @@ verification:
       SurrealDB (not just the bus; the bus is for live events only).
     - The vault note path is per-day (`EXEC-YYYY-MM-DD/`).
   after_landing:
-    - '`git grep "PrecipitationEvent(" src/` shows the writer pattern
-      is in use.'
-    - '`git grep "asyncio.create_task(_upsert_surreal" src/` shows the
-      fire-and-forget SurrealDB pattern is in use.'
-    - '`git grep "bus.subscribe" src/` shows readers use the bus.'
-honest_residuals:
+    - `git grep "PrecipitationEvent(" src/` shows the writer pattern
+      is in use.
+    - `git grep "asyncio.create_task(_upsert_surreal" src/` shows the
+      fire-and-forget SurrealDB pattern is in use.
+    - `git grep "bus.subscribe" src/` shows readers use the bus.
+honest_residuals: |
   - The 5 surfaces aren't all equally instrumented. Mycelium is
     best-effort (subscribes to the bus but the verify_evolve query
     is a no-op stub). SurrealDB is fire-and-forget (bus outage
@@ -176,9 +177,9 @@ honest_residuals:
     (HealerAgent) is unwired.
   - The 4 lane scripts in `scripts/lanes/` only prove out at 04:00.
     Their deep paths aren't covered by the mocked tests.
-  - "\"Latest card wins on conflict\" is the WS1 policy; the bus
+  - "Latest card wins on conflict" is the WS1 policy; the bus
     doesn't yet invalidate cache rows when a card's `read_at`
-    changes. That's a follow-up."
+    changes. That's a follow-up.
 version: 1
 captured: 2026-06-04
 captured_from: cohezion-internal PRs #223-#226 (WS1+WS2 datamesh build)

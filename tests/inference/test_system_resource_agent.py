@@ -183,3 +183,70 @@ def test_assess_detector_feed_never_blocks_on_exception():
     with patch.object(advisor, "_lemonade_recommendation", return_value=None):
         rec = advisor.assess()
     assert rec.tier in _VALID_TIERS  # still returned normally
+
+
+# ── PSI gating (council item 6, 2026-09-01) ─────────────────────────────────────
+# The 08-31 freezes were reclaim LIVELOCKS: available-GB looked survivable while
+# tasks stalled in reclaim. PSI avg10 is the earliest signal for that class.
+# Discriminating: pre-PSI code ignores the key entirely, so every test asserting a
+# PSI-driven action change fails on it.
+
+
+def _psi_metrics(psi, temp=45.0, mem=50.0, lock=False):
+    return {
+        "temp_c": temp,
+        "memory_percent": mem,
+        "available_gb": 64.0,
+        "psi_avg10": psi,
+        "pressure_lock": lock,
+    }
+
+
+def test_psi_pause_fires_when_mem_and_temp_are_fine():
+    # avg10=15% stalled = livelock territory even with healthy free-bytes.
+    rec = SystemResourceAgent()._deterministic_recommendation(_psi_metrics(psi=15.0))
+    assert rec.action == "pause"
+    assert "psi" in rec.reason
+
+
+def test_psi_throttle_between_thresholds():
+    rec = SystemResourceAgent()._deterministic_recommendation(_psi_metrics(psi=5.0))
+    assert rec.action == "throttle"
+
+
+def test_psi_none_preserves_prior_behavior():
+    rec = SystemResourceAgent()._deterministic_recommendation(_psi_metrics(psi=None))
+    assert rec.action == "proceed"
+
+
+def test_psi_zero_is_healthy():
+    rec = SystemResourceAgent()._deterministic_recommendation(_psi_metrics(psi=0.0))
+    assert rec.action == "proceed"
+
+
+def test_read_psi_avg10_parses_and_fails_none(tmp_path):
+    from cohezion.inference.system_resource_agent import _read_psi_avg10
+
+    p = tmp_path / "memory"
+    p.write_text("some avg10=3.21 avg60=1.00 avg300=0.10 total=12345\n")
+    assert _read_psi_avg10(p) == 3.21
+    assert _read_psi_avg10(tmp_path / "absent") is None
+
+
+def test_fallback_monitor_reads_real_meminfo_not_fabricated():
+    # rv-gate HIGH-1 class: a fabricated {50%, 64GB} reader gates nothing. On Linux
+    # the fallback must report the box's REAL MemAvailable; assert consistency with
+    # a live /proc/meminfo reading taken moments apart.
+    from pathlib import Path
+
+    from cohezion.inference.system_resource_agent import _FallbackMonitor
+
+    stats = _FallbackMonitor().get_stats()
+    real_avail = None
+    for line in Path("/proc/meminfo").read_text().splitlines():
+        if line.startswith("MemAvailable"):
+            real_avail = int(line.split()[1]) / 1048576.0
+            break
+    assert real_avail is not None
+    assert abs(stats["available_memory_gb"] - real_avail) < 2.0
+    assert 0.0 < stats["memory_percent"] < 100.0

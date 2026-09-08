@@ -28,7 +28,7 @@ async def main():
         ("Reliability Engineer", "SRE: Event-driven fleet health and workload rebalancing.", 7.0),
     ]
 
-    results = await asyncio.gather(*[launch_journey(r, t, d) for r, t, d in tasks])
+    await asyncio.gather(*[launch_journey(r, t, d) for r, t, d in tasks])
     print("\nProject Symphony-168 Deployment Complete.")
 
 

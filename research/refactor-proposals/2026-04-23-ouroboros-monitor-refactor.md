@@ -175,9 +175,7 @@ async with AsyncSurreal(self.url) as db:
         password = os.getenv("SURREAL_PASS", "root")
         await db.signin({"user": user, "pass": password})
 
-        result = await db.query(
-            f"SELECT * FROM trajectory ORDER BY timestamp DESC LIMIT {limit}"
-        )
+        result = await db.query(f"SELECT * FROM trajectory ORDER BY timestamp DESC LIMIT {limit}")
 
         # Defensive narrowing: SurrealDB returns list[Value], but for SELECT
         # statements we expect [{"result": [...records...], "status": "OK"}].

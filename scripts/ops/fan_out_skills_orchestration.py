@@ -48,14 +48,16 @@ def fan_out_skills() -> dict[str, Any]:
 
     # 2. Data Mesh Architecture Skill (DATA_MESH_ARCHITECT_PRIME)
     logger.info("2/5 Executing DATA_MESH_ARCHITECT_PRIME...")
-    persist_item({
-        "id": "skill_fanout_datamesh_001",
-        "title": "Data Mesh Domain SLA Verification",
-        "status": "in_progress",
-        "priority": "high",
-        "source": "fan_out_skills_orchestrator",
-        "category": "datamesh",
-    })
+    persist_item(
+        {
+            "id": "skill_fanout_datamesh_001",
+            "title": "Data Mesh Domain SLA Verification",
+            "status": "in_progress",
+            "priority": "high",
+            "source": "fan_out_skills_orchestrator",
+            "category": "datamesh",
+        }
+    )
     summary["2_data_mesh_architect"] = {
         "domain_sla": "HIGH_AVAILABILITY",
         "kanban_item_persisted": "skill_fanout_datamesh_001",
@@ -83,7 +85,13 @@ def fan_out_skills() -> dict[str, Any]:
     # 4. SurrealDB DBA Operations Skill (SURREAL_DBA_PRIME)
     logger.info("4/5 Executing SURREAL_DBA_PRIME...")
     summary["4_surreal_dba"] = {
-        "tables_audited": ["event_log", "kanban_item", "experiential_replay", "learning", "journey_metrics"],
+        "tables_audited": [
+            "event_log",
+            "kanban_item",
+            "experiential_replay",
+            "learning",
+            "journey_metrics",
+        ],
         "indexes_verified": True,
         "circuit_breaker_status": "CLOSED_OR_IN_MEMORY_FALLBACK",
     }

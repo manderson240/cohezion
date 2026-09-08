@@ -11,6 +11,10 @@ with contextlib.suppress(Exception):
     from cohezion.eval.huggingface_export import HuggingFaceExporter as HuggingFaceExporter
 
 with contextlib.suppress(Exception):
+    from cohezion.eval.self_eval import EvaluationResult as EvaluationResult
+    from cohezion.eval.self_eval import SelfEvaluationEngine as SelfEvaluationEngine
+
+with contextlib.suppress(Exception):
     from cohezion.eval.pipeline import EpisodeResult as EpisodeResult
     from cohezion.eval.pipeline import PipelineProgress as PipelineProgress
     from cohezion.eval.pipeline import RalphLoopConfig as RalphLoopConfig

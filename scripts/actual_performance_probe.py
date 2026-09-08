@@ -70,8 +70,8 @@ def probe_cpu():
 
 async def main():
     print("=== Turbo Quant Live Performance Audit ===\n")
-    npu_tps, npu_lat = await probe_npu()
-    cpu_tp, cpu_lat = probe_cpu()
+    npu_tps, _npu_lat = await probe_npu()
+    cpu_tp, _cpu_lat = probe_cpu()
 
     print("\n=== Summary ===")
     if npu_tps > 0:

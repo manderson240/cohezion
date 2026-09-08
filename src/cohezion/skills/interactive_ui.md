@@ -35,29 +35,20 @@ You are a specialist in **interactive UI components** for data science and AI ap
 import marimo as mo
 
 # Slider
-coherence_threshold = mo.ui.slider(
-    start=0.0, stop=1.0, value=0.7,
-    label="Coherence Threshold"
-)
+coherence_threshold = mo.ui.slider(start=0.0, stop=1.0, value=0.7, label="Coherence Threshold")
 
 # Dropdown
 stream_select = mo.ui.dropdown(
     options=["architect", "engineer", "biologist", "quantum_hardware", "quantum_algo"],
     value="engineer",
-    label="Select Stream"
+    label="Select Stream",
 )
 
 # Text input
-query_input = mo.ui.text(
-    placeholder="Enter your query...",
-    label="Search"
-)
+query_input = mo.ui.text(placeholder="Enter your query...", label="Search")
 
 # Button
-run_button = mo.ui.button(
-    label="Run Simulation",
-    on_click=lambda: run_simulation()
-)
+run_button = mo.ui.button(label="Run Simulation", on_click=lambda: run_simulation())
 
 # Display reactive output
 mo.md(f"Showing results for **{stream_select.value}** with coherence > {coherence_threshold.value}")
@@ -74,7 +65,7 @@ df = pd.read_json("flume_trajectories.jsonl", lines=True)
 table = mo.ui.table(
     df,
     selection="multi",  # Allow multiple selection
-    pagination=True
+    pagination=True,
 )
 
 # React to selection
@@ -86,19 +77,18 @@ mo.md(f"Selected {len(selected_rows)} trajectories")
 ```python
 import gradio as gr
 
+
 def predict_trajectory(text, steps):
     z = encoder.encode(text)
     trajectory = predictor.predict_sequence(z, steps=steps)
     return trajectory.tolist()
 
+
 iface = gr.Interface(
     fn=predict_trajectory,
-    inputs=[
-        gr.Textbox(label="Input Thought"),
-        gr.Slider(1, 100, value=10, label="Steps")
-    ],
+    inputs=[gr.Textbox(label="Input Thought"), gr.Slider(1, 100, value=10, label="Steps")],
     outputs=gr.JSON(label="Trajectory"),
-    title="FLUME Trajectory Predictor"
+    title="FLUME Trajectory Predictor",
 )
 iface.launch()
 ```
@@ -118,7 +108,7 @@ filtered = df[(df.stream == stream) & (df.coherence > coherence)]
 st.dataframe(filtered)
 
 # Visualization
-st.plotly_chart(px.scatter(filtered, x='step', y='coherence'))
+st.plotly_chart(px.scatter(filtered, x="step", y="coherence"))
 ```
 
 ### 5. Plotly Dash (Production)
@@ -127,15 +117,19 @@ from dash import Dash, dcc, html, callback, Input, Output
 
 app = Dash(__name__)
 
-app.layout = html.Div([
-    dcc.Dropdown(id='stream', options=['architect', 'engineer', 'biologist']),
-    dcc.Graph(id='trajectory-plot')
-])
+app.layout = html.Div(
+    [
+        dcc.Dropdown(id="stream", options=["architect", "engineer", "biologist"]),
+        dcc.Graph(id="trajectory-plot"),
+    ]
+)
 
-@callback(Output('trajectory-plot', 'figure'), Input('stream', 'value'))
+
+@callback(Output("trajectory-plot", "figure"), Input("stream", "value"))
 def update_graph(stream):
     filtered = df[df.stream == stream]
-    return px.line(filtered, x='step', y='coherence')
+    return px.line(filtered, x="step", y="coherence")
+
 
 app.run_server()
 ```

@@ -34,19 +34,19 @@ An elegantly simple compound engineering system with token-efficient warm-start/
 ```python
 class CompoundSessionManager:
     def __init__(self, executor=None, mcp_client=None): ...
-    
+
     @property
     def executor(self): ...  # Lazy-created
-    
-    @property  
+
+    @property
     def mcp_client(self): ...  # Lazy-created
-    
+
     def start_session(max_cache_entries=256): ...  # Warm-start
-    
+
     def end_session(): ...  # Clean-shutdown
-    
+
     def check_alignment(request, threshold=0.5): ...  # HIHO gate
-    
+
     async def execute_aligned(request, execute_fn, use_executor=True): ...
 ```
 
@@ -102,9 +102,9 @@ async with CompoundSessionManager() as mgr:
         execute_fn=my_async_function,
         skill_name="auto",
         use_executor=True,  # Full pipeline
-        threshold=0.5,       # HIHO stability
+        threshold=0.5,  # HIHO stability
     )
-    
+
     if success:
         output = result["output"]
         tokens = result.get("token_metrics", {}).get("total_tokens")

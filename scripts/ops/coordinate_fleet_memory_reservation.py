@@ -25,6 +25,7 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor, CrossSession
 
 LEMONADE_BASE = "http://localhost:13305"
 
+
 class FleetMemoryCoordinator:
     """Coordinates atomic model reservations, pauses other sessions, and guarantees headroom."""
 
@@ -42,8 +43,8 @@ class FleetMemoryCoordinator:
                 "action": "FLEET_PAUSE_FOR_MODEL_LOAD",
                 "requesting_session": session_id,
                 "required_gib": required_gib,
-                "timestamp": time.time()
-            }
+                "timestamp": time.time(),
+            },
         )
         await event_bus.publish(ev)
         print(f"📢 [Broadcast] Sent FLEET_PAUSE signal across EventBus. Background work pausing...")
@@ -61,8 +62,8 @@ class FleetMemoryCoordinator:
             payload={
                 "action": "FLEET_RESUME",
                 "releasing_session": session_id,
-                "timestamp": time.time()
-            }
+                "timestamp": time.time(),
+            },
         )
         await event_bus.publish(ev)
         print(f"📢 [Broadcast] Sent FLEET_RESUME signal across EventBus. Background work resuming.")
@@ -70,13 +71,17 @@ class FleetMemoryCoordinator:
     @staticmethod
     async def ensure_safe_headroom(min_headroom_gib: float = 45.0) -> bool:
         avail_gib, swap_used, is_safe = SmartOOMGovernor.get_memory_state()
-        print(f"▶ Inspecting Memory State: {avail_gib} GiB available / {swap_used} GiB swap (Floor: {min_headroom_gib} GiB)")
-        
+        print(
+            f"▶ Inspecting Memory State: {avail_gib} GiB available / {swap_used} GiB swap (Floor: {min_headroom_gib} GiB)"
+        )
+
         if avail_gib >= min_headroom_gib:
             print(f"   ✓ Headroom is pristine ({avail_gib} GiB >= {min_headroom_gib} GiB).")
             return True
-            
-        print(f"   ⚠️ Available memory ({avail_gib} GiB) < required ({min_headroom_gib} GiB). Offloading idle models...")
+
+        print(
+            f"   ⚠️ Available memory ({avail_gib} GiB) < required ({min_headroom_gib} GiB). Offloading idle models..."
+        )
         # Call Lemonade DELETE /v1/models/active if needed
         async with httpx.AsyncClient(timeout=10.0) as client:
             try:
@@ -84,11 +89,12 @@ class FleetMemoryCoordinator:
                 print(f"   • Offloaded active model: HTTP {r.status_code}")
             except Exception as e:
                 print(f"   • Offload notice: {e}")
-                
+
         time.sleep(4.0)
         avail_gib, _, _ = SmartOOMGovernor.get_memory_state()
         print(f"   ✓ Memory post-settlement: {avail_gib} GiB available.")
         return avail_gib >= 35.0
+
 
 async def main():
     print("=" * 115)
@@ -97,25 +103,28 @@ async def main():
 
     session_id = "fleet_reservation_audit"
     await FleetMemoryCoordinator.broadcast_reservation_start(session_id, required_gib=25.0)
-    
+
     with CrossSessionFleetLock(timeout_sec=30.0):
         print("▶ FleetLock acquired exclusively.")
         safe = await FleetMemoryCoordinator.ensure_safe_headroom(min_headroom_gib=45.0)
         print(f"▶ System safety confirmed: {safe}")
-        
+
     await FleetMemoryCoordinator.broadcast_reservation_end(session_id)
 
-    persist_item({
-        "id": "fleet_memory_reservation_active",
-        "title": "Fleet Memory Reservation & Pause Coordination Active",
-        "status": "done",
-        "priority": "highest",
-        "source": "fleet_memory_coordinator",
-        "category": "infrastructure_resilience",
-        "details": "Implemented atomic EventBus pause/resume broadcasts, 45 GiB headroom gating, and idle model offloading.",
-    })
+    persist_item(
+        {
+            "id": "fleet_memory_reservation_active",
+            "title": "Fleet Memory Reservation & Pause Coordination Active",
+            "status": "done",
+            "priority": "highest",
+            "source": "fleet_memory_coordinator",
+            "category": "infrastructure_resilience",
+            "details": "Implemented atomic EventBus pause/resume broadcasts, 45 GiB headroom gating, and idle model offloading.",
+        }
+    )
     print("✓ Dual-persisted fleet coordination protocol to SurrealDB and Obsidian Vault!")
     print("=" * 115)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

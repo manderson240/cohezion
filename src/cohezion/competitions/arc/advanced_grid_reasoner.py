@@ -54,7 +54,7 @@ def extract_most_frequent_subgrid_pattern(
     if h < sh or w < sw:
         return [row[:] for row in grid]
 
-    patterns = collections.defaultdict(int)
+    patterns: dict[tuple[tuple[int, ...], ...], int] = collections.defaultdict(int)
     for r in range(0, h - sh + 1, sh):
         for c in range(0, w - sw + 1, sw):
             sub = tuple(tuple(grid[r + dr][c + dc] for dc in range(sw)) for dr in range(sh))

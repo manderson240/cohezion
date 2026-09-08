@@ -234,19 +234,19 @@ total_loss = reconstruction_loss + kl_weight * kl_divergence + coherence_weight 
 **Mathematical Formulation:**
 ```python
 class AxiomaticState:
-    spatial_x: float      # Space fabric
+    spatial_x: float  # Space fabric
     spatial_y: float
     spatial_z: float
-    tempic: float         # Field fabric
+    tempic: float  # Field fabric
     electric: float
     magnetic: float
-    logic: float          # Control fabric
+    logic: float  # Control fabric
     quantum: float
     charge: float
-    awareness: float      # Precipitation fabric
+    awareness: float  # Precipitation fabric
     novelty: float
     precipitation: float
-    coherence: float      # HIHO stability measure
+    coherence: float  # HIHO stability measure
 ```
 
 ### 5.4 HIHO Coherence Loss Function
@@ -273,6 +273,7 @@ def coherence_loss(mu, target=0.5):
     """Penalize latent mean deviation from 0.5 target."""
     mu_mean = mu.mean(dim=-1)
     return mean((mu_mean - target) ** 2)
+
 
 def total_loss(recon, x, mu, log_var, coherence_weight=0.1):
     """Complete VAE loss with HIHO coherence."""
@@ -329,7 +330,7 @@ from cohezion.flume.autoencoder import FlumeEncoder
 from cohezion.universe.engine import UniverseSimulationEngine
 
 # Initialize FLUME pipeline
-encoder = FlumeEncoder.from_checkpoint('triune_vae_ep50.pt')
+encoder = FlumeEncoder.from_checkpoint("triune_vae_ep50.pt")
 engine = UniverseSimulationEngine()
 
 # Encode semantic intent
@@ -377,7 +378,7 @@ for step in trajectory:
         agent_id="agent-1",
         phase="execution",
         dimensions=doer.to_vector(),  # 12D
-        semantic_context=knower,       # 2048D
+        semantic_context=knower,  # 2048D
         coherence=coherence,
         phi_score=phi_score,
     )

@@ -37,6 +37,7 @@ import subprocess
 
 LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
 
+
 def is_lfs_pointer_in_index(path: str) -> bool:
     """Returns True if the staged version of `path` is an LFS pointer."""
     result = subprocess.run(

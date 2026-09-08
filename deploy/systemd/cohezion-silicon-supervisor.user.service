@@ -1,0 +1,72 @@
+[Unit]
+# Cohezion silicon residency supervisor -- 24/7 fleet observation.
+#
+# Watches the Lemonade OmniRouter (:13305), derives residency transitions across
+# NPU / iGPU / CPU, and publishes them to the Cohezion event bus, which the
+# DataMeshEventBridge persists to SurrealDB `data_product_event`.
+#
+# USER unit deliberately: needs NO ROOT, unlike the system unit alongside this
+# file. This box already runs ~59 cohezion services this way.
+#   cp deploy/systemd/cohezion-silicon-supervisor.user.service \
+#      ~/.config/systemd/user/cohezion-silicon-supervisor.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now cohezion-silicon-supervisor
+#   journalctl --user -u cohezion-silicon-supervisor -f
+#
+# !! PREREQUISITE: branch `feat/silicon-residency-24x7` must be merged to main
+# !! first. WorkingDirectory below is the MAIN checkout, and the script
+# !! currently exists only in the worktree. Verified 2026-08-29:
+# !!     /home/mike-anderson/dev/cohezion/.venv/bin/python3   -> present
+# !!     /home/mike-anderson/dev/cohezion/scripts/ops/...     -> ABSENT
+# !! Enabling this unit before the merge fails immediately with ENOENT.
+# !! The ExecStart command itself is verified working when run against the
+# !! worktree's src on PYTHONPATH (bus=started+mesh, clean exit).
+#
+# Runs in DRY-RUN (observe-only) by default. It reports; it does not mutate a
+# fleet shared with live sessions. Two additive-only gates exist if wanted:
+#   --apply   pin the tier-0 router (reversible via `lemonade unpin`)
+#   --heal    reload models the policy wants resident, within the byte budget
+# Eviction is not applicable at any flag level -- `plan_residency()` never emits
+# an evict action, so this daemon can restore starved silicon but never take
+# anything away (see test_t1_plan_never_emits_an_evict_action).
+#
+# Measured 2026-08-29: 120-cycle / 2-hour soak, 100% event delivery (23/23),
+# zero drops, zero errors, no crash.
+Description=Cohezion silicon residency supervisor (NPU/iGPU/CPU)
+Documentation=file:///home/mike-anderson/vaults/cohezion-vault/reports/20260829-strix-halo-silicon-residency-24x7.md
+# After= but not Requires=: reporting router outages is part of the job, so the
+# supervisor must survive lemonade being down rather than be stopped with it.
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/mike-anderson/dev/cohezion
+Environment=PYTHONPATH=/home/mike-anderson/dev/cohezion/src
+ExecStart=/home/mike-anderson/dev/cohezion/.venv/bin/python3 scripts/ops/silicon_supervisor_daemon.py --interval 60
+
+Restart=on-failure
+RestartSec=30
+
+# Never let the observer become the resource problem on a box whose whole
+# purpose is holding large models resident -- but the cap must clear the
+# daemon's ACTUAL footprint or it is not a guard, it is a crash-loop.
+#
+# MEASURED 2026-08-29: importing silicon_{policy,residency,supervisor} peaks at
+# 721 MB RSS on its own, because cohezion/inference/__init__.py eagerly
+# re-exports the whole inference package; adding EventBus + DataMeshEventBridge
+# reaches 722 MB. An earlier revision of this file said MemoryMax=512M, which
+# would SIGKILL the daemon before it completed a single cycle, forever, under
+# Restart=. Re-measure with:
+#   python -c "import resource, cohezion.inference.silicon_supervisor as _; \
+#              print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024)"
+MemoryHigh=1G
+MemoryMax=1500M
+CPUQuota=25%
+Nice=10
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=silicon-supervisor
+
+[Install]
+WantedBy=default.target

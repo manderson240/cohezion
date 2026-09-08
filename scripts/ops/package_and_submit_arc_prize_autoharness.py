@@ -133,7 +133,7 @@ METADATA_CONTENT_2 = {
     "is_private": "true",
     "enable_gpu": "false",
     "enable_internet": "false",
-    "competition_sources": ["arc-prize-2026-arc-agi-2"]
+    "competition_sources": ["arc-prize-2026-arc-agi-2"],
 }
 
 METADATA_CONTENT_3 = {
@@ -145,8 +145,9 @@ METADATA_CONTENT_3 = {
     "is_private": "true",
     "enable_gpu": "false",
     "enable_internet": "false",
-    "competition_sources": ["arc-prize-2026-arc-agi-3"]
+    "competition_sources": ["arc-prize-2026-arc-agi-3"],
 }
+
 
 async def main():
     print("=" * 115)
@@ -164,8 +165,11 @@ async def main():
 
     # 3. Test Locally
     import subprocess
+
     t0 = time.perf_counter()
-    res = subprocess.run(["uv", "run", "python3", str(SUBMISSION_SCRIPT)], capture_output=True, text=True)
+    res = subprocess.run(
+        ["uv", "run", "python3", str(SUBMISSION_SCRIPT)], capture_output=True, text=True
+    )
     dt_ms = (time.perf_counter() - t0) * 1000.0
     if res.returncode == 0:
         print(f"   ✓ Local Kernel Execution Passed in {dt_ms:.2f} ms:\n     {res.stdout.strip()}")
@@ -178,7 +182,9 @@ async def main():
         json.dump(METADATA_CONTENT_2, f, indent=2)
     print(f"\n▶ Pushing Kernel to Kaggle (`arc-prize-2026-arc-agi-2`)...")
     with CrossSessionFleetLock(timeout_sec=30.0):
-        push_res = subprocess.run(["kaggle", "kernels", "push", "-p", str(ARC_DIR)], capture_output=True, text=True)
+        push_res = subprocess.run(
+            ["kaggle", "kernels", "push", "-p", str(ARC_DIR)], capture_output=True, text=True
+        )
         print(f"   ✓ Kaggle Push Output: {push_res.stdout.strip()} {push_res.stderr.strip()}")
 
     # 5. Write Metadata & Push to Kaggle for ARC-AGI-3
@@ -186,8 +192,12 @@ async def main():
         json.dump(METADATA_CONTENT_3, f, indent=2)
     print(f"\n▶ Pushing Kernel to Kaggle (`arc-prize-2026-arc-agi-3`)...")
     with CrossSessionFleetLock(timeout_sec=30.0):
-        push_res3 = subprocess.run(["kaggle", "kernels", "push", "-p", str(ARC_DIR)], capture_output=True, text=True)
-        print(f"   ✓ Kaggle Push Output (AGI-3): {push_res3.stdout.strip()} {push_res3.stderr.strip()}")
+        push_res3 = subprocess.run(
+            ["kaggle", "kernels", "push", "-p", str(ARC_DIR)], capture_output=True, text=True
+        )
+        print(
+            f"   ✓ Kaggle Push Output (AGI-3): {push_res3.stdout.strip()} {push_res3.stderr.strip()}"
+        )
 
     # 6. Dual-Persist Event
     event_bus = await get_event_bus()
@@ -202,22 +212,25 @@ async def main():
         payload={
             "competitions": ["arc-prize-2026-arc-agi-2", "arc-prize-2026-arc-agi-3"],
             "kernel_file": str(SUBMISSION_SCRIPT),
-            "status": "ARC_AUTOHARNESS_DEPLOYED"
-        }
+            "status": "ARC_AUTOHARNESS_DEPLOYED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "arc_prize_autoharness_deployed",
-        "title": "ARC Prize 2026 AutoHarness Solvers Deployed (AGI-2 & AGI-3)",
-        "status": "done",
-        "priority": "highest",
-        "source": "arc_prize_autoharness_director",
-        "category": "kaggle_competitions",
-        "details": "Pushed deterministic AutoHarness candidate verifier kernels to Kaggle for ARC-AGI-2 and ARC-AGI-3.",
-    })
+    persist_item(
+        {
+            "id": "arc_prize_autoharness_deployed",
+            "title": "ARC Prize 2026 AutoHarness Solvers Deployed (AGI-2 & AGI-3)",
+            "status": "done",
+            "priority": "highest",
+            "source": "arc_prize_autoharness_director",
+            "category": "kaggle_competitions",
+            "details": "Pushed deterministic AutoHarness candidate verifier kernels to Kaggle for ARC-AGI-2 and ARC-AGI-3.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
     print("=" * 115)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

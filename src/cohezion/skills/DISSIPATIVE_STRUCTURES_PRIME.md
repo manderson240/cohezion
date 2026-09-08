@@ -134,8 +134,9 @@ This is why multiple damping cycles are needed near HIHO -- it's not sluggishnes
 critical slowing down. The HIHO damping code should account for this:
 
 ```python
-def hiho_damping_with_critical_slowing(coherence: float, stability_score: float,
-                                        latent_vector, rng=None):
+def hiho_damping_with_critical_slowing(
+    coherence: float, stability_score: float, latent_vector, rng=None
+):
     """
     HIHO damping that accounts for Prigogine critical slowing down.
     Near coherence = 0.5, use stronger damping because τ is large.
@@ -205,9 +206,9 @@ def detect_prigogine_bifurcation(coherence_history: list[float]) -> dict:
     variance_increasing = var_late > var_early
 
     bifurcating = (
-        autocorr > 0.7 and          # Critical slowing down
-        variance > 0.01 and          # Growing fluctuations
-        variance_increasing          # Trend toward bifurcation
+        autocorr > 0.7  # Critical slowing down
+        and variance > 0.01  # Growing fluctuations
+        and variance_increasing  # Trend toward bifurcation
     )
 
     return {
@@ -216,8 +217,7 @@ def detect_prigogine_bifurcation(coherence_history: list[float]) -> dict:
         "variance": variance,
         "variance_trend": "increasing" if variance_increasing else "stable",
         "interpretation": (
-            "New PRIME skill may be self-organizing" if bifurcating
-            else "Normal HIHO oscillation"
+            "New PRIME skill may be self-organizing" if bifurcating else "Normal HIHO oscillation"
         ),
     }
 ```

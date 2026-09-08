@@ -100,6 +100,35 @@ class SemanticTextEncoder:
         else:
             return self._encode_fallback(text)
 
+    def encode_batch(self, texts: list[str], normalize: bool = True) -> np.ndarray:
+        """Encode multiple texts in one model call.
+
+        Merged from the retired sentence_encoder.py (2026-08-14) for its live
+        consumers (scripts/ops/dogfood_all_subsystems_master.py,
+        scripts/ops/verify_daemons_batching_caching.py). Returns an
+        (N, embedding_dim) float32 array; falls back per-text when the
+        model is unavailable.
+        """
+        if not texts:
+            return np.zeros((0, self.embedding_dim), dtype=np.float32)
+        if not self.model_available:
+            return np.stack([self._encode_fallback(t) for t in texts])
+        try:
+            raw = self.model.encode(
+                [t[:512] for t in texts],
+                convert_to_numpy=True,
+                normalize_embeddings=False,
+                show_progress_bar=False,
+            )
+            out = np.stack([self._resize_embedding(r) for r in raw]).astype(np.float32)
+            if normalize:
+                norms = np.linalg.norm(out, axis=1, keepdims=True)
+                out = out / np.maximum(norms, 1e-12)
+            return out.astype(np.float32)
+        except Exception as e:
+            logger.debug(f"Batch encoding failed: {e}. Using per-text fallback.")
+            return np.stack([self._encode_fallback(t) for t in texts])
+
     def _encode_semantic(self, text: str) -> np.ndarray:
         """Encode using pre-trained sentence-transformers model.
 

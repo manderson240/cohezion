@@ -423,7 +423,7 @@ def run_lhao(iterations: int = ITERATIONS_PER_RUN) -> list[ExperimentOutcome]:
             continue
 
         # 2. Evaluate against eval tasks
-        solve_rate, logs = _evaluate_solver(ARC_EVAL, variant_code, timeout=BUDGET_SECONDS)
+        solve_rate, _logs = _evaluate_solver(ARC_EVAL, variant_code, timeout=BUDGET_SECONDS)
         wall_time = time.perf_counter() - start
 
         status = (

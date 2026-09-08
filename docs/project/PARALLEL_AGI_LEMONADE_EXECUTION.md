@@ -66,26 +66,23 @@
 # Deliverable: src/cohezion/swarm/meta_learner.py
 class MetaLearner:
     """Optimizes the learning strategies of base learners."""
-    
+
     def __init__(self, base_learner):
         self.base = base_learner
         self.learning_history = []
         self.strategy_optimizer = StrategyOptimizer()
-    
+
     def meta_optimize(self):
         # If base learner success rate < 80%, optimize its strategy
         if self.base.success_rate < 0.8:
             new_strategy = self.strategy_optimizer.generate(
-                self.learning_history,
-                target_success_rate=0.85
+                self.learning_history, target_success_rate=0.85
             )
             self.base.learning_strategy = new_strategy
-            
+
             # Log this meta-change
             self.log_meta_intervention(
-                reason="low base success rate",
-                new_strategy=new_strategy,
-                expected_improvement=0.1
+                reason="low base success rate", new_strategy=new_strategy, expected_improvement=0.1
             )
 ```
 
@@ -107,33 +104,29 @@ class MetaLearner:
 # Deliverable: src/cohezion/swarm/unified_thinker.py
 class UnifiedThinker:
     """512D unified reasoning space."""
-    
+
     def __init__(self):
         # All components operate in shared 512D space
         self.flume = FLUMEEncoder(dims=512)
         self.world_model = JEPAWorldModel(embed_dim=512)
         self.episodic = EpisodicMemory(embed_dim=512)
         self.causal = CausalReasoner(embed_dim=512)
-    
+
     def think(self, input_state):
         # Encode to unified space
         latent_512 = self.flume.encode(input_state)
-        
+
         # World model predicts in same space
         prediction_512 = self.world_model.predict(latent_512)
-        
+
         # Memory retrieves using same representation
         memories_512 = self.episodic.retrieve(latent_512)
-        
+
         # Causal validation in unified space
         causal_512 = self.causal.validate(prediction_512, memories_512)
-        
+
         # Integration: All in 512D
-        return self.integrate_512d(
-            prediction_512, 
-            memories_512, 
-            causal_512
-        )
+        return self.integrate_512d(prediction_512, memories_512, causal_512)
 ```
 
 **Acceptance Criteria**:
@@ -267,63 +260,59 @@ CAPABILITY_DATABASE = {
     # Existing families...
     "qwen": {...},
     "gemma": {...},
-    
     # New families to add:
     "deepseek": {
         "capabilities": ["code_generation", "reasoning", "chat"],
         "default_backend": "NPU",
-        "confidence": 0.92
+        "confidence": 0.92,
     },
     "codellama": {
         "capabilities": ["code_completion", "programming", "debugging"],
         "default_backend": "NPU",
-        "confidence": 0.95
+        "confidence": 0.95,
     },
     "neural-chat": {
         "capabilities": ["chat", "instruction_following", "reasoning"],
         "default_backend": "NPU",
-        "confidence": 0.88
+        "confidence": 0.88,
     },
     "orca": {
         "capabilities": ["reasoning", "instruction_following", "chat"],
         "default_backend": "NPU",
-        "confidence": 0.85
+        "confidence": 0.85,
     },
     "vicuna": {
         "capabilities": ["chat", "dialogue", "instruction_following"],
         "default_backend": "NPU",
-        "confidence": 0.87
+        "confidence": 0.87,
     },
     # ... 20+ total families
 }
 
+
 def infer_comprehensive_capabilities(model_name):
     """Infer capabilities with confidence scores."""
     name_lower = model_name.lower()
-    
+
     matched_patterns = []
     for pattern, info in CAPABILITY_DATABASE.items():
         if pattern in name_lower:
-            matched_patterns.append((
-                pattern,
-                info['confidence'],
-                info['capabilities']
-            ))
-    
+            matched_patterns.append((pattern, info["confidence"], info["capabilities"]))
+
     # Sort by confidence
     matched_patterns.sort(key=lambda x: x[1], reverse=True)
-    
+
     # Merge capabilities from all matching patterns
     all_capabilities = set()
     total_confidence = 1.0
     for _, conf, caps in matched_patterns:
         all_capabilities.update(caps)
         total_confidence *= conf  # Combined confidence
-    
+
     return {
-        'capabilities': sorted(list(all_capabilities)),
-        'confidence': total_confidence,
-        'matched_patterns': [p for p, _, _ in matched_patterns]
+        "capabilities": sorted(list(all_capabilities)),
+        "confidence": total_confidence,
+        "matched_patterns": [p for p, _, _ in matched_patterns],
     }
 ```
 
@@ -345,29 +334,29 @@ def infer_comprehensive_capabilities(model_name):
 # Deliverable: src/cohezion/swarm/performance_profiler.py
 class ModelPerformanceProfiler:
     """Benchmark all discovered models for actual TTFT/TPS."""
-    
+
     def __init__(self):
         self.discovered_models = []  # From LemonadeModelEnhancer
         self.performance_db = {}
         self.test_prompts = {
-            'short': 'Hello, how are you?',
-            'medium': 'Explain the concept of machine learning in simple terms.',
-            'long': 'Write a detailed essay about the history of artificial intelligence...'
+            "short": "Hello, how are you?",
+            "medium": "Explain the concept of machine learning in simple terms.",
+            "long": "Write a detailed essay about the history of artificial intelligence...",
         }
-    
+
     async def profile_model(self, model_name, backend):
         """Profile a single model."""
-        
+
         # Start Lemonade serve if not running
         process = await self.start_lemonade_serve(model_name, backend)
-        
+
         results = {}
         for prompt_name, prompt in self.test_prompts.items():
             # Time to first token (TTFT)
             start = time.perf_counter()
             first_token = await self.get_first_token(prompt)
             ttft = time.perf_counter() - start
-            
+
             # Tokens per second (TPS)
             tokens = []
             start = time.perf_counter()
@@ -375,55 +364,52 @@ class ModelPerformanceProfiler:
                 tokens.append(token)
             elapsed = time.perf_counter() - start
             tps = len(tokens) / elapsed
-            
-            results[prompt_name] = {
-                'ttft_ms': ttft * 1000,
-                'tps': tps,
-                'total_tokens': len(tokens)
-            }
-        
+
+            results[prompt_name] = {"ttft_ms": ttft * 1000, "tps": tps, "total_tokens": len(tokens)}
+
         # Stop serve
         await self.stop_lemonade_serve(process)
-        
+
         return {
-            'model': model_name,
-            'backend': backend,
-            'timestamp': datetime.now().isoformat(),
-            'results': results,
-            'average_tps': statistics.mean([r['tps'] for r in results.values()]),
-            'average_ttft': statistics.mean([r['ttft_ms'] for r in results.values()])
+            "model": model_name,
+            "backend": backend,
+            "timestamp": datetime.now().isoformat(),
+            "results": results,
+            "average_tps": statistics.mean([r["tps"] for r in results.values()]),
+            "average_ttft": statistics.mean([r["ttft_ms"] for r in results.values()]),
         }
-    
+
     async def profile_all_discovered(self):
         """Profile all models discovered by LemonadeModelEnhancer."""
-        
+
         from cohezion.swarm.lemonade_model_enhancer import LemonadeModelEnhancer
+
         enhancer = LemonadeModelEnhancer()
         discovery = enhancer.discover_comprehensive()
-        
-        models = discovery['models']
-        
+
+        models = discovery["models"]
+
         print(f"Profiling {len(models)} models...")
-        
+
         for model in models:
-            name = model['name']
-            backend = model.get('backend', 'NPU')
-            
+            name = model["name"]
+            backend = model.get("backend", "NPU")
+
             # Skip if already profiled and recent
             if name in self.performance_db:
                 if self.is_recent(self.performance_db[name]):
                     continue
-            
+
             try:
                 profile = await self.profile_model(name, backend)
                 self.performance_db[name] = profile
-                
+
                 # Save to SurrealDB
                 await self.save_to_database(profile)
-                
+
             except Exception as e:
                 logger.warning(f"Failed to profile {name}: {e}")
-                self.performance_db[name] = {'error': str(e)}
+                self.performance_db[name] = {"error": str(e)}
 ```
 
 **Acceptance Criteria**:

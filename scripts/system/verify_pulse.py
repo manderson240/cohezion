@@ -29,10 +29,7 @@ async def verify_pulse():
 
         rows = []
         if isinstance(response, list) and len(response) > 0:
-            if "result" in response[0]:
-                rows = response[0]["result"]
-            else:
-                rows = response
+            rows = response[0].get("result", response)
 
         if not rows:
             logger.error("❌ No system_pulse records found!")

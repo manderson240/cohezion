@@ -54,11 +54,13 @@ from types import ModuleType
 WIRED: dict[str, ModuleType | str] = {}
 
 try:
-    import pkg.cli                     # <- LITERAL stmt = real static edge
+    import pkg.cli  # <- LITERAL stmt = real static edge
+
     WIRED["cli"] = pkg.cli
 except (ImportError, AttributeError, ValueError, TypeError, OSError) as exc:
-    WIRED["cli"] = f"unavailable: {type(exc).__name__}: {exc}"   # fail-soft, recorded
+    WIRED["cli"] = f"unavailable: {type(exc).__name__}: {exc}"  # fail-soft, recorded
 # ... one block per orphan ...
+
 
 def verify_wiring() -> dict[str, object]:
     wired = [n for n, v in WIRED.items() if isinstance(v, ModuleType)]

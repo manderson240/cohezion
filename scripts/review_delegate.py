@@ -107,7 +107,9 @@ def main() -> int:
         print(f"\n--- timings (s) --- {' '.join(f'{t:.1f}' for t in timings)}")
         if len(timings) > 1:
             warm = sum(timings[1:]) / len(timings[1:])
-            print(f"cold(first)={timings[0]:.1f}  warm(mean rest)={warm:.1f}  ratio={timings[0]/warm:.2f}x")
+            print(
+                f"cold(first)={timings[0]:.1f}  warm(mean rest)={warm:.1f}  ratio={timings[0] / warm:.2f}x"
+            )
     return 0
 
 

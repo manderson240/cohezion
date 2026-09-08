@@ -13,7 +13,6 @@ from cohezion.api.observability_endpoints import (
     get_cache_analytics,
     get_health_score,
     get_unified_metrics,
-    reset_metrics,
 )
 
 
@@ -86,18 +85,3 @@ async def test_get_health_score(mock_collector, mock_analytics):
         result = await get_health_score()
         assert result["health_score"] == 0.95
         assert result["status"] == "excellent"
-
-
-@pytest.mark.asyncio
-async def test_reset_metrics(mock_collector, mock_analytics):
-    """[P0] Should reset metrics."""
-    with (
-        patch(
-            "cohezion.api.observability_endpoints.get_metrics_collector",
-            return_value=mock_collector,
-        ),
-        patch("cohezion.api.observability_endpoints.get_analytics", return_value=mock_analytics),
-    ):
-        result = await reset_metrics()
-        assert result["status"] == "success"
-        mock_collector.reset_current_metrics.assert_called_once()

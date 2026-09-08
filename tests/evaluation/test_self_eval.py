@@ -14,7 +14,7 @@ deliberately); each fails a plausible wrong impl:
 
 from __future__ import annotations
 
-from cohezion.evaluation.self_eval import SelfEvaluationEngine
+from cohezion.eval.self_eval import SelfEvaluationEngine
 
 
 # All 8 context content-words appear in the plan → overlap 1.0 → score saturates well above 0.85.

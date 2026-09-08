@@ -161,7 +161,7 @@ Executive → Action → Environment
 class SceneGraph:
     entities: dict[str, Entity]  # color -> list of connected components
     player_bbox: Optional[BBox]  # Detected player region
-    walls: set[Coord]           # Immutable obstacle coordinates
+    walls: set[Coord]  # Immutable obstacle coordinates
     interactables: list[Entity]  # Collectibles, keys, doors, pills
     dimensions: tuple[int, int]  # Grid size (usually 64×64)
 ```
@@ -410,19 +410,17 @@ requirements = {
         "no_internet_eval",
         "python_3_12_plus",
         "deadline_june_30_2026",
-        "hardware_ryzen_ai_max_395"
+        "hardware_ryzen_ai_max_395",
     ],
     "acceptance_criteria": {
         "demos_solved": 15,
         "efficiency_ratio": 0.25,
-        "top_3_leaderboard": True
-    }
+        "top_3_leaderboard": True,
+    },
 }
 
 adj_id = vmodel.adjust_lever_vmodel(
-    lever_name="efficiency_target",
-    target_value=0.25,
-    requirements=requirements
+    lever_name="efficiency_target", target_value=0.25, requirements=requirements
 )
 
 status = vmodel.ve_process.get_lifecycle_status(adj_id)

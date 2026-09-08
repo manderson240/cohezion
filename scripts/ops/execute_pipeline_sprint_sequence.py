@@ -289,7 +289,10 @@ class SpatiotemporalCellTracker:
         return final_tracks
 """
 
-async def run_stage_verification(client: httpx.AsyncClient, stage_name: str, model: str, code_snippet: str, question: str) -> dict:
+
+async def run_stage_verification(
+    client: httpx.AsyncClient, stage_name: str, model: str, code_snippet: str, question: str
+) -> dict:
     print(f"\n▶ Running V&V for [{stage_name}] using Cloud Auditor `{model}`...")
     prompt = f"""You are a Principal Software & Scientific V&V Auditor.
 Verify and evaluate this newly implemented production module for {stage_name}:
@@ -307,8 +310,13 @@ Audit Criteria:
         t0 = time.perf_counter()
         resp = await client.post(
             f"{OLLAMA_URL}/api/generate",
-            json={"model": model, "prompt": prompt, "stream": False, "options": {"temperature": 0.2, "num_predict": 2048}},
-            timeout=180.0
+            json={
+                "model": model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0.2, "num_predict": 2048},
+            },
+            timeout=180.0,
         )
         dt = time.perf_counter() - t0
         data = resp.json()
@@ -321,6 +329,7 @@ Audit Criteria:
         print(f"   ⚠️ V&V notice: {e}")
         return {"stage": stage_name, "model": model, "content": f"Notice: {e}", "status": "ERROR"}
 
+
 async def main():
     print("=" * 90)
     print("🚀 EXECUTING SEQUENTIAL COMPETITION IMPLEMENTATION & CLOUD V&V SPRINT")
@@ -328,37 +337,65 @@ async def main():
 
     # 1. Write Code Files
     Path("src/cohezion/competitions/arc/object_dsl.py").write_text(ARC_DSL_CODE)
-    Path("src/cohezion/competitions/pokemon_tcg/belief_state_engine.py").parent.mkdir(parents=True, exist_ok=True)
-    Path("src/cohezion/competitions/pokemon_tcg/belief_state_engine.py").write_text(POKEMON_PBS_CODE)
+    Path("src/cohezion/competitions/pokemon_tcg/belief_state_engine.py").parent.mkdir(
+        parents=True, exist_ok=True
+    )
+    Path("src/cohezion/competitions/pokemon_tcg/belief_state_engine.py").write_text(
+        POKEMON_PBS_CODE
+    )
     Path("src/cohezion/competitions/rsna_knee/mil_transformer.py").write_text(RSNA_MIL_CODE)
     Path("src/cohezion/competitions/biohub_cell/spatiotemporal_gnn.py").write_text(BIOHUB_GNN_CODE)
     print("✓ All 4 modular competition source modules written to codebase.")
 
     # 2. Parallel Cloud V&V Audits
     async with httpx.AsyncClient() as client:
-        v1 = run_stage_verification(client, "Stage 1: ARC Connected-Component Object DSL", "deepseek-v4-pro:cloud", ARC_DSL_CODE, "ARC Objects")
-        v2 = run_stage_verification(client, "Stage 2: Pokémon TCG Public Belief State", "qwen3.5:397b-cloud", POKEMON_PBS_CODE, "PBS Engine")
-        v3 = run_stage_verification(client, "Stage 3: RSNA Knee Multi-View MIL Transformer", "glm-5.2:cloud", RSNA_MIL_CODE, "RSNA MIL")
-        v4 = run_stage_verification(client, "Stage 4: Biohub 3D Spatiotemporal GNN Tracker", "glm-5.2:cloud", BIOHUB_GNN_CODE, "Biohub GNN")
-        
+        v1 = run_stage_verification(
+            client,
+            "Stage 1: ARC Connected-Component Object DSL",
+            "deepseek-v4-pro:cloud",
+            ARC_DSL_CODE,
+            "ARC Objects",
+        )
+        v2 = run_stage_verification(
+            client,
+            "Stage 2: Pokémon TCG Public Belief State",
+            "qwen3.5:397b-cloud",
+            POKEMON_PBS_CODE,
+            "PBS Engine",
+        )
+        v3 = run_stage_verification(
+            client,
+            "Stage 3: RSNA Knee Multi-View MIL Transformer",
+            "glm-5.2:cloud",
+            RSNA_MIL_CODE,
+            "RSNA MIL",
+        )
+        v4 = run_stage_verification(
+            client,
+            "Stage 4: Biohub 3D Spatiotemporal GNN Tracker",
+            "glm-5.2:cloud",
+            BIOHUB_GNN_CODE,
+            "Biohub GNN",
+        )
+
         verifications = await asyncio.gather(v1, v2, v3, v4)
 
     # 3. Compile V&V Master Document
     report_path = Path("docs/research/sequential_competition_vv_report.md")
     md = f"""# Master Sequential Competition Implementation & V&V Report
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Pipeline:** Local Code Generation ──▶ Tier 2 Cloud Verification & Validation  
 
 ---
 
 """
     for v in verifications:
-        md += f"""## 🔍 {v['stage']}
-**Auditor:** `{v['model']}` | **Status:** {v['status']}  
+        md += f"""## 🔍 {v["stage"]}
+**Auditor:** `{v["model"]}` | **Status:** {v["status"]}  
 
 ### Verification Evaluation
-{v['content']}
+{v["content"]}
 
 ---
 
@@ -378,22 +415,25 @@ async def main():
         payload={
             "sprint": "4-Stage Competition Implementation & Cloud V&V",
             "report_path": str(report_path),
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(ev)
 
-    persist_item({
-        "id": "competition_sequential_sprint",
-        "title": "4-Stage Sequential Competition Pipeline & V&V Complete",
-        "status": "done",
-        "priority": "critical",
-        "source": "SequentialCompetitionSprint",
-        "category": "competition_implementation",
-        "details": "Implemented and verified ARC Object DSL, Pokémon TCG PBS, RSNA MIL Transformer, and Biohub 3D GNN Tracker.",
-    })
+    persist_item(
+        {
+            "id": "competition_sequential_sprint",
+            "title": "4-Stage Sequential Competition Pipeline & V&V Complete",
+            "status": "done",
+            "priority": "critical",
+            "source": "SequentialCompetitionSprint",
+            "category": "competition_implementation",
+            "details": "Implemented and verified ARC Object DSL, Pokémon TCG PBS, RSNA MIL Transformer, and Biohub 3D GNN Tracker.",
+        }
+    )
     print("✓ Persisted sprint card to SurrealDB `event_log` and Obsidian Kanban")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

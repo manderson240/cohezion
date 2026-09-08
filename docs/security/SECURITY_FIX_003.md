@@ -203,9 +203,9 @@ from cohezion.security.compression_utils import CompressionPriority
 
 # Available priorities
 CompressionPriority.CRITICAL  # Bypasses rate limit
-CompressionPriority.HIGH      # Normal rate limit
-CompressionPriority.NORMAL    # Normal rate limit
-CompressionPriority.LOW       # Normal rate limit
+CompressionPriority.HIGH  # Normal rate limit
+CompressionPriority.NORMAL  # Normal rate limit
+CompressionPriority.LOW  # Normal rate limit
 ```
 
 ## Operational Guidelines

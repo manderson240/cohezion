@@ -52,14 +52,16 @@ def refine_vault_and_surreal_quality() -> dict[str, Any]:
         )
         response = router.route_query(prompt, force_cloud=True)
 
-        vault_audits.append({
-            "filename": f.name,
-            "tier_used": response.tier_used,
-            "model": response.model_name,
-            "verified": response.verified,
-            "latency_ms": response.latency_ms,
-            "evaluation_excerpt": response.content[:300],
-        })
+        vault_audits.append(
+            {
+                "filename": f.name,
+                "tier_used": response.tier_used,
+                "model": response.model_name,
+                "verified": response.verified,
+                "latency_ms": response.latency_ms,
+                "evaluation_excerpt": response.content[:300],
+            }
+        )
 
     # 2. Verify SurrealDB Table Standards via AutoHarness & ZKFV
     logger.info("⚡ Verifying SurrealDB Schema & Policy Compliance via AutoHarness...")

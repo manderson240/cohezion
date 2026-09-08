@@ -112,7 +112,10 @@ def test_reflect_retries_correctable_and_activates_adaptation():
 
 def test_reflect_abandons_after_redispatch_cap():
     led = ReDispatchLedger(max_per_signature=2)
-    t = lambda: _trace("t", 0, [_tc("solve", error="energy NaN diverged")])
+
+    def t():
+        return _trace("t", 0, [_tc("solve", error="energy NaN diverged")])
+
     a1 = reflect(t(), ledger=led)
     a2 = reflect(t(), ledger=led)
     a3 = reflect(t(), ledger=led)  # third dispatch of same signature

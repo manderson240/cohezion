@@ -66,7 +66,7 @@ def _default_sql(query: str, timeout: float = 10.0) -> list[dict[str, Any]]:
     S310 is justified: ``SURREAL_URL`` is a fixed localhost literal, never
     user-controlled.
     """
-    req = urllib.request.Request(  # noqa: S310 — fixed 127.0.0.1 literal
+    req = urllib.request.Request(
         SURREAL_URL,
         data=query.encode(),
         headers={**_SURREAL_HEADERS, "Authorization": _SURREAL_AUTH},
@@ -196,7 +196,7 @@ def read_work_queue(
     fetcher = fetch or _default_work_queue_fetch
     try:
         data = fetcher(base)
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         logger.debug("read_work_queue failed: %s", exc)
         return {"total": 0, "by_status": {}, "by_relevance": {}}
     items = data.get("items", []) if isinstance(data, dict) else []
@@ -250,7 +250,7 @@ def read_lemonade_health(
     fetcher = fetch or _default_lemonade_fetch
     try:
         payload = fetcher(base)
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         logger.debug("read_lemonade_health failed: %s", exc)
         return {"status": "down", "loaded": []}
     return {

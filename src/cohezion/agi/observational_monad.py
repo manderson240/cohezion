@@ -12,6 +12,7 @@ Mathematical Semantics:
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Callable, Generic, Sequence, TypeVar
 
@@ -41,7 +42,9 @@ class Observed(Generic[T]):
     def bind(self, fn: Callable[[T], Observed[U]], action_name: str = "bind") -> Observed[U]:
         """Monadic Bind (>>=) operator chaining computation while accumulating observation traces."""
         next_obs = fn(self.value)
-        obs = TraceObservation(timestamp=time.time(), action=action_name, payload=str(next_obs.value))
+        obs = TraceObservation(
+            timestamp=time.time(), action=action_name, payload=str(next_obs.value)
+        )
         combined_trace = self.trace + next_obs.trace + (obs,)
         return Observed(value=next_obs.value, trace=combined_trace)
 
@@ -49,14 +52,16 @@ class Observed(Generic[T]):
         """Functor Map operator."""
         new_val = fn(self.value)
         obs = TraceObservation(timestamp=time.time(), action=action_name, payload=str(new_val))
-        return Observed(value=new_val, trace=self.trace + (obs,))
+        return Observed(value=new_val, trace=(*self.trace, obs))
 
 
 class RecursiveTraceLogicEngine:
     """Evaluates recursive trace logic predicates across computational execution graphs."""
 
     @classmethod
-    def evaluate_trace_predicate(cls, monad: Observed[Any], predicate_fn: Callable[[TraceObservation], bool]) -> bool:
+    def evaluate_trace_predicate(
+        cls, monad: Observed[Any], predicate_fn: Callable[[TraceObservation], bool]
+    ) -> bool:
         """Recursively evaluate logic predicate across the entire observation trace history."""
         if not monad.trace:
             return True

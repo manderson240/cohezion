@@ -3,6 +3,7 @@
 synthesize an audit via lemonade :13305, write to the vault. The budget-correct replacement for a
 cloud research subagent. Usage:  uv run python scripts/local_research.py <url> [topic]
 """
+
 from __future__ import annotations
 
 import re
@@ -23,8 +24,11 @@ def fetch(url: str) -> str:
     if m:  # GitHub repo → try the raw README (not JS-rendered)
         for br in ("main", "master"):
             try:
-                t = httpx.get(f"https://raw.githubusercontent.com/{m[1]}/{m[2]}/{br}/README.md",
-                              timeout=20, follow_redirects=True).text
+                t = httpx.get(
+                    f"https://raw.githubusercontent.com/{m[1]}/{m[2]}/{br}/README.md",
+                    timeout=20,
+                    follow_redirects=True,
+                ).text
                 if len(t) > 100:
                     return t
             except Exception:
@@ -48,12 +52,25 @@ def main() -> None:
         "Give concise markdown: (1) what it is, (2) the relevant format/spec/API, (3) how it maps to "
         "Cohezion + the injection point, (4) honest ADOPT / REFERENCE / SKIP verdict with one reason."
     )
-    out = httpx.post(LEMONADE, json={"model": MODEL, "messages": [{"role": "user", "content": prompt}],
-                                     "max_tokens": 1600, "temperature": 0.2}, timeout=420
-                     ).json()["choices"][0]["message"]["content"].strip()
+    out = (
+        httpx.post(
+            LEMONADE,
+            json={
+                "model": MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 1600,
+                "temperature": 0.2,
+            },
+            timeout=420,
+        )
+        .json()["choices"][0]["message"]["content"]
+        .strip()
+    )
     VAULT.mkdir(parents=True, exist_ok=True)
     p = VAULT / f"{topic}-localaudit-{time.strftime('%Y%m%d')}.md"
-    p.write_text(f"---\ntype: local-audit\nsource: {url}\ntopic: {topic}\n---\n# {topic}\n\n{out}\n")
+    p.write_text(
+        f"---\ntype: local-audit\nsource: {url}\ntopic: {topic}\n---\n# {topic}\n\n{out}\n"
+    )
     print(out)
     print(f"\n-> {p}")
 

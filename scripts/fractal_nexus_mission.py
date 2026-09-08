@@ -122,7 +122,7 @@ class FractalNexusMission:
         logger.info(f"Iteration {self.batch_count}: Simulating {self.num_rounds:,} rounds...")
 
         # Start Journey Tracking for this iteration
-        journey_id = self.tracker.start_journey(f"Fractal Nexus Iteration {self.batch_count}")
+        self.tracker.start_journey(f"Fractal Nexus Iteration {self.batch_count}")
         start_time = time.perf_counter()
 
         # 1. Physics Simulation

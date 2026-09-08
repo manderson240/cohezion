@@ -57,7 +57,7 @@ def _quality_state(score: float, prev_score: float | None = None) -> str:
 
 def _surreal_query(sql: str, timeout: float = 3.0) -> list[dict[str, Any]]:
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             _SURREAL_URL,
             data=sql.encode(),
             headers=_SURREAL_HEADERS,

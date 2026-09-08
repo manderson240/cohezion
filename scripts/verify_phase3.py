@@ -15,7 +15,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Phase3Verification")
+    logging.getLogger("Phase3Verification")
 
     tk = get_time_keeper()
     config = SwarmConfig()

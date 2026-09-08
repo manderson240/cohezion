@@ -1,9 +1,10 @@
 import pytest
-from cohezion.contracts import PoincarePoint
+
+from cohezion.inference.speculative_engine import LocalSpeculativeEngine, SpeculativeBatch
+from cohezion.physics.geodesic_flow_ode import GeodesicFlowODE, GeodesicState
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.physics.tensor_calculus import VectorTensor
-from cohezion.physics.geodesic_flow_ode import GeodesicState, GeodesicFlowODE
-from cohezion.inference.speculative_engine import LocalSpeculativeEngine, SpeculativeBatch
+
 
 def test_geodesic_flow_rk4_step():
     pt = PoincareManifoldND.project(tuple([0.05] * 12))
@@ -14,6 +15,7 @@ def test_geodesic_flow_rk4_step():
     assert isinstance(state_1, GeodesicState)
     assert state_1.time == pytest.approx(0.01)
     assert state_1.position.dim == 12
+
 
 def test_local_speculative_decoding():
     engine = LocalSpeculativeEngine(k_speculative=4)

@@ -13,11 +13,11 @@ import asyncio
 import logging
 import math
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.flume.poincare_manifold_visualizer import PoincareManifoldVisualizer
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -55,7 +55,9 @@ class GeometricCorrespondenceEngine:
         arg = max(1.0, 1.0 + num / den)
         return math.acosh(arg)
 
-    def compute_poincare_gradient(self, u: tuple[float, ...], v: tuple[float, ...], max_norm: float = 5.0) -> tuple[float, ...]:
+    def compute_poincare_gradient(
+        self, u: tuple[float, ...], v: tuple[float, ...], max_norm: float = 5.0
+    ) -> tuple[float, ...]:
         """Compute Riemannian gradient on the Poincaré ball with strict norm clipping."""
         dist = self.compute_poincare_distance(u, v)
         if dist < 1e-7:
@@ -72,13 +74,19 @@ class GeometricCorrespondenceEngine:
             grad = tuple((g / grad_norm) * max_norm for g in grad)
         return grad
 
-    async def map_state_to_manifold(self, state_12d: tuple[float, ...], concept_label: str) -> GeometricCorrespondenceMapping:
-        logger.info("📐 GEOMETRIC CORRESPONDENCE: Mapping 12D state vector for '%s'...", concept_label)
+    async def map_state_to_manifold(
+        self, state_12d: tuple[float, ...], concept_label: str
+    ) -> GeometricCorrespondenceMapping:
+        logger.info(
+            "📐 GEOMETRIC CORRESPONDENCE: Mapping 12D state vector for '%s'...", concept_label
+        )
         t0 = time.perf_counter()
 
         # 1. Project 12D physical vector to 2048D Poincaré unit ball coordinates
         norm_factor = math.sqrt(sum(x * x for x in state_12d)) or 1.0
-        poincare_coord = tuple((x / (norm_factor * 1.05)) for x in state_12d) + (0.0,) * (2048 - len(state_12d))
+        poincare_coord = tuple((x / (norm_factor * 1.05)) for x in state_12d) + (0.0,) * (
+            2048 - len(state_12d)
+        )
 
         # 2. Compute hyperbolic distance to origin (0, 0, 0)
         origin = (0.0,) * 2048
@@ -88,7 +96,12 @@ class GeometricCorrespondenceEngine:
         alignment_score = max(0.0, min(1.0, 1.0 - (dist / 5.0)))
 
         dt_ms = round((time.perf_counter() - t0) * 1000.0, 3)
-        logger.info("  • Hyperbolic Distance $d_P(u, 0)$: %.4f | Isomorphic Alignment: %.4f (%s ms)", dist, alignment_score, dt_ms)
+        logger.info(
+            "  • Hyperbolic Distance $d_P(u, 0)$: %.4f | Isomorphic Alignment: %.4f (%s ms)",
+            dist,
+            alignment_score,
+            dt_ms,
+        )
 
         return GeometricCorrespondenceMapping(
             state_vector_12d=state_12d,
@@ -106,16 +119,27 @@ async def main_async() -> None:
     print("=" * 95)
 
     states = [
-        ("HIHO Reality Coherence State (0.5 Rule)", (0.5, 0.5, 0.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
-        ("Nemotron 3.5 Vulkan0 Execution State", (0.86, 1.31, 0.20, 1.0, 0.89, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
-        ("AutoHarness AST Policy State", (0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
+        (
+            "HIHO Reality Coherence State (0.5 Rule)",
+            (0.5, 0.5, 0.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        ),
+        (
+            "Nemotron 3.5 Vulkan0 Execution State",
+            (0.86, 1.31, 0.20, 1.0, 0.89, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        ),
+        (
+            "AutoHarness AST Policy State",
+            (0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        ),
     ]
 
     for label, vec in states:
         mapping = await engine.map_state_to_manifold(vec, label)
         print(f"  Concept State: {label}")
         print(f"  • 12D Vector Head: {mapping.state_vector_12d[:5]}")
-        print(f"  • Hyperbolic Geodesic Distance $d_P(u, 0)$: {mapping.hyperbolic_geodesic_distance:.4f}")
+        print(
+            f"  • Hyperbolic Geodesic Distance $d_P(u, 0)$: {mapping.hyperbolic_geodesic_distance:.4f}"
+        )
         print(f"  • Isomorphic Alignment Score: {mapping.isomorphic_alignment_score * 100.0:.2f}%")
         print("  " + "-" * 75)
 

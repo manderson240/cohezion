@@ -74,7 +74,9 @@ def _agent_controls(mo):
 @app.cell
 def _agent_action(mo, ds, agent_btn, agent_prompt):
     # Fires ONLY on click. Embedded RUNNING agent on the local fleet.
-    mo.stop(not agent_btn.value, mo.md("_Embedded agent — type a prompt, click. Local :13305, $0._"))
+    mo.stop(
+        not agent_btn.value, mo.md("_Embedded agent — type a prompt, click. Local :13305, $0._")
+    )
     mo.stop(not agent_prompt.value.strip(), mo.md("⚠️ Prompt is empty."))
     agent_answer = ds.run_fleet_prompt(agent_prompt.value.strip())
     mo.md(f"**🤖 Local agent:**\n\n{agent_answer}")

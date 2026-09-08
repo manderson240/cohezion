@@ -16,15 +16,12 @@ Daemons Audited & Upgraded:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
+from dataclasses import dataclass
 
-from cohezion.agi.qlora_finetuning_engine import CHECKPOINT_OUTPUT_DIR
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -115,7 +112,9 @@ async def main_async() -> None:
     print("-" * 105)
     for r in records:
         print(f"{r.daemon_name:<35} | {r.assigned_finetuned_model:<45} | {r.target_hardware:<22}")
-        print(f"  └─ Latency Gain: {r.expected_latency_improvement} | Cost Savings: {r.expected_token_cost_saving} | {r.status}")
+        print(
+            f"  └─ Latency Gain: {r.expected_latency_improvement} | Cost Savings: {r.expected_token_cost_saving} | {r.status}"
+        )
         print("  " + "-" * 100)
 
     print("=" * 105)

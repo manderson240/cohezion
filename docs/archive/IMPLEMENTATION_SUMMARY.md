@@ -82,8 +82,8 @@ agent = MyAgent("phi4", use_infrastructure=False)
 result = await agent.delegate_task(
     query="analyze this code",
     target_agent="CodeReviewerAgent",
-    use_grounded_context=True,      # Default: True
-    min_confidence=0.7              # Escalate if below threshold
+    use_grounded_context=True,  # Default: True
+    min_confidence=0.7,  # Escalate if below threshold
 )
 
 # Check if escalation was recommended
@@ -96,13 +96,11 @@ from cohezion.swarm.grounded_context import GroundedContextHarness
 
 harness = GroundedContextHarness(agent)
 context = await harness.build_for_local_model(
-    query="refactor this function",
-    model_name="phi3:mini",
-    min_confidence=0.7
+    query="refactor this function", model_name="phi3:mini", min_confidence=0.7
 )
 
-print(context.system_prompt)   # Model-specific instructions
-print(context.user_prompt)     # Formatted query
+print(context.system_prompt)  # Model-specific instructions
+print(context.user_prompt)  # Formatted query
 print(context.confidence_estimate)  # 0.0-1.0
 print(context.escalation_recommended)  # True/False
 ```
@@ -186,9 +184,10 @@ security = await get_security_pipeline()
    ```python
    # Old way still works
    from cohezion.swarm.agents.base import BaseAgent
-   
+
    # New way for new agents
    from cohezion.infrastructure import AgentBuilder
+
    agent = AgentBuilder("phi4").with_security().with_caching().build()
    ```
 

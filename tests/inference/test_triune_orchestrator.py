@@ -56,7 +56,7 @@ def test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero():
     orch = build_triune_omni_orchestrator()
     temps = [tier[0].agent._temperature for tier in orch.tiers]
     assert temps == [0.3, 1.0, 1.0]  # llama3.2-1b-FLM (NPU), Gemma-4-E4B (iGPU), Gemma-4-E2B (CPU)
-    assert len({t for t in temps}) > 1, "not every tier should share one hardcoded temperature"
+    assert len(set(temps)) > 1, "not every tier should share one hardcoded temperature"
     igpu_extra = orch.tiers[1][0].agent._extra_sampling
     # reasoning_format="none" is added for Gemma-4 (a llamacpp thinking model) by the
     # thinking-model empty-output fix (ae3c1f677) so the tier returns non-empty content.

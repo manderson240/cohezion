@@ -73,6 +73,7 @@ For MCP Server: pass API key as `Authorization: Bearer <token>` header.
 ### Download Dataset
 ```python
 import kagglehub
+
 path = kagglehub.dataset_download("owner/dataset-name")
 ```
 ```bash

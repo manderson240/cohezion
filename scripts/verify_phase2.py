@@ -13,7 +13,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Phase2Verification")
+    logging.getLogger("Phase2Verification")
 
     tk = get_time_keeper()
 

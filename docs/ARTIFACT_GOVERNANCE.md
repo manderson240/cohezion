@@ -36,15 +36,15 @@ data/flume/.checksums             # sha256: checkpoint hash
 from cohezion.compound.journey_tracker import JourneyTracker
 
 JourneyTracker.record_artifact(
-  session_id="session-55",
-  artifact_type="checkpoint",
-  path="s3://cohezion-data/session-55/checkpoint-ep50.pt",
-  size_bytes=234_567_890,
-  tier="external",
-  checksum="sha256:abcd1234",
-  lifetime_days=30,
-  retention_policy="research",
-  tags=["flume", "vae", "training"]
+    session_id="session-55",
+    artifact_type="checkpoint",
+    path="s3://cohezion-data/session-55/checkpoint-ep50.pt",
+    size_bytes=234_567_890,
+    tier="external",
+    checksum="sha256:abcd1234",
+    lifetime_days=30,
+    retention_policy="research",
+    tags=["flume", "vae", "training"],
 )
 ```
 

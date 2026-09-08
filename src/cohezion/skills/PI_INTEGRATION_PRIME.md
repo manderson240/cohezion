@@ -64,7 +64,7 @@ analyzer = RequestAlignmentAnalyzer()
 result = analyzer.analyze(
     request="Refactor compound session to use async",
     available_skills=["SESSION_MANAGER_PRIME", "ASYNC_PATTERNS_PRIME"],
-    agent_context={"current_phase": "refactoring"}
+    agent_context={"current_phase": "refactoring"},
 )
 
 if result.coherence < 0.5:
@@ -104,12 +104,8 @@ refiner = SkillRefiner(mcp_client)
 refiner.refine(
     skill_name="SESSION_MANAGER_PRIME",
     operation_type="transform",
-    execution_result={
-        "success": True,
-        "duration_seconds": 4.2,
-        "quality_score": 0.87
-    },
-    patterns_extracted=["async-warmup-pattern", "checkpoint-persistence"]
+    execution_result={"success": True, "duration_seconds": 4.2, "quality_score": 0.87},
+    patterns_extracted=["async-warmup-pattern", "checkpoint-persistence"],
 )
 # Appends to skill file with version bump
 ```

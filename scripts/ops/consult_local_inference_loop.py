@@ -25,16 +25,21 @@ Structure your recommendations into:
 4. AutoHarness Deterministic Pre-Filtering (0ms code verifiers).
 Be specific, authoritative, and concise."""
 
+
 async def consult_local_inference():
     print("=" * 90)
     print("🔄 OMA LOOP: CONSULTING LOCAL INFERENCE ON OPTIMAL HARDWARE LEVERAGING")
     print("=" * 90)
 
     avail_gib, swap_used, is_safe = SmartOOMGovernor.get_memory_state()
-    print(f"▶ Preflight Memory: {avail_gib} GiB available / {swap_used} GiB swap (Safe floor: 50.0 GiB)")
+    print(
+        f"▶ Preflight Memory: {avail_gib} GiB available / {swap_used} GiB swap (Safe floor: 50.0 GiB)"
+    )
 
     if not is_safe:
-        print(f"⚠️ Memory below 50.0 GiB ({avail_gib} GiB). Redirecting consultation to Tier 2 Ollama Cloud...")
+        print(
+            f"⚠️ Memory below 50.0 GiB ({avail_gib} GiB). Redirecting consultation to Tier 2 Ollama Cloud..."
+        )
         # Query Ollama Cloud fallback
         async with httpx.AsyncClient(timeout=45.0) as client:
             res = await client.post(
@@ -43,8 +48,8 @@ async def consult_local_inference():
                     "model": "deepseek-v4-pro:cloud",
                     "prompt": PROMPT,
                     "stream": False,
-                    "options": {"temperature": 0.2, "top_p": 0.9}
-                }
+                    "options": {"temperature": 0.2, "top_p": 0.9},
+                },
             )
             data = res.json()
             raw = (data.get("response") or data.get("thinking") or "").strip()
@@ -66,13 +71,15 @@ async def consult_local_inference():
                         "model": "gpt-oss-20b-mxfp4-GGUF",
                         "messages": [{"role": "user", "content": PROMPT}],
                         "max_tokens": 1024,
-                        "temperature": 0.2
-                    }
+                        "temperature": 0.2,
+                    },
                 )
                 if res.status_code == 200:
                     data = res.json()
                     content = data["choices"][0]["message"]["content"]
-                    print("\n=== Consultation Response (via Tier-1 Local iGPU gpt-oss-20b-MXFP4) ===\n")
+                    print(
+                        "\n=== Consultation Response (via Tier-1 Local iGPU gpt-oss-20b-MXFP4) ===\n"
+                    )
                     print(content)
                     return content
                 else:
@@ -85,17 +92,14 @@ async def consult_local_inference():
     async with httpx.AsyncClient(timeout=45.0) as client:
         res = await client.post(
             "http://localhost:11434/api/generate",
-            json={
-                "model": "deepseek-v4-pro:cloud",
-                "prompt": PROMPT,
-                "stream": False
-            }
+            json={"model": "deepseek-v4-pro:cloud", "prompt": PROMPT, "stream": False},
         )
         data = res.json()
         raw = (data.get("response") or "").strip()
         print("\n=== Consultation Response ===\n")
         print(raw)
         return raw
+
 
 if __name__ == "__main__":
     asyncio.run(consult_local_inference())

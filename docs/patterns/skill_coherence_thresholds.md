@@ -38,7 +38,7 @@ Watch for skill degradation:
 {
     "skill_name": "validator",
     "coherence_proxy": success_rate * efficiency,
-    "recommendation": _threshold_check(coherence)
+    "recommendation": _threshold_check(coherence),
 }
 ```
 

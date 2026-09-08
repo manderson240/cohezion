@@ -15,6 +15,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,13 +24,12 @@ class MemoryState:
     available_gb: float
     total_gb: float
     swap_used_gb: float
+    shmem_gb: float
     is_safe: bool
-    shmem_gb: float = 0.0
     dynamic_floor_gb: float = 20.0
     gtt_used_gb: float = 0.0
     gtt_total_gb: float = 0.0
     psi_some_10: float = 0.0
-
     @property
     def used_gb(self) -> float:
         """Estimate used memory in GiB (total_gb - available_gb)."""
@@ -44,9 +44,10 @@ class OOMGuard:
     MAX_SAFE_GTT_GB: float = 50.0
     MAX_SAFE_SWAP_USED_GB: float = 12.0
     MAX_SAFE_PSI: float = 20.0
-
     @classmethod
-    def calculate_dynamic_floor(cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0) -> float:
+    def calculate_dynamic_floor(
+        cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0
+    ) -> float:
         """Compute dynamic memory floor: base 10GB + largest resident model + shmem overhead."""
         return max(cls.DEFAULT_MIN_AVAILABLE_GB, 10.0 + largest_model_gb + (shmem_gb * 1.5))
 
@@ -55,12 +56,10 @@ class OOMGuard:
         """Inspect system available memory, /proc/meminfo Shmem, GTT aperture, and PSI pressure."""
         try:
             # 1. Inspect free -m
-            out = subprocess.run(
-                ["free", "-m"], capture_output=True, text=True, timeout=5
-            ).stdout
+            out = subprocess.run(["free", "-m"], capture_output=True, text=True, timeout=5).stdout
             lines = out.strip().split("\n")
-            mem_line = [x for x in lines if x.startswith("Mem:")][0].split()
-            swap_line = [x for x in lines if x.startswith("Swap:")][0].split()
+            mem_line = next(x for x in lines if x.startswith("Mem:")).split()
+            swap_line = next(x for x in lines if x.startswith("Swap:")).split()
 
             total_mb = float(mem_line[1])
             available_mb = float(mem_line[6])
@@ -73,7 +72,7 @@ class OOMGuard:
             # 2. Inspect /proc/meminfo for Shmem / IPC allocations
             shmem_gb = 0.0
             try:
-                with open("/proc/meminfo", "r", encoding="utf-8") as f:
+                with open("/proc/meminfo", encoding="utf-8") as f:
                     for line in f:
                         if line.startswith("Shmem:"):
                             shmem_kb = float(line.split()[1])
@@ -153,7 +152,9 @@ class OOMGuard:
         while time.time() - start_time < timeout:
             state = cls.get_memory_state()
             if state.available_gb >= min_gb:
-                logger.info(f"🟢 OOM Guard: {state.available_gb} GiB available (>= {min_gb} GiB floor)")
+                logger.info(
+                    f"🟢 OOM Guard: {state.available_gb} GiB available (>= {min_gb} GiB floor)"
+                )
                 return True
             logger.warning(
                 f"⚠️ OOM Guard: Only {state.available_gb} GiB available (< {min_gb} GiB floor). Waiting..."

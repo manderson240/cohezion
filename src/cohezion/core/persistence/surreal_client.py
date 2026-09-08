@@ -10,6 +10,7 @@ Supports:
 
 import asyncio
 import base64
+import contextlib
 import logging
 import os
 import re
@@ -249,6 +250,29 @@ class UniverseNode:
         }
 
 
+def run_sync(coro: Any) -> Any:
+    """Run an async SurrealClient call from SYNCHRONOUS code.
+
+    Every public write on ``SurrealClient`` is ``async def``. Calling one from a sync
+    function without ``await`` constructs the coroutine and DISCARDS it: the write never
+    happens and nothing raises, so the caller's ``try/except`` never fires and the feature
+    looks wired while being dead. (Found live 2026-07-30 in ``AutoDQA._persist_result`` and
+    ``gemini_cli_tier._persist_tier_experience`` — neither had ever written a row.)
+
+    Handles both cases: no running loop (the common one) uses ``asyncio.run`` directly;
+    when a loop IS already running in this thread, the coroutine is executed on a worker
+    thread with its own loop so we neither block nor re-enter the caller's loop.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
+
+
 class SurrealClient:
     """
     Async client for SurrealDB.
@@ -282,8 +306,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
     (physics_state.dim_10_control + physics_state.dim_12_precipitation) / 2
 ) OR 0.0;
 
--- Index for vector similarity search (SurrealDB 3.0 HNSW)
-DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DIMENSION 768 DIST COSINE;
+-- Index for vector similarity search (SurrealDB 2.0+)
+-- DEFINE INDEX embedding_idx ON universe_nodes FIELDS embedding MTREE DIMENSION 768 DIST COSINE;
 """
 
     async def is_alive(self) -> bool:
@@ -295,7 +319,7 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             async with httpx.AsyncClient(timeout=1.0) as client:
                 response = await client.get(health_url)
                 return response.status_code == 200
-        except (httpx.HTTPError, httpx.TimeoutException, OSError, ConnectionError):
+        except (httpx.HTTPError, OSError):
             return False
 
     async def ensure_active(self, timeout: int = 30) -> bool:
@@ -416,8 +440,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             logger.info("Schema created successfully")
             return True
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -442,14 +464,18 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
         try:
             data = node.to_dict(compress=compress)
             from datetime import datetime
+
             for dt_field in ("created_at", "updated_at"):
                 val = data.get(dt_field)
                 if isinstance(val, str):
-                    clean_val = val.rstrip("Z")
-                    try:
-                        data[dt_field] = datetime.fromisoformat(clean_val)
-                    except Exception:
-                        pass
+                    # fromisoformat parses a trailing 'Z' natively on Python >= 3.11 and
+                    # yields an AWARE UTC datetime. The previous rstrip('Z') both discarded
+                    # the timezone (naive result, assumed local downstream) and stripped
+                    # EVERY trailing Z (adversarial review 2026-08-21, two lanes
+                    # independently). Malformed strings are left as-is (fail-open,
+                    # unchanged behavior).
+                    with contextlib.suppress(ValueError):
+                        data[dt_field] = datetime.fromisoformat(val)
             if data.get("embedding") is None:
                 data["embedding"] = []
 
@@ -463,8 +489,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             return node.id
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -492,8 +516,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             else:
                 return await self._client.create(table, data)
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -644,8 +666,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             logger.info(f"SurrealDB Response: {res}")
             return res
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -678,8 +698,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             return self._dict_to_node(data)
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -718,8 +736,8 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
                 query = """
                 SELECT *, vector::similarity::cosine(embedding, $vector) AS score
                 FROM universe_nodes
-                WHERE embedding <|$limit, 100|> $vector
                 ORDER BY score DESC
+                LIMIT $limit
                 """
                 results = await self._client.query(query, {"vector": vector, "limit": safe_limit})
                 results = results[0].get("result", []) if results else []
@@ -727,8 +745,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             return [self._dict_to_node(r) for r in results]
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -761,8 +777,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             return [self._dict_to_node(r) for r in results]
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -821,17 +835,14 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
                 # Validate relation_type to prevent injection (allow only alphanumeric + underscore)
                 if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", relation_type):
                     raise ValueError(f"Invalid relation type: {relation_type}")
-                # Standardize to SurrealDB 3.0 typed record syntax
-                from_rec = from_id if ":" in from_id else f"universe_nodes:{from_id}"
-                to_rec = to_id if ":" in to_id else f"universe_nodes:{to_id}"
                 result = await self._client.query(
-                    f"RELATE type::record($from_rec) -> {relation_type} -> type::record($to_rec) SET "
+                    f"RELATE $from_id->{relation_type}->$to_id SET "
                     "weight = $weight, "
                     "metadata = $metadata, "
                     "created_at = time::now()",
                     {
-                        "from_rec": from_rec,
-                        "to_rec": to_rec,
+                        "from_id": from_id,
+                        "to_id": to_id,
                         "weight": weight,
                         "metadata": metadata or {},
                     },
@@ -841,8 +852,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
                 return None
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -893,8 +902,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
                 return []
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -956,8 +963,6 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
                 return []
 
         except (
-            TimeoutError,
-            ConnectionError,
             OSError,
             httpx.HTTPError,
             RuntimeError,
@@ -970,6 +975,24 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
         ) as e:
             logger.error("Failed to find bridges: %s", e, exc_info=True)
             return []
+
+    @staticmethod
+    def _coerce_datetime(value: Any) -> datetime:
+        """Coerce a stored created_at/updated_at value to datetime, tolerating all shapes.
+
+        store_node() normalizes ISO strings to datetime before persisting, and SurrealDB's
+        client deserializes `time::now()` columns to datetime objects, so the value can
+        legitimately arrive here as datetime, str, or missing — `fromisoformat` alone
+        raises TypeError on the datetime case (test_get_node_with_inmemory).
+        """
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, str):
+            try:
+                return datetime.fromisoformat(value)
+            except ValueError:
+                logger.warning("Unparseable datetime %r; falling back to now()", value)
+        return datetime.now()
 
     def _dict_to_node(self, data: dict[str, Any]) -> UniverseNode:
         """Convert a dictionary to UniverseNode."""
@@ -991,13 +1014,7 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             try:
                 decoded = base64.b64decode(content)
                 content = zlib.decompress(decoded).decode("utf-8")
-            except (
-                zlib.error,
-                base64.binascii.Error,
-                UnicodeDecodeError,
-                ValueError,
-                TypeError,
-            ) as e:
+            except (zlib.error, base64.binascii.Error, ValueError, TypeError) as e:
                 logger.error("Failed to decompress node %s: %s", data.get("id"), e, exc_info=True)
 
         return UniverseNode(
@@ -1006,9 +1023,7 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             embedding=data.get("embedding"),
             physics_state=physics_state,
             node_type=data.get("node_type", "document"),
-            created_at=datetime.fromisoformat(data["created_at"])
-            if isinstance(data.get("created_at"), str)
-            else (data["created_at"] if isinstance(data.get("created_at"), datetime) else datetime.now()),
+            created_at=self._coerce_datetime(data.get("created_at")),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )

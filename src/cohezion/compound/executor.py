@@ -7,6 +7,10 @@ Orchestrates execution lifecycle:
   4. Extract reusable patterns for future runs
 """
 
+from __future__ import (
+    annotations,
+)  # reconcile 2026-08-26: appended symbols are referenced in annotations
+
 import asyncio
 import contextlib
 import json
@@ -185,6 +189,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         rubric_middleware: Any | None = None,
         inference_provider: Any | None = None,
         jepa_gate: Any | None = None,
+        dqa_gate: Any | None = None,
+        quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
         semantic_cache: Any | None = None,
         enable_semantic_cache: bool = False,
@@ -236,6 +242,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         self._inference_provider = inference_provider
         self._jepa_gate = jepa_gate
+        # DQ2: output-side quality gate (AutoDQA or any duck-typed .evaluate()).
+        # None keeps the metrics dict byte-identical for un-wired callers (DQ6).
+        self._dqa_gate = dqa_gate
+        # AQ1: measures OUTPUT quality from the response text. Distinct from
+        # anomaly_score, which is behavioural health derived from telemetry.
+        self._quality_evaluator = quality_evaluator
         self._token_ledger = token_ledger
         # PR 2: card-aligned semantic cache. When enable_semantic_cache=True
         # and no cache is provided, a default SemanticCache() is created.
@@ -262,7 +274,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             try:
                 from cohezion.compound.journey_tracker import JourneyTracker
 
-                journey_tracker = JourneyTracker()
+                # Sparse-code workspace readout (vault 2026-08-01-flume-sparse-
+                # workspace-design, SUPPORTED): auto-wire so the capability is
+                # live, not dormant. Fail-open — tracker works without it.
+                workspace_readout = None
+                try:
+                    from cohezion.flume.workspace_readout import WorkspaceReadout
+
+                    workspace_readout = WorkspaceReadout()
+                except ImportError:
+                    pass
+                journey_tracker = JourneyTracker(workspace_readout=workspace_readout)
             except ImportError as e:
                 logger.debug("Cycle persistence without JourneyTracker: %s", e)
         # Strong refs to in-flight cache writes so they aren't GC'd mid-flight.
@@ -296,9 +318,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         else:
             from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
-        self._skill_health_tracker = SkillHealthTracker()
-
-        self._mycelium_loop = None
+            self._skill_health_tracker = SkillHealthTracker()
 
         # MGPO: accumulator of recent skill names for boundary-first batch refinement
         self._recent_skill_names: list[str] = []
@@ -343,34 +363,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         self._context_policy = ContextPolicy(vault_logger=self.logger)
         self.set_context_policy(self._context_policy)
-
-    def _maybe_kick_mycelium_loop(self, file_path: str, context: str = "") -> Any:
-        """Triggers MyceliumLoop auto-synthesis if the target file is a Python source file."""
-        if not str(file_path).endswith(".py"):
-            return None
-
-        if getattr(self, "_mycelium_loop", None) is None:
-            try:
-                from cohezion.mycelium.loop import MyceliumLoop
-                self._mycelium_loop = MyceliumLoop()
-            except Exception as e:
-                logger.debug("Could not initialize MyceliumLoop: %s", e)
-                return None
-
-        try:
-            loop = self._mycelium_loop
-            if hasattr(loop.execute, "called"):
-                return loop.execute(file_path, context)
-            if asyncio.iscoroutinefunction(getattr(loop, "execute", None)):
-                try:
-                    current_loop = asyncio.get_running_loop()
-                    return current_loop.create_task(loop.execute(file_path, context))
-                except RuntimeError:
-                    return asyncio.run(loop.execute(file_path, context))
-            return loop.execute(file_path, context)
-        except Exception as e:
-            logger.warning("MyceliumLoop execution error: %s", e)
-            return None
 
     @property
     def inference_provider(self) -> Any | None:
@@ -476,14 +468,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             prioritized = refiner.prioritized_skills(candidates)
             k = top_k if top_k is not None else len(prioritized)
             for skill in prioritized[:k]:
-                try:
+                with contextlib.suppress(Exception):
                     refiner.refine(
                         skill_name=skill,
                         operation_type="mgpo_batch",
                         execution_result={},
                     )
-                except Exception:
-                    pass
         except Exception:
             pass
         finally:
@@ -1067,10 +1057,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         _tier_hints: dict[str, str] = {}
         # (a) W3: DegradationDetector.suggest_routing_tier() — reactive, health-based tier hint.
         if self._degradation_detector is not None:
-            try:
+            with contextlib.suppress(Exception):
                 _tier_hints["suggested_tier"] = self._degradation_detector.suggest_routing_tier()
-            except Exception:
-                pass
         # (b) W4: DifficultyEstimator.predict_tier() — predictive, skill-specific tier hint.
         # Use the lazy `skill_refiner` PROPERTY (not the raw `_skill_refiner` attr): the attr is None
         # until the property first fires at the post-execute_fn refinement step, so reading it here
@@ -1080,12 +1068,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if _refiner is not None:
             _estimator = getattr(_refiner, "_difficulty_estimator", None)
             if _estimator is not None:
-                try:
+                with contextlib.suppress(Exception):
                     _tier_hints["predicted_tier"] = _estimator.predict_tier(
                         skill_name, operation_type
                     )
-                except Exception:
-                    pass
         # (d) OC1-OC3: CompoundHealthOracle.last_assessment.tier_recommendation — regime-driven,
         # rolling Higuchi-FD window (cross-session persistent). Reflects the PREVIOUS executions'
         # quality texture (HIHO/STUCK/CHAOTIC). STUCK (FD < 1.3) escalates the recommended tier
@@ -1126,7 +1112,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 inference_provider=self._inference_provider,
             )
             success = True
-            logger.info("Task completed successfully")
+            # E1-S1: empty/whitespace-only output is the fleet's known "local inference emits
+            # empty" failure mode — do NOT score it as a healthy success (was: unconditional
+            # True). Downstream anomaly/quality scoring must see it as degraded, not nominal.
+            if not output or not str(output).strip():
+                success = False
+                metrics["degraded"] = True
+                logger.warning("Task produced empty output — marking degraded, not success")
+            else:
+                logger.info("Task completed successfully")
         except Exception as e:
             # User-supplied execute_fn can raise anything; record failure metric and continue.
             # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit Exception).
@@ -1175,8 +1169,113 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         metrics["output_sanitized_by_guardrails"] = True
                         logger.debug("Task output sanitized")
 
+        # Step 3.9: AQ1 — measure the OUTPUT TEXT via AutoDQA -> quality_eval.
+        #
+        # Closes a production-path dormancy: quality_eval.evaluate's only consumer
+        # was AutoDQA, and make_executor never built one, so the whole type-aware
+        # evaluator (AST-parses code, checks uncertainty markers, length-gates per
+        # output_type) plus its mutation-verified AG1-AG4 agreement gate never ran.
+        # (The factory injects it with persist=False — the `autodqa_results` table
+        # still has no producer; see the AQ5 block for the measurement that decided
+        # that, and AQ7 for the un-awaited-write bug behind it.)
+        #
+        # Runs AFTER the output guardrails so it scores the final, possibly
+        # sanitized text.
+        #
+        # KEY NAMING IS DELIBERATE — `output_quality_*`, never `quality_score`.
+        # These two are different quantities and conflating them is a real defect:
+        # `quality_score` (SkillRefiner/DifficultyEstimator/AdaJEPA) is a 0-1 HEALTH
+        # score where ~0.5 is neutral, whereas this is an ESCALATION-gate verdict
+        # ("substantial enough not to escalate?"). Measured: a correct "Yes." scores
+        # 0.00/rejected for being under 10 chars. Publishing it as `quality_score`
+        # would make GIC punish terse-but-correct answers and escalate to costlier
+        # tiers. See TestAQ6ScaleMismatch for the executable evidence.
+        #
+        # This is TELEMETRY, not a gate: it never sets success=False and never
+        # rewrites `output` (the guardrail pipeline above owns that role). Failing
+        # the task here would suppress pattern extraction, skill refinement and
+        # cache writes for merely terse answers.
+        #
+        # Deference (AQ4): an execute_fn that measured its own lane keeps its value.
+        # Fail-open (AQ2): any failure publishes NO key rather than a fabricated
+        # score — an unmeasurable signal must never read as a confident verdict.
+        if (
+            self._quality_evaluator is not None
+            and success
+            and output
+            and "output_quality_score" not in metrics
+        ):
+            try:
+                dqa = self._quality_evaluator.evaluate(str(output), task_description)
+                # Assign only after a complete evaluation so a mid-flight raise
+                # cannot leave a partially-populated verdict behind.
+                metrics["output_quality_score"] = dqa.verdict.score
+                metrics["output_quality_accept"] = dqa.verdict.accept
+                metrics["output_quality_band"] = dqa.quality_band
+                metrics["output_quality_reason"] = dqa.verdict.reason
+                if not dqa.verdict.accept:
+                    logger.info(
+                        "Output below escalation gate (non-blocking): skill=%s score=%.2f (%s)",
+                        skill_name,
+                        dqa.verdict.score,
+                        dqa.verdict.reason,
+                    )
+            except Exception as e:
+                logger.debug("Output quality evaluation failed (non-blocking): %s", e)
+
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
+
+        # Step 5.5: AUTODQA output quality gate (DQ2/DQ8).
+        #
+        # `DegradationDetector` has owned a complete quality_score branch since #120
+        # (MetricBaseline at :360, add_sample at :760, CRITICAL alert at :705) that
+        # could never fire: no component on the production path produced the metric.
+        # `AutoDQA` computes exactly that score and was never constructed by any
+        # factory. This is the producer half; the fold into `degradation_metrics`
+        # below (Step 7.5) is the forwarding half -- BOTH were missing.
+        #
+        # Cost: `classify()` is regex/heuristic and `quality_eval.evaluate()` is
+        # regex + `ast.parse`. With no `peer_outputs` the semantic-agreement path
+        # (and its embedder) is never touched, so this spends NO tokens and does
+        # not open a hole in the Quarter-on-a-String budget. MEASURED 2026-08-30,
+        # n=200/case: median 8us (36-char answer), 21us (31-char code), 70us
+        # (800-char generation) -- negligible against the pipeline's own ~1s.
+        #
+        # NAME COLLISION, documented rather than silently inherited: the detector's
+        # own comment (degradation_detector.py:702) calls quality_score "Long2Short:
+        # 1/tokens", and `autonomous_loop/coordinator.py:262` really does publish
+        # `1.0 / tokens` (~0.002) under that key. Both fit value_bounds=(0.0, 1.0),
+        # so a shared baseline would mix a rate with a score and neither would be
+        # meaningful. Verified 2026-08-30 that this cannot happen today: there is no
+        # DegradationDetector singleton, the coordinator constructs its own and hands
+        # it only to LocalImprovementExecutor, and no caller in src/ threads one
+        # instance into both. If that ever changes, split the key -- do not let the
+        # units merge. (1/tokens arguably belongs on the detector's existing
+        # `token_efficiency` baseline, but re-keying another subsystem is out of
+        # scope here.)
+        #
+        # DAMPING, NOT REJECTION. A reject is recorded but never flips `success`
+        # and never replaces `output`. Measured 2026-08-30: the real gate rejects
+        # "Paris" for "What is the capital of France?" (`short_answer: too short`),
+        # so hard-failing here would fail correct work -- the defect AG1 records for
+        # the input guardrail. The rolling-baseline consumer only needs RELATIVE
+        # movement, so a strict absolute calibration is still a usable signal.
+        if self._dqa_gate is not None and success and output:
+            try:
+                _dqa = self._dqa_gate.evaluate(str(output), task_description)
+                metrics["quality_score"] = _dqa.verdict.score
+                metrics["dqa_band"] = _dqa.quality_band
+                if not _dqa.verdict.accept:
+                    metrics["dqa_rejected"] = True
+                    logger.info(
+                        "AUTODQA flagged output (non-blocking): score=%.2f reason=%s",
+                        _dqa.verdict.score,
+                        _dqa.verdict.reason,
+                    )
+            except Exception as e:
+                # Fail-open (DQ5): an observability gate must never fail the task.
+                logger.debug("AUTODQA gate failed (non-blocking): %s", e)
 
         # PR 2: card-aligned cache write. Best-effort, fire-and-forget;
         # the next call for the same (prompt, card_signature) hits. The
@@ -1343,7 +1442,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Quadrature consensus: alignment with human request
         if alignment_data := metrics.get("alignment", {}):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
-        metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
+        # A caller-MEASURED coherence must not be overwritten by this self-computed blend:
+        # for a fixed success/anomaly/intent profile the blend is CONSTANT regardless of
+        # output quality, so overwriting silently disconnected the DegradationDetector's
+        # coherence baseline from every execute_fn that actually measures quality
+        # (found 2026-08-20 via test_critical_alert_logged_to_vault — the alert could
+        # never fire). Measured wins; the blend remains the fallback and stays observable
+        # under its own key.
+        _computed_cohesion = sum(cohesion_components) / len(cohesion_components)
+        metrics["computed_cohesion"] = _computed_cohesion
+        if not isinstance(metrics.get("coherence"), (int, float)):
+            metrics["coherence"] = _computed_cohesion
 
         # Step 5.85: V-Model DRR gate (non-blocking).
         # DRR checks file artifacts (skill PRIME .md + matching test .py). Only fire when both
@@ -1404,6 +1513,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             metrics["coherence"] = metrics["coherence"] * 0.9 + nc_metrics.habitat_quality * 0.1
         except Exception:
             pass  # Non-blocking: natural_capital module may not be available
+
+        # E1-S2: feed the FINAL coherence (Step 5.8 composite + Step 5.9 natural-capital blend) to
+        # the detector so cross-execution coherence trend analysis is live. detect_anomaly (Step 5)
+        # runs before this value exists — it depends on the anomaly score — so without this the
+        # coherence tripwire is dead on the normal path. Non-blocking.
+        try:
+            coherence_issues = self.inflection_detector.observe_coherence(metrics["coherence"])
+            if coherence_issues:
+                metrics["coherence_issues"] = coherence_issues
+                logger.debug("Composite coherence issues: %s", coherence_issues)
+        except (AttributeError, TypeError, ValueError) as e:
+            logger.debug("Coherence observation failed (non-blocking): %s", e)
 
         # Step 5.91: Autoresearch dispatch (non-blocking, research tasks only)
         _RESEARCH_KEYWORDS = {"train", "optimize", "research", "experiment", "tune", "improve loss"}
@@ -1668,6 +1789,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     degradation_metrics["tokens_per_second"] = token_metrics.get(
                         "tokens_per_second", 0.0
                     )
+                # DQ4: fold the AUTODQA output score in. `degradation_metrics` is a
+                # FRESH dict -- `metrics` is deliberately not merged wholesale, so a
+                # signal that is not folded in here is invisible to the detector no
+                # matter who produced it. This is the forwarding half of the fix; a
+                # producer alone leaves the quality_score branch unreachable.
+                # Conditional so an un-wired executor sends the same 5 keys as before.
+                if "quality_score" in metrics:
+                    degradation_metrics["quality_score"] = metrics["quality_score"]
                 # Fold JEPA pre-execution coherence into degradation metrics (JW1 routing feedback).
                 if _jepa_verdict is not None and self._jepa_gate is not None:
                     degradation_metrics["jepa_coherence"] = self._jepa_gate.last_coherence
@@ -1908,7 +2037,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     ),
                     run_id=f"cycle-{time.time_ns()}",
                 )
-            except (RuntimeError, ValueError, OSError, TimeoutError) as e:
+            except (RuntimeError, ValueError, OSError) as e:
                 logger.debug("Cycle persistence failed (non-blocking): %s", e)
 
         # Step 9.1: Persist universe snapshot (L183)
@@ -2116,10 +2245,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         suggested = None
         if self._degradation_detector is not None:
-            try:
+            with contextlib.suppress(Exception):
                 suggested = self._degradation_detector.suggest_routing_tier()
-            except Exception:
-                pass
         predicted = None
         estimator = (
             getattr(self._skill_refiner, "_difficulty_estimator", None)
@@ -2127,10 +2254,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             else None
         )
         if estimator is not None:
-            try:
+            with contextlib.suppress(Exception):
                 predicted = estimator.predict_tier(skill_name, operation_type)
-            except Exception:
-                pass
         # Adequate tier = the MORE CAPABLE of the difficulty prediction and the health suggestion
         # (either signal escalating wins — never under-route a hard task at the boundary). Unlike
         # RS1's cost-biased _resolve_tier (cheaper-of-two), the reroute ensures capability.
@@ -2214,6 +2339,40 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             summary["cache_entries_saved"] = 0
         logger.info("Compound session ended")
         return summary
+
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    def _maybe_kick_mycelium_loop(self, file_path: str, context: str = "") -> Any:
+        """Triggers MyceliumLoop auto-synthesis if the target file is a Python source file."""
+        if not str(file_path).endswith(".py"):
+            return None
+
+        if getattr(self, "_mycelium_loop", None) is None:
+            try:
+                # NOTE: no MyceliumLoop class exists in cohezion.mycelium.loop (only
+                # CoverageLoop does); this import always raises and is safely caught
+                # below. A real fix requires deciding what this reconcile-preserved
+                # method was meant to call, so we only silence the type error here.
+                from cohezion.mycelium.loop import MyceliumLoop  # type: ignore[attr-defined]
+
+                self._mycelium_loop = MyceliumLoop()
+            except Exception as e:
+                logger.debug("Could not initialize MyceliumLoop: %s", e)
+                return None
+
+        try:
+            loop = self._mycelium_loop
+            if hasattr(loop.execute, "called"):
+                return loop.execute(file_path, context)
+            if asyncio.iscoroutinefunction(getattr(loop, "execute", None)):
+                try:
+                    current_loop = asyncio.get_running_loop()
+                    return current_loop.create_task(loop.execute(file_path, context))
+                except RuntimeError:
+                    return asyncio.run(loop.execute(file_path, context))
+            return loop.execute(file_path, context)
+        except Exception as e:
+            logger.warning("MyceliumLoop execution error: %s", e)
+            return None
 
     # Integration methods (_compute_token_delta, log_inflection_point,
     # compile_natural_language, validate_sandbox) inherited from

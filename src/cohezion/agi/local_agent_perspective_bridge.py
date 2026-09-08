@@ -13,18 +13,17 @@ and feedback, and inject them back into Cohezion's knowledge mesh:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
-from cohezion.core.event_bus import Event, EventBus, EventType
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -46,7 +45,9 @@ class LocalAgentPerspective:
 class LocalAgentPerspectiveBridge:
     """Bridge for ingesting local agent reflections back into Cohezion's knowledge mesh."""
 
-    def __init__(self, event_bus: EventBus | None = None, session_id: str = "master_perspective_bridge") -> None:
+    def __init__(
+        self, event_bus: EventBus | None = None, session_id: str = "master_perspective_bridge"
+    ) -> None:
         self.event_bus = event_bus or EventBus()
         self.session_id = session_id
         self.geom_engine = GeometricCorrespondenceEngine()
@@ -65,7 +66,12 @@ class LocalAgentPerspectiveBridge:
         reflection_prompt: str,
     ) -> LocalAgentPerspective:
         logger.info("\n" + "=" * 95)
-        logger.info("🧠 LOCAL AGENT PERSPECTIVE BRIDGE: Ingesting Reflection from '%s' (%s on %s)...", agent_name, model_id, hardware_target)
+        logger.info(
+            "🧠 LOCAL AGENT PERSPECTIVE BRIDGE: Ingesting Reflection from '%s' (%s on %s)...",
+            agent_name,
+            model_id,
+            hardware_target,
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
@@ -94,9 +100,12 @@ class LocalAgentPerspectiveBridge:
 
         # 3. Save Retrospective to Obsidian Vault
         VAULT_RETRO_DIR.mkdir(parents=True, exist_ok=True)
-        retro_file = VAULT_RETRO_DIR / f"{time.strftime('%Y-%m-%d')}-local-agent-{agent_name.lower().replace(' ', '-')}-perspective.md"
+        retro_file = (
+            VAULT_RETRO_DIR
+            / f"{time.strftime('%Y-%m-%d')}-local-agent-{agent_name.lower().replace(' ', '-')}-perspective.md"
+        )
         retro_content = f"""# Local Agent Operational Retrospective: {agent_name}
-*Date: {time.strftime('%Y-%m-%d %H:%M:%S')}*
+*Date: {time.strftime("%Y-%m-%d %H:%M:%S")}*
 *Model: {model_id} | Hardware: {hardware_target}*
 
 ## Agent Reflection & Perspective

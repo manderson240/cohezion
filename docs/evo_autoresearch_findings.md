@@ -77,7 +77,7 @@ After 130K+ deliberations, all voice scores (except resource) are clamped at 1.0
 self._score_adjustments[vt] = adjustment  # replaced by smaller value each cycle
 
 # NEW (E57 fix):
-self._mycelium_calibration[vt] += adjustment   # accumulates cross-cycle
+self._mycelium_calibration[vt] += adjustment  # accumulates cross-cycle
 self._score_adjustments[vt] = self._mycelium_calibration[vt]  # exposed to _evaluate_*
 ```
 

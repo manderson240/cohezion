@@ -15,7 +15,9 @@ from pathlib import Path
 import httpx
 
 
-ROUTER_PATH = Path("/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py")
+ROUTER_PATH = Path(
+    "/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py"
+)
 CHECKPOINT_DIR = Path("/home/mike-anderson/dev/cohezion/checkpoints/cohezion_lora_qwen_adapter")
 
 

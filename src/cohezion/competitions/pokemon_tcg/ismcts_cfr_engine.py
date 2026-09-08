@@ -53,7 +53,7 @@ class ISMCTSWithCFR:
 
     def search_action(self, observation: dict[str, Any], num_rollouts: int = 300) -> str:
         """Runs Information-Set MCTS with OOS regret updates."""
-        actions = observation.get("legal_actions", self.legal_actions)
+        actions: list[str] = observation.get("legal_actions", self.legal_actions)
         is_hash = self.get_info_set_hash(observation)
 
         if is_hash not in self.nodes:
@@ -85,10 +85,7 @@ class ISMCTSWithCFR:
                 else:
                     payoff = 0.5
             elif chosen == "attach_energy":
-                if energy < 2:
-                    payoff = 2.0
-                else:
-                    payoff = 0.2
+                payoff = 2.0 if energy < 2 else 0.2
             else:
                 payoff = 0.4
 

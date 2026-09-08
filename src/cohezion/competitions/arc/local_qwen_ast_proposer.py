@@ -6,6 +6,7 @@ Executes generated code in an isolated AST sandbox with 0ms AutoHarness verifica
 
 import ast
 import logging
+from typing import Any
 
 import httpx
 
@@ -50,7 +51,7 @@ async def propose_python_solution(client: httpx.AsyncClient, task_data: dict) ->
     try:
         r = await client.post(f"{LEMONADE_BASE}/v1/chat/completions", json=payload, timeout=900.0)
         if r.status_code == 200:
-            content = r.json()["choices"][0]["message"]["content"]
+            content: str = r.json()["choices"][0]["message"]["content"]
             if "```python" in content:
                 code = content.split("```python")[1].split("```")[0].strip()
                 return code
@@ -66,7 +67,7 @@ def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None
     try:
         # AST parse check
         ast.parse(code_str)
-        local_scope = {}
+        local_scope: dict[str, Any] = {}
         exec(code_str, {"__builtins__": {}}, local_scope)
         if "transform" not in local_scope:
             return None
@@ -81,6 +82,7 @@ def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None
 
         # Execute on test input
         test_in = task_data.get("test", [{}])[0].get("input", [[0]])
-        return fn(test_in)
+        result: list[list[int]] = fn(test_in)
+        return result
     except Exception:
         return None

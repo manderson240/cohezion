@@ -1,8 +1,7 @@
-import pytest
-from cohezion.contracts import PoincarePoint
-from cohezion.physics.poincare_manifold import PoincareManifoldND
-from cohezion.physics.j_space_manifold import JSpaceManifold, JSpaceProjection
 from cohezion.inference.cpu_inference_engine import CPUInferenceEngine, CPUInferenceResult
+from cohezion.physics.j_space_manifold import JSpaceManifold, JSpaceProjection
+from cohezion.physics.poincare_manifold import PoincareManifoldND
+
 
 def test_j_space_manifold_projection_and_reconstruction():
     j_engine = JSpaceManifold(soul_dim=2048, j_dim=256)
@@ -14,6 +13,7 @@ def test_j_space_manifold_projection_and_reconstruction():
     assert proj.reconstructed_soul.dim == 2048
     assert proj.holographic_loss >= 0.0
     assert 0.0 <= proj.workspace_coherence <= 1.0
+
 
 def test_cpu_inference_engine():
     cpu = CPUInferenceEngine(threads=32)

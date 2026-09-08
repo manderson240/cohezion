@@ -1,0 +1,400 @@
+"""Event-driven architecture for decoupled communication.
+
+Replaces direct coupling between agents and logging/monitoring systems.
+Pattern: Pub/Sub with typed events and async handlers.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import itertools
+import logging
+import time
+from abc import ABC, abstractmethod
+from collections import defaultdict
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any, Protocol
+
+
+logger = logging.getLogger(__name__)
+
+# Upper bound on EventBus.stop()'s drain. Generous enough that any finite backlog of
+# well-behaved handlers completes, short enough that a hot producer or a hung handler
+# cannot block shutdown indefinitely (D2, adversarial review 2026-07-31).
+_DRAIN_TIMEOUT_S = 30.0
+
+
+class EventType(Enum):
+    """Standard event types across the system."""
+
+    AGENT_START = auto()
+    AGENT_COMPLETE = auto()
+    AGENT_ERROR = auto()
+    LLM_CALL = auto()
+    LLM_RESPONSE = auto()
+    CACHE_HIT = auto()
+    CACHE_MISS = auto()
+    DB_QUERY = auto()
+    DB_ERROR = auto()
+    SECURITY_VIOLATION = auto()
+    METRIC_UPDATE = auto()
+    SYSTEM_HEALTH = auto()
+    JOURNEY_STEP = auto()
+    FLEET_STATUS = auto()
+    CUSTOM = auto()
+
+    # DataMesh domain events (DataMeshEventBridge, CorpusQualityConsumer)
+    DATA_PRODUCT_CREATED = auto()
+    DATA_PRODUCT_UPDATED = auto()
+    DATA_PRODUCT_QUALITY_ALERT = auto()
+    LINEAGE_UPDATED = auto()
+    DOMAIN_HEALTH_DEGRADED = auto()
+
+
+@dataclass(frozen=True, slots=True)
+class Event:
+    """Immutable event with metadata."""
+
+    type: EventType
+    source: str
+    timestamp: float = field(default_factory=time.time)
+    payload: dict[str, Any] = field(default_factory=dict)
+    priority: int = 0  # Higher = processed first
+
+    @classmethod
+    def agent_start(cls, agent_name: str, model: str, **kwargs) -> Event:
+        return cls(
+            type=EventType.AGENT_START,
+            source=agent_name,
+            payload={"model": model, **kwargs},
+        )
+
+    @classmethod
+    def agent_complete(cls, agent_name: str, result: Any, duration_ms: float, **kwargs) -> Event:
+        return cls(
+            type=EventType.AGENT_COMPLETE,
+            source=agent_name,
+            payload={"result": result, "duration_ms": duration_ms, **kwargs},
+        )
+
+    @classmethod
+    def llm_call(cls, agent_name: str, model: str, prompt_tokens: int = 0, **kwargs) -> Event:
+        return cls(
+            type=EventType.LLM_CALL,
+            source=agent_name,
+            payload={"model": model, "prompt_tokens": prompt_tokens, **kwargs},
+        )
+
+    @classmethod
+    def llm_response(cls, agent_name: str, model: str, response_tokens: int = 0, **kwargs) -> Event:
+        return cls(
+            type=EventType.LLM_RESPONSE,
+            source=agent_name,
+            payload={"model": model, "response_tokens": response_tokens, **kwargs},
+        )
+
+    @classmethod
+    def fleet_status(
+        cls, source: str, loaded_models: list[str], busy_models: list[str], **kwargs
+    ) -> Event:
+        return cls(
+            type=EventType.FLEET_STATUS,
+            source=source,
+            payload={"loaded_models": loaded_models, "busy_models": busy_models, **kwargs},
+        )
+
+    @classmethod
+    def cache_access(cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs) -> Event:
+        return cls(
+            type=EventType.CACHE_HIT if hit else EventType.CACHE_MISS,
+            source=agent_name,
+            payload={"tier": tier, **kwargs},
+        )
+
+
+EventHandler = Callable[[Event], Awaitable[None]]
+
+
+class EventHandlerProtocol(Protocol):
+    """Protocol for event handlers."""
+
+    async def handle(self, event: Event) -> None: ...
+
+
+class EventBus:
+    """Central event bus for decoupled communication.
+
+    Usage:
+        bus = EventBus()
+
+        # Subscribe
+        @bus.subscribe(EventType.LLM_CALL)
+        async def log_llm_call(event: Event):
+            logger.info(f"LLM call from {event.source}")
+
+        # Publish
+        await bus.publish(Event.llm_call("MyAgent", "gpt-4"))
+    """
+
+    def __init__(self, max_queue_size: int = 10000):
+        self._handlers: dict[EventType, list[EventHandler]] = defaultdict(list)
+        self._wildcard_handlers: list[EventHandler] = []
+        self._queue: asyncio.PriorityQueue[tuple[int, int, Event]] = asyncio.PriorityQueue(
+            maxsize=max_queue_size
+        )
+        self._seq = itertools.count()  # monotonic tie-breaker — prevents Event.__lt__ comparison
+        self._processor_task: asyncio.Task | None = None
+        self._running = False
+        self._metrics = {
+            "published": 0,
+            "delivered": 0,
+            "dropped": 0,
+            "errors": 0,
+        }
+
+    async def start(self) -> None:
+        """Start the event processor."""
+        if not self._running:
+            self._running = True
+            self._processor_task = asyncio.create_task(self._process_loop())
+            logger.info("EventBus started")
+
+    async def stop(self, drain_timeout: float = _DRAIN_TIMEOUT_S) -> None:
+        """Stop the event processor, draining anything still queued.
+
+        Order matters: `_process_loop` runs `while self._running`, so clearing the flag
+        BEFORE `join()` makes the loop exit without calling `task_done()` — `join()` then
+        waits forever on a counter nobody will decrement, and the queued events are lost.
+        Draining first keeps the loop alive exactly long enough to finish its backlog.
+        (DataMesh adversarial review Finding #2; the test layer worked around it via
+        `_cancel_bus()` for months while every production caller could hang. Fixed
+        2026-07-31 after a live datamesh publish hung here and dropped its event.)
+
+        The drain is BOUNDED (D2): `join()` only returns once the queue empties, so a
+        producer publishing faster than the loop drains — or a handler that never returns —
+        would starve it forever. On timeout the remaining events are abandoned and counted,
+        which is a bounded, observable loss rather than a hang.
+        """
+        try:
+            if self._processor_task:
+                # Drain while the loop is still running, THEN stop it.
+                try:
+                    await asyncio.wait_for(self._queue.join(), timeout=drain_timeout)
+                except TimeoutError:
+                    abandoned = self._queue.qsize()
+                    self._metrics["dropped"] += abandoned
+                    logger.warning(
+                        "EventBus.stop: drain exceeded %.1fs, abandoning %d queued event(s)",
+                        drain_timeout,
+                        abandoned,
+                    )
+                self._processor_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await self._processor_task
+        finally:
+            # EVERY exit path (D1). Two ways this is reached without the body completing:
+            # an outer `wait_for(stop(), t)` cancelling us mid-drain, and start() having set
+            # _running before a failed create_task(). Leaving it True marks the bus
+            # "running-but-dead" and lets publish() keep accepting events nobody will drain.
+            self._running = False
+        logger.info(f"EventBus stopped. Metrics: {self._metrics}")
+
+    def subscribe(
+        self, event_type: EventType | None = None
+    ) -> Callable[[EventHandler], EventHandler]:
+        """Decorator to subscribe to events.
+
+        @bus.subscribe(EventType.LLM_CALL)
+        async def handler(event): ...
+
+        @bus.subscribe()  # Wildcard - all events
+        async def log_all(event): ...
+        """
+
+        def decorator(handler: EventHandler) -> EventHandler:
+            if event_type is None:
+                self._wildcard_handlers.append(handler)
+            else:
+                self._handlers[event_type].append(handler)
+            return handler
+
+        return decorator
+
+    def register_handler(self, handler: EventHandler, event_type: EventType | None = None) -> None:
+        """Imperatively register a handler (non-decorator form of subscribe).
+
+        Equivalent to the @bus.subscribe(event_type) decorator but callable
+        without the decorator pattern — preferred over direct _handlers access.
+        """
+        if event_type is None:
+            self._wildcard_handlers.append(handler)
+        else:
+            self._handlers[event_type].append(handler)
+
+    def unsubscribe(self, handler: EventHandler, event_type: EventType | None = None) -> None:
+        """Remove a handler subscription."""
+        if event_type is None:
+            if handler in self._wildcard_handlers:
+                self._wildcard_handlers.remove(handler)
+        else:
+            if handler in self._handlers[event_type]:
+                self._handlers[event_type].remove(handler)
+
+    async def publish(self, event: Event) -> bool:
+        """Publish event to all subscribers. False means NOT accepted."""
+        if not self._running:
+            # No processor is draining the queue, so enqueueing here would silently discard
+            # the event (D7). Report failure like the QueueFull path instead of returning a
+            # True that means "enqueued" and reads as "delivered".
+            self._metrics["dropped"] += 1
+            logger.warning(f"Event dropped (bus not running): {event.type}")
+            return False
+        try:
+            # Priority queue: (-priority, seq, event) — seq prevents Event comparison on tie
+            await self._queue.put((-event.priority, next(self._seq), event))
+            self._metrics["published"] += 1
+            return True
+        except asyncio.QueueFull:
+            self._metrics["dropped"] += 1
+            logger.warning(f"Event dropped (queue full): {event.type}")
+            return False
+
+    async def _process_loop(self) -> None:
+        """Main processing loop."""
+        while self._running:
+            try:
+                _, _, event = await self._queue.get()
+                await self._dispatch(event)
+                self._queue.task_done()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Event processing error: {e}")
+                self._metrics["errors"] += 1
+
+    async def _dispatch(self, event: Event) -> None:
+        """Dispatch event to all relevant handlers."""
+        handlers = []
+
+        # Type-specific handlers
+        if event.type in self._handlers:
+            handlers.extend(self._handlers[event.type])
+
+        # Wildcard handlers
+        handlers.extend(self._wildcard_handlers)
+
+        if not handlers:
+            return
+
+        # Execute all handlers concurrently
+        results = await asyncio.gather(
+            *[self._safe_handle(h, event) for h in handlers], return_exceptions=True
+        )
+
+        delivered = sum(1 for r in results if r is None)
+        self._metrics["delivered"] += delivered
+
+    async def _safe_handle(self, handler: EventHandler, event: Event) -> None:
+        """Execute handler with error isolation."""
+        try:
+            await handler(event)
+        except Exception as e:
+            logger.error(f"Handler error for {event.type}: {e}")
+            self._metrics["errors"] += 1
+
+    def get_metrics(self) -> dict[str, Any]:
+        """Get bus metrics."""
+        return {
+            **self._metrics,
+            "queue_size": self._queue.qsize(),
+            "handlers": {t.name: len(h) for t, h in self._handlers.items()},
+            "wildcard_handlers": len(self._wildcard_handlers),
+        }
+
+
+class EventFilter(ABC):
+    """Base class for event filtering middleware."""
+
+    @abstractmethod
+    async def filter(self, event: Event) -> Event | None:
+        """Filter/transform event. Return None to drop."""
+        pass
+
+
+class SamplingFilter(EventFilter):
+    """Sample events at a given rate."""
+
+    def __init__(self, sample_rate: float = 0.1):
+        self.sample_rate = sample_rate
+        self._counter = 0
+
+    async def filter(self, event: Event) -> Event | None:
+        self._counter += 1
+        if self._counter % int(1 / self.sample_rate) == 0:
+            return event
+        return None
+
+
+class RoutingFilter(EventFilter):
+    """Route events based on predicates."""
+
+    def __init__(self):
+        self._routes: list[tuple[Callable[[Event], bool], EventBus]] = []
+
+    def route(self, predicate: Callable[[Event], bool], bus: EventBus) -> None:
+        """Add a route."""
+        self._routes.append((predicate, bus))
+
+    async def filter(self, event: Event) -> Event | None:
+        """Route event to matching buses."""
+        for predicate, bus in self._routes:
+            if predicate(event):
+                await bus.publish(event)
+        return event
+
+
+# Global event bus singleton
+_event_bus: EventBus | None = None
+
+
+async def get_event_bus() -> EventBus:
+    """Get or create global event bus."""
+    global _event_bus
+    if _event_bus is None:
+        _event_bus = EventBus()
+        await _event_bus.start()
+    return _event_bus
+
+
+def reset_event_bus() -> None:
+    """Reset global event bus (for testing)."""
+    global _event_bus
+    _event_bus = None
+
+
+class EventHandlerGroup:
+    """Group of handlers that can be managed together."""
+
+    def __init__(self, bus: EventBus):
+        self._bus = bus
+        self._handlers: list[tuple[EventType | None, EventHandler]] = []
+
+    def add(self, event_type: EventType | None, handler: EventHandler) -> None:
+        """Add handler to group."""
+        self._handlers.append((event_type, handler))
+
+    async def subscribe_all(self) -> None:
+        """Subscribe all handlers."""
+        for event_type, handler in self._handlers:
+            if event_type is None:
+                self._bus._wildcard_handlers.append(handler)
+            else:
+                self._bus._handlers[event_type].append(handler)
+
+    async def unsubscribe_all(self) -> None:
+        """Unsubscribe all handlers."""
+        for event_type, handler in self._handlers:
+            self._bus.unsubscribe(handler, event_type)

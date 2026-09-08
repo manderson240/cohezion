@@ -58,10 +58,11 @@ class ManifoldState:
     """
     Point on statistical manifold (probability distribution).
     """
-    def __init__(self, params, metric='fisher'):
+
+    def __init__(self, params, metric="fisher"):
         self.params = params  # Distribution parameters (latent)
         self.metric = self._compute_fisher_metric()
-    
+
     def fluid_evolve(self, dt):
         # Euler equation on manifold
         # Geodesic flow: d²x/dt² + ΓᵏᵢⱠ(dx/dt)(dx/dt) = 0
@@ -74,10 +75,11 @@ class FluidManifold:
     """
     Fluid flow in Wasserstein space.
     """
+
     def __init__(self, initial_density):
         self.density = initial_density
         self.velocity_field = None
-    
+
     def step(self, dt):
         # JKO scheme: Wasserstein gradient flow
         # ∂ₜρ = ∇·(ρ∇(δE/δρ))
@@ -90,11 +92,12 @@ class SymplecticFluid:
     """
     Hamiltonian fluid on cotangent bundle.
     """
+
     def __init__(self, positions, momenta, hamiltonian):
-        self.q = positions   # Configuration manifold
-        self.p = momenta     # Cotangent fiber
+        self.q = positions  # Configuration manifold
+        self.p = momenta  # Cotangent fiber
         self.H = hamiltonian
-    
+
     def hamiltons_equations(self):
         # dq/dt = ∂H/∂p
         # dp/dt = -∂H/∂q

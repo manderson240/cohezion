@@ -127,12 +127,46 @@ def test_domain_from_tags_skips_boilerplate(tmp_path: Path) -> None:
         # options-menu template: the words in the menu must not decide; the
         # real answer ("Context-ONLY") follows and maps to monitor.
         ("**act / watch / context-only / ignore:** Context-ONLY.", "monitor"),
+        # Negated actionable phrasing — a verdict saying TAKE NOTHING must not
+        # classify as actionable (it would auto-card itself as work to do).
+        ("Adopt nothing from this repo; nothing to import.", "monitor"),
+        ("Do not integrate — watch only.", "monitor"),
+        ("No need to implement this; bookmark it.", "monitor"),
     ],
 )
 def test_verdict_maps_to_actionability(verdict: str, expected: str) -> None:
     from cohezion.data_mesh.research_products import classify_actionability
 
     assert classify_actionability(verdict) == expected
+
+
+def test_negation_is_clause_scoped_not_global() -> None:
+    """DISCRIMINATING: negation must not leak across clause boundaries.
+
+    Two plausible-but-wrong implementations fail here:
+      * the ORIGINAL substring match  -> returns 'actionable' for the negated
+        verdict, because "adopt"/"import" appear regardless of "nothing";
+      * a NAIVE global-negation fix ("any negator anywhere disqualifies")
+        -> returns 'monitor' for the mixed verdict, silently dropping a real
+        adopt decision because an unrelated clause said "do not".
+    Only per-clause scoping satisfies both assertions.
+    """
+    from cohezion.data_mesh.research_products import classify_actionability
+
+    assert classify_actionability("Adopt nothing; nothing to import.") == "monitor"
+    assert classify_actionability("Integrate the loop; do not adopt the CLI.") == "actionable"
+
+
+def test_negated_verdict_does_not_auto_card(tmp_path: Path) -> None:
+    """The defect that mattered: a 'take nothing' verdict became a kanban card."""
+    brief = _CLEAN_ACTIONABLE.replace(
+        "Integrate: adopt the function-calling loop with minimal effort.",
+        "Adopt nothing here; there is nothing to import.",
+    )
+    finding = parse_brief(_write(tmp_path, "negated.md", brief))
+    assert finding is not None
+    assert finding.actionability == "monitor"
+    assert finding.should_card is False
 
 
 def test_headerless_verdict_defaults_to_monitor(tmp_path: Path) -> None:

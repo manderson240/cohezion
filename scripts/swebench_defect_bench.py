@@ -142,16 +142,18 @@ def _local_chat(model: str, max_tokens: int, temperature: float | None = None):
     """
     from cohezion.inference.gaia_adapter import build_gaia_llm_tier
 
-    return build_gaia_llm_tier(
-        model, max_tokens=max_tokens, temperature=temperature
-    ).agent.prompt
+    return build_gaia_llm_tier(model, max_tokens=max_tokens, temperature=temperature).agent.prompt
 
 
 def _cloud_chat(model: str):
     def chat(prompt: str) -> str:
         p = subprocess.run(
             ["ollama", "run", model, "--hidethinking"],
-            input=prompt, capture_output=True, text=True, timeout=300, check=False,
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=300,
+            check=False,
         )
         return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]|\[\?25[lh]|\[\?2026[lh]|\[[0-9]*G|\[K", "", p.stdout)
 
@@ -255,9 +257,21 @@ def main() -> int:
             f"specificity(clean)={spec_:.0%} acc={acc:.0%} unparseable={unp} "
             f"mean={sum(lat) / len(lat):.1f}s"
         )
-        out.append({"model": model, "substrate": substrate, "recall": rec,
-                    "specificity": spec_, "accuracy": acc, "unparseable": unp,
-                    "mean_latency_s": sum(lat) / len(lat), "tp": tp, "tn": tn, "fp": fp, "fn": fn})
+        out.append(
+            {
+                "model": model,
+                "substrate": substrate,
+                "recall": rec,
+                "specificity": spec_,
+                "accuracy": acc,
+                "unparseable": unp,
+                "mean_latency_s": sum(lat) / len(lat),
+                "tp": tp,
+                "tn": tn,
+                "fp": fp,
+                "fn": fn,
+            }
+        )
 
     if args.json_out:
         Path(args.json_out).write_text(json.dumps(out, indent=2))

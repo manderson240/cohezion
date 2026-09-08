@@ -27,6 +27,7 @@ import asyncio
 import contextlib
 import json
 import logging
+from collections.abc import Sequence
 from typing import Any
 
 import httpx
@@ -78,7 +79,34 @@ class DataMeshEventBridge:
         self._surreal_url = surreal_url
         self._timeout = timeout
         self._http = httpx.Client(timeout=timeout)
+        # Loss counters. This class is described above as "the durable event backbone", and a
+        # backbone that drops writes without saying so is not durable: the in-memory fan-out
+        # still succeeds, so the SYSTEM LOOKS HEALTHY while the durable record silently
+        # diverges from what actually happened, and replay_since() then returns an incomplete
+        # history with no indication.
+        #
+        # Deliberately NOT raising: this is a write-through subscriber running inside the event
+        # loop, and raising here would take down fan-out for every other consumer. The fix is to
+        # make the loss COUNTABLE rather than to make it fatal — per the Quarter-on-a-String
+        # rule, a guard that can never register its own failure is not a guard.
+        self.write_failures = 0
+        self.dropped_events = 0
+        self.schema_failures = 0
+        self.read_failures = 0
         self._ensure_schema()
+
+    def loss_counters(self) -> dict[str, int]:
+        """Everything this bridge silently lost, in one call, for a health check.
+
+        Exposed as a method so a caller can assert `all(v == 0 for v in ...)` without knowing
+        the field names -- adding a fifth loss path should not require updating every consumer.
+        """
+        return {
+            "write_failures": self.write_failures,
+            "dropped_events": self.dropped_events,
+            "schema_failures": self.schema_failures,
+            "read_failures": self.read_failures,
+        }
 
     def _ensure_schema(self) -> None:
         """Create the data_product_event table schema once."""
@@ -101,9 +129,10 @@ class DataMeshEventBridge:
             )
             logger.debug("DataMeshEventBridge schema ensured")
         except Exception as exc:
-            logger.debug("DataMeshEventBridge schema setup failed (non-fatal): %s", exc)
+            self.schema_failures += 1
+            logger.error("DataMeshEventBridge schema setup failed (non-fatal): %s", exc)
 
-    def subscribe(self, bus: EventBus) -> None:
+    def subscribe(self, bus: EventBus, extra_types: Sequence[EventType] | None = None) -> None:
         """Register this bridge as a handler on the given EventBus.
 
         Each DataMesh EventType gets its own subscription slot so the bus
@@ -112,6 +141,16 @@ class DataMeshEventBridge:
         """
         for event_type in self.SUBSCRIBED_TYPES:
             bus.register_handler(self._handle, event_type)
+        # Deduped against SUBSCRIBED_TYPES *and* against itself: a repeated
+        # entry would register _handle twice and double-write every matching
+        # event to data_product_event. Easy to hit, because
+        # `bus_event_type_name()` collapses several silicon kinds onto
+        # MODEL_ROSTER_CHANGED.
+        seen: set[EventType] = set(self.SUBSCRIBED_TYPES)
+        for event_type in extra_types or ():
+            if event_type not in seen:
+                seen.add(event_type)
+                bus.register_handler(self._handle, event_type)
 
     async def _handle(self, event: Event) -> None:
         """Persist a single DataMesh event to SurrealDB."""
@@ -123,6 +162,7 @@ class DataMeshEventBridge:
             ts = float(event.timestamp)
             pri = int(event.priority)
         except (TypeError, ValueError) as exc:
+            self.dropped_events += 1
             logger.debug("DataMeshEventBridge: invalid numeric field, dropping event: %s", exc)
             return
 
@@ -141,8 +181,6 @@ class DataMeshEventBridge:
             # _queue.join() under DB contention (2026-07-10: the reason no event
             # ever persisted — the write itself is correct, verified 0->1). Offload
             # the blocking POST to a thread so the loop keeps draining.
-            import asyncio
-
             await asyncio.to_thread(
                 self._http.post,
                 self._surreal_url,
@@ -151,7 +189,18 @@ class DataMeshEventBridge:
                 auth=_SURREAL_AUTH,
             )
         except Exception as exc:
-            logger.debug("DataMeshEventBridge write failed (non-fatal): %s", exc)
+            self.write_failures += 1
+            # Stays at DEBUG deliberately. test_write_failure_logged_at_debug_not_warning
+            # documents why: "WARNING/ERROR for transient SurrealDB blips would spam operator
+            # logs for a deliberately non-fatal design." That reasoning is sound, and the
+            # COUNTER -- not the log level -- is what makes the loss detectable. Raising the
+            # level would have been redundant with the counter and would have overridden a
+            # considered decision.
+            logger.debug(
+                "DataMeshEventBridge write failed — event lost (total lost: %d): %s",
+                self.write_failures,
+                exc,
+            )
 
     def replay_since(self, since_ts: float) -> list[dict[str, Any]]:
         """Return all persisted DataMesh events with timestamp > since_ts.
@@ -188,7 +237,12 @@ class DataMeshEventBridge:
                     out.append(row)
                 return out
         except Exception as exc:
-            logger.debug("DataMeshEventBridge.replay_since failed: %s", exc)
+            # A failed READ returning [] is indistinguishable from a genuinely empty window --
+            # a caller doing catch-up after a restart cannot tell "nothing happened" from "I
+            # could not find out". Counted and logged at ERROR so the ambiguity is at least
+            # visible; the return stays [] because callers assume a list.
+            self.read_failures += 1
+            logger.error("DataMeshEventBridge.replay_since FAILED — returning empty: %s", exc)
         return []
 
     async def watch_federation(

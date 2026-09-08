@@ -36,9 +36,7 @@ manager = get_manager()
 ### 2. Benchmark a Model
 ```python
 metrics = await manager.benchmark_model(
-    "gemma3:4b",
-    "analysis",
-    "Explain quantum computing briefly."
+    "gemma3:4b", "analysis", "Explain quantum computing briefly."
 )
 print(f"Latency: {metrics.avg_latency_ms}ms")
 print(f"Quality: {metrics.quality_score}")

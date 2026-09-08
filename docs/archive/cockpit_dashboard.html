@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cohezion Swarm Cockpit</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; }
+        .card { background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; }
+        h1 { color: #38bdf8; margin-top: 0; }
+        h2 { color: #818cf8; }
+        .metric { font-size: 2rem; font-weight: bold; color: #4ade80; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    </style>
+</head>
+<body>
+    <h1>🛸 Cohezion Swarm Visual Cockpit</h1>
+    <div class="grid">
+        <div class="card">
+            <h2>Strix Halo iGPU</h2>
+            <div class="metric">1,799 tok/s</div>
+            <p>Radeon 8060S • Wave32 Aligned</p>
+        </div>
+        <div class="card">
+            <h2>XDNA2 NPU</h2>
+            <div class="metric">1,518 tok/s</div>
+            <p>FLM Firmware • Zero Copy</p>
+        </div>
+        <div class="card">
+            <h2>AutoHarness Latency</h2>
+            <div class="metric">&lt; 0.1 ms</div>
+            <p>0 LLM Calls • AST Bytecode</p>
+        </div>
+    </div>
+</body>
+</html>

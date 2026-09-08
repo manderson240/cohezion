@@ -24,19 +24,17 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from durable_swarm_output import DurableRun
-from swarm_harness import CONTRACT, extract
-
+from durable_swarm_output import DurableRun  # noqa: E402
+from swarm_harness import CONTRACT, extract  # noqa: E402
 
 OLLAMA = "http://localhost:11434/api/chat"
 CDX = "http://web.archive.org/cdx/search/cdx"
 
 # Verified on the included plan 2026-08-19. kimi-k3:cloud returns HTTP 402 (paid extra usage).
 CLOUD_MODELS = (
-    "qwen3.5:397b-cloud",      # frontier tier - hard reasoning / adjudication
+    "qwen3.5:397b-cloud",  # frontier tier - hard reasoning / adjudication
     "glm-5.2:cloud",
     "deepseek-v4-flash:cloud",
     "gpt-oss:120b-cloud",
@@ -55,7 +53,7 @@ def _get(url: str, timeout: int = 60) -> tuple[int, bytes]:
             return r.status, r.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read() if hasattr(e, "read") else b""
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - network shapes vary; caller decides
         return 0, str(e).encode()
 
 
@@ -64,6 +62,7 @@ def cdx(url_pattern: str, limit: int = 20) -> dict:
 
     Returns {"captures": [...], "control_ok": bool, "verdict": "found"|"absent"|"instrument-failed"}
     """
+
     def _q(u: str, lim: int) -> list[dict]:
         q = f"{CDX}?url={urllib.parse.quote(u, safe='')}&output=json&collapse=digest&limit={lim}"
         code, body = _get(q)
@@ -87,8 +86,13 @@ def cdx(url_pattern: str, limit: int = 20) -> dict:
         verdict = "found"
     else:
         verdict = "absent"
-    return {"captures": caps, "control_ok": ok, "verdict": verdict,
-            "queried": url_pattern, "n": len(caps)}
+    return {
+        "captures": caps,
+        "control_ok": ok,
+        "verdict": verdict,
+        "queried": url_pattern,
+        "n": len(caps),
+    }
 
 
 def archived(timestamp: str, url: str, limit_chars: int = 40000) -> str:
@@ -108,22 +112,34 @@ def archived(timestamp: str, url: str, limit_chars: int = 40000) -> str:
     return t[:limit_chars]
 
 
-def cloud(prompt: str, model: str = CLOUD_MODELS[0], *,
-          required_fields: tuple[str, ...] = (), timeout: int = 600) -> dict:
+def cloud(
+    prompt: str,
+    model: str = CLOUD_MODELS[0],
+    *,
+    required_fields: tuple[str, ...] = (),
+    timeout: int = 600,
+) -> dict:
     """Call an Ollama Cloud model under the ===FINAL=== output contract.
 
     Returns {"model","answer","rejected","raw_len","http"}. `rejected` carries a SPECIFIC
     reason (empty / no-marker / too-short / missing-fields / deliberation-leaked / http-NNN).
     """
     if model in BLOCKED_MODELS:
-        return {"model": model, "answer": "", "rejected": "model-blocked-402", "raw_len": 0, "http": 402}
-    payload = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": prompt + CONTRACT}],
-        "stream": False,
-    }).encode()
-    req = urllib.request.Request(OLLAMA, data=payload,
-                                 headers={"Content-Type": "application/json"})
+        return {
+            "model": model,
+            "answer": "",
+            "rejected": "model-blocked-402",
+            "raw_len": 0,
+            "http": 402,
+        }
+    payload = json.dumps(
+        {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt + CONTRACT}],
+            "stream": False,
+        }
+    ).encode()
+    req = urllib.request.Request(OLLAMA, data=payload, headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             d = json.loads(r.read())
@@ -131,17 +147,26 @@ def cloud(prompt: str, model: str = CLOUD_MODELS[0], *,
         detail = ""
         try:
             detail = json.loads(e.read()).get("error", "")[:80]
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
-        return {"model": model, "answer": "", "rejected": f"http-{e.code} {detail}",
-                "raw_len": 0, "http": e.code}
-    except Exception as e:
-        return {"model": model, "answer": "", "rejected": f"transport {type(e).__name__}",
-                "raw_len": 0, "http": 0}
+        return {
+            "model": model,
+            "answer": "",
+            "rejected": f"http-{e.code} {detail}",
+            "raw_len": 0,
+            "http": e.code,
+        }
+    except Exception as e:  # noqa: BLE001
+        return {
+            "model": model,
+            "answer": "",
+            "rejected": f"transport {type(e).__name__}",
+            "raw_len": 0,
+            "http": 0,
+        }
     text = (d.get("message") or {}).get("content") or ""
     answer, reason = extract(text, required_fields)
-    return {"model": model, "answer": answer, "rejected": reason,
-            "raw_len": len(text), "http": 200}
+    return {"model": model, "answer": answer, "rejected": reason, "raw_len": len(text), "http": 200}
 
 
 def self_test() -> None:

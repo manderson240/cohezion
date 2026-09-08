@@ -79,11 +79,11 @@ TOTAL: 6-8 hours, 7,400 tokens
 ### 3. UniverseArtifactMigration Service
 ```python
 # Complete async migration with:
-- phase_0_measure()       # Catalog artifacts
-- phase_1_extract()       # Export to tar with checksums
-- phase_2_migrate()       # Async SurrealDB insertion
-- phase_3_verify()        # Query verification
-- execute_full_migration() # Full compound loop
+-phase_0_measure()  # Catalog artifacts
+-phase_1_extract()  # Export to tar with checksums
+-phase_2_migrate()  # Async SurrealDB insertion
+-phase_3_verify()  # Query verification
+-execute_full_migration()  # Full compound loop
 ```
 
 ### 4. Data Governance

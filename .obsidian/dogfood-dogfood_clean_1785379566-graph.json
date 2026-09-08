@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "dogfood_dogfood_clean_1785379566",
+    "universe_id": "universe-flume-dogfood",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-29T22:46:17"
+  },
+  "nodes": [
+    {
+      "id": "evo_dogfood_dogfood_clean_1785379566_step_1",
+      "label": "EVO Step 1: Fleet preflight safety check v",
+      "agent_id": "dogfood_dogfood_clean_1785379566",
+      "topology": "instanton",
+      "confidence": 0.17639886225084073,
+      "coherence": 0.95,
+      "state_12d": [
+        0.8098,
+        0.1094,
+        0.3365,
+        -1.2968,
+        -0.9811,
+        0.1262,
+        0.4792,
+        1.7333,
+        0.1802,
+        0.0735,
+        0.8491,
+        -0.81
+      ],
+      "color": "#ff0055",
+      "size": 6.705595449003363
+    },
+    {
+      "id": "evo_dogfood_dogfood_clean_1785379566_step_2",
+      "label": "EVO Step 2: NPU sensing completed via ",
+      "agent_id": "dogfood_dogfood_clean_1785379566",
+      "topology": "trivial",
+      "confidence": 0.3852868865488066,
+      "coherence": 0.85,
+      "state_12d": [
+        0.7249,
+        1.7907,
+        -0.7055,
+        0.4806,
+        0.9217,
+        -1.5764,
+        0.022,
+        0.8833,
+        1.941,
+        -1.4787,
+        2.1484,
+        0.78
+      ],
+      "color": "#78909c",
+      "size": 7.541147546195226
+    },
+    {
+      "id": "evo_dogfood_dogfood_clean_1785379566_step_3",
+      "label": "EVO Step 3: CPU architecture check complet",
+      "agent_id": "dogfood_dogfood_clean_1785379566",
+      "topology": "instanton",
+      "confidence": 0.45780668025578336,
+      "coherence": 0.95,
+      "state_12d": [
+        0.3769,
+        0.1705,
+        1.913,
+        -1.3576,
+        1.2148,
+        -0.7783,
+        -0.9647,
+        -2.5101,
+        -0.3282,
+        0.1898,
+        -0.193,
+        0.125
+      ],
+      "color": "#ff0055",
+      "size": 7.831226721023134
+    },
+    {
+      "id": "evo_dogfood_dogfood_clean_1785379566_step_4",
+      "label": "EVO Step 4: Ollama Cloud adversarial audit",
+      "agent_id": "dogfood_dogfood_clean_1785379566",
+      "topology": "instanton",
+      "confidence": 0.3526845636732913,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.6069,
+        1.1455,
+        2.6886,
+        0.183,
+        0.723,
+        0.4045,
+        1.4953,
+        -0.2626,
+        -1.3312,
+        0.2855,
+        3.2761,
+        -2.0661
+      ],
+      "color": "#ff0055",
+      "size": 7.4107382546931655
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_dogfood_dogfood_clean_1785379566_step_1",
+      "target": "evo_dogfood_dogfood_clean_1785379566_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_dogfood_dogfood_clean_1785379566_step_2",
+      "target": "evo_dogfood_dogfood_clean_1785379566_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_dogfood_dogfood_clean_1785379566_step_3",
+      "target": "evo_dogfood_dogfood_clean_1785379566_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

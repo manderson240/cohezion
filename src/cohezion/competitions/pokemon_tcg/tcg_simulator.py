@@ -157,5 +157,5 @@ class PokemonTCGSimulator:
                 if st.winner == "player":
                     action_scores[action] += 1
 
-        best_action = max(action_scores, key=action_scores.get)
+        best_action = max(action_scores, key=lambda a: action_scores[a])
         return best_action

@@ -99,7 +99,7 @@ def check_kernel_status(kernel_id):
 
 
 def get_kernel_log(kernel_id):
-    result = subprocess.run(
+    subprocess.run(
         ["kaggle", "kernels", "output", kernel_id, "-p", "/tmp/kaggle_out"],
         capture_output=True,
         text=True,

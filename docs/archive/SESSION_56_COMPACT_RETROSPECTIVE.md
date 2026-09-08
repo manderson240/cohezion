@@ -99,12 +99,10 @@ async def vault_query_hybrid(query: str, top_k: int = 5):
 **Wire file watcher to GraphRAG import**:
 ```python
 # In VaultFileWatcher.on_modified():
-if event.src_path.endswith('.md'):
+if event.src_path.endswith(".md"):
     # Existing: SSE notification
     # NEW: Auto-import to SurrealDB
-    asyncio.create_task(
-        import_document_incremental(Path(event.src_path))
-    )
+    asyncio.create_task(import_document_incremental(Path(event.src_path)))
 ```
 
 **Validation**: Edit vault file → verify SurrealDB updates

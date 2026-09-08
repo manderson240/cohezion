@@ -52,6 +52,7 @@ class SparseLatentAnalysis:
         self._use_sklearn = (_DictionaryLearning is not None) and not _force_numpy
         self._dictionary: np.ndarray | None = None  # (n_atoms, n_features)
         self._learner = None  # DictionaryLearning instance (sklearn path only)
+        self._coder = None  # cached SparseCoder — rebuilt when the dictionary changes
 
     # ------------------------------------------------------------------
     # Public API
@@ -104,12 +105,16 @@ class SparseLatentAnalysis:
 
         if self._use_sklearn:
             assert _SparseCoder is not None  # invariant: set when _use_sklearn is True
-            coder = _SparseCoder(
-                dictionary=self._dictionary,
-                transform_algorithm="lasso_lars",
-                transform_alpha=self.sparsity_target,
-            )
-            return coder.transform(z.reshape(1, -1))[0]
+            # Cache the coder: per-call construction was a measurable share of the
+            # ~27ms/encode hot-path cost (adversarial review, 2026-08-02). Rebuild
+            # only when the dictionary object changes (fit() or manual install).
+            if self._coder is None or self._coder.dictionary is not self._dictionary:
+                self._coder = _SparseCoder(
+                    dictionary=self._dictionary,
+                    transform_algorithm="lasso_lars",
+                    transform_alpha=self.sparsity_target,
+                )
+            return self._coder.transform(z.reshape(1, -1))[0]
 
         return self._matching_pursuit(z)
 

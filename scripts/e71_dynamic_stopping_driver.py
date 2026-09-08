@@ -18,6 +18,7 @@ Logs: appends to autoresearch.jsonl (asi.experiment="E71")
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import importlib.util
 import json
 import math
@@ -48,10 +49,8 @@ def _next_run() -> int:
         return 1
     last = 0
     for line in JSONL_PATH.read_text().splitlines():
-        try:
+        with contextlib.suppress(Exception):
             last = max(last, json.loads(line).get("run", 0))
-        except Exception:
-            pass
     return last + 1
 
 

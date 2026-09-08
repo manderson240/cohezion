@@ -1,9 +1,10 @@
 """Unit tests for Object-Oriented Agents (labs-OO-Agents) module."""
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from cohezion.swarm.oo_agents import BaseOOAgent, capability, dynamic, OOAgentState
+import pytest
+
+from cohezion.swarm.oo_agents import BaseOOAgent, capability, dynamic
 
 
 class CustomOOAgent(BaseOOAgent):
@@ -55,11 +56,12 @@ async def test_oo_agent_execute_dynamic_capability():
     mock_resp = MagicMock()
     mock_resp.content = "def foo(): return 42"
 
-    with patch.object(
-        agent.router, "route_by_capability", new_callable=AsyncMock, return_value=mock_resp
-    ) as mock_route, patch.object(
-        agent.event_bus, "publish", new_callable=AsyncMock
-    ) as mock_publish:
+    with (
+        patch.object(
+            agent.router, "route_by_capability", new_callable=AsyncMock, return_value=mock_resp
+        ) as mock_route,
+        patch.object(agent.event_bus, "publish", new_callable=AsyncMock) as mock_publish,
+    ):
         result = await agent.execute_dynamic_capability("synthesize_code", spec="build function")
 
         assert result == "def foo(): return 42"

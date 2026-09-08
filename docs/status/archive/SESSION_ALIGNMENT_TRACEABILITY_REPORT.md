@@ -235,6 +235,7 @@ This session builds on previous sessions. Verifying lineage:
        config = TierConfig()
        assert "nemotron-cascade-2:latest" in config.hot_models
 
+
    def test_hot_tier_contains_gemini_embedding():
        config = TierConfig()
        assert "gemini-embedding-2:latest" in config.hot_models

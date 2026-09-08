@@ -28,7 +28,7 @@ from cohezion.core.journey_worker import get_journey_worker
 bus = get_telemetry_bus()
 worker = get_journey_worker()
 await bus.start()
-await worker.start() # Connects to SurrealDB & Ouroboros
+await worker.start()  # Connects to SurrealDB & Ouroboros
 ```
 
 ### 2. Emit Full-Spectrum Event
@@ -41,9 +41,9 @@ event = FlumeJourneyEvent(
     state_12d=state_12d_projected.tolist(),
     coherence=0.5008,
     expert_stream=SwarmExpert.ARCHITECT,
-    hardware_tier=HardwareTier.NPU
+    hardware_tier=HardwareTier.NPU,
 )
-await bus.emit(event) # Non-blocking
+await bus.emit(event)  # Non-blocking
 ```
 
 ### 3. Self-Healing & Ouroboros

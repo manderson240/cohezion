@@ -43,6 +43,7 @@ You are a systems engineer who designs **parallel, memory‑aware orchestration*
 2. **Create a Process Pool**
    ```python
    from concurrent.futures import ProcessPoolExecutor, as_completed
+
    executor = ProcessPoolExecutor(max_workers=6)  # adjust based on RAM budget
    ```
 3. **Define a Worker Wrapper**
@@ -61,7 +62,7 @@ You are a systems engineer who designs **parallel, memory‑aware orchestration*
        # Launch as many jobs as fit in RAM
        while pending_jobs and can_fit(pending_jobs[0]):
            job = pending_jobs.popleft()
-           futures[executor.submit(worker, job)] = job['id']
+           futures[executor.submit(worker, job)] = job["id"]
 
        # Collect completed futures
        for future in as_completed(futures, timeout=1):

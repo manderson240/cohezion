@@ -12,13 +12,9 @@ Empirically benchmarks and certifies Cohezion's architectural superiority across
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-import math
 import time
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
@@ -28,6 +24,7 @@ from cohezion.flume.symmetry_breaking_engine import SymmetryBreakingEngine
 from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
 from cohezion.inference.load_safety import check_load_safe
 from cohezion.inference.speculative_decoder import SpeculativeDecoderEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -60,7 +57,7 @@ class EmpiricalProofHarness:
         # Proof 1: AutoHarness AST Verification Latency vs LLM-as-a-Judge
         t0 = time.perf_counter_ns()
         for _ in range(1000):
-            res = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
+            self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
         dt_us = (time.perf_counter_ns() - t0) / (1000.0 * 1000.0)  # µs per check
         proofs.append(
             ProofBenchmarkResult(
@@ -74,7 +71,7 @@ class EmpiricalProofHarness:
 
         # Proof 2: ZK-FV SHA-256 Formal Proof Validity
         gates = ZKFVCompiler.compile_ast_to_gates("memory_safe")
-        proof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
+        ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
         proofs.append(
             ProofBenchmarkResult(
                 test_name="Tier 2 ZK-FV SHA-256 Formal Proof",
@@ -98,7 +95,7 @@ class EmpiricalProofHarness:
         )
 
         # Proof 4: Freeze-Prevention Contract (0.00% OOM Fault Rate)
-        safe, reason = check_load_safe({"size": 48.0}, available_gb=30.0)
+        _safe, _reason = check_load_safe({"size": 48.0}, available_gb=30.0)
         proofs.append(
             ProofBenchmarkResult(
                 test_name="Freeze-Prevention Contract (20GB Floor)",

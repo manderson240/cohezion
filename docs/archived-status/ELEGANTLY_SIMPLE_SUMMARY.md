@@ -96,11 +96,7 @@ coherence=0.60, success_rate=0.30, execution_time=0.10
 
 ### 2. Weighted Score Calculation
 ```python
-score = (
-    coherence * weight_coherence +
-    success_rate * weight_success +
-    time_score * weight_time
-)
+score = coherence * weight_coherence + success_rate * weight_success + time_score * weight_time
 ```
 
 ### 3. Holistic Optimization

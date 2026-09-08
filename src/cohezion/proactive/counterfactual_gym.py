@@ -7,7 +7,6 @@ agent interventions, evaluating expected reward differentials.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from cohezion.proactive.proactive_reward_model import ProactiveRewardModel, RewardComponents
 from cohezion.proactive.sensing import UserEvent
@@ -36,7 +35,9 @@ class CounterfactualProactiveGym:
     ) -> CounterfactualRollout:
         """Simulate proactive vs passive branches and compute EVI."""
         proactive_rc = self.reward_model.evaluate_action(predicted_goal, user_busy_state=user_busy)
-        passive_rc = RewardComponents(utility=0.15, intrusiveness_penalty=0.0, timing_precision=0.40)
+        passive_rc = RewardComponents(
+            utility=0.15, intrusiveness_penalty=0.0, timing_precision=0.40
+        )
 
         r_proactive = proactive_rc.total_score()
         r_passive = passive_rc.total_score()

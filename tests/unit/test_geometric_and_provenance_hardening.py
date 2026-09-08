@@ -1,14 +1,14 @@
 """Unit tests for Geometric Correspondence and Data Provenance Key Rotation."""
 
-import pytest
 import math
+
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
 from cohezion.security.data_provenance_signer import DataProvenanceSigner
 
 
 def test_poincare_distance_and_gradient_clipping():
     engine = GeometricCorrespondenceEngine()
-    
+
     # 1. Test distance calculation
     u = (0.1, 0.2, 0.3)
     v = (0.4, 0.5, 0.1)
@@ -33,7 +33,7 @@ def test_poincare_distance_and_gradient_clipping():
 
 def test_data_provenance_hmac_key_rotation():
     sample = {"instruction": "Train autonomous agent", "steps": 100}
-    
+
     # Sign with default rotated v2 key
     sig_v2 = DataProvenanceSigner.sign_sample(sample, key_id="v2")
     assert sig_v2.startswith("v2:")

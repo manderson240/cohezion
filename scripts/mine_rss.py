@@ -44,13 +44,55 @@ DEFAULT_MODEL = "Gemma-4-26B-A4B-it-GGUF"
 # HARDWARE SUBSTRATE (phoronix-style feeds) — kernel/driver/ROCm news that affects whether the fleet runs.
 _RELEVANT_HINTS = (
     # AI tooling
-    "local", "on-device", "llama.cpp", "gguf", "gemma", "qwen", "npu", "igpu", "inference",
-    "agent", "agentic", "llm", "context", "compress", "cache", "quantiz", "speculative",
-    "moe", "optimizer", "training", "fine-tun", "lora", "kaggle", "rag", "embedding", "skill",
-    "self-host", "privacy-first", "mcp", "router", "token",
+    "local",
+    "on-device",
+    "llama.cpp",
+    "gguf",
+    "gemma",
+    "qwen",
+    "npu",
+    "igpu",
+    "inference",
+    "agent",
+    "agentic",
+    "llm",
+    "context",
+    "compress",
+    "cache",
+    "quantiz",
+    "speculative",
+    "moe",
+    "optimizer",
+    "training",
+    "fine-tun",
+    "lora",
+    "kaggle",
+    "rag",
+    "embedding",
+    "skill",
+    "self-host",
+    "privacy-first",
+    "mcp",
+    "router",
+    "token",
     # hardware substrate (Strix Halo: gfx1151 iGPU + XDNA2 NPU on Linux)
-    "amd", "rocm", "ryzen", "radeon", "strix", "gfx", "xdna", "rdna", "amdgpu", "kernel",
-    "mesa", "radv", "vulkan", "s2idle", "power management", "driver", "ai max",
+    "amd",
+    "rocm",
+    "ryzen",
+    "radeon",
+    "strix",
+    "gfx",
+    "xdna",
+    "rdna",
+    "amdgpu",
+    "kernel",
+    "mesa",
+    "radv",
+    "vulkan",
+    "s2idle",
+    "power management",
+    "driver",
+    "ai max",
 )
 
 _PROMPT = (
@@ -97,9 +139,7 @@ def keyword_relevant(item: dict[str, str]) -> bool:
 
 def llm_triage(items: list[dict[str, str]], model: str) -> dict[int, str]:
     """Return {item_index: why} for LLM-judged relevant items. Empty dict on any failure."""
-    listing = "\n".join(
-        f"{i}. {it['title']} — {it['desc'][:160]}" for i, it in enumerate(items)
-    )
+    listing = "\n".join(f"{i}. {it['title']} — {it['desc'][:160]}" for i, it in enumerate(items))
     try:
         r = httpx.post(
             LEMONADE,
@@ -123,7 +163,9 @@ def llm_triage(items: list[dict[str, str]], model: str) -> dict[int, str]:
         r.raise_for_status()
         out = (r.json()["choices"][0]["message"]["content"] or "").strip()
     except Exception as exc:  # local probe; report, do not crash the batch
-        print(f"[local-inference unavailable: {type(exc).__name__}: {exc}] → keyword prefilter only")
+        print(
+            f"[local-inference unavailable: {type(exc).__name__}: {exc}] → keyword prefilter only"
+        )
         return {}
     if out.upper().startswith("NONE"):
         return {}

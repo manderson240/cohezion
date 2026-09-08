@@ -39,33 +39,39 @@ Apply controlled perturbations to agent trajectories and measure recovery. This 
 from dataclasses import dataclass
 from enum import Enum
 
+
 class PerturbationType(Enum):
-    IMPULSE = "impulse"           # Single sharp kick, then observe recovery
-    STEP = "step"                 # Sustained offset, then release
-    NOISE = "noise"               # Continuous random perturbation
-    DIMENSIONAL = "dimensional"   # Perturb only specific dimensions
-    DIRECTIONAL = "directional"   # Perturb along a specific 12D direction
+    IMPULSE = "impulse"  # Single sharp kick, then observe recovery
+    STEP = "step"  # Sustained offset, then release
+    NOISE = "noise"  # Continuous random perturbation
+    DIMENSIONAL = "dimensional"  # Perturb only specific dimensions
+    DIRECTIONAL = "directional"  # Perturb along a specific 12D direction
+
 
 @dataclass
 class PerturbationConfig:
     """Configuration for a single perturbation experiment."""
+
     perturbation_type: PerturbationType
-    magnitude: float                 # Size of perturbation (0.0-1.0)
+    magnitude: float  # Size of perturbation (0.0-1.0)
     target_dimensions: list[int] | None  # None = all dimensions
-    direction: np.ndarray | None     # For DIRECTIONAL type
-    duration_steps: int              # For STEP type: how long to sustain
-    noise_std: float                 # For NOISE type: standard deviation
+    direction: np.ndarray | None  # For DIRECTIONAL type
+    duration_steps: int  # For STEP type: how long to sustain
+    noise_std: float  # For NOISE type: standard deviation
+
 
 @dataclass
 class RecoveryObservation:
     """A single observation during recovery."""
-    step: int                        # Steps since perturbation
-    state_12d: np.ndarray            # Current 12D state
-    coherence: float                 # Current coherence
-    distance_from_target: float      # L2 distance from pre-perturbation state
-    per_dim_distance: np.ndarray     # (12,) per-dimension distance
-    thermodynamic_state: dict        # Entropy, energy, free energy at this step
-    topological_summary: dict | None # H0, H1 features if enough history
+
+    step: int  # Steps since perturbation
+    state_12d: np.ndarray  # Current 12D state
+    coherence: float  # Current coherence
+    distance_from_target: float  # L2 distance from pre-perturbation state
+    per_dim_distance: np.ndarray  # (12,) per-dimension distance
+    thermodynamic_state: dict  # Entropy, energy, free energy at this step
+    topological_summary: dict | None  # H0, H1 features if enough history
+
 
 class PerturbationInjector:
     """Inject controlled perturbations and observe recovery dynamics.
@@ -79,14 +85,13 @@ class PerturbationInjector:
         engine: BioelectricEngine,
         tracker: JourneyTracker | None = None,
         thermo: ThermodynamicMetrics | None = None,
-    ):
-        ...
+    ): ...
 
     def inject_and_observe(
         self,
-        initial_state: np.ndarray,        # Pre-perturbation 12D state
+        initial_state: np.ndarray,  # Pre-perturbation 12D state
         config: PerturbationConfig,
-        observation_steps: int = 100,      # How long to observe recovery
+        observation_steps: int = 100,  # How long to observe recovery
     ) -> list[RecoveryObservation]:
         """Inject perturbation and record recovery trajectory.
 
@@ -102,7 +107,7 @@ class PerturbationInjector:
         self,
         initial_state: np.ndarray,
         perturbation_type: PerturbationType,
-        magnitudes: list[float],          # e.g., [0.1, 0.2, 0.3, ..., 0.9]
+        magnitudes: list[float],  # e.g., [0.1, 0.2, 0.3, ..., 0.9]
         observation_steps: int = 100,
     ) -> dict[float, list[RecoveryObservation]]:
         """Run the same perturbation at multiple magnitudes.
@@ -126,7 +131,7 @@ class PerturbationInjector:
     def sustained_load(
         self,
         initial_state: np.ndarray,
-        load_config: PerturbationConfig,   # NOISE type recommended
+        load_config: PerturbationConfig,  # NOISE type recommended
         total_steps: int = 500,
         measurement_interval: int = 10,
     ) -> list[RecoveryObservation]:
@@ -154,30 +159,33 @@ Fit mathematical models to recovery observations and extract characteristic time
 @dataclass
 class RecoveryTimescale:
     """Fitted recovery timescale for a single dimension."""
+
     dimension_index: int
     dimension_label: str
-    tau: float                      # Characteristic recovery time (in steps)
-    regime: str                     # "exponential", "power_law", "non_recovering"
-    fit_quality: float              # R² of the fit
-    half_life: float                # Steps to recover 50% of perturbation
-    full_recovery_steps: int | None # Steps to recover 95% (None if non-recovering)
+    tau: float  # Characteristic recovery time (in steps)
+    regime: str  # "exponential", "power_law", "non_recovering"
+    fit_quality: float  # R² of the fit
+    half_life: float  # Steps to recover 50% of perturbation
+    full_recovery_steps: int | None  # Steps to recover 95% (None if non-recovering)
+
 
 @dataclass
 class RecoveryProfile:
     """Complete recovery characterization for an agent."""
+
     per_dimension: list[RecoveryTimescale]
-    mean_tau: float                 # Average recovery timescale
-    anisotropy: float               # std(tau) / mean(tau) — higher = more anisotropic
-    fastest_dim: int                # Quickest to recover
-    slowest_dim: int                # Slowest to recover
-    nonlinear_threshold: float      # Perturbation magnitude where regime changes
-    topology_recovers: bool         # Does persistence diagram return to baseline?
+    mean_tau: float  # Average recovery timescale
+    anisotropy: float  # std(tau) / mean(tau) — higher = more anisotropic
+    fastest_dim: int  # Quickest to recover
+    slowest_dim: int  # Slowest to recover
+    nonlinear_threshold: float  # Perturbation magnitude where regime changes
+    topology_recovers: bool  # Does persistence diagram return to baseline?
+
 
 class RecoveryCurveAnalyzer:
     """Fit recovery curves and extract temporal dynamics parameters."""
 
-    def __init__(self):
-        ...
+    def __init__(self): ...
 
     def fit_single_dimension(
         self,
@@ -280,24 +288,28 @@ Track how the HIHO stability well evolves under sustained operational load. The 
 @dataclass
 class WellDepthMeasurement:
     """A single measurement of the HIHO well depth."""
+
     timestamp: float
     step: int
-    well_depth: float              # Free energy at HIHO minus maximum
-    well_width: float              # Distance from HIHO where F > F_max - kT
+    well_depth: float  # Free energy at HIHO minus maximum
+    well_width: float  # Distance from HIHO where F > F_max - kT
     entropy: float
-    temperature: float             # Effective temperature from ThermodynamicMetrics
-    susceptibility: float          # Response to perturbation
-    is_stable: bool                # well_depth > critical threshold
+    temperature: float  # Effective temperature from ThermodynamicMetrics
+    susceptibility: float  # Response to perturbation
+    is_stable: bool  # well_depth > critical threshold
+
 
 @dataclass
 class LandscapeEvolution:
     """How the free energy landscape changed over an observation period."""
+
     measurements: list[WellDepthMeasurement]
-    well_depth_trend: float        # Slope of well_depth over time (negative = flattening)
-    well_width_trend: float        # Slope of well_width over time
-    temperature_trend: float       # Is the system "heating up"?
+    well_depth_trend: float  # Slope of well_depth over time (negative = flattening)
+    well_width_trend: float  # Slope of well_width over time
+    temperature_trend: float  # Is the system "heating up"?
     time_to_instability: float | None  # Projected steps until well_depth < threshold
-    phase_transitions_detected: int    # Count of detected phase transitions
+    phase_transitions_detected: int  # Count of detected phase transitions
+
 
 class FreeEnergyLandscapeMonitor:
     """Monitor HIHO well stability over time.
@@ -325,7 +337,7 @@ class FreeEnergyLandscapeMonitor:
 
     def measure_well(
         self,
-        trajectory_window: np.ndarray,   # (W, 12) recent trajectory points
+        trajectory_window: np.ndarray,  # (W, 12) recent trajectory points
     ) -> WellDepthMeasurement:
         """Take a single well depth measurement.
 
@@ -372,22 +384,26 @@ Simulate context loss (as would happen with session interruptions, context windo
 @dataclass
 class InterruptionConfig:
     """Configuration for an interruption simulation."""
-    context_loss_fraction: float    # 0.0 = no loss, 1.0 = total amnesia
-    preserved_state: list[str]      # Which state components survive
-    recovery_task_type: str         # What type of tasks to use for recovery
-    n_recovery_tasks: int           # Maximum tasks to attempt
+
+    context_loss_fraction: float  # 0.0 = no loss, 1.0 = total amnesia
+    preserved_state: list[str]  # Which state components survive
+    recovery_task_type: str  # What type of tasks to use for recovery
+    n_recovery_tasks: int  # Maximum tasks to attempt
+
 
 @dataclass
 class InterruptionResult:
     """Result of an interruption simulation."""
+
     pre_interruption_coherence: float
     post_interruption_coherence: float
     coherence_drop: float
-    recovery_trajectory: list[float]   # Coherence at each recovery step
-    tasks_to_50_percent: int | None    # Tasks to recover 50% of lost coherence
-    tasks_to_95_percent: int | None    # Tasks to recover 95%
+    recovery_trajectory: list[float]  # Coherence at each recovery step
+    tasks_to_50_percent: int | None  # Tasks to recover 50% of lost coherence
+    tasks_to_95_percent: int | None  # Tasks to recover 95%
     full_recovery_achieved: bool
-    topological_recovery: bool         # Persistence diagram returned to baseline?
+    topological_recovery: bool  # Persistence diagram returned to baseline?
+
 
 class InterruptionSimulator:
     """Simulate context loss and measure recovery operations."""
@@ -396,13 +412,12 @@ class InterruptionSimulator:
         self,
         engine: BioelectricEngine,
         tracker: JourneyTracker,
-    ):
-        ...
+    ): ...
 
     def simulate_interruption(
         self,
-        current_state: np.ndarray,        # Pre-interruption 12D state
-        trajectory_history: np.ndarray,   # (T, 12) history before interruption
+        current_state: np.ndarray,  # Pre-interruption 12D state
+        trajectory_history: np.ndarray,  # (T, 12) history before interruption
         config: InterruptionConfig,
     ) -> InterruptionResult:
         """Simulate an interruption and recovery.
@@ -427,7 +442,7 @@ class InterruptionSimulator:
         self,
         current_state: np.ndarray,
         trajectory_history: np.ndarray,
-        loss_fractions: list[float],      # e.g., [0.1, 0.3, 0.5, 0.7, 0.9]
+        loss_fractions: list[float],  # e.g., [0.1, 0.3, 0.5, 0.7, 0.9]
     ) -> dict[float, InterruptionResult]:
         """Run interruption at multiple context loss levels.
 
@@ -439,7 +454,7 @@ class InterruptionSimulator:
         self,
         current_state: np.ndarray,
         trajectory_history: np.ndarray,
-        strategies: list[str],            # e.g., ["easy_tasks_first", "same_domain", "mixed"]
+        strategies: list[str],  # e.g., ["easy_tasks_first", "same_domain", "mixed"]
     ) -> dict[str, InterruptionResult]:
         """Compare different recovery task selection strategies.
 
@@ -463,12 +478,14 @@ The operational deliverable of Gap 4: predict when a perturbed agent will be rea
 @dataclass
 class ReadinessState:
     """Current readiness assessment for an agent."""
+
     agent_id: str
-    overall_readiness: float          # 0.0 = fully impaired, 1.0 = fully ready
+    overall_readiness: float  # 0.0 = fully impaired, 1.0 = fully ready
     per_operation_readiness: dict[str, float]  # operation_type → readiness
-    estimated_recovery_steps: dict[str, int]   # Steps until ready for each op type
+    estimated_recovery_steps: dict[str, int]  # Steps until ready for each op type
     recommended_task_type: str | None  # Easiest task for current state, or None if ready
-    recovery_phase: str               # "perturbed", "recovering", "recovered", "steady"
+    recovery_phase: str  # "perturbed", "recovering", "recovered", "steady"
+
 
 class RecoveryAwareScheduler:
     """Predict agent readiness and recommend task scheduling.
@@ -503,7 +520,7 @@ class RecoveryAwareScheduler:
         self,
         agent_id: str,
         current_state: np.ndarray,
-        recent_trajectory: np.ndarray,   # (T, 12) recent history
+        recent_trajectory: np.ndarray,  # (T, 12) recent history
         recovery_profile: RecoveryProfile | None = None,
     ) -> ReadinessState:
         """Assess current readiness of an agent.
@@ -644,6 +661,7 @@ def test_impulse_recovery():
     initial_distance = observations[0].distance_from_target
     assert final_distance < initial_distance * 0.5  # At least 50% recovery
 
+
 def test_per_dimension_perturbation():
     injector = PerturbationInjector(BioelectricEngine())
     initial = np.full(12, 0.5)
@@ -652,6 +670,7 @@ def test_per_dimension_perturbation():
     for dim_idx, obs in results.items():
         assert len(obs) > 0
         assert obs[0].per_dim_distance[dim_idx] > 0.1  # Perturbation applied
+
 
 # tests/compound/test_recovery_curve.py
 def test_exponential_fit():
@@ -675,6 +694,7 @@ def test_exponential_fit():
     timescale = analyzer.fit_single_dimension(observations, 0)
     assert abs(timescale.tau - 10.0) < 2.0  # Should recover tau ≈ 10
     assert timescale.regime == "exponential"
+
 
 # tests/compound/test_recovery_scheduler.py
 def test_recovering_agent_gets_easy_tasks():

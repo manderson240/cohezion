@@ -43,7 +43,10 @@ if fail_counts.get(next_task.id, 0) >= self.config.cloud_escalation_threshold or
 else:
     while remaining and len(batch) < self.config.batch_size:
         candidate = remaining[0]
-        if fail_counts.get(candidate.id, 0) < self.config.cloud_escalation_threshold and local_exec is not None:
+        if (
+            fail_counts.get(candidate.id, 0) < self.config.cloud_escalation_threshold
+            and local_exec is not None
+        ):
             remaining.pop(0)
             batch.append(candidate)
         else:
@@ -58,7 +61,10 @@ if batch and local_exec is not None:
     # Cloud re-queueing: preserve escalation semantics for repeated failures
     cloud_escalate_ids: set[str] = set()
     for task in batch:
-        if fail_counts.get(task.id, 0) >= self.config.cloud_escalation_threshold and task.id not in cloud_escalate_ids:
+        if (
+            fail_counts.get(task.id, 0) >= self.config.cloud_escalation_threshold
+            and task.id not in cloud_escalate_ids
+        ):
             remaining.insert(0, task)
             cloud_escalate_ids.add(task.id)
 ```
@@ -120,9 +126,11 @@ def _auto_verification(prompt: str) -> str:
         return "output reports pass/fail status and lists items verified"
     return "output is relevant, substantive, and addresses the stated task (>40 words)"
 
+
 def _auto_complexity(prompt: str) -> str:
     try:
         from cohezion.inference.task_classifier import classify
+
         node = classify(prompt).node
         return {"npu": "routine", "igpu": "synthesis", "cpu": "reasoning"}.get(node, "synthesis")
     except Exception:

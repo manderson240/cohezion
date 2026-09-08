@@ -49,9 +49,7 @@ class MyceliumNetwork:
     def verify_ascension(self):
         """Check if the system has reached a new fractal level."""
         avg_cohezion = sum(n.cohezion_index for n in self.nodes) / len(self.nodes)
-        if avg_cohezion > 0.9 and self.system_entropy < 0.1:
-            return True
-        return False
+        return bool(avg_cohezion > 0.9 and self.system_entropy < 0.1)
 
 
 def run_mycelium_verification():

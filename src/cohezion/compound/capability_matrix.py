@@ -14,8 +14,28 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+from cohezion.registry.skill_discovery import canonical_skill_key
+from cohezion.registry.skill_registry import load_registry
+
 
 logger = logging.getLogger(__name__)
+
+# speed_tier runs 1 (cheapest/fastest) to 5 (most expensive/slowest).
+_MIN_SPEED_TIER = 1
+_MAX_SPEED_TIER = 5
+
+# Weight of the cost term in recommend_for_task. Small on purpose: it orders
+# equal-scoring candidates cheapest-first without letting tier override a real
+# quality gap. Raising it is a routing-policy decision that wants benchmarking
+# evidence, so callers opt in per-call via constraints["cost_weight"].
+_DEFAULT_COST_WEIGHT = 0.05
+
+
+def _tier_cost(speed_tier: int) -> float:
+    """Normalise a speed tier to 0.0 (cheapest) .. 1.0 (most expensive)."""
+    span = _MAX_SPEED_TIER - _MIN_SPEED_TIER
+    clamped = max(_MIN_SPEED_TIER, min(_MAX_SPEED_TIER, speed_tier))
+    return (clamped - _MIN_SPEED_TIER) / span
 
 
 @dataclass
@@ -144,15 +164,35 @@ class CapabilityMatrix:
             logger.debug("SmartRouter/CostAwareRouter not available")
 
     def _load_static_skills(self) -> None:
-        """Load skill data from SkillHealthTracker."""
+        """Load skill health onto the skill axis, JOINED to the registry.
+
+        The skill-health store and the registry are two node namespaces that
+        were never joinable (health keys ``ANIMATIONS_PRIME``, registry keys
+        ``animations``). Admitting health names verbatim did two bad things: real
+        skills never matched the registry, and test-fixture names an old shared
+        file left behind (``BAD_SKILL``, ``failing_skill``) would enter the matrix
+        as ROUTING entities. A record is now admitted ONLY if its canonical key
+        resolves to a real registry skill, and it is keyed by that canonical key
+        so it lines up with registry-derived data. If the registry can't be read,
+        fall back to loading verbatim rather than blinding the axis entirely.
+        """
         try:
             from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
+            try:
+                registry_keys = {canonical_skill_key(k) for k in load_registry()}
+            except Exception:
+                registry_keys = None  # registry unreadable -> do not gate
+
             tracker = SkillHealthTracker()
             for name, record in tracker._records.items():
+                canon = canonical_skill_key(name)
+                if registry_keys is not None and canon not in registry_keys:
+                    continue  # not a real skill (test fixture / dead name) -> not a routing entity
+                entity_id = canon if registry_keys is not None else name
                 entry = CapabilityEntry(
                     entity_type="skill",
-                    entity_id=name,
+                    entity_id=entity_id,
                     capabilities=["skill"],
                     quality_score=record.avg_quality_score,
                     speed_tier=2,
@@ -166,7 +206,7 @@ class CapabilityMatrix:
                         "avg_tokens": record.avg_tokens_per_use,
                     },
                 )
-                self._entries[f"skill:{name}"] = entry
+                self._entries[f"skill:{entity_id}"] = entry
 
         except Exception:
             logger.debug("SkillHealthTracker not available")
@@ -320,11 +360,27 @@ class CapabilityMatrix:
         task_type: str,
         constraints: dict | None = None,
     ) -> list[CapabilityEntry]:
-        """Recommend entities for a task type, sorted by affinity score."""
+        """Recommend entities for a task type, best first.
+
+        Ranked by ``affinity + quality - cost_weight * normalised_speed_tier``.
+
+        The cost term is a tie-break, not a cost/quality exchange rate. Stated
+        exactly, because the imprecise version is wrong: the tier penalty spans
+        at most ``cost_weight`` (default 0.05), so tier CAN reorder candidates
+        whose combined affinity+quality differ by up to 0.05, and cannot reorder
+        any pair differing by more than that. Quality scores in this matrix move
+        in 0.2 steps, so no real capability gap is within reach of the default
+        weight -- but "never overrides quality" would be false as an unqualified
+        claim, and the 0.05 boundary is pinned by test rather than trusted.
+
+        Callers with benchmarking evidence can raise ``constraints["cost_weight"]``
+        to trade quality for cost deliberately.
+        """
         constraints = constraints or {}
         max_latency = constraints.get("max_latency_ms", float("inf"))
         min_quality = constraints.get("min_quality", 0.0)
         entity_types = constraints.get("entity_types", ["model"])
+        cost_weight = constraints.get("cost_weight", _DEFAULT_COST_WEIGHT)
 
         candidates = []
         for entry in self._entries.values():
@@ -336,7 +392,8 @@ class CapabilityMatrix:
             if latency > max_latency:
                 continue
             affinity = entry.affinity.get(task_type, 0.0)
-            candidates.append((affinity + entry.quality_score, entry))
+            score = affinity + entry.quality_score - cost_weight * _tier_cost(entry.speed_tier)
+            candidates.append((score, entry))
 
         candidates.sort(key=lambda x: x[0], reverse=True)
         return [entry for _, entry in candidates]
@@ -542,9 +599,9 @@ class CapabilityMatrix:
     def run_self_evaluation(
         self, plan: str, prd_context: str = ""
     ) -> dict[str, float | bool | str]:
-        """Run pre-flight self-evaluation via evaluation/self_eval.
+        """Run pre-flight self-evaluation via eval/self_eval.
 
-        Connects evaluation/self_eval.py as a quality gate.
+        Connects eval/self_eval.py as a quality gate.
 
         Args:
             plan: Execution plan text to evaluate
@@ -554,7 +611,7 @@ class CapabilityMatrix:
             Dict with score, passed, and feedback
         """
         try:
-            from cohezion.evaluation.self_eval import SelfEvaluationEngine
+            from cohezion.eval.self_eval import SelfEvaluationEngine
 
             engine = SelfEvaluationEngine()
             result = engine.evaluate_execution_plan(plan, prd_context)
@@ -564,7 +621,7 @@ class CapabilityMatrix:
                 "feedback": result.feedback,
             }
         except ImportError:
-            logger.debug("evaluation.self_eval not available")
+            logger.debug("eval.self_eval not available")
             return {"score": 0.0, "passed": True, "feedback": "Self-eval unavailable"}
         except Exception:
             logger.debug("Self-evaluation failed (non-blocking)", exc_info=True)
@@ -624,14 +681,6 @@ class CapabilityMatrix:
             {
                 "modules": "healing/ + resilience/",
                 "recommendation": "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector (component-level). resilience/ provides AutonomicManager MAPE-K (system-level). Keep both but document ownership: healing/=component health, resilience/=system health.",
-            },
-            {
-                "modules": "eval/ + evaluation/",
-                "recommendation": "eval/ has CapabilityScorecard (6-axis EVO) + pipeline. evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix. Consider merging evaluation/self_eval.py into eval/.",
-            },
-            {
-                "modules": "pipeline/ + pipelines/",
-                "recommendation": "pipeline/ has active modules (weight_bridge, hyperparameter_debate). pipelines/ has only traceability stub. Merge traceability.py into pipeline/ and remove pipelines/.",
             },
         ]
         return known_overlaps

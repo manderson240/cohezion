@@ -15,6 +15,8 @@ from cohezion.tools.test_generator import (
     ClassInfo,
     FunctionInfo,
     ModuleInfo,
+)
+from cohezion.tools.test_generator import (
     CodeSuiteGenerator as GeneratorHelper,
 )
 

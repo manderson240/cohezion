@@ -49,7 +49,9 @@ async def main():
     # Assert all plates spun at least once
     for p_key, p_data in telemetry["plates"].items():
         assert p_data["iterations"] >= 1, f"Plate {p_key} failed to spin!"
-        print(f"✓ Plate {p_data['plate_id']}: {p_data['name']} spun {p_data['iterations']} times ({p_data['hardware_lane']})")
+        print(
+            f"✓ Plate {p_data['plate_id']}: {p_data['name']} spun {p_data['iterations']} times ({p_data['hardware_lane']})"
+        )
 
     logger.info("🎉 ALL 6 CONCURRENT PLATES SPUN AND CERTIFIED IN FULL PARALLEL CONCURRENCY!")
 

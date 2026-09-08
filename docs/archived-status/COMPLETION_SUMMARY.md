@@ -316,7 +316,7 @@ manager.register_server(
     name="custom-api",
     entry_point="cohezion.mcp.servers.custom:app",
     preferred_port=8363,
-    auto_restart=True
+    auto_restart=True,
 )
 ```
 

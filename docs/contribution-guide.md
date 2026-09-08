@@ -68,6 +68,7 @@ Surgical-commit discipline (L363 + L368): against high-churn trees, enumerate pa
 
     ```python
     from cohezion.registry.skill_registry import register_skill
+
     register_skill("MY_SKILL_PRIME", "Description", ["keywords"], "skills/MY_SKILL_PRIME.md")
     ```
 
@@ -88,6 +89,7 @@ Surgical-commit discipline (L363 + L368): against high-churn trees, enumerate pa
 
     ```python
     from cohezion.mcp.my_server import get_server
+
     server = get_server()
     ```
 
@@ -111,7 +113,7 @@ Read `tests/conftest.py` before writing tests — it resets FLUME VAE, RL policy
 
 - **CLAUDE.md** is the canonical AI working reference. Update it when adding major architecture.
 - Vault-first: log session learnings to `~/vaults/cohezion-vault/`, not directly to `MEMORY.md` (which is auto-generated weekly).
-- ADRs live in `docs/adr/` as YAML.
+- ADRs live in `docs/adrs/`.
 - Skills and agent definitions use YAML frontmatter `.md` (not JSON) for consistency with vault + `.context/`.
 
 ## Verification before completion

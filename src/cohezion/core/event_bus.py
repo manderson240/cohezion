@@ -21,6 +21,11 @@ from typing import Any, Protocol
 
 logger = logging.getLogger(__name__)
 
+# Upper bound on EventBus.stop()'s drain. Generous enough that any finite backlog of
+# well-behaved handlers completes, short enough that a hot producer or a hung handler
+# cannot block shutdown indefinitely (D2, adversarial review 2026-07-31).
+_DRAIN_TIMEOUT_S = 30.0
+
 
 class EventType(Enum):
     """Standard event types across the system."""
@@ -38,6 +43,7 @@ class EventType(Enum):
     METRIC_UPDATE = auto()
     SYSTEM_HEALTH = auto()
     JOURNEY_STEP = auto()
+    FLEET_STATUS = auto()
     CUSTOM = auto()
 
     # DataMesh domain events (DataMeshEventBridge, CorpusQualityConsumer)
@@ -47,7 +53,9 @@ class EventType(Enum):
     LINEAGE_UPDATED = auto()
     DOMAIN_HEALTH_DEGRADED = auto()
 
-    # Fleet / model lifecycle events
+    # Model residency lifecycle (silicon_supervisor -> DataMeshEventBridge).
+    # APPENDED, never inserted: EventType uses auto(), so adding at the end
+    # leaves every existing member's value unchanged.
     MODEL_ROSTER_CHANGED = auto()
     MODEL_LOADING = auto()
     MODEL_LOADED = auto()
@@ -90,6 +98,24 @@ class Event:
         )
 
     @classmethod
+    def llm_response(cls, agent_name: str, model: str, response_tokens: int = 0, **kwargs) -> Event:
+        return cls(
+            type=EventType.LLM_RESPONSE,
+            source=agent_name,
+            payload={"model": model, "response_tokens": response_tokens, **kwargs},
+        )
+
+    @classmethod
+    def fleet_status(
+        cls, source: str, loaded_models: list[str], busy_models: list[str], **kwargs
+    ) -> Event:
+        return cls(
+            type=EventType.FLEET_STATUS,
+            source=source,
+            payload={"loaded_models": loaded_models, "busy_models": busy_models, **kwargs},
+        )
+
+    @classmethod
     def cache_access(cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs) -> Event:
         return cls(
             type=EventType.CACHE_HIT if hit else EventType.CACHE_MISS,
@@ -97,6 +123,7 @@ class Event:
             payload={"tier": tier, **kwargs},
         )
 
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
     @classmethod
     def model_lifecycle(
         cls,
@@ -178,22 +205,44 @@ class EventBus:
             self._processor_task = asyncio.create_task(self._process_loop())
             logger.info("EventBus started")
 
-    async def stop(self) -> None:
-        """Stop the event processor safely, draining pending events."""
-        self._running = False
-        if self._processor_task:
-            # Drain remaining events in queue
-            while not self._queue.empty():
+    async def stop(self, drain_timeout: float = _DRAIN_TIMEOUT_S) -> None:
+        """Stop the event processor, draining anything still queued.
+
+        Order matters: `_process_loop` runs `while self._running`, so clearing the flag
+        BEFORE `join()` makes the loop exit without calling `task_done()` — `join()` then
+        waits forever on a counter nobody will decrement, and the queued events are lost.
+        Draining first keeps the loop alive exactly long enough to finish its backlog.
+        (DataMesh adversarial review Finding #2; the test layer worked around it via
+        `_cancel_bus()` for months while every production caller could hang. Fixed
+        2026-07-31 after a live datamesh publish hung here and dropped its event.)
+
+        The drain is BOUNDED (D2): `join()` only returns once the queue empties, so a
+        producer publishing faster than the loop drains — or a handler that never returns —
+        would starve it forever. On timeout the remaining events are abandoned and counted,
+        which is a bounded, observable loss rather than a hang.
+        """
+        try:
+            if self._processor_task:
+                # Drain while the loop is still running, THEN stop it.
                 try:
-                    _, _, event = self._queue.get_nowait()
-                    await self._dispatch(event)
-                    self._queue.task_done()
-                except (asyncio.QueueEmpty, ValueError):
-                    break
-            self._processor_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._processor_task
-            self._processor_task = None
+                    await asyncio.wait_for(self._queue.join(), timeout=drain_timeout)
+                except TimeoutError:
+                    abandoned = self._queue.qsize()
+                    self._metrics["dropped"] += abandoned
+                    logger.warning(
+                        "EventBus.stop: drain exceeded %.1fs, abandoning %d queued event(s)",
+                        drain_timeout,
+                        abandoned,
+                    )
+                self._processor_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await self._processor_task
+        finally:
+            # EVERY exit path (D1). Two ways this is reached without the body completing:
+            # an outer `wait_for(stop(), t)` cancelling us mid-drain, and start() having set
+            # _running before a failed create_task(). Leaving it True marks the bus
+            # "running-but-dead" and lets publish() keep accepting events nobody will drain.
+            self._running = False
         logger.info(f"EventBus stopped. Metrics: {self._metrics}")
 
     def subscribe(
@@ -238,21 +287,17 @@ class EventBus:
                 self._handlers[event_type].remove(handler)
 
     async def publish(self, event: Event) -> bool:
-        """Publish event to all subscribers."""
+        """Publish event to all subscribers. False means NOT accepted."""
+        if not self._running:
+            # No processor is draining the queue, so enqueueing here would silently discard
+            # the event (D7). Report failure like the QueueFull path instead of returning a
+            # True that means "enqueued" and reads as "delivered".
+            self._metrics["dropped"] += 1
+            logger.warning(f"Event dropped (bus not running): {event.type}")
+            return False
         try:
             # Priority queue: (-priority, seq, event) — seq prevents Event comparison on tie
             await self._queue.put((-event.priority, next(self._seq), event))
-            self._metrics["published"] += 1
-            return True
-        except asyncio.QueueFull:
-            self._metrics["dropped"] += 1
-            logger.warning(f"Event dropped (queue full): {event.type}")
-            return False
-
-    def publish_sync(self, event: Event) -> bool:
-        """Synchronously publish event to queue (non-blocking put_nowait)."""
-        try:
-            self._queue.put_nowait((-event.priority, next(self._seq), event))
             self._metrics["published"] += 1
             return True
         except asyncio.QueueFull:
@@ -311,6 +356,18 @@ class EventBus:
             "handlers": {t.name: len(h) for t, h in self._handlers.items()},
             "wildcard_handlers": len(self._wildcard_handlers),
         }
+
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    def publish_sync(self, event: Event) -> bool:
+        """Synchronously publish event to queue (non-blocking put_nowait)."""
+        try:
+            self._queue.put_nowait((-event.priority, next(self._seq), event))
+            self._metrics["published"] += 1
+            return True
+        except asyncio.QueueFull:
+            self._metrics["dropped"] += 1
+            logger.warning(f"Event dropped (queue full): {event.type}")
+            return False
 
 
 class EventFilter(ABC):

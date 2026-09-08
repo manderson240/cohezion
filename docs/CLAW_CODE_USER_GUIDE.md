@@ -226,9 +226,9 @@ Edit `scripts/ollama-proxy.py`:
 
 ```python
 MODEL_MAP = {
-    "haiku": "phi3:mini",        # 2.2GB
-    "sonnet": "gemma4:e4b",      # 9.6GB  
-    "opus": "gemma4:26b",        # 17GB
+    "haiku": "phi3:mini",  # 2.2GB
+    "sonnet": "gemma4:e4b",  # 9.6GB
+    "opus": "gemma4:26b",  # 17GB
     "custom": "your-model:tag",  # Add custom mappings
 }
 ```

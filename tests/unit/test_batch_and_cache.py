@@ -1,8 +1,7 @@
-import pytest
-from cohezion.contracts import PoincarePoint
+from cohezion.cache.semantic_cache_system import CacheHit, SemanticCacheSystem
+from cohezion.inference.batch_optimizer import BatchExecutionResult, BatchOptimizer
 from cohezion.physics.poincare_manifold import PoincareManifoldND
-from cohezion.inference.batch_optimizer import BatchOptimizer, BatchExecutionResult
-from cohezion.cache.semantic_cache_system import SemanticCacheSystem, CacheHit
+
 
 def test_batch_optimizer():
     optimizer = BatchOptimizer(max_batch_size=4)
@@ -14,6 +13,7 @@ def test_batch_optimizer():
     assert res.batch_size == 2
     assert res.hardware_lane == "NPU"
     assert 0.0 <= res.padding_efficiency <= 1.0
+
 
 def test_semantic_cache_system_l1_and_l2():
     cache = SemanticCacheSystem(l1_capacity=10, l2_distance_threshold=0.25)

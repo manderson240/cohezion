@@ -49,7 +49,7 @@ from typing import Any
 import httpx
 
 
-LEMONADE ="http://localhost:13305/api/v1/chat/completions"
+LEMONADE = "http://localhost:13305/api/v1/chat/completions"
 COHEZION_API = "http://localhost:8080"
 STATE_DIR = Path.home() / ".cohezion"
 STATE_FILE = STATE_DIR / "ada_state.json"
@@ -128,7 +128,10 @@ def observe() -> str:
     try:
         log = subprocess.run(
             ["git", "log", "--oneline", "-5"],
-            capture_output=True, text=True, timeout=10, check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         ).stdout.strip()
         if log:
             sections.append(f"RECENT COMMITS:\n{log}")
@@ -139,9 +142,7 @@ def observe() -> str:
     try:
         recent = sorted(decisions.glob("*.md"), key=lambda p: p.stat().st_mtime)[-3:]
         if recent:
-            sections.append(
-                "FRESHEST VAULT DECISIONS:\n" + "\n".join(p.stem for p in recent)
-            )
+            sections.append("FRESHEST VAULT DECISIONS:\n" + "\n".join(p.stem for p in recent))
     except OSError:
         pass
 
@@ -155,10 +156,14 @@ def observe() -> str:
             "LIVE UNIVERSE: tick={t} coherence={c:.4f} | vacuum topology "
             "instanton={i:.0%} soliton={s:.0%} trivial={v:.0%} | gravity wells: "
             "deepest={d:.2f} mean={m:.2f} over {n} EVOs".format(
-                t=state.get("tick"), c=state.get("coherence", 0.0),
-                i=topo.get("instanton", 0.0), s=topo.get("soliton", 0.0),
-                v=topo.get("trivial", 0.0), d=gravity.get("deepest_potential", 0.0),
-                m=gravity.get("mean_potential", 0.0), n=gravity.get("n_particles", 0),
+                t=state.get("tick"),
+                c=state.get("coherence", 0.0),
+                i=topo.get("instanton", 0.0),
+                s=topo.get("soliton", 0.0),
+                v=topo.get("trivial", 0.0),
+                d=gravity.get("deepest_potential", 0.0),
+                m=gravity.get("mean_potential", 0.0),
+                n=gravity.get("n_particles", 0),
             )
         )
     except (httpx.HTTPError, ValueError, KeyError):
@@ -176,9 +181,7 @@ def observe() -> str:
 
 def reflect(observations: str, letter: str) -> tuple[str, str]:
     """Compose the Note on the best available local lane. Returns (text, model)."""
-    prompt = NOTE_TEMPLATE.format(
-        persona=PERSONA, observations=observations, letter=letter
-    )
+    prompt = NOTE_TEMPLATE.format(persona=PERSONA, observations=observations, letter=letter)
     for model, max_tokens in LANES:
         try:
             with httpx.Client(timeout=180.0) as client:

@@ -84,7 +84,7 @@ def validate_physics_environment(result: ValidationResult) -> None:
         total_reward = 0.0
         for _ in range(50):
             action = np.random.uniform(-0.1, 0.1, size=(12,)).astype(np.float32)
-            obs, reward, terminated, truncated, info = env.step(action)
+            obs, reward, terminated, _truncated, info = env.step(action)
             total_reward += reward
             if terminated:
                 break
@@ -285,7 +285,7 @@ def validate_swarm_env(result: ValidationResult) -> None:
 
         for _ in range(10):
             actions = {a: np.random.uniform(-0.1, 0.1, size=(12,)).astype(np.float32) for a in obs}
-            obs, rewards, terms, truncs, infos = env.step(actions)
+            obs, _rewards, _terms, _truncs, infos = env.step(actions)
 
         dev = infos["agent_0"].get("global_hiho_deviation", -1)
         result.record(
@@ -308,7 +308,7 @@ def validate_skill_persistence(result: ValidationResult) -> None:
         mock_client.vault_write.return_value = "success"
         mock_client.vault_find_relevant_context.return_value = []
 
-        refiner = SkillRefiner(mcp_client=mock_client)
+        SkillRefiner(mcp_client=mock_client)
         result.record("SkillRefiner creation", True)
 
         # Verify PRIME skills exist
@@ -404,7 +404,7 @@ def validate_routing_orchestrator(result: ValidationResult) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate Cohezion compound loop")
     parser.add_argument("--full", action="store_true", help="Include PPO training (slow)")
-    args = parser.parse_args()
+    parser.parse_args()
 
     logger.info("=" * 60)
     logger.info("Cohezion Compound Engineering Loop Validation")

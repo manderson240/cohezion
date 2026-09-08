@@ -90,11 +90,9 @@ async def example_2_cost_optimization():
         },
     ]
 
-    total_cost = 0.0
-
     for task in tasks:
         try:
-            response, tokens = await client.generate(
+            _response, tokens = await client.generate(
                 prompt=task["prompt"],
                 model=task["model"],
             )
@@ -127,7 +125,7 @@ async def example_3_failover_behavior():
     print("Failover enabled: ngrok → Ollama\n")
 
     try:
-        response, tokens = await gateway.generate(
+        response, _tokens = await gateway.generate(
             prompt="Test prompt",
             model="gpt-4o",
         )

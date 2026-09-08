@@ -95,7 +95,7 @@ So far so good. But: if a parallel test in the same process patches `cohezion.ap
 Reproducible scenario:
 ```python
 with mock.patch("cohezion.api._helpers.get_vae", return_value=mock_vae):
-    response = client.post("/flume/encode", json={"vector": [0.0]*256})
+    response = client.post("/flume/encode", json={"vector": [0.0] * 256})
 # response uses the REAL VAE, not the mock
 ```
 
@@ -142,6 +142,7 @@ Reproducible scenario (manufactured but trivially possible):
 ```python
 # Hypothetical routes/warm.py
 from cohezion.api._helpers import get_vae
+
 warm_vae = get_vae()  # at import time
 ```
 After Wave 2B's `__init__.py:50` overwrites `_vae_trainer = None`, the next call to `_get_vae()` re-creates the trainer.

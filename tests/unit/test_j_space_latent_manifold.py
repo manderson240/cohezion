@@ -1,7 +1,6 @@
 import math
-import pytest
-import numpy as np
-from cohezion.flume.j_space_latent_manifold import JSpaceLatentManifold, JSpacePoint
+
+from cohezion.flume.j_space_latent_manifold import JSpaceLatentManifold
 
 
 def test_j_space_inner_product_and_classification():

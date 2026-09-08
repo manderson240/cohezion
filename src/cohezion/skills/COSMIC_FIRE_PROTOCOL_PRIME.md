@@ -41,6 +41,7 @@ if event:
 
 # Integrate with COLIBRE
 from cohezion.physics.colibre_bridge import ColibreState
+
 sim = ColibreState(redshift=20.0, sfr_density=0.01, ism_hot_fraction=0.5, colibre_coherence=0.98)
 if cfp.is_ignited(sim.colibre_coherence, sim.sfr_density):
     cfp.ignite(sim.colibre_coherence, redshift=sim.redshift)

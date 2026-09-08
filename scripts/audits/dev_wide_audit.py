@@ -18,6 +18,7 @@ Run:  uv run python scripts/audits/dev_wide_audit.py [root]
 Writes JSON to docs/audits/dev_wide_manifest.json and prints a markdown table.
 Report-only, non-destructive.
 """
+
 from __future__ import annotations
 
 import json
@@ -29,16 +30,44 @@ from pathlib import Path
 
 DEFAULT_ROOT = Path.home() / "dev"
 SKIP_DIRS = {
-    ".venv", "venv", "node_modules", ".git", "__pycache__", "build", "dist",
+    ".venv",
+    "venv",
+    "node_modules",
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
     # vendored / generated / worktree copies — exclude so counts reflect first-party code
-    ".worktrees", "site-packages", "vendor", "third_party", "htmlcov", "_build",
-    ".tox", ".mypy_cache", ".pytest_cache", ".ruff_cache", "external", "extern",
+    ".worktrees",
+    "site-packages",
+    "vendor",
+    "third_party",
+    "htmlcov",
+    "_build",
+    ".tox",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "external",
+    "extern",
 }
 CODE_EXT = {
-    ".py": "Python", ".f90": "Fortran", ".f": "Fortran", ".F90": "Fortran",
-    ".cpp": "C++", ".cc": "C++", ".cu": "C++/CUDA", ".hpp": "C++", ".h": "C/C++",
-    ".c": "C", ".rs": "Rust", ".ts": "TypeScript", ".tsx": "TypeScript",
-    ".js": "JavaScript", ".md": "Markdown/docs", ".ipynb": "Notebook",
+    ".py": "Python",
+    ".f90": "Fortran",
+    ".f": "Fortran",
+    ".F90": "Fortran",
+    ".cpp": "C++",
+    ".cc": "C++",
+    ".cu": "C++/CUDA",
+    ".hpp": "C++",
+    ".h": "C/C++",
+    ".c": "C",
+    ".rs": "Rust",
+    ".ts": "TypeScript",
+    ".tsx": "TypeScript",
+    ".js": "JavaScript",
+    ".md": "Markdown/docs",
+    ".ipynb": "Notebook",
 }
 
 

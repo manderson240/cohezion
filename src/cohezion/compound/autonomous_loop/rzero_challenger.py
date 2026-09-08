@@ -136,7 +136,7 @@ def _vault_quality_context() -> str:
         "AND recorded_at > time::now() - 1d GROUP ALL;"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
         with urllib.request.urlopen(req, timeout=3.0) as resp:  # noqa: S310
@@ -167,7 +167,7 @@ def _push_episode_to_vault(episode: EpisodeResult) -> None:
         )
     sql = "INSERT INTO vault_neuron [" + ", ".join(rows) + "];"
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             _SURREAL_URL, data=sql.encode(), headers=_SURREAL_HEADERS, method="POST"
         )
         with urllib.request.urlopen(req, timeout=5.0) as resp:  # noqa: S310

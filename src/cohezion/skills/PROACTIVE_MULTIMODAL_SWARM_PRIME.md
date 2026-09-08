@@ -15,6 +15,7 @@ Tri-Silicon Multimodal Orchestration, Micro-Sandboxed Execution, and Continuous 
    Query `UnifiedMultimodalOrchestrator` across 6 distinct modalities before executing swarm tasks:
    ```python
    from cohezion.multimodal.orchestrator import UnifiedMultimodalOrchestrator, MultimodalModality
+
    for modality in MultimodalModality:
        entry = UnifiedMultimodalOrchestrator.resolve_model(modality, prefer_npu=True)
        print(f"Modality {modality.name} mapped to {entry.model_id} on {entry.hardware_lane}")
@@ -23,6 +24,7 @@ Tri-Silicon Multimodal Orchestration, Micro-Sandboxed Execution, and Continuous 
 2. **Execute Sandboxed Actions with Strict Pre-flight AST Guards**:
    ```python
    from cohezion.security.micro_sandbox import MicroSandboxEngine
+
    sandbox = MicroSandboxEngine(timeout_sec=3.0)
    result = sandbox.execute_sandboxed_action(python_code)
    if not result.passed:
@@ -39,7 +41,9 @@ Tri-Silicon Multimodal Orchestration, Micro-Sandboxed Execution, and Continuous 
    keys = list(agent_claims.keys())
    intersections = list(itertools.combinations(keys, 2)) if len(keys) > 1 else []
    report = gate.evaluate_consistency(agent_claims, intersections)
-   assert report.is_consistent, f"Cohomological obstruction detected: dim H^1 = {report.dim_h1_obstructions}"
+   assert report.is_consistent, (
+       f"Cohomological obstruction detected: dim H^1 = {report.dim_h1_obstructions}"
+   )
    ```
 
 4. **Continuous Proactive Fleet Consultation Loop**:

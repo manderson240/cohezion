@@ -8,7 +8,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("SovereignVerify")
+    logging.getLogger("SovereignVerify")
 
     # 1. Test Registry Directly
     registry = get_local_registry()

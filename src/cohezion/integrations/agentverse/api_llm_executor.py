@@ -63,7 +63,9 @@ class APILLMExecutor:
         timeout: Request timeout in seconds
     """
 
-    # Cost per 1M tokens (approximate, check current pricing)
+    # Cost per 1M tokens. Anthropic rates verified 2026-08-29 against
+    # platform.claude.com/docs/en/about-claude/pricing -- refresh when models ship.
+    # A model absent from this table is billed at 0.0 (see _calculate_cost_with_cache).
     COSTS = {
         "openai": {
             "gpt-4o": {"input": 2.50, "output": 10.00},
@@ -71,8 +73,19 @@ class APILLMExecutor:
             "gpt-3.5-turbo": {"input": 0.50, "output": 1.50},
         },
         "anthropic": {
+            # Opus 4.5 and later all price at 5/25; only Opus 4.1 and Opus 4
+            # (both retired) were 15/75.
+            "claude-opus-5": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-8": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-7": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-6": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-5": {"input": 5.00, "output": 25.00},
+            "claude-sonnet-5": {"input": 2.00, "output": 10.00},
             "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
-            "claude-opus-4-6": {"input": 15.00, "output": 75.00},
+            "claude-sonnet-4-5": {"input": 3.00, "output": 15.00},
+            "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
+            "claude-fable-5": {"input": 10.00, "output": 50.00},
+            "claude-mythos-5": {"input": 10.00, "output": 50.00},
         },
     }
 
@@ -306,6 +319,9 @@ class APILLMExecutor:
                     duration_ms=elapsed,
                     cache_read_tokens=cache_read,
                     cache_write_tokens=cache_write,
+                    # This call site knows the split; without it the tracker
+                    # prices output at the input rate (5x under-count).
+                    output_tokens=tokens_out,
                 )
 
             return APIResult(
@@ -340,7 +356,18 @@ class APILLMExecutor:
         Break-even vs 5-min TTL (1.25×): need ≥3 reads per write within 1 hour.
         """
         provider_costs = self.COSTS.get(self.provider, {})
-        model_costs = provider_costs.get(self.model, {"input": 0, "output": 0})
+        model_costs = provider_costs.get(self.model)
+        if model_costs is None:
+            # Falling back to zero silently reports real spend as free, which is
+            # worse than a wrong estimate: budget guards and cost-aware routing
+            # both read this. Keep the 0.0 contract, but make the gap visible.
+            logger.warning(
+                "No pricing entry for %s/%s — cost reported as $0.00. "
+                "Add it to APILLMExecutor.COSTS.",
+                self.provider,
+                self.model,
+            )
+            model_costs = {"input": 0, "output": 0}
         input_rate = model_costs["input"] / 1_000_000
         output_rate = model_costs["output"] / 1_000_000
 

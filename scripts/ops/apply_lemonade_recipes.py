@@ -76,7 +76,9 @@ def diff(current: dict, desired: dict) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--apply", action="store_true", help="execute (default: dry-run)")
-    ap.add_argument("--force-reload", action="store_true", help="also stamp currently-loaded models")
+    ap.add_argument(
+        "--force-reload", action="store_true", help="also stamp currently-loaded models"
+    )
     ap.add_argument("--keep-loaded", action="store_true", help="do not unload after stamping")
     ap.add_argument("--only", help="restrict to a single model id")
     args = ap.parse_args()
@@ -107,7 +109,9 @@ def main() -> int:
         needed = size_gib * 1.2 + KV_ALLOWANCE_GIB + RAM_FLOOR_GIB
         avail = mem_available_gib()
         if avail < needed:
-            skipped.append((mid, f"RAM gate: need ~{needed:.0f} GiB, have {avail:.0f} GiB; delta={delta}"))
+            skipped.append(
+                (mid, f"RAM gate: need ~{needed:.0f} GiB, have {avail:.0f} GiB; delta={delta}")
+            )
             continue
         if not args.apply:
             print(f"PLAN  {mid}: {delta}")

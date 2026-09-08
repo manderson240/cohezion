@@ -149,6 +149,7 @@ Worktree: Yes
   def __init__(self):
       self._background_tasks: set[asyncio.Task] = set()
 
+
   # Then at each create_task site inside async methods:
   task = asyncio.create_task(self._some_coroutine())
   self._background_tasks.add(task)

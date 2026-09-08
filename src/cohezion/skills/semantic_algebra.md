@@ -56,9 +56,7 @@ direction = encoder.semantic_direction("physics", "biology")
 ```python
 # Transform "electron" from physics domain to biology domain
 bridged = encoder.cross_domain_bridge(
-    concept_a="electron",
-    domain_a_example="physics",
-    domain_b_example="biology"
+    concept_a="electron", domain_a_example="physics", domain_b_example="biology"
 )
 # Returns analog concept like "ion" or "neuron signal"
 ```
@@ -66,11 +64,7 @@ bridged = encoder.cross_domain_bridge(
 ### 4. Semantic Arithmetic
 ```python
 # Novel concept generation
-z_new = encoder.semantic_add(
-    base="machine learning",
-    direction="quantum",
-    scale=0.5
-)
+z_new = encoder.semantic_add(base="machine learning", direction="quantum", scale=0.5)
 decoded = encoder.decode(z_new)
 # Creates hybrid concept
 ```

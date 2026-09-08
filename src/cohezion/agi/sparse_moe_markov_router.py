@@ -20,12 +20,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.monadic_markov_trace_engine import MarkovStreamRouter
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -58,10 +58,15 @@ class SparseMoEMarkovRouter:
         self.markov_router = MarkovStreamRouter()
         self.stationary_vector = self.markov_router.compute_stationary_distribution()
 
-
-    async def route_token_stream(self, token_stream_id: str, context_type: str = "coding") -> MoERoutingDecision:
+    async def route_token_stream(
+        self, token_stream_id: str, context_type: str = "coding"
+    ) -> MoERoutingDecision:
         logger.info("\n" + "=" * 95)
-        logger.info("🔀 EXECUTING SPARSE MoE MARKOV ROUTER FOR STREAM '%s' (Context: %s)...", token_stream_id, context_type)
+        logger.info(
+            "🔀 EXECUTING SPARSE MoE MARKOV ROUTER FOR STREAM '%s' (Context: %s)...",
+            token_stream_id,
+            context_type,
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
@@ -98,7 +103,9 @@ class SparseMoEMarkovRouter:
 
         logger.info("  ✓ Top-1 Expert: %s (Weight: %.2f)", top1_expert, top1_weight)
         logger.info("  ✓ Top-2 Expert: %s (Weight: %.2f)", top2_expert, top2_weight)
-        logger.info("  ⚡ Markov Routing Latency: %.3f ms | Gating Entropy: %.4f", latency_ms, entropy)
+        logger.info(
+            "  ⚡ Markov Routing Latency: %.3f ms | Gating Entropy: %.4f", latency_ms, entropy
+        )
 
         # Broadcast event over EventBus
         evt = Event.agent_complete(

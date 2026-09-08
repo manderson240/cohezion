@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -20,8 +20,6 @@ try:
     import plotly.graph_objects as go
 except ImportError:
     go = None  # type: ignore[assignment]
-
-from cohezion.physics.poincare_manifold import PoincareManifoldND, PoincarePoint
 
 
 def compute_hyperbolic_distance(u: np.ndarray, v: np.ndarray, eps: float = 1e-7) -> float:
@@ -124,10 +122,7 @@ def project_2048d_to_poincare_3d(
     """
     vectors_arr = np.asarray(vectors_2048d, dtype=np.float64)
     is_1d = vectors_arr.ndim == 1
-    if is_1d:
-        vectors = vectors_arr.reshape(1, -1)
-    else:
-        vectors = vectors_arr
+    vectors = vectors_arr.reshape(1, -1) if is_1d else vectors_arr
 
     n_samples, dim = vectors.shape
     if dim != 2048:
@@ -150,7 +145,8 @@ def project_2048d_to_poincare_3d(
     coords_3d_projected = (coords_3d / norms_safe) * scaled_norms
 
     if is_1d:
-        return coords_3d_projected[0]
+        first_row: np.ndarray = coords_3d_projected[0]
+        return first_row
     return coords_3d_projected
 
 
@@ -161,9 +157,7 @@ class PoincareManifoldVisualizer:
         self.seed = seed
         self.max_radius = max_radius
 
-    def generate_skill_vectors(
-        self, skill_names: List[str], domains: List[str]
-    ) -> np.ndarray:
+    def generate_skill_vectors(self, skill_names: list[str], domains: list[str]) -> np.ndarray:
         """Batch generate 2048D Poincaré unit-ball vectors for skills.
 
         Parameters
@@ -189,7 +183,7 @@ class PoincareManifoldVisualizer:
 
     def load_cohezion_skills(
         self, skills_dir: Path | str | None = None, max_skills: int = 71
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Load Cohezion's PRIME skills and compute 2048D & 3D Poincaré coordinates.
 
         Parameters
@@ -204,27 +198,47 @@ class PoincareManifoldVisualizer:
         List[Dict[str, Any]]
             List of skill records with 2048D vector, 3D coords, domain, and hyperbolic metrics.
         """
-        if skills_dir is None:
-            skills_dir = Path("src/cohezion/skills")
-        else:
-            skills_dir = Path(skills_dir)
+        skills_dir = Path("src/cohezion/skills") if skills_dir is None else Path(skills_dir)
 
         domain_keywords = {
-            "Physics & Manifolds": ["PHYSICS", "MANIFOLD", "NOETHER", "RELATIVITY", "PHONON", "HIHO"],
-            "Hardware & Kernels": ["AMD", "BLACKWELL", "KERNEL", "TRANSFORMER", "VLIW", "MLA", "MXFP4"],
-            "Autonomous & Healing": ["HEALING", "AUTONOMIC", "SELF", "EVOLUTION", "RESILIENCE", "OVERNIGHT"],
+            "Physics & Manifolds": [
+                "PHYSICS",
+                "MANIFOLD",
+                "NOETHER",
+                "RELATIVITY",
+                "PHONON",
+                "HIHO",
+            ],
+            "Hardware & Kernels": [
+                "AMD",
+                "BLACKWELL",
+                "KERNEL",
+                "TRANSFORMER",
+                "VLIW",
+                "MLA",
+                "MXFP4",
+            ],
+            "Autonomous & Healing": [
+                "HEALING",
+                "AUTONOMIC",
+                "SELF",
+                "EVOLUTION",
+                "RESILIENCE",
+                "OVERNIGHT",
+            ],
             "Data & SurrealDB": ["SURREAL", "DATA", "DATABASE", "STORAGE", "RETROSPECTIVE"],
             "Agentic & Swarm": ["SWARM", "AGENT", "TEAM", "AGENTJET", "ORCHESTRATION"],
             "FLUME Intelligence": ["FLUME", "LATENT", "HOLOGRAPHIC", "JEPA", "REASONING", "SOUL"],
             "Compound Systems": ["COMPOUND", "AUTOHARNESS", "TDD", "FAIL_FAST", "CODEBASE"],
         }
 
-        names: List[str] = []
-        files: List[str] = []
-        domains: List[str] = []
+        names: list[str] = []
+        files: list[str] = []
+        domains: list[str] = []
 
         if skills_dir.exists():
             import os
+
             skill_files = []
             with os.scandir(skills_dir) as entries:
                 for entry in entries:
@@ -248,13 +262,12 @@ class PoincareManifoldVisualizer:
                 files.append(filename)
                 domains.append(matched_domain)
 
-
         # Fallback if fewer skills loaded
         if len(names) < max_skills:
             domain_list = list(domain_keywords.keys())
             start_idx = len(names)
             for i in range(start_idx, max_skills):
-                name = f"PRIME_SKILL_{i+1:02d}"
+                name = f"PRIME_SKILL_{i + 1:02d}"
                 domain = domain_list[i % len(domain_list)]
                 names.append(name)
                 files.append(f"{name}_PRIME.md")
@@ -286,7 +299,7 @@ class PoincareManifoldVisualizer:
 
         return records
 
-    def load_surreal_retrospectives(self, count: int = 15) -> List[Dict[str, Any]]:
+    def load_surreal_retrospectives(self, count: int = 15) -> list[dict[str, Any]]:
         """Load SurrealDB retrospectives mapped to Poincaré hyperbolic coordinates.
 
         Parameters
@@ -335,8 +348,8 @@ class PoincareManifoldVisualizer:
 
     def generate_poincare_figure(
         self,
-        skills_data: List[Dict[str, Any]] | None = None,
-        retros_data: List[Dict[str, Any]] | None = None,
+        skills_data: list[dict[str, Any]] | None = None,
+        retros_data: list[dict[str, Any]] | None = None,
         title: str = "Cohezion Poincaré 2048D Hyperbolic Manifold Visualizer",
     ) -> go.Figure:
         """Generate interactive Plotly 3D Poincaré Ball visualization.
@@ -373,7 +386,7 @@ class PoincareManifoldVisualizer:
                 y=sin_t,
                 z=zeros_t,
                 mode="lines",
-                line=dict(color="rgba(0, 240, 255, 0.4)", width=2),
+                line={"color": "rgba(0, 240, 255, 0.4)", "width": 2},
                 name="Unit Horizon Ring (XY)",
                 hoverinfo="skip",
             )
@@ -384,7 +397,7 @@ class PoincareManifoldVisualizer:
                 y=zeros_t,
                 z=sin_t,
                 mode="lines",
-                line=dict(color="rgba(0, 240, 255, 0.25)", width=1.5),
+                line={"color": "rgba(0, 240, 255, 0.25)", "width": 1.5},
                 name="Meridian Ring (XZ)",
                 hoverinfo="skip",
             )
@@ -395,12 +408,11 @@ class PoincareManifoldVisualizer:
                 y=cos_t,
                 z=sin_t,
                 mode="lines",
-                line=dict(color="rgba(0, 240, 255, 0.25)", width=1.5),
+                line={"color": "rgba(0, 240, 255, 0.25)", "width": 1.5},
                 name="Meridian Ring (YZ)",
                 hoverinfo="skip",
             )
         )
-
 
         # 2. Add HIHO Manifold Origin / Core (0,0,0)
         fig.add_trace(
@@ -409,7 +421,7 @@ class PoincareManifoldVisualizer:
                 y=[0.0],
                 z=[0.0],
                 mode="markers+text",
-                marker=dict(size=8, color="cyan", symbol="diamond"),
+                marker={"size": 8, "color": "cyan", "symbol": "diamond"},
                 text=["Origin (HIHO 0.5 Core)"],
                 textposition="top center",
                 name="HIHO Manifold Origin",
@@ -448,13 +460,12 @@ class PoincareManifoldVisualizer:
                 y=s_ys,
                 z=s_zs,
                 mode="markers",
-                marker=dict(size=6, color=s_colors, opacity=0.85, symbol="circle"),
+                marker={"size": 6, "color": s_colors, "opacity": 0.85, "symbol": "circle"},
                 text=s_hover,
                 hoverinfo="text",
                 name=f"PRIME Skills ({len(skills_data)})",
             )
         )
-
 
         # 4. Add Retrospectives
         if retros_data:
@@ -474,7 +485,7 @@ class PoincareManifoldVisualizer:
                     y=r_ys,
                     z=r_zs,
                     mode="markers",
-                    marker=dict(size=8, color="#ff00ff", symbol="square", opacity=0.9),
+                    marker={"size": 8, "color": "#ff00ff", "symbol": "square", "opacity": 0.9},
                     text=r_hover,
                     hoverinfo="text",
                     name=f"SurrealDB Retrospectives ({len(retros_data)})",
@@ -483,56 +494,56 @@ class PoincareManifoldVisualizer:
 
         # 5. Visual Styling Layout
         fig.update_layout(
-            title=dict(
-                text=title,
-                font=dict(size=18, color="#00f0ff"),
-                x=0.05,
-                y=0.95,
-            ),
+            title={
+                "text": title,
+                "font": {"size": 18, "color": "#00f0ff"},
+                "x": 0.05,
+                "y": 0.95,
+            },
             template="plotly_dark",
             paper_bgcolor="#0a0c10",
             plot_bgcolor="#0a0c10",
-            margin=dict(l=0, r=0, b=0, t=50),
-            scene=dict(
-                xaxis=dict(
-                    title="Hyperbolic X",
-                    range=[-1.05, 1.05],
-                    gridcolor="#1e2538",
-                    zerolinecolor="#00f0ff",
-                ),
-                yaxis=dict(
-                    title="Hyperbolic Y",
-                    range=[-1.05, 1.05],
-                    gridcolor="#1e2538",
-                    zerolinecolor="#00f0ff",
-                ),
-                zaxis=dict(
-                    title="Hyperbolic Z",
-                    range=[-1.05, 1.05],
-                    gridcolor="#1e2538",
-                    zerolinecolor="#00f0ff",
-                ),
-                aspectmode="cube",
-                camera=dict(
-                    eye=dict(x=1.35, y=1.35, z=1.15),
-                    center=dict(x=0, y=0, z=0),
-                ),
-            ),
-            legend=dict(
-                x=0.02,
-                y=0.88,
-                bgcolor="rgba(10, 12, 16, 0.7)",
-                bordercolor="#1e2538",
-                borderwidth=1,
-            ),
+            margin={"l": 0, "r": 0, "b": 0, "t": 50},
+            scene={
+                "xaxis": {
+                    "title": "Hyperbolic X",
+                    "range": [-1.05, 1.05],
+                    "gridcolor": "#1e2538",
+                    "zerolinecolor": "#00f0ff",
+                },
+                "yaxis": {
+                    "title": "Hyperbolic Y",
+                    "range": [-1.05, 1.05],
+                    "gridcolor": "#1e2538",
+                    "zerolinecolor": "#00f0ff",
+                },
+                "zaxis": {
+                    "title": "Hyperbolic Z",
+                    "range": [-1.05, 1.05],
+                    "gridcolor": "#1e2538",
+                    "zerolinecolor": "#00f0ff",
+                },
+                "aspectmode": "cube",
+                "camera": {
+                    "eye": {"x": 1.35, "y": 1.35, "z": 1.15},
+                    "center": {"x": 0, "y": 0, "z": 0},
+                },
+            },
+            legend={
+                "x": 0.02,
+                "y": 0.88,
+                "bgcolor": "rgba(10, 12, 16, 0.7)",
+                "bordercolor": "#1e2538",
+                "borderwidth": 1,
+            },
         )
 
         return fig
 
 
 def generate_poincare_figure(
-    skills_data: List[Dict[str, Any]] | None = None,
-    retros_data: List[Dict[str, Any]] | None = None,
+    skills_data: list[dict[str, Any]] | None = None,
+    retros_data: list[dict[str, Any]] | None = None,
     title: str = "Cohezion Poincaré 2048D Hyperbolic Skill & Retrospective Manifold",
 ) -> go.Figure:
     """Helper function to generate a Poincaré 3D Figure.
@@ -557,10 +568,11 @@ def generate_poincare_figure(
 
 def figure_to_html(fig: go.Figure) -> str:
     """Convert Plotly Figure to clean HTML string for Marimo embedding."""
-    return fig.to_html(include_plotlyjs="cdn", full_html=False)
+    html: str = fig.to_html(include_plotlyjs="cdn", full_html=False)
+    return html
 
 
 def figure_to_json(fig: go.Figure) -> str:
     """Convert Plotly Figure to JSON string."""
-    return fig.to_json()
-
+    json_str: str = fig.to_json()
+    return json_str

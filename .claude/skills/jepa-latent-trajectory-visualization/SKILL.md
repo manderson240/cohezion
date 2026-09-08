@@ -39,7 +39,7 @@ class StatePrimitiveHead(nn.Module):
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         raw = self.decode(z).view(-1, self.N_FABRICS, self.PARAMS_PER)
-        xyz = torch.tanh(raw[..., :3])       # bounded [-1, 1]
+        xyz = torch.tanh(raw[..., :3])  # bounded [-1, 1]
         scale = nn.functional.softplus(raw[..., 3:4])  # positive
         return torch.cat([xyz, scale], dim=-1)
 ```
@@ -61,9 +61,15 @@ def trajectory_for_viz(self, initial_state, actions, n_predict_ahead=5) -> dict:
     predicted_3d = predict_future(past[-1], n_predict_ahead)
     # 5. Extract fabric primitives from terminal predicted state
     fabric_primitives = self.primitive_head.to_list(...)
-    return {"points_3d": points_3d, "curvatures": curvatures,
-            "predicted_3d": predicted_3d, "fabric_primitives": fabric_primitives,
-            "causal_dims": causal_dims, "n_points": len(points_3d), "n_predicted": n_predict_ahead}
+    return {
+        "points_3d": points_3d,
+        "curvatures": curvatures,
+        "predicted_3d": predicted_3d,
+        "fabric_primitives": fabric_primitives,
+        "causal_dims": causal_dims,
+        "n_points": len(points_3d),
+        "n_predicted": n_predict_ahead,
+    }
 ```
 
 ## FastAPI endpoint

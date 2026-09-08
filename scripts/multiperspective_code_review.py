@@ -51,7 +51,15 @@ PERSPECTIVES = {
 }
 
 
-def query_ollama(model: str, prompt: str, timeout: float = 45.0) -> str:
+# Per-file diff budget sent to each cloud perspective. 2000 chars reviewed only the first
+# ~40 lines of any real change; frontier context windows make a full-file budget cheap.
+CLOUD_DIFF_CHARS_PER_FILE = 40_000
+# Frontier models on a multi-file diff routinely exceed the old 45 s; a timeout was
+# reported as a completed lane ("ERROR (...)" text counted as findings).
+CLOUD_TIMEOUT_S = 300.0
+
+
+def query_ollama(model: str, prompt: str, timeout: float = CLOUD_TIMEOUT_S) -> str:
     """Query an Ollama cloud model."""
     payload = {
         "model": model,
@@ -105,13 +113,16 @@ def _git_diff(commit: str):
             check=False,
         )
         return proc.stdout[:40000]
+
     return diff_fn
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Multiperspective Adversarial Code Review")
     ap.add_argument("--commit", default="HEAD", help="Git commit or ref to review")
-    ap.add_argument("--local-model", default="Bonsai-8B-gguf", help="Local Lemonade model for base review")
+    ap.add_argument(
+        "--local-model", default="Bonsai-8B-gguf", help="Local Lemonade model for base review"
+    )
     ap.add_argument("--skip-cloud", action="store_true", help="Skip cloud perspectives")
     args = ap.parse_args()
 
@@ -140,7 +151,10 @@ def main() -> int:
     if not args.skip_cloud:
         print("--- Running Multiperspective Adversarial Cloud Swarm ---")
         full_diff_summary = "\n".join(
-            [f"File: {f.path}\nDiff:\n{diff_fn(f.path)[:2000]}" for f in review.files]
+            [
+                f"File: {f.path}\nDiff:\n{diff_fn(f.path)[:CLOUD_DIFF_CHARS_PER_FILE]}"
+                for f in review.files
+            ]
         )
 
         for role, pinfo in PERSPECTIVES.items():
@@ -153,12 +167,15 @@ def main() -> int:
                 f"Format: Bulleted findings with path, line reference, and actionable fix."
             )
             resp = query_ollama(pinfo["model"], prompt)
+            failed = resp.startswith("ERROR (") or not resp.strip()
             cloud_findings[role] = {
                 "model": pinfo["model"],
                 "focus": pinfo["focus"],
                 "report": resp,
+                "lane_failed": failed,
             }
-            print(f"    ✓ {role} completed ({len(resp.split())} words)")
+            status = "✗ LANE FAILED" if failed else "✓"
+            print(f"    {status} {role} ({len(resp.split())} words)")
 
     # 4. Synthesize Final Report
     report_id = f"review_{args.commit.replace('/', '_')}_{int(time.time())}"
@@ -181,7 +198,7 @@ def main() -> int:
         for role, cdata in cloud_findings.items():
             report_md.append(f"### Role: {role} ({cdata['model']})")
             report_md.append(f"**Focus**: {cdata['focus']}\n")
-            report_md.append(cdata['report'])
+            report_md.append(cdata["report"])
             report_md.append("")
 
     final_report_str = "\n".join(report_md)

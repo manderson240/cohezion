@@ -63,6 +63,7 @@ _FINGERPRINT_START = 29
 
 # ── Geometry helpers ─────────────────────────────────────────────────────────
 
+
 def _cosine(a: np.ndarray, b: np.ndarray) -> float:
     na = np.linalg.norm(a)
     nb = np.linalg.norm(b)
@@ -81,15 +82,18 @@ def _fingerprint_l2(a: np.ndarray, b: np.ndarray) -> float:
 
 # ── Hypothesis generation via local Lemonade ────────────────────────────────
 
+
 def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
     """POST to the OmniRouter NPU tier for a quick hypothesis. Returns None if offline."""
-    payload = json.dumps({
-        "model": _NPU_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 200,
-        "temperature": 0.2,
-    }).encode()
-    req = urllib.request.Request(
+    payload = json.dumps(
+        {
+            "model": _NPU_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 200,
+            "temperature": 0.2,
+        }
+    ).encode()
+    req = urllib.request.Request(  # noqa: S310
         _LEMONADE_URL,
         data=payload,
         headers={"Content-Type": "application/json"},
@@ -109,9 +113,18 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
 # ── Random sampling ─────────────────────────────────────────────────────────
 
 _SKILL_NAMES = [
-    "routing_skill", "analysis_skill", "search_skill", "code_gen_skill",
-    "summarize_skill", "classify_skill", "transform_skill", "persist_skill",
-    "reasoning_skill", "validation_skill", "synthesis_skill", "extraction_skill",
+    "routing_skill",
+    "analysis_skill",
+    "search_skill",
+    "code_gen_skill",
+    "summarize_skill",
+    "classify_skill",
+    "transform_skill",
+    "persist_skill",
+    "reasoning_skill",
+    "validation_skill",
+    "synthesis_skill",
+    "extraction_skill",
 ]
 
 
@@ -126,15 +139,18 @@ def _sample_states(n: int, seed_offset: int = 0) -> list[dict]:
     for i in range(n):
         s = seed_offset + i
         name_idx = hashlib.sha256(f"name{s}".encode()).digest()[0] % len(_SKILL_NAMES)
-        states.append({
-            "skill_name": _SKILL_NAMES[name_idx],
-            "mgpo_weight": _rng_float(s * 7, 0.0, 1.0),
-            "success_rate": _rng_float(s * 13 + 1, 0.0, 1.0),
-        })
+        states.append(
+            {
+                "skill_name": _SKILL_NAMES[name_idx],
+                "mgpo_weight": _rng_float(s * 7, 0.0, 1.0),
+                "success_rate": _rng_float(s * 13 + 1, 0.0, 1.0),
+            }
+        )
     return states
 
 
 # ── Geometry measurements ────────────────────────────────────────────────────
+
 
 def _measure_cluster_separation(enc: SkillStateEncoder, n: int = 80) -> dict:
     """Measure whether boundary skills (sr≈0.5, high mgpo) cluster tighter than
@@ -144,14 +160,20 @@ def _measure_cluster_separation(enc: SkillStateEncoder, n: int = 80) -> dict:
     boundary_vecs = []
     nonboundary_vecs = []
     for s in _sample_states(n):
-        v = enc.encode_skill(s["skill_name"], mgpo_weight=s["mgpo_weight"], success_rate=s["success_rate"])
+        v = enc.encode_skill(
+            s["skill_name"], mgpo_weight=s["mgpo_weight"], success_rate=s["success_rate"]
+        )
         if s["mgpo_weight"] > 0.7 and 0.4 <= s["success_rate"] <= 0.6:
             boundary_vecs.append(v)
         elif s["mgpo_weight"] < 0.3:
             nonboundary_vecs.append(v)
 
     if len(boundary_vecs) < 2 or len(nonboundary_vecs) < 2:
-        return {"status": "insufficient_samples", "boundary": len(boundary_vecs), "non_boundary": len(nonboundary_vecs)}
+        return {
+            "status": "insufficient_samples",
+            "boundary": len(boundary_vecs),
+            "non_boundary": len(nonboundary_vecs),
+        }
 
     # Mean intra-cluster MGPO cosine
     bb_sims = [
@@ -251,6 +273,7 @@ def _measure_rubric_isolation(enc: SkillStateEncoder, n: int = 20) -> dict:
 
 # ── Hypothesis generation ────────────────────────────────────────────────────
 
+
 def _generate_hypothesis(geometry: dict) -> str:
     """Ask local Lemonade (NPU) for one new geometry invariant to test.
     Falls back to a default hypothesis if Lemonade is offline."""
@@ -285,6 +308,7 @@ def _generate_hypothesis(geometry: dict) -> str:
 
 # ── Experiment validation ────────────────────────────────────────────────────
 
+
 def _validate_hypothesis(_hypothesis: str, geometry: dict) -> tuple[bool, str]:
     """Quick empirical check against already-measured geometry data."""
     sep = geometry.get("cluster_separation", {})
@@ -308,6 +332,7 @@ def _validate_hypothesis(_hypothesis: str, geometry: dict) -> tuple[bool, str]:
 
 # ── State persistence ────────────────────────────────────────────────────────
 
+
 def _last_experiment_id() -> str:
     """Read the last exp_ id from autoresearch.jsonl to generate the next one."""
     if not _AUTORESEARCH_JSONL.exists():
@@ -326,7 +351,9 @@ def _last_experiment_id() -> str:
     return "exp_SKILL_GEO_0001"
 
 
-def _append_result(exp_id: str, geometry: dict, hypothesis: str, validated: bool, evidence: str) -> None:
+def _append_result(
+    exp_id: str, geometry: dict, hypothesis: str, validated: bool, evidence: str
+) -> None:
     sep = geometry.get("cluster_separation", {})
     record = {
         "ts": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -337,8 +364,12 @@ def _append_result(exp_id: str, geometry: dict, hypothesis: str, validated: bool
             "cluster_separated": sep.get("cluster_separated"),
             "dim12_monotonic": geometry.get("monotonicity", {}).get("dim12_monotonic"),
             "dim13_monotonic": geometry.get("monotonicity", {}).get("dim13_monotonic"),
-            "fingerprint_isolated": geometry.get("fingerprint_identity", {}).get("fingerprint_isolated"),
-            "rubric_isolation_passes": geometry.get("rubric_isolation", {}).get("rubric_isolation_passes"),
+            "fingerprint_isolated": geometry.get("fingerprint_identity", {}).get(
+                "fingerprint_isolated"
+            ),
+            "rubric_isolation_passes": geometry.get("rubric_isolation", {}).get(
+                "rubric_isolation_passes"
+            ),
             "boundary_count": sep.get("boundary_count"),
             "non_boundary_count": sep.get("non_boundary_count"),
         },
@@ -359,6 +390,7 @@ def _append_result(exp_id: str, geometry: dict, hypothesis: str, validated: bool
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
+
 def main() -> int:
     t0 = time.monotonic()
 
@@ -368,8 +400,10 @@ def main() -> int:
     # 1. Measure geometry
     print("[MEASURE] Cluster separation (n=80)...")
     cluster = _measure_cluster_separation(enc, n=80)
-    print(f"  separation_delta={cluster.get('separation_delta')}, "
-          f"boundary={cluster.get('boundary_count')}, nb={cluster.get('non_boundary_count')}")
+    print(
+        f"  separation_delta={cluster.get('separation_delta')}, "
+        f"boundary={cluster.get('boundary_count')}, nb={cluster.get('non_boundary_count')}"
+    )
 
     print("[MEASURE] Dim monotonicity (n=40)...")
     mono = _measure_dim_monotonicity(enc, n=40)
@@ -381,7 +415,9 @@ def main() -> int:
 
     print("[MEASURE] Rubric isolation (n=20)...")
     rub = _measure_rubric_isolation(enc, n=20)
-    print(f"  isolation_passes={rub['rubric_isolation_passes']}, violations={len(rub['violations'])}")
+    print(
+        f"  isolation_passes={rub['rubric_isolation_passes']}, violations={len(rub['violations'])}"
+    )
 
     geometry = {
         "cluster_separation": cluster,

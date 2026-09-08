@@ -41,9 +41,7 @@ All subprocess calls now use absolute paths instead of relative lookups:
 subprocess.run(["nvidia-smi", ...])
 
 # AFTER (secure)
-runner = SecureSubprocessRunner(safe_paths={
-    "nvidia-smi": "/usr/bin/nvidia-smi"
-})
+runner = SecureSubprocessRunner(safe_paths={"nvidia-smi": "/usr/bin/nvidia-smi"})
 runner.run(["nvidia-smi", ...])
 ```
 
@@ -69,7 +67,7 @@ Each binary is validated before execution:
 ```python
 result = runner.validate_binary(
     path,
-    expected_hash="abc123..."  # Optional
+    expected_hash="abc123...",  # Optional
 )
 if not result.is_valid:
     raise BinaryValidationError(result.errors)

@@ -447,7 +447,7 @@ def run_arpao(
 
         # Local evaluation
         max_tasks = 3 if quick_eval else None  # Quick smoke test or full eval
-        solve_rate, correct, total, logs = _eval_locally(code, max_tasks=max_tasks)
+        solve_rate, correct, total, _logs = _eval_locally(code, max_tasks=max_tasks)
         wall_time = 0  # TODO: track real wall time
 
         _LOGGER.info(f"Local eval: solve_rate={solve_rate:.4f}, correct={correct}/{total}")

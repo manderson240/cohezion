@@ -54,6 +54,7 @@ if inspect.isawaitable(result):
 import asyncio, inspect
 from cohezion.cache.semantic_cache import SemanticCache
 
+
 async def demo():
     cache = SemanticCache()
 
@@ -68,6 +69,7 @@ async def demo():
         result = await result
 
     return result  # "response" or None
+
 
 asyncio.run(demo())
 ```
@@ -100,6 +102,7 @@ version — verify with `cache.get_stats()`.
 ```python
 import asyncio
 from cohezion.cache.semantic_cache import SemanticCache
+
 
 def test_cache_discrimination():
     cache = SemanticCache()

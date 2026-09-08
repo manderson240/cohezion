@@ -170,9 +170,7 @@ class PokemonTCGStrategicAgentV4:
         if not attack_name:
             return False
         clean = attack_name.strip()
-        if clean.startswith("[Ability]") or clean.startswith("[Tera]") or clean == "Tera":
-            return False
-        return True
+        return not (clean.startswith("[Ability]") or clean.startswith("[Tera]") or clean == "Tera")
 
     def get_zobrist_info_set_hash(self, observation: dict[str, Any]) -> int:
         active_pkmn = observation.get("active_pokemon", {})
@@ -254,10 +252,10 @@ class PokemonTCGStrategicAgentV4:
 
         # Board dominance
         board_advantage = ((active_hp - opp_hp) / 160.0) + ((energy - 2) * 0.15)
-        return max(-1.0, min(1.0, board_advantage + tempo_bias + mill_threat))
+        return float(max(-1.0, min(1.0, board_advantage + tempo_bias + mill_threat)))
 
     def choose_action(self, observation: dict[str, Any], num_rollouts: int = 250) -> str:
-        raw_actions = observation.get("legal_actions", self.default_actions)
+        raw_actions: list[str] = observation.get("legal_actions", self.default_actions)
         actions = [a for a in raw_actions if self.is_real_attack(a)] or ["pass"]
 
         if len(actions) == 1:
@@ -351,9 +349,7 @@ class PokemonTCGStrategicAgentV4:
 _global_agent = PokemonTCGStrategicAgentV4()
 
 
-def agent_function(
-    observation: dict[str, Any], configuration: dict[str, Any] | None = None
-) -> str:
+def agent_function(observation: dict[str, Any], configuration: dict[str, Any] | None = None) -> str:
     return _global_agent.choose_action(observation)
 
 

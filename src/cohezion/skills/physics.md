@@ -214,9 +214,12 @@ def translate_fringe_claim(claim: str, observations: list[str]) -> dict:
         "mechanisms_detected": list(active),
         "smith_mapping": {m: smith_mapping[m] for m in active if m in smith_mapping},
         "recommendation": (
-            "Investigate mechanism rigorously" if tier == 1
-            else "Monitor experimental confirmation" if tier == 2
-            else "Withhold judgment pending mechanism" if tier == 3
+            "Investigate mechanism rigorously"
+            if tier == 1
+            else "Monitor experimental confirmation"
+            if tier == 2
+            else "Withhold judgment pending mechanism"
+            if tier == 3
             else "Discard: no mechanism found"
         ),
     }

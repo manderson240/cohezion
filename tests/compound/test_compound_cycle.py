@@ -30,11 +30,17 @@ def mock_mcp_client():
 
 @pytest.fixture
 def mock_inflection_detector():
-    """Create a mock inflection detector with low anomaly."""
+    """Create a mock inflection detector reporting a HEALTHY run.
+
+    POLARITY: detect_anomaly() returns a HEALTH score (starts 1.0, penalized down)
+    despite the "anomaly_score" name — the executor uses it DIRECTLY since the
+    2026-07-10 polarity fix. This fixture previously set 0.1 (old inverted
+    semantics, "low anomaly"), which the fixed executor read as terrible health
+    and dragged cohesion to 0.44 — the stale-fixture half of that polarity change."""
     detector = MagicMock()
     anomaly = MagicMock()
     anomaly.severity = Severity.INFO
-    anomaly.score = 0.1
+    anomaly.score = 0.9
     anomaly.issues = []
     anomaly.recommendations = []
     anomaly.should_reexecute = False

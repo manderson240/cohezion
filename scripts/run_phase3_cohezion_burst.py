@@ -26,7 +26,6 @@ COHEZION_TARGETS = [
     "src/cohezion/core/persistence/surreal_client.py",
     "src/cohezion/skills/cohezion_mcp.py",
     "src/cohezion/api/__init__.py",
-    "src/cohezion/reliability/quantum_performance_monitor.py",
     "src/cohezion/compound/executor.py",
     "src/cohezion/sandbox/rollback.py",
     "src/cohezion/agents/base.py",

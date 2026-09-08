@@ -16,7 +16,7 @@ from __future__ import annotations
 import ast
 import time
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Protocol
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler, ZKProof
@@ -25,8 +25,7 @@ from cohezion.agi.zkfv_compiler import ZKFVCompiler, ZKProof
 class CodeSpecificationOracle(Protocol):
     """Protocol boundary for specification-driven code synthesis."""
 
-    def validate_intent(self, spec_name: str) -> bool:
-        ...
+    def validate_intent(self, spec_name: str) -> bool: ...
 
 
 @dataclass(frozen=True, slots=True)

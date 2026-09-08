@@ -34,6 +34,7 @@ Always route LLM calls through the global `ResourceMonitor`:
 ```python
 from cohezion.reliability.monitor import get_resource_monitor
 
+
 async def safe_llm_call():
     monitor = get_resource_monitor()
     async with monitor.wait_for_capacity():
@@ -45,6 +46,7 @@ async def safe_llm_call():
 Implement progressive throttling based on system metrics:
 ```python
 import psutil
+
 
 def get_backpressure_wait():
     cpu = psutil.cpu_percent()

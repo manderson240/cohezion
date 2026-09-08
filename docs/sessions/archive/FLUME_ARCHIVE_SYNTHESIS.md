@@ -46,13 +46,13 @@ Key discovery: The user's earlier description "Fluid Latent Understanding throug
 From `flume_physics_py.py`:
 ```python
 # Physics parameters
-delta_scale: float = 0.01      # Step size multiplier
-hiho_damping: float = 0.05    # Attractor strength toward 0.5
+delta_scale: float = 0.01  # Step size multiplier
+hiho_damping: float = 0.05  # Attractor strength toward 0.5
 
 # Forward pass
-h = z @ w1.T + b1              # Transform
-h_norm = LayerNorm(h)          # Stabilize
-delta = h_act @ w2.T + b2      # Compute change
+h = z @ w1.T + b1  # Transform
+h_norm = LayerNorm(h)  # Stabilize
+delta = h_act @ w2.T + b2  # Compute change
 z_new = z + delta * delta_scale
 
 # HIHO damping: pull toward 0.5 equilibrium
@@ -112,11 +112,12 @@ class ExoticVacuumAgent:
     """
     EVO in FLUME: Agent with exotic coherence properties.
     """
+
     def __init__(self):
         self.latent_state = torch.randn(256)  # Standard: ~N(0,1)
         # EVO modification: allow negative/inverted coherence
         self.exotic_type = "negative_mass" | "false_vacuum" | "entangled"
-    
+
     def hiho_step_exotic(self):
         # Standard: attract to 0.5
         # EVO: repel from 0.5 (false vacuum - unstable equilibrium)

@@ -68,12 +68,12 @@
 @dataclass
 class DatameshQuery:
     """Cross-domain federated query."""
-    
+
     sources: list[str]  # ["wiki", "mirix", "surreal", "flume"]
-    filter: dict        # Unified filter criteria
+    filter: dict  # Unified filter criteria
     embedding: Optional[torch.Tensor]  # For semantic search
-    lineage: bool       # Include data lineage
-    
+    lineage: bool  # Include data lineage
+
     async def execute(self) -> DatameshResult:
         # Parallel fan-out to all sources
         # Result aggregation
@@ -131,14 +131,14 @@ class DatameshIngestion:
 @dataclass
 class DataLineage:
     """Complete provenance for any data point."""
-    
-    origin: str           # Source system
+
+    origin: str  # Source system
     transformations: list[Transform]
     upstream: list[UUID]  # Parent records
     downstream: list[UUID]  # Child records
-    checksum: str         # Content hash
+    checksum: str  # Content hash
     timestamp: datetime
-    
+
     def trace(self, depth: int = 5) -> LineageGraph:
         """Walk lineage graph for impact analysis."""
 ```

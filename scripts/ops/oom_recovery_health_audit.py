@@ -20,6 +20,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
+
 async def audit():
     print("\n" + "=" * 115)
     print("🛡️ OOM RECOVERY HEALTH AUDIT & DATAMESH RESILIENCE CHECK")
@@ -37,7 +38,7 @@ async def audit():
     services = [
         ("SurrealDB DataMesh", "http://localhost:8001/version"),
         ("Lemonade Local Silicon", "http://localhost:13305/v1/models"),
-        ("Ollama Gateway", "http://localhost:11434/api/tags")
+        ("Ollama Gateway", "http://localhost:11434/api/tags"),
     ]
     async with httpx.AsyncClient(timeout=5.0) as client:
         for name, url in services:
@@ -62,25 +63,28 @@ async def audit():
         payload={
             "uma_available_gib": avail_gib,
             "swap_used_gib": swap_used_gib,
-            "status": "RECOVERED_STABLE"
-        }
+            "status": "RECOVERED_STABLE",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "oom_recovery_health_verified",
-        "title": "System OOM Recovery Verified — 58 GiB Headroom Pristine",
-        "status": "done",
-        "priority": "high",
-        "source": "oom_recovery_supervisor",
-        "category": "infrastructure_resilience",
-        "details": f"System memory fully stabilized at {avail_gib} GiB available / {swap_used_gib} GiB swap. Preflight passed.",
-    })
+    persist_item(
+        {
+            "id": "oom_recovery_health_verified",
+            "title": "System OOM Recovery Verified — 58 GiB Headroom Pristine",
+            "status": "done",
+            "priority": "high",
+            "source": "oom_recovery_supervisor",
+            "category": "infrastructure_resilience",
+            "details": f"System memory fully stabilized at {avail_gib} GiB available / {swap_used_gib} GiB swap. Preflight passed.",
+        }
+    )
     print("   ✓ Dual-persisted recovery card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("✅ SYSTEM STABILIZATION & RECOVERY VERIFIED CLEANLY!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(audit())

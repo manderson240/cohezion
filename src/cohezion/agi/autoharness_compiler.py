@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import ast
 import time
-from typing import Any, Callable
-
-from cohezion.agi.autoharness_policy import ActionPolicyResult
+from collections.abc import Callable
+from typing import Any
 
 
 class AutoHarnessCompiler:
@@ -24,7 +23,9 @@ class AutoHarnessCompiler:
 
         def compiled_evaluator(state: dict[str, Any]) -> bool:
             # Provide safe builtins only
-            safe_globals = {"__builtins__": {"abs": abs, "min": min, "max": max, "len": len, "sum": sum}}
+            safe_globals = {
+                "__builtins__": {"abs": abs, "min": min, "max": max, "len": len, "sum": sum}
+            }
             try:
                 return bool(eval(compiled_code, safe_globals, state))
             except Exception:
@@ -33,7 +34,12 @@ class AutoHarnessCompiler:
         return compiled_evaluator
 
     @classmethod
-    def benchmark_rule_latency(cls, evaluator_fn: Callable[[dict[str, Any]], bool], sample_state: dict[str, Any], runs: int = 1000) -> float:
+    def benchmark_rule_latency(
+        cls,
+        evaluator_fn: Callable[[dict[str, Any]], bool],
+        sample_state: dict[str, Any],
+        runs: int = 1000,
+    ) -> float:
         """Measure average latency per policy evaluation run in microseconds."""
         t0 = time.perf_counter()
         for _ in range(runs):

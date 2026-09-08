@@ -56,7 +56,7 @@ async def retrieve_trained_adapter(notebook_name: str):
         # Retrieve the notebook output/files
         # Note: This retrieves output files, not the model itself
         # For actual model retrieval, we'd need to save it during training and then get it
-        result = await api.kernels_output(notebook_name, path=str(retrieve_dir))
+        await api.kernels_output(notebook_name, path=str(retrieve_dir))
 
         print("✅ Notebook output retrieved successfully!")
         print(f"📁 Files saved to: {retrieve_dir.absolute()}")

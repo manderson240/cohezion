@@ -44,7 +44,7 @@ def get_complex_files():
                 filepath = line.split(":")[0]
                 if (PROJECT_ROOT / filepath).exists():
                     files.add(PROJECT_ROOT / filepath)
-        return sorted(list(files))
+        return sorted(files)
     except Exception as e:
         logger.error(f"Error checking complexity: {e}")
         return []
@@ -83,12 +83,12 @@ async def manifest_elegance():
         prompt = f"""
         You are an ELEGANT_SIMPLICITY_PRIME specialist.
         REFACOR FOR MINIMALISM: {target_file.name}
-        
+
         Current Code:
         ```python
         {code_content}
         ```
-        
+
         Instruction:
         - Rewrite the logic to be "Elegantly Simple".
         - Focus on cyclomatic complexity reduction.

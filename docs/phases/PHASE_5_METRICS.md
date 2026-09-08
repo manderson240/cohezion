@@ -107,7 +107,7 @@ Non-parametric test for comparing two groups without assuming normality.
 ```python
 {
     "u_stat": float,  # Mann-Whitney U statistic
-    "p_value": float   # Two-sided p-value
+    "p_value": float,  # Two-sided p-value
 }
 ```
 

@@ -187,20 +187,24 @@ def _persist_tier_experience(tier: str, prompt: str, output: str, latency_ms: fl
     try:
         from datetime import datetime
 
-        from cohezion.core.persistence.surreal_client import SurrealClient
+        from cohezion.core.persistence.surreal_client import SurrealClient, run_sync
         from cohezion.inference.security_spec import sanitize_for_surreal
 
         client = SurrealClient()
-        client.create(
-            "tier_experience",
-            {
-                "tier": tier,
-                "prompt_snippet": sanitize_for_surreal(prompt, max_len=200),
-                "output_snippet": sanitize_for_surreal(output, max_len=200),
-                "latency_ms": latency_ms,
-                "valid_from": datetime.now(UTC).isoformat(),
-                "valid_to": None,
-            },
+        # ``create`` is ``async def``: calling it bare builds a coroutine and drops it,
+        # so the row was never written and nothing raised (found 2026-07-30, fixed here).
+        run_sync(
+            client.create(
+                "tier_experience",
+                {
+                    "tier": tier,
+                    "prompt_snippet": sanitize_for_surreal(prompt, max_len=200),
+                    "output_snippet": sanitize_for_surreal(output, max_len=200),
+                    "latency_ms": latency_ms,
+                    "valid_from": datetime.now(UTC).isoformat(),
+                    "valid_to": None,
+                },
+            )
         )
     except Exception as exc:
         logger.debug("tier_experience persist failed (non-blocking): %s", exc)

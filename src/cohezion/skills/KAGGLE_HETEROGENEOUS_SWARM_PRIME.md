@@ -28,6 +28,7 @@ Deploying heterogeneous multi-model specialist swarms tailored to Kaggle dual-de
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+
 def load_heterogeneous_fleet():
     # GPU 0: Reasoning Agent
     r1_path = "/kaggle/input/deepseek-r1/transformers/deepseek-r1-distill-qwen-7b/2"
@@ -35,7 +36,7 @@ def load_heterogeneous_fleet():
     model_r1 = AutoModelForCausalLM.from_pretrained(
         r1_path, torch_dtype=torch.float16, device_map={"": "cuda:0"}
     )
-    
+
     # GPU 1: Code Synthesizer Agent
     coder_path = "/kaggle/input/qwen2.5-coder/transformers/qwen2.5-coder-7b-instruct/1"
     tok_coder = AutoTokenizer.from_pretrained(coder_path)
@@ -49,15 +50,16 @@ def load_heterogeneous_fleet():
 ```python
 import concurrent.futures
 
+
 def run_swarm_synthesis(task, r1_agent, coder_agent):
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         f_r1 = executor.submit(agent_r1_generate, task, *r1_agent)
         f_coder = executor.submit(agent_coder_generate, task, *coder_agent)
-        
+
         for f in [f_r1, f_coder]:
             fn = f.result()
-            if fn is not None and check_transform_fit(task['train'], fn):
+            if fn is not None and check_transform_fit(task["train"], fn):
                 return fn
     return None
 ```

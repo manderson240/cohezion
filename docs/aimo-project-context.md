@@ -179,10 +179,12 @@ return int(numbers[-1]) if numbers else 0
 ```python
 from kaggle_evaluation.aimo_3_inference_server import AIMO3InferenceServer
 
+
 def predict(problem_id: str, problem_text: str) -> int:
     # Must return integer 0-99999
     # Called exactly once per problem
     pass
+
 
 server = AIMO3InferenceServer(predict)
 ```
@@ -293,11 +295,7 @@ payload = {
     "messages": messages,
     "stream": False,
     "keep_alive": keep_alive,
-    "options": {
-        "temperature": 0.2,
-        "num_ctx": 8192,
-        "num_thread": 16
-    },
+    "options": {"temperature": 0.2, "num_ctx": 8192, "num_thread": 16},
 }
 
 try:

@@ -37,10 +37,7 @@ Adjustment ID: adj_validation_sample_size_1775913234
 async with CompoundSessionManager() as mgr:
     summary = mgr.start_session(max_cache_entries=256)
     success, result = await mgr.execute_aligned(
-        request='description',
-        execute_fn=do_work,
-        skill_name='auto',
-        use_executor=True
+        request="description", execute_fn=do_work, skill_name="auto", use_executor=True
     )
     end_summary = mgr.end_session()
 ```

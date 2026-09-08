@@ -55,9 +55,7 @@ def query_model(model_id: str, category: str, temp: float, prompt: str) -> None:
 
 
 def main() -> None:
-    prompt = (
-        "Briefly state your core strength and how you assist AGI agent swarms running on 128GB unified memory hardware."
-    )
+    prompt = "Briefly state your core strength and how you assist AGI agent swarms running on 128GB unified memory hardware."
 
     print("\n" + "=" * 95)
     print("      OLLAMA CLOUD MODEL ROSTER CONSULTATION HARNESS")

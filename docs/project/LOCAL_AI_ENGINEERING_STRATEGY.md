@@ -114,10 +114,10 @@ lemonade load gemma-4-31b-it \
 ```python
 # Enable F16 prompt cache for repeat queries
 cache_config = {
-    "cache-type": "f16",        # vs f32 (2x size)
-    "cache-size-mb": 8192,      # 8GB of 128GB
-    "cache-ro": False,          # Write-enabled for dynamic updates
-    "defrag-thold": 0.1         # Defrag when <10% free
+    "cache-type": "f16",  # vs f32 (2x size)
+    "cache-size-mb": 8192,  # 8GB of 128GB
+    "cache-ro": False,  # Write-enabled for dynamic updates
+    "defrag-thold": 0.1,  # Defrag when <10% free
 }
 ```
 
@@ -257,12 +257,12 @@ ORDER BY score DESC;
 # Swarm Router: Dynamically select model based on task
 class SwarmRouter:
     MODEL_POOL = {
-        "context": "user.bonsai-8b",      # 256K context, 120 TPS
-        "reasoning": "gemma-4-31b-it",     # 91% accuracy
-        "coding": "qwen2.5-coder-32b",     # Code-specialized
-        "vision": "gemma-4-26b-a4b-it",    # Multi-modal
+        "context": "user.bonsai-8b",  # 256K context, 120 TPS
+        "reasoning": "gemma-4-31b-it",  # 91% accuracy
+        "coding": "qwen2.5-coder-32b",  # Code-specialized
+        "vision": "gemma-4-26b-a4b-it",  # Multi-modal
     }
-    
+
     async def route(self, prompt: str, context_length: int) -> str:
         if context_length > 100_000:
             return self.MODEL_POOL["context"]
@@ -272,7 +272,7 @@ class SwarmRouter:
             return self.MODEL_POOL["vision"]
         else:
             return self.MODEL_POOL["reasoning"]
-    
+
     async def hot_swap(self, model_id: str) -> float:
         """Unload old, load new. Return swap time (ms)."""
         start = time.time()
@@ -306,7 +306,7 @@ async def apply_adapter(task_type: str):
     adapters = {
         "research": " adapters/research_gemma31_256mlora.bin",
         "coding": "adapters/coding_gemma31_256mlora.bin",
-        "default": None
+        "default": None,
     }
     lora_path = adapters.get(task_type)
     if lora_path:
@@ -345,23 +345,20 @@ class DataMeshPlugin:
 class NovelSynthesizer:
     async def find_gaps(self, project_goals: list[str], recent_papers: list[dict]):
         """Identify knowledge gaps between current work and SOTA."""
-        
+
         prompt = f"""
         PROJECT GOALS:
         {chr(10).join(f"- {g}" for g in project_goals)}
-        
+
         RECENT ARXIV BREAKTHROUGHS:
         {chr(10).join(f"- {p['title']} ({p['date']})" for p in recent_papers[:10])}
-        
+
         TASK: Identify 3 specific gaps where recent SOTA could accelerate project goals.
         Novelty constraint: Solutions must be non-obvious (not direct implementation).
         """
-        
+
         response = await self.llm.generate(
-            model="gemma-4-31b-it",
-            prompt=prompt,
-            temperature=0.8,
-            max_tokens=2000
+            model="gemma-4-31b-it", prompt=prompt, temperature=0.8, max_tokens=2000
         )
         return self.parse_gaps(response)
 ```
@@ -397,31 +394,30 @@ class NovelSynthesizer:
 ### Simulated Execution
 
 ```python
-    async def simulate_performance(self, architecture: dict):
-        """Simulate without full training."""
-        
-        # Parameter count estimation
-        active_params = architecture["experts"] * architecture["expert_size_m"]
-        total_params = architecture["total_experts"] * architecture["expert_size_m"]
-        
-        # VRAM estimation
-        model_vram = total_params * 0.5 / 8  # 1-bit = 0.5 bytes per param
-        kv_vram = (architecture["context_length"] * architecture["layers"] * 
-                   2 * 2 * 64) / 1e9  # GB
-        
-        # TPS estimation (empirical from Bonsai benchmarks)
-        tps = 85 * (4 / active_params) * 0.7  # Scale with active params
-        
-        return {
-            "active_params_b": active_params,
-            "total_params_b": total_params,
-            "model_vram_gb": model_vram,
-            "kv_vram_gb": kv_vram,
-            "total_vram_gb": model_vram + kv_vram + 2,  # +2GB overhead
-            "estimated_tps": tps,
-            "estimated_ttft_ms": 15 if architecture.get("prompt_cache") else 80,
-            "feasible_on_128gb": (model_vram + kv_vram) < 110
-        }
+async def simulate_performance(self, architecture: dict):
+    """Simulate without full training."""
+
+    # Parameter count estimation
+    active_params = architecture["experts"] * architecture["expert_size_m"]
+    total_params = architecture["total_experts"] * architecture["expert_size_m"]
+
+    # VRAM estimation
+    model_vram = total_params * 0.5 / 8  # 1-bit = 0.5 bytes per param
+    kv_vram = (architecture["context_length"] * architecture["layers"] * 2 * 2 * 64) / 1e9  # GB
+
+    # TPS estimation (empirical from Bonsai benchmarks)
+    tps = 85 * (4 / active_params) * 0.7  # Scale with active params
+
+    return {
+        "active_params_b": active_params,
+        "total_params_b": total_params,
+        "model_vram_gb": model_vram,
+        "kv_vram_gb": kv_vram,
+        "total_vram_gb": model_vram + kv_vram + 2,  # +2GB overhead
+        "estimated_tps": tps,
+        "estimated_ttft_ms": 15 if architecture.get("prompt_cache") else 80,
+        "feasible_on_128gb": (model_vram + kv_vram) < 110,
+    }
 ```
 
 ---
@@ -437,41 +433,39 @@ class AutoResearcher:
         self.vault = obsidian_mcp
         self.kg = surreal_mcp
         self.keywords = ["BitNet", "Gemma-4", "1-bit LLM", "Mixture of Experts", "KV Cache"]
-    
+
     async def daily_discovery(self):
         """Run at 6 AM daily via cron."""
         for keyword in self.keywords:
             papers = await arxiv_search(keyword, max_results=5, sort_by="submittedDate")
-            
+
             for paper in papers:
                 # Check if already in graph
-                exists = await self.kg.query(
-                    f"SELECT * FROM concept WHERE name = '{paper.title}'"
-                )
+                exists = await self.kg.query(f"SELECT * FROM concept WHERE name = '{paper.title}'")
                 if not exists:
                     # Generate summary
                     summary = await self.summarize(paper)
-                    
+
                     # Write to Obsidian
                     note_path = f"Research/ArXiv/{paper.arxiv_id}.md"
                     await self.vault.write_file(note_path, summary)
-                    
+
                     # Add to knowledge graph
                     await self.kg.create_concept(
                         name=paper.title,
                         embedding=await self.embed(summary),
                         source="arxiv",
-                        date=paper.published
+                        date=paper.published,
                     )
-                    
+
                     # Link to existing concepts
                     related = await self.find_related(summary)
                     for rel in related:
                         await self.kg.relate(rel.source, paper.title, "cites")
-    
+
     async def synthesize_hypotheses(self):
         """Generate novel research directions."""
-        
+
         # Query knowledge graph for clusters
         clusters = await self.kg.query("""
             SELECT 
@@ -480,21 +474,18 @@ class AutoResearcher:
             FROM concept 
             GROUP BY cluster_id
         """)
-        
+
         for cluster in clusters:
             papers = await self.kg.query(f"""
                 SELECT name, summary 
                 FROM concept 
                 WHERE vector::distance::cosine(embedding, {cluster.centroid}) < 0.3
             """)
-            
+
             hypothesis = await self.generate_hypothesis(papers)
-            
+
             # Write to Obsidian
-            await self.vault.write_file(
-                f"Research/Hypotheses/{cluster.cluster_id}.md",
-                hypothesis
-            )
+            await self.vault.write_file(f"Research/Hypotheses/{cluster.cluster_id}.md", hypothesis)
 ```
 
 ### Self-Upgrade Trigger
@@ -502,24 +493,24 @@ class AutoResearcher:
 ```python
 async def self_upgrade_check():
     """Monitor for model improvements."""
-    
+
     # Check Lemonade registry for new models
     available = await lemonade.list_models()
     current = await get_current_models()
-    
+
     new_models = [m for m in available if m.id not in current]
-    
+
     for model in new_models:
         # Quick benchmark
         benchmark = await quick_benchmark(model.id)
-        
+
         if benchmark.accuracy > current_best.accuracy * 1.05:  # 5% improvement
             # Propose upgrade
             await obsidian.write_file(
                 f"Upgrades/{model.id}.md",
                 f"New model {model.id} shows {benchmark.accuracy:.1f}% accuracy "
-                f"({benchmark.accuracy/current_best.accuracy:.2f}x improvement)\n\n"
-                f"Benchmark details: {benchmark.json()}"
+                f"({benchmark.accuracy / current_best.accuracy:.2f}x improvement)\n\n"
+                f"Benchmark details: {benchmark.json()}",
             )
 ```
 
@@ -682,44 +673,43 @@ class ReactiveHooks:
 
 ```python
 def calculate_kv_cache_config(
-    model_params: int,      # 30B
-    context_length: int,   # 32768
-    batch_size: int,        # 1
-    precision: str          # "f16" or "bf16"
+    model_params: int,  # 30B
+    context_length: int,  # 32768
+    batch_size: int,  # 1
+    precision: str,  # "f16" or "bf16"
 ) -> dict:
-    
+
     # Gemma 4 has 128 layers
     n_layers = 128
-    
+
     # Per-token KV cache size (bytes)
     # Each layer stores K and V vectors
     # dims = 4096 (hidden), heads = 32 for KV
     bytes_per_token = n_layers * 2 * 4096 * 2  # F16 = 2 bytes
-    
+
     # Total KV cache
     kv_cache_bytes = context_length * batch_size * bytes_per_token
     kv_cache_gb = kv_cache_bytes / (1024**3)
-    
+
     return {
         "kv_cache_gb": kv_cache_gb,
         "max_context": context_length,
         "safe_context": int(context_length * 0.8),  # 20% margin
-        "total_vram_required": kv_cache_gb + (model_params * 0.5 / 8)  # 1-bit
+        "total_vram_required": kv_cache_gb + (model_params * 0.5 / 8),  # 1-bit
     }
+
 
 # Configurations for 128GB system
 CONFIGS = {
     "bonsai_256k": calculate_kv_cache_config(8, 262144, 1, "f16"),
     # → 67.1GB KV + 0.5GB model = 67.6GB
-    
     "gemma31_64k": calculate_kv_cache_config(30, 65536, 1, "f16"),
     # → 33.6GB KV + 18GB model = 51.6GB
-    
     "dual_model": {
         # Run Bonsai (256K context) + Gemma 31B (32K context) concurrently
         "total": 67.6 + 25.8 + 8 + 12,  # +8GB OS + 12GB SurrealDB
-        "feasible": True  # Total: 113.4GB < 128GB
-    }
+        "feasible": True,  # Total: 113.4GB < 128GB
+    },
 }
 ```
 
@@ -775,84 +765,81 @@ import openai
 from surrealdb import Surreal
 from dataclasses import dataclass
 
+
 @dataclass
 class MeshContext:
     obsidian_notes: list[str]
     kg_relations: list[dict]
     modularity_flags: dict
 
+
 class MeshOrchestrator:
     def __init__(self):
         # Lemonade client
-        self.llm = openai.OpenAI(
-            base_url="http://localhost:13305/api/v1",
-            api_key="lemonade"
-        )
-        
+        self.llm = openai.OpenAI(base_url="http://localhost:13305/api/v1", api_key="lemonade")
+
         # SurrealDB connection
         self.db = Surreal("ws://localhost:8000/rpc")
         self.db.signin({"user": "root", "pass": "root"})
         self.db.use("cohezion", "knowledge")
-    
+
     async def query_mesh(self, prompt: str) -> str:
         """Intelligent routing with knowledge synthesis."""
-        
+
         # 1. Check Knowledge Graph for context
         kg_context = await self.query_kg(prompt)
-        
+
         # 2. Check Obsidian vault for personal notes
         vault_context = await self.query_vault(prompt)
-        
+
         # 3. Detect domain for model routing
         target_model = self.route_model(prompt, kg_context)
-        
+
         # 4. Check if hot-swap needed
         if target_model != self.current_model:
             await self.hot_swap_model(target_model)
-        
+
         # 5. Assemble prompt with context
         augmented_prompt = self.assemble_prompt(prompt, kg_context, vault_context)
-        
+
         # 6. Generate with system context
         response = self.llm.chat.completions.create(
             model=target_model,
             messages=[
-                {
-                    "role": "system",
-                    "content": self.get_system_prompt(kg_context)
-                },
-                {"role": "user", "content": augmented_prompt}
+                {"role": "system", "content": self.get_system_prompt(kg_context)},
+                {"role": "user", "content": augmented_prompt},
             ],
-            temperature=0.7 if "research" in prompt.lower() else 0.3
+            temperature=0.7 if "research" in prompt.lower() else 0.3,
         )
-        
+
         return response.choices[0].message.content
-    
+
     def route_model(self, prompt: str, kg_context: dict) -> str:
         """Dynamic model selection."""
-        
+
         if len(prompt) > 100_000:
             return "user.bonsai-8b"  # Massive context
-        
+
         if "code" in prompt.lower() or "implement" in prompt.lower():
             return "qwen2.5-coder-32b"
-        
+
         if any(ext in prompt for ext in [".png", ".jpg", "image"]):
             return "gemma-4-26b-a4b-it"
-        
+
         if kg_context.get("novelty_score", 0) > 0.8:
             return "gemma-4-31b-it"  # High reasoning
-        
+
         return "gemma-4-31b-it"  # Default
-    
+
     async def query_kg(self, prompt: str) -> dict:
         """Query SurrealDB for relevant concepts."""
-        
+
         # Embed prompt
         embedding = await self.embed(prompt)
-        
+
         # Vector similarity search
-        results = await self.db.query("""
+        results = await self.db.query(
+            """
             SELECT 
                 name, 
                 summary, 
@@ -862,49 +849,51 @@ class MeshOrchestrator:
             WHERE embedding <-> $embedding < 0.3
             ORDER BY score DESC
             LIMIT 5
-        """, {"embedding": embedding})
-        
+        """,
+            {"embedding": embedding},
+        )
+
         return {
             "concepts": results,
-            "novelty_score": 1.0 - (results[0]["score"] if results else 0.5)
+            "novelty_score": 1.0 - (results[0]["score"] if results else 0.5),
         }
-    
+
     async def query_vault(self, prompt: str) -> list[str]:
         """Query Obsidian vault via MCP."""
-        
+
         # Extract keywords
         keywords = await self.extract_keywords(prompt)
-        
+
         # Search vault
         notes = []
         for keyword in keywords[:3]:
             results = await self.mcp.obsidian.search(keyword)
             notes.extend(results)
-        
+
         # Deduplicate and read
         unique_notes = list({n["path"]: n for n in notes}.values())[:3]
         contents = []
         for note in unique_notes:
             content = await self.mcp.obsidian.read_file(note["path"])
             contents.append(content)
-        
+
         return contents
-    
+
     def assemble_prompt(self, user_prompt: str, kg: dict, vault: list) -> str:
         """Augment user prompt with local context."""
-        
+
         context_parts = []
-        
+
         if kg.get("concepts"):
             context_parts.append("## RELEVANT KNOWLEDGE GRAPH NODES:")
             for c in kg["concepts"][:3]:
                 context_parts.append(f"- {c['name']}: {c['summary']}")
-        
+
         if vault:
             context_parts.append("## RELEVANT VAULT NOTES:")
             for note in vault:
                 context_parts.append(f"```markdown\n{note[:500]}...\n```")
-        
+
         return f"""
 {chr(10).join(context_parts)}
 
@@ -913,6 +902,7 @@ class MeshOrchestrator:
 
 Generate a response that synthesizes insights from the provided context.
 """
+
 
 # Usage
 orchestrator = MeshOrchestrator()

@@ -117,7 +117,7 @@ class HealthChecker:
         """Run bandit security scan."""
         logger.info("Running security scan...")
 
-        returncode, stdout, stderr = self.run_command(
+        _returncode, stdout, _stderr = self.run_command(
             ["uv", "run", "bandit", "-r", "src/cohezion", "-f", "json", "-q"]
         )
 
@@ -163,7 +163,7 @@ class HealthChecker:
         """Run ruff lint check."""
         logger.info("Running lint check...")
 
-        returncode, stdout, stderr = self.run_command(
+        returncode, stdout, _stderr = self.run_command(
             ["uv", "run", "ruff", "check", "src/cohezion", "--output-format", "concise"]
         )
 
@@ -189,7 +189,7 @@ class HealthChecker:
         """Run mypy type check."""
         logger.info("Running type check...")
 
-        returncode, stdout, stderr = self.run_command(
+        returncode, stdout, _stderr = self.run_command(
             ["uv", "run", "mypy", "src/cohezion", "--no-error-summary"],
             timeout=600,
         )
@@ -214,7 +214,7 @@ class HealthChecker:
         """Check for untracked files that need triage."""
         logger.info("Checking untracked files...")
 
-        returncode, stdout, stderr = self.run_command(["git", "status", "--porcelain"])
+        _returncode, stdout, _stderr = self.run_command(["git", "status", "--porcelain"])
 
         # Count untracked files (lines starting with ??)
         untracked = [l[3:] for l in stdout.split("\n") if l.startswith("??")]
@@ -238,14 +238,14 @@ class HealthChecker:
         """Run fast tests to verify core functionality."""
         logger.info("Running fast tests...")
 
-        returncode, stdout, stderr = self.run_command(
+        returncode, stdout, _stderr = self.run_command(
             ["uv", "run", "pytest", "-m", "fast", "-q", "--tb=no"],
             timeout=300,
         )
 
         # Parse test summary
-        passed_count = stdout.count(" passed")
-        failed_count = stdout.count(" failed")
+        stdout.count(" passed")
+        stdout.count(" failed")
 
         passed = returncode == 0
         score = 1.0 if passed else max(0.0, 0.5)
@@ -263,7 +263,7 @@ class HealthChecker:
         """Check for outdated/missing dependencies."""
         logger.info("Checking dependencies...")
 
-        returncode, stdout, stderr = self.run_command(["uv", "pip", "list", "--outdated"])
+        _returncode, stdout, _stderr = self.run_command(["uv", "pip", "list", "--outdated"])
 
         # Count outdated
         outdated_lines = [l for l in stdout.split("\n") if l.strip()][2:]  # Skip header

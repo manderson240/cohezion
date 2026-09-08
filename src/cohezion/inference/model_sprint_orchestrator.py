@@ -162,7 +162,9 @@ class ModelSprintOrchestrator:
                 break
         if norm_role is None:
             norm_role = "interactive"
-        return await self._ensure_role("ensure_model", norm_role, protect, load_timeout, forced_model=model_id)
+        return await self._ensure_role(
+            "ensure_model", norm_role, protect, load_timeout, forced_model=model_id
+        )
 
     async def update_on_roster_change(
         self,
@@ -219,6 +221,22 @@ class ModelSprintOrchestrator:
         model_id = forced_model or self.roster.select(norm_role, loadable=True)
         if model_id is None:
             return SprintResult(role, "", False, "no loadable model for role")
+
+        # 0. Already resident → nothing to load: skip the RAM gate and the load lock.
+        #    Gating a resident model on free RAM reported "insufficient RAM" failures (and
+        #    persisted spurious model-load-failed items) on any box under the floor — the
+        #    CI runner included — for a model that was already serving.
+        if any(m.get("model_name") == model_id for m in hotswap.resident_models()):
+            await self._publish(
+                Event.model_lifecycle(
+                    EventType.MODEL_LOADED,
+                    model_id,
+                    reason="already resident",
+                    already_resident=True,
+                    role=role,
+                )
+            )
+            return SprintResult(role, model_id, True, "already resident", already_resident=True)
 
         # 1. Safety gate (static refusal if unsafe).
         ctx_size = self._aligned_ctx_size(model_id, norm_role)
@@ -417,6 +435,7 @@ class ModelSprintOrchestrator:
 
 
 # ── Convenience entry points ────────────────────────────────────────────────
+
 
 async def run_model_sprint(
     roles: list[str] | None = None,

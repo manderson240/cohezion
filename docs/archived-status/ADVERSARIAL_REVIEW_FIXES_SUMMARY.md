@@ -19,8 +19,7 @@
 # Before: iterating over full z_samples_np repeatedly
 # After: direct index access
 coherence_scores = [
-    _compute_coherence(z_samples_np[i].tolist(), z_dim)
-    for i in range(len(z_samples_np))
+    _compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))
 ]
 ```
 
@@ -39,9 +38,7 @@ try:
         loop = asyncio.get_event_loop()
         n_components = min(3, z_dim, request.n_samples)
         pca = PCA(n_components=n_components)
-        samples_3d = await loop.run_in_executor(
-            None, pca.fit_transform, z_samples_np
-        )
+        samples_3d = await loop.run_in_executor(None, pca.fit_transform, z_samples_np)
 except asyncio.TimeoutError:
     raise HTTPException(
         status_code=504,
@@ -97,7 +94,9 @@ except Exception as e:
 **Test Verification** ([tests/api/test_flume_latent_space.py:163-173](tests/api/test_flume_latent_space.py#L163-L173)):
 ```python
 def test_flume_latent_space_handles_no_vae_with_sanitized_error(client):
-    with patch("cohezion.api._get_vae", side_effect=FileNotFoundError("/secret/path/checkpoint.pt")):
+    with patch(
+        "cohezion.api._get_vae", side_effect=FileNotFoundError("/secret/path/checkpoint.pt")
+    ):
         response = client.post("/flume/latent-space", json={"n_samples": 10, "seed": 42})
 
     assert response.status_code == 500

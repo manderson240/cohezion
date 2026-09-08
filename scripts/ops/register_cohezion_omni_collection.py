@@ -24,7 +24,9 @@ LEMONADE_PULL_URL = "http://localhost:13305/v1/pull"
 
 
 def register_omni_collection() -> dict[str, Any]:
-    logger.info("🍋 Registering `user.CohezionAscensionKit` as an Omni Collection in Lemonade Server...")
+    logger.info(
+        "🍋 Registering `user.CohezionAscensionKit` as an Omni Collection in Lemonade Server..."
+    )
     payload = {
         "model_name": "user.CohezionAscensionKit",
         "recipe": "collection.omni",
@@ -47,7 +49,10 @@ def register_omni_collection() -> dict[str, Any]:
         with urllib.request.urlopen(req, timeout=30) as r:
             res = json.loads(r.read().decode())
             dt = round(time.time() - t0, 2)
-            logger.info("✅ `user.CohezionAscensionKit` Omni Collection registered successfully in %.2fs!", dt)
+            logger.info(
+                "✅ `user.CohezionAscensionKit` Omni Collection registered successfully in %.2fs!",
+                dt,
+            )
             return res
     except Exception as e:
         logger.warning("! Lemonade Server offline or registration notice: %s", e)

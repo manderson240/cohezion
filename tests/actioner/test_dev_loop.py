@@ -131,7 +131,9 @@ def test_hedged_approvals_reach_consensus():
     from cohezion.actioner.dev_loop import adversarial_review
 
     # A reviewer that hedges then approves must count as APPROVE (was the degenerate 0/3 bug).
-    chat = lambda p: "The implementation addresses the proposal correctly. APPROVE."
+    def chat(p):
+        return "The implementation addresses the proposal correctly. APPROVE."
+
     review = adversarial_review(GOOD, "impl", chat)
     assert review.approvals == 3 and review.consensus is True
 

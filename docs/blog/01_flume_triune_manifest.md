@@ -129,7 +129,7 @@ An agent receives a task: *"Research the problem and create an implementation pl
 from sentence_transformers import SentenceTransformer
 
 # The Knower: Encode semantic intent to 2048D
-model = SentenceTransformer('all-mpnet-base-v2')
+model = SentenceTransformer("all-mpnet-base-v2")
 knower_embedding = model.encode(task_description)  # 2048D vector
 
 # This is pure semantic knowledge—potential unrealized
@@ -145,7 +145,7 @@ The Thinker compresses the Knower's knowledge into navigable reasoning space:
 from cohezion.flume.vae import FlumeVAE
 
 # The Thinker: Compress to 512D navigable latent space
-vae = FlumeVAE.from_checkpoint('data/flume/checkpoints/flume_vae_ep50.pt')
+vae = FlumeVAE.from_checkpoint("data/flume/checkpoints/flume_vae_ep50.pt")
 thinker_latent, mu, log_var = vae.encode(knower_embedding)  # 512D vector
 
 # Now we can:
@@ -167,7 +167,7 @@ from cohezion.universe.engine import UniverseSimulationEngine
 engine = UniverseSimulationEngine()
 doer_state = engine.project_latent_to_axiomatic(
     thinker_latent,  # 512D reasoning vector
-    context={'task_type': 'research', 'constraints': {...}}
+    context={"task_type": "research", "constraints": {...}},
 )
 
 # doer_state is now a 12D vector with observable dimensions:
@@ -214,7 +214,7 @@ doer_goal = AxiomaticState(precipitation=1.0)  # Full manifestation
 thinker_trajectory = vae.interpolate(
     vae.encode(knower_start),  # Start in Thinker space
     vae.project_from_doer(doer_goal),  # Goal projected to Thinker space
-    steps=10  # 10 intermediate reasoning steps
+    steps=10,  # 10 intermediate reasoning steps
 )
 
 # Decode trajectory back to semantic meaning:
@@ -300,11 +300,7 @@ def compute_triune_loss(self, knower_input, thinker_recon, mu, log_var, doer_tar
     hiho_loss = (coherence - 0.5).pow(2).mean()
 
     # Combined loss
-    total_loss = (
-        recon_loss +
-        self.kl_weight * kl_loss +
-        self.hiho_weight * hiho_loss
-    )
+    total_loss = recon_loss + self.kl_weight * kl_loss + self.hiho_weight * hiho_loss
 
     return total_loss
 ```
@@ -351,9 +347,12 @@ thinker_after = vae.encode(skill_definition_after)
 
 projection = TSNE(n_components=2).fit_transform([thinker_before, thinker_after])
 
-plt.plot([projection[0,0], projection[1,0]],
-         [projection[0,1], projection[1,1]],
-         marker='o', label='Skill refinement trajectory')
+plt.plot(
+    [projection[0, 0], projection[1, 0]],
+    [projection[0, 1], projection[1, 1]],
+    marker="o",
+    label="Skill refinement trajectory",
+)
 plt.title("Thinker Space: Skill Evolution")
 ```
 
@@ -403,11 +402,14 @@ for step in agent_execution:
     thinker_coherence = vae.measure_latent_drift(current_thinker, expected_thinker)
     doer_coherence = calculate_hiho_coherence(current_doer, environment)
 
-    journey.record_step(step, {
-        'knower_coherence': knower_coherence,
-        'thinker_coherence': thinker_coherence,
-        'doer_coherence': doer_coherence,
-    })
+    journey.record_step(
+        step,
+        {
+            "knower_coherence": knower_coherence,
+            "thinker_coherence": thinker_coherence,
+            "doer_coherence": doer_coherence,
+        },
+    )
 
 # Thermal forecasting: predict if coherence will collapse
 forecast = detector.predict_degradation(journey, horizon=10)
@@ -480,23 +482,23 @@ print(f"  Coherence: {triune_state.doer.coherence_score():.3f} (target: 0.5)")
 
 ```python
 checkpoint = {
-    'epoch': 50,
-    'knower_encoder_state': self.knower_encoder.state_dict(),
-    'thinker_vae_state': self.thinker_vae.state_dict(),
-    'doer_projector_state': self.doer_projector.state_dict(),
-    'config': {
-        'knower_dim': 2048,
-        'thinker_dim': 512,
-        'doer_dim': 12,
-        'hiho_target': 0.5,
+    "epoch": 50,
+    "knower_encoder_state": self.knower_encoder.state_dict(),
+    "thinker_vae_state": self.thinker_vae.state_dict(),
+    "doer_projector_state": self.doer_projector.state_dict(),
+    "config": {
+        "knower_dim": 2048,
+        "thinker_dim": 512,
+        "doer_dim": 12,
+        "hiho_target": 0.5,
     },
-    'metrics': {
-        'mse': 0.1322,
-        'kl': 0.4329,
-        'mean_coherence': 0.63,
+    "metrics": {
+        "mse": 0.1322,
+        "kl": 0.4329,
+        "mean_coherence": 0.63,
     },
 }
-torch.save(checkpoint, 'data/flume/checkpoints/triune_vae_ep50.pt')
+torch.save(checkpoint, "data/flume/checkpoints/triune_vae_ep50.pt")
 ```
 
 ### Loading for Inference
@@ -505,7 +507,7 @@ torch.save(checkpoint, 'data/flume/checkpoints/triune_vae_ep50.pt')
 from cohezion.flume.triune_pipeline import TriunePipeline
 
 # Load trained Triune pipeline
-pipeline = TriunePipeline.from_checkpoint('data/flume/checkpoints/triune_vae_ep50.pt')
+pipeline = TriunePipeline.from_checkpoint("data/flume/checkpoints/triune_vae_ep50.pt")
 
 # Encode task at Knower level
 task = "Research the problem and create an implementation plan"
@@ -532,9 +534,9 @@ Right now, the Thinker uses a single 512D latent space for all task types. We co
 
 ```python
 # Different Thinker spaces for different domains
-thinker_research = vae.encode(knower, condition='research')  # 512D research latent
-thinker_planning = vae.encode(knower, condition='planning')  # 512D planning latent
-thinker_execution = vae.encode(knower, condition='execution')  # 512D execution latent
+thinker_research = vae.encode(knower, condition="research")  # 512D research latent
+thinker_planning = vae.encode(knower, condition="planning")  # 512D planning latent
+thinker_execution = vae.encode(knower, condition="execution")  # 512D execution latent
 ```
 
 This creates **task-specific manifolds** in Thinker space.
@@ -561,9 +563,7 @@ Agents often work with multiple modalities. Extend the Knower to encode all of t
 
 ```python
 knower_multimodal = pipeline.encode_knower(
-    text=reasoning_trace,
-    code=implementation,
-    image=architecture_diagram
+    text=reasoning_trace, code=implementation, image=architecture_diagram
 )  # 2048D unified semantic space
 ```
 

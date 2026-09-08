@@ -22,15 +22,40 @@ logger = logging.getLogger(__name__)
 
 
 # Token cost assumptions (per 1K tokens)
+# Dollars per 1K INPUT tokens. `CostTracker.track_experiment` computes
+# `(tokens / 1000) * cost_per_1k`, so these MUST be per-1K, not per-MTok.
+#
+# Every entry here was previously the per-MILLION-token list price while the
+# comments claimed per-1K — a silent 1000x overestimate on every model. The
+# comments matching the code's unit is exactly what hid it: only the numbers
+# were wrong. Measured before the fix: one 1M-token claude-3-sonnet experiment
+# reported $3,000.00 against a $10 budget (true cost: $3.00), so any non-trivial
+# run blew its budget on the first call and forced a downgrade.
+#
+# Anthropic rates verified 2026-08-30 against
+# platform.claude.com/docs/en/about-claude/pricing.
 DEFAULT_COSTS = {
     "ollama/phi3:mini": 0.0,  # Local = free
     "ollama/llama3.1:8b": 0.0,  # Local = free
     "ollama/qwen2.5:7b": 0.0,  # Local = free
-    "anthropic/claude-3-haiku": 0.25,  # $0.25 per 1K input tokens
-    "anthropic/claude-3-sonnet": 3.0,  # $3.00 per 1K input tokens
-    "openai/gpt-4o-mini": 0.15,  # $0.15 per 1K input tokens
-    "openai/gpt-4o": 2.5,  # $2.50 per 1K input tokens
+    # Current Anthropic models ($/MTok input -> /1000).
+    "anthropic/claude-opus-5": 0.005,  # $5 / MTok
+    "anthropic/claude-opus-4-8": 0.005,  # $5 / MTok
+    "anthropic/claude-sonnet-5": 0.002,  # $2 / MTok
+    "anthropic/claude-sonnet-4-6": 0.003,  # $3 / MTok
+    "anthropic/claude-haiku-4-5": 0.001,  # $1 / MTok
+    # Retired, kept so historical experiment logs still price correctly.
+    "anthropic/claude-3-haiku": 0.00025,  # $0.25 / MTok
+    "anthropic/claude-3-sonnet": 0.003,  # $3 / MTok
+    "openai/gpt-4o-mini": 0.00015,  # $0.15 / MTok
+    "openai/gpt-4o": 0.0025,  # $2.50 / MTok
 }
+
+# Charged when a model is absent from the table. Deliberately NOT 0.0: this feeds
+# a budget enforcer, and pricing an unknown model free means the limit never
+# trips. Mirrors the conservative default in cost_optimization/cost_tracker.py,
+# and sits above every current model's rate.
+UNKNOWN_MODEL_COST_PER_1K = 0.015  # $15 / MTok
 
 
 @dataclass
@@ -174,7 +199,20 @@ class CostTracker:
         Returns:
             Cost in USD
         """
-        cost_per_1k = self.costs_per_1k.get(model, 0.0)
+        cost_per_1k = self.costs_per_1k.get(model)
+        if cost_per_1k is None:
+            # Fail SAFE, not free. This value feeds a budget enforcer that decides
+            # when to stop spending: pricing an unknown model at $0.00 means the
+            # limit never trips, so an unrecognised model could run unbounded.
+            # 0.015 ($15/MTok) matches the conservative default the sibling
+            # SessionCostTracker already uses, and exceeds every current model.
+            logger.warning(
+                "No cost entry for %s — using the conservative default "
+                "$%.5f per 1K tokens. Add it to DEFAULT_COSTS.",
+                model,
+                UNKNOWN_MODEL_COST_PER_1K,
+            )
+            cost_per_1k = UNKNOWN_MODEL_COST_PER_1K
         return (tokens / 1000) * cost_per_1k
 
     def record_experiment(

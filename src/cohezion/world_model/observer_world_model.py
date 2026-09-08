@@ -1,5 +1,5 @@
+import contextlib
 from collections import defaultdict
-from typing import List
 
 from cohezion.inference.task_classifier import classify
 from cohezion.inference.transition_controller import TransitionController
@@ -25,10 +25,8 @@ class ObserverWorldModel:
         surprise = 1.0
         if self._n_transitions[frm] > 0:
             surprise = 1.0 - self._transition_counts[frm][to] / self._n_transitions[frm]
-        try:
+        with contextlib.suppress(Exception):
             self.observer.observe(surprise)
-        except Exception:
-            pass
         self.observer.state_matrix.record_transition(frm, to, reward)
         self._n_transitions[frm] += 1
         self._transition_counts[frm][to] += 1
@@ -67,10 +65,10 @@ class ObserverWorldModel:
         counts = self._transition_counts[frm]
         return max(counts, key=counts.get) if counts else None
 
-    def predict_next_state(self, state, action) -> List[float]:
+    def predict_next_state(self, state, action) -> list[float]:
         return [self._expected_quality(self._state)]
 
-    def simulate_trajectory(self, state, actions) -> List[List[float]]:
+    def simulate_trajectory(self, state, actions) -> list[list[float]]:
         current = self._state
         result = [[self._expected_quality(current)]]
         for _ in actions:

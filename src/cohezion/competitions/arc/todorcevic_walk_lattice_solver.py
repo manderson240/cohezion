@@ -48,13 +48,14 @@ class TodorcevicLatticeSolver:
         """Finds minimal-oscillation macro sequence on train pairs and applies to test."""
         train_pairs = task.get("train", [])
         if not train_pairs:
-            return task["test"][0]["input"]
+            fallback: list[list[int]] = task["test"][0]["input"]
+            return fallback
 
         best_score = float("inf")
         best_op_chain: list[Callable[[list[list[int]]], list[list[int]]]] = []
 
         # 1. Depth-1 Primitive search
-        for name, op in self.primitive_ops:
+        for _name, op in self.primitive_ops:
             total_osc = 0.0
             for pair in train_pairs:
                 inp = pair["input"]

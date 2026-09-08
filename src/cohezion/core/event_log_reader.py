@@ -214,7 +214,11 @@ def fetch_events(
     # Dedupe by record id (keep first): real partitions are disjoint, but this
     # guards any future overlap between per-db fetch windows.
     seen: set[str] = set()
-    events = [e for e in events if not (e.id in seen or seen.add(e.id))]
+    events = [
+        e
+        for e in events
+        if not (e.id in seen or seen.add(e.id))  # type: ignore[func-returns-value]
+    ]
 
     # Re-apply on the normalized shape too — server-side WHERE is an optimization,
     # normalization stays the source of truth for what matches.

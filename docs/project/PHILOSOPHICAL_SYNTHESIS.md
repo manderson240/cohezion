@@ -71,18 +71,18 @@ class AxiomaticState:
     spatial_z: float
 
     # Field: WHAT ACTS ON ME
-    physics: float    # Momentum
-    biology: float    # Learning rate
-    field: float      # Environment
+    physics: float  # Momentum
+    biology: float  # Learning rate
+    field: float  # Environment
 
     # Control: HOW I RESPOND
-    logic: float      # Internal coherence (Rotation)
-    quantum: float    # External uncertainty (Precession)
-    control: float    # Action polarity (Charge)
+    logic: float  # Internal coherence (Rotation)
+    quantum: float  # External uncertainty (Precession)
+    control: float  # Action polarity (Charge)
 
     # Precipitation: DO I EXIST
-    temporal: float   # Awareness
-    novelty: float    # Exploration
+    temporal: float  # Awareness
+    novelty: float  # Exploration
     precipitation: float  # Manifestation (0→1)
 ```
 
@@ -110,9 +110,9 @@ class AxiomaticState:
 ```python
 class Agent:
     def __init__(self):
-        self.rotation = 0.0      # Internal spin (logic)
-        self.precession = 0.0    # External wobble (quantum measurement)
-        self.charge = 0.0        # Resultant action (Rotation + Precession)
+        self.rotation = 0.0  # Internal spin (logic)
+        self.precession = 0.0  # External wobble (quantum measurement)
+        self.charge = 0.0  # Resultant action (Rotation + Precession)
 
     def update(self, environment):
         # EVO dynamics: spin + wobble → directed motion
@@ -265,13 +265,15 @@ Record every action as a **12D trajectory** through Smith's parameter space:
 ```python
 class JourneyTracker:
     def record_transition(self, state_before, action, result):
-        trajectory.append({
-            "space": [spatial_x, spatial_y, spatial_z],
-            "field": [physics, biology, field],
-            "control": [logic, quantum, control],
-            "precipitation": [temporal, novelty, manifestation],
-            "coherence": self.compute_coherence(state_before, result),
-        })
+        trajectory.append(
+            {
+                "space": [spatial_x, spatial_y, spatial_z],
+                "field": [physics, biology, field],
+                "control": [logic, quantum, control],
+                "precipitation": [temporal, novelty, manifestation],
+                "coherence": self.compute_coherence(state_before, result),
+            }
+        )
 ```
 
 **Use Case**: Rollback to last stable state if coherence exits HIHO band.

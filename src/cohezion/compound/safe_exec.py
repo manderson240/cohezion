@@ -10,9 +10,12 @@ names a small set of pure, computational modules (math, numpy, itertools, ...) a
 level. It is NOT a security boundary. Two independent in-process escapes remain WIDE OPEN:
   1. Transitive module attributes — several allow-listed modules re-export ``sys`` (and from there
      ``os``) as a plain attribute: ``import collections; collections._sys.modules['os'].system(...)``
-     reaches os in a SINGLE attribute access (``statistics.sys`` is a second path; ``json.codecs``
-     reaches codecs; ``numpy.testing`` imports freely). Directly blocking the literal name ``sys``
-     at the import gate does NOT prevent this and is not attempted.
+     reaches os in a SINGLE attribute access (``statistics.sys`` and ``typing.sys`` are further
+     paths to the same ``sys.modules`` lookup; ``json.codecs`` reaches codecs; ``numpy.testing``
+     imports freely). Directly blocking the literal name ``sys`` at the import gate does NOT prevent
+     this and is not attempted. NOTE a module that binds the real ``builtins`` as a plain attribute
+     would be STRICTLY WORSE — a one-hop reach to ``open``/``eval``/``exec``/``__import__`` — which is
+     why ``enum`` (``import builtins as bltns``) is deliberately kept OFF ``_ALLOWED_MODULES``.
   2. Introspection gadget chains — ``().__class__.__bases__[0].__subclasses__()`` escapes regardless
      of the import gate.
 So treat the import allow-list as an AVAILABILITY restore plus a minor speed-bump against the most
@@ -112,6 +115,17 @@ _ALLOWED_MODULES = frozenset(
         "decimal",
         "re",
         "json",
+        # `typing` ONLY: gym.Env subclassing imports it during class creation (measured
+        # 2026-08-21 — a generated env fails closed without it). It is on the list because
+        # its transitive escape `typing.sys.modules['os']` is the SAME sys->os path that
+        # already-allow-listed `collections._sys` provides, so it adds NO new reachability
+        # (verified). The companions dataclasses/enum/abc/copy were tried and REMOVED: they
+        # were not needed (typing alone compiles+runs a gym.Env), AND `enum` re-exports the
+        # real `builtins` as `enum.bltns` — a ONE-HOP escape to open/eval/exec/__import__,
+        # strictly worse than any documented escape. Do NOT re-add enum (or any module that
+        # binds `builtins`/`os`/`subprocess`/`sys` as a plain top-level attribute) — see the
+        # regression test `test_enum_not_importable_no_bltns_escape`.
+        "typing",
     }
 )
 
@@ -133,11 +147,28 @@ _SAFE_BUILTINS: dict = {
 }
 _SAFE_BUILTINS["__import__"] = _safe_import
 
+# Builtins additionally required to exec CLASS DEFINITIONS (LLM-generated gym.Env subclasses,
+# finding H5 site #4: environments/auto_generator). Kept OUT of the default set: solver snippets
+# define functions only, and __build_class__ + descriptor helpers widen the surface slightly.
+# Measured (2026-08-21): a class statement needs __build_class__ AND a __name__ key in globals
+# (used to stamp __module__); super() is needed for the ubiquitous super().__init__() pattern.
+# Same caveat as everything here: availability gate, not a sandbox.
+_CLASS_DEF_EXTRA = ("__build_class__", "super", "staticmethod", "classmethod", "property")
+
 
 def safe_exec_globals(**extra) -> dict:
     """Return a globals dict for ``exec()`` of UNTRUSTED / LLM-generated code: a restricted
     ``__builtins__`` allow-list (no import/open/eval) plus the caller's explicit names
     (e.g. ``np=np``, ``sympy=sympy``). Any caller-supplied ``__builtins__`` is dropped so it can't
-    re-open the hole. Closes the H5 auto-injection RCE; see module docstring for the durable fix."""
+    re-open the hole. Closes the H5 auto-injection RCE; see module docstring for the durable fix.
+
+    Pass the reserved kwarg ``_class_defs=True`` when the exec'd code defines CLASSES (e.g.
+    generated gym.Env environments): adds ``__build_class__``/``super``/descriptor helpers and a
+    ``__name__`` key, without which any ``class`` statement raises NameError under this gate."""
+    class_defs = bool(extra.pop("_class_defs", False))
     extra.pop("__builtins__", None)
-    return {"__builtins__": _SAFE_BUILTINS, **extra}
+    if not class_defs:
+        return {"__builtins__": _SAFE_BUILTINS, **extra}
+    b = {**_SAFE_BUILTINS, **{n: getattr(builtins, n) for n in _CLASS_DEF_EXTRA}}
+    g = {"__builtins__": b, "__name__": "safe_exec_env", **extra}
+    return g

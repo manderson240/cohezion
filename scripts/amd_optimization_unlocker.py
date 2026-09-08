@@ -317,7 +317,7 @@ class AMDOptimizationUnlocker:
 
     def apply_optimizations(self, category: str | None = None):
         """Apply optimizations."""
-        state = self.check_current_state()
+        self.check_current_state()
         applied = []
         failed = []
 

@@ -57,7 +57,9 @@ Please provide a deep, rigorous research synthesis covering:
 - 4 Concrete Implementation Roadmap Actions for Cohezion.
 """
 
-    print("Transmitting research delegation prompt to `Qwen3.8-27B-GGUF-Q5_K_M` on Lemonade (:13305)...")
+    print(
+        "Transmitting research delegation prompt to `Qwen3.8-27B-GGUF-Q5_K_M` on Lemonade (:13305)..."
+    )
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
         res = await client.post(
@@ -86,9 +88,13 @@ Please provide a deep, rigorous research synthesis covering:
     print("=" * 105)
 
     # Save artifact
-    artifact_path = Path("/home/mike-anderson/dev/cohezion/docs/research/temporal_compendium_synthesis.md")
+    artifact_path = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/temporal_compendium_synthesis.md"
+    )
     artifact_path.parent.mkdir(parents=True, exist_ok=True)
-    artifact_path.write_text(f"# Digitized Temporal Compendium: Research Synthesis\n\n*Generated via Tier 1 Local Inference (`Qwen3.8-27B`)*\n\n{verdict}\n")
+    artifact_path.write_text(
+        f"# Digitized Temporal Compendium: Research Synthesis\n\n*Generated via Tier 1 Local Inference (`Qwen3.8-27B`)*\n\n{verdict}\n"
+    )
     print(f"Saved research report to: {artifact_path}")
 
 

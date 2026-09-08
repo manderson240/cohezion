@@ -9,7 +9,6 @@ Prevents unwanted user interruptions while ensuring maximum autonomous utility.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 
 
@@ -78,8 +77,12 @@ class ProactiveRewardModel:
         historical_acceptance_rate: float = 0.85,
     ) -> tuple[bool, float]:
         """Return (True, EVI) if EVI exceeds threshold."""
-        proactive_rc = self.evaluate_action(predicted_goal, user_busy_state, historical_acceptance_rate)
-        passive_rc = RewardComponents(utility=0.20, intrusiveness_penalty=0.0, timing_precision=0.50)
+        proactive_rc = self.evaluate_action(
+            predicted_goal, user_busy_state, historical_acceptance_rate
+        )
+        passive_rc = RewardComponents(
+            utility=0.20, intrusiveness_penalty=0.0, timing_precision=0.50
+        )
 
         evi = self.compute_evi(proactive_rc, passive_rc)
         return (evi >= self.evi_threshold, round(evi, 4))

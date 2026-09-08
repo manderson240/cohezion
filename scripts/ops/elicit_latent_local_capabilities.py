@@ -80,13 +80,19 @@ class LatentCapabilityElicitor:
 
     def technique_2_autoharness_bytecode_self_correction(self) -> ElicitationBenchmarkResult:
         """Elicit self-correction capabilities using zero-cost AST bytecode action-verifiers."""
-        logger.info("⚡ Technique 2: AutoHarness AST Bytecode Self-Correction Loop (arXiv:2603.03329v1)...")
+        logger.info(
+            "⚡ Technique 2: AutoHarness AST Bytecode Self-Correction Loop (arXiv:2603.03329v1)..."
+        )
         t0 = time.perf_counter()
 
         # Step A: Zero-cost AST verification pass (value 500 in [0, 999])
-        res_pass = self.autoharness.verify_aimo_proof_state(AIMOProofState(value=500, min_bound=0, max_bound=999))
+        res_pass = self.autoharness.verify_aimo_proof_state(
+            AIMOProofState(value=500, min_bound=0, max_bound=999)
+        )
         # Step B: Zero-cost AST verification violation (value 1500 out of [0, 999] bounds)
-        res_fail = self.autoharness.verify_aimo_proof_state(AIMOProofState(value=1500, min_bound=0, max_bound=999))
+        res_fail = self.autoharness.verify_aimo_proof_state(
+            AIMOProofState(value=1500, min_bound=0, max_bound=999)
+        )
 
         dt = time.perf_counter() - t0
 

@@ -73,9 +73,22 @@ class CorpusQualityConsumer:
         return self._mm_client
 
     def subscribe(self, bus: EventBus) -> None:
-        """Register this consumer as a handler on the given EventBus."""
+        """Register this consumer as a handler on the given EventBus.
+
+        Uses the public register_handler() API (GAP-4) rather than reaching into
+        ``bus._handlers``. ``event_bridge.subscribe`` in this same package already
+        did it this way; this consumer was missed.
+
+        HONEST SCOPE: today ``register_handler(h, t)`` does exactly
+        ``self._handlers[t].append(h)``, so this change is behaviourally a NO-OP --
+        it is encapsulation, not a bug fix. Three independent cloud reviewers all
+        claimed it "bypasses thread-safety"; that rationale is FALSE, there is no
+        lock in register_handler to bypass. The value is that if a lock or
+        per-type accounting is ever added there, this consumer inherits it instead
+        of silently remaining the one subscriber that skipped the front door.
+        """
         for event_type in self.SUBSCRIBED_TYPES:
-            bus._handlers[event_type].append(self._handle)
+            bus.register_handler(self._handle, event_type)
 
     async def _handle(self, event: Event) -> None:
         """Dispatch incoming events to the appropriate handler."""

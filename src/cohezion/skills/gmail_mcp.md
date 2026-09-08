@@ -43,9 +43,7 @@ You are a specialist in **Gmail Model Context Protocol (MCP)**. You know how to 
    ```python
    # drafting a reply based on system state
    await gmail.create_draft(
-       to=message.sender,
-       subject="Re: " + message.subject,
-       body="Status Update: Gateway 15 complete."
+       to=message.sender, subject="Re: " + message.subject, body="Status Update: Gateway 15 complete."
    )
    ```
 

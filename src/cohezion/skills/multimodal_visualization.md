@@ -42,27 +42,27 @@ Visualization quality metrics:
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def generate_trajectory_plot(data, output_path):
     """Generate publication-quality trajectory visualization."""
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
     # XY projection
-    axes[0].scatter(data['x'], data['y'],
-                    c=data['coherence'], cmap='viridis', s=10)
-    axes[0].set_title('XY Projection')
+    axes[0].scatter(data["x"], data["y"], c=data["coherence"], cmap="viridis", s=10)
+    axes[0].set_title("XY Projection")
 
     # Coherence over time
-    axes[1].plot(data['step'], data['coherence'])
-    axes[1].axhline(y=0.7, color='r', linestyle='--')
-    axes[1].set_title('Coherence Evolution')
+    axes[1].plot(data["step"], data["coherence"])
+    axes[1].axhline(y=0.7, color="r", linestyle="--")
+    axes[1].set_title("Coherence Evolution")
 
     # Stream distribution
-    stream_counts = data['stream'].value_counts()
-    axes[2].pie(stream_counts.values, labels=stream_counts.index, autopct='%1.1f%%')
-    axes[2].set_title('Stream Distribution')
+    stream_counts = data["stream"].value_counts()
+    axes[2].pie(stream_counts.values, labels=stream_counts.index, autopct="%1.1f%%")
+    axes[2].set_title("Stream Distribution")
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close()
 ```
 
@@ -70,14 +70,10 @@ def generate_trajectory_plot(data, output_path):
 ```python
 import subprocess
 
+
 def generate_narration(text: str, output_path: str):
     """Generate TTS narration of simulation results."""
-    cmd = [
-        "edge-tts",
-        "--voice", "en-US-AriaNeural",
-        "--text", text,
-        "--write-media", output_path
-    ]
+    cmd = ["edge-tts", "--voice", "en-US-AriaNeural", "--text", text, "--write-media", output_path]
     subprocess.run(cmd, check=True)
 ```
 
@@ -85,21 +81,19 @@ def generate_narration(text: str, output_path: str):
 ```python
 import matplotlib.animation as animation
 
+
 def create_trajectory_animation(data, output_path):
     """Animate trajectory evolution over time."""
     fig, ax = plt.subplots()
 
     def animate(frame):
         ax.clear()
-        frame_data = data[data['step'] <= frame]
-        ax.scatter(frame_data['x'], frame_data['y'],
-                   c=frame_data['coherence'], cmap='viridis')
-        ax.set_title(f'Step {frame}')
+        frame_data = data[data["step"] <= frame]
+        ax.scatter(frame_data["x"], frame_data["y"], c=frame_data["coherence"], cmap="viridis")
+        ax.set_title(f"Step {frame}")
 
-    ani = animation.FuncAnimation(fig, animate,
-                                   frames=range(data['step'].max()),
-                                   interval=100)
-    ani.save(output_path, writer='ffmpeg', fps=10)
+    ani = animation.FuncAnimation(fig, animate, frames=range(data["step"].max()), interval=100)
+    ani.save(output_path, writer="ffmpeg", fps=10)
 ```
 
 ### 4. Multimodal Report Generator
@@ -107,12 +101,14 @@ def create_trajectory_animation(data, output_path):
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class MultimodalReport:
     images: list[Path]
     audio: Path | None
     video: Path | None
     html: Path | None
+
 
 def generate_full_report(trajectory_data, output_dir):
     """Generate complete multimodal report."""
@@ -133,6 +129,7 @@ def generate_full_report(trajectory_data, output_dir):
 ```python
 import base64
 
+
 def analyze_with_vision_llm(image_path, llm_client):
     """Use vision model to analyze generated visualization."""
     with open(image_path, "rb") as f:
@@ -140,13 +137,21 @@ def analyze_with_vision_llm(image_path, llm_client):
 
     response = llm_client.chat.completions.create(
         model="gpt-4o",
-        messages=[{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": "Analyze this simulation trajectory. What patterns emerge?"},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}}
-            ]
-        }]
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Analyze this simulation trajectory. What patterns emerge?",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{image_b64}"},
+                    },
+                ],
+            }
+        ],
     )
     return response.choices[0].message.content
 ```

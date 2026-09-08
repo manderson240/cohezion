@@ -22,6 +22,7 @@ import multiprocessing
 import sys
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -125,17 +126,84 @@ class TestMetrics:
         }
 
 
-def test_single_pattern(pattern: AttackPattern) -> TestResult:
+GuardProbe = Callable[[str], "str | None"]
+"""Returns the NAME of the guard that blocked the text, or None if it was allowed.
+
+Deliberately not a bool. The production pipeline contains guards that never read the
+text -- ``rate_limit`` (60 req/min) and ``resource`` -- so a boolean "was it blocked"
+silently conflates "this attack was detected" with "we made too many calls". Over a
+corpus larger than 60 patterns that turns into a flattering, meaningless detection
+rate. Returning the guard name lets the caller count only content-inspecting guards.
+"""
+
+CONTENT_GUARDS = frozenset({"constitutional", "prompt_injection", "output_filter"})
+"""Production guards whose verdict depends on the text. See :data:`GuardProbe`."""
+
+
+def production_guardrail_probe(content_only: bool = True) -> GuardProbe:
+    """Build a probe bound to the LIVE production input path.
+
+    This module's default target is ``PromptGuard`` + ``validate_input``. Neither is on
+    the production path: ``CompoundExecutor.execute_task`` checks input via
+    ``GuardrailPipeline.check_input`` (executor.py, "Step 3: Check input via
+    guardrails"). A detection rate measured against the default therefore says nothing
+    about what actually runs -- it grades a component the executor never calls.
+
+    Args:
+        content_only: Drop guards whose verdict does not depend on the text
+            (``rate_limit``, ``resource``). Required for corpus measurement: the
+            pipeline SHORT-CIRCUITS on the first BLOCK, so once the 60 req/min limit
+            trips, every later pattern returns ``rate_limit`` and the content guards
+            are never consulted. Those patterns are then *unmeasured*, not "allowed"
+            -- and scoring them either way is a fabricated number. Set False only to
+            observe the pipeline exactly as the executor composes it.
+
+    Pass the result to :func:`test_single_pattern` as ``probe`` to measure the real one.
+    """
+    from cohezion.compound.executor_helpers.guardrail_runner import run_async_guardrail
+    from cohezion.security.guardrail_factory import create_default_pipeline
+    from cohezion.security.guardrail_pipeline import GuardrailAction
+
+    pipeline = create_default_pipeline()
+    if content_only:
+        pipeline.guardrails = [(n, g) for n, g in pipeline.guardrails if n in CONTENT_GUARDS]
+
+    def probe(text: str) -> str | None:
+        result = run_async_guardrail(pipeline.check_input(text, {}))
+        if result is None or result.action != GuardrailAction.BLOCK:
+            return None
+        return str(result.guard_name or "unknown")
+
+    return probe
+
+
+def test_single_pattern(pattern: AttackPattern, probe: GuardProbe | None = None) -> TestResult:
     """
     Test a single attack pattern against security components.
 
     Args:
         pattern: Attack pattern to test
+        probe: Optional guard to test instead of the default PromptGuard + validator
+            pair. Use :func:`production_guardrail_probe` to target the live executor
+            path. Defaults to None, preserving the original behaviour.
 
     Returns:
         TestResult with detection outcome
     """
     start_time = time.perf_counter()
+
+    if probe is not None:
+        blocker = probe(pattern.pattern)
+        return TestResult(
+            pattern=pattern.pattern[:100],
+            category=pattern.category.value,
+            subcategory=pattern.subcategory,
+            expected_blocked=pattern.expected_blocked,
+            actually_blocked=blocker is not None,
+            detection_method=blocker or "none",
+            threat_level="n/a",  # probe reports a verdict, not a graded threat level
+            processing_time_ms=(time.perf_counter() - start_time) * 1000,
+        )
 
     # Initialize components
     guard = PromptGuard(strict_mode=True)

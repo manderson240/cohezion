@@ -50,10 +50,10 @@ async def main():
         prompt = f"""
         You are a CONTEXT_ENTROPY_MANAGEMENT_PRIME specialist.
         Perform 'Task-Aware KV Compaction' on this history.
-        
+
         Reasoning Anchor: {anchor}
         History: {recent_history}
-        
+
         Instruction:
         - Prune all segments that do not serve the Reasoning Anchor.
         - Compress the remaining data into a high-impact decision list.

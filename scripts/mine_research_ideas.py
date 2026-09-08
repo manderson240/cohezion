@@ -13,14 +13,14 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("EmailResearch")
+    logging.getLogger("EmailResearch")
 
     # Ensure environment variables are loaded if not already
     from dotenv import load_dotenv
 
     load_dotenv()
 
-    config = SwarmConfig()
+    SwarmConfig()
     miner = InboxMiner(model_name="mistral:7b")  # Use mistral for mining
 
     print("\n--- Mining Inbox for Cohezion Research Ideas ---")

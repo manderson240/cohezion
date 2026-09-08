@@ -410,7 +410,11 @@ def submit_raw(target: str, prompt: str, *, system: str = "", timeout_s: float =
     payload = {
         "model": PLANNER_MODEL,
         "messages": [
-            {"role": "system", "content": system or "You are a senior engineer. Return ONLY a single fenced code block (```python or ```tsx). No prose."},
+            {
+                "role": "system",
+                "content": system
+                or "You are a senior engineer. Return ONLY a single fenced code block (```python or ```tsx). No prose.",
+            },
             {"role": "user", "content": prompt},
         ],
         "max_tokens": 16384,
@@ -424,7 +428,11 @@ def submit_raw(target: str, prompt: str, *, system: str = "", timeout_s: float =
     msg = resp.json()["choices"][0]["message"]
     code = _extract_code(msg.get("content", ""))
     if code is None:
-        return {"status": "no_code_block", "raw": msg.get("content", "")[:500], "elapsed_s": elapsed}
+        return {
+            "status": "no_code_block",
+            "raw": msg.get("content", "")[:500],
+            "elapsed_s": elapsed,
+        }
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(code)
     return {

@@ -33,7 +33,7 @@ Formally prove whether Cohezion's Dual-Substrate Compute Arbitrage strategy is m
 - Prove:
   1. Information gain rate under dual-GPU parallel execution vs single monolithic model.
   2. Search space reduction factor achieved by local AST invariant pre-pruning (O(|F|^k) -> O(|F_valid|^k)).
-  3. Final mathematical verdict: PROVEN / REJECTED / ADVISORY (with concise proof under 250 words)."""
+  3. Final mathematical verdict: PROVEN / REJECTED / ADVISORY (with concise proof under 250 words).""",
     },
     {
         "model": "qwen3.5:397b-cloud",
@@ -48,7 +48,7 @@ Formally verify whether our Kaggle Dual-T4 runtime allocation maximizes the avai
 - Assess:
   1. Concurrency isolation and memory saturation across both CUDA devices.
   2. Prevention of kernel timeouts under the 9-hour limit.
-  3. Final verification verdict: PROVEN / REJECTED / ADVISORY (with concise technical justification under 250 words)."""
+  3. Final verification verdict: PROVEN / REJECTED / ADVISORY (with concise technical justification under 250 words).""",
     },
     {
         "model": "glm-5.2:cloud",
@@ -62,15 +62,16 @@ Formally verify the correctness and zero-hallucination guarantee of Cohezion's A
 - Prove:
   1. Soundness of the rejection filter under deterministic grid transformations.
   2. Risk bounds on overfitting vs generalization error on private test sets.
-  3. Final formal verdict: PROVEN / REJECTED / ADVISORY (with concise formal proof under 250 words)."""
-    }
+  3. Final formal verdict: PROVEN / REJECTED / ADVISORY (with concise formal proof under 250 words).""",
+    },
 ]
+
 
 async def query_proof(client: httpx.AsyncClient, q: dict) -> dict:
     model = q["model"]
     domain = q["domain"]
     prompt = q["prompt"]
-    
+
     print(f"▶ Requesting formal proof from `{model}` on [{domain}]...")
     t0 = time.perf_counter()
     try:
@@ -80,22 +81,43 @@ async def query_proof(client: httpx.AsyncClient, q: dict) -> dict:
                 "model": model,
                 "prompt": prompt,
                 "stream": False,
-                "options": {"temperature": 0.1, "num_predict": 3000}
+                "options": {"temperature": 0.1, "num_predict": 3000},
             },
-            timeout=240.0
+            timeout=240.0,
         )
         dt = time.perf_counter() - t0
         if resp.status_code == 200:
             data = resp.json()
             content = data.get("response", "").strip()
             thinking = data.get("thinking", "").strip()
-            full_text = content if content else (thinking[-1200:] if thinking else "Proof Generated")
+            full_text = (
+                content if content else (thinking[-1200:] if thinking else "Proof Generated")
+            )
             print(f"   ✓ Formal proof delivered by `{model}` in {dt:.2f}s")
-            return {"model": model, "domain": domain, "content": full_text, "duration_s": dt, "status": "SUCCESS"}
+            return {
+                "model": model,
+                "domain": domain,
+                "content": full_text,
+                "duration_s": dt,
+                "status": "SUCCESS",
+            }
         else:
-            return {"model": model, "domain": domain, "content": f"HTTP {resp.status_code}: {resp.text}", "duration_s": dt, "status": "ERROR"}
+            return {
+                "model": model,
+                "domain": domain,
+                "content": f"HTTP {resp.status_code}: {resp.text}",
+                "duration_s": dt,
+                "status": "ERROR",
+            }
     except Exception as e:
-        return {"model": model, "domain": domain, "content": f"Notice: {e}", "duration_s": dt, "status": "ERROR"}
+        return {
+            "model": model,
+            "domain": domain,
+            "content": f"Notice: {e}",
+            "duration_s": dt,
+            "status": "ERROR",
+        }
+
 
 async def run_proof_verification():
     print("=" * 90)
@@ -111,18 +133,18 @@ async def run_proof_verification():
 
     md_content = f"""# Formal Mathematical & Systems Verification: Dual-Substrate Compute Arbitrage
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Auditors & Proof Engines:** `deepseek-v4-pro:cloud`, `qwen3.5:397b-cloud`, `glm-5.2:cloud`  
 
 ---
 
 """
     for r in results:
-        md_content += f"""# 📜 {r['domain']}
-**Formal Verifier:** `{r['model']}` (Verification Time: {r['duration_s']:.2f}s | Status: {r['status']})  
+        md_content += f"""# 📜 {r["domain"]}
+**Formal Verifier:** `{r["model"]}` (Verification Time: {r["duration_s"]:.2f}s | Status: {r["status"]})  
 
 ### Formal Proof & Verification Evaluation
-{r['content']}
+{r["content"]}
 
 ---
 
@@ -142,22 +164,25 @@ async def run_proof_verification():
         payload={
             "audit": "Dual-Substrate Arbitrage Formal Verification Complete",
             "report_path": str(doc_path),
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(ev)
 
-    persist_item({
-        "id": "dual_substrate_formal_proof",
-        "title": "Dual-Substrate Compute Arbitrage Formally Verified",
-        "status": "done",
-        "priority": "critical",
-        "source": "FormalProofVerifier",
-        "category": "formal_verification",
-        "details": "Ollama Cloud models (DeepSeek-V4 Pro, Qwen 397B, GLM-5.2) proved mathematical optimality, concurrency isolation, and zero-hallucination bounds.",
-    })
+    persist_item(
+        {
+            "id": "dual_substrate_formal_proof",
+            "title": "Dual-Substrate Compute Arbitrage Formally Verified",
+            "status": "done",
+            "priority": "critical",
+            "source": "FormalProofVerifier",
+            "category": "formal_verification",
+            "details": "Ollama Cloud models (DeepSeek-V4 Pro, Qwen 397B, GLM-5.2) proved mathematical optimality, concurrency isolation, and zero-hallucination bounds.",
+        }
+    )
     print("✓ Persisted formal proof cards to SurrealDB `event_log` and Obsidian Kanban")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(run_proof_verification())

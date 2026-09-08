@@ -16,7 +16,7 @@ from cohezion.environments.seagrass_percolation_env import (
 def test_observation_and_action_spaces() -> None:
     """Observation is 18D; action space is Discrete(32)."""
     env = SeagrassPercolationEnv(seed=0)
-    obs, info = env.reset()
+    obs, _info = env.reset()
     assert obs.shape == (N_PATCHES + 2,), f"Expected ({N_PATCHES + 2},), got {obs.shape}"
     assert obs.dtype == np.float32
     assert env.action_space.n == N_PATCHES * 2
@@ -56,7 +56,7 @@ def test_collapse_terminates_episode() -> None:
     # Kill all patches → zero giant component
     env._patch_health[:] = 0.0
     env._step_count = 0
-    _, _, terminated, truncated, info = env.step(0)
+    _, _, terminated, _truncated, info = env.step(0)
     assert terminated, "Episode should terminate on meadow collapse"
     assert info["giant_component_fraction"] < COLLAPSE_FRACTION
 

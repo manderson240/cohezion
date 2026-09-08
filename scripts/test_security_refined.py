@@ -22,7 +22,7 @@ def test_security():
         ("Base64 encoded string: SGVsbG8gV29ybGQ=", "SAFE (Short Base64)"),
     ]
 
-    for text, expected in test_cases:
+    for text, _expected in test_cases:
         analysis = guard.analyze(text)
         print(f"Text: {text}")
         print(f"Result: {analysis.threat_level.value} - {analysis.recommendation}")

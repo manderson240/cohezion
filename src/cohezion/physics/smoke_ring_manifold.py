@@ -17,10 +17,8 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Sequence
 
 from cohezion.contracts import PoincarePoint
-from cohezion.physics.poincare_manifold import PoincareManifoldND
 
 
 @dataclass(frozen=True, slots=True)

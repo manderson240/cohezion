@@ -11,6 +11,7 @@ Verifies that:
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -120,15 +121,13 @@ def test_executor_recorder_idempotent_under_repeated_execute_task():
     def trivial_fn(guidance: str) -> tuple[str, dict]:
         return "ok", {"coherence": 0.5, "duration_seconds": 0.001}
 
-    try:
+    with contextlib.suppress(Exception):
         ex.execute_task(
             task_description="test recorder idempotency",
             skill_name="test_skill",
             operation_type="generate",
             execute_fn=trivial_fn,
         )
-    except Exception:
-        pass
     assert ex._ouroboros_recorder._running == initial_running
 
 

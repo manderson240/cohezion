@@ -47,19 +47,17 @@ requirements = {
     "target_value": 0.50,
     "justification": "Why this change is needed",
     "constraints": ["must_be_positive", "backward_compatible"],
-    "acceptance_criteria": {"metric": 0.50}
+    "acceptance_criteria": {"metric": 0.50},
 }
 
 # Execute V-Model lifecycle
 adj_id = vmodel.adjust_lever_vmodel(
-    lever_name="deterministic_ratio",
-    target_value=0.50,
-    requirements=requirements
+    lever_name="deterministic_ratio", target_value=0.50, requirements=requirements
 )
 
 # Verify success
 status = vmodel.ve_process.get_lifecycle_status(adj_id)
-assert status['validated'], "V-Model validation failed"
+assert status["validated"], "V-Model validation failed"
 ```
 
 **Success Criteria**: 
@@ -129,9 +127,7 @@ async with CompoundSessionManager() as mgr:
 **Template**:
 ```python
 from cohezion.swarm.multi_agent_orchestrator import MultiAgentOrchestrator
-from cohezion.swarm.specialist_agents import (
-    CodeSpecialist, TestSpecialist, ValidationSpecialist
-)
+from cohezion.swarm.specialist_agents import CodeSpecialist, TestSpecialist, ValidationSpecialist
 
 orchestrator = MultiAgentOrchestrator()
 
@@ -143,7 +139,7 @@ orchestrator.register_specialist(TestSpecialist())
 task = {
     "type": "test_execution",
     "test_file": "tests/swarm/test_dynamic_levers.py",
-    "category": "unit_test"
+    "category": "unit_test",
 }
 
 result = await orchestror.route_task(task)
@@ -211,25 +207,26 @@ def auto_optimize_daemon():
     while True:
         for lever in lever_system.get_all_levers():
             progress = lever.get_progress_toward_goal()
-            
+
             if progress is None:
                 continue
-            
+
             if progress < 0.5 and lever.goal.optimize_direction == "maximize":
                 # Far from goal, push harder
                 lever.push(lever.range.step_size * 2)
                 log_auto_action(lever.name, "aggressive_push", progress)
-                
+
             elif progress < 0.8:
                 # Getting close, normal push
                 lever.push()
                 log_auto_action(lever.name, "normal_push", progress)
-                
+
             elif progress >= 1.0:
                 # Goal achieved, notify
                 notify_goal_achieved(lever.name)
-        
+
         time.sleep(300)  # Check every 5 minutes
+
 
 # Manual override always available
 if manual_override_detected():
@@ -258,13 +255,16 @@ if manual_override_detected():
 # Before session end
 learnings = extract_session_learnings(session_id)
 for learning in learnings:
-    surrealdb.create("session_learning", {
-        "session_id": session_id,
-        "statement": learning.statement,
-        "evidence": learning.evidence,
-        "confidence": learning.confidence,
-        "applicability": learning.applicability
-    })
+    surrealdb.create(
+        "session_learning",
+        {
+            "session_id": session_id,
+            "statement": learning.statement,
+            "evidence": learning.evidence,
+            "confidence": learning.confidence,
+            "applicability": learning.applicability,
+        },
+    )
 
 # At session start
 previous_learnings = surrealdb.query(
@@ -354,29 +354,26 @@ class AutoImprovingParser:
 class PhaseOptimizer:
     def analyze_phase_durations(self):
         """Find slow phases."""
-        lifecycle = get-vmodel-lifecycle(adjustment_id)
-        
-        durations = {
-            phase.name: phase.duration_ms 
-            for phase in lifecycle.phases
-        }
-        
+        lifecycle = get - vmodel - lifecycle(adjustment_id)
+
+        durations = {phase.name: phase.duration_ms for phase in lifecycle.phases}
+
         # Find bottleneck
         slowest = max(durations, key=durations.get)
-        
+
         return {
             "bottleneck": slowest,
             "suggestion": self.suggest_optimization(slowest),
-            "expected_improvement": durations[slowest] * 0.3  # 30% faster
+            "expected_improvement": durations[slowest] * 0.3,  # 30% faster
         }
-    
+
     def suggest_optimization(self, phase_name):
         """Suggest optimization based on phase type."""
         optimizations = {
             "unit_test": "Parallelize test execution",
             "integration_test": "Mock external dependencies",
             "system_test": "Cache system state between runs",
-            "validation": "Automate acceptance criteria checks"
+            "validation": "Automate acceptance criteria checks",
         }
         return optimizations.get(phase_name, "Profile for hotspots")
 ```
@@ -404,40 +401,38 @@ class PredictiveLeverAdjuster:
     def __init__(self):
         self.model = load_trained_model()  # ML model
         self.threshold = 0.7  # Prediction confidence
-    
+
     def predict_need_for_adjustment(self, lever_name):
         """Predict if lever needs adjustment soon."""
         # Get historical data
         history = lever_system.get_adjustment_history(lever_name)
         current_metrics = lever_system.get_current_metrics(lever_name)
-        
+
         # Features
         features = {
             "progress_trend": calculate_trend(history),
             "time_since_last_adjustment": time_since_last(history),
             "system_health": get_system_health(),
-            "related_lever_states": get_related_states(lever_name)
+            "related_lever_states": get_related_states(lever_name),
         }
-        
+
         # Predict
         prediction = self.model.predict(features)
-        
+
         if prediction["needs_adjustment"] and prediction["confidence"] > self.threshold:
             return {
                 "predicted_action": prediction["suggested_action"],
                 "confidence": prediction["confidence"],
-                "reason": prediction["explanation"]
+                "reason": prediction["explanation"],
             }
-        
+
         return None
-    
+
     def execute_predictive_adjustment(self, lever_name, prediction):
         """Execute with human approval."""
         # Request approval
-        approved = request_human_approval(
-            f"Predictive adjustment for {lever_name}: {prediction}"
-        )
-        
+        approved = request_human_approval(f"Predictive adjustment for {lever_name}: {prediction}")
+
         if approved:
             # Execute via V-Model as normal
             return vmodel.adjust_lever_vmodel(
@@ -446,10 +441,10 @@ class PredictiveLeverAdjuster:
                 requirements={
                     "goal": "Predictive optimization",
                     "justification": prediction["reason"],
-                    "predicted": True
-                }
+                    "predicted": True,
+                },
             )
-        
+
         return None
 ```
 
@@ -529,28 +524,25 @@ class MetricsStreamer:
         self.buffer = []
         self.buffer_size = 100
         self.flush_interval = 5  # seconds
-    
+
     async def stream_metrics(self):
         """Continuous metric collection."""
         while True:
             metrics = collect_system_metrics()
-            
-            self.buffer.append({
-                "timestamp": time.time(),
-                "metrics": metrics
-            })
-            
+
+            self.buffer.append({"timestamp": time.time(), "metrics": metrics})
+
             if len(self.buffer) >= self.buffer_size:
                 await self.flush_buffer()
-            
+
             await asyncio.sleep(self.flush_interval)
-    
+
     async def flush_buffer(self):
         """Write to SurrealDB."""
         for record in self.buffer:
             await self.db.create("metric_stream", record)
         self.buffer.clear()
-    
+
     def check_thresholds(self, metrics):
         """Alert on violations."""
         for threshold in configured_thresholds:

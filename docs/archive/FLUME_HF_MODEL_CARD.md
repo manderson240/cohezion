@@ -94,9 +94,7 @@ z_novel = model.semantic_add("quantum", "biology", scale=0.5)
 
 # Cross-domain bridging
 analog = model.cross_domain_bridge(
-    concept_a="electron",
-    domain_a_example="physics",
-    domain_b_example="biology"
+    concept_a="electron", domain_a_example="physics", domain_b_example="biology"
 )  # Returns: biological analog like "ion" or "signal"
 
 # Measure similarity
@@ -151,7 +149,7 @@ print(model.decode(z_mid))
 texts = [
     "Quantum mechanics describes particle behavior",
     "Classical physics describes macroscopic motion",
-    "Thermodynamics governs energy transfer"
+    "Thermodynamics governs energy transfer",
 ]
 z_batch = model.encode(texts)  # Shape: (3, 256)
 ```

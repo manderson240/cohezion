@@ -64,9 +64,7 @@ def validate_experiment_execution(module: object, exp_id: str) -> bool:
 
         required_fields = ["experiment_id", "status", "to_dict"]
 
-        missing_fields = [
-            f for f in required_fields if not hasattr(result, f)
-        ]
+        missing_fields = [f for f in required_fields if not hasattr(result, f)]
 
         if missing_fields:
             print(f"  ✗ {exp_id}: Result missing fields: {missing_fields}")
@@ -140,14 +138,18 @@ def validate_metrics_computation(module: object, exp_id: str) -> bool:
             if "recommendation" not in result_dict:
                 print(f"  ✗ {exp_id}: Missing recommendation")
                 return False
-            print(f"  ✓ {exp_id}: Metrics computed (recommendation={result_dict['recommendation']})")
+            print(
+                f"  ✓ {exp_id}: Metrics computed (recommendation={result_dict['recommendation']})"
+            )
 
         elif exp_id == "exp_WWWW2":
             # Should have variance comparison
             if "treatment_better_generalization" not in result_dict:
                 print(f"  ✗ {exp_id}: Missing generalization comparison")
                 return False
-            print(f"  ✓ {exp_id}: Metrics computed (generalization_improvement={result_dict['treatment_better_generalization']})")
+            print(
+                f"  ✓ {exp_id}: Metrics computed (generalization_improvement={result_dict['treatment_better_generalization']})"
+            )
 
         return True
 

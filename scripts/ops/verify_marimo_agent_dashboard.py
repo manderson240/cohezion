@@ -29,7 +29,7 @@ def verify_marimo_dashboard_structure() -> bool:
 
     required_snippets = [
         "import marimo as mo",
-        "app = marimo.App(width=\"full\")",
+        'app = marimo.App(width="full")',
         "mo.ui.dropdown",
         "mo.ui.text_area",
         "mo.ui.button",
@@ -45,7 +45,11 @@ def verify_marimo_dashboard_structure() -> bool:
             return False
         logger.info("  ✓ Verified snippet present: %s", snippet)
 
-    logger.info("  ✓ Verified notebook file size: %d bytes across %d lines", len(content), len(content.splitlines()))
+    logger.info(
+        "  ✓ Verified notebook file size: %d bytes across %d lines",
+        len(content),
+        len(content.splitlines()),
+    )
     return True
 
 

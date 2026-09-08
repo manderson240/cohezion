@@ -135,7 +135,9 @@ async def evaluate_full_roster() -> None:
         print(f"\n🔹 MODEL: {p.model_id}")
         print(f"   • Hardware Lane: {p.hardware_lane}")
         print(f"   • Primary Task Class: {p.primary_task_class.value.upper()}")
-        print(f"   • Catalog Size: {p.reported_size_gb:.2f} GB | Inflated Footprint (1.7x): {p.inflated_size_gb:.2f} GB")
+        print(
+            f"   • Catalog Size: {p.reported_size_gb:.2f} GB | Inflated Footprint (1.7x): {p.inflated_size_gb:.2f} GB"
+        )
         print(f"   • Load Safety Status: {status_str}")
         print(f"   • Sampling Defaults: {p.card_defaults}")
         print(f"   • WHEN TO RUN: {p.when_to_use}")

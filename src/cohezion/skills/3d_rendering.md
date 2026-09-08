@@ -37,44 +37,49 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
+ax = fig.add_subplot(111, projection="3d")
 
 # Scatter plot of trajectory points
-ax.scatter(x, y, z, c=coherence, cmap='viridis', s=10, alpha=0.7)
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-plt.savefig('trajectory_3d.png', dpi=150)
+ax.scatter(x, y, z, c=coherence, cmap="viridis", s=10, alpha=0.7)
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.set_zlabel("Z")
+plt.savefig("trajectory_3d.png", dpi=150)
 ```
 
 ### 2. Plotly (Interactive)
 ```python
 import plotly.graph_objects as go
 
-fig = go.Figure(data=[go.Scatter3d(
-    x=x, y=y, z=z,
-    mode='markers',
-    marker=dict(size=3, color=coherence, colorscale='Viridis')
-)])
-fig.update_layout(title='Universe Trajectory')
-fig.write_html('trajectory_interactive.html')
+fig = go.Figure(
+    data=[
+        go.Scatter3d(
+            x=x,
+            y=y,
+            z=z,
+            mode="markers",
+            marker=dict(size=3, color=coherence, colorscale="Viridis"),
+        )
+    ]
+)
+fig.update_layout(title="Universe Trajectory")
+fig.write_html("trajectory_interactive.html")
 ```
 
 ### 3. Manim (Animated)
 ```python
 from manim import *
 
+
 class UniverseTrajectory(ThreeDScene):
     def construct(self):
         axes = ThreeDAxes()
-        self.set_camera_orientation(phi=75*DEGREES, theta=-45*DEGREES)
+        self.set_camera_orientation(phi=75 * DEGREES, theta=-45 * DEGREES)
         self.add(axes)
 
         # Create trajectory curve
         trajectory = ParametricFunction(
-            lambda t: np.array([np.sin(t), np.cos(t), t/5]),
-            t_range=[0, 4*PI],
-            color=BLUE
+            lambda t: np.array([np.sin(t), np.cos(t), t / 5]), t_range=[0, 4 * PI], color=BLUE
         )
         self.play(Create(trajectory), run_time=5)
 ```

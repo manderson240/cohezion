@@ -1,5 +1,5 @@
-import pytest
 from cohezion.agi.autoharness_compiler import AutoHarnessCompiler
+
 
 def test_autoharness_compiler():
     rule_expr = "len(grid) <= 30 and mass > 0"
@@ -12,6 +12,7 @@ def test_autoharness_compiler():
     # Invalid state
     state_invalid = {"grid": [[1, 2]], "mass": -2.0}
     assert evaluator(state_invalid) is False
+
 
 def test_autoharness_compiler_latency():
     rule_expr = "mass > 0 and len(grid) <= 30"

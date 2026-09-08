@@ -92,8 +92,8 @@ patterns = await bridge.analyze_exhaust_patterns(component="vault_mcp")
 
 # Returns:
 {
-    "clusters": 3,          # Semantic clusters found
-    "anomalies": 2,         # Outlier failures
+    "clusters": 3,  # Semantic clusters found
+    "anomalies": 2,  # Outlier failures
     "mean_distance": 0.45,  # Cluster tightness
 }
 ```
@@ -102,8 +102,7 @@ patterns = await bridge.analyze_exhaust_patterns(component="vault_mcp")
 ```python
 # Distill exhaust patterns to wiki synthesis
 distilled = await bridge.distill_knowledge(
-    source_category="ouroboros/exhaust",
-    target_category="synthesis"
+    source_category="ouroboros/exhaust", target_category="synthesis"
 )
 
 # Creates: /wiki/synthesis/distilled_exhaust.md
@@ -113,9 +112,7 @@ distilled = await bridge.distill_knowledge(
 ```python
 # Capture agent trajectory through wiki
 trajectory = await bridge.capture_trajectory(
-    agent_id="agent_1",
-    path=[wiki.get_page(p) for p in navigation_path],
-    task="diagnose_failure"
+    agent_id="agent_1", path=[wiki.get_page(p) for p in navigation_path], task="diagnose_failure"
 )
 
 # Generate rewrite from trajectory analysis
@@ -212,10 +209,7 @@ wiki/flume/embeddings/
 ### Similarity Search
 ```python
 # Find wiki pages semantically close to query
-results = await bridge.search_by_embedding(
-    query="coherence failure handling",
-    limit=5
-)
+results = await bridge.search_by_embedding(query="coherence failure handling", limit=5)
 
 # Returns: [(path, similarity), ...]
 # Sorted by cosine similarity in 256D space
@@ -250,10 +244,7 @@ OUROBOROS_DIVERGENCE_PATIENCE=3
 wiki = ObsidianWiki(vault_path)
 
 # 2. Initialize FLUME Bridge
-bridge = FlumeOuroborosBridge(
-    wiki=wiki,
-    embedding_model="all-MiniLM-L6-v2"
-)
+bridge = FlumeOuroborosBridge(wiki=wiki, embedding_model="all-MiniLM-L6-v2")
 
 # 3. Start Ouroboros
 engine = OuroborosWikiEngine(

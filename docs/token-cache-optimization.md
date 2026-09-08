@@ -23,8 +23,8 @@ Provides both exact and fuzzy matching for cache hits:
 from cohezion.swarm.multi_layer_cache import SemanticCacheStore
 
 cache = SemanticCacheStore(
-    max_entries=2048,           # Max cached prompts
-    similarity_threshold=0.65   # Fuzzy match threshold (0-1)
+    max_entries=2048,  # Max cached prompts
+    similarity_threshold=0.65,  # Fuzzy match threshold (0-1)
 )
 ```
 
@@ -49,14 +49,11 @@ key = pools.register_pool(
     operation_type="generate",
     skill_name="code_generator",
     template_text="Generate {language} code for {task}",
-    placeholders={"language": "Python", "task": "sorting"}
+    placeholders={"language": "Python", "task": "sorting"},
 )
 
 # Use template
-context = pools.fill_pool(key, {
-    "language": "JavaScript",
-    "task": "filtering"
-})
+context = pools.fill_pool(key, {"language": "JavaScript", "task": "filtering"})
 ```
 
 ### 3. KV-Cache Optimizer
@@ -103,7 +100,7 @@ cache = MultiLayerCache(
     cache_dir=Path("data/cache"),
     semantic_max_entries=2048,
     context_pool_max=128,
-    persistence_enabled=True
+    persistence_enabled=True,
 )
 
 # During inference
@@ -111,7 +108,7 @@ response, layer = cache.get(
     prompt="Analyze this code",
     system="You are a code reviewer",
     model="qwen3-coder:30b",
-    operation_type="analyze"
+    operation_type="analyze",
 )
 
 if response:
@@ -125,7 +122,7 @@ else:
         prompt_tokens=145,
         response_tokens=256,
         system="You are a code reviewer",
-        model="qwen3-coder:30b"
+        model="qwen3-coder:30b",
     )
 
 # Monitoring
@@ -145,19 +142,16 @@ Wraps MultiLayerCache with TokenEfficientClient integration and auto-tuning:
 
 ### Configuration
 ```python
-from cohezion.swarm.token_cache_optimizer import (
-    TokenCacheOptimizer,
-    CacheOptimizationConfig
-)
+from cohezion.swarm.token_cache_optimizer import TokenCacheOptimizer, CacheOptimizationConfig
 
 config = CacheOptimizationConfig(
-    semantic_cache_size=2048,      # Semantic cache entries
-    context_pool_size=128,         # Pool templates
-    similarity_threshold=0.65,     # Fuzzy match threshold
-    persistence_enabled=True,      # Save cache to disk
-    auto_tune_enabled=True,        # Auto-adjust parameters
-    cross_model_sharing=True,      # Share cache between compatible models
-    defrag_threshold=30.0          # Defrag when fragmentation > 30%
+    semantic_cache_size=2048,  # Semantic cache entries
+    context_pool_size=128,  # Pool templates
+    similarity_threshold=0.65,  # Fuzzy match threshold
+    persistence_enabled=True,  # Save cache to disk
+    auto_tune_enabled=True,  # Auto-adjust parameters
+    cross_model_sharing=True,  # Share cache between compatible models
+    defrag_threshold=30.0,  # Defrag when fragmentation > 30%
 )
 
 optimizer = TokenCacheOptimizer(config)
@@ -186,10 +180,7 @@ cache_opt = get_token_cache_optimizer()
 
 # During inference
 response, layer = cache_opt.get_cached_or_none(
-    prompt=user_prompt,
-    system=system_prompt,
-    model="phi3:mini",
-    operation_type="generate"
+    prompt=user_prompt, system=system_prompt, model="phi3:mini", operation_type="generate"
 )
 
 if response:
@@ -206,7 +197,7 @@ else:
         response_tokens=response_token_count,
         system=system_prompt,
         model="phi3:mini",
-        operation_type="generate"
+        operation_type="generate",
     )
 
 # Monitoring
@@ -328,13 +319,13 @@ For AMD Ryzen AI MAX+ 395 with 128GB VRAM:
 
 ```python
 CacheOptimizationConfig(
-    semantic_cache_size=2048,      # ~100-150MB for 2048 entries
-    context_pool_size=128,         # ~10-20MB
-    similarity_threshold=0.65,     # Balance precision/recall
-    persistence_enabled=True,      # Enable warm starts
-    auto_tune_enabled=True,        # Learn from workload
-    cross_model_sharing=True,      # Maximize reuse
-    defrag_threshold=30.0          # Aggressive defrag
+    semantic_cache_size=2048,  # ~100-150MB for 2048 entries
+    context_pool_size=128,  # ~10-20MB
+    similarity_threshold=0.65,  # Balance precision/recall
+    persistence_enabled=True,  # Enable warm starts
+    auto_tune_enabled=True,  # Learn from workload
+    cross_model_sharing=True,  # Maximize reuse
+    defrag_threshold=30.0,  # Aggressive defrag
 )
 ```
 
@@ -344,15 +335,12 @@ The cache automatically saves to disk:
 
 ```python
 # First session: Build cache
-cache = MultiLayerCache(
-    cache_dir=Path("data/cache"),
-    persistence_enabled=True
-)
+cache = MultiLayerCache(cache_dir=Path("data/cache"), persistence_enabled=True)
 
 # Subsequent sessions: Load cached state
 cache2 = MultiLayerCache(
     cache_dir=Path("data/cache"),  # Same directory
-    persistence_enabled=True       # Auto-loads existing cache
+    persistence_enabled=True,  # Auto-loads existing cache
 )
 
 # Warm start benefits:

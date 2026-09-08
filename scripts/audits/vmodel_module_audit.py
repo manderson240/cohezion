@@ -23,6 +23,7 @@ Writes JSON to docs/audits/vmodel_manifest.json and prints a markdown table.
 Report-only. Per user directive (2026-06-05): orphans are WIRED, never deleted —
 this script flags them; the report proposes the wiring target.
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -62,9 +63,7 @@ def loc(path: Path) -> int:
 
 
 def module_dirs() -> list[Path]:
-    return sorted(
-        d for d in SRC.iterdir() if d.is_dir() and d.name not in SKIP
-    )
+    return sorted(d for d in SRC.iterdir() if d.is_dir() and d.name not in SKIP)
 
 
 def count_external_importers(name: str) -> int:
@@ -165,7 +164,7 @@ def main() -> int:
         print(
             f"| {r['module']} | {r['py_recursive']} | "
             f"{'Y' if r['has_init'] else '**N**'} | "
-            f"{r['max_loc']}{'!' if r['loc_flag']=='HARD' else ('~' if r['loc_flag']=='warn' else '')} | "
+            f"{r['max_loc']}{'!' if r['loc_flag'] == 'HARD' else ('~' if r['loc_flag'] == 'warn' else '')} | "
             f"{r['test_files'] if r['test_dir'] else '**0**'} | "
             f"{'ok' if r['compile_ok'] else '**FAIL**'} | "
             f"{r['ext_importers']} | {r['harness_refs']} | "
@@ -176,7 +175,9 @@ def main() -> int:
     no_init = [r["module"] for r in rows if not r["has_init"]]
     no_tests = [r["module"] for r in rows if not r["test_dir"]]
     orphans = [r["module"] for r in rows if r["orphan"]]
-    hard = [f"{r['module']}/{r['max_file']}({r['max_loc']})" for r in rows if r["loc_flag"] == "HARD"]
+    hard = [
+        f"{r['module']}/{r['max_file']}({r['max_loc']})" for r in rows if r["loc_flag"] == "HARD"
+    ]
     fails = [r["module"] for r in rows if not r["compile_ok"]]
     print(f"\n**Totals:** {n} modules")
     print(f"- missing __init__.py ({len(no_init)}): {', '.join(no_init)}")

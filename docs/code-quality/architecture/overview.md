@@ -248,7 +248,7 @@ security_metrics = {
     "dependabot_alerts_open": 0,
     "avg_time_to_fix": "3 days",
     "false_positive_rate": 0.05,
-    "ci_security_failures": 0
+    "ci_security_failures": 0,
 }
 ```
 

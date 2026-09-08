@@ -25,6 +25,7 @@ Embedding zero-dependency, autonomous multi-agent swarms (Hypothesis Generator, 
 ```python
 class EmbeddedKaggleSwarm:
     """Coordinates in-memory multi-agent hypothesis, synthesis, verification, and reflection."""
+
     def __init__(self, task: dict, time_budget: float = 60.0):
         self.task = task
         self.time_budget = time_budget
@@ -35,19 +36,19 @@ class EmbeddedKaggleSwarm:
         t0 = time.perf_counter()
         # Step 1: Hypothesis Agent
         hyp = HypothesisAgent.analyze(self.task)
-        
+
         while (time.perf_counter() - t0) < self.time_budget:
             # Step 2: Synthesizer Agent (GPU 1)
             code = ProgramSynthesizerAgent.generate(self.task, hyp)
-            
+
             # Step 3: Verifier Agent (CPU AST)
             passed, err = VerifierAgent.verify(self.task, code)
             if passed:
                 return code
-                
+
             # Step 4: Reflector Agent (GPU 0)
             hyp = ReflectorAgent.mutate(hyp, err)
-            
+
         return FallbackHeuristics.best_guess(self.task)
 ```
 

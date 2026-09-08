@@ -5,11 +5,13 @@ Exports consumed by tests/integrations/test_robinhood_bridge.py.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import StrEnum
 import json
 import logging
+from dataclasses import dataclass
+from enum import StrEnum
+
 import httpx
+
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +87,9 @@ class OrderProposal:
         )
         symbol_str = self.intent.symbol or "?"
         qty_str = f"{self.intent.quantity} shares of " if self.intent.quantity is not None else ""
-        price_str = f" at ${self.intent.limit_price:.2f}" if self.intent.limit_price is not None else ""
+        price_str = (
+            f" at ${self.intent.limit_price:.2f}" if self.intent.limit_price is not None else ""
+        )
         order_type_str = f" ({self.intent.order_type.upper()})" if self.intent.order_type else ""
         return f"{action_str} {qty_str}{symbol_str}{price_str}{order_type_str}"
 
@@ -247,7 +251,9 @@ class RobinhoodBridge:
         else:
             mcp_tool = intent.action.mcp_tool
             if intent.action == TradeAction.UNKNOWN:
-                reply = "Sorry, unknown action. Try: portfolio, positions, balances, news, or buy/sell."
+                reply = (
+                    "Sorry, unknown action. Try: portfolio, positions, balances, news, or buy/sell."
+                )
             else:
                 tool_str = f"Using tool {mcp_tool}" if mcp_tool else ""
                 symbol_str = f" for {intent.symbol}" if intent.symbol else ""

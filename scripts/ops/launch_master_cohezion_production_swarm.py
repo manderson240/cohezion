@@ -36,33 +36,49 @@ async def main_async() -> None:
 
     # Step 1: Proactive Local Delegation
     delegator = ProactiveLocalDelegator()
-    del_res = await delegator.delegate_action_locally("Master Swarm Code Gen", "Generate verified Cohezion module", "coding")
-    print(f"  • [1/6] Local Silicon Delegation: `{del_res.selected_model}` on {del_res.target_hardware} ({del_res.execution_time_ms:.2f} ms)")
+    del_res = await delegator.delegate_action_locally(
+        "Master Swarm Code Gen", "Generate verified Cohezion module", "coding"
+    )
+    print(
+        f"  • [1/6] Local Silicon Delegation: `{del_res.selected_model}` on {del_res.target_hardware} ({del_res.execution_time_ms:.2f} ms)"
+    )
 
     # Step 2: Zero-Inference AST Dispatch
     zero_inf = ZeroInferenceEngine()
     zres = await zero_inf.process_intent_zero_inference("verify safety policy constraints")
-    print(f"  • [2/6] Zero-Inference AST Fast-Path: Bypassed LLM in {zres.execution_time_us:.2f} µs ($0.00 cost)")
+    print(
+        f"  • [2/6] Zero-Inference AST Fast-Path: Bypassed LLM in {zres.execution_time_us:.2f} µs ($0.00 cost)"
+    )
 
     # Step 3: Graph & Systems V-Model Cycle
     vmodel = GraphSystemsVModelEngine()
     vres = await vmodel.execute_graph_vmodel_cycle("Master Production Mission", "swarm_production")
-    print(f"  • [3/6] V-Model Systems Engineering: Multiperspective Score = {vres.multiperspective_score:.4f} ({vres.execution_time_ms:.2f} ms)")
+    print(
+        f"  • [3/6] V-Model Systems Engineering: Multiperspective Score = {vres.multiperspective_score:.4f} ({vres.execution_time_ms:.2f} ms)"
+    )
 
     # Step 4: Spontaneous Symmetry Breaking
     sym_engine = SymmetryBreakingEngine(num_nodes=12)
     sres = await sym_engine.execute_symmetry_breaking()
-    print(f"  • [4/6] Spontaneous Symmetry Breaking: Order Parameter Phi = {sres.final_order_parameter:.4f} ({sres.execution_time_ms:.2f} ms)")
+    print(
+        f"  • [4/6] Spontaneous Symmetry Breaking: Order Parameter Phi = {sres.final_order_parameter:.4f} ({sres.execution_time_ms:.2f} ms)"
+    )
 
     # Step 5: FLUME 256-Dim z-Vector Manifold Routing
     flume_router = FLUMETrajectoryRouter()
-    fres = await flume_router.route_journey_through_flume("master_prod_01", "Master Swarm Trajectory")
-    print(f"  • [5/6] FLUME Manifold Routing: 5 Expert Streams Coherence = {fres.flume_coherence:.4f}")
+    fres = await flume_router.route_journey_through_flume(
+        "master_prod_01", "Master Swarm Trajectory"
+    )
+    print(
+        f"  • [5/6] FLUME Manifold Routing: 5 Expert Streams Coherence = {fres.flume_coherence:.4f}"
+    )
 
     # Step 6: 4-Tier V&V Empirical Certification
     proof_harness = EmpiricalProofHarness()
     proofs = await proof_harness.execute_full_proof_suite()
-    print(f"  • [6/6] 4-Tier V&V Certification: {len(proofs)} / {len(proofs)} Tiers CERTIFIED 100% PROVEN")
+    print(
+        f"  • [6/6] 4-Tier V&V Certification: {len(proofs)} / {len(proofs)} Tiers CERTIFIED 100% PROVEN"
+    )
 
     dt_sec = round(time.perf_counter() - t0, 3)
     print("=" * 100)

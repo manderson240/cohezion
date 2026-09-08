@@ -18,8 +18,9 @@ from typing import Any
 
 import pytest
 
+import cohezion.inference.model_sprint_orchestrator as mso
 from cohezion.core.event_bus import EventBus
-from cohezion.inference import hotswap
+from cohezion.inference import hotswap, oom_guard
 from cohezion.inference.fleet_roles import FleetRoster
 from cohezion.inference.model_sprint_orchestrator import (
     MODEL_LOAD_LOCK,
@@ -28,6 +29,36 @@ from cohezion.inference.model_sprint_orchestrator import (
     run_model_sprint,
 )
 from cohezion.researcher.daily_researcher import FleetLock
+
+
+@pytest.fixture(autouse=True)
+def _offline_catalog(monkeypatch, catalog):
+    """Honour the module docstring: Lemonade HTTP AND /proc/meminfo are mocked.
+
+    ``run_sprint`` calls ``roster.catalog(force=True)``, which bypassed the fixture
+    catalog and fetched the LIVE :13305 catalog. Expectations were then taken from
+    whatever the fleet happened to serve: green with the router up, red on the CI
+    runner where nothing listens (the gating-inference failure on main, 2026-09).
+    The pre-load gate's RAM read (``oom_guard.check_ram``) was likewise unmocked:
+    the runner had 15.2 GiB free, under the 16 GiB floor.
+    """
+    monkeypatch.setattr(FleetRoster, "catalog", lambda self, force=False, **_: self._cache)
+    monkeypatch.setattr(oom_guard, "check_ram", lambda min_free_gb=20.0: (True, 100.0))
+    # pre_load_gate's size heuristic fetches the router catalog itself (oom_guard._get_catalog);
+    # with the router up that call succeeded slowly (10-30 s per test) and made the gate's
+    # verdict depend on the live fleet instead of the fixture.
+    monkeypatch.setattr(oom_guard, "_get_catalog", lambda base_url=None, **_: catalog)
+    # Refusal paths persist a kanban item (SurrealDB :8001 + vault) — real I/O the docstring
+    # says is mocked; with the services up each refusal cost ~10 s of wall clock.
+    monkeypatch.setattr(mso, "persist_item", lambda item: {"surreal": True, "obsidian": True})
+    # hotswap's own router reads (health / models, 10 s timeouts each — and the router's
+    # health endpoint is known to block) and the gate's per-model recipe fetch. Tests that
+    # care override resident_models / _catalog_sizes; these are the hermetic defaults.
+    monkeypatch.setattr(hotswap, "resident_models", lambda: [])
+    monkeypatch.setattr(
+        hotswap, "_catalog_sizes", lambda: {m["id"]: m["size"] for m in catalog if m.get("size")}
+    )
+    monkeypatch.setattr(oom_guard, "_get_recipe_options", lambda base_url, model_name, **_: {})
 
 
 @pytest.fixture
@@ -45,7 +76,8 @@ def catalog():
             "recipe": "llamacpp",
         },
         {"id": "Bonsai-1.7B-gguf", "labels": ["tool-calling"], "size": 0.231, "recipe": "llamacpp"},
-        {"id": "gemma3-1b-FLM", "labels": [], "size": None, "recipe": "flm"},
+        # Exactly ONE npu_route candidate: a second FLM 1B entry ties on the role's name
+        # hints and the winner becomes a stable-sort accident (see MS1).
         {"id": "llama3.2-1b-FLM", "labels": [], "size": None, "recipe": "flm"},
     ]
 
@@ -77,22 +109,43 @@ def orchestrator(base_url, roster, bus):
 
 class TestModelSprintOrchestrator:
     def test_already_resident_short_circuits(self, monkeypatch, orchestrator):
-        """MS1: if the selected model is already resident, no load/unload happens."""
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}])
-        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"llama3.2-1b-FLM": 1.0})
+        """MS1: if the selected model is already resident, no load/unload happens.
+
+        The expectation is a literal, not ``roster.select(...)`` (that would be
+        circular). Determinism comes from the fixture catalog carrying exactly one
+        npu_route candidate — asserted first so a future tying entry fails HERE
+        with the cause named, not downstream as a wrong model_id.
+
+        RAM is pinned BELOW the floor: a resident model needs no load, so the RAM
+        gate must not run for it. Re-ordering the gate ahead of the residency
+        check (the shape that failed on the CI runner) turns this test red.
+        """
+        expected = "llama3.2-1b-FLM"
+        assert orchestrator.roster.select("npu_route") == expected, (
+            "fixture catalog must have exactly one npu_route candidate (no name-hint ties)"
+        )
+        monkeypatch.setattr(oom_guard, "check_ram", lambda min_free_gb=20.0: (False, 5.0))
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [{"model_name": expected, "last_use": 1, "is_busy": False, "loaded": True}],
+        )
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {expected: 1.0})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
 
         seen_load: list[tuple[Any, ...]] = []
+
         def _post(*a, **k):
             seen_load.append(a)
             return 200, "ok"
+
         monkeypatch.setattr(hotswap, "_post", _post)
 
         result = asyncio.run(orchestrator.run_sprint(["route"]))
         assert len(result) == 1
         r = result[0]
         assert r.role == "route"
-        assert r.model_id == "llama3.2-1b-FLM"
+        assert r.model_id == expected
         assert r.ok is True
         assert r.already_resident is True
         assert seen_load == []
@@ -126,26 +179,39 @@ class TestModelSprintOrchestrator:
         monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
 
         calls: list[tuple[str, dict]] = []
+
         def _post(path, payload, timeout):
             calls.append((path, payload))
             return 200, "ok"
+
         monkeypatch.setattr(hotswap, "_post", _post)
 
         # After load, resident_models returns the new model too
         loaded: list[bool] = []
+
         def _resident():
             if loaded:
-                return [{"model_name": "Bonsai-1.7B-gguf", "last_use": 2, "is_busy": False, "loaded": True}]
+                return [
+                    {
+                        "model_name": "Bonsai-1.7B-gguf",
+                        "last_use": 2,
+                        "is_busy": False,
+                        "loaded": True,
+                    }
+                ]
             loaded.append(True)
             return [{"model_name": "old-model", "last_use": 1, "is_busy": False, "loaded": True}]
+
         monkeypatch.setattr(hotswap, "resident_models", _resident)
 
         events: list[Any] = []
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append((event.type.name, event.payload.get("model_id")))
+
             def publish_sync(self, event):
                 events.append((event.type.name, event.payload.get("model_id")))
 
@@ -172,8 +238,10 @@ class TestModelSprintOrchestrator:
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append(event.payload)
+
             def publish_sync(self, event):
                 events.append(event.payload)
 
@@ -185,11 +253,30 @@ class TestModelSprintOrchestrator:
         assert any(p.get("model_id") == "Qwen3.6-35B-A3B-MTP-GGUF" for p in events)
 
     def test_fleet_lock_acquired_for_load(self, monkeypatch, orchestrator):
-        """MS5: the orchestrator acquires the fleet lock before calling load."""
+        """MS5: the orchestrator acquires the fleet lock before calling load.
+
+        The target must NOT already be resident — a resident model is a no-op that
+        (correctly) takes no lock. The model becomes resident after the mocked load.
+        """
         monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"Bonsai-1.7B-gguf": 0.231})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 20.0)
         monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "Bonsai-1.7B-gguf", "last_use": 1, "is_busy": False, "loaded": True}])
+        loaded: list[bool] = []
+
+        def _resident():
+            if loaded:
+                return [
+                    {
+                        "model_name": "Bonsai-1.7B-gguf",
+                        "last_use": 2,
+                        "is_busy": False,
+                        "loaded": True,
+                    }
+                ]
+            loaded.append(True)
+            return [{"model_name": "old-model", "last_use": 1, "is_busy": False, "loaded": True}]
+
+        monkeypatch.setattr(hotswap, "resident_models", _resident)
 
         lock_key_seen: list[str | None] = [None]
         original_acquire = orchestrator.lock.acquire
@@ -213,30 +300,48 @@ class TestModelSprintOrchestrator:
         monkeypatch.setattr(hotswap, "free_gb", lambda: 20.0)
         monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
         monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "Bonsai-1.7B-gguf", "last_use": 1, "is_busy": False, "loaded": True}])
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [
+                {"model_name": "Bonsai-1.7B-gguf", "last_use": 1, "is_busy": False, "loaded": True}
+            ],
+        )
 
         events: list[Any] = []
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append((event.type.name, event.payload.get("new_models")))
+
             def publish_sync(self, event):
                 events.append((event.type.name, event.payload.get("new_models")))
 
         orchestrator.bus = _FakeBus()
 
-        asyncio.run(orchestrator.update_on_roster_change(
-            new_models=["Bonsai-1.7B-gguf"],
-            removed_models=[],
-            current_models=["Bonsai-1.7B-gguf"],
-        ))
+        asyncio.run(
+            orchestrator.update_on_roster_change(
+                new_models=["Bonsai-1.7B-gguf"],
+                removed_models=[],
+                current_models=["Bonsai-1.7B-gguf"],
+            )
+        )
 
-        assert any(t == "MODEL_ROSTER_CHANGED" and "Bonsai-1.7B-gguf" in (new or []) for t, new in events)
+        assert any(
+            t == "MODEL_ROSTER_CHANGED" and "Bonsai-1.7B-gguf" in (new or []) for t, new in events
+        )
 
     def test_run_model_sprint_one_shot(self, monkeypatch, base_url):
         """MS7: the convenience one-shot runs without crashing."""
-        monkeypatch.setattr(hotswap, "resident_models", lambda: [{"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}])
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [
+                {"model_name": "llama3.2-1b-FLM", "last_use": 1, "is_busy": False, "loaded": True}
+            ],
+        )
         monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"llama3.2-1b-FLM": 1.0})
         monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
 

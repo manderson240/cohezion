@@ -33,10 +33,11 @@ from pathlib import Path
 
 QUANTUM_PATH = Path("/dev/shm/cohezion_quantum_state.json")
 
+
 def update_quantum_state(**kwargs):
     # R-M-W Cycle with Lock
-    with open(QUANTUM_PATH, 'r+') as f:
-        fcntl.flock(f, fcntl.LOCK_EX) # Exclusive Lock
+    with open(QUANTUM_PATH, "r+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)  # Exclusive Lock
         try:
             data = json.load(f)
         except:
@@ -45,11 +46,12 @@ def update_quantum_state(**kwargs):
         f.seek(0)
         json.dump(data, f)
         f.truncate()
-        fcntl.flock(f, fcntl.LOCK_UN) # Release
+        fcntl.flock(f, fcntl.LOCK_UN)  # Release
+
 
 def read_quantum_state():
-    with open(QUANTUM_PATH, 'r') as f:
-        fcntl.flock(f, fcntl.LOCK_SH) # Shared Lock
+    with open(QUANTUM_PATH, "r") as f:
+        fcntl.flock(f, fcntl.LOCK_SH)  # Shared Lock
         return json.load(f)
 ```
 

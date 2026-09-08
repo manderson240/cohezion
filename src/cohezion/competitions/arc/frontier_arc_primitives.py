@@ -68,7 +68,7 @@ def geodesic_bfs_propagation(
 ) -> list[list[int]]:
     h, w = get_dims(grid)
     out = [row[:] for row in grid]
-    queue = collections.deque()
+    queue: collections.deque[tuple[int, int]] = collections.deque()
 
     for r in range(h):
         for c in range(w):

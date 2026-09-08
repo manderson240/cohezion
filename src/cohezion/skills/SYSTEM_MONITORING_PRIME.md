@@ -31,6 +31,7 @@ You are a performance engineer specialized in **real‑time system monitoring** 
    - Every 5 seconds, poll the following:  
      ```python
      import psutil, json, time, pathlib
+
      snapshot = {
          "timestamp": time.time(),
          "cpu_percent": psutil.cpu_percent(percpu=True),
@@ -39,8 +40,12 @@ You are a performance engineer specialized in **real‑time system monitoring** 
          "swap": psutil.swap_memory()._asdict(),
          "disk": psutil.disk_io_counters(perdisk=False)._asdict(),
          "processes": [
-             {"pid": p.pid, "name": p.name(), "cpu_percent": p.cpu_percent(),
-              "memory_info": p.memory_info()._asdict()}
+             {
+                 "pid": p.pid,
+                 "name": p.name(),
+                 "cpu_percent": p.cpu_percent(),
+                 "memory_info": p.memory_info()._asdict(),
+             }
              for p in psutil.process_iter(attrs=["pid", "name"])
              if "ollama" in p.info["name"] or "python" in p.info["name"]
          ],

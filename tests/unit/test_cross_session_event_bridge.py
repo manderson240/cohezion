@@ -1,8 +1,11 @@
-import pytest
 import asyncio
 from unittest.mock import AsyncMock
-from cohezion.core.event_bus import EventBus, Event
+
+import pytest
+
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
+from cohezion.core.event_bus import Event, EventBus
+
 
 @pytest.mark.asyncio
 async def test_cross_session_event_bridge_initialization_and_publish():
@@ -10,9 +13,13 @@ async def test_cross_session_event_bridge_initialization_and_publish():
     await bus.start()
 
     mock_surreal = AsyncMock()
-    mock_surreal.query.return_value = [{"result": [{"type": "AGENT_COMPLETE", "source": "agent_alpha"}]}]
+    mock_surreal.query.return_value = [
+        {"result": [{"type": "AGENT_COMPLETE", "source": "agent_alpha"}]}
+    ]
 
-    bridge = CrossSessionEventBridge(event_bus=bus, session_id="session_test_101", surreal_client=mock_surreal)
+    bridge = CrossSessionEventBridge(
+        event_bus=bus, session_id="session_test_101", surreal_client=mock_surreal
+    )
     await bridge.initialize()
 
     evt = Event.agent_start("agent_alpha", model="deepseek-r1")

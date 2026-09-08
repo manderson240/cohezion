@@ -19,10 +19,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from durable_swarm_output import DurableRun
-
+from durable_swarm_output import DurableRun  # noqa: E402
 
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
 MODEL = "Qwen3.6-35B-A3B-MTP-GGUF"
@@ -52,17 +50,20 @@ SOURCE PAGE ({name}):
 
 
 def call(body: str, name: str, timeout: int = 600) -> str:
-    payload = json.dumps({
-        "model": MODEL,
-        "messages": [{"role": "user", "content": PROMPT.format(name=name, body=body[:16000])}],
-        # Thinking model: measured 8,798 chars of reasoning_content on vae.md, which consumed
-        # 2,723 of a 3,000-token budget and left content EMPTY. See
-        # skill thinking-model-token-budget-gate-trap.
-        "max_tokens": 9000,
-        "temperature": 0.15,
-    }).encode()
-    req = urllib.request.Request(LEMONADE, data=payload,
-                                 headers={"Content-Type": "application/json"})
+    payload = json.dumps(
+        {
+            "model": MODEL,
+            "messages": [{"role": "user", "content": PROMPT.format(name=name, body=body[:16000])}],
+            # Thinking model: measured 8,798 chars of reasoning_content on vae.md, which consumed
+            # 2,723 of a 3,000-token budget and left content EMPTY. See
+            # skill thinking-model-token-budget-gate-trap.
+            "max_tokens": 9000,
+            "temperature": 0.15,
+        }
+    ).encode()
+    req = urllib.request.Request(
+        LEMONADE, data=payload, headers={"Content-Type": "application/json"}
+    )
     with urllib.request.urlopen(req, timeout=timeout) as r:
         d = json.loads(r.read())
     return (d["choices"][0]["message"].get("content") or "").strip()
@@ -108,7 +109,7 @@ def main() -> None:
         src = f.read_text(encoding="utf-8", errors="replace")
         try:
             note = call(src, f.stem)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             note, err = "", f"{type(e).__name__}: {e}"
             run.record_lane({"lane": f.stem, "rejected": err})
             print(f"  {f.stem:<16} FAILED {err}")
@@ -116,10 +117,19 @@ def main() -> None:
         g = groundedness(note, src)
         verdict = "OK" if g["score"] >= 0.8 else "QUARANTINED"
         (out_dir / f"{f.stem}.md").write_text(note)
-        run.record_lane({"lane": f.stem, "verdict": verdict, "groundedness": g,
-                         "chars": len(note), "rejected": "" if verdict == "OK" else "ungrounded"})
-        print(f"  {f.stem:<16} {verdict:<12} score={g['score']:<6} "
-              f"checked={g['checked']:<4} missing={g['missing'][:5]}")
+        run.record_lane(
+            {
+                "lane": f.stem,
+                "verdict": verdict,
+                "groundedness": g,
+                "chars": len(note),
+                "rejected": "" if verdict == "OK" else "ungrounded",
+            }
+        )
+        print(
+            f"  {f.stem:<16} {verdict:<12} score={g['score']:<6} "
+            f"checked={g['checked']:<4} missing={g['missing'][:5]}"
+        )
 
     run.finalize({"source": "github.com/deepgenerativemodels/notes", "model": MODEL})
     print(f"finalized: {run.dir}")

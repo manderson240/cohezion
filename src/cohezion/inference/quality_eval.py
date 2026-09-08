@@ -21,13 +21,30 @@ import re
 from dataclasses import dataclass
 
 
-# Uncertainty markers that signal the model doesn't know the answer.
-# Presence of these in a short response → escalate.
-_UNCERTAINTY_MARKERS = (
+# Uncertainty markers, in two tiers.
+#
+# STRONG: an explicit admission of ignorance. In a short answer, or as a
+# generation's OPENING sentence, this means the model doesn't know -- escalate.
+# WEAK: a hedge. Ordinary mid-paragraph prose; only the categorical gate (which
+# demands a single confident label) treats these as disqualifying.
+#
+# Named, NOT a positional slice. These three call sites previously read
+# `_UNCERTAINTY_MARKERS[:4]`, selecting the strong tier by INDEX, so inserting
+# or reordering any marker silently changed which ones were strong -- prepending
+# one hedge pushed "i do not know" out of the window and an explicit ignorance
+# admission started passing the gate. This is the same defect class the sibling
+# module already fixed and documented: see task_classifier.py, "Selected by
+# CONFIDENCE, not position. This was `_CATEGORICAL_PATTERNS[:6]`". Fixed there,
+# left standing here. Regression test:
+# tests/inference/test_quality_eval_marker_tiers.py
+_STRONG_UNCERTAINTY_MARKERS = (
     "i'm not sure",
     "i am not sure",
     "i don't know",
     "i do not know",
+)
+
+_WEAK_UNCERTAINTY_MARKERS = (
     "i cannot",
     "i can't determine",
     "unclear",
@@ -35,6 +52,9 @@ _UNCERTAINTY_MARKERS = (
     "might be",
     "possibly",
 )
+
+# Full set, for gates that reject on ANY uncertainty (e.g. categorical).
+_UNCERTAINTY_MARKERS = (*_STRONG_UNCERTAINTY_MARKERS, *_WEAK_UNCERTAINTY_MARKERS)
 
 
 @dataclass
@@ -127,7 +147,7 @@ def _eval_short_answer(text: str, lower: str) -> QualityVerdict:
     """Short answer: 10-200 chars, no strong uncertainty marker."""
     if len(text) < 10:
         return QualityVerdict.reject_output(f"short_answer: too short ({len(text)} chars)")
-    if any(m in lower for m in _UNCERTAINTY_MARKERS[:4]):  # strict markers only
+    if any(m in lower for m in _STRONG_UNCERTAINTY_MARKERS):
         return QualityVerdict.reject_output("short_answer: strong uncertainty marker")
     score = min(1.0, len(text) / 50)  # 50+ chars = max score
     return QualityVerdict.accept_output(score=score, reason="short_answer gate passed")
@@ -162,7 +182,7 @@ def _eval_generation(text: str, lower: str, output_type: str) -> QualityVerdict:
         return QualityVerdict.reject_output(f"{output_type}: too short ({len(text)} < {min_len})")
     # Check if first sentence is an uncertainty disclaimer (escalate)
     first_sentence = text.split(".")[0].lower()
-    if any(m in first_sentence for m in _UNCERTAINTY_MARKERS[:4]):
+    if any(m in first_sentence for m in _STRONG_UNCERTAINTY_MARKERS):
         return QualityVerdict.reject_output(f"{output_type}: opens with uncertainty")
     score = min(1.0, len(text) / (min_len * 3))
     return QualityVerdict.accept_output(score=score, reason=f"{output_type} gate passed")
@@ -181,7 +201,7 @@ def _eval_bbq_low_slow(text: str, lower: str) -> QualityVerdict:
             f"bbq_low_slow: too short ({len(text)} chars, need ≥ 500 for unctuous output)"
         )
     first_sentence = lower.split(".")[0]
-    if any(m in first_sentence for m in _UNCERTAINTY_MARKERS[:4]):
+    if any(m in first_sentence for m in _STRONG_UNCERTAINTY_MARKERS):
         return QualityVerdict.reject_output("bbq_low_slow: opens with uncertainty — escalate")
     sentence_count = text.count(". ") + 1
     if sentence_count < 3:

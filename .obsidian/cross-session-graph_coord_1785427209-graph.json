@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "graph_graph_coord_1785427209",
+    "universe_id": "universe-flume-graph-coord",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-30T12:00:56"
+  },
+  "nodes": [
+    {
+      "id": "evo_graph_graph_coord_1785427209_step_1",
+      "label": "EVO Step 1: LemonadeCLIMonitor published F",
+      "agent_id": "graph_graph_coord_1785427209",
+      "topology": "instanton",
+      "confidence": 0.7482743449236108,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.7144,
+        -2.6754,
+        0.0857,
+        -0.3452,
+        1.2438,
+        -1.5314,
+        1.6534,
+        -0.6801,
+        0.8786,
+        -0.8189,
+        1.6097,
+        -0.5586
+      ],
+      "color": "#ff0055",
+      "size": 8.993097379694444
+    },
+    {
+      "id": "evo_graph_graph_coord_1785427209_step_2",
+      "label": "EVO Step 2: Local silicon investigated cod",
+      "agent_id": "graph_graph_coord_1785427209",
+      "topology": "trivial",
+      "confidence": 0.6669515625048071,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.5686,
+        1.9825,
+        0.1721,
+        -0.0869,
+        0.9044,
+        1.9888,
+        0.5716,
+        0.8667,
+        -0.4212,
+        2.0878,
+        0.7127,
+        1.2349
+      ],
+      "color": "#78909c",
+      "size": 8.667806250019229
+    },
+    {
+      "id": "evo_graph_graph_coord_1785427209_step_3",
+      "label": "EVO Step 3: Ollama cloud synthesized 12D L",
+      "agent_id": "graph_graph_coord_1785427209",
+      "topology": "instanton",
+      "confidence": 0.7275262512525059,
+      "coherence": 0.95,
+      "state_12d": [
+        0.4731,
+        -1.5513,
+        0.4561,
+        -1.5991,
+        1.6582,
+        -1.467,
+        -0.3717,
+        -1.7809,
+        1.7907,
+        0.9805,
+        0.5401,
+        -1.1022
+      ],
+      "color": "#ff0055",
+      "size": 8.910105005010024
+    },
+    {
+      "id": "evo_graph_graph_coord_1785427209_step_4",
+      "label": "EVO Step 4: Exported graph_engineering_coo",
+      "agent_id": "graph_graph_coord_1785427209",
+      "topology": "soliton",
+      "confidence": 0.15258558268582895,
+      "coherence": 0.85,
+      "state_12d": [
+        0.9384,
+        -1.22,
+        1.3696,
+        -0.1249,
+        -0.2344,
+        0.9359,
+        -0.4506,
+        -0.8171,
+        -1.4013,
+        1.2893,
+        0.1868,
+        -0.4863
+      ],
+      "color": "#00e5ff",
+      "size": 6.610342330743316
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_graph_graph_coord_1785427209_step_1",
+      "target": "evo_graph_graph_coord_1785427209_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_graph_graph_coord_1785427209_step_2",
+      "target": "evo_graph_graph_coord_1785427209_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_graph_graph_coord_1785427209_step_3",
+      "target": "evo_graph_graph_coord_1785427209_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

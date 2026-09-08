@@ -63,11 +63,20 @@ def main() -> int:
     pct = 100.0 * value / args.hard if args.hard else 0.0
 
     if args.json:
-        print(_json.dumps({
-            "action": action, "metric": args.metric, "value": value,
-            "soft": args.soft, "hard": args.hard, "pct_of_hard": round(pct, 1),
-            "recommended_wakeup_seconds": delay, "advice": advice,
-        }))
+        print(
+            _json.dumps(
+                {
+                    "action": action,
+                    "metric": args.metric,
+                    "value": value,
+                    "soft": args.soft,
+                    "hard": args.hard,
+                    "pct_of_hard": round(pct, 1),
+                    "recommended_wakeup_seconds": delay,
+                    "advice": advice,
+                }
+            )
+        )
     else:
         print(f"action: {action.upper()}  ({args.metric}={value:,} = {pct:.1f}% of hard cap)")
         print(f"  soft={args.soft:,}  hard={args.hard:,}")

@@ -43,7 +43,11 @@ async def run_bidirectional_coordination_demo() -> None:
         type=EventType.CUSTOM,
         source="session_a_requester",
         priority=10,
-        payload={"action": "RESOURCE_RESERVATION_REQUEST", "required_ram_gb": 20.0, "target_model": "Nemotron-3.5-Lightning-30B"},
+        payload={
+            "action": "RESOURCE_RESERVATION_REQUEST",
+            "required_ram_gb": 20.0,
+            "target_model": "Nemotron-3.5-Lightning-30B",
+        },
     )
     await event_bus.publish(req_event)
     logger.info("  [1/4] Session A published `RESOURCE_RESERVATION_REQUEST` (20GB RAM required)")
@@ -59,7 +63,9 @@ async def run_bidirectional_coordination_demo() -> None:
         payload={"action": "RAM_YIELDED", "session_id": "session_b_peer", "freed_ram_gb": 16.5},
     )
     await event_bus.publish(yield_event)
-    logger.info("  [2/4] Session B yielded active models and published `RAM_YIELDED` (16.5GB freed)")
+    logger.info(
+        "  [2/4] Session B yielded active models and published `RAM_YIELDED` (16.5GB freed)"
+    )
 
     # Step 3: Session A completes work
     flock = FleetLock()
@@ -73,7 +79,9 @@ async def run_bidirectional_coordination_demo() -> None:
             "category": "inter_session_coordination",
         }
         persist_item(card_data)
-        logger.info("  [3/4] Session A executed work under FleetLock and updated SurrealDB/Obsidian Kanban card")
+        logger.info(
+            "  [3/4] Session A executed work under FleetLock and updated SurrealDB/Obsidian Kanban card"
+        )
 
     # Step 4: Session A broadcasts RELEASE_RAM_LOCK
     await swapper_b.broadcast_release_ram(freed_ram_gb=15.73)

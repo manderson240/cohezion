@@ -38,6 +38,7 @@ from typing import Any
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
+
 def query_ollama_cloud(model_id: str, prompt: str, temperature: float = 0.2) -> str:
     """Send request to Ollama Cloud model with card-aligned sampling."""
     payload = {

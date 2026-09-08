@@ -14,13 +14,12 @@ with contextlib.suppress(Exception):
     from cohezion.cache.cache_warmer import CacheWarmer as CacheWarmer
 
 with contextlib.suppress(Exception):
-    from cohezion.cache.sentence_encoder import (
-        SentenceTransformerEncoder as SentenceTransformerEncoder,
-    )
-    from cohezion.cache.sentence_encoder import get_encoder as get_encoder
-
-with contextlib.suppress(Exception):
     from cohezion.cache.text_encoder import (
         SemanticTextEncoder as SemanticTextEncoder,
     )
     from cohezion.cache.text_encoder import get_text_encoder as get_text_encoder
+
+    # Deprecation aliases for the retired sentence_encoder.py twin (2026-08-14):
+    # same all-MiniLM-L6-v2 model + n-gram fallback, one implementation.
+    SentenceTransformerEncoder = SemanticTextEncoder
+    get_encoder = get_text_encoder

@@ -51,7 +51,7 @@ Given a paragraph of tokens $T = [t_1, ..., t_K]$:
    interpolated = encoder.interpolate(
        "Quantum mechanics describes particle behavior",
        "Classical physics describes macroscopic motion",
-       steps=5
+       steps=5,
    )
    for text in interpolated:
        print(text)

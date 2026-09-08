@@ -36,36 +36,42 @@ Audit Focus:
 - Clear Architectural Verdict: PASS / FAIL / ADVISORY.
 """
 
+
 async def run_audit():
     print("=" * 85)
     print("🔬 RUNNING LOCAL SILICON AUDIT OF AGENTIC EVENT-DRIVEN DATAMESH")
     print("=" * 85)
-    
+
     # 1. Check UMA Memory Headroom & Preflight
     avail_gib, swap_used, is_safe = SmartOOMGovernor.get_memory_state()
-    print(f"▶ System Preflight: {avail_gib:.1f} GiB available RAM / {swap_used:.1f} GiB swap (Floor: 40.0 GiB)")
-    
+    print(
+        f"▶ System Preflight: {avail_gib:.1f} GiB available RAM / {swap_used:.1f} GiB swap (Floor: 40.0 GiB)"
+    )
+
     if not is_safe:
         print("⚠️ Local memory tight; delegating safely without colliding with Claude.")
-    
+
     # 2. Acquire FleetLock Mutex & Execute Audit via Local Lemonade
     print("▶ Querying Local Resident Model on Lemonade port :13305...")
     t0 = time.perf_counter()
-    
+
     report_text = ""
     model_used = "gpt-oss-20b-mxfp4-GGUF"
-    
+
     with CrossSessionFleetLock(timeout_sec=15.0):
         async with httpx.AsyncClient(timeout=60.0) as client:
             try:
                 payload = {
                     "model": model_used,
                     "messages": [
-                        {"role": "system", "content": "You are a Principal Systems Architect auditing DataMesh architecture."},
-                        {"role": "user", "content": AUDIT_PROMPT}
+                        {
+                            "role": "system",
+                            "content": "You are a Principal Systems Architect auditing DataMesh architecture.",
+                        },
+                        {"role": "user", "content": AUDIT_PROMPT},
                     ],
                     "temperature": 0.2,
-                    "max_tokens": 850
+                    "max_tokens": 850,
                 }
                 resp = await client.post("http://localhost:13305/v1/chat/completions", json=payload)
                 if resp.status_code == 200:
@@ -86,7 +92,7 @@ async def run_audit():
     bus = await get_event_bus()
     bridge = CrossSessionEventBridge(event_bus=bus, session_id="antigravity_master_orchestrator")
     await bridge.initialize()
-    
+
     ev = Event(
         type=EventType.CUSTOM,
         source="AntigravityDataMeshAuditor",
@@ -97,8 +103,8 @@ async def run_audit():
             "duration_s": round(dt, 2),
             "verdict": "PASS",
             "findings_summary": report_text[:300] + "...",
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(ev)
     print("✓ Audit event broadcasted onto EventBus & SurrealDB `event_log`")
@@ -110,7 +116,7 @@ async def run_audit():
 
 **Auditor:** Local Silicon Resident Model (`{model_used}` via Lemonade `:13305`)  
 **Coordination Posture:** Cooperative Multi-Agent Session (Antigravity + Claude Code)  
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 
 ---
 
@@ -120,19 +126,22 @@ async def run_audit():
 ---
 *Persisted to SurrealDB `event_log` and Obsidian Kanban.*
 """)
-    
-    persist_item({
-        "id": "agentic_datamesh_audit_complete",
-        "title": "Agentic Event-Driven DataMesh Architecture Audit Complete",
-        "status": "done",
-        "priority": "high",
-        "source": "AntigravityDataMeshAuditor",
-        "category": "architecture_audit",
-        "details": f"Local silicon audit completed in {dt:.2f}s using {model_used}. Report written to docs/research/agentic_datamesh_local_inference_audit.md.",
-    })
+
+    persist_item(
+        {
+            "id": "agentic_datamesh_audit_complete",
+            "title": "Agentic Event-Driven DataMesh Architecture Audit Complete",
+            "status": "done",
+            "priority": "high",
+            "source": "AntigravityDataMeshAuditor",
+            "category": "architecture_audit",
+            "details": f"Local silicon audit completed in {dt:.2f}s using {model_used}. Report written to docs/research/agentic_datamesh_local_inference_audit.md.",
+        }
+    )
     print(f"✓ Saved full audit report to: {out_doc}")
     print("✓ Persisted to Agentic Kanban in SurrealDB & Obsidian Vault")
     print("=" * 85)
+
 
 if __name__ == "__main__":
     asyncio.run(run_audit())

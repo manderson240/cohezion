@@ -236,15 +236,11 @@ pr = github.create_pull_request(
     title="docs: Optimize CLAUDE.md for token efficiency",
     body="...",
     head="session-55-test-fixes-main",
-    base="develop"
+    base="develop",
 )
 
 # List recent PRs
-prs = github.list_pull_requests(
-    owner="manderson240",
-    repo="cohezion",
-    state="open"
-)
+prs = github.list_pull_requests(owner="manderson240", repo="cohezion", state="open")
 ```
 
 Or via Claude Code directly (once MCP servers are running):

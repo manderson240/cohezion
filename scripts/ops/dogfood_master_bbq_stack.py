@@ -51,7 +51,9 @@ async def run_dogfooding_suite() -> dict[str, Any]:
     logger.info("1/11 Testing Deep Cooking Engine...")
     cooker = DeepCookingEngine(default_timeout_seconds=300.0)
     cook_res = cooker.cook_inference_task(
-        "Synthesize Poincaré geodesic equations.", model="deepseek-r1-0528-8b-FLM", timeout_seconds=0.5
+        "Synthesize Poincaré geodesic equations.",
+        model="deepseek-r1-0528-8b-FLM",
+        timeout_seconds=0.5,
     )
     results["1_deep_cooking"] = {
         "task_id": cook_res.task_id,
@@ -88,7 +90,10 @@ async def run_dogfooding_suite() -> dict[str, Any]:
     await bridge.initialize()
     await bus.publish(Event.agent_start("DogfoodMaster", model="deepseek-r1"))
     await bus.stop()
-    results["4_cross_session_event_bridge"] = {"session_id": "dogfood_master_session", "status": "active"}
+    results["4_cross_session_event_bridge"] = {
+        "session_id": "dogfood_master_session",
+        "status": "active",
+    }
 
     # 5. Chronos Unified Cron Agent Registry
     logger.info("5/11 Testing Chronos Registry...")
@@ -111,7 +116,9 @@ async def run_dogfooding_suite() -> dict[str, Any]:
     # 7. GAIA SDK Autonomous Bugfix Agent Delegation
     logger.info("7/11 Testing GAIA Bugfix Agent Manager...")
     bugfix_mgr = GaiaBugfixAgentManager()
-    task = bugfix_mgr.create_kanban_bugfix_item("df_001", "Fix null pointer in manifold slice", "src/cohezion/physics/poincare_manifold.py")
+    task = bugfix_mgr.create_kanban_bugfix_item(
+        "df_001", "Fix null pointer in manifold slice", "src/cohezion/physics/poincare_manifold.py"
+    )
     res_bugfix = bugfix_mgr.execute_gaia_bugfix(task)
     results["7_gaia_bugfix"] = {
         "task_id": res_bugfix.task_id,

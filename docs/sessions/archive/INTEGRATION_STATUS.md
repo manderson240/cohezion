@@ -141,14 +141,17 @@ From autoresearch session:
 ```python
 # Wiki MCP (for agent use)
 from cohezion.mcp.wiki_mcp import WikiMCP
+
 mcp = WikiMCP(vault_path="./my-wiki")
 
 # Ouroboros with persistence
 from cohezion.ouroboros.wiki_integration import OuroborosWikiBridge
+
 bridge = OuroborosWikiBridge(vault_path="./my-wiki")
 
 # Full unified system
 from cohezion.integrations.flume_wiki_bridge import FlumeOuroborosBridge
+
 system = FlumeOuroborosBridge(vault_path="./my-wiki")
 ```
 

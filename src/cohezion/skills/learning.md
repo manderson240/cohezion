@@ -45,8 +45,8 @@ for epoch in range(10):
 
     for batch in dataloader:
         optimizer.zero_grad()
-        z, logits = model(batch['tokens'])
-        loss = model.reconstruction_loss(batch['tokens'])
+        z, logits = model(batch["tokens"])
+        loss = model.reconstruction_loss(batch["tokens"])
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
@@ -101,20 +101,21 @@ print(f"Trainable params: {model.print_trainable_parameters()}")
 from sklearn.metrics import accuracy_score, f1_score
 import numpy as np
 
+
 def evaluate(model, dataloader):
     model.eval()
     predictions, targets = [], []
 
     with torch.no_grad():
         for batch in dataloader:
-            logits = model(batch['input'])
+            logits = model(batch["input"])
             preds = logits.argmax(dim=-1)
             predictions.extend(preds.cpu().numpy())
-            targets.extend(batch['labels'].cpu().numpy())
+            targets.extend(batch["labels"].cpu().numpy())
 
     return {
-        'accuracy': accuracy_score(targets, predictions),
-        'f1': f1_score(targets, predictions, average='weighted')
+        "accuracy": accuracy_score(targets, predictions),
+        "f1": f1_score(targets, predictions, average="weighted"),
     }
 ```
 
@@ -126,10 +127,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 scheduler = CosineAnnealingLR(optimizer, T_max=100, eta_min=1e-6)
 
 # One-cycle (for fast training)
-scheduler = OneCycleLR(
-    optimizer, max_lr=1e-3,
-    epochs=10, steps_per_epoch=len(dataloader)
-)
+scheduler = OneCycleLR(optimizer, max_lr=1e-3, epochs=10, steps_per_epoch=len(dataloader))
 ```
 
 ## APPLICATIONS

@@ -134,7 +134,7 @@ for attempt in range(3):
         await commit()
         break
     except TimeoutError:
-        await asyncio.sleep(2 ** attempt)
+        await asyncio.sleep(2**attempt)
 ```
 
 ---

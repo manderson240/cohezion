@@ -114,7 +114,7 @@ D) Use existing `.cohezion/tasks.md` with enhanced tooling
     "linked_skills": ["R_ZERO_CHALLENGER_PRIME.md"],
     "assigned_agent": "pragmatist",
     "created": "2026-01-17",
-    "due": "2026-01-20"
+    "due": "2026-01-20",
 }
 ```
 

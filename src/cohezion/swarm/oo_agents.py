@@ -12,12 +12,17 @@ Inspired by NVIDIA NeMo Labs `labs-OO-Agents` research preview.
 from __future__ import annotations
 
 import inspect
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, get_type_hints
+from collections.abc import Callable
+from typing import Any, TypeVar, get_type_hints
+
 from pydantic import BaseModel, Field
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
-from cohezion.reliability.circuit_breaker import get_circuit
+
+# reconcile 2026-08-26: circuit_breaker retired on main (246249f6); circuit_protected is the
+# decorator-factory form the branch used get_circuit as.
+from cohezion.reliability import circuit_protected
 
 
 T = TypeVar("T", bound="BaseOOAgent")
@@ -122,7 +127,7 @@ class BaseOOAgent:
         import time
 
         t0 = time.perf_counter()
-        circuit_decorator = get_circuit(f"oo_agent_{method_name}")
+        circuit_decorator = circuit_protected(f"oo_agent_{method_name}")
         wrapped_invoke = circuit_decorator(_invoke)
         result = await wrapped_invoke()
         duration_ms = (time.perf_counter() - t0) * 1000.0

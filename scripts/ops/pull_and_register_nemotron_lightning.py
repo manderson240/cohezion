@@ -74,7 +74,10 @@ def main() -> None:
             res = json.loads(r.read().decode())
             logger.info("✅ Successfully registered model with Lemonade Server! Response: %s", res)
     except Exception as e:
-        logger.info("ℹ️ Lemonade Registration API note (model ready in HF cache for direct invocation): %s", e)
+        logger.info(
+            "ℹ️ Lemonade Registration API note (model ready in HF cache for direct invocation): %s",
+            e,
+        )
 
     print("\n" + "=" * 90)
     print(f"      MODEL DOWNLOAD & LEMONADE REGISTRATION COMPLETE: {MODEL_ALIAS}")

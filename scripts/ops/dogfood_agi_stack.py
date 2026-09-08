@@ -69,7 +69,7 @@ def main() -> None:
     print(f"  ✓ Manifold Point U Dim: {pt_u.dim}D (Norm: {pt_u.norm:.4f})")
     print(f"  ✓ Manifold Point V Dim: {pt_v.dim}D (Norm: {pt_v.norm:.4f})")
     print(f"  ✓ Hyperbolic Distance: {PoincareManifoldND.distance(pt_u, pt_v):.6f}")
-    print(f"  ✓ Transported Tangent Vector Norm: {sum(x*x for x in transported)**0.5:.6f}")
+    print(f"  ✓ Transported Tangent Vector Norm: {sum(x * x for x in transported) ** 0.5:.6f}")
 
     # 5. Geodesic Flow Neural ODE Integration
     print("\n[5/8] Integrating RK4 Geodesic Flow Neural ODE...")
@@ -79,7 +79,9 @@ def main() -> None:
     state_in = GeodesicState(position=pt_u, velocity=vel_vec, time=0.0)
     state_out = GeodesicFlowODE.step_rk4(state_in, dt=0.01)
     print(f"  ✓ RK4 Next Position Norm: {state_out.position.norm:.6f}")
-    print(f"  ✓ RK4 Next Velocity Norm: {sum(x*x for x in state_out.velocity.components)**0.5:.6f}")
+    print(
+        f"  ✓ RK4 Next Velocity Norm: {sum(x * x for x in state_out.velocity.components) ** 0.5:.6f}"
+    )
 
     # 6. CTAC Topological Calibration
     print("\n[6/8] CTAC Continuous Topological Calibration...")

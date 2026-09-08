@@ -14,7 +14,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("QuantumVerification")
+    logging.getLogger("QuantumVerification")
 
     config = SwarmConfig()
     agent = QuantumAgent(config=config)

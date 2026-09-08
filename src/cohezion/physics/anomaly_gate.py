@@ -204,7 +204,7 @@ class LocalSkeptic:
         self._call = call or self._fleet_call
 
     def _fleet_call(self, prompt: str) -> str:
-        req = urllib.request.Request(  # noqa: S310 — fixed localhost fleet URL
+        req = urllib.request.Request(
             ROUTER,
             data=json.dumps(
                 {

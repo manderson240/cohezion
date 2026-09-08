@@ -16,7 +16,63 @@ _SCRIPTS_CI_DIR = Path(__file__).resolve().parents[2] / "scripts" / "ci"
 if str(_SCRIPTS_CI_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_CI_DIR))
 
-from version_governance import validate_changelog_claims
+from version_governance import (
+    BumpType,
+    actual_bump,
+    validate_changelog_claims,
+    validate_version_bump,
+)
+
+
+# ── the version actually gets BUMPED (2026-08-01) ────────────────────────────────
+# The workflow is named "Semver Check" but checked no semver: it classified the commits
+# into a bump type, then only verified pyproject.toml had a *readable* version. A PR of
+# `feat:` commits could land with the version untouched — verified against this repo's own
+# branch, which passed with "issues": [] after 5 fix commits and no bump.
+
+
+def test_no_bump_is_rejected_when_commits_imply_one(monkeypatch) -> None:
+    """The original defect: same version at base and head must FAIL."""
+    monkeypatch.setattr("version_governance.get_version_at_ref", lambda ref: "1.2.0")
+    issues = validate_version_bump(BumpType.PATCH, "basesha", "1.2.0")
+    assert issues and "not bumped" in issues[0]
+
+
+def test_bump_smaller_than_commits_imply_is_rejected(monkeypatch) -> None:
+    """A `feat:` PR (MINOR) that only bumps the patch digit must FAIL."""
+    monkeypatch.setattr("version_governance.get_version_at_ref", lambda ref: "1.2.0")
+    issues = validate_version_bump(BumpType.MINOR, "basesha", "1.2.1")
+    assert issues and "too small" in issues[0]
+
+
+def test_sufficient_bump_passes(monkeypatch) -> None:
+    monkeypatch.setattr("version_governance.get_version_at_ref", lambda ref: "1.2.0")
+    assert validate_version_bump(BumpType.PATCH, "basesha", "1.2.1") == []
+    # Over-bumping is fine: the commit type is a MINIMUM, not an equality.
+    assert validate_version_bump(BumpType.PATCH, "basesha", "2.0.0") == []
+
+
+def test_backwards_version_is_rejected(monkeypatch) -> None:
+    monkeypatch.setattr("version_governance.get_version_at_ref", lambda ref: "1.2.0")
+    issues = validate_version_bump(BumpType.PATCH, "basesha", "1.1.9")
+    assert issues and "backwards" in issues[0]
+
+
+def test_fails_open_when_the_comparison_is_impossible(monkeypatch) -> None:
+    """A CI checkout quirk must never block a legitimate PR — only a KNOWN-bad bump fails."""
+    monkeypatch.setattr("version_governance.get_version_at_ref", lambda ref: None)
+    assert validate_version_bump(BumpType.PATCH, "basesha", "1.2.1") == []  # base unreadable
+    assert validate_version_bump(BumpType.PATCH, None, "1.2.1") == []  # no base SHA
+    assert validate_version_bump(BumpType.NONE, "basesha", "1.2.0") == []  # nothing implied
+
+
+def test_actual_bump_classifies_each_digit() -> None:
+    assert actual_bump("1.2.0", "2.0.0") is BumpType.MAJOR
+    assert actual_bump("1.2.0", "1.3.0") is BumpType.MINOR
+    assert actual_bump("1.2.0", "1.2.1") is BumpType.PATCH
+    assert actual_bump("1.2.0", "1.2.0") is BumpType.NONE
+    assert actual_bump("1.2.0", "1.1.0") is None  # decrease
+    assert actual_bump("1.2.0", "not-a-version") is None
 
 
 def test_flags_phantom_module_in_added_section(tmp_path: Path) -> None:

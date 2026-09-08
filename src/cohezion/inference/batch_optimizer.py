@@ -11,8 +11,7 @@ Formulation:
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
-from typing import Any, Sequence
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,12 +40,21 @@ class BatchOptimizer:
         self.queue: list[BatchRequest] = []
 
     def enqueue_request(self, req_id: str, prompt: str, target_hardware: str = "NPU") -> None:
-        self.queue.append(BatchRequest(request_id=req_id, prompt=prompt, target_hardware=target_hardware, timestamp=time.time()))
+        self.queue.append(
+            BatchRequest(
+                request_id=req_id,
+                prompt=prompt,
+                target_hardware=target_hardware,
+                timestamp=time.time(),
+            )
+        )
 
     def flush_batch(self, target_hardware: str = "NPU") -> BatchExecutionResult:
         """Form and execute an optimized micro-batch for target hardware lane."""
         t0 = time.perf_counter()
-        lane_reqs = [r for r in self.queue if r.target_hardware == target_hardware][: self.max_batch_size]
+        lane_reqs = [r for r in self.queue if r.target_hardware == target_hardware][
+            : self.max_batch_size
+        ]
 
         if not lane_reqs:
             return BatchExecutionResult(
@@ -68,7 +76,7 @@ class BatchOptimizer:
         efficiency = sum_len / (len(lane_reqs) * max_len) if max_len > 0 else 1.0
 
         dt_ms = max(0.1, (time.perf_counter() - t0) * 1000.0)
-        qps = (len(lane_reqs) / (dt_ms / 1000.0))
+        qps = len(lane_reqs) / (dt_ms / 1000.0)
 
         return BatchExecutionResult(
             batch_size=len(lane_reqs),

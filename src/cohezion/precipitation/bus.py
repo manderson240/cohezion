@@ -27,7 +27,7 @@ from .events import PrecipitationEvent, PrecipitationKind
 
 logger = logging.getLogger(__name__)
 
-SubscriberFn = Callable[[PrecipitationEvent], None | Awaitable[None]]
+SubscriberFn = Callable[[PrecipitationEvent], Awaitable[None] | None]
 
 # Default queue capacity. ~10k events ≈ a few MB; much more suggests the drainer
 # is wedged and we should log loudly rather than grow unbounded.

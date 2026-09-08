@@ -30,13 +30,17 @@ async def main_async() -> None:
 
     # Step 1: Query SurrealDB event_log for events from other active sessions
     peer_events = await bridge.fetch_cross_session_events(limit=20)
-    print(f"  • [1/3] SurrealDB Event Log Query: Fetched {len(peer_events)} recent events from active peer sessions.")
+    print(
+        f"  • [1/3] SurrealDB Event Log Query: Fetched {len(peer_events)} recent events from active peer sessions."
+    )
 
     # Step 2: Analyze Peer Session Events or Active Subagent Trajectories
     active_peers = []
     if peer_events:
         for evt in peer_events:
-            active_peers.append(f"Session '{evt.get('session_id', 'unknown')}': Event {evt.get('type')} from {evt.get('source')}")
+            active_peers.append(
+                f"Session '{evt.get('session_id', 'unknown')}': Event {evt.get('type')} from {evt.get('source')}"
+            )
     else:
         # Simulate active peer session discovery in test environment
         active_peers = [
@@ -79,7 +83,9 @@ async def main_async() -> None:
         "details": assistance_offer,
     }
     persist_item(kanban_card)
-    print("  • [3/3] Inter-Session Kanban Bridge: Persisted peer assistance card into SurrealDB `kanban_item` & Obsidian Vault.")
+    print(
+        "  • [3/3] Inter-Session Kanban Bridge: Persisted peer assistance card into SurrealDB `kanban_item` & Obsidian Vault."
+    )
 
     print("=" * 100)
     print("🎉 Cross-Session Communication Complete! Proactive Support Extended to Peer Agents!")

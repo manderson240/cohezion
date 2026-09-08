@@ -155,8 +155,9 @@ for step in range(1000):
     obs, reward, terminated, truncated, info = env.step(action)
 
     if step % 100 == 0:
-        print(f"Step {step}: coherence={info['coherence']:.4f}, "
-              f"HIHO_dev={info['hiho_deviation']:.4f}")
+        print(
+            f"Step {step}: coherence={info['coherence']:.4f}, HIHO_dev={info['hiho_deviation']:.4f}"
+        )
 
     if terminated:
         print(f"HIHO reached at step {step}!")
@@ -172,8 +173,7 @@ env = SwarmEnv(n_agents=4)
 observations, infos = env.reset()
 
 for step in range(500):
-    actions = {agent: env._rng.uniform(-0.1, 0.1, 12).astype("float32")
-               for agent in env.agents}
+    actions = {agent: env._rng.uniform(-0.1, 0.1, 12).astype("float32") for agent in env.agents}
     observations, rewards, terminateds, truncateds, infos = env.step(actions)
 
     if any(terminateds.values()):

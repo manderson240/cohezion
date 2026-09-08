@@ -11,18 +11,16 @@ DataMesh Architecture:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from cohezion.agi.fleet_autotuning_daemon import FleetAutotuningDaemon
-from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -41,8 +39,12 @@ class DataMeshFleetAutotuningConsumer:
     async def initialize(self) -> None:
         """Subscribe consumer to DataMesh & EventBus streams."""
         if not self._subscribed:
-            self.event_bus.register_handler(self._on_datamesh_event, event_type=EventType.AGENT_COMPLETE)
-            self.event_bus.register_handler(self._on_datamesh_event, event_type=EventType.DATA_PRODUCT_CREATED)
+            self.event_bus.register_handler(
+                self._on_datamesh_event, event_type=EventType.AGENT_COMPLETE
+            )
+            self.event_bus.register_handler(
+                self._on_datamesh_event, event_type=EventType.DATA_PRODUCT_CREATED
+            )
             self._subscribed = True
             logger.info("⚡ DataMesh Fleet AutoTuning Consumer subscribed to EventBus streams.")
 
@@ -60,7 +62,9 @@ class DataMeshFleetAutotuningConsumer:
         t0 = time.perf_counter()
 
         # Ingest DataMesh products
-        statuses = await self.fleet_daemon.execute_fleet_fine_tuning_cycle(new_journeys_ingested=250)
+        statuses = await self.fleet_daemon.execute_fleet_fine_tuning_cycle(
+            new_journeys_ingested=250
+        )
 
         # Publish DataMesh Lineage Event
         lineage_payload = {

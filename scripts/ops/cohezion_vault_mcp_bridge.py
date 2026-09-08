@@ -60,7 +60,11 @@ def run_vault_health_check() -> dict[str, Any]:
         content = f.read_text(encoding="utf-8", errors="ignore")
 
         # Frontmatter Check
-        if (content.startswith("---") and "date:" in content) or "tags:" in content or "status:" in content:
+        if (
+            (content.startswith("---") and "date:" in content)
+            or "tags:" in content
+            or "status:" in content
+        ):
             frontmatter_compliant += 1
 
         # Wikilink extraction [[link]]
@@ -78,9 +82,11 @@ def run_vault_health_check() -> dict[str, Any]:
     orphan_ratio = round(orphan_count / max(1, total_notes), 4)
     connectivity = round(min(1.0, total_wikilinks / max(1, total_notes * 2)), 4)
     reciprocity = 0.85  # Dual-persistence SurrealDB link reciprocity
-    freshness = 0.92    # Active continuous session updates
+    freshness = 0.92  # Active continuous session updates
 
-    graph_hiho_score = round((connectivity + reciprocity + freshness + (1.0 - orphan_ratio)) / 4.0, 4)
+    graph_hiho_score = round(
+        (connectivity + reciprocity + freshness + (1.0 - orphan_ratio)) / 4.0, 4
+    )
 
     duration = round(time.perf_counter() - t_start, 3)
 
@@ -94,11 +100,15 @@ def run_vault_health_check() -> dict[str, Any]:
         "orphan_ratio": orphan_ratio,
         "connectivity_score": connectivity,
         "graph_hiho_score": graph_hiho_score,
-        "hiho_status": "EXCELLENT (HIGH_COHERENCE)" if graph_hiho_score >= 0.60 else "NEEDS_OPTIMIZATION",
+        "hiho_status": "EXCELLENT (HIGH_COHERENCE)"
+        if graph_hiho_score >= 0.60
+        else "NEEDS_OPTIMIZATION",
         "scan_duration_seconds": duration,
     }
 
-    logger.info(f"✨ Vault Health Check Complete! HIHO Score: {graph_hiho_score} ({report['hiho_status']})")
+    logger.info(
+        f"✨ Vault Health Check Complete! HIHO Score: {graph_hiho_score} ({report['hiho_status']})"
+    )
     return report
 
 

@@ -126,12 +126,14 @@ same 0.5 attractor independently.
 ```python
 import numpy as np
 
+
 def apply_hiho_damping(latent_vector, stability_score):
     if stability_score > 0.9:  # Overconfidence detection
         # Add slight chaos to maintain 0.5 balance (thermodynamic noise injection)
         drift = (np.random.rand(len(latent_vector)) - 0.5) * 0.1
         return latent_vector + drift
     return latent_vector
+
 
 def diagnose_hiho_deviation(coherence: float) -> dict:
     """

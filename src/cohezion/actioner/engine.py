@@ -136,9 +136,39 @@ class WorkQueueAPI:
             items.extend(page.get("items", []))
         return sorted(items, key=lambda i: i.get("created_at", ""))
 
-    def mark_actioned(self, item_id: str, note: str) -> dict:
+    def mark_actioned(self, item_id: str, route: str) -> dict:
+        """Record WHICH lane actioned the card, without touching its content.
+
+        This used to PATCH ``notes``, which is where the research analysis lives -- so
+        actioning a card replaced multi-kilobyte findings with a 50-character status
+        string. 764 of 6,110 cards were already destroyed that way. The route is
+        machine bookkeeping and belongs in its own field; ``status`` alone already says
+        the card was actioned.
+        """
         return self._request(
-            "PATCH", f"/api/work-queue/{item_id}", {"status": "actioned", "notes": note}
+            "PATCH",
+            f"/api/work-queue/{item_id}",
+            {"status": "actioned", "action_route": route},
+        )
+
+    def pending_items(self) -> list[dict[str, Any]]:
+        """Items awaiting triage, oldest first.
+
+        ``POST /api/work-queue`` creates every card as ``pending_review``, a status NO
+        consumer polls: ``eligible_items`` above asks for reviewed/approved, and
+        ``compound_feeder`` asks for actioned/approved. The research daemon classifies
+        inline and writes ``reviewed`` directly, which is why only ITS items ever flow.
+        This is the read side of the missing triage hop (see ``actioner.triage``).
+        """
+        page = self._request("GET", "/api/work-queue?status=pending_review")
+        return sorted(page.get("items", []), key=lambda i: i.get("created_at", ""))
+
+    def mark_reviewed(self, item_id: str, relevance: str, note: str) -> dict:
+        """Promote a triaged item into the lane the actioner actually polls."""
+        return self._request(
+            "PATCH",
+            f"/api/work-queue/{item_id}",
+            {"status": "reviewed", "relevance": relevance, "notes": note},
         )
 
     def mark_rejected(self, item_id: str, note: str) -> dict:
@@ -210,7 +240,7 @@ def _parse_proposal(raw: str) -> dict[str, str]:
         step = str(parsed.get("falsifiable_step", "")).strip()
         if proposal:
             return {"proposal": proposal, "falsifiable_step": step or "(model omitted)"}
-    except (ValueError, json.JSONDecodeError):
+    except ValueError:
         pass
     return {"proposal": raw.strip()[:1000], "falsifiable_step": "(unstructured output)"}
 
@@ -367,7 +397,7 @@ def run_batch(
                     vault_dir=vault_dir,
                 )
                 actioned_ids.add(item_id)
-            api.mark_actioned(item_id, note=f"actioned via {route} route (work-queue actioner)")
+            api.mark_actioned(item_id, route=route)
             summary["actioned"].append({"id": item_id, "route": route})
         except Exception as exc:
             err_msg = str(exc)

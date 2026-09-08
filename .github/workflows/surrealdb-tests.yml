@@ -63,6 +63,11 @@ env:
   UV_SYSTEM_PYTHON: "1"
   PYTEST_XDIST_AUTO_NUM_WORKERS: "auto"
   PYTEST_CURRENT_TEST: "1"
+  # Prevent kaggle package from calling exit(1) at import time when
+  # credentials are missing (kaggle/__init__.py calls api.authenticate()
+  # unconditionally; the ci.yml workflow sets the same dummy values)
+  KAGGLE_USERNAME: "dummy"
+  KAGGLE_KEY: "dummy"
   # SurrealDB test configuration
   SURREAL_NAMESPACE: test
   SURREAL_DATABASE: test
@@ -246,7 +251,7 @@ jobs:
 
       - name: Run unit tests (shard ${{ matrix.shard }}/4)
         run: |
-          uv run pytest -m fast \
+          uv run pytest \
             --dist loadgroup \
             --tx "4*popen//python=python${{ matrix.python-version }}" \
             --rsyncdir src/ \

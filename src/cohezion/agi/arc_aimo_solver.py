@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Sequence
 
-from cohezion.agi.autoharness_policy import ActionPolicyResult, AutoHarnessPolicy
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class ARCSolverHarness:
         t0 = time_perf_counter()
 
         # Step 1: Pre-verify grid constraints via AutoHarness policy
-        for inp, out in task.train_pairs:
+        for inp, _out in task.train_pairs:
             p_res = self.policy.evaluate_policy("bounded_grid", {"grid": inp})
             if not p_res.allowed:
                 return ARCResult(
@@ -67,4 +67,5 @@ class ARCSolverHarness:
 
 def time_perf_counter() -> float:
     import time
+
     return time.perf_counter()

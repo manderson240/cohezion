@@ -17,19 +17,21 @@ import json
 import logging
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
 from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-SIMULATED_DATASET_FILE = Path.home() / "dev" / "cohezion" / "data" / "cohezion_simulated_journeys_dataset.jsonl"
+SIMULATED_DATASET_FILE = (
+    Path.home() / "dev" / "cohezion" / "data" / "cohezion_simulated_journeys_dataset.jsonl"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,19 +69,23 @@ class WorldModelJourneySimulator:
             "Compile Anthropic 2026 J-Space intermediate layer global workspace",
         ]
 
-    async def _simulate_counterfactual_rollout(self, goal: str, journey_idx: int) -> SimulatedAgenticJourney:
+    async def _simulate_counterfactual_rollout(
+        self, goal: str, journey_idx: int
+    ) -> SimulatedAgenticJourney:
         """Simulate world model environment rollouts across 4 counterfactual steps."""
         steps: list[WorldModelTrajectoryStep] = []
         state_vec = (0.5, 0.5, 0.5, 1.0, 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         for i in range(1, 5):
-            mapping = await self.geom_engine.map_state_to_manifold(state_vec, f"Step_{i}_{goal[:20]}")
+            mapping = await self.geom_engine.map_state_to_manifold(
+                state_vec, f"Step_{i}_{goal[:20]}"
+            )
             step_reward = 0.85 + (i * 0.03)
             steps.append(
                 WorldModelTrajectoryStep(
                     step_idx=i,
                     thought_action=f"Execute state action {i} for goal: {goal[:30]}",
-                    state_transition=f"S_{i-1} -> A_{i} -> S_{i} (Alignment: {mapping.isomorphic_alignment_score:.4f})",
+                    state_transition=f"S_{i - 1} -> A_{i} -> S_{i} (Alignment: {mapping.isomorphic_alignment_score:.4f})",
                     reward=step_reward,
                     isomorphic_alignment=mapping.isomorphic_alignment_score,
                 )
@@ -93,7 +99,9 @@ class WorldModelJourneySimulator:
         proof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
         zkfv_ok = proof.is_valid
 
-        rev_report = self.review_engine.review(f"Journey_{journey_idx}", {"vram_available_gb": 32.0, "ring_coherence": 0.90})
+        rev_report = self.review_engine.review(
+            f"Journey_{journey_idx}", {"vram_available_gb": 32.0, "ring_coherence": 0.90}
+        )
 
         avg_reward = sum(s.reward for s in steps) / len(steps)
         return SimulatedAgenticJourney(
@@ -106,15 +114,23 @@ class WorldModelJourneySimulator:
             multiperspective_score=rev_report.review_score,
         )
 
-    async def run_world_model_simulations(self, target_count: int = 1000) -> list[SimulatedAgenticJourney]:
-        logger.info("🌍 WORLD MODEL JOURNEY SIMULATOR: Simulating %d agentic trajectories...", target_count)
+    async def run_world_model_simulations(
+        self, target_count: int = 1000
+    ) -> list[SimulatedAgenticJourney]:
+        logger.info(
+            "🌍 WORLD MODEL JOURNEY SIMULATOR: Simulating %d agentic trajectories...", target_count
+        )
         t0 = time.perf_counter()
 
         journeys: list[SimulatedAgenticJourney] = []
         for i in range(1, target_count + 1):
             g = random.choice(self.goals)
             journey = await self._simulate_counterfactual_rollout(g, i)
-            if journey.ast_verified and journey.zkfv_verified and journey.multiperspective_score >= 0.8500:
+            if (
+                journey.ast_verified
+                and journey.zkfv_verified
+                and journey.multiperspective_score >= 0.8500
+            ):
                 journeys.append(journey)
 
         # Write Dataset to JSONL
@@ -124,7 +140,17 @@ class WorldModelJourneySimulator:
                 rec = {
                     "instruction": f"Execute agentic journey for goal: {j.goal}",
                     "context": f"Simulated World Model Trajectory {j.journey_id}",
-                    "response": json.dumps([{"step": s.step_idx, "action": s.thought_action, "transition": s.state_transition, "reward": s.reward} for s in j.steps]),
+                    "response": json.dumps(
+                        [
+                            {
+                                "step": s.step_idx,
+                                "action": s.thought_action,
+                                "transition": s.state_transition,
+                                "reward": s.reward,
+                            }
+                            for s in j.steps
+                        ]
+                    ),
                     "total_reward": j.total_reward,
                     "quality_score": j.multiperspective_score,
                     "ast_verified": j.ast_verified,
@@ -133,7 +159,12 @@ class WorldModelJourneySimulator:
                 f.write(json.dumps(rec) + "\n")
 
         dt = round(time.perf_counter() - t0, 3)
-        logger.info("✅ World Model Simulation Complete! Generated %d verified simulated journeys in %.3fs -> %s", len(journeys), dt, SIMULATED_DATASET_FILE)
+        logger.info(
+            "✅ World Model Simulation Complete! Generated %d verified simulated journeys in %.3fs -> %s",
+            len(journeys),
+            dt,
+            SIMULATED_DATASET_FILE,
+        )
         return journeys
 
 
@@ -145,10 +176,12 @@ async def main_async() -> None:
 
     journeys = await simulator.run_world_model_simulations(target_count=1000)
     print(f"  • Total Simulated Agentic Journeys: {len(journeys):,}")
-    print(f"  • AutoHarness AST Pass Rate: 100.0%")
-    print(f"  • ZK-FV SHA-256 Pass Rate: 100.0%")
-    print(f"  • Average Trajectory Reward ($r_t$): {sum(j.total_reward for j in journeys)/len(journeys):.4f} (>= 0.45 Gated)")
-    print(f"  • R0 Review Score Average: 1.0000")
+    print("  • AutoHarness AST Pass Rate: 100.0%")
+    print("  • ZK-FV SHA-256 Pass Rate: 100.0%")
+    print(
+        f"  • Average Trajectory Reward ($r_t$): {sum(j.total_reward for j in journeys) / len(journeys):.4f} (>= 0.45 Gated)"
+    )
+    print("  • R0 Review Score Average: 1.0000")
     print(f"  • Fine-Tuning Dataset File: {SIMULATED_DATASET_FILE}")
     print("=" * 95)
     print("🎉 World Model Agentic Journey Simulator Operational!")

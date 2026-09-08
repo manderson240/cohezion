@@ -37,6 +37,25 @@ import sys
 from pathlib import Path
 
 
+# Vendored third-party trees that live under src/cohezion/ but are not maintained
+# here (mirrors the intent of ruff's `exclude` list in pyproject.toml). Violations
+# inside these are re-introduced on every vendor sync and are not ours to fix;
+# their path segments are skipped regardless of traversal depth.
+VENDORED_SEGMENTS = frozenset(
+    {
+        "node_modules",
+        "skills-repo",
+        "vendor",
+        "vendored",
+    }
+)
+
+
+def is_vendored(path: Path) -> bool:
+    """True if any path segment marks the file as vendored third-party code."""
+    return any(seg in VENDORED_SEGMENTS for seg in path.parts)
+
+
 def _resolve_builtin_exception(name: str) -> type | None:
     """Return the built-in exception class for a bare name, or None."""
     obj = getattr(builtins, name, None)
@@ -131,16 +150,23 @@ def main() -> int:
         return 2
 
     targets = []
+    skipped_vendored = 0
     for arg in sys.argv[1:]:
         p = Path(arg)
         if not p.exists():
             print(f"path not found: {p}", file=sys.stderr)
             return 2
         if p.is_file():
-            if p.suffix == ".py":
+            if p.suffix == ".py" and not is_vendored(p):
                 targets.append(p)
+            elif p.suffix == ".py":
+                skipped_vendored += 1
         else:
-            targets.extend(p.rglob("*.py"))
+            for found in p.rglob("*.py"):
+                if is_vendored(found):
+                    skipped_vendored += 1
+                else:
+                    targets.append(found)
 
     total = 0
     for path in targets:
@@ -151,6 +177,11 @@ def main() -> int:
     if total:
         print(f"\n{total} violation(s) across {len(targets)} files", file=sys.stderr)
         return 1
+    if skipped_vendored:
+        print(
+            f"ok — 0 violations ({skipped_vendored} vendored file(s) skipped)",
+            file=sys.stderr,
+        )
     return 0
 
 

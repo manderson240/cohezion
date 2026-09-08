@@ -61,7 +61,7 @@ def warmup_tiers(base_url: str = LEMONADE_BASE_URL) -> dict[str, bool]:
     port = base_url.rstrip("/").rsplit(":", 1)[-1]
     results: dict[str, bool] = {}
     for tier_name, model_name, flags in _WARMUP_TIERS:
-        cmd = ["lemonade", "--port", port, "load", model_name] + flags
+        cmd = ["lemonade", "--port", port, "load", model_name, *flags]
         logger.info("warmup: loading %s tier (%s) …", tier_name, model_name)
         try:
             ret = subprocess.run(cmd, capture_output=True, text=True, timeout=120)

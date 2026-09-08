@@ -263,7 +263,11 @@ class TestUCPCapabilityHandler:
         )
         manifest = handler.generate_manifest()
         assert manifest["name"] == "Cohezion Platform"
-        assert manifest["version"] == "1.0.2"
+        # Derived from the package, not a literal: pinning a version string here is what let
+        # the published manifest advertise 1.0.2 while the package was 1.2.0.
+        from cohezion import __version__
+
+        assert manifest["version"] == __version__
         assert "provider" in manifest
         assert "endpoints" in manifest
 

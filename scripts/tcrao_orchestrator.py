@@ -225,7 +225,7 @@ def _npu_infer(prompt: str, max_tokens: int = 512) -> str | None:
 def tri_infer(prompt: str, max_tokens: int = 2048, required: bool = True) -> str:
     """Tri-compute inference: iGPU → NPU → CPU cascade."""
     # Tier 1: iGPU (most powerful, for code synthesis)
-    for attempt in range(1 if not required else 2):
+    for _attempt in range(1 if not required else 2):
         r = _igpu_infer(prompt, max_tokens)
         if r:
             return r
@@ -431,7 +431,7 @@ def run_autoresearch(
         _LOGGER.info(f"Harness PASSED ({msg})")
 
         # Evaluate
-        metric_value, logs = _evaluate(target, code)
+        metric_value, _logs = _evaluate(target, code)
         wall_time = time.perf_counter() - start
 
         best = tree.get("best_score", float("-inf"))
@@ -566,7 +566,7 @@ if __name__ == "__main__":
         "total_experiments": len(outcomes),
         "best_score": max((o.metric_value for o in outcomes), default=0.0),
         "hypotheses_tested": [o.hypothesis for o in outcomes],
-        "compute_tiers_used": list(set(o.compute_tier for o in outcomes)),
+        "compute_tiers_used": list({o.compute_tier for o in outcomes}),
     }
     state_path = Path.home() / ".cohezion-research" / "tcrao_state.json"
     state_path.parent.mkdir(parents=True, exist_ok=True)

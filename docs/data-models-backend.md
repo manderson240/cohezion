@@ -105,7 +105,7 @@ Pre-commit `lfs-pointer-check` hook enforces that large binaries do not leak int
 
 - [`ARTIFACT_GOVERNANCE.md`](./ARTIFACT_GOVERNANCE.md) — three-tier storage policy
 - [`database_recommendation_report.yml`](./database_recommendation_report.yml) — DB recommendation rationale
-- [`docs/adr/002-googlesql-integration.yaml`](./adr/002-googlesql-integration.yaml) — GoogleSQL analyzer sidecar ADR
+- [`docs/adrs/002-googlesql-integration.yaml`](./adrs/002-googlesql-integration.yaml) — GoogleSQL analyzer sidecar ADR
 - [`docs/architecture/DATAMESH_IMPLEMENTATION_SUMMARY.md`](./architecture/DATAMESH_IMPLEMENTATION_SUMMARY.md)
 - `src/cohezion/data_mesh/data_product.py` — canonical `DataProduct` class
 - `src/cohezion/persistence/surreal_logger.py` — schema interaction source

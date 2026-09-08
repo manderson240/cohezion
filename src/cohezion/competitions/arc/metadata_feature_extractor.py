@@ -67,9 +67,7 @@ def extract_arc_metadata(train_pairs: list[dict[str, Any]]) -> dict[str, Any]:
     if is_same_shape:
         shape_class = "SAME_SHAPE"
     elif is_integer_scaling:
-        shape_class = (
-            f"INTEGER_SCALE_{int(round(scale_ratios[0][0]))}x{int(round(scale_ratios[0][1]))}"
-        )
+        shape_class = f"INTEGER_SCALE_{round(scale_ratios[0][0])}x{round(scale_ratios[0][1])}"
     elif is_downscale:
         shape_class = "CROPPING_OR_SUBGRID"
     else:

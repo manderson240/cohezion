@@ -1,7 +1,10 @@
 import math
+
 import pytest
+
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.poincare_manifold import PoincareManifoldND
+
 
 def test_poincare_point_validation():
     # Valid 12D point inside unit ball
@@ -21,6 +24,7 @@ def test_poincare_point_validation():
     with pytest.raises(ValueError, match="inside the unit ball"):
         PoincarePoint(tuple([0.5] * 12))  # norm^2 = 12 * 0.25 = 3.0 >= 1.0
 
+
 def test_poincare_project():
     large_coords = tuple([0.8] * 12)  # Outside unit ball
     pt = PoincareManifoldND.project(large_coords)
@@ -34,6 +38,7 @@ def test_poincare_project():
     assert pt256.dim == 256
     assert pt256.norm <= PoincareManifoldND.MAX_RADIUS
 
+
 def test_poincare_distance():
     p1 = PoincareManifoldND.project(tuple([0.1] * 12))
     p2 = PoincareManifoldND.project(tuple([0.2] * 12))
@@ -45,11 +50,9 @@ def test_poincare_distance():
     # Self distance is 0
     assert pytest.approx(PoincareManifoldND.distance(p1, p1), abs=1e-5) == 0.0
 
+
 def test_curvature_regularization_loss():
-    pts = [
-        PoincareManifoldND.project(tuple([0.05 * i] * 12))
-        for i in range(4)
-    ]
+    pts = [PoincareManifoldND.project(tuple([0.05 * i] * 12)) for i in range(4)]
     loss = PoincareManifoldND.curvature_regularization_loss(pts)
     assert loss > 0.0
     assert math.isfinite(loss)

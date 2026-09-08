@@ -8,7 +8,6 @@ Formally verifies the 3 Monad Laws for Cohezion's `MonadResult`:
 
 from __future__ import annotations
 
-import pytest
 from cohezion.flume.monadic_markov_trace_engine import MonadResult
 
 

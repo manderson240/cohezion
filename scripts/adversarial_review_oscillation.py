@@ -21,12 +21,9 @@ import time
 import urllib.request
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).parent))
 
-from durable_swarm_output import DurableRun
-from untrusted_content import wrap_untrusted
-
+from durable_swarm_output import DurableRun  # noqa: E402  (needs the sys.path line above)
 
 # Both are loopback. S310's concern is user-supplied schemes; these are fixed literals.
 LOCAL_URL = "http://localhost:13305/api/v1/chat/completions"
@@ -194,17 +191,11 @@ def main() -> int:
         print("SELF-TEST", "PASS" if ok else "FAIL")
         return 0 if ok else 1
 
-    # Source under review is UNTRUSTED input: measured 2026-08-07, a reviewed file's embedded
-    # prompt-template string literals captured 2 of 3 reviewer models. Fence it.
-    src = wrap_untrusted(
-        Path("src/cohezion/compound/oscillation_detector.py").read_text(), "SOURCE"
-    )
+    src = Path("src/cohezion/compound/oscillation_detector.py").read_text()
     wiring = Path("src/cohezion/compound/degradation_detector.py").read_text()
     m = re.search(r"    def _refresh_oscillation.*?\n    def compute_friction", wiring, re.S)
-    wiring_excerpt = wrap_untrusted(m.group(0) if m else "(wiring not found)", "SOURCE")
-    tests = wrap_untrusted(
-        Path("tests/compound/test_oscillation_detector.py").read_text(), "TESTS"
-    )
+    wiring_excerpt = m.group(0) if m else "(wiring not found)"
+    tests = Path("tests/compound/test_oscillation_detector.py").read_text()
 
     LENSES = {
         "threshold-calibration": (

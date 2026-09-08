@@ -174,7 +174,14 @@ PROMPT = (
     "```python\n{code}\n```"
 )
 
-_NO_DEFECT_MARKERS = ("no defect", "no issue", "no bug", "looks correct", "is correct", "no problem")
+_NO_DEFECT_MARKERS = (
+    "no defect",
+    "no issue",
+    "no bug",
+    "looks correct",
+    "is correct",
+    "no problem",
+)
 
 
 @dataclass
@@ -239,7 +246,9 @@ def _cloud_chat(model: str):
             check=False,
         )
         # Strip the ANSI spinner ollama emits even when stdout is redirected.
-        return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]|\[\?25[lh]|\[\?2026[lh]|\[[0-9]*G|\[K", "", proc.stdout)
+        return re.sub(
+            r"\x1b\[[0-9;?]*[a-zA-Z]|\[\?25[lh]|\[\?2026[lh]|\[[0-9]*G|\[K", "", proc.stdout
+        )
 
     return chat
 

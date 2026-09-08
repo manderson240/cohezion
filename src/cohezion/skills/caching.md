@@ -33,10 +33,12 @@ You are a specialist in **caching strategies** for high-performance AI systems. 
 ```python
 from functools import lru_cache
 
+
 @lru_cache(maxsize=1024)
 def compute_embedding(text: str) -> list[float]:
     """Cache embeddings to avoid recomputation."""
     return model.encode(text).tolist()
+
 
 # Clear cache when needed
 compute_embedding.cache_clear()
@@ -46,16 +48,18 @@ compute_embedding.cache_clear()
 ```python
 import diskcache
 
-cache = diskcache.Cache('./cache_dir')
+cache = diskcache.Cache("./cache_dir")
+
 
 @cache.memoize(expire=3600)  # 1 hour TTL
 def expensive_computation(input_data):
     # Heavy computation here
     return result
 
+
 # Manual cache operations
-cache.set('key', value, expire=600)
-value = cache.get('key', default=None)
+cache.set("key", value, expire=600)
+value = cache.get("key", default=None)
 ```
 
 ### 3. Redis (Distributed)
@@ -63,7 +67,8 @@ value = cache.get('key', default=None)
 import redis
 import json
 
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host="localhost", port=6379, db=0)
+
 
 def cached_query(query: str) -> dict:
     cache_key = f"query:{hash(query)}"
@@ -82,11 +87,13 @@ def cached_query(query: str) -> dict:
 ### 4. Cache Invalidation Patterns
 ```python
 # Pattern 1: Time-based (TTL)
-cache.set('data', value, expire=300)  # 5 minutes
+cache.set("data", value, expire=300)  # 5 minutes
+
 
 # Pattern 2: Event-based
 def on_data_update(event):
     cache.delete(f"data:{event.id}")
+
 
 # Pattern 3: Version-based
 cache_key = f"model:v{MODEL_VERSION}:{input_hash}"

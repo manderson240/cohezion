@@ -39,11 +39,7 @@ def main() -> int:
     args = ap.parse_args()
 
     OUT.mkdir(parents=True, exist_ok=True)
-    paths = [
-        p
-        for p in iter_transcripts()
-        if args.subagents or not is_subagent_transcript(p)
-    ]
+    paths = [p for p in iter_transcripts() if args.subagents or not is_subagent_transcript(p)]
     if args.limit:
         paths = paths[: args.limit]
 

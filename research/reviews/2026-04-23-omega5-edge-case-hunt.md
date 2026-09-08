@@ -184,6 +184,7 @@ Per Learning 359 (`except (SubclassError, Exception)` is a stealth bare-except),
   ```python
   try:
       from surrealdb import Surreal
+
       db = Surreal("ws://localhost:8000")
       return db
   except (ImportError, AttributeError, ConnectionError, OSError, RuntimeError):

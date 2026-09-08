@@ -121,7 +121,7 @@ class AdaptiveSchedule:
 
     def recommend(self, n: int = 4) -> list[tuple[str, dict[str, Any]]]:
         """Return top-N recommended experiments with reasoning."""
-        t0 = timeit.default_timer()
+        timeit.default_timer()
         active = {k: v for k, v in self.stats.items() if not v.should_retire}
 
         if not active:

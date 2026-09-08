@@ -19,7 +19,7 @@ def test_jaccard_deduplication():
     block_c = "SurrealDB persistence should use port 8001 and handle connection failures gracefully with falling back to local memory store."
 
     content = f"{block_a}\n\n{block_b}\n\n{block_c}"
-    pruned, seen = optimizer.prune_rules(content)
+    pruned, _seen = optimizer.prune_rules(content)
 
     # block_b should be pruned since it is a semantic duplicate of block_a
     assert block_a in pruned
@@ -81,10 +81,13 @@ async def test_token_efficient_executor_pruning_integration():
         executor.logger = MagicMock()
         executor.logger.log_execution_start.return_value = "exp_path"
 
-        # Running a task that does NOT mention git/commits should prune the git rules block from static prefix
-        async def execute_fn(prefix, suffix):
-            assert "Surgical commits" not in prefix
-            assert "MANDATORY" in prefix
+        # Running a task that does NOT mention git/commits should prune the git rules block from
+        # static prefix. Signature must match the production call contract: execute_task_efficient
+        # invokes execute_fn(system_stable=<cacheable prefix>, system=<dynamic suffix>) — kwargs,
+        # not positionals (de0d5d0ac, prompt-caching split).
+        async def execute_fn(system_stable, system):
+            assert "Surgical commits" not in system_stable
+            assert "MANDATORY" in system_stable
             return "output", {}
 
         with patch.object(executor, "get_experience_guidance", return_value={}):

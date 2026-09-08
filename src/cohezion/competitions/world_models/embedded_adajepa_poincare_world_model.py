@@ -35,6 +35,7 @@ class EmbeddedPoincareJEPAWorldModel:
         # Linear projection + hyperbolic tangent bounding
         z_euc = np.dot(flat, self.W_enc)
         norm = np.linalg.norm(z_euc)
+        z_poincare: np.ndarray
         if norm > 0:
             # Map into unit ball: ||z|| < 1.0
             z_poincare = (z_euc / norm) * np.tanh(norm)
@@ -59,7 +60,8 @@ class EmbeddedPoincareJEPAWorldModel:
         action_vec = np.sin(np.arange(self.latent_dim) * (action_idx + 1) * 0.5) * 0.1
         z_next_euc = np.dot(current_latent, self.W_trans) + action_vec
         norm = np.linalg.norm(z_next_euc)
-        return (z_next_euc / norm) * np.tanh(norm) if norm > 0 else z_next_euc
+        result: np.ndarray = (z_next_euc / norm) * np.tanh(norm) if norm > 0 else z_next_euc
+        return result
 
 
 def run_embedded_world_model_sweep():

@@ -84,6 +84,7 @@ escalate to user.
 4. **Check RAM** via `ResourceGuard`:
    ```python
    from cohezion.reliability.resource_guard import ResourceGuard
+
    guard = ResourceGuard()
    ok, reason = guard.can_load_model(5000)
    ```

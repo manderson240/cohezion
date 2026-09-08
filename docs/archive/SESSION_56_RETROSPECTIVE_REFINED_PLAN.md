@@ -159,7 +159,7 @@ def safe_relate(source_id: str, edge: str, target_id: str, max_retries: int = 3)
     """Create edge with existence check + retries"""
     # Check target exists
     result = execute_surreal(f"SELECT * FROM {target_id};")
-    if not result[0].get('result'):
+    if not result[0].get("result"):
         logger.warning(f"Target {target_id} doesn't exist, skipping edge")
         return None
 
@@ -191,7 +191,7 @@ async def import_vault_document_hybrid(file_path: Path, doc_type: str):
 
     # Step 1: Generate embedding (NEW)
     embedding_result = await ollama_embed([body[:2000]])  # First 2K chars
-    embedding = embedding_result['embeddings'][0]
+    embedding = embedding_result["embeddings"][0]
 
     # Step 2: Create node with embedding
     doc_id = f"vault_memory:{file_path.stem}"
@@ -206,10 +206,10 @@ async def import_vault_document_hybrid(file_path: Path, doc_type: str):
     """)
 
     # Step 3: Parse wiki-links and create edges (with checks)
-    links = re.findall(r'\[\[([^\]]+)\]\]', body)
+    links = re.findall(r"\[\[([^\]]+)\]\]", body)
     for link in links:
         target_id = f"vault_memory:{slugify(link)}"
-        await safe_relate(doc_id, 'informed_by', target_id)
+        await safe_relate(doc_id, "informed_by", target_id)
 ```
 
 **Token Cost**: 2 hours × 2K tokens/hour = 4K tokens (vs 6K without batching)
@@ -228,11 +228,11 @@ async def import_vault_document_hybrid(file_path: Path, doc_type: str):
 def vault_find_relevant_context_graphrag(
     query: str,
     top_k: int = 5,
-    max_depth: int = 3  # Prevent circular loops
+    max_depth: int = 3,  # Prevent circular loops
 ):
     """Hybrid semantic + graph search with bounded traversal"""
     # Generate query embedding
-    query_vec = ollama_embed([query])['embeddings'][0]
+    query_vec = ollama_embed([query])["embeddings"][0]
 
     # Hybrid query with depth limit
     surql = f"""
@@ -260,13 +260,12 @@ def vault_find_relevant_context_graphrag(
 ```python
 class VaultFileWatcher(FileSystemEventHandler):
     def on_modified(self, event):
-        if event.src_path.endswith('.md'):
+        if event.src_path.endswith(".md"):
             # Existing: Trigger SSE notification
             # NEW: Also sync to SurrealDB
-            asyncio.create_task(import_vault_document_hybrid(
-                Path(event.src_path),
-                detect_doc_type(event.src_path)
-            ))
+            asyncio.create_task(
+                import_vault_document_hybrid(Path(event.src_path), detect_doc_type(event.src_path))
+            )
 ```
 
 **Token Cost**: 30 min × 2K = 1K tokens
@@ -344,10 +343,10 @@ def vault_find_relevant_context_graphrag(query: str, ...):
 ### 4. Embedding Reuse
 **Pattern**: Check if embedding exists before regenerating
 ```python
-if not doc.get('embedding'):
+if not doc.get("embedding"):
     embedding = await ollama_embed(content)
 else:
-    embedding = doc['embedding']  # Reuse existing
+    embedding = doc["embedding"]  # Reuse existing
 ```
 **Savings**: 50% on re-imports
 

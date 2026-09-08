@@ -59,7 +59,7 @@ def identify_phenomenon(observations):
         "coulomb_violation": False,
         "nuclear_reactions": False,
         "coherence_threshold": False,
-        "em_force_dominant": False
+        "em_force_dominant": False,
     }
 
     # Check for key signatures
@@ -83,7 +83,7 @@ def identify_phenomenon(observations):
         return {
             "phenomenon": "Itonic Cluster / EVO / HIHO Structure",
             "framework": "Matsumoto-HIHO-EVO Unified Model",
-            "confidence": sum(indicators.values()) / 5
+            "confidence": sum(indicators.values()) / 5,
         }
 
     return None
@@ -105,6 +105,7 @@ def identify_phenomenon(observations):
 
 ```python
 import numpy as np
+
 
 class ItonicClusterSimulator:
     """
@@ -157,7 +158,7 @@ class ItonicClusterSimulator:
                 "enc_possible": True,
                 "density": density,
                 "coherence": self.coherence,
-                "mechanism": "EM force compression at HIHO threshold"
+                "mechanism": "EM force compression at HIHO threshold",
             }
 
         return {"enc_possible": False}
@@ -199,7 +200,7 @@ def apply_synthesis_to_research(new_paper):
         "matsumoto": any(kw in text for kw in keywords_matsumoto),
         "shoulders": any(kw in text for kw in keywords_shoulders),
         "smith": any(kw in text for kw in keywords_smith),
-        "lenr": any(kw in text for kw in keywords_lenr)
+        "lenr": any(kw in text for kw in keywords_lenr),
     }
 
     if sum(matches.values()) >= 1:
@@ -207,7 +208,7 @@ def apply_synthesis_to_research(new_paper):
             "relevant": True,
             "framework": "Matsumoto-HIHO-EVO",
             "recommend_synthesis": "Cross-reference with unified framework",
-            "key_insight": "Likely describing same phenomenon under different name"
+            "key_insight": "Likely describing same phenomenon under different name",
         }
 
     return {"relevant": False}

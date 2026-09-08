@@ -9,6 +9,7 @@ Used by frontier_oracle.fable_spend_usd to gate Fable spend against a monthly ca
 
 from __future__ import annotations
 
+import contextlib
 import json
 from pathlib import Path
 
@@ -51,10 +52,8 @@ def read_usage_log(path: str | Path | None = None) -> list[dict]:
             for line in f:
                 line = line.strip()
                 if line:
-                    try:
+                    with contextlib.suppress(json.JSONDecodeError):
                         records.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        pass
     except OSError:
         pass
     return records

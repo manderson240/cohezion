@@ -66,16 +66,16 @@ Validated: ✅ YES
 async with CompoundSessionManager() as mgr:
     # Warm start
     summary = mgr.start_session(max_cache_entries=256)
-    
+
     # Alignment gate
     success, result = await mgr.execute_aligned(
-        request='Execute dogfooding test suite',
+        request="Execute dogfooding test suite",
         execute_fn=do_work,
-        skill_name='test_execution',
-        use_executor=True
+        skill_name="test_execution",
+        use_executor=True,
     )
-    
-    # Clean shutdown  
+
+    # Clean shutdown
     end_summary = mgr.end_session()
 ```
 

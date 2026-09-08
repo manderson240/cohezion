@@ -19,6 +19,7 @@ from dataclasses import dataclass
 
 from cohezion.reliability.oom_guard import OOMGuard
 
+
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 
 

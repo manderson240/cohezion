@@ -69,9 +69,7 @@ MCP_API_KEY=sk_live_xxxxxxxxxxxxx
 
 **In client:**
 ```python
-headers = {
-    "Authorization": f"Bearer {MCP_API_KEY}"
-}
+headers = {"Authorization": f"Bearer {MCP_API_KEY}"}
 ```
 
 ---
@@ -138,12 +136,7 @@ import mcp
 
 client = mcp.MCPClient("http://localhost:8000")
 
-audio = client.synthesize_text(
-    text="Hello world!",
-    voice="my_voice",
-    speed=1.0,
-    format="mp3"
-)
+audio = client.synthesize_text(text="Hello world!", voice="my_voice", speed=1.0, format="mp3")
 
 with open("output.mp3", "wb") as f:
     f.write(audio)
@@ -262,20 +255,13 @@ client = mcp.MCPClient("http://localhost:8000")
 with open("meeting.mp3", "rb") as f:
     audio_data = f.read()
 
-result = client.transcribe_audio(
-    audio_data=audio_data,
-    model="stt-2.6b",
-    format="json"
-)
+result = client.transcribe_audio(audio_data=audio_data, model="stt-2.6b", format="json")
 
 print(result["text"])
 # Output: "Complete transcription with all spoken words"
 
 # Save as SRT
-result_srt = client.transcribe_audio(
-    audio_data=audio_data,
-    format="srt"
-)
+result_srt = client.transcribe_audio(audio_data=audio_data, format="srt")
 with open("subtitles.srt", "w") as f:
     f.write(result_srt)
 ```
@@ -355,20 +341,13 @@ client = mcp.MCPClient("http://localhost:8000")
 with open("reference_voice.wav", "rb") as f:
     audio_data = f.read()
 
-voice = client.clone_voice(
-    audio_data=audio_data,
-    name="My Custom Voice",
-    language="en"
-)
+voice = client.clone_voice(audio_data=audio_data, name="My Custom Voice", language="en")
 
 print(f"Created voice: {voice['voice_id']}")
 print(f"Ready for synthesis: {voice['status']}")
 
 # Now use in synthesis
-audio = client.synthesize_text(
-    text="Using my custom voice!",
-    voice=voice['voice_id']
-)
+audio = client.synthesize_text(text="Using my custom voice!", voice=voice["voice_id"])
 ```
 
 ---
@@ -597,8 +576,8 @@ print(f"Server Status: {status['status']}")
 print(f"Uptime: {status['uptime_seconds']}s")
 print(f"Requests: {status['performance']['requests_total']}")
 print(f"GPU Available: {status['gpu']['available']}")
-if status['gpu']['available']:
-    for device in status['gpu']['devices']:
+if status["gpu"]["available"]:
+    for device in status["gpu"]["devices"]:
         print(f"  {device['name']}: {device['memory_used_mb']}/{device['memory_total_mb']}MB")
 ```
 
@@ -663,6 +642,7 @@ import asyncio
 import websockets
 import json
 
+
 async def stream_transcription():
     uri = "ws://localhost:8000/stream"
     async with websockets.connect(uri) as websocket:
@@ -682,6 +662,7 @@ async def stream_transcription():
                 print(f"Interim: {result['text']}")
             elif result["type"] == "complete":
                 print(f"Final: {result['text']}")
+
 
 # Run
 asyncio.run(stream_transcription())
@@ -942,8 +923,7 @@ import httpx
 
 async with httpx.AsyncClient() as client:
     response = await client.post(
-        "http://localhost:8000/synthesize",
-        json={"text": "Hello", "voice": "default"}
+        "http://localhost:8000/synthesize", json={"text": "Hello", "voice": "default"}
     )
     audio = response.content
 ```
@@ -1032,16 +1012,10 @@ from mcp.errors import MCPError
 client = mcp.MCPClient("http://localhost:8000")
 
 try:
-    audio = client.synthesize_text(
-        text="Hello world",
-        voice="my_voice"
-    )
+    audio = client.synthesize_text(text="Hello world", voice="my_voice")
 except mcp.errors.NotFoundError:
     # Voice doesn't exist
-    audio = client.synthesize_text(
-        text="Hello world",
-        voice="default"
-    )
+    audio = client.synthesize_text(text="Hello world", voice="default")
 except mcp.errors.TimeoutError:
     # Request took too long
     print("Request timeout, try shorter text")

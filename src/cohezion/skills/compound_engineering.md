@@ -2,6 +2,12 @@
 name: COMPOUND_ENGINEERING_PRIME
 description: Comprehensive domain skill specification for Compound Engineering.
 version: v1.0
+name: compound_engineering
+description: "Standardized Cohezion platform PRIME skill for compound_engineering."
+category: core
+tags: [skill, prime, cohezion]
+metadata:
+  version: "1.0.0"
 ---
 
 # SKILL: COMPOUND_ENGINEERING_PRIME

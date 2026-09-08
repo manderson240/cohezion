@@ -376,8 +376,7 @@ async def verify_and_rollback_on_failure(collection_id):
 
     # Verify all files queryable
     count = await db.query(
-        f"SELECT count() FROM training_data_files "
-        f"WHERE collection_id = '{collection_id}'"
+        f"SELECT count() FROM training_data_files WHERE collection_id = '{collection_id}'"
     )
 
     if count[0][0] == 0:

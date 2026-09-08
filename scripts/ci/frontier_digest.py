@@ -253,7 +253,7 @@ def _query_mycelium_patterns(query: str, limit: int = 20) -> list[str]:
     try:
         from cohezion.knowledge.surreal import SurrealClient  # type: ignore
 
-        client = SurrealClient()
+        SurrealClient()
         # Placeholder: real query would use SurrealQL
         return []
     except (ImportError, AttributeError, OSError) as e:
@@ -270,10 +270,7 @@ def novelty_score(finding: dict[str, Any] | Finding) -> float:
     - Penalize by max similarity to any pattern title
     - Token overlap Jaccard on title keywords
     """
-    if isinstance(finding, Finding):
-        f = finding.to_dict()
-    else:
-        f = finding
+    f = finding.to_dict() if isinstance(finding, Finding) else finding
     title = (f.get("title") or "").lower()
     if not title:
         return 0.0
@@ -407,7 +404,7 @@ def post_to_surrealdb(digest_path: Path, today: str) -> bool:
     try:
         from cohezion.knowledge.surreal import SurrealClient  # type: ignore
 
-        client = SurrealClient()
+        SurrealClient()
         # Placeholder: real client.record(...) call
         return True
     except (ImportError, AttributeError, OSError) as e:

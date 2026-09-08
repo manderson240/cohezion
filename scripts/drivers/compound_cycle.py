@@ -56,7 +56,9 @@ def create_mock_inflection_detector():
     detector = MagicMock()
     anomaly = MagicMock()
     anomaly.severity = Severity.INFO
-    anomaly.score = 0.9  # High health score for high-quality tasks (anomaly_score = HEALTH, high=good)
+    anomaly.score = (
+        0.9  # High health score for high-quality tasks (anomaly_score = HEALTH, high=good)
+    )
     anomaly.issues = []
     anomaly.recommendations = []
     anomaly.should_reexecute = False

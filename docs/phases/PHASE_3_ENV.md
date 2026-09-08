@@ -59,9 +59,9 @@ The `_compute_coherence()` method now uses TRIUNE dominance weights:
 
 ```python
 weighted_variance = (
-    triune_weights["doer"] * doer_variance +
-    triune_weights["thinker"] * thinker_variance +
-    triune_weights["knower"] * knower_variance
+    triune_weights["doer"] * doer_variance
+    + triune_weights["thinker"] * thinker_variance
+    + triune_weights["knower"] * knower_variance
 )
 coherence = max(0.0, 1.0 - min(weighted_variance * 4.0, 1.0))
 ```

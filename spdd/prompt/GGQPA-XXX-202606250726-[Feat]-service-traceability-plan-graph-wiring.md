@@ -164,6 +164,7 @@ GitPostCommitHook --> PlanGraph : calls record_commit()
    try:
        import asyncio
        from cohezion.traceability.register_plan import register_plan
+
        plan_id = asyncio.run(register_plan(plan_path))
        click.echo(f"Traceability: {plan_id}")
    except Exception as e:

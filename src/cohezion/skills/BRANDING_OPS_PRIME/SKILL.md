@@ -20,6 +20,7 @@ Expertise in maintaining, evolving, and operationalizing the Cohezion "Organic M
 2.  **Import Identity**:
     ```python
     from cohezion.branding import Colors, Identity, Motifs
+
     print(f"[{Colors.NEXUS_GREEN}]{Identity.SIGN_OFF} Active")
     print(f"Orchestrator: {Identity.ORCHESTRATOR_NAME}")
     ```

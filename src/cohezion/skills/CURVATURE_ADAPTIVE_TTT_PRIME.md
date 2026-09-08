@@ -21,18 +21,19 @@ Curvature-Adaptive Test-Time Training (CA-TTT) and Search-Tree-Weighted Self-Con
 ```python
 import numpy as np
 
+
 def poincare_distance_c(u: np.ndarray, v: np.ndarray, c: float = 1.0, eps: float = 1e-5) -> float:
     """Computes conformal Poincaré distance under variable negative curvature c."""
     c = max(1e-4, float(c))
-    norm_u = np.sum(u ** 2)
-    norm_v = np.sum(v ** 2)
+    norm_u = np.sum(u**2)
+    norm_v = np.sum(v**2)
     diff_norm = np.sum((u - v) ** 2)
-    
+
     # Boundary clipping for numerical stability in the open ball ||u|| < 1/sqrt(c)
     max_radius = (1.0 / np.sqrt(c)) - eps
     if norm_u >= max_radius**2 or norm_v >= max_radius**2:
         return 100.0
-        
+
     delta = 1.0 + (2.0 * c * diff_norm) / ((1.0 - c * norm_u) * (1.0 - c * norm_v))
     delta = max(1.0 + eps, delta)
     return float((1.0 / np.sqrt(c)) * np.arccosh(delta))

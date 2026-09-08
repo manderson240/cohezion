@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "agent_id": "scalar_flume_scalar_1785427366",
+    "universe_id": "universe-flume-scalar",
+    "total_steps": 4,
+    "binding_energy": 1.6,
+    "timestamp": "2026-07-30T12:03:38"
+  },
+  "nodes": [
+    {
+      "id": "evo_scalar_flume_scalar_1785427366_step_1",
+      "label": "EVO Step 1: Local silicon formulated scala",
+      "agent_id": "scalar_flume_scalar_1785427366",
+      "topology": "trivial",
+      "confidence": 0.2296474455738433,
+      "coherence": 0.95,
+      "state_12d": [
+        0.0393,
+        0.4723,
+        -1.4271,
+        0.2027,
+        2.4042,
+        0.966,
+        1.702,
+        0.2335,
+        0.0774,
+        -1.5598,
+        0.0494,
+        -0.1382
+      ],
+      "color": "#78909c",
+      "size": 6.918589782295373
+    },
+    {
+      "id": "evo_scalar_flume_scalar_1785427366_step_2",
+      "label": "EVO Step 2: Ollama cloud synthesized src/c",
+      "agent_id": "scalar_flume_scalar_1785427366",
+      "topology": "trivial",
+      "confidence": 0.0,
+      "coherence": 0.85,
+      "state_12d": [
+        -1.5608,
+        0.4311,
+        -0.7665,
+        0.4146,
+        1.2761,
+        0.6954,
+        -1.0464,
+        0.2834,
+        -0.7615,
+        -0.3038,
+        -1.1454,
+        0.9693
+      ],
+      "color": "#78909c",
+      "size": 6.0
+    },
+    {
+      "id": "evo_scalar_flume_scalar_1785427366_step_3",
+      "label": "EVO Step 3: Exported flume_scalar_coordina",
+      "agent_id": "scalar_flume_scalar_1785427366",
+      "topology": "instanton",
+      "confidence": 0.651629420251682,
+      "coherence": 0.95,
+      "state_12d": [
+        0.0599,
+        -0.6947,
+        -0.7791,
+        -0.042,
+        0.311,
+        -2.6913,
+        0.9311,
+        -1.8447,
+        1.8056,
+        -1.2333,
+        0.2481,
+        -0.4207
+      ],
+      "color": "#ff0055",
+      "size": 8.606517681006729
+    },
+    {
+      "id": "evo_scalar_flume_scalar_1785427366_step_4",
+      "label": "EVO Step 4: Persisted record to SurrealDB ",
+      "agent_id": "scalar_flume_scalar_1785427366",
+      "topology": "instanton",
+      "confidence": 0.35463754005567133,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.0989,
+        1.1622,
+        2.887,
+        -2.2693,
+        1.6341,
+        -1.086,
+        0.6455,
+        1.7906,
+        -0.1893,
+        -0.4825,
+        0.1458,
+        0.0673
+      ],
+      "color": "#ff0055",
+      "size": 7.4185501602226855
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_scalar_flume_scalar_1785427366_step_1",
+      "target": "evo_scalar_flume_scalar_1785427366_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_scalar_flume_scalar_1785427366_step_2",
+      "target": "evo_scalar_flume_scalar_1785427366_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_scalar_flume_scalar_1785427366_step_3",
+      "target": "evo_scalar_flume_scalar_1785427366_step_4",
+      "type": "evo_transition"
+    }
+  ]
+}

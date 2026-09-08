@@ -77,21 +77,21 @@ This specification defines a robust, fault-tolerant model management system that
 @dataclass
 class ProtectionConfig:
     """Configuration for graduated overload protection."""
-    
+
     # Memory pressure thresholds (graduated)
-    pressure_normal: float = 0.65      # 65% - full performance
-    pressure_warning: float = 0.75     # 75% - reduce context 25%
-    pressure_elevated: float = 0.85    # 85% - evict cold, reduce 50%
-    pressure_critical: float = 0.92   # 92% - emergency mode
+    pressure_normal: float = 0.65  # 65% - full performance
+    pressure_warning: float = 0.75  # 75% - reduce context 25%
+    pressure_elevated: float = 0.85  # 85% - evict cold, reduce 50%
+    pressure_critical: float = 0.92  # 92% - emergency mode
     pressure_emergency: float = 0.95  # 95% - restart Ollama
-    
+
     # Response delays (prevent thrashing)
-    min_action_interval: float = 10.0    # Seconds between actions
-    cooldown_period: float = 30.0      # Seconds before escalating
-    
+    min_action_interval: float = 10.0  # Seconds between actions
+    cooldown_period: float = 30.0  # Seconds before escalating
+
     # Circuit breaker coordination
     disable_circuits_above: float = 0.90  # Disable CB above this
-    
+
     # Request throttling
     max_queue_depth: int = 10
     queue_timeout: float = 300.0
@@ -103,13 +103,13 @@ class ProtectionConfig:
 async def handle_memory_pressure(self, pressure: float) -> ProtectionAction:
     """
     Handle memory pressure with graduated response.
-    
+
     Args:
         pressure: Current memory pressure (0.0 - 1.0)
-        
+
     Returns:
         ProtectionAction detailing actions taken
-        
+
     Response Matrix:
         0.00-0.65: Normal - No action
         0.65-0.75: Warning - Reduce context 25%, notify
@@ -120,10 +120,11 @@ async def handle_memory_pressure(self, pressure: float) -> ProtectionAction:
     """
     ...
 
+
 async def coordinate_with_circuit_breakers(self, pressure: float):
     """
     Adjust circuit breaker thresholds based on pressure.
-    
+
     When pressure is high:
     - Increase failure tolerance for large models (memory-related fails)
     - Disable aggressive circuit opening
@@ -131,16 +132,17 @@ async def coordinate_with_circuit_breakers(self, pressure: float):
     """
     ...
 
+
 async def validate_request(self, request: dict) -> ValidatedRequest:
     """
     Validate request against current system state.
-    
+
     Checks:
     1. Context size vs available memory
     2. KV cache requirements
     3. Model availability
     4. Queue depth
-    
+
     Raises:
         OverloadError: If request cannot be safely processed
     """
@@ -166,27 +168,28 @@ async def validate_request(self, request: dict) -> ValidatedRequest:
 @dataclass
 class ModelContextProfile:
     """Context-aware model profile."""
-    
+
     name: str
     size_gb: float
     total_params_b: float
     native_context: int
-    
+
     # Context optimization
     optimal_context_128gb: int  # Safe context for 128GB system
-    min_context: int            # Absolute minimum (always safe)
-    
+    min_context: int  # Absolute minimum (always safe)
+
     # KV cache calculation
-    kv_cache_mb_per_1k: float   # MB of KV cache per 1K tokens
-    max_kv_cache_gb: float     # Maximum KV cache to allocate
-    
+    kv_cache_mb_per_1k: float  # MB of KV cache per 1K tokens
+    max_kv_cache_gb: float  # Maximum KV cache to allocate
+
     # Performance
     tokens_per_second: float
     quality_score: float  # 0-1
-    
+
     # Task suitability
     best_for: list[str]  # ["coding", "analysis", "reasoning"]
     min_context_for_quality: int  # Below this, quality degrades
+
 
 # Pre-calculated profiles for 128GB system
 MODEL_PROFILES = {
@@ -241,14 +244,14 @@ MODEL_PROFILES = {
 async def route(self, request: RoutingRequest) -> RoutingDecision:
     """
     Route request based on context needs and system state.
-    
+
     Selection Criteria (in order):
     1. Context fit: model.optimal_context >= request.context_length
     2. Memory fit: model.size + kv_cache <= available_memory * 0.8
     3. Task suitability: request.task_type in model.best_for
     4. Quality: model.quality_score >= request.min_quality
     5. Speed: model.tokens_per_second >= request.min_speed
-    
+
     Fallback Strategy:
     - If no model fits context: Use largest available, truncate request
     - If no model fits memory: Queue request, evict lower priority models
@@ -256,15 +259,13 @@ async def route(self, request: RoutingRequest) -> RoutingDecision:
     """
     ...
 
+
 def calculate_safe_context(
-    self,
-    model: ModelContextProfile,
-    available_memory_gb: float,
-    concurrent_requests: int = 1
+    self, model: ModelContextProfile, available_memory_gb: float, concurrent_requests: int = 1
 ) -> int:
     """
     Calculate safe context window for model.
-    
+
     Formula:
         usable_memory = available_memory_gb * 0.75 - 5  # 75% minus 5GB system
         kv_budget_per_request = (usable_memory * 1024) / concurrent_requests
@@ -274,16 +275,13 @@ def calculate_safe_context(
     """
     ...
 
-def get_context_efficiency_score(
-    self,
-    model: ModelContextProfile,
-    requested_context: int
-) -> float:
+
+def get_context_efficiency_score(self, model: ModelContextProfile, requested_context: int) -> float:
     """
     Calculate token efficiency for this model-context combination.
-    
+
     Efficiency = (useful_tokens / total_tokens) * quality_factor
-    
+
     Example:
     - 2K request on 256K model: 0.008 * 0.95 = 0.76% efficiency (BAD)
     - 64K request on 256K model: 0.25 * 0.95 = 23.75% efficiency (GOOD)
@@ -311,20 +309,22 @@ def get_context_efficiency_score(
 @dataclass
 class KVCacheEntry:
     """Tracks KV cache for a single request."""
+
     request_id: str
     model: str
     context_length: int
     kv_cache_mb: float
     created_at: datetime
     last_accessed: datetime
-    
+
     @property
     def age_seconds(self) -> float:
         return (datetime.now() - self.created_at).total_seconds()
-    
+
     @property
     def idle_seconds(self) -> float:
         return (datetime.now() - self.last_accessed).total_seconds()
+
 
 class KVCacheTracker:
     def __init__(self, max_total_cache_gb: float = 60.0):
@@ -337,22 +337,18 @@ class KVCacheTracker:
 
 ```python
 async def allocate(
-    self,
-    request_id: str,
-    model: ModelContextProfile,
-    context_length: int,
-    timeout: float = 5.0
+    self, request_id: str, model: ModelContextProfile, context_length: int, timeout: float = 5.0
 ) -> AllocationResult:
     """
     Allocate KV cache for a request.
-    
+
     Algorithm:
     1. Calculate required KV cache: context_length/1000 * model.kv_cache_mb_per_1k
     2. Check if under max_total_cache_gb
     3. If over: evict oldest idle caches
     4. If still over: reduce context length
     5. If still over: queue request
-    
+
     Returns:
         AllocationResult with:
         - success: bool
@@ -362,25 +358,28 @@ async def allocate(
     """
     ...
 
+
 async def release(self, request_id: str) -> float:
     """
     Release KV cache for completed request.
-    
+
     Returns:
         Amount of memory freed (MB)
     """
     ...
 
+
 def get_total_kv_cache_gb(self) -> float:
     """Get total KV cache currently allocated."""
     return sum(e.kv_cache_mb for e in self.active_caches.values()) / 1024
 
+
 def evict_idle_caches(self, max_age_seconds: float = 60.0) -> int:
     """
     Evict caches that have been idle too long.
-    
+
     Called periodically and when under memory pressure.
-    
+
     Returns:
         Number of caches evicted
     """
@@ -406,24 +405,26 @@ def evict_idle_caches(self, max_age_seconds: float = 60.0) -> int:
 @dataclass
 class JourneyCheckpoint:
     """Serializable checkpoint of journey state."""
+
     checkpoint_id: str
     journey_id: str
     agent_id: str
     timestamp: float
-    
+
     # Journey state
     current_phase: str
     physics_state: dict  # 12D physics state
     step_count: int
     coherence_trajectory: list[float]
-    
+
     # Context
     recent_actions: list[dict]
     active_skills: list[str]
-    
+
     # Vault references
     vault_path: str
     surrealdb_id: str
+
 
 class JourneyPersistenceManager:
     def __init__(
@@ -444,84 +445,75 @@ class JourneyPersistenceManager:
 
 ```python
 async def persist_journey_point(
-    self,
-    point: JourneyPoint,
-    priority: PersistencePriority = PersistencePriority.NORMAL
+    self, point: JourneyPoint, priority: PersistencePriority = PersistencePriority.NORMAL
 ) -> PersistenceResult:
     """
     Persist journey point to all storage layers.
-    
+
     Storage Strategy:
     - Local Cache: Always (synchronous, <1ms)
     - SurrealDB: Async fire-and-forget (fast query path)
     - Vault MCP: Async with retry (durability, human-readable)
-    
+
     Priority Levels:
     - CRITICAL: Block until all writes complete
     - NORMAL: Local + SurrealDB immediate, Vault async
     - BACKGROUND: All async, best effort
-    
+
     Args:
         point: Journey point to persist
         priority: Persistence priority
-        
+
     Returns:
         PersistenceResult with success status and paths
     """
     ...
 
+
 async def create_checkpoint(
-    self,
-    journey_tracker: JourneyTracker,
-    force: bool = False
+    self, journey_tracker: JourneyTracker, force: bool = False
 ) -> CheckpointResult:
     """
     Create journey checkpoint for session continuity.
-    
+
     Called:
     - Every N steps (configurable)
     - At phase transitions
     - On graceful shutdown
     - When requested by agent
-    
+
     Checkpoint stored in:
     - SurrealDB: agent_journeys table
     - Vault: checkpoints/{agent_id}/{journey_id}.json
     """
     ...
 
-async def restore_from_checkpoint(
-    self,
-    agent_id: str,
-    journey_id: str
-) -> JourneyTracker | None:
+
+async def restore_from_checkpoint(self, agent_id: str, journey_id: str) -> JourneyTracker | None:
     """
     Restore journey tracker from checkpoint.
-    
+
     Used for:
     - Session recovery after restart
     - Agent migration between nodes
     - Long-running journey continuation
-    
+
     Returns:
         Restored JourneyTracker or None if no checkpoint found
     """
     ...
 
-async def write_to_vault(
-    self,
-    journey_id: str,
-    points: list[JourneyPoint]
-) -> str:
+
+async def write_to_vault(self, journey_id: str, points: list[JourneyPoint]) -> str:
     """
     Write human-readable journey log to Vault MCP.
-    
+
     Creates markdown document with:
     - Journey overview
     - Phase-by-phase breakdown
     - Physics state visualizations
     - Decision points with rationale
-    
+
     Returns:
         Vault path to created document
     """
@@ -546,32 +538,33 @@ async def write_to_vault(
 class ModelPoolManager:
     def __init__(self, config: TierConfig | None = None):
         # ... existing init ...
-        
+
         # NEW: Integration with Overload Coordinator
         self.overload_coordinator: OverloadCoordinator | None = None
-        
+
         # NEW: KV cache awareness
         self.kv_cache_tracker: KVCacheTracker | None = None
-        
+
         # NEW: Request coalescing
         self._loading_futures: dict[str, asyncio.Future[bool]] = {}
-        
+
     def set_coordinator(self, coordinator: OverloadCoordinator) -> None:
         """Connect to overload protection system."""
         self.overload_coordinator = coordinator
-        
+
     def set_kv_cache_tracker(self, tracker: KVCacheTracker) -> None:
         """Connect to KV cache management."""
         self.kv_cache_tracker = tracker
 
+
 async def ensure_loaded(self, model_name: str) -> bool:
     """
     Enhanced model loading with coordination.
-    
+
     NEW: Request Coalescing
     - If another request is loading the same model, wait for it
     - Prevents simultaneous loads of same model
-    
+
     NEW: Coordination
     - Check with OverloadCoordinator before loading
     - Respect memory pressure limits
@@ -579,21 +572,19 @@ async def ensure_loaded(self, model_name: str) -> bool:
     # Check if already loading
     if model_name in self._loading_futures:
         return await self._loading_futures[model_name]
-    
+
     # Create future for coalescing
     future: asyncio.Future[bool] = asyncio.Future()
     self._loading_futures[model_name] = future
-    
+
     try:
         # Check with coordinator
         if self.overload_coordinator:
-            can_load = await self.overload_coordinator.check_can_load(
-                model_name
-            )
+            can_load = await self.overload_coordinator.check_can_load(model_name)
             if not can_load:
                 future.set_result(False)
                 return False
-        
+
         # Proceed with load
         result = await self._do_load(model_name)
         future.set_result(result)
@@ -601,15 +592,16 @@ async def ensure_loaded(self, model_name: str) -> bool:
     finally:
         del self._loading_futures[model_name]
 
+
 async def evict_under_pressure(self, pressure: float) -> list[str]:
     """
     Graduated eviction based on pressure level.
-    
+
     Eviction Priority:
     1. Cold models (LRU) - always first
     2. Warm models (LRU) - if pressure > 0.85
     3. Hot models - NEVER evicted
-    
+
     Returns:
         List of evicted model names
     """
@@ -773,12 +765,11 @@ fs.nr_open = 2097152
 CONTEXT_CONFIG = {
     # Memory allocation strategy for 128GB system
     "memory_budget": {
-        "model_weights_max": 70.0,      # 70GB for model weights
-        "kv_cache_max": 40.0,           # 40GB for KV cache
-        "activation_buffer": 10.0,       # 10GB for activations
-        "system_reserve": 8.0,          # 8GB for system
+        "model_weights_max": 70.0,  # 70GB for model weights
+        "kv_cache_max": 40.0,  # 40GB for KV cache
+        "activation_buffer": 10.0,  # 10GB for activations
+        "system_reserve": 8.0,  # 8GB for system
     },
-    
     # Model-specific context limits
     "models": {
         "phi4-mini-reasoning:latest": {
@@ -811,13 +802,12 @@ CONTEXT_CONFIG = {
             "warning": "Large context can OOM system - strictly limited",
         },
     },
-    
     # Dynamic adjustment
     "dynamic_scaling": {
         "enable": True,
         "check_interval_seconds": 5,
-        "scale_down_threshold": 0.75,   # Reduce at 75% pressure
-        "scale_up_threshold": 0.50,     # Increase at 50% pressure
+        "scale_down_threshold": 0.75,  # Reduce at 75% pressure
+        "scale_up_threshold": 0.50,  # Increase at 50% pressure
     },
 }
 ```
@@ -868,6 +858,7 @@ CONTEXT_CONFIG = {
 ```python
 # tests/swarm/test_overload_coordinator.py
 
+
 class TestOverloadCoordinator:
     async def test_graduated_response_65_percent(self):
         """At 65%, no action taken."""
@@ -875,14 +866,14 @@ class TestOverloadCoordinator:
         action = await coordinator.handle_memory_pressure(0.65)
         assert action.level == ProtectionLevel.NORMAL
         assert len(action.actions) == 0
-    
+
     async def test_graduated_response_75_percent(self):
         """At 75%, context reduced 25%."""
         coordinator = OverloadCoordinator()
         action = await coordinator.handle_memory_pressure(0.75)
         assert action.level == ProtectionLevel.WARNING
         assert "reduce_context_25" in action.actions
-    
+
     async def test_graduated_response_95_percent(self):
         """At 95%, emergency restart triggered."""
         coordinator = OverloadCoordinator()
@@ -890,7 +881,9 @@ class TestOverloadCoordinator:
         assert action.level == ProtectionLevel.EMERGENCY
         assert "emergency_restart" in action.actions
 
+
 # tests/swarm/test_kv_cache_tracker.py
+
 
 class TestKVCacheTracker:
     def test_calculate_kv_size(self):
@@ -900,12 +893,12 @@ class TestKVCacheTracker:
         kv_size = tracker.calculate_kv_size(model, 64000)
         # 64K context / 1K * 0.8 MB per 1K = 51.2 MB
         assert abs(kv_size - 51.2) < 1.0
-    
+
     async def test_allocation_under_pressure(self):
         """Allocation fails gracefully when over limit."""
         tracker = KVCacheTracker(max_total_cache_gb=0.001)  # 1MB limit
         model = MODEL_PROFILES["phi4-mini-reasoning:latest"]
-        
+
         result = await tracker.allocate("req1", model, 64000)
         assert result.success is False
         assert result.queue_position > 0
@@ -916,66 +909,52 @@ class TestKVCacheTracker:
 ```python
 # tests/integration/test_context_routing.py
 
+
 class TestContextRouting:
     async def test_small_context_routes_to_small_model(self):
         """2K context should prefer phi4-mini over qwen3-coder."""
         router = ContextModelRouter()
-        request = RoutingRequest(
-            context_length=2048,
-            task_type="analysis",
-            min_quality=0.7
-        )
-        
+        request = RoutingRequest(context_length=2048, task_type="analysis", min_quality=0.7)
+
         decision = await router.route(request)
         assert "phi4" in decision.model_name  # Should select smaller model
-    
+
     async def test_large_context_requires_large_model(self):
         """64K context requires model that supports it."""
         router = ContextModelRouter()
-        request = RoutingRequest(
-            context_length=65536,
-            task_type="coding",
-            min_quality=0.9
-        )
-        
+        request = RoutingRequest(context_length=65536, task_type="coding", min_quality=0.9)
+
         decision = await router.route(request)
         assert decision.model_name in ["qwen3-coder-next:q4_K_M", "glm-4.7-flash:latest"]
         assert decision.context_allocated >= 65536
 
+
 # tests/integration/test_journey_persistence.py
+
 
 class TestJourneyPersistence:
     async def test_dual_write_succeeds(self):
         """Journey point written to both Vault and SurrealDB."""
-        manager = JourneyPersistenceManager(
-            mcp_client=mock_mcp,
-            surreal_client=mock_surreal
-        )
-        
+        manager = JourneyPersistenceManager(mcp_client=mock_mcp, surreal_client=mock_surreal)
+
         point = create_test_journey_point()
         result = await manager.persist_journey_point(point)
-        
+
         assert result.local_cached is True
         assert result.surrealdb_stored is True
         assert result.vault_written is True
-    
+
     async def test_checkpoint_recovery(self):
         """Journey can be restored from checkpoint."""
-        manager = JourneyPersistenceManager(
-            mcp_client=mock_mcp,
-            surreal_client=mock_surreal
-        )
-        
+        manager = JourneyPersistenceManager(mcp_client=mock_mcp, surreal_client=mock_surreal)
+
         # Create and checkpoint
         tracker = create_test_journey()
         await manager.create_checkpoint(tracker)
-        
+
         # Restore
-        restored = await manager.restore_from_checkpoint(
-            tracker.agent_id,
-            tracker.journey_id
-        )
-        
+        restored = await manager.restore_from_checkpoint(tracker.agent_id, tracker.journey_id)
+
         assert restored is not None
         assert restored.step_count == tracker.step_count
 ```
@@ -985,27 +964,28 @@ class TestJourneyPersistence:
 ```python
 # tests/load/test_memory_pressure.py
 
+
 class TestMemoryPressure:
     async def test_70_percent_pressure_handles_gracefully(self):
         """System continues operating at 70% memory."""
         # Fill memory to 70%
         await fill_memory_to_percent(0.70)
-        
+
         # Run 50 requests
         results = await run_concurrent_requests(50)
-        
+
         # All should succeed
         assert all(r.success for r in results)
         # Context should be reduced for large models
         assert any(r.context_reduced for r in results)
-    
+
     async def test_90_percent_pressure_emergency_response(self):
         """System enters emergency mode at 90%."""
         await fill_memory_to_percent(0.90)
-        
+
         coordinator = OverloadCoordinator()
         action = await coordinator.handle_memory_pressure(0.90)
-        
+
         assert action.level == ProtectionLevel.CRITICAL
         assert "evict_warm_models" in action.actions
         assert "queue_requests" in action.actions

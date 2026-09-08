@@ -21,7 +21,7 @@ def solve_color_remapping_task(task: dict[str, Any]) -> list[list[int]] | None:
             return None
 
     # Learn deterministic color map
-    color_map = {}
+    color_map: dict[int, int] = {}
     for p in train:
         inp = p.get("input", [])
         out = p.get("output", [])

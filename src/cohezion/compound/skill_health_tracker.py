@@ -8,10 +8,16 @@ or unhealthy skills for pruning.
 from __future__ import annotations
 
 import json
+import logging
 import math
+import os
+import tempfile
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -64,21 +70,85 @@ class SkillHealthRecord:
 class SkillHealthTracker:
     """Tracks and persists skill health metrics."""
 
+    @staticmethod
+    def default_storage_path() -> Path:
+        """Absolute, process-independent default location for health records.
+
+        The previous cwd-relative ``data/skill_health.json`` meant a daemon
+        writing health from one directory and a ``CapabilityMatrix`` constructed
+        in another used DIFFERENT files, and any process without that path in
+        its cwd loaded zero records silently -- which is why the matrix's skill
+        axis read 0 against a 275-skill library.
+
+        Resolved per call rather than at import: a module-level ``Path.home()``
+        freezes ``$HOME`` at first import, so anything that sets it afterwards
+        (test harnesses, service managers) would be silently ignored.
+
+        ``COHEZION_STATE_DIR`` redirects the whole state root. Anchoring is a
+        WIDENING change -- it moved this file from a repo-local ``data/`` path
+        into the user's shared home directory, and the test suite promptly began
+        writing records named "test" and "FULL_CYCLE_TEST" there. An override is
+        what lets a test run, a sandbox, or a second checkout keep its state to
+        itself.
+        """
+        root = os.environ.get("COHEZION_STATE_DIR")
+        base = Path(root) if root else Path.home() / ".cohezion"
+        return base / "skill_health.json"
+
     def __init__(self, storage_path: Path | None = None) -> None:
-        self._storage_path = storage_path or Path("data/skill_health.json")
+        self._storage_path = storage_path or self.default_storage_path()
         self._records: dict[str, SkillHealthRecord] = {}
         self._load()
 
     def _load(self) -> None:
-        if self._storage_path.exists():
+        """Load persisted records, degrading to an empty history on a bad file.
+
+        This file became SHARED when its default moved to ~/.cohezion: before
+        that each checkout had its own copy and could not collide. A shared file
+        will eventually be read mid-write, and an unguarded parse here is
+        TERMINAL rather than transient -- CompoundExecutor constructs this
+        tracker unconditionally, so one torn file raises on every executor
+        construction on the machine until a human deletes it. Losing history is
+        recoverable; refusing to start is not.
+        """
+        if not self._storage_path.exists():
+            return
+        try:
             data = json.loads(self._storage_path.read_text())
             for name, record_data in data.items():
                 self._records[name] = SkillHealthRecord(**record_data)
+        except (json.JSONDecodeError, OSError, TypeError, AttributeError) as exc:
+            logger.warning(
+                "skill health state at %s is unreadable (%s); starting with no history",
+                self._storage_path,
+                exc,
+            )
+            self._records = {}
 
     def _save(self) -> None:
+        """Persist atomically: an interrupted save must not truncate the file.
+
+        Writes to a sibling temp file and renames, which is atomic within a
+        filesystem. An in-place write leaves a half-written file that the
+        guarded ``_load`` above would then discard -- silently losing every
+        record rather than just the write that was interrupted.
+        """
         self._storage_path.parent.mkdir(parents=True, exist_ok=True)
         data = {name: asdict(record) for name, record in self._records.items()}
-        self._storage_path.write_text(json.dumps(data, indent=2))
+        fd, tmp_name = tempfile.mkstemp(
+            dir=self._storage_path.parent,
+            prefix=f".{self._storage_path.name}.",
+            suffix=".tmp",
+        )
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                handle.write(json.dumps(data, indent=2))
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(tmp_name, self._storage_path)
+        except BaseException:
+            Path(tmp_name).unlink(missing_ok=True)
+            raise
 
     def record_usage(
         self,

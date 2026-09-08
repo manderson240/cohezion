@@ -20,8 +20,9 @@ Expertise in quantum hackathon execution, specifically targeting 'Peaked Circuit
 Never trust documentation or assumptions about bitstring order (LSB/MSB). Run a trivial 2-qubit circuit first.
 ```python
 import qiskit
+
 qc = qiskit.QuantumCircuit(2)
-qc.x(1) # Set q1 to 1
+qc.x(1)  # Set q1 to 1
 qc.measure_all()
 # Result '10' == MSB (q1, q0)
 # Result '01' == LSB (q0, q1)
@@ -31,6 +32,7 @@ qc.measure_all()
 When transpiling for hardware (e.g., to stay under gate limits), logical qubits are re-mapped. You MUST capture this mapping.
 ```python
 from qiskit import transpile
+
 optimized = transpile(circuit, backend, optimization_level=3)
 # Capture logical-to-physical mapping
 layout = optimized.layout.initial_layout
@@ -43,7 +45,7 @@ Check that the account PLAN allows the requested resources (e.g., GPU, high bond
 ```python
 # Protocol: Run a 1-shot test on the target device/settings.
 # If it fails with NOT_ENOUGH_FUNDS despite balance, the PLAN is restricted.
-bq.run(circuit, device='mps.gpu', shots=1, options={'mps_bond_dimension': 512})
+bq.run(circuit, device="mps.gpu", shots=1, options={"mps_bond_dimension": 512})
 ```
 
 ## VERSION

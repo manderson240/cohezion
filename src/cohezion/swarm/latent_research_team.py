@@ -83,7 +83,7 @@ class SotaInferenceReport:
             "query": self.query,
             "findings_count": len(self.findings),
             "synthesis": self.synthesis.to_dict() if self.synthesis else None,
-            "latent_vector": self.latent_vector[:8] + ["..."],  # truncated for display
+            "latent_vector": [*self.latent_vector[:8], "..."],  # truncated for display
             "coherence": round(self.coherence, 4),
             "recommended_backend": self.recommended_backend,
             "recommended_model": self.recommended_model,

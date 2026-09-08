@@ -54,11 +54,11 @@ async def main():
     # 2. Distill: Delegate to phi4-mini with Research Context
     client = get_compound_client()
     prompt = f"""
-    You are a JOURNEY_DASHBOARD_PRIME specialist. 
+    You are a JOURNEY_DASHBOARD_PRIME specialist.
     Map this 12D physics trajectory (Alfven-waves, CID Thrust) to our dashboard.
-    
+
     Data: {json.dumps(mock_trajectory)}
-    
+
     Instruction:
     - Use 'alfven_velocity' to set the pulse frequency.
     - Map 'brane_thrust_mN' to the particle emission rate.
@@ -67,7 +67,7 @@ async def main():
 
     # Force use of phi4-mini via task_type mapping if possible,
     # or just use standard generation which the router will handle.
-    response, tokens = await client.generate(prompt, task_type="telemetry")
+    response, _tokens = await client.generate(prompt, task_type="telemetry")
 
     # 3. Manifest: Save to dashboard assets
     output_dir = Path("apps/dashboard/src/assets/data")

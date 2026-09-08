@@ -13,11 +13,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -49,7 +49,11 @@ class StreamingLoRAGraphMemoryEngine:
         learning_rate: float = 1e-4,
     ) -> StreamingLoRAUpdateRecord:
         logger.info("\n" + "=" * 95)
-        logger.info("🧠 EXECUTING STREAMING LORA & GRAPH MEMORY UPDATE FOR EPISODE '%s' (Reward=%.2f)...", episode_id, reward_score)
+        logger.info(
+            "🧠 EXECUTING STREAMING LORA & GRAPH MEMORY UPDATE FOR EPISODE '%s' (Reward=%.2f)...",
+            episode_id,
+            reward_score,
+        )
         logger.info("=" * 95)
         t0 = time.perf_counter()
 
@@ -71,7 +75,9 @@ class StreamingLoRAGraphMemoryEngine:
         )
 
         logger.info("  ✓ Target Model: %s", target_model_id)
-        logger.info("  ✓ Streaming Rank Delta: +%d | Gradient Norm: %.6f", rank_delta, gradient_norm)
+        logger.info(
+            "  ✓ Streaming Rank Delta: +%d | Gradient Norm: %.6f", rank_delta, gradient_norm
+        )
         logger.info("  ✓ Ingested Graph Node to SurrealDB: %s", graph_node_id)
         logger.info("  ⚡ Intra-Session Update Latency: %.3f ms", latency_ms)
 
@@ -122,7 +128,9 @@ async def main_async() -> None:
     print(f"  • SurrealDB Graph Node ID: {rec.graph_node_id}")
     print(f"  • Latency: {rec.update_latency_ms:.3f} ms | Status: {rec.status}")
     print("=" * 95)
-    print("🎉 Continuous Streaming LoRA & Graph Memory Deployed & Verified (Phase 3 Avenue Active!)")
+    print(
+        "🎉 Continuous Streaming LoRA & Graph Memory Deployed & Verified (Phase 3 Avenue Active!)"
+    )
 
 
 def main() -> None:

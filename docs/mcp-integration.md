@@ -159,72 +159,70 @@ The cohezion core can connect to the MCP server through the `ContextEngineeringI
 from cohezion.core.context_engineering import ContextEngineeringInfrastructure
 import requests
 
+
 class VaultMCPClient:
     """Client for Cloud Vault MCP Server."""
 
     def __init__(self, base_url: str, api_key: str):
-        self.base_url = base_url.rstrip('/')
-        self.headers = {
-            'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
-        }
+        self.base_url = base_url.rstrip("/")
+        self.headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
     def call_tool(self, tool_name: str, **kwargs):
         """Call an MCP tool by name."""
         response = requests.post(
-            f'{self.base_url}/mcp/tools/call',
+            f"{self.base_url}/mcp/tools/call",
             headers=self.headers,
-            json={'tool': tool_name, 'arguments': kwargs}
+            json={"tool": tool_name, "arguments": kwargs},
         )
         response.raise_for_status()
         return response.json()
 
     def vault_read(self, path: str) -> str:
         """Read a note from the vault."""
-        return self.call_tool('vault_read', path=path)
+        return self.call_tool("vault_read", path=path)
 
     def vault_write(self, path: str, content: str) -> str:
         """Write a note to the vault."""
-        return self.call_tool('vault_write', path=path, content=content)
+        return self.call_tool("vault_write", path=path, content=content)
 
-    def vault_search(self, query: str, scope: str = 'all', folder: str = '') -> dict:
+    def vault_search(self, query: str, scope: str = "all", folder: str = "") -> dict:
         """Search the vault."""
-        return self.call_tool('vault_search', query=query, scope=scope, folder=folder)
+        return self.call_tool("vault_search", query=query, scope=scope, folder=folder)
 
-    def log_decision(self, project: str, title: str, context: str,
-                    decision: str, rationale: str,
-                    alternatives_considered: str = '') -> str:
+    def log_decision(
+        self,
+        project: str,
+        title: str,
+        context: str,
+        decision: str,
+        rationale: str,
+        alternatives_considered: str = "",
+    ) -> str:
         """Log an architecture decision."""
         return self.call_tool(
-            'vault_log_decision',
+            "vault_log_decision",
             project=project,
             title=title,
             context=context,
             decision=decision,
             rationale=rationale,
-            alternatives_considered=alternatives_considered
+            alternatives_considered=alternatives_considered,
         )
 
-    def find_relevant_context(self, query: str, project: str = '') -> dict:
+    def find_relevant_context(self, query: str, project: str = "") -> dict:
         """Find relevant prior decisions, patterns, and experiments."""
-        return self.call_tool(
-            'vault_find_relevant_context',
-            query=query,
-            project=project
-        )
+        return self.call_tool("vault_find_relevant_context", query=query, project=project)
+
 
 # Wire into ContextEngineeringInfrastructure
 infra = ContextEngineeringInfrastructure()
-vault_client = VaultMCPClient(
-    base_url='http://localhost:8360',
-    api_key='<YOUR_API_KEY>'
-)
+vault_client = VaultMCPClient(base_url="http://localhost:8360", api_key="<YOUR_API_KEY>")
 
-infra.register_tool('vault_read', vault_client.vault_read)
-infra.register_tool('vault_write', vault_client.vault_write)
-infra.register_tool('vault_search', vault_client.vault_search)
-infra.register_tool('log_decision', vault_client.log_decision)
-infra.register_tool('find_context', vault_client.find_relevant_context)
+infra.register_tool("vault_read", vault_client.vault_read)
+infra.register_tool("vault_write", vault_client.vault_write)
+infra.register_tool("vault_search", vault_client.vault_search)
+infra.register_tool("log_decision", vault_client.log_decision)
+infra.register_tool("find_context", vault_client.find_relevant_context)
 ```
 
 ## Usage Examples
@@ -232,15 +230,15 @@ infra.register_tool('find_context', vault_client.find_relevant_context)
 ### Example 1: Log an Architecture Decision
 
 ```python
-vault_client = VaultMCPClient('http://localhost:8360', api_key)
+vault_client = VaultMCPClient("http://localhost:8360", api_key)
 
 result = vault_client.log_decision(
-    project='cohezion',
-    title='Use FastMCP for MCP Server Framework',
-    context='Need to build an MCP server for Cloud Vault. FastMCP provides a high-level API over the MCP SDK.',
-    decision='Use FastMCP library to implement the MCP server',
-    rationale='FastMCP reduces boilerplate, provides decorator-based tool registration, and handles streaming HTTP automatically.',
-    alternatives_considered='Raw MCP SDK (more complex), custom HTTP wrapper (reinventing the wheel)'
+    project="cohezion",
+    title="Use FastMCP for MCP Server Framework",
+    context="Need to build an MCP server for Cloud Vault. FastMCP provides a high-level API over the MCP SDK.",
+    decision="Use FastMCP library to implement the MCP server",
+    rationale="FastMCP reduces boilerplate, provides decorator-based tool registration, and handles streaming HTTP automatically.",
+    alternatives_considered="Raw MCP SDK (more complex), custom HTTP wrapper (reinventing the wheel)",
 )
 
 print(result)
@@ -254,8 +252,7 @@ Before implementing a new feature, search for relevant past decisions and patter
 ```python
 # Find decisions about MCP integration
 results = vault_client.find_relevant_context(
-    query='MCP integration authentication',
-    project='cohezion'
+    query="MCP integration authentication", project="cohezion"
 )
 
 print(results)
@@ -266,12 +263,12 @@ print(results)
 
 ```python
 result = vault_client.call_tool(
-    'vault_log_experiment',
-    project='cohezion',
-    hypothesis='SHA-256 hash-based caching will reduce duplicate LLM calls',
-    method='Implemented TokenEfficientClient with SHA-256 content hashing. Ran compound cycle 10 times.',
-    result='98% cache hit rate after first run. Token cost reduced from 2.5M to 50K per cycle.',
-    learnings='Hash-based caching is highly effective for deterministic prompts. Need to handle non-deterministic cases separately.'
+    "vault_log_experiment",
+    project="cohezion",
+    hypothesis="SHA-256 hash-based caching will reduce duplicate LLM calls",
+    method="Implemented TokenEfficientClient with SHA-256 content hashing. Ran compound cycle 10 times.",
+    result="98% cache hit rate after first run. Token cost reduced from 2.5M to 50K per cycle.",
+    learnings="Hash-based caching is highly effective for deterministic prompts. Need to handle non-deterministic cases separately.",
 )
 
 print(result)
@@ -284,17 +281,17 @@ After solving a problem, extract the solution as a pattern:
 
 ```python
 result = vault_client.call_tool(
-    'vault_extract_pattern',
-    source_path='projects/cohezion/phase-6-journey-tracking.md',
-    pattern_name='Non-Critical Observability Pattern',
-    description='Wrap observability features (metrics, journeys, inflection detection) in try/except blocks so they never break execution.',
-    code_example='''
+    "vault_extract_pattern",
+    source_path="projects/cohezion/phase-6-journey-tracking.md",
+    pattern_name="Non-Critical Observability Pattern",
+    description="Wrap observability features (metrics, journeys, inflection detection) in try/except blocks so they never break execution.",
+    code_example="""
 try:
     journey_tracker.record(step_data)
 except Exception as e:
     logger.debug(f"Non-critical journey tracking failed: {e}")
-''',
-    domain='observability'
+""",
+    domain="observability",
 )
 
 print(result)
@@ -305,19 +302,16 @@ print(result)
 
 ```python
 # Read a specific note
-content = vault_client.vault_read('decisions/cohezion/2026-02-07-use-fastmcp.md')
+content = vault_client.vault_read("decisions/cohezion/2026-02-07-use-fastmcp.md")
 print(content)
 
 # Search for notes about "token efficiency"
-results = vault_client.vault_search(
-    query='token efficiency',
-    scope='folder',
-    folder='experiments'
-)
+results = vault_client.vault_search(query="token efficiency", scope="folder", folder="experiments")
 
 # List vault contents
 import json
-response = vault_client.call_tool('vault_list', directory='decisions', recursive=True)
+
+response = vault_client.call_tool("vault_list", directory="decisions", recursive=True)
 print(response)
 ```
 
@@ -327,14 +321,14 @@ Create structured notes using templates:
 
 ```python
 result = vault_client.call_tool(
-    'vault_create_from_template',
-    template_name='patterns',
-    target_path='patterns/ml/curriculum-learning-reward-shaping.md',
+    "vault_create_from_template",
+    template_name="patterns",
+    target_path="patterns/ml/curriculum-learning-reward-shaping.md",
     variables={
-        'title': 'Curriculum Learning with Reward Shaping',
-        'domain': 'ml',
-        'description': 'Gradually increase task difficulty while shaping rewards to guide learning.'
-    }
+        "title": "Curriculum Learning with Reward Shaping",
+        "domain": "ml",
+        "description": "Gradually increase task difficulty while shaping rewards to guide learning.",
+    },
 )
 
 print(result)
@@ -612,7 +606,7 @@ For large vaults (>10,000 notes):
 
 1. **Use folder-scoped search**:
    ```python
-   vault_client.vault_search(query='term', scope='folder', folder='decisions')
+   vault_client.vault_search(query="term", scope="folder", folder="decisions")
    ```
 
 2. **Enable Git shallow clones** for faster sync:

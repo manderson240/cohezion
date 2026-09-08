@@ -37,7 +37,7 @@ def probe_state(target, min_runs=5):
                 vals.append(entry.get("best_score"))
         except json.JSONDecodeError:
             continue
-    uniques = set(v for v in vals if v is not None)
+    uniques = {v for v in vals if v is not None}
     print(f"[{target}] state: {len(vals)} total runs, {len(uniques)} unique scores across history")
     if len(vals) < min_runs:
         print(f"  → OK: <{min_runs} runs, not enough data")

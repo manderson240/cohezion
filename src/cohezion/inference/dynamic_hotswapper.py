@@ -101,7 +101,9 @@ class DynamicModelHotSwapper:
             # Step 2: Unload active model allocations & trigger GC
             unloaded = self.unload_active_models()
             if not unloaded:
-                logger.warning("⚠️ Model unload warning: Lemonade reported busy/error; proceeding with safety check")
+                logger.warning(
+                    "⚠️ Model unload warning: Lemonade reported busy/error; proceeding with safety check"
+                )
             gc.collect()
             await asyncio.sleep(0.5)  # Fast memory settlement pause
 

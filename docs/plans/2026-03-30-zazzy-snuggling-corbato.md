@@ -79,6 +79,7 @@ class Plan:
     created_at: str
     completed_at: str | None
 
+
 @dataclass
 class PlanTask:
     plan_slug: str
@@ -91,9 +92,9 @@ class PlanTask:
 
 Add to `TraceabilityMatrix`:
 ```python
-plan_task: list[dict]     # plan → task mappings
-task_file: list[dict]     # task → file mappings
-task_commit: list[dict]   # task → commit mappings
+plan_task: list[dict]  # plan → task mappings
+task_file: list[dict]  # task → file mappings
+task_commit: list[dict]  # task → commit mappings
 ```
 
 Add new methods:

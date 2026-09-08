@@ -38,10 +38,12 @@ import pytest
 from cohezion.api import app
 from fastapi.testclient import client
 
+
 def test_flume_latent_space_endpoint_exists():
     """Test that /flume/latent-space endpoint exists"""
     response = client.get("/flume/latent-space")
     assert response.status_code in [200, 500]  # Exists but may fail
+
 
 def test_flume_latent_space_returns_embeddings():
     """Test that endpoint returns 3D embeddings"""
@@ -52,6 +54,7 @@ def test_flume_latent_space_returns_embeddings():
     assert isinstance(data["embeddings"], list)
     assert len(data["embeddings"]) > 0
 
+
 def test_flume_latent_space_embeddings_are_3d():
     """Test that embeddings are 3D (PCA-reduced from 256D)"""
     response = client.get("/flume/latent-space")
@@ -60,12 +63,12 @@ def test_flume_latent_space_embeddings_are_3d():
         assert len(point) == 3  # [x, y, z]
         assert all(isinstance(coord, (int, float)) for coord in point)
 
+
 def test_flume_navigate_endpoint():
     """Test that /flume/navigate accepts direction vector"""
-    response = client.post("/flume/navigate", json={
-        "direction": [0.1, -0.2, 0.05],
-        "step_size": 0.01
-    })
+    response = client.post(
+        "/flume/navigate", json={"direction": [0.1, -0.2, 0.05], "step_size": 0.01}
+    )
     assert response.status_code == 200
     data = response.json()
     assert "new_position" in data
@@ -104,6 +107,7 @@ from cohezion.flume.vae import get_flume_vae_trainer
 from sklearn.decomposition import PCA
 import numpy as np
 
+
 @app.get("/flume/latent-space")
 async def get_flume_latent_space():
     """Get 3D projection of FLUME 256D latent space (PCA-reduced)"""
@@ -123,11 +127,12 @@ async def get_flume_latent_space():
         return {
             "embeddings": embeddings_list,
             "variance_explained": pca.explained_variance_ratio_.tolist(),
-            "total_points": len(embeddings_list)
+            "total_points": len(embeddings_list),
         }
     except Exception as e:
         logger.error(f"FLUME latent space error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/flume/navigate")
 async def flume_navigate(request: dict):
@@ -150,7 +155,7 @@ async def flume_navigate(request: dict):
 
         return {
             "new_position": new_pos.tolist(),
-            "decoded_sample": decoded[:100]  # First 100 chars for preview
+            "decoded_sample": decoded[:100],  # First 100 chars for preview
         }
     except Exception as e:
         logger.error(f"FLUME navigate error: {e}")
@@ -409,31 +414,31 @@ log_implementation(
             "question": "How to reduce 256D to 3D for browser rendering?",
             "options": ["PCA", "t-SNE", "UMAP"],
             "chosen": "PCA",
-            "rationale": "Deterministic, fast (<100ms), preserves global structure"
+            "rationale": "Deterministic, fast (<100ms), preserves global structure",
         },
         {
             "question": "Cache PCA model or compute on-demand?",
             "options": ["cache", "on-demand"],
             "chosen": "cache",
-            "rationale": "Adversarial review (Architect) flagged performance issue"
-        }
+            "rationale": "Adversarial review (Architect) flagged performance issue",
+        },
     ],
     tests=[
         "tests/api/test_flume_endpoints.py::test_flume_latent_space_returns_embeddings",
         "tests/api/test_flume_endpoints.py::test_flume_latent_space_embeddings_are_3d",
-        "tests/api/test_flume_pca.py::test_pca_preserves_relative_distances"
+        "tests/api/test_flume_pca.py::test_pca_preserves_relative_distances",
     ],
     review_findings=[
         "Medium: Cache PCA model (resolved)",
         "High: Add rate limiting (resolved)",
-        "Low: Add integration test (resolved)"
+        "Low: Add integration test (resolved)",
     ],
     deployment_status="deployed to cohezion.duckdns.org",
     links={
         "blog_post": "BLOG_POST_FLUME_VAE.md",
         "demo_url": "https://cohezion.duckdns.org/demos/flume",
-        "tests": "tests/api/test_flume_endpoints.py"
-    }
+        "tests": "tests/api/test_flume_endpoints.py",
+    },
 )
 ```
 
@@ -544,11 +549,13 @@ def test_compound_metrics_endpoint():
 ```python
 log_implementation(
     component="compound-metrics-dashboard",
-    decisions=[{
-        "question": "Real-time metrics or cached snapshot?",
-        "chosen": "5-second cache",
-        "rationale": "QA flagged: real-time queries slow for 55 sessions of data"
-    }]
+    decisions=[
+        {
+            "question": "Real-time metrics or cached snapshot?",
+            "chosen": "5-second cache",
+            "rationale": "QA flagged: real-time queries slow for 55 sessions of data",
+        }
+    ],
 )
 ```
 
@@ -558,9 +565,9 @@ log_implementation(
 ```python
 # tests/api/test_universe_endpoints.py
 def test_universe_simulate_endpoint():
-    response = client.post("/universe/simulate", json={
-        "initial_state": {dim: 0.5 for dim in range(12)}
-    })
+    response = client.post(
+        "/universe/simulate", json={"initial_state": {dim: 0.5 for dim in range(12)}}
+    )
     assert response.status_code == 200
     data = response.json()
     assert "trajectory" in data
@@ -579,9 +586,7 @@ def test_universe_simulate_endpoint():
 ```python
 # tests/api/test_swarm_endpoints.py
 def test_swarm_execute_endpoint():
-    response = client.post("/swarm/execute", json={
-        "query": "Explain FLUME VAE architecture"
-    })
+    response = client.post("/swarm/execute", json={"query": "Explain FLUME VAE architecture"})
     assert response.status_code == 200
     data = response.json()
     assert "agent_responses" in data
@@ -651,6 +656,7 @@ def test_trajectories_endpoint():
 # tests/integration/test_live_backend.py
 import pytest
 
+
 @pytest.mark.integration
 def test_flume_uses_real_checkpoint():
     """Verify FLUME endpoint uses actual VAE checkpoint, not mock data"""
@@ -663,6 +669,7 @@ def test_flume_uses_real_checkpoint():
     # Real PCA should explain >80% variance in first 3 components
     variance = sum(data["variance_explained"])
     assert variance > 0.8
+
 
 @pytest.mark.integration
 def test_compound_metrics_from_surrealdb():
@@ -677,15 +684,15 @@ def test_compound_metrics_from_surrealdb():
     coherence_values = [point["coherence"] for point in data["coherence_trend"]]
     assert coherence_values[-1] > coherence_values[0]  # Last > first
 
+
 @pytest.mark.integration
 def test_swarm_calls_ollama():
     """Verify swarm uses real Ollama models, not mock responses"""
     import time
+
     start = time.time()
 
-    response = client.post("/swarm/execute", json={
-        "query": "What is the HIHO threshold?"
-    })
+    response = client.post("/swarm/execute", json={"query": "What is the HIHO threshold?"})
 
     elapsed = time.time() - start
 
@@ -710,6 +717,7 @@ def test_flume_fallback_when_vae_unavailable():
         assert response.status_code == 503  # Service Unavailable
         data = response.json()
         assert "FLUME VAE checkpoint not found" in data["detail"]
+
 
 @pytest.mark.integration
 def test_surrealdb_offline_fallback():
@@ -790,11 +798,13 @@ test('All interactive elements have aria-labels', () => {
 ```python
 log_implementation(
     component="blog-post-flume-vae",
-    decisions=[{
-        "question": "Explain PCA to general audience or assume ML knowledge?",
-        "chosen": "General audience explanation",
-        "rationale": "Editorial review (Content Editor): 'Anthropic recruiter may not be ML expert'"
-    }]
+    decisions=[
+        {
+            "question": "Explain PCA to general audience or assume ML knowledge?",
+            "chosen": "General audience explanation",
+            "rationale": "Editorial review (Content Editor): 'Anthropic recruiter may not be ML expert'",
+        }
+    ],
 )
 ```
 
@@ -996,6 +1006,7 @@ ORDER BY timestamp ASC;
 # scripts/portfolio_metrics.py
 from cohezion.persistence.surreal_logger import query
 
+
 def get_portfolio_metrics():
     """Query all portfolio implementation metrics"""
 
@@ -1024,8 +1035,9 @@ def get_portfolio_metrics():
         "passing_tests": total_tests,
         "resolved_findings": resolved_findings,
         "compound_links": compound_links,
-        "compound_score": compound_links / max(total_implementations - 1, 1)  # Ratio
+        "compound_score": compound_links / max(total_implementations - 1, 1),  # Ratio
     }
+
 
 # Example output:
 # {

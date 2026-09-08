@@ -28,7 +28,9 @@ REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 
 def get_worktree_inventory():
     print("🌿 Analyzing all Git Worktrees...")
-    res = subprocess.run(["git", "worktree", "list", "--porcelain"], cwd=REPO_ROOT, capture_output=True, text=True)
+    res = subprocess.run(
+        ["git", "worktree", "list", "--porcelain"], cwd=REPO_ROOT, capture_output=True, text=True
+    )
 
     worktrees = []
     current_wt = {}
@@ -60,31 +62,41 @@ def get_worktree_inventory():
         if not wt_path.exists():
             continue
         # Check git status
-        status_res = subprocess.run(["git", "status", "--short"], cwd=wt_path, capture_output=True, text=True)
+        status_res = subprocess.run(
+            ["git", "status", "--short"], cwd=wt_path, capture_output=True, text=True
+        )
         dirty_files = [l for l in status_res.stdout.strip().split("\n") if l]
 
         # Check specs / docs
-        specs = list(wt_path.glob("specs/**/*.md")) + list(wt_path.glob("docs/**/*.md")) + list(wt_path.glob("*.md"))
+        specs = (
+            list(wt_path.glob("specs/**/*.md"))
+            + list(wt_path.glob("docs/**/*.md"))
+            + list(wt_path.glob("*.md"))
+        )
 
         # Check tests
         tests = list(wt_path.glob("tests/**/*.py"))
 
-        detailed.append({
-            "name": wt_path.name,
-            "path": str(wt_path),
-            "branch": wt.get("branch", "detached"),
-            "head": wt.get("head", "")[:9],
-            "dirty_file_count": len(dirty_files),
-            "spec_count": len(specs),
-            "test_count": len(tests),
-            "sample_dirty_files": dirty_files[:3],
-        })
+        detailed.append(
+            {
+                "name": wt_path.name,
+                "path": str(wt_path),
+                "branch": wt.get("branch", "detached"),
+                "head": wt.get("head", "")[:9],
+                "dirty_file_count": len(dirty_files),
+                "spec_count": len(specs),
+                "test_count": len(tests),
+                "sample_dirty_files": dirty_files[:3],
+            }
+        )
 
     return detailed
 
 
 async def audit_with_local_model(worktrees):
-    print(f"🤖 Submitting {len(worktrees)} Worktrees to LOCAL model (`Qwen3.8-27B-GGUF-Q5_K_M` via Lemonade on :13305)...")
+    print(
+        f"🤖 Submitting {len(worktrees)} Worktrees to LOCAL model (`Qwen3.8-27B-GGUF-Q5_K_M` via Lemonade on :13305)..."
+    )
 
     summary_data = {
         "total_active_worktrees": len(worktrees),

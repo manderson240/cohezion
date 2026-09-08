@@ -41,9 +41,9 @@ async def main():
     prompt = f"""
     You are an AUTONOMIC_EVOLUTION_PRIME specialist.
     A new skill refinement has been proposed:
-    
+
     Refinement: {latest_patch}
-    
+
     Instruction:
     - Generate a Python test case (pytest) that verifies the new guardrail.
     - Example: If the refinement adds a regex guard, write a test that tries to bypass it.

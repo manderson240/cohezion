@@ -1,11 +1,11 @@
-import pytest
+"""Discriminating identity tests: compound/universal, models, physics/quantum,
+flux/providers, real_envs/tasks orphans wired.
 
-
-pytest.importorskip(
-    "cohezion.pipelines.traceability", reason="TDD-red: TraceabilityLink module not yet created"
-)
-"""Discriminating identity tests: compound/universal, models, pipelines, physics/quantum,
-flux/providers, real_envs/tasks orphans wired."""
+History: this file was importorskip'd on the phantom cohezion.pipelines.traceability
+module (never written), which silently skipped EVERY test below. The pipelines
+section was retired 2026-08-14 (elegant-simplicity audit) — the real traceability
+capability lives in cohezion.traceability — and the skip guard removed so the
+remaining wiring tests actually run."""
 
 import importlib
 import os
@@ -43,12 +43,6 @@ from cohezion.models.model_registry import ModelRegistry as src_model_registry
 from cohezion.physics.quantum import compute_seti_metrics as pkg_seti
 from cohezion.physics.quantum.utils import compute_seti_metrics as src_seti
 
-# ---- pipelines ----------------------------------------------------------------
-from cohezion.pipelines import TraceabilityLink as pkg_trace_link
-from cohezion.pipelines import TraceabilityPipeline as pkg_trace_pipeline
-from cohezion.pipelines.traceability import TraceabilityLink as src_trace_link
-from cohezion.pipelines.traceability import TraceabilityPipeline as src_trace_pipeline
-
 
 # ---- compound.universal tests -------------------------------------------------
 
@@ -72,17 +66,6 @@ def test_is_cohezion_environment_callable():
 
 def test_model_registry_is_same():
     assert pkg_model_registry is src_model_registry
-
-
-# ---- pipelines tests ----------------------------------------------------------
-
-
-def test_traceability_link_is_same():
-    assert pkg_trace_link is src_trace_link
-
-
-def test_traceability_pipeline_is_same():
-    assert pkg_trace_pipeline is src_trace_pipeline
 
 
 # ---- physics.quantum tests ----------------------------------------------------

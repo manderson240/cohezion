@@ -46,9 +46,10 @@ Cohezion implements **Henry Percival's Triune Self** (1946) as a computational a
 ```python
 class LatentState:
     """2048D semantic hypervolume (The 'Soul')"""
+
     embedding: list[float]  # 2048-dimensional vector
-    intent: str             # Natural language description
-    confidence: float       # Semantic coherence measure
+    intent: str  # Natural language description
+    confidence: float  # Semantic coherence measure
 ```
 
 ---

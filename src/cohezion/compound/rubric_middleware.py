@@ -136,6 +136,6 @@ class RubricMiddleware:
                 reason=reason,
                 raw_response=raw,
             )
-        except (json.JSONDecodeError, TypeError, KeyError, ValueError) as exc:
+        except (TypeError, KeyError, ValueError) as exc:
             logger.debug("RubricMiddleware: parse failed (fail-open): %s", exc)
             return RubricVerdict(passed=True, reason="", raw_response=raw)

@@ -12,22 +12,25 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.contracts import PoincarePoint
-from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
+from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.physics.ctac_engine import CTACEngine
-from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger(__name__)
 
 VAULT_LEARNINGS = Path.home() / "vaults" / "cohezion-vault" / "01-Learnings"
+
+_SURREAL_UPSERT_TIMEOUT_S = float(os.environ.get("SURREAL_UPSERT_TIMEOUT_S", "5.0"))
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,16 +53,28 @@ class RecursiveLearningEngine:
         self.surreal_client = get_surreal_client()
 
     async def surreal_upsert(self, record_id: str, data: dict) -> bool:
-        """Persist learning cycle to SurrealDB using async SurrealClient."""
+        """Persist learning cycle to SurrealDB using async SurrealClient.
+
+        Timeout is configurable via SURREAL_UPSERT_TIMEOUT_S env var (default 5.0s).
+        On timeout, logs a WARNING and returns False — the learning record is lost
+        but the cycle continues (vault persistence may still succeed).
+        """
         try:
             await asyncio.wait_for(
                 self.surreal_client.query(
                     "UPSERT type::record('learning', $rec_id) CONTENT $data;",
                     {"rec_id": record_id, "data": data},
                 ),
-                timeout=5.0,
+                timeout=_SURREAL_UPSERT_TIMEOUT_S,
             )
             return True
+        except TimeoutError:
+            logger.warning(
+                "SurrealDB upsert timed out after %.1fs for learning record %s — data lost",
+                _SURREAL_UPSERT_TIMEOUT_S,
+                record_id,
+            )
+            return False
         except Exception as exc:
             logger.warning("Failed async upsert for learning record %s: %s", record_id, exc)
             return False
@@ -73,9 +88,12 @@ class RecursiveLearningEngine:
         t0 = time.time()
         cycle_id = f"recursive_cycle_{int(t0)}"
 
-        # 1. AutoHarness Policy Evaluation via live OOMGuard memory state
-        mem = OOMGuard.get_memory_state()
-        p_res = self.policy_engine.evaluate_policy("recursive_learning_action", {"available_gb": mem.available_gb})
+        # 1. AutoHarness Policy Evaluation via code verification
+        #    (adapted to main's verify_code API; the branch's evaluate_policy
+        #    API requires AutoHarnessVerifier which is not on main yet)
+        test_code = f"# Recursive learning cycle {cycle_id}\nsummary = {trajectory_summary!r}\n"
+        p_res = self.policy_engine.verify_code(test_code)
+        autoharness_bypassed_llm = p_res.valid
 
         # 2. AutoContext 2048D Dimension Tracking
         autocontext_dim = 2048
@@ -88,9 +106,9 @@ class RecursiveLearningEngine:
         learning_data = {
             "id": cycle_id,
             "title": f"Recursive Learning Cycle — {cycle_id}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "summary": trajectory_summary,
-            "autoharness_bypassed_llm": p_res.bypassed_llm,
+            "autoharness_bypassed_llm": autoharness_bypassed_llm,
             "autocontext_dim": autocontext_dim,
             "ctac_coherence": ctac_res.coherence,
             "is_hiho_stable": ctac_res.is_hiho_stable,
@@ -125,7 +143,7 @@ class RecursiveLearningEngine:
                 f"*Date: {learning_data['timestamp']}*\n\n"
                 f"## Trajectory Summary\n{trajectory_summary}\n\n"
                 f"## Metrics\n"
-                f"- AutoHarness Bypassed LLM: {p_res.bypassed_llm}\n"
+                f"- AutoHarness Bypassed LLM: {autoharness_bypassed_llm}\n"
                 f"- AutoContext Dimension: {autocontext_dim}D\n"
                 f"- CTAC HIHO Coherence: {ctac_res.coherence} (Stable: {ctac_res.is_hiho_stable})\n"
             )
@@ -135,7 +153,7 @@ class RecursiveLearningEngine:
 
         return LearningCycleResult(
             cycle_id=cycle_id,
-            autoharness_score=1.0 if p_res.allowed else 0.0,
+            autoharness_score=1.0 if p_res.valid else 0.0,
             autocontext_dim=autocontext_dim,
             ctac_coherence=ctac_res.coherence,
             learnings_count=1,

@@ -42,6 +42,8 @@ class ExecutorFactory:
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
+        dqa_gate: Any | None = None,
+        quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
         # I1: CompoundExecutor accepts inference_provider so local silicon serves execute_fn.
         # `make_executor` below sets kwargs["inference_provider"] and then calls create(), but
@@ -50,6 +52,12 @@ class ExecutorFactory:
         # migrated to compound/__init__.make_executor, which hand-duplicates the auto-wiring
         # and omitted retrospection, silently dropping REFLECT from the loop.
         inference_provider: Any | None = None,
+        # Ring-4 (2026-08-02 reconcile merge): `make_executor` below defaults this to True so
+        # production executors persist real cycles to the compound graph. Declared explicitly
+        # because create() has no **kwargs — forwarding an undeclared kwarg raises TypeError,
+        # the same defect the inference_provider comment above records. Defaults to False so
+        # direct ExecutorFactory.create() callers (notably tests) keep their current behavior.
+        enable_cycle_persistence: bool = False,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -80,6 +88,23 @@ class ExecutorFactory:
                 logger.debug("ExecutorFactory: auto-created RetrospectionEngine (middle loop)")
             except ImportError:
                 logger.debug("RetrospectionEngine not available")
+
+        # DQ7: auto-create the AUTODQA output gate (mirrors the CB5 pattern below).
+        # Without this, `quality_eval.evaluate` is dormant ON THE PRODUCTION PATH:
+        # AutoDQA is its only consumer and no factory ever constructed one, so the
+        # DegradationDetector quality_score branch could never fire.
+        # persist=False / notify_on_reject=False: the gate runs on EVERY task, and
+        # the real gate rejects correct short answers (measured 2026-08-30), so
+        # per-task SurrealDB writes and Telegram alerts would be noise on a signal
+        # the DegradationDetector already consumes in aggregate.
+        if dqa_gate is None:
+            try:
+                from cohezion.compound.autodqa import AutoDQA
+
+                dqa_gate = AutoDQA(persist=False, notify_on_reject=False)
+                logger.debug("ExecutorFactory: auto-created AutoDQA output gate (DQ7)")
+            except Exception:
+                logger.debug("AutoDQA auto-creation failed (non-blocking)")
 
         # CB5: auto-create DegradationDetector when not provided (closes routing feedback loop).
         # Without this, suggest_routing_tier() and check_degradation() are never called and
@@ -198,8 +223,11 @@ class ExecutorFactory:
             universe_bridge=universe_bridge,
             skill_health_tracker=skill_health_tracker,
             jepa_gate=jepa_gate,
+            dqa_gate=dqa_gate,
+            quality_evaluator=quality_evaluator,
             token_ledger=token_ledger,
             inference_provider=inference_provider,
+            enable_cycle_persistence=enable_cycle_persistence,
         )
 
     @staticmethod
@@ -222,6 +250,7 @@ class ExecutorFactory:
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         jepa_gate: Any | None = None,
+        quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor."""
@@ -245,6 +274,7 @@ class ExecutorFactory:
                 universe_bridge=universe_bridge,
                 skill_health_tracker=skill_health_tracker,
                 jepa_gate=jepa_gate,
+                quality_evaluator=quality_evaluator,
                 token_ledger=token_ledger,
             )
         return ExecutorFactory._instance
@@ -294,6 +324,34 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
             except Exception:
                 pass
 
+    # AQ5: auto-inject the output-quality evaluator. AutoDQA -> quality_eval.evaluate
+    # is pure-heuristic (task_classifier documents "< 0.1ms, no model calls"; the
+    # scorers are regex/AST only) and no peer_outputs are passed, so the semantic
+    # agreement path never runs and no embedder traffic is generated.
+    #
+    # notify_on_reject=False: the executor already owns alerting via
+    # DegradationDetector, and a Telegram message per terse answer would be noise.
+    #
+    # persist=False, MEASURED not assumed (2026-08-30): 0.04 ms/eval with
+    # persistence off vs 2167 ms/eval with it on — AutoDQA._persist_result builds a
+    # fresh SurrealClient per call and run_sync blocks on it. A 2.2 s write on every
+    # execution is disqualifying for this path.
+    #
+    # Note the trap this closes: persistence used to look free because it was BROKEN
+    # (an un-awaited coroutine, discarded — see AQ7). Fixing that bug made the cost
+    # real. So `autodqa_results` still has no producer, and model/training_data.py's
+    # read of it (score >= 0.45) is still reading an empty source. Giving it one
+    # needs batched or off-thread persistence + a connection-reuse fix first; do not
+    # "enable" it by flipping this flag.
+    if "quality_evaluator" not in kwargs:
+        try:
+            from cohezion.compound.autodqa import AutoDQA
+
+            kwargs["quality_evaluator"] = AutoDQA(persist=False, notify_on_reject=False)
+            logger.debug("make_executor: auto-created AutoDQA quality evaluator (AQ5)")
+        except Exception:
+            logger.debug("AutoDQA auto-creation failed (non-blocking)")
+
     # Pass exec_provider as inference_provider so execute_task injects it into compatible
     # execute_fns (signature-aware, backward-compatible — closes CB dormancy gap).
     if exec_provider is not None and "inference_provider" not in kwargs:
@@ -308,5 +366,13 @@ def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
             logger.debug("make_executor: auto-created TokenLedger (TL3)")
         except Exception:
             logger.debug("TokenLedger auto-creation failed (non-blocking)")
+
+    # Ring-4: production executors persist real cycles to the compound graph. Ported here during
+    # the 2026-08-02 reconcile merge: `compound/__init__.make_executor` used to be a hand-rolled
+    # duplicate of this function and set this default itself; that duplicate is now an alias to
+    # this function (test_reflect_wiring: "duplicated wiring diverges, that is the lesson"), so
+    # the default has to live at the single surviving implementation or it is silently dropped.
+    # Direct CompoundExecutor() construction stays off by default — test isolation, CB4 pattern.
+    kwargs.setdefault("enable_cycle_persistence", True)
 
     return ExecutorFactory.create(mcp_client, **kwargs)

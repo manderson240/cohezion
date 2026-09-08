@@ -14,6 +14,7 @@ from pathlib import Path
 SUBMISSION_FILE = Path("src/cohezion/competitions/pokemon_tcg/submission.py")
 COMPETITION_ID = "pokemon-tcg-ai-battle-challenge-strategy"
 
+
 def main():
     print("=" * 105)
     print("🃏 KAGGLE COMPETITION SUBMISSION: POKÉMON TCG AI BATTLE CHALLENGE")
@@ -29,6 +30,7 @@ def main():
 
     print(f"\n▶ [2/3] Verifying Sub-Millisecond Inference Speed...")
     from cohezion.competitions.pokemon_tcg.submission import agent_function
+
     obs = {
         "active_pokemon": {"hp": 100, "energy_attached": 3},
         "opponent_active": {"hp": 60, "energy_attached": 2},
@@ -36,7 +38,7 @@ def main():
         "opponent_bench": [{}],
         "hand": ["energy", "hyper_potion"],
         "turn_count": 5,
-        "legal_actions": ["attack", "attach_energy", "retreat", "pass"]
+        "legal_actions": ["attack", "attach_energy", "retreat", "pass"],
     }
     t0 = time.perf_counter()
     action = agent_function(obs)
@@ -44,13 +46,20 @@ def main():
     print(f"   ✓ Invariant Action Decision: `{action}` in {dt_ms:.2f} ms")
 
     print(f"\n▶ [3/3] Submitting to Kaggle Competition (`{COMPETITION_ID}`)...")
-    msg = "Cohezion ISMCTS-CFR Grandmaster Strategy Engine (0.61ms decision latency, Nash-convergent)"
-    
+    msg = (
+        "Cohezion ISMCTS-CFR Grandmaster Strategy Engine (0.61ms decision latency, Nash-convergent)"
+    )
+
     cmd = [
-        "kaggle", "competitions", "submit",
-        "-c", COMPETITION_ID,
-        "-f", str(SUBMISSION_FILE),
-        "-m", msg
+        "kaggle",
+        "competitions",
+        "submit",
+        "-c",
+        COMPETITION_ID,
+        "-f",
+        str(SUBMISSION_FILE),
+        "-m",
+        msg,
     ]
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -65,6 +74,7 @@ def main():
         print(f"   ❌ Submission invocation note: {e}")
 
     print("\n" + "=" * 105)
+
 
 if __name__ == "__main__":
     main()

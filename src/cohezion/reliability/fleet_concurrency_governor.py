@@ -5,10 +5,8 @@ Engineered and verified in OmA Autonomous Self-Evolution Loop (Cycle 12).
 from __future__ import annotations
 
 import time
-import math
-import numpy as np
 from dataclasses import dataclass
-from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class CycleVerificationState:
@@ -18,7 +16,10 @@ class CycleVerificationState:
     entropy_score: float
     timestamp: float
 
+
+import contextlib
 import threading
+
 
 class HardwareFleetLockApicalConcurrencyGovernor:
     """Hardware-aware concurrency governor for Strix Halo NPU/iGPU aperture allocation."""
@@ -41,10 +42,8 @@ class HardwareFleetLockApicalConcurrencyGovernor:
         """Release fleet aperture lock."""
         if self.active_allocations > 0:
             self.active_allocations -= 1
-        try:
+        with contextlib.suppress(RuntimeError):
             self._lock.release()
-        except RuntimeError:
-            pass
 
     def __enter__(self):
         self.acquire()

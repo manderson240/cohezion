@@ -39,7 +39,7 @@ async def main():
     Perform a search on Hugging Face and arXiv for the latest developments in:
     - 'KV Cache Compaction for Agentic RAG'
     - 'Propellant-free thrust and vacuum engineering'
-    
+
     Instruction:
     - Identify the top 3 most relevant artifacts (papers or models).
     - Summarize their 'Core Mechanism'.

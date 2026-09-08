@@ -14,7 +14,7 @@ sys.path.append(str(Path.cwd() / "src"))
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("GaiaVerify")
+    logging.getLogger("GaiaVerify")
 
     config = SwarmConfig()
     agent = GaiaAgent(config=config)

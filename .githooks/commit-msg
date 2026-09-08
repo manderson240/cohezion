@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# .githooks/commit-msg — Conventional Commit & SemVer Validation Hook
+# Enforces Conventional Commit format (feat:, fix:, perf:, refactor:, etc.)
+
+set -eo pipefail
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Allow merge/revert commits automatically
+if [[ "$COMMIT_MSG" =~ ^Merge ]] || [[ "$COMMIT_MSG" =~ ^Revert ]]; then
+    exit 0
+fi
+
+# Conventional commit regex
+PATTERN="^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style)(\([a-zA-Z0-9_\.-]+\))?!?:\ .+"
+
+if ! echo "$COMMIT_MSG" | grep -iqE "$PATTERN"; then
+    echo ""
+    echo "❌ ERROR: Commit message does not follow Conventional Commits format!"
+    echo "   Got: \"$COMMIT_MSG\""
+    echo ""
+    echo "   Valid formats:"
+    echo "     feat(inference): add card-aligned local model fallback"
+    echo "     fix(api): extract route handlers from __init__.py"
+    echo "     feat(flume)!: breaking change to 12D latent state vector"
+    echo ""
+    exit 1
+fi

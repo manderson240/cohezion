@@ -17,12 +17,12 @@ async def main():
     print(f"ROOT INFO: {root_info}")
 
     namespaces = root_info.get("namespaces", {}) if isinstance(root_info, dict) else {}
-    for ns in namespaces.keys():
+    for ns in namespaces:
         print(f"\n--- Namespace: {ns} ---")
         await db.query(f"USE NS {ns};")
         ns_info = await db.query("INFO FOR NS;")
         databases = ns_info.get("databases", {}) if isinstance(ns_info, dict) else {}
-        for db_name in databases.keys():
+        for db_name in databases:
             print(f"  --- Database: {db_name} ---")
             await db.query(f"USE DB {db_name};")
             db_info = await db.query("INFO FOR DB;")

@@ -55,6 +55,7 @@ Or use the factory (identical result):
 
 ```python
 from cohezion.compound import make_executor
+
 executor = make_executor(mcp_client)
 ```
 
@@ -79,7 +80,7 @@ result = await extend_claude(
 ```python
 from cohezion.inference.triune_orchestrator import build_reasoning_orchestrator
 
-orch = build_reasoning_orchestrator()        # omni_port=13305 default
+orch = build_reasoning_orchestrator()  # omni_port=13305 default
 result = await orch.run("Prove P=NP or refute...")
 ```
 
@@ -126,7 +127,7 @@ full KV cache and will hard-hang the machine on Strix Halo with partial memory u
 from cohezion.inference import lemonade_available
 
 if not lemonade_available():
-    return None   # Don't crash, don't block
+    return None  # Don't crash, don't block
 ```
 
 ---

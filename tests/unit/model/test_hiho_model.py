@@ -510,7 +510,7 @@ class TestHIHOPerplexity:
         torch.manual_seed(42)
         config = CohezionLMConfig.byte_level()
         model = CohezionLM(config)
-        eval_ids = torch.tensor([[b for b in b"HIHO coherence"[:14]]])
+        eval_ids = torch.tensor([list(b"HIHO coherence"[:14])])
         coh_0 = model.hiho_coherence(eval_ids)
         if isinstance(coh_0, torch.Tensor):
             coh_0 = coh_0.item()

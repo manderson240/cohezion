@@ -137,11 +137,7 @@ class CompoundSystem:
 
 **Weighted Scoring:**
 ```python
-score = (
-    coherence * weight_coherence +
-    success_rate * weight_success +
-    time_score * weight_time
-)
+score = coherence * weight_coherence + success_rate * weight_success + time_score * weight_time
 ```
 
 **Context-Aware:**
@@ -185,11 +181,16 @@ if predicted < baseline * 0.95:
 
 **Auto-Adjusted Based on History:**
 ```python
-if avg_improvement >= 20: threshold = 3.0  # Star performer
-elif avg_improvement >= 15: threshold = 4.0  # Expert
-elif avg_improvement >= 10: threshold = 5.0  # Good
-elif avg_improvement >= 5: threshold = 7.0   # Average
-else: threshold = 8.0                      # Needs work
+if avg_improvement >= 20:
+    threshold = 3.0  # Star performer
+elif avg_improvement >= 15:
+    threshold = 4.0  # Expert
+elif avg_improvement >= 10:
+    threshold = 5.0  # Good
+elif avg_improvement >= 5:
+    threshold = 7.0  # Average
+else:
+    threshold = 8.0  # Needs work
 ```
 
 ### Feature 5: Auto-Tuning Weights
@@ -466,7 +467,7 @@ system = CompoundSystem(vault_path="data/vault/compound")
 result = await system.compound_optimize(
     skill_name="refactoring",
     config=COMPOUND_SKILLS["refactoring"],
-    mode="full"  # or "quick", "learn", "predict"
+    mode="full",  # or "quick", "learn", "predict"
 )
 
 # Run complete suite

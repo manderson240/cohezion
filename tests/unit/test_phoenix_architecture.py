@@ -1,6 +1,6 @@
-import pytest
 from cohezion.agi.phoenix_architecture import PhoenixArchitectureEngine, PhoenixRebirthResult
 from cohezion.agi.regenerative_software import RegenerativeSoftwareEngine
+
 
 def test_phoenix_architecture_deletion_and_rebirth():
     engine = PhoenixArchitectureEngine()
@@ -18,6 +18,7 @@ def test_phoenix_architecture_deletion_and_rebirth():
     assert res.verified_by_oracle is True
     assert res.zk_proof.is_valid is True
     assert res.rebirth_latency_ms >= 0.0
+
 
 def test_regenerative_software_engine_phoenix_integration():
     regen = RegenerativeSoftwareEngine()

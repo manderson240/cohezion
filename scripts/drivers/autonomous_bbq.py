@@ -24,6 +24,8 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
+import contextlib
+
 from cohezion.core.persistence.repositories.journey_repository import JourneyMetrics
 from cohezion.core.persistence.repositories.surreal_journey_repository import (
     AgentJourney,
@@ -97,7 +99,7 @@ class BBQDriver:
                 # We simulate a small batch of ticks, but respect the dilation
                 # If dilation is 1.0 (Healthy), we run fast. If 0.5, we run half speed (sleep).
 
-                tick_start = time.time()
+                time.time()
 
                 # Simulate Physics
                 # (Mocking the internal tick logic here for the driver view, usually inside Simulator)
@@ -121,7 +123,7 @@ class BBQDriver:
 
                     # Log Progress
                     elapsed = time.time() - self.start_time
-                    rate = self.current_round / elapsed
+                    self.current_round / elapsed
                     msg = f"🥩 Round {self.current_round:,} | Stability: {global_coherence:.4f} | Substrate: {self.diversity_engine.active_substrate}"
                     logger.info(msg)
                     print(msg, flush=True)
@@ -194,10 +196,8 @@ class BBQDriver:
 
     async def shutdown(self):
         logger.info("🧯 Extinguishing Coals (Shutdown)...")
-        try:
+        with contextlib.suppress(Exception):
             await self.db.close()
-        except Exception:
-            pass
         logger.info("✅ BBQ Driver Stopped.")
 
 

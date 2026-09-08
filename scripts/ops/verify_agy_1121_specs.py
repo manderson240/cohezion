@@ -22,6 +22,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter, TaskClass, _TIER3_PINS
 
+
 async def main():
     print("=" * 115)
     print("🚀 VERIFYING AGY 1.1.21 SPECS & MULTI-TIER ROUTING INTEGRATION")
@@ -61,22 +62,25 @@ async def main():
             "agy_version": version,
             "models_count": len(available_models),
             "tier3_pins": {str(k): v for k, v in _TIER3_PINS.items()},
-            "status": "AGY_1121_SPECS_VERIFIED"
-        }
+            "status": "AGY_1121_SPECS_VERIFIED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "agy_1121_specs_verified",
-        "title": "agy 1.1.21 Specifications & Tier-3 Thinking Models Integrated",
-        "status": "done",
-        "priority": "highest",
-        "source": "agy_specs_verifier",
-        "category": "infrastructure_upgrade",
-        "details": f"Aligned platform with agy 1.1.21 specifications: Gemini 3.7 Flash, Claude Sonnet 4.6, Claude Opus 4.6 Thinking, and pure embedded ripgrep.",
-    })
+    persist_item(
+        {
+            "id": "agy_1121_specs_verified",
+            "title": "agy 1.1.21 Specifications & Tier-3 Thinking Models Integrated",
+            "status": "done",
+            "priority": "highest",
+            "source": "agy_specs_verifier",
+            "category": "infrastructure_upgrade",
+            "details": f"Aligned platform with agy 1.1.21 specifications: Gemini 3.7 Flash, Claude Sonnet 4.6, Claude Opus 4.6 Thinking, and pure embedded ripgrep.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
     print("=" * 115)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

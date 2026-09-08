@@ -53,20 +53,23 @@ Single source of truth for 12D dimension semantics. All modules that read or wri
 from dataclasses import dataclass
 from enum import IntEnum
 
+
 class AxisDimension(IntEnum):
     """Canonical 12D axis indices. Authoritative ordering."""
-    SPATIAL_X = 0      # Physical/positional X coordinate
-    SPATIAL_Y = 1      # Physical/positional Y coordinate
-    SPATIAL_Z = 2      # Physical/positional Z coordinate
-    TEMPORAL = 3        # Time/sequence position
-    COHERENCE = 4       # Internal consistency (HIHO target = 0.5)
-    EFFICIENCY = 5      # Resource utilization / token economy
-    NOVELTY = 6         # Information-theoretic surprise
-    LOGIC = 7           # Structural reasoning quality
-    CONVERGENCE = 8     # Progress toward objective
-    SMOOTHNESS = 9      # Trajectory continuity
-    FIELD = 10          # Domain/context strength
+
+    SPATIAL_X = 0  # Physical/positional X coordinate
+    SPATIAL_Y = 1  # Physical/positional Y coordinate
+    SPATIAL_Z = 2  # Physical/positional Z coordinate
+    TEMPORAL = 3  # Time/sequence position
+    COHERENCE = 4  # Internal consistency (HIHO target = 0.5)
+    EFFICIENCY = 5  # Resource utilization / token economy
+    NOVELTY = 6  # Information-theoretic surprise
+    LOGIC = 7  # Structural reasoning quality
+    CONVERGENCE = 8  # Progress toward objective
+    SMOOTHNESS = 9  # Trajectory continuity
+    FIELD = 10  # Domain/context strength
     PRECIPITATION = 11  # Action crystallization / decision readiness
+
 
 class CanonicalDimensionRegistry:
     """Registry for 12D dimension labels and cross-module mappings."""
@@ -122,18 +125,18 @@ The mapping from JourneyTracker labels to canonical indices is determined by sem
 ```python
 # JourneyTracker → Canonical index mapping
 _JT_TO_CANONICAL = {
-    "novelty": 6,       # Was JT[0], now canonical[6]
-    "logic": 7,         # Was JT[1], now canonical[7]
-    "field": 10,        # Was JT[2], now canonical[10]
-    "spatial": 0,       # Was JT[3], now canonical[0]
-    "temporal": 3,      # Was JT[4], now canonical[3]
-    "precipitation": 11,# Was JT[5], now canonical[11]
-    "coherence": 4,     # Was JT[6], now canonical[4]
-    "efficiency": 5,    # Was JT[7], now canonical[5]
-    "convergence": 8,   # Was JT[8], now canonical[8]
-    "smoothness": 9,    # Was JT[9], now canonical[9]
-    "resonance": 0,     # Was JT[10], PROVISIONAL merge with spatial_x — see note below
-    "harmony": 1,       # Was JT[11], PROVISIONAL merge with spatial_y — see note below
+    "novelty": 6,  # Was JT[0], now canonical[6]
+    "logic": 7,  # Was JT[1], now canonical[7]
+    "field": 10,  # Was JT[2], now canonical[10]
+    "spatial": 0,  # Was JT[3], now canonical[0]
+    "temporal": 3,  # Was JT[4], now canonical[3]
+    "precipitation": 11,  # Was JT[5], now canonical[11]
+    "coherence": 4,  # Was JT[6], now canonical[4]
+    "efficiency": 5,  # Was JT[7], now canonical[5]
+    "convergence": 8,  # Was JT[8], now canonical[8]
+    "smoothness": 9,  # Was JT[9], now canonical[9]
+    "resonance": 0,  # Was JT[10], PROVISIONAL merge with spatial_x — see note below
+    "harmony": 1,  # Was JT[11], PROVISIONAL merge with spatial_y — see note below
 }
 ```
 
@@ -289,8 +292,8 @@ calibration set and frozen. This ensures embeddings are comparable across traini
 ```python
 # Computed once and saved to data/calibration/normalizer_stats.npz
 projected = random_projection(embed_batch(calibration_texts))  # (1000, 227)
-per_dim_min = projected.min(axis=0)   # (227,) — frozen
-per_dim_max = projected.max(axis=0)   # (227,) — frozen
+per_dim_min = projected.min(axis=0)  # (227,) — frozen
+per_dim_max = projected.max(axis=0)  # (227,) — frozen
 np.savez("data/calibration/normalizer_stats.npz", min=per_dim_min, max=per_dim_max)
 ```
 
@@ -320,6 +323,7 @@ comparison impossible. The fixed calibration set acts as a universal reference f
 
 ```python
 # experience_encoder.py (MODIFIED)
+
 
 class ExperienceEncoder:
     def __init__(self, embedder: SemanticEmbedder | None = None):
@@ -357,14 +361,16 @@ Test whether each 12D dimension actually encodes what its label claims. Uses lin
 @dataclass
 class ProbeResult:
     """Result of probing a single dimension."""
+
     dimension_index: int
     dimension_label: str
-    accuracy: float          # Classification/regression accuracy
-    baseline_accuracy: float # Majority class or mean prediction
-    cohen_d: float           # Effect size
-    p_value: float           # Statistical significance
+    accuracy: float  # Classification/regression accuracy
+    baseline_accuracy: float  # Majority class or mean prediction
+    cohen_d: float  # Effect size
+    p_value: float  # Statistical significance
     n_samples: int
-    is_validated: bool       # accuracy > baseline + threshold AND p < 0.05
+    is_validated: bool  # accuracy > baseline + threshold AND p < 0.05
+
 
 class DimensionProbe:
     """Linear probing classifiers for 12D dimension validation.
@@ -373,21 +379,20 @@ class DimensionProbe:
     to predict a ground-truth label from that dimension's value alone.
     """
 
-    def __init__(self, min_samples: int = 100, significance: float = 0.05):
-        ...
+    def __init__(self, min_samples: int = 100, significance: float = 0.05): ...
 
     def probe_dimension(
         self,
         dim_index: int,
-        dim_values: np.ndarray,       # (N,) values of this dimension
-        ground_truth: np.ndarray,     # (N,) ground truth labels
-        task: str = "regression",     # "regression" or "classification"
+        dim_values: np.ndarray,  # (N,) values of this dimension
+        ground_truth: np.ndarray,  # (N,) ground truth labels
+        task: str = "regression",  # "regression" or "classification"
     ) -> ProbeResult:
         """Probe whether dim_values predict ground_truth."""
 
     def probe_all_dimensions(
         self,
-        trajectories: np.ndarray,     # (N, 12) trajectory data
+        trajectories: np.ndarray,  # (N, 12) trajectory data
         ground_truths: dict[int, np.ndarray],  # dim_idx → ground truth
     ) -> list[ProbeResult]:
         """Probe all dimensions with available ground truth."""
@@ -427,11 +432,13 @@ Walk along individual dimensions in the 256D latent space to discover what seman
 @dataclass
 class TraversalResult:
     """Result of walking along one latent dimension."""
+
     dimension_index: int
-    values: list[float]              # The traversal values
-    decoded_texts: list[str]         # Decoded text at each value
-    coherence_scores: list[float]    # Coherence at each point
-    semantic_shift: str              # Human-readable description of what changed
+    values: list[float]  # The traversal values
+    decoded_texts: list[str]  # Decoded text at each value
+    coherence_scores: list[float]  # Coherence at each point
+    semantic_shift: str  # Human-readable description of what changed
+
 
 class LatentTraversalTool:
     """Explore ThoughtEncoder's 256D latent space via dimension traversals."""

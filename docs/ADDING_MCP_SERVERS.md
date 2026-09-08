@@ -49,13 +49,14 @@ MCP_PORT = int(os.getenv("MCP_PORT", "8363"))
 
 class MyService:
     """Your service implementation."""
-    
+
     async def do_something(self, param: str) -> dict:
         """Your service method."""
         return {"result": f"Processed: {param}"}
 
 
 _service: MyService | None = None
+
 
 def get_service() -> MyService:
     global _service
@@ -70,11 +71,13 @@ routes = web.RouteTableDef()
 @routes.get("/health")
 async def health(request: web.Request) -> web.Response:
     """Health check - REQUIRED."""
-    return web.json_response({
-        "status": "healthy",
-        "server": "my_service",
-        "port": MCP_PORT,
-    })
+    return web.json_response(
+        {
+            "status": "healthy",
+            "server": "my_service",
+            "port": MCP_PORT,
+        }
+    )
 
 
 @routes.post("/tools/my_service_do_something")
@@ -83,14 +86,16 @@ async def tool_do_something(request: web.Request) -> web.Response:
     try:
         data = await request.json()
         param = data.get("param", "")
-        
+
         service = get_service()
         result = await service.do_something(param)
-        
-        return web.json_response({
-            "tool": "my_service_do_something",
-            "result": result,
-        })
+
+        return web.json_response(
+            {
+                "tool": "my_service_do_something",
+                "result": result,
+            }
+        )
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
@@ -98,13 +103,13 @@ async def tool_do_something(request: web.Request) -> web.Response:
 async def main():
     app = web.Application()
     app.add_routes(routes)
-    
+
     logger.info(f"Starting My Service MCP Server on port {MCP_PORT}")
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
     await site.start()
-    
+
     while True:
         await asyncio.sleep(3600)
 
@@ -122,20 +127,20 @@ Add to `src/cohezion/mcp/manager/server_manager.py`:
 ```python
 def init_default_servers():
     manager = get_manager()
-    
+
     # Existing servers...
     manager.register_server(
         name="bmad",
         entry_point="cohezion.mcp.servers.bmad.server:app",
         preferred_port=8361,
     )
-    
+
     manager.register_server(
         name="skills",
-        entry_point="cohezion.mcp.servers.skills.server:app", 
+        entry_point="cohezion.mcp.servers.skills.server:app",
         preferred_port=8362,
     )
-    
+
     # NEW SERVER - Add this:
     manager.register_server(
         name="my_service",  # Unique name
@@ -287,18 +292,20 @@ async def health(request: web.Request):
 async def search_repos(request: web.Request):
     data = await request.json()
     query = data.get("query", "")
-    
+
     async with aiohttp.ClientSession() as session:
         headers = {"Authorization": f"token {GITHUB_TOKEN}"}
         url = f"https://api.github.com/search/repositories?q={query}"
-        
+
         async with session.get(url, headers=headers) as resp:
             result = await resp.json()
-            return web.json_response({
-                "tool": "github_search_repos",
-                "count": result.get("total_count", 0),
-                "repositories": result.get("items", [])[:10]
-            })
+            return web.json_response(
+                {
+                    "tool": "github_search_repos",
+                    "count": result.get("total_count", 0),
+                    "repositories": result.get("items", [])[:10],
+                }
+            )
 
 
 @routes.post("/tools/github_get_repo")
@@ -306,20 +313,22 @@ async def get_repo(request: web.Request):
     data = await request.json()
     owner = data.get("owner")
     repo = data.get("repo")
-    
+
     async with aiohttp.ClientSession() as session:
         headers = {"Authorization": f"token {GITHUB_TOKEN}"}
         url = f"https://api.github.com/repos/{owner}/{repo}"
-        
+
         async with session.get(url, headers=headers) as resp:
             result = await resp.json()
-            return web.json_response({
-                "tool": "github_get_repo",
-                "name": result.get("name"),
-                "stars": result.get("stargazers_count"),
-                "language": result.get("language"),
-                "url": result.get("html_url")
-            })
+            return web.json_response(
+                {
+                    "tool": "github_get_repo",
+                    "name": result.get("name"),
+                    "stars": result.get("stargazers_count"),
+                    "language": result.get("language"),
+                    "url": result.get("html_url"),
+                }
+            )
 
 
 @routes.post("/tools/github_create_issue")
@@ -329,23 +338,25 @@ async def create_issue(request: web.Request):
     repo = data.get("repo")
     title = data.get("title")
     body = data.get("body", "")
-    
+
     async with aiohttp.ClientSession() as session:
         headers = {
             "Authorization": f"token {GITHUB_TOKEN}",
-            "Accept": "application/vnd.github.v3+json"
+            "Accept": "application/vnd.github.v3+json",
         }
         url = f"https://api.github.com/repos/{owner}/{repo}/issues"
         payload = {"title": title, "body": body}
-        
+
         async with session.post(url, headers=headers, json=payload) as resp:
             result = await resp.json()
-            return web.json_response({
-                "tool": "github_create_issue",
-                "issue_number": result.get("number"),
-                "url": result.get("html_url"),
-                "status": "created"
-            })
+            return web.json_response(
+                {
+                    "tool": "github_create_issue",
+                    "issue_number": result.get("number"),
+                    "url": result.get("html_url"),
+                    "status": "created",
+                }
+            )
 
 
 # ... main() function
@@ -370,6 +381,7 @@ routes = web.RouteTableDef()
 
 _pool: asyncpg.Pool | None = None
 
+
 async def get_pool():
     global _pool
     if _pool is None:
@@ -387,16 +399,18 @@ async def query_database(request: web.Request):
     data = await request.json()
     sql = data.get("sql", "")
     params = data.get("params", [])
-    
+
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
             rows = await conn.fetch(sql, *params)
-            return web.json_response({
-                "tool": "postgres_query",
-                "row_count": len(rows),
-                "rows": [dict(row) for row in rows[:100]]
-            })
+            return web.json_response(
+                {
+                    "tool": "postgres_query",
+                    "row_count": len(rows),
+                    "rows": [dict(row) for row in rows[:100]],
+                }
+            )
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
@@ -408,10 +422,9 @@ async def list_tables(request: web.Request):
         rows = await conn.fetch(
             "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
         )
-        return web.json_response({
-            "tool": "postgres_tables",
-            "tables": [row["table_name"] for row in rows]
-        })
+        return web.json_response(
+            {"tool": "postgres_tables", "tables": [row["table_name"] for row in rows]}
+        )
 ```
 
 ---
@@ -447,11 +460,7 @@ Every server MUST have a `/health` endpoint:
 ```python
 @routes.get("/health")
 async def health(request: web.Request):
-    return web.json_response({
-        "status": "healthy",
-        "server": "your_service",
-        "port": MCP_PORT
-    })
+    return web.json_response({"status": "healthy", "server": "your_service", "port": MCP_PORT})
 ```
 
 ### 2. Error Handling
@@ -465,10 +474,7 @@ async def your_tool(request: web.Request):
         return web.json_response({"result": result})
     except Exception as e:
         logger.exception("Tool failed")
-        return web.json_response(
-            {"error": str(e)}, 
-            status=500
-        )
+        return web.json_response({"error": str(e)}, status=500)
 ```
 
 ### 3. Environment Variables
@@ -498,6 +504,7 @@ async def get_data():
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
             return await resp.json()
+
 
 # Bad (blocking)
 def get_data():

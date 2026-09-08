@@ -47,6 +47,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
+
 class Priority(Enum):
     CRITICAL = 1
     HIGH = 2
@@ -54,15 +55,17 @@ class Priority(Enum):
     LOW = 4
     BACKLOG = 5
 
+
 @dataclass
 class BacklogItem:
     """Single item in product backlog."""
+
     id: str
     title: str
     description: str
     priority: Priority = Priority.MEDIUM
     effort: int = 3  # Story points or T-shirt size
-    value: int = 5   # Business value score
+    value: int = 5  # Business value score
     status: str = "inbox"  # inbox, active, done
     created: datetime = field(default_factory=datetime.now)
     completed: Optional[datetime] = None
@@ -71,7 +74,7 @@ class BacklogItem:
     def wsjf_score(self) -> float:
         """Calculate WSJF priority score."""
         if self.effort == 0:
-            return float('inf')
+            return float("inf")
         return self.value / self.effort
 ```
 
@@ -158,7 +161,7 @@ def generate_retrospective(sprint_items: list[BacklogItem]) -> dict:
         "total_effort": sum(i.effort for i in sprint_items),
         "delivered_effort": sum(i.effort for i in completed),
         "avg_cycle_time": calculate_avg_cycle_time(completed),
-        "top_blockers": identify_blockers(sprint_items)
+        "top_blockers": identify_blockers(sprint_items),
     }
 ```
 

@@ -79,7 +79,7 @@ class MemoryPressureMonitor:
 
     def __init__(self) -> None:
         self._level = PressureLevel.OK
-        self._subscribers: list[Callable[[MemoryPressureEvent], None]] = []
+        self._subscribers: list[Callable[[MemoryPressureEvent], object]] = []
         self._last_event: MemoryPressureEvent | None = None
 
     @property
@@ -90,7 +90,7 @@ class MemoryPressureMonitor:
     def last_event(self) -> MemoryPressureEvent | None:
         return self._last_event
 
-    def subscribe(self, handler: Callable[[MemoryPressureEvent], None]) -> None:
+    def subscribe(self, handler: Callable[[MemoryPressureEvent], object]) -> None:
         """Register a handler invoked on every pressure transition (rising or relieved)."""
         self._subscribers.append(handler)
 

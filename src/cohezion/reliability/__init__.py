@@ -8,10 +8,14 @@ Provides:
 """
 
 import contextlib
+import functools
+import inspect
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -189,11 +193,6 @@ with contextlib.suppress(Exception):
     )
 
 with contextlib.suppress(Exception):
-    from cohezion.reliability.quantum_performance_monitor import (
-        MetricType as MetricType,
-    )
-
-with contextlib.suppress(Exception):
     from cohezion.reliability.residency_awareness import (
         ResidencyAnchorBase as ResidencyAnchorBase,
     )
@@ -218,3 +217,41 @@ def get_circuit(
         _circuits[name].failure_threshold = failure_threshold
 
     return _circuits[name]
+
+
+class CircuitOpenError(Exception):
+    """Raised by circuit_protected wrappers while the named circuit is open."""
+
+
+def circuit_protected(
+    name: str,
+    failure_threshold: int = 5,
+    recovery_timeout: float = 30.0,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Decorator factory: wrap a function with a named circuit breaker.
+
+    Fail-fast variant of get_circuit(): while the circuit is open, calls
+    raise CircuitOpenError instead of executing the wrapped function.
+    """
+    circuit = get_circuit(name, failure_threshold, recovery_timeout)
+
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @functools.wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if not circuit.allow_request():
+                raise CircuitOpenError(f"Circuit {name} is open")
+            try:
+                if inspect.iscoroutinefunction(func):
+                    result = await func(*args, **kwargs)
+                else:
+                    result = func(*args, **kwargs)
+            except Exception:
+                circuit.record_failure()
+                raise
+            circuit.record_success()
+            return result
+
+        wrapper.circuit = circuit  # type: ignore[attr-defined]
+        return wrapper
+
+    return decorator

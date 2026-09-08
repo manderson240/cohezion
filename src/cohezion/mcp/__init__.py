@@ -19,10 +19,6 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.mcp.compound_session import MCPServerState as MCPServerState
 with contextlib.suppress(Exception):
-    from cohezion.mcp.compound_unified import UnifiedCompoundManager as UnifiedCompoundManager
-with contextlib.suppress(Exception):
-    from cohezion.mcp.compound_unified import ServerState as ServerState
-with contextlib.suppress(Exception):
     from cohezion.mcp.compound_utils import McpClientResolver as McpClientResolver
 with contextlib.suppress(Exception):
     from cohezion.mcp.compound_utils import ok as ok
@@ -32,10 +28,6 @@ with contextlib.suppress(Exception):
     from cohezion.mcp.hookify_server import HookifyMCPBridge as HookifyMCPBridge
 with contextlib.suppress(Exception):
     from cohezion.mcp.knowledge_server import KnowledgeMCP as KnowledgeMCP
-with contextlib.suppress(Exception):
-    from cohezion.mcp.manager import MCPManager as MCPManager
-with contextlib.suppress(Exception):
-    from cohezion.mcp.manager import ServerHealth as ServerHealth
 with contextlib.suppress(Exception):
     from cohezion.mcp.registry import MCPRegistry as MCPRegistry
 with contextlib.suppress(Exception):

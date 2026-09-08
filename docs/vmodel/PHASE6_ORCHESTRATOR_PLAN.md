@@ -47,15 +47,19 @@ result = await orch.run("Summarize this 500-line diff.")
 **Recursive delegation:** a tier can itself be a `TieredOrchestrator`, so sub-agents can have their own sub-sub-agents:
 
 ```python
-coder_sub = TieredOrchestrator(tiers=[
-    ("qwen3-coder:30b", QualityGate(min_chars=30)),
-    ("claude-sonnet-4-6", QualityGate.TRUST),
-])
-planner = TieredOrchestrator(tiers=[
-    ("Gemma-4-E2B-it-GGUF", QualityGate(min_chars=20)),
-    (coder_sub, QualityGate.TRUST),  # tier = another orchestrator
-    ("claude-opus-4-7", QualityGate.TRUST),
-])
+coder_sub = TieredOrchestrator(
+    tiers=[
+        ("qwen3-coder:30b", QualityGate(min_chars=30)),
+        ("claude-sonnet-4-6", QualityGate.TRUST),
+    ]
+)
+planner = TieredOrchestrator(
+    tiers=[
+        ("Gemma-4-E2B-it-GGUF", QualityGate(min_chars=20)),
+        (coder_sub, QualityGate.TRUST),  # tier = another orchestrator
+        ("claude-opus-4-7", QualityGate.TRUST),
+    ]
+)
 ```
 
 ### 2.3 Invariants

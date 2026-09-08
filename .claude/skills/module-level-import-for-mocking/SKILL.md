@@ -48,6 +48,7 @@ a real attribute of the module object at patch registration time.
 ```python
 with patch("cohezion.compound.rubric_middleware.httpx") as mock_httpx:
     import httpx as _real_httpx
+
     mock_httpx.post.side_effect = _real_httpx.ConnectError("refused")
     mock_httpx.ConnectError = _real_httpx.ConnectError
     verdict = rm.evaluate("some output")

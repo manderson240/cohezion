@@ -1,8 +1,8 @@
-import pytest
 from cohezion.contracts import PoincarePoint
+from cohezion.physics.fiber_connection import FiberConnectionEngine
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.physics.tensor_calculus import VectorTensor
-from cohezion.physics.fiber_connection import FiberConnectionEngine
+
 
 def test_christoffel_symbols_origin():
     # At origin (0, ..., 0), Christoffel symbols Gamma^k_{ij} are 0
@@ -11,11 +11,13 @@ def test_christoffel_symbols_origin():
     assert len(gamma) == 12
     assert gamma[0][0][0] == 0.0
 
+
 def test_christoffel_symbols_off_origin():
     pt = PoincareManifoldND.project(tuple([0.1] * 12))
     gamma = FiberConnectionEngine.christoffel_symbols(pt)
     assert len(gamma) == 12
     assert gamma[0][0][0] != 0.0  # Non-zero connection off origin
+
 
 def test_covariant_derivative_step():
     pt = PoincareManifoldND.project(tuple([0.1] * 12))

@@ -22,13 +22,11 @@ cohezion/agentjet/embeddings.py:assignment:Incompatible types in assignment (exp
 cohezion/agentjet/embeddings.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/agentjet/embeddings.py:unused-ignore:Unused "type: ignore" comment
 cohezion/agents/adk_swarm/agi_specialists/metacognition_agent.py:call-arg:Unexpected keyword argument "instructions" for "__init__" of "LlmAgent"; did you mean "instruction"?
-cohezion/agents/adk_swarm/aimo_specialists/agent.py:attr-defined:Module has no attribute "tool"
 cohezion/agents/adk_swarm/aimo_specialists/agent.py:call-arg:Unexpected keyword argument "instructions" for "__init__" of "LlmAgent"; did you mean "instruction"?
 cohezion/agents/adk_swarm/aimo_specialists/agent.py:no-any-return:Returning Any from function declared to return "bool"
 cohezion/agents/adk_swarm/aimo_specialists/number_theorist.py:call-arg:Unexpected keyword argument "instructions" for "__init__" of "LlmAgent"; did you mean "instruction"?
 cohezion/agents/adk_swarm/aimo_specialists/orchestrator.py:call-arg:Unexpected keyword argument "agents" for "__init__" of "LlmAgent"
 cohezion/agents/adk_swarm/aimo_specialists/orchestrator.py:call-arg:Unexpected keyword argument "instructions" for "__init__" of "LlmAgent"; did you mean "instruction"?
-cohezion/agents/arc_specialists/manifold_agent.py:attr-defined:Module has no attribute "tool"
 cohezion/agents/arc_specialists/manifold_agent.py:call-arg:Unexpected keyword argument "instructions" for "__init__" of "LlmAgent"; did you mean "instruction"?
 cohezion/agents/base.py:arg-type:Argument "journey" to "evolve_trajectory" of "UniverseSimulationEngine" has incompatible type "None"; expected "UniverseJourney"
 cohezion/agents/base.py:arg-type:Argument "journey" to "precipitate_reality" of "UniverseSimulationEngine" has incompatible type "None"; expected "UniverseJourney"
@@ -57,30 +55,8 @@ cohezion/agents/specialists/ecoresilience_agent.py:union-attr:Item "None" of "Fl
 cohezion/agents/template_pipeline.py:assignment:Incompatible types in assignment (expression has type "ConfigTemplateManager", variable has type "None")
 cohezion/agents/template_pipeline.py:assignment:Incompatible types in assignment (expression has type "TemplateEngine", variable has type "None")
 cohezion/agents/template_pipeline.py:assignment:Incompatible types in assignment (expression has type "VersionTracker", variable has type "None")
-cohezion/agi/adaptive_latency_quality_engine.py:arg-type:Argument "allocated_latency_sec" to "QualityExecutionResult" has incompatible type "object"; expected "float"
-cohezion/agi/adaptive_latency_quality_engine.py:arg-type:Argument "model_used" to "QualityExecutionResult" has incompatible type "object"; expected "str"
-cohezion/agi/adaptive_latency_quality_engine.py:arg-type:Argument "timeout" to "AsyncClient" has incompatible type "object"; expected "float | tuple[float | None, float | None, float | None, float | None] | Timeout | None"
-cohezion/agi/adaptive_latency_quality_engine.py:arg-type:Argument "verification_passes" to "QualityExecutionResult" has incompatible type "object"; expected "int"
-cohezion/agi/adaptive_latency_quality_engine.py:call-overload:No overload variant of "range" matches argument type "object"
-cohezion/agi/experiential_learning.py:arg-type:Argument "next_state_norm" to "ExperienceRecord" has incompatible type "object"; expected "float"
-cohezion/agi/experiential_learning.py:arg-type:Argument "reward" to "ExperienceRecord" has incompatible type "object"; expected "float"
-cohezion/agi/experiential_learning.py:arg-type:Argument "state_norm" to "ExperienceRecord" has incompatible type "object"; expected "float"
-cohezion/agi/experiential_learning.py:arg-type:Argument "timestamp" to "ExperienceRecord" has incompatible type "object"; expected "str"
-cohezion/agi/fleet_autotuning_daemon.py:arg-type:Argument "model_id" to "FleetModelTuningStatus" has incompatible type "object"; expected "str"
-cohezion/agi/fleet_autotuning_daemon.py:arg-type:Argument "role" to "FleetModelTuningStatus" has incompatible type "object"; expected "str"
-cohezion/agi/fleet_autotuning_daemon.py:arg-type:Argument "target_rank" to "FleetModelTuningStatus" has incompatible type "object"; expected "int"
-cohezion/agi/fleet_autotuning_daemon.py:attr-defined:"object" has no attribute "lower"
-cohezion/agi/fleet_autotuning_daemon.py:operator:Unsupported operand types for * ("object" and "int")
-cohezion/agi/fleet_autotuning_daemon.py:operator:Unsupported right operand type for in ("object")
-cohezion/agi/flume_vae.py:arg-type:Argument "log_var" to "FLUMEEncoding" has incompatible type "float"; expected "tuple[float, ...]"
-cohezion/agi/flume_vae.py:assignment:Incompatible types in assignment (expression has type "tuple[float, ...]", variable has type "float")
-cohezion/agi/flume_vae.py:call-overload:No overload variant of "zip" matches argument types "tuple[float, ...]", "float", "bool"
-cohezion/api/__init__.py:attr-defined:"CompoundFeedbackLoop" has no attribute "run_cycle"
-cohezion/api/__init__.py:attr-defined:"CompoundFeedbackLoop" has no attribute "run_multi_cycle"
-cohezion/api/__init__.py:call-arg:Missing positional argument "executor" in call to "CompoundFeedbackLoop"
-cohezion/api/__init__.py:index:Value of type "Coroutine[Any, Any, dict[str, Any]]" is not indexable
-cohezion/api/__init__.py:operator:"object" not callable
-cohezion/api/__init__.py:operator:Unsupported operand types for + ("float" and "SupportsFloat")
+cohezion/api/_helpers.py:assignment:Incompatible types in assignment (expression has type "FlumeVAETrainer", variable has type "None")
+cohezion/api/_helpers.py:assignment:Incompatible types in assignment (expression has type "PolicyNetwork", variable has type "None")
 cohezion/api/journeys.py:attr-defined:"TopoAnalysis" has no attribute "n_loans"
 cohezion/api/journeys.py:no-any-return:Returning Any from function declared to return "dict[str, Any] | None"
 cohezion/api/research_endpoints.py:attr-defined:ResearchSwarm? has no attribute "get_collaboration_report"
@@ -96,12 +72,12 @@ cohezion/api/routes/eigent.py:var-annotated:Need type annotation for "_agents" (
 cohezion/api/routes/journey_nexus.py:misc:List comprehension has incompatible type List[dict[str, Any] | EVOEvent]; expected List[dict[str, Any]]
 cohezion/api/routes/journey_nexus.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/api/routes/journey_nexus.py:unused-ignore:Unused "type: ignore" comment
+cohezion/api/routes/main.py:index:Value of type "Coroutine[Any, Any, dict[str, Any]]" is not indexable
 cohezion/api/routes/rl.py:operator:Unsupported operand types for + ("float" and "SupportsFloat")
 cohezion/api/routes/swarm.py:index:Value of type "Coroutine[Any, Any, dict[str, Any]]" is not indexable
 cohezion/api/routes/training.py:no-any-return:Returning Any from function declared to return "list[dict[str, Any]]"
 cohezion/api/services/graphify.py:assignment:Incompatible default for parameter "projector" (default has type "None", parameter has type "MereonProjector")
 cohezion/api/services/journey_corpus_seeder.py:misc:Generator has incompatible item type "object"; expected "bool"
-cohezion/api/services/observability_hud_service.py:arg-type:Argument 2 to "to_thread" has incompatible type "dict[str, ndarray[tuple[Any, ...], dtype[Any]]]"; expected "dict[str, ndarray[tuple[Any, ...], dtype[Any]] | list[float]]"
 cohezion/api/services/physics_extended.py:no-redef:Name "BECStatusResponse" already defined on line N
 cohezion/api/services/physics_extended.py:no-redef:Name "BismuthResponse" already defined on line N
 cohezion/api/services/physics_extended.py:no-redef:Name "ColibreStatusResponse" already defined on line N
@@ -121,6 +97,7 @@ cohezion/api/services/universe.py:unused-ignore:Unused "type: ignore" comment
 cohezion/api/services/world_model.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/api/sse_queue_bounds.py:no-any-return:Returning Any from function declared to return "T"
 cohezion/api/work_queue_router.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
+cohezion/api/work_queue_router.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/arc/autoharness_verifier.py:var-annotated:Need type annotation for "colors" (hint: "colors: set[<type>] = ...")
 cohezion/arc/codec.py:assignment:Incompatible types in assignment (expression has type "None", variable has type Module)
 cohezion/arc/codec.py:unused-ignore:Unused "type: ignore" comment
@@ -142,6 +119,7 @@ cohezion/arc/tracks/paper_track.py:union-attr:Item "None" of "Any | None" has no
 cohezion/arc/tracks/paper_track.py:union-attr:Item "None" of "Any | None" has no attribute "max_depth"
 cohezion/arc/transforms.py:no-any-return:Returning Any from function declared to return "Callable[[ndarray[tuple[Any, ...], dtype[Any]]], ndarray[tuple[Any, ...], dtype[Any]] | None]"
 cohezion/arc/transforms.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]] | None"
+cohezion/audio/acestep_client.py:no-any-return:Returning Any from function declared to return "bytes | None"
 cohezion/audio/bioacoustic_encoder.py:index:Value of type "Any | None" is not indexable
 cohezion/audio/bioacoustic_encoder.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/audio/bioacoustic_encoder.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
@@ -181,6 +159,7 @@ cohezion/cache/redis_cache.py:union-attr:Item "None" of "Redis | None" has no at
 cohezion/cache/redis_cache.py:union-attr:Item "None" of "Redis | None" has no attribute "setex"
 cohezion/cache/semantic_cache.py:no-any-return:Returning Any from function declared to return "float"
 cohezion/cache/semantic_cache.py:no-any-return:Returning Any from function declared to return "str | None"
+cohezion/cache/text_encoder.py:assignment:Incompatible types in assignment (expression has type "ndarray[tuple[Any, ...], dtype[float64]]", variable has type "ndarray[tuple[Any, ...], dtype[floating[_32Bit]]]")
 cohezion/cache/text_encoder.py:attr-defined:"None" has no attribute "encode"
 cohezion/cache/text_encoder.py:attr-defined:"None" has no attribute "get_sentence_embedding_dimension"
 cohezion/cache/text_encoder.py:var-annotated:Need type annotation for "ngrams" (hint: "ngrams: dict[<type>, <type>] = ...")
@@ -258,57 +237,22 @@ cohezion/competition/orchestrator/resource_guard.py:attr-defined:"ResourceGuard"
 cohezion/competition/orchestrator/resource_guard.py:misc:Type cannot be declared in assignment to non-self attribute
 cohezion/competition/portfolio_manager.py:no-any-return:Returning Any from function declared to return "bool"
 cohezion/competition/portfolio_manager.py:no-any-return:Returning Any from function declared to return "float"
-cohezion/competition/sei_accelathon/assessment.py:assignment:Incompatible types in assignment (expression has type "str", variable has type "Path")
-cohezion/competitions/arc/advanced_grid_reasoner.py:var-annotated:Need type annotation for "patterns"
-cohezion/competitions/arc/frontier_arc_primitives.py:var-annotated:Need type annotation for "queue"
-cohezion/competitions/arc/grandmaster_color_remap.py:var-annotated:Need type annotation for "color_map" (hint: "color_map: dict[<type>, <type>] = ...")
-cohezion/competitions/arc/local_qwen_ast_proposer.py:no-any-return:Returning Any from function declared to return "list[list[int]] | None"
-cohezion/competitions/arc/local_qwen_ast_proposer.py:no-any-return:Returning Any from function declared to return "str | None"
-cohezion/competitions/arc/local_qwen_ast_proposer.py:var-annotated:Need type annotation for "local_scope" (hint: "local_scope: dict[<type>, <type>] = ...")
-cohezion/competitions/arc/mayer_vietoris_cech_solver.py:no-any-return:Returning Any from function declared to return "list[list[int]]"
-cohezion/competitions/arc/mayer_vietoris_cech_solver.py:var-annotated:Need type annotation for "vote_matrix"
-cohezion/competitions/arc/nexus_manifold_solver.py:no-any-return:Returning Any from function declared to return "list[list[int]]"
 cohezion/competitions/arc/object_graph_dsl.py:var-annotated:Need type annotation for "queue"
-cohezion/competitions/arc/todorcevic_walk_lattice_solver.py:no-any-return:Returning Any from function declared to return "list[list[int]]"
-cohezion/competitions/arc_prize/submission.py:assignment:Incompatible types in assignment (expression has type "Callable[[list[list[int]]], list[list[int]]]", variable has type "Callable[[Any, Any], Any] | None")
 cohezion/competitions/arc_prize/submission.py:assignment:Incompatible types in assignment (expression has type "list[tuple[Callable[[list[list[int]]], list[list[int]]], Callable[[Any, Any, Any], Any]]]", variable has type "list[tuple[Callable[[list[list[int]]], list[list[int]]], Callable[[list[list[int]]], list[list[int]]]]]")
-cohezion/competitions/arc_prize/submission.py:no-any-return:Returning Any from function declared to return "Callable[..., Any] | None"
-cohezion/competitions/arc_prize/submission.py:no-redef:Name "solve_arc_task_anytime" already defined on line N
 cohezion/competitions/arc_prize/submission.py:operator:"object" not callable
 cohezion/competitions/arc_prize/submission.py:operator:Unsupported operand types for / ("object" and "float")
-cohezion/competitions/arc_prize/submission.py:return:Missing return statement
-cohezion/competitions/arc_prize/submission.py:var-annotated:Need type annotation for "_SWARM_CACHE" (hint: "_SWARM_CACHE: dict[<type>, <type>] = ...")
-cohezion/competitions/arc_prize/submission.py:var-annotated:Need type annotation for "local_scope" (hint: "local_scope: dict[<type>, <type>] = ...")
-cohezion/competitions/arc_prize/submission.py:var-annotated:Need type annotation for "predictions" (hint: "predictions: list[<type>] = ...")
-cohezion/competitions/arc_prize_2/submission.py:assignment:Incompatible types in assignment (expression has type "Callable[[list[list[int]]], list[list[int]]]", variable has type "Callable[[Any, Any], Any] | None")
 cohezion/competitions/arc_prize_2/submission.py:assignment:Incompatible types in assignment (expression has type "list[tuple[Callable[[list[list[int]]], list[list[int]]], Callable[[Any, Any, Any], Any]]]", variable has type "list[tuple[Callable[[list[list[int]]], list[list[int]]], Callable[[list[list[int]]], list[list[int]]]]]")
-cohezion/competitions/arc_prize_2/submission.py:no-any-return:Returning Any from function declared to return "Callable[..., Any] | None"
-cohezion/competitions/arc_prize_2/submission.py:no-redef:Name "solve_arc_task_anytime" already defined on line N
 cohezion/competitions/arc_prize_2/submission.py:operator:"object" not callable
 cohezion/competitions/arc_prize_2/submission.py:operator:Unsupported operand types for / ("object" and "float")
-cohezion/competitions/arc_prize_2/submission.py:return:Missing return statement
-cohezion/competitions/arc_prize_2/submission.py:var-annotated:Need type annotation for "_SWARM_CACHE" (hint: "_SWARM_CACHE: dict[<type>, <type>] = ...")
-cohezion/competitions/arc_prize_2/submission.py:var-annotated:Need type annotation for "local_scope" (hint: "local_scope: dict[<type>, <type>] = ...")
-cohezion/competitions/arc_prize_2/submission.py:var-annotated:Need type annotation for "predictions" (hint: "predictions: list[<type>] = ...")
 cohezion/competitions/biohub_cell/submission_wired.py:func-returns-value:"main" does not return a value (it only ever returns None)
 cohezion/competitions/biohub_cell/submission_wired_v2.py:func-returns-value:"main" does not return a value (it only ever returns None)
 cohezion/competitions/biohub_cell/submission_wired_v2.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/competitions/pokemon_tcg/belief_state_engine.py:dict-item:Dict entry 2 has incompatible type "str": "int"; expected "str": "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/competitions/pokemon_tcg/belief_state_engine.py:var-annotated:Need type annotation for "counts" (hint: "counts: dict[<type>, <type>] = ...")
-cohezion/competitions/pokemon_tcg/ismcts_cfr_engine.py:no-any-return:Returning Any from function declared to return "str"
-cohezion/competitions/pokemon_tcg/submission.py:no-any-return:Returning Any from function declared to return "float"
-cohezion/competitions/pokemon_tcg/submission.py:no-any-return:Returning Any from function declared to return "str"
-cohezion/competitions/pokemon_tcg/tcg_simulator.py:arg-type:Argument "key" to "max" has incompatible type overloaded function; expected "Callable[[str], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"
 cohezion/competitions/rsna_knee/_push_real/submission_real.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/competitions/rsna_knee/_push_real/submission_real.py:var-annotated:Need type annotation for "brights_fluid" (hint: "brights_fluid: list[<type>] = ...")
 cohezion/competitions/rsna_knee/_push_real/submission_real.py:var-annotated:Need type annotation for "brights_struct" (hint: "brights_struct: list[<type>] = ...")
-cohezion/competitions/rsna_knee/dicom_metadata_film.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/competitions/rsna_knee/submission_real.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/competitions/rsna_knee/submission_real.py:var-annotated:Need type annotation for "brights_fluid" (hint: "brights_fluid: list[<type>] = ...")
 cohezion/competitions/rsna_knee/submission_real.py:var-annotated:Need type annotation for "brights_struct" (hint: "brights_struct: list[<type>] = ...")
-cohezion/competitions/world_models/embedded_adajepa_poincare_world_model.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/compound/__init__.py:return-value:Incompatible return value type (got "cohezion.compound.executor.CompoundExecutor", expected "cohezion.compound.core.executor.CompoundExecutor")
-cohezion/compound/__init__.py:unused-ignore:Unused "type: ignore" comment
 cohezion/compound/aimo_reasoning.py:assignment:Incompatible types in assignment (expression has type "ReasoningNode | None", variable has type "ReasoningNode")
 cohezion/compound/aimo_reasoning.py:assignment:Incompatible types in assignment (expression has type "str", variable has type "None")
 cohezion/compound/aimo_reasoning.py:no-any-return:Returning Any from function declared to return "float"
@@ -316,7 +260,6 @@ cohezion/compound/aimo_reasoning.py:var-annotated:Need type annotation for "uniq
 cohezion/compound/aimo_reasoning.py:var-annotated:Need type annotation for "votes" (hint: "votes: dict[<type>, <type>] = ...")
 cohezion/compound/analytics/engine.py:union-attr:Item "None" of "str | None" has no attribute "lower"
 cohezion/compound/autodqa.py:return-value:Incompatible return value type (got "dict[str, float | str]", expected "dict[str, object]")
-cohezion/compound/autodqa.py:unused-coroutine:Value of type "Coroutine[Any, Any, Any]" must be used
 cohezion/compound/autoharness.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/compound/autoharness.py:unused-ignore:Unused "type: ignore" comment
 cohezion/compound/autonomous_loop/local_executor.py:arg-type:Argument 1 to "_compute_slp" has incompatible type "dict[str, Any] | None"; expected "dict[str, Any]"
@@ -352,7 +295,6 @@ cohezion/compound/cohezion_state.py:no-any-return:Returning Any from function de
 cohezion/compound/compound_health_oracle.py:no-any-return:Returning Any from function declared to return "str | None"
 cohezion/compound/compound_persist.py:no-any-return:Returning Any from function declared to return "list[dict[str, Any]]"
 cohezion/compound/compound_score_tracker.py:no-any-return:Returning Any from function declared to return "float"
-cohezion/compound/consortium_instigator.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/compound/context_integration.py:no-any-return:Returning Any from function declared to return "Path"
 cohezion/compound/context_integration.py:no-any-return:Returning Any from function declared to return "dict[str, Any] | None"
 cohezion/compound/context_integration.py:union-attr:Item "None" of "dict[str, Any] | None" has no attribute "get"
@@ -381,24 +323,12 @@ cohezion/compound/distillation_pipeline.py:call-arg:Unexpected keyword argument 
 cohezion/compound/distillation_pipeline.py:call-arg:Unexpected keyword argument "metadata" for "ExperienceTrace"
 cohezion/compound/distillation_pipeline.py:call-arg:Unexpected keyword argument "prompt_hash" for "ExperienceTrace"
 cohezion/compound/distillation_pipeline.py:call-arg:Unexpected keyword argument "trace_id" for "ExperienceTrace"
-cohezion/compound/dynamic_compound_system.py:attr-defined:"MCPClient" has no attribute "write_to_vault"
-cohezion/compound/dynamic_compound_system.py:union-attr:Item "None" of "MultiAgentCompoundBridge | None" has no attribute "execute"
-cohezion/compound/dynamic_compound_system.py:union-attr:Item "None" of "ProactiveReactiveEngine | None" has no attribute "get_circuit_breaker"
-cohezion/compound/dynamic_compound_system.py:union-attr:Item "None" of "ProactiveReactiveEngine | None" has no attribute "register_event_handler"
-cohezion/compound/dynamic_compound_system.py:var-annotated:Need type annotation for "reactive_status" (hint: "reactive_status: dict[<type>, <type>] = ...")
-cohezion/compound/dynamic_system_integration.py:assignment:Incompatible types in assignment (expression has type "float", target has type "int")
-cohezion/compound/dynamic_system_integration.py:method-assign:Cannot assign to a method
-cohezion/compound/dynamic_system_integration.py:no-any-return:Returning Any from function declared to return "list[BackendType]"
-cohezion/compound/dynamic_system_integration.py:return-value:Incompatible return value type (got "dict[str, int]", expected "dict[str, float]")
-cohezion/compound/dynamic_system_integration.py:union-attr:Item "None" of "ProactiveReactiveEngine | None" has no attribute "_detected_patterns"
 cohezion/compound/eco_symphony.py:union-attr:Item "None" of "FlumeVAEEncoder | None" has no attribute "encode"
 cohezion/compound/eco_symphony.py:var-annotated:Need type annotation for "history" (hint: "history: list[<type>] = ...")
 cohezion/compound/evo_pipeline.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/compound/evolution_training_bridge.py:var-annotated:Need type annotation for "trace_summary" (hint: "trace_summary: dict[<type>, <type>] = ...")
 cohezion/compound/execute_fn_aligned.py:union-attr:Item "str" of "Any | str" has no attribute "value"
 cohezion/compound/executor.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "GeometricLatentBridge")
-cohezion/compound/executor.py:attr-defined:"None" has no attribute "execute"
-cohezion/compound/executor.py:attr-defined:Module "cohezion.mycelium.loop" has no attribute "MyceliumLoop"
 cohezion/compound/executor.py:no-any-return:Returning Any from function declared to return "dict[str, bool | None]"
 cohezion/compound/executor.py:no-any-return:Returning Any from function declared to return "str | None"
 cohezion/compound/executor_integration.py:attr-defined:"ExecutorIntegrationMixin" has no attribute "logger"
@@ -414,6 +344,7 @@ cohezion/compound/feedback_loop.py:union-attr:Item "None" of "Any | None" has no
 cohezion/compound/feedback_loop.py:union-attr:Item "None" of "ExecutionResult | None" has no attribute "metrics"
 cohezion/compound/feedback_loop.py:union-attr:Item "None" of "ExecutionResult | None" has no attribute "output"
 cohezion/compound/global_metrics_aggregator.py:index:Unsupported target for indexed assignment ("object")
+cohezion/compound/grand_unified_compound_pipeline.py:attr-defined:"type[ZKFVCompiler]" has no attribute "verify"
 cohezion/compound/harness_benefit.py:misc:Generator has incompatible item type "float | None"; expected "bool"
 cohezion/compound/harness_benefit.py:unused-ignore:Unused "type: ignore" comment
 cohezion/compound/harness_tuning_specialist.py:attr-defined:"SkillRefiner" has no attribute "propose_rho_update"
@@ -435,6 +366,7 @@ cohezion/compound/journey_to_training.py:truthy-function:Function "AgentTrajecto
 cohezion/compound/journey_tracker.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "dict[str, Any]")
 cohezion/compound/journey_tracker.py:assignment:Incompatible types in assignment (expression has type "float", variable has type "float64")
 cohezion/compound/journey_tracker.py:attr-defined:"object" has no attribute "observe"
+cohezion/compound/journey_tracker.py:attr-defined:"object" has no attribute "read"
 cohezion/compound/journey_tracker.py:comparison-overlap:Non-overlapping container check (element type: "int", container item type: "str")
 cohezion/compound/journey_tracker.py:index:Invalid index type "int" for "dict[str, ndarray[tuple[Any, ...], dtype[Any]]]"; expected type "str"
 cohezion/compound/journey_tracker.py:no-any-return:Returning Any from function declared to return "float"
@@ -461,19 +393,9 @@ cohezion/compound/multi_agent_compound_bridge.py:union-attr:Item "None" of "Adap
 cohezion/compound/multi_agent_compound_bridge.py:union-attr:Item "None" of "AdaptiveRouter | None" has no attribute "route"
 cohezion/compound/multi_agent_compound_bridge.py:union-attr:Item "None" of "MultiAgentOrchestrator | None" has no attribute "execute"
 cohezion/compound/multi_agent_compound_bridge.py:union-attr:Item "None" of "MultiAgentOrchestrator | None" has no attribute "get_stats"
-cohezion/compound/optimized_session_manager.py:arg-type:Argument 2 to "_save_checkpoint_to_vault" has incompatible type "SessionState | None"; expected "SessionState"
-cohezion/compound/optimized_session_manager.py:attr-defined:"MCPClient" has no attribute "_cache"
-cohezion/compound/optimized_session_manager.py:attr-defined:Module "cohezion.compound.exp_persistence.vault" has no attribute "_vault_checkpoint_manager"
-cohezion/compound/optimized_session_manager.py:return-value:Incompatible return value type (got "list[T | BaseException]", expected "list[T]")
-cohezion/compound/optimized_session_manager.py:union-attr:Item "None" of "OptimizedSessionRuntime | None" has no attribute "create_session"
-cohezion/compound/optimized_session_manager.py:union-attr:Item "None" of "Semaphore | None" has no attribute "__aenter__"
-cohezion/compound/optimized_session_manager.py:union-attr:Item "None" of "Semaphore | None" has no attribute "__aexit__"
+cohezion/compound/oom_guard.py:no-any-return:Returning Any from function declared to return "dict[str, object] | None"
 cohezion/compound/post_execution.py:union-attr:Item "None" of "Any | None" has no attribute "analyze_alignment"
 cohezion/compound/post_execution.py:union-attr:Item "None" of "Any | None" has no attribute "log_alignment_to_vault"
-cohezion/compound/proactive_reactive_engine.py:arg-type:Argument "preferred_agents" to "WorkloadPattern" has incompatible type "list[Any | None]"; expected "list[str]"
-cohezion/compound/proactive_reactive_engine.py:attr-defined:"ComputeBackendRouter" has no attribute "get_backend_status"
-cohezion/compound/proactive_reactive_engine.py:union-attr:Item "None" of "Any | None" has no attribute "date"
-cohezion/compound/proactive_reactive_engine.py:var-annotated:Need type annotation for "agent_counts" (hint: "agent_counts: dict[<type>, <type>] = ...")
 cohezion/compound/prompt_version_registry.py:assignment:Incompatible types in assignment (expression has type "dict[Any, Any] | None", variable has type "dict[Any, Any]")
 cohezion/compound/prompt_version_registry.py:no-any-return:Returning Any from function declared to return "list[float] | None"
 cohezion/compound/request_alignment_analyzer.py:arg-type:Argument "key" to "max" has incompatible type overloaded function; expected "Callable[[str], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"
@@ -535,6 +457,7 @@ cohezion/compound/universal/init.py:attr-defined:"Callable[[], bool]" has no att
 cohezion/compound/universal/init.py:attr-defined:"Callable[[], bool]" has no attribute "_project_root"
 cohezion/compound/universal/init.py:attr-defined:"Callable[[], bool]" has no attribute "_session_id"
 cohezion/compound/universal/init.py:attr-defined:"Callable[[], bool]" has no attribute "_worktree_created"
+cohezion/compound/universal/init.py:var-annotated:Need type annotation for "initialization_details" (hint: "initialization_details: dict[<type>, <type>] = ...")
 cohezion/compound/vault_search_executor.py:index:Value of type "Collection[str]" is not indexable
 cohezion/compound/vault_search_executor.py:var-annotated:Need type annotation for "documents" (hint: "documents: list[<type>] = ...")
 cohezion/compound/vmodel_harness.py:no-any-return:Returning Any from function declared to return "int"
@@ -565,23 +488,17 @@ cohezion/config/defaults.py:no-redef:Name "SCORE_WINDOW" already defined on line
 cohezion/config/git_utils.py:attr-defined:Module has no attribute "os"
 cohezion/config/unified.py:assignment:Incompatible types in assignment (expression has type "str | None", variable has type "str")
 cohezion/core/compound/retrospection.py:attr-defined:"object" has no attribute "aggregate"
-cohezion/core/connection_pool.py:arg-type:Argument 1 to "len" has incompatible type "Queue[PooledConnection]"; expected "Sized"
-cohezion/core/connection_pool.py:call-overload:No overload variant of "range" matches argument type "float"
-cohezion/core/connection_pool.py:no-any-return:Returning Any from function declared to return "float"
-cohezion/core/connection_pool.py:return-value:Incompatible return value type (got "None", expected "PooledConnection")
-cohezion/core/connection_pool.py:var-annotated:Need type annotation for "_usage_history"
 cohezion/core/context_engineering.py:return-value:Incompatible return value type (got "Coroutine[Any, Any, str]", expected "str")
 cohezion/core/context_engineering.py:unused-coroutine:Value of type "Coroutine[Any, Any, None]" must be used
 cohezion/core/context_engineering.py:unused-ignore:Unused "type: ignore" comment
 cohezion/core/cross_session_event_bridge.py:no-any-return:Returning Any from function declared to return "list[dict[str, Any]]"
-cohezion/core/event_log_reader.py:func-returns-value:"add" of "set" does not return a value (it only ever returns None)
-cohezion/core/grand_unified_wiring_bus.py:attr-defined:"BioelectricSwarm" has no attribute "heal_corrupted_nodes"; maybe "detect_corrupted_nodes"?
-cohezion/core/grand_unified_wiring_bus.py:attr-defined:"HIHOSonifier" has no attribute "compute_audio_frequency"
 cohezion/core/journey_worker.py:attr-defined:"SelfHealingSystem" has no attribute "heal_manifold"
 cohezion/core/journey_worker.py:union-attr:Item "UniverseStateEvent" of "FlumeJourneyEvent | UniverseStateEvent" has no attribute "journey_id"
 cohezion/core/mcp_client.py:no-any-return:Returning Any from function declared to return "list[dict[str, Any]]"
 cohezion/core/mcp_client.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/core/mcp_retry.py:misc:Exception must be derived from BaseException
+cohezion/core/optimization/adaptive_framework.py:name-defined:Name "Any" is not defined
+cohezion/core/optimization/adaptive_framework.py:no-any-return:Returning Any from function declared to return "float"
 cohezion/core/persistence/admin.py:misc:Assignment to variable "e2" outside except: block
 cohezion/core/persistence/admin.py:no-any-return:Returning Any from function declared to return "list[dict[Any, Any]]"
 cohezion/core/persistence/repositories/pattern_repository.py:no-any-return:Returning Any from function declared to return "str"
@@ -590,9 +507,11 @@ cohezion/core/persistence/repositories/surreal_proactive_repository.py:assignmen
 cohezion/core/persistence/repositories/surreal_universe_repository.py:arg-type:Argument "created_at" to "UniverseNode" has incompatible type "Any | None"; expected "datetime"
 cohezion/core/persistence/repositories/surreal_universe_repository.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/core/persistence/repositories/universe_repository.py:assignment:Incompatible default for parameter "filter_params" (default has type "None", parameter has type "UniverseRepositoryFilter")
+cohezion/core/resource_management/session_monitor.py:misc:Assignment to variable "e" outside except: block
+cohezion/core/resource_management/session_monitor.py:misc:Trying to read deleted variable "e"
+cohezion/core/routing/router.py:attr-defined:"AdaptiveFrameworkOptimizer" has no attribute "get_current_profile"
 cohezion/core/routing/router.py:no-any-return:Returning Any from function declared to return "float"
 cohezion/core/routing/router.py:no-any-return:Returning Any from function declared to return "str"
-cohezion/core/routing/router.py:unused-ignore:Unused "type: ignore" comment
 cohezion/core/silicon_guard.py:no-any-return:Returning Any from function declared to return "float"
 cohezion/core/timeit.py:attr-defined:"_Wrapped[[VarArg(Any), KwArg(Any)], Any, [VarArg(Any), KwArg(Any)], Any]" has no attribute "_timeit_stats"
 cohezion/core/timeit.py:no-any-return:Returning Any from function declared to return "TimeitStats"
@@ -607,10 +526,12 @@ cohezion/data_mesh/event_bridge.py:unused-ignore:Unused "type: ignore" comment
 cohezion/data_mesh/event_consumer.py:misc:"None" not callable
 cohezion/data_mesh/event_consumer.py:no-any-return:Returning Any from function declared to return "list[dict[str, Any]]"
 cohezion/data_mesh/gaia_domain_agent.py:unused-ignore:Unused "type: ignore" comment
+cohezion/data_mesh/gap_miner.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/data_mesh/inference_products.py:no-any-return:Returning Any from function declared to return "dict[str, Any] | None"
 cohezion/data_mesh/inference_products.py:union-attr:Item "None" of "dict[str, Any] | None" has no attribute "get"
 cohezion/data_mesh/inference_products.py:unused-ignore:Unused "type: ignore" comment
 cohezion/data_mesh/kanban_bridge.py:no-any-return:Returning Any from function declared to return "bool"
+cohezion/data_mesh/land_runner.py:no-redef:Name "_local_review" already defined on line N
 cohezion/data_mesh/lemonade_multimodal.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/datamesh/bidirectional_linkage.py:attr-defined:"object" has no attribute "get"
 cohezion/datamesh/bidirectional_linkage.py:index:Unsupported target for indexed assignment ("object")
@@ -666,7 +587,6 @@ cohezion/flume/autoencoder.py:call-arg:Missing named argument "prediction_error"
 cohezion/flume/autoencoder.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/flume/autoencoder.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/flume/autoencoder.py:operator:"Tensor" not callable
-cohezion/flume/bioelectric_swarm.py:no-any-return:Returning Any from function declared to return "list[int | str]"
 cohezion/flume/bridge.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/flume/bridge.py:union-attr:Item "None" of "Any | None" has no attribute "encode"
 cohezion/flume/data_pipeline.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
@@ -674,8 +594,6 @@ cohezion/flume/distro_multisilicon_sync.py:no-any-return:Returning Any from func
 cohezion/flume/grid_encoder.py:call-arg:Missing named argument "predicted_z_vector" for "FlumeJourneyEvent"
 cohezion/flume/grid_encoder.py:call-arg:Missing named argument "prediction_error" for "FlumeJourneyEvent"
 cohezion/flume/grid_encoder.py:no-any-return:Returning Any from function declared to return "Tensor"
-cohezion/flume/j_space_latent_manifold.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/flume/jacobian_workspace_engine.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/flume/journey_encoder.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/flume/latent_engine.py:misc:"BaseException" object is not iterable
 cohezion/flume/latent_engine.py:no-any-return:Returning Any from function declared to return "bool"
@@ -693,9 +611,6 @@ cohezion/flume/monadic_markov_trace_engine.py:misc:All conditional function vari
 cohezion/flume/morphospace.py:var-annotated:Need type annotation for "discovered" (hint: "discovered: list[<type>] = ...")
 cohezion/flume/navigation.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/flume/navigator.py:operator:"Tensor" not callable
-cohezion/flume/observability_hud.py:arg-type:Argument 1 to "evaluate_consistency" of "SheafConsistencyGate" has incompatible type "dict[str, ndarray[tuple[Any, ...], dtype[float64]]]"; expected "dict[str, ndarray[tuple[Any, ...], dtype[Any]] | list[float]]"
-cohezion/flume/poincare_manifold_visualizer.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/flume/poincare_manifold_visualizer.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/flume/poincare_manifold_visualizer.py:unused-ignore:Unused "type: ignore" comment
 cohezion/flume/predictor.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/flume/predictor.py:operator:"Tensor" not callable
@@ -718,25 +633,16 @@ cohezion/flume/trajectory_capture.py:attr-defined:Module "cohezion.persistence.g
 cohezion/flume/turbo_quant.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/flume/vacuum_encoder.py:no-any-return:Returning Any from function declared to return "list[float]"
 cohezion/flume/vacuum_encoder.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/flume/vae.py:arg-type:Argument "ignore_index" to "cross_entropy" has incompatible type "int | Any | None"; expected "int"
-cohezion/flume/vae.py:no-any-return:Returning Any from function declared to return "Tensor"
-cohezion/flume/vae.py:union-attr:Item "None" of "FlumeVAEConfig | None" has no attribute "pad_token_id"
-cohezion/flume/vae.py:union-attr:Item "None" of "FlumeVAEConfig | None" has no attribute "vocab_size"
-cohezion/flume/vae_encoder.py:assignment:Incompatible types in assignment (expression has type "Linear", variable has type "None")
-cohezion/flume/vae_encoder.py:assignment:Incompatible types in assignment (expression has type "SimpleEncoder", variable has type "None")
-cohezion/flume/vae_encoder.py:attr-defined:"None" has no attribute "encoder"
-cohezion/flume/vae_encoder.py:attr-defined:"None" has no attribute "eval"
-cohezion/flume/vae_encoder.py:attr-defined:"None" has no attribute "load_state_dict"
-cohezion/flume/vae_encoder.py:attr-defined:"None" has no attribute "to"
-cohezion/flume/vae_encoder.py:call-arg:Unexpected keyword argument "hidden_size" for "SimpleEncoder"
-cohezion/flume/vae_encoder.py:call-arg:Unexpected keyword argument "input_size" for "SimpleEncoder"
-cohezion/flume/vae_encoder.py:misc:"None" not callable
-cohezion/flume/vae_encoder.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
+cohezion/flume/workspace_readout.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/gateway/demo_gateway.py:assignment:Incompatible types in assignment (expression has type "Response", variable has type "str")
 cohezion/gateway/demo_gateway.py:attr-defined:"str" has no attribute "json"
 cohezion/gateway/demo_gateway.py:attr-defined:"str" has no attribute "raise_for_status"
 cohezion/gateway/demo_gateway.py:unused-ignore:Unused "type: ignore" comment
-cohezion/gateway/mcp_server.py:arg-type:Argument 1 to "stdio_server" has incompatible type "Server[Any, Any]"; expected "AsyncFile[str] | None"
+cohezion/gateway/mcp_http_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
+cohezion/gateway/mcp_server.py:arg-type:Argument 1 to "stdio_server" has incompatible type "Server[Any]"; expected "AsyncFile[str] | None"
+cohezion/gateway/mcp_server.py:attr-defined:"Server[Any]" has no attribute "call_tool"
+cohezion/gateway/mcp_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
+cohezion/gateway/mcp_server.py:call-arg:Unexpected keyword argument "inputSchema" for "Tool"; did you mean "input_schema"?
 cohezion/gateway/ngrok_adapter.py:arg-type:Argument "json" to "post" has incompatible type "dict[str, object]"; expected "JsonType"
 cohezion/gateway/ngrok_adapter.py:attr-defined:"object" has no attribute "__iter__"; maybe "__dir__" or "__str__"? (not iterable)
 cohezion/gateway/ngrok_adapter.py:unused-ignore:Unused "type: ignore" comment
@@ -749,7 +655,7 @@ cohezion/governance/knowledge_bridge.py:assignment:Incompatible types in assignm
 cohezion/governance/knowledge_bridge.py:no-any-return:Returning Any from function declared to return "bool"
 cohezion/governance/scripts/async_guard_v2.py:var-annotated:Need type annotation for "call_path" (hint: "call_path: list[<type>] = ...")
 cohezion/governance/scripts/root_health_guard.py:var-annotated:Need type annotation for "categories"
-cohezion/healing/__init__.py:return-value:Incompatible return value type (got "object", expected "bool")
+cohezion/healing/_core.py:return-value:Incompatible return value type (got "object", expected "bool")
 cohezion/healing/amd_s2idle_report.py:arg-type:Argument 1 to "exit" has incompatible type "CalledProcessError"; expected "str | int | None"
 cohezion/healing/drift_analyzer.py:no-any-return:Returning Any from function declared to return "float"
 cohezion/healing/scripts/trajectory_guard.py:var-annotated:Need type annotation for "active_journeys" (hint: "active_journeys: dict[<type>, <type>] = ...")
@@ -781,36 +687,33 @@ cohezion/inference/challenger_solver.py:unused-ignore:Unused "type: ignore" comm
 cohezion/inference/clasp_tier.py:arg-type:Argument 1 to "check" of "QualityGate" has incompatible type "OrchestrationResult | Any"; expected "RouteResult"
 cohezion/inference/clasp_tier.py:attr-defined:"object" has no attribute "run"
 cohezion/inference/direct_tier.py:attr-defined:Module "cohezion.inference.recipe_guard" has no attribute "ensure_recipe"
-cohezion/inference/distributed_swarm.py:arg-type:Argument "successes" to "TaskSuccessVector" has incompatible type "list[float]"; expected "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/inference/distributed_swarm.py:attr-defined:Module "cohezion.compound.evolution_training_bridge" has no attribute "EvolutionTrainingBridge"; maybe "EvolutionTrainingConfig", "EvolutionTrainingExporter", or "EvolutionTrainingPipeline"?
-cohezion/inference/distributed_swarm.py:call-arg:Missing positional arguments "agent_id", "task_ids" in call to "TaskSuccessVector"
-cohezion/inference/distributed_swarm.py:call-arg:Unexpected keyword argument "metadata" for "ExperienceTrace"
-cohezion/inference/distributed_swarm.py:call-arg:Unexpected keyword argument "success_vector" for "ExperienceTrace"
-cohezion/inference/distributed_swarm.py:call-arg:Unexpected keyword argument "task_id" for "ExperienceTrace"
 cohezion/inference/fleet_roles.py:no-any-return:Returning Any from function declared to return "str | None"
 cohezion/inference/fleet_routing_specialist.py:no-any-return:Returning Any from function declared to return "Task | None"
 cohezion/inference/frontier_oracle.py:assignment:Incompatible types in assignment (expression has type "OrchestrationResult", variable has type "RouteResult")
 cohezion/inference/gaia_adapter.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/inference/gaia_adapter.py:unused-ignore:Unused "type: ignore" comment
-cohezion/inference/gauntlet.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/inference/gemini_cli_tier.py:union-attr:Item "None" of "list[Part] | None" has no attribute "__iter__" (not iterable)
-cohezion/inference/gemini_cli_tier.py:unused-coroutine:Value of type "Coroutine[Any, Any, Any]" must be used
 cohezion/inference/hardware_telemetry.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/inference/health.py:arg-type:Argument "detail" to "LaneHealth" has incompatible type "str | None"; expected "str"
 cohezion/inference/health.py:no-any-return:Returning Any from function declared to return "str | None"
 cohezion/inference/hotswap.py:unused-ignore:Unused "type: ignore" comment
+cohezion/inference/kimi_k3_dispatcher.py:method-assign:Cannot assign to a method
+cohezion/inference/kimi_k3_dispatcher.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/inference/lemonade_embed_bridge.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/inference/lemonade_v117_features.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/inference/lynx_gate.py:unused-ignore:Unused "type: ignore" comment
 cohezion/inference/nano_uma_compactor.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
+cohezion/inference/npu_gauntlet.py:assignment:Incompatible types in assignment (expression has type "int", variable has type "str")
+cohezion/inference/npu_gauntlet.py:misc:Generator has incompatible item type "float | int | str | None"; expected "bool"
+cohezion/inference/npu_gauntlet.py:no-any-return:Returning Any from function declared to return "bool"
+cohezion/inference/npu_gauntlet.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
+cohezion/inference/npu_gauntlet.py:no-any-return:Returning Any from function declared to return "str | None"
+cohezion/inference/npu_gauntlet.py:operator:Unsupported operand types for < ("int" and "None")
+cohezion/inference/npu_gauntlet.py:operator:Unsupported operand types for > ("str" and "int")
 cohezion/inference/omni_model.py:no-any-return:Returning Any from function declared to return "list[str]"
 cohezion/inference/omni_model.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/inference/oom_guard.py:no-any-return:Returning Any from function declared to return "list[dict[str, Any]]"
 cohezion/inference/p0_resilience_mixins.py:no-any-return:Returning Any from function declared to return "list[T]"
 cohezion/inference/p0_resilience_mixins.py:return-value:Incompatible return value type (got "dict[str, object]", expected "T")
-cohezion/inference/proactive_local_delegator.py:no-any-return:Returning Any from function declared to return "str"
-cohezion/inference/smart_orchestrator.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
-cohezion/inference/smart_orchestrator.py:unused-ignore:Unused "type: ignore" comment
 cohezion/inference/structured_npu.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/inference/task_classifier.py:unused-ignore:Unused "type: ignore" comment
 cohezion/inference/tri_compute_orchestrator.py:assignment:Incompatible types in assignment (expression has type "dict[str, str]", variable has type "list[Any]")
@@ -853,15 +756,12 @@ cohezion/inference/turboquant_streaming.py:attr-defined:"dict[str, Tensor | int]
 cohezion/inference/turboquant_streaming.py:attr-defined:"dict[str, Tensor | int]" has no attribute "norms"
 cohezion/inference/turboquant_streaming.py:call-arg:Unexpected keyword argument "seed" for "compress" of "TurboQuantReference"
 cohezion/inference/turboquant_streaming.py:return-value:Incompatible return value type (got "tuple[dict[str, Tensor | int], Tensor, KVCacheStats]", expected "tuple[Tensor, Tensor, KVCacheStats]")
+cohezion/inference/unified_hybrid_router.py:attr-defined:"UnifiedHybridRouter" has no attribute "_calculate_evi"
 cohezion/inference/unified_hybrid_router.py:misc:"WEIGHTS" in __slots__ conflicts with class variable access
-cohezion/inference/unified_hybrid_router.py:no-any-return:Returning Any from function declared to return "list[float] | None"
-cohezion/inference/unified_hybrid_router.py:return:Missing return statement
-cohezion/inference/unified_orchestrator.py:arg-type:Argument "successes" to "TaskSuccessVector" has incompatible type "list[float]"; expected "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/inference/unified_orchestrator.py:attr-defined:Module "cohezion.compound.evolution_training_bridge" has no attribute "EvolutionTrainingBridge"; maybe "EvolutionTrainingConfig", "EvolutionTrainingExporter", or "EvolutionTrainingPipeline"?
-cohezion/inference/unified_orchestrator.py:call-arg:Missing positional arguments "agent_id", "task_ids" in call to "TaskSuccessVector"
-cohezion/inference/unified_orchestrator.py:call-arg:Unexpected keyword argument "metadata" for "ExperienceTrace"
-cohezion/inference/unified_orchestrator.py:call-arg:Unexpected keyword argument "success_vector" for "ExperienceTrace"
-cohezion/inference/unified_orchestrator.py:call-arg:Unexpected keyword argument "task_id" for "ExperienceTrace"
+cohezion/inference/unified_hybrid_router.py:name-defined:Name "current_tier" is not defined
+cohezion/inference/unified_hybrid_router.py:name-defined:Name "field" is not defined
+cohezion/inference/unified_hybrid_router.py:name-defined:Name "prompt" is not defined
+cohezion/inference/unified_hybrid_router.py:name-defined:Name "task_class" is not defined
 cohezion/integrations/agentverse/api_llm_executor.py:arg-type:Argument "headers" to "get" of "AsyncClient" has incompatible type "dict[str, str | None]"; expected "Headers | Mapping[str, str] | Mapping[bytes, bytes] | Sequence[tuple[str, str]] | Sequence[tuple[bytes, bytes]] | None"
 cohezion/integrations/agentverse/api_llm_executor.py:arg-type:Argument "headers" to "post" of "AsyncClient" has incompatible type "dict[str, str | None]"; expected "Headers | Mapping[str, str] | Mapping[bytes, bytes] | Sequence[tuple[str, str]] | Sequence[tuple[bytes, bytes]] | None"
 cohezion/integrations/agentverse/api_llm_executor.py:arg-type:Argument "task" to "execute_task" of "LLMExecutor" has incompatible type "dict[str, str]"; expected "str"
@@ -913,25 +813,20 @@ cohezion/mass_sim/persistence.py:assignment:Incompatible types in assignment (ex
 cohezion/mass_sim/persistence.py:attr-defined:"None" has no attribute "connect"
 cohezion/mass_sim/persistence.py:attr-defined:"None" has no attribute "query"
 cohezion/math/monadic_hodge_gflownet.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/mcp/__init__.py:attr-defined:Module "cohezion.mcp.manager" has no attribute "MCPManager"; maybe "MCPServerManager"?
-cohezion/mcp/__init__.py:attr-defined:Module "cohezion.mcp.manager" has no attribute "ServerHealth"
 cohezion/mcp/bmad_server.py:no-any-return:Returning Any from function declared to return "str"
+cohezion/mcp/coherence_server.py:attr-defined:"Server[Any]" has no attribute "call_tool"
+cohezion/mcp/coherence_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
+cohezion/mcp/coherence_server.py:call-arg:Unexpected keyword argument "inputSchema" for "Tool"; did you mean "input_schema"?
 cohezion/mcp/coherence_server.py:operator:"object" not callable
 cohezion/mcp/coherence_server.py:unused-ignore:Unused "type: ignore" comment
 cohezion/mcp/coherence_server.py:unused-ignore:Unused "type: ignore[arg-type, call-arg]" comment
-cohezion/mcp/cohezion_agi_server.py:arg-type:Argument 2 to "to_thread" has incompatible type "dict[Any, ndarray[tuple[Any, ...], dtype[Any]]]"; expected "dict[str, ndarray[tuple[Any, ...], dtype[Any]] | list[float]]"
+cohezion/mcp/cohezion_agi_server.py:attr-defined:"Server[Any]" has no attribute "call_tool"
+cohezion/mcp/cohezion_agi_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
+cohezion/mcp/cohezion_agi_server.py:call-arg:Unexpected keyword argument "inputSchema" for "Tool"; did you mean "input_schema"?
 cohezion/mcp/compound_session.py:arg-type:Argument 1 to "loads" has incompatible type "Coroutine[Any, Any, str]"; expected "str | bytes | bytearray"
 cohezion/mcp/compound_session.py:unused-coroutine:Value of type "Coroutine[Any, Any, str]" must be used
-cohezion/mcp/compound_unified.py:arg-type:Argument "port" to "ServerState" has incompatible type "object"; expected "int"
-cohezion/mcp/compound_unified.py:arg-type:Argument 1 to "_restore_from_checkpoint" of "UnifiedCompoundManager" has incompatible type "dict[Any, Any] | None"; expected "dict[Any, Any]"
-cohezion/mcp/compound_unified.py:arg-type:Argument 1 to "loads" has incompatible type "Coroutine[Any, Any, str]"; expected "str | bytes | bytearray"
-cohezion/mcp/compound_unified.py:index:Unsupported target for indexed assignment ("dict[Any, Any] | str | None")
-cohezion/mcp/compound_unified.py:index:Value of type "dict[Any, Any] | None" is not indexable
-cohezion/mcp/compound_unified.py:misc:Value expression in dictionary comprehension has incompatible type "dict[str, Any]"; expected type "ServerState"
-cohezion/mcp/compound_unified.py:no-any-return:Returning Any from function declared to return "dict[Any, Any] | None"
-cohezion/mcp/compound_unified.py:unused-coroutine:Value of type "Coroutine[Any, Any, str]" must be used
-cohezion/mcp/compound_unified.py:var-annotated:Need type annotation for "context"
 cohezion/mcp/hookify_server.py:assignment:Incompatible types in assignment (expression has type "BlockingWsSurrealConnection | BlockingHttpSurrealConnection", variable has type "None")
+cohezion/mcp/hookify_server.py:attr-defined:Module "mcp.server.fastmcp" has no attribute "FastMCP"
 cohezion/mcp/hookify_server.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/mcp/knowledge_server.py:no-any-return:Returning Any from function declared to return "dict[str, Any] | None"
 cohezion/mcp/knowledge_server_mcp.py:return-value:Incompatible return value type (got "list[dict[str, str]]", expected "list[str]")
@@ -1001,6 +896,7 @@ cohezion/model/hiho_attention.py:no-any-return:Returning Any from function decla
 cohezion/models/birdclef_baseline.py:no-any-return:Returning Any from function declared to return "float"
 cohezion/models/birdclef_baseline.py:var-annotated:Need type annotation for "species_columns" (hint: "species_columns: list[<type>] = ...")
 cohezion/models/rho_selector.py:no-any-return:Returning Any from function declared to return "int | None"
+cohezion/multimodal/trellis_3d_engine.py:unused-ignore:Unused "type: ignore" comment
 cohezion/observability/session_digest.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/ouroboros/wiki_integration.py:attr-defined:"WikiPage" has no attribute "metadata"
 cohezion/patterns/hermetic_design_patterns.py:var-annotated:Need type annotation for "fractal"
@@ -1015,7 +911,6 @@ cohezion/physics/colibre_bridge.py:unused-ignore:Unused "type: ignore" comment
 cohezion/physics/cosmogony.py:index:Value of type "dict[Any, Any] | None" is not indexable
 cohezion/physics/cosmogony.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/physics/cosmogony.py:no-any-return:Returning Any from function declared to return "tuple[Any, ...]"
-cohezion/physics/curvature_adaptive_ttt.py:arg-type:Argument 1 to "max" has incompatible type "float"; expected "floating[_32Bit]"
 cohezion/physics/dimension_extractor.py:assignment:Incompatible types in assignment (expression has type "None", variable has type Module)
 cohezion/physics/fiber_bundle.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/physics/gauge_theory.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
@@ -1043,6 +938,7 @@ cohezion/physics/quantum/peaked_solver.py:operator:Cannot call function of unkno
 cohezion/physics/quantum/peaked_solver.py:union-attr:Item "None" of "Any | None" has no attribute "amplitude"
 cohezion/physics/quantum/peaked_solver.py:var-annotated:Need type annotation for "counts" (hint: "counts: dict[<type>, <type>] = ...")
 cohezion/physics/quantum/peaked_solver.py:var-annotated:Need type annotation for "ops" (hint: "ops: list[<type>] = ...")
+cohezion/physics/riemannian_glide.py:no-any-return:Returning Any from function declared to return "list[list[float]]"
 cohezion/physics/riemannian_metric.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "ndarray[tuple[int, int], dtype[float64]]")
 cohezion/physics/riemannian_metric.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/physics/sarfatti_bridge.py:dict-item:Dict entry 0 has incompatible type "str": "str"; expected "str": "float"
@@ -1058,7 +954,6 @@ cohezion/pipeline/incremental_trainer.py:attr-defined:"type[FlumeVAETrainer]" ha
 cohezion/pipeline/trained_navigator.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/platform/coherence_tracker.py:no-any-return:Returning Any from function declared to return "float"
 cohezion/platform/daily_health_digest.py:no-any-return:Returning Any from function declared to return "float"
-cohezion/platform/oom_evictor.py:arg-type:Argument 1 to "subscribe" of "MemoryPressureMonitor" has incompatible type "Callable[[MemoryPressureEvent], Eviction | None]"; expected "Callable[[MemoryPressureEvent], None]"
 cohezion/platform/skill_analytics_charter.py:var-annotated:Need type annotation for "compound_patterns" (hint: "compound_patterns: list[<type>] = ...")
 cohezion/proactive/never_idle_engine.py:attr-defined:"VerificationResult" has no attribute "get"
 cohezion/protocols/a2a_server.py:attr-defined:"CompoundExecutor" has no attribute "execute"
@@ -1070,13 +965,11 @@ cohezion/protocols/ucp_capability_handler.py:call-arg:Missing positional argumen
 cohezion/recursive_trace/core.py:misc:All conditional function variants must have identical signatures
 cohezion/recursive_trace/goal_loop.py:assignment:Incompatible types in assignment (expression has type "bool | None", variable has type "bool")
 cohezion/recursive_trace/goal_loop.py:assignment:Incompatible types in assignment (expression has type "str | None", variable has type "str")
+cohezion/recursive_trace/tripartite_goal_loop.py:attr-defined:"ZKProof" has no attribute "proof_id"
 cohezion/registry/capability_registry.py:attr-defined:"None" has no attribute "fit_transform"
 cohezion/reliability/batch_manager.py:index:Value of type "dict[str, Any] | None" is not indexable
 cohezion/reliability/heartbeat.py:no-any-return:Returning Any from function declared to return "dict[str, float]"
 cohezion/reliability/monitor.py:has-type:Cannot determine type of "_initialized"
-cohezion/reliability/quantum_performance_monitor.py:assignment:Incompatible types in assignment (expression has type "float", variable has type "int")
-cohezion/reliability/quantum_performance_monitor.py:index:Unsupported target for indexed assignment ("object")
-cohezion/reliability/quantum_performance_monitor.py:union-attr:Item "None" of "ActionType | None" has no attribute "value"
 cohezion/reliability/semantic_cache.py:assignment:Incompatible types in assignment (expression has type "VaultLogger", variable has type "None")
 cohezion/reliability/semantic_cache.py:no-any-return:Returning Any from function declared to return "dict[str, Any] | None"
 cohezion/reliability/sync.py:arg-type:Argument 1 to "flock" has incompatible type "None"; expected "int | HasFileno"
@@ -1116,10 +1009,11 @@ cohezion/research/scripts/comprehensive_discovery_with_learnings.py:operator:Uns
 cohezion/research/scripts/comprehensive_discovery_with_learnings.py:var-annotated:Need type annotation for "LEARNINGS" (hint: "LEARNINGS: list[<type>] = ...")
 cohezion/research/scripts/comprehensive_discovery_with_learnings.py:var-annotated:Need type annotation for "by_backend" (hint: "by_backend: dict[<type>, <type>] = ...")
 cohezion/research/scripts/comprehensive_discovery_with_learnings.py:var-annotated:Need type annotation for "by_source" (hint: "by_source: dict[<type>, <type>] = ...")
-cohezion/research/security.py:comparison-overlap:Non-overlapping equality check (left operand type: "int", right operand type: "Literal['allow']")
 cohezion/research/security_api.py:assignment:Incompatible default for parameter "request" (default has type "None", parameter has type "Request[State]")
 cohezion/research/security_api.py:return-value:Incompatible return value type (got "dict[str, Any] | None", expected "dict[str, Any]")
+cohezion/researcher/continuous_experiment_daemon.py:no-any-return:Returning Any from function declared to return "bool"
 cohezion/researcher/lanes/harness_paper.py:no-any-return:Returning Any from function declared to return "str"
+cohezion/researcher/lanes/verify_evolve.py:no-any-return:Returning Any from function declared to return "list[dict[Any, Any]]"
 cohezion/resilience/manager.py:arg-type:Argument 1 to "get" of "dict" has incompatible type "Any | None"; expected "str"
 cohezion/resilience/manager.py:assignment:Incompatible types in assignment (expression has type "float", variable has type "int")
 cohezion/resilience/manager.py:assignment:Incompatible types in assignment (expression has type "str", target has type "dict[Any, Any] | bool | None")
@@ -1201,7 +1095,6 @@ cohezion/security/mcp_https_client.py:attr-defined:"None" has no attribute "load
 cohezion/security/mcp_https_client.py:attr-defined:"None" has no attribute "minimum_version"
 cohezion/security/mcp_https_client.py:attr-defined:"None" has no attribute "verify_mode"
 cohezion/security/middleware.py:no-any-return:Returning Any from function declared to return "Response"
-cohezion/security/pipeline.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "list[str]")
 cohezion/security/pre_commit_config.py:assignment:Incompatible types in assignment (expression has type "str", target has type "int")
 cohezion/security/pre_commit_config.py:call-overload:No overload variant of "run" matches argument types "list[str]", "dict[str, int]"
 cohezion/security/tls_config.py:arg-type:Argument 1 to "load_cert_chain" of "_SSLContext" has incompatible type "str | None"; expected "str | bytes | PathLike[str] | PathLike[bytes]"
@@ -1243,12 +1136,6 @@ cohezion/skills/cohezion_mcp.py:truthy-function:Function "ResourceMonitor" could
 cohezion/skills/mcp_paths.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/skills/mcp_skill_tools.py:arg-type:Argument 1 to "add" of "MemoryManager" has incompatible type "Any | None"; expected "str"
 cohezion/skills/mcp_skill_tools.py:arg-type:Argument 1 to "search" of "MemoryManager" has incompatible type "Any | None"; expected "str"
-cohezion/skills/munder-difflin-repo/tools/mapgen/build_map.py:var-annotated:Need type annotation for "PLACED_SEATS" (hint: "PLACED_SEATS: list[<type>] = ...")
-cohezion/skills/munder-difflin-repo/tools/mapgen/render_map.py:assignment:Incompatible types in assignment (expression has type "FreeTypeFont | ImageFont", variable has type "FreeTypeFont")
-cohezion/skills/munder-difflin-repo/tools/mapgen/render_map.py:attr-defined:Module has no attribute "FLIP_LEFT_RIGHT"
-cohezion/skills/munder-difflin-repo/tools/mapgen/render_map.py:attr-defined:Module has no attribute "FLIP_TOP_BOTTOM"
-cohezion/skills/munder-difflin-repo/tools/mapgen/render_map.py:attr-defined:Module has no attribute "NEAREST"
-cohezion/skills/munder-difflin-repo/tools/mapgen/render_map.py:attr-defined:Module has no attribute "TRANSPOSE"
 cohezion/substrate/kv_cache_tracker.py:var-annotated:Need type annotation for "future"
 cohezion/swarm/adaptive_router.py:no-any-return:Returning Any from function declared to return "bool"
 cohezion/swarm/adaptive_router.py:no-any-return:Returning Any from function declared to return "float"
@@ -1357,7 +1244,7 @@ cohezion/swarm/smart_router.py:unused-ignore:Unused "type: ignore" comment
 cohezion/swarm/team_execution.py:assignment:Incompatible types in assignment (expression has type "TemplateEngine", variable has type "None")
 cohezion/swarm/team_execution.py:attr-defined:"CompoundFeedbackLoop" has no attribute "run_cycle"
 cohezion/swarm/team_execution.py:call-arg:Unexpected keyword argument "auto_regenerate" for "CompoundFeedbackLoop"
-cohezion/swarm/team_execution.py:misc:object? not callable
+cohezion/swarm/team_execution.py:operator:"object" not callable
 cohezion/swarm/team_orchestrator.py:assignment:Incompatible types in assignment (expression has type "CapabilityRegistry", variable has type "None")
 cohezion/swarm/team_orchestrator.py:assignment:Incompatible types in assignment (expression has type "TemplateEngine", variable has type "None")
 cohezion/swarm/tip_of_spear_router.py:index:Value of type "dict[Any, Any] | None" is not indexable
@@ -1402,8 +1289,6 @@ cohezion/validation/calibration_harness.py:misc:Cannot assign to a type
 cohezion/vibe/specifier.py:union-attr:Item "None" of "Any | None" has no attribute "find"
 cohezion/world_model/jepa_world_model.py:no-any-return:Returning Any from function declared to return "Tensor"
 cohezion/world_model/jepa_world_model.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/world_model/jepa_world_model_persistent.py:no-any-return:Returning Any from function declared to return "list[dict[Any, Any]]"
-cohezion/world_model/jepa_world_model_persistent.py:var-annotated:Need type annotation for "trajectory_buffer" (hint: "trajectory_buffer: list[<type>] = ...")
 cohezion/world_model/observer.py:attr-defined:"object" has no attribute "gate"
 cohezion/world_model/observer_world_model.py:arg-type:Argument "key" to "max" has incompatible type overloaded function; expected "Callable[[Any], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"
 cohezion/world_model/observer_world_model.py:attr-defined:"object" has no attribute "ranked_next"

@@ -79,9 +79,9 @@ BEHAVIOURAL = (
     r"\bpytest\b",
     r"\bcurl\b",
     r"journalctl",
-    r"\bassert\s+abs\s*\(",       # numeric comparison
-    r"==\s*-?\d+\.\d+",           # compared against a specific value
-    r"<=|>=|<|>",                 # a threshold
+    r"\bassert\s+abs\s*\(",  # numeric comparison
+    r"==\s*-?\d+\.\d+",  # compared against a specific value
+    r"<=|>=|<|>",  # a threshold
     r"\.run\s*\(|\.check_|\(\)\s*==",
 )
 
@@ -152,8 +152,13 @@ def main() -> int:
         buckets.setdefault(r[2], []).append(r)
 
     print(f"falsifiability scan -- {len(rows)} documented invariants\n")
-    for verdict in ("EXISTENCE-ONLY", "SELF-REFERENTIAL", "NO-VERIFICATION", "UNCLASSIFIED",
-                    "BEHAVIOURAL"):
+    for verdict in (
+        "EXISTENCE-ONLY",
+        "SELF-REFERENTIAL",
+        "NO-VERIFICATION",
+        "UNCLASSIFIED",
+        "BEHAVIOURAL",
+    ):
         hits = buckets.get(verdict, [])
         if not hits:
             continue
@@ -167,7 +172,9 @@ def main() -> int:
     weak = len(buckets.get("EXISTENCE-ONLY", []))
     print(f"{weak} invariant(s) can only prove a symbol EXISTS -- no behavioural guarantee.")
     print("Structural checks are legitimate (V-model structural-before-behavioural); an invariant")
-    print("with ONLY one is a declaration, and its green result carries no behavioural information.")
+    print(
+        "with ONLY one is a declaration, and its green result carries no behavioural information."
+    )
     if "--strict" in sys.argv and weak:
         return 1
     return 0

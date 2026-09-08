@@ -143,7 +143,7 @@ def demo_flume_vae() -> None:
 
     # Round-trip test
     sample = dataset[0].unsqueeze(0)
-    recon, mu, logvar = trainer._forward(sample)
+    recon, _mu, _logvar = trainer._forward(sample)
     recon_error = torch.nn.functional.mse_loss(recon, sample).item()
     print(f"  Single-sample reconstruction error: {recon_error:.4f}")
 
@@ -162,7 +162,7 @@ def demo_circuit_breaker() -> None:
     states.append(f"After success: {cb.state.value}")
 
     # Fail to threshold
-    for i in range(3):
+    for _i in range(3):
         cb.record_failure()
     states.append(f"After 3 failures: {cb.state.value}")
 

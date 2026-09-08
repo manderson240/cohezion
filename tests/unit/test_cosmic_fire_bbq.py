@@ -1,5 +1,5 @@
-import pytest
-from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol, CosmicFireEvent
+from cohezion.compound.cosmic_fire_protocol import CosmicFireEvent, CosmicFireProtocol
+
 
 def test_cosmic_fire_bbq_ignition_cascade():
     cfp = CosmicFireProtocol(threshold=0.45, notify_telegram=False)

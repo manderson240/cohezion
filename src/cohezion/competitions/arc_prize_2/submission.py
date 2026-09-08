@@ -360,20 +360,11 @@ def check_transform_fit(train_pairs: list[dict[str, Any]], fn: Callable) -> bool
     return True
 
 
-def solve_arc_task_anytime(
-    task: dict[str, Any], time_budget_sec: float = 30.0
-) -> list[dict[str, Any]]:
-    t_start = time.perf_counter()
-    train_pairs = task.get("train", [])
-    test_inputs = task.get("test", [])
-    predictions = []
-
-
 # ---------------------------------------------------------------------------
 # 4. Heterogeneous Dual-Silicon Specialist Swarm (GPU 0 Reasoner + GPU 1 Coder)
 # ---------------------------------------------------------------------------
 
-_SWARM_CACHE = {}
+_SWARM_CACHE: dict[str, Any] = {}
 
 
 def get_heterogeneous_swarm():
@@ -491,11 +482,11 @@ Code only in ```python block:"""
         else:
             return None
 
-        local_scope = {}
+        local_scope: dict[str, Any] = {}
         exec(code, {}, local_scope)
         fn = local_scope.get("transform")
         if callable(fn):
-            return fn
+            return fn  # type: ignore[no-any-return]
     except Exception:
         pass
     return None
@@ -509,7 +500,7 @@ def solve_arc_task_anytime(
     test_inputs = task.get("test", [])
     predictions = []
 
-    matching_fn = None
+    matching_fn: Callable[..., Any] | None = None
 
     # Step 1: Color Remap Fast-Path Check (CPU, <1ms)
     remap_map = check_color_remap_fit(train_pairs)
@@ -660,7 +651,7 @@ def find_test_challenges_file() -> str | None:
             return c
 
     if os.path.exists("/kaggle/input"):
-        for root, dirs, files in os.walk("/kaggle/input"):
+        for root, _dirs, files in os.walk("/kaggle/input"):
             if "arc-agi_test_challenges.json" in files:
                 return os.path.join(root, "arc-agi_test_challenges.json")
     return None

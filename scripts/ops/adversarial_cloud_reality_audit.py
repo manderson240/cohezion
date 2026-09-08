@@ -18,10 +18,14 @@ from pathlib import Path
 import httpx
 
 
-ROUTER_PATH = Path("/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py")
+ROUTER_PATH = Path(
+    "/home/mike-anderson/dev/cohezion/src/cohezion/inference/unified_hybrid_router.py"
+)
 DAEMON_PATH = Path("/home/mike-anderson/dev/cohezion/scripts/ops/enrich_daemons_with_cloud.py")
 DOGFOOD_PATH = Path("/home/mike-anderson/dev/cohezion/scripts/ops/run_master_dogfooding.py")
-LORA_PATH = Path("/home/mike-anderson/dev/cohezion/checkpoints/cohezion_lora_qwen_adapter/adapter_model.safetensors")
+LORA_PATH = Path(
+    "/home/mike-anderson/dev/cohezion/checkpoints/cohezion_lora_qwen_adapter/adapter_model.safetensors"
+)
 
 
 async def run_cloud_audit():
@@ -41,7 +45,11 @@ async def run_cloud_audit():
 
     # Check git log
     try:
-        git_log = subprocess.check_output(["git", "log", "-n", "5", "--oneline"], cwd="/home/mike-anderson/dev/cohezion", text=True)
+        git_log = subprocess.check_output(
+            ["git", "log", "-n", "5", "--oneline"],
+            cwd="/home/mike-anderson/dev/cohezion",
+            text=True,
+        )
     except Exception as e:
         git_log = f"Error: {e}"
 
@@ -80,7 +88,9 @@ Audit and answer with brutal honesty:
 Provide a structured, rigorous verdict with an overall Confidence Score (0.00 to 1.00).
 """
 
-    print("2/3: Transmitting ground-truth evidence payload to `deepseek-v4-pro:cloud` via Ollama (:11434)...")
+    print(
+        "2/3: Transmitting ground-truth evidence payload to `deepseek-v4-pro:cloud` via Ollama (:11434)..."
+    )
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=90.0) as client:
         res = await client.post(

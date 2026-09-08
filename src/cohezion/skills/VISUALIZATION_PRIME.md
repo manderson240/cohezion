@@ -28,8 +28,8 @@ Expertise in high-dimensional (12D) data visualization and interactive explainab
 
 ### Example (Radar Chart Pattern)
 ```python
-fig = px.line_polar(df, r='value', theta='dimension', line_close=True)
-fig.update_traces(fill='toself')
+fig = px.line_polar(df, r="value", theta="dimension", line_close=True)
+fig.update_traces(fill="toself")
 ```
 
 ## VERSION

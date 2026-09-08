@@ -64,7 +64,7 @@ API_KEY_VALIDATION_ENABLED = True
 
 # Performance tuning (OPTIONAL)
 CACHE_L1_MAX_SIZE = 10000  # In-memory L1 cache entries
-CACHE_L2_THRESHOLD = 0.8   # Cosine similarity threshold
+CACHE_L2_THRESHOLD = 0.8  # Cosine similarity threshold
 SEMANTIC_CACHE_TTL = 3600  # Seconds
 ```
 

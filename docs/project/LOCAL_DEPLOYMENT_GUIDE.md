@@ -34,26 +34,29 @@ from cohezion.compound.dynamic_compound_system import DynamicCompoundSystem
 from cohezion.core.mcp_client import MCPClient
 import asyncio
 
+
 async def main():
     # Connect to existing MCP (vault)
-    mcp_client = MCPClient(config={
-        "vault_url": "http://localhost:8000",  # or your vault
-    })
-    
+    mcp_client = MCPClient(
+        config={
+            "vault_url": "http://localhost:8000",  # or your vault
+        }
+    )
+
     # Start system
     system = await DynamicCompoundSystem.create(mcp_client)
-    
+
     print("✅ Dynamic Compound System active")
     print("   - Proactive warming: ENABLED")
     print("   - Reactive circuit breakers: ENABLED")
     print("   - Adaptive learning: ENABLED")
-    
+
     # Keep running
     while True:
         await asyncio.sleep(60)
         status = system.get_system_status()
-        print(f"Executions: {status['executions']}, "
-              f"Proactive hits: {status['proactive_hits']}")
+        print(f"Executions: {status['executions']}, Proactive hits: {status['proactive_hits']}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -137,11 +140,12 @@ Integrate into existing flow:
 # In your existing API handlers
 from cohezion.swarm import route_task
 
+
 @app.post("/v1/chat/completions")
 async def chat(request):
     # NEW: Automatic routing
     decision = await route_task(request["messages"][0]["content"])
-    
+
     # Call appropriate backend
     if decision.backend == "NPU":
         return await call_npu(request)
@@ -234,7 +238,7 @@ flm serve qwen3:4b --port 13306  # As before
 USE_DYNAMIC_SYSTEM = False  # Instant rollback
 
 # Later, re-enable:
-USE_DYNAMIC_SYSTEM = True   # Instant restoration
+USE_DYNAMIC_SYSTEM = True  # Instant restoration
 ```
 
 ### Option 3: Git Revert

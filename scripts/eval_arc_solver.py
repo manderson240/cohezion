@@ -150,10 +150,7 @@ def evaluate_solver(
                 if not grids_equal(pred, solution[t_idx]):
                     all_match = False
 
-            if task_similarities:
-                task_sim = sum(task_similarities) / len(task_similarities)
-            else:
-                task_sim = 0.0
+            task_sim = sum(task_similarities) / len(task_similarities) if task_similarities else 0.0
 
             total_similarity += task_sim
             if all_match:

@@ -30,9 +30,13 @@ def main() -> None:
     print("=" * 105)
 
     adapter_dirs = list(CHECKPOINT_BASE_DIR.glob("*_adapter"))
-    print(f"  • Found {len(adapter_dirs)} Fine-Tuned QLoRA Model Checkpoint Adapters in {CHECKPOINT_BASE_DIR}:\n")
+    print(
+        f"  • Found {len(adapter_dirs)} Fine-Tuned QLoRA Model Checkpoint Adapters in {CHECKPOINT_BASE_DIR}:\n"
+    )
 
-    print(f"{'Adapter Checkpoint':<45} | {'Rank (r)':<8} | {'Samples':<8} | {'Perplexity':<10} | {'Status'}")
+    print(
+        f"{'Adapter Checkpoint':<45} | {'Rank (r)':<8} | {'Samples':<8} | {'Perplexity':<10} | {'Status'}"
+    )
     print("-" * 105)
 
     for ad in sorted(adapter_dirs):
@@ -42,7 +46,9 @@ def main() -> None:
             rank = cfg.get("r", cfg.get("target_rank", 64))
             samples = cfg.get("sample_count", cfg.get("total_samples_trained", 10000))
             ppl = cfg.get("final_perplexity", 6.89)
-            print(f"{ad.name:<45} | r={rank:<5} | {samples:<8,} | {ppl:<10.2f} | ✅ HOT-SWAPPED & SERVING ON PORT 13305/11434")
+            print(
+                f"{ad.name:<45} | r={rank:<5} | {samples:<8,} | {ppl:<10.2f} | ✅ HOT-SWAPPED & SERVING ON PORT 13305/11434"
+            )
         else:
             print(f"{ad.name:<45} | Unknown  | Unknown  | Unknown    | ⚠️ Missing Config")
 

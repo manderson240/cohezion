@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "agent_id": "kimi_doc_kimi_k3_codebase_1785422007",
+    "universe_id": "universe-flume-kimi-doc",
+    "total_steps": 5,
+    "binding_energy": 2.05,
+    "timestamp": "2026-07-30T10:35:05"
+  },
+  "nodes": [
+    {
+      "id": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_1",
+      "label": "EVO Step 1: Fetched Kimi K3 Quickstart doc",
+      "agent_id": "kimi_doc_kimi_k3_codebase_1785422007",
+      "topology": "trivial",
+      "confidence": 0.29224544417122206,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.3584,
+        0.503,
+        -1.4556,
+        1.2184,
+        1.6495,
+        1.5402,
+        -0.2804,
+        -0.5441,
+        0.0458,
+        -0.6108,
+        1.1945,
+        0.5374
+      ],
+      "color": "#78909c",
+      "size": 7.1689817766848885
+    },
+    {
+      "id": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_2",
+      "label": "EVO Step 2: Local silicon analyzed Kimi K3",
+      "agent_id": "kimi_doc_kimi_k3_codebase_1785422007",
+      "topology": "soliton",
+      "confidence": 0.47430063307765635,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.0712,
+        -0.1047,
+        1.5667,
+        1.5546,
+        0.2823,
+        -1.6032,
+        -0.6689,
+        -0.4568,
+        0.0737,
+        0.79,
+        -0.5258,
+        -0.7362
+      ],
+      "color": "#00e5ff",
+      "size": 7.897202532310626
+    },
+    {
+      "id": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_3",
+      "label": "EVO Step 3: Designed KimiK3ReasoningDispat",
+      "agent_id": "kimi_doc_kimi_k3_codebase_1785422007",
+      "topology": "instanton",
+      "confidence": 0.36038543466541434,
+      "coherence": 0.95,
+      "state_12d": [
+        1.8573,
+        -0.4418,
+        -0.505,
+        0.1343,
+        0.9705,
+        -1.8557,
+        -2.0673,
+        -0.738,
+        -0.5177,
+        -0.1316,
+        0.6105,
+        -1.7339
+      ],
+      "color": "#ff0055",
+      "size": 7.441541738661657
+    },
+    {
+      "id": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_4",
+      "label": "EVO Step 4: Executed task via Kimi model o",
+      "agent_id": "kimi_doc_kimi_k3_codebase_1785422007",
+      "topology": "trivial",
+      "confidence": 0.0,
+      "coherence": 0.85,
+      "state_12d": [
+        -0.003,
+        0.3892,
+        -1.0049,
+        -0.0264,
+        -1.0817,
+        -0.5922,
+        0.2248,
+        0.5013,
+        -1.3413,
+        -0.2363,
+        1.0629,
+        -0.7474
+      ],
+      "color": "#78909c",
+      "size": 6.0
+    },
+    {
+      "id": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_5",
+      "label": "EVO Step 5: Saved src/cohezion/inference/k",
+      "agent_id": "kimi_doc_kimi_k3_codebase_1785422007",
+      "topology": "instanton",
+      "confidence": 0.576795369113446,
+      "coherence": 0.95,
+      "state_12d": [
+        1.067,
+        -0.9401,
+        0.4061,
+        -0.3934,
+        -0.0964,
+        -2.2624,
+        1.8002,
+        -1.1993,
+        -0.2244,
+        -0.8665,
+        -0.0959,
+        1.0345
+      ],
+      "color": "#ff0055",
+      "size": 8.307181476453785
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_1",
+      "target": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_2",
+      "target": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_3",
+      "target": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_4",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_4",
+      "target": "evo_kimi_doc_kimi_k3_codebase_1785422007_step_5",
+      "type": "evo_transition"
+    }
+  ]
+}

@@ -177,7 +177,8 @@ class FlumeVAE(nn.Module):
     def decode(self, z: torch.Tensor, target_tokens: torch.Tensor | None = None) -> torch.Tensor:
         """Decode latent z. Returns float reconstruction in legacy mode, logits in token mode."""
         if self._legacy_mode:
-            return self._dec(z)
+            legacy_recon: torch.Tensor = self._dec(z)
+            return legacy_recon
         if target_tokens is None:
             raise ValueError("decode() requires target_tokens in token mode")
         _batch_size, seq_len = target_tokens.shape
@@ -189,7 +190,8 @@ class FlumeVAE(nn.Module):
         )
         memory = self.z_proj(z).unsqueeze(1)
         x = self.transformer_decoder(tgt, memory, tgt_mask=causal_mask)
-        return self.to_logits(x)
+        logits: torch.Tensor = self.to_logits(x)
+        return logits
 
     def forward(
         self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None
@@ -223,14 +225,19 @@ class FlumeVAE(nn.Module):
         """
         Computes VAE loss: Reconstruction (CrossEntropy) + KL-Divergence.
         """
+        if self.config is None:
+            raise ValueError("compute_loss requires token mode (non-legacy) config")
+
         # Reconstruction loss (shift for next-token prediction)
         shift_logits = recon_logits[:, :-1, :].contiguous()
         shift_labels = input_ids[:, 1:].contiguous()
 
+        raw_pad_token_id = getattr(self.config, "pad_token_id", None)
+        ignore_index = raw_pad_token_id if isinstance(raw_pad_token_id, int) else -100
         recon_loss = F.cross_entropy(
             shift_logits.view(-1, self.config.vocab_size),
             shift_labels.view(-1),
-            ignore_index=self.config.pad_token_id if hasattr(self.config, "pad_token_id") else -100,
+            ignore_index=ignore_index,
         )
 
         # KL Divergence: -0.5 * sum(1 + log_var - mu^2 - exp(log_var))

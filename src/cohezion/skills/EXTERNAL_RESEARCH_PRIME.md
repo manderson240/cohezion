@@ -35,7 +35,7 @@ def process_discovery(discovery):
     if exists_in_db(discovery.hash):
         return SKIP
 
-    score = llm_rank(discovery.abstract) # 12D Vector Check
+    score = llm_rank(discovery.abstract)  # 12D Vector Check
     if score > 0.85:
         content = fetch_full_source(discovery)
         summarize_with_critique(content)
@@ -48,6 +48,7 @@ Always wrap external calls in the `cohezion.reliability` circuit breaker and app
 ```python
 import time
 import random
+
 
 def jittered_call(call_func, *args, **kwargs):
     time.sleep(1.0 + random.random())

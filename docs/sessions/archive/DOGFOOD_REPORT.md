@@ -28,14 +28,15 @@ All 5 major system components have been tested together in an end-to-end workflo
 ### Test Results
 ```python
 from cohezion.inference.tri_compute_orchestrator import TriComputeOrchestrator
+
 orch = TriComputeOrchestrator()
 
 # NPU: Parameter generation (cached)
-params = {'n_agents': 100, 'source': 'cache'}
+params = {"n_agents": 100, "source": "cache"}
 
 # iGPU: Latent space evolution
 latent = np.random.randn(100, 256)
-evolved = latent * 0.9 ** 50 + 0.5 * (1 - 0.9 ** 50)
+evolved = latent * 0.9**50 + 0.5 * (1 - 0.9**50)
 
 # CPU: Result aggregation
 avg_coherence = np.mean(evolved)
@@ -80,7 +81,7 @@ model = JEPAWorldModelPersistent(
     db_connection=None,  # Local mode for test
     state_dim=12,
     action_dim=12,
-    embed_dim=32
+    embed_dim=32,
 )
 
 # Train with auto-persistence
@@ -113,7 +114,7 @@ dream = model.dream_rollout(n_steps=20)
 **FLUME (Latent Evolution)**:
 ```python
 latent = np.random.randn(256)
-decay = 0.9 ** 50
+decay = 0.9**50
 evolved = latent * decay + 0.5 * (1 - decay)
 # Result: converges to 0.5 attractor
 ```
@@ -146,10 +147,10 @@ params_cache = {}
 
 # Cold (simulated NPU call)
 time.sleep(0.01)  # 10ms
-params_cache['config'] = {...}
+params_cache["config"] = {...}
 
 # Warm (cache lookup)
-params = params_cache.get('config')  # ~0.001ms
+params = params_cache.get("config")  # ~0.001ms
 ```
 
 **Result**: ✅ Working  

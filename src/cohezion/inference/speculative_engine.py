@@ -112,7 +112,7 @@ class SpeculativeEngine:
     # Async context-manager support
     # ------------------------------------------------------------------
 
-    async def __aenter__(self) -> "SpeculativeEngine":
+    async def __aenter__(self) -> SpeculativeEngine:
         """Open the shared HTTP client."""
         self._client = httpx.AsyncClient(timeout=self.http_timeout)
         return self
@@ -291,7 +291,6 @@ class SpeculativeEngine:
                         continue
 
                     # Emit accepted prefix, stop at first rejection.
-                    rejected_this_round = False
                     for i, (tok, _logp) in enumerate(draft_tokens):
                         if accepted_mask[i]:
                             yield tok
@@ -300,7 +299,6 @@ class SpeculativeEngine:
                             accepted_total += 1
                         else:
                             rejected_total += 1
-                            rejected_this_round = True
                             # Let the verify model supply its correction.
                             correction = await self._correction_token(
                                 context, temperature=temperature
@@ -313,9 +311,7 @@ class SpeculativeEngine:
 
                     # Check if ongoing acceptance rate warrants degradation.
                     if rounds >= 2:
-                        rate = accepted_total / max(
-                            accepted_total + rejected_total, 1
-                        )
+                        rate = accepted_total / max(accepted_total + rejected_total, 1)
                         if rate < self.acceptance_threshold:
                             logger.info(
                                 "HeiSD degrading to verify-only "
@@ -328,9 +324,7 @@ class SpeculativeEngine:
 
             # ---- Verify-only fallback --------------------------------
             try:
-                token = await self._correction_token(
-                    context, temperature=temperature
-                )
+                token = await self._correction_token(context, temperature=temperature)
                 self._verify_circuit.record_success()
             except (httpx.RequestError, httpx.HTTPStatusError) as exc:
                 logger.error("Verify-only call failed: %s", exc)
@@ -351,9 +345,7 @@ class SpeculativeEngine:
             else float("nan")
         )
         # Theoretical speedup: accepted tokens per round
-        speedup_factor = (
-            (accepted_total / max(rounds, 1)) if rounds > 0 else 1.0
-        )
+        speedup_factor = (accepted_total / max(rounds, 1)) if rounds > 0 else 1.0
 
         telemetry_event = Event(
             type=EventType.METRIC_UPDATE,
@@ -374,8 +366,7 @@ class SpeculativeEngine:
         self._event_bus.publish_sync(telemetry_event)
 
         logger.info(
-            "HeiSD done | tokens=%d rounds=%d accept_rate=%.2f "
-            "speedup=%.2fx latency_ms=%.1f",
+            "HeiSD done | tokens=%d rounds=%d accept_rate=%.2f speedup=%.2fx latency_ms=%.1f",
             tokens_emitted,
             rounds,
             acceptance_rate if not math.isnan(acceptance_rate) else 0.0,
@@ -478,9 +469,7 @@ class SpeculativeEngine:
                 # Use log-prob of 0 (certainty) as the draft model's proxy;
                 # we judge purely on verify quality against the threshold.
                 draft_logp = 0.0
-                accepted.append(
-                    self._acceptance_criterion(draft_logp, verify_logp)
-                )
+                accepted.append(self._acceptance_criterion(draft_logp, verify_logp))
             else:
                 # Verify model produced fewer tokens — reject remainder.
                 accepted.append(False)
@@ -525,9 +514,7 @@ class SpeculativeEngine:
         content: str = choices[0].get("message", {}).get("content", "")
         return content
 
-    def _acceptance_criterion(
-        self, draft_logp: float, verify_logp: float
-    ) -> bool:
+    def _acceptance_criterion(self, draft_logp: float, verify_logp: float) -> bool:
         """Standard speculative decoding acceptance criterion.
 
         Accepts the draft token with probability::

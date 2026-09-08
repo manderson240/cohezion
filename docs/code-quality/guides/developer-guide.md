@@ -297,6 +297,7 @@ echo "API_KEY=your-key" >> .env
 ```python
 from pydantic import BaseModel
 
+
 class UserInput(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     email: str = Field(pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
@@ -305,8 +306,7 @@ class UserInput(BaseModel):
 **3. Use type hints**
 ```python
 # Helps static analysis find bugs
-def process_data(data: dict[str, Any]) -> Result:
-    ...
+def process_data(data: dict[str, Any]) -> Result: ...
 ```
 
 **4. Keep dependencies updated**

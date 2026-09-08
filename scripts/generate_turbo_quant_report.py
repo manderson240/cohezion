@@ -25,7 +25,7 @@ class NodeStats:
 
 async def get_npu_stats() -> NodeStats:
     """Check NPU via Lemonade/FLM on port 13306."""
-    start = time.perf_counter()
+    time.perf_counter()
     try:
         async with aiohttp.ClientSession() as session:
             # Simple health and version check

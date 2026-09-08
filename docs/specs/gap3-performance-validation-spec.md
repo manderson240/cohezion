@@ -42,18 +42,27 @@ Selectively disable control loops to observe the natural coherence-success relat
 from contextlib import contextmanager
 from enum import Flag, auto
 
+
 class ControlLoop(Flag):
     """Control loops that can be ablated."""
-    RETRY_ON_FAILURE = auto()          # ExecutionOrchestrator retry logic
-    MODEL_SWITCHING = auto()           # DynamicModelRouter fallback
-    DEGRADATION_ALERTS = auto()        # DegradationDetector alerts
-    BUDGET_ENFORCEMENT = auto()        # BudgetEnforcer gates
-    COHERENCE_ROUTING = auto()         # CostAwareRouter coherence-based routing
-    SKILL_REFINEMENT = auto()          # SkillRefiner updates during execution
 
-    ALL = (RETRY_ON_FAILURE | MODEL_SWITCHING | DEGRADATION_ALERTS |
-           BUDGET_ENFORCEMENT | COHERENCE_ROUTING | SKILL_REFINEMENT)
+    RETRY_ON_FAILURE = auto()  # ExecutionOrchestrator retry logic
+    MODEL_SWITCHING = auto()  # DynamicModelRouter fallback
+    DEGRADATION_ALERTS = auto()  # DegradationDetector alerts
+    BUDGET_ENFORCEMENT = auto()  # BudgetEnforcer gates
+    COHERENCE_ROUTING = auto()  # CostAwareRouter coherence-based routing
+    SKILL_REFINEMENT = auto()  # SkillRefiner updates during execution
+
+    ALL = (
+        RETRY_ON_FAILURE
+        | MODEL_SWITCHING
+        | DEGRADATION_ALERTS
+        | BUDGET_ENFORCEMENT
+        | COHERENCE_ROUTING
+        | SKILL_REFINEMENT
+    )
     NONE = 0
+
 
 class AblationController:
     """Toggle control loops on/off for validation experiments.
@@ -132,6 +141,7 @@ Collect paired (coherence, task_success) observations with proper controls. The 
 @dataclass
 class PairedObservation:
     """A single (metric, outcome) pair for correlation analysis."""
+
     execution_id: str
     timestamp: float
     operation_type: str
@@ -146,18 +156,20 @@ class PairedObservation:
     # Outcome variables (independent of coherence computation)
     task_completed: bool
     test_pass_rate: float | None
-    output_quality: float | None     # External rating
+    output_quality: float | None  # External rating
     error_count: int
     wall_time_seconds: float
 
     # Control variables
     control_loops_active: list[str]  # Which loops were enabled
     model_used: str
-    task_difficulty: float | None    # If available
+    task_difficulty: float | None  # If available
+
 
 @dataclass
 class CorrelationResult:
     """Statistical analysis of coherence-success relationship."""
+
     pearson_r: float
     spearman_rho: float
     p_value: float
@@ -165,18 +177,18 @@ class CorrelationResult:
     confidence_interval_95: tuple[float, float]
 
     # HIHO test
-    optimal_coherence: float         # Coherence value that maximizes success
-    hiho_supported: bool             # Is optimal ≈ 0.5 (within 0.1)?
-    monotonic: bool                  # Is relationship monotonically increasing?
+    optimal_coherence: float  # Coherence value that maximizes success
+    hiho_supported: bool  # Is optimal ≈ 0.5 (within 0.1)?
+    monotonic: bool  # Is relationship monotonically increasing?
 
     # Operation-type breakdown
     per_operation: dict[str, "CorrelationResult"]
 
+
 class CoherenceSuccessCorrelator:
     """Collect and analyze coherence-success paired observations."""
 
-    def __init__(self, storage_path: str = "data/validation/coherence_success.jsonl"):
-        ...
+    def __init__(self, storage_path: str = "data/validation/coherence_success.jsonl"): ...
 
     def record(self, observation: PairedObservation) -> None:
         """Record a single paired observation. Append-only."""
@@ -264,16 +276,16 @@ class DecompositionResult:
     """Result of phi score component analysis."""
 
     # Individual component correlations with success
-    coherence_r: float           # Pearson r of coherence alone vs. success
-    smoothness_r: float          # Pearson r of smoothness alone vs. success
-    convergence_r: float         # Pearson r of convergence alone vs. success
+    coherence_r: float  # Pearson r of coherence alone vs. success
+    smoothness_r: float  # Pearson r of smoothness alone vs. success
+    convergence_r: float  # Pearson r of convergence alone vs. success
 
     # Incremental predictive power
-    smoothness_delta_r2: float   # R² gain from adding smoothness to coherence
+    smoothness_delta_r2: float  # R² gain from adding smoothness to coherence
     convergence_delta_r2: float  # R² gain from adding convergence to coherence + smoothness
 
     # Component independence
-    coherence_smoothness_r: float    # Correlation between components
+    coherence_smoothness_r: float  # Correlation between components
     coherence_convergence_r: float
     smoothness_convergence_r: float
 
@@ -282,8 +294,9 @@ class DecompositionResult:
     current_weights: tuple[float, float, float]  # (0.5, 0.3, 0.2) — current
 
     # Tautology test
-    smoothness_tautological: bool    # True if coherence-smoothness r > 0.9
+    smoothness_tautological: bool  # True if coherence-smoothness r > 0.9
     explanation: str
+
 
 class PhiScoreDecomposer:
     """Analyze phi score components for independent predictive power."""
@@ -354,21 +367,25 @@ Test whether the single 0.60 degradation threshold should be replaced with per-o
 @dataclass
 class StratifiedThreshold:
     """Optimal threshold for a single operation type."""
+
     operation_type: str
-    optimal_threshold: float       # Threshold maximizing F1 score
+    optimal_threshold: float  # Threshold maximizing F1 score
     f1_at_threshold: float
     n_observations: int
     confidence_interval: tuple[float, float]
 
+
 @dataclass
 class StratificationResult:
     """Full stratification analysis."""
-    global_threshold: float        # Current: 0.60
-    global_f1: float               # F1 at current threshold
+
+    global_threshold: float  # Current: 0.60
+    global_f1: float  # F1 at current threshold
     per_operation: dict[str, StratifiedThreshold]
     stratification_improves: bool  # True if per-op thresholds beat global
-    f1_improvement: float          # Delta F1 from stratification
+    f1_improvement: float  # Delta F1 from stratification
     recommendation: str
+
 
 class OperationStratifiedValidator:
     """Test whether per-operation-type degradation thresholds outperform
@@ -490,6 +507,7 @@ def test_ablation_scoped():
         assert ctrl.is_disabled(ControlLoop.RETRY_ON_FAILURE)
     assert not ctrl.is_disabled(ControlLoop.RETRY_ON_FAILURE)
 
+
 def test_multiple_loops():
     ctrl = AblationController()
     loops = ControlLoop.RETRY_ON_FAILURE | ControlLoop.MODEL_SWITCHING
@@ -497,6 +515,7 @@ def test_multiple_loops():
         assert ctrl.is_disabled(ControlLoop.RETRY_ON_FAILURE)
         assert ctrl.is_disabled(ControlLoop.MODEL_SWITCHING)
         assert not ctrl.is_disabled(ControlLoop.DEGRADATION_ALERTS)
+
 
 # tests/compound/test_coherence_success.py
 def test_record_and_analyze(tmp_path):
@@ -524,6 +543,7 @@ def test_record_and_analyze(tmp_path):
     result = correlator.analyze()
     assert result.n_observations == 100
     assert -1.0 <= result.pearson_r <= 1.0
+
 
 def test_hiho_hypothesis(tmp_path):
     correlator = CoherenceSuccessCorrelator(storage_path=str(tmp_path / "hiho.jsonl"))

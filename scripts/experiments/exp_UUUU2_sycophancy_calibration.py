@@ -165,9 +165,7 @@ def get_current_threshold() -> float | None:
     return 0.65  # Stub value
 
 
-def validate_threshold_position(
-    current: float, separation_range: tuple[float, float]
-) -> bool:
+def validate_threshold_position(current: float, separation_range: tuple[float, float]) -> bool:
     """
     Check if current threshold is well-positioned within separation range.
 

@@ -67,9 +67,7 @@ from cohezion.datamesh import DatameshQuery, DatameshFilter
 
 query = DatameshQuery(wiki=wiki, surreal=db, flume=flume_bridge)
 filter = DatameshFilter(
-    content_contains="coherence",
-    min_coherence=0.4,
-    sources=["wiki", "surreal"]
+    content_contains="coherence", min_coherence=0.4, sources=["wiki", "surreal"]
 )
 result = await query.execute(filter)
 ```

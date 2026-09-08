@@ -11,6 +11,7 @@ Best-effort: any failure is caught and logged at debug level.
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -75,15 +76,13 @@ def test_executor_emits_witness_mark_with_file_path_on_success():
         def trivial_fn(guidance: str) -> tuple[str, dict]:
             return "ok", {"coherence": 0.5, "duration_seconds": 0.001}
 
-        try:
+        with contextlib.suppress(Exception):
             ex.execute_task(
                 task_description="test mycelium wiring",
                 skill_name="test_skill",
                 operation_type="generate",
                 execute_fn=trivial_fn,
             )
-        except Exception:
-            pass
 
         # At least 1 WITNESS MARK should have been emitted
         if captured:

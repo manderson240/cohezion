@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "agent_id": "agent-coherence-master",
+    "universe_id": "universe-flume-cohezion",
+    "total_steps": 5,
+    "binding_energy": 2.05,
+    "timestamp": "2026-07-29T17:05:05"
+  },
+  "nodes": [
+    {
+      "id": "evo_agent-coherence-master_step_1",
+      "label": "EVO Step 1: Initialize 4-lane silicon symp",
+      "agent_id": "agent-coherence-master",
+      "topology": "soliton",
+      "confidence": 0.37541383637946457,
+      "coherence": 0.95,
+      "state_12d": [
+        0.3802,
+        0.2885,
+        1.9085,
+        0.7001,
+        -1.1583,
+        -0.7892,
+        -0.942,
+        1.7133,
+        0.5531,
+        0.5763,
+        -1.773,
+        -2.2635
+      ],
+      "color": "#00e5ff",
+      "size": 7.501655345517858
+    },
+    {
+      "id": "evo_agent-coherence-master_step_2",
+      "label": "EVO Step 2: Consolidate local model endpoi",
+      "agent_id": "agent-coherence-master",
+      "topology": "soliton",
+      "confidence": 0.5948033937850326,
+      "coherence": 0.85,
+      "state_12d": [
+        2.4115,
+        0.1414,
+        -0.0236,
+        1.2241,
+        -0.1117,
+        -0.3404,
+        0.9039,
+        0.5352,
+        -0.4774,
+        0.1987,
+        0.1073,
+        1.0536
+      ],
+      "color": "#00e5ff",
+      "size": 8.379213575140131
+    },
+    {
+      "id": "evo_agent-coherence-master_step_3",
+      "label": "EVO Step 3: Refactor api/__init__.py into ",
+      "agent_id": "agent-coherence-master",
+      "topology": "instanton",
+      "confidence": 0.4082000395266353,
+      "coherence": 0.95,
+      "state_12d": [
+        -0.0926,
+        0.8254,
+        -0.2411,
+        -0.5605,
+        0.5766,
+        -0.1685,
+        0.0977,
+        -1.0111,
+        0.0344,
+        -0.0073,
+        1.9724,
+        -0.3218
+      ],
+      "color": "#ff0055",
+      "size": 7.632800158106541
+    },
+    {
+      "id": "evo_agent-coherence-master_step_4",
+      "label": "EVO Step 4: Harden EVO visualizer against ",
+      "agent_id": "agent-coherence-master",
+      "topology": "soliton",
+      "confidence": 0.18762826919431722,
+      "coherence": 0.85,
+      "state_12d": [
+        -1.6456,
+        0.5524,
+        1.4268,
+        0.8442,
+        -1.3677,
+        0.0061,
+        0.2678,
+        0.2859,
+        0.8573,
+        -1.1306,
+        0.0779,
+        -0.2139
+      ],
+      "color": "#00e5ff",
+      "size": 6.750513076777269
+    },
+    {
+      "id": "evo_agent-coherence-master_step_5",
+      "label": "EVO Step 5: Enforce shareable git hooks in",
+      "agent_id": "agent-coherence-master",
+      "topology": "instanton",
+      "confidence": 0.6678606596088583,
+      "coherence": 0.95,
+      "state_12d": [
+        2.0387,
+        -1.2587,
+        2.2042,
+        0.8742,
+        1.9168,
+        -1.5018,
+        -0.1056,
+        -1.6844,
+        1.6134,
+        1.0346,
+        1.241,
+        -0.2156
+      ],
+      "color": "#ff0055",
+      "size": 8.671442638435433
+    }
+  ],
+  "edges": [
+    {
+      "source": "evo_agent-coherence-master_step_1",
+      "target": "evo_agent-coherence-master_step_2",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_agent-coherence-master_step_2",
+      "target": "evo_agent-coherence-master_step_3",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_agent-coherence-master_step_3",
+      "target": "evo_agent-coherence-master_step_4",
+      "type": "evo_transition"
+    },
+    {
+      "source": "evo_agent-coherence-master_step_4",
+      "target": "evo_agent-coherence-master_step_5",
+      "type": "evo_transition"
+    }
+  ]
+}

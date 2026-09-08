@@ -15,13 +15,12 @@ import asyncio
 import hashlib
 import json
 import logging
-import re
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ class ZeroInferenceEngine:
         t0 = time.perf_counter_ns()
 
         # Strategy 1: Exact / Geodesic Semantic Cache Hit (0ms)
-        cache_key = hashlib.sha256(query.encode()).hexdigest()[:16]
+        hashlib.sha256(query.encode()).hexdigest()[:16]
         for k, cached_val in self._exact_cache.items():
             if k in query.lower():
                 dt_us = (time.perf_counter_ns() - t0) / 1000.0
@@ -120,8 +119,12 @@ async def main_async() -> None:
         res = await engine.process_intent_zero_inference(q)
         print(f"  Query: '{res.query}'")
         print(f"  • Strategy: {res.strategy_used}")
-        print(f"  • Bypassed LLM Inference: {'⚡ YES (0ms LLM Overhead)' if res.bypassed_llm_inference else '🤖 NO (Escalated to LLM)'}")
-        print(f"  • Execution Time: {res.execution_time_us:.2f} µs ({res.execution_time_us/1000.0:.4f} ms)")
+        print(
+            f"  • Bypassed LLM Inference: {'⚡ YES (0ms LLM Overhead)' if res.bypassed_llm_inference else '🤖 NO (Escalated to LLM)'}"
+        )
+        print(
+            f"  • Execution Time: {res.execution_time_us:.2f} µs ({res.execution_time_us / 1000.0:.4f} ms)"
+        )
         print(f"  • Output: {res.output_result}")
         print("  " + "-" * 75)
 

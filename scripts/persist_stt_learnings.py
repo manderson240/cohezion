@@ -5,6 +5,7 @@ Tested against SurrealDB v3.0.0:
     (token is wrapped, not at top level as v2.x docs say)
   - POST /sql with raw SQL body, headers surreal-ns, surreal-db, Authorization
 """
+
 import json
 import time
 import urllib.error

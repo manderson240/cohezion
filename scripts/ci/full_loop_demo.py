@@ -289,7 +289,7 @@ async def main_async() -> int:
     executor = build_executor()
 
     log_step("WS1A: Start OuroborosRecorder (flight recorder)")
-    recorder = start_recorder(executor)
+    start_recorder(executor)
 
     log_step("WS1C: Run 3 successful skill executions")
     for i, (skill, desc) in enumerate(

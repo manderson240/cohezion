@@ -1,9 +1,8 @@
-import pytest
-from cohezion.contracts import PoincarePoint
-from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.agi.flume_vae import FLUMEVAE, FLUMEEncoding, FLUMEReconstruction
-from cohezion.agi.ouroboros import OuroborosEngine, OuroborosCycleResult
 from cohezion.agi.mycelium_network import MyceliumNetwork, TransportResult
+from cohezion.agi.ouroboros import OuroborosCycleResult, OuroborosEngine
+from cohezion.physics.poincare_manifold import PoincareManifoldND
+
 
 def test_flume_vae_encode_decode():
     vae = FLUMEVAE(state_dim=2048, latent_dim=256)
@@ -19,6 +18,7 @@ def test_flume_vae_encode_decode():
     assert rec.reconstructed_point.dim == 2048
     assert rec.reconstruction_loss >= 0.0
 
+
 def test_ouroboros_self_improvement():
     ouroboros = OuroborosEngine()
     res = ouroboros.run_self_improvement_cycle("cohezion.agi.autoharness_policy")
@@ -27,6 +27,7 @@ def test_ouroboros_self_improvement():
     assert res.verified_by_autoharness is True
     assert res.zk_proof.is_valid is True
     assert res.applied is True
+
 
 def test_mycelium_network_growth_and_transport():
     net = MyceliumNetwork()

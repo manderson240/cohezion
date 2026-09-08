@@ -386,6 +386,7 @@ python -m kyutai_mcp.server --log-level DEBUG
 3. **Try downloading manually:**
    ```python
    from transformers import AutoModel
+
    model = AutoModel.from_pretrained("kyutai/stt-1b-en_fr")
    # Will download or show specific error
    ```
@@ -732,6 +733,7 @@ nvcc --version  # NVIDIA CUDA compiler
 ```python
 # Check PyTorch
 import torch
+
 print("CUDA available:", torch.cuda.is_available())
 print("CUDA device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "None")
 ```

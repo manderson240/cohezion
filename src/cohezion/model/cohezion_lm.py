@@ -216,7 +216,7 @@ try:
 
         def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
             """Forward pass — returns logits [B, T, vocab_size]."""
-            B, T = input_ids.shape
+            _B, T = input_ids.shape
             assert self.config.max_seq_len >= T, (
                 f"Sequence too long: {T} > {self.config.max_seq_len}"
             )
@@ -332,7 +332,7 @@ try:
             """
             self.eval()
             with torch.no_grad():
-                B, T = input_ids.shape
+                _B, T = input_ids.shape
                 positions = torch.arange(T, device=input_ids.device).unsqueeze(0)
                 x = self.token_embed(input_ids) + self.pos_embed(positions)
                 mask = self._causal_mask(T, input_ids.device)

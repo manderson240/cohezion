@@ -80,6 +80,6 @@ def load_refined_guidance(
         sections.reverse()  # most recent first
         return sections[:max_sections]
 
-    except (OSError, UnicodeDecodeError, ValueError) as e:
+    except (OSError, ValueError) as e:
         logger.debug("Failed to load refined guidance for %s: %s", skill_name, e)
         return []

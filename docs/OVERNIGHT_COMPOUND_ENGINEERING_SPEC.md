@@ -260,14 +260,15 @@ class RecursiveOvernightSessionManager:
 from cohezion.flume.vae_encoder import VAEEncoder, get_encoder
 from cohezion.flume.navigator import Navigator
 
+
 class FlumeJourneyEncoder:
     """Encode agent journeys into FLUME latent space (Fluid Latent Understanding through Manifold Encoding)."""
-    
+
     def __init__(self):
         self.encoder = get_encoder()  # 256D latent space
         self.navigator = Navigator()  # Trajectory prediction
         self.latent_dim = 256  # FLUME default
-    
+
     def encode_journey(self, journey_data: dict[str, Any]) -> np.ndarray:
         """Encode journey trajectory into FLUME latent vector."""
         # Combine skill inputs, outputs, coherence scores
@@ -276,11 +277,11 @@ class FlumeJourneyEncoder:
         latent = self.encoder.encode(combined)
         # Project to 12D manifold for QuadratureNexus
         return self._project_to_12d(latent)
-    
+
     def predict_trajectory(self, z: np.ndarray, steps: int = 10) -> np.ndarray:
         """Predict thought trajectory in latent space using FLUME Navigator."""
         return self.navigator.predict_sequence(z, steps=steps, momentum=0.3)
-    
+
     def _project_to_12d(self, latent: np.ndarray) -> np.ndarray:
         """Project 256D latent to 12D manifold for QuadratureNexus."""
         # Use learned projection or PCA
@@ -333,12 +334,13 @@ class QuadratureNexus:
 ```python
 from cohezion.compound.exp_persistence.journey import JourneyPersistence
 
+
 class SurrealJourneyStore:
     """Store recursive improvement journeys in SurrealDB."""
-    
+
     def __init__(self):
         self.persistence = get_journey_persistence()
-    
+
     async def store_recursion_step(
         self,
         session_id: str,
@@ -349,7 +351,7 @@ class SurrealJourneyStore:
         improvement_delta: float,
     ) -> None:
         """Store a single recursion step."""
-        
+
         record = {
             "timestamp": datetime.now().isoformat(),
             "mission_id": session_id,
@@ -362,9 +364,9 @@ class SurrealJourneyStore:
             "recursion_depth": recursion_level,
             "iteration_count": iteration,
         }
-        
+
         await self.persistence.persist_batch([record])
-    
+
     async def query_journeys(
         self,
         session_id: str,
@@ -429,47 +431,44 @@ class SurrealJourneyStore:
 ```python
 class MassiveScaleRunner:
     """Run 1M+ iterations through parallel execution."""
-    
+
     def __init__(self, config: RecursiveConfig):
         self.config = config
         self.iteration = 0
         self.workers = 4  # Parallel branches
         self.queue = asyncio.Queue()
-    
+
     async def run(self) -> dict[str, Any]:
         """Execute 1M iterations with throughput tracking."""
-        
+
         start_time = time.time()
-        
+
         # Create worker pool
-        workers = [
-            asyncio.create_task(self._worker(worker_id=i))
-            for i in range(self.workers)
-        ]
-        
+        workers = [asyncio.create_task(self._worker(worker_id=i)) for i in range(self.workers)]
+
         # Track progress
         while self.iteration < self.config.target_iterations:
             await asyncio.sleep(60)  # Report every minute
             elapsed = time.time() - start_time
             rate = self.iteration / elapsed
             remaining = (self.config.target_iterations - self.iteration) / rate
-            
+
             logger.info(
                 f"Progress: {self.iteration:,}/{self.config.target_iterations:,} "
-                f"({rate:.1f} iter/sec, ~{remaining/3600:.1f}h remaining)"
+                f"({rate:.1f} iter/sec, ~{remaining / 3600:.1f}h remaining)"
             )
-        
+
         # Wait for completion
         await asyncio.gather(*workers)
-        
+
         return {"total_iterations": self.iteration, "elapsed": time.time() - start_time}
-    
+
     async def _worker(self, worker_id: int) -> None:
         """Worker coroutine processing iterations from queue."""
         while self.iteration < self.config.target_iterations:
             iteration = self.iteration
             self.iteration += 1
-            
+
             # Process iteration
             await self._process_iteration(iteration, worker_id)
 ```
@@ -570,9 +569,9 @@ Every compound cycle must check context pressure before starting the next layer:
 async def _check_context_before_layer(self, layer: int) -> bool:
     """Return False if context is too full to safely start next layer."""
     import subprocess, json
+
     result = subprocess.run(
-        ["~/.pilot/bin/pilot", "check-context", "--json"],
-        capture_output=True, text=True
+        ["~/.pilot/bin/pilot", "check-context", "--json"], capture_output=True, text=True
     )
     status = json.loads(result.stdout)
     if status["percentage"] >= 80:
@@ -659,16 +658,16 @@ Every overnight session start must validate the environment:
 async def _pre_flight_env_check(self) -> None:
     """Verify venv is intact before running overnight. (L129)"""
     import subprocess
+
     result = subprocess.run(
         ["uv", "run", "python", "-m", "pytest", "--collect-only", "-q"],
-        capture_output=True, text=True, cwd=self.project_root
+        capture_output=True,
+        text=True,
+        cwd=self.project_root,
     )
     if result.returncode != 0:
         # Auto-recover: reinstall dev deps
-        subprocess.run(
-            ["uv", "add", "pytest", "pytest-cov", "pytest-asyncio", "--dev"],
-            check=True
-        )
+        subprocess.run(["uv", "add", "pytest", "pytest-cov", "pytest-asyncio", "--dev"], check=True)
         logger.warning("Venv recovered: reinstalled pytest plugins (L129)")
 ```
 

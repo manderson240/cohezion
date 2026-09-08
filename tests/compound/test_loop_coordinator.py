@@ -17,21 +17,21 @@ from unittest.mock import MagicMock, patch
 def _make_config(**overrides):
     from cohezion.compound.autonomous_loop.coordinator import LoopConfig
 
-    defaults = dict(
-        use_local_inference=True,
-        local_base_url="http://localhost:19999",
-        worktree_path="/tmp/test-worktree",
-        checkpoint_path="/tmp/test-loop/checkpoint.json",
-        backlog_path="/tmp/test-loop/backlog.json",
-        results_path="/tmp/test-loop/results.json",
-        max_tokens=100_000,
-        max_wall_clock_hours=1.0,
-        sprint_duration_seconds=999_999,  # never flush mid-test unless forced
-        cloud_escalation_threshold=2,
-        min_free_ram_gb=0.0,  # disable RAM guard in unit tests
-        resume_from_checkpoint=False,
-        fail_fast=False,
-    )
+    defaults = {
+        "use_local_inference": True,
+        "local_base_url": "http://localhost:19999",
+        "worktree_path": "/tmp/test-worktree",
+        "checkpoint_path": "/tmp/test-loop/checkpoint.json",
+        "backlog_path": "/tmp/test-loop/backlog.json",
+        "results_path": "/tmp/test-loop/results.json",
+        "max_tokens": 100_000,
+        "max_wall_clock_hours": 1.0,
+        "sprint_duration_seconds": 999_999,  # never flush mid-test unless forced
+        "cloud_escalation_threshold": 2,
+        "min_free_ram_gb": 0.0,  # disable RAM guard in unit tests
+        "resume_from_checkpoint": False,
+        "fail_fast": False,
+    }
     defaults.update(overrides)
     return LoopConfig(**defaults)
 

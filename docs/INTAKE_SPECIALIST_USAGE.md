@@ -119,6 +119,7 @@ import asyncio
 from cohezion.compound import IntakeSpecialist
 from cohezion.core.mcp_client import MCPClient
 
+
 async def main():
     mcp_client = MCPClient.from_config()
     intake = IntakeSpecialist(mcp_client)
@@ -142,6 +143,7 @@ async def main():
     print(f"Cache hit rate: {stats['cache_stats']['combined_hit_rate']:.1f}%")
     print(f"Avg tokens/request: {stats['cache_stats']['avg_tokens_per_request']:.1f}")
 
+
 asyncio.run(main())
 ```
 
@@ -154,6 +156,7 @@ import asyncio
 from cohezion.compound import IntakeSpecialist, CompoundExecutor, ExecutorFactory
 from cohezion.core.mcp_client import MCPClient
 from cohezion.swarm.token_client import TokenClient
+
 
 async def main():
     mcp_client = MCPClient.from_config()
@@ -174,7 +177,7 @@ async def main():
     result = executor.execute_task(
         task_description=task.description,
         skill_name=task.available_skills[0] if task.available_skills else None,
-        operation_type=task.operation_type
+        operation_type=task.operation_type,
     )
 
     # Step 4: Log success for future caching
@@ -185,6 +188,7 @@ async def main():
     # Step 5: Check token efficiency
     stats = intake.get_session_stats()
     print(f"Token efficiency: {stats['cache_stats']['avg_tokens_per_request']:.1f} tokens/request")
+
 
 asyncio.run(main())
 ```
@@ -232,11 +236,7 @@ Result
 
 ```python
 class IntakeSpecialist:
-    async def greet(
-        self,
-        user_id: str,
-        initial_request: str = ""
-    ) -> IntakeGreeting:
+    async def greet(self, user_id: str, initial_request: str = "") -> IntakeGreeting:
         """Establish session and warm cache from vault."""
 
     async def process_request(self, request_text: str) -> AgentTask:
@@ -254,10 +254,10 @@ class IntakeSpecialist:
 ```python
 @dataclass
 class IntakeGreeting:
-    session_id: str      # Unique session identifier
-    cache_entries: int   # Number of patterns loaded from vault
-    cache_warmed: bool   # Whether cache warm-up succeeded
-    user_id: str         # User identifier
+    session_id: str  # Unique session identifier
+    cache_entries: int  # Number of patterns loaded from vault
+    cache_warmed: bool  # Whether cache warm-up succeeded
+    user_id: str  # User identifier
 ```
 
 ### RequestCache
@@ -267,21 +267,13 @@ class RequestCache:
     def get_exact(self, request_text: str) -> Optional[AgentTask]:
         """L1: Exact hash match (0 tokens, <1ms)."""
 
-    def get_semantic(
-        self,
-        request_text: str,
-        threshold: float = 0.85
-    ) -> Optional[AgentTask]:
+    def get_semantic(self, request_text: str, threshold: float = 0.85) -> Optional[AgentTask]:
         """L2: Semantic similarity (0 tokens, ~5ms)."""
 
     def put(self, request_text: str, task: AgentTask) -> None:
         """Cache request → task in L1 and L2."""
 
-    def warm_from_vault(
-        self,
-        project: str = "cohezion",
-        limit: int = 100
-    ) -> int:
+    def warm_from_vault(self, project: str = "cohezion", limit: int = 100) -> int:
         """Load patterns from vault to warm cache."""
 
     def get_stats(self) -> dict:

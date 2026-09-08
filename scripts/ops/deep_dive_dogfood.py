@@ -65,7 +65,7 @@ def surreal_write(table: str, record_id: str, data: dict) -> bool:
 
 
 def publish_event(event_type: str, source: str, payload: dict) -> None:
-    event_id = f"evt_{source}_{int(time.time()*1000)}"
+    event_id = f"evt_{source}_{int(time.time() * 1000)}"
     surreal_write(
         "event_log",
         event_id,
@@ -178,33 +178,37 @@ session: {SESSION}
 # Cohezion Deep-Dive Architecture Specification
 
 ## Executive Master Synthesis (gpt-oss:120b-cloud)
-{results['master_spec']}
+{results["master_spec"]}
 
 ---
 
 ## Section 1: Code Implementation Contracts (Qwen3-Coder-30B Local iGPU)
-{results['code_contracts']}
+{results["code_contracts"]}
 
 ---
 
 ## Section 2: Graph Topology & Scalability (qwen3.5:397b-cloud)
-{results['graph_scaling']}
+{results["graph_scaling"]}
 
 ---
 
 ## Section 3: Adversarial Resilience & Circuit Breakers (deepseek-v4-pro:cloud)
-{results['circuit_breakers']}
+{results["circuit_breakers"]}
 """
     spec_path.write_text(spec_content)
     print(f"\n✅ Master Specification written to Vault: {spec_path}")
 
     # Persist to SurrealDB
-    surreal_write("architecture_spec", "deep_dive_v1", {
-        "timestamp": datetime.now(UTC).isoformat(),
-        "session": SESSION,
-        "spec_file": str(spec_path),
-        "results_summary": {k: len(v.split()) for k, v in results.items()}
-    })
+    surreal_write(
+        "architecture_spec",
+        "deep_dive_v1",
+        {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "session": SESSION,
+            "spec_file": str(spec_path),
+            "results_summary": {k: len(v.split()) for k, v in results.items()},
+        },
+    )
     publish_event("AGENT_COMPLETE", "deepdive_coordinator", {"spec_file": str(spec_path)})
     print("✅ Registered run & events in SurrealDB")
 

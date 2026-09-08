@@ -41,10 +41,9 @@ Start a compound session with warm-start from vault.
 
 **Example:**
 ```python
-result = await mcp.call_tool("compound_start_session", {
-    "max_cache_entries": 256,
-    "enable_persistence": True
-})
+result = await mcp.call_tool(
+    "compound_start_session", {"max_cache_entries": 256, "enable_persistence": True}
+)
 ```
 
 ---
@@ -71,10 +70,9 @@ Check request alignment before execution (HIHO threshold).
 
 **Example:**
 ```python
-result = await mcp.call_tool("compound_check_alignment", {
-    "request": "Generate a Python function",
-    "threshold": 0.5
-})
+result = await mcp.call_tool(
+    "compound_check_alignment", {"request": "Generate a Python function", "threshold": 0.5}
+)
 ```
 
 ---
@@ -175,10 +173,13 @@ Run Ralph Lopps Red Team adversarial review.
 
 **Example:**
 ```python
-findings = await mcp.call_tool("ralph_lopps_review", {
-    "code": "async def execute(req): return await process(req)",
-    "context": "Production API endpoint"
-})
+findings = await mcp.call_tool(
+    "ralph_lopps_review",
+    {
+        "code": "async def execute(req): return await process(req)",
+        "context": "Production API endpoint",
+    },
+)
 ```
 
 ---
@@ -351,26 +352,28 @@ systemctl --user start cohezion-compound.service
 session = await mcp.call_tool("compound_start_session", {})
 
 # 2. Check alignment
-alignment = await mcp.call_tool("compound_check_alignment", {
-    "request": "Complex task description",
-    "threshold": 0.5
-})
+alignment = await mcp.call_tool(
+    "compound_check_alignment", {"request": "Complex task description", "threshold": 0.5}
+)
 
 if alignment["should_proceed"]:
     # 3. Run adversarial review on code
-    review = await mcp.call_tool("ralph_lopps_review", {
-        "code": "async def execute(): ..."
-    })
-    
+    review = await mcp.call_tool("ralph_lopps_review", {"code": "async def execute(): ..."})
+
     # 4. Capture learnings
-    await mcp.call_tool("learning_capture", {
-        "execution_result_json": json.dumps({
-            "request": "Complex task",
-            "success": True,
-            "tokens_used": 5000,
-            "lessons": ["Lesson learned"]
-        })
-    })
+    await mcp.call_tool(
+        "learning_capture",
+        {
+            "execution_result_json": json.dumps(
+                {
+                    "request": "Complex task",
+                    "success": True,
+                    "tokens_used": 5000,
+                    "lessons": ["Lesson learned"],
+                }
+            )
+        },
+    )
 
 # 5. End session
 await mcp.call_tool("compound_end_session", {})

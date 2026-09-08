@@ -55,4 +55,5 @@ class DICOMMetadataFilmExtractor:
         gamma = 1.0 + 0.5 * np.tanh(gamma_raw)
         beta = 0.5 * np.tanh(np.dot(tab_vec, self.film_beta_weights))
 
-        return slice_representation * gamma + beta
+        result: np.ndarray = slice_representation * gamma + beta
+        return result

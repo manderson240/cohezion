@@ -237,7 +237,7 @@ class DaemonHealth:
 
         try:
             ok = bool(self._publish(payload))
-        except Exception as exc:  # noqa: BLE001 — fail-open by design, see module docstring
+        except Exception as exc:
             self.publish_failures += 1
             logger.debug("daemon_health(%s): publish raised: %s", self.name, exc)
             return False

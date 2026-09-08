@@ -1,0 +1,37 @@
+# Byte-aware admission gate for the lemonade router (2026-09-01).
+# Takes :13305 (clients unchanged); lemond moves to the internal port in
+# COHEZION_ADMISSION_UPSTREAM. See docs/ops/admission-gate-cutover.md for the
+# TOCTOU-safe cutover ordering — DO NOT enable this unit before moving lemond's port.
+#
+# Persistence: this unit IS the config store (council test: Cold-Boot Cap Persistence).
+# The gate re-reads these Environment= lines at every start; there is no runtime state.
+#
+# Install (user scope, matching the other cohezion units):
+#   cp scripts/cohezion-admission-gate.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now cohezion-admission-gate
+
+[Unit]
+Description=Cohezion byte-aware admission gate for lemonade (:13305)
+# Start after lemond so the upstream exists; the gate itself fails-soft if it doesn't.
+After=lemond.service
+Wants=lemond.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/mike-anderson/dev/cohezion
+Environment=PYTHONPATH=/home/mike-anderson/dev/cohezion/src
+Environment=COHEZION_ADMISSION_PORT=13305
+Environment=COHEZION_ADMISSION_UPSTREAM=http://127.0.0.1:13315
+Environment=COHEZION_ADMISSION_FLOOR_GB=16.0
+# Start in SHADOW mode (decisions computed + counted, nothing refused). Flip to 1 after
+# watching /admission/status shadow_refusals for a day — see the cutover doc.
+Environment=COHEZION_ADMISSION_ENFORCE=0
+ExecStart=/home/mike-anderson/dev/cohezion/.venv/bin/python -m cohezion.platform.admission_proxy
+Restart=on-failure
+RestartSec=5
+# The gate must never be the box's memory problem.
+MemoryHigh=1G
+MemoryMax=2G
+
+[Install]
+WantedBy=default.target

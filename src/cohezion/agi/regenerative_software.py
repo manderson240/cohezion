@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
-from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.phoenix_architecture import PhoenixArchitectureEngine, PhoenixRebirthResult
@@ -45,11 +44,15 @@ class RegenerativeSoftwareEngine:
         except SyntaxError:
             is_syntax_valid = False
             # Phoenix Rebirth: Burn broken code to ashes and re-synthesize
-            rebirth = self.phoenix_engine.execute_deletion_and_rebirth("healed_snippet", "grid_bounds", code_str)
+            rebirth = self.phoenix_engine.execute_deletion_and_rebirth(
+                "healed_snippet", "grid_bounds", code_str
+            )
             healed_code = rebirth.code_regenerated
 
         # Step 2: Check Policy
-        policy_res = self.policy_engine.evaluate_policy("regenerative_action", {"available_gb": 50.0})
+        policy_res = self.policy_engine.evaluate_policy(
+            "regenerative_action", {"available_gb": 50.0}
+        )
 
         # Step 3: Generate ZKFV Proof
         gates = ZKFVCompiler.compile_ast_to_gates("grid_bounds")
@@ -65,8 +68,8 @@ class RegenerativeSoftwareEngine:
 
 
 __all__ = [
-    "RegenerativeSoftwareEngine",
-    "RegenerationResult",
     "PhoenixArchitectureEngine",
     "PhoenixRebirthResult",
+    "RegenerationResult",
+    "RegenerativeSoftwareEngine",
 ]

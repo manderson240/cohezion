@@ -56,7 +56,9 @@ def main():
 
             VAULT_DIR.mkdir(parents=True, exist_ok=True)
             report_file = VAULT_DIR / "THUNLP_PROACTIVE_AGENT_RESEARCH.md"
-            report_file.write_text(f"# THUNLP ProactiveAgent Research & Synthesis\n*Date: 2026-08-03*\n*Model: qwen3.6-moe-35b-a3b-FLM (NPU MoE)*\n\n{synthesis}")
+            report_file.write_text(
+                f"# THUNLP ProactiveAgent Research & Synthesis\n*Date: 2026-08-03*\n*Model: qwen3.6-moe-35b-a3b-FLM (NPU MoE)*\n\n{synthesis}"
+            )
             print(f"✅ Research note written to Vault: {report_file}")
     except Exception as e:
         print("! Local research query note:", e)

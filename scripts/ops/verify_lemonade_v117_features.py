@@ -5,20 +5,21 @@ import asyncio
 import json
 from cohezion.inference.lemonade_v117_features import LemonadeV117Client
 
+
 async def main():
     print("=" * 80)
     print("🍋 VERIFYING BUILT-IN LEMONADE V11.7.0 FEATURES")
     print("=" * 80)
-    
+
     client = LemonadeV117Client()
-    
+
     # 1. Test GET /v1/stats
     stats = await client.get_server_stats()
     print("▶ 1. Prefix Cache & Server Stats (`GET /v1/stats`):")
     print(f"   • Total Requests: {stats.get('request_count_total')}")
     print(f"   • Prefix-Cache Tokens Served: {stats.get('cache_tokens_total')}")
     print(f"   • Generation Speed: {stats.get('tokens_per_second', 0):.1f} tok/s")
-    print(f"   • Time-To-First-Token: {stats.get('time_to_first_token', 0)*1000:.1f} ms")
+    print(f"   • Time-To-First-Token: {stats.get('time_to_first_token', 0) * 1000:.1f} ms")
 
     # 2. Test GET /v1/models/{id}/options
     model = "Qwen3-Coder-30B-A3B-Instruct-GGUF"
@@ -30,6 +31,7 @@ async def main():
 
     print("\n✓ Lemonade v11.7.0 Features Fully Verified & Operational!")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -13,7 +13,7 @@ from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("SecurityVerification")
+    logging.getLogger("SecurityVerification")
 
     config = SwarmConfig(strict_security=True)
     agent = AnalystAgent(Perspective.TECHNICAL, config=config)

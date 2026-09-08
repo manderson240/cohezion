@@ -306,35 +306,48 @@ import json
 import subprocess
 from datetime import datetime, timedelta
 
+
 def get_security_metrics():
     """Generate security metrics report."""
-    
+
     # CodeQL metrics
-    alerts = subprocess.run([
-        'gh', 'api', '/repos/manderson240/cohezion/code-scanning/alerts',
-        '-f', 'state=open'
-    ], capture_output=True, text=True)
-    
+    alerts = subprocess.run(
+        ["gh", "api", "/repos/manderson240/cohezion/code-scanning/alerts", "-f", "state=open"],
+        capture_output=True,
+        text=True,
+    )
+
     data = json.loads(alerts.stdout)
-    
+
     metrics = {
-        'date': datetime.now().isoformat(),
-        'total_open_alerts': len(data),
-        'by_severity': {
-            'critical': len([a for a in data if a.get('rule', {}).get('security_severity_level') == 'critical']),
-            'high': len([a for a in data if a.get('rule', {}).get('security_severity_level') == 'high']),
-            'medium': len([a for a in data if a.get('rule', {}).get('security_severity_level') == 'medium']),
-            'low': len([a for a in data if a.get('rule', {}).get('security_severity_level') == 'low']),
+        "date": datetime.now().isoformat(),
+        "total_open_alerts": len(data),
+        "by_severity": {
+            "critical": len(
+                [a for a in data if a.get("rule", {}).get("security_severity_level") == "critical"]
+            ),
+            "high": len(
+                [a for a in data if a.get("rule", {}).get("security_severity_level") == "high"]
+            ),
+            "medium": len(
+                [a for a in data if a.get("rule", {}).get("security_severity_level") == "medium"]
+            ),
+            "low": len(
+                [a for a in data if a.get("rule", {}).get("security_severity_level") == "low"]
+            ),
         },
-        'by_tool': {
-            'codeql': len([a for a in data if a.get('tool', {}).get('name') == 'CodeQL']),
-            'dependabot': len([a for a in data if 'dependabot' in a.get('tool', {}).get('name', '')]),
-        }
+        "by_tool": {
+            "codeql": len([a for a in data if a.get("tool", {}).get("name") == "CodeQL"]),
+            "dependabot": len(
+                [a for a in data if "dependabot" in a.get("tool", {}).get("name", "")]
+            ),
+        },
     }
-    
+
     return metrics
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print(json.dumps(get_security_metrics(), indent=2))
 ```
 
@@ -404,17 +417,16 @@ import json
 import os
 import requests
 
+
 def notify_slack(message, webhook_url):
     """Send security alert to Slack."""
-    payload = {
-        "text": f":warning: Security Alert: {message}",
-        "channel": "#security-alerts"
-    }
+    payload = {"text": f":warning: Security Alert: {message}", "channel": "#security-alerts"}
     requests.post(webhook_url, json=payload)
 
+
 # Usage
-if __name__ == '__main__':
-    webhook = os.getenv('SLACK_WEBHOOK_URL')
+if __name__ == "__main__":
+    webhook = os.getenv("SLACK_WEBHOOK_URL")
     notify_slack("New critical vulnerability detected", webhook)
 ```
 

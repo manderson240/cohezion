@@ -15,6 +15,7 @@ Lemonade Server v11.7.0+ architecture, configuration, and API standard practices
 ```python
 import httpx
 
+
 async def get_lemonade_stats(base_url: str = "http://127.0.0.1:13305"):
     async with httpx.AsyncClient() as client:
         resp = await client.get(f"{base_url}/v1/stats")
@@ -26,21 +27,27 @@ async def get_lemonade_stats(base_url: str = "http://127.0.0.1:13305"):
 
 2. **Inspect & Tune Model Recipe Options Without Reloading**:
 ```python
-async def update_context_window(model_id: str, ctx_size: int = 131072, base_url: str = "http://127.0.0.1:13305"):
+async def update_context_window(
+    model_id: str, ctx_size: int = 131072, base_url: str = "http://127.0.0.1:13305"
+):
     async with httpx.AsyncClient() as client:
         # Inspect current effective options
         cur = await client.get(f"{base_url}/v1/models/{model_id}/options")
         # Save persistent option change
         resp = await client.post(
             f"{base_url}/v1/models/{model_id}/options",
-            json={"saved": {"ctx_size": ctx_size, "pinned": True}}
+            json={"saved": {"ctx_size": ctx_size, "pinned": True}},
         )
         return resp.json()
 ```
 
 3. **Standard OpenAI-Compatible Chat Completion**:
 ```python
-async def query_local_model(prompt: str, model: str = "Qwen3-Coder-30B-A3B-Instruct-GGUF", base_url: str = "http://127.0.0.1:13305/v1"):
+async def query_local_model(
+    prompt: str,
+    model: str = "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+    base_url: str = "http://127.0.0.1:13305/v1",
+):
     async with httpx.AsyncClient(timeout=60.0) as client:
         resp = await client.post(
             f"{base_url}/chat/completions",
@@ -48,8 +55,8 @@ async def query_local_model(prompt: str, model: str = "Qwen3-Coder-30B-A3B-Instr
                 "model": model,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.0,
-                "max_tokens": 1024
-            }
+                "max_tokens": 1024,
+            },
         )
         return resp.json()["choices"][0]["message"]["content"]
 ```

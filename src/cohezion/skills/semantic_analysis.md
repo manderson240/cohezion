@@ -34,12 +34,12 @@ You are a specialist in **semantic analysis** of text and embeddings. You unders
 ```python
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 texts = [
     "Quantum physics describes particle behavior",
     "Classical mechanics explains macroscopic motion",
-    "Philosophy questions the nature of reality"
+    "Philosophy questions the nature of reality",
 ]
 
 embeddings = model.encode(texts)
@@ -57,6 +57,7 @@ print(sim_matrix)
 # [[1.0, 0.65, 0.42],
 #  [0.65, 1.0, 0.38],
 #  [0.42, 0.38, 1.0]]
+
 
 # Find most similar
 def find_similar(query_embedding, corpus_embeddings, top_k=5):
@@ -106,15 +107,15 @@ def analyze_drift(trajectory_texts):
 
     drifts = []
     for i in range(1, len(embeddings)):
-        similarity = cosine_similarity([embeddings[i-1]], [embeddings[i]])[0][0]
+        similarity = cosine_similarity([embeddings[i - 1]], [embeddings[i]])[0][0]
         drift = 1 - similarity
         drifts.append(drift)
 
     return {
-        'total_drift': sum(drifts),
-        'avg_drift': np.mean(drifts),
-        'max_drift': max(drifts),
-        'drift_timeline': drifts
+        "total_drift": sum(drifts),
+        "avg_drift": np.mean(drifts),
+        "max_drift": max(drifts),
+        "drift_timeline": drifts,
     }
 ```
 
@@ -129,7 +130,7 @@ def analyze_flume_trajectory(z_vectors, decoder):
     # Compute trajectory coherence
     coherences = []
     for i in range(1, len(embeddings)):
-        coherences.append(cosine_similarity([embeddings[i-1]], [embeddings[i]])[0][0])
+        coherences.append(cosine_similarity([embeddings[i - 1]], [embeddings[i]])[0][0])
 
     return np.mean(coherences)
 ```

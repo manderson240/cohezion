@@ -13,24 +13,19 @@ V-Model Execution Lifecycle:
 from __future__ import annotations
 
 import asyncio
-import gc
-import json
 import logging
-import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
-from cohezion.agi.zkfv_compiler import PlonkConstraintGate, ZKFVCompiler
+from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
-from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
+from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.governance.multiperspective_review import MultiperspectiveReviewEngine
 from cohezion.inference.dynamic_hotswapper import DynamicModelHotSwapper
-from cohezion.inference.load_safety import check_load_safe
-from cohezion.reliability.oom_guard import OOMGuard
-from cohezion.researcher.daily_researcher import FleetLock
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -55,7 +50,9 @@ class MasterAscensionOrchestrator:
         self.autoharness = AutoHarnessPolicy()
         self.review_engine = MultiperspectiveReviewEngine()
 
-    async def execute_vmodel_ascension_cycle(self, pillar_name: str, target_model_meta: dict[str, Any]) -> VModelAscensionResult:
+    async def execute_vmodel_ascension_cycle(
+        self, pillar_name: str, target_model_meta: dict[str, Any]
+    ) -> VModelAscensionResult:
         logger.info("\n" + "=" * 95)
         logger.info("📐 V-MODEL SYSTEMS ENGINEERING CYCLE: %s", pillar_name)
         logger.info("=" * 95)
@@ -65,7 +62,9 @@ class MasterAscensionOrchestrator:
 
         # 1. EventBus Notification
         event_bus = await get_event_bus()
-        bridge = CrossSessionEventBridge(event_bus=event_bus, session_id="master_ascension_orchestrator")
+        bridge = CrossSessionEventBridge(
+            event_bus=event_bus, session_id="master_ascension_orchestrator"
+        )
         await bridge.initialize()
 
         await event_bus.publish(
@@ -73,7 +72,11 @@ class MasterAscensionOrchestrator:
                 type=EventType.AGENT_START,
                 source="master_ascension_orchestrator",
                 priority=10,
-                payload={"pillar": pillar_name, "model": model_id, "mode": "V-Model Engineering Rigor"},
+                payload={
+                    "pillar": pillar_name,
+                    "model": model_id,
+                    "mode": "V-Model Engineering Rigor",
+                },
             )
         )
 
@@ -84,18 +87,29 @@ class MasterAscensionOrchestrator:
         # 3. V-Model Bottom: AutoHarness AST Verification
         policy_res = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 32.0})
         ast_ok = policy_res.allowed
-        logger.info("  • V-Model Bottom (AutoHarness AST Check): %s (0ms latency)", "VERIFIED" if ast_ok else "FAILED")
+        logger.info(
+            "  • V-Model Bottom (AutoHarness AST Check): %s (0ms latency)",
+            "VERIFIED" if ast_ok else "FAILED",
+        )
 
         # 4. V-Model Right Leg: ZKFV Polynomial Proof Verification
         gates = ZKFVCompiler.compile_ast_to_gates("memory_safe")
         proof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
         zkfv_ok = proof.is_valid
-        logger.info("  • V-Model Right Leg (ZKFV Formal Proof): %s (SHA-256 verified)", "VERIFIED" if zkfv_ok else "FAILED")
+        logger.info(
+            "  • V-Model Right Leg (ZKFV Formal Proof): %s (SHA-256 verified)",
+            "VERIFIED" if zkfv_ok else "FAILED",
+        )
 
         # 5. V-Model Right Leg: R0 Multiperspective Review
         rev_res = self.review_engine.review(
             target_name=pillar_name,
-            context={"vram_available_gb": 32.0, "ring_coherence": 0.90, "model": model_id, "pillar": pillar_name},
+            context={
+                "vram_available_gb": 32.0,
+                "ring_coherence": 0.90,
+                "model": model_id,
+                "pillar": pillar_name,
+            },
         )
         score = rev_res.review_score
         logger.info("  • V-Model Multiperspective Review Score: %.4f (Threshold >= 0.8500)", score)
@@ -139,10 +153,22 @@ async def run_master_ascension() -> None:
     orchestrator = MasterAscensionOrchestrator()
 
     pillars = [
-        ("Autopoiesis Self-Evolution", {"id": "Nemotron-3.5-Lightning-30B-A3B-ROCmFP4", "size": 15.73, "recipe": "gguf"}),
-        ("Multi-Silicon Bioelectric Mesh", {"id": "qwen3.6-moe-35b-a3b-FLM", "size": 12.00, "recipe": "flm"}),
-        ("Zero-Latency WASM Policy Compilation", {"id": "Qwen3-Coder-30B-A3B-Instruct-GGUF", "size": 17.30, "recipe": "gguf"}),
-        ("Poincaré J-Space Reality Precipitation", {"id": "DeepSeek-R1-70B-Q5_K_M", "size": 48.00, "recipe": "gguf"}),
+        (
+            "Autopoiesis Self-Evolution",
+            {"id": "Nemotron-3.5-Lightning-30B-A3B-ROCmFP4", "size": 15.73, "recipe": "gguf"},
+        ),
+        (
+            "Multi-Silicon Bioelectric Mesh",
+            {"id": "qwen3.6-moe-35b-a3b-FLM", "size": 12.00, "recipe": "flm"},
+        ),
+        (
+            "Zero-Latency WASM Policy Compilation",
+            {"id": "Qwen3-Coder-30B-A3B-Instruct-GGUF", "size": 17.30, "recipe": "gguf"},
+        ),
+        (
+            "Poincaré J-Space Reality Precipitation",
+            {"id": "DeepSeek-R1-70B-Q5_K_M", "size": 48.00, "recipe": "gguf"},
+        ),
     ]
 
     print("\n" + "=" * 105)

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Sequence
 
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.poincare_manifold import PoincareManifoldND
@@ -63,16 +62,24 @@ class FLUMEVAE:
             logvar_list.append(log_var)
 
         mu = tuple(mu_list)
-        log_var = tuple(logvar_list)
+        log_var_tuple = tuple(logvar_list)
 
         # Reparameterization trick (deterministic proxy epsilon = 0.1)
         eps = 0.1
-        latent_z = tuple(m + (math.exp(0.5 * lv) * eps) for m, lv in zip(mu, log_var, strict=True))
+        latent_z = tuple(
+            m + (math.exp(0.5 * lv) * eps) for m, lv in zip(mu, log_var_tuple, strict=True)
+        )
 
         # KL Divergence D_KL = -0.5 * sum(1 + log_var - mu^2 - exp(log_var))
-        kl = -0.5 * sum(1.0 + lv - (m**2) - math.exp(lv) for m, lv in zip(mu, log_var, strict=True)) / self.latent_dim
+        kl = (
+            -0.5
+            * sum(1.0 + lv - (m**2) - math.exp(lv) for m, lv in zip(mu, log_var_tuple, strict=True))
+            / self.latent_dim
+        )
 
-        return FLUMEEncoding(mu=mu, log_var=log_var, latent_z=latent_z, kl_divergence=round(kl, 4))
+        return FLUMEEncoding(
+            mu=mu, log_var=log_var_tuple, latent_z=latent_z, kl_divergence=round(kl, 4)
+        )
 
     def decode(self, encoding: FLUMEEncoding, original_point: PoincarePoint) -> FLUMEReconstruction:
         """Decode 256D latent z back to 2048D Poincaré space."""
@@ -83,10 +90,13 @@ class FLUMEVAE:
         rec_point = PoincareManifoldND.project(reconstructed_coords, target_dim=self.state_dim)
 
         # Compute Reconstruction Loss ||x - \hat{x}||^2
-        rec_loss = sum(
-            (x - x_hat) ** 2
-            for x, x_hat in zip(original_point.coords, rec_point.coords, strict=True)
-        ) / self.state_dim
+        rec_loss = (
+            sum(
+                (x - x_hat) ** 2
+                for x, x_hat in zip(original_point.coords, rec_point.coords, strict=True)
+            )
+            / self.state_dim
+        )
 
         total_loss = rec_loss + (self.beta * encoding.kl_divergence)
 

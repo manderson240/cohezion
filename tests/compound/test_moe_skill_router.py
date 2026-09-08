@@ -105,15 +105,15 @@ class TestMR2WeightLearning:
 
 class TestMR4SkillRefinerIntegration:
     def _metrics(self, **kwargs) -> ExecutionMetrics:
-        defaults = dict(
-            success=True,
-            duration_seconds=1.0,
-            tokens_used=100,
-            token_efficiency=100.0,
-            quality_score=0.5,
-            anomaly_score=0.1,
-            cached_hits=0,
-        )
+        defaults = {
+            "success": True,
+            "duration_seconds": 1.0,
+            "tokens_used": 100,
+            "token_efficiency": 100.0,
+            "quality_score": 0.5,
+            "anomaly_score": 0.1,
+            "cached_hits": 0,
+        }
         defaults.update(kwargs)
         return ExecutionMetrics(**defaults)  # type: ignore[arg-type]
 

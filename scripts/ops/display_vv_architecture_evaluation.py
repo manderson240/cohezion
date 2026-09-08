@@ -41,7 +41,9 @@ async def main_async() -> None:
     gates = ZKFVCompiler.compile_ast_to_gates("memory_safe")
     proof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
     print("  • TIER 2: ZK-FV SHA-256 Plonkish Formal Proof")
-    print(f"    - Proof Validity: {'✅ CRYPTOGRAPHICALLY VALID' if proof.is_valid else '❌ INVALID'}")
+    print(
+        f"    - Proof Validity: {'✅ CRYPTOGRAPHICALLY VALID' if proof.is_valid else '❌ INVALID'}"
+    )
     print("    - Constraint Polynomial: q_L * w_L + q_R * w_R + q_O * w_O = 0")
     print("  " + "-" * 85)
 
@@ -54,11 +56,17 @@ async def main_async() -> None:
     print("  " + "-" * 85)
 
     # Tier 4
-    rev_report = review_engine.review("V&V Evaluation Dashboard", {"vram_available_gb": 32.0, "ring_coherence": 0.90})
+    rev_report = review_engine.review(
+        "V&V Evaluation Dashboard", {"vram_available_gb": 32.0, "ring_coherence": 0.90}
+    )
     print("  • TIER 4: R0 Multiperspective Review & EVI Escalation Gating")
-    print(f"    - Multiperspective Review Score: {rev_report.review_score:.4f} (Threshold >= 0.8500)")
+    print(
+        f"    - Multiperspective Review Score: {rev_report.review_score:.4f} (Threshold >= 0.8500)"
+    )
     print("    - EVI Escalation Score: 7.65 (> 0.75 Gated)")
-    print(f"    - Evaluation Outcome: {'✅ PASSED FOR PRODUCTION DEPLOYMENT' if rev_report.review_score >= 0.85 else '❌ REJECTED'}")
+    print(
+        f"    - Evaluation Outcome: {'✅ PASSED FOR PRODUCTION DEPLOYMENT' if rev_report.review_score >= 0.85 else '❌ REJECTED'}"
+    )
 
     print("=" * 100)
     print("🎉 All 4 V&V Verification Tiers Operating at 100% Precision!")

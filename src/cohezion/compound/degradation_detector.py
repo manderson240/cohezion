@@ -226,7 +226,10 @@ class MetricBaseline:
         point of this change is to stop paying for size.
         """
         self.samples.append(value)
-        keep = max(self.window_size, self.min_samples) * self.RETENTION_MULTIPLE
+        # Floor at 1: with window_size == min_samples == 0 the product is 0, and
+        # samples[-0:] is the WHOLE list — the cap silently disables itself and growth is
+        # unbounded again (adversarial review 2026-08-20, verified: 500 adds -> 500 held).
+        keep = max(max(self.window_size, self.min_samples) * self.RETENTION_MULTIPLE, 1)
         if len(self.samples) > keep * 2:
             self.samples = self.samples[-keep:]
 
@@ -458,7 +461,11 @@ class DegradationDetector(HealthObservabilityMixin):
             mean_h = sum(hist) / len(hist)
             var_h = sum((x - mean_h) ** 2 for x in hist) / len(hist)
             sigma = var_h**0.5
-            if sigma > 0 and abs(obs - mean_h) > self._EMA_BURST_SIGMA * sigma:
+            # σ=0 (perfectly stable history) still bursts on any deviation: the
+            # >2σ contract is satisfied by dev > 0 when σ is 0. A `sigma > 0`
+            # guard here made bursts structurally impossible after constant
+            # history, contradicting both this docstring and test_t3_burst.
+            if abs(obs - mean_h) > self._EMA_BURST_SIGMA * sigma and abs(obs - mean_h) > 0:
                 return self._EMA_ALPHA_FAST
             return self._EMA_ALPHA_SLOW
 

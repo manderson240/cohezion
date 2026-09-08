@@ -35,23 +35,27 @@ This is the final security gate before Phase 5B & Phase 6 production deployment.
        def __init__(self, app, api_keys_dict):
            self.app = app
            self.api_keys = api_keys_dict  # {agent_id: api_key}
-       
+
        async def __call__(self, scope, receive, send):
            if scope["type"] == "http":
                auth_header = dict(scope.get("headers", [])).get(b"x-api-key")
                if not auth_header or self._validate_key(auth_header) is None:
                    # Send 403 Forbidden
-                   await send({
-                       "type": "http.response.start",
-                       "status": 403,
-                       "headers": [[b"content-type", b"application/json"]],
-                   })
-                   await send({
-                       "type": "http.response.body",
-                       "body": b'{"error": "Unauthorized"}',
-                   })
+                   await send(
+                       {
+                           "type": "http.response.start",
+                           "status": 403,
+                           "headers": [[b"content-type", b"application/json"]],
+                       }
+                   )
+                   await send(
+                       {
+                           "type": "http.response.body",
+                           "body": b'{"error": "Unauthorized"}',
+                       }
+                   )
                    return
-           
+
            await self.app(scope, receive, send)
    ```
 
@@ -97,17 +101,11 @@ This is the final security gate before Phase 5B & Phase 6 production deployment.
    ```python
    # File: cloud-vault-mcp/src/mcp_server/main.py
    import ssl
-   
+
    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
    ssl_context.load_cert_chain("certs/cert.pem", "certs/key.pem")
-   
-   uvicorn.run(
-       app,
-       host="0.0.0.0",
-       port=8360,
-       ssl_context=ssl_context,
-       log_level="info"
-   )
+
+   uvicorn.run(app, host="0.0.0.0", port=8360, ssl_context=ssl_context, log_level="info")
    ```
 
 3. Test certificate chain
@@ -139,13 +137,14 @@ This is the final security gate before Phase 5B & Phase 6 production deployment.
    import logging
    import json
    from datetime import datetime
-   
+
+
    class AuditLogger:
        def __init__(self, log_file="logs/audit.log"):
            self.logger = logging.getLogger("audit")
            handler = logging.FileHandler(log_file)
            self.logger.addHandler(handler)
-       
+
        def log_vault_operation(self, agent_id, operation, resource, status):
            log_entry = {
                "timestamp": datetime.utcnow().isoformat(),
@@ -155,7 +154,7 @@ This is the final security gate before Phase 5B & Phase 6 production deployment.
                "status": status,  # success/failure
            }
            self.logger.info(json.dumps(log_entry))
-       
+
        def log_api_call(self, agent_id, endpoint, method, status_code):
            log_entry = {
                "timestamp": datetime.utcnow().isoformat(),

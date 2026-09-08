@@ -30,7 +30,9 @@ def _fmt(n: int) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--projects-dir", default="~/.claude/projects")
-    ap.add_argument("--week-budget", type=int, default=0, help="weekly token budget for a % readout")
+    ap.add_argument(
+        "--week-budget", type=int, default=0, help="weekly token budget for a % readout"
+    )
     args = ap.parse_args()
 
     records = load_usage_records(args.projects_dir)
@@ -42,7 +44,9 @@ def main() -> int:
     summary = summarize_usage(records, now_ts=now, windows=_WINDOWS)
 
     print(f"Claude local token spend (proxy for plan usage) — {len(records):,} usage records")
-    print(f"{'window':12} {'records':>8} {'output':>14} {'cache_read':>16} {'total':>16} {'burn/hr':>14}")
+    print(
+        f"{'window':12} {'records':>8} {'output':>14} {'cache_read':>16} {'total':>16} {'burn/hr':>14}"
+    )
     print("-" * 84)
     for name in _WINDOWS:
         w = summary[name]
@@ -53,7 +57,9 @@ def main() -> int:
     if args.week_budget > 0:
         pct = summary["week"].projected_pct(args.week_budget)
         print(f"\nweek: {pct:.1f}% of {_fmt(args.week_budget)} token budget")
-    print("\nNote: cache_read dominates token counts but is cheap on the plan; watch 'output' burn.")
+    print(
+        "\nNote: cache_read dominates token counts but is cheap on the plan; watch 'output' burn."
+    )
     return 0
 
 

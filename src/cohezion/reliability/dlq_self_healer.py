@@ -4,11 +4,12 @@ Engineered and verified in OmA Autonomous Self-Evolution Loop (Cycle 14).
 
 from __future__ import annotations
 
-import time
 import math
-import numpy as np
+import time
 from dataclasses import dataclass
-from typing import Any
+
+import numpy as np
+
 
 @dataclass(frozen=True, slots=True)
 class CycleVerificationState:
@@ -17,6 +18,7 @@ class CycleVerificationState:
     verified: bool
     entropy_score: float
     timestamp: float
+
 
 class AutonomousDeadLetterQueueDLQSelfHealingConsumer:
     """Deterministic, zero-cost verified engine for Autonomous Dead-Letter Queue (DLQ) Self-Healing Consumer."""
@@ -38,5 +40,5 @@ class AutonomousDeadLetterQueueDLQSelfHealingConsumer:
             subsystem="Autonomous Dead-Letter Queue (DLQ) Self-Healing Consumer",
             verified=True,
             entropy_score=round(score, 4),
-            timestamp=time.time()
+            timestamp=time.time(),
         )

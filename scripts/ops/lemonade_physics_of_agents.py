@@ -33,11 +33,9 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from durable_swarm_output import DurableRun
-
+from durable_swarm_output import DurableRun  # noqa: E402
 
 LOCAL_URL = "http://localhost:13305/api/v1/chat/completions"
 MODEL = "Qwen3.6-35B-A3B-MTP-GGUF"
@@ -99,7 +97,7 @@ def call(prompt: str, timeout: int = 900) -> tuple[str, str]:
             "temperature": 0.3,
         }
     ).encode()
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310 — fixed loopback literal
         LOCAL_URL, data=body, headers={"Content-Type": "application/json"}
     )
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
@@ -140,7 +138,9 @@ def main() -> int:
     with ThreadPoolExecutor(max_workers=2) as ex:
         for r in ex.map(run_lane, LANES):
             run.record_lane(r)
-            print(f"  {r['lane']:8} {r['chars']:6}ch {r['elapsed_s']:6.1f}s {r['error']}", flush=True)
+            print(
+                f"  {r['lane']:8} {r['chars']:6}ch {r['elapsed_s']:6.1f}s {r['error']}", flush=True
+            )
     print(f"\nwall-clock {time.time() - t0:.0f}s -> {run.dir}")
     return 0
 

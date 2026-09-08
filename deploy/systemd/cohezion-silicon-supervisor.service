@@ -1,0 +1,72 @@
+# Cohezion silicon residency supervisor -- 24/7 fleet observation.
+#
+# Watches the Lemonade OmniRouter (:13305), derives residency transitions across
+# NPU / iGPU / CPU, and publishes them onto the Cohezion event bus.
+#
+# Install (requires root):
+#   sudo cp deploy/systemd/cohezion-silicon-supervisor.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now cohezion-silicon-supervisor
+#   journalctl -u cohezion-silicon-supervisor -f
+#
+# NOTE: runs in DRY-RUN by default. It observes and reports; it does not mutate
+# the fleet. Two independent opt-in gates enable autonomous operation:
+#
+#   --apply   pin the tier-0 router so its residency is structural rather than
+#             accidental. Reversible with `lemonade unpin`. Enable only after
+#             deciding pinning is correct for this box -- see the "pin is
+#             UNVERIFIED on 11.8.1" caveat in
+#             vault reports/20260829-strix-halo-silicon-residency-24x7.md.
+#
+#   --heal    load models the policy says should be resident but are not
+#             (e.g. restore the NPU tier-0 router after LRU eviction), and only
+#             within the byte budget -- a load that would breach the RAM
+#             reserve is refused, never attempted.
+#
+# The gates are ADDITIVE ONLY. Eviction is not applicable at any flag level,
+# and `plan_residency()` never emits an evict action, so this is structural
+# rather than merely unimplemented (see test_t1_plan_never_emits_an_evict_action).
+# This daemon can restore starved silicon; it can never take anything away.
+
+[Unit]
+Description=Cohezion silicon residency supervisor (NPU/iGPU/CPU)
+Documentation=file:///home/mike-anderson/vaults/cohezion-vault/reports/20260829-strix-halo-silicon-residency-24x7.md
+# Wants= rather than Requires=: the supervisor's job includes reporting router
+# outages, so it must survive lemonade being down rather than be stopped with it.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=mike-anderson
+WorkingDirectory=/home/mike-anderson/dev/cohezion
+ExecStart=/home/mike-anderson/dev/cohezion/.venv/bin/python3 \
+    scripts/ops/silicon_supervisor_daemon.py --interval 60
+
+Restart=always
+RestartSec=15
+# Never let the supervisor itself become a resource problem on a box whose
+# whole purpose is holding large models resident.
+# MEASURED 2026-08-29: 721 MB RSS from the supervisor imports alone (the
+# inference package re-exports eagerly), 722 MB with EventBus + mesh bridge. An
+# earlier revision said 512M, which would SIGKILL before one cycle completed --
+# a cap below the real footprint is a crash-loop, not a guard.
+MemoryHigh=1G
+MemoryMax=1500M
+CPUQuota=25%
+Nice=10
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=silicon-supervisor
+
+# Hardening: this service only reads an HTTP endpoint and writes logs.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/mike-anderson/.cohezion
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

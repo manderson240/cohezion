@@ -22,6 +22,7 @@ from typing import Any
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.poincare_manifold import PoincareManifoldND
 
+
 SURREAL_URL = "http://localhost:8001/sql"
 SURREAL_AUTH = base64.b64encode(b"root:root").decode()
 
@@ -65,7 +66,12 @@ class SemanticCacheSystem:
                     if dist <= self.l2_distance_threshold:
                         dt_ms = (time.perf_counter() - t0) * 1000.0
                         conf = max(0.5, 1.0 - (dist / self.l2_distance_threshold))
-                        return CacheHit(tier="L2_Hyperbolic", value=cached_val, latency_ms=round(dt_ms, 3), confidence=round(conf, 4))
+                        return CacheHit(
+                            tier="L2_Hyperbolic",
+                            value=cached_val,
+                            latency_ms=round(dt_ms, 3),
+                            confidence=round(conf, 4),
+                        )
 
         # Tier 3: L3 SurrealDB Hit
         surql = f"SELECT * FROM semantic_cache WHERE key = '{key}';"
@@ -87,7 +93,9 @@ class SemanticCacheSystem:
                     rec = res[0]["result"][0]
                     val = rec.get("value")
                     dt_ms = (time.perf_counter() - t0) * 1000.0
-                    return CacheHit(tier="L3_SurrealDB", value=val, latency_ms=round(dt_ms, 3), confidence=0.95)
+                    return CacheHit(
+                        tier="L3_SurrealDB", value=val, latency_ms=round(dt_ms, 3), confidence=0.95
+                    )
         except Exception:
             pass
 

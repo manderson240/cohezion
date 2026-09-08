@@ -5,10 +5,8 @@ Engineered and verified in OmA Autonomous Self-Evolution Loop (Cycle 13).
 from __future__ import annotations
 
 import time
-import math
-import numpy as np
 from dataclasses import dataclass
-from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class CycleVerificationState:
@@ -18,7 +16,9 @@ class CycleVerificationState:
     entropy_score: float
     timestamp: float
 
+
 from cohezion.physics.poincare_manifold import PoincareManifoldND, PoincarePoint
+
 
 class PoincareHyperbolicFrechetCentroidAggregator:
     """Computes empirical Fréchet/Karcher centroids in hyperbolic Poincaré manifolds."""
@@ -43,13 +43,10 @@ class PoincareHyperbolicFrechetCentroidAggregator:
             for pt in points:
                 # Euclidean tangent proxy to log map for directional pull
                 for i in range(dim):
-                    grad[i] += (pt.coords[i] - current_mean.coords[i])
+                    grad[i] += pt.coords[i] - current_mean.coords[i]
             # Step along gradient
             n = len(points)
-            new_coords = [
-                current_mean.coords[i] + (lr / n) * grad[i]
-                for i in range(dim)
-            ]
+            new_coords = [current_mean.coords[i] + (lr / n) * grad[i] for i in range(dim)]
             current_mean = PoincareManifoldND.project(tuple(new_coords), target_dim=dim)
 
         dist_val = PoincareManifoldND.distance(PoincareManifoldND.origin(dim), current_mean)

@@ -33,7 +33,9 @@ async def register_session_with_eventbus():
     mem = OOMGuard.get_memory_state()
 
     print(f"Session ID: {session_id}")
-    print(f"Memory Available: {mem.available_gb:.1f} GiB / {mem.total_gb:.1f} GiB (Safe={mem.is_safe})")
+    print(
+        f"Memory Available: {mem.available_gb:.1f} GiB / {mem.total_gb:.1f} GiB (Safe={mem.is_safe})"
+    )
 
     # 1. Publish Session Registration Event
     reg_event = Event(
@@ -72,7 +74,9 @@ async def register_session_with_eventbus():
 
     # 3. Verify delivery metrics
     metrics = bus.get_metrics()
-    print(f"\nLive EventBus Metrics: Published={metrics.get('published')}, Delivered={metrics.get('delivered')}, Errors={metrics.get('errors')}")
+    print(
+        f"\nLive EventBus Metrics: Published={metrics.get('published')}, Delivered={metrics.get('delivered')}, Errors={metrics.get('errors')}"
+    )
 
     await bus.stop()
     print("=" * 90 + "\n")

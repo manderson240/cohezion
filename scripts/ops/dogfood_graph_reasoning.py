@@ -63,7 +63,7 @@ def surreal_write(table: str, record_id: str, data: dict) -> bool:
 
 
 def publish_event(event_type: str, source: str, payload: dict) -> None:
-    event_id = f"evt_{source}_{int(time.time()*1000)}"
+    event_id = f"evt_{source}_{int(time.time() * 1000)}"
     surreal_write(
         "event_log",
         event_id,
@@ -111,7 +111,7 @@ def main():
     edges = surreal_query("SELECT source, relation, target FROM kg_edge;")
 
     graph_context = f"Nodes ({len(nodes)}):\n" + "\n".join(
-        [f"- {n['title']} ({n['domain']}): {n.get('summary','')}" for n in nodes]
+        [f"- {n['title']} ({n['domain']}): {n.get('summary', '')}" for n in nodes]
     )
     graph_context += f"\n\nEdges ({len(edges)}):\n" + "\n".join(
         [f"- {e['source']} --[{e['relation']}]--> {e['target']}" for e in edges]

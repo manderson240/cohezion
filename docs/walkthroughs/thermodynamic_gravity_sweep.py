@@ -51,15 +51,26 @@ def _(mo):
 @app.cell
 def _(mo):
     epsilon = mo.ui.slider(
-        0.0, 1.0, step=0.01, value=0.0,
-        label="ε — Lorentz violation parameter", show_value=True,
+        0.0,
+        1.0,
+        step=0.01,
+        value=0.0,
+        label="ε — Lorentz violation parameter",
+        show_value=True,
     )
     temperature = mo.ui.slider(
-        0.1, 5.0, step=0.1, value=1.0,
-        label="T — Temperature (natural units)", show_value=True,
+        0.1,
+        5.0,
+        step=0.1,
+        value=1.0,
+        label="T — Temperature (natural units)",
+        show_value=True,
     )
     n_legs = mo.ui.slider(
-        1, 10, step=1, value=3,
+        1,
+        10,
+        step=1,
+        value=3,
         label="N — Work-producing legs in Otto cycle",
     )
     mo.vstack([epsilon, mo.hstack([temperature, n_legs], justify="start")])
@@ -71,6 +82,7 @@ def _(epsilon, math, mo, n_legs, temperature):
     """Evaluate the actual ThermodynamicGravity dataclass."""
     try:
         from cohezion.physics.thermodynamic_gravity import ThermodynamicGravity, OttoWorkLeg
+
         _USE_REAL = True
     except Exception:
         ThermodynamicGravity = None
@@ -82,10 +94,13 @@ def _(epsilon, math, mo, n_legs, temperature):
     N_val = n_legs.value
 
     if _USE_REAL:
-        _legs = [OttoWorkLeg(
-            lorentz_violation=eps_val,
-            entropy_flux=math.sin(math.pi * (_i + 1) / N_val) * 0.5,
-        ) for _i in range(N_val)]
+        _legs = [
+            OttoWorkLeg(
+                lorentz_violation=eps_val,
+                entropy_flux=math.sin(math.pi * (_i + 1) / N_val) * 0.5,
+            )
+            for _i in range(N_val)
+        ]
         _model = ThermodynamicGravity(temperature=T_val, work_legs=_legs)
         accel_term = _model.acceleration_term()
         measured_eps = _model.lorentz_violation_parameter()
@@ -93,14 +108,17 @@ def _(epsilon, math, mo, n_legs, temperature):
         _source = "cohezion.physics"
     else:
         accel_term = sum(
-            eps_val * math.sin(math.pi * (_i + 1) / N_val) * 0.5
-            for _i in range(N_val)
+            eps_val * math.sin(math.pi * (_i + 1) / N_val) * 0.5 for _i in range(N_val)
         )
         measured_eps = eps_val
         is_gr = eps_val < 1e-9
         _source = "analytic fallback"
 
-    _status = "✅ Standard GR (ε ≈ 0, Λ = 0)" if is_gr else f"⚡ Modified gravity (ε = {measured_eps:.3f})"
+    _status = (
+        "✅ Standard GR (ε ≈ 0, Λ = 0)"
+        if is_gr
+        else f"⚡ Modified gravity (ε = {measured_eps:.3f})"
+    )
     mo.callout(
         mo.md(f"**{_status}** · Acceleration = {accel_term:.6f} · source: `{_source}`"),
         kind="success" if is_gr else "warn",
@@ -114,27 +132,34 @@ def _(go, math, mo, N_val, T_val):
     _eps_range = [_i / 100 for _i in range(101)]
 
     def _accel(e):
-        return sum(
-            e * math.sin(math.pi * (_i + 1) / N_val) * 0.5
-            for _i in range(N_val)
-        )
+        return sum(e * math.sin(math.pi * (_i + 1) / N_val) * 0.5 for _i in range(N_val))
 
     _accel_vals = [_accel(_e) for _e in _eps_range]
     _entropy_vals = [_accel(_e) / T_val for _e in _eps_range]
 
     fig_sweep = go.Figure()
-    fig_sweep.add_trace(go.Scatter(
-        x=_eps_range, y=_accel_vals,
-        mode="lines", name="Acceleration term",
-        line=dict(color="#4C78A8", width=2),
-    ))
-    fig_sweep.add_trace(go.Scatter(
-        x=_eps_range, y=_entropy_vals,
-        mode="lines", name=f"Entropy gain (T={T_val:.1f})",
-        line=dict(color="#72B7B2", dash="dash"),
-    ))
+    fig_sweep.add_trace(
+        go.Scatter(
+            x=_eps_range,
+            y=_accel_vals,
+            mode="lines",
+            name="Acceleration term",
+            line=dict(color="#4C78A8", width=2),
+        )
+    )
+    fig_sweep.add_trace(
+        go.Scatter(
+            x=_eps_range,
+            y=_entropy_vals,
+            mode="lines",
+            name=f"Entropy gain (T={T_val:.1f})",
+            line=dict(color="#72B7B2", dash="dash"),
+        )
+    )
     fig_sweep.add_vline(
-        x=0.0, line_dash="dot", line_color="#54A24B",
+        x=0.0,
+        line_dash="dot",
+        line_color="#54A24B",
         annotation_text="Standard GR (ε=0)",
     )
     fig_sweep.update_layout(
@@ -164,10 +189,7 @@ def _(epsilon, go, math, mo, N_val, T_val):
         _angle = 2 * math.pi * phase
         _s_base = math.sin(_angle) * 0.5
         _q_base = math.cos(_angle) * 0.5
-        _area = _eps * sum(
-            math.sin(math.pi * (_i + 1) / N_val) * 0.1
-            for _i in range(N_val)
-        )
+        _area = _eps * sum(math.sin(math.pi * (_i + 1) / N_val) * 0.1 for _i in range(N_val))
         return (
             _s_base + _area * math.cos(_angle * 2) / T_val,
             _q_base + _area * math.sin(_angle * 2) / T_val,
@@ -177,18 +199,26 @@ def _(epsilon, go, math, mo, N_val, T_val):
     _s_pts, _q_pts = zip(*_pts)
 
     fig_portrait = go.Figure()
-    fig_portrait.add_trace(go.Scatter(
-        x=list(_s_pts), y=list(_q_pts), mode="lines",
-        name=f"ε={_eps:.2f}",
-        line=dict(color="#E45756", width=2),
-        fill="toself" if _eps > 0.05 else None,
-        fillcolor="rgba(228,87,86,0.15)",
-    ))
-    fig_portrait.add_trace(go.Scatter(
-        x=[0], y=[0], mode="markers",
-        marker=dict(color="#54A24B", size=10, symbol="x"),
-        name="GR degenerate point",
-    ))
+    fig_portrait.add_trace(
+        go.Scatter(
+            x=list(_s_pts),
+            y=list(_q_pts),
+            mode="lines",
+            name=f"ε={_eps:.2f}",
+            line=dict(color="#E45756", width=2),
+            fill="toself" if _eps > 0.05 else None,
+            fillcolor="rgba(228,87,86,0.15)",
+        )
+    )
+    fig_portrait.add_trace(
+        go.Scatter(
+            x=[0],
+            y=[0],
+            mode="markers",
+            marker=dict(color="#54A24B", size=10, symbol="x"),
+            name="GR degenerate point",
+        )
+    )
     fig_portrait.update_layout(
         title="Otto Cycle Phase Portrait (S vs δQ/T)",
         xaxis_title="Entropy S",
@@ -228,6 +258,7 @@ def _(N_val, T_val, accel_term, epsilon, mo):
 @app.cell
 def _(mo):
     import os
+
     _default_url = os.getenv("LEMONADE_URL", "http://localhost:13305")
     gravity_query = mo.ui.text_area(
         placeholder="Ask about Lorentz violation, Otto cycles, late-time acceleration, cosmogony step 3→4...",
@@ -241,12 +272,14 @@ def _(mo):
     )
     gravity_run = mo.ui.run_button(label="Ask Agent ▶")
     gravity_url = mo.ui.text(value=_default_url, label="Lemonade URL")
-    mo.vstack([
-        mo.md("## Live Agent — Ask About Thermodynamic Gravity"),
-        mo.hstack([gravity_url, gravity_model], justify="start"),
-        gravity_query,
-        gravity_run,
-    ])
+    mo.vstack(
+        [
+            mo.md("## Live Agent — Ask About Thermodynamic Gravity"),
+            mo.hstack([gravity_url, gravity_model], justify="start"),
+            gravity_query,
+            gravity_run,
+        ]
+    )
     return gravity_model, gravity_query, gravity_run, gravity_url
 
 
@@ -263,14 +296,17 @@ def _(gravity_model, gravity_query, gravity_run, gravity_url, mo):
                 json={
                     "model": model,
                     "messages": [
-                        {"role": "system", "content": (
-                            "You are an expert in thermodynamic gravity and the Isichei-Magueijo "
-                            "2026 PRL paper (arXiv:2511.22221). Explain ε Lorentz violation, "
-                            "late-time cosmic acceleration via non-degenerate Otto cycles, "
-                            "and its connection to Cohezion cosmogony Step 3→4: "
-                            "SO(12) symmetric vacuum → Fabric Differentiation. "
-                            "Harness invariant LV1: ε=0 for standard GR baseline."
-                        )},
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are an expert in thermodynamic gravity and the Isichei-Magueijo "
+                                "2026 PRL paper (arXiv:2511.22221). Explain ε Lorentz violation, "
+                                "late-time cosmic acceleration via non-degenerate Otto cycles, "
+                                "and its connection to Cohezion cosmogony Step 3→4: "
+                                "SO(12) symmetric vacuum → Fabric Differentiation. "
+                                "Harness invariant LV1: ε=0 for standard GR baseline."
+                            ),
+                        },
                         {"role": "user", "content": q},
                     ],
                     "max_tokens": 600,

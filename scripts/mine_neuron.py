@@ -94,7 +94,10 @@ def main() -> int:
     if not files:
         print(f"No get_thread result files in {tool_dir}")
         return 1
-    sections = [f"# Newsletter digest (local-inference-mined){' — ' + sender_filter if sender_filter else ''}", ""]
+    sections = [
+        f"# Newsletter digest (local-inference-mined){' — ' + sender_filter if sender_filter else ''}",
+        "",
+    ]
     for f in files:
         try:
             d = json.loads(f.read_text())
@@ -107,7 +110,7 @@ def main() -> int:
         body = m.get("htmlBody") or m.get("plaintextBody") or ""
         digest = mine_one(clean(body), subject)
         if digest and digest.strip().upper() != "NONE":
-            sections.append(f"## {subject}  ({m.get('date','')[:10]})")
+            sections.append(f"## {subject}  ({m.get('date', '')[:10]})")
             sections.append(digest)
             sections.append("")
         print(f"mined: {subject} -> {len(digest)} chars")

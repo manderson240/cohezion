@@ -19,7 +19,7 @@ class PublicBeliefStateEngine:
         visible_board: list[int],
         discard_pile: list[int],
         prizes_remaining: int,
-    ) -> dict[str, np.ndarray]:
+    ) -> dict[str, Any]:
         # Track remaining unrevealed cards
         revealed = visible_hand + visible_board + discard_pile
         remaining_deck = self.full_deck.copy()
@@ -31,10 +31,10 @@ class PublicBeliefStateEngine:
         if total_unrevealed == 0:
             probs = np.zeros(len(set(self.full_deck)), dtype=np.float32)
         else:
-            counts = {}
+            counts: dict[int, int] = {}
             for c in remaining_deck:
                 counts[c] = counts.get(c, 0) + 1
-            unique_cards = sorted(list(set(self.full_deck)))
+            unique_cards = sorted(set(self.full_deck))
             probs = np.array(
                 [counts.get(c, 0) / float(total_unrevealed) for c in unique_cards], dtype=np.float32
             )

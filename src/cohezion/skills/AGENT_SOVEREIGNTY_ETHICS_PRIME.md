@@ -54,10 +54,7 @@ result = pipeline.check_constitutional_compliance(request)
 if result.violated:
     logger.critical(f"Constitutional violation: {result.constraint}")
     return ConstitutionalViolation(
-        constraint=result.constraint,
-        reason=result.reason,
-        severity="CRITICAL",
-        action="BLOCKED"
+        constraint=result.constraint, reason=result.reason, severity="CRITICAL", action="BLOCKED"
     )
 ```
 
@@ -90,6 +87,7 @@ if ethical_score.honesty < 0.6:
 
 ```python
 from cohezion.universe.engine import AxiomaticState
+
 
 def check_agent_coherence(agent_state: dict) -> float:
     """Check if agent state maintains HIHO stability.
@@ -144,6 +142,7 @@ else:
 from hashlib import sha256
 import json
 
+
 def generate_idempotency_key(request: dict, agent_id: str) -> str:
     """Generate deterministic idempotency key.
 
@@ -186,19 +185,21 @@ from cohezion.swarm.specialist_agents_config import EDLConsensus
 edl = EDLConsensus(
     agents=["architect", "engineer", "biologist", "qhw", "qalgo"],
     quorum=3,  # Minimum 3/5 for approval
-    blocking_roles=["engineer", "qalgo"]  # Physics/compute veto
+    blocking_roles=["engineer", "qalgo"],  # Physics/compute veto
 )
 
 # Multi-agent vote
 votes = []
 for agent in edl.agents:
     response = agent.evaluate(request)
-    votes.append({
-        "agent": agent.role,
-        "decision": response.decision,  # APPROVE | REVISE | REJECT
-        "rationale": response.rationale,
-        "confidence": response.confidence
-    })
+    votes.append(
+        {
+            "agent": agent.role,
+            "decision": response.decision,  # APPROVE | REVISE | REJECT
+            "rationale": response.rationale,
+            "confidence": response.confidence,
+        }
+    )
 
 # Consensus decision
 consensus = edl.resolve_consensus(votes)
@@ -227,9 +228,9 @@ from cohezion.security.agent_sovereignty import AgentSovereigntyLayer
 
 router = TipOfTheSpearRouter()
 sovereignty = AgentSovereigntyLayer(
-    constitution_path=".agent/CONSTITUTION.md",
-    charter_path=".agent/COHEZION_CHARTER.md"
+    constitution_path=".agent/CONSTITUTION.md", charter_path=".agent/COHEZION_CHARTER.md"
 )
+
 
 # Multi-tier routing with sovereignty checks at each level
 async def route_with_sovereignty(request: str, agent_id: str):
@@ -280,8 +281,8 @@ async def route_with_sovereignty(request: str, agent_id: str):
         sovereignty_checks={
             "constitutional": constitutional_check.status,
             "ethical": ethical_score.score,
-            "hiho_stability": hiho_stability
-        }
+            "hiho_stability": hiho_stability,
+        },
     )
 
     return result
@@ -297,16 +298,19 @@ async def route_with_sovereignty(request: str, agent_id: str):
 from cohezion.mcp.stitch_mcp_client import StitchMCPClient
 
 stitch = StitchMCPClient(
-    server_url="https://stitch-mcp.withgoogle.com",
-    api_key=os.getenv("STITCH_API_KEY")
+    server_url="https://stitch-mcp.withgoogle.com", api_key=os.getenv("STITCH_API_KEY")
 )
 
 # Agent Skills integration
-stitch.register_agent_skill("ui-generation", {
-    "description": "Generate UI screens from text prompts",
-    "sovereignty_level": "SUPERVISED",  # Requires human review
-    "ethical_constraints": ["no_deceptive_ui", "accessibility_required"]
-})
+stitch.register_agent_skill(
+    "ui-generation",
+    {
+        "description": "Generate UI screens from text prompts",
+        "sovereignty_level": "SUPERVISED",  # Requires human review
+        "ethical_constraints": ["no_deceptive_ui", "accessibility_required"],
+    },
+)
+
 
 # Design Agent coordination
 async def generate_ui_with_sovereignty(prompt: str, agent_id: str):
@@ -342,8 +346,8 @@ async def generate_ui_with_sovereignty(prompt: str, agent_id: str):
         sovereignty_checks={
             "deceptive_ui": False,
             "dark_patterns": dark_patterns,
-            "accessibility": design_dna.accessibility_score
-        }
+            "accessibility": design_dna.accessibility_score,
+        },
     )
 
     return design_md
@@ -370,8 +374,8 @@ skill_result = await stitch.execute_skill(
     sovereignty_context={
         "agent_id": "ui-agent-1",
         "ethical_constraints": ["no_deceptive_ui"],
-        "human_review_required": False  # Deterministic conversion
-    }
+        "human_review_required": False,  # Deterministic conversion
+    },
 )
 ```
 
@@ -397,8 +401,8 @@ class TransparentAgentExecution:
             "sovereignty_checks": {
                 "constitutional": "PASS",
                 "ethical_score": 0.85,
-                "hiho_stability": 0.92
-            }
+                "hiho_stability": 0.92,
+            },
         }
 
         logger.info(f"PRE-ACTION STATE: {json.dumps(pre_action_state, indent=2)}")
@@ -420,7 +424,7 @@ class TransparentAgentExecution:
             "result_confidence": result.confidence,
             "coherence_after": self.coherence_score(),
             "flume_trajectory": self.flume_vae.get_trajectory(),
-            "sovereignty_violations": []
+            "sovereignty_violations": [],
         }
 
         logger.info(f"POST-ACTION STATE: {json.dumps(post_action_state, indent=2)}")
@@ -468,11 +472,9 @@ print(f"Stitch Dark Pattern Detections: {metrics.stitch_dark_patterns}")  # Targ
 # ONLY for emergency situations (e.g., life-safety, critical infrastructure defense)
 # Requires operator authentication + audit logging
 
+
 def emergency_constitution_override(
-    reason: str,
-    operator_id: str,
-    auth_token: str,
-    time_limit_minutes: int = 15
+    reason: str, operator_id: str, auth_token: str, time_limit_minutes: int = 15
 ):
     """EMERGENCY ONLY: Temporarily relax constitutional constraints.
 
@@ -488,7 +490,7 @@ def emergency_constitution_override(
         "reason": reason,
         "timestamp": datetime.utcnow(),
         "expires_at": datetime.utcnow() + timedelta(minutes=time_limit_minutes),
-        "actions_taken": []
+        "actions_taken": [],
     }
 
     # Log to immutable audit trail

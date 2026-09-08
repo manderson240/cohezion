@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Sequence
 
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.poincare_manifold import PoincareManifoldND
@@ -56,13 +55,18 @@ class JSpaceManifold:
         for j_val in j_vector:
             reconstructed_coords.extend([j_val * 0.35] * group_size)
 
-        reconstructed_point = PoincareManifoldND.project(reconstructed_coords, target_dim=self.soul_dim)
+        reconstructed_point = PoincareManifoldND.project(
+            reconstructed_coords, target_dim=self.soul_dim
+        )
 
         # Compute Holographic Loss ||x - \hat{x}||^2
-        holo_loss = sum(
-            (x - x_hat) ** 2
-            for x, x_hat in zip(soul_point.coords, reconstructed_point.coords, strict=True)
-        ) / self.soul_dim
+        holo_loss = (
+            sum(
+                (x - x_hat) ** 2
+                for x, x_hat in zip(soul_point.coords, reconstructed_point.coords, strict=True)
+            )
+            / self.soul_dim
+        )
 
         workspace_coherence = math.exp(-holo_loss)
 

@@ -18,10 +18,10 @@ from cohezion.security.guardrail_pipeline import GuardrailAction
 class _Pipeline:
     """Guardrail pipeline stub: input ALLOW, output BLOCK."""
 
-    async def check_input(self, text, ctx):  # noqa: ARG002
+    async def check_input(self, text, ctx):
         return SimpleNamespace(action=GuardrailAction.ALLOW, reason="", modified_input=None)
 
-    async def check_output(self, text, ctx):  # noqa: ARG002
+    async def check_output(self, text, ctx):
         return SimpleNamespace(
             action=GuardrailAction.BLOCK, reason="test block", modified_input=None
         )
@@ -37,7 +37,7 @@ def test_guardrail_block_feeds_unified_metrics_counter():
         task_description="hello world",
         skill_name="test_skill",
         operation_type="generate",
-        execute_fn=lambda guidance: ("some output", {}),  # noqa: ARG005
+        execute_fn=lambda guidance: ("some output", {}),
     )
 
     # input ALLOW (+1 check) + output BLOCK (+1 check, +1 block)

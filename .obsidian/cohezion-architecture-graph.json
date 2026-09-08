@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "id": "cohezion.inference.fleet",
+      "label": "fleet",
+      "type": "module",
+      "summary": "Unified route() entrypoint with FleetLock single-flight and persistent HTTP/2 pool."
+    },
+    {
+      "id": "cohezion.flume.evo_visualizer",
+      "label": "evo_visualizer",
+      "type": "module",
+      "summary": "Maps agent turns into 12D Latent State Vectors and instanton/soliton vacuum topologies."
+    },
+    {
+      "id": "cohezion.data_mesh.kanban_bridge",
+      "label": "kanban_bridge",
+      "type": "module",
+      "summary": "Dual write-through persistence to SurrealDB kanban_item and Obsidian Vault."
+    },
+    {
+      "id": "cohezion.core.event_bus",
+      "label": "event_bus",
+      "type": "module",
+      "summary": "Decoupled pub/sub event bus for typed system and agent events."
+    },
+    {
+      "id": "cohezion.researcher.continuous_experiment_daemon",
+      "label": "continuous_experiment_daemon",
+      "type": "module",
+      "summary": "24/7 continuous experiment execution engine across local silicon and cloud."
+    }
+  ],
+  "edges": [
+    {
+      "source": "cohezion.researcher.continuous_experiment_daemon",
+      "target": "cohezion.inference.fleet",
+      "relation": "dispatches_via"
+    },
+    {
+      "source": "cohezion.researcher.continuous_experiment_daemon",
+      "target": "cohezion.flume.evo_visualizer",
+      "relation": "visualizes_trajectory"
+    },
+    {
+      "source": "cohezion.researcher.continuous_experiment_daemon",
+      "target": "cohezion.data_mesh.kanban_bridge",
+      "relation": "persists_state"
+    },
+    {
+      "source": "cohezion.researcher.continuous_experiment_daemon",
+      "target": "cohezion.core.event_bus",
+      "relation": "publishes_agent_events"
+    },
+    {
+      "source": "cohezion.inference.fleet",
+      "target": "cohezion.core.event_bus",
+      "relation": "publishes_llm_telemetry"
+    },
+    {
+      "source": "cohezion.flume.evo_visualizer",
+      "target": "cohezion.core.event_bus",
+      "relation": "publishes_journey_steps"
+    },
+    {
+      "source": "cohezion.data_mesh.kanban_bridge",
+      "target": "cohezion.core.event_bus",
+      "relation": "subscribes_to_agent_events"
+    },
+    {
+      "source": "cohezion.core.event_bus",
+      "target": "cohezion.data_mesh.kanban_bridge",
+      "relation": "triggers_persist_callback"
+    }
+  ]
+}

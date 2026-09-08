@@ -107,9 +107,9 @@ router = HybridSwarmRouter()
 
 # All three queries go to different backends:
 results = await asyncio.gather(
-    router.route("2+2"),                          # → NPU (fast)
-    router.route("Explain quantum entanglement"), # → Cloud (reasoning)
-    router.route("Code: fibonacci"),              # → NPU (code)
+    router.route("2+2"),  # → NPU (fast)
+    router.route("Explain quantum entanglement"),  # → Cloud (reasoning)
+    router.route("Code: fibonacci"),  # → NPU (code)
 )
 ```
 

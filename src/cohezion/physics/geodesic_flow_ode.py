@@ -8,9 +8,7 @@ Allows smooth, continuous trajectory prediction across 12D, 256D, and 2048D spac
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
-from typing import Sequence
 
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.fiber_connection import FiberConnectionEngine
@@ -66,11 +64,15 @@ class GeodesicFlowODE:
 
         # Combine RK4 for velocity and position
         new_v_coords = tuple(
-            v.components[i] + (dt / 6.0) * (a1.components[i] + 2 * a2.components[i] + 2 * a3.components[i] + a4.components[i])
+            v.components[i]
+            + (dt / 6.0)
+            * (a1.components[i] + 2 * a2.components[i] + 2 * a3.components[i] + a4.components[i])
             for i in range(x.dim)
         )
         new_x_coords = tuple(
-            x.coords[i] + (dt / 6.0) * (v.components[i] + 2 * v1.components[i] + 2 * v2.components[i] + v3.components[i])
+            x.coords[i]
+            + (dt / 6.0)
+            * (v.components[i] + 2 * v1.components[i] + 2 * v2.components[i] + v3.components[i])
             for i in range(x.dim)
         )
 

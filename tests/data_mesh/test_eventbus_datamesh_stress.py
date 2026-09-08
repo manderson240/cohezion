@@ -21,6 +21,7 @@ Notes
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from collections.abc import AsyncIterator
 
 import pytest
@@ -50,10 +51,8 @@ async def _cancel_bus(bus: EventBus) -> None:
     """
     if bus._processor_task and not bus._processor_task.done():
         bus._processor_task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await bus._processor_task
-        except asyncio.CancelledError:
-            pass
 
 
 # ─── fixture ────────────────────────────────────────────────────────────────

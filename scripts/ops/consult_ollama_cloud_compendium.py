@@ -17,7 +17,9 @@ from pathlib import Path
 import httpx
 
 
-SYNTHESIS_PATH = Path("/home/mike-anderson/dev/cohezion/docs/research/temporal_compendium_synthesis.md")
+SYNTHESIS_PATH = Path(
+    "/home/mike-anderson/dev/cohezion/docs/research/temporal_compendium_synthesis.md"
+)
 
 
 async def run_cloud_consultation():
@@ -25,7 +27,9 @@ async def run_cloud_consultation():
     print("      🛰️ CONSULTING FRONTIER OLLAMA CLOUD MODEL (`deepseek-v4-pro:cloud`)")
     print("=" * 105)
 
-    synthesis_text = SYNTHESIS_PATH.read_text() if SYNTHESIS_PATH.exists() else "Temporal Compendium Synthesis."
+    synthesis_text = (
+        SYNTHESIS_PATH.read_text() if SYNTHESIS_PATH.exists() else "Temporal Compendium Synthesis."
+    )
 
     prompt = f"""\
 You are acting as the Chief Frontier Quantum Theorist & External Advisory Reviewer.
@@ -76,9 +80,13 @@ CONSULTATION INSTRUCTIONS:
     print("=" * 105)
 
     # Save artifact
-    out_path = Path("/home/mike-anderson/dev/cohezion/docs/research/temporal_compendium_cloud_review.md")
+    out_path = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/temporal_compendium_cloud_review.md"
+    )
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(f"# Temporal Compendium: Frontier Cloud Advisory Review\n\n*Reviewer: `deepseek-v4-pro:cloud`*\n\n{cloud_response}\n")
+    out_path.write_text(
+        f"# Temporal Compendium: Frontier Cloud Advisory Review\n\n*Reviewer: `deepseek-v4-pro:cloud`*\n\n{cloud_response}\n"
+    )
     print(f"Saved advisory report to: {out_path}")
 
 

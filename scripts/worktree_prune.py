@@ -23,6 +23,7 @@ Cron (add via `crontab -e`):
   0 3 * * * cd /home/mike-anderson/dev/cohezion && \
     uv run python scripts/worktree_prune.py --auto >> ~/.local/share/cohezion/prune.log 2>&1
 """
+
 from __future__ import annotations
 
 import argparse
@@ -96,7 +97,7 @@ def parse_worktrees() -> list[WorktreeEntry]:
         elif line.startswith("branch "):
             ref = line.split(" ", 1)[1]  # refs/heads/foo
             if ref.startswith("refs/heads/"):
-                current["branch"] = ref[len("refs/heads/"):]
+                current["branch"] = ref[len("refs/heads/") :]
             else:
                 current["branch"] = ref
         elif line == "detached":
@@ -193,32 +194,32 @@ def print_report(entries: list[WorktreeEntry]) -> None:
     safe = [e for e in entries if e.safe_to_remove]
     blocked = [e for e in entries if not e.safe_to_remove and not e.is_main_checkout]
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"Worktree Prune Report  ({datetime.now().strftime('%Y-%m-%d %H:%M')})")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     print(f"Total worktrees : {len(entries)}")
     print(f"Safe to remove  : {len(safe)}")
     print(f"Blocked (kept)  : {len(blocked)}")
 
     if safe:
-        print(f"\n{'─'*70}")
+        print(f"\n{'─' * 70}")
         print("SAFE TO REMOVE (merged + clean + stale):")
         for e in safe:
             branch_str = e.branch or "(detached)"
             print(f"  [{e.age_days:.0f}d]  {branch_str}")
             print(f"         {e.path}")
-            print(f"         # remove:  git worktree remove --force \"{e.path}\"")
+            print(f'         # remove:  git worktree remove --force "{e.path}"')
             if e.branch:
-                print(f"         # cleanup: git branch -D \"{e.branch}\"")
+                print(f'         # cleanup: git branch -D "{e.branch}"')
 
     if blocked:
-        print(f"\n{'─'*70}")
+        print(f"\n{'─' * 70}")
         print("BLOCKED (kept, reason shown):")
         for e in blocked:
             branch_str = e.branch or "(detached)"
             print(f"  {branch_str}  →  {e.block_reason or 'kept'}")
 
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
 
 def remove_worktree(e: WorktreeEntry, *, confirm: bool = True) -> bool:

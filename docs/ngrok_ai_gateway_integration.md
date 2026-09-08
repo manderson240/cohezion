@@ -189,6 +189,7 @@ def choose_model(prompt: str) -> str:
     else:
         return "claude-3.5-sonnet"  # Default
 
+
 prompt = "What is the capital of France?"
 model = choose_model(prompt)
 response, tokens = await client.generate(prompt, model=model)
@@ -202,25 +203,25 @@ response, tokens = await client.generate(prompt, model=model)
 metrics = client.get_metrics()
 
 # Request statistics
-metrics["total_requests"]        # Total requests made
-metrics["successful_requests"]   # Successful requests
-metrics["failed_requests"]       # Failed requests
-metrics["fallback_requests"]     # Fell back to Ollama
-metrics["cache_hits"]            # Cache hits
+metrics["total_requests"]  # Total requests made
+metrics["successful_requests"]  # Successful requests
+metrics["failed_requests"]  # Failed requests
+metrics["fallback_requests"]  # Fell back to Ollama
+metrics["cache_hits"]  # Cache hits
 
 # Provider tracking
-metrics["ngrok_requests"]        # Requests via ngrok
-metrics["ollama_requests"]       # Requests via Ollama
+metrics["ngrok_requests"]  # Requests via ngrok
+metrics["ollama_requests"]  # Requests via Ollama
 
 # Token and cost tracking
-metrics["total_tokens"]          # Total tokens used
-metrics["total_cost"]            # Total cost in USD
+metrics["total_tokens"]  # Total tokens used
+metrics["total_cost"]  # Total cost in USD
 metrics["average_cost_per_request"]  # Average cost per request
 
 # Performance
-metrics["success_rate"]          # % of successful requests
-metrics["uptime_seconds"]        # Gateway uptime
-metrics["requests_per_minute"]   # Throughput
+metrics["success_rate"]  # % of successful requests
+metrics["uptime_seconds"]  # Gateway uptime
+metrics["requests_per_minute"]  # Throughput
 ```
 
 ### Monitoring Dashboard
@@ -229,15 +230,15 @@ metrics["requests_per_minute"]   # Throughput
 # Real-time metrics
 print(f"""
 === ngrok AI Gateway Metrics ===
-Requests:   {metrics['total_requests']}
-Success:    {metrics['success_rate']}%
-Provider:   {metrics['ngrok_requests']} ngrok, {metrics['ollama_requests']} ollama
-Fallbacks:  {metrics['fallback_requests']}
-Cache Hits: {metrics['cache_hits']}
-Tokens:     {metrics['total_tokens']}
-Cost:       ${metrics['total_cost']:.4f}
-Uptime:     {metrics['uptime_seconds']}s
-Throughput: {metrics['requests_per_minute']} req/min
+Requests:   {metrics["total_requests"]}
+Success:    {metrics["success_rate"]}%
+Provider:   {metrics["ngrok_requests"]} ngrok, {metrics["ollama_requests"]} ollama
+Fallbacks:  {metrics["fallback_requests"]}
+Cache Hits: {metrics["cache_hits"]}
+Tokens:     {metrics["total_tokens"]}
+Cost:       ${metrics["total_cost"]:.4f}
+Uptime:     {metrics["uptime_seconds"]}s
+Throughput: {metrics["requests_per_minute"]} req/min
 """)
 ```
 
@@ -249,12 +250,10 @@ Throughput: {metrics['requests_per_minute']} req/min
 client = TokenEfficientClient(
     # Ollama (fallback)
     ollama_base_url="http://localhost:11434",
-
     # ngrok Gateway
     ngrok_endpoint="https://xxxxx.ngrok.app/v1",
     ngrok_api_key="your-api-key",
     enable_ngrok_failover=True,
-
     # Caching
     use_persistent_cache=True,
     cache_dir="data/cache",
@@ -292,10 +291,7 @@ response, tokens = await gateway.generate(
 ```python
 try:
     # Try ngrok
-    response, tokens = await client.generate(
-        prompt="test",
-        model="gpt-4o"
-    )
+    response, tokens = await client.generate(prompt="test", model="gpt-4o")
 except RuntimeError as e:
     logger.error(f"All providers failed: {e}")
     # Implement fallback logic
@@ -368,11 +364,11 @@ health = orchestrator.check_safety(
 )
 
 print(f"""
-Cache Performance: {health['cache_perf_ok']}
-Token Efficiency:  {health['token_efficiency_ok']}
-Error Rate:        {health['error_rate_ok']}
-Latency:          {health['latency_ok']}
-Memory:           {health['memory_ok']}
+Cache Performance: {health["cache_perf_ok"]}
+Token Efficiency:  {health["token_efficiency_ok"]}
+Error Rate:        {health["error_rate_ok"]}
+Latency:          {health["latency_ok"]}
+Memory:           {health["memory_ok"]}
 """)
 ```
 
@@ -456,21 +452,25 @@ items = []
 
 # Simple questions → cheap model
 for i in range(5):
-    items.append(BatchItem(
-        id=f"simple_{i}",
-        prompt=f"What is {i}+{i}?",
-        model="gpt-3.5-turbo",
-        system="",
-    ))
+    items.append(
+        BatchItem(
+            id=f"simple_{i}",
+            prompt=f"What is {i}+{i}?",
+            model="gpt-3.5-turbo",
+            system="",
+        )
+    )
 
 # Complex analysis → powerful model
 for i in range(2):
-    items.append(BatchItem(
-        id=f"complex_{i}",
-        prompt=f"Analyze the economic impact of AI on job markets",
-        model="gpt-4o",
-        system="You are an economist",
-    ))
+    items.append(
+        BatchItem(
+            id=f"complex_{i}",
+            prompt=f"Analyze the economic impact of AI on job markets",
+            model="gpt-4o",
+            system="You are an economist",
+        )
+    )
 
 result = await client.batch_generate(items)
 

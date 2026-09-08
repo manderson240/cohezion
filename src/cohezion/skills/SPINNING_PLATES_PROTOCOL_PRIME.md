@@ -19,6 +19,7 @@ Continuous Autonomous Workload Scheduling, Sovereign Local Inference Maximizatio
 1. **Initialize the Spinning Plates Protocol Governor**:
    ```python
    from cohezion.proactive.spinning_plates_protocol import SpinningPlatesGovernor
+
    governor = SpinningPlatesGovernor(min_available_gb=20.0)
    await governor.start_spinning_plates()
    ```

@@ -7,7 +7,6 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# Import adaptive framework optimizer
 try:
     from cohezion.core.optimization.adaptive_framework import get_adaptive_optimizer
 
