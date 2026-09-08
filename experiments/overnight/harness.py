@@ -124,6 +124,13 @@ async def main() -> None:
         if r["passed"]:
             by_cat[r["category"]] += 1
 
+    # Apparatus guard: if NOT ONE attempt in the whole suite received model text
+    # (every tier call client-errored, e.g. 503 admission_refused under RAM pressure,
+    # server down), the run measured nothing. Exit non-zero so run_experiment marks
+    # it a failure instead of logging a misleading routing_misses=0.
+    any_model_response = any(a["chars"] > 0 for r in results for a in r["attempts"])
+    apparatus_error = 0 if any_model_response else 1
+
     for r in results:
         flag = "PASS" if r["passed"] else "FAIL"
         detail = " -> ".join(
@@ -140,6 +147,11 @@ async def main() -> None:
     print(f"METRIC routing_misses={routing_misses}")
     print(f"METRIC timeouts={stats['timeouts']}")
     print(f"METRIC tier_calls={json.dumps(dict(stats['tier_calls']))}")
+    print(f"METRIC apparatus_error={apparatus_error}")
+    if apparatus_error:
+        print("APPARATUS FAILURE: no task received any model response — "
+              "server/load/byte-budget issue, suite result is meaningless")
+        sys.exit(2)
 
 
 if __name__ == "__main__":
