@@ -14,6 +14,18 @@ import contextlib
 # Creating this package marker makes recursive_trace statically reachable and wires its
 # Stage-1 gate classes (RecursiveTraceLoop, TraceTask, TraceMemory) to the public surface.
 with contextlib.suppress(Exception):
+    from cohezion.flume.loop_goal_refactor_engine import (
+        AutonomousGoalExecutor as AutonomousGoalExecutor,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        GoalSpecification as GoalSpecification,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        TraceGoalRefactorPipeline as TraceGoalRefactorPipeline,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        TraceToLoopTransformer as TraceToLoopTransformer,
+    )
     from cohezion.recursive_trace.core import (
         LatentStateTracker as LatentStateTracker,
     )
@@ -28,4 +40,34 @@ with contextlib.suppress(Exception):
     )
     from cohezion.recursive_trace.core import (
         TraceTask as TraceTask,
+    )
+    from cohezion.recursive_trace.goal_loop import (
+        GoalDrivenTraceLoop as GoalDrivenTraceLoop,
+    )
+    from cohezion.recursive_trace.goal_loop import (
+        GoalTraceResult as GoalTraceResult,
+    )
+    from cohezion.recursive_trace.goal_loop import (
+        GoalTraceTask as GoalTraceTask,
+    )
+    from cohezion.recursive_trace.resolution_log import (
+        record_resolution as record_resolution,
+    )
+    from cohezion.recursive_trace.tripartite_goal_loop import (
+        BleedingEdgeResearchResult as BleedingEdgeResearchResult,
+    )
+    from cohezion.recursive_trace.tripartite_goal_loop import (
+        CodebaseSweepResult as CodebaseSweepResult,
+    )
+    from cohezion.recursive_trace.tripartite_goal_loop import (
+        ExperientialLearningResult as ExperientialLearningResult,
+    )
+    from cohezion.recursive_trace.tripartite_goal_loop import (
+        TripartiteGoalLoop as TripartiteGoalLoop,
+    )
+    from cohezion.recursive_trace.tripartite_goal_loop import (
+        TripartiteGoalLoopResult as TripartiteGoalLoopResult,
+    )
+    from cohezion.recursive_trace.tripartite_goal_loop import (
+        TripartiteIterationResult as TripartiteIterationResult,
     )

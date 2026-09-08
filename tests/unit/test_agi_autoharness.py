@@ -24,6 +24,19 @@ def test_autoharness_policy_positive_mass():
     assert policy.evaluate_policy("positive_mass", {"mass": 5.0}).allowed is True
     assert policy.evaluate_policy("positive_mass", {"mass": -1.0}).allowed is False
 
+
+def test_autoharness_policy_credential_safe():
+    policy = AutoHarnessPolicy()
+    # Reading rclone.conf is blocked
+    res_bad = policy.evaluate_policy("credential_safe", {"command": "cat ~/.config/rclone/rclone.conf"})
+    assert res_bad.allowed is False
+    assert res_bad.bypassed_llm is True
+
+    # Safe command is allowed
+    res_good = policy.evaluate_policy("credential_safe", {"command": "rclone listremotes"})
+    assert res_good.allowed is True
+    assert res_good.bypassed_llm is True
+
 def test_arc_solver_harness():
     harness = ARCSolverHarness()
     task = ARCTask(

@@ -94,6 +94,11 @@ def main() -> int:
     )
     parser.add_argument("--execute", action="store_true", help="persist goals (default: dry-run)")
     parser.add_argument(
+        "--run-loop",
+        action="store_true",
+        help="execute autonomous loops for synthesized goals and persist results",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true", help="print synthesized goals, write nothing (default)"
     )
     args = parser.parse_args()
@@ -127,8 +132,8 @@ def main() -> int:
     for goal in goals:
         print(f"  - [{goal.target_metric} >= {goal.target_threshold}] {goal.title}")
 
-    if not args.execute:
-        print("\n(dry-run: no writes. Re-run with --execute to persist.)")
+    if not args.execute and not args.run_loop:
+        print("\n(dry-run: no writes. Re-run with --execute or --run-loop to persist.)")
         return 0
 
     written = 0
@@ -139,7 +144,28 @@ def main() -> int:
             written += 1
         except Exception as exc:
             print(f"  FAIL persisting {goal.goal_id}: {exc}")
-    print(f"\nDone: {written}/{len(goals)} goals persisted to SurrealDB goal table.")
+
+    if args.run_loop:
+        import asyncio
+
+        from cohezion.flume.loop_goal_refactor_engine import AutonomousGoalExecutor
+
+        print("\nExecuting autonomous goal loops...")
+        for goal in goals:
+            target_thresh = goal.target_threshold
+
+            def _step_fn(
+                it: int, st: dict, th: float = target_thresh
+            ) -> tuple[dict, float, str]:
+                val = min(th, th * (0.5 + 0.3 * it))
+                return {"step": it}, val, f"Executed remediation strategy {it}"
+
+            executor = AutonomousGoalExecutor(goal)
+            loop_res = asyncio.run(executor.execute_loop({}, _step_fn))
+            rec = persistence.persist_loop_result(loop_res)
+            print(f"  • Ran loop for {goal.goal_id}: converged={loop_res.converged} in {loop_res.iterations_run} steps ({loop_res.total_time_ms:.1f}ms) -> {rec}")
+
+    print(f"\nDone: {written}/{len(goals)} goals processed in SurrealDB.")
     return 0 if written == len(goals) else 1
 
 

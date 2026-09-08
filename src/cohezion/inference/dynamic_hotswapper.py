@@ -115,9 +115,21 @@ class DynamicModelHotSwapper:
                 logger.warning("⚠️ Hot-Swap REFUSED by Safety Guard for `%s`: %s", model_id, reason)
                 return False, f"OOM Safeguard Refusal: {reason}"
 
-            # Step 5: Execute Model Load & Broadcast Completion
+            # Step 5: Execute Model Load via verified hotswap engine & Broadcast Completion
             logger.info("⚡ Hot-Swap APPROVED! Loading `%s` onto local silicon...", model_id)
+            from cohezion.inference.hotswap import ensure_resident
+            
+            target_ctx = int(target_model_meta.get("ctx_size") or 16384)
+            swap_res = await asyncio.to_thread(
+                ensure_resident,
+                model_id,
+                ctx_size=target_ctx,
+            )
             dt = round(time.perf_counter() - t0, 3)
+
+            if not swap_res.ok:
+                logger.warning("❌ Hot-Swap execution failed for `%s`: %s", model_id, swap_res.reason)
+                return False, f"Hotswap Execution Error: {swap_res.reason}"
 
             try:
                 complete_event = Event(
@@ -128,15 +140,15 @@ class DynamicModelHotSwapper:
                         "action": "HOTSWAP_COMPLETE",
                         "target_model": model_id,
                         "success": True,
+                        "evicted": swap_res.evicted,
+                        "already_resident": swap_res.already_resident,
                     },
                 )
-                # Re-fetch the bus: the Step 1.5 binding may not exist if that
-                # try-block failed before `event_bus =` completed.
                 await (await get_event_bus()).publish(complete_event)
             except Exception as e:
                 logger.info("ℹ️ EventBus completion broadcast note: %s", e)
 
-            return True, f"Hot-Swap Approved & Loaded in {dt} s"
+            return True, f"Hot-Swap Approved & Loaded in {dt} s (already_resident={swap_res.already_resident}, evicted={swap_res.evicted})"
 
     async def broadcast_release_ram(self, freed_ram_gb: float = 0.0) -> None:
         """Broadcast that this session has finished work and released RAM."""

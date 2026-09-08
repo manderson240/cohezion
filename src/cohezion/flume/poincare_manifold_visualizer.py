@@ -15,7 +15,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
 import numpy as np
-import plotly.graph_objects as go
+
+try:
+    import plotly.graph_objects as go
+except ImportError:
+    go = None  # type: ignore[assignment]
 
 from cohezion.physics.poincare_manifold import PoincareManifoldND, PoincarePoint
 

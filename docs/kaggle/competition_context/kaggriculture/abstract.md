@@ -1,0 +1,3 @@
+name      content                                                                                                                                                                                                    
+--------  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  
+abstract  In this competition, you will design, build, and deploy an autonomous AI agent to manage a virtual farm, navigate a dynamic economy, and compete head-to-head against other agents on a live leaderboard.  

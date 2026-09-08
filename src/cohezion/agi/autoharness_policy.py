@@ -56,6 +56,12 @@ class AutoHarnessPolicy:
             isinstance(state.get("available_gb"), (int, float)) and state["available_gb"] >= 20.0
         )
 
+        # 4. Credential safety policy: ensures shell actions do not access forbidden secret files
+        from cohezion.security.secret_scrubber import verify_command_safety
+        self._policy_registry["credential_safe"] = lambda state: (
+            verify_command_safety(state.get("command", "")).allowed
+        )
+
     def register_policy(self, name: str, policy_fn: Callable[[dict[str, Any]], bool]) -> None:
         """Register a custom deterministic policy function."""
         self._policy_registry[name] = policy_fn

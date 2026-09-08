@@ -141,6 +141,11 @@ class WorkQueueAPI:
             "PATCH", f"/api/work-queue/{item_id}", {"status": "actioned", "notes": note}
         )
 
+    def mark_rejected(self, item_id: str, note: str) -> dict:
+        return self._request(
+            "PATCH", f"/api/work-queue/{item_id}", {"status": "rejected", "notes": note}
+        )
+
 
 def default_chat_fn(model: str = DEFAULT_MODEL) -> Callable[[str], str]:
     """Local-inference chat callable: GAIA SDK tier when installed, router otherwise.
@@ -365,6 +370,15 @@ def run_batch(
             api.mark_actioned(item_id, note=f"actioned via {route} route (work-queue actioner)")
             summary["actioned"].append({"id": item_id, "route": route})
         except Exception as exc:
-            logger.warning("actioner: item %s failed, left in place: %s", item_id, exc)
-            summary["failed"][item_id] = str(exc)
+            err_msg = str(exc)
+            logger.warning("actioner: item %s failed: %s", item_id, err_msg)
+            # If the item failed due to guardrail injection detection, reject it
+            # so it does not poison the queue and cause an infinite crash loop (Learning 414).
+            if "Input blocked by guardrails" in err_msg or "Potential injection pattern" in err_msg:
+                try:
+                    api.mark_rejected(item_id, note=f"rejected by guardrail: {err_msg[:200]}")
+                    summary.setdefault("rejected", []).append(item_id)
+                except Exception as patch_exc:
+                    logger.error("actioner: failed to mark item %s rejected: %s", item_id, patch_exc)
+            summary["failed"][item_id] = err_msg
     return summary

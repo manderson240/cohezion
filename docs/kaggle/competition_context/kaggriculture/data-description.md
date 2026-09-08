@@ -1,0 +1,5 @@
+name              content                                                                                                                                                                                                                                                                                                                            
+----------------  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  
+data-description  This is the folder for the Python kit. Please make sure to read the instructions as they are important regarding how you will write a bot and submit it to the competition.
+
+For kits in other languages please see this example from the [Lux AI Challenge Github repository](https://github.com/Lux-AI-Challenge/Lux-Design-S3)  

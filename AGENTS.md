@@ -105,6 +105,30 @@ bug, not a fallback.
 
 ## Automated CI/CD Pipeline
 
+### Testing Paradigm Gates (added 2026-09-08)
+
+All five advanced paradigms are CI-gated (`.github/workflows/testing-paradigms.yml`,
+runs on every PR to main; also `make paradigms` locally):
+
+- Property (Hypothesis, `tests/property`), fuzz, metamorphic, mutation-vector
+  (`tests/mutation`), and contract (`tests/contracts`) suites — ~22 tests, <5s.
+- Hypothesis CI profile: `HYPOTHESIS_PROFILE=ci` → derandomized, 200 examples,
+  no deadline (reproducible CI failures, no flaky timing).
+- `scripts/ci/check_paradigms.py` (self-tested): fails if a paradigm dir loses
+  its tests, its marker, or its workflow wiring.
+- **Mutation ratchet** (`scripts/ci/mutation_ratchet.py`, self-tested): mutmut
+  scoped to the two high-value inference modules; CI fails if surviving mutants
+  exceed `scripts/ci/mutation_baseline.txt` (269). Uncoupled ("no tests")
+  mutants are informational only — coverage gaps belong to the coverage ratchet.
+- **mypy ratchet** (`scripts/ci/mypy_ratchet.py`, self-tested): signature-based
+  per-file baseline (`scripts/ci/mypy_baseline.txt`, 1414 signatures at
+  baseline); CI fails on any NEW type error. `make type-check` is now gating
+  (no `|| true`). Re-baseline only after fixing errors, never to green a build.
+- **Coverage ratchet** (test-coverage.yml): 23% line floor, measured from the
+  exact CI invocation. Raise only when coverage genuinely rises.
+- `uv lock --check` gates pyproject.toml/uv.lock drift in ci.yml validate job.
+- pytest runs with `--strict-markers`; all markers registered in pyproject.toml.
+
 ### AutoMerge Guard (`scripts/ci/automerge_guard.sh <PR_NUMBER>`)
 Runs all CI gates locally (format, lint ratchet, unit tests, import smoke,
 inference tests, version governance), then merges the PR via `gh pr merge --squash`

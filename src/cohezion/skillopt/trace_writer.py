@@ -44,9 +44,15 @@ def _escape(s: str) -> str:
 class SurrealTraceWriter:
     """Callable persister that writes execution traces to SurrealDB."""
 
-    def __init__(self, base_url: str = _SURREAL_URL, timeout: float = 5.0) -> None:
+    def __init__(
+        self,
+        base_url: str = _SURREAL_URL,
+        timeout: float = 5.0,
+        auto_refactor_to_loop: bool = True,
+    ) -> None:
         self._url = base_url
         self._timeout = timeout
+        self.auto_refactor_to_loop = auto_refactor_to_loop
         self._client = httpx.Client(timeout=timeout)
         self._ensure_table()
 
@@ -61,8 +67,7 @@ class SurrealTraceWriter:
         DEFINE FIELD IF NOT EXISTS status      ON execution_trace TYPE string;
         DEFINE FIELD IF NOT EXISTS tokens_used ON execution_trace TYPE int;
         DEFINE FIELD IF NOT EXISTS model_tier  ON execution_trace TYPE string;
-        DEFINE FIELD IF NOT EXISTS created_at  ON execution_trace TYPE datetime VALUE time::now() READONLY;
-        DEFINE INDEX IF NOT EXISTS idx_skill ON execution_trace FIELDS skill_name;
+        DEFINE FIELD IF NOT EXISTS created_at  ON execution_trace TYPE datetime DEFAULT time::now();
         """
         try:
             self._client.post(
@@ -70,10 +75,30 @@ class SurrealTraceWriter:
                 content=ddl,
                 headers=_SURREAL_HEADERS,
                 auth=_SURREAL_AUTH,
-                timeout=10.0,
             )
         except Exception as exc:
             logger.debug("SurrealTraceWriter._ensure_table failed (non-fatal): %s", exc)
+
+    def _refactor_trace_to_goal(
+        self, skill_name: str, input_text: str, output_text: str, score: float
+    ) -> None:
+        """Refactor failing execution trace into an active, inspectable goal."""
+        try:
+            from cohezion.compound.goal_state import observe, set_goal
+
+            condition = f"Heal degraded execution of skill '{skill_name}' (score={score:.2f})"
+            set_goal(condition, source="trace_writer_autoloop")
+            observe(
+                f"Trace captured failure on input: {input_text[:120]} | Output: {output_text[:120]}",
+                satisfied=False,
+            )
+            logger.info(
+                "⚡ Refactored passive failure trace for '%s' into active goal loop: '%s'",
+                skill_name,
+                condition,
+            )
+        except Exception as exc:
+            logger.debug("Automatic trace-to-goal refactoring failed (non-fatal): %s", exc)
 
     def __call__(self, context: Any, result: Any) -> None:
         """Persister callback — called by CompoundExecutor after each task."""
@@ -103,6 +128,10 @@ class SurrealTraceWriter:
                 auth=_SURREAL_AUTH,
             )
             logger.debug("Wrote execution_trace for skill '%s' (score=%.2f)", skill_name, score)
+
+            # Refactor failing / low-quality traces into active goal loops
+            if self.auto_refactor_to_loop and (status == "failure" or score < 0.70):
+                self._refactor_trace_to_goal(skill_name, input_text, output_text, score)
         except Exception as exc:
             logger.debug("SurrealTraceWriter.__call__ failed (non-fatal): %s", exc)
 

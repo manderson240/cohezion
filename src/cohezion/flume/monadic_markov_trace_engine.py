@@ -10,12 +10,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import time
-from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, TypeVar
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, Generic, TypeVar
 
 from cohezion.flume.geometric_correspondence import GeometricCorrespondenceEngine
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -172,6 +173,62 @@ class MonadicMarkovTraceEngine:
         data["trace_certified"] = True
         return MonadResult.unit(data)
 
+    async def execute_goal_directed_trace_loop(
+        self,
+        intent: str,
+        target_stream: str = "Quantum Algo",
+        max_hops: int = 5,
+    ) -> MonadResult[dict[str, Any]]:
+        """Executes iterative Markov transitions within a closed goal loop until target stream is reached."""
+        try:
+            from cohezion.compound.goal_state import observe, set_goal, status
+        except ImportError:
+            def set_goal(*args, **kwargs): return False
+            def observe(*args, **kwargs): return False
+            def status(): return {}
+
+        goal_id = f"markov_goal_{int(time.time())}"
+        condition = f"Reach FLUME target stream '{target_stream}' for intent '{intent}'"
+        set_goal(condition, source="monadic_markov_trace_engine")
+
+        current_stream_idx = 0
+        current_stream = FLUME_STREAMS[0]
+        history: list[dict[str, Any]] = []
+
+        for hop in range(1, max_hops + 1):
+            next_stream, prob = self.markov_router.compute_next_stream(current_stream_idx)
+            is_target = next_stream == target_stream
+            step_record = {
+                "hop": hop,
+                "from_stream": current_stream,
+                "to_stream": next_stream,
+                "probability": prob,
+                "target_reached": is_target,
+            }
+            history.append(step_record)
+            obs_note = f"Hop {hop}: {current_stream} -> {next_stream} (p={prob:.2f})"
+            observe(obs_note, satisfied=is_target)
+
+            current_stream = next_stream
+            current_stream_idx = (
+                FLUME_STREAMS.index(next_stream) if next_stream in FLUME_STREAMS else 0
+            )
+
+            if is_target:
+                return MonadResult.unit({
+                    "goal_id": goal_id,
+                    "condition": condition,
+                    "target_reached": True,
+                    "hops": hop,
+                    "final_stream": current_stream,
+                    "history": history,
+                    "goal_status": status(),
+                })
+
+        return MonadResult.fail(
+            f"Failed to reach target stream '{target_stream}' within {max_hops} hops"
+        )
+
 
 async def main_async() -> None:
     engine = MonadicMarkovTraceEngine()
@@ -183,7 +240,7 @@ async def main_async() -> None:
 
     if res.is_success and res.value:
         val = res.value
-        print(f"  • Monadic Result Status: ✅ SUCCESS (Encapsulated in MonadResult.unit)")
+        print("  • Monadic Result Status: ✅ SUCCESS (Encapsulated in MonadResult.unit)")
         print(f"  • Initial Intent: '{val['intent']}'")
         print(f"  • Markov Chain Stream Routing: Architect -> {val['next_stream']} (Probability: {val['markov_prob']:.2f})")
         print(f"  • Markov Stationary Vector pi: {val['stationary_vector']}")
