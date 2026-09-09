@@ -59,7 +59,7 @@ class ZFSGuardrailManager:
 
             state = "ONLINE" if "state: ONLINE" in res.stdout else "DEGRADED"
             errors = "none" if "errors: No known data errors" in res.stdout else "has_errors"
-            has_scrub_errors = "0 errors" not in res.stdout
+            has_scrub_errors = "No known data errors" not in res.stdout
 
             # Get capacity
             list_res = subprocess.run(
