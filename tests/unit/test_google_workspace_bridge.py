@@ -21,7 +21,13 @@ def test_email_alert_dispatch() -> None:
 def test_crm_spreadsheet_row_formatting() -> None:
     bridge = GoogleWorkspaceBridge()
     row = bridge.format_crm_spreadsheet_row(
-        {"id": "stk_1", "name": "Alice", "organization_id": "org_quantum", "email": "alice@qc.io", "affinity_score": 0.892}
+        {
+            "id": "stk_1",
+            "name": "Alice",
+            "organization_id": "org_quantum",
+            "email": "alice@qc.io",
+            "affinity_score": 0.892,
+        }
     )
 
     assert row[0] == "stk_1"
@@ -38,5 +44,5 @@ def test_large_report_offload() -> None:
     )
 
     assert doc.title == "DIRD 37 Comprehensive Synthesis"
-    assert "docs.google.com" in doc.cloud_url
+    assert doc.cloud_url.startswith("https://docs.google.com/")
     assert doc.bytes_offloaded > 0

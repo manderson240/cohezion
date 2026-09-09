@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +40,9 @@ router = APIRouter(prefix="/journeys", tags=["journeys"])
 # Journey data directory
 JOURNEY_DIR = Path("data/universe")
 
+# Safe journey-id component: blocks path traversal (../, absolute paths, separators).
+_SAFE_JOURNEY_ID_RE = re.compile(r"[A-Za-z0-9._-]{1,128}")
+
 
 def load_journey(journey_id: str) -> dict[str, Any] | None:
     """Load single journey by ID.
@@ -49,6 +53,9 @@ def load_journey(journey_id: str) -> dict[str, Any] | None:
     Returns:
         Journey dictionary or None
     """
+    if not _SAFE_JOURNEY_ID_RE.fullmatch(journey_id):
+        return None
+
     journey_file = JOURNEY_DIR / f"{journey_id}.json"
     if not journey_file.exists():
         return None

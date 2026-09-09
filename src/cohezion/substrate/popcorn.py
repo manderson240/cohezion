@@ -72,8 +72,19 @@ def submit(
     # Resolve leaderboard name
     if kernel in KERNEL_MAP:
         leaderboard, _ = KERNEL_MAP[kernel]
-    else:
+    elif re.fullmatch(r"[A-Za-z0-9._-]{1,64}", kernel):
         leaderboard = kernel  # assume it's already a full leaderboard name
+    else:
+        return SubmitResult(
+            passed=False,
+            score=0.0,
+            mode=mode,
+            kernel=kernel,
+            stderr="",
+            stdout="",
+            error=f"Invalid kernel name: {kernel!r}",
+            elapsed_s=0.0,
+        )
 
     submission_path = Path(submission_path)
     if not submission_path.exists():

@@ -282,9 +282,7 @@ class TestMCPEnvironmentConfiguration:
         origins_str = "https://app.example.com,https://api.example.com"
         with patch.dict(os.environ, {"TLS_ALLOWED_ORIGINS": origins_str}):
             origins = os.environ.get("TLS_ALLOWED_ORIGINS", "").split(",")
-            assert len(origins) == 2
-            assert "https://app.example.com" in origins
-            assert "https://api.example.com" in origins
+            assert origins == ["https://app.example.com", "https://api.example.com"]
 
     def test_tls_hsts_max_age_from_env(self):
         """Test that HSTS max-age is read from environment."""
@@ -300,5 +298,4 @@ class TestMCPEnvironmentConfiguration:
 
         assert config.hsts_max_age == 31536000
         assert config.secure_cookies is True
-        assert "https://localhost" in config.allowed_origins
-        assert "https://127.0.0.1" in config.allowed_origins
+        assert config.allowed_origins == ["https://localhost", "https://127.0.0.1"]

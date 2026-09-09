@@ -110,7 +110,7 @@ class ConstitutionalEnforcer:
                 logger.warning(
                     "Constitutional violation detected: type=%s pattern='%s'",
                     vtype.value,
-                    raw_pat,
+                    raw_pat[:8] + "***",
                 )
         return violations
 

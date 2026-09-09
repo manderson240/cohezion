@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -111,6 +112,8 @@ async def train_rl(request: RLTrainRequest):
 @rl_router.get("/rl/policy/{agent_id}", response_model=RLPolicyResponse)
 async def get_rl_policy(agent_id: str):
     """Inspect a trained RL policy checkpoint."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", agent_id):
+        return RLPolicyResponse(exists=False)
     checkpoint_dir = Path("data/rl/checkpoints")
     ckpt_path = checkpoint_dir / f"policy_{agent_id}.pt"
 

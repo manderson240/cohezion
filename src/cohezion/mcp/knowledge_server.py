@@ -164,14 +164,20 @@ class KnowledgeMCP:
         Returns:
             Skill content and metadata
         """
-        from cohezion.mcp.servers.safe_input import sanitize_path
+        from cohezion.mcp.servers.safe_input import safe_component_or_none, sanitize_path
 
-        skill_path = sanitize_path(f"{skill_name}.md", base_dir=SKILLS_PATH)
+        name = safe_component_or_none(f"{skill_name}.md")
+        if name is None:
+            return {"error": f"Skill not found: {skill_name}"}
+
+        skill_path = sanitize_path(str(SKILLS_PATH / f"{name}.md"), base_dir=SKILLS_PATH)
         if not skill_path.exists():
             # Try fuzzy match
-            for name in self._skills_cache:
-                if skill_name.lower() in name.lower():
-                    skill_path = sanitize_path(f"{name}.md", base_dir=SKILLS_PATH)
+            for cache_name in self._skills_cache:
+                if skill_name.lower() in cache_name.lower():
+                    skill_path = sanitize_path(
+                        str(SKILLS_PATH / f"{cache_name}.md"), base_dir=SKILLS_PATH
+                    )
                     break
 
         if not skill_path.exists():
@@ -192,6 +198,12 @@ class KnowledgeMCP:
 
     def get_entity(self, entity_id: str) -> dict[str, Any] | None:
         """Get entity from knowledge graph."""
+        from cohezion.mcp.servers.safe_input import safe_component_or_none
+
+        name = safe_component_or_none(f"{entity_id}.json")
+        if name is None:
+            return None
+
         entities_path = KNOWLEDGE_GRAPH_PATH / "entities"
         if not entities_path.exists():
             return None
@@ -203,6 +215,9 @@ class KnowledgeMCP:
 
     def store_entity(self, entity: dict[str, Any]) -> None:
         """Store entity in knowledge graph."""
+        from cohezion.mcp.servers.safe_input import sanitize_component
+
+        sanitize_component(str(entity["id"]))
         entities_path = KNOWLEDGE_GRAPH_PATH / "entities"
         entities_path.mkdir(parents=True, exist_ok=True)
 

@@ -123,7 +123,7 @@ class MCPServerManager:
             process = subprocess.Popen(
                 cmd,
                 env=env,
-                stdout=open(log_file, "a", encoding="utf-8"),
+                stdout=open(log_file, "a", encoding="utf-8"),  # noqa: SIM115
                 stderr=subprocess.STDOUT,
                 start_new_session=True,
             )

@@ -264,6 +264,8 @@ class ResearchMinerServer:
         time.sleep(0.5 + random.random())  # SS is more permissive than arxiv
         # Normalize arxiv IDs (strip version suffix)
         arxiv_id = re.sub(r"v\d+$", "", paper_id)
+        if not re.fullmatch(r"\d{4}\.\d{4,5}", arxiv_id):
+            return {"error": f"invalid arxiv id: {paper_id!r}"}
         url = (
             f"{self.sources['semantic_scholar']}/paper/arXiv:{arxiv_id}"
             f"?fields=title,abstract,year,citationCount,referenceCount,tldr,authors"
@@ -306,6 +308,8 @@ class ResearchMinerServer:
         logger.info(f"🔍 ResearchMCPServer: PWC lookup for {arxiv_id}...")
         time.sleep(0.5 + random.random())
         arxiv_id = re.sub(r"v\d+$", "", arxiv_id)
+        if not re.fullmatch(r"\d{4}\.\d{4,5}", arxiv_id):
+            return [{"error": f"invalid arxiv id: {arxiv_id!r}"}]
         url = f"{self.sources['papers_with_code']}/papers/?arxiv_id={quote_plus(arxiv_id)}"
         try:
             resp = requests.get(url, timeout=10)

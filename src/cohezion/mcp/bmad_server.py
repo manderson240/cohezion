@@ -20,7 +20,14 @@ import json
 import os
 
 # Import tool modules to register @app.tool() decorators
-from cohezion.mcp.bmad_app import app, get_bmad_data_path, get_engine, get_redis_url, logger
+from cohezion.mcp.bmad_app import (
+    _redact_url,
+    app,
+    get_bmad_data_path,
+    get_engine,
+    get_redis_url,
+    logger,
+)
 
 
 # ============================================================================
@@ -114,9 +121,10 @@ def main():
     if transport == "stdio":
         app.run(transport="stdio")
     else:
+        redis_display = _redact_url(get_redis_url())
         logger.info(f"Starting BMAD MCP Server v6.0.4 on port {port}")
         logger.info(f"BMAD data path: {get_bmad_data_path()}")
-        logger.info(f"Redis URL: {get_redis_url()}")
+        logger.info(f"Redis URL: {redis_display}")
         logger.info(f"Transport: {transport}")
         app.run(host="0.0.0.0", port=port, transport="http")
 

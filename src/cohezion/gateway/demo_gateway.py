@@ -23,6 +23,7 @@ Usage:
 import hashlib
 import logging
 import time
+import urllib.parse
 from dataclasses import dataclass
 from typing import Any
 
@@ -30,6 +31,17 @@ import requests  # type: ignore[import-untyped]
 
 
 logger = logging.getLogger(__name__)
+
+
+def _redact_url(url: str) -> str:
+    """Mask credentials in a connection URL before logging (userinfo/password)."""
+    parsed = urllib.parse.urlparse(url)
+    if parsed.username is None and parsed.password is None:
+        return url
+    host_part = parsed.hostname or ""
+    if parsed.port:
+        host_part = f"{host_part}:{parsed.port}"
+    return urllib.parse.urlunparse(parsed._replace(netloc=host_part))
 
 
 @dataclass
@@ -80,7 +92,7 @@ class DemoGateway:
         self.metrics = DemoMetrics()
         self._response_cache: dict[str, tuple[str, int]] = {}
 
-        logger.info(f"Demo Gateway initialized (Ollama: {ollama_url})")
+        logger.info(f"Demo Gateway initialized (Ollama: {_redact_url(ollama_url)})")
 
     def _cache_key(self, prompt: str, system: str, model: str) -> str:
         """Generate cache key."""

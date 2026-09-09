@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,14 @@ from cohezion.compound.hardware_monitor import get_hardware_monitor
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/journey", tags=["journey"])
 
+# Safe journey-id component: blocks path traversal (../, absolute paths, separators).
+_SAFE_ID_RE = re.compile(r"[A-Za-z0-9._-]{1,128}")
+
+
+def _safe_journey_id(journey_id: str) -> str | None:
+    """Return journey_id if it is a safe single path component, else None."""
+    return journey_id if _SAFE_ID_RE.fullmatch(journey_id) else None
+
 
 class JourneyStatusService:
     """Service for tracking 8-hour journey status."""
@@ -34,6 +43,9 @@ class JourneyStatusService:
 
     def get_journey_status(self, journey_id: str) -> dict[str, Any]:
         """Get current status for a journey."""
+        if _safe_journey_id(journey_id) is None:
+            return {"journey_id": journey_id, "exists": False, "state": "invalid_id"}
+
         # Check for checkpoint file
         checkpoint_file = Path(f"data/thermal_checkpoints/{journey_id}.json")
 
@@ -163,6 +175,9 @@ async def start_journey(config: dict[str, Any]) -> dict[str, Any]:
 @router.post("/pause/{journey_id}")
 async def pause_journey(journey_id: str) -> dict[str, Any]:
     """Pause a running journey."""
+    if _safe_journey_id(journey_id) is None:
+        raise HTTPException(status_code=400, detail="Invalid journey id")
+
     checkpoint_file = Path(f"data/thermal_checkpoints/{journey_id}.json")
 
     if not checkpoint_file.exists():
@@ -183,6 +198,9 @@ async def pause_journey(journey_id: str) -> dict[str, Any]:
 @router.post("/resume/{journey_id}")
 async def resume_journey(journey_id: str) -> dict[str, Any]:
     """Resume a paused journey."""
+    if _safe_journey_id(journey_id) is None:
+        raise HTTPException(status_code=400, detail="Invalid journey id")
+
     checkpoint_file = Path(f"data/thermal_checkpoints/{journey_id}.json")
 
     if not checkpoint_file.exists():

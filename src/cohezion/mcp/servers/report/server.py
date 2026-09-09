@@ -289,9 +289,7 @@ if __name__ == "__main__":
         # catches the case where a future refactor lets the field be set
         # externally. (Ω12 Patch 4, Ω6 CRITICAL-4)
         nb_path = Path(report.notebook_path).resolve()
-        try:
-            nb_path.relative_to(self.output_dir.resolve())
-        except ValueError:
+        if not nb_path.is_relative_to(self.output_dir.resolve()):
             return {"error": f"notebook_path escapes output_dir: {nb_path}"}
 
         # Start Marimo server in background — list-form, no shell.

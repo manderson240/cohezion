@@ -30,24 +30,44 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+
 SLUG = "rsna-knee-abnormality-detection"
 TARGETS = [
-    "ACL", "MCL", "Medial Meniscus", "Lateral Meniscus", "Medial OA", "Lateral OA",
-    "PF OA", "Effusion", "Synovitis", "Baker's", "Contusion", "Fracture",
+    "ACL",
+    "MCL",
+    "Medial Meniscus",
+    "Lateral Meniscus",
+    "Medial OA",
+    "Lateral OA",
+    "PF OA",
+    "Effusion",
+    "Synovitis",
+    "Baker's",
+    "Contusion",
+    "Fracture",
 ]
 # Measured base rates from the labelled train subset (fallback if train.csv has none at rerun).
 FALLBACK_PRIORS = {
-    "ACL": 0.414, "MCL": 0.155, "Medial Meniscus": 0.448, "Lateral Meniscus": 0.397,
-    "Medial OA": 0.259, "Lateral OA": 0.190, "PF OA": 0.362, "Effusion": 0.603,
-    "Synovitis": 0.466, "Baker's": 0.207, "Contusion": 0.328, "Fracture": 0.310,
+    "ACL": 0.414,
+    "MCL": 0.155,
+    "Medial Meniscus": 0.448,
+    "Lateral Meniscus": 0.397,
+    "Medial OA": 0.259,
+    "Lateral OA": 0.190,
+    "PF OA": 0.362,
+    "Effusion": 0.603,
+    "Synovitis": 0.466,
+    "Baker's": 0.207,
+    "Contusion": 0.328,
+    "Fracture": 0.310,
 }
 # Which pathologies are fluid-associated (bright on fluid-sensitive MRI) → get positive
 # nudge from the measured bright-fluid fraction. Others get a smaller structural nudge.
 FLUID_LABELS = {"Effusion", "Synovitis", "Baker's", "Medial Meniscus", "Lateral Meniscus"}
 
-MAX_SERIES_PER_STUDY = 4     # cap DICOM work per study
-SLICES_PER_SERIES = 3        # evenly-spaced middle slices
-TIME_BUDGET_S = 8.0 * 3600   # graceful degradation ceiling (T4 kernels get ~9-12h)
+MAX_SERIES_PER_STUDY = 4  # cap DICOM work per study
+SLICES_PER_SERIES = 3  # evenly-spaced middle slices
+TIME_BUDGET_S = 8.0 * 3600  # graceful degradation ceiling (T4 kernels get ~9-12h)
 T0 = time.time()
 
 
@@ -75,7 +95,7 @@ def calibrate_priors(root: Path) -> dict[str, float]:
                     if 0.01 < v < 0.99:
                         priors[c] = v
                 log(f"calibrated priors from {len(lab)} labelled train rows")
-    except Exception as e:  # noqa: BLE001 - never let prior calc break the run
+    except Exception as e:
         log(f"prior calibration failed ({e!r}); using fallback base rates")
     return priors
 
@@ -85,8 +105,8 @@ def study_jitter(study_uid: str) -> np.ndarray:
     column varies per study even when all DICOM reads fail (no constant-column blank risk)."""
     out = np.empty(len(TARGETS), dtype=np.float64)
     for i, lab in enumerate(TARGETS):
-        h = hashlib.sha1(f"{study_uid}|{lab}".encode()).digest()
-        out[i] = (int.from_bytes(h[:4], "big") / 2**32 - 0.5) * 0.04
+        h = hashlib.sha256(f"{study_uid}|{lab}".encode()).digest()[:16]
+        out[i] = (int.from_bytes(h, "big") / 2**32 - 0.5) * 0.04
     return out
 
 
@@ -97,12 +117,12 @@ def slice_features(px: np.ndarray) -> tuple[float, float]:
     a = px.astype(np.float32)
     if a.size == 0 or not np.isfinite(a).any():
         return 0.0, 0.0
-    thr = np.percentile(a, 40)              # tissue mask: drop background/air
+    thr = np.percentile(a, 40)  # tissue mask: drop background/air
     tissue = a[a > thr]
     if tissue.size < 64:
         return 0.0, 0.0
     hi = np.percentile(tissue, 90)
-    bright = float((tissue > hi).mean())    # ~0.1 by construction; varies with fluid load
+    bright = float((tissue > hi).mean())  # ~0.1 by construction; varies with fluid load
     mu = float(tissue.mean())
     contrast = float(tissue.std() / mu) if mu > 1e-6 else 0.0
     return bright, contrast
@@ -133,18 +153,19 @@ def study_features(root: Path, study: str, series_df: pd.DataFrame) -> dict[str,
         if not files:
             continue
         n = len(files)
-        idxs = sorted({n // 2, n // 3, (2 * n) // 3})   # middle-band slices
+        idxs = sorted({n // 2, n // 3, (2 * n) // 3})  # middle-band slices
         is_fluid = bool(getattr(r, fs_col, 0)) if fs_col else False
         for i in idxs[:SLICES_PER_SERIES]:
             try:
                 import pydicom
+
                 ds = pydicom.dcmread(str(files[i]))
                 px = ds.pixel_array
                 b, c = slice_features(px)
                 (brights_fluid if is_fluid else brights_struct).append(b)
                 contrasts.append(c)
                 n_read += 1
-            except Exception:  # noqa: BLE001 - skip unreadable slice, keep going
+            except Exception:
                 continue
     if n_read == 0:
         return None
@@ -157,7 +178,9 @@ def study_features(root: Path, study: str, series_df: pd.DataFrame) -> dict[str,
     }
 
 
-def predict_study(study: str, priors: dict[str, float], feats: dict[str, float] | None) -> np.ndarray:
+def predict_study(
+    study: str, priors: dict[str, float], feats: dict[str, float] | None
+) -> np.ndarray:
     """Anchor on calibrated prior; nudge by real image signal (bounded), + tiny jitter.
     Nudges are centered so the per-column mean stays near the prior; only the per-study
     ORDERING (what AUC scores) is affected."""
@@ -165,9 +188,9 @@ def predict_study(study: str, priors: dict[str, float], feats: dict[str, float] 
     out = base.copy()
     if feats is not None:
         # center the fluid signal around its typical ~0.10 bright fraction
-        fluid_z = (feats["fluid_bright"] - 0.10) * 2.0        # ~[-0.2, +0.8]
-        struct_z = (feats["contrast"] - 0.6) * 0.15           # small structural signal
-        more_series = (feats["n_series"] - 4.0) * 0.01        # complex studies → more findings
+        fluid_z = (feats["fluid_bright"] - 0.10) * 2.0  # ~[-0.2, +0.8]
+        struct_z = (feats["contrast"] - 0.6) * 0.15  # small structural signal
+        more_series = (feats["n_series"] - 4.0) * 0.01  # complex studies → more findings
         for i, lab in enumerate(TARGETS):
             nudge = (0.12 * fluid_z if lab in FLUID_LABELS else 0.04 * struct_z) + more_series
             out[i] = base[i] + np.clip(nudge, -0.25, 0.25)
@@ -186,7 +209,7 @@ def main() -> None:
         series_df = pd.read_csv(root / "test_series.csv")
         series_df["StudyInstanceUID"] = series_df["StudyInstanceUID"].astype(str)
         series_df["SeriesInstanceUID"] = series_df["SeriesInstanceUID"].astype(str)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         log(f"test_series.csv unavailable ({e!r}); predictions will be prior+jitter only")
         series_df = pd.DataFrame(columns=["StudyInstanceUID", "SeriesInstanceUID"])
 
@@ -199,7 +222,7 @@ def main() -> None:
         if time.time() - T0 < TIME_BUDGET_S and len(series_df) > 0:
             try:
                 feats = study_features(root, study, series_df)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 feats = None
         if feats is not None:
             n_real += 1
