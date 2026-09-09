@@ -344,7 +344,6 @@ cohezion/compound/feedback_loop.py:union-attr:Item "None" of "Any | None" has no
 cohezion/compound/feedback_loop.py:union-attr:Item "None" of "ExecutionResult | None" has no attribute "metrics"
 cohezion/compound/feedback_loop.py:union-attr:Item "None" of "ExecutionResult | None" has no attribute "output"
 cohezion/compound/global_metrics_aggregator.py:index:Unsupported target for indexed assignment ("object")
-cohezion/compound/grand_unified_compound_pipeline.py:attr-defined:"type[ZKFVCompiler]" has no attribute "verify"
 cohezion/compound/harness_benefit.py:misc:Generator has incompatible item type "float | None"; expected "bool"
 cohezion/compound/harness_benefit.py:unused-ignore:Unused "type: ignore" comment
 cohezion/compound/harness_tuning_specialist.py:attr-defined:"SkillRefiner" has no attribute "propose_rho_update"
@@ -638,11 +637,6 @@ cohezion/gateway/demo_gateway.py:assignment:Incompatible types in assignment (ex
 cohezion/gateway/demo_gateway.py:attr-defined:"str" has no attribute "json"
 cohezion/gateway/demo_gateway.py:attr-defined:"str" has no attribute "raise_for_status"
 cohezion/gateway/demo_gateway.py:unused-ignore:Unused "type: ignore" comment
-cohezion/gateway/mcp_http_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
-cohezion/gateway/mcp_server.py:arg-type:Argument 1 to "stdio_server" has incompatible type "Server[Any]"; expected "AsyncFile[str] | None"
-cohezion/gateway/mcp_server.py:attr-defined:"Server[Any]" has no attribute "call_tool"
-cohezion/gateway/mcp_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
-cohezion/gateway/mcp_server.py:call-arg:Unexpected keyword argument "inputSchema" for "Tool"; did you mean "input_schema"?
 cohezion/gateway/ngrok_adapter.py:arg-type:Argument "json" to "post" has incompatible type "dict[str, object]"; expected "JsonType"
 cohezion/gateway/ngrok_adapter.py:attr-defined:"object" has no attribute "__iter__"; maybe "__dir__" or "__str__"? (not iterable)
 cohezion/gateway/ngrok_adapter.py:unused-ignore:Unused "type: ignore" comment
@@ -759,7 +753,6 @@ cohezion/inference/turboquant_streaming.py:return-value:Incompatible return valu
 cohezion/inference/unified_hybrid_router.py:attr-defined:"UnifiedHybridRouter" has no attribute "_calculate_evi"
 cohezion/inference/unified_hybrid_router.py:misc:"WEIGHTS" in __slots__ conflicts with class variable access
 cohezion/inference/unified_hybrid_router.py:name-defined:Name "current_tier" is not defined
-cohezion/inference/unified_hybrid_router.py:name-defined:Name "field" is not defined
 cohezion/inference/unified_hybrid_router.py:name-defined:Name "prompt" is not defined
 cohezion/inference/unified_hybrid_router.py:name-defined:Name "task_class" is not defined
 cohezion/integrations/agentverse/api_llm_executor.py:arg-type:Argument "headers" to "get" of "AsyncClient" has incompatible type "dict[str, str | None]"; expected "Headers | Mapping[str, str] | Mapping[bytes, bytes] | Sequence[tuple[str, str]] | Sequence[tuple[bytes, bytes]] | None"
@@ -814,19 +807,12 @@ cohezion/mass_sim/persistence.py:attr-defined:"None" has no attribute "connect"
 cohezion/mass_sim/persistence.py:attr-defined:"None" has no attribute "query"
 cohezion/math/monadic_hodge_gflownet.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/mcp/bmad_server.py:no-any-return:Returning Any from function declared to return "str"
-cohezion/mcp/coherence_server.py:attr-defined:"Server[Any]" has no attribute "call_tool"
-cohezion/mcp/coherence_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
-cohezion/mcp/coherence_server.py:call-arg:Unexpected keyword argument "inputSchema" for "Tool"; did you mean "input_schema"?
 cohezion/mcp/coherence_server.py:operator:"object" not callable
 cohezion/mcp/coherence_server.py:unused-ignore:Unused "type: ignore" comment
 cohezion/mcp/coherence_server.py:unused-ignore:Unused "type: ignore[arg-type, call-arg]" comment
-cohezion/mcp/cohezion_agi_server.py:attr-defined:"Server[Any]" has no attribute "call_tool"
-cohezion/mcp/cohezion_agi_server.py:attr-defined:"Server[Any]" has no attribute "list_tools"
-cohezion/mcp/cohezion_agi_server.py:call-arg:Unexpected keyword argument "inputSchema" for "Tool"; did you mean "input_schema"?
 cohezion/mcp/compound_session.py:arg-type:Argument 1 to "loads" has incompatible type "Coroutine[Any, Any, str]"; expected "str | bytes | bytearray"
 cohezion/mcp/compound_session.py:unused-coroutine:Value of type "Coroutine[Any, Any, str]" must be used
 cohezion/mcp/hookify_server.py:assignment:Incompatible types in assignment (expression has type "BlockingWsSurrealConnection | BlockingHttpSurrealConnection", variable has type "None")
-cohezion/mcp/hookify_server.py:attr-defined:Module "mcp.server.fastmcp" has no attribute "FastMCP"
 cohezion/mcp/hookify_server.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
 cohezion/mcp/knowledge_server.py:no-any-return:Returning Any from function declared to return "dict[str, Any] | None"
 cohezion/mcp/knowledge_server_mcp.py:return-value:Incompatible return value type (got "list[dict[str, str]]", expected "list[str]")
@@ -965,7 +951,6 @@ cohezion/protocols/ucp_capability_handler.py:call-arg:Missing positional argumen
 cohezion/recursive_trace/core.py:misc:All conditional function variants must have identical signatures
 cohezion/recursive_trace/goal_loop.py:assignment:Incompatible types in assignment (expression has type "bool | None", variable has type "bool")
 cohezion/recursive_trace/goal_loop.py:assignment:Incompatible types in assignment (expression has type "str | None", variable has type "str")
-cohezion/recursive_trace/tripartite_goal_loop.py:attr-defined:"ZKProof" has no attribute "proof_id"
 cohezion/registry/capability_registry.py:attr-defined:"None" has no attribute "fit_transform"
 cohezion/reliability/batch_manager.py:index:Value of type "dict[str, Any] | None" is not indexable
 cohezion/reliability/heartbeat.py:no-any-return:Returning Any from function declared to return "dict[str, float]"

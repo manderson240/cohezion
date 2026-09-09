@@ -24,8 +24,11 @@ class MemoryState:
     available_gb: float
     total_gb: float
     swap_used_gb: float
-    shmem_gb: float
     is_safe: bool
+    # Optional (default 0.0) so pre-shmem constructors (tests, callers on
+    # main's API shape) still build; get_memory_state() always sets it from
+    # /proc/meminfo when available.
+    shmem_gb: float = 0.0
     dynamic_floor_gb: float = 20.0
     gtt_used_gb: float = 0.0
     gtt_total_gb: float = 0.0
