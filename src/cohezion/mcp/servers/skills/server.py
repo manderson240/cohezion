@@ -180,14 +180,22 @@ async def tool_skills_install(request: web.Request) -> web.Response:
 
         import re as _re
 
-        # Validate skill_id is a safe owner/repo format (alphanumeric, hyphens, underscores)
-        if not _re.match(r"^[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$", skill_id):
+        # Validate skill_id is a safe owner/repo format (alphanumeric, hyphens,
+        # underscores). Must be a FULL match (no leading/trailing shell
+        # metacharacters), start and end with an alphanumeric, and both the
+        # owner and repo parts must be non-empty. The validated value is then
+        # passed as a single argv element of a list-form subprocess.run
+        # (shell=False default below), so it is never re-interpreted by a shell.
+        if not _re.fullmatch(
+            r"[a-zA-Z0-9][a-zA-Z0-9_-]*/[a-zA-Z0-9][a-zA-Z0-9_.-]*", skill_id
+        ) or skill_id.endswith("/"):
             return web.json_response(
                 {"error": "Invalid skill_id format. Use owner/repo format (alphanumeric only)."},
                 status=400,
             )
 
-        # Run npx skills add — skill_id is validated above
+        # Run npx skills add — skill_id is fully validated above; list-form argv
+        # with shell=False (default) keeps the value a single argv element.
         import shutil
 
         npx_exec = shutil.which("npx") or "/usr/bin/npx"
@@ -198,6 +206,7 @@ async def tool_skills_install(request: web.Request) -> web.Response:
             capture_output=True,
             text=True,
             timeout=60,
+            shell=False,
         )
 
         if result.returncode == 0:

@@ -156,8 +156,9 @@ async def list_notebooks():
 @router.get("/notebooks/{name}")
 async def get_notebook(name: str):
     """Get a specific notebook."""
-    # Validate name: only allow a safe single path component (prevent path traversal)
-    if not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", name):
+    # Validate name: only allow a safe single path component (prevent path
+    # traversal and dot-leading names like ".."/"...")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", name):
         raise HTTPException(status_code=400, detail="Invalid notebook name")
 
     base_dir = Path("docs/notebooks").resolve()

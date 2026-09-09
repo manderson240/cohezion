@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — security wave 2 (1.22.3)
+- Closed remaining live-code CodeQL criticals and highs: SSRF host allowlist
+  in webmcp_bridge, argv-list exec (shell=False) in popcorn + skills server,
+  resolve()+is_relative_to containment across 10 path-injection clusters,
+  credential URLs removed from logs, HMAC-SHA256 API-key fingerprints,
+  ssl.create_default_context() TLS floor. Guard suite grown to 22 tests.
+- Credential-gate fixture now uses a synthetic pattern-valid token (resolves
+  secret-scanning alert 8); redaction-marker assert aligned with the
+  scrubber's current markers.
+
 ### Fixed — submodule registry (1.22.2)
 - Registered `src/cohezion/skills/surrealdb/skills-repo` in `.gitmodules`
   (URL verified as `github.com/surrealdb/agent-skills`); unregisters the last

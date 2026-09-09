@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import urllib.parse
 from typing import Any
 
 import httpx
@@ -22,6 +23,25 @@ logger = logging.getLogger(__name__)
 
 # Allowed name pattern: alphanumeric, hyphens, underscores; max 64 chars
 _NAME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]{0,63}$")
+
+# SSRF guard: MCP server URLs must be localhost HTTPS/HTTP endpoints. The
+# registry is populated from local config, but the bridge is reachable from the
+# browser (AG-UI), so every outbound URL is re-validated here before httpx is
+# invoked. Non-http(s) schemes and non-local hosts are rejected (fail closed).
+_ALLOWED_URL_HOSTS = {"localhost", "127.0.0.1", "::1", "[::1]"}
+
+
+def _validate_server_url(url: str) -> bool:
+    """Return True only for http(s) URLs pointing at an allowlisted local host."""
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except ValueError:
+        return False
+    if parsed.scheme not in ("http", "https"):
+        return False
+    if parsed.hostname is None:
+        return False
+    return parsed.hostname.lower() in _ALLOWED_URL_HOSTS
 
 
 class WebMCPBridge:
@@ -140,8 +160,23 @@ class WebMCPBridge:
                     status=404,
                 )
 
-            # Route to the server's HTTP endpoint if it has a URL
+            # Route to the server's HTTP endpoint if it has a URL. The URL is
+            # registry-provided but browser-reachable, so re-validate the
+            # destination against the local-host allowlist BEFORE any httpx
+            # call (SSRF guard; fail closed with a 400).
             if server.url:
+                if not _validate_server_url(server.url):
+                    logger.warning(
+                        "Blocked WebMCP call to non-allowlisted server URL: %s",
+                        server_name,
+                    )
+                    return web.json_response(
+                        {
+                            "success": False,
+                            "error": f"Server URL not allowed: {server_name}",
+                        },
+                        status=400,
+                    )
                 result = await self._call_http_server(server.url, tool_name, arguments)
             else:
                 # Internal server without URL — call via local module dispatch
@@ -161,7 +196,13 @@ class WebMCPBridge:
     async def _call_http_server(
         self, base_url: str, tool_name: str, arguments: dict[str, Any]
     ) -> Any:
-        """Call an HTTP-based MCP server."""
+        """Call an HTTP-based MCP server.
+
+        The destination is re-validated here (defense-in-depth): non-allowlisted
+        hosts raise before httpx is ever invoked.
+        """
+        if not _validate_server_url(base_url):
+            raise ValueError(f"Refusing to call non-allowlisted MCP server URL: {base_url!r}")
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(
                 f"{base_url}/tools/{tool_name}",

@@ -67,11 +67,6 @@ def _mask(value: str, prefix_len: int = 0) -> str:
     return value[:prefix_len] + "*" * max(0, len(value) - prefix_len - 4) + value[-4:]
 
 
-def _redact(value: str) -> str:
-    """Mask a credential for logging: keep a 4-char prefix, star out the rest."""
-    return value[:4] + "***" if value else "***"
-
-
 def check_registration() -> bool:
     """Check for Kaggle credentials. Returns True if usable credentials found."""
     found_any = False
@@ -89,7 +84,9 @@ def check_registration() -> bool:
 
     if api_token:
         source = "~/.kaggle/access_token" if access_token_file else "env"
-        print(f"[OK] API Token: {_redact(api_token)} (from {source})")
+        # Redacted output: never print any part of the token itself
+        # (CodeQL clear-text-logging).
+        print(f"[OK] API Token: *** (from {source})")
         found_any = True
     else:
         print("[MISSING] API Token")

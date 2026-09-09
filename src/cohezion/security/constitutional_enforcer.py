@@ -110,7 +110,9 @@ class ConstitutionalEnforcer:
                 logger.warning(
                     "Constitutional violation detected: type=%s pattern='%s'",
                     vtype.value,
-                    raw_pat[:8] + "***",
+                    # Redact the matched pattern; it may itself encode a
+                    # password/credential format (CodeQL clear-text-logging).
+                    (raw_pat[:4] + "***") if raw_pat else "***",
                 )
         return violations
 

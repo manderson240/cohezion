@@ -25,8 +25,9 @@ from cohezion.compound.hardware_monitor import get_hardware_monitor
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/journey", tags=["journey"])
 
-# Safe journey-id component: blocks path traversal (../, absolute paths, separators).
-_SAFE_ID_RE = re.compile(r"[A-Za-z0-9._-]{1,128}")
+# Safe journey-id component: blocks traversal ("../", separators) and
+# dot-leading names ("..", "...", hidden files).
+_SAFE_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 
 
 def _safe_journey_id(journey_id: str) -> str | None:
@@ -46,8 +47,11 @@ class JourneyStatusService:
         if _safe_journey_id(journey_id) is None:
             return {"journey_id": journey_id, "exists": False, "state": "invalid_id"}
 
-        # Check for checkpoint file
-        checkpoint_file = Path(f"data/thermal_checkpoints/{journey_id}.json")
+        # Check for checkpoint file (containment-checked before any FS access)
+        base_dir = Path("data/thermal_checkpoints").resolve()
+        checkpoint_file = (base_dir / f"{journey_id}.json").resolve()
+        if not checkpoint_file.is_relative_to(base_dir):
+            return {"journey_id": journey_id, "exists": False, "state": "invalid_id"}
 
         if checkpoint_file.exists():
             try:
@@ -178,7 +182,12 @@ async def pause_journey(journey_id: str) -> dict[str, Any]:
     if _safe_journey_id(journey_id) is None:
         raise HTTPException(status_code=400, detail="Invalid journey id")
 
-    checkpoint_file = Path(f"data/thermal_checkpoints/{journey_id}.json")
+    base_dir = Path("data/thermal_checkpoints").resolve()
+    checkpoint_file = (base_dir / f"{journey_id}.json").resolve()
+
+    # Containment: resolved path must stay inside the checkpoint directory.
+    if not checkpoint_file.is_relative_to(base_dir):
+        raise HTTPException(status_code=400, detail="Invalid journey id")
 
     if not checkpoint_file.exists():
         raise HTTPException(status_code=404, detail="Journey not found")
@@ -201,7 +210,12 @@ async def resume_journey(journey_id: str) -> dict[str, Any]:
     if _safe_journey_id(journey_id) is None:
         raise HTTPException(status_code=400, detail="Invalid journey id")
 
-    checkpoint_file = Path(f"data/thermal_checkpoints/{journey_id}.json")
+    base_dir = Path("data/thermal_checkpoints").resolve()
+    checkpoint_file = (base_dir / f"{journey_id}.json").resolve()
+
+    # Containment: resolved path must stay inside the checkpoint directory.
+    if not checkpoint_file.is_relative_to(base_dir):
+        raise HTTPException(status_code=400, detail="Invalid journey id")
 
     if not checkpoint_file.exists():
         raise HTTPException(status_code=404, detail="Journey not found")

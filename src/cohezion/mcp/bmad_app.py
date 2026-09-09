@@ -70,5 +70,7 @@ def get_session_manager() -> SessionManager:
     if _session_manager is None:
         redis_url = get_redis_url()
         _session_manager = SessionManager(redis_url)
-        logger.info(f"Session manager initialized with Redis at {redis_url}")
+        # Redis URL may carry a password — never log it, even masked
+        # (CodeQL clear-text-logging).
+        logger.info("Session manager initialized with Redis")
     return _session_manager

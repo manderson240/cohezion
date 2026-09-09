@@ -14,7 +14,7 @@ from pathlib import Path
 _SAFE_COMPONENT_RE = re.compile(r"[A-Za-z0-9._-]{1,128}")
 
 
-def sanitize_path(user_path: str, base_dir: str | Path | None = None) -> Path:
+def sanitize_path(user_path: str, base_dir: str | Path) -> Path:
     """Resolve and validate a user-provided path.
 
     Prevents path traversal attacks by ensuring the resolved path
@@ -23,14 +23,13 @@ def sanitize_path(user_path: str, base_dir: str | Path | None = None) -> Path:
     Raises ValueError if path escapes the base directory.
     """
     resolved = Path(user_path).resolve()
+    base = Path(base_dir).resolve()
 
-    if base_dir is not None:
-        base = Path(base_dir).resolve()
-        try:
-            resolved.relative_to(base)
-        except ValueError:
-            msg = f"Path escapes allowed directory: {user_path}"
-            raise ValueError(msg) from None
+    try:
+        resolved.relative_to(base)
+    except ValueError:
+        msg = f"Path escapes allowed directory: {user_path}"
+        raise ValueError(msg) from None
 
     return resolved
 

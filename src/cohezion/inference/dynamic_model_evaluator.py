@@ -54,10 +54,16 @@ class DynamicModelEvaluator:
     def __init__(self, port: int = 13305) -> None:
         self.endpoint = f"http://127.0.0.1:{port}/v1/chat/completions"
 
+    DIRECT_PORTS: dict[str, int] = {
+        "Bonsai-8B-gguf": 8003,
+        "Qwen3.6-35B-A3B-UD-Q4_K_XL": 8007,
+        "deepseek-r1-0528:8b": 8004,
+    }
+
     def query_model(
-        self, model: str, prompt: str, max_tokens: int = 256, timeout: float = 10.0
+        self, model: str, prompt: str, max_tokens: int = 256, timeout: float = 15.0
     ) -> tuple[str, float, float]:
-        """Query model on Lemonade and measure latency and tokens/sec."""
+        """Query model on Lemonade with direct fallback, measuring latency and tokens/sec."""
         t0 = time.perf_counter()
         payload = {
             "model": model,
@@ -65,33 +71,42 @@ class DynamicModelEvaluator:
             "max_tokens": max_tokens,
             "temperature": 0.1,
         }
-        req = urllib.request.Request(  # noqa: S310
-            self.endpoint,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
-                data = json.loads(resp.read().decode())
-                elapsed = time.perf_counter() - t0
-                content = data["choices"][0]["message"]["content"]
-                # Strip thinking blocks if present
-                if "</think>" in content:
-                    content = content.split("</think>")[-1].strip()
-                tokens = len(content.split())
-                tps = tokens / max(elapsed, 0.001)
-                return content, elapsed * 1000.0, tps
-        except Exception as exc:
-            elapsed = time.perf_counter() - t0
-            logger.warning(f"Query to {model} failed: {exc}")
-            return f"ERROR: {exc}", elapsed * 1000.0, 0.0
+        endpoints = [self.endpoint]
+        if model in self.DIRECT_PORTS:
+            endpoints.append(f"http://127.0.0.1:{self.DIRECT_PORTS[model]}/v1/chat/completions")
+
+        last_exc: Exception | None = None
+        for ep in endpoints:
+            try:
+                req = urllib.request.Request(  # noqa: S310
+                    ep,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                )
+                with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+                    data = json.loads(resp.read().decode())
+                    elapsed = time.perf_counter() - t0
+                    content = data["choices"][0]["message"]["content"]
+                    # Strip thinking blocks if present
+                    if "</think>" in content:
+                        content = content.split("</think>")[-1].strip()
+                    tokens = len(content.split())
+                    tps = tokens / max(elapsed, 0.001)
+                    return content, elapsed * 1000.0, tps
+            except Exception as exc:
+                last_exc = exc
+                logger.debug(f"Attempt via {ep} failed: {exc}")
+
+        elapsed = time.perf_counter() - t0
+        logger.warning(f"Query to {model} failed across all endpoints: {last_exc}")
+        return f"ERROR: {last_exc}", elapsed * 1000.0, 0.0
 
     def verify_python_code(
         self,
         raw_output: str,
         test_fn: Callable[[dict[str, Any]], float],
     ) -> tuple[bool, float, str]:
-        """AutoHarness AST extraction and deterministic test execution."""
+        """AutoHarness AST extraction and deterministic test execution with security guardrails."""
         # 1. Extract code block
         code = raw_output
         if "```python" in raw_output:
@@ -101,17 +116,93 @@ class DynamicModelEvaluator:
 
         code = code.strip()
 
-        # 2. AST Parse
+        # 2. AST Parse & Security Audit
         try:
             tree = ast.parse(code)
             syntax_valid = len(tree.body) > 0
         except SyntaxError:
             return False, 0.0, code
 
-        # 3. Execute in isolated namespace
+        # AST Whitelist / Invariant Check: Block arbitrary execution and dangerous constructs
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name in {
+                            "os",
+                            "sys",
+                            "subprocess",
+                            "socket",
+                            "shutil",
+                            "urllib",
+                            "requests",
+                            "pathlib",
+                        }:
+                            return False, 0.0, code
+                elif isinstance(node, ast.ImportFrom) and node.module in {
+                    "os",
+                    "sys",
+                    "subprocess",
+                    "socket",
+                    "shutil",
+                    "urllib",
+                    "requests",
+                    "pathlib",
+                }:
+                    return False, 0.0, code
+            elif isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Name) and node.func.id in {
+                    "eval",
+                    "exec",
+                    "compile",
+                    "__import__",
+                    "open",
+                    "breakpoint",
+                }:
+                    return False, 0.0, code
+            elif isinstance(node, ast.Attribute) and node.attr in {
+                "__subclasses__",
+                "__globals__",
+                "__builtins__",
+            }:
+                return False, 0.0, code
+
+        # 3. Execute in sandboxed namespace with restricted builtins
+        safe_builtins = {
+            "abs": abs,
+            "all": all,
+            "any": any,
+            "bool": bool,
+            "dict": dict,
+            "enumerate": enumerate,
+            "filter": filter,
+            "float": float,
+            "int": int,
+            "isinstance": isinstance,
+            "issubclass": issubclass,
+            "len": len,
+            "list": list,
+            "map": map,
+            "max": max,
+            "min": min,
+            "pow": pow,
+            "range": range,
+            "reversed": reversed,
+            "round": round,
+            "set": set,
+            "sorted": sorted,
+            "str": str,
+            "sum": sum,
+            "tuple": tuple,
+            "zip": zip,
+            "True": True,
+            "False": False,
+            "None": None,
+        }
         local_env: dict[str, Any] = {}
+        global_env = {"__builtins__": safe_builtins}
         try:
-            exec(code, {}, local_env)  # noqa: S102
+            exec(code, global_env, local_env)  # noqa: S102
             pass_rate = test_fn(local_env)
             return syntax_valid, pass_rate, code
         except Exception:

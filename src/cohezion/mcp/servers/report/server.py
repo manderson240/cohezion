@@ -18,6 +18,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
 import uuid
@@ -309,7 +310,13 @@ if __name__ == "__main__":
         try:
             # Background process; redirect stdout/stderr to a log file in the
             # output_dir so we don't depend on /tmp permissions.
-            log_path = self.output_dir / f"marimo_{report_id}.log"
+            # report_id must be a safe component (it is uuid4 today; the guard
+            # fails closed if that ever changes).
+            if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", report_id):
+                return {"error": "Invalid report id"}
+            log_path = (self.output_dir / f"marimo_{report_id}.log").resolve()
+            if not log_path.is_relative_to(self.output_dir.resolve()):
+                return {"error": "Log path escapes output_dir"}
             log_fh = open(log_path, "ab")
             subprocess.Popen(
                 cmd,

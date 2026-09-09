@@ -85,9 +85,19 @@ class SecurityScanner:
         """Scan a single file for vulnerabilities."""
         findings = []
 
+        # Containment guard (defense-in-depth at the sink): never read a file
+        # that resolves outside the repository root.
+        _repo_root = _resolve_repo_root().resolve()
+        try:
+            _resolved = file_path.resolve()
+        except OSError:
+            return findings
+        if not _resolved.is_relative_to(_repo_root):
+            return findings
+
         if content is None:
             try:
-                content = file_path.read_text()
+                content = _resolved.read_text()
             except Exception:
                 return findings
 
@@ -338,6 +348,15 @@ async def tool_scan_file(request: web.Request) -> web.Response:
 
         scanner = get_scanner()
         repo_root = _resolve_repo_root().resolve()
+        # Fail closed on separators/dot-segments before touching the path:
+        # only a single safe component (or a relative subpath of such) is
+        # allowed through to the filesystem.
+        if not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9._-]{0,255}(?:/[A-Za-z0-9][A-Za-z0-9._-]{0,255})*", file_path
+        ):
+            return web.json_response(
+                {"error": "filePath contains forbidden characters"}, status=400
+            )
         path = sanitize_path(file_path, base_dir=repo_root)
         if not path.is_relative_to(repo_root):
             return web.json_response({"error": "filePath escapes repo root"}, status=400)
@@ -367,6 +386,13 @@ async def tool_scan_project(request: web.Request) -> web.Response:
 
         scanner = get_scanner()
         repo_root = _resolve_repo_root().resolve()
+        # Fail closed on separators/dot-segments before touching the path.
+        if not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9._-]{0,255}(?:/[A-Za-z0-9][A-Za-z0-9._-]{0,255})*", project_path
+        ):
+            return web.json_response(
+                {"error": "projectPath contains forbidden characters"}, status=400
+            )
         path = sanitize_path(project_path, base_dir=repo_root)
         if not path.is_relative_to(repo_root):
             return web.json_response({"error": "projectPath escapes repo root"}, status=400)
