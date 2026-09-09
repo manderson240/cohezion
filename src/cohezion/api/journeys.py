@@ -56,7 +56,13 @@ def load_journey(journey_id: str) -> dict[str, Any] | None:
     if not _SAFE_JOURNEY_ID_RE.fullmatch(journey_id):
         return None
 
-    journey_file = JOURNEY_DIR / f"{journey_id}.json"
+    base_dir = JOURNEY_DIR.resolve()
+    journey_file = (base_dir / f"{journey_id}.json").resolve()
+
+    # Containment: resolved path must stay inside the journey data directory.
+    if not journey_file.is_relative_to(base_dir):
+        return None
+
     if not journey_file.exists():
         return None
 

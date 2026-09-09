@@ -208,7 +208,11 @@ class KnowledgeMCP:
         if not entities_path.exists():
             return None
 
-        entity_file = entities_path / f"{entity_id}.json"
+        # Use the sanitized component (not the raw id) to build the path, and
+        # verify containment after resolve (defense-in-depth).
+        entity_file = (entities_path / name).resolve()
+        if not entity_file.is_relative_to(entities_path.resolve()):
+            return None
         if entity_file.exists():
             return json.loads(entity_file.read_text())
         return None
@@ -217,11 +221,13 @@ class KnowledgeMCP:
         """Store entity in knowledge graph."""
         from cohezion.mcp.servers.safe_input import sanitize_component
 
-        sanitize_component(str(entity["id"]))
+        name = sanitize_component(f"{entity['id']}.json")
         entities_path = KNOWLEDGE_GRAPH_PATH / "entities"
         entities_path.mkdir(parents=True, exist_ok=True)
 
-        entity_file = entities_path / f"{entity['id']}.json"
+        entity_file = (entities_path / name).resolve()
+        if not entity_file.is_relative_to(entities_path.resolve()):
+            raise ValueError(f"Entity id escapes entities directory: {entity['id']!r}")
         entity_file.write_text(json.dumps(entity, indent=2))
 
     def get_context_chunk(self, path: str, query: str | None = None) -> dict[str, Any]:

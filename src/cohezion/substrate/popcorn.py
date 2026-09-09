@@ -72,7 +72,7 @@ def submit(
     # Resolve leaderboard name
     if kernel in KERNEL_MAP:
         leaderboard, _ = KERNEL_MAP[kernel]
-    elif re.fullmatch(r"[A-Za-z0-9._-]{1,64}", kernel):
+    elif re.fullmatch(r"[A-Za-z0-9._-]{1,64}", kernel) and not kernel.startswith("."):
         leaderboard = kernel  # assume it's already a full leaderboard name
     else:
         return SubmitResult(
@@ -117,11 +117,15 @@ def submit(
     start = time.monotonic()
 
     try:
+        # List-form argv with shell=False (default): the regex-validated kernel
+        # name is passed as a single argv element, never interpolated into a
+        # shell string, so metacharacters cannot be re-interpreted.
         proc = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=timeout,
+            shell=False,
         )
         elapsed = time.monotonic() - start
         stdout, stderr = proc.stdout, proc.stderr

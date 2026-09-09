@@ -118,6 +118,9 @@ class MCPServerManager:
 
             cmd = [_python_exec_inline(), "-m", module_path]
 
+            # Log file: sanitize_path with a mandatory base_dir guarantees the
+            # resolved path stays inside VAULT_LOG_PATH (server names are
+            # caller-provided).
             log_file = sanitize_path(f"{name}.log", base_dir=VAULT_LOG_PATH)
 
             process = subprocess.Popen(

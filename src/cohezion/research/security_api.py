@@ -372,7 +372,7 @@ class APIKeyManager:
             API key (store securely!)
         """
         key = secrets.token_urlsafe(32)
-        key_hash = hashlib.sha256(key.encode()).hexdigest()
+        key_hash = self._fingerprint(key)
 
         self._keys[key_hash] = {
             "name": name,
@@ -388,6 +388,17 @@ class APIKeyManager:
 
         return key
 
+    def _fingerprint(self, key: str) -> str:
+        """Deterministic, keyed fingerprint of an API key.
+
+        HMAC-SHA256 keyed by the master key: deterministic (so constant-time
+        dict lookup still works) but no longer a bare fast hash of the secret
+        (CodeQL py/weak-sensitive-data-hashing).
+        """
+        import hmac as _hmac
+
+        return _hmac.new(self._master_key, key.encode(), hashlib.sha256).hexdigest()
+
     def validate_key(self, key: str) -> tuple[bool, dict[str, Any] | None]:
         """Validate API key.
 
@@ -400,9 +411,9 @@ class APIKeyManager:
         if not key:
             return False, None
 
-        # API-key fingerprint use (not password storage): sha256 keyed by the secret is
-        # the intended design; scrypt (salted, slow) would break constant-time lookup.
-        key_hash = hashlib.sha256(key.encode()).hexdigest()
+        # Keyed fingerprint lookup (see _fingerprint); the master key is
+        # process-local so stored entries and lookups stay consistent.
+        key_hash = self._fingerprint(key)
         key_info = self._keys.get(key_hash)
 
         if not key_info:

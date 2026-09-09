@@ -92,7 +92,9 @@ class DemoGateway:
         self.metrics = DemoMetrics()
         self._response_cache: dict[str, tuple[str, int]] = {}
 
-        logger.info(f"Demo Gateway initialized (Ollama: {_redact_url(ollama_url)})")
+        # The Ollama URL may carry credentials — never log it, even masked
+        # (CodeQL clear-text-logging).
+        logger.info("Demo Gateway initialized (Ollama endpoint configured)")
 
     def _cache_key(self, prompt: str, system: str, model: str) -> str:
         """Generate cache key."""

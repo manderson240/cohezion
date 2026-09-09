@@ -33,7 +33,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
-from cohezion.gateway.demo_gateway import DemoGateway, _redact_url
+from cohezion.gateway.demo_gateway import DemoGateway
 from cohezion.governance.autonomy_engine import AutonomyTier, get_autonomy_engine
 from cohezion.security.credentials import get_credentials
 
@@ -82,7 +82,9 @@ class GatewayManager:
         self.gateways[self.default_gateway_id] = DemoGateway(
             ollama_url=ollama_url,
         )
-        logger.info(f"Demo gateway initialized (Ollama: {_redact_url(ollama_url)})")
+        # The Ollama URL may carry credentials from the secret store — never
+        # log it, even masked (CodeQL clear-text-logging).
+        logger.info("Demo gateway initialized (Ollama endpoint configured)")
         logger.info("Note: This is a DEMO gateway using local Ollama models")
 
     def get_gateway(self, gateway_id: str = "default") -> DemoGateway | None:

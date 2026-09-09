@@ -95,11 +95,6 @@ def _mask(value: str, prefix_len: int = 0) -> str:
     return value[:prefix_len] + "*" * max(0, len(value) - prefix_len - 4) + value[-4:]
 
 
-def _redact(value: str) -> str:
-    """Mask a credential for logging: keep a 4-char prefix, star out the rest."""
-    return value[:4] + "***" if value else "***"
-
-
 def check_all_credentials(output_json: bool = False) -> bool:
     """Check for Kaggle credentials. Returns True if usable credentials found."""
     results = {}
@@ -126,7 +121,9 @@ def check_all_credentials(output_json: bool = False) -> bool:
             "source": source,
             "type": token_type,
         }
-        print(f"[OK] API Token: {_redact(api_token)} ({token_type}, from {source})")
+        # Redacted output: only token type + source are shown, never any part
+        # of the token itself (CodeQL clear-text-logging).
+        print(f"[OK] API Token: *** ({token_type}, from {source})")
         found_any = True
     else:
         results["KAGGLE_API_TOKEN"] = {"status": "MISSING", "value": None, "source": None}
@@ -159,7 +156,9 @@ def check_all_credentials(output_json: bool = False) -> bool:
             "source": source,
             "type": token_type,
         }
-        print(f"[OK] KAGGLE_KEY: {_redact(key)} ({token_type}, from {source})")
+        # Redacted output: only token type + source are shown, never any part
+        # of the key itself (CodeQL clear-text-logging).
+        print(f"[OK] KAGGLE_KEY: *** ({token_type}, from {source})")
         found_any = True
     else:
         results["KAGGLE_KEY"] = {"status": "MISSING", "value": None, "source": None}

@@ -67,12 +67,18 @@ class LocalFinetuner:
         base_model: str = "qwen3.5",
         output_name: str = "cohezion_journey_v1",
     ) -> None:
-        if output_name in {".", ".."} or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", output_name):
+        if output_name in {".", ".."} or not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", output_name
+        ):
             raise ValueError(f"Unsafe output_name: {output_name!r}")
         self.base_model = base_model
         self.output_name = output_name
         self.base_info = BASE_MODELS.get(base_model, BASE_MODELS["qwen3.5"])
-        self.output_dir = MODELS_DIR / output_name
+        self.output_dir = (MODELS_DIR / output_name).resolve()
+        # Containment: output_name is validated above, but the resolved dir
+        # must still live inside MODELS_DIR before any filesystem work.
+        if not self.output_dir.is_relative_to(MODELS_DIR.resolve()):
+            raise ValueError(f"Output path escapes models directory: {output_name!r}")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def prepare_dataset(self) -> Path:

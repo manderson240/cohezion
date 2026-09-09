@@ -55,8 +55,10 @@ class MCPHTTPSClient:
         if self._ssl_context is not None:
             return self._ssl_context
 
-        # Create SSL context
-        self._ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        # create_default_context() builds a PROTOCOL_TLS_CLIENT context with
+        # minimum_version=TLSv1.2 enforced from construction (CodeQL
+        # py/insecure-protocol) and hostname checking enabled.
+        self._ssl_context = ssl.create_default_context()
 
         # Configure certificate verification
         if self.verify_ssl:
@@ -81,6 +83,7 @@ class MCPHTTPSClient:
 
         # Enforce strong TLS versions — minimum_version=TLSv1_2 disables all older protocols
         self._ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+        self._ssl_context.check_hostname = True
 
         return self._ssl_context
 

@@ -115,7 +115,12 @@ async def get_rl_policy(agent_id: str):
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", agent_id):
         return RLPolicyResponse(exists=False)
     checkpoint_dir = Path("data/rl/checkpoints")
-    ckpt_path = checkpoint_dir / f"policy_{agent_id}.pt"
+    ckpt_path = (checkpoint_dir / f"policy_{agent_id}.pt").resolve()
+
+    # Defense-in-depth: resolved path must stay inside the checkpoint directory
+    # (blocks traversal even if the id regex above is ever loosened).
+    if not ckpt_path.is_relative_to(checkpoint_dir.resolve()):
+        return RLPolicyResponse(exists=False)
 
     # Also check for the default final checkpoint
     if not ckpt_path.exists():
@@ -127,6 +132,8 @@ async def get_rl_policy(agent_id: str):
     import torch
 
     try:
+        # weights_only=True: checkpoint must contain tensors only (no pickled
+        # objects), so a tampered file cannot execute code on load.
         state_dict = torch.load(ckpt_path, map_location="cpu", weights_only=True)
         n_params = sum(v.numel() for v in state_dict.values())
 
