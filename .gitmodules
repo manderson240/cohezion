@@ -99,6 +99,19 @@
 	path = .pi/git/github.com/tmustier/pi-extensions
 	url = https://github.com/tmustier/pi-extensions.git
 
+# SurrealDB Official AI Agent Skills Catalog (active)
+# Another mode-160000 gitlink with NO .gitmodules entry — same defect as the amd
+# skills-repo above (reproduced 2026-09-09: `git submodule foreach` and the CI
+# Release workflow both fatal with "No url found for submodule path
+# 'src/cohezion/skills/surrealdb/skills-repo' in .gitmodules", breaking checkout
+# with fetch-depth: 0). URL verified from the submodule's own `git remote -v`, and
+# its HEAD (95628976) matches the gitlink the parent records — a real URL, not a
+# placeholder.
+[submodule "src/cohezion/skills/surrealdb/skills-repo"]
+	path = src/cohezion/skills/surrealdb/skills-repo
+	url = https://github.com/surrealdb/agent-skills.git
+	# Gitlink commit: 95628976c277711b2082db1176ef9c495df17aaa
+
 # Archives (backup submodules)
 [submodule "archives/backups/research/turboquant"]
 	path = archives/backups/research/turboquant
