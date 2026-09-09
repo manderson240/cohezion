@@ -7,14 +7,23 @@
 #   3. If any fail → print a structured report and exit non-zero
 #   4. Log the result to SurrealDB for provenance
 #
+# Landing discipline (bors "not-rocket-science" rule, added 2026-09-09):
+#   - Gates are validated against a TEMP INTEGRATION BRANCH = PR merged on top of
+#     tip-of-trunk, never against stale HEAD. A PR whose merge conflicts with main
+#     fails here with "rebase needed" instead of dirtying main.
+#   - Before merging, trunk is re-fetched; if main moved since validation, the
+#     guard exits 2 (retry later) rather than merging something it didn't validate.
+#   - A flock serializes landings: one PR in flight at a time (poor-man's queue
+#     for a single maintainer; research digest 2026-09-09, pillar P1).
+#
 # Usage:
 #   scripts/ci/automerge_guard.sh <PR_NUMBER>
 #   scripts/ci/automerge_guard.sh 252
 #
 # Exit codes:
 #   0 = all gates passed, PR merged
-#   1 = one or more gates failed, PR not merged
-#   2 = CI checks still pending (retry later)
+#   1 = one or more gates failed, or PR conflicts with main (rebase needed)
+#   2 = CI checks pending / trunk moved during validation / another guard running (retry later)
 #   3 = error (bad PR number, gh not installed, etc.)
 
 set -uo pipefail
@@ -24,6 +33,26 @@ PR_NUMBER="${1:?Usage: $0 <PR_NUMBER>}"
 FAIL=0
 GATES_PASSED=()
 GATES_FAILED=()
+
+# Serialize landings: one PR through the guard at a time (poor-man's merge queue).
+mkdir -p /tmp/cohezion-automerge
+exec 9>/tmp/cohezion-automerge/lock
+if ! flock -n 9; then
+  echo "❌ Another automerge_guard is running (lock held). Retry later."
+  exit 2
+fi
+
+# Cleanup: never leave the repo stranded on the temp integration branch.
+ORIGINAL_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+cleanup_integ() {
+  local cur
+  cur="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+  if [ "${INTEG_BRANCH:-}" ] && [ "$cur" = "$INTEG_BRANCH" ]; then
+    git checkout -q "$ORIGINAL_BRANCH" 2>/dev/null
+    git branch -D "$INTEG_BRANCH" 2>/dev/null
+  fi
+}
+trap cleanup_integ EXIT
 
 step() {
   local name="$1"; shift
@@ -54,12 +83,32 @@ echo "=== AutoMerge Guard for PR #${PR_NUMBER} ==="
 echo "Time: $(date -Iseconds)"
 echo ""
 
-# Step 0: Check out the PR branch
-echo "[0] Fetching PR #${PR_NUMBER}..."
+# Step 0: Bors-rule validation base — gates run on a temp integration branch
+# (origin/main + PR), never on the PR's stale HEAD. A PR that conflicts with
+# trunk fails HERE instead of dirtying main after a blind merge.
+echo "[0] Fetching trunk tip and PR #${PR_NUMBER}..."
+git fetch origin main --quiet || { echo "  -> ERROR: git fetch origin main failed"; exit 3; }
+TRUNK_TIP="$(git rev-parse origin/main)" || { echo "  -> ERROR: cannot resolve origin/main"; exit 3; }
+
 gh pr checkout "$PR_NUMBER" 2>/dev/null || {
   echo "  -> ERROR: could not checkout PR #${PR_NUMBER}"
   exit 3
 }
+PR_SHA="$(git rev-parse HEAD)"
+
+INTEG_BRANCH="automerge-integ-${PR_NUMBER}"
+git branch -D "$INTEG_BRANCH" 2>/dev/null
+git checkout -q -B "$INTEG_BRANCH" "$TRUNK_TIP" || {
+  echo "  -> ERROR: cannot create integration branch ${INTEG_BRANCH}"
+  exit 3
+}
+if ! git merge -q --no-ff "$PR_SHA" -m "integr: PR #${PR_NUMBER} onto trunk ${TRUNK_TIP}" 2>/dev/null; then
+  git merge --abort 2>/dev/null
+  echo "  -> ❌ PR #${PR_NUMBER} does not merge cleanly onto origin/main (${TRUNK_TIP:0:7})."
+  echo "     Rebase the branch onto main and re-run the guard. Nothing was merged."
+  exit 1
+fi
+echo "  -> Integration base ready: trunk ${TRUNK_TIP:0:7} + PR ${PR_SHA:0:7}"
 
 # Step 1: Ruff format check
 step "ruff format --check" uv run ruff format --check src/ tests/
@@ -177,12 +226,26 @@ echo "Failed: ${#GATES_FAILED[@]} gates"
 for g in "${GATES_FAILED[@]}"; do echo "  ✗ $g"; done
 
 if [ "$FAIL" -eq 0 ]; then
+  # Stale-trunk check: if main moved while gates ran, what we validated is not
+  # what would land. Retry (the next run re-validates against the new tip).
+  git fetch origin main --quiet
+  TRUNK_NOW="$(git rev-parse origin/main)"
+  if [ "$TRUNK_NOW" != "$TRUNK_TIP" ]; then
+    echo ""
+    echo "⚠️  Trunk moved during validation (${TRUNK_TIP:0:7} → ${TRUNK_NOW:0:7})."
+    echo "   Gates validated a base that is no longer tip — re-run the guard to re-validate."
+    git branch -D "$INTEG_BRANCH" 2>/dev/null
+    exit 2
+  fi
   echo ""
   echo "=== All gates passed — merging PR #${PR_NUMBER} ==="
-  gh pr merge "$PR_NUMBER" --squash --admin --delete-branch 2>/dev/null
+  # NOTE: no --admin. AGENTS.md forbids bypassing gates; main has no required
+  # checks, so a plain squash merge is the honest landing path.
+  merge_out="$(gh pr merge "$PR_NUMBER" --squash --delete-branch 2>&1)"
   merge_result=$?
   if [ $merge_result -eq 0 ]; then
     echo "✅ PR #${PR_NUMBER} merged successfully."
+    git branch -D "$INTEG_BRANCH" 2>/dev/null
     # Log to SurrealDB
     curl -s -X POST http://localhost:8001/sql \
       -H "Content-Type: text/plain" -u "root:root" \
@@ -196,6 +259,7 @@ if [ "$FAIL" -eq 0 ]; then
     exit 0
   else
     echo "❌ Merge failed (exit $merge_result). PR may have conflicts or be blocked."
+    [ -n "$merge_out" ] && echo "$merge_out"
     exit 1
   fi
 else
