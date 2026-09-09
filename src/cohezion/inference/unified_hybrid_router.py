@@ -11,18 +11,18 @@ import json
 import logging
 import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, get_event_bus
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
-from cohezion.inference.lemonade_health import LemonadeHealth, probe_lemonade
-from cohezion.reliability import get_circuit
-from cohezion.reliability.oom_guard import OOMGuard
-from cohezion.inference.transports.base import BaseInferenceTransport, TransportResponse
+from cohezion.inference.lemonade_health import probe_lemonade
+from cohezion.inference.transports.base import BaseInferenceTransport
 from cohezion.inference.transports.lemonade import LemonadeTransport
 from cohezion.inference.transports.ollama import OllamaCloudTransport
+from cohezion.reliability import get_circuit
+from cohezion.reliability.oom_guard import OOMGuard
 
 
 # --- reconcile 2026-08-26: top-level symbols preserved from the branch ---
@@ -59,9 +59,9 @@ class TaskClass(StrEnum):
 
 
 _TIER1_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "DeepSeek-Qwen3-8B-GGUF",
+    TaskClass.REASONING: "deepseek-r1-0528-8b-FLM",
     TaskClass.DEEP_REASONING: "Qwen3.6-35B-A3B-GGUF",
-    TaskClass.CODING: "Qwen3-8B-GGUF",
+    TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
     TaskClass.CODING_TOOLS: "Gemma-4-E4B-it-GGUF",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
     TaskClass.RESEARCH: "Qwen3.6-35B-A3B-GGUF",
@@ -113,12 +113,12 @@ _TIER3_PINS: dict[TaskClass, str] = {
 }
 
 
-@dataclass(frozen=True, slots=True)
 class EVIPriority:
     """Importance weights for TaskClasses to calculate EVI.
     Higher = more critical to get correct (justifies higher cost).
     """
-    WEIGHTS: dict[TaskClass, float] = field(default_factory=lambda: {
+
+    WEIGHTS: dict[TaskClass, float] = {
         TaskClass.DEEP_REASONING: 1.0,
         TaskClass.SCIENCE_FRONTIER: 1.0,
         TaskClass.CODING: 0.9,
@@ -134,7 +134,7 @@ class EVIPriority:
         TaskClass.SUB_BILLION_EDGE: 0.1,
         TaskClass.EXTREME_COMPACT: 0.1,
         TaskClass.EMBEDDINGS: 0.1,
-    })
+    }
 
     @classmethod
     def get_weight(cls, task_class: TaskClass) -> float:
@@ -242,7 +242,7 @@ class UnifiedHybridRouter:
         self.prefer_local = prefer_local
         self.lemonade_port = lemonade_port
         self._lemonade_url = f"http://localhost:{lemonade_port}/v1/chat/completions"
-        
+
         # Transport Layer Initialization
         self.transports: dict[str, BaseInferenceTransport] = {
             "local": LemonadeTransport(port=lemonade_port),
@@ -253,6 +253,7 @@ class UnifiedHybridRouter:
         else:
             env_val = os.getenv("COHEZION_EVI_THRESHOLD")
             self.evi_threshold = float(env_val) if env_val else self.DEFAULT_EVI_THRESHOLD
+
     def compute_evi(
         self,
         quality_gap: float,
@@ -403,37 +404,41 @@ class UnifiedHybridRouter:
             return TIER_3_ROSTER.get(task_type, TIER_3_ROSTER["general"])
         return "qwen3-4b-FLM"
 
-    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---    def _calculate_evi(self, prompt: str, task_class: TaskClass, current_tier: int) -> float:
+    # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    def _calculate_evi(self, prompt: str, task_class: TaskClass, current_tier: int) -> float:
         """Compute Expected Value of Intervention for escalating to the next tier.
-        
+
         Formula: EVI = (QualityGap * Importance) / CostRatio
         """
         importance = EVIPriority.get_weight(task_class)
-        
+
         # Complexity heuristic: length and structure
         complexity = 1.0
-        if len(prompt) > 2000: complexity += 0.5
-        if any(k in prompt.lower() for k in ["prove", "formal", "architect", "refactor"]): complexity += 0.3
-        
+        if len(prompt) > 2000:
+            complexity += 0.5
+        if any(k in prompt.lower() for k in ["prove", "formal", "architect", "refactor"]):
+            complexity += 0.3
+
         # Triviality Filter: Cap EVI for extremely short/simple prompts
         if len(prompt) < 50 and task_class in (TaskClass.GENERAL, TaskClass.FAST_QA):
             return 0.5
-        
+
         # Simulated Quality Gap based on complexity and tier
         # In production, this pulls from ModelCardHarness
         base_gap = {
-            0: 0.4, # NPU -> Local MoE
-            1: 0.3, # Local MoE -> Cloud
-            2: 0.2, # Cloud -> Premium
+            0: 0.4,  # NPU -> Local MoE
+            1: 0.3,  # Local MoE -> Cloud
+            2: 0.2,  # Cloud -> Premium
         }.get(current_tier, 0.1)
-        
+
         quality_gap = base_gap * complexity
-        
+
         # Cost Ratio: Simplified relative cost increase (Local:1, Cloud:5, Premium:20)
         costs = {0: 1.0, 1: 1.0, 2: 5.0, 3: 20.0}
         cost_ratio = costs.get(current_tier + 1, 1.0) / costs.get(current_tier, 1.0)
-        
+
         return min(1.0, (quality_gap * importance) / max(cost_ratio, 0.1))
+
     async def route_by_capability(
         self,
         prompt: str,
@@ -479,26 +484,27 @@ class UnifiedHybridRouter:
         current_tier = 0
         while current_tier < 3:
             evi = self._calculate_evi(prompt, task_class, current_tier)
-            
+
             if evi < 0.75 and not force_cloud:
                 # EVI too low to justify escalation; stick with current tier
                 break
-            
+
             current_tier += 1
 
         # Map computed tier to the actual logic
         if current_tier == 0:
             # Use Tier-0 synthetic (though we usually start at Tier-1 in route_by_capability)
             # For this implementation, we treat Tier-0 as the starting point for EVI
-            pass 
-            
+            pass
+
         # The remaining logic uses the decision from the EVI loop
         # If current_tier reached 1 or 2, we override the default 'prefer_local' logic
         tier1_available = False
-        if current_tier >= 2:
-            tier1_available = False # Force cloud
-        elif current_tier >= 1 and not self.prefer_local:
-            tier1_available = False
+        if force_cloud or current_tier >= 2:
+            tier1_available = False  # Force cloud
+        elif self.prefer_local or current_tier >= 1:
+            # Documented contract (docstring + route_query): when the caller
+            # prefers local silicon, probe Lemonade and try the Tier-1 pin.
             try:
                 circuit = get_circuit(
                     "lemonade_preflight", failure_threshold=3, recovery_timeout=20.0
@@ -574,34 +580,36 @@ class UnifiedHybridRouter:
             tier_label = "Tier 1 (iGPU Coder)"
         elif task_class == TaskClass.GENERAL:
             tier_label = "Tier 1 (iGPU General)"
-        
+
         if tier1_available:
-            # Use Transport Layer
-            res_data = await self.transports["local"].query(prompt, chosen_tier1_model)
-            if res_data:
+            # Blessed path: aquery_lemonade_local carries model-aligned params,
+            # local-ledger recording, and the content->reasoning_content fallback.
+            local_out = await self.aquery_lemonade_local(prompt, chosen_tier1_model)
+            if local_out is not None:
+                dt_ms = (time.perf_counter() - t0) * 1000.0
                 resp = HybridRouteResponse(
-                    content=res_data.content,
+                    content=local_out,
                     tier_used=tier_label,
-                    model_name=res_data.model_name,
-                    latency_ms=res_data.latency_ms,
-                    verified=res_data.verified,
+                    model_name=chosen_tier1_model,
+                    latency_ms=round(dt_ms, 2),
+                    verified=True,
                     task_class=task_class,
                     evi_score=evi_score,
                 )
                 await self._publish_routing_event(resp, "tier1_success")
                 return resp
 
-
         # --- Tier-2: Ollama cloud fallback ----------------------------
         chosen_tier2_model = _TIER2_PINS.get(task_class, self.cloud_model)
-        res_data = await self.transports["cloud"].query(prompt, chosen_tier2_model)
-        if res_data:
+        cloud_out = await self.aquery_ollama_cloud(prompt, chosen_tier2_model)
+        if cloud_out is not None:
+            dt_ms = (time.perf_counter() - t0) * 1000.0
             resp = HybridRouteResponse(
-                content=res_data.content,
+                content=cloud_out,
                 tier_used="Tier 2 (Ollama Cloud)",
-                model_name=res_data.model_name,
-                latency_ms=res_data.latency_ms,
-                verified=res_data.verified,
+                model_name=chosen_tier2_model,
+                latency_ms=round(dt_ms, 2),
+                verified=True,
                 task_class=task_class,
                 evi_score=evi_score,
             )

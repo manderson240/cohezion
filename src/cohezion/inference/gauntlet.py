@@ -39,7 +39,8 @@ from pathlib import Path
 # Import direction is gauntlet -> gaia_adapter, never the reverse: gaia_adapter references this
 # module only in comments, so there is no cycle. Sharing the normaliser keeps the chokepoint and
 # the GAIA tier from drifting apart again.
-from cohezion.inference.gaia_adapter import _THINK_RE, _answer_only
+from cohezion.inference import gaia_adapter as _gaia_adapter
+from cohezion.inference.gaia_adapter import _answer_only
 
 
 logger = logging.getLogger(__name__)
@@ -276,7 +277,7 @@ def _normalize_answer(text: str) -> str:
     Strips think blocks, prefers a trailing '#### <answer>' marker, then tries
     JSON canonicalization, then numeric canonicalization, else casefolded text.
     """
-    t = _THINK_RE.sub("", text or "").strip()
+    t = _gaia_adapter._THINK_RE.sub("", text or "").strip()
     marked = re.findall(r"####\s*(.+)", t)
     if marked:
         t = marked[-1].strip()

@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 
 if TYPE_CHECKING:  # optuna is an optional (dev/tune) dependency — lazy-imported at call time.
@@ -87,7 +87,7 @@ def run_flume_study(
     *,
     n_trials: int = 25,
     baseline_value: float | None = None,
-    direction: str = "maximize",
+    direction: Literal["minimize", "maximize"] = "maximize",
     seed: int = 42,
 ) -> StudyResult:
     """Run a bounded Optuna study over the A3/A4-safe FLUME-VAE space.
