@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — security hardening (1.22.1)
+- Closed 66 CodeQL alerts (6 critical, 57 high in live code, 3 exempted with
+  justification): arXiv-ID SSRF guards, RL checkpoint path-traversal guard,
+  kernel command-injection whitelist, path-injection containment, TLS 1.2
+  floor, file-permission tightening, credential redaction in logs, URL host
+  allowlists, ReDoS bounds. Source-level guards locked by
+  `tests/unit/test_security_hardening_guards.py`.
+
 ### Changed — merge origin/main, unified CI gates + ratchets (1.22.0)
 - Merged 57 commits from main: reconciled dual EVI paths in
   `unified_hybrid_router` (transports dict + `compute_evi`/`route()` and
