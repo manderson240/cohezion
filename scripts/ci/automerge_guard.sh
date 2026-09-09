@@ -8,9 +8,11 @@
 #   4. Log the result to SurrealDB for provenance
 #
 # Landing discipline (bors "not-rocket-science" rule, added 2026-09-09):
-#   - Gates are validated against a TEMP INTEGRATION BRANCH = PR merged on top of
-#     tip-of-trunk, never against stale HEAD. A PR whose merge conflicts with main
-#     fails here with "rebase needed" instead of dirtying main.
+#   - Gates are validated against a TEMP INTEGRATION WORKTREE = PR merged on top
+#     of tip-of-trunk, never against stale HEAD — and never inside the user's
+#     working copy, so a dirty worktree (submodules, untracked artifacts) cannot
+#     abort or poison the validation. A PR whose merge conflicts with main fails
+#     here with "rebase needed" instead of dirtying main.
 #   - Before merging, trunk is re-fetched; if main moved since validation, the
 #     guard exits 2 (retry later) rather than merging something it didn't validate.
 #   - A flock serializes landings: one PR in flight at a time (poor-man's queue
@@ -42,17 +44,8 @@ if ! flock -n 9; then
   exit 2
 fi
 
-# Cleanup: never leave the repo stranded on the temp integration branch.
-ORIGINAL_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
-cleanup_integ() {
-  local cur
-  cur="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
-  if [ "${INTEG_BRANCH:-}" ] && [ "$cur" = "$INTEG_BRANCH" ]; then
-    git checkout -q "$ORIGINAL_BRANCH" 2>/dev/null
-    git branch -D "$INTEG_BRANCH" 2>/dev/null
-  fi
-}
-trap cleanup_integ EXIT
+# Remember where the user's checkout lives; all final actions run from there.
+ORIG_DIR="$(pwd)"
 
 step() {
   local name="$1"; shift
@@ -83,32 +76,41 @@ echo "=== AutoMerge Guard for PR #${PR_NUMBER} ==="
 echo "Time: $(date -Iseconds)"
 echo ""
 
-# Step 0: Bors-rule validation base — gates run on a temp integration branch
-# (origin/main + PR), never on the PR's stale HEAD. A PR that conflicts with
-# trunk fails HERE instead of dirtying main after a blind merge.
+# Step 0: Bors-rule validation base — gates run in a THROWAWAY WORKTREE holding
+# a temp integration branch (origin/main + PR), never on the PR's stale HEAD and
+# never inside the user's working copy (dirty uncommitted state would otherwise
+# abort the merge — the exact failure the first live run hit). A PR that conflicts
+# with trunk fails HERE instead of dirtying main after a blind merge.
 echo "[0] Fetching trunk tip and PR #${PR_NUMBER}..."
 git fetch origin main --quiet || { echo "  -> ERROR: git fetch origin main failed"; exit 3; }
 TRUNK_TIP="$(git rev-parse origin/main)" || { echo "  -> ERROR: cannot resolve origin/main"; exit 3; }
 
-gh pr checkout "$PR_NUMBER" 2>/dev/null || {
-  echo "  -> ERROR: could not checkout PR #${PR_NUMBER}"
+PR_SHA="$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)" || {
+  echo "  -> ERROR: could not resolve head of PR #${PR_NUMBER}"
   exit 3
 }
-PR_SHA="$(git rev-parse HEAD)"
+echo "  -> PR head: ${PR_SHA:0:7}, trunk tip: ${TRUNK_TIP:0:7}"
 
 INTEG_BRANCH="automerge-integ-${PR_NUMBER}"
+WORKTREE="/tmp/cohezion-automerge/integ-${PR_NUMBER}"
+git worktree remove --force "$WORKTREE" 2>/dev/null
 git branch -D "$INTEG_BRANCH" 2>/dev/null
-git checkout -q -B "$INTEG_BRANCH" "$TRUNK_TIP" || {
-  echo "  -> ERROR: cannot create integration branch ${INTEG_BRANCH}"
+rm -rf "$WORKTREE"
+if ! git worktree add -q "$WORKTREE" -b "$INTEG_BRANCH" "$TRUNK_TIP" 2>/dev/null; then
+  echo "  -> ERROR: cannot create integration worktree at ${WORKTREE}"
   exit 3
-}
+fi
+cd "$WORKTREE" || exit 3
 if ! git merge -q --no-ff "$PR_SHA" -m "integr: PR #${PR_NUMBER} onto trunk ${TRUNK_TIP}" 2>/dev/null; then
   git merge --abort 2>/dev/null
+  cd "$ORIG_DIR"
+  git worktree remove --force "$WORKTREE" 2>/dev/null
+  git branch -D "$INTEG_BRANCH" 2>/dev/null
   echo "  -> ❌ PR #${PR_NUMBER} does not merge cleanly onto origin/main (${TRUNK_TIP:0:7})."
   echo "     Rebase the branch onto main and re-run the guard. Nothing was merged."
   exit 1
 fi
-echo "  -> Integration base ready: trunk ${TRUNK_TIP:0:7} + PR ${PR_SHA:0:7}"
+echo "  -> Integration worktree ready: trunk ${TRUNK_TIP:0:7} + PR ${PR_SHA:0:7}"
 
 # Step 1: Ruff format check
 step "ruff format --check" uv run ruff format --check src/ tests/
@@ -230,11 +232,13 @@ if [ "$FAIL" -eq 0 ]; then
   # what would land. Retry (the next run re-validates against the new tip).
   git fetch origin main --quiet
   TRUNK_NOW="$(git rev-parse origin/main)"
+  git worktree remove --force "$WORKTREE" 2>/dev/null
+  git branch -D "$INTEG_BRANCH" 2>/dev/null
+  cd "$ORIG_DIR" || exit 3
   if [ "$TRUNK_NOW" != "$TRUNK_TIP" ]; then
     echo ""
     echo "⚠️  Trunk moved during validation (${TRUNK_TIP:0:7} → ${TRUNK_NOW:0:7})."
     echo "   Gates validated a base that is no longer tip — re-run the guard to re-validate."
-    git branch -D "$INTEG_BRANCH" 2>/dev/null
     exit 2
   fi
   echo ""
@@ -245,7 +249,6 @@ if [ "$FAIL" -eq 0 ]; then
   merge_result=$?
   if [ $merge_result -eq 0 ]; then
     echo "✅ PR #${PR_NUMBER} merged successfully."
-    git branch -D "$INTEG_BRANCH" 2>/dev/null
     # Log to SurrealDB
     curl -s -X POST http://localhost:8001/sql \
       -H "Content-Type: text/plain" -u "root:root" \
@@ -265,6 +268,9 @@ if [ "$FAIL" -eq 0 ]; then
 else
   echo ""
   echo "❌ ${#GATES_FAILED[@]} gate(s) failed — PR #${PR_NUMBER} not merged."
+  git worktree remove --force "$WORKTREE" 2>/dev/null
+  git branch -D "$INTEG_BRANCH" 2>/dev/null
+  cd "$ORIG_DIR" || exit 3
   # Log to SurrealDB
   curl -s -X POST http://localhost:8001/sql \
     -H "Content-Type: text/plain" -u "root:root" \
