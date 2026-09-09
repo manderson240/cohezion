@@ -101,12 +101,13 @@ if ! git worktree add -q "$WORKTREE" -b "$INTEG_BRANCH" "$TRUNK_TIP" 2>/dev/null
   exit 3
 fi
 cd "$WORKTREE" || exit 3
-if ! git merge -q --no-ff "$PR_SHA" -m "integr: PR #${PR_NUMBER} onto trunk ${TRUNK_TIP}" 2>/dev/null; then
+if ! MERGE_OUT="$(git merge --no-ff "$PR_SHA" -m "merge: PR #${PR_NUMBER} onto trunk ${TRUNK_TIP}")" 2>/dev/null; then
   git merge --abort 2>/dev/null
   cd "$ORIG_DIR"
   git worktree remove --force "$WORKTREE" 2>/dev/null
   git branch -D "$INTEG_BRANCH" 2>/dev/null
   echo "  -> ❌ PR #${PR_NUMBER} does not merge cleanly onto origin/main (${TRUNK_TIP:0:7})."
+  [ -n "$MERGE_OUT" ] && echo "$MERGE_OUT" | head -10
   echo "     Rebase the branch onto main and re-run the guard. Nothing was merged."
   exit 1
 fi
