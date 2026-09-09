@@ -445,9 +445,13 @@ async def main() -> None:
     """Run the MCP server using stdio protocol."""
     logger.info("Starting ngrok AI Gateway MCP server...")
     logger.info("Listening on stdio for MCP protocol")
-    async with stdio_server(server):
-        logger.info("MCP server ready")
-        await asyncio.sleep(float("inf"))
+    # mcp 1.x stdio_server() is an async context manager yielding the
+    # (read, write) streams; it takes no Server argument. The Server runs
+    # via app.run(), mirroring mcp/cohezion_agi_server.py.
+    import mcp.server.stdio  # noqa: F401  (kept for parity with AGI server)
+
+    async with stdio_server() as (read_stream, write_stream):
+        await server.run(read_stream, write_stream, server.create_initialization_options())
 
 
 if __name__ == "__main__":

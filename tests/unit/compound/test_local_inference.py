@@ -139,7 +139,6 @@ class TestCompoundExecutorInferenceProvider:
         sig = inspect.signature(CompoundExecutor.__init__)
         assert "inference_provider" in sig.parameters
 
-    @pytest.mark.xfail(reason="TDD-red: execute_fn default wiring not implemented", strict=False)
     def test_execute_task_execute_fn_defaults_to_none(self):
         from cohezion.compound.executor import CompoundExecutor
 

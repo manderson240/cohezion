@@ -14,8 +14,11 @@ import os
 import re as _re
 import subprocess
 import sys
+import time
+import uuid
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, NamedTuple
 
 import httpx
@@ -40,13 +43,75 @@ _LARGE_MODEL_RE = _re.compile(r"\b(1[0-9]B|2[0-9]B|3[0-9]B|[1-9]\d{2,}B)\b", _re
 LEMONADE_ROUTER_URL: str = LEMONADE_BASE_URL
 
 SYSTEM_PROMPT: str = (
-    "You are the Cohezion assistant, running exclusively on AMD silicon (Ryzen AI MAX+ 395, "
-    "Radeon 8060S iGPU, XDNA2 NPU). "
-    "You have NO access to the open internet — all inference is local via the :13305 OmniRouter. "
-    "You assist the operator with local session telemetry, model fleet status, and compound "
-    "engineering tasks. Answer concisely and technically. "
-    "Never suggest external API services as inference backends — local silicon only."
+    "You are the Cohezion assistant, coordinating between the operator, AMD silicon (:13305 OmniRouter), "
+    "and the active Antigravity engineering swarm. "
+    "You assist the operator with local telemetry, model fleet status, and compound engineering tasks. "
+    "Answer concisely, technically, and helpfully."
 )
+
+
+def clean_model_output(content: str) -> str:
+    """Strip <think>...</think> blocks from reasoning models for clean messaging."""
+    return _re.sub(r"<think>.*?</think>", "", content, flags=_re.DOTALL).strip()
+
+
+def markdown_to_telegram_html(content: str) -> str:
+    """Format markdown text into clean Telegram-compliant HTML.
+
+    Protects code blocks and inline code, escapes raw HTML characters, converts
+    markdown syntax (headers, bold, italic, bullets) to Telegram HTML tags, and
+    preserves code blocks.
+    """
+    clean_text = clean_model_output(content)
+    if not clean_text:
+        return ""
+
+    code_blocks: list[tuple[str, str]] = []
+
+    def _save_code_block(m: _re.Match[str]) -> str:
+        lang = m.group(1).strip() if m.group(1) else ""
+        code = m.group(2).strip()
+        code_blocks.append((html.escape(code), html.escape(lang)))
+        return f"\x00CB{len(code_blocks) - 1}\x00"
+
+    text = _re.sub(
+        r"```([a-zA-Z0-9_-]*)\n?(.*?)```", _save_code_block, clean_text, flags=_re.DOTALL
+    )
+
+    inline_codes: list[str] = []
+
+    def _save_inline_code(m: _re.Match[str]) -> str:
+        inline_codes.append(html.escape(m.group(1)))
+        return f"\x00IC{len(inline_codes) - 1}\x00"
+
+    text = _re.sub(r"`([^`]+)`", _save_inline_code, text)
+
+    # Escape HTML entities
+    text = html.escape(text)
+
+    # Markdown headers (# Header -> <b>Header</b>)
+    text = _re.sub(r"^#{1,6}\s*(.+)$", r"<b>\1</b>", text, flags=_re.MULTILINE)
+
+    # Bold (**bold** or __bold__)
+    text = _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+    text = _re.sub(r"__(.+?)__", r"<b>\1</b>", text)
+
+    # Italic (*italic* or _italic_)
+    text = _re.sub(r"(?<!\w)\*([^*\n]+?)\*(?!\w)", r"<i>\1</i>", text)
+    text = _re.sub(r"(?<!\w)_([^_\n]+?)_(?!\w)", r"<i>\1</i>", text)
+
+    # Bullets (* item or - item at start of line -> • item)
+    text = _re.sub(r"^[\*\-]\s+", "• ", text, flags=_re.MULTILINE)
+
+    # Restore code blocks & inline code
+    for i, (escaped_code, lang) in enumerate(code_blocks):
+        cls = f' class="language-{lang}"' if lang else ""
+        text = text.replace(f"\x00CB{i}\x00", f"<pre><code{cls}>{escaped_code}</code></pre>")
+
+    for i, escaped_code in enumerate(inline_codes):
+        text = text.replace(f"\x00IC{i}\x00", f"<code>{escaped_code}</code>")
+
+    return text
 
 
 class QueryComplexity(Enum):
@@ -89,16 +154,24 @@ _COMPLEX_TOKENS: frozenset[str] = frozenset(
 # The router substitutes the closest currently-loaded model when the hint isn't loaded.
 _COMPLEXITY_HINTS: dict[QueryComplexity, list[str]] = {
     QueryComplexity.SIMPLE: [
+        "user.cohezion-router",
         "llama3.2-1b-FLM",
+        "qwen3-4b-FLM",
         "Gemma-4-E2B-it-GGUF",
         "Gemma-4-E4B-it-GGUF",
     ],
     QueryComplexity.MEDIUM: [
+        "user.cohezion-router",
+        "qwen3-4b-FLM",
+        "deepseek-r1-0528-8b-FLM",
         "Gemma-4-E4B-it-GGUF",
         "Qwen3.6-27B-GGUF",
         "Gemma-4-31B-it-GGUF",
     ],
     QueryComplexity.COMPLEX: [
+        "user.cohezion-router",
+        "deepseek-r1-0528-8b-FLM",
+        "Qwen3-Coder-30B-A3B-Instruct-GGUF",
         "Gemma-4-31B-it-GGUF",
         "Qwen3.6-35B-A3B-GGUF",
         "Gemma-4-26B-A4B-it-GGUF",
@@ -188,6 +261,9 @@ class TelegramCommunicationHub:
         # Process-spawn guard: True only after a successful :13305 probe.
         # /agent and /run are blocked until inference is verified healthy.
         self._inference_ready: bool = False
+        self.routing_mode: str = (
+            os.environ.get("TELEGRAM_ROUTING_MODE", "antigravity").strip().lower()
+        )
 
     async def _run_cmd(self, *args: Any, **kwargs: Any) -> subprocess.CompletedProcess[Any]:
         """Run subprocess.run in a background thread to keep event loop responsive."""
@@ -219,11 +295,19 @@ class TelegramCommunicationHub:
 
     async def _chat_omnirouter(
         self,
-        complexity: QueryComplexity,
-        messages: list[dict[str, str]],
-        max_tokens: int,
+        complexity_or_text: QueryComplexity | str,
+        messages: list[dict[str, str]] | None = None,
+        max_tokens: int = 128,
     ) -> tuple[str | None, _OmniTelemetry]:
         """POST to :13305 OmniRouter with a complexity hint; retry across hint list on failure."""
+        if isinstance(complexity_or_text, str):
+            complexity = QueryComplexity.MEDIUM
+            messages = [{"role": "user", "content": complexity_or_text}]
+        else:
+            complexity = complexity_or_text
+            if messages is None:
+                messages = []
+
         telem = _OmniTelemetry(port=13305, backend="lemonade-omnirouter")
         hints = list(_COMPLEXITY_HINTS.get(complexity, _COMPLEXITY_HINTS[QueryComplexity.MEDIUM]))
         last_error: str | None = None
@@ -266,6 +350,7 @@ class TelegramCommunicationHub:
                     last_error = "no choices"
                     continue
                 content = str(choices[0].get("message", {}).get("content", "")).strip()
+                content = clean_model_output(content)
                 if not content:
                     last_error = "empty content"
                     continue
@@ -314,6 +399,44 @@ class TelegramCommunicationHub:
         except Exception as exc:
             logger.debug("Telemetry write failed: %s", exc)
 
+    async def _sync_bot_commands(self) -> None:
+        """Register slash commands with Telegram so the / menu auto-completes in mobile UI."""
+        commands = [
+            {"command": "status", "description": "Fleet vitals, RAM/GPU & Lemonade router"},
+            {"command": "agy", "description": "Direct query to Antigravity Orchestrator"},
+            {"command": "local", "description": "Query local AMD silicon (:13305 OmniRouter)"},
+            {"command": "mode", "description": "Switch routing: /mode [antigravity|local|auto]"},
+            {"command": "list", "description": "List running agent sessions"},
+            {"command": "read", "description": "Read last 20 lines of a session pane"},
+            {"command": "send", "description": "Dispatch command keys to session"},
+            {"command": "learnings", "description": "Retrieve latest registered learnings"},
+            {"command": "run", "description": "Execute Python snippet via local inference"},
+            {"command": "clear", "description": "Clear conversation history"},
+            {"command": "help", "description": "Show command manual and instructions"},
+        ]
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    f"{self.base_url}/setMyCommands",
+                    json={"commands": commands},
+                    timeout=8.0,
+                )
+        except Exception as e:
+            logger.debug("Failed to set bot commands: %s", e)
+
+    async def _set_status_indicator(self, online: bool) -> None:
+        """Set bot short description (online/offline presence indicator in Telegram profile)."""
+        text = "🟢 Online — Cohezion Swarm & Antigravity Node" if online else "🔴 Offline"
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    f"{self.base_url}/setMyShortDescription",
+                    json={"short_description": text},
+                    timeout=8.0,
+                )
+        except Exception as e:
+            logger.debug("Failed to set bot status indicator: %s", e)
+
     async def start(self) -> None:
         """Starts the long-polling execution loop."""
         if not self.is_configured():
@@ -322,6 +445,8 @@ class TelegramCommunicationHub:
 
         self._running = True
         logger.info("Cohezion Telegram Hub started on chat %s", self.allowed_chat_id)
+        await self._sync_bot_commands()
+        await self._set_status_indicator(online=True)
         await self._send_msg("🤖 Cohezion Telegram Hub is active and monitoring local silicon.")
 
         while self._running:
@@ -337,25 +462,61 @@ class TelegramCommunicationHub:
     async def stop(self) -> None:
         self._running = False
         logger.info("Stopping Telegram Hub...")
+        await self._set_status_indicator(online=False)
         await self._send_msg("🛑 Telegram Hub is shutting down.")
 
     async def _send_msg(self, text: str, parse_mode: str | None = "HTML") -> None:
-        """Sends a message back to the allowed chat ID."""
-        try:
-            payload: dict[str, Any] = {
-                "chat_id": self.allowed_chat_id,
-                "text": text,
-            }
-            if parse_mode:
-                payload["parse_mode"] = parse_mode
-            async with httpx.AsyncClient() as client:
-                await client.post(
-                    f"{self.base_url}/sendMessage",
-                    json=payload,
-                    timeout=15.0,
-                )
-        except Exception as e:
-            logger.debug("Failed to send telegram msg: %s", e)
+        """Sends a message back to the allowed chat ID with chunking and parse fallback."""
+        if not text:
+            return
+
+        # Respect Telegram's 4096 character limit per message
+        chunks: list[str] = []
+        if len(text) <= 4000:
+            chunks = [text]
+        else:
+            remaining = text
+            while len(remaining) > 4000:
+                split_idx = remaining.rfind("\n\n", 0, 4000)
+                if split_idx == -1:
+                    split_idx = remaining.rfind("\n", 0, 4000)
+                if split_idx == -1:
+                    split_idx = 4000
+                chunks.append(remaining[:split_idx])
+                remaining = remaining[split_idx:].lstrip()
+            if remaining:
+                chunks.append(remaining)
+
+        async with httpx.AsyncClient() as client:
+            for chunk in chunks:
+                try:
+                    payload: dict[str, Any] = {
+                        "chat_id": self.allowed_chat_id,
+                        "text": chunk,
+                    }
+                    if parse_mode:
+                        payload["parse_mode"] = parse_mode
+
+                    resp = await client.post(
+                        f"{self.base_url}/sendMessage",
+                        json=payload,
+                        timeout=15.0,
+                    )
+                    # If HTML parsing failed, retry plain text
+                    if resp.status_code != 200 and parse_mode:
+                        logger.warning(
+                            "Telegram sendMessage failed (%d: %s). Retrying as plain text.",
+                            resp.status_code,
+                            resp.text,
+                        )
+                        clean_plain = _re.sub(r"<[^<]+?>", "", chunk)
+                        await client.post(
+                            f"{self.base_url}/sendMessage",
+                            json={"chat_id": self.allowed_chat_id, "text": clean_plain},
+                            timeout=15.0,
+                        )
+                except Exception as e:
+                    logger.warning("Failed to send telegram msg chunk: %s", e)
 
     async def _poll_updates(self) -> None:
         """Polls new updates from Telegram API."""
@@ -392,7 +553,9 @@ class TelegramCommunicationHub:
             return
 
         if not text.startswith("/"):
-            # Route to local model chat by default
+            if self.routing_mode == "antigravity" or self._is_antigravity_query(text):
+                await self._handle_antigravity(text)
+                return
             await self._handle_chat(text)
             return
 
@@ -401,6 +564,33 @@ class TelegramCommunicationHub:
 
         if command in ("/start", "/help"):
             await self._send_msg(self._get_help_message())
+
+        elif command in ("/antigravity", "/agy", "/ask"):
+            prompt = text[len(command) :].strip()
+            if not prompt:
+                await self._send_msg(
+                    f"⚠️ Format: <code>{safe_html(command)} &lt;question&gt;</code>"
+                )
+            else:
+                await self._handle_antigravity(prompt)
+
+        elif command == "/mode":
+            mode_arg = parts[1].lower().strip() if len(parts) > 1 else ""
+            if mode_arg in ("antigravity", "local", "auto"):
+                self.routing_mode = mode_arg
+                await self._send_msg(f"🔀 Chat routing mode set to: <b>{mode_arg}</b>")
+            else:
+                await self._send_msg(
+                    f"Current routing mode: <b>{self.routing_mode}</b>\n"
+                    "Usage: <code>/mode [antigravity|local|auto]</code>"
+                )
+
+        elif command.startswith("/local "):
+            prompt = text[len("/local ") :].strip()
+            if not prompt:
+                await self._send_msg("⚠️ Format: <code>/local &lt;prompt&gt;</code>")
+            else:
+                await self._handle_chat(prompt)
 
         elif command == "/status":
             await self._handle_status()
@@ -464,10 +654,12 @@ class TelegramCommunicationHub:
 
     def _get_help_message(self) -> str:
         return (
-            "🚀 <b>Cohezion Communication Hub</b>\n\n"
-            "💬 <b>Local Inference Chat (:13305 OmniRouter)</b>\n"
-            "Send any plain text to chat — routed to AMD silicon, never cloud.\n"
-            "/clear - Clear conversation history\n\n"
+            "🚀 <b>Cohezion Telemetry Hub Commands</b>\n\n"
+            "🌌 <b>Antigravity Communication</b>\n"
+            "Send any question directly to chat with Antigravity!\n"
+            "/agy &lt;prompt&gt; - Direct query to Antigravity CLI\n"
+            f"/mode [antigravity|local|auto] - Switch routing mode (current: <b>{safe_html(self.routing_mode)}</b>)\n"
+            "/local &lt;prompt&gt; - Force query to local AMD silicon (:13305 OmniRouter)\n"            "/clear - Clear conversation history\n\n"
             "🎛 <b>System &amp; Session Diagnostics</b>\n"
             "/status - CPU/RAM vitals + Lemonade :13305 fleet (AMD silicon)\n"
             "/list - List running tmux sessions\n"
@@ -944,6 +1136,173 @@ class TelegramCommunicationHub:
                 )
         except Exception as e:
             await self._send_msg(f"⚠️ Tmux error: <code>{safe_html(str(e))}</code>")
+
+    async def _send_chat_action(self, action: str = "typing") -> None:
+        """Sends chat action indicator (e.g. typing) to Telegram."""
+        if not self.is_configured():
+            return
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    f"{self.base_url}/sendChatAction",
+                    json={"chat_id": self.allowed_chat_id, "action": action},
+                    timeout=5.0,
+                )
+        except Exception as e:
+            logger.debug("Failed to send chat action: %s", e)
+
+    async def _keep_typing(self, interval: float = 4.0) -> None:
+        """Maintains 'typing...' status in Telegram while a long operation runs."""
+        while True:
+            await self._send_chat_action("typing")
+            await asyncio.sleep(interval)
+
+    def _is_antigravity_query(self, text: str) -> bool:
+        """Check if message is asking a question or directed to Antigravity."""
+        lowered = text.lower().strip()
+        triggers = (
+            "antigravity",
+            "agy",
+            "orchestrator",
+            "gemini",
+            "claude",
+            "swarm",
+            "what are you working on",
+            "what is our status",
+            "what's our status",
+            "status of",
+            "portfolio",
+            "anthropic",
+            "google drive",
+            "fix ",
+            "refactor ",
+            "can you ",
+            "did you ",
+            "how do we ",
+            "why did ",
+        )
+        return any(t in lowered for t in triggers)
+
+    async def _bridge_to_active_session(self, prompt: str) -> None:
+        """Forward Telegram prompt to active Antigravity session queue and EventBus."""
+        try:
+            from cohezion.core.event_bus import Event, EventBus, EventType
+
+            bus = EventBus()
+            await bus.publish(
+                Event(
+                    type=EventType.CUSTOM,
+                    source="telegram_bot",
+                    payload={
+                        "prompt": prompt,
+                        "chat_id": self.allowed_chat_id,
+                        "timestamp": time.time(),
+                    },
+                )
+            )
+        except Exception as e:
+            logger.debug("EventBus bridge error: %s", e)
+
+        try:
+            import json as _json
+
+            conv_dir = Path("/home/mike-anderson/.gemini/antigravity-cli/conversations")
+            if conv_dir.exists():
+                dbs = sorted(conv_dir.glob("*.db"), key=lambda p: p.stat().st_mtime, reverse=True)
+                if dbs:
+                    active_id = dbs[0].stem
+                    msg_dir = Path(
+                        f"/home/mike-anderson/.gemini/antigravity-cli/brain/{active_id}/.system_generated/messages"
+                    )
+                    msg_dir.mkdir(parents=True, exist_ok=True)
+                    msg_id = str(uuid.uuid4())
+                    msg_payload = {
+                        "id": msg_id,
+                        "recipient": active_id,
+                        "sender": "telegram-bot",
+                        "priority": "MESSAGE_PRIORITY_HIGH",
+                        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                        "renderDetails": {"messageTitle": "Telegram Question from Operator"},
+                        "content": f'Operator asked via Telegram (@CohezionBot):\n"{prompt}"',
+                    }
+                    (msg_dir / f"{msg_id}.json").write_text(_json.dumps(msg_payload, indent=2))
+                    logger.info(
+                        "Bridged Telegram prompt to active Antigravity session %s", active_id
+                    )
+        except Exception as e:
+            logger.debug("Active session brain bridge failed: %s", e)
+
+    def _get_recent_context_summary(self) -> str:
+        """Extract recent user tasks from history.jsonl to give Antigravity active awareness."""
+        try:
+            import json as _json
+
+            hist_file = Path("/home/mike-anderson/.gemini/antigravity-cli/history.jsonl")
+            if hist_file.exists():
+                lines = hist_file.read_text(encoding="utf-8", errors="replace").strip().splitlines()
+                recent_lines = lines[-4:]
+                entries: list[str] = []
+                for line in recent_lines:
+                    try:
+                        data = _json.loads(line)
+                        display = str(data.get("display", "")).strip().replace("\n", " ")
+                        if display:
+                            entries.append(display[:120])
+                    except Exception as err:
+                        logger.debug("Skipping unparseable history entry: %s", err)
+                        continue
+                if entries:
+                    return "\n".join(f"- {e}" for e in entries)
+        except Exception as e:
+            logger.debug("Could not read recent context summary: %s", e)
+        return "Active session orchestrating Cohezion codebase."
+
+    async def _handle_antigravity(self, prompt: str) -> None:
+        """Route query directly to Antigravity CLI, with typing indicator and streaming reply."""
+        await self._send_chat_action("typing")
+        await self._bridge_to_active_session(prompt)
+
+        recent_ctx = self._get_recent_context_summary()
+        prompt_with_ctx = (
+            f'The operator on Telegram asks:\n"{prompt}"\n\n'
+            f"Context: You are Antigravity, orchestrating Cohezion. Recent active tasks in this workspace:\n"
+            f"{recent_ctx}\n\n"
+            "Respond concisely, directly, and helpfully for mobile Telegram messaging (max 250 words)."
+        )
+
+        cmd = [
+            "/home/mike-anderson/.local/bin/agy",
+            "-p",
+            prompt_with_ctx,
+            "--dangerously-skip-permissions",
+        ]
+
+        typing_task = asyncio.create_task(self._keep_typing())
+        try:
+            res = await self._run_cmd(cmd, capture_output=True, text=True, timeout=120)
+            if res.returncode == 0 and res.stdout.strip():
+                formatted_reply = markdown_to_telegram_html(res.stdout.strip())
+                self.conversation_history.append({"role": "user", "content": prompt})
+                self.conversation_history.append(
+                    {"role": "assistant", "content": res.stdout.strip()}
+                )
+                await self._send_msg(f"🌌 <b>Antigravity</b>:\n\n{formatted_reply}")
+            else:
+                err = res.stderr.strip() or f"Process exited with code {res.returncode}"
+                logger.warning("Antigravity CLI failed: %s, falling back to OmniRouter", err)
+                await self._handle_chat(prompt)
+        except TimeoutError:
+            await self._send_msg(
+                "⏱ <b>Antigravity request timed out</b> (120s limit). Routing to local silicon..."
+            )
+            await self._handle_chat(prompt)
+        except Exception as exc:
+            logger.error("Error invoking Antigravity: %s", exc)
+            await self._send_msg(f"⚠️ Antigravity error: <code>{safe_html(str(exc))}</code>")
+        finally:
+            typing_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await typing_task
 
     async def _handle_agents(self) -> None:
         """Lists active side agents (tmux sessions starting with 'agent-')."""

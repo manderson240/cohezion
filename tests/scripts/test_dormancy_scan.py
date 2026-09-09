@@ -124,3 +124,24 @@ class TestNewEntriesWiredAndDiscriminate:
             f"{name}: stripping the consumer did not flip the scan to red — "
             f"pattern {pattern!r} does not discriminate presence vs. absence of the consumer"
         )
+
+
+class TestScannerIsWiredIntoTheGate:
+    """The scanner's own self-test must run in CI and automerge gates, not just in pytest."""
+
+    def test_t3_scanner_is_wired_into_the_gate(self) -> None:
+        """A scanner with no gate calling it is dormant — the class it exists to catch.
+
+        Both ci.yml and automerge_guard.sh must invoke dormancy_scan.py with --self-test
+        as a SEPARATE step before the main scan. A scanner bug otherwise reads as a clean
+        "0 errors" — which is exactly the failure mode this test guards against.
+        """
+        automerge_guard = (REPO / "scripts" / "ci" / "automerge_guard.sh").read_text()
+        ci_yml = (REPO / ".github" / "workflows" / "ci.yml").read_text()
+
+        for gate_file, gate_text in [("automerge_guard.sh", automerge_guard), ("ci.yml", ci_yml)]:
+            assert "dormancy_scan.py" in gate_text, f"{gate_file} does not run the scanner"
+            assert "dormancy_scan.py --self-test" in gate_text, (
+                f"{gate_file} runs the scanner without --self-test; "
+                "an unverified scanner's green is not evidence"
+            )

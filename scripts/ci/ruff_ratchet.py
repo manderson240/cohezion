@@ -18,6 +18,10 @@ Usage:
     python scripts/ci/ruff_ratchet.py            # gate: fail if count > baseline
     python scripts/ci/ruff_ratchet.py --update   # rewrite baseline to measured count
                                                   # (refuses to RAISE a measured one)
+    python scripts/ci/ruff_ratchet.py --merge-reset --reason "..." [--at <merge-ref>]
+                                                  # re-baseline absorbing debt inherited
+                                                  # via the named MERGE commit (2 parents
+                                                  # required); measures the CURRENT tree
 """
 
 from __future__ import annotations
@@ -143,6 +147,46 @@ def main() -> int:
         return _self_test()
 
     current = _current_count()
+
+    if "--merge-reset" in sys.argv:
+        # Sanctioned repair route for merge boundaries: a count-based ratchet
+        # cannot tell "new debt" from "debt that rode in on merged commits".
+        # Guardrails: --at must name a true merge commit (2 parents) + a
+        # --reason for the audit trail; writes the same provenance stamp as
+        # --update. The MEASUREMENT happens on the current tree (so the lock/
+        # config state that CI will actually run against defines the floor);
+        # --at only identifies the merge being absorbed.
+        argv = sys.argv
+        reason = argv[argv.index("--reason") + 1] if "--reason" in argv and argv.index("--reason") + 1 < len(argv) else None
+        at = argv[argv.index("--at") + 1] if "--at" in argv and argv.index("--at") + 1 < len(argv) else "HEAD"
+        if not reason or not reason.strip() or reason.startswith("--"):
+            print('ruff_ratchet: --merge-reset requires: --merge-reset --reason "<why>" [--at <merge-ref>]')
+            return 1
+        if any(f in argv for f in ("--update", "--self-test")):
+            print("ruff_ratchet: --merge-reset cannot be combined with --update/--self-test")
+            return 1
+        revs = subprocess.run(
+            ["git", "rev-list", "--parents", "-n", "1", at],
+            cwd=REPO, capture_output=True, text=True)
+        if revs.returncode != 0:
+            print(f"ruff_ratchet: --at ref {at!r} not resolvable: {revs.stderr.strip()[:200]}")
+            return 1
+        toks = revs.stdout.split()
+        n_parents = len(toks) - 1
+        if n_parents < 2:
+            print(
+                f"ruff_ratchet: refusing --merge-reset on {at} ({n_parents} parent). "
+                f"Merge-resets are only for merge commits; use --update (downward-only) otherwise."
+            )
+            return 1
+        old, _ = _read_baseline()
+        BASELINE_FILE.write_text(f"{current}\n{_PROVENANCE}\n")
+        print(
+            f"ruff_ratchet: MERGE-RESET baseline {old} -> {current} "
+            f"(reason: {reason}; merge commit {toks[0][:12]} verified). "
+            f"Inherited debt is now the floor."
+        )
+        return 0
 
     if "--update" in sys.argv:
         old, old_measured = _read_baseline() if BASELINE_FILE.exists() else (None, False)

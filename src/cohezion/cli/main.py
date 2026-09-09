@@ -917,5 +917,90 @@ def ouroboros_history(
     console.print(table)
 
 
+# -----------------------------------------------------------------------------
+# Operations Control Plane Commands (Hardware, Software, Projects)
+# -----------------------------------------------------------------------------
+
+ops_app = typer.Typer(
+    help="Operations Control Plane: Monitor and orchestrate hardware, software & projects",
+    no_args_is_help=True,
+)
+app.add_typer(ops_app, name="ops", help="Operations Control Plane (Hardware, Software, Projects)")
+
+
+@ops_app.command("status")
+def ops_status():
+    """Display comprehensive Operations Control Plane dashboard."""
+    from cohezion.ops.control_plane import CohezionControlPlane, render_cli_dashboard
+
+    cp = CohezionControlPlane()
+    snap = cp.snapshot()
+    cp.persist_snapshot(snap)
+    render_cli_dashboard(snap)
+
+
+@ops_app.command("doctor")
+def ops_doctor():
+    """Run invariant checks across hardware, software and projects."""
+    from cohezion.ops.control_plane import CohezionControlPlane, render_cli_dashboard
+
+    cp = CohezionControlPlane()
+    snap = cp.snapshot()
+    cp.persist_snapshot(snap)
+    render_cli_dashboard(snap)
+    failures = [d for d in snap.diagnostics if not d.passed and d.severity == "ERROR"]
+    if failures:
+        raise typer.Exit(code=1)
+
+
+@ops_app.command("heal")
+def ops_heal():
+    """Perform non-destructive hardware memory and cache reclamation."""
+    import json
+
+    from cohezion.ops.control_plane import HardwareOrchestrator
+
+    console.print("[bold cyan]Running hardware memory and cache reclamation...[/bold cyan]")
+    res = HardwareOrchestrator.heal_hardware()
+    console.print(json.dumps(res, indent=2))
+
+
+@ops_app.command("json")
+def ops_json():
+    """Output operations telemetry snapshot as JSON."""
+    import json
+
+    from cohezion.ops.control_plane import CohezionControlPlane
+
+    cp = CohezionControlPlane()
+    snap = cp.snapshot()
+    cp.persist_snapshot(snap)
+    console.print(json.dumps(snap.to_dict(), indent=2))
+
+
+@ops_app.command("loop")
+def ops_loop(
+    interval: float = typer.Option(
+        60.0, "--interval", "-i", help="Interval in seconds between perpetual master cycles"
+    ),
+    max_cycles: int = typer.Option(
+        0, "--max-cycles", "-c", help="Optional maximum number of master cycles before exiting (0 = infinite)"
+    ),
+):
+    """Run 24/7 Sovereign Strix Halo Master Perpetual Loop across hardware, software, and projects."""
+    import asyncio
+
+    from cohezion.ops.unified_perpetual_orchestrator import UnifiedPerpetualOrchestrator
+
+    cycles_arg = max_cycles if max_cycles > 0 else None
+    orchestrator = UnifiedPerpetualOrchestrator(cycle_interval_seconds=interval)
+    console.print(
+        f"[bold green]Starting Sovereign 24/7 Unified Master Loop (interval={interval}s, max_cycles={cycles_arg or 'infinite'})...[/bold green]"
+    )
+    asyncio.run(orchestrator.run_forever(max_cycles=cycles_arg))
+
+
 if __name__ == "__main__":
     app()
+
+

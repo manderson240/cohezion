@@ -36,6 +36,7 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 5. **EventBus & Agentic Kanban Bridge**: All agent swarms and GAIA SDK tasks MUST leverage the `EventBus` (`src/cohezion/core/event_bus.py`) and `CrossSessionEventBridge` (`src/cohezion/core/cross_session_event_bridge.py`) for inter-session collaboration, and record durable task cards via `kanban_bridge.persist_item()` into SurrealDB `kanban_item` and Obsidian Vault `kanban/` simultaneously (`src/cohezion/data_mesh/kanban_bridge.py`).
 6. **Proactive Hybrid Delegation**: Proactively offload routine research, code generation, and background diagnostics to Tier 1 local silicon (`deepseek-r1-0528-8b-FLM`, `qwen3.6-moe-35b-a3b-FLM`, `Qwen3-Coder-30B`) and Tier 2 Ollama Cloud models (`deepseek-v4-pro:cloud`, `glm-5.2:cloud`, `qwen3.5:397b-cloud`) via `UnifiedHybridRouter` and subagents (`invoke_subagent`). Maintain Expected Value of Intervention threshold ($\text{EVI} > 0.75$) to trigger autonomous background self-healing (`src/cohezion/inference/unified_hybrid_router.py`, `src/cohezion/proactive/`).
 7. **Local Model Next-Step Consultation Mandate**: Whenever wondering what next step to take, encountering branching choices, or navigating ambiguous execution paths, Antigravity MUST proactively consult a local silicon model (Tier 1 Lemonade port `13305` or Ollama port `11434`, e.g., `deepseek-r1-0528-8b-FLM`, `Qwen3-Coder-30B`) to reason through candidate directions, evaluate trade-offs, and recommend the optimal high-leverage action before proceeding.
+8. **Kaggle Active Competition Reporting Filter**: Never report on expired or closed competitions. Strictly filter all leaderboard audits, submission tracking, and status reports to currently ACTIVE, unexpired competitions (e.g. ARC Prize 2026 tracks, Pokémon TCG AI Challenge).
 
 ## Autoresearch Mode
 When in autoresearch mode:
@@ -103,6 +104,30 @@ bug, not a fallback.
 - `/agents` - List active side agents
 
 ## Automated CI/CD Pipeline
+
+### Testing Paradigm Gates (added 2026-09-08)
+
+All five advanced paradigms are CI-gated (`.github/workflows/testing-paradigms.yml`,
+runs on every PR to main; also `make paradigms` locally):
+
+- Property (Hypothesis, `tests/property`), fuzz, metamorphic, mutation-vector
+  (`tests/mutation`), and contract (`tests/contracts`) suites — ~22 tests, <5s.
+- Hypothesis CI profile: `HYPOTHESIS_PROFILE=ci` → derandomized, 200 examples,
+  no deadline (reproducible CI failures, no flaky timing).
+- `scripts/ci/check_paradigms.py` (self-tested): fails if a paradigm dir loses
+  its tests, its marker, or its workflow wiring.
+- **Mutation ratchet** (`scripts/ci/mutation_ratchet.py`, self-tested): mutmut
+  scoped to the two high-value inference modules; CI fails if surviving mutants
+  exceed `scripts/ci/mutation_baseline.txt` (269). Uncoupled ("no tests")
+  mutants are informational only — coverage gaps belong to the coverage ratchet.
+- **mypy ratchet** (`scripts/ci/mypy_ratchet.py`, self-tested): signature-based
+  per-file baseline (`scripts/ci/mypy_baseline.txt`, 1414 signatures at
+  baseline); CI fails on any NEW type error. `make type-check` is now gating
+  (no `|| true`). Re-baseline only after fixing errors, never to green a build.
+- **Coverage ratchet** (test-coverage.yml): 23% line floor, measured from the
+  exact CI invocation. Raise only when coverage genuinely rises.
+- `uv lock --check` gates pyproject.toml/uv.lock drift in ci.yml validate job.
+- pytest runs with `--strict-markers`; all markers registered in pyproject.toml.
 
 ### AutoMerge Guard (`scripts/ci/automerge_guard.sh <PR_NUMBER>`)
 Runs all CI gates locally (format, lint ratchet, unit tests, import smoke,

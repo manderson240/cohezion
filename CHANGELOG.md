@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — merge origin/main, unified CI gates + ratchets (1.22.0)
+- Merged 57 commits from main: reconciled dual EVI paths in
+  `unified_hybrid_router` (transports dict + `compute_evi`/`route()` and
+  `_calculate_evi` both live), restored `zkfv_compiler.verify_proof`/`prove`
+  (consumers: tripartite_goal_loop, grand_unified pipeline, dogfood script),
+  union mypy excludes (structural hyphen regex + `baml_client`), regenerated
+  `uv.lock` (283 packages), re-baselined mypy ratchet at **1299 signatures
+  (down from 1414)**, regenerated paradigm/mutation gates.
+- Version governance now satisfied: MINOR bump 1.21.0 → 1.22.0.
+
+## [Unreleased-1.21.0]
+
 ### Added — model-scout lane wired + hf-mem hardware-fit gate (1.21.0)
 - `cohezion.researcher.lanes.model_scout`: `DailyResearcher` now runs the REAL lane (the
   in-file stub that shadowed it never ran). Parses the actual HF daily-papers JSON, resolves

@@ -1,0 +1,247 @@
+{
+  "timestamp": "2026-09-08T00:27:00Z",
+  "target_requisition": "Anthropic Research Requisition #5061517008",
+  "benchmark_runtime_seconds": 26.4,
+  "total_trajectories_evaluated": 3800,
+  "suite_1_horizon_scaling": {
+    "T=50": {
+      "horizon": 50,
+      "n_evals": 100,
+      "baseline_collapse_rate": 1.0,
+      "flume_evo_collapse_rate": 0.7,
+      "baseline_coherence": {
+        "mean": 0.4031,
+        "std": 0.0786,
+        "ci_low": 0.3877,
+        "ci_high": 0.4179
+      },
+      "flume_coherence": {
+        "mean": 0.6741,
+        "std": 0.0334,
+        "ci_low": 0.6677,
+        "ci_high": 0.6804
+      }
+    },
+    "T=100": {
+      "horizon": 100,
+      "n_evals": 100,
+      "baseline_collapse_rate": 1.0,
+      "flume_evo_collapse_rate": 0.74,
+      "baseline_coherence": {
+        "mean": 0.3881,
+        "std": 0.0519,
+        "ci_low": 0.378,
+        "ci_high": 0.3982
+      },
+      "flume_coherence": {
+        "mean": 0.6802,
+        "std": 0.0214,
+        "ci_low": 0.6759,
+        "ci_high": 0.6845
+      }
+    },
+    "T=250": {
+      "horizon": 250,
+      "n_evals": 100,
+      "baseline_collapse_rate": 1.0,
+      "flume_evo_collapse_rate": 0.9,
+      "baseline_coherence": {
+        "mean": 0.387,
+        "std": 0.0342,
+        "ci_low": 0.3806,
+        "ci_high": 0.3936
+      },
+      "flume_coherence": {
+        "mean": 0.6841,
+        "std": 0.0128,
+        "ci_low": 0.6815,
+        "ci_high": 0.6866
+      }
+    },
+    "T=500": {
+      "horizon": 500,
+      "n_evals": 100,
+      "baseline_collapse_rate": 1.0,
+      "flume_evo_collapse_rate": 0.99,
+      "baseline_coherence": {
+        "mean": 0.3835,
+        "std": 0.0235,
+        "ci_low": 0.3789,
+        "ci_high": 0.388
+      },
+      "flume_coherence": {
+        "mean": 0.6869,
+        "std": 0.0094,
+        "ci_low": 0.6851,
+        "ci_high": 0.6887
+      }
+    },
+    "ols_slope_flume": 0.0079,
+    "ols_slope_baseline": -0.0191
+  },
+  "suite_2_phase_diagram_summary": {
+    "n_seeds_per_cell": 50,
+    "total_trajectories": 2500,
+    "mean_baseline_survival": 0.0232,
+    "mean_flume_survival": 0.216,
+    "u_statistic": 61.0,
+    "cell_count": 25
+  },
+  "suite_3_ablation_matrix": {
+    "A_naive": {
+      "mode": "naive",
+      "description": "No Manifold, No Pinch, No Dirichlet (Baseline)",
+      "n_evals": 100,
+      "collapse_rate": 1.0,
+      "coherence": {
+        "mean": 0.3813,
+        "std": 0.041,
+        "ci_low": 0.3729,
+        "ci_high": 0.3893
+      },
+      "irs": {
+        "mean": 0.0969,
+        "std": 0.0547,
+        "ci_low": 0.0862,
+        "ci_high": 0.1074
+      },
+      "dirichlet_energy": {
+        "mean": 0.2498,
+        "std": 0.0058,
+        "ci_low": 0.2487,
+        "ci_high": 0.2509
+      },
+      "total_reward": {
+        "mean": 36.8772,
+        "std": 4.093,
+        "ci_low": 36.0991,
+        "ci_high": 37.6379
+      }
+    },
+    "B_euclidean": {
+      "mode": "euclidean",
+      "description": "Flat Euclidean R^n (No Conformal Barrier)",
+      "n_evals": 100,
+      "collapse_rate": 1.0,
+      "coherence": {
+        "mean": 0.3845,
+        "std": 0.0445,
+        "ci_low": 0.3758,
+        "ci_high": 0.3933
+      },
+      "irs": {
+        "mean": 0.1125,
+        "std": 0.052,
+        "ci_low": 0.1021,
+        "ci_high": 0.1224
+      },
+      "dirichlet_energy": {
+        "mean": 0.1448,
+        "std": 0.0034,
+        "ci_low": 0.1441,
+        "ci_high": 0.1455
+      },
+      "total_reward": {
+        "mean": 37.7288,
+        "std": 4.4476,
+        "ci_low": 36.8329,
+        "ci_high": 38.5713
+      }
+    },
+    "C_poincare_no_pinch": {
+      "mode": "poincare_no_pinch",
+      "description": "Poincar\u00e9 Manifold, No Pinch (gamma=0)",
+      "n_evals": 100,
+      "collapse_rate": 0.88,
+      "coherence": {
+        "mean": 0.6576,
+        "std": 0.0208,
+        "ci_low": 0.6533,
+        "ci_high": 0.6617
+      },
+      "irs": {
+        "mean": 0.5258,
+        "std": 0.0989,
+        "ci_low": 0.5054,
+        "ci_high": 0.5451
+      },
+      "dirichlet_energy": {
+        "mean": 0.1107,
+        "std": 0.0004,
+        "ci_low": 0.1107,
+        "ci_high": 0.1108
+      },
+      "total_reward": {
+        "mean": 65.2053,
+        "std": 2.0772,
+        "ci_low": 64.7929,
+        "ci_high": 65.6067
+      }
+    },
+    "D_poincare_pinch_no_dirichlet": {
+      "mode": "poincare_pinch_no_dirichlet",
+      "description": "Poincar\u00e9 + Pinch, No Dirichlet Smoothing",
+      "n_evals": 100,
+      "collapse_rate": 0.88,
+      "coherence": {
+        "mean": 0.6576,
+        "std": 0.0208,
+        "ci_low": 0.6534,
+        "ci_high": 0.6616
+      },
+      "irs": {
+        "mean": 0.5258,
+        "std": 0.0989,
+        "ci_low": 0.5071,
+        "ci_high": 0.5458
+      },
+      "dirichlet_energy": {
+        "mean": 0.1107,
+        "std": 0.0004,
+        "ci_low": 0.1107,
+        "ci_high": 0.1108
+      },
+      "total_reward": {
+        "mean": 65.2053,
+        "std": 2.0772,
+        "ci_low": 64.7615,
+        "ci_high": 65.6157
+      }
+    },
+    "E_full_flume_evo": {
+      "mode": "full_flume_evo",
+      "description": "Full FLUME VAE + Dirichlet Geodesics + EVO Pinch",
+      "n_evals": 100,
+      "collapse_rate": 0.88,
+      "coherence": {
+        "mean": 0.6576,
+        "std": 0.0208,
+        "ci_low": 0.6533,
+        "ci_high": 0.6616
+      },
+      "irs": {
+        "mean": 0.5258,
+        "std": 0.0989,
+        "ci_low": 0.5064,
+        "ci_high": 0.545
+      },
+      "dirichlet_energy": {
+        "mean": 0.0973,
+        "std": 0.0004,
+        "ci_low": 0.0972,
+        "ci_high": 0.0973
+      },
+      "total_reward": {
+        "mean": 65.2727,
+        "std": 2.0772,
+        "ci_low": 64.864,
+        "ci_high": 65.6677
+      }
+    },
+    "anova_f_stat": 2282.5702,
+    "anova_df": [
+      4,
+      495
+    ]
+  }
+}

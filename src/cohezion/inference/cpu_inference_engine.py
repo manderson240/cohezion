@@ -33,9 +33,10 @@ class CPUInferenceResult:
 
 
 class CPUInferenceEngine:
-    """CPU Local Inference Engine leveraging 32-thread Zen5 processor."""
+    """CPU Local Inference Engine leveraging 16 physical Zen4 cores with AVX-512."""
 
-    def __init__(self, threads: int = 32, default_model: str = "qwen3.6-moe-35b-a3b-FLM") -> None:
+    def __init__(self, threads: int = 16, default_model: str = "granite-4.2-8b-GGUF") -> None:
+        # Default to 16 physical cores to avoid SMT cache-thrashing on autoregressive decoding
         self.threads = min(32, max(1, threads))
         self.default_model = default_model
 
@@ -45,8 +46,10 @@ class CPUInferenceEngine:
         target_model = model or self.default_model
         mem = OOMGuard.get_memory_state()
 
-        # Set OpenMP and llama.cpp CPU thread count env vars
+        # Set OpenMP and llama.cpp CPU thread count env vars pinned to physical cores
         os.environ["OMP_NUM_THREADS"] = str(self.threads)
+        os.environ["OMP_PLACES"] = "cores"
+        os.environ["OMP_PROC_BIND"] = "close"
         os.environ["LLAMA_ARG_THREADS"] = str(self.threads)
 
         payload = {

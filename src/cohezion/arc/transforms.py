@@ -979,3 +979,12 @@ def object_center_of_mass(grid: np.ndarray) -> np.ndarray | None:
             result[mean_r, mean_c] = color
 
     return result
+
+
+ALL_TRANSFORMS.update(
+    {
+        "grid_symmetry_reflect_h": grid_symmetry_reflect_h,
+        "grid_symmetry_reflect_v": grid_symmetry_reflect_v,
+        "object_center_of_mass": object_center_of_mass,
+    }
+)

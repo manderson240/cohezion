@@ -17,8 +17,30 @@ deliberately minimal — they are NOT on the gate's critical path and are marked
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+
+
+try:
+    from cohezion.compound.goal_state import observe, set_goal, status
+except ImportError:
+    def set_goal(condition: str, *, source: str = "user") -> bool:
+        return False
+
+    def observe(note: str, *, satisfied: bool | None = None) -> bool:
+        return False
+
+    def status() -> dict:
+        return {}
+
+try:
+    from cohezion.recursive_trace.resolution_log import record_resolution
+except ImportError:
+    def record_resolution(*args, **kwargs) -> None:
+        pass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -116,13 +138,46 @@ class RecursiveTraceLoop:
     def run(
         self, task: TraceTask, scorer_fn: Callable[[TraceTask, str], bool]
     ) -> RecursiveTraceResult:
+        fc = getattr(task, "failure_class", "unknown_failure")
+        tid = getattr(task, "task_id", getattr(task, "goal_id", "trace_task"))
+        condition = f"Resolve {fc} on {tid}"
+        set_goal(condition, source="recursive_trace_core")
+
         tried: list[str] = []
-        for _ in range(self.max_depth):
-            strategy = self._select_next(task.failure_class, tried)
+        for iteration in range(1, self.max_depth + 1):
+            strategy = self._select_next(fc, tried)
             if strategy is None:
                 break
             tried.append(strategy)
-            if scorer_fn(task, strategy):
-                self.memory.record_success(task.failure_class, strategy)
+
+            try:
+                ok = bool(scorer_fn(task, strategy))
+            except Exception as e:
+                ok = False
+                logger.debug("Exception in scorer_fn: %s", e)
+
+            obs_note = f"Attempt {iteration}: strategy '{strategy}' for failure '{fc}' -> {'SUCCESS' if ok else 'FAILURE'}"
+            observe(obs_note, satisfied=ok)
+
+            try:
+                record_resolution(
+                    "recursive_trace",
+                    fc,
+                    strategy,
+                    ok,
+                    source="core",
+                    tried_order=list(tried),
+                )
+            except Exception as e:
+                logger.debug("Failed recording resolution: %s", e)
+
+            if ok:
+                self.memory.record_success(fc, strategy)
                 return RecursiveTraceResult(True, len(tried), tried)
+
         return RecursiveTraceResult(False, len(tried), tried)
+
+    @staticmethod
+    def current_goal_status() -> dict:
+        """Returns the current state of the active goal."""
+        return status()

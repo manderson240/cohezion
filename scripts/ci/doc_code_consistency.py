@@ -352,7 +352,9 @@ def self_test() -> int:
 
         # negative control: a TRUE statement must stay silent
         doc = Path(td) / "clean.md"
-        doc.write_text("`RiemannianGlideTrajectory(metric=None)` is the default", encoding="utf-8")
+        doc.write_text(
+            "`RiemannianGlideTrajectory(metric_tensor=None)` is the default", encoding="utf-8"
+        )
         errs, warns = scan([doc])
         clean = not (errs + warns)
         print(

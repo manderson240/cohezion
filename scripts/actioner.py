@@ -58,9 +58,11 @@ def main() -> int:
         dry_run=args.dry_run,
     )
     print(json.dumps(summary, indent=2))
-    # Honest exit code: failures present -> nonzero (cron surfaces it), but
-    # partial progress is still recorded item-by-item.
-    return 1 if summary["failed"] else 0
+    # Honest exit code: unresolved failures present -> nonzero (cron surfaces it),
+    # but items terminal-dispositioned (e.g. rejected by guardrail) are handled cleanly.
+    rejected_set = set(summary.get("rejected", []))
+    unresolved_failures = {k: v for k, v in summary["failed"].items() if k not in rejected_set}
+    return 1 if unresolved_failures else 0
 
 
 if __name__ == "__main__":

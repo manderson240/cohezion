@@ -7,14 +7,29 @@
 #   3. If any fail → print a structured report and exit non-zero
 #   4. Log the result to SurrealDB for provenance
 #
+# Landing discipline (bors "not-rocket-science" rule, added 2026-09-09):
+#   - Gates are validated against a TEMP INTEGRATION WORKTREE = PR merged on top
+#     of tip-of-trunk, never against stale HEAD — and never inside the user's
+#     working copy, so a dirty worktree (submodules, untracked artifacts) cannot
+#     abort or poison the validation. A PR whose merge conflicts with main fails
+#     here with "rebase needed" instead of dirtying main.
+#   - Before merging, trunk is re-fetched; if main moved since validation, the
+#     guard exits 2 (retry later) rather than merging something it didn't validate.
+#   - A flock serializes landings: one PR in flight at a time (poor-man's queue
+#     for a single maintainer; research digest 2026-09-09, pillar P1).
+#   - Attribution gates (pillar P2): a failing gate blocks the landing only if
+#     it ALSO passes on a pristine trunk-tip control worktree — i.e. only if
+#     THIS PR broke it. Pre-existing trunk debt is logged (SurrealDB
+#     `trunk_debt`) and surfaced in the summary, but never blocks a clean PR.
+#
 # Usage:
 #   scripts/ci/automerge_guard.sh <PR_NUMBER>
 #   scripts/ci/automerge_guard.sh 252
 #
 # Exit codes:
 #   0 = all gates passed, PR merged
-#   1 = one or more gates failed, PR not merged
-#   2 = CI checks still pending (retry later)
+#   1 = one or more gates failed, or PR conflicts with main (rebase needed)
+#   2 = CI checks pending / trunk moved during validation / another guard running (retry later)
 #   3 = error (bad PR number, gh not installed, etc.)
 
 set -uo pipefail
@@ -24,6 +39,18 @@ PR_NUMBER="${1:?Usage: $0 <PR_NUMBER>}"
 FAIL=0
 GATES_PASSED=()
 GATES_FAILED=()
+TRUNK_DEBT=()
+
+# Serialize landings: one PR through the guard at a time (poor-man's merge queue).
+mkdir -p /tmp/cohezion-automerge
+exec 9>/tmp/cohezion-automerge/lock
+if ! flock -n 9; then
+  echo "❌ Another automerge_guard is running (lock held). Retry later."
+  exit 2
+fi
+
+# Remember where the user's checkout lives; all final actions run from there.
+ORIG_DIR="$(pwd)"
 
 step() {
   local name="$1"; shift
@@ -32,9 +59,20 @@ step() {
     echo "  -> PASS"
     GATES_PASSED+=("$name")
   else
-    echo "  -> FAIL"
-    GATES_FAILED+=("$name")
-    FAIL=1
+    # Attribution gate (research digest P2): a failing gate blocks the landing
+    # only if the PR made it WORSE than trunk. Re-run the same command in the
+    # pristine trunk-tip control worktree; failure there too = pre-existing
+    # trunk debt — logged, but not attributed to this PR.
+    control_out="$(cd "$CONTROL_WORKTREE" && "$@" 2>&1)"
+    control_status=$?
+    if [ "$control_status" -eq 0 ]; then
+      echo "  -> FAIL (introduced by this PR — blocks landing)"
+      GATES_FAILED+=("$name")
+      FAIL=1
+    else
+      echo "  -> TRUNK-DEBT (also fails on pristine trunk tip — not introduced by this PR)"
+      TRUNK_DEBT+=("$name")
+    fi
   fi
 }
 
@@ -54,12 +92,53 @@ echo "=== AutoMerge Guard for PR #${PR_NUMBER} ==="
 echo "Time: $(date -Iseconds)"
 echo ""
 
-# Step 0: Check out the PR branch
-echo "[0] Fetching PR #${PR_NUMBER}..."
-gh pr checkout "$PR_NUMBER" 2>/dev/null || {
-  echo "  -> ERROR: could not checkout PR #${PR_NUMBER}"
+# Step 0: Bors-rule validation base — gates run in a THROWAWAY WORKTREE holding
+# a temp integration branch (origin/main + PR), never on the PR's stale HEAD and
+# never inside the user's working copy (dirty uncommitted state would otherwise
+# abort the merge — the exact failure the first live run hit). A PR that conflicts
+# with trunk fails HERE instead of dirtying main after a blind merge.
+echo "[0] Fetching trunk tip and PR #${PR_NUMBER}..."
+git fetch origin main --quiet || { echo "  -> ERROR: git fetch origin main failed"; exit 3; }
+TRUNK_TIP="$(git rev-parse origin/main)" || { echo "  -> ERROR: cannot resolve origin/main"; exit 3; }
+
+PR_SHA="$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)" || {
+  echo "  -> ERROR: could not resolve head of PR #${PR_NUMBER}"
   exit 3
 }
+echo "  -> PR head: ${PR_SHA:0:7}, trunk tip: ${TRUNK_TIP:0:7}"
+
+INTEG_BRANCH="automerge-integ-${PR_NUMBER}"
+WORKTREE="/tmp/cohezion-automerge/integ-${PR_NUMBER}"
+git worktree remove --force "$WORKTREE" 2>/dev/null
+git branch -D "$INTEG_BRANCH" 2>/dev/null
+rm -rf "$WORKTREE"
+if ! git worktree add -q "$WORKTREE" -b "$INTEG_BRANCH" "$TRUNK_TIP" 2>/dev/null; then
+  echo "  -> ERROR: cannot create integration worktree at ${WORKTREE}"
+  exit 3
+fi
+cd "$WORKTREE" || exit 3
+if ! MERGE_OUT="$(git merge --no-ff --no-edit "$PR_SHA")" 2>/dev/null; then
+  git merge --abort 2>/dev/null
+  cd "$ORIG_DIR"
+  git worktree remove --force "$WORKTREE" 2>/dev/null
+  git branch -D "$INTEG_BRANCH" 2>/dev/null
+  echo "  -> ❌ PR #${PR_NUMBER} does not merge cleanly onto origin/main (${TRUNK_TIP:0:7})."
+  [ -n "$MERGE_OUT" ] && echo "$MERGE_OUT" | head -10
+  echo "     Rebase the branch onto main and re-run the guard. Nothing was merged."
+  exit 1
+fi
+echo "  -> Integration worktree ready: trunk ${TRUNK_TIP:0:7} + PR ${PR_SHA:0:7}"
+
+# Pristine trunk-tip control worktree — the attribution baseline. Gates that fail
+# on the integration tree are re-run here: failing here too means the debt was
+# already on trunk (not introduced by this PR).
+CONTROL_WORKTREE="/tmp/cohezion-automerge/control-${PR_NUMBER}"
+git worktree remove --force "$CONTROL_WORKTREE" 2>/dev/null
+rm -rf "$CONTROL_WORKTREE"
+if ! git worktree add -q "$CONTROL_WORKTREE" "$TRUNK_TIP" 2>/dev/null; then
+  echo "  -> ERROR: cannot create trunk control worktree at ${CONTROL_WORKTREE}"
+  exit 3
+fi
 
 # Step 1: Ruff format check
 step "ruff format --check" uv run ruff format --check src/ tests/
@@ -113,6 +192,9 @@ step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh
 # failure class that let the regression gate, jepa_coherence, and the FAPO
 # failure-path wiring all sit dormant behind passing tests. Unlike 6b, this is
 # blocking from the start: the registry is curated specifically to never cry wolf.
+# --self-test FIRST: it proves the scanner can still FAIL (with a guaranteed-dormant
+# sentinel + known-wired capability). A scanner bug otherwise reads as a clean 0 errors.
+step "dormancy self-test" uv run python scripts/ci/dormancy_scan.py --self-test
 step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 
 # Step 6c-bis: Doc↔code drift — the sibling of 6c. dormancy_scan asks "does this code have a
@@ -170,17 +252,36 @@ echo ""
 echo "=== Summary ==="
 echo "Passed: ${#GATES_PASSED[@]} gates"
 for g in "${GATES_PASSED[@]}"; do echo "  ✓ $g"; done
-echo "Failed: ${#GATES_FAILED[@]} gates"
+echo "Failed: ${#GATES_FAILED[@]} gate(s) introduced by this PR"
 for g in "${GATES_FAILED[@]}"; do echo "  ✗ $g"; done
+echo "Trunk debt (pre-existing, not blocking): ${#TRUNK_DEBT[@]} gate(s)"
+for g in "${TRUNK_DEBT[@]}"; do echo "  ⚠ $g"; done
 
 if [ "$FAIL" -eq 0 ]; then
+  # Stale-trunk check: if main moved while gates ran, what we validated is not
+  # what would land. Retry (the next run re-validates against the new tip).
+  git fetch origin main --quiet
+  TRUNK_NOW="$(git rev-parse origin/main)"
+  git worktree remove --force "$WORKTREE" 2>/dev/null
+  git worktree remove --force "$CONTROL_WORKTREE" 2>/dev/null
+  git branch -D "$INTEG_BRANCH" 2>/dev/null
+  cd "$ORIG_DIR" || exit 3
+  if [ "$TRUNK_NOW" != "$TRUNK_TIP" ]; then
+    echo ""
+    echo "⚠️  Trunk moved during validation (${TRUNK_TIP:0:7} → ${TRUNK_NOW:0:7})."
+    echo "   Gates validated a base that is no longer tip — re-run the guard to re-validate."
+    exit 2
+  fi
   echo ""
   echo "=== All gates passed — merging PR #${PR_NUMBER} ==="
-  gh pr merge "$PR_NUMBER" --squash --admin --delete-branch 2>/dev/null
+  # NOTE: no --admin. AGENTS.md forbids bypassing gates; main has no required
+  # checks, so a plain squash merge is the honest landing path.
+  merge_out="$(gh pr merge "$PR_NUMBER" --squash --delete-branch 2>&1)"
   merge_result=$?
   if [ $merge_result -eq 0 ]; then
     echo "✅ PR #${PR_NUMBER} merged successfully."
-    # Log to SurrealDB
+    # Log to SurrealDB — trunk_debt records gates that failed on BOTH trees
+    # (pre-existing debt surface, feeds the P2 attribution ratchet over time)
     curl -s -X POST http://localhost:8001/sql \
       -H "Content-Type: text/plain" -u "root:root" \
       -H "Surreal-NS: cohezion" -H "Surreal-DB: main" \
@@ -188,17 +289,23 @@ if [ "$FAIL" -eq 0 ]; then
         \"pr\": \"#${PR_NUMBER}\",
         \"status\": \"merged\",
         \"gates_passed\": $(printf '%s\n' "${GATES_PASSED[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
+        \"trunk_debt\": $(printf '%s\n' "${TRUNK_DEBT[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
         \"timestamp\": time::now()
       };" 2>/dev/null | head -1
     exit 0
   else
     echo "❌ Merge failed (exit $merge_result). PR may have conflicts or be blocked."
+    [ -n "$merge_out" ] && echo "$merge_out"
     exit 1
   fi
 else
   echo ""
-  echo "❌ ${#GATES_FAILED[@]} gate(s) failed — PR #${PR_NUMBER} not merged."
-  # Log to SurrealDB
+  echo "❌ ${#GATES_FAILED[@]} gate(s) introduced by this PR — landing blocked."
+  git worktree remove --force "$WORKTREE" 2>/dev/null
+  git worktree remove --force "$CONTROL_WORKTREE" 2>/dev/null
+  git branch -D "$INTEG_BRANCH" 2>/dev/null
+  cd "$ORIG_DIR" || exit 3
+  # Log to SurrealDB — attribution record: which gates the PR broke, which were already broken on trunk
   curl -s -X POST http://localhost:8001/sql \
     -H "Content-Type: text/plain" -u "root:root" \
     -H "Surreal-NS: cohezion" -H "Surreal-DB: main" \
@@ -206,6 +313,7 @@ else
       \"pr\": \"#${PR_NUMBER}\",
       \"status\": \"blocked\",
       \"gates_failed\": $(printf '%s\n' "${GATES_FAILED[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
+      \"trunk_debt\": $(printf '%s\n' "${TRUNK_DEBT[@]}" | uv run python -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
       \"timestamp\": time::now()
     };" 2>/dev/null | head -1
   exit 1

@@ -1,0 +1,18 @@
+[
+  "empty",
+  "single_point",
+  "horizontal_bar",
+  "vertical_bar",
+  "solid_block_2x2",
+  "solid_block_3x3",
+  "hollow_box",
+  "diagonal_left",
+  "diagonal_right",
+  "cross_plus",
+  "t_shape",
+  "l_shape",
+  "corner_top_left",
+  "corner_bottom_right",
+  "checkerboard",
+  "full_canvas"
+]

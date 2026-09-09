@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cohezion"
-version = "1.21.0"
+version = "1.22.0"
 description = "Compound AI orchestration: a self-improving skill loop, physics-grounded 12D training environments, and $0 local inference on AMD silicon"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -54,6 +54,10 @@ dependencies = [
     "redis>=7.2.1",
     "aiohttp>=3.13.3",
     "fastmcp>=3.1.0",
+    # mcp 2.x removed Server.list_tools() used by cohezion_agi_server; the
+    # 2026-09-08 lock regeneration jumped 1.29.0 -> 2.2.0 (transitive, major).
+    # Pin to 1.x until the consumer migrates to the 2.x decorator set.
+    "mcp>=1.9.0,<2",
     "pyjwt>=2.11.0",
     "kaggle>=1.6.17",
     "kagglehub>=1.0.0",
@@ -135,6 +139,9 @@ dev = [
     "flake8>=6.0",
     "respx>=0.23.0",  # WS2B: HTTP mocking for the four lane tests
     "optuna>=3.6",  # FLUME-VAE hyperparameter tuning (flume/optuna_tuner.py), local $0
+    "hypothesis>=6.100.0",  # Property-based testing & fuzzing
+    "mutmut>=3.0.0",  # Mutation testing suite verification
+    "baml-py>=0.226.2",
 ]
 ml = [
     "torch>=2.0.0",
@@ -329,7 +336,6 @@ python_version = "3.13"
 # A hyphenated component is never importable, so this loses nothing.
 # scripts/ci/mypy_ratchet.py independently refuses a baseline whose file count
 # shrank, so a widened exclude cannot be locked in even by accident.
-exclude = "src/cohezion/skills/([^/]+/)*[^/]*-[^/]*/"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false  # Start permissive, can tighten later
@@ -339,6 +345,13 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 strict_equality = true
+exclude = [
+    "src/cohezion/skills/([^/]+/)*[^/]*-[^/]*/",  # STRUCTURAL (main): hyphenated skill dirs are never importable
+    "mcp-builder",  # vendored skill data dir with a non-package name
+    "skills/amd",   # vendored AMD skills-repo; contains duplicate stub main.py files
+    "skills/kaggle",  # vendored Kaggle skill modules (duplicate stub scripts)
+    "baml_client",  # generated from baml_src/ by baml-cli generate
+]
 
 # Per-module options
 [[tool.mypy.overrides]]
@@ -392,7 +405,7 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "strict"
-addopts = "-v"
+addopts = "-v --strict-markers"
 filterwarnings = [
     "ignore::DeprecationWarning:passlib.*",
     "ignore::pytest.PytestCollectionWarning",
@@ -408,7 +421,47 @@ markers = [
     "benchmark: Performance benchmark tests",
     "agent: Agent-specific orchestration tests",
     "backend: Backend/target-specific tests",
-    "compound: Compound engineering tests",
     "e2e: End-to-end integration tests",
     "api: API endpoint tests",
+    "compound: Compound-session orchestration tests",
+    "property: Property-based invariant tests using Hypothesis",
+    "metamorphic: Metamorphic relation testing suites",
+    "mutation: Mutation testing assertion strength verifiers",
+    "fuzz: Coverage-guided and generative fuzzing harnesses",
 ]
+
+[tool.coverage.run]
+branch = true
+source = ["src/cohezion"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.mutmut]
+source_paths = ["src/cohezion/inference/model_shootout.py", "src/cohezion/inference/model_sprint_orchestrator.py"]
+# Copy the full source tree so every import resolves under mutants/, but
+# source_paths above still limits *mutation* to the scoped high-value modules.
+also_copy = ["src/cohezion", "muttest"]
+pytest_add_cli_args_test_selection = ["muttest/test_model_shootout.py"]
+pytest_add_cli_args = ["-q", "--assert=plain"]
+# NOTE: mutate_only_covered_lines (coverage-pruning) is DISABLED — under this
+# repo's editable-install + copy-tree layout it cannot associate the imported
+# module with the mutated copy, stranding coverage at zero and aborting the
+# gather phase. Mutation of scoped high-value modules still runs without it;
+# coverage-pruning is a known follow-up (see mutation gate in Makefile).
+mutate_only_covered_lines = false
+# Keep runs bounded on tight-memory CI boxes.
+timeout_multiplier = 15.0
+timeout_constant = 1.0

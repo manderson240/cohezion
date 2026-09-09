@@ -1,7 +1,7 @@
 {
   "id": "manderson240/cohezion-biohub-cell-tracking-baseline",
   "title": "Cohezion Biohub Cell Tracking Baseline",
-  "code_file": "submission.py",
+  "code_file": "submission_wired.py",
   "language": "python",
   "kernel_type": "script",
   "is_private": "true",

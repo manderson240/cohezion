@@ -324,7 +324,21 @@ execution_traces/
 node_modules/
 src/cohezion/skills/munder-difflin-repo/
 
+data/compound/cache/
+src/cohezion/skills/kaggle/kaggle-skills-repo/
 
+# Mutation-testing artifacts (mutmut workspace — 966MB, regenerable via `make mutate`)
+mutants/
+.mutmut-cache/
+# EXCEPT: mutmut "coupled" tests are SOURCE-LOCKED (hand-written against a specific
+# mutant of tests/lanes/test_model_shootout.py) — they are NOT regenerable artifacts.
+# The paradigm wiring gate (scripts/ci/check_paradigms.py) requires
+# muttest/test_model_shootout.py to exist in-tree, so it must stay tracked.
+!muttest/test_model_shootout.py
+
+# Generated submissions / artifacts
+submission*.json
+kaggriculture.zip
 # 2026-08-26 reconcile hygiene: raw LoRA weights/tokenizers never in git (use LFS or artifacts)
 checkpoints/**/*.safetensors
 checkpoints/**/tokenizer.json
@@ -342,3 +356,6 @@ REPORT.html
 /submission.*
 /tmp_*.py
 *.harness-bak
+
+# Local secrets — never commit (untracked 2026-09-08 after credential rename exposure)
+.env

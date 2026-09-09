@@ -1,0 +1,16 @@
+{
+  "id": "manderson240/cohezion-pokemon-tcg-mcts-agent",
+  "title": "cohezion-pokemon-tcg-mcts-agent",
+  "code_file": "main.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "false",
+  "enable_gpu": "false",
+  "enable_tpu": "false",
+  "enable_internet": "false",
+  "dataset_sources": [],
+  "competition_sources": [
+    "pokemon-tcg-ai-battle-challenge-strategy"
+  ],
+  "kernel_sources": []
+}

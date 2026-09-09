@@ -1,0 +1,87 @@
+name: Testing Paradigms
+
+# Advanced-paradigm gate: property-based, fuzz, metamorphic, mutation
+# (vector + real mutmut ratchet), and contract testing. Runs the same
+# suites `make paradigms` runs locally, so CI and local stay in lockstep.
+#
+# Every test here is fast (<5s combined) and hermetic (no live services,
+# no network). The mutmut ratchet runs the real mutation engine against
+# the scoped high-value inference modules and fails if survivors grow.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  COHEZION_CI: "true"
+  COHEZION_NON_INTERACTIVE: "true"
+  KAGGLE_USERNAME: "dummy"
+  KAGGLE_KEY: "dummy"
+  # Hypothesis CI profile: derandomize=True (reproducible failures),
+  # deadline=None (no flaky timing on shared runners), 200 examples.
+  HYPOTHESIS_PROFILE: "ci"
+
+jobs:
+  paradigms:
+    name: Advanced Testing Paradigms
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Free disk space (large ROCm torch wheel)
+        run: |
+          # The torch==*+rocm6.2 wheel extraction exhausts the default runner disk
+          # ("No space left on device"). Reclaim ~40GB of preinstalled toolchains we
+          # don't use. Do NOT touch /opt/hostedtoolcache — the job's Python lives there.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/local/.ghcup
+          sudo apt-get clean
+          df -h /
+
+      - name: Sync dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Paradigm wiring gate (self-tested)
+        run: uv run python scripts/ci/check_paradigms.py --self-test && uv run python scripts/ci/check_paradigms.py
+
+      - name: Run property tests (Hypothesis)
+        run: uv run pytest tests/property -q --tb=short -p no:cacheprovider
+
+      - name: Run fuzz tests
+        run: uv run pytest tests/fuzz -q --tb=short -p no:cacheprovider
+
+      - name: Run metamorphic tests
+        run: uv run pytest tests/metamorphic -q --tb=short -p no:cacheprovider
+
+      - name: Run mutation-vector tests (assertion strength)
+        run: uv run pytest tests/mutation -q --tb=short -p no:cacheprovider
+
+      - name: Run contract tests
+        run: uv run pytest tests/contracts -q --tb=short -p no:cacheprovider
+
+      # Real mutation testing: mutmut generates mutants of the scoped
+      # inference modules and this ratchet fails if surviving (unasserted)
+      # mutants exceed the committed baseline. ~20s locally, ~2min on runner.
+      - name: Mutation survivor ratchet (gating)
+        run: uv run python scripts/ci/mutation_ratchet.py
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-results
+          path: mutants/
+          if-no-files-found: ignore
+          retention-days: 7

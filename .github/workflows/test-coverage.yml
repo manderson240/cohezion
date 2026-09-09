@@ -52,26 +52,19 @@ jobs:
             --junitxml=integration-report.xml \
             -v
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
-        with:
-          files: ./coverage.xml
-          # fail_ci_if_error was true but Codecov token-less uploads have been
-          # returning "Token required - not valid tokenless upload", failing
-          # the whole job despite 5,925 tests passing. Coverage is also
-          # uploaded as a workflow artifact below, so we don't lose the data.
-          # Re-enable once CODECOV_TOKEN is configured as a repo secret.
-          fail_ci_if_error: false
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Check coverage threshold
+      - name: Coverage ratchet (gating)
         run: |
           COVERAGE=$(uv run python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(float(root.attrib['line-rate']) * 100)")
-          echo "Coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < 10" | bc -l) )); then
-            echo "Coverage below threshold (10%)"
+          echo "Coverage: $COVERAGE% (baseline 23)"
+          # Ratchet: 23% measured 2026-09-08 from this exact invocation locally
+          # (1132 passed, 15 xfailed). Raise only when coverage genuinely rises.
+          if (( $(echo "$COVERAGE < 23" | bc -l) )); then
+            echo "✗ Coverage below baseline: $COVERAGE% < 23%"
+            echo "  Fix or delete the uncovered paths you touched; never lower coverage."
             exit 1
+          fi
+          if (( $(echo "$COVERAGE > 23.5" | bc -l) )); then
+            echo "↑ Coverage rose: $COVERAGE% > 23.5%. Re-baseline: bump the 23/23.5 constants above."
           fi
 
       - name: Upload coverage report

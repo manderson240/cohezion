@@ -24,10 +24,15 @@ class MemoryState:
     available_gb: float
     total_gb: float
     swap_used_gb: float
-    shmem_gb: float
     is_safe: bool
-    dynamic_floor_gb: float
-
+    # Optional (default 0.0) so pre-shmem constructors (tests, callers on
+    # main's API shape) still build; get_memory_state() always sets it from
+    # /proc/meminfo when available.
+    shmem_gb: float = 0.0
+    dynamic_floor_gb: float = 20.0
+    gtt_used_gb: float = 0.0
+    gtt_total_gb: float = 0.0
+    psi_some_10: float = 0.0
     @property
     def used_gb(self) -> float:
         """Estimate used memory in GiB (total_gb - available_gb)."""
@@ -38,7 +43,10 @@ class OOMGuard:
     """Memory guard to prevent kernel faults and Out-Of-Memory thrashing."""
 
     DEFAULT_MIN_AVAILABLE_GB: float = 20.0
-
+    MIN_AVAILABLE_GB: float = 20.0
+    MAX_SAFE_GTT_GB: float = 50.0
+    MAX_SAFE_SWAP_USED_GB: float = 12.0
+    MAX_SAFE_PSI: float = 20.0
     @classmethod
     def calculate_dynamic_floor(
         cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0
@@ -48,7 +56,7 @@ class OOMGuard:
 
     @classmethod
     def get_memory_state(cls, largest_model_gb: float = 16.0) -> MemoryState:
-        """Inspect system available memory, /proc/meminfo Shmem, and GTT pressure."""
+        """Inspect system available memory, /proc/meminfo Shmem, GTT aperture, and PSI pressure."""
         try:
             # 1. Inspect free -m
             out = subprocess.run(["free", "-m"], capture_output=True, text=True, timeout=5).stdout
@@ -76,8 +84,44 @@ class OOMGuard:
             except Exception:
                 pass
 
+            # 3. Inspect GTT aperture from AMD GPU sysfs (Strix Halo / UMA)
+            gtt_used_gb = 0.0
+            gtt_total_gb = 0.0
+            import glob
+            for p_used in glob.glob("/sys/class/drm/card*/device/mem_info_gtt_used"):
+                try:
+                    with open(p_used, "r", encoding="utf-8") as f:
+                        gtt_used_gb = max(gtt_used_gb, float(f.read().strip()) / (1024.0 ** 3))
+                except Exception:
+                    pass
+            for p_total in glob.glob("/sys/class/drm/card*/device/mem_info_gtt_total"):
+                try:
+                    with open(p_total, "r", encoding="utf-8") as f:
+                        gtt_total_gb = max(gtt_total_gb, float(f.read().strip()) / (1024.0 ** 3))
+                except Exception:
+                    pass
+
+            # 4. Inspect kernel Memory PSI (Pressure Stall Information)
+            psi_some_10 = 0.0
+            try:
+                with open("/proc/pressure/memory", "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.startswith("some"):
+                            for token in line.split():
+                                if token.startswith("avg10="):
+                                    psi_some_10 = float(token.split("=")[1])
+                                    break
+                            break
+            except Exception:
+                pass
+
             dynamic_floor = cls.calculate_dynamic_floor(largest_model_gb, shmem_gb)
-            is_safe = available_gb >= dynamic_floor
+            is_safe = (
+                available_gb >= dynamic_floor
+                and gtt_used_gb <= cls.MAX_SAFE_GTT_GB
+                and swap_used_gb <= cls.MAX_SAFE_SWAP_USED_GB
+                and psi_some_10 <= cls.MAX_SAFE_PSI
+            )
 
             return MemoryState(
                 available_gb=round(available_gb, 2),
@@ -86,6 +130,9 @@ class OOMGuard:
                 shmem_gb=round(shmem_gb, 2),
                 is_safe=is_safe,
                 dynamic_floor_gb=round(dynamic_floor, 2),
+                gtt_used_gb=round(gtt_used_gb, 2),
+                gtt_total_gb=round(gtt_total_gb, 2),
+                psi_some_10=round(psi_some_10, 2),
             )
         except Exception as e:
             logger.error(f"Failed to inspect memory state: {e}")
@@ -96,6 +143,9 @@ class OOMGuard:
                 shmem_gb=0.0,
                 is_safe=False,
                 dynamic_floor_gb=cls.DEFAULT_MIN_AVAILABLE_GB,
+                gtt_used_gb=0.0,
+                gtt_total_gb=0.0,
+                psi_some_10=0.0,
             )
 
     @classmethod

@@ -15,7 +15,11 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import plotly.graph_objects as go
+
+try:
+    import plotly.graph_objects as go
+except ImportError:
+    go = None  # type: ignore[assignment]
 
 
 def compute_hyperbolic_distance(u: np.ndarray, v: np.ndarray, eps: float = 1e-7) -> float:

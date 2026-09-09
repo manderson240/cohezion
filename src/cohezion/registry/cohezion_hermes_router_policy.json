@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "model_name": "user.cohezion-hermes-router",
+  "recipe": "collection.router",
+  "components": [
+    "Qwen3-8B-GGUF",
+    "gpt-oss-20b-mxfp4-GGUF",
+    "waslmedia-qwen3-4b-Q4_K_M"
+  ],
+  "routing": {
+    "candidates": [
+      "Qwen3-8B-GGUF",
+      "gpt-oss-20b-mxfp4-GGUF",
+      "waslmedia-qwen3-4b-Q4_K_M"
+    ],
+    "default_model": "Qwen3-8B-GGUF",
+    "rules": [
+      {
+        "id": "hermes-default-direct",
+        "match": {
+          "min_chars": 0
+        },
+        "outputs": {
+          "reason": "instant low-latency streaming chat"
+        },
+        "route_to": "Qwen3-8B-GGUF"
+      }
+    ]
+  }
+}

@@ -85,6 +85,10 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
+      # Dependency-drift guard: pyproject.toml and uv.lock must agree.
+      - name: Lockfile drift check (gating)
+        run: uv lock --check
+
       - name: Validate agent files
         run: uv run python scripts/ci/validate_agents.py
 
@@ -98,6 +102,11 @@ jobs:
       # capabilities that must have a production consumer, not just a `def` + unit
       # tests. Catches the "green but dormant" class (regression gate, jepa_coherence,
       # the FAPO failure-path wiring) before it ships silently broken.
+      # --self-test FIRST: it proves the scanner can still FAIL (with a guaranteed-dormant
+      # sentinel + known-wired capability). A scanner bug otherwise reads as a clean 0 errors.
+      - name: Dormancy scan self-test
+        run: uv run python scripts/ci/dormancy_scan.py --self-test
+
       - name: Dormancy scan (gating)
         run: uv run python scripts/ci/dormancy_scan.py
 
@@ -127,6 +136,11 @@ jobs:
           uv run python scripts/ci/phantom_attr_scan.py --self-test
           uv run python scripts/ci/phantom_attr_scan.py
 
+      # Coding-standard guard (AGENTS.md "Card-Aligned Recipes"): no direct
+      # port hits to local inference backends — everything routes through
+      # UnifiedHybridRouter. Verified exit 0 locally 2026-09-08.
+      - name: Inference port-bypass guard (gating)
+        run: bash scripts/ci/check_inference_port_bypass.sh
       # Meta-gate: the scans above ask questions about the CODE; this asks whether
       # the gates themselves can still answer. It EXECUTES each gate's --self-test
       # rather than checking the flag is present, because doc_code_consistency.py
@@ -201,7 +215,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload coverage
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.13'
         uses: codecov/codecov-action@v6
         with:
           files: ./coverage.xml

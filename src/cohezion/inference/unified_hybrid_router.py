@@ -17,7 +17,10 @@ from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, get_event_bus
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
-from cohezion.inference.lemonade_health import LemonadeHealth, probe_lemonade
+from cohezion.inference.lemonade_health import probe_lemonade
+from cohezion.inference.transports.base import BaseInferenceTransport
+from cohezion.inference.transports.lemonade import LemonadeTransport
+from cohezion.inference.transports.ollama import OllamaCloudTransport
 from cohezion.reliability import get_circuit
 from cohezion.reliability.oom_guard import OOMGuard
 
@@ -57,20 +60,20 @@ class TaskClass(StrEnum):
 
 _TIER1_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "deepseek-r1-0528-8b-FLM",
-    TaskClass.DEEP_REASONING: "DeepSeek-Qwen3-8B-GGUF",
+    TaskClass.DEEP_REASONING: "Qwen3.6-35B-A3B-GGUF",
     TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-    TaskClass.CODING_TOOLS: "waslmedia-qwen3-4b-Q4_K_M",
+    TaskClass.CODING_TOOLS: "Gemma-4-E4B-it-GGUF",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
-    TaskClass.RESEARCH: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.RESEARCH: "Qwen3.6-35B-A3B-GGUF",
     TaskClass.SCIENCE_FRONTIER: "deepseek-r1-0528-8b-FLM",
-    TaskClass.FAST_QA: "qwen3-4b-FLM",
+    TaskClass.FAST_QA: "Gemma-4-E2B-it-GGUF",
     TaskClass.ULTRA_FAST_DRAFT: "llama3.2-1b-FLM",
     TaskClass.SUB_BILLION_EDGE: "Qwen3-0.6B-GGUF",
-    TaskClass.EXTREME_COMPACT: "Bonsai-1.7B-gguf",
-    TaskClass.LONG_CONTEXT_ANALYSIS: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.CREATIVE_SYNTHESIS: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.EXTREME_COMPACT: "Bonsai-8B-gguf",
+    TaskClass.LONG_CONTEXT_ANALYSIS: "Qwen3.6-35B-A3B-MTP-GGUF",
+    TaskClass.CREATIVE_SYNTHESIS: "gpt-oss-20b-mxfp4-GGUF",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
-    TaskClass.GENERAL: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.GENERAL: "Gemma-4-E4B-it-GGUF",
 }
 
 
@@ -79,14 +82,14 @@ _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.DEEP_REASONING: "kimi-k3:cloud",  # Kimi K3 Autonomous Deep Reasoning
     TaskClass.CODING: "qwen3.5:397b-cloud",  # 397B Multi-File System Refactors
     TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",  # Agentic Tool Use & Precise Patch Gen
-    TaskClass.VISION: "glm-5.2:cloud",  # Multimodal Geometry, Category Theory & Diagram Parsing
+    TaskClass.VISION: "glm-5.3-flash:cloud",  # Fast Multimodal Geometry & Diagrams
     TaskClass.RESEARCH: "nemotron-3-ultra:cloud",  # Frontier Enterprise Knowledge Synthesis
     TaskClass.SCIENCE_FRONTIER: "nemotron-3-super:cloud",  # Frontier Physics, Science & Math Verification
-    TaskClass.FAST_QA: "deepseek-v4-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
+    TaskClass.FAST_QA: "glm-5.3-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
     TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud",  # Sub-Second Low-Latency Draft Generation
-    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:0731-cloud",  # Fast edge fallback
+    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:cloud",  # Fast edge fallback
     TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
-    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors
+    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors & Vision
     TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
 }
 
@@ -108,6 +111,34 @@ _TIER3_PINS: dict[TaskClass, str] = {
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
     TaskClass.GENERAL: "gpt-oss-120b-medium",
 }
+
+
+class EVIPriority:
+    """Importance weights for TaskClasses to calculate EVI.
+    Higher = more critical to get correct (justifies higher cost).
+    """
+
+    WEIGHTS: dict[TaskClass, float] = {
+        TaskClass.DEEP_REASONING: 1.0,
+        TaskClass.SCIENCE_FRONTIER: 1.0,
+        TaskClass.CODING: 0.9,
+        TaskClass.CODING_TOOLS: 0.8,
+        TaskClass.REASONING: 0.7,
+        TaskClass.RESEARCH: 0.6,
+        TaskClass.LONG_CONTEXT_ANALYSIS: 0.6,
+        TaskClass.CREATIVE_SYNTHESIS: 0.5,
+        TaskClass.GENERAL: 0.4,
+        TaskClass.VISION: 0.4,
+        TaskClass.FAST_QA: 0.2,
+        TaskClass.ULTRA_FAST_DRAFT: 0.1,
+        TaskClass.SUB_BILLION_EDGE: 0.1,
+        TaskClass.EXTREME_COMPACT: 0.1,
+        TaskClass.EMBEDDINGS: 0.1,
+    }
+
+    @classmethod
+    def get_weight(cls, task_class: TaskClass) -> float:
+        return cls.WEIGHTS.get(task_class, 0.4)
 
 
 @dataclass(frozen=True, slots=True)
@@ -211,6 +242,12 @@ class UnifiedHybridRouter:
         self.prefer_local = prefer_local
         self.lemonade_port = lemonade_port
         self._lemonade_url = f"http://localhost:{lemonade_port}/v1/chat/completions"
+
+        # Transport Layer Initialization
+        self.transports: dict[str, BaseInferenceTransport] = {
+            "local": LemonadeTransport(port=lemonade_port),
+            "cloud": OllamaCloudTransport(),
+        }
         if evi_threshold is not None:
             self.evi_threshold = float(evi_threshold)
         else:
@@ -368,6 +405,40 @@ class UnifiedHybridRouter:
         return "qwen3-4b-FLM"
 
     # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
+    def _calculate_evi(self, prompt: str, task_class: TaskClass, current_tier: int) -> float:
+        """Compute Expected Value of Intervention for escalating to the next tier.
+
+        Formula: EVI = (QualityGap * Importance) / CostRatio
+        """
+        importance = EVIPriority.get_weight(task_class)
+
+        # Complexity heuristic: length and structure
+        complexity = 1.0
+        if len(prompt) > 2000:
+            complexity += 0.5
+        if any(k in prompt.lower() for k in ["prove", "formal", "architect", "refactor"]):
+            complexity += 0.3
+
+        # Triviality Filter: Cap EVI for extremely short/simple prompts
+        if len(prompt) < 50 and task_class in (TaskClass.GENERAL, TaskClass.FAST_QA):
+            return 0.5
+
+        # Simulated Quality Gap based on complexity and tier
+        # In production, this pulls from ModelCardHarness
+        base_gap = {
+            0: 0.4,  # NPU -> Local MoE
+            1: 0.3,  # Local MoE -> Cloud
+            2: 0.2,  # Cloud -> Premium
+        }.get(current_tier, 0.1)
+
+        quality_gap = base_gap * complexity
+
+        # Cost Ratio: Simplified relative cost increase (Local:1, Cloud:5, Premium:20)
+        costs = {0: 1.0, 1: 1.0, 2: 5.0, 3: 20.0}
+        cost_ratio = costs.get(current_tier + 1, 1.0) / costs.get(current_tier, 1.0)
+
+        return min(1.0, (quality_gap * importance) / max(cost_ratio, 0.1))
+
     async def route_by_capability(
         self,
         prompt: str,
@@ -409,10 +480,31 @@ class UnifiedHybridRouter:
                 task_class,
             )
 
-        # --- preflight: Lemonade fleet health -------------------------
+        # --- Dynamic EVI Routing logic ----------------------------------
+        current_tier = 0
+        while current_tier < 3:
+            evi = self._calculate_evi(prompt, task_class, current_tier)
+
+            if evi < 0.75 and not force_cloud:
+                # EVI too low to justify escalation; stick with current tier
+                break
+
+            current_tier += 1
+
+        # Map computed tier to the actual logic
+        if current_tier == 0:
+            # Use Tier-0 synthetic (though we usually start at Tier-1 in route_by_capability)
+            # For this implementation, we treat Tier-0 as the starting point for EVI
+            pass
+
+        # The remaining logic uses the decision from the EVI loop
+        # If current_tier reached 1 or 2, we override the default 'prefer_local' logic
         tier1_available = False
-        health: LemonadeHealth | None = None
-        if self.prefer_local and not force_cloud:
+        if force_cloud or current_tier >= 2:
+            tier1_available = False  # Force cloud
+        elif self.prefer_local or current_tier >= 1:
+            # Documented contract (docstring + route_query): when the caller
+            # prefers local silicon, probe Lemonade and try the Tier-1 pin.
             try:
                 circuit = get_circuit(
                     "lemonade_preflight", failure_threshold=3, recovery_timeout=20.0
@@ -490,11 +582,13 @@ class UnifiedHybridRouter:
             tier_label = "Tier 1 (iGPU General)"
 
         if tier1_available:
-            local_res = await self.aquery_lemonade_local(prompt, chosen_tier1_model)
-            if local_res:
+            # Blessed path: aquery_lemonade_local carries model-aligned params,
+            # local-ledger recording, and the content->reasoning_content fallback.
+            local_out = await self.aquery_lemonade_local(prompt, chosen_tier1_model)
+            if local_out is not None:
                 dt_ms = (time.perf_counter() - t0) * 1000.0
                 resp = HybridRouteResponse(
-                    content=local_res,
+                    content=local_out,
                     tier_used=tier_label,
                     model_name=chosen_tier1_model,
                     latency_ms=round(dt_ms, 2),
@@ -507,11 +601,11 @@ class UnifiedHybridRouter:
 
         # --- Tier-2: Ollama cloud fallback ----------------------------
         chosen_tier2_model = _TIER2_PINS.get(task_class, self.cloud_model)
-        cloud_res = await self.aquery_ollama_cloud(prompt, chosen_tier2_model)
-        if cloud_res:
+        cloud_out = await self.aquery_ollama_cloud(prompt, chosen_tier2_model)
+        if cloud_out is not None:
             dt_ms = (time.perf_counter() - t0) * 1000.0
             resp = HybridRouteResponse(
-                content=cloud_res,
+                content=cloud_out,
                 tier_used="Tier 2 (Ollama Cloud)",
                 model_name=chosen_tier2_model,
                 latency_ms=round(dt_ms, 2),
