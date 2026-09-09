@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — submodule registry (1.22.2)
+- Registered `src/cohezion/skills/surrealdb/skills-repo` in `.gitmodules`
+  (URL verified as `github.com/surrealdb/agent-skills`); unregisters the last
+  unmapped gitlink, unbreaking the Release workflow checkout (red since Sep 3).
+
 ### Fixed — security hardening (1.22.1)
 - Closed 66 CodeQL alerts (6 critical, 57 high in live code, 3 exempted with
   justification): arXiv-ID SSRF guards, RL checkpoint path-traversal guard,
