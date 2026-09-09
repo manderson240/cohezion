@@ -25,14 +25,19 @@ jobs:
       - name: Check repository size
         run: |
           echo "=== Repository Size Analysis ==="
-          REPO_SIZE=$(du -sh .git | cut -f1)
-          echo "Repository size: $REPO_SIZE"
-
-          # Get size in bytes for threshold check
-          SIZE_BYTES=$(du -sb .git | cut -f1)
+          # Server-side size (KB) — the truth about repo health. Measuring the
+          # local .git on a PERSISTENT self-hosted runner instead accumulated
+          # stale packs across jobs (hit 40 GB on 2026-09-04) and failed this
+          # gate while GitHub held only 0.7 GB.
+          SERVER_KB=$(curl -sf -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}" | jq -r '.size')
+          if [ -z "$SERVER_KB" ] || [ "$SERVER_KB" = "null" ]; then
+            echo "::warning::Could not fetch server-side repo size; skipping size gate"
+            exit 0
+          fi
+          SIZE_BYTES=$((SERVER_KB * 1024))
           SIZE_GB=$((SIZE_BYTES / 1024 / 1024 / 1024))
-
-          echo "Size in GB: $SIZE_GB"
+          echo "Repository size (server-side): ${SERVER_KB} KB ($SIZE_GB GB)"
 
           # Alert if >10GB (should be <6GB after Session 55 cleanup)
           if [ "$SIZE_BYTES" -gt 10737418240 ]; then
