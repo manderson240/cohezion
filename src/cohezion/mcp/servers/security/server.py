@@ -136,8 +136,12 @@ class SecurityScanner:
         lines = content.split("\n")
 
         for line_num, line in enumerate(lines, 1):
+            # Guard against polynomial-time backtracking on adversarial long lines.
+            if len(line) > 4096:
+                line = line[:4096]
             # SQL Injection
-            if re.search(r"execute\s*\(\s*['\"].*%s", line):
+            # Bounded charset avoids nested-quantifier backtracking (ReDoS).
+            if re.search(r"execute\s*\(\s*['\"][^'\"]*%s", line):
                 findings.append(
                     Vulnerability(
                         id="PY-SQLI-001",
@@ -231,14 +235,17 @@ class SecurityScanner:
         """Scan project dependencies for known vulnerabilities."""
         findings = []
 
+        # Path containment: dependency scans must stay inside the repo root.
+        repo_root = _resolve_repo_root().resolve()
+
         # Python requirements.txt
-        req_file = project_path / "requirements.txt"
-        if req_file.exists():
+        req_file = (project_path / "requirements.txt").resolve()
+        if req_file.is_relative_to(repo_root) and req_file.exists():
             findings.extend(await self._scan_python_dependencies(req_file))
 
         # JavaScript package.json
-        pkg_file = project_path / "package.json"
-        if pkg_file.exists():
+        pkg_file = (project_path / "package.json").resolve()
+        if pkg_file.is_relative_to(repo_root) and pkg_file.exists():
             findings.extend(await self._scan_js_dependencies(pkg_file))
 
         return findings
@@ -330,7 +337,10 @@ async def tool_scan_file(request: web.Request) -> web.Response:
         from cohezion.mcp.servers.safe_input import sanitize_path
 
         scanner = get_scanner()
-        path = sanitize_path(file_path, base_dir=_resolve_repo_root())
+        repo_root = _resolve_repo_root().resolve()
+        path = sanitize_path(file_path, base_dir=repo_root)
+        if not path.is_relative_to(repo_root):
+            return web.json_response({"error": "filePath escapes repo root"}, status=400)
         findings = scanner.scan_file(path, content)
 
         return web.json_response(
@@ -356,7 +366,10 @@ async def tool_scan_project(request: web.Request) -> web.Response:
         from cohezion.mcp.servers.safe_input import sanitize_path
 
         scanner = get_scanner()
-        path = sanitize_path(project_path, base_dir=_resolve_repo_root())
+        repo_root = _resolve_repo_root().resolve()
+        path = sanitize_path(project_path, base_dir=repo_root)
+        if not path.is_relative_to(repo_root):
+            return web.json_response({"error": "projectPath escapes repo root"}, status=400)
 
         all_findings = []
 

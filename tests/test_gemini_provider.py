@@ -34,7 +34,11 @@ class TestGeminiProviderConfig:
 
         provider = GeminiProvider()
         assert provider.timeout == 30
-        assert "generativelanguage.googleapis.com" in provider.base_url
+        import urllib.parse
+
+        assert (
+            urllib.parse.urlparse(provider.base_url).hostname == "generativelanguage.googleapis.com"
+        )
 
     def test_custom_config(self):
         from cohezion.swarm.providers.gemini_provider import GeminiProvider

@@ -156,13 +156,15 @@ async def list_notebooks():
 @router.get("/notebooks/{name}")
 async def get_notebook(name: str):
     """Get a specific notebook."""
-    if not re.match(r"^[a-zA-Z0-9_-]+$", name):
+    # Validate name: only allow a safe single path component (prevent path traversal)
+    if not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", name):
         raise HTTPException(status_code=400, detail="Invalid notebook name")
 
     base_dir = Path("docs/notebooks").resolve()
     notebook_path = (base_dir / f"{name}.md").resolve()
 
-    if not str(notebook_path).startswith(str(base_dir)):
+    # Defense-in-depth: ensure resolved path stays within the base directory
+    if not notebook_path.is_relative_to(base_dir):
         raise HTTPException(status_code=403, detail="Access denied")
 
     if not notebook_path.exists():

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -66,6 +67,8 @@ class LocalFinetuner:
         base_model: str = "qwen3.5",
         output_name: str = "cohezion_journey_v1",
     ) -> None:
+        if output_name in {".", ".."} or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", output_name):
+            raise ValueError(f"Unsafe output_name: {output_name!r}")
         self.base_model = base_model
         self.output_name = output_name
         self.base_info = BASE_MODELS.get(base_model, BASE_MODELS["qwen3.5"])

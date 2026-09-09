@@ -11,11 +11,12 @@ import json
 import logging
 import os
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
 
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class SystemWideFleetLock:
         """Attempt to acquire exclusive system-wide lock across all OS processes."""
         t_start = time.perf_counter()
         # Open WITHOUT O_TRUNC to avoid clobbering incumbent lock owner metadata
-        self._fd = os.open(str(self.lock_path), os.O_CREAT | os.O_RDWR, 0o666)
+        self._fd = os.open(str(self.lock_path), os.O_CREAT | os.O_RDWR, 0o600)
 
         while (time.perf_counter() - t_start) < timeout:
             # First check OOM headroom
@@ -54,17 +55,21 @@ class SystemWideFleetLock:
                 os.lseek(self._fd, 0, os.SEEK_SET)
                 os.write(
                     self._fd,
-                    json.dumps({
-                        "pid": os.getpid(),
-                        "acquired_at": time.time(),
-                        "resource": self.resource_name
-                    }).encode("utf-8")
+                    json.dumps(
+                        {
+                            "pid": os.getpid(),
+                            "acquired_at": time.time(),
+                            "resource": self.resource_name,
+                        }
+                    ).encode("utf-8"),
                 )
                 return True
             except (BlockingIOError, OSError):
                 time.sleep(poll_interval)
 
-        logger.error(f"❌ SystemWideFleetLock timed out after {timeout}s waiting on {self.resource_name}")
+        logger.error(
+            f"❌ SystemWideFleetLock timed out after {timeout}s waiting on {self.resource_name}"
+        )
         # Cleanly close fd on timeout to prevent fd leaks
         if self._fd is not None:
             try:

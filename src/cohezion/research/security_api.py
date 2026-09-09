@@ -400,6 +400,8 @@ class APIKeyManager:
         if not key:
             return False, None
 
+        # API-key fingerprint use (not password storage): sha256 keyed by the secret is
+        # the intended design; scrypt (salted, slow) would break constant-time lookup.
         key_hash = hashlib.sha256(key.encode()).hexdigest()
         key_info = self._keys.get(key_hash)
 

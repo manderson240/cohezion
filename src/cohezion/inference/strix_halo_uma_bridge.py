@@ -21,11 +21,12 @@ import mmap
 import os
 import struct
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
+
 
 SHM_PATH = "/dev/shm/cohezion_strix_halo_uma.dat"
 POINCARE_DIM = 2048
@@ -59,12 +60,14 @@ class StrixHaloUnifiedMemoryBridge:
         if not self.shm_path.exists():
             if not create:
                 raise FileNotFoundError(f"Shared memory file {self.shm_path} does not exist.")
-            self._fd = os.open(str(self.shm_path), os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o660)
+            self._fd = os.open(str(self.shm_path), os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
             os.ftruncate(self._fd, TOTAL_RING_SIZE)
         else:
             self._fd = os.open(str(self.shm_path), os.O_RDWR)
 
-        self._mmap = mmap.mmap(self._fd, TOTAL_RING_SIZE, mmap.MAP_SHARED, mmap.PROT_READ | mmap.PROT_WRITE)
+        self._mmap = mmap.mmap(
+            self._fd, TOTAL_RING_SIZE, mmap.MAP_SHARED, mmap.PROT_READ | mmap.PROT_WRITE
+        )
 
     def write_state(
         self,

@@ -43,7 +43,7 @@ class TestTLSConfig:
         assert config.cert_path == "/path/to/cert.pem"
         assert config.key_path == "/path/to/key.pem"
         assert config.hsts_max_age == 7776000
-        assert "https://example.com" in config.allowed_origins
+        assert config.allowed_origins == ["https://example.com"]
 
     def test_validate_certificate_missing_files(self):
         """Test certificate validation with missing files."""
@@ -146,7 +146,7 @@ class TestTLSConfig:
         config = TLSConfig(allowed_origins=["https://example.com"])
         origins = config.get_allowed_origins()
 
-        assert "https://example.com" in origins
+        assert origins == ["https://example.com"]
 
     def test_is_origin_allowed(self):
         """Test origin allowlist checking."""

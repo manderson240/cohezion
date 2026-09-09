@@ -37,6 +37,19 @@ def get_redis_url() -> str:
     )
 
 
+def _redact_url(url: str) -> str:
+    """Mask credentials in a connection URL before logging (userinfo/password)."""
+    import urllib.parse
+
+    parsed = urllib.parse.urlparse(url)
+    if parsed.username is None and parsed.password is None:
+        return url
+    host_part = parsed.hostname or ""
+    if parsed.port:
+        host_part = f"{host_part}:{parsed.port}"
+    return urllib.parse.urlunparse(parsed._replace(netloc=host_part))
+
+
 _engine: BMADEngine | None = None
 _session_manager: SessionManager | None = None
 

@@ -304,7 +304,7 @@ class TestDistributedStatistics:
 
         assert "redis_available" in stats
         assert "redis_endpoint" in stats
-        assert "cache.example.com:6380" in stats["redis_endpoint"]
+        assert stats["redis_endpoint"].endswith("cache.example.com:6380")
 
     def test_stats_overall_hit_rate_includes_l0(self):
         """Test overall hit rate correctly includes L0."""

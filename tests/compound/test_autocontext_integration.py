@@ -98,7 +98,7 @@ class TestAutocontextInit:
         # Make directory read-only so creating manifest.json fails
         import os
 
-        os.chmod(str(trace), 0o555)
+        os.chmod(str(trace), 0o500)
         try:
 
             class DummyMixin(CompoundContextMixin):
@@ -111,7 +111,7 @@ class TestAutocontextInit:
                 pytest.skip("Running as root — permission test ineffective")
             assert result is None
         finally:
-            os.chmod(str(trace), 0o755)
+            os.chmod(str(trace), 0o700)
 
 
 class TestArchiveSession:
@@ -177,14 +177,14 @@ class TestArchiveSession:
         policy_dir.mkdir(parents=True)
         import os
 
-        os.chmod(str(policy_dir), 0o555)
+        os.chmod(str(policy_dir), 0o500)
         try:
             result = obj.archive_session(outcome={"x": 1})
             if os.getuid() == 0:
                 pytest.skip("Running as root — permission test ineffective")
             assert result is None
         finally:
-            os.chmod(str(policy_dir), 0o755)
+            os.chmod(str(policy_dir), 0o700)
 
 
 class TestCompoundExecutorSessionLifecycle:
