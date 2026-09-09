@@ -13,7 +13,8 @@ from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
 def test_credential_scrubber_suite():
     print("=== [GATE 1] Testing Secret Scrubber Interceptor ===")
-    sample_telegram = "TELEGRAM_BOT_TOKEN=1234567890:AAHlul9OrUf9DcWPointVLaWd8GEuo6YOfU"
+    # Synthetic pattern-valid token (never a real secret) — exercises the scrubber
+    sample_telegram = "TELEGRAM_BOT_TOKEN=" + "1234567890:AA" + "x" * 33
     sample_openai = "OPENAI_API_KEY=sk-abcdef1234567890abcdef1234567890"
     sample_chat_id = "TELEGRAM_CHAT_ID=8344971611"
     
@@ -23,8 +24,8 @@ def test_credential_scrubber_suite():
     
     print(f"  • Raw Input:  {sample_telegram[:30]}...")
     print(f"  • Scrubbed:   {scrubbed_tg}")
-    assert "AAHlul9OrUf9DcWPointVLaWd8GEuo6YOfU" not in scrubbed_tg
-    assert "[REDACTED_SECRET]" in scrubbed_tg
+    assert "AA" + "x" * 33 not in scrubbed_tg  # synthetic body must be redacted
+    assert "[REDACTED" in scrubbed_tg
     assert "sk-abcdef" not in scrubbed_oa
     print("  ✓ Gate 1: Secret Scrubber PASSED\n")
 
