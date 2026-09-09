@@ -82,7 +82,22 @@ def read_baseline() -> dict[str, int]:
 
 
 def run_mutmut_results() -> str:
-    """Run `uv run mutmut results` and return stdout."""
+    """Run the mutation engine, then return `mutmut results` output.
+
+    mutmut 3.x caches per-mutant status in its run state (mutants/ dir);
+    `mutmut results` only READS that cache. On a fresh CI runner the cache
+    is empty -> results prints nothing -> parse fails closed. Running the
+    engine first populates the cache.
+    """
+    run = subprocess.run(
+        ["uv", "run", "mutmut", "run"],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        timeout=900,  # fresh runner: engine re-runs the test suite per mutant
+    )
+    if run.returncode not in (0, 1):  # 1 = some mutants survived (informational)
+        print(f"note: mutmut run exited {run.returncode}", file=sys.stderr)
     proc = subprocess.run(
         ["uv", "run", "mutmut", "results"],
         capture_output=True,

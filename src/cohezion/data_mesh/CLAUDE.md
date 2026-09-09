@@ -4,7 +4,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 
 **Purpose:** Data Mesh architecture for Cohezion's multi-agent system. Maps Zhamak Dehghani's 4 Data Mesh principles to Cohezion: 1. Domain ownership → Each specialist agent owns its data domain 2. Data as product
 
-## Entry points (19 modules)
+## Entry points (21 modules)
 
 | Module | Key class(es) | LOC |
 |---|---|---|
@@ -27,6 +27,8 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 | `fleet_autotuning_datamesh_consumer.py` | `DataMeshFleetAutotuningConsumer` | 127 |
 | `graph_relational_mesh.py` | `CycleVerificationState`, `SurrealDBGraphRelationalEventLogCrossSessionMesh` | 44 |
 | `multi_session_sanitization_gateway.py` | `MultiSessionSanitizationGateway` | 168 |
+| `durable_precipitation_bridge.py` | `DurableWitnessMark`, `DurablePrecipitationBridge` | 216 |
+| `recursive_event_mesh.py` | `MeshState`, `CodebaseSweepReport`, `BleedingEdgeReport`, `MeshCycleOutput` | 266 |
 
 ## Invariants / notes referencing this package (from harness.md / root CLAUDE.md)
 
