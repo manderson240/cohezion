@@ -219,6 +219,25 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
 step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 
+# Step 6c-quinquies: False contracts — the FOURTH sibling. 6c asks "has a consumer?", 6c-bis
+# "do the docs tell the truth?", 6c-ter "does the attribute exist?", this asks "does the
+# producer do what its NAME promises?". Added 2026-09-10 after CrossSessionEventBridge
+# .publish_and_persist was found with FIVE production consumers and no persistence: it called
+# event_bus.publish_sync() and returned True, never touching self.surreal_client declared on
+# the same class. dormancy_scan was green and CORRECT — a producer WITH consumers can still be
+# a no-op, so "has a consumer?" cannot see this class at all.
+# AST-based, never regex: the defect IS "the docstring says it, the code doesn't", so a grep
+# for the collaborator matches the very docstring that lies. String constants are excluded as
+# evidence, and a fixture whose only mention is in a docstring must still be flagged.
+# --self-test first, same reason as the three above. Mutation-verified 5/5: grep-like matching,
+# scoring zero candidates as a pass, flagging everything, dropping the NotImplementedError
+# exemption, and removing a verb from its own token set each kill a named fixture.
+# Registry-scoped like dormancy_scan, for the same reason: of the `_and_` names read during the
+# originating audit roughly half were honest, so an unfiltered sweep would cry wolf. Use
+# --sweep to triage candidates without gating on them.
+step "false-contract self-test" uv run python scripts/ci/false_contract_scan.py --self-test
+step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
+
 # Step 6c-quater: META-gate. The scans above ask questions about the CODE; this asks whether
 # the gates themselves can still answer. It RUNS each gate's --self-test rather than
 # checking the flag exists, because doc_code_consistency.py was found shipping a
