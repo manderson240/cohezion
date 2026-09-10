@@ -156,6 +156,40 @@ class TestConfigMonitor:
 
         assert not monitor._running
 
+    @pytest.mark.asyncio
+    async def test_start_starts_the_event_bus_and_stop_stops_it(self, tmp_path: Path) -> None:
+        """`start()` must bring the bus up, or every publish is refused.
+
+        The delivery tests in TestEventEmission start the bus themselves to
+        isolate the publish contract, so without this test nothing would fail
+        if `start()` stopped starting the bus -- and every config event would
+        silently go back to being dropped (event_bus D7).
+
+        Polls the bus's own flag rather than `monitor._running`: the monitor
+        sets its flag first and only then awaits `event_bus.start()`, so
+        `monitor._running` is true for a moment while the bus is still down.
+        """
+        monitor = ConfigMonitor(tmp_path)
+
+        assert not monitor.event_bus._running
+
+        with patch.object(monitor.vault_client, "connect", new_callable=AsyncMock):
+            monitor_task = asyncio.create_task(monitor.start())
+
+            for _ in range(100):
+                if monitor.event_bus._running:
+                    break
+                await asyncio.sleep(0.005)
+
+            assert monitor.event_bus._running, "start() did not start the event bus"
+
+            await monitor.stop()
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(monitor_task, timeout=1.0)
+            monitor_task.cancel()
+
+        assert not monitor.event_bus._running
+
 
 class TestOrchestrationWithMonitoring:
     """Test ConfigurationOrchestrator with monitoring integration."""
@@ -209,12 +243,55 @@ class TestOrchestrationWithMonitoring:
                 stop_mock.assert_called()
 
 
+async def _collect_config_events(monitor: ConfigMonitor, emit) -> list:
+    """Run `emit()` against a started bus and return what a subscriber received.
+
+    Delivery, not invocation, is the assertion that discriminates here. Every
+    config event used to be dropped twice over: `publish()` was called without
+    `await` (the coroutine was discarded before reaching the queue), and the
+    monitor's private EventBus was never started, so `publish()` would have
+    returned False anyway (event_bus D7). A test asserting "publish was called"
+    goes green the moment `await` is added, while delivery is still zero.
+
+    `stop()` performs a bounded drain, so it is both the synchronisation point
+    and coverage of the lifecycle wiring.
+    """
+    received: list = []
+
+    async def _collector(event) -> None:
+        received.append(event)
+
+    monitor.event_bus.register_handler(_collector)
+    await monitor.event_bus.start()
+    try:
+        await emit()
+    finally:
+        await monitor.event_bus.stop()
+    return received
+
+
 class TestEventEmission:
     """Test that events are properly emitted by monitor."""
 
     @pytest.mark.asyncio
-    async def test_vault_decision_event_emission(self, tmp_path: Path) -> None:
-        """Test that vault decision creation emits ConfigEvent."""
+    async def test_publish_is_refused_while_the_bus_is_not_started(self, tmp_path: Path) -> None:
+        """The precondition this suite relies on must be able to fail.
+
+        If `publish()` returned True on an unstarted bus, the delivery tests
+        below could not distinguish a working bus from a dropped event.
+        """
+        monitor = ConfigMonitor(tmp_path)
+        from cohezion.core.event_bus import Event, EventType
+
+        accepted = await monitor.event_bus.publish(
+            Event(type=EventType.CUSTOM, source="test", payload={})
+        )
+
+        assert accepted is False
+
+    @pytest.mark.asyncio
+    async def test_vault_decision_event_reaches_a_subscriber(self, tmp_path: Path) -> None:
+        """A vault decision must actually deliver VAULT_DECISION_ADDED."""
         monitor = ConfigMonitor(tmp_path)
 
         event = VaultEvent(
@@ -223,9 +300,11 @@ class TestEventEmission:
             timestamp="2026-02-10T01:00:00Z",
         )
 
-        # Verify event is processed without exception
-        await monitor._handle_vault_create(event)
-        assert True
+        received = await _collect_config_events(
+            monitor, lambda: monitor._handle_vault_create(event)
+        )
+
+        assert [e.payload["config_event"] for e in received] == ["VAULT_DECISION_ADDED"]
 
     @pytest.mark.asyncio
     async def test_manual_edit_event_emission(self, tmp_path: Path) -> None:
@@ -271,5 +350,9 @@ class TestEventEmission:
         assert is_manual is True
 
         # Handle the change
-        await monitor._handle_config_file_change(claude_md, "CLAUDE.md")
-        assert True
+        received = await _collect_config_events(
+            monitor, lambda: monitor._handle_config_file_change(claude_md, "CLAUDE.md")
+        )
+
+        assert [e.payload["config_event"] for e in received] == ["MANUAL_EDIT_DETECTED"]
+        assert received[0].payload["file"] == "CLAUDE.md"

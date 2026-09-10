@@ -70,6 +70,14 @@ class ConfigMonitor:
         logger.info("Starting config monitoring")
 
         try:
+            # The bus must be started before anything can publish onto it:
+            # EventBus.publish() refuses (returns False) while `_running` is
+            # clear, because enqueueing with no processor draining the queue
+            # silently discards the event (event_bus D7). It needs a running
+            # loop, so here rather than in __init__, and before the gather
+            # below -- which blocks for the monitor's whole lifetime.
+            await self.event_bus.start()
+
             # Register vault event handlers
             self._register_vault_handlers()
 
@@ -85,11 +93,15 @@ class ConfigMonitor:
             logger.error(f"Monitoring error: {e}", exc_info=True)
         finally:
             self._running = False
+            # Bounded drain (event_bus D2); also reached on the CancelledError
+            # path above, where leaving the processor task alive would strand it.
+            await self.event_bus.stop()
 
     async def stop(self) -> None:
         """Stop monitoring tasks."""
         self._running = False
         await self.vault_client.disconnect()
+        await self.event_bus.stop()
         logger.info("Config monitoring stopped")
 
     def _register_vault_handlers(self) -> None:
@@ -125,7 +137,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            self.event_bus.publish(config_event)
+            await self.event_bus.publish(config_event)
 
         elif event.path.startswith("patterns/"):
             config_event = Event(
@@ -137,7 +149,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            self.event_bus.publish(config_event)
+            await self.event_bus.publish(config_event)
 
         elif event.path.startswith("experiments/"):
             config_event = Event(
@@ -149,7 +161,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            self.event_bus.publish(config_event)
+            await self.event_bus.publish(config_event)
 
     async def _handle_vault_modify(self, event: VaultEvent) -> None:
         """Process vault file modification."""
@@ -165,7 +177,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            self.event_bus.publish(config_event)
+            await self.event_bus.publish(config_event)
 
     async def _handle_vault_delete(self, event: VaultEvent) -> None:
         """Process vault file deletion."""
@@ -238,7 +250,7 @@ class ConfigMonitor:
                     "has_diff": diff is not None,
                 },
             )
-            self.event_bus.publish(config_event)
+            await self.event_bus.publish(config_event)
         else:
             logger.debug(f"Auto-generated change in {filename}")
 
@@ -252,7 +264,7 @@ class ConfigMonitor:
                     "auto_generated": True,
                 },
             )
-            self.event_bus.publish(config_event)
+            await self.event_bus.publish(config_event)
 
 
 class VaultSubscriptionClientProxy:
