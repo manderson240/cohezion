@@ -303,10 +303,39 @@ class TestOrchestrationWithSync:
         (vault_root / "decisions").mkdir()
 
         orch = ConfigurationOrchestrator(tmp_path)
+        # Keep the sync engine off the real ~/vaults tree so the test is hermetic.
+        orch.sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path,
+            vault_root=vault_root,
+            sync_logger=orch.sync_logger,
+        )
 
         result = await orch.regenerate_and_commit("CLAUDE.md", "test_trigger")
 
-        assert result is True or result is False  # Should return bool
+        # The contract is the method's NAME: regenerate the file and commit it.
+        # A True return has to mean the artifact exists -- the previous assertion
+        # (`result is True or result is False`) was a tautology that could not
+        # fail for any bool-returning body, and it certified a body whose entire
+        # promised behaviour was four `# Phase 4:` comments.
+        assert result is True
+        assert orch.claude_md.exists(), "returned True but regenerated no CLAUDE.md"
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_regenerate_reports_failure_for_unknown_file(
+        self, tmp_path: Path
+    ) -> None:
+        """An unsynced file must not be reported as a successful sync.
+
+        Discriminating: an implementation that increments `total_syncs` on a
+        path that synced nothing manufactures a success metric out of nothing.
+        """
+        orch = ConfigurationOrchestrator(tmp_path)
+        before = orch.get_metrics()["total_syncs"]
+
+        result = await orch.regenerate_and_commit("NOT_A_CONFIG.md", "test_trigger")
+
+        assert result is False
+        assert orch.get_metrics()["total_syncs"] == before
 
 
 class TestCommitMessageGeneration:

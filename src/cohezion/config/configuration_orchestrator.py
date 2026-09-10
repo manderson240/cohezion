@@ -360,19 +360,11 @@ class ConfigurationOrchestrator:
         """
         logger.info(f"Regenerating {filename} (reason: {reason})")
 
-        if filename == "CLAUDE.md":
-            file_path = self.claude_md
-        elif filename == "GEMINI.md":
-            file_path = self.gemini_md
-        else:
+        if filename not in ("CLAUDE.md", "GEMINI.md"):
             logger.error(f"Unknown config file: {filename}")
             return False
 
         try:
-            # Phase 2: Detect manual edits
-            _is_manual = self.detect_manual_edits(file_path)
-
-            # Phase 2: Detect conflicts
             conflicts = await self.detect_conflicts()
 
             if conflicts:
@@ -381,12 +373,16 @@ class ConfigurationOrchestrator:
                 # Phase 2: Create vault/inbox alert for manual review
                 return False
 
-            # Phase 4: Generate new content from vault
-            # Phase 4: Compare vs current
-            # Phase 4: Write new content
-            # Phase 4: Create git commit
+            result = await self.sync_engine.sync_config_file(filename)
 
-            logger.info(f"Successfully regenerated {filename}")
+            if not result.get("synced"):
+                logger.warning(
+                    f"Sync engine did not regenerate {filename}: {result.get('details', {})}"
+                )
+                self.config_state.sync_failures += 1
+                return False
+
+            logger.info(f"Successfully regenerated {filename} (commit {result.get('commit_hash')})")
             self.config_state.total_syncs += 1
             return True
 
