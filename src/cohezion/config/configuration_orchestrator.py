@@ -339,11 +339,24 @@ class ConfigurationOrchestrator:
     ) -> bool:
         """Regenerate config file and commit to git.
 
-        Phase 4 implementation will handle:
-        - Conflict detection and alerting
-        - Template-driven regeneration
-        - AI-generated commit messages
-        - Atomic operations with rollback
+        Delegates to :class:`ConfigSyncEngine`, which owns the template-driven
+        regeneration, the AI-style commit message and the git commit itself.
+
+        Returns True only when the sync engine reports ``synced``. Previously
+        this body was four ``# Phase 4:`` comments followed by an
+        unconditional ``return True`` and a ``total_syncs`` increment -- it
+        reported success for work it never did.
+
+        Two honest limits on what a True means, both inherited from the layers
+        below rather than introduced here, but reachable for the first time now
+        that this method is no longer a stub:
+
+        * ``GitUtils.auto_commit`` treats git's "nothing to commit" as success,
+          so if the file on disk already matched HEAD, True is returned and
+          ``commit_hash`` is the PREVIOUS commit -- not one this call created.
+        * The sync engine writes the file before it attempts the commit, so a
+          commit failure returns False having already modified the working
+          tree. This method is not atomic and does not roll back.
         """
         logger.info(f"Regenerating {filename} (reason: {reason})")
 

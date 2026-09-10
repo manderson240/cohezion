@@ -95,14 +95,34 @@ class ConfigMonitor:
             self._running = False
             # Bounded drain (event_bus D2); also reached on the CancelledError
             # path above, where leaving the processor task alive would strand it.
-            await self.event_bus.stop()
+            await self._stop_bus_once()
 
     async def stop(self) -> None:
         """Stop monitoring tasks."""
         self._running = False
         await self.vault_client.disconnect()
-        await self.event_bus.stop()
+        await self._stop_bus_once()
         logger.info("Config monitoring stopped")
+
+    async def _stop_bus_once(self) -> None:
+        """Stop the bus, but only if it is still running.
+
+        Both `stop()` and `start()`'s finally-block reach here -- whichever
+        runs first does the work. The guard is not cosmetic: `EventBus.stop()`
+        is NOT cheaply idempotent when its drain times out. On timeout it
+        counts the abandoned events but never calls `task_done()` for them, so
+        `Queue._unfinished_tasks` stays positive with no processor left to
+        decrement it. A second `stop()` therefore blocks for the FULL
+        `drain_timeout` again -- measured at 0.501s each for a 0.5s timeout,
+        i.e. ~60s of shutdown at the 30s default -- and double-counts the same
+        events into the `dropped` metric (2 -> 4 in that same measurement).
+
+        `EventBus.stop()` clears `_running` on every exit path (its D1), so
+        this guard is reliable. Fixing the underlying non-idempotence belongs
+        in event_bus.py and would change behaviour for all of its callers.
+        """
+        if self.event_bus._running:
+            await self.event_bus.stop()
 
     def _register_vault_handlers(self) -> None:
         """Register handlers for vault SSE events."""

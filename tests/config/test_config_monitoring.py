@@ -190,6 +190,65 @@ class TestConfigMonitor:
 
         assert not monitor.event_bus._running
 
+    @pytest.mark.asyncio
+    async def test_bus_is_stopped_exactly_once_per_lifecycle(self, tmp_path: Path) -> None:
+        """Both `stop()` and `start()`'s finally reach the bus -- only one may act.
+
+        `EventBus.stop()` is not cheaply idempotent when its drain times out:
+        it counts abandoned events without calling `task_done()`, so a second
+        call blocks for the whole `drain_timeout` again (measured 0.501s for a
+        0.5s timeout => ~60s at the 30s default) and double-counts them into
+        `dropped`. Adversarial review of the bus-lifecycle change caught this;
+        the probe reproducing it is quoted in `_stop_bus_once`.
+        """
+        monitor = ConfigMonitor(tmp_path)
+
+        calls = 0
+        real_stop = monitor.event_bus.stop
+
+        async def counting_stop(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+            return await real_stop(*args, **kwargs)
+
+        monitor.event_bus.stop = counting_stop  # type: ignore[method-assign]
+
+        with patch.object(monitor.vault_client, "connect", new_callable=AsyncMock):
+            monitor_task = asyncio.create_task(monitor.start())
+
+            for _ in range(100):
+                if monitor.event_bus._running:
+                    break
+                await asyncio.sleep(0.005)
+            assert monitor.event_bus._running
+
+            await monitor.stop()
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(monitor_task, timeout=1.0)
+            monitor_task.cancel()
+
+        assert calls == 1, f"EventBus.stop() called {calls}x; the second re-runs the drain"
+
+    @pytest.mark.asyncio
+    async def test_stopping_an_unstarted_monitor_never_touches_the_bus(
+        self, tmp_path: Path
+    ) -> None:
+        """Discriminating: a guard of `if True` would call stop() here anyway."""
+        monitor = ConfigMonitor(tmp_path)
+
+        calls = 0
+
+        async def counting_stop(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+
+        monitor.event_bus.stop = counting_stop  # type: ignore[method-assign]
+
+        with patch.object(monitor.vault_client, "disconnect", new_callable=AsyncMock):
+            await monitor.stop()
+
+        assert calls == 0
+
 
 class TestOrchestrationWithMonitoring:
     """Test ConfigurationOrchestrator with monitoring integration."""
