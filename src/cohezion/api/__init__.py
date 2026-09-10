@@ -147,6 +147,12 @@ with contextlib.suppress(ImportError):
 
     app.include_router(work_queue_router)
 
+# SaaS Gateway (Zero-retention private inference + code audit commercial endpoints)
+with contextlib.suppress(ImportError):
+    from cohezion.api.routes.saas_gateway import router as saas_router
+
+    app.include_router(saas_router)
+
 
 __all__ = [
     "_compute_coherence",

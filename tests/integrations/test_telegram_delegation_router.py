@@ -5,8 +5,9 @@ Behavioural discriminating:
   - The router correctly calls the right handler, NOT just _chat_omnirouter, for
     STATUS/LIST/AGENT intents — a wrong implementation that skips classification
     and always calls _chat_omnirouter would FAIL these tests.
-  - _select_lemonade_model prefers fleet models (Bonsai-8B-gguf) over the
-    previously-preferred Granite-4.1-8B-GGUF which is NOT in the live fleet.
+  - _select_lemonade_model prefers Granite-4.1-8B-GGUF (the validated
+    no-thinking main-loop model, per PR #294 / commit fe6735b10) over other
+    fleet models.
   - _handle_agent no longer calls git-worktree or tmux — those reliably fail.
 """
 
@@ -207,12 +208,13 @@ async def test_handle_agent_sends_error_when_omnirouter_unavailable():
 
 
 @pytest.mark.asyncio
-async def test_select_lemonade_model_prefers_bonsai_over_granite():
-    """Bonsai-8B-gguf (in fleet) must be preferred over Granite-4.1-8B-GGUF (not in fleet).
+async def test_select_lemonade_model_prefers_granite_over_other_fleet_models():
+    """Granite-4.1-8B-GGUF must be preferred over other served fleet models.
 
-    Discriminating: old implementation returned Granite-4.1-8B-GGUF when it
-    was listed — but that model is NOT in the live fleet, so health checks
-    would fail. A correct implementation prefers Bonsai-8B-gguf instead.
+    PR #294 (commit fe6735b10) deliberately switched the preference to
+    Granite-4.1-8B-GGUF — the validated no-thinking, tool-capable main-loop
+    model served by the always-up :13305 router. A regression that returned
+    some other fleet model (e.g. Bonsai-8B-gguf) must fail this test.
     """
     hub = _make_hub()
 
@@ -230,12 +232,12 @@ async def test_select_lemonade_model_prefers_bonsai_over_granite():
         MockClient.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
         result = await hub._select_lemonade_model()
 
-    assert result == "Bonsai-8B-gguf"
+    assert result == "Granite-4.1-8B-GGUF"
 
 
 @pytest.mark.asyncio
 async def test_select_lemonade_model_falls_back_when_preferred_absent():
-    """When Bonsai/Gemma-4-E4B aren't served, pick the first non-embed model."""
+    """When Granite (or any Granite variant) isn't served, pick the first non-embed model."""
     hub = _make_hub()
 
     mock_response = MagicMock()

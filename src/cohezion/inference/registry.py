@@ -307,6 +307,69 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="qwen3.5-4b-FLM",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13305",
+            runtime_backend="flm",
+            # FUNCTION_CALL deliberately NOT claimed: Granite-4.1-3b stays the
+            # dedicated tool-call specialist (item 21); qwen3.5 is the vision/
+            # reasoning NPU offload. for_task() sorts by priority, so claiming
+            # FUNCTION_CALL here would usurp the specialist (CI-verified).
+            task_affinity=frozenset({Task.VISION, Task.REASONING}),
+            weight_quant=WeightQuant.INT4,
+            kv_quant=KVQuant(),
+            context_window=32768,
+            priority=8,
+            size_gb=5.2,
+            reasoning_mode=True,
+            verified_working=True,
+            last_verified_at=datetime(2026, 9, 9),
+            notes=(
+                "Qwen3.5-4B-NPU2 on XDNA2 via FastFlowLM v1.0.3. "
+                "Multi-modal vision + reasoning + tool-calling with 32k context. "
+                "Zero-UMA footprint offload on NPU."
+            ),
+        ),
+        ModelEntry(
+            model_id="gemma3-4b-FLM",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13305",
+            runtime_backend="flm",
+            task_affinity=frozenset({Task.VISION, Task.SUMMARIZATION}),
+            weight_quant=WeightQuant.INT4,
+            kv_quant=KVQuant(),
+            context_window=65536,
+            priority=12,
+            size_gb=4.5,
+            verified_working=True,
+            last_verified_at=datetime(2026, 9, 9),
+            notes=(
+                "Gemma 3 4B VLM on XDNA2 via FastFlowLM v1.0.3. "
+                "Native vision understanding with 64k default context length."
+            ),
+        ),
+        ModelEntry(
+            model_id="embed-gemma-300m-FLM",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13305",
+            runtime_backend="flm",
+            # EXTRACTION deliberately NOT claimed: LFM2.5-VL-1.6B stays the
+            # extraction specialist (item 4, mmproj experiment pending);
+            # embed-gemma is the 300M embeddings workhorse (SENSING).
+            task_affinity=frozenset({Task.SENSING}),
+            weight_quant=WeightQuant.INT4,
+            kv_quant=KVQuant(),
+            context_window=2048,
+            priority=5,
+            size_gb=0.62,
+            verified_working=True,
+            last_verified_at=datetime(2026, 9, 9),
+            notes=(
+                "Sentence similarity embeddings on XDNA2 via FastFlowLM v1.0.3. "
+                "Can run concurrently with any FLM LLM in server mode via --embed 1."
+            ),
+        ),
+        ModelEntry(
             model_id="Gemma-4-E4B-it-GGUF",
             size_gb=4.6,  # measured GGUF on disk: gemma-4-E4B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.IGPU_ROCWMMA,
