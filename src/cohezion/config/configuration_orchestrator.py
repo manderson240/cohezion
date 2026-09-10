@@ -218,7 +218,7 @@ class ConfigurationOrchestrator:
                                         "sections_archived": archive_result["sections_archived"],
                                     },
                                 )
-                                await self.monitor.event_bus.publish(config_event)
+                                await self.monitor.emit_config_event(config_event)
 
                 # Wait 30 minutes for next check
                 await asyncio.sleep(1800)

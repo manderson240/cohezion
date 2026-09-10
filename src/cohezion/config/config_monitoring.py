@@ -60,6 +60,28 @@ class ConfigMonitor:
         self.vault_client = VaultSubscriptionClient(vault_url, vault_api_key)
         self._running = False
 
+        # Config events the bus refused (EB1c/D7). Observable so a caller can tell
+        # "emitted" from "dropped" — the distinction the bare publish() call discarded.
+        self.dropped_events = 0
+
+    async def emit_config_event(self, event: Event) -> bool:
+        """Publish a config event and act on the bus's accept/reject verdict.
+
+        ``EventBus.publish`` is a coroutine that returns False when the bus is not
+        running, precisely so a caller can distinguish enqueued from dropped (EB1c/D7).
+        Calling it without ``await`` builds a coroutine and discards it, so the event is
+        never even offered to the bus; awaiting it and then ignoring the bool is the
+        softer version of the same defect. Both are fixed here.
+        """
+        accepted = await self.event_bus.publish(event)
+        if not accepted:
+            self.dropped_events += 1
+            logger.warning(
+                "Config event refused by bus: %s",
+                event.payload.get("config_event", event.type),
+            )
+        return accepted
+
     async def start(self) -> None:
         """Start all monitoring tasks."""
         if self._running:
@@ -157,7 +179,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            await self.event_bus.publish(config_event)
+            await self.emit_config_event(config_event)
 
         elif event.path.startswith("patterns/"):
             config_event = Event(
@@ -169,7 +191,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            await self.event_bus.publish(config_event)
+            await self.emit_config_event(config_event)
 
         elif event.path.startswith("experiments/"):
             config_event = Event(
@@ -181,7 +203,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            await self.event_bus.publish(config_event)
+            await self.emit_config_event(config_event)
 
     async def _handle_vault_modify(self, event: VaultEvent) -> None:
         """Process vault file modification."""
@@ -197,7 +219,7 @@ class ConfigMonitor:
                     "timestamp": event.timestamp,
                 },
             )
-            await self.event_bus.publish(config_event)
+            await self.emit_config_event(config_event)
 
     async def _handle_vault_delete(self, event: VaultEvent) -> None:
         """Process vault file deletion."""
@@ -270,7 +292,7 @@ class ConfigMonitor:
                     "has_diff": diff is not None,
                 },
             )
-            await self.event_bus.publish(config_event)
+            await self.emit_config_event(config_event)
         else:
             logger.debug(f"Auto-generated change in {filename}")
 
@@ -284,7 +306,7 @@ class ConfigMonitor:
                     "auto_generated": True,
                 },
             )
-            await self.event_bus.publish(config_event)
+            await self.emit_config_event(config_event)
 
 
 class VaultSubscriptionClientProxy:

@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
+from cohezion.core.event_bus import Event, EventType
 from cohezion.core.vault_subscription import VaultEvent
 
 
@@ -431,3 +432,50 @@ class TestEventEmission:
 
         assert [e.payload["config_event"] for e in received] == ["MANUAL_EDIT_DETECTED"]
         assert received[0].payload["file"] == "CLAUDE.md"
+
+
+class TestConfigEventDelivery:
+    """A config event must REACH a subscriber, not merely be awaited.
+
+    Regression guard for the 2026-09-10 false-contract audit (F1). Seven call sites
+    invoked the ``async`` ``EventBus.publish`` without ``await``: the coroutine was
+    constructed and dropped, so the event was never even offered to the bus. mypy
+    reported every one as ``[unused-coroutine]`` and nothing gated on it.
+
+    The tests below cover the softer defect the fix could itself have introduced
+    (delivery itself is pinned by TestEventEmission).
+
+    * ``test_refused_event_is_counted_not_silently_discarded`` fails if the returned
+      bool is awaited and then ignored: ``publish`` returns False when the bus is not
+      running (EB1c/D7) precisely so a caller can tell enqueued from dropped.
+
+    Asserting delivery rather than invocation is deliberate: a passing consumption
+    invariant proves wiring, never throughput.
+    """
+
+    @pytest.mark.asyncio
+    async def test_refused_event_is_counted_not_silently_discarded(self, tmp_path: Path) -> None:
+        """A bus that never started refuses the event, and the caller records it."""
+        monitor = ConfigMonitor(tmp_path)
+        assert not monitor.event_bus._running, "precondition: bus must not be running"
+
+        await monitor._handle_vault_create(
+            VaultEvent(event_type="file_created", path="decisions/x.md", timestamp="t0")
+        )
+
+        assert monitor.dropped_events == 1
+
+    @pytest.mark.asyncio
+    async def test_non_matching_path_emits_nothing(self, tmp_path: Path) -> None:
+        """Negative control: the counter tracks real drops, not every call.
+
+        Without this, ``dropped_events == 1`` above could be satisfied by an
+        implementation that increments unconditionally.
+        """
+        monitor = ConfigMonitor(tmp_path)
+
+        await monitor._handle_vault_create(
+            VaultEvent(event_type="file_created", path="unrelated/x.md", timestamp="t0")
+        )
+
+        assert monitor.dropped_events == 0
