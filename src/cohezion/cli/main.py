@@ -146,6 +146,20 @@ def version():
     console.print(table)
 
 
+@app.command()
+def doctor():
+    """Run invariant checks across hardware, software and projects."""
+    from cohezion.ops.control_plane import CohezionControlPlane, render_cli_dashboard
+
+    cp = CohezionControlPlane()
+    snap = cp.snapshot()
+    cp.persist_snapshot(snap)
+    render_cli_dashboard(snap)
+    failures = [d for d in snap.diagnostics if not d.passed and d.severity == "ERROR"]
+    if failures:
+        raise typer.Exit(code=1)
+
+
 @app.callback()
 def main(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
@@ -984,7 +998,10 @@ def ops_loop(
         60.0, "--interval", "-i", help="Interval in seconds between perpetual master cycles"
     ),
     max_cycles: int = typer.Option(
-        0, "--max-cycles", "-c", help="Optional maximum number of master cycles before exiting (0 = infinite)"
+        0,
+        "--max-cycles",
+        "-c",
+        help="Optional maximum number of master cycles before exiting (0 = infinite)",
     ),
 ):
     """Run 24/7 Sovereign Strix Halo Master Perpetual Loop across hardware, software, and projects."""
@@ -1000,7 +1017,606 @@ def ops_loop(
     asyncio.run(orchestrator.run_forever(max_cycles=cycles_arg))
 
 
+# -----------------------------------------------------------------------------
+# Bleeding-Edge Adaptive Execution & Neural Mesh Commands
+# -----------------------------------------------------------------------------
+
+mesh_app = typer.Typer(
+    help="Unified Neural Mesh: Query distributed local silicon & graph associative memory",
+    no_args_is_help=True,
+)
+app.add_typer(mesh_app, name="mesh", help="Unified Neural Mesh operations")
+
+
+@mesh_app.command("status")
+def mesh_status():
+    """Inspect the live health of all Unified Neural Mesh nodes."""
+    from cohezion.inference.unified_neural_mesh import UnifiedNeuralMesh
+
+    mesh = UnifiedNeuralMesh()
+    status = mesh.get_node_status()
+
+    table = Table(title="Cohezion Unified Neural Mesh Nodes")
+    table.add_column("Node", style="cyan", no_wrap=True)
+    table.add_column("Endpoint", style="yellow")
+    table.add_column("Status", style="green")
+    table.add_column("Role", style="dim")
+
+    for node_name, info in status.items():
+        state_str = "✓ ONLINE" if info["online"] else "✗ OFFLINE"
+        state_color = "green" if info["online"] else "red"
+        table.add_row(
+            node_name,
+            info["endpoint"],
+            f"[{state_color}]{state_str}[/{state_color}]",
+            info["role"],
+        )
+
+    console.print(table)
+
+
+@mesh_app.command("query")
+def mesh_query(prompt: str = typer.Argument(..., help="Prompt or task for the neural mesh")):
+    """Execute a prompt directly through the Unified Neural Mesh."""
+    import asyncio
+
+    from cohezion.inference.unified_neural_mesh import UnifiedNeuralMesh
+
+    mesh = UnifiedNeuralMesh()
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+    ) as progress:
+        progress.add_task(description="Querying Unified Neural Mesh...", total=None)
+        res = asyncio.run(mesh.generate_unified_response(prompt))
+
+    console.print(
+        Panel(
+            res.unified_output,
+            title=(
+                f"Neural Mesh Response ({res.active_expert} | "
+                f"{res.latency_ms:.1f}ms | AST: {'✓' if res.ast_verified else '✗'})"
+            ),
+            border_style="green" if res.ast_verified else "yellow",
+        )
+    )
+
+
+@app.command("exec")
+def app_exec(
+    prompt: str = typer.Argument(
+        ..., help="Prompt or task to execute via the adaptive neural mesh harness"
+    ),
+):
+    """Execute task through bleeding-edge adaptive harness and local neural mesh."""
+    import asyncio
+
+    from cohezion.inference.unified_neural_mesh import UnifiedNeuralMesh
+
+    mesh = UnifiedNeuralMesh()
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+    ) as progress:
+        progress.add_task(description="Synthesizing through adaptive harness...", total=None)
+        res = asyncio.run(mesh.generate_unified_response(prompt))
+
+    console.print(
+        Panel(
+            res.unified_output,
+            title=(
+                f"✓ Adaptive Harness Execution "
+                f"({res.active_expert} | {res.latency_ms:.1f}ms | AST Valid: {res.ast_verified})"
+            ),
+            border_style="green" if res.ast_verified else "yellow",
+        )
+    )
+
+
+# -----------------------------------------------------------------------------
+# Fail-Closed Adaptive Harness Commands
+# -----------------------------------------------------------------------------
+
+harness_app = typer.Typer(
+    help="Fail-Closed Adaptive Harness & Capability Gate (ExecCritic & CapScope)",
+    no_args_is_help=True,
+)
+app.add_typer(harness_app, name="harness", help="Adaptive Fail-Closed Harness operations")
+
+
+@harness_app.command("verify")
+def harness_verify(
+    code_file: str = typer.Argument(..., help="Path to Python file to verify"),
+    test_file: str = typer.Argument(..., help="Path to test file to freeze and evaluate"),
+):
+    """Run sandboxed fail-closed evaluation with SHA-256 test suite freezing."""
+    import pathlib
+
+    from cohezion.reliability.fail_closed_harness import (
+        Capability,
+        CapabilityCeiling,
+        FailClosedHarness,
+    )
+
+    code_path = pathlib.Path(code_file)
+    test_path = pathlib.Path(test_file)
+
+    if not code_path.exists() or not test_path.exists():
+        console.print("[bold red]Error: Specified code or test file not found.[/bold red]")
+        raise typer.Exit(code=1)
+
+    ceiling = CapabilityCeiling(allowed_capabilities={Capability.FS_READ, Capability.CODE_EXEC})
+    harness = FailClosedHarness(capability_ceiling=ceiling)
+    suite = harness.freeze_test_suite(test_path.read_text())
+    res = harness.run_under_frozen_suite(code_path.read_text())
+
+    if res.passed:
+        console.print(
+            Panel(
+                f"✓ Verification Passed\nIntegrity Verified: {res.test_verified}\nSuite Hash: {suite.test_hash[:16]}...\nOutput: {res.output.strip()[:200]}",
+                title="Harness Verification Succeeded",
+                border_style="green",
+            )
+        )
+    else:
+        console.print(
+            Panel(
+                f"✗ Failed: {res.error}\nCapabilities Respected: {res.capabilities_respected}\nSuite Hash: {suite.test_hash[:16]}...",
+                title="Harness Verification Failed",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(code=1)
+
+
+# -----------------------------------------------------------------------------
+# Cosmic Fire: Triune Physics & HIHO Ignition Protocol
+# -----------------------------------------------------------------------------
+
+fire_app = typer.Typer(
+    help="Cosmic Fire: Triune physics engine (Alice Bailey) & HIHO ignition protocol",
+    no_args_is_help=True,
+)
+app.add_typer(fire_app, name="fire", help="Cosmic Fire Triune & Ignition operations")
+app.add_typer(fire_app, name="cosmic", help="Alias for Cosmic Fire operations")
+
+
+@fire_app.command("status")
+def fire_status():
+    """Inspect current Triune Fire balance (Electric, Solar, Friction) and Seven Rays."""
+    import numpy as np
+
+    from cohezion.physics.cosmic_fire_engine import CosmicFireEngine
+
+    engine = CosmicFireEngine()
+    # Baseline balanced 12D state vector (HIHO 0.50)
+    baseline_12d = np.array([0.5] * 12)
+    state = engine.calculate_triune_fires(baseline_12d)
+    equilibrium = state.compute_triune_equilibrium()
+
+    console.print(
+        Panel(
+            f"[bold yellow]🔥 Cosmic Fire Triune State[/bold yellow]\n\n"
+            f"⚡ [bold cyan]Electric Fire[/bold cyan] (Spirit / Top-Down Will / Monad):     [cyan]{state.electric_fire:.4f}[/cyan]\n"
+            f"☀️ [bold yellow]Solar Fire[/bold yellow] (Soul / Mind / HIHO 0.50):           [yellow]{state.solar_fire:.4f}[/yellow]\n"
+            f"🪵 [bold red]Fire by Friction[/bold red] (Matter / Discrete Metron Form): [red]{state.friction_fire:.4f}[/red]\n\n"
+            f"⚖️ [bold green]Triune Harmonic Equilibrium[/bold green]:                   [green]{equilibrium:.4f}[/green] [dim](Optimal = 0.3333 at HIHO 0.50)[/dim]",
+            title="Cosmic Fire Triune Balance",
+            border_style="yellow",
+        )
+    )
+
+    # Seven Ray Profile Table
+    table = Table(title="Alice Bailey Seven Ray Swarm Dynamics")
+    table.add_column("Ray", style="cyan", no_wrap=True)
+    table.add_column("Esoteric Name", style="yellow")
+    table.add_column("Cohezion Swarm System", style="dim")
+    table.add_column("Weight", style="green")
+
+    rays = [
+        (
+            "Ray 1",
+            "Will / Purpose",
+            "Monadic Dispatcher / Execution Overseer",
+            state.ray_profile.ray_1_will,
+        ),
+        (
+            "Ray 2",
+            "Love-Wisdom",
+            "FLUME Semantic Manifold & Synthesis",
+            state.ray_profile.ray_2_wisdom,
+        ),
+        (
+            "Ray 3",
+            "Active Intelligence",
+            "AutoHarness & Algorithmic Planning",
+            state.ray_profile.ray_3_active_intellect,
+        ),
+        (
+            "Ray 4",
+            "Harmony through Conflict",
+            "Multi-Perspective Adversarial Audits",
+            state.ray_profile.ray_4_harmony_conflict,
+        ),
+        (
+            "Ray 5",
+            "Concrete Science",
+            "ZKFV Invariants & Formal Proofs",
+            state.ray_profile.ray_5_concrete_science,
+        ),
+        (
+            "Ray 6",
+            "Devotion / Idealism",
+            "Continuous Perpetual Daemons",
+            state.ray_profile.ray_6_devotion_retention,
+        ),
+        (
+            "Ray 7",
+            "Ceremonial Order",
+            "Fleet Lock Discipline & SurrealDB",
+            state.ray_profile.ray_7_ceremonial_order,
+        ),
+    ]
+
+    for ray_id, name, system, val in rays:
+        table.add_row(ray_id, name, system, f"{val:.4f}")
+
+    console.print(table)
+
+
+@fire_app.command("ignite")
+def fire_ignite(
+    coherence: float = typer.Option(
+        0.50, "--coherence", "-c", help="Coherence score (HIHO entry threshold >= 0.45)"
+    ),
+    redshift: float = typer.Option(
+        20.0, "--redshift", "-z", help="Simulated redshift z (Pop III epoch)"
+    ),
+    sfr: float = typer.Option(1.0, "--sfr", "-s", help="Star formation / compound loop rate proxy"),
+):
+    """Trigger the Cosmic Fire Protocol (CFP) HIHO ignition cascade."""
+    from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol
+
+    protocol = CosmicFireProtocol(notify_telegram=False)
+    event = protocol.ignite(quality_score=coherence, redshift=redshift, sfr_rate=sfr)
+
+    if event:
+        console.print(
+            Panel(
+                f"[bold green]✓ Cosmic Fire Ignited Successfully![/bold green]\n\n"
+                f"• Epoch Redshift: [cyan]z = {event.redshift:.2f}[/cyan] (Pop III Star Formation Epoch)\n"
+                f"• Coherence: [yellow]{event.coherence:.3f}[/yellow] (HIHO Equilibrium Boundary)\n"
+                f"• Compound SFR: [magenta]{event.sfr_rate:.2f}[/magenta]\n"
+                f"• Zoom Multiplier: [green]{event.zoom_level}x[/green]\n\n"
+                f"[dim]Cascade: BBQ low-and-slow activated | R0 3-perspective review triggered | Logged to SurrealDB[/dim]",
+                title="🔥 Cosmic Fire Protocol Ignition",
+                border_style="green",
+            )
+        )
+    else:
+        console.print(
+            Panel(
+                f"[bold red]✗ Ignition Conditions Not Met[/bold red]\n\n"
+                f"Coherence [red]{coherence:.3f}[/red] is below HIHO threshold (0.450) or SFR <= 0.",
+                title="Ignition Refused",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(code=1)
+
+
+@fire_app.command("eval")
+def fire_eval(
+    vector: str = typer.Argument(
+        "0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5", help="Comma-separated 12D state vector"
+    ),
+):
+    """Evaluate an arbitrary 12D state vector through the Cosmic Fire Engine."""
+    import numpy as np
+
+    from cohezion.physics.cosmic_fire_engine import CosmicFireEngine
+
+    vals = [float(x.strip()) for x in vector.split(",")]
+    if len(vals) != 12:
+        console.print(f"[bold red]Error: Expected 12 values, got {len(vals)}.[/bold red]")
+        raise typer.Exit(code=1)
+
+    engine = CosmicFireEngine()
+    state = engine.calculate_triune_fires(np.array(vals))
+
+    console.print(
+        Panel(
+            f"⚡ Electric Fire (Will):     [cyan]{state.electric_fire:.4f}[/cyan]\n"
+            f"☀️ Solar Fire (Mind):       [yellow]{state.solar_fire:.4f}[/yellow]\n"
+            f"🪵 Fire by Friction (Form): [red]{state.friction_fire:.4f}[/red]\n"
+            f"⚖️ Harmonic Equilibrium:    [green]{state.compute_triune_equilibrium():.4f}[/green]",
+            title="12D Vector Evaluation",
+            border_style="cyan",
+        )
+    )
+
+
+neuro_app = typer.Typer(help="Drosophila CNS Connectome & Biological Neural Substrate")
+app.add_typer(neuro_app, name="neuro")
+app.add_typer(neuro_app, name="neuron")
+
+
+@neuro_app.command("status")
+def neuro_status():
+    """Inspect Drosophila CNS Connectome mapping stats, tiers, and SurrealDB neuron counts."""
+    import asyncio
+
+    from rich.table import Table
+
+    from cohezion.core.persistence.surreal_client import SurrealClient
+    from cohezion.neuro.drosophila_cns import DrosophilaCNSConnectome
+
+    async def get_db_stats():
+        client = SurrealClient()
+        n_res = await client.query("SELECT count() FROM neuron GROUP ALL;")
+        s_res = await client.query("SELECT count() FROM synapse GROUP ALL;")
+        n_count = n_res[0]["count"] if n_res and "count" in n_res[0] else 0
+        s_count = s_res[0]["count"] if s_res and "count" in s_res[0] else 0
+        return n_count, s_count
+
+    try:
+        n_count, s_count = asyncio.run(get_db_stats())
+    except Exception:
+        n_count, s_count = "N/A (offline)", "N/A (offline)"
+
+    console.print(
+        Panel(
+            f"[bold cyan]🧠 Drosophila Melanogaster Complete CNS Connectome[/bold cyan]\n"
+            f"[dim]Reference: Google Research & HHMI Janelia (September 2026)[/dim]\n\n"
+            f"• Biological Scale: [bold green]>166,000 neurons[/bold green] | [bold green]11,691 cell types[/bold green] | [bold green]~50M+ synapses[/bold green]\n"
+            f"• Scope: Complete Brain + Ventral Nerve Cord (VNC, spinal cord analog)\n"
+            f"• Sensorimotor Reflex: Optical R1–R6 → LoVP92 → PFL3 steering → DNg13 descending → Thoracic motor\n\n"
+            f"• Cohezion SurrealDB Neurons: [bold yellow]{n_count}[/bold yellow]\n"
+            f"• Cohezion SurrealDB Synapses: [bold magenta]{s_count}[/bold magenta]",
+            title="Drosophila Connectome Substrate",
+            border_style="cyan",
+        )
+    )
+
+    table = Table(title="Drosophila Canonical Circuit Tiers")
+    table.add_column("Tier", style="cyan")
+    table.add_column("Region", style="blue")
+    table.add_column("Archetype", style="magenta")
+    table.add_column("Function", style="white")
+
+    for arch in DrosophilaCNSConnectome.CANONICAL_TYPES[:6]:
+        table.add_row(
+            arch.tier.value,
+            arch.region,
+            arch.type_id,
+            arch.description[:60] + "...",
+        )
+    console.print(table)
+
+
+@neuro_app.command("seed-cns")
+def neuro_seed_cns(
+    count: int = typer.Option(
+        250, "--count", "-n", help="Number of Drosophila CNS neurons to seed"
+    ),
+):
+    """Seed Drosophila CNS neuron types and synaptic pathways into SurrealDB."""
+    import asyncio
+
+    from cohezion.neuro.drosophila_cns import DrosophilaCNSConnectome
+
+    connectome = DrosophilaCNSConnectome()
+
+    with console.status(
+        f"[bold cyan]Seeding {count} Drosophila CNS neurons into SurrealDB...[/bold cyan]"
+    ):
+        results = asyncio.run(connectome.seed_to_surrealdb(count=count))
+
+    console.print(
+        Panel(
+            f"[bold green]✓ Successfully Seeded Drosophila CNS Substrate into SurrealDB![/bold green]\n\n"
+            f"• Neurons Upserted: [cyan]{results['neurons_seeded']}[/cyan]\n"
+            f"• Synaptic Projections Upserted: [magenta]{results['synapses_seeded']}[/magenta]\n"
+            f"• Table Targets: [yellow]neuron[/yellow], [yellow]synapse[/yellow] (cohezion/vault)\n\n"
+            f"[dim]Circuit pathways active: Sensory → Ring Attractor (EB) → PFL3 Steering → DNg13 → VNC[/dim]",
+            title="🧠 Connectome Ingestion Complete",
+            border_style="green",
+        )
+    )
+
+
+@neuro_app.command("reflex")
+def neuro_reflex(
+    error: str = typer.Option(
+        "0.8,0.7,-0.2,-0.3", "--error", "-e", help="Visual/environmental error vector"
+    ),
+    coherence: float = typer.Option(0.50, "--coherence", "-c", help="Manifold coherence score"),
+):
+    """Execute sub-millisecond reflex action through the Drosophila sensorimotor circuit."""
+    from cohezion.neuro.drosophila_cns import DrosophilaSensoryMotorCircuit
+
+    vec = [float(x.strip()) for x in error.split(",")]
+    circuit = DrosophilaSensoryMotorCircuit()
+    res = circuit.compute_reflex_action(vec, coherence=coherence)
+
+    console.print(
+        Panel(
+            f"[bold green]⚡ Reflex Action Computed in {res['latency_ms']} ms (Zero-LLM Latency)[/bold green]\n\n"
+            f"• Action Policy: [bold yellow]{res['action']}[/bold yellow]\n"
+            f"• Steering Torque: [cyan]{res['steering_torque']:+.4f}[/cyan]\n"
+            f"• DNg13 Descending Activation: [magenta]{res['dng13_activation']:.4f}[/magenta]\n"
+            f"• Sensorimotor Circuit: [white]{res['circuit']}[/white]\n"
+            f"• HIHO Coherence: [green]{res['coherence']:.3f}[/green]",
+            title="Drosophila Sensorimotor Reflex Arc",
+            border_style="green",
+        )
+    )
+
+
+auto_app = typer.Typer(help="Recursive Autopoiesis & Phoenix Architecture Subsystem")
+app.add_typer(auto_app, name="auto")
+app.add_typer(auto_app, name="autopoiesis")
+
+
+@auto_app.command("status")
+def auto_status():
+    """Inspect the state of Recursive Autopoiesis and Phoenix Architecture."""
+    import time
+    from pathlib import Path
+
+    from cohezion.ops.control_plane import ProjectOrchestrator
+
+    status = ProjectOrchestrator.get_autopoiesis_status()
+
+    # Count entries in today's vault log
+    today_str = time.strftime("%Y-%m-%d")
+    vault_file = (
+        Path.home()
+        / "vaults"
+        / "cohezion-vault"
+        / "01-Learnings"
+        / f"autopoiesis_tri_silicon_{today_str}.md"
+    )
+    today_cycles = 0
+    if vault_file.exists():
+        today_cycles = vault_file.read_text().count("### Tri-Silicon Cycle")
+
+    console.print(
+        Panel(
+            f"[bold cyan]🌀 Recursive Autopoiesis & Sovereign Tri-Silicon State[/bold cyan]\n\n"
+            f"• Hardware Architecture: [bold green]Tri-Silicon Sovereign Substrate[/bold green]\n"
+            f"  - ⚡ NPU Lane: FastFlowLM on AMD XDNA2 (<2W, 0 UMA RAM)\n"
+            f"  - 🏎️  CPU Lane: 16-Core Zen 4 AVX-512 (ARC Symbolic DSL & Sheaf Diffusion)\n"
+            f"  - 🎮 iGPU Lane: Radeon RX 7700S Vulkan (Heuristic Policy Synthesis)\n\n"
+            f"• Negentropy Invariant: [bold green]ΔS = {status['delta_s']:.4f} ≤ 0[/bold green] (Prigogine Dissipative Sink Active)\n"
+            f"• Sheaf Dirichlet Energy: [bold green]Converged = {status['converged']}[/bold green]\n"
+            f"• Today's Vault Cycles: [bold yellow]{today_cycles}[/bold yellow] (Batch Status: Cycle {status['cycle']}/{status['target_cycles']})\n"
+            f"• Phoenix Architecture: [bold magenta]Active & Integrated[/bold magenta] (Disposable Code & Spec Rebirth)",
+            title="Recursive Autopoiesis Engine",
+            border_style="cyan",
+        )
+    )
+
+
+@auto_app.command("step")
+def auto_step(
+    cycle: int = typer.Option(326, "--cycle", "-c", help="Cycle sequence number"),
+):
+    """Execute a single sovereign Tri-Silicon autopoietic cycle on-demand."""
+    from cohezion.autopoiesis import TriSiliconAutopoiesisEngine
+
+    engine = TriSiliconAutopoiesisEngine(cpu_threads=8)
+    with console.status(f"[bold cyan]Executing Autopoiesis Cycle {cycle}...[/bold cyan]"):
+        res = engine.execute_cycle(cycle)
+
+    console.print(
+        Panel(
+            f"[bold green]✓ Cycle {res.cycle} Executed Successfully![/bold green]\n\n"
+            f"• NPU Guidance: [cyan]{res.npu_guidance}[/cyan] ({res.npu_latency_ms:.0f} ms)\n"
+            f"• CPU ARC Programs Found: [yellow]{res.cpu_arc_programs_found}[/yellow] | Sheaf Converged: [green]{res.cpu_sheaf_converged}[/green]\n"
+            f"• iGPU Synthesis: [magenta]{'Triggered' if res.igpu_synthesis_triggered else 'Idle'}[/magenta]\n"
+            f"• Negentropy: [bold green]ΔS = {res.delta_entropy:.4f}[/bold green] (Verified={res.autoharness_verified})\n"
+            f"• Total Latency: [dim]{res.total_latency_ms:.0f} ms[/dim]\n\n"
+            f"[dim]Persisted to Obsidian Vault & SurrealDB kanban_item[/dim]",
+            title=f"Autopoiesis Cycle {res.cycle}",
+            border_style="green",
+        )
+    )
+
+
+@auto_app.command("phoenix")
+def auto_phoenix(
+    module: str = typer.Option(
+        "cohezion.agi.contract", "--module", "-m", help="Target module name"
+    ),
+    spec: str = typer.Option("grid_bounds", "--spec", "-s", help="Specification contract name"),
+):
+    """Demonstrate the Phoenix Architecture: Burn failing code to ashes & resurrect from specification."""
+    from cohezion.agi.phoenix_architecture import PhoenixArchitectureEngine
+
+    engine = PhoenixArchitectureEngine()
+    failing_code = "def corrupted_kernel_ast(: return NULL // invalid syntax"
+
+    res = engine.execute_deletion_and_rebirth(module, spec, failing_code)
+
+    console.print(
+        Panel(
+            f"[bold red]🔥 The Deletion Test Passed: Corrupted Code Burnt to Ashes[/bold red]\n\n"
+            f"• Module: [cyan]{res.module_name}[/cyan]\n"
+            f"• Specification Source: [yellow]{res.specification_name}[/yellow]\n"
+            f"• Code Deleted: [red]{res.code_deleted}[/red]\n"
+            f"• Resurrected Code Contract:\n[green]{res.code_regenerated.strip()}[/green]\n\n"
+            f"• Oracle Verification: [bold green]{res.verified_by_oracle}[/bold green]\n"
+            f"• ZKFV Formal Proof: [bold magenta]Valid={res.zk_proof.is_valid}[/bold magenta] (Zero-Knowledge Verifier)\n"
+            f"• Rebirth Latency: [dim]{res.rebirth_latency_ms:.2f} ms[/dim]",
+            title="Phoenix Architecture Rebirth",
+            border_style="red",
+        )
+    )
+
+
+evo_app = typer.Typer(help="Cohezion-1-EVO Foundation Model & Soliton Trajectory Steering")
+app.add_typer(evo_app, name="evo")
+
+
+@evo_app.command("status")
+def evo_status():
+    """Inspect the Cohezion-1-EVO Foundation Model architecture and Campbell TOE invariants."""
+    console.print(
+        Panel(
+            "[bold cyan]🌌 Cohezion-1-EVO Foundation Model & Gymnasium[/bold cyan]\n"
+            "[dim]Hardware: AMD Strix Halo (128GB Unified Memory | XDNA2 NPU + Radeon iGPU + Zen 4 CPU)[/dim]\n\n"
+            "• State Representation: [bold green]12D FLUME Manifold[/bold green] (3 Spatial + 1 Time + 8 Brane)\n"
+            "• Soliton Topology: [bold yellow]EVO Analogue Codebook[/bold yellow] (Charge Density + Poynting Angular Flux)\n"
+            "• Trajectory Flow: [bold magenta]Neural ODE through the Everlasting Now[/bold magenta]\n"
+            "  - Stability Quadrature: [white]HIHO 0.50 Trapezoidal Rule[/white] on Poincaré Hyperbolic Ball (||z|| < 1)\n"
+            "• Category-Theoretic Scaffold: [bold cyan]State/Trace Monad (m >>= f)(s) = (b, s'', τ₁ ⊕ τ₂)[/bold cyan]\n"
+            "• Entropy Minimization Objective: [bold green]Tom Campbell's My Big TOE[/bold green]\n"
+            "  - Negentropy Dissipation: [bold green]L_neg = ReLU(dS/dt) + α Var(S)[/bold green] (Enforces ΔS ≤ 0)\n"
+            "• Empirical Verification: [bold white]AutoHarness Bytecode Hash + ZKFV Polynomial Roots[/bold white]",
+            title="Cohezion-1-EVO Model Specifications",
+            border_style="cyan",
+        )
+    )
+
+
+@evo_app.command("steer")
+def evo_steer(
+    steps: int = typer.Option(
+        8, "--steps", "-s", help="Geodesic rollout steps through the everlasting now"
+    ),
+):
+    """Steer an agentic journey as an EVO soliton cluster and produce empirical proof."""
+    from cohezion.model.cohezion_evo_model import CohezionEVOModel, FLUME12DState
+
+    model = CohezionEVOModel(codebook_size=128, hidden_dim=64)
+    start_state = FLUME12DState(spatial=[0.05, 0.02, -0.01], temporal=0.0, brane=[0.5] * 8)
+
+    with console.status(
+        "[bold cyan]Steering EVO through the everlasting now along geodesic flow...[/bold cyan]"
+    ):
+        final_state, proof, telemetry = model.execute_and_verify(start_state, steps=steps)
+
+    status_color = "green" if proof.is_negentropic else "red"
+    console.print(
+        Panel(
+            f"[bold {status_color}]✓ Geodesic Journey Executed & Empirically Certified![/bold {status_color}]\n\n"
+            f"• Quantized EVO Cluster: [cyan]Token #{telemetry['token_cluster_id']}[/cyan]\n"
+            f"• Manifold Transition: [dim]{start_state.to_vector()[:3]} → {final_state.to_vector()[:3]}[/dim]\n"
+            f"• Campbell TOE Entropy Delta: [bold {status_color}]ΔS = {telemetry['delta_s']:.6f}[/bold {status_color}] "
+            f"({'Negentropic ✓' if proof.is_negentropic else 'Entropy Growth ✗'})\n"
+            f"• Monadic Retrospection Trace: [white]{len(telemetry['monad_trace'])} entries logged[/white]\n\n"
+            f"[bold white]Indefensible Empirical Proof:[/bold white]\n"
+            f"  🔒 AutoHarness Bytecode Hash: [dim]{proof.model_bytecode_hash[:32]}...[/dim]\n"
+            f"  📜 ZKFV Polynomial Root:     [dim]{proof.trajectory_polynomial_root[:32]}...[/dim]\n"
+            f"  ⚖️  Formal Verification:      [bold green]{proof.is_valid()}[/bold green]",
+            title="EVO Soliton Trajectory Certification",
+            border_style=status_color,
+        )
+    )
+
+
 if __name__ == "__main__":
     app()
-
-

@@ -55,9 +55,12 @@ class DynamicModelEvaluator:
         self.endpoint = f"http://127.0.0.1:{port}/v1/chat/completions"
 
     DIRECT_PORTS: dict[str, int] = {
-        "Bonsai-8B-gguf": 8003,
-        "Qwen3.6-35B-A3B-UD-Q4_K_XL": 8007,
+        "Bonsai-8B-gguf": 8002,
+        "Qwen3.6-35B-A3B-MTP-GGUF": 8003,
+        "Qwen3.6-35B-A3B-UD-Q4_K_XL": 8003,
+        "llama3.2-1b-FLM": 8004,
         "deepseek-r1-0528:8b": 8004,
+        "deepseek-r1-0528-8b-FLM": 8004,
     }
 
     def query_model(
@@ -71,9 +74,10 @@ class DynamicModelEvaluator:
             "max_tokens": max_tokens,
             "temperature": 0.1,
         }
-        endpoints = [self.endpoint]
+        endpoints: list[str] = []
         if model in self.DIRECT_PORTS:
             endpoints.append(f"http://127.0.0.1:{self.DIRECT_PORTS[model]}/v1/chat/completions")
+        endpoints.append(self.endpoint)
 
         last_exc: Exception | None = None
         for ep in endpoints:

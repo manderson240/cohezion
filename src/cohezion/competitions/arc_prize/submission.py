@@ -640,10 +640,16 @@ def solve_arc_task_anytime(
 
 def find_test_challenges_file() -> str | None:
     candidates = [
+        "/kaggle/input/competitions/arc-prize-2026-arc-agi-2/arc-agi_test_challenges.json",
         "/kaggle/input/arc-prize-2026-arc-agi-2/arc-agi_test_challenges.json",
+        "/kaggle/input/competitions/arc-prize-2026-arc-agi-2/arc-agi_evaluation_challenges.json",
+        "/kaggle/input/arc-prize-2026-arc-agi-2/arc-agi_evaluation_challenges.json",
         "/kaggle/input/arc-prize-2026/arc-agi_test_challenges.json",
         "/kaggle/input/arc-agi_test_challenges.json",
         "data/arc_prize/arc-agi_test_challenges.json",
+        "data/arc-agi-2/arc-agi_test_challenges.json",
+        "data/arc_prize/arc-agi_evaluation_challenges.json",
+        "data/arc-agi-2/arc-agi_evaluation_challenges.json",
         "data/kaggle/arc_test_sample.json",
     ]
     for c in candidates:
@@ -651,9 +657,14 @@ def find_test_challenges_file() -> str | None:
             return c
 
     if os.path.exists("/kaggle/input"):
+        # Look for test challenges first
         for root, _dirs, files in os.walk("/kaggle/input"):
             if "arc-agi_test_challenges.json" in files:
                 return os.path.join(root, "arc-agi_test_challenges.json")
+        # Fallback to evaluation challenges
+        for root, _dirs, files in os.walk("/kaggle/input"):
+            if "arc-agi_evaluation_challenges.json" in files:
+                return os.path.join(root, "arc-agi_evaluation_challenges.json")
     return None
 
 
