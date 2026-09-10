@@ -136,7 +136,10 @@ class CrossSessionEventBridge:
             # fails every call after the first with "attached to a different loop".
             if self._sync_loop is None or self._sync_loop.is_closed():
                 self._sync_loop = asyncio.new_event_loop()
-            return self._sync_loop.run_until_complete(self._persist(event))
+            # bool() is a narrowing, not a silencer: _sync_loop is typed Any (it holds an
+            # AbstractEventLoop created lazily), so run_until_complete returns Any even
+            # though _persist is declared -> bool.
+            return bool(self._sync_loop.run_until_complete(self._persist(event)))
 
         asyncio.ensure_future(self._persist(event))
         return dispatched
