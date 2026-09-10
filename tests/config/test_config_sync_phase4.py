@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from cohezion.config import ConfigSyncEngine, ConfigurationOrchestrator
+from cohezion.config import ConfigSyncEngine, ConfigSyncLogger, ConfigurationOrchestrator
 from cohezion.config.config_templates import (
     ConfigTemplateEngine,
     TemplateContext,
@@ -90,7 +90,11 @@ class TestConfigSyncEngine:
         vault_root = tmp_path / "vault"
         vault_root.mkdir()
 
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path, vault_root=vault_root)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path,
+            vault_root=vault_root,
+            sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs"),
+        )
 
         assert sync_engine.repo_root == tmp_path
         assert sync_engine.vault_root == vault_root
@@ -112,7 +116,11 @@ class TestConfigSyncEngine:
         # Create sample pattern files
         (vault_root / "patterns" / "pattern-1.md").write_text("# Pattern 1")
 
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path, vault_root=vault_root)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path,
+            vault_root=vault_root,
+            sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs"),
+        )
         content = await sync_engine._extract_vault_content()
 
         assert "decision-1" in content["decisions"]
@@ -124,7 +132,9 @@ class TestConfigSyncEngine:
     @pytest.mark.asyncio
     async def test_check_conflicts_no_file(self, tmp_path: Path) -> None:
         """Test conflict check when file doesn't exist."""
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path, sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs")
+        )
 
         conflicts = await sync_engine._check_conflicts(tmp_path / "nonexistent.md")
 
@@ -133,7 +143,9 @@ class TestConfigSyncEngine:
     @pytest.mark.asyncio
     async def test_generate_commit_message(self, tmp_path: Path) -> None:
         """Test AI-style commit message generation."""
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path, sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs")
+        )
 
         vault_content = {
             "decisions": ["Decision 1", "Decision 2"],
@@ -157,7 +169,9 @@ class TestConfigSyncEngine:
         claude_md.write_text("# CLAUDE\n\nContent")
         gemini_md.write_text("# GEMINI\n\nContent")
 
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path, sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs")
+        )
         status = sync_engine.get_sync_status()
 
         assert "CLAUDE.md" in status
@@ -204,7 +218,11 @@ class TestConfigSyncEngineIntegration:
         vault_root.mkdir()
         (vault_root / "decisions").mkdir()
 
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path, vault_root=vault_root)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path,
+            vault_root=vault_root,
+            sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs"),
+        )
 
         result = await sync_engine.sync_config_file("CLAUDE.md")
 
@@ -247,7 +265,11 @@ class TestConfigSyncEngineIntegration:
         vault_root.mkdir()
         (vault_root / "decisions").mkdir()
 
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path, vault_root=vault_root)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path,
+            vault_root=vault_root,
+            sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs"),
+        )
 
         results = await sync_engine.sync_all()
 
@@ -303,11 +325,14 @@ class TestOrchestrationWithSync:
         (vault_root / "decisions").mkdir()
 
         orch = ConfigurationOrchestrator(tmp_path)
-        # Keep the sync engine off the real ~/vaults tree so the test is hermetic.
+        # Keep the sync engine off the real ~/vaults tree AND off the repo's own
+        # data/config-sync-logs/ (ConfigSyncLogger defaults to Path.cwd()); now
+        # that regenerate_and_commit really syncs, the default logger would
+        # append to a tracked LFS file on every test run.
         orch.sync_engine = ConfigSyncEngine(
             repo_root=tmp_path,
             vault_root=vault_root,
-            sync_logger=orch.sync_logger,
+            sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs"),
         )
 
         result = await orch.regenerate_and_commit("CLAUDE.md", "test_trigger")
@@ -344,7 +369,9 @@ class TestCommitMessageGeneration:
     @pytest.mark.asyncio
     async def test_commit_message_with_multiple_decisions(self, tmp_path: Path) -> None:
         """Test commit message with multiple decisions."""
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path, sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs")
+        )
 
         vault_content = {
             "decisions": ["Cost Optimization", "Security Hardening", "Performance"],
@@ -360,7 +387,9 @@ class TestCommitMessageGeneration:
     @pytest.mark.asyncio
     async def test_commit_message_with_patterns(self, tmp_path: Path) -> None:
         """Test commit message when syncing patterns."""
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path, sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs")
+        )
 
         vault_content = {
             "decisions": [],
@@ -428,7 +457,9 @@ class TestConflictDetection:
         # Manual edit
         claude_md.write_text("# Manually edited content")
 
-        sync_engine = ConfigSyncEngine(repo_root=tmp_path)
+        sync_engine = ConfigSyncEngine(
+            repo_root=tmp_path, sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs")
+        )
         conflicts = await sync_engine._check_conflicts(claude_md)
 
         # May or may not detect depending on git state
