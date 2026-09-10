@@ -8,6 +8,13 @@ from pathlib import Path
 
 TARGETS = [
     {
+        "comp": "arc-prize-2026-arc-agi-2",
+        "kernel": "manderson240/arc-agi-2-fork-lb33-89-20260903",
+        "version": "2",
+        "filename": "submission.json",
+        "message": "Cohezion AutoHarness Invariants + Qwen3-4B LoRA L4 Maximizer v2",
+    },
+    {
         "comp": "rsna-knee-abnormality-detection",
         "kernel": "manderson240/cohezion-rsna-knee-abnormality-detection-baseline",
         "filename": "submission.csv",
@@ -50,6 +57,7 @@ def check_and_submit():
             sub_file = out_dir / fname
             if sub_file.exists() and sub_file.stat().st_size > 5:
                 print(f"  🚀 Submitting {sub_file} to {comp}...")
+                # Attempt direct file submission first
                 sub_res = subprocess.run(
                     [
                         "kaggle",
@@ -65,7 +73,32 @@ def check_and_submit():
                     capture_output=True,
                     text=True,
                 )
-                print(f"  Submission Output: {sub_res.stdout or sub_res.stderr}")
+                output = sub_res.stdout or sub_res.stderr or ""
+                # If code competition requires notebook submission, submit via kernel
+                if "Notebook" in output or "code competition" in output.lower() or sub_res.returncode != 0:
+                    version = item.get("version", "19")
+                    print(f"  Code competition detected. Submitting via kernel {kernel} version {version}...")
+                    code_sub = subprocess.run(
+                        [
+                            "kaggle",
+                            "competitions",
+                            "submit",
+                            "-c",
+                            comp,
+                            "-k",
+                            kernel,
+                            "-v",
+                            str(version),
+                            "-f",
+                            fname,
+                            "-m",
+                            msg,
+                        ],
+                        capture_output=True,
+                        text=True,
+                    )
+                    output = code_sub.stdout or code_sub.stderr or ""
+                print(f"  Submission Output: {output}")
             else:
                 print(
                     f"  Notice: {fname} size is {sub_file.stat().st_size if sub_file.exists() else 0} bytes. Standing by."
