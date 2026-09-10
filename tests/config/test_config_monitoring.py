@@ -46,11 +46,11 @@ class TestConfigMonitor:
         )
 
         # Handle the event
-        await monitor._handle_vault_create(event)
+        received = await _collect_config_events(
+            monitor, lambda: monitor._handle_vault_create(event)
+        )
 
-        # Verify event was published (we can't easily check without mocking EventBus)
-        # Just verify no exception was raised
-        assert True
+        assert [e.payload["config_event"] for e in received] == ["VAULT_DECISION_ADDED"]
 
     @pytest.mark.asyncio
     async def test_handle_vault_pattern_modified(self, tmp_path: Path) -> None:
@@ -63,8 +63,11 @@ class TestConfigMonitor:
             timestamp="2026-02-10T01:00:00Z",
         )
 
-        await monitor._handle_vault_modify(event)
-        assert True
+        received = await _collect_config_events(
+            monitor, lambda: monitor._handle_vault_modify(event)
+        )
+
+        assert [e.payload["config_event"] for e in received] == ["VAULT_PATTERN_UPDATED"]
 
     @pytest.mark.asyncio
     async def test_check_config_file_no_change(self, tmp_path: Path) -> None:
@@ -79,9 +82,15 @@ class TestConfigMonitor:
         await monitor._check_config_file(claude_md, "CLAUDE.md")
 
         # Check again (should detect no change)
-        await monitor._check_config_file(claude_md, "CLAUDE.md")
+        received = await _collect_config_events(
+            monitor, lambda: monitor._check_config_file(claude_md, "CLAUDE.md")
+        )
 
-        assert True  # No exception
+        # The negative half of the pair with test_check_config_file_with_change.
+        # Asserting emptiness only means something because that sibling proves
+        # this same collector DOES see an event when the file really changed --
+        # otherwise a permanently-broken publish path would satisfy it.
+        assert received == []
 
     @pytest.mark.asyncio
     async def test_check_config_file_with_change(self, tmp_path: Path) -> None:
@@ -98,9 +107,12 @@ class TestConfigMonitor:
         claude_md.write_text("# CLAUDE\n\nModified content")
 
         # Check again (should detect change)
-        await monitor._check_config_file(claude_md, "CLAUDE.md")
+        received = await _collect_config_events(
+            monitor, lambda: monitor._check_config_file(claude_md, "CLAUDE.md")
+        )
 
-        assert True  # No exception
+        assert [e.payload["config_event"] for e in received] == ["CONFIG_FILE_MODIFIED"]
+        assert received[0].payload["file"] == "CLAUDE.md"
 
     @pytest.mark.asyncio
     async def test_monitor_missing_config_file(self, tmp_path: Path) -> None:
@@ -108,10 +120,14 @@ class TestConfigMonitor:
         monitor = ConfigMonitor(tmp_path)
 
         # Config files don't exist
-        await monitor._check_config_file(tmp_path / "CLAUDE.md", "CLAUDE.md")
-        await monitor._check_config_file(tmp_path / "GEMINI.md", "GEMINI.md")
+        received = await _collect_config_events(
+            monitor,
+            lambda: monitor._check_config_file(tmp_path / "CLAUDE.md", "CLAUDE.md"),
+        )
 
-        assert True  # Should not crash
+        # Absent is not "changed": a missing file must not raise AND must not
+        # announce a modification.
+        assert received == []
 
     def test_register_vault_handlers(self, tmp_path: Path) -> None:
         """Test that vault event handlers are registered."""
