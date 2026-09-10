@@ -101,6 +101,12 @@ MODEL_TIER: dict[str, ComputeTier] = {
     "llama3.2-1b-FLM": ComputeTier.NPU,
     "deepseek-r1-0528-8b-FLM": ComputeTier.NPU,
     "gemma3-4b-FLM": ComputeTier.NPU,
+    "qwen3.5-4b-FLM": ComputeTier.NPU,
+    "qwen3.6-moe-35b-a3b-FLM": ComputeTier.NPU,
+    "embed-gemma-300m-FLM": ComputeTier.NPU,
+    "whisper-v3-turbo-FLM": ComputeTier.NPU,
+    "gpt-oss-20b-FLM": ComputeTier.NPU,
+    "lfm2.5-it-1.2b-FLM": ComputeTier.NPU,
     # iGPU — all GGUF LLMs (device: gpu, llamacpp_backend: vulkan)
     "Qwen3-0.6B-GGUF": ComputeTier.IGPU,
     "Qwen3-Embedding-0.6B-GGUF": ComputeTier.IGPU,

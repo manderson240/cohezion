@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — CodeQL wave-2 hardening + wave-3 scaffolding (1.23.0)
+- Wave-2 remediation across 18 src files (inference, api, agi, autopoiesis,
+  compound, competitions) plus wave-3 scaffolding: reliability harnesses
+  (fail_closed, leaf), cohezion_evo_model, saas_gateway routes,
+  learnability_curriculum, neural mesh — with 7 matched test files.
+- Stale test realigned: `_select_lemonade_model` now asserted to prefer
+  Granite-4.1-8B-GGUF, matching PR #294's deliberate switch.
+
 ### Fixed — security wave 2 (1.22.3)
 - Closed remaining live-code CodeQL criticals and highs: SSRF host allowlist
   in webmcp_bridge, argv-list exec (shell=False) in popcorn + skills server,

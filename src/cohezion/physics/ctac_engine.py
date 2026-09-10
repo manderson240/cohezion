@@ -43,15 +43,16 @@ class CTACEngine:
                 betti_0=1.0, coherence=0.50, conformal_kappa=current_kappa, is_hiho_stable=True
             )
 
-        # Average distance between points in Poincaré space
-        total_dist = 0.0
-        n_pairs = 0
-        for i in range(len(points)):
-            for j in range(i + 1, len(points)):
-                total_dist += PoincareManifoldND.distance(points[i], points[j])
-                n_pairs += 1
-
-        avg_dist = total_dist / n_pairs if n_pairs > 0 else 0.0
+        # Average distance between points in Poincaré space via vectorized pairwise distance matrix
+        if len(points) >= 2:
+            matrix = PoincareManifoldND.pairwise_distance_matrix(points)
+            total_dist = sum(
+                matrix[i][j] for i in range(len(points)) for j in range(i + 1, len(points))
+            )
+            n_pairs = len(points) * (len(points) - 1) // 2
+            avg_dist = total_dist / n_pairs if n_pairs > 0 else 0.0
+        else:
+            avg_dist = 0.0
         betti_0_proxy = 1.0 + math.tanh(avg_dist)
 
         # Coherence proxy: exp(-0.1 * avg_dist)

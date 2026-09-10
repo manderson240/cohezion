@@ -53,7 +53,9 @@ class ZKFVCompiler:
         poly_input = f"{self.salt}:{code_hash}:{ast_fingerprint}:{','.join(invariants)}"
         poly_sig = hashlib.sha256(poly_input.encode("utf-8")).hexdigest()
 
-        verified = len(ast_fingerprint) > 0 and len(code_hash) == 64
+        verified = (
+            len(ast_fingerprint) > 0 and ast_fingerprint != "syntax_error" and len(code_hash) == 64
+        )
 
         return ZKFVProof(
             code_hash=code_hash,

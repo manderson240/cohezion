@@ -285,17 +285,22 @@ Every agent MUST evaluate this three-tier decision tree **before** sending any i
 
 ### Tier 1 — Lemonade OmniRouter (NPU/iGPU/CPU, port 13305)
 
-Preferred for all routine inference. Select lane by task class:
+Preferred for all routine inference. Lemonade dispatches across dedicated hardware backends:
+- **NPU Backend**: FastFlowLM (`recipe: flm`, `/var/cache/lemonade/bin/flm/npu/flm`) executing directly on AMD XDNA2 SRAM (<2W, 0 UMA RAM usage).
+- **iGPU Backend**: llama.cpp Vulkan (`recipe: llamacpp`) for heavy GGUF models on RDNA 3.5.
+- **CPU Backend**: ONNX / kokoro (`recipe: kokoro`) for TTS and audio.
 
-| Task Class | Model | Lane | Port | Ctx |
-|------------|-------|------|------|-----|
-| Reasoning / planning | `deepseek-r1-0528-8b-FLM` | NPU | 13305 | 40 960 |
-| Coding / multi-file refactor | `Qwen3-Coder-30B` (GGUF/Vulkan) | iGPU | 13305 | 32 768 |
-| Coding + tools (small) | `qwen3-4b-FLM` | NPU | 13305 | 32 768 |
-| Vision / UI / diagram | `qwen3vl-it-4b-FLM` | NPU | 13305 | 16 384 |
-| Research summary | `qwen3.6-moe-35b-a3b-FLM` *(pinned)* | NPU | 13305 | 16 384 |
-| Fast Q&A / retrieval | `llama3.2-1b-FLM` *(pre-warmed)* | NPU | 13305 | 4 096 |
-| Embeddings | `embed-gemma-300m-FLM` | NPU | 13305 | 8 192 |
+Select lane by task class:
+
+| Task Class | Model | Backend / Lane | Port | Ctx |
+|------------|-------|----------------|------|-----|
+| Reasoning / planning | `deepseek-r1-0528-8b-FLM` | FLM / NPU | 13305 | 40 960 |
+| Coding / multi-file refactor | `Qwen3-Coder-30B` (GGUF/Vulkan) | llamacpp / iGPU | 13305 | 32 768 |
+| Coding + tools (small NPU) | `qwen3.5-4b-FLM` / `qwen3-4b-FLM` | FLM / NPU | 13305 | 32 768 |
+| Vision / VLM | `gemma3-4b-FLM` / `qwen3vl-it-4b-FLM` | FLM / NPU | 13305 | 65 536 |
+| Research summary / MoE | `qwen3.6-moe-35b-a3b-FLM` *(pinned)* | FLM / NPU | 13305 | 32 768 |
+| Fast Q&A / retrieval | `llama3.2-1b-FLM` *(pre-warmed)* | FLM / NPU | 13305 | 4 096 |
+| Embeddings (concurrent) | `embed-gemma-300m-FLM` (`--embed 1`) | FLM / NPU | 13305 | 2 048 |
 
 **Fleet-lock discipline MUST be respected**: only one model load active at a time.
 Use `FleetLock("modelload")` before any `lemonade load` call.
@@ -368,3 +373,20 @@ Use these native AMD skills for hardware-optimized workflows on Strix Halo NPU, 
 | `serving-llms-on-instinct` | `src/cohezion/skills/amd/skills-repo/skills/serving-llms-on-instinct/` | End-to-end LLM serving on AMD Instinct GPUs via ROCm + vLLM / SGLang. |
 | `magpie-kernel-evaluator` | `src/cohezion/skills/amd/skills-repo/skills/magpie-kernel-evaluator/` | Evaluates GPU kernel correctness and performance benchmarking. |
 | `tracelens-analysis-orchestrator` | `src/cohezion/skills/amd/skills-repo/skills/tracelens-analysis-orchestrator/` | Orchestrates modular PyTorch profiler trace analysis with TraceLens. |
+
+## SurrealDB Official AI Agent Skills Catalog (Added 2026-09-09)
+
+The repository [`https://github.com/surrealdb/agent-skills`](https://github.com/surrealdb/agent-skills) is integrated into `src/cohezion/skills/surrealdb/skills-repo/`.
+
+Use these native SurrealDB 3.x skills for optimal database design, graph traversal, and vector search:
+
+| SurrealDB Skill | Location | Purpose |
+|-----------------|----------|---------|
+| `surrealql-performance` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealql-performance/` | Record ID & key design for locality, index strategy (`DEFINE INDEX`), `EXPLAIN`, and computed fields. |
+| `surrealdb-vector` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealdb-vector/` | HNSW vector indexing (`DIST COSINE TYPE F32`), `<|K, EF|>` KNN queries, and similarity thresholds. |
+| `surrealql` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealql/` | Comprehensive SurrealQL language reference: statements, native graph traversals (`->`), record links. |
+| `surrealql-functions` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealql-functions/` | Built-in function signatures, namespace catalog (`fn::*`, `vector::*`, `math::*`, `string::*`). |
+| `surrealkit` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealkit/` | Migrations, dev schema sync, type generation (`typegen`), and declarative TOML testing. |
+| `surrealdb-python` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealdb-python/` | Native Python SDK v1.0+ async client best practices, connection pooling, and live queries. |
+| `surrealdb-cli` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealdb-cli/` | Server operations, backup/export/import, SQL shells, and CI gating (`surreal is-ready`). |
+
