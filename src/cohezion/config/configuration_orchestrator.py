@@ -83,7 +83,10 @@ class ConfigurationOrchestrator:
         self.reconciliation_validator = ReconciliationValidator()
         self.archiver = ConfigArchiver(Path.home() / "vaults" / "cohezion-vault")
         self.size_enforcer = SizeEnforcer(self.size_limits)
-        self.sync_logger = ConfigSyncLogger()
+        # Same anchoring as ConfigSyncEngine: the audit log follows THIS orchestrator's
+        # repo_root rather than the process cwd. Both construction sites had the defect;
+        # fixing only the engine left the tree still dirty after a test run.
+        self.sync_logger = ConfigSyncLogger(log_dir=self.repo_root / "data" / "config-sync-logs")
 
         # Real-Time Sync & Git Integration (Phase 4)
         self.sync_engine = ConfigSyncEngine(

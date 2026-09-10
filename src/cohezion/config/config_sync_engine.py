@@ -43,7 +43,15 @@ class ConfigSyncEngine:
         self.vault_root = Path(vault_root)
         self.git_utils = GitUtils(repo_root)
         self.template_engine = ConfigTemplateEngine()
-        self.sync_logger = sync_logger or ConfigSyncLogger()
+        # Anchor the audit log to THIS engine's repo_root, not the process cwd.
+        # ConfigSyncLogger defaults to `Path.cwd() / "data" / "config-sync-logs"`, so an
+        # engine built with an explicit repo_root still wrote into whatever directory the
+        # process happened to start in — which for the test suite is the checkout, leaving
+        # data/config-sync-logs/config_sync.jsonl (a TRACKED file) modified after a run.
+        # Behaviour-preserving in production: repo_root itself defaults to Path.cwd().
+        self.sync_logger = sync_logger or ConfigSyncLogger(
+            log_dir=self.repo_root / "data" / "config-sync-logs"
+        )
 
         # Config file paths
         self.claude_md = repo_root / "CLAUDE.md"

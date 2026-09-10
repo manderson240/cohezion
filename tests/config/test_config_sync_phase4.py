@@ -15,6 +15,41 @@ from cohezion.config.config_templates import (
 )
 
 
+class TestAuditLogIsAnchoredToRepoRoot:
+    """The audit log must follow the object's repo_root, never the process cwd.
+
+    ``ConfigSyncLogger`` defaults its ``log_dir`` to
+    ``Path.cwd() / "data" / "config-sync-logs"``. Both production construction sites
+    took that default while holding an explicit ``repo_root``, so running the test
+    suite wrote into the checkout and left ``data/config-sync-logs/config_sync.jsonl``
+    — a TRACKED file — modified. Caught by noticing an unexplained modification in
+    ``git status`` and confirmed causally: restore the file, run ``tests/config``,
+    watch it reappear.
+
+    Fixing only ``ConfigSyncEngine`` left the tree dirty; ``ConfigurationOrchestrator``
+    was a second writer with the identical defect. Both are asserted here so a partial
+    fix cannot pass.
+    """
+
+    def test_sync_engine_log_dir_is_under_repo_root(self, tmp_path: Path) -> None:
+        engine = ConfigSyncEngine(repo_root=tmp_path)
+
+        assert engine.sync_logger.log_dir.is_relative_to(tmp_path)
+
+    def test_orchestrator_log_dir_is_under_repo_root(self, tmp_path: Path) -> None:
+        orch = ConfigurationOrchestrator(tmp_path)
+
+        assert orch.sync_logger.log_dir.is_relative_to(tmp_path)
+
+    def test_log_dir_is_not_the_process_cwd(self, tmp_path: Path) -> None:
+        """Discriminating: `is_relative_to(tmp_path)` alone would pass if cwd were
+        somehow inside tmp_path. Assert the negative directly."""
+        cwd_log_dir = Path.cwd() / "data" / "config-sync-logs"
+
+        assert ConfigSyncEngine(repo_root=tmp_path).sync_logger.log_dir != cwd_log_dir
+        assert ConfigurationOrchestrator(tmp_path).sync_logger.log_dir != cwd_log_dir
+
+
 class TestConfigTemplateEngine:
     """Test template rendering."""
 
