@@ -57,7 +57,7 @@ dependencies = [
     # mcp 2.x removed Server.list_tools() used by cohezion_agi_server; the
     # 2026-09-08 lock regeneration jumped 1.29.0 -> 2.2.0 (transitive, major).
     # Pin to 1.x until the consumer migrates to the 2.x decorator set.
-    "mcp>=1.9.0,<2",
+    "mcp>=1.9.0,<3",
     "pyjwt>=2.11.0",
     "kaggle>=1.6.17",
     "kagglehub>=1.0.0",
