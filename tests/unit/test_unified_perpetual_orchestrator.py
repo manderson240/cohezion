@@ -177,6 +177,38 @@ async def test_run_trace_refactor_phase(mock_daemon):
 
 
 @pytest.mark.asyncio
+async def test_run_trace_refactor_phase_commits_memory_as_plans(mock_daemon):
+    fake_traces = [
+        {
+            "type": "SECURITY_VIOLATION",
+            "source": "sentry",
+            "payload": {"finding": "untrusted input", "severity": "high"},
+        },
+    ]
+    with (
+        patch(
+            "scripts.ops.refactor_traces_to_goals.fetch_recent_traces",
+            side_effect=[fake_traces, []],
+        ),
+        patch(
+            "cohezion.flume.loop_goal_refactor_engine.DurableSurrealGoalPersistence.persist_goal",
+            return_value="goal:1",
+        ),
+        patch(
+            "cohezion.flume.loop_goal_refactor_engine.DurableSurrealGoalPersistence.persist_loop_result",
+            return_value="loop_trace:1",
+        ),
+    ):
+        res = await mock_daemon.run_trace_refactor_phase(cycle_num=1)
+        assert res.success is True
+        assert res.details["goals_processed"] == 1
+        assert res.details["loops_converged"] == 1
+        assert res.details["segments_committed"] >= 1
+        assert len(mock_daemon.memory_as_plans.segments) >= 1
+        assert "O(1) context digest" in res.summary
+
+
+@pytest.mark.asyncio
 async def test_execute_master_cycle(mock_daemon):
     mock_mem = MemoryState(
         available_gb=40.0,
