@@ -80,11 +80,93 @@ class TaskInvariantAnalyzer:
     @staticmethod
     def derive_allowed_colors(train_pairs: Sequence[dict[str, Any]]) -> set[int]:
         """Extract set of allowable colors across training pairs."""
-        colors = set()
+        colors: set[int] = set()
         for p in train_pairs:
-            colors.update(np.unique(p["output"]))
-            colors.update(np.unique(p["input"]))
+            colors.update(int(c) for c in np.unique(p["output"]))
+            colors.update(int(c) for c in np.unique(p["input"]))
         return colors
+
+
+# -----------------------------------------------------------------------------
+# D4 Dihedral Symmetry Predicates & Palette Utilities
+# -----------------------------------------------------------------------------
+def is_horizontal_reflection(g: np.ndarray) -> bool:
+    return bool(np.array_equal(g, np.fliplr(g)))
+
+
+def is_vertical_reflection(g: np.ndarray) -> bool:
+    return bool(np.array_equal(g, np.flipud(g)))
+
+
+def is_180_rotation(g: np.ndarray) -> bool:
+    return bool(np.array_equal(g, np.rot90(g, 2)))
+
+
+def is_main_diagonal_reflection(g: np.ndarray) -> bool:
+    if g.shape[0] != g.shape[1]:
+        return False
+    return bool(np.array_equal(g, g.T))
+
+
+def is_anti_diagonal_reflection(g: np.ndarray) -> bool:
+    if g.shape[0] != g.shape[1]:
+        return False
+    return bool(np.array_equal(g, np.fliplr(np.flipud(g)).T))
+
+
+def is_symmetry_trivial(name: str, g: np.ndarray) -> bool:
+    h, w = int(g.shape[0]), int(g.shape[1])
+    if name == "horizontal":
+        return bool(w <= 1)
+    if name == "vertical":
+        return bool(h <= 1)
+    if name in ("main_diagonal", "anti_diagonal"):
+        return bool(h != w or h <= 1)
+    if name == "rotation_180":
+        return bool(h <= 1 and w <= 1)
+    return False
+
+
+SYMMETRY_PREDICATES = {
+    "horizontal": is_horizontal_reflection,
+    "vertical": is_vertical_reflection,
+    "rotation_180": is_180_rotation,
+    "main_diagonal": is_main_diagonal_reflection,
+    "anti_diagonal": is_anti_diagonal_reflection,
+}
+
+
+def get_common_symmetries(train_outputs: list[np.ndarray]) -> set[str]:
+    if not train_outputs:
+        return set()
+    common = set(SYMMETRY_PREDICATES.keys())
+    for out in train_outputs:
+        common = {name for name in common if SYMMETRY_PREDICATES[name](out)}
+        if not common:
+            break
+    non_trivial = set()
+    for name in common:
+        if any(not is_symmetry_trivial(name, out) for out in train_outputs):
+            non_trivial.add(name)
+    return non_trivial
+
+
+def get_constant_new_colors(
+    train_inputs: list[np.ndarray], train_outputs: list[np.ndarray]
+) -> set[int]:
+    if not train_inputs or not train_outputs:
+        return set()
+    new_sets = []
+    for inp, out in zip(train_inputs, train_outputs):
+        in_c = set(np.unique(inp)) - {0}
+        out_c = set(np.unique(out)) - {0}
+        new_sets.append(out_c - in_c)
+    if not new_sets:
+        return set()
+    common = set(new_sets[0])
+    for s in new_sets[1:]:
+        common &= s
+    return common
 
 
 class AutoHarnessCandidateVerifier:
@@ -93,8 +175,12 @@ class AutoHarnessCandidateVerifier:
     def __init__(self, task_dict: dict[str, Any]):
         self.task_dict = task_dict
         self.train_pairs = task_dict.get("train", [])
+        self.train_inputs = [np.asarray(p["input"]) for p in self.train_pairs]
+        self.train_outputs = [np.asarray(p["output"]) for p in self.train_pairs]
         self.shape_inv = TaskInvariantAnalyzer.derive_shape_invariant(self.train_pairs)
         self.allowed_colors = TaskInvariantAnalyzer.derive_allowed_colors(self.train_pairs)
+        self.common_symmetries = get_common_symmetries(self.train_outputs)
+        self.constant_new_colors = get_constant_new_colors(self.train_inputs, self.train_outputs)
 
     def verify_candidate(
         self, test_input: np.ndarray, candidate: np.ndarray
@@ -125,14 +211,55 @@ class AutoHarnessCandidateVerifier:
         if unknown_colors:
             return False, -30.0, f"unallowed_colors_{unknown_colors}"
 
-        # 4. Occam MDL / Entropy score (higher is cleaner / less chaotic noise)
-        # Compute run-length / neighborhood regularity
+        # 4. D4 Dihedral Symmetry Invariant Pruning
+        if self.common_symmetries:
+            for sym_name in self.common_symmetries:
+                if not SYMMETRY_PREDICATES[sym_name](candidate):
+                    return False, -40.0, f"violated_symmetry_{sym_name}"
+
+        # 5. Soft Color Histogram Conservation
+        local_allowed = (set(np.unique(test_input)) - {0}) | self.constant_new_colors | {0}
+        bad_cells = sum(1 for cell in candidate.flat if cell not in local_allowed)
+        color_penalty = (bad_cells / float(h * w)) * 10.0
+
+        # 6. Occam MDL / Entropy smoothness
         diff_h = np.sum(candidate[1:, :] != candidate[:-1, :])
         diff_w = np.sum(candidate[:, 1:] != candidate[:, :-1])
         total_edges = (h - 1) * w + h * (w - 1)
         smoothness = 1.0 - (diff_h + diff_w) / max(total_edges, 1)
 
-        bonus = float(smoothness * 2.0)
+        # 7. 12-Parameter Quadrature HIHO 0.50 Coherence Reranker
+        # Fabric 1 (Space): Foreground spatial geometry overlap
+        mask_in = test_input != 0
+        mask_cand = candidate != 0
+        if test_input.shape == candidate.shape:
+            inter = float(np.sum(mask_in & mask_cand))
+            union = float(np.sum(mask_in | mask_cand))
+            sigma_space = inter / max(union, 1.0)
+        else:
+            sigma_space = 0.50
+
+        # Fabric 2 (Field): Color field conservation / retention
+        if test_input.shape == candidate.shape:
+            sigma_field = float(np.mean(candidate == test_input))
+        else:
+            in_colors = set(np.unique(test_input))
+            cand_colors = set(np.unique(candidate))
+            sigma_field = len(in_colors & cand_colors) / max(len(in_colors | cand_colors), 1)
+
+        # Fabric 3 (Control): Group-theoretic D4 symmetry activation
+        sym_count = sum(1 for sym_fn in SYMMETRY_PREDICATES.values() if sym_fn(candidate))
+        sigma_control = sym_count / float(len(SYMMETRY_PREDICATES))
+
+        # Fabric 4 (Precipitation): Foreground active matter density
+        sigma_precip = float(np.count_nonzero(candidate)) / float(h * w)
+
+        coherence = 0.25 * (sigma_space + sigma_field + sigma_control + sigma_precip)
+        phi_hiho = max(0.0, 1.0 - 4.0 * ((coherence - 0.5) ** 2))
+        dissonance = abs(coherence - 0.5) * 2.0
+        hiho_bonus = 2.0 * phi_hiho - 1.0 * dissonance
+
+        bonus = float(smoothness * 2.0 + hiho_bonus - color_penalty)
         return True, bonus, "passed"
 
 

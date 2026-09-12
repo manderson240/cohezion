@@ -30,7 +30,11 @@ echo ""
 
 # Step 1: Pre-warm the review model
 echo "[1/4] Pre-warming model..."
-if ! bash "$SCRIPT_DIR/prewarm_review_model.sh" "$MODEL" 16384; then
+PREWARM_SCRIPT="$SCRIPT_DIR/../prewarm_review_model.sh"
+if [ ! -f "$PREWARM_SCRIPT" ]; then
+  PREWARM_SCRIPT="$SCRIPT_DIR/prewarm_review_model.sh"
+fi
+if ! bash "$PREWARM_SCRIPT" "$MODEL" 16384; then
   echo "  ⚠ Pre-warm failed — falling back to static analysis only."
   MODEL=""
 fi
@@ -99,14 +103,18 @@ STATIC_RESULT=$?
 # 3b: Local inference review (if model is available)
 if [ -n "$MODEL" ]; then
   echo "  [3b] Local inference review with $MODEL..."
+  export MODEL PR_NUMBER REPORT_FILE ROUTER
   # Split diff into ~2000-line chunks and review each
   python3 << 'PYEOF'
+import os
 import httpx
 import json
 import sys
 
-MODEL = "{{MODEL_PLACEHOLDER}}"
-ROUTER = "http://localhost:13305"
+MODEL = os.environ.get("MODEL", "Qwen3-Coder-30B-A3B-Instruct-GGUF")
+PR_NUMBER = os.environ.get("PR_NUMBER", "unknown")
+REPORT_FILE = os.environ.get("REPORT_FILE", f"/tmp/opencode/reviews/pr_{PR_NUMBER}_review.md")
+ROUTER = os.environ.get("ROUTER", "http://localhost:13305")
 CHUNK_SIZE = 2000
 
 with open("/tmp/opencode/pr_diff.txt") as f:
@@ -119,7 +127,7 @@ for i, chunk in enumerate(chunks):
     chunk_text = "".join(chunk)
     try:
         resp = httpx.post(
-            f"{ROUTER}/v1/chat/completions",
+            f"{ROUTER}/api/v1/chat/completions",
             json={
                 "model": MODEL,
                 "messages": [
@@ -141,8 +149,9 @@ for i, chunk in enumerate(chunks):
         print(f"  Chunk {i+1}/{len(chunks)}: ERROR — {e}")
 
 # Write findings
-with open("{{REPORT_PLACEHOLDER}}", "w") as f:
-    f.write(f"# Local Review Report — PR #{{PR_PLACEHOLDER}}\n\n")
+os.makedirs(os.path.dirname(REPORT_FILE), exist_ok=True)
+with open(REPORT_FILE, "w") as f:
+    f.write(f"# Local Review Report — PR #{PR_NUMBER}\n\n")
     f.write(f"**Model:** {MODEL}\n")
     f.write(f"**Chunks reviewed:** {len(chunks)}\n")
     f.write(f"**Findings:** {len(findings)}\n\n")
@@ -170,7 +179,7 @@ fi
 curl -s -X POST http://localhost:8001/sql \
   -H "Content-Type: text/plain" -u "root:root" \
   -H "Surreal-NS: cohezion" -H "Surreal-DB: main" \
-  -d "CREATE review_log:{{time::now()}} CONTENT {
+  -d "CREATE review_log CONTENT {
     \"pr\": \"#${PR_NUMBER}\",
     \"model\": \"${MODEL:-static-only}\",
     \"static_result\": $STATIC_RESULT,

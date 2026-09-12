@@ -1,6 +1,6 @@
 """Hermetic tests for the BAML bridge (no live network).
 
-Mocks the generated client (_b.RecommendNextStep) so the tier-routing and
+Mocks the generated client (_b and _async_b methods) so the tier-routing and
 typed-output contract are verified without touching Lemonade/Ollama. The
 registry construction itself is real — it proves the baml_py ClientRegistry
 API shape stays compatible.
@@ -18,7 +18,17 @@ from cohezion.baml import client_router
 
 def test_registry_local_tier_points_at_lemonade() -> None:
     cr = client_router.build_registry("local")
-    assert cr is not None  # real ClientRegistry built without error
+    assert cr is not None
+
+
+def test_registry_cloud_tier_points_at_ollama() -> None:
+    cr = client_router.build_registry("cloud")
+    assert cr is not None
+
+
+def test_registry_hybrid_tier_configures_fallback() -> None:
+    cr = client_router.build_registry("hybrid")
+    assert cr is not None
 
 
 def test_registry_unknown_tier_fails_closed() -> None:
@@ -31,9 +41,10 @@ def test_recommend_next_step_returns_typed_model() -> None:
     fake.action = "add test"
     fake.rationale = "kills survivors"
     fake.risk_level = "low"
-    with patch.object(client_router, "_b") as mock_b, patch.object(
-        client_router, "build_registry", return_value=MagicMock()
-    ) as mock_reg:
+    with (
+        patch.object(client_router, "_b") as mock_b,
+        patch.object(client_router, "build_registry", return_value=MagicMock()) as mock_reg,
+    ):
         mock_b.RecommendNextStep.return_value = fake
         out = client_router.recommend_next_step("ctx", "cand")
     assert out.action == "add test"
@@ -43,17 +54,88 @@ def test_recommend_next_step_returns_typed_model() -> None:
 
 
 def test_recommend_next_step_async_returns_typed_model() -> None:
-    from unittest.mock import AsyncMock
-
     fake = MagicMock(spec=["action", "rationale", "risk_level"])
     fake.action = "ship it"
     fake.rationale = "verified"
     fake.risk_level = "medium"
-    with patch.object(client_router, "_b") as mock_b:
+    with patch.object(client_router, "_async_b") as mock_b:
         mock_b.RecommendNextStep = AsyncMock(return_value=fake)
         val = asyncio.run(client_router.recommend_next_step_async("ctx", "cand"))
     assert val.action == "ship it"
     assert val.risk_level == "medium"
+
+
+def test_derive_task_invariants_returns_typed_model() -> None:
+    fake = MagicMock(
+        spec=[
+            "grid_dimension_rule",
+            "conserved_colors",
+            "forbidden_colors",
+            "symmetry_detected",
+            "description",
+        ]
+    )
+    fake.grid_dimension_rule = "identity"
+    fake.conserved_colors = [0, 1, 2]
+    fake.forbidden_colors = [3, 4]
+    fake.symmetry_detected = "horizontal"
+    fake.description = "horizontal mirror reflection"
+
+    with patch.object(client_router, "_b") as mock_b:
+        mock_b.DeriveTaskInvariants.return_value = fake
+        out = client_router.derive_task_invariants("ctx", "train_data")
+    assert out.grid_dimension_rule == "identity"
+    assert out.symmetry_detected == "horizontal"
+    assert 1 in out.conserved_colors
+
+
+def test_derive_task_invariants_async_returns_typed_model() -> None:
+    fake = MagicMock(spec=["grid_dimension_rule", "conserved_colors"])
+    fake.grid_dimension_rule = "scaled"
+    with patch.object(client_router, "_async_b") as mock_b:
+        mock_b.DeriveTaskInvariants = AsyncMock(return_value=fake)
+        out = asyncio.run(client_router.derive_task_invariants_async("ctx", "train_data"))
+    assert out.grid_dimension_rule == "scaled"
+
+
+def test_synthesize_code_harness_returns_typed_model() -> None:
+    fake = MagicMock(
+        spec=[
+            "harness_name",
+            "precondition_assertions",
+            "postcondition_assertions",
+            "python_verifier_code",
+            "estimated_latency_ms",
+        ]
+    )
+    fake.harness_name = "grid_bounds"
+    fake.estimated_latency_ms = 0.05
+    with patch.object(client_router, "_b") as mock_b:
+        mock_b.SynthesizeCodeHarness.return_value = fake
+        out = client_router.synthesize_code_harness("spec", "err")
+    assert out.harness_name == "grid_bounds"
+    assert out.estimated_latency_ms == 0.05
+
+
+def test_audit_leaderboard_next_action_returns_typed_model() -> None:
+    fake = MagicMock(
+        spec=[
+            "competition_id",
+            "target_metric_goal",
+            "recommended_action",
+            "confidence_score",
+            "reasoning",
+        ]
+    )
+    fake.competition_id = "arc-prize-2026"
+    fake.recommended_action = "generate_ensemble"
+    fake.confidence_score = 0.92
+    with patch.object(client_router, "_b") as mock_b:
+        mock_b.AuditLeaderboardNextAction.return_value = fake
+        out = client_router.audit_leaderboard_next_action("arc-prize-2026", "lb_snap")
+    assert out.competition_id == "arc-prize-2026"
+    assert out.recommended_action == "generate_ensemble"
+    assert out.confidence_score == 0.92
 
 
 def test_tier_env_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -61,3 +143,5 @@ def test_tier_env_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
     assert client_router._tier() == "cloud"
     monkeypatch.setenv("COHEZION_BAML_TIER", "local")
     assert client_router._tier() == "local"
+    monkeypatch.setenv("COHEZION_BAML_TIER", "hybrid")
+    assert client_router._tier() == "hybrid"

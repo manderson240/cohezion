@@ -1,7 +1,9 @@
 """Pure NumPy Zero-Copy UMA Block-Sparse KV-Cache Compactor (Karpathy Standard)."""
 
 from __future__ import annotations
+
 import numpy as np
+
 
 class NanoUMACompactor:
     """Low-rank SVD + Block-Sparse residual compactor for unified memory inference."""
@@ -19,7 +21,7 @@ class NanoUMACompactor:
 
         seq_len, head_dim = kv_tensor.shape
         r = min(self.rank, seq_len, head_dim)
-        
+
         U, S, Vt = np.linalg.svd(kv_tensor, full_matrices=False)
         U_r = U[:, :r] * S[:r]
         Vt_r = Vt[:r, :]
@@ -43,10 +45,12 @@ class NanoUMACompactor:
         recon = np.dot(U_r, Vt_r)
         if len(sparse_indices) > 0 and len(sparse_values) > 0:
             recon[sparse_indices[:, 0], sparse_indices[:, 1]] += sparse_values
-        
+
         # Enforce tensor dimension contract across transformer attention blocks
         if recon.shape != target_shape:
-            raise ValueError(f"Decompressed shape {recon.shape} does not match target shape {target_shape}")
+            raise ValueError(
+                f"Decompressed shape {recon.shape} does not match target shape {target_shape}"
+            )
         return recon
 
     def compression_ratio(self, seq_len: int, head_dim: int, n_sparse: int) -> float:
@@ -55,13 +59,15 @@ class NanoUMACompactor:
         eff_rank = min(self.rank, seq_len, head_dim)
         # U_r (seq_len * eff_rank * 4) + Vt_r (eff_rank * head_dim * 4) + sparse_vals (n_sparse * 4) + indices (n_sparse * 2 * 8)
         compressed_bytes = (
-            (seq_len * eff_rank + eff_rank * head_dim + n_sparse) * 4 
+            (seq_len * eff_rank + eff_rank * head_dim + n_sparse) * 4
             + (n_sparse * 2 * 8)  # int64 coordinates (row, col)
         )
         return float(orig_bytes / max(compressed_bytes, 1))
 
     # Cordis Plugin Lifecycle Hooks
-    def on_step(self, kv_chunk: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def on_step(
+        self, kv_chunk: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         return self.compress_block(kv_chunk)
 
     def on_eval(self, original: np.ndarray, reconstructed: np.ndarray) -> float:

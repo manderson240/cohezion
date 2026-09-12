@@ -24,6 +24,11 @@ from cohezion.learning.deep_research import (
 from cohezion.learning.skill_acquisition import (
     DynamicSkillAcquisition as DynamicSkillAcquisition,
 )
+from cohezion.learning.vault_neuron_reader import (
+    ExperientialPrior as ExperientialPrior,
+    VaultNeuronGraph as VaultNeuronGraph,
+    VaultNeuronWriter as VaultNeuronWriter,
+)
 
 
 logger = logging.getLogger(__name__)

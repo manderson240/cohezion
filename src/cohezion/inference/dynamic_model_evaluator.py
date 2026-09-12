@@ -56,8 +56,11 @@ class DynamicModelEvaluator:
 
     DIRECT_PORTS: dict[str, int] = {
         "Bonsai-8B-gguf": 8003,
+        "Qwen3.6-35B-A3B-MTP-GGUF": 8003,
         "Qwen3.6-35B-A3B-UD-Q4_K_XL": 8007,
+        "llama3.2-1b-FLM": 8004,
         "deepseek-r1-0528:8b": 8004,
+        "deepseek-r1-0528-8b-FLM": 8004,
     }
 
     def query_model(

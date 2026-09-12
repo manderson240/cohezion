@@ -74,7 +74,11 @@ def test_failure_trace_synthesizes_stabilize_goal() -> None:
 
 def test_high_severity_health_finding_synthesizes_resolve_goal() -> None:
     trace = [
-        {"type": "SYSTEM_HEALTH", "source": "guardian", "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"}},
+        {
+            "type": "SYSTEM_HEALTH",
+            "source": "guardian",
+            "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"},
+        },
     ]
     goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(trace)
     assert goal is not None
@@ -83,7 +87,11 @@ def test_high_severity_health_finding_synthesizes_resolve_goal() -> None:
 
 def test_non_actionable_trace_returns_none() -> None:
     trace = [
-        {"type": "JOURNEY_STEP", "source": "git-post-commit", "payload": {"event": "commit", "ok": True}},
+        {
+            "type": "JOURNEY_STEP",
+            "source": "git-post-commit",
+            "payload": {"event": "commit", "ok": True},
+        },
         {"type": "CACHE_HIT", "source": "s", "payload": {}},
     ]
     assert TraceToLoopTransformer.synthesize_goal_from_real_trace(trace) is None
@@ -99,8 +107,18 @@ def test_goal_ids_are_content_derived_and_distinct() -> None:
     Regression for 2026-08-30: time-based ids made three distinct goals share
     one id, 2/3 persistence writes failed with 'record already exists'.
     """
-    t_a = [{"type": "SECURITY_VIOLATION", "payload": {"finding": "os.system bypass", "severity": "high"}}]
-    t_b = [{"type": "SECURITY_VIOLATION", "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"}}]
+    t_a = [
+        {
+            "type": "SECURITY_VIOLATION",
+            "payload": {"finding": "os.system bypass", "severity": "high"},
+        }
+    ]
+    t_b = [
+        {
+            "type": "SECURITY_VIOLATION",
+            "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"},
+        }
+    ]
     goal_a = TraceToLoopTransformer.synthesize_goal_from_real_trace(t_a)
     goal_b = TraceToLoopTransformer.synthesize_goal_from_real_trace(t_b)
     assert goal_a is not None and goal_b is not None
@@ -116,8 +134,10 @@ def test_persist_goal_is_idempotent_on_rerun(fake_surreal) -> None:
         url=fake_surreal, namespace="cohezion", database="main", auth="root:root"
     )
     goal = GoalSpecification(
-        goal_id="goal_test_pass_rate_abc123", title="Resolve: x",
-        target_metric="test_pass_rate", target_threshold=1.0,
+        goal_id="goal_test_pass_rate_abc123",
+        title="Resolve: x",
+        target_metric="test_pass_rate",
+        target_threshold=1.0,
     )
     first = persistence.persist_goal(goal)
     second = persistence.persist_goal(goal)  # re-run: must not raise
@@ -140,8 +160,11 @@ def test_legacy_synthesize_from_trace_still_works() -> None:
 
 def test_executor_converges_and_stops_early() -> None:
     goal = GoalSpecification(
-        goal_id="goal_test_conv", title="converge",
-        target_metric="test_pass_rate", target_threshold=1.0, max_iterations=10,
+        goal_id="goal_test_conv",
+        title="converge",
+        target_metric="test_pass_rate",
+        target_threshold=1.0,
+        max_iterations=10,
     )
 
     def step_fn(it: int, state: dict):
@@ -171,9 +194,7 @@ class _FakeSurrealHandler(BaseHTTPRequestHandler):
         body = self.rfile.read(length).decode()
         if "$" not in body and "FAIL" not in body:
             # Parameter-free statement — accepted
-            payload = [
-                {"result": [{"id": "goal:x", "title": "ok"}], "status": "OK", "time": "1ms"}
-            ]
+            payload = [{"result": [{"id": "goal:x", "title": "ok"}], "status": "OK", "time": "1ms"}]
         else:
             # SurrealDB's actual failure mode: HTTP 200 with status ERR inside
             payload = [
@@ -225,8 +246,10 @@ def test_persist_goal_writes_parameter_free_literals(fake_surreal) -> None:
         url=fake_surreal, namespace="cohezion", database="main", auth="root:root"
     )
     goal = GoalSpecification(
-        goal_id="goal_persist_test", title="Resolve: 'quoted' \"title\" with chars",
-        target_metric="test_pass_rate", target_threshold=1.0,
+        goal_id="goal_persist_test",
+        title="Resolve: 'quoted' \"title\" with chars",
+        target_metric="test_pass_rate",
+        target_threshold=1.0,
     )
     # The OK path: json.dumps literal — no $params. The fake server returns OK
     # only when the statement carries no unbound params (heuristic: OK_STATEMENT
@@ -246,7 +269,10 @@ def test_pipeline_refactors_security_trace_into_executed_loop(fake_surreal) -> N
     )
     pipeline = TraceGoalRefactorPipeline(persistence=persistence)
     trace = [
-        {"type": "SECURITY_VIOLATION", "payload": {"finding": "os.system verified-safe", "severity": "high"}},
+        {
+            "type": "SECURITY_VIOLATION",
+            "payload": {"finding": "os.system verified-safe", "severity": "high"},
+        },
     ]
 
     def step_fn(it: int, state: dict):

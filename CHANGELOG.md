@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — BAML Hybrid Fallback, 12D Quadrature HIHO Reranker & Autopoiesis (1.23.0)
+- Expanded BAML schema (`baml_src/cohezion.baml`) with typed schemas for `NextStep` (Mandate #7), `TaskInvariants` (AutoHarness ARC/AIMO), `CodeHarness` (zero-cost bytecode verifiers), and `SubmissionStrategy` (Kaggle active leaderboard audits).
+- Deployed native BAML fallback cascade: Lemonade Local primary (port 13305) -> Ollama Cloud fallback (port 11434) with async client routing in `src/cohezion/baml/client_router.py`.
+- Deployed 12-parameter Quadrature HIHO 0.50 order parameter reranker across 4 fabrics (Space, Field, Control, Precipitation) for ARC-AGI-2 candidate evaluation.
+- Added Phase 5 (`run_trace_refactor_phase`) to `UnifiedPerpetualLoopDaemon` in `src/cohezion/ops/unified_perpetual_orchestrator.py` and CLI `cohezion ops refactor-traces`.
+
 ### Fixed — security wave 2 (1.22.3)
 - Closed remaining live-code CodeQL criticals and highs: SSRF host allowlist
   in webmcp_bridge, argv-list exec (shell=False) in popcorn + skills server,

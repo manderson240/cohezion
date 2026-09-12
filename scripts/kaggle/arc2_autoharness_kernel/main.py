@@ -18,19 +18,25 @@ Architecture:
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import math
-import os
-import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any
+
 import numpy as np
 
+
 try:
-    from cohezion.physics.orch_or_runtime_service import OrchORRuntimeService, SuperposedPolicyBranch
+    from cohezion.physics.orch_or_runtime_service import (
+        OrchORRuntimeService,
+        SuperposedPolicyBranch,
+    )
+
     HAS_ORCH_OR = True
 except ImportError:
     HAS_ORCH_OR = False
@@ -42,8 +48,8 @@ except ImportError:
 class PoincareSpace384:
     @staticmethod
     def distance(u: np.ndarray, v: np.ndarray, max_norm: float = 0.95) -> float:
-        norm_u_sq = min(float(np.sum(u ** 2)), max_norm ** 2)
-        norm_v_sq = min(float(np.sum(v ** 2)), max_norm ** 2)
+        norm_u_sq = min(float(np.sum(u**2)), max_norm**2)
+        norm_v_sq = min(float(np.sum(v**2)), max_norm**2)
         diff_sq = float(np.sum((u - v) ** 2))
         denom = max((1.0 - norm_u_sq) * (1.0 - norm_v_sq), 1e-6)
         delta = 1.0 + 2.0 * diff_sq / denom
@@ -54,41 +60,127 @@ class PoincareSpace384:
 # 2. Grid Hashing & Invariants
 # -----------------------------------------------------------------------------
 def grid_hash(grid: np.ndarray) -> str:
-    return hashlib.md5(np.ascontiguousarray(grid).tobytes()).hexdigest()
+    return hashlib.md5(np.ascontiguousarray(grid).tobytes(), usedforsecurity=False).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
 class ShapeInvariant:
     rule_type: str  # "identity" | "constant" | "scaled" | "dynamic"
-    target_shape: Tuple[int, int] | None = None
-    scale_factor: Tuple[float, float] | None = None
+    target_shape: tuple[int, int] | None = None
+    scale_factor: tuple[float, float] | None = None
 
-    def validate(self, input_shape: Tuple[int, int], candidate_shape: Tuple[int, int]) -> bool:
+    def validate(self, input_shape: tuple[int, int], candidate_shape: tuple[int, int]) -> bool:
         if self.rule_type == "identity":
             return candidate_shape == input_shape
         elif self.rule_type == "constant" and self.target_shape is not None:
             return candidate_shape == self.target_shape
         elif self.rule_type == "scaled" and self.scale_factor is not None:
             expected = (
-                int(round(input_shape[0] * self.scale_factor[0])),
-                int(round(input_shape[1] * self.scale_factor[1])),
+                round(input_shape[0] * self.scale_factor[0]),
+                round(input_shape[1] * self.scale_factor[1]),
             )
             return candidate_shape == expected
         return 0 < candidate_shape[0] <= 30 and 0 < candidate_shape[1] <= 30
 
 
+# -----------------------------------------------------------------------------
+# 2. Grid Hashing & Invariants (D4 Symmetry + Palette + Shape)
+# -----------------------------------------------------------------------------
+def is_horizontal_reflection(g: np.ndarray) -> bool:
+    return np.array_equal(g, np.fliplr(g))
+
+
+def is_vertical_reflection(g: np.ndarray) -> bool:
+    return np.array_equal(g, np.flipud(g))
+
+
+def is_180_rotation(g: np.ndarray) -> bool:
+    return np.array_equal(g, np.rot90(g, 2))
+
+
+def is_main_diagonal_reflection(g: np.ndarray) -> bool:
+    if g.shape[0] != g.shape[1]:
+        return False
+    return np.array_equal(g, g.T)
+
+
+def is_anti_diagonal_reflection(g: np.ndarray) -> bool:
+    if g.shape[0] != g.shape[1]:
+        return False
+    return np.array_equal(g, np.fliplr(np.flipud(g)).T)
+
+
+def is_symmetry_trivial(name: str, g: np.ndarray) -> bool:
+    h, w = g.shape
+    if name == "horizontal":
+        return w <= 1
+    if name == "vertical":
+        return h <= 1
+    if name in ("main_diagonal", "anti_diagonal"):
+        return h != w or h <= 1
+    if name == "rotation_180":
+        return h <= 1 and w <= 1
+    return False
+
+
+SYMMETRY_PREDICATES = {
+    "horizontal": is_horizontal_reflection,
+    "vertical": is_vertical_reflection,
+    "rotation_180": is_180_rotation,
+    "main_diagonal": is_main_diagonal_reflection,
+    "anti_diagonal": is_anti_diagonal_reflection,
+}
+
+
+def get_common_symmetries(train_outputs: list[np.ndarray]) -> set[str]:
+    if not train_outputs:
+        return set()
+    common = set(SYMMETRY_PREDICATES.keys())
+    for out in train_outputs:
+        common = {name for name in common if SYMMETRY_PREDICATES[name](out)}
+        if not common:
+            break
+    non_trivial = set()
+    for name in common:
+        if any(not is_symmetry_trivial(name, out) for out in train_outputs):
+            non_trivial.add(name)
+    return non_trivial
+
+
+def get_constant_new_colors(
+    train_inputs: list[np.ndarray], train_outputs: list[np.ndarray]
+) -> set[int]:
+    if not train_inputs or not train_outputs:
+        return set()
+    new_sets = []
+    for inp, out in zip(train_inputs, train_outputs):
+        in_c = set(np.unique(inp)) - {0}
+        out_c = set(np.unique(out)) - {0}
+        new_sets.append(out_c - in_c)
+    if not new_sets:
+        return set()
+    common = set(new_sets[0])
+    for s in new_sets[1:]:
+        common &= s
+    return common
+
+
 class InvariantVerifier:
     def __init__(self, task_dict: dict[str, Any]):
         self.train_pairs = task_dict.get("train", [])
+        self.train_inputs = [np.asarray(p["input"]) for p in self.train_pairs]
+        self.train_outputs = [np.asarray(p["output"]) for p in self.train_pairs]
         self.shape_inv = self._derive_shape_invariant()
         self.allowed_colors = self._derive_allowed_colors()
+        self.common_symmetries = get_common_symmetries(self.train_outputs)
+        self.constant_new_colors = get_constant_new_colors(self.train_inputs, self.train_outputs)
 
     def _derive_shape_invariant(self) -> ShapeInvariant:
         if not self.train_pairs:
             return ShapeInvariant(rule_type="dynamic")
 
-        shapes_in = [np.shape(p["input"]) for p in self.train_pairs]
-        shapes_out = [np.shape(p["output"]) for p in self.train_pairs]
+        shapes_in = [p.shape for p in self.train_inputs]
+        shapes_out = [p.shape for p in self.train_outputs]
 
         if all(s_in == s_out for s_in, s_out in zip(shapes_in, shapes_out)):
             return ShapeInvariant(rule_type="identity")
@@ -113,12 +205,12 @@ class InvariantVerifier:
 
     def _derive_allowed_colors(self) -> set[int]:
         colors = set()
-        for p in self.train_pairs:
-            colors.update(np.unique(p["output"]))
-            colors.update(np.unique(p["input"]))
+        for inp, out in zip(self.train_inputs, self.train_outputs):
+            colors.update(np.unique(out))
+            colors.update(np.unique(inp))
         return colors
 
-    def verify(self, test_input: np.ndarray, candidate: np.ndarray) -> Tuple[bool, float]:
+    def verify(self, test_input: np.ndarray, candidate: np.ndarray) -> tuple[bool, float]:
         if not isinstance(candidate, np.ndarray) or candidate.ndim != 2:
             return False, -100.0
 
@@ -133,13 +225,56 @@ class InvariantVerifier:
         if cand_colors - self.allowed_colors:
             return False, -30.0
 
+        # D4 Dihedral Symmetry Invariant Pruning
+        if self.common_symmetries:
+            for sym_name in self.common_symmetries:
+                if not SYMMETRY_PREDICATES[sym_name](candidate):
+                    return False, -40.0
+
+        # Soft Color Histogram Conservation
+        local_allowed = (set(np.unique(test_input)) - {0}) | self.constant_new_colors | {0}
+        bad_cells = sum(1 for cell in candidate.flat if cell not in local_allowed)
+        color_penalty = (bad_cells / float(h * w)) * 10.0
+
         # Occam MDL smoothness
         diff_h = np.sum(candidate[1:, :] != candidate[:-1, :])
         diff_w = np.sum(candidate[:, 1:] != candidate[:, :-1])
         total_edges = (h - 1) * w + h * (w - 1)
         smoothness = 1.0 - (diff_h + diff_w) / max(total_edges, 1)
 
-        return True, float(smoothness * 2.0)
+        # 12-Parameter Quadrature HIHO 0.50 Coherence Reranker
+        # Fabric 1 (Space): Foreground spatial geometry overlap
+        mask_in = test_input != 0
+        mask_cand = candidate != 0
+        if test_input.shape == candidate.shape:
+            inter = float(np.sum(mask_in & mask_cand))
+            union = float(np.sum(mask_in | mask_cand))
+            sigma_space = inter / max(union, 1.0)
+        else:
+            sigma_space = 0.50
+
+        # Fabric 2 (Field): Color field conservation / retention
+        if test_input.shape == candidate.shape:
+            sigma_field = float(np.mean(candidate == test_input))
+        else:
+            in_colors = set(np.unique(test_input))
+            cand_colors = set(np.unique(candidate))
+            sigma_field = len(in_colors & cand_colors) / max(len(in_colors | cand_colors), 1)
+
+        # Fabric 3 (Control): Group-theoretic D4 symmetry activation
+        sym_count = sum(1 for sym_fn in SYMMETRY_PREDICATES.values() if sym_fn(candidate))
+        sigma_control = sym_count / float(len(SYMMETRY_PREDICATES))
+
+        # Fabric 4 (Precipitation): Foreground active matter density
+        sigma_precip = float(np.count_nonzero(candidate)) / float(h * w)
+
+        coherence = 0.25 * (sigma_space + sigma_field + sigma_control + sigma_precip)
+        phi_hiho = max(0.0, 1.0 - 4.0 * ((coherence - 0.5) ** 2))
+        dissonance = abs(coherence - 0.5) * 2.0
+        hiho_bonus = 2.0 * phi_hiho - 1.0 * dissonance
+
+        total_score = float(smoothness * 2.0 + hiho_bonus - color_penalty)
+        return True, total_score
 
 
 # -----------------------------------------------------------------------------
@@ -148,25 +283,34 @@ class InvariantVerifier:
 def primitive_identity(grid: np.ndarray) -> np.ndarray:
     return grid.copy()
 
+
 def primitive_rot90(grid: np.ndarray) -> np.ndarray:
     return np.rot90(grid, 1)
+
 
 def primitive_rot180(grid: np.ndarray) -> np.ndarray:
     return np.rot90(grid, 2)
 
+
 def primitive_rot270(grid: np.ndarray) -> np.ndarray:
     return np.rot90(grid, 3)
+
 
 def primitive_fliplr(grid: np.ndarray) -> np.ndarray:
     return np.fliplr(grid)
 
+
 def primitive_flipud(grid: np.ndarray) -> np.ndarray:
     return np.flipud(grid)
+
 
 def primitive_transpose(grid: np.ndarray) -> np.ndarray:
     return np.swapaxes(grid, 0, 1)
 
-def primitive_gravity_drop(grid: np.ndarray, obstacle_color: int = 5, empty_color: int = 0) -> np.ndarray:
+
+def primitive_gravity_drop(
+    grid: np.ndarray, obstacle_color: int = 5, empty_color: int = 0
+) -> np.ndarray:
     h, w = grid.shape
     result = np.full((h, w), empty_color, dtype=np.int32)
     for c in range(w):
@@ -185,15 +329,19 @@ def primitive_gravity_drop(grid: np.ndarray, obstacle_color: int = 5, empty_colo
                     write_idx -= 1
     return result
 
-def primitive_convex_hull_fill(grid: np.ndarray, fill_color: int = 1, bg_color: int = 0) -> np.ndarray:
+
+def primitive_convex_hull_fill(
+    grid: np.ndarray, fill_color: int = 1, bg_color: int = 0
+) -> np.ndarray:
     result = grid.copy()
     coords = np.argwhere(grid != bg_color)
     if len(coords) < 2:
         return result
     r_min, c_min = coords.min(axis=0)
     r_max, c_max = coords.max(axis=0)
-    result[r_min:r_max + 1, c_min:c_max + 1] = fill_color
+    result[r_min : r_max + 1, c_min : c_max + 1] = fill_color
     return result
+
 
 def primitive_color_majority(grid: np.ndarray, bg_color: int = 0) -> np.ndarray:
     vals, counts = np.unique(grid[grid != bg_color], return_counts=True)
@@ -203,6 +351,7 @@ def primitive_color_majority(grid: np.ndarray, bg_color: int = 0) -> np.ndarray:
     result = grid.copy()
     result[result != bg_color] = majority
     return result
+
 
 def primitive_symmetry_reflect_h(grid: np.ndarray) -> np.ndarray:
     result = grid.copy()
@@ -215,6 +364,7 @@ def primitive_symmetry_reflect_h(grid: np.ndarray) -> np.ndarray:
             elif result[r, c] == 0 and result[r, opp_c] != 0:
                 result[r, c] = result[r, opp_c]
     return result
+
 
 def primitive_symmetry_reflect_v(grid: np.ndarray) -> np.ndarray:
     result = grid.copy()
@@ -229,7 +379,7 @@ def primitive_symmetry_reflect_v(grid: np.ndarray) -> np.ndarray:
     return result
 
 
-PRIMITIVES: list[Tuple[str, Callable[[np.ndarray], np.ndarray]]] = [
+PRIMITIVES: list[tuple[str, Callable[[np.ndarray], np.ndarray]]] = [
     ("identity", primitive_identity),
     ("rot90", primitive_rot90),
     ("rot180", primitive_rot180),
@@ -248,7 +398,9 @@ PRIMITIVES: list[Tuple[str, Callable[[np.ndarray], np.ndarray]]] = [
 # -----------------------------------------------------------------------------
 # 4. State-Deduplicated Task Solver
 # -----------------------------------------------------------------------------
-def solve_arc_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> list[dict[str, Any]]:
+def solve_arc_task(
+    task_dict: dict[str, Any], task_time_limit: float = 45.0
+) -> list[dict[str, Any]]:
     train_pairs = task_dict.get("train", [])
     test_inputs = [np.array(p["input"], dtype=np.int32) for p in task_dict.get("test", [])]
 
@@ -258,12 +410,12 @@ def solve_arc_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> 
     verifier = InvariantVerifier(task_dict)
     t_start = time.perf_counter()
 
-    visited_hashes: Set[str] = set()
+    visited_hashes: set[str] = set()
     exact_candidates: list[Callable[[np.ndarray], np.ndarray]] = []
-    partial_candidates: list[Tuple[float, Callable[[np.ndarray], np.ndarray]]] = []
+    partial_candidates: list[tuple[float, Callable[[np.ndarray], np.ndarray]]] = []
 
     # Step 1: Single primitive search
-    for name, prim in PRIMITIVES:
+    for _name, prim in PRIMITIVES:
         if time.perf_counter() - t_start > task_time_limit:
             break
 
@@ -295,16 +447,17 @@ def solve_arc_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> 
     # Step 2: Depth-2 Composed Primitive Search with state deduplication
     if not exact_candidates and time.perf_counter() - t_start < task_time_limit:
         first_in = np.array(train_pairs[0]["input"], dtype=np.int32) if train_pairs else None
-        
-        for name1, p1 in PRIMITIVES[:8]:
+
+        for _name1, p1 in PRIMITIVES[:8]:
             if time.perf_counter() - t_start > task_time_limit:
                 break
-            for name2, p2 in PRIMITIVES:
+            for _name2, p2 in PRIMITIVES:
                 if time.perf_counter() - t_start > task_time_limit:
                     break
 
-                comp_fn = lambda x, fn1=p1, fn2=p2: fn2(fn1(x))
-                
+                def comp_fn(x: np.ndarray, fn1=p1, fn2=p2) -> np.ndarray:
+                    return fn2(fn1(x))
+
                 # Deduplication check
                 if first_in is not None:
                     try:
@@ -314,7 +467,7 @@ def solve_arc_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> 
                             continue
                         visited_hashes.add(h)
                     except Exception:
-                        continue
+                        pass
 
                 all_passed = True
                 for pair in train_pairs:
@@ -343,19 +496,15 @@ def solve_arc_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> 
 
         if exact_candidates:
             for fn in exact_candidates:
-                try:
+                with contextlib.suppress(Exception):
                     candidate_outputs.append(fn(test_in))
-                except Exception:
-                    pass
 
         if len(candidate_outputs) < 2 and partial_candidates:
             partial_candidates.sort(key=lambda x: x[0], reverse=True)
             for _, fn in partial_candidates[:4]:
-                try:
+                with contextlib.suppress(Exception):
                     cand = fn(test_in)
                     candidate_outputs.append(cand)
-                except Exception:
-                    pass
 
         if not candidate_outputs:
             candidate_outputs = [primitive_identity(test_in), primitive_rot90(test_in)]
@@ -401,10 +550,7 @@ def solve_arc_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> 
         if attempt_2 is None:
             attempt_2 = scored[1][1] if len(scored) > 1 else attempt_1
 
-        results.append({
-            "attempt_1": attempt_1.tolist(),
-            "attempt_2": attempt_2.tolist()
-        })
+        results.append({"attempt_1": attempt_1.tolist(), "attempt_2": attempt_2.tolist()})
 
     return results
 
@@ -412,7 +558,9 @@ def solve_arc_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> 
 def find_test_file() -> Path:
     candidates = [
         Path("/kaggle/input/competitions/arc-prize-2026-arc-agi-2/arc-agi_test_challenges.json"),
-        Path("/kaggle/input/competitions/arc-prize-2026-arc-agi-2/arc-agi_evaluation_challenges.json"),
+        Path(
+            "/kaggle/input/competitions/arc-prize-2026-arc-agi-2/arc-agi_evaluation_challenges.json"
+        ),
         Path("/kaggle/input/arc-prize-2026-arc-agi-2/arc-agi_test_challenges.json"),
         Path("/kaggle/input/arc-prize-2026/arc-agi_test_challenges.json"),
         Path("tests/data/sample_arc_task.json"),
@@ -427,7 +575,7 @@ def find_test_file() -> Path:
     sample = {
         "007bbfb7": {
             "train": [{"input": [[0, 1], [1, 0]], "output": [[1, 0], [0, 1]]}],
-            "test": [{"input": [[0, 2], [2, 0]]}]
+            "test": [{"input": [[0, 2], [2, 0]]}],
         }
     }
     fallback.write_text(json.dumps(sample))
@@ -439,7 +587,7 @@ def main():
     test_file = find_test_file()
     print(f"📖 Reading challenges from: {test_file}")
 
-    with open(test_file, "r") as f:
+    with open(test_file) as f:
         challenges = json.load(f)
 
     submission = {}

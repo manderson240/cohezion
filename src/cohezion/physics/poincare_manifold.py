@@ -67,6 +67,44 @@ class PoincareManifoldND:
         return math.acosh(arg)
 
     @classmethod
+    def pairwise_distance_matrix(cls, points: Sequence[PoincarePoint]) -> list[list[float]]:
+        """Compute all-pairs hyperbolic distance matrix.
+
+        Uses PyTorch batched tensor ops when available for vectorized acceleration
+        across SIMD / ROCm / Vulkan, with exact pure-Python analytical fallback.
+        """
+        n = len(points)
+        if n == 0:
+            return []
+        if n == 1:
+            return [[0.0]]
+
+        dim = points[0].dim
+        for p in points:
+            if p.dim != dim:
+                raise ValueError(f"Dimensional mismatch: expected {dim}D, got {p.dim}D")
+
+        try:
+            import torch
+
+            X = torch.tensor([p.coords for p in points], dtype=torch.float32)
+            sq_norms = torch.sum(X * X, dim=1, keepdim=True)
+            sq_dist = torch.cdist(X, X, p=2) ** 2
+            denom = torch.clamp((1.0 - sq_norms) * (1.0 - sq_norms.T), min=cls.EPS)
+            arg = torch.clamp(1.0 + 2.0 * sq_dist / denom, min=1.0)
+            dist_matrix = torch.acosh(arg)
+            dist_matrix.fill_diagonal_(0.0)
+            return dist_matrix.tolist()
+        except Exception:
+            matrix = [[0.0] * n for _ in range(n)]
+            for i in range(n):
+                for j in range(i + 1, n):
+                    d = cls.distance(points[i], points[j])
+                    matrix[i][j] = d
+                    matrix[j][i] = d
+            return matrix
+
+    @classmethod
     def parallel_transport(
         cls,
         v_tangent: Sequence[float],

@@ -4,16 +4,15 @@ Bypasses raw HTTP request loops by invoking the native `/usr/bin/lemonade` CLI
 and AMD hardware skills directly for local inference, tool invocation, and multi-silicon routing.
 """
 
-import subprocess
-import json
 import logging
+import subprocess
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
 
-from cohezion.reliability.system_wide_fleet_lock import SystemWideFleetLock
 from cohezion.reliability.oom_guard import OOMGuard
 
+
 logger = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True, slots=True)
 class CLIInferenceResult:
@@ -22,6 +21,7 @@ class CLIInferenceResult:
     exit_code: int
     duration_s: float
     substrate: str
+
 
 class LemonadeCLIBridge:
     """Direct CLI Bridge for Lemonade Server & AMD Skills."""
@@ -46,7 +46,7 @@ class LemonadeCLIBridge:
                 model=model,
                 exit_code=1,
                 duration_s=0.0,
-                substrate="OOM_GUARD_ABORT"
+                substrate="OOM_GUARD_ABORT",
             )
 
         # Fallback invocation via direct CLI REPL or backend call
@@ -60,16 +60,13 @@ class LemonadeCLIBridge:
                 model=model,
                 exit_code=res.returncode,
                 duration_s=dt,
-                substrate="AMD_LEMONADE_CLI"
+                substrate="AMD_LEMONADE_CLI",
             )
         except Exception as e:
             dt = time.perf_counter() - t0
             return CLIInferenceResult(
-                content=str(e),
-                model=model,
-                exit_code=1,
-                duration_s=dt,
-                substrate="CLI_EXCEPTION"
+                content=str(e), model=model, exit_code=1, duration_s=dt, substrate="CLI_EXCEPTION"
             )
+
 
 import time
