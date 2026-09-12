@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.24.0] - 2026-09-12
+
+### Added — MaP-WAM Memory-as-Plans & Progress-Gated Loop Refactoring (1.24.0)
+- Implemented `PlanSegment` and `MemoryAsPlans` episodic storage per arXiv:2609.11561 (MaP-WAM), eliminating quadratic token bloat and guaranteeing $O(1)$ context length.
+- Integrated scalar progress modeling $p_t \in [0.0, 1.0]$ and deterministic plan-observation alignment verification into `AutonomousGoalExecutor`.
+- Enhanced `DurableSurrealGoalPersistence` to record rich `memory_as_plans` segment telemetry to SurrealDB.
+- Added 4 unit tests in `tests/unit/test_trace_goal_pipeline.py` (24/24 passing) and updated live demo script `scripts/ops/demo_trace_to_goal_loop_refactor.py`.
+
 ### Added — BAML Hybrid Fallback, 12D Quadrature HIHO Reranker & Autopoiesis (1.23.0)
 - Expanded BAML schema (`baml_src/cohezion.baml`) with typed schemas for `NextStep` (Mandate #7), `TaskInvariants` (AutoHarness ARC/AIMO), `CodeHarness` (zero-cost bytecode verifiers), and `SubmissionStrategy` (Kaggle active leaderboard audits).
 - Deployed native BAML fallback cascade: Lemonade Local primary (port 13305) -> Ollama Cloud fallback (port 11434) with async client routing in `src/cohezion/baml/client_router.py`.
