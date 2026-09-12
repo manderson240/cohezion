@@ -7,13 +7,13 @@ Once KernelWorkerStatus.COMPLETE is reached, automatically submits submission.pa
 
 import subprocess
 import time
-import sys
+
 
 KERNEL = "manderson240/cohezion-arc-agi-3-autoharness-solver"
-VERSION = "15"
+VERSION = "16"
 COMP = "arc-prize-2026-arc-agi-3"
 FILE = "submission.parquet"
-MSG = "Cohezion v15: Directed Affordance Rarity SearchAgent (Avatar Tracking + Inverse Rarity Pathing + BBox Jitter)"
+MSG = "Cohezion v16: Dynamic Collision Grid + Shortest-Path BFS Navigation + Multi-Target Queue"
 
 print(f"Monitoring {KERNEL} for completion...")
 
@@ -22,7 +22,7 @@ for attempt in range(120):  # Poll every 10s for up to 20 minutes
         ["uv", "run", "kaggle", "kernels", "status", KERNEL],
         capture_output=True,
         text=True,
-        check=False
+        check=False,
     )
     status_text = res.stdout + res.stderr
     print(f"[{attempt * 10}s] Status: {status_text.strip()}")
@@ -31,16 +31,25 @@ for attempt in range(120):  # Poll every 10s for up to 20 minutes
         print("Kernel execution COMPLETE! Submitting to competition...")
         sub_res = subprocess.run(
             [
-                "uv", "run", "kaggle", "competitions", "submit",
-                "-c", COMP,
-                "-k", KERNEL,
-                "-v", VERSION,
-                "-f", FILE,
-                "-m", MSG
+                "uv",
+                "run",
+                "kaggle",
+                "competitions",
+                "submit",
+                "-c",
+                COMP,
+                "-k",
+                KERNEL,
+                "-v",
+                VERSION,
+                "-f",
+                FILE,
+                "-m",
+                MSG,
             ],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
         )
         print("Submission stdout:", sub_res.stdout)
         print("Submission stderr:", sub_res.stderr)

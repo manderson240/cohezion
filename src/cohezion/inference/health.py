@@ -6,10 +6,10 @@ back-to-back calls don't hammer the endpoints.
 
 Returns structured status for each silicon lane:
 
-- NPU (:13306, FLM backend)
-- iGPU ROCWMMA (:13307)
-- iGPU Unified (:13308)
-- CPU AVX-VNNI (:13309)
+- NPU (:13305, OmniRouter / FLM backend)
+- iGPU ROCWMMA (:13305, OmniRouter / llamacpp Vulkan)
+- iGPU Unified (:13305, OmniRouter / MoE)
+- CPU AVX-VNNI (:13305, OmniRouter / Zen5 CPU)
 - Ollama (:11434)
 - Anthropic API (https://api.anthropic.com)
 - Omnibus gateway dashboard snapshot
@@ -239,10 +239,10 @@ def check_fleet(*, force: bool = False) -> FleetHealth:
         return _LAST_RESULT
 
     lanes: dict[str, LaneHealth] = {
-        "npu": _probe_openai_endpoint("npu", "http://localhost:13306"),
-        "igpu_rocwmma": _probe_openai_endpoint("igpu_rocwmma", "http://localhost:13307"),
-        "igpu_unified": _probe_openai_endpoint("igpu_unified", "http://localhost:13308"),
-        "cpu": _probe_openai_endpoint("cpu", "http://localhost:13309"),
+        "npu": _probe_openai_endpoint("npu", "http://localhost:13305"),
+        "igpu_rocwmma": _probe_openai_endpoint("igpu_rocwmma", "http://localhost:13305"),
+        "igpu_unified": _probe_openai_endpoint("igpu_unified", "http://localhost:13305"),
+        "cpu": _probe_openai_endpoint("cpu", "http://localhost:13305"),
         "ollama": _probe_ollama(),
         "claude": _probe_anthropic(),
         "gemini": _probe_gemini(),

@@ -148,7 +148,9 @@ class UnifiedNeuralMesh:
             logger.debug("SurrealDB neuron retrieval skipped: %s", exc)
         return []
 
-    def _query_endpoint(self, endpoint: str, model_id: str, prompt: str, max_tokens: int = 128) -> str:
+    def _query_endpoint(
+        self, endpoint: str, model_id: str, prompt: str, max_tokens: int = 128
+    ) -> str:
         """Query a local silicon model endpoint."""
         payload = {
             "model": model_id,

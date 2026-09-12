@@ -355,12 +355,10 @@ async def test_fetch_completion_uses_reasoning_content_when_content_empty():
     mock_resp.raise_for_status = lambda: None
     mock_resp.json = lambda: fake_response
 
-    with patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("cohezion.inference.fleet._get_shared_client") as mock_get_client:
         mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client.post = AsyncMock(return_value=mock_resp)
-        mock_client_cls.return_value = mock_client
+        mock_get_client.return_value = mock_client
 
         text, cost, _, _ = await _dispatch_openai_compatible(
             model, "What is 2+2?", coherence=None, timeout=10.0, stream=False
@@ -397,12 +395,10 @@ async def test_fetch_completion_prefers_content_over_reasoning():
     mock_resp.raise_for_status = lambda: None
     mock_resp.json = lambda: fake_response
 
-    with patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("cohezion.inference.fleet._get_shared_client") as mock_get_client:
         mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client.post = AsyncMock(return_value=mock_resp)
-        mock_client_cls.return_value = mock_client
+        mock_get_client.return_value = mock_client
 
         text, _, _, _ = await _dispatch_openai_compatible(
             model, "What is 2+2?", coherence=None, timeout=10.0, stream=False

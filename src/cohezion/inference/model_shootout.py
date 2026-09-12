@@ -44,14 +44,14 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, EventType, get_event_bus
-from cohezion.data_mesh.data_product import DataProductSchema, DataQualityTier, DataProductStatus
+from cohezion.data_mesh.data_product import DataProductSchema, DataProductStatus, DataQualityTier
 from cohezion.inference.evaluation_harness import evaluate_quality_simple
 from cohezion.inference.model_sprint_orchestrator import (
     DEFAULT_BASE_URL,
     ModelSprintOrchestrator,
 )
 from cohezion.inference.transports.lemonade import LemonadeTransport
-from cohezion.researcher.daily_researcher import FleetLock
+
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +79,7 @@ DEFAULT_TASK = (
 )
 DEFAULT_EXPECTED = ["balance", "amt", "overdraft", "integer", "float"]
 
+
 # Default candidate set derives from the DAEMON-MAINTAINED resident fleet so
 # the shootout rides the work the fleet daemons already do (hot pre-warming,
 # keeping models resident) instead of forcing its own cold loads through the
@@ -96,9 +97,11 @@ def default_candidates(min_resident: int = 2) -> list[str]:
 
     try:
         resident = [m.get("model_name", "") for m in hotswap.resident_models()]
-        resident = [m for m in resident if m and not any(
-            s in m.lower() for s in ("embed", "embedding", "nomic")
-        )]
+        resident = [
+            m
+            for m in resident
+            if m and not any(s in m.lower() for s in ("embed", "embedding", "nomic"))
+        ]
     except Exception as exc:  # daemon fleet introspection unavailable
         logger.debug("shootout: could not read resident fleet: %s", exc)
         resident = []
@@ -110,10 +113,10 @@ def default_candidates(min_resident: int = 2) -> list[str]:
 
 # Curated fallback when the daemon fleet is empty/unknown (rare).
 _CURATED_FALLBACK = [
-    "Qwen3.8-27B-ThinkingCoder",      # reasoning/code star (resident)
+    "Qwen3.8-27B-ThinkingCoder",  # reasoning/code star (resident)
     "Qwen3.6-35B-A3B-ThinkingCoder",  # MoE thinking coder (resident)
-    "Qwen3.8-27B-GGUF",               # dense baseline (resident)
-    "Bonsai-8B-gguf",                 # fast baseline (resident)
+    "Qwen3.8-27B-GGUF",  # dense baseline (resident)
+    "Bonsai-8B-gguf",  # fast baseline (resident)
 ]
 
 PRODUCT_SCHEMA = DataProductSchema(
@@ -272,9 +275,7 @@ class ModelShootout:
                 if resp is None or not resp.content.strip():
                     run_failures += 1
                     continue
-                quality_scores.append(
-                    evaluate_quality_simple(resp.content, self.expected_contains)
-                )
+                quality_scores.append(evaluate_quality_simple(resp.content, self.expected_contains))
                 latency_ms = resp.latency_ms
                 tokens = len(resp.content.split())
                 tps = (tokens / max(resp.latency_ms, 1.0)) * 1000.0
