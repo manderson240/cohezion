@@ -507,6 +507,24 @@ def solve_arc_task(
                     candidate_outputs.append(cand)
 
         if not candidate_outputs:
+            # Attempt BAML invariant derivation via Lemonade :13305 / Ollama Cloud :11434
+            try:
+                from cohezion.baml.client_router import derive_task_invariants
+
+                train_repr = json.dumps(train_pairs[:3])
+                inv = derive_task_invariants("ARC-AGI-2 Invariant Extraction", train_repr)
+                if "horizontal" in inv.reflection_symmetries:
+                    candidate_outputs.append(primitive_fliplr(test_in))
+                if "vertical" in inv.reflection_symmetries:
+                    candidate_outputs.append(primitive_flipud(test_in))
+                if any("180" in s for s in inv.rotational_symmetries):
+                    candidate_outputs.append(primitive_rot180(test_in))
+                if any("90" in s for s in inv.rotational_symmetries):
+                    candidate_outputs.append(primitive_rot90(test_in))
+            except Exception:
+                pass
+
+        if not candidate_outputs:
             candidate_outputs = [primitive_identity(test_in), primitive_rot90(test_in)]
 
         # Score with AutoHarness invariant verifier & Orch-OR quantum superposition collapse
