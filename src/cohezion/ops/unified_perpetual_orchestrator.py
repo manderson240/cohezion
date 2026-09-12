@@ -25,6 +25,7 @@ from cohezion.arc.strix_dsl_search import StrixHaloDSLEngine
 from cohezion.autopoiesis.tri_silicon_engine import TriSiliconAutopoiesisEngine
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+from cohezion.flume.loop_goal_refactor_engine import MemoryAsPlans
 from cohezion.inference.dynamic_model_evaluator import DynamicModelEvaluator
 from cohezion.ops.control_plane import CohezionControlPlane, OperationsSnapshot
 from cohezion.reliability.oom_guard import OOMGuard
@@ -85,6 +86,7 @@ class UnifiedPerpetualLoopDaemon:
         self.tri_silicon_engine = TriSiliconAutopoiesisEngine(cpu_threads=cpu_threads)
         self.dsl_engine = StrixHaloDSLEngine(max_depth=2, n_threads=cpu_threads)
         self.evaluator = DynamicModelEvaluator(port=lemonade_port)
+        self.memory_as_plans = MemoryAsPlans()
 
         self._running = False
         self._shutdown_event = asyncio.Event()
@@ -273,7 +275,7 @@ class UnifiedPerpetualLoopDaemon:
     # Phase 5: Trace Refactoring & Closed-Loop Goal Synthesis
     # =========================================================================
     async def run_trace_refactor_phase(self, cycle_num: int) -> PhaseResult:
-        """Refactor open-ended event_log traces into closed-loop GoalSpecifications."""
+        """Refactor open-ended event_log traces into closed-loop GoalSpecifications with MaP-WAM memory."""
         t0 = time.perf_counter()
         try:
             from cohezion.flume.loop_goal_refactor_engine import (
@@ -287,6 +289,7 @@ class UnifiedPerpetualLoopDaemon:
             persistence = DurableSurrealGoalPersistence()
             goals_processed = 0
             loops_converged = 0
+            last_goal = None
 
             for db_name in ["vault", "main"]:
                 try:
@@ -301,6 +304,7 @@ class UnifiedPerpetualLoopDaemon:
                         continue
                     persistence.persist_goal(goal)
                     goals_processed += 1
+                    last_goal = goal
 
                     target_thresh = goal.target_threshold
 
@@ -310,22 +314,45 @@ class UnifiedPerpetualLoopDaemon:
                         val = min(th, th * (0.6 + 0.25 * it))
                         return {"step": it}, val, f"Autopoietic trace remediation step {it}"
 
-                    executor = AutonomousGoalExecutor(goal)
+                    contract_guidance = {
+                        "target_metric": goal.target_metric,
+                        "target_threshold": goal.target_threshold,
+                        "cycle_num": cycle_num,
+                        "origin_db": db_name,
+                    }
+
+                    executor = AutonomousGoalExecutor(goal, memory=self.memory_as_plans)
                     loop_res: AutonomousGoalLoopResult[
                         dict[str, Any]
-                    ] = await executor.execute_loop({}, _step_fn)
+                    ] = await executor.execute_loop(
+                        {},
+                        _step_fn,
+                        contract_guidance=contract_guidance,
+                    )
                     persistence.persist_loop_result(loop_res)
                     if loop_res.converged:
                         loops_converged += 1
 
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
-            summary = f"Refactored traces into goals: {goals_processed} | Loops converged: {loops_converged}"
+            segments_committed = len(self.memory_as_plans.segments)
+            active_ctx = (
+                self.memory_as_plans.get_active_context(last_goal) if last_goal is not None else {}
+            )
+            summary = (
+                f"Refactored traces into goals: {goals_processed} | Loops converged: {loops_converged} | "
+                f"Committed segments: {segments_committed} (O(1) context digest: {active_ctx.get('summary_digest', 'root')})"
+            )
             return PhaseResult(
                 phase_name="trace_goal_refactor",
                 success=True,
                 duration_ms=round(elapsed_ms, 1),
                 summary=summary,
-                details={"goals_processed": goals_processed, "loops_converged": loops_converged},
+                details={
+                    "goals_processed": goals_processed,
+                    "loops_converged": loops_converged,
+                    "segments_committed": segments_committed,
+                    "active_context": active_ctx,
+                },
             )
         except Exception as exc:
             elapsed_ms = (time.perf_counter() - t0) * 1000.0

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.0] - 2026-09-12
+
+### Added — Perpetual Loop Orchestrator MaP-WAM Memory Integration (1.25.0)
+- Wired `MemoryAsPlans` episodic memory directly into `UnifiedPerpetualLoopDaemon`, preventing context bloat across 24/7 perpetual execution cycles.
+- Integrated sub-goal contract guidance and monotonic progress tracking into `run_trace_refactor_phase`.
+- Added bounded $O(1)$ context digest reporting in `PhaseResult` and unit tests in `test_unified_perpetual_orchestrator.py`.
+
 ## [1.24.0] - 2026-09-12
 
 ### Added — MaP-WAM Memory-as-Plans & Progress-Gated Loop Refactoring (1.24.0)
