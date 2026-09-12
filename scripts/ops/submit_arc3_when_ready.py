@@ -10,10 +10,10 @@ import time
 import sys
 
 KERNEL = "manderson240/cohezion-arc-agi-3-autoharness-solver"
-VERSION = "13"
+VERSION = "15"
 COMP = "arc-prize-2026-arc-agi-3"
 FILE = "submission.parquet"
-MSG = "Cohezion v13: Native Arcade Master Orchestrator + Go-Explore Centroid Prober"
+MSG = "Cohezion v15: Directed Affordance Rarity SearchAgent (Avatar Tracking + Inverse Rarity Pathing + BBox Jitter)"
 
 print(f"Monitoring {KERNEL} for completion...")
 
