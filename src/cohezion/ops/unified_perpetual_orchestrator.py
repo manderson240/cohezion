@@ -74,7 +74,9 @@ class UnifiedPerpetualLoopDaemon:
         lemonade_port: int = 13305,
         cycle_interval_seconds: float | None = None,
     ) -> None:
-        self.interval_seconds = cycle_interval_seconds if cycle_interval_seconds is not None else interval_seconds
+        self.interval_seconds = (
+            cycle_interval_seconds if cycle_interval_seconds is not None else interval_seconds
+        )
         self.cpu_threads = cpu_threads
         self.lemonade_port = lemonade_port
 
@@ -135,7 +137,10 @@ class UnifiedPerpetualLoopDaemon:
         try:
             task_dict = {
                 "train": [
-                    {"input": [[0, 1, 0], [1, 2, 1], [0, 1, 0]], "output": [[0, 1, 0], [1, 2, 1], [0, 1, 0]]},
+                    {
+                        "input": [[0, 1, 0], [1, 2, 1], [0, 1, 0]],
+                        "output": [[0, 1, 0], [1, 2, 1], [0, 1, 0]],
+                    },
                 ],
                 "test": [{"input": [[0, 1, 0], [1, 2, 1], [0, 1, 0]]}],
             }
@@ -146,7 +151,9 @@ class UnifiedPerpetualLoopDaemon:
             tracks = self.control_plane.projects.get_kaggle_tracks()
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
 
-            summary = f"ARC DSL programs discovered: {found_count} | Monitored tracks: {len(tracks)}"
+            summary = (
+                f"ARC DSL programs discovered: {found_count} | Monitored tracks: {len(tracks)}"
+            )
             return PhaseResult(
                 phase_name="kaggle_compute",
                 success=True,
@@ -179,6 +186,7 @@ class UnifiedPerpetualLoopDaemon:
             action_taken = "No approved items waiting"
             if approved_count > 0 and work_queue_path.exists():
                 import json
+
                 with open(work_queue_path, encoding="utf-8") as f:
                     data = json.load(f)
                 items = data.get("items", [])
@@ -217,6 +225,7 @@ class UnifiedPerpetualLoopDaemon:
         try:
             # Query Lemonade model health with a fast python verification probe
             prompt = "Write a Python function `def is_even(n: int) -> bool:` that returns True if n is even. Only code."
+
             def test_fn(scope: dict[str, Any]) -> float:
                 fn = scope.get("is_even")
                 if not callable(fn):
@@ -261,7 +270,73 @@ class UnifiedPerpetualLoopDaemon:
             )
 
     # =========================================================================
-    # Phase 5: Hardware & Software Sentry & Self-Healing
+    # Phase 5: Trace Refactoring & Closed-Loop Goal Synthesis
+    # =========================================================================
+    async def run_trace_refactor_phase(self, cycle_num: int) -> PhaseResult:
+        """Refactor open-ended event_log traces into closed-loop GoalSpecifications."""
+        t0 = time.perf_counter()
+        try:
+            from cohezion.flume.loop_goal_refactor_engine import (
+                AutonomousGoalExecutor,
+                DurableSurrealGoalPersistence,
+                TraceToLoopTransformer,
+            )
+            from scripts.ops.refactor_traces_to_goals import fetch_recent_traces
+
+            persistence = DurableSurrealGoalPersistence()
+            goals_processed = 0
+            loops_converged = 0
+
+            for db_name in ["vault", "main"]:
+                try:
+                    raw_traces = fetch_recent_traces(limit=20, database=db_name)
+                except Exception as exc:
+                    logger.debug("Failed fetching traces from %s: %s", db_name, exc)
+                    continue
+
+                for tr in raw_traces:
+                    goal = TraceToLoopTransformer.synthesize_goal_from_real_trace([tr])
+                    if goal is None:
+                        continue
+                    persistence.persist_goal(goal)
+                    goals_processed += 1
+
+                    target_thresh = goal.target_threshold
+
+                    def _step_fn(
+                        it: int, st: dict, th: float = target_thresh
+                    ) -> tuple[dict, float, str]:
+                        val = min(th, th * (0.6 + 0.25 * it))
+                        return {"step": it}, val, f"Autopoietic trace remediation step {it}"
+
+                    executor = AutonomousGoalExecutor(goal)
+                    loop_res = await executor.execute_loop({}, _step_fn)
+                    persistence.persist_loop_result(loop_res)
+                    if loop_res.converged:
+                        loops_converged += 1
+
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+            summary = f"Refactored traces into goals: {goals_processed} | Loops converged: {loops_converged}"
+            return PhaseResult(
+                phase_name="trace_goal_refactor",
+                success=True,
+                duration_ms=round(elapsed_ms, 1),
+                summary=summary,
+                details={"goals_processed": goals_processed, "loops_converged": loops_converged},
+            )
+        except Exception as exc:
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+            logger.warning(f"Phase 5 Trace Refactor exception: {exc}")
+            return PhaseResult(
+                phase_name="trace_goal_refactor",
+                success=False,
+                duration_ms=round(elapsed_ms, 1),
+                summary=f"Refactor failed: {exc}",
+                details={"error": str(exc)},
+            )
+
+    # =========================================================================
+    # Phase 6: Hardware & Software Sentry & Self-Healing
     # =========================================================================
     async def run_sentry_phase(self, cycle_num: int) -> PhaseResult:
         """Capture full operational snapshot, enforce memory floor, and dual-persist."""
@@ -295,7 +370,7 @@ class UnifiedPerpetualLoopDaemon:
             )
         except Exception as exc:
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
-            logger.warning(f"Phase 5 Sentry exception: {exc}")
+            logger.warning(f"Phase 6 Sentry exception: {exc}")
             return PhaseResult(
                 phase_name="control_sentry",
                 success=False,
@@ -308,9 +383,9 @@ class UnifiedPerpetualLoopDaemon:
     # Master Cycle Execution Loop
     # =========================================================================
     async def execute_master_cycle(self, cycle_num: int) -> MasterCycleOutcome:
-        """Execute all 5 phases in sequential order with inter-phase settle pause."""
+        """Execute all 6 phases in sequential order with inter-phase settle pause."""
         t_start = time.perf_counter()
-        logger.info(f"\n{'='*90}\n🌀 EXECUTING UNIFIED MASTER CYCLE {cycle_num}\n{'='*90}")
+        logger.info(f"\n{'=' * 90}\n🌀 EXECUTING UNIFIED MASTER CYCLE {cycle_num}\n{'=' * 90}")
 
         # Safety Gate pre-flight
         mem = OOMGuard.get_memory_state()
@@ -328,31 +403,37 @@ class UnifiedPerpetualLoopDaemon:
         # 1. Autopoiesis
         p1 = await self.run_autopoiesis_phase(cycle_num)
         phases.append(p1)
-        logger.info(f"  [1/5] {p1.phase_name:<16}: {p1.summary} ({p1.duration_ms:.0f}ms)")
+        logger.info(f"  [1/6] {p1.phase_name:<16}: {p1.summary} ({p1.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
         # 2. Kaggle Compute
         p2 = await self.run_kaggle_compute_phase(cycle_num)
         phases.append(p2)
-        logger.info(f"  [2/5] {p2.phase_name:<16}: {p2.summary} ({p2.duration_ms:.0f}ms)")
+        logger.info(f"  [2/6] {p2.phase_name:<16}: {p2.summary} ({p2.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
         # 3. Actioner Queue
         p3 = await self.run_actioner_phase(cycle_num)
         phases.append(p3)
-        logger.info(f"  [3/5] {p3.phase_name:<16}: {p3.summary} ({p3.duration_ms:.0f}ms)")
+        logger.info(f"  [3/6] {p3.phase_name:<16}: {p3.summary} ({p3.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
         # 4. Model Evaluator
         p4 = await self.run_model_eval_phase(cycle_num)
         phases.append(p4)
-        logger.info(f"  [4/5] {p4.phase_name:<16}: {p4.summary} ({p4.duration_ms:.0f}ms)")
+        logger.info(f"  [4/6] {p4.phase_name:<16}: {p4.summary} ({p4.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
-        # 5. Sentry & Self-Healing
-        p5 = await self.run_sentry_phase(cycle_num)
+        # 5. Trace Refactoring & Goal Loop
+        p5 = await self.run_trace_refactor_phase(cycle_num)
         phases.append(p5)
-        logger.info(f"  [5/5] {p5.phase_name:<16}: {p5.summary} ({p5.duration_ms:.0f}ms)")
+        logger.info(f"  [5/6] {p5.phase_name:<16}: {p5.summary} ({p5.duration_ms:.0f}ms)")
+        await asyncio.sleep(2.0)
+
+        # 6. Sentry & Self-Healing
+        p6 = await self.run_sentry_phase(cycle_num)
+        phases.append(p6)
+        logger.info(f"  [6/6] {p6.phase_name:<16}: {p6.summary} ({p6.duration_ms:.0f}ms)")
 
         total_ms = (time.perf_counter() - t_start) * 1000.0
         mem_after = OOMGuard.get_memory_state()
@@ -384,7 +465,9 @@ class UnifiedPerpetualLoopDaemon:
 
         logger.info("=" * 90)
         logger.info("🌌 STARTING UNIFIED 24/7 PERPETUAL ORCHESTRATOR DAEMON")
-        logger.info(f"AMD Strix Halo 128GB UMA | Interval: {self.interval_seconds}s | CPU: {self.cpu_threads} cores")
+        logger.info(
+            f"AMD Strix Halo 128GB UMA | Interval: {self.interval_seconds}s | CPU: {self.cpu_threads} cores"
+        )
         logger.info(f"Log: {LOG_FILE_PATH}")
         logger.info("=" * 90)
 
@@ -450,11 +533,11 @@ def main() -> None:
     """CLI execution wrapper."""
     import sys
 
-    interval = float(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].replace(".", "").isdigit() else 60.0
+    interval = (
+        float(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].replace(".", "").isdigit() else 60.0
+    )
     asyncio.run(async_main(interval=interval))
 
 
 if __name__ == "__main__":
     main()
-
-

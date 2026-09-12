@@ -18,6 +18,7 @@ Architecture:
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import math
@@ -59,7 +60,7 @@ class PoincareSpace384:
 # 2. Grid Hashing & Invariants
 # -----------------------------------------------------------------------------
 def grid_hash(grid: np.ndarray) -> str:
-    return hashlib.md5(np.ascontiguousarray(grid).tobytes()).hexdigest()
+    return hashlib.md5(np.ascontiguousarray(grid).tobytes(), usedforsecurity=False).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,8 +76,8 @@ class ShapeInvariant:
             return candidate_shape == self.target_shape
         elif self.rule_type == "scaled" and self.scale_factor is not None:
             expected = (
-                int(round(input_shape[0] * self.scale_factor[0])),
-                int(round(input_shape[1] * self.scale_factor[1])),
+                round(input_shape[0] * self.scale_factor[0]),
+                round(input_shape[1] * self.scale_factor[1]),
             )
             return candidate_shape == expected
         return 0 < candidate_shape[0] <= 30 and 0 < candidate_shape[1] <= 30
@@ -241,7 +242,38 @@ class InvariantVerifier:
         total_edges = (h - 1) * w + h * (w - 1)
         smoothness = 1.0 - (diff_h + diff_w) / max(total_edges, 1)
 
-        total_score = float(smoothness * 2.0 - color_penalty)
+        # 12-Parameter Quadrature HIHO 0.50 Coherence Reranker
+        # Fabric 1 (Space): Foreground spatial geometry overlap
+        mask_in = test_input != 0
+        mask_cand = candidate != 0
+        if test_input.shape == candidate.shape:
+            inter = float(np.sum(mask_in & mask_cand))
+            union = float(np.sum(mask_in | mask_cand))
+            sigma_space = inter / max(union, 1.0)
+        else:
+            sigma_space = 0.50
+
+        # Fabric 2 (Field): Color field conservation / retention
+        if test_input.shape == candidate.shape:
+            sigma_field = float(np.mean(candidate == test_input))
+        else:
+            in_colors = set(np.unique(test_input))
+            cand_colors = set(np.unique(candidate))
+            sigma_field = len(in_colors & cand_colors) / max(len(in_colors | cand_colors), 1)
+
+        # Fabric 3 (Control): Group-theoretic D4 symmetry activation
+        sym_count = sum(1 for sym_fn in SYMMETRY_PREDICATES.values() if sym_fn(candidate))
+        sigma_control = sym_count / float(len(SYMMETRY_PREDICATES))
+
+        # Fabric 4 (Precipitation): Foreground active matter density
+        sigma_precip = float(np.count_nonzero(candidate)) / float(h * w)
+
+        coherence = 0.25 * (sigma_space + sigma_field + sigma_control + sigma_precip)
+        phi_hiho = max(0.0, 1.0 - 4.0 * ((coherence - 0.5) ** 2))
+        dissonance = abs(coherence - 0.5) * 2.0
+        hiho_bonus = 2.0 * phi_hiho - 1.0 * dissonance
+
+        total_score = float(smoothness * 2.0 + hiho_bonus - color_penalty)
         return True, total_score
 
 
@@ -383,7 +415,7 @@ def solve_arc_task(
     partial_candidates: list[tuple[float, Callable[[np.ndarray], np.ndarray]]] = []
 
     # Step 1: Single primitive search
-    for name, prim in PRIMITIVES:
+    for _name, prim in PRIMITIVES:
         if time.perf_counter() - t_start > task_time_limit:
             break
 
@@ -416,14 +448,15 @@ def solve_arc_task(
     if not exact_candidates and time.perf_counter() - t_start < task_time_limit:
         first_in = np.array(train_pairs[0]["input"], dtype=np.int32) if train_pairs else None
 
-        for name1, p1 in PRIMITIVES[:8]:
+        for _name1, p1 in PRIMITIVES[:8]:
             if time.perf_counter() - t_start > task_time_limit:
                 break
-            for name2, p2 in PRIMITIVES:
+            for _name2, p2 in PRIMITIVES:
                 if time.perf_counter() - t_start > task_time_limit:
                     break
 
-                comp_fn = lambda x, fn1=p1, fn2=p2: fn2(fn1(x))
+                def comp_fn(x: np.ndarray, fn1=p1, fn2=p2) -> np.ndarray:
+                    return fn2(fn1(x))
 
                 # Deduplication check
                 if first_in is not None:
@@ -434,7 +467,7 @@ def solve_arc_task(
                             continue
                         visited_hashes.add(h)
                     except Exception:
-                        continue
+                        pass
 
                 all_passed = True
                 for pair in train_pairs:
@@ -463,19 +496,15 @@ def solve_arc_task(
 
         if exact_candidates:
             for fn in exact_candidates:
-                try:
+                with contextlib.suppress(Exception):
                     candidate_outputs.append(fn(test_in))
-                except Exception:
-                    pass
 
         if len(candidate_outputs) < 2 and partial_candidates:
             partial_candidates.sort(key=lambda x: x[0], reverse=True)
             for _, fn in partial_candidates[:4]:
-                try:
+                with contextlib.suppress(Exception):
                     cand = fn(test_in)
                     candidate_outputs.append(cand)
-                except Exception:
-                    pass
 
         if not candidate_outputs:
             candidate_outputs = [primitive_identity(test_in), primitive_rot90(test_in)]

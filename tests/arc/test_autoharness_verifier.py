@@ -113,3 +113,47 @@ def test_rank_and_select_diverse_candidates():
     assert selected[0] == [[2, 1], [4, 3]]
     # Attempt 2 must be cand_good_3_diverse (distinct from attempt 1)
     assert selected[1] == [[1, 2], [3, 4]]
+
+
+def test_verifier_prunes_violated_d4_symmetry():
+    # Training outputs all have vertical symmetry (np.flipud(out) == out)
+    task = {
+        "train": [
+            {"input": [[1, 2], [1, 2]], "output": [[3, 3], [3, 3]]},
+            {"input": [[2, 1], [2, 1]], "output": [[4, 5], [4, 5]]},
+        ]
+    }
+    verifier = AutoHarnessCandidateVerifier(task)
+    assert "vertical" in verifier.common_symmetries
+
+    test_in = np.array([[1, 2], [1, 2]])
+
+    # Candidate with vertical symmetry: row 0 == row 1
+    sym_cand = np.array([[3, 4], [3, 4]])
+    passed, _, reason = verifier.verify_candidate(test_in, sym_cand)
+    assert passed is True
+    assert reason == "passed"
+
+    # Candidate violating vertical symmetry: row 0 != row 1
+    asym_cand = np.array([[3, 4], [5, 4]])
+    passed, _, reason = verifier.verify_candidate(test_in, asym_cand)
+    assert passed is False
+    assert "violated_symmetry" in reason
+
+
+def test_verifier_hiho_quadrature_coherence_bonus():
+    # Test that HIHO 0.50 coherence saddle point awards positive stability bonus
+    task = {
+        "train": [
+            {"input": [[1, 0], [0, 1]], "output": [[1, 0], [0, 1]]},
+        ]
+    }
+    verifier = AutoHarnessCandidateVerifier(task)
+    test_in = np.array([[1, 0], [0, 1]])
+
+    # Candidate with 50% density matching 50% train output density
+    cand_balanced = np.array([[1, 0], [0, 1]])
+    passed, bonus, _ = verifier.verify_candidate(test_in, cand_balanced)
+
+    assert passed is True
+    assert bonus > 0.0  # Positive smoothness + HIHO bonus

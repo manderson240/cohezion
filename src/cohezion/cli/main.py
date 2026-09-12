@@ -1017,6 +1017,117 @@ def ops_loop(
     asyncio.run(orchestrator.run_forever(max_cycles=cycles_arg))
 
 
+@ops_app.command("refactor-traces")
+def ops_refactor_traces(
+    limit: int = typer.Option(
+        30, "--limit", "-l", help="Number of recent actionable traces to scan"
+    ),
+    database: str = typer.Option(
+        "main",
+        "--database",
+        "-d",
+        help="SurrealDB database to read traces from ('main' or 'vault')",
+    ),
+    execute: bool = typer.Option(
+        False,
+        "--execute",
+        "-e",
+        help="Persist synthesized goals to SurrealDB (default: dry-run)",
+    ),
+    run_loop: bool = typer.Option(
+        False,
+        "--run-loop",
+        "-r",
+        help="Execute autonomous loops for synthesized goals and persist results",
+    ),
+):
+    """Refactor raw event_log traces into closed-loop GoalSpecifications and autonomous remediation loops."""
+    import asyncio
+
+    from cohezion.flume.loop_goal_refactor_engine import (
+        AutonomousGoalExecutor,
+        DurableSurrealGoalPersistence,
+        GoalSpecification,
+        TraceToLoopTransformer,
+    )
+    from scripts.ops.refactor_traces_to_goals import fetch_recent_traces
+
+    console.print(
+        f"[bold cyan]Scanning up to {limit} recent actionable traces from event_log (db={database})...[/bold cyan]"
+    )
+    try:
+        traces = fetch_recent_traces(limit, database=database)
+    except Exception as exc:
+        console.print(f"[bold red]Failed to fetch traces: {exc}[/bold red]")
+        raise typer.Exit(code=1) from exc
+
+    console.print(f"Found [bold]{len(traces)}[/bold] candidate traces.")
+    persistence = DurableSurrealGoalPersistence()
+    goals: list[GoalSpecification] = []
+    seen_titles: set[str] = set()
+
+    for trace in traces:
+        goal = TraceToLoopTransformer.synthesize_goal_from_real_trace([trace])
+        if goal is None or goal.title in seen_titles:
+            continue
+        seen_titles.add(goal.title)
+        goals.append(goal)
+
+    if not goals:
+        console.print("[yellow]No actionable signals found — no goals synthesized.[/yellow]")
+        return
+
+    table = Table(title=f"Synthesized Goals ({len(goals)})")
+    table.add_column("Goal ID", style="cyan", no_wrap=True)
+    table.add_column("Metric", style="magenta")
+    table.add_column("Target", style="green")
+    table.add_column("Title", style="white")
+
+    for goal in goals:
+        table.add_row(
+            goal.goal_id,
+            goal.target_metric,
+            f">={goal.target_threshold}",
+            goal.title,
+        )
+    console.print(table)
+
+    if not execute and not run_loop:
+        console.print(
+            "\n[dim](Dry-run mode: no writes. Pass --execute or --run-loop to persist and run.)[/dim]"
+        )
+        return
+
+    written = 0
+    for goal in goals:
+        try:
+            rec = persistence.persist_goal(goal)
+            console.print(f"  [green]✓ Persisted {rec}[/green]")
+            written += 1
+        except Exception as exc:
+            console.print(f"  [red]✗ Error persisting {goal.goal_id}: {exc}[/red]")
+
+    if run_loop:
+        console.print("\n[bold cyan]Executing autonomous goal loops...[/bold cyan]")
+        for goal in goals:
+            target_thresh = goal.target_threshold
+
+            def _step_fn(it: int, st: dict, th: float = target_thresh) -> tuple[dict, float, str]:
+                val = min(th, th * (0.5 + 0.3 * it))
+                return {"step": it}, val, f"Executed remediation strategy {it}"
+
+            executor = AutonomousGoalExecutor(goal)
+            loop_res = asyncio.run(executor.execute_loop({}, _step_fn))
+            rec = persistence.persist_loop_result(loop_res)
+            console.print(
+                f"  [green]✓ Loop {goal.goal_id}: converged={loop_res.converged} in {loop_res.iterations_run} steps ({loop_res.total_time_ms:.1f}ms) -> {rec}[/green]"
+            )
+
+    console.print(
+        f"\n[bold green]Done: {written}/{len(goals)} goals processed in SurrealDB.[/bold green]"
+    )
+
+
 # -----------------------------------------------------------------------------
 # Bleeding-Edge Adaptive Execution & Neural Mesh Commands
 # -----------------------------------------------------------------------------
