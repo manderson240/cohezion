@@ -239,10 +239,10 @@ def check_fleet(*, force: bool = False) -> FleetHealth:
         return _LAST_RESULT
 
     lanes: dict[str, LaneHealth] = {
-        "npu": _probe_openai_endpoint("npu", "http://localhost:13305"),
-        "igpu_rocwmma": _probe_openai_endpoint("igpu_rocwmma", "http://localhost:13305"),
-        "igpu_unified": _probe_openai_endpoint("igpu_unified", "http://localhost:13305"),
-        "cpu": _probe_openai_endpoint("cpu", "http://localhost:13305"),
+        "npu": _probe_openai_endpoint("npu", "http://localhost:13306"),
+        "igpu_rocwmma": _probe_openai_endpoint("igpu_rocwmma", "http://localhost:13307"),
+        "igpu_unified": _probe_openai_endpoint("igpu_unified", "http://localhost:13308"),
+        "cpu": _probe_openai_endpoint("cpu", "http://localhost:13309"),
         "ollama": _probe_ollama(),
         "claude": _probe_anthropic(),
         "gemini": _probe_gemini(),
