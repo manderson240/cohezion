@@ -369,6 +369,8 @@ module = [
     "cohezion.core.persistence.surreal_client",
     "cohezion.mcp.surreal_server",
     "cohezion.persistence.surreal_logger",
+    "baml_client",
+    "baml_client.*",
 ]
 ignore_errors = true
 

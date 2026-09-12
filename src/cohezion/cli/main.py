@@ -1043,9 +1043,11 @@ def ops_refactor_traces(
 ):
     """Refactor raw event_log traces into closed-loop GoalSpecifications and autonomous remediation loops."""
     import asyncio
+    from typing import Any
 
     from cohezion.flume.loop_goal_refactor_engine import (
         AutonomousGoalExecutor,
+        AutonomousGoalLoopResult,
         DurableSurrealGoalPersistence,
         GoalSpecification,
         TraceToLoopTransformer,
@@ -1117,7 +1119,9 @@ def ops_refactor_traces(
                 return {"step": it}, val, f"Executed remediation strategy {it}"
 
             executor = AutonomousGoalExecutor(goal)
-            loop_res = asyncio.run(executor.execute_loop({}, _step_fn))
+            loop_res: AutonomousGoalLoopResult[dict[str, Any]] = asyncio.run(
+                executor.execute_loop({}, _step_fn)
+            )
             rec = persistence.persist_loop_result(loop_res)
             console.print(
                 f"  [green]✓ Loop {goal.goal_id}: converged={loop_res.converged} in {loop_res.iterations_run} steps ({loop_res.total_time_ms:.1f}ms) -> {rec}[/green]"

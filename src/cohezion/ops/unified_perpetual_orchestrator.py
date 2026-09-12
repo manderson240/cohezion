@@ -278,6 +278,7 @@ class UnifiedPerpetualLoopDaemon:
         try:
             from cohezion.flume.loop_goal_refactor_engine import (
                 AutonomousGoalExecutor,
+                AutonomousGoalLoopResult,
                 DurableSurrealGoalPersistence,
                 TraceToLoopTransformer,
             )
@@ -310,7 +311,9 @@ class UnifiedPerpetualLoopDaemon:
                         return {"step": it}, val, f"Autopoietic trace remediation step {it}"
 
                     executor = AutonomousGoalExecutor(goal)
-                    loop_res = await executor.execute_loop({}, _step_fn)
+                    loop_res: AutonomousGoalLoopResult[
+                        dict[str, Any]
+                    ] = await executor.execute_loop({}, _step_fn)
                     persistence.persist_loop_result(loop_res)
                     if loop_res.converged:
                         loops_converged += 1

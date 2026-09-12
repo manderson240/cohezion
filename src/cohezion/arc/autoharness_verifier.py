@@ -80,10 +80,10 @@ class TaskInvariantAnalyzer:
     @staticmethod
     def derive_allowed_colors(train_pairs: Sequence[dict[str, Any]]) -> set[int]:
         """Extract set of allowable colors across training pairs."""
-        colors = set()
+        colors: set[int] = set()
         for p in train_pairs:
-            colors.update(np.unique(p["output"]))
-            colors.update(np.unique(p["input"]))
+            colors.update(int(c) for c in np.unique(p["output"]))
+            colors.update(int(c) for c in np.unique(p["input"]))
         return colors
 
 
@@ -91,39 +91,39 @@ class TaskInvariantAnalyzer:
 # D4 Dihedral Symmetry Predicates & Palette Utilities
 # -----------------------------------------------------------------------------
 def is_horizontal_reflection(g: np.ndarray) -> bool:
-    return np.array_equal(g, np.fliplr(g))
+    return bool(np.array_equal(g, np.fliplr(g)))
 
 
 def is_vertical_reflection(g: np.ndarray) -> bool:
-    return np.array_equal(g, np.flipud(g))
+    return bool(np.array_equal(g, np.flipud(g)))
 
 
 def is_180_rotation(g: np.ndarray) -> bool:
-    return np.array_equal(g, np.rot90(g, 2))
+    return bool(np.array_equal(g, np.rot90(g, 2)))
 
 
 def is_main_diagonal_reflection(g: np.ndarray) -> bool:
     if g.shape[0] != g.shape[1]:
         return False
-    return np.array_equal(g, g.T)
+    return bool(np.array_equal(g, g.T))
 
 
 def is_anti_diagonal_reflection(g: np.ndarray) -> bool:
     if g.shape[0] != g.shape[1]:
         return False
-    return np.array_equal(g, np.fliplr(np.flipud(g)).T)
+    return bool(np.array_equal(g, np.fliplr(np.flipud(g)).T))
 
 
 def is_symmetry_trivial(name: str, g: np.ndarray) -> bool:
-    h, w = g.shape
+    h, w = int(g.shape[0]), int(g.shape[1])
     if name == "horizontal":
-        return w <= 1
+        return bool(w <= 1)
     if name == "vertical":
-        return h <= 1
+        return bool(h <= 1)
     if name in ("main_diagonal", "anti_diagonal"):
-        return h != w or h <= 1
+        return bool(h != w or h <= 1)
     if name == "rotation_180":
-        return h <= 1 and w <= 1
+        return bool(h <= 1 and w <= 1)
     return False
 
 
