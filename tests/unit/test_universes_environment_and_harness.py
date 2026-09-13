@@ -162,7 +162,9 @@ def test_physical_environment_mutations_and_cleanup(tmp_path: Path):
     engine = InterruptionEngine(interrupt_probability=1.0, min_interval_steps=1, seed=42)
 
     # Trigger interruption with physical sandbox directory
-    irq = engine.maybe_trigger_interruption(current_step=1, current_task="Test Task", sandbox_dir=tmp_path)
+    irq = engine.maybe_trigger_interruption(
+        current_step=1, current_task="Test Task", sandbox_dir=tmp_path
+    )
     assert irq is not None
     assert irq.mutated_paths is not None
 
@@ -190,8 +192,12 @@ def test_pbrs_anti_exploitation_properties():
         env.reset(seed=42)
 
         # 1. Idle step / no-op camping without progress must yield negative return
-        _obs, r1, _term, _trunc, _info = env.step({"action_type": "run_command", "command": "echo idle"})
-        _obs, r2, _term, _trunc, _info = env.step({"action_type": "run_command", "command": "echo idle"})
+        _obs, r1, _term, _trunc, _info = env.step(
+            {"action_type": "run_command", "command": "echo idle"}
+        )
+        _obs, r2, _term, _trunc, _info = env.step(
+            {"action_type": "run_command", "command": "echo idle"}
+        )
 
         # Step penalty + potential decay ensures negative return for idle camping
         assert r1 < 0.0
@@ -221,4 +227,3 @@ def test_procedural_task_suite_generation():
     assert any("debug_python_syntax_v" in t["task_id"] for t in suite[3:])
     assert any("parse_security_logs_v" in t["task_id"] for t in suite[3:])
     assert any("refactor_config_format_v" in t["task_id"] for t in suite[3:])
-

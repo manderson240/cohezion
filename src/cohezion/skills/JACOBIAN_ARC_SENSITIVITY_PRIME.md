@@ -14,6 +14,7 @@ Differential Saliency Mapping, Numerical Jacobian Gradient Sensitivity ($J_{ij} 
 1. **Compute Grid Jacobian Sensitivity Map**:
    ```python
    from cohezion.competitions.arc.jacobian_arc_manifold import JacobianARCManifoldEngine
+
    engine = JacobianARCManifoldEngine()
    j_map = engine.compute_grid_jacobian(grid)
    ```

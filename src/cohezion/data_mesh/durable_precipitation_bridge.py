@@ -88,9 +88,7 @@ class DurablePrecipitationBridge:
             "metadata": mark.metadata,
         }
 
-        surql_statements = [
-            f"UPSERT moc_node:{safe_id} CONTENT {json.dumps(record_payload)};"
-        ]
+        surql_statements = [f"UPSERT moc_node:{safe_id} CONTENT {json.dumps(record_payload)};"]
 
         # Extract wikilinks and construct relates_to graph edges
         wikilinks = self._extract_wikilinks(mark.content)
@@ -141,7 +139,9 @@ class DurablePrecipitationBridge:
                 state_list = []
 
         # Update or append record
-        existing_idx = next((i for i, r in enumerate(state_list) if r.get("mark_id") == mark.mark_id), None)
+        existing_idx = next(
+            (i for i, r in enumerate(state_list) if r.get("mark_id") == mark.mark_id), None
+        )
         entry = {
             "mark_id": mark.mark_id,
             "title": mark.title,

@@ -52,7 +52,9 @@ class ZFSGuardrailManager:
     def get_pool_health(self) -> ZfsPoolHealth | None:
         """Check pool status and scrub health via zpool status."""
         try:
-            res = subprocess.run(["zpool", "status", self.primary_pool], capture_output=True, text=True, timeout=5)
+            res = subprocess.run(
+                ["zpool", "status", self.primary_pool], capture_output=True, text=True, timeout=5
+            )
             if res.returncode != 0:
                 logger.warning("Failed to query zpool status: %s", res.stderr)
                 return None
@@ -68,7 +70,11 @@ class ZFSGuardrailManager:
                 text=True,
                 timeout=5,
             )
-            parts = list_res.stdout.strip().split("\t") if list_res.returncode == 0 else [self.primary_pool, "N/A", "N/A"]
+            parts = (
+                list_res.stdout.strip().split("\t")
+                if list_res.returncode == 0
+                else [self.primary_pool, "N/A", "N/A"]
+            )
 
             return ZfsPoolHealth(
                 pool_name=self.primary_pool,
@@ -114,12 +120,16 @@ class ZFSGuardrailManager:
 
         return snapshots
 
-    def create_safety_snapshot(self, tag: str, dataset: str = "rpool/ROOT/ubuntu_c3mvhb") -> dict[str, Any]:
+    def create_safety_snapshot(
+        self, tag: str, dataset: str = "rpool/ROOT/ubuntu_c3mvhb"
+    ) -> dict[str, Any]:
         """Generate a zero-copy snapshot before high-risk operations."""
         snap_name = f"{dataset}@cohezion_safe_{tag}_{int(time.time())}"
         logger.info("📸 Creating ZFS atomic safety snapshot: %s", snap_name)
         try:
-            res = subprocess.run(["zfs", "snapshot", snap_name], capture_output=True, text=True, timeout=10)
+            res = subprocess.run(
+                ["zfs", "snapshot", snap_name], capture_output=True, text=True, timeout=10
+            )
             if res.returncode == 0:
                 return {"status": "created", "snapshot": snap_name}
             else:

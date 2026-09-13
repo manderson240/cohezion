@@ -7,6 +7,7 @@ from cohezion.data_mesh.recursive_event_mesh import (
 )
 from cohezion.reliability.oom_guard import MemoryState
 
+
 def test_adaptive_markov_chain():
     mc = AdaptiveMeshMarkovChain()
     initial_probs = mc.get_transition_probs(MeshState.SWEEP)
@@ -18,6 +19,7 @@ def test_adaptive_markov_chain():
     updated_probs = mc.get_transition_probs(MeshState.SWEEP)
     research_idx = mc.states.index(MeshState.RESEARCH)
     assert updated_probs[research_idx] > initial_probs[research_idx]
+
 
 def test_sweep_internal_codebase():
     mesh = DynamicRecursiveDataMesh()
@@ -38,6 +40,7 @@ def test_sweep_internal_codebase():
         assert res.value.is_safe is True
         assert res.value.available_memory_gb == 25.0
 
+
 def test_research_bleeding_edge():
     mesh = DynamicRecursiveDataMesh()
     res = mesh.research_bleeding_edge()
@@ -47,12 +50,15 @@ def test_research_bleeding_edge():
     # Verify AMD skills catalog integration
     assert isinstance(res.value.amd_skills_active, list)
 
+
 @pytest.mark.asyncio
 async def test_execute_mesh_cycle():
     mock_bus = MagicMock()
     mock_bus.publish = MagicMock()
+
     async def mock_pub(evt):
         return None
+
     mock_bus.publish.side_effect = mock_pub
 
     mock_graph = MagicMock()

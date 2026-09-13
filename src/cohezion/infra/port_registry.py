@@ -117,7 +117,7 @@ class SurrealPortRegistry:
                         port: {rec.port},
                         service_name: "{rec.service_name}",
                         protocol: "{rec.protocol}",
-                        pid: {rec.pid or 'NONE'},
+                        pid: {rec.pid or "NONE"},
                         status: "{rec.status}",
                         description: "{rec.description}",
                         updated_at: time::now()

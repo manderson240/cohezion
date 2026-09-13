@@ -14,7 +14,7 @@ safe swarm patterns, OOM prevention, fleet lock discipline, and event bus integr
 ## KEY TEXTS & CONCEPTS
 
 * **Recipe = Lane**: Model `recipe` field determines hardware: `flm` → NPU (VitisAI/XDNA2), `llamacpp` + `llamacpp_backend: vulkan` → iGPU, `llamacpp_backend: cpu` → CPU.
-* **FLM = FastFlowLM = NPU**: All `-FLM` suffix models use `recipe: flm` and run on AMD XDNA2 NPU. No other naming convention routes to NPU.
+* **FLM = FastFlowLM = NPU**: All `-FLM` suffix models use `recipe: flm` and run on AMD XDNA2 NPU (`/usr/bin/flm`, FLM v1.0.4, 8 columns, <2W power, 0 UMA contention). No other naming convention routes to NPU.
 * **No per-request backend override**: Backend is baked at model-load time. Select lane by model name, not API params.
 * **`max_loaded_models: 1`**: Lemonade native fleet lock. Never override on Strix Halo — concurrent loads cause GCVM_L2 kernel faults.
 * **`pinned: true` & KV Cache Math**: Models with `pinned: true` (e.g. `qwen3.6-moe-35b-a3b-FLM`) hold NPU memory permanently (~35B×Q4 ≈ ~18GB). On 128GB unified RAM, deduct this baseline ~18GB footprint when computing memory availability for concurrent/swapped iGPU/CPU models to prevent OOM.
@@ -239,6 +239,7 @@ ROUTER_POLICY = {
 v1.0 (2026-07-31) — Extracted from safe-research-swarm session + local source research
 
 ## SEE ALSO
+- FASTFLOWLM_PRIME.md — AMD ROCm FastFlowLM NPU runtime & BAML verification
 - LOCAL_INFERENCE_ROUTING.md — TieredOrchestrator, AUTODQA, BBQ mode
 - LEMONADE_EMBEDDABLE_INTEGRATION_PRIME.md — embeddable lemond setup
 - FLEET_SYNCHRONIZATION_PRIME.md — fleet coherence

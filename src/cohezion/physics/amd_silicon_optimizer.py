@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # 1. AMD Quark Model Quantization Pipeline
 # =============================================================================
 
+
 @dataclass
 class QuarkQuantConfig:
     scheme: str = "MXFP4"  # MXFP4, FP8_E4M3, INT4_AWQ
@@ -56,10 +57,10 @@ class AMDQuarkOptimizer:
         quantized_blocks = np.clip(np.round(blocks / scales), -7, 7).astype(np.int8)
 
         # Calculate reconstructed SNR
-        reconstructed = (quantized_blocks * scales).flatten()[:len(flat)]
+        reconstructed = (quantized_blocks * scales).flatten()[: len(flat)]
         noise = flat - reconstructed
-        signal_power = np.mean(flat ** 2) + 1e-12
-        noise_power = np.mean(noise ** 2) + 1e-12
+        signal_power = np.mean(flat**2) + 1e-12
+        noise_power = np.mean(noise**2) + 1e-12
         snr_db = 10.0 * np.log10(signal_power / noise_power)
 
         dt = round((time.perf_counter() - t0) * 1000, 3)
@@ -79,6 +80,7 @@ class AMDQuarkOptimizer:
 # 2. ZenTorch-Accelerated Poincaré Hyperbolic Manifold Engine
 # =============================================================================
 
+
 class ZenTorchPoincareEngine:
     """AVX-512 / Zen-optimized Poincaré Hyperbolic Manifold Computations."""
 
@@ -92,15 +94,17 @@ class ZenTorchPoincareEngine:
         Optimized with SIMD array broadcasting for Zen CPU / UMA.
         """
         sq_dist = np.sum((u - v) ** 2, axis=-1)
-        u_norm_sq = np.clip(np.sum(u ** 2, axis=-1), 0.0, 1.0 - self.eps)
-        v_norm_sq = np.clip(np.sum(v ** 2, axis=-1), 0.0, 1.0 - self.eps)
+        u_norm_sq = np.clip(np.sum(u**2, axis=-1), 0.0, 1.0 - self.eps)
+        v_norm_sq = np.clip(np.sum(v**2, axis=-1), 0.0, 1.0 - self.eps)
 
         denom = (1.0 - u_norm_sq) * (1.0 - v_norm_sq)
         arg = 1.0 + 2.0 * (sq_dist / np.maximum(denom, self.eps))
         arg = np.maximum(arg, 1.0 + self.eps)
         return np.arccosh(arg)
 
-    def compute_frechet_mean_zen(self, points: np.ndarray, max_iter: int = 15) -> tuple[np.ndarray, float]:
+    def compute_frechet_mean_zen(
+        self, points: np.ndarray, max_iter: int = 15
+    ) -> tuple[np.ndarray, float]:
         """Karcher / Fréchet mean in Poincaré Ball using Zen vector accelerated Riemannian gradient descent."""
         t0 = time.perf_counter()
         mu = np.mean(points, axis=0)

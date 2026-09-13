@@ -35,9 +35,7 @@ class StorageHealth(BaseModel):
     available_gb: float
     use_percent: float
     status: Literal["healthy", "warning", "critical"]
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class OffloadJob(BaseModel):
@@ -50,9 +48,7 @@ class OffloadJob(BaseModel):
     file_count: int = 0
     success: bool = False
     error_msg: str | None = None
-    started_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    started_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     completed_at: str | None = None
 
 
@@ -175,7 +171,9 @@ class GDriveStorageManager:
                 )
             else:
                 err_text = stderr_data.decode("utf-8", errors="replace").strip()
-                logger.error("Rclone %s failed (code %d): %s", action_cmd, proc.returncode, err_text)
+                logger.error(
+                    "Rclone %s failed (code %d): %s", action_cmd, proc.returncode, err_text
+                )
                 return OffloadJob(
                     job_id=job_id,
                     source_path=str(local_path),
@@ -230,7 +228,9 @@ class GDriveStorageManager:
                     file_count += 1
 
             total_bytes = archive_path.stat().st_size
-            logger.info("Archive created: %.2f MB across %d items", total_bytes / (1024**2), file_count)
+            logger.info(
+                "Archive created: %.2f MB across %d items", total_bytes / (1024**2), file_count
+            )
 
             # Offload archive
             res = await self.offload_path(

@@ -592,6 +592,14 @@ Hardened the recursive experiential learning loop and autopoietic engine across 
 4. **Fail-Closed ZKFV Compiler & Monadic Rollback**: Hardened `ZKFVCompiler` against syntax error false-positives and verified `MarkovStateMonad` transactional rollback in `recursive_learning.py`.
 *12D State Vector*: `[12D State: Space=AMD-Strix-Halo-TriSilicon, Time=September 2026, Physics=HNSW-Cosine-Vector-Search, Brane=Strict-Negentropy-Markov-Monad]`
 
+### Learning 430: AMD ROCm FastFlowLM (FLM v1.0.4) NPU Architecture, BAML Extraction & AutoHarness Verification (2026-09-12)
+Investigated official AMD ROCm FastFlowLM (`https://github.com/ROCm/FastFlowLM`, `FLM v1.0.4`) and established robust structured output generation on AMD XDNA2 NPU silicon:
+1. **Live Hardware Calibration & Stack Validation**: Executed `flm validate`, verifying Linux kernel 7.0, `/dev/accel/accel0` with 8 compute columns, firmware 1.1.2.65, `amdxdna` driver 0.7, and `infinity` memlock. Demonstrated that FastFlowLM runs entirely on NPU SRAM at <2W power draw with 0 UMA contention and zero CPU/iGPU utilization.
+2. **Deterministic Structured Decoding (BAML + AutoHarness)**: Resolved the historical GBNF constraint dormancy (`structured_npu.npu_structured_json`). Because FastFlowLM is an independent C++ runtime that ignores sampler-level GBNF grammars silently, structured decoding is solved by combining prompt schema conditioning with `BAMLResilientParser` (handling thinking blocks, Markdown fences, and plain-text/YAML key-value heuristics) and `AutoHarness` bytecode verifiers (<1 ms latency).
+3. **Adaptive Fallback & Strict Sampler Routing**: Implemented fallback cascading to resident `llamacpp` models (`Bonsai-8B-gguf`, `Qwen3-Coder-30B-A3B-Instruct-GGUF`) when strict token-level grammar forcing (`strict_sampler=True`) or memory admission constraints arise.
+4. **Skills & Documentation Infrastructure**: Authored and registered `FASTFLOWLM_PRIME.md` in `src/cohezion/skills/` and comprehensive hardware documentation in `docs/hardware/AMD_ROCM_FASTFLOWLM_XDNA2_NPU.md`.
+*12D State Vector*: `[12D State: Space=AMD-ROCm-FastFlowLM-NPU, Time=September 2026, Physics=Sub-2W-Zero-UMA-Offloading, Brane=BAML-AutoHarness-Verification]`
+
 ---
 
 

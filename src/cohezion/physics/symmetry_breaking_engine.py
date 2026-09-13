@@ -10,6 +10,7 @@ from __future__ import annotations
 import numpy as np
 from typing import List, Tuple, Optional
 
+
 class SymmetryBreakingEngine:
     """Computes spontaneous symmetry breaking and Landau phase transitions for discrete grids."""
 
@@ -21,13 +22,13 @@ class SymmetryBreakingEngine:
 
     def compute_potential(self, phi: np.ndarray) -> np.ndarray:
         """Mexican-hat Landau free energy: V(phi) = -0.5 * alpha * phi^2 + 0.25 * beta * phi^4."""
-        return -0.5 * self.alpha * (phi ** 2) + 0.25 * self.beta * (phi ** 4)
+        return -0.5 * self.alpha * (phi**2) + 0.25 * self.beta * (phi**4)
 
     def break_grid_symmetry(
         self,
         grid: List[List[int]],
         perturbation_axis: str = "horizontal",
-        asymmetry_strength: float = 0.15
+        asymmetry_strength: float = 0.15,
     ) -> Tuple[List[List[int]], float]:
         """Resolves an ambiguous symmetric grid into a broken-symmetry stable ground state."""
         if not grid or not grid[0]:
@@ -49,7 +50,7 @@ class SymmetryBreakingEngine:
 
         # Gradient descent down Mexican-hat potential to stable minima +/- phi_0
         for _ in range(25):
-            dV_dphi = -self.alpha * phi + self.beta * (phi ** 3)
+            dV_dphi = -self.alpha * phi + self.beta * (phi**3)
             phi -= 0.15 * dV_dphi
 
         # Compute order parameter magnitude
@@ -60,6 +61,8 @@ class SymmetryBreakingEngine:
         for r in range(h):
             for c in range(w):
                 if arr[r][c] != 0:
-                    broken_grid[r][c] = int(arr[r][c]) if phi[r][c] > 0 else (int(arr[r][c]) % 9 + 1)
+                    broken_grid[r][c] = (
+                        int(arr[r][c]) if phi[r][c] > 0 else (int(arr[r][c]) % 9 + 1)
+                    )
 
         return broken_grid.astype(int).tolist(), order_parameter

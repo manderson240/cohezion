@@ -1,4 +1,5 @@
 """Silence third-party library C-extension warnings on ROCm / Strix Halo."""
+
 import logging
 import os
 import warnings

@@ -91,7 +91,7 @@ class OrchORRuntimeService:
         separation_distance_nm: float = 0.24,
     ) -> CollapseResult:
         """Evaluate a set of superposed policy trajectories and reduce to a singular classical action.
-        
+
         Applies:
         1. Penrose Twistor projection of spacetime events.
         2. Differential gravitational self-energy E_G accumulation.
@@ -106,9 +106,7 @@ class OrchORRuntimeService:
         if len(branches) == 1:
             branch = branches[0]
             dt_ms = (time.perf_counter() - t0) * 1000.0
-            harness_res = self.autoharness.evaluate_policy(
-                branch.action_type, branch.payload
-            )
+            harness_res = self.autoharness.evaluate_policy(branch.action_type, branch.payload)
             return CollapseResult(
                 collapsed_branch=branch,
                 gravitational_self_energy_eg=1e-35,
@@ -153,7 +151,7 @@ class OrchORRuntimeService:
             null_ray_fidelity = 1.0 / (1.0 + abs(twistor.helicity))
             twistor_conformity.append(null_ray_fidelity)
 
-            born_prob = (abs(b.amplitude) ** 2)
+            born_prob = abs(b.amplitude) ** 2
             hiho_dist = abs(b.initial_coherence - HIHO_EQUILIBRIUM_TARGET)
             # Higher score for states closer to 0.50 HIHO with higher amplitude and null ray conformity
             score = (born_prob * null_ray_fidelity) / (1.0 + 10.0 * hiho_dist)

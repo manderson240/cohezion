@@ -59,8 +59,11 @@ class NeverIdleSeamMiner:
         if current_backlog_size >= 3:
             return []
 
-        logger.info("🔍 Backlog low (%d items). Mining new autonomous seams via Tier 2 Cloud...", current_backlog_size)
-        
+        logger.info(
+            "🔍 Backlog low (%d items). Mining new autonomous seams via Tier 2 Cloud...",
+            current_backlog_size,
+        )
+
         prompt = (
             "You are the Cohezion Autonomous Seam Miner. Propose 3 distinct, high-impact, "
             "falsifiable engineering tasks for the local AMD Strix Halo swarm (NPU/iGPU/CPU). "
@@ -71,9 +74,7 @@ class NeverIdleSeamMiner:
 
         try:
             resp = await self.router.route_by_capability(
-                prompt=prompt,
-                task_class=TaskClass.REASONING,
-                force_cloud=True
+                prompt=prompt, task_class=TaskClass.REASONING, force_cloud=True
             )
             raw_text = resp.content.strip()
             if "```json" in raw_text:
@@ -102,7 +103,10 @@ class NeverIdleSeamMiner:
             return proposals
         except Exception as exc:
             logger.warning("Seam mining fallback to deterministic generators: %s", exc)
-            nh = self.compute_novelty_hash("Poincaré Hyperbolic Manifold Boundary Calibration", "Curvature clamping prevents norm divergence")
+            nh = self.compute_novelty_hash(
+                "Poincaré Hyperbolic Manifold Boundary Calibration",
+                "Curvature clamping prevents norm divergence",
+            )
             fallback_seam = SeamProposal(
                 seam_id=f"seam_fallback_{int(time.time())}",
                 title="Poincaré Hyperbolic Manifold Boundary Calibration",
@@ -129,13 +133,20 @@ class NeverIdleEngine:
         """Run until morning with autonomous refill."""
         self.running = True
         start_time = time.time()
-        logger.info("🌙 Starting Never-Idle Autonomous Swarm Engine (Target Duration: %.1fs)...", max_duration_s)
+        logger.info(
+            "🌙 Starting Never-Idle Autonomous Swarm Engine (Target Duration: %.1fs)...",
+            max_duration_s,
+        )
 
         while self.running and (time.time() - start_time < max_duration_s):
             # 1. Check UMA Memory Headroom
             mem = OOMGuard.get_memory_state()
             if mem.available_gb < self.min_available_gb:
-                logger.warning("⚠️ UMA Memory Under Floor (%.1f GiB < %.1f GiB). Backpressure yield...", mem.available_gb, self.min_available_gb)
+                logger.warning(
+                    "⚠️ UMA Memory Under Floor (%.1f GiB < %.1f GiB). Backpressure yield...",
+                    mem.available_gb,
+                    self.min_available_gb,
+                )
                 await asyncio.sleep(5.0)
                 continue
 
@@ -151,7 +162,7 @@ class NeverIdleEngine:
             # 3. Pop Next Task & Execute Non-Blocking
             task = self.backlog.pop(0)
             logger.info("⚙️ Executing Seam [%s]: %s", task.seam_id, task.title)
-            
+
             t0 = time.perf_counter()
             code_stub = "def verify_seam_invariant(x: float) -> bool:\n    return x > 0.0\n"
             v_res = self.miner.verifier.verify_code(code_stub)
@@ -166,8 +177,16 @@ class NeverIdleEngine:
                 "timestamp": time.time(),
             }
             self.completed_tasks.append(record)
-            logger.info("✓ Completed Seam [%s] in %.2fms (Verified: %s)", task.seam_id, dt_ms, record["verified"])
+            logger.info(
+                "✓ Completed Seam [%s] in %.2fms (Verified: %s)",
+                task.seam_id,
+                dt_ms,
+                record["verified"],
+            )
 
             await asyncio.sleep(1.0)
 
-        logger.info("🌅 Overnight Autonomous Swarm Cycle Finished: %d Tasks Completed.", len(self.completed_tasks))
+        logger.info(
+            "🌅 Overnight Autonomous Swarm Cycle Finished: %d Tasks Completed.",
+            len(self.completed_tasks),
+        )

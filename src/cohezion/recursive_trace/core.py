@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 try:
     from cohezion.compound.goal_state import observe, set_goal, status
 except ImportError:
+
     def set_goal(condition: str, *, source: str = "user") -> bool:
         return False
 
@@ -34,11 +35,14 @@ except ImportError:
     def status() -> dict:
         return {}
 
+
 try:
     from cohezion.recursive_trace.resolution_log import record_resolution
 except ImportError:
+
     def record_resolution(*args, **kwargs) -> None:
         pass
+
 
 logger = logging.getLogger(__name__)
 

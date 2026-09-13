@@ -72,7 +72,9 @@ class GoogleWorkspaceBridge:
             stakeholder_data.get("organization_id", "N/A"),
             stakeholder_data.get("email", ""),
             round(float(stakeholder_data.get("affinity_score", 0.5)), 4),
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stakeholder_data.get("created_at", time.time()))),
+            time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.localtime(stakeholder_data.get("created_at", time.time()))
+            ),
         ]
 
     def offload_large_report_to_docs(
@@ -91,5 +93,9 @@ class GoogleWorkspaceBridge:
             bytes_offloaded=content_bytes,
         )
         self.offload_log.append(doc_item)
-        logger.info("☁️ [Google Drive Offloader] Offloaded '%s' (%d bytes) to Google Docs", report_title, content_bytes)
+        logger.info(
+            "☁️ [Google Drive Offloader] Offloaded '%s' (%d bytes) to Google Docs",
+            report_title,
+            content_bytes,
+        )
         return doc_item

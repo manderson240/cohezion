@@ -33,6 +33,7 @@ class MemoryState:
     gtt_used_gb: float = 0.0
     gtt_total_gb: float = 0.0
     psi_some_10: float = 0.0
+
     @property
     def used_gb(self) -> float:
         """Estimate used memory in GiB (total_gb - available_gb)."""
@@ -47,6 +48,7 @@ class OOMGuard:
     MAX_SAFE_GTT_GB: float = 50.0
     MAX_SAFE_SWAP_USED_GB: float = 12.0
     MAX_SAFE_PSI: float = 20.0
+
     @classmethod
     def calculate_dynamic_floor(
         cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0
@@ -88,16 +90,17 @@ class OOMGuard:
             gtt_used_gb = 0.0
             gtt_total_gb = 0.0
             import glob
+
             for p_used in glob.glob("/sys/class/drm/card*/device/mem_info_gtt_used"):
                 try:
                     with open(p_used, "r", encoding="utf-8") as f:
-                        gtt_used_gb = max(gtt_used_gb, float(f.read().strip()) / (1024.0 ** 3))
+                        gtt_used_gb = max(gtt_used_gb, float(f.read().strip()) / (1024.0**3))
                 except Exception:
                     pass
             for p_total in glob.glob("/sys/class/drm/card*/device/mem_info_gtt_total"):
                 try:
                     with open(p_total, "r", encoding="utf-8") as f:
-                        gtt_total_gb = max(gtt_total_gb, float(f.read().strip()) / (1024.0 ** 3))
+                        gtt_total_gb = max(gtt_total_gb, float(f.read().strip()) / (1024.0**3))
                 except Exception:
                     pass
 

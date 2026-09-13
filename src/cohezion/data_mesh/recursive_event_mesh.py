@@ -34,6 +34,7 @@ U = TypeVar("U")
 
 class MeshState(StrEnum):
     """Dynamic states in the experiential data mesh lifecycle."""
+
     SWEEP = "sweep"
     RESEARCH = "research"
     SYNTHESIS = "synthesis"
@@ -179,14 +180,20 @@ class DynamicRecursiveDataMesh:
             safety_val = 0.5 if sweep.is_safe else 0.2
             mem_ratio = min(1.0, sweep.available_memory_gb / 122.0)
             research_density = min(1.0, len(research.top_papers) * 0.25)
-            
+
             state_12d = (
                 0.5,  # Parameter 1: Primary Awareness (HIHO 0.5)
                 safety_val,
                 mem_ratio,
                 time.time() % 1000.0 / 1000.0,  # Parameter 4: Temporal modulation
                 research_density,
-                0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0  # 8 Brane parameters
+                0.5,
+                0.5,
+                0.5,
+                0.0,
+                0.0,
+                0.0,
+                0.0,  # 8 Brane parameters
             )
 
             # Project vector into Poincare unit ball (norm strictly < 1.0)
@@ -210,7 +217,9 @@ class DynamicRecursiveDataMesh:
         if not sweep_res.is_success or sweep_res.value is None:
             return MonadResult.fail(f"Sweep failed: {sweep_res.error}")
         sweep = sweep_res.value
-        self.markov.record_transition(MeshState.SWEEP, MeshState.RESEARCH, reward=1.0 if sweep.is_safe else 0.5)
+        self.markov.record_transition(
+            MeshState.SWEEP, MeshState.RESEARCH, reward=1.0 if sweep.is_safe else 0.5
+        )
 
         # 2. Monadic Bleeding-Edge Research
         research_res = self.research_bleeding_edge()

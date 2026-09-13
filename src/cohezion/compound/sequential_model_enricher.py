@@ -59,7 +59,11 @@ class SequentialModelEnricher:
         max_tokens: int = 512,
     ) -> ModelEnrichmentInsight | None:
         """Run a single safe sequential harvest loop against a local Lemonade model."""
-        logger.info("Starting Sequential Enrichment Harvest on model '%s' for domain '%s'...", model_name, domain)
+        logger.info(
+            "Starting Sequential Enrichment Harvest on model '%s' for domain '%s'...",
+            model_name,
+            domain,
+        )
         t0 = time.perf_counter()
 
         async with self._lock:
@@ -85,7 +89,12 @@ class SequentialModelEnricher:
                         data = r.json()
                         insight_text = data["choices"][0]["message"]["content"].strip()
                     else:
-                        logger.warning("Model '%s' query returned status %d: %s", model_name, r.status_code, r.text)
+                        logger.warning(
+                            "Model '%s' query returned status %d: %s",
+                            model_name,
+                            r.status_code,
+                            r.text,
+                        )
             except Exception as exc:
                 logger.warning("Model '%s' failed during enrichment inference: %s", model_name, exc)
 

@@ -14,19 +14,21 @@ from cohezion.flume.twistor_bundle_bridge import PoincareManifoldND
 
 @pytest.mark.metamorphic
 class TestMetamorphicRelations:
-
     def test_mr1_arc_grid_rotation_equivariance(self):
         """MR1: Rotational Equivariance.
-        
+
         For a grid-level transformation operator F and 90-degree rotation R:
         F(R(grid)) == R(F(grid))
         """
-        grid = np.array([
-            [1, 2, 0, 0],
-            [0, 1, 3, 0],
-            [4, 0, 1, 0],
-            [0, 0, 0, 2],
-        ], dtype=int)
+        grid = np.array(
+            [
+                [1, 2, 0, 0],
+                [0, 1, 3, 0],
+                [4, 0, 1, 0],
+                [0, 0, 0, 2],
+            ],
+            dtype=int,
+        )
 
         # Morphological fill/boundary operator
         def morphology_operator(g: np.ndarray) -> np.ndarray:
@@ -36,10 +38,14 @@ class TestMetamorphicRelations:
                 for c in range(g.shape[1]):
                     if g[r, c] == 0:
                         neighbors = []
-                        if r > 0 and g[r - 1, c] > 0: neighbors.append(g[r - 1, c])
-                        if r < g.shape[0] - 1 and g[r + 1, c] > 0: neighbors.append(g[r + 1, c])
-                        if c > 0 and g[r, c - 1] > 0: neighbors.append(g[r, c - 1])
-                        if c < g.shape[1] - 1 and g[r, c + 1] > 0: neighbors.append(g[r, c + 1])
+                        if r > 0 and g[r - 1, c] > 0:
+                            neighbors.append(g[r - 1, c])
+                        if r < g.shape[0] - 1 and g[r + 1, c] > 0:
+                            neighbors.append(g[r + 1, c])
+                        if c > 0 and g[r, c - 1] > 0:
+                            neighbors.append(g[r, c - 1])
+                        if c < g.shape[1] - 1 and g[r, c + 1] > 0:
+                            neighbors.append(g[r, c + 1])
                         if neighbors:
                             out[r, c] = max(neighbors)
             return out
@@ -57,7 +63,7 @@ class TestMetamorphicRelations:
 
     def test_mr2_poincare_hyperbolic_isometry_preservation(self):
         """MR2: Poincaré Hyperbolic Distance Isometry.
-        
+
         Applying a coordinate inversion / isometric reflection R must preserve
         the exact geodesic distance between any pair of points:
         d_H(R(u), R(v)) == d_H(u, v)
@@ -88,7 +94,7 @@ class TestMetamorphicRelations:
 
     def test_mr3_entropy_replication_scaling_invariance(self):
         """MR3: Multi-Scale Replication Invariance in My Big TOE Entropy.
-        
+
         Replicating a point cloud homogeneously (duplicating each point in place)
         preserves the centroid and HIHO dispersion distribution.
         """
@@ -107,7 +113,9 @@ class TestMetamorphicRelations:
         replicated_points = points * 3
         replicated_coherences = coherences * 3
 
-        state_rep = engine.calculate_state_entropy(replicated_points, coherences=replicated_coherences)
+        state_rep = engine.calculate_state_entropy(
+            replicated_points, coherences=replicated_coherences
+        )
 
         # Metamorphic Relation: Centroid distance dispersion remains invariant
         assert math.isclose(

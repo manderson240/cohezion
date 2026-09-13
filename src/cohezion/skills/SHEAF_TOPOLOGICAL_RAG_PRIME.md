@@ -25,7 +25,7 @@ Expertise in sheaf-theoretic data structures for multi-document RAG, eliminating
    def detect_cohomological_obstructions(chunks, threshold=0.35):
        obstructions = []
        for i in range(len(chunks)):
-           for j in range(i+1, len(chunks)):
+           for j in range(i + 1, len(chunks)):
                # Check if documents contradict on shared entities
                if chunks[i].has_overlap(chunks[j]) and chunks[i].assertion != chunks[j].assertion:
                    obstructions.append((i, j))

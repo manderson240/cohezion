@@ -171,19 +171,33 @@ def extract_connected_objects(grid: list[list[int]], bg: int = 0) -> list[dict]:
                     comp.add((cr, cc))
                     for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                         nr, nc = cr + dr, cc + dc
-                        if 0 <= nr < h and 0 <= nc < w and (nr, nc) not in visited and grid[nr][nc] == val:
+                        if (
+                            0 <= nr < h
+                            and 0 <= nc < w
+                            and (nr, nc) not in visited
+                            and grid[nr][nc] == val
+                        ):
                             visited.add((nr, nc))
                             q.append((nr, nc))
                 rs = [pr for pr, pc in comp]
                 cs = [pc for pr, pc in comp]
-                objs.append({
-                    "color": val, "pixels": comp, "size": len(comp),
-                    "r_min": min(rs), "r_max": max(rs), "c_min": min(cs), "c_max": max(cs)
-                })
+                objs.append(
+                    {
+                        "color": val,
+                        "pixels": comp,
+                        "size": len(comp),
+                        "r_min": min(rs),
+                        "r_max": max(rs),
+                        "c_min": min(cs),
+                        "c_max": max(cs),
+                    }
+                )
     return objs
 
+
 def transform_object_gravity_bottom(grid: list[list[int]]) -> list[list[int]]:
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     objs = extract_connected_objects(grid)
     res = [[0] * w for _ in range(h)]
@@ -194,30 +208,38 @@ def transform_object_gravity_bottom(grid: list[list[int]]) -> list[list[int]]:
                 res[r + dr][c] = o["color"]
     return res
 
+
 def transform_keep_largest_connected(grid: list[list[int]]) -> list[list[int]]:
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     objs = extract_connected_objects(grid)
-    if not objs: return grid
+    if not objs:
+        return grid
     largest = max(objs, key=lambda x: x["size"])
     res = [[0] * w for _ in range(h)]
     for r, c in largest["pixels"]:
         res[r][c] = largest["color"]
     return res
 
+
 def transform_keep_smallest_connected(grid: list[list[int]]) -> list[list[int]]:
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     objs = extract_connected_objects(grid)
-    if not objs: return grid
+    if not objs:
+        return grid
     smallest = min(objs, key=lambda x: x["size"])
     res = [[0] * w for _ in range(h)]
     for r, c in smallest["pixels"]:
         res[r][c] = smallest["color"]
     return res
 
+
 def transform_complete_horizontal_symmetry(grid: list[list[int]]) -> list[list[int]]:
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     res = [row[:] for row in grid]
     mid = w // 2
@@ -229,8 +251,10 @@ def transform_complete_horizontal_symmetry(grid: list[list[int]]) -> list[list[i
                 res[r][c] = res[r][w - 1 - c]
     return res
 
+
 def transform_complete_vertical_symmetry(grid: list[list[int]]) -> list[list[int]]:
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     res = [row[:] for row in grid]
     mid = h // 2
@@ -242,8 +266,10 @@ def transform_complete_vertical_symmetry(grid: list[list[int]]) -> list[list[int
                 res[r][c] = res[h - 1 - r][c]
     return res
 
+
 def transform_fill_enclosed_regions(grid: list[list[int]]) -> list[list[int]]:
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     outside = set()
     q = []
@@ -271,15 +297,17 @@ def transform_fill_enclosed_regions(grid: list[list[int]]) -> list[list[int]]:
                 res[r][c] = 3
     return res
 
+
 def transform_bioelectric_morphogenetic_repair(grid: list[list[int]]) -> list[list[int]]:
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     v = [[-20.0 if grid[r][c] != 0 else -70.0 for c in range(w)] for r in range(h)]
     for _ in range(8):
         new_v = [[v[r][c] for c in range(w)] for r in range(h)]
         for r in range(1, h - 1):
             for c in range(1, w - 1):
-                lap = v[r-1][c] + v[r+1][c] + v[r][c-1] + v[r][c+1] - 4.0 * v[r][c]
+                lap = v[r - 1][c] + v[r + 1][c] + v[r][c - 1] + v[r][c + 1] - 4.0 * v[r][c]
                 new_v[r][c] += 0.25 * lap - 0.05 * (v[r][c] - (-70.0))
         v = new_v
     res = [row[:] for row in grid]
@@ -289,6 +317,7 @@ def transform_bioelectric_morphogenetic_repair(grid: list[list[int]]) -> list[li
             if res[r][c] == 0 and v[r][c] > -48.0:
                 res[r][c] = dom_col
     return res
+
 
 TRANSFORMS = [
     transform_identity,
@@ -390,12 +419,16 @@ def get_heterogeneous_swarm():
     # Dynamic fallback: walk /kaggle/input for any attached transformer weights
     if coder_p is None and os.path.exists("/kaggle/input"):
         for root, dirs, files in os.walk("/kaggle/input"):
-            if "config.json" in files and any("coder" in root.lower() or "qwen" in root.lower() for _ in [1]):
+            if "config.json" in files and any(
+                "coder" in root.lower() or "qwen" in root.lower() for _ in [1]
+            ):
                 coder_p = root
                 break
     if r1_p is None and os.path.exists("/kaggle/input"):
         for root, dirs, files in os.walk("/kaggle/input"):
-            if "config.json" in files and any("r1" in root.lower() or "deepseek" in root.lower() for _ in [1]):
+            if "config.json" in files and any(
+                "r1" in root.lower() or "deepseek" in root.lower() for _ in [1]
+            ):
                 r1_p = root
                 break
 
@@ -545,15 +578,17 @@ def solve_arc_task_anytime(
                 for _, prev_comp in beam:
                     if (time.perf_counter() - t_start) >= time_budget_sec:
                         break
+
                     def new_comp(g, _f=fn, _p=prev_comp):
                         return _f(_p(g))
+
                     if check_transform_fit(train_pairs, new_comp):
                         matching_fn = new_comp
                         break
                     next_beam.append((fn, new_comp))
                 if matching_fn is not None:
                     break
-            beam = next_beam[:30] # Keep top 30 candidate branches per depth
+            beam = next_beam[:30]  # Keep top 30 candidate branches per depth
 
     # Step 5: Iterative Heterogeneous Specialist Swarm Loop (Uses Full Task Budget)
     if matching_fn is None and (time.perf_counter() - t_start) < time_budget_sec:
@@ -579,7 +614,7 @@ def solve_arc_task_anytime(
                 if fn_r1 is not None and check_transform_fit(train_pairs, fn_r1):
                     matching_fn = fn_r1
                     break
-            
+
             # If no GPU agent found or failed attempt, pause briefly to prevent tight CPU spin
             if coder_agent is None and r1_agent is None:
                 break
@@ -604,25 +639,25 @@ def solve_arc_task_anytime(
                 {"fn": transform_fill_holes, "reward": 2.0, "name": "holes"},
                 {"fn": transform_identity, "reward": 1.5, "name": "identity"},
                 {"fn": transform_flip_h, "reward": 1.0, "name": "flip_h"},
-                {"fn": transform_rot90, "reward": 1.0, "name": "rot90"}
+                {"fn": transform_rot90, "reward": 1.0, "name": "rot90"},
             ]
-            
+
             # GFlowNet Probability Distribution: P(x) = exp(R(x) / T) / Z
             temp = 1.0
             exp_rewards = [math.exp(c["reward"] / temp) for c in candidates]
             z_partition = sum(exp_rewards)
             probs = [e / z_partition for e in exp_rewards]
-            
+
             # Select top-2 distinct GFlowNet trajectory modes
             sorted_indices = sorted(range(len(candidates)), key=lambda i: probs[i], reverse=True)
             top_fn_1 = candidates[sorted_indices[0]]["fn"]
             top_fn_2 = candidates[sorted_indices[1]]["fn"]
-            
+
             try:
                 pred_1 = top_fn_1(in_grid)
             except Exception:
                 pred_1 = transform_crop_nonzero(in_grid)
-                
+
             try:
                 pred_2 = top_fn_2(in_grid)
             except Exception:

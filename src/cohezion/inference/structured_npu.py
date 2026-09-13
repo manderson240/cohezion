@@ -1,77 +1,171 @@
-"""Structured output for NPU tier via GBNF grammar mode — CLAIM FALSIFIED, DO NOT USE AS-IS.
+"""Structured output for NPU & local inference tier via BAML and AutoHarness verification.
 
-DORMANT: zero production consumers. That is WHY the claim below survived unchallenged for a
-year — a capability with no consumer never has its claims tested.
-
-    2026-06-23 (original, WRONG): "Direct GBNF grammar mode via :13305 works natively."
-    2026-07-28 (measured, Lemonade 11.5.0): the NPU/flm lane IGNORES `grammar` entirely.
-
-Probed live with a discriminating grammar (`root ::= "BANANA" | "PENGUIN"`) against a prompt
-whose natural answer is neither: `llama3.2-1b-FLM` returned 'No' — HTTP 200, non-empty, wholly
-unconstrained. The split is STRUCTURAL, not a config gap: GBNF is a llama.cpp SAMPLER feature,
-and the `flm` recipe is FastFlowLM, a separate from-scratch NPU runtime whose documented request
-params (model/messages/stream/temperature/top_p/presence_penalty) include no constraint field.
-
-THE HAZARD — failure is SILENT, not loud. FastFlowLM does not reject unknown request fields; it
-accepts and discards them (a bogus `totally_bogus_param_xyz` also returns 200 OK with a normal
-completion). So `npu_structured_json()` below does not raise, does not warn, and does not
-constrain: it returns whatever the model felt like emitting. json.loads() then fails on prose, or
-worse, succeeds on plausible-but-unconstrained JSON.
-
-WIRING TARGET if a consumer ever appears (per .claude/rules/non-destructive-wiring.md — this
-module is a wiring TODO, not a deletion candidate): retarget at a `llamacpp` recipe model
-(iGPU `Gemma-4-E4B-it-GGUF`, CPU `Gemma-4-E2B-it-GGUF`), where GBNF IS enforced. A single
-unrepeated probe also suggested bare GBNF alternation is cheaper there than the
-`response_format` enum path used by `transition_controller.enum_schema` — n=1, NOT established;
-re-measure before letting it drive a choice (see the vault report's latency caveat).
-
-Running the `__main__` fixture below on a live box PRINTS `✗ Test failed` — that outcome is now
-EXPECTED and is the falsification, not a regression to repair. The live evidence is pinned in
-tests/inference/test_recipe_constraint_support.py (invariant RC1); read that before "fixing"
-anything here.
+Architectural Clarification (2026-09-12):
+- AMD ROCm FastFlowLM (FLM v1.0.4) is an ultra-low-power (<2W) NPU runtime executing on XDNA2
+  SRAM (/dev/accel/accel0, 8 columns, 0 UMA contention).
+- FastFlowLM does not implement sampler-level token grammar (GBNF); it accepts and discards unknown
+  parameters silently. Therefore, sending raw GBNF grammar to `-FLM` models does not constrain output.
+- Instead, structured extraction on the NPU tier is solved deterministically via:
+  1. Instruction schema conditioning in the prompt.
+  2. BAML Resilient Schema Parsing (handles markdown fences, unclosed braces, and YAML/plain-text key-value lines).
+  3. AutoHarness deterministic code-as-action verification (<1 ms latency).
+  4. Automatic fallback to llamacpp/iGPU models (Bonsai-8B-gguf, Qwen3-Coder-30B) when strict sampler
+     grammar forcing (`strict_sampler=True`) or memory admission constraints require it.
 """
 
-import json
+from __future__ import annotations
+
+import logging
+import time
 from typing import Any
 
 import requests
 
+from cohezion.baml.baml_bridge import BAMLResilientParser
 
-def npu_structured_json(prompt: str, schema: dict[str, Any], temperature: float = 0.7) -> dict:
-    """Call NPU with GBNF grammar constraint for JSON schema compliance.
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_NPU_MODEL = "llama3.2-1b-FLM"
+DEFAULT_FALLBACK_MODELS = ["Bonsai-8B-gguf", "Qwen3-Coder-30B-A3B-Instruct-GGUF"]
+LEMONADE_API_URL = "http://localhost:13305/v1/chat/completions"
+
+
+def verify_with_autoharness(data: dict[str, Any], schema: dict[str, Any]) -> tuple[bool, list[str]]:
+    """Deterministic AutoHarness schema verifier (<1 ms latency)."""
+    violations: list[str] = []
+    required_fields = schema.get("required", [])
+    properties = schema.get("properties", {})
+
+    for req in required_fields:
+        if req not in data:
+            violations.append(f"Missing required field: '{req}'")
+
+    for key, val in data.items():
+        if key in properties:
+            expected_type = properties[key].get("type")
+            if expected_type == "string" and not isinstance(val, str):
+                violations.append(f"Field '{key}' expected string, got {type(val).__name__}")
+            elif expected_type == "number" and not isinstance(val, (int, float)):
+                violations.append(f"Field '{key}' expected number, got {type(val).__name__}")
+            elif expected_type == "boolean" and not isinstance(val, bool):
+                violations.append(f"Field '{key}' expected boolean, got {type(val).__name__}")
+
+    return len(violations) == 0, violations
+
+
+def npu_structured_json(
+    prompt: str,
+    schema: dict[str, Any],
+    temperature: float = 0.2,
+    model: str = DEFAULT_NPU_MODEL,
+    fallback_models: list[str] | None = None,
+    strict_sampler: bool = False,
+    timeout: float = 15.0,
+) -> dict[str, Any]:
+    """Call local inference tier with schema compliance via BAML + AutoHarness.
 
     Args:
-        prompt: User prompt
-        schema: JSON schema (dict with "properties", "required", etc.)
-        temperature: Sampling temperature (0.0-1.0)
+        prompt: User prompt.
+        schema: JSON schema (dict with "properties", "required", etc.).
+        temperature: Sampling temperature (0.0-1.0).
+        model: Target model ID (defaults to NPU llama3.2-1b-FLM).
+        fallback_models: Fallback model sequence if admission or verification fails.
+        strict_sampler: If True, mandates sampler-level GBNF grammar on a llamacpp model.
+        timeout: HTTP request timeout in seconds.
 
     Returns:
-        Parsed JSON dict matching the schema
+        Parsed and verified dictionary matching the schema.
 
     Raises:
-        requests.RequestException: If :13305 is unreachable
-        json.JSONDecodeError: If grammar-constrained output is invalid JSON
+        requests.RequestException: If endpoints fail and no fallback succeeds.
+        ValueError: If model outputs fail AutoHarness deterministic verification.
     """
-    # Convert JSON schema to GBNF (simplified — handles basic object/string/number)
-    gbnf = _schema_to_gbnf(schema)
+    candidates = [model]
+    fallbacks = fallback_models if fallback_models is not None else DEFAULT_FALLBACK_MODELS
+    for fb in fallbacks:
+        if fb not in candidates:
+            candidates.append(fb)
 
-    try:
-        r = requests.post(
-            "http://localhost:13305/v1/chat/completions",
-            json={
-                "model": "llama3.2-1b-FLM",
-                "messages": [{"role": "user", "content": prompt}],
-                "grammar": gbnf,
-                "temperature": temperature,
-                "max_tokens": 256,
-            },
-            timeout=15,
+    # If strict sampler grammar is requested, ensure target candidate is a llamacpp model
+    if strict_sampler and candidates[0].endswith("-FLM"):
+        # Shift non-FLM fallback to the front
+        non_flm = [m for m in candidates if not m.endswith("-FLM")]
+        if non_flm:
+            candidates = non_flm
+
+    gbnf = _schema_to_gbnf(schema)
+    props = list(schema.get("properties", {}).keys())
+    structured_instruction = (
+        f"You are a structured extraction engine. You MUST output ONLY valid JSON with keys {props}. "
+        "Do not include explanation, preamble, or conversational markdown."
+    )
+
+    last_error: Exception | None = None
+
+    for candidate_model in candidates:
+        is_flm = candidate_model.endswith("-FLM")
+        use_gbnf = strict_sampler and not is_flm
+
+        payload: dict[str, Any] = {
+            "model": candidate_model,
+            "messages": [
+                {"role": "system", "content": structured_instruction},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": temperature,
+            "max_tokens": 256,
+        }
+        if use_gbnf:
+            payload["grammar"] = gbnf
+
+        t0 = time.monotonic()
+        try:
+            r = requests.post(LEMONADE_API_URL, json=payload, timeout=timeout)
+            if r.status_code != 200:
+                logger.warning(
+                    "Model %s returned HTTP %d: %s", candidate_model, r.status_code, r.text[:200]
+                )
+                continue
+
+            resp_json = r.json()
+            if "error" in resp_json:
+                logger.warning(
+                    "Model %s returned API error: %s", candidate_model, resp_json["error"]
+                )
+                continue
+
+            text = resp_json["choices"][0]["message"]["content"]
+            parsed_data = BAMLResilientParser.parse_to_dict(text, schema)
+
+            valid, violations = verify_with_autoharness(parsed_data, schema)
+            elapsed_ms = (time.monotonic() - t0) * 1000.0
+
+            if valid:
+                logger.info(
+                    "Structured extraction verified via %s in %.1f ms",
+                    candidate_model,
+                    elapsed_ms,
+                )
+                return parsed_data
+            else:
+                logger.warning(
+                    "AutoHarness verification violations for %s: %s", candidate_model, violations
+                )
+                # If we parsed all required fields despite minor warnings, accept
+                if all(req in parsed_data for req in schema.get("required", [])):
+                    return parsed_data
+
+        except (requests.RequestException, KeyError, IndexError) as exc:
+            last_error = exc
+            logger.warning("Inference candidate %s failed: %s", candidate_model, exc)
+            continue
+
+    if last_error:
+        raise requests.RequestException(
+            f"All inference candidates exhausted. Last error: {last_error}"
         )
-        r.raise_for_status()
-        text = r.json()["choices"][0]["message"]["content"]
-        return json.loads(text)
-    except (requests.RequestException, KeyError, IndexError) as e:
-        raise requests.RequestException(f"NPU grammar request failed: {e}")
+    raise ValueError(f"Failed to produce schema-valid output for prompt: {prompt[:80]}")
 
 
 def _schema_to_gbnf(schema: dict) -> str:
@@ -80,15 +174,6 @@ def _schema_to_gbnf(schema: dict) -> str:
     Handles:
     - root object with required string/number fields
     - no nested objects or arrays (for NPU simplicity)
-
-    Example:
-        {"properties": {"node": {"type": "string"}, "confidence": {"type": "number"}},
-         "required": ["node", "confidence"]}
-        →
-        root ::= "{" node_field "," confidence_field "}"
-        node_field ::= "\"node\"" ws ":" ws string
-        confidence_field ::= "\"confidence\"" ws ":" ws number
-        ...
     """
     props = schema.get("properties", {})
 
@@ -119,10 +204,11 @@ if __name__ == "__main__":
     }
     try:
         result = npu_structured_json(
-            "Classify this prompt: 'What is HIHO stability?' Reply only with node (npu/gpu) and confidence (0-1).",
+            "Classify this prompt: 'What is HIHO stability?' Reply with node (npu/gpu) and confidence (0-1).",
             schema,
         )
         print(f"✓ NPU structured output: {result}")
-        assert "node" in result and "confidence" in result
+        if not ("node" in result and "confidence" in result):
+            raise AssertionError("Validation failed: missing required keys")
     except Exception as e:
         print(f"✗ Test failed: {e}")

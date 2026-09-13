@@ -46,11 +46,14 @@ RESIDENT_MODELS = [
 @pytest.fixture(autouse=True)
 def _no_network_write(monkeypatch):
     """Block real SurrealDB writes in every test by default."""
-    monkeypatch.setattr("cohezion.inference.model_shootout.write_model_performance", lambda **k: True)
+    monkeypatch.setattr(
+        "cohezion.inference.model_shootout.write_model_performance", lambda **k: True
+    )
 
 
 def _make_transport(monkeypatch, content: str) -> None:
     """Make the transport return a canned response regardless of model."""
+
     async def _fake_query(self, prompt, model_id, params=None):
         return TransportResponse(
             content=content,
@@ -58,6 +61,7 @@ def _make_transport(monkeypatch, content: str) -> None:
             latency_ms=123.4,
             verified=True,
         )
+
     monkeypatch.setattr(LemonadeTransport, "query", _fake_query)
 
 
@@ -66,9 +70,7 @@ class TestConsumerContract:
 
     def test_default_candidates_are_resident_models_only(self, monkeypatch):
         """C1: embeddings excluded, non-embed resident models returned."""
-        monkeypatch.setattr(
-            hotswap, "resident_models", lambda: list(RESIDENT_MODELS)
-        )
+        monkeypatch.setattr(hotswap, "resident_models", lambda: list(RESIDENT_MODELS))
         cands = default_candidates()
         assert "nomic-embed-text-v2-moe-GGUF" not in cands
         assert "Gemma-4-26B-A4B-it-GGUF" in cands
@@ -160,8 +162,10 @@ class TestProducerContract:
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append(event)
+
             def publish_sync(self, event):
                 events.append(event)
 
@@ -224,8 +228,12 @@ def test_write_model_performance_builds_valid_surql(monkeypatch):
 
     class _Resp:
         status = 200
-        def __enter__(self): return self
-        def __exit__(self, *exc): return False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
 
     def _fake_urlopen(req, timeout=5.0):
         payload = req.data.decode()

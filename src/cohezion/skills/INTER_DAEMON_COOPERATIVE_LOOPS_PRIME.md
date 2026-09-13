@@ -20,6 +20,7 @@ import time
 from cohezion.core.event_bus import EventBus, Event
 from cohezion.graph.graph_engine import KnowledgeGraphMesh, EdgeType
 
+
 class InterDaemonLoopNexus:
     def __init__(self, event_bus: EventBus):
         self.event_bus = event_bus

@@ -9,14 +9,16 @@ from typing import Dict, Any, List, Tuple, Set, Optional
 from collections import deque
 import numpy as np
 
+
 class ARCObject:
     """Represents an individual connected component in an ARC grid."""
+
     def __init__(self, color: int, pixels: Set[Tuple[int, int]], grid_shape: Tuple[int, int]):
         self.color = color
         self.pixels = pixels  # Set of (r, c)
         self.grid_h, self.grid_w = grid_shape
         self.size = len(pixels)
-        
+
         # Bounding box calculation
         rs = [r for r, c in pixels]
         cs = [c for r, c in pixels]
@@ -34,7 +36,8 @@ class ARCObject:
 
     def move(self, dr: int, dc: int) -> ARCObject:
         new_pixels = {
-            (r + dr, c + dc) for r, c in self.pixels
+            (r + dr, c + dc)
+            for r, c in self.pixels
             if 0 <= r + dr < self.grid_h and 0 <= c + dc < self.grid_w
         }
         return ARCObject(self.color, new_pixels, (self.grid_h, self.grid_w))
@@ -44,7 +47,9 @@ class ObjectGraphExtractor:
     """Segments a 2D grid into connected component objects and spatial relations."""
 
     @staticmethod
-    def extract_objects(grid: List[List[int]], background_color: int = 0, diagonal: bool = False) -> List[ARCObject]:
+    def extract_objects(
+        grid: List[List[int]], background_color: int = 0, diagonal: bool = False
+    ) -> List[ARCObject]:
         if not grid or not grid[0]:
             return []
         h, w = len(grid), len(grid[0])
@@ -84,11 +89,14 @@ class ObjectGraphExtractor:
 # High-Level Relational Object DSL Operators
 # ---------------------------------------------------------------------------
 
+
 def dsl_sort_objects_by_size(objects: List[ARCObject], reverse: bool = True) -> List[ARCObject]:
     return sorted(objects, key=lambda o: o.size, reverse=reverse)
 
+
 def dsl_filter_objects_by_color(objects: List[ARCObject], color: int) -> List[ARCObject]:
     return [o for o in objects if o.color == color]
+
 
 def dsl_move_object_gravity(obj: ARCObject, direction: str = "down") -> ARCObject:
     if direction == "down":
@@ -105,7 +113,10 @@ def dsl_move_object_gravity(obj: ARCObject, direction: str = "down") -> ARCObjec
         return obj.move(0, dc)
     return obj
 
-def dsl_render_objects(objects: List[ARCObject], grid_shape: Tuple[int, int], bg: int = 0) -> List[List[int]]:
+
+def dsl_render_objects(
+    objects: List[ARCObject], grid_shape: Tuple[int, int], bg: int = 0
+) -> List[List[int]]:
     h, w = grid_shape
     grid = [[bg] * w for _ in range(h)]
     for obj in objects:
@@ -113,6 +124,7 @@ def dsl_render_objects(objects: List[ARCObject], grid_shape: Tuple[int, int], bg
             if 0 <= r < h and 0 <= c < w:
                 grid[r][c] = obj.color
     return grid
+
 
 def transform_object_gravity_all(grid: List[List[int]]) -> List[List[int]]:
     """Relational DSL transform: pulls all discrete objects to the bottom boundary."""
@@ -122,6 +134,7 @@ def transform_object_gravity_all(grid: List[List[int]]) -> List[List[int]]:
     objs = ObjectGraphExtractor.extract_objects(grid)
     moved_objs = [dsl_move_object_gravity(o, "down") for o in objs]
     return dsl_render_objects(moved_objs, (h, w))
+
 
 def transform_keep_largest_object(grid: List[List[int]]) -> List[List[int]]:
     """Relational DSL transform: isolates the single largest connected object."""
@@ -134,6 +147,7 @@ def transform_keep_largest_object(grid: List[List[int]]) -> List[List[int]]:
     largest = max(objs, key=lambda o: o.size)
     return dsl_render_objects([largest], (h, w))
 
+
 def transform_keep_smallest_object(grid: List[List[int]]) -> List[List[int]]:
     """Relational DSL transform: isolates the single smallest connected object."""
     if not grid or not grid[0]:
@@ -145,13 +159,16 @@ def transform_keep_smallest_object(grid: List[List[int]]) -> List[List[int]]:
     smallest = min(objs, key=lambda o: o.size)
     return dsl_render_objects([smallest], (h, w))
 
+
 # ---------------------------------------------------------------------------
 # 3 Red-Team Visual Primitives: Symmetry, Topology Enclosure, Recursive Motifs
 # ---------------------------------------------------------------------------
 
+
 def transform_complete_horizontal_symmetry(grid: List[List[int]]) -> List[List[int]]:
     """Reflects left half onto right half across vertical center axis."""
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     res = [row[:] for row in grid]
     mid = w // 2
@@ -163,9 +180,11 @@ def transform_complete_horizontal_symmetry(grid: List[List[int]]) -> List[List[i
                 res[r][c] = res[r][w - 1 - c]
     return res
 
+
 def transform_complete_vertical_symmetry(grid: List[List[int]]) -> List[List[int]]:
     """Reflects top half onto bottom half across horizontal center axis."""
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     res = [row[:] for row in grid]
     mid = h // 2
@@ -177,9 +196,11 @@ def transform_complete_vertical_symmetry(grid: List[List[int]]) -> List[List[int
                 res[r][c] = res[h - 1 - r][c]
     return res
 
+
 def transform_fill_enclosed_regions(grid: List[List[int]], fill_color: int = 3) -> List[List[int]]:
     """Topological Euler Enclosure: Fills background regions enclosed by non-zero contours."""
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     # BFS flood-fill from all 4 outside borders
     outside = set()
@@ -211,9 +232,11 @@ def transform_fill_enclosed_regions(grid: List[List[int]], fill_color: int = 3) 
                 res[r][c] = fill_color
     return res
 
+
 def transform_tile_periodic_2x2(grid: List[List[int]]) -> List[List[int]]:
     """Recursive Motif Progression: Expands a core repeating tile pattern."""
-    if not grid or not grid[0]: return grid
+    if not grid or not grid[0]:
+        return grid
     h, w = len(grid), len(grid[0])
     res = [[0] * (w * 2) for _ in range(h * 2)]
     for r in range(h * 2):

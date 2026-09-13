@@ -30,16 +30,18 @@ S = TypeVar("S")
 A = TypeVar("A")
 B = TypeVar("B")
 
+
 class StateMonad(Generic[S, A]):
     def __init__(self, run: Callable[[S], Tuple[A, S]]):
         self.run = run
-        
+
     def bind(self, f: Callable[[A], "StateMonad[S, B]"]) -> "StateMonad[S, B]":
         def new_run(s: S) -> Tuple[B, S]:
             a, s_prime = self.run(s)
             return f(a).run(s_prime)
+
         return StateMonad(new_run)
-        
+
     @staticmethod
     def unit(a: A) -> "StateMonad[S, A]":
         return StateMonad(lambda s: (a, s))
@@ -49,10 +51,11 @@ class StateMonad(Generic[S, A]):
 ```python
 import numpy as np
 
+
 def compute_hodge_laplacian_1(b0: np.ndarray, b1: np.ndarray) -> np.ndarray:
     """Computes the 1-Laplacian L_1 over edge flows."""
-    l_down = np.dot(b0.T, b0) # Node-to-edge boundary
-    l_up = np.dot(b1, b1.T)   # Edge-to-triangle boundary
+    l_down = np.dot(b0.T, b0)  # Node-to-edge boundary
+    l_up = np.dot(b1, b1.T)  # Edge-to-triangle boundary
     return l_down + l_up
 ```
 

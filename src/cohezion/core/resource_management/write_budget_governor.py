@@ -66,7 +66,9 @@ class WriteBudgetGovernor:
         """Check whether writing this payload violates the write budget."""
         self._refresh_windows()
 
-        if (self.tracker.bytes_written_current_hour + payload_size_bytes) > self.tracker.max_bytes_per_hour:
+        if (
+            self.tracker.bytes_written_current_hour + payload_size_bytes
+        ) > self.tracker.max_bytes_per_hour:
             logger.warning("⛔ Hourly write budget exceeded! Throttling disk write.")
             return False
 
