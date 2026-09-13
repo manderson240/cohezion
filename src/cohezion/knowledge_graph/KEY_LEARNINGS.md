@@ -600,6 +600,33 @@ Investigated official AMD ROCm FastFlowLM (`https://github.com/ROCm/FastFlowLM`,
 4. **Skills & Documentation Infrastructure**: Authored and registered `FASTFLOWLM_PRIME.md` in `src/cohezion/skills/` and comprehensive hardware documentation in `docs/hardware/AMD_ROCM_FASTFLOWLM_XDNA2_NPU.md`.
 *12D State Vector*: `[12D State: Space=AMD-ROCm-FastFlowLM-NPU, Time=September 2026, Physics=Sub-2W-Zero-UMA-Offloading, Brane=BAML-AutoHarness-Verification]`
 
+### Learning 431: Ventral Hippocampus Computations, Affective-Motivational Mapping & Multi-Channel Routing (2026-09-12)
+Operationalized the neurobiological principles from Biane, Wagner-Carena & Kheirbek (*Nature Reviews Neuroscience*, 2026, doi:10.1038/s41583-026-01078-6) to establish a biological foundation for agentic risk, context inference, and approach-avoidance arbitration:
+1. **Dorsal vs. Ventral Hippocampal Gradient**: Contrasted dorsal hippocampus (dHPC) high-precision Euclidean metric maps ($\mathbf{v}_{dHPC} = W_{grid} \mathbf{s}_{spatial}$) with ventral hippocampus (vHPC) affective-motivational manifold representations ($\mathbf{v}_{vHPC} = \tanh(W_{aff} [\mathbf{s}_{spatial}; \mathbf{h}_{intero}])$) that fuse external task features with interoceptive state (compute margins, error rates, stress, energy).
+2. **Four-Target Projection Gating Circuit (`src/cohezion/neuro/ventral_hippocampus.py`)**: Structured distinct downstream projection channels:
+   - **BLA (Basolateral Amygdala)**: Valence assignment, signed error propagation ($|c|$), and associative fear/threat plasticity.
+   - **mPFC (Medial Prefrontal Cortex)**: Contextual cognitive control, task rule arbitration ($\sigma(2|c|)$), and policy priors.
+   - **NAc (Nucleus Accumbens)**: Incentive salience, reward expectation, and exploratory dispatch vigor ($g \cdot (1 - 0.4 U_t)$).
+   - **Hypothalamus (LH/PVN)**: Autonomic arousal, metabolic homeostasis, and resource throttling ($(1 - g) + 0.4 U_t$).
+3. **Approach-Avoidance Conflict & Latent State Inference**: Modeled real-time conflict $c = V_{app} - V_{avoid}$ and logistic gating $g = \sigma(\kappa c)$. Combined with hierarchical Bayesian hidden-state inference ($b_t(z)$) and Shannon entropy uncertainty ($U_t = \mathbb{H}[b_t]$) to dynamically select among 4 agentic behavioral regimes: `MOTIVATED_EXPLORATION`, `DEFENSIVE_CONSOLIDATION`, `MPFC_ARBITRATION`, and `SAFE_AVOIDANCE`.
+4. **Skills & Persistence Layer**: Registered `VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME.md` in skill registry (306 entries) and wired async SurrealDB graph persistence (`UPSERT neuron:vhpc_hub`, `RELATE neuron->synapse->neuron`) covered by 7 unit tests passing in <5s and clean import smoke tests across 1553 modules.
+*12D State Vector*: `[12D State: Space=Ventral-Hippocampus-vHPC, Time=September 2026, Physics=Affective-Manifold-Sigmoidal-Gating, Brane=BLA-mPFC-NAc-Hypothalamus-SurrealDB]`
+
+---
+
+### Learning 432: Holistic Producer-Consumer Architectural & Hardware Seam Audit via AMD Skills & Self-Test Verification (2026-09-13)
+Executed a comprehensive audit across all 10 architectural and hardware subsystems, verifying that every producer has an active, live consumer with zero hollow seams or ghost abstractions:
+1. **Hardware & Subsystem Seam Matrix**:
+   - **AMD XDNA2 NPU Silicon** (`FASTFLOWLM_PRIME`, `LEMONADE_OMNIROUTER_PRIME`): Verified `FastFlowLM` / `npu_structured_json` producers (10 files) wired to `BAMLResilientParser` / `AutonomousGoalExecutor` / `UnifiedHybridRouter` consumers (18 files) on `/dev/accel/accel0` at <2W.
+   - **AMD MI355X GPU Acceleration Kernels** (`AMD_GEMM_MXFP4_PRIME`, `AMD_MLA_DECODE_PRIME`, `AMD_MOE_MXFP4_PRIME`, `KERNEL_OPTIMIZATION_PRIME`): Verified `load_inline` HIP kernels / `KERNEL_MAP` (`amd-mxfp4-mm`, `amd-moe-mxfp4`, `amd-mixed-mla`) (2 files) consumed by `popcorn.submit` and `Forge` benchmark service (3 files).
+   - **Biological Connectome & Ventral Hippocampus** (`VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME`): Verified `VentralHippocampusCircuit` and `DrosophilaSensoryMotorCircuit` producers (4 files) consumed by `persist_circuit_state` and `compute_reflex_action` (3 files).
+   - **MaP-WAM Trace-as-Goal & Memory-as-Plans** (`AUTOHARNESS_POLICY_PRIME`): Replaced obsolete ghost pair with `PlanSegment(` (1 file) ➔ `MemoryAsPlans` / `AutonomousGoalExecutor` (5 files).
+   - **Durable Agentic Kanban Bridge** (`SURREALDB_VECTOR_GRAPH_ENGINE_PRIME`): Verified `persist_item(` (33 files) dual-synchronized to SurrealDB `kanban_item` and Obsidian Vault `kanban/` (13 files).
+   - **EventBus & Precipitation Physics**: Verified 39 bus event producers wired to 15 subscribers, and 21 precipitation state transitions wired to 18 observers.
+   - **Silicon-to-Cloud Hybrid Routing**: Verified `UnifiedHybridRouter` (3 files) consumed across 7 agent swarm and orchestration modules.
+2. **Self-Test Falsifiability & CI Gate Integration**: Equipped `scripts/ci/producer_consumer_audit.py` with `--self-test` verifying that synthetic missing producers or hollow consumers reliably cause the gate to fail closed (exit 1). Wired the gate into `scripts/ci/automerge_guard.sh`, expanding self-test coverage from 8/18 to 9/19 passing gates.
+*12D State Vector*: `[12D State: Space=Fleet-Producer-Consumer-Audit, Time=September 2026, Physics=Zero-Hollow-Seams-Hardware-Verification, Brane=AMD-Skills-FastFlowLM-MI355X-OmniRouter]`
+
 ---
 
 

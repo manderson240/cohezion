@@ -244,6 +244,11 @@ if [ -f scripts/ci/graph_cardinality_audit.py ]; then
   step "graph cardinality" uv run python scripts/ci/graph_cardinality_audit.py
 fi
 
+if [ -f scripts/ci/producer_consumer_audit.py ]; then
+  step "producer-consumer self-test" uv run python scripts/ci/producer_consumer_audit.py --self-test
+  step "producer-consumer audit" uv run python scripts/ci/producer_consumer_audit.py
+fi
+
 # Step 7: Conventional commit / version governance
 step "version governance" uv run python scripts/ci/version_governance.py
 
