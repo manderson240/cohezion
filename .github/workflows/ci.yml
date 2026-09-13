@@ -136,6 +136,14 @@ jobs:
           uv run python scripts/ci/phantom_attr_scan.py --self-test
           uv run python scripts/ci/phantom_attr_scan.py
 
+      # Security finding H5: exec/eval of generated code with a globals dict lacking
+      # "__builtins__" gets the FULL builtins (import/open/eval). 13 unrestricted sites had
+      # re-accumulated in src/ by 2026-09-13. Exceptions need "# unrestricted-exec-ok: <reason>".
+      - name: Unrestricted exec/eval scan (gating)
+        run: |
+          uv run python scripts/ci/unrestricted_exec_scan.py --self-test
+          uv run python scripts/ci/unrestricted_exec_scan.py
+
       # Coding-standard guard (AGENTS.md "Card-Aligned Recipes"): no direct
       # port hits to local inference backends — everything routes through
       # UnifiedHybridRouter. Verified exit 0 locally 2026-09-08.

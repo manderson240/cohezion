@@ -281,6 +281,7 @@ class AgentFactory:
             "__builtins__": __builtins__,
             _StubAgent.__name__: _StubAgent,
         }
+        # unrestricted-exec-ok: source is rendered by TemplateEngine from a validated SkillSpec
         exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)
         cls = namespace.get(class_name)
         if cls is None:
@@ -319,6 +320,7 @@ class AgentFactory:
             ).replace("(BaseAgent)", f"({_StubAgent.__name__})")
             namespace[_StubAgent.__name__] = _StubAgent
 
+        # unrestricted-exec-ok: source is rendered by TemplateEngine from a validated SkillSpec
         exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)
 
         cls = namespace.get(class_name)

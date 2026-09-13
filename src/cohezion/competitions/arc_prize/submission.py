@@ -516,6 +516,8 @@ Code only in ```python block:"""
             return None
 
         local_scope: dict[str, Any] = {}
+        # unrestricted-exec-ok: standalone no-internet Kaggle kernel (cannot import cohezion);
+        # the kernel container is the boundary
         exec(code, {}, local_scope)
         fn = local_scope.get("transform")
         if callable(fn):

@@ -11,6 +11,7 @@ from collections.abc import Callable
 from typing import Any
 
 from cohezion.compound.harness_benefit import HarnessBenefitTracker
+from cohezion.compound.safe_exec import safe_exec_globals
 
 
 logger = logging.getLogger(__name__)
@@ -130,7 +131,8 @@ class DualLoopOptimizer:
         verifier_code = await self.synthesizer.synthesize_verifier(environment_desc, dummy_env)
 
         # Create python callable from verifier_code (for local evaluation)
-        local_namespace: dict[str, Any] = {}
+        # H5: synthesized verifier is LLM output -> restricted builtins (not a sandbox)
+        local_namespace: dict[str, Any] = safe_exec_globals()
         try:
             exec(verifier_code, local_namespace)
             harness_fn = local_namespace.get("verify_action")

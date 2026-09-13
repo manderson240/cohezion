@@ -219,6 +219,14 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
 step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 
+# Step 6c-ter-bis: unrestricted exec/eval (security finding H5). CPython auto-injects the FULL
+# builtins into a globals dict lacking "__builtins__", so exec(llm_code, {}) reaches
+# __import__/open/eval. safe_exec_globals() closed the 2026-06 instances, yet 2026-09-13 found 13
+# unrestricted sites in src/ (5 running LLM output) because nothing re-checked. Exceptions need
+# an inline "# unrestricted-exec-ok: <reason>" pragma. --self-test first (sibling rationale).
+step "unrestricted-exec self-test" uv run python scripts/ci/unrestricted_exec_scan.py --self-test
+step "unrestricted-exec scan" uv run python scripts/ci/unrestricted_exec_scan.py
+
 # Step 6c-quater: META-gate. The scans above ask questions about the CODE; this asks whether
 # the gates themselves can still answer. It RUNS each gate's --self-test rather than
 # checking the flag exists, because doc_code_consistency.py was found shipping a

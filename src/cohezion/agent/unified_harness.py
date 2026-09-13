@@ -158,6 +158,8 @@ class ToolRegistry:
         try:
             # Create isolated namespace
             namespace = {}
+            # unrestricted-exec-ok: general-purpose `python` tool whose contract IS arbitrary
+            # execution; safe_exec would break it. Real fix = out-of-process sandbox (H5 durable).
             exec(code, namespace)
 
             result = {

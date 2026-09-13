@@ -164,6 +164,7 @@ class MutationTestingEngine:
             # Execute the mutated code in an isolated namespace
             mutant_ns: dict[str, Any] = {}
             try:
+                # unrestricted-exec-ok: mutated REPO source (trusted), which needs real imports
                 exec(compile(mutated_code, f"<mutant_{i}>", "exec"), mutant_ns)
             except Exception as compile_err:
                 # Syntax or compile error kills the mutant immediately

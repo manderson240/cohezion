@@ -10,6 +10,8 @@ from typing import Any
 
 import httpx
 
+from cohezion.compound.safe_exec import safe_exec_globals
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] [LLM_PROPOSER] %(message)s"
@@ -67,8 +69,10 @@ def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None
     try:
         # AST parse check
         ast.parse(code_str)
-        local_scope: dict[str, Any] = {}
-        exec(code_str, {"__builtins__": {}}, local_scope)
+        # One namespace, so helpers/imports defined beside transform() are visible to it; the
+        # curated builtins keep `import numpy` working (F2) while denying open/eval (H5).
+        local_scope: dict[str, Any] = safe_exec_globals()
+        exec(code_str, local_scope)
         if "transform" not in local_scope:
             return None
 

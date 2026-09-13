@@ -17,6 +17,8 @@ from typing import Any
 
 import httpx
 
+from cohezion.compound.safe_exec import safe_exec_globals
+
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +129,8 @@ class CodeAsActionVerifier:
 
         # Execute the python code dynamically in a sandboxed namespace
         try:
-            namespace = {}
+            # H5: LLM-synthesized hypothesis -> restricted builtins (not a sandbox)
+            namespace = safe_exec_globals()
             exec(hyp.code, namespace)
             if "is_legal_action" in namespace:
                 is_legal_fn = namespace["is_legal_action"]
@@ -244,7 +247,7 @@ class HarnessAsPolicy:
         # Test if it executes cleanly against all collected traces
         success = True
         try:
-            namespace = {}
+            namespace = safe_exec_globals()  # H5: LLM-synthesized policy
             exec(compiled, namespace)
             decide_fn = namespace.get("decide_action")
             if not decide_fn:
@@ -276,7 +279,7 @@ class HarnessAsPolicy:
         if not self.compiled_code:
             return None
         try:
-            namespace = {}
+            namespace = safe_exec_globals()  # H5: LLM-synthesized policy
             exec(self.compiled_code, namespace)
             decide_fn = namespace["decide_action"]
             return str(decide_fn(context))
