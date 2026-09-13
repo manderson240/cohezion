@@ -600,6 +600,18 @@ Investigated official AMD ROCm FastFlowLM (`https://github.com/ROCm/FastFlowLM`,
 4. **Skills & Documentation Infrastructure**: Authored and registered `FASTFLOWLM_PRIME.md` in `src/cohezion/skills/` and comprehensive hardware documentation in `docs/hardware/AMD_ROCM_FASTFLOWLM_XDNA2_NPU.md`.
 *12D State Vector*: `[12D State: Space=AMD-ROCm-FastFlowLM-NPU, Time=September 2026, Physics=Sub-2W-Zero-UMA-Offloading, Brane=BAML-AutoHarness-Verification]`
 
+### Learning 431: Ventral Hippocampus Computations, Affective-Motivational Mapping & Multi-Channel Routing (2026-09-12)
+Operationalized the neurobiological principles from Biane, Wagner-Carena & Kheirbek (*Nature Reviews Neuroscience*, 2026, doi:10.1038/s41583-026-01078-6) to establish a biological foundation for agentic risk, context inference, and approach-avoidance arbitration:
+1. **Dorsal vs. Ventral Hippocampal Gradient**: Contrasted dorsal hippocampus (dHPC) high-precision Euclidean metric maps ($\mathbf{v}_{dHPC} = W_{grid} \mathbf{s}_{spatial}$) with ventral hippocampus (vHPC) affective-motivational manifold representations ($\mathbf{v}_{vHPC} = \tanh(W_{aff} [\mathbf{s}_{spatial}; \mathbf{h}_{intero}])$) that fuse external task features with interoceptive state (compute margins, error rates, stress, energy).
+2. **Four-Target Projection Gating Circuit (`src/cohezion/neuro/ventral_hippocampus.py`)**: Structured distinct downstream projection channels:
+   - **BLA (Basolateral Amygdala)**: Valence assignment, signed error propagation ($|c|$), and associative fear/threat plasticity.
+   - **mPFC (Medial Prefrontal Cortex)**: Contextual cognitive control, task rule arbitration ($\sigma(2|c|)$), and policy priors.
+   - **NAc (Nucleus Accumbens)**: Incentive salience, reward expectation, and exploratory dispatch vigor ($g \cdot (1 - 0.4 U_t)$).
+   - **Hypothalamus (LH/PVN)**: Autonomic arousal, metabolic homeostasis, and resource throttling ($(1 - g) + 0.4 U_t$).
+3. **Approach-Avoidance Conflict & Latent State Inference**: Modeled real-time conflict $c = V_{app} - V_{avoid}$ and logistic gating $g = \sigma(\kappa c)$. Combined with hierarchical Bayesian hidden-state inference ($b_t(z)$) and Shannon entropy uncertainty ($U_t = \mathbb{H}[b_t]$) to dynamically select among 4 agentic behavioral regimes: `MOTIVATED_EXPLORATION`, `DEFENSIVE_CONSOLIDATION`, `MPFC_ARBITRATION`, and `SAFE_AVOIDANCE`.
+4. **Skills & Persistence Layer**: Registered `VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME.md` in skill registry (306 entries) and wired async SurrealDB graph persistence (`UPSERT neuron:vhpc_hub`, `RELATE neuron->synapse->neuron`) covered by 7 unit tests passing in <5s and clean import smoke tests across 1553 modules.
+*12D State Vector*: `[12D State: Space=Ventral-Hippocampus-vHPC, Time=September 2026, Physics=Affective-Manifold-Sigmoidal-Gating, Brane=BLA-mPFC-NAc-Hypothalamus-SurrealDB]`
+
 ---
 
 

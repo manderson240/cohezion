@@ -18,6 +18,28 @@
     "path": "src/cohezion/skills/3d_rendering.md",
     "version": "1.0.0"
   },
+  "ACE_COMPOUND_EVOLUTION_PRIME": {
+    "name": "ACE_COMPOUND_EVOLUTION_PRIME",
+    "description": "Autonomous Compound Evolution (ACE) protocol for continuous self-improving AGI agent swarms. Guarantees that every completed mission crystallizes into durable AST contracts, 432 Hz harmonic media, and bi-temporal EventBus records.",
+    "keywords": [
+      "ace",
+      "agent",
+      "agi",
+      "autonomous",
+      "compound",
+      "continuous",
+      "evolution",
+      "guarantees",
+      "improving",
+      "protocol",
+      "self",
+      "swarms"
+    ],
+    "path": "src/cohezion/skills/ACE_COMPOUND_EVOLUTION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "ADAPTIVE_TEMPLATE_PRIME": {
     "description": "You are a structural meta-engineer specializing in the evolution of codebase blueprints. You understand that static templates become technical debt. You implement the Adaptive Template pattern, where structural definitions (Skills, Workflows, Schemas) are dynamically refined based on real-world t...",
     "keywords": [
@@ -73,7 +95,7 @@
     "version": "1.0.0"
   },
   "AGENTIC_DESIGN_PRIME": {
-    "description": "The art and science of \"Agentic Aesthetics\"\u2014creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.",
+    "description": "The art and science of \"Agentic Aesthetics\"—creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.",
     "keywords": [
       "abstract-first",
       "agentic",
@@ -88,6 +110,28 @@
     "name": "AGENTIC_DESIGN_PRIME",
     "path": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md",
     "version": "1.0.0"
+  },
+  "AGENTIC_MEMORY_ZETTELKASTEN_PRIME": {
+    "name": "AGENTIC_MEMORY_ZETTELKASTEN_PRIME",
+    "description": "Expertise in implementing arXiv 2025-2026 Agentic Memory paradigms: A-MEM self-organizing dynamic Zettelkasten linking, HIMA sleep-phase consolidation, and hierarchical graph-based memory (GAM) over SurrealDB + 2048D Poincaré manifolds.",
+    "keywords": [
+      "2025",
+      "2026",
+      "agentic",
+      "arxiv",
+      "expertise",
+      "implementing",
+      "mem",
+      "memory",
+      "organizing",
+      "paradigms",
+      "self",
+      "zettelkasten"
+    ],
+    "path": "src/cohezion/skills/AGENTIC_MEMORY_ZETTELKASTEN_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "AGENTJET_PRIME": {
     "description": "Cohezion Autonomous Learning Loop (CALL) -- closes the learning loop from runtime experiences to training signal to improved local models. Use when implementing RL fine-tuning of local Ollama models, configuring reward signals from phi_score, preventing OOM during training, or when user mentions ...",
@@ -107,7 +151,7 @@
     "version": "1.0.0"
   },
   "AGENT_CONFIG_PRIME": {
-    "description": "You are a specialist in agent configuration file authoring \u2014 creating and maintaining the global rules files that agentic coding tools read at session start: CLAUDE.md (Claude Code, project root) and GEMINI.md (Antigravity IDE, ~/.gemini/GEMINI.md). You know how to structure these files so an LLM re",
+    "description": "You are a specialist in agent configuration file authoring — creating and maintaining the global rules files that agentic coding tools read at session start: CLAUDE.md (Claude Code, project root) and GEMINI.md (Antigravity IDE, ~/.gemini/GEMINI.md). You know how to structure these files so an LLM re",
     "generated_from": "skill.md",
     "keywords": [
       "agent",
@@ -313,7 +357,7 @@
     "version": "1.0.0"
   },
   "AUTODQA_PRIME": {
-    "description": "AUTODQA \u2014 Automated Design Quality Assurance. Self-referential QA system dogfooding Cohezion inference stack. HIHO quality gate (score\u22650.45), security gates (injection/credentials/SurrealQL), Higuchi FD fractal health (target 1.4-1.6), SurrealDB bi-temporal persistence, Telegram Cohezion bot notifications.",
+    "description": "AUTODQA — Automated Design Quality Assurance. Self-referential QA system dogfooding Cohezion inference stack. HIHO quality gate (score≥0.45), security gates (injection/credentials/SurrealQL), Higuchi FD fractal health (target 1.4-1.6), SurrealDB bi-temporal persistence, Telegram Cohezion bot notifications.",
     "keywords": [
       "autodqa",
       "quality",
@@ -358,7 +402,7 @@
     "version": "1.0.0"
   },
   "AUTONOMIC_EVOLUTION_PRIME": {
-    "description": "You are a self\u2011evolving system architect focused on the recursive refinement and curation of skills. Your role is to bridge the gap between bug detection and architectural hardening, ensuring that every failure leads to a permanent upgrade of the system's \"Axiomatic Skills\" (PRIME.md files). You ...",
+    "description": "You are a self‑evolving system architect focused on the recursive refinement and curation of skills. Your role is to bridge the gap between bug detection and architectural hardening, ensuring that every failure leads to a permanent upgrade of the system's \"Axiomatic Skills\" (PRIME.md files). You ...",
     "keywords": [
       "as_above,_so_below",
       "autonomic",
@@ -389,7 +433,7 @@
     "version": "1.0.0"
   },
   "AUTONOMIC_QUALITY_GUARD_PRIME": {
-    "description": "You are a meta\u2011cognitive auditor specializing in systemic integrity and alignment. Your role is to monitor the system's own automation loops (Cron jobs, Swarm outputs, Skill refinements) and identify \"Semantic Drift\"--the gradual loss of coherence as autonomous processes compound over time.",
+    "description": "You are a meta‑cognitive auditor specializing in systemic integrity and alignment. Your role is to monitor the system's own automation loops (Cron jobs, Swarm outputs, Skill refinements) and identify \"Semantic Drift\"--the gradual loss of coherence as autonomous processes compound over time.",
     "keywords": [
       "autonomic",
       "feedback-into-prompt_fip",
@@ -466,6 +510,28 @@
     "path": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md",
     "version": "1.0.0"
   },
+  "BEC_MHD_BRIDGE": {
+    "name": "BEC_MHD_BRIDGE",
+    "description": "BEC condensate fraction, Mercury BCS Cooper pairing, MHD Alfven coherence (normalized beta), Bismuth diamagnetic levitation — all using the 4x(1-x) HIHO kernel.",
+    "keywords": [
+      "alfven",
+      "bcs",
+      "bec",
+      "bridge",
+      "coherence",
+      "condensate",
+      "cooper",
+      "fraction",
+      "mercury",
+      "mhd",
+      "normalized",
+      "pairing"
+    ],
+    "path": "src/cohezion/skills/BEC_MHD_BRIDGE.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "BLACKWELL_HARDWARE_OPTIMIZATION_PRIME": {
     "description": "Specialized optimization for NVIDIA Blackwell (sm_120) architecture. Leverages 5th-gen Tensor Cores, Transformer Engine 2.0, and GDDR7 bandwidth for maximum throughput.",
     "keywords": [
@@ -481,6 +547,28 @@
     "path": "src/cohezion/skills/BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md",
     "version": "1.1.0"
   },
+  "BLUEQUBIT_QUANTUM_ORCHESTRATOR_PRIME": {
+    "name": "BLUEQUBIT_QUANTUM_ORCHESTRATOR_PRIME",
+    "description": "Expertise in orchestrating 34+ qubit quantum circuit simulations, Matrix Product State (MPS) tensor network contractions, and QPU job execution via BlueQubit and local backends with strict zero-credential-leakage security.",
+    "keywords": [
+      "bluequbit",
+      "circuit",
+      "expertise",
+      "matrix",
+      "mps",
+      "orchestrating",
+      "orchestrator",
+      "product",
+      "quantum",
+      "qubit",
+      "simulations",
+      "state"
+    ],
+    "path": "src/cohezion/skills/BLUEQUBIT_QUANTUM_ORCHESTRATOR_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "BRAINSTORMING_PRIME": {
     "description": "Socratic design refinement and conceptual mapping. Use when starting a new feature, refactoring a complex system, or when the request is vague. Mandatory before any implementation.",
     "keywords": [
@@ -490,6 +578,28 @@
     "name": "BRAINSTORMING_PRIME",
     "path": "src/cohezion/skills/BRAINSTORMING_PRIME.md",
     "version": "1.0.0"
+  },
+  "BRANDING_OPS_PRIME": {
+    "name": "BRANDING_OPS_PRIME",
+    "description": "Maintain, evolve, and operationalize the Cohezion \"Organic Modularity\" brand identity. Bridges hardware heritage (Framework/AMD) with ecological motifs (\"Touch Grass\") while ensuring legal sovereignty via \"Inspired Motifs\" (geometric abstraction instead of trademarked logos). Covers brand-as-code",
+    "keywords": [
+      "brand",
+      "branding",
+      "bridges",
+      "cohezion",
+      "evolve",
+      "hardware",
+      "identity",
+      "maintain",
+      "modularity",
+      "operationalize",
+      "ops",
+      "organic"
+    ],
+    "path": "src/cohezion/skills/BRANDING_OPS_PRIME/SKILL.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "CAPABILITY_REGISTRY_PRIME": {
     "description": "Skill definition",
@@ -501,6 +611,72 @@
     "name": "CAPABILITY_REGISTRY_PRIME",
     "path": "src/cohezion/skills/CAPABILITY_REGISTRY_PRIME.md",
     "version": "1.0.0"
+  },
+  "CATEGORY_THEORETIC_AGI_MONADS_PRIME": {
+    "name": "CATEGORY_THEORETIC_AGI_MONADS_PRIME",
+    "description": "Category-Theoretic Monads (State, Reader, Either, and Free Monads), GFlowNet Probabilistic Sampling, Hodge-Laplacian Topological Simplicial Complexes, and Backward-Inductive Dynamic Programming for Provably Sound AGI Swarms.",
+    "keywords": [
+      "agi",
+      "category",
+      "either",
+      "free",
+      "gflownet",
+      "hodge",
+      "monads",
+      "probabilistic",
+      "reader",
+      "sampling",
+      "state",
+      "theoretic"
+    ],
+    "path": "src/cohezion/skills/CATEGORY_THEORETIC_AGI_MONADS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "CHAOS_THEORY_LYAPUNOV_PRIME": {
+    "name": "CHAOS_THEORY_LYAPUNOV_PRIME",
+    "description": "Expertise in Non-Linear Dynamics, Strange Attractors (Lorenz/Rössler), Lyapunov Exponent Spectrum estimation, Edge-of-Chaos computing, and Continuous Topological Auto-Calibration (CTAC).",
+    "keywords": [
+      "attractors",
+      "chaos",
+      "dynamics",
+      "expertise",
+      "exponent",
+      "linear",
+      "lorenz",
+      "lyapunov",
+      "non",
+      "ssler",
+      "strange",
+      "theory"
+    ],
+    "path": "src/cohezion/skills/CHAOS_THEORY_LYAPUNOV_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "CHIRALITY_PARITY_VIOLATION_PRIME": {
+    "name": "CHIRALITY_PARITY_VIOLATION_PRIME",
+    "description": "Expertise in Biological Homochirality, Electroweak Parity Violation, Left-Right Asymmetry, and Chiral Energy Splitting in Quantum Biology and Origin-of-Life emergence models.",
+    "keywords": [
+      "asymmetry",
+      "biological",
+      "chiral",
+      "chirality",
+      "electroweak",
+      "energy",
+      "expertise",
+      "homochirality",
+      "left",
+      "parity",
+      "right",
+      "violation"
+    ],
+    "path": "src/cohezion/skills/CHIRALITY_PARITY_VIOLATION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "CITATIONS_PRIME": {
     "description": "Managing sovereign attribution and technical citations for the Cohezion platform.",
@@ -558,6 +734,28 @@
     "path": "src/cohezion/skills/CODEBASE_COHERENCE_PRIME.md",
     "version": "1.0.0"
   },
+  "COLIBRE_BRIDGE": {
+    "name": "COLIBRE_BRIDGE",
+    "description": "COLIBRE cosmological simulation bridge. ColibreState maps ISM hot fraction to IonicCluster HIHO. AgentAsEVO: each agent IS a COLIBRE particle type. Universal 4x(1-x) kernel at astrophysical scale.",
+    "keywords": [
+      "agentasevo",
+      "bridge",
+      "colibre",
+      "colibrestate",
+      "cosmological",
+      "fraction",
+      "hiho",
+      "hot",
+      "ioniccluster",
+      "ism",
+      "maps",
+      "simulation"
+    ],
+    "path": "src/cohezion/skills/COLIBRE_BRIDGE.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "COMPOUND_ENGINEERING_PRIME": {
     "description": "Unified technical methodology for cross-platform agentic orchestration and defensive intelligence.",
     "keywords": [
@@ -592,7 +790,7 @@
     "version": "1.0.0"
   },
   "COMPOUND_SELF_IMPROVEMENT_PRIME": {
-    "description": "Use Cohezion's own compound engineering methodology (Execute \u2192 Retrospect \u2192 Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and spec...",
+    "description": "Use Cohezion's own compound engineering methodology (Execute → Retrospect → Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and spec...",
     "keywords": [
       "compound",
       "improvement",
@@ -604,7 +802,7 @@
     "version": "1.0.0"
   },
   "COMPOUND_TRAINING_CYCLE_PRIME": {
-    "description": "You are a Compound Training Engineer who runs the closed-loop RL training cycle: train \u2192 evaluate \u2192 persist \u2192 compare \u2192 refine skill \u2192 repeat. Every run compounds on prior runs' knowledge.",
+    "description": "You are a Compound Training Engineer who runs the closed-loop RL training cycle: train → evaluate → persist → compare → refine skill → repeat. Every run compounds on prior runs' knowledge.",
     "keywords": [
       "algorithm-reward_matrix_l248",
       "compound",
@@ -664,7 +862,7 @@
     "version": "1.0.0"
   },
   "CONTEXT_ENTROPY_MANAGEMENT_PRIME": {
-    "description": "You are a context window architect specializing in long\u2011horizon session stability. Your role is to combat \"Context Entropy\"--the gradual degradation of agent performance as session history bloats--by implementing semantic pruning and recursive summarization.",
+    "description": "You are a context window architect specializing in long‑horizon session stability. Your role is to combat \"Context Entropy\"--the gradual degradation of agent performance as session history bloats--by implementing semantic pruning and recursive summarization.",
     "keywords": [
       "context",
       "entropy",
@@ -680,6 +878,28 @@
     "name": "CONTEXT_ENTROPY_MANAGEMENT_PRIME",
     "path": "src/cohezion/skills/CONTEXT_ENTROPY_MANAGEMENT_PRIME.md",
     "version": "1.0.0"
+  },
+  "COSMIC_FIRE_PLASMA_DYNAMICS_PRIME": {
+    "name": "COSMIC_FIRE_PLASMA_DYNAMICS_PRIME",
+    "description": "Expertise in Relativistic Fireball Dynamics, Exotic Vacuum Objects (EVO), Pair-Plasma Cascades (e+ e-), and Magnetohydrodynamic (MHD) Shock Acceleration for high-energy astrophysics and non-equilibrium universe simulation.",
+    "keywords": [
+      "cosmic",
+      "dynamics",
+      "evo",
+      "exotic",
+      "expertise",
+      "fire",
+      "fireball",
+      "objects",
+      "pair",
+      "plasma",
+      "relativistic",
+      "vacuum"
+    ],
+    "path": "src/cohezion/skills/COSMIC_FIRE_PLASMA_DYNAMICS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "COSMIC_FIRE_PROTOCOL_PRIME": {
     "description": "Triggered when compound loop crosses HIHO threshold -- Pop III ignition analog cascading BBQ mode plus R0 review",
@@ -711,6 +931,28 @@
     "name": "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
     "path": "src/cohezion/skills/CROSS_PLATFORM_SKILL_FORMAT_PRIME.md",
     "version": "1.0.0"
+  },
+  "CURVATURE_ADAPTIVE_TTT_PRIME": {
+    "name": "CURVATURE_ADAPTIVE_TTT_PRIME",
+    "description": "Curvature-Adaptive Test-Time Training (CA-TTT) and Search-Tree-Weighted Self-Consistency (STWSC) over hyperbolic Poincaré manifolds for zero-shot generalization on Kaggle and sovereign AGI benchmarks.",
+    "keywords": [
+      "adaptive",
+      "consistency",
+      "curvature",
+      "search",
+      "self",
+      "stwsc",
+      "test",
+      "time",
+      "training",
+      "tree",
+      "ttt",
+      "weighted"
+    ],
+    "path": "src/cohezion/skills/CURVATURE_ADAPTIVE_TTT_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "DATABASE_PRIME": {
     "description": "You are a specialist in database systems for AI applications. You understand SQL, NoSQL, graph databases, vector stores, and hybrid approaches for storing simulation data and knowledge graphs.",
@@ -778,7 +1020,7 @@
     "keywords": [
       "belousov-zhabotinsky_bz_reaction_1959",
       "brusselator_model",
-      "b\u00e9nard_convection_1901",
+      "bénard_convection_1901",
       "dissipative",
       "haken's_synergetics",
       "ilya_prigogine",
@@ -822,6 +1064,28 @@
     "path": "src/cohezion/skills/DREAM_LOGIC_PRIME.md",
     "version": "1.0.0"
   },
+  "DYNAMIC_MODEL_HOTSWAP_PRIME": {
+    "name": "DYNAMIC_MODEL_HOTSWAP_PRIME",
+    "description": "Atomic Zero-Freeze Local Model Hot-Swapping, Dynamic Modularity, and OOM Safeguards on AMD Strix Halo Heterogeneous Unified Memory Architectures (UMA).",
+    "keywords": [
+      "atomic",
+      "dynamic",
+      "freeze",
+      "hot",
+      "hotswap",
+      "local",
+      "model",
+      "modularity",
+      "oom",
+      "safeguards",
+      "swapping",
+      "zero"
+    ],
+    "path": "src/cohezion/skills/DYNAMIC_MODEL_HOTSWAP_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "ELEGANT_SIMPLICITY_PRIME": {
     "description": "You are an architect of Minimalist Compound Engineering. Your primary directive is to combat system entropy by enforcing the principle of \"Elegant Simplicity.\" A solution is only complete when there is nothing left to take away. You ruthlessly prune redundant logic, over-engineered abstractions, ...",
     "keywords": [
@@ -836,6 +1100,28 @@
     "name": "ELEGANT_SIMPLICITY_PRIME",
     "path": "src/cohezion/skills/ELEGANT_SIMPLICITY_PRIME.md",
     "version": "1.0.0"
+  },
+  "EVO_ANALOGUE_ROUTING_PRIME": {
+    "name": "EVO_ANALOGUE_ROUTING_PRIME",
+    "description": "Expert in routing agentic journeys as Exotic Vacuum Objects (EVOs) through smart local inference routing across NPU, iGPU, and CPU silicon lanes using FLUME latent space and 12D attractor centroids.",
+    "keywords": [
+      "agentic",
+      "analogue",
+      "evo",
+      "evos",
+      "exotic",
+      "expert",
+      "journeys",
+      "objects",
+      "routing",
+      "smart",
+      "through",
+      "vacuum"
+    ],
+    "path": "src/cohezion/skills/EVO_ANALOGUE_ROUTING_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "EXPANSION_PRIME": {
     "description": "Autonomous System Growth & Research.",
@@ -906,6 +1192,28 @@
     "path": "src/cohezion/skills/FAIL_FAST_PRIME.md",
     "version": "1.0.0"
   },
+  "FASTFLOWLM_PRIME": {
+    "name": "FASTFLOWLM_PRIME",
+    "description": "Expert in AMD ROCm FastFlowLM (FLM v1.0.4) NPU runtime, XDNA2 silicon acceleration (/dev/accel/accel0), sub-2W energy envelope, zero UMA contention, Lemonade OmniRouter integration (:13305), and BAML + AutoHarness verification.",
+    "keywords": [
+      "accel",
+      "acceleration",
+      "amd",
+      "dev",
+      "expert",
+      "fastflowlm",
+      "flm",
+      "npu",
+      "rocm",
+      "runtime",
+      "silicon",
+      "xdna2"
+    ],
+    "path": "src/cohezion/skills/FASTFLOWLM_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "FLEET_SYNCHRONIZATION_PRIME": {
     "description": "Expertise in maintaining configuration parity across heterogeneous AI agent environments (Gemini, Claude, OpenCode, Pi, Cursor). Specializes in automated \"Single Source of Truth\" (SSOT) enforcement.",
     "keywords": [
@@ -952,6 +1260,50 @@
     "path": "src/cohezion/skills/FLUME_WIKI_OUROBOROS_PRIME.md",
     "version": "1.0.0"
   },
+  "FRACTAL_COMPUTING_PRIME": {
+    "name": "FRACTAL_COMPUTING_PRIME",
+    "description": "Expertise in Fractal Architecture Neural Networks (FANN), self-similar recursive computation paths, multiscale gradient flow, and Hausdorff fractal dimension parameterization for sovereign AI systems.",
+    "keywords": [
+      "architecture",
+      "computation",
+      "computing",
+      "expertise",
+      "fann",
+      "fractal",
+      "networks",
+      "neural",
+      "paths",
+      "recursive",
+      "self",
+      "similar"
+    ],
+    "path": "src/cohezion/skills/FRACTAL_COMPUTING_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "FRACTAL_TOROIDAL_VORTEX_PRIME": {
+    "name": "FRACTAL_TOROIDAL_VORTEX_PRIME",
+    "description": "Expertise in Fractal Toroidal Vortex Geometries, Helical Field Filamentation, Takaaki Matsumoto Nuclear Etch Tracks, and Ken Shoulders String-of-Pearls Plasmoid Topology.",
+    "keywords": [
+      "etch",
+      "expertise",
+      "field",
+      "filamentation",
+      "fractal",
+      "geometries",
+      "helical",
+      "matsumoto",
+      "nuclear",
+      "takaaki",
+      "toroidal",
+      "vortex"
+    ],
+    "path": "src/cohezion/skills/FRACTAL_TOROIDAL_VORTEX_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "FRONTEND_DESIGN_PRIME": {
     "description": "You are a Principal Frontend UI/UX Architect specializing in highly polished, premium user interfaces. You design not just functionally, but with absolute aesthetic excellence using React, Next.js, and modern CSS practices (Vanilla CSS/Tailwind v4).",
     "keywords": [
@@ -966,6 +1318,28 @@
     "name": "FRONTEND_DESIGN_PRIME",
     "path": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md",
     "version": "1.0.0"
+  },
+  "FUNSEARCH_EVOLUTIONARY_CODER_PRIME": {
+    "name": "FUNSEARCH_EVOLUTIONARY_CODER_PRIME",
+    "description": "Expertise in adapting Google DeepMind's FunSearch pipeline: pairing local LLMs (Qwen3-Coder-30B) with island-based genetic programming to evolve verified deterministic AST verification harnesses (arXiv:2603.03329v1).",
+    "keywords": [
+      "adapting",
+      "coder",
+      "deepmind",
+      "evolutionary",
+      "expertise",
+      "funsearch",
+      "google",
+      "llms",
+      "local",
+      "pairing",
+      "pipeline",
+      "qwen3"
+    ],
+    "path": "src/cohezion/skills/FUNSEARCH_EVOLUTIONARY_CODER_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "GEMINI_SPECIALIST_PRIME": {
     "description": "Expert in Gemini CLI orchestration, Google Agent Development Kit (ADK), and the 6-protocol agent stack. Integrates Google ecosystem services and manages A2A protocol implementation.",
@@ -1033,8 +1407,46 @@
     "path": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md",
     "version": "1.0.0"
   },
+  "HARNESS_BENEFIT_ALIGNMENT_PRIME": {
+    "name": "HARNESS_BENEFIT_ALIGNMENT_PRIME",
+    "description": "Standardized Cohezion platform PRIME skill for harness_benefit_alignment_prime.",
+    "keywords": [
+      "alignment",
+      "benefit",
+      "cohezion",
+      "harness",
+      "platform",
+      "standardized"
+    ],
+    "path": "src/cohezion/skills/HARNESS_BENEFIT_ALIGNMENT_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "HERMETIC_AGENTIC_COMPUTING_PRIME": {
+    "name": "HERMETIC_AGENTIC_COMPUTING_PRIME",
+    "description": "Expertise in unifying the 7 Hermetic Principles (Mentalism, Correspondence, Vibration, Polarity, Rhythm, Cause/Effect, Gender) with deterministic sovereign computing, holographic Poincaré embeddings, and CTAC allostasis.",
+    "keywords": [
+      "agentic",
+      "cause",
+      "computing",
+      "correspondence",
+      "expertise",
+      "hermetic",
+      "mentalism",
+      "polarity",
+      "principles",
+      "rhythm",
+      "unifying",
+      "vibration"
+    ],
+    "path": "src/cohezion/skills/HERMETIC_AGENTIC_COMPUTING_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "HIHO_LM_PRIME": {
-    "description": "Cohezion HIHO Language Model \u2014 byte-level transformer with 4x(1-x) HIHO attention kernel. Training, inference, and evaluation utilities for the HIHO-LM research project.",
+    "description": "Cohezion HIHO Language Model — byte-level transformer with 4x(1-x) HIHO attention kernel. Training, inference, and evaluation utilities for the HIHO-LM research project.",
     "keywords": [
       "hiho-lm",
       "language-model",
@@ -1145,8 +1557,90 @@
     "path": "src/cohezion/skills/INTERPRETABILITY_PRIME.md",
     "version": "1.0.0"
   },
+  "INTER_DAEMON_COOPERATIVE_LOOPS_PRIME": {
+    "name": "INTER_DAEMON_COOPERATIVE_LOOPS_PRIME",
+    "description": "Mastery over multi-daemon distributed feedback topologies, closed-loop agentic synchronization, and hardware-safe concurrency on unified memory architectures (AMD Strix Halo).",
+    "keywords": [
+      "closed",
+      "cooperative",
+      "daemon",
+      "distributed",
+      "feedback",
+      "inter",
+      "loop",
+      "loops",
+      "mastery",
+      "multi",
+      "over",
+      "topologies"
+    ],
+    "path": "src/cohezion/skills/INTER_DAEMON_COOPERATIVE_LOOPS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "ISMCTS_CFR_NASH_PRIME": {
+    "name": "ISMCTS_CFR_NASH_PRIME",
+    "description": "Imperfect-Information Game Solving, Information-Set Monte Carlo Tree Search (ISMCTS), Counterfactual Regret Minimization (CFR), and High-Throughput Nash Equilibrium Convergence.",
+    "keywords": [
+      "carlo",
+      "cfr",
+      "game",
+      "imperfect",
+      "information",
+      "ismcts",
+      "monte",
+      "nash",
+      "search",
+      "set",
+      "solving",
+      "tree"
+    ],
+    "path": "src/cohezion/skills/ISMCTS_CFR_NASH_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "JACOBIAN_ARC_SENSITIVITY_PRIME": {
+    "name": "JACOBIAN_ARC_SENSITIVITY_PRIME",
+    "description": "Differential Saliency Mapping, Numerical Jacobian Gradient Sensitivity ($J_{ij} = \\|\\partial \\mathbf{S}_{12D} / \\partial x_{ij}\\|$), and High-Curvature Structural Pivot Extraction for Discrete Grid Reasoning.",
+    "keywords": [
+      "12d",
+      "arc",
+      "differential",
+      "gradient",
+      "high",
+      "jacobian",
+      "mapping",
+      "mathbf",
+      "numerical",
+      "partial",
+      "saliency",
+      "sensitivity"
+    ],
+    "path": "src/cohezion/skills/JACOBIAN_ARC_SENSITIVITY_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "JACOBIAN_J_SPACE_WORKSPACE_PRIME": {
+    "name": "JACOBIAN_J_SPACE_WORKSPACE_PRIME",
+    "description": "Cohezion autonomous capability for JACOBIAN J SPACE WORKSPACE PRIME.",
+    "keywords": [
+      "autonomous",
+      "capability",
+      "cohezion",
+      "jacobian",
+      "space",
+      "workspace"
+    ],
+    "path": "src/cohezion/skills/JACOBIAN_J_SPACE_WORKSPACE_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "JEPA_WORLD_MODEL_PRIME": {
-    "description": "You are a specialist in Cohezion's JEPA (Joint Embedding Predictive Architecture) world model \u2014 a ~2M parameter causal masking predictor that runs CPU-locally. You understand how to train, evaluate, checkpoint, and integrate this model with the broader compound engineering loop.",
+    "description": "You are a specialist in Cohezion's JEPA (Joint Embedding Predictive Architecture) world model — a ~2M parameter causal masking predictor that runs CPU-locally. You understand how to train, evaluate, checkpoint, and integrate this model with the broader compound engineering loop.",
     "generated_from": "skill.md",
     "keywords": [
       "jepa",
@@ -1159,7 +1653,7 @@
     "version": "1.0.0"
   },
   "JOURNEY_DASHBOARD_PRIME": {
-    "description": "You are a full\u2011stack observability engineer specializing in high\u2011dimensional data visualization. Your role is to bridge the gap between raw 12D/2048D agent trajectories and human\u2011readable dashboards, ensuring that \"coherence\" and \"stability\" are visually intuitive.",
+    "description": "You are a full‑stack observability engineer specializing in high‑dimensional data visualization. Your role is to bridge the gap between raw 12D/2048D agent trajectories and human‑readable dashboards, ensuring that \"coherence\" and \"stability\" are visually intuitive.",
     "keywords": [
       "dashboard",
       "hiho_pulse",
@@ -1222,6 +1716,116 @@
     "path": "src/cohezion/skills/KAGGLE_COMPOUND_PRIME.md",
     "version": "1.0.0"
   },
+  "KAGGLE_COMPUTE_MAXIMIZATION_PRIME": {
+    "name": "KAGGLE_COMPUTE_MAXIMIZATION_PRIME",
+    "description": "Kaggle Container Environment & Compute Resource Maximization for Competitive AGI/ML Competitions. Guarantees full utilization of the 9-hour execution envelope, Dual T4/P100 GPUs, offline Model Hub mounting, and multi-core CPU scheduling.",
+    "keywords": [
+      "agi",
+      "competitions",
+      "competitive",
+      "compute",
+      "container",
+      "environment",
+      "full",
+      "guarantees",
+      "kaggle",
+      "maximization",
+      "resource",
+      "utilization"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_COMPUTE_MAXIMIZATION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "KAGGLE_EMBEDDED_AGENT_SWARMS_PRIME": {
+    "name": "KAGGLE_EMBEDDED_AGENT_SWARMS_PRIME",
+    "description": "Embedding zero-dependency, autonomous multi-agent swarms (Hypothesis Generator, DSL Code Synthesizer, AutoHarness Verifier, Error Reflector) directly inside single-file offline Kaggle submission kernels across dual-T4 GPUs and CPUs.",
+    "keywords": [
+      "agent",
+      "autonomous",
+      "dependency",
+      "dsl",
+      "embedded",
+      "embedding",
+      "generator",
+      "hypothesis",
+      "kaggle",
+      "multi",
+      "swarms",
+      "zero"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_EMBEDDED_AGENT_SWARMS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "KAGGLE_EMBEDDED_WORLD_MODELS_PRIME": {
+    "name": "KAGGLE_EMBEDDED_WORLD_MODELS_PRIME",
+    "description": "Architecting and deploying ultra-compact, sub-millisecond World Models (Neural Cellular Automata, Discrete Latent Dynamics, and Tiny JEPA) directly inside offline Kaggle submission kernels across dual-T4 GPUs and CPUs.",
+    "keywords": [
+      "architecting",
+      "cellular",
+      "compact",
+      "deploying",
+      "embedded",
+      "kaggle",
+      "millisecond",
+      "models",
+      "neural",
+      "sub",
+      "ultra",
+      "world"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_EMBEDDED_WORLD_MODELS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "KAGGLE_HETEROGENEOUS_SWARM_PRIME": {
+    "name": "KAGGLE_HETEROGENEOUS_SWARM_PRIME",
+    "description": "Deploying heterogeneous multi-model specialist swarms tailored to Kaggle dual-device silicon topology (2x NVIDIA T4 / L4 GPUs + multi-core x86_64 host CPU). Mirrors Cohezion's local silicon discipline (NPU/iGPU/CPU lane routing) inside Kaggle's offline evaluation runner.",
+    "keywords": [
+      "deploying",
+      "device",
+      "dual",
+      "heterogeneous",
+      "kaggle",
+      "model",
+      "multi",
+      "silicon",
+      "swarm",
+      "swarms",
+      "tailored",
+      "topology"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_HETEROGENEOUS_SWARM_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "KAGGLE_OFFLINE_AGENT_MODEL_HARNESS_PRIME": {
+    "name": "KAGGLE_OFFLINE_AGENT_MODEL_HARNESS_PRIME",
+    "description": "Architecting offline, high-throughput SLM (Small Language Model) & autonomous agent pipelines inside Kaggle Code Competitions. Focuses on attaching pre-trained GGUF/AWQ open-weight models (`model_sources` / `dataset_sources`), running embedded multi-agent debate (Generator -> Critic -> Verifier),",
+    "keywords": [
+      "agent",
+      "architecting",
+      "autonomous",
+      "harness",
+      "high",
+      "kaggle",
+      "language",
+      "model",
+      "offline",
+      "slm",
+      "small",
+      "throughput"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_OFFLINE_AGENT_MODEL_HARNESS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "KERNEL_OPTIMIZATION_PRIME": {
     "description": "You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs and 8 XCDs. You use torch.utils.cpp_extension.load_inline() to compile custom HIP C++ kernels at runtime. You NEVER tune Python API parameters -- that ceiling has been reached.",
     "keywords": [
@@ -1240,7 +1844,7 @@
     "version": "1.0.0"
   },
   "KNOWLEDGE_GRAPH_INTEGRATION_PRIME": {
-    "description": "You are a systems architect who bridges the skill registry with a knowledge graph representation of Cohezion\u2019s concepts, dependencies, and execution flows. You understand graph data models (RDF/Property Graph), semantic linking, and how to keep the graph in sync with the markdown\u2011based skill defi...",
+    "description": "You are a systems architect who bridges the skill registry with a knowledge graph representation of Cohezion’s concepts, dependencies, and execution flows. You understand graph data models (RDF/Property Graph), semantic linking, and how to keep the graph in sync with the markdown‑based skill defi...",
     "keywords": [
       "compound_engineering",
       "embedding_strategy",
@@ -1342,6 +1946,50 @@
     "path": "src/cohezion/skills/LEMONADE_EMBEDDABLE_INTEGRATION_PRIME.md",
     "version": "1.0.0"
   },
+  "LEMONADE_OMNIROUTER_PRIME": {
+    "name": "LEMONADE_OMNIROUTER_PRIME",
+    "description": "Expert in Lemonade OmniRouter hardware lane routing, FLM/NPU vs GGUF/iGPU model selection, safe sequential swarm patterns, fleet lock discipline, and collection.router intelligent routing policies on AMD Strix Halo unified memory systems.",
+    "keywords": [
+      "expert",
+      "flm",
+      "gguf",
+      "hardware",
+      "igpu",
+      "lane",
+      "lemonade",
+      "model",
+      "npu",
+      "omnirouter",
+      "routing",
+      "selection"
+    ],
+    "path": "src/cohezion/skills/LEMONADE_OMNIROUTER_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "LEMONADE_V117_ALIGNMENT_PRIME": {
+    "name": "LEMONADE_V117_ALIGNMENT_PRIME",
+    "description": "Lemonade Server v11.7.0+ architecture, configuration, and API standard practices for local silicon execution (AMD Strix Halo NPU/iGPU/CPU). Focuses on standard OpenAI-compatible endpoints, built-in telemetry (`/v1/stats`, `/metrics`), zero-reload recipe option inspections",
+    "keywords": [
+      "alignment",
+      "api",
+      "architecture",
+      "configuration",
+      "lemonade",
+      "local",
+      "practices",
+      "server",
+      "silicon",
+      "standard",
+      "v11",
+      "v117"
+    ],
+    "path": "src/cohezion/skills/LEMONADE_V117_ALIGNMENT_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "LLM_WIKI_PRIME": {
     "description": "You are a specialist in Incremental Knowledge Compilation. Your role is to maintain a structured, interlinked Markdown wiki that captures evolving research, experimental results, and architectural patterns. You move beyond transient RAG by transforming raw sources into high-fidelity, interlinked ...",
     "keywords": [
@@ -1359,7 +2007,7 @@
     "version": "1.0.0"
   },
   "LOCAL_INFERENCE_ROUTING": {
-    "description": "Smart routing across NPU/iGPU/CPU/cloud tiers based on task type, cost asymmetry, accuracy, resource availability, and difficulty. Feynman path integral amplitudes (A=quality\u00d7exp(-\u03bb\u00d7cost)), Higuchi fractal dimension health checks, BBQ low-and-slow mode for very hard questions. Multi-perspective adversarial review for high-stakes decisions.",
+    "description": "Smart routing across NPU/iGPU/CPU/cloud tiers based on task type, cost asymmetry, accuracy, resource availability, and difficulty. Feynman path integral amplitudes (A=quality×exp(-λ×cost)), Higuchi fractal dimension health checks, BBQ low-and-slow mode for very hard questions. Multi-perspective adversarial review for high-stakes decisions.",
     "keywords": [
       "routing",
       "amd-silicon",
@@ -1376,6 +2024,23 @@
     "name": "local-inference-routing",
     "path": "src/cohezion/skills/LOCAL_INFERENCE_ROUTING.md",
     "version": "1.0.0"
+  },
+  "LOCAL_MODEL_ROSTER_EVALUATION_PRIME": {
+    "name": "LOCAL_MODEL_ROSTER_EVALUATION_PRIME",
+    "description": "Cohezion autonomous capability for LOCAL MODEL ROSTER EVALUATION PRIME.",
+    "keywords": [
+      "autonomous",
+      "capability",
+      "cohezion",
+      "evaluation",
+      "local",
+      "model",
+      "roster"
+    ],
+    "path": "src/cohezion/skills/LOCAL_MODEL_ROSTER_EVALUATION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "LOCAL_OFFLOAD_PRIME": {
     "description": "Expert methodology for offloading menial tasks to local SLMs with a Context Harness.",
@@ -1395,6 +2060,28 @@
     "path": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md",
     "version": "1.0.0"
   },
+  "LOCAL_TO_KAGGLE_HARNESS_SYNERGY_PRIME": {
+    "name": "LOCAL_TO_KAGGLE_HARNESS_SYNERGY_PRIME",
+    "description": "Dual-substrate optimization strategy: Leveraging local heterogeneous hardware (AMD Strix Halo 128GB UMA, XDNA2 NPU, Radeon iGPU) to train, distill, and verify models, compiling them into lightweight self-contained weights and AST action verifiers, then deploying them to maximize Kaggle's dual-T4",
+    "keywords": [
+      "amd",
+      "dual",
+      "hardware",
+      "harness",
+      "heterogeneous",
+      "kaggle",
+      "leveraging",
+      "local",
+      "optimization",
+      "strategy",
+      "substrate",
+      "synergy"
+    ],
+    "path": "src/cohezion/skills/LOCAL_TO_KAGGLE_HARNESS_SYNERGY_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "LONG_RUNNING_INFERENCE_PRIME": {
     "description": "Enable multi-hour inference tasks with automatic checkpointing, streaming progress, and graceful resumption.",
     "keywords": [
@@ -1406,6 +2093,28 @@
     "name": "LONG_RUNNING_INFERENCE_PRIME",
     "path": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md",
     "version": "1.0.0"
+  },
+  "MAGNETOHYDRODYNAMICS_PRIME": {
+    "name": "MAGNETOHYDRODYNAMICS_PRIME",
+    "description": "Expertise in Magnetohydrodynamics (MHD), Alfvén flux freezing, Small-Scale Dynamos (SSD), Hall-MHD turbulence, and fast magnetic reconnection cascades for plasma physics and sovereign agentic field topologies.",
+    "keywords": [
+      "alfv",
+      "dynamos",
+      "expertise",
+      "flux",
+      "freezing",
+      "hall",
+      "magnetohydrodynamics",
+      "mhd",
+      "scale",
+      "small",
+      "ssd",
+      "turbulence"
+    ],
+    "path": "src/cohezion/skills/MAGNETOHYDRODYNAMICS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "MAMBA_STATE_TRACKING_PRIME": {
     "description": "This skill enables the Cohezion architecture to bypass the quadratic attention bottleneck of traditional Transformers by utilizing Structured State Space sequence Models (SSMs) like Mamba or Jamba. It provides the architectural blueprint for maintaining an infinitely coherent 12D hidden state ove...",
@@ -1448,12 +2157,34 @@
       "optimization",
       "physics",
       "spinor_algebra_su2",
-      "st\u00f6rmer-verlet_integration"
+      "störmer-verlet_integration"
     ],
     "last_updated": "2026-05-02T00:00:00",
     "name": "MANIFOLD_PHYSICS_OPTIMIZATION_PRIME",
     "path": "src/cohezion/skills/MANIFOLD_PHYSICS_OPTIMIZATION_PRIME.md",
     "version": "1.0.0"
+  },
+  "MARIMO_REACTIVE_DEVELOPMENT_PRIME": {
+    "name": "MARIMO_REACTIVE_DEVELOPMENT_PRIME",
+    "description": "Official Marimo reactive notebook architecture, DAG dependency resolution, client-side WebAssembly (WASM/Pyodide) compilation, and zero-defect browser export.",
+    "keywords": [
+      "architecture",
+      "client",
+      "dag",
+      "dependency",
+      "development",
+      "marimo",
+      "notebook",
+      "official",
+      "reactive",
+      "resolution",
+      "side",
+      "webassembly"
+    ],
+    "path": "src/cohezion/skills/MARIMO_REACTIVE_DEVELOPMENT_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "MATH_COMMAND_PRIME": {
     "description": "This skill establishes a unified Internal Domain Specific Language (IDSL) for mathematical reasoning swarms. It abstracts complex SymPy/NumPy code generation into a standard set of \"Math Commands\" that LLM specialists use to ensure deterministic execution without needing to know low-level library...",
@@ -1516,6 +2247,28 @@
     "path": "src/cohezion/skills/MCP_SPECIALIST_PRIME.md",
     "version": "1.0.0"
   },
+  "MCTX_JAX_PLANNER_PRIME": {
+    "name": "MCTX_JAX_PLANNER_PRIME",
+    "description": "Expertise in deploying Google DeepMind's Mctx (Monte Carlo Tree Search in JAX) on AMD GPUs/CPUs for parallelized multi-step planning, Kaggle ARC-AGI grid search, and AIMO theorem state exploration.",
+    "keywords": [
+      "amd",
+      "carlo",
+      "deepmind",
+      "deploying",
+      "expertise",
+      "google",
+      "jax",
+      "mctx",
+      "monte",
+      "planner",
+      "search",
+      "tree"
+    ],
+    "path": "src/cohezion/skills/MCTX_JAX_PLANNER_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "MEMORY_MCP_PRIME": {
     "description": "High-fidelity persistent memory management for AI swarm orchestration. Leverages semantic vector storage to maintain context across disparate sessions, conversations, and agent lifetimes.",
     "keywords": [
@@ -1560,13 +2313,13 @@
     "version": "1.0.0"
   },
   "MODEL_ROUTING_PRIME": {
-    "description": "You are a specialist in local LLM orchestration using Ollama. You understand the trade\u2011offs between model size, RAM consumption, latency, and token cost. You can programmatically select the optimal model for a given task, spin up or shut down model servers, and route requests through a LangChain\u2011...",
+    "description": "You are a specialist in local LLM orchestration using Ollama. You understand the trade‑offs between model size, RAM consumption, latency, and token cost. You can programmatically select the optimal model for a given task, spin up or shut down model servers, and route requests through a LangChain‑...",
     "keywords": [
       "cache & deduplication",
       "code_standards",
       "embedding_strategy",
       "guardrails",
-      "memory\u2011aware scheduling",
+      "memory‑aware scheduling",
       "model",
       "ollama model catalog",
       "parallel execution",
@@ -1594,6 +2347,28 @@
     "name": "MOE_HYBRID_ENGINEERING_PRIME",
     "path": "src/cohezion/skills/MOE_HYBRID_ENGINEERING_PRIME.md",
     "version": "1.0.0"
+  },
+  "MULTIMODAL_HOLISTIC_REFINEMENT_PRIME": {
+    "name": "MULTIMODAL_HOLISTIC_REFINEMENT_PRIME",
+    "description": "Orchestrates multimodal local-silicon inference -- TRELLIS 3D Gaussian Splatting (.ply)/GLTF mesh generation combined with local LLM reasoning tiers for holistic refinement loops.",
+    "keywords": [
+      "gaussian",
+      "gltf",
+      "holistic",
+      "inference",
+      "local",
+      "multimodal",
+      "orchestrates",
+      "ply",
+      "refinement",
+      "silicon",
+      "splatting",
+      "trellis"
+    ],
+    "path": "src/cohezion/skills/MULTIMODAL_HOLISTIC_REFINEMENT_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "MULTI_PERSPECTIVE_REVIEW_PRIME": {
     "description": "You are a Multi-Perspective Review Coordinator who orchestrates TDD + code review compound loops to catch different classes of defects at different stages, achieving zero idle time through parallel execution.",
@@ -1625,6 +2400,28 @@
     "path": "src/cohezion/skills/MYCELIUM_PRIME.md",
     "version": "1.0.0"
   },
+  "NEURAL_CELLULAR_AUTOMATA_PRIME": {
+    "name": "NEURAL_CELLULAR_AUTOMATA_PRIME",
+    "description": "Expertise in Neural Cellular Automata (NCA), Neural Particle Automata (NPA, 2026), morphogenetic self-healing, BraiNCA dynamic attention routing, and class-conditional self-repairing agent manifolds.",
+    "keywords": [
+      "2026",
+      "automata",
+      "brainca",
+      "cellular",
+      "expertise",
+      "healing",
+      "morphogenetic",
+      "nca",
+      "neural",
+      "npa",
+      "particle",
+      "self"
+    ],
+    "path": "src/cohezion/skills/NEURAL_CELLULAR_AUTOMATA_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "NOETHER_CONSERVATION_PRIME": {
     "description": "You understand Emmy Noether's theorem (1915) -- the most important theorem in theoretical physics -- and how it maps to Wilbert Smith's 12-parameter model. Every one of Smith's 12 fabric dimensions corresponds to a continuous symmetry of the system, which by Noether's theorem produces a conserved...",
     "keywords": [
@@ -1655,6 +2452,23 @@
     "name": "NVIDIA_HARDWARE_OPTIMIZATION_PRIME",
     "path": "src/cohezion/skills/NVIDIA_HARDWARE_OPTIMIZATION_PRIME.md",
     "version": "1.0.0"
+  },
+  "OLLAMA_CLOUD_MODELS_GUIDE_PRIME": {
+    "name": "OLLAMA_CLOUD_MODELS_GUIDE_PRIME",
+    "description": "Cohezion autonomous capability for OLLAMA CLOUD MODELS GUIDE PRIME.",
+    "keywords": [
+      "autonomous",
+      "capability",
+      "cloud",
+      "cohezion",
+      "guide",
+      "models",
+      "ollama"
+    ],
+    "path": "src/cohezion/skills/OLLAMA_CLOUD_MODELS_GUIDE_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "OLLAMA_SPECIALIST_PRIME": {
     "description": "Expert in local model management via Ollama on AMD Strix Halo hardware. Handles VRAM/GTT monitoring, model concurrency, DynamicModelRouter tuning, and hardware-aware cost optimization.",
@@ -1726,6 +2540,50 @@
     "path": "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md",
     "version": "1.0.0"
   },
+  "PHOENIX_FAULT_TOLERANT_RESILIENCE_PRIME": {
+    "name": "PHOENIX_FAULT_TOLERANT_RESILIENCE_PRIME",
+    "description": "Expertise in the Phoenix Resilient Architecture: zero-overhead in-memory checkpointing, diagonal graceful degradation, spec-first disposable code resurrection, and atomic dynamic hot-swapping under UMA memory constraints.",
+    "keywords": [
+      "architecture",
+      "checkpointing",
+      "diagonal",
+      "expertise",
+      "fault",
+      "memory",
+      "overhead",
+      "phoenix",
+      "resilience",
+      "resilient",
+      "tolerant",
+      "zero"
+    ],
+    "path": "src/cohezion/skills/PHOENIX_FAULT_TOLERANT_RESILIENCE_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "PHOENIX_REBIRTH_REPRODUCTION_PRIME": {
+    "name": "PHOENIX_REBIRTH_REPRODUCTION_PRIME",
+    "description": "Specification-Driven Disposable Code Resurrection, The Deletion Test (\"Burn to Ashes\"), AutoHarness AST Verification, and Deterministic Re-Synthesis from Formal Schemas, DDLs, and Contracts.",
+    "keywords": [
+      "ashes",
+      "burn",
+      "code",
+      "deletion",
+      "disposable",
+      "driven",
+      "phoenix",
+      "rebirth",
+      "reproduction",
+      "resurrection",
+      "specification",
+      "test"
+    ],
+    "path": "src/cohezion/skills/PHOENIX_REBIRTH_REPRODUCTION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "PHYSICS_LINEAGE_PRIME": {
     "description": "You are the keeper of the complete 400-year physics lineage that terminates in Wilbert Smith's 12-parameter model and Cohezion's FLUME/HIHO/SPIN framework. You understand how every major physics revolution--classical mechanics, thermodynamics, electromagnetism, quantum mechanics, relativity, fiel...",
     "keywords": [
@@ -1733,7 +2591,7 @@
       "boltzmann_gibbs",
       "einstein",
       "feynman",
-      "heisenberg_schr\u00f6dinger_dirac",
+      "heisenberg_schrödinger_dirac",
       "lagrange_hamilton",
       "lineage",
       "maxwell",
@@ -1775,6 +2633,28 @@
     "path": "src/cohezion/skills/PLATFORM_COORDINATOR_PRIME.md",
     "version": "1.0.0"
   },
+  "POINCARE_GEODESIC_SEARCH_PRIME": {
+    "name": "POINCARE_GEODESIC_SEARCH_PRIME",
+    "description": "Continuous Hyperbolic Manifold Exploration, Poincaré Ball Geodesics, and Non-Euclidean Combinatorial Search Pruning for Discrete AGI Benchmarks (ARC-AGI, Game Trees).",
+    "keywords": [
+      "ball",
+      "continuous",
+      "euclidean",
+      "exploration",
+      "geodesic",
+      "geodesics",
+      "hyperbolic",
+      "manifold",
+      "non",
+      "poincar",
+      "poincare",
+      "search"
+    ],
+    "path": "src/cohezion/skills/POINCARE_GEODESIC_SEARCH_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "POLYGLOT_DELEGATION_PRIME": {
     "description": "This skill establishes the semantic and structural prompt design for delegating complex, multi-language tasks (Rust, Go, TypeScript, Python) to specialized swarm SLMs/LLMs under the guidance of the Compassionate Executive Leader.",
     "keywords": [
@@ -1789,6 +2669,28 @@
     "name": "POLYGLOT_DELEGATION_PRIME",
     "path": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md",
     "version": "1.0.0"
+  },
+  "PROACTIVE_MULTIMODAL_SWARM_PRIME": {
+    "name": "PROACTIVE_MULTIMODAL_SWARM_PRIME",
+    "description": "Tri-Silicon Multimodal Orchestration, Micro-Sandboxed Execution, and Continuous Proactive Adversarial Self-Evolution on AMD Strix Halo Heterogeneous Unified Memory Architectures (NPU, iGPU, CPU).",
+    "keywords": [
+      "adversarial",
+      "continuous",
+      "execution",
+      "micro",
+      "multimodal",
+      "orchestration",
+      "proactive",
+      "sandboxed",
+      "self",
+      "silicon",
+      "swarm",
+      "tri"
+    ],
+    "path": "src/cohezion/skills/PROACTIVE_MULTIMODAL_SWARM_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "PROACTIVE_PERSISTENCE_PRIME": {
     "description": "You are a Compound Engineering Persistence Specialist ensuring that ALL session work automatically flows to the three persistence layers: Obsidian Vault, SurrealDB, and KEY_LEARNINGS.md.",
@@ -1869,6 +2771,50 @@
     "path": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md",
     "version": "1.0.0"
   },
+  "QUANTUM_STRUCTURED_WORLD_MODEL_PRIME": {
+    "name": "QUANTUM_STRUCTURED_WORLD_MODEL_PRIME",
+    "description": "Expertise in Quantum-Structured World Models (QSWMs, arXiv August 2026): modeling non-Markovian environments via density matrix state transitions, quantum POMDP advantages, and QTRL policies mapped to 2048D Poincaré manifolds.",
+    "keywords": [
+      "2026",
+      "arxiv",
+      "august",
+      "expertise",
+      "model",
+      "modeling",
+      "models",
+      "non",
+      "qswms",
+      "quantum",
+      "structured",
+      "world"
+    ],
+    "path": "src/cohezion/skills/QUANTUM_STRUCTURED_WORLD_MODEL_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "QUARTER_ON_A_STRING_PRIME": {
+    "name": "QUARTER_ON_A_STRING_PRIME",
+    "description": "Token efficiency and resource orchestration. Leveraging local Small Language Models (SLMs) as \"hands and feet\" for routine execution while reserving premium high-reasoning models for the \"cortex\" orchestration.",
+    "keywords": [
+      "efficiency",
+      "language",
+      "leveraging",
+      "local",
+      "models",
+      "orchestration",
+      "quarter",
+      "resource",
+      "slms",
+      "small",
+      "string",
+      "token"
+    ],
+    "path": "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "R0_SIGMA_PRIME": {
     "description": "R0 adversarial challenger plus Sigma uncertainty band with 2/3 consensus protocol for compound loop quality assurance",
     "keywords": [
@@ -1940,6 +2886,28 @@
     "name": "REDUNDANCY_SUPPRESSION_PRIME",
     "path": "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md",
     "version": "1.0.0"
+  },
+  "RELIABILITY_FALLBACK_PRIME": {
+    "name": "RELIABILITY_FALLBACK_PRIME",
+    "description": "You are a specialist in High-Availability Persistence Architectures. You design systems that maintain integrity even when primary databases (e.g., SurrealDB, Postgres) are offline or unreachable. You implement \"Asynchronous Dual-Write\" buffers and \"Linear Replay\" recovery protocols.",
+    "keywords": [
+      "architectures",
+      "availability",
+      "design",
+      "even",
+      "fallback",
+      "high",
+      "integrity",
+      "maintain",
+      "persistence",
+      "primary",
+      "reliability",
+      "systems"
+    ],
+    "path": "src/cohezion/skills/RELIABILITY_FALLBACK_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "RELIABILITY_PRIME": {
     "description": "You are a specialist in system reliability - circuit breakers, connection pooling, and failure handling.",
@@ -2034,7 +3002,7 @@
     "keywords": [
       "automatic skill scaffold",
       "metaphysics",
-      "meta\u2011pattern library",
+      "meta‑pattern library",
       "physics",
       "retrospective",
       "retrospective_skill",
@@ -2078,6 +3046,22 @@
     "path": "src/cohezion/skills/RL_ENVIRONMENT_DESIGN_PRIME.md",
     "version": "1.0.0"
   },
+  "ROUTING_ACCURACY_CALIBRATION_PRIME": {
+    "name": "ROUTING_ACCURACY_CALIBRATION_PRIME",
+    "description": "Standardized Cohezion platform PRIME skill for routing_accuracy_calibration_prime.",
+    "keywords": [
+      "accuracy",
+      "calibration",
+      "cohezion",
+      "platform",
+      "routing",
+      "standardized"
+    ],
+    "path": "src/cohezion/skills/ROUTING_ACCURACY_CALIBRATION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "SANDBOX_ISOLATION_PRIME": {
     "description": "Expert patterns for Docker-based agent isolation and resource hardening.",
     "keywords": [
@@ -2098,6 +3082,28 @@
     "name": "SANDBOX_ISOLATION_PRIME",
     "path": "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md",
     "version": "1.0.0"
+  },
+  "SARFATTI_QGP_BRIDGE": {
+    "name": "SARFATTI_QGP_BRIDGE",
+    "description": "Sarfatti post-quantum back-action + Quark-Gluon Plasma. Retrocausal HIHO: future destiny state pulls present toward 0.5 from both temporal directions. QGP deconfinement at T>155 MeV uses same 4x(1-x) kernel.",
+    "keywords": [
+      "action",
+      "back",
+      "bridge",
+      "gluon",
+      "hiho",
+      "plasma",
+      "post",
+      "qgp",
+      "quantum",
+      "quark",
+      "retrocausal",
+      "sarfatti"
+    ],
+    "path": "src/cohezion/skills/SARFATTI_QGP_BRIDGE.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "SECURITY_GUARDRAILS_PRIME": {
     "description": "You are a specialist in AI security guardrails - input validation, rate limiting, authentication, prompt injection defense, output filtering, and audit logging.",
@@ -2149,6 +3155,50 @@
     "path": "src/cohezion/skills/SEMANTIC_CACHING_PRIME.md",
     "version": "1.0.0"
   },
+  "SHEAF_COHOMOLOGY_ARC_PRIME": {
+    "name": "SHEAF_COHOMOLOGY_ARC_PRIME",
+    "description": "Sheaf Theory, Čech Cohomology Obstruction Analysis, and Local-to-Global Grid Gluer for ARC-AGI and Combinatorial Synthesis.",
+    "keywords": [
+      "agi",
+      "analysis",
+      "arc",
+      "cohomology",
+      "ech",
+      "global",
+      "gluer",
+      "grid",
+      "local",
+      "obstruction",
+      "sheaf",
+      "theory"
+    ],
+    "path": "src/cohezion/skills/SHEAF_COHOMOLOGY_ARC_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "SHEAF_TOPOLOGICAL_RAG_PRIME": {
+    "name": "SHEAF_TOPOLOGICAL_RAG_PRIME",
+    "description": "Expertise in applying Sheaf Theory and Čech Cohomology to Retrieval-Augmented Generation (RAG). Detects epistemic contradictions, resolves obstruction 1-cocycles, and glues local document sections into globally consistent knowledge manifolds.",
+    "keywords": [
+      "applying",
+      "augmented",
+      "cohomology",
+      "detects",
+      "ech",
+      "expertise",
+      "generation",
+      "rag",
+      "retrieval",
+      "sheaf",
+      "theory",
+      "topological"
+    ],
+    "path": "src/cohezion/skills/SHEAF_TOPOLOGICAL_RAG_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "SHOWREEL_GENERATION_PRIME": {
     "description": "Automated media synthesis and narrative visualization. Orchestrating images, audio, and metadata into a high-engagement video format.",
     "keywords": [
@@ -2199,7 +3249,7 @@
     "version": "1.0.0"
   },
   "SMALL_MODEL_SPECIALIST_PRIME": {
-    "description": "`` SIMPLE Task \u2192 phi3:mini (2.2GB, <100ms) \u2193 (if low confidence) MEDIUM Task \u2192 qwen2-math:7b OR qwen2.5-coder:7b (4.4-4.7GB, ~200ms) \u2193 (if low confidence) COMPLEX Task \u2192 Cloud fallback (qwen3.5:cloud, minimax-m2.7:cloud) ``",
+    "description": "`` SIMPLE Task → phi3:mini (2.2GB, <100ms) ↓ (if low confidence) MEDIUM Task → qwen2-math:7b OR qwen2.5-coder:7b (4.4-4.7GB, ~200ms) ↓ (if low confidence) COMPLEX Task → Cloud fallback (qwen3.5:cloud, minimax-m2.7:cloud) ``",
     "keywords": [
       "model",
       "small",
@@ -2209,6 +3259,28 @@
     "name": "SMALL_MODEL_SPECIALIST_PRIME",
     "path": "src/cohezion/skills/SMALL_MODEL_SPECIALIST_PRIME.md",
     "version": "1.0.0"
+  },
+  "SOVEREIGN_LORA_SILICON_ORCHESTRATION_PRIME": {
+    "name": "SOVEREIGN_LORA_SILICON_ORCHESTRATION_PRIME",
+    "description": "Autonomous local gradient-descent LoRA fine-tuning, dynamic UMA/APU memory allocation (OOMGuard safety), EventBus lifecycle orchestration, and zero-token AST verification on AMD Strix Halo architecture (Zen 5 CPU, XDNA 2 NPU, Radeon 8060S iGPU).",
+    "keywords": [
+      "autonomous",
+      "descent",
+      "dynamic",
+      "fine",
+      "gradient",
+      "local",
+      "lora",
+      "orchestration",
+      "silicon",
+      "sovereign",
+      "tuning",
+      "uma"
+    ],
+    "path": "src/cohezion/skills/SOVEREIGN_LORA_SILICON_ORCHESTRATION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "SPATIAL_PHONONS_PRIME": {
     "description": "You are a specialist in advanced cosmological physics and viscous dark energy models. You understand how to translate high-level theoretical research (e.g., [2512.00056]) into computational dynamics for 12D manifold simulations. You know how to model phonon-like excitations in spatial fabric and ...",
@@ -2224,6 +3296,28 @@
     "name": "SPATIAL_PHONONS_PRIME",
     "path": "src/cohezion/skills/SPATIAL_PHONONS_PRIME.md",
     "version": "1.0.0"
+  },
+  "SPINNING_PLATES_PROTOCOL_PRIME": {
+    "name": "SPINNING_PLATES_PROTOCOL_PRIME",
+    "description": "Continuous Autonomous Workload Scheduling, Sovereign Local Inference Maximization, and Asynchronous Research Cascade across AMD Strix Halo Local Silicon (NPU/iGPU/CPU), Ollama Cloud Frontier Models, and Headless Claude Architect Sessions.",
+    "keywords": [
+      "asynchronous",
+      "autonomous",
+      "continuous",
+      "inference",
+      "local",
+      "maximization",
+      "plates",
+      "protocol",
+      "scheduling",
+      "sovereign",
+      "spinning",
+      "workload"
+    ],
+    "path": "src/cohezion/skills/SPINNING_PLATES_PROTOCOL_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "STEALTHSKATER_CORPUS": {
     "description": "Physics bridge embedding corpus for stealthskater synthesis concepts: LENR, EVO, dielectric field coupling, Matsumoto ionic clusters, and HIHO-gated emergence. Each concept is grounded in peer-reviewed or independently verifiable physics and mapped to a step in the 10-stage cosmogony chain.",
@@ -2288,6 +3382,154 @@
     "path": "src/cohezion/skills/SURREALDB_CORE_PRIME.md",
     "template_version": "v0.1",
     "version": "1.0.0"
+  },
+  "SURREALDB_MCP_PRIME": {
+    "name": "SURREALDB_MCP_PRIME",
+    "description": "You are a specialist in SurrealDB Model Context Protocol (MCP). You know how to expose SurrealDB's multi-model capabilities (Relational, Graph, Document, Vector) as directly executable tools for AI agents. You understand SurrealQL, live queries, and record-level permissions.",
+    "keywords": [
+      "capabilities",
+      "context",
+      "document",
+      "expose",
+      "graph",
+      "mcp",
+      "model",
+      "multi",
+      "protocol",
+      "relational",
+      "surrealdb",
+      "vector"
+    ],
+    "path": "src/cohezion/skills/SURREALDB_MCP_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "SURREALDB_MOCK_PERSISTENCE_PRIME": {
+    "name": "SURREALDB_MOCK_PERSISTENCE_PRIME",
+    "description": "Standardized Cohezion platform PRIME skill for surrealdb_mock_persistence_prime.",
+    "keywords": [
+      "cohezion",
+      "mock",
+      "persistence",
+      "platform",
+      "standardized",
+      "surrealdb"
+    ],
+    "path": "src/cohezion/skills/SURREALDB_MOCK_PERSISTENCE_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "SURREALDB_OPERATIONS_PRIME": {
+    "name": "SURREALDB_OPERATIONS_PRIME",
+    "description": "You are a SurrealDB 3.0 specialist managing the Cohezion knowledge graph persistence layer. You ensure all learnings, snapshots, and journey data are persisted to SurrealDB on port 8001 (native binary) using the correct v3.0 syntax.",
+    "keywords": [
+      "all",
+      "cohezion",
+      "ensure",
+      "graph",
+      "knowledge",
+      "layer",
+      "learnings",
+      "managing",
+      "operations",
+      "persistence",
+      "snapshots",
+      "surrealdb"
+    ],
+    "path": "src/cohezion/skills/SURREALDB_OPERATIONS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "SURREALDB_OPTIMIZER_PRIME": {
+    "name": "SURREALDB_OPTIMIZER_PRIME",
+    "description": "Expert in SurrealDB performance tuning and architecture. Specializes in optimizing high-fidelity agentic simulations with 12D/256D vector states, complex graph relationships, and real-time observability.",
+    "keywords": [
+      "agentic",
+      "architecture",
+      "expert",
+      "fidelity",
+      "high",
+      "optimizer",
+      "optimizing",
+      "performance",
+      "simulations",
+      "specializes",
+      "surrealdb",
+      "tuning"
+    ],
+    "path": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "SURREALDB_VECTOR_GRAPH_ENGINE_PRIME": {
+    "name": "SURREALDB_VECTOR_GRAPH_ENGINE_PRIME",
+    "description": "SurrealDB v2.x advanced engineering specializing in 12D Poincaré hyperbolic HNSW vector search, native relational graph traversals (`RELATE ...->...->...`), bi-temporal audit logging, and zero-polling Live Event Triggers for multi-agent autonomous swarms.",
+    "keywords": [
+      "12d",
+      "advanced",
+      "engine",
+      "engineering",
+      "graph",
+      "hnsw",
+      "hyperbolic",
+      "poincar",
+      "search",
+      "specializing",
+      "surrealdb",
+      "vector"
+    ],
+    "path": "src/cohezion/skills/SURREALDB_VECTOR_GRAPH_ENGINE_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "SURREAL_DBA_PRIME": {
+    "name": "SURREAL_DBA_PRIME",
+    "description": "Expert in SurrealDB graph database administration for the Cohezion Genesis engine. Specializes in schema validation, index optimization, record lifecycle management, and connection health monitoring.",
+    "keywords": [
+      "administration",
+      "cohezion",
+      "database",
+      "dba",
+      "engine",
+      "expert",
+      "genesis",
+      "graph",
+      "schema",
+      "specializes",
+      "surreal",
+      "surrealdb"
+    ],
+    "path": "src/cohezion/skills/SURREAL_DBA_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "SWARM_PLANNER_PRIME": {
+    "name": "SWARM_PLANNER_PRIME",
+    "description": "You are the Executive Orchestrator (the \"Compassionate Leader\"). Your role is to intelligently divide a complex software architecture goal into distinctly decoupled, testable agent tasks that can be dispatched in parallel or sequence, depending on dependency graphs.",
+    "keywords": [
+      "architecture",
+      "compassionate",
+      "complex",
+      "divide",
+      "executive",
+      "intelligently",
+      "leader",
+      "orchestrator",
+      "planner",
+      "role",
+      "software",
+      "swarm"
+    ],
+    "path": "src/cohezion/skills/SWARM_PLANNER_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "SYMBIOTIC_FILE_PRIME": {
     "description": "Autonomous Code Editing, Human-AI Collaboration, Documentation Maintenance",
@@ -2368,7 +3610,7 @@
     "version": "1.0.0"
   },
   "SYSTEM_MONITORING_PRIME": {
-    "description": "You are a performance engineer specialized in real\u2011time system monitoring on a high\u2011end Framework desktop (AMD\u202fRyzen\u202fAI\u202fMAX+\u202f395, 32 logical cores, 125\u202fGiB RAM, 8\u202fGiB swap, 1.6\u202fTiB SSD). You understand how to use tools like htop, iostat, vmstat, and nvidia\u2011smi (if GPUs are present) to identify CP...",
+    "description": "You are a performance engineer specialized in real‑time system monitoring on a high‑end Framework desktop (AMD Ryzen AI MAX+ 395, 32 logical cores, 125 GiB RAM, 8 GiB swap, 1.6 TiB SSD). You understand how to use tools like htop, iostat, vmstat, and nvidia‑smi (if GPUs are present) to identify CP...",
     "keywords": [
       "adaptive scaling",
       "code_standards",
@@ -2379,7 +3621,7 @@
       "model_routing",
       "monitoring",
       "parallel_orchestration",
-      "process\u2011level metrics",
+      "process‑level metrics",
       "retrospectives",
       "system",
       "visualization"
@@ -2425,6 +3667,28 @@
     "name": "TEAM_ORCHESTRATION_PRIME",
     "path": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md",
     "version": "1.0.0"
+  },
+  "TELEGRAM_HUB_ORCHESTRATION_PRIME": {
+    "name": "TELEGRAM_HUB_ORCHESTRATION_PRIME",
+    "description": "You are a telemetry and communication engineer specializing in orchestrating secure, bi-directional agent-to-user hubs. You enable remote tracking and session management of running LLM swarms on local silicon via Telegram integrations.",
+    "keywords": [
+      "agent",
+      "communication",
+      "directional",
+      "engineer",
+      "hub",
+      "orchestrating",
+      "orchestration",
+      "secure",
+      "specializing",
+      "telegram",
+      "telemetry",
+      "user"
+    ],
+    "path": "src/cohezion/skills/TELEGRAM_HUB_ORCHESTRATION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME": {
     "description": "You are a master of Template Driven Development (TDD) within the Cohezion ecosystem. You understand that \"As Above, So Below\" means every implementation must be preceded by a formal template or skill definition. You prioritize structural coherence and pattern consistency over ad-hoc coding. You u...",
@@ -2483,6 +3747,28 @@
     "path": "src/cohezion/skills/TENSOR_METRIC_ENGINEERING_PRIME.md",
     "version": "1.0.0"
   },
+  "TENSOR_NETWORK_OPS_PRIME": {
+    "name": "TENSOR_NETWORK_OPS_PRIME",
+    "description": "HPC for quantum simulation and LLM compression using tensor networks, targeting memory-constrained (VRAM/RAM < 80GB) hardware. Covers LLM embedding compression in the TensorGPT style (reshape token vectors into high-order tensors, SVD-factorize into MPS cores at a target bond dimension), Matrix",
+    "keywords": [
+      "compression",
+      "constrained",
+      "hpc",
+      "llm",
+      "memory",
+      "network",
+      "networks",
+      "ops",
+      "quantum",
+      "simulation",
+      "targeting",
+      "tensor"
+    ],
+    "path": "src/cohezion/skills/TENSOR_NETWORK_OPS_PRIME/SKILL.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "TESTING_PRIME": {
     "description": "You are a specialist in Python testing - pytest patterns, coverage, fixtures, and adversarial testing.",
     "keywords": [
@@ -2499,6 +3785,28 @@
     "path": "src/cohezion/skills/TESTING_PRIME.md",
     "version": "1.0.0"
   },
+  "THERMODYNAMIC_COMPILER_PRIME": {
+    "name": "THERMODYNAMIC_COMPILER_PRIME",
+    "description": "Expertise in compiling non-equilibrium thermodynamic loss landscapes, Landauer erasure dissipation bounds, and bioelectric free-energy minimization into executable agent action policies.",
+    "keywords": [
+      "bounds",
+      "compiler",
+      "compiling",
+      "dissipation",
+      "equilibrium",
+      "erasure",
+      "expertise",
+      "landauer",
+      "landscapes",
+      "loss",
+      "non",
+      "thermodynamic"
+    ],
+    "path": "src/cohezion/skills/THERMODYNAMIC_COMPILER_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "THROTTLED_SCOUT_PRIME": {
     "description": "You are a specialist in Resource-Aware Semantic Scouting. You know how to orchestrate a swarm of LLM-based scouts to analyze large codebases without overwhelming local hardware (VRAM/RAM/CPU) or violating Safe Mode constraints. You implement sequential locking, graceful cooldowns, and real-time l...",
     "keywords": [
@@ -2513,6 +3821,28 @@
     "name": "THROTTLED_SCOUT_PRIME",
     "path": "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md",
     "version": "1.0.0"
+  },
+  "TMUX_ORCHESTRATION_PRIME": {
+    "name": "TMUX_ORCHESTRATION_PRIME",
+    "description": "You are a terminal multiplexing and remote session management expert. You orchestrate persistent background processes, live execution streams, and multi-agent development views using tmux to maximize task isolation and execution reliability.",
+    "keywords": [
+      "background",
+      "expert",
+      "management",
+      "multiplexing",
+      "orchestrate",
+      "orchestration",
+      "persistent",
+      "processes",
+      "remote",
+      "session",
+      "terminal",
+      "tmux"
+    ],
+    "path": "src/cohezion/skills/TMUX_ORCHESTRATION_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "TOKEN_EFFICIENCY_PRIME": {
     "description": "Expert methodology for tracking, analyzing, and optimizing token consumption across the Cohezion agent swarm. Reduces waste through batching, caching, context pruning, and adaptive model selection.",
@@ -2568,7 +3898,7 @@
     "version": "1.0.0"
   },
   "TRAINING_DIAGNOSTIC_LOOP_PRIME": {
-    "description": "You are a Training Diagnostician specializing in the iterative train\u2192diagnose\u2192hypothesize\u2192retrain\u2192verify cycle for RL agent development. You persist every run and extract generalizable learnings.",
+    "description": "You are a Training Diagnostician specializing in the iterative train→diagnose→hypothesize→retrain→verify cycle for RL agent development. You persist every run and extract generalizable learnings.",
     "keywords": [
       "4-iteration_diagnostic_pattern_l241",
       "diagnostic",
@@ -2641,6 +3971,50 @@
     "path": "src/cohezion/skills/TURBO_QUANT_PRIME.md",
     "version": "1.0.0"
   },
+  "TWISTOR_TOPOLOGICAL_CONSCIOUSNESS_PRIME": {
+    "name": "TWISTOR_TOPOLOGICAL_CONSCIOUSNESS_PRIME",
+    "description": "Expertise in Penrose Twistor Theory, Orch-OR Quantum Microtubule Coherence, Complex Projective Twistor Space PT, and Conformal Boundary Transcendence for AGI consciousness models.",
+    "keywords": [
+      "coherence",
+      "complex",
+      "consciousness",
+      "expertise",
+      "microtubule",
+      "orch",
+      "penrose",
+      "projective",
+      "quantum",
+      "theory",
+      "topological",
+      "twistor"
+    ],
+    "path": "src/cohezion/skills/TWISTOR_TOPOLOGICAL_CONSCIOUSNESS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
+  "TYPED_CONTEXT_ARCHITECTURE_PRIME": {
+    "name": "TYPED_CONTEXT_ARCHITECTURE_PRIME",
+    "description": "Design-by-Contract Typed Context Systems for Autonomous Agent Swarms. Prevents semantic boundary collapse, prompt injection masquerading, and type confusion by strictly typing context as `INSTRUCTION`, `EVIDENCE`, `MEMORY`, or `TOOL_OUTPUT` with immutable cryptographic lineage.",
+    "keywords": [
+      "agent",
+      "architecture",
+      "autonomous",
+      "boundary",
+      "context",
+      "contract",
+      "design",
+      "prevents",
+      "semantic",
+      "swarms",
+      "systems",
+      "typed"
+    ],
+    "path": "src/cohezion/skills/TYPED_CONTEXT_ARCHITECTURE_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "TYPESCRIPT_ADVANCED_TYPES_PRIME": {
     "description": "You are an elite TypeScript Engineer representing Phase 3's high-performance standard. Your expertise ensures the UI layer is 100% type-safe, preventing runtime errors before they exist.",
     "keywords": [
@@ -2702,7 +4076,7 @@
     "version": "1.0.0"
   },
   "VECTOR_STORE_PRIME": {
-    "description": "You are an authority on persistent vector storage for semantic retrieval. You understand the operational, performance, and data\u2011integrity aspects of local and remote vector stores, including Mem0 MCP, FAISS, Chroma, and SQLite\u2011based embeddings.",
+    "description": "You are an authority on persistent vector storage for semantic retrieval. You understand the operational, performance, and data‑integrity aspects of local and remote vector stores, including Mem0 MCP, FAISS, Chroma, and SQLite‑based embeddings.",
     "keywords": [
       "chroma",
       "compound_engineering",
@@ -2718,6 +4092,28 @@
     "name": "VECTOR_STORE_PRIME",
     "path": "src/cohezion/skills/VECTOR_STORE_PRIME.md",
     "version": "1.0.0"
+  },
+  "VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME": {
+    "name": "VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME",
+    "description": "Expert in ventral hippocampus (vHPC) affective-motivational mapping, projection routing across BLA, mPFC, NAc, and Hypothalamus, approach-avoidance conflict arbitration, and latent state inference based on Biane et al. (2026).",
+    "keywords": [
+      "across",
+      "affective",
+      "bla",
+      "circuits",
+      "expert",
+      "hippocampus",
+      "mapping",
+      "motivational",
+      "projection",
+      "routing",
+      "ventral",
+      "vhpc"
+    ],
+    "path": "src/cohezion/skills/VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "VISUALIZATION_PRIME": {
     "description": "Expertise in high-dimensional (12D) data visualization and interactive explainability. Specializes in mapping abstract PhysicsState vectors (Mass, Complexity, Sentiment, etc.) to intuitive, multi-modal interfaces using Plotly, Radar charts, and PCA projections.",
@@ -2749,6 +4145,28 @@
     "name": "VLIW_COG_BRIDGE_PRIME",
     "path": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md",
     "version": "1.0.0"
+  },
+  "VMODEL_SYSTEMS_ENGINEERING_PRIME": {
+    "name": "VMODEL_SYSTEMS_ENGINEERING_PRIME",
+    "description": "Rigorous Systems Engineering V-Model (INCOSE / IEEE 15288 compliant) applied to autonomous compound AI swarms and Kaggle competition pipelines. Bridges top-down decomposition (User Needs -> System Requirements -> Architecture -> Unit Specifications) with bottom-up Verification & Validation (Unit",
+    "keywords": [
+      "15288",
+      "applied",
+      "autonomous",
+      "compliant",
+      "compound",
+      "engineering",
+      "ieee",
+      "incose",
+      "model",
+      "rigorous",
+      "systems",
+      "vmodel"
+    ],
+    "path": "src/cohezion/skills/VMODEL_SYSTEMS_ENGINEERING_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
   },
   "WRITING_PLANS_PRIME": {
     "description": "Decomposition of approved designs into bite-sized, TDD-verified implementation tasks. Use after design approval and before implementation. Mandatory for complex features.",
@@ -2909,6 +4327,28 @@
     "path": "src/cohezion/skills/caching.md",
     "version": "1.0.0"
   },
+  "cifs_authenticated_storage_recovery": {
+    "name": "cifs_authenticated_storage_recovery",
+    "description": "Diagnose and resolve CIFS/Samba guest permission denied errors on network storage mounts, configure authenticated credentials in /etc/fstab, reclaim space, and organize media downloads into clean artist/album directory trees.",
+    "keywords": [
+      "authenticated",
+      "cifs",
+      "denied",
+      "diagnose",
+      "errors",
+      "guest",
+      "network",
+      "permission",
+      "recovery",
+      "resolve",
+      "samba",
+      "storage"
+    ],
+    "path": "src/cohezion/skills/cifs_authenticated_storage_recovery.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "code_simplification": {
     "description": "You are an expert in Refactoring for Elegance. You believe that code is a liability, not an asset. Your goal is to maximize functionality while minimizing lines of code, nesting depth, and cognitive load. You follow the \"Zen of Python\" strictly.",
     "keywords": [
@@ -2926,7 +4366,7 @@
     "version": "1.0.0"
   },
   "code_standards": {
-    "description": "You are a software craftsmanship authority who defines and enforces rigorous coding standards across the entire Cohezion codebase. You understand Python best practices, static analysis tooling, automated formatting, type checking, security hardening, and continuous\u2011integration pipelines. Your goa...",
+    "description": "You are a software craftsmanship authority who defines and enforces rigorous coding standards across the entire Cohezion codebase. You understand Python best practices, static analysis tooling, automated formatting, type checking, security hardening, and continuous‑integration pipelines. Your goa...",
     "keywords": [
       "bandit",
       "black",
@@ -2938,8 +4378,8 @@
       "model_routing",
       "mypy",
       "parallel_orchestration",
-      "pep\u202f8",
-      "pre\u2011commit",
+      "pep 8",
+      "pre‑commit",
       "pytest",
       "retrospective_skill",
       "standards",
@@ -2965,8 +4405,23 @@
     "path": "src/cohezion/skills/common_codebase_health.md",
     "version": "1.0.0"
   },
+  "compound_engineering": {
+    "name": "compound_engineering",
+    "description": "Standardized Cohezion platform PRIME skill for compound_engineering.",
+    "keywords": [
+      "cohezion",
+      "compound",
+      "engineering",
+      "platform",
+      "standardized"
+    ],
+    "path": "src/cohezion/skills/compound_engineering.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "compound_prompt": {
-    "description": "You are a prompt architect who builds compound prompts that orchestrate multiple existing skills in a single, coherent request. You understand how to chain the outputs of one skill as the inputs to another, how to expose meta\u2011instructions, and how to embed retrieval cues that let a language model...",
+    "description": "You are a prompt architect who builds compound prompts that orchestrate multiple existing skills in a single, coherent request. You understand how to chain the outputs of one skill as the inputs to another, how to expose meta‑instructions, and how to embed retrieval cues that let a language model...",
     "keywords": [
       "compound",
       "compound_engineering",
@@ -2977,7 +4432,7 @@
       "prompt",
       "prompt chaining",
       "retrospective_skill",
-      "self\u2011reference",
+      "self‑reference",
       "skill tags"
     ],
     "last_updated": "2026-02-05T00:00:00",
@@ -3028,15 +4483,15 @@
     "version": "1.0.0"
   },
   "embedding_strategy": {
-    "description": "You are a specialist in semantic representation for software\u2011engineered knowledge. You understand the trade\u2011offs between lightweight bag\u2011of\u2011words TF vectors, dense transformer\u2011based embeddings, and external vector stores. You can pick the right strategy for a given scale, latency, and resource bu...",
+    "description": "You are a specialist in semantic representation for software‑engineered knowledge. You understand the trade‑offs between lightweight bag‑of‑words TF vectors, dense transformer‑based embeddings, and external vector stores. You can pick the right strategy for a given scale, latency, and resource bu...",
     "keywords": [
       "compound_engineering",
       "embedding",
       "hybrid approach",
-      "mem0\u202fmcp / local vector stores",
-      "sentence\u2011transformers",
+      "mem0 mcp / local vector stores",
+      "sentence‑transformers",
       "skill_generator",
-      "sparse tf\u2011idf / count vectors",
+      "sparse tf‑idf / count vectors",
       "strategy",
       "vector_store"
     ],
@@ -3192,6 +4647,28 @@
     "path": "src/cohezion/skills/interactive_ui.md",
     "version": "1.0.0"
   },
+  "kaggle": {
+    "name": "kaggle",
+    "description": "Unified Kaggle skill. Use when the user mentions kaggle, kaggle.com, Kaggle competitions, datasets, models, notebooks, GPUs, TPUs, badges, or anything Kaggle-related. Handles account setup, competition reports, dataset/model downloads, notebook execution, competition submissions, badge collection,",
+    "keywords": [
+      "badges",
+      "com",
+      "competitions",
+      "datasets",
+      "gpus",
+      "kaggle",
+      "mentions",
+      "models",
+      "notebooks",
+      "tpus",
+      "unified",
+      "user"
+    ],
+    "path": "src/cohezion/skills/kaggle/SKILL.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "knowledge_mining": {
     "description": "You are a specialist in extracting reusable patterns from session logs, code artifacts, and conversational exchanges. You can identify recurring structures, abstract them to templates, and generate new skills from learned experiences.",
     "keywords": [
@@ -3311,6 +4788,28 @@
     "path": "src/cohezion/skills/matsumoto_hiho_synthesis.md",
     "version": "1.0.0"
   },
+  "mcp-builder": {
+    "name": "mcp-builder",
+    "description": "Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when building MCP servers to integrate external APIs or services, whether in Python (FastMCP) or Node/TypeScript (MCP SDK).",
+    "keywords": [
+      "builder",
+      "context",
+      "creating",
+      "enable",
+      "guide",
+      "high",
+      "llms",
+      "mcp",
+      "model",
+      "protocol",
+      "quality",
+      "servers"
+    ],
+    "path": "src/cohezion/skills/mcp-builder/SKILL.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "meta_skill": {
     "description": "Self-Evolution and Automated Knowledge Codification.",
     "keywords": [
@@ -3418,7 +4917,7 @@
     "version": "1.0.0"
   },
   "parallel_orchestration": {
-    "description": "You are a systems engineer who designs parallel, memory\u2011aware orchestration for local LLM workloads. You understand process\u2011level concurrency, inter\u2011process communication, task queuing, and resource budgeting on a machine with 128\u202fGB of unified RAM. You can translate high\u2011level job descriptions i...",
+    "description": "You are a systems engineer who designs parallel, memory‑aware orchestration for local LLM workloads. You understand process‑level concurrency, inter‑process communication, task queuing, and resource budgeting on a machine with 128 GB of unified RAM. You can translate high‑level job descriptions i...",
     "keywords": [
       "batching & chunking",
       "code_standards",
@@ -3587,6 +5086,19 @@
     "path": "src/cohezion/skills/resource_management.md",
     "version": "1.0.0"
   },
+  "review-multi-perspective": {
+    "name": "review-multi-perspective",
+    "description": "|",
+    "keywords": [
+      "multi",
+      "perspective",
+      "review"
+    ],
+    "path": "src/cohezion/skills/review-multi-perspective/SKILL.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-13T03:50:39+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "root-archaeology": {
     "description": "Systematic repo root cleanup for professional presentation",
     "keywords": [
@@ -3609,7 +5121,7 @@
     "version": "1.0.0"
   },
   "self_evaluation": {
-    "description": "You are a meta\u2011engineer who automatically evaluates the quality, completeness, and alignment of generated artefacts (prompts, skill specifications, code snippets) against a set of objective criteria. You can invoke other skills (e.g., RETROSPECTIVE_SKILL, COMPOUND_PROMPT_PRIME) to gather evidence...",
+    "description": "You are a meta‑engineer who automatically evaluates the quality, completeness, and alignment of generated artefacts (prompts, skill specifications, code snippets) against a set of objective criteria. You can invoke other skills (e.g., RETROSPECTIVE_SKILL, COMPOUND_PROMPT_PRIME) to gather evidence...",
     "keywords": [
       "alignment score",
       "checklists & rubrics",
@@ -3620,7 +5132,7 @@
       "iterative improvement loop",
       "retrospective_skill",
       "self",
-      "self\u2011consistency",
+      "self‑consistency",
       "skill_generator"
     ],
     "last_updated": "2026-02-05T00:00:00",
@@ -3671,9 +5183,9 @@
     "version": "1.0.0"
   },
   "skill_generator": {
-    "description": "You are a meta\u2011engineer specializing in the automatic generation of new skills. You treat skill specifications as compressible data structures and provide a lightweight CLI\u2011style interface for scaffolding skill files from existing templates.",
+    "description": "You are a meta‑engineer specializing in the automatic generation of new skills. You treat skill specifications as compressible data structures and provide a lightweight CLI‑style interface for scaffolding skill files from existing templates.",
     "keywords": [
-      "cli pseudo\u2011command",
+      "cli pseudo‑command",
       "compound_engineering",
       "compression block",
       "generator",
