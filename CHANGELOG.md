@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documented Learning 431 with 12D state vector in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`.
 - Added unit test suite in `tests/unit/test_ventral_hippocampus.py` (7/7 passing).
 
+### Enhanced — Holistic Producer-Consumer Audit & AMD Hardware Skills Mapping
+- Upgraded `scripts/ci/producer_consumer_audit.py` to comprehensively audit 10 architectural and hardware subsystems, eliminating hollow seams and ghost abstractions across the fleet.
+- Mapped AMD skills (`FASTFLOWLM_PRIME`, `AMD_GEMM_MXFP4_PRIME`, `AMD_MLA_DECODE_PRIME`, `AMD_MOE_MXFP4_PRIME`, `KERNEL_OPTIMIZATION_PRIME`, `LEMONADE_OMNIROUTER_PRIME`) to active execution pathways on AMD XDNA2 NPU (`/dev/accel/accel0`), MI355X GPU kernels, and Lemonade OmniRouter (`:13305`).
+- Equipped `producer_consumer_audit.py` with falsifiable `--self-test`, markdown report export, and wired it directly into `scripts/ci/automerge_guard.sh`.
+- Added unit test suite in `tests/scripts/test_producer_consumer_audit.py` (5/5 passing in <8s).
+- Documented Learning 432 in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`.
+
 ## [1.26.0] - 2026-09-12
 
 ### Added — FastFlowLM NPU Integration, BAML Structured Extraction & AutoHarness Verification (1.26.0)
