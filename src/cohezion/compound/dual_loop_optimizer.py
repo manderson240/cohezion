@@ -75,7 +75,14 @@ class DualLoopOptimizer:
             # 2. Apply harness check if present
             if harness_fn is not None:
                 # If verifier rejects, we try a fallback action or penalize score
-                is_valid = harness_fn(state, action)
+                try:
+                    is_valid = harness_fn(state, action)
+                except Exception as exc:
+                    # Synthesized harness code can raise anything (e.g. NameError on a builtin
+                    # the restricted namespace denies). A broken harness must not abort the
+                    # cycle; score this sample as unharnessed.
+                    logger.warning("Synthesized harness raised %s; sample unharnessed", exc)
+                    is_valid = True
                 if not is_valid:
                     # In a real system, verifier rejection triggers regeneration or fallback.
                     # For metrics, a rejected action gets a score of 0.0 or a default action is taken.

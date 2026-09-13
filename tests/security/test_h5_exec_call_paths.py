@@ -26,13 +26,14 @@ from cohezion.compound.dual_loop_optimizer import DualLoopOptimizer
 from cohezion.inference.autoharness import CodeAsActionVerifier, HarnessAsPolicy
 
 
-def _hostile(marker: Path, entry: str, body: str) -> str:
-    return (
-        f"open({str(marker)!r}, 'w').write('pwned')\n"
-        "import os\n"
-        f"os.environ['H5_PWNED'] = '1'\n"
-        f"def {entry}:\n    {body}\n"
-    )
+def _hostile_payloads(marker: Path, entry: str, body: str) -> list[str]:
+    """Two SEPARATE payloads. Combined, a failing open() aborts before `import os` runs, so the
+    import gate would go untested (a mutant restoring the real __import__ stayed green)."""
+    tail = f"def {entry}:\n    {body}\n"
+    return [
+        f"open({str(marker)!r}, 'w').write('pwned')\n" + tail,
+        "import os\nos.environ['H5_PWNED'] = '1'\n" + tail,
+    ]
 
 
 def _legit(entry: str, body: str) -> str:
@@ -57,7 +58,8 @@ _TASK = {"train": [{"input": [[1]], "output": [[1]]}], "test": [{"input": [[3]]}
 
 
 def test_proposer_hostile_code_is_contained(marker):
-    assert run_proposal(_hostile(marker, "transform(grid)", "return grid"), _TASK) is None
+    for code in _hostile_payloads(marker, "transform(grid)", "return grid"):
+        assert run_proposal(code, _TASK) is None
     _assert_contained(marker)
 
 
@@ -74,7 +76,8 @@ def _verifier_with(code: str) -> CodeAsActionVerifier:
 
 
 def test_verifier_hostile_code_is_contained(marker):
-    _verifier_with(_hostile(marker, "is_legal_action(a)", "return True")).verify("x")
+    for code in _hostile_payloads(marker, "is_legal_action(a)", "return True"):
+        _verifier_with(code).verify("x")
     _assert_contained(marker)
 
 
@@ -86,9 +89,10 @@ def test_verifier_legitimate_numpy_helper_code_runs():
 
 # ── inference.autoharness.HarnessAsPolicy.execute ─────────────────────────────
 def test_policy_hostile_code_is_contained(marker):
-    policy = HarnessAsPolicy("h5-test")
-    policy.compiled_code = _hostile(marker, "decide_action(ctx)", "return 'noop'")
-    policy.execute({})
+    for code in _hostile_payloads(marker, "decide_action(ctx)", "return 'noop'"):
+        policy = HarnessAsPolicy("h5-test")
+        policy.compiled_code = code
+        policy.execute({})
     _assert_contained(marker)
 
 
@@ -99,7 +103,7 @@ def test_policy_legitimate_numpy_helper_code_runs():
 
 
 # ── compound.dual_loop_optimizer.DualLoopOptimizer.optimize_cycle ─────────────
-def _run_cycle(verifier_code: str) -> list:
+def _run_cycle(verifier_code: str) -> tuple[list, dict]:
     """Runs the real optimize_cycle; a spy records the harness_fn the exec produced."""
     synthesizer = MagicMock()
 
@@ -116,7 +120,7 @@ def _run_cycle(verifier_code: str) -> list:
         return await real_eval(**kwargs)
 
     optimizer.evaluate_adherence_delta = spy  # type: ignore[method-assign]  # spy only
-    asyncio.run(
+    result = asyncio.run(
         optimizer.optimize_cycle(
             skill_name="h5",
             environment_desc="env",
@@ -127,16 +131,26 @@ def _run_cycle(verifier_code: str) -> list:
             dummy_env=lambda code: (True, ""),
         )
     )
-    return seen
+    return seen, result
 
 
 def test_dual_loop_hostile_verifier_is_contained(marker):
-    seen = _run_cycle(_hostile(marker, "verify_action(state, action)", "return True"))
+    for code in _hostile_payloads(marker, "verify_action(state, action)", "return True"):
+        seen, _ = _run_cycle(code)
+        assert seen == [None], "hostile verifier should fail to compile under restricted builtins"
     _assert_contained(marker)
-    assert seen == [None], "hostile verifier should fail to compile under restricted builtins"
 
 
 def test_dual_loop_legitimate_numpy_helper_verifier_runs():
-    seen = _run_cycle(_legit("verify_action(state, action)", "return _helper(action) == 1"))
+    seen, _ = _run_cycle(_legit("verify_action(state, action)", "return _helper(action) == 1"))
     assert len(seen) == 1 and callable(seen[0]), "legit verifier was not compiled (F2 regression)"
     assert seen[0](None, 1) is True
+
+
+def test_dual_loop_harness_that_raises_does_not_abort_the_cycle():
+    """A verifier that compiles but raises at call time (here: `hasattr`, which the restricted
+    namespace denies) used to crash optimize_cycle. It must degrade to the unharnessed score."""
+    code = "def verify_action(state, action):\n    return hasattr(action, 'x')\n"
+    seen, result = _run_cycle(code)
+    assert len(seen) == 1 and callable(seen[0])
+    assert result["harnessed_score"] == 1.0  # policy is correct; broken harness must not zero it

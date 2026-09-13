@@ -50,14 +50,53 @@ def test_repo_src_is_currently_clean():
     assert [str(f) for f in ues.scan([REPO / "src"])] == []
 
 
+_INVOKE = "python scripts/ci/unrestricted_exec_scan.py"
+
+
+def wiring_problems(text: str) -> list[str]:
+    """Why ``text`` (a gate file) does NOT genuinely run the scanner; empty means wired.
+
+    Only uncommented lines that actually INVOKE the interpreter on the script count — an
+    ``echo ... unrestricted_exec_scan.py`` or a commented-out line must not satisfy it — and a
+    GitHub step marked ``continue-on-error`` is not a gate.
+    """
+    live = [ln for ln in text.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
+    invocations = [ln for ln in live if _INVOKE in ln]
+    problems = []
+    if not any(ln.rstrip().endswith("--self-test") for ln in invocations):
+        problems.append("never runs --self-test")
+    if not any("--self-test" not in ln for ln in invocations):
+        problems.append("never runs the actual scan")
+    first = next((i for i, ln in enumerate(live) if _INVOKE in ln), None)
+    if first is not None:
+        step_start = max((i for i in range(first + 1) if "- name:" in live[i]), default=0)
+        step_end = next((i for i in range(first + 1, len(live)) if "- name:" in live[i]), len(live))
+        if any("continue-on-error: true" in ln for ln in live[step_start:step_end]):
+            problems.append("step is continue-on-error (non-gating)")
+    return problems
+
+
 @pytest.mark.parametrize("gate", ["scripts/ci/automerge_guard.sh", ".github/workflows/ci.yml"])
 def test_scanner_is_wired_into_the_gate(gate):
     """A scanner no gate runs is dormant — and one run without --self-test proves nothing."""
-    text = (REPO / gate).read_text(encoding="utf-8")
-    assert "unrestricted_exec_scan.py --self-test" in text, f"{gate} skips the self-test"
-    runs_scan = any(
-        "unrestricted_exec_scan.py" in line and "--self-test" not in line
-        for line in text.splitlines()
-        if not line.lstrip().startswith("#")
-    )
-    assert runs_scan, f"{gate} runs only the self-test, never the actual scan"
+    assert wiring_problems((REPO / gate).read_text(encoding="utf-8")) == []
+
+
+@pytest.mark.parametrize(
+    "neutralised",
+    [
+        # commented out + echo mentioning the file (adversarial review of a25cc4a88)
+        "  - name: Unrestricted exec/eval scan (gating)\n    continue-on-error: false\n"
+        "    run: |\n      # uv run python scripts/ci/unrestricted_exec_scan.py --self-test\n"
+        "      echo skipping unrestricted_exec_scan.py\n",
+        # present but non-gating
+        "  - name: Unrestricted exec/eval scan (gating)\n    continue-on-error: true\n"
+        "    run: |\n      uv run python scripts/ci/unrestricted_exec_scan.py --self-test\n"
+        "      uv run python scripts/ci/unrestricted_exec_scan.py\n",
+        # self-test only
+        "  - name: Unrestricted exec/eval scan (gating)\n"
+        "    run: uv run python scripts/ci/unrestricted_exec_scan.py --self-test\n",
+    ],
+)
+def test_wiring_check_rejects_neutralised_gates(neutralised):
+    assert wiring_problems(neutralised), "wiring check accepted a gate that does not gate"
