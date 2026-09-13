@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-09-12
+
+### Added — Ventral Hippocampus Computations, Affective Manifold & Circuit Routing (1.27.0)
+- Operationalized empirical discoveries from Biane, Wagner-Carena & Kheirbek (*Nature Reviews Neuroscience*, Sept 2026, doi:10.1038/s41583-026-01078-6): "The ventral hippocampus: computations, circuits and functions".
+- Implemented `VentralHippocampusCircuit` in `src/cohezion/neuro/ventral_hippocampus.py` contrasting dorsal metric maps ($\mathbf{v}_{dHPC} = W_{grid} \mathbf{s}_{spatial}$) with ventral affective-motivational manifold representations ($\mathbf{v}_{vHPC} = \tanh(W_{aff} [\mathbf{s}_{spatial}; \mathbf{h}_{intero}])$).
+- Designed deterministic 4-channel projection gating across BLA (valence/threat error), mPFC (cognitive control/conflict arbitration), NAc (reward/incentive vigor), and Hypothalamus (autonomic/stress throttling).
+- Modeled approach-avoidance conflict arbitration and hierarchical Bayesian latent state inference, dynamically routing across 4 agentic modes (`MOTIVATED_EXPLORATION`, `DEFENSIVE_CONSOLIDATION`, `MPFC_ARBITRATION`, `SAFE_AVOIDANCE`).
+- Created and registered `VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME.md` in `src/cohezion/skills/` and synchronized `skill_registry.json` (306 entries).
+- Documented Learning 431 with 12D state vector in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`.
+- Added unit test suite in `tests/unit/test_ventral_hippocampus.py` (7/7 passing).
+
 ## [1.26.0] - 2026-09-12
 
 ### Added — FastFlowLM NPU Integration, BAML Structured Extraction & AutoHarness Verification (1.26.0)
