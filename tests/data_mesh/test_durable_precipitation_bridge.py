@@ -9,7 +9,9 @@ from cohezion.data_mesh.durable_precipitation_bridge import (
 
 def test_wikilink_extraction():
     bridge = DurablePrecipitationBridge()
-    content = "This relates to [[phase_1_dissolution]] and also [[phase_2_alignment|Phase 2 Functor]]."
+    content = (
+        "This relates to [[phase_1_dissolution]] and also [[phase_2_alignment|Phase 2 Functor]]."
+    )
     links = bridge._extract_wikilinks(content)
     assert "phase_1_dissolution" in links
     assert "phase_2_alignment" in links

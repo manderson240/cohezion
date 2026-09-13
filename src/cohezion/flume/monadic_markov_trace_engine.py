@@ -202,9 +202,15 @@ class MonadicMarkovTraceEngine:
         try:
             from cohezion.compound.goal_state import observe, set_goal, status
         except ImportError:
-            def set_goal(*args, **kwargs): return False
-            def observe(*args, **kwargs): return False
-            def status(): return {}
+
+            def set_goal(*args, **kwargs):
+                return False
+
+            def observe(*args, **kwargs):
+                return False
+
+            def status():
+                return {}
 
         goal_id = f"markov_goal_{int(time.time())}"
         condition = f"Reach FLUME target stream '{target_stream}' for intent '{intent}'"
@@ -234,15 +240,17 @@ class MonadicMarkovTraceEngine:
             )
 
             if is_target:
-                return MonadResult.unit({
-                    "goal_id": goal_id,
-                    "condition": condition,
-                    "target_reached": True,
-                    "hops": hop,
-                    "final_stream": current_stream,
-                    "history": history,
-                    "goal_status": status(),
-                })
+                return MonadResult.unit(
+                    {
+                        "goal_id": goal_id,
+                        "condition": condition,
+                        "target_reached": True,
+                        "hops": hop,
+                        "final_stream": current_stream,
+                        "history": history,
+                        "goal_status": status(),
+                    }
+                )
 
         return MonadResult.fail(
             f"Failed to reach target stream '{target_stream}' within {max_hops} hops"

@@ -21,9 +21,11 @@ logger = logging.getLogger(__name__)
 
 try:
     import bluequbit
+
     HAS_BLUEQUBIT = True
 except ImportError:
     HAS_BLUEQUBIT = False
+
 
 class BlueQubitQuantumBridge:
     """Bridge for dispatching quantum circuits to BlueQubit GPU simulators and QPUs."""
@@ -55,7 +57,7 @@ class BlueQubitQuantumBridge:
                 "status": "SIMULATED_LOCAL",
                 "qubits": num_qubits,
                 "counts": {"0000": 512, "1111": 512},
-                "device": "local_stub"
+                "device": "local_stub",
             }
 
         try:
@@ -67,7 +69,7 @@ creg c[{num_qubits}];
 h q[0];
 """
             for i in range(num_qubits - 1):
-                qasm_circuit += f"cx q[{i}], q[{i+1}];\n"
+                qasm_circuit += f"cx q[{i}], q[{i + 1}];\n"
             qasm_circuit += f"measure q -> c;\n"
 
             # Execute on BlueQubit simulator or QPU
@@ -76,12 +78,8 @@ h q[0];
                 "status": "SUCCESS",
                 "job_id": getattr(result, "job_id", "local_job"),
                 "counts": getattr(result, "counts", {}),
-                "device": device
+                "device": device,
             }
         except Exception as e:
             logger.error(f"BlueQubit execution error: {e}")
-            return {
-                "status": "FALLBACK_ERROR",
-                "error": str(e),
-                "qubits": num_qubits
-            }
+            return {"status": "FALLBACK_ERROR", "error": str(e), "qubits": num_qubits}

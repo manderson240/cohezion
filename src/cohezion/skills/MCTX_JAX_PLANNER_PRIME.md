@@ -24,6 +24,7 @@ Expertise in Monte Carlo Tree Search (MCTS) utilizing DeepMind's `mctx` JAX-nati
    import mctx
    import jax.numpy as jnp
 
+
    # Execute batched Gumbel MuZero tree search
    def run_mctx_planning(root_state, recurrent_fn, num_simulations=64):
        policy_output = mctx.gumbel_muzero_policy(
@@ -31,7 +32,7 @@ Expertise in Monte Carlo Tree Search (MCTS) utilizing DeepMind's `mctx` JAX-nati
            rng_key=jax.random.PRNGKey(42),
            root=root_state,
            recurrent_fn=recurrent_fn,
-           num_simulations=num_simulations
+           num_simulations=num_simulations,
        )
        return policy_output.action
    ```

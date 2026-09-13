@@ -28,7 +28,11 @@ from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
-from cohezion.compound.goals_and_loops_orchestrator import Goal, GoalsAndLoopsOrchestrator, GoalStatus
+from cohezion.compound.goals_and_loops_orchestrator import (
+    Goal,
+    GoalsAndLoopsOrchestrator,
+    GoalStatus,
+)
 from cohezion.graph.graph_engine import KnowledgeGraphMesh, EdgeType
 
 logger = logging.getLogger(__name__)
@@ -109,7 +113,9 @@ class InterDaemonLoopNexus:
             node.is_healthy = is_alive
             health_status[did] = is_alive
             if not is_alive:
-                logger.warning("Daemon '%s' missed heartbeat (elapsed: %.1fs)", did, now - node.last_heartbeat)
+                logger.warning(
+                    "Daemon '%s' missed heartbeat (elapsed: %.1fs)", did, now - node.last_heartbeat
+                )
         return health_status
 
     async def execute_inter_daemon_cycle(self) -> dict[str, Any]:
@@ -126,40 +132,50 @@ class InterDaemonLoopNexus:
         await self.event_bus.publish(evt1)
         self.daemons["daemon:journey"].cycles_completed += 1
         self.daemons["daemon:journey"].touch_heartbeat()
-        cycle_summary["stages"].append({
-            "stage": "Journey Generation",
-            "daemon": "daemon:journey",
-            "status": "EMITTED_TO_DATAMESH",
-        })
+        cycle_summary["stages"].append(
+            {
+                "stage": "Journey Generation",
+                "daemon": "daemon:journey",
+                "status": "EMITTED_TO_DATAMESH",
+            }
+        )
 
         # Step 2: DataMesh consumes, sanitizes, and forwards to Tuning
-        self.daemons["daemon:datamesh"].feedback_inbox.append({"from": "daemon:journey", "payload": evt1.payload})
+        self.daemons["daemon:datamesh"].feedback_inbox.append(
+            {"from": "daemon:journey", "payload": evt1.payload}
+        )
         self.daemons["daemon:datamesh"].cycles_completed += 1
         self.daemons["daemon:datamesh"].touch_heartbeat()
-        cycle_summary["stages"].append({
-            "stage": "DataMesh Ingestion",
-            "daemon": "daemon:datamesh",
-            "status": "SANITIZED_AND_ROUTED_TO_TUNING",
-        })
+        cycle_summary["stages"].append(
+            {
+                "stage": "DataMesh Ingestion",
+                "daemon": "daemon:datamesh",
+                "status": "SANITIZED_AND_ROUTED_TO_TUNING",
+            }
+        )
 
         # Step 3: Fine-Tuning updates weights under Single-Flight Mutex & signals Router
         async with self._tuning_lock:
             self.daemons["daemon:tuning"].cycles_completed += 1
             self.daemons["daemon:tuning"].touch_heartbeat()
-            cycle_summary["stages"].append({
-                "stage": "Fleet Fine-Tuning",
-                "daemon": "daemon:tuning",
-                "status": "ADAPTER_CHECKPOINTS_SYNCED (Single-Flight Lock Active)",
-            })
+            cycle_summary["stages"].append(
+                {
+                    "stage": "Fleet Fine-Tuning",
+                    "daemon": "daemon:tuning",
+                    "status": "ADAPTER_CHECKPOINTS_SYNCED (Single-Flight Lock Active)",
+                }
+            )
 
         # Step 4: Router validates reflection & closes loop to Journey
         self.daemons["daemon:router"].cycles_completed += 1
         self.daemons["daemon:router"].touch_heartbeat()
-        cycle_summary["stages"].append({
-            "stage": "Perspective Router Reflection",
-            "daemon": "daemon:router",
-            "status": "LOOP_CLOSED_READY_FOR_NEXT_CYCLE",
-        })
+        cycle_summary["stages"].append(
+            {
+                "stage": "Perspective Router Reflection",
+                "daemon": "daemon:router",
+                "status": "LOOP_CLOSED_READY_FOR_NEXT_CYCLE",
+            }
+        )
 
         return cycle_summary
 

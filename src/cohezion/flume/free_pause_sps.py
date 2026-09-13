@@ -49,9 +49,7 @@ class FreePauseStatePredictionModule(nn.Module):
         self.norm1 = nn.RMSNorm(d_model)
         self.norm2 = nn.RMSNorm(d_model)
 
-    def forward_two_pass(
-        self, state_embeddings: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward_two_pass(self, state_embeddings: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Execute FlashAttention-friendly two-pass State-Prediction Separation.
 
         Parameters

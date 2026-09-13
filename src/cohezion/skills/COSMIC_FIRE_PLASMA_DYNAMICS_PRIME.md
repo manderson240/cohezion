@@ -25,7 +25,7 @@ Expertise in relativistic fireball models ("Cosmic Fire"), optically thick pair-
    def compute_fireball_compactness(luminosity_ergs, radius_cm):
        # l = (L * sigma_T) / (R * m_e * c^3)
        sigma_T = 6.652e-25  # Thomson cross section cm^2
-       m_e_c3 = 9.109e-28 * (2.998e10)**3
+       m_e_c3 = 9.109e-28 * (2.998e10) ** 3
        return float((luminosity_ergs * sigma_T) / (radius_cm * m_e_c3))
    ```
 2. Simulate EVO electron cluster confinement under magnetic self-pinching.

@@ -409,6 +409,8 @@ def run_batch(
                     api.mark_rejected(item_id, note=f"rejected by guardrail: {err_msg[:200]}")
                     summary.setdefault("rejected", []).append(item_id)
                 except Exception as patch_exc:
-                    logger.error("actioner: failed to mark item %s rejected: %s", item_id, patch_exc)
+                    logger.error(
+                        "actioner: failed to mark item %s rejected: %s", item_id, patch_exc
+                    )
             summary["failed"][item_id] = err_msg
     return summary

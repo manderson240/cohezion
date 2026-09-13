@@ -53,7 +53,9 @@ class AutoHarnessASTSecurityValidator(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
-        if node.module and (node.module.startswith("os") or node.module in {"subprocess", "shutil", "sys"}):
+        if node.module and (
+            node.module.startswith("os") or node.module in {"subprocess", "shutil", "sys"}
+        ):
             self.violations.append(f"Disallowed import: '{node.module}' at line {node.lineno}")
         self.generic_visit(node)
 
@@ -169,7 +171,9 @@ class AutoHarnessVerifier(Verifier):
                     func_name = node.func.id
                 elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
                     func_name = f"{node.func.value.id}.{node.func.attr}"
-                if func_name and (func_name in self.disallowed_imports or func_name in {"eval", "exec"}):
+                if func_name and (
+                    func_name in self.disallowed_imports or func_name in {"eval", "exec"}
+                ):
                     errors.append(f"Forbidden call: '{func_name}()'")
 
         # 3. Cyclomatic Complexity Calculation (Branch Count)

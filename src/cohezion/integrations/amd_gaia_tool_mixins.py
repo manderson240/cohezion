@@ -133,7 +133,9 @@ class ToolRegistryMixin:
             raise KeyError(f"Tool '{tool_name}' not registered in GAIA agent.")
 
         tool_meta = self._tools[tool_name]
-        logger.info("⚡ [GAIA Tool Exec] Calling %s with args %s", tool_name, list(arguments.keys()))
+        logger.info(
+            "⚡ [GAIA Tool Exec] Calling %s with args %s", tool_name, list(arguments.keys())
+        )
 
         # If argument contains code, verify with AutoHarness
         if "code" in arguments:
@@ -160,14 +162,22 @@ class GaiaSovereignPhysicsAgent(ToolRegistryMixin):
         self.agent_name = agent_name
         super().__init__()
 
-    @gaia_tool(name="quantize_metron_area", description="Quantize surface area into discrete Burkhard Heim Metrons")
+    @gaia_tool(
+        name="quantize_metron_area",
+        description="Quantize surface area into discrete Burkhard Heim Metrons",
+    )
     def quantize_metron_area(self, area_m2: float) -> dict[str, Any]:
         tau = 6.15e-70
         n = round(area_m2 / tau)
         return {"discrete_metrons": n, "quantized_area": n * tau}
 
-    @gaia_tool(name="evaluate_enc_cluster", description="Evaluate Itonic cluster for Matsumoto Electro-Nuclear Collapse")
-    def evaluate_enc_cluster(self, num_protons: int, num_electrons: int, current_density: float) -> dict[str, Any]:
+    @gaia_tool(
+        name="evaluate_enc_cluster",
+        description="Evaluate Itonic cluster for Matsumoto Electro-Nuclear Collapse",
+    )
+    def evaluate_enc_cluster(
+        self, num_protons: int, num_electrons: int, current_density: float
+    ) -> dict[str, Any]:
         is_enc = (num_electrons >= num_protons * 2) and (current_density >= 1e11)
         return {
             "is_enc_triggered": is_enc,

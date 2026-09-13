@@ -24,6 +24,7 @@ Expertise in Neural Cellular Automata (NCA) and Lagrangian Neural Particle Autom
    ```python
    import numpy as np
 
+
    def nca_local_step(cell_grid, update_weights):
        # Local perception kernel
        dx = np.gradient(cell_grid, axis=0)

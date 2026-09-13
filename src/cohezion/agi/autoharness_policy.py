@@ -175,6 +175,7 @@ class AutoHarnessPolicy:
 
         # 4. Credential safety policy: ensures shell actions do not access forbidden secret files
         from cohezion.security.secret_scrubber import verify_command_safety
+
         self._policy_registry["credential_safe"] = lambda state: (
             verify_command_safety(state.get("command", "")).allowed
         )

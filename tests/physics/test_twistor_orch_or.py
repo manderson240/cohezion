@@ -6,6 +6,7 @@ from cohezion.physics.twistor_orch_or import (
     OrchORReductionEvent,
 )
 
+
 def test_penrose_twistor_origin():
     engine = PenroseTwistorEngine()
     twistor = engine.spacetime_to_twistor((0.0, 0.0, 0.0, 0.0))
@@ -14,12 +15,14 @@ def test_penrose_twistor_origin():
     assert twistor.helicity == pytest.approx(0.0)
     assert twistor.is_null_ray is True
 
+
 def test_penrose_twistor_lightcone():
     engine = PenroseTwistorEngine()
     # Event on lightcone: t=1, x=1, y=0, z=0
     twistor = engine.spacetime_to_twistor((1.0, 1.0, 0.0, 0.0))
     assert isinstance(twistor, TwistorState)
     assert abs(twistor.omega_spinor[0]) > 0.0
+
 
 def test_orch_or_gravitational_scaling():
     orch = OrchOREngine()

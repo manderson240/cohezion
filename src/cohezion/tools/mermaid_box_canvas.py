@@ -24,7 +24,11 @@ class MermaidBoxCanvas:
 
         # Header Title
         title_panel = Panel(
-            Text("V_Model_Engineering_Sweep\n\"Systems Engineering V-Model Rigor & Compound Loop\"", justify="center", style="bold bright_white"),
+            Text(
+                'V_Model_Engineering_Sweep\n"Systems Engineering V-Model Rigor & Compound Loop"',
+                justify="center",
+                style="bold bright_white",
+            ),
             border_style="bright_blue",
             style="on blue",
             padding=(0, 4),
@@ -68,7 +72,13 @@ class MermaidBoxCanvas:
         grid.add_row(top_row)
 
         # Arrows down to bottom
-        grid.add_row(Text("│                                                      ▲\n▼                                                      │", justify="center", style="bold bright_yellow"))
+        grid.add_row(
+            Text(
+                "│                                                      ▲\n▼                                                      │",
+                justify="center",
+                style="bold bright_yellow",
+            )
+        )
 
         # Bottom DataMesh Box
         bottom_box = Panel(

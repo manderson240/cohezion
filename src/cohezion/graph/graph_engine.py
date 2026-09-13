@@ -141,7 +141,9 @@ class KnowledgeGraphMesh:
             return list(set(self.get_neighbors(node_id, "out") + self.get_neighbors(node_id, "in")))
         raise ValueError("Direction must be 'out', 'in', or 'both'.")
 
-    def k_hop_subgraph(self, start_node_id: str, k: int = 2) -> tuple[dict[str, GraphNode], list[GraphEdge]]:
+    def k_hop_subgraph(
+        self, start_node_id: str, k: int = 2
+    ) -> tuple[dict[str, GraphNode], list[GraphEdge]]:
         """Extract a k-hop localized subgraph around a focal node."""
         visited_nodes: dict[str, GraphNode] = {}
         subgraph_edges: list[GraphEdge] = []
@@ -197,12 +199,16 @@ class KnowledgeGraphMesh:
         for n in self.nodes.values():
             rec_id = n.to_surreal_record()
             props = json.dumps({str(k): str(v) for k, v in n.properties.items()})
-            statements.append(f"UPSERT {rec_id} CONTENT {{ node_type: '{n.node_type}', properties: {props}, updated_at: time::now() }};")
+            statements.append(
+                f"UPSERT {rec_id} CONTENT {{ node_type: '{n.node_type}', properties: {props}, updated_at: time::now() }};"
+            )
 
         # Edges
         for e in self.edges:
             in_rec = self.nodes[e.in_node].to_surreal_record()
             out_rec = self.nodes[e.out_node].to_surreal_record()
-            statements.append(f"RELATE {in_rec}->{e.relation.value}->{out_rec} SET weight = {e.weight}, properties = {json.dumps({str(k): str(v) for k, v in e.properties.items()})};")
+            statements.append(
+                f"RELATE {in_rec}->{e.relation.value}->{out_rec} SET weight = {e.weight}, properties = {json.dumps({str(k): str(v) for k, v in e.properties.items()})};"
+            )
 
         return statements

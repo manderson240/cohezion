@@ -11,7 +11,6 @@ from cohezion.testing.mutation_tester import MutationTestingEngine, MutationRepo
 
 @pytest.mark.mutation
 class TestMutationTestingAssertionStrength:
-
     def test_mutation_engine_detects_mutation_sites(self):
         code = """
 def is_hiho_stable(coherence: float) -> bool:
@@ -30,6 +29,7 @@ def compute_hiho_quadrature(val_a: float, val_b: float) -> float:
         return 0.0
     return diff + 0.5
 """
+
         # Strict test function that tests both exact boundary conditions and values
         def strict_test_suite(module_ns):
             fn = module_ns["compute_hiho_quadrature"]
@@ -60,6 +60,7 @@ def check_boundary(x: int) -> bool:
         return True
     return False
 """
+
         # Weak test that only tests x=5, never tests x=10 (the exact mutant boundary '<' vs '<=')
         def weak_test_suite(module_ns):
             fn = module_ns["check_boundary"]
@@ -73,6 +74,4 @@ def check_boundary(x: int) -> bool:
 
         # The '<' to '<=' mutant at boundary x=10 survived because weak_test_suite didn't test x=10!
         assert report.survived_mutants > 0
-        assert any(
-            m["status"] == "SURVIVED" for m in report.mutant_details
-        )
+        assert any(m["status"] == "SURVIVED" for m in report.mutant_details)

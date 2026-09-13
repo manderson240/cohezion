@@ -17,20 +17,23 @@ from typing import Any
 
 class ContextType(str, enum.Enum):
     """Core context classifications."""
-    INSTRUCTION = "INSTRUCTION"   # Authoritative agent instructions & rules
-    EVIDENCE = "EVIDENCE"         # Verified external facts, code ASTs, benchmark results
-    MEMORY = "MEMORY"             # Long-term recall from SurrealDB & Obsidian Vault
-    TOOL_OUTPUT = "TOOL_OUTPUT"   # Raw runtime outputs from tools, daemons & APIs
+
+    INSTRUCTION = "INSTRUCTION"  # Authoritative agent instructions & rules
+    EVIDENCE = "EVIDENCE"  # Verified external facts, code ASTs, benchmark results
+    MEMORY = "MEMORY"  # Long-term recall from SurrealDB & Obsidian Vault
+    TOOL_OUTPUT = "TOOL_OUTPUT"  # Raw runtime outputs from tools, daemons & APIs
 
 
 class ContextTypeError(Exception):
     """Raised when an illegal context transformation or type confusion occurs."""
+
     pass
 
 
 @dataclass(frozen=True)
 class ContextItem:
     """Immutable, typed context atom with cryptographic lineage."""
+
     content: str
     context_type: ContextType
     source: str
@@ -134,13 +137,28 @@ class TypedContextStore:
         sections = []
 
         if instructions:
-            sections.append("=== [INSTRUCTIONS & CONTRACTS] ===\n" + "\n\n".join(f"[{i.source}] {i.content}" for i in instructions))
+            sections.append(
+                "=== [INSTRUCTIONS & CONTRACTS] ===\n"
+                + "\n\n".join(f"[{i.source}] {i.content}" for i in instructions)
+            )
         if memory:
-            sections.append("=== [PERSISTENT MEMORY & RECALL] ===\n" + "\n\n".join(f"[{m.source} (id={m.item_id})] {m.content}" for m in memory))
+            sections.append(
+                "=== [PERSISTENT MEMORY & RECALL] ===\n"
+                + "\n\n".join(f"[{m.source} (id={m.item_id})] {m.content}" for m in memory)
+            )
         if evidence:
-            sections.append("=== [VERIFIED EVIDENCE & PROOFS] ===\n" + "\n\n".join(f"[{e.source} (id={e.item_id}{f', derived_from={e.derived_from}' if e.derived_from else ''})] {e.content}" for e in evidence))
+            sections.append(
+                "=== [VERIFIED EVIDENCE & PROOFS] ===\n"
+                + "\n\n".join(
+                    f"[{e.source} (id={e.item_id}{f', derived_from={e.derived_from}' if e.derived_from else ''})] {e.content}"
+                    for e in evidence
+                )
+            )
         if tool_outputs:
-            sections.append("=== [RAW RUNTIME TOOL OUTPUTS] ===\n" + "\n\n".join(f"[{t.source}] {t.content}" for t in tool_outputs))
+            sections.append(
+                "=== [RAW RUNTIME TOOL OUTPUTS] ===\n"
+                + "\n\n".join(f"[{t.source}] {t.content}" for t in tool_outputs)
+            )
 
         return "\n\n".join(sections)
 
@@ -152,7 +170,6 @@ class TypedContextStore:
             "total_items": len(self._items),
             "ledger_keys": len(self._ledger),
             "counts_by_type": {
-                t.value: len([i for i in self._items if i.context_type == t])
-                for t in ContextType
-            }
+                t.value: len([i for i in self._items if i.context_type == t]) for t in ContextType
+            },
         }

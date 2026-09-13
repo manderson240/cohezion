@@ -167,15 +167,11 @@ class TripartiteGoalLoop:
         checks_run += 1
         dormancy_path = Path("scripts/ci/dormancy_scan.py")
         if dormancy_path.exists():
-            findings.append(
-                "Dormancy scan verified: load-bearing capabilities active."
-            )
+            findings.append("Dormancy scan verified: load-bearing capabilities active.")
 
         # 3. Settings validation
         checks_run += 1
-        agy_settings = (
-            Path.home() / ".gemini" / "antigravity-cli" / "settings.json"
-        )
+        agy_settings = Path.home() / ".gemini" / "antigravity-cli" / "settings.json"
         if agy_settings.exists():
             try:
                 data = json.loads(agy_settings.read_text())
@@ -201,18 +197,9 @@ class TripartiteGoalLoop:
     ) -> BleedingEdgeResearchResult:
         """Interrogates active arXiv preprints and frontier paradigms with local model consultation."""
         citations = [
-            (
-                "arXiv:2603.03329v1 [cs.AI] — AutoHarness: Deterministic"
-                " Code-as-Action Verifiers"
-            ),
-            (
-                "arXiv:2501.13956 [cs.DB] — Graphiti: Bi-Temporal Knowledge Graph"
-                " Memory"
-            ),
-            (
-                "arXiv:2501.13783 [cs.NE] — A-MEM: Dynamic Synaptic Evolution"
-                " via Hebbian Plasticity"
-            ),
+            ("arXiv:2603.03329v1 [cs.AI] — AutoHarness: Deterministic Code-as-Action Verifiers"),
+            ("arXiv:2501.13956 [cs.DB] — Graphiti: Bi-Temporal Knowledge Graph Memory"),
+            ("arXiv:2501.13783 [cs.NE] — A-MEM: Dynamic Synaptic Evolution via Hebbian Plasticity"),
             (
                 "arXiv:2412.08832 [math.AT] — Cellular Sheaves and Discrete"
                 " Laplacian Harmonic Analysis"
@@ -231,38 +218,35 @@ class TripartiteGoalLoop:
         ]
 
         # Consult local silicon model on Lemonade port 13305 (Tier 1)
-        recommended_strategy = self.failure_map.get(
-            failure_class, self.strategies
-        )[0]
-        summary = (
-            f"Research recommendation: apply {recommended_strategy} under"
-            f" {paradigms[0]}."
-        )
+        recommended_strategy = self.failure_map.get(failure_class, self.strategies)[0]
+        summary = f"Research recommendation: apply {recommended_strategy} under {paradigms[0]}."
         provider = "local_heuristic"
 
         try:
-            req_body = json.dumps({
-                "model": self.local_model_name,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are the Cohezion Frontier Research Consultant."
-                            " Recommend an optimal strategy."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            f"Goal: '{goal_title}', Failure:"
-                            f" '{failure_class}'. Recommend best strategy from:"
-                            f" {self.strategies}"
-                        ),
-                    },
-                ],
-                "temperature": 0.2,
-                "max_tokens": 150,
-            }).encode()
+            req_body = json.dumps(
+                {
+                    "model": self.local_model_name,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are the Cohezion Frontier Research Consultant."
+                                " Recommend an optimal strategy."
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": (
+                                f"Goal: '{goal_title}', Failure:"
+                                f" '{failure_class}'. Recommend best strategy from:"
+                                f" {self.strategies}"
+                            ),
+                        },
+                    ],
+                    "temperature": 0.2,
+                    "max_tokens": 150,
+                }
+            ).encode()
 
             req = urllib.request.Request(  # noqa: S310
                 self.local_model_url,
@@ -281,8 +265,7 @@ class TripartiteGoalLoop:
                         break
         except Exception:
             logger.debug(
-                "Local model query bypassed or timed out; falling back to"
-                " frontier heuristic."
+                "Local model query bypassed or timed out; falling back to frontier heuristic."
             )
 
         return BleedingEdgeResearchResult(
@@ -307,9 +290,7 @@ class TripartiteGoalLoop:
     ) -> tuple[ExperientialLearningResult, str, str]:
         """AutoHarness evaluation, ZK-FV proof, reward calculation, and dual persistence."""
         # 1. AutoHarness Policy Execution (0 ms)
-        ast_eval = self.autoharness.evaluate_policy(
-            "memory_safe", {"available_gb": 24.0}
-        )
+        ast_eval = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 24.0})
 
         # 2. ZK-FV Proof Generation
         gates = ZKFVCompiler.compile_ast_to_gates("grid_bounds")
@@ -355,7 +336,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
 
 ## 1. Codebase Sweep Finding
 - **Integrity Score:** {sweep.integrity_score:.2f}
-- **Status:** {'PASSED' if sweep.passed else 'ATTENTION_NEEDED'}
+- **Status:** {"PASSED" if sweep.passed else "ATTENTION_NEEDED"}
 - **Findings:**
 {findings_md}
 
@@ -372,9 +353,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
             vault_note_path = str(note_file)
             vault_ok = True
         except Exception as exc:
-            logger.debug(
-                "Obsidian vault persistence failed (non-fatal): %s", exc
-            )
+            logger.debug("Obsidian vault persistence failed (non-fatal): %s", exc)
             vault_ok = False
 
         # 5. SurrealDB Persistence (Skill)
@@ -400,9 +379,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
             self.surreal_persistence._sql(sql)
             surreal_ok = True
         except Exception as exc:
-            logger.debug(
-                "SurrealDB experiential persistence failed (non-fatal): %s", exc
-            )
+            logger.debug("SurrealDB experiential persistence failed (non-fatal): %s", exc)
 
         learning_res = ExperientialLearningResult(
             reward=reward,
@@ -422,16 +399,12 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
     def run(
         self,
         goal: GoalSpecification,
-        step_fn: (
-            Callable[[GoalSpecification, str], tuple[bool, str, str | None]]
-            | None
-        ) = None,
+        step_fn: (Callable[[GoalSpecification, str], tuple[bool, str, str | None]] | None) = None,
     ) -> TripartiteGoalLoopResult:
         """Executes the Tripartite Goal Loop until goal satisfaction or max depth."""
         t0 = time.perf_counter()
         set_goal(
-            f"Satisfy {goal.title} ({goal.target_metric} >="
-            f" {goal.target_threshold})",
+            f"Satisfy {goal.title} ({goal.target_metric} >= {goal.target_threshold})",
             source="tripartite_goal_loop",
         )
 
@@ -449,9 +422,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
             sweep_res = self.execute_internal_sweep()
 
             # 2. Bleeding Edge Research
-            research_res = self.execute_frontier_research(
-                goal.title, current_failure_class
-            )
+            research_res = self.execute_frontier_research(goal.title, current_failure_class)
 
             # Pick strategy: prefer research recommendation, fallback to un-tried
             strat = research_res.recommended_strategy

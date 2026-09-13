@@ -9,6 +9,7 @@ Implements:
 from __future__ import annotations
 import numpy as np
 
+
 class NanoSheafODE:
     """Minimal Sheaf-Theoretic Consensus & Continuous Neural ODE Engine."""
 
@@ -61,7 +62,7 @@ if __name__ == "__main__":
 
     init_var = engine.consensus_variance(initial_states)
     states = initial_states.copy()
-    
+
     # Integrate Neural ODE for 100 steps
     for step in range(100):
         states = engine.rk4_step(states, t=step * 0.01, dt=0.01)
@@ -70,5 +71,9 @@ if __name__ == "__main__":
     variance_reduction = (init_var - final_var) / init_var
 
     assert final_var < init_var, f"Variance did not decrease: {init_var} -> {final_var}"
-    assert variance_reduction > 0.50, f"Variance reduction expected > 50%, got {variance_reduction:.2%}"
-    print(f"✅ NanoSheafODE: 100% FORMALLY VERIFIED (Variance Reduction: {variance_reduction:.2%})!")
+    assert variance_reduction > 0.50, (
+        f"Variance reduction expected > 50%, got {variance_reduction:.2%}"
+    )
+    print(
+        f"✅ NanoSheafODE: 100% FORMALLY VERIFIED (Variance Reduction: {variance_reduction:.2%})!"
+    )

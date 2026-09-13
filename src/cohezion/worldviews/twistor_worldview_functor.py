@@ -82,10 +82,7 @@ class TwistorWorldviewFunctor:
         centroid_point = PoincareManifoldND.project(mean_coords.tolist(), target_dim=SOUL_DIM)
 
         # 3. Compute the hyperbolic spread (dispersion of traditions around the ToE step centroid)
-        distances = [
-            PoincareManifoldND.distance(centroid_point, pt)
-            for pt in poincare_points
-        ]
+        distances = [PoincareManifoldND.distance(centroid_point, pt) for pt in poincare_points]
         spread_radius = float(np.mean(distances))
 
         # 4. Project the ToE consensus centroid into Penrose Twistor Space (CP^3)

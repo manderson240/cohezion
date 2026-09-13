@@ -15,6 +15,7 @@ S = TypeVar("S")
 A = TypeVar("A")
 B = TypeVar("B")
 
+
 class StateMonad(Generic[S, A]):
     """Pure Category-Theoretic State Monad satisfying Left/Right Identity & Associativity."""
 
@@ -23,9 +24,11 @@ class StateMonad(Generic[S, A]):
 
     def bind(self, f: Callable[[A], StateMonad[S, B]]) -> StateMonad[S, B]:
         """Monadic bind (>>=)."""
+
         def new_run(s: S) -> Tuple[B, S]:
             a, s_prime = self.run(s)
             return f(a).run(s_prime)
+
         return StateMonad(new_run)
 
     @staticmethod
@@ -43,7 +46,9 @@ class GFlowNetSampler:
     def __init__(self, temperature: float = 1.0):
         self.temperature = max(1e-4, float(temperature))
 
-    def sample_trajectories(self, candidates: List[Dict[str, Any]], rewards: List[float]) -> Dict[str, Any]:
+    def sample_trajectories(
+        self, candidates: List[Dict[str, Any]], rewards: List[float]
+    ) -> Dict[str, Any]:
         """Samples candidate proportionally to flow matching distribution."""
         if not candidates or not rewards:
             return {}
@@ -58,7 +63,7 @@ class GFlowNetSampler:
         return {
             "chosen_candidate": candidates[chosen_idx],
             "selection_probability": float(probs[chosen_idx]),
-            "partition_function_estimate": float(np.sum(exp_r))
+            "partition_function_estimate": float(np.sum(exp_r)),
         }
 
 
@@ -76,17 +81,19 @@ class HodgeLaplacianEngine:
         return l_down + l_up
 
     @staticmethod
-    def hodge_decompose_edge_flow(flow: np.ndarray, b0: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def hodge_decompose_edge_flow(
+        flow: np.ndarray, b0: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Decomposes edge flow into curl-free gradient flow + divergence-free harmonic flow."""
         f = np.array(flow, dtype=np.float32)
         b0_mat = np.array(b0, dtype=np.float32)
-        
+
         # Node divergence div(f) = B_0 * f
         div = np.dot(b0_mat, f)
         # Potential phi via pseudo-inverse of 0-Laplacian
         l0 = np.dot(b0_mat, b0_mat.T)
         phi = np.linalg.pinv(l0) @ div
-        
+
         # Gradient flow = B_0^T * phi
         grad_flow = np.dot(b0_mat.T, phi)
         # Harmonic / solenoidal flow = f - grad_flow

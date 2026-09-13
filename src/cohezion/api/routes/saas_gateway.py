@@ -41,7 +41,9 @@ class ChatMessage(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
-    model: str = Field(default="deepseek-r1-0528-8b-FLM", description="Local or cloud model identifier")
+    model: str = Field(
+        default="deepseek-r1-0528-8b-FLM", description="Local or cloud model identifier"
+    )
     messages: list[ChatMessage]
     temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     max_tokens: int = Field(default=1024, ge=1, le=8192)
@@ -106,21 +108,33 @@ async def get_saas_pricing():
                 "name": "Developer Starter",
                 "price_usd_monthly": 49,
                 "token_limit_monthly": 2_000_000,
-                "features": ["NPU fast inference (<10ms)", "FastFlowLM 8B reasoning", "OpenAI compatibility"],
+                "features": [
+                    "NPU fast inference (<10ms)",
+                    "FastFlowLM 8B reasoning",
+                    "OpenAI compatibility",
+                ],
             },
             {
                 "id": "pro",
                 "name": "Agency Pro",
                 "price_usd_monthly": 149,
                 "token_limit_monthly": 10_000_000,
-                "features": ["30B+ local models (Qwen3-Coder-30B)", "Automated Code Auditing API", "Unlimited ZKFV proofs"],
+                "features": [
+                    "30B+ local models (Qwen3-Coder-30B)",
+                    "Automated Code Auditing API",
+                    "Unlimited ZKFV proofs",
+                ],
             },
             {
                 "id": "enterprise",
                 "name": "Private Enterprise",
                 "price_usd_monthly": 499,
                 "token_limit_monthly": 50_000_000,
-                "features": ["Dedicated priority thread pool", "Custom LoRA adapter hosting", "99.9% uptime SLA"],
+                "features": [
+                    "Dedicated priority thread pool",
+                    "Custom LoRA adapter hosting",
+                    "99.9% uptime SLA",
+                ],
             },
         ],
     }
@@ -172,11 +186,17 @@ async def create_chat_completion(
                 content = data.get("message", {}).get("content", "")
                 dt = round((time.perf_counter() - t0) * 1000.0, 2)
                 return {
-                    "id": f"chatcmpl-{int(time.time()*1000)}",
+                    "id": f"chatcmpl-{int(time.time() * 1000)}",
                     "object": "chat.completion",
                     "created": int(time.time()),
                     "model": req.model,
-                    "choices": [{"index": 0, "message": {"role": "assistant", "content": content}, "finish_reason": "stop"}],
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {"role": "assistant", "content": content},
+                            "finish_reason": "stop",
+                        }
+                    ],
                     "cohezion_zero_retention": True,
                     "latency_ms": dt,
                 }

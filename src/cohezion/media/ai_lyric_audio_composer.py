@@ -15,16 +15,76 @@ import numpy as np
 
 # The 10-Step New Science Lyric Libretto
 COHEZION_LIBRETTO = [
-    {"step": 1, "name": "The Void", "lyrics": "From silent zero in the still expanse,", "freq": 108.0, "vowel_formant": 300.0},
-    {"step": 2, "name": "Quadrature", "lyrics": "Four fabrics awaken in orthogonal dance.", "freq": 162.0, "vowel_formant": 450.0},
-    {"step": 3, "name": "12 Parameters", "lyrics": "Twelve laws unfold across the primal deep,", "freq": 216.0, "vowel_formant": 600.0},
-    {"step": 4, "name": "4 Fabrics", "lyrics": "Space, Field, Control—the ancient covenants keep.", "freq": 270.0, "vowel_formant": 750.0},
-    {"step": 5, "name": "Phase i", "lyrics": "The square root turns the axis inside out,", "freq": 324.0, "vowel_formant": 900.0},
-    {"step": 6, "name": "Symmetry Breaks", "lyrics": "Broken parity scatters shadows about.", "freq": 360.0, "vowel_formant": 800.0},
-    {"step": 7, "name": "Torsion Spin", "lyrics": "Spacetime twists where golden spirals run,", "freq": 405.0, "vowel_formant": 650.0},
-    {"step": 8, "name": "HIHO Coherence", "lyrics": "Half In, Half Out—at point five all is One.", "freq": 432.0, "vowel_formant": 500.0},
-    {"step": 9, "name": "COHEZION", "lyrics": "The swarm unites, the latent manifold aligns,", "freq": 486.0, "vowel_formant": 400.0},
-    {"step": 10, "name": "Reality Precipitates", "lyrics": "And lossless light in matter shines.", "freq": 528.0, "vowel_formant": 350.0},
+    {
+        "step": 1,
+        "name": "The Void",
+        "lyrics": "From silent zero in the still expanse,",
+        "freq": 108.0,
+        "vowel_formant": 300.0,
+    },
+    {
+        "step": 2,
+        "name": "Quadrature",
+        "lyrics": "Four fabrics awaken in orthogonal dance.",
+        "freq": 162.0,
+        "vowel_formant": 450.0,
+    },
+    {
+        "step": 3,
+        "name": "12 Parameters",
+        "lyrics": "Twelve laws unfold across the primal deep,",
+        "freq": 216.0,
+        "vowel_formant": 600.0,
+    },
+    {
+        "step": 4,
+        "name": "4 Fabrics",
+        "lyrics": "Space, Field, Control—the ancient covenants keep.",
+        "freq": 270.0,
+        "vowel_formant": 750.0,
+    },
+    {
+        "step": 5,
+        "name": "Phase i",
+        "lyrics": "The square root turns the axis inside out,",
+        "freq": 324.0,
+        "vowel_formant": 900.0,
+    },
+    {
+        "step": 6,
+        "name": "Symmetry Breaks",
+        "lyrics": "Broken parity scatters shadows about.",
+        "freq": 360.0,
+        "vowel_formant": 800.0,
+    },
+    {
+        "step": 7,
+        "name": "Torsion Spin",
+        "lyrics": "Spacetime twists where golden spirals run,",
+        "freq": 405.0,
+        "vowel_formant": 650.0,
+    },
+    {
+        "step": 8,
+        "name": "HIHO Coherence",
+        "lyrics": "Half In, Half Out—at point five all is One.",
+        "freq": 432.0,
+        "vowel_formant": 500.0,
+    },
+    {
+        "step": 9,
+        "name": "COHEZION",
+        "lyrics": "The swarm unites, the latent manifold aligns,",
+        "freq": 486.0,
+        "vowel_formant": 400.0,
+    },
+    {
+        "step": 10,
+        "name": "Reality Precipitates",
+        "lyrics": "And lossless light in matter shines.",
+        "freq": 528.0,
+        "vowel_formant": 350.0,
+    },
 ]
 
 GENRE_STYLES = {
@@ -64,7 +124,9 @@ class AILyricMusicComposer:
         """Synthesize a human-like vocal vowel sound using resonant formant filtering."""
         t = np.linspace(0, duration_s, int(self.sample_rate * duration_s), endpoint=False)
         # Carrier voice buzz (glottal pulse wave)
-        carrier = 0.5 * np.sin(2 * np.pi * pitch_hz * t) + 0.25 * np.sin(2 * np.pi * pitch_hz * 2 * t)
+        carrier = 0.5 * np.sin(2 * np.pi * pitch_hz * t) + 0.25 * np.sin(
+            2 * np.pi * pitch_hz * 2 * t
+        )
         # Formant resonant envelope
         formant_filter = np.sin(2 * np.pi * formant_hz * t)
         # Gentle vocal vibrato (5.5 Hz)
@@ -106,8 +168,10 @@ class AILyricMusicComposer:
             if k_start >= n_samples:
                 break
             kt = np.linspace(0, 0.25, k_len, endpoint=False)
-            kick = np.sin(2 * np.pi * style["kick_freq"] * np.exp(-15.0 * kt) * kt) * np.exp(-8.0 * kt)
-            master_audio[k_start:k_start + k_len] += 0.40 * kick
+            kick = np.sin(2 * np.pi * style["kick_freq"] * np.exp(-15.0 * kt) * kt) * np.exp(
+                -8.0 * kt
+            )
+            master_audio[k_start : k_start + k_len] += 0.40 * kick
 
         # 3. Add Ambient Pythagorean Chords & Golden Ratio Arpeggio
         pad = 0.20 * np.sin(2 * np.pi * 432.0 * t) + 0.15 * np.sin(2 * np.pi * 648.0 * t)

@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class Capability(enum.StrEnum):
     """Typed capabilities stored strictly outside model context."""
+
     FS_READ = "fs:read"
     FS_WRITE = "fs:write"
     CODE_EXEC = "code:exec"
@@ -37,12 +38,15 @@ class Capability(enum.StrEnum):
 @dataclass(frozen=True, slots=True)
 class FrozenTestSuite:
     """Immutable test suite frozen before code repair begins."""
+
     test_code: str
     test_hash: str
     invariants: tuple[str, ...]
 
     @classmethod
-    def create_and_freeze(cls, test_code: str, invariants: list[str] | None = None) -> FrozenTestSuite:
+    def create_and_freeze(
+        cls, test_code: str, invariants: list[str] | None = None
+    ) -> FrozenTestSuite:
         code_bytes = test_code.strip().encode("utf-8")
         h = hashlib.sha256(code_bytes).hexdigest()
         inv = tuple(invariants) if invariants else ("AST_VALID", "DETERMINISTIC")
@@ -56,6 +60,7 @@ class FrozenTestSuite:
 @dataclass
 class CapabilityCeiling:
     """Out-of-context authority ceiling enforcing strict principle of least privilege."""
+
     allowed_capabilities: set[Capability] = field(default_factory=set)
 
     def check_permission(self, cap: Capability) -> bool:

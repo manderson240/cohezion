@@ -68,16 +68,12 @@ class ContextHarness:
             memory_items = context_store.get_items_by_type(ContextType.MEMORY)
             if memory_items:
                 recall_lines = "\n".join(f"- {item.content}" for item in memory_items)
-                final_system += (
-                    f"\n\n=== [PERSISTENT MEMORY & RECALL] ===\n{recall_lines}"
-                )
+                final_system += f"\n\n=== [PERSISTENT MEMORY & RECALL] ===\n{recall_lines}"
 
             evidence_items = context_store.get_items_by_type(ContextType.EVIDENCE)
             if evidence_items:
                 evidence_lines = "\n".join(f"- {item.content}" for item in evidence_items)
-                final_system += (
-                    f"\n\n=== [VERIFIED EVIDENCE & PROOFS] ===\n{evidence_lines}"
-                )
+                final_system += f"\n\n=== [VERIFIED EVIDENCE & PROOFS] ===\n{evidence_lines}"
 
         return {"prompt": pruned_prompt, "system": final_system}
 

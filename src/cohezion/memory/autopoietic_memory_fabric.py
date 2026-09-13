@@ -113,16 +113,18 @@ class AutopoieticMemoryFabric:
         if not records and self.vault_dir.exists():
             for md_file in self.vault_dir.glob("compound_*.md"):
                 slug = md_file.stem.replace("compound_", "")
-                records.append({
-                    "mark_id": slug,
-                    "title": slug.replace("_", " ").title(),
-                    "wikilinks": [],
-                    "hiho_coherence": 0.50,
-                })
+                records.append(
+                    {
+                        "mark_id": slug,
+                        "title": slug.replace("_", " ").title(),
+                        "wikilinks": [],
+                        "hiho_coherence": 0.50,
+                    }
+                )
 
         total_nodes = len(records)
         all_mark_ids = {r.get("mark_id", "") for r in records if r.get("mark_id")}
-        
+
         # Build directed adjacency graph
         in_degree: dict[str, int] = {mid: 0 for mid in all_mark_ids}
         out_degree: dict[str, int] = {mid: 0 for mid in all_mark_ids}
@@ -140,7 +142,8 @@ class AutopoieticMemoryFabric:
 
         # Identify unanchored nodes (orphans with 0 connections in and out)
         unanchored: list[str] = [
-            mid for mid in all_mark_ids
+            mid
+            for mid in all_mark_ids
             if in_degree.get(mid, 0) == 0 and out_degree.get(mid, 0) == 0
         ]
 
@@ -214,7 +217,10 @@ class AutopoieticMemoryFabric:
                 if len(healed_lines) > 1:
                     updated_moc = moc_text + "\n" + "\n".join(healed_lines) + "\n"
                     master_moc_path.write_text(updated_moc, encoding="utf-8")
-                    logger.info("Appended %d healed links into 000_Master_Transcendence_MOC.md", healed_count)
+                    logger.info(
+                        "Appended %d healed links into 000_Master_Transcendence_MOC.md",
+                        healed_count,
+                    )
 
         # Re-inspect to produce healed scorecard
         healed_report = self.inspect_fabric()

@@ -20,6 +20,7 @@ from cohezion.actioner.autoharness_middleware import standard_harness_lifecycle
 @dataclass
 class DisTrOCompressedDelta:
     """Compressed representation of weight/gradient update across silicon lanes."""
+
     lane: str
     step: int
     rank: int
@@ -40,13 +41,15 @@ class DisTrOMultiSiliconSync:
         self.error_accumulators: Dict[str, np.ndarray] = {}
 
     @standard_harness_lifecycle("DisTrO_Compress_Gradient", require_fleetlock=False)
-    def compress_gradient(self, lane: str, gradient_matrix: np.ndarray, step: int = 1) -> DisTrOCompressedDelta:
+    def compress_gradient(
+        self, lane: str, gradient_matrix: np.ndarray, step: int = 1
+    ) -> DisTrOCompressedDelta:
         """Compress gradient using low-rank approximation + top-k sparsification with error feedback."""
         # 1. Add accumulated residual error from previous steps
         orig_shape = gradient_matrix.shape
         if lane not in self.error_accumulators or self.error_accumulators[lane].shape != orig_shape:
             self.error_accumulators[lane] = np.zeros_like(gradient_matrix)
-        
+
         target = gradient_matrix + self.error_accumulators[lane]
 
         # 2. Low-rank SVD factorization
@@ -54,7 +57,7 @@ class DisTrOMultiSiliconSync:
         r = min(self.rank, len(S))
         u_mat = U[:, :r] * np.sqrt(S[:r])
         v_mat = Vt[:r, :] * np.sqrt(S[:r])[:, None]
-        
+
         low_rank_approx = u_mat @ v_mat
 
         # 3. Compute residual and sparsify top-k
@@ -84,7 +87,7 @@ class DisTrOMultiSiliconSync:
             sparse_indices=top_k_idx,
             sparse_values=sparse_vals,
             original_shape=orig_shape,
-            compression_ratio=comp_ratio
+            compression_ratio=comp_ratio,
         )
 
     @standard_harness_lifecycle("DisTrO_Decompress_Gradient", require_fleetlock=False)

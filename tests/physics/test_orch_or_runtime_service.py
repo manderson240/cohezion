@@ -29,7 +29,7 @@ def test_orch_or_single_branch_collapse():
 
 def test_orch_or_multi_branch_hiho_convergence():
     service = OrchORRuntimeService()
-    
+
     # Branch 1: far from HIHO stability (coherence = 0.95, low born probability)
     b1 = SuperposedPolicyBranch(
         branch_id="extreme_coherence_branch",
@@ -40,7 +40,7 @@ def test_orch_or_multi_branch_hiho_convergence():
         spacetime_coords=(2.0, 1.0, 1.0, 1.0),
         amplitude=0.3 + 0.1j,
     )
-    
+
     # Branch 2: exact HIHO sweet spot (coherence = 0.50, high born probability)
     b2 = SuperposedPolicyBranch(
         branch_id="hiho_optimal_branch",

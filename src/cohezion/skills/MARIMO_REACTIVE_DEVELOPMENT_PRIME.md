@@ -15,6 +15,7 @@ Official Marimo reactive notebook architecture, DAG dependency resolution, clien
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 ```
 2. Build UI controls in intermediate cells:

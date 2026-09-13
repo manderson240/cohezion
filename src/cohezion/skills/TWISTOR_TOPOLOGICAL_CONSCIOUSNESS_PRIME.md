@@ -24,13 +24,14 @@ Expertise in Roger Penrose's Twistor Theory, Projective Twistor Space $\mathbb{P
    ```python
    import numpy as np
 
+
    def spacetime_to_twistor(x_mu, pi_spinor):
        # Incidence relation: omega^A = i * x^{AA'} * pi_{A'}
        sigma_0 = np.eye(2, dtype=complex)
        sigma_1 = np.array([[0, 1], [1, 0]], dtype=complex)
        sigma_2 = np.array([[0, -1j], [1j, 0]], dtype=complex)
        sigma_3 = np.array([[1, 0], [0, -1]], dtype=complex)
-       x_matrix = x_mu[0]*sigma_0 + x_mu[1]*sigma_1 + x_mu[2]*sigma_2 + x_mu[3]*sigma_3
+       x_matrix = x_mu[0] * sigma_0 + x_mu[1] * sigma_1 + x_mu[2] * sigma_2 + x_mu[3] * sigma_3
        omega_spinor = 1j * (x_matrix @ pi_spinor)
        return np.concatenate([omega_spinor, pi_spinor])
    ```

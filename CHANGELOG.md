@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-09-12
+
+### Added — FastFlowLM NPU Integration, BAML Structured Extraction & AutoHarness Verification (1.26.0)
+- Investigated official AMD ROCm FastFlowLM (`https://github.com/ROCm/FastFlowLM`, `FLM v1.0.4`) and validated XDNA2 NPU hardware stack (`/dev/accel/accel0`, 8 columns, FW 1.1.2.65, `amdxdna` 0.7, <2W power, 0 UMA contention).
+- Enhanced `BAMLResilientParser` in `src/cohezion/baml/baml_bridge.py` with `parse_to_dict`, case-insensitive key matching, type coercion, and resilient extraction from plain-text and YAML key-value responses.
+- Hardened `src/cohezion/inference/structured_npu.py` by resolving historical GBNF dormancy, replacing ignored sampler grammars with BAML schema healing, AutoHarness deterministic verification (<1 ms latency), and automatic fallback cascading to resident `llamacpp` models (`Bonsai-8B-gguf`, `Qwen3-Coder-30B-A3B-Instruct-GGUF`).
+- Created and registered `FASTFLOWLM_PRIME.md` skill in `src/cohezion/skills/` and comprehensive hardware documentation in `docs/hardware/AMD_ROCM_FASTFLOWLM_XDNA2_NPU.md`.
+- Documented Learning 430 in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`.
+
 ## [1.25.0] - 2026-09-12
 
 ### Added — Perpetual Loop Orchestrator MaP-WAM Memory Integration (1.25.0)

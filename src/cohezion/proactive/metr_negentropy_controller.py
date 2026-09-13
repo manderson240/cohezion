@@ -107,9 +107,7 @@ class METRNegentropyController:
     ) -> AgentStepRecord:
         """Record an executed step and evaluate its entropy state."""
         step_num = len(self._trajectory) + 1
-        current_entropy = self.entropy_engine.calculate_state_entropy(
-            [state_point], [coherence]
-        )
+        current_entropy = self.entropy_engine.calculate_state_entropy([state_point], [coherence])
 
         record = AgentStepRecord(
             step_number=step_num,
@@ -204,10 +202,15 @@ class METRNegentropyController:
             for i in range(1, self.tripwire_steps):
                 p_curr = self._trajectory[-i]
                 p_prev = self._trajectory[-(i + 1)]
-                if p_curr.entropy_state.total_system_entropy > p_prev.entropy_state.total_system_entropy:
+                if (
+                    p_curr.entropy_state.total_system_entropy
+                    > p_prev.entropy_state.total_system_entropy
+                ):
                     drift_count += 1
 
-        if sliding_delta_s > MAX_ALLOWABLE_ENTROPY_DRIFT and drift_count >= (self.tripwire_steps - 1):
+        if sliding_delta_s > MAX_ALLOWABLE_ENTROPY_DRIFT and drift_count >= (
+            self.tripwire_steps - 1
+        ):
             # Tripwire activated! Compounding entropy detected
             dt_ms = (time.perf_counter() - t0) * 1000.0
             logger.warning(

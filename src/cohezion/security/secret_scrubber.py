@@ -22,8 +22,8 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern, str]] = [
     # Google OAuth Refresh Token (1//01...)
     (re.compile(r"1//[A-Za-z0-9_\-\.]{25,}"), "[REDACTED:GOOGLE_REFRESH_TOKEN]"),
     # JSON access_token / refresh_token fields
-    (re.compile(r'("access_token"\s*:\s*")[^"]+(")'), r'\1[REDACTED:ACCESS_TOKEN]\2'),
-    (re.compile(r'("refresh_token"\s*:\s*")[^"]+(")'), r'\1[REDACTED:REFRESH_TOKEN]\2'),
+    (re.compile(r'("access_token"\s*:\s*")[^"]+(")'), r"\1[REDACTED:ACCESS_TOKEN]\2"),
+    (re.compile(r'("refresh_token"\s*:\s*")[^"]+(")'), r"\1[REDACTED:REFRESH_TOKEN]\2"),
     # Bearer tokens
     (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9_\-\.]{25,}"), "Bearer [REDACTED:BEARER_TOKEN]"),
     # Generic key/secret assignments

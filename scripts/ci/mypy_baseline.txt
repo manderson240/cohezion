@@ -3,14 +3,6 @@
 # Signatures are path:code:message (line numbers stripped). Prune as
 # errors are fixed; never add signatures for NEW errors to green a build.
 
-baml_client/runtime.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "Callable[[], Any]")
-baml_client/runtime.py:call-arg:Too many arguments for "call_function" of "BamlRuntime"
-baml_client/runtime.py:call-arg:Too many arguments for "call_function_sync" of "BamlRuntime"
-baml_client/runtime.py:call-arg:Too many arguments for "stream_function" of "BamlRuntime"
-baml_client/runtime.py:call-arg:Too many arguments for "stream_function_sync" of "BamlRuntime"
-baml_client/runtime.py:syntax:Invalid "type: ignore" comment
-baml_client/sync_client.py:no-any-return:Returning Any from function declared to return "NextStep"
-baml_client/type_builder.py:syntax:Invalid "type: ignore" comment
 cohezion/__main__.py:index:Value of type "object" is not indexable
 cohezion/actioner/engine.py:attr-defined:"object" has no attribute "prompt"
 cohezion/actioner/engine.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
@@ -98,7 +90,6 @@ cohezion/api/services/world_model.py:no-any-return:Returning Any from function d
 cohezion/api/sse_queue_bounds.py:no-any-return:Returning Any from function declared to return "T"
 cohezion/api/work_queue_router.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/api/work_queue_router.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
-cohezion/arc/autoharness_verifier.py:var-annotated:Need type annotation for "colors" (hint: "colors: set[<type>] = ...")
 cohezion/arc/codec.py:assignment:Incompatible types in assignment (expression has type "None", variable has type Module)
 cohezion/arc/codec.py:unused-ignore:Unused "type: ignore" comment
 cohezion/arc/data_loader.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
@@ -137,8 +128,6 @@ cohezion/baml/baml_bridge.py:return-value:Incompatible return value type (got "T
 cohezion/baml/baml_bridge.py:return-value:Incompatible return value type (got "T@__init__", expected "T@feed_token | None")
 cohezion/baml/baml_bridge.py:return-value:Incompatible return value type (got "T@__init__", expected "T@finalize")
 cohezion/baml/baml_bridge.py:type-var:A function returning TypeVar should receive at least one argument containing the same TypeVar
-cohezion/baml/client_router.py:misc:Incompatible types in "await" (actual type "NextStep", expected type "Awaitable[Any]")
-cohezion/baml/client_router.py:no-any-return:Returning Any from function declared to return "NextStep"
 cohezion/baml/client_router.py:unused-ignore:Unused "type: ignore" comment
 cohezion/benchmark/multi_harness_evaluator.py:attr-defined:"VerificationResult" has no attribute "get"
 cohezion/benchmarks/agentic_benchmark.py:no-any-return:Returning Any from function declared to return "dict[str, Any]"
@@ -601,8 +590,6 @@ cohezion/flume/latent_engine.py:operator:Unsupported operand types for > ("float
 cohezion/flume/lcsp.py:assignment:Incompatible types in assignment (expression has type "ndarray[tuple[Any, ...], dtype[float64]]", variable has type "None")
 cohezion/flume/lcsp.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/flume/lecun_jepa_world_model.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
-cohezion/flume/loop_goal_refactor_engine.py:var-annotated:Need type annotation for "result"
-cohezion/flume/loop_goal_refactor_engine.py:var-annotated:Need type annotation for "rows" (hint: "rows: list[<type>] = ...")
 cohezion/flume/manifolds/translator.py:arg-type:Argument 1 to "project" of "ManifoldTranslator" has incompatible type "ManifoldProjection"; expected "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/flume/manifolds/translator.py:no-any-return:Returning Any from function declared to return "ndarray[tuple[Any, ...], dtype[Any]]"
 cohezion/flume/mnm.py:no-any-return:Returning Any from function declared to return "Tensor"
@@ -708,7 +695,6 @@ cohezion/inference/omni_model.py:no-any-return:Returning Any from function decla
 cohezion/inference/oom_guard.py:no-any-return:Returning Any from function declared to return "list[dict[str, Any]]"
 cohezion/inference/p0_resilience_mixins.py:no-any-return:Returning Any from function declared to return "list[T]"
 cohezion/inference/p0_resilience_mixins.py:return-value:Incompatible return value type (got "dict[str, object]", expected "T")
-cohezion/inference/structured_npu.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/inference/task_classifier.py:unused-ignore:Unused "type: ignore" comment
 cohezion/inference/tri_compute_orchestrator.py:assignment:Incompatible types in assignment (expression has type "dict[str, str]", variable has type "list[Any]")
 cohezion/inference/tri_compute_orchestrator.py:assignment:Incompatible types in assignment (expression has type "ndarray[tuple[Any, ...], dtype[Any]]", variable has type "list[Any]")
@@ -750,11 +736,6 @@ cohezion/inference/turboquant_streaming.py:attr-defined:"dict[str, Tensor | int]
 cohezion/inference/turboquant_streaming.py:attr-defined:"dict[str, Tensor | int]" has no attribute "norms"
 cohezion/inference/turboquant_streaming.py:call-arg:Unexpected keyword argument "seed" for "compress" of "TurboQuantReference"
 cohezion/inference/turboquant_streaming.py:return-value:Incompatible return value type (got "tuple[dict[str, Tensor | int], Tensor, KVCacheStats]", expected "tuple[Tensor, Tensor, KVCacheStats]")
-cohezion/inference/unified_hybrid_router.py:attr-defined:"UnifiedHybridRouter" has no attribute "_calculate_evi"
-cohezion/inference/unified_hybrid_router.py:misc:"WEIGHTS" in __slots__ conflicts with class variable access
-cohezion/inference/unified_hybrid_router.py:name-defined:Name "current_tier" is not defined
-cohezion/inference/unified_hybrid_router.py:name-defined:Name "prompt" is not defined
-cohezion/inference/unified_hybrid_router.py:name-defined:Name "task_class" is not defined
 cohezion/integrations/agentverse/api_llm_executor.py:arg-type:Argument "headers" to "get" of "AsyncClient" has incompatible type "dict[str, str | None]"; expected "Headers | Mapping[str, str] | Mapping[bytes, bytes] | Sequence[tuple[str, str]] | Sequence[tuple[bytes, bytes]] | None"
 cohezion/integrations/agentverse/api_llm_executor.py:arg-type:Argument "headers" to "post" of "AsyncClient" has incompatible type "dict[str, str | None]"; expected "Headers | Mapping[str, str] | Mapping[bytes, bytes] | Sequence[tuple[str, str]] | Sequence[tuple[bytes, bytes]] | None"
 cohezion/integrations/agentverse/api_llm_executor.py:arg-type:Argument "task" to "execute_task" of "LLMExecutor" has incompatible type "dict[str, str]"; expected "str"

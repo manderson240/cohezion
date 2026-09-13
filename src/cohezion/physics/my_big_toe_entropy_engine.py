@@ -98,10 +98,7 @@ class MyBigTOEEntropyEngine:
         dim = len(points[0].coords) if isinstance(points[0], PoincarePoint) else len(points[0])
         centroid_coords = [0.0] * dim
 
-        raw_points = [
-            pt.coords if isinstance(pt, PoincarePoint) else tuple(pt)
-            for pt in points
-        ]
+        raw_points = [pt.coords if isinstance(pt, PoincarePoint) else tuple(pt) for pt in points]
 
         for pt in raw_points:
             for d in range(dim):
@@ -167,7 +164,7 @@ class MyBigTOEEntropyEngine:
         allow_dissipative_export: bool = False,
     ) -> NegentropyTransitionResult:
         """Evaluate an agent trajectory or system transition to verify entropy reduction (Delta S <= 0).
-        
+
         If an external perturbation increases entropy (Delta S > 0) and allow_dissipative_export=True,
         Prigogine dissipative restructuring exports the excess entropy to an audit sink to prevent deadlock.
         """
