@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Any, Protocol
 
 import numpy as np
-import sympy
 
 from cohezion.compound.autoharness import AutoHarnessSynthesizer
 from cohezion.compound.symbolic_executor import SymbolicExecutor
@@ -111,13 +110,11 @@ class AIMOScaler:
         env_desc = f"Question: {question}\nTarget Code:\n{code}"
 
         def dummy_env(c):
-            try:
-                from cohezion.compound.safe_exec import safe_exec_globals
+            # H5: out of process under rlimits (fail closed); see sandboxed_exec.
+            from cohezion.compound.sandboxed_exec import run_untrusted
 
-                exec(c, safe_exec_globals(sympy=sympy, np=np))  # H5: restricted builtins
-                return True, "OK"
-            except Exception as e:
-                return False, str(e)
+            r = run_untrusted(c, bindings={"sympy": "sympy", "np": "numpy"})
+            return (True, "OK") if r.ok else (False, r.error)
 
         verifier = await self.harness.synthesize_verifier(env_desc, dummy_env)
         return 1.5 if "def verify_action" in verifier else 1.0

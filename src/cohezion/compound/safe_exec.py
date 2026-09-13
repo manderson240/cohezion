@@ -23,6 +23,10 @@ naive ``import os`` line — NOT as a sandbox. The DURABLE security boundary is 
 code OUT OF PROCESS (subprocess + ``resource`` rlimits + seccomp/``bubblewrap``/``nsjail``, or
 RestrictedPython). Do not rely on anything in this module to contain hostile code.
 
+That durable layer now EXISTS: ``cohezion.compound.sandboxed_exec.run_untrusted`` (child process
+under RLIMIT_NPROC=0 / NOFILE=3 / AS / CPU, fails closed) and it still applies these globals
+inside the child as defense in depth. New callers of LLM-generated code should use it, not this.
+
 AVAILABILITY (finding F2): a previous hardening denied ``__import__`` entirely, which broke legit
 LLM-generated ARC/AIMO solver code that does ``import numpy`` / ``import math`` / ``from itertools
 import ...`` — ``solve`` was never defined and the fallback solver silently returned None. The

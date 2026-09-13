@@ -6,7 +6,7 @@ import json
 import re
 from typing import Any
 
-from arc_solver import Grid, deepcopy_grid
+from arc_solver import Grid
 
 
 try:
@@ -65,18 +65,16 @@ def llm_solve(task: dict[str, Any]) -> Grid | None:
         if not code:
             return None
 
-        # H5 fix: restricted __builtins__ so exec'd LLM-generated code cannot reach import/open/eval
-        # (CPython auto-injects full builtins into an empty namespace otherwise). Not a full sandbox.
-        from cohezion.compound.safe_exec import safe_exec_globals
+        # H5 durable fix: LLM-generated code runs OUT OF PROCESS under kernel rlimits (no fork,
+        # no file/socket open) and fails closed. The in-process safe_exec_globals allow-list was
+        # escapable via collections._sys.modules['os']. The grid crosses the boundary as JSON,
+        # which also makes the defensive deepcopy unnecessary.
+        from cohezion.compound.sandboxed_exec import run_untrusted
 
-        namespace: dict[str, Any] = safe_exec_globals()
-        exec(compile(code, "<generated>", "exec"), namespace)
-        solve_fn = namespace.get("solve")
-        if not solve_fn:
+        result = run_untrusted(code, call="solve", args=[task["test"][0]["input"]])
+        if not result.ok:
             return None
-
-        test_input = task["test"][0]["input"]
-        pred = solve_fn(deepcopy_grid(test_input))
+        pred = result.value
         if isinstance(pred, list) and all(isinstance(r, list) for r in pred):
             return pred
     except Exception:

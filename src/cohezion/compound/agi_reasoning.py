@@ -9,8 +9,6 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
-import numpy as np
-
 from cohezion.compound.autoharness import AutoHarnessSynthesizer
 from cohezion.compound.symbolic_executor import SymbolicExecutor
 from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider
@@ -82,17 +80,16 @@ class AGIEvaluator:
         env_desc = f"Task: {description}"
 
         def dummy_env(code):
-            try:
-                from cohezion.compound.safe_exec import safe_exec_globals
+            # H5: run the candidate OUT OF PROCESS (rlimits, fail closed) — in-process exec under
+            # safe_exec_globals was escapable via collections._sys.modules['os'].
+            from cohezion.compound.sandboxed_exec import run_untrusted
 
-                exec(
-                    code, safe_exec_globals(np=np)
-                )  # H5: restricted builtins (deny import/open/eval)
-                if "predict_action" not in code:
-                    return False, "Function predict_action not found."
-                return True, "Code compiled."
-            except Exception as e:
-                return False, str(e)
+            r = run_untrusted(code, bindings={"np": "numpy"})
+            if not r.ok:
+                return False, r.error
+            if "predict_action" not in code:
+                return False, "Function predict_action not found."
+            return True, "Code compiled."
 
         policy_code = await self.harness.synthesize_policy(env_desc, dummy_env)
 

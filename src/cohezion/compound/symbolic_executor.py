@@ -1,4 +1,3 @@
-import traceback
 from typing import Any
 
 import numpy as np
@@ -11,75 +10,47 @@ class SymbolicExecutor:
     Provides a sandboxed environment for symbolic and numerical computation.
     """
 
-    def __init__(self):
+    # name -> "module" or "module:attr". Strings, not objects: code now runs OUT OF PROCESS
+    # (sandboxed_exec, H5) and the child imports each binding itself.
+    BINDINGS: dict[str, str] = {
+        "sympy": "sympy",
+        "np": "numpy",
+        "sp": "sympy",
+        **{
+            name: f"sympy:{name}"
+            for name in (
+                "sqrt", "exp", "log", "sin", "cos", "tan", "pi", "I", "symbols", "Eq", "solve",
+                "nsolve", "simplify", "expand", "factor", "limit", "diff", "integrate", "Sum",
+                "Product", "oo",
+                # Number Theory helpers
+                "isprime", "primerange", "factorint", "gcd", "lcm", "mod_inverse",
+            )
+        },
+    }  # fmt: skip
+
+    def __init__(self, timeout_s: float = 30.0):
+        self.timeout_s = timeout_s
         self.namespace = {
-            "sympy": sympy,
-            "np": np,
-            "sp": sympy,
-            "sqrt": sympy.sqrt,
-            "exp": sympy.exp,
-            "log": sympy.log,
-            "sin": sympy.sin,
-            "cos": sympy.cos,
-            "tan": sympy.tan,
-            "pi": sympy.pi,
-            "I": sympy.I,
-            "symbols": sympy.symbols,
-            "Eq": sympy.Eq,
-            "solve": sympy.solve,
-            "nsolve": sympy.nsolve,
-            "simplify": sympy.simplify,
-            "expand": sympy.expand,
-            "factor": sympy.factor,
-            "limit": sympy.limit,
-            "diff": sympy.diff,
-            "integrate": sympy.integrate,
-            "Sum": sympy.Sum,
-            "Product": sympy.Product,
-            "oo": sympy.oo,
-            # Number Theory helpers
-            "isprime": sympy.isprime,
-            "primerange": sympy.primerange,
-            "factorint": sympy.factorint,
-            "gcd": sympy.gcd,
-            "lcm": sympy.lcm,
-            "mod_inverse": sympy.mod_inverse,
-        }
+            name: getattr(sympy, target.partition(":")[2]) if ":" in target else
+            {"sympy": sympy, "numpy": np}[target]
+            for name, target in self.BINDINGS.items()
+        }  # fmt: skip
 
     def execute(self, code: str) -> dict[str, Any]:
+        """Execute ``code`` OUT OF PROCESS and return its top-level variables.
+
+        H5 durable fix: the previous in-process ``exec`` under ``safe_exec_globals`` was escapable
+        (``collections._sys.modules['os']``). ``run_untrusted`` applies kernel rlimits (no fork,
+        no file/socket open) and fails closed. Values come back JSON-coerced: sympy integers as
+        int, other exact-evaluable expressions as float, the rest as str. Callables are omitted.
         """
-        Executes a block of Python code and returns the local variables.
-        """
-        local_vars = {}
-        # Merge global namespace into locals for the execution
-        exec_globals = {**self.namespace}
+        from cohezion.compound.sandboxed_exec import run_untrusted
 
-        try:
-            # H5 fix: a RESTRICTED __builtins__ allow-list so exec'd LLM code cannot reach
-            # __import__/open/eval — CPython auto-injects the FULL builtins otherwise (the prior
-            # comment was false; {**namespace} provided NO __builtins__ key). NOT a full sandbox;
-            # durable fix is out-of-process (see safe_exec.py).
-            from cohezion.compound.safe_exec import safe_exec_globals
-
-            exec(code, safe_exec_globals(**exec_globals), local_vars)
-
-            # Filter out non-serializable or internal objects
-            clean_results = {}
-            for k, v in local_vars.items():
-                if k.startswith("_"):
-                    continue
-                # Convert SymPy objects to strings/floats for easier consumption
-                if hasattr(v, "evalf"):
-                    try:
-                        clean_results[k] = float(v.evalf())
-                    except (ValueError, TypeError):
-                        clean_results[k] = str(v)
-                else:
-                    clean_results[k] = v
-
-            return {"success": True, "results": clean_results}
-        except Exception as e:
-            return {"success": False, "error": str(e), "traceback": traceback.format_exc()}
+        r = run_untrusted(code, collect=True, bindings=self.BINDINGS, timeout_s=self.timeout_s)
+        if r.ok:
+            return {"success": True, "results": r.value or {}}
+        # `traceback` kept for callers that feed it back into a repair prompt (aimo_reasoning).
+        return {"success": False, "error": r.error, "traceback": r.error}
 
     def execute_command(self, command_str: str) -> dict[str, Any]:
         """
