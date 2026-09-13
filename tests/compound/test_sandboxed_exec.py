@@ -149,13 +149,20 @@ def test_print_is_captured_not_mistaken_for_result():
     assert "ok" in r.stdout
 
 
-def test_class_defs_flag_allows_class_statements():
-    code = (
-        "class Env:\n    def step(self):\n        return 7\n\ndef run():\n    return Env().step()\n"
+def test_int_keyed_dict_is_not_silently_string_keyed():
+    """Discriminating: a plain json round-trip turns {2: 3} into {"2": 3}."""
+    r = run_untrusted(
+        "f = factorint(360)\n", collect=True, bindings={"factorint": "sympy:factorint"}
     )
-    assert not run_untrusted(code, call="run").ok
-    r = run_untrusted(code, call="run", class_defs=True)
-    assert r.ok and r.value == 7
+    assert r.ok, r.error
+    assert r.value["f"] == "{2: 3, 3: 2, 5: 1}"
+
+
+def test_failure_carries_a_real_traceback_with_the_untrusted_line():
+    r = run_untrusted("a = 1\nb = a / 0\n", collect=True)
+    assert not r.ok
+    assert "Traceback" in r.traceback and 'File "<untrusted>", line 2' in r.traceback
+    assert "b = a / 0" in r.traceback
 
 
 @pytest.mark.parametrize("snippet", ["import os\n", "open('/etc/hostname').read()\n"])
@@ -189,4 +196,5 @@ def test_symbolic_executor_lazy_sympy_paths_still_work():
     solved = ex.execute_command("SOLVE(x**2 = 4, x)")
     assert solved["success"] and sorted(solved["results"]["result"]) == [-2, 2]
     failed = ex.execute("result = 1/0\n")
-    assert not failed["success"] and "ZeroDivisionError" in failed["traceback"]
+    assert not failed["success"] and "Traceback" in failed["traceback"]
+    assert "ZeroDivisionError" in failed["error"]

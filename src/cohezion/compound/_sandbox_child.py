@@ -19,11 +19,13 @@ import importlib.abc
 import importlib.util
 import io
 import json
+import linecache
 import os
 import resource
 import signal
 import sys
 import sysconfig
+import traceback
 
 
 # Without this, a write that trips RLIMIT_FSIZE kills the process with SIGXFSZ and NO output
@@ -49,9 +51,23 @@ def _coerce(value):
     return str(value)
 
 
+def _normalize(value):
+    """JSON object keys must be strings, so ``{2: 3}`` would silently become ``{"2": 3}`` — a
+    semantic change (e.g. factorint's integer primes turn into strings). A dict with any
+    non-string key is returned as its ``str()`` instead, which is exactly what the pre-port
+    in-process executor's consumers rendered into their prompts."""
+    if isinstance(value, dict):
+        if all(isinstance(k, str) for k in value):
+            return {k: _normalize(v) for k, v in value.items()}
+        return str(value)
+    if isinstance(value, (list, tuple)):
+        return [_normalize(v) for v in value]
+    return value
+
+
 def _jsonable(value):
     try:
-        return json.loads(json.dumps(value, default=_coerce))
+        return json.loads(json.dumps(_normalize(value), default=_coerce))
     except (TypeError, ValueError, RecursionError):
         return str(value)
 
@@ -176,8 +192,12 @@ def main() -> None:
     try:
         # ONE namespace: with a separate locals dict, names bound at top level (imports, classes)
         # are invisible inside functions the code defines, whose globals are `g`.
-        g = safe_exec.safe_exec_globals(_class_defs=bool(payload.get("class_defs")), **bound)
+        g = safe_exec.safe_exec_globals(**bound)
         preset = set(g)
+        # Registered so tracebacks show the untrusted source lines (linecache cannot open files
+        # under NOFILE=3, and "<untrusted>" is not a file anyway).
+        src_lines = payload["code"].splitlines(keepends=True)
+        linecache.cache["<untrusted>"] = (len(payload["code"]), None, src_lines, "<untrusted>")
         exec(compile(payload["code"], "<untrusted>", "exec"), g)  # noqa: S102 — the sandboxed exec itself
         value = None
         if payload.get("call"):
@@ -196,7 +216,11 @@ def main() -> None:
             }
         result = {"ok": True, "value": value}
     except BaseException as exc:
-        result = {"ok": False, "error": f"{type(exc).__name__}: {exc}"[:2000]}
+        result = {
+            "ok": False,
+            "error": f"{type(exc).__name__}: {exc}"[:2000],
+            "traceback": traceback.format_exc()[-4000:],
+        }
     result["stdout"] = captured.getvalue()[-4000:]
     _emit(result)
 

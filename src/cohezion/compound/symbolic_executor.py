@@ -1,8 +1,5 @@
 from typing import Any
 
-import numpy as np
-import sympy
-
 
 class SymbolicExecutor:
     """
@@ -30,11 +27,6 @@ class SymbolicExecutor:
 
     def __init__(self, timeout_s: float = 30.0):
         self.timeout_s = timeout_s
-        self.namespace = {
-            name: getattr(sympy, target.partition(":")[2]) if ":" in target else
-            {"sympy": sympy, "numpy": np}[target]
-            for name, target in self.BINDINGS.items()
-        }  # fmt: skip
 
     def execute(self, code: str) -> dict[str, Any]:
         """Execute ``code`` OUT OF PROCESS and return its top-level variables.
@@ -49,8 +41,9 @@ class SymbolicExecutor:
         r = run_untrusted(code, collect=True, bindings=self.BINDINGS, timeout_s=self.timeout_s)
         if r.ok:
             return {"success": True, "results": r.value or {}}
-        # `traceback` kept for callers that feed it back into a repair prompt (aimo_reasoning).
-        return {"success": False, "error": r.error, "traceback": r.error}
+        # aimo_reasoning feeds `traceback` into its repair prompt; it is the child's real
+        # traceback (untrusted frames carry source lines via linecache), not the one-line error.
+        return {"success": False, "error": r.error, "traceback": r.traceback or r.error}
 
     def execute_command(self, command_str: str) -> dict[str, Any]:
         """

@@ -54,6 +54,7 @@ class SandboxResult:
     value: Any = None
     error: str = ""
     stdout: str = ""
+    traceback: str = ""
     isolation: str = "none"  # "bwrap+rlimit" | "rlimit" | "none" (never started)
 
 
@@ -124,7 +125,6 @@ def run_untrusted(
     args: tuple | list = (),
     collect: bool = False,
     bindings: dict[str, str] | None = None,
-    class_defs: bool = False,
     timeout_s: float = 10.0,
     mem_mb: int = 2048,
 ) -> SandboxResult:
@@ -143,7 +143,6 @@ def run_untrusted(
             "args": list(args),
             "collect": collect,
             "bindings": bindings or {},
-            "class_defs": class_defs,
             "cpu_s": max(1, int(timeout_s) + 1),
             "mem_bytes": mem_mb * 1024 * 1024,
         }
@@ -190,5 +189,6 @@ def run_untrusted(
         value=data.get("value"),
         error=str(data.get("error", "")),
         stdout=str(data.get("stdout", "")),
+        traceback=str(data.get("traceback", "")),
         isolation=isolation,
     )
