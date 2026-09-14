@@ -154,6 +154,29 @@ class DualLoopOptimizer:
                 logger.error("Failed to compile synthesized verifier: %s", e)
             harness_fn = None
 
+        if harness_fn is not None:
+            synthesized_fn = harness_fn
+
+            def harness_fn(state: Any, action: Any) -> bool:
+                # The gate usually bites when the verifier is CALLED, not when it is defined.
+                # A call-time refusal fails open (treated as no harness), matching the load-time
+                # path above; any other exception propagates unchanged.
+                nonlocal gate_refused
+                try:
+                    return bool(synthesized_fn(state, action))
+                except Exception as e:
+                    refused = gate_refusal(e)
+                    if refused is None:
+                        raise
+                    if gate_refused is None:
+                        gate_refused = refused
+                        logger.error(
+                            "Synthesized verifier refused by safe_exec gate at call time (%s): %s",
+                            refused,
+                            e,
+                        )
+                    return True
+
         # Step 3: Evaluate Adherence Delta
         harnessed_score = await self.evaluate_adherence_delta(
             policy_fn=policy_fn,

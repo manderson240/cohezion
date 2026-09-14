@@ -652,7 +652,6 @@ cohezion/inference/anti_sycophancy.py:dict-item:Dict entry 2 has incompatible ty
 cohezion/inference/anti_sycophancy.py:no-any-return:Returning Any from function declared to return "dict[Any, Any]"
 cohezion/inference/autoharness.py:no-any-return:Returning Any from function declared to return "str"
 cohezion/inference/autoharness.py:return-value:Incompatible return value type (got "str | None", expected "str")
-cohezion/inference/autoharness.py:var-annotated:Need type annotation for "namespace" (hint: "namespace: dict[<type>, <type>] = ...")
 cohezion/inference/autoharness_ce.py:arg-type:Argument 1 to "sum" has incompatible type "list[Any | None]"; expected "Iterable[bool]"
 cohezion/inference/autoharness_ce.py:assignment:Incompatible types in assignment (expression has type "dict[str, object]", target has type "list[Any]")
 cohezion/inference/autoharness_ce.py:attr-defined:"Collection[Any]" has no attribute "append"

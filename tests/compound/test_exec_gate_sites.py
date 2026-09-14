@@ -170,3 +170,87 @@ async def test_dual_loop_benign_verifier_has_no_refusal():
         dummy_env=lambda a: (True, ""),
     )
     assert result["gate_refused"] is None
+
+
+# ── adversarial-review follow-ups (2026-09-14) ─────────────────────────────────
+
+
+def test_gate_refusal_classifies_class_statement_in_default_mode():
+    """REVIEW defect 2: `class` without _class_defs raises NameError('__build_class__ not found')
+    with .name=None; that is the gate, not a synthesis bug."""
+    exc = _raise_from("class A:\n    pass\n", safe_exec_globals())
+    assert gate_refusal(exc) == "builtin '__build_class__'"
+
+
+def test_gate_refusal_follows_the_context_chain():
+    """REVIEW defect 3: a refused import re-raised as the code's own error must still be
+    attributed to the refused import, so the refinement loop is told what to avoid."""
+    code = "try:\n    import random\nexcept ImportError:\n    raise RuntimeError('no rng')\n"
+    exc = _raise_from(code, safe_exec_globals())
+    assert isinstance(exc, RuntimeError)
+    assert gate_refusal(exc) == "import of 'random'"
+
+
+def test_import_fallback_idiom_runs_under_gate():
+    """Availability: the standard optional-import fallback must not crash on `ImportError`
+    itself being an unknown name."""
+    g = safe_exec_globals()
+    exec(  # noqa: S102 — deliberate: testing the exec gate
+        "try:\n    import random\nexcept ImportError:\n    random = None\nresult = random\n", g
+    )
+    assert g["result"] is None
+
+
+@pytest.mark.parametrize("name", ["LookupError", "NameError", "AssertionError", "hasattr"])
+def test_harmless_builtins_available(name):
+    g = safe_exec_globals()
+    exec(f"result = {name}", g)  # noqa: S102 — deliberate: testing the exec gate
+    assert g["result"] is not None
+
+
+@pytest.mark.parametrize("name", ["getattr", "setattr", "type", "object", "vars", "globals"])
+def test_object_reaching_builtins_stay_withheld(name):
+    """Widening guard: builtins that return arbitrary objects or classes stay off the list."""
+    exc = _raise_from(f"result = {name}", safe_exec_globals())
+    assert gate_refusal(exc) == f"builtin {name!r}"
+
+
+@pytest.mark.asyncio
+async def test_dual_loop_call_time_refusal_is_recorded_not_raised():
+    """REVIEW defect 1: the gate usually bites when verify_action is CALLED inside
+    evaluate_adherence_delta. origin/main returned a result for this code; the gated version must
+    too, record the refusal, and fail open exactly like a load-time refusal (no harness)."""
+    synth = MagicMock()
+    synth.synthesize_verifier = AsyncMock(
+        return_value="def verify_action(state, action):\n    return getattr(action, 'x', 1) == 1\n"
+    )
+    result = await DualLoopOptimizer(synth, benefit_tracker=MagicMock()).optimize_cycle(
+        skill_name="probe",
+        environment_desc="any",
+        policy_fn=lambda s: "a",
+        raw_score=0.5,
+        dataset=[{"state": 1, "target": "a"}],
+        metric_fn=lambda a, t: float(a == t),
+        dummy_env=lambda a: (True, ""),
+    )
+    assert result["gate_refused"] == "builtin 'getattr'"
+    assert result["harnessed_score"] == 1.0
+
+
+@pytest.mark.asyncio
+async def test_dual_loop_non_gate_call_error_still_propagates():
+    """Fail-open is ONLY for gate refusals; an ordinary bug in the verifier propagates as on main."""
+    synth = MagicMock()
+    synth.synthesize_verifier = AsyncMock(
+        return_value="def verify_action(state, action):\n    raise ValueError('bug')\n"
+    )
+    with pytest.raises(ValueError, match="bug"):
+        await DualLoopOptimizer(synth, benefit_tracker=MagicMock()).optimize_cycle(
+            skill_name="probe",
+            environment_desc="any",
+            policy_fn=lambda s: "a",
+            raw_score=0.5,
+            dataset=[{"state": 1, "target": "a"}],
+            metric_fn=lambda a, t: float(a == t),
+            dummy_env=lambda a: (True, ""),
+        )
