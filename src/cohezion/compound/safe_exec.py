@@ -134,6 +134,12 @@ _ALLOWED_MODULES = frozenset(
 )
 
 
+class SafeExecImportRefusedError(ImportError):
+    """Raised by the gate for a non-allow-listed import. Subclasses ImportError so existing
+    ``except ImportError`` callers are unaffected, while ``gate_refusal`` can tell a gate refusal
+    apart from a genuinely missing module."""
+
+
 def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     """Restricted ``__import__`` for exec'd LLM code. Permits only top-level imports whose root is in
     the curated list (``import numpy``, ``from itertools import product``); ``numpy.linalg`` is allowed
@@ -142,7 +148,9 @@ def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     (see module docstring), so this does not contain hostile code."""
     root = name.partition(".")[0]
     if root not in _ALLOWED_MODULES:
-        raise ImportError(f"import of {name!r} is not permitted in safe_exec")
+        raise SafeExecImportRefusedError(
+            f"import of {name!r} is not permitted in safe_exec", name=name
+        )
     return builtins.__import__(name, globals, locals, fromlist, level)
 
 
@@ -158,6 +166,27 @@ _SAFE_BUILTINS["__import__"] = _safe_import
 # (used to stamp __module__); super() is needed for the ubiquitous super().__init__() pattern.
 # Same caveat as everything here: availability gate, not a sandbox.
 _CLASS_DEF_EXTRA = ("__build_class__", "super", "staticmethod", "classmethod", "property")
+
+
+def gate_refusal(exc: BaseException) -> str | None:
+    """Return a short reason if ``exc`` was caused by this gate, else None.
+
+    Callers of exec'd LLM code typically swallow every exception, so without this a gate refusal
+    is indistinguishable from a broken synthesis. Two refusal shapes exist: a non-allow-listed
+    import (``SafeExecImportRefusedError``) and a withheld builtin, which surfaces as a plain NameError
+    for a name the real ``builtins`` module defines. A NameError for any other name is an ordinary
+    bug in the generated code and is NOT reported as a refusal."""
+    if isinstance(exc, SafeExecImportRefusedError):
+        return f"import of {exc.name!r}"
+    name = getattr(exc, "name", None)
+    if (
+        type(exc) is NameError
+        and isinstance(name, str)
+        and hasattr(builtins, name)
+        and name not in _SAFE_BUILTINS
+    ):
+        return f"builtin {name!r}"
+    return None
 
 
 def safe_exec_globals(**extra) -> dict:

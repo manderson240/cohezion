@@ -17,7 +17,7 @@ from typing import Any
 
 import httpx
 
-from cohezion.compound.safe_exec import safe_exec_globals
+from cohezion.compound.safe_exec import gate_refusal, safe_exec_globals
 
 
 logger = logging.getLogger(__name__)
@@ -127,11 +127,11 @@ class CodeAsActionVerifier:
 
         hyp = self.search.hypotheses[self.active_code_id]
 
-        # Execute the python code dynamically in a sandboxed namespace
+        # Execute the synthesized code under the H5 exec gate (restricted builtins/imports).
+        # safe_exec is an availability gate, NOT a sandbox -- see its module docstring.
         try:
-            # H5: LLM-synthesized hypothesis -> restricted builtins (not a sandbox)
             namespace = safe_exec_globals()
-            exec(hyp.code, namespace)
+            exec(hyp.code, namespace)  # noqa: S102 -- LLM code, gated by safe_exec_globals (H5)
             if "is_legal_action" in namespace:
                 is_legal_fn = namespace["is_legal_action"]
                 result = is_legal_fn(action)
@@ -141,6 +141,11 @@ class CodeAsActionVerifier:
             else:
                 return False, "Synthesized code missing 'is_legal_action' function definition."
         except Exception as e:
+            refused = gate_refusal(e)
+            if refused:
+                # Distinct from a broken synthesis: this message feeds record_feedback, so the
+                # refinement loop learns which import/builtin to avoid.
+                return False, f"safe_exec gate refused {refused}: {e}"
             return False, f"Harness execution error: {type(e).__name__}: {e}"
 
     async def record_feedback(self, action: str, env_error: str) -> str:
@@ -247,8 +252,8 @@ class HarnessAsPolicy:
         # Test if it executes cleanly against all collected traces
         success = True
         try:
-            namespace = safe_exec_globals()  # H5: LLM-synthesized policy
-            exec(compiled, namespace)
+            namespace = safe_exec_globals()
+            exec(compiled, namespace)  # noqa: S102 -- LLM code, gated by safe_exec_globals (H5)
             decide_fn = namespace.get("decide_action")
             if not decide_fn:
                 return False
@@ -265,7 +270,11 @@ class HarnessAsPolicy:
                     )
                     break
         except Exception as e:
-            logger.warning("Synthesized policy failed testing: %s", e)
+            refused = gate_refusal(e)
+            if refused:
+                logger.warning("Synthesized policy refused by safe_exec gate (%s): %s", refused, e)
+            else:
+                logger.warning("Synthesized policy failed testing: %s", e)
             success = False
 
         if success:
@@ -279,12 +288,16 @@ class HarnessAsPolicy:
         if not self.compiled_code:
             return None
         try:
-            namespace = safe_exec_globals()  # H5: LLM-synthesized policy
-            exec(self.compiled_code, namespace)
+            namespace = safe_exec_globals()
+            exec(self.compiled_code, namespace)  # noqa: S102 -- gated by safe_exec_globals (H5)
             decide_fn = namespace["decide_action"]
             return str(decide_fn(context))
         except Exception as e:
-            logger.warning("Executing compiled policy failed: %s", e)
+            refused = gate_refusal(e)
+            if refused:
+                logger.warning("Compiled policy refused by safe_exec gate (%s): %s", refused, e)
+            else:
+                logger.warning("Executing compiled policy failed: %s", e)
             return None
 
     async def _call_local_llm(self, prompt: str) -> str:

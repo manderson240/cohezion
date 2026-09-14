@@ -11,7 +11,7 @@ from collections.abc import Callable
 from typing import Any
 
 from cohezion.compound.harness_benefit import HarnessBenefitTracker
-from cohezion.compound.safe_exec import safe_exec_globals
+from cohezion.compound.safe_exec import gate_refusal, safe_exec_globals
 
 
 logger = logging.getLogger(__name__)
@@ -138,13 +138,20 @@ class DualLoopOptimizer:
         verifier_code = await self.synthesizer.synthesize_verifier(environment_desc, dummy_env)
 
         # Create python callable from verifier_code (for local evaluation)
-        # H5: synthesized verifier is LLM output -> restricted builtins (not a sandbox)
+        # H5 exec gate: restricted builtins/imports. An availability gate, NOT a sandbox.
         local_namespace: dict[str, Any] = safe_exec_globals()
+        gate_refused: str | None = None
         try:
-            exec(verifier_code, local_namespace)
+            exec(verifier_code, local_namespace)  # noqa: S102 -- gated by safe_exec_globals (H5)
             harness_fn = local_namespace.get("verify_action")
         except Exception as e:
-            logger.error("Failed to compile synthesized verifier: %s", e)
+            gate_refused = gate_refusal(e)
+            if gate_refused:
+                logger.error(
+                    "Synthesized verifier refused by safe_exec gate (%s): %s", gate_refused, e
+                )
+            else:
+                logger.error("Failed to compile synthesized verifier: %s", e)
             harness_fn = None
 
         # Step 3: Evaluate Adherence Delta
@@ -175,6 +182,7 @@ class DualLoopOptimizer:
         return {
             "skill_name": skill_name,
             "verifier_code": verifier_code,
+            "gate_refused": gate_refused,
             "adherence_delta": adherence_delta,
             "raw_score": raw_score,
             "harnessed_score": harnessed_score,
