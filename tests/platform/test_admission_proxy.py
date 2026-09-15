@@ -35,6 +35,60 @@ def _upstream(recorder: list[httpx.Request]) -> httpx.AsyncClient:
     )
 
 
+class TestStreamedRequestTimeoutProfile:
+    """2026-09-15 incident regression: a wedged upstream (agy :13315) held the proxy's
+    streamed health forward open forever because read=None applied to everything. The
+    fix bounds the FIRST read on streamed requests only (30 s), leaving long
+    non-streamed completions unbounded. These tests pin: (1) streamed requests carry a
+    bounded read timeout upstream; (2) non-streamed requests keep read=None."""
+
+    @staticmethod
+    def _capturing_client(
+        recorder: list[httpx.Request], timeout_log: list[httpx.Timeout | None]
+    ) -> httpx.AsyncClient:
+        def handler(request: httpx.Request) -> httpx.Response:
+            recorder.append(request)
+            # httpx serialises the Timeout into request.extensions["timeout"] as a
+            # plain dict {"connect": .., "read": .., "write": .., "pool": ..}.
+            ext = request.extensions.get("timeout")
+            timeout_log.append(ext.get("read") if isinstance(ext, dict) else None)
+            return httpx.Response(200, json={"ok": True})
+
+        return httpx.AsyncClient(
+            transport=httpx.MockTransport(handler), base_url="http://upstream.test"
+        )
+
+    def test_streamed_request_carries_bounded_first_read(self) -> None:
+        seen: list[httpx.Request] = []
+        timeouts: list[httpx.Timeout | None] = []
+        app = build_app(
+            _gate(available_gb=100.0),
+            client=self._capturing_client(seen, timeouts),
+        )
+        with TestClient(app) as c:
+            r = c.get("/api/v1/health", headers={"accept": "text/event-stream"})
+        assert r.status_code == 200
+        assert len(timeouts) == 1
+        assert timeouts[0] == 30.0, (
+            f"streamed requests must carry the bounded first-read (30 s), got {timeouts[0]!r}"
+        )
+
+    def test_non_streamed_request_keeps_unbounded_read(self) -> None:
+        seen: list[httpx.Request] = []
+        timeouts: list[httpx.Timeout | None] = []
+        app = build_app(
+            _gate(available_gb=100.0),
+            client=self._capturing_client(seen, timeouts),
+        )
+        with TestClient(app) as c:
+            r = c.get("/api/v1/health")
+        assert r.status_code == 200
+        assert len(timeouts) == 1
+        assert timeouts[0] is None, (
+            f"non-streamed requests must keep read=None, got {timeouts[0]!r}"
+        )
+
+
 class TestRefusalPath:
     def test_overbudget_load_returns_503_and_never_reaches_upstream(self) -> None:
         seen: list[httpx.Request] = []

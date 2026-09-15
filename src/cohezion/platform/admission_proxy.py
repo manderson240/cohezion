@@ -74,9 +74,18 @@ def build_app(
     # narrow (a reassigned parameter loses narrowing inside nested functions).
     active_gate: AdmissionGate = gate if gate is not None else AdmissionGate()
     upstream = active_gate.config.upstream_base.rstrip("/")
-    # read=None is deliberate: streamed completions run for minutes; connect/write/pool
-    # stay bounded so a dead upstream fails fast instead of hanging the client.
+    # read=None is deliberate for streamed completions: they run for minutes, so the
+    # proxy timeout cannot bound total read time — connect/write/pool stay bounded so
+    # a dead upstream fails fast instead of hanging the client. The streaming hazard
+    # is bounded at the call site instead: streaming requests use `timeouts` below
+    # (bounded read), while everything else uses read=None.
     _timeout = httpx.Timeout(connect=5.0, read=None, write=30.0, pool=5.0)
+    # Bounded-read profile for STREAMING requests: first read must arrive within 30 s.
+    # Rationale (2026-09-15 incident): a wedged upstream (agy :13315 health) held the
+    # proxy's read open forever on streamed calls; a bounded first-read converts that
+    # hang into a fast 504 while still never capping a legitimately slow completion —
+    # tokens stream continuously once generation starts.
+    _STREAM_FIRST_READ = httpx.Timeout(connect=5.0, read=30.0, write=30.0, pool=5.0)
     http = client if client is not None else httpx.AsyncClient(base_url=upstream, timeout=_timeout)
 
     @asynccontextmanager
@@ -165,12 +174,18 @@ def build_app(
         # Pin identity explicitly: with the header merely absent, httpx injects its own
         # 'gzip, deflate', resurrecting the decoded-bytes/encoded-header mismatch.
         headers["accept-encoding"] = "identity"
+        is_stream = "text/event-stream" in request.headers.get("accept", "").lower()
+        # Streamed calls get the bounded-first-read profile (see _STREAM_FIRST_READ)
+        # so a wedged upstream yields a fast 504; non-streaming calls keep the
+        # client-default read=None so long non-streamed requests still work.
+        # Per-request timeout rides on build_request (httpx.send has no timeout arg).
         upstream_req = http.build_request(
             request.method,
             f"/{path}",
             params=request.query_params,
             headers=headers,
             content=body if body else None,
+            timeout=_STREAM_FIRST_READ if is_stream else None,
         )
         try:
             upstream_resp = await http.send(upstream_req, stream=True)
