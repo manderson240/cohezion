@@ -22,7 +22,7 @@ addition to the per-backend gates, admission enforces one system-wide floor:
 Safety posture is fail-closed everywhere, mirroring ``inference/hotswap``:
 
 * unknown candidate size   -> refuse the blind cold load,
-* ``/api/v1/health`` down  -> residency unverifiable -> refuse,
+* ``/api/v1/health`` down/degraded/malformed -> residency unverifiable -> refuse,
 * ``/proc/meminfo`` unreadable -> free RAM unverifiable -> refuse,
 * ctx_size <= 0            -> refuse (unbounded/auto KV is the documented
   2026-06-09 hard-freeze vector).
@@ -136,20 +136,40 @@ def _get(url: str, timeout: float = DEFAULT_TIMEOUT_S) -> dict[str, Any] | None:
 
 
 def _resident_map(lemonade_base: str) -> dict[Backend, list[str]] | None:
-    """Resident model names grouped by backend, or ``None`` when health is down.
+    """Resident model names grouped by backend, or ``None`` when health is degraded.
 
-    ``None`` (server unreachable) is distinct from ``{}`` (server up, fleet
-    empty) — admission must refuse on the former and proceed on the latter.
-    An entry counts as resident when it carries a non-empty ``model_name``
-    and has not explicitly reported ``loaded: false``.
+    ``None`` (unreachable, degraded, or malformed health answer) is distinct
+    from ``{}`` (server answered, fleet empty) — admission must refuse on the
+    former and proceed on the latter. An entry counts as resident when it
+    carries a non-empty ``model_name`` and has not explicitly reported
+    ``loaded: false``.
+    """
+    state = _resident_state(lemonade_base)
+    return None if state is None else state
+
+
+def _resident_state(lemonade_base: str) -> dict[Backend, list[str]] | None:
+    """Residency view that DISTINGUISHES degraded from answered-and-empty.
+
+    Returns ``None`` when the health endpoint is unreachable, answers with a
+    non-object payload, or answers with a malformed body (missing/non-list
+    ``all_models_loaded``) — residency is then unverifiable, so admission must
+    fail closed. Returns the (possibly empty) per-backend grouping only when
+    health answered with a well-formed body. Tests stub ``fabric._get``; this
+    seam keeps that contract.
     """
     health = _get(f"{lemonade_base.rstrip('/')}/api/v1/health")
     if health is None:
         return None
-    out: dict[Backend, list[str]] = {}
-    entries = health.get("all_models_loaded") or []
+    entries = health.get("all_models_loaded")
     if not isinstance(entries, list):
-        entries = []
+        logger.warning(
+            "fabric: /api/v1/health answered but 'all_models_loaded' is malformed "
+            "(%s) — residency unverifiable, failing closed",
+            type(entries).__name__,
+        )
+        return None
+    out: dict[Backend, list[str]] = {}
     for entry in entries:
         if not isinstance(entry, dict):
             continue
@@ -165,11 +185,13 @@ def _resident_map(lemonade_base: str) -> dict[Backend, list[str]] | None:
 def resident_by_backend(lemonade_base: str = LEMONADE_BASE) -> dict[Backend, list[str]]:
     """Resident model names grouped by backend, from ``GET /api/v1/health``.
 
-    Degraded (health unreachable) -> ``{}``; never raises. Models are
-    classified by :func:`backend_for_model`, not by Lemonade's ``device``
-    field, so the census and the admission gate always agree on lanes.
+    Degraded (health unreachable or malformed) -> ``{}``; never raises. Models
+    are classified by :func:`backend_for_model`, not by Lemonade's ``device``
+    field, so the census and the admission gate always agree on lanes. Census
+    consumers that need to DISTINGUISH degraded from a truly empty fleet
+    should call :func:`_resident_state` (``None`` = degraded) instead.
     """
-    return _resident_map(lemonade_base) or {}
+    return _resident_state(lemonade_base) or {}
 
 
 def _kv_overhead_gb(weights_gb: float, ctx_size: int) -> float:
@@ -284,11 +306,12 @@ def _admission_check(
     if backend is Backend.CLOUD:
         return True, f"{model_name} is a cloud model — nothing loads locally, admission granted"
 
-    residents = _resident_map(lemonade_base)
+    residents = _resident_state(lemonade_base)
     if residents is None:
         return False, (
-            f"refusing load of {model_name}: Lemonade /api/v1/health is unreachable — "
-            "residency cannot be verified (fail closed)"
+            f"refusing load of {model_name}: Lemonade /api/v1/health is degraded — "
+            "unreachable or malformed answer means residency cannot be verified "
+            "(fail closed)"
         )
     names_now = {name for names in residents.values() for name in names}
     if model_name in names_now:
