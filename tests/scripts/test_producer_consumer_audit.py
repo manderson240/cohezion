@@ -10,21 +10,23 @@ Validates:
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
 
-_SCRIPTS_CI_DIR = Path(__file__).resolve().parents[2] / "scripts" / "ci"
-if str(_SCRIPTS_CI_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_CI_DIR))
+_module_path = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
+_spec = importlib.util.spec_from_file_location("ci_producer_consumer_audit", _module_path)
+assert _spec is not None and _spec.loader is not None
+_mod = importlib.util.module_from_spec(_spec)
+sys.modules["ci_producer_consumer_audit"] = _mod
+_spec.loader.exec_module(_mod)
 
-from producer_consumer_audit import (
-    AUDIT_PAIRS,
-    AuditPair,
-    execute_audit,
-    format_markdown_report,
-    run_self_test,
-)
+AUDIT_PAIRS = _mod.AUDIT_PAIRS
+AuditPair = _mod.AuditPair
+execute_audit = _mod.execute_audit
+format_markdown_report = _mod.format_markdown_report
+run_self_test = _mod.run_self_test
 
 
 def test_producer_consumer_audit_self_test() -> None:

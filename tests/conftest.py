@@ -8,13 +8,17 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 import uuid
 from collections.abc import Generator
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import pytest_asyncio
+
 
 # Hypothesis CI profile (loaded via HYPOTHESIS_PROFILE=ci in CI workflows):
 # derandomize=True makes CI failures reproducible; deadline=None avoids flaky
@@ -345,3 +349,164 @@ def reset_singletons():
         logger.handlers.clear()
         logger.filters.clear()
         logger.propagate = True
+
+
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    """Quarantine logging hook for flaky and rerun test executions.
+
+    Google-inspired flaky test quarantine protocol:
+    Monitors test execution outcomes for reruns or quarantined tests.
+    When an intermittent failure or rerun occurs, structured telemetry is appended
+    to reports/quarantine.jsonl to maintain pipeline health while tracking flakiness.
+    """
+    rerun_count = getattr(report, "rerun", 0)
+    is_rerun = report.outcome == "rerun" or rerun_count > 0
+    if is_rerun and report.when == "call":
+        with contextlib.suppress(Exception):
+            import json
+
+            reports_dir = Path("reports")
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            quarantine_file = reports_dir / "quarantine.jsonl"
+            entry = {
+                "timestamp": time.time(),
+                "nodeid": report.nodeid,
+                "outcome": report.outcome,
+                "rerun_attempt": rerun_count,
+                "duration_s": round(report.duration, 4),
+                "when": report.when,
+                "error": str(report.longrepr) if report.failed else None,
+            }
+            with open(quarantine_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry) + "\n")
+
+
+class MockInferenceGateway:
+    """Hermetic mock inference gateway for Lemonade, FastFlowLM, and Ollama."""
+
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+        self.default_response: str = "Mocked LLM generation"
+        self.canned_responses: dict[str, str] = {}
+        self.latency_s: float = 0.0
+        self.error: Exception | None = None
+
+    def set_response_for_model(self, model: str, response: str) -> None:
+        """Set custom canned completion for a given model identifier."""
+        self.canned_responses[model] = response
+
+    def set_error(self, exc: Exception | None) -> None:
+        """Inject an error to simulate gateway or rate-limiting failures."""
+        self.error = exc
+
+    def set_latency(self, seconds: float) -> None:
+        """Simulate inference network/processing latency."""
+        self.latency_s = seconds
+
+    async def complete(
+        self,
+        prompt: str,
+        model: str = "deepseek-r1-0528-8b-FLM",
+        temperature: float = 0.0,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Execute hermetic completion without making external calls."""
+        self.calls.append(
+            {
+                "prompt": prompt,
+                "model": model,
+                "temperature": temperature,
+                "kwargs": kwargs,
+                "timestamp": time.time(),
+            }
+        )
+        if self.latency_s > 0:
+            await asyncio.sleep(self.latency_s)
+        if self.error is not None:
+            raise self.error
+        content = self.canned_responses.get(model, self.default_response)
+        prompt_tokens = max(1, len(prompt.split()))
+        completion_tokens = max(1, len(content.split()))
+        return {
+            "content": content,
+            "model": model,
+            "usage": {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": prompt_tokens + completion_tokens,
+            },
+        }
+
+
+@pytest.fixture
+def mock_inference_gateway() -> MockInferenceGateway:
+    """Provide a hermetic mock inference gateway for LLM agent testing."""
+    return MockInferenceGateway()
+
+
+@pytest_asyncio.fixture
+async def async_event_bus():
+    """Provide an isolated, in-memory EventBus for agentic workflows with auto-drain on exit."""
+    from cohezion.core.event_bus import EventBus
+
+    bus = EventBus(max_queue_size=1000)
+    await bus.start()
+    try:
+        yield bus
+    finally:
+        await bus.stop(drain_timeout=0.5)
+
+
+class AgentTurnHarness:
+    """Harness for testing individual agent turns with hermetic isolation, timeouts, and assertion helpers."""
+
+    def __init__(self, bus: Any = None, timeout_s: float = 5.0) -> None:
+        self.bus = bus
+        self.timeout_s = timeout_s
+        self.state_history: list[str] = ["INITIALIZED"]
+
+    def record_state(self, state: str) -> None:
+        """Record an agent state transition."""
+        self.state_history.append(state)
+
+    @contextlib.asynccontextmanager
+    async def run_turn(self, name: str = "agent_turn"):
+        """Execute an agent turn within a protected timeout boundary and record lifecycle events."""
+        self.record_state("RUNNING")
+        if self.bus is not None:
+            from cohezion.core.event_bus import Event
+
+            await self.bus.publish(Event.agent_start(agent_name=name, model="test-harness"))
+
+        start_time = time.time()
+        try:
+            async with asyncio.timeout(self.timeout_s):
+                yield self
+            duration_ms = (time.time() - start_time) * 1000.0
+            self.record_state("COMPLETED")
+            if self.bus is not None:
+                from cohezion.core.event_bus import Event
+
+                await self.bus.publish(
+                    Event.agent_complete(agent_name=name, result="SUCCESS", duration_ms=duration_ms)
+                )
+        except Exception as exc:
+            duration_ms = (time.time() - start_time) * 1000.0
+            self.record_state("FAILED")
+            if self.bus is not None:
+                from cohezion.core.event_bus import Event
+
+                await self.bus.publish(
+                    Event.agent_complete(
+                        agent_name=name,
+                        result=f"ERROR: {exc}",
+                        duration_ms=duration_ms,
+                    )
+                )
+            raise
+
+
+@pytest.fixture
+def agent_turn_harness() -> AgentTurnHarness:
+    """Provide an AgentTurnHarness for testing agent steps with strict timeout guards."""
+    return AgentTurnHarness(timeout_s=5.0)

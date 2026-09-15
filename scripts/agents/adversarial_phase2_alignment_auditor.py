@@ -45,14 +45,19 @@ class Phase2AdversarialAuditor:
         payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": "You are the Senior Categorical & Cosmological Auditor. Review alignment results strictly."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are the Senior Categorical & Cosmological Auditor. Review alignment results strictly.",
+                },
+                {"role": "user", "content": prompt},
             ],
             "max_tokens": 100,
             "temperature": 0.2,
         }
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(LEMONADE_URL, data=data, headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            LEMONADE_URL, data=data, headers={"Content-Type": "application/json"}
+        )
         try:
             with urllib.request.urlopen(req, timeout=10) as response:
                 res_json = json.loads(response.read().decode("utf-8"))
@@ -69,8 +74,12 @@ class Phase2AdversarialAuditor:
 
         # 1. Audit Tradition Coverage (17 traditions)
         trad_count = len(self.functor.traditions)
-        audit_results["traditions_full_coverage"] = (trad_count == 17)
-        logger.info("  [1/5] Audited tradition count: %d == 17 (Valid: %s)", trad_count, audit_results["traditions_full_coverage"])
+        audit_results["traditions_full_coverage"] = trad_count == 17
+        logger.info(
+            "  [1/5] Audited tradition count: %d == 17 (Valid: %s)",
+            trad_count,
+            audit_results["traditions_full_coverage"],
+        )
 
         # 2. Audit Step 8 (HIHO Attractor, index 7) Twistor Helicity
         hiho_step = self.functor.map_step_functor(7)
@@ -78,7 +87,9 @@ class Phase2AdversarialAuditor:
         audit_results["hiho_twistor_null_conformal"] = helicity_zero and hiho_step.is_null_ray
         logger.info(
             "  [2/5] Audited HIHO step twistor: helicity s = %.6f, is_null = %s (Valid: %s)",
-            hiho_step.twistor_helicity, hiho_step.is_null_ray, audit_results["hiho_twistor_null_conformal"]
+            hiho_step.twistor_helicity,
+            hiho_step.is_null_ray,
+            audit_results["hiho_twistor_null_conformal"],
         )
 
         # 3. Audit Morphism Geodesic Continuity
@@ -88,7 +99,7 @@ class Phase2AdversarialAuditor:
         audit_results["morphism_geodesics_continuous"] = morphisms_continuous
         logger.info(
             "  [3/5] Audited step-to-step geodesics: 9 transitions in (0, 30) (Valid: %s)",
-            morphisms_continuous
+            morphisms_continuous,
         )
 
         # 4. Audit MOC Note Integrity
@@ -101,7 +112,11 @@ class Phase2AdversarialAuditor:
         spread = hiho_step.hyperbolic_spread_radius
         spread_bounded = 0.0 < spread < 25.0
         audit_results["frechet_spread_bounded"] = spread_bounded
-        logger.info("  [5/5] Audited HIHO spread radius: r = %.3f < 25.0 (Valid: %s)", spread, spread_bounded)
+        logger.info(
+            "  [5/5] Audited HIHO spread radius: r = %.3f < 25.0 (Valid: %s)",
+            spread,
+            spread_bounded,
+        )
 
         all_passed = all(audit_results.values())
         verdict = "PASSED_WITH_ZERO_DEFECTS" if all_passed else "FAILED_VERIFICATION"
@@ -119,11 +134,11 @@ class Phase2AdversarialAuditor:
 - **Invariants Upheld**: 5/5 Invariants Passed
 
 ### Verification Matrix
-1. **17 Traditions Full Coverage**: {audit_results['traditions_full_coverage']}
-2. **HIHO Twistor Null Ray ($s = 0.0000$)**: {audit_results['hiho_twistor_null_conformal']}
-3. **Morphism Geodesic Continuity (9 transitions)**: {audit_results['morphism_geodesics_continuous']}
-4. **Obsidian MOC Persistence**: {audit_results['vault_moc_persisted']}
-5. **Fréchet Spread Boundedness**: {audit_results['frechet_spread_bounded']}
+1. **17 Traditions Full Coverage**: {audit_results["traditions_full_coverage"]}
+2. **HIHO Twistor Null Ray ($s = 0.0000$)**: {audit_results["hiho_twistor_null_conformal"]}
+3. **Morphism Geodesic Continuity (9 transitions)**: {audit_results["morphism_geodesics_continuous"]}
+4. **Obsidian MOC Persistence**: {audit_results["vault_moc_persisted"]}
+5. **Fréchet Spread Boundedness**: {audit_results["frechet_spread_bounded"]}
 
 ### Auditor Verdict
 > "{critique}"

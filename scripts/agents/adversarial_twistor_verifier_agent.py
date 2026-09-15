@@ -51,15 +51,17 @@ class AdversarialVerifierAgent:
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are the Senior Adversarial Code & Physics Auditor. Evaluate the mathematical integrity of the findings with strict skepticism."
+                    "content": "You are the Senior Adversarial Code & Physics Auditor. Evaluate the mathematical integrity of the findings with strict skepticism.",
                 },
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "max_tokens": 120,
             "temperature": 0.2,
         }
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(LEMONADE_URL, data=data, headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            LEMONADE_URL, data=data, headers={"Content-Type": "application/json"}
+        )
         try:
             with urllib.request.urlopen(req, timeout=10) as response:
                 res_json = json.loads(response.read().decode("utf-8"))
@@ -75,31 +77,52 @@ class AdversarialVerifierAgent:
         test_results: dict[str, bool] = {}
 
         # 1. Audit Precipitated Witness Mark
-        moc_file = Path.home() / "vaults" / "cohezion-vault" / "00-MOCs" / "compound_phase_1_poincare_twistor_dissolution.md"
+        moc_file = (
+            Path.home()
+            / "vaults"
+            / "cohezion-vault"
+            / "00-MOCs"
+            / "compound_phase_1_poincare_twistor_dissolution.md"
+        )
         moc_exists = moc_file.exists()
         test_results["moc_artifact_persisted"] = moc_exists
-        logger.info("  [1/5] Audited Obsidian MOC artifact: %s (Exists: %s)", moc_file.name, moc_exists)
+        logger.info(
+            "  [1/5] Audited Obsidian MOC artifact: %s (Exists: %s)", moc_file.name, moc_exists
+        )
 
         # 2. Stress Test: Poincaré Boundary Clamping (Extreme Norm Inputs)
-        extreme_point = self.bridge.embed_text_to_poincare_2048d("EXTREME_CHAOTIC_OVERFLOW_STRESS_INPUT" * 50)
+        extreme_point = self.bridge.embed_text_to_poincare_2048d(
+            "EXTREME_CHAOTIC_OVERFLOW_STRESS_INPUT" * 50
+        )
         norm_sq = sum(c * c for c in extreme_point.coords)
         ball_contained = norm_sq < 1.0
         test_results["poincare_unit_ball_bounded"] = ball_contained
-        logger.info("  [2/5] Tested Poincaré boundary containment: norm^2 = %.6f < 1.0 (Valid: %s)", norm_sq, ball_contained)
+        logger.info(
+            "  [2/5] Tested Poincaré boundary containment: norm^2 = %.6f < 1.0 (Valid: %s)",
+            norm_sq,
+            ball_contained,
+        )
 
         # 3. Stress Test: Spacetime Lightcone Condition (t^2 == x^2 + y^2 + z^2)
         t, x, y, z = self.bridge.poincare_to_4d_spacetime(extreme_point)
-        spatial_sq = x*x + y*y + z*z
-        temporal_sq = t*t
+        spatial_sq = x * x + y * y + z * z
+        temporal_sq = t * t
         lightcone_exact = math.isclose(temporal_sq, spatial_sq, rel_tol=1e-5)
         test_results["spacetime_lightcone_exact"] = lightcone_exact
-        logger.info("  [3/5] Tested exact lightcone condition: |t^2 - (x^2+y^2+z^2)| < 1e-5 (Valid: %s)", lightcone_exact)
+        logger.info(
+            "  [3/5] Tested exact lightcone condition: |t^2 - (x^2+y^2+z^2)| < 1e-5 (Valid: %s)",
+            lightcone_exact,
+        )
 
         # 4. Stress Test: Twistor Helicity Zero-Null Condition
         twistor_st = self.bridge.twistor_engine.spacetime_to_twistor((t, x, y, z))
         helicity_zero = math.isclose(twistor_st.helicity, 0.0, abs_tol=1e-5)
         test_results["twistor_helicity_zero"] = helicity_zero
-        logger.info("  [4/5] Tested twistor null ray invariance: helicity s = %.6f (Valid: %s)", twistor_st.helicity, helicity_zero)
+        logger.info(
+            "  [4/5] Tested twistor null ray invariance: helicity s = %.6f (Valid: %s)",
+            twistor_st.helicity,
+            helicity_zero,
+        )
 
         # 5. Stress Test: Hyperbolic Triangle Inequality d(u, w) <= d(u, v) + d(v, w)
         p_u = self.bridge.embed_text_to_poincare_2048d("Alpha_Node")
@@ -113,7 +136,9 @@ class AdversarialVerifierAgent:
         test_results["hyperbolic_triangle_inequality"] = triangle_valid
         logger.info(
             "  [5/5] Tested triangle inequality: d(u,w)=%.3f <= d(u,v)+d(v,w)=%.3f (Valid: %s)",
-            d_uw, d_uv + d_vw, triangle_valid
+            d_uw,
+            d_uv + d_vw,
+            triangle_valid,
         )
 
         all_passed = all(test_results.values())
@@ -138,11 +163,11 @@ class AdversarialVerifierAgent:
 - **Verification Score**: 1.0 (5/5 Invariants Upheld)
 
 ### Detailed Stress Test Breakdown
-1. **Obsidian MOC Persistence**: {test_results['moc_artifact_persisted']}
-2. **Poincaré Unit Ball Containment ($r < 1.0$)**: {test_results['poincare_unit_ball_bounded']}
-3. **Exact Lightcone Spacetime ($t^2 = x^2+y^2+z^2$)**: {test_results['spacetime_lightcone_exact']}
-4. **Twistor Null Helicity Invariance ($s = 0.0000$)**: {test_results['twistor_helicity_zero']}
-5. **Hyperbolic Triangle Inequality ($d(u,w) \le d(u,v) + d(v,w)$)**: {test_results['hyperbolic_triangle_inequality']}
+1. **Obsidian MOC Persistence**: {test_results["moc_artifact_persisted"]}
+2. **Poincaré Unit Ball Containment ($r < 1.0$)**: {test_results["poincare_unit_ball_bounded"]}
+3. **Exact Lightcone Spacetime ($t^2 = x^2+y^2+z^2$)**: {test_results["spacetime_lightcone_exact"]}
+4. **Twistor Null Helicity Invariance ($s = 0.0000$)**: {test_results["twistor_helicity_zero"]}
+5. **Hyperbolic Triangle Inequality ($d(u,w) \le d(u,v) + d(v,w)$)**: {test_results["hyperbolic_triangle_inequality"]}
 
 ### Local Model Signed Assessment
 > "{model_critique}"

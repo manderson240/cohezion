@@ -396,38 +396,40 @@ def _build_backlog(n: int) -> list[LoopTask]:
     return tasks
 
 
-def _run_rzero(base_url: str, n_tasks: int, n_episodes: int) -> None:
-    """Run R-Zero Challenger/Solver co-evolution episodes and print results."""
+def _run_rzero(
+    base_url: str, n_tasks: int, n_episodes: int, group_size: int = 2
+) -> None:
+    """Run R-Zero / LSP Challenger/Solver co-evolution episodes and print results."""
     from cohezion.compound.autonomous_loop.rzero_challenger import RZeroChallengerExecutor
 
     logger.info("=" * 60)
-    logger.info("R-Zero Co-Evolution Mode")
-    logger.info("  Episodes : %d", n_episodes)
-    logger.info("  Tasks/ep : %d", n_tasks)
+    logger.info("Language Self-Play (LSP) / R-Zero Co-Evolution Mode")
+    logger.info("  Episodes    : %d", n_episodes)
+    logger.info("  Tasks/ep    : %d", n_tasks)
+    logger.info("  Group size G: %d", group_size)
     logger.info("  Challenger model: llama3.2-1b-FLM (NPU)")
-    logger.info("  Solver model    : Gemma-4-E4B-it-GGUF (iGPU)")
+    logger.info("  Solver model    : Qwen3-Coder-30B-A3B-Instruct-GGUF (iGPU)")
     logger.info("=" * 60)
 
-    executor = RZeroChallengerExecutor(base_url=base_url)
+    executor = RZeroChallengerExecutor(base_url=base_url, group_size=group_size)
     all_rewards: list[float] = []
 
     try:
         for ep in range(1, n_episodes + 1):
             logger.info("Episode %d/%d …", ep, n_episodes)
-            result = executor.run_episode(n_tasks=n_tasks)
+            result = executor.run_episode(n_tasks=n_tasks, group_size=group_size)
             all_rewards.append(result.challenger_reward)
     except KeyboardInterrupt:
         logger.info("R-Zero interrupted by user")
 
     if all_rewards:
         logger.info("=" * 60)
-        logger.info("R-Zero summary: %d episodes", len(all_rewards))
+        logger.info("LSP/R-Zero summary: %d episodes", len(all_rewards))
         logger.info(
             "  Challenger rewards: %s",
             " | ".join(f"{r:.2f}" for r in all_rewards),
         )
         logger.info("  Mean reward: %.2f", sum(all_rewards) / len(all_rewards))
-        logger.info("  (0.5 = perfect 50%% calibration; 1.0 = impossible)")
         logger.info("  Results pushed to vault_neuron (category=skill_improvement)")
         logger.info("=" * 60)
 
@@ -455,6 +457,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--rzero-episodes", type=int, default=3, help="Number of R-Zero episodes (default: 3)"
+    )
+    parser.add_argument(
+        "--rzero-group-size",
+        type=int,
+        default=2,
+        help="Solver GRPO candidate group size per task in Language Self-Play (default: 2)",
     )
     args = parser.parse_args()
 
@@ -492,7 +500,12 @@ def main() -> None:
 
     # R-Zero co-evolution mode
     if args.rzero:
-        _run_rzero(args.base_url, n_tasks=args.rzero_tasks, n_episodes=args.rzero_episodes)
+        _run_rzero(
+            args.base_url,
+            n_tasks=args.rzero_tasks,
+            n_episodes=args.rzero_episodes,
+            group_size=args.rzero_group_size,
+        )
         return
 
     # Build backlog

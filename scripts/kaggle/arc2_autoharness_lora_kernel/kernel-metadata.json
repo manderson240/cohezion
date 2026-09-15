@@ -11,7 +11,9 @@
   "keywords": [
     "gpu"
   ],
-  "dataset_sources": [],
+  "dataset_sources": [
+    "manderson240/cohezion-quantum-prior"
+  ],
   "kernel_sources": [
     "sorokin/pip-install-unsloth-flash-patch"
   ],

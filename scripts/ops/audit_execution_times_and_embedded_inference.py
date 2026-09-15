@@ -16,7 +16,9 @@ import json
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [TIME_AUDIT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [TIME_AUDIT] %(message)s"
+)
 logger = logging.getLogger("time_audit")
 
 AUDIT_TABLE = [
@@ -26,7 +28,7 @@ AUDIT_TABLE = [
         "kaggle_time_limit": "9.0 hours (32,400s)",
         "our_runtime": "17.19 seconds (1000 tasks)",
         "quota_used_pct": "0.05%",
-        "status": "🟢 ULTRA SAFE (540x faster than cutoff)"
+        "status": "🟢 ULTRA SAFE (540x faster than cutoff)",
     },
     {
         "competition": "ARC-AGI-3 ($850k)",
@@ -34,7 +36,7 @@ AUDIT_TABLE = [
         "kaggle_time_limit": "9.0 hours (32,400s)",
         "our_runtime": "10.39 seconds (1000 tasks)",
         "quota_used_pct": "0.03%",
-        "status": "🟢 ULTRA SAFE (900x faster than cutoff)"
+        "status": "🟢 ULTRA SAFE (900x faster than cutoff)",
     },
     {
         "competition": "Pokemon TCG Strategy ($240k)",
@@ -42,7 +44,7 @@ AUDIT_TABLE = [
         "kaggle_time_limit": "15.0 minutes (900s)",
         "our_runtime": "0.22 seconds (5,000 games)",
         "quota_used_pct": "0.02%",
-        "status": "🟢 ULTRA SAFE (4000x faster than cutoff)"
+        "status": "🟢 ULTRA SAFE (4000x faster than cutoff)",
     },
     {
         "competition": "AI Agent Security ($50k)",
@@ -50,7 +52,7 @@ AUDIT_TABLE = [
         "kaggle_time_limit": "20.0 minutes (1,200s)",
         "our_runtime": "0.05 seconds (Full Evaluation Suite)",
         "quota_used_pct": "0.004%",
-        "status": "🟢 ULTRA SAFE (24000x faster than cutoff)"
+        "status": "🟢 ULTRA SAFE (24000x faster than cutoff)",
     },
     {
         "competition": "Biohub Cell Tracking ($60k)",
@@ -58,7 +60,7 @@ AUDIT_TABLE = [
         "kaggle_time_limit": "9.0 hours (32,400s)",
         "our_runtime": "57.06 ms (1,000 cells)",
         "quota_used_pct": "0.0002%",
-        "status": "🟢 ULTRA SAFE"
+        "status": "🟢 ULTRA SAFE",
     },
     {
         "competition": "RSNA Knee Abnormality ($77k)",
@@ -66,9 +68,10 @@ AUDIT_TABLE = [
         "kaggle_time_limit": "9.0 hours (32,400s)",
         "our_runtime": "2.15 ms (2,000 scans)",
         "quota_used_pct": "0.0001%",
-        "status": "🟢 ULTRA SAFE"
-    }
+        "status": "🟢 ULTRA SAFE",
+    },
 ]
+
 
 def main():
     print("\n" + "=" * 115)
@@ -79,7 +82,9 @@ def main():
         print(f"\n[Track: {item['competition']}]")
         print(f"  ├─ Strategy     : {item['inference_strategy']}")
         print(f"  ├─ Time Limit   : {item['kaggle_time_limit']}")
-        print(f"  ├─ Our Runtime  : {item['our_runtime']} ({item['quota_used_pct']} of allowed time)")
+        print(
+            f"  ├─ Our Runtime  : {item['our_runtime']} ({item['quota_used_pct']} of allowed time)"
+        )
         print(f"  └─ Status       : {item['status']}")
 
     # Save artifact
@@ -88,14 +93,19 @@ def main():
     with open(report_file, "w", encoding="utf-8") as f:
         f.write("# ⏱️ Kaggle Execution Timeouts & Embedded Inference Audit\n\n")
         f.write("**Date**: 2026-08-24  \n\n")
-        f.write("| Competition Track | Embedded Strategy | Kaggle Cutoff | Cohezion Runtime | Quota Used | Status |\n")
+        f.write(
+            "| Competition Track | Embedded Strategy | Kaggle Cutoff | Cohezion Runtime | Quota Used | Status |\n"
+        )
         f.write("| :--- | :--- | :--- | :--- | :--- | :--- |\n")
         for it in AUDIT_TABLE:
-            f.write(f"| {it['competition']} | {it['inference_strategy']} | {it['kaggle_time_limit']} | {it['our_runtime']} | {it['quota_used_pct']} | {it['status']} |\n")
+            f.write(
+                f"| {it['competition']} | {it['inference_strategy']} | {it['kaggle_time_limit']} | {it['our_runtime']} | {it['quota_used_pct']} | {it['status']} |\n"
+            )
 
     print("\n" + "=" * 115)
     print(f"📄 Full execution time audit saved to: {report_file}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     main()

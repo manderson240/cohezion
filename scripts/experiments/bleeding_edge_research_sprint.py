@@ -140,7 +140,9 @@ async def main_async() -> None:
             logger.error("Lane execution exception: %s", r)
 
     # Save comprehensive research synthesis document
-    out_path = Path("/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_frontiers_research_sprint.md")
+    out_path = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_frontiers_research_sprint.md"
+    )
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     md_lines = [
@@ -155,7 +157,9 @@ async def main_async() -> None:
 
     for res in valid_results:
         md_lines.append(f"## 🔬 {res['title']}")
-        md_lines.append(f"- **Model**: `{res['model']}` | **Duration**: `{res['duration_seconds']}s` | **Word Count**: `{res['word_count']}` words")
+        md_lines.append(
+            f"- **Model**: `{res['model']}` | **Duration**: `{res['duration_seconds']}s` | **Word Count**: `{res['word_count']}` words"
+        )
         md_lines.append("")
         md_lines.append(res["content"])
         md_lines.append("")

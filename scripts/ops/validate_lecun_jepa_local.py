@@ -12,8 +12,9 @@ from cohezion.flume.lecun_jepa_world_model import ARCJEPAWorldModel
 from cohezion.competitions.arc.object_graph_dsl import (
     transform_complete_horizontal_symmetry,
     transform_complete_vertical_symmetry,
-    transform_fill_enclosed_regions
+    transform_fill_enclosed_regions,
 )
+
 
 def validate_jepa():
     print("=" * 90)
@@ -22,16 +23,8 @@ def validate_jepa():
     print("=" * 90)
 
     # 1. Create a symmetric completion task demo
-    demo_x = [
-        [1, 2, 0, 0],
-        [3, 0, 0, 0],
-        [4, 5, 0, 0]
-    ]
-    demo_y = [
-        [1, 2, 2, 1],
-        [3, 0, 0, 3],
-        [4, 5, 5, 4]
-    ]
+    demo_x = [[1, 2, 0, 0], [3, 0, 0, 0], [4, 5, 0, 0]]
+    demo_y = [[1, 2, 2, 1], [3, 0, 0, 3], [4, 5, 5, 4]]
 
     candidates = [
         ("transform_complete_horizontal_symmetry", transform_complete_horizontal_symmetry),
@@ -46,11 +39,16 @@ def validate_jepa():
 
     print(f"\n--- 1. LATENT JEPA ENERGY RANKING (Execution time: {dt_ms:.3f}ms) ---")
     for rank, (name, energy) in enumerate(ranked, 1):
-        print(f"  #{rank}: {name:<42} -> Energy: {energy:.6f} {'(OPTIMAL MINIMA)' if rank == 1 else ''}")
+        print(
+            f"  #{rank}: {name:<42} -> Energy: {energy:.6f} {'(OPTIMAL MINIMA)' if rank == 1 else ''}"
+        )
 
     assert ranked[0][0] == "transform_complete_horizontal_symmetry"
-    print("\n✓ Verification PASS: LeCun Latent JEPA correctly identified lowest-energy ground-truth transformation!")
+    print(
+        "\n✓ Verification PASS: LeCun Latent JEPA correctly identified lowest-energy ground-truth transformation!"
+    )
     print("=" * 90)
+
 
 if __name__ == "__main__":
     validate_jepa()

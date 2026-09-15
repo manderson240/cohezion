@@ -63,7 +63,12 @@ async def run_vv_stress_test(count: int = 1000) -> tuple[float, float]:
     dt = time.perf_counter() - t0
     avg_ast_us = sum(ast_latencies) / len(ast_latencies)
     pass_rate = (zkfv_passes / count) * 100.0
-    logger.info("✓ 1,000 V-Model Cycles completed in %.3fs (Avg AST Latency: %.2f µs, ZK-FV Pass Rate: %.1f%%)", dt, avg_ast_us, pass_rate)
+    logger.info(
+        "✓ 1,000 V-Model Cycles completed in %.3fs (Avg AST Latency: %.2f µs, ZK-FV Pass Rate: %.1f%%)",
+        dt,
+        avg_ast_us,
+        pass_rate,
+    )
     return avg_ast_us, pass_rate
 
 
@@ -88,7 +93,12 @@ async def run_eventbus_stress_test(count: int = 1000) -> int:
     return count
 
 
-async def simulate_virtual_session(session_id: str, hotswapper: DynamicModelHotSwapper, num_swaps: int, catalog: list[dict[str, Any]]) -> tuple[int, int, int]:
+async def simulate_virtual_session(
+    session_id: str,
+    hotswapper: DynamicModelHotSwapper,
+    num_swaps: int,
+    catalog: list[dict[str, Any]],
+) -> tuple[int, int, int]:
     refused = 0
     executed = 0
     oom_faults = 0
@@ -109,7 +119,9 @@ async def simulate_virtual_session(session_id: str, hotswapper: DynamicModelHotS
     return executed, refused, oom_faults
 
 
-async def run_hotswap_stress_test(num_sessions: int = 20, swaps_per_session: int = 5) -> tuple[int, int, int, int]:
+async def run_hotswap_stress_test(
+    num_sessions: int = 20, swaps_per_session: int = 5
+) -> tuple[int, int, int, int]:
     logger.info("--- Starting 20 Concurrent Sessions / 100 Hot-Swap Requests Stress Test ---")
     hotswapper = DynamicModelHotSwapper()
     catalog = [
@@ -130,7 +142,13 @@ async def run_hotswap_stress_test(num_sessions: int = 20, swaps_per_session: int
     total_ooms = sum(r[2] for r in results)
     total_attempts = num_sessions * swaps_per_session
 
-    logger.info("✓ Hot-Swap Stress Test: Attempts: %d | Executed: %d | Refused (20GB Floor): %d | OOM Faults: %d", total_attempts, total_executed, total_refused, total_ooms)
+    logger.info(
+        "✓ Hot-Swap Stress Test: Attempts: %d | Executed: %d | Refused (20GB Floor): %d | OOM Faults: %d",
+        total_attempts,
+        total_executed,
+        total_refused,
+        total_ooms,
+    )
     return num_sessions, total_attempts, total_refused, total_ooms
 
 
@@ -147,7 +165,9 @@ async def main_async() -> None:
     txn_count = await run_eventbus_stress_test(count=1000)
 
     # 3. Dynamic Hot-Swapper Stress Test (20 sessions, 100 swaps)
-    n_sess, n_att, n_ref, n_oom = await run_hotswap_stress_test(num_sessions=20, swaps_per_session=5)
+    n_sess, n_att, n_ref, n_oom = await run_hotswap_stress_test(
+        num_sessions=20, swaps_per_session=5
+    )
 
     total_dt = round(time.perf_counter() - t_start, 3)
 

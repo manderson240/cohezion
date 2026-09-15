@@ -82,7 +82,7 @@ one**, or the write adds ~1.7 s to a response budget of 24 ms (NPU) – 800 ms (
 
 ```python
 _eval_short_answer: score = min(1.0, len(text) / 50)
-_eval_generation:   score = min(1.0, len(text) / (min_len * 3))
+_eval_generation: score = min(1.0, len(text) / (min_len * 3))
 ```
 
 Measured with `classify` + `evaluate`, no mocks:

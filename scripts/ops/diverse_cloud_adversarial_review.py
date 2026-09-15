@@ -32,7 +32,7 @@ PERSONAS = [
             "2. Liquid State Machine & Continuous-Time Neural ODE ($dx/dt = -x/\\tau + f(x, I(t))$ for 0.008W idle power).\n"
             "3. 5-Daemon concurrent background orchestration with 39.99 GiB UMA headroom.\n"
             "Attack every subtle hardware failure mode: KV-cache divergence, speculative verification overhead, memory aperture bus races, and thermal degradation under 24/7 load."
-        )
+        ),
     },
     {
         "name": "Open-Weights Scaled Systems Architect",
@@ -46,7 +46,7 @@ PERSONAS = [
             "- RSNA Knee Abnormality (Multi-planar 3D volumetric prior aggregator, CPU-compliant)\n"
             "- Biohub Cell (Kinematic spatio-temporal polynomial tracker)\n"
             "Deliver an adversarial evaluation of where compute is still bottlenecked or under-exploited."
-        )
+        ),
     },
     {
         "name": "Long-Context Code Security & Verification Lead",
@@ -59,7 +59,7 @@ PERSONAS = [
             "2. Strict airgap enforcement (`enable_internet: false`) and banned P100 elimination.\n"
             "3. Typed Context design-by-contract evidence pipeline (`TOOL_OUTPUT` -> `EVIDENCE`).\n"
             "Attack the verification proofs: How could adversarial inputs cause AST bypasses, recursion exhaustion, or silent scoring failures?"
-        )
+        ),
     },
     {
         "name": "Theoretical Physicist & Manifold Geometer",
@@ -72,9 +72,10 @@ PERSONAS = [
             "2. HIHO 0.5 Reality Precipitation sonification (432 Hz Pythagorean resonance, 0.0010 dissonance).\n"
             "3. Bioelectric Swarm gap-junction tensor ($\kappa = 0.92$) yielding $R_c = 23.65\\times$ light cone expansion.\n"
             "Critique the physical and mathematical validity: Are there unmodeled thermodynamic dissipation losses, Poincaré metric edge distortions, or gap-junction saturation limits?"
-        )
-    }
+        ),
+    },
 ]
+
 
 async def run_diverse_audit():
     print("\n" + "=" * 115)
@@ -86,21 +87,21 @@ async def run_diverse_audit():
 
     async with httpx.AsyncClient(timeout=180.0) as client:
         for idx, p in enumerate(PERSONAS):
-            print(f"▶ [{idx+1}/4] Dispatching Persona: {p['name']} (`{p['model']}`)...")
+            print(f"▶ [{idx + 1}/4] Dispatching Persona: {p['name']} (`{p['model']}`)...")
             store = TypedContextStore()
             store.insert(p["prompt"], ContextType.INSTRUCTION, "persona_prompt")
 
             payload = {
                 "model": p["model"],
                 "messages": [
-                    {"role": "system", "content": f"You are acting as: {p['name']}. Audit Focus: {p['focus']}. Deliver a rigorous, numbered adversarial report."},
-                    {"role": "user", "content": p["prompt"]}
+                    {
+                        "role": "system",
+                        "content": f"You are acting as: {p['name']}. Audit Focus: {p['focus']}. Deliver a rigorous, numbered adversarial report.",
+                    },
+                    {"role": "user", "content": p["prompt"]},
                 ],
                 "stream": False,
-                "options": {
-                    "temperature": 0.15,
-                    "num_predict": 1000
-                }
+                "options": {"temperature": 0.15, "num_predict": 1000},
             }
 
             t0 = time.perf_counter()
@@ -112,16 +113,22 @@ async def run_diverse_audit():
                     # Strip any raw <think> tags if present
                     if "</think>" in content:
                         content = content.split("</think>")[-1].strip()
-                    tool_item = store.insert(content, ContextType.TOOL_OUTPUT, f"cloud_agent:{p['model']}")
-                    ev_item = store.transform(tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50)
-                    results.append({
-                        "persona": p["name"],
-                        "model": p["model"],
-                        "focus": p["focus"],
-                        "review": content,
-                        "latency_s": dt,
-                        "evidence_id": ev_item.item_id
-                    })
+                    tool_item = store.insert(
+                        content, ContextType.TOOL_OUTPUT, f"cloud_agent:{p['model']}"
+                    )
+                    ev_item = store.transform(
+                        tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50
+                    )
+                    results.append(
+                        {
+                            "persona": p["name"],
+                            "model": p["model"],
+                            "focus": p["focus"],
+                            "review": content,
+                            "latency_s": dt,
+                            "evidence_id": ev_item.item_id,
+                        }
+                    )
                     print(f"  ✓ Completed in {dt}s (Evidence ID: {ev_item.item_id})")
                 else:
                     print(f"  ❌ Error HTTP {r.status_code}: {r.text}")
@@ -133,25 +140,36 @@ async def run_diverse_audit():
         "\n**Evaluator Models:** `nemotron-3-ultra:cloud`, `gpt-oss:120b-cloud`, `kimi-k2.7-code:cloud`, `glm-5.2:cloud`",
         f"**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}",
         "**Methodology:** Design-by-Contract Typed Context + 4-Persona Adversarial Stress Testing across Heterogeneous Cloud Models",
-        "\n---\n"
+        "\n---\n",
     ]
 
     for r in results:
         sections.append(f"## 👤 Persona: {r['persona']} (`{r['model']}`)")
         sections.append(f"**Audit Focus:** {r['focus']}")
-        sections.append(f"**Verification Latency:** {r['latency_s']}s | **Lineage ID:** `{r['evidence_id']}`\n")
-        sections.append(r['review'])
+        sections.append(
+            f"**Verification Latency:** {r['latency_s']}s | **Lineage ID:** `{r['evidence_id']}`\n"
+        )
+        sections.append(r["review"])
         sections.append("\n---\n")
 
     sections.append("## 🏆 Diverse Cloud Hardening & Synthesis")
-    sections.append("1. **NVIDIA Nemotron Systems View:** Verified speculative tree decoding bounds and UMA bandwidth roofline saturation.")
-    sections.append("2. **GPT-OSS 120B Systems View:** Verified 9-hour compute utilization across 4-vCPU CFR and GPU Model Hub mounting.")
-    sections.append("3. **Kimi-K2.7 Code Security View:** Confirmed AST bytecode formal action proofs and airgapped no-internet enforcement.")
-    sections.append("4. **GLM-5.2 Physics & Geometry View:** Validated continuous-time Neural ODE stability and 23.65x bioelectric light cone expansion.")
+    sections.append(
+        "1. **NVIDIA Nemotron Systems View:** Verified speculative tree decoding bounds and UMA bandwidth roofline saturation."
+    )
+    sections.append(
+        "2. **GPT-OSS 120B Systems View:** Verified 9-hour compute utilization across 4-vCPU CFR and GPU Model Hub mounting."
+    )
+    sections.append(
+        "3. **Kimi-K2.7 Code Security View:** Confirmed AST bytecode formal action proofs and airgapped no-internet enforcement."
+    )
+    sections.append(
+        "4. **GLM-5.2 Physics & Geometry View:** Validated continuous-time Neural ODE stability and 23.65x bioelectric light cone expansion."
+    )
 
     REPORT_PATH.write_text("\n".join(sections))
     print(f"\n✓ Master Diverse Cloud Report saved to `{REPORT_PATH}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_diverse_audit())

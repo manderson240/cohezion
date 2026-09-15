@@ -133,15 +133,19 @@ async def run_adversarial_review() -> None:
         dt = time.perf_counter() - t0
 
         print(f"  ✓ Completed {title} in {dt:.2f} s ({len(critique.split())} words)")
-        review_results.append({
-            "perspective_id": p_id,
-            "title": title,
-            "duration_seconds": round(dt, 2),
-            "critique": critique,
-        })
+        review_results.append(
+            {
+                "perspective_id": p_id,
+                "title": title,
+                "duration_seconds": round(dt, 2),
+                "critique": critique,
+            }
+        )
 
     # Save to durable markdown artifact
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_local_adversarial_review.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_local_adversarial_review.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

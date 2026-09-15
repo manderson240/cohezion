@@ -23,6 +23,7 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 from cohezion.flume.distro_multisilicon_sync import DisTrOMultiSiliconSync
 from cohezion.flume.worldsim_physics_manifold import WorldSimPhysicsManifold, WorldSimState
 
+
 async def verify_all_gaps():
     print("\n" + "=" * 115)
     print("💎 VERIFYING ALL FRONTIER GAPS FILLED WITH LOCAL SILICON INFERENCE")
@@ -43,7 +44,7 @@ async def verify_all_gaps():
     delta = sync.compress_gradient(lane="iGPU_Radeon8060S", gradient_matrix=grad, step=1)
     reconstructed = sync.decompress_gradient(delta)
     dt_distro = round((time.perf_counter() - t0) * 1000, 2)
-    
+
     error = np.linalg.norm(grad - reconstructed) / np.linalg.norm(grad)
     print(f"   ✓ DisTrO Compression Completed in {dt_distro} ms!")
     print(f"   • Compression Ratio:  {delta.compression_ratio:.2f}x bandwidth reduction")
@@ -54,8 +55,10 @@ async def verify_all_gaps():
     manifold = WorldSimPhysicsManifold(dimension=12, beta_physics=0.25)
     u = np.array([0.1] * 12, dtype=np.float32)
     v = np.array([-0.2] * 12, dtype=np.float32)
-    w_state = WorldSimState(step=10, energy_density=0.45, momentum_flux=0.12, lyapunov_drift=0.02, coherence_hiho=0.500)
-    
+    w_state = WorldSimState(
+        step=10, energy_density=0.45, momentum_flux=0.12, lyapunov_drift=0.02, coherence_hiho=0.500
+    )
+
     t0_geo = time.perf_counter()
     geo_dist = manifold.compute_physics_geodesic(u, v, w_state)
     dt_geo = round((time.perf_counter() - t0_geo) * 1000, 2)
@@ -63,15 +66,20 @@ async def verify_all_gaps():
     print(f"   • Physical Geodesic Distance d_P(u, v): {geo_dist:.4f}")
 
     # 4. Live Local Silicon Inference Call (:13305)
-    print(f"\n▶ [4/4] Executing Live Local Silicon Inference via `user.cohezion-hermes-router` (:13305)...")
+    print(
+        f"\n▶ [4/4] Executing Live Local Silicon Inference via `user.cohezion-hermes-router` (:13305)..."
+    )
     payload = {
         "model": "user.cohezion-hermes-router",
         "messages": [
             {"role": "system", "content": "You are a local silicon specialist on AMD Strix Halo."},
-            {"role": "user", "content": "Confirm that all architectural gaps (DisTrO, WorldSim, AutoHarness) are filled locally."}
+            {
+                "role": "user",
+                "content": "Confirm that all architectural gaps (DisTrO, WorldSim, AutoHarness) are filled locally.",
+            },
         ],
         "temperature": 0.2,
-        "max_tokens": 120
+        "max_tokens": 120,
     }
     t0_llm = time.perf_counter()
     async with httpx.AsyncClient(timeout=45.0) as client:
@@ -80,7 +88,7 @@ async def verify_all_gaps():
         if r.status_code == 200:
             content = r.json()["choices"][0]["message"]["content"].strip()
             print(f"   ✓ Local Silicon Responded in {dt_llm}s!")
-            print(f"   • Response: \"{content[:160]}...\"")
+            print(f'   • Response: "{content[:160]}..."')
 
     # Publish to EventBus & SurrealDB DataMesh
     event_bus = await get_event_bus()
@@ -98,25 +106,28 @@ async def verify_all_gaps():
             "distro_latency_ms": dt_distro,
             "worldsim_geodesic_latency_ms": dt_geo,
             "local_llm_latency_sec": dt_llm,
-            "memory_available_gib": avail_gib
-        }
+            "memory_available_gib": avail_gib,
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "frontier_gaps_filled_status",
-        "title": "All Frontier Gaps Filled via Local Silicon Inference",
-        "status": "done",
-        "priority": "high",
-        "source": "local_inference_gap_closer",
-        "category": "frontier_architecture",
-        "details": f"DisTrO ({delta.compression_ratio:.1f}x compression) + WorldSim Physics Manifold + Local Silicon verified.",
-    })
+    persist_item(
+        {
+            "id": "frontier_gaps_filled_status",
+            "title": "All Frontier Gaps Filled via Local Silicon Inference",
+            "status": "done",
+            "priority": "high",
+            "source": "local_inference_gap_closer",
+            "category": "frontier_architecture",
+            "details": f"DisTrO ({delta.compression_ratio:.1f}x compression) + WorldSim Physics Manifold + Local Silicon verified.",
+        }
+    )
     print("\n   ✓ Published verification event to EventBus and dual-persisted to Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 ALL GAPS SYSTEMATICALLY FILLED WITH LOCAL SILICON INFERENCE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(verify_all_gaps())

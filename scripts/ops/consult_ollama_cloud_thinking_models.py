@@ -11,7 +11,9 @@ import os
 import time
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_THINKING] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_THINKING] %(message)s"
+)
 logger = logging.getLogger("cloud_thinking")
 
 OLLAMA_BASE = "http://localhost:11434"
@@ -20,19 +22,20 @@ PROMPTS = [
     {
         "title": "DeepSeek-V4 Pro (1.6T Cloud): Sheaf Theory & Hyperbolic ARC Invariants",
         "model": "deepseek-v4-pro:cloud",
-        "prompt": "Provide 3 bleeding-edge mathematical formulations for ARC-AGI program synthesis using: 1) Sheaf Cohomology restriction maps across local grid neighborhoods, 2) Poincaré Hyperbolic Geodesic pruning $d_P(u,v)$, and 3) Minimum Description Length (MDL) Bayesian search trees. Include exact LaTeX equations and concrete algorithmic steps."
+        "prompt": "Provide 3 bleeding-edge mathematical formulations for ARC-AGI program synthesis using: 1) Sheaf Cohomology restriction maps across local grid neighborhoods, 2) Poincaré Hyperbolic Geodesic pruning $d_P(u,v)$, and 3) Minimum Description Length (MDL) Bayesian search trees. Include exact LaTeX equations and concrete algorithmic steps.",
     },
     {
         "title": "Qwen-3.5 397B (Cloud): Imperfect Information MCTS & Hungarian Deformable Matching",
         "model": "qwen3.5:397b-cloud",
-        "prompt": "Provide bleeding-edge formulations for: 1) Information-Set MCTS with Counterfactual Regret Minimization (CFR) regret-matching bounds for competitive TCGs, and 2) Kalman-smoothed Hungarian bipartite matching with non-rigid thin-plate splines for Biohub 3D cell tracking. Include exact equations and algorithmic complexity."
+        "prompt": "Provide bleeding-edge formulations for: 1) Information-Set MCTS with Counterfactual Regret Minimization (CFR) regret-matching bounds for competitive TCGs, and 2) Kalman-smoothed Hungarian bipartite matching with non-rigid thin-plate splines for Biohub 3D cell tracking. Include exact equations and algorithmic complexity.",
     },
     {
         "title": "GLM-5.2 (Cloud): Multi-View 3D DICOM Focal Loss & HIHO 0.5 Coherence",
         "model": "glm-5.2:cloud",
-        "prompt": "Provide bleeding-edge formulations for: 1) Multi-view 3D DICOM feature fusion using asymmetric focal loss $FL(p_t) = -\alpha_t (1-p_t)^\gamma \log(p_t)$ for RSNA Knee abnormality detection, and 2) 12-parameter quadrature field stability around the 0.5 HIHO coherence point. Include exact formulas and loss gradients."
-    }
+        "prompt": "Provide bleeding-edge formulations for: 1) Multi-view 3D DICOM feature fusion using asymmetric focal loss $FL(p_t) = -\alpha_t (1-p_t)^\gamma \log(p_t)$ for RSNA Knee abnormality detection, and 2) 12-parameter quadrature field stability around the 0.5 HIHO coherence point. Include exact formulas and loss gradients.",
+    },
 ]
+
 
 async def query_cloud_model(client: httpx.AsyncClient, item: dict) -> dict:
     title = item["title"]
@@ -46,7 +49,7 @@ async def query_cloud_model(client: httpx.AsyncClient, item: dict) -> dict:
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
-        "options": {"temperature": 0.2}
+        "options": {"temperature": 0.2},
     }
 
     try:
@@ -57,12 +60,31 @@ async def query_cloud_model(client: httpx.AsyncClient, item: dict) -> dict:
             msg = data.get("message", {})
             content = msg.get("content", "").strip()
             thinking = msg.get("thinking", "").strip()
-            logger.info("✓ %s completed in %.2fs (Content: %d chars, Thinking: %d chars)", title, dt, len(content), len(thinking))
-            return {"title": title, "model": model, "duration": dt, "content": content, "status": "SUCCESS"}
+            logger.info(
+                "✓ %s completed in %.2fs (Content: %d chars, Thinking: %d chars)",
+                title,
+                dt,
+                len(content),
+                len(thinking),
+            )
+            return {
+                "title": title,
+                "model": model,
+                "duration": dt,
+                "content": content,
+                "status": "SUCCESS",
+            }
     except Exception as e:
         logger.warning("Query failed for %s: %s", title, e)
 
-    return {"title": title, "model": model, "duration": 0.0, "content": "Advisory unavailable.", "status": "ERROR"}
+    return {
+        "title": title,
+        "model": model,
+        "duration": 0.0,
+        "content": "Advisory unavailable.",
+        "status": "ERROR",
+    }
+
 
 async def main():
     print("\n" + "=" * 110)
@@ -81,7 +103,9 @@ async def main():
         with open(report_file, "w", encoding="utf-8") as f:
             f.write("# 🌐 Ollama Cloud Bleeding-Edge Advisors Compendium\n\n")
             f.write(f"**Date**: 2026-08-24  \n")
-            f.write(f"**Frontier Models**: DeepSeek-V4 Pro (1.6T), Qwen-3.5 (397B), GLM-5.2 (Frontier Science)  \n\n")
+            f.write(
+                f"**Frontier Models**: DeepSeek-V4 Pro (1.6T), Qwen-3.5 (397B), GLM-5.2 (Frontier Science)  \n\n"
+            )
 
             for r in results:
                 print(f"\n[{r['title']}] ({r['duration']}s)")
@@ -95,6 +119,7 @@ async def main():
         print("\n" + "=" * 110)
         print(f"🎉 OLLAMA CLOUD ADVISORY HARVEST COMPLETE! Saved to: {report_file}")
         print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

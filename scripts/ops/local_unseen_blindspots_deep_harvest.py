@@ -14,7 +14,9 @@ import os
 import time
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [BLINDSPOT_HARVEST] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [BLINDSPOT_HARVEST] %(message)s"
+)
 logger = logging.getLogger("blindspot_harvest")
 
 LEMONADE_BASE = "http://localhost:13305"
@@ -37,6 +39,7 @@ Identify 4 profound blindspots or untapped frontier opportunities across:
 Provide deep, unhurried, highly actionable technical breakdowns with concrete formulas or algorithms for each.
 """
 
+
 async def main():
     print("\n" + "=" * 115)
     print("🔮 DEEP LOCAL INFERENCE: UNSEEN BLINDSPOTS & UNTAPPED FRONTIERS HARVEST")
@@ -45,11 +48,14 @@ async def main():
     payload = {
         "model": "gpt-oss-20b",
         "messages": [
-            {"role": "system", "content": "You are an elite Frontier Systems Architect. Deliver an exhaustive, mathematically rigorous, unvarnished critique of blindspots and unexplored avenues."},
-            {"role": "user", "content": DEEP_THINKING_PROMPT}
+            {
+                "role": "system",
+                "content": "You are an elite Frontier Systems Architect. Deliver an exhaustive, mathematically rigorous, unvarnished critique of blindspots and unexplored avenues.",
+            },
+            {"role": "user", "content": DEEP_THINKING_PROMPT},
         ],
         "temperature": 0.3,
-        "max_tokens": 16384
+        "max_tokens": 16384,
     }
 
     t0 = time.perf_counter()
@@ -63,11 +69,13 @@ async def main():
                 msg = r.json()["choices"][0]["message"]
                 content = msg.get("content", "")
                 reasoning = msg.get("reasoning_content", "") or msg.get("thinking", "")
-                
+
                 print(f"✓ Local harvest completed in {dt}s!")
                 if reasoning:
-                    print(f"\n[Internal Thinking Summary ({len(reasoning)} chars)]:\n{reasoning[:500]}...\n")
-                
+                    print(
+                        f"\n[Internal Thinking Summary ({len(reasoning)} chars)]:\n{reasoning[:500]}...\n"
+                    )
+
                 print(f"[Synthesized Output ({len(content)} chars)]:\n")
                 print(content)
 
@@ -85,6 +93,7 @@ async def main():
                 logger.error("HTTP error: %s - %s", r.status_code, r.text)
         except Exception as e:
             logger.error("Inference exception: %s", e)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

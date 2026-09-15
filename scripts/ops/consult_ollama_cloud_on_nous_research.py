@@ -37,16 +37,17 @@ Provide a structured, deep architectural assessment:
 - What are the concrete integration steps?
 """
 
+
 async def query_cloud_model(model_name: str):
     print(f"\n▶ Consulting Ollama Cloud Model: `{model_name}` on Nous Research Releases...")
     payload = {
         "model": model_name,
         "messages": [
             {"role": "system", "content": "You are an elite frontier AI researcher."},
-            {"role": "user", "content": PROMPT}
+            {"role": "user", "content": PROMPT},
         ],
         "stream": False,
-        "options": {"temperature": 0.3}
+        "options": {"temperature": 0.3},
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -66,6 +67,7 @@ async def query_cloud_model(model_name: str):
             print(f"   ❌ Error: {e}")
     return ""
 
+
 async def main():
     print("\n" + "=" * 115)
     print("☁️ OLLAMA CLOUD STRATEGIC CONSULTATION: NOUS RESEARCH RELEASES")
@@ -78,12 +80,17 @@ async def main():
     if report_content:
         # Save to docs/research
         out_path = Path("docs/research/nous_research_synergy_cloud_consultation.md")
-        out_path.write_text(f"# Strategic Consultation: Leveraging Nous Research in Cohezion\n\n**Generated via Ollama Cloud Model**: `{model}`\n\n" + report_content)
+        out_path.write_text(
+            f"# Strategic Consultation: Leveraging Nous Research in Cohezion\n\n**Generated via Ollama Cloud Model**: `{model}`\n\n"
+            + report_content
+        )
         print(f"\n✓ Saved strategic consultation to `{out_path}`")
 
         # Publish to EventBus DataMesh
         event_bus = await get_event_bus()
-        bridge = CrossSessionEventBridge(event_bus=event_bus, session_id="nous_research_consultation_session")
+        bridge = CrossSessionEventBridge(
+            event_bus=event_bus, session_id="nous_research_consultation_session"
+        )
         await bridge.initialize()
 
         ev = Event(
@@ -94,26 +101,30 @@ async def main():
                 "model": model,
                 "target": "https://nousresearch.com/releases",
                 "status": "COMPLETED",
-                "topics": ["DisTrO", "WorldSim", "Hermes-3", "Forge"]
-            }
+                "topics": ["DisTrO", "WorldSim", "Hermes-3", "Forge"],
+            },
         )
         await event_bus.publish(ev)
 
-        persist_item({
-            "id": "nous_research_synergy_analysis",
-            "title": "Nous Research Releases Strategic Synergy Report",
-            "status": "done",
-            "priority": "high",
-            "source": "ollama_cloud_nous_consultant",
-            "category": "frontier_research",
-            "details": "Ollama Cloud strategic assessment of Nous Research releases (DisTrO, WorldSim, Hermes-3, Forge) for Cohezion.",
-        })
+        persist_item(
+            {
+                "id": "nous_research_synergy_analysis",
+                "title": "Nous Research Releases Strategic Synergy Report",
+                "status": "done",
+                "priority": "high",
+                "source": "ollama_cloud_nous_consultant",
+                "category": "frontier_research",
+                "details": "Ollama Cloud strategic assessment of Nous Research releases (DisTrO, WorldSim, Hermes-3, Forge) for Cohezion.",
+            }
+        )
         print("✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 115)
     print("🏆 STRATEGIC CONSULTATION COMPLETE!")
     print("=" * 115 + "\n")
 
+
 if __name__ == "__main__":
     from pathlib import Path
+
     asyncio.run(main())

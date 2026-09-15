@@ -58,7 +58,9 @@ Research and formulate:
 ]
 
 
-async def query_lemonade_research(client: httpx.AsyncClient, lane: dict[str, str]) -> dict[str, Any]:
+async def query_lemonade_research(
+    client: httpx.AsyncClient, lane: dict[str, str]
+) -> dict[str, Any]:
     t0 = time.perf_counter()
     logger.info("🔬 [Conducting Bleeding-Edge Research via Lemonade: %s...]", lane["title"])
 
@@ -72,7 +74,10 @@ async def query_lemonade_research(client: httpx.AsyncClient, lane: dict[str, str
                 json={
                     "model": m,
                     "messages": [
-                        {"role": "system", "content": "You are a world-class frontier research scientist. Provide deep mathematical formulas, concrete proofs, and architectural blueprints."},
+                        {
+                            "role": "system",
+                            "content": "You are a world-class frontier research scientist. Provide deep mathematical formulas, concrete proofs, and architectural blueprints.",
+                        },
                         {"role": "user", "content": lane["prompt"]},
                     ],
                     "temperature": 0.2,
@@ -114,7 +119,9 @@ async def query_lemonade_research(client: httpx.AsyncClient, lane: dict[str, str
         research_text = research_text.split("</think>")[-1].strip()
 
     dt = time.perf_counter() - t0
-    logger.info("  ✓ %s finished in %.2f s (%d words)", lane["title"], dt, len(research_text.split()))
+    logger.info(
+        "  ✓ %s finished in %.2f s (%d words)", lane["title"], dt, len(research_text.split())
+    )
 
     return {
         "title": lane["title"],
@@ -134,7 +141,9 @@ async def main_async() -> None:
             res = await query_lemonade_research(client, lane)
             results.append(res)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/lemonade_bleeding_edge_research_sprint.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/lemonade_bleeding_edge_research_sprint.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

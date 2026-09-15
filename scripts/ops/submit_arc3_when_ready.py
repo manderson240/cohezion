@@ -10,29 +10,27 @@ import time
 
 
 KERNEL = "manderson240/cohezion-arc-agi-3-autoharness-solver"
-VERSION = "16"
+VERSION = "18"
 COMP = "arc-prize-2026-arc-agi-3"
 FILE = "submission.parquet"
-MSG = "Cohezion v16: Dynamic Collision Grid + Shortest-Path BFS Navigation + Multi-Target Queue"
+MSG = "Cohezion v18: Directed Affordance Rarity SearchAgent + BlueQubit QUBO Tie-Breaking + AutoHarness Invariants"
 
-print(f"Monitoring {KERNEL} for completion...")
+print(f"Monitoring {KERNEL} for completion and submission...")
 
-for attempt in range(120):  # Poll every 10s for up to 20 minutes
+while True:
     res = subprocess.run(
-        ["uv", "run", "kaggle", "kernels", "status", KERNEL],
+        ["kaggle", "kernels", "status", KERNEL],
         capture_output=True,
         text=True,
         check=False,
     )
     status_text = res.stdout + res.stderr
-    print(f"[{attempt * 10}s] Status: {status_text.strip()}")
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Kernel Status: {status_text.strip()}")
 
     if "KernelWorkerStatus.COMPLETE" in status_text:
         print("Kernel execution COMPLETE! Submitting to competition...")
         sub_res = subprocess.run(
             [
-                "uv",
-                "run",
                 "kaggle",
                 "competitions",
                 "submit",
@@ -51,15 +49,17 @@ for attempt in range(120):  # Poll every 10s for up to 20 minutes
             text=True,
             check=False,
         )
-        print("Submission stdout:", sub_res.stdout)
-        print("Submission stderr:", sub_res.stderr)
+        print("Submission stdout:", sub_res.stdout.strip())
+        print("Submission stderr:", sub_res.stderr.strip())
         if sub_res.returncode == 0:
             print("✓ Successfully submitted to ARC-AGI-3!")
+            break
         else:
-            print(f"Submission exited with code {sub_res.returncode}")
-        break
+            print(f"Submission returned code {sub_res.returncode}. Quota likely resets at 00:00 UTC (~2.5h). Retrying in 300s...")
+            time.sleep(300)
+            continue
     elif "KernelWorkerStatus.ERROR" in status_text:
         print("❌ Kernel failed with ERROR.")
         break
 
-    time.sleep(10)
+    time.sleep(15)

@@ -20,19 +20,37 @@ import time
 from dataclasses import dataclass
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [MASTER_HARVESTER] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [MASTER_HARVESTER] %(message)s"
+)
 logger = logging.getLogger("master_harvester")
 
 LEMONADE_BASE = "http://localhost:13305"
 MIN_AVAIL_RAM_GB = 12.0
 
 DOMAIN_PROMPT_MAP = [
-    ("Hyperbolic Geometry & Poincaré Embeddings", "Explain how the metric tensor g_ij = (4/(1-||x||^2)^2)*delta_ij enables hierarchical tree embedding without distortion in 2 dense sentences."),
-    ("Ken Shoulders EVOs & Charge Clustering", "Explain how 10^11 electrons in a 1.0 um cluster maintain Bennett magnetic pinch equilibrium against Coulomb repulsion in 2 sentences."),
-    ("Category Theory & Sheaf Cohomology", "Explain how restriction maps in Sheaf Theory resolve semantic inconsistency across distributed autonomous agents in 2 sentences."),
-    ("AutoHarness AST Bytecode Action Verifiers", "Explain why static AST policy compilation bypasses runtime LLM inference calls with 0.00 ms latency in 2 sentences."),
-    ("Benettin Maximal Lyapunov Exponents", "Explain how tangent vector orthonormalization via Gram-Schmidt prevents numerical divergence when calculating chaos attractors in 2 sentences.")
+    (
+        "Hyperbolic Geometry & Poincaré Embeddings",
+        "Explain how the metric tensor g_ij = (4/(1-||x||^2)^2)*delta_ij enables hierarchical tree embedding without distortion in 2 dense sentences.",
+    ),
+    (
+        "Ken Shoulders EVOs & Charge Clustering",
+        "Explain how 10^11 electrons in a 1.0 um cluster maintain Bennett magnetic pinch equilibrium against Coulomb repulsion in 2 sentences.",
+    ),
+    (
+        "Category Theory & Sheaf Cohomology",
+        "Explain how restriction maps in Sheaf Theory resolve semantic inconsistency across distributed autonomous agents in 2 sentences.",
+    ),
+    (
+        "AutoHarness AST Bytecode Action Verifiers",
+        "Explain why static AST policy compilation bypasses runtime LLM inference calls with 0.00 ms latency in 2 sentences.",
+    ),
+    (
+        "Benettin Maximal Lyapunov Exponents",
+        "Explain how tangent vector orthonormalization via Gram-Schmidt prevents numerical divergence when calculating chaos attractors in 2 sentences.",
+    ),
 ]
+
 
 @dataclass
 class MasterHarvestEntry:
@@ -44,24 +62,36 @@ class MasterHarvestEntry:
     duration_sec: float
     ram_headroom_gb: float
 
-def get_free_ram_gb() -> float:
-    return psutil.virtual_memory().available / (1024 ** 3)
 
-async def harvest_single_model(client: httpx.AsyncClient, model_name: str, domain_idx: int) -> MasterHarvestEntry | None:
+def get_free_ram_gb() -> float:
+    return psutil.virtual_memory().available / (1024**3)
+
+
+async def harvest_single_model(
+    client: httpx.AsyncClient, model_name: str, domain_idx: int
+) -> MasterHarvestEntry | None:
     domain, prompt = DOMAIN_PROMPT_MAP[domain_idx % len(DOMAIN_PROMPT_MAP)]
     avail_ram = get_free_ram_gb()
     if avail_ram < MIN_AVAIL_RAM_GB:
-        logger.warning("⚠️ OOM Guard: RAM %.2f GB < floor %.2f GB. Skipping %s.", avail_ram, MIN_AVAIL_RAM_GB, model_name)
+        logger.warning(
+            "⚠️ OOM Guard: RAM %.2f GB < floor %.2f GB. Skipping %s.",
+            avail_ram,
+            MIN_AVAIL_RAM_GB,
+            model_name,
+        )
         return None
 
     payload = {
         "model": model_name,
         "messages": [
-            {"role": "system", "content": f"You are a principal scientist contributing to Cohezion's knowledge graph for {domain}. Answer with mathematical density in 2 concise sentences."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": f"You are a principal scientist contributing to Cohezion's knowledge graph for {domain}. Answer with mathematical density in 2 concise sentences.",
+            },
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,
-        "max_tokens": 256
+        "max_tokens": 256,
     }
 
     t0 = time.perf_counter()
@@ -82,13 +112,14 @@ async def harvest_single_model(client: httpx.AsyncClient, model_name: str, domai
                 insight=raw_text,
                 tokens=len(raw_text.split()),
                 duration_sec=dt,
-                ram_headroom_gb=round(get_free_ram_gb(), 2)
+                ram_headroom_gb=round(get_free_ram_gb(), 2),
             )
         else:
             logger.info("Model '%s' returned HTTP %d", model_name, r.status_code)
     except Exception as e:
         logger.info("Model '%s' query bypassed: %s", model_name, e)
     return None
+
 
 async def run_master_loop():
     print("\n" + "=" * 115)
@@ -101,16 +132,33 @@ async def run_master_loop():
         if r_models.status_code != 200:
             print(f"❌ Failed to fetch model list from Lemonade: {r_models.status_code}")
             return
-        
+
         all_models = [m["id"] for m in r_models.json().get("data", [])]
         # Filter out utility/non-chat models (routers, whisper, sd)
         text_models = [
-            m for m in all_models 
-            if not any(k in m for k in ["user.", "SD-", "RealESRGAN", "Flux", "TRELLIS", "Whisper", "Moonshine", "kokoro", "embed", "reranker"])
+            m
+            for m in all_models
+            if not any(
+                k in m
+                for k in [
+                    "user.",
+                    "SD-",
+                    "RealESRGAN",
+                    "Flux",
+                    "TRELLIS",
+                    "Whisper",
+                    "Moonshine",
+                    "kokoro",
+                    "embed",
+                    "reranker",
+                ]
+            )
         ]
 
         print(f"• Total Downloaded Text Models Found: {len(text_models)}")
-        print(f"• Starting Free RAM Headroom: {get_free_ram_gb():.2f} GiB (Safety Floor: {MIN_AVAIL_RAM_GB} GiB)\n")
+        print(
+            f"• Starting Free RAM Headroom: {get_free_ram_gb():.2f} GiB (Safety Floor: {MIN_AVAIL_RAM_GB} GiB)\n"
+        )
 
         successful_entries: list[MasterHarvestEntry] = []
         for idx, model in enumerate(text_models, 1):
@@ -119,7 +167,9 @@ async def run_master_loop():
             entry = await harvest_single_model(client, model, idx - 1)
             if entry:
                 successful_entries.append(entry)
-                print(f"  └─ 🟢 SUCCESS ({entry.duration_sec}s | RAM Free: {entry.ram_headroom_gb} GiB | Words: {entry.tokens})")
+                print(
+                    f"  └─ 🟢 SUCCESS ({entry.duration_sec}s | RAM Free: {entry.ram_headroom_gb} GiB | Words: {entry.tokens})"
+                )
                 print(f"  └─ Insight: {entry.insight[:110]}...")
             else:
                 print(f"  └─ 🟡 Skipped / Incompatible chat format.")
@@ -130,17 +180,24 @@ async def run_master_loop():
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("# 🚀 Master All-Model Knowledge Enrichment Matrix\n\n")
             f.write(f"**Date**: 2026-08-24  \n")
-            f.write(f"**Total Models Ingested**: {len(successful_entries)} / {len(text_models)}  \n\n")
+            f.write(
+                f"**Total Models Ingested**: {len(successful_entries)} / {len(text_models)}  \n\n"
+            )
             f.write("| # | Model | Domain | Duration | RAM Free | Harvested Insight |\n")
             f.write("| :--- | :--- | :--- | :--- | :--- | :--- |\n")
             for i, ent in enumerate(successful_entries, 1):
                 clean_txt = ent.insight.replace("\n", " ").replace("|", "\\|")
-                f.write(f"| {i} | `{ent.model}` | {ent.domain} | {ent.duration_sec}s | {ent.ram_headroom_gb} GiB | {clean_txt} |\n")
+                f.write(
+                    f"| {i} | `{ent.model}` | {ent.domain} | {ent.duration_sec}s | {ent.ram_headroom_gb} GiB | {clean_txt} |\n"
+                )
 
         print("\n" + "=" * 115)
-        print(f"🎉 MASTER HARVEST COMPLETE: {len(successful_entries)} Models Successfully Synthesized & Ingested!")
+        print(
+            f"🎉 MASTER HARVEST COMPLETE: {len(successful_entries)} Models Successfully Synthesized & Ingested!"
+        )
         print(f"📄 Knowledge Matrix Persisted to: {out_path}")
         print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_master_loop())

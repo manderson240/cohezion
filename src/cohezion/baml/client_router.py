@@ -23,24 +23,58 @@ from typing import Any
 
 from baml_client import b as _b
 from baml_client.async_client import b as _async_b
+from baml_client.type_builder import TypeBuilder
 from baml_client.types import (
     CodeHarness,
+    ExtractedEntity,
+    ExtractedRelation,
+    GoalSpecification,
+    HardwareVitalsSnapshot,
+    KanbanItem,
+    ModelCardProfile,
     NextStep,
+    RoutingDecision,
+    SheafDirichletState,
     SubmissionStrategy,
+    TaskClassificationResult,
     TaskInvariants,
+    VaultGraphExtraction,
+    VModelTrace,
 )
 
 
 __all__ = [
     "CodeHarness",
+    "ExtractedEntity",
+    "ExtractedRelation",
+    "GoalSpecification",
+    "HardwareVitalsSnapshot",
+    "KanbanItem",
+    "ModelCardProfile",
     "NextStep",
+    "RoutingDecision",
+    "SheafDirichletState",
     "SubmissionStrategy",
+    "TaskClassificationResult",
     "TaskInvariants",
+    "TypeBuilder",
+    "VModelTrace",
+    "VaultGraphExtraction",
     "audit_leaderboard_next_action",
     "audit_leaderboard_next_action_async",
     "build_registry",
+    "classify_task_intent",
+    "classify_task_intent_async",
+    "decide_hardware_routing",
+    "decide_hardware_routing_async",
     "derive_task_invariants",
     "derive_task_invariants_async",
+    "evaluate_harmonic_sheaf",
+    "evaluate_harmonic_sheaf_async",
+    "extract_vault_graph",
+    "extract_vault_graph_async",
+    "extract_vault_graph_stream",
+    "get_type_builder",
     "recommend_next_step",
     "recommend_next_step_async",
     "synthesize_code_harness",
@@ -58,6 +92,9 @@ def build_registry(tier: str = "hybrid") -> Any:
     from baml_py import ClientRegistry
 
     cr = ClientRegistry()
+    cloud_timeout_ms = int(os.environ.get("COHEZION_BAML_TIMEOUT_MS", "120000"))
+    local_timeout_ms = int(os.environ.get("COHEZION_BAML_LOCAL_TIMEOUT_MS", "60000"))
+
     if tier == "local":
         cr.add_llm_client(
             name="CohezionLocal",
@@ -66,7 +103,7 @@ def build_registry(tier: str = "hybrid") -> Any:
                 "base_url": "http://127.0.0.1:13305/api/v1",
                 "api_key": "local",
                 "model": "qwen3-4b-FLM",
-                "request_timeout_ms": 60000,
+                "request_timeout_ms": local_timeout_ms,
             },
         )
         cr.set_primary("CohezionLocal")
@@ -78,7 +115,7 @@ def build_registry(tier: str = "hybrid") -> Any:
                 "base_url": "http://127.0.0.1:11434/v1",
                 "api_key": "local",
                 "model": "deepseek-v4-flash:cloud",
-                "request_timeout_ms": 60000,
+                "request_timeout_ms": cloud_timeout_ms,
             },
         )
         cr.set_primary("CohezionCloud")
@@ -90,7 +127,7 @@ def build_registry(tier: str = "hybrid") -> Any:
                 "base_url": "http://127.0.0.1:13305/api/v1",
                 "api_key": "local",
                 "model": "qwen3-4b-FLM",
-                "request_timeout_ms": 60000,
+                "request_timeout_ms": local_timeout_ms,
             },
         )
         cr.add_llm_client(
@@ -100,7 +137,7 @@ def build_registry(tier: str = "hybrid") -> Any:
                 "base_url": "http://127.0.0.1:11434/v1",
                 "api_key": "local",
                 "model": "deepseek-v4-flash:cloud",
-                "request_timeout_ms": 60000,
+                "request_timeout_ms": cloud_timeout_ms,
             },
         )
         cr.add_llm_client(
@@ -193,3 +230,112 @@ async def audit_leaderboard_next_action_async(
     return await _async_b.AuditLeaderboardNextAction(
         competition, leaderboard_snapshot, baml_options={"client_registry": build_registry(_tier())}
     )  # type: ignore[attr-defined]
+
+
+# -----------------------------------------------------------------------------
+# 5. Neurosymbolic Knowledge Graph Extraction (Vault Graph Pipeline)
+# -----------------------------------------------------------------------------
+def extract_vault_graph(source_document: str, content: str) -> VaultGraphExtraction:
+    """Extract structured knowledge graph from document synchronously via BAML."""
+    return _b.ExtractVaultGraph(
+        source_document,
+        content,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+async def extract_vault_graph_async(source_document: str, content: str) -> VaultGraphExtraction:
+    """Extract structured knowledge graph from document asynchronously via BAML."""
+    return await _async_b.ExtractVaultGraph(
+        source_document,
+        content,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+def extract_vault_graph_stream(source_document: str, content: str) -> Any:
+    """Stream structured knowledge graph extraction token-by-token."""
+    return _async_b.stream.ExtractVaultGraph(
+        source_document,
+        content,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+# -----------------------------------------------------------------------------
+# 6. Task Intent Classification (APU Hardware Routing)
+# -----------------------------------------------------------------------------
+def classify_task_intent(task_description: str) -> TaskClassificationResult:
+    """Classify task compute tier and output intent synchronously via BAML."""
+    return _b.ClassifyTaskIntent(
+        task_description,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+async def classify_task_intent_async(
+    task_description: str,
+) -> TaskClassificationResult:
+    """Classify task compute tier and output intent asynchronously via BAML."""
+    return await _async_b.ClassifyTaskIntent(
+        task_description,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+# -----------------------------------------------------------------------------
+# 7. Model Card Hardware Dispatch Routing
+# -----------------------------------------------------------------------------
+def decide_hardware_routing(
+    task_type: str, input_tokens: int, required_modes: list[str]
+) -> RoutingDecision:
+    """Determine card-aligned hardware routing decision synchronously via BAML."""
+    return _b.DecideHardwareRouting(
+        task_type,
+        input_tokens,
+        required_modes,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+async def decide_hardware_routing_async(
+    task_type: str, input_tokens: int, required_modes: list[str]
+) -> RoutingDecision:
+    """Determine card-aligned hardware routing decision asynchronously via BAML."""
+    return await _async_b.DecideHardwareRouting(
+        task_type,
+        input_tokens,
+        required_modes,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+# -----------------------------------------------------------------------------
+# 8. Topological Cellular Sheaf Evaluation
+# -----------------------------------------------------------------------------
+def evaluate_harmonic_sheaf(stalk_values: str, restriction_maps: str) -> SheafDirichletState:
+    """Evaluate cellular sheaf Dirichlet energy synchronously via BAML."""
+    return _b.EvaluateHarmonicSheaf(
+        stalk_values,
+        restriction_maps,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+async def evaluate_harmonic_sheaf_async(
+    stalk_values: str, restriction_maps: str
+) -> SheafDirichletState:
+    """Evaluate cellular sheaf Dirichlet energy asynchronously via BAML."""
+    return await _async_b.EvaluateHarmonicSheaf(
+        stalk_values,
+        restriction_maps,
+        baml_options={"client_registry": build_registry(_tier())},
+    )  # type: ignore[attr-defined]
+
+
+# -----------------------------------------------------------------------------
+# 9. Dynamic TypeBuilder Factory
+# -----------------------------------------------------------------------------
+def get_type_builder() -> TypeBuilder:
+    """Create a fresh TypeBuilder instance for dynamic runtime schema adaptation."""
+    return TypeBuilder()

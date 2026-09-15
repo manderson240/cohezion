@@ -68,8 +68,14 @@ async def run_task(task, tiers, policy, sem, stats) -> dict:
                 ok_chars = False
             ok_valid = task.validate(text) if text else False
             attempts.append(
-                {"tier": idx, "model": tier_cfg["model"], "s": round(dt, 1),
-                 "chars": len(text), "valid": ok_valid, "err": err}
+                {
+                    "tier": idx,
+                    "model": tier_cfg["model"],
+                    "s": round(dt, 1),
+                    "chars": len(text),
+                    "valid": ok_valid,
+                    "err": err,
+                }
             )
             stats["tier_calls"][idx] += 1
 
@@ -80,8 +86,14 @@ async def run_task(task, tiers, policy, sem, stats) -> dict:
         else:
             passed = task.validate(text) if text else False
 
-    return {"task_id": task.task_id, "category": task.category, "passed": passed,
-            "entry": entry, "escalations": max(0, len(attempts) - 1), "attempts": attempts}
+    return {
+        "task_id": task.task_id,
+        "category": task.category,
+        "passed": passed,
+        "entry": entry,
+        "escalations": max(0, len(attempts) - 1),
+        "attempts": attempts,
+    }
 
 
 async def main() -> None:
@@ -149,8 +161,10 @@ async def main() -> None:
     print(f"METRIC tier_calls={json.dumps(dict(stats['tier_calls']))}")
     print(f"METRIC apparatus_error={apparatus_error}")
     if apparatus_error:
-        print("APPARATUS FAILURE: no task received any model response — "
-              "server/load/byte-budget issue, suite result is meaningless")
+        print(
+            "APPARATUS FAILURE: no task received any model response — "
+            "server/load/byte-budget issue, suite result is meaningless"
+        )
         sys.exit(2)
 
 

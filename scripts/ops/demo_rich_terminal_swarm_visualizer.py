@@ -18,22 +18,29 @@ import psutil
 
 console = Console()
 
+
 def render_rich_terminal_dashboard():
     # Header Panel
     console.print("\n")
     console.print(
         Panel(
-            Text("🌀 COHEZION SOVEREIGN AGI — TERMINAL TOPOLOGY & DATAMESH HUD", justify="center", style="bold cyan"),
+            Text(
+                "🌀 COHEZION SOVEREIGN AGI — TERMINAL TOPOLOGY & DATAMESH HUD",
+                justify="center",
+                style="bold cyan",
+            ),
             box=box.DOUBLE_EDGE,
-            style="bold blue"
+            style="bold blue",
         )
     )
 
     # 1. Swarm Topology Tree
     tree = Tree("🌐 [bold yellow]SurrealDB EventBus DataMesh (:8001)[/bold yellow]")
-    
+
     # Branch: Local Silicon
-    silicon = tree.add("⚡ [bold green]Local Silicon Gateway (:13305)[/bold green] (Lemonade / ROCm)")
+    silicon = tree.add(
+        "⚡ [bold green]Local Silicon Gateway (:13305)[/bold green] (Lemonade / ROCm)"
+    )
     silicon.add("[cyan]Qwen3-Coder-30B[/cyan] (iGPU | 17.4 GB | 128k Ctx)")
     silicon.add("[cyan]user.cohezion-hermes-router[/cyan] (iGPU/NPU Router)")
     silicon.add("[cyan]SDXL-Turbo[/cyan] (iGPU | 5.6s HD Diffusion)")
@@ -55,9 +62,9 @@ def render_rich_terminal_dashboard():
 
     # 2. Telemetry & OOM Status Table
     vm = psutil.virtual_memory()
-    avail_gib = round(vm.available / (1024 ** 3), 1)
-    used_gib = round(vm.used / (1024 ** 3), 1)
-    
+    avail_gib = round(vm.available / (1024**3), 1)
+    used_gib = round(vm.used / (1024**3), 1)
+
     table = Table(title="📊 Local System Vital Telemetry", box=box.ROUNDED, style="bright_white")
     table.add_column("Metric Subsystem", style="cyan", no_wrap=True)
     table.add_column("Current Value", style="bold green")
@@ -68,12 +75,15 @@ def render_rich_terminal_dashboard():
     table.add_row("Swap Page Pressure", "0.0 GiB", "≤ 2.0 GiB (Ceiling)", "🟢 PRISTINE")
     table.add_row("Hot-Swap Policy", "Learning 92", "Liveness Over Speed (Unhurried)", "🟢 ACTIVE")
     table.add_row("HIHO Coherence", "0.5000", "0.5000 ± 0.05", "🟢 PERFECT")
-    table.add_row("Poincaré Hyperbolic Dim", "384D", "10.9x Latency Lift (227k evals/s)", "🟢 ACCELERATED")
+    table.add_row(
+        "Poincaré Hyperbolic Dim", "384D", "10.9x Latency Lift (227k evals/s)", "🟢 ACCELERATED"
+    )
 
     # Render Side-by-Side Panels
     console.print(Panel(tree, title="[bold green]Topology DAG[/bold green]", box=box.ROUNDED))
     console.print(table)
     console.print("\n")
+
 
 if __name__ == "__main__":
     render_rich_terminal_dashboard()

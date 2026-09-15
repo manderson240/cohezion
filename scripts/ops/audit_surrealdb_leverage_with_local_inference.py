@@ -23,12 +23,28 @@ LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 SURREAL_URL = "http://localhost:8001/sql"
 
 SURREAL_CAPABILITIES = [
-    ("HNSW Vector Indexing", "Does Cohezion use native HNSW indexing for 2048D Poincaré and 12D state lookups?"),
-    ("Graph RELATE Syntax", "Are agent events and Kanban items connected via directional graph edges (->EMITTED->, ->TRANSITIONED->)?"),
-    ("Live Queries (LIVE SELECT)", "Is EventBus leveraging LIVE SELECT WebSocket subscriptions for zero-latency inter-session synchronization?"),
-    ("Full-Text Search (FTS)", "Are 71 PRIME skills indexed with SurrealDB BM25 / ngram analyzers?"),
-    ("SurrealQL v2 ACID Transactions", "Are multi-agent state mutations executed within BEGIN TRANSACTION / COMMIT blocks?")
+    (
+        "HNSW Vector Indexing",
+        "Does Cohezion use native HNSW indexing for 2048D Poincaré and 12D state lookups?",
+    ),
+    (
+        "Graph RELATE Syntax",
+        "Are agent events and Kanban items connected via directional graph edges (->EMITTED->, ->TRANSITIONED->)?",
+    ),
+    (
+        "Live Queries (LIVE SELECT)",
+        "Is EventBus leveraging LIVE SELECT WebSocket subscriptions for zero-latency inter-session synchronization?",
+    ),
+    (
+        "Full-Text Search (FTS)",
+        "Are 71 PRIME skills indexed with SurrealDB BM25 / ngram analyzers?",
+    ),
+    (
+        "SurrealQL v2 ACID Transactions",
+        "Are multi-agent state mutations executed within BEGIN TRANSACTION / COMMIT blocks?",
+    ),
 ]
+
 
 async def audit_surrealdb():
     print("\n" + "=" * 115)
@@ -41,16 +57,23 @@ async def audit_surrealdb():
         try:
             r = await client.post(
                 SURREAL_URL,
-                headers={"surreal-ns": "cohezion", "surreal-db": "main", "Authorization": "Basic cm9vdDpyb290", "Content-Type": "text/plain"},
-                content="INFO FOR DB;"
+                headers={
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "main",
+                    "Authorization": "Basic cm9vdDpyb290",
+                    "Content-Type": "text/plain",
+                },
+                content="INFO FOR DB;",
             )
             print(f"  ✓ SurrealDB Connection OK (HTTP {r.status_code})")
         except Exception as e:
             print(f"  ✗ SurrealDB probe failed: {e}")
 
     # 2. Local Inference Assessment (Qwen3-Coder-30B on iGPU)
-    print("\n▶ [2] Delegating In-Depth SurrealDB Architectural Audit to Local Silicon (`Qwen3-Coder-30B`)...")
-    
+    print(
+        "\n▶ [2] Delegating In-Depth SurrealDB Architectural Audit to Local Silicon (`Qwen3-Coder-30B`)..."
+    )
+
     prompt = """You are a Principal Database Architect & Systems Engineer auditing Cohezion's SurrealDB usage.
 Evaluate our integration against modern SurrealDB (https://github.com/surrealdb/surrealdb):
 1. Native HNSW Vector Indexing (`DEFINE INDEX ... HNSW DIMENSION 2048 DIST COSINE`) for Poincaré embeddings.
@@ -71,10 +94,10 @@ In 4 structured bullet points, detail:
             "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
             "messages": [
                 {"role": "system", "content": "You are the Cohezion Principal Database Architect."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.1,
-            "max_tokens": 1024
+            "max_tokens": 1024,
         }
         r = await client.post(LEMONADE_URL, json=payload)
         dt = round(time.perf_counter() - t0, 2)
@@ -92,7 +115,9 @@ In 4 structured bullet points, detail:
     report_path = "docs/research/surrealdb_comprehensive_leverage_audit.md"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# 🐘 SurrealDB Comprehensive Feature Leverage Audit\n\n")
-        f.write("**Hardware**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n")
+        f.write(
+            "**Hardware**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n"
+        )
         f.write(f"**Date**: 2026-08-24  \n\n")
         f.write("## Local Silicon Expert Review (`Qwen3-Coder-30B` on iGPU)\n\n")
         f.write(f"```markdown\n{content.strip()}\n```\n")
@@ -100,6 +125,7 @@ In 4 structured bullet points, detail:
     print("\n" + "=" * 115)
     print(f"📄 Audit Report Persisted to: {report_path}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(audit_surrealdb())

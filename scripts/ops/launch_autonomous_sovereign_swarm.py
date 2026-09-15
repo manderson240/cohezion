@@ -23,6 +23,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("autonomous_swarm")
 
+
 async def run_autonomous_swarm():
     logger.info("=" * 80)
     logger.info("🚀 INITIALIZING AUTONOMOUS SOVEREIGN SWARM (AFK RUNTIME)")
@@ -30,12 +31,15 @@ async def run_autonomous_swarm():
 
     # 1. Announce startup on EventBus
     from cohezion.core.event_bus import EventType
+
     bus = EventBus()
-    await bus.publish(Event(
-        type=EventType.AGENT_START,
-        source="autonomous_swarm",
-        payload={"status": "active", "mode": "unattended_afk", "timestamp": time.time()}
-    ))
+    await bus.publish(
+        Event(
+            type=EventType.AGENT_START,
+            source="autonomous_swarm",
+            payload={"status": "active", "mode": "unattended_afk", "timestamp": time.time()},
+        )
+    )
 
     governor = SpinningPlatesGovernor(min_available_gb=20.0)
 
@@ -57,7 +61,7 @@ async def run_autonomous_swarm():
     plates_task = asyncio.create_task(governor.start_spinning_plates())
 
     logger.info("🟢 Autonomous Swarm active. Operating across NPU, iGPU, CPU, and Cloud overflow.")
-    
+
     # 4. Periodic health & Kanban maintenance loop
     cycle = 0
     while not stop_event.is_set():
@@ -65,12 +69,15 @@ async def run_autonomous_swarm():
         await asyncio.sleep(30.0)
         telemetry = governor.get_plate_telemetry()
         total_iters = sum(p["iterations"] for p in telemetry["plates"].values())
-        logger.info(f"📊 [Heartbeat Cycle {cycle}] Total Plate Iterations: {total_iters} | Memory Guard: 🟢 PASS")
+        logger.info(
+            f"📊 [Heartbeat Cycle {cycle}] Total Plate Iterations: {total_iters} | Memory Guard: 🟢 PASS"
+        )
 
     governor.running = False
     plates_task.cancel()
     await asyncio.gather(plates_task, return_exceptions=True)
     logger.info("🏁 Autonomous Sovereign Swarm cleanly shut down.")
+
 
 if __name__ == "__main__":
     asyncio.run(run_autonomous_swarm())

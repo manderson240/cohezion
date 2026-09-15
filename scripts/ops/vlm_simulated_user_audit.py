@@ -69,4 +69,6 @@ def evaluate_screenshot_with_vlm(screenshot_path: str) -> None:
 
 
 if __name__ == "__main__":
-    evaluate_screenshot_with_vlm("/home/mike-anderson/dev/cohezion/docs/assets/renderings/marimo_wasm_live_screenshot.png")
+    evaluate_screenshot_with_vlm(
+        "/home/mike-anderson/dev/cohezion/docs/assets/renderings/marimo_wasm_live_screenshot.png"
+    )

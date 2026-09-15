@@ -120,23 +120,30 @@ def verify_program(program_src: str, input_grid: np.ndarray, output_grid: np.nda
     exec(code, namespace)
     return np.array_equal(namespace["output_grid"], output_grid)
 
+
 # CA rule induction
 def enumerate_totalistic_rules(colors: int, radius: int = 1) -> Iterator[Callable]:
-    for rule_id in range(colors ** (colors * (2*radius+1)**2)):
+    for rule_id in range(colors ** (colors * (2 * radius + 1) ** 2)):
         yield lambda grid, rule_id=rule_id: apply_totalistic_rule(grid, rule_id, radius)
+
 
 # Topological invariants
 def betti_numbers(grid: np.ndarray) -> Tuple[int, int]:
     # 0D: connected components, 1D: holes
     # Use scipy.ndimage.label for components, and Euler characteristic for holes
-    structure = np.ones((3,3), dtype=int)
+    structure = np.ones((3, 3), dtype=int)
     _, n_components = label(grid > 0, structure)
     # Euler characteristic via V - E + F
     V = np.sum(grid > 0)
-    E = np.sum((grid > 0) & (np.roll(grid, 1, axis=0) > 0)) + \
-        np.sum((grid > 0) & (np.roll(grid, 1, axis=1) > 0))
-    F = np.sum((grid > 0) & (np.roll(grid, 1, axis=0) > 0) & \
-               (np.roll(grid, 1, axis=1) > 0) & (np.roll(np.roll(grid, 1, axis=0), 1, axis=1) > 0))
+    E = np.sum((grid > 0) & (np.roll(grid, 1, axis=0) > 0)) + np.sum(
+        (grid > 0) & (np.roll(grid, 1, axis=1) > 0)
+    )
+    F = np.sum(
+        (grid > 0)
+        & (np.roll(grid, 1, axis=0) > 0)
+        & (np.roll(grid, 1, axis=1) > 0)
+        & (np.roll(np.roll(grid, 1, axis=0), 1, axis=1) > 0)
+    )
     chi = V - E + F
     beta1 = n_components - chi  # for 2D grid
     return n_components, beta1
@@ -292,12 +299,15 @@ Document the CFR algorithm, neural network architecture, training procedure, and
 import asyncio
 from collections import deque
 
+
 class StrixPipeline:
     def __init__(self):
         self.npu_queue = asyncio.Queue(maxsize=4)
         self.igpu_queue = asyncio.Queue(maxsize=4)
         self.cpu_queue = asyncio.Queue(maxsize=4)
-        self.npu_session = onnxruntime.InferenceSession("model.onnx", providers=["VitisAIExecutionProvider"])
+        self.npu_session = onnxruntime.InferenceSession(
+            "model.onnx", providers=["VitisAIExecutionProvider"]
+        )
         self.igpu_model = torch.jit.load("model.pt").to("cuda")  # ROCm
 
     async def npu_draft(self, batch):
@@ -483,18 +493,18 @@ class TopologicalTTT(nn.Module):
         self.policy = base_policy
         self.dsl = dsl_library
         # Fast weights for adaptation
-        self.meta_theta = nn.Parameter(torch.zeros(16, 16)) 
+        self.meta_theta = nn.Parameter(torch.zeros(16, 16))
 
     def forward(self, support_set, query):
         # 1. Compute topological regret on support set
         topo_loss = self.compute_manifold_loss(support_set)
-        
+
         # 2. Inner loop adaptation (Test-Time Train)
         adapted_theta = self.meta_theta - 0.01 * torch.autograd.grad(topo_loss, self.meta_theta)
-        
+
         # 3. Generate program using adapted weights
         program = self.dsl.synthesize(query, weights=adapted_theta)
-        
+
         # 4. Verify via AutoHarness (0ms overhead)
         if AutoHarness.verify(program, support_set):
             return program.execute(query)
@@ -535,20 +545,20 @@ Replace the accumulation with a LSTM-based regret estimator to generalize across
 class PokemonNCFR:
     def __init__(self, state_dim, action_dim):
         # Strix Halo optimized: FP16 on iGPU
-        self.regret_net = SmallMLP(state_dim, action_dim).to('hip:0') 
-        self.policy_net = SmallMLP(state_dim, action_dim).to('hip:0')
+        self.regret_net = SmallMLP(state_dim, action_dim).to("hip:0")
+        self.policy_net = SmallMLP(state_dim, action_dim).to("hip:0")
 
     def solve_information_set(self, public_state, private_history):
         determinizations = self.sample_hands(public_state, n=100)
         action_values = torch.zeros(len(determinizations), action_dim)
-        
+
         for i, det_state in enumerate(determinizations):
             # ISMCTS Rollout
             tree = ISMCTSNode(det_state)
             for _ in range(1000):
                 tree.simulate()
             action_values[i] = tree.get_visit_counts()
-            
+
         # Aggregate across information sets
         final_policy = action_values.mean(dim=0)
         return final_policy.argmax()
@@ -672,18 +682,19 @@ Where $\mathcal{L}_{topo} = \sum |\chi(f_\theta(x)) - \chi(y)|$ enforces topolog
 class ARCSovereignSolver:
     def __init__(self, base_model, autoharness_verifier):
         self.model = base_model
-        self.verifier = autoharness_verifier # 0ms pure-Python
-        
+        self.verifier = autoharness_verifier  # 0ms pure-Python
+
     def solve(self, task):
         # 1. Topological Fingerprinting
-        topo_invariance = self.extract_betti(task['train'])
-        
+        topo_invariance = self.extract_betti(task["train"])
+
         # 2. CA Rule Search (NPU Drafting)
-        ca_rule = self.npu_ca_discovery(task['train'])
+        ca_rule = self.npu_ca_discovery(task["train"])
         if ca_rule:
-            ca_pred = self.apply_ca(ca_rule, task['test'])
-            if self.verifier.validate(ca_pred, task): return ca_pred
-            
+            ca_pred = self.apply_ca(ca_rule, task["test"])
+            if self.verifier.validate(ca_pred, task):
+                return ca_pred
+
         # 3. TTT Optimization (iGPU Verify/Train)
         ttt_pred = self.ttt_inference(task, topo_invariance)
         return ttt_pred
@@ -745,29 +756,32 @@ import torch
 import amd_npu_backend as npu
 import amd_igpu_backend as igpu
 
+
 class StrixHaloOrchestrator:
     def __init__(self):
-        self.unified_mem_pool = torch.empty((120, 1024, 1024), dtype=torch.int8, device='cpu') # 120GB pool
+        self.unified_mem_pool = torch.empty(
+            (120, 1024, 1024), dtype=torch.int8, device="cpu"
+        )  # 120GB pool
         self.npu_queue = npu.Stream()
         self.igpu_queue = igpu.Stream()
-        
+
     def execute_arc_task(self, task_data):
         # 1. NPU Drafts CA rules and Topological candidates (INT8)
         with npu.stream(self.npu_queue):
             candidates = npu.generate_candidates(task_data)
-            
+
         # 2. iGPU Verifies via AutoHarness and runs TTT (FP32)
         with igpu.stream(self.igpu_queue):
             verified = []
             for cand in candidates:
                 if self.autoharness.verify(cand):
                     verified.append(cand)
-            
+
             if not verified:
                 # TTT fallback
                 ttt_result = igpu.train_lora(task_data, self.base_model)
                 verified.append(ttt_result)
-                
+
         return verified[0]
 ```
 

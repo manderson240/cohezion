@@ -20,6 +20,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
+
 async def test_qwen_code_integration():
     print("\n" + "=" * 110)
     print("🐲 VERIFYING QWEN-CODE (QwenLM/qwen-code) AGENTIC DATAMESH INTEGRATION")
@@ -49,8 +50,8 @@ async def test_qwen_code_integration():
             "task": "Multi-File Codebase Understanding & Automated Refactoring",
             "native_engine": "Qwen3-Coder-30B (Local Silicon) / Qwen-397B (Cloud)",
             "status": "ONLINE",
-            "headroom_gib": avail_gib
-        }
+            "headroom_gib": avail_gib,
+        },
     )
     await event_bus.publish(qwen_start_event)
     print(f"   ✓ Emitted `AGENT_START` for Qwen-Code across EventBus & SurrealDB `event_log`")
@@ -62,7 +63,9 @@ async def test_qwen_code_integration():
         try:
             r = await client.get("http://localhost:13305/v1/models")
             if r.status_code == 200:
-                print(f"   ✓ Local Silicon Gateway (:13305): Reachable (Resident `Qwen3-Coder-30B` on iGPU)")
+                print(
+                    f"   ✓ Local Silicon Gateway (:13305): Reachable (Resident `Qwen3-Coder-30B` on iGPU)"
+                )
         except Exception as e:
             print(f"   • Local Silicon Gateway note: {e}")
 
@@ -70,7 +73,9 @@ async def test_qwen_code_integration():
         try:
             r_ollama = await client.get("http://localhost:11434/api/tags")
             if r_ollama.status_code == 200:
-                print(f"   ✓ Ollama Cloud Gateway (:11434): Reachable (`qwen3.5:397b-cloud` overflow available)")
+                print(
+                    f"   ✓ Ollama Cloud Gateway (:11434): Reachable (`qwen3.5:397b-cloud` overflow available)"
+                )
         except Exception as e:
             print(f"   • Ollama Cloud Gateway note: {e}")
 
@@ -79,7 +84,9 @@ async def test_qwen_code_integration():
     peer_events = await bridge.fetch_cross_session_events(limit=7)
     print(f"   ✓ Qwen-Code intercepted {len(peer_events)} peer events on the DataMesh:")
     for ev in peer_events:
-        print(f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}")
+        print(
+            f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}"
+        )
 
     # Emit Completion & Persist Kanban Card
     qwen_complete_event = Event(
@@ -88,25 +95,28 @@ async def test_qwen_code_integration():
         priority=10,
         payload={
             "status": "COMPLETE",
-            "verdict": "Qwen-Code native model routing and EventBus DataMesh verified."
-        }
+            "verdict": "Qwen-Code native model routing and EventBus DataMesh verified.",
+        },
     )
     await event_bus.publish(qwen_complete_event)
 
-    persist_item({
-        "id": "qwen_code_datamesh_status",
-        "title": "Qwen-Code Agentic DataMesh Integration Active",
-        "status": "done",
-        "priority": "high",
-        "source": "qwen_code_agent",
-        "category": "agent_framework",
-        "details": f"Qwen-Code (QwenLM/qwen-code) integrated with local silicon (:13305) and EventBus DataMesh. Headroom: {avail_gib} GiB.",
-    })
+    persist_item(
+        {
+            "id": "qwen_code_datamesh_status",
+            "title": "Qwen-Code Agentic DataMesh Integration Active",
+            "status": "done",
+            "priority": "high",
+            "source": "qwen_code_agent",
+            "category": "agent_framework",
+            "details": f"Qwen-Code (QwenLM/qwen-code) integrated with local silicon (:13305) and EventBus DataMesh. Headroom: {avail_gib} GiB.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 110)
     print("🎉 QWEN-CODE AGENTIC DATAMESH INTEGRATION VERIFIED!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_qwen_code_integration())

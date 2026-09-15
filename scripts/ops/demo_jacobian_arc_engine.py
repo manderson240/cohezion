@@ -5,6 +5,7 @@ import time
 import numpy as np
 from cohezion.competitions.arc.jacobian_arc_manifold import JacobianARCManifoldEngine
 
+
 def main():
     print("\n" + "=" * 95)
     print("📐 COHEZION JACOBIAN J-SPACE ARC MANIFOLD ENGINE")
@@ -15,11 +16,11 @@ def main():
         [0, 1, 1, 1, 0],
         [0, 1, 0, 1, 0],
         [0, 1, 1, 1, 0],
-        [0, 0, 0, 0, 0]
+        [0, 0, 0, 0, 0],
     ]
 
     engine = JacobianARCManifoldEngine()
-    
+
     t0 = time.perf_counter()
     j_map = engine.compute_grid_jacobian(sample_grid)
     dt_ms = (time.perf_counter() - t0) * 1000.0
@@ -35,6 +36,7 @@ def main():
     print("\n" + "=" * 95)
     print("🎉 JACOBIAN J-SPACE DIFFERENTIAL GUIDANCE OPERATIONAL IN <10ms!")
     print("=" * 95 + "\n")
+
 
 if __name__ == "__main__":
     main()

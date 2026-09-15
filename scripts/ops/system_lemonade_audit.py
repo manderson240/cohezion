@@ -12,9 +12,13 @@ with urllib.request.urlopen(req, timeout=5) as resp:
 payload = {
     "model": "waslmedia-qwen3-4b-Q4_K_M",
     "messages": [{"role": "user", "content": "Hello"}],
-    "max_tokens": 10
+    "max_tokens": 10,
 }
-req2 = urllib.request.Request("http://127.0.0.1:13305/v1/chat/completions", headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+req2 = urllib.request.Request(
+    "http://127.0.0.1:13305/v1/chat/completions",
+    headers={"Content-Type": "application/json"},
+    data=json.dumps(payload).encode(),
+)
 try:
     with urllib.request.urlopen(req2, timeout=5) as resp2:
         d2 = json.loads(resp2.read().decode())

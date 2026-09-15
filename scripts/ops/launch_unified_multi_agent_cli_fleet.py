@@ -28,35 +28,44 @@ CLIS = [
     {
         "name": "Claude Code CLI",
         "bin": "/home/mike-anderson/.local/bin/claude",
-        "args": ["-p", "In under 30 words, confirm that multi-agent CLI coordination is safe under SystemWideFleetLock.", "--model", "opus"],
-        "type": "cli"
+        "args": [
+            "-p",
+            "In under 30 words, confirm that multi-agent CLI coordination is safe under SystemWideFleetLock.",
+            "--model",
+            "opus",
+        ],
+        "type": "cli",
     },
     {
         "name": "Hermes Agent CLI",
         "bin": "/home/mike-anderson/.local/bin/hermes",
-        "args": ["-z", "In under 30 words, state the role of Hermes agent in tool calling and autonomous task execution."],
-        "type": "cli"
+        "args": [
+            "-z",
+            "In under 30 words, state the role of Hermes agent in tool calling and autonomous task execution.",
+        ],
+        "type": "cli",
     },
     {
         "name": "OpenCode CLI",
         "bin": "/home/mike-anderson/.opencode/bin/opencode",
         "args": ["run", "In under 30 words, explain how OpenCode assists in codebase refactoring."],
-        "type": "cli"
+        "type": "cli",
     },
     {
         "name": "Pi CLI",
         "bin": "/home/linuxbrew/.linuxbrew/bin/pi",
         "args": ["-p", "In under 30 words, state Pi's role in terminal agent workflows."],
-        "type": "cli"
+        "type": "cli",
     },
     {
         "name": "Local Qwen Coder / DeepSeek Harness",
         "bin": "internal_local_inference",
         "args": [],
         "type": "local_api",
-        "prompt": "In under 30 words, explain how Qwen Coder synthesizes AST bytecode for ARC solutions on AMD Strix Halo."
-    }
+        "prompt": "In under 30 words, explain how Qwen Coder synthesizes AST bytecode for ARC solutions on AMD Strix Halo.",
+    },
 ]
+
 
 async def run_agent_worker(agent: dict) -> dict:
     name = agent["name"]
@@ -70,14 +79,16 @@ async def run_agent_worker(agent: dict) -> dict:
         bin_path = agent["bin"]
         args = agent["args"]
         if not os.path.exists(bin_path):
-            return {"name": name, "status": "SKIPPED_BIN_NOT_FOUND", "output": f"{bin_path} not found", "duration_s": 0.0}
+            return {
+                "name": name,
+                "status": "SKIPPED_BIN_NOT_FOUND",
+                "output": f"{bin_path} not found",
+                "duration_s": 0.0,
+            }
 
         try:
             proc = await asyncio.create_subprocess_exec(
-                bin_path,
-                *args,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                bin_path, *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await proc.communicate()
             dt = time.perf_counter() - t0
@@ -88,7 +99,7 @@ async def run_agent_worker(agent: dict) -> dict:
                 "name": name,
                 "status": "SUCCESS" if proc.returncode == 0 else f"EXIT_{proc.returncode}",
                 "output": out_str or err_str,
-                "duration_s": dt
+                "duration_s": dt,
             }
         except Exception as e:
             dt = time.perf_counter() - t0
@@ -100,16 +111,26 @@ async def run_agent_worker(agent: dict) -> dict:
             async with httpx.AsyncClient() as client:
                 resp = await client.post(
                     "http://localhost:11434/api/generate",
-                    json={"model": "deepseek-v4-pro:cloud", "prompt": prompt, "stream": False, "options": {"num_predict": 100}},
-                    timeout=30.0
+                    json={
+                        "model": "deepseek-v4-pro:cloud",
+                        "prompt": prompt,
+                        "stream": False,
+                        "options": {"num_predict": 100},
+                    },
+                    timeout=30.0,
                 )
                 dt = time.perf_counter() - t0
-                out_str = resp.json().get("response", "").strip() if resp.status_code == 200 else f"HTTP {resp.status_code}"
+                out_str = (
+                    resp.json().get("response", "").strip()
+                    if resp.status_code == 200
+                    else f"HTTP {resp.status_code}"
+                )
                 print(f"  ✓ `{name}` completed in {dt:.2f}s")
                 return {"name": name, "status": "SUCCESS", "output": out_str, "duration_s": dt}
         except Exception as e:
             dt = time.perf_counter() - t0
             return {"name": name, "status": "ERROR", "output": str(e), "duration_s": dt}
+
 
 async def main():
     print("=" * 90)
@@ -125,16 +146,18 @@ async def main():
     print("📋 UNIFIED MULTI-AGENT CLI FLEET REPORT:")
     print("=" * 90)
     for r in results:
-        print(f"\n--- 🤖 [{r['name']}] | Status: {r['status']} | Latency: {r['duration_s']:.2f}s ---")
+        print(
+            f"\n--- 🤖 [{r['name']}] | Status: {r['status']} | Latency: {r['duration_s']:.2f}s ---"
+        )
         print(f"Output:\n{r['output']}\n")
 
     # Save to markdown report
     doc_path = Path("docs/research/unified_multi_agent_cli_fleet_report.md")
     doc_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     md_content = f"""# Unified Multi-Agent CLI Fleet Execution Report
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Total Agents Invoked:** {len(CLIS)}  
 **Memory State:** {OOMGuard.get_memory_state().available_gb:.2f} GiB Avail / {OOMGuard.get_memory_state().dynamic_floor_gb:.2f} GiB Floor  
 
@@ -142,12 +165,12 @@ async def main():
 
 """
     for r in results:
-        md_content += f"""### 🤖 Agent: `{r['name']}`
-- **Status:** `{r['status']}`
-- **Latency:** {r['duration_s']:.2f}s
+        md_content += f"""### 🤖 Agent: `{r["name"]}`
+- **Status:** `{r["status"]}`
+- **Latency:** {r["duration_s"]:.2f}s
 - **Output:**
 ```
-{r['output']}
+{r["output"]}
 ```
 
 ---
@@ -156,16 +179,19 @@ async def main():
     doc_path.write_text(md_content)
     print(f"✓ Saved Unified Multi-Agent CLI Report to: {doc_path}")
 
-    persist_item({
-        "id": "unified_multi_agent_cli_fleet",
-        "title": "Unified Multi-Agent CLI Fleet Concurrently Verified",
-        "status": "done",
-        "priority": "critical",
-        "source": "MultiAgentCLIFleet",
-        "category": "cli_verification",
-        "details": "Concurrently executed Claude Code, Hermes, OpenCode, Pi, and Local DeepSeek/Qwen harness under SystemWideFleetLock governance.",
-    })
+    persist_item(
+        {
+            "id": "unified_multi_agent_cli_fleet",
+            "title": "Unified Multi-Agent CLI Fleet Concurrently Verified",
+            "status": "done",
+            "priority": "critical",
+            "source": "MultiAgentCLIFleet",
+            "category": "cli_verification",
+            "details": "Concurrently executed Claude Code, Hermes, OpenCode, Pi, and Local DeepSeek/Qwen harness under SystemWideFleetLock governance.",
+        }
+    )
     print("✓ Persisted verification card to SurrealDB and Obsidian Kanban")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

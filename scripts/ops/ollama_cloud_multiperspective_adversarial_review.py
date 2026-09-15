@@ -72,13 +72,14 @@ Conduct an adversarial counter-strategy review:
 - Provide 3 defensive tactical counter-measures the agent must incorporate.
 """
 
+
 async def query_cloud_model(model_name: str, prompt: str, persona_name: str) -> str:
     print(f"\n▶ Dispatching to `{model_name}` ({persona_name})...")
     payload = {
         "model": model_name,
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
-        "options": {"temperature": 0.2}
+        "options": {"temperature": 0.2},
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -95,7 +96,7 @@ async def query_cloud_model(model_name: str, prompt: str, persona_name: str) -> 
                 print(f"   ❌ `{model_name}` failed: HTTP {r.status_code} - {r.text[:150]}")
         except Exception as e:
             print(f"   ❌ `{model_name}` exception: {e}")
-            
+
     # Fallback to fast cloud model if primary is busy
     fallback_model = "deepseek-v4-flash:0731-cloud"
     payload["model"] = fallback_model
@@ -112,6 +113,7 @@ async def query_cloud_model(model_name: str, prompt: str, persona_name: str) -> 
             return resp
     return "Error generating review."
 
+
 async def main():
     print("=" * 115)
     print("⚔️ MULTI-PERSPECTIVE ADVERSARIAL REVIEW VIA OLLAMA CLOUD MODELS")
@@ -121,14 +123,18 @@ async def main():
     avail_gib, swap_used_gib, is_safe = SmartOOMGovernor.get_memory_state()
     print(f"\n▶ System Preflight:")
     print(f"   • UMA Memory Available: {avail_gib} GiB (Floor: 35.0 GiB)")
-    print(f"   • Cloud Models:         `deepseek-v4-pro:cloud`, `qwen3.5:397b-cloud`, `glm-5.2:cloud`")
+    print(
+        f"   • Cloud Models:         `deepseek-v4-pro:cloud`, `qwen3.5:397b-cloud`, `glm-5.2:cloud`"
+    )
 
     # 2. Dispatch Reviews Concurrently
     t_start = time.perf_counter()
     results = await asyncio.gather(
-        query_cloud_model("deepseek-v4-pro:cloud", PROMPT_DEEPSEEK, "Game Theory & Mathematical Rigor"),
+        query_cloud_model(
+            "deepseek-v4-pro:cloud", PROMPT_DEEPSEEK, "Game Theory & Mathematical Rigor"
+        ),
         query_cloud_model("qwen3.5:397b-cloud", PROMPT_QWEN, "Code Performance & Runtime Latency"),
-        query_cloud_model("glm-5.2:cloud", PROMPT_GLM, "Adversarial Exploits & Blind Spots")
+        query_cloud_model("glm-5.2:cloud", PROMPT_GLM, "Adversarial Exploits & Blind Spots"),
     )
     total_dt = round(time.perf_counter() - t_start, 2)
 
@@ -188,25 +194,28 @@ async def main():
             "report_path": str(OUT_PATH),
             "cloud_fleet": ["deepseek-v4-pro:cloud", "qwen3.5:397b-cloud", "glm-5.2:cloud"],
             "duration_sec": total_dt,
-            "status": "CLOUD_ADVERSARIAL_REVIEW_COMPLETE"
-        }
+            "status": "CLOUD_ADVERSARIAL_REVIEW_COMPLETE",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "ollama_cloud_adversarial_review_complete",
-        "title": "Ollama Cloud Multi-Perspective Adversarial Review Complete",
-        "status": "done",
-        "priority": "highest",
-        "source": "ollama_cloud_adversarial_auditor",
-        "category": "adversarial_audit",
-        "details": f"Multi-model adversarial audit by DeepSeek-V4 Pro, Qwen3.5-397B, and GLM-5.2 completed in {total_dt}s. Report in {OUT_PATH}.",
-    })
+    persist_item(
+        {
+            "id": "ollama_cloud_adversarial_review_complete",
+            "title": "Ollama Cloud Multi-Perspective Adversarial Review Complete",
+            "status": "done",
+            "priority": "highest",
+            "source": "ollama_cloud_adversarial_auditor",
+            "category": "adversarial_audit",
+            "details": f"Multi-model adversarial audit by DeepSeek-V4 Pro, Qwen3.5-397B, and GLM-5.2 completed in {total_dt}s. Report in {OUT_PATH}.",
+        }
+    )
     print("   ✓ Dual-persisted review card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 OLLAMA CLOUD MULTI-PERSPECTIVE ADVERSARIAL REVIEW 100% COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

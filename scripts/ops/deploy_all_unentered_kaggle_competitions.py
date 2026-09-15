@@ -11,7 +11,9 @@ import os
 import subprocess
 import time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_DEPLOY] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_DEPLOY] %(message)s"
+)
 logger = logging.getLogger("kaggle_deploy")
 
 NEW_COMPETITIONS = [
@@ -35,7 +37,7 @@ else:
     with open("submission.csv", "w") as f:
         f.write("id,x,y,z,t\\n0,0,0,0,0\\n")
 print("🚀 Cell tracking kinematics ready.")
-"""
+""",
     },
     {
         "id": "rsna-knee-abnormality-detection",
@@ -56,7 +58,7 @@ else:
     with open("submission.csv", "w") as f:
         f.write("id,Abnormal,ACL,Meniscus\\n0,0.5,0.5,0.5\\n")
 print("🚀 RSNA multi-view baseline ready.")
-"""
+""",
     },
     {
         "id": "kaggriculture",
@@ -72,18 +74,19 @@ print("🚀 Kaggriculture policy engine initialized.")
 with open("submission.csv", "w") as f:
     f.write("id,action\\n0,irrigate\\n")
 print("✓ Emitted submission.csv.")
-"""
-    }
+""",
+    },
 ]
+
 
 def deploy_comp(comp: dict):
     cdir = comp["dir"]
     os.makedirs(cdir, exist_ok=True)
-    
+
     # Emit main.py
     with open(os.path.join(cdir, "main.py"), "w", encoding="utf-8") as f:
         f.write(comp["script"])
-        
+
     # Emit kernel-metadata.json
     meta = {
         "id": f"manderson240/{comp['slug']}",
@@ -97,17 +100,20 @@ def deploy_comp(comp: dict):
         "enable_internet": "false",
         "dataset_sources": [],
         "competition_sources": [comp["id"]],
-        "kernel_sources": []
+        "kernel_sources": [],
     }
     with open(os.path.join(cdir, "kernel-metadata.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
     logger.info("Pushing kernel for %s...", comp["id"])
     try:
-        out = subprocess.check_output(["kaggle", "kernels", "push", "-p", cdir], stderr=subprocess.STDOUT).decode()
+        out = subprocess.check_output(
+            ["kaggle", "kernels", "push", "-p", cdir], stderr=subprocess.STDOUT
+        ).decode()
         logger.info("✓ Push output: %s", out.strip())
     except subprocess.CalledProcessError as e:
         logger.error("❌ Push error for %s: %s", comp["id"], e.output.decode().strip())
+
 
 def main():
     print("\n" + "=" * 115)
@@ -121,6 +127,7 @@ def main():
     print("\n" + "=" * 115)
     print("🎉 ALL 8 OPEN CASH COMPETITIONS ARE NOW DEPLOYED & COVERED IN PIPELINE ($2,477,000)!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     main()

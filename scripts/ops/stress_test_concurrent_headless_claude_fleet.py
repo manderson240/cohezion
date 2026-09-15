@@ -23,24 +23,29 @@ from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.reliability.system_wide_fleet_lock import SystemWideFleetLock
 from cohezion.reliability.oom_guard import OOMGuard
 
+
 async def run_headless_claude_worker(session_id: str, role_prompt: str) -> dict:
     t0 = time.perf_counter()
     print(f"🚀 [Headless Claude Opus {session_id}] Initializing concurrent session...")
 
     lock = SystemWideFleetLock(resource_name="headless_claude_inference")
     mem_initial = OOMGuard.get_memory_state()
-    print(f"   · [{session_id}] Memory: {mem_initial.available_gb:.2f} GiB Avail / {mem_initial.dynamic_floor_gb:.2f} GiB Floor (Safe={mem_initial.is_safe})")
+    print(
+        f"   · [{session_id}] Memory: {mem_initial.available_gb:.2f} GiB Avail / {mem_initial.dynamic_floor_gb:.2f} GiB Floor (Safe={mem_initial.is_safe})"
+    )
 
     # Attempt to acquire cross-session hardware lock
     with lock.hold(timeout=8.0) as acquired:
         if not acquired:
-            print(f"   🛡️ [{session_id}] Guardrail Active: Lock acquisition yielded safely due to memory pressure/concurrency. No OOM crash!")
+            print(
+                f"   🛡️ [{session_id}] Guardrail Active: Lock acquisition yielded safely due to memory pressure/concurrency. No OOM crash!"
+            )
             return {
                 "session_id": session_id,
                 "status": "GUARDED_YIELD",
                 "acquired": False,
                 "duration_s": time.perf_counter() - t0,
-                "note": "Yielded safely under memory pressure gatekeeper"
+                "note": "Yielded safely under memory pressure gatekeeper",
             }
 
         print(f"   ⚡ [{session_id}] Lock Acquired! Simulating local GPU/NPU inference work...")
@@ -50,8 +55,9 @@ async def run_headless_claude_worker(session_id: str, role_prompt: str) -> dict:
             "status": "SUCCESS",
             "acquired": True,
             "duration_s": time.perf_counter() - t0,
-            "note": "Executed local inference under exclusive hardware aperture lock"
+            "note": "Executed local inference under exclusive hardware aperture lock",
         }
+
 
 async def main():
     print("=" * 90)
@@ -70,7 +76,9 @@ async def main():
     print("\n" + "=" * 90)
     print("📊 CONCURRENT STRESS TEST EXECUTION RESULTS:")
     for r in results:
-        print(f"  • {r['session_id']} -> Status: {r['status']} | Acquired: {r['acquired']} | Time: {r['duration_s']:.2f}s | Note: {r['note']}")
+        print(
+            f"  • {r['session_id']} -> Status: {r['status']} | Acquired: {r['acquired']} | Time: {r['duration_s']:.2f}s | Note: {r['note']}"
+        )
     print("=" * 90)
 
     # Save report
@@ -78,7 +86,7 @@ async def main():
     doc_path.parent.mkdir(parents=True, exist_ok=True)
     doc_path.write_text(f"""# Concurrent Headless Claude Stress Test & OOM Guardrail Report
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Sessions Tested:** 3 Concurrent Headless Claude Opus Workers  
 **Memory State:** {OOMGuard.get_memory_state().available_gb:.2f} GiB Avail / {OOMGuard.get_memory_state().dynamic_floor_gb:.2f} GiB Floor  
 
@@ -91,16 +99,19 @@ async def main():
 The inter-process `SystemWideFleetLock` and `OOMGuard` successfully intercepted concurrent local inference attempts under memory pressure, guaranteeing zero kernel faults or OOM crashes across simultaneous sessions.
 """)
 
-    persist_item({
-        "id": "concurrent_headless_claude_stress_test",
-        "title": "Concurrent Headless Claude Stress Test Passed",
-        "status": "done",
-        "priority": "high",
-        "source": "StressTestFleet",
-        "category": "guardrail_verification",
-        "details": "Spawned 3 concurrent Headless Claude sessions. SystemWideFleetLock verified multi-session concurrency safety and zero OOM crashes.",
-    })
+    persist_item(
+        {
+            "id": "concurrent_headless_claude_stress_test",
+            "title": "Concurrent Headless Claude Stress Test Passed",
+            "status": "done",
+            "priority": "high",
+            "source": "StressTestFleet",
+            "category": "guardrail_verification",
+            "details": "Spawned 3 concurrent Headless Claude sessions. SystemWideFleetLock verified multi-session concurrency safety and zero OOM crashes.",
+        }
+    )
     print("✓ Persisted test report to docs/research/ and SurrealDB / Obsidian Kanban")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

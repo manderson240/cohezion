@@ -21,7 +21,9 @@ import time
 import urllib.request
 from dataclasses import dataclass
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [ORCHESTRATOR] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [ORCHESTRATOR] %(message)s"
+)
 logger = logging.getLogger("orchestrator")
 
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
@@ -92,10 +94,7 @@ async def run_multiperspective_synthesis() -> list[PerspectiveResult]:
         },
     ]
 
-    tasks = [
-        query_ollama_cloud(p["model"], p["system"], p["prompt"])
-        for p in perspectives
-    ]
+    tasks = [query_ollama_cloud(p["model"], p["system"], p["prompt"]) for p in perspectives]
     results = await asyncio.gather(*tasks)
 
     synthesis_list = []
@@ -129,11 +128,18 @@ def delegate_to_gaia_local(plan_summary: str) -> str:
         logger.info("Invoking GAIA CLI: %s", " ".join(cmd[:2]))
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         dt = time.perf_counter() - t0
-        logger.info("  ✓ GAIA Local Silicon Execution Completed in %.2fs (Return Code: %d)", dt, proc.returncode)
+        logger.info(
+            "  ✓ GAIA Local Silicon Execution Completed in %.2fs (Return Code: %d)",
+            dt,
+            proc.returncode,
+        )
         output = proc.stdout if proc.returncode == 0 else proc.stderr
         return output
     except Exception as e:
-        logger.warning("  ✗ Direct GAIA CLI call encountered exception: %s. Falling back to Lemonade local API...", e)
+        logger.warning(
+            "  ✗ Direct GAIA CLI call encountered exception: %s. Falling back to Lemonade local API...",
+            e,
+        )
         # Fallback to local Lemonade API
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
@@ -155,7 +161,7 @@ def delegate_to_gaia_local(plan_summary: str) -> str:
 
 async def main():
     perspectives = await run_multiperspective_synthesis()
-    
+
     # Converge proposals into executive summary
     converged_text = "# Multi-Perspective Cloud Synthesis Report\n\n"
     for p in perspectives:
@@ -170,7 +176,7 @@ async def main():
 
     # Delegate to GAIA
     gaia_result = delegate_to_gaia_local(converged_text)
-    
+
     # Save GAIA output
     gaia_out_file = "/home/mike-anderson/.gemini/antigravity-cli/brain/54146dc4-dff4-4b47-a2cb-abb16f9e3812/gaia_local_execution_plan.md"
     with open(gaia_out_file, "w", encoding="utf-8") as f:

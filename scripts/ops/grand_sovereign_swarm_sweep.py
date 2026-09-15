@@ -19,6 +19,7 @@ class CycleVerificationState:
     entropy_score: float
     timestamp: float
 
+
 class GrandSovereignSwarmMasterOrchestratorVerificationSweep:
     """Deterministic, zero-cost verified engine for Grand Sovereign Swarm Master Orchestrator Verification Sweep."""
 
@@ -39,5 +40,5 @@ class GrandSovereignSwarmMasterOrchestratorVerificationSweep:
             subsystem="Grand Sovereign Swarm Master Orchestrator Verification Sweep",
             verified=True,
             entropy_score=round(score, 4),
-            timestamp=time.time()
+            timestamp=time.time(),
         )

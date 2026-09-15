@@ -92,6 +92,24 @@ def cmd_health(args):
         print(f"  {ok} {check}{error}")
 
 
+def cmd_approvals(args):
+    from cohezion.compound.skill_refiner import SkillRefiner
+
+    pending = SkillRefiner.get_pending_approvals()
+    if not pending:
+        print("No pending approvals awaiting review (queue clean).")
+        return
+
+    print(f"Pending Self-Mutation Approvals ({len(pending)}):")
+    for i, item in enumerate(pending, 1):
+        skill = item.get("skill_name", "unknown")
+        status = item.get("status", "pending")
+        insight = item.get("proposed_insight", "")[:100]
+        ts = item.get("timestamp", "")
+        print(f"  [{i}] Skill: {skill} | Status: {status} | Timestamp: {ts}")
+        print(f"      Proposed: {insight}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compound engineering analytics CLI")
     sub = parser.add_subparsers(dest="command")
@@ -101,6 +119,7 @@ def main():
     rec_parser = sub.add_parser("recommend", help="Show recommendations")
     rec_parser.add_argument("--n", type=int, default=5, help="Number of recommendations")
     sub.add_parser("health", help="Health check")
+    sub.add_parser("approvals", help="Show pending self-mutation approvals awaiting operator review")
 
     args = parser.parse_args()
 
@@ -112,9 +131,12 @@ def main():
         cmd_recommend(args)
     elif args.command == "health":
         cmd_health(args)
+    elif args.command == "approvals":
+        cmd_approvals(args)
     else:
         parser.print_help()
 
 
 if __name__ == "__main__":
     main()
+

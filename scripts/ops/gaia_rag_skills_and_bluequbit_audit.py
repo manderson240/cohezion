@@ -24,7 +24,7 @@ SURREAL_HEADERS = {
     "surreal-ns": "cohezion",
     "surreal-db": "main",
     "Authorization": "Basic cm9vdDpyb290",
-    "Content-Type": "text/plain"
+    "Content-Type": "text/plain",
 }
 
 AUDIT_PROMPT = """You are the Principal Quantum Computing & Agentic Framework Architect on AMD Strix Halo silicon.
@@ -43,23 +43,29 @@ Evaluate the following in 4 structured sections:
 4. Security & Sovereign Guardrail:
    - Confirming zero credential leakage, environment variable isolation, and local simulation fallbacks."""
 
+
 async def run_audit():
     print("\n" + "=" * 115)
     print("⚛️ BLUEQUBIT QUANTUM INTEGRATION & GAIA SDK BLEEDING-EDGE SKILLS AUDIT")
     print("=" * 115)
 
     # 1. Local Silicon Inference Execution
-    print("\n▶ Delegating Quantum & Skills RAG Audit to Local Silicon (`gpt-oss-20b-mxfp4-GGUF`)...")
+    print(
+        "\n▶ Delegating Quantum & Skills RAG Audit to Local Silicon (`gpt-oss-20b-mxfp4-GGUF`)..."
+    )
     payload = {
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
-            {"role": "system", "content": "You are the Cohezion Principal Quantum & Agentic Systems Architect. Keep all API secrets redacted."},
-            {"role": "user", "content": AUDIT_PROMPT}
+            {
+                "role": "system",
+                "content": "You are the Cohezion Principal Quantum & Agentic Systems Architect. Keep all API secrets redacted.",
+            },
+            {"role": "user", "content": AUDIT_PROMPT},
         ],
         "temperature": 0.1,
-        "max_tokens": 1024
+        "max_tokens": 1024,
     }
-    
+
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
         r = await client.post(LEMONADE_URL, json=payload)
@@ -80,7 +86,9 @@ async def run_audit():
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# ⚛️ BlueQubit Quantum Integration & GAIA SDK Bleeding-Edge Skills Audit\n\n")
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  \n")
-        f.write("**Hardware**: AMD Strix Halo (128GB UMA, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n")
+        f.write(
+            "**Hardware**: AMD Strix Halo (128GB UMA, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n"
+        )
         f.write("**Security Policy**: Zero Credential/Token Logging Strictly Enforced  \n\n")
         f.write("---\n\n")
         f.write(content + "\n")
@@ -88,6 +96,7 @@ async def run_audit():
     print("=" * 115)
     print(f"📄 Audit Report Persisted to: {report_path}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_audit())

@@ -8,6 +8,7 @@ pathways mapped directly into Cohezion's SurrealDB neural substrate and FLUME ma
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import math
 from dataclasses import dataclass, field
@@ -17,6 +18,11 @@ from typing import Any
 import numpy as np
 
 from cohezion.core.persistence.surreal_client import SurrealClient
+from cohezion.neuro.janelia_neuprint_client import (
+    JaneliaNeuPrintClient,
+    NeuPrintNeuron,
+    NeuPrintSynapse,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -321,6 +327,10 @@ class DrosophilaCNSConnectome:
             except Exception as e:
                 logger.warning("Failed to upsert neuron %s: %s", n["id"], e)
 
+        # Ensure synapse table exists as relation
+        with contextlib.suppress(Exception):
+            await self.client.query("DEFINE TABLE IF NOT EXISTS synapse TYPE RELATION;")
+
         # Relate synapses into SurrealDB (SurrealDB graph edge relation)
         for s in synapses:
             safe_id = f"syn_{s['source']}_{s['target']}".replace(":", "_")
@@ -334,6 +344,108 @@ class DrosophilaCNSConnectome:
                 inserted_synapses += 1
             except Exception as e:
                 logger.warning("Failed to relate synapse %s: %s", safe_id, e)
+
+        return {
+            "neurons_seeded": inserted_neurons,
+            "synapses_seeded": inserted_synapses,
+        }
+
+    async def seed_from_neuprint(
+        self,
+        neuprint_client: JaneliaNeuPrintClient | None = None,
+        cx_limit: int = 50,
+        dn_limit: int = 30,
+        min_weight: int = 5,
+    ) -> dict[str, int]:
+        """Fetches authentic reconstructed neurons and synapses from Janelia neuPrint API
+        and persists them into SurrealDB neuron and synapse tables.
+
+        Pulls:
+        1. Central Complex (CX) ring attractor and steering circuits (EPG, PFL3, PEG, Delta7).
+        2. Descending pathways (DNs) connecting brain to Ventral Nerve Cord.
+        """
+        client = neuprint_client or JaneliaNeuPrintClient()
+
+        # Ensure synapse table exists as relation with required fields
+        with contextlib.suppress(Exception):
+            await self.client.query(
+                "DEFINE TABLE IF NOT EXISTS synapse TYPE RELATION;"
+                "DEFINE FIELD IF NOT EXISTS dataset ON TABLE synapse TYPE any;"
+                "DEFINE FIELD IF NOT EXISTS source_type ON TABLE synapse TYPE any;"
+                "DEFINE FIELD IF NOT EXISTS target_type ON TABLE synapse TYPE any;"
+                "DEFINE FIELD IF NOT EXISTS weight ON TABLE synapse TYPE any;"
+                "DEFINE FIELD IF NOT EXISTS created_at ON TABLE synapse TYPE any;"
+            )
+
+        # Fetch authentic subgraphs from Janelia neuPrint
+        cx_neurons, cx_synapses = client.fetch_central_complex_subgraph(
+            limit=cx_limit, min_weight=min_weight
+        )
+        dn_neurons, dn_synapses = client.fetch_descending_motor_subgraph(
+            limit=dn_limit, min_weight=min_weight
+        )
+
+        all_neurons: dict[int, NeuPrintNeuron] = {n.body_id: n for n in cx_neurons + dn_neurons}
+        all_synapses: list[NeuPrintSynapse] = cx_synapses + dn_synapses
+
+        inserted_neurons = 0
+        inserted_synapses = 0
+
+        # Upsert neurons into SurrealDB
+        for n in all_neurons.values():
+            tier = DrosophilaCircuitTier.CENTRAL_COMPLEX.value
+            if n.cell_type.startswith("DN"):
+                tier = DrosophilaCircuitTier.DESCENDING_PATHWAY.value
+            elif "motor" in n.cell_type.lower():
+                tier = DrosophilaCircuitTier.MOTOR_ACTUATION.value
+
+            safe_type = n.cell_type.replace("'", "\\'")
+            safe_instance = n.instance.replace("'", "\\'")
+            content = (
+                f"Biological NeuPrint Neuron #{n.body_id} (Type: {safe_type}, Instance: {safe_instance}). "
+                f"Region: {n.region}. Status: {n.status}."
+            )
+            content_escaped = content.replace("'", "\\'")
+            title_escaped = f"Janelia FlyEM [{tier}]: {safe_type}_{n.body_id}".replace("'", "\\'")
+
+            q = (
+                f"UPSERT neuron:`janelia_{n.body_id}` SET "
+                f"title = '{title_escaped}', "
+                f"content = '{content_escaped}', "
+                f"tier = '{tier}', "
+                f"region = '{n.region}', "
+                f"cell_type = '{safe_type}', "
+                f"body_id = {n.body_id}, "
+                f"dimorphism = 'male_cns', "
+                f"activation = 0.0, "
+                f"stage = 'active', "
+                f"dataset = 'male-cns:v1.0', "
+                f"updated_at = time::now();"
+            )
+            try:
+                await self.client.query(q)
+                inserted_neurons += 1
+            except Exception as e:
+                logger.warning("Failed to upsert biological neuron %s: %s", n.body_id, e)
+
+        # Relate synapses into SurrealDB
+        for s in all_synapses:
+            safe_id = f"syn_janelia_{s.source_id}_{s.target_id}"
+            safe_source_type = s.source_type.replace("'", "\\'")
+            safe_target_type = s.target_type.replace("'", "\\'")
+            q = (
+                f"RELATE neuron:`janelia_{s.source_id}`->synapse:`{safe_id}`->neuron:`janelia_{s.target_id}` SET "
+                f"weight = {s.weight}, "
+                f"source_type = '{safe_source_type}', "
+                f"target_type = '{safe_target_type}', "
+                f"dataset = 'male-cns:v1.0', "
+                f"created_at = time::now();"
+            )
+            try:
+                await self.client.query(q)
+                inserted_synapses += 1
+            except Exception as e:
+                logger.warning("Failed to relate biological synapse %s: %s", safe_id, e)
 
         return {
             "neurons_seeded": inserted_neurons,
@@ -354,6 +466,15 @@ class DrosophilaSensoryMotorCircuit:
         # Ring attractor compass state bump (E-PG neurons in Ellipsoid Body)
         self.compass_state = np.zeros(num_compass_wedges)
         self.compass_state[0] = 1.0  # Initial forward heading
+        self.pfl3_gain: float = 1.0
+        self.dng13_gain: float = 1.0
+
+    def calibrate_from_connectome(
+        self, pfl3_weight: float = 50.0, dng13_weight: float = 25.0
+    ) -> None:
+        """Calibrates steering and descending gains from biological synaptic contact numbers."""
+        self.pfl3_gain = max(0.1, min(5.0, pfl3_weight / 50.0))
+        self.dng13_gain = max(0.1, min(5.0, dng13_weight / 25.0))
 
     def update_compass(self, angular_velocity_dps: float, dt_seconds: float = 0.01) -> float:
         """Updates internal ring attractor heading based on angular velocity (haltere/visual flow)."""
@@ -377,10 +498,10 @@ class DrosophilaSensoryMotorCircuit:
         lateral_error = float(np.mean(arr[: len(arr) // 2]) - np.mean(arr[len(arr) // 2 :]))
 
         # PFL3 fan-shaped body steering computation
-        steering_torque = float(np.tanh(lateral_error * 2.0))
+        steering_torque = float(np.tanh(lateral_error * 2.0 * self.pfl3_gain))
 
         # DNg13 descending activation
-        dng13_activation = float(abs(steering_torque) * (coherence / 0.50))
+        dng13_activation = float(abs(steering_torque) * (coherence / 0.50) * self.dng13_gain)
 
         # Motor command determination
         if steering_torque > 0.15:
@@ -397,4 +518,6 @@ class DrosophilaSensoryMotorCircuit:
             "latency_ms": 0.05,
             "circuit": "R1_R6 -> LoVP92 -> PFL3 -> DNg13 -> VNC",
             "coherence": coherence,
+            "pfl3_gain": self.pfl3_gain,
+            "dng13_gain": self.dng13_gain,
         }

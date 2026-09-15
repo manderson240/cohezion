@@ -156,6 +156,62 @@ class TestEmbed:
         assert result == []
 
 
+class TestGenerateImage:
+    def test_generate_image_returns_bytes(self):
+        """generate_image() POSTs to /v1/images/generations and returns decoded bytes."""
+        import base64
+
+        fake_png = b"\x89PNG\r\n\x1a\nfake"
+        b64_str = base64.b64encode(fake_png).decode("utf-8")
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status = MagicMock()
+        mock_resp.json.return_value = {"data": [{"b64_json": b64_str}]}
+
+        with patch("httpx.Client") as mock_cls:
+            mock_client = MagicMock()
+            mock_cls.return_value = mock_client
+            mock_client.post.return_value = mock_resp
+
+            from cohezion.data_mesh.lemonade_multimodal import LemonadeMultimodalClient
+
+            client = LemonadeMultimodalClient()
+            result = client.generate_image("a futuristic quantum processor")
+
+        assert result == fake_png
+        call_args = mock_client.post.call_args
+        assert call_args[0][0] == "/v1/images/generations"
+        payload = call_args[1]["json"]
+        assert payload["model"] == "SD-Turbo"
+        assert payload["prompt"] == "a futuristic quantum processor"
+        assert payload["response_format"] == "b64_json"
+
+    def test_generate_image_non_fatal_on_error(self):
+        """generate_image() returns b"" when HTTP raises."""
+        with patch("httpx.Client") as mock_cls:
+            mock_client = MagicMock()
+            mock_cls.return_value = mock_client
+            mock_client.post.side_effect = ConnectionError("router offline")
+
+            from cohezion.data_mesh.lemonade_multimodal import LemonadeMultimodalClient
+
+            client = LemonadeMultimodalClient()
+            result = client.generate_image("prompt")
+
+        assert result == b""
+
+    def test_timeout_defaults_to_120s(self):
+        """LemonadeMultimodalClient sets timeout to 120s per AMD local-ai-app-integration spec."""
+        with patch("httpx.Client") as mock_cls:
+            from cohezion.data_mesh.lemonade_multimodal import LemonadeMultimodalClient
+
+            _ = LemonadeMultimodalClient()
+            mock_cls.assert_called_once_with(
+                base_url="http://localhost:13305", timeout=120.0
+            )
+
+
 class TestIsAvailable:
     def test_is_available_true_on_200(self):
         """is_available() returns True when GET /v1/models returns 200."""

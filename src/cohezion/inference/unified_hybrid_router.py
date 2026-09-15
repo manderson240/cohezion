@@ -779,16 +779,24 @@ class UnifiedHybridRouter:
             "temperature": temp,
             "top_p": top_p,
         }
+        lemonade_timeout = float(os.environ.get("COHEZION_LEMONADE_TIMEOUT", "60.0"))
         try:
-            async with httpx.AsyncClient(timeout=45.0) as client:
+            async with httpx.AsyncClient(timeout=lemonade_timeout) as client:
                 res = await client.post(self._lemonade_url, json=payload)
                 if res.status_code == 200:
                     data = res.json()
                     msg = data["choices"][0]["message"]
                     raw = (msg.get("content") or msg.get("reasoning_content") or "").strip()
                     if "</think>" in raw:
-                        raw = raw.split("</think>")[-1].strip()
+                        after = raw.split("</think>")[-1].strip()
+                        raw = after if after else raw
                     return raw
+                elif res.status_code == 503:
+                    logger.warning(
+                        "Lemonade 503 Admission Refusal (memory below hard floor): %s",
+                        res.text[:160],
+                    )
+                    return None
         except Exception as exc:
             logger.debug("Local Lemonade query bypassed: %s", exc)
 
@@ -872,15 +880,20 @@ class UnifiedHybridRouter:
             "stream": False,
             "options": options,
         }
+        cloud_timeout = float(os.environ.get("COHEZION_CLOUD_TIMEOUT", "120.0"))
         try:
-            async with httpx.AsyncClient(timeout=45.0) as client:
+            async with httpx.AsyncClient(timeout=cloud_timeout) as client:
                 res = await client.post(OLLAMA_URL, json=payload)
                 if res.status_code == 200:
                     circuit.record_success()
                     data = res.json()
                     raw = (data.get("response") or data.get("thinking") or "").strip()
+                    if not raw and "message" in data:
+                        msg = data["message"]
+                        raw = (msg.get("content") or msg.get("reasoning_content") or "").strip()
                     if "</think>" in raw:
-                        raw = raw.split("</think>")[-1].strip()
+                        after = raw.split("</think>")[-1].strip()
+                        raw = after if after else raw
                     return raw
                 circuit.record_failure()
                 return None

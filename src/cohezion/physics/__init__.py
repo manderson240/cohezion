@@ -176,3 +176,28 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.physics.vliw_bridge import VLIWBridge as VLIWBridge
     from cohezion.physics.vliw_bridge import VLIWBridgeState as VLIWBridgeState
+
+# Continuous Integro-Differential Transformer (arXiv:2510.03989)
+with contextlib.suppress(Exception):
+    from cohezion.physics.continuous_transformer import (
+        ContinuousFeedForwardOperator as ContinuousFeedForwardOperator,
+    )
+    from cohezion.physics.continuous_transformer import (
+        ContinuousTransformerBlock as ContinuousTransformerBlock,
+    )
+    from cohezion.physics.continuous_transformer import (
+        ContinuousTransformerEngine as ContinuousTransformerEngine,
+    )
+    from cohezion.physics.continuous_transformer import (
+        LayerNormProjectionOperator as LayerNormProjectionOperator,
+    )
+    from cohezion.physics.continuous_transformer import (
+        ManifoldInvariants as ManifoldInvariants,
+    )
+    from cohezion.physics.continuous_transformer import (
+        NonLocalAttentionOperator as NonLocalAttentionOperator,
+    )
+    from cohezion.physics.continuous_transformer import (
+        OperatorSplittingScheme as OperatorSplittingScheme,
+    )
+

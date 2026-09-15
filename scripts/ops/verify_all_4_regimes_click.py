@@ -19,7 +19,10 @@ async def test_all_regimes() -> None:
         page.on("console", lambda msg: console_logs.append(f"[{msg.type}] {msg.text}"))
         page.on("pageerror", lambda err: console_logs.append(f"[PAGE_ERROR] {err}"))
 
-        await page.goto("http://localhost:8082/cohezion_master_dashboard_wasm.html", wait_until="domcontentloaded")
+        await page.goto(
+            "http://localhost:8082/cohezion_master_dashboard_wasm.html",
+            wait_until="domcontentloaded",
+        )
         await asyncio.sleep(8)
 
         # Regimes to test
@@ -30,7 +33,7 @@ async def test_all_regimes() -> None:
             ("regime_4_cathode_crater.png", "Target Cathode Micro-Crater Borehole Strike"),
         ]
 
-        select_elem = page.locator('select').first
+        select_elem = page.locator("select").first
         for file_name, label in regimes:
             print(f"Testing regime: {label}...")
             await select_elem.select_option(label=label)

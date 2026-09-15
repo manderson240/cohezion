@@ -38,7 +38,9 @@ async def run_evo_conditioned_inference() -> dict[str, Any]:
     print("=" * 100)
 
     # 1. Initialize EVO Physical State from Agent Cognitive Intention
-    print("\n1. Initializing EVO Soliton Physical State (10^11 electrons, beta=0.30c, HIHO c=0.50)...")
+    print(
+        "\n1. Initializing EVO Soliton Physical State (10^11 electrons, beta=0.30c, HIHO c=0.50)..."
+    )
     evo = EVOSolitonState(
         n_electrons=1e11,
         radius_m=1.0e-6,
@@ -50,7 +52,9 @@ async def run_evo_conditioned_inference() -> dict[str, Any]:
 
     print(f"  ✓ Bennett Pinch B_theta: {evo_physics['b_theta_gauss']:.2f} Gauss")
     print(f"  ✓ Casimir Boundary Pressure: {evo_physics['casimir_pressure_pa']} Pa")
-    print(f"  ✓ Soliton Condensate Stability: {evo_physics['condensate_stable']} (HIHO c={evo_physics['hiho_coherence']})")
+    print(
+        f"  ✓ Soliton Condensate Stability: {evo_physics['condensate_stable']} (HIHO c={evo_physics['hiho_coherence']})"
+    )
 
     # 2. Format Physical Tensor Context for Local LLM
     system_prompt = (
@@ -58,10 +62,10 @@ async def run_evo_conditioned_inference() -> dict[str, Any]:
         "Your cognitive decisions are embodied in an Exotic Vacuum Object (EVO) charge cluster world model."
     )
     user_prompt = f"""EVO Physical World Model Telemetry:
-- Charge Cluster: {evo_physics['n_electrons']:.0e} electrons at 1.0 µm core
-- Self-Confining Magnetic Field: {evo_physics['b_theta_gauss']} Gauss
-- Casimir Boundary Pressure: {evo_physics['casimir_pressure_pa']} Pa
-- Soliton Stability State: {evo_physics['condensate_stable']} (Coherence: {evo_physics['hiho_coherence']})
+- Charge Cluster: {evo_physics["n_electrons"]:.0e} electrons at 1.0 µm core
+- Self-Confining Magnetic Field: {evo_physics["b_theta_gauss"]} Gauss
+- Casimir Boundary Pressure: {evo_physics["casimir_pressure_pa"]} Pa
+- Soliton Stability State: {evo_physics["condensate_stable"]} (Coherence: {evo_physics["hiho_coherence"]})
 
 Task: Given that the EVO soliton is in a 100% stable HIHO 0.50 coherent vortex state, prescribe 2 concrete hardware-level optimizations for the local AMD Strix Halo tri-silicon architecture (Zen 4 CPU + XDNA2 NPU + Radeon 8060S iGPU) that mirror this physical stability.
 """
@@ -89,17 +93,23 @@ Task: Given that the EVO soliton is in a 100% stable HIHO 0.50 coherent vortex s
             if res.status_code == 200:
                 data = res.json()
                 response_text = data["choices"][0]["message"]["content"]
-                print(f"  ✓ Local Model Response Received ({len(response_text.split())} words in {time.perf_counter()-t0:.2f}s)")
+                print(
+                    f"  ✓ Local Model Response Received ({len(response_text.split())} words in {time.perf_counter() - t0:.2f}s)"
+                )
             else:
                 response_text = f"Local Lemonade status code: {res.status_code}"
     except Exception as e:
         logger.warning("Local inference fallback: %s", e)
-        response_text = "Local inference fallback: EVO soliton field stably coupled with Zen 4 SIMD pipelines."
+        response_text = (
+            "Local inference fallback: EVO soliton field stably coupled with Zen 4 SIMD pipelines."
+        )
 
     dt = time.perf_counter() - t0
 
     # 4. Save Synthesis Report
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/evo_world_model_local_inference_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/evo_world_model_local_inference_report.md"
+    )
     report = [
         "# Exotic Vacuum Object (EVO) World Model & Local Silicon Integration",
         f"**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S EDT')}",
@@ -108,7 +118,7 @@ Task: Given that the EVO soliton is in a 100% stable HIHO 0.50 coherent vortex s
         "---",
         "",
         "## ⚛️ 1. Physical EVO State Telemetry",
-        f"- **Electrons**: `{evo_physics['n_electrons']:.0e}` in `{evo.radius_m*1e6:.1f} µm` core",
+        f"- **Electrons**: `{evo_physics['n_electrons']:.0e}` in `{evo.radius_m * 1e6:.1f} µm` core",
         f"- **Bennett Magnetic Self-Pinch $B_\\theta$**: `{evo_physics['b_theta_gauss']:.2f} Gauss`",
         f"- **Casimir Pressure**: `{evo_physics['casimir_pressure_pa']} Pa`",
         f"- **HIHO Coherence**: `{evo_physics['hiho_coherence']}` | **Condensate Stable**: `{evo_physics['condensate_stable']}`",

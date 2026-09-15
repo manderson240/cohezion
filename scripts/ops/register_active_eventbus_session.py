@@ -22,6 +22,7 @@ from cohezion.reliability.oom_guard import OOMGuard
 
 SESSION_ID = "antigravity_master_session_54146dc4"
 
+
 async def register_session():
     print("=" * 90)
     print(f"📡 REGISTERING MASTER AGENT SESSION `{SESSION_ID}` WITH EVENTBUS")
@@ -47,24 +48,27 @@ async def register_session():
             "memory_available_gb": mem.available_gb,
             "memory_floor_gb": mem.dynamic_floor_gb,
             "is_memory_safe": mem.is_safe,
-            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
+            "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        },
     )
     await bus.publish(reg_event)
     print("✓ Published `SESSION_REGISTERED` event to EventBus & SurrealDB `event_log`")
 
     # 3. Update Kanban Board Card
-    persist_item({
-        "id": "antigravity_master_session_active",
-        "title": "Antigravity Master Session Active & Registered with EventBus",
-        "status": "in_progress",
-        "priority": "critical",
-        "source": "AntigravityMasterOrchestrator",
-        "category": "session_lifecycle",
-        "details": f"Session {SESSION_ID} registered on EventBus. Stale background sessions cleaned up. Port 13305 consolidated.",
-    })
+    persist_item(
+        {
+            "id": "antigravity_master_session_active",
+            "title": "Antigravity Master Session Active & Registered with EventBus",
+            "status": "in_progress",
+            "priority": "critical",
+            "source": "AntigravityMasterOrchestrator",
+            "category": "session_lifecycle",
+            "details": f"Session {SESSION_ID} registered on EventBus. Stale background sessions cleaned up. Port 13305 consolidated.",
+        }
+    )
     print("✓ Persisted active session card to Obsidian Kanban and SurrealDB")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(register_session())

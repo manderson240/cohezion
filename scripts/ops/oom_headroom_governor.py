@@ -18,7 +18,9 @@ import urllib.request
 
 from cohezion.reliability.oom_guard import OOMGuard
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [OOM_GOVERNOR] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [OOM_GOVERNOR] %(message)s"
+)
 logger = logging.getLogger("oom_governor")
 
 
@@ -30,28 +32,42 @@ async def run_governor_loop():
 
     while True:
         mem = OOMGuard.get_memory_state(largest_model_gb=16.0)
-        
+
         # Level 1: Healthy
         if mem.available_gb >= 20.0:
-            logger.info("🟢 Memory Healthy: %.1f GiB available (Swap used: %.1f GiB, Safe: %s)",
-                        mem.available_gb, mem.swap_used_gb, mem.is_safe)
-        
+            logger.info(
+                "🟢 Memory Healthy: %.1f GiB available (Swap used: %.1f GiB, Safe: %s)",
+                mem.available_gb,
+                mem.swap_used_gb,
+                mem.is_safe,
+            )
+
         # Level 2: Warning - Soft Throttle (< 20.0 GiB)
         elif 15.0 <= mem.available_gb < 20.0:
-            logger.warning("🟡 Memory Warning: %.1f GiB available (< 20.0 GiB). Soft throttling swarms...",
-                           mem.available_gb)
-        
+            logger.warning(
+                "🟡 Memory Warning: %.1f GiB available (< 20.0 GiB). Soft throttling swarms...",
+                mem.available_gb,
+            )
+
         # Level 3: Emergency - Hard Eviction (< 15.0 GiB)
         else:
-            logger.error("🔴 OOM EMERGENCY: Available memory dropped to %.1f GiB (< 15.0 GiB floor)!",
-                         mem.available_gb)
+            logger.error(
+                "🔴 OOM EMERGENCY: Available memory dropped to %.1f GiB (< 15.0 GiB floor)!",
+                mem.available_gb,
+            )
             logger.error("🔴 Triggering emergency model unload to prevent host crash...")
-            
+
             # Unload Ollama models
             try:
-                payload = json.dumps({"model": "deepseek-v4-pro:cloud", "keep_alive": 0}).encode("utf-8")
-                req = urllib.request.Request("http://localhost:11434/api/generate", data=payload,
-                                             headers={"Content-Type": "application/json"}, method="POST")
+                payload = json.dumps({"model": "deepseek-v4-pro:cloud", "keep_alive": 0}).encode(
+                    "utf-8"
+                )
+                req = urllib.request.Request(
+                    "http://localhost:11434/api/generate",
+                    data=payload,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
                 with urllib.request.urlopen(req, timeout=5) as resp:
                     pass
             except Exception:
@@ -65,7 +81,9 @@ if __name__ == "__main__":
 
 # Broadcast OOM heartbeat to EventBus
 from cohezion.core.event_bus import Event, EventBus, EventType
+
 event_bus = EventBus()
+
 
 async def broadcast_memory_heartbeat(mem):
     evt = Event(

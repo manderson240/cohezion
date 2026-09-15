@@ -1,11 +1,9 @@
-import pytest
-from pathlib import Path
 
 from cohezion.security.secret_scrubber import (
-    scrub_text,
-    contains_unredacted_credentials,
-    verify_command_safety,
     auto_heal_scrub_file,
+    contains_unredacted_credentials,
+    scrub_text,
+    verify_command_safety,
 )
 
 
@@ -39,6 +37,21 @@ def test_scrub_api_keys_and_bearer():
     assert "[REDACTED" in scrubbed
 
 
+def test_scrub_kaggle_and_bluequbit_credentials():
+    # Programmatic dummy tokens (no real secrets)
+    dummy_hex = "a" * 32
+    kaggle_json = '{"username": "testuser", "key": "' + dummy_hex + '"}'
+    scrubbed = scrub_text(kaggle_json)
+    assert dummy_hex not in scrubbed
+    assert "[REDACTED:KAGGLE_KEY]" in scrubbed
+
+    bq_token = "BQUBIT_" + "b" * 30
+    bq_env = "BLUEQUBIT_API_TOKEN=" + bq_token
+    scrubbed_bq = scrub_text(bq_env)
+    assert bq_token not in scrubbed_bq
+    assert "[REDACTED:BLUEQUBIT_TOKEN]" in scrubbed_bq
+
+
 def test_verify_command_safety_blocking():
     # Attempting to read rclone.conf
     v1 = verify_command_safety("cat ~/.config/rclone/rclone.conf | grep token")
@@ -50,6 +63,16 @@ def test_verify_command_safety_blocking():
     v2 = verify_command_safety("grep -i secret .env")
     assert not v2.allowed
     assert ".env" in v2.violation_reason
+
+    # Attempting to cat kaggle.json
+    v_kg = verify_command_safety("cat ~/.kaggle/kaggle.json")
+    assert not v_kg.allowed
+    assert "kaggle" in v_kg.violation_reason
+
+    # Attempting to cat bluequbit credentials
+    v_bq = verify_command_safety("cat bluequbit_credentials.json")
+    assert not v_bq.allowed
+    assert "bluequbit" in v_bq.violation_reason
 
     # Safe commands
     v3 = verify_command_safety("rclone listremotes")

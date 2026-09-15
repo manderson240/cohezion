@@ -41,9 +41,12 @@ class HardwareTelemetry(BaseModel):
 
 from typing import Literal
 
+
 class BenchmarkRequest(BaseModel):
     kernel: Literal["gemm", "moe", "mla"] = Field(..., description="Kernel type to benchmark")
-    mode: Literal["test", "benchmark", "leaderboard"] = Field("benchmark", description="Execution mode")
+    mode: Literal["test", "benchmark", "leaderboard"] = Field(
+        "benchmark", description="Execution mode"
+    )
 
 
 class BenchmarkResponse(BaseModel):

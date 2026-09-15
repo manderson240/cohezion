@@ -20,6 +20,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
+
 async def test_deepseek_harness_integration():
     print("\n" + "=" * 110)
     print("⚡ VERIFYING DEEPSEEK HARNESS (DSH / CORDIS) AGENTIC DATAMESH INTEGRATION")
@@ -49,11 +50,13 @@ async def test_deepseek_harness_integration():
             "plugin_architecture": "Everything-is-a-Plugin",
             "task": "Spatiotemporal Agentic Orchestration & DataMesh Sync",
             "status": "ONLINE",
-            "headroom_gib": avail_gib
-        }
+            "headroom_gib": avail_gib,
+        },
     )
     await event_bus.publish(dsh_start_event)
-    print(f"   ✓ Emitted `AGENT_START` for DeepSeek Harness across EventBus & SurrealDB `event_log`")
+    print(
+        f"   ✓ Emitted `AGENT_START` for DeepSeek Harness across EventBus & SurrealDB `event_log`"
+    )
 
     # 3. Test Local & Cloud Provider Endpoints for DSH
     print(f"\n▶ [3/4] Testing Model Endpoints for DeepSeek Harness Plugin System...")
@@ -62,7 +65,9 @@ async def test_deepseek_harness_integration():
         try:
             r = await client.get("http://localhost:13305/v1/models")
             if r.status_code == 200:
-                print(f"   ✓ Local Silicon Provider (:13305): Reachable (DeepSeek-Qwen3-8B / Qwen3-30B resident)")
+                print(
+                    f"   ✓ Local Silicon Provider (:13305): Reachable (DeepSeek-Qwen3-8B / Qwen3-30B resident)"
+                )
         except Exception as e:
             print(f"   • Local Silicon Provider note: {e}")
 
@@ -70,7 +75,9 @@ async def test_deepseek_harness_integration():
         try:
             r_ollama = await client.get("http://localhost:11434/api/tags")
             if r_ollama.status_code == 200:
-                print(f"   ✓ Ollama Provider (:11434): Reachable (DeepSeek-V4-Pro / Cloud Fleet active)")
+                print(
+                    f"   ✓ Ollama Provider (:11434): Reachable (DeepSeek-V4-Pro / Cloud Fleet active)"
+                )
         except Exception as e:
             print(f"   • Ollama Provider note: {e}")
 
@@ -79,7 +86,9 @@ async def test_deepseek_harness_integration():
     peer_events = await bridge.fetch_cross_session_events(limit=6)
     print(f"   ✓ DSH intercepted {len(peer_events)} peer events on the DataMesh:")
     for ev in peer_events:
-        print(f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}")
+        print(
+            f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}"
+        )
 
     # Emit Completion & Persist Kanban Card
     dsh_complete_event = Event(
@@ -88,25 +97,28 @@ async def test_deepseek_harness_integration():
         priority=10,
         payload={
             "status": "COMPLETE",
-            "verdict": "DeepSeek Harness (DSH) mapped to local silicon (:13305), Ollama Cloud, and EventBus DataMesh."
-        }
+            "verdict": "DeepSeek Harness (DSH) mapped to local silicon (:13305), Ollama Cloud, and EventBus DataMesh.",
+        },
     )
     await event_bus.publish(dsh_complete_event)
 
-    persist_item({
-        "id": "deepseek_harness_dsh_status",
-        "title": "DeepSeek Harness (DSH) DataMesh Integration",
-        "status": "done",
-        "priority": "high",
-        "source": "deepseek_harness_dsh",
-        "category": "agent_framework",
-        "details": f"DeepSeek Harness (dsh / Cordis architecture) integrated with EventBus & local silicon (:13305). Headroom: {avail_gib} GiB.",
-    })
+    persist_item(
+        {
+            "id": "deepseek_harness_dsh_status",
+            "title": "DeepSeek Harness (DSH) DataMesh Integration",
+            "status": "done",
+            "priority": "high",
+            "source": "deepseek_harness_dsh",
+            "category": "agent_framework",
+            "details": f"DeepSeek Harness (dsh / Cordis architecture) integrated with EventBus & local silicon (:13305). Headroom: {avail_gib} GiB.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 110)
     print("🎉 DEEPSEEK HARNESS (DSH) AGENTIC DATAMESH INTEGRATION VERIFIED!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_deepseek_harness_integration())

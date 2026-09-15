@@ -38,6 +38,7 @@ Conclude with:
 - Concrete Hardening Plan
 - Final Resilience Grade (0.00 to 1.00)"""
 
+
 async def run_multiperspective_review():
     print("\n" + "=" * 115)
     print("⚔️ GRAND MULTI-PERSPECTIVE ADVERSARIAL REVIEW (LOCAL SILICON: `gpt-oss-20b-mxfp4-GGUF`)")
@@ -46,13 +47,16 @@ async def run_multiperspective_review():
     payload = {
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
-            {"role": "system", "content": "You are a ruthlessly adversarial Principal Systems, Physics, and Security Auditor."},
-            {"role": "user", "content": REVIEW_PROMPT}
+            {
+                "role": "system",
+                "content": "You are a ruthlessly adversarial Principal Systems, Physics, and Security Auditor.",
+            },
+            {"role": "user", "content": REVIEW_PROMPT},
         ],
         "temperature": 0.15,
-        "max_tokens": 1500
+        "max_tokens": 1500,
     }
-    
+
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
         r = await client.post(LEMONADE_URL, json=payload)
@@ -70,14 +74,19 @@ async def run_multiperspective_review():
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# ⚔️ Grand Multi-Perspective Adversarial Review Report\n\n")
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  \n")
-        f.write("**Auditor Model**: `gpt-oss-20b-mxfp4-GGUF` (Tier-1 Local Resident Silicon on Lemonade :13305)  \n")
-        f.write("**Hardware**: AMD Strix Halo (128GB UMA, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n\n")
+        f.write(
+            "**Auditor Model**: `gpt-oss-20b-mxfp4-GGUF` (Tier-1 Local Resident Silicon on Lemonade :13305)  \n"
+        )
+        f.write(
+            "**Hardware**: AMD Strix Halo (128GB UMA, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n\n"
+        )
         f.write("---\n\n")
         f.write(content + "\n")
 
     print("=" * 115)
     print(f"📄 Full Adversarial Report Persisted to: {report_path}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_multiperspective_review())

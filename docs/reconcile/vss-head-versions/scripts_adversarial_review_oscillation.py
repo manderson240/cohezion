@@ -202,9 +202,7 @@ def main() -> int:
     wiring = Path("src/cohezion/compound/degradation_detector.py").read_text()
     m = re.search(r"    def _refresh_oscillation.*?\n    def compute_friction", wiring, re.S)
     wiring_excerpt = wrap_untrusted(m.group(0) if m else "(wiring not found)", "SOURCE")
-    tests = wrap_untrusted(
-        Path("tests/compound/test_oscillation_detector.py").read_text(), "TESTS"
-    )
+    tests = wrap_untrusted(Path("tests/compound/test_oscillation_detector.py").read_text(), "TESTS")
 
     LENSES = {
         "threshold-calibration": (

@@ -32,7 +32,9 @@ def _cap_output(text: str, limit: int = MAX_TOOL_OUTPUT_CHARS) -> str:
     head = limit // 2
     tail = limit - head
     dropped = len(text) - limit
-    marker = f"\n... [truncated {dropped} chars; cap {limit}, kept first {head} + last {tail}] ...\n"
+    marker = (
+        f"\n... [truncated {dropped} chars; cap {limit}, kept first {head} + last {tail}] ...\n"
+    )
     return text[:head] + marker + text[-tail:]
 
 

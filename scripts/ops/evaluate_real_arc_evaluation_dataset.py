@@ -11,11 +11,16 @@ import os
 import time
 from cohezion.competitions.arc.dsl_synthesizer import ARCDSLSynthesizer
 from cohezion.competitions.arc.frontier_arc_primitives import (
-    sort_components_by_area, geodesic_bfs_propagation, conv_pattern_replacement
+    sort_components_by_area,
+    geodesic_bfs_propagation,
+    conv_pattern_replacement,
 )
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [ARC_BENCHMARK] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [ARC_BENCHMARK] %(message)s"
+)
 logger = logging.getLogger("arc_benchmark")
+
 
 def main():
     print("\n" + "=" * 105)
@@ -35,11 +40,13 @@ def main():
 
     synth = ARCDSLSynthesizer()
     # Register additional frontier primitives
-    synth.primitives.extend([
-        ("ccl_sort_area", sort_components_by_area),
-        ("geodesic_bfs", geodesic_bfs_propagation),
-        ("conv_stencil_cross", conv_pattern_replacement)
-    ])
+    synth.primitives.extend(
+        [
+            ("ccl_sort_area", sort_components_by_area),
+            ("geodesic_bfs", geodesic_bfs_propagation),
+            ("conv_stencil_cross", conv_pattern_replacement),
+        ]
+    )
 
     solved_exact = 0
     total_tasks = len(challenges)
@@ -70,6 +77,7 @@ def main():
     print(f"  • Total Benchmark Runtime       : {dt:.3f} seconds ({throughput:.1f} tasks/sec)")
     print(f"  • Solved Task IDs               : {solved_task_ids}")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     main()

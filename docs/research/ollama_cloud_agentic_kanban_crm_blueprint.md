@@ -113,12 +113,14 @@ from typing import Any, Callable, Awaitable
 from watchfiles import awatch
 import surrealdb
 
+
 @dataclass
 class CohezionEvent:
     source: str  # "surreal_live", "obsidian_fs", "agent_swarm"
     payload: dict[str, Any]
     target_id: str | None = None
     idempotency_key: str = ""
+
 
 class EventBus:
     def __init__(self):
@@ -146,9 +148,12 @@ class EventBus:
             # Route to failure handler / durability outbox
             print(f"EventBus Handler Failure: {e}")
 
+
 class CrossSessionEventBridge(EventBus):
     """Extends EventBus to maintain state across multiple agent sessions via SurrealDB WAL."""
+
     pass
+
 
 class ObsidianFileSyncer:
     def __init__(self, vault_path: str, event_bus: EventBus):
@@ -159,10 +164,11 @@ class ObsidianFileSyncer:
         async for changes in awatch(f"{self.vault_path}/kanban"):
             for change_type, file_path in changes:
                 # 0-polling file system event
-                await self.event_bus.publish(CohezionEvent(
-                    source="obsidian_fs",
-                    payload={"path": file_path, "type": change_type.name}
-                ))
+                await self.event_bus.publish(
+                    CohezionEvent(
+                        source="obsidian_fs", payload={"path": file_path, "type": change_type.name}
+                    )
+                )
 
     async def write_markdown(self, item_id: str, content: str):
         path = f"{self.vault_path}/kanban/{item_id}.md"
@@ -171,6 +177,7 @@ class ObsidianFileSyncer:
 
     def _atomic_write(self, path: str, content: str):
         import os
+
         tmp_path = f"{path}.tmp"
         with open(tmp_path, "w") as f:
             f.write(content)
@@ -189,13 +196,16 @@ To prevent invalid state transitions (e.g., `in_progress` -> `done`), we model t
 from typing import List
 import numpy as np
 
+
 class TopologicalQualityGate:
     def __init__(self, ast_verifier):
         self.ast_verifier = ast_verifier
 
-    async def validate_transition(self, task_id: str, current_state: str, target_state: str) -> bool:
+    async def validate_transition(
+        self, task_id: str, current_state: str, target_state: str
+    ) -> bool:
         if target_state != "done":
-            return True # Only gate the 'done' state strictly
+            return True  # Only gate the 'done' state strictly
 
         # 1. AutoHarness AST Safety Proof
         ast_safe = await self.ast_verifier.verify(task_id)
@@ -207,18 +217,19 @@ class TopologicalQualityGate:
         coboundary_matrix = await self._build_coboundary_matrix(task_id)
         if coboundary_matrix is None:
             return True
-            
+
         # Compute kernel of delta_1 intersect image of delta_0
         # If nullity == 0, H^1 = 0
         rank = np.linalg.matrix_rank(coboundary_matrix)
         nullity = coboundary_matrix.shape[1] - rank
-        
+
         return nullity == 0
 
     async def _build_coboundary_matrix(self, task_id: str) -> np.ndarray | None:
         # Fetch dependency graph and construct the simplicial complex boundary operators
         # Mocking matrix construction for architectural brevity
         return np.array([[1, 1, 0], [0, 1, 1], [-1, 0, -1]])
+
 
 class SelfHealingBacklog:
     def __init__(self, db: surrealdb.SurrealDB, event_bus: EventBus):
@@ -228,23 +239,25 @@ class SelfHealingBacklog:
     async def evaluate_entropy(self, item: dict):
         # Utilize Palimpsa Bayesian Metaplasticity to weight entropy based on past task resolution states
         entropy = item.get("entropy_score", 0.0)
-        if entropy > 0.85: # High entropy threshold
+        if entropy > 0.85:  # High entropy threshold
             await self._decompose_task(item)
 
     async def _decompose_task(self, item: dict):
         # Dispatch to local/cloud LLM for decomposition
         sub_tasks = await self._generate_subtasks(item["title"], item["description"])
-        
+
         async with self.db.transaction():
             for st in sub_tasks:
                 sub_id = await self.db.create("kanban_item", st)
                 # Create Graph Edge
                 await self.db.query(
                     "RELATE type::thing('kanban_item', $parent_id) -> decomposed_into -> type::thing('kanban_item', $child_id)",
-                    {"parent_id": item["id"], "child_id": sub_id}
+                    {"parent_id": item["id"], "child_id": sub_id},
                 )
-        
-        await self.event_bus.publish(CohezionEvent("agent_swarm", {"action": "decomposed", "id": item["id"]}))
+
+        await self.event_bus.publish(
+            CohezionEvent("agent_swarm", {"action": "decomposed", "id": item["id"]})
+        )
 
     async def _generate_subtasks(self, title: str, desc: str) -> list[dict]:
         # Placeholder for agentic model dispatch
@@ -263,6 +276,7 @@ $$ d(\mathbf{u}, \mathbf{v}) = \text{arccosh}\left(1 + \frac{2\|\mathbf{u}-\math
 ```python
 import math
 
+
 class FLUMETracker:
     DIM = 12
 
@@ -272,11 +286,11 @@ class FLUMETracker:
         norm_u_sq = np.dot(u_np, u_np)
         norm_v_sq = np.dot(v_np, v_np)
         diff_sq = np.dot(u_np - v_np, u_np - v_np)
-        
+
         denom = (1 - norm_u_sq) * (1 - norm_v_sq)
         if denom == 0:
-            return float('inf')
-            
+            return float("inf")
+
         return math.acosh(1 + (2 * diff_sq) / denom)
 
     @staticmethod
@@ -288,6 +302,7 @@ class FLUMETracker:
             v = v * (max_norm / norm)
         return v.tolist()
 
+
 class CRMAutonomousAgent:
     def __init__(self, db: surrealdb.SurrealDB, obsidian_syncer: ObsidianFileSyncer):
         self.db = db
@@ -296,34 +311,58 @@ class CRMAutonomousAgent:
     async def process_interaction(self, interaction_id: str):
         interaction = await self.db.select(interaction_id)
         contact = await self.db.select(interaction["contact_id"])
-        
+
         # 1. Calculate new intent vector using Palimpsa Metaplasticity (adjusting learning rate)
         current_intent = contact.get("intent_vector", [0.0] * FLUMETracker.DIM)
         delta = interaction["flume_delta"]
-        
+
         # Einstein midpoint in Poincaré ball for Möbius addition (simplified)
-        new_intent = np.array(current_intent) + np.array(delta) 
+        new_intent = np.array(current_intent) + np.array(delta)
         new_intent = FLUMETracker.project_to_ball(new_intent.tolist())
-        
+
         await self.db.update(contact["id"], {"intent_vector": new_intent})
 
         # 2. Check proximity to "Urgency / High Affinity" manifold
         urgency_anchor = [0.8] * 4 + [0.0] * 8
         distance = FLUMETracker.poincare_distance(new_intent, urgency_anchor)
 
-        if distance < 1.5: # Threshold for autonomous action
+        if distance < 1.5:  # Threshold for autonomous action
             await self._trigger_touchpoint(contact, interaction)
 
     async def _trigger_touchpoint(self, contact: dict, interaction: dict):
         # Generate Canvas JSON
         canvas_data = {
             "nodes": [
-                {"id": "interaction", "type": "text", "text": interaction["summary"], "x": -250, "y": 0, "width": 360, "height": 200},
-                {"id": "followup", "type": "text", "text": f"Draft Follow-up to {contact['name']}", "x": 250, "y": 0, "width": 360, "height": 200}
+                {
+                    "id": "interaction",
+                    "type": "text",
+                    "text": interaction["summary"],
+                    "x": -250,
+                    "y": 0,
+                    "width": 360,
+                    "height": 200,
+                },
+                {
+                    "id": "followup",
+                    "type": "text",
+                    "text": f"Draft Follow-up to {contact['name']}",
+                    "x": 250,
+                    "y": 0,
+                    "width": 360,
+                    "height": 200,
+                },
             ],
-            "edges": [{"id": "link1", "fromNode": "interaction", "fromSide": "right", "toNode": "followup", "toSide": "left"}]
+            "edges": [
+                {
+                    "id": "link1",
+                    "fromNode": "interaction",
+                    "fromSide": "right",
+                    "toNode": "followup",
+                    "toSide": "left",
+                }
+            ],
         }
-        
+
         path = f"~/vaults/cohezion-vault/canvas/{contact['id']}-touchpoint.canvas"
         await self.obsidian_syncer.write_markdown(path, json.dumps(canvas_data, indent=2))
 ```
@@ -341,19 +380,27 @@ class DurabilityOutbox:
 
     async def log_outbox_event(self, event: CohezionEvent):
         # Guarantee event persistence before processing
-        await self.db.create("event_log", {
-            "id": event.idempotency_key,
-            "source": event.source,
-            "payload": event.payload,
-            "status": "pending",
-            "attempts": 0
-        })
+        await self.db.create(
+            "event_log",
+            {
+                "id": event.idempotency_key,
+                "source": event.source,
+                "payload": event.payload,
+                "status": "pending",
+                "attempts": 0,
+            },
+        )
 
     async def mark_processed(self, event_id: str):
-        await self.db.query("UPDATE type::thing('event_log', $id) SET status = 'processed'", {"id": event_id})
+        await self.db.query(
+            "UPDATE type::thing('event_log', $id) SET status = 'processed'", {"id": event_id}
+        )
+
 
 class ResiliencePolicy:
-    async def handle_failure(self, event: CohezionEvent, error: Exception, outbox: DurabilityOutbox):
+    async def handle_failure(
+        self, event: CohezionEvent, error: Exception, outbox: DurabilityOutbox
+    ):
         if isinstance(error, (asyncio.TimeoutError, ConnectionError)):
             # Network/DB failure -> exponential backoff
             await outbox.log_outbox_event(event)
@@ -365,6 +412,7 @@ class ResiliencePolicy:
             # Unhandled fatal -> Prevent poison pill
             await outbox.log_outbox_event(event)
 
+
 # Main Orchestrator Setup
 async def main():
     db = surrealdb.SurrealDB("ws://localhost:8000")
@@ -374,11 +422,11 @@ async def main():
     event_bus = CrossSessionEventBridge()
     obsidian_syncer = ObsidianFileSyncer("~/vaults/cohezion-vault", event_bus)
     outbox = DurabilityOutbox(db)
-    
+
     # Wire components
     event_bus.subscribe("surreal_live", CRMAutonomousAgent(db, obsidian_syncer).process_interaction)
     event_bus.subscribe("surreal_live", SelfHealingBacklog(db, event_bus).evaluate_entropy)
-    
+
     async with asyncio.TaskGroup() as tg:
         tg.create_task(event_bus.run())
         tg.create_task(obsidian_syncer.watch_vault())

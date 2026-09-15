@@ -17,15 +17,21 @@ from typing import Any
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter, TaskClass
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_BUGHUNT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_BUGHUNT] %(message)s"
+)
 logger = logging.getLogger("cloud_bughunt")
+
 
 async def run_cloud_bughunt():
     router = UnifiedHybridRouter()
     verifier = AutoHarnessVerifier()
 
     target_files = [
-        ("src/cohezion/inference/nano_uma_compactor.py", "SVD Low-Rank & Sparse KV-Cache Compactor"),
+        (
+            "src/cohezion/inference/nano_uma_compactor.py",
+            "SVD Low-Rank & Sparse KV-Cache Compactor",
+        ),
         ("src/cohezion/physics/nano_sheaf_ode.py", "Topological Sheaf Cohomology & Neural ODE"),
         ("src/cohezion/physics/nano_chaos.py", "Lorenz/Lyapunov Non-Linear Chaos & Fisher Metric"),
         ("src/cohezion/benchmark/multi_harness_evaluator.py", "Multi-Harness Evaluation Matrix"),
@@ -57,7 +63,9 @@ async def run_cloud_bughunt():
         ast_ms = (time.perf_counter() - t0) * 1000.0
 
         print(f"\n📁 Target: {file_path} ({description})")
-        print(f"  • AST Invariant Check: {'🟢 PASSED' if ast_res['verified'] else '❌ VIOLATION'} ({ast_ms:.2f} ms)")
+        print(
+            f"  • AST Invariant Check: {'🟢 PASSED' if ast_res['verified'] else '❌ VIOLATION'} ({ast_ms:.2f} ms)"
+        )
 
         # 2. Cloud Model Multi-Perspective Audit
         for model_name, perspective in auditor_profiles:
@@ -81,20 +89,24 @@ Provide:
 """
             try:
                 resp = await router.route_by_capability(
-                    prompt=prompt,
-                    task_class=TaskClass.DEEP_REASONING,
-                    force_cloud=True
+                    prompt=prompt, task_class=TaskClass.DEEP_REASONING, force_cloud=True
                 )
                 dt_ms = (time.perf_counter() - t_model) * 1000.0
                 text = resp.content.strip()
-                
+
                 # Check verdict
-                verdict = "🟢 CLEAN" if ("CLEAN" in text.upper() and "DEFECT_FOUND" not in text.upper()) else "⚠️ FINDINGS"
+                verdict = (
+                    "🟢 CLEAN"
+                    if ("CLEAN" in text.upper() and "DEFECT_FOUND" not in text.upper())
+                    else "⚠️ FINDINGS"
+                )
                 summary_line = text.split("\n")[0] if text else "No response"
                 if len(summary_line) > 80:
                     summary_line = summary_line[:77] + "..."
 
-                print(f"  • [{resp.model_name}] {verdict} ({dt_ms:.2f} ms | Tier: {resp.tier_used})")
+                print(
+                    f"  • [{resp.model_name}] {verdict} ({dt_ms:.2f} ms | Tier: {resp.tier_used})"
+                )
                 print(f"    Perspective: {perspective}")
                 print(f"    Summary: {summary_line}")
             except Exception as exc:
@@ -104,6 +116,7 @@ Provide:
     print("\n" + "=" * 105)
     print("🎉 MULTI-PERSPECTIVE CLOUD BUGHUNT AUDIT COMPLETE")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_cloud_bughunt())

@@ -17,14 +17,20 @@ import bluequbit
 import qiskit
 
 # Check variable names
-api_token = os.getenv("BLUEQUBIT_API_TOKEN") or os.getenv("BLUEQUBIT_API_KEY") or os.getenv("BLUEQUBIT_TOKEN")
+api_token = (
+    os.getenv("BLUEQUBIT_API_TOKEN")
+    or os.getenv("BLUEQUBIT_API_KEY")
+    or os.getenv("BLUEQUBIT_TOKEN")
+)
 
 print("=" * 80)
 print("⚛️ TESTING AUTHENTICATED BLUEQUBIT GPU SIMULATOR DISPATCH")
 print("=" * 80)
 
 if not api_token:
-    print("❌ No BlueQubit token found under BLUEQUBIT_API_TOKEN / BLUEQUBIT_API_KEY / BLUEQUBIT_TOKEN.")
+    print(
+        "❌ No BlueQubit token found under BLUEQUBIT_API_TOKEN / BLUEQUBIT_API_KEY / BLUEQUBIT_TOKEN."
+    )
 else:
     print(f"✓ Token detected successfully (length: {len(api_token)} chars). Initializing client...")
     try:
@@ -35,10 +41,12 @@ else:
         qc = qiskit.QuantumCircuit(4, 4)
         qc.h(0)
         for i in range(3):
-            qc.cx(i, i+1)
+            qc.cx(i, i + 1)
         qc.measure(range(4), range(4))
 
-        print("▶ Dispatching 4-qubit GHZ Entanglement Circuit to BlueQubit `mps.cpu` / `mps.gpu`...")
+        print(
+            "▶ Dispatching 4-qubit GHZ Entanglement Circuit to BlueQubit `mps.cpu` / `mps.gpu`..."
+        )
         t0 = time.perf_counter()
         job = bq.run(qc, device="mps.cpu", shots=1000)
         dt = time.perf_counter() - t0

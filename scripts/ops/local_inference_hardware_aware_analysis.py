@@ -37,6 +37,7 @@ PROMPT = """Analyze cutting-edge arXiv research on Hardware-Aware Inference (202
 Provide a high-density, structured architectural synthesis.
 """
 
+
 async def run():
     print("\n" + "=" * 115)
     print("🔬 LOCAL SILICON INFERENCE RESEARCH: HARDWARE-AWARE INFERENCE (arXiv 2025-2026)")
@@ -50,15 +51,20 @@ async def run():
     print(f"   • Governor State:      {'SAFE' if is_safe else 'BACKPRESSURE'}")
 
     # 2. Local Silicon Inference Call (:13305)
-    print(f"\n▶ [2/3] Dispatching to Local Silicon Gateway `user.cohezion-hermes-router` (:13305)...")
+    print(
+        f"\n▶ [2/3] Dispatching to Local Silicon Gateway `user.cohezion-hermes-router` (:13305)..."
+    )
     payload = {
         "model": "user.cohezion-hermes-router",
         "messages": [
-            {"role": "system", "content": "You are a principal hardware-software co-design architect."},
-            {"role": "user", "content": PROMPT}
+            {
+                "role": "system",
+                "content": "You are a principal hardware-software co-design architect.",
+            },
+            {"role": "user", "content": PROMPT},
         ],
         "temperature": 0.2,
-        "max_tokens": 1200
+        "max_tokens": 1200,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -67,12 +73,15 @@ async def run():
         data = r.json()
         msg = data["choices"][0]["message"]
         analysis = msg.get("content") or msg.get("reasoning_content") or ""
-        
+
         print(f"   ✓ Local Silicon Responded in {dt}s!")
         print(f"   • Output Sample:\n{analysis[:250]}...\n")
 
         report_path = Path("docs/research/hardware_aware_inference_arxiv_report.md")
-        report_path.write_text(f"# Hardware-Aware Inference: arXiv 2025-2026 Synthesis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Memory Headroom**: {avail_gib} GiB | **Cloud Cost**: $0.00\n\n" + analysis)
+        report_path.write_text(
+            f"# Hardware-Aware Inference: arXiv 2025-2026 Synthesis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Memory Headroom**: {avail_gib} GiB | **Cloud Cost**: $0.00\n\n"
+            + analysis
+        )
         print(f"   ✓ Saved comprehensive report to `{report_path}`")
 
     # 3. Publish to EventBus & SurrealDB DataMesh
@@ -91,25 +100,28 @@ async def run():
             "model_used": "user.cohezion-hermes-router",
             "latency_sec": dt,
             "headroom_gib": avail_gib,
-            "status": "COMPLETED"
-        }
+            "status": "COMPLETED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "hardware_aware_inference_status",
-        "title": "Hardware-Aware Inference arXiv Research Complete",
-        "status": "done",
-        "priority": "high",
-        "source": "local_silicon_hardware_researcher",
-        "category": "hardware_codesign",
-        "details": f"Local silicon analysis of hardware-aware inference (phase-split NPU/iGPU, FP4 KV-cache, DVFS thermal limits). Latency: {dt}s.",
-    })
+    persist_item(
+        {
+            "id": "hardware_aware_inference_status",
+            "title": "Hardware-Aware Inference arXiv Research Complete",
+            "status": "done",
+            "priority": "high",
+            "source": "local_silicon_hardware_researcher",
+            "category": "hardware_codesign",
+            "details": f"Local silicon analysis of hardware-aware inference (phase-split NPU/iGPU, FP4 KV-cache, DVFS thermal limits). Latency: {dt}s.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 LOCAL SILICON HARDWARE-AWARE INFERENCE RESEARCH COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run())

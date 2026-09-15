@@ -15,7 +15,9 @@ import os
 import subprocess
 import time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_SKILLS_AUDIT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_SKILLS_AUDIT] %(message)s"
+)
 logger = logging.getLogger("kaggle_skills_audit")
 
 # All competitions currently entered or staged
@@ -25,42 +27,43 @@ ENTERED_COMPETITIONS = [
         "name": "ARC Prize 2026 (Track 2)",
         "reward": "$700,000",
         "kernel_slug": "manderson240/cohezion-arc-agi-3-autoharness-solver",
-        "hardware": "High-Memory CPU"
+        "hardware": "High-Memory CPU",
     },
     {
         "id": "arc-prize-2026-arc-agi-3",
         "name": "ARC Prize 2026 (Track 3)",
         "reward": "$850,000",
         "kernel_slug": "manderson240/cohezion-arc-agi-3-autoharness-solver",
-        "hardware": "High-Memory CPU"
+        "hardware": "High-Memory CPU",
     },
     {
         "id": "pokemon-tcg-ai-battle-challenge-strategy",
         "name": "Pokemon TCG AI Battle Challenge",
         "reward": "$240,000",
         "kernel_slug": "manderson240/cohezion-pokemon-tcg-mcts-agent",
-        "hardware": "Multi-Threaded CPU"
+        "hardware": "Multi-Threaded CPU",
     },
     {
         "id": "ai-agent-security-multi-step-tool-attacks",
         "name": "AI Agent Security: Multi-Step Tool Attacks",
         "reward": "$50,000",
         "kernel_slug": "manderson240/cohezion-agent-security-autoharness",
-        "hardware": "Nvidia GPU"
+        "hardware": "Nvidia GPU",
     },
     {
         "id": "tpu-getting-started",
         "name": "Petals to the Metal: Flower Classification on TPU",
         "reward": "Knowledge",
         "kernel_slug": "manderson240/cohezion-petals-to-metal-tpu",
-        "hardware": "Google Cloud TPU v3-8"
-    }
+        "hardware": "Google Cloud TPU v3-8",
+    },
 ]
+
 
 def audit_competition(comp: dict) -> dict:
     cid = comp["id"]
     logger.info("Auditing competition: %s...", cid)
-    
+
     # 1. Check submissions
     submissions = []
     try:
@@ -74,7 +77,9 @@ def audit_competition(comp: dict) -> dict:
     # 2. Check kernel status
     kernel_status = "UNKNOWN"
     try:
-        kout = subprocess.check_output(["kaggle", "kernels", "status", comp["kernel_slug"]]).decode()
+        kout = subprocess.check_output(
+            ["kaggle", "kernels", "status", comp["kernel_slug"]]
+        ).decode()
         kernel_status = kout.strip()
     except Exception as e:
         kernel_status = f"Error: {e}"
@@ -86,8 +91,9 @@ def audit_competition(comp: dict) -> dict:
         "hardware": comp["hardware"],
         "kernel_slug": comp["kernel_slug"],
         "kernel_status": kernel_status,
-        "submissions": submissions
+        "submissions": submissions,
     }
+
 
 def main():
     print("\n" + "=" * 115)
@@ -129,6 +135,7 @@ def main():
     print("\n" + "=" * 115)
     print(f"🎉 FULL KAGGLE SKILLS AUDIT COMPLETE! Persisted to: {report_file}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     main()

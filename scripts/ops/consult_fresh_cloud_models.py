@@ -11,7 +11,7 @@ import urllib.request
 CANDIDATE_MODELS = [
     ("kimi-k2.6:cloud", "Kimi-K2.6 (Frontier 2M-Context Reasoning & Math Specialist)"),
     ("qwen3.5:397b-cloud", "Qwen3.5-397B (Frontier Scale Systems Architecture Specialist)"),
-    ("deepseek-v4-pro:cloud", "DeepSeek-V4 Pro (Frontier Code & Kernel Optimization Specialist)")
+    ("deepseek-v4-pro:cloud", "DeepSeek-V4 Pro (Frontier Code & Kernel Optimization Specialist)"),
 ]
 
 PROMPT = """
@@ -34,17 +34,14 @@ Can we do even better? Are there:
 Provide concrete, cutting-edge recommendations.
 """
 
+
 def query_cloud_model(model_id: str, label: str) -> str:
     print(f"\n--- Consulting {label} ({model_id}) on port 11434 ---")
-    payload = {
-        "model": model_id,
-        "prompt": PROMPT,
-        "stream": False
-    }
+    payload = {"model": model_id, "prompt": PROMPT, "stream": False}
     req = urllib.request.Request(
         "http://localhost:11434/api/generate",
         headers={"Content-Type": "application/json"},
-        data=json.dumps(payload).encode("utf-8")
+        data=json.dumps(payload).encode("utf-8"),
     )
     t0 = time.perf_counter()
     try:
@@ -57,6 +54,7 @@ def query_cloud_model(model_id: str, label: str) -> str:
     except Exception as e:
         print(f"✗ Query failed for {model_id}: {e}")
         return f"Error: {e}"
+
 
 def main() -> None:
     print("=" * 90)
@@ -73,13 +71,16 @@ def main() -> None:
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# Frontier Cloud Model Hardware Optimization Synthesis (AMD Strix Halo)\n\n")
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write("**Hardware Target**: AMD Ryzen AI MAX+ 395 w/ Radeon 8060S (128GB Unified LPDDR5X-7500)\n\n---\n\n")
+        f.write(
+            "**Hardware Target**: AMD Ryzen AI MAX+ 395 w/ Radeon 8060S (128GB Unified LPDDR5X-7500)\n\n---\n\n"
+        )
         for mid, d in results.items():
             f.write(f"## Perspective: {d['label']}\n\n")
             f.write(f"{d['content']}\n\n---\n\n")
 
     print(f"\n✓ Master Frontier Optimization Report saved to: {report_path}")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     main()

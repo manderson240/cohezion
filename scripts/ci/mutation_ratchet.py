@@ -24,6 +24,7 @@ Usage:
   python scripts/ci/mutation_ratchet.py                    # run + compare
   python scripts/ci/mutation_ratchet.py --write-baseline   # re-record
 """
+
 from __future__ import annotations
 
 import argparse
@@ -36,7 +37,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 BASELINE = Path(__file__).resolve().parent / "mutation_baseline.txt"
 
 # Matches mutmut 3.x results lines: "module.x_name__mutmut_42: survived"
-RESULTS_RE = re.compile(r"^\s*([\w.]+__mutmut_\d+):\s*(survived|killed|suspicious|timeout|no tests)\s*$")
+RESULTS_RE = re.compile(
+    r"^\s*([\w.]+__mutmut_\d+):\s*(survived|killed|suspicious|timeout|no tests)\s*$"
+)
 
 
 def parse_mutmut_results(text: str) -> dict[str, int]:
@@ -146,7 +149,9 @@ def main() -> int:
             f"survived={counts['survived']}\n"
             f"no_tests={counts['no_tests']}\n"
         )
-        print(f"✓ baseline written: survived={counts['survived']} no_tests={counts['no_tests']} total={counts['total']}")
+        print(
+            f"✓ baseline written: survived={counts['survived']} no_tests={counts['no_tests']} total={counts['total']}"
+        )
         return 0
 
     counts = parse_mutmut_results(run_mutmut_results())
@@ -176,11 +181,10 @@ def main() -> int:
 
     coupled_note = (
         f"{counts['no_tests']} uncoupled (no tests target them)"
-        if counts["no_tests"] else "all mutants coupled to tests"
+        if counts["no_tests"]
+        else "all mutants coupled to tests"
     )
-    print(
-        f"mutmut: total={counts['total']} survived={counts['survived']} ({coupled_note})"
-    )
+    print(f"mutmut: total={counts['total']} survived={counts['survived']} ({coupled_note})")
 
     if errors:
         for e in errors:

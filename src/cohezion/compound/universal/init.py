@@ -148,9 +148,13 @@ def initialize_cohezion_environment() -> bool:
 
         # Import initialization systems (lazy import to avoid circular deps)
         try:
-            from ..tdd_adversarial import (
+            from cohezion.compound.tdd_adversarial.adversarial_review import (
                 get_adversarial_review_system,
+            )
+            from cohezion.compound.tdd_adversarial.coordinator import (
                 get_tdd_adversarial_coordinator,
+            )
+            from cohezion.compound.tdd_adversarial.tdd_integration import (
                 get_tdd_integration,
             )
         except ImportError as exc:

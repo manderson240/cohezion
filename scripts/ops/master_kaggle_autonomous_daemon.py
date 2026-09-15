@@ -20,8 +20,11 @@ from cohezion.mcp.kaggle_competition_mcp_server import KaggleCompetitionMCPServe
 from cohezion.competitions.arc.deep_compositional_solver import DeepCompositionalSynthesizer
 from cohezion.competitions.pokemon_tcg.ismcts_cfr_engine import ISMCTSWithCFR
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [AUTONOMOUS_DAEMON] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [AUTONOMOUS_DAEMON] %(message)s"
+)
 logger = logging.getLogger("autonomous_daemon")
+
 
 async def run_autonomous_cycle():
     print("\n" + "=" * 115)
@@ -30,7 +33,7 @@ async def run_autonomous_cycle():
 
     # 1. Health & Memory Floor Check
     vm = psutil.virtual_memory()
-    free_ram = vm.available / (1024 ** 3)
+    free_ram = vm.available / (1024**3)
     logger.info("System Memory Check: %.2f GiB available (Floor: 20.0 GiB)", free_ram)
     if free_ram < 20.0:
         logger.warning("Memory below floor (%.2f GiB) -> Pausing for garbage collection", free_ram)
@@ -44,7 +47,12 @@ async def run_autonomous_cycle():
     # 3. Micro-Simulation & Verification Sweep
     t0 = time.perf_counter()
     tcg_engine = ISMCTSWithCFR()
-    obs = {"player_hp": 100, "opponent_hp": 60, "energy_attached": 2, "legal_actions": ["attach_energy", "attack"]}
+    obs = {
+        "player_hp": 100,
+        "opponent_hp": 60,
+        "energy_attached": 2,
+        "legal_actions": ["attach_energy", "attack"],
+    }
     action = tcg_engine.search_action(obs, num_rollouts=100)
     dt_tcg = (time.perf_counter() - t0) * 1000.0
     logger.info("CFR Game Decision verified in %.3f ms -> Action: %s", dt_tcg, action)
@@ -58,7 +66,9 @@ async def run_autonomous_cycle():
         f.write(f"**Active Cash Competitions**: {len(comps)}  \n")
         f.write(f"**Available System RAM**: {free_ram:.2f} GiB / 122.8 GiB  \n")
         f.write(f"**Pokemon TCG Decision Latency**: {dt_tcg:.3f} ms  \n")
-        f.write(f"**Leaderboard Submissions**: Locked & Scored (ARC-AGI-2: Complete, Security: v2 Pushed)  \n")
+        f.write(
+            f"**Leaderboard Submissions**: Locked & Scored (ARC-AGI-2: Complete, Security: v2 Pushed)  \n"
+        )
 
     print("\n" + "-" * 115)
     print("🏆 MASTER AUTONOMOUS CYCLE VERIFIED & RECORDED")
@@ -66,6 +76,7 @@ async def run_autonomous_cycle():
     print(f"  • Active Tracks  : 8 open cash tracks ($2,477,000 portfolio)")
     print(f"  • Status Saved   : {summary_file}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_autonomous_cycle())

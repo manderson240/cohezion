@@ -20,6 +20,7 @@ from cohezion.flume.lecun_jepa_world_model import ARCJEPAWorldModel
 from cohezion.physics.symmetry_breaking_engine import SymmetryBreakingEngine
 from cohezion.data_mesh.kanban_bridge import persist_item
 
+
 async def main():
     print("=" * 90)
     print("🧠 EXECUTING LOCAL SILICON AUDIT OF THE GRAND THEORETICAL TRINITY")
@@ -28,7 +29,9 @@ async def main():
 
     # 1. Hardware & Memory Preflight Check
     mem = OOMGuard.get_memory_state()
-    print(f"Memory Status: {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})")
+    print(
+        f"Memory Status: {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})"
+    )
 
     # 2. Benchmark Local Execution Latencies
     t0 = time.perf_counter()
@@ -48,8 +51,12 @@ async def main():
 
     print(f"\n--- Sub-Millisecond Physics Execution Benchmarks ---")
     print(f"  • Bioelectric Voltage Diffusion Latency : {t_bio:.3f} ms")
-    print(f"  • LeCun JEPA Latent Energy Latency      : {t_jepa:.3f} ms (Energy = {jepa_energy:.6f})")
-    print(f"  • Landau Symmetry Breaking Latency      : {t_ssb:.3f} ms (Order Param = {order_param:.4f})")
+    print(
+        f"  • LeCun JEPA Latent Energy Latency      : {t_jepa:.3f} ms (Energy = {jepa_energy:.6f})"
+    )
+    print(
+        f"  • Landau Symmetry Breaking Latency      : {t_ssb:.3f} ms (Order Param = {order_param:.4f})"
+    )
 
     # 3. Query Local Reasoning Engine via Port 13305 / Ollama Cloud
     audit_prompt = f"""You are a Principal Computational Physicist & Kaggle Grandmaster.
@@ -69,11 +76,15 @@ In under 180 words, provide an authoritative formal verification statement confi
                     "model": "deepseek-v4-pro:cloud",
                     "prompt": audit_prompt,
                     "stream": False,
-                    "options": {"temperature": 0.1, "num_predict": 500}
+                    "options": {"temperature": 0.1, "num_predict": 500},
                 },
-                timeout=45.0
+                timeout=45.0,
             )
-            audit_review = resp.json().get("response", "").strip() if resp.status_code == 200 else f"HTTP {resp.status_code}"
+            audit_review = (
+                resp.json().get("response", "").strip()
+                if resp.status_code == 200
+                else f"HTTP {resp.status_code}"
+            )
         except Exception as e:
             audit_review = f"Local model notice: {e}"
 
@@ -84,7 +95,7 @@ In under 180 words, provide an authoritative formal verification statement confi
     doc_path.parent.mkdir(parents=True, exist_ok=True)
     doc_content = f"""# Grand Theoretical Trinity: Local Silicon V&V Audit Report
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Hardware Substrate:** AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU)  
 **Memory Headroom:** {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Floor  
 
@@ -110,17 +121,20 @@ In under 180 words, provide an authoritative formal verification statement confi
     doc_path.write_text(doc_content)
     print(f"✓ Saved Formal Audit to: {doc_path}")
 
-    persist_item({
-        "id": "grand_trinity_physics_audit",
-        "title": "Grand Theoretical Trinity Formally Verified via Local Silicon",
-        "status": "done",
-        "priority": "critical",
-        "source": "LocalSiliconAuditor",
-        "category": "physics_verification",
-        "details": f"Verified Levin Bioelectric ({t_bio:.3f}ms), LeCun JEPA ({t_jepa:.3f}ms), and Landau SSB ({t_ssb:.3f}ms) under SystemWideFleetLock.",
-    })
+    persist_item(
+        {
+            "id": "grand_trinity_physics_audit",
+            "title": "Grand Theoretical Trinity Formally Verified via Local Silicon",
+            "status": "done",
+            "priority": "critical",
+            "source": "LocalSiliconAuditor",
+            "category": "physics_verification",
+            "details": f"Verified Levin Bioelectric ({t_bio:.3f}ms), LeCun JEPA ({t_jepa:.3f}ms), and Landau SSB ({t_ssb:.3f}ms) under SystemWideFleetLock.",
+        }
+    )
     print("✓ Persisted verification card to SurrealDB and Obsidian Kanban")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

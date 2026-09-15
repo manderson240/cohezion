@@ -43,7 +43,7 @@ MIN_SPAN_CHARS = 12
 # is not evidence of STRUCTURE: naming a real function proves nothing about the code you claim it
 # contains. Evidence must carry syntax.
 _BARE_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-_BARE_PATH = re.compile(r"^[\w./\\-]+\.\w+(?::[\d-]+)?$")   # foo/bar.py, foo/bar.py:350-380
+_BARE_PATH = re.compile(r"^[\w./\\-]+\.\w+(?::[\d-]+)?$")  # foo/bar.py, foo/bar.py:350-380
 _HAS_SYNTAX = re.compile(r"[(){}\[\]=:;,<>+\-*/%!|&\"']")
 
 
@@ -100,13 +100,13 @@ def self_test() -> int:
 
     # The real artifact: how event_publish actually builds its query.
     artifact = (
-        '    sql = (\n'
+        "    sql = (\n"
         '        "CREATE data_product_event CONTENT { "\n'
         '        f"event_type: {_lit(event_type)}, "\n'
         '        f"priority: {int(priority)}, "\n'
         '        f"timestamp: {float(time.time())!r} }};"\n'
-        '    )\n'
-        '    if isinstance(body, list):\n'
+        "    )\n"
+        "    if isinstance(body, list):\n"
         '        failed = [str(stmt.get("result")) for stmt in body]\n'
         '    return {"result": body}\n'
     )
@@ -118,21 +118,32 @@ def self_test() -> int:
     )
     real = (
         "`if isinstance(body, list):` gates the statement-level error check. If body is a dict the "
-        "status field is never inspected and the function blindly returns `{\"result\": body}`."
+        'status field is never inspected and the function blindly returns `{"result": body}`.'
     )
 
     f = grounding(fabricated, artifact)
     r = grounding(real, artifact)
-    check(f"fabricated finding REJECTED (spans={f['spans']}, grounded={f['grounded_spans']})", not f["grounded"])
-    check(f"real finding ACCEPTED (spans={r['spans']}, grounded={r['grounded_spans']})", r["grounded"])
+    check(
+        f"fabricated finding REJECTED (spans={f['spans']}, grounded={f['grounded_spans']})",
+        not f["grounded"],
+    )
+    check(
+        f"real finding ACCEPTED (spans={r['spans']}, grounded={r['grounded_spans']})", r["grounded"]
+    )
 
     # Neutralise the mechanism: if grounding always returns True, the fabricated case must stop
     # being rejected. A test that passes under neutralisation verifies nothing.
     neutralised = {"grounded": True}
     check("test FAILS when the mechanism is neutralised", bool(neutralised["grounded"]))
 
-    check("prose-only finding is ungrounded", not grounding("This looks fragile.", artifact)["grounded"])
-    check("short identifiers do not ground a fabrication", not grounding("`status`", artifact)["grounded"])
+    check(
+        "prose-only finding is ungrounded",
+        not grounding("This looks fragile.", artifact)["grounded"],
+    )
+    check(
+        "short identifiers do not ground a fabrication",
+        not grounding("`status`", artifact)["grounded"],
+    )
 
     # REGRESSION, from the real false-accept of 2026-08-20: a fabrication that also names a real
     # function must still be rejected. `event_publish` is 13 chars and passed the old length gate.
@@ -144,8 +155,11 @@ def self_test() -> int:
             artifact,
         )["grounded"],
     )
-    check("bare file:line reference is not evidence", not is_evidential("src/cohezion/mcp/loop_mcp.py:350-380"))
-    check("real syntax IS evidence", is_evidential('if isinstance(body, list):'))
+    check(
+        "bare file:line reference is not evidence",
+        not is_evidential("src/cohezion/mcp/loop_mcp.py:350-380"),
+    )
+    check("real syntax IS evidence", is_evidential("if isinstance(body, list):"))
     print("SELF-TEST", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

@@ -33,15 +33,19 @@ PROMPT = """Analyze the core technical advances from the Nous Research Blog (htt
 Provide a detailed, bulleted technical breakdown.
 """
 
+
 async def run():
     payload = {
         "model": "user.cohezion-hermes-router",
         "messages": [
-            {"role": "system", "content": "You are a senior frontier AI systems researcher writing a high-density architectural report."},
-            {"role": "user", "content": PROMPT}
+            {
+                "role": "system",
+                "content": "You are a senior frontier AI systems researcher writing a high-density architectural report.",
+            },
+            {"role": "user", "content": PROMPT},
         ],
         "temperature": 0.2,
-        "max_tokens": 1200
+        "max_tokens": 1200,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -50,8 +54,12 @@ async def run():
         if r.status_code == 200:
             analysis = r.json()["choices"][0]["message"]["content"].strip()
             report_path = Path("docs/research/nous_blog_local_inference_report.md")
-            report_path.write_text(f"# Nous Research Blog Technical Analysis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Time**: {dt}s | **Headroom**: 62.0 GiB\n\n" + analysis)
+            report_path.write_text(
+                f"# Nous Research Blog Technical Analysis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Time**: {dt}s | **Headroom**: 62.0 GiB\n\n"
+                + analysis
+            )
             print(f"✓ Deep local inference analysis complete ({dt}s) and saved to `{report_path}`!")
+
 
 if __name__ == "__main__":
     asyncio.run(run())

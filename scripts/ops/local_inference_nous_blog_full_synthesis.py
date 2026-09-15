@@ -20,17 +20,29 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 
 SECTIONS = [
-    ("Hermes 4.3 & 512K Context", "How does Hermes 4.3 achieve 512K context reasoning and structured JSON tool calling, and how should Cohezion integrate these schemas with AutoHarness AST verifiers?"),
-    ("DeMo (Decentralized Momentum) & DisTrO", "Explain DeMo (Decentralized Momentum) and DisTrO gradient compression. How can Cohezion apply this across heterogeneous NPU, iGPU, and CPU lanes on AMD hardware?"),
-    ("Psyche Network & P2P Swarms", "Explain the Psyche decentralized training network. How can its gossip protocols and verification mechanisms enhance Cohezion's EventBus DataMesh across agent sessions?")
+    (
+        "Hermes 4.3 & 512K Context",
+        "How does Hermes 4.3 achieve 512K context reasoning and structured JSON tool calling, and how should Cohezion integrate these schemas with AutoHarness AST verifiers?",
+    ),
+    (
+        "DeMo (Decentralized Momentum) & DisTrO",
+        "Explain DeMo (Decentralized Momentum) and DisTrO gradient compression. How can Cohezion apply this across heterogeneous NPU, iGPU, and CPU lanes on AMD hardware?",
+    ),
+    (
+        "Psyche Network & P2P Swarms",
+        "Explain the Psyche decentralized training network. How can its gossip protocols and verification mechanisms enhance Cohezion's EventBus DataMesh across agent sessions?",
+    ),
 ]
+
 
 async def synthesize_all():
     print("\n" + "=" * 115)
     print("🔬 RUNNING MULTI-PASS LOCAL SILICON SYNTHESIS OF NOUS RESEARCH BLOG")
     print("=" * 115)
 
-    full_report = ["# Comprehensive Technical Analysis: Nous Research Blog (https://nousresearch.com/blog)\n\n**Generated Entirely via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n\n---\n"]
+    full_report = [
+        "# Comprehensive Technical Analysis: Nous Research Blog (https://nousresearch.com/blog)\n\n**Generated Entirely via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n\n---\n"
+    ]
 
     async with httpx.AsyncClient(timeout=120.0) as client:
         for title, prompt in SECTIONS:
@@ -38,11 +50,14 @@ async def synthesize_all():
             payload = {
                 "model": "user.cohezion-hermes-router",
                 "messages": [
-                    {"role": "system", "content": "You are a senior frontier AI systems researcher writing a deep, concise technical analysis."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are a senior frontier AI systems researcher writing a deep, concise technical analysis.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 "temperature": 0.2,
-                "max_tokens": 400
+                "max_tokens": 400,
             }
             t0 = time.perf_counter()
             r = await client.post("http://localhost:13305/v1/chat/completions", json=payload)
@@ -71,25 +86,28 @@ async def synthesize_all():
             "source": "https://nousresearch.com/blog",
             "backend": "Lemonade Local Silicon (:13305)",
             "sections": [s[0] for s in SECTIONS],
-            "status": "COMPLETED"
-        }
+            "status": "COMPLETED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "nous_blog_complete_synthesis",
-        "title": "Nous Research Blog Multi-Pass Local Synthesis",
-        "status": "done",
-        "priority": "high",
-        "source": "local_silicon_nous_researcher",
-        "category": "frontier_research",
-        "details": "Full multi-pass local silicon technical synthesis of Nous Research blog posts.",
-    })
+    persist_item(
+        {
+            "id": "nous_blog_complete_synthesis",
+            "title": "Nous Research Blog Multi-Pass Local Synthesis",
+            "status": "done",
+            "priority": "high",
+            "source": "local_silicon_nous_researcher",
+            "category": "frontier_research",
+            "details": "Full multi-pass local silicon technical synthesis of Nous Research blog posts.",
+        }
+    )
     print("✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 LOCAL RESEARCH & DATAMESH SYNC COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(synthesize_all())

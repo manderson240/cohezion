@@ -20,13 +20,17 @@ Evaluate whether using BlueQubit to pre-compute quantum state kernels/weights of
 Provide a strict, definitive compliance verdict and guidelines under 180 words."""
 
 try:
-    resp = httpx.post("http://localhost:11434/api/generate", json={
-        "model": "deepseek-v4-pro:cloud",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.1, "num_predict": 500}
-    }, timeout=45.0)
-    
+    resp = httpx.post(
+        "http://localhost:11434/api/generate",
+        json={
+            "model": "deepseek-v4-pro:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 500},
+        },
+        timeout=45.0,
+    )
+
     if resp.status_code == 200:
         print("⚖️ OFFICIAL KAGGLE RULES COMPLIANCE AUDIT:")
         print("=" * 80)

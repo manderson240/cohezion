@@ -17,7 +17,9 @@ import numpy as np
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_DELEGATION] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_DELEGATION] %(message)s"
+)
 logger = logging.getLogger("local_delegation")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
@@ -41,9 +43,13 @@ Include:
 2. Self-contained verification block at the bottom under `if __name__ == '__main__':` testing distance symmetry, triangle inequality, and Fréchet convergence with `assert` statements.
 """
 
+
 def delegate_to_local_silicon():
-    logger.info("⚡ Delegating code generation to local resident model (gpt-oss-20b on Radeon 8060S iGPU)...")
+    logger.info(
+        "⚡ Delegating code generation to local resident model (gpt-oss-20b on Radeon 8060S iGPU)..."
+    )
     from cohezion.inference.gaia_adapter import strip_reasoning_tags
+
     payload = {
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
@@ -53,7 +59,7 @@ def delegate_to_local_silicon():
         "max_tokens": 1500,
         "temperature": 0.2,
     }
-    
+
     t0 = time.perf_counter()
     req = urllib.request.Request(
         LEMONADE_URL,
@@ -61,7 +67,7 @@ def delegate_to_local_silicon():
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    
+
     with urllib.request.urlopen(req, timeout=60) as resp:
         data = json.loads(resp.read().decode("utf-8"))
         choice = data["choices"][0]["message"]
@@ -69,16 +75,20 @@ def delegate_to_local_silicon():
         clean_code = strip_reasoning_tags(content_part) if content_part else ""
         if not clean_code and choice.get("reasoning_content"):
             clean_code = choice.get("reasoning_content", "")
-            
+
         dt = time.perf_counter() - t0
-        logger.info("✓ Local inference completed in %.2fs (%d tokens)", dt, data.get("usage", {}).get("completion_tokens", 0))
+        logger.info(
+            "✓ Local inference completed in %.2fs (%d tokens)",
+            dt,
+            data.get("usage", {}).get("completion_tokens", 0),
+        )
 
     # Extract clean Python code
     if "```python" in clean_code:
         clean_code = clean_code.split("```python")[-1].split("```")[0].strip()
     elif "```" in clean_code:
         clean_code = clean_code.split("```")[1].strip()
-        
+
     target_file = "src/cohezion/physics/nano_poincare.py"
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(clean_code)
@@ -88,18 +98,26 @@ def delegate_to_local_silicon():
     logger.info("🔍 Running AutoHarness AST & Bubblewrap Linux Namespace verification...")
     verifier = AutoHarnessVerifier()
     ast_res = verifier.verify_code(clean_code)
-    logger.info("  • AutoHarness AST Check: %s", "🟢 PASSED" if ast_res.get("verified") else "❌ FAILED")
+    logger.info(
+        "  • AutoHarness AST Check: %s", "🟢 PASSED" if ast_res.get("verified") else "❌ FAILED"
+    )
 
     sandbox = LinuxNamespaceSandbox(timeout_sec=10.0)
     sandbox_res = sandbox.execute_python_code(clean_code)
-    logger.info("  • Bubblewrap Namespace Execution: %s", "🟢 PASSED" if sandbox_res.success else "❌ FAILED")
+    logger.info(
+        "  • Bubblewrap Namespace Execution: %s",
+        "🟢 PASSED" if sandbox_res.success else "❌ FAILED",
+    )
     if sandbox_res.stdout.strip():
         print("\n--- Sandbox Verification Output ---")
         print(sandbox_res.stdout.strip())
         print("----------------------------------\n")
 
     assert sandbox_res.success, f"Verification failed: {sandbox_res.stderr}"
-    print("🎉 First-Principles Karpathy-Tier NanoPoincare Micro-Engine: 100% LOCALLY SYNTHESIZED & VERIFIED!")
+    print(
+        "🎉 First-Principles Karpathy-Tier NanoPoincare Micro-Engine: 100% LOCALLY SYNTHESIZED & VERIFIED!"
+    )
+
 
 if __name__ == "__main__":
     delegate_to_local_silicon()

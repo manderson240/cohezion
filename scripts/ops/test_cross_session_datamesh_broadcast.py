@@ -12,6 +12,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
+
 async def main():
     print("\n" + "=" * 110)
     print("📡 BROADCASTING MEMORY & INFERENCE TELEMETRY TO AGENTIC EVENT BUS DATAMESH")
@@ -35,8 +36,8 @@ async def main():
             "swap_used_gib": swap_used_gib,
             "oom_floor_gib": 35.0,
             "active_guardrail": "Learning 92: Liveness Over Speed",
-            "recommended_router": "Tier 1 Resident -> Tier 2 Ollama Cloud"
-        }
+            "recommended_router": "Tier 1 Resident -> Tier 2 Ollama Cloud",
+        },
     )
     await event_bus.publish(telemetry_event)
     print(f"✓ Emitted `SYSTEM_HEALTH` event across in-memory EventBus (Priority: 10)")
@@ -60,13 +61,16 @@ async def main():
     print(f"• Retrieved {len(events)} cross-session events from peer sessions.")
     for ev in events:
         if isinstance(ev, dict):
-            print(f"   - [{ev.get('timestamp')}] ({ev.get('session_id')}): {ev.get('type')} from `{ev.get('source')}`")
+            print(
+                f"   - [{ev.get('timestamp')}] ({ev.get('session_id')}): {ev.get('type')} from `{ev.get('source')}`"
+            )
         else:
             print(f"   - Event record: {ev}")
 
     print("=" * 110)
     print("🎉 AGENTIC DATAMESH EVENT BROADCAST VERIFIED!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

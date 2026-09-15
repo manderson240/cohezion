@@ -108,6 +108,34 @@ class BamlSyncClient:
                 "competition": competition,"leaderboard_snapshot": leaderboard_snapshot,
             })
             return typing.cast(types.SubmissionStrategy, __result__.cast_to(types, types, stream_types, False, __runtime__))
+    def ClassifyTaskIntent(self, task_description: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.TaskClassificationResult:
+        # Check if on_tick is provided
+        if 'on_tick' in baml_options:
+            __stream__ = self.stream.ClassifyTaskIntent(task_description=task_description,
+                baml_options=baml_options)
+            return __stream__.get_final_response()
+        else:
+            # Original non-streaming code
+            __result__ = self.__options.merge_options(baml_options).call_function_sync(function_name="ClassifyTaskIntent", args={
+                "task_description": task_description,
+            })
+            return typing.cast(types.TaskClassificationResult, __result__.cast_to(types, types, stream_types, False, __runtime__))
+    def DecideHardwareRouting(self, task_type: str,input_tokens: int,required_modes: typing.List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> types.RoutingDecision:
+        # Check if on_tick is provided
+        if 'on_tick' in baml_options:
+            __stream__ = self.stream.DecideHardwareRouting(task_type=task_type,input_tokens=input_tokens,required_modes=required_modes,
+                baml_options=baml_options)
+            return __stream__.get_final_response()
+        else:
+            # Original non-streaming code
+            __result__ = self.__options.merge_options(baml_options).call_function_sync(function_name="DecideHardwareRouting", args={
+                "task_type": task_type,"input_tokens": input_tokens,"required_modes": required_modes,
+            })
+            return typing.cast(types.RoutingDecision, __result__.cast_to(types, types, stream_types, False, __runtime__))
     def DeriveTaskInvariants(self, task_context: str,train_examples: str,
         baml_options: BamlCallOptions = {},
     ) -> types.TaskInvariants:
@@ -122,6 +150,34 @@ class BamlSyncClient:
                 "task_context": task_context,"train_examples": train_examples,
             })
             return typing.cast(types.TaskInvariants, __result__.cast_to(types, types, stream_types, False, __runtime__))
+    def EvaluateHarmonicSheaf(self, stalk_values: str,restriction_maps: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.SheafDirichletState:
+        # Check if on_tick is provided
+        if 'on_tick' in baml_options:
+            __stream__ = self.stream.EvaluateHarmonicSheaf(stalk_values=stalk_values,restriction_maps=restriction_maps,
+                baml_options=baml_options)
+            return __stream__.get_final_response()
+        else:
+            # Original non-streaming code
+            __result__ = self.__options.merge_options(baml_options).call_function_sync(function_name="EvaluateHarmonicSheaf", args={
+                "stalk_values": stalk_values,"restriction_maps": restriction_maps,
+            })
+            return typing.cast(types.SheafDirichletState, __result__.cast_to(types, types, stream_types, False, __runtime__))
+    def ExtractVaultGraph(self, source_document: str,content: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.VaultGraphExtraction:
+        # Check if on_tick is provided
+        if 'on_tick' in baml_options:
+            __stream__ = self.stream.ExtractVaultGraph(source_document=source_document,content=content,
+                baml_options=baml_options)
+            return __stream__.get_final_response()
+        else:
+            # Original non-streaming code
+            __result__ = self.__options.merge_options(baml_options).call_function_sync(function_name="ExtractVaultGraph", args={
+                "source_document": source_document,"content": content,
+            })
+            return typing.cast(types.VaultGraphExtraction, __result__.cast_to(types, types, stream_types, False, __runtime__))
     def RecommendNextStep(self, context: str,candidates: str,
         baml_options: BamlCallOptions = {},
     ) -> types.NextStep:
@@ -171,6 +227,30 @@ class BamlStreamClient:
           lambda x: typing.cast(types.SubmissionStrategy, x.cast_to(types, types, stream_types, False, __runtime__)),
           __ctx__,
         )
+    def ClassifyTaskIntent(self, task_description: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[stream_types.TaskClassificationResult, types.TaskClassificationResult]:
+        __ctx__, __result__ = self.__options.merge_options(baml_options).create_sync_stream(function_name="ClassifyTaskIntent", args={
+            "task_description": task_description,
+        })
+        return baml_py.BamlSyncStream[stream_types.TaskClassificationResult, types.TaskClassificationResult](
+          __result__,
+          lambda x: typing.cast(stream_types.TaskClassificationResult, x.cast_to(types, types, stream_types, True, __runtime__)),
+          lambda x: typing.cast(types.TaskClassificationResult, x.cast_to(types, types, stream_types, False, __runtime__)),
+          __ctx__,
+        )
+    def DecideHardwareRouting(self, task_type: str,input_tokens: int,required_modes: typing.List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[stream_types.RoutingDecision, types.RoutingDecision]:
+        __ctx__, __result__ = self.__options.merge_options(baml_options).create_sync_stream(function_name="DecideHardwareRouting", args={
+            "task_type": task_type,"input_tokens": input_tokens,"required_modes": required_modes,
+        })
+        return baml_py.BamlSyncStream[stream_types.RoutingDecision, types.RoutingDecision](
+          __result__,
+          lambda x: typing.cast(stream_types.RoutingDecision, x.cast_to(types, types, stream_types, True, __runtime__)),
+          lambda x: typing.cast(types.RoutingDecision, x.cast_to(types, types, stream_types, False, __runtime__)),
+          __ctx__,
+        )
     def DeriveTaskInvariants(self, task_context: str,train_examples: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.BamlSyncStream[stream_types.TaskInvariants, types.TaskInvariants]:
@@ -181,6 +261,30 @@ class BamlStreamClient:
           __result__,
           lambda x: typing.cast(stream_types.TaskInvariants, x.cast_to(types, types, stream_types, True, __runtime__)),
           lambda x: typing.cast(types.TaskInvariants, x.cast_to(types, types, stream_types, False, __runtime__)),
+          __ctx__,
+        )
+    def EvaluateHarmonicSheaf(self, stalk_values: str,restriction_maps: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[stream_types.SheafDirichletState, types.SheafDirichletState]:
+        __ctx__, __result__ = self.__options.merge_options(baml_options).create_sync_stream(function_name="EvaluateHarmonicSheaf", args={
+            "stalk_values": stalk_values,"restriction_maps": restriction_maps,
+        })
+        return baml_py.BamlSyncStream[stream_types.SheafDirichletState, types.SheafDirichletState](
+          __result__,
+          lambda x: typing.cast(stream_types.SheafDirichletState, x.cast_to(types, types, stream_types, True, __runtime__)),
+          lambda x: typing.cast(types.SheafDirichletState, x.cast_to(types, types, stream_types, False, __runtime__)),
+          __ctx__,
+        )
+    def ExtractVaultGraph(self, source_document: str,content: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[stream_types.VaultGraphExtraction, types.VaultGraphExtraction]:
+        __ctx__, __result__ = self.__options.merge_options(baml_options).create_sync_stream(function_name="ExtractVaultGraph", args={
+            "source_document": source_document,"content": content,
+        })
+        return baml_py.BamlSyncStream[stream_types.VaultGraphExtraction, types.VaultGraphExtraction](
+          __result__,
+          lambda x: typing.cast(stream_types.VaultGraphExtraction, x.cast_to(types, types, stream_types, True, __runtime__)),
+          lambda x: typing.cast(types.VaultGraphExtraction, x.cast_to(types, types, stream_types, False, __runtime__)),
           __ctx__,
         )
     def RecommendNextStep(self, context: str,candidates: str,
@@ -222,11 +326,39 @@ class BamlHttpRequestClient:
             "competition": competition,"leaderboard_snapshot": leaderboard_snapshot,
         }, mode="request")
         return __result__
+    def ClassifyTaskIntent(self, task_description: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="ClassifyTaskIntent", args={
+            "task_description": task_description,
+        }, mode="request")
+        return __result__
+    def DecideHardwareRouting(self, task_type: str,input_tokens: int,required_modes: typing.List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="DecideHardwareRouting", args={
+            "task_type": task_type,"input_tokens": input_tokens,"required_modes": required_modes,
+        }, mode="request")
+        return __result__
     def DeriveTaskInvariants(self, task_context: str,train_examples: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.baml_py.HTTPRequest:
         __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="DeriveTaskInvariants", args={
             "task_context": task_context,"train_examples": train_examples,
+        }, mode="request")
+        return __result__
+    def EvaluateHarmonicSheaf(self, stalk_values: str,restriction_maps: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="EvaluateHarmonicSheaf", args={
+            "stalk_values": stalk_values,"restriction_maps": restriction_maps,
+        }, mode="request")
+        return __result__
+    def ExtractVaultGraph(self, source_document: str,content: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="ExtractVaultGraph", args={
+            "source_document": source_document,"content": content,
         }, mode="request")
         return __result__
     def RecommendNextStep(self, context: str,candidates: str,
@@ -258,11 +390,39 @@ class BamlHttpStreamRequestClient:
             "competition": competition,"leaderboard_snapshot": leaderboard_snapshot,
         }, mode="stream")
         return __result__
+    def ClassifyTaskIntent(self, task_description: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="ClassifyTaskIntent", args={
+            "task_description": task_description,
+        }, mode="stream")
+        return __result__
+    def DecideHardwareRouting(self, task_type: str,input_tokens: int,required_modes: typing.List[str],
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="DecideHardwareRouting", args={
+            "task_type": task_type,"input_tokens": input_tokens,"required_modes": required_modes,
+        }, mode="stream")
+        return __result__
     def DeriveTaskInvariants(self, task_context: str,train_examples: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.baml_py.HTTPRequest:
         __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="DeriveTaskInvariants", args={
             "task_context": task_context,"train_examples": train_examples,
+        }, mode="stream")
+        return __result__
+    def EvaluateHarmonicSheaf(self, stalk_values: str,restriction_maps: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="EvaluateHarmonicSheaf", args={
+            "stalk_values": stalk_values,"restriction_maps": restriction_maps,
+        }, mode="stream")
+        return __result__
+    def ExtractVaultGraph(self, source_document: str,content: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = self.__options.merge_options(baml_options).create_http_request_sync(function_name="ExtractVaultGraph", args={
+            "source_document": source_document,"content": content,
         }, mode="stream")
         return __result__
     def RecommendNextStep(self, context: str,candidates: str,

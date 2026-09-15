@@ -18,7 +18,9 @@ import os
 import time
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [WORLD_MODEL_SYNTH] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [WORLD_MODEL_SYNTH] %(message)s"
+)
 logger = logging.getLogger("world_model_synth")
 
 LEMONADE_BASE = "http://localhost:13305"
@@ -34,53 +36,64 @@ Synthesize a bleeding-edge, authoritative research document that connects:
 Format as a comprehensive Markdown research document with clear mathematical formulations, architectural diagrams in ASCII/Mermaid, and concrete Python/PyTorch-ROCm implementation specifications.
 """
 
+
 async def generate_bleeding_edge_synthesis():
     print("\n" + "=" * 110)
     print("🧠 GENERATING BLEEDING-EDGE WORLD MODEL SYNTHESIS VIA LOCAL SILICON (PORT 13305)")
     print("=" * 110)
-    
+
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
         payload = {
             "model": "gpt-oss-20b",
             "messages": [
-                {"role": "system", "content": "You are a world-class frontier AGI scientist. Provide deep mathematical rigor and actionable implementation specs."},
-                {"role": "user", "content": PROMPT}
+                {
+                    "role": "system",
+                    "content": "You are a world-class frontier AGI scientist. Provide deep mathematical rigor and actionable implementation specs.",
+                },
+                {"role": "user", "content": PROMPT},
             ],
             "temperature": 0.2,
-            "max_tokens": 1024
+            "max_tokens": 1024,
         }
-        
+
         logger.info("Sending synthesis request to local Lemonade silicon...")
         r = await client.post(f"{LEMONADE_BASE}/v1/chat/completions", json=payload)
         dt = round(time.perf_counter() - t0, 2)
-        
+
         if r.status_code == 200:
             content = r.json()["choices"][0]["message"]["content"].strip()
             if "</think>" in content:
                 content = content.split("</think>")[-1].strip()
-            
+
             # Persist to Vault
             vault_dir = os.path.expanduser("~/vaults/cohezion-vault/research")
             os.makedirs(vault_dir, exist_ok=True)
             out_file = os.path.join(vault_dir, "20260824-bleeding-edge-world-model-synthesis.md")
-            
+
             with open(out_file, "w", encoding="utf-8") as f:
                 f.write("---\n")
-                f.write("title: \"Bleeding-Edge Latent World Models: AdaJEPA, Poincaré Geodesic Flow & AutoHarness Verification\"\n")
+                f.write(
+                    'title: "Bleeding-Edge Latent World Models: AdaJEPA, Poincaré Geodesic Flow & AutoHarness Verification"\n'
+                )
                 f.write("date: 2026-08-24\n")
-                f.write("author: \"Cohezion Autonomous Swarm (via gpt-oss-20b Local Silicon)\"\n")
-                f.write("tags: [world-models, jepa, adajepa, poincare-manifold, neural-ode, autoharness, formal-verification]\n")
+                f.write('author: "Cohezion Autonomous Swarm (via gpt-oss-20b Local Silicon)"\n')
+                f.write(
+                    "tags: [world-models, jepa, adajepa, poincare-manifold, neural-ode, autoharness, formal-verification]\n"
+                )
                 f.write("verdict: CORE_ARCHITECTURE\n")
                 f.write("---\n\n")
                 f.write(content)
-                f.write("\n\n## System Knowledge Graph Links\n- [[LOCAL_INFERENCE_ROUTING]]\n- [[adajepa-adaptive-latent-world-model-2606.32026]]\n- [[2026-07-10-geometry-jepa-unification]]\n- [[the-awareness-of-nothing-at-all-and-quadrature-physics]]\n")
+                f.write(
+                    "\n\n## System Knowledge Graph Links\n- [[LOCAL_INFERENCE_ROUTING]]\n- [[adajepa-adaptive-latent-world-model-2606.32026]]\n- [[2026-07-10-geometry-jepa-unification]]\n- [[the-awareness-of-nothing-at-all-and-quadrature-physics]]\n"
+                )
 
             print(f"\n✓ Synthesis rendered in {dt}s!")
             print(f"📄 Persisted to Obsidian Vault: {out_file}\n")
             print("=" * 110 + "\n")
         else:
             logger.error("Synthesis failed with status %d: %s", r.status_code, r.text)
+
 
 if __name__ == "__main__":
     asyncio.run(generate_bleeding_edge_synthesis())

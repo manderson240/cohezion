@@ -7,15 +7,12 @@ import json
 COMPETITIONS = [
     "arc-prize-2026-arc-agi-2",
     "arc-prize-2026-arc-agi-3",
-    "kaggriculture",
+    "arc-prize-2026-paper-track",
     "rsna-knee-abnormality-detection",
     "biohub-cell-tracking-during-development",
-    "pokemon-tcg-ai",
-    "measuring-progress-toward-agi",
-    "neurogolf-2026",
-    "birdclef-2026",
-    "aimo-progress-prize-3"
+    "kaggriculture",
 ]
+
 
 def check_competition_submissions():
     print("\n" + "=" * 115)
@@ -28,7 +25,7 @@ def check_competition_submissions():
                 ["kaggle", "competitions", "submissions", comp],
                 capture_output=True,
                 text=True,
-                timeout=15
+                timeout=15,
             )
             out_lines = [line for line in res.stdout.splitlines() if line.strip()]
             print(f"\n🏆 Competition: `{comp}`")
@@ -36,11 +33,14 @@ def check_competition_submissions():
                 for l in out_lines[:4]:  # Show top lines / headers + last 3 submissions
                     print(f"   {l}")
             else:
-                print(f"   Notice / Stderr: {res.stderr.strip()[:100] if res.stderr else 'No prior submissions'}")
+                print(
+                    f"   Notice / Stderr: {res.stderr.strip()[:100] if res.stderr else 'No prior submissions'}"
+                )
         except Exception as e:
             print(f"   Error checking `{comp}`: {e}")
 
     print("\n" + "=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     check_competition_submissions()

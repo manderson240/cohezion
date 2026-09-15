@@ -5,8 +5,11 @@ import asyncio
 import logging
 from cohezion.compound.inter_daemon_loop_nexus import InterDaemonLoopNexus
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [DAEMON_NEXUS] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [DAEMON_NEXUS] %(message)s"
+)
 logger = logging.getLogger("demo_nexus")
+
 
 async def demo_inter_daemon_loops():
     nexus = InterDaemonLoopNexus()
@@ -33,6 +36,7 @@ async def demo_inter_daemon_loops():
 
     print("=" * 105)
     print("🎉 ALL PRODUCTION DAEMONS ARE WORKING SYNERGISTICALLY IN HARDENED CLOSED LOOPS!\n")
+
 
 if __name__ == "__main__":
     asyncio.run(demo_inter_daemon_loops())

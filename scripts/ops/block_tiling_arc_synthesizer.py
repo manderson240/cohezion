@@ -9,6 +9,7 @@ import numpy as np
 CHALLENGES_PATH = "data/arc_prize/arc-agi_training_challenges.json"
 SOLUTIONS_PATH = "data/arc_prize/arc-agi_training_solutions.json"
 
+
 def synthesize_block_tiling_program(train_pairs):
     """Detects 2x2, 3x3, 4x4 block tiling with combinations of (identity, fliplr, flipud, rot90, rot180, rot270, transpose)."""
     tr_in = [np.array(ex["input"]) for ex in train_pairs]
@@ -34,7 +35,7 @@ def synthesize_block_tiling_program(train_pairs):
         ("rot90", lambda x: np.rot90(x, 1)),
         ("rot180", lambda x: np.rot90(x, 2)),
         ("rot270", lambda x: np.rot90(x, 3)),
-        ("T", lambda x: x.T if x.shape[0] == x.shape[1] else x)
+        ("T", lambda x: x.T if x.shape[0] == x.shape[1] else x),
     ]
 
     # For each cell in the kh x kw grid, find the transform that holds across all train examples
@@ -45,7 +46,12 @@ def synthesize_block_tiling_program(train_pairs):
             matched_tf = None
             for name, tf in transforms:
                 try:
-                    if all(np.array_equal(tf(inp), out[r*in_h:(r+1)*in_h, c*in_w:(c+1)*in_w]) for inp, out in zip(tr_in, tr_out)):
+                    if all(
+                        np.array_equal(
+                            tf(inp), out[r * in_h : (r + 1) * in_h, c * in_w : (c + 1) * in_w]
+                        )
+                        for inp, out in zip(tr_in, tr_out)
+                    ):
                         matched_tf = tf
                         break
                 except Exception:
@@ -65,9 +71,12 @@ def synthesize_block_tiling_program(train_pairs):
 
     return apply_tiling
 
+
 def run_tiling_benchmark():
-    with open(CHALLENGES_PATH) as f: challenges = json.load(f)
-    with open(SOLUTIONS_PATH) as f: solutions = json.load(f)
+    with open(CHALLENGES_PATH) as f:
+        challenges = json.load(f)
+    with open(SOLUTIONS_PATH) as f:
+        solutions = json.load(f)
 
     solved = 0
     total = len(challenges)
@@ -82,7 +91,10 @@ def run_tiling_benchmark():
                 solved += 1
 
     dt = round(time.perf_counter() - t0, 3)
-    print(f"📊 Block-Tiling Synthesizer Results: Solved {solved}/{total} ({solved/total*100:.2f}%) in {dt}s")
+    print(
+        f"📊 Block-Tiling Synthesizer Results: Solved {solved}/{total} ({solved / total * 100:.2f}%) in {dt}s"
+    )
+
 
 if __name__ == "__main__":
     run_tiling_benchmark()

@@ -38,14 +38,19 @@ class LocalSiliconAgent:
         payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": "You are the Cohezion Local Transcendence Agent. Provide concise, high-density scientific analysis."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are the Cohezion Local Transcendence Agent. Provide concise, high-density scientific analysis.",
+                },
+                {"role": "user", "content": prompt},
             ],
             "max_tokens": 120,
             "temperature": 0.3,
         }
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(LEMONADE_URL, data=data, headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            LEMONADE_URL, data=data, headers={"Content-Type": "application/json"}
+        )
         try:
             with urllib.request.urlopen(req, timeout=10) as response:
                 res_json = json.loads(response.read().decode("utf-8"))
@@ -60,10 +65,22 @@ class LocalSiliconAgent:
         t_start = time.perf_counter()
 
         target_modules = [
-            ("src/cohezion/physics/cosmogony.py", "Cosmogony & 10-step cooling chain to 0.50 HIHO equilibrium"),
-            ("src/cohezion/compound/triune_self.py", "Harold Percival Triune Self (Doer/Thinker/Knower) recursive learning"),
-            ("src/cohezion/physics/twistor_orch_or.py", "Penrose Twistors CP^3 and Orch-OR quantum gravitational collapse"),
-            ("src/cohezion/flume/twistor_bundle_bridge.py", "Poincaré-to-Twistor bundle bridge linking B^2048 to CP^3"),
+            (
+                "src/cohezion/physics/cosmogony.py",
+                "Cosmogony & 10-step cooling chain to 0.50 HIHO equilibrium",
+            ),
+            (
+                "src/cohezion/compound/triune_self.py",
+                "Harold Percival Triune Self (Doer/Thinker/Knower) recursive learning",
+            ),
+            (
+                "src/cohezion/physics/twistor_orch_or.py",
+                "Penrose Twistors CP^3 and Orch-OR quantum gravitational collapse",
+            ),
+            (
+                "src/cohezion/flume/twistor_bundle_bridge.py",
+                "Poincaré-to-Twistor bundle bridge linking B^2048 to CP^3",
+            ),
         ]
 
         agent_trajectory: list[dict[str, Any]] = []
@@ -78,16 +95,18 @@ class LocalSiliconAgent:
 
             # Agent uses TwistorBundleBridge
             dissolved = self.bridge.dissolve_module(mod_path, semantic_essence)
-            
-            agent_trajectory.append({
-                "module": mod_path,
-                "local_synthesis": semantic_essence,
-                "poincare_radius": round(dissolved.hyperbolic_radius, 4),
-                "spacetime_event": [round(x, 4) for x in dissolved.spacetime_4d],
-                "twistor_helicity": round(dissolved.twistor_state.helicity, 6),
-                "is_null_ray": dissolved.twistor_state.is_null_ray,
-                "orch_or_tau_s": float(f"{dissolved.orch_or_event.reduction_time_tau_s:.3e}"),
-            })
+
+            agent_trajectory.append(
+                {
+                    "module": mod_path,
+                    "local_synthesis": semantic_essence,
+                    "poincare_radius": round(dissolved.hyperbolic_radius, 4),
+                    "spacetime_event": [round(x, 4) for x in dissolved.spacetime_4d],
+                    "twistor_helicity": round(dissolved.twistor_state.helicity, 6),
+                    "is_null_ray": dissolved.twistor_state.is_null_ray,
+                    "orch_or_tau_s": float(f"{dissolved.orch_or_event.reduction_time_tau_s:.3e}"),
+                }
+            )
             modules_for_bundle.append((mod_path, semantic_essence))
 
         # Agent precipitates batch witness mark

@@ -20,7 +20,10 @@ async def test_all_sliders_morph() -> None:
         page = await browser.new_page(viewport={"width": 1400, "height": 900})
 
         print("\n1. Navigating to dashboard...")
-        await page.goto("http://localhost:8082/cohezion_master_dashboard_wasm.html", wait_until="domcontentloaded")
+        await page.goto(
+            "http://localhost:8082/cohezion_master_dashboard_wasm.html",
+            wait_until="domcontentloaded",
+        )
         await asyncio.sleep(8)
 
         sliders = await page.locator('[role="slider"]').all()
@@ -36,7 +39,9 @@ async def test_all_sliders_morph() -> None:
         for _ in range(10):
             await page.keyboard.press("ArrowRight")
         await asyncio.sleep(2)
-        await page.screenshot(path=str(screenshot_dir / "morph_2_electrons_expanded.png"), full_page=True)
+        await page.screenshot(
+            path=str(screenshot_dir / "morph_2_electrons_expanded.png"), full_page=True
+        )
         print("  ✓ Electrons expanded mesh captured.")
 
         # 3. Test Relativistic Drift Velocity Slider (Lorentz compression + Helical twist)
@@ -45,7 +50,9 @@ async def test_all_sliders_morph() -> None:
         for _ in range(6):
             await page.keyboard.press("ArrowRight")
         await asyncio.sleep(2)
-        await page.screenshot(path=str(screenshot_dir / "morph_3_relativistic_twisted.png"), full_page=True)
+        await page.screenshot(
+            path=str(screenshot_dir / "morph_3_relativistic_twisted.png"), full_page=True
+        )
         print("  ✓ Relativistic helical twist mesh captured.")
 
         # Read live telemetry values

@@ -20,13 +20,17 @@ Consider:
 Provide a concrete, actionable 3-part blueprint under 250 words."""
 
 try:
-    resp = httpx.post("http://localhost:11434/api/generate", json={
-        "model": "deepseek-v4-pro:cloud",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.1, "num_predict": 700}
-    }, timeout=45.0)
-    
+    resp = httpx.post(
+        "http://localhost:11434/api/generate",
+        json={
+            "model": "deepseek-v4-pro:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 700},
+        },
+        timeout=45.0,
+    )
+
     if resp.status_code == 200:
         print("💡 KAGGLE GRANDMASTER STRATEGY BLUEPRINT:")
         print("=" * 80)

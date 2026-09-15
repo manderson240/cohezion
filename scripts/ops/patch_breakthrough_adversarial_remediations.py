@@ -8,8 +8,10 @@ import ast
 import signal
 import sys
 
+
 def timeout_handler(signum, frame):
     raise TimeoutError("AST execution exceeded safe runtime limit (1.0s).")
+
 
 def safe_eval_ast_code(code_str: str, test_input: list[list[int]]) -> list[list[int]] | None:
     # 1. AST Syntax & Node Complexity Guard
@@ -34,7 +36,7 @@ def safe_eval_ast_code(code_str: str, test_input: list[list[int]]) -> list[list[
     # 3. Sandboxed Execution with Resource Limits
     local_scope = {}
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(1) # 1 second hard execution floor
+    signal.alarm(1)  # 1 second hard execution floor
 
     try:
         exec(code_str, {"__builtins__": {}}, local_scope)
@@ -42,14 +44,19 @@ def safe_eval_ast_code(code_str: str, test_input: list[list[int]]) -> list[list[
             return None
         res = local_scope["transform"](test_input)
         # Bounded output size check
-        if isinstance(res, list) and len(res) <= 30 and all(isinstance(r, list) and len(r) <= 30 for r in res):
+        if (
+            isinstance(res, list)
+            and len(res) <= 30
+            and all(isinstance(r, list) and len(r) <= 30 for r in res)
+        ):
             return res
     except Exception:
         return None
     finally:
-        signal.alarm(0) # Reset alarm
+        signal.alarm(0)  # Reset alarm
 
     return None
+
 
 if __name__ == "__main__":
     print("=== Testing Hardened AST Evaluator ===")

@@ -5,21 +5,22 @@ import asyncio
 import logging
 from cohezion.integrations.gaia_local_router import GAIALocalRouter
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAIA_LIVE] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAIA_LIVE] %(message)s"
+)
 logger = logging.getLogger("gaia_live")
+
 
 async def run_gaia_live_skill():
     router = GAIALocalRouter()
     prompt = "Summarize the core directive of INTER_DAEMON_COOPERATIVE_LOOPS_PRIME in 2 concise sentences."
-    
+
     print("\n" + "=" * 95)
     print("🤖 EXECUTING LIVE AMD GAIA SDK AGENT ON LOCAL SILICON")
     print("=" * 95)
 
     res = await router.route_gaia_agent_call(
-        agent_id="gaia-loop-orchestrator",
-        prompt=prompt,
-        task_type="research"
+        agent_id="gaia-loop-orchestrator", prompt=prompt, task_type="research"
     )
 
     print(f"• Agent ID        : {res.agent_id}")
@@ -29,6 +30,7 @@ async def run_gaia_live_skill():
     print(f"• Latency         : {res.latency_ms:.2f} ms")
     print("=" * 95)
     print("🎉 OFFICIAL AMD GAIA SDK LIVE INFERENCE CONFIRMED!\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_gaia_live_skill())

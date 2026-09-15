@@ -51,7 +51,10 @@ async def run_claude_cli_review() -> dict[str, Any]:
     critique = ""
     try:
         proc = await asyncio.create_subprocess_exec(
-            "claude", "-p", "--tools", "",
+            "claude",
+            "-p",
+            "--tools",
+            "",
             f"Review this architectural implementation through an allegorical yet mathematically ruthless lens:\n{REVIEW_PROMPT}",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -66,12 +69,18 @@ async def run_claude_cli_review() -> dict[str, Any]:
 
     dt = time.perf_counter() - t0
     logger.info("  ✓ Claude CLI Review complete in %.2f s (%d words)", dt, len(critique.split()))
-    return {"delegate": "Claude Code CLI Fable Model", "latency_s": round(dt, 2), "critique": critique}
+    return {
+        "delegate": "Claude Code CLI Fable Model",
+        "latency_s": round(dt, 2),
+        "critique": critique,
+    }
 
 
 async def run_deepharness_deepseek_cloud(client: httpx.AsyncClient) -> dict[str, Any]:
     t0 = time.perf_counter()
-    logger.info("🌩️ [2/3: Delegating to DeepHarness with Ollama Cloud DeepSeek (deepseek-v4-pro:cloud)...]")
+    logger.info(
+        "🌩️ [2/3: Delegating to DeepHarness with Ollama Cloud DeepSeek (deepseek-v4-pro:cloud)...]"
+    )
     critique = ""
     models = ["deepseek-v4-pro:cloud", "qwen3.5:397b-cloud", "glm-5.2:cloud"]
     for m in models:
@@ -104,13 +113,21 @@ async def run_deepharness_deepseek_cloud(client: httpx.AsyncClient) -> dict[str,
         critique = critique.split("</think>")[-1].strip()
 
     dt = time.perf_counter() - t0
-    logger.info("  ✓ DeepHarness Cloud Review complete in %.2f s (%d words)", dt, len(critique.split()))
-    return {"delegate": "DeepHarness with Ollama Cloud DeepSeek", "latency_s": round(dt, 2), "critique": critique}
+    logger.info(
+        "  ✓ DeepHarness Cloud Review complete in %.2f s (%d words)", dt, len(critique.split())
+    )
+    return {
+        "delegate": "DeepHarness with Ollama Cloud DeepSeek",
+        "latency_s": round(dt, 2),
+        "critique": critique,
+    }
 
 
 async def run_gaia_lemonade_agent(client: httpx.AsyncClient) -> dict[str, Any]:
     t0 = time.perf_counter()
-    logger.info("🔬 [3/3: Delegating to AMD GAIA SDK Swarm Agents via Lemonade OmniRouter (Qwen3-Coder-30B)...]")
+    logger.info(
+        "🔬 [3/3: Delegating to AMD GAIA SDK Swarm Agents via Lemonade OmniRouter (Qwen3-Coder-30B)...]"
+    )
     critique = ""
     try:
         res = await client.post(
@@ -118,8 +135,14 @@ async def run_gaia_lemonade_agent(client: httpx.AsyncClient) -> dict[str, Any]:
             json={
                 "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
                 "messages": [
-                    {"role": "system", "content": "You are an AMD GAIA SDK Hardware & Swarm Safety Engineer on AMD Strix Halo."},
-                    {"role": "user", "content": f"[GAIA SDK Local Systems Review]\n{REVIEW_PROMPT}"},
+                    {
+                        "role": "system",
+                        "content": "You are an AMD GAIA SDK Hardware & Swarm Safety Engineer on AMD Strix Halo.",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"[GAIA SDK Local Systems Review]\n{REVIEW_PROMPT}",
+                    },
                 ],
                 "temperature": 0.2,
                 "max_tokens": 1500,
@@ -142,8 +165,14 @@ async def run_gaia_lemonade_agent(client: httpx.AsyncClient) -> dict[str, Any]:
         critique = critique.split("</think>")[-1].strip()
 
     dt = time.perf_counter() - t0
-    logger.info("  ✓ GAIA Lemonade Swarm Review complete in %.2f s (%d words)", dt, len(critique.split()))
-    return {"delegate": "AMD GAIA SDK Swarm Agents via Lemonade OmniRouter", "latency_s": round(dt, 2), "critique": critique}
+    logger.info(
+        "  ✓ GAIA Lemonade Swarm Review complete in %.2f s (%d words)", dt, len(critique.split())
+    )
+    return {
+        "delegate": "AMD GAIA SDK Swarm Agents via Lemonade OmniRouter",
+        "latency_s": round(dt, 2),
+        "critique": critique,
+    }
 
 
 async def main_async() -> None:
@@ -163,7 +192,9 @@ async def main_async() -> None:
         reviews.extend(results)
 
     # Save to durable research report
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/master_tri_delegate_adversarial_review.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/master_tri_delegate_adversarial_review.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

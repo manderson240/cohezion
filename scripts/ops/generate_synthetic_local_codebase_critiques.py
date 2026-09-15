@@ -69,7 +69,9 @@ CRITIQUES = [
 
 
 def main() -> None:
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/local_codebase_adversarial_validation_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/local_codebase_adversarial_validation_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

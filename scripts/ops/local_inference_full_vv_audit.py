@@ -24,6 +24,7 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
 LEMONADE_API_BASE = "http://localhost:13305"
 
+
 async def run_local_vv_audit():
     print("\n" + "=" * 115)
     print("🔬 COMPREHENSIVE LOCAL INFERENCE VERIFICATION & VALIDATION (V&V) AUDIT")
@@ -34,7 +35,9 @@ async def run_local_vv_audit():
     print(f"\n▶ [1/4] Pre-Flight Memory Health Check:")
     print(f"   • Unified Memory Available: {avail_gib} GiB (Safety Floor: 35.0 GiB)")
     print(f"   • Swap Used:               {swap_used_gib} GiB")
-    print(f"   • Local Execution Status:   {'PASSED (Zero Memory Pressure)' if is_safe else 'FAILED'}")
+    print(
+        f"   • Local Execution Status:   {'PASSED (Zero Memory Pressure)' if is_safe else 'FAILED'}"
+    )
 
     # Step 2: Live Local LLM Inference (`user.cohezion-hermes-router` / `Qwen3-Coder-30B`)
     print(f"\n▶ [2/4] Executing Live Local LLM Inference on Lemonade (:13305)...")
@@ -42,11 +45,14 @@ async def run_local_vv_audit():
     payload = {
         "model": "user.cohezion-hermes-router",
         "messages": [
-            {"role": "system", "content": "You are a senior algorithmic software engineer on local silicon."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": "You are a senior algorithmic software engineer on local silicon.",
+            },
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.2,
-        "max_tokens": 150
+        "max_tokens": 150,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=45.0) as client:
@@ -66,7 +72,7 @@ async def run_local_vv_audit():
         "prompt": "Scientific schematic diagram of a 12-dimensional Poincare manifold, crisp technical wireframe, 8k render.",
         "n": 1,
         "size": "512x512",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     t0_diff = time.perf_counter()
     async with httpx.AsyncClient(timeout=45.0) as client:
@@ -75,7 +81,9 @@ async def run_local_vv_audit():
         if r_diff.status_code == 200:
             img_b64 = r_diff.json()["data"][0].get("b64_json", "")
             img_bytes = len(base64.b64decode(img_b64)) if img_b64 else 0
-            print(f"   ✓ Local SDXL-Turbo Generation Succeeded in {dt_diff}s! (Output size: {img_bytes} bytes)")
+            print(
+                f"   ✓ Local SDXL-Turbo Generation Succeeded in {dt_diff}s! (Output size: {img_bytes} bytes)"
+            )
         else:
             print(f"   ❌ Diffusion Request Error (HTTP {r_diff.status_code}): {r_diff.text[:150]}")
 
@@ -96,25 +104,28 @@ async def run_local_vv_audit():
             "diffusion_latency_sec": dt_diff,
             "memory_available_gib": avail_gib,
             "swap_used_gib": swap_used_gib,
-            "verdict": "Local silicon inference (LLM + Diffusion) and DataMesh event bridge 100% verified."
-        }
+            "verdict": "Local silicon inference (LLM + Diffusion) and DataMesh event bridge 100% verified.",
+        },
     )
     await event_bus.publish(vv_event)
 
-    persist_item({
-        "id": "local_inference_full_vv_status",
-        "title": "Local Silicon Inference & DataMesh V&V Complete",
-        "status": "done",
-        "priority": "high",
-        "source": "local_inference_vv_suite",
-        "category": "verification_and_validation",
-        "details": f"Local LLM ({dt_llm}s) + SDXL-Turbo ({dt_diff}s) verified on port 13305 with {avail_gib} GiB UMA headroom.",
-    })
+    persist_item(
+        {
+            "id": "local_inference_full_vv_status",
+            "title": "Local Silicon Inference & DataMesh V&V Complete",
+            "status": "done",
+            "priority": "high",
+            "source": "local_inference_vv_suite",
+            "category": "verification_and_validation",
+            "details": f"Local LLM ({dt_llm}s) + SDXL-Turbo ({dt_diff}s) verified on port 13305 with {avail_gib} GiB UMA headroom.",
+        }
+    )
     print(f"   ✓ Emitted `SYSTEM_HEALTH` event and dual-persisted Kanban card!")
 
     print("\n" + "=" * 115)
     print("🏆 LOCAL INFERENCE & AGENTIC DATAMESH V&V AUDIT: 100% PASSED!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_local_vv_audit())

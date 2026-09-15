@@ -115,7 +115,9 @@ async def broadcast_all() -> None:
         # 1. Sign sample with HMAC-SHA256
         sig = signer.sign_sample(payload)
         payload["provenance_signature"] = sig
-        payload["ast_proof_hash"] = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+        payload["ast_proof_hash"] = hashlib.sha256(
+            json.dumps(payload, sort_keys=True).encode()
+        ).hexdigest()
 
         # 2. Publish to in-memory EventBus
         evt = Event.agent_complete(
@@ -134,7 +136,9 @@ async def broadcast_all() -> None:
         # 4. Write-through to Kanban Bridge (SurrealDB kanban_item + Obsidian Vault kanban/<id>.md)
         res = persist_item(payload)
 
-        print(f"  ✓ [{m['id']}] Broadcasted! (SurrealDB: {res['surreal']}, Obsidian: {res['obsidian']}, CRM: {res['crm']})")
+        print(
+            f"  ✓ [{m['id']}] Broadcasted! (SurrealDB: {res['surreal']}, Obsidian: {res['obsidian']}, CRM: {res['crm']})"
+        )
         broadcast_count += 1
 
     # 5. Send Google Workspace Digest Alert

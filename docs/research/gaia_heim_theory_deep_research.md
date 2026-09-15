@@ -387,9 +387,9 @@ class HeimMetronEngine(nn.Module):
         gc = self.g_coupling.expand(*batch_shape, 4, 8).clone()
 
         # Block assembly: G = [[g4, gc], [gc^T, g8]]
-        top = torch.cat([g4, gc], dim=-1)           # (..., 4, 12)
+        top = torch.cat([g4, gc], dim=-1)  # (..., 4, 12)
         bottom = torch.cat([gc.transpose(-2, -1), g8], dim=-1)  # (..., 8, 12)
-        G = torch.cat([top, bottom], dim=-2)         # (..., 12, 12)
+        G = torch.cat([top, bottom], dim=-2)  # (..., 12, 12)
 
         # Symmetrize
         G = 0.5 * (G + G.transpose(-2, -1))
@@ -403,9 +403,9 @@ class HeimMetronEngine(nn.Module):
             # Create a small, signature-preserving perturbation
             scale = self.metron_coupling * torch.tanh(density)
             # Diagonal Lorentzian signature mask for the 4D block
-            sig_mask = torch.diag(
-                torch.tensor([1.0, -1.0, -1.0, -1.0], device=x.device)
-            ).expand(*batch_shape, 4, 4)
+            sig_mask = torch.diag(torch.tensor([1.0, -1.0, -1.0, -1.0], device=x.device)).expand(
+                *batch_shape, 4, 4
+            )
             G[..., :4, :4] = G[..., :4, :4] + scale.unsqueeze(-1).unsqueeze(-1) * sig_mask
 
         return G
@@ -513,7 +513,7 @@ if __name__ == "__main__":
     engine = HeimMetronEngine(lattice_res=16, device="cpu")
 
     # Batch of 64 particles / world-points
-    x = torch.randn(64, 4)   # (t, x, y, z)
+    x = torch.randn(64, 4)  # (t, x, y, z)
     dx = torch.randn(64, 4)  # small displacements
 
     result = engine(x, dx=dx)

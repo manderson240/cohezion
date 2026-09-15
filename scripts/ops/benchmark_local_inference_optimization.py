@@ -54,7 +54,9 @@ def calculate_poincare_metric(u, v):
         verifier.verify_code(code_sample)
     dt_ast_total = time.perf_counter() - t0
     ast_avg_us = (dt_ast_total / n_iters) * 1_000_000.0
-    print(f"  ✓ AutoHarness AST Avg Latency: {ast_avg_us:.2f} µs ({ast_avg_us/1000.0:.4f} ms per verification)")
+    print(
+        f"  ✓ AutoHarness AST Avg Latency: {ast_avg_us:.2f} µs ({ast_avg_us / 1000.0:.4f} ms per verification)"
+    )
 
     # 2. Lemonade OmniRouter Models Availability & Latency
     print("\n2. Benchmarking Lemonade OmniRouter Local Silicon Lanes...")
@@ -89,7 +91,7 @@ def calculate_poincare_metric(u, v):
                 fast_latency = dt_fast
                 content = data["choices"][0]["message"]["content"].strip()
                 fast_tokens = data.get("usage", {}).get("completion_tokens", 5)
-                print(f"  ✓ Fast Local Lane Response ({dt_fast*1000.0:.2f} ms): '{content}'")
+                print(f"  ✓ Fast Local Lane Response ({dt_fast * 1000.0:.2f} ms): '{content}'")
         except Exception as e:
             print(f"  ⚠️ Fast Lane Notice: {e}")
 
@@ -104,7 +106,12 @@ def calculate_poincare_metric(u, v):
                 "http://localhost:13305/v1/chat/completions",
                 json={
                     "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-                    "messages": [{"role": "user", "content": "Write a 1-line python function to compute dot product of two lists."}],
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Write a 1-line python function to compute dot product of two lists.",
+                        }
+                    ],
                     "max_tokens": 60,
                     "temperature": 0.1,
                 },
@@ -116,7 +123,9 @@ def calculate_poincare_metric(u, v):
                 content = data["choices"][0]["message"]["content"].strip()
                 heavy_tokens = data.get("usage", {}).get("completion_tokens", 30)
                 heavy_tok_per_sec = heavy_tokens / max(dt_heavy, 0.001)
-                print(f"  ✓ iGPU 30B Lane Response ({dt_heavy:.2f}s, ~{heavy_tok_per_sec:.1f} tok/s): '{content[:60]}...'")
+                print(
+                    f"  ✓ iGPU 30B Lane Response ({dt_heavy:.2f}s, ~{heavy_tok_per_sec:.1f} tok/s): '{content[:60]}...'"
+                )
         except Exception as e:
             print(f"  ⚠️ Heavy Lane Notice: {e}")
 
@@ -129,7 +138,7 @@ def calculate_poincare_metric(u, v):
         evi = (0.25 * 0.8) / 0.95
         decision = evi > 0.75
     dt_evi = (time.perf_counter() - t0) / n_evi * 1_000_000.0
-    print(f"  ✓ EVI Mathematical Gating Overhead: {dt_evi:.3f} µs ({dt_evi/1000.0:.5f} ms)")
+    print(f"  ✓ EVI Mathematical Gating Overhead: {dt_evi:.3f} µs ({dt_evi / 1000.0:.5f} ms)")
 
     return {
         "ast_verifier_us": round(ast_avg_us, 2),
@@ -143,7 +152,9 @@ def calculate_poincare_metric(u, v):
 
 def main() -> None:
     res = asyncio.run(benchmark_local_stack())
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/local_inference_optimization_audit.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/local_inference_optimization_audit.md"
+    )
 
     md = [
         "# Local Inference Optimization & Silicon Acceleration Audit",

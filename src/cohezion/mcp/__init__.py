@@ -19,6 +19,12 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.mcp.compound_session import MCPServerState as MCPServerState
 with contextlib.suppress(Exception):
+    from cohezion.mcp.compound_unified import (
+        ServerState as UnifiedServerState,
+        UnifiedCompoundManager as UnifiedCompoundManager,
+        get_unified_manager as get_unified_manager,
+    )
+with contextlib.suppress(Exception):
     from cohezion.mcp.compound_utils import McpClientResolver as McpClientResolver
 with contextlib.suppress(Exception):
     from cohezion.mcp.compound_utils import ok as ok

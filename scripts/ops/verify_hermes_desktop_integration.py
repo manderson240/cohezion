@@ -25,6 +25,7 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 LEMONADE_CHAT_URL = "http://localhost:13305/v1/chat/completions"
 HERMES_MODEL_ID = "user.cohezion-hermes-router"
 
+
 async def test_hermes_desktop_session():
     print("\n" + "=" * 110)
     print("🏛️ VERIFYING HERMES DESKTOP LOCAL INFERENCE & AGENTIC EVENT BUS DATAMESH")
@@ -42,11 +43,14 @@ async def test_hermes_desktop_session():
     payload = {
         "model": HERMES_MODEL_ID,
         "messages": [
-            {"role": "system", "content": "You are Hermes Desktop assistant connected to Cohezion."},
-            {"role": "user", "content": "Confirm you are active on local silicon in 1 sentence."}
+            {
+                "role": "system",
+                "content": "You are Hermes Desktop assistant connected to Cohezion.",
+            },
+            {"role": "user", "content": "Confirm you are active on local silicon in 1 sentence."},
         ],
         "temperature": 0.3,
-        "max_tokens": 100
+        "max_tokens": 100,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -56,7 +60,7 @@ async def test_hermes_desktop_session():
             if r.status_code == 200:
                 resp = r.json()
                 content = resp["choices"][0]["message"]["content"]
-                print(f"   ✓ Local Inference Success ({dt}s): \"{content.strip()}\"")
+                print(f'   ✓ Local Inference Success ({dt}s): "{content.strip()}"')
             else:
                 print(f"   • Notice HTTP {r.status_code}: {r.text[:150]}")
         except Exception as e:
@@ -78,8 +82,8 @@ async def test_hermes_desktop_session():
             "model_endpoint": HERMES_MODEL_ID,
             "port": 13305,
             "status": "ONLINE",
-            "headroom_gib": avail_gib
-        }
+            "headroom_gib": avail_gib,
+        },
     )
     await event_bus.publish(hermes_event)
     print(f"   ✓ Emitted `HERMES_DESKTOP_CONNECTED` event across EventBus")
@@ -92,20 +96,23 @@ async def test_hermes_desktop_session():
         print(f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}`")
 
     # Persist durable Kanban card
-    persist_item({
-        "id": "hermes_desktop_integration_status",
-        "title": "Hermes Desktop DataMesh Integration Active",
-        "status": "done",
-        "priority": "high",
-        "source": "hermes_desktop_app",
-        "category": "desktop_integration",
-        "details": f"Hermes Desktop verified on Lemonade (:13305) with full EventBus sync. Headroom: {avail_gib} GiB.",
-    })
+    persist_item(
+        {
+            "id": "hermes_desktop_integration_status",
+            "title": "Hermes Desktop DataMesh Integration Active",
+            "status": "done",
+            "priority": "high",
+            "source": "hermes_desktop_app",
+            "category": "desktop_integration",
+            "details": f"Hermes Desktop verified on Lemonade (:13305) with full EventBus sync. Headroom: {avail_gib} GiB.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 110)
     print("🎉 HERMES DESKTOP LOCAL INFERENCE & AGENTIC DATAMESH VERIFIED!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_hermes_desktop_session())

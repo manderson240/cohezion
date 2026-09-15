@@ -7,9 +7,12 @@ Tests newly implemented geometric primitives on real challenging ARC tasks.
 import json
 import time
 from cohezion.competitions.arc.advanced_geometric_primitives import (
-    raycast_until_obstacle, connect_matching_pairs_bfs,
-    fill_convex_bounding_box, extract_enclosed_rooms
+    raycast_until_obstacle,
+    connect_matching_pairs_bfs,
+    fill_convex_bounding_box,
+    extract_enclosed_rooms,
 )
+
 
 def main():
     print("\n" + "=" * 105)
@@ -22,7 +25,7 @@ def main():
         [0, 2, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 2, 0],
-        [0, 0, 0, 0, 0]
+        [0, 0, 0, 0, 0],
     ]
     t0 = time.perf_counter()
     connected = connect_matching_pairs_bfs(pair_grid)
@@ -33,12 +36,7 @@ def main():
         print("  ", r)
 
     # Test 2: Room enclosing flood fill
-    room_grid = [
-        [1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 1],
-        [1, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1]
-    ]
+    room_grid = [[1, 1, 1, 1, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1]]
     t0 = time.perf_counter()
     filled = extract_enclosed_rooms(room_grid, wall_color=1, fill_color=4)
     dt2 = (time.perf_counter() - t0) * 1000.0
@@ -50,6 +48,7 @@ def main():
     print("\n" + "=" * 105)
     print("🎉 ADVANCED GEOMETRIC PRIMITIVES FUNCTIONAL!")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     main()

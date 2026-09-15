@@ -5,9 +5,12 @@ hermes_bin = "/home/mike-anderson/.hermes/hermes-agent/venv/bin/hermes"
 
 cmd = [
     hermes_bin,
-    "-z", "How well can you perform time to first token? Respond in 1 sentence.",
-    "-m", "user.cohezion-router",
-    "--provider", "lemonade-local"
+    "-z",
+    "How well can you perform time to first token? Respond in 1 sentence.",
+    "-m",
+    "user.cohezion-router",
+    "--provider",
+    "lemonade-local",
 ]
 
 print("Running Hermes -z turn with user.cohezion-router...")

@@ -166,11 +166,12 @@ Use a sentinel to signal shutdown and drain the queue completely.
 ```python
 _SENTINEL = object()
 
+
 async def stop(self) -> None:
     if self._processor_task:
         self._running = False
         # Wake the processor and ensure it drains all queued items
-        await self._queue.put((float('inf'), next(self._seq), _SENTINEL))
+        await self._queue.put((float("inf"), next(self._seq), _SENTINEL))
         await self._processor_task
         self._processor_task = None
 ```
@@ -208,8 +209,7 @@ async def publish(self, event: Event) -> bool:
         return self.publish_sync(event)
     try:
         await asyncio.wait_for(
-            self._queue.put((-event.priority, next(self._seq), event)),
-            timeout=1.0
+            self._queue.put((-event.priority, next(self._seq), event)), timeout=1.0
         )
         self._metrics["published"] += 1
         return True
@@ -228,6 +228,7 @@ Add a `DeadLetterQueue` instance and push failures.
 from collections import deque
 import threading
 
+
 class DeadLetterQueue:
     def __init__(self, max_size: int = 10000):
         self._queue = deque(maxlen=max_size)
@@ -235,13 +236,15 @@ class DeadLetterQueue:
 
     def push_dead_letter(self, event: Event, failure_reason: str) -> None:
         with self._lock:
-            self._queue.append({
-                "timestamp": time.time(),
-                "event_type": event.type.name,
-                "source": event.source,
-                "failure_reason": failure_reason,
-                "payload": event.payload,
-            })
+            self._queue.append(
+                {
+                    "timestamp": time.time(),
+                    "event_type": event.type.name,
+                    "source": event.source,
+                    "failure_reason": failure_reason,
+                    "payload": event.payload,
+                }
+            )
 
     def get_dead_letters(self, limit: int = 20) -> list[dict[str, Any]]:
         with self._lock:
@@ -281,6 +284,7 @@ def __init__(self, max_queue_size: int = 10000, max_handlers_per_type: int = 100
     self._handler_set: set[tuple[EventType | None, EventHandler]] = set()
     self._max_handlers_per_type = max_handlers_per_type
     ...
+
 
 def register_handler(self, handler: EventHandler, event_type: EventType | None = None) -> None:
     key = (event_type, handler)
@@ -463,6 +467,7 @@ Wrap handler lists in a lock or use atomic replacement.
 # src/cohezion/core/event_bus.py
 import asyncio
 
+
 class EventBus:
     def __init__(self, max_queue_size: int = 10000):
         # ... existing init ...
@@ -474,7 +479,7 @@ class EventBus:
             if event.type in self._handlers:
                 handlers.extend(self._handlers[event.type])
             handlers.extend(self._wildcard_handlers)
-        
+
         if not handlers:
             return
 
@@ -495,12 +500,13 @@ Connect the orphaned DLQ to the EventBus and implement proper backpressure signa
 
 ```python
 # src/cohezion/core/event_bus.py
-from cohezion.core.event_bus_dlq import DeadLetterQueue # IMPORT DLQ
+from cohezion.core.event_bus_dlq import DeadLetterQueue  # IMPORT DLQ
+
 
 class EventBus:
     def __init__(self, max_queue_size: int = 10000):
         # ... existing init ...
-        self.dlq = DeadLetterQueue() # INSTANTIATE DLQ
+        self.dlq = DeadLetterQueue()  # INSTANTIATE DLQ
 
     async def publish(self, event: Event) -> bool:
         try:
@@ -510,7 +516,7 @@ class EventBus:
         except asyncio.QueueFull:
             self._metrics["dropped"] += 1
             # PUSH TO DLQ INSTEAD OF SILENT DROP
-            self.dlq.push_dead_letter(event, "QueueBackpressure") 
+            self.dlq.push_dead_letter(event, "QueueBackpressure")
             logger.critical(f"Event dropped to DLQ (queue full): {event.type}")
             return False
 
@@ -534,8 +540,8 @@ Ensure the bus is running before publishing.
 # src/cohezion/core/grand_unified_wiring_bus.py
 async def initialize_and_wire_all(self) -> dict[str, Any]:
     # START THE BUS FIRST
-    await self.event_bus.start() 
-    
+    await self.event_bus.start()
+
     if not self._wired:
         await self.bridge.initialize()
         # ... rest of wiring ...
@@ -558,7 +564,7 @@ async def _on_local_event(self, event: Event) -> None:
         except Exception as err:
             if i == retries - 1:
                 self.event_bus.dlq.push_dead_letter(event, f"CrossSessionPersistFail: {err}")
-            await asyncio.sleep(0.5 * (2 ** i))
+            await asyncio.sleep(0.5 * (2**i))
 ```
 
 ### 3.5. Correct Bi-Temporal Schema
@@ -641,6 +647,7 @@ Fix the entropy accumulation and $O(N)$ bottleneck by connecting the DLQ to the 
 # event_bus_dlq.py
 from collections import deque
 
+
 @dataclass
 class DeadLetterQueue:
     max_size: int = 10000
@@ -655,7 +662,7 @@ class DeadLetterQueue:
 ```python
 # event_bus.py
 class EventBus:
-    def __init__(self, max_queue_size: int = 10000, dlq: 'DeadLetterQueue' = None):
+    def __init__(self, max_queue_size: int = 10000, dlq: "DeadLetterQueue" = None):
         # ... existing init ...
         self._dlq = dlq
 
@@ -697,9 +704,10 @@ class Event:
     source: str
     timestamp: float = field(default_factory=time.time)
     lamport_ts: int = 0  # Logical clock for causal ordering
-    depth: int = 0       # Topological depth for cycle detection
+    depth: int = 0  # Topological depth for cycle detection
     payload: dict[str, Any] = field(default_factory=dict)
     priority: int = 0
+
 
 # In EventBus.publish:
 # Order by lamport_ts first, then priority, then seq

@@ -121,25 +121,34 @@ class InvariantVerifier:
 def primitive_identity(grid: np.ndarray) -> np.ndarray:
     return grid.copy()
 
+
 def primitive_rot90(grid: np.ndarray) -> np.ndarray:
     return np.rot90(grid, 1)
+
 
 def primitive_rot180(grid: np.ndarray) -> np.ndarray:
     return np.rot90(grid, 2)
 
+
 def primitive_rot270(grid: np.ndarray) -> np.ndarray:
     return np.rot90(grid, 3)
+
 
 def primitive_fliplr(grid: np.ndarray) -> np.ndarray:
     return np.fliplr(grid)
 
+
 def primitive_flipud(grid: np.ndarray) -> np.ndarray:
     return np.flipud(grid)
+
 
 def primitive_transpose(grid: np.ndarray) -> np.ndarray:
     return np.swapaxes(grid, 0, 1)
 
-def primitive_gravity_drop(grid: np.ndarray, obstacle_color: int = 5, empty_color: int = 0) -> np.ndarray:
+
+def primitive_gravity_drop(
+    grid: np.ndarray, obstacle_color: int = 5, empty_color: int = 0
+) -> np.ndarray:
     h, w = grid.shape
     result = np.full((h, w), empty_color, dtype=np.int32)
     for c in range(w):
@@ -158,15 +167,19 @@ def primitive_gravity_drop(grid: np.ndarray, obstacle_color: int = 5, empty_colo
                     write_idx -= 1
     return result
 
-def primitive_convex_hull_fill(grid: np.ndarray, fill_color: int = 1, bg_color: int = 0) -> np.ndarray:
+
+def primitive_convex_hull_fill(
+    grid: np.ndarray, fill_color: int = 1, bg_color: int = 0
+) -> np.ndarray:
     result = grid.copy()
     coords = np.argwhere(grid != bg_color)
     if len(coords) < 2:
         return result
     r_min, c_min = coords.min(axis=0)
     r_max, c_max = coords.max(axis=0)
-    result[r_min:r_max + 1, c_min:c_max + 1] = fill_color
+    result[r_min : r_max + 1, c_min : c_max + 1] = fill_color
     return result
+
 
 def primitive_symmetry_reflect_h(grid: np.ndarray) -> np.ndarray:
     result = grid.copy()
@@ -179,6 +192,7 @@ def primitive_symmetry_reflect_h(grid: np.ndarray) -> np.ndarray:
             elif result[r, c] == 0 and result[r, opp_c] != 0:
                 result[r, c] = result[r, opp_c]
     return result
+
 
 def primitive_symmetry_reflect_v(grid: np.ndarray) -> np.ndarray:
     result = grid.copy()
@@ -208,7 +222,9 @@ PRIMITIVES: list[Tuple[str, Callable[[np.ndarray], np.ndarray]]] = [
 ]
 
 
-def solve_interactive_task(task_dict: dict[str, Any], task_time_limit: float = 45.0) -> list[dict[str, Any]]:
+def solve_interactive_task(
+    task_dict: dict[str, Any], task_time_limit: float = 45.0
+) -> list[dict[str, Any]]:
     train_pairs = task_dict.get("train", [])
     test_inputs = [np.array(p["input"], dtype=np.int32) for p in task_dict.get("test", [])]
 
@@ -255,7 +271,7 @@ def solve_interactive_task(task_dict: dict[str, Any], task_time_limit: float = 4
     # Composed primitive scan with state deduplication
     if not exact_candidates and time.perf_counter() - t_start < task_time_limit:
         first_in = np.array(train_pairs[0]["input"], dtype=np.int32) if train_pairs else None
-        
+
         for name1, p1 in PRIMITIVES[:8]:
             if time.perf_counter() - t_start > task_time_limit:
                 break
@@ -336,10 +352,7 @@ def solve_interactive_task(task_dict: dict[str, Any], task_time_limit: float = 4
         if attempt_2 is None:
             attempt_2 = scored[1][1] if len(scored) > 1 else attempt_1
 
-        results.append({
-            "attempt_1": attempt_1.tolist(),
-            "attempt_2": attempt_2.tolist()
-        })
+        results.append({"attempt_1": attempt_1.tolist(), "attempt_2": attempt_2.tolist()})
 
     return results
 
@@ -361,7 +374,7 @@ def find_test_file() -> Path:
     sample = {
         "007bbfb7": {
             "train": [{"input": [[0, 1], [1, 0]], "output": [[1, 0], [0, 1]]}],
-            "test": [{"input": [[0, 2], [2, 0]]}]
+            "test": [{"input": [[0, 2], [2, 0]]}],
         }
     }
     fallback.write_text(json.dumps(sample))

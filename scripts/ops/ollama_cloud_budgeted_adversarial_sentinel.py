@@ -23,12 +23,12 @@ SURREAL_HEADERS = {
     "surreal-ns": "cohezion",
     "surreal-db": "main",
     "Authorization": "Basic cm9vdDpyb290",
-    "Content-Type": "text/plain"
+    "Content-Type": "text/plain",
 }
 
 CLOUD_AUDITORS = [
     ("deepseek-v4-flash:cloud", "Tier-2 Fast Frontier Reasoning Auditor"),
-    ("gpt-oss:120b-cloud", "Tier-2 Frontier 120B Systems Verifier")
+    ("gpt-oss:120b-cloud", "Tier-2 Frontier 120B Systems Verifier"),
 ]
 
 PROMPT = """Conduct a concise, budgeted multi-perspective adversarial review of the Cohezion Sovereign AI & Kaggle Swarm:
@@ -46,18 +46,18 @@ Conclude with:
 - 1 Actionable Recommendation
 - Confidence Score (0.00 to 1.00)"""
 
-async def query_streaming_cloud_auditor(client: httpx.AsyncClient, model_name: str, description: str) -> tuple[str, float]:
+
+async def query_streaming_cloud_auditor(
+    client: httpx.AsyncClient, model_name: str, description: str
+) -> tuple[str, float]:
     print(f"\n▶ Streaming Budgeted Audit from Cloud Model: `{model_name}` ({description})...")
     payload = {
         "model": model_name,
         "prompt": PROMPT,
         "stream": True,
-        "options": {
-            "temperature": 0.1,
-            "num_predict": 450
-        }
+        "options": {"temperature": 0.1, "num_predict": 450},
     }
-    
+
     t0 = time.perf_counter()
     full_text = []
     try:
@@ -76,11 +76,12 @@ async def query_streaming_cloud_auditor(client: httpx.AsyncClient, model_name: s
                 full_text.append(f"HTTP {response.status_code}")
     except Exception as err:
         full_text.append(f"Streaming error: {err}")
-        
+
     dt = round(time.perf_counter() - t0, 2)
     synthesis = "".join(full_text).strip()
     print(f"  ✓ {model_name} Completed in {dt}s ({len(synthesis)} chars)")
     return synthesis, dt
+
 
 async def run_budgeted_cloud_adversarial_review():
     print("\n" + "=" * 115)
@@ -93,7 +94,7 @@ async def run_budgeted_cloud_adversarial_review():
         for model_name, desc in CLOUD_AUDITORS:
             review_text, dt = await query_streaming_cloud_auditor(client, model_name, desc)
             reviews.append({"model": model_name, "text": review_text, "duration": dt})
-            
+
             # Log each review to SurrealDB
             sql = f"""
             CREATE adversarial_cloud_review CONTENT {{
@@ -111,7 +112,9 @@ async def run_budgeted_cloud_adversarial_review():
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# ☁️ Budget-Aware Ollama Cloud Adversarial Review Report\n\n")
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  \n")
-        f.write("**Budget Mode**: Minimal Token Egress (450 max_tokens/call, streaming JSON lines)  \n\n")
+        f.write(
+            "**Budget Mode**: Minimal Token Egress (450 max_tokens/call, streaming JSON lines)  \n\n"
+        )
         f.write("---\n\n")
         for r in reviews:
             f.write(f"## Auditor: `{r['model']}` (Latency: {r['duration']}s)\n\n")
@@ -120,6 +123,7 @@ async def run_budgeted_cloud_adversarial_review():
     print("\n" + "=" * 115)
     print(f"📄 Budgeted Cloud Review Persisted to: {report_path}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_budgeted_cloud_adversarial_review())

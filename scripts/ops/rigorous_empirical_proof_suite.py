@@ -53,7 +53,9 @@ def run_proof_suite() -> None:
     max_norm = float(np.max(traj.hyperbolic_norms))
     dist_start_end = ode_engine.hyperbolic_distance(traj.positions[0], traj.positions[-1])
 
-    print(f"  ✓ Initial Norm: {traj.hyperbolic_norms[0]:.4f} | Max Trajectory Norm: {max_norm:.6f} (< 1.0)")
+    print(
+        f"  ✓ Initial Norm: {traj.hyperbolic_norms[0]:.4f} | Max Trajectory Norm: {max_norm:.6f} (< 1.0)"
+    )
     print(f"  ✓ Total Hyperbolic Geodesic Distance Traversed: {dist_start_end:.4f}")
     assert max_norm < 1.0, f"Poincaré boundary breached! Max norm: {max_norm}"
     assert traj.strictly_contained is True
@@ -62,16 +64,24 @@ def run_proof_suite() -> None:
     # -------------------------------------------------------------------------
     # Proof 2: Matsumoto Itonic Cluster Screening & Coulomb Collapse
     # -------------------------------------------------------------------------
-    print("\n[Proof 2/6] Matsumoto Itonic Cluster Debye Screening & Coulomb Barrier Annihilation...")
+    print(
+        "\n[Proof 2/6] Matsumoto Itonic Cluster Debye Screening & Coulomb Barrier Annihilation..."
+    )
     matsumoto = MatsumotoENCEngine()
     # High-density Itonic cluster (4 protons, 8 electrons, current density 1e13 A/m^2)
-    c_state = matsumoto.evaluate_itonic_cluster(num_protons=4, num_electrons=8, current_density_a_m2=1e13)
+    c_state = matsumoto.evaluate_itonic_cluster(
+        num_protons=4, num_electrons=8, current_density_a_m2=1e13
+    )
     trans = matsumoto.simulate_enc_transmutation(c_state)
 
     print(f"  ✓ Electron Density: {c_state.electron_density_m3:.2e} m^-3")
-    print(f"  ✓ Debye Screening Length: {c_state.screening_length_meters*1e12:.2f} pm")
-    print(f"  ✓ Screened Coulomb Barrier: {c_state.coulomb_barrier_ev:.4f} eV (Bare Barrier > 140,000 eV)")
-    print(f"  ✓ Transmutation Occurred: {trans['transmutation_occurred']} -> Product: {trans['primary_product']}")
+    print(f"  ✓ Debye Screening Length: {c_state.screening_length_meters * 1e12:.2f} pm")
+    print(
+        f"  ✓ Screened Coulomb Barrier: {c_state.coulomb_barrier_ev:.4f} eV (Bare Barrier > 140,000 eV)"
+    )
+    print(
+        f"  ✓ Transmutation Occurred: {trans['transmutation_occurred']} -> Product: {trans['primary_product']}"
+    )
     assert c_state.is_enc_triggered is True
     assert c_state.coulomb_barrier_ev < 1.0
     assert trans["transmutation_occurred"] is True
@@ -112,7 +122,9 @@ def run_proof_suite() -> None:
 
     # Retrieve initial knowledge
     v_retrieved, ratio = meta_engine.step(k_first, np.zeros(12), d_t=0.0)
-    cos_sim = float(np.dot(v_retrieved, v_first) / (np.linalg.norm(v_retrieved) * np.linalg.norm(v_first)))
+    cos_sim = float(
+        np.dot(v_retrieved, v_first) / (np.linalg.norm(v_retrieved) * np.linalg.norm(v_first))
+    )
 
     print(f"  ✓ Cosine Similarity on Initial Memory after 20 Distractor Steps: {cos_sim:.4f}")
     print(f"  ✓ Precision Matrix Mean Diag: {np.mean(meta_engine.state.I_diag):.4f}")
@@ -129,9 +141,15 @@ def run_proof_suite() -> None:
     # At off-coherence point (c = 0.2)
     state_off = thermo.evaluate_thermodynamic_hiho(coherence=0.2, bits_erased=100.0)
 
-    print(f"  ✓ HIHO State (c=0.5): Order Param Phi = {state_hiho.order_parameter_phi:.4f} | Fundamental = {state_hiho.fundamental_freq_hz:.1f} Hz | Dissonance = {state_hiho.spectral_dissonance:.2f}")
-    print(f"  ✓ Off-HIHO (c=0.2): Order Param Phi = {state_off.order_parameter_phi:.4f} | Fundamental = {state_off.fundamental_freq_hz:.1f} Hz | Dissonance = {state_off.spectral_dissonance:.2f}")
-    print(f"  ✓ Landauer Dissipation (100 bits @ 300K): {state_hiho.landauer_dissipation_joules:.4e} Joules")
+    print(
+        f"  ✓ HIHO State (c=0.5): Order Param Phi = {state_hiho.order_parameter_phi:.4f} | Fundamental = {state_hiho.fundamental_freq_hz:.1f} Hz | Dissonance = {state_hiho.spectral_dissonance:.2f}"
+    )
+    print(
+        f"  ✓ Off-HIHO (c=0.2): Order Param Phi = {state_off.order_parameter_phi:.4f} | Fundamental = {state_off.fundamental_freq_hz:.1f} Hz | Dissonance = {state_off.spectral_dissonance:.2f}"
+    )
+    print(
+        f"  ✓ Landauer Dissipation (100 bits @ 300K): {state_hiho.landauer_dissipation_joules:.4e} Joules"
+    )
     assert state_hiho.order_parameter_phi == 1.0
     assert state_hiho.fundamental_freq_hz == 432.0
     assert state_hiho.spectral_dissonance == 0.0
@@ -154,7 +172,9 @@ def run_proof_suite() -> None:
 
     print(f"  ✓ Safe AST Verification Latency: {t_safe_ms:.3f} ms (< 0.10 ms)")
     print(f"  ✓ Safe Code Verified: {safe_res['verified']}")
-    print(f"  ✓ Malicious Code Blocked: {unsafe_res['verified'] is False} (Reason: {unsafe_res['violations']})")
+    print(
+        f"  ✓ Malicious Code Blocked: {unsafe_res['verified'] is False} (Reason: {unsafe_res['violations']})"
+    )
     assert safe_res["verified"] is True
     assert unsafe_res["verified"] is False
     assert t_safe_ms < 1.0
@@ -162,7 +182,9 @@ def run_proof_suite() -> None:
 
     dt_total = time.perf_counter() - t_start
     print("\n" + "=" * 100)
-    print(f"🎉 ALL {proofs_passed}/{total_proofs} RIGOROUS EMPIRICAL PROOFS PASSED GREEN IN {dt_total:.3f}s!")
+    print(
+        f"🎉 ALL {proofs_passed}/{total_proofs} RIGOROUS EMPIRICAL PROOFS PASSED GREEN IN {dt_total:.3f}s!"
+    )
     print("=" * 100)
 
 

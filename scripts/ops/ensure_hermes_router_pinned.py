@@ -18,7 +18,9 @@ from pathlib import Path
 from cohezion.core.event_bus import Event, EventBus
 
 
-POLICY_FILE = Path("/home/mike-anderson/dev/cohezion/src/cohezion/registry/cohezion_hermes_router_policy.json")
+POLICY_FILE = Path(
+    "/home/mike-anderson/dev/cohezion/src/cohezion/registry/cohezion_hermes_router_policy.json"
+)
 HERMES_CONFIG = Path.home() / ".hermes/config.yaml"
 LEMONADE_URL = "http://localhost:13305"
 
@@ -40,7 +42,7 @@ async def main() -> None:
     req = urllib.request.Request(
         f"{LEMONADE_URL}/api/v1/pull",
         headers={"Content-Type": "application/json"},
-        data=policy_data
+        data=policy_data,
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -53,11 +55,14 @@ async def main() -> None:
     print("\n2. Locking ~/.hermes/config.yaml endpoint & model...")
     if HERMES_CONFIG.exists():
         import re
+
         content = HERMES_CONFIG.read_text(encoding="utf-8")
         # Ensure default model is user.cohezion-hermes-router
         content = re.sub(r"default:\s+.*", "default: user.cohezion-hermes-router", content)
         # Ensure api is port 13305
-        content = re.sub(r"api:\s+http://localhost:\d+/.*", "api: http://localhost:13305/api/v1", content)
+        content = re.sub(
+            r"api:\s+http://localhost:\d+/.*", "api: http://localhost:13305/api/v1", content
+        )
         HERMES_CONFIG.write_text(content, encoding="utf-8")
         print("  ✓ ~/.hermes/config.yaml verified and locked.")
 
@@ -75,9 +80,9 @@ async def main() -> None:
                 "npu_general": "qwen3.6-moe-35b-a3b-FLM",
                 "igpu_coding": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
                 "reasoning": "deepseek-r1-0528-8b-FLM",
-                "fast_ack": "waslmedia-qwen3-4b-Q4_K_M"
-            }
-        }
+                "fast_ack": "waslmedia-qwen3-4b-Q4_K_M",
+            },
+        },
     )
     try:
         await bus.publish(event)

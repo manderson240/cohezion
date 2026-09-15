@@ -18,6 +18,7 @@ from cohezion.physics.poincare_geodesic_ode import PoincareGeodesicODE
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 
+
 async def consult_qwen397b_dsl_synthesis() -> str:
     prompt = (
         "You are an Expert ARC-AGI DSL Compiler Engineer running as qwen3.5:397b-cloud. "
@@ -33,11 +34,14 @@ async def consult_qwen397b_dsl_synthesis() -> str:
     payload = {
         "model": "qwen3.5:397b-cloud",
         "messages": [
-            {"role": "system", "content": "You are a Principal Compiler Engineer for ARC-AGI DSLs."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": "You are a Principal Compiler Engineer for ARC-AGI DSLs.",
+            },
+            {"role": "user", "content": prompt},
         ],
         "stream": False,
-        "options": {"temperature": 0.1, "num_predict": 1200}
+        "options": {"temperature": 0.1, "num_predict": 1200},
     }
     async with httpx.AsyncClient(timeout=180.0) as client:
         r = await client.post(OLLAMA_URL, json=payload)
@@ -49,23 +53,24 @@ async def consult_qwen397b_dsl_synthesis() -> str:
             return content
     return "# Fallback verified primitives"
 
+
 def benchmark_384d_vs_2048d_poincare():
     print("\n" + "=" * 115)
     print("⚡ BENCHMARKING POINCARÉ MANIFOLD RIGHT-SIZING (2048D vs 384D)")
     print("=" * 115)
 
     n_samples = 10000
-    
+
     # 2048D Benchmark
     ode_2048 = PoincareGeodesicODE(dim=2048)
     vecs_2048_u = np.random.randn(n_samples, 2048) * 0.1
     vecs_2048_v = np.random.randn(n_samples, 2048) * 0.1
-    
+
     t0 = time.perf_counter()
     diff_2048 = vecs_2048_u - vecs_2048_v
-    norm_diff_sq = np.sum(diff_2048 ** 2, axis=1)
-    norm_u_sq = np.sum(vecs_2048_u ** 2, axis=1)
-    norm_v_sq = np.sum(vecs_2048_v ** 2, axis=1)
+    norm_diff_sq = np.sum(diff_2048**2, axis=1)
+    norm_u_sq = np.sum(vecs_2048_u**2, axis=1)
+    norm_v_sq = np.sum(vecs_2048_v**2, axis=1)
     delta_2048 = 1.0 + 2.0 * norm_diff_sq / np.maximum((1.0 - norm_u_sq) * (1.0 - norm_v_sq), 1e-6)
     dist_2048 = np.arccosh(np.maximum(delta_2048, 1.0))
     time_2048 = time.perf_counter() - t0
@@ -77,21 +82,30 @@ def benchmark_384d_vs_2048d_poincare():
 
     t0 = time.perf_counter()
     diff_384 = vecs_384_u - vecs_384_v
-    norm_diff_sq_384 = np.sum(diff_384 ** 2, axis=1)
-    norm_u_sq_384 = np.sum(vecs_384_u ** 2, axis=1)
-    norm_v_sq_384 = np.sum(vecs_384_v ** 2, axis=1)
-    delta_384 = 1.0 + 2.0 * norm_diff_sq_384 / np.maximum((1.0 - norm_u_sq_384) * (1.0 - norm_v_sq_384), 1e-6)
+    norm_diff_sq_384 = np.sum(diff_384**2, axis=1)
+    norm_u_sq_384 = np.sum(vecs_384_u**2, axis=1)
+    norm_v_sq_384 = np.sum(vecs_384_v**2, axis=1)
+    delta_384 = 1.0 + 2.0 * norm_diff_sq_384 / np.maximum(
+        (1.0 - norm_u_sq_384) * (1.0 - norm_v_sq_384), 1e-6
+    )
     dist_384 = np.arccosh(np.maximum(delta_384, 1.0))
     time_384 = time.perf_counter() - t0
 
     speedup = time_2048 / max(time_384, 1e-6)
     throughput_384 = n_samples / time_384
 
-    print(f"• 2048D Hyperbolic Evaluation Time: {time_2048*1000:.2f} ms ({n_samples/time_2048:,.0f} evals/sec)")
-    print(f"• 384D  Hyperbolic Evaluation Time: {time_384*1000:.2f} ms ({throughput_384:,.0f} evals/sec)")
-    print(f"✓ Measured Speedup Factor: {speedup:.2f}x Faster! Memory Bandwidth Saved: {((2048-384)/2048)*100:.1f}%")
+    print(
+        f"• 2048D Hyperbolic Evaluation Time: {time_2048 * 1000:.2f} ms ({n_samples / time_2048:,.0f} evals/sec)"
+    )
+    print(
+        f"• 384D  Hyperbolic Evaluation Time: {time_384 * 1000:.2f} ms ({throughput_384:,.0f} evals/sec)"
+    )
+    print(
+        f"✓ Measured Speedup Factor: {speedup:.2f}x Faster! Memory Bandwidth Saved: {((2048 - 384) / 2048) * 100:.1f}%"
+    )
     print("=" * 115)
     return throughput_384
+
 
 async def main():
     print("\n" + "=" * 115)
@@ -108,12 +122,15 @@ async def main():
 
     out_file = Path("src/cohezion/agi/arc_384d_dsl_primitives.py")
     out_file.parent.mkdir(parents=True, exist_ok=True)
-    out_file.write_text(f'"""Synthesized 384D ARC DSL Primitives via Qwen-397B."""\n\nimport numpy as np\n\n{dsl_code}\n')
+    out_file.write_text(
+        f'"""Synthesized 384D ARC DSL Primitives via Qwen-397B."""\n\nimport numpy as np\n\n{dsl_code}\n'
+    )
     print(f"✓ Saved Synthesized DSL Library to `{out_file}`")
 
     print("\n" + "=" * 115)
     print("🏆 DAY 1 PHASE A COMPLETE: 384D POINCARÉ SEARCH SCALED & VERIFIED!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

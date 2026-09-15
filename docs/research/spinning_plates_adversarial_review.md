@@ -29,7 +29,7 @@ if duration_sec is not None:
     await asyncio.sleep(duration_sec)
     self.running = False
     for t in tasks:
-        t.cancel()          # <-- not awaited
+        t.cancel()  # <-- not awaited
     logger.info("✓ Completed ...")
 ```
 
@@ -130,9 +130,7 @@ centroid = await asyncio.to_thread(
 
 ```python
 try:
-    resp_data = await asyncio.wait_for(
-        loop.run_in_executor(None, _fetch), timeout=5.0
-    )
+    resp_data = await asyncio.wait_for(loop.run_in_executor(None, _fetch), timeout=5.0)
 except asyncio.TimeoutError:
     outcome = "Cloud request timed out"
 except asyncio.CancelledError:
@@ -165,10 +163,12 @@ The constructor accepts `min_available_gb=20.0` and the documentation states tha
 async def _check_memory_safety(self) -> bool:
     mem = OOMGuard.get_memory_state()
     if mem.available_gb < self.min_available_gb:
-        logger.warning("Insufficient UMA memory: %.1f GiB < %.1f GiB",
-                       mem.available_gb, self.min_available_gb)
+        logger.warning(
+            "Insufficient UMA memory: %.1f GiB < %.1f GiB", mem.available_gb, self.min_available_gb
+        )
         return False
     return True
+
 
 # Inside each plate loop:
 if not await self._check_memory_safety():
@@ -236,8 +236,7 @@ Wrap every plate’s core operation in `asyncio.wait_for` to prevent hangs.
 ```python
 try:
     res = await asyncio.wait_for(
-        asyncio.to_thread(self.verifier.verify_code, code_sample),
-        timeout=10.0
+        asyncio.to_thread(self.verifier.verify_code, code_sample), timeout=10.0
     )
 except asyncio.TimeoutError:
     p.last_outcome = "TIMEOUT"
@@ -342,7 +341,7 @@ The code claims explicit hardware lane assignment (`hardware_lane="NPU"`, `"iGPU
     ```python
     mem = OOMGuard.get_memory_state()
     # ... logging ...
-    await asyncio.sleep(4.0) # Continues regardless of mem.is_safe
+    await asyncio.sleep(4.0)  # Continues regardless of mem.is_safe
     ```
 
 ### 1.4 Cancellation & Resource Leak (Severity: MEDIUM)
@@ -378,6 +377,7 @@ Move heavy math and verification to a thread pool to prevent event loop blocking
 ```python
 # src/cohezion/proactive/spinning_plates_protocol.py
 
+
 async def spin_plate_poincare_calibration(self):
     loop = asyncio.get_running_loop()
     while self.running:
@@ -385,11 +385,10 @@ async def spin_plate_poincare_calibration(self):
         # OFFLOAD TO EXECUTOR TO PREVENT LOOP BLOCKING
         p1, p2 = (0.15, 0.25, 0.05), (-0.10, 0.18, -0.05)
         centroid = await loop.run_in_executor(
-            None, 
+            None,
             lambda: self.frechet_aggregator.compute_frechet_mean(
-                [PoincareManifoldND.project(p1, 3), PoincareManifoldND.project(p2, 3)], 
-                max_iter=5
-            )
+                [PoincareManifoldND.project(p1, 3), PoincareManifoldND.project(p2, 3)], max_iter=5
+            ),
         )
         # ... update state ...
 ```
@@ -400,18 +399,19 @@ The Governor must halt non-essential plates when memory thresholds are breached.
 ```python
 # src/cohezion/proactive/spinning_plates_protocol.py
 
+
 async def spin_plate_multimodal_uma_guard(self):
     while self.running:
         mem = OOMGuard.get_memory_state()
         # ACTIVE BACKPRESSURE SIGNAL
         if not mem.is_safe:
             logger.warning("⚠️ UMA CRITICAL: Pausing heavy plates...")
-            self.fleet_lock.acquire_lock("memory_pressure") # Hypothetical lock
-        
+            self.fleet_lock.acquire_lock("memory_pressure")  # Hypothetical lock
+
         # ... update state ...
-        
+
         if not mem.is_safe:
-            await asyncio.sleep(1.0) # Poll faster during pressure
+            await asyncio.sleep(1.0)  # Poll faster during pressure
         else:
             await asyncio.sleep(4.0)
 ```
@@ -438,17 +438,18 @@ Handle `CancelledError` and use fixed-interval scheduling.
 ```python
 # src/cohezion/proactive/spinning_plates_protocol.py
 
+
 async def spin_plate_ast_verification(self):
     next_run = time.perf_counter()
     while self.running:
         try:
             # ... work ...
-            
+
             # DRIFT CORRECTION
             next_run += 2.0
             sleep_time = max(0, next_run - time.perf_counter())
             await asyncio.sleep(sleep_time)
-            
+
         except asyncio.CancelledError:
             logger.info(f"Plate {self.plates['ast_verifier'].name} shutting down gracefully...")
             # Final telemetry flush here
@@ -535,7 +536,9 @@ res = await asyncio.to_thread(self.verifier.verify_code, code_sample)
 # Plate 2
 p1 = await asyncio.to_thread(PoincareManifoldND.project, (0.15, 0.25, 0.05), target_dim=2048)
 p2 = await asyncio.to_thread(PoincareManifoldND.project, (-0.10, 0.18, -0.05), target_dim=2048)
-centroid = await asyncio.to_thread(self.frechet_aggregator.compute_frechet_mean, [p1, p2], max_iter=100, tol=1e-6)
+centroid = await asyncio.to_thread(
+    self.frechet_aggregator.compute_frechet_mean, [p1, p2], max_iter=100, tol=1e-6
+)
 ```
 
 **Recommendation 2: Add Resilient Exception Handling and Proper Cancellation**
@@ -553,7 +556,8 @@ async def spin_plate_ast_verification(self):
         except Exception as exc:
             logger.error(f"Plate 1 crashed: {exc}", exc_info=True)
             self.plates["ast_verifier"].active = False
-            await asyncio.sleep(5.0) # Backoff before retry or exit
+            await asyncio.sleep(5.0)  # Backoff before retry or exit
+
 
 # In start_spinning_plates:
 if duration_sec is not None:

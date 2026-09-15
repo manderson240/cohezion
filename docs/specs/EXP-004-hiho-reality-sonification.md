@@ -25,6 +25,7 @@ By mapping distance from stability $|c - 0.5|$ directly into audio harmonic diss
 # Standalone execution blueprint:
 import math
 
+
 def compute_hiho_audio_harmonics(coherence: float, base_hz: float = 432.0) -> dict:
     offset = abs(coherence - 0.5)
     # Fundamental frequency modulated by offset

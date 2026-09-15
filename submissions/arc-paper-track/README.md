@@ -24,18 +24,14 @@ python -m cohezion.arc.submission verify submission.json --data-dir data/arc-agi
 ## Files
 | File | Description |
 |------|-------------|
-| paper.md | NeurIPS SafeAI 2026 Workshop paper skeleton (source) |
-| paper.tex | LaTeX source for compilation |
+| paper.tex | NeurIPS SafeAI 2026 Workshop paper skeleton |
 | reasoning_traces.jsonl | Per-task rule extraction + prediction provenance |
+| grid_pipeline.py | ARC-AGI grid codec, latent encoder, HIHO scorer |
+| pattern_extractor.py | CompoundRule extractor with 6-strategy consensus |
+| submission_builder.py | Kaggle-ready submission + manifest + package |
 | results.jsonl | Per-task predictions with confidence and source |
 | manifest.json | SHA-256 integrity hashes per task |
 | ablation_analysis.md | Ablation results across tracks |
-| code.zip | Reproducible solver source snapshot |
-
-## Compilation
-```bash
-pdflatex paper.tex
-```
 
 ## Citation
 Cohezion Research. "ARC-AGI Solver: A Compound Engineering Approach." SafeAI Workshop at NeurIPS 2026.

@@ -19,8 +19,10 @@ from cohezion.compound.analytics.metrics import MetricsSnapshot as src_metrics_s
 from cohezion.compound.analytics.metrics import SimpleMetrics as src_simple_metrics
 
 # autonomous_loop
+from cohezion.compound.autonomous_loop import CandidateAttempt as pkg_cand_attempt
 from cohezion.compound.autonomous_loop import ChallengerAgent as pkg_challenger
 from cohezion.compound.autonomous_loop import EpisodeResult as pkg_episode
+from cohezion.compound.autonomous_loop import GroupTaskAttempt as pkg_grp_attempt
 from cohezion.compound.autonomous_loop import ImprovementExecutor as pkg_imp_exec
 from cohezion.compound.autonomous_loop import LocalImprovementExecutor as pkg_local_exec
 from cohezion.compound.autonomous_loop import LoopConfig as pkg_loop_cfg
@@ -46,8 +48,14 @@ from cohezion.compound.autonomous_loop.local_executor import LoopTickSweeper as 
 from cohezion.compound.autonomous_loop.quality_tracker import (
     MarkovQualityTracker as src_markov,
 )
+from cohezion.compound.autonomous_loop.rzero_challenger import (
+    CandidateAttempt as src_cand_attempt,
+)
 from cohezion.compound.autonomous_loop.rzero_challenger import ChallengerAgent as src_challenger
 from cohezion.compound.autonomous_loop.rzero_challenger import EpisodeResult as src_episode
+from cohezion.compound.autonomous_loop.rzero_challenger import (
+    GroupTaskAttempt as src_grp_attempt,
+)
 from cohezion.compound.autonomous_loop.rzero_challenger import (
     RZeroChallengerExecutor as src_rzero,
 )
@@ -271,6 +279,14 @@ def test_solver_agent_is_same():
 
 def test_task_attempt_is_same():
     assert pkg_task_attempt is src_task_attempt
+
+
+def test_candidate_attempt_is_same():
+    assert pkg_cand_attempt is src_cand_attempt
+
+
+def test_group_task_attempt_is_same():
+    assert pkg_grp_attempt is src_grp_attempt
 
 
 # ── core ─────────────────────────────────────────────────────────────────────

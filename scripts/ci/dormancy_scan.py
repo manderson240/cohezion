@@ -182,23 +182,39 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
+    (
+        "CR1-compaction: LongHorizonTask.execute_step CONSUMES recompute_tier_at_compaction at compaction boundary",
+        r"self\.executor\.recompute_tier_at_compaction\(",
+        "src/cohezion/compound/long_horizon_task.py",
+        1,
+    ),
+    (
+        "HITL-approvals: compound_analytics_cli CONSUMES SkillRefiner.get_pending_approvals (operator surface)",
+        r"SkillRefiner\.get_pending_approvals\(",
+        "scripts/compound_analytics_cli.py",
+        1,
+    ),
+    (
+        "Transition-enum: ImprovementExecutor.execute_task CONSUMES transition_controller.enum_schema (agentic next-state pick)",
+        r"self\._transition_controller\.enum_schema\(",
+        "src/cohezion/compound/autonomous_loop/executor.py",
+        1,
+    ),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
 # (not a failure) so the scan never falsely claims "all clear" while these sit dormant outside the
 # guarded set — addressing the curation-coverage gap honestly instead of pretending it doesn't exist.
 KNOWN_DORMANT: list[str] = [
-    "CR1 _recompute_tier_at_compaction — no production boundary fires it (intentional callable; harness-documented)",
-    "get_pending_approvals — write side consumed, READ side has no operator surface (HITL gap)",
+    # CR1 _recompute_tier_at_compaction — CLOSED 2026-09-13, promoted into GUARDED (wired to LongHorizonTask.execute_step).
+    # get_pending_approvals — CLOSED 2026-09-13, promoted into GUARDED (wired to scripts/compound_analytics_cli.py cmd_approvals).
+    # transition_controller.enum_schema — CLOSED 2026-09-13, promoted into GUARDED (wired to ImprovementExecutor.execute_task).
     # Constrained-decoding trio (2026-07-28). All three answer "how do we constrain a model's
     # output?", all three are dormant, and NONE knew about the others — so a 4th was nearly built.
     # Listed here so the next person FINDS them instead of implementing a fifth. Live capability
     # facts: tests/inference/test_recipe_constraint_support.py (RC1).
     "structured_npu.npu_structured_json — dormant AND its core claim is FALSIFIED (flm/NPU ignores "
     "`grammar` silently on Lemonade 11.5.0). Wiring target: retarget at a llamacpp recipe model",
-    "transition_controller.enum_schema — works (response_format enum, llamacpp lanes) but has no "
-    "production caller. Wiring target: the agentic-loop next-state pick it was written for "
-    "(one unrepeated probe suggested this path is costlier than bare GBNF — n=1, not established)",
     # quality_eval.evaluate — CLOSED 2026-08-30, promoted out of this list into three GUARDED
     # floors above (DQ2 producer / DQ4 forwarding / DQ7 factory). Kept as a comment because the
     # shape of the gap is the lesson: a consumer-grep said "wired" (DegradationDetector really

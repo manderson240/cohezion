@@ -9,9 +9,11 @@ Optimizes local inference for AMD Ryzen AI MAX+ 395 (Strix Halo):
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import time
+import urllib.request
 from dataclasses import dataclass, field
 
 from cohezion.inference.hardware_telemetry import (
@@ -43,6 +45,39 @@ class SiliconOptimizationProfile:
             "-ffast-math",
         ]
     )
+
+
+@dataclass(frozen=True, slots=True)
+class LaneHealthStatus:
+    """Health status and telemetry for a single Strix Halo compute lane."""
+
+    lane_name: str
+    port: int
+    backend: str
+    is_responsive: bool
+    model_id: str
+    latency_ms: float
+    role: str
+
+
+@dataclass(frozen=True, slots=True)
+class StrixHaloTopology:
+    """Hardware topology for AMD Ryzen AI MAX+ 395 (Strix Halo)."""
+
+    cpu_model: str = "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+    cpu_cores: int = 16
+    cpu_threads: int = 32
+    gpu_model: str = "AMD Radeon 8060S (40 CUs RDNA 3.5, gfx1151)"
+    npu_model: str = "AMD XDNA 2 NPU (/dev/accel/accel0, 50-55 TOPS)"
+    total_uma_ram_gb: float = 128.0
+    uma_bandwidth_gb_s: float = 256.0
+    safe_memory_floor_gb: float = 20.0
+    npu_port: int = 8002
+    igpu_small_port: int = 8003
+    igpu_embed_port: int = 8005
+    igpu_heavy_port: int = 8006
+    lemonade_port: int = 13305
+    ollama_port: int = 11434
 
 
 @dataclass
@@ -176,3 +211,109 @@ class StrixHaloSiliconOptimizer:
     def get_optimal_compilation_flags(self) -> list[str]:
         """Return C++/HIP compilation flags optimized for gfx1151 Strix Halo."""
         return list(self.profile.compiler_flags)
+
+    def get_strix_halo_topology(self) -> StrixHaloTopology:
+        """Return the complete Strix Halo APU hardware topology."""
+        return StrixHaloTopology()
+
+    def enforce_wave32_environment(self) -> dict[str, str]:
+        """Enforce Wave32 matrix alignment and ROCm/Vulkan environment flags."""
+        env_updates = {
+            "ROCM_WAVEFRONT_SIZE": str(self.profile.wavefront_size),
+            "HIP_FORCE_WAVE32": "1",
+            "GGML_VULKAN_WAVE_SIZE": str(self.profile.wavefront_size),
+            "HSA_OVERRIDE_GFX_VERSION": "11.5.1",
+            "PYTORCH_ROCM_ARCH": "gfx1151",
+        }
+        for k, v in env_updates.items():
+            os.environ[k] = v
+        logger.info("Enforced Strix Halo Wave32 environment: %s", env_updates)
+        return env_updates
+
+    def probe_strix_halo_lanes(self, timeout_s: float = 1.0) -> dict[int, LaneHealthStatus]:
+        """Probe all active Strix Halo compute lanes and report status."""
+        ports_config = [
+            (
+                8002,
+                "XDNA2 NPU FastFlowLM",
+                "FastFlowLM",
+                "/v1/models",
+                "Tier 0 Classification & Drafting",
+            ),
+            (
+                8003,
+                "Radeon 8060S iGPU Vulkan Small",
+                "Vulkan llama-server",
+                "/health",
+                "Tier 1 Structured Generation & Small Coding",
+            ),
+            (
+                8005,
+                "Radeon 8060S iGPU Vulkan Embed",
+                "Vulkan llama-server",
+                "/health",
+                "Tier 1 Semantic Embeddings",
+            ),
+            (
+                8006,
+                "Radeon 8060S iGPU ROCm Wave32",
+                "ROCm llama-server",
+                "/health",
+                "Tier 1 Heavy Reasoning & Multi-File Coding",
+            ),
+            (
+                13305,
+                "Lemonade OmniRouter",
+                "Lemonade Router",
+                "/v1/models",
+                "On-Demand Specialty Hot-Swapping",
+            ),
+            (11434, "Ollama Cloud", "Ollama", "/api/tags", "Tier 2 Cloud Overflow"),
+        ]
+        status_map: dict[int, LaneHealthStatus] = {}
+
+        for port, lane_name, backend, endpoint, role in ports_config:
+            url = f"http://127.0.0.1:{port}{endpoint}"
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "Cohezion-StrixHalo-Sentinel/1.0"}
+            )
+            t0 = time.perf_counter()
+            is_responsive = False
+            model_id = "unknown"
+            latency_ms = 0.0
+
+            try:
+                with urllib.request.urlopen(req, timeout=timeout_s) as resp:  # noqa: S310
+                    latency_ms = (time.perf_counter() - t0) * 1000.0
+                    if resp.status == 200:
+                        is_responsive = True
+                        body = resp.read().decode("utf-8", errors="ignore")
+                        try:
+                            data = json.loads(body)
+                            if (
+                                "models" in data
+                                and isinstance(data["models"], list)
+                                and data["models"]
+                            ):
+                                model_id = data["models"][0].get("name", "unknown")
+                            elif "data" in data and isinstance(data["data"], list) and data["data"]:
+                                model_id = data["data"][0].get("id", "unknown")
+                            elif data.get("status") == "ok":
+                                model_id = "ready"
+                        except Exception:
+                            model_id = "active"
+            except Exception:
+                latency_ms = (time.perf_counter() - t0) * 1000.0
+                is_responsive = False
+
+            status_map[port] = LaneHealthStatus(
+                lane_name=lane_name,
+                port=port,
+                backend=backend,
+                is_responsive=is_responsive,
+                model_id=model_id,
+                latency_ms=round(latency_ms, 2),
+                role=role,
+            )
+
+        return status_map

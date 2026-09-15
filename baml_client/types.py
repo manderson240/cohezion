@@ -41,7 +41,7 @@ def all_succeeded(checks: typing.Dict[CheckName, Check]) -> bool:
 # #########################################################################
 
 # #########################################################################
-# Generated classes (4)
+# Generated classes (15)
 # #########################################################################
 
 class CodeHarness(BaseModel):
@@ -51,10 +51,73 @@ class CodeHarness(BaseModel):
     python_verifier_code: str
     estimated_latency_ms: float
 
+class ExtractedEntity(BaseModel):
+    id: str
+    name: str
+    entity_type: str
+    summary: str
+    tags: typing.List[str]
+
+class ExtractedRelation(BaseModel):
+    source_id: str
+    target_id: str
+    relation_type: str
+    confidence: float
+    weight: float
+    rationale: str
+
+class GoalSpecification(BaseModel):
+    goal_id: str
+    title: str
+    target_metric: str
+    target_threshold: float
+    max_iterations: int
+    timeout_seconds: float
+
+class HardwareVitalsSnapshot(BaseModel):
+    total_ram_gb: float
+    free_ram_gb: float
+    gate_v2_safe: bool
+    lemonade_alive: bool
+    active_models: typing.List[str]
+
+class KanbanItem(BaseModel):
+    id: str
+    title: str
+    status: typing.Union[typing_extensions.Literal['backlog'], typing_extensions.Literal['todo'], typing_extensions.Literal['in_progress'], typing_extensions.Literal['done'], typing_extensions.Literal['blocked']]
+    priority: typing.Union[typing_extensions.Literal['critical'], typing_extensions.Literal['high'], typing_extensions.Literal['medium'], typing_extensions.Literal['low']]
+    source: str
+    category: typing.Union[typing_extensions.Literal['architecture'], typing_extensions.Literal['bugfix'], typing_extensions.Literal['tech_debt'], typing_extensions.Literal['research']]
+    description: str
+
+class ModelCardProfile(BaseModel):
+    model_id: str
+    backend_recipe: typing.Union[typing_extensions.Literal['flm'], typing_extensions.Literal['llamacpp'], typing_extensions.Literal['kokoro'], typing_extensions.Literal['sd-cpp'], typing_extensions.Literal['whispercpp']]
+    device: typing.Union[typing_extensions.Literal['npu'], typing_extensions.Literal['igpu'], typing_extensions.Literal['cpu']]
+    sweet_spot_temp: float
+    min_memory_gb: float
+    supported_modes: typing.List[str]
+
 class NextStep(BaseModel):
     action: str
     rationale: str
     risk_level: typing.Union[typing_extensions.Literal['low'], typing_extensions.Literal['medium'], typing_extensions.Literal['high']]
+
+class RoutingDecision(BaseModel):
+    model_id: str
+    tier: typing.Union[typing_extensions.Literal['npu'], typing_extensions.Literal['igpu'], typing_extensions.Literal['cpu'], typing_extensions.Literal['cloud']]
+    port: int
+    temperature: float
+    top_p: float
+    max_context: int
+    evi_score: float
+
+class SheafDirichletState(BaseModel):
+    num_nodes: int
+    num_edges: int
+    dirichlet_energy: float
+    is_concordant: bool
+    disputed_edges: typing.List[str]
 
 class SubmissionStrategy(BaseModel):
     competition_id: str
@@ -63,6 +126,13 @@ class SubmissionStrategy(BaseModel):
     confidence_score: float
     reasoning: str
 
+class TaskClassificationResult(BaseModel):
+    node: typing.Union[typing_extensions.Literal['npu'], typing_extensions.Literal['igpu'], typing_extensions.Literal['cpu'], typing_extensions.Literal['cloud']]
+    output_type: typing.Union[typing_extensions.Literal['short_answer'], typing_extensions.Literal['code'], typing_extensions.Literal['long_generation'], typing_extensions.Literal['structured']]
+    quality_gate_chars: int
+    confidence: float
+    rationale: str
+
 class TaskInvariants(BaseModel):
     grid_dimension_rule: typing.Union[typing_extensions.Literal['identity'], typing_extensions.Literal['constant'], typing_extensions.Literal['scaled'], typing_extensions.Literal['dynamic'], typing_extensions.Literal['crop']]
     conserved_colors: typing.List[int]
@@ -70,19 +140,45 @@ class TaskInvariants(BaseModel):
     symmetry_detected: typing.Union[typing_extensions.Literal['none'], typing_extensions.Literal['horizontal'], typing_extensions.Literal['vertical'], typing_extensions.Literal['rotational_90'], typing_extensions.Literal['rotational_180'], typing_extensions.Literal['main_diagonal'], typing_extensions.Literal['anti_diagonal']]
     description: str
 
+class VModelTrace(BaseModel):
+    concept_name: str
+    target_category: str
+    node_id: str
+    j_space_regime: str
+    ast_verified: bool
+    zkfv_verified: bool
+    multiperspective_score: float
+
+class VaultGraphExtraction(BaseModel):
+    source_document: str
+    coherence_score: float
+    entities: typing.List["ExtractedEntity"]
+    relations: typing.List["ExtractedRelation"]
+
 # #########################################################################
 # Generated type aliases (0)
 # #########################################################################
 
 
 # #########################################################################
-# Model rebuilds (4)
+# Model rebuilds (15)
 # #########################################################################
 # Resolve string forward references now that every model above is defined so
 # class declaration order never breaks Pydantic construction (issue #793).
 # Recursive models are intentionally omitted (Pydantic resolves those lazily;
 # eagerly rebuilding them can recurse).
 CodeHarness.model_rebuild()
+ExtractedEntity.model_rebuild()
+ExtractedRelation.model_rebuild()
+GoalSpecification.model_rebuild()
+HardwareVitalsSnapshot.model_rebuild()
+KanbanItem.model_rebuild()
+ModelCardProfile.model_rebuild()
 NextStep.model_rebuild()
+RoutingDecision.model_rebuild()
+SheafDirichletState.model_rebuild()
 SubmissionStrategy.model_rebuild()
+TaskClassificationResult.model_rebuild()
 TaskInvariants.model_rebuild()
+VModelTrace.model_rebuild()
+VaultGraphExtraction.model_rebuild()

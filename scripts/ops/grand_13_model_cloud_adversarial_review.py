@@ -43,18 +43,51 @@ logger = logging.getLogger("grand_13_audit")
 
 AUDIT_ROSTER_13 = [
     {"model": "deepseek-v4-pro:cloud", "lens": "Deep Reasoning & Core System Failure Modes"},
-    {"model": "qwen3.5:397b-cloud", "lens": "Software Engineering, AST Invariants & Code Execution Safety"},
-    {"model": "glm-5.2:cloud", "lens": "Theoretical Physics, Sheaf Cohomology & Mathematical Consistency"},
-    {"model": "nemotron-3-ultra:cloud", "lens": "Systems Engineering V-Model & Resource Contention Guardrails"},
-    {"model": "nemotron-3-super:cloud", "lens": "Distributed Resilience, Throughput Saturation & Deadlock Hunting"},
-    {"model": "kimi-k3:cloud", "lens": "Multi-Agent Emergence, Swarm Scaling Laws & Global Consensus"},
-    {"model": "kimi-k2.7-code:cloud", "lens": "Compiler Microkernels, eBPF AST Verifiers & Memory Bombs"},
-    {"model": "kimi-k2.6:cloud", "lens": "Long-Horizon Swarm Drift, Context Windows & Memory Dilution"},
-    {"model": "gpt-oss:120b-cloud", "lens": "Autonomous Policy Invariants, Zero-Shot Generalization & Tool Calling"},
-    {"model": "minimax-m3:cloud", "lens": "Continuous Multi-Agent Dialogue, EventBus Flow & Race Conditions"},
-    {"model": "gemma4:31b-cloud", "lens": "Multimodal Vector Representation & UI/UX Storytelling Faithfulness"},
+    {
+        "model": "qwen3.5:397b-cloud",
+        "lens": "Software Engineering, AST Invariants & Code Execution Safety",
+    },
+    {
+        "model": "glm-5.2:cloud",
+        "lens": "Theoretical Physics, Sheaf Cohomology & Mathematical Consistency",
+    },
+    {
+        "model": "nemotron-3-ultra:cloud",
+        "lens": "Systems Engineering V-Model & Resource Contention Guardrails",
+    },
+    {
+        "model": "nemotron-3-super:cloud",
+        "lens": "Distributed Resilience, Throughput Saturation & Deadlock Hunting",
+    },
+    {
+        "model": "kimi-k3:cloud",
+        "lens": "Multi-Agent Emergence, Swarm Scaling Laws & Global Consensus",
+    },
+    {
+        "model": "kimi-k2.7-code:cloud",
+        "lens": "Compiler Microkernels, eBPF AST Verifiers & Memory Bombs",
+    },
+    {
+        "model": "kimi-k2.6:cloud",
+        "lens": "Long-Horizon Swarm Drift, Context Windows & Memory Dilution",
+    },
+    {
+        "model": "gpt-oss:120b-cloud",
+        "lens": "Autonomous Policy Invariants, Zero-Shot Generalization & Tool Calling",
+    },
+    {
+        "model": "minimax-m3:cloud",
+        "lens": "Continuous Multi-Agent Dialogue, EventBus Flow & Race Conditions",
+    },
+    {
+        "model": "gemma4:31b-cloud",
+        "lens": "Multimodal Vector Representation & UI/UX Storytelling Faithfulness",
+    },
     {"model": "deepseek-v4-flash:cloud", "lens": "High-Speed Invariant Auditing & Latency Gating"},
-    {"model": "deepseek-v4-flash:0731-cloud", "lens": "Temporal Drift, Historical Calibration & Backwards Compatibility"},
+    {
+        "model": "deepseek-v4-flash:0731-cloud",
+        "lens": "Temporal Drift, Historical Calibration & Backwards Compatibility",
+    },
 ]
 
 PROMPT_TEMPLATE = """You are an Adversarial Red-Team Auditor reviewing the Cohezion Sovereign AGI Platform.
@@ -76,7 +109,9 @@ Provide concise, highly technical analysis.
 """
 
 
-async def audit_single_model(client: httpx.AsyncClient, item: dict[str, str], sem: asyncio.Semaphore) -> dict[str, Any]:
+async def audit_single_model(
+    client: httpx.AsyncClient, item: dict[str, str], sem: asyncio.Semaphore
+) -> dict[str, Any]:
     async with sem:
         t0 = time.perf_counter()
         logger.info("⚔️ [13-Model Audit] Querying %s (%s)...", item["model"], item["lens"])
@@ -96,7 +131,9 @@ async def audit_single_model(client: httpx.AsyncClient, item: dict[str, str], se
             if res.status_code == 200:
                 data = res.json()
                 review_text = data.get("response", "")
-                logger.info("  ✓ [%s] Audit received (%d words)", item["model"], len(review_text.split()))
+                logger.info(
+                    "  ✓ [%s] Audit received (%d words)", item["model"], len(review_text.split())
+                )
         except Exception as e:
             logger.warning("Error on %s: %s", item["model"], e)
 
@@ -124,7 +161,9 @@ async def main_async() -> None:
         tasks = [audit_single_model(client, item, sem) for item in AUDIT_ROSTER_13]
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/grand_13_model_cloud_adversarial_review_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/grand_13_model_cloud_adversarial_review_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     report_lines = [
@@ -152,7 +191,9 @@ async def main_async() -> None:
 
     for r in results:
         report_lines.append(f"## ⚔️ Auditor: `{r['model']}`")
-        report_lines.append(f"**Perspective Lens**: `{r['lens']}` | **Audit Latency**: `{r['latency_s']}s` | **Words**: `{r['word_count']}`")
+        report_lines.append(
+            f"**Perspective Lens**: `{r['lens']}` | **Audit Latency**: `{r['latency_s']}s` | **Words**: `{r['word_count']}`"
+        )
         report_lines.append("")
         report_lines.append(r["review"])
         report_lines.append("")

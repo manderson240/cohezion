@@ -17,7 +17,9 @@ import time
 from cohezion.competitions.arc.deep_compositional_solver import DeepCompositionalSynthesizer
 from cohezion.competitions.pokemon_tcg.ismcts_cfr_engine import ISMCTSWithCFR
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_MONITOR] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_MONITOR] %(message)s"
+)
 logger = logging.getLogger("kaggle_monitor")
 
 TRACKED_KERNELS = [
@@ -27,8 +29,9 @@ TRACKED_KERNELS = [
     "manderson240/cohezion-agent-security-autoharness",
     "manderson240/cohezion-rsna-knee-multi-view-auc-baseline",
     "manderson240/cohezion-biohub-cell-tracking-baseline",
-    "manderson240/cohezion-kaggriculture-multi-agent-policy-baseline"
+    "manderson240/cohezion-kaggriculture-multi-agent-policy-baseline",
 ]
+
 
 def check_all_kernel_statuses() -> list[dict]:
     results = []
@@ -40,6 +43,7 @@ def check_all_kernel_statuses() -> list[dict]:
             results.append({"slug": slug, "status": f"Error: {e}"})
     return results
 
+
 async def main():
     print("\n" + "=" * 115)
     print("📡 CONTINUOUS KAGGLE SUBMISSION MONITOR & LOCAL REFINER")
@@ -47,7 +51,7 @@ async def main():
 
     # 1. Check RAM & Compute Load
     vm = psutil.virtual_memory()
-    free_ram = vm.available / (1024 ** 3)
+    free_ram = vm.available / (1024**3)
     logger.info("System Memory Check: %.2f GiB available (Safe floor: 20.0 GiB)", free_ram)
 
     # 2. Check Kernel Run Statuses
@@ -59,7 +63,12 @@ async def main():
     # 3. Background Simulation Step
     t0 = time.perf_counter()
     tcg_engine = ISMCTSWithCFR()
-    obs = {"player_hp": 80, "opponent_hp": 40, "energy_attached": 2, "legal_actions": ["attack", "attach_energy"]}
+    obs = {
+        "player_hp": 80,
+        "opponent_hp": 40,
+        "energy_attached": 2,
+        "legal_actions": ["attack", "attach_energy"],
+    }
     action = tcg_engine.search_action(obs, num_rollouts=100)
     dt_tcg = (time.perf_counter() - t0) * 1000.0
     logger.info("Local CFR simulation step completed in %.3f ms (Action: %s)", dt_tcg, action)
@@ -79,6 +88,7 @@ async def main():
     print("\n" + "-" * 115)
     print(f"🎉 CONTINUOUS MONITOR HARVEST COMPLETE! Telemetry persisted to: {report_file}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

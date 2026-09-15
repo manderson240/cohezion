@@ -28,13 +28,17 @@ Given that Kaggle competition kernels have NO internet access during private eva
 Provide a concrete, actionable 4-step execution blueprint under 250 words."""
 
 try:
-    resp = httpx.post("http://localhost:11434/api/chat", json={
-        "model": "kimi-k3:cloud",
-        "messages": [{"role": "user", "content": prompt}],
-        "stream": False,
-        "options": {"num_predict": 700}
-    }, timeout=45.0)
-    
+    resp = httpx.post(
+        "http://localhost:11434/api/chat",
+        json={
+            "model": "kimi-k3:cloud",
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "options": {"num_predict": 700},
+        },
+        timeout=45.0,
+    )
+
     if resp.status_code == 200:
         print("⚛️ BLUEQUBIT KAGGLE DEPLOYMENT BLUEPRINT (via Kimi-k3:cloud):")
         print("=" * 80)

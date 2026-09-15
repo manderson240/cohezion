@@ -28,7 +28,9 @@ from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [WORKTREE_AGENT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [WORKTREE_AGENT] %(message)s"
+)
 logger = logging.getLogger("worktree_agent")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
@@ -77,14 +79,18 @@ class RealAutonomousWorktreeAgent:
         # 1. Preflight Memory Headroom
         mem = OOMGuard.get_memory_state(largest_model_gb=16.0)
         if mem.available_gb < 20.0:
-            logger.warning("⚠️ Memory headroom under floor (%.1f GiB < 20.0 GiB). Waiting...", mem.available_gb)
+            logger.warning(
+                "⚠️ Memory headroom under floor (%.1f GiB < 20.0 GiB). Waiting...", mem.available_gb
+            )
             await asyncio.sleep(5.0)
             return False
 
         # 2. Mine Seam & Generate Real Physics / Utility Function
-        task_title = f"Hyperbolic Poincare Matrix Dot-Product Acceleration (Cycle {self.cycle_count})"
+        task_title = (
+            f"Hyperbolic Poincare Matrix Dot-Product Acceleration (Cycle {self.cycle_count})"
+        )
         logger.info("🧠 Mining task via local silicon: %s", task_title)
-        
+
         system_prompt = "You are an expert Python systems architect. Output ONLY valid, typed Python code inside ```python ``` blocks."
         user_prompt = (
             "Write a self-contained, typed Python function `poincare_hyperbolic_dot(u: list[float], v: list[float]) -> float` "
@@ -92,13 +98,17 @@ class RealAutonomousWorktreeAgent:
             "Include a self-test `assert poincare_hyperbolic_dot([0.1, 0.2], [0.1, 0.2]) > 0.0`."
         )
         raw_code = self.query_local_llm(system_prompt, user_prompt)
-        
+
         # Clean code
         clean_code = raw_code
         if "```python" in clean_code:
             clean_code = clean_code.split("```python")[-1].split("```")[0].strip()
         elif "```" in clean_code:
-            clean_code = clean_code.split("```")[1].strip() if len(clean_code.split("```")) > 1 else clean_code.strip()
+            clean_code = (
+                clean_code.split("```")[1].strip()
+                if len(clean_code.split("```")) > 1
+                else clean_code.strip()
+            )
 
         if not clean_code or "def " not in clean_code:
             logger.warning("❌ Failed to synthesize valid Python code from LLM.")
@@ -108,13 +118,21 @@ class RealAutonomousWorktreeAgent:
         t0 = time.perf_counter()
         v_res = self.verifier.verify_code(clean_code)
         dt_ast = (time.perf_counter() - t0) * 1000.0
-        logger.info("  ✓ Step 1: AutoHarness AST Check: Valid=%s in %.4f ms", v_res.get("verified", False), dt_ast)
+        logger.info(
+            "  ✓ Step 1: AutoHarness AST Check: Valid=%s in %.4f ms",
+            v_res.get("verified", False),
+            dt_ast,
+        )
 
         # 4. Bubblewrap Linux Namespace Sandbox Execution
         t0 = time.perf_counter()
         ns_res = self.sandbox.execute_python_code(clean_code)
         dt_ns = (time.perf_counter() - t0) * 1000.0
-        logger.info("  ✓ Step 2: Linux Namespace (bwrap) Execution: Success=%s in %.2f ms", ns_res.success, dt_ns)
+        logger.info(
+            "  ✓ Step 2: Linux Namespace (bwrap) Execution: Success=%s in %.2f ms",
+            ns_res.success,
+            dt_ns,
+        )
 
         if not ns_res.success:
             logger.warning("❌ Sandbox test execution failed: %s", ns_res.stderr)
@@ -136,7 +154,10 @@ class RealAutonomousWorktreeAgent:
         )
         await self.bus.publish(evt)
         logger.info("  ✓ Step 3: Broadcasted AGENT_COMPLETE to EventBus.")
-        logger.info("🎉 Cycle #%d Completed Successfully with 100%% Local Silicon Verification!", self.cycle_count)
+        logger.info(
+            "🎉 Cycle #%d Completed Successfully with 100%% Local Silicon Verification!",
+            self.cycle_count,
+        )
         return True
 
     async def run_continuous_loop(self, max_cycles: int = 5):

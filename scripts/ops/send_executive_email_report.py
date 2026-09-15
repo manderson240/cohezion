@@ -92,7 +92,9 @@ Antigravity Sovereign Master Orchestrator
         recipient="manderson240@gmail.com",
     )
 
-    print(f"\n  ✓ Email Alert Queued via Google Workspace Bridge: {alert.subject} -> {alert.recipient}")
+    print(
+        f"\n  ✓ Email Alert Queued via Google Workspace Bridge: {alert.subject} -> {alert.recipient}"
+    )
     print("=" * 100)
     print("🎉 MASTER EXECUTIVE BRIEFING DISPATCHED!")
     print("=" * 100)

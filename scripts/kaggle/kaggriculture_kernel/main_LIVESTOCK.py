@@ -49,14 +49,14 @@ SHED = (4, 4)  # only shed-adjacent tile unlocked at start (NW quadrant)
 # escape and the agent LOSES; 4 near-shed cows is the tuned sweet spot (higher
 # banks than 3, 0 escapes across all tested seeds, well clear of the 5-cow cliff).
 PASTURE_TILES = [(3, 4), (4, 3), (3, 3), (2, 4)]
-NUM_COWS = 4                      # herd size (<= len(PASTURE_TILES))
+NUM_COWS = 4  # herd size (<= len(PASTURE_TILES))
 COW_COST = 400
-COW_FIRST_YIELD = 8              # milk starts placed_day + 8
-WHEAT_BUFFER_MULT = 2            # keep 2x herd wheat in the shed
+COW_FIRST_YIELD = 8  # milk starts placed_day + 8
+WHEAT_BUFFER_MULT = 2  # keep 2x herd wheat in the shed
 
 
 def _active_pastures():
-    return PASTURE_TILES[:max(0, NUM_COWS)]
+    return PASTURE_TILES[: max(0, NUM_COWS)]
 
 
 def _step_toward(px, py, tx, ty):
@@ -80,12 +80,6 @@ def _carrot_homes(board):
     cells.sort(key=lambda c: (abs(c[0] - cx) + abs(c[1] - cy), c[1], c[0]))
     return cells
 
-
-def agent(obs):
-    try:
-        return _decide(obs)
-    except Exception:
-        return {"farmer": ["PASS"], "hands": [], "market": []}
 
 
 def _decide(obs):
@@ -120,8 +114,7 @@ def _decide(obs):
     if ranch_on:
         # Buy the herd once, early: only if we have no cows anywhere yet.
         cows_owned = sum(
-            1 for (x, y) in active
-            if isinstance(tiles[y][x], dict) and "animal" in tiles[y][x]
+            1 for (x, y) in active if isinstance(tiles[y][x], dict) and "animal" in tiles[y][x]
         )
         cows_pending = shed.get("COW", 0) + farmer_inv.get("COW", 0)
         want_cows = len(active) - cows_owned - cows_pending
@@ -181,7 +174,9 @@ def _decide(obs):
         farmer_op = _rancher_op(me, tiles, farmer_inv, shed, active)
     else:
         # No ranch: farmer falls back to a carrot tile (home[0]).
-        farmer_op = _carrot_op(tiles, me["farmer"], _carrot_homes(board)[0], day, seeds.get("CARROT", 0))[0]
+        farmer_op = _carrot_op(
+            tiles, me["farmer"], _carrot_homes(board)[0], day, seeds.get("CARROT", 0)
+        )[0]
 
     # ---------------- hands = carrot workers ----------------
     homes = _carrot_homes(board)
@@ -239,13 +234,17 @@ def _rancher_op(me, tiles, inv, shed, active):
 
     # Classify pasture tiles.
     to_build = [t for t in active if tile_at(t) is None]
-    to_clear = [t for t in active
-                if isinstance(tile_at(t), dict) and tile_at(t).get("kind") == "WEED"]
-    empty_pastures = [t for t in active
-                      if isinstance(tile_at(t), dict)
-                      and tile_at(t).get("kind") == "PASTURE" and "animal" not in tile_at(t)]
-    animals = [t for t in active
-               if isinstance(tile_at(t), dict) and "animal" in tile_at(t)]
+    to_clear = [
+        t for t in active if isinstance(tile_at(t), dict) and tile_at(t).get("kind") == "WEED"
+    ]
+    empty_pastures = [
+        t
+        for t in active
+        if isinstance(tile_at(t), dict)
+        and tile_at(t).get("kind") == "PASTURE"
+        and "animal" not in tile_at(t)
+    ]
+    animals = [t for t in active if isinstance(tile_at(t), dict) and "animal" in tile_at(t)]
     to_harvest = [t for t in animals if tile_at(t).get("yield_units", 0) > 0]
     to_feed = [t for t in animals if not tile_at(t).get("fed_today", False)]
 
@@ -312,3 +311,11 @@ def _rancher_op(me, tiles, inv, shed, active):
 def _nearest(pos, tiles):
     px, py = pos
     return min(tiles, key=lambda t: (abs(t[0] - px) + abs(t[1] - py), t[1], t[0]))
+
+
+def agent(obs, config=None):
+    """Kaggriculture agent entry point — must be the last callable in the file."""
+    try:
+        return _decide(obs)
+    except Exception:
+        return {"farmer": ["PASS"], "hands": [], "market": []}

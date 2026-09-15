@@ -56,23 +56,112 @@ logger = logging.getLogger("grand_adversarial")
 
 TARGET_ROSTER = [
     # Competent Local Silicon Fleet
-    {"tier": "Local Silicon", "target": "Local NPU/CPU", "model": "qwen3-4b-FLM", "lens": "Local Hardware Constraints, Physical Invariants & Execution Bounds", "endpoint": "lemonade"},
-    {"tier": "Local Silicon", "target": "Local iGPU (Radeon 8060S)", "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF", "lens": "Codebase Architecture, AST Invariant Leaks & Vulkan UMA Memory Races", "endpoint": "lemonade"},
-
+    {
+        "tier": "Local Silicon",
+        "target": "Local NPU/CPU",
+        "model": "qwen3-4b-FLM",
+        "lens": "Local Hardware Constraints, Physical Invariants & Execution Bounds",
+        "endpoint": "lemonade",
+    },
+    {
+        "tier": "Local Silicon",
+        "target": "Local iGPU (Radeon 8060S)",
+        "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "lens": "Codebase Architecture, AST Invariant Leaks & Vulkan UMA Memory Races",
+        "endpoint": "lemonade",
+    },
     # Complete 13 Ollama Cloud Fleet
-    {"tier": "Ollama Cloud", "target": "deepseek-v4-pro:cloud", "model": "deepseek-v4-pro:cloud", "lens": "Deep Reasoning, Non-Equilibrium EVO Dynamics & System Vulnerabilities", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "qwen3.5:397b-cloud", "model": "qwen3.5:397b-cloud", "lens": "Software Engineering, AST Invariants & Code Execution Safety", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "glm-5.2:cloud", "model": "glm-5.2:cloud", "lens": "Differential Geometry, Metamaterial Tensors & Bioelectric Field Theory", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "nemotron-3-ultra:cloud", "model": "nemotron-3-ultra:cloud", "lens": "Systems Engineering V-Model, Guardrails & Resource Governance", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "nemotron-3-super:cloud", "model": "nemotron-3-super:cloud", "lens": "Distributed Resilience, Throughput Saturation & Deadlock Hunting", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "kimi-k3:cloud", "model": "kimi-k3:cloud", "lens": "Multi-Agent Emergence, Swarm Scaling Laws & Global Consensus", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "kimi-k2.7-code:cloud", "model": "kimi-k2.7-code:cloud", "lens": "Compiler Microkernels, eBPF AST Verifiers & Memory Bombs", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "kimi-k2.6:cloud", "model": "kimi-k2.6:cloud", "lens": "Long-Horizon Swarm Drift, Context Windows & Memory Dilution", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "gpt-oss:120b-cloud", "model": "gpt-oss:120b-cloud", "lens": "Autonomous Policy Invariants, Zero-Shot Generalization & Tool Calling", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "minimax-m3:cloud", "model": "minimax-m3:cloud", "lens": "Continuous Multi-Agent Dialogue, EventBus Flow & Race Conditions", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "gemma4:31b-cloud", "model": "gemma4:31b-cloud", "lens": "Multimodal Vector Representation & UI/UX Storytelling Faithfulness", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "deepseek-v4-flash:cloud", "model": "deepseek-v4-flash:cloud", "lens": "High-Speed Invariant Auditing & Latency Gating", "endpoint": "ollama"},
-    {"tier": "Ollama Cloud", "target": "deepseek-v4-flash:0731-cloud", "model": "deepseek-v4-flash:0731-cloud", "lens": "Temporal Drift, Historical Calibration & Backwards Compatibility", "endpoint": "ollama"},
+    {
+        "tier": "Ollama Cloud",
+        "target": "deepseek-v4-pro:cloud",
+        "model": "deepseek-v4-pro:cloud",
+        "lens": "Deep Reasoning, Non-Equilibrium EVO Dynamics & System Vulnerabilities",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "qwen3.5:397b-cloud",
+        "model": "qwen3.5:397b-cloud",
+        "lens": "Software Engineering, AST Invariants & Code Execution Safety",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "glm-5.2:cloud",
+        "model": "glm-5.2:cloud",
+        "lens": "Differential Geometry, Metamaterial Tensors & Bioelectric Field Theory",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "nemotron-3-ultra:cloud",
+        "model": "nemotron-3-ultra:cloud",
+        "lens": "Systems Engineering V-Model, Guardrails & Resource Governance",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "nemotron-3-super:cloud",
+        "model": "nemotron-3-super:cloud",
+        "lens": "Distributed Resilience, Throughput Saturation & Deadlock Hunting",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "kimi-k3:cloud",
+        "model": "kimi-k3:cloud",
+        "lens": "Multi-Agent Emergence, Swarm Scaling Laws & Global Consensus",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "kimi-k2.7-code:cloud",
+        "model": "kimi-k2.7-code:cloud",
+        "lens": "Compiler Microkernels, eBPF AST Verifiers & Memory Bombs",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "kimi-k2.6:cloud",
+        "model": "kimi-k2.6:cloud",
+        "lens": "Long-Horizon Swarm Drift, Context Windows & Memory Dilution",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "gpt-oss:120b-cloud",
+        "model": "gpt-oss:120b-cloud",
+        "lens": "Autonomous Policy Invariants, Zero-Shot Generalization & Tool Calling",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "minimax-m3:cloud",
+        "model": "minimax-m3:cloud",
+        "lens": "Continuous Multi-Agent Dialogue, EventBus Flow & Race Conditions",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "gemma4:31b-cloud",
+        "model": "gemma4:31b-cloud",
+        "lens": "Multimodal Vector Representation & UI/UX Storytelling Faithfulness",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "deepseek-v4-flash:cloud",
+        "model": "deepseek-v4-flash:cloud",
+        "lens": "High-Speed Invariant Auditing & Latency Gating",
+        "endpoint": "ollama",
+    },
+    {
+        "tier": "Ollama Cloud",
+        "target": "deepseek-v4-flash:0731-cloud",
+        "model": "deepseek-v4-flash:0731-cloud",
+        "lens": "Temporal Drift, Historical Calibration & Backwards Compatibility",
+        "endpoint": "ollama",
+    },
 ]
 
 AUDIT_PROMPT_TEMPLATE = """You are acting as an elite Adversarial Red-Team Auditor evaluating the Cohezion Sovereign AGI Architecture.
@@ -95,10 +184,17 @@ Provide concise, highly technical analysis.
 """
 
 
-async def audit_single_target(client: httpx.AsyncClient, item: dict[str, str], sem: asyncio.Semaphore) -> dict[str, Any]:
+async def audit_single_target(
+    client: httpx.AsyncClient, item: dict[str, str], sem: asyncio.Semaphore
+) -> dict[str, Any]:
     async with sem:
         t0 = time.perf_counter()
-        logger.info("⚔️ [Adversarial Audit] Dispatching to %s (%s) via %s...", item["target"], item["lens"], item["endpoint"])
+        logger.info(
+            "⚔️ [Adversarial Audit] Dispatching to %s (%s) via %s...",
+            item["target"],
+            item["lens"],
+            item["endpoint"],
+        )
         prompt_str = AUDIT_PROMPT_TEMPLATE.format(lens=item["lens"])
         review_text = ""
 
@@ -110,7 +206,10 @@ async def audit_single_target(client: httpx.AsyncClient, item: dict[str, str], s
                     json={
                         "model": item["model"],
                         "messages": [
-                            {"role": "system", "content": "You are a Principal Adversarial Red-Team Auditor."},
+                            {
+                                "role": "system",
+                                "content": "You are a Principal Adversarial Red-Team Auditor.",
+                            },
                             {"role": "user", "content": prompt_str},
                         ],
                         "max_tokens": 500,
@@ -121,7 +220,11 @@ async def audit_single_target(client: httpx.AsyncClient, item: dict[str, str], s
                 if res.status_code == 200:
                     data = res.json()
                     review_text = data["choices"][0]["message"]["content"]
-                    logger.info("  ✓ [%s] Local Audit received (%d words)", item["target"], len(review_text.split()))
+                    logger.info(
+                        "  ✓ [%s] Local Audit received (%d words)",
+                        item["target"],
+                        len(review_text.split()),
+                    )
             except Exception as e:
                 logger.warning("Local Silicon error on %s: %s", item["target"], e)
 
@@ -140,7 +243,11 @@ async def audit_single_target(client: httpx.AsyncClient, item: dict[str, str], s
                 if res.status_code == 200:
                     data = res.json()
                     review_text = data.get("response", "")
-                    logger.info("  ✓ [%s] Cloud Audit received (%d words)", item["model"], len(review_text.split()))
+                    logger.info(
+                        "  ✓ [%s] Cloud Audit received (%d words)",
+                        item["model"],
+                        len(review_text.split()),
+                    )
             except Exception as e:
                 logger.warning("Cloud error on %s: %s", item["model"], e)
 
@@ -164,7 +271,9 @@ async def audit_single_target(client: httpx.AsyncClient, item: dict[str, str], s
 
 async def main_async() -> None:
     print("=" * 100)
-    print("    ⚔️ GRAND MULTI-PERSPECTIVE ADVERSARIAL REVIEW (LOCAL SILICON + COMPLETE OLLAMA CLOUD)")
+    print(
+        "    ⚔️ GRAND MULTI-PERSPECTIVE ADVERSARIAL REVIEW (LOCAL SILICON + COMPLETE OLLAMA CLOUD)"
+    )
     print("=" * 100)
 
     t_start = time.perf_counter()
@@ -173,7 +282,9 @@ async def main_async() -> None:
         tasks = [audit_single_target(client, item, sem) for item in TARGET_ROSTER]
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/grand_multiperspective_deep_adversarial_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/grand_multiperspective_deep_adversarial_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     report_lines = [
@@ -201,7 +312,9 @@ async def main_async() -> None:
 
     for r in results:
         report_lines.append(f"## ⚔️ [{r['tier']}] Auditor: `{r['target']}` (`{r['model']}`)")
-        report_lines.append(f"**Perspective Lens**: `{r['lens']}` | **Audit Latency**: `{r['latency_s']}s` | **Words**: `{r['word_count']}`")
+        report_lines.append(
+            f"**Perspective Lens**: `{r['lens']}` | **Audit Latency**: `{r['latency_s']}s` | **Words**: `{r['word_count']}`"
+        )
         report_lines.append("")
         report_lines.append(r["review"])
         report_lines.append("")

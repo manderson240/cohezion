@@ -60,30 +60,35 @@ def _guarded(model: str) -> bool:
     try:
         sys.path.insert(0, "src")
         from cohezion.inference.gaia_adapter import _is_llamacpp_thinking_model
+
         return bool(_is_llamacpp_thinking_model(model))
     except Exception:  # probe must survive an unimportable adapter
         return False
 
 
 def probe(model: str, max_tokens: int, timeout: int) -> dict:
-    body = json.dumps({
-        "model": model,
-        "max_tokens": max_tokens,
-        "temperature": 0.3,
-        "messages": [{"role": "user", "content": PROMPT}],
-    }).encode()
+    body = json.dumps(
+        {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": 0.3,
+            "messages": [{"role": "user", "content": PROMPT}],
+        }
+    ).encode()
     # S310: ENDPOINT is a module-level http:// localhost constant, never caller-supplied, so
     # there is no file:/custom-scheme surface for a URL audit to protect against.
-    req = urllib.request.Request(ENDPOINT, data=body,
-                                 headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(ENDPOINT, data=body, headers={"Content-Type": "application/json"})
     t0 = time.time()
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
             d = json.load(resp)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
         # A dead lane is a RESULT, not an abort -- the point is to survey the roster.
-        return {"model": model, "error": f"{type(exc).__name__}",
-                "secs": round(time.time() - t0, 1)}
+        return {
+            "model": model,
+            "error": f"{type(exc).__name__}",
+            "secs": round(time.time() - t0, 1),
+        }
 
     msg = d.get("choices", [{}])[0].get("message", {}) or {}
     # NOTE: this probe hits the server DIRECTLY, so it sees the split channel even for models
@@ -120,32 +125,42 @@ def main() -> None:
     args = ap.parse_args()
 
     models = [m.strip() for m in args.models.split(",") if m.strip()]
-    print(f"{'model':<32} {'guard':>6} {'secs':>6} {'gen_tok':>8} {'visible':>8} {'hidden':>7} "
-          f"{'hid_frac':>9}")
+    print(
+        f"{'model':<32} {'guard':>6} {'secs':>6} {'gen_tok':>8} {'visible':>8} {'hidden':>7} "
+        f"{'hid_frac':>9}"
+    )
     print("-" * 84)
     verdicts = []
     for m in models:
         r = probe(m, args.max_tokens, args.timeout)
         if r.get("error"):
-            print(f"{m:<32} {'-':>6} {r['secs']:>6} {'-':>8} {'-':>8} {'-':>7} {'-':>9}  "
-                  f"{r['error']}")
+            print(
+                f"{m:<32} {'-':>6} {r['secs']:>6} {'-':>8} {'-':>8} {'-':>7} {'-':>9}  {r['error']}"
+            )
             continue
-        print(f"{m:<32} {('yes' if r['guarded'] else 'NO'):>6} {r['secs']:>6} "
-              f"{r['gen_tokens']:>8} {r['visible_chars']:>8} {r['hidden_chars']:>7} "
-              f"{r['hidden_frac']:>9.2f}")
+        print(
+            f"{m:<32} {('yes' if r['guarded'] else 'NO'):>6} {r['secs']:>6} "
+            f"{r['gen_tokens']:>8} {r['visible_chars']:>8} {r['hidden_chars']:>7} "
+            f"{r['hidden_frac']:>9.2f}"
+        )
         verdicts.append(r)
 
     print()
     # The actionable set is UNGUARDED lanes that actually stream to a hidden channel. A guarded
     # lane shows a hidden channel here too (this probe bypasses the adapter) but is measured
     # correctly by the benchmark, so flagging it would be a false positive.
-    at_risk = [r for r in verdicts
-               if not r["guarded"] and (r["hidden_chars"] > 0 or r["unaccounted_tokens"] > 50)]
+    at_risk = [
+        r
+        for r in verdicts
+        if not r["guarded"] and (r["hidden_chars"] > 0 or r["unaccounted_tokens"] > 50)
+    ]
     if at_risk:
         print("MISMEASURED LANES -- reasoning model NOT covered by _THINKING_MODEL_MARKERS:")
         for r in at_risk:
-            print(f"  {r['model']}: {r['hidden_chars']} chars stream to reasoning_content and "
-                  f"are DROPPED by the adapter (gaia_adapter.py:269)")
+            print(
+                f"  {r['model']}: {r['hidden_chars']} chars stream to reasoning_content and "
+                f"are DROPPED by the adapter (gaia_adapter.py:269)"
+            )
         print("Consequences: (1) char-based cost columns understate these lanes and must not be")
         print("    compared against guarded ones -- use usage.completion_tokens (gen_tok);")
         print("(2) defect 4dd925b0081f is live for them -- a structured prompt at a low budget")

@@ -41,10 +41,16 @@ with contextlib.suppress(Exception):
 
 with contextlib.suppress(Exception):
     from cohezion.compound.autonomous_loop.rzero_challenger import (
+        CandidateAttempt as CandidateAttempt,
+    )
+    from cohezion.compound.autonomous_loop.rzero_challenger import (
         ChallengerAgent as ChallengerAgent,
     )
     from cohezion.compound.autonomous_loop.rzero_challenger import (
         EpisodeResult as EpisodeResult,
+    )
+    from cohezion.compound.autonomous_loop.rzero_challenger import (
+        GroupTaskAttempt as GroupTaskAttempt,
     )
     from cohezion.compound.autonomous_loop.rzero_challenger import (
         RZeroChallengerExecutor as RZeroChallengerExecutor,

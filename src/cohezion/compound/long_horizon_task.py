@@ -36,7 +36,12 @@ class LongHorizonTask:
     MIN_HEADROOM_PERCENT = 5.0  # Need at least 5% free context to attempt a step
 
     def __init__(
-        self, task_id: str, budget_sessions: int = 5, initial_state: dict[str, Any] | None = None
+        self,
+        task_id: str,
+        budget_sessions: int = 5,
+        initial_state: dict[str, Any] | None = None,
+        executor: Any | None = None,
+        active_tier: str | None = None,
     ):
         """Initialize a long horizon task.
 
@@ -44,17 +49,23 @@ class LongHorizonTask:
             task_id: Unique identifier for the task
             budget_sessions: Max number of sessions allowed
             initial_state: Optional restored state
+            executor: Optional compound executor managing this task
+            active_tier: Active execution tier (e.g. 'npu', 'igpu', 'cpu', 'cloud')
         """
         self.task_id = task_id
         self.budget_sessions = budget_sessions
         self.steps_completed = 0
         self.total_steps_estimated = 5  # Default
+        self.executor = executor
+        self.active_tier = active_tier
 
         # Biologist: Track token overhead to adapt headroom
         self._recent_step_overhead: list[float] = []
 
         if initial_state:
             self.steps_completed = initial_state.get("steps_completed", 0)
+            if "active_tier" in initial_state and self.active_tier is None:
+                self.active_tier = initial_state.get("active_tier")
 
     @property
     def progress_percent(self) -> float:
@@ -84,6 +95,13 @@ class LongHorizonTask:
                 f"Biologist: Context usage at {context_usage}%. "
                 f"Required headroom is {dynamic_headroom}%. Triggering proactive handoff."
             )
+            if self.executor is not None and hasattr(self.executor, "recompute_tier_at_compaction"):
+                recommended = self.executor.recompute_tier_at_compaction(
+                    self.task_id, "execute_step", self.active_tier
+                )
+                if recommended is not None:
+                    self.active_tier = recommended
+
             self.save_checkpoint()
             return TaskStepResult(success=True, handoff_triggered=True, checkpoint_saved=True)
 
@@ -110,11 +128,21 @@ class LongHorizonTask:
             "task_id": self.task_id,
             "steps_completed": self.steps_completed,
             "progress_percent": self.progress_percent,
+            "active_tier": self.active_tier,
         }
         logger.info(f"Checkpoint saved for {self.task_id}: {checkpoint}")
         return checkpoint
 
     @classmethod
-    def from_checkpoint(cls, checkpoint: dict[str, Any]) -> LongHorizonTask:
+    def from_checkpoint(
+        cls,
+        checkpoint: dict[str, Any],
+        executor: Any | None = None,
+    ) -> LongHorizonTask:
         """Restore a task from a checkpoint."""
-        return cls(task_id=checkpoint["task_id"], initial_state=checkpoint)
+        return cls(
+            task_id=checkpoint["task_id"],
+            initial_state=checkpoint,
+            executor=executor,
+            active_tier=checkpoint.get("active_tier"),
+        )

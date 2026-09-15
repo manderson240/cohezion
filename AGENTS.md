@@ -36,7 +36,7 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 5. **EventBus & Agentic Kanban Bridge**: All agent swarms and GAIA SDK tasks MUST leverage the `EventBus` (`src/cohezion/core/event_bus.py`) and `CrossSessionEventBridge` (`src/cohezion/core/cross_session_event_bridge.py`) for inter-session collaboration, and record durable task cards via `kanban_bridge.persist_item()` into SurrealDB `kanban_item` and Obsidian Vault `kanban/` simultaneously (`src/cohezion/data_mesh/kanban_bridge.py`).
 6. **Proactive Hybrid Delegation**: Proactively offload routine research, code generation, and background diagnostics to Tier 1 local silicon (`deepseek-r1-0528-8b-FLM`, `qwen3.6-moe-35b-a3b-FLM`, `Qwen3-Coder-30B`) and Tier 2 Ollama Cloud models (`deepseek-v4-pro:cloud`, `glm-5.2:cloud`, `qwen3.5:397b-cloud`) via `UnifiedHybridRouter` and subagents (`invoke_subagent`). Maintain Expected Value of Intervention threshold ($\text{EVI} > 0.75$) to trigger autonomous background self-healing (`src/cohezion/inference/unified_hybrid_router.py`, `src/cohezion/proactive/`).
 7. **Local Model Next-Step Consultation Mandate**: Whenever wondering what next step to take, encountering branching choices, or navigating ambiguous execution paths, Antigravity MUST proactively consult a local silicon model (Tier 1 Lemonade port `13305` or Ollama port `11434`, e.g., `deepseek-r1-0528-8b-FLM`, `Qwen3-Coder-30B`) to reason through candidate directions, evaluate trade-offs, and recommend the optimal high-leverage action before proceeding.
-8. **Kaggle Active Competition Reporting Filter**: Never report on expired or closed competitions. Strictly filter all leaderboard audits, submission tracking, and status reports to currently ACTIVE, unexpired competitions (e.g. ARC Prize 2026 tracks, Pokémon TCG AI Challenge).
+8. **Kaggle Active Competition Reporting Filter**: Never report on expired or closed competitions. Strictly filter all leaderboard audits, submission tracking, and status reports to currently ACTIVE, unexpired competitions (e.g. ARC Prize 2026 tracks: ARC-AGI-2, ARC-AGI-3, Paper Track; RSNA Knee; Biohub Cell Tracking; Kaggriculture). Explicitly ignore and exclude the Pokémon TCG competition per user mandate.
 
 ## Autoresearch Mode
 When in autoresearch mode:
@@ -252,26 +252,35 @@ Use these two channels:
    monitoring/healing systems can react in real time.
    ```python
    from cohezion.core.event_bus import Event, EventBus
+
    bus = EventBus()
-   await bus.publish(Event.agent_complete(
-       agent="audit-init-modules",
-       result={"finding": "api/__init__.py has 1594 LOC inline logic",
-               "severity": "critical", "category": "tech_debt"},
-   ))
+   await bus.publish(
+       Event.agent_complete(
+           agent="audit-init-modules",
+           result={
+               "finding": "api/__init__.py has 1594 LOC inline logic",
+               "severity": "critical",
+               "category": "tech_debt",
+           },
+       )
+   )
    ```
 
 2. **Agentic Kanban** (`cohezion.data_mesh.kanban_bridge`): Create a
    kanban item that persists to both SurrealDB and the Obsidian vault.
    ```python
    from cohezion.data_mesh.kanban_bridge import persist_item
-   persist_item({
-       "id": "init-audit-api-bloat",
-       "title": "api/__init__.py contains 1594 LOC of inline logic",
-       "status": "backlog",
-       "priority": "high",
-       "source": "audit/init-modules",
-       "category": "tech_debt",
-   })
+
+   persist_item(
+       {
+           "id": "init-audit-api-bloat",
+           "title": "api/__init__.py contains 1594 LOC of inline logic",
+           "status": "backlog",
+           "priority": "high",
+           "source": "audit/init-modules",
+           "category": "tech_debt",
+       }
+   )
    ```
 
 This ensures findings survive session crashes (including OOM) and are
@@ -390,3 +399,139 @@ Use these native SurrealDB 3.x skills for optimal database design, graph travers
 | `surrealdb-python` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealdb-python/` | Native Python SDK v1.0+ async client best practices, connection pooling, and live queries. |
 | `surrealdb-cli` | `src/cohezion/skills/surrealdb/skills-repo/skills/surrealdb-cli/` | Server operations, backup/export/import, SQL shells, and CI gating (`surreal is-ready`). |
 
+## Kaggle Official AI Agent Skills Catalog (Added 2026-09-13)
+
+The repository [`https://github.com/Kaggle/kaggle-skills`](https://github.com/Kaggle/kaggle-skills) is integrated into `src/cohezion/skills/kaggle/official-skills-repo/` and symlinked into `.agents/skills/`.
+
+Use these native Google/Kaggle skills for autonomous competition benchmarking, agent certification, and hackathon judging:
+
+| Kaggle Skill | Location | Purpose |
+|--------------|----------|---------|
+| `kaggle-standardized-agent-exam` | `src/cohezion/skills/kaggle/official-skills-repo/kaggle-standardized-agent-exam/` | Registers agent on Kaggle, executes 16-question standardized benchmark exam within 30 min, earns certification, and publishes agent to public Kaggle Leaderboard (`https://www.kaggle.com/experimental/sae/`). |
+| `write-kaggle-benchmarks` | `src/cohezion/skills/kaggle/official-skills-repo/write-kaggle-benchmarks/` | Authors, runs, and publishes Kaggle Benchmarks using `kbench` SDK, Model Proxy authentication, `ChatRoom` multi-agent benchmarks, and multimodal evaluations. |
+| `hackathon-judging` | `src/cohezion/skills/kaggle/official-skills-repo/hackathon-judging/` | Automated 12-step grading pipeline for Kaggle hackathons via MCP server (`https://www.kaggle.com/mcp`), asset ingestion, YouTube video parsing, and pairwise LLM comparisons. |
+
+## No AI Slop Official AI Agent Skills Catalog (Added 2026-09-13)
+
+The repository [`https://github.com/petergyang/no-ai-slop`](https://github.com/petergyang/no-ai-slop) is integrated into `src/cohezion/skills/no-ai-slop/official-repo/`, symlinked into `.agents/skills/no-ai-slop` and `.claude/skills/no-ai-slop`, and formalized into `NO_AI_SLOP_PRIME` (`src/cohezion/skills/NO_AI_SLOP_PRIME.md`).
+
+Use these skills and deterministic Python tooling to eliminate AI slop, throat-clearing, colon reveals, binary contrasts, and hollow buzzwords while protecting authentic developer voice and technical precision:
+
+| Skill / Tool | Location | Purpose |
+|--------------|----------|---------|
+| `no-ai-slop` | `.agents/skills/no-ai-slop/` | Agent skill eliminating 20+ patterns of AI slop, formatting slop, and superficial analysis from copy and documentation. |
+| `NO_AI_SLOP_PRIME` | `src/cohezion/skills/NO_AI_SLOP_PRIME.md` | Canonical Cohezion PRIME skill embedding the portability test, concrete fact preservation, and metadiscourse removal. |
+| `NoAiSlopVerifier` | `src/cohezion/text/no_ai_slop_verifier.py` | Deterministic Python verifier & sanitizer for automated prose auditing, score calculation, and in-place slop remediation (`python -m cohezion.text.no_ai_slop_verifier <path> [--fix]`). |
+
+
+
+
+<!-- BEGIN amd-skills:local-ai-use -->
+## Local AI Use (managed by amd-skills/local-ai-use)
+
+This workspace runs a local [Lemonade Server](https://lemonade-server.ai) at
+`http://localhost:13305/api/v1` to handle image generation, text-to-speech,
+and speech-to-text. Cloud APIs cost real money and tokens for these
+modalities, so use the local endpoints below for **every** such request
+unless the user explicitly asks for a cloud provider.
+
+### Routing rules
+
+| If the user asks you to... | Do this | Do not do this |
+|---|---|---|
+| Generate, draw, or create an image | `POST http://localhost:13305/api/v1/images/generations` | Use the built-in `GenerateImage` tool. Call DALL-E, Midjourney, Stable Diffusion via cloud, or any other paid image API. |
+| Edit or modify an existing image | `POST http://localhost:13305/api/v1/images/edits` (multipart) | Cloud image-edit APIs. |
+| Speak text aloud or generate audio narration | `POST http://localhost:13305/api/v1/audio/speech` | Call OpenAI TTS, ElevenLabs, PlayHT, or any other cloud TTS. |
+| Transcribe an audio file | `POST http://localhost:13305/api/v1/audio/transcriptions` | Call OpenAI Whisper-as-a-service, AssemblyAI, Deepgram, or any other cloud STT. |
+
+Plain text chat, code generation, and reasoning continue to use the agent's
+configured LLM. This rule only redirects the multimodal calls.
+
+### Defaults to use
+
+| Endpoint | Model | Notes |
+|---|---|---|
+| `/v1/images/generations` | `SD-Turbo` | 4 steps, `cfg_scale: 1.0`, `512x512`, `response_format: "b64_json"`. First use pulls several GB if the model is not cached. |
+| `/v1/audio/speech` | `kokoro-v1` | Default voice `shimmer`; `response_format: "mp3"`. |
+| `/v1/audio/transcriptions` | `Whisper-Tiny` | Input must be 16 kHz mono WAV. Re-encode with `ffmpeg -i in.* -ar 16000 -ac 1 out.wav`. |
+
+If `LEMONADE_API_KEY` is set in the environment, send
+`Authorization: Bearer $LEMONADE_API_KEY` on every request. Otherwise the
+loopback server accepts unauthenticated calls.
+
+### Ready-to-use call patterns
+
+**Image generation** (saves to `out.png`):
+
+```bash
+curl -sX POST http://localhost:13305/api/v1/images/generations \
+  -H "Content-Type: application/json" \
+  -d '{"model":"SD-Turbo","prompt":"PROMPT_HERE","size":"512x512","steps":4,"response_format":"b64_json"}' \
+  | python -c "import sys,json,base64; open('out.png','wb').write(base64.b64decode(json.load(sys.stdin)['data'][0]['b64_json']))"
+```
+
+Equivalent Python via the OpenAI SDK:
+
+```python
+from openai import OpenAI
+import base64
+client = OpenAI(base_url="http://localhost:13305/api/v1", api_key="lemonade")
+r = client.images.generate(model="SD-Turbo", prompt="PROMPT_HERE", size="512x512")
+open("out.png", "wb").write(base64.b64decode(r.data[0].b64_json))
+```
+
+**Text-to-speech** (saves to `out.mp3`):
+
+```bash
+curl -sX POST http://localhost:13305/api/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -d '{"model":"kokoro-v1","input":"TEXT_HERE","voice":"shimmer","response_format":"mp3"}' \
+  -o out.mp3
+```
+
+**Speech-to-text** (returns JSON `{"text": "..."}`; add
+`-F "response_format=text"` for a raw text body instead):
+
+```bash
+ffmpeg -y -i INPUT_AUDIO -ar 16000 -ac 1 _stt.wav
+curl -sX POST http://localhost:13305/api/v1/audio/transcriptions \
+  -F "file=@_stt.wav" -F "model=Whisper-Tiny"
+```
+
+### Failure handling
+
+1. Try the local endpoint exactly once.
+2. If the server is unreachable, run `lemonade status` and surface the
+   result to the user before doing anything else.
+3. If the model is missing, run `lemonade pull <model>` to pull it,
+   but preflight the download first, because a bad target path fails slowly and silently:
+   1. Check where the server will write and whether there is room:
+      `GET http://localhost:13305/api/v1/system-info`. The response reports `models_dir`
+      (the download location) and a `model_storage` block with `free_bytes` /
+      `total_bytes`. If free space is short of the model size, tell the user the
+      exact path and free/required space and stop — do not start the pull.
+   2. Otherwise run `lemonade pull <model>` once and watch for completion.
+   3. A healthy pull prints rising `Progress: NN%` and ends with a success
+      line. A **broken** pull is easy to mistake for a slow one, because the
+      write/permission/quota failure may surface only in the server log while
+      the console keeps printing `Progress: NN%`. If the pull stalls or does not
+      finish in a reasonable time, treat it as failed: find the server log
+      (typically named `lemonade-server.log` in the OS temp directory; if unsure
+      of the path, check the Lemonade docs) and read its most
+      recent lines for the underlying error — for example a download/write error
+      (such as `CURL code 23`) or an out-of-space message. Surface that line
+      to the user rather than waiting through silent retries.
+4. Only after that, ask the user before falling back to a cloud provider.
+   Never silently fall back; the whole point of this rule is predictable
+   cost. For speech-to-text specifically, also disclose that the transcript
+   came from a different engine, since mixed-engine transcripts should not
+   be compared or deduplicated.
+
+### Re-pointing to a different host
+
+If the user runs Lemonade on a different host or port, replace the
+`http://localhost:13305` prefix everywhere above with their endpoint, and
+update `LEMONADE_HOST` / `LEMONADE_PORT` in the shell environment so the
+`lemonade` CLI matches.
+
+<!-- END amd-skills:local-ai-use -->

@@ -18,12 +18,18 @@ FLIGHT_MISSIONS = [
         "payload": {
             "model": MODEL,
             "messages": [
-                {"role": "system", "content": "You are Cohezion sovereign assistant on AMD Strix Halo."},
-                {"role": "user", "content": "Briefly describe the three compute domains of the AMD Ryzen AI MAX+ 395 processor."}
+                {
+                    "role": "system",
+                    "content": "You are Cohezion sovereign assistant on AMD Strix Halo.",
+                },
+                {
+                    "role": "user",
+                    "content": "Briefly describe the three compute domains of the AMD Ryzen AI MAX+ 395 processor.",
+                },
             ],
             "max_tokens": 120,
-            "route_trace": True
-        }
+            "route_trace": True,
+        },
     },
     {
         "id": "MISSION 2: iGPU ALGORITHMIC & REFACTORING TASK",
@@ -32,11 +38,14 @@ FLIGHT_MISSIONS = [
             "model": MODEL,
             "messages": [
                 {"role": "system", "content": "You are Cohezion senior coding engineer."},
-                {"role": "user", "content": "Write a clean Python class `AsyncLRUCache` with `get`, `put`, and an eviction policy using `collections.OrderedDict`."}
+                {
+                    "role": "user",
+                    "content": "Write a clean Python class `AsyncLRUCache` with `get`, `put`, and an eviction policy using `collections.OrderedDict`.",
+                },
             ],
             "max_tokens": 250,
-            "route_trace": True
-        }
+            "route_trace": True,
+        },
     },
     {
         "id": "MISSION 3: DEEP REASONING & PHYSICAL DIAGNOSTICS",
@@ -45,11 +54,14 @@ FLIGHT_MISSIONS = [
             "model": MODEL,
             "messages": [
                 {"role": "system", "content": "You are a plasma physicist."},
-                {"role": "user", "content": "Explain why Kenneth Shoulders observed clean cylindrical micro-boreholes (4.0 μm x 14.2 μm) in aluminum targets instead of hemispherical impact craters."}
+                {
+                    "role": "user",
+                    "content": "Explain why Kenneth Shoulders observed clean cylindrical micro-boreholes (4.0 μm x 14.2 μm) in aluminum targets instead of hemispherical impact craters.",
+                },
             ],
             "max_tokens": 200,
-            "route_trace": True
-        }
+            "route_trace": True,
+        },
     },
     {
         "id": "MISSION 4: AGENTIC STRUCTURED TOOL CALLING",
@@ -57,8 +69,11 @@ FLIGHT_MISSIONS = [
         "payload": {
             "model": MODEL,
             "messages": [
-                {"role": "system", "content": "You are Hermes Agent with hardware diagnostic tools."},
-                {"role": "user", "content": "Check the available memory headroom for the NPU."}
+                {
+                    "role": "system",
+                    "content": "You are Hermes Agent with hardware diagnostic tools.",
+                },
+                {"role": "user", "content": "Check the available memory headroom for the NPU."},
             ],
             "tools": [
                 {
@@ -71,15 +86,15 @@ FLIGHT_MISSIONS = [
                             "properties": {
                                 "domain": {"type": "string", "enum": ["npu", "igpu", "cpu", "uma"]}
                             },
-                            "required": ["domain"]
-                        }
-                    }
+                            "required": ["domain"],
+                        },
+                    },
                 }
             ],
             "max_tokens": 100,
-            "route_trace": True
-        }
-    }
+            "route_trace": True,
+        },
+    },
 ]
 
 
@@ -92,7 +107,7 @@ def execute_mission(mission: dict) -> None:
     req = urllib.request.Request(
         URL,
         headers={"Content-Type": "application/json"},
-        data=json.dumps(mission["payload"]).encode("utf-8")
+        data=json.dumps(mission["payload"]).encode("utf-8"),
     )
 
     t0 = time.perf_counter()
@@ -116,7 +131,9 @@ def execute_mission(mission: dict) -> None:
             if tool_calls:
                 print(f"  🛠️ Structured Tool Calls ({len(tool_calls)}):")
                 for tc in tool_calls:
-                    print(f"     - Function: {tc['function']['name']}({tc['function']['arguments']})")
+                    print(
+                        f"     - Function: {tc['function']['name']}({tc['function']['arguments']})"
+                    )
             elif content:
                 print(f"  💬 Generated Response:\n\n{content.strip()}\n")
             elif reasoning:

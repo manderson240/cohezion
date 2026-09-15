@@ -96,7 +96,10 @@ async def query_local_model(client: httpx.AsyncClient, p: dict[str, str]) -> dic
             json={
                 "model": p["model"],
                 "messages": [
-                    {"role": "system", "content": "You are a ruthlessly adversarial, mathematically rigorous reviewer. Output structured, high-density technical analysis."},
+                    {
+                        "role": "system",
+                        "content": "You are a ruthlessly adversarial, mathematically rigorous reviewer. Output structured, high-density technical analysis.",
+                    },
                     {"role": "user", "content": p["prompt"]},
                 ],
                 "temperature": 0.2,
@@ -159,7 +162,9 @@ async def main_async() -> None:
             reviews.append(rev)
 
     # Save to durable markdown artifact
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/local_codebase_adversarial_validation_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/local_codebase_adversarial_validation_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

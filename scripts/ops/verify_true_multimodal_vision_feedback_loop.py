@@ -32,6 +32,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 PROMPT_BASE = "Scientific diagram of a 12D Poincare hyperbolic manifold with glowing cyan geodesics and amber gyrovectors, high contrast wireframe, 8k resolution."
 
+
 async def generate_local_image(prompt: str, filename: str) -> Tuple[bool, str, float]:
     t0 = time.perf_counter()
     payload = {
@@ -39,7 +40,7 @@ async def generate_local_image(prompt: str, filename: str) -> Tuple[bool, str, f
         "prompt": prompt,
         "n": 1,
         "size": "512x512",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:
@@ -50,7 +51,9 @@ async def generate_local_image(prompt: str, filename: str) -> Tuple[bool, str, f
                 img_bytes = base64.b64decode(b64_data)
                 out_path = OUT_DIR / filename
                 out_path.write_bytes(img_bytes)
-                print(f"   ✓ Local Image Generated ({dt}s) -> saved to `{out_path}` ({len(img_bytes)} bytes)")
+                print(
+                    f"   ✓ Local Image Generated ({dt}s) -> saved to `{out_path}` ({len(img_bytes)} bytes)"
+                )
                 return True, b64_data, dt
             else:
                 print(f"   ❌ Image gen failed HTTP {r.status_code}: {r.text[:150]}")
@@ -59,19 +62,22 @@ async def generate_local_image(prompt: str, filename: str) -> Tuple[bool, str, f
             print(f"   ❌ Exception: {e}")
             return False, "", 0.0
 
+
 async def query_vision_expert(image_b64: str) -> str:
-    print("▶ Dispatching image to Vision Expert on Ollama Cloud for adversarial aesthetic critique...")
+    print(
+        "▶ Dispatching image to Vision Expert on Ollama Cloud for adversarial aesthetic critique..."
+    )
     payload = {
         "model": "qwen3.5:397b-cloud",
         "messages": [
             {
                 "role": "user",
                 "content": "You are a senior scientific visualization director. Analyze this 12D Poincare manifold wireframe image. Identify 2 specific composition enhancements (e.g. geometric symmetry, depth contrast, line crispness) and provide an enhanced 1-sentence prompt modifier to make it publication-ready for Nature Machine Intelligence.",
-                "images": [image_b64]
+                "images": [image_b64],
             }
         ],
         "stream": False,
-        "options": {"temperature": 0.2}
+        "options": {"temperature": 0.2},
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -82,14 +88,19 @@ async def query_vision_expert(image_b64: str) -> str:
                 critique = r.json().get("message", {}).get("content", "").strip()
                 if "</think>" in critique:
                     critique = critique.split("</think>")[-1].strip()
-                print(f"   ✓ Vision Model Critique Succeeded in {dt}s!\n   • Critique:\n\"{critique[:200]}...\"\n")
+                print(
+                    f'   ✓ Vision Model Critique Succeeded in {dt}s!\n   • Critique:\n"{critique[:200]}..."\n'
+                )
                 return critique
             else:
-                print(f"   • Cloud vision fallback ({r.status_code}), using structured expert prompt modifier...")
+                print(
+                    f"   • Cloud vision fallback ({r.status_code}), using structured expert prompt modifier..."
+                )
                 return "enhance dark space background, intensify cyan boundary glow, sharpen concentric hyperbolic tessellation lines."
         except Exception as e:
             print(f"   • Vision query note: {e}")
             return "deepen black contrast, enhance glowing cyan-gold geodesics, add crisp vector wireframe styling."
+
 
 async def main():
     print("\n" + "=" * 115)
@@ -115,7 +126,9 @@ async def main():
     # 4. Generate Refined Image (Pass 2)
     refined_prompt = PROMPT_BASE + f", {critique[:120]}"
     print(f"\n▶ [4/4] Generating Pass 2 Refined Image with Vision Feedback...")
-    ok2, b64_img2, dt2 = await generate_local_image(refined_prompt, "poincare_multimodal_pass2_refined.jpg")
+    ok2, b64_img2, dt2 = await generate_local_image(
+        refined_prompt, "poincare_multimodal_pass2_refined.jpg"
+    )
 
     # Publish to EventBus & SurrealDB DataMesh
     event_bus = await get_event_bus()
@@ -135,25 +148,28 @@ async def main():
             "pass1_file": str(OUT_DIR / "poincare_multimodal_pass1.jpg"),
             "pass2_file": str(OUT_DIR / "poincare_multimodal_pass2_refined.jpg"),
             "headroom_gib": avail_gib,
-            "status": "COMPLETED"
-        }
+            "status": "COMPLETED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "multimodal_vision_feedback_complete",
-        "title": "Closed-Loop Vision Feedback Image Generation Complete",
-        "status": "done",
-        "priority": "high",
-        "source": "multimodal_vision_feedback_pipeline",
-        "category": "multimodal_generation",
-        "details": f"Generated Pass 1 ({dt1}s) -> Vision Model Critique -> Generated Refined Pass 2 ({dt2}s) in {OUT_DIR}.",
-    })
+    persist_item(
+        {
+            "id": "multimodal_vision_feedback_complete",
+            "title": "Closed-Loop Vision Feedback Image Generation Complete",
+            "status": "done",
+            "priority": "high",
+            "source": "multimodal_vision_feedback_pipeline",
+            "category": "multimodal_generation",
+            "details": f"Generated Pass 1 ({dt1}s) -> Vision Model Critique -> Generated Refined Pass 2 ({dt2}s) in {OUT_DIR}.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 CLOSED-LOOP MULTI-MODAL VISION FEEDBACK PIPELINE: 100% COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

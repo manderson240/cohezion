@@ -23,3 +23,32 @@ with contextlib.suppress(Exception):
     from cohezion.eval.universe_evaluator import EpisodeMetrics as EpisodeMetrics
     from cohezion.eval.universe_evaluator import PolicyEvaluation as PolicyEvaluation
     from cohezion.eval.universe_evaluator import UniverseEvaluator as UniverseEvaluator
+
+with contextlib.suppress(Exception):
+    from cohezion.eval.self_evaluating_system import (
+        DeterministicEvaluator as DeterministicEvaluator,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        EvalResult as EvalResult,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        EvalRun as EvalRun,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        GoldenDataset as GoldenDataset,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        GoldenExample as GoldenExample,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        JudgeResult as JudgeResult,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        LocalLLMJudge as LocalLLMJudge,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        RegressionPipeline as RegressionPipeline,
+    )
+    from cohezion.eval.self_evaluating_system import (
+        SelfEvaluatingOrchestrator as SelfEvaluatingOrchestrator,
+    )

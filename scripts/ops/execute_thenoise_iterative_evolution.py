@@ -39,7 +39,10 @@ BASE_PROMPT = (
     "clean mathematical vector precision, raytraced caustic lighting, 8k resolution, Unreal Engine 5 render style."
 )
 
-async def generate_hd_image(prompt: str, filename: str, resolution: str = "1024x1024") -> Tuple[bool, str, float]:
+
+async def generate_hd_image(
+    prompt: str, filename: str, resolution: str = "1024x1024"
+) -> Tuple[bool, str, float]:
     """Generates an image via local Lemonade diffusion endpoint."""
     t0 = time.perf_counter()
     # Try preferred HD models in priority order
@@ -49,7 +52,7 @@ async def generate_hd_image(prompt: str, filename: str, resolution: str = "1024x
             "prompt": prompt,
             "n": 1,
             "size": resolution,
-            "response_format": "b64_json"
+            "response_format": "b64_json",
         }
         async with httpx.AsyncClient(timeout=120.0) as client:
             try:
@@ -62,7 +65,9 @@ async def generate_hd_image(prompt: str, filename: str, resolution: str = "1024x
                         img_bytes = base64.b64decode(b64_str)
                         out_path = EVOLUTION_DIR / filename
                         out_path.write_bytes(img_bytes)
-                        print(f"   ✓ Generated `{out_path.name}` via `{model_name}` ({len(img_bytes)} bytes in {dt}s)")
+                        print(
+                            f"   ✓ Generated `{out_path.name}` via `{model_name}` ({len(img_bytes)} bytes in {dt}s)"
+                        )
                         return True, b64_str, dt
             except Exception as e:
                 pass
@@ -72,7 +77,7 @@ async def generate_hd_image(prompt: str, filename: str, resolution: str = "1024x
         "prompt": prompt,
         "n": 1,
         "size": "512x512",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     async with httpx.AsyncClient(timeout=60.0) as client:
         r = await client.post(f"{LEMONADE_BASE}/v1/images/generations", json=payload)
@@ -85,6 +90,7 @@ async def generate_hd_image(prompt: str, filename: str, resolution: str = "1024x
             print(f"   ✓ Generated `{out_path.name}` (512x512 fallback) in {dt}s")
             return True, b64_str, dt
     return False, "", 0.0
+
 
 async def review_image_with_vision_model(image_b64: str, iteration: int) -> Tuple[float, str]:
     """Vision model evaluates image and provides explicit aesthetic & technical improvements."""
@@ -105,11 +111,11 @@ async def review_image_with_vision_model(image_b64: str, iteration: int) -> Tupl
                     "- 2 Specific Visual Weaknesses\n"
                     "- 1 Precise Prompt Improvement to inject into next iteration."
                 ),
-                "images": [image_b64]
+                "images": [image_b64],
             }
         ],
         "stream": False,
-        "options": {"temperature": 0.2}
+        "options": {"temperature": 0.2},
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -120,17 +126,31 @@ async def review_image_with_vision_model(image_b64: str, iteration: int) -> Tupl
                 critique = r.json().get("message", {}).get("content", "").strip()
                 if "</think>" in critique:
                     critique = critique.split("</think>")[-1].strip()
-                print(f"   ✓ Vision Model Evaluated Iteration {iteration} in {dt}s!\n   • Critique Snippet:\n{critique[:240]}...\n")
+                print(
+                    f"   ✓ Vision Model Evaluated Iteration {iteration} in {dt}s!\n   • Critique Snippet:\n{critique[:240]}...\n"
+                )
                 return 0.88, critique
         except Exception as e:
             print(f"   • Notice on cloud vision review: {e}")
     # Deterministic expert fallback
     fallbacks = {
-        1: (0.78, "Sharpen outer boundary disk curvature, increase luminescent cyan glow at nodal intersections, and eliminate dark noise grain."),
-        2: (0.86, "Add hyper-realistic raytraced subsurface scattering to translucent facets, enhance central gold core radiance, high-clarity vector fidelity."),
-        3: (0.94, "Flawless mathematical symmetry, pristine volumetric lighting, publication-grade master finish.")
+        1: (
+            0.78,
+            "Sharpen outer boundary disk curvature, increase luminescent cyan glow at nodal intersections, and eliminate dark noise grain.",
+        ),
+        2: (
+            0.86,
+            "Add hyper-realistic raytraced subsurface scattering to translucent facets, enhance central gold core radiance, high-clarity vector fidelity.",
+        ),
+        3: (
+            0.94,
+            "Flawless mathematical symmetry, pristine volumetric lighting, publication-grade master finish.",
+        ),
     }
-    return fallbacks.get(iteration, (0.85, "Refine specular reflections and increase color gradient vibrance."))
+    return fallbacks.get(
+        iteration, (0.85, "Refine specular reflections and increase color gradient vibrance.")
+    )
+
 
 async def run_evolution():
     print("\n" + "=" * 115)
@@ -159,16 +179,21 @@ async def run_evolution():
             break
 
         score, critique = await review_image_with_vision_model(b64_img, iteration)
-        history.append({
-            "iteration": iteration,
-            "file": filename,
-            "gen_time": gen_time,
-            "score": score,
-            "critique": critique
-        })
+        history.append(
+            {
+                "iteration": iteration,
+                "file": filename,
+                "gen_time": gen_time,
+                "score": score,
+                "critique": critique,
+            }
+        )
 
         # Refine prompt for next iteration
-        current_prompt = BASE_PROMPT + f", enhanced composition: {critique[:120]}, hyper-detailed, crystal clear focus"
+        current_prompt = (
+            BASE_PROMPT
+            + f", enhanced composition: {critique[:120]}, hyper-detailed, crystal clear focus"
+        )
         await asyncio.sleep(2.0)
 
     # 4. Summary & DataMesh Event Emission
@@ -176,7 +201,9 @@ async def run_evolution():
     print("📊 EVOLUTION CAMPAIGN COMPLETED — FINAL SCORECARD")
     print("=" * 115)
     for h in history:
-        print(f"• Iteration {h['iteration']}: `{h['file']}` | Gen Time: {h['gen_time']}s | Quality Score: {h['score']:.2f}")
+        print(
+            f"• Iteration {h['iteration']}: `{h['file']}` | Gen Time: {h['gen_time']}s | Quality Score: {h['score']:.2f}"
+        )
 
     event_bus = await get_event_bus()
     session_id = "thenoise_evolution_session"
@@ -191,25 +218,28 @@ async def run_evolution():
             "iterations_completed": len(history),
             "output_directory": str(EVOLUTION_DIR),
             "final_score": history[-1]["score"] if history else 0.0,
-            "status": "MASTERPIECE_GENERATED"
-        }
+            "status": "MASTERPIECE_GENERATED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "thenoise_vision_evolution_campaign",
-        "title": "'thenoise' High-Fidelity Iterative Evolution Complete",
-        "status": "done",
-        "priority": "highest",
-        "source": "thenoise_evolution_engine",
-        "category": "multimodal_generation",
-        "details": f"Ran 3-stage iterative vision feedback evolution. Final quality score: {history[-1]['score']:.2f}. Outputs in {EVOLUTION_DIR}.",
-    })
+    persist_item(
+        {
+            "id": "thenoise_vision_evolution_campaign",
+            "title": "'thenoise' High-Fidelity Iterative Evolution Complete",
+            "status": "done",
+            "priority": "highest",
+            "source": "thenoise_evolution_engine",
+            "category": "multimodal_generation",
+            "details": f"Ran 3-stage iterative vision feedback evolution. Final quality score: {history[-1]['score']:.2f}. Outputs in {EVOLUTION_DIR}.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 'THENOISE' & VISION FEEDBACK EVOLUTION COMPLETE & DELIVERED!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_evolution())

@@ -6,8 +6,6 @@ from typing import Any
 import pandas as pd
 from datasets import Dataset, Features, Sequence, Value
 
-from cohezion.core.persistence.surreal_client import get_surreal_client
-
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +43,8 @@ class JourneyPersistence:
     @property
     def db(self):
         if self._db is None:
+            from cohezion.core.persistence.surreal_client import get_surreal_client
+
             self._db = get_surreal_client()
         return self._db
 

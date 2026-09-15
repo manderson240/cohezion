@@ -99,9 +99,7 @@ def call(prompt: str, timeout: int = 900) -> tuple[str, str]:
             "temperature": 0.3,
         }
     ).encode()
-    req = urllib.request.Request(
-        LOCAL_URL, data=body, headers={"Content-Type": "application/json"}
-    )
+    req = urllib.request.Request(LOCAL_URL, data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
         d = json.loads(r.read())
     ch = d["choices"][0]
@@ -140,7 +138,9 @@ def main() -> int:
     with ThreadPoolExecutor(max_workers=2) as ex:
         for r in ex.map(run_lane, LANES):
             run.record_lane(r)
-            print(f"  {r['lane']:8} {r['chars']:6}ch {r['elapsed_s']:6.1f}s {r['error']}", flush=True)
+            print(
+                f"  {r['lane']:8} {r['chars']:6}ch {r['elapsed_s']:6.1f}s {r['error']}", flush=True
+            )
     print(f"\nwall-clock {time.time() - t0:.0f}s -> {run.dir}")
     return 0
 

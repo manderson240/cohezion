@@ -25,6 +25,7 @@ TEST_PATH = "data/arc_prize/arc-agi_test_challenges.json"
 SURREAL_URL = "http://localhost:8001/sql"
 SURREAL_AUTH = base64.b64encode(b"root:root").decode()
 
+
 def log_to_surrealdb(cycle: int, solved: int, total: int, acc: float, dt: float):
     sql = f"""
     CREATE kaggle_run CONTENT {{
@@ -49,7 +50,7 @@ def log_to_surrealdb(cycle: int, solved: int, total: int, acc: float, dt: float)
             "surreal-db": "main",
             "Content-Type": "text/plain",
             "Authorization": f"Basic {SURREAL_AUTH}",
-        }
+        },
     )
     try:
         with urllib.request.urlopen(req, timeout=5) as res:
@@ -57,14 +58,18 @@ def log_to_surrealdb(cycle: int, solved: int, total: int, acc: float, dt: float)
     except Exception:
         pass
 
+
 async def run_autonomous_loop():
     print("\n" + "=" * 115)
     print("🚀 LAUNCHING AUTONOMOUS KAGGLE OPTIMIZATION DAEMON (AMD STRIX HALO SILICON)")
     print("=" * 115)
-    
-    with open(CHALLENGES_PATH) as f: challenges = json.load(f)
-    with open(SOLUTIONS_PATH) as f: solutions = json.load(f)
-    with open(TEST_PATH) as f: test_tasks = json.load(f)
+
+    with open(CHALLENGES_PATH) as f:
+        challenges = json.load(f)
+    with open(SOLUTIONS_PATH) as f:
+        solutions = json.load(f)
+    with open(TEST_PATH) as f:
+        test_tasks = json.load(f)
 
     cycle = 1
     total = len(challenges)
@@ -72,7 +77,7 @@ async def run_autonomous_loop():
     while True:
         t0 = time.perf_counter()
         solved = 0
-        
+
         # Evaluate 1,000 tasks
         for tid, task in challenges.items():
             prog, tier = master_arc_solver(task["train"])
@@ -81,16 +86,19 @@ async def run_autonomous_loop():
                 expected = solutions[tid][0]
                 if pred == expected:
                     solved += 1
-                    
+
         dt = round(time.perf_counter() - t0, 3)
         acc = round((solved / total) * 100.0, 2)
-        
-        print(f"[{time.strftime('%H:%M:%S')}] Cycle {cycle:04d} Complete: Solved {solved}/{total} ({acc:.2f}%) in {dt}s")
+
+        print(
+            f"[{time.strftime('%H:%M:%S')}] Cycle {cycle:04d} Complete: Solved {solved}/{total} ({acc:.2f}%) in {dt}s"
+        )
         log_to_surrealdb(cycle, solved, total, acc, dt)
-        
+
         cycle += 1
         # 120-second continuous evaluation cadence
         await asyncio.sleep(120.0)
+
 
 if __name__ == "__main__":
     asyncio.run(run_autonomous_loop())

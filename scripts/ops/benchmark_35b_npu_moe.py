@@ -16,17 +16,21 @@ print(f"Testing direct inference on {model_id} (recipe: flm / XDNA2 NPU)...")
 payload = {
     "model": model_id,
     "messages": [
-        {"role": "system", "content": "You are an expert AGI engineer operating on AMD Strix Halo NPU."},
-        {"role": "user", "content": "Explain in 2 sentences how a 35B MoE model with 3B active parameters achieves near-30B intelligence at 3B compute latency."}
+        {
+            "role": "system",
+            "content": "You are an expert AGI engineer operating on AMD Strix Halo NPU.",
+        },
+        {
+            "role": "user",
+            "content": "Explain in 2 sentences how a 35B MoE model with 3B active parameters achieves near-30B intelligence at 3B compute latency.",
+        },
     ],
     "max_tokens": 100,
-    "temperature": 0.3
+    "temperature": 0.3,
 }
 
 req = urllib.request.Request(
-    url,
-    headers={"Content-Type": "application/json"},
-    data=json.dumps(payload).encode("utf-8")
+    url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode("utf-8")
 )
 
 t0 = time.perf_counter()

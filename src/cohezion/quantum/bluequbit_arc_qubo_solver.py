@@ -1,4 +1,4 @@
-"""BlueQubit Quantum QUBO / QAOA Combinatorial Solver for ARC-AGI & Kaggle.
+r"""BlueQubit Quantum QUBO / QAOA Combinatorial Solver for ARC-AGI & Kaggle.
 
 Formulates combinatorial object-graph matching and transformation selection as a
 Quantum Hamiltonian / QUBO problem, solving it on BlueQubit's cloud quantum simulators and QPUs:
@@ -6,16 +6,19 @@ $$H = \sum_{i,j} J_{ij} \sigma_i^z \sigma_j^z + \sum_i h_i \sigma_i^z$$
 """
 
 from __future__ import annotations
+
+import logging
 import os
 import time
-import logging
-from typing import List, Dict, Any, Tuple, Optional
-from dotenv import load_dotenv
-
-load_dotenv("/home/mike-anderson/dev/cohezion/.env")
+from typing import Any
 
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +36,8 @@ class BlueQubitARCSolver:
         self.client = bluequbit.init(api_token=token) if token else None
 
     def solve_graph_isomorphism_qubo(
-        self, cost_matrix: List[List[float]], shots: int = 1000
-    ) -> Dict[str, Any]:
+        self, cost_matrix: list[list[float]], shots: int = 1000
+    ) -> dict[str, Any]:
         """Solves combinatorial graph partition via parameterized quantum superposition."""
         n = len(cost_matrix)
         if self.client is None or n == 0:

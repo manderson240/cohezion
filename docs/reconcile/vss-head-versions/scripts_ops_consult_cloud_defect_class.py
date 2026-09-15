@@ -143,9 +143,7 @@ def call_cloud(model: str, prompt: str, timeout: int = 900) -> str:
             "options": {"temperature": 0.3},
         }
     ).encode()
-    req = urllib.request.Request(
-        CLOUD_URL, data=body, headers={"Content-Type": "application/json"}
-    )
+    req = urllib.request.Request(CLOUD_URL, data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
         d = json.loads(r.read())
     if "error" in d:

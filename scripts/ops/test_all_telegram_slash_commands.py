@@ -22,16 +22,17 @@ SLASH_COMMANDS = [
     ("/ask What is the status of the local hardware?", "Query local inference on Lemonade 13305"),
 ]
 
+
 async def verify_all_slash_commands():
     print("\n" + "=" * 105)
     print("🤖 TELEGRAM BOT SLASH COMMANDS E2E VERIFICATION (LOCAL INFERENCE DELEGATED)")
     print("=" * 105)
 
     hub = TelegramCommunicationHub()
-    
+
     # Capture sent messages for verification
     captured_messages = []
-    
+
     async def mock_send_msg(text: str, reply_to_message_id=None):
         captured_messages.append(text)
 
@@ -42,7 +43,7 @@ async def verify_all_slash_commands():
     for cmd, desc in SLASH_COMMANDS:
         print(f"\n▶ Testing command: '{cmd}' ({desc})...")
         captured_messages.clear()
-        
+
         # Build mock update message
         mock_msg = {
             "message_id": 999,
@@ -76,11 +77,12 @@ async def verify_all_slash_commands():
         mark = "✅" if passed else "❌"
         print(f"  {mark} {cmd:<45} : {status}")
     print("=" * 105)
-    
+
     if all_passed:
         print("🎉 ALL TELEGRAM BOT SLASH COMMANDS ARE 100% OPERATIONAL & VERIFIED!\n")
     else:
         print("⚠️ Some commands failed verification. Check logs above.\n")
+
 
 if __name__ == "__main__":
     asyncio.run(verify_all_slash_commands())

@@ -83,7 +83,6 @@ class MCPHTTPSClient:
 
         # Enforce strong TLS versions — minimum_version=TLSv1_2 disables all older protocols
         self._ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        self._ssl_context.check_hostname = True
 
         return self._ssl_context
 

@@ -22,8 +22,13 @@ Highlight:
 try:
     resp = httpx.post(
         "http://localhost:11434/api/generate",
-        json={"model": "glm-5.3-flash:cloud", "prompt": prompt, "stream": False, "options": {"temperature": 0.1, "num_predict": 300}},
-        timeout=40.0
+        json={
+            "model": "glm-5.3-flash:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 300},
+        },
+        timeout=40.0,
     )
     print("=" * 80)
     print("🐝 SLM SWARM VS MONOLITH ARCHITECTURAL SYNTHESIS")

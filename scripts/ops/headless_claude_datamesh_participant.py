@@ -19,6 +19,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
+
 async def run_headless_claude_session():
     print("\n" + "=" * 110)
     print("🤖 HEADLESS CLAUDE CODE SESSION — AGENTIC DATAMESH PARTICIPATION")
@@ -38,8 +39,8 @@ async def run_headless_claude_session():
         payload={
             "agent": "Headless Claude Opus 4.5",
             "task": "Strategic Architecture & OOM Resilience Governance",
-            "role": "Principal Systems Architect"
-        }
+            "role": "Principal Systems Architect",
+        },
     )
     await event_bus.publish(start_event)
     print("   ✓ Headless Claude session registered on in-memory EventBus and SurrealDB `event_log`")
@@ -49,7 +50,9 @@ async def run_headless_claude_session():
     peer_events = await bridge.fetch_cross_session_events(limit=10)
     print(f"   ✓ Discovered {len(peer_events)} peer events on the DataMesh:")
     for ev in peer_events:
-        print(f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}")
+        print(
+            f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}"
+        )
 
     # Step 3: Check Current Memory & Fleet Safety
     avail_gib, swap_used_gib, is_safe = SmartOOMGovernor.get_memory_state()
@@ -67,26 +70,29 @@ async def run_headless_claude_session():
         payload={
             "status": "CONSULTATION_COMPLETE",
             "verdict": "Event-Driven DataMesh fully resilient. OOM floor of 35.0 GiB confirmed.",
-            "recommendation": "Maintain unhurried hot-swaps and leverage Tier 2 Ollama Cloud for high-entropy bursts."
-        }
+            "recommendation": "Maintain unhurried hot-swaps and leverage Tier 2 Ollama Cloud for high-entropy bursts.",
+        },
     )
     await event_bus.publish(complete_event)
 
     # Persist durable Kanban card
-    persist_item({
-        "id": "headless_claude_mesh_verification",
-        "title": "Headless Claude DataMesh Verification",
-        "status": "done",
-        "priority": "high",
-        "source": "headless_claude_consultant",
-        "category": "agentic_datamesh",
-        "details": f"Headless Claude verified cross-session event sync across all active sessions. Headroom: {avail_gib} GiB.",
-    })
+    persist_item(
+        {
+            "id": "headless_claude_mesh_verification",
+            "title": "Headless Claude DataMesh Verification",
+            "status": "done",
+            "priority": "high",
+            "source": "headless_claude_consultant",
+            "category": "agentic_datamesh",
+            "details": f"Headless Claude verified cross-session event sync across all active sessions. Headroom: {avail_gib} GiB.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 110)
     print("🎉 HEADLESS CLAUDE AGENTIC DATAMESH CYCLE COMPLETED SUCCESSFULLY!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_headless_claude_session())

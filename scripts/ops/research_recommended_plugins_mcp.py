@@ -15,7 +15,9 @@ import os
 import time
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [PLUGIN_RESEARCH] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [PLUGIN_RESEARCH] %(message)s"
+)
 logger = logging.getLogger("plugin_research")
 
 LEMONADE_BASE = "http://localhost:13305"
@@ -38,6 +40,7 @@ For each recommendation, provide:
 Format as clean, structured Markdown.
 """
 
+
 async def run_plugin_research():
     print("\n" + "=" * 110)
     print("🔬 LOCAL SILICON RESEARCH: TOP RECOMMENDED MCP SERVERS & PLUGINS (PORT 13305)")
@@ -48,11 +51,14 @@ async def run_plugin_research():
         payload = {
             "model": "gpt-oss-20b",
             "messages": [
-                {"role": "system", "content": "You are a master developer tooling architect specializing in Model Context Protocol (MCP) and sovereign agent systems. Be direct, technical, and high-impact."},
-                {"role": "user", "content": PROMPT}
+                {
+                    "role": "system",
+                    "content": "You are a master developer tooling architect specializing in Model Context Protocol (MCP) and sovereign agent systems. Be direct, technical, and high-impact.",
+                },
+                {"role": "user", "content": PROMPT},
             ],
             "temperature": 0.2,
-            "max_tokens": 1024
+            "max_tokens": 1024,
         }
 
         logger.info("Sending research query to local Lemonade server...")
@@ -69,7 +75,9 @@ async def run_plugin_research():
 
             with open(report_file, "w", encoding="utf-8") as f:
                 f.write("# 🔌 Top Recommended MCP Servers & Plugins for Cohezion\n\n")
-                f.write(f"**Auditor Model**: `gpt-oss-20b` on local AMD Strix Halo silicon (port 13305)  \n")
+                f.write(
+                    f"**Auditor Model**: `gpt-oss-20b` on local AMD Strix Halo silicon (port 13305)  \n"
+                )
                 f.write(f"**Date**: 2026-08-24  \n\n")
                 f.write(content)
 
@@ -78,6 +86,7 @@ async def run_plugin_research():
             print("=" * 110 + "\n")
         else:
             logger.error("Research call failed: %d", r.status_code)
+
 
 if __name__ == "__main__":
     asyncio.run(run_plugin_research())

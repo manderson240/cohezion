@@ -18,16 +18,12 @@ Our deployment currently runs on Lemonade Server (:13305):
 How can we push this Strix Halo deployment even further? Provide 4 concrete, cutting-edge recommendations for speculative decoding, kernel tuning, quantization, and heterogeneous multi-silicon orchestration.
 """
 
-payload = {
-    "model": "kimi-k2.6:cloud",
-    "prompt": prompt,
-    "stream": False
-}
+payload = {"model": "kimi-k2.6:cloud", "prompt": prompt, "stream": False}
 
 req = urllib.request.Request(
     "http://localhost:11434/api/generate",
     headers={"Content-Type": "application/json"},
-    data=json.dumps(payload).encode("utf-8")
+    data=json.dumps(payload).encode("utf-8"),
 )
 
 print("Querying kimi-k2.6:cloud on port 11434...")
@@ -38,7 +34,11 @@ try:
         data = json.loads(resp.read().decode("utf-8"))
         res = data.get("response", "")
         print(f"✓ Received response in {dt:.2f}s ({len(res)} chars):")
-        with open("/home/mike-anderson/dev/cohezion/docs/research/frontier_kimi_optimization_findings.md", "w", encoding="utf-8") as f:
+        with open(
+            "/home/mike-anderson/dev/cohezion/docs/research/frontier_kimi_optimization_findings.md",
+            "w",
+            encoding="utf-8",
+        ) as f:
             f.write("# Kimi-K2.6 Frontier Hardware Optimization Review\n\n")
             f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write("**Target System**: AMD Ryzen AI MAX+ 395 (Strix Halo)\n\n---\n\n")

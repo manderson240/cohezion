@@ -19,6 +19,7 @@ from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
+
 async def test_agy_orchestrator():
     print("\n" + "=" * 115)
     print("🛸 VERIFYING ANTIGRAVITY (AGY) MASTER ORCHESTRATOR & EVENT-DRIVEN DATAMESH")
@@ -49,8 +50,8 @@ async def test_agy_orchestrator():
             "status": "ORCHESTRATING_FLEET",
             "headroom_gib": avail_gib,
             "governor_policy": "Learning 92: Liveness Over Speed (35GB Floor)",
-            "fleet_size": 7
-        }
+            "fleet_size": 7,
+        },
     )
     await event_bus.publish(agy_event)
     print(f"   ✓ Emitted High-Priority (Priority: 20) `SYSTEM_HEALTH` event across EventBus")
@@ -60,23 +61,28 @@ async def test_agy_orchestrator():
     peer_events = await bridge.fetch_cross_session_events(limit=10)
     print(f"   ✓ Antigravity intercepted {len(peer_events)} active peer session events:")
     for ev in peer_events:
-        print(f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}")
+        print(
+            f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}"
+        )
 
     # 4. Dual-Persist Master Orchestrator Kanban Card
-    persist_item({
-        "id": "antigravity_master_orchestrator_status",
-        "title": "Antigravity (AGY) Master Orchestrator Active",
-        "status": "in_progress",
-        "priority": "highest",
-        "source": "antigravity_orchestrator",
-        "category": "master_orchestration",
-        "details": f"Antigravity orchestrating 7 connected agent interfaces. Memory Headroom: {avail_gib} GiB. Learning 92 Enforced.",
-    })
+    persist_item(
+        {
+            "id": "antigravity_master_orchestrator_status",
+            "title": "Antigravity (AGY) Master Orchestrator Active",
+            "status": "in_progress",
+            "priority": "highest",
+            "source": "antigravity_orchestrator",
+            "category": "master_orchestration",
+            "details": f"Antigravity orchestrating 7 connected agent interfaces. Memory Headroom: {avail_gib} GiB. Learning 92 Enforced.",
+        }
+    )
     print("   ✓ Dual-persisted Master Orchestrator card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 115)
     print("🎉 ANTIGRAVITY (AGY) MASTER ORCHESTRATOR FULLY SYNCHRONIZED ON THE DATAMESH!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_agy_orchestrator())

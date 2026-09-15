@@ -19,8 +19,9 @@ BACKENDS_TO_UPDATE = [
     "trellis:rocm",
     "thinksound:rocm",
     "acestep:rocm",
-    "openmoss:rocm"
+    "openmoss:rocm",
 ]
+
 
 def update_backends():
     print("\n" + "=" * 95)
@@ -41,6 +42,7 @@ def update_backends():
 
     print("\n" + "=" * 95)
     print("🎉 ALL LEMONADE HARDWARE BACKENDS VERIFIED UP-TO-DATE!\n")
+
 
 if __name__ == "__main__":
     update_backends()

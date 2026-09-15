@@ -64,7 +64,9 @@ async def run_audit() -> None:
                     response_text = data.get("response", "")
                     if response_text:
                         chosen_model = model
-                        print(f"  ✓ Received response from {model} ({len(response_text.split())} words)")
+                        print(
+                            f"  ✓ Received response from {model} ({len(response_text.split())} words)"
+                        )
                         break
             except Exception as e:
                 print(f"  ⚠️ Model {model} unavailable: {e}")
@@ -78,7 +80,10 @@ async def run_audit() -> None:
                     json={
                         "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
                         "messages": [
-                            {"role": "system", "content": "You are a world-class theoretical nuclear physicist."},
+                            {
+                                "role": "system",
+                                "content": "You are a world-class theoretical nuclear physicist.",
+                            },
                             {"role": "user", "content": PROMPT},
                         ],
                         "temperature": 0.2,
@@ -119,11 +124,13 @@ Dr. Takaaki Matsumoto (Hokkaido University, 1989-1998) formulated the **Nattoh M
         response_text = response_text.split("</think>")[-1].strip()
 
     # Save to durable research report
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/takaaki_matsumoto_enc_audit_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/takaaki_matsumoto_enc_audit_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     report_md = f"""# Comprehensive Audit: Dr. Takaaki Matsumoto's Electro-Nuclear Collapse (ENC)
-**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S EDT')}
+**Timestamp**: {time.strftime("%Y-%m-%d %H:%M:%S EDT")}
 **Evaluator**: `{chosen_model}`
 **Target**: Electro-Nuclear Collapse, Nattoh Model, Itonic Clusters, & FLUME Manifold Integration
 

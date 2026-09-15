@@ -22,13 +22,17 @@ Analyze what Cohezion can accomplish by integrating with BlueQubit (quantum simu
 Provide a concrete, actionable 4-part integration roadmap under 250 words."""
 
 try:
-    resp = httpx.post("http://localhost:11434/api/chat", json={
-        "model": "kimi-k3:cloud",
-        "messages": [{"role": "user", "content": prompt}],
-        "stream": False,
-        "options": {"num_predict": 600}
-    }, timeout=45.0)
-    
+    resp = httpx.post(
+        "http://localhost:11434/api/chat",
+        json={
+            "model": "kimi-k3:cloud",
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "options": {"num_predict": 600},
+        },
+        timeout=45.0,
+    )
+
     if resp.status_code == 200:
         print("⚛️ BLUEQUBIT QUANTUM INTEGRATION BLUEPRINT (via Kimi-k3:cloud):")
         print("=" * 80)

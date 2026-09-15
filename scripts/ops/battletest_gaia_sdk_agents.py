@@ -22,7 +22,9 @@ from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.inference.gaia_adapter import strip_reasoning_tags, GaiaAgentTier
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAIA_BATTLETEST] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAIA_BATTLETEST] %(message)s"
+)
 logger = logging.getLogger("gaia_battletest")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
@@ -40,7 +42,10 @@ async def test_gaia_concurrent_local_execution():
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
             "messages": [
-                {"role": "system", "content": "You are a code generator. Output ONLY Python code inside ```python ``` blocks."},
+                {
+                    "role": "system",
+                    "content": "You are a code generator. Output ONLY Python code inside ```python ``` blocks.",
+                },
                 {"role": "user", "content": p},
             ],
             "max_tokens": 512,
@@ -54,12 +59,19 @@ async def test_gaia_concurrent_local_execution():
             method="POST",
         )
         loop = asyncio.get_running_loop()
-        resp_bytes = await loop.run_in_executor(None, lambda: urllib.request.urlopen(req, timeout=30).read())
+        resp_bytes = await loop.run_in_executor(
+            None, lambda: urllib.request.urlopen(req, timeout=30).read()
+        )
         data = json.loads(resp_bytes.decode("utf-8"))
         dt_ms = (time.perf_counter() - t0) * 1000.0
         msg = data["choices"][0]["message"]
         content = msg.get("content") or msg.get("reasoning_content") or ""
-        return {"idx": idx, "content": content, "dt_ms": dt_ms, "tokens": data.get("usage", {}).get("completion_tokens", 0)}
+        return {
+            "idx": idx,
+            "content": content,
+            "dt_ms": dt_ms,
+            "tokens": data.get("usage", {}).get("completion_tokens", 0),
+        }
 
     t0 = time.perf_counter()
     results = await asyncio.gather(*(call_local(p, i) for i, p in enumerate(prompts)))
@@ -73,22 +85,34 @@ async def test_gaia_concurrent_local_execution():
         if "```python" in raw_code:
             raw_code = raw_code.split("```python")[-1].split("```")[0].strip()
         elif "```" in raw_code:
-            raw_code = raw_code.split("```")[1].strip() if len(raw_code.split("```")) > 1 else raw_code.strip()
+            raw_code = (
+                raw_code.split("```")[1].strip()
+                if len(raw_code.split("```")) > 1
+                else raw_code.strip()
+            )
 
         # AST Verification
         v_res = verifier.verify_code(raw_code)
         # Sandbox Execution
         ns_res = sandbox.execute_python_code(raw_code)
-        logger.info("  ✓ Agent #%d: %d tokens in %.2fms | AST Valid: %s | Sandbox Exec: %s",
-                    r["idx"], r["tokens"], r["dt_ms"], v_res.get("verified", False), ns_res.success)
-        assert v_res.get("verified", False) or ns_res.success, f"Both AST and Sandbox failed on Agent #{r['idx']}"
+        logger.info(
+            "  ✓ Agent #%d: %d tokens in %.2fms | AST Valid: %s | Sandbox Exec: %s",
+            r["idx"],
+            r["tokens"],
+            r["dt_ms"],
+            v_res.get("verified", False),
+            ns_res.success,
+        )
+        assert v_res.get("verified", False) or ns_res.success, (
+            f"Both AST and Sandbox failed on Agent #{r['idx']}"
+        )
 
     logger.info("✓ Concurrency Passed: 3 Agents completed in %.2f ms", total_dt)
 
 
 def test_gaia_delimiter_adversarial_suite():
     logger.info("🧪 2. Testing GAIA Reasoning Tag Stripper Adversarial Suite...")
-    
+
     # Test case 1: Think tags
     c1 = "<think>Internal thought process</think>Actual clean answer"
     assert strip_reasoning_tags(c1) == "Actual clean answer"

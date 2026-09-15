@@ -23,6 +23,7 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
 PI_BIN = "/home/linuxbrew/.linuxbrew/bin/pi"
 
+
 async def test_pi_datamesh_session():
     print("\n" + "=" * 110)
     print("🥧 VERIFYING PI CODING ASSISTANT LOCAL INFERENCE & AGENTIC EVENT BUS DATAMESH")
@@ -51,8 +52,8 @@ async def test_pi_datamesh_session():
             "binary": PI_BIN,
             "task": "Interactive Code Synthesis & DataMesh Verification",
             "status": "ONLINE",
-            "headroom_gib": avail_gib
-        }
+            "headroom_gib": avail_gib,
+        },
     )
     await event_bus.publish(pi_start_event)
     print(f"   ✓ Emitted `AGENT_START` for Pi across EventBus & SurrealDB `event_log`")
@@ -66,7 +67,9 @@ async def test_pi_datamesh_session():
             dt = round(time.perf_counter() - t0, 3)
             if r.status_code == 200:
                 print(f"   ✓ Pi Local Gateway Connected in {dt}s!")
-                print(f"     Recommended Pi Model: `ollama/qwen3-coder:30b` or `lemonade/user.cohezion-hermes-router`")
+                print(
+                    f"     Recommended Pi Model: `ollama/qwen3-coder:30b` or `lemonade/user.cohezion-hermes-router`"
+                )
         except Exception as e:
             print(f"   • Pi Local Gateway Notice: {e}")
 
@@ -75,7 +78,9 @@ async def test_pi_datamesh_session():
     peer_events = await bridge.fetch_cross_session_events(limit=6)
     print(f"   ✓ Pi intercepted {len(peer_events)} peer events on the DataMesh:")
     for ev in peer_events:
-        print(f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}")
+        print(
+            f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}"
+        )
 
     # Emit Completion & Persist Kanban Card
     pi_complete_event = Event(
@@ -84,25 +89,28 @@ async def test_pi_datamesh_session():
         priority=10,
         payload={
             "status": "COMPLETE",
-            "verdict": "Pi Coding Assistant fully verified on local inference gateway and EventBus DataMesh."
-        }
+            "verdict": "Pi Coding Assistant fully verified on local inference gateway and EventBus DataMesh.",
+        },
     )
     await event_bus.publish(pi_complete_event)
 
-    persist_item({
-        "id": "pi_datamesh_integration_status",
-        "title": "Pi Coding Assistant DataMesh Active",
-        "status": "done",
-        "priority": "high",
-        "source": "pi_agent",
-        "category": "agent_tooling",
-        "details": f"Pi Coding Assistant integrated with local inference (:13305) and EventBus DataMesh. Headroom: {avail_gib} GiB.",
-    })
+    persist_item(
+        {
+            "id": "pi_datamesh_integration_status",
+            "title": "Pi Coding Assistant DataMesh Active",
+            "status": "done",
+            "priority": "high",
+            "source": "pi_agent",
+            "category": "agent_tooling",
+            "details": f"Pi Coding Assistant integrated with local inference (:13305) and EventBus DataMesh. Headroom: {avail_gib} GiB.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 110)
     print("🎉 PI CODING ASSISTANT LOCAL INFERENCE & AGENTIC DATAMESH VERIFIED!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_pi_datamesh_session())

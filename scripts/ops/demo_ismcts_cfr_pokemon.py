@@ -2,6 +2,7 @@
 import time
 from cohezion.competitions.pokemon_tcg.ismcts_cfr_engine import ISMCTSWithCFR
 
+
 def main():
     print("\n" + "=" * 95)
     print("🃏 POKEMON TCG INFORMATION-SET MCTS & CFR NASH EQUILIBRIUM ENGINE")
@@ -12,7 +13,7 @@ def main():
         "player_hp": 80,
         "opponent_hp": 30,
         "energy_attached": 2,
-        "legal_actions": ["attach_energy", "attack", "retreat", "pass"]
+        "legal_actions": ["attach_energy", "attack", "retreat", "pass"],
     }
 
     t0 = time.perf_counter()
@@ -26,6 +27,7 @@ def main():
     print("\n" + "=" * 95)
     print("🎉 ISMCTS & CFR REGRET MINIMIZATION VERIFIED WITH 0ms CLOUD OVERHEAD!")
     print("=" * 95 + "\n")
+
 
 if __name__ == "__main__":
     main()

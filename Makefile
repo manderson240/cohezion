@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard resume
+.PHONY: help format lint lint-check lint-ratchet type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard resume dev-loop test-unit test-parallel test-quarantine
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -40,6 +40,25 @@ resume:  ## Re-verify the Anthropic Universes living resume (docs/anthropic-univ
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
 	PYTHONPATH=src:scripts/ci uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
+
+lint-ratchet:  ## Check ruff debt ratchet (blocking gate)
+	uv run python scripts/ci/ruff_ratchet.py
+	@echo "✓ Ruff debt ratchet within baseline"
+
+dev-loop: format lint-ratchet type-check test-unit  ## Fast local developer loop (format, ruff ratchet, mypy ratchet, parallel unit tests)
+	@echo "✓ Developer loop passed cleanly"
+
+test-unit:  ## Run unit tests with xdist parallel execution and quarantine logging
+	uv run pytest tests/unit -n auto --dist loadgroup -m "unit or fast" -q --tb=short
+	@echo "✓ Unit tests complete"
+
+test-parallel:  ## Run tests in parallel across all CPU cores via pytest-xdist
+	uv run pytest tests/unit -n auto --dist loadgroup -q --tb=short
+	@echo "✓ Parallel tests complete"
+
+test-quarantine:  ## Run quarantined/flaky tests with rerun isolation and report telemetry
+	uv run pytest tests/unit -m flaky --reruns 2 --reruns-delay 0.05 -v
+	@echo "✓ Quarantine verification complete (see reports/quarantine.jsonl)"
 
 paradigms:  ## Run advanced testing paradigms: property, fuzz, metamorphic, mutation-vector, contract
 	uv run python scripts/ci/check_paradigms.py

@@ -88,9 +88,16 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
-# Environments
-.env
-.env.mcp
+# Environments & Local Secrets (never commit)
+.env*
+!.env.example
+*.token
+*.key
+*.pem
+*kaggle.json
+.kaggle/
+*bluequbit*.json
+*bluequbit*credentials*
 .venv
 env/
 venv/
@@ -357,8 +364,11 @@ REPORT.html
 /tmp_*.py
 *.harness-bak
 
-# Local secrets — never commit (untracked 2026-09-08 after credential rename exposure)
-.env
+# Local secrets and large model binaries — never commit
+.env*
+!.env.example
+*.gguf
+*.bin
 
 # Ephemeral benchmark & guard test artifacts
 run_stats.csv
@@ -366,4 +376,11 @@ run_stats.csv
 *integrity.json
 scorer_pkg/
 secondary_seed_weights/
+
+# Git index ceiling preservation (<10,000 file mandate)
+.claude/
+.pi/
+cloud-vault-mcp/
+
+
 

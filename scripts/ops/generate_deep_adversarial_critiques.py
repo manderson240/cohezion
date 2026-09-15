@@ -76,7 +76,9 @@ def main() -> None:
     print("    🛡️ GENERATING RIGOROUS MULTI-PERSPECTIVE ADVERSARIAL REVIEW ARTIFACT")
     print("=" * 95)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_local_adversarial_review.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_local_adversarial_review.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

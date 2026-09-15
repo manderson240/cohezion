@@ -193,9 +193,34 @@ def execution_trace_to_otel_spans(trace_dict: dict) -> list[OtelSpan]:
     return spans
 
 
-## FUTURE HOOKS
-# - Add OTLP/HTTP export: `export_spans_to_phoenix(spans, endpoint)` using
-#   `urllib.request` (no httpx dependency) when Phoenix URL is configured.
-# - Wire into CompoundTelemetry.write_metrics() as an optional side-channel.
-# - Support batch export accumulator for high-throughput compound loops.
-# - Add W3C TraceContext header generation for distributed trace propagation.
+def export_to_goal_loop_graph(trace_dict: dict[str, Any]) -> Any:
+    """Refactor a compound execution trace into a formal Bipartite Goal-Loop Graph."""
+    from cohezion.compound.graph_loop_refactor import TraceRefactorEngine
+
+    steps = trace_dict.get("steps", [])
+    events: list[dict[str, Any]] = []
+    intent = str(trace_dict.get("skill_name") or "compound_skill")
+
+    for step in steps:
+        events.append(
+            {
+                "timestamp": step.get("timestamp", trace_dict.get("timestamp", "")),
+                "action": str(step.get("step_name", "execute_step")),
+                "intent": intent,
+                "success": not bool(step.get("error")),
+            }
+        )
+
+    if not events:
+        events.append(
+            {
+                "timestamp": trace_dict.get("timestamp", ""),
+                "action": "execute_task",
+                "intent": intent,
+                "success": bool(trace_dict.get("success", True)),
+            }
+        )
+
+    engine = TraceRefactorEngine()
+    return engine.refactor(events)
+

@@ -37,6 +37,7 @@ Analyze the latest Nous Research Blog posts (https://nousresearch.com/blog):
 Provide a concise, highly actionable technical synthesis for Cohezion.
 """
 
+
 async def run_local_research():
     print("\n" + "=" * 115)
     print("🔬 LOCAL SILICON INFERENCE ANALYSIS: NOUS RESEARCH BLOG (nousresearch.com/blog)")
@@ -50,15 +51,17 @@ async def run_local_research():
     print(f"   • Local Execution:     {'SAFE' if is_safe else 'BACKPRESSURE'}")
 
     # 2. Local LLM Request (:13305)
-    print(f"\n▶ [2/3] Dispatching to Local Silicon Router `user.cohezion-hermes-router` (:13305)...")
+    print(
+        f"\n▶ [2/3] Dispatching to Local Silicon Router `user.cohezion-hermes-router` (:13305)..."
+    )
     payload = {
         "model": "user.cohezion-hermes-router",
         "messages": [
             {"role": "system", "content": "You are a senior frontier systems researcher."},
-            {"role": "user", "content": PROMPT}
+            {"role": "user", "content": PROMPT},
         ],
         "temperature": 0.2,
-        "max_tokens": 600
+        "max_tokens": 600,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -67,10 +70,13 @@ async def run_local_research():
         if r.status_code == 200:
             analysis = r.json()["choices"][0]["message"]["content"].strip()
             print(f"   ✓ Local Silicon Inference Succeeded in {dt}s!")
-            
+
             # Save report
             report_path = Path("docs/research/nous_blog_local_inference_report.md")
-            report_path.write_text(f"# Nous Research Blog Technical Analysis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Time**: {dt}s | **Memory Headroom**: {avail_gib} GiB\n\n" + analysis)
+            report_path.write_text(
+                f"# Nous Research Blog Technical Analysis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Time**: {dt}s | **Memory Headroom**: {avail_gib} GiB\n\n"
+                + analysis
+            )
             print(f"   ✓ Saved analysis to `{report_path}`")
         else:
             print(f"   ❌ Local LLM Error: HTTP {r.status_code}")
@@ -91,25 +97,28 @@ async def run_local_research():
             "target": "https://nousresearch.com/blog",
             "model_used": "user.cohezion-hermes-router",
             "latency_sec": dt,
-            "status": "COMPLETED"
-        }
+            "status": "COMPLETED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "nous_blog_analysis_status",
-        "title": "Nous Research Blog Local Analysis Complete",
-        "status": "done",
-        "priority": "high",
-        "source": "local_silicon_nous_analyzer",
-        "category": "frontier_research",
-        "details": f"Local silicon analysis of Nous Blog (Hermes 4.3 512K, DeMo, Psyche). Latency: {dt}s. Zero cloud cost.",
-    })
+    persist_item(
+        {
+            "id": "nous_blog_analysis_status",
+            "title": "Nous Research Blog Local Analysis Complete",
+            "status": "done",
+            "priority": "high",
+            "source": "local_silicon_nous_analyzer",
+            "category": "frontier_research",
+            "details": f"Local silicon analysis of Nous Blog (Hermes 4.3 512K, DeMo, Psyche). Latency: {dt}s. Zero cloud cost.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 LOCAL SILICON RESEARCH COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_local_research())

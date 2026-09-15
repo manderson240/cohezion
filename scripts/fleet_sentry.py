@@ -53,7 +53,9 @@ def enforce_memory_guard(auto_evict: bool = False) -> bool:
     logger.info("Current available memory: %.2f GiB (Floor: %.2f GiB)", avail_gib, MEMORY_FLOOR_GIB)
 
     if avail_gib < MEMORY_FLOOR_GIB:
-        logger.warning("ALERT: Available memory (%.2f GiB) is BELOW the 20 GiB safety floor!", avail_gib)
+        logger.warning(
+            "ALERT: Available memory (%.2f GiB) is BELOW the 20 GiB safety floor!", avail_gib
+        )
         if auto_evict:
             logger.info("Executing soft eviction of idle model servers...")
             try:
@@ -70,7 +72,9 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description="Fleet Sentry Stability Checker")
-    parser.add_argument("--evict", action="store_true", help="Auto-evict idle servers if below floor")
+    parser.add_argument(
+        "--evict", action="store_true", help="Auto-evict idle servers if below floor"
+    )
     args = parser.parse_args()
 
     is_safe = enforce_memory_guard(auto_evict=args.evict)

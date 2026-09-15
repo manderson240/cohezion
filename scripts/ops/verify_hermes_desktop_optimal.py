@@ -18,17 +18,23 @@ import urllib.request
 URL = "http://127.0.0.1:13305/api/v1/chat/completions"
 MODEL = "user.cohezion-hermes-router"
 
+
 def test_npu_fast_chat() -> float:
     payload = {
         "model": MODEL,
         "messages": [
             {"role": "system", "content": "You are Hermes Agent on AMD Strix Halo."},
-            {"role": "user", "content": "Acknowledge receipt and confirm NPU readiness in 5 words."}
+            {
+                "role": "user",
+                "content": "Acknowledge receipt and confirm NPU readiness in 5 words.",
+            },
         ],
         "max_tokens": 20,
-        "route_trace": True
+        "route_trace": True,
     }
-    req = urllib.request.Request(URL, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+    req = urllib.request.Request(
+        URL, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+    )
     t0 = time.perf_counter()
     with urllib.request.urlopen(req, timeout=15) as resp:
         dt = time.perf_counter() - t0
@@ -38,12 +44,13 @@ def test_npu_fast_chat() -> float:
         print(f"1. Fast NPU Chat: {dt:.2f}s | Route: {route} | Output: '{content.strip()}'")
         return dt
 
+
 def test_igpu_tool_dispatch() -> float:
     payload = {
         "model": MODEL,
         "messages": [
             {"role": "system", "content": "You are Hermes Agent with system tools."},
-            {"role": "user", "content": "Run the diagnostics tool on the NPU domain."}
+            {"role": "user", "content": "Run the diagnostics tool on the NPU domain."},
         ],
         "tools": [
             {
@@ -53,24 +60,31 @@ def test_igpu_tool_dispatch() -> float:
                     "description": "Run silicon diagnostics",
                     "parameters": {
                         "type": "object",
-                        "properties": {"target": {"type": "string", "enum": ["npu", "igpu", "cpu"]}},
-                        "required": ["target"]
-                    }
-                }
+                        "properties": {
+                            "target": {"type": "string", "enum": ["npu", "igpu", "cpu"]}
+                        },
+                        "required": ["target"],
+                    },
+                },
             }
         ],
         "max_tokens": 50,
-        "route_trace": True
+        "route_trace": True,
     }
-    req = urllib.request.Request(URL, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+    req = urllib.request.Request(
+        URL, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+    )
     t0 = time.perf_counter()
     with urllib.request.urlopen(req, timeout=15) as resp:
         dt = time.perf_counter() - t0
         data = json.loads(resp.read().decode())
         route = resp.headers.get("x-lemonade-route", "")
         tool_calls = data["choices"][0]["message"].get("tool_calls", [])
-        print(f"2. iGPU Tool Dispatch: {dt:.2f}s | Route: {route} | Tool: {tool_calls[0]['function']['name'] if tool_calls else 'None'}")
+        print(
+            f"2. iGPU Tool Dispatch: {dt:.2f}s | Route: {route} | Tool: {tool_calls[0]['function']['name'] if tool_calls else 'None'}"
+        )
         return dt
+
 
 def test_kv_cache_warmth() -> None:
     system_prefix = "You are Hermes Agent operating with zero cloud latency. " * 30
@@ -80,11 +94,13 @@ def test_kv_cache_warmth() -> None:
             "model": MODEL,
             "messages": [
                 {"role": "system", "content": system_prefix},
-                {"role": "user", "content": msg}
+                {"role": "user", "content": msg},
             ],
-            "max_tokens": 15
+            "max_tokens": 15,
         }
-        req = urllib.request.Request(URL, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+        req = urllib.request.Request(
+            URL, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+        )
         t0 = time.perf_counter()
         with urllib.request.urlopen(req, timeout=15) as resp:
             dt = time.perf_counter() - t0
@@ -93,6 +109,7 @@ def test_kv_cache_warmth() -> None:
     cold_dt = turn("What is your mission?")
     warm_dt = turn("Confirm your status.")
     print(f"3. KV-Cache Prefix Reuse: Cold = {cold_dt:.2f}s ──► Warm Hit = {warm_dt:.2f}s")
+
 
 def main() -> None:
     print("=" * 80)
@@ -104,6 +121,7 @@ def main() -> None:
     print("=" * 80)
     print("🎉 HERMES DESKTOP IS PERFORMING AT PEAK HARDWARE EFFICIENCY!")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

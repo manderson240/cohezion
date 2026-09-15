@@ -17,26 +17,34 @@ import urllib.request
 from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.data_mesh.kanban_bridge import persist_item
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_RETRO] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_RETRO] %(message)s"
+)
 logger = logging.getLogger("local_retro")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
+
 
 def query_local_reasoning_model(prompt: str, system_prompt: str) -> str:
     payload = {
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.2,
-        "max_tokens": 2048
+        "max_tokens": 2048,
     }
-    req = urllib.request.Request(LEMONADE_URL, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        LEMONADE_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
     with urllib.request.urlopen(req, timeout=120) as resp:
         data = json.loads(resp.read().decode("utf-8"))
         msg = data["choices"][0]["message"]
         return msg.get("content", "") or msg.get("reasoning_content", "")
+
 
 async def main():
     logger.info("=" * 90)
@@ -58,14 +66,22 @@ Provide a rigorous, first-principles retrospective addressing:
 
     system_prompt = "You are a world-class Frontier Systems Architect and AI Kernel Engineer. Be technical, rigorous, and direct."
 
-    logger.info("📡 Dispatching retrospective synthesis to resident local model (`gpt-oss-20b-mxfp4-GGUF`)...")
+    logger.info(
+        "📡 Dispatching retrospective synthesis to resident local model (`gpt-oss-20b-mxfp4-GGUF`)..."
+    )
     t0 = time.perf_counter()
     retro_markdown = query_local_reasoning_model(retro_prompt, system_prompt)
     dt_s = time.perf_counter() - t0
-    logger.info("✓ Local Model Completed Retrospective Synthesis in %.2f seconds (%d chars)", dt_s, len(retro_markdown))
+    logger.info(
+        "✓ Local Model Completed Retrospective Synthesis in %.2f seconds (%d chars)",
+        dt_s,
+        len(retro_markdown),
+    )
 
     # Save to Obsidian Vault & Research Docs
-    vault_path = os.path.expanduser("~/vaults/cohezion-vault/01-Learnings/2026-08-24-local-silicon-multi-harness-retrospective.md")
+    vault_path = os.path.expanduser(
+        "~/vaults/cohezion-vault/01-Learnings/2026-08-24-local-silicon-multi-harness-retrospective.md"
+    )
     os.makedirs(os.path.dirname(vault_path), exist_ok=True)
     with open(vault_path, "w", encoding="utf-8") as f:
         f.write(retro_markdown)
@@ -78,25 +94,30 @@ Provide a rigorous, first-principles retrospective addressing:
     logger.info("✓ Saved research artifact to: %s", doc_path)
 
     # Persist to SurrealDB & EventBus
-    persist_item({
-        "id": f"retro_harness_reflection_{int(time.time())}",
-        "title": "Local Silicon Retrospective: Heterogeneous Multi-Harness Optimization",
-        "status": "done",
-        "priority": "high",
-        "source": "local_autonomous_retrospective",
-        "category": "architectural_reflection",
-    })
+    persist_item(
+        {
+            "id": f"retro_harness_reflection_{int(time.time())}",
+            "title": "Local Silicon Retrospective: Heterogeneous Multi-Harness Optimization",
+            "status": "done",
+            "priority": "high",
+            "source": "local_autonomous_retrospective",
+            "category": "architectural_reflection",
+        }
+    )
 
     bus = EventBus()
-    await bus.publish(Event(
-        type=EventType.AGENT_COMPLETE,
-        source="local_autonomous_retrospective",
-        payload={"doc_path": doc_path, "vault_path": vault_path, "duration_s": dt_s}
-    ))
+    await bus.publish(
+        Event(
+            type=EventType.AGENT_COMPLETE,
+            source="local_autonomous_retrospective",
+            payload={"doc_path": doc_path, "vault_path": vault_path, "duration_s": dt_s},
+        )
+    )
 
     print("\n" + "=" * 90)
     print("🎉 LOCAL SILICON RETROSPECTIVE COMPLETED & DURABLY PERSISTED!")
     print("=" * 90 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

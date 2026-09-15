@@ -8,8 +8,20 @@ P is a dict; missing keys fall back to the LIVESTOCK defaults.
 
 # Ordered near-shed NW pasture tiles by farmer-walk distance from (4,4).
 # The farmer respawns at (4,4); tiles closest to it are cheapest to service.
-NW_PASTURES = [(3, 4), (4, 3), (3, 3), (2, 4), (4, 2), (2, 3), (3, 2), (2, 2),
-               (1, 4), (4, 1), (1, 3), (3, 1)]
+NW_PASTURES = [
+    (3, 4),
+    (4, 3),
+    (3, 3),
+    (2, 4),
+    (4, 2),
+    (2, 3),
+    (3, 2),
+    (2, 2),
+    (1, 4),
+    (4, 1),
+    (1, 3),
+    (3, 1),
+]
 
 DEFAULT_P = {
     "num_cows": 4,
@@ -19,17 +31,21 @@ DEFAULT_P = {
     "cash_floor": 150,
     "cow_cost": 400,
     "wheat_buffer_mult": 2,
-    "hire_tiers": [(800, 5), (350, 3), (150, 1)],   # (money_gt, target_hands)
+    "hire_tiers": [(800, 5), (350, 3), (150, 1)],  # (money_gt, target_hands)
     "max_hands_seed": 6,
 }
 SHED = (4, 4)
 
 
 def _step_toward(px, py, tx, ty):
-    if px < tx: return "EAST"
-    if px > tx: return "WEST"
-    if py < ty: return "SOUTH"
-    if py > ty: return "NORTH"
+    if px < tx:
+        return "EAST"
+    if px > tx:
+        return "WEST"
+    if py < ty:
+        return "SOUTH"
+    if py > ty:
+        return "NORTH"
     return None
 
 
@@ -48,7 +64,8 @@ def _carrot_homes(board, reserved):
 
 
 def _carrot_op(tiles, pos, home, day, seed_budget):
-    px, py = pos; hx, hy = home
+    px, py = pos
+    hx, hy = home
     if (px, py) != (hx, hy):
         mv = _step_toward(px, py, hx, hy)
         return ([mv] if mv else ["PASS"], seed_budget)
@@ -80,16 +97,26 @@ def _rancher_op(me, tiles, inv, shed, active, care=False):
         return tiles[t[1]][t[0]]
 
     to_build = [t for t in active if tile_at(t) is None]
-    to_clear = [t for t in active if isinstance(tile_at(t), dict) and tile_at(t).get("kind") == "WEED"]
-    empty_pastures = [t for t in active if isinstance(tile_at(t), dict)
-                      and tile_at(t).get("kind") == "PASTURE" and "animal" not in tile_at(t)]
+    to_clear = [
+        t for t in active if isinstance(tile_at(t), dict) and tile_at(t).get("kind") == "WEED"
+    ]
+    empty_pastures = [
+        t
+        for t in active
+        if isinstance(tile_at(t), dict)
+        and tile_at(t).get("kind") == "PASTURE"
+        and "animal" not in tile_at(t)
+    ]
     animals = [t for t in active if isinstance(tile_at(t), dict) and "animal" in tile_at(t)]
     to_harvest = [t for t in animals if tile_at(t).get("yield_units", 0) > 0]
     to_feed = [t for t in animals if not tile_at(t).get("fed_today", False)]
     # CARE (only after fed): accumulates a milk bonus consumed on production days,
     # ~tripling milk yield. Free labour for the 4-cow ranch (spare farmer turns).
-    to_care = [t for t in animals
-               if care and tile_at(t).get("fed_today", False) and not tile_at(t).get("cared_today", False)]
+    to_care = [
+        t
+        for t in animals
+        if care and tile_at(t).get("fed_today", False) and not tile_at(t).get("cared_today", False)
+    ]
 
     cur = (fx, fy)
     ct = tile_at(cur) if cur in active else None
@@ -154,7 +181,8 @@ def controller(obs, P):
     private = obs["private"]
     tiles = me["tiles"]
     money = me["money"]
-    day = obs["day"]; hour = obs["hour"]
+    day = obs["day"]
+    hour = obs["hour"]
     board = len(tiles)
     seeds = private.get("seeds", {})
     shed = dict(private.get("shed", {}))
@@ -168,11 +196,15 @@ def controller(obs, P):
     cash_floor = P["cash_floor"]
     cow_cost = P["cow_cost"]
 
-    livestock_orders = []; sell_orders = []; hire_orders = []; seed_orders = []
+    livestock_orders = []
+    sell_orders = []
+    hire_orders = []
+    seed_orders = []
 
     if ranch_on:
-        cows_owned = sum(1 for (x, y) in active
-                         if isinstance(tiles[y][x], dict) and "animal" in tiles[y][x])
+        cows_owned = sum(
+            1 for (x, y) in active if isinstance(tiles[y][x], dict) and "animal" in tiles[y][x]
+        )
         cows_pending = shed.get("COW", 0) + farmer_inv.get("COW", 0)
         want_cows = len(active) - cows_owned - cows_pending
         if want_cows > 0 and day == 0:
@@ -201,7 +233,8 @@ def controller(obs, P):
         target = 0
         for money_gt, t in P["hire_tiers"]:
             if money > money_gt:
-                target = t; break
+                target = t
+                break
         already = me.get("hires_today", 0)
         for _ in range(max(0, target - already)):
             hire_orders.append(["HIRE"])
@@ -211,7 +244,11 @@ def controller(obs, P):
     want_seed = max(0, min(n_carrot_workers, P["max_hands_seed"]) - have_seed)
     buy_n = 0
     cs = P["carrot_seed_cost"]
-    while buy_n < want_seed and (money - cs * (buy_n + 1)) >= cash_floor and buy_n < P["max_hands_seed"]:
+    while (
+        buy_n < want_seed
+        and (money - cs * (buy_n + 1)) >= cash_floor
+        and buy_n < P["max_hands_seed"]
+    ):
         buy_n += 1
     if buy_n > 0:
         seed_orders.append(["BUY_SEED", "CARROT", buy_n])

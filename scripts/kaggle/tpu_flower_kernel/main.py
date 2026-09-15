@@ -16,6 +16,7 @@ import glob
 import pandas as pd
 import numpy as np
 
+
 def run_tpu_pipeline():
     print("=== Petals to the Metal: Flower Classification on TPU ===")
     print("• Initializing TPU Strategy & Data Pipeline...")
@@ -23,6 +24,7 @@ def run_tpu_pipeline():
     # TPU Strategy Pattern
     try:
         import tensorflow as tf
+
         tpu = tf.distribute.cluster_resolver.TPUClusterResolver()
         tf.config.experimental_connect_to_cluster(tpu)
         tf.tpu.experimental.initialize_tpu_system(tpu)
@@ -48,6 +50,7 @@ def run_tpu_pipeline():
         print(f"✓ Emitted fallback submission.csv ({len(df_sub)} rows)")
 
     print("=== Pipeline Complete ===")
+
 
 if __name__ == "__main__":
     run_tpu_pipeline()

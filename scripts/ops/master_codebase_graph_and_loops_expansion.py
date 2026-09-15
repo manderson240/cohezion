@@ -18,20 +18,29 @@ from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.compound.goals_and_loops_orchestrator import GoalsAndLoopsOrchestrator, GoalStatus
 from cohezion.graph.graph_engine import KnowledgeGraphMesh, EdgeType
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [EXPANSION] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [EXPANSION] %(message)s"
+)
 logger = logging.getLogger("codebase_expansion")
 
 SRC_ROOT = Path("src/cohezion")
+
 
 def build_full_codebase_graph() -> tuple[KnowledgeGraphMesh, dict[str, int]]:
     mesh = KnowledgeGraphMesh()
     stats = {"packages": 0, "modules": 0, "classes": 0, "functions": 0, "edges": 0}
 
     # Root Agent Node
-    mesh.add_node("agent:antigravity", "agent", {"role": "Master Orchestrator", "platform": "AMD Framework 16 Strix Halo"})
+    mesh.add_node(
+        "agent:antigravity",
+        "agent",
+        {"role": "Master Orchestrator", "platform": "AMD Framework 16 Strix Halo"},
+    )
 
     # Iterate through all packages in src/cohezion
-    for pkg_dir in sorted([p for p in SRC_ROOT.iterdir() if p.is_dir() and not p.name.startswith("__")]):
+    for pkg_dir in sorted(
+        [p for p in SRC_ROOT.iterdir() if p.is_dir() and not p.name.startswith("__")]
+    ):
         pkg_id = f"package:{pkg_dir.name}"
         mesh.add_node(pkg_id, "package", {"path": str(pkg_dir), "name": pkg_dir.name})
         mesh.add_edge("agent:antigravity", EdgeType.EXECUTES, pkg_id)
@@ -42,7 +51,7 @@ def build_full_codebase_graph() -> tuple[KnowledgeGraphMesh, dict[str, int]]:
             if py_file.name.startswith("__"):
                 continue
             mod_id = f"module:{pkg_dir.name}.{py_file.stem}"
-            
+
             # Static AST scan for classes and functions
             classes, functions = [], []
             try:
@@ -52,7 +61,9 @@ def build_full_codebase_graph() -> tuple[KnowledgeGraphMesh, dict[str, int]]:
                 for node in ast.iter_child_nodes(tree):
                     if isinstance(node, ast.ClassDef):
                         classes.append(node.name)
-                    elif isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+                    elif isinstance(node, ast.FunctionDef) or isinstance(
+                        node, ast.AsyncFunctionDef
+                    ):
                         functions.append(node.name)
             except Exception:
                 pass
@@ -75,6 +86,7 @@ def build_full_codebase_graph() -> tuple[KnowledgeGraphMesh, dict[str, int]]:
     stats["edges"] = len(mesh.edges)
     return mesh, stats
 
+
 async def scaffold_and_verify_all_goals():
     orchestrator = GoalsAndLoopsOrchestrator()
     verifier = AutoHarnessVerifier()
@@ -90,7 +102,7 @@ async def scaffold_and_verify_all_goals():
                 ("AC_INF_2", "UnifiedHybridRouter preflight and 20.0 GiB UMA headroom floor."),
                 ("AC_INF_3", "Dynamic model hot-swapper with single-flight mutex."),
             ],
-            "src/cohezion/inference/nano_uma_compactor.py"
+            "src/cohezion/inference/nano_uma_compactor.py",
         ),
         (
             "goal:physics_cosmology",
@@ -101,7 +113,7 @@ async def scaffold_and_verify_all_goals():
                 ("AC_PHY_2", "NanoSheafODE 0-th Cech Laplacian and RK4 neural integration."),
                 ("AC_PHY_3", "NanoPoincare hyperbolic geodesic metric inside Poincare disk."),
             ],
-            "src/cohezion/physics/nano_chaos.py"
+            "src/cohezion/physics/nano_chaos.py",
         ),
         (
             "goal:graph_mesh_persistence",
@@ -112,7 +124,7 @@ async def scaffold_and_verify_all_goals():
                 ("AC_GRP_2", "SurrealQL batch DDL and RELATE statement synthesis."),
                 ("AC_GRP_3", "k-hop localized subgraph extraction for fast contextual retrieval."),
             ],
-            "src/cohezion/graph/graph_engine.py"
+            "src/cohezion/graph/graph_engine.py",
         ),
         (
             "goal:agentic_safety_autoharness",
@@ -123,8 +135,8 @@ async def scaffold_and_verify_all_goals():
                 ("AC_AUT_2", "Disallowed import and forbidden function invocation blocking."),
                 ("AC_AUT_3", "ExecutableAction verified execution container."),
             ],
-            "src/cohezion/actioner/autoharness_verifier.py"
-        )
+            "src/cohezion/actioner/autoharness_verifier.py",
+        ),
     ]
 
     print("\n" + "=" * 105)
@@ -172,13 +184,14 @@ async def scaffold_and_verify_all_goals():
         print(f"  • [{gid}] {title} ──► {status_badge}")
 
     print("\n" + orchestrator.render_summary())
-    
+
     # 3. Export Sample SurrealQL Graph Migration
     surreal_stmts = mesh.generate_surrealql_batch()
     print(f"• Generated {len(surreal_stmts)} SurrealDB v2 Relational Migration Statements.")
     print("=" * 105)
     print("🎉 FULL CODEBASE GRAPH & GOAL/LOOP EXPANSION COMPLETED SUCCESSFULLY!")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(scaffold_and_verify_all_goals())

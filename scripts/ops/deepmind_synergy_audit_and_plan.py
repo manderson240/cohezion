@@ -33,6 +33,7 @@ Provide a structured 4-part integration roadmap:
 - How it executes on our local AMD silicon without cloud dependencies.
 - The exact PRIME skill to create: `FUNSEARCH_EVOLUTIONARY_CODER_PRIME` and `MCTX_JAX_PLANNER_PRIME`."""
 
+
 async def run_deepmind_audit():
     print("\n" + "=" * 115)
     print("🧠 GOOGLE DEEPMIND OPEN-SOURCE SYNERGY & INTEGRATION ROADMAP (AMD STRIX HALO SILICON)")
@@ -41,13 +42,16 @@ async def run_deepmind_audit():
     payload = {
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
-            {"role": "system", "content": "You are the Cohezion Principal Systems & AI Research Architect."},
-            {"role": "user", "content": PROMPT}
+            {
+                "role": "system",
+                "content": "You are the Cohezion Principal Systems & AI Research Architect.",
+            },
+            {"role": "user", "content": PROMPT},
         ],
         "temperature": 0.1,
-        "max_tokens": 1024
+        "max_tokens": 1024,
     }
-    
+
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
         r = await client.post(LEMONADE_URL, json=payload)
@@ -65,13 +69,16 @@ async def run_deepmind_audit():
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# 🧠 Google DeepMind Open-Source Synergy & Integration Roadmap\n\n")
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  \n")
-        f.write("**Target Hardware**: AMD Strix Halo (128GB UMA, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n\n")
+        f.write(
+            "**Target Hardware**: AMD Strix Halo (128GB UMA, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n\n"
+        )
         f.write("---\n\n")
         f.write(content + "\n")
 
     print("=" * 115)
     print(f"📄 Integration Plan Saved to: {report_path}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_deepmind_audit())

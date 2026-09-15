@@ -404,7 +404,11 @@ For swarms of agents generating/executing tests concurrently:
    ```python
    def __getattr__(name):
        if name == "TestMetrics":
-           warnings.warn("TestMetrics is deprecated; use SystemVerificationReport", DeprecationWarning, stacklevel=2)
+           warnings.warn(
+               "TestMetrics is deprecated; use SystemVerificationReport",
+               DeprecationWarning,
+               stacklevel=2,
+           )
            return SystemVerificationReport
    ```
    Remove aliases after one release cycle.

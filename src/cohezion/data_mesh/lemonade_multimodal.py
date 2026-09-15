@@ -21,20 +21,21 @@ logger = logging.getLogger(__name__)
 _KOKORO_MODEL = "kokoro-v1"
 _WHISPER_MODEL = "Whisper-Large-v3-Turbo"
 _EMBED_MODEL = "nomic-embed-text-v2-moe-GGUF"
+_IMAGE_MODEL = "SD-Turbo"
 
 
 class LemonadeMultimodalClient:
     """Thin synchronous client for Lemonade's non-LLM capabilities.
 
-    Uses httpx for HTTP, all with a 30s default timeout (overridden for
-    availability checks). All failures are swallowed — callers get safe
-    empty values instead of exceptions.
+    Uses httpx for HTTP, with a 120s default timeout per AMD local-ai-app-integration
+    spec (to allow model weights cold-loading). All failures are swallowed — callers
+    get safe empty values instead of exceptions.
     """
 
     def __init__(self, base_url: str = "http://localhost:13305") -> None:
         import httpx
 
-        self._client = httpx.Client(base_url=base_url, timeout=30.0)
+        self._client = httpx.Client(base_url=base_url, timeout=120.0)
 
     # ------------------------------------------------------------------
     # TTS
@@ -103,6 +104,43 @@ class LemonadeMultimodalClient:
         except Exception as exc:
             logger.debug("LemonadeMultimodalClient.embed failed: %s", exc)
             return []
+
+    # ------------------------------------------------------------------
+    # Image Generation (AMD local-ai-use)
+    # ------------------------------------------------------------------
+
+    def generate_image(
+        self,
+        prompt: str,
+        size: str = "512x512",
+        steps: int = 4,
+        model: str = _IMAGE_MODEL,
+    ) -> bytes:
+        """Generate an image via SD-Turbo / SDXL-Turbo on Lemonade.
+
+        Returns decoded PNG/JPEG image bytes. Returns b"" on any failure.
+        """
+        import base64
+
+        try:
+            resp = self._client.post(
+                "/v1/images/generations",
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "size": size,
+                    "steps": steps,
+                    "response_format": "b64_json",
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json().get("data", [])
+            if data and "b64_json" in data[0]:
+                return base64.b64decode(data[0]["b64_json"])
+            return b""
+        except Exception as exc:
+            logger.debug("LemonadeMultimodalClient.generate_image failed: %s", exc)
+            return b""
 
     # ------------------------------------------------------------------
     # Availability

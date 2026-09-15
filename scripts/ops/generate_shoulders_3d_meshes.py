@@ -17,14 +17,18 @@ out_dir = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/shoulder
 out_dir.mkdir(parents=True, exist_ok=True)
 
 
-def write_obj(filename: Path, vertices: list[tuple[float, float, float]], faces: list[tuple[int, int, int]]) -> None:
+def write_obj(
+    filename: Path, vertices: list[tuple[float, float, float]], faces: list[tuple[int, int, int]]
+) -> None:
     with open(filename, "w", encoding="utf-8") as f:
         f.write("# Cohezion 3D World Model - Kenneth R. Shoulders SEM Reconstruction\n")
         for v in vertices:
             f.write(f"v {v[0]:.4f} {v[1]:.4f} {v[2]:.4f}\n")
         for face in faces:
             f.write(f"f {face[0]} {face[1]} {face[2]}\n")
-    print(f"  ✓ Saved 3D Mesh: {filename.name} ({len(vertices)} vertices, {len(faces)} faces, {filename.stat().st_size} bytes)")
+    print(
+        f"  ✓ Saved 3D Mesh: {filename.name} ({len(vertices)} vertices, {len(faces)} faces, {filename.stat().st_size} bytes)"
+    )
 
 
 # 1. Closed Bead Chain Loop (Shoulders Fig 3:3 & 3:6)

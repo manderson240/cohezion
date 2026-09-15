@@ -23,6 +23,7 @@ PROMPT = (
     "Deliver a structured, deep, and actionable consultation with 3 high-leverage technical recommendations to climb to 1st place."
 )
 
+
 async def run_minimax_consultation():
     print("\n" + "=" * 115)
     print(f"🌐 EXECUTING FRONTIER CONSULTATION WITH `{MODEL_ID}` (OLLAMA CLOUD)")
@@ -34,10 +35,13 @@ async def run_minimax_consultation():
     payload = {
         "model": MODEL_ID,
         "messages": [
-            {"role": "system", "content": "You are a Principal Frontier AI Systems Architect and Competitive ML Strategist. Provide deep, rigorous, and actionable recommendations."},
-            {"role": "user", "content": PROMPT}
+            {
+                "role": "system",
+                "content": "You are a Principal Frontier AI Systems Architect and Competitive ML Strategist. Provide deep, rigorous, and actionable recommendations.",
+            },
+            {"role": "user", "content": PROMPT},
         ],
-        "stream": False
+        "stream": False,
     }
 
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -50,17 +54,19 @@ async def run_minimax_consultation():
             content = msg_obj.get("content", "").strip()
             if not content and "thinking" in msg_obj:
                 content = msg_obj["thinking"].strip()
-            
+
             tool_item = store.insert(content, ContextType.TOOL_OUTPUT, f"cloud_agent:{MODEL_ID}")
-            ev_item = store.transform(tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50)
-            
+            ev_item = store.transform(
+                tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50
+            )
+
             report = [
                 "# MiniMax M3 (Cloud) Frontier Architecture & Competition Strategy Consultation",
                 f"\n**Consultant Model:** `{MODEL_ID}`",
                 f"**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}",
                 f"**Latency:** {dt}s | **Typed Context Evidence ID:** `{ev_item.item_id}`",
                 "\n---\n",
-                content
+                content,
             ]
             REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
             REPORT_PATH.write_text("\n".join(report))
@@ -70,6 +76,7 @@ async def run_minimax_consultation():
             print(f"❌ Error HTTP {r.status_code}: {r.text}")
 
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_minimax_consultation())

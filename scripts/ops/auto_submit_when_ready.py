@@ -75,9 +75,15 @@ def check_and_submit():
                 )
                 output = sub_res.stdout or sub_res.stderr or ""
                 # If code competition requires notebook submission, submit via kernel
-                if "Notebook" in output or "code competition" in output.lower() or sub_res.returncode != 0:
+                if (
+                    "Notebook" in output
+                    or "code competition" in output.lower()
+                    or sub_res.returncode != 0
+                ):
                     version = item.get("version", "19")
-                    print(f"  Code competition detected. Submitting via kernel {kernel} version {version}...")
+                    print(
+                        f"  Code competition detected. Submitting via kernel {kernel} version {version}..."
+                    )
                     code_sub = subprocess.run(
                         [
                             "kaggle",

@@ -80,9 +80,13 @@ AUDIT_ROSTER = [
 ]
 
 
-async def query_adversarial_auditor(client: httpx.AsyncClient, auditor: dict[str, str]) -> dict[str, Any]:
+async def query_adversarial_auditor(
+    client: httpx.AsyncClient, auditor: dict[str, str]
+) -> dict[str, Any]:
     t0 = time.perf_counter()
-    logger.info("⚔️ [Adversarial Audit] Dispatching to %s (%s)...", auditor["model"], auditor["lens"])
+    logger.info(
+        "⚔️ [Adversarial Audit] Dispatching to %s (%s)...", auditor["model"], auditor["lens"]
+    )
 
     prompt = REVIEW_PROMPT_TEMPLATE.format(lens=auditor["lens"])
     response_text = ""
@@ -100,7 +104,9 @@ async def query_adversarial_auditor(client: httpx.AsyncClient, auditor: dict[str
         if res.status_code == 200:
             data = res.json()
             response_text = data.get("response", "")
-            logger.info("  ✓ [%s] Review received (%d words)", auditor["model"], len(response_text.split()))
+            logger.info(
+                "  ✓ [%s] Review received (%d words)", auditor["model"], len(response_text.split())
+            )
     except Exception as e:
         logger.warning("Error querying %s: %s", auditor["model"], e)
 
@@ -112,7 +118,8 @@ async def query_adversarial_auditor(client: httpx.AsyncClient, auditor: dict[str
         "model": auditor["model"],
         "lens": auditor["lens"],
         "latency_s": round(dt, 2),
-        "review": response_text or f"Automated adversarial verification completed under {auditor['lens']} lens.",
+        "review": response_text
+        or f"Automated adversarial verification completed under {auditor['lens']} lens.",
         "word_count": len(response_text.split()),
     }
 
@@ -127,7 +134,9 @@ async def main_async() -> None:
         tasks = [query_adversarial_auditor(client, a) for a in AUDIT_ROSTER]
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/multiperspective_cloud_adversarial_review_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/multiperspective_cloud_adversarial_review_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     report_lines = [
@@ -142,7 +151,9 @@ async def main_async() -> None:
 
     for r in results:
         report_lines.append(f"## ⚔️ Auditor: `{r['model']}`")
-        report_lines.append(f"**Perspective Lens**: `{r['lens']}` | **Audit Latency**: `{r['latency_s']}s` | **Words**: `{r['word_count']}`")
+        report_lines.append(
+            f"**Perspective Lens**: `{r['lens']}` | **Audit Latency**: `{r['latency_s']}s` | **Words**: `{r['word_count']}`"
+        )
         report_lines.append("")
         report_lines.append(r["review"])
         report_lines.append("")

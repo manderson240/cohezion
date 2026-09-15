@@ -15,8 +15,11 @@ import subprocess
 import time
 from cohezion.agi.kaggle_autoharness import KaggleAutoHarness
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_BRIDGE] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_BRIDGE] %(message)s"
+)
 logger = logging.getLogger("kaggle_bridge")
+
 
 def inspect_competition(comp_id: str):
     logger.info("Inspecting active competition: %s", comp_id)
@@ -30,6 +33,7 @@ def inspect_competition(comp_id: str):
     else:
         logger.warning("Error fetching files for %s: %s", comp_id, res.stderr.strip())
 
+
 def main():
     print("\n" + "=" * 95)
     print("🏆 KAGGLE MCP BRIDGE & AUTOHARNESS CLI SUITE (UPDATED v2.2.4)")
@@ -40,10 +44,7 @@ def main():
     print(f"• Active Kaggle Engine : {v_res.stdout.strip()}")
 
     # Active Open Competitions to Bridge
-    open_competitions = [
-        "pokemon-tcg-ai-battle-challenge-strategy",
-        "arc-prize-2026-arc-agi-3"
-    ]
+    open_competitions = ["arc-prize-2026-arc-agi-2", "arc-prize-2026-arc-agi-3"]
 
     for comp in open_competitions:
         print(f"\n📂 Manifest & Rules Audit for `{comp}`:")
@@ -52,6 +53,7 @@ def main():
     print("\n" + "=" * 95)
     print("🎉 KAGGLE CLI & AUTOHARNESS BRIDGE FULLY INITIALIZED AND VERIFIED!")
     print("=" * 95 + "\n")
+
 
 if __name__ == "__main__":
     main()

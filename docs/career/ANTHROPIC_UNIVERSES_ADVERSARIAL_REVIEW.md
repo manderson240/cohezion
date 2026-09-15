@@ -110,7 +110,7 @@ The environment as designed is vulnerable to multiple reward-hacking vectors. Be
 ```python
 # Agent policy: spam `write_file` with dummy content to inflate conformal factor
 for step in range(max_steps):
-    action = {"type": "write_file", "path": f"dummy_{step}.txt", "content": "x"*1000}
+    action = {"type": "write_file", "path": f"dummy_{step}.txt", "content": "x" * 1000}
     obs, reward, done, info = env.step(action)
     # reward = -0.1 (step) + 0.05 * (conformal_factor - 2.0)
     # If conformal_factor grows with file count, reward becomes positive and large.
@@ -122,7 +122,7 @@ for step in range(max_steps):
 
 The interruption resolution logic likely uses naive keyword matching. For example:
 ```python
-if 'debug.log' in resp_lower or 'log' in resp_lower:
+if "debug.log" in resp_lower or "log" in resp_lower:
     interruption.is_resolved = True
     reward += 1.0
 ```

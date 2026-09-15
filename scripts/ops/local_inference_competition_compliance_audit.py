@@ -18,7 +18,9 @@ import psutil
 import time
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [COMPLIANCE_AUDIT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [COMPLIANCE_AUDIT] %(message)s"
+)
 logger = logging.getLogger("compliance_audit")
 
 LEMONADE_BASE = "http://localhost:13305"
@@ -30,41 +32,42 @@ COMPETITIONS_TO_AUDIT = [
             "Notebooks must run with enable_internet: false.",
             "Execution must finish within strict runtime limits (< 9 hours CPU/GPU).",
             "Open source licenses: Any model or pre-trained weights used must be freely available under permissive license.",
-            "Submissions must format outputs strictly as submission.json mapping test IDs to [{'attempt_1': ..., 'attempt_2': ...}]."
+            "Submissions must format outputs strictly as submission.json mapping test IDs to [{'attempt_1': ..., 'attempt_2': ...}].",
         ],
-        "our_setup": "We run zero-cost pure Python AST search (0.34s total runtime, no internet, no external weights, exact JSON output format)."
+        "our_setup": "We run zero-cost pure Python AST search (0.34s total runtime, no internet, no external weights, exact JSON output format).",
     },
     {
         "name": "Pokemon TCG AI Battle Challenge Strategy",
         "rules": [
             "Must use official EN/JP card data without scraping non-public tournament decks.",
             "Submissions must output valid CSV / strategy agent code adhering to official move action spaces.",
-            "Must handle two-alphabet energy costs without crashing on bullet symbols or abilities."
+            "Must handle two-alphabet energy costs without crashing on bullet symbols or abilities.",
         ],
-        "our_setup": "Hardened parser handles bullet symbols and ability filtering; MCTS engine runs in 2.49ms with airgapped execution."
+        "our_setup": "Hardened parser handles bullet symbols and ability filtering; MCTS engine runs in 2.49ms with airgapped execution.",
     },
     {
         "name": "AI Agent Security: Multi-Step Tool Attacks",
         "rules": [
             "Notebooks must be kept PRIVATE (is_private: true) during competition to prevent leaking adversarial attack vectors.",
-            "Must generate compliant attack.py and submission.csv matching the SDK schema."
+            "Must generate compliant attack.py and submission.csv matching the SDK schema.",
         ],
-        "our_setup": "Kernel pushed as is_private: true; outputs attack.py (3.4 kB) and compliant submission.csv metadata."
-    }
+        "our_setup": "Kernel pushed as is_private: true; outputs attack.py (3.4 kB) and compliant submission.csv metadata.",
+    },
 ]
+
 
 async def audit_rules_with_local_model(client: httpx.AsyncClient, comp: dict) -> dict:
     t0 = time.perf_counter()
     logger.info("Auditing compliance for: %s...", comp["name"])
 
     prompt = f"""You are a senior Kaggle Competition Compliance & Legal Integrity Officer.
-Perform a strict adversarial compliance audit for our submission in '{comp['name']}'.
+Perform a strict adversarial compliance audit for our submission in '{comp["name"]}'.
 
 Official Competition Rules:
-{json.dumps(comp['rules'], indent=2)}
+{json.dumps(comp["rules"], indent=2)}
 
 Our Current Architecture & Deployment Setup:
-{comp['our_setup']}
+{comp["our_setup"]}
 
 Provide your adversarial audit in this exact format:
 1. Status: [COMPLIANT / RISK / VIOLATION]
@@ -75,11 +78,14 @@ Provide your adversarial audit in this exact format:
     payload = {
         "model": "gpt-oss-20b",
         "messages": [
-            {"role": "system", "content": "You are a meticulous Kaggle integrity and rules compliance auditor. Be concise, adversarial, and exact."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": "You are a meticulous Kaggle integrity and rules compliance auditor. Be concise, adversarial, and exact.",
+            },
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,
-        "max_tokens": 450
+        "max_tokens": 450,
     }
 
     try:
@@ -94,7 +100,13 @@ Provide your adversarial audit in this exact format:
     except Exception as e:
         logger.warning("Local audit call failed: %s. Falling back to rule verification.", e)
 
-    return {"name": comp["name"], "duration": 0.0, "report": "Verified compliant against static checklist.", "status": "PASSED"}
+    return {
+        "name": comp["name"],
+        "duration": 0.0,
+        "report": "Verified compliant against static checklist.",
+        "status": "PASSED",
+    }
+
 
 async def main():
     print("\n" + "=" * 110)
@@ -111,7 +123,9 @@ async def main():
         report_path = "docs/research/local_inference_competition_rules_compliance_audit.md"
         with open(report_path, "w", encoding="utf-8") as f:
             f.write("# ⚖️ Local Inference Competition Compliance & Rules Audit\n\n")
-            f.write("**Auditor Model**: `gpt-oss-20b` on local AMD Strix Halo silicon (port 13305)  \n")
+            f.write(
+                "**Auditor Model**: `gpt-oss-20b` on local AMD Strix Halo silicon (port 13305)  \n"
+            )
             f.write(f"**Date**: 2026-08-24  \n\n")
 
             for r in results:
@@ -126,6 +140,7 @@ async def main():
         print("\n" + "=" * 110)
         print(f"🎉 FULL LOCAL COMPLIANCE AUDIT COMPLETE! Report saved to: {report_path}")
         print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

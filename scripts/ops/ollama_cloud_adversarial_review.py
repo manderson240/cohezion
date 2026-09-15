@@ -25,7 +25,7 @@ CLOUD_MODEL_CANDIDATES = [
     "deepseek-v4-flash:cloud",
     "deepseek-v4-pro:cloud",
     "qwen3.5:397b-cloud",
-    "glm-5.2:cloud"
+    "glm-5.2:cloud",
 ]
 REPORT_PATH = Path("docs/research/ollama_cloud_adversarial_review.md")
 
@@ -38,7 +38,7 @@ AUDIT_PERSONAS = [
             "Audit our hybrid execution: resident Qwen3-Coder-30B on AMD Strix Halo (128GB UMA), 4 concurrent daemons, "
             "and our two-stage Kaggle ARC solver mounted on dual NVIDIA T4 GPUs.\n"
             "What subtle memory bus bottlenecks, aperture thrashing, or thermal degradation failure modes exist under prolonged 9-hour continuous load?"
-        )
+        ),
     },
     {
         "name": "Frontier AGI Systems & Swarm Orchestrator",
@@ -47,7 +47,7 @@ AUDIT_PERSONAS = [
             "You are a Principal Distributed Systems & Swarm Orchestrator.\n"
             "Audit Cohezion's collaborative multi-daemon bridge (ingesting SurrealDB `event_log` and Obsidian Vault `kanban/`).\n"
             "How could asynchronous event harvesting, live query streaming, or subprocess crashes cause silent state drift or cascading stalls? Detail explicit failure paths."
-        )
+        ),
     },
     {
         "name": "Formal Verification & Mathematical Rigor Lead",
@@ -57,7 +57,7 @@ AUDIT_PERSONAS = [
             "Audit Cohezion's Typed Context runtime (`INSTRUCTION`, `EVIDENCE`, `MEMORY`, `TOOL_OUTPUT` with cryptographic provenance) "
             "and our Two-Stage Kaggle ARC Invariant Synthesizer.\n"
             "Can unverified content bypass type transitions? Could the deterministic invariant ensemble overfit train grids on hidden test distributions? Provide mathematical critique."
-        )
+        ),
     },
     {
         "name": "Sovereign Security & Zero-Egress Auditor",
@@ -66,9 +66,10 @@ AUDIT_PERSONAS = [
             "You are a Sovereign Security and Air-Gap Auditor.\n"
             "Audit Cohezion's dataflow boundaries across local daemons, SurrealDB, Obsidian Vault, and Kaggle submissions.\n"
             "Are there any unauthenticated IPC channels, prompt injection vectors, or memory sinks that could leak secrets or violate airgap rules? Deliver an adversarial security audit."
-        )
-    }
+        ),
+    },
 ]
+
 
 async def select_active_cloud_model(client: httpx.AsyncClient) -> str:
     """Detects available cloud or local models in Ollama."""
@@ -85,19 +86,25 @@ async def select_active_cloud_model(client: httpx.AsyncClient) -> str:
         pass
     return "deepseek-v4-pro:cloud"
 
-async def run_persona_cloud_review(client: httpx.AsyncClient, model_name: str, persona: dict) -> dict:
+
+async def run_persona_cloud_review(
+    client: httpx.AsyncClient, model_name: str, persona: dict
+) -> dict:
     store = TypedContextStore()
     store.insert(persona["prompt"], ContextType.INSTRUCTION, "persona_system_prompt")
-    
+
     payload = {
         "model": model_name,
         "messages": [
-            {"role": "system", "content": f"You are acting as: {persona['name']}. Your audit focus is: {persona['focus']}. Deliver a rigorous, numbered adversarial report."},
-            {"role": "user", "content": persona["prompt"]}
+            {
+                "role": "system",
+                "content": f"You are acting as: {persona['name']}. Your audit focus is: {persona['focus']}. Deliver a rigorous, numbered adversarial report.",
+            },
+            {"role": "user", "content": persona["prompt"]},
         ],
-        "stream": False
+        "stream": False,
     }
-    
+
     t0 = time.perf_counter()
     try:
         r = await client.post(OLLAMA_URL, json=payload, timeout=120.0)
@@ -105,14 +112,16 @@ async def run_persona_cloud_review(client: httpx.AsyncClient, model_name: str, p
         if r.status_code == 200:
             content = (r.json().get("message", {}).get("content") or "").strip()
             tool_item = store.insert(content, ContextType.TOOL_OUTPUT, f"ollama_cloud:{model_name}")
-            ev_item = store.transform(tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50)
+            ev_item = store.transform(
+                tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50
+            )
             return {
                 "persona": persona["name"],
                 "focus": persona["focus"],
                 "review": content,
                 "latency_s": dt,
                 "evidence_id": ev_item.item_id,
-                "status": "SUCCESS"
+                "status": "SUCCESS",
             }
         else:
             return {
@@ -121,7 +130,7 @@ async def run_persona_cloud_review(client: httpx.AsyncClient, model_name: str, p
                 "review": f"HTTP {r.status_code}: {r.text}",
                 "latency_s": dt,
                 "evidence_id": "N/A",
-                "status": f"HTTP_{r.status_code}"
+                "status": f"HTTP_{r.status_code}",
             }
     except Exception as e:
         dt = round(time.perf_counter() - t0, 2)
@@ -131,8 +140,9 @@ async def run_persona_cloud_review(client: httpx.AsyncClient, model_name: str, p
             "review": f"Connection Error: {e}",
             "latency_s": dt,
             "evidence_id": "N/A",
-            "status": "ERROR"
+            "status": "ERROR",
         }
+
 
 async def execute_cloud_adversarial_review():
     print("\n" + "=" * 115)
@@ -145,12 +155,14 @@ async def execute_cloud_adversarial_review():
     async with httpx.AsyncClient(timeout=130.0) as client:
         selected_model = await select_active_cloud_model(client)
         print(f"▶ Target Inference Engine: `{selected_model}` via `{OLLAMA_URL}`\n")
-        
+
         for idx, p in enumerate(AUDIT_PERSONAS):
-            print(f"▶ [{idx+1}/4] Dispatching Persona: {p['name']}...")
+            print(f"▶ [{idx + 1}/4] Dispatching Persona: {p['name']}...")
             res = await run_persona_cloud_review(client, selected_model, p)
             results.append(res)
-            print(f"  ✓ {res['persona']} ({res['status']}) in {res['latency_s']}s (Evidence ID: {res['evidence_id']})")
+            print(
+                f"  ✓ {res['persona']} ({res['status']}) in {res['latency_s']}s (Evidence ID: {res['evidence_id']})"
+            )
 
     # Compile Structured Artifact
     sections = [
@@ -158,24 +170,33 @@ async def execute_cloud_adversarial_review():
         f"\n**Evaluator Model:** `{selected_model}` (Ollama Cloud / Hybrid Gateway)",
         f"**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}",
         "**Methodology:** Design-by-Contract Typed Context + 4-Persona Adversarial Stress Testing",
-        "\n---\n"
+        "\n---\n",
     ]
 
     for r in results:
         sections.append(f"## 👤 Persona: {r['persona']}")
         sections.append(f"**Audit Focus:** {r['focus']}")
-        sections.append(f"**Verification Latency:** {r['latency_s']}s | **Lineage ID:** `{r['evidence_id']}`\n")
-        sections.append(r['review'])
+        sections.append(
+            f"**Verification Latency:** {r['latency_s']}s | **Lineage ID:** `{r['evidence_id']}`\n"
+        )
+        sections.append(r["review"])
         sections.append("\n---\n")
 
     sections.append("## 🏆 Strategic Synthesis & Guardrails")
-    sections.append("1. **Hardware Integrity:** 39.99 GiB UMA floor actively monitored by Watchdog.")
-    sections.append("2. **Context Guardrails:** Typed Context guarantees zero prompt-injection type confusion.")
-    sections.append("3. **Kaggle Neuro-Symbolic Hybrid:** Dual-Stage (0ms Fast Invariant + GPU AutoHarness verification) maximizes 9h execution envelope.")
+    sections.append(
+        "1. **Hardware Integrity:** 39.99 GiB UMA floor actively monitored by Watchdog."
+    )
+    sections.append(
+        "2. **Context Guardrails:** Typed Context guarantees zero prompt-injection type confusion."
+    )
+    sections.append(
+        "3. **Kaggle Neuro-Symbolic Hybrid:** Dual-Stage (0ms Fast Invariant + GPU AutoHarness verification) maximizes 9h execution envelope."
+    )
 
     REPORT_PATH.write_text("\n".join(sections))
     print(f"\n✓ Master Cloud Adversarial Report saved to `{REPORT_PATH}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(execute_cloud_adversarial_review())

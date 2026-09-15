@@ -55,7 +55,9 @@ class ZKFVCompiler:
             ]
 
     @classmethod
-    def generate_proof(cls, gates: Sequence[PlonkConstraintGate], inputs: tuple[float, float, float]) -> ZKProof:
+    def generate_proof(
+        cls, gates: Sequence[PlonkConstraintGate], inputs: tuple[float, float, float]
+    ) -> ZKProof:
         r"""Generate a zero-knowledge safety proof \pi_{safety} with SHA-256 polynomial commitment."""
         import hashlib
 

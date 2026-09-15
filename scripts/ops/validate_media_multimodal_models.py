@@ -123,7 +123,9 @@ async def main_async() -> None:
     for fn, target_freq in audio_tests:
         res = verify_audio_spectrum(audio_dir / fn, target_freq)
         status = "PASSED" if res["passed"] else "FAILED"
-        print(f"  ✓ [{status}] {res['file']}: Measured {res['measured_dominant_hz']} Hz (Target: {res['expected_fundamental_hz']} Hz, Error: {res['freq_error_hz']} Hz)")
+        print(
+            f"  ✓ [{status}] {res['file']}: Measured {res['measured_dominant_hz']} Hz (Target: {res['expected_fundamental_hz']} Hz, Error: {res['freq_error_hz']} Hz)"
+        )
         audio_results.append(res)
 
     print("\n🎨 2. Auditing 10-Step Ontology SVG via Multimodal Vision Model (Complete XML)...")
@@ -132,7 +134,9 @@ async def main_async() -> None:
     async with httpx.AsyncClient(timeout=60.0) as client:
         visual_res = await verify_visual_diagram(client, svg_path)
 
-    print(f"  ✓ [AUDITED via {visual_res['evaluator']}] (Latency: {visual_res['latency_s']}s, Quality Score: {visual_res['quality_score']})")
+    print(
+        f"  ✓ [AUDITED via {visual_res['evaluator']}] (Latency: {visual_res['latency_s']}s, Quality Score: {visual_res['quality_score']})"
+    )
 
     out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/multimodal_media_vv_report.md")
     report = [
@@ -149,27 +153,31 @@ async def main_async() -> None:
 
     for ar in audio_results:
         st = "✅ PASSED" if ar["passed"] else "❌ FAILED"
-        report.append(f"| `{ar['file']}` | {ar['expected_fundamental_hz']} Hz | {ar['measured_dominant_hz']} Hz | {ar['freq_error_hz']} Hz | {st} |")
+        report.append(
+            f"| `{ar['file']}` | {ar['expected_fundamental_hz']} Hz | {ar['measured_dominant_hz']} Hz | {ar['freq_error_hz']} Hz | {st} |"
+        )
 
-    report.extend([
-        "",
-        "---",
-        "",
-        "## 🎨 2. Multimodal Vision Model Structural Audit",
-        f"**Target Asset**: [`{visual_res['diagram']}`](file:///home/mike-anderson/dev/cohezion/docs/assets/renderings/10_step_ontology.svg)",
-        f"**Auditor Model**: `{visual_res['evaluator']}` | **Latency**: `{visual_res['latency_s']}s`",
-        f"**Quality Score**: `{visual_res['quality_score']} / 1.00` (Threshold: 0.85)",
-        "",
-        visual_res["analysis"],
-        "",
-        "---",
-        "",
-        "## 🌌 3. 3D WebGL Torus Verification",
-        "**Asset**: [`3d_torus_manifold.html`](file:///home/mike-anderson/dev/cohezion/docs/assets/renderings/3d_torus_manifold.html) (536 KB)",
-        "- **Golden Ratio Modulation**: Major radius R=3.0, minor radius r=1.0, spiral twist Phi = 1.6180339887.",
-        "- **HIHO Color Surface**: 0.5 + 0.5 * sin(U)cos(V) mapped smoothly to Viridis gradient.",
-        "- **WebGL Status**: Rendered and validated without WebGL shader compilation errors.",
-    ])
+    report.extend(
+        [
+            "",
+            "---",
+            "",
+            "## 🎨 2. Multimodal Vision Model Structural Audit",
+            f"**Target Asset**: [`{visual_res['diagram']}`](file:///home/mike-anderson/dev/cohezion/docs/assets/renderings/10_step_ontology.svg)",
+            f"**Auditor Model**: `{visual_res['evaluator']}` | **Latency**: `{visual_res['latency_s']}s`",
+            f"**Quality Score**: `{visual_res['quality_score']} / 1.00` (Threshold: 0.85)",
+            "",
+            visual_res["analysis"],
+            "",
+            "---",
+            "",
+            "## 🌌 3. 3D WebGL Torus Verification",
+            "**Asset**: [`3d_torus_manifold.html`](file:///home/mike-anderson/dev/cohezion/docs/assets/renderings/3d_torus_manifold.html) (536 KB)",
+            "- **Golden Ratio Modulation**: Major radius R=3.0, minor radius r=1.0, spiral twist Phi = 1.6180339887.",
+            "- **HIHO Color Surface**: 0.5 + 0.5 * sin(U)cos(V) mapped smoothly to Viridis gradient.",
+            "- **WebGL Status**: Rendered and validated without WebGL shader compilation errors.",
+        ]
+    )
 
     gov = WriteBudgetGovernor()
     gov.safe_write_text(out_file, "\n".join(report))

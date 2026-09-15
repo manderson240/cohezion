@@ -22,11 +22,16 @@ import numpy as np
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_REMEDIATION] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_REMEDIATION] %(message)s"
+)
 logger = logging.getLogger("remediation")
 
+
 def remediate_nano_chaos():
-    logger.info("🔧 Remediating `src/cohezion/physics/nano_chaos.py` with Benettin Two-Trajectory Lyapunov Algorithm...")
+    logger.info(
+        "🔧 Remediating `src/cohezion/physics/nano_chaos.py` with Benettin Two-Trajectory Lyapunov Algorithm..."
+    )
     code = '''"""Pure NumPy Minimal Chaos & Information Theory Engine (Karpathy Standard)."""
 
 from __future__ import annotations
@@ -131,6 +136,7 @@ if __name__ == "__main__":
         f.write(code)
     logger.info("✓ Updated %s", target_path)
 
+
 def remediate_nano_uma_compactor():
     logger.info("🔧 Remediating `src/cohezion/inference/nano_uma_compactor.py`...")
     code = '''"""Pure NumPy Zero-Copy UMA Block-Sparse KV-Cache Compactor (Karpathy Standard)."""
@@ -224,21 +230,26 @@ if __name__ == "__main__":
         f.write(code)
     logger.info("✓ Updated %s", target_path)
 
+
 def verify_all_remediations():
     logger.info("\n🛡️ Verifying all remediations via AutoHarness & Bubblewrap Sandbox...")
     verifier = AutoHarnessVerifier()
     sandbox = LinuxNamespaceSandbox(timeout_sec=10.0)
 
-    for path in ["src/cohezion/physics/nano_chaos.py", "src/cohezion/inference/nano_uma_compactor.py"]:
+    for path in [
+        "src/cohezion/physics/nano_chaos.py",
+        "src/cohezion/inference/nano_uma_compactor.py",
+    ]:
         with open(path, "r", encoding="utf-8") as f:
             code = f.read()
-        
+
         ast_res = verifier.verify_code(code)
         assert ast_res["verified"] is True, f"AST verification failed on {path}"
 
         sb_res = sandbox.execute_python_code(code)
         assert sb_res.success is True, f"Sandbox execution failed on {path}: {sb_res.stderr}"
         logger.info("  • %s: 🟢 PASSED (%s)", path, sb_res.stdout.strip().split("\n")[-1])
+
 
 if __name__ == "__main__":
     remediate_nano_chaos()

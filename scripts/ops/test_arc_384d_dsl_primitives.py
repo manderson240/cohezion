@@ -8,8 +8,9 @@ from cohezion.agi.arc_384d_dsl_primitives import (
     primitive_convex_hull_fill,
     primitive_remap_by_compactness,
     primitive_antidiagonal_reflection_invert,
-    primitive_periodic_tile_extrapolate
+    primitive_periodic_tile_extrapolate,
 )
+
 
 def run_tests():
     print("\n" + "=" * 115)
@@ -59,6 +60,7 @@ def run_tests():
     print("=" * 115)
     print("🎉 ALL 5 SYNTHESIZED DSL PRIMITIVES PASSED AT SUB-MILLISECOND LATENCY!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     run_tests()

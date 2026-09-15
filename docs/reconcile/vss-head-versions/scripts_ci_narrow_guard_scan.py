@@ -159,35 +159,35 @@ def scan_source(
     return findings
 
 
-_BAD = '''
+_BAD = """
 try:
     from pkg.healing import get_healing_system
     healer = get_healing_system()
     healer.heal_manifold(x, y)
 except ImportError:
     pass
-'''
-_GOOD_IMPORT_ONLY = '''
+"""
+_GOOD_IMPORT_ONLY = """
 try:
     import numpy
     from pkg import thing
 except ImportError:
     numpy = None
-'''
-_GOOD_BROAD = '''
+"""
+_GOOD_BROAD = """
 try:
     from pkg.healing import get_healing_system
     get_healing_system().heal_manifold(x, y)
 except Exception:
     pass
-'''
-_GOOD_ALSO_CATCHES = '''
+"""
+_GOOD_ALSO_CATCHES = """
 try:
     from pkg.healing import get_healing_system
     get_healing_system().heal_manifold(x, y)
 except (ImportError, AttributeError):
     pass
-'''
+"""
 
 
 def self_test() -> int:

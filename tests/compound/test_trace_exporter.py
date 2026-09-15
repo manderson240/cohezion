@@ -238,3 +238,25 @@ class TestTimingReconstruction:
         root = spans[0]
         # 1750000000.0 seconds → 1750000000000.0 ms
         assert root.start_time_ms == pytest.approx(1750000000.0 * 1000.0)
+
+
+# ---------------------------------------------------------------------------
+# Test 6: Bipartite Goal-Loop Graph export
+# ---------------------------------------------------------------------------
+
+
+class TestGoalLoopGraphExport:
+    def test_export_to_goal_loop_graph(self):
+        from cohezion.compound.trace_exporter import export_to_goal_loop_graph
+
+        graph = export_to_goal_loop_graph(TELEMETRY_TRACE)
+        assert len(graph.goal_nodes) >= 1
+        assert len(graph.loop_nodes) >= 1
+        assert len(graph.edges) >= 2
+
+        # Bipartite check
+        for edge in graph.edges:
+            assert (edge.source_id in graph.goal_nodes and edge.target_id in graph.loop_nodes) or (
+                edge.source_id in graph.loop_nodes and edge.target_id in graph.goal_nodes
+            )
+

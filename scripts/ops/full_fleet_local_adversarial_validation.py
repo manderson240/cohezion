@@ -39,7 +39,7 @@ PERSONAS = [
             "6. `kaggriculture` (Multi-agent yield optimizer)\n"
             "7. `tpu-getting-started` (TPUStrategy distributed pipeline)\n"
             "Scrutinize every potential rule failure point (e.g. timeout risks, memory leaks, unverified schema keys). Deliver an adversarial report."
-        )
+        ),
     },
     {
         "name": "High-Throughput Compute & Resource Maximizer",
@@ -48,7 +48,7 @@ PERSONAS = [
             "You are a High-Performance Compute (HPC) & GPU Optimization Specialist.\n"
             "Audit our resource utilization across the 9.0-hour Kaggle execution envelope.\n"
             "Where are we still leaving compute on the table? How can we maximize TPU replicas in sync, GPU tensor cores, and CPU multiprocessing pools? Provide concrete hardware-aligned critique."
-        )
+        ),
     },
     {
         "name": "Mathematical Invariant & Generalization Verifier",
@@ -60,7 +60,7 @@ PERSONAS = [
             "- Pokemon TCG CFR self-play (Regret-matching equilibrium convergence).\n"
             "- Biohub Cell 2nd-order polynomial kinematics.\n"
             "Are there hidden mathematical singularities, boundary value exceptions, or degenerate failure cases? Provide a rigorous mathematical critique."
-        )
+        ),
     },
     {
         "name": "Sovereign Security & Local Daemon Overseer",
@@ -69,9 +69,10 @@ PERSONAS = [
             "You are a Sovereign Systems Security & Reliability Engineer.\n"
             "Audit Cohezion's local fleet runtime: 5 concurrent daemons, resident Qwen3-Coder-30B on Radeon 8060S iGPU (:13305), and SurrealDB :8001.\n"
             "How do we guarantee perpetual uptime, zero memory bus lockups, and zero prompt-injection type confusion under continuous 24/7 background execution? Detail structural defenses."
-        )
-    }
+        ),
+    },
 ]
+
 
 async def run_audit():
     print("\n" + "=" * 115)
@@ -83,18 +84,21 @@ async def run_audit():
 
     async with httpx.AsyncClient(timeout=100.0) as client:
         for idx, p in enumerate(PERSONAS):
-            print(f"▶ [{idx+1}/4] Dispatching Persona: {p['name']}...")
+            print(f"▶ [{idx + 1}/4] Dispatching Persona: {p['name']}...")
             store = TypedContextStore()
             store.insert(p["prompt"], ContextType.INSTRUCTION, "persona_prompt")
 
             payload = {
                 "model": MODEL_ID,
                 "messages": [
-                    {"role": "system", "content": f"You are acting as: {p['name']}. Audit Focus: {p['focus']}. Deliver a rigorous, numbered adversarial report."},
-                    {"role": "user", "content": p["prompt"]}
+                    {
+                        "role": "system",
+                        "content": f"You are acting as: {p['name']}. Audit Focus: {p['focus']}. Deliver a rigorous, numbered adversarial report.",
+                    },
+                    {"role": "user", "content": p["prompt"]},
                 ],
                 "temperature": 0.15,
-                "max_tokens": 1000
+                "max_tokens": 1000,
             }
 
             t0 = time.perf_counter()
@@ -103,15 +107,21 @@ async def run_audit():
 
             if r.status_code == 200:
                 content = (r.json()["choices"][0]["message"].get("content") or "").strip()
-                tool_item = store.insert(content, ContextType.TOOL_OUTPUT, f"local_agent:{MODEL_ID}")
-                ev_item = store.transform(tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50)
-                results.append({
-                    "persona": p["name"],
-                    "focus": p["focus"],
-                    "review": content,
-                    "latency_s": dt,
-                    "evidence_id": ev_item.item_id
-                })
+                tool_item = store.insert(
+                    content, ContextType.TOOL_OUTPUT, f"local_agent:{MODEL_ID}"
+                )
+                ev_item = store.transform(
+                    tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50
+                )
+                results.append(
+                    {
+                        "persona": p["name"],
+                        "focus": p["focus"],
+                        "review": content,
+                        "latency_s": dt,
+                        "evidence_id": ev_item.item_id,
+                    }
+                )
                 print(f"  ✓ Completed in {dt}s (Evidence ID: {ev_item.item_id})")
             else:
                 print(f"  ❌ Error HTTP {r.status_code}")
@@ -121,24 +131,33 @@ async def run_audit():
         f"\n**Evaluator Model:** `{MODEL_ID}` (Local Resident on AMD Radeon 8060S iGPU :13305)",
         f"**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}",
         "**Methodology:** Design-by-Contract Typed Context + 4-Persona Adversarial Stress Testing across Entire Fleet",
-        "\n---\n"
+        "\n---\n",
     ]
 
     for r in results:
         sections.append(f"## 👤 Persona: {r['persona']}")
         sections.append(f"**Audit Focus:** {r['focus']}")
-        sections.append(f"**Verification Latency:** {r['latency_s']}s | **Lineage ID:** `{r['evidence_id']}`\n")
-        sections.append(r['review'])
+        sections.append(
+            f"**Verification Latency:** {r['latency_s']}s | **Lineage ID:** `{r['evidence_id']}`\n"
+        )
+        sections.append(r["review"])
         sections.append("\n---\n")
 
     sections.append("## 🏆 Full-Fleet Hardening & Verification Synthesis")
-    sections.append("1. **Kaggle Rules Gate:** 8/8 kernels 100% compliant with airgapped offline execution and accelerator rules.")
-    sections.append("2. **Compute Envelope:** 4-vCPU multiprocessing and Model Hub GPU weights active across all production pipelines.")
-    sections.append("3. **Local Fleet Vitals:** 5/5 background daemons operating continuously with 39.99 GiB UMA headroom.")
+    sections.append(
+        "1. **Kaggle Rules Gate:** 8/8 kernels 100% compliant with airgapped offline execution and accelerator rules."
+    )
+    sections.append(
+        "2. **Compute Envelope:** 4-vCPU multiprocessing and Model Hub GPU weights active across all production pipelines."
+    )
+    sections.append(
+        "3. **Local Fleet Vitals:** 5/5 background daemons operating continuously with 39.99 GiB UMA headroom."
+    )
 
     REPORT_PATH.write_text("\n".join(sections))
     print(f"\n✓ Master Validation Report saved to `{REPORT_PATH}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_audit())

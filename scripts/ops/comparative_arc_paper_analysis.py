@@ -11,7 +11,9 @@ import json
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [PAPER_COMPARE] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [PAPER_COMPARE] %(message)s"
+)
 logger = logging.getLogger("paper_compare")
 
 COMPARISON_MATRIX = [
@@ -20,23 +22,24 @@ COMPARISON_MATRIX = [
         "mechanism": "Autoregressive token generation of Python code or raw 2D grid text.",
         "strengths": "Broad semantic priors; understands natural language descriptions.",
         "critical_weaknesses": "Catastrophic spatial hallucination, lack of coordinate grounding, high inference latency (2-10s/task), token quota bleed.",
-        "how_flume_beats_them": "FLUME replaces token generation with continuous 12D coordinates, executing in 0.002ms with zero token hallucination."
+        "how_flume_beats_them": "FLUME replaces token generation with continuous 12D coordinates, executing in 0.002ms with zero token hallucination.",
     },
     {
         "approach": "2. Test-Time Compute Search (Greenblatt / nvbanana 70%+ approach)",
         "mechanism": "Samples 8,000+ Python programs per task with majority voting and self-consistency.",
         "strengths": "Reaches 70%+ training accuracy on compute-heavy clusters.",
         "critical_weaknesses": "Extreme compute cost ($1,000+ per evaluation run), violates Kaggle 9-hour timeout when scaling, intractable without datacenter clusters.",
-        "how_flume_beats_them": "FLUME uses Poincaré Geodesic Pruning to reject 75%+ of dead search branches in 0.218ms, running 1,000 tasks in 10.39s on a single desktop."
+        "how_flume_beats_them": "FLUME uses Poincaré Geodesic Pruning to reject 75%+ of dead search branches in 0.218ms, running 1,000 tasks in 10.39s on a single desktop.",
     },
     {
         "approach": "3. Classical Symbolic Program Synthesis (DreamCoder / DSL enumerators)",
         "mechanism": "Top-down / bottom-up AST enumeration over fixed DSL primitives.",
         "strengths": "Exact, provable transformations; zero hallucination.",
         "critical_weaknesses": "Combinatorial wall at depth >= 3; cannot handle non-local topological transformations or noisy inputs.",
-        "how_flume_beats_them": "FLUME integrates Sheaf Cohomology (Čech 1-cocycle check in 7.37µs) to glue local patches into global grids, bypassing the depth-3 combinatorial explosion."
-    }
+        "how_flume_beats_them": "FLUME integrates Sheaf Cohomology (Čech 1-cocycle check in 7.37µs) to glue local patches into global grids, bypassing the depth-3 combinatorial explosion.",
+    },
 ]
+
 
 def main():
     print("\n" + "=" * 115)
@@ -66,6 +69,7 @@ def main():
     print("\n" + "=" * 115)
     print(f"📄 Comparative analysis saved to: {report_file}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     main()

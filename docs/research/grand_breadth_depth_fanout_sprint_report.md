@@ -567,34 +567,36 @@ $$\chi_U(x)(t) = \begin{cases}
 class ConfidenceSubobjectClassifier:
     def __init__(self):
         self.truth_algebra = self._construct_hayting_algebra()
-    
+
     def _construct_hayting_algebra(self):
         # Internal Heyting algebra structure
         return {
-            'meet': lambda v1, v2: self._pointwise_min(v1, v2),
-            'join': lambda v1, v2: self._pointwise_max(v1, v2),
-            'implication': self._construct_implication,
-            'negation': self._construct_negation
+            "meet": lambda v1, v2: self._pointwise_min(v1, v2),
+            "join": lambda v1, v2: self._pointwise_max(v1, v2),
+            "implication": self._construct_implication,
+            "negation": self._construct_negation,
         }
-    
+
     def _pointwise_min(self, v1, v2):
         return lambda x: min(v1(x), v2(x))
-    
+
     def _pointwise_max(self, v1, v2):
         return lambda x: max(v1(x), v2(x))
-    
+
     def _construct_implication(self, v1, v2):
         def implication_func(x):
             # Construct implication in the truth algebra
             return self._compute_implication(v1, v2, x)
+
         return implication_func
-    
+
     def _construct_negation(self, v):
         return lambda x: 1 - v(1 - x)
-    
+
     def confidence_map(self, agent_state):
         """Map agent confidence state to truth value"""
         return lambda x: 1 if agent_state >= x else 0
+
 
 # Example usage:
 classifier = ConfidenceSubobjectClassifier()
@@ -1137,7 +1139,7 @@ class PolarityReconfigurator:
     def __init__(self):
         self.polarity_memory = {}
         self.recovery_memory = {}
-    
+
     def reverse_polarity(self, current_state):
         """
         Planarian-inspired: reverse head/tail polarity
@@ -1145,21 +1147,21 @@ class PolarityReconfigurator:
         """
         # Create polarity inversion map
         inversion_map = self._create_inversion_map(current_state)
-        
+
         # Apply reprogramming to error handling modules
         self._reprogram_error_handlers(inversion_map)
-        
+
         # Update recovery protocols
         self._update_recovery_protocols(inversion_map)
-        
+
         return self._validate_polarity_reconfiguration()
-    
+
     def _create_inversion_map(self, state):
         # Map current error handling to reverse patterns
         return {
-            'error_detection': 'recovery_initiation',
-            'recovery': 'error_detection',
-            'monitoring': 'self_modification'
+            "error_detection": "recovery_initiation",
+            "recovery": "error_detection",
+            "monitoring": "self_modification",
         }
 ```
 
@@ -1170,26 +1172,26 @@ class PolarityReconfigurator:
 class HealingStateMachine:
     def __init__(self):
         self.states = {
-            'monitoring': self._monitoring_state,
-            'detecting': self._detecting_state,
-            'reprogramming': self._reprogramming_state,
-            'recovery': self._recovery_state,
-            'verification': self._verification_state
+            "monitoring": self._monitoring_state,
+            "detecting": self._detecting_state,
+            "reprogramming": self._reprogramming_state,
+            "recovery": self._recovery_state,
+            "verification": self._verification_state,
         }
-        self.current_state = 'monitoring'
-    
+        self.current_state = "monitoring"
+
     def process_error(self, error):
         # Transition through healing states
-        self.current_state = 'detecting'
+        self.current_state = "detecting"
         self._detecting_state(error)
-        
-        self.current_state = 'reprogramming'
+
+        self.current_state = "reprogramming"
         self._reprogramming_state(error)
-        
-        self.current_state = 'recovery'
+
+        self.current_state = "recovery"
         self._recovery_state(error)
-        
-        self.current_state = 'verification'
+
+        self.current_state = "verification"
         return self._verification_state(error)
 ```
 
@@ -1202,26 +1204,26 @@ class BioelectricSignalProcessor:
         self.signal_gradient = []
         self.polarity_threshold = 0.75
         self.healing_threshold = 0.85
-    
+
     def process_signal(self, system_signals):
         # Analyze error signal patterns
         signal_analysis = self._analyze_signal_gradients(system_signals)
-        
+
         # Determine polarity state
         polarity_state = self._determine_polarity(signal_analysis)
-        
+
         # Trigger healing if necessary
         if self._should_heal(polarity_state):
             self._initiate_healing_process()
-        
+
         return polarity_state
-    
+
     def _analyze_signal_gradients(self, signals):
         # Calculate error propagation patterns
         return {
-            'gradient_magnitude': self._calculate_magnitude(signals),
-            'error_concentration': self._calculate_concentration(signals),
-            'recovery_potential': self._calculate_recovery_potential(signals)
+            "gradient_magnitude": self._calculate_magnitude(signals),
+            "error_concentration": self._calculate_concentration(signals),
+            "recovery_potential": self._calculate_recovery_potential(signals),
         }
 ```
 
@@ -1233,7 +1235,7 @@ class AdaptiveHealingProtocols:
     def __init__(self):
         self.protocol_memory = {}
         self.learning_rate = 0.01
-    
+
     def adapt_protocol(self, error_type, healing_success):
         """
         Learn from previous healing attempts
@@ -1241,18 +1243,17 @@ class AdaptiveHealingProtocols:
         # Update protocol based on success/failure
         if error_type in self.protocol_memory:
             self.protocol_memory[error_type] = self._update_protocol(
-                self.protocol_memory[error_type], 
-                healing_success
+                self.protocol_memory[error_type], healing_success
             )
         else:
             self.protocol_memory[error_type] = self._create_new_protocol(error_type)
-    
+
     def _update_protocol(self, current_protocol, success):
         # Apply reinforcement learning to improve healing
         return {
-            'recovery_method': self._select_best_method(current_protocol, success),
-            'polarity_shift_timing': self._adjust_timing(current_protocol, success),
-            'resource_allocation': self._optimize_resources(current_protocol, success)
+            "recovery_method": self._select_best_method(current_protocol, success),
+            "polarity_shift_timing": self._adjust_timing(current_protocol, success),
+            "resource_allocation": self._optimize_resources(current_protocol, success),
         }
 ```
 

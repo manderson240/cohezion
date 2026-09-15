@@ -27,8 +27,11 @@ import numpy as np
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [APPLY_FIXES] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [APPLY_FIXES] %(message)s"
+)
 logger = logging.getLogger("apply_fixes")
+
 
 def fix_graph_engine():
     logger.info("🔧 Fixing `src/cohezion/graph/graph_engine.py`...")
@@ -244,6 +247,7 @@ class KnowledgeGraphMesh:
     with open("src/cohezion/graph/graph_engine.py", "w", encoding="utf-8") as f:
         f.write(code)
     logger.info("✓ Updated src/cohezion/graph/graph_engine.py")
+
 
 def fix_goals_and_loops():
     logger.info("🔧 Fixing `src/cohezion/compound/goals_and_loops_orchestrator.py`...")
@@ -500,6 +504,7 @@ class GoalsAndLoopsOrchestrator:
         f.write(code)
     logger.info("✓ Updated src/cohezion/compound/goals_and_loops_orchestrator.py")
 
+
 def fix_nano_uma_compactor():
     logger.info("🔧 Fixing `src/cohezion/inference/nano_uma_compactor.py`...")
     code = '''"""Pure NumPy Zero-Copy UMA Block-Sparse KV-Cache Compactor (Karpathy Standard)."""
@@ -598,6 +603,7 @@ if __name__ == "__main__":
         f.write(code)
     logger.info("✓ Updated src/cohezion/inference/nano_uma_compactor.py")
 
+
 def verify_all():
     logger.info("\n🛡️ Verifying all remediations via AutoHarness & Bubblewrap Sandbox...")
     verifier = AutoHarnessVerifier()
@@ -615,10 +621,13 @@ def verify_all():
         ast_res = verifier.verify_code(code)
         assert ast_res.valid is True, f"AST verification failed on {path}: {ast_res.errors}"
         # Prepend sys.path injection for standalone sandbox execution
-        sandbox_code = "import sys\nsys.path.insert(0, '/workspace/src')\nsys.path.insert(0, 'src')\n" + code
+        sandbox_code = (
+            "import sys\nsys.path.insert(0, '/workspace/src')\nsys.path.insert(0, 'src')\n" + code
+        )
         sb_res = sandbox.execute_python_code(sandbox_code)
         # Sandbox passes if stdout exits cleanly or passes assertions
         logger.info("  • %s: 🟢 PASSED", path)
+
 
 if __name__ == "__main__":
     fix_graph_engine()

@@ -102,7 +102,7 @@ class CodeHarness {
   precondition_assertions string[]
   postcondition_assertions string[]
   python_verifier_code string
-  estimated_latency_ms float
+  estimated_latency_ms float @assert(positive_latency, {{ this >= 0.0 }})
 }
 
 function SynthesizeCodeHarness(env_spec: string, failure_trace: string) -> CodeHarness {
@@ -130,7 +130,7 @@ class SubmissionStrategy {
   competition_id string
   target_metric_goal string
   recommended_action "generate_ensemble" | "hyperparameter_tune" | "submit_highest_cv" | "hold_for_audit"
-  confidence_score float
+  confidence_score float @assert(valid_confidence, {{ this >= 0.0 and this <= 1.0 }})
   reasoning string
 }
 
@@ -145,4 +145,36 @@ function AuditLeaderboardNextAction(competition: string, leaderboard_snapshot: s
     Evaluate recent validation trajectories against leaderboard benchmarks:
     Recommend the single optimal next submission or modeling action, provide a confidence score (0.0 to 1.0), and concise strategic reasoning.
   "#
+}
+
+test TestRecommendNextStep {
+  functions [RecommendNextStep]
+  args {
+    context "Current CI suite is green, but BAML schemas in src/cohezion/baml/schemas/ are not compiled."
+    candidates "A) Compile BAML schemas into baml_client; B) Wait for manual instruction; C) Revert all BAML files"
+  }
+}
+
+test TestAuditLeaderboardNextAction {
+  functions [AuditLeaderboardNextAction]
+  args {
+    competition "arc-prize-2026-arc-agi-2"
+    leaderboard_snapshot "CV score 33.89, Public LB 33.89. Quantum prior generated via BlueQubit."
+  }
+}
+
+test TestDeriveTaskInvariants {
+  functions [DeriveTaskInvariants]
+  args {
+    task_context "ARC Prize 2026 Task 00576224: Grid reflection and color inversion"
+    train_examples "Input: [[0, 1], [1, 0]] -> Output: [[1, 0], [0, 1]]"
+  }
+}
+
+test TestSynthesizeCodeHarness {
+  functions [SynthesizeCodeHarness]
+  args {
+    env_spec "ARC 2D grid matrix 30x30, values 0..9"
+    failure_trace "AssertionError: color 8 found outside bounding box"
+  }
 }

@@ -59,10 +59,25 @@ async def query_cloud_researcher(client: httpx.AsyncClient, model: str) -> dict[
         dt = time.perf_counter() - t0
         if resp.status_code == 200:
             data = resp.json()
-            return {"model": model, "status": "success", "latency": dt, "content": data.get("response", "")}
-        return {"model": model, "status": f"http_{resp.status_code}", "latency": dt, "content": resp.text}
+            return {
+                "model": model,
+                "status": "success",
+                "latency": dt,
+                "content": data.get("response", ""),
+            }
+        return {
+            "model": model,
+            "status": f"http_{resp.status_code}",
+            "latency": dt,
+            "content": resp.text,
+        }
     except Exception as e:
-        return {"model": model, "status": f"error: {e}", "latency": time.perf_counter() - t0, "content": ""}
+        return {
+            "model": model,
+            "status": f"error: {e}",
+            "latency": time.perf_counter() - t0,
+            "content": "",
+        }
 
 
 async def run_consultation() -> None:
@@ -73,17 +88,21 @@ async def run_consultation() -> None:
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(*[query_cloud_researcher(client, m) for m in MODELS])
 
-    report_path = Path("/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_cloud_consultation_report.md")
+    report_path = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_cloud_consultation_report.md"
+    )
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# 🧠 Bleeding-Edge Research & Architecture Improvements\n\n")
         f.write(f"**Generated**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write("**Platform**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU)\n\n")
+        f.write(
+            "**Platform**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU)\n\n"
+        )
         f.write("---\n\n")
 
         for r in results:
             f.write(f"## 🤖 Frontier Model: `{r['model']}`\n")
             f.write(f"- **Status**: `{r['status']}` | **Latency**: `{r['latency']:.2f}s`\n\n")
-            f.write(r['content'] if r['content'] else "*No response received.*\n")
+            f.write(r["content"] if r["content"] else "*No response received.*\n")
             f.write("\n\n---\n\n")
 
     print(f"✓ Master Research Report saved to: {report_path} ({report_path.stat().st_size} bytes)")

@@ -14,8 +14,12 @@ from cohezion.reliability.oom_guard import OOMGuard
 
 MODELS_TO_TEST = [
     ("deepseek-r1-0528-8b-FLM", "Explain in 20 words how XDNA2 NPU accelerates local reasoning."),
-    ("qwen3.6-moe-35b-a3b-FLM", "In 20 words, confirm that 35B MoE runs on AMD Strix Halo NPU FLM backend.")
+    (
+        "qwen3.6-moe-35b-a3b-FLM",
+        "In 20 words, confirm that 35B MoE runs on AMD Strix Halo NPU FLM backend.",
+    ),
 ]
+
 
 def main():
     print("=" * 90)
@@ -25,7 +29,9 @@ def main():
 
     # 1. Check memory headroom under SystemWideFleetLock
     mem = OOMGuard.get_memory_state()
-    print(f"Hardware Memory State: {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})")
+    print(
+        f"Hardware Memory State: {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})"
+    )
 
     for model_id, prompt in MODELS_TO_TEST:
         print(f"\n▶ Dispatching prompt to NPU Model `{model_id}` on Port 13305...")
@@ -37,9 +43,9 @@ def main():
                     "model": model_id,
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": 60,
-                    "temperature": 0.1
+                    "temperature": 0.1,
                 },
-                timeout=45.0
+                timeout=45.0,
             )
             dt = time.perf_counter() - t0
             if resp.status_code == 200:
@@ -55,6 +61,7 @@ def main():
             print(f"Notice during NPU execution test: {e}")
 
     print("=" * 90)
+
 
 if __name__ == "__main__":
     main()

@@ -15,4 +15,4 @@ Collected outreach / application material. See `COVER_LETTER_universes.md` for t
 
 - `SHOWCASE.md` (repo root) — 1-page reviewer summary (current)
 - `src/cohezion/inference/` — the technical deliverable referenced by the letter
-- `docs/archived-status/` — session reports supporting the narrative
+- `docs/sessions/archive/` — session reports supporting the narrative

@@ -145,3 +145,60 @@ def test_tier_env_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
     assert client_router._tier() == "local"
     monkeypatch.setenv("COHEZION_BAML_TIER", "hybrid")
     assert client_router._tier() == "hybrid"
+
+
+def test_extract_vault_graph_returns_typed_model() -> None:
+    fake = MagicMock(spec=["source_document", "coherence_score", "entities", "relations"])
+    fake.source_document = "doc.md"
+    fake.coherence_score = 0.95
+    with patch.object(client_router, "_b") as mock_b:
+        mock_b.ExtractVaultGraph.return_value = fake
+        out = client_router.extract_vault_graph("doc.md", "content")
+    assert out.source_document == "doc.md"
+    assert out.coherence_score == 0.95
+
+
+def test_classify_task_intent_returns_typed_model() -> None:
+    fake = MagicMock(spec=["node", "output_type", "quality_gate_chars", "confidence", "rationale"])
+    fake.node = "npu"
+    fake.confidence = 0.98
+    with patch.object(client_router, "_b") as mock_b:
+        mock_b.ClassifyTaskIntent.return_value = fake
+        out = client_router.classify_task_intent("run NPU reasoning")
+    assert out.node == "npu"
+    assert out.confidence == 0.98
+
+
+def test_decide_hardware_routing_returns_typed_model() -> None:
+    fake = MagicMock(
+        spec=["model_id", "tier", "port", "temperature", "top_p", "max_context", "evi_score"]
+    )
+    fake.model_id = "deepseek-r1-0528-8b-FLM"
+    fake.tier = "npu"
+    fake.port = 13305
+    with patch.object(client_router, "_b") as mock_b:
+        mock_b.DecideHardwareRouting.return_value = fake
+        out = client_router.decide_hardware_routing("reasoning", 500, ["tools"])
+    assert out.model_id == "deepseek-r1-0528-8b-FLM"
+    assert out.port == 13305
+
+
+def test_evaluate_harmonic_sheaf_returns_typed_model() -> None:
+    fake = MagicMock(
+        spec=["num_nodes", "num_edges", "dirichlet_energy", "is_concordant", "disputed_edges"]
+    )
+    fake.dirichlet_energy = 0.42
+    fake.is_concordant = True
+    with patch.object(client_router, "_b") as mock_b:
+        mock_b.EvaluateHarmonicSheaf.return_value = fake
+        out = client_router.evaluate_harmonic_sheaf("stalks", "maps")
+    assert out.dirichlet_energy == 0.42
+    assert out.is_concordant is True
+
+
+def test_get_type_builder_initializes_properly() -> None:
+    tb = client_router.get_type_builder()
+    assert tb is not None
+    assert hasattr(tb, "VaultGraphExtraction")
+    assert hasattr(tb, "RoutingDecision")
+    assert hasattr(tb, "CodeHarness")

@@ -29,6 +29,7 @@ from cohezion.inference.delegation_logger import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_logger(**kwargs) -> DelegationLogger:
     """Create a DelegationLogger pointed at a test SurrealDB URL."""
     defaults = dict(
@@ -47,19 +48,21 @@ def _make_logger(**kwargs) -> DelegationLogger:
 # Test 1: EVI threshold gating — EVI < 0.75 must NOT escalate
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_evi_below_threshold_does_not_escalate():
     """EVI < 0.75 should return False and make no HTTP call."""
     dl = _make_logger()
 
-    with patch.object(dl, "_persist_to_surreal", new_callable=AsyncMock) as mock_persist, \
-         patch.object(dl, "_publish_event", new_callable=AsyncMock) as mock_event:
-
+    with (
+        patch.object(dl, "_persist_to_surreal", new_callable=AsyncMock) as mock_persist,
+        patch.object(dl, "_publish_event", new_callable=AsyncMock) as mock_event,
+    ):
         result = await dl.log_escalation(
             task_class="reasoning",
             from_tier=1,
             to_tier=2,
-            evi_score=0.70,   # below threshold
+            evi_score=0.70,  # below threshold
             reason="lemonade_unhealthy",
         )
 
@@ -72,14 +75,18 @@ async def test_evi_below_threshold_does_not_escalate():
 # Test 2: EVI at threshold boundary (== 0.75) MUST escalate
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_evi_at_threshold_escalates():
     """EVI exactly at EVI_ESCALATION_THRESHOLD (0.75) should escalate."""
     dl = _make_logger()
 
-    with patch.object(dl, "_persist_to_surreal", new_callable=AsyncMock, return_value=True) as mock_p, \
-         patch.object(dl, "_publish_event", new_callable=AsyncMock):
-
+    with (
+        patch.object(
+            dl, "_persist_to_surreal", new_callable=AsyncMock, return_value=True
+        ) as mock_p,
+        patch.object(dl, "_publish_event", new_callable=AsyncMock),
+    ):
         result = await dl.log_escalation(
             task_class="coding",
             from_tier=1,
@@ -96,14 +103,18 @@ async def test_evi_at_threshold_escalates():
 # Test 3: Tier-1 → Tier-2 happy-path escalation logging
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_tier1_to_tier2_escalation_logging():
     """Happy path: Tier-1 → Tier-2 persists AND publishes."""
     dl = _make_logger()
 
-    with patch.object(dl, "_persist_to_surreal", new_callable=AsyncMock, return_value=True) as mock_p, \
-         patch.object(dl, "_publish_event", new_callable=AsyncMock) as mock_ev:
-
+    with (
+        patch.object(
+            dl, "_persist_to_surreal", new_callable=AsyncMock, return_value=True
+        ) as mock_p,
+        patch.object(dl, "_publish_event", new_callable=AsyncMock) as mock_ev,
+    ):
         result = await dl.log_escalation(
             task_class="reasoning",
             from_tier=1,
@@ -129,6 +140,7 @@ async def test_tier1_to_tier2_escalation_logging():
 # Test 4: SurrealDB persistence is called with correct SQL payload
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_surreal_persistence_sql_content():
     """_persist_to_surreal should POST SQL containing task_class and tier info."""
@@ -152,11 +164,11 @@ async def test_surreal_persistence_sql_content():
     mock_circuit = MagicMock()
     mock_circuit.allow_request.return_value = True
 
-    with patch(
-        "cohezion.inference.delegation_logger.get_circuit", return_value=mock_circuit
-    ), patch.object(dl, "_publish_event", new_callable=AsyncMock), \
-       patch("httpx.AsyncClient") as mock_client_cls:
-
+    with (
+        patch("cohezion.inference.delegation_logger.get_circuit", return_value=mock_circuit),
+        patch.object(dl, "_publish_event", new_callable=AsyncMock),
+        patch("httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=False)
@@ -184,15 +196,18 @@ async def test_surreal_persistence_sql_content():
 # Test 5: EventBus publish fires even when SurrealDB fails
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_eventbus_published_even_on_surreal_failure():
     """EventBus event must be published regardless of SurrealDB failure."""
     dl = _make_logger()
 
-    with patch.object(
-        dl, "_persist_to_surreal", new_callable=AsyncMock, return_value=False
-    ) as mock_p, patch.object(dl, "_publish_event", new_callable=AsyncMock) as mock_ev:
-
+    with (
+        patch.object(
+            dl, "_persist_to_surreal", new_callable=AsyncMock, return_value=False
+        ) as mock_p,
+        patch.object(dl, "_publish_event", new_callable=AsyncMock) as mock_ev,
+    ):
         result = await dl.log_escalation(
             task_class="research",
             from_tier=1,
@@ -209,6 +224,7 @@ async def test_eventbus_published_even_on_surreal_failure():
 # Test 6: Circuit breaker open — SurrealDB write skipped gracefully
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_circuit_open_skips_surreal_write():
     """When the circuit breaker is open, _persist_to_surreal returns False without HTTP call."""
@@ -217,10 +233,10 @@ async def test_circuit_open_skips_surreal_write():
     mock_circuit = MagicMock()
     mock_circuit.allow_request.return_value = False  # circuit is OPEN
 
-    with patch(
-        "cohezion.inference.delegation_logger.get_circuit", return_value=mock_circuit
-    ), patch("httpx.AsyncClient") as mock_http:
-
+    with (
+        patch("cohezion.inference.delegation_logger.get_circuit", return_value=mock_circuit),
+        patch("httpx.AsyncClient") as mock_http,
+    ):
         record = EscalationRecord(
             task_class="fast_qa",
             from_tier=1,
@@ -238,6 +254,7 @@ async def test_circuit_open_skips_surreal_write():
 # Test 7: SurrealDB connection error is handled gracefully
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_surreal_connection_error_handled_gracefully():
     """ConnectError on SurrealDB must not propagate; circuit records failure."""
@@ -248,16 +265,14 @@ async def test_surreal_connection_error_handled_gracefully():
     mock_circuit = MagicMock()
     mock_circuit.allow_request.return_value = True
 
-    with patch(
-        "cohezion.inference.delegation_logger.get_circuit", return_value=mock_circuit
-    ), patch("httpx.AsyncClient") as mock_client_cls:
-
+    with (
+        patch("cohezion.inference.delegation_logger.get_circuit", return_value=mock_circuit),
+        patch("httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=False)
-        mock_client.post = AsyncMock(
-            side_effect=httpx.ConnectError("Connection refused")
-        )
+        mock_client.post = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
         mock_client_cls.return_value = mock_client
 
         record = EscalationRecord(

@@ -138,10 +138,7 @@ goal = GoalSpecification(
 tri_loop = TripartiteGoalLoop(max_depth=3)
 res = tri_loop.run(goal)
 
-print(
-    f"Goal: {res.goal.title} | Converged: {res.converged} | Reward:"
-    f" {res.final_reward:.2f}"
-)
+print(f"Goal: {res.goal.title} | Converged: {res.converged} | Reward: {res.final_reward:.2f}")
 for note in res.vault_notes_created:
     print(f"  Emitted Vault Note: {note}")
 ```

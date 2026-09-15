@@ -50,6 +50,7 @@ Render all 5 parts in complete, unbroken detail with zero truncation:
 - Write at least 8 test cases validating boundary projection, Möbius non-commutativity, Fréchet convergence, gap-junction light cone expansion, and AST verification.
 """
 
+
 async def run_massive_bbq():
     print("\n" + "=" * 115)
     print("🥩 LAUNCHING MASSIVE UNCONSTRAINED 'LOW AND SLOW BBQ' (max_tokens = 32,768)")
@@ -66,11 +67,9 @@ async def run_massive_bbq():
     print(f"\n▶ Dispatching to `Qwen3-Coder-30B-A3B-Instruct-GGUF` / Lemonade (:13305)...")
     payload = {
         "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-        "messages": [
-            {"role": "user", "content": MASSIVE_PROMPT}
-        ],
+        "messages": [{"role": "user", "content": MASSIVE_PROMPT}],
         "temperature": 0.2,
-        "max_tokens": 32768
+        "max_tokens": 32768,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=600.0) as client:
@@ -80,7 +79,7 @@ async def run_massive_bbq():
         msg = data["choices"][0]["message"]
         reasoning = msg.get("reasoning_content") or ""
         content = msg.get("content") or ""
-        
+
         full_doc = f"# Complete Poincaré Manifold & Bioelectric Swarm Specification\n\n**Generated via Local Silicon**: `Qwen3-Coder-30B-A3B-Instruct-GGUF` (:13305)\n**Execution Time**: {dt}s | **Headroom**: {avail_gib} GiB | **Tokens Generated**: ~{len((reasoning + content).split())} words\n\n"
         if reasoning:
             full_doc += f"## Chain-of-Thought Reasoning (<think>)\n\n{reasoning}\n\n---\n\n"
@@ -107,25 +106,28 @@ async def run_massive_bbq():
             "topic": "Massive Poincaré & Bioelectric Swarm Master Suite",
             "duration_sec": dt,
             "tokens_rendered_words": len((reasoning + content).split()),
-            "status": "COMPLETED_UNCONSTRAINED"
-        }
+            "status": "COMPLETED_UNCONSTRAINED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "massive_poincare_bioelectric_master",
-        "title": "Massive 32k Token Poincaré & Bioelectric Swarm Suite",
-        "status": "done",
-        "priority": "highest",
-        "source": "massive_bbq_engine",
-        "category": "massive_synthesis",
-        "details": f"Unconstrained 32k token local synthesis rendered on Qwen3-Coder-30B in {dt}s.",
-    })
+    persist_item(
+        {
+            "id": "massive_poincare_bioelectric_master",
+            "title": "Massive 32k Token Poincaré & Bioelectric Swarm Suite",
+            "status": "done",
+            "priority": "highest",
+            "source": "massive_bbq_engine",
+            "category": "massive_synthesis",
+            "details": f"Unconstrained 32k token local synthesis rendered on Qwen3-Coder-30B in {dt}s.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 UNCONSTRAINED MASSIVE 'LOW AND SLOW BBQ' SYNTHESIS COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_massive_bbq())

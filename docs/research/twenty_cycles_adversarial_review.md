@@ -37,9 +37,9 @@
       return CycleVerificationState(
           cycle_index=...,
           subsystem=...,
-          verified=True,   # <-- always True
+          verified=True,  # <-- always True
           entropy_score=round(score, 4),
-          timestamp=time.time()
+          timestamp=time.time(),
       )
   ```
 - **Issue:** No actual verification is performed. Every subsystem claims `verified=True` regardless of internal state, input, or environmental conditions. This completely defeats any security gate that relies on these verification results.
@@ -112,8 +112,7 @@
 ### 3.1 Fix Invalid Class Name
 ```python
 # In graph_relational_mesh.py
-class SurrealDBGraphRelationalEventLogCrossSessionMesh:
-    ...
+class SurrealDBGraphRelationalEventLogCrossSessionMesh: ...
 ```
 
 ### 3.2 Implement a Real ZK Proof with Replay Protection
@@ -123,6 +122,7 @@ import os
 import time
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True, slots=True)
 class ZKProof:
     proof_bytes: bytes
@@ -130,6 +130,7 @@ class ZKProof:
     nonce: bytes
     timestamp: int
     signature: bytes  # optional, for authenticity
+
 
 class ZKFVCompiler:
     @classmethod
@@ -139,13 +140,15 @@ class ZKFVCompiler:
         # 3. Include nonce and domain separation
         nonce = os.urandom(32)
         timestamp = int(time.time())
-        message = b"".join([
-            context,
-            nonce,
-            timestamp.to_bytes(8, "big"),
-            json.dumps([...]).encode(),
-            str(inputs).encode()
-        ])
+        message = b"".join(
+            [
+                context,
+                nonce,
+                timestamp.to_bytes(8, "big"),
+                json.dumps([...]).encode(),
+                str(inputs).encode(),
+            ]
+        )
         proof = real_zk_prove(gates, inputs, private_witness)
         signature = sign(message)  # if authenticity required
         return ZKProof(proof, hash(inputs), nonce, timestamp, signature)
@@ -162,6 +165,7 @@ class ZKFVCompiler:
 from collections import deque
 import threading
 
+
 class SafeSubsystem:
     def __init__(self, max_history=1000):
         self._lock = threading.Lock()
@@ -177,6 +181,7 @@ class SafeSubsystem:
 ### 3.4 Implement Actual Fleet Concurrency Governor
 ```python
 import threading
+
 
 class HardwareFleetLockApicalConcurrencyGovernor:
     def __init__(self):
@@ -207,6 +212,7 @@ def evaluate_topology(self, points, current_kappa=1.0):
             raise ValueError("Non-finite coordinate")
     ...
 
+
 # Geodesic ODE
 def step_rk4(cls, state, dt=0.01):
     if not math.isfinite(dt) or dt <= 0 or dt > 1.0:
@@ -230,7 +236,7 @@ class AutonomousDeadLetterQueueDLQSelfHealingConsumer:
                     handler(msg)
                     break
                 except Exception:
-                    time.sleep(self.backoff ** attempt)
+                    time.sleep(self.backoff**attempt)
             else:
                 with self._lock:
                     self._dead_letter.append(msg)
@@ -247,7 +253,7 @@ class UnifiedMultimodalZeroCopyUMATensorBufferStreamer:
         with self._lock:
             if offset < 0 or length < 0 or offset + length > len(self._buffer):
                 raise ValueError("Out of bounds")
-            return self._buffer[offset:offset+length]
+            return self._buffer[offset : offset + length]
 ```
 
 ### 3.8 Add Authentication to Bridges
@@ -345,27 +351,30 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from ripser import ripser  # Actual persistent homology library
 
+
 class CTACEngine:
     def __init__(self, target_coherence: float = 0.50, max_points: int = 500) -> None:
         self.target_coherence = target_coherence
         self.max_points = max_points  # Prevent O(N^2) explosion
 
-    def evaluate_topology(self, points: Sequence[PoincarePoint], current_kappa: float = 1.0) -> TopologicalState:
+    def evaluate_topology(
+        self, points: Sequence[PoincarePoint], current_kappa: float = 1.0
+    ) -> TopologicalState:
         if not points:
             return TopologicalState(0.0, 0.50, current_kappa, True)
-        
+
         # Limit complexity for real-time constraints
-        sampled_points = points[:self.max_points] 
+        sampled_points = points[: self.max_points]
         coords = np.array([p.coords for p in sampled_points])
-        
+
         # Compute Persistence Diagrams (Actual Topology)
-        diagrams = ripser(coords, maxdim=0)['dgms']
+        diagrams = ripser(coords, maxdim=0)["dgms"]
         betti_0 = len(diagrams[0]) if len(diagrams) > 0 else 0
-        
+
         # Coherence based on persistence lifetime, not tanh distance
         lifetimes = diagrams[0][:, 1] - diagrams[0][:, 0] if len(diagrams[0]) > 0 else np.array([0])
-        coherence = np.mean(np.exp(-lifetimes)) 
-        
+        coherence = np.mean(np.exp(-lifetimes))
+
         # ... rest of control logic
 ```
 
@@ -405,12 +414,13 @@ class GeodesicFlowODE:
 import multiprocessing.shared_memory
 import numpy as np
 
+
 class UnifiedMultimodalZeroCopyUMATensorBufferStreamer:
     def __init__(self, tensor_shape: tuple, dtype=np.float16):
         self.nbytes = np.prod(tensor_shape) * np.dtype(dtype).itemsize
         self.shm = multiprocessing.shared_memory.SharedMemory(create=True, size=self.nbytes)
         self.buffer = np.ndarray(tensor_shape, dtype=dtype, buffer=self.shm.buf)
-        
+
     def stream_to_npu(self):
         # Pass shared memory handle to NPU driver, avoid copy
         pass
@@ -480,19 +490,21 @@ Replace RK4 with a Stormer-Verlet (Leapfrog) integrator to preserve symplectic v
 def step_symplectic(cls, state: GeodesicState, dt: float = 0.01) -> GeodesicState:
     x = state.position
     v = state.velocity
-    
+
     # Half-step velocity
     a = cls.acceleration(x, v)
     v_half = VectorTensor(tuple(v.components[i] + 0.5 * dt * a.components[i] for i in range(x.dim)))
-    
+
     # Full-step position
     x_new_coords = tuple(x.coords[i] + dt * v_half.components[i] for i in range(x.dim))
     x_new = PoincareManifoldND.project(x_new_coords, target_dim=x.dim)
-    
+
     # Half-step velocity
     a_new = cls.acceleration(x_new, v_half)
-    v_new = VectorTensor(tuple(v_half.components[i] + 0.5 * dt * a_new.components[i] for i in range(x.dim)))
-    
+    v_new = VectorTensor(
+        tuple(v_half.components[i] + 0.5 * dt * a_new.components[i] for i in range(x.dim))
+    )
+
     return GeodesicState(position=x_new, velocity=v_new, time=state.time + dt)
 ```
 
@@ -502,12 +514,16 @@ Use a proper continuous ODE formulation and a valid topological proxy (e.g., Eul
 # Replace the discrete update with a continuous derivative evaluation
 def compute_kappa_derivative(self, betti_0: int, coherence: float, current_kappa: float) -> float:
     # d_kappa/dt = -eta * ( (beta_0 - beta_0*)^2 + lambda * |C - 0.5|^2 )
-    return -self.learning_rate * ((betti_0 - self.target_betti_0)**2 + self.lambda_hiho * abs(coherence - 0.50)**2)
+    return -self.learning_rate * (
+        (betti_0 - self.target_betti_0) ** 2 + self.lambda_hiho * abs(coherence - 0.50) ** 2
+    )
 ```
 
 **Fix 4: Implement Actual Fréchet Centroid (Cycle 13)**
 ```python
-def frechet_mean(self, points: list[PoincarePoint], iterations: int = 10, lr: float = 0.1) -> PoincarePoint:
+def frechet_mean(
+    self, points: list[PoincarePoint], iterations: int = 10, lr: float = 0.1
+) -> PoincarePoint:
     # Initialize at origin
     mean = PoincareManifoldND.project(tuple([0.0] * points[0].dim), target_dim=points[0].dim)
     for _ in range(iterations):

@@ -51,7 +51,9 @@ def run_clean_room_verification() -> None:
         )
 
         dt = time.perf_counter() - t0
-        output_line = res.stdout.strip().split("\n")[-1] if res.stdout.strip() else res.stderr.strip()
+        output_line = (
+            res.stdout.strip().split("\n")[-1] if res.stdout.strip() else res.stderr.strip()
+        )
 
         if res.returncode == 0:
             print(f"  ✓ [{name}] PASSED in {dt:.2f}s -> {output_line}")
@@ -79,7 +81,9 @@ def run_clean_room_verification() -> None:
     total_dt = time.perf_counter() - start_time
     print("\n" + "=" * 100)
     print(f"🎉 INDEPENDENT CLEAN-ROOM SESSION VERIFICATION 100% SUCCESSFUL ({total_dt:.2f}s total)")
-    print("   All 8 independent test suites and the live empirical proof engine replicated exact results.")
+    print(
+        "   All 8 independent test suites and the live empirical proof engine replicated exact results."
+    )
     print("=" * 100)
 
 

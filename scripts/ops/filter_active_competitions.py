@@ -12,7 +12,7 @@ COMPETITIONS = [
         "deadline": "2026-11-02 23:59:00",
         "teamCount": 2558,
         "category": "Featured",
-        "status": "Active / Deployed Kernel v11 (2D NCA + Dual GPU Swarm)"
+        "status": "Active / Deployed Kernel v11 (2D NCA + Dual GPU Swarm)",
     },
     {
         "name": "ARC Prize 2026 (ARC-AGI-2)",
@@ -21,7 +21,7 @@ COMPETITIONS = [
         "deadline": "2026-11-02 23:59:00",
         "teamCount": 1647,
         "category": "Featured",
-        "status": "Active / Deployed Kernel v10 (Rank #1638 / Climbing)"
+        "status": "Active / Deployed Kernel v10 (Rank #1638 / Climbing)",
     },
     {
         "name": "ARC Prize 2026 (Paper Track)",
@@ -30,16 +30,7 @@ COMPETITIONS = [
         "deadline": "2026-11-09 23:59:00",
         "teamCount": 155,
         "category": "Featured",
-        "status": "Active / FLUME Latent Manifold Paper Ready"
-    },
-    {
-        "name": "Pokémon TCG AI Battle Challenge",
-        "slug": "pokemon-tcg-ai-battle-challenge-strategy",
-        "reward": "$240,000",
-        "deadline": "2026-09-13 23:59:00",
-        "teamCount": 515,
-        "category": "Featured",
-        "status": "Active / Deployed Kernel v7 (Legality Masking + PBS)"
+        "status": "Active / FLUME Latent Manifold Paper Ready",
     },
     {
         "name": "RSNA Knee Abnormality Detection",
@@ -48,7 +39,7 @@ COMPETITIONS = [
         "deadline": "2026-10-22 23:59:00",
         "teamCount": 2472,
         "category": "Research",
-        "status": "Active / Deployed Kernel v4 (Multi-View MIL Sequence Classifier)"
+        "status": "Active / Deployed Kernel v4 (Multi-View MIL Sequence Classifier)",
     },
     {
         "name": "Biohub 3D Cell Tracking During Development",
@@ -57,8 +48,8 @@ COMPETITIONS = [
         "deadline": "2026-09-29 23:59:00",
         "teamCount": 2768,
         "category": "Research",
-        "status": "Active / Deployed Kernel v7 (Hungarian Bipartite Mitosis Tracker)"
-    }
+        "status": "Active / Deployed Kernel v7 (Hungarian Bipartite Mitosis Tracker)",
+    },
 ]
 
 now_utc = datetime(2026, 8, 26, 20, 46, 0)

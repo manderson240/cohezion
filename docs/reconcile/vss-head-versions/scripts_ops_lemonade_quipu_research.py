@@ -146,9 +146,7 @@ def call_local(model: str, prompt: str, timeout: int = 900) -> tuple[str, str]:
             "temperature": 0.3,
         }
     ).encode()
-    req = urllib.request.Request(
-        LOCAL_URL, data=body, headers={"Content-Type": "application/json"}
-    )
+    req = urllib.request.Request(LOCAL_URL, data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
         d = json.loads(r.read())
     choice = d["choices"][0]

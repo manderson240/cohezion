@@ -35,15 +35,10 @@ CANDIDATES = [
     ("FLUX.1-schnell", "1024x1024"),
 ]
 
+
 async def benchmark_candidate(name: str, res: str):
     print(f"\n▶ Testing Model: `{name}` @ {res}...")
-    payload = {
-        "model": name,
-        "prompt": PROMPT,
-        "n": 1,
-        "size": res,
-        "response_format": "b64_json"
-    }
+    payload = {"model": name, "prompt": PROMPT, "n": 1, "size": res, "response_format": "b64_json"}
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
         try:
@@ -65,6 +60,7 @@ async def benchmark_candidate(name: str, res: str):
             print(f"   • Exception: {e}")
     return False, 0.0, 0
 
+
 async def main():
     print("=" * 105)
     print("🔬 DIFFUSION BENCHMARK SHOOTOUT: AUDITING ALL AVAILABLE `thenoise` & DIFFUSION MODELS")
@@ -80,8 +76,11 @@ async def main():
     print("📊 BENCHMARK SHOOTOUT RESULTS:")
     print("=" * 105)
     for name, res, ok, dt, size_b in results:
-        status_str = f"ACTIVE ({dt}s, {size_b/1024:.1f} KB)" if ok else "INACTIVE / NOT_DOWNLOADED"
+        status_str = (
+            f"ACTIVE ({dt}s, {size_b / 1024:.1f} KB)" if ok else "INACTIVE / NOT_DOWNLOADED"
+        )
         print(f"• `{name:24}` [{res:9}] -> {status_str}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

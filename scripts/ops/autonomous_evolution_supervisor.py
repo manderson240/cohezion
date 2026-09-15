@@ -35,8 +35,10 @@ CYCLE_DELAY_SECONDS = 20
 
 async def run_autonomous_evolution_cycle(cycle_idx: int) -> bool:
     goal_id = f"mission_4h_cycle_{cycle_idx}_{int(time.time())}"
-    logger.info(f"=== Starting Autonomous Evolution Cycle {cycle_idx}/{TOTAL_CYCLES}: {goal_id} ===")
-    
+    logger.info(
+        f"=== Starting Autonomous Evolution Cycle {cycle_idx}/{TOTAL_CYCLES}: {goal_id} ==="
+    )
+
     bus = EventBus()
     await bus.publish(
         Event.agent_complete(
@@ -45,7 +47,7 @@ async def run_autonomous_evolution_cycle(cycle_idx: int) -> bool:
             result={"cycle": cycle_idx, "status": "cycle_started", "goal_id": goal_id},
         )
     )
-    
+
     goal = GoalSpecification(
         goal_id=goal_id,
         title=f"Autonomous 4h Optimization Cycle {cycle_idx}: Recursive Cohezion Refinement",
@@ -53,30 +55,32 @@ async def run_autonomous_evolution_cycle(cycle_idx: int) -> bool:
         target_threshold=0.10,
         max_iterations=3,
     )
-    
+
     loop = TripartiteGoalLoop(max_depth=3)
     start_t = time.perf_counter()
     res = loop.run(goal)
     duration_ms = (time.perf_counter() - start_t) * 1000.0
-    
+
     logger.info(
         f"Cycle {cycle_idx} Complete in {duration_ms:.2f}ms | Converged: {res.converged} | "
         f"Reward: {res.final_reward:.4f} | Notes Created: {len(res.vault_notes_created)}"
     )
-    
+
     latest_strat = res.history[-1].strategy if res.history else "cellular_sheaf_diffusion"
-    
+
     # Update Kanban Card
-    persist_item({
-        "id": f"kanban-{goal_id}",
-        "title": f"Autonomous Cycle {cycle_idx}: {latest_strat}",
-        "status": "done" if res.converged else "review",
-        "priority": "normal",
-        "source": "autonomous_supervisor",
-        "category": "recursive_evolution",
-        "description": f"Converged: {res.converged}, Final Reward: {res.final_reward:.4f}, Iterations: {res.iterations_run}",
-    })
-    
+    persist_item(
+        {
+            "id": f"kanban-{goal_id}",
+            "title": f"Autonomous Cycle {cycle_idx}: {latest_strat}",
+            "status": "done" if res.converged else "review",
+            "priority": "normal",
+            "source": "autonomous_supervisor",
+            "category": "recursive_evolution",
+            "description": f"Converged: {res.converged}, Final Reward: {res.final_reward:.4f}, Iterations: {res.iterations_run}",
+        }
+    )
+
     await bus.publish(
         Event.agent_complete(
             agent_name="autonomous_supervisor",
@@ -97,7 +101,7 @@ async def main() -> None:
     logger.info("Starting Cohezion Autonomous 4-Hour Evolution Supervisor...")
     start_time = time.time()
     successful_cycles = 0
-    
+
     for cycle in range(1, TOTAL_CYCLES + 1):
         try:
             converged = await run_autonomous_evolution_cycle(cycle)
@@ -105,12 +109,16 @@ async def main() -> None:
                 successful_cycles += 1
         except Exception as e:
             logger.error(f"Error in cycle {cycle}: {e}", exc_info=True)
-            
-        logger.info(f"Cycle {cycle} complete. Sleeping {CYCLE_DELAY_SECONDS}s before next optimization cycle...")
+
+        logger.info(
+            f"Cycle {cycle} complete. Sleeping {CYCLE_DELAY_SECONDS}s before next optimization cycle..."
+        )
         await asyncio.sleep(CYCLE_DELAY_SECONDS)
-        
+
     total_duration = time.time() - start_time
-    logger.info(f"Autonomous evolution supervisor finished {TOTAL_CYCLES} cycles ({successful_cycles} converged) in {total_duration:.2f}s")
+    logger.info(
+        f"Autonomous evolution supervisor finished {TOTAL_CYCLES} cycles ({successful_cycles} converged) in {total_duration:.2f}s"
+    )
 
 
 if __name__ == "__main__":

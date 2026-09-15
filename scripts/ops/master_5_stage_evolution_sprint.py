@@ -38,8 +38,12 @@ async def execute_sprint() -> None:
     assets_dir.mkdir(parents=True, exist_ok=True)
 
     # Standalone HTML is already 100% offline & zero-dependency
-    standalone_viewer = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/cohezion_evo_standalone_viewer.html")
-    print(f"  ✓ Universal Zero-Network HTML5 WebGL App Verified: {standalone_viewer.stat().st_size} bytes")
+    standalone_viewer = Path(
+        "/home/mike-anderson/dev/cohezion/docs/assets/renderings/cohezion_evo_standalone_viewer.html"
+    )
+    print(
+        f"  ✓ Universal Zero-Network HTML5 WebGL App Verified: {standalone_viewer.stat().st_size} bytes"
+    )
     print("  ✓ Stage 1 Complete: 100% Offline Air-Gapped Serving Guarantee Established.")
 
     # -------------------------------------------------------------------------
@@ -92,14 +96,20 @@ async def execute_sprint() -> None:
 
     frechet_mean = np.mean(poincare_points, axis=0)
     coherence_consolidation = 0.5000 + float(np.std(frechet_mean)) * 0.1
-    print(f"  ✓ Consolidated 422 raw cycles into Fréchet Mean state vector (norm={np.linalg.norm(frechet_mean):.4f})")
-    print(f"  ✓ Memory Compaction Ratio: 50:1 | Retained Attractor Coherence: {coherence_consolidation:.4f}")
+    print(
+        f"  ✓ Consolidated 422 raw cycles into Fréchet Mean state vector (norm={np.linalg.norm(frechet_mean):.4f})"
+    )
+    print(
+        f"  ✓ Memory Compaction Ratio: 50:1 | Retained Attractor Coherence: {coherence_consolidation:.4f}"
+    )
     print("  ✓ Stage 3 Complete: Memory Compacted into SurrealDB `journey_knowledge`.")
 
     # -------------------------------------------------------------------------
     # STAGE 4: Deterministic AutoHarness AST Bytecode Policy Compiler
     # -------------------------------------------------------------------------
-    print("\n⚡ STAGE 4: Synthesizing AutoHarness Deterministic Bytecode Verifiers (0 ms Latency)...")
+    print(
+        "\n⚡ STAGE 4: Synthesizing AutoHarness Deterministic Bytecode Verifiers (0 ms Latency)..."
+    )
     # Compile formal AST verifier function
     verifier_code = """
 def verify_physical_state_invariants(state: dict) -> bool:
@@ -118,7 +128,9 @@ def verify_physical_state_invariants(state: dict) -> bool:
     exec_latency_ns = time.perf_counter_ns() - t_start
 
     print(f"  ✓ Compiled AutoHarness AST Invariant Verifier: Exit Status = {is_valid}")
-    print(f"  ✓ Measured Execution Latency: {exec_latency_ns / 1000.0:.2f} µs (0.00 ms - Zero LLM Cost)")
+    print(
+        f"  ✓ Measured Execution Latency: {exec_latency_ns / 1000.0:.2f} µs (0.00 ms - Zero LLM Cost)"
+    )
     print("  ✓ Stage 4 Complete: Deterministic Fast-Path Verification Active.")
 
     # -------------------------------------------------------------------------
@@ -139,7 +151,9 @@ def verify_physical_state_invariants(state: dict) -> bool:
     # -------------------------------------------------------------------------
     # PERSISTENCE & REPORTING
     # -------------------------------------------------------------------------
-    report_file = Path("/home/mike-anderson/dev/cohezion/docs/research/master_5_stage_evolution_sprint_report.md")
+    report_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/master_5_stage_evolution_sprint_report.md"
+    )
     with open(report_file, "w", encoding="utf-8") as f:
         f.write("# 🚀 Master 5-Stage Sovereign Evolution Sprint Report\n\n")
         f.write(f"**Execution Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -147,11 +161,21 @@ def verify_physical_state_invariants(state: dict) -> bool:
         f.write("## Sprint Execution Scorecard\n\n")
         f.write("| Stage | Initiative | Measured Metric / Status | Latency / Overhead |\n")
         f.write("|:---:|:---|:---|:---:|\n")
-        f.write("| **1** | Air-Gapped WASM Hermeticity | Zero External CDN Dependency | `0.00 ms` |\n")
-        f.write("| **2** | SurrealDB Distributed Epoch Leases | 30s Auto-Reclaiming TTL | `< 2.0 ms` |\n")
-        f.write(f"| **3** | Sleep & Memory Consolidation | 50:1 Compaction (Coherence {coherence_consolidation:.4f}) | `0.45 ms` |\n")
-        f.write(f"| **4** | AutoHarness Bytecode Policy | 100% Invariant Pass | `{exec_latency_ns/1000.0:.2f} µs` |\n")
-        f.write(f"| **5** | Cyber-Physical Soliton Coupling | T_dynamic = {coupled_temperature:.4f} | Real-Time |\n\n")
+        f.write(
+            "| **1** | Air-Gapped WASM Hermeticity | Zero External CDN Dependency | `0.00 ms` |\n"
+        )
+        f.write(
+            "| **2** | SurrealDB Distributed Epoch Leases | 30s Auto-Reclaiming TTL | `< 2.0 ms` |\n"
+        )
+        f.write(
+            f"| **3** | Sleep & Memory Consolidation | 50:1 Compaction (Coherence {coherence_consolidation:.4f}) | `0.45 ms` |\n"
+        )
+        f.write(
+            f"| **4** | AutoHarness Bytecode Policy | 100% Invariant Pass | `{exec_latency_ns / 1000.0:.2f} µs` |\n"
+        )
+        f.write(
+            f"| **5** | Cyber-Physical Soliton Coupling | T_dynamic = {coupled_temperature:.4f} | Real-Time |\n\n"
+        )
         f.write("All 5 stages completed with zero defects.\n")
 
     print("\n" + "=" * 100)

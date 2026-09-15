@@ -38,18 +38,20 @@ async def main_async() -> None:
 
     # 2. Inspect Running Cohezion Processes
     cohezion_procs = []
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'memory_info', 'create_time']):
+    for proc in psutil.process_iter(["pid", "name", "cmdline", "memory_info", "create_time"]):
         try:
-            cmdline = " ".join(proc.info['cmdline'] or [])
+            cmdline = " ".join(proc.info["cmdline"] or [])
             if "scripts/ops" in cmdline and "python" in cmdline:
-                uptime_hrs = (time.time() - proc.info['create_time']) / 3600.0
-                rss_mb = proc.info['memory_info'].rss / (1024**2)
-                cohezion_procs.append({
-                    "pid": proc.info['pid'],
-                    "cmd": cmdline.split("python3 ")[-1],
-                    "uptime_hours": round(uptime_hrs, 2),
-                    "rss_mb": round(rss_mb, 2),
-                })
+                uptime_hrs = (time.time() - proc.info["create_time"]) / 3600.0
+                rss_mb = proc.info["memory_info"].rss / (1024**2)
+                cohezion_procs.append(
+                    {
+                        "pid": proc.info["pid"],
+                        "cmd": cmdline.split("python3 ")[-1],
+                        "uptime_hours": round(uptime_hrs, 2),
+                        "rss_mb": round(rss_mb, 2),
+                    }
+                )
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
 
@@ -71,7 +73,7 @@ async def main_async() -> None:
             "gaia_sdk_playbooks": "Certified 6/6 (Hardware, SD, Chat, Code, EMR, Installer)",
             "burkhard_heim_physics": "tau = 6.15e-70 m^2 verified",
             "autoharness_defense": "Active AST Bytecode Guard",
-        }
+        },
     }
 
     print("\n📊 [Collected System Telemetry]")
@@ -100,11 +102,11 @@ Format your response in 3 concise bullet points:
                     "model": "qwen3-4b-FLM",
                     "messages": [
                         {"role": "system", "content": "You are the Cohezion Sovereign Health AI."},
-                        {"role": "user", "content": prompt}
+                        {"role": "user", "content": prompt},
                     ],
                     "max_tokens": 400,
                     "temperature": 0.2,
-                }
+                },
             )
             if res.status_code == 200:
                 content = res.json()["choices"][0]["message"]["content"]

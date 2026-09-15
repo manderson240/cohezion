@@ -60,10 +60,25 @@ async def query_model(client: httpx.AsyncClient, model: str) -> dict[str, Any]:
         latency = time.perf_counter() - t0
         if resp.status_code == 200:
             data = resp.json()
-            return {"model": model, "status": "success", "latency": latency, "review": data.get("response", "")}
-        return {"model": model, "status": f"http_{resp.status_code}", "latency": latency, "review": resp.text}
+            return {
+                "model": model,
+                "status": "success",
+                "latency": latency,
+                "review": data.get("response", ""),
+            }
+        return {
+            "model": model,
+            "status": f"http_{resp.status_code}",
+            "latency": latency,
+            "review": resp.text,
+        }
     except Exception as e:
-        return {"model": model, "status": f"error: {e}", "latency": time.perf_counter() - t0, "review": ""}
+        return {
+            "model": model,
+            "status": f"error: {e}",
+            "latency": time.perf_counter() - t0,
+            "review": "",
+        }
 
 
 async def main() -> None:
@@ -71,12 +86,18 @@ async def main() -> None:
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(*[query_model(client, m) for m in MODELS])
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/grand_multiperspective_adversarial_deep_review.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/grand_multiperspective_adversarial_deep_review.md"
+    )
     with open(out_file, "w", encoding="utf-8") as f:
-        f.write("# ⚔️ Grand Multiperspective Adversarial Review: Ken Shoulders & Matsumoto World Model\n\n")
+        f.write(
+            "# ⚔️ Grand Multiperspective Adversarial Review: Ken Shoulders & Matsumoto World Model\n\n"
+        )
         for res in results:
-            f.write(f"## 🤖 Reviewer: `{res['model']}` ({res['status']} in {res['latency']:.1f}s)\n\n")
-            f.write(res['review'] + "\n\n---\n\n")
+            f.write(
+                f"## 🤖 Reviewer: `{res['model']}` ({res['status']} in {res['latency']:.1f}s)\n\n"
+            )
+            f.write(res["review"] + "\n\n---\n\n")
     print(f"Done! Written {out_file.stat().st_size} bytes to {out_file}")
 
 

@@ -42,6 +42,20 @@
     ],
     "source": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md"
   },
+  "AGENT_CONFIG_PRIME": {
+    "version": "v1.0 (2026-06-02)",
+    "concepts": [
+      "CLAUDE.md",
+      "GEMINI.md",
+      "Global Rules File",
+      "Progressive Disclosure",
+      "Agent Config Authoring"
+    ],
+    "see_also": [
+      "SYSTEM_DEFINITION_PRIME"
+    ],
+    "source": "src/cohezion/skills/AGENT_CONFIG_PRIME.md"
+  },
   "AMBIENT_SONIFICATION_PRIME": {
     "version": "v1.0",
     "concepts": [
@@ -92,6 +106,11 @@
     "see_also": [],
     "source": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md"
   },
+  "AUTODQA_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/AUTODQA_PRIME.md"
+  },
   "AUTONOMOUS_RESILIENCE_PRIME": {
     "version": "v1.0 (Born from the Overnight BBQ Mission, 2026-01-31)",
     "concepts": [
@@ -104,7 +123,7 @@
     "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
   },
   "AUTORESEARCH_PRIME": {
-    "version": "v0.2 (Session 93, 2026-04-09 — andyluo7/autoresearch integration)",
+    "version": "v0.2 (Session 93, 2026-04-09 \u2014 andyluo7/autoresearch integration)",
     "concepts": [
       "Autonomous Experimentation Loops",
       "UCB1 K-Search Tree",
@@ -133,6 +152,19 @@
     ],
     "source": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md"
   },
+  "BRANDING_OPS": {
+    "version": "v1.0",
+    "concepts": [
+      "Organic Modularity",
+      "Inspired Motifs",
+      "Brand as Code",
+      "Quadrature Nexus",
+      "12D Alignment",
+      "color tokens"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/BRANDING_OPS_PRIME/SKILL.md"
+  },
   "CAPABILITY_REGISTRY_PRIME": {
     "version": "1.0",
     "concepts": [],
@@ -151,7 +183,7 @@
   "COMPOUND_ENGINEERING_PRIME": {
     "version": "v0.1",
     "concepts": [
-      "Meta‑Pattern Library",
+      "Meta\u2011Pattern Library",
       "Skill Tokens",
       "Automatic Skill Scaffold"
     ],
@@ -195,6 +227,11 @@
       "physics_explainability"
     ],
     "source": "src/cohezion/skills/CONSTITUTION_PRIME.md"
+  },
+  "COSMIC_FIRE_PROTOCOL_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/COSMIC_FIRE_PROTOCOL_PRIME.md"
   },
   "DATABASE_PRIME": {
     "version": "v1.0",
@@ -284,6 +321,11 @@
     ],
     "source": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md"
   },
+  "GREEK_PARAMETERS_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/GREEK_PARAMETERS_PRIME.md"
+  },
   "HALLUCINATION_RESOLVER_PRIME": {
     "version": "v1.0",
     "concepts": [
@@ -296,6 +338,11 @@
       "REPO_HYGIENE_PRIME"
     ],
     "source": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md"
+  },
+  "HIHO_LM_PRIME": {
+    "version": "1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/HIHO_LM_PRIME.md"
   },
   "HIHO_STABILITY_PRIME": {
     "version": "v1.0",
@@ -347,6 +394,19 @@
     "see_also": [],
     "source": "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md"
   },
+  "KAGGLE": {
+    "version": "v1.0",
+    "concepts": [
+      "credential setup (KAGGLE_API_TOKEN)",
+      "competition reports",
+      "kagglehub/kaggle-cli/MCP interaction",
+      "badge collector",
+      "notebook execution (KKB)",
+      "competition submission"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/kaggle/SKILL.md"
+  },
   "KNOWLEDGE_GRAPH_INTEGRATION_PRIME": {
     "version": "v0.1",
     "concepts": [
@@ -369,6 +429,16 @@
     "see_also": [],
     "source": "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md"
   },
+  "LANGCHAIN_RAG_TIER_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/LANGCHAIN_RAG_TIER_PRIME.md"
+  },
+  "LOCAL_INFERENCE_ROUTING": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/LOCAL_INFERENCE_ROUTING.md"
+  },
   "LOCAL_OFFLOAD_PRIME": {
     "version": "v1.0",
     "concepts": [
@@ -387,6 +457,19 @@
     "concepts": [],
     "see_also": [],
     "source": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md"
+  },
+  "MCP_BUILDER": {
+    "version": "v1.0",
+    "concepts": [
+      "MCP server design",
+      "tool naming and discoverability",
+      "input/output schemas (Zod/Pydantic)",
+      "streamable HTTP vs stdio transport",
+      "evaluation question creation",
+      "actionable error messages"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/mcp-builder/SKILL.md"
   },
   "MEMORY_MCP_PRIME": {
     "version": "v0.1",
@@ -408,7 +491,7 @@
     "version": "v0.1",
     "concepts": [
       "Ollama Model Catalog",
-      "Memory‑aware Scheduling",
+      "Memory\u2011aware Scheduling",
       "Task Classification",
       "Parallel Execution",
       "Cache & Deduplication",
@@ -426,6 +509,23 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/MYCELIUM_PRIME.md"
+  },
+  "NO_AI_SLOP_PRIME": {
+    "version": "v1.0 (2026-09-13)",
+    "concepts": [
+      "Slop Pattern Elimination",
+      "Portability Test",
+      "Concrete Fact Preservation",
+      "Voice Protection",
+      "Banned Vocabulary Purge",
+      "Metadiscourse Removal"
+    ],
+    "see_also": [
+      "MODEL_CARD_HARNESS_PRIME",
+      "VERIFICATION_BEFORE_COMPLETION_PRIME",
+      "COMPOUND_ENGINEERING_PRIME"
+    ],
+    "source": "src/cohezion/skills/NO_AI_SLOP_PRIME.md"
   },
   "PERSISTENT_UNIVERSE_PRIME": {
     "version": "v1.0",
@@ -491,6 +591,11 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md"
+  },
+  "R0_SIGMA_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/R0_SIGMA_PRIME.md"
   },
   "RECOVERY_PRIME": {
     "version": "v0.1",
@@ -663,6 +768,100 @@
     ],
     "source": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md"
   },
+  "SKILL_0_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+  },
+  "SKILL_1_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+  },
+  "SKILL_SYNTHESIS_PRIME": {
+    "version": "v1.1",
+    "concepts": [
+      "Meta-Pattern Library",
+      "Skill Tokens",
+      "Automatic Skill Scaffold",
+      "Concept Mapping Block"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
+      "RETROSPECTIVE_SKILL",
+      "metaphysics",
+      "physics"
+    ],
+    "source": "src/cohezion/skills/SKILL_SYNTHESIS_PRIME.md"
+  },
+  "STEALTHSKATER_CORPUS": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/STEALTHSKATER_CORPUS.md"
+  },
+  "SURGICAL_COMMIT_UNDER_CHURN_PRIME": {
+    "version": "v1.0 (2026-04-22)",
+    "concepts": [
+      "Surgical commits",
+      "Pre-commit stash/restore",
+      "Learning 363",
+      "Learning 368",
+      "High-churn working tree",
+      "Git atomic commits"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME"
+    ],
+    "source": "src/cohezion/skills/SURGICAL_COMMIT_UNDER_CHURN_PRIME.md"
+  },
+  "SURREALDB_ADVANCED_PRIME": {
+    "version": "v1.1",
+    "concepts": [
+      "MCP Tools (execute_surrealql / query_graph / vector_search / live_subscribe)",
+      "Multi-Model Query",
+      "FETCH Optimization",
+      "HNSW Vector Indexing",
+      "Live Queries",
+      "Pre-computed Fields",
+      "Graph Pruning",
+      "Structured Query Result",
+      "Flat vs Nest Mismatches",
+      "Query Mocking"
+    ],
+    "see_also": [
+      "SURREALDB_CORE_PRIME",
+      "DATABASE_PRIME",
+      "KNOWLEDGE_GRAPH_INTEGRATION_PRIME",
+      "embedding_strategy",
+      "FLUME_METHODOLOGY_PRIME",
+      "VISUALIZATION_PRIME"
+    ],
+    "source": "src/cohezion/skills/SURREALDB_ADVANCED_PRIME.md"
+  },
+  "SURREALDB_CORE_PRIME": {
+    "version": "v1.1",
+    "concepts": [
+      "Dual SurrealDB Topology (port 8001)",
+      "Namespace/Database",
+      "v3.0 Syntax",
+      "Genesis Schema",
+      "HNSW Vector Indexing",
+      "Live Queries",
+      "Graph Edges (RELATE)",
+      "Schema Migration",
+      "Orphan Detection",
+      "Bi-temporal / SurrealKV Versioned"
+    ],
+    "see_also": [
+      "SURREALDB_ADVANCED_PRIME",
+      "VAULT_KEEPER_PRIME",
+      "DATABASE_PRIME"
+    ],
+    "source": "src/cohezion/skills/SURREALDB_CORE_PRIME.md"
+  },
   "SYMBIOTIC_FILE_PRIME": {
     "version": "v1.0 (Sovereign Era)",
     "concepts": [
@@ -672,6 +871,11 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/SYMBIOTIC_FILE_PRIME.md"
+  },
+  "SYNC_ASYNC_BRIDGE_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/SYNC_ASYNC_BRIDGE_PRIME.md"
   },
   "SYSTEM_DEFINITION_PRIME": {
     "version": "v1.0 (2026-01-17)",
@@ -700,7 +904,7 @@
       "CPU Utilisation",
       "Memory Pressure",
       "I/O Saturation",
-      "Process‑level Metrics",
+      "Process\u2011level Metrics",
       "Adaptive Scaling",
       "Guardrails",
       "Visualization"
@@ -755,6 +959,24 @@
     ],
     "source": "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md"
   },
+  "TENSOR_METRIC_ENGINEERING_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/TENSOR_METRIC_ENGINEERING_PRIME.md"
+  },
+  "TENSOR_NETWORK_OPS": {
+    "version": "v1.0",
+    "concepts": [
+      "Matrix Product States (MPS)",
+      "TensorGPT",
+      "bond dimension",
+      "Tensor-Train decomposition",
+      "cotengra/quimb",
+      "Saten sparse networks"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/TENSOR_NETWORK_OPS_PRIME/SKILL.md"
+  },
   "TESTING_PRIME": {
     "version": "1.0",
     "concepts": [
@@ -766,6 +988,12 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/TESTING_PRIME.md"
+  },
+  "TEST_SKILL_PRIME": {
+    "version": "2.5",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   },
   "THROTTLED_SCOUT_PRIME": {
     "version": "v1.0 (Safe Mode v3 Compatible)",
@@ -806,6 +1034,11 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md"
+  },
+  "TRIUNE_SELF_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/TRIUNE_SELF_PRIME.md"
   },
   "TYPESCRIPT_ADVANCED_TYPES_PRIME": {
     "version": "v1.0.1",
@@ -870,221 +1103,5 @@
       "HIHO_STABILITY_PRIME"
     ],
     "source": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md"
-  },
-  "SURGICAL_COMMIT_UNDER_CHURN_PRIME": {
-    "version": "v1.0 (2026-04-22)",
-    "concepts": [
-      "Surgical commits",
-      "Pre-commit stash/restore",
-      "Learning 363",
-      "Learning 368",
-      "High-churn working tree",
-      "Git atomic commits"
-    ],
-    "see_also": [
-      "COMPOUND_ENGINEERING_PRIME"
-    ],
-    "source": "src/cohezion/skills/SURGICAL_COMMIT_UNDER_CHURN_PRIME.md"
-  },
-  "AGENT_CONFIG_PRIME": {
-    "version": "v1.0 (2026-06-02)",
-    "concepts": [
-      "CLAUDE.md",
-      "GEMINI.md",
-      "Global Rules File",
-      "Progressive Disclosure",
-      "Agent Config Authoring"
-    ],
-    "see_also": [
-      "SYSTEM_DEFINITION_PRIME"
-    ],
-    "source": "src/cohezion/skills/AGENT_CONFIG_PRIME.md"
-  },
-  "AUTODQA_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/AUTODQA_PRIME.md"
-  },
-  "LOCAL_INFERENCE_ROUTING": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/LOCAL_INFERENCE_ROUTING.md"
-  },
-  "STEALTHSKATER_CORPUS": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/STEALTHSKATER_CORPUS.md"
-  },
-  "TENSOR_METRIC_ENGINEERING_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/TENSOR_METRIC_ENGINEERING_PRIME.md"
-  },
-  "HIHO_LM_PRIME": {
-    "version": "1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/HIHO_LM_PRIME.md"
-  },
-  "LANGCHAIN_RAG_TIER_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/LANGCHAIN_RAG_TIER_PRIME.md"
-  },
-  "GREEK_PARAMETERS_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/GREEK_PARAMETERS_PRIME.md"
-  },
-  "R0_SIGMA_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/R0_SIGMA_PRIME.md"
-  },
-  "TRIUNE_SELF_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/TRIUNE_SELF_PRIME.md"
-  },
-  "COSMIC_FIRE_PROTOCOL_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/COSMIC_FIRE_PROTOCOL_PRIME.md"
-  },
-  "SYNC_ASYNC_BRIDGE_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/SYNC_ASYNC_BRIDGE_PRIME.md"
-  },
-  "BRANDING_OPS": {
-    "version": "v1.0",
-    "concepts": [
-      "Organic Modularity",
-      "Inspired Motifs",
-      "Brand as Code",
-      "Quadrature Nexus",
-      "12D Alignment",
-      "color tokens"
-    ],
-    "see_also": [],
-    "source": "src/cohezion/skills/BRANDING_OPS_PRIME/SKILL.md"
-  },
-  "TENSOR_NETWORK_OPS": {
-    "version": "v1.0",
-    "concepts": [
-      "Matrix Product States (MPS)",
-      "TensorGPT",
-      "bond dimension",
-      "Tensor-Train decomposition",
-      "cotengra/quimb",
-      "Saten sparse networks"
-    ],
-    "see_also": [],
-    "source": "src/cohezion/skills/TENSOR_NETWORK_OPS_PRIME/SKILL.md"
-  },
-  "MCP_BUILDER": {
-    "version": "v1.0",
-    "concepts": [
-      "MCP server design",
-      "tool naming and discoverability",
-      "input/output schemas (Zod/Pydantic)",
-      "streamable HTTP vs stdio transport",
-      "evaluation question creation",
-      "actionable error messages"
-    ],
-    "see_also": [],
-    "source": "src/cohezion/skills/mcp-builder/SKILL.md"
-  },
-  "KAGGLE": {
-    "version": "v1.0",
-    "concepts": [
-      "credential setup (KAGGLE_API_TOKEN)",
-      "competition reports",
-      "kagglehub/kaggle-cli/MCP interaction",
-      "badge collector",
-      "notebook execution (KKB)",
-      "competition submission"
-    ],
-    "see_also": [],
-    "source": "src/cohezion/skills/kaggle/SKILL.md"
-  },
-  "SURREALDB_CORE_PRIME": {
-    "version": "v1.1",
-    "concepts": [
-      "Dual SurrealDB Topology (port 8001)",
-      "Namespace/Database",
-      "v3.0 Syntax",
-      "Genesis Schema",
-      "HNSW Vector Indexing",
-      "Live Queries",
-      "Graph Edges (RELATE)",
-      "Schema Migration",
-      "Orphan Detection",
-      "Bi-temporal / SurrealKV Versioned"
-    ],
-    "see_also": [
-      "SURREALDB_ADVANCED_PRIME",
-      "VAULT_KEEPER_PRIME",
-      "DATABASE_PRIME"
-    ],
-    "source": "src/cohezion/skills/SURREALDB_CORE_PRIME.md"
-  },
-  "SURREALDB_ADVANCED_PRIME": {
-    "version": "v1.1",
-    "concepts": [
-      "MCP Tools (execute_surrealql / query_graph / vector_search / live_subscribe)",
-      "Multi-Model Query",
-      "FETCH Optimization",
-      "HNSW Vector Indexing",
-      "Live Queries",
-      "Pre-computed Fields",
-      "Graph Pruning",
-      "Structured Query Result",
-      "Flat vs Nest Mismatches",
-      "Query Mocking"
-    ],
-    "see_also": [
-      "SURREALDB_CORE_PRIME",
-      "DATABASE_PRIME",
-      "KNOWLEDGE_GRAPH_INTEGRATION_PRIME",
-      "embedding_strategy",
-      "FLUME_METHODOLOGY_PRIME",
-      "VISUALIZATION_PRIME"
-    ],
-    "source": "src/cohezion/skills/SURREALDB_ADVANCED_PRIME.md"
-  },
-  "SKILL_SYNTHESIS_PRIME": {
-    "version": "v1.1",
-    "concepts": [
-      "Meta-Pattern Library",
-      "Skill Tokens",
-      "Automatic Skill Scaffold",
-      "Concept Mapping Block"
-    ],
-    "see_also": [
-      "COMPOUND_ENGINEERING_PRIME",
-      "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
-      "RETROSPECTIVE_SKILL",
-      "metaphysics",
-      "physics"
-    ],
-    "source": "src/cohezion/skills/SKILL_SYNTHESIS_PRIME.md"
-  },
-  "SKILL_0_PRIME": {
-    "version": "1.0",
-    "concepts": [],
-    "see_also": [],
-    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
-  },
-  "SKILL_1_PRIME": {
-    "version": "1.0",
-    "concepts": [],
-    "see_also": [],
-    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
-  },
-  "TEST_SKILL_PRIME": {
-    "version": "2.5",
-    "concepts": [],
-    "see_also": [],
-    "source": "/tmp/claude-1000/pytest-of-mike-anderson/pytest-39/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   }
 }

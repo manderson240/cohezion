@@ -23,11 +23,8 @@ PROMPT = (
     "isometric translucent glass cubes, mathematical formulas, dark navy blue technical blueprint grid background, sharp focus, 8k render."
 )
 
-THENOISE_MODELS = [
-    "Z-Image-Turbo-TheNoise",
-    "Krea-2-Turbo",
-    "Anima-Turbo"
-]
+THENOISE_MODELS = ["Z-Image-Turbo-TheNoise", "Krea-2-Turbo", "Anima-Turbo"]
+
 
 async def test_thenoise_model(model_id: str):
     print(f"\n▶ Testing `thenoise` Engine Model: `{model_id}`...")
@@ -36,7 +33,7 @@ async def test_thenoise_model(model_id: str):
         "prompt": PROMPT,
         "n": 1,
         "size": "1024x1024",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -50,13 +47,16 @@ async def test_thenoise_model(model_id: str):
                     img_bytes = base64.b64decode(b64_str)
                     out_file = OUTPUT_DIR / f"{model_id.lower().replace('-', '_')}.jpg"
                     out_file.write_bytes(img_bytes)
-                    print(f"   ✓ `{model_id}` on `thenoise`: SUCCESS! Generated `{out_file.name}` ({len(img_bytes)} bytes in {dt}s)")
+                    print(
+                        f"   ✓ `{model_id}` on `thenoise`: SUCCESS! Generated `{out_file.name}` ({len(img_bytes)} bytes in {dt}s)"
+                    )
                     return True
             else:
                 print(f"   • `{model_id}` notice (HTTP {r.status_code}): {r.text[:200]}")
         except Exception as e:
             print(f"   • `{model_id}` error: {e}")
     return False
+
 
 async def main():
     print("\n" + "=" * 115)
@@ -69,6 +69,7 @@ async def main():
     print("\n" + "=" * 115)
     print(f"🏆 THENOISE BENCHMARK COMPLETE! Outputs saved in `{OUTPUT_DIR}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

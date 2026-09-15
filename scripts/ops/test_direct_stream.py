@@ -10,14 +10,16 @@ payload = {
     "model": model,
     "messages": [
         {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Say hello."}
+        {"role": "user", "content": "Say hello."},
     ],
     "stream": True,
-    "max_tokens": 50
+    "max_tokens": 50,
 }
 
 print(f"Connecting to {url} for model {model}...")
-req = urllib.request.Request(url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+req = urllib.request.Request(
+    url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+)
 t0 = time.perf_counter()
 
 try:
@@ -25,7 +27,7 @@ try:
         print("Connected! Reading stream...")
         count = 0
         for line in resp:
-            l = line.decode('utf-8').strip()
+            l = line.decode("utf-8").strip()
             if l:
                 print("RECV:", l)
                 count += 1

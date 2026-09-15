@@ -4,9 +4,12 @@ import json
 payload = {
     "model": "gpt-oss-20b",
     "messages": [
-        {"role": "user", "content": "Write a python function `def transform(grid): return grid[::-1]` in a python code block."}
+        {
+            "role": "user",
+            "content": "Write a python function `def transform(grid): return grid[::-1]` in a python code block.",
+        }
     ],
-    "max_tokens": 150
+    "max_tokens": 150,
 }
 
 r = httpx.post("http://localhost:13305/v1/chat/completions", json=payload, timeout=30.0)

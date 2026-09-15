@@ -45,7 +45,10 @@ ACTION_ITEMS = [
         "status": "done",
         "priority": "high",
         "category": "multimodal_media",
-        "metrics": {"styles": ["cinematic_cyberpunk", "ethereal_ambient_432hz", "synthwave_retro"], "phci_score": 1.0},
+        "metrics": {
+            "styles": ["cinematic_cyberpunk", "ethereal_ambient_432hz", "synthwave_retro"],
+            "phci_score": 1.0,
+        },
     },
     {
         "id": "action-closed-loop-audio-optimizer",
@@ -61,7 +64,10 @@ ACTION_ITEMS = [
         "status": "done",
         "priority": "critical",
         "category": "security_adversarial",
-        "metrics": {"auditors_evaluated": 16, "report": "grand_unified_tri_silicon_cloud_adversarial_review.md"},
+        "metrics": {
+            "auditors_evaluated": 16,
+            "report": "grand_unified_tri_silicon_cloud_adversarial_review.md",
+        },
     },
     {
         "id": "action-ace-step-crystallization",
@@ -90,13 +96,15 @@ async def process_and_sync_all() -> None:
         res = persist_item(item)
 
         # 2. Format CRM Spreadsheet Row for Google Sheets Sync
-        crm_row = ws_bridge.format_crm_spreadsheet_row({
-            "name": item["title"],
-            "status": item["status"],
-            "priority": item["priority"],
-            "category": item["category"],
-            "metrics": item["metrics"],
-        })
+        crm_row = ws_bridge.format_crm_spreadsheet_row(
+            {
+                "name": item["title"],
+                "status": item["status"],
+                "priority": item["priority"],
+                "category": item["category"],
+                "metrics": item["metrics"],
+            }
+        )
 
         # 3. Publish Event onto EventBus
         evt = Event(
@@ -113,7 +121,9 @@ async def process_and_sync_all() -> None:
         await bus.publish(evt)
 
         dt = (time.perf_counter() - t0) * 1000.0
-        print(f"  ✓ [PROCESSED & SYNCED] {item['id']:<35} | Status: {item['status']:<6} | Priority: {item['priority']:<8} ({dt:.2f} ms)")
+        print(
+            f"  ✓ [PROCESSED & SYNCED] {item['id']:<35} | Status: {item['status']:<6} | Priority: {item['priority']:<8} ({dt:.2f} ms)"
+        )
         synced_items.append(item)
 
     print("\n" + "=" * 100)

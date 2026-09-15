@@ -68,9 +68,7 @@ def call(model: str, prompt: str, max_tokens: int, timeout: int = 600) -> tuple[
             "temperature": 0.2,
         }
     ).encode()
-    req = urllib.request.Request(
-        LOCAL_URL, data=body, headers={"Content-Type": "application/json"}
-    )
+    req = urllib.request.Request(LOCAL_URL, data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
         d = json.loads(r.read())
     ch = d["choices"][0]

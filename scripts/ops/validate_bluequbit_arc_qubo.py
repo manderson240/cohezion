@@ -4,6 +4,7 @@
 import time
 from cohezion.quantum.bluequbit_arc_qubo_solver import BlueQubitARCSolver
 
+
 def validate_arc_qubo():
     print("=" * 80)
     print("⚛️ VALIDATING LIVE BLUEQUBIT ARC-AGI QUBO SOLVER")
@@ -14,7 +15,7 @@ def validate_arc_qubo():
         [0.1, 0.8, 0.9, 0.4],
         [0.8, 0.2, 0.7, 0.5],
         [0.9, 0.7, 0.05, 0.6],  # Index 2 has minimal penalty (optimal match)
-        [0.4, 0.5, 0.6, 0.3]
+        [0.4, 0.5, 0.6, 0.3],
     ]
 
     solver = BlueQubitARCSolver(device="mps.cpu")
@@ -29,6 +30,7 @@ def validate_arc_qubo():
     print(f"Cloud Execution Time: {res.get('latency_s'):.2f}s")
     print("✓ Live Quantum Superposition & Entanglement verified on BlueQubit!")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     validate_arc_qubo()

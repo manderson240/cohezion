@@ -98,7 +98,11 @@ def main() -> int:
         )
 
     assert abs(controller.remaining_budget - 48.75) < 1e-4
-    logger.info("Recorded 5 stable steps. Current spend: $%.2f, Remaining: $%.2f", controller.current_spend, controller.remaining_budget)
+    logger.info(
+        "Recorded 5 stable steps. Current spend: $%.2f, Remaining: $%.2f",
+        controller.current_spend,
+        controller.remaining_budget,
+    )
 
     # Simulate an entropy-inflating rogue step (hallucination drift)
     rogue_decision = controller.evaluate_proposed_action(
@@ -109,7 +113,12 @@ def main() -> int:
     )
 
     # Tripwire must halt execution
-    logger.info("Rogue step evaluation: Allowed=%s, Action=%s, Reason=%s", rogue_decision.allowed, rogue_decision.action, rogue_decision.reason[:60])
+    logger.info(
+        "Rogue step evaluation: Allowed=%s, Action=%s, Reason=%s",
+        rogue_decision.allowed,
+        rogue_decision.action,
+        rogue_decision.reason[:60],
+    )
 
     # Step 3: Exercise ARC Prize Orch-OR Superposition Collapse
     orch_service = OrchORRuntimeService()
@@ -190,7 +199,11 @@ def main() -> int:
     )
 
     precip_res = bridge.persist(mark)
-    logger.info("Proof precipitated: Vault=%s, SurrealDB=%s", precip_res["vault_path"], precip_res["surreal_synced"])
+    logger.info(
+        "Proof precipitated: Vault=%s, SurrealDB=%s",
+        precip_res["vault_path"],
+        precip_res["surreal_synced"],
+    )
 
     dt_total = time.perf_counter() - t_start
     logger.info("=== METR/ARC Negentropy Proof Completed in %.2f s ===", dt_total)

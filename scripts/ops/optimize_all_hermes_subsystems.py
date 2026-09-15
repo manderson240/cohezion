@@ -49,8 +49,8 @@ def main() -> None:
             "waslmedia-qwen3-4b-Q4_K_M",
             "lfm25-embed-350m",
             "Whisper-Large-v3-Turbo",
-            "kokoro-v1"
-        ]
+            "kokoro-v1",
+        ],
     }
 
     # 3. Optimize Auxiliary / Context Compression to NPU
@@ -59,7 +59,7 @@ def main() -> None:
     cfg["auxiliary"]["compression"] = {
         "model": "waslmedia-qwen3-4b-Q4_K_M",
         "provider": "lemonade-local",
-        "context_length": 40960
+        "context_length": 40960,
     }
 
     # 4. Optimize Smart Model Routing / Cheap Model to NPU
@@ -67,7 +67,7 @@ def main() -> None:
         cfg["smart_model_routing"] = {}
     cfg["smart_model_routing"]["cheap_model"] = {
         "model": "waslmedia-qwen3-4b-Q4_K_M",
-        "provider": "lemonade-local"
+        "provider": "lemonade-local",
     }
 
     # 5. Optimize Local STT & TTS
@@ -76,7 +76,7 @@ def main() -> None:
     cfg["stt"]["enabled"] = True
     cfg["stt"]["local"] = {
         "model": "Whisper-Large-v3-Turbo",
-        "endpoint": "http://localhost:13305/v1/audio/transcriptions"
+        "endpoint": "http://localhost:13305/v1/audio/transcriptions",
     }
 
     if "tts" not in cfg:
@@ -84,7 +84,7 @@ def main() -> None:
     cfg["tts"]["enabled"] = True
     cfg["tts"]["local"] = {
         "model": "kokoro-v1",
-        "endpoint": "http://localhost:13305/v1/audio/speech"
+        "endpoint": "http://localhost:13305/v1/audio/speech",
     }
 
     # 6. Optimize Embeddings / Memory to 1024D Local Model

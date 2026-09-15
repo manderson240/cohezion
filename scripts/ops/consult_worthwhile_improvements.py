@@ -25,13 +25,17 @@ Question: What are the TOP 3 most worthwhile, highest-leverage improvements to b
 Provide a concise, highly focused technical recommendation under 200 words."""
 
 try:
-    resp = httpx.post("http://127.0.0.1:11434/api/generate", json={
-        "model": "deepseek-v4-flash:cloud",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.2, "num_predict": 500}
-    }, timeout=45.0)
-    
+    resp = httpx.post(
+        "http://127.0.0.1:11434/api/generate",
+        json={
+            "model": "deepseek-v4-flash:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.2, "num_predict": 500},
+        },
+        timeout=45.0,
+    )
+
     if resp.status_code == 200:
         data = resp.json()
         print("💡 MODEL STRATEGIC RECOMMENDATION (WORTHWHILE KAGGLE UPGRADES):")

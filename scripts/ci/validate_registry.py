@@ -31,6 +31,7 @@ from cohezion.registry.skill_registry import load_registry
 
 SKILLS_DIR = Path("src/cohezion/skills")
 
+
 def scan_skill_files(skills_dir: Path) -> set[str]:
     """Return the name of every discoverable skill under *skills_dir*.
 

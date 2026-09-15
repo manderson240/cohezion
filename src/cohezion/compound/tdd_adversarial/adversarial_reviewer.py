@@ -6,12 +6,15 @@ scrubbed TEK insights and the final physical synthesis.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
 from cohezion.agents.base import BaseAgent
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
 
 
 logger = logging.getLogger(__name__)

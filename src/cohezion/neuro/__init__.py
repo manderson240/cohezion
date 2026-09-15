@@ -10,6 +10,11 @@ from cohezion.neuro.drosophila_cns import (
     DrosophilaNeuronType,
     DrosophilaSensoryMotorCircuit,
 )
+from cohezion.neuro.janelia_neuprint_client import (
+    JaneliaNeuPrintClient,
+    NeuPrintNeuron,
+    NeuPrintSynapse,
+)
 from cohezion.neuro.ventral_hippocampus import (
     HippocampalAxis,
     VentralBehavioralMode,
@@ -25,6 +30,9 @@ __all__ = [
     "DrosophilaNeuronType",
     "DrosophilaSensoryMotorCircuit",
     "HippocampalAxis",
+    "JaneliaNeuPrintClient",
+    "NeuPrintNeuron",
+    "NeuPrintSynapse",
     "VentralBehavioralMode",
     "VentralHippocampalState",
     "VentralHippocampusCircuit",

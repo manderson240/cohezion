@@ -8,10 +8,10 @@ and precipitates. Integrates with AutoHarness and the Immune System.
 from __future__ import annotations
 
 import logging
-import os
 import re
 from pathlib import Path
 from typing import NamedTuple
+
 
 logger = logging.getLogger("secret_scrubber")
 
@@ -29,7 +29,7 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern, str]] = [
     # Generic key/secret assignments
     (
         re.compile(
-            r"(?i)(api[_-]?key|secret|password|auth[_-]?token|client[_-]?secret)\s*[:=]\s*([^\s,;\"'}{]+)"
+            r"(?i)(api[_-]?key|secret|password|auth[_-]?token|client[_-]?secret)[^\S\r\n]*[:=][^\S\r\n]*(?!(?:str|int|float|bool|bytes|None|Optional|Any|auth[_-]?token|api[_-]?key|secret|password|token)\b)(?![\"'](?:lemonade|test[_-]?[a-zA-Z0-9_-]*|mock[_-]?[a-zA-Z0-9_-]*|dummy[_-]?[a-zA-Z0-9_-]*)[\"'])([\"'][^\"']+[\"']|[^\s,;\"'\\}{]{8,})"
         ),
         r"\1: [REDACTED_SECRET]",
     ),
@@ -39,7 +39,20 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "[REDACTED:AWS_ACCESS_KEY]"),
     # OpenAI / Anthropic / Gemini API Keys
     (re.compile(r"\bsk-[a-zA-Z0-9_\-]{20,60}\b"), "[REDACTED:API_KEY]"),
+    (re.compile(r"\bsk-ant-api[0-9]{2}-[a-zA-Z0-9_\-]{30,120}\b"), "[REDACTED:ANTHROPIC_KEY]"),
     (re.compile(r"\bAIza[0-9A-Za-z-_]{35}\b"), "[REDACTED:GEMINI_API_KEY]"),
+    # Kaggle API Key & JSON
+    (re.compile(r'("key"\s*:\s*")[a-f0-9]{32}(")'), r"\1[REDACTED:KAGGLE_KEY]\2"),
+    (
+        re.compile(r"(?i)(kaggle[_-]?(?:api[_-]?)?key)\s*[:=]\s*([^\s,;\"'}{]+)"),
+        r"\1: [REDACTED:KAGGLE_KEY]",
+    ),
+    # BlueQubit API Token & Prefixes
+    (
+        re.compile(r"(?i)(bluequbit[_-]?(?:api[_-]?)?(?:token|key))\s*[:=]\s*([^\s,;\"'}{]+)"),
+        r"\1: [REDACTED:BLUEQUBIT_TOKEN]",
+    ),
+    (re.compile(r"\bBQUBIT_[a-zA-Z0-9_\-]{20,80}\b"), "[REDACTED:BLUEQUBIT_TOKEN]"),
     # Telegram Bot Token
     (re.compile(r"\b\d{8,12}:[a-zA-Z0-9_-]{30,45}\b"), "[REDACTED:TELEGRAM_TOKEN]"),
     # Private Key blocks
@@ -52,6 +65,11 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern, str]] = [
 FORBIDDEN_CREDENTIAL_FILES = [
     re.compile(r"rclone\.conf", re.IGNORECASE),
     re.compile(r"(?:^|[/\s'\"])\.env(?:\.[a-zA-Z0-9_-]+)?(?:\b|[/\s'\";&|]|$)", re.IGNORECASE),
+    re.compile(r"(?:^|[/\s'\"])kaggle\.json(?:\b|[/\s'\";&|]|$)", re.IGNORECASE),
+    re.compile(
+        r"(?:^|[/\s'\"])bluequbit.*(?:\.json|\.token|credentials)(?:\b|[/\s'\";&|]|$)",
+        re.IGNORECASE,
+    ),
     re.compile(r"id_rsa|id_ed25519|id_ecdsa", re.IGNORECASE),
     re.compile(r"credentials\.json|client_secrets?\.json", re.IGNORECASE),
     re.compile(r"\.aws/credentials|\.aws/config", re.IGNORECASE),
@@ -82,10 +100,7 @@ def scrub_text(text: str) -> str:
 
 def contains_unredacted_credentials(text: str) -> bool:
     """Detect if raw text contains unredacted credential signatures."""
-    for pattern, _ in CREDENTIAL_PATTERNS:
-        if pattern.search(text):
-            return True
-    return False
+    return any(pattern.search(text) for pattern, _ in CREDENTIAL_PATTERNS)
 
 
 def verify_command_safety(command: str) -> CommandVerification:
@@ -98,18 +113,17 @@ def verify_command_safety(command: str) -> CommandVerification:
 
     has_reader = bool(FILE_INSPECTION_COMMANDS.search(command))
     for forbidden in FORBIDDEN_CREDENTIAL_FILES:
-        if forbidden.search(command):
-            if has_reader or "rclone.conf" in command:
-                alt = ""
-                if "rclone.conf" in command:
-                    alt = "Use non-sensitive 'rclone listremotes' or 'rclone about <remote>:' instead."
-                elif ".env" in command:
-                    alt = "Use os.environ or a dedicated config loader with secret masking."
-                return CommandVerification(
-                    allowed=False,
-                    violation_reason=f"Blocked attempt to read credential file matching pattern: '{forbidden.pattern}'",
-                    suggested_alternative=alt,
-                )
+        if forbidden.search(command) and (has_reader or "rclone.conf" in command):
+            alt = ""
+            if "rclone.conf" in command:
+                alt = "Use non-sensitive 'rclone listremotes' or 'rclone about <remote>:' instead."
+            elif ".env" in command:
+                alt = "Use os.environ or a dedicated config loader with secret masking."
+            return CommandVerification(
+                allowed=False,
+                violation_reason=f"Blocked attempt to read credential file matching pattern: '{forbidden.pattern}'",
+                suggested_alternative=alt,
+            )
 
     return CommandVerification(allowed=True)
 

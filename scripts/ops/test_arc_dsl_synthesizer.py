@@ -2,16 +2,15 @@
 import time
 from cohezion.competitions.arc.dsl_synthesizer import ARCDSLSynthesizer
 
+
 def main():
     print("Testing ARCDSLSynthesizer...")
     synth = ARCDSLSynthesizer()
 
     # Test 1: Rot90 task
     task_rot = {
-        "train": [
-            {"input": [[1, 2], [3, 4]], "output": [[3, 1], [4, 2]]}
-        ],
-        "test": [{"input": [[5, 6], [7, 8]]}]
+        "train": [{"input": [[1, 2], [3, 4]], "output": [[3, 1], [4, 2]]}],
+        "test": [{"input": [[5, 6], [7, 8]]}],
     }
     t0 = time.perf_counter()
     res_rot = synth.synthesize(task_rot)
@@ -21,10 +20,8 @@ def main():
 
     # Test 2: Composite (FloodFill + Tiling)
     task_comp = {
-        "train": [
-            {"input": [[1]], "output": [[2, 2], [2, 2]]}
-        ],
-        "test": [{"input": [[3]]}]
+        "train": [{"input": [[1]], "output": [[2, 2], [2, 2]]}],
+        "test": [{"input": [[3]]}],
     }
     t1 = time.perf_counter()
     res_comp = synth.synthesize(task_comp)
@@ -33,6 +30,7 @@ def main():
     assert res_comp == [[2, 2], [2, 2]]
 
     print("🎉 All ARCDSLSynthesizer unit tests passed with 0.00ms latency!")
+
 
 if __name__ == "__main__":
     main()

@@ -39,7 +39,13 @@ class TestCompoundAnalyticsCLI:
         rc, out = _run_cli("recommend", "--n", "2")
         assert rc == 0, f"Exit code {rc}: {out}"
 
+    def test_approvals_command_exits_zero(self):
+        rc, out = _run_cli("approvals")
+        assert rc == 0, f"Exit code {rc}: {out}"
+        assert "approvals" in out.lower() or "clean" in out.lower()
+
     def test_no_command_shows_help(self):
         _rc, out = _run_cli("--help")
         # Help exits with 0
         assert "status" in out or "recommend" in out
+

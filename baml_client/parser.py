@@ -29,11 +29,35 @@ class LlmResponseParser:
         __result__ = self.__options.merge_options(baml_options).parse_response(function_name="AuditLeaderboardNextAction", llm_response=llm_response, mode="request")
         return typing.cast(types.SubmissionStrategy, __result__)
 
+    def ClassifyTaskIntent(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> types.TaskClassificationResult:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="ClassifyTaskIntent", llm_response=llm_response, mode="request")
+        return typing.cast(types.TaskClassificationResult, __result__)
+
+    def DecideHardwareRouting(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> types.RoutingDecision:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="DecideHardwareRouting", llm_response=llm_response, mode="request")
+        return typing.cast(types.RoutingDecision, __result__)
+
     def DeriveTaskInvariants(
         self, llm_response: str, baml_options: BamlCallOptions = {},
     ) -> types.TaskInvariants:
         __result__ = self.__options.merge_options(baml_options).parse_response(function_name="DeriveTaskInvariants", llm_response=llm_response, mode="request")
         return typing.cast(types.TaskInvariants, __result__)
+
+    def EvaluateHarmonicSheaf(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> types.SheafDirichletState:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="EvaluateHarmonicSheaf", llm_response=llm_response, mode="request")
+        return typing.cast(types.SheafDirichletState, __result__)
+
+    def ExtractVaultGraph(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> types.VaultGraphExtraction:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="ExtractVaultGraph", llm_response=llm_response, mode="request")
+        return typing.cast(types.VaultGraphExtraction, __result__)
 
     def RecommendNextStep(
         self, llm_response: str, baml_options: BamlCallOptions = {},
@@ -61,11 +85,35 @@ class LlmStreamParser:
         __result__ = self.__options.merge_options(baml_options).parse_response(function_name="AuditLeaderboardNextAction", llm_response=llm_response, mode="stream")
         return typing.cast(stream_types.SubmissionStrategy, __result__)
 
+    def ClassifyTaskIntent(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> stream_types.TaskClassificationResult:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="ClassifyTaskIntent", llm_response=llm_response, mode="stream")
+        return typing.cast(stream_types.TaskClassificationResult, __result__)
+
+    def DecideHardwareRouting(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> stream_types.RoutingDecision:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="DecideHardwareRouting", llm_response=llm_response, mode="stream")
+        return typing.cast(stream_types.RoutingDecision, __result__)
+
     def DeriveTaskInvariants(
         self, llm_response: str, baml_options: BamlCallOptions = {},
     ) -> stream_types.TaskInvariants:
         __result__ = self.__options.merge_options(baml_options).parse_response(function_name="DeriveTaskInvariants", llm_response=llm_response, mode="stream")
         return typing.cast(stream_types.TaskInvariants, __result__)
+
+    def EvaluateHarmonicSheaf(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> stream_types.SheafDirichletState:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="EvaluateHarmonicSheaf", llm_response=llm_response, mode="stream")
+        return typing.cast(stream_types.SheafDirichletState, __result__)
+
+    def ExtractVaultGraph(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> stream_types.VaultGraphExtraction:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="ExtractVaultGraph", llm_response=llm_response, mode="stream")
+        return typing.cast(stream_types.VaultGraphExtraction, __result__)
 
     def RecommendNextStep(
         self, llm_response: str, baml_options: BamlCallOptions = {},

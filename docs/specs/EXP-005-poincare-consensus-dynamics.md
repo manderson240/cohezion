@@ -24,6 +24,7 @@ We hypothesize that consensus convergence occurs if and only if the zeroth Betti
 # Standalone execution blueprint:
 import numpy as np
 
+
 def compute_swarm_hyperbolic_centroid(agent_vectors: list[np.ndarray]) -> np.ndarray:
     # Frechet mean on Poincare ball
     weights = [1.0 / (1.0 - min(float(np.sum(v**2)), 0.99)) for v in agent_vectors]
@@ -36,7 +37,10 @@ def compute_swarm_hyperbolic_centroid(agent_vectors: list[np.ndarray]) -> np.nda
         centroid = (centroid / norm) * 0.99
     return centroid
 
-def evaluate_consensus_convergence(agent_vectors: list[np.ndarray], threshold: float = 0.25) -> bool:
+
+def evaluate_consensus_convergence(
+    agent_vectors: list[np.ndarray], threshold: float = 0.25
+) -> bool:
     centroid = compute_swarm_hyperbolic_centroid(agent_vectors)
     max_dist = max(float(np.linalg.norm(v - centroid)) for v in agent_vectors)
     return max_dist <= threshold

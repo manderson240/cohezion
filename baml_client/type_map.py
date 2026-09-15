@@ -19,14 +19,47 @@ type_map = {
     "types.CodeHarness": types.CodeHarness,
     "stream_types.CodeHarness": stream_types.CodeHarness,
 
+    "types.ExtractedEntity": types.ExtractedEntity,
+    "stream_types.ExtractedEntity": stream_types.ExtractedEntity,
+
+    "types.ExtractedRelation": types.ExtractedRelation,
+    "stream_types.ExtractedRelation": stream_types.ExtractedRelation,
+
+    "types.GoalSpecification": types.GoalSpecification,
+    "stream_types.GoalSpecification": stream_types.GoalSpecification,
+
+    "types.HardwareVitalsSnapshot": types.HardwareVitalsSnapshot,
+    "stream_types.HardwareVitalsSnapshot": stream_types.HardwareVitalsSnapshot,
+
+    "types.KanbanItem": types.KanbanItem,
+    "stream_types.KanbanItem": stream_types.KanbanItem,
+
+    "types.ModelCardProfile": types.ModelCardProfile,
+    "stream_types.ModelCardProfile": stream_types.ModelCardProfile,
+
     "types.NextStep": types.NextStep,
     "stream_types.NextStep": stream_types.NextStep,
+
+    "types.RoutingDecision": types.RoutingDecision,
+    "stream_types.RoutingDecision": stream_types.RoutingDecision,
+
+    "types.SheafDirichletState": types.SheafDirichletState,
+    "stream_types.SheafDirichletState": stream_types.SheafDirichletState,
 
     "types.SubmissionStrategy": types.SubmissionStrategy,
     "stream_types.SubmissionStrategy": stream_types.SubmissionStrategy,
 
+    "types.TaskClassificationResult": types.TaskClassificationResult,
+    "stream_types.TaskClassificationResult": stream_types.TaskClassificationResult,
+
     "types.TaskInvariants": types.TaskInvariants,
     "stream_types.TaskInvariants": stream_types.TaskInvariants,
+
+    "types.VModelTrace": types.VModelTrace,
+    "stream_types.VModelTrace": stream_types.VModelTrace,
+
+    "types.VaultGraphExtraction": types.VaultGraphExtraction,
+    "stream_types.VaultGraphExtraction": stream_types.VaultGraphExtraction,
 
 
 }
