@@ -25,6 +25,7 @@ from typing import Any
 
 import httpx
 
+from cohezion.inference.fabric import Backend, backend_for_model, resident_by_backend
 from cohezion.research.autoresearch import AutoResearcher
 from cohezion.swarm.dynamic_model_router import MemoryBandwidthAnalyzer
 from cohezion.swarm.lemonade_manager import LemonadeManager
@@ -38,6 +39,29 @@ from cohezion.swarm.model_pool_config import (
 
 
 logger = logging.getLogger(__name__)
+
+# fabric.Backend -> Lemonade /api/v1/load ``llamacpp_backend`` payload value.
+# FLM models route through Lemonade's flm lane by name; we still record the
+# backend on the PooledModel for per-backend cap accounting and eviction order.
+_FABRIC_TO_LLAMACPP: dict[Backend, str] = {
+    Backend.NPU: "flm",
+    Backend.IGPU: "rocm",
+    Backend.CPU: "cpu",
+}
+
+# fabric.Backend -> config-space label used by TierConfig.per_backend_max_resident
+# keys and PooledModel.backend ('npu' | 'igpu' | 'cpu' | 'cloud').
+_BACKEND_LABELS: dict[Backend, str] = {
+    Backend.NPU: "npu",
+    Backend.IGPU: "igpu",
+    Backend.CPU: "cpu",
+    Backend.CLOUD: "cloud",
+}
+
+# Eviction preference: iGPU models first (largest unified-memory footprint /
+# THE OOM channel), then CPU, then NPU last (SRAM residency is cheapest to
+# keep). Unknown labels (cloud/edge) sort last — never preferred victims.
+_BACKEND_EVICTION_ORDER: dict[str, int] = {"igpu": 0, "cpu": 1, "npu": 2}
 
 # Health-check prompt: minimal tokens, fast response
 _HEALTH_PROMPT = "Reply OK"
@@ -154,6 +178,25 @@ class ModelPoolManager:
             model.mark_used()
             return True
 
+        # Per-backend residency cap (checked BEFORE eviction/load: no cap-bypassing
+        # eviction is performed on behalf of one backend at its cap).
+        backend = backend_for_model(model_name)
+        backend_label = _BACKEND_LABELS.get(backend, backend.value)
+        cap = self._config.per_backend_max_resident.get(backend_label)
+        if cap is not None:
+            resident = resident_by_backend(f"http://{self.lemonade.host}:{self.lemonade.port}")
+            backend_resident_count = len(resident.get(backend, ()))
+            if backend_resident_count >= cap:
+                logger.info(
+                    "Refusing load of %s: backend '%s' residency cap reached (%d/%d resident);"
+                    " refusal is the success path — callers route/fallback instead",
+                    model_name,
+                    backend_label,
+                    backend_resident_count,
+                    cap,
+                )
+                return False
+
         # Check if we need to evict to make room
         loaded_count = sum(
             1
@@ -174,6 +217,7 @@ class ModelPoolManager:
         success = await self._load_model(model_name, model.tier)
         if success:
             model.loaded = True
+            model.backend = backend_label
             model.mark_used()
             # Verify health
             healthy = await self.health_check(model_name)
@@ -190,6 +234,9 @@ class ModelPoolManager:
             logger.info("Symphony Pre-warming: Predictive loading of %s", model_name)
             await self._load_model(model_name, model.tier)
             model.loaded = True
+            model.backend = _BACKEND_LABELS.get(
+                backend_for_model(model_name), backend_for_model(model_name).value
+            )
 
         # Fast path: Cloud/Edge are effectively always loaded
         if model.tier in (ModelTierPolicy.CLOUD, ModelTierPolicy.EDGE):
@@ -357,11 +404,14 @@ class ModelPoolManager:
 
         evicted: list[str] = []
 
-        # Build eviction candidates sorted by priority
+        # Build eviction candidates sorted by priority: backend preference first
+        # (iGPU residency is the OOM channel — evict it first; NPU SRAM is the
+        # cheapest to keep), then tier, then LRU within tier.
         candidates = sorted(
             [m for m in self._pool.values() if m.loaded and m.tier != ModelTierPolicy.HOT],
             key=lambda m: (
-                0 if m.tier == ModelTierPolicy.COLD else 1,  # COLD first
+                _BACKEND_EVICTION_ORDER.get(m.backend, len(_BACKEND_EVICTION_ORDER)),
+                0 if m.tier == ModelTierPolicy.COLD else 1,  # COLD before WARM
                 m.last_used,  # LRU within tier
             ),
         )
@@ -477,13 +527,37 @@ class ModelPoolManager:
         """Load a model by sending a minimal generation request with keep_alive.
         Implements a sequential loading lock to prevent memory spikes.
         """
+        # Per-backend load dispatch: classify the model onto its silicon lane
+        # and request that lane from Lemonade (was hardcoded to rocm for ALL
+        # loads — the pool could only ever request iGPU residency).
+        backend = backend_for_model(model_name)
+        if backend is Backend.CLOUD:
+            logger.warning(
+                "Refusing to load %s via Lemonade: it classifies as CLOUD — "
+                "nothing to load locally",
+                model_name,
+            )
+            return False
+        llamacpp_backend = _FABRIC_TO_LLAMACPP.get(backend)
+        if llamacpp_backend is None:
+            # Unknown future Backend member — fail closed rather than guessing a lane.
+            logger.error(
+                "No llamacpp_backend mapping for backend %r (model %s)",
+                backend,
+                model_name,
+            )
+            return False
+
         # Check if this model is routed to Lemonade
         is_lemonade = "gemma4:26b-moe" in model_name
 
         if is_lemonade:
             # Lemonade loads models on first request or via specific load API
             url = f"http://{self.lemonade.host}:{self.lemonade.port}/api/v1/load"
-            payload = {"model_name": model_name, "llamacpp_backend": "rocm"}
+            payload = {
+                "model_name": model_name,
+                "llamacpp_backend": llamacpp_backend,
+            }
             try:
                 async with httpx.AsyncClient(timeout=_LOAD_TIMEOUT_S) as client:
                     resp = await client.post(url, json=payload)
