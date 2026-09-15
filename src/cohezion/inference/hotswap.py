@@ -24,18 +24,26 @@ Two design choices worth keeping:
 2. **Free RAM is read from /proc/meminfo, not assumed.** A fixed "88 GB available"
    ceiling is fiction on a box that was at 14.3 GB with swap exhausted.
 
+3. **The resident fleet is COUNT-capped (default 3), not just RAM-gated.** The fit gate
+   bounds each load's SIZE; the 2026-09-14 OOM spiral showed the gap — 7 models resident
+   at once, every load individually "fitting", collectively fatal. The LRU loop never
+   fired because nothing asked it to; the cap gives it a second trigger.
+
 N3 safety, non-negotiable:
   * every load carries a BOUNDED ``ctx_size`` (unbounded KV cache is the documented
     2026-06-09 hard-freeze vector),
   * a load is REFUSED rather than attempted when it still does not fit after eviction,
   * a BUSY model is never evicted,
-  * callers may ``protect`` models that must not be evicted.
+  * callers may ``protect`` models that must not be evicted,
+  * the resident set is COUNT-capped (``DEFAULT_MAX_RESIDENT``): at/over the cap the
+    gate frees a slot first, and refuses when it cannot.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import urllib.request
 from dataclasses import dataclass, field
@@ -46,6 +54,14 @@ logger = logging.getLogger(__name__)
 LEMONADE_BASE = "http://localhost:13305"
 RAM_FLOOR_GB = 16.0  # harness N3 item 5: never consume the last 16 GB
 MAX_CTX = 16384  # N3 cap; callers may request less, never more
+
+# Hard cap on the resident fleet. 2026-09-14 the box died with 7 models resident at once
+# ('Total loaded: 7' at 20:43, GTT pinned 61-62G, swap 50-56%): the fit gate bounds each
+# load's SIZE, but nothing bounded the COUNT — LRU eviction only fired when a load did
+# not fit, so a fleet of individually-harmless models could creep to any count, and the
+# fatal straw was one more auto-load. The cap is the count-side twin of RAM_FLOOR_GB.
+DEFAULT_MAX_RESIDENT = 3
+ENV_MAX_RESIDENT = "COHEZION_MAX_RESIDENT_MODELS"
 
 
 @dataclass
@@ -228,6 +244,30 @@ def unload(model_id: str, timeout: float = 30.0) -> bool:
     return True
 
 
+def _resolve_max_resident(max_resident: int | None) -> int:
+    """Effective cap: explicit param > ``ENV_MAX_RESIDENT`` > ``DEFAULT_MAX_RESIDENT``.
+
+    The env override exists so ops can tighten/loosen the cap on a degraded box without a
+    code change (the 2026-09-14 spiral needed exactly that at 20:43). A malformed or
+    non-positive env value is ignored rather than trusted: an env var is an unvetted
+    input, and a cap of 0 would refuse every load — that must be a deliberate param, not
+    a typo in a profile export.
+    """
+    if max_resident is not None:
+        return int(max_resident)
+    raw = os.environ.get(ENV_MAX_RESIDENT)
+    if raw:
+        try:
+            v = int(raw)
+        except ValueError:
+            logger.warning("hotswap: ignoring non-integer %s=%r", ENV_MAX_RESIDENT, raw)
+        else:
+            if v > 0:
+                return v
+            logger.warning("hotswap: ignoring non-positive %s=%r", ENV_MAX_RESIDENT, raw)
+    return DEFAULT_MAX_RESIDENT
+
+
 def ensure_resident(
     model_id: str,
     *,
@@ -236,11 +276,20 @@ def ensure_resident(
     protect: tuple[str, ...] = (),
     load_timeout: float = 300.0,
     ledger: object | None = None,
+    max_resident: int | None = None,
 ) -> SwapResult:
     """Make ``model_id`` resident, evicting least-recently-used models if needed.
 
     Returns a :class:`SwapResult`; never raises. A refusal is a SUCCESSFUL outcome of the
     safety gate — callers should fall back to another lane rather than retry.
+
+    ``max_resident`` hard-caps the resident fleet (default
+    ``DEFAULT_MAX_RESIDENT`` = 3, overridable via ``ENV_MAX_RESIDENT``; an explicit
+    param wins over the env). When the server already holds >= the cap and the target is
+    not among them, LRU non-busy non-protected models are evicted until the target's slot
+    is open AND the weights+KV fit check passes; if that cannot be satisfied, the gate
+    refuses — refusing is success for the gate, and callers fall back to another lane.
+    The cap check runs BEFORE the fit gate so eviction decisions account for it.
 
     ``ledger`` (a :class:`~cohezion.inference.residency_ledger.ResidencyLedger`) is the
     degraded-mode fallback. ``resident_models()`` reads ``/api/v1/health``, which stops
@@ -249,6 +298,7 @@ def ensure_resident(
     With a ledger supplied, eviction stays possible. The server still wins whenever it
     answers — passing a ledger never overrides ground truth.
     """
+    max_resident = _resolve_max_resident(max_resident)
     ctx_size = max(1024, min(int(ctx_size), MAX_CTX))
 
     loaded = resident_models()
@@ -287,6 +337,32 @@ def ensure_resident(
         and m.get("model_name") not in protect
         and m.get("model_name") != model_id
     ]
+
+    # COUNT cap BEFORE the fit gate: eviction decisions must account for the slot the
+    # target needs, not just its bytes. The 2026-09-14 spiral had 7 models resident with
+    # every load individually fitting — a RAM-only trigger evicts nothing on the way to
+    # model #8. `over` is how many models must GO before the target may come in
+    # (len(loaded) - (max_resident - 1)); the fit deficit, if any, is folded into the
+    # SAME loop below, so one eviction pass serves both the cap and the RAM gate.
+    #
+    # Only victims (non-busy, non-protected) can be evicted: when the non-evictable set
+    # alone already holds the fleet at/over the cap, `over` stays positive, the loop
+    # cannot satisfy it, and the post-loop check refuses with the cap reason.
+    over = max(0, len(loaded) - (max_resident - 1))
+
+    # Refuse BEFORE evicting when even a full teardown of the evictables cannot get the
+    # count under the cap. Eviction is destructive and slow; discovering the cap refusal
+    # afterwards costs every unloadable model its slot for nothing. (The byte-side twin of
+    # this shortcut is the fit check below — same philosophy, count instead of bytes.)
+    if over > 0 and len(victims) < over:
+        return SwapResult(
+            False,
+            model_id,
+            f"resident model cap reached ({max_resident}): {len(loaded)} resident but only "
+            f"{len(victims)} evictable (busy/protected models are never evicted) — "
+            f"refusing load of {model_id}",
+        )
+
     # Refuse BEFORE evicting when even a full teardown provably cannot fit the target.
     # Eviction is destructive and slow; discovering the refusal afterwards costs the whole
     # fleet for nothing. Observed live 2026-08-03: a 128B model evicted 4 models and was
@@ -296,9 +372,26 @@ def ensure_resident(
     # is unknown might still free real memory, so treating it as 0 would refuse loads that
     # the eviction loop would have satisfied (caught by HS4). When any victim size is
     # unknown, skip the shortcut and let the loop decide empirically.
+    #
+    # The cap is folded into this accounting: the first `over` victims will be consumed by
+    # the cap regardless of the byte math, and further victims only as the byte math
+    # demands — so `reachable` is the budget plus exactly the bytes the combined loop
+    # would actually free, never the whole victim pool.
     victim_sizes = [sizes.get(m.get("model_name", "")) for m in victims]
     if all(s is not None for s in victim_sizes):
-        reachable = free_gb() - min_free_gb + sum(s for s in victim_sizes if s is not None)
+        # Inside this branch every entry is known; the None-filtered comprehension
+        # re-materialises them as floats for the arithmetic below (narrowing the type).
+        known = [s for s in victim_sizes if s is not None]
+        budget = free_gb() - min_free_gb
+        cap_bytes = sum(known[:over])
+        remaining = needed - budget
+        byte_bytes = 0.0
+        for s in known[over:]:
+            if remaining <= 0:
+                break
+            byte_bytes += s
+            remaining -= s
+        reachable = budget + cap_bytes + byte_bytes
         if reachable < needed:
             return SwapResult(
                 False,
@@ -310,7 +403,7 @@ def ensure_resident(
                 f"max reachable {reachable:.1f}GB even after evicting {len(victims)}",
             )
 
-    while (free_gb() - min_free_gb) < needed and victims:
+    while (over > 0 or (free_gb() - min_free_gb) < needed) and victims:
         victim = victims.pop(0)
         vid = victim.get("model_name", "")
         if unload(vid):
@@ -319,6 +412,8 @@ def ensure_resident(
                 # Write-through on the VERIFIED postcondition, not on the status code —
                 # `unload` already refuses to report success for a phantom unload.
                 ledger.record_unload(vid)  # type: ignore[attr-defined]
+            if over > 0:
+                over -= 1
         else:
             logger.debug("hotswap: could not evict %s; trying next", vid)
 
@@ -330,6 +425,18 @@ def ensure_resident(
             f"insufficient RAM after evicting {len(evicted)}: "
             f"need {needed:.1f}GB, budget {budget:.1f}GB "
             f"(free {free_gb():.1f}GB - {min_free_gb:.0f}GB floor)",
+            evicted=evicted,
+        )
+    if over > 0:
+        # The cap could not be met: every remaining resident model is busy or protected
+        # (or its unload failed), and the count still exceeds what the target may join.
+        # Refusal — not an out-of-cap load — is the success path here; callers fall back.
+        return SwapResult(
+            False,
+            model_id,
+            f"resident model cap reached ({max_resident}): {len(loaded)} resident, "
+            f"{len(loaded) - len(evicted)} remain after evicting {len(evicted)}, "
+            f"all busy/protected or unload-failed — refusing load of {model_id}",
             evicted=evicted,
         )
 
