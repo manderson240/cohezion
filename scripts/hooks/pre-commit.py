@@ -31,9 +31,20 @@ def check_file_size(file_path):
 
 def main():
     staged_files = get_staged_files()
+    # Size gate applies only to content being added/modified. A file being
+    # DELETED from the index may still exist on disk (e.g. tracked-but-ignored
+    # artifacts being untracked); stat-ing it here would block its own removal.
+    _name_status = subprocess.run(
+        ["git", "diff", "--cached", "--name-status"], capture_output=True, text=True
+    ).stdout.splitlines()
+    deleted_files = {
+        line.split("\t", 1)[1].split("\t")[0] for line in _name_status if line.startswith("D\t")
+    }
     forbidden_files = []
 
     for f in staged_files:
+        if f in deleted_files:
+            continue
         if not check_file_size(f):
             forbidden_files.append(f)
 
