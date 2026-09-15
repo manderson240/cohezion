@@ -17,9 +17,11 @@ from enum import StrEnum
 from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, get_event_bus
+from cohezion.inference.cpu_inference_engine import CPUInferenceEngine
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
+from cohezion.inference.fabric import Backend, admission_ok, backend_for_model
 from cohezion.inference.hotswap import MAX_CTX as HOTSWAP_MAX_CTX
-from cohezion.inference.hotswap import ensure_resident
+from cohezion.inference.hotswap import ensure_resident, params_b_from_name
 from cohezion.inference.lemonade_health import probe_lemonade
 from cohezion.inference.transports.base import BaseInferenceTransport
 from cohezion.inference.transports.lemonade import LemonadeTransport
@@ -40,6 +42,23 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 
 VRAM_SATURATION_THRESHOLD: float = 0.90
 
+# --- CPU overflow lane (the activated TIER_1_ROSTER["cpu_parallel"] slot) ----
+# The CPU lane is the NPU-refusal overflow: CPUInferenceEngine drives the
+# 32-thread Zen5 llamacpp-cpu backend directly — it does NOT route through the
+# gated :13305 chat path, so no hotswap.ensure_resident runs here; the <=9B
+# parameter-size cap is the lane's admission criterion. granite-4.2-8b-GGUF
+# stays the CPU default; callers may override the model per call.
+CPU_LANE_DEFAULT_MODEL = "granite-4.2-8b-GGUF"
+CPU_LANE_MAX_PARAMS_B = 9.0
+CPU_LANE_THREADS = 32
+# CPUInferenceEngine's synthetic placeholder label: content carrying it is NOT
+# verified model output, so the router treats it as a lane refusal.
+_CPU_FALLBACK_BACKEND_LABEL = "Fallback CPU Thread Pool"
+# iGPU-hosted GGUF fallback when a class pin is NPU-hosted and BOTH the pin's
+# admission and the CPU overflow lane refuse. Classes whose pin already
+# classifies as iGPU (GGUF) fall back to their own pin instead.
+_IGPU_FALLBACK_MODEL = "Gemma-4-E4B-it-GGUF"
+
 
 class TaskClass(StrEnum):
     """Hard-pinned task classes for lane routing."""
@@ -59,6 +78,7 @@ class TaskClass(StrEnum):
     CREATIVE_SYNTHESIS = "creative_synthesis"
     EMBEDDINGS = "embeddings"
     GENERAL = "general"
+    CPU_PARALLEL = "cpu_parallel"
 
 
 _TIER1_PINS: dict[TaskClass, str] = {
@@ -95,6 +115,7 @@ _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
     TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors & Vision
     TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
+    TaskClass.CPU_PARALLEL: "deepseek-v4-flash:cloud",  # CPU-lane overflow escape hatch
 }
 
 
@@ -138,6 +159,7 @@ class EVIPriority:
         TaskClass.SUB_BILLION_EDGE: 0.1,
         TaskClass.EXTREME_COMPACT: 0.1,
         TaskClass.EMBEDDINGS: 0.1,
+        TaskClass.CPU_PARALLEL: 0.1,
     }
 
     @classmethod
@@ -197,7 +219,12 @@ TIER_1_ROSTER = {
     "research": "qwen3.6-moe-35b-a3b-FLM",
     "fast_qa": "llama3.2-1b-FLM",
     "embedding": "embed-gemma-300m-FLM",
-    "cpu_parallel": "Phi-4-mini-3.8B-CPU-32T",
+    # Activated: this slot is now a real lane. The cpu_parallel task class
+    # routes to CPUInferenceEngine (threads=32, <=9B models) directly —
+    # the engine POSTs its own llamacpp-cpu request and does NOT go through
+    # the gated :13305 chat path (no ensure_resident double-gate). The string
+    # here documents the lane backend rather than an unregistered model id.
+    "cpu_parallel": CPU_LANE_DEFAULT_MODEL,
 }
 
 TIER_2_ROSTER = {
@@ -248,6 +275,17 @@ class UnifiedHybridRouter:
         self.prefer_local = prefer_local
         self.lemonade_port = lemonade_port
         self._lemonade_url = f"http://localhost:{lemonade_port}/v1/chat/completions"
+
+        # CPU overflow lane (TIER_1_ROSTER["cpu_parallel"]) — direct
+        # CPUInferenceEngine, 32 threads, granite-4.2-8b-GGUF default.
+        self._cpu_engine = CPUInferenceEngine(threads=CPU_LANE_THREADS)
+        # Models this session has already passed through hotswap.ensure_resident:
+        # fabric admission is a PREFERENCE probe and must never double-gate a
+        # model the real gate already vetted.
+        self._gated_models: set[str] = set()
+        self._cpu_t0 = 0.0
+        self._cpu_task_class = TaskClass.GENERAL
+        self._cpu_evi_score = 1.0
 
         # Transport Layer Initialization
         self.transports: dict[str, BaseInferenceTransport] = {
@@ -445,20 +483,83 @@ class UnifiedHybridRouter:
 
         return min(1.0, (quality_gap * importance) / max(cost_ratio, 0.1))
 
+    # --- local-silicon lane preference: NPU first, CPU overflow, iGPU last ----
+
+    async def _admission_prefers(self, model: str) -> bool:
+        """Admission PREFERENCE check (not a second gate) via ``fabric.admission_ok``.
+
+        Skipped entirely when ``hotswap.ensure_resident`` already ran for this
+        model (e.g. an embedding path or a caller that pre-gated) — the new
+        fabric checks are a lane-pREFERENCE signal for the Tier-1 dispatch
+        order, never a duplicate gate.
+        """
+        if self._gated_models and model in self._gated_models:
+            # ensure_resident already vetted this model — never double-gate.
+            return True
+        ok, reason = await asyncio.to_thread(admission_ok, model, HOTSWAP_MAX_CTX)
+        if not ok:
+            logger.info("Lane preference: fabric.admission_ok refused %s (%s)", model, reason)
+        return ok
+
+    async def _try_cpu_overflow(
+        self, prompt: str, model: str | None = None
+    ) -> HybridRouteResponse | None:
+        """CPU overflow lane: CPUInferenceEngine directly, bypassing the :13305 chat gate.
+
+        Runs the 32-thread llamacpp-cpu backend for models <=9B. The engine
+        manages its own request; ``ensure_resident`` does NOT apply here (no
+        double-gate). Content carrying the engine's synthetic placeholder
+        label ("Fallback CPU Thread Pool") is treated as a lane refusal so
+        routing continues to the iGPU fallback.
+        """
+        if model is None:
+            model = CPU_LANE_DEFAULT_MODEL
+        params_b = params_b_from_name(model)
+        if params_b is None or params_b > CPU_LANE_MAX_PARAMS_B:
+            logger.info(
+                "CPU overflow lane skipped %s: %.3gB params exceeds the <=%.0fB cap",
+                model,
+                params_b if params_b is not None else float("nan"),
+                CPU_LANE_MAX_PARAMS_B,
+            )
+            return None
+        result = await asyncio.to_thread(self._cpu_engine.execute_cpu_inference, prompt, model)
+        if _CPU_FALLBACK_BACKEND_LABEL in result.cpu_backend:
+            logger.info(
+                "CPU overflow lane produced no verified output for %s; falling through",
+                model,
+            )
+            return None
+        dt_ms = (time.perf_counter() - self._cpu_t0) * 1000.0
+        return HybridRouteResponse(
+            content=result.content,
+            tier_used=f"Tier 1 (CPU Overflow, {self._cpu_engine.threads}T)",
+            model_name=model,
+            latency_ms=result.latency_ms if result.latency_ms > 0 else round(dt_ms, 2),
+            verified=True,
+            task_class=self._cpu_task_class,
+            evi_score=self._cpu_evi_score,
+        )
+
     async def route_by_capability(
         self,
         prompt: str,
         task_class: TaskClass = TaskClass.GENERAL,
         evi_score: float = 1.0,
         force_cloud: bool = False,
+        cpu_model: str | None = None,
     ) -> HybridRouteResponse:
         """Route a prompt to the best available model based on task class.
 
         Routing logic:
         1. Preflight: probe Lemonade fleet health.
         2. If Tier-1 healthy & not saturated & ``prefer_local`` -> try Tier-1 pin.
-        3. Fall through to Tier-2 Ollama cloud if Tier-1 is down/saturated.
-        4. If all backends fail, return a synthetic Tier-0 fallback.
+        3. Lane preference: NPU pin first (fabric admission), then the CPU
+           overflow lane (CPUInferenceEngine, <=9B) when the pin is refused,
+           then the iGPU-hosted GGUF when both refuse and its own admission
+           passes. ``cpu_parallel`` routes the CPU lane directly.
+        4. Fall through to Tier-2 Ollama cloud if Tier-1 is down/saturated.
+        5. If all backends fail, return a synthetic Tier-0 fallback.
 
         Parameters
         ----------
@@ -471,6 +572,10 @@ class UnifiedHybridRouter:
             logged as low-confidence decisions.
         force_cloud : bool
             Skip Tier-1 silicon and go directly to Tier-2 cloud.
+        cpu_model : str | None
+            Override for the CPU overflow lane model (default
+            ``CPU_LANE_DEFAULT_MODEL``, granite-4.2-8b-GGUF); ignored for
+            task classes whose CPU lane never engages.
 
         Returns
         -------
@@ -579,15 +684,73 @@ class UnifiedHybridRouter:
                 await self._publish_routing_event(resp, "tier2_embedding_fallback")
                 return resp
 
-        # --- Tier-1: hard-pinned Lemonade model -----------------------
+        # --- Tier-1: local-silicon lane preference -----------------------------
+        # NPU first (fabric admission preference), CPU overflow second
+        # (CPUInferenceEngine direct, <=9B), iGPU-hosted GGUF last (only when
+        # its own admission passes). The fabric checks are PREFERENCE, not a
+        # second gate: the real hotswap.ensure_resident still runs inside
+        # aquery_lemonade_local, and a model it already vetted is never
+        # re-probed by fabric (see _admission_prefers).
         chosen_tier1_model = _TIER1_PINS.get(task_class, self.npu_model)
+
+        # cpu_parallel: route the CPU lane DIRECTLY via CPUInferenceEngine —
+        # no :13305 chat POST through the gated path and no ensure_resident
+        # (the lane bypasses the gate by design; the <=9B cap is its gate).
+        if task_class == TaskClass.CPU_PARALLEL and tier1_available:
+            self._cpu_t0 = t0
+            self._cpu_task_class = task_class
+            self._cpu_evi_score = evi_score
+            cpu_resp = await self._try_cpu_overflow(prompt, cpu_model)
+            if cpu_resp is not None:
+                await self._publish_routing_event(cpu_resp, "cpu_parallel_success")
+                return cpu_resp
+            # CPU lane refused: fall through to the standard local lanes.
+
+        pin_backend = backend_for_model(chosen_tier1_model)
+        pin_admitted = await self._admission_prefers(chosen_tier1_model)
+
         tier_label = "Tier 1 (Local NPU MoE)"
         if task_class == TaskClass.CODING:
             tier_label = "Tier 1 (iGPU Coder)"
         elif task_class == TaskClass.GENERAL:
             tier_label = "Tier 1 (iGPU General)"
 
-        if tier1_available:
+        if pin_backend is Backend.IGPU:
+            # iGPU-hosted pin: the pin IS the iGPU lane; its admission was
+            # already checked above.
+            tier1_admitted = pin_admitted
+        elif pin_admitted:
+            tier1_admitted = True
+        else:
+            # Preferred NPU-hosted model refused by fabric admission -> CPU
+            # overflow lane next; iGPU only as the last resort below.
+            tier1_admitted = False
+            if tier1_available and task_class != TaskClass.CPU_PARALLEL:
+                # (For cpu_parallel the CPU lane already ran above and
+                # refused — do not re-run it.)
+                self._cpu_t0 = t0
+                self._cpu_task_class = task_class
+                self._cpu_evi_score = evi_score
+                cpu_resp = await self._try_cpu_overflow(prompt, cpu_model)
+                if cpu_resp is not None:
+                    await self._publish_routing_event(cpu_resp, "cpu_overflow_success")
+                    return cpu_resp
+
+        if not tier1_admitted:
+            if pin_backend is not Backend.IGPU and tier1_available:
+                # Both the NPU pin and the CPU lane refused: fall to the
+                # iGPU-hosted GGUF only when its own admission passes.
+                if await self._admission_prefers(_IGPU_FALLBACK_MODEL):
+                    chosen_tier1_model = _IGPU_FALLBACK_MODEL
+                    tier_label = "Tier 1 (iGPU Fallback)"
+                else:
+                    chosen_tier1_model = None
+            else:
+                # The iGPU-hosted pin itself was refused: no local lane
+                # admitted — go to Tier-2 cloud.
+                chosen_tier1_model = None
+
+        if tier1_available and chosen_tier1_model is not None:
             # Blessed path: aquery_lemonade_local carries model-aligned params,
             # local-ledger recording, and the content->reasoning_content fallback.
             local_out = await self.aquery_lemonade_local(prompt, chosen_tier1_model)
@@ -806,6 +969,7 @@ class UnifiedHybridRouter:
                 gate.reason,
             )
             return None
+        self._note_gate_ran(model)
 
         try:
             async with httpx.AsyncClient(timeout=45.0) as client:
@@ -821,6 +985,15 @@ class UnifiedHybridRouter:
             logger.debug("Local Lemonade query bypassed: %s", exc)
 
         return None
+
+    def _note_gate_ran(self, model: str) -> None:
+        """Record that ``hotswap.ensure_resident`` ran for ``model`` this session.
+
+        ``aquery_lemonade_local`` / ``aquery_embedding`` call this after the
+        real gate so ``_admission_prefers`` never re-runs ``fabric.admission_ok``
+        for an already-gated model (no double-gating).
+        """
+        self._gated_models.add(model)
 
     async def aquery_embedding(
         self, text: str, model: str = "embed-gemma-300m-FLM"
@@ -855,6 +1028,7 @@ class UnifiedHybridRouter:
                 gate.reason,
             )
             return None
+        self._note_gate_ran(model)
 
         payload = {"model": model, "input": text}
         try:
