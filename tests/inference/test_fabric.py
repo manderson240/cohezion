@@ -328,6 +328,50 @@ class TestAdmissionFailClosed:
         assert not ok
         assert "unreachable" in why and "fail closed" in why
 
+    def test_health_unreachable_names_degraded_health_in_reason(self, monkeypatch):
+        """Degraded health must fail ADMISSION closed, naming health in the reason."""
+        monkeypatch.setattr(fabric, "_get", lambda url, timeout=fabric.DEFAULT_TIMEOUT_S: None)
+        ok, why = admission_ok("Gemma-4-E4B-it-GGUF", 8192)
+        assert ok is False
+        assert "health" in why.lower() and "degraded" in why.lower()
+
+    def test_health_unreachable_census_still_empty_dict_no_raise(self, monkeypatch):
+        """Census contract is unchanged: degraded health -> {} (never raises)."""
+        monkeypatch.setattr(fabric, "_get", lambda url, timeout=fabric.DEFAULT_TIMEOUT_S: None)
+        assert resident_by_backend(BASE) == {}  # does not raise
+
+    def test_health_malformed_body_refuses_admission_but_census_empty(self, http):
+        """A malformed (answered) health body is degraded, NOT a zero-resident fleet.
+
+        This is the wedge that opened the iGPU cap: an answered health body
+        without a well-formed `all_models_loaded` list must refuse admission —
+        while the census keeps returning {} per its contract.
+        """
+        http["health"] = {"status": "ok"}  # answered, but no all_models_loaded list
+        ok, why = admission_ok("Gemma-4-E4B-it-GGUF", 8192)
+        assert ok is False
+        assert "health" in why.lower() and "degraded" in why.lower()
+        assert resident_by_backend(BASE) == {}  # census contract intact, no raise
+
+    def test_health_malformed_entry_types_refuse_admission_census_empty(self, http):
+        """`all_models_loaded` as a non-list (e.g. a string) is degraded too."""
+        http["health"] = {"all_models_loaded": "garbage"}
+        ok, why = admission_ok("Gemma-4-E4B-it-GGUF", 8192)
+        assert ok is False and "degraded" in why.lower()
+        assert resident_by_backend(BASE) == {}
+
+    def test_resident_state_distinguishes_degraded_from_empty(self, http, monkeypatch):
+        """The seam admission uses: None on degraded, {} on answered-and-empty."""
+        assert fabric._resident_state(BASE) == {}  # healthy, empty fleet
+
+        monkeypatch.setattr(fabric, "_get", lambda url, timeout=fabric.DEFAULT_TIMEOUT_S: None)
+        assert fabric._resident_state(BASE) is None  # unreachable
+
+        monkeypatch.setattr(
+            fabric, "_get", lambda url, timeout=fabric.DEFAULT_TIMEOUT_S: {"nope": 1}
+        )
+        assert fabric._resident_state(BASE) is None  # malformed body
+
     def test_models_catalog_down_fails_closed(self, http, monkeypatch):
         """Health up but catalog down: size unverifiable -> refuse."""
         calls = {"n": 0}
