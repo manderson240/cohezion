@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
-"""Refactor event_log traces into actionable goals and closed loops.
+"""Refactor traces into actionable goals and closed loops.
 
-Reads recent trace rows (event_log / kanban_item) from SurrealDB, synthesizes
-GoalSpecifications from actionable signals (security findings, health findings,
-fix-verifications, failure clusters), executes their loops, and persists both
-goal + result durably (ERR-checked — never the silent-loss trap).
+One scan reads BOTH event_log databases (``vault``: session-published findings via
+the event bridge; ``main``: git-post-commit JOURNEY_STEP + health telemetry) plus
+open kanban cards, tags every row with the database it came from, synthesizes
+GoalSpecifications, executes ONE measured loop iteration per invocation, and
+persists goal + loop_trace durably (ERR-checked -- never the silent-loss trap).
+Goals are written to db=main regardless of where their traces were read.
+
+The loop is closed ACROSS runs, not within one: re-measuring an unchanged system
+five times in a single process yields five identical readings. Convergence flips
+the goal's status so ``fetch_open_goals`` stops returning it.
+
+A goal is only EXECUTED when a real measurement source exists for its metric (see
+``trace_goal_sources.MEASUREMENTS``). Others are persisted as synthesized-only and
+reported as such -- the runner never invents a metric value.
 
 Usage:
-    python scripts/ops/refactor_traces_to_goals.py --dry-run   # default: print, no writes
+    python scripts/ops/refactor_traces_to_goals.py --dry-run     # default: print, no writes
     python scripts/ops/refactor_traces_to_goals.py --limit 50 --execute
 """
 
 from __future__ import annotations
 
 import argparse
-import base64
-import json
 import sys
-import urllib.request
 from typing import Any
 
 
@@ -25,79 +32,60 @@ sys.path.insert(0, "src")
 
 from cohezion.flume.loop_goal_refactor_engine import (
     DurableSurrealGoalPersistence,
-    GoalSpecification,
-    TraceToLoopTransformer,
+    TraceGoalRefactorPipeline,
+)
+from cohezion.flume.trace_goal_sources import (
+    ERROR_RATE_WINDOW,
+    MEASUREMENTS,
+    GoalDraft,
+    scan_traces,
+    synthesize_scan,
 )
 
 
-SURREAL_URL = "http://localhost:8001/sql"
-SURREAL_HEADERS = {
-    "Accept": "application/json",
-    "surreal-ns": "cohezion",
-    "surreal-db": "main",
-    "Authorization": "Basic " + base64.b64encode(b"root:root").decode(),
-    "Content-Type": "text/plain",
-}
+GOAL_DB = "main"
 
 
-def _sql(statement: str) -> list:
-    """Run SurrealQL; raise on embedded ERR (HTTP-200 trap)."""
-    req = urllib.request.Request(
-        SURREAL_URL, data=statement.encode(), headers=SURREAL_HEADERS, method="POST"
-    )
-    with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
-        body = json.loads(r.read())
-    rows: list = []
-    for stmt in body:
-        if stmt.get("status") == "ERR":
-            raise RuntimeError(f"SurrealDB error: {stmt.get('result')}")
-        rows.extend(stmt.get("result") or [])
-    return rows
+def _make_step_fn(draft: GoalDraft):
+    """Bind a real measurement into the loop's (iteration, state) -> step contract."""
+    metric = draft.goal.target_metric
+    trace = draft.trace
+    database = str(trace.get("_source_db") or GOAL_DB)
+
+    def step_fn(iteration: int, state: Any) -> tuple[Any, float, str]:
+        value = MEASUREMENTS[metric](trace, database)
+        if value is None:
+            raise RuntimeError(f"measurement for {metric} returned UNKNOWN; refusing to fabricate")
+        source = trace.get("source")
+        return (
+            {"source": source, "measured": value},
+            float(value),
+            f"measured {metric}={value:.4f} (db={database}, window {ERROR_RATE_WINDOW}, {source})",
+        )
+
+    return step_fn
 
 
-def fetch_recent_traces(limit: int, database: str = "main") -> list[dict]:
-    """Pull the newest event_log rows across the trace-bearing types.
-
-    NB: --database vault reaches the CrossSessionEventBridge's event_log (where
-    session-published findings land); main holds the git-post-commit JOURNEY_STEP
-    stream. Both are trace sources.
-    """
-    # NB: SurrealQL requires ORDER BY fields to appear in the SELECT projection.
-    headers = {**SURREAL_HEADERS, "surreal-db": database}
-    req = urllib.request.Request(
-        SURREAL_URL,
-        data=(
-            f"SELECT id, type, source, session_id, payload, timestamp FROM event_log "
-            f"WHERE type IN ['SECURITY_VIOLATION', 'SYSTEM_HEALTH', 'AGENT_COMPLETE'] "
-            f"ORDER BY timestamp DESC LIMIT {int(limit)};"
-        ).encode(),
-        headers=headers,
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
-        body = json.loads(r.read())
-    rows: list = []
-    for stmt in body:
-        if stmt.get("status") == "ERR":
-            raise RuntimeError(f"SurrealDB error: {stmt.get('result')}")
-        rows.extend(stmt.get("result") or [])
-    return rows
+def _origin_ids(draft: GoalDraft) -> list[str]:
+    return [f"{r['source_db']}:{r['source_id']}" for r in draft.derived_from]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--limit", type=int, default=30, help="how many recent traces to scan")
+    parser.add_argument("--limit", type=int, default=30, help="rows to scan PER source")
     parser.add_argument(
         "--database",
-        default="main",
-        help="SurrealDB database to read traces from: main (git-post-commit stream) "
-        "or vault (session-published findings via the event bridge)",
+        default=None,
+        choices=["main", "vault"],
+        help="restrict the scan to ONE event_log database (default: the tagged vault+main "
+        "event scan plus open kanban cards)",
     )
-    parser.add_argument("--execute", action="store_true", help="persist goals (default: dry-run)")
     parser.add_argument(
-        "--run-loop",
+        "--execute",
+        "--persist",
+        dest="execute",
         action="store_true",
-        help="execute autonomous loops for synthesized goals and persist results",
+        help="execute + persist loops (default: dry-run)",
     )
     parser.add_argument(
         "--dry-run", action="store_true", help="print synthesized goals, write nothing (default)"
@@ -105,74 +93,92 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        traces = fetch_recent_traces(args.limit, database=args.database)
+        traces = scan_traces(args.limit, database=args.database)
     except Exception as exc:
-        print(f"FAIL: could not read event_log: {exc}")
+        print(f"FAIL: could not read traces: {exc}")
         return 1
 
+    by_origin: dict[tuple[str, str], int] = {}
+    for t in traces:
+        key = (str(t["_source_db"]), str(t["_source_table"]))
+        by_origin[key] = by_origin.get(key, 0) + 1
     print(
-        f"Scanned {len(traces)} recent actionable-type traces from event_log "
-        f"(ns=cohezion db={args.database})"
+        "Scanned "
+        + ", ".join(f"{n} {tbl}@{db}" for (db, tbl), n in sorted(by_origin.items()))
+        + " (ns=cohezion)"
     )
 
-    persistence = DurableSurrealGoalPersistence()
-    goals: list[GoalSpecification] = []
-    seen_titles: set[str] = set()
-    for trace in traces:
-        goal = TraceToLoopTransformer.synthesize_goal_from_real_trace([trace])
-        if goal is None or goal.title in seen_titles:
-            continue
-        seen_titles.add(goal.title)
-        goals.append(goal)
-
-    if not goals:
+    drafts = synthesize_scan(traces)
+    if not drafts:
         print("No actionable signals found — no goals synthesized.")
         return 0
 
-    print(f"Synthesized {len(goals)} goals:")
-    for goal in goals:
-        print(f"  - [{goal.target_metric} >= {goal.target_threshold}] {goal.title}")
+    executable = [d for d in drafts if d.goal.target_metric in MEASUREMENTS]
+    unmeasurable = [d for d in drafts if d.goal.target_metric not in MEASUREMENTS]
 
-    if not args.execute and not args.run_loop:
-        print("\n(dry-run: no writes. Re-run with --execute or --run-loop to persist.)")
-        return 0
-
-    written = 0
-    for goal in goals:
-        try:
-            record = persistence.persist_goal(goal)
-            print(f"  persisted {record}")
-            written += 1
-        except Exception as exc:
-            print(f"  FAIL persisting {goal.goal_id}: {exc}")
-
-    if args.run_loop:
-        import asyncio
-
-        from cohezion.flume.loop_goal_refactor_engine import (
-            AutonomousGoalExecutor,
-            AutonomousGoalLoopResult,
+    print(f"Synthesized {len(drafts)} goals ({len(executable)} executable):")
+    for d in drafts:
+        g = d.goal
+        op = "<=" if g.direction == "at_most" else ">="
+        mark = "loop" if g.target_metric in MEASUREMENTS else "no measurement source"
+        dbs = sorted({r["source_db"] for r in d.derived_from})
+        print(
+            f"  - [{g.target_metric} {op} {g.target_threshold}] {g.title}"
+            f"  ({mark}; derived_from source_db={','.join(dbs)})"
         )
 
-        print("\nExecuting autonomous goal loops...")
-        for goal in goals:
-            target_thresh = goal.target_threshold
+    if unmeasurable:
+        print(
+            f"\n{len(unmeasurable)} goal(s) have no measurement source and will be recorded "
+            "without an executed loop. Add an entry to MEASUREMENTS to close them."
+        )
 
-            def _step_fn(it: int, st: dict, th: float = target_thresh) -> tuple[dict, float, str]:
-                val = min(th, th * (0.5 + 0.3 * it))
-                return {"step": it}, val, f"Executed remediation strategy {it}"
+    if not args.execute:
+        print("\n(dry-run: no writes. Re-run with --execute to persist.)")
+        return 0
 
-            executor = AutonomousGoalExecutor(goal)
-            loop_res: AutonomousGoalLoopResult[dict[str, Any]] = asyncio.run(
-                executor.execute_loop({}, _step_fn)
+    persistence = DurableSurrealGoalPersistence(database=GOAL_DB)
+    pipeline = TraceGoalRefactorPipeline(persistence=persistence)
+    failures = 0
+
+    for d in executable:
+        try:
+            # max_iterations=1: one iteration per invocation; the loop closes across runs.
+            _, result = pipeline.refactor(
+                [d.trace],
+                trace_ids=_origin_ids(d),
+                step_fn=_make_step_fn(d),
+                max_iterations=1,
+                goal=d.goal,
             )
-            rec = persistence.persist_loop_result(loop_res)
+            if result is None:
+                continue
+            verdict = "CONVERGED" if result.converged else "open"
             print(
-                f"  • Ran loop for {goal.goal_id}: converged={loop_res.converged} in {loop_res.iterations_run} steps ({loop_res.total_time_ms:.1f}ms) -> {rec}"
+                f"  {verdict}: {d.goal.title} — {d.goal.target_metric}={result.final_metric:.4f} "
+                f"({result.iterations_run} iteration, {result.total_time_ms} ms)"
             )
+        except Exception as exc:
+            failures += 1
+            print(f"  FAIL executing {d.goal.goal_id}: {exc}")
 
-    print(f"\nDone: {written}/{len(goals)} goals processed in SurrealDB.")
-    return 0 if written == len(goals) else 1
+    for d in unmeasurable:
+        try:
+            persistence.persist_goal(d.goal, origin_trace_ids=_origin_ids(d))
+            print(f"  recorded (no loop): {d.goal.title}")
+        except Exception as exc:
+            failures += 1
+            print(f"  FAIL persisting {d.goal.goal_id}: {exc}")
+
+    try:
+        open_goals = persistence.fetch_open_goals()
+        print(f"\nOpen goals still active after this run: {len(open_goals)}")
+        for row in open_goals:
+            print(f"  - {row.get('title')} [{row.get('target_metric')}]")
+    except Exception as exc:
+        print(f"  WARN: could not read back open goals: {exc}")
+
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

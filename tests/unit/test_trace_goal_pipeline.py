@@ -673,3 +673,146 @@ def test_rerun_does_not_reopen_a_converged_goal_live_scratch_db() -> None:
         assert all(r["id"] != "goal:g_rerun_probe" for r in p.fetch_open_goals(500))
     finally:
         p._sql("DELETE goal:`g_rerun_probe`;")
+
+
+# ---------------------------------------------------------------------------
+# P2 — kanban + vault sources, failure clustering, two-source scan (R1a)
+# ---------------------------------------------------------------------------
+
+
+def _fail_ev(source: str, db: str = "vault", i: int = 0) -> dict:
+    return {
+        "id": f"event_log:{db}{source}{i}",
+        "type": "SYSTEM_HEALTH",
+        "source": source,
+        "payload": {"msg": "error occurred"},
+        "_source_db": db,
+        "_source_table": "event_log",
+    }
+
+
+def test_kanban_open_card_becomes_goal_terminal_and_reading_list_do_not() -> None:
+    from cohezion.flume.trace_goal_sources import synthesize_goal_from_kanban_item as k
+
+    g = k({"title": "Wire the thing", "status": "in_progress"})
+    assert g is not None and g.target_metric == "test_pass_rate" and g.title == "Wire the thing"
+    assert k({"title": "Wire the thing", "status": "completed"}) is None
+    assert k({"title": "Paper", "status": "backlog", "url": "https://arxiv.org/abs/1"}) is None
+    assert k({"title": "  ", "status": "backlog"}) is None
+    # content-derived id: identical card -> identical goal (idempotent)
+    assert g.goal_id == k({"title": "Wire the thing", "status": "backlog"}).goal_id
+
+
+def test_failure_cluster_needs_three_from_one_source() -> None:
+    from cohezion.flume.trace_goal_sources import failure_cluster
+
+    assert failure_cluster([_fail_ev("a", i=i) for i in range(2)]) is None
+    three_unrelated = [_fail_ev("a"), _fail_ev("b"), _fail_ev("c")]
+    assert failure_cluster(three_unrelated) is None  # noise across subsystems
+    found = failure_cluster([_fail_ev("a", i=i) for i in range(3)] + [_fail_ev("b")])
+    assert found is not None and found[0] == "a" and len(found[1]) == 3
+
+
+def test_scan_single_failing_event_is_noise_but_cluster_is_a_goal() -> None:
+    from cohezion.flume.trace_goal_sources import synthesize_scan
+
+    assert synthesize_scan([_fail_ev("solo")]) == []  # catch_all disabled in a scan
+    drafts = synthesize_scan([_fail_ev("flaky", i=i) for i in range(3)])
+    assert len(drafts) == 1
+    assert drafts[0].goal.title == "Stabilize: flaky" and drafts[0].goal.direction == "at_most"
+    assert len(drafts[0].derived_from) == 3
+
+
+def test_scan_provenance_carries_source_db_and_clusters_do_not_span_databases() -> None:
+    from cohezion.flume.trace_goal_sources import synthesize_scan
+
+    rows = [_fail_ev("s", "vault", 0), _fail_ev("s", "vault", 1), _fail_ev("s", "main", 2)]
+    assert synthesize_scan(rows) == []  # 2 vault + 1 main: no single-db cluster of 3
+    rows.append(_fail_ev("s", "vault", 3))
+    drafts = synthesize_scan(rows)
+    assert len(drafts) == 1
+    assert {r["source_db"] for r in drafts[0].derived_from} == {"vault"}
+    assert all(r["source_id"] for r in drafts[0].derived_from)
+
+
+def test_scan_dedupes_same_goal_across_databases_and_merges_provenance() -> None:
+    from cohezion.flume.trace_goal_sources import synthesize_scan
+
+    rows = [_fail_ev("s", "vault", i) for i in range(3)] + [
+        _fail_ev("s", "main", i) for i in range(3)
+    ]
+    drafts = synthesize_scan(rows)
+    assert len(drafts) == 1
+    assert {r["source_db"] for r in drafts[0].derived_from} == {"vault", "main"}
+
+
+def test_default_scan_reads_vault_main_and_kanban(monkeypatch) -> None:
+    """R1a DISCRIMINATING: flipping the default to ONE database is not "one scan, two
+    sources". Mutation: make scan_traces read only `main` -> this goes red."""
+    from cohezion.flume import trace_goal_sources as src
+
+    seen: list[tuple[str, str]] = []
+
+    def fake_sql(statement: str, database: str):
+        table = "kanban_item" if "FROM kanban_item" in statement else "event_log"
+        seen.append((database, table))
+        return [{"id": f"{table}:x"}]
+
+    monkeypatch.setattr(src, "sql", fake_sql)
+    rows = src.scan_traces(5)
+    assert ("vault", "event_log") in seen and ("main", "event_log") in seen
+    assert ("main", "kanban_item") in seen
+    assert {(r["_source_db"], r["_source_table"]) for r in rows} == set(seen)
+    seen.clear()
+    only_vault = src.scan_traces(5, database="vault")
+    assert seen == [("vault", "event_log")] and len(only_vault) == 1
+
+
+def test_scan_raises_when_a_source_is_unreadable(monkeypatch) -> None:
+    """UNKNOWN must not read as "no findings"."""
+    from cohezion.flume import trace_goal_sources as src
+
+    def boom(statement: str, database: str):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(src, "sql", boom)
+    with pytest.raises(RuntimeError):
+        src.scan_traces(5)
+
+
+def test_refactor_accepts_a_precomputed_goal() -> None:
+    """A cluster/kanban goal cannot be re-synthesized from one event."""
+    persistence = _RecordingPersistence()
+    pipeline = TraceGoalRefactorPipeline(persistence=persistence)
+    goal = GoalSpecification("g_pre", "Stabilize: x", "error_rate", 0.05, 5, direction="at_most")
+    got, result = pipeline.refactor(
+        [{"type": "AGENT_START", "payload": {}}],  # not actionable on its own
+        step_fn=lambda it, s: (s, 0.0, "m"),
+        max_iterations=1,
+        goal=goal,
+    )
+    assert got is not None and got.goal_id == "g_pre" and result is not None and result.converged
+
+
+def _load_ops_cli():
+    import importlib.util
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[2] / "scripts" / "ops" / "refactor_traces_to_goals.py"
+    spec = importlib.util.spec_from_file_location("_tg_ops_cli", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_cli_dry_run_without_database_flag_yields_a_vault_derived_goal(monkeypatch, capsys) -> None:
+    """R1a falsifier at the CLI: no --database flag, >=1 goal derived from vault."""
+    cli = _load_ops_cli()
+    rows = [_fail_ev("flaky", "vault", i) for i in range(3)]
+    monkeypatch.setattr(cli, "scan_traces", lambda limit, database=None: rows)
+    monkeypatch.setattr("sys.argv", ["refactor_traces_to_goals.py", "--dry-run"])
+    assert cli.main() == 0
+    out = capsys.readouterr().out
+    assert "Stabilize: flaky" in out and "derived_from source_db=vault" in out
+    assert "no writes" in out  # dry-run wrote nothing

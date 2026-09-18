@@ -40,6 +40,12 @@ def payload_looks_like_failure(payload: dict[str, Any] | None) -> bool:
     return "fail" in text or "error" in text
 
 
+def content_goal_id(title: str, metric: str) -> str:
+    """Content-derived goal id: stable across re-runs, distinct across findings."""
+    digest = hashlib.sha256(f"{title}|{metric}".encode()).hexdigest()[:10]
+    return f"goal_{metric}_{digest}"
+
+
 @dataclass(frozen=True, slots=True)
 class GoalSpecification:
     """Formal Goal contract with convergence criteria and invariant bounds."""
@@ -191,6 +197,7 @@ class TraceToLoopTransformer:
     @staticmethod
     def synthesize_goal_from_real_trace(
         trace_events: list[dict[str, Any]],
+        catch_all: bool = True,
     ) -> GoalSpecification | None:
         """Synthesize an actionable goal from real event_log/kanban trace rows.
 
@@ -204,6 +211,9 @@ class TraceToLoopTransformer:
           'fail'/'error' in payload) -> goal "Stabilize <source>" with
           error_rate <= 0.05
         - a payload carrying ``fixed_in`` is CLOSED and yields no goal.
+        ``catch_all=False`` disables the single-event "Stabilize" rule: a group
+        caller (``trace_goal_sources.synthesize_scan``) replaces it with
+        same-source failure CLUSTERING, because one failing event is noise.
         Returns None when the trace carries no actionable signal.
 
         goal_id is content-derived (title+metric hash): stable across re-runs
@@ -214,9 +224,7 @@ class TraceToLoopTransformer:
         if not trace_events:
             return None
 
-        def _goal_id(title: str, metric: str) -> str:
-            digest = hashlib.sha256(f"{title}|{metric}".encode()).hexdigest()[:10]
-            return f"goal_{metric}_{digest}"
+        _goal_id = content_goal_id
 
         for ev in trace_events:
             etype = str(ev.get("type") or (ev.get("payload") or {}).get("type") or "")
@@ -271,7 +279,7 @@ class TraceToLoopTransformer:
                     max_iterations=3,
                     timeout_seconds=300.0,
                 )
-            if payload_looks_like_failure(payload):
+            if catch_all and payload_looks_like_failure(payload):
                 src = ev.get("source") or "unknown-source"
                 title = f"Stabilize: {str(src)[:120]}"
                 return GoalSpecification(
@@ -516,6 +524,7 @@ class TraceGoalRefactorPipeline:
         step_fn: Callable[[int, Any], tuple[Any, float, str]] | None = None,
         verifier_fn: Callable[[float], bool] | None = None,
         max_iterations: int | None = None,
+        goal: GoalSpecification | None = None,
     ) -> tuple[GoalSpecification | None, AutonomousGoalLoopResult[Any] | None]:
         """Synthesize + execute + persist a goal from a raw trace.
 
@@ -524,12 +533,17 @@ class TraceGoalRefactorPipeline:
         ``is_satisfied_by`` is used. Returns (goal, result); goal is None when the
         trace is not actionable.
 
+        ``goal`` bypasses synthesis when the caller already holds the GoalSpecification.
+
         ``max_iterations`` overrides the synthesized budget for THIS run. A real
         caller passes 1: re-measuring an unchanged system N times in one process
         yields N identical readings. The loop closes across invocations and is
         terminated by the convergence status flip.
         """
-        goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(trace_events)
+        # A caller that already synthesized the goal (a failure cluster or a kanban
+        # card -- shapes the single-event synthesizer cannot reproduce) passes it in.
+        if goal is None:
+            goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(trace_events)
         if goal is None:
             return None, None
 
