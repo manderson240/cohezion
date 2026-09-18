@@ -33,6 +33,9 @@ class CrossSessionEventBridge:
     surreal_client: SurrealClient = field(default_factory=SurrealClient)
     _subscribed: bool = field(default=False, init=False)
     _sync_loop: Any = field(default=None, init=False, repr=False)
+    # Strong refs to in-loop persist tasks: the loop holds only weak refs, so an
+    # un-retained task can be garbage-collected mid-flight.
+    _pending_persist: set[asyncio.Task[bool]] = field(default_factory=set, init=False, repr=False)
 
     async def initialize(self) -> None:
         """Subscribe bridge to the local EventBus and ensure DB connection."""
@@ -113,24 +116,39 @@ class CrossSessionEventBridge:
             return []
 
     def publish_and_persist(self, event: Event) -> bool:
-        """Dispatch onto the local bus AND durably persist the event.
+        """Dispatch onto the local bus AND persist the event.
 
-        ``publish_sync`` only enqueues; with no running bus nothing drains the
-        queue, so persistence is driven here rather than left to the subscriber.
-        Returns True only when the event reached ``event_log``. Inside a running
-        loop the write cannot block, so it is scheduled and the dispatch result is
-        returned; the deterministic record id keeps that write idempotent with the
+        Two contexts, two meanings of True:
+
+        * Sync context (no running loop): persistence is driven here on a
+          reusable loop; True only if the event reached ``event_log``.
+        * Inside a running loop the write cannot block, so it is scheduled.
+          True means "dispatched to a RUNNING bus; persistence scheduled" --
+          NOT persisted. A failed write is logged as a warning (by ``_persist``,
+          or by the task's done-callback if the task itself raised). False if
+          the bus is not running (mirrors ``EventBus.publish``, D7): an event
+          ``put_nowait`` into an undrained queue is the original defect.
+
+        The deterministic record id keeps a scheduled write idempotent with the
         subscriber's.
         """
+        try:
+            asyncio.get_running_loop()
+            in_loop = True
+        except RuntimeError:
+            in_loop = False
+
+        if in_loop and not self.event_bus._running:
+            logger.warning("publish_and_persist refused: event bus is not running")
+            return False
+
         try:
             dispatched = bool(self.event_bus.publish_sync(event))
         except Exception as err:
             logger.warning("Failed sync dispatch on cross-session bridge: %s", err)
             dispatched = False
 
-        try:
-            asyncio.get_running_loop()
-        except RuntimeError:
+        if not in_loop:
             # One reusable loop per bridge: SurrealClient caches a connection bound
             # to the loop that created it, so asyncio.run() (a fresh loop per call)
             # fails every call after the first with "attached to a different loop".
@@ -141,5 +159,17 @@ class CrossSessionEventBridge:
             # though _persist is declared -> bool.
             return bool(self._sync_loop.run_until_complete(self._persist(event)))
 
-        asyncio.ensure_future(self._persist(event))
+        task = asyncio.ensure_future(self._persist(event))
+        self._pending_persist.add(task)
+        task.add_done_callback(self._on_persist_done)
         return dispatched
+
+    def _on_persist_done(self, task: asyncio.Task[bool]) -> None:
+        """Retire a scheduled persist task and surface any failure it would hide."""
+        self._pending_persist.discard(task)
+        if task.cancelled():
+            logger.warning("Scheduled cross-session persist task was cancelled")
+            return
+        err = task.exception()
+        if err is not None:
+            logger.warning("Scheduled cross-session persist task failed: %s", err)

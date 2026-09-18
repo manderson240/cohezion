@@ -76,3 +76,54 @@ def test_record_id_is_deterministic_so_upsert_is_idempotent():
     bridge = _bridge_with_mock(AsyncMock())
     evt = Event.agent_start("agent_sync", model="m")
     assert bridge._record_id(evt) == bridge._record_id(evt)
+
+
+# --- in-loop path (adversarial review, 2026-09-18) ---
+
+
+@pytest.mark.asyncio
+async def test_in_loop_publish_and_persist_refuses_when_bus_not_running():
+    """An event put_nowait into an undrained queue is the original defect."""
+    bridge = _bridge_with_mock(AsyncMock())
+    assert not bridge.event_bus._running
+
+    assert bridge.publish_and_persist(Event.agent_start("a", model="m")) is False
+
+
+@pytest.mark.asyncio
+async def test_in_loop_persist_task_is_retained_and_failure_is_logged(caplog):
+    mock_surreal = AsyncMock()
+    mock_surreal.query.side_effect = RuntimeError("surreal down")
+    bridge = _bridge_with_mock(mock_surreal)
+    await bridge.event_bus.start()
+    try:
+        with caplog.at_level("WARNING"):
+            ok = bridge.publish_and_persist(Event.agent_start("a", model="m"))
+            assert ok is True  # dispatched; persistence is scheduled
+            assert len(bridge._pending_persist) == 1, "persist task not retained"
+            for _ in range(20):
+                await asyncio.sleep(0)
+                if not bridge._pending_persist:
+                    break
+        assert bridge._pending_persist == set()
+        assert "Failed to persist" in caplog.text
+    finally:
+        await bridge.event_bus.stop()
+
+
+@pytest.mark.asyncio
+async def test_in_loop_persist_task_that_raises_is_logged_not_swallowed(caplog):
+    bridge = _bridge_with_mock(AsyncMock())
+    bridge._persist = AsyncMock(side_effect=RuntimeError("boom"))
+    await bridge.event_bus.start()
+    try:
+        with caplog.at_level("WARNING"):
+            assert bridge.publish_and_persist(Event.agent_start("a", model="m")) is True
+            for _ in range(20):
+                await asyncio.sleep(0)
+                if not bridge._pending_persist:
+                    break
+        assert "persist task failed" in caplog.text
+        assert "boom" in caplog.text
+    finally:
+        await bridge.event_bus.stop()

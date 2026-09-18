@@ -422,6 +422,65 @@ class TestOrchestrationWithSync:
         assert orch.config_state.total_syncs == syncs + 1
         orch.sync_engine.sync_config_file.assert_awaited_once_with("CLAUDE.md")
 
+    @pytest.mark.asyncio
+    async def test_orchestrator_regenerate_no_changes_is_success_not_failure(
+        self, tmp_path: Path
+    ) -> None:
+        """File already in the desired state: True, and neither counter moves."""
+        from unittest.mock import AsyncMock
+
+        orch = ConfigurationOrchestrator(tmp_path)
+        orch.sync_engine.sync_config_file = AsyncMock(
+            return_value={
+                "file": "CLAUDE.md",
+                "synced": False,
+                "commit_hash": None,
+                "details": {"skipped": "no_changes"},
+            }
+        )
+
+        assert await orch.regenerate_and_commit("CLAUDE.md", "t") is True
+        assert orch.config_state.sync_failures == 0
+        assert orch.config_state.total_syncs == 0
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_regenerate_conflict_is_a_failure(self, tmp_path: Path) -> None:
+        from unittest.mock import AsyncMock
+
+        orch = ConfigurationOrchestrator(tmp_path)
+        orch.sync_engine.sync_config_file = AsyncMock(
+            return_value={
+                "synced": False,
+                "commit_hash": None,
+                "details": {"conflicts": ["manual edit"]},
+            }
+        )
+
+        assert await orch.regenerate_and_commit("CLAUDE.md", "t") is False
+        assert orch.config_state.sync_failures == 1
+        assert orch.config_state.total_syncs == 0
+
+    @pytest.mark.asyncio
+    async def test_engine_marks_no_change_skip(self, tmp_path: Path) -> None:
+        """The engine's no-change path must say WHY it did not sync."""
+        from unittest.mock import AsyncMock, patch
+
+        engine = ConfigSyncEngine(
+            repo_root=tmp_path,
+            vault_root=tmp_path / "vault",
+            sync_logger=ConfigSyncLogger(log_dir=tmp_path / "sync-logs"),
+        )
+        engine.claude_md.write_text("same\n")
+        with (
+            patch.object(engine, "_check_conflicts", AsyncMock(return_value=[])),
+            patch.object(engine, "_extract_vault_content", AsyncMock(return_value={})),
+            patch.object(engine, "_render_config_file", return_value="same\n"),
+        ):
+            result = await engine.sync_config_file("CLAUDE.md")
+
+        assert result["synced"] is False
+        assert result["details"].get("skipped") == "no_changes"
+
 
 class TestCommitMessageGeneration:
     """Test AI-style commit message generation."""

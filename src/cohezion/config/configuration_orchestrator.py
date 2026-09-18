@@ -360,6 +360,11 @@ class ConfigurationOrchestrator:
         * The sync engine writes the file before it attempts the commit, so a
           commit failure returns False having already modified the working
           tree. This method is not atomic and does not roll back.
+
+        A True with no new commit means "already in sync": the engine found the
+        rendered content identical to the file on disk (``details["skipped"] ==
+        "no_changes"``) and did nothing, so ``total_syncs`` is not incremented.
+        Conflicts and commit failures return False and count in ``sync_failures``.
         """
         logger.info(f"Regenerating {filename} (reason: {reason})")
 
@@ -379,6 +384,11 @@ class ConfigurationOrchestrator:
             result = await self.sync_engine.sync_config_file(filename)
 
             if not result.get("synced"):
+                if result.get("details", {}).get("skipped") == "no_changes":
+                    # Already in the desired state: nothing to write or commit.
+                    # Neither a sync nor a failure, so neither counter moves.
+                    logger.debug(f"{filename} already in sync; nothing to regenerate")
+                    return True
                 logger.warning(
                     f"Sync engine did not regenerate {filename}: {result.get('details', {})}"
                 )
@@ -405,5 +415,6 @@ class ConfigurationOrchestrator:
             "total_conflicts": self.config_state.total_conflicts,
             "total_validations": self.config_state.total_validations,
             "sync_failures": self.config_state.sync_failures,
+            "config_events_dropped": self.monitor.dropped_events,
             "monitoring_active": self._monitoring,
         }

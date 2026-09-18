@@ -63,6 +63,8 @@ class ConfigMonitor:
         # Config events the bus refused (EB1c/D7). Observable so a caller can tell
         # "emitted" from "dropped" — the distinction the bare publish() call discarded.
         self.dropped_events = 0
+        # Set (synchronously) by the first `_stop_bus_once` caller; cleared by start().
+        self._bus_stop_started = False
 
     async def emit_config_event(self, event: Event) -> bool:
         """Publish a config event and act on the bus's accept/reject verdict.
@@ -99,6 +101,7 @@ class ConfigMonitor:
             # loop, so here rather than in __init__, and before the gather
             # below -- which blocks for the monitor's whole lifetime.
             await self.event_bus.start()
+            self._bus_stop_started = False
 
             # Register vault event handlers
             self._register_vault_handlers()
@@ -127,24 +130,30 @@ class ConfigMonitor:
         logger.info("Config monitoring stopped")
 
     async def _stop_bus_once(self) -> None:
-        """Stop the bus, but only if it is still running.
+        """Stop the bus at most once per lifecycle, even under concurrent callers.
 
-        Both `stop()` and `start()`'s finally-block reach here -- whichever
-        runs first does the work. The guard is not cosmetic: `EventBus.stop()`
-        is NOT cheaply idempotent when its drain times out. On timeout it
-        counts the abandoned events but never calls `task_done()` for them, so
-        `Queue._unfinished_tasks` stays positive with no processor left to
-        decrement it. A second `stop()` therefore blocks for the FULL
-        `drain_timeout` again -- measured at 0.501s each for a 0.5s timeout,
-        i.e. ~60s of shutdown at the 30s default -- and double-counts the same
-        events into the `dropped` metric (2 -> 4 in that same measurement).
+        `stop()` and `start()`'s finally-block (reached when the start task is
+        cancelled) can run concurrently. A `_running` check alone is only a
+        sequential guard: the second caller sees `_running` still True while
+        the first is awaiting its drain, and enters `EventBus.stop()` too
+        (measured: two concurrent entries). So the claim is made by setting
+        `_bus_stop_started` BEFORE the first await; a second entrant returns
+        immediately.
 
-        `EventBus.stop()` clears `_running` on every exit path (its D1), so
-        this guard is reliable. Fixing the underlying non-idempotence belongs
-        in event_bus.py and would change behaviour for all of its callers.
+        Why not just call `EventBus.stop()` twice: it is not idempotent when
+        its drain times out. It counts abandoned events but never calls
+        `task_done()` for them, so a later `stop()` waits out `drain_timeout`
+        again (measured 0.501s for a 0.5s timeout) and double-counts the same
+        events into the `dropped` metric. Concurrent entrants run those drains
+        in parallel, so the cost there is double-counting, not double latency.
+
+        Fixing the non-idempotence itself belongs in event_bus.py and would
+        change behaviour for all of its callers.
         """
-        if self.event_bus._running:
-            await self.event_bus.stop()
+        if self._bus_stop_started or not self.event_bus._running:
+            return
+        self._bus_stop_started = True
+        await self.event_bus.stop()
 
     def _register_vault_handlers(self) -> None:
         """Register handlers for vault SSE events."""

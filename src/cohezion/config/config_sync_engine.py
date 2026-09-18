@@ -117,6 +117,9 @@ class ConfigSyncEngine:
                 old_content = file_path.read_text()
                 if old_content == new_content and not force:
                     logger.debug(f"No changes in {filename}, skipping sync")
+                    # synced stays False (nothing was written or committed), but say
+                    # WHY so callers can tell "already in sync" from a failure.
+                    result["details"]["skipped"] = "no_changes"
                     return result
 
             # Write new content

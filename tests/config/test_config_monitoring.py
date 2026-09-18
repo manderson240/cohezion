@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
-from cohezion.core.event_bus import Event
+from cohezion.core.event_bus import Event, EventType
 from cohezion.core.vault_subscription import VaultEvent
 
 
@@ -297,26 +297,28 @@ class TestOrchestrationWithMonitoring:
         start_mock = AsyncMock()
         stop_mock = AsyncMock()
 
-        with patch.object(orch.monitor, "start", start_mock):
-            with patch.object(orch.monitor, "stop", stop_mock):
-                # Start orchestration
-                orchestration_task = asyncio.create_task(orch.start_monitoring())
+        with (
+            patch.object(orch.monitor, "start", start_mock),
+            patch.object(orch.monitor, "stop", stop_mock),
+        ):
+            # Start orchestration
+            orchestration_task = asyncio.create_task(orch.start_monitoring())
 
-                # Poll for _monitoring flag instead of fixed 0.1s wait
-                for _ in range(50):
-                    if orch._monitoring:
-                        break
-                    await asyncio.sleep(0.005)
+            # Poll for _monitoring flag instead of fixed 0.1s wait
+            for _ in range(50):
+                if orch._monitoring:
+                    break
+                await asyncio.sleep(0.005)
 
-                assert orch._monitoring
+            assert orch._monitoring
 
-                # Cancel the task
-                orchestration_task.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    await orchestration_task
+            # Cancel the task
+            orchestration_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await orchestration_task
 
-                # Verify stop was called within context
-                stop_mock.assert_called()
+            # Verify stop was called within context
+            stop_mock.assert_called()
 
 
 async def _collect_config_events(monitor: ConfigMonitor, emit) -> list:
@@ -551,3 +553,64 @@ class TestConfigEventDeliveryThroughRealCallers:
 
         assert [e.payload["config_event"] for e in received] == ["ARCHIVE_TRIGGERED"]
         assert orch.monitor.dropped_events == 0
+
+
+class TestHardenedEventPath:
+    """Adversarial-review findings a (concurrent stop) and e (dropped_events metric)."""
+
+    @pytest.mark.asyncio
+    async def test_concurrent_stop_and_cancel_stop_the_bus_exactly_once(
+        self, tmp_path: Path
+    ) -> None:
+        """`stop()` racing `start()`'s finally-block (task cancelled) must not enter
+        EventBus.stop twice: a sequential `_running` check does not cover the window
+        where the first stop is still awaiting its drain."""
+        monitor = ConfigMonitor(tmp_path)
+        entered = 0
+        real_stop = monitor.event_bus.stop
+
+        async def _counting_stop(drain_timeout: float = 0.5) -> None:
+            nonlocal entered
+            entered += 1
+            await real_stop(drain_timeout=0.5)
+
+        async def _slow_handler(_event: Event) -> None:
+            await asyncio.sleep(5)
+
+        async def _hang() -> None:
+            await asyncio.sleep(100)
+
+        monitor.event_bus.register_handler(_slow_handler)
+        with (
+            patch.object(monitor.event_bus, "stop", _counting_stop),
+            patch.object(monitor.vault_client, "connect", side_effect=_hang),
+            patch.object(monitor.vault_client, "disconnect", new_callable=AsyncMock),
+            patch.object(monitor, "_monitor_config_files", side_effect=_hang),
+        ):
+            task = asyncio.create_task(monitor.start())
+            for _ in range(200):
+                if monitor.event_bus._running:
+                    break
+                await asyncio.sleep(0.005)
+            assert monitor.event_bus._running
+            assert await monitor.emit_config_event(
+                Event(type=EventType.CUSTOM, source="t", payload={})
+            )
+            await asyncio.sleep(0.05)  # handler now blocked in its 5 s sleep
+            task.cancel()
+            await asyncio.gather(monitor.stop(), task, return_exceptions=True)
+
+        assert entered == 1, f"EventBus.stop entered {entered} times"
+
+    @pytest.mark.asyncio
+    async def test_dropped_events_exposed_in_orchestrator_metrics(self, tmp_path: Path) -> None:
+        orch = ConfigurationOrchestrator(tmp_path)
+        assert orch.get_metrics()["config_events_dropped"] == 0
+
+        assert not orch.monitor.event_bus._running
+        accepted = await orch.monitor.emit_config_event(
+            Event(type=EventType.CUSTOM, source="t", payload={})
+        )
+
+        assert accepted is False
+        assert orch.get_metrics()["config_events_dropped"] == 1
