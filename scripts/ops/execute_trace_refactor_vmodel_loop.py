@@ -43,7 +43,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(
 logger = logging.getLogger(__name__)
 
 SURREAL_URL = "http://127.0.0.1:8001/sql"
-LOCAL_SILICON_URL = "http://127.0.0.1:8006/v1/chat/completions"
+LOCAL_SILICON_URL = "http://127.0.0.1:13305/v1/chat/completions"
 OLLAMA_CLOUD_URL = "http://127.0.0.1:11434/api/chat"
 OBSIDIAN_VAULT_DIR = Path.home() / "vaults" / "cohezion-vault"
 
@@ -63,9 +63,10 @@ def surreal_query(sql: str) -> list[dict]:
 
 
 def consult_local_architect(summary: str) -> str:
-    """Consult Local Silicon (AMD Vulkan iGPU :8006) for Systems Architect review."""
-    logger.info("🤖 [Perspective 1: Systems Architect] Consulting Local AMD Silicon (:8006)...")
+    """Consult Local Silicon (AMD Vulkan iGPU :13305) for Systems Architect review."""
+    logger.info("🤖 [Perspective 1: Systems Architect] Consulting Local AMD Silicon (:13305)...")
     payload = {
+        "model": "Bonsai-8B-gguf",
         "messages": [
             {
                 "role": "system",

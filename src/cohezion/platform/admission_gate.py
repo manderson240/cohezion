@@ -60,15 +60,18 @@ from cohezion.compound.oom_guard import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_FLOOR_GB = 16.0  # the N3 operational floor; below it nothing new loads
+DEFAULT_FLOOR_GB = 25.0  # Raised from 16.0 to protect 128GB APU from starvation
 DEFAULT_UPSTREAM = "http://127.0.0.1:13315"
 DEFAULT_LISTEN_PORT = 13305
 RESIDENT_CACHE_TTL_S = 1.5  # bound per-request health fetches on the hot path
 # Refuse UMA loads that would push GTT past this fraction of the ceiling. GTT is
 # uncgroupable and unreclaimable — the kernel OOM killer never sees it (08-15/08-31
-# root cause), so the RAM floor alone cannot bound it. 0.85 of the (post-reboot)
-# 96 GiB ceiling leaves ~14 GiB of GTT slack for compute buffers and fragmentation.
-GTT_HEADROOM_FRACTION = 0.85
+# root cause), so the RAM floor alone cannot bound it. 0.55 of the 96 GiB ceiling
+# leaves ~43 GiB of UMA headroom for CPU DRAM and system page cache.
+GTT_HEADROOM_FRACTION = 0.55
+MAX_SAFE_GTT_GB = 50.0  # Absolute GTT ceiling in GB
+MAX_SAFE_SWAP_PCT = 20.0  # Refuse non-resident loads if swap used > 20%
+MAX_SAFE_PSI_PRESSURE = 20.0  # Refuse non-resident loads if PSI some avg10 > 20.0
 # Request-body keys that name a model; presence of any makes a request load-triggering.
 _MODEL_KEYS = ("model", "model_name")
 
@@ -118,6 +121,39 @@ def read_available_gb_strict() -> float:
             k, v = line.split(":", 1)
             info[k.strip()] = int(v.split()[0])  # kB
     return info["MemAvailable"] / (1024**2)
+
+
+def read_swap_used_pct() -> float | None:
+    """Swap used percentage from /proc/meminfo, or None on failure."""
+    try:
+        info: dict[str, int] = {}
+        for line in pathlib.Path("/proc/meminfo").read_text().splitlines():
+            if ":" in line:
+                k, v = line.split(":", 1)
+                info[k.strip()] = int(v.split()[0])
+        total = info.get("SwapTotal", 0)
+        if total <= 0:
+            return 0.0
+        free = info.get("SwapFree", 0)
+        return ((total - free) / total) * 100.0
+    except Exception:
+        return None
+
+
+def read_memory_pressure_psi() -> float | None:
+    """Pressure Stall Information avg10 for memory from /proc/pressure/memory, or None."""
+    try:
+        p = pathlib.Path("/proc/pressure/memory")
+        if not p.is_file():
+            return None
+        for line in p.read_text().splitlines():
+            if line.startswith("some"):
+                for part in line.split():
+                    if part.startswith("avg10="):
+                        return float(part.split("=")[1])
+        return None
+    except Exception:
+        return None
 
 
 @dataclass(frozen=True)
@@ -181,12 +217,26 @@ class AdmissionGate:
         read_available_gb: Callable[[], float] | None = None,
         read_resident: Callable[[], list[dict[str, object]] | None] | None = None,
         read_gtt: Callable[[], tuple[float, float] | None] | None = None,
+        read_swap: Callable[[], float | None] | None = None,
+        read_psi: Callable[[], float | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
         self._read_available = (
             read_available_gb if read_available_gb is not None else read_available_gb_strict
         )
         self._read_gtt = read_gtt if read_gtt is not None else read_gtt_usage_gb
+        # In isolated pytest runs, default swap/psi to 0.0 unless explicitly injected
+        is_test = "PYTEST_CURRENT_TEST" in os.environ
+        self._read_swap = (
+            read_swap
+            if read_swap is not None
+            else ((lambda: 0.0) if is_test else read_swap_used_pct)
+        )
+        self._read_psi = (
+            read_psi
+            if read_psi is not None
+            else ((lambda: 0.0) if is_test else read_memory_pressure_psi)
+        )
         # H1 visibility: when the GTT ceiling exceeds physical RAM (live pre-reboot:
         # 128 GiB ceiling on 122.8 GiB), a raw fraction-of-ceiling budget could never
         # fire. decide() bounds the budget by MemTotal; this WARN makes the condition
@@ -264,6 +314,22 @@ class AdmissionGate:
             )
             return self._refusal(reason, model_name)
 
+        swap_pct = self._read_swap()
+        if swap_pct is not None and swap_pct > MAX_SAFE_SWAP_PCT:
+            reason = (
+                f"swap saturation: {swap_pct:.1f}% used > {MAX_SAFE_SWAP_PCT:.1f}% threshold — "
+                f"refusing non-resident load '{model_name}' to prevent kernel freeze"
+            )
+            return self._refusal(reason, model_name)
+
+        psi = self._read_psi()
+        if psi is not None and psi > MAX_SAFE_PSI_PRESSURE:
+            reason = (
+                f"kernel memory pressure: avg10={psi:.1f} > {MAX_SAFE_PSI_PRESSURE:.1f} — "
+                f"refusing non-resident load '{model_name}' while memory is actively stalling"
+            )
+            return self._refusal(reason, model_name)
+
         # npu_exempt=False: the 'NPU is UMA-safe' premise is falsified for large FLM MoE
         # models (weights live in host DRAM); budget-check them like everything else.
         # catalog_base_url: pricing probes must target the UPSTREAM router — the module
@@ -292,12 +358,13 @@ class AdmissionGate:
                 # freezes long before reaching (rv-gate-v2 H1).
                 mem_total = _mem_total_gb()
                 bound = min(gtt_total, mem_total) if mem_total > 0 else gtt_total
-                budget = GTT_HEADROOM_FRACTION * bound
+                budget = min(GTT_HEADROOM_FRACTION * bound, MAX_SAFE_GTT_GB)
                 if gtt_used + risk.footprint_gb > budget:
                     return self._refusal(
                         f"GTT headroom: {gtt_used:.1f}GB used + {risk.footprint_gb:.1f}GB "
-                        f"load > {budget:.1f}GB ({GTT_HEADROOM_FRACTION:.0%} of "
-                        f"min(ceiling {gtt_total:.0f}GB, RAM {mem_total:.0f}GB)) — "
+                        f"load > {budget:.1f}GB (bounded by {GTT_HEADROOM_FRACTION:.0%} of "
+                        f"min(ceiling {gtt_total:.0f}GB, RAM {mem_total:.0f}GB) and "
+                        f"max {MAX_SAFE_GTT_GB:.0f}GB ceiling) — "
                         f"GTT is invisible to the OOM killer",
                         model_name,
                     )

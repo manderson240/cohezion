@@ -20,9 +20,11 @@ set -euo pipefail
 VERBOSE=0
 [[ "${1:-}" == "--verbose" ]] && VERBOSE=1
 
-MIN_AVAILABLE_GIB=20
+MIN_AVAILABLE_GIB=25
 MAX_SWAP_PCT=10
 MAX_VRAM_PCT=80
+MAX_GTT_GIB=50
+MAX_PSI_PRESSURE=20.0
 GCVM_PATTERN='GCVM_L2_PROTECTION_FAULT'
 
 ok()  { echo "  ✓ $*"; }
@@ -31,58 +33,94 @@ info() { (( VERBOSE )) && echo "  · $*" || true; }
 
 fail=0
 
-# 1. free -h
+# 1. Memory and Swap State (/proc/meminfo exact kB parsing)
 echo "Checking memory state..."
-if ! command -v free >/dev/null 2>&1; then
-  err "free(1) unavailable — cannot confirm memory state"
+if [[ ! -r /proc/meminfo ]]; then
+  err "/proc/meminfo unreadable — cannot confirm memory state"
   fail=1
 else
-  mem_line=$(free -h | grep -E "^Mem:")
-  if [[ -z "${mem_line}" ]]; then
-    err "could not parse 'free' output"
+  avail_kb=$(grep -E "^MemAvailable:" /proc/meminfo | awk '{print $2}')
+  total_kb=$(grep -E "^MemTotal:" /proc/meminfo | awk '{print $2}')
+  if [[ -z "${avail_kb}" || -z "${total_kb}" ]]; then
+    err "could not parse /proc/meminfo"
     fail=1
   else
-    avail=$(echo "${mem_line}" | awk '{print $7}')
-    info "available: ${avail}"
-    avail_normalized=$(echo "${avail}" | sed 's/Gi$/G/')
-    avail_gib=$(echo "${avail_normalized}" | numfmt --from=iec --to=none 2>/dev/null || echo "0")
-    avail_gib=$((avail_gib / 1073741824))
-    if (( $(echo "${avail_gib} < ${MIN_AVAILABLE_GIB}" | bc -l 2>/dev/null || echo 1) )); then
-      err "available memory ${avail} is below the ${MIN_AVAILABLE_GIB} GiB floor"
+    avail_gib=$((avail_kb / 1048576))
+    info "available: ${avail_gib} GiB (total: $((total_kb / 1048576)) GiB)"
+    if (( avail_gib < MIN_AVAILABLE_GIB )); then
+      err "available memory ${avail_gib} GiB is below the ${MIN_AVAILABLE_GIB} GiB floor"
       fail=1
     else
-      ok "available memory ${avail} >= ${MIN_AVAILABLE_GIB} GiB"
+      ok "available memory ${avail_gib} GiB >= ${MIN_AVAILABLE_GIB} GiB floor"
     fi
 
-    swap_line=$(free -h | grep -E "^Swap:")
-    if [[ -n "${swap_line}" ]]; then
-      swap_total=$(echo "${swap_line}" | awk '{print $2}')
-      swap_used=$(echo "${swap_line}" | awk '{print $3}')
-      info "swap: used ${swap_used} of ${swap_total}"
-      # If swap_total is 0, this is a non-issue
-      total_bytes=$(echo "${swap_total}" | numfmt --from=iec --to=none 2>/dev/null || echo "0")
-      used_bytes=$(echo "${swap_used}" | numfmt --from=iec --to=none 2>/dev/null || echo "0")
-      if (( total_bytes > 0 )); then
-        pct=$(awk "BEGIN { printf \"%.0f\", (${used_bytes}/${total_bytes})*100 }")
-        if (( pct > MAX_SWAP_PCT )); then
-          err "swap used ${pct}% exceeds the ${MAX_SWAP_PCT}% threshold"
-          fail=1
-        else
-          ok "swap used ${pct}% <= ${MAX_SWAP_PCT}%"
-        fi
+    swap_total_kb=$(grep -E "^SwapTotal:" /proc/meminfo | awk '{print $2}')
+    swap_free_kb=$(grep -E "^SwapFree:" /proc/meminfo | awk '{print $2}')
+    if [[ -n "${swap_total_kb}" && "${swap_total_kb}" -gt 0 ]]; then
+      swap_used_kb=$((swap_total_kb - swap_free_kb))
+      swap_pct=$(( (swap_used_kb * 100) / swap_total_kb ))
+      swap_used_gib=$((swap_used_kb / 1048576))
+      info "swap: used ${swap_pct}% (${swap_used_gib} GiB of $((swap_total_kb / 1048576)) GiB)"
+      if (( swap_pct > MAX_SWAP_PCT )); then
+        err "swap used ${swap_pct}% exceeds the ${MAX_SWAP_PCT}% threshold (${swap_used_gib} GiB used)"
+        fail=1
+      else
+        ok "swap used ${swap_pct}% <= ${MAX_SWAP_PCT}% threshold"
       fi
+    else
+      ok "swap is disabled or not configured"
     fi
   fi
 fi
 
-# 2. rocm-smi (optional — only if the binary exists)
-echo "Checking AMD GPU state..."
-if command -v rocm-smi >/dev/null 2>&1; then
+# 2. Kernel Memory Pressure Stall Information (PSI)
+echo "Checking kernel memory pressure (PSI)..."
+if [[ -r /proc/pressure/memory ]]; then
+  psi_some_10=$(grep -E "^some" /proc/pressure/memory | sed -E 's/.*avg10=([0-9.]+).*/\1/' || echo "0.00")
+  info "memory pressure (some avg10): ${psi_some_10}"
+  if (( $(echo "${psi_some_10} > ${MAX_PSI_PRESSURE}" | bc -l 2>/dev/null || echo 0) )); then
+    err "memory pressure avg10=${psi_some_10} exceeds threshold ${MAX_PSI_PRESSURE} (system actively thrashing)"
+    fail=1
+  else
+    ok "memory pressure avg10=${psi_some_10} <= ${MAX_PSI_PRESSURE}"
+  fi
+else
+  info "/proc/pressure/memory not present; skipping PSI check"
+fi
+
+# 3. AMD GPU & GTT State (sysfs direct probe + rocm-smi fallback)
+echo "Checking AMD GPU / GTT state..."
+gtt_used_bytes=0
+gtt_total_bytes=0
+for gtt_file in /sys/class/drm/card*/device/mem_info_gtt_used; do
+  if [[ -r "${gtt_file}" ]]; then
+    val=$(cat "${gtt_file}" 2>/dev/null || echo "0")
+    gtt_used_bytes=$((gtt_used_bytes + val))
+  fi
+done
+for gtt_file in /sys/class/drm/card*/device/mem_info_gtt_total; do
+  if [[ -r "${gtt_file}" ]]; then
+    val=$(cat "${gtt_file}" 2>/dev/null || echo "0")
+    gtt_total_bytes=$((gtt_total_bytes + val))
+  fi
+done
+
+if (( gtt_total_bytes > 0 )); then
+  gtt_used_gib=$((gtt_used_bytes / 1073741824))
+  gtt_total_gib=$((gtt_total_bytes / 1073741824))
+  gtt_pct=$(( (gtt_used_bytes * 100) / gtt_total_bytes ))
+  info "GTT sysfs: ${gtt_used_gib} GiB used / ${gtt_total_gib} GiB total (${gtt_pct}%)"
+  if (( gtt_used_gib > MAX_GTT_GIB )); then
+    err "GPU GTT used ${gtt_used_gib} GiB exceeds the ${MAX_GTT_GIB} GiB ceiling (UMA aperture saturation)"
+    fail=1
+  else
+    ok "GPU GTT used ${gtt_used_gib} GiB <= ${MAX_GTT_GIB} GiB ceiling"
+  fi
+elif command -v rocm-smi >/dev/null 2>&1; then
   rocm_out=$(rocm-smi --showuse 2>/dev/null || true)
   vram_pct=$(echo "${rocm_out}" | grep -oE "GPU use[[:space:]]*\(%\)[[:space:]]+[0-9.]+" | awk '{print $NF}' | head -1)
   if [[ -n "${vram_pct}" ]]; then
     info "VRAM use: ${vram_pct}%"
-    # Compare integers
     vram_int=${vram_pct%.*}
     if (( vram_int > MAX_VRAM_PCT )); then
       err "VRAM use ${vram_pct}% exceeds the ${MAX_VRAM_PCT}% threshold (zombie state?)"
@@ -94,10 +132,10 @@ if command -v rocm-smi >/dev/null 2>&1; then
     info "rocm-smi present but no GPU use line found; skipping"
   fi
 else
-  info "rocm-smi not on PATH; skipping GPU check"
+  info "Neither DRM GTT sysfs nor rocm-smi readable; skipping GPU check"
 fi
 
-# 3. dmesg (optional — only if readable)
+# 4. dmesg (optional — only if readable)
 echo "Checking kernel ring buffer..."
 if dmesg --since="-15min" >/dev/null 2>&1; then
   if dmesg --since="-15min" 2>/dev/null | grep -q "${GCVM_PATTERN}"; then

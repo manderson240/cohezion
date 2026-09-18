@@ -60,6 +60,11 @@ MODEL_FOOTPRINT_GB: dict[str, float] = {
     "Bonsai-8B-gguf": 5.25,
     "DeepSeek-Qwen3-8B-GGUF": 5.25,
     "Gemma-4-E4B-it-GGUF": 5.97,
+    # ── Ternary-Bonsai (27B intelligence in 1.72-bit ternary weights) ─────────
+    "Ternary-Bonsai-2-27B-gguf": 5.95,
+    "Ternary-Bonsai-2-27B-PTQ1_0": 5.95,
+    "Ternary-Bonsai-2-27B-PQ2_0": 7.21,
+    "Ternary-Bonsai-2-27B-mmproj-Q8_0": 0.63,
     # ── Heavy LLMs (require available_ram > footprint + RAM_LOAD_BUFFER_GB) ──
     "Qwen3.6-27B-GGUF": 16.0,
     "Gemma-4-26B-A4B-it-GGUF": 18.1,
@@ -125,6 +130,9 @@ MODEL_TIER: dict[str, ComputeTier] = {
     "Qwen3-Coder-30B-A3B-Instruct-GGUF": ComputeTier.IGPU,
     "Qwen3.6-35B-A3B-GGUF": ComputeTier.IGPU,
     "Qwen3.6-35B-A3B-MTP-GGUF": ComputeTier.IGPU,
+    "Ternary-Bonsai-2-27B-gguf": ComputeTier.IGPU,
+    "Ternary-Bonsai-2-27B-PTQ1_0": ComputeTier.IGPU,
+    "Ternary-Bonsai-2-27B-PQ2_0": ComputeTier.IGPU,
     # CPU — kokoro TTS (device: cpu per /api/v1/health)
     "kokoro-v1": ComputeTier.CPU,
     # SPECIALIZED — image gen / transcription (iGPU device but sd-cpp/whispercpp recipe)

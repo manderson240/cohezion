@@ -27,6 +27,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from cohezion.platform.admission_gate import (
+    DEFAULT_FLOOR_GB,
     AdmissionGate,
     GateConfig,
     audit_bypass_paths,
@@ -168,7 +169,7 @@ class TestCouncilTest2ColdBootPersistence:
             import os
 
             os.environ.pop("COHEZION_ADMISSION_FLOOR_GB", None)
-            assert GateConfig.from_env().floor_gb == 16.0  # default restored
+            assert GateConfig.from_env().floor_gb == DEFAULT_FLOOR_GB  # default restored
 
     def test_runtime_mutation_cannot_survive_reconstruction(self) -> None:
         # GateConfig is frozen: the wrong impl (mutable cap twiddled via an admin
@@ -255,3 +256,56 @@ class TestRequestClassification:
             d = g.decide("Qwen3.6-35B-A3B-GGUF")
         assert d.allow is True
         assert "blind" in d.reason.lower()
+
+
+class TestSwapAndMemoryPressure:
+    def test_swap_saturation_refuses_nonresident_load(self) -> None:
+        cfg = GateConfig(floor_gb=16.0)
+        g = AdmissionGate(
+            config=cfg,
+            read_available_gb=lambda: 50.0,
+            read_resident=lambda: [],
+            read_swap=lambda: 35.0,  # 35% > 20% limit
+            read_psi=lambda: 0.0,
+        )
+        d = g.decide("Qwen3.6-35B-A3B-GGUF")
+        assert d.allow is False
+        assert "swap saturation" in d.reason.lower()
+
+    def test_swap_saturation_allows_resident_model(self) -> None:
+        cfg = GateConfig(floor_gb=16.0)
+        g = AdmissionGate(
+            config=cfg,
+            read_available_gb=lambda: 50.0,
+            read_resident=lambda: _entries(["Qwen3.6-35B-A3B-GGUF"]),
+            read_swap=lambda: 45.0,
+            read_psi=lambda: 0.0,
+        )
+        d = g.decide("Qwen3.6-35B-A3B-GGUF")
+        assert d.allow is True
+
+    def test_memory_pressure_psi_refuses_load(self) -> None:
+        cfg = GateConfig(floor_gb=16.0)
+        g = AdmissionGate(
+            config=cfg,
+            read_available_gb=lambda: 50.0,
+            read_resident=lambda: [],
+            read_swap=lambda: 5.0,
+            read_psi=lambda: 32.5,  # 32.5 > 20.0 limit
+        )
+        d = g.decide("Qwen3.6-35B-A3B-GGUF")
+        assert d.allow is False
+        assert "memory pressure" in d.reason.lower()
+
+    def test_memory_pressure_psi_allows_resident_model(self) -> None:
+        cfg = GateConfig(floor_gb=16.0)
+        g = AdmissionGate(
+            config=cfg,
+            read_available_gb=lambda: 50.0,
+            read_resident=lambda: _entries(["Bonsai-8B-gguf"]),
+            read_swap=lambda: 5.0,
+            read_psi=lambda: 32.5,
+        )
+        d = g.decide("Bonsai-8B-gguf")
+        assert d.allow is True
+

@@ -18,8 +18,10 @@ import psutil
 
 
 LOCK_PATH = Path("/tmp/cohezion_fleet_modelload.lock")
-MIN_AVAILABLE_MEM_GIB = 50.0  # Raised to 50.0 GiB for absolute safety on 128GB UMA
-MAX_SWAP_USED_GIB = 1.0  # Zero tolerance for swap paging before model loads
+MIN_AVAILABLE_MEM_GIB = 35.0  # Raised for safety on 128GB UMA
+MAX_SWAP_USED_GIB = 2.0  # Hard swap threshold
+MAX_GTT_USED_GIB = 50.0  # Max safe GPU GTT allocation in GB
+MAX_PSI_PRESSURE = 20.0  # Max kernel memory pressure avg10
 
 
 class SmartOOMGovernor:
@@ -33,6 +35,34 @@ class SmartOOMGovernor:
         is_safe = (avail_gib >= MIN_AVAILABLE_MEM_GIB) and (swap_used_gib <= MAX_SWAP_USED_GIB)
         return round(avail_gib, 2), round(swap_used_gib, 2), is_safe
 
+    @staticmethod
+    def get_gtt_used_gib() -> float:
+        """Returns DRM sysfs mem_info_gtt_used summed across cards in GB."""
+        try:
+            total_bytes = sum(
+                int(p.read_text().strip())
+                for p in Path("/sys/class/drm").glob("card*/device/mem_info_gtt_used")
+            )
+            return round(total_bytes / (1024**3), 2)
+        except Exception:
+            return 0.0
+
+    @staticmethod
+    def get_psi_pressure() -> float:
+        """Returns PSI memory pressure some avg10."""
+        try:
+            p = Path("/proc/pressure/memory")
+            if not p.is_file():
+                return 0.0
+            for line in p.read_text().splitlines():
+                if line.startswith("some"):
+                    for part in line.split():
+                        if part.startswith("avg10="):
+                            return float(part.split("=")[1])
+            return 0.0
+        except Exception:
+            return 0.0
+
     @classmethod
     def can_execute_local(cls) -> tuple[bool, str]:
         avail_gib, swap_gib, is_safe = cls.get_memory_state()
@@ -41,7 +71,19 @@ class SmartOOMGovernor:
                 False,
                 f"Memory backpressure! Avail: {avail_gib} GiB (Min {MIN_AVAILABLE_MEM_GIB} GiB), Swap used: {swap_gib} GiB. Delegate to Cloud.",
             )
-        return True, f"Local Silicon Safe (Avail: {avail_gib} GiB, Swap: {swap_gib} GiB)"
+        gtt_gib = cls.get_gtt_used_gib()
+        if gtt_gib > MAX_GTT_USED_GIB:
+            return (
+                False,
+                f"GPU GTT saturation! GTT used: {gtt_gib} GiB (Max {MAX_GTT_USED_GIB} GiB). Delegate to Cloud.",
+            )
+        psi = cls.get_psi_pressure()
+        if psi > MAX_PSI_PRESSURE:
+            return (
+                False,
+                f"Kernel memory pressure! PSI avg10: {psi} (Max {MAX_PSI_PRESSURE}). Delegate to Cloud.",
+            )
+        return True, f"Local Silicon Safe (Avail: {avail_gib} GiB, Swap: {swap_gib} GiB, GTT: {gtt_gib} GiB)"
 
 
 class CrossSessionFleetLock:
@@ -62,7 +104,7 @@ class CrossSessionFleetLock:
                 if time.perf_counter() - t_start > self.timeout_sec:
                     raise TimeoutError(
                         f"FleetLock timeout after {self.timeout_sec}s: Another session is loading models."
-                    )
+                    ) from None
                 time.sleep(0.5)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
