@@ -24,6 +24,7 @@ from cohezion.flume.loop_goal_refactor_engine import (
     GoalSpecification,
     TraceGoalRefactorPipeline,
     TraceToLoopTransformer,
+    payload_looks_like_failure,
 )
 
 
@@ -44,8 +45,9 @@ def test_security_violation_trace_synthesizes_resolve_goal() -> None:
     goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(trace)
     assert goal is not None
     assert goal.title.startswith("Resolve: verify_code dotted-call bypass")
-    assert goal.target_metric == "test_pass_rate"
-    assert goal.target_threshold == 1.0
+    assert goal.target_metric == "finding_open"
+    assert goal.target_threshold == 0.0
+    assert goal.direction == "at_most"
 
 
 def test_agent_complete_with_fixes_synthesizes_verify_goal() -> None:
@@ -276,14 +278,14 @@ def test_pipeline_refactors_security_trace_into_executed_loop(fake_surreal) -> N
     ]
 
     def step_fn(it: int, state: dict):
-        metric = min(1.0, it / 2.0)
-        return state, metric, "run regression suite"
+        metric = max(0.0, 1.0 - it / 2.0)  # finding_open falls 0.5 -> 0.0
+        return state, metric, "close the finding"
 
     goal, result = pipeline.refactor(trace, trace_ids=["event_log:evt1"], step_fn=step_fn)
     assert goal is not None
     assert goal.title.startswith("Resolve: os.system")
     assert result is not None
-    assert result.converged  # reaches 1.0 by iteration 2
+    assert result.converged  # finding_open reaches 0.0 by iteration 2
 
 
 def test_pipeline_returns_none_for_non_actionable_trace() -> None:
@@ -389,6 +391,7 @@ def test_executor_error_rate_progress_and_custom_progress_fn() -> None:
         target_metric="error_rate",
         target_threshold=0.05,
         max_iterations=4,
+        direction="at_most",  # polarity is explicit; the metric NAME no longer implies it
     )
     executor = AutonomousGoalExecutor(goal)
 
@@ -431,3 +434,242 @@ def test_chained_sequential_goals_accumulate_memory_as_plans() -> None:
     assert len(shared_memory.segments) == 2
     assert shared_memory.segments[0].goal_id == "g1"
     assert shared_memory.segments[1].goal_id == "g2"
+
+
+# ---------------------------------------------------------------------------
+# P1 engine hardening (closure semantics, re-cut onto main's engine)
+# ---------------------------------------------------------------------------
+
+
+def test_finding_open_at_most_goal_is_not_converged_by_a_value_above_ceiling() -> None:
+    """DISCRIMINATING polarity: `finding_open` is lower-is-better but NOT named
+    error_rate, so a name-keyed hack (`metric <= t if name == "error_rate"`) scores it
+    with `>=`: 1.0 against a 0.0 ceiling reads CONVERGED. Reverting is_satisfied_by
+    to `>=` turns this red."""
+    goal = GoalSpecification("g_fo", "Resolve: x", "finding_open", 0.0, 1, direction="at_most")
+    assert not goal.is_satisfied_by(1.0)
+    assert goal.is_satisfied_by(0.0)
+    result = asyncio.run(
+        AutonomousGoalExecutor(goal).execute_loop({}, lambda it, s: (s, 1.0, "measured"))
+    )
+    assert not result.converged
+    # progress must follow polarity too, not only is_met (alignment_verified would lie)
+    assert result.history[-1].progress == 0.0
+    assert not result.history[-1].alignment_verified
+
+
+def test_default_direction_preserves_at_least_semantics() -> None:
+    goal = GoalSpecification("g_default", "Verify fixes", "test_pass_rate", 1.0)
+    assert goal.direction == "at_least"
+    assert goal.is_satisfied_by(1.0)
+    assert not goal.is_satisfied_by(0.97)
+
+
+def test_stabilize_goal_is_synthesized_with_at_most_direction() -> None:
+    goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(
+        [{"type": "JOURNEY_STEP", "source": "flaky-agent", "payload": {"msg": "error occurred"}}]
+    )
+    assert goal is not None
+    assert (goal.target_metric, goal.direction) == ("error_rate", "at_most")
+
+
+def test_finding_with_fixed_in_yields_no_goal() -> None:
+    goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(
+        [
+            {
+                "type": "SECURITY_VIOLATION",
+                "source": "health-campaign",
+                "payload": {"finding": "bypass", "fixed_in": "55e625ee2", "severity": "high"},
+            }
+        ]
+    )
+    assert goal is None
+
+
+def test_fixed_in_skip_does_not_fall_through_to_the_catch_all() -> None:
+    """DISCRIMINATING: `continue`, not an extra clause -- this payload says "failure",
+    so a fall-through re-catches it as a mislabelled Stabilize goal."""
+    goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(
+        [
+            {
+                "type": "SECURITY_VIOLATION",
+                "source": "health-campaign",
+                "payload": {
+                    "finding": "bypass caused a test failure",
+                    "fixed_in": "55e625ee2",
+                    "severity": "high",
+                },
+            }
+        ]
+    )
+    assert goal is None
+
+
+class _RecordingPersistence(DurableSurrealGoalPersistence):
+    """Captures statements instead of issuing them."""
+
+    def __init__(self) -> None:
+        super().__init__(url="http://127.0.0.1:1/sql")
+        self.statements: list[str] = []
+
+    def _sql(self, statement: str) -> list:
+        self.statements.append(statement)
+        return []
+
+
+def test_refactor_max_iterations_override_runs_exactly_one_iteration() -> None:
+    pipeline = TraceGoalRefactorPipeline(persistence=_RecordingPersistence())
+    calls: list[int] = []
+
+    def step_fn(it: int, state: dict):
+        calls.append(it)
+        return state, 0.9, "measured"
+
+    trace = [{"type": "JOURNEY_STEP", "source": "noisy", "payload": {"msg": "error"}}]
+    goal, result = pipeline.refactor(trace, step_fn=step_fn, max_iterations=1)
+    assert goal is not None and result is not None
+    assert calls == [1]  # the synthesized budget is 10; the per-run override wins
+    assert not result.converged
+
+
+def test_refactor_flips_status_only_when_converged() -> None:
+    persistence = _RecordingPersistence()
+    pipeline = TraceGoalRefactorPipeline(persistence=persistence)
+    trace = [{"type": "JOURNEY_STEP", "source": "quiet", "payload": {"msg": "error"}}]
+    pipeline.refactor(trace, step_fn=lambda it, s: (s, 0.9, "m"), max_iterations=1)
+    assert not any('"status": "converged"' in s for s in persistence.statements)
+    persistence.statements.clear()
+    pipeline.refactor(trace, step_fn=lambda it, s: (s, 0.0, "m"), max_iterations=1)
+    assert any('"status": "converged"' in s for s in persistence.statements)
+
+
+def test_refactor_honours_an_explicit_verifier() -> None:
+    pipeline = TraceGoalRefactorPipeline(persistence=_RecordingPersistence())
+    trace = [{"type": "JOURNEY_STEP", "source": "s", "payload": {"msg": "error"}}]
+    _, result = pipeline.refactor(
+        trace,
+        step_fn=lambda it, s: (s, 0.9, "m"),
+        verifier_fn=lambda v: v == 0.9,
+        max_iterations=1,
+    )
+    assert result is not None and result.converged
+
+
+def test_persisted_payloads_carry_direction() -> None:
+    persistence = _RecordingPersistence()
+    pipeline = TraceGoalRefactorPipeline(persistence=persistence)
+    trace = [{"type": "JOURNEY_STEP", "source": "s", "payload": {"msg": "error"}}]
+    pipeline.refactor(trace, step_fn=lambda it, s: (s, 0.9, "m"), max_iterations=1)
+    goal_stmt = next(s for s in persistence.statements if s.startswith("UPSERT goal:"))
+    loop_stmt = next(s for s in persistence.statements if s.startswith("CREATE loop_trace:"))
+    assert '"direction": "at_most"' in goal_stmt
+    assert '"direction": "at_most"' in loop_stmt
+
+
+def test_catch_all_predicate_is_shared_with_the_synthesizer() -> None:
+    assert payload_looks_like_failure({"msg": "error occurred"})
+    assert payload_looks_like_failure({"tests": "3 failed"})
+    assert not payload_looks_like_failure({"status": "HEALTHY"})
+    assert not payload_looks_like_failure({})
+    assert not payload_looks_like_failure(None)
+    goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(
+        [{"type": "JOURNEY_STEP", "source": "s", "payload": {"msg": "error occurred"}}]
+    )
+    assert goal is not None and goal.target_metric == "error_rate"
+    assert (
+        TraceToLoopTransformer.synthesize_goal_from_real_trace(
+            [{"type": "JOURNEY_STEP", "source": "s", "payload": {"status": "HEALTHY"}}]
+        )
+        is None
+    )
+
+
+def test_mark_goal_converged_uses_upsert_merge() -> None:
+    persistence = _RecordingPersistence()
+    goal = GoalSpecification("g_flip", "t", "error_rate", 0.05)
+    persistence.mark_goal_converged(goal, 0.0)
+    assert persistence.statements[0].startswith("UPSERT goal:`g_flip` MERGE")
+
+
+def test_persist_goal_merge_does_not_name_status() -> None:
+    """MERGE preserves fields it OMITS. Naming status='active' re-opens converged goals."""
+    persistence = _RecordingPersistence()
+    persistence.persist_goal(GoalSpecification("g_m", "t", "error_rate", 0.05, direction="at_most"))
+    merge = persistence.statements[0].split(";")[0]
+    assert merge.startswith("UPSERT goal:`g_m` MERGE")
+    assert '"status"' not in merge
+    assert "WHERE status = NONE" in persistence.statements[0]
+
+
+# -- ABSENT vs UNKNOWN in the measurement layer --------------------------------
+
+
+def test_measure_finding_open_returns_unknown_when_the_page_saturates(monkeypatch) -> None:
+    """DISCRIMINATING: a saturated page is UNKNOWN, never "still open"."""
+    from cohezion.flume import trace_goal_sources as src
+
+    saturated = [{"payload": {"finding": "other", "fixed_in": "abc"}}] * src.FIXED_SCAN_LIMIT
+    monkeypatch.setattr(src, "sql", lambda *a, **k: saturated)
+    assert src.measure_finding_open("not on this page", "vault") is None
+
+
+def test_measure_finding_open_control_probe(monkeypatch) -> None:
+    """Control: the instrument returns 1.0 / 0.0 / None, so it is not a constant."""
+    from cohezion.flume import trace_goal_sources as src
+
+    monkeypatch.setattr(
+        src, "sql", lambda *a, **k: [{"payload": {"finding": "o", "fixed_in": "a"}}]
+    )
+    assert src.measure_finding_open("genuinely open", "vault") == 1.0
+    monkeypatch.setattr(
+        src, "sql", lambda *a, **k: [{"payload": {"finding": "t", "fixed_in": "a"}}]
+    )
+    assert src.measure_finding_open("t", "vault") == 0.0
+    assert src.measure_finding_open("", "vault") is None
+
+
+def test_measure_error_rate_unknown_on_no_rows_or_bad_source(monkeypatch) -> None:
+    from cohezion.flume import trace_goal_sources as src
+
+    monkeypatch.setattr(src, "sql", lambda *a, **k: [])
+    assert src.measure_error_rate("good-source", "vault") is None
+    assert src.measure_error_rate("bad'; DROP TABLE x;--", "vault") is None
+    monkeypatch.setattr(
+        src, "sql", lambda *a, **k: [{"payload": {"m": "error"}}, {"payload": {"m": "ok"}}]
+    )
+    assert src.measure_error_rate("good-source", "vault") == 0.5
+
+
+# -- un-mocked behavioural falsifier: the MERGE re-open bug --------------------
+
+
+def _scratch_persistence() -> DurableSurrealGoalPersistence:
+    p = DurableSurrealGoalPersistence(database="tgl_test", timeout=3.0)
+    try:
+        # DEFINE DATABASE is idempotent; a probe that cannot fail would prove nothing
+        # so unreachable SurrealDB skips (does not pass).
+        DurableSurrealGoalPersistence(database="main", timeout=3.0)._sql(
+            "DEFINE DATABASE IF NOT EXISTS tgl_test;"
+        )
+    except Exception as exc:
+        pytest.skip(f"SurrealDB not reachable: {exc}")
+    return p
+
+
+def test_rerun_does_not_reopen_a_converged_goal_live_scratch_db() -> None:
+    """DISCRIMINATING (mutation: put status:'active' back in the MERGE -> red).
+
+    persist -> converge -> persist again (a re-run re-synthesizes the same
+    content-derived id) -> status must STILL be 'converged'.
+    """
+    p = _scratch_persistence()
+    goal = GoalSpecification("g_rerun_probe", "t", "error_rate", 0.05, direction="at_most")
+    try:
+        p.persist_goal(goal)
+        assert p._sql("SELECT status FROM goal:`g_rerun_probe`;") == [{"status": "active"}]
+        p.mark_goal_converged(goal, 0.0)
+        p.persist_goal(goal)  # the re-run
+        assert p._sql("SELECT status FROM goal:`g_rerun_probe`;") == [{"status": "converged"}]
+        assert all(r["id"] != "goal:g_rerun_probe" for r in p.fetch_open_goals(500))
+    finally:
+        p._sql("DELETE goal:`g_rerun_probe`;")

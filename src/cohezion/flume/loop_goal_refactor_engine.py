@@ -17,7 +17,7 @@ import logging
 import time
 import urllib.request
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Generic, TypeVar
 
 
@@ -26,6 +26,18 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 S = TypeVar("S")
+
+
+def payload_looks_like_failure(payload: dict[str, Any] | None) -> bool:
+    """The catch-all predicate: does this payload read as a failure?
+
+    Exported so a MEASUREMENT can score the same quantity that opened the goal.
+    A private copy in an ops CLI would drift from this one silently, and the
+    loop would then drive down a different number than the one it was opened
+    for -- with nothing failing to say so.
+    """
+    text = json.dumps(payload or {}, default=str).lower()
+    return "fail" in text or "error" in text
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +50,23 @@ class GoalSpecification:
     target_threshold: float  # e.g., 0.50, 20.0, 1.00
     max_iterations: int = 10
     timeout_seconds: float = 30.0
+    # Polarity of the acceptance test: "at_least" = higher-is-better
+    # (test_pass_rate >= 1.0), "at_most" = lower-is-better (error_rate <= 0.05).
+    # Defaults to "at_least" so existing goals keep their meaning.
+    direction: str = "at_least"
+
+    def is_satisfied_by(self, value: float) -> bool:
+        """Single definition of "goal met", used by the executor and by readers.
+
+        Without it a lower-is-better goal named anything but ``error_rate`` is
+        scored with ``>=``: a finding_open of 1.0 against a 0.0 ceiling reads as
+        CONVERGED and that verdict is written to durable storage. The polarity
+        travels with the goal (and into both persisted payloads) so a stored
+        ``converged`` flag stays interpretable after the fact.
+        """
+        if self.direction == "at_most":
+            return value <= self.target_threshold
+        return value >= self.target_threshold
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,12 +196,14 @@ class TraceToLoopTransformer:
 
         Extraction rules (deterministic, zero-inference):
         - SECURITY_VIOLATION / SYSTEM_HEALTH payloads with severity=high ->
-          goal "Resolve <finding>" with test_pass_rate >= 1.0
+          goal "Resolve <finding>" with finding_open <= 0.0 (1.0 open, 0.0 resolved --
+          test_pass_rate named a quantity nothing measures)
         - AGENT_COMPLETE results with 'fixed' lists -> goal "Verify <fixes>" with
           test_pass_rate >= 1.0
         - repeated JOURNEY_STEP failures (same source, >= 3 occurrences of
           'fail'/'error' in payload) -> goal "Stabilize <source>" with
           error_rate <= 0.05
+        - a payload carrying ``fixed_in`` is CLOSED and yields no goal.
         Returns None when the trace carries no actionable signal.
 
         goal_id is content-derived (title+metric hash): stable across re-runs
@@ -190,18 +221,26 @@ class TraceToLoopTransformer:
         for ev in trace_events:
             etype = str(ev.get("type") or (ev.get("payload") or {}).get("type") or "")
             payload = ev.get("payload") or {}
-            text = json.dumps(payload, default=str)
+
+            # A finding that records the commit that fixed it is CLOSED. Re-opening it
+            # manufactures permanent work (the loop can never converge on something
+            # resolved). Must be a `continue`, not an extra clause on the
+            # SECURITY_VIOLATION test: falling through would let the catch-all below
+            # re-catch the same event and emit a mislabelled "Stabilize:" goal.
+            if payload.get("fixed_in"):
+                continue
 
             if etype == "SECURITY_VIOLATION" or "SECURITY_VIOLATION" in etype:
                 finding = payload.get("finding") or payload.get("title") or "security finding"
                 title = f"Resolve: {str(finding)[:120]}"
                 return GoalSpecification(
-                    goal_id=_goal_id(title, "test_pass_rate"),
+                    goal_id=_goal_id(title, "finding_open"),
                     title=title,
-                    target_metric="test_pass_rate",
-                    target_threshold=1.0,
+                    target_metric="finding_open",
+                    target_threshold=0.0,
                     max_iterations=5,
                     timeout_seconds=300.0,
+                    direction="at_most",
                 )
             if etype == "SYSTEM_HEALTH" and (
                 payload.get("severity") == "high" or payload.get("finding")
@@ -209,12 +248,13 @@ class TraceToLoopTransformer:
                 finding = payload.get("finding") or payload.get("title") or "health finding"
                 title = f"Resolve: {str(finding)[:120]}"
                 return GoalSpecification(
-                    goal_id=_goal_id(title, "test_pass_rate"),
+                    goal_id=_goal_id(title, "finding_open"),
                     title=title,
-                    target_metric="test_pass_rate",
-                    target_threshold=1.0,
+                    target_metric="finding_open",
+                    target_threshold=0.0,
                     max_iterations=5,
                     timeout_seconds=300.0,
+                    direction="at_most",
                 )
             if (
                 etype == "AGENT_COMPLETE"
@@ -231,7 +271,7 @@ class TraceToLoopTransformer:
                     max_iterations=3,
                     timeout_seconds=300.0,
                 )
-            if "fail" in text.lower() or "error" in text.lower():
+            if payload_looks_like_failure(payload):
                 src = ev.get("source") or "unknown-source"
                 title = f"Stabilize: {str(src)[:120]}"
                 return GoalSpecification(
@@ -241,6 +281,7 @@ class TraceToLoopTransformer:
                     target_threshold=0.05,
                     max_iterations=10,
                     timeout_seconds=300.0,
+                    direction="at_most",
                 )
         return None
 
@@ -293,18 +334,27 @@ class DurableSurrealGoalPersistence:
             "title": goal.title,
             "target_metric": goal.target_metric,
             "target_threshold": goal.target_threshold,
+            "direction": goal.direction,
             "max_iterations": goal.max_iterations,
-            "status": "active",
-            "origin_trace_ids": origin_trace_ids or [],
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
+        # `status`/`created_at`/`origin_trace_ids` are deliberately NOT in the MERGE
+        # unless there is something to write: MERGE preserves fields it OMITS, not
+        # fields it names. Naming status='active' here re-opened every converged
+        # goal on every re-run (fetch_open_goals grew monotonically).
+        if origin_trace_ids:
+            payload["origin_trace_ids"] = origin_trace_ids
         # Parameter-free literal via json.dumps — the unbound-$param trap is
         # structurally impossible here (2026-08-30: kanban writes silently
         # ERR'd because of an unbound $TS piped to /dev/null).
-        # Idempotent: re-running the pipeline re-synthesizes the same
-        # content-derived goal_id; UPSERT MERGE (not CONTENT) preserves any
-        # status transitions an executor made between runs.
-        self._sql(f"UPSERT goal:`{record_id}` MERGE {json.dumps(payload)};")
+        # Idempotent: re-running the pipeline re-synthesizes the same content-derived
+        # goal_id. The MERGE omits status; the second statement seeds 'active' ONLY
+        # when the record has no status yet, so a converged goal stays converged.
+        self._sql(
+            f"UPSERT goal:`{record_id}` MERGE {json.dumps(payload)};"
+            f" UPDATE goal:`{record_id}` SET created_at = created_at ?? "
+            f"'{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}'; "
+            f"UPDATE goal:`{record_id}` SET status = 'active' WHERE status = NONE;"
+        )
         return f"goal:`{record_id}`"
 
     def persist_loop_result(self, result: AutonomousGoalLoopResult[Any]) -> str:
@@ -317,6 +367,8 @@ class DurableSurrealGoalPersistence:
             "final_metric": result.final_metric,
             "target_metric": result.goal.target_metric,
             "target_threshold": result.goal.target_threshold,
+            # Without polarity a stored `converged` flag cannot be re-derived.
+            "direction": result.goal.direction,
             "total_time_ms": result.total_time_ms,
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
@@ -324,6 +376,22 @@ class DurableSurrealGoalPersistence:
             payload["memory_as_plans"] = result.memory_as_plans.to_dict()
         self._sql(f"CREATE loop_trace:`{record_id}` CONTENT {json.dumps(payload)};")
         return f"loop_trace:`{record_id}`"
+
+    def mark_goal_converged(self, goal: GoalSpecification, final_metric: float) -> str:
+        """Flip a goal out of the open set once its loop has converged.
+
+        This terminates the cross-run loop. ``persist_goal`` no longer names
+        ``status`` in its MERGE, so a later re-synthesis of the same content-derived
+        goal_id cannot reset this back to 'active'.
+        """
+        record_id = goal.goal_id
+        payload = {
+            "status": "converged",
+            "final_metric": final_metric,
+            "converged_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        self._sql(f"UPSERT goal:`{record_id}` MERGE {json.dumps(payload)};")
+        return f"goal:`{record_id}`"
 
     def fetch_open_goals(self, limit: int = 20) -> list[dict[str, Any]]:
         rows = self._sql(f"SELECT * FROM goal WHERE status = 'active' LIMIT {int(limit)};")
@@ -362,19 +430,13 @@ class AutonomousGoalExecutor:
             dt_step = round((time.perf_counter() - t_step) * 1000, 3)
 
             is_met = (
-                verifier_fn(metric_val)
-                if verifier_fn
-                else (
-                    metric_val <= self.goal.target_threshold
-                    if self.goal.target_metric == "error_rate"
-                    else metric_val >= self.goal.target_threshold
-                )
+                verifier_fn(metric_val) if verifier_fn else self.goal.is_satisfied_by(metric_val)
             )
 
             # Compute progress p_t in [0.0, 1.0] (MaP-WAM progress modeling)
             if progress_fn:
                 p_t = max(0.0, min(1.0, float(progress_fn(next_state, metric_val))))
-            elif self.goal.target_metric == "error_rate":
+            elif self.goal.direction == "at_most":
                 if metric_val <= self.goal.target_threshold:
                     p_t = 1.0
                 else:
@@ -452,12 +514,20 @@ class TraceGoalRefactorPipeline:
         trace_events: list[dict[str, Any]],
         trace_ids: list[str] | None = None,
         step_fn: Callable[[int, Any], tuple[Any, float, str]] | None = None,
+        verifier_fn: Callable[[float], bool] | None = None,
+        max_iterations: int | None = None,
     ) -> tuple[GoalSpecification | None, AutonomousGoalLoopResult[Any] | None]:
         """Synthesize + execute + persist a goal from a raw trace.
 
         ``step_fn`` maps (iteration, state) -> (state, metric, action). If the
-        caller provides no verifier the goal threshold comparison is used.
-        Returns (goal, result); goal is None when the trace is not actionable.
+        caller provides no ``verifier_fn`` the goal's polarity-aware
+        ``is_satisfied_by`` is used. Returns (goal, result); goal is None when the
+        trace is not actionable.
+
+        ``max_iterations`` overrides the synthesized budget for THIS run. A real
+        caller passes 1: re-measuring an unchanged system N times in one process
+        yields N identical readings. The loop closes across invocations and is
+        terminated by the convergence status flip.
         """
         goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(trace_events)
         if goal is None:
@@ -468,10 +538,15 @@ class TraceGoalRefactorPipeline:
                 f"an actionable trace needs a step_fn to execute the loop (goal: {goal.title})"
             )
 
+        if max_iterations is not None:
+            goal = replace(goal, max_iterations=max_iterations)
+
         executor = AutonomousGoalExecutor(goal)
         result: AutonomousGoalLoopResult[Any] = asyncio.run(
-            executor.execute_loop(initial_state={}, step_fn=step_fn)
+            executor.execute_loop(initial_state={}, step_fn=step_fn, verifier_fn=verifier_fn)
         )
         self._persistence.persist_goal(goal, origin_trace_ids=trace_ids)
         self._persistence.persist_loop_result(result)
+        if result.converged:
+            self._persistence.mark_goal_converged(goal, result.final_metric)
         return goal, result
