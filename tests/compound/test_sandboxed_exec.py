@@ -198,3 +198,39 @@ def test_symbolic_executor_lazy_sympy_paths_still_work():
     failed = ex.execute("result = 1/0\n")
     assert not failed["success"] and "Traceback" in failed["traceback"]
     assert "ZeroDivisionError" in failed["error"]
+
+
+# --- ported from the dropped subprocess_sandbox tests (only what was not already covered) -------
+
+
+def test_subclasses_gadget_chain_reaches_os_but_payload_is_contained(tmp_path):
+    """The ``().__class__.__bases__[0].__subclasses__()`` hop is NOT refused by the allow-list
+    (pure attribute walk); the claim is that the process boundary contains the payload."""
+    marker = tmp_path / "gadget_marker"
+    gadget = (
+        "target = None\n"
+        "for c in ().__class__.__bases__[0].__subclasses__():\n"
+        "    if c.__module__ == 'os' and 'system' in c.__init__.__globals__:\n"
+        "        target = c\n"
+        "        break\n"
+        "reached = target is not None\n"
+        f"target.__init__.__globals__['system']('echo pwned > {marker}')\n"
+    )
+    r = run_untrusted(gadget, collect=True)
+    assert not marker.exists(), "gadget payload wrote a file on the host -- containment failed"
+    assert r.isolation in {"rlimit", "bwrap+rlimit"}
+
+
+def test_cpu_bomb_is_capped_promptly():
+    start = time.monotonic()
+    r = run_untrusted("while True:\n    pass\n", collect=True, timeout_s=1)
+    assert not r.ok
+    assert time.monotonic() - start < 4.0
+
+
+def test_isolation_label_never_overclaims():
+    """'bwrap+rlimit' is reported iff the live bwrap probe actually succeeded here."""
+    r = run_untrusted("x = 1\n", collect=True)
+    assert r.ok, r.error
+    expected = "bwrap+rlimit" if sandboxed_exec._bwrap_prefix() else "rlimit"
+    assert r.isolation == expected

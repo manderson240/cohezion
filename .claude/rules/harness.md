@@ -35,9 +35,9 @@ was green only because tests exercised the easy paths. Corrections (all committe
   `SkillRefinerFactory.create()._regression_run_fn is not None`. No-op until golden fixtures populated
   (bootstrap from JourneyTracker traces = follow-on).
 - **OPEN (documented, not yet fixed):** M2 — CR1 `_recompute_tier_at_compaction` has no caller (wire to
-  `vector_pruning.should_compact()`). H5 — `exec(llm_code, {"np": np})` in symbolic_executor.py:60 /
-  agi_reasoning.py:86 / aimo_reasoning.py:115 has NO `__builtins__` → real RCE; fix = explicit
-  allow-list builtins + out-of-process (bubblewrap/nsjail) for the durable fix. **Separate security track.**
+  `vector_pruning.should_compact()`). H5 status (LANDED, see tests/compound/test_sandboxed_exec.py, tests/security/test_h5_exec_gate.py, tests/compound/test_exec_gate_sites.py):
+  out-of-process `sandboxed_exec.run_untrusted` is wired at agi_reasoning / aimo_reasoning / symbolic_executor / llm_fallback (bwrap `--unshare-all` when available; else rlimit floor NOFILE=3/NPROC=0/FSIZE=0/AS/CPU — it RUNS, does not refuse, when bwrap is absent); in-process `safe_exec` gate retained as defense in depth with `gate_refusal` diagnostics; CI gate `scripts/ci/unrestricted_exec_scan.py`.
+  `agent/unified_harness._python_tool` + Kaggle `arc_prize{,_2}/submission.py` deliberately excluded (arbitrary-Python contract); branch agent-1789419784 pending user policy.
 
 ## Verification Commands
 
