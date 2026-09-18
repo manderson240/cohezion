@@ -1,0 +1,248 @@
+{
+ "autonomous_loop": [
+  {
+   "actions": [
+    "execute_loop",
+    "execute_loop",
+    "execute_loop",
+    "verify_subgoal",
+    "execute_loop",
+    "verify_subgoal"
+   ],
+   "converged": true,
+   "cycle_pattern": "direct_execution",
+   "exit_predicate": "converged == true",
+   "id": "autonomous_loop:loop_2333b3fe7ff2",
+   "is_livelock": false,
+   "is_progressive": true,
+   "iteration_count": 3,
+   "metadata": {
+    "event_count": 6,
+    "segment_intent": "Resolve: R1: dormancy_scan --self-test not gated in ci.yml/automerge_guard.sh -- a scanner regression is invisible at landing tim"
+   },
+   "progress_delta": 1.0
+  }
+ ],
+ "doctor_goal": [
+  {
+   "code": "G1",
+   "date": "2026-09-04",
+   "id": "doctor_goal:g1_context",
+   "measured": "56.4k -> 33.6k",
+   "session": "tranquil-swinging-falcon",
+   "status": "met",
+   "target": "always-loaded guidance <= 34k est tokens in cohezion",
+   "title": "Context weight"
+  }
+ ],
+ "doctor_loop": [
+  {
+   "code": "L10",
+   "date": "2026-09-04",
+   "goal": "convert an idle overnight window into verified findings without unattended risk",
+   "id": "doctor_loop:l10_night_shift",
+   "note": "self-terminated honestly at firings 11-13",
+   "ran": 13,
+   "rung": 4,
+   "session": "tranquil-swinging-falcon",
+   "stop": "backlog exhausted, declared in one line, no invented scope",
+   "title": "night-shift meta-loop",
+   "verify": "exactly one item per firing AND every hard limit respected AND the appended entry names its control"
+  }
+ ],
+ "kaggle_goal": [
+  {
+   "created_at": "2026-09-04T16:47:45.315281408Z",
+   "goal": "every relayed number carries MEASURED/INFERRED/UNKNOWN AND its sample size",
+   "id": "kaggle_goal:AG1_claim_integrity",
+   "lane": "audit",
+   "note": "labels present in the report body; n=7 dropped from the 15-line summary - the lane's one real defect",
+   "status": "partially_met"
+  },
+  {
+   "competition": "kaggriculture",
+   "created_at": "2026-09-02T20:26:52.255059137Z",
+   "deadline": "2026-09-30",
+   "goal": "PIVOT RULE FIRED: v1 gate satisfied by v4/v4c5/v4macro yet rank 3700/7601; leader 3001.5 vs our ~790 = 3.8x. G1v2 = either a re-derived instrument with a measured link to ladder rating (L10), or deprioritise. Do NOT run a twelfth cycle on the old gate.",
+   "id": "kaggle_goal:G1_kaggriculture",
+   "status": "re-scoped"
+  }
+ ],
+ "kaggle_loop": [
+  {
+   "active": true,
+   "created_at": "2026-09-16T16:00:00-04:00",
+   "cron_job_id": "9495c7ad8c1f",
+   "id": "kaggle_loop:arc2_v8_verify",
+   "schedule": "once_in_12h",
+   "verify_tool": "kaggle competitions submissions"
+  },
+  {
+   "cadence": "per candidate",
+   "created_at": "2026-09-02T20:26:52.252801311Z",
+   "demoted_reason": "v2: VERIFY satisfied by v4macro (0 defects/1232 games) yet indistinguishable on ladder; gate has no term linked to scored outcome",
+   "goal": "candidate passes zero-defect counters, fresh-file check, single-CPU timing, paired matrix vs LIVE file + panel",
+   "id": "kaggle_loop:sept_build_gate",
+   "impl": "kaggriculture/harness.py; one fresh agent per cycle with pointer brief",
+   "name": "L2 build-and-gate (per candidate)",
+   "rung": 2,
+   "skills": [
+    "compound-build",
+    "falsifiable-eval-harness",
+    "benchmark-experiment-design",
+    "calibrated-fix-verification-protocol",
+    "agent-claim-verification",
+    "xfail-strict-bug-bridge-pattern"
+   ],
+   "spec": "vault references/kaggle-september-loops.md",
+   "stop_when": "verify passes or 3 candidates fail no-regression (pivot: change class)",
+   "verify": "counters 0 AND check-submission DONE both seats AND worst turn < 0.5s AND head-to-head vs live CI>0 AND no panel cell < -2SEM"
+  }
+ ],
+ "kg_goal": [
+  {
+   "id": "kg_goal:cosmology_hiho_emergence",
+   "status": "converged",
+   "title": "10-Step Cosmogony & HIHO Reality Precipitation"
+  }
+ ],
+ "metrics_goal": [
+  {
+   "date": "2026-09-04",
+   "doc": "references/inference-metrics-loops.md",
+   "id": "metrics_goal:mg1_serene_metrics_20260904",
+   "name": ":13305 telemetry consumed",
+   "session": "serene-weaving-cerf/metrics-researcher",
+   "status": "NOT STARTED",
+   "target": "per-model /metrics deltas in SurrealDB every 60s, >=24h retention, one consumer"
+  }
+ ],
+ "metrics_loop": [
+  {
+   "date": "2026-09-04",
+   "doc": "references/inference-metrics-loops.md",
+   "goal": "no claim about a running service enters a deliverable unless re-measured through the consumer path this session",
+   "id": "metrics_loop:ml1_serene_metrics_20260904",
+   "name": "live-surface probe before citing",
+   "rung": 3,
+   "session": "serene-weaving-cerf/metrics-researcher",
+   "skill": "skills/probe-live-surface-and-label/SKILL.md",
+   "updated": "2026-09-05",
+   "yield": "falsified 08-27 no-cross-request-cache claim (14.3% live); routing_decisions_total=0 discovered"
+  }
+ ],
+ "quadrature_nexus_goal": [
+  {
+   "created_at": "2026-09-04T16:52:35.940590783Z",
+   "goal": "any 4-voice deliberation with divergence_score > 0.3 is rejected regardless of whether the weighted mean clears 0.85",
+   "id": "quadrature_nexus_goal:G1_divergence_gated_consensus",
+   "note": "discriminating test [1.0,1.0,1.0,0.55] mean 0.8875 proves a mean-only impl would incorrectly ratify",
+   "status": "met"
+  }
+ ],
+ "quadrature_nexus_loop": [
+  {
+   "cadence": "per governance mechanism change",
+   "created_at": "2026-09-04T16:52:26.751889843Z",
+   "goal": "a new consensus/threshold mechanism ships with a test that a plausible WRONG implementation would fail",
+   "id": "quadrature_nexus_loop:l1_discriminating_gate",
+   "lane": "governance",
+   "name": "L1 discriminating-test-first gate change",
+   "note": "divergence gate: [1.0,1.0,1.0,0.55] mean 0.8875 clears 0.85 but must be rejected for spread 0.45 > 0.3",
+   "rung": 2,
+   "spec": "vault reports/20260904-quadrature-nexus-phase5-loops-and-goals.md",
+   "stop_when": "verify passes, or the mechanism's target behavior cannot be stated in one sentence",
+   "verify": "test_divergence_blocks_even_when_mean_clears_threshold passes AND report states why a mean-only impl would not pass it"
+  }
+ ],
+ "serves": [
+  {
+   "added": "2026-09-04",
+   "id": "serves:0z5jytvw1x7ns9xeu3p9",
+   "in": "kaggle_loop:sept_build_gate",
+   "out": "kaggle_goal:G1_kaggriculture"
+  }
+ ],
+ "smith_goal": [
+  {
+   "completion": "every claim tagged, every CODE claim LIVE/DORMANT with named consumer",
+   "id": "smith_goal:G1",
+   "measured": "9 report sections, zero untagged claims on final self-read",
+   "name": "Provenance completeness",
+   "session": "smith_new_science_archaeology_sep2026",
+   "status": "ACHIEVED"
+  }
+ ],
+ "smith_loop": [
+  {
+   "admission_note": "ran once, no reusable named tool; candidate, not yet admitted per registry rule",
+   "admitted": false,
+   "cadence": "per claim/artifact, once this thread",
+   "goal": "every claim tagged SOURCE/VAULT/DB/CODE/OURS; every CODE claim states LIVE or DORMANT with a named consumer",
+   "id": "smith_loop:L1",
+   "impl": "Read/Bash/grep across src/, vault, SurrealDB curl; no dedicated tool",
+   "name": "provenance archaeology",
+   "rung": 1,
+   "session": "smith_new_science_archaeology_sep2026",
+   "spec": "references/20260905-smith-archaeology-session-loops.md",
+   "stop_when": "verify passes or working budget exhausted (no fixed bound set, recorded as a gap)",
+   "verify": "every claim has exactly one tag AND every CODE claim names a consumer or re-export-only finding AND divergent enumerations listed side-by-side"
+  }
+ ],
+ "twin_goal": [
+  {
+   "created_at": "2026-09-04T16:53:28.252983101Z",
+   "id": "twin_goal:epistemic_coverage",
+   "measured": "48 tags: 14 ESTABLISHED, 8 CONTESTED, 26 FRINGE",
+   "name": "G2 epistemic coverage",
+   "note": "a twin that drops the tag is malfunctioning",
+   "session": "researcher_twin_lenses_sep4_2026",
+   "spec": "vault references/20260904-researcher-twin-session-loops.md",
+   "status": "met",
+   "target": "every claim carries exactly one of ESTABLISHED / CONTESTED / FRINGE; zero untagged"
+  }
+ ],
+ "twin_loop": [
+  {
+   "cadence": "per experimental claim",
+   "created_at": "2026-09-04T16:53:14.493566674Z",
+   "goal": "a claim that has passed four orthogonal lenses with its tag assigned by adjudication, not vote",
+   "id": "twin_loop:adversarial_panel_operation",
+   "impl": "Shoulders proposes (phenomenon, no theory) -> Matsumoto interrogates the signature -> Greenyer demands public raw stream and independent build -> Fleischmann adjudicates the measurement",
+   "lane": "twin-run",
+   "name": "L6 adversarial panel operation",
+   "note": "DESIGNED, NEVER RUN - DO NOT SCHEDULE. The loop that IS the product has never executed against a real claim. Composition rules: Fleischmann x Greenyer is the primary axis (depth vs breadth); Shoulders x Matsumoto is phenomenon vs mechanism; MATSUMOTO x GREENYER MUST NEVER PAIR ALONE (shared pareidolia failure mode, their agreement is correlated error). Convergence is a failure signal - log LOW_INFORMATION and re-run with assigned devils advocate",
+   "rung": 1,
+   "session": "researcher_twin_lenses_sep4_2026",
+   "spec": "vault references/20260904-researcher-twin-session-loops.md",
+   "stop_when": "tag assigned or 2 rounds",
+   "verify": "ESTABLISHED requires Fleischmann concurrence; any two twins can force FRINGE"
+  }
+ ],
+ "verification_goal": [
+  {
+   "actual": "0 errors reached; full harness sweep not done",
+   "date": "2026-09-04",
+   "goal_id": "G2",
+   "id": "verification_goal:49u3kbs240oexajovgme",
+   "name": "zero phantom invariants",
+   "session": "serene-weaving-cerf",
+   "status": "partial",
+   "target": "doc_code_consistency 0 errors AND every Verification line git-show-confirmed on origin/main"
+  }
+ ],
+ "verification_loop": [
+  {
+   "date": "2026-09-04",
+   "goal": "MemAvailable > 20 GB and headroom above the :13305 admission floor before any load",
+   "id": "verification_loop:357hdwq08td5kz71mry2",
+   "loop_id": "L5",
+   "name": "fleet memory guard",
+   "note": "DOES NOT CONVERGE - something reloads faster than unload; ~53 GB anon invisible to agent shell",
+   "rung": 2,
+   "session": "serene-weaving-cerf",
+   "stop_when": "floor met or nothing further safely unloadable",
+   "verify": "MemAvailable above floor AND refused counter not climbing"
+  }
+ ]
+}

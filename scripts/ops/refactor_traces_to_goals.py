@@ -38,12 +38,26 @@ from cohezion.flume.trace_goal_sources import (
     ERROR_RATE_WINDOW,
     MEASUREMENTS,
     GoalDraft,
+    fetch_event_traces,
     scan_traces,
     synthesize_scan,
 )
 
 
 GOAL_DB = "main"
+DEFAULT_SESSION = "trace-goal-loop"
+
+
+def fetch_recent_traces(limit: int, database: str = "main") -> list[dict]:
+    """Newest finding-type event_log rows from ONE database.
+
+    Kept for its live importers (``cohezion ops refactor-traces`` in cli/main.py and
+    ``UnifiedPerpetualLoopDaemon.run_trace_refactor_phase``). New code uses
+    ``trace_goal_sources.scan_traces`` (vault + main + kanban, tagged).
+    """
+    return fetch_event_traces(
+        limit, database, ("SECURITY_VIOLATION", "SYSTEM_HEALTH", "AGENT_COMPLETE")
+    )
 
 
 def _make_step_fn(draft: GoalDraft):
@@ -79,6 +93,12 @@ def main() -> int:
         choices=["main", "vault"],
         help="restrict the scan to ONE event_log database (default: the tagged vault+main "
         "event scan plus open kanban cards)",
+    )
+    parser.add_argument(
+        "--goal-db", default=GOAL_DB, help="database goals/loops/edges are written to"
+    )
+    parser.add_argument(
+        "--session", default=DEFAULT_SESSION, help="session tag written on every row this run adds"
     )
     parser.add_argument(
         "--execute",
@@ -137,7 +157,7 @@ def main() -> int:
         print("\n(dry-run: no writes. Re-run with --execute to persist.)")
         return 0
 
-    persistence = DurableSurrealGoalPersistence(database=GOAL_DB)
+    persistence = DurableSurrealGoalPersistence(database=args.goal_db)
     pipeline = TraceGoalRefactorPipeline(persistence=persistence)
     failures = 0
 
@@ -150,6 +170,9 @@ def main() -> int:
                 step_fn=_make_step_fn(d),
                 max_iterations=1,
                 goal=d.goal,
+                derived_from=d.derived_from,
+                domain="trace",
+                session=args.session,
             )
             if result is None:
                 continue
@@ -164,7 +187,13 @@ def main() -> int:
 
     for d in unmeasurable:
         try:
-            persistence.persist_goal(d.goal, origin_trace_ids=_origin_ids(d))
+            persistence.persist_goal(
+                d.goal,
+                origin_trace_ids=_origin_ids(d),
+                domain="trace",
+                session=args.session,
+                derived_from=d.derived_from,
+            )
             print(f"  recorded (no loop): {d.goal.title}")
         except Exception as exc:
             failures += 1

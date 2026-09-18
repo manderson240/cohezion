@@ -194,7 +194,9 @@ class _FakeSurrealHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length).decode()
-        if "$" not in body and "FAIL" not in body:
+        # DDL legitimately uses the built-in `$value` in ASSERT clauses; DML must be
+        # parameter-free.
+        if ("$" not in body or body.lstrip().startswith("DEFINE")) and "FAIL" not in body:
             # Parameter-free statement — accepted
             payload = [{"result": [{"id": "goal:x", "title": "ok"}], "status": "OK", "time": "1ms"}]
         else:
@@ -816,3 +818,15 @@ def test_cli_dry_run_without_database_flag_yields_a_vault_derived_goal(monkeypat
     out = capsys.readouterr().out
     assert "Stabilize: flaky" in out and "derived_from source_db=vault" in out
     assert "no writes" in out  # dry-run wrote nothing
+
+
+def test_legacy_callers_keep_their_fetch_recent_traces_import(monkeypatch) -> None:
+    """cli/main.py (ops refactor-traces) and the perpetual orchestrator's Phase 5 import
+    `fetch_recent_traces` from the ops script. The P2 rewrite briefly removed it."""
+    from cohezion.flume import trace_goal_sources as src
+
+    cli = _load_ops_cli()
+    seen: list[str] = []
+    monkeypatch.setattr(src, "sql", lambda stmt, db: seen.append(db) or [{"id": "event_log:x"}])
+    rows = cli.fetch_recent_traces(5, database="vault")
+    assert seen == ["vault"] and rows[0]["_source_db"] == "vault"

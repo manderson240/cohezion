@@ -77,7 +77,11 @@ def sql(statement: str, database: str) -> list[Any]:
     for stmt in body:
         if stmt.get("status") == "ERR":
             raise RuntimeError(f"SurrealDB error: {stmt.get('result')}")
-        rows.extend(stmt.get("result") or [])
+        result = stmt.get("result")
+        if isinstance(result, dict):  # INFO FOR ... returns one object, not a row list
+            rows.append(result)
+        else:
+            rows.extend(result or [])
     return rows
 
 

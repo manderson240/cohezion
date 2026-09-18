@@ -17,7 +17,7 @@ import logging
 import time
 import urllib.request
 from collections.abc import Callable
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from typing import Any, Generic, TypeVar
 
 
@@ -26,6 +26,10 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 S = TypeVar("S")
+
+
+def _utc_now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
 def payload_looks_like_failure(payload: dict[str, Any] | None) -> bool:
@@ -73,6 +77,63 @@ class GoalSpecification:
         if self.direction == "at_most":
             return value <= self.target_threshold
         return value >= self.target_threshold
+
+
+@dataclass(frozen=True, slots=True)
+class LoopSpec:
+    """Canonical loop spec -- the fields of the loop-spec template
+    (``references/loop-spec-canonical-template.md``) plus maturation data.
+
+    ``rung`` is the maturation ladder: 0 = never run, 1 = one manual run reliable,
+    2 = a skill/module, 3 = wrapped in a bounded loop, 4 = unattended on a schedule.
+    ``depth`` is a measured loopception depth (None = never measured).
+    """
+
+    name: str
+    goal: str
+    each_iteration: str | None = None
+    verify: str | None = None
+    stop_when: str | None = None
+    bound: int | None = None
+    on_stop: str | None = None
+    rung: int = 0
+    cadence: str | None = None
+    domain: str | None = None
+    session: str | None = None
+    impl: str | None = None
+    lane: str | None = None
+    note: str | None = None
+    depth: int | None = None
+
+
+# One typed edge table for the whole goal/loop graph (the memory graph's `relates_to`
+# shape: nodes + ONE edge table + `domain` as data, not as a table-name prefix).
+GRAPH_EDGE_KINDS = ("pursues", "derived_from", "supersedes", "mirrors")
+GRAPH_SCHEMA_DDL = (
+    "DEFINE TABLE IF NOT EXISTS goal_graph TYPE RELATION SCHEMALESS; "
+    "DEFINE FIELD IF NOT EXISTS kind ON goal_graph TYPE string "
+    f"ASSERT $value IN {json.dumps(list(GRAPH_EDGE_KINDS))}; "
+    "DEFINE FIELD IF NOT EXISTS domain ON goal_graph TYPE option<string>; "
+    "DEFINE FIELD IF NOT EXISTS session ON goal_graph TYPE option<string>; "
+    "DEFINE INDEX IF NOT EXISTS goal_graph_in ON goal_graph FIELDS in; "
+    "DEFINE INDEX IF NOT EXISTS goal_graph_out ON goal_graph FIELDS out; "
+    + "".join(
+        f"DEFINE FIELD IF NOT EXISTS {f} ON {t} TYPE option<{ty}>; "
+        for t in ("goal", "loop")
+        for f, ty in (("domain", "string"), ("session", "string"), ("source_table", "string"))
+    )
+    + "DEFINE FIELD IF NOT EXISTS source_id ON goal TYPE option<string>; "
+    "DEFINE FIELD IF NOT EXISTS source_id ON loop TYPE option<string>; "
+    "DEFINE FIELD IF NOT EXISTS rung ON loop TYPE option<int>; "
+    "DEFINE FIELD IF NOT EXISTS depth ON loop TYPE option<int>;"
+)
+
+
+def record_ref(table: str, key: str) -> str:
+    """Backtick-quoted SurrealQL record id; refuses keys that could break out."""
+    if not key or any(c in key for c in "`\n\r\\"):
+        raise ValueError(f"unsafe record key for {table}: {key!r}")
+    return f"{table}:`{key}`"
 
 
 @dataclass(frozen=True, slots=True)
@@ -311,6 +372,7 @@ class DurableSurrealGoalPersistence:
         timeout: float = 5.0,
     ) -> None:
         self._url = url
+        self._database = database
         self._headers = {
             "Accept": "application/json",
             "surreal-ns": namespace,
@@ -319,6 +381,7 @@ class DurableSurrealGoalPersistence:
             "Content-Type": "text/plain",
         }
         self._timeout = timeout
+        self._graph_ready = False
 
     def _sql(self, statement: str) -> list[Any]:
         """Execute one statement; raise on embedded ERR status (never swallow)."""
@@ -335,7 +398,13 @@ class DurableSurrealGoalPersistence:
         return rows
 
     def persist_goal(
-        self, goal: GoalSpecification, origin_trace_ids: list[str] | None = None
+        self,
+        goal: GoalSpecification,
+        origin_trace_ids: list[str] | None = None,
+        *,
+        domain: str | None = None,
+        session: str | None = None,
+        derived_from: list[dict[str, str]] | None = None,
     ) -> str:
         record_id = goal.goal_id
         payload = {
@@ -351,6 +420,10 @@ class DurableSurrealGoalPersistence:
         # goal on every re-run (fetch_open_goals grew monotonically).
         if origin_trace_ids:
             payload["origin_trace_ids"] = origin_trace_ids
+        if domain:
+            payload["domain"] = domain
+        if session:
+            payload["session"] = session
         # Parameter-free literal via json.dumps — the unbound-$param trap is
         # structurally impossible here (2026-08-30: kanban writes silently
         # ERR'd because of an unbound $TS piped to /dev/null).
@@ -363,7 +436,77 @@ class DurableSurrealGoalPersistence:
             f"'{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}'; "
             f"UPDATE goal:`{record_id}` SET status = 'active' WHERE status = NONE;"
         )
+        for ref in derived_from or []:
+            self.relate(
+                "derived_from",
+                record_ref("goal", record_id),
+                self._trace_rid(ref),
+                domain=domain,
+                session=session,
+                source_db=ref["source_db"],
+                source_table=ref["source_table"],
+                source_id=ref["source_id"],
+            )
         return f"goal:`{record_id}`"
+
+    # -- the graph layer: the ONLY write path for goal / loop / goal_graph ------
+
+    def ensure_graph_schema(self) -> None:
+        """Idempotent DDL for goal_graph and the extended goal/loop node fields."""
+        self._sql(GRAPH_SCHEMA_DDL)
+        self._graph_ready = True
+
+    def upsert_node(self, table: str, key: str, fields: dict[str, Any]) -> str:
+        """UPSERT MERGE a node by deterministic id (idempotent; None values dropped)."""
+        rid = record_ref(table, key)
+        clean = {k: v for k, v in fields.items() if v is not None}
+        self._sql(f"UPSERT {rid} MERGE {json.dumps(clean, default=str)};")
+        return rid
+
+    def relate(self, kind: str, in_rid: str, out_rid: str, **fields: Any) -> str:
+        """Idempotent typed edge in ``goal_graph`` (deterministic id per kind|in|out)."""
+        if kind not in GRAPH_EDGE_KINDS:
+            raise ValueError(f"unknown goal_graph kind {kind!r}")
+        if not self._graph_ready:  # INSERT into an undefined table would mint a non-RELATION one
+            self.ensure_graph_schema()
+        edge_id = hashlib.sha256(f"{kind}|{in_rid}|{out_rid}".encode()).hexdigest()[:20]
+        body = {k: v for k, v in fields.items() if v is not None}
+        body["kind"] = kind
+        assigns = ", ".join(f"{k} = {json.dumps(v, default=str)}" for k, v in body.items())
+        self._sql(
+            f"INSERT RELATION INTO goal_graph {{id: goal_graph:`{edge_id}`, in: {in_rid}, "
+            f"out: {out_rid}, {', '.join(f'{k}: {json.dumps(v, default=str)}' for k, v in body.items())}}}"
+            f" ON DUPLICATE KEY UPDATE {assigns};"
+        )
+        return f"goal_graph:`{edge_id}`"
+
+    def _trace_rid(self, ref: dict[str, str]) -> str:
+        """A derived_from target. SurrealDB ids do not span databases: a trace row in
+        THIS database is a real record id; one from another database is a `trace_ref`
+        placeholder whose identity lives in the edge's source_db/source_id fields."""
+        table, _, key = ref["source_id"].partition(":")
+        key = key.strip("\u27e8\u27e9`")
+        if ref["source_db"] == self._database and key:
+            return record_ref(table, key)
+        return record_ref("trace_ref", f"{ref['source_db']}|{ref['source_id']}")
+
+    def persist_loop(
+        self, spec: LoopSpec, goal_id: str | None = None, key: str | None = None
+    ) -> str:
+        """Write a ``loop`` node (+ a ``pursues`` edge to its goal when known)."""
+        if not self._graph_ready:
+            self.ensure_graph_schema()
+        rid = self.upsert_node("loop", key or spec.name, {**asdict(spec), "updated_at": _utc_now()})
+        self._sql(f"UPDATE {rid} SET created_at = created_at ?? '{_utc_now()}';")
+        if goal_id:
+            self.relate(
+                "pursues",
+                rid,
+                record_ref("goal", goal_id),
+                domain=spec.domain,
+                session=spec.session,
+            )
+        return rid
 
     def persist_loop_result(self, result: AutonomousGoalLoopResult[Any]) -> str:
         record_id = f"{result.goal.goal_id}_result_{int(time.time())}"
@@ -525,6 +668,9 @@ class TraceGoalRefactorPipeline:
         verifier_fn: Callable[[float], bool] | None = None,
         max_iterations: int | None = None,
         goal: GoalSpecification | None = None,
+        derived_from: list[dict[str, str]] | None = None,
+        domain: str | None = None,
+        session: str | None = None,
     ) -> tuple[GoalSpecification | None, AutonomousGoalLoopResult[Any] | None]:
         """Synthesize + execute + persist a goal from a raw trace.
 
@@ -559,8 +705,33 @@ class TraceGoalRefactorPipeline:
         result: AutonomousGoalLoopResult[Any] = asyncio.run(
             executor.execute_loop(initial_state={}, step_fn=step_fn, verifier_fn=verifier_fn)
         )
-        self._persistence.persist_goal(goal, origin_trace_ids=trace_ids)
+        self._persistence.persist_goal(
+            goal,
+            origin_trace_ids=trace_ids,
+            domain=domain,
+            session=session,
+            derived_from=derived_from,
+        )
         self._persistence.persist_loop_result(result)
+        # Every executed loop is a row (rung 1: run by hand, observed) in the ONE
+        # loop table, linked to its goal -- not a per-session table.
+        op = "<=" if goal.direction == "at_most" else ">="
+        self._persistence.persist_loop(
+            LoopSpec(
+                name=f"trace-loop:{goal.goal_id}",
+                goal=goal.title,
+                verify=f"{goal.target_metric} {op} {goal.target_threshold}",
+                stop_when="verify passes OR the per-run iteration bound",
+                bound=goal.max_iterations,
+                rung=1,
+                cadence="per ops run (one iteration per invocation)",
+                domain=domain,
+                session=session,
+                impl="scripts/ops/refactor_traces_to_goals.py",
+            ),
+            goal_id=goal.goal_id,
+            key=f"trace_{goal.goal_id}",
+        )
         if result.converged:
             self._persistence.mark_goal_converged(goal, result.final_metric)
         return goal, result

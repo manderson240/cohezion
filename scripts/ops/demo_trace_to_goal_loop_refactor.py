@@ -2,24 +2,14 @@
 """Demonstration and Validation of Refactoring Traces into Goals and Loops."""
 
 import asyncio
-import time
-import httpx
 import numpy as np
 
 from cohezion.flume.loop_goal_refactor_engine import (
+    DurableSurrealGoalPersistence,
     GoalSpecification,
     AutonomousGoalExecutor,
     TraceToLoopTransformer,
 )
-
-SURREAL_URL = "http://localhost:8001/sql"
-SURREAL_HEADERS = {
-    "surreal-ns": "cohezion",
-    "surreal-db": "main",
-    "Authorization": "Basic cm9vdDpyb290",
-    "Content-Type": "text/plain",
-}
-
 
 async def run_refactor_demo():
     print("\n" + "=" * 115)
@@ -88,22 +78,13 @@ async def run_refactor_demo():
 
     # 4. Durable SurrealDB Goal & Loop Trace Persistence
     print("\n▶ [4] Persisting Goal & Execution Loop to SurrealDB...")
-    sql = f"""
-    CREATE goal CONTENT {{
-        goal_id: '{goal.goal_id}',
-        title: '{goal.title}',
-        target_metric: '{goal.target_metric}',
-        target_threshold: {goal.target_threshold},
-        converged: {str(result.converged).lower()},
-        iterations_run: {result.iterations_run},
-        final_metric: {result.final_metric},
-        total_time_ms: {result.total_time_ms},
-        timestamp: '{time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}'
-    }};
-    """
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        r = await client.post(SURREAL_URL, headers=SURREAL_HEADERS, content=sql)
-        print(f"  ✓ Goal Record Persisted to SurrealDB (HTTP {r.status_code})")
+    # ONE write path: the persistence class (ERR-inside-HTTP-200 checked, status-preserving
+    # MERGE). This block used to hand-roll `CREATE goal CONTENT` and read only
+    # r.status_code, which is 200 even when SurrealDB rejects the statement.
+    persistence = DurableSurrealGoalPersistence()
+    goal_rid = persistence.persist_goal(goal, domain="demo", session="demo-trace-refactor")
+    loop_rid = persistence.persist_loop_result(result)
+    print(f"  ✓ Goal persisted: {goal_rid}; loop result persisted: {loop_rid}")
 
     print("\n" + "=" * 115)
     print("🎉 TRACE REFACTORING INTO GOALS & LOOPS COMPLETE AND VERIFIED!\n")
