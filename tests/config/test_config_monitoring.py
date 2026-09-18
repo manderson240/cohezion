@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
-from cohezion.core.event_bus import Event, EventType
+from cohezion.core.event_bus import Event
 from cohezion.core.vault_subscription import VaultEvent
 
 
@@ -479,3 +479,75 @@ class TestConfigEventDelivery:
         )
 
         assert monitor.dropped_events == 0
+
+
+class TestConfigEventDeliveryThroughRealCallers:
+    """Delivery through the production entry points, not a hand-started bus.
+
+    ``_collect_config_events`` starts the bus itself, so it cannot notice if
+    ``ConfigMonitor.start()`` stops starting it, nor if a caller outside the
+    monitor (the orchestrator) publishes without ``await``.
+    """
+
+    @pytest.mark.asyncio
+    async def test_event_emitted_while_monitor_runs_reaches_a_subscriber(
+        self, tmp_path: Path
+    ) -> None:
+        """Fails if ``start()`` does not start the bus: the event is refused."""
+        monitor = ConfigMonitor(tmp_path)
+        received: list[Event] = []
+
+        async def _collector(event: Event) -> None:
+            received.append(event)
+
+        monitor.event_bus.register_handler(_collector)
+
+        async def _connect_and_emit() -> None:
+            await monitor._handle_vault_create(
+                VaultEvent(event_type="file_created", path="decisions/x.md", timestamp="t0")
+            )
+            await asyncio.wait_for(monitor.event_bus._queue.join(), timeout=5)
+
+        async def _idle() -> None:
+            await asyncio.sleep(0)
+
+        with (
+            patch.object(monitor.vault_client, "connect", side_effect=_connect_and_emit),
+            patch.object(monitor, "_monitor_config_files", side_effect=_idle),
+        ):
+            await asyncio.wait_for(monitor.start(), timeout=10)
+
+        assert [e.payload["config_event"] for e in received] == ["VAULT_DECISION_ADDED"]
+        assert monitor.dropped_events == 0
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_archive_event_reaches_a_subscriber(self, tmp_path: Path) -> None:
+        """The orchestrator's own publish site must await (was: dropped coroutine)."""
+        orch = ConfigurationOrchestrator(tmp_path)
+        orch.claude_md.write_text("# x\n")
+        received: list[Event] = []
+
+        async def _collector(event: Event) -> None:
+            received.append(event)
+
+        orch.monitor.event_bus.register_handler(_collector)
+        orch.size_enforcer.check_violations = lambda _p: {"violates": True, "violations": ["x"]}
+        orch.archiver.archive_old_sections = AsyncMock(
+            return_value={"archived": True, "sections_archived": 2}
+        )
+        orch.sync_logger.log_archival = AsyncMock()
+
+        async def _one_cycle(_delay: float) -> None:
+            orch._monitoring = False
+
+        orch._monitoring = True
+        await orch.monitor.event_bus.start()
+        try:
+            with patch("cohezion.config.configuration_orchestrator.asyncio.sleep", _one_cycle):
+                await orch._enforce_size_limits()
+            await asyncio.wait_for(orch.monitor.event_bus._queue.join(), timeout=5)
+        finally:
+            await orch.monitor.event_bus.stop()
+
+        assert [e.payload["config_event"] for e in received] == ["ARCHIVE_TRIGGERED"]
+        assert orch.monitor.dropped_events == 0

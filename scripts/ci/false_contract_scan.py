@@ -62,7 +62,9 @@ PROMISE_TOKENS: dict[str, frozenset[str]] = {
     "persist": frozenset(
         {"persist", "surreal", "client", "db", "store", "save", "write", "upsert", "flush"}
     ),
-    "commit": frozenset({"git", "repo", "commit", "subprocess", "index"}),
+    # "sync_config_file": ConfigSyncEngine's entry point, which owns the write + git commit.
+    # regenerate_and_commit commits by delegating to it (same shape as the `persist` case).
+    "commit": frozenset({"git", "repo", "commit", "subprocess", "index", "sync_config_file"}),
     "publish": frozenset({"bus", "publish", "emit", "event", "broadcast"}),
     "emit": frozenset({"emit", "bus", "event", "publish", "signal"}),
     "register": frozenset({"registry", "register", "add", "record"}),
@@ -267,6 +269,13 @@ class Fabric:
         return self.bridge.persist(mark)
 '''
 
+_FIXTURE_HONEST_DELEGATE_COMMIT = """
+class Orch:
+    async def regenerate_and_commit(self, filename):
+        result = await self.sync_engine.sync_config_file(filename)
+        return bool(result.get("synced"))
+"""
+
 _FIXTURE_HONEST_REFUSAL = '''
 class Orch:
     async def regenerate_and_commit(self, filename):
@@ -310,6 +319,9 @@ def _self_test() -> int:
     # 4c. NEGATIVE CONTROL: an explicit refusal is honest, not a false contract. Without
     #     this the gate stays red on every acknowledged stub and gets switched off.
     expect("honest_refusal", _FIXTURE_HONEST_REFUSAL, False)
+    # 4d. NEGATIVE CONTROL: the commit is delegated to the sync engine (the real
+    #     post-fix shape of regenerate_and_commit).
+    expect("delegate_commit", _FIXTURE_HONEST_DELEGATE_COMMIT, False)
 
     # 5. The precondition that must be able to fail. `producer_consumer_audit.py` was
     #    unlandable because it scored "0 producers / 0 consumers" as VERIFIED — absent

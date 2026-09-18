@@ -397,6 +397,31 @@ class TestOrchestrationWithSync:
         assert result is False
         assert orch.get_metrics()["total_syncs"] == before
 
+    @pytest.mark.asyncio
+    async def test_orchestrator_regenerate_delegates_to_sync_engine(self, tmp_path: Path) -> None:
+        """The verdict comes from ConfigSyncEngine.sync_config_file, not a stub.
+
+        Discriminating both ways: a body that ignores the engine's answer (the old
+        unconditional ``return True``) fails the not-synced case; a body that never
+        calls the engine cannot produce the synced case's counter movement.
+        """
+        from unittest.mock import AsyncMock
+
+        orch = ConfigurationOrchestrator(tmp_path)
+        orch.sync_engine.sync_config_file = AsyncMock(return_value={"synced": False, "details": {}})
+        failures, syncs = orch.config_state.sync_failures, orch.config_state.total_syncs
+
+        assert await orch.regenerate_and_commit("CLAUDE.md", "t") is False
+        assert orch.config_state.sync_failures == failures + 1
+        assert orch.config_state.total_syncs == syncs
+
+        orch.sync_engine.sync_config_file = AsyncMock(
+            return_value={"synced": True, "commit_hash": "abc"}
+        )
+        assert await orch.regenerate_and_commit("CLAUDE.md", "t") is True
+        assert orch.config_state.total_syncs == syncs + 1
+        orch.sync_engine.sync_config_file.assert_awaited_once_with("CLAUDE.md")
+
 
 class TestCommitMessageGeneration:
     """Test AI-style commit message generation."""
