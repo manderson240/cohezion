@@ -210,3 +210,74 @@ def apply_plan(plan: MigrationPlan, persistence: DurableSurrealGoalPersistence) 
             persistence.relate(
                 kind, record_ref(label, key), record_ref("doc_path", b), domain=domain
             )
+
+
+# ---------------------------------------------------------------------------
+# Reader: the production consumer of the graph (R4)
+# ---------------------------------------------------------------------------
+
+_NOT_LINKED_PURSUES_OUT = "(SELECT VALUE out FROM goal_graph WHERE kind = 'pursues')"
+_NOT_LINKED_PURSUES_IN = "(SELECT VALUE in FROM goal_graph WHERE kind = 'pursues')"
+
+
+def graph_status(read: Callable[[str], list[dict[str, Any]]]) -> dict[str, Any]:
+    """Per-domain counts, unlinked goals/loops, rung histogram, newest `mirrors` targets.
+
+    Reads ONLY canonical ``goal`` / ``loop`` nodes and ``goal_graph`` edges -- never a
+    ``<domain>_goal`` / ``<domain>_loop`` table. ``read(statement)`` -> rows.
+    """
+    dom: dict[str, dict[str, int]] = {}
+
+    def bucket(rows: list[dict[str, Any]], key: str) -> None:
+        for r in rows:
+            d = dom.setdefault(str(r["domain"]), {})
+            d[key] = d.get(key, 0) + int(r["n"])
+
+    grp = "WHERE domain != NONE GROUP BY domain"
+    bucket(read(f"SELECT domain, count() AS n FROM goal {grp};"), "goals")
+    bucket(read(f"SELECT domain, count() AS n FROM loop {grp};"), "loops")
+    bucket(
+        read(
+            "SELECT domain, count() AS n FROM goal WHERE domain != NONE "
+            f"AND id NOT IN {_NOT_LINKED_PURSUES_OUT} GROUP BY domain;"
+        ),
+        "goals_without_loops",
+    )
+    bucket(
+        read(
+            "SELECT domain, count() AS n FROM loop WHERE domain != NONE "
+            f"AND id NOT IN {_NOT_LINKED_PURSUES_IN} GROUP BY domain;"
+        ),
+        "loops_without_goals",
+    )
+    return {
+        "domains": dict(sorted(dom.items())),
+        "edges": {
+            str(r["kind"]): int(r["n"])
+            for r in read("SELECT kind, count() AS n FROM goal_graph GROUP BY kind;")
+        },
+        "rungs": {
+            str(r["rung"]): int(r["n"])
+            for r in read("SELECT rung, count() AS n FROM loop WHERE rung != NONE GROUP BY rung;")
+        },
+        "newest_mirrors": [
+            str(r["out"])
+            for r in read(
+                "SELECT out, in.created_at AS at FROM goal_graph WHERE kind = 'mirrors' "
+                "ORDER BY at DESC LIMIT 5;"
+            )
+        ],
+    }
+
+
+def format_status(status: dict[str, Any]) -> str:
+    lines = [f"{'domain':<18}{'goals':>7}{'loops':>7}{'goal-no-loop':>14}{'loop-no-goal':>14}"]
+    for d, c in status["domains"].items():
+        lines.append(
+            f"{d:<18}{c.get('goals', 0):>7}{c.get('loops', 0):>7}"
+            f"{c.get('goals_without_loops', 0):>14}{c.get('loops_without_goals', 0):>14}"
+        )
+    lines.append(f"{len(status['domains'])} domain(s); edges by kind: {status['edges']}")
+    lines.append(f"loop rungs (0 never run .. 4 unattended): {status['rungs']}")
+    lines.append("newest mirrors targets: " + (", ".join(status["newest_mirrors"]) or "(none)"))
+    return "\n".join(lines)

@@ -830,3 +830,68 @@ def test_legacy_callers_keep_their_fetch_recent_traces_import(monkeypatch) -> No
     monkeypatch.setattr(src, "sql", lambda stmt, db: seen.append(db) or [{"id": "event_log:x"}])
     rows = cli.fetch_recent_traces(5, database="vault")
     assert seen == ["vault"] and rows[0]["_source_db"] == "vault"
+
+
+# ---------------------------------------------------------------------------
+# P4 — the reader (R4): --status reads goal_graph + canonical nodes only
+# ---------------------------------------------------------------------------
+
+
+def _fake_graph_reader(statements: list[str]):
+    def read(stmt: str) -> list[dict]:
+        statements.append(stmt)
+        if "FROM goal_graph WHERE kind = 'mirrors'" in stmt:
+            return [{"out": "doc_path:`references/x.md`", "at": "2026-09-04"}]
+        if "FROM goal_graph GROUP BY kind" in stmt:
+            return [{"kind": "pursues", "n": 2}, {"kind": "mirrors", "n": 5}]
+        if "FROM goal WHERE" in stmt and "NOT IN" in stmt:
+            return [{"domain": "alpha", "n": 1}]
+        if "FROM loop WHERE" in stmt and "NOT IN" in stmt:
+            return [{"domain": "beta", "n": 3}]
+        if "FROM goal WHERE" in stmt:
+            return [{"domain": "alpha", "n": 4}, {"domain": "beta", "n": 2}]
+        if "FROM loop WHERE rung" in stmt:
+            return [{"rung": 3, "n": 6}]
+        if "FROM loop WHERE" in stmt:
+            return [{"domain": "alpha", "n": 7}, {"domain": "beta", "n": 8}]
+        return []
+
+    return read
+
+
+def test_status_reads_goal_graph_not_domain_tables() -> None:
+    """R4 mutation target: neutralise the reader (return []) and this goes red.
+
+    The output must be DERIVED from goal_graph + canonical goal/loop rows, and no
+    statement may touch a per-domain `<x>_goal` / `<x>_loop` table.
+    """
+    import re
+
+    from cohezion.flume.goal_graph import format_status, graph_status
+
+    statements: list[str] = []
+    status = graph_status(_fake_graph_reader(statements))
+    out = format_status(status)
+
+    assert status["domains"] == {
+        "alpha": {"goals": 4, "loops": 7, "goals_without_loops": 1},
+        "beta": {"goals": 2, "loops": 8, "loops_without_goals": 3},
+    }
+    assert status["edges"] == {"pursues": 2, "mirrors": 5} and status["rungs"] == {"3": 6}
+    assert "alpha" in out and "2 domain(s)" in out and "references/x.md" in out
+    assert any("FROM goal_graph" in s for s in statements)
+    per_domain = re.compile(r"\b\w+_(?:goal|loop)\b")
+    assert not [s for s in statements if per_domain.search(s)], statements
+
+
+def test_cli_status_prints_the_graph_and_writes_nothing(monkeypatch, capsys) -> None:
+    cli = _load_ops_cli()
+    statements: list[str] = []
+    monkeypatch.setattr(cli, "sql", lambda stmt, db: _fake_graph_reader(statements)(stmt))
+    monkeypatch.setattr("sys.argv", ["refactor_traces_to_goals.py", "--status"])
+    assert cli.main() == 0
+    out = capsys.readouterr().out
+    assert "2 domain(s)" in out and "alpha" in out
+    assert not any(
+        s.lstrip().upper().startswith(("UPSERT", "CREATE", "INSERT", "DELETE")) for s in statements
+    )

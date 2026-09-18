@@ -30,6 +30,7 @@ from typing import Any
 
 sys.path.insert(0, "src")
 
+from cohezion.flume.goal_graph import format_status, graph_status
 from cohezion.flume.loop_goal_refactor_engine import (
     DurableSurrealGoalPersistence,
     TraceGoalRefactorPipeline,
@@ -40,6 +41,7 @@ from cohezion.flume.trace_goal_sources import (
     GoalDraft,
     fetch_event_traces,
     scan_traces,
+    sql,
     synthesize_scan,
 )
 
@@ -101,6 +103,12 @@ def main() -> int:
         "--session", default=DEFAULT_SESSION, help="session tag written on every row this run adds"
     )
     parser.add_argument(
+        "--status",
+        action="store_true",
+        help="print the goal/loop graph (per-domain counts, unlinked goals/loops, rungs, "
+        "newest mirrors) read from goal_graph + canonical nodes; writes nothing",
+    )
+    parser.add_argument(
         "--execute",
         "--persist",
         dest="execute",
@@ -111,6 +119,14 @@ def main() -> int:
         "--dry-run", action="store_true", help="print synthesized goals, write nothing (default)"
     )
     args = parser.parse_args()
+
+    if args.status:
+        try:
+            print(format_status(graph_status(lambda stmt: sql(stmt, args.goal_db))))
+        except Exception as exc:
+            print(f"FAIL: could not read the goal graph in db={args.goal_db}: {exc}")
+            return 1
+        return 0
 
     try:
         traces = scan_traces(args.limit, database=args.database)

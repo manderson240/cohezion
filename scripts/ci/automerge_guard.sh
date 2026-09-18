@@ -206,6 +206,14 @@ step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 step "doc-code self-test" uv run python scripts/ci/doc_code_consistency.py --self-test
 step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 
+# Step 6c-bis-bis: Loop-doc mirror claims. Sibling of the doc-code check: a loop doc's `mirror:` line
+# ("SurrealDB db main -- tables X_loop, X_goal") was a CLAIM, never a row (2026-09-04: docs citing
+# tables with 0 rows). This resolves each cited table to a live row count and FAILS on zero.
+# --self-test FIRST (plants a phantom mirror: RED, then GREEN). Reports UNKNOWN (exit 0) when
+# SurrealDB is unreachable rather than certifying a dead instrument.
+step "loop-doc mirror self-test" uv run python scripts/ci/loop_doc_mirror_check.py --self-test
+step "loop-doc mirror claims" uv run python scripts/ci/loop_doc_mirror_check.py
+
 # Step 6c-ter: Phantom attribute reads — the THIRD sibling. 6c asks "does this capability have a
 # consumer?", 6c-bis asks "do the docs tell the truth?", this asks "does the attribute this code
 # reads actually exist?". Added 2026-08-26 after `getattr(result, "error", "")` in
