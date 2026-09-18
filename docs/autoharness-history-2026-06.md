@@ -130,3 +130,62 @@ DEFERRED (documented backlog, lower value / architectural):
   (`SkillRefiner.__init__` lost its `moe_router` kwarg — MR1/MR4 drift), capability_gap_scan,
   loopception G18 (Manifold/SwarmEnv journey wiring), inference_wiring_n5. Separate cleanup pass.
 
+
+---
+
+## Phantom-invariant post-mortems (moved out of `.claude/rules/harness.md` on 2026-09-18)
+
+Moved verbatim by `/doctor` to cut always-loaded tokens. Each of these described code that
+never existed; the class is now caught mechanically by `scripts/ci/doc_code_consistency.py`
+(E6 cited-test check + W4 symbol check), a blocking gate in `automerge_guard.sh` and CI.
+
+### TR1 (triune temperature): REMOVED 2026-08-14 — was a PHANTOM invariant
+`_TIER_TEMPERATURE` has **zero occurrences** in `triune_orchestrator.py`, and the named
+discriminating test (`test_reasoning_orchestrator_passes_tier_temperatures`) is defined
+nowhere. Fifth phantom overall (RTG1, RGA1/RGA2, MB1, microseism/JEPA per the 2026-08-14
+geometric audit). Found by 9ee8dfba4's E5-hit triage; landed via the 2026-08-14 pick chain.
+
+The MOTIVATION was superseded, not lost: per-model temperature defaults are REAL and live
+as the model-card mechanism — see `src/cohezion/inference/CLAUDE.md` "TR (Triune Recipe)
+Invariants" (2026-07-07): `build_gaia_llm_tier` resolves `model_card_defaults
+.get_sampling_defaults()`, verified by `tests/inference/test_triune_orchestrator.py::
+test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero` (exists, passes).
+**Do NOT re-add `_TIER_TEMPERATURE` without implementing it.**
+
+### MB1 phantom history (the invariant itself was ACTUALLY IMPLEMENTED 2026-08-19 and stays live in harness.md)
+> ⚠ **PHANTOM HISTORY — read before trusting any "Verification" line in this file.**
+> From 2026-06-27 to 2026-08-19 this entry described code that did not exist: `value_bounds`
+> had **zero** occurrences in `src/` on both the working branch and `origin/main`, and zero
+> references in any test. The fifth phantom invariant recorded.
+> The stated verification was worse than fabricated — it was **real, green, and unrelated**:
+> `TestMetricBaseline` genuinely exists and passes, but contains **6 tests, 0 of which
+> reference `value_bounds`** (the entry claimed 12). A command that runs, passes, and proves
+> nothing about the claim is the hardest false verification to catch by reading.
+> **Before trusting an invariant here, grep the field in `src/` and the assertion in `tests/`.**
+
+#### MB1: REMOVED 2026-08-14 — was a PHANTOM invariant (superseded by the 2026-08-19 implementation)
+`value_bounds` has **zero occurrences** anywhere in `src/` or `tests/`; `trend_value()`
+does no clamping of any kind; and the named discriminating test
+(`test_unbounded_metric_can_extrapolate_outside_unit_interval`) does not exist. Same
+class as RTG1 and RGA1/RGA2. Found 2026-08-09 (c7934bcbe), landed via the 2026-08-14
+pick chain together with the E6 cited-test check in
+`scripts/ci/doc_code_consistency.py` — a phantom *symbol* and a phantom *test name*
+are invisible to a path checker, so cited test names are now machine-checked.
+
+**Do NOT re-add without implementing it.** If bounded-metric extrapolation is wanted,
+the principled form is a logit-space fit (project `log(p/(1-p))`, map back through the
+logistic): in-range by construction, saturating rather than wall-clamping. A clamp
+treats the symptom — linear extrapolation is the wrong asymptotic form for a quantity
+confined to a unit interval.
+
+### RTG1: REMOVED 2026-07-22 — was a PHANTOM invariant
+The RTG-decay-floor names (rtg_floor, _rtg_calibration, TestRTGDecayFloor) never existed in src or
+tests (the "10 passed" claim was false); caught by the doc↔code linter (scripts/ci/doc_code_consistency.py).
+Do NOT re-add without actually implementing it + a real discriminating test.
+
+### RiemannianGlideTrajectory Curvature-Induced Anisotropy (#157) — REMOVED 2026-08-27, was a PHANTOM invariant
+The RGA1/RGA2 entries (a `curvature_coupling` field, `anisotropy_tensor()`, and a `12 passed` verification
+of `tests/physics/test_riemannian_glide.py`) arrived via branch `worktree-virtual-soaring-shamir`. The
+doc↔code linter (E6) shows the cited tests were defined in NO revision — not on the branch, not on main —
+and main's `riemannian_glide.py` has no `curvature_coupling` field (W4). Sixth phantom recorded; same
+disposition as RTG1 above. Do NOT re-add without implementing the field + a real discriminating test.
