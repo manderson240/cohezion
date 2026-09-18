@@ -152,7 +152,9 @@ class _PreloadedSourceFinder(importlib.abc.MetaPathFinder, importlib.abc.Loader)
         if spec is None:
             raise ImportError(f"no spec for {module.__name__}")
         origin, source, _ = self._sources[spec.name]
-        exec(compile(source, origin, "exec"), module.__dict__)  # noqa: S102 — trusted package source
+        # unrestricted-exec-ok: trusted package source (preloaded sympy/stdlib), run under NOFILE=3/NPROC=0;
+        # untrusted code goes through safe_exec_globals later in this same child.
+        exec(compile(source, origin, "exec"), module.__dict__)  # noqa: S102
 
 
 def main() -> None:

@@ -148,9 +148,12 @@ def test_dual_loop_legitimate_numpy_helper_verifier_runs():
 
 
 def test_dual_loop_harness_that_raises_does_not_abort_the_cycle():
-    """A verifier that compiles but raises at call time (here: `hasattr`, which the restricted
-    namespace denies) used to crash optimize_cycle. It must degrade to the unharnessed score."""
-    code = "def verify_action(state, action):\n    return hasattr(action, 'x')\n"
+    """A verifier that compiles but hits a GATE REFUSAL at call time (here: `getattr`, which
+    the restricted namespace pins withheld) used to crash optimize_cycle. It must degrade to the
+    unharnessed score and record `gate_refused`. Non-gate errors still propagate (policy: fail
+    open ONLY on gate refusals -- see tests/compound/test_exec_gate_sites.py)."""
+    code = "def verify_action(state, action):\n    return getattr(action, 'x')\n"
     seen, result = _run_cycle(code)
     assert len(seen) == 1 and callable(seen[0])
-    assert result["harnessed_score"] == 1.0  # policy is correct; broken harness must not zero it
+    assert result["harnessed_score"] == 1.0  # policy is correct; refused harness must not zero it
+    assert result["gate_refused"]
