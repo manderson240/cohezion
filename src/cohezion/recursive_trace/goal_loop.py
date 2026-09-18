@@ -94,25 +94,20 @@ class GoalDrivenTraceLoop:
         """Persist directed graph edge to SurrealDB v2 (fail-soft)."""
         if not self.persist_graph:
             return
-        import httpx
+        from cohezion.flume.loop_goal_refactor_engine import DurableSurrealGoalPersistence
 
         try:
             rel = "RESOLVED_BY" if satisfied else "ATTEMPTED"
             clean_goal = "".join(c for c in goal_id if c.isalnum() or c in "_-")
             clean_strat = "".join(c for c in strategy if c.isalnum() or c in "_-")
             clean_fc = "".join(c for c in failure_class if c.isalnum() or c in "_-")
-            sql = f"""
-            USE NS cohezion DB main;
-            LET $g = (UPSERT kg_node:goal_{clean_goal} SET label = '{clean_goal}', type = 'goal');
-            LET $s = (UPSERT kg_node:strategy_{clean_strat} SET label = '{clean_strat}', type = 'strategy');
-            RELATE $g->{rel}->$s SET failure_class = '{clean_fc}', satisfied = {str(bool(satisfied)).lower()}, iteration = {iteration}, timestamp = time::now();
-            """
-            httpx.post(
-                "http://127.0.0.1:8001/sql",
-                headers={"Accept": "application/json"},
-                auth=("root", "root"),
-                content=sql,
-                timeout=1.0,
+            # The spine's persistence class: one host/auth/db, and an embedded ERR now raises
+            # (into the fail-soft handler below) instead of vanishing behind HTTP 200.
+            DurableSurrealGoalPersistence(timeout=1.0).execute(
+                f"LET $g = (UPSERT kg_node:goal_{clean_goal} SET label = '{clean_goal}', type = 'goal'); "
+                f"LET $s = (UPSERT kg_node:strategy_{clean_strat} SET label = '{clean_strat}', type = 'strategy'); "
+                f"RELATE $g->{rel}->$s SET failure_class = '{clean_fc}', "
+                f"satisfied = {str(bool(satisfied)).lower()}, iteration = {iteration}, timestamp = time::now();"
             )
         except Exception as exc:
             logger.debug("SurrealDB graph edge persistence failed (non-blocking): %s", exc)

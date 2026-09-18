@@ -12,12 +12,14 @@ from __future__ import annotations
 import asyncio
 import base64
 import hashlib
+import inspect
 import json
 import logging
 import time
 import urllib.request
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import asdict, dataclass, field, replace
+from enum import Enum
 from typing import Any, Generic, TypeVar
 
 
@@ -26,6 +28,56 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 S = TypeVar("S")
+
+
+# BMAD delivery vocabulary, moved here from compound/goals_and_loops_orchestrator.py (which
+# re-exports it): the spine defines goal/loop vocabulary ONCE. Callers use GoalStatus directly
+# (inter_daemon_loop_nexus, master_codebase_graph_and_loops_expansion, demo_goals_and_loops).
+class GoalStatus(str, Enum):  # noqa: UP042 -- str() must keep "GoalStatus.X" (moved verbatim)
+    PENDING = "pending"
+    ACTIVE = "active"
+    VERIFYING = "verifying"
+    SATISFIED = "satisfied"
+    BLOCKED = "blocked"
+    FAILED = "failed"
+
+
+class LoopStage(str, Enum):  # noqa: UP042 -- moved verbatim
+    PLAN = "team-plan"
+    PRD = "team-prd"
+    TASKBOARD = "taskboard"
+    EXEC = "team-exec"
+    VERIFY = "team-verify"
+    FIX = "team-fix"
+
+
+@dataclass
+class AcceptanceCriterion:
+    """Deterministic acceptance criterion required to satisfy a goal."""
+
+    id: str
+    description: str
+    verifier_fn: Callable[[], bool | Coroutine[Any, Any, bool]] | None = None
+    verified: bool = False
+    evidence: str = ""
+
+    async def execute_verification(self) -> bool:
+        """Dynamically evaluate sync or async verifier callable."""
+        if self.verifier_fn is None:
+            return self.verified
+        try:
+            if inspect.iscoroutinefunction(self.verifier_fn):
+                self.verified = await self.verifier_fn()
+            else:
+                res = self.verifier_fn()
+                if inspect.isawaitable(res):
+                    self.verified = await res
+                else:
+                    self.verified = bool(res)
+        except Exception as exc:
+            self.verified = False
+            self.evidence = f"Verification error: {exc}"
+        return self.verified
 
 
 def _utc_now() -> str:
@@ -450,6 +502,10 @@ class DurableSurrealGoalPersistence:
         return f"goal:`{record_id}`"
 
     # -- the graph layer: the ONLY write path for goal / loop / goal_graph ------
+
+    def execute(self, statement: str) -> list[Any]:
+        """Public ERR-checked statement runner for sibling modules (never a private `_sql`)."""
+        return self._sql(statement)
 
     def ensure_graph_schema(self) -> None:
         """Idempotent DDL for goal_graph and the extended goal/loop node fields."""

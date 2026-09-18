@@ -20,55 +20,13 @@ from typing import Any, Callable, Coroutine
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.contracts import VerificationResult
+from cohezion.flume.loop_goal_refactor_engine import (  # the spine owns the vocabulary
+    AcceptanceCriterion,
+    GoalStatus,
+    LoopStage,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class GoalStatus(str, Enum):
-    PENDING = "pending"
-    ACTIVE = "active"
-    VERIFYING = "verifying"
-    SATISFIED = "satisfied"
-    BLOCKED = "blocked"
-    FAILED = "failed"
-
-
-class LoopStage(str, Enum):
-    PLAN = "team-plan"
-    PRD = "team-prd"
-    TASKBOARD = "taskboard"
-    EXEC = "team-exec"
-    VERIFY = "team-verify"
-    FIX = "team-fix"
-
-
-@dataclass
-class AcceptanceCriterion:
-    """Deterministic acceptance criterion required to satisfy a goal."""
-
-    id: str
-    description: str
-    verifier_fn: Callable[[], bool | Coroutine[Any, Any, bool]] | None = None
-    verified: bool = False
-    evidence: str = ""
-
-    async def execute_verification(self) -> bool:
-        """Dynamically evaluate sync or async verifier callable."""
-        if self.verifier_fn is None:
-            return self.verified
-        try:
-            if inspect.iscoroutinefunction(self.verifier_fn):
-                self.verified = await self.verifier_fn()
-            else:
-                res = self.verifier_fn()
-                if inspect.isawaitable(res):
-                    self.verified = await res
-                else:
-                    self.verified = bool(res)
-        except Exception as exc:
-            self.verified = False
-            self.evidence = f"Verification error: {exc}"
-        return self.verified
 
 
 @dataclass
