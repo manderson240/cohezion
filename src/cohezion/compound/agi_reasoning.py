@@ -86,7 +86,11 @@ class AGIEvaluator:
 
             r = run_untrusted(code, bindings={"np": "numpy"})
             if not r.ok:
-                return False, r.error
+                return False, r.error[:2000]
+            if (
+                r.value is not None
+            ):  # no call=/collect= requested: any value is forged post-exec output
+                return False, "sandbox result failed validation"
             if "predict_action" not in code:
                 return False, "Function predict_action not found."
             return True, "Code compiled."

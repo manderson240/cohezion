@@ -36,14 +36,29 @@ class SymbolicExecutor:
         no file/socket open) and fails closed. Values come back JSON-coerced: sympy integers as
         int, other exact-evaluable expressions as float, the rest as str. Callables are omitted.
         """
-        from cohezion.compound.sandboxed_exec import run_untrusted
+        from cohezion.compound.sandboxed_exec import is_plain_json, run_untrusted
 
         r = run_untrusted(code, collect=True, bindings=self.BINDINGS, timeout_s=self.timeout_s)
         if r.ok:
-            return {"success": True, "results": r.value or {}}
+            # Post-exec output is UNTRUSTED (the child can forge its own result line): accept only
+            # the schema `collect=True` produces -- a bounded dict[str, plain-JSON].
+            if r.value is None:
+                return {"success": True, "results": {}}
+            if isinstance(r.value, dict) and is_plain_json(r.value):
+                return {"success": True, "results": r.value}
+            return {
+                "success": False,
+                "error": "sandbox result failed validation",
+                "traceback": "sandbox result failed validation",
+            }
         # aimo_reasoning feeds `traceback` into its repair prompt; it is the child's real
         # traceback (untrusted frames carry source lines via linecache), not the one-line error.
-        return {"success": False, "error": r.error, "traceback": r.traceback or r.error}
+        # Both are untrusted text; cap the size.
+        return {
+            "success": False,
+            "error": r.error[:2000],
+            "traceback": (r.traceback or r.error)[:4000],
+        }
 
     def execute_command(self, command_str: str) -> dict[str, Any]:
         """

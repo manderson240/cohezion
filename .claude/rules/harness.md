@@ -37,7 +37,10 @@ was green only because tests exercised the easy paths. Corrections (all committe
 - **OPEN (documented, not yet fixed):** M2 — CR1 `_recompute_tier_at_compaction` has no caller (wire to
   `vector_pruning.should_compact()`). H5 status (LANDED, see tests/compound/test_sandboxed_exec.py, tests/security/test_h5_exec_gate.py, tests/compound/test_exec_gate_sites.py):
   out-of-process `sandboxed_exec.run_untrusted` is wired at agi_reasoning / aimo_reasoning / symbolic_executor / llm_fallback (bwrap `--unshare-all` when available; else rlimit floor NOFILE=3/NPROC=0/FSIZE=0/AS/CPU — it RUNS, does not refuse, when bwrap is absent); in-process `safe_exec` gate retained as defense in depth with `gate_refusal` diagnostics; CI gate `scripts/ci/unrestricted_exec_scan.py`.
-  `agent/unified_harness._python_tool` + Kaggle `arc_prize{,_2}/submission.py` deliberately excluded (arbitrary-Python contract); branch agent-1789419784 pending user policy.
+  Rlimit-only floor is availability + speed bump, NOT an FS boundary (path-based os.mkdir/rename/unlink work); bwrap is. Post-exec results are UNTRUSTED (forgeable) — consumers validate; `SandboxResult.stage` marks pre-/post-exec.
+  NOT behind the out-of-process boundary today (deliberate/pending): `agent/unified_harness._python_tool` + Kaggle `arc_prize{,_2}/submission.py` (arbitrary-Python contract; branch agent-1789419784 pending user policy);
+  `competitions/arc/local_qwen_ast_proposer.py:75` (LLM code, in-process `safe_exec_globals` ONLY — has the __subclasses__/os-reach primitive with not even the rlimit floor; next to wire);
+  `agents/factory` + `testing/mutation_tester` (codegen; per a80da6714 first-party stubs — mutation_tester's input provenance not re-verified), `inference/dynamic_model_evaluator.py:208` (in-process; a80da6714 records it as stricter: no `__import__` at all).
 
 ## Verification Commands
 

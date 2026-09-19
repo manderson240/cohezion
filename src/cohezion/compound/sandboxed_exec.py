@@ -21,6 +21,23 @@ is explicit: on a box that refuses subprocesses, LLM solvers return no answer in
 unconfined. That is the intended trade for a prompt-injection -> RCE chain.
 
 Values cross the boundary as JSON only. Never unpickle child output.
+
+CONTRACT — what the rlimit floor does and does NOT contain (measured, not assumed):
+  * The rlimit-only floor (bwrap absent or userns denied) is an AVAILABILITY limit plus a speed
+    bump, NOT a filesystem boundary. NOFILE=3 stops open()/socket(), but PATH-BASED mutation needs
+    no fd: ``os.mkdir/rename/unlink/symlink/rmdir`` through a reachable ``os`` module succeed at
+    absolute paths within the child's UID. On a host without bwrap/userns, untrusted code can
+    write/delete files that UID can. ``bwrap --ro-bind / /`` (``isolation == "bwrap+rlimit"``) is
+    the filesystem boundary; check ``SandboxResult.isolation``.
+  * Other documented gaps: same-UID signals and already-open fds 0-2.
+  * RESULTS PRODUCED AFTER UNTRUSTED CODE HAS EXECUTED ARE UNTRUSTED DATA. The code shares the
+    child process with the result writer and can ``os.write(1, forged_json); os._exit(0)``, so
+    ``ok``/``value``/``error``/``stdout``/``traceback`` may be attacker-chosen (including the text
+    "sandbox refused" or "timeout"). No nonce or extra fd can fix this (the code can reach both).
+    Fail-closed guarantees hold only for PRE-EXECUTION failures (spawn, rlimit, unloadable child):
+    ``SandboxResult.stage == "pre-exec"``. Anything with ``stage == "post-exec"`` must be validated
+    by the consumer (type, shape, size) before use. The stage is derived from a marker the child
+    writes before running user code, so forged output cannot make itself look pre-exec.
 """
 
 from __future__ import annotations
@@ -56,6 +73,28 @@ class SandboxResult:
     stdout: str = ""
     traceback: str = ""
     isolation: str = "none"  # "bwrap+rlimit" | "rlimit" | "none" (never started)
+    stage: str = "pre-exec"  # "pre-exec" (trusted refusal) | "post-exec" (UNTRUSTED data)
+
+
+def is_plain_json(value: Any, *, max_nodes: int = 100_000) -> bool:
+    """True iff ``value`` is a bounded tree of None/bool/int/float/str/list/dict[str,...]."""
+    stack, seen = [value], 0
+    while stack:
+        v = stack.pop()
+        seen += 1
+        if seen > max_nodes:
+            return False
+        if v is None or isinstance(v, (bool, int, float, str)):
+            continue
+        if isinstance(v, list):
+            stack.extend(v)
+        elif isinstance(v, dict):
+            if not all(isinstance(k, str) for k in v):
+                return False
+            stack.extend(v.values())
+        else:
+            return False
+    return True
 
 
 def _python_exec() -> str:
@@ -115,7 +154,7 @@ def _read_bounded(proc: subprocess.Popen, deadline: float) -> tuple[bytes, str]:
             total += len(chunk)
             if total > _MAX_OUTPUT_BYTES:
                 _kill_group(proc)
-                return b"", "output exceeded cap"
+                return b"".join(chunks), "output exceeded cap"
 
 
 def run_untrusted(
@@ -175,15 +214,24 @@ def run_untrusted(
             proc.stdin.close()
         out, failure = _read_bounded(proc, deadline)
         proc.stdout.close()
+        lines = out.decode(errors="replace").strip().splitlines()
+        # The child writes {"armed": true} as its FIRST line, before user code runs. Its presence
+        # (not any later content) is what makes everything else post-exec / untrusted.
+        armed = _is_armed(lines[0]) if lines else False
+        stage = "post-exec" if armed else "pre-exec"
         if failure:
-            return SandboxResult(ok=False, error=failure, isolation=isolation)
+            return SandboxResult(ok=False, error=failure, isolation=isolation, stage=stage)
         rc = proc.wait()
 
-    lines = out.decode(errors="replace").strip().splitlines()
+    result_lines = lines[1:] if armed else lines
     try:
-        data = json.loads(lines[-1])
-    except (IndexError, json.JSONDecodeError):
-        return SandboxResult(ok=False, error=f"no result from child (rc={rc})", isolation=isolation)
+        data = json.loads(result_lines[-1])
+        if not isinstance(data, dict):
+            raise ValueError("result is not an object")
+    except (IndexError, ValueError):
+        return SandboxResult(
+            ok=False, error=f"no result from child (rc={rc})", isolation=isolation, stage=stage
+        )
     return SandboxResult(
         ok=bool(data.get("ok")),
         value=data.get("value"),
@@ -191,4 +239,12 @@ def run_untrusted(
         stdout=str(data.get("stdout", "")),
         traceback=str(data.get("traceback", "")),
         isolation=isolation,
+        stage=stage,
     )
+
+
+def _is_armed(line: str) -> bool:
+    try:
+        return json.loads(line) == {"armed": True}
+    except ValueError:
+        return False

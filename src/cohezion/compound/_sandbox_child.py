@@ -200,6 +200,9 @@ def main() -> None:
         # under NOFILE=3, and "<untrusted>" is not a file anyway).
         src_lines = payload["code"].splitlines(keepends=True)
         linecache.cache["<untrusted>"] = (len(payload["code"]), None, src_lines, "<untrusted>")
+        # Stage marker: written BEFORE untrusted code runs, so the parent can tell pre-exec
+        # refusals (trusted) from anything produced after this line (untrusted data).
+        _emit({"armed": True})
         exec(compile(payload["code"], "<untrusted>", "exec"), g)  # noqa: S102 — the sandboxed exec itself
         value = None
         if payload.get("call"):

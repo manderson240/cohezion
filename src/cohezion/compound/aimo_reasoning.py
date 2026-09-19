@@ -114,7 +114,13 @@ class AIMOScaler:
             from cohezion.compound.sandboxed_exec import run_untrusted
 
             r = run_untrusted(c, bindings={"sympy": "sympy", "np": "numpy"})
-            return (True, "OK") if r.ok else (False, r.error)
+            # No call=/collect= was requested, so a legitimate result carries value None; any
+            # other value is forged post-exec output (untrusted) and is rejected.
+            if r.ok and r.value is None:
+                return (True, "OK")
+            if r.ok:
+                return (False, "sandbox result failed validation")
+            return (False, r.error[:2000])
 
         verifier = await self.harness.synthesize_verifier(env_desc, dummy_env)
         return 1.5 if "def verify_action" in verifier else 1.0
