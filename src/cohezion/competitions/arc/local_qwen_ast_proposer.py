@@ -113,4 +113,4 @@ def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None
     )
     if not r.ok or not _is_grid(r.value):
         return None
-    return r.value
+    return [[int(v) for v in row] for row in r.value]  # concrete grid, not Any

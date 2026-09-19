@@ -245,6 +245,6 @@ def run_untrusted(
 
 def _is_armed(line: str) -> bool:
     try:
-        return json.loads(line) == {"armed": True}
+        return bool(json.loads(line) == {"armed": True})
     except ValueError:
         return False
