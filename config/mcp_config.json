@@ -113,6 +113,13 @@
         "-y",
         "n8n-mcp"
       ]
+    },
+    "kaggle": {
+      "command": "/home/mike-anderson/.local/bin/kaggle-mcp-server",
+      "args": [],
+      "env": {
+        "KAGGLE_CONFIG_DIR": "/home/mike-anderson/.kaggle"
+      }
     }
   }
 }

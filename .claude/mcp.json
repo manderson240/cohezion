@@ -199,6 +199,15 @@
       },
       "name": "cohezion-vault",
       "description": "Cloud vault (Obsidian + knowledge graph)"
+    },
+    "kaggle": {
+      "command": "/home/mike-anderson/.local/bin/kaggle-mcp-server",
+      "args": [],
+      "env": {
+        "KAGGLE_CONFIG_DIR": "/home/mike-anderson/.kaggle"
+      },
+      "name": "kaggle-mcp",
+      "description": "Full-featured Kaggle MCP server (51 tools across competitions, datasets, kernels, models, benchmarks)"
     }
   }
 }
