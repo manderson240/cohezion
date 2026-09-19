@@ -157,3 +157,35 @@ def test_dual_loop_harness_that_raises_does_not_abort_the_cycle():
     assert len(seen) == 1 and callable(seen[0])
     assert result["harnessed_score"] == 1.0  # policy is correct; refused harness must not zero it
     assert result["gate_refused"]
+
+
+# ── proposer: out-of-process containment + result validation (2026-09-19) ─────
+def test_proposer_gadget_payload_is_contained_out_of_process(tmp_path):
+    """The __subclasses__ reach is NOT refused by the allow-list; only a process boundary contains
+    its payload. In-process this wrote the marker (that was the proposer's pre-wiring state)."""
+    marker = tmp_path / "gadget"
+    code = (
+        "t = [c for c in ().__class__.__bases__[0].__subclasses__()"
+        " if c.__module__ == 'os' and 'system' in c.__init__.__globals__][0]\n"
+        f"t.__init__.__globals__['system']('echo x > {marker}')\n"
+        "def transform(grid):\n    return grid\n"
+    )
+    run_proposal(code, _TASK)
+    assert not marker.exists()
+
+
+def test_proposer_rejects_forged_non_grid_result():
+    code = (
+        "import collections\nos = collections._sys.modules['os']\n"
+        'os.write(1, b\'{"ok": true, "value": "FORGED"}\\n\')\nos._exit(0)\n'
+        "def transform(grid):\n    return grid\n"
+    )
+    assert run_proposal(code, _TASK) is None
+
+
+def test_proposer_train_mismatch_returns_none():
+    assert run_proposal("def transform(grid):\n    return [[9]]\n", _TASK) is None
+
+
+def test_proposer_syntax_error_returns_none():
+    assert run_proposal("def transform(grid:\n", _TASK) is None
