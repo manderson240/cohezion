@@ -1,0 +1,42 @@
+{
+  "last_audit": "2026-09-19T00:55:00Z",
+  "invariants": [
+    {
+      "id": "AST_PARSABLE",
+      "target": "src/cohezion/**/*.py",
+      "status": "PASS",
+      "verifier": "AutoHarnessPolicy"
+    },
+    {
+      "id": "NO_EVAL_EXEC",
+      "target": "src/cohezion/**/*.py",
+      "status": "PASS",
+      "verifier": "ZKFVCompiler"
+    },
+    {
+      "id": "PREFLIGHT_FLEET",
+      "target": "scripts/preflight_fleet.sh",
+      "status": "PASS",
+      "metrics": {
+        "available_ram_gib": 28,
+        "ram_floor_gib": 25,
+        "swap_pct": 8,
+        "swap_ceiling_pct": 10,
+        "gtt_gib": 33,
+        "gtt_ceiling_gib": 50
+      }
+    },
+    {
+      "id": "SURREALDB_DUAL_STORE",
+      "target": "http://localhost:8001/sql",
+      "status": "PASS",
+      "records": 145
+    },
+    {
+      "id": "KAGGLE_CODE_SUBMISSIONS",
+      "target": "rsna-knee + biohub",
+      "status": "PENDING_EVALUATION",
+      "active_submissions": [56347892, 56348421]
+    }
+  ]
+}

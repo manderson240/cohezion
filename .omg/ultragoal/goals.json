@@ -1,23 +1,42 @@
 [
   {
-    "id": "goal-1",
-    "description": "Refactor pause_journey and resume_journey in journey_status.py to use a shared async helper _update_journey_state",
+    "id": "goal_675dea9f65f2",
+    "intent": "sovereign_dual_store_memory",
     "status": "completed",
-    "verification_criteria": "journey_status.py refactored successfully",
-    "evidence": "Extracted _update_journey_state helper function and refactored pause_journey and resume_journey paths."
+    "target_metric": "task_success",
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
   },
   {
-    "id": "goal-2",
-    "description": "Verify code quality and run tests",
+    "id": "goal_db13a881c011",
+    "intent": "strix_halo_hardware_resilience",
     "status": "completed",
-    "verification_criteria": "make test-fast returns green",
-    "evidence": "All 1157 tests passed successfully in 30.58 seconds."
+    "target_metric": "task_success",
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
   },
   {
-    "id": "goal-3",
-    "description": "Ensure duplication gate pre-commit check passes",
+    "id": "goal_54eb4feb7f69",
+    "intent": "kaggle_active_competitions_mastery",
     "status": "completed",
-    "verification_criteria": "pre-commit run jscpd-duplication-gate passes",
-    "evidence": "jscpd pre-commit hook check passed cleanly."
+    "target_metric": "task_success",
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_02c61f90a9dd",
+    "intent": "frictionless_hooks_and_memory_refinement",
+    "status": "completed",
+    "target_metric": "task_success",
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_8f989180c2c9",
+    "intent": "proactive_local_silicon_consultation",
+    "status": "completed",
+    "target_metric": "task_success",
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
   }
 ]

@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-09-19T00:55:00Z",
+  "total_entries": 4,
+  "entries": [
+    {
+      "id": "surrealdb-port8001",
+      "title": "SurrealDB Instance Port 8001 & Direct HTTP Fallback",
+      "path": ".omg/memory/surrealdb-port8001.md",
+      "surreal_table": "learning",
+      "surreal_count": 145,
+      "tags": ["persistence", "surrealdb", "port8001"]
+    },
+    {
+      "id": "kaggle-active-tracks",
+      "title": "Kaggle Active Competitions & Submission Governance",
+      "path": ".omg/memory/kaggle-active-tracks.md",
+      "competitions": ["arc-prize-2026", "biohub-cell-tracking-during-development", "rsna-knee-abnormality-detection", "casmi-2026-challenge-biomolecule-identification", "kaggriculture"],
+      "tags": ["kaggle", "leaderboard", "autoharness"]
+    },
+    {
+      "id": "strix-halo-fleet-discipline",
+      "title": "AMD Strix Halo Fleet Discipline & Hardware Sentry",
+      "path": ".omg/memory/strix-halo-fleet-discipline.md",
+      "uma_allocation_gib": 120,
+      "ram_floor_gib": 25,
+      "gtt_ceiling_gib": 50,
+      "tags": ["hardware", "strix-halo", "preflight", "fleet-lock"]
+    },
+    {
+      "id": "autoharness-policy",
+      "title": "AutoHarness Policy & Zero-Cost AST Verification",
+      "path": ".omg/memory/autoharness-policy.md",
+      "arxiv_ref": "arXiv:2603.03329v1",
+      "tags": ["agi", "autoharness", "ast", "zkfv"]
+    }
+  ]
+}

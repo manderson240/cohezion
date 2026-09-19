@@ -1,12 +1,10 @@
-# Duplication Reduction Sprint 2 - Brief
+# Ultragoal Brief: Sovereign Multi-Track Mastery & Architecture Hardening
 
-## Objective
-Deduplicate internal helper functions in `src/cohezion/api/journey_status.py` using jscpd and the oh-my-antigravity (OmA) ultragoal pattern.
+## Core Objective
+Deliver continuous autonomous self-improvement ("Cohezion improving Cohezion") across active Kaggle tracks, local hardware sentry on AMD Strix Halo, dual-store persistence (SurrealDB + Obsidian Vault), and frictionless quality-gated hooks.
 
-## CAPABILITIES & PLUGINS UTILIZED
-1. **Oh-My-Antigravity (OmA)**: The `$ultragoal` playbook manages execution checkpoints.
-2. **jscpd MCP Server**: Identifies copy/paste structures inside `journey_status.py`.
-
-## Architecture Boundaries & Constraints
-- Extract a clean async helper `_update_journey_state` inside `journey_status.py`.
-- Validate functionally with unit tests (`make test-fast`).
+## Invariant Boundaries
+1. **Hardware Floor**: Maintain Available RAM >= 25 GiB, Swap <= 10%, GTT <= 50 GiB.
+2. **Persistence Guarantee**: All learnings, kanban cards, and goals must persist to SurrealDB port 8001 and Obsidian Vault.
+3. **Active Competition Filter**: Exclusively target active competitions (ARC Prize, Biohub, RSNA Knee, CASMI26, Kaggriculture); strictly exclude closed tracks and Pokémon TCG.
+4. **AutoHarness Verification**: Zero unverified actions; zero-cost AST validation before execution.

@@ -1,0 +1,65 @@
+{
+  "enabled": true,
+  "profile": "balanced",
+  "native_events": [
+    "SessionStart",
+    "SessionEnd",
+    "BeforeAgent",
+    "AfterAgent",
+    "BeforeModel",
+    "AfterModel",
+    "BeforeToolSelection",
+    "BeforeTool",
+    "AfterTool",
+    "PreCompress",
+    "Notification"
+  ],
+  "derived_signals": {
+    "context-drift": true,
+    "risk-spike": true,
+    "loop-stall": true,
+    "token-burst": false,
+    "blocker-repeat": true,
+    "agent-blocked": true,
+    "agent-finished-early": true,
+    "stage-transition": true,
+    "pre-verify": true,
+    "post-verify": true,
+    "checkpoint-save": true,
+    "blocker-raised": true
+  },
+  "lanes": {
+    "P0-safety": {
+      "timeout_ms": 400,
+      "debounce_ms": 0,
+      "fail_policy": "closed",
+      "description": "Critical permission, hardware and invariant guardrails"
+    },
+    "P1-quality": {
+      "timeout_ms": 800,
+      "debounce_ms": 200,
+      "fail_policy": "warn",
+      "description": "AutoHarness AST verification, dual-store sync, and test suites"
+    },
+    "P2-optimization": {
+      "timeout_ms": 600,
+      "debounce_ms": 500,
+      "fail_policy": "open",
+      "description": "Context compaction, caching, and background metrics"
+    }
+  },
+  "lifecycle_policy": {
+    "before_after_symmetry": true,
+    "continuation_reenters_safety_lane": true,
+    "terminal_states": ["completed", "blocked", "stopped"]
+  },
+  "runtime_controls": {
+    "hook_profile_env": "OMG_HOOK_PROFILE=minimal|balanced|strict",
+    "disabled_hooks_env": "OMG_DISABLED_HOOKS=learn,model-routing",
+    "plans_dir_env": "GEMINI_PLANS_DIR when provided by Gemini CLI"
+  },
+  "team_safety": {
+    "disable_side_effects_for_worker_sessions": true
+  },
+  "source": "oma:hooks"
+}
