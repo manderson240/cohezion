@@ -179,7 +179,7 @@ def main() -> None:
 
     bank = build_bank(args.limit)
     print(f"bank: {len(bank)} (nominal passes, mutant fails) tasks", file=sys.stderr)
-    out = open(args.out, "a") if args.out else None
+    out = open(args.out, "a") if args.out else None  # noqa: SIM115 -- closed in finally below
     summary = {}
     for model in args.models:
         lane = build_gaia_llm_tier(model_id=model, max_tokens=args.max_tokens)
@@ -190,6 +190,8 @@ def main() -> None:
             row = {"model": model, **{k: item[k] for k in ("task", "site", "mutant")}, **r}
             print(json.dumps(row), file=out or sys.stdout, flush=True)
         summary[model] = (wins, len(bank))
+    if out:
+        out.close()
     for m, (w, n) in summary.items():
         print(f"{m}: {w}/{n} = {w / n:.2f}" if n else f"{m}: no tasks", file=sys.stderr)
 
