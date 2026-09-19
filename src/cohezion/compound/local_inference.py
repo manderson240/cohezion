@@ -275,14 +275,19 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
             # tokens_output=1) with no error key -- indistinguishable from a model that
             # answered with an empty string. The caller can only pull the string if it can
             # see that nothing ran.
-            if result.error or not (result.text or "").strip():
+            # Type-guarded: OrchestrationResult.error is `str | None`; test doubles are loose
+            # MagicMocks whose unset attributes are truthy, so truthiness alone misfires.
+            err = getattr(result, "error", None)
+            err = err if isinstance(err, str) and err else None
+            text = result.text if isinstance(result.text, str) else ""
+            if err or not text.strip():
                 logger.warning(
                     "Local cascade exhausted (escalations=%d): %s",
                     result.escalation_count,
-                    result.error or "empty output",
+                    err or "empty output",
                 )
                 return "", {
-                    "error": result.error or "cascade exhausted: empty output",
+                    "error": err or "cascade exhausted: empty output",
                     "gate_miss": True,
                     "model": model,
                     "escalation_count": result.escalation_count,
