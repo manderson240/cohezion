@@ -189,3 +189,22 @@ def test_proposer_train_mismatch_returns_none():
 
 def test_proposer_syntax_error_returns_none():
     assert run_proposal("def transform(grid:\n", _TASK) is None
+
+
+def test_proposer_non_syntax_parse_failures_return_none():
+    assert run_proposal("\x00", _TASK) is None  # ast.parse raises ValueError, not SyntaxError
+    assert run_proposal("(" * 100000 + ")" * 100000, _TASK) is None
+
+
+def test_proposer_out_of_spec_grid_rejected():
+    """A result outside the ARC spec (cell > 9 here) is rejected even though it is a list of ints."""
+    assert (
+        run_proposal("def transform(grid):\n    return [[99]] if grid == [[3]] else grid\n", _TASK)
+        is None
+    )
+    assert (
+        run_proposal(
+            "def transform(grid):\n    return [[3] * 31] if grid == [[3]] else grid\n", _TASK
+        )
+        is None
+    )

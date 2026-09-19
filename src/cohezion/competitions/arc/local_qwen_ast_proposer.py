@@ -76,8 +76,16 @@ def _cz_run(task):
 
 
 def _is_grid(value: Any) -> bool:
-    return isinstance(value, list) and all(
-        isinstance(r, list) and all(type(v) is int for v in r) for r in value
+    """ARC spec bounds (≤30×30, cells 0–9): a forged or runaway result is rejected here, not later."""
+    return (
+        isinstance(value, list)
+        and 0 < len(value) <= 30
+        and all(
+            isinstance(r, list)
+            and 0 < len(r) <= 30
+            and all(type(v) is int and 0 <= v <= 9 for v in r)
+            for r in value
+        )
     )
 
 
@@ -89,10 +97,14 @@ def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None
     floor). ``run_untrusted`` applies kernel rlimits (+bwrap when available) and fails closed. The
     result is post-exec UNTRUSTED data (the child can forge it), so only a grid of ints is accepted —
     which is all a proposal can legitimately produce, and all its consumers compare or submit.
+    Train-pair verification runs in the child and is therefore a QUALITY filter the proposal
+    could skip by forging its result line; it is not a security control (the proposal already
+    controls its own answer by writing ``transform``), so nothing depends on it for safety.
     """
     try:
         ast.parse(code_str)
-    except SyntaxError:
+    except (SyntaxError, ValueError, RecursionError, MemoryError):
+        # ValueError: null bytes; RecursionError/MemoryError: pathological nesting. Named, not bare.
         return None
     from cohezion.compound.sandboxed_exec import run_untrusted
 
