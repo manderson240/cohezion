@@ -1,29 +1,57 @@
 {
   "aligned_competitions": [
-    "gemma-4-good-hackathon",
+    "arc-prize-2026-arc-agi-2",
+    "arc-prize-2026-arc-agi-3",
     "arc-prize-2026-paper-track",
-    "sei-ai-accelathon"
+    "enveda-CASMI26-molecule-id-mass-spectra",
+    "rsna-knee-abnormality-detection",
+    "biohub-cell-tracking-during-development",
+    "kaggriculture"
   ],
   "rankings": [
     {
       "name": "arc-prize-2026-paper-track",
-      "ev": 3317.0,
+      "ev": 1052.0,
       "prize": 450000,
-      "teams": 29
+      "teams": 193
     },
     {
-      "name": "gemma-4-good-hackathon",
-      "ev": 1321.0,
-      "prize": 200000,
-      "teams": 109
+      "name": "arc-prize-2026-arc-agi-2",
+      "ev": 129.0,
+      "prize": 700000,
+      "teams": 2083
     },
     {
-      "name": "sei-ai-accelathon",
-      "ev": 350.0,
-      "prize": 1000000,
-      "teams": 200
+      "name": "arc-prize-2026-arc-agi-3",
+      "ev": 47.0,
+      "prize": 850000,
+      "teams": 3148
+    },
+    {
+      "name": "enveda-CASMI26-molecule-id-mass-spectra",
+      "ev": 46.0,
+      "prize": 50000,
+      "teams": 744
+    },
+    {
+      "name": "rsna-knee-abnormality-detection",
+      "ev": 13.0,
+      "prize": 77000,
+      "teams": 3968
+    },
+    {
+      "name": "biohub-cell-tracking-during-development",
+      "ev": 13.0,
+      "prize": 60000,
+      "teams": 3697
+    },
+    {
+      "name": "kaggriculture",
+      "ev": 4.0,
+      "prize": 50000,
+      "teams": 9479
     }
   ],
   "recommendation": "arc-prize-2026-paper-track",
-  "recommendation_ev": 3317.0
+  "recommendation_ev": 1052.0
 }

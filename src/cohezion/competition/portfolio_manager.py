@@ -8,49 +8,67 @@ from typing import Any
 
 COMPETITIONS = [
     {
-        "name": "gemma-4-good-hackathon",
-        "prize_usd": 200_000,
-        "teams": 109,
-        "deadline_weeks": 3,
-        "alignment_with_skills": 0.8,  # we have gemma, compound loop, social good
-        "effort_weeks": 1,
-        "match_with_stack": 0.9,  # our infrastructure
-    },
-    {
         "name": "arc-prize-2026-arc-agi-2",
         "prize_usd": 700_000,
-        "teams": 448,
-        "deadline_weeks": 28,
-        "alignment_with_skills": 0.3,  # low: eval tasks resist our primitives
-        "effort_weeks": 12,
-        "match_with_stack": 0.4,
-    },
-    {
-        "name": "arc-prize-2026-paper-track",
-        "prize_usd": 450_000,
-        "teams": 29,
-        "deadline_weeks": 28,
-        "alignment_with_skills": 0.9,  # high: our compound loop is novel research
-        "effort_weeks": 4,
-        "match_with_stack": 0.95,
+        "teams": 2083,
+        "deadline_weeks": 6,
+        "alignment_with_skills": 0.85,
+        "effort_weeks": 2,
+        "match_with_stack": 0.90,
     },
     {
         "name": "arc-prize-2026-arc-agi-3",
         "prize_usd": 850_000,
-        "teams": 594,
-        "deadline_weeks": 28,
-        "alignment_with_skills": 0.2,
-        "effort_weeks": 16,
-        "match_with_stack": 0.3,
+        "teams": 3148,
+        "deadline_weeks": 6,
+        "alignment_with_skills": 0.70,
+        "effort_weeks": 3,
+        "match_with_stack": 0.75,
     },
     {
-        "name": "sei-ai-accelathon",
-        "prize_usd": 1_000_000,
-        "teams": 200,  # estimated
-        "deadline_weeks": 18,
-        "alignment_with_skills": 0.6,  # MCP tooling track matches our infra
-        "effort_weeks": 6,
-        "match_with_stack": 0.7,
+        "name": "arc-prize-2026-paper-track",
+        "prize_usd": 450_000,
+        "teams": 193,
+        "deadline_weeks": 7,
+        "alignment_with_skills": 0.95,
+        "effort_weeks": 2,
+        "match_with_stack": 0.95,
+    },
+    {
+        "name": "enveda-CASMI26-molecule-id-mass-spectra",
+        "prize_usd": 50_000,
+        "teams": 744,
+        "deadline_weeks": 12,
+        "alignment_with_skills": 0.80,
+        "effort_weeks": 1,
+        "match_with_stack": 0.85,
+    },
+    {
+        "name": "rsna-knee-abnormality-detection",
+        "prize_usd": 77_000,
+        "teams": 3968,
+        "deadline_weeks": 5,
+        "alignment_with_skills": 0.80,
+        "effort_weeks": 1,
+        "match_with_stack": 0.85,
+    },
+    {
+        "name": "biohub-cell-tracking-during-development",
+        "prize_usd": 60_000,
+        "teams": 3697,
+        "deadline_weeks": 1,
+        "alignment_with_skills": 0.90,
+        "effort_weeks": 1,
+        "match_with_stack": 0.90,
+    },
+    {
+        "name": "kaggriculture",
+        "prize_usd": 50_000,
+        "teams": 9479,
+        "deadline_weeks": 2,
+        "alignment_with_skills": 0.85,
+        "effort_weeks": 1,
+        "match_with_stack": 0.90,
     },
 ]
 
@@ -113,9 +131,11 @@ def main() -> dict[str, Any]:
         "recommendation_ev": round(expected_value(best), 0),
     }
 
-    with open("competition_portfolio.json", "w") as f:
+    from pathlib import Path
+    out_path = Path(__file__).parent / "competition_portfolio.json"
+    with open(out_path, "w") as f:
         json.dump(result, f, indent=2)
-    print("Saved portfolio analysis to competition_portfolio.json")
+    print(f"Saved portfolio analysis to {out_path}")
     return result
 
 
