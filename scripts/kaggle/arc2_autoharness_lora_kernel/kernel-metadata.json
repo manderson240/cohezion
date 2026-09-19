@@ -23,5 +23,5 @@
   "model_sources": [
     "sorokin/qwen3_4b_grids15_sft139/Transformers/bfloat16/1"
   ],
-  "machine_shape": "NvidiaL4"
+  "machine_shape": "NvidiaL4x4"
 }

@@ -1,0 +1,27 @@
+{
+  "id": "manderson240/casmi26-analog-baseline-fork-cohezion",
+  "id_no": 134731267,
+  "title": "CASMI26 analog baseline fork (Cohezion)",
+  "code_file": "casmi26-analog-baseline-fork-cohezion.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "keywords": [],
+  "dataset_sources": [
+    "prvsiyan/casmi26-fp-models-v2",
+    "prvsiyan/casmi26-ranker-features",
+    "prvsiyan/chebi-lipidmaps-casmi26",
+    "prvsiyan/coconut-casmi26-candidates",
+    "prvsiyan/rdkit-wheel-offline"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [
+    "enveda-CASMI26-molecule-id-mass-spectra"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-images/python@sha256:dafd4ce5668bbf1ad422e4c109e0f18c9623c3a7c7f48b0235f13142755c40b9",
+  "machine_shape": "None"
+}
