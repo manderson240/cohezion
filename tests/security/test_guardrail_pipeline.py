@@ -1,5 +1,7 @@
 """Tests for guardrail pipeline orchestration."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from cohezion.security.guardrail_adapters import (
@@ -16,6 +18,25 @@ from cohezion.security.guardrail_factory import (
     create_strict_pipeline,
 )
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
+
+
+@pytest.fixture(autouse=True)
+def _resources_available():
+    """ResourceGuard reads live psutil via get_resource_monitor(); on a box idling at ~84% RAM
+    (the local fleet resident) the 90% ceiling is crossed by ordinary load, so these tests
+    failed 5/5, 1/3, 0/4 across identical runs (2026-09-19). Mock at source; the one
+    un-mocked probe is `test_resource_guard_live_probe` (marked integration)."""
+    monitor = MagicMock()
+    monitor.get_stats.return_value = {
+        "cpu_percent": 12.0,
+        "memory_percent": 55.0,
+        "available_memory_gb": 48.0,
+        "total_memory_gb": 122.0,
+        "used_memory_gb": 67.0,
+    }
+    monitor.should_rent.return_value = True
+    with patch("cohezion.security.guardrail_adapters.get_resource_monitor", return_value=monitor):
+        yield monitor
 
 
 class TestGuardrailAdapters:

@@ -269,6 +269,27 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
                 orch.run(prompt, min_tier_index=min_tier_index, gate_chars=gate_chars)
             )
             model = result.final_model or ""
+            # Quarter-on-a-string §2: an exhausted cascade (every tier failed its gate, or
+            # returned nothing) is a GENUINE gate miss and must be reported as one. Measured
+            # 2026-09-19: three 503 admission refusals came back as ("", cost_usd=0.0,
+            # tokens_output=1) with no error key -- indistinguishable from a model that
+            # answered with an empty string. The caller can only pull the string if it can
+            # see that nothing ran.
+            if result.error or not (result.text or "").strip():
+                logger.warning(
+                    "Local cascade exhausted (escalations=%d): %s",
+                    result.escalation_count,
+                    result.error or "empty output",
+                )
+                return "", {
+                    "error": result.error or "cascade exhausted: empty output",
+                    "gate_miss": True,
+                    "model": model,
+                    "escalation_count": result.escalation_count,
+                    "cost_usd": result.cost_usd,
+                    "local_silicon": not _is_cloud_model(model),
+                    "tokens_output": 0,
+                }
 
             # --- Token accounting ---
             record = get_session_token_record()
