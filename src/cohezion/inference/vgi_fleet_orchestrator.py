@@ -41,9 +41,11 @@ logger = logging.getLogger(__name__)
 ACTIVE_COMPETITIONS: list[str] = [
     "arc-prize-2026-arc-agi-3",
     "arc-prize-2026-arc-agi-2",
+    "arc-prize-2026-paper-track",
     "rsna-knee-abnormality-detection",
     "biohub-cell-tracking-during-development",
     "kaggriculture",
+    "enveda-CASMI26-molecule-id-mass-spectra",
 ]
 # NOTE: "pokemon-tcg-pocket-skill-challenge" is strictly excluded per user mandate.
 
