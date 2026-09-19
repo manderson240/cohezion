@@ -175,6 +175,7 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--out", default=None)
     ap.add_argument("--max-tokens", type=int, default=1500)
+    ap.add_argument("--no-think", action="store_true", help="disable thinking on Qwen-family lanes")
     args = ap.parse_args()
 
     bank = build_bank(args.limit)
@@ -182,7 +183,15 @@ def main() -> None:
     out = open(args.out, "a") if args.out else None  # noqa: SIM115 -- closed in finally below
     summary = {}
     for model in args.models:
-        lane = build_gaia_llm_tier(model_id=model, max_tokens=args.max_tokens)
+        extra: dict = {}
+        if args.no_think and any(k in model.lower() for k in ("phai", "qwen")):
+            # Qwen3.5-family (incl. the PhAI-IDE fine-tunes) reasons into reasoning_content and
+            # truncates before answering at any sane budget: measured 101 s / finish=length /
+            # content=0 with thinking vs 8 s / 35 tokens / correct with it off (2026-09-19).
+            extra["chat_template_kwargs"] = {"enable_thinking": False}
+        lane = build_gaia_llm_tier(
+            model_id=model, max_tokens=args.max_tokens, request_extras=extra or None
+        )
         wins = 0
         for item in bank:
             r = asyncio.run(solve(lane, item))

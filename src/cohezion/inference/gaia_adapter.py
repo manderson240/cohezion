@@ -445,8 +445,15 @@ def build_gaia_llm_tier(
     max_tokens: int = 512,
     temperature: float | None = None,
     silent: bool = True,
+    request_extras: dict[str, Any] | None = None,
 ) -> GaiaAgentTier:
     """Wrap GAIA's ``LemonadeClient`` as a tier — the supported GAIA path (0.19.0+).
+
+    ``request_extras`` is merged into the request payload AFTER the model-card defaults, so a
+    caller can set per-lane request fields the card does not know about — e.g.
+    ``{"chat_template_kwargs": {"enable_thinking": False}}`` for a Qwen3.5-family lane
+    (measured 2026-09-19: PhAI-IDE-4B answered a repair in 8 s / 35 tokens with thinking off
+    vs 101 s / finish=length / empty content with it on).
 
     Prefer this over :func:`build_gaia_native_tier`. Points at the existing fleet
     (router :13305) so GAIA does NOT spawn a second lemonade (OOM-safe on the shared box).
@@ -490,6 +497,8 @@ def build_gaia_llm_tier(
     # _LocalRouterClient payload. setdefault is defensive — card defaults never set it today.
     if _is_llamacpp_thinking_model(model_id):
         extra_sampling.setdefault("reasoning_format", "none")
+    if request_extras:
+        extra_sampling = {**extra_sampling, **request_extras}  # caller wins over the card
 
     client = client_factory(base_url=base_url, model=model_id, verbose=not silent)
     shim = _GaiaLLMClientShim(
