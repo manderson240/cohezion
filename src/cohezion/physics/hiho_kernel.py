@@ -28,7 +28,15 @@ __all__ = ["bernoulli_fisher_information", "hiho_kernel"]
 
 
 def hiho_kernel(x: float) -> float:
-    """``4 x (1 - x)``. Peak 1.0 at 0.5; 0.0 at 0 and 1; symmetric: k(x) == k(1 - x)."""
+    """``4 x (1 - x)`` on ``[0, 1]``. Peak 1.0 at 0.5; 0.0 at 0 and 1; symmetric: k(x) == k(1 - x).
+
+    Domain-checked (2026-09-20, found by the local scientific-rigor lens with the falsifier
+    ``hiho_kernel(-0.1) -> -0.44``): a coherence kernel that returns a negative "coherence"
+    for an out-of-range input would let a caller's clamp bug through silently. Every
+    consumer clamps first (``GreekParameters.update``); this makes the contract explicit.
+    """
+    if not 0.0 <= x <= 1.0:
+        raise ValueError(f"hiho_kernel is defined on [0, 1]; got {x!r}")
     return 4.0 * x * (1.0 - x)
 
 

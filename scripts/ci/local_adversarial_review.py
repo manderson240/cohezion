@@ -133,7 +133,10 @@ def _extract_json(text: str) -> dict | None:
     m = re.search(r"\{.*\}", text, re.S)
     if not m:
         return None
-    for candidate in (m.group(0), text):
+    # Third attempt: local models put RAW newlines inside string values (Gemma-4-31B did, first
+    # live run) -- invalid JSON, but structurally intact; newlines outside strings are whitespace,
+    # so flattening them is lossless for the object and recovers the lane instead of UNKNOWN.
+    for candidate in (m.group(0), text, m.group(0).replace("\n", " ")):
         try:
             obj = json.loads(candidate)
             return obj if isinstance(obj, dict) else None
@@ -189,15 +192,20 @@ def run_lane(lens: str, diff: str) -> LaneResult:
     model, hunt = LENSES[lens]
     prompt = _prompt(lens, hunt, diff)
     t0 = time.time()
-    try:
-        text = _ask(model, prompt)
-        res = parse_lane(lens, model, text, time.time() - t0)
-        if res.verdict == "UNKNOWN":  # one retry, JSON-only nudge
-            text = _ask(model, prompt + "\n\nREMINDER: output the JSON object only.")
+    last_exc: Exception | None = None
+    for attempt in range(2):  # a 404/503 during a model swap on :13305 is transient (measured)
+        try:
+            text = _ask(model, prompt)
             res = parse_lane(lens, model, text, time.time() - t0)
-        return res
-    except Exception as exc:  # lane down is UNKNOWN, never a pass
-        return LaneResult(lens, model, "UNKNOWN", [], time.time() - t0, f"lane error: {exc}")
+            if res.verdict == "UNKNOWN":  # one retry, JSON-only nudge
+                text = _ask(model, prompt + "\n\nREMINDER: output the JSON object only.")
+                res = parse_lane(lens, model, text, time.time() - t0)
+            return res
+        except Exception as exc:  # lane down is UNKNOWN, never a pass
+            last_exc = exc
+            if attempt == 0:
+                time.sleep(30)
+    return LaneResult(lens, model, "UNKNOWN", [], time.time() - t0, f"lane error: {last_exc}")
 
 
 _ALLOWED_PREFIXES = (
@@ -240,7 +248,10 @@ def run_falsifier(cmd: str) -> tuple[str, str]:
             cwd=REPO_ROOT,
             timeout=FALSIFIER_TIMEOUT_S,
         )
-        tail = "\n".join((p.stdout + p.stderr).splitlines()[-20:])
+        # drop import-time logger chatter so the evidence shows the falsifier's answer
+        noise = ("Registered model provider", "Vault is locked", "[DBA]")
+        lines = [ln for ln in (p.stdout + p.stderr).splitlines() if not any(n in ln for n in noise)]
+        tail = "\n".join(lines[-20:])
         return "evidence-attached", f"$ {c}\n[exit {p.returncode}]\n{tail}"
     except subprocess.TimeoutExpired:
         return "falsifier-failed", f"$ {c}\n[timeout {FALSIFIER_TIMEOUT_S}s]"

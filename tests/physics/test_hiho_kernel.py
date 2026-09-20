@@ -28,7 +28,10 @@ def _fisher_from_score(p: float, h: float = 1e-6) -> float:
     """I(p) = E[(d/dp log P(X|p))^2] for X ~ Bernoulli(p), by finite-difference score."""
     total = 0.0
     for x, prob in ((1, p), (0, 1.0 - p)):
-        lp = lambda q: math.log(q if x == 1 else 1.0 - q)  # noqa: E731
+
+        def lp(q: float, x: int = x) -> float:
+            return math.log(q if x == 1 else 1.0 - q)
+
         score = (lp(p + h) - lp(p - h)) / (2 * h)
         total += prob * score * score
     return total
@@ -41,6 +44,13 @@ def test_kernel_is_four_over_the_fisher_information_measured(p):
     fisher = _fisher_from_score(p)
     assert fisher == pytest.approx(bernoulli_fisher_information(p), rel=1e-5)
     assert hiho_kernel(p) == pytest.approx(4.0 / fisher, rel=1e-5)
+
+
+@pytest.mark.parametrize("bad", [-0.1, 1.1, -1e-9, 1.0000001])
+def test_kernel_rejects_inputs_outside_the_unit_interval(bad):
+    """Found by the local scientific-rigor lens (falsifier: hiho_kernel(-0.1) == -0.44)."""
+    with pytest.raises(ValueError, match=r"\[0, 1\]"):
+        hiho_kernel(bad)
 
 
 def test_fisher_information_rejects_the_closed_endpoints():
