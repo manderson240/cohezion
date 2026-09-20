@@ -37,7 +37,7 @@ SURREAL_DB = "vault"
 VAULT_EVO_DIR = Path.home() / "vaults" / "cohezion-vault" / "EVOs"
 
 
-def _surreal_query(sql: str) -> dict:
+def _surreal_query(sql: str) -> list[dict[str, Any]]:
     req = urllib.request.Request(
         SURREAL_URL,
         data=sql.encode(),

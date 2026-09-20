@@ -91,10 +91,9 @@ class LearnabilityCurriculumEngine:
                 if resp.status == 200:
                     from cohezion.storage.surreal_http import checked_statements
 
-                    data = checked_statements(
+                    return checked_statements(
                         json.loads(resp.read().decode("utf-8")), status_code=resp.status
                     )
-                    return cast("list[dict[str, Any]]", data)
         except Exception as e:
             logger.warning("SurrealDB query failed: %s", e)
         return []
