@@ -241,6 +241,12 @@ step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
 step "surreal-http self-test" uv run python scripts/ci/surreal_http_scan.py --self-test
 step "surreal-http scan" uv run python scripts/ci/surreal_http_scan.py
 
+# Step 6c-decies (ADVISORY): local multi-lens adversarial review of the landing range --
+# three lenses on three model families via :13305 ($0). Prose is UNKNOWN, never approval;
+# each finding carries a falsifier the script runs. Advisory because the router may be
+# down or busy; the report in ~/vaults/cohezion-vault/reviews/ is what the human reads.
+step_advisory "local multi-lens adversarial review" .venv/bin/python3 scripts/ci/local_adversarial_review.py --range "$(git merge-base HEAD origin/main 2>/dev/null || echo HEAD~1)..HEAD"
+
 # Step 6c-nonies: Declared-field scan — "does the writer persist what the model DECLARES?"
 # TrajectoryPoint declared `action` for 3 months while its CREATE never wrote it (21,635 rows,
 # NULL on all); four more fields the same way. AST: dataclass fields vs the attribute refs that

@@ -174,6 +174,17 @@ When you have a PR ready to merge, follow this sequence:
    Read the report at `/tmp/opencode/reviews/pr_<PR_NUMBER>_review.md`.
    Fix any findings before proceeding.
 
+   For a range landing with no PR (the fast-forward flow), run the LOCAL multi-lens review
+   instead -- three lenses (scientific-rigor, edge-case-hunter, security) on three model
+   families, all on `:13305`, $0; each finding carries a falsifier command the script RUNS
+   and attaches as evidence; prose is recorded as UNKNOWN, never as approval:
+   ```bash
+   .venv/bin/python3 scripts/ci/local_adversarial_review.py --range origin/main..HEAD
+   ```
+   Report lands in `~/vaults/cohezion-vault/reviews/`. Converged findings (two lanes, same
+   file, within 5 lines) are the strongest signal; a single lane's finding is a hypothesis
+   to check against its attached evidence, not a verdict. Added 2026-09-20.
+
 3. **Run automerge guard** (all CI gates locally, then merge if green):
    ```bash
    bash scripts/ci/automerge_guard.sh <PR_NUMBER>
