@@ -103,15 +103,21 @@ def _persist_points(recorder: TrajectoryRecorder) -> None:
 async def _async_persist(recorder: TrajectoryRecorder) -> None:
     """Write trajectory points to SurrealDB ``journey_transitions``."""
     try:
-        from cohezion.persistence.genesis_persistence import store_journey_transition
+        from cohezion.persistence.genesis_persistence import persist_journey_transition
 
-        for pt in recorder.points:
-            await store_journey_transition(
+        # Until 2026-09-20 this imported `store_journey_transition`, which the module never
+        # defined; the ImportError was swallowed below, so no trajectory was ever persisted
+        # and the promised journey_transitions table never came into existence.
+        pts = recorder.points
+        for i, pt in enumerate(pts):
+            nxt = pts[i + 1].state_12d if i + 1 < len(pts) else pt.state_12d
+            await persist_journey_transition(
                 journey_id=recorder.trajectory_id,
-                state=pt.state_12d.tolist(),
-                action=pt.action_description,
+                step=i,
+                state_12d=pt.state_12d,
+                next_state_12d=nxt,
                 reward=pt.reward,
-                next_state=pt.state_12d.tolist(),
+                action=pt.action_description,
                 metadata={
                     "domain": pt.domain,
                     "agent_id": recorder.agent_id,

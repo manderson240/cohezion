@@ -40,7 +40,6 @@ src/cohezion/mcp/loop_mcp.py
 src/cohezion/memory/surreal_graph.py
 src/cohezion/memory/surreal_vector_store.py
 src/cohezion/ops/control_plane.py
-src/cohezion/persistence/genesis_persistence.py
 src/cohezion/physics/anomaly_quarantine.py
 src/cohezion/recursive_trace/goal_loop.py
 src/cohezion/reliability/leaf_harness.py

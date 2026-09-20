@@ -31,48 +31,41 @@ SURREAL_PASS = "root"
 
 
 async def _execute_surql(query: str) -> list[dict[str, Any]] | None:
-    """Execute SurrealQL via HTTP API (async-safe with httpx fallback to urllib)."""
+    """Execute SurrealQL via HTTP API; None when the DB did not do what was asked.
+
+    SurrealDB answers HTTP 200 with ``status: "ERR"`` per statement. Until 2026-09-20 this
+    returned that body unchanged and every ``persist_*`` here reported ``True`` on it. The
+    verdict is now READ through ``checked_statements``; an ERR becomes None, which the
+    callers already treat as failure.
+    """
+    from cohezion.storage.surreal_http import SurrealQLError, checked_statements
+
+    headers = {"Accept": "application/json", "surreal-ns": SURREAL_NS, "surreal-db": SURREAL_DB}
     try:
-        import httpx
-
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                SURREAL_URL,
-                content=query,
-                headers={
-                    "Accept": "application/json",
-                    "surreal-ns": SURREAL_NS,
-                    "surreal-db": SURREAL_DB,
-                },
-                auth=(SURREAL_USER, SURREAL_PASS),
-                timeout=10.0,
-            )
-            if resp.status_code == 200:
-                return cast("list[dict[str, Any]]", resp.json())
-    except ImportError:
-        # Fallback to synchronous urllib
-        import urllib.request
-
-        req = urllib.request.Request(
-            SURREAL_URL,
-            data=query.encode(),
-            headers={
-                "Accept": "application/json",
-                "surreal-ns": SURREAL_NS,
-                "surreal-db": SURREAL_DB,
-                "Content-Type": "application/json",
-            },
-        )
-        # Add basic auth
-        import base64
-
-        credentials = base64.b64encode(f"{SURREAL_USER}:{SURREAL_PASS}".encode()).decode()
-        req.add_header("Authorization", f"Basic {credentials}")
         try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                return cast("list[dict[str, Any]]", json.loads(resp.read()))
-        except Exception as e:
-            logger.debug("SurrealDB fallback failed: %s", e)
+            import httpx
+
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    SURREAL_URL,
+                    content=query,
+                    headers=headers,
+                    auth=(SURREAL_USER, SURREAL_PASS),
+                    timeout=10.0,
+                )
+            return checked_statements(resp.json(), status_code=resp.status_code, text=resp.text)
+        except ImportError:
+            # Fallback to synchronous urllib
+            import base64
+            import urllib.request
+
+            req = urllib.request.Request(SURREAL_URL, data=query.encode(), headers=headers)
+            credentials = base64.b64encode(f"{SURREAL_USER}:{SURREAL_PASS}".encode()).decode()
+            req.add_header("Authorization", f"Basic {credentials}")
+            with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310 -- localhost only
+                return checked_statements(json.loads(resp.read()))
+    except SurrealQLError as e:
+        logger.warning("SurrealDB statement failed: %s", str(e)[:200])
     except Exception as e:
         logger.debug("SurrealDB write failed: %s", e)
     return None
@@ -99,6 +92,17 @@ def _to_surql_value(v: Any) -> str:
     return str(v)
 
 
+def _json_safe(d: dict[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for k, v in d.items():
+        try:
+            json.dumps(v)
+        except (TypeError, ValueError):
+            continue
+        out[k] = v
+    return out
+
+
 async def persist_journey_transition(
     journey_id: str,
     step: int,
@@ -106,8 +110,15 @@ async def persist_journey_transition(
     next_state_12d: np.ndarray,
     reward: float,
     spinor_bloch: np.ndarray | None = None,
+    action: str = "",
+    metadata: dict[str, Any] | None = None,
 ) -> bool:
-    """Persist a single (state, action, next_state, reward) transition."""
+    """Persist a single (state, action, next_state, reward) transition.
+
+    ``action``/``metadata`` added 2026-09-20 so ``flume.trajectory_capture`` -- the only
+    intended caller, which had been importing a name this module never defined -- can
+    persist what it records. JSON-safe metadata only; the rest is dropped, not crashed.
+    """
     step_id = f"{journey_id}_{step}_{uuid4().hex[:8]}"
 
     bloch = spinor_bloch.tolist() if spinor_bloch is not None else [0.0, 0.0, 0.0]
@@ -120,7 +131,9 @@ async def persist_journey_transition(
         f"state_12d = {_to_surql_value(state_12d)}, "
         f"next_state_12d = {_to_surql_value(next_state_12d)}, "
         f"reward = {_to_surql_value(reward)}, "
-        f"spinor_bloch = {_to_surql_value(bloch)};"
+        f"spinor_bloch = {_to_surql_value(bloch)}, "
+        f"action = {json.dumps(action or '')}, "
+        f"metadata = {json.dumps(_json_safe(metadata or {}))};"
     )
 
     result = await _execute_surql(query)
