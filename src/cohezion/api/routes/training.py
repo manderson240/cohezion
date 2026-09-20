@@ -38,7 +38,9 @@ async def _surreal_query(sql: str) -> list[dict[str, Any]]:
                 headers=SURREAL_HEADERS,
                 timeout=5.0,
             )
-            data = resp.json()
+            from cohezion.storage.surreal_http import checked_statements
+
+            data = checked_statements(resp.json(), status_code=resp.status_code, text=resp.text)
             if data and data[0].get("status") == "OK":
                 return data[0].get("result", [])
     except Exception as e:

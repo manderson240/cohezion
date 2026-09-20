@@ -333,7 +333,9 @@ async def _surql(query: str) -> list[dict]:
         )
         if resp.status_code != 200:
             raise RuntimeError(f"SurrealDB HTTP {resp.status_code}: {resp.text[:200]}")
-        return resp.json()
+        from cohezion.storage.surreal_http import checked_statements
+
+        return checked_statements(resp.json(), status_code=resp.status_code, text=resp.text)
 
 
 async def persist_to_surrealdb(latents: dict[str, torch.Tensor]) -> list[dict]:

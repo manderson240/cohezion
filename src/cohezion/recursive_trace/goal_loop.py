@@ -107,15 +107,20 @@ class GoalDrivenTraceLoop:
             LET $s = (UPSERT kg_node:strategy_{clean_strat} SET label = '{clean_strat}', type = 'strategy');
             RELATE $g->{rel}->$s SET failure_class = '{clean_fc}', satisfied = {str(bool(satisfied)).lower()}, iteration = {iteration}, timestamp = time::now();
             """
-            httpx.post(
+            from cohezion.storage.surreal_http import checked_statements
+
+            resp = httpx.post(
                 "http://127.0.0.1:8001/sql",
                 headers={"Accept": "application/json"},
                 auth=("root", "root"),
                 content=sql,
                 timeout=1.0,
             )
+            checked_statements(resp.json(), status_code=resp.status_code, text=resp.text)
         except Exception as exc:
-            logger.debug("SurrealDB graph edge persistence failed (non-blocking): %s", exc)
+            logger.warning(
+                "SurrealDB graph edge persistence failed (non-blocking): %s", str(exc)[:200]
+            )
 
     def _notify_tg(self, text: str) -> None:
         """Send notification to operator via Telegram bot (fail-soft)."""

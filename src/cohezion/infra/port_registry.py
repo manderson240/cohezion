@@ -14,6 +14,8 @@ from dataclasses import dataclass
 
 import httpx
 
+from cohezion.storage.surreal_http import SurrealQLError, checked_statements
+
 
 logger = logging.getLogger("port_registry")
 
@@ -138,7 +140,15 @@ class SurrealPortRegistry:
                         content=sql,
                     )
                     if resp.status_code == 200:
-                        count += 1
+                        try:
+                            checked_statements(
+                                resp.json(), status_code=resp.status_code, text=resp.text
+                            )
+                            count += 1
+                        except SurrealQLError as e:
+                            logger.warning(
+                                "SurrealDB port sync ERR for one record: %s", str(e)[:200]
+                            )
         except Exception as e:
             logger.warning("SurrealDB port sync warning: %s", e)
         return count
