@@ -59,8 +59,13 @@ SUBMISSION_COLUMNS = [
 class SpatiotemporalCellTracker:
     """Global Hungarian bipartite matching with 2-daughter (mitosis) support."""
 
-    def __init__(self, search_radius_um: float = SEARCH_RADIUS_UM):
+    def __init__(
+        self,
+        search_radius_um: float = SEARCH_RADIUS_UM,
+        second_daughter_penalty: float = 0.20,
+    ):
         self.search_radius_um = search_radius_um
+        self.second_daughter_penalty = second_daughter_penalty
         self.feature_weights = np.array([0.5, 0.3, 0.2], dtype=np.float32)
 
     def compute_edge_cost(self, c0: dict[str, Any], c1: dict[str, Any]) -> float:
@@ -90,7 +95,9 @@ class SpatiotemporalCellTracker:
             for j, c1 in enumerate(cells_t1):
                 cost = self.compute_edge_cost(c0, c1)
                 cost_matrix[i, j] = cost
-                cost_matrix[i + n0, j] = cost + 0.15  # small penalty for 2nd daughter
+                cost_matrix[i + n0, j] = (
+                    cost + self.second_daughter_penalty
+                )  # calibrated penalty for 2nd daughter
         row_ind, col_ind = linear_sum_assignment(cost_matrix)
         edges: list[dict[str, Any]] = []
         mother_counts: dict[Any, int] = {}

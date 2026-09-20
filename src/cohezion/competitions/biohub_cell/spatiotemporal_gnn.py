@@ -11,8 +11,13 @@ from scipy.optimize import linear_sum_assignment
 class SpatiotemporalCellTracker:
     """Graph Neural Edge Classification & Global Hungarian Bipartite Matching."""
 
-    def __init__(self, search_radius_um: float = 30.0):
+    def __init__(
+        self,
+        search_radius_um: float = 30.0,
+        second_daughter_penalty: float = 0.20,
+    ):
         self.search_radius_um = search_radius_um
+        self.second_daughter_penalty = second_daughter_penalty
         # Edge classifier weights: distance, delta_vol, intensity_ratio -> match cost
         self.feature_weights = np.array([0.5, 0.3, 0.2], dtype=np.float32)
 
@@ -49,7 +54,9 @@ class SpatiotemporalCellTracker:
             for j, c1 in enumerate(cells_t1):
                 cost, _ = self.compute_edge_cost(c0, c1)
                 cost_matrix[i, j] = cost
-                cost_matrix[i + n0, j] = cost + 0.15  # Small penalty for 2nd daughter
+                cost_matrix[i + n0, j] = (
+                    cost + self.second_daughter_penalty
+                )  # Calibrated penalty for 2nd daughter
 
         # Global optimal matching
         row_ind, col_ind = linear_sum_assignment(cost_matrix)
