@@ -691,8 +691,17 @@ class JourneyTracker:
                 },
                 method="POST",
             )
-            with contextlib.suppress(Exception):
-                urllib.request.urlopen(req, timeout=2)
+            # Fire-and-forget stays (never block the compound loop) but the verdict is READ:
+            # SurrealDB answers 200 with status:"ERR" per statement, and for months this
+            # thread swallowed that. 21,635 rows landed without `action` before anyone saw one.
+            try:
+                with urllib.request.urlopen(req, timeout=2) as resp:
+                    statements = json.loads(resp.read().decode())
+                from cohezion.storage.surreal_http import checked_statements
+
+                checked_statements(statements)
+            except Exception as exc:  # noqa: BLE001 -- background thread; log, never raise
+                logger.warning("journey_transition persist failed: %s", str(exc)[:200])
 
         threading.Thread(target=_fire, daemon=True).start()
 

@@ -676,6 +676,17 @@ class TestRealPhiScore:
         assert len(tracker._recent_points) == tracker.TRAJECTORY_WINDOW
 
 
+class _InlineThread:
+    """Runs the target synchronously: _persist_to_surreal fires a daemon thread, and a test
+    that asserts on what the thread captured must not race it (the old fixtures passed by luck)."""
+
+    def __init__(self, target=None, daemon=None, **_):
+        self._target = target
+
+    def start(self):
+        self._target()
+
+
 class TestSurrealInjectionSanitization:
     """Review LOW #1: operation_type must be injection-safe (json.dumps) like the sibling task field."""
 
@@ -703,7 +714,10 @@ class TestSurrealInjectionSanitization:
             captured["data"] = req.data.decode()
             raise RuntimeError("stop after capture")
 
-        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
             tracker._persist_to_surreal(point)
 
         query = captured["data"]
@@ -737,7 +751,10 @@ class TestSurrealInjectionSanitization:
             captured["data"] = req.data.decode()
             raise RuntimeError("stop after capture")
 
-        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
             tracker._persist_to_surreal(point)
 
         query = captured["data"]
@@ -764,7 +781,10 @@ class TestPersistWritesAction:
             captured["data"] = req.data.decode()
             raise RuntimeError("stop after capture")
 
-        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
             JourneyTracker(seed=42)._persist_to_surreal(point)
         return captured["data"]
 

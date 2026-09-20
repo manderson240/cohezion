@@ -85,11 +85,15 @@ class SurrealDBClient:
                     headers=_NS_HEADERS,
                     content=query,
                 )
-                resp.raise_for_status()
-                parsed: list[Any] = resp.json()
-                return parsed
+                # Per-statement verdict, not just HTTP status: SurrealDB answers 200 with
+                # status:"ERR" inside the list, and this method used to return that as data.
+                from cohezion.storage.surreal_http import checked_statements
+
+                return checked_statements(resp.json(), status_code=resp.status_code, text=resp.text)
         except Exception as e:
-            logger.debug("SurrealDB SQL error: %s | query: %.120s", e, query)
+            # Still fail-soft for callers (this client is fire-and-forget by design), but LOUD:
+            # a swallowed write is exactly the class that hid 21,635 action-less rows.
+            logger.warning("SurrealDB SQL error: %s | query: %.120s", e, query)
             return []
 
     async def ensure_journey(self, journey_id: str, agent_id: str, intent: str = "") -> str:

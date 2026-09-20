@@ -234,6 +234,13 @@ step "lineage scan" uv run python scripts/ci/lineage_scan.py
 step "false-contract self-test" uv run python scripts/ci/false_contract_scan.py --self-test
 step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
 
+# Step 6c-septies: SurrealDB HTTP ratchet — "does the writer know whether the write happened?"
+# SurrealDB answers HTTP 200 with status:"ERR" per statement; 57 raw /sql writers read the body
+# unchecked (measured 2026-09-19; three production false-successes that day were this class).
+# Ratchet against scripts/ci/surreal_http_baseline.txt: new unchecked writer = red; shrink only.
+step "surreal-http self-test" uv run python scripts/ci/surreal_http_scan.py --self-test
+step "surreal-http scan" uv run python scripts/ci/surreal_http_scan.py
+
 # Step 6c-ter-bis: unrestricted exec/eval (security finding H5). CPython auto-injects the FULL
 # builtins into a globals dict lacking "__builtins__", so exec(llm_code, {}) reaches
 # __import__/open/eval. safe_exec_globals() closed the 2026-06 instances, yet 2026-09-13 found 13
