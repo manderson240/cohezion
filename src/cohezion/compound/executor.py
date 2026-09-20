@@ -186,6 +186,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         rubric_middleware: Any | None = None,
         inference_provider: Any | None = None,
         jepa_gate: Any | None = None,
+        cosmic_fire: Any | None = None,
         dqa_gate: Any | None = None,
         quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
@@ -239,6 +240,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         self._inference_provider = inference_provider
         self._jepa_gate = jepa_gate
+        # Cosmic Fire (P3): ignites ONCE per process when quality_score first enters the
+        # HIHO band. Until 2026-09-20 no production path called ignite(): the only importer
+        # was a CLI demo and the promised cosmic_fire_events table did not exist.
+        if cosmic_fire is None:
+            try:
+                from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol
+
+                cosmic_fire = CosmicFireProtocol()
+            except ImportError:
+                cosmic_fire = None
+        self._cosmic_fire = cosmic_fire
         # DQ2: output-side quality gate (AutoDQA or any duck-typed .evaluate()).
         # None keeps the metrics dict byte-identical for un-wired callers (DQ6).
         self._dqa_gate = dqa_gate
@@ -1817,6 +1829,27 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
         # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
+
+        # Step 7.5a: Cosmic Fire -- first entry into the HIHO band ignites, once per process
+        # (irreversible: ignition_count never resets). Cascade action 4 (persist) runs here;
+        # actions 1-3 remain advisory names in metrics["cosmic_fire"]["cascade"].
+        if (
+            self._cosmic_fire is not None
+            and "quality_score" in metrics
+            and self._cosmic_fire.ignition_count == 0
+        ):
+            try:
+                _fire = self._cosmic_fire.ignite(metrics["quality_score"])
+                if _fire is not None:
+                    metrics["cosmic_fire"] = {
+                        "ignited": True,
+                        "coherence": _fire.coherence,
+                        "cascade": self._cosmic_fire.ignition_cascade(_fire.coherence),
+                    }
+                    self._cosmic_fire.persist(_fire)
+            except Exception as e:
+                logger.debug("Cosmic Fire ignition failed (non-blocking): %s", e)
+
         if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
             logger.info(
                 "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val

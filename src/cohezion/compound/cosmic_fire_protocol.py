@@ -21,7 +21,9 @@ phase transition that created the first hadronic matter after the Big Bang.
 
 from __future__ import annotations
 
+import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -71,6 +73,9 @@ class CosmicFireProtocol:
     threshold: float = _HIHO_ENTRY
     ignition_temperature: float = _QCD_CRITICAL_MEV
     notify_telegram: bool = True
+    # Cascade action 4. None = the default checked SurrealDB writer (persist_event);
+    # inject a callable in tests. Unimplemented anywhere until 2026-09-20.
+    persist_fn: Callable[[CosmicFireEvent], None] | None = None
 
     _ignition_count: int = field(default=0, init=False, repr=False)
     _last_event: CosmicFireEvent | None = field(default=None, init=False, repr=False)
@@ -137,6 +142,13 @@ class CosmicFireProtocol:
             "telegram_notify_ignition",
         ]
 
+    def persist(self, event: CosmicFireEvent) -> None:
+        """Cascade action 4: durable record of the ignition. Non-blocking, never raises."""
+        try:
+            (self.persist_fn or persist_event)(event)
+        except Exception as exc:
+            logger.warning("Cosmic Fire persist failed (non-blocking): %s", str(exc)[:200])
+
     def hiho_temperature_analog(self) -> float:
         """Map HIHO threshold to QCD critical temperature analog.
 
@@ -167,3 +179,43 @@ class CosmicFireProtocol:
     def last_event(self) -> CosmicFireEvent | None:
         """The most recent ignition event, or None."""
         return self._last_event
+
+
+def persist_event(event: CosmicFireEvent, *, base_url: str = "http://localhost:8001") -> None:
+    """Default writer: CREATE a ``cosmic_fire_events`` row and READ the verdict.
+
+    The docstring at the top of this module promised this table since the protocol
+    shipped; measured 2026-09-20 the table did not exist and nothing wrote to it. The
+    write is fire-and-forget on a daemon thread (never block the compound loop) but the
+    per-statement status is checked (``checked_statements``), so an HTTP 200 carrying
+    ``status: "ERR"`` is logged as a failure instead of counted as an ignition.
+    """
+    import base64
+    import threading
+    import urllib.request
+
+    from cohezion.storage.surreal_http import checked_statements
+
+    rec = event.to_surreal_record()
+    fields = ", ".join(f"{k} = {json.dumps(v)}" for k, v in rec.items())
+    sql = f"CREATE cosmic_fire_events SET {fields};"
+    req = urllib.request.Request(  # noqa: S310 -- localhost SurrealDB only
+        f"{base_url}/sql",
+        data=sql.encode(),
+        headers={
+            "Accept": "application/json",
+            "surreal-ns": "cohezion",
+            "surreal-db": "main",
+            "Authorization": "Basic " + base64.b64encode(b"root:root").decode(),
+        },
+        method="POST",
+    )
+
+    def _fire() -> None:
+        try:
+            with urllib.request.urlopen(req, timeout=2) as resp:  # noqa: S310 -- localhost only
+                checked_statements(json.loads(resp.read().decode()))
+        except Exception as exc:
+            logger.warning("cosmic_fire_events persist failed: %s", str(exc)[:200])
+
+    threading.Thread(target=_fire, daemon=True).start()
