@@ -79,9 +79,10 @@ class SurrealMemoryGraph:
             },
             method="POST",
         )
+        from cohezion.storage.surreal_http import checked_statements
+
         with urllib.request.urlopen(req, timeout=self._timeout) as resp:  # noqa: S310
-            parsed = json.loads(resp.read().decode())
-        return parsed if isinstance(parsed, list) else []
+            return checked_statements(json.loads(resp.read().decode()), status_code=resp.status)
 
     @staticmethod
     def _last_result(resp: list[dict]) -> list:

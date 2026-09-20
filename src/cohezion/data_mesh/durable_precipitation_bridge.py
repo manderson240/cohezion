@@ -118,6 +118,9 @@ class DurablePrecipitationBridge:
             )
             with urllib.request.urlopen(req, timeout=3.0) as resp:
                 if resp.status in (200, 201):
+                    from cohezion.storage.surreal_http import checked_statements
+
+                    checked_statements(json.loads(resp.read()), status_code=resp.status)
                     logger.info("SurrealDB moc_node and edges synced for: %s", mark.mark_id)
                     return True
                 logger.warning("SurrealDB HTTP %d syncing %s", resp.status, mark.mark_id)

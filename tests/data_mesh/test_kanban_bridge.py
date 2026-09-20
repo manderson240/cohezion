@@ -84,6 +84,7 @@ def test_kb2_surreal_write_sends_upsert(sample_item):
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
     mock_resp.status = 200
+    mock_resp.read.return_value = b'[{"status": "OK", "result": []}]'
 
     calls: list[urllib.request.Request] = []
 
@@ -131,6 +132,7 @@ def test_kb2_surreal_write_backtick_quotes_hyphenated_id():
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
     mock_resp.status = 200
+    mock_resp.read.return_value = b'[{"status": "OK", "result": []}]'
     calls: list[urllib.request.Request] = []
 
     def fake_urlopen(req, timeout=None):
@@ -213,6 +215,7 @@ def test_kb4_obsidian_failure_does_not_prevent_surreal_write(sample_item, tmp_pa
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
     mock_resp.status = 200
+    mock_resp.read.return_value = b'[{"status": "OK", "result": []}]'
 
     with (
         patch("urllib.request.urlopen", return_value=mock_resp),

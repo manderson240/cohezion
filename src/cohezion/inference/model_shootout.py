@@ -440,7 +440,11 @@ def write_model_performance(
             },
         )
         with urllib.request.urlopen(req, timeout=5) as r:  # noqa: S310
+            from cohezion.storage.surreal_http import checked_statements
+
             code = r.status
+            if code == 200:
+                checked_statements(json.loads(r.read()), status_code=code)
         if code == 200:
             logger.info(
                 "shootout: wrote model_performance row for %s (q=%.3f)", model, quality_score

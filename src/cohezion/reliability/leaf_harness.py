@@ -265,6 +265,9 @@ class LeafHarness:
             )
             with urllib.request.urlopen(req, timeout=3.0) as resp:  # noqa: S310
                 if resp.status == 200:
+                    from cohezion.storage.surreal_http import checked_statements
+
+                    checked_statements(json.loads(resp.read()), status_code=resp.status)
                     logger.info("Persisted Leaf rollout '%s' to SurrealDB", record_id)
                     return f"harness_rollout:{record_id}"
         except Exception as e:

@@ -229,6 +229,9 @@ def test_write_model_performance_builds_valid_surql(monkeypatch):
     class _Resp:
         status = 200
 
+        def read(self):
+            return b'[{"status": "OK", "result": []}]'
+
         def __enter__(self):
             return self
 

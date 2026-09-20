@@ -170,7 +170,12 @@ class ContinuousExperimentDaemon:
                 },
             )
             with urllib.request.urlopen(req, timeout=5) as resp:
-                return resp.status == 200
+                from cohezion.storage.surreal_http import checked_statements
+
+                if resp.status != 200:
+                    return False
+                checked_statements(json.loads(resp.read()), status_code=resp.status)
+                return True
         except Exception as e:
             logger.warning(f"SurrealDB experiment_run write failed: {e}")
             return False
