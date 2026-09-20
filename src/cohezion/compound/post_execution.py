@@ -505,15 +505,17 @@ class PostExecutionOrchestrator:
         try:
             import torch
 
-            latent_vec = metrics.get("latent_vector")
+            # Same contract as executor Step 7.6: a latent with provenance or no decision.
+            latent_vec, latent_source = self._ex._execution_latent(metrics, task_description)
             if latent_vec is None:
-                latent_vec = torch.randn(256)
+                return
             if not isinstance(latent_vec, torch.Tensor):
                 latent_vec = torch.tensor(latent_vec).float()
             regime = self._ex.geometric_bridge.map_to_regime(latent_vec)
             coords = self._ex.geometric_bridge.project_to_coordinates(latent_vec)
             metrics["topological_regime"] = regime
             metrics["mereon_coords"] = coords.tolist()
+            metrics["latent_source"] = latent_source
             logger.debug("Latent state mapped to %s regime", regime)
             if regime in {"A", "C", "Inner"}:
                 dp = self._ex.log_inflection_point(

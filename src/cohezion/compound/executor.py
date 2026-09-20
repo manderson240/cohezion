@@ -20,9 +20,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
-from pathlib import (
-    Path,  # noqa: F401 — structural guard; used at 4 sites in vault-default resolution
-)
 from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import (
@@ -330,6 +327,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         try:
             from cohezion.flume.geometric_bridge import GeometricLatentBridge
 
+            # Deliberately NO weights_path: distillation_engine's "optimized" file is a
+            # simulated update (seeded projection + randn*0.01, per its own comment), not a
+            # learned one. Loading it would be noise on noise. Seeded projection only.
             self.geometric_bridge = GeometricLatentBridge()
             logger.debug("GeometricLatentBridge initialized")
         except ImportError:
@@ -783,6 +783,29 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             return canonical_skill_key(skill_name) in cls._registry_keys_cache
         except Exception:  # registry unreadable: do not gate
             return True
+
+    def _execution_latent(
+        self, metrics: dict[str, Any], task_description: str
+    ) -> tuple[Any | None, str | None]:
+        """The latent Step 7.6 decides a regime on, with its provenance -- or (None, None).
+
+        Until 2026-09-20 this step fell back to an unseeded ``torch.randn(256)`` whenever
+        the provider supplied no latent, which was always: ``metrics["latent_vector"]`` is
+        written nowhere in ``src/``. Every ``topological_regime``, every ``mereon_coords``
+        and every "Regime Transition" inflection point the vault holds from that path was a
+        random draw. Provenance is now explicit: ``"provider"`` (a VAE z-vector in metrics)
+        or ``"flume-embed"`` (the journey tracker's live 256D semantic embedding of the
+        task). No latent means no decision, never a substitute.
+        """
+        vec = metrics.get("latent_vector")
+        if vec is not None:
+            return vec, "provider"
+        tracker = self._journey_tracker
+        semantic = getattr(tracker, "semantic_latent", None)
+        if semantic is None:
+            return None, None
+        vec = semantic(task_description)
+        return (vec, "flume-embed") if vec is not None else (None, None)
 
     def execute_task(
         self,
@@ -1885,17 +1908,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Degradation detection failed (non-blocking): %s", e)
 
         # Step 7.6: Geometric Latent Mapping (Symmetry-Driven Reasoning)
-        # Map the latent state of the execution to a topological regime
+        # Map the latent state of the execution to a topological regime. Decided ONLY on a
+        # latent with known provenance (_execution_latent); no latent => no regime, no write.
         if self.geometric_bridge:
             try:
                 import torch
 
-                # Attempt to extract latent vector from metrics or execute_fn result
-                latent_vec = metrics.get("latent_vector")
-                if latent_vec is None and token_metrics:
-                    # Fallback: simulate a latent vector from token metrics if real one isn't provided
-                    # In a real integration, the LLM provider would return the VAE z-vector
-                    latent_vec = torch.randn(256)
+                latent_vec, latent_source = self._execution_latent(metrics, task_description)
 
                 if latent_vec is not None:
                     # Ensure it's a torch tensor
@@ -1907,6 +1926,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
                     metrics["topological_regime"] = regime
                     metrics["mereon_coords"] = coords.tolist()
+                    metrics["latent_source"] = latent_source
 
                     logger.debug(f"Latent state mapped to {regime} regime at {coords}")
 

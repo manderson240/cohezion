@@ -32,7 +32,6 @@ from typing import TYPE_CHECKING, Any, ClassVar
 if TYPE_CHECKING:
     from cohezion.compound.thermodynamic_metrics import ThermodynamicState
 
-import contextlib
 
 import numpy as np
 
@@ -700,7 +699,7 @@ class JourneyTracker:
                 from cohezion.storage.surreal_http import checked_statements
 
                 checked_statements(statements)
-            except Exception as exc:  # noqa: BLE001 -- background thread; log, never raise
+            except Exception as exc:
                 logger.warning("journey_transition persist failed: %s", str(exc)[:200])
 
         threading.Thread(target=_fire, daemon=True).start()
@@ -708,6 +707,20 @@ class JourneyTracker:
     def get_last_point(self) -> TrajectoryPoint | None:
         """Return the most recent trajectory point, or None if no points tracked."""
         return self._recent_points[-1] if self._recent_points else None
+
+    def semantic_latent(self, text: str) -> np.ndarray | None:
+        """256D semantic embedding of ``text`` from the LIVE FLUME encoder, or None.
+
+        Unlike :meth:`text_to_latent`, this never substitutes a hash: when no encoder is
+        wired or :13305 is down it returns None, so a consumer can decline to decide
+        instead of deciding on noise (executor Step 7.6 geometric regime). The width is the
+        encoder's (``LemonadeEmbedBridge`` subsamples nomic-embed 768→256), which is what
+        ``GeometricLatentBridge.map_to_regime`` expects.
+        """
+        enc = self._flume_encoder
+        if enc is None or not enc.is_available():
+            return None
+        return np.asarray(enc.encode(text), dtype=np.float64)
 
     def get_recent_point_count(self) -> int:
         """Return the number of points in the recent trajectory buffer."""
