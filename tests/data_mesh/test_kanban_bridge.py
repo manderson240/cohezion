@@ -249,3 +249,22 @@ def test_kb5_backfill_twice_does_not_duplicate_obsidian_notes(tmp_path):
     # Exactly 2 files, not 4
     md_files = list(tmp_path.glob("*.md"))
     assert len(md_files) == 2
+
+
+def test_kb2_DISCRIMINATING_http_200_with_err_statement_is_a_failed_write(sample_item, caplog):
+    """The 2026-09-20 batch1 contract: SurrealDB answers 200 with status ERR per statement.
+    Before checked_statements, this returned True. Reverting the migration turns this red."""
+    mock_resp = MagicMock()
+    mock_resp.__enter__ = lambda s: s
+    mock_resp.__exit__ = MagicMock(return_value=False)
+    mock_resp.status = 200
+    mock_resp.read.return_value = b'[{"status": "ERR", "result": "Specify a namespace to use"}]'
+
+    with (
+        patch("urllib.request.urlopen", return_value=mock_resp),
+        caplog.at_level("WARNING"),
+    ):
+        result = _surreal_write(sample_item)
+
+    assert result is False
+    assert any("Specify a namespace" in r.message for r in caplog.records)
