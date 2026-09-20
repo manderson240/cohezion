@@ -120,3 +120,29 @@ def test_live_round_trip_cosine_ranking():
         assert s.search("", [1, 0, 0], filters={"user_id": "other"}) == []
     finally:
         s.delete_col()
+
+
+def test_DISCRIMINATING_err_statement_raises_instead_of_reporting_success():
+    """batch1 (2026-09-20) contract change, pinned: before, `_sql` returned the parsed body and an
+    ERR statement flowed into `_last_result` as a normal write; now `_sql` raises SurrealQLError
+    so insert()/search() callers see the failure. Ten public methods are unguarded by design --
+    a store that swallows a failed write is the lie this removes."""
+    import json
+    from unittest.mock import MagicMock, patch
+
+    from cohezion.storage.surreal_http import SurrealQLError
+
+    with patch.object(SurrealVectorStore, "_sql", return_value=[]):
+        s = SurrealVectorStore(collection_name="t")
+    resp = MagicMock()
+    resp.__enter__ = lambda self_: self_
+    resp.__exit__ = MagicMock(return_value=False)
+    resp.status = 200
+    resp.read.return_value = json.dumps(
+        [{"status": "ERR", "result": "Specify a namespace to use"}]
+    ).encode()
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(SurrealQLError, match="Specify a namespace"),
+    ):
+        s.insert(vectors=[[0.0] * 768], payloads=[{"k": 1}], ids=["a"])
