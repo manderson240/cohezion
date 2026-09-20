@@ -672,7 +672,11 @@ class JourneyTracker:
         # persisted so the annotation is durable/observable, not buffer-local only.
         atoms = (point.metadata or {}).get("workspace_atoms")
         atoms_field = f", workspace_atoms = {json.dumps(atoms)}" if atoms is not None else ""
-        body = f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}{atoms_field}, created = time::now();".encode()
+        # JI1 consumer: the in-memory point carried `action` (evidence:<tier>) since 2026-06-27, but
+        # this statement never wrote it -- measured 2026-09-19: 21,635 rows, action NULL on all.
+        # A routing history with no actions cannot be replayed (Dream-RSI gate prerequisite).
+        action = json.dumps(point.action or "")
+        body = f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}, action = {action}{atoms_field}, created = time::now();".encode()
 
         def _fire() -> None:
             req = urllib.request.Request(

@@ -746,3 +746,53 @@ class TestSurrealInjectionSanitization:
         assert "\\\\" in query, "backslash in operation_type must be escaped"
         # `task` must still appear as its own SET assignment, not absorbed into operation_type.
         assert "task = " in query
+
+
+class TestPersistWritesAction:
+    """JI1 CONSUMPTION invariant. The in-memory TrajectoryPoint carried `action` since 2026-06-27;
+    the SurrealQL CREATE never included it. Measured 2026-09-19 through the reader's path:
+    21,635 journey_transition rows, action NULL on every one. A routing history without actions
+    cannot be replayed. This test reads the statement the tracker actually sends."""
+
+    def _capture(self, point):
+        import urllib.request
+        from unittest.mock import patch
+
+        captured = {}
+
+        def fake_urlopen(req, timeout=None):
+            captured["data"] = req.data.decode()
+            raise RuntimeError("stop after capture")
+
+        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+            JourneyTracker(seed=42)._persist_to_surreal(point)
+        return captured["data"]
+
+    def test_action_is_written_to_the_row(self):
+        import json
+
+        point = TrajectoryPoint(
+            dimensions=np.array([0.5] * 12),
+            timestamp=1.0,
+            coherence=0.8,
+            efficiency=0.7,
+            operation_type="generate",
+            task_description="t",
+            action="evidence:npu",
+        )
+        assert f"action = {json.dumps('evidence:npu')}" in self._capture(point)
+
+    def test_action_is_injection_safe(self):
+        import json
+
+        payload = "npu'; DROP TABLE journey_transition; --"
+        point = TrajectoryPoint(
+            dimensions=np.array([0.5] * 12),
+            timestamp=1.0,
+            coherence=0.8,
+            efficiency=0.7,
+            operation_type="generate",
+            task_description="t",
+            action=payload,
+        )
+        assert f"action = {json.dumps(payload)}" in self._capture(point)

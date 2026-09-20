@@ -219,6 +219,14 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
 step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 
+# Step 6c-quater: Lineage — fourth sibling. dormancy asks "has a consumer?", doc-consistency "do the
+# docs tell the truth?", phantom-attr "does the attribute exist?"; lineage asks "can the reflex run
+# when the LLM layer is dead?" Measured 2026-09-19: the memory-pressure guard cost 500 MB to import
+# via the package (10.3 s) and 17 MB by file path (88 ms). A fresh interpreter is the instrument;
+# a static import graph read this as clean. --self-test FIRST (plants a leak, must go red).
+step "lineage self-test" uv run python scripts/ci/lineage_scan.py --self-test
+step "lineage scan" uv run python scripts/ci/lineage_scan.py
+
 # Step 6c-ter-bis: unrestricted exec/eval (security finding H5). CPython auto-injects the FULL
 # builtins into a globals dict lacking "__builtins__", so exec(llm_code, {}) reaches
 # __import__/open/eval. safe_exec_globals() closed the 2026-06 instances, yet 2026-09-13 found 13
