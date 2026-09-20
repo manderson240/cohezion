@@ -415,8 +415,11 @@ class GaiaKaggleSwarmDaemon:
             # Heavy model weight loading still strictly adheres to the 25.0 GiB fleet lock floor.
             if avail_gb < 15.0:
                 return False, f"Available RAM ({avail_gb:.1f} GiB) below 15.0 GiB safety floor"
-            if swap_pct > 80.0:
-                return False, f"Swap utilization ({swap_pct:.1f}%) exceeds 80.0% exhaustion threshold"
+            if swap_pct > 95.0 and avail_gb < 25.0:
+                return (
+                    False,
+                    f"Swap utilization ({swap_pct:.1f}%) critical with low RAM ({avail_gb:.1f} GiB)",
+                )
             return (
                 True,
                 f"Hardware Sentry OK (Available RAM: {avail_gb:.1f} GiB, Swap: {swap_pct:.1f}%)",
@@ -475,11 +478,16 @@ class GaiaKaggleSwarmDaemon:
         try:
             while self.running:
                 reports = await self.run_swarm_cycle()
-                md = self.generate_portfolio_markdown(reports)
-                out_path = Path("docs/research/gaia_kaggle_portfolio_status.md")
-                out_path.parent.mkdir(parents=True, exist_ok=True)
-                out_path.write_text(md)
-                logger.info("Updated portfolio card at %s", out_path)
+                if reports:
+                    md = self.generate_portfolio_markdown(reports)
+                    out_path = Path("docs/research/gaia_kaggle_portfolio_status.md")
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    out_path.write_text(md)
+                    logger.info("Updated portfolio card at %s", out_path)
+                else:
+                    logger.warning(
+                        "Swarm cycle yielded 0 reports; preserving existing portfolio card."
+                    )
                 await asyncio.sleep(interval_seconds)
         except asyncio.CancelledError:
             logger.info("GAIA Kaggle Swarm Daemon cancelled.")
