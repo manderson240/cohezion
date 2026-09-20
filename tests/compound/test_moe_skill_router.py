@@ -7,7 +7,10 @@ Harness entries: MR1–MR4.
 from __future__ import annotations
 
 import inspect
+import math
 from unittest.mock import MagicMock
+
+import pytest
 
 from cohezion.compound.moe_skill_router import MoESkillRouter  # type: ignore[reportMissingImports]
 from cohezion.compound.skill_refiner import ExecutionMetrics, SkillRefiner
@@ -180,3 +183,43 @@ class TestMR5ExplorationNoLockIn:
             f"dominant expert won only {picks.count('quality')}/{len(picks)} — "
             "exploration term is too strong and has destroyed exploitation"
         )
+
+
+class TestMR6NaturalCoordinates:
+    """2026-09-20: weights are a categorical distribution learned in logit (natural) coordinates.
+    The previous per-expert EMA in probability coordinates never summed to one -- these tests go
+    red against that implementation."""
+
+    def test_weights_are_a_distribution_after_arbitrary_updates(self):
+        from cohezion.compound.moe_skill_router import MoESkillRouter
+
+        r = MoESkillRouter(alpha=0.7)
+        r.replay([("quality", 1.0)] * 30 + [("tier", -1.0)] * 10 + [("caching", 0.3)])
+        assert sum(r.weights.values()) == pytest.approx(1.0)
+        assert all(0.0 < w < 1.0 for w in r.weights.values())
+
+    def test_update_is_additive_in_logits_not_multiplicative_in_probabilities(self):
+        from cohezion.compound.moe_skill_router import MoESkillRouter
+
+        r = MoESkillRouter(alpha=0.5)
+        r.update("quality", 1.0)
+        r.update("quality", 1.0)
+        # two +0.5 logit steps == log-odds of quality vs any untouched expert == 1.0
+        w = r.weights
+        assert math.log(w["quality"] / w["tier"]) == pytest.approx(1.0)
+
+    def test_untouched_experts_stay_equal_to_each_other(self):
+        from cohezion.compound.moe_skill_router import MoESkillRouter
+
+        r = MoESkillRouter(alpha=0.9)
+        r.update("quality", 1.0)
+        w = r.weights
+        assert w["tier"] == pytest.approx(w["caching"]) == pytest.approx(w["fallback"])
+
+    def test_no_clamp_needed_extreme_history_stays_finite(self):
+        from cohezion.compound.moe_skill_router import MoESkillRouter
+
+        r = MoESkillRouter(alpha=1.0)
+        r.replay([("quality", 1.0)] * 2000)  # logit 2000: softmax must not overflow
+        w = r.weights
+        assert w["quality"] == pytest.approx(1.0) and math.isfinite(w["tier"])

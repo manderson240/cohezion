@@ -633,6 +633,24 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - **Discriminating**: with caching expert weight driven to max, `_generate_recommendation(metrics_with_cached_hits>0)` returns "cache"-themed result ≥5/10 calls
 - **Verification**: `uv run pytest tests/compound/test_moe_skill_router.py -q` → 14 passed
 
+### MR6: expert weights are a categorical distribution learned in NATURAL (logit) coordinates (2026-09-20)
+- The categorical family is both a mixture family (probabilities, simplex-constrained) and an
+  exponential family (log-odds, unconstrained). `MoESkillRouter` stores `_logits` and exposes
+  `weights` as their softmax; `update()` is `logit += alpha * clamp(delta, -1, 1)` -- one step
+  along the e-geodesic, no clamps, no renormalisation. The previous per-expert EMA in probability
+  coordinates was bounded but never summed to one, so `get_weight` was not a probability.
+- MR1 holds exactly (all-zero logits == uniform); MR2/MR3/MR4/MR5 unchanged in behaviour.
+- **T2 discriminating**: `TestMR6NaturalCoordinates` -- weights sum to 1 after arbitrary
+  updates (the EMA implementation fails this); two +0.5 steps give log-odds exactly 1.0 vs any
+  untouched expert; untouched experts stay equal; a 2000-step history stays finite (softmax is
+  max-shifted).
+- Companion: `cohezion.physics.hiho_kernel` defines `4x(1-x)` once and states what it is --
+  `4 · Var[Bernoulli(x)] = 4 / I(x)`, the inverse Fisher information; the HIHO point 0.5 is the
+  flattest point of the Bernoulli manifold. Verified against Fisher information computed from
+  the score (independent oracle), and CONSUMED by `GreekParameters.gamma` (test goes red if the
+  literal is restored). 18 other executable sites still restate the literal; migrate as touched.
+- **Verification**: `uv run pytest tests/compound/test_moe_skill_router.py tests/physics/test_hiho_kernel.py -q` → 36 passed
+
 ## Lessons Captured (2026-05-02)
 
 ## JepaGate Threshold Property Invariants (#156, 2026-06-28)
