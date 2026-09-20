@@ -816,3 +816,81 @@ class TestPersistWritesAction:
             action=payload,
         )
         assert f"action = {json.dumps(payload)}" in self._capture(point)
+
+
+class TestDeclaredFieldsArePersisted:
+    """Every field TrajectoryPoint declares reaches the CREATE (2026-09-20).
+
+    Measured that day: 22,398 rows carried only dimensions/coherence/efficiency/
+    operation_type/task(/action); timestamp, source, transformation and metadata were
+    declared and dropped. A neutralised writer (any field removed from the statement)
+    turns the matching assertion red."""
+
+    def _capture(self, point: TrajectoryPoint) -> str:
+        import urllib.request
+        from unittest.mock import patch
+
+        captured: dict[str, str] = {}
+
+        def fake_urlopen(req, timeout=None):
+            captured["data"] = req.data.decode()
+            raise RuntimeError("stop after capture")
+
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
+            JourneyTracker(seed=42)._persist_to_surreal(point)
+        return captured["data"]
+
+    def _point(self, **kw) -> TrajectoryPoint:
+        base = {
+            "dimensions": np.array([0.5] * 12),
+            "timestamp": 1726790400.25,
+            "coherence": 0.8,
+            "efficiency": 0.7,
+            "operation_type": "generate",
+            "task_description": "t",
+        }
+        base.update(kw)
+        return TrajectoryPoint(**base)
+
+    def test_every_declared_field_has_a_column(self):
+        import dataclasses
+
+        sql = self._capture(
+            self._point(
+                action="evidence:npu",
+                source="executor",
+                transformation="flume-encode",
+                metadata={"k": 1, "workspace_atoms": [[1, 0.5]]},
+            )
+        )
+        declared = {f.name for f in dataclasses.fields(TrajectoryPoint)}
+        # task_description is persisted under the column `task`; everything else by name.
+        columns = {"task" if n == "task_description" else n for n in declared}
+        missing = [c for c in sorted(columns) if f"{c} = " not in sql]
+        assert missing == [], f"declared but not written: {missing}\n{sql}"
+
+    def test_timestamp_is_the_points_clock_not_the_dbs(self):
+        sql = self._capture(self._point(timestamp=1726790400.25))
+        assert "timestamp = 1726790400.25" in sql
+        assert "created = time::now()" in sql  # both: point clock AND insert clock
+
+    def test_provenance_strings_are_json_literals(self):
+        import json
+
+        sql = self._capture(self._point(source="a'b", transformation='x"y'))
+        assert f"source = {json.dumps(chr(97) + chr(39) + 'b')}" in sql
+        assert f"transformation = {json.dumps('x' + chr(34) + 'y')}" in sql
+
+    def test_metadata_drops_unserialisable_values_and_the_atoms_duplicate(self):
+        sql = self._capture(
+            self._point(metadata={"ok": 2, "bad": object(), "workspace_atoms": [[0, 1.0]]})
+        )
+        assert 'metadata = {"ok": 2}' in sql
+        assert "workspace_atoms = [[0, 1.0]]" in sql  # W6 column preserved
+
+    def test_defaults_write_empty_not_null(self):
+        sql = self._capture(self._point())
+        assert 'source = ""' in sql and 'transformation = ""' in sql and "metadata = {}" in sql
