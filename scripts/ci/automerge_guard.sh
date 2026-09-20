@@ -241,6 +241,14 @@ step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
 step "surreal-http self-test" uv run python scripts/ci/surreal_http_scan.py --self-test
 step "surreal-http scan" uv run python scripts/ci/surreal_http_scan.py
 
+# Step 6c-nonies: Declared-field scan — "does the writer persist what the model DECLARES?"
+# TrajectoryPoint declared `action` for 3 months while its CREATE never wrote it (21,635 rows,
+# NULL on all); four more fields the same way. AST: dataclass fields vs the attribute refs that
+# reach a CREATE/INSERT/UPSERT literal (through locals). Oracle-validated on the pre-fix
+# revision. Ratchet vs scripts/ci/declared_field_baseline.txt: new/grown entry = red.
+step "declared-field self-test" uv run python scripts/ci/declared_field_scan.py --self-test
+step "declared-field scan" uv run python scripts/ci/declared_field_scan.py
+
 # Step 6c-octies: Mutation ratchet — "do the tests detect a broken implementation?" Existed
 # with a committed baseline and ran in NO gate; measured 2026-09-20: 4 killed / 269 survived /
 # 793 untargeted of 1066 in the two scoped modules. Wired at today's numbers (baseline notes

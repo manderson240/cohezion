@@ -160,6 +160,13 @@ jobs:
           uv run python scripts/ci/surreal_http_scan.py --self-test
           uv run python scripts/ci/surreal_http_scan.py
 
+      # Declared-field scan: a dataclass persisted by a CREATE/INSERT/UPSERT literal must
+      # write every field it declares (TrajectoryPoint.action: 21,635 NULL rows). Ratchet.
+      - name: Declared-field ratchet (gating)
+        run: |
+          uv run python scripts/ci/declared_field_scan.py --self-test
+          uv run python scripts/ci/declared_field_scan.py
+
       # Mutation ratchet: survivors / untargeted mutants in the scoped modules may only
       # shrink vs scripts/ci/mutation_baseline.txt. Was never wired; baseline re-recorded
       # 2026-09-20 with the regression it found named in the file.

@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import html
+import json
 import logging
 import os
 import re as _re
@@ -382,6 +383,7 @@ class TelegramCommunicationHub:
                 f"CREATE telegram_telemetry SET "
                 f"backend='{telem.backend}', model='{telem.actual_model}', "
                 f"port={telem.port}, route_reason='{telem.route_reason}', "
+                f"error={json.dumps(telem.error or '')}, "  # declared, never persisted before 2026-09-20
                 f"ts=time::now();"
             )
             async with httpx.AsyncClient() as client:

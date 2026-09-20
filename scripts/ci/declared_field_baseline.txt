@@ -1,0 +1,21 @@
+# Declared-field ratchet baseline (scripts/ci/declared_field_scan.py)
+# Format: <path>::<Class> <comma-separated fields the write drops>
+# Recorded 2026-09-20 on 516923fe8 + the two one-line fixes in the same commit (PortRecord.assigned_at,
+# _OmniTelemetry.error). A NEW entry or a GROWN field set fails the gate. Shrink this file as writers
+# are completed; never grow it. Each entry below is annotated with what a human found on reading the
+# write, so the next person does not re-derive it. "projection" = the statement writes a DIFFERENT
+# record that merely cites this class (by design; keep); "review" = plausibly a real drop.
+#
+# projection: writes a data_product_event that CITES the finding, not the finding itself.
+src/cohezion/data_mesh/research_products.py::ResearchFinding finding_id,title,date,tags,model,verdict_text,relevance,body,path,licence_tag,licence_actual
+# review: `history` is omitted from loop_trace; `memory_as_plans` IS written via payload["memory_as_plans"]
+#         (a subscript assignment the scanner does not follow) -- half false positive, half real.
+src/cohezion/flume/loop_goal_refactor_engine.py::AutonomousGoalLoopResult history,memory_as_plans
+# review: node UPSERT writes node_type/properties/updated_at; `embedding` and `created_at` never reach the graph.
+src/cohezion/graph/graph_engine.py::GraphNode embedding,created_at
+# review: cluster UPSERT writes scalars only; centroids and member lists (the cluster's content) are dropped.
+src/cohezion/mycelium/registry.py::MyceliumCluster centroid_twelve_d,centroid_fabric,member_families,member_tasks,pattern_emitted
+# projection: writes the vHPC hub neuron (title/tier); the state's fields go to other rows in the same function.
+src/cohezion/neuro/ventral_hippocampus.py::VentralHippocampalState spatial_dim,interoceptive_energy,interoceptive_stress,affective_vector,latent_belief,approach_valence,avoidance_valence,target_weights
+# projection: `surreal_record_id` is assigned FROM the write's result; it cannot precede it.
+src/cohezion/reliability/leaf_harness.py::LeafTrajectoryResult surreal_record_id

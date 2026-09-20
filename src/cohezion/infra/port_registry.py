@@ -120,14 +120,18 @@ class SurrealPortRegistry:
                         pid: {rec.pid or "NONE"},
                         status: "{rec.status}",
                         description: "{rec.description}",
+                        assigned_at: {rec.assigned_at},
                         updated_at: time::now()
                     }};
                     """
                     resp = client.post(
                         f"{self.db_url}/sql",
                         headers={
-                            "NS": "cohezion",
-                            "DB": "swarm",
+                            # SurrealDB 2.x ignores the legacy NS/DB names (every statement
+                            # then ERRs "Specify a namespace" behind an HTTP 200) -- the exact
+                            # 2026-09-19 vault-MCP defect. Fixed 2026-09-20.
+                            "surreal-ns": "cohezion",
+                            "surreal-db": "swarm",
                             "Accept": "application/json",
                             "Authorization": "Basic cm9vdDpyb290",
                         },
