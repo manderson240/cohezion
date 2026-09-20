@@ -50,7 +50,9 @@ def _surreal_query(sql: str) -> dict:
         },
     )
     with urllib.request.urlopen(req, timeout=5) as resp:
-        return json.loads(resp.read())
+        from cohezion.storage.surreal_http import checked_statements
+
+        return checked_statements(json.loads(resp.read()), status_code=resp.status)
 
 
 def _journey_to_agent_trajectory(journey: Journey) -> Any:

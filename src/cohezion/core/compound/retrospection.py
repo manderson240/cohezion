@@ -567,8 +567,11 @@ class RetrospectionEngine:
 
         # Persist retrospection decision to SurrealDB (non-blocking, closes middle loop)
         try:
+            import json
             import urllib.request
             from base64 import b64encode
+
+            from cohezion.storage.surreal_http import checked_statements
 
             sql = (
                 f"CREATE retrospection SET "
@@ -590,8 +593,9 @@ class RetrospectionEngine:
                 },
                 method="POST",
             )
-            urllib.request.urlopen(req, timeout=2)
-        except Exception:
-            pass  # Fire-and-forget
+            with urllib.request.urlopen(req, timeout=2) as resp:
+                checked_statements(json.loads(resp.read()), status_code=resp.status)
+        except Exception as exc:  # fire-and-forget, but an ERR must be visible
+            logger.warning("retrospection SurrealDB write failed: %s", str(exc)[:200])
 
         return analysis

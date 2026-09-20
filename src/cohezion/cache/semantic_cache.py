@@ -72,9 +72,12 @@ async def _upsert_cache_entry(
             },
             method="POST",
         )
-        urllib.request.urlopen(req, timeout=2.0).read()  # noqa: S310 — see above
+        from cohezion.storage.surreal_http import checked_statements
+
+        with urllib.request.urlopen(req, timeout=2.0) as resp:  # noqa: S310 — see above
+            checked_statements(json.loads(resp.read()), status_code=resp.status)
     except Exception as e:
-        logger.debug("SurrealDB cache upsert failed (non-blocking): %s", e)
+        logger.warning("SurrealDB cache upsert failed (non-blocking): %s", str(e)[:200])
 
 
 @dataclass

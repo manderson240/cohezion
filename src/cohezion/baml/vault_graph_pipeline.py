@@ -186,6 +186,8 @@ class SurrealKnowledgeGraphBridge:
 
     def _sql(self, query: str) -> list[dict[str, Any]]:
         """Executes a SurrealQL query via HTTP endpoint."""
+        from cohezion.storage.surreal_http import checked_statements
+
         req = urllib.request.Request(  # noqa: S310 - fixed local SurrealDB URL
             self.url,
             data=query.encode("utf-8"),
@@ -200,8 +202,10 @@ class SurrealKnowledgeGraphBridge:
         )
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310
-                parsed = json.loads(resp.read().decode("utf-8"))
-            return parsed if isinstance(parsed, list) else []
+                parsed = checked_statements(
+                    json.loads(resp.read().decode("utf-8")), status_code=resp.status
+                )
+            return parsed
         except Exception as exc:
             logger.debug("SurrealDB query failed (fallback safe): %s", exc)
             return []

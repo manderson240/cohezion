@@ -1,21 +1,13 @@
 # surreal_http_scan.py ratchet baseline — 56 raw /sql writers with no per-statement status check, measured 2026-09-19.
 # SHRINK ONLY: migrate a file to cohezion.storage.surreal_http.checked_statements, then delete its line. Never add.
 src/cohezion/agentjet/embeddings.py
-src/cohezion/agi/learnability_curriculum.py
 src/cohezion/api/routes/training.py
-src/cohezion/baml/vault_graph_pipeline.py
-src/cohezion/cache/semantic_cache.py
 src/cohezion/cache/semantic_cache_system.py
 src/cohezion/cockpit/daemon_state.py
-src/cohezion/compound/autonomous_loop/quality_tracker.py
 src/cohezion/compound/autonomous_loop/rzero_challenger.py
-src/cohezion/compound/evo_pipeline.py
-src/cohezion/compound/execute_fn_aligned.py
-src/cohezion/compound/executor_helpers/vault_integration.py
 src/cohezion/compound/skill_refiner.py
 src/cohezion/compound/token_ledger.py
 src/cohezion/compound/vmodel_harness.py
-src/cohezion/core/compound/retrospection.py
 src/cohezion/core/event_log_reader.py
 src/cohezion/cz_gateway.py
 src/cohezion/data_mesh/durable_precipitation_bridge.py
