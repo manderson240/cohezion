@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
+from cohezion.core.event_bus import Event, EventType
 from cohezion.core.vault_subscription import VaultEvent
 
 
@@ -273,3 +274,78 @@ class TestEventEmission:
         # Handle the change
         await monitor._handle_config_file_change(claude_md, "CLAUDE.md")
         assert True
+
+
+class TestConfigEventDelivery:
+    """A config event must REACH a subscriber, not merely be awaited.
+
+    Regression guard for the 2026-09-10 false-contract audit (F1). Seven call sites
+    invoked the ``async`` ``EventBus.publish`` without ``await``: the coroutine was
+    constructed and dropped, so the event was never even offered to the bus. mypy
+    reported every one as ``[unused-coroutine]`` and nothing gated on it.
+
+    The two tests below are discriminating against *different* wrong implementations,
+    which is why both are needed:
+
+    * ``test_vault_decision_event_reaches_a_subscriber`` fails if the ``await`` is
+      dropped — the original defect. Nothing is enqueued, so no subscriber ever runs.
+    * ``test_refused_event_is_counted_not_silently_discarded`` fails if the returned
+      bool is awaited and then ignored — the *softer* defect the fix could itself have
+      introduced. ``publish`` returns False when the bus is not running (EB1c/D7)
+      precisely so a caller can tell enqueued from dropped; a caller that discards it
+      re-creates a silent drop.
+
+    Asserting delivery rather than invocation is deliberate: a passing consumption
+    invariant proves wiring, never throughput.
+    """
+
+    @pytest.mark.asyncio
+    async def test_vault_decision_event_reaches_a_subscriber(self, tmp_path: Path) -> None:
+        """The event is dispatched to a real subscriber, end to end."""
+        monitor = ConfigMonitor(tmp_path)
+        received: list[Event] = []
+
+        @monitor.event_bus.subscribe(EventType.CUSTOM)
+        async def _capture(event: Event) -> None:
+            received.append(event)
+
+        await monitor.event_bus.start()
+        try:
+            await monitor._handle_vault_create(
+                VaultEvent(event_type="file_created", path="decisions/x.md", timestamp="t0")
+            )
+            # task_done() is called after _dispatch() returns, so join() is a
+            # deterministic barrier that the handler has already run — not a sleep race.
+            await asyncio.wait_for(monitor.event_bus._queue.join(), timeout=5)
+        finally:
+            await monitor.event_bus.stop()
+
+        assert [e.payload["config_event"] for e in received] == ["VAULT_DECISION_ADDED"]
+        assert monitor.dropped_events == 0
+
+    @pytest.mark.asyncio
+    async def test_refused_event_is_counted_not_silently_discarded(self, tmp_path: Path) -> None:
+        """A bus that never started refuses the event, and the caller records it."""
+        monitor = ConfigMonitor(tmp_path)
+        assert not monitor.event_bus._running, "precondition: bus must not be running"
+
+        await monitor._handle_vault_create(
+            VaultEvent(event_type="file_created", path="decisions/x.md", timestamp="t0")
+        )
+
+        assert monitor.dropped_events == 1
+
+    @pytest.mark.asyncio
+    async def test_non_matching_path_emits_nothing(self, tmp_path: Path) -> None:
+        """Negative control: the counter tracks real drops, not every call.
+
+        Without this, ``dropped_events == 1`` above could be satisfied by an
+        implementation that increments unconditionally.
+        """
+        monitor = ConfigMonitor(tmp_path)
+
+        await monitor._handle_vault_create(
+            VaultEvent(event_type="file_created", path="unrelated/x.md", timestamp="t0")
+        )
+
+        assert monitor.dropped_events == 0

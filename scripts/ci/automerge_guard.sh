@@ -227,6 +227,13 @@ step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 step "lineage self-test" uv run python scripts/ci/lineage_scan.py --self-test
 step "lineage scan" uv run python scripts/ci/lineage_scan.py
 
+# Step 6c-sexies: False contracts — "does the producer do what its NAME promises?" Found
+# 2026-09-10 (publish_and_persist persisted nothing; regenerate_and_commit reported syncs that
+# never happened) and re-found 2026-09-19 still live on main because the fix branch never
+# landed. AST-based (a grep matches the docstring that lies). --self-test first, as above.
+step "false-contract self-test" uv run python scripts/ci/false_contract_scan.py --self-test
+step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
+
 # Step 6c-ter-bis: unrestricted exec/eval (security finding H5). CPython auto-injects the FULL
 # builtins into a globals dict lacking "__builtins__", so exec(llm_code, {}) reaches
 # __import__/open/eval. safe_exec_globals() closed the 2026-06 instances, yet 2026-09-13 found 13

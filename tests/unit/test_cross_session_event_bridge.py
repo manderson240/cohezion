@@ -34,3 +34,96 @@ async def test_cross_session_event_bridge_initialization_and_publish():
     assert events[0]["source"] == "agent_alpha"
 
     await bus.stop()
+
+
+# --- publish_and_persist: the SYNC one-shot path used by 5 production callers ---
+# Regression guard (2026-09-04): publish_and_persist only called publish_sync(),
+# which merely enqueues. With no running bus nothing drains the queue, so the
+# event reached neither a handler nor SurrealDB -- yet it returned True.
+
+
+def _bridge_with_mock(mock_surreal):
+    return CrossSessionEventBridge(
+        event_bus=EventBus(), session_id="s_sync_test", surreal_client=mock_surreal
+    )
+
+
+def test_publish_and_persist_writes_to_surreal_without_a_running_bus():
+    """CONSUMPTION: the sync path must reach the database, not just a queue."""
+    mock_surreal = AsyncMock()
+    mock_surreal.query.return_value = [{"result": []}]
+    bridge = _bridge_with_mock(mock_surreal)
+
+    ok = bridge.publish_and_persist(Event.agent_start("agent_sync", model="m"))
+
+    assert mock_surreal.query.called, "event never reached SurrealDB"
+    assert ok is True
+
+
+def test_publish_and_persist_reports_false_when_the_backend_fails():
+    """DISCRIMINATING: a backend failure must not be reported as success."""
+    mock_surreal = AsyncMock()
+    mock_surreal.query.side_effect = RuntimeError("surreal down")
+    bridge = _bridge_with_mock(mock_surreal)
+
+    ok = bridge.publish_and_persist(Event.agent_start("agent_sync", model="m"))
+
+    assert ok is False, "backend failure reported as success"
+
+
+def test_record_id_is_deterministic_so_upsert_is_idempotent():
+    """At-least-once delivery must not create duplicate event_log rows."""
+    bridge = _bridge_with_mock(AsyncMock())
+    evt = Event.agent_start("agent_sync", model="m")
+    assert bridge._record_id(evt) == bridge._record_id(evt)
+
+
+# --- in-loop path (adversarial review, 2026-09-18) ---
+
+
+@pytest.mark.asyncio
+async def test_in_loop_publish_and_persist_refuses_when_bus_not_running():
+    """An event put_nowait into an undrained queue is the original defect."""
+    bridge = _bridge_with_mock(AsyncMock())
+    assert not bridge.event_bus._running
+
+    assert bridge.publish_and_persist(Event.agent_start("a", model="m")) is False
+
+
+@pytest.mark.asyncio
+async def test_in_loop_persist_task_is_retained_and_failure_is_logged(caplog):
+    mock_surreal = AsyncMock()
+    mock_surreal.query.side_effect = RuntimeError("surreal down")
+    bridge = _bridge_with_mock(mock_surreal)
+    await bridge.event_bus.start()
+    try:
+        with caplog.at_level("WARNING"):
+            ok = bridge.publish_and_persist(Event.agent_start("a", model="m"))
+            assert ok is True  # dispatched; persistence is scheduled
+            assert len(bridge._pending_persist) == 1, "persist task not retained"
+            for _ in range(20):
+                await asyncio.sleep(0)
+                if not bridge._pending_persist:
+                    break
+        assert bridge._pending_persist == set()
+        assert "Failed to persist" in caplog.text
+    finally:
+        await bridge.event_bus.stop()
+
+
+@pytest.mark.asyncio
+async def test_in_loop_persist_task_that_raises_is_logged_not_swallowed(caplog):
+    bridge = _bridge_with_mock(AsyncMock())
+    bridge._persist = AsyncMock(side_effect=RuntimeError("boom"))
+    await bridge.event_bus.start()
+    try:
+        with caplog.at_level("WARNING"):
+            assert bridge.publish_and_persist(Event.agent_start("a", model="m")) is True
+            for _ in range(20):
+                await asyncio.sleep(0)
+                if not bridge._pending_persist:
+                    break
+        assert "persist task failed" in caplog.text
+        assert "boom" in caplog.text
+    finally:
+        await bridge.event_bus.stop()
