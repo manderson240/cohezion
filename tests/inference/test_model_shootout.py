@@ -274,3 +274,33 @@ def test_run_model_shootout_one_shot(monkeypatch):
     report = asyncio.run(run_model_shootout(candidates=["Gemma-4-E4B-it-GGUF"]))
     assert all(isinstance(r, ShootoutResult) for r in report.results)
     assert report.results[0].quality_score > 0.5
+
+
+def test_write_model_performance_err_statement_is_a_failed_write(monkeypatch):
+    """batch1 contract (2026-09-20): SurrealDB answers HTTP 200 with a per-statement ERR; the
+    writer reads the verdict and reports False. Kills the mutants that drop or blunt the
+    checked_statements call (the baseline test only sees the OK path)."""
+    import urllib.request
+
+    class _Resp:
+        status = 200
+
+        def read(self):
+            return b'[{"status": "ERR", "result": "Specify a namespace to use"}]'
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=5.0: _Resp())
+    ok = write_model_performance(
+        model="Gemma-4-E4B-it-GGUF",
+        quality_score=0.6,
+        task="review",
+        role="code",
+        tps=1.0,
+        outcome="pass",
+    )
+    assert ok is False

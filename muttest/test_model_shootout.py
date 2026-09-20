@@ -36,6 +36,7 @@ from cohezion.inference.model_shootout import (
 from cohezion.inference.model_sprint_orchestrator import SprintResult
 from cohezion.inference.transports.lemonade import LemonadeTransport, TransportResponse
 
+
 RESIDENT_MODELS = [
     {"model_name": "Gemma-4-26B-A4B-it-GGUF", "last_use": 1, "is_busy": False, "loaded": True},
     {"model_name": "Gemma-4-E4B-it-GGUF", "last_use": 2, "is_busy": False, "loaded": True},
@@ -46,11 +47,14 @@ RESIDENT_MODELS = [
 @pytest.fixture(autouse=True)
 def _no_network_write(monkeypatch):
     """Block real SurrealDB writes in every test by default."""
-    monkeypatch.setattr("cohezion.inference.model_shootout.write_model_performance", lambda **k: True)
+    monkeypatch.setattr(
+        "cohezion.inference.model_shootout.write_model_performance", lambda **k: True
+    )
 
 
 def _make_transport(monkeypatch, content: str) -> None:
     """Make the transport return a canned response regardless of model."""
+
     async def _fake_query(self, prompt, model_id, params=None):
         return TransportResponse(
             content=content,
@@ -58,6 +62,7 @@ def _make_transport(monkeypatch, content: str) -> None:
             latency_ms=123.4,
             verified=True,
         )
+
     monkeypatch.setattr(LemonadeTransport, "query", _fake_query)
 
 
@@ -66,9 +71,7 @@ class TestConsumerContract:
 
     def test_default_candidates_are_resident_models_only(self, monkeypatch):
         """C1: embeddings excluded, non-embed resident models returned."""
-        monkeypatch.setattr(
-            hotswap, "resident_models", lambda: list(RESIDENT_MODELS)
-        )
+        monkeypatch.setattr(hotswap, "resident_models", lambda: list(RESIDENT_MODELS))
         cands = default_candidates()
         assert "nomic-embed-text-v2-moe-GGUF" not in cands
         assert "Gemma-4-26B-A4B-it-GGUF" in cands
@@ -160,8 +163,10 @@ class TestProducerContract:
 
         class _FakeBus:
             _running = True
+
             async def publish(self, event):
                 events.append(event)
+
             def publish_sync(self, event):
                 events.append(event)
 
@@ -224,8 +229,17 @@ def test_write_model_performance_builds_valid_surql(monkeypatch):
 
     class _Resp:
         status = 200
-        def __enter__(self): return self
-        def __exit__(self, *exc): return False
+
+        # batch1 (2026-09-20): the writer now READS the body through checked_statements;
+        # a 200 with no body is no longer success. Mirror tests/inference/test_model_shootout.py.
+        def read(self):
+            return b'[{"status": "OK", "result": []}]'
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
 
     def _fake_urlopen(req, timeout=5.0):
         payload = req.data.decode()
@@ -263,3 +277,33 @@ def test_run_model_shootout_one_shot(monkeypatch):
     report = asyncio.run(run_model_shootout(candidates=["Gemma-4-E4B-it-GGUF"]))
     assert all(isinstance(r, ShootoutResult) for r in report.results)
     assert report.results[0].quality_score > 0.5
+
+
+def test_write_model_performance_err_statement_is_a_failed_write(monkeypatch):
+    """batch1 contract (2026-09-20): SurrealDB answers HTTP 200 with a per-statement ERR; the
+    writer reads the verdict and reports False. Kills the mutants that drop or blunt the
+    checked_statements call (the baseline test only sees the OK path)."""
+    import urllib.request
+
+    class _Resp:
+        status = 200
+
+        def read(self):
+            return b'[{"status": "ERR", "result": "Specify a namespace to use"}]'
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=5.0: _Resp())
+    ok = write_model_performance(
+        model="Gemma-4-E4B-it-GGUF",
+        quality_score=0.6,
+        task="review",
+        role="code",
+        tps=1.0,
+        outcome="pass",
+    )
+    assert ok is False

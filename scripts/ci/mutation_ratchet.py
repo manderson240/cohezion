@@ -118,6 +118,11 @@ def run_mutmut_results() -> str:
     engine first populates the cache.
     """
     mutmut = _mutmut_cmd()
+    # Never trust a cached population. mutmut 3 reuses `mutants/` across runs, so a local run
+    # after a source change can report the PREVIOUS tree's counts while CI (fresh) measures the
+    # real ones -- measured 2026-09-20: local "within baseline" while CI failed on the same
+    # commit because the unmutated baseline test no longer passed. Parity beats the 2 minutes.
+    shutil.rmtree(REPO_ROOT / "mutants", ignore_errors=True)
     run = subprocess.run(
         [*mutmut, "run"],
         capture_output=True,
@@ -128,6 +133,17 @@ def run_mutmut_results() -> str:
     if run.returncode not in (0, 1):  # 1 = some mutants survived (informational)
         print(f"note: mutmut run exited {run.returncode}", file=sys.stderr)
         print(run.stderr[-2000:], file=sys.stderr)
+    combined = run.stdout + run.stderr
+    if "failed to collect stats" in combined:
+        # The UNMUTATED baseline test run failed: mutmut aborts before any mutant runs and
+        # `results` prints nothing. Without this, the parser reports "No mutmut results lines",
+        # which reads as a broken instrument rather than a broken test (2026-09-20).
+        tail = "\n".join(combined.splitlines()[-40:])
+        print(
+            "MUTATION RATCHET: mutmut's baseline (unmutated) test run FAILED -- fix the test "
+            "selection in muttest/ before mutation coverage can be measured. mutmut tail:\n" + tail,
+            file=sys.stderr,
+        )
     proc = subprocess.run(
         [*mutmut, "results"],
         capture_output=True,

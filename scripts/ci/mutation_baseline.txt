@@ -17,5 +17,8 @@
 # 1101 mutants (278 survived / 819 no-tests) from the same tree -- a version bump
 # moves these numbers without any code change. Re-record in the same commit as any
 # mutmut upgrade.
-survived=269
+survived=264
 no_tests=793
+# 2026-09-20 (later): survived 269 -> 264 after muttest/test_model_shootout.py gained an
+# ERR-body test for write_model_performance (kills 8 mutants of the checked read). Recorded
+# on a CLEARED mutants/ cache; the ratchet now clears it itself before every run.
