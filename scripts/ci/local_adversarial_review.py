@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -151,6 +152,8 @@ def parse_lane(lens: str, model: str, text: str, seconds: float) -> LaneResult:
         return LaneResult(lens, model, "UNKNOWN", [], seconds, text[-600:])
     verdict = obj.get("verdict") if obj.get("verdict") in ("ship", "hold") else "UNKNOWN"
     verdict = verdict or "UNKNOWN"
+    if verdict == "UNKNOWN" and obj.get("findings") == []:
+        verdict = "ship"  # a parsed empty list is an answer; silence is not (Gemma-4-31B, run 3)
     findings = []
     for f in obj.get("findings") or []:
         if not isinstance(f, dict) or not f.get("claim"):
@@ -229,9 +232,22 @@ _ALLOWED_PREFIXES = (
 )
 
 
+_SHELL_META = re.compile(r"[;&|`$<>\\]|\$\(")
+
+
 def run_falsifier(cmd: str) -> tuple[str, str]:
-    """Run a lane's falsifier under a narrow allow-list; return (status, evidence)."""
+    """Run a lane's falsifier under a narrow allow-list; return (status, evidence).
+
+    Found by the scientific-rigor lens on its own first review of this file (2026-09-21): a
+    prefix allow-list plus ``shell=True`` let ``grep x; rm -rf /`` through. Now: no shell
+    metacharacters anywhere, ``shlex`` tokenisation, first token must be allow-listed, and
+    the process runs without a shell. A ``python -c`` falsifier can still execute arbitrary
+    Python in the repo -- the same trust as running the reviewed tests -- and that is the
+    accepted contract; what is refused is a second command hidden behind the first.
+    """
     c = cmd.strip()
+    if _SHELL_META.search(c):
+        return "falsifier-failed", f"refused (shell metacharacter): {c[:120]}"
     if not c.startswith(_ALLOWED_PREFIXES):
         return "falsifier-failed", f"refused (not in allow-list): {c[:120]}"
     # route interpreters through the repo venv (L367); a bare `pytest` becomes a module run
@@ -240,13 +256,9 @@ def run_falsifier(cmd: str) -> tuple[str, str]:
     elif c.startswith(("python3 ", "python ")):
         c = ".venv/bin/python3 " + c.split(" ", 1)[1]
     try:
+        argv = shlex.split(c)
         p = subprocess.run(
-            c,
-            shell=True,
-            capture_output=True,
-            text=True,
-            cwd=REPO_ROOT,
-            timeout=FALSIFIER_TIMEOUT_S,
+            argv, capture_output=True, text=True, cwd=REPO_ROOT, timeout=FALSIFIER_TIMEOUT_S
         )
         # drop import-time logger chatter so the evidence shows the falsifier's answer
         noise = ("Registered model provider", "Vault is locked", "[DBA]")
@@ -341,6 +353,16 @@ def self_test() -> int:
         (r2.verdict == "UNKNOWN" and r2.findings == [], "prose is UNKNOWN, not a pass"),
         (r3.verdict == "hold", "fenced JSON parses"),
         (run_falsifier("rm -rf /")[0] == "falsifier-failed", "allow-list refuses"),
+        (
+            run_falsifier("grep -n x README.md; rm -rf /")[0] == "falsifier-failed",
+            "no second command behind a `;`",
+        ),
+        (run_falsifier("grep -n x README.md | sh")[0] == "falsifier-failed", "no pipe"),
+        (run_falsifier("grep -n $(id) README.md")[0] == "falsifier-failed", "no substitution"),
+        (
+            parse_lane("x", "m", '{"findings": []}', 1.0).verdict == "ship",
+            "parsed empty findings is ship, not UNKNOWN",
+        ),
         (
             run_falsifier("grep -n 'def self_test' scripts/ci/local_adversarial_review.py")[0]
             == "evidence-attached",
