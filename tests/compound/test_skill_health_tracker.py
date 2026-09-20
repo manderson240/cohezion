@@ -12,6 +12,14 @@ from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.skill_health_tracker import SkillHealthRecord, SkillHealthTracker
 
 
+def _a_registry_skill() -> str:
+    """A real registry key: Step 7.4 records health only for registry skills."""
+    from cohezion.registry.skill_registry import load_registry
+
+    CompoundExecutor._registry_keys_cache = None
+    return next(iter(load_registry()))
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -276,14 +284,17 @@ class TestExecutorSkillHealthIntegration:
         def dummy_task(guidance: dict) -> tuple[str, dict]:
             return "output", {}
 
+        # Step 7.4 records health only for REGISTRY skills (lane labels polluted the store
+        # and zeroed the capability matrix's skill axis) — premise the test on a real one.
+        skill = _a_registry_skill()
         executor.execute_task(
             task_description="test",
-            skill_name="TRACKED_SKILL",
+            skill_name=skill,
             operation_type="generate",
             execute_fn=dummy_task,
         )
 
-        record = tracker.get_health("TRACKED_SKILL")
+        record = tracker.get_health(skill)
         assert record is not None
         assert record.total_invocations == 1
         assert record.successful_invocations == 1
@@ -296,14 +307,15 @@ class TestExecutorSkillHealthIntegration:
         def failing_task(guidance: dict) -> tuple[str, dict]:
             raise ValueError("boom")
 
+        skill = _a_registry_skill()
         executor.execute_task(
             task_description="test",
-            skill_name="FAIL_SKILL",
+            skill_name=skill,
             operation_type="generate",
             execute_fn=failing_task,
         )
 
-        record = tracker.get_health("FAIL_SKILL")
+        record = tracker.get_health(skill)
         assert record is not None
         assert record.total_invocations == 1
         assert record.failed_invocations == 1
@@ -325,3 +337,62 @@ class TestExecutorSkillHealthIntegration:
             execute_fn=dummy_task,
         )
         assert result.success is True
+
+
+class TestExecutorRecordsOnlyRegistrySkills:
+    """Step 7.4 CONSUMPTION invariant. Measured 2026-09-20: the health store held 30 records,
+    0 of which canonicalised to a registry skill (29 test fixtures from before COHEZION_STATE_DIR
+    isolation + the actioner daemon's lane label 'research-actioner', 1,175 invocations). The
+    capability matrix's skill axis therefore read 0. The executor must not write lane labels
+    into the skill store; a real registry skill must still be recorded."""
+
+    def _executor(self):
+        from unittest.mock import MagicMock
+
+        from cohezion.compound.executor import CompoundExecutor
+
+        tracker = MagicMock()
+        ex = CompoundExecutor(MagicMock(), skill_health_tracker=tracker)
+        CompoundExecutor._registry_keys_cache = None
+        return ex, tracker
+
+    def test_lane_label_is_not_recorded(self):
+        ex, _ = self._executor()
+        assert ex._is_registry_skill("research-actioner") is False
+
+    def test_registry_skill_is_recorded(self):
+        ex, _ = self._executor()
+        assert ex._is_registry_skill(_a_registry_skill()) is True
+
+    def test_empty_name_is_not_recorded(self):
+        ex, _ = self._executor()
+        assert ex._is_registry_skill("") is False
+
+    def test_execute_task_skips_record_usage_for_a_lane_label(self):
+        """CONSUMPTION: the gate must sit on the execute_task path, not only exist as a method.
+        Neutralising the Step 7.4 guard (recording unconditionally) turns this red."""
+        ex, tracker = self._executor()
+        ex.execute_task(
+            task_description="t",
+            skill_name="research-actioner",
+            operation_type="generate",
+            execute_fn=lambda guidance: ("out", {}),
+        )
+        tracker.record_usage.assert_not_called()
+
+    def test_execute_task_records_usage_for_a_registry_skill(self):
+        ex, tracker = self._executor()
+        ex.execute_task(
+            task_description="t",
+            skill_name=_a_registry_skill(),
+            operation_type="generate",
+            execute_fn=lambda guidance: ("out", {}),
+        )
+        assert tracker.record_usage.call_count == 1
+
+    def test_registry_unreadable_fails_open(self, monkeypatch):
+        import cohezion.registry.skill_registry as reg
+
+        ex, _ = self._executor()
+        monkeypatch.setattr(reg, "load_registry", lambda: (_ for _ in ()).throw(OSError("boom")))
+        assert ex._is_registry_skill("anything") is True

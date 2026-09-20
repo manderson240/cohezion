@@ -763,6 +763,27 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             return {"cache": None, "token_efficiency": None, "coherence": None}
         return self._degradation_detector.get_health_summary()
 
+    _registry_keys_cache: set[str] | None = None
+
+    @classmethod
+    def _is_registry_skill(cls, skill_name: str) -> bool:
+        """True iff ``skill_name`` canonicalises to a real registry skill.
+
+        Fail-OPEN if the registry cannot be read (never blind the tracker on an I/O
+        error); fail-CLOSED on a name that simply is not a skill. Cached per process.
+        """
+        if not skill_name:
+            return False
+        try:
+            from cohezion.registry.skill_discovery import canonical_skill_key
+            from cohezion.registry.skill_registry import load_registry
+
+            if cls._registry_keys_cache is None:
+                cls._registry_keys_cache = {canonical_skill_key(k) for k in load_registry()}
+            return canonical_skill_key(skill_name) in cls._registry_keys_cache
+        except Exception:  # registry unreadable: do not gate
+            return True
+
     def execute_task(
         self,
         task_description: str,
@@ -1747,7 +1768,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("MGPO batch accumulation failed (non-blocking): %s", e)
 
         # Step 7.4: Record skill health metrics (non-blocking)
-        if self._skill_health_tracker:
+        # Only for REGISTRY skills. Measured 2026-09-20: the one production writer
+        # (actioner/engine.py) records under the lane label "research-actioner" (1,175
+        # invocations); it is not a skill, canonical_skill_key() cannot join it, and the
+        # capability matrix's skill axis read 0 against a 305-skill registry for 28 days
+        # while the store filled with names nothing could use. A lane name in the skill
+        # store is noise; skip it at the source rather than filter it at every reader.
+        if self._skill_health_tracker and self._is_registry_skill(skill_name):
             try:
                 tokens = 0
                 quality = 0.0

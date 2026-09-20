@@ -241,6 +241,13 @@ step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
 step "surreal-http self-test" uv run python scripts/ci/surreal_http_scan.py --self-test
 step "surreal-http scan" uv run python scripts/ci/surreal_http_scan.py
 
+# Step 6c-octies: Mutation ratchet — "do the tests detect a broken implementation?" Existed
+# with a committed baseline and ran in NO gate; measured 2026-09-20: 4 killed / 269 survived /
+# 793 untargeted of 1066 in the two scoped modules. Wired at today's numbers (baseline notes
+# the regression); survivors and untargeted mutants may only shrink. ~2-3 min locally.
+step "mutation self-test" uv run python scripts/ci/mutation_ratchet.py --self-test
+step "mutation ratchet" uv run python scripts/ci/mutation_ratchet.py
+
 # Step 6c-ter-bis: unrestricted exec/eval (security finding H5). CPython auto-injects the FULL
 # builtins into a globals dict lacking "__builtins__", so exec(llm_code, {}) reaches
 # __import__/open/eval. safe_exec_globals() closed the 2026-06 instances, yet 2026-09-13 found 13

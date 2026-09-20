@@ -24,19 +24,24 @@ Usage:
   python scripts/ci/mutation_ratchet.py                    # run + compare
   python scripts/ci/mutation_ratchet.py --write-baseline   # re-record
 """
+
 from __future__ import annotations
 
 import argparse
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 BASELINE = Path(__file__).resolve().parent / "mutation_baseline.txt"
 
 # Matches mutmut 3.x results lines: "module.x_name__mutmut_42: survived"
-RESULTS_RE = re.compile(r"^\s*([\w.]+__mutmut_\d+):\s*(survived|killed|suspicious|timeout|no tests)\s*$")
+RESULTS_RE = re.compile(
+    r"^\s*([\w.]+__mutmut_\d+):\s*(survived|killed|suspicious|timeout|no tests)\s*$"
+)
 
 
 def parse_mutmut_results(text: str) -> dict[str, int]:
@@ -81,6 +86,29 @@ def read_baseline() -> dict[str, int]:
     return vals
 
 
+def _mutmut_cmd() -> list[str]:
+    """Locate the mutation engine (L367: prefer the repo venv, never `uv run` blind).
+
+    `uv run mutmut` in a clone whose venv was never synced prints
+    "mutmut: command not found" to stderr and exits 127 — and the old code
+    fed that empty stdout to the parser, which reported "No mutmut results
+    lines found". A missing INSTRUMENT was being reported as an empty
+    RESULT (Phase 0: UNKNOWN is not ABSENT). Resolve the binary explicitly
+    and fail with the real cause when it is absent.
+    """
+    venv_bin = REPO_ROOT / ".venv" / "bin" / "mutmut"
+    if venv_bin.exists():
+        return [str(venv_bin)]
+    on_path = shutil.which("mutmut")
+    if on_path:
+        return [on_path]
+    raise RuntimeError(
+        "mutmut is not installed: neither <repo>/.venv/bin/mutmut nor `mutmut` on PATH. "
+        "Install it (`uv sync` or `uv pip install mutmut`) — the ratchet cannot measure "
+        "without its instrument and will not report that as zero survivors."
+    )
+
+
 def run_mutmut_results() -> str:
     """Run the mutation engine, then return `mutmut results` output.
 
@@ -89,8 +117,9 @@ def run_mutmut_results() -> str:
     is empty -> results prints nothing -> parse fails closed. Running the
     engine first populates the cache.
     """
+    mutmut = _mutmut_cmd()
     run = subprocess.run(
-        ["uv", "run", "mutmut", "run"],
+        [*mutmut, "run"],
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
@@ -98,8 +127,9 @@ def run_mutmut_results() -> str:
     )
     if run.returncode not in (0, 1):  # 1 = some mutants survived (informational)
         print(f"note: mutmut run exited {run.returncode}", file=sys.stderr)
+        print(run.stderr[-2000:], file=sys.stderr)
     proc = subprocess.run(
-        ["uv", "run", "mutmut", "results"],
+        [*mutmut, "results"],
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
@@ -146,7 +176,9 @@ def main() -> int:
             f"survived={counts['survived']}\n"
             f"no_tests={counts['no_tests']}\n"
         )
-        print(f"✓ baseline written: survived={counts['survived']} no_tests={counts['no_tests']} total={counts['total']}")
+        print(
+            f"✓ baseline written: survived={counts['survived']} no_tests={counts['no_tests']} total={counts['total']}"
+        )
         return 0
 
     counts = parse_mutmut_results(run_mutmut_results())
@@ -176,11 +208,10 @@ def main() -> int:
 
     coupled_note = (
         f"{counts['no_tests']} uncoupled (no tests target them)"
-        if counts["no_tests"] else "all mutants coupled to tests"
+        if counts["no_tests"]
+        else "all mutants coupled to tests"
     )
-    print(
-        f"mutmut: total={counts['total']} survived={counts['survived']} ({coupled_note})"
-    )
+    print(f"mutmut: total={counts['total']} survived={counts['survived']} ({coupled_note})")
 
     if errors:
         for e in errors:

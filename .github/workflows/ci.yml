@@ -160,6 +160,14 @@ jobs:
           uv run python scripts/ci/surreal_http_scan.py --self-test
           uv run python scripts/ci/surreal_http_scan.py
 
+      # Mutation ratchet: survivors / untargeted mutants in the scoped modules may only
+      # shrink vs scripts/ci/mutation_baseline.txt. Was never wired; baseline re-recorded
+      # 2026-09-20 with the regression it found named in the file.
+      - name: Mutation ratchet (gating)
+        run: |
+          uv run python scripts/ci/mutation_ratchet.py --self-test
+          uv run python scripts/ci/mutation_ratchet.py
+
       # Security finding H5: exec/eval of generated code with a globals dict lacking
       # "__builtins__" gets the FULL builtins (import/open/eval). 13 unrestricted sites had
       # re-accumulated in src/ by 2026-09-13. Exceptions need "# unrestricted-exec-ok: <reason>".
