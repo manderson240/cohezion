@@ -14,6 +14,7 @@ our handler exists; only a real handshake asserts that the client can accept it.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -136,6 +137,57 @@ def test_unknown_request_gets_an_error_instead_of_silence() -> None:
     assert responses, "unknown request produced no response (client would hang)"
     assert responses[0]["id"] == 7
     assert responses[0]["error"]["code"] == -32601
+
+
+@pytest.mark.skipif(
+    os.geteuid() == 0, reason="root bypasses file permissions, so the cwd stays writable"
+)
+def test_handshake_survives_an_unwritable_cwd() -> None:
+    """The server must answer even when cwd cannot be written to.
+
+    Measured failure this guards against (both real, both found by running this
+    suite from a read-only worktree):
+
+      * `compound/universal/init.py` fell back to `print()` on **stdout** when
+        `.opencode/logs` could not be created. stdout is the JSON-RPC channel,
+        so the banner corrupted the stream.
+      * `reliability/monitor.py` mkdir'd a *relative* `logs` path and raised
+        PermissionError, killing the process before it answered at all.
+
+    Both are cwd-dependent, which is what made them look intermittent.
+    """
+    with tempfile.TemporaryDirectory() as parent:
+        locked = Path(parent) / "locked"
+        locked.mkdir()
+        locked.chmod(0o500)  # r-x: cannot create anything inside
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(SERVER)],
+                input=json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 0,
+                        "method": "initialize",
+                        "params": {"protocolVersion": "2025-06-18"},
+                    }
+                )
+                + "\n",
+                capture_output=True,
+                text=True,
+                timeout=_TIMEOUT_S,
+                cwd=str(locked),
+            )
+        finally:
+            locked.chmod(0o700)  # restore so TemporaryDirectory can clean up
+
+    lines = [ln for ln in proc.stdout.splitlines() if ln.strip()]
+    assert lines, (
+        "server produced NO stdout under an unwritable cwd -- it died before "
+        f"answering. stderr tail: {proc.stderr[-400:]}"
+    )
+    for ln in lines:
+        json.loads(ln)  # every stdout line must be a protocol frame, not a banner
+    assert isinstance(json.loads(lines[0])["result"]["protocolVersion"], str)
 
 
 def test_unknown_notification_stays_silent() -> None:
