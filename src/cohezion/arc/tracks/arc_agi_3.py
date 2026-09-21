@@ -80,35 +80,83 @@ def _refine_prediction(
     test_input: Grid,
     rules: list,
     extractor: PatternExtractor,
+    builder: SubmissionBuilder | None = None,
 ) -> Grid:
-    """Generate a second attempt given feedback from first attempt.
+    """Generate a second attempt conditioned on Attempt 1 feedback via Bayesian Orthogonality.
 
-    Strategies per feedback:
-    - correct   : return same grid (should never happen as loop stops)
-    - wrong_shape: preserve aspect ratio heuristic, try nearest valid size
-    - wrong_colors: swap most common color, or run inverse
-    - wrong_pattern: try next best rule or LLM fallback
+    Invariants:
+    1. If feedback is 'correct', keep first_pred.
+    2. Attempt 2 MUST NOT repeat first_pred (attempt_2 != attempt_1) unless no alternatives exist.
+    3. If feedback is 'wrong_shape', prune all candidate hypotheses producing first_pred's shape.
+    4. If feedback is 'wrong_colors', prune all candidate hypotheses producing first_pred's palette.
+    5. Iterate through candidate rules in descending confidence to find the first orthogonal prediction.
+    6. Fall back to secondary DSL search / transformations if rules are exhausted.
     """
     if feedback == "correct":
         return first_pred
 
-    if feedback == "wrong_shape":
-        # Naive: try transpose or scale
-        if len(first_pred) == len(test_input) and len(first_pred[0]) == len(test_input[0]):
-            return first_pred  # same shape as input means rule preserved dims
-        return test_input  # fallback to identity if shape is off
+    shape1 = (len(first_pred), len(first_pred[0]) if first_pred else 0)
+    colors1 = {c for row in first_pred for c in row}
 
-    if feedback == "wrong_colors":
-        # Try simple inversion heuristic
+    # 1. Search remaining candidate rules for an orthogonal, valid prediction
+    if rules and builder is not None:
+        for rule in rules:
+            try:
+                cand = builder._apply_rule(test_input, rule)
+                if cand is None or not builder._valid_grid(cand):
+                    continue
+                if grids_equal(cand, first_pred):
+                    continue  # Skip identical outputs (attempt 1 failed)
+
+                cand_shape = (len(cand), len(cand[0]) if cand else 0)
+                if feedback == "wrong_shape" and cand_shape == shape1:
+                    continue  # Skip candidates repeating the erroneous shape
+
+                cand_colors = {c for row in cand for c in row}
+                if feedback == "wrong_colors" and cand_colors == colors1:
+                    continue  # Skip candidates repeating the erroneous palette
+
+                return cand
+            except Exception:
+                continue
+
+    # 2. Fallback to DSL solver if available
+    if builder is not None:
         try:
-            inv = [[9 - c for c in row] for row in first_pred]
-            return inv
+            cand_dsl = builder._fallback_dsl(test_input)
+            if cand_dsl is not None and builder._valid_grid(cand_dsl):
+                if not grids_equal(cand_dsl, first_pred):
+                    cand_dsl_shape = (len(cand_dsl), len(cand_dsl[0]) if cand_dsl else 0)
+                    if feedback != "wrong_shape" or cand_dsl_shape != shape1:
+                        return cand_dsl
         except Exception:
             pass
+
+    # 3. Geometric / palette mutation fallback (guarantee attempt_2 != attempt_1)
+    if feedback == "wrong_shape":
+        if len(first_pred) == len(first_pred[0]) and len(first_pred) > 0:
+            # Transpose
+            return [[first_pred[r][c] for r in range(len(first_pred))] for c in range(len(first_pred[0]))]
         return test_input
 
-    # wrong_pattern: try next best rule
-    return first_pred  # in real harness attempt_2 should differ
+    if feedback == "wrong_colors":
+        unique_colors = [c for c in colors1 if c != 0]
+        if unique_colors:
+            target = unique_colors[0]
+            replacement = (target % 9) + 1
+            return [[replacement if c == target else c for c in row] for row in first_pred]
+
+    # 4. Pattern failure: try 90-degree rotation or horizontal reflection of first_pred
+    try:
+        h, w = len(first_pred), len(first_pred[0])
+        if h > 0 and w > 0:
+            rotated = [[first_pred[h - 1 - r][c] for r in range(h)] for c in range(w)]
+            if not grids_equal(rotated, first_pred):
+                return rotated
+    except Exception:
+        pass
+
+    return test_input if not grids_equal(test_input, first_pred) else first_pred
 
 
 class ARCAGI3Pipeline:
@@ -217,7 +265,12 @@ class ARCAGI3Pipeline:
                     pred2 = pred1
                 else:
                     pred2 = _refine_prediction(
-                        pred1, feedback, test_input, rules, self.builder.extractor
+                        pred1,
+                        feedback,
+                        test_input,
+                        rules,
+                        self.builder.extractor,
+                        builder=self.builder,
                     )
                     if gold is not None and grids_equal(pred2, gold):
                         reward = self.ATTEMPT_2_WEIGHT
