@@ -264,3 +264,45 @@ def test_each_physics_route_registered_exactly_once():
     counts = Counter((r.path, tuple(sorted(r.methods))) for r in physics_ext_router.routes)
     duplicated = {k: v for k, v in counts.items() if v > 1}
     assert duplicated == {}, f"routes registered more than once: {duplicated}"
+
+
+_STATUS_PATHS = [
+    "/api/physics/bec/status",
+    "/api/physics/mercury/status",
+    "/api/physics/colibre/status",
+    "/api/physics/mhd/status",
+    "/api/physics/bismuth/status",
+    "/api/physics/toroidal/status",
+    "/api/physics/tensor-metric/status",
+]
+
+
+def _app_openapi_with_warnings():
+    """Build the real app's schema without touching its cache; return (schema, warnings).
+
+    FastAPI 0.141 nests included routers, so ``app.routes`` is not a flat path
+    list; the generated schema is. A router included twice emits
+    "Duplicate Operation ID" for each of its operations.
+    """
+    import warnings
+
+    from fastapi.openapi.utils import get_openapi
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        schema = get_openapi(title="t", version="1", routes=app.routes)
+    return schema, [str(w.message) for w in caught]
+
+
+@pytest.mark.parametrize("path", _STATUS_PATHS)
+def test_status_path_served_exactly_once_on_real_app(path):
+    """DISCRIMINATING: physics_ext_router must be mounted on the real app, once.
+
+    Before 2026-09-21 the router was defined but never included, so every
+    /api/physics/* path 404'd; a double include would register it twice.
+    """
+    schema, warns = _app_openapi_with_warnings()
+    assert path in schema["paths"], f"{path} is not served by the app"
+    assert set(schema["paths"][path]) == {"get"}
+    dupes = [w for w in warns if "Duplicate Operation ID" in w and "physics" in w]
+    assert dupes == [], f"physics routes registered more than once: {dupes[:2]}"
