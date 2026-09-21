@@ -187,7 +187,11 @@ test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero` (exists, p
 - Unbounded metrics (`token_efficiency`, `duration_seconds`, `token_surprisal`) retain `value_bounds=None`
 - Motivation: linear extrapolation projects bounded metrics outside [0,1] causing false alert suppression. **Measured at horizon=1 — the only horizon `check_degradation()` uses:** coherence `[0.9,0.7,0.5,0.3,0.1]` → **−0.1000**; coherence `[0.30,0.22,0.14,0.06,0.02]` → **−0.0680**; success_rate `[0.2,0.45,0.7,0.9,0.98]` → **+1.2490**; quality `[0.5,0.7,0.85,0.95,0.99]` → **+1.1670**. Since `trend_value(1)` is the comparison *baseline*, a baseline below the metric's floor makes `current < baseline` unsatisfiable.
 - **Discriminating**: `test_unbounded_metric_can_extrapolate_outside_unit_interval` proves clamp is selective, not global
-- **Verification**: `uv run pytest tests/compound/test_metric_baseline_bounds.py -q` → **10 passed**
+- **Verification**: `uv run pytest tests/compound/test_metric_baseline_bounds.py -q` → **15 passed** (re-measured 2026-09-21)
+- **Known limitation (kept from the retired 2026-08-14 "REMOVED" entry):** a clamp treats the
+  symptom — linear extrapolation is the wrong asymptotic form for a quantity confined to a unit
+  interval. The principled upgrade is a logit-space fit (project `log(p/(1-p))`, map back through
+  the logistic): in-range by construction, saturating rather than wall-clamping.
 
 > ⚠ **PHANTOM HISTORY — read before trusting any "Verification" line in this file.**
 > From 2026-06-27 to 2026-08-19 this entry described code that did not exist: `value_bounds`
@@ -198,20 +202,10 @@ test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero` (exists, p
 > reference `value_bounds`** (the entry claimed 12). A command that runs, passes, and proves
 > nothing about the claim is the hardest false verification to catch by reading.
 > **Before trusting an invariant here, grep the field in `src/` and the assertion in `tests/`.**
-### MB1: REMOVED 2026-08-14 — was a PHANTOM invariant
-`value_bounds` has **zero occurrences** anywhere in `src/` or `tests/`; `trend_value()`
-does no clamping of any kind; and the named discriminating test
-(`test_unbounded_metric_can_extrapolate_outside_unit_interval`) does not exist. Same
-class as RTG1 and RGA1/RGA2. Found 2026-08-09 (c7934bcbe), landed via the 2026-08-14
-pick chain together with the E6 cited-test check in
-`scripts/ci/doc_code_consistency.py` — a phantom *symbol* and a phantom *test name*
-are invisible to a path checker, so cited test names are now machine-checked.
-
-**Do NOT re-add without implementing it.** If bounded-metric extrapolation is wanted,
-the principled form is a logit-space fit (project `log(p/(1-p))`, map back through the
-logistic): in-range by construction, saturating rather than wall-clamping. A clamp
-treats the symptom — linear extrapolation is the wrong asymptotic form for a quantity
-confined to a unit interval.
+> (2026-09-21: a second "MB1: REMOVED 2026-08-14 — PHANTOM" entry sat directly below this one,
+> contradicting it for a month after the 2026-08-19 implementation. Retired; its logit-space
+> note was folded into the limitation bullet above. It had been correct when written — the
+> removal recorded 2026-08-09 findings (c7934bcbe); the implementation came later.)
 
 ### LT1: DegradationDetector._ema_thresholds adapts toward observed values (GIC self-regulation, #137, 2026-06-27)
 - `_ema_thresholds: dict[str, float]` seeded from constructor params (`cache_hit_rate_threshold`, `coherence_threshold`)
@@ -273,12 +267,13 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `build_live_jepa_gate(lookahead_steps=3)` wired into BOTH factory paths (`executor_factory.make_executor` + `compound.__init__.make_executor`): lemonade-backed gate + k=3 lookahead when `lemonade_available()` (probed once at construction), else fail-open `JepaGate(world_model=None)` — W1 preserved.
 - Fail-OPEN discipline: uninitialized zero-state → `_BASELINE=0.7`; LLM unreachable/unparseable → persist current coherence. Neither forces a spurious SKIP.
 - **T1 structural**: `LemonadeWorldModel` has `predict_next_state` + `simulate_trajectory`; `build_live_jepa_gate` exists
-- **T2 discriminating**: `test_low_coherence_llm_makes_gate_skip` (LLM "0.05" → gate SKIP; a fail-open impl PROCEEDs), `test_high_coherence_llm_makes_gate_proceed`; `test_fallback_when_llm_raises_does_not_force_skip` (baseline ≥0.6, no false SKIP)
+- **AMENDED 2026-09-21 — the gate can no longer SKIP from this world model.** A Beta(2,2) prior (2026-07-02) smooths every reading toward the 0.7 baseline: `(2*0.7 + r)/3`, so even `r=0.0` → 0.467 > the 0.1 SKIP threshold. Low coherence now REROUTEs (escalate one tier), never aborts. This replaced the original "0.05 → SKIP" claim after a QA pass found the binary 1B model rates routine tractable tasks ~0.01, which aborted real work. `reroute_only=True` on the live gate is a redundant second belt.
+- **T2 discriminating**: `test_low_coherence_llm_makes_gate_reroute_not_proceed` (LLM "0.05" → REROUTE; a fail-open impl PROCEEDs), `test_beta_prior_prevents_skip_even_without_reroute_only_discriminating` (LLM "0.0", reroute_only=False → still REROUTE; an impl without the prior SKIPs), `test_high_coherence_llm_makes_gate_proceed`; `test_fallback_when_llm_raises_does_not_force_skip`
 - **T3 wiring**: `test_wires_lemonade_world_model_when_available` / `test_fail_open_when_lemonade_unavailable` (monkeypatched `lemonade_available`)
-- **Verification**: `uv run pytest tests/compound/test_lemonade_world_model.py -q` → 11 passed; LIVE: `build_live_jepa_gate().check(...)` real GAIA k=3 delegation ~0.4s
+- **Verification**: `uv run pytest tests/compound/test_lemonade_world_model.py -q` → 24 passed (re-measured 2026-09-21); LIVE: `build_live_jepa_gate().check(...)` real GAIA k=3 delegation ~0.4s
 
 ### RS1: GIC routing-signal synthesis — JEPA REROUTE actionable (2026-06-29)
-- `executor._resolve_tier(predicted, suggested, jepa_reroute) -> str|None`: combines DifficultyEstimator `predicted_tier` (predictive) + DegradationDetector `suggested_tier` (reactive) by taking the cheaper (conservative); a JepaGate REROUTE verdict then downgrades ONE step toward a cheaper tier via `_TIER_ORDER=("npu","igpu","cpu","cloud")`.
+- `executor._resolve_tier(predicted, suggested, jepa_reroute) -> str|None`: fuses DifficultyEstimator `predicted_tier` (predictive) + DegradationDetector `suggested_tier` (reactive) + CompoundHealthOracle `oracle_tier` (FD regime, OC1-OC3) by MAX-CAPABILITY — health may only escalate a hard task, never cheapen it; a JepaGate REROUTE verdict then escalates ONE step toward capability via `_TIER_ORDER=("npu","igpu","cpu","cloud")`. (Corrected 2026-09-21: this bullet still described the pre-H4 "cheaper / downgrade" behaviour that H4 reversed and the T2 block below already tests.)
 - Closes a producer→consumer gap: REROUTE was only LOGGED at Step 3.5; `execute_task` Step 3.6(c) now calls `_resolve_tier(...)` and sets `metrics["recommended_tier"]`. None when no valid signal.
 - **T1 structural**: `_TIER_ORDER == ("npu","igpu","cpu","cloud")`
 - **T2 discriminating** (corrected 2026-08-14 — the original text here asserted the
@@ -529,13 +524,15 @@ tier prediction, and skill_proximity transfer hints. All verified by
 - `execute_task()` captures `suggest_routing_tier()` result in `_tier_hints["suggested_tier"]`
 - Hints collected pre-execution, merged into final metrics after `execute_fn()` returns
 - Non-blocking: exception in suggest_routing_tier() leaves key absent, doesn't crash execution
-- **Verification**: `result.metrics["suggested_tier"] in {"npu", "igpu", "cpu"}` after execute_task()
+- **Claim**: `result.metrics["suggested_tier"] in {"npu", "igpu", "cpu"}` after execute_task()
+- **Verification**: `uv run pytest "tests/compound/test_wiring_completeness.py::TestW3SuggestRoutingTierConsumer" -q`
 
 ### W4: DifficultyEstimator.predict_tier() exposed in execution metrics
 - `execute_task()` captures `_skill_refiner._difficulty_estimator.predict_tier(skill, op)` result
 - Stored in `_tier_hints["predicted_tier"]`, merged into metrics after execute_fn() returns
 - Called with exact `skill_name` and `operation_type` arguments from execute_task() signature
-- **Verification**: `result.metrics["predicted_tier"]` present and `predict_tier` called with correct args
+- **Claim**: `result.metrics["predicted_tier"]` present and `predict_tier` called with correct args
+- **Verification**: `uv run pytest "tests/compound/test_wiring_completeness.py::TestW4PredictTierConsumer" -q`
 
 ### W5: skill_proximity() consumed by _generate_recommendation()
 - `_generate_recommendation(metrics, operation_type, skill_name="")` accepts optional skill_name
@@ -601,7 +598,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - Explicit `action` arg takes priority over `tier_used` in metrics
 - `record_env_state(env_type, step, obs, reward, action="")` — same pattern for gym envs
 - **T1 structural**: `"action" in {f.name for f in dataclasses.fields(TrajectoryPoint)}`; `field_map["action"].default == ""`; `"action" in inspect.signature(JourneyTracker.track_execution).parameters`
-- **T2 discriminating**: `test_track_execution_action_captured_from_tier_used` (must equal 'npu', not '' and not operation_type); `test_track_execution_explicit_action_overrides_tier_used` (explicit 'igpu:escalated' wins over 'npu' from metrics)
+- **T2 discriminating**: `test_t2_action_captured_from_tier_used` (tier from metrics reaches `action` as `evidence:npu`, not '' and not operation_type); `test_t2_explicit_action_overrides_tier_used` (explicit 'igpu:escalated' wins over the metrics tier). (Test names corrected 2026-09-21 — they were renamed with the AOEP prefix amendment above.)
 - **Verification**: `uv run pytest tests/test_journey_tracker.py::TestTrajectoryPointAction -q` → 7 passed
 
 ## MoE Skill Router Invariants (MR1–MR4, #83, 2026-06-28)
@@ -1056,13 +1053,12 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 ### LM7: from_autoresearch() defaults are steps=80, n_seeds=3; lr is schedule-driven (title amended 2026-08-03 — GAIA docs-consistency lane caught the heading still asserting lr=1e-2 against the amendment below)
 - **AMENDED 2026-08-01**: `lr` default is now `None` (schedule-driven: `lr_schedule='cosine'`,
   `optimizer='rmsprop'` — Round 7+ autoresearch, commit 911b4920f). steps=80 and n_seeds=3
-  still hold. The verification below fails as written on `p['lr'].default==1e-2`; treat
-  steps/n_seeds as the live invariant until re-benchmarked.
+  still hold. The verification below now asserts the schedule-driven defaults directly.
 - 80 steps = 2x dataset coverage (~2.6s per seed)
 - n_seeds=3 = best of seeds [42,99,1337], reliably achieves PPL<30 (fixes initialization sensitivity)
 - exp_QQQQ5: StdDev=91 across seeds; n_seeds=3 selection gives PPL=28.35 in 5.83s total
 - Do NOT change these defaults without benchmarking
-- **Verification**: `uv run python -c "import inspect; from cohezion.model.cohezion_lm import CohezionLM; sig=inspect.signature(CohezionLM.from_autoresearch); p=sig.parameters; assert p['steps'].default==80 and p['lr'].default==1e-2 and p['n_seeds'].default==3; print('LM7 OK')"`
+- **Verification**: `uv run python -c "import inspect; from cohezion.model.cohezion_lm import CohezionLM; sig=inspect.signature(CohezionLM.from_autoresearch); p=sig.parameters; assert p['steps'].default==80 and p['lr'].default is None and p['lr_schedule'].default=='cosine' and p['optimizer'].default=='rmsprop' and p['n_seeds'].default==3; print('LM7 OK')"` (fixed 2026-09-21 — it asserted `lr==1e-2` for seven weeks after the amendment above said otherwise)
 
 ## Harness Bash Unification Invariants (2026-06-03)
 
