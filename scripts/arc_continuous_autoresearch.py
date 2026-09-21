@@ -38,7 +38,8 @@ ENCODER = None
 
 
 def _sec_left() -> float:
-    return max(0, (TARGET_DEADLINE - datetime.now()).total_seconds())
+    now = datetime.now(TARGET_DEADLINE.tzinfo) if TARGET_DEADLINE.tzinfo else datetime.now()
+    return max(0, (TARGET_DEADLINE - now).total_seconds())
 
 
 def _load() -> dict:
@@ -101,12 +102,12 @@ def _find_nearest_task(task_id: str, state: dict, all_tasks: dict) -> str | None
 
 
 def _generalize_chain(chain: list[str], train_pairs: list[dict]) -> list[str] | None:
-    """Try removing last transform to see if shorter chain still works."""
-    for i in range(len(chain), 1):
-        shorter = chain[: len(chain) - 1] if i < len(chain) else chain
+    """Try removing transforms from end to see if shorter chain still works."""
+    for i in range(len(chain) - 1, 0, -1):
+        shorter = chain[:i]
         if not shorter:
             continue
-        if _score_chain(shorter, train_pairs) >= 1.0:
+        if _score_chain(shorter, train_pairs, BASE_TRANSFORMS) >= 1.0:
             return shorter
     return None
 
@@ -125,7 +126,7 @@ def deep_solve(
     nearest = _find_nearest_task(task_id, state, {})
     if nearest:
         warm = state.get("solved_tasks", {}).get(nearest, [])
-        if warm and _score_chain(warm, train) >= 1.0:
+        if warm and _score_chain(warm, train, BASE_TRANSFORMS) >= 1.0:
             return warm, 1.0
 
     for _depth in range(1, 5):
@@ -133,7 +134,7 @@ def deep_solve(
         for chain, _ in beams:
             for name in names:
                 new_chain = [*chain, name]
-                score = _score_chain(new_chain, train)
+                score = _score_chain(new_chain, train, BASE_TRANSFORMS)
                 state["total_evals"] += 1
                 candidates.append((new_chain, score))
                 if score > best_score:

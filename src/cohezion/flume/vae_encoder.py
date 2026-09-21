@@ -113,15 +113,12 @@ class FlumeVAEEncoder:
                 ckpt_hidden_dim = first_weight.shape[0]  # 128 for ep2 checkpoint
             else:
                 ckpt_input_dim, ckpt_hidden_dim = 256, 512
-            # NOTE: kwargs don't match SimpleEncoder's real signature (input_dim/latent_dim);
-            # this checkpoint-loading path always falls through to the except-Exception
-            # hash fallback below. A real fix needs SimpleEncoder restructured to accept a
-            # runtime hidden size, so we only silence the type errors here.
-            self.encoder = SimpleEncoder(  # type: ignore[call-arg]
-                input_size=ckpt_input_dim, hidden_size=ckpt_hidden_dim
+            self.encoder = SimpleEncoder(
+                input_dim=ckpt_input_dim, latent_dim=ckpt_hidden_dim
             )
             # The checkpoint stores the sequential module directly, not under "encoder"
-            self.encoder.encoder.load_state_dict(encoder_state)  # type: ignore[union-attr]
+            if hasattr(self.encoder, "encoder"):
+                self.encoder.encoder.load_state_dict(encoder_state)  # type: ignore[union-attr]
             self.encoder.to(self.device)
             self.encoder.eval()
 
@@ -145,13 +142,13 @@ class FlumeVAEEncoder:
             self.encoder = None
             self.mu_head = None
 
-    def encode(self, text: str) -> np.ndarray:
-        """Encode text to 256D semantic embedding.
+    def encode(self, text: str | bytes | np.ndarray) -> np.ndarray:
+        """Encode text, bytes, or numpy array to 256D semantic embedding.
 
         Uses VAE encoder if available, falls back to hash embedding otherwise.
 
         Args:
-            text: Text to encode
+            text: Text, bytes, or array to encode
 
         Returns:
             256D numpy array, normalized to unit length
@@ -163,11 +160,11 @@ class FlumeVAEEncoder:
         else:
             raise RuntimeError("VAE encoder not available and fallback disabled")
 
-    def _vae_encode(self, text: str) -> np.ndarray:
+    def _vae_encode(self, text: str | bytes | np.ndarray) -> np.ndarray:
         """Encode using trained VAE encoder.
 
         Args:
-            text: Text to encode
+            text: Input to encode
 
         Returns:
             256D normalized embedding
@@ -198,16 +195,22 @@ class FlumeVAEEncoder:
             return self._hash_encode(text)
 
     @staticmethod
-    def _hash_encode(text: str) -> np.ndarray:
+    def _hash_encode(text: str | bytes | np.ndarray) -> np.ndarray:
         """Encode using deterministic hash (fallback).
 
         Args:
-            text: Text to encode
+            text: Text, bytes, or numpy array to encode
 
         Returns:
             256D normalized embedding from SHA-256 hash
         """
-        hash_obj = hashlib.sha256(text.encode())
+        if isinstance(text, np.ndarray):
+            raw_bytes = text.tobytes()
+        elif isinstance(text, bytes):
+            raw_bytes = text
+        else:
+            raw_bytes = str(text).encode("utf-8")
+        hash_obj = hashlib.sha256(raw_bytes)
         hash_bytes = hash_obj.digest()
 
         embedding = np.zeros(256, dtype=np.float32)
