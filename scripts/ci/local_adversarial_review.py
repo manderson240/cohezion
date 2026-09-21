@@ -250,11 +250,15 @@ def run_falsifier(cmd: str) -> tuple[str, str]:
         return "falsifier-failed", f"refused (shell metacharacter): {c[:120]}"
     if not c.startswith(_ALLOWED_PREFIXES):
         return "falsifier-failed", f"refused (not in allow-list): {c[:120]}"
-    # route interpreters through the repo venv (L367); a bare `pytest` becomes a module run
+    # route interpreters through the repo venv (L367); a bare `pytest` becomes a module run.
+    # Fall back to this interpreter when the checkout has no .venv (worktrees often don't):
+    # a missing binary used to raise FileNotFoundError and discard every lane's results.
+    venv_py = REPO_ROOT / ".venv" / "bin" / "python3"
+    py = shlex.quote(str(venv_py) if venv_py.exists() else sys.executable)
     if c.startswith("pytest"):
-        c = ".venv/bin/python3 -m " + c
+        c = f"{py} -m " + c
     elif c.startswith(("python3 ", "python ")):
-        c = ".venv/bin/python3 " + c.split(" ", 1)[1]
+        c = f"{py} " + c.split(" ", 1)[1]
     try:
         argv = shlex.split(c)
         p = subprocess.run(
@@ -267,6 +271,8 @@ def run_falsifier(cmd: str) -> tuple[str, str]:
         return "evidence-attached", f"$ {c}\n[exit {p.returncode}]\n{tail}"
     except subprocess.TimeoutExpired:
         return "falsifier-failed", f"$ {c}\n[timeout {FALSIFIER_TIMEOUT_S}s]"
+    except (OSError, ValueError) as exc:  # missing binary, bad quoting: this finding only
+        return "falsifier-failed", f"$ {c}\n[could not run: {type(exc).__name__}: {exc}]"
 
 
 def converge(lanes: list[LaneResult]) -> list[list[Finding]]:
@@ -367,6 +373,11 @@ def self_test() -> int:
             run_falsifier("grep -n 'def self_test' scripts/ci/local_adversarial_review.py")[0]
             == "evidence-attached",
             "grep runs",
+        ),
+        (
+            # In a checkout without .venv this raised FileNotFoundError and killed the review.
+            "[exit 0]\n7" in run_falsifier('python3 -c "print(7)"')[1],
+            "python falsifier runs with or without a repo .venv",
         ),
     ]
     a = Finding("l1", "f.py", 10, "high", "x", None)
