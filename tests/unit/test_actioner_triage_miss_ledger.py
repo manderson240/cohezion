@@ -109,3 +109,21 @@ def test_recording_a_miss_never_mutates_the_queue(tmp_path):
     _run(api, tmp_path)
     _run(api, tmp_path)
     assert api.patched == []
+
+
+def test_batch_cap_does_not_evict_misses_it_never_reached(tmp_path):
+    """The batch cap stops the walk early; misses past the stop point must survive."""
+    live = [
+        {"id": f"live{i:03d}", "title": "prompt caching for agent tools", "relevance": "APPLY"}
+        for i in range(3)
+    ]
+    dead_head, dead_tail = [_dead(i) for i in range(2)], [_dead(i) for i in range(2, 6)]
+    api = FakeAPI(dead_head + dead_tail)
+    _run(api, tmp_path)  # records all 6 misses
+
+    api._items = dead_head + live + dead_tail  # cap=3 stops before dead_tail
+    capped = _run(api, tmp_path, batch_size=3)
+    assert capped["skipped_known_miss"] == 2
+
+    api._items = dead_head + dead_tail
+    assert _run(api, tmp_path)["processed"] == 0

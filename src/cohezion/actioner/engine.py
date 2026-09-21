@@ -419,11 +419,13 @@ def run_batch(
     }
 
     attempts = 0
+    walked_all = True
     for item in api.eligible_items():
         # batch_size caps ATTEMPTED items only — permanently-unmatched items at
         # the head of the oldest-first queue must not starve matchable ones
         # behind them (found live 2026-07-10: 3 no-match items ate a whole batch).
         if attempts >= batch_size:
+            walked_all = False
             break
         item_id = str(item.get("id", ""))
         seen_ids.add(item_id)
@@ -473,7 +475,6 @@ def run_batch(
     if not dry_run and (new_misses or known_misses.keys() - seen_ids):
         # Keep misses still in the eligible set (plus unseen ones if the batch cap cut the
         # walk short), so the ledger tracks the queue instead of growing forever.
-        walked_all = attempts < batch_size
         kept = {k: v for k, v in known_misses.items() if k in seen_ids or not walked_all}
         try:
             save_triage_misses(misses_path, rules_version, {**kept, **new_misses})

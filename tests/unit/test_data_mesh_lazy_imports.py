@@ -22,8 +22,9 @@ import pytest
 REPO = Path(__file__).resolve().parents[2]
 HEAVY = ("transformers", "torch", "jax", "cohezion.physics", "cohezion.compound")
 
-# Public names cohezion.data_mesh exposed before the change (recorded from the eager
-# __init__ on this machine). Every one must still resolve.
+# Public names cohezion.data_mesh exposed BEFORE the change, recorded at runtime from the
+# eager __init__ (commit 22b6a1e46). Do NOT regenerate this from _LAZY_EXPORTS: the list
+# is the oracle that map is checked against. Every name must still resolve.
 PUBLIC_NAMES = [
     "AgentSpec", "AudioSegmentMetadata", "AudioTelemetryEvent", "BirdSpeciesNode",
     "CorpusQualityConsumer", "DEFAULT_AGENT_SPECS", "DataLineage", "DataMeshEventBridge",
