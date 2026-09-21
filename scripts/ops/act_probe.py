@@ -353,7 +353,11 @@ def self_test() -> int:
     good = "def value():\n    return 2\n"
     bad = "def value():\n    return 3\n"
     results = {}
-    for label, replies in {"good": [bad, good], "bad": [bad, bad, "no fence here"]}.items():
+    for label, replies in {
+        "good": [bad, good],
+        "bad": [bad, bad, "no fence here"],
+        "flaky": ["RAISE", "RAISE", good],
+    }.items():
         with tempfile.TemporaryDirectory() as d:
             repo = Path(d)
             (repo / "src/pkg").mkdir(parents=True)
@@ -375,6 +379,8 @@ def self_test() -> int:
 
             def fake(prompt: str, _it: Any = it) -> dict[str, Any]:
                 r = next(_it)
+                if r == "RAISE":
+                    raise TimeoutError("simulated router timeout")
                 return {"text": f"```python\n{r}```" if "def" in r else r, "content_empty": False}
 
             res = act_loop(
@@ -388,7 +394,8 @@ def self_test() -> int:
                 model="fake",
                 chat=fake,
                 python=sys.executable,
-                max_iters=len(replies),
+                max_iters=1 if label == "flaky" else len(replies),
+                call_backoff_s=0.0,
                 log=repo / "log.jsonl",
             )
             n_commits = len(_git(repo, "log", "--oneline").splitlines())
@@ -398,6 +405,7 @@ def self_test() -> int:
         and "return 2" in results["good"][2],
         "bad edit never committed": results["bad"][:2] == ("EXHAUSTED", 1),
         "bad edit rolled back": "return 1" in results["bad"][2],
+        "router timeouts do not consume iterations": results["flaky"][:2] == ("GREEN", 2),
     }
     failed = [k for k, v in checks.items() if not v]
     if failed:
