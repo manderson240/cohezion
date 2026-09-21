@@ -78,13 +78,13 @@ __all__: list[str] = [
     "AudioSegmentMetadata",
     "AudioTelemetryEvent",
     "BirdSpeciesNode",
-    "SpectrogramConfig",
-    "TaxonomyLevel",
     "DataLineage",
     "DomainEndpoint",
     "FederationLayer",
     "Physics12D",
     "RecordType",
+    "SpectrogramConfig",
+    "TaxonomyLevel",
     "UnifiedRecord",
 ]
 
@@ -125,29 +125,39 @@ if TYPE_CHECKING:  # static import edges only; never executed
     from cohezion.data_mesh.audio_telemetry import BirdSpeciesNode as BirdSpeciesNode
     from cohezion.data_mesh.audio_telemetry import SpectrogramConfig as SpectrogramConfig
     from cohezion.data_mesh.audio_telemetry import TaxonomyLevel as TaxonomyLevel
+    from cohezion.data_mesh.corpus_quality_consumer import (
+        CorpusQualityConsumer as CorpusQualityConsumer,
+    )
+    from cohezion.data_mesh.corpus_quality_consumer import (
+        make_corpus_quality_consumer as make_corpus_quality_consumer,
+    )
     from cohezion.data_mesh.data_product import DataProduct as DataProduct
     from cohezion.data_mesh.data_product import DataProductSchema as DataProductSchema
     from cohezion.data_mesh.data_product import DataProductStatus as DataProductStatus
     from cohezion.data_mesh.data_product import DataQualityTier as DataQualityTier
-    from cohezion.data_mesh.data_product import get_cohezion_data_products as get_cohezion_data_products
-    from cohezion.data_mesh.corpus_quality_consumer import CorpusQualityConsumer as CorpusQualityConsumer
-    from cohezion.data_mesh.corpus_quality_consumer import make_corpus_quality_consumer as make_corpus_quality_consumer
+    from cohezion.data_mesh.data_product import (
+        get_cohezion_data_products as get_cohezion_data_products,
+    )
     from cohezion.data_mesh.event_bridge import DataMeshEventBridge as DataMeshEventBridge
     from cohezion.data_mesh.event_bridge import make_event_bridge as make_event_bridge
-    from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent as FlumeJourneyEvent
-    from cohezion.data_mesh.journey_telemetry import HardwareTier as HardwareTier
-    from cohezion.data_mesh.journey_telemetry import QuadratureFabrics as QuadratureFabrics
-    from cohezion.data_mesh.lemonade_multimodal import LemonadeMultimodalClient as LemonadeMultimodalClient
-    from cohezion.data_mesh.universe_telemetry import UniverseStateEvent as UniverseStateEvent
-    from cohezion.data_mesh.gaia_domain_agent import GaiaDataAgent as GaiaDataAgent
-    from cohezion.data_mesh.gap_miner import GapMiner as GapMiner
-    from cohezion.data_mesh.gap_miner import make_gap_miner as make_gap_miner
     from cohezion.data_mesh.gaia_agent_roster import DEFAULT_AGENT_SPECS as DEFAULT_AGENT_SPECS
     from cohezion.data_mesh.gaia_agent_roster import AgentSpec as AgentSpec
     from cohezion.data_mesh.gaia_agent_roster import GaiaAgentRoster as GaiaAgentRoster
-    from cohezion.data_mesh.gaia_agent_roster import deploy_gaia_agent_roster as deploy_gaia_agent_roster
+    from cohezion.data_mesh.gaia_agent_roster import (
+        deploy_gaia_agent_roster as deploy_gaia_agent_roster,
+    )
+    from cohezion.data_mesh.gaia_domain_agent import GaiaDataAgent as GaiaDataAgent
+    from cohezion.data_mesh.gap_miner import GapMiner as GapMiner
+    from cohezion.data_mesh.gap_miner import make_gap_miner as make_gap_miner
+    from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent as FlumeJourneyEvent
+    from cohezion.data_mesh.journey_telemetry import HardwareTier as HardwareTier
+    from cohezion.data_mesh.journey_telemetry import QuadratureFabrics as QuadratureFabrics
     from cohezion.data_mesh.kanban_bridge import backfill_items as backfill_items
     from cohezion.data_mesh.kanban_bridge import persist_item as persist_item
+    from cohezion.data_mesh.lemonade_multimodal import (
+        LemonadeMultimodalClient as LemonadeMultimodalClient,
+    )
+    from cohezion.data_mesh.universe_telemetry import UniverseStateEvent as UniverseStateEvent
     from cohezion.datamesh.federation import DomainEndpoint as DomainEndpoint
     from cohezion.datamesh.federation import FederationLayer as FederationLayer
     from cohezion.datamesh.schema import DataLineage as DataLineage

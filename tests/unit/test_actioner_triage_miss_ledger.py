@@ -80,9 +80,7 @@ def test_new_items_are_still_triaged_after_misses_are_recorded(tmp_path):
     items = [_dead(i) for i in range(5)]
     api = FakeAPI(items)
     _run(api, tmp_path)
-    items.append(
-        {"id": "live001", "title": "prompt caching for agent tools", "relevance": "APPLY"}
-    )
+    items.append({"id": "live001", "title": "prompt caching for agent tools", "relevance": "APPLY"})
     second = _run(api, tmp_path)
     assert second["processed"] == 1
     assert [a["id"] for a in second["actioned"]] == ["live001"]
