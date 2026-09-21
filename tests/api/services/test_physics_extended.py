@@ -249,3 +249,18 @@ async def test_tensor_metric_status(client):
     data = resp.json()
     assert data["sarfatti_coherence"] == 0.7
     assert "metric_determinant" in data
+
+
+def test_each_physics_route_registered_exactly_once():
+    """Regression: #241/#242 triplicated 7 handlers, registering each route 3x.
+
+    FastAPI serves the first match, so duplicates are dead code that silently
+    diverge if only one copy is ever edited.
+    """
+    from collections import Counter
+
+    from cohezion.api.services.physics_extended import physics_ext_router
+
+    counts = Counter((r.path, tuple(sorted(r.methods))) for r in physics_ext_router.routes)
+    duplicated = {k: v for k, v in counts.items() if v > 1}
+    assert duplicated == {}, f"routes registered more than once: {duplicated}"

@@ -1,4 +1,4 @@
-"""Nous WorldSim Physics Manifold Engine for FLUME.
+r"""Nous WorldSim Physics Manifold Engine for FLUME.
 
 Integrates Nous WorldSim physical constraints (energy density, momentum, Lyapunov field stability)
 directly into the 12D/2048D Poincaré Hyperbolic Manifold metric:

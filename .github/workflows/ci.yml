@@ -59,6 +59,11 @@ jobs:
       - name: Ruff debt ratchet (gating)
         run: uv run python scripts/ci/ruff_ratchet.py
 
+      # Gating: rules already at zero whose violations are defects, not style.
+      # F811 = redefinition (duplicate route handlers); W605 = invalid escape sequence.
+      - name: Ruff blocking rules F811,W605 (gating)
+        run: uv run ruff check --no-cache --select F811,W605 src/ tests/
+
   # ── Validate ──────────────────────────────────────────────────
   validate:
     runs-on: ubuntu-latest

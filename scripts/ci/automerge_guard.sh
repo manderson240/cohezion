@@ -149,6 +149,13 @@ step_advisory "ruff lint check" uv run ruff check src/ tests/
 # Step 3: Ruff debt ratchet (gating)
 step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
 
+# Step 3a: Selective blocking lint. The full `ruff check` stays advisory (large backlog),
+# but these rules are at ZERO and each is a real defect, not style: F811 = a redefined
+# name (e.g. a FastAPI handler registered 3x — #241/#242 triplicated physics_extended.py),
+# W605 = an invalid escape that silently corrupts strings today ("\beta" -> backspace)
+# and becomes a SyntaxError in a future Python. Promote more rules here as they hit 0.
+step "ruff blocking rules (F811,W605)" uv run ruff check --no-cache --select F811,W605 src/ tests/
+
 # Step 3b: Mypy debt ratchet. --self-test first, same reason as the other scanners:
 # a broken ratchet otherwise reads as a clean "no new type debt". The self-test also
 # covers the abort case — a crashed mypy prints "Found 1 error", and counting that

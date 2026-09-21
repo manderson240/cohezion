@@ -1,4 +1,4 @@
-"""BlueQubit Quantum QUBO / QAOA Combinatorial Solver for ARC-AGI & Kaggle.
+r"""BlueQubit Quantum QUBO / QAOA Combinatorial Solver for ARC-AGI & Kaggle.
 
 Formulates combinatorial object-graph matching and transformation selection as a
 Quantum Hamiltonian / QUBO problem, solving it on BlueQubit's cloud quantum simulators and QPUs:
