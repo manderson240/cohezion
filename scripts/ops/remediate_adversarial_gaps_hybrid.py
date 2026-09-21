@@ -27,6 +27,7 @@ os.environ["COHEZION_ALLOW_INSECURE_SURREAL"] = "1"
 
 from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
+from cohezion.core.event_log_reader import older_than_predicate
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.smart_oom_governor import SmartOOMGovernor, CrossSessionFleetLock
 
@@ -62,7 +63,10 @@ async def apply_gap4_eventbus_session_purge():
     # Purge old stale sessions older than 1 hour in SurrealDB
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            purge_sql = "DELETE FROM event_log WHERE timestamp < time::now() - 2h;"
+            # event_log.timestamp is an epoch float: comparing it to time::now() is a
+            # cross-type comparison that is TRUE for every numeric row, so the old
+            # predicate deleted the entire live bus. See older_than_predicate.
+            purge_sql = f"DELETE FROM event_log WHERE {older_than_predicate(2 * 3600)};"
             r = await client.post(
                 "http://localhost:8001/sql",
                 content=purge_sql,
