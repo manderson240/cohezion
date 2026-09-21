@@ -67,6 +67,7 @@ def _router_up() -> bool:
         return False
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @pytest.mark.skipif(not _router_up(), reason="lemonade router :13305 down — live smoke skipped")
 @pytest.mark.xfail(reason="TDD-red: live local completion endpoint not wired", strict=False)
 def test_live_local_completion_via_registered_endpoint() -> None:

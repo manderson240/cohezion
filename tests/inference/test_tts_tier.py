@@ -65,6 +65,7 @@ KOKORO_LIVE = pytest.mark.skipif(
 )
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @KOKORO_LIVE
 @pytest.mark.asyncio
 async def test_tts_default_voice_mp3() -> None:
@@ -77,6 +78,7 @@ async def test_tts_default_voice_mp3() -> None:
     assert r.latency_ms < 5000  # generous for CPU
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @KOKORO_LIVE
 @pytest.mark.asyncio
 async def test_tts_af_sky_voice() -> None:
@@ -91,6 +93,7 @@ async def test_tts_af_sky_voice() -> None:
     assert len(r.audio) > 1000
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @KOKORO_LIVE
 @pytest.mark.asyncio
 async def test_tts_wav_format() -> None:
@@ -110,6 +113,7 @@ async def test_tts_error_path() -> None:
     assert "Connect" in r.error or "connect" in r.error
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @pytest.mark.asyncio
 async def test_tts_is_alive() -> None:
     tier = DirectLemonadeTTSTier(port=13305)

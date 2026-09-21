@@ -126,6 +126,7 @@ LIVE = pytest.mark.skipif(
 )
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_image_render_256_live():
@@ -149,6 +150,7 @@ async def test_image_render_256_live():
     assert r.port == 13305
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_image_render_512_compound_prompt_live():
@@ -176,6 +178,7 @@ async def test_image_render_512_compound_prompt_live():
     assert r.bytes_total > 100_000
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_image_render_batch_n3_live():
@@ -207,6 +210,7 @@ async def test_image_render_error_path():
     assert "Connect" in r.error or "connect" in r.error
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_image_is_alive_live():
