@@ -26,11 +26,11 @@ class TestSR1SafetyInvariants:
 
     def test_sr1_1_all_heavy_models_have_bounded_ctx(self):
         """N3 invariant: no heavy model with ctx_size=0 on the omni router."""
-        from cohezion.inference.oom_guard import ROUTER_UNREACHABLE
+        from cohezion.inference.oom_guard import EMPTY_CATALOG, ROUTER_UNREACHABLE
 
         ok, violations = verify_all_bounded()
-        if violations == [ROUTER_UNREACHABLE]:
-            pytest.skip("router unreachable: ctx bounds UNKNOWN (not a pass)")
+        if violations in ([ROUTER_UNREACHABLE], [EMPTY_CATALOG]):
+            pytest.skip(f"{violations[0]} (not a pass)")
         assert ok, f"ctx_size hazards: {violations}"
 
     def test_sr1_2_max_loaded_models_is_one(self):

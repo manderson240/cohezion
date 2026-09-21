@@ -45,6 +45,9 @@ HEAVY_MODEL_GB_THRESHOLD: float = 5.0
 
 # verify_all_bounded's violation entry when the catalog cannot be read: bound state UNKNOWN.
 ROUTER_UNREACHABLE: str = "<router unreachable: ctx bounds UNKNOWN>"
+# verify_all_bounded's violation entry when the router answers but lists no models: also
+# UNKNOWN (nothing to vouch for), but the remedy differs -- the router is up, don't restart it.
+EMPTY_CATALOG: str = "<router reachable but catalog EMPTY: ctx bounds UNKNOWN>"
 
 
 def check_ram(min_free_gb: float = 20.0) -> tuple[bool, float]:
@@ -83,6 +86,19 @@ def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]]:
         except Exception as exc:
             logger.debug("Catalog fetch from %s%s failed: %s", base_url, path, exc)
     return []
+
+
+def _router_reachable(base_url: str, timeout: float = 5.0) -> bool:
+    """True when the router answers HTTP at all (any status); False on a transport failure."""
+    try:
+        req = urllib.request.Request(base_url.rstrip("/") + "/v1/models", method="GET")  # noqa: S310
+        with urllib.request.urlopen(req, timeout=timeout):  # noqa: S310
+            return True
+    except urllib.error.HTTPError:
+        return True  # it answered, just not with 2xx
+    except Exception as exc:
+        logger.debug("Router reachability probe %s failed: %s", base_url, exc)
+        return False
 
 
 def _get_recipe_options(base_url: str, model_name: str, timeout: float = 5.0) -> dict[str, Any]:
@@ -360,6 +376,10 @@ def verify_all_bounded(base_url: str = LEMONADE_BASE_URL) -> tuple[bool, list[st
     if not catalog:
         # Could not look, so cannot vouch: an unreachable router is UNKNOWN, not "all bounded".
         # (Returned True until 2026-09-21 — a safety check that reported safe when blind.)
+        # _get_catalog maps "unreachable" and "reachable, zero models" to the same [], so
+        # probe once more to name the right one: the operator remedies differ.
+        if _router_reachable(base_url):
+            return False, [EMPTY_CATALOG]
         return False, [ROUTER_UNREACHABLE]
 
     violations: list[str] = []
