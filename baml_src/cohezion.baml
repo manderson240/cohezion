@@ -64,6 +64,8 @@ function RecommendNextStep(context: string, candidates: string) -> NextStep {
     {{ candidates }}
     Pick the highest-leverage next step. Respond with the action, a one-sentence
     rationale, and a risk level.
+
+    {{ ctx.output_format }}
   "#
 }
 
@@ -91,6 +93,8 @@ function DeriveTaskInvariants(task_context: string, train_examples: string) -> T
     2. Colors: which colors appear in both input and output (conserved), and which colors are strictly illegal/alien (forbidden)?
     3. Symmetry: is the output invariant under horizontal reflection, vertical reflection, 90/180-deg rotation, or diagonal reflection?
     4. Provide a concise technical description of the governing rule.
+
+    {{ ctx.output_format }}
   "#
 }
 
@@ -120,6 +124,8 @@ function SynthesizeCodeHarness(env_spec: string, failure_trace: string) -> CodeH
     - postcondition_assertions: array of python assert expressions for outputs
     - python_verifier_code: executable deterministic verifier function
     - estimated_latency_ms: expected execution latency in milliseconds (typically < 1.0ms)
+
+    {{ ctx.output_format }}
   "#
 }
 
@@ -144,5 +150,7 @@ function AuditLeaderboardNextAction(competition: string, leaderboard_snapshot: s
 
     Evaluate recent validation trajectories against leaderboard benchmarks:
     Recommend the single optimal next submission or modeling action, provide a confidence score (0.0 to 1.0), and concise strategic reasoning.
+
+    {{ ctx.output_format }}
   "#
 }
