@@ -45,7 +45,27 @@ def test_automerge_guard_still_runs_live_tests_as_advisory() -> None:
 def test_ci_workflow_deselects_live_tests_in_gated_steps() -> None:
     text = (ROOT / ".github/workflows/ci.yml").read_text()
     for target in ("tests/unit", "tests/inference"):
-        lines = [ln for ln in _pytest_lines(text, target) if "--ignore" not in ln]
+        lines = [
+            ln
+            for ln in _pytest_lines(text, target)
+            if "--ignore" not in ln and "-m integration" not in ln  # the non-gating live step
+        ]
         assert lines, f"no pytest invocation for {target} in ci.yml"
         for ln in lines:
             assert DESELECT in ln, f"ci.yml gated step runs live-service tests: {ln.strip()}"
+
+
+def test_ci_workflow_still_runs_live_tests_non_gating() -> None:
+    """ci.yml's broad step --ignores both gated dirs, so without this step the 21 marked
+    tests would run in no CI step at all."""
+    text = (ROOT / ".github/workflows/ci.yml").read_text()
+    lines = text.splitlines()
+    hits = [
+        i
+        for i, ln in enumerate(lines)
+        if "pytest tests/unit/ tests/inference/" in ln and "-m integration" in ln
+    ]
+    assert hits, "no ci.yml step runs the integration-marked tests from the gated dirs"
+    assert any("continue-on-error: true" in "\n".join(lines[i : i + 3]) for i in hits), (
+        "the live-service step must be non-gating (continue-on-error: true)"
+    )
