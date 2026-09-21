@@ -35,8 +35,10 @@ proposal verdict is always ``PROPOSED`` — never a claimed result.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 import re
 import urllib.request
 from collections.abc import Callable
@@ -68,6 +70,44 @@ _ROUTE_A_IMPLEMENT = re.compile(
     r"cache|caching|rag|retrieval|routing|orchestrat|mcp|sandbox|scheduler)\b",
     re.IGNORECASE,
 )
+
+
+# Bump when triage() logic changes in a way the regex patterns below do not capture
+# (e.g. RC1's type=improvement short-circuit). Part of the triage-miss ledger key.
+_TRIAGE_LOGIC_REVISION = 2
+MISSES_FILENAME = "actioner_triage_misses.json"
+
+
+def triage_rules_version() -> str:
+    """Fingerprint of the triage rules. A recorded miss is valid only under this value."""
+    material = "\x00".join(
+        (str(_TRIAGE_LOGIC_REVISION), _ROUTE_B_EXPERIMENT.pattern, _ROUTE_A_IMPLEMENT.pattern)
+    )
+    return hashlib.sha256(material.encode()).hexdigest()[:16]
+
+
+def load_triage_misses(path: Path, rules_version: str) -> dict[str, str]:
+    """Item ids that matched no rule under *rules_version* (id -> ISO time recorded).
+
+    A ledger written under different rules is ignored, so a rule change re-examines
+    every previously unmatched item. Unreadable ledger -> empty (re-examine, never skip).
+    """
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict) or data.get("rules_version") != rules_version:
+        return {}
+    misses = data.get("misses")
+    return {str(k): str(v) for k, v in misses.items()} if isinstance(misses, dict) else {}
+
+
+def save_triage_misses(path: Path, rules_version: str, misses: dict[str, str]) -> None:
+    """Atomically replace the ledger (one write per run, never the work-queue file)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps({"rules_version": rules_version, "misses": misses}))
+    os.replace(tmp, path)
 
 
 def triage(item: dict[str, Any]) -> str | None:
@@ -347,20 +387,32 @@ def run_batch(
     batch_size: int = BATCH_SIZE,
     proposals_path: Path = PROPOSALS_PATH,
     vault_dir: Path = VAULT_EXPERIMENTS_DIR,
+    misses_path: Path | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Drain up to *batch_size* eligible items. Returns an honest summary.
 
     Per-item failures are isolated: the item stays ``reviewed`` (no PATCH) and
-    the batch continues. Items with no triage match are left untouched.
+    the batch continues. Items with no triage match are left untouched in the queue
+    and recorded in the triage-miss ledger (default: next to *proposals_path*), so
+    later runs skip them until the triage rules change (2026-09-21: every 5-min run
+    was re-triaging the same ~2,771 unmatchable items). ``processed`` counts items
+    actually triaged this run; ``skipped_known_miss`` counts ledger skips. The
+    eligible-item list is still fetched each run.
     """
     api = api or WorkQueueAPI()
     chat_fn = chat_fn or default_chat_fn()
     actioned_ids = load_actioned_ids(proposals_path)
+    misses_path = misses_path or proposals_path.with_name(MISSES_FILENAME)
+    rules_version = triage_rules_version()
+    known_misses = load_triage_misses(misses_path, rules_version)
+    new_misses: dict[str, str] = {}
+    seen_ids: set[str] = set()
     summary: dict[str, Any] = {
         "processed": 0,
         "actioned": [],
         "skipped_no_match": [],
+        "skipped_known_miss": 0,
         "deduped": [],
         "failed": {},
         "dry_run": dry_run,
@@ -373,11 +425,16 @@ def run_batch(
         # behind them (found live 2026-07-10: 3 no-match items ate a whole batch).
         if attempts >= batch_size:
             break
-        summary["processed"] += 1
         item_id = str(item.get("id", ""))
+        seen_ids.add(item_id)
+        if item_id in known_misses:
+            summary["skipped_known_miss"] += 1
+            continue
+        summary["processed"] += 1
         route = triage(item)
         if route is None:
             summary["skipped_no_match"].append(item_id)
+            new_misses[item_id] = datetime.now(UTC).isoformat()
             continue
         attempts += 1
         if dry_run:
@@ -413,4 +470,13 @@ def run_batch(
                         "actioner: failed to mark item %s rejected: %s", item_id, patch_exc
                     )
             summary["failed"][item_id] = err_msg
+    if not dry_run and (new_misses or known_misses.keys() - seen_ids):
+        # Keep misses still in the eligible set (plus unseen ones if the batch cap cut the
+        # walk short), so the ledger tracks the queue instead of growing forever.
+        walked_all = attempts < batch_size
+        kept = {k: v for k, v in known_misses.items() if k in seen_ids or not walked_all}
+        try:
+            save_triage_misses(misses_path, rules_version, {**kept, **new_misses})
+        except OSError as exc:
+            logger.warning("actioner: could not record triage misses: %s", exc)
     return summary
