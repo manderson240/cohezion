@@ -177,6 +177,10 @@ step "import smoke test" uv run pytest tests/unit/test_import_smoke.py -q --tb=s
 # Step 6: Inference tests (gating — but live tests skip without Lemonade)
 step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings
 
+# Step 6a: Reliability tests (gating). Holds the SR1 OOM-guard / resource-guard tests that
+# were red for weeks while tests/reliability ran only under continue-on-error.
+step "reliability tests" uv run pytest tests/reliability/ -q --tb=short -p no:warnings
+
 # Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
 # that bypass the blessed path + its content->reasoning_content fallback.
 #
