@@ -1,12 +1,14 @@
-"""Worldview Explorer — indigenous cosmological traditions mapped to the 10-step ToE chain."""
+"""Worldview Explorer — cultural traditions with Cohezion's interpretive (unreviewed) ToE mapping."""
 
 from cohezion.worldviews.tradition_data import (
+    INTERPRETIVE_NOTICE,
     TOE_STEPS,
     Convergence,
     StepMapping,
     Tradition,
     UniqueContribution,
     get_convergences,
+    get_speculative_frameworks,
     get_step_across_traditions,
     get_tradition,
     get_traditions,
@@ -21,6 +23,7 @@ from cohezion.worldviews.vault_graph import (
 
 
 __all__ = [
+    "INTERPRETIVE_NOTICE",
     "TOE_STEPS",
     "Convergence",
     "GraphEdge",
@@ -30,6 +33,7 @@ __all__ = [
     "UniqueContribution",
     "VaultGraph",
     "get_convergences",
+    "get_speculative_frameworks",
     "get_step_across_traditions",
     "get_tradition",
     "get_traditions",
