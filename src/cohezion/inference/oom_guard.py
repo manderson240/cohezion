@@ -178,10 +178,14 @@ def scan_and_harden(
 
     Hardening loads the model (see _harden_model), so each one is gated: it runs only when
     free RAM minus the model's size still leaves hotswap.RAM_FLOOR_GB. Unknown size defers.
-    As of 2026-09-21 nothing calls this automatically (the warmup hook, register_all and
-    LoopCoordinator call sites the old docstring listed do not exist); run it deliberately.
+    A catalog size too small for the model's parameter count (hotswap.implausible_size_gb, RS7:
+    a live 35B reports 1.68 GB) is treated as unknown: the model counts as heavy and defers.
+
+    Callers: the Claude Code SessionStart hook ``~/.claude/hooks/lemonade-warmup.sh`` runs this
+    on every session start. The register_all and LoopCoordinator call sites an older docstring
+    listed do not exist.
     """
-    from cohezion.inference.hotswap import RAM_FLOOR_GB
+    from cohezion.inference.hotswap import RAM_FLOOR_GB, implausible_size_gb
 
     _, free_gb = check_ram(min_free_gb=0.0)  # just measure, don't gate here
 
@@ -209,7 +213,17 @@ def scan_and_harden(
         if not name:
             continue
 
-        if not _is_heavy(model):
+        try:
+            size_gb: float | None = float(model["size"])
+        except (KeyError, TypeError, ValueError):
+            size_gb = None
+        if size_gb is not None and implausible_size_gb(name, size_gb):
+            logger.warning(
+                "OOMGuard: %s reports an implausible %.2f GB; size unknown", name, size_gb
+            )
+            size_gb = None  # a wrong size is worse than a missing one (RS7)
+
+        if size_gb is not None and not _is_heavy(model):
             skipped.append(name)
             continue
 
@@ -218,10 +232,6 @@ def scan_and_harden(
         recipe_options = model.get("recipe_options") or _get_recipe_options(base_url, name)
 
         if _ctx_is_unsafe(recipe_options):
-            try:
-                size_gb = float(model["size"])
-            except (KeyError, TypeError, ValueError):
-                size_gb = None
             if size_gb is None or free_gb - size_gb < RAM_FLOOR_GB:
                 deferred.append(name)  # hardening would load it past the floor
                 continue

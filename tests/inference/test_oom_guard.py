@@ -255,3 +255,38 @@ def test_verify_router_offline():
 
     assert safe is False
     assert violations == [ROUTER_UNREACHABLE]
+
+
+def test_scan_defers_a_model_whose_catalog_size_is_implausible():
+    """RS7: the live catalog reports Qwen3.6-35B-A3B-GGUF at 1.68 GB; a 35B cannot be.
+
+    Trusting it, 30 GB free looks like 28 GB of headroom, so the hardener would /load a
+    ~20 GB model and leave ~10 GB, below the 16 GB floor. An implausible size must be handled
+    like an unknown one: deferred, never loaded (adversarial review 2026-09-21).
+    """
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-GGUF", 1.68, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 30.0)),
+        patch("cohezion.inference.oom_guard._harden_model", return_value=True) as mock_harden,
+    ):
+        report = scan_and_harden()
+    mock_harden.assert_not_called()
+    assert report["deferred"] == ["Qwen3.6-35B-A3B-GGUF"]
+
+
+def test_scan_still_hardens_a_plausible_small_quant():
+    """Positive control: a genuine low-bit quant (0.163 GB/B) is plausible and fits."""
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model("Bonsai-27B-gguf-Q1_0", 5.41, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 30.0)),
+        patch("cohezion.inference.oom_guard._harden_model", return_value=True) as mock_harden,
+    ):
+        report = scan_and_harden()
+    mock_harden.assert_called_once()
+    assert report["hardened"] == ["Bonsai-27B-gguf-Q1_0"]
