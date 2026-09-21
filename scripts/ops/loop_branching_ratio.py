@@ -26,6 +26,7 @@ import base64
 import datetime as dt
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,7 +35,8 @@ from pathlib import Path
 
 
 C = Path.home() / ".cohezion"
-REPO = Path("/home/mike-anderson/dev/cohezion")
+# the checkout whose git history is measured (the loop's), overridable via COHEZION_REPO
+REPO = Path(os.environ.get("COHEZION_REPO", Path.home() / "dev/cohezion"))
 WQ_URL, SURREAL = "http://localhost:8080/api/work-queue", "http://localhost:8001/sql"
 HEX12 = re.compile(r"\b[0-9a-f]{12}\b")
 TASKREF = re.compile(r"compound[-_ ]task\s*[:#]?\s*#?(\d+)", re.I)
@@ -65,7 +67,6 @@ def _run(cmd):
     return p.stdout
 
 
-# ---------------------------------------------------------------- live readers
 def read_prompt_versions():
     hdr = {"surreal-ns": "cohezion", "surreal-db": "main", "Accept": "application/json",
            "Authorization": "Basic " + base64.b64encode(b"root:root").decode()}  # fmt: skip
@@ -118,7 +119,6 @@ LIVE = {"queue": lambda: _read("work-queue", lambda: json.load(urllib.request.ur
 # fmt: on
 
 
-# ---------------------------------------------------------------- computation
 def _get(src, name, *a):
     try:
         return src[name](*a), None
@@ -147,6 +147,7 @@ def compute(src, days, now=None, dedup=True):  # dedup=False is the planted bug 
                  + [(t["source_item_id"], f"task:{t['id']}") for t in tasks_S])  # fmt: skip
         notes["decided_items"], n["DECIDE"] = len({d[0] for d in D}), len(D)
         n["ACT_prose"] = len(uniq(t["id"] for t in tasks_S if t.get("done") and t.get("success")))
+        notes["tasks_done_of_tasks"] = f"{n['ACT_prose']}/{len(tasks_S)}"  # sigma denom: +proposals
     if D is None or e3:
         notes["ACT_diff"] = e3 or "parent UNKNOWN"
     else:
