@@ -82,6 +82,25 @@ def test_every_baml_function_is_covered() -> None:
     assert declared == {row[0] for row in FUNCTIONS}
 
 
+def test_no_baml_schema_lives_outside_the_generator_root() -> None:
+    """`baml-cli generate` reads only baml_src/; a .baml file elsewhere generates nothing.
+
+    Known debt, grandfathered by exact path so a NEW stray file fails immediately: the two
+    files under src/cohezion/baml/schemas/ declare 8+ classes that no client ever received.
+    Move one into baml_src/ (and regenerate) or delete it, then drop it from this set.
+    """
+    known_stray = {
+        "src/cohezion/baml/schemas/cohezion_core.baml",
+        "src/cohezion/baml/schemas/vault_graph.baml",
+    }
+    stray = {
+        p.relative_to(REPO).as_posix()
+        for top in ("src", "scripts", "tests", "notebooks")
+        for p in (REPO / top).rglob("*.baml")
+    }
+    assert stray == known_stray
+
+
 def test_generated_client_embeds_current_baml_src() -> None:
     """baml_client/ must be regenerated whenever baml_src/ changes (`baml-cli generate`)."""
     from baml_client.inlinedbaml import get_baml_files
