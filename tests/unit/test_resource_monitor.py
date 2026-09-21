@@ -144,3 +144,31 @@ class TestGetResourceMonitor:
         rm1 = get_resource_monitor()
         rm2 = get_resource_monitor()
         assert rm1 is rm2
+
+
+class TestReadOnlyWorkingDirectory:
+    """DISCRIMINATING: the monitor must construct when the CWD is not writable.
+
+    `__init__` used to `mkdir("logs")` relative to the CWD. From a read-only checkout (agent
+    worktrees) that raised OSError, so EVERY `get_resource_monitor()` caller crashed --
+    16 tests here plus OllamaResilientClient and ContextHarness. The heartbeat log is a side
+    channel; a failure to write it must not take the monitor down.
+    """
+
+    def test_constructs_and_appends_from_read_only_cwd(self, tmp_path, monkeypatch):
+        ro = tmp_path / "ro"
+        ro.mkdir()
+        ro.chmod(0o555)
+        monkeypatch.chdir(ro)
+        try:
+            rm = ResourceMonitor()
+            rm._append_log("tick\n")  # must not raise: the heartbeat loop calls this
+            assert not (ro / "logs").exists()
+        finally:
+            ro.chmod(0o755)
+
+    def test_append_creates_log_dir_lazily_when_writable(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        rm = ResourceMonitor()
+        rm._append_log("tick\n")
+        assert (tmp_path / "logs" / "system_heartbeat.log").read_text() == "tick\n"

@@ -126,6 +126,7 @@ class TestHealthChecker:
         hc.check_service("svc", timeout=0.5)
         assert "svc" in hc.health_status
 
+    @pytest.mark.integration  # live :1330x service -> not in the deterministic gate
     def test_live_npu_server_healthy(self):
         """NPU server on port 13306 should be up (N1 invariant) — when live infra is present.
 

@@ -168,22 +168,28 @@ step "mypy ratchet self-test" uv run python scripts/ci/mypy_ratchet.py --self-te
 step "mypy debt ratchet" uv run python scripts/ci/mypy_ratchet.py
 
 
-# Step 4: Unit tests (gating)
-step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings
+# Step 4: Unit tests (gating). `-m "not integration"`: a gate must be deterministic, and
+# integration-marked tests assert on LIVE service state (fleet residency, :13305 up) that
+# flips between runs of the same tree. They run below as an advisory step instead.
+step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings -m "not integration"
 
 # Step 5: Import smoke test
 step "import smoke test" uv run pytest tests/unit/test_import_smoke.py -q --tb=short -p no:warnings
 
-# Step 6: Inference tests (gating — but live tests skip without Lemonade)
-step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings
+# Step 6: Inference tests (gating; live-service tests deselected, see Step 4)
+step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings -m "not integration"
+
+# Step 6a: Live-service tests from the gated dirs -- ADVISORY. Loud when the fleet is
+# degraded (e.g. the RC1 canary in test_recipe_constraint_support.py), never blocking.
+step_advisory "live-service tests (integration marker)" uv run pytest tests/unit/ tests/inference/ tests/reliability/ tests/security/ -q --tb=short -p no:warnings -m integration
 
 # Step 6a: Reliability tests (gating). Holds the SR1 OOM-guard / resource-guard tests that
 # were red for weeks while tests/reliability ran only under continue-on-error.
-step "reliability tests" uv run pytest tests/reliability/ -q --tb=short -p no:warnings
+step "reliability tests" uv run pytest tests/reliability/ -q --tb=short -p no:warnings -m "not integration"
 
 # Step 6a-bis: Security tests (gating). Holds the AG1-AG5 production guardrail ratchet and the
 # MCPHTTPSClient always-verify contract; previously ran only under continue-on-error.
-step "security tests" uv run pytest tests/security/ -q --tb=short -p no:warnings
+step "security tests" uv run pytest tests/security/ -q --tb=short -p no:warnings -m "not integration"
 
 # Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
 # that bypass the blessed path + its content->reasoning_content fallback.

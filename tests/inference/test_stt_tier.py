@@ -409,6 +409,7 @@ def _fetch_tts_mp3() -> bytes:
         return resp.read()
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_stt_transcribe_silence_live():
@@ -424,6 +425,7 @@ async def test_stt_transcribe_silence_live():
     assert r.audio_bytes == len(wav)
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_stt_transcribe_tts_roundtrip_live():
@@ -439,6 +441,7 @@ async def test_stt_transcribe_tts_roundtrip_live():
     assert r.latency_ms < 30_000, f"unexpectedly slow: {r.latency_ms}ms"
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_stt_transcribe_verbose_live():
@@ -454,6 +457,7 @@ async def test_stt_transcribe_verbose_live():
     assert r.duration_s < 60, f"duration looks wrong: {r.duration_s}s"
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_stt_is_alive_live():

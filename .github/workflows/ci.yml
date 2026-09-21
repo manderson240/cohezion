@@ -256,7 +256,7 @@ jobs:
 
       - name: Run unit tests
         run: >
-          uv run pytest tests/unit/ -v
+          uv run pytest tests/unit/ -v -m "not integration"
           --tb=short
           --junitxml=report.xml
           --cov=src/cohezion
@@ -266,13 +266,19 @@ jobs:
       # Gating: tests/inference/ must pass (verified 423 green). Unlike the broad
       # integration step below, a failure here fails the job and blocks merge.
       - name: Run inference tests (gating)
-        run: uv run pytest tests/inference/ -q --tb=short
+        run: uv run pytest tests/inference/ -q --tb=short -m "not integration"
+
+      # Live-service tests from the gated dirs (marked `integration`): deselected above so the
+      # gate stays deterministic, run here so they are never silently retired.
+      - name: Run live-service tests from gated dirs (non-gating)
+        run: uv run pytest tests/unit/ tests/inference/ tests/reliability/ tests/security/ -q --tb=short -m integration
+        continue-on-error: true
 
       - name: Run reliability tests (gating)
-        run: uv run pytest tests/reliability/ -q --tb=short
+        run: uv run pytest tests/reliability/ -q --tb=short -m "not integration"
 
       - name: Run security tests (gating)
-        run: uv run pytest tests/security/ -q --tb=short
+        run: uv run pytest tests/security/ -q --tb=short -m "not integration"
 
       - name: Run integration tests
         run: >
