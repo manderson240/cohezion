@@ -5,6 +5,7 @@ import pytest
 
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 @pytest.mark.asyncio
@@ -170,3 +171,56 @@ async def test_in_loop_persist_task_that_raises_is_logged_not_swallowed(caplog):
         assert "boom" in caplog.text
     finally:
         await bridge.event_bus.stop()
+
+
+# --- a silent InMemoryStore fallback is not persistence (adversarial review 2026-09-21) ---
+# SurrealClient.connect() falls back to InMemoryStore when the server is unreachable. The
+# RETURN 1 probe and every UPSERT then "succeed" against process-local memory, so the bridge
+# reported True while nothing reached event_log.
+
+
+def _dead_port_client(monkeypatch):
+    from cohezion.core.persistence import surreal_client as sc
+
+    # Credentials present (the pre-e444a980b failure was their ABSENCE); the server is not.
+    monkeypatch.setattr(sc, "_resolve_surreal_credentials", lambda: ("tester", "not-a-secret"))
+    return SurrealClient(url="ws://127.0.0.1:1/rpc")
+
+
+def test_sync_publish_reports_false_when_client_fell_back_to_memory(monkeypatch):
+    """DISCRIMINATING: the old bridge returned True and left persistence_error None."""
+    bridge = CrossSessionEventBridge(
+        event_bus=EventBus(),
+        session_id="s_dead_port",
+        surreal_client=_dead_port_client(monkeypatch),
+    )
+    assert bridge.publish_and_persist(Event.agent_start("a", model="m")) is False
+    assert bridge.persistence_error is not None
+    assert "InMemoryStore" in bridge.persistence_error
+
+
+@pytest.mark.asyncio
+async def test_initialize_probe_detects_memory_fallback(monkeypatch):
+    bridge = CrossSessionEventBridge(
+        event_bus=EventBus(),
+        session_id="s_dead_probe",
+        surreal_client=_dead_port_client(monkeypatch),
+    )
+    await bridge.initialize()
+    assert bridge.persistence_error is not None
+    assert "InMemoryStore" in bridge.persistence_error
+
+
+@pytest.mark.asyncio
+async def test_persist_timeout_records_persistence_error(monkeypatch):
+    from cohezion.core import cross_session_event_bridge as mod
+
+    async def _hang(*_a, **_k):
+        await asyncio.sleep(10)
+
+    mock_surreal = AsyncMock()
+    mock_surreal.query.side_effect = _hang
+    monkeypatch.setattr(mod, "_EVENT_HANDLER_TIMEOUT_S", 0.05)
+    bridge = _bridge_with_mock(mock_surreal)
+    assert await bridge._persist(Event.agent_start("a", model="m")) is False
+    assert bridge.persistence_error is not None
