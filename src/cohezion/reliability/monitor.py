@@ -40,8 +40,10 @@ class ResourceMonitor:
         self.max_concurrency = max_concurrency
         self.active_calls = 0
         self.semaphore = asyncio.Semaphore(max_concurrency)
+        # CWD-relative by design; created lazily in _append_log so a read-only CWD
+        # cannot stop the monitor from constructing.
         self.heartbeat_log = Path("logs/system_heartbeat.log")
-        self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
+        self._heartbeat_log_failed = False
         self.critical_pressure = False
         self.throttled = False
         self.desperation_active = False
@@ -453,9 +455,19 @@ class ResourceMonitor:
             await asyncio.sleep(2)  # Tight 2s loop for Framework 16 stability
 
     def _append_log(self, entry: str):
-        """Synchronous log append for use in thread."""
-        with open(self.heartbeat_log, "a") as f:
-            f.write(entry)
+        """Synchronous log append for use in thread.
+
+        Best-effort: an unwritable log must not raise into the heartbeat loop, which
+        also drives pressure detection.
+        """
+        try:
+            self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.heartbeat_log, "a") as f:
+                f.write(entry)
+        except OSError as exc:
+            if not self._heartbeat_log_failed:
+                self._heartbeat_log_failed = True
+                logger.warning(f"heartbeat log unwritable ({self.heartbeat_log}): {exc}")
 
     def checkpoint_active_mission(self, data: dict[str, Any], mission_id: str):
         """
