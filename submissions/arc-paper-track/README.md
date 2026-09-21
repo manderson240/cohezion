@@ -9,11 +9,11 @@ We present a deterministic solver for the Abstraction and Reasoning Corpus (ARC)
 
 ## Key Advantage
 No competing system integrates all 5 verification components:
-- **Geometric primitive DSL** (18 core ops + parametric variants)
+- **Geometric primitive DSL** (53 core ops with directional gravity, symmetry reflection, and morphological invariants)
 - **Compound engineering voting** (color, geo, obj, scale, color_map, all)
-- **FLUME 256-D latent similarity** for analogy detection
-- **HIHO-gated confidence** (coherence >= 0.5 enforced)
-- **SHA-256 provenance manifest** per prediction
+- **FLUME 2048-D Hyperbolic Poincaré Ball & 256-D VAE** for isometric tree embedding
+- **Sheaf Cohomology Obstruction Filtering** ($\check{H}^1(\mathcal{U}, \mathcal{F}) = 0$) & HIHO coherence gating
+- **AutoHarness Zero-Cost Formal Verification** (arXiv:2603.03329v1) with SHA-256 provenance manifests
 
 ## Quick Start
 ```bash
