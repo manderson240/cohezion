@@ -75,6 +75,17 @@ def test_rendered_prompt_states_the_output_schema(
         assert line in prompt, f"{name}: model is not given the typed schema line {line!r}"
 
 
+@pytest.mark.parametrize(("name", "args"), [(row[0], row[1]) for row in FUNCTIONS])
+def test_rendered_prompt_has_a_user_turn(name: str, args: tuple[str, str]) -> None:
+    """A prompt with no role marker renders as a lone `system` message. Qwen-family chat
+    templates raise "No user query found in messages." on that, so every call to the pinned
+    qwen3-4b-FLM lane failed and HybridCohezion fell through to the metered cloud leg.
+    Measured 2026-09-21 on FLM/NPU qwen3.5:4b: system-only 0/12 (HTTP error in 0.1 s);
+    with `{{ _.role("user") }}` 8/12 parsed inside the 60 s client timeout."""
+    roles = [m["role"] for m in getattr(b.request, name)(*args).body.json()["messages"]]
+    assert "user" in roles, f"{name}: rendered roles {roles} contain no user turn"
+
+
 def _baml_sources() -> dict[str, str]:
     return {p.name: p.read_text() for p in sorted((REPO / "baml_src").glob("*.baml"))}
 

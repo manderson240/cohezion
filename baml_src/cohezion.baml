@@ -58,6 +58,7 @@ class NextStep {
 function RecommendNextStep(context: string, candidates: string) -> NextStep {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are a senior engineer planning the next step for the Cohezion repo.
     Context: {{ context }}
     Candidate actions:
@@ -83,6 +84,7 @@ class TaskInvariants {
 function DeriveTaskInvariants(task_context: string, train_examples: string) -> TaskInvariants {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are the Cohezion AutoHarness Invariant Extractor.
     Task Context: {{ task_context }}
     Train Examples:
@@ -112,6 +114,7 @@ class CodeHarness {
 function SynthesizeCodeHarness(env_spec: string, failure_trace: string) -> CodeHarness {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are the Cohezion AutoHarness Zero-Cost Bytecode Compiler.
     Environment Specification:
     {{ env_spec }}
@@ -143,6 +146,7 @@ class SubmissionStrategy {
 function AuditLeaderboardNextAction(competition: string, leaderboard_snapshot: string) -> SubmissionStrategy {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are the Cohezion Kaggle Competition Master Strategist.
     Competition: {{ competition }}
     Leaderboard Snapshot & Validation Scores:
