@@ -70,6 +70,49 @@ def gravity_fall(grid: np.ndarray) -> np.ndarray | None:
 
 
 @timeit()
+def gravity_up(grid: np.ndarray) -> np.ndarray | None:
+    """Gravity upwards: all non-zero pixels rise to top of their column."""
+    out = np.zeros_like(grid)
+    for col in range(grid.shape[1]):
+        non_zero = grid[:, col][grid[:, col] != 0]
+        if len(non_zero) > 0:
+            out[: len(non_zero), col] = non_zero
+    return out
+
+
+@timeit()
+def gravity_left(grid: np.ndarray) -> np.ndarray | None:
+    """Gravity leftwards: all non-zero pixels shift to the left of their row."""
+    out = np.zeros_like(grid)
+    for row in range(grid.shape[0]):
+        non_zero = grid[row, :][grid[row, :] != 0]
+        if len(non_zero) > 0:
+            out[row, : len(non_zero)] = non_zero
+    return out
+
+
+@timeit()
+def gravity_right(grid: np.ndarray) -> np.ndarray | None:
+    """Gravity rightwards: all non-zero pixels shift to the right of their row."""
+    out = np.zeros_like(grid)
+    for row in range(grid.shape[0]):
+        non_zero = grid[row, :][grid[row, :] != 0]
+        if len(non_zero) > 0:
+            out[row, -len(non_zero) :] = non_zero
+    return out
+
+
+@timeit()
+def color_invert_binary(grid: np.ndarray) -> np.ndarray | None:
+    """Invert foreground and background for binary grids (0 and single color C)."""
+    colors = np.unique(grid[grid != 0])
+    if len(colors) != 1:
+        return None
+    c = int(colors[0])
+    return np.where(grid == 0, c, 0)
+
+
+@timeit()
 def scale_up_2(grid: np.ndarray) -> np.ndarray | None:
     h, w = grid.shape
     if max(h * 2, w * 2) > 30:
@@ -562,6 +605,10 @@ ALL_TRANSFORMS: dict[str, TransformFn] = {
     "transpose": transpose,
     # Tier 1: Grid transforms
     "gravity_fall": gravity_fall,
+    "gravity_up": gravity_up,
+    "gravity_left": gravity_left,
+    "gravity_right": gravity_right,
+    "color_invert_binary": color_invert_binary,
     "scale_up_2": scale_up_2,
     "scale_down_2": scale_down_2,
     "crop_to_content": crop_to_content,

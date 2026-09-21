@@ -164,3 +164,101 @@ class TestChainIntegration:
         )
         result = apply_chain(g, ["rotate_90", "grid_symmetry_reflect_v"])
         assert result is not None
+
+
+class TestDirectionalGravityAndInversion:
+    """Test gravity_up, gravity_left, gravity_right, and color_invert_binary."""
+
+    def test_gravity_up(self):
+        from cohezion.arc.transforms import gravity_up
+
+        g = np.array(
+            [
+                [0, 0, 0],
+                [1, 0, 2],
+                [3, 4, 0],
+            ],
+            dtype=int,
+        )
+        res = gravity_up(g)
+        assert res is not None
+        # Col 0: [1, 3] rise to top -> [1, 3, 0]
+        # Col 1: [4] rises to top -> [4, 0, 0]
+        # Col 2: [2] rises to top -> [2, 0, 0]
+        assert np.array_equal(res[:, 0], [1, 3, 0])
+        assert np.array_equal(res[:, 1], [4, 0, 0])
+        assert np.array_equal(res[:, 2], [2, 0, 0])
+
+    def test_gravity_left(self):
+        from cohezion.arc.transforms import gravity_left
+
+        g = np.array(
+            [
+                [0, 1, 2],
+                [0, 0, 3],
+                [4, 0, 5],
+            ],
+            dtype=int,
+        )
+        res = gravity_left(g)
+        assert res is not None
+        # Row 0: [1, 2] shift left -> [1, 2, 0]
+        # Row 1: [3] shifts left -> [3, 0, 0]
+        # Row 2: [4, 5] shifts left -> [4, 5, 0]
+        assert np.array_equal(res[0, :], [1, 2, 0])
+        assert np.array_equal(res[1, :], [3, 0, 0])
+        assert np.array_equal(res[2, :], [4, 5, 0])
+
+    def test_gravity_right(self):
+        from cohezion.arc.transforms import gravity_right
+
+        g = np.array(
+            [
+                [1, 2, 0],
+                [3, 0, 0],
+                [4, 0, 5],
+            ],
+            dtype=int,
+        )
+        res = gravity_right(g)
+        assert res is not None
+        # Row 0: [1, 2] shift right -> [0, 1, 2]
+        # Row 1: [3] shifts right -> [0, 0, 3]
+        # Row 2: [4, 5] shifts right -> [0, 4, 5]
+        assert np.array_equal(res[0, :], [0, 1, 2])
+        assert np.array_equal(res[1, :], [0, 0, 3])
+        assert np.array_equal(res[2, :], [0, 4, 5])
+
+    def test_color_invert_binary(self):
+        from cohezion.arc.transforms import color_invert_binary
+
+        g = np.array(
+            [
+                [0, 2, 0],
+                [2, 2, 0],
+                [0, 0, 0],
+            ],
+            dtype=int,
+        )
+        res = color_invert_binary(g)
+        assert res is not None
+        assert np.array_equal(
+            res,
+            [
+                [2, 0, 2],
+                [0, 0, 2],
+                [2, 2, 2],
+            ],
+        )
+
+    def test_color_invert_binary_multi_color_returns_none(self):
+        from cohezion.arc.transforms import color_invert_binary
+
+        g = np.array(
+            [
+                [1, 2, 0],
+                [0, 0, 0],
+            ],
+            dtype=int,
+        )
+        assert color_invert_binary(g) is None
