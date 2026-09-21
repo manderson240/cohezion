@@ -60,15 +60,22 @@ class TestCanLoadModel:
             ok, _reason = guard.can_load_model(estimated_mb=0)
         assert ok is True
 
-    def test_rejects_when_cpu_unhealthy(self):
+    def test_high_cpu_load_does_not_refuse_a_load_that_fits(self):
+        """can_load_model is a RAM admission gate; CPU load is not an OOM risk.
+
+        This contract used to read "rejects when CPU unhealthy" (red on main for weeks). When a
+        CPU predicate was added to satisfy it (max_cpu_load=24.0 on 32 threads), an ordinary
+        pytest run exceeded it and the live sr1_4 test refused a 5 GB load with 60+ GB free
+        ("CPU load too high for a model load: 24.83"). Transient CPU load belongs to
+        is_healthy(), not to the load gate.
+        """
         guard = ResourceGuard(max_cpu_load=24.0, min_ram_available_mb=16384)
         vitals = SystemVitals(
             cpu_load_1m=30.0, ram_available_mb=65536, ram_percent=50.0, swap_used_mb=0
         )
         with patch.object(guard, "get_vitals", return_value=vitals):
             ok, reason = guard.can_load_model(estimated_mb=100)
-        assert ok is False
-        assert "cpu" in reason.lower()
+        assert ok is True, reason
 
     def test_live_system_accepts_5000mb(self):
         """On the live Strix Halo with >16GB free, a 5GB model load is safe."""

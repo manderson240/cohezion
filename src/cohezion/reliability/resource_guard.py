@@ -85,11 +85,10 @@ class ResourceGuard:
         if estimated_mb <= 0:
             return True, "ok: no size estimate provided; gate skipped"
 
-        vitals = self.get_vitals()
-        if vitals.cpu_load_1m > self.max_cpu_load:
-            return False, f"CPU load too high for a model load: {vitals.cpu_load_1m}"
-
-        available = vitals.ram_available_mb
+        # RAM only. CPU load is not an OOM risk and is transient: a CPU predicate here
+        # (2026-09-21) refused a 5 GB load with 60+ GB free because a pytest run pushed the
+        # 1-min load past 24 on 32 threads. CPU health stays in is_healthy().
+        available = self.get_vitals().ram_available_mb
         needed = estimated_mb + self.model_load_margin_mb
         if needed > available:
             return False, (

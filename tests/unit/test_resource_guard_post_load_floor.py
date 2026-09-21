@@ -49,7 +49,13 @@ def test_zero_estimate_still_opts_out() -> None:
     assert _guard_with(4096).can_load_model(0)[0] is True
 
 
-def test_overloaded_cpu_refuses_a_load() -> None:
+def test_overloaded_cpu_does_not_refuse_a_load_that_keeps_the_floor() -> None:
+    """RAM admission only: a CPU predicate here refused the live sr1_4 5 GB load at load 24.8."""
     ok, reason = _guard_with(64 * 1024, cpu=99.0).can_load_model(1024)
+    assert ok is True, reason
+
+
+def test_overloaded_cpu_does_not_mask_the_floor() -> None:
+    ok, reason = _guard_with(17 * 1024, cpu=99.0).can_load_model(1024)
     assert ok is False
-    assert "cpu" in reason.lower()
+    assert "floor" in reason
