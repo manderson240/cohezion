@@ -27,8 +27,21 @@ class MCPHTTPSClient:
             port: Server port
             use_https: Use HTTPS protocol (default: True)
             ca_cert_path: Path to CA certificate for validation
-            verify_ssl: Verify SSL certificate (default: True)
+            verify_ssl: Must be True. Certificate verification is always enforced
+                on every transport; ``False`` raises ``ValueError``. (Before
+                2026-09-21 ``False`` disabled verification for httpx/aiohttp but
+                was silently overridden for ``get_ssl_context`` by bccb006af.)
+                Use ``ca_cert_path`` to trust a private/self-signed CA instead.
+
+        Raises:
+            ValueError: if ``verify_ssl`` is False.
         """
+        if not verify_ssl:
+            raise ValueError(
+                "MCPHTTPSClient: verify_ssl=False is not supported -- certificate "
+                "verification is always enforced. To trust a self-signed server, "
+                "pass ca_cert_path=<path to its CA certificate> instead."
+            )
         self.host = host
         self.port = port
         self.use_https = use_https
@@ -60,26 +73,21 @@ class MCPHTTPSClient:
         # py/insecure-protocol) and hostname checking enabled.
         self._ssl_context = ssl.create_default_context()
 
-        # Configure certificate verification
-        if self.verify_ssl:
-            self._ssl_context.check_hostname = True
-            self._ssl_context.verify_mode = ssl.CERT_REQUIRED
+        # Certificate verification is unconditional (verify_ssl=False is rejected
+        # in __init__).
+        self._ssl_context.check_hostname = True
+        self._ssl_context.verify_mode = ssl.CERT_REQUIRED
 
-            if self.ca_cert_path:
-                ca_path = Path(self.ca_cert_path)
-                if ca_path.exists():
-                    self._ssl_context.load_verify_locations(self.ca_cert_path)
-                    logger.info("Loaded CA certificate: %s", self.ca_cert_path)
-                else:
-                    logger.warning("CA certificate not found: %s", self.ca_cert_path)
+        if self.ca_cert_path:
+            ca_path = Path(self.ca_cert_path)
+            if ca_path.exists():
+                self._ssl_context.load_verify_locations(self.ca_cert_path)
+                logger.info("Loaded CA certificate: %s", self.ca_cert_path)
             else:
-                # Use system CA bundle
-                self._ssl_context.load_default_certs()
+                logger.warning("CA certificate not found: %s", self.ca_cert_path)
         else:
-            # Disable certificate verification (not recommended for production)
-            self._ssl_context.check_hostname = False
-            self._ssl_context.verify_mode = ssl.CERT_NONE
-            logger.warning("SSL certificate verification disabled")
+            # Use system CA bundle
+            self._ssl_context.load_default_certs()
 
         # Enforce strong TLS versions — minimum_version=TLSv1_2 disables all older protocols
         self._ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
@@ -157,9 +165,8 @@ class MCPHTTPSClient:
         }
 
         if self.use_https:
-            params["verify"] = self.verify_ssl
-            if self.ca_cert_path:
-                params["verify"] = self.ca_cert_path
+            # Always verifying: True (system CA bundle) or the configured CA path.
+            params["verify"] = self.ca_cert_path or True
 
         return params
 
@@ -175,10 +182,6 @@ class MCPHTTPSClient:
             "timeout": 30.0,
         }
 
-        if self.use_https and not self.verify_ssl:
-            import aiohttp
-
-            connector = aiohttp.TCPConnector(verify_ssl=False)
-            params["connector"] = connector
-
+        # No custom connector: aiohttp's default connector verifies certificates.
+        # (An insecure TCPConnector(verify_ssl=False) used to be injected here.)
         return params

@@ -181,6 +181,10 @@ step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnin
 # were red for weeks while tests/reliability ran only under continue-on-error.
 step "reliability tests" uv run pytest tests/reliability/ -q --tb=short -p no:warnings
 
+# Step 6a-bis: Security tests (gating). Holds the AG1-AG5 production guardrail ratchet and the
+# MCPHTTPSClient always-verify contract; previously ran only under continue-on-error.
+step "security tests" uv run pytest tests/security/ -q --tb=short -p no:warnings
+
 # Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
 # that bypass the blessed path + its content->reasoning_content fallback.
 #

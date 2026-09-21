@@ -271,6 +271,9 @@ jobs:
       - name: Run reliability tests (gating)
         run: uv run pytest tests/reliability/ -q --tb=short
 
+      - name: Run security tests (gating)
+        run: uv run pytest tests/security/ -q --tb=short
+
       - name: Run integration tests
         run: >
           uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v
