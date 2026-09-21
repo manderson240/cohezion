@@ -40,8 +40,23 @@ class ResourceMonitor:
         self.max_concurrency = max_concurrency
         self.active_calls = 0
         self.semaphore = asyncio.Semaphore(max_concurrency)
+        # NOTE: cwd-relative by contract -- scripts/drivers/verify_stability_sync.py
+        # reads the same relative path, so anchoring this elsewhere would desync them.
         self.heartbeat_log = Path("logs/system_heartbeat.log")
-        self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
+        # Non-fatal: an unwritable cwd must not kill the process. This ran at import
+        # time inside stdio MCP servers, where a PermissionError killed the server
+        # before it could answer the handshake -- the client saw a hung connection
+        # rather than an error. Heartbeat logging is diagnostic, never load-bearing.
+        self.heartbeat_logging_enabled = True
+        try:
+            self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            self.heartbeat_logging_enabled = False
+            logger.warning(
+                "Heartbeat logging disabled -- cannot create %s: %s",
+                self.heartbeat_log.parent,
+                exc,
+            )
         self.critical_pressure = False
         self.throttled = False
         self.desperation_active = False
@@ -453,9 +468,19 @@ class ResourceMonitor:
             await asyncio.sleep(2)  # Tight 2s loop for Framework 16 stability
 
     def _append_log(self, entry: str):
-        """Synchronous log append for use in thread."""
-        with open(self.heartbeat_log, "a") as f:
-            f.write(entry)
+        """Synchronous log append for use in thread.
+
+        Best-effort: the heartbeat is diagnostic, so an unwritable log must not
+        take down the monitor loop that calls this.
+        """
+        if not self.heartbeat_logging_enabled:
+            return
+        try:
+            with open(self.heartbeat_log, "a") as f:
+                f.write(entry)
+        except OSError as exc:
+            self.heartbeat_logging_enabled = False
+            logger.warning("Heartbeat logging disabled -- write failed: %s", exc)
 
     def checkpoint_active_mission(self, data: dict[str, Any], mission_id: str):
         """
