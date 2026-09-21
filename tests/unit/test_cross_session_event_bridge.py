@@ -111,6 +111,49 @@ async def test_in_loop_persist_task_is_retained_and_failure_is_logged(caplog):
         await bridge.event_bus.stop()
 
 
+# --- known-broken persistence must be loud and must not report success (2026-09-21) ---
+# Measured: a session without SurrealDB credentials (client refuses root/root) got True from
+# publish_and_persist on every call while nothing reached event_log.
+
+_REFUSED = RuntimeError("Refusing to connect to SurrealDB: no credentials")
+
+
+@pytest.mark.asyncio
+async def test_initialize_detects_unpersistable_backend_loudly(caplog):
+    mock_surreal = AsyncMock()
+    mock_surreal.query.side_effect = _REFUSED
+    bridge = _bridge_with_mock(mock_surreal)
+    with caplog.at_level("ERROR"):
+        await bridge.initialize()
+    assert bridge.persistence_error is not None
+    assert "CANNOT persist" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_in_loop_publish_reports_false_while_persistence_is_known_broken():
+    """DISCRIMINATING: the exact 2026-09-21 case. The old code returned True here."""
+    mock_surreal = AsyncMock()
+    mock_surreal.query.side_effect = _REFUSED
+    bridge = _bridge_with_mock(mock_surreal)
+    await bridge.event_bus.start()
+    try:
+        await bridge.initialize()
+        assert bridge.publish_and_persist(Event.agent_start("a", model="m")) is False
+    finally:
+        await bridge.event_bus.stop()
+
+
+@pytest.mark.asyncio
+async def test_healthy_backend_still_reports_true_and_clears_after_recovery():
+    mock_surreal = AsyncMock()
+    mock_surreal.query.side_effect = [_REFUSED, [{"result": []}], [{"result": []}]]
+    bridge = _bridge_with_mock(mock_surreal)
+    await bridge.initialize()  # probe fails
+    assert bridge.persistence_error is not None
+    assert await bridge._persist(Event.agent_start("a", model="m")) is True  # backend back
+    assert bridge.persistence_error is None
+
+
 @pytest.mark.asyncio
 async def test_in_loop_persist_task_that_raises_is_logged_not_swallowed(caplog):
     bridge = _bridge_with_mock(AsyncMock())
