@@ -60,7 +60,7 @@ async def run_sentinel_cycle(cycle_id: int):
         kappa: {topological_state.conformal_kappa},
         quark_snr: {quant_res['snr_db']},
         status: 'nominal',
-        timestamp: '{time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}'
+        timestamp: {time.time()}
     }};
     """
     async with httpx.AsyncClient(timeout=10.0) as client:

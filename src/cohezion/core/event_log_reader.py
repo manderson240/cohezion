@@ -128,6 +128,26 @@ def normalize_row(row: dict[str, Any], *, origin_db: str) -> NormalizedEvent:
     )
 
 
+def older_than_predicate(max_age_s: float, *, now: float | None = None) -> str:
+    """SurrealQL WHERE clause matching event_log rows older than *max_age_s* seconds.
+
+    ``timestamp`` is an epoch float for every live writer, and SurrealDB compares
+    values of different types BY TYPE: a number sorts below any datetime, so
+    "older than ``time::now() - 2h``" is true for every numeric row (a purge deletes
+    the whole live bus) and "newer than ``time::now() - 6h``" is always false (a
+    recency query silently returns nothing). Numeric rows are compared against an
+    epoch cutoff; the few legacy datetime rows against ``time::now()``. String
+    timestamps cannot be ordered safely and are never matched -- a purge keeps them.
+    """
+    if max_age_s <= 0:
+        raise ValueError(f"max_age_s must be positive, got {max_age_s!r}")
+    cutoff = int((time.time() if now is None else now) - max_age_s)
+    return (
+        f"(type::is_number(timestamp) AND timestamp < {cutoff})"
+        f" OR (type::is_datetime(timestamp) AND timestamp < time::now() - {int(max_age_s)}s)"
+    )
+
+
 _IDENT_SAFE = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.:")
 
 
