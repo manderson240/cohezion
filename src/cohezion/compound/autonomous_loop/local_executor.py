@@ -57,6 +57,7 @@ _ACT_STATUS = {
     "GREEN": "committed",
     "EXHAUSTED": "act_exhausted",
     "ROUTER_UNAVAILABLE": "router_unavailable",
+    "RUNNER_BROKEN": "runner_broken",
     "ORACLE_ALREADY_GREEN": "oracle_already_green",
 }
 

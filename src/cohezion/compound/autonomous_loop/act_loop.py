@@ -138,6 +138,13 @@ def splice(source: str, replacement: str, anchor: str) -> str:
     return out
 
 
+_RUNNER_BROKEN_MARKERS = (
+    "No module named pytest",
+    "ERROR: file or directory not found",
+    "no tests ran",
+)
+
+
 def run_tests(repo: Path, python: str, tests: list[str], timeout: float = 300) -> tuple[bool, str]:
     """Run pytest on *tests*; return (green, output tail)."""
     # Fresh bytecode cache per run: a same-size edit written within the mtime granularity
@@ -193,7 +200,8 @@ def act_loop(
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green.
 
-    Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / ORACLE_ALREADY_GREEN (non-discriminating).
+    Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / RUNNER_BROKEN /
+    ORACLE_ALREADY_GREEN (non-discriminating).
     """
     oracle_file = repo / oracle.split("::", 1)[0]  # *oracle* may be a pytest node id
     if not file.startswith("src/") or repo / file == oracle_file:
@@ -205,6 +213,10 @@ def act_loop(
     ok, failure = run_tests(repo, python, tests)
     if ok:
         return {"status": "ORACLE_ALREADY_GREEN"}
+    if any(marker in failure for marker in _RUNNER_BROKEN_MARKERS):
+        # The oracle could not RUN (no pytest, bad node id): an instrument failure. Asking the
+        # model to fix it burns every iteration and ends EXHAUSTED, blaming the model.
+        return {"status": "RUNNER_BROKEN", "python": python, "detail": failure[-400:]}
     history: list[str] = []
     t0 = time.monotonic()
     it = call_errors = 0
