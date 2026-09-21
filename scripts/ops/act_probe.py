@@ -42,25 +42,32 @@ ChatFn = Callable[[str], dict[str, Any]]
 
 
 # ---------------------------------------------------------------- model boundary
-def router_snapshot(model: str, base_url: str = BASE_URL) -> dict[str, Any]:
-    """Resident/busy state of *model* at call time -- lets timeouts be attributed."""
+class NotResidentError(RuntimeError):
+    """No preferred model is verifiably resident: refuse rather than trigger a load."""
+
+
+def resident_llms(base_url: str = BASE_URL) -> list[str] | None:
+    """Resident LLM names per /api/v1/health, or None when the router cannot say."""
     try:
-        with urllib.request.urlopen(base_url + "/api/v1/health", timeout=10) as r:  # noqa: S310
+        with urllib.request.urlopen(base_url + "/api/v1/health", timeout=20) as r:  # noqa: S310
             data = json.loads(r.read())
-    except Exception as exc:
-        return {"health": f"UNKNOWN ({type(exc).__name__})"}
-    for m in data.get("all_models_loaded", []):
-        if m.get("model_name") == model:
-            return {"health": "ok", "resident": True, "is_busy": m.get("is_busy")}
-    return {"health": "ok", "resident": False}
+    except Exception:  # instrument state, never fatal
+        return None
+    return [m["model_name"] for m in data.get("all_models_loaded", []) if m.get("type") == "llm"]
 
 
 def make_chat_fn(
-    model: str, *, max_tokens: int, timeout: float, base_url: str = BASE_URL
+    models: list[str], *, max_tokens: int, timeout: float, base_url: str = BASE_URL
 ) -> ChatFn:
     """OpenAI-compatible call to the :13305 router; reads `content`, falls back to reasoning."""
 
     def chat(prompt: str) -> dict[str, Any]:
+        resident = resident_llms(base_url)
+        if resident is None:
+            raise NotResidentError("health UNKNOWN: residency unverifiable")
+        model = next((m for m in models if m in resident), None)
+        if model is None:
+            raise NotResidentError(f"none of {models} resident (resident: {resident})")
         body = json.dumps(
             {
                 "model": model,
@@ -83,6 +90,7 @@ def make_chat_fn(
             "content_empty": not content,
             "finish_reason": data["choices"][0].get("finish_reason"),
             "usage": data.get("usage"),
+            "model": model,
         }
 
     chat.is_live = True  # type: ignore[attr-defined]
@@ -205,8 +213,8 @@ def act_loop(
     max_iters: int,
     log: Path,
     commit: bool = True,
-    max_call_errors: int = 6,
-    call_backoff_s: float = 30.0,
+    max_call_errors: int = 12,
+    call_backoff_s: float = 20.0,
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green."""
     if not file.startswith("src/") or file == oracle:
@@ -226,23 +234,12 @@ def act_loop(
         it += 1
         defs = "\n\n\n".join(get_def_source(original, t) for t in targets)
         prompt = build_prompt(task, file, defs, oracle_src, failure, history)
-        live = getattr(chat, "is_live", False)
         rec: dict[str, Any] = {
             "task_id": task_id,
             "iter": it,
             "model": model,
             "prompt_chars": len(prompt),
-            "router": router_snapshot(model) if live else "fake",
         }
-        if live and rec["router"].get("resident") is False:
-            # Never let a probe trigger a model load on a shared box: refuse, don't queue.
-            rec["outcome"] = "NOT_RESIDENT (refused: would trigger a load)"
-            _log(log, rec)
-            return {
-                "status": "NOT_RESIDENT",
-                "iterations": it,
-                "wall_s": round(time.monotonic() - t0, 1),
-            }
         t = time.monotonic()
         try:
             reply = chat(prompt)
@@ -265,6 +262,7 @@ def act_loop(
                 }
             time.sleep(call_backoff_s)
             continue
+        rec["model"] = reply.get("model", model)
         rec.update(
             latency_s=round(time.monotonic() - t, 1),
             content_empty=reply.get("content_empty"),
@@ -294,12 +292,14 @@ def act_loop(
             rec["diff"] = _git(repo, "diff", "--", file)
             rec["outcome"] = "GREEN"
             _log(log, rec)
-            sha = _commit(repo, file, task_id, model, targets, python) if commit else None
+            sha = _commit(repo, file, task_id, rec["model"], targets, python) if commit else None
             return {
                 "status": "GREEN",
                 "iterations": it,
                 "wall_s": round(time.monotonic() - t0, 1),
                 "commit": sha,
+                "model": rec["model"],
+                "call_errors": call_errors,
             }
         path.write_text(original)
         rec["outcome"] = "RED"
@@ -425,7 +425,12 @@ def main() -> int:
     ap.add_argument("--extra-test", action="append", default=[])
     ap.add_argument("--task")
     ap.add_argument("--task-id")
-    ap.add_argument("--model", default="Gemma-4-31B-it-GGUF")
+    ap.add_argument(
+        "--model",
+        action="append",
+        default=[],
+        help="preference order; each call uses the first CURRENTLY RESIDENT one (repeatable)",
+    )
     ap.add_argument("--python", default=sys.executable)
     ap.add_argument("--max-iters", type=int, default=5)
     ap.add_argument("--max-tokens", type=int, default=3072)
@@ -438,7 +443,8 @@ def main() -> int:
     a = ap.parse_args()
     if a.self_test:
         return self_test()
-    chat = make_chat_fn(a.model, max_tokens=a.max_tokens, timeout=a.timeout)
+    models = a.model or ["Qwen3-Coder-30B-A3B-Instruct-GGUF", "Gemma-4-31B-it-GGUF"]
+    chat = make_chat_fn(models, max_tokens=a.max_tokens, timeout=a.timeout)
     res = act_loop(
         repo=a.repo,
         file=a.file,
@@ -447,7 +453,7 @@ def main() -> int:
         extra_tests=a.extra_test,
         task=a.task,
         task_id=a.task_id,
-        model=a.model,
+        model="|".join(models),
         chat=chat,
         python=a.python,
         max_iters=a.max_iters,
