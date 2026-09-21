@@ -298,3 +298,41 @@ def test_scan_still_hardens_a_plausible_small_quant():
         report = scan_and_harden()
     mock_harden.assert_called_once()
     assert report["hardened"] == ["Bonsai-27B-gguf-Q1_0"]
+
+
+def test_verify_flags_ctx0_on_a_model_whose_catalog_size_is_implausible():
+    """RS7 applied to _is_heavy: a 35B reported at 1.68 GB is not "light".
+
+    _is_heavy trusted the raw size, so verify_all_bounded skipped the model and vouched for
+    an unbounded ctx_size on a ~20 GB load (review follow-up 2026-09-21).
+    """
+    from cohezion.inference.oom_guard import verify_all_bounded
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-GGUF", 1.68, 0)]
+    with patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog):
+        safe, violations = verify_all_bounded()
+    assert safe is False
+    assert violations == ["Qwen3.6-35B-A3B-GGUF"]
+
+
+def test_pre_load_gate_blocks_ctx0_on_a_model_whose_catalog_size_is_implausible():
+    from cohezion.inference.oom_guard import pre_load_gate
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-GGUF", 1.68, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 100.0)),
+    ):
+        ok, reason = pre_load_gate("Qwen3.6-35B-A3B-GGUF", ctx_size=0)
+    assert ok is False
+    assert "N3" in reason
+
+
+def test_verify_still_skips_a_plausibly_small_model():
+    """Positive control: a real small model (1B at 0.9 GB) is not heavy."""
+    from cohezion.inference.oom_guard import verify_all_bounded
+
+    catalog = [_make_model("Llama-3.2-1B-Instruct-GGUF", 0.9, 0)]
+    with patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog):
+        safe, violations = verify_all_bounded()
+    assert safe is True and violations == []

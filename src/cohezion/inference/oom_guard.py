@@ -158,15 +158,23 @@ def _is_heavy(model: dict[str, Any]) -> bool:
     """True when the model's size field indicates ≥ HEAVY_MODEL_GB_THRESHOLD GB.
 
     Size field may be absent, None, or a float (GB).  When absent we assume
-    heavy=True for unknown models to err on the side of caution.
+    heavy=True for unknown models to err on the side of caution. A size too small for the
+    model's parameter count (hotswap.implausible_size_gb, RS7: a live 35B reports 1.68 GB)
+    is treated as unknown, i.e. heavy -- a wrong size must not exempt a model from N3.
     """
+    from cohezion.inference.hotswap import implausible_size_gb
+
     size = model.get("size")
     if size is None:
         return True  # unknown size → treat as heavy
     try:
-        return float(size) >= HEAVY_MODEL_GB_THRESHOLD
+        size_gb = float(size)
     except (TypeError, ValueError):
         return True
+    name: str = model.get("model_name") or model.get("id") or ""
+    if name and implausible_size_gb(name, size_gb):
+        return True
+    return size_gb >= HEAVY_MODEL_GB_THRESHOLD
 
 
 def _ctx_is_unsafe(recipe_options: dict[str, Any]) -> bool:
