@@ -72,6 +72,26 @@ if "transformers" not in sys.modules:
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _no_live_journey_writes() -> Generator[None, None, None]:
+    """Keep JourneyTracker out of the shared live SurrealDB (cohezion/main).
+
+    Measured 2026-09-21: ~19k of 23,379 ``journey_transition`` rows were written by this
+    suite ("Same task" x2200, "Test task" x1607, ...). Tests that need the write path
+    re-enable it with ``monkeypatch.setenv("COHEZION_JOURNEY_PERSIST", "1")`` and a fake
+    urlopen -- see tests/compound/test_journey_live_isolation.py.
+    """
+    previous = os.environ.get("COHEZION_JOURNEY_PERSIST")
+    os.environ["COHEZION_JOURNEY_PERSIST"] = "0"
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop("COHEZION_JOURNEY_PERSIST", None)
+        else:
+            os.environ["COHEZION_JOURNEY_PERSIST"] = previous
+
+
+@pytest.fixture(scope="session", autouse=True)
 def _isolate_cohezion_state(tmp_path_factory) -> Generator[Path, None, None]:
     """Keep SkillHealthTracker out of the user's real ~/.cohezion state root.
 

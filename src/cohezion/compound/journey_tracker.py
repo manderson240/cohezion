@@ -22,6 +22,7 @@ Features:
 import hashlib
 import json
 import logging
+import os
 import uuid
 from dataclasses import dataclass
 from enum import Enum
@@ -48,6 +49,18 @@ def _jsonable(value: Any) -> bool:
     except (TypeError, ValueError):
         return False
     return True
+
+
+#: Set to "0" to stop JourneyTracker writing to the LIVE SurrealDB (cohezion/main).
+#: tests/conftest.py sets it for the whole suite: measured 2026-09-21, ~19k of the 23,379
+#: journey_transition rows were test fixtures ("Same task" x2200, "Test task" x1607, ...),
+#: so 81% of the stored 12-D vectors were duplicates of a handful of fixture points.
+LIVE_PERSIST_ENV = "COHEZION_JOURNEY_PERSIST"
+
+
+def live_persistence_enabled() -> bool:
+    """True unless ``COHEZION_JOURNEY_PERSIST=0``. Read per call, never frozen at import."""
+    return os.environ.get(LIVE_PERSIST_ENV, "1") != "0"
 
 
 class OperationType(Enum):
@@ -624,11 +637,14 @@ class JourneyTracker:
         if len(self._recent_points) > self.TRAJECTORY_WINDOW:
             self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW :]
 
-        # Persist trajectory point to SurrealDB (non-blocking, fire-and-forget)
-        try:
-            self._persist_to_surreal(point)
-        except Exception:
-            pass  # Non-blocking: SurrealDB may be unavailable
+        # Persist trajectory point to SurrealDB (non-blocking, fire-and-forget).
+        # Guarded HERE, not inside _persist_to_surreal, so tests that exercise the
+        # statement builder directly still can.
+        if live_persistence_enabled():
+            try:
+                self._persist_to_surreal(point)
+            except Exception:
+                pass  # Non-blocking: SurrealDB may be unavailable
 
         # Append to audit hash chain (non-blocking)
         chain_id = hashlib.sha256(
@@ -1055,6 +1071,8 @@ class JourneyTracker:
         state["sequence"] = sequence + 1
         state["last_hash"] = chain_hash
 
+        if not live_persistence_enabled():
+            return chain_hash  # in-memory chain state still advances; only the write is skipped
         try:
             import base64
             import urllib.request
