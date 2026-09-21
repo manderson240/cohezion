@@ -1,0 +1,6 @@
+{
+  "covered": 1,
+  "total": 6182,
+  "coverage_pct": 0.0162,
+  "note": "measured-by: provenance_ratchet.py --update"
+}
