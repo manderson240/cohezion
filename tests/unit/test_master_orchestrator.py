@@ -20,5 +20,11 @@ def test_master_orchestrator_v_model_cycle() -> None:
     assert outcome.right_side_autoharness_verified is True
     assert outcome.right_side_zk_proof_valid is True
     assert outcome.system_validation_review_passed is True
-    assert outcome.surrealdb_event_published is True
+    # The flag must tell the truth about durability, not be True unconditionally: with no
+    # reachable/authorised SurrealDB the client falls back to process-local InMemoryStore, and
+    # until 2026-09-21 the bridge reported that as published. It now reports False there.
+    bridge = orchestrator.event_bridge
+    assert outcome.surrealdb_event_published is (bridge.persistence_error is None), (
+        bridge.persistence_error
+    )
     assert outcome.total_cycle_time_seconds > 0.0
