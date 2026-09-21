@@ -97,13 +97,18 @@ def _item_to_task(item: dict[str, Any], task_id: int) -> dict[str, Any]:
     # impact = 1/priority. Invert so high work-queue priority runs first.
     wq_priority = int(item.get("priority", 1) or 0)
     daemon_priority = max(1, 3 - wq_priority)
-    return {
+    task: dict[str, Any] = {
         "id": task_id,
         "prompt": prompt,
         "priority": daemon_priority,
         "done": False,
         "source_item_id": item.get("id"),
     }
+    # ACT spec passes through only when the card carries one (see work_queue_router).
+    for key in ("oracle_test", "edit_file", "edit_targets"):
+        if item.get(key):
+            task[key] = item[key]
+    return task
 
 
 def feed_compound_tasks(
