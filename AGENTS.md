@@ -16,6 +16,12 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 - `scripts/lanes/` - The four lane scripts (WS2B)
 - `tests/` - Test suite (use `make test-fast` for quick feedback)
 
+**Subsystem instructions:** `src/cohezion/{compound,data_mesh,graph,inference,physics,sessions,swarm,world_model}/`,
+`src/web/anima_dashboard/` and `docs/tutorials/wasm_explorer/` each carry an `AGENTS.md` —
+a symlink to that directory's `CLAUDE.md`, so Claude and every AGENTS.md-reading harness see one
+file. Edit the `CLAUDE.md`; a new nested `CLAUDE.md` needs its `AGENTS.md` link
+(`tests/unit/test_nested_agents_md_mirror.py` enforces it).
+
 ## Development Workflow
 1. Use `make format` before committing
 2. Use `make lint` to check style
