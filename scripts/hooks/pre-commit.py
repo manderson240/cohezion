@@ -44,9 +44,16 @@ def main():
 
     # Check for ignored files that are somehow staged
     # (Rare but happens with git add -f)
-    ignored_staged = subprocess.run(
+    #
+    # `git ls-files -i -c` lists every TRACKED file matching .gitignore, repo-wide --
+    # `-c` is "cached", not "staged". Using it directly made this gate fire on
+    # pre-existing tracked-but-ignored files (190 of them here) and so block EVERY
+    # commit regardless of content. Intersect with the actual staged set, which is
+    # what the check has always claimed to inspect.
+    ignored_tracked = subprocess.run(
         ["git", "ls-files", "-i", "-c", "--exclude-standard"], capture_output=True, text=True
     ).stdout.splitlines()
+    ignored_staged = sorted(set(ignored_tracked) & set(staged_files))
 
     if ignored_staged:
         print("\n🚫 Commit blocked: Some staged files match .gitignore patterns.")
