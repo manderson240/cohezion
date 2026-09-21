@@ -5,6 +5,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from cohezion.security.mcp_https_client import MCPHTTPSClient
 
 
@@ -26,13 +28,12 @@ class TestMCPHTTPSClient:
             host="example.com",
             port=9000,
             use_https=False,
-            verify_ssl=False,
         )
 
         assert client.host == "example.com"
         assert client.port == 9000
         assert client.use_https is False
-        assert client.verify_ssl is False
+        assert client.verify_ssl is True
 
     def test_base_url_https(self):
         """Test base URL generation with HTTPS."""
@@ -53,7 +54,7 @@ class TestMCPHTTPSClient:
 
     def test_get_ssl_context_enabled(self):
         """Test SSL context when HTTPS is enabled."""
-        client = MCPHTTPSClient(use_https=True, verify_ssl=False)
+        client = MCPHTTPSClient(use_https=True)
         context = client.get_ssl_context()
 
         assert context is not None
@@ -88,14 +89,32 @@ class TestMCPHTTPSClient:
         context = client.get_ssl_context()
         assert context is not None
 
-    def test_get_ssl_context_verify_disabled(self):
-        """Test SSL context with verification disabled."""
-        client = MCPHTTPSClient(use_https=True, verify_ssl=False)
-        context = client.get_ssl_context()
+    @pytest.mark.parametrize("use_https", [True, False])
+    def test_verify_ssl_false_is_rejected(self, use_https):
+        """Contract (2026-09-21, user decision): verification is always on.
 
-        assert context is not None
-        assert context.check_hostname is False
-        assert context.verify_mode == ssl.CERT_NONE
+        verify_ssl=False used to disable verification for httpx/aiohttp while
+        get_ssl_context silently re-enabled it (bccb006af). It now fails loud.
+        """
+        with pytest.raises(ValueError, match="verify_ssl=False"):
+            MCPHTTPSClient(use_https=use_https, verify_ssl=False)
+
+    def test_every_transport_verifies_certificates(self):
+        """DISCRIMINATING: each of the three transports must verify."""
+        client = MCPHTTPSClient(use_https=True)
+
+        context = client.get_ssl_context()
+        assert context.check_hostname is True
+        assert context.verify_mode == ssl.CERT_REQUIRED
+        assert client.configure_urllib() is context
+
+        assert client.configure_httpx()["verify"] is True
+
+        with patch("aiohttp.TCPConnector") as mock_connector:
+            params = client.configure_aiohttp()
+        # aiohttp's default connector verifies; an injected one is the old insecure path.
+        assert "connector" not in params
+        mock_connector.assert_not_called()
 
     def test_get_ssl_context_verify_enabled(self):
         """Test SSL context with verification enabled."""
@@ -126,7 +145,7 @@ class TestMCPHTTPSClient:
 
     def test_validate_connection_https_success(self):
         """Test successful HTTPS connection validation."""
-        client = MCPHTTPSClient(use_https=True, verify_ssl=False)
+        client = MCPHTTPSClient(use_https=True)
 
         # Mock successful connection
         with patch("socket.create_connection") as mock_socket:
@@ -200,7 +219,7 @@ class TestMCPHTTPSClient:
 
         assert "base_url" in params
         assert "headers" in params
-        assert "verify" in params
+        assert params["verify"] is True
         assert params["base_url"] == "https://localhost:8360"
 
     def test_configure_httpx_http(self):
@@ -228,9 +247,8 @@ class TestMCPHTTPSClient:
         params = client.configure_aiohttp()
 
         assert "headers" in params
-        # When verify_ssl=True and use_https=True, no connector override
-        if "connector" in params:
-            assert params["connector"] is not None
+        # No connector override: aiohttp's default connector verifies certificates.
+        assert "connector" not in params
 
     def test_configure_aiohttp_http(self):
         """Test aiohttp configuration with HTTP."""
@@ -240,14 +258,14 @@ class TestMCPHTTPSClient:
         assert "headers" in params
         assert "connector" not in params
 
-    def test_configure_aiohttp_verify_disabled(self):
-        """Test aiohttp configuration with verification disabled."""
+    def test_configure_aiohttp_never_builds_insecure_connector(self):
+        """The TCPConnector(verify_ssl=False) path must be unreachable."""
         with patch("aiohttp.TCPConnector") as mock_connector:
-            client = MCPHTTPSClient(use_https=True, verify_ssl=False)
+            client = MCPHTTPSClient(use_https=True)
             params = client.configure_aiohttp()
 
-            if "connector" in params:
-                mock_connector.assert_called_with(verify_ssl=False)
+        mock_connector.assert_not_called()
+        assert "connector" not in params
 
     def test_client_host_port_configuration(self):
         """Test client with custom host and port."""
@@ -258,15 +276,15 @@ class TestMCPHTTPSClient:
         assert client.base_url == "https://api.example.com:443"
 
     def test_client_with_self_signed_cert(self):
-        """Test client configured for self-signed certificates."""
-        client = MCPHTTPSClient(
-            use_https=True,
-            verify_ssl=False,  # Allow self-signed
-        )
+        """Self-signed servers are trusted via ca_cert_path, never by disabling verification."""
+        with pytest.raises(ValueError, match="ca_cert_path"):
+            MCPHTTPSClient(use_https=True, verify_ssl=False)
 
+        client = MCPHTTPSClient(use_https=True, ca_cert_path="/nonexistent/ca.pem")
         context = client.get_ssl_context()
-        assert context is not None
-        assert context.verify_mode == ssl.CERT_NONE
+        assert context.verify_mode == ssl.CERT_REQUIRED
+        assert context.check_hostname is True
+        assert client.configure_httpx()["verify"] == "/nonexistent/ca.pem"
 
     def test_client_minimum_tls_version(self):
         """Test that minimum TLS version is enforced."""

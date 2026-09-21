@@ -147,7 +147,17 @@ step "ruff format --check" uv run ruff format --check src/ tests/
 step_advisory "ruff lint check" uv run ruff check src/ tests/
 
 # Step 3: Ruff debt ratchet (gating)
-step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
+step "ruff ratchet self-test" uv run python scripts/ci/ruff_ratchet.py --self-test
+# Monotone: fails if count != baseline, or if the baseline rose vs merge-base(HEAD, origin/main)
+# without LINT_BASELINE_RAISE_REASON. origin/main is fetched above, so the base must be readable.
+step "ruff debt ratchet" env RUFF_RATCHET_REQUIRE_BASE=1 uv run python scripts/ci/ruff_ratchet.py
+
+# Step 3a: Selective blocking lint. The full `ruff check` stays advisory (large backlog),
+# but these rules are at ZERO and each is a real defect, not style: F811 = a redefined
+# name (e.g. a FastAPI handler registered 3x — #241/#242 triplicated physics_extended.py),
+# W605 = an invalid escape that silently corrupts strings today ("\beta" -> backspace)
+# and becomes a SyntaxError in a future Python. Promote more rules here as they hit 0.
+step "ruff blocking rules (F811,W605)" uv run ruff check --no-cache --select F811,W605 src/ tests/
 
 # Step 3b: Mypy debt ratchet. --self-test first, same reason as the other scanners:
 # a broken ratchet otherwise reads as a clean "no new type debt". The self-test also
@@ -166,6 +176,14 @@ step "import smoke test" uv run pytest tests/unit/test_import_smoke.py -q --tb=s
 
 # Step 6: Inference tests (gating — but live tests skip without Lemonade)
 step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings
+
+# Step 6a: Reliability tests (gating). Holds the SR1 OOM-guard / resource-guard tests that
+# were red for weeks while tests/reliability ran only under continue-on-error.
+step "reliability tests" uv run pytest tests/reliability/ -q --tb=short -p no:warnings
+
+# Step 6a-bis: Security tests (gating). Holds the AG1-AG5 production guardrail ratchet and the
+# MCPHTTPSClient always-verify contract; previously ran only under continue-on-error.
+step "security tests" uv run pytest tests/security/ -q --tb=short -p no:warnings
 
 # Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
 # that bypass the blessed path + its content->reasoning_content fallback.

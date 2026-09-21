@@ -1,4 +1,4 @@
-"""Spontaneous Symmetry Breaking & Ginzburg-Landau Order Parameter Engine.
+r"""Spontaneous Symmetry Breaking & Ginzburg-Landau Order Parameter Engine.
 
 Models ARC grid and decision state phase transitions:
 1. Symmetric High-Temperature State ($\phi = 0$, uniform potential).
