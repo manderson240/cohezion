@@ -159,7 +159,9 @@ def initialize_cohezion_environment() -> bool:
             # unnoticed because the skip was reported as success.
             try:
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
-                    print(f"[COHEZION_INIT_SKIP] tdd_adversarial unavailable: {exc}", file=sys.stderr)
+                    print(
+                        f"[COHEZION_INIT_SKIP] tdd_adversarial unavailable: {exc}", file=sys.stderr
+                    )
             except Exception:
                 pass  # Even error reporting failed, continue silently
             return True  # Consider it "initialized" by skipping

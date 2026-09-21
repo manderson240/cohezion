@@ -107,11 +107,15 @@ def test_run_command_falls_back_when_bwrap_is_present_but_cannot_unshare(tmp_pat
     from cohezion.environments import ultra_realistic_agent_env as env_mod
 
     fake = tmp_path / "bwrap"
-    fake.write_text("#!/bin/sh\necho 'bwrap: No permissions to create a new namespace' >&2\nexit 1\n")
+    fake.write_text(
+        "#!/bin/sh\necho 'bwrap: No permissions to create a new namespace' >&2\nexit 1\n"
+    )
     fake.chmod(0o755)
     real_which = _shutil.which
     monkeypatch.setattr(
-        _shutil, "which", lambda name, *a, **k: str(fake) if name == "bwrap" else real_which(name, *a, **k)
+        _shutil,
+        "which",
+        lambda name, *a, **k: str(fake) if name == "bwrap" else real_which(name, *a, **k),
     )
     env_mod._bwrap_usable.cache_clear()
     env = UltraRealisticAgentEnv(max_steps=10, interruption_prob=0.0, seed=7, use_namespaces=False)

@@ -43,7 +43,18 @@ def _bwrap_usable() -> str | None:
         return None
     try:
         probe = subprocess.run(
-            [bwrap, "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-all", "true"],
+            [
+                bwrap,
+                "--ro-bind",
+                "/",
+                "/",
+                "--dev",
+                "/dev",
+                "--proc",
+                "/proc",
+                "--unshare-all",
+                "true",
+            ],
             capture_output=True,
             timeout=5,
             check=False,
