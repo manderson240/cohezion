@@ -144,6 +144,7 @@ def test_scan_hardens_unsafe_heavy_model():
     catalog = [_make_model("Qwen3.6-35B-A3B-NoThinking", 21.7, 0)]
     with (
         patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 64.0)),
         patch("cohezion.inference.oom_guard._harden_model", return_value=True) as mock_harden,
     ):
         report = scan_and_harden()
@@ -173,11 +174,46 @@ def test_scan_records_failed_harden():
     catalog = [_make_model("Gemma-4-26B-A4B-it-GGUF", 18.1, 0)]
     with (
         patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 64.0)),
         patch("cohezion.inference.oom_guard._harden_model", return_value=False),
     ):
         report = scan_and_harden()
     assert report["failed"] == ["Gemma-4-26B-A4B-it-GGUF"]
     assert report["hardened"] == []
+
+
+def test_scan_defers_hardening_that_would_breach_the_floor():
+    """Hardening is a /api/v1/load — it makes the model resident. With 30 GB free, loading a
+    21.7 GB model leaves 8.3 GB (< 16 GB floor): it must be deferred, never loaded.
+    Before 2026-09-21 this loaded it, on the false premise that /load does not load."""
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-NoThinking", 21.7, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 30.0)),
+        patch("cohezion.inference.oom_guard._harden_model") as mock_harden,
+    ):
+        report = scan_and_harden()
+    mock_harden.assert_not_called()
+    assert report["deferred"] == ["Qwen3.6-35B-A3B-NoThinking"]
+    assert report["hardened"] == []
+
+
+def test_scan_accounts_for_each_hardened_model_before_the_next():
+    """Three 18 GB models, 60 GB free: 60 -> 42 -> 24 (both >= 16, hardened); the third would
+    leave 6. Deciding each against the ORIGINAL 60 GB would harden all three."""
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model(f"Heavy-{i}", 18.0, 0) for i in range(3)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 60.0)),
+        patch("cohezion.inference.oom_guard._harden_model", return_value=True),
+    ):
+        report = scan_and_harden()
+    assert report["hardened"] == ["Heavy-0", "Heavy-1"]
+    assert report["deferred"] == ["Heavy-2"]
 
 
 # ── verify_all_bounded ────────────────────────────────────────────────────────
@@ -214,5 +250,8 @@ def test_verify_router_offline():
 
     with patch("cohezion.inference.oom_guard._get_catalog", return_value=[]):
         safe, violations = verify_all_bounded()
-    assert safe is True  # offline → no violations to report
-    assert violations == []
+    # Blind is not safe: an unreachable router means the bounds are UNKNOWN.
+    from cohezion.inference.oom_guard import ROUTER_UNREACHABLE
+
+    assert safe is False
+    assert violations == [ROUTER_UNREACHABLE]

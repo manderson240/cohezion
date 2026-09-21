@@ -74,13 +74,22 @@ class ResourceGuard:
         Refuses when ``estimated_mb + model_load_margin_mb`` exceeds currently
         available RAM, so a load can never push the system into the OOM killer.
 
+        The ``min_ram_available_mb`` floor (default 16 GiB, harness N3: "never consume the
+        last 16 GB") must still hold AFTER the load, the same rule ``inference.hotswap``
+        enforces. Until 2026-09-21 the floor was only read by :meth:`is_healthy`, so this gate
+        approved a 21 GiB load that would have left 11 GiB while hotswap refused it.
+
         An ``estimated_mb`` of 0 or less means "unknown size" and is allowed —
         the caller has explicitly opted out of an estimate (do not silently block).
         """
         if estimated_mb <= 0:
-            return True, "no size estimate provided; gate skipped"
+            return True, "ok: no size estimate provided; gate skipped"
 
-        available = self.get_vitals().ram_available_mb
+        vitals = self.get_vitals()
+        if vitals.cpu_load_1m > self.max_cpu_load:
+            return False, f"CPU load too high for a model load: {vitals.cpu_load_1m}"
+
+        available = vitals.ram_available_mb
         needed = estimated_mb + self.model_load_margin_mb
         if needed > available:
             return False, (
@@ -88,7 +97,17 @@ class ResourceGuard:
                 f"= {needed}MB needed > {available}MB available RAM. Refusing in-process load — "
                 f"route to an already-loaded lemonade node (HTTP) instead."
             )
-        return True, f"fits: {needed}MB needed <= {available}MB available"
+        remaining = available - needed
+        if remaining < self.min_ram_available_mb:
+            return False, (
+                f"OOM guard: loading ~{estimated_mb}MB (+{self.model_load_margin_mb}MB margin) "
+                f"would leave {remaining}MB, below the {self.min_ram_available_mb}MB floor "
+                f"(harness N3: never consume the last 16 GB). Wait for memory or route to an "
+                f"already-loaded model."
+            )
+        return True, (
+            f"ok: {needed}MB needed, {remaining}MB left >= {self.min_ram_available_mb}MB floor"
+        )
 
     def require_can_load(self, estimated_mb: int) -> None:
         """Raise ``MemoryError`` if a model of ``estimated_mb`` cannot be loaded.
