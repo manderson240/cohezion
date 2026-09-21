@@ -29,24 +29,32 @@ if [[ ! -d /tmp/surrealdb ]]; then
     mkdir -p /tmp/surrealdb && log "created /tmp/surrealdb (tmpfs wipe)"
 fi
 
-# Remediation 2: reset failed-state counters. StartLimitBurst=5 in 60s means
-# a single burst of transient failures (e.g. from a dependency briefly dying)
-# locks a service out until a human intervenes. Resetting here lets systemd
-# retry on the next demand trigger.
+# Remediation 2: reset failed-state counters, but only after the FAILED state has been
+# visible for a while. A start limit exists to turn a crash loop into a visible FAILED;
+# resetting it every 2 minutes (the old behaviour) erased that signal, which is how a
+# 43-restart loop went unnoticed on 2026-09-21. After 30 min FAILED we still reset, so a
+# one-off burst from a briefly-dead dependency does not lock a service out forever.
+# cohezion-compound.service was removed: it is a stdio MCP server, not a daemon.
 readonly SERVICES=(
     "surrealdb.service"
     "cohezion-vault.service"
     "cohezion-vault-sync.service"
-    "cohezion-compound.service"
     "overture-proxy.service"
 )
+readonly FAILED_VISIBLE_US=1800000000 # 30 min
 
 for svc in "${SERVICES[@]}"; do
     systemctl --user cat "${svc}" >/dev/null 2>&1 || continue
     state="$(systemctl --user is-failed "${svc}" 2>/dev/null || true)"
     if [[ "${state}" == "failed" ]]; then
-        log "${svc} in failed state — resetting restart counter"
-        systemctl --user reset-failed "${svc}" 2>/dev/null || true
+        since="$(systemctl --user show -p InactiveEnterTimestampMonotonic --value "${svc}" 2>/dev/null)"
+        now="$(awk '{printf "%d", $1 * 1000000}' /proc/uptime)"
+        if [[ "${since}" =~ ^[0-9]+$ ]] && (( since > 0 && now - since < FAILED_VISIBLE_US )); then
+            log "${svc} FAILED — leaving visible (start limit tripped; reset after 30 min)"
+        else
+            log "${svc} FAILED >30min (or age unknown) — resetting restart counter"
+            systemctl --user reset-failed "${svc}" 2>/dev/null || true
+        fi
     fi
 done
 
