@@ -122,7 +122,9 @@ def _prompt(lens: str, hunt: str, diff: str) -> str:
         "Judge ONLY from the diff below. Do not invent code that is not shown; if the diff does "
         "not show enough to be sure, do not report it. Report at most 6 findings, most severe "
         "first. Every finding MUST carry a falsifier: one shell command, run from the repo root, "
-        "whose output demonstrates the claim (a pytest node id, `python -c ...`, `grep -n ...`). "
+        "whose output demonstrates the claim. Only read-only commands run: `pytest <node id>`, "
+        "`grep -n ...`, `git log/show/grep ...`, `sed -n N,Mp <file>`, `head`/`cat`/`wc`; "
+        "inline code (`python -c`) and anything that writes a file is refused. "
         "If you cannot name one, set falsifier to null.\n\n"
         f"Answer with ONE JSON object and nothing else, exactly this schema:\n{SCHEMA}\n\n"
         f"DIFF:\n{diff}"
@@ -211,56 +213,121 @@ def run_lane(lens: str, diff: str) -> LaneResult:
     return LaneResult(lens, model, "UNKNOWN", [], time.time() - t0, f"lane error: {last_exc}")
 
 
-_ALLOWED_PREFIXES = (
-    "pytest",
-    ".venv/bin/python3 -m pytest",
-    "python -m pytest",
-    "python3 -m pytest",
-    "python -c",
-    "python3 -c",
-    ".venv/bin/python3 -c",
-    "grep",
-    "rg",
-    "git grep",
-    "git log",
-    "git show",
-    "sed -n",
-    "cat ",
-    "head",
-    "wc",
-    ".venv/bin/python3 scripts/ci/",
-)
-
-
 _SHELL_META = re.compile(r"[;&|`$<>\\]|\$\(")
+
+# Positive allow-list over argv (2026-09-21 adversarial review). The falsifier is written by a
+# local model reading an untrusted diff, so it is untrusted input: it may READ the repo, never
+# write a file or run code of its own. Refused, by construction: interpreter inline code
+# (python -c), git --output / --ext-diff / -O / global -c, sed write/exec commands (w W e) and
+# -i / -f / -e, rg --pre, pytest file-writing and plugin flags.
+_PYTHONS = ("python", "python3", ".venv/bin/python", ".venv/bin/python3")
+_READ_TOOLS = {"grep", "cat", "head", "wc"}
+_GIT_READ_SUBCOMMANDS = {"log", "show", "grep"}
+_GIT_REFUSED = ("--output", "--ext-diff", "--textconv", "-O", "--open-files-in-pager")
+_RG_REFUSED = ("--pre",)
+_SED_PRINT_SCRIPT = re.compile(r"^\d+(,\d+)?p$")
+_PYTEST_FLAGS = {"-q", "-qq", "-v", "-x", "-s", "-rA", "--no-header", "--co", "--collect-only"}
+_PYTEST_FLAGS_WITH_VALUE = {"-k", "-m"}
+_PYTEST_FLAG_PREFIXES = ("--tb=", "-p", "--version")
+_SCRIPT_FLAGS = {"--self-test", "--help"}
+
+
+def _refuse_reason(argv: list[str]) -> str | None:
+    """None when *argv* is an allowed read-only falsifier, else why it is refused."""
+    if not argv:
+        return "empty"
+    head, rest = argv[0], argv[1:]
+    if head in _READ_TOOLS:
+        return None
+    if head == "rg":
+        bad = [a for a in rest if a.startswith(_RG_REFUSED)]
+        return f"rg {bad[0]} runs a command" if bad else None
+    if head == "git":
+        if not rest or rest[0] not in _GIT_READ_SUBCOMMANDS:
+            return "git: only log/show/grep, with no global options"
+        # short options bundle (`-nO<cmd>`), so any single-dash token carrying O is refused
+        bad = [
+            a
+            for a in rest[1:]
+            if a.startswith(_GIT_REFUSED) or (a[:1] == "-" and a[1:2] != "-" and "O" in a)
+        ]
+        return f"git {bad[0]} writes a file or runs a program" if bad else None
+    if head == "sed":
+        if not rest or rest[0] != "-n" or len(rest) < 2:
+            return "sed: only `sed -n <N[,M]p> <file>...`"
+        if not _SED_PRINT_SCRIPT.match(rest[1]):
+            return "sed: script must be a line-range print (N[,M]p)"
+        opts = [a for a in rest[2:] if a.startswith("-")]
+        return f"sed: no options after the script ({opts[0]})" if opts else None
+    if head == "pytest":
+        return _pytest_refusal(rest)
+    if head in _PYTHONS:
+        if rest[:2] == ["-m", "pytest"]:
+            return _pytest_refusal(rest[2:])
+        if len(rest) >= 1 and re.fullmatch(r"scripts/ci/[A-Za-z0-9_]+\.py", rest[0]):
+            extra = [a for a in rest[1:] if a not in _SCRIPT_FLAGS]
+            return f"scripts/ci: only --self-test/--help ({extra[0]})" if extra else None
+        return "python: only `-m pytest` or `scripts/ci/<name>.py --self-test` (no inline code)"
+    return "not in allow-list"
+
+
+def _pytest_refusal(args: list[str]) -> str | None:
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in _PYTEST_FLAGS_WITH_VALUE:
+            i += 2
+            continue
+        if a in _PYTEST_FLAGS or (
+            a.startswith(_PYTEST_FLAG_PREFIXES) and not _is_plugin_load(a, args, i)
+        ):
+            i += 2 if a == "-p" else 1
+            continue
+        if a.startswith("-"):
+            return f"pytest: flag {a} is not allow-listed"
+        i += 1
+    return None
+
+
+def _is_plugin_load(a: str, args: list[str], i: int) -> bool:
+    """`-p no:X` disables a plugin (allowed); any other -p LOADS one (runs its code)."""
+    if not a.startswith("-p"):
+        return False
+    value = a[2:] or (args[i + 1] if i + 1 < len(args) else "")
+    return not value.startswith("no:")
 
 
 def run_falsifier(cmd: str) -> tuple[str, str]:
-    """Run a lane's falsifier under a narrow allow-list; return (status, evidence).
+    """Run a lane's falsifier under a positive argv allow-list; return (status, evidence).
 
     Found by the scientific-rigor lens on its own first review of this file (2026-09-21): a
-    prefix allow-list plus ``shell=True`` let ``grep x; rm -rf /`` through. Now: no shell
-    metacharacters anywhere, ``shlex`` tokenisation, first token must be allow-listed, and
-    the process runs without a shell. A ``python -c`` falsifier can still execute arbitrary
-    Python in the repo -- the same trust as running the reviewed tests -- and that is the
-    accepted contract; what is refused is a second command hidden behind the first.
+    prefix allow-list plus ``shell=True`` let ``grep x; rm -rf /`` through. Then no shell
+    metacharacters, ``shlex`` tokenisation, and no shell. A second review the same day found
+    the prefix list still admitted ``python3 -c`` (arbitrary code), ``git log --output=<f>``
+    and ``sed 'w <f>'``, so the check is now over argv against :func:`_refuse_reason`: a
+    falsifier may read the repo and run its tests, never write a file or run inline code.
     """
     c = cmd.strip()
     if _SHELL_META.search(c):
         return "falsifier-failed", f"refused (shell metacharacter): {c[:120]}"
-    if not c.startswith(_ALLOWED_PREFIXES):
-        return "falsifier-failed", f"refused (not in allow-list): {c[:120]}"
+    try:
+        argv = shlex.split(c)
+    except ValueError as exc:
+        return "falsifier-failed", f"refused (unparseable): {exc}: {c[:120]}"
+    reason = _refuse_reason(argv)
+    if reason is not None:
+        return "falsifier-failed", f"refused ({reason}): {c[:120]}"
     # route interpreters through the repo venv (L367); a bare `pytest` becomes a module run.
     # Fall back to this interpreter when the checkout has no .venv (worktrees often don't):
     # a missing binary used to raise FileNotFoundError and discard every lane's results.
     venv_py = REPO_ROOT / ".venv" / "bin" / "python3"
-    py = shlex.quote(str(venv_py) if venv_py.exists() else sys.executable)
-    if c.startswith("pytest"):
-        c = f"{py} -m " + c
-    elif c.startswith(("python3 ", "python ")):
-        c = f"{py} " + c.split(" ", 1)[1]
+    py = str(venv_py) if venv_py.exists() else sys.executable
+    if argv[0] == "pytest":
+        argv = [py, "-m", *argv]
+    elif argv[0] in _PYTHONS:
+        argv = [py, *argv[1:]]
+    shown = shlex.join(argv)
     try:
-        argv = shlex.split(c)
         p = subprocess.run(
             argv, capture_output=True, text=True, cwd=REPO_ROOT, timeout=FALSIFIER_TIMEOUT_S
         )
@@ -268,11 +335,11 @@ def run_falsifier(cmd: str) -> tuple[str, str]:
         noise = ("Registered model provider", "Vault is locked", "[DBA]")
         lines = [ln for ln in (p.stdout + p.stderr).splitlines() if not any(n in ln for n in noise)]
         tail = "\n".join(lines[-20:])
-        return "evidence-attached", f"$ {c}\n[exit {p.returncode}]\n{tail}"
+        return "evidence-attached", f"$ {shown}\n[exit {p.returncode}]\n{tail}"
     except subprocess.TimeoutExpired:
-        return "falsifier-failed", f"$ {c}\n[timeout {FALSIFIER_TIMEOUT_S}s]"
-    except (OSError, ValueError) as exc:  # missing binary, bad quoting: this finding only
-        return "falsifier-failed", f"$ {c}\n[could not run: {type(exc).__name__}: {exc}]"
+        return "falsifier-failed", f"$ {shown}\n[timeout {FALSIFIER_TIMEOUT_S}s]"
+    except (OSError, ValueError) as exc:  # missing binary: this finding only
+        return "falsifier-failed", f"$ {shown}\n[could not run: {type(exc).__name__}: {exc}]"
 
 
 def converge(lanes: list[LaneResult]) -> list[list[Finding]]:
@@ -376,9 +443,15 @@ def self_test() -> int:
         ),
         (
             # In a checkout without .venv this raised FileNotFoundError and killed the review.
-            "[exit 0]\n7" in run_falsifier('python3 -c "print(7)"')[1],
+            "[exit 0]" in run_falsifier("python3 -m pytest --version")[1],
             "python falsifier runs with or without a repo .venv",
         ),
+        (
+            run_falsifier('python3 -c "print(7)"')[0] == "falsifier-failed",
+            "no inline interpreter code",
+        ),
+        (run_falsifier("git log -1 --output=x")[0] == "falsifier-failed", "no git --output"),
+        (run_falsifier("sed -n 'w x' README.md")[0] == "falsifier-failed", "no sed write"),
     ]
     a = Finding("l1", "f.py", 10, "high", "x", None)
     b = Finding("l2", "f.py", 13, "low", "y", None)
