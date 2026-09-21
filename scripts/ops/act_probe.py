@@ -205,6 +205,8 @@ def act_loop(
     max_iters: int,
     log: Path,
     commit: bool = True,
+    max_call_errors: int = 6,
+    call_backoff_s: float = 30.0,
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green."""
     if not file.startswith("src/") or file == oracle:
@@ -218,7 +220,10 @@ def act_loop(
         return {"status": "ORACLE_ALREADY_GREEN"}
     history: list[str] = []
     t0 = time.monotonic()
-    for it in range(1, max_iters + 1):
+    it = 0
+    call_errors = 0
+    while it < max_iters:
+        it += 1
         defs = "\n\n\n".join(get_def_source(original, t) for t in targets)
         prompt = build_prompt(task, file, defs, oracle_src, failure, history)
         live = getattr(chat, "is_live", False)
@@ -247,7 +252,18 @@ def act_loop(
                 outcome=f"CALL_ERROR {type(exc).__name__}: {exc}",
             )
             _log(log, rec)
-            history.append(f"attempt {it}: model call failed ({type(exc).__name__})")
+            # A router timeout is an INSTRUMENT failure, not a model attempt: it does not
+            # consume an iteration, but has its own budget so a wedged router still ends.
+            call_errors += 1
+            it -= 1
+            if call_errors > max_call_errors:
+                return {
+                    "status": "ROUTER_UNAVAILABLE",
+                    "iterations": it,
+                    "call_errors": call_errors,
+                    "wall_s": round(time.monotonic() - t0, 1),
+                }
+            time.sleep(call_backoff_s)
             continue
         rec.update(
             latency_s=round(time.monotonic() - t, 1),
