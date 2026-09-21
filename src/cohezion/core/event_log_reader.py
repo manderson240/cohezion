@@ -143,8 +143,8 @@ def older_than_predicate(max_age_s: float, *, now: float | None = None) -> str:
         raise ValueError(f"max_age_s must be positive, got {max_age_s!r}")
     cutoff = int((time.time() if now is None else now) - max_age_s)
     return (
-        f"(type::is_number(timestamp) AND timestamp < {cutoff})"
-        f" OR (type::is_datetime(timestamp) AND timestamp < time::now() - {int(max_age_s)}s)"
+        f"((type::is_number(timestamp) AND timestamp < {cutoff})"
+        f" OR (type::is_datetime(timestamp) AND timestamp < time::now() - {int(max_age_s)}s))"
     )
 
 
