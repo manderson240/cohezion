@@ -25,6 +25,7 @@ import ast
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -151,7 +152,10 @@ def splice(source: str, replacement: str, anchor: str) -> str:
 # ---------------------------------------------------------------- verify
 def run_tests(repo: Path, python: str, tests: list[str], timeout: float = 300) -> tuple[bool, str]:
     """Run pytest on *tests*; return (green, output tail)."""
-    env = {**os.environ, "PYTHONPATH": str(repo / "src")}
+    # Fresh bytecode cache per run: a same-size edit written within the mtime granularity
+    # of the previous run is otherwise served from a STALE .pyc (observed in the self-test).
+    pyc = tempfile.mkdtemp(prefix="act_pyc_")
+    env = {**os.environ, "PYTHONPATH": str(repo / "src"), "PYTHONPYCACHEPREFIX": pyc}
     try:
         p = subprocess.run(
             [python, "-m", "pytest", *tests, "-q", "-p", "no:cacheprovider", "--tb=short"],
@@ -164,6 +168,8 @@ def run_tests(repo: Path, python: str, tests: list[str], timeout: float = 300) -
         )
     except subprocess.TimeoutExpired:
         return False, "pytest TIMEOUT"
+    finally:
+        shutil.rmtree(pyc, ignore_errors=True)
     return p.returncode == 0, (p.stdout + p.stderr)[-3000:]
 
 
@@ -223,6 +229,15 @@ def act_loop(
             "prompt_chars": len(prompt),
             "router": router_snapshot(model) if live else "fake",
         }
+        if live and rec["router"].get("resident") is False:
+            # Never let a probe trigger a model load on a shared box: refuse, don't queue.
+            rec["outcome"] = "NOT_RESIDENT (refused: would trigger a load)"
+            _log(log, rec)
+            return {
+                "status": "NOT_RESIDENT",
+                "iterations": it,
+                "wall_s": round(time.monotonic() - t0, 1),
+            }
         t = time.monotonic()
         try:
             reply = chat(prompt)
