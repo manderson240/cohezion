@@ -68,12 +68,23 @@ def make_chat_fn(
         model = next((m for m in models if m in resident), None)
         if model is None:
             raise NotResidentError(f"none of {models} resident (resident: {resident})")
+        # Reuse the repo's model-card resolver: Qwen3-family gets "/no_think", thinking
+        # models get their overhead budget. Without it Qwen3.6 spent all 3072 tokens thinking.
+        try:
+            from cohezion.inference.model_card_harness import ModelCardHarness
+
+            params = ModelCardHarness.from_live_api().get_params("code", model)
+            final_prompt, extra = params.apply(prompt)
+            budget = max(max_tokens, params.max_tokens)
+        except Exception:  # resolver unavailable: plain call
+            final_prompt, extra, budget = prompt, {}, max_tokens
         body = json.dumps(
             {
                 "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": max_tokens,
+                "messages": [{"role": "user", "content": final_prompt}],
+                "max_tokens": budget,
                 "temperature": 0.2,
+                **extra,
             }
         ).encode()
         req = urllib.request.Request(  # noqa: S310
@@ -85,8 +96,14 @@ def make_chat_fn(
             data = json.loads(r.read())
         msg = data["choices"][0]["message"]
         content = msg.get("content") or ""
+        usage = data.get("usage") or {}
+        truncated = usage.get("completion_tokens", 0) >= budget
+        # Only mine reasoning_content for an answer when generation actually finished;
+        # a truncated think-stream yields code FRAGMENTS (observed: IndentationError x3).
+        fallback = "" if truncated else (msg.get("reasoning_content") or "")
         return {
-            "text": content or msg.get("reasoning_content") or "",
+            "text": content or fallback,
+            "truncated": truncated,
             "content_empty": not content,
             "finish_reason": data["choices"][0].get("finish_reason"),
             "usage": data.get("usage"),
@@ -266,6 +283,7 @@ def act_loop(
         rec.update(
             latency_s=round(time.monotonic() - t, 1),
             content_empty=reply.get("content_empty"),
+            truncated=reply.get("truncated"),
             finish_reason=reply.get("finish_reason"),
             usage=reply.get("usage"),
         )
