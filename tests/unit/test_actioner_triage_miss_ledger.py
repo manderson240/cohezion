@@ -125,3 +125,39 @@ def test_batch_cap_does_not_evict_misses_it_never_reached(tmp_path):
 
     api._items = dead_head + dead_tail
     assert _run(api, tmp_path)["processed"] == 0
+
+
+def test_changed_item_is_re_triaged_after_a_recorded_miss(tmp_path):
+    """A miss is a verdict on the item's CONTENT, not its id (adversarial review 2026-09-21).
+
+    Keyed by id alone, an item that missed once was skipped forever -- even after it was
+    re-tagged type=improvement, which triage() routes unconditionally.
+    """
+    item = _dead(0)
+    api = FakeAPI([item])
+    assert _run(api, tmp_path)["skipped_no_match"] == ["dead0000"]
+
+    item["type"] = "improvement"
+    second = _run(api, tmp_path)
+    assert second["skipped_known_miss"] == 0
+    assert [a["id"] for a in second["actioned"]] == ["dead0000"]
+
+
+def test_edited_text_is_re_triaged_after_a_recorded_miss(tmp_path):
+    item = _dead(0)
+    api = FakeAPI([item])
+    _run(api, tmp_path)
+    item["title"] = "prompt caching for agent tools"
+    second = _run(api, tmp_path)
+    assert second["processed"] == 1
+    assert [a["id"] for a in second["actioned"]] == ["dead0000"]
+
+
+def test_items_without_an_id_are_never_ledgered(tmp_path):
+    """Empty ids would all share one key; a miss on one must not hide the others."""
+    api = FakeAPI([{"title": "quantum entanglement", "relevance": "APPLY"}])
+    _run(api, tmp_path)
+    api._items = [{"title": "prompt caching for agent tools", "relevance": "APPLY"}]
+    second = _run(api, tmp_path)
+    assert second["skipped_known_miss"] == 0
+    assert second["processed"] == 1

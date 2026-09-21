@@ -40,6 +40,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 import urllib.request
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -86,8 +87,19 @@ def triage_rules_version() -> str:
     return hashlib.sha256(material.encode()).hexdigest()[:16]
 
 
+# The item fields triage() reads. A recorded miss is a verdict on THIS content, so an
+# item edited or re-typed after it missed is re-triaged (adversarial review 2026-09-21).
+_TRIAGE_FIELDS = ("type", "title", "abstract", "description", "domain")
+
+
+def triage_content_fingerprint(item: dict[str, Any]) -> str:
+    """Fingerprint of the fields triage() reads; the ledger value for a recorded miss."""
+    material = "\x00".join(str(item.get(k, "")) for k in _TRIAGE_FIELDS)
+    return hashlib.sha256(material.encode()).hexdigest()[:16]
+
+
 def load_triage_misses(path: Path, rules_version: str) -> dict[str, str]:
-    """Item ids that matched no rule under *rules_version* (id -> ISO time recorded).
+    """Item ids that matched no rule under *rules_version* (id -> content fingerprint).
 
     A ledger written under different rules is ignored, so a rule change re-examines
     every previously unmatched item. Unreadable ledger -> empty (re-examine, never skip).
@@ -105,9 +117,12 @@ def load_triage_misses(path: Path, rules_version: str) -> dict[str, str]:
 def save_triage_misses(path: Path, rules_version: str, misses: dict[str, str]) -> None:
     """Atomically replace the ledger (one write per run, never the work-queue file)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps({"rules_version": rules_version, "misses": misses}))
-    os.replace(tmp, path)
+    # Unique temp name: two concurrent runs must not interleave writes into one .tmp.
+    with tempfile.NamedTemporaryFile(
+        "w", dir=path.parent, prefix=path.name + ".", suffix=".tmp", delete=False
+    ) as tmp:
+        tmp.write(json.dumps({"rules_version": rules_version, "misses": misses}))
+    os.replace(tmp.name, path)
 
 
 def triage(item: dict[str, Any]) -> str | None:
@@ -429,14 +444,16 @@ def run_batch(
             break
         item_id = str(item.get("id", ""))
         seen_ids.add(item_id)
-        if item_id in known_misses:
+        fingerprint = triage_content_fingerprint(item)
+        if item_id and known_misses.get(item_id) == fingerprint:
             summary["skipped_known_miss"] += 1
             continue
         summary["processed"] += 1
         route = triage(item)
         if route is None:
             summary["skipped_no_match"].append(item_id)
-            new_misses[item_id] = datetime.now(UTC).isoformat()
+            if item_id:  # empty ids would all collide on one ledger key
+                new_misses[item_id] = fingerprint
             continue
         attempts += 1
         if dry_run:
