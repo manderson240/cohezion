@@ -40,7 +40,10 @@ TARGETS = ["src/", "tests/"]
 
 def _current_count() -> int:
     """Return the number of ruff-check violations across TARGETS (deterministic JSON count)."""
-    cmd = ["ruff", "check", *TARGETS, "--output-format", "json"]
+    # --no-cache: the count is a one-shot measurement, so the cache buys nothing,
+    # and writing .ruff_cache makes the gate fail outright in a read-only tree
+    # (git worktrees under a ro mount). Measuring everywhere beats measuring fast.
+    cmd = ["ruff", "check", *TARGETS, "--output-format", "json", "--no-cache"]
     # Prefer `uv run ruff` so the locked ruff version (uv.lock) is used — a
     # standalone ruff on PATH (e.g. ~/.local/bin/ruff) can be a different
     # version and produce a different violation count, causing CI/local skew.
@@ -49,6 +52,21 @@ def _current_count() -> int:
     except FileNotFoundError:
         # uv not available — fall back to bare ruff on PATH.
         proc = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
+    # ruff exits 0 (clean) or 1 (violations found). ANYTHING else means the
+    # measurement never happened -- `uv run` could not build a venv, ruff is
+    # missing, a config failed to parse. Without this check an empty stdout
+    # parses as "[]" and the gate reports 0 violations, i.e. a PASS, from a run
+    # that measured nothing. Observed live 2026-09-20 in a read-only worktree:
+    # "0 < baseline 905 -- debt reduced by 905!" while `ruff check` on the same
+    # tree found 896. Worse, --update would then write a baseline of 0 carrying
+    # the _PROVENANCE "measured-by" stamp -- laundering a failed run into an
+    # authoritative number, the very thing that stamp exists to prevent.
+    if proc.returncode not in (0, 1):
+        sys.stderr.write((proc.stdout or "")[:2000] + "\n" + (proc.stderr or "")[:2000] + "\n")
+        raise SystemExit(
+            f"ruff_ratchet: ruff did not run (exit {proc.returncode}) -- refusing to "
+            "report a violation count from a measurement that never happened."
+        )
     try:
         return len(json.loads(proc.stdout or "[]"))
     except json.JSONDecodeError as exc:
@@ -157,17 +175,30 @@ def main() -> int:
         # config state that CI will actually run against defines the floor);
         # --at only identifies the merge being absorbed.
         argv = sys.argv
-        reason = argv[argv.index("--reason") + 1] if "--reason" in argv and argv.index("--reason") + 1 < len(argv) else None
-        at = argv[argv.index("--at") + 1] if "--at" in argv and argv.index("--at") + 1 < len(argv) else "HEAD"
+        reason = (
+            argv[argv.index("--reason") + 1]
+            if "--reason" in argv and argv.index("--reason") + 1 < len(argv)
+            else None
+        )
+        at = (
+            argv[argv.index("--at") + 1]
+            if "--at" in argv and argv.index("--at") + 1 < len(argv)
+            else "HEAD"
+        )
         if not reason or not reason.strip() or reason.startswith("--"):
-            print('ruff_ratchet: --merge-reset requires: --merge-reset --reason "<why>" [--at <merge-ref>]')
+            print(
+                'ruff_ratchet: --merge-reset requires: --merge-reset --reason "<why>" [--at <merge-ref>]'
+            )
             return 1
         if any(f in argv for f in ("--update", "--self-test")):
             print("ruff_ratchet: --merge-reset cannot be combined with --update/--self-test")
             return 1
         revs = subprocess.run(
             ["git", "rev-list", "--parents", "-n", "1", at],
-            cwd=REPO, capture_output=True, text=True)
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        )
         if revs.returncode != 0:
             print(f"ruff_ratchet: --at ref {at!r} not resolvable: {revs.stderr.strip()[:200]}")
             return 1
