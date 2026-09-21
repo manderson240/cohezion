@@ -19,6 +19,7 @@ from httpx import ASGITransport, AsyncClient
 
 from cohezion.api.services.physics_extended import physics_ext_router
 
+
 _SLOW_S = 0.6
 
 
@@ -50,9 +51,7 @@ async def test_slow_physics_request_does_not_stall_a_concurrent_one(monkeypatch)
             return time.perf_counter() - issue_at
 
         issue_at = time.perf_counter() + 0.05  # let the slow request start first
-        slow_resp, cheap_s = await asyncio.gather(
-            c.get("/api/physics/mhd/status"), cheap(issue_at)
-        )
+        slow_resp, cheap_s = await asyncio.gather(c.get("/api/physics/mhd/status"), cheap(issue_at))
 
     assert slow_resp.status_code == 200
     assert cheap_s < _SLOW_S / 2, f"cheap request waited {cheap_s:.3f}s behind the slow one"

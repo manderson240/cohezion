@@ -246,10 +246,10 @@ def test_verify_all_bounded_finds_violation():
 
 
 def test_verify_router_offline():
-    from cohezion.inference.oom_guard import verify_all_bounded
-
     import urllib.error
     import urllib.request
+
+    from cohezion.inference.oom_guard import verify_all_bounded
 
     def _refused(*_a, **_k):
         raise urllib.error.URLError("connection refused")

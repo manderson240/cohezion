@@ -12,6 +12,7 @@ import hashlib
 from pathlib import Path
 from types import SimpleNamespace
 
+
 _REAL_APPROVALS = Path.home() / ".cohezion" / "pending_skill_approvals.jsonl"
 
 
@@ -35,7 +36,6 @@ def test_blocked_promotion_is_recorded_outside_the_real_home(tmp_path_factory) -
 
     assert marker in path.read_text(), "the record must land in the isolated file"
     assert _sha(_REAL_APPROVALS) == before
-
 
 
 _REAL_REGISTRY = (
