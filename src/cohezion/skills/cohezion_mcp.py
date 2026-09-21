@@ -45,6 +45,10 @@ from cohezion.skills.mcp_paths import (
 from cohezion.skills.mcp_tool_definitions import build_tool_list
 
 
+# Fallback advertised when the client does not send a usable protocolVersion.
+DEFAULT_PROTOCOL_VERSION = "2025-06-18"
+
+
 try:
     from cohezion.reliability.monitor import ResourceMonitor
 except ImportError:
@@ -242,12 +246,24 @@ class CohezionMCP:
             try:
                 request = json.loads(line)
                 if request.get("method") == "initialize":
+                    # protocolVersion is REQUIRED by the MCP spec. Omitting it makes
+                    # the client reject the handshake with "expected string, received
+                    # undefined". Echo the client's version when it sends a usable one
+                    # (params may be absent, or present-but-null), else fall back.
+                    params = request.get("params") or {}
+                    client_pv = params.get("protocolVersion")
+                    protocol_version = (
+                        client_pv
+                        if isinstance(client_pv, str) and client_pv
+                        else DEFAULT_PROTOCOL_VERSION
+                    )
                     print(
                         json.dumps(
                             {
                                 "jsonrpc": "2.0",
                                 "id": request.get("id"),
                                 "result": {
+                                    "protocolVersion": protocol_version,
                                     "capabilities": {"tools": {}},
                                     "serverInfo": {
                                         "name": "cohezion-bridge",
@@ -295,6 +311,22 @@ class CohezionMCP:
                                 }
                             )
                         )
+                elif request.get("id") is not None:
+                    # An unknown REQUEST must get a visible error; staying silent
+                    # leaves the client waiting forever. Unknown NOTIFICATIONS
+                    # (no "id") correctly fall through without a response.
+                    print(
+                        json.dumps(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": request.get("id"),
+                                "error": {
+                                    "code": -32601,
+                                    "message": "Method not found: " + str(request.get("method")),
+                                },
+                            }
+                        )
+                    )
                 sys.stdout.flush()
             except Exception as e:
                 # Top-level JSON-RPC loop must survive malformed input or downstream errors;
