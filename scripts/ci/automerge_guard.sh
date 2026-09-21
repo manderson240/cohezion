@@ -147,7 +147,10 @@ step "ruff format --check" uv run ruff format --check src/ tests/
 step_advisory "ruff lint check" uv run ruff check src/ tests/
 
 # Step 3: Ruff debt ratchet (gating)
-step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
+step "ruff ratchet self-test" uv run python scripts/ci/ruff_ratchet.py --self-test
+# Monotone: fails if count != baseline, or if the baseline rose vs merge-base(HEAD, origin/main)
+# without LINT_BASELINE_RAISE_REASON. origin/main is fetched above, so the base must be readable.
+step "ruff debt ratchet" env RUFF_RATCHET_REQUIRE_BASE=1 uv run python scripts/ci/ruff_ratchet.py
 
 # Step 3a: Selective blocking lint. The full `ruff check` stays advisory (large backlog),
 # but these rules are at ZERO and each is a real defect, not style: F811 = a redefined

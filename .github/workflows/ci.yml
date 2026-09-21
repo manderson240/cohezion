@@ -23,6 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Full history: the ruff ratchet compares the committed baseline with the
+          # one at merge-base(HEAD, origin/main) to refuse upward re-baselining.
+          fetch-depth: 0
 
       - name: Install uv via Astral action
         uses: astral-sh/setup-uv@v5
@@ -57,7 +61,12 @@ jobs:
       # so no PR can add new lint debt. Pay it down by lowering the baseline as the count
       # drops; when it reaches 0, drop the ratchet and make `ruff check` itself gating.
       - name: Ruff debt ratchet (gating)
-        run: uv run python scripts/ci/ruff_ratchet.py
+        env:
+          # An unreadable base must fail closed here, not report UNKNOWN and pass.
+          RUFF_RATCHET_REQUIRE_BASE: "1"
+        run: |
+          uv run python scripts/ci/ruff_ratchet.py --self-test
+          uv run python scripts/ci/ruff_ratchet.py
 
       # Gating: rules already at zero whose violations are defects, not style.
       # F811 = redefinition (duplicate route handlers); W605 = invalid escape sequence.
