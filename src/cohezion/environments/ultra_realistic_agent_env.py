@@ -10,6 +10,7 @@ Directly aligns with Anthropic's 'Research Engineer, Universes' mandate:
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
 import shutil
@@ -26,6 +27,30 @@ from cohezion.environments.interruption_engine import (
     InterruptionEngine,
 )
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
+
+
+@functools.cache
+def _bwrap_usable() -> str | None:
+    """Path to bwrap if it can create namespaces HERE, else None.
+
+    Probed live, not assumed: bwrap is installed on hosts where unprivileged user namespaces
+    are denied (e.g. inside an agent sandbox), and there it exits 1 with empty stdout for
+    EVERY command. Same probe as `cohezion.compound.sandboxed_exec._bwrap_prefix` (not
+    imported: `cohezion.compound` costs ~5s at import).
+    """
+    bwrap = shutil.which("bwrap")
+    if not bwrap:
+        return None
+    try:
+        probe = subprocess.run(
+            [bwrap, "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-all", "true"],
+            capture_output=True,
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return bwrap if probe.returncode == 0 else None
 
 
 logger = logging.getLogger(__name__)
@@ -465,7 +490,7 @@ class UltraRealisticAgentEnv(gym.Env):
                 )
 
         try:
-            bwrap_bin = shutil.which("bwrap")
+            bwrap_bin = _bwrap_usable()
             if bwrap_bin:
                 exec_cmd = [
                     bwrap_bin,
