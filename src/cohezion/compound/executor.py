@@ -1901,18 +1901,24 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     # actual execution quality (2606.32026). Fail-open: any exception is
                     # suppressed so calibration never blocks the execution pipeline.
                     _wm = getattr(self._jepa_gate, "_world_model", None)
-                    if _wm is not None and hasattr(_wm, "observe"):
-                        _actual_quality = float(
-                            metrics.get("quality_score", metrics.get("coherence", 0.5))
-                        )
-                        try:
+                    # PQ1: calibrate only against a MEASURED quality; UNKNOWN -> no observe.
+                    # The producer's cascade_quality_score is authoritative when present
+                    # (incl. None); else the AUTODQA quality_score. NOT `coherence`: by this
+                    # step it is always set, to the Step-5 self-computed blend when nothing
+                    # measured it -- constant per success/anomaly profile, the same class
+                    # of stand-in as the former 0.5 fallback.
+                    if "cascade_quality_score" in metrics:
+                        _q = metrics["cascade_quality_score"]
+                    else:
+                        _q = metrics.get("quality_score")
+                    _measured = isinstance(_q, (int, float)) and not isinstance(_q, bool)
+                    if _wm is not None and hasattr(_wm, "observe") and _measured:
+                        with contextlib.suppress(Exception):  # never block on calibration
                             _wm.observe(
                                 task_description,
                                 self._jepa_gate.last_coherence,
-                                _actual_quality,
+                                float(_q),
                             )
-                        except Exception:  # never block on calibration
-                            pass
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
