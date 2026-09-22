@@ -1,0 +1,49 @@
+# measured-by: hidden_import_cycle_scan.py --update
+# Guarded re-exports that SILENTLY VANISH from a cohezion package because a
+# cohezion-internal ImportError (import cycle / partially initialized module /
+# stale path) is swallowed by suppress(Exception) or except Exception.
+# One `<package>:<name>` per line. Down-only: a NEW entry fails the gate; fix
+# entries (lazy import at point of use) and re-run --update to shrink this file.
+cohezion.agents.adk_swarm.aimo_specialists:AIMOOrchestrator
+cohezion.agents.adk_swarm.aimo_specialists:AlgebraistAgent
+cohezion.agents.adk_swarm:AIMOOrchestrator
+cohezion.agents.adk_swarm:MetacognitionAgent
+cohezion.agents.generated:TestSkillAgent
+cohezion.agents:AnalystAgent
+cohezion.agents:ArchitectAgent
+cohezion.agents:BaseAgent
+cohezion.agents:CriticAgent
+cohezion.agents:LabAgent
+cohezion.agents:SecurityGuardAgent
+cohezion.agents:SynthesizerAgent
+cohezion.compound.tdd_adversarial:AdversarialCritique
+cohezion.compound.tdd_adversarial:AdversarialRedTeamAgent
+cohezion.compound:CompoundEcoSymphony
+cohezion.compound:EcoResilienceCompoundEngine
+cohezion.compound:PlasmaAnomalyData
+cohezion.compound:PlasmaTheosophySynthesizer
+cohezion.core.routing:ManifoldBridge
+cohezion.core:JourneyWorker
+cohezion.core:TimeKeeper
+cohezion.flume:FlumeTrainConfig
+cohezion.flume:GitEncoder
+cohezion.flume:JourneyEncoderConfig
+cohezion.flume:JourneyToFlumeEncoder
+cohezion.governance:FleetMonitor
+cohezion.ouroboros:HealerAgent
+cohezion.real_envs.tasks:create_flask_api_task
+cohezion.real_envs.tasks:data_pipeline_task
+cohezion.real_envs.tasks:etl_api_to_db_task
+cohezion.real_envs.tasks:git_workflow_automation_task
+cohezion.real_envs:create_flask_api_task
+cohezion.real_envs:data_pipeline_task
+cohezion.real_envs:etl_api_to_db_task
+cohezion.real_envs:git_workflow_automation_task
+cohezion.reliability:SemanticCache
+cohezion.swarm:MixtureOfExpertsRouter
+cohezion.swarm:OllamaResilientClient
+cohezion.swarm:PlasmaSwarmRouter
+cohezion.universe:TriuneSimulationEngine
+cohezion.universe:Universe
+cohezion.universe:UniverseFactory
+cohezion.universe:UniverseSpec

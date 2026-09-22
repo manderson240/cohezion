@@ -221,6 +221,17 @@ step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh
 step "dormancy self-test" uv run python scripts/ci/dormancy_scan.py --self-test
 step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 
+# Step 6c-hidden: Hidden import cycles -- "did a guarded re-export silently vanish?". 112 package
+# __init__.py files wrap re-exports in suppress(Exception)/except Exception, which also swallows
+# "cannot import name X from partially initialized module" -- so a cycle deletes the name, and
+# WHICH names vanish depends on import order (JourneyPersistence, AdversarialCritique,
+# 2026-09-22: tests passed alone and failed in a batch). Imports each guarded package in fresh
+# subprocesses under several orders and records the exception each guard swallowed. Down-only
+# ratchet over hidden_import_cycle_baseline.txt. --self-test first (planted cycle must be flagged,
+# planted missing third-party must not). Slow: ~8 min at 8 jobs (fresh interpreter per order).
+step "hidden-import-cycle self-test" uv run python scripts/ci/hidden_import_cycle_scan.py --self-test
+step "hidden-import-cycle ratchet" uv run python scripts/ci/hidden_import_cycle_scan.py
+
 # Step 6c-bis: Doc↔code drift — the sibling of 6c. dormancy_scan asks "does this code have a
 # consumer?"; this asks "do the docs tell the truth about the code?". Already gating in
 # ci.yml; added here 2026-07-29 so the LOCAL landing gate matches CI rather than discovering
