@@ -17,7 +17,8 @@ What this plugin does, for tests in the guarded dirs that are NOT marked ``integ
   the test. Fix it with a fake; if the test genuinely asserts on a live service, mark it
   ``integration`` and list it in tests/unit/test_integration_marker_audit.py.
 
-Collection-time probes (module-level ``skipif(not lemonade_reachable())`` for integration tests)
+Known limits: probes are matched by bare function name, so a new ``is_available``/``from_live_api``
+anywhere in src/cohezion is tolerated automatically. Collection-time probes (module-level ``skipif(not lemonade_reachable())`` for integration tests)
 run outside any test and are not blocked, so ``-m integration`` still sees a live router.
 Subprocesses are not covered (the patch is in-process).
 """
