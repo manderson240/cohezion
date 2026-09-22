@@ -28,9 +28,9 @@ Rules are applied in this order; the first match wins.
    dropped, never LLM-classified) and recorded in the triage-miss ledger so later
    runs skip it until the rules or the card content change.
 
-Every pattern is wrapped in word boundaries on both sides, so a stem only matches
-as a whole word: `quantiz` does not match "quantized" and `fine-tun` does not
-match "fine-tuning".
+Stems match at the START of a word and may continue (`quanti[sz]`, `fine[- ]?tun`,
+`orchestrat`, `distill`): "quantized", "fine-tuning" and "orchestration" match, while
+near-misses such as "quantum", "quantity", "fine-grained" and "orchestra" do not.
 
 ## INSTRUCTION (per routed card)
 1. Build the proposal prompt from the card (title, abstract or description, url,

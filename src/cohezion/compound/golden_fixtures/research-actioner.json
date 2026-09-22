@@ -79,10 +79,10 @@
         "url": "https://www.reddit.com/r/LocalLLaMA/comments/1vsx94f/we_quantized_the_new_ornith_15_9b_and_35ba3b/",
         "domain": "r/LocalLLaMA"
       },
-      "why": "'quantized' misses the \\bquantiz\\b stem; left reviewed, no route",
-      "expected_route": "none",
+      "why": "'quantized' matches the quanti[sz] word-start stem (fixed on fix/actioner-transient-guard-and-stems 2a7fd3a32); routes to implement",
+      "expected_route": "implement",
       "input": "Apply this skill's TRIAGE rules to the work-queue card below. Reply with exactly one word: implement, experiment, or none.\n{\"type\": \"research\", \"title\": \"We quantized the new Ornith 1.5 9B and 35B-A3B\", \"description\": \"ornith lab dropped new ornith 1.5 today, a 9B dense with vision and a 35B-A3B MoE, both MIT, trained on a loop that generates its own tasks. in addition there was giant 397b model, but we didn&#39;t quantize it (but if you want to try - we will do it)   we made our AD (Atomic Dynamic) quants for bot\", \"domain\": \"r/LocalLLaMA\"}",
-      "expected_output": "(?i)^\\W*none\\b",
+      "expected_output": "(?i)^\\W*implement\\b",
       "validator_type": "regex",
       "critical": false
     },
