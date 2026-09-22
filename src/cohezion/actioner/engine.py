@@ -308,6 +308,27 @@ def triage(item: dict[str, Any]) -> str | None:
     return None
 
 
+# Card types the work-queue honesty gate caps at MONITOR until they link a probe result.
+# Mirrors ``cohezion.api.card_honesty.RESEARCH_TYPES`` (pinned equal by a unit test);
+# importing it would pull in the whole FastAPI app package.
+PROBE_GATED_TYPES = frozenset({"research", "fleet"})
+
+
+def needs_probe(item: dict[str, Any]) -> bool:
+    """A research card whose APPLY claim the honesty gate capped at MONITOR, still unprobed.
+
+    Such a card may only be actioned through the experiment lane: the experiment IS the
+    probe, and its artifact is what gets recorded as ``probe_ref``. A card the research
+    daemon itself rated MONITOR (no ``relevance_claimed``) is not one of these.
+    """
+    return (
+        str(item.get("type", "")) in PROBE_GATED_TYPES
+        and item.get("relevance") == "MONITOR"
+        and item.get("relevance_claimed") == "APPLY"
+        and not item.get("probe_ref")
+    )
+
+
 def load_actioned_ids(proposals_path: Path = PROPOSALS_PATH) -> set[str]:
     """Item ids already present in the proposals queue (the dedup key)."""
     ids: set[str] = set()
@@ -322,6 +343,21 @@ def load_actioned_ids(proposals_path: Path = PROPOSALS_PATH) -> set[str]:
         if item_id:
             ids.add(str(item_id))
     return ids
+
+
+def load_vault_note(item_id: str, proposals_path: Path = PROPOSALS_PATH) -> str:
+    """The experiment artifact recorded for *item_id*, or "" (legacy entries lack it)."""
+    if not proposals_path.exists():
+        return ""
+    note = ""
+    for line in proposals_path.read_text().splitlines():
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if str(entry.get("item_id")) == item_id and entry.get("vault_note"):
+            note = str(entry["vault_note"])
+    return note
 
 
 class WorkQueueAPI:
@@ -346,12 +382,20 @@ class WorkQueueAPI:
             return json.loads(resp.read())
 
     def eligible_items(self) -> list[dict[str, Any]]:
-        """APPLY items in reviewed/approved — the drain target, oldest first."""
-        items: list[dict[str, Any]] = []
-        for status in ("reviewed", "approved"):
-            page = self._request("GET", f"/api/work-queue?relevance=APPLY&status={status}")
-            items.extend(page.get("items", []))
-        return sorted(items, key=lambda i: i.get("created_at", ""))
+        """The drain target in reviewed/approved: APPLY items, then capped research cards.
+
+        Each group is oldest first. APPLY comes first so a backlog of capped cards cannot
+        eat the batch. Capped cards (``needs_probe``) are only ever run as experiments.
+        """
+
+        def _fetch(relevance: str) -> list[dict[str, Any]]:
+            rows: list[dict[str, Any]] = []
+            for status in ("reviewed", "approved"):
+                path = f"/api/work-queue?relevance={relevance}&status={status}"
+                rows.extend(self._request("GET", path).get("items", []))
+            return sorted(rows, key=lambda i: i.get("created_at", ""))
+
+        return _fetch("APPLY") + [i for i in _fetch("MONITOR") if needs_probe(i)]
 
     def mark_actioned(self, item_id: str, route: str) -> dict:
         """Record WHICH lane actioned the card, without touching its content.
@@ -366,6 +410,18 @@ class WorkQueueAPI:
             "PATCH",
             f"/api/work-queue/{item_id}",
             {"status": "actioned", "action_route": route},
+        )
+
+    def mark_actioned_with_probe(self, item_id: str, route: str, probe_ref: str) -> dict:
+        """Action a capped research card and link the experiment that probed it.
+
+        ``relevance`` is deliberately NOT sent: the router re-gates any relevance write,
+        and whether the probe licenses APPLY is a judgement for whoever reads its result.
+        """
+        return self._request(
+            "PATCH",
+            f"/api/work-queue/{item_id}",
+            {"status": "actioned", "action_route": route, "probe_ref": probe_ref},
         )
 
     def pending_items(self) -> list[dict[str, Any]]:
@@ -566,7 +622,9 @@ def action_item(
     }
     artifact: dict[str, Any] = {"route": route, "proposal_entry": entry}
     if route == "experiment":
-        artifact["vault_note"] = str(_write_vault_experiment(item, parsed, vault_dir))
+        artifact["vault_note"] = entry["vault_note"] = str(
+            _write_vault_experiment(item, parsed, vault_dir)
+        )
     _append_proposal(entry, proposals_path)
     return artifact
 
@@ -619,6 +677,7 @@ def run_batch(
         "deduped": [],
         "failed": {},
         "failed_permanent": [],
+        "skipped_needs_probe": [],
         "dry_run": dry_run,
     }
 
@@ -643,8 +702,14 @@ def run_batch(
         if prior and prior["attempts"] >= MAX_FAILURE_ATTEMPTS:
             summary["skipped_failed_permanent"] += 1
             continue
-        summary["processed"] += 1
+        probe_lane = needs_probe(item)
         route = triage(item)
+        if probe_lane and route == "implement":
+            # A capped card may only be probed, never implemented. Not a triage miss: its
+            # relevance can still change, so it stays out of the content-keyed ledger.
+            summary["skipped_needs_probe"].append(item_id)
+            continue
+        summary["processed"] += 1
         if route is None:
             summary["skipped_no_match"].append(item_id)
             if item_id:  # empty ids would all collide on one ledger key
@@ -655,11 +720,14 @@ def run_batch(
             summary["actioned"].append({"id": item_id, "route": route, "dry_run": True})
             continue
         try:
+            probe_ref = ""
             if item_id in actioned_ids:
                 # Crash-replay: artifact already exists — just re-PATCH (no-op action).
                 summary["deduped"].append(item_id)
+                if probe_lane:
+                    probe_ref = load_vault_note(item_id, proposals_path)
             else:
-                action_item(
+                artifact = action_item(
                     item,
                     route,
                     executor,
@@ -668,7 +736,11 @@ def run_batch(
                     vault_dir=vault_dir,
                 )
                 actioned_ids.add(item_id)
-            api.mark_actioned(item_id, route=route)
+                probe_ref = str(artifact.get("vault_note", "")) if probe_lane else ""
+            if probe_ref:
+                api.mark_actioned_with_probe(item_id, route=route, probe_ref=probe_ref)
+            else:
+                api.mark_actioned(item_id, route=route)
             summary["actioned"].append({"id": item_id, "route": route})
             if failures.pop(item_id, None) is not None:
                 failures_changed = True
