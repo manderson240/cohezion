@@ -61,7 +61,7 @@ async def run_autonomous_evolution_cycle(cycle_idx: int) -> bool:
     
     logger.info(
         f"Cycle {cycle_idx} Complete in {duration_ms:.2f}ms | Converged: {res.converged} | "
-        f"Reward: {res.final_reward:.4f} | Notes Created: {len(res.vault_notes_created)}"
+        f"Reward: {(f'{res.final_reward:.4f}' if res.final_reward is not None else 'UNKNOWN')} | Notes Created: {len(res.vault_notes_created)}"
     )
     
     latest_strat = res.history[-1].strategy if res.history else "cellular_sheaf_diffusion"
@@ -74,7 +74,7 @@ async def run_autonomous_evolution_cycle(cycle_idx: int) -> bool:
         "priority": "normal",
         "source": "autonomous_supervisor",
         "category": "recursive_evolution",
-        "description": f"Converged: {res.converged}, Final Reward: {res.final_reward:.4f}, Iterations: {res.iterations_run}",
+        "description": f"Converged: {res.converged}, Final Reward: {(f'{res.final_reward:.4f}' if res.final_reward is not None else 'UNKNOWN')}, Iterations: {res.iterations_run}",
     })
     
     await bus.publish(

@@ -191,7 +191,7 @@ class TriSiliconAutopoiesisEngine:
 
         prompt = (
             f"Synthesize an optimized Python heuristic transform based on winning ARC invariant. "
-            f"Cycle: {cycle}, Reward: {cpu_results.get('final_reward', 0.0):.4f}."
+            f"Cycle: {cycle}, Reward: {cpu_results.get('final_reward') if cpu_results.get('final_reward') is not None else 'UNKNOWN'}."
         )
         payload = {
             "model": self.igpu_model,
@@ -287,6 +287,8 @@ class TriSiliconAutopoiesisEngine:
         )
 
         try:
+            if cpu_results.get("final_reward") is None:
+                raise ValueError("final_reward UNKNOWN; not recording a fabricated quality")
             from cohezion.learning.vault_neuron_reader import VaultNeuronWriter
 
             VaultNeuronWriter.get_instance().write_outcome(
@@ -318,7 +320,7 @@ class TriSiliconAutopoiesisEngine:
             details={
                 "igpu_content": igpu_content,
                 "igpu_latency_ms": igpu_latency_ms,
-                "final_reward": cpu_results.get("final_reward", 0.0),
+                "final_reward": cpu_results.get("final_reward"),
             },
         )
 

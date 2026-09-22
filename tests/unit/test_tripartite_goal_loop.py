@@ -60,7 +60,7 @@ def test_experiential_learning_with_dual_persistence(
         "cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban"
     )
 
-    loop = TripartiteGoalLoop()
+    loop = TripartiteGoalLoop(memory_probe=lambda: 24.0, outcome_probe=lambda: 1.0)
     goal = GoalSpecification(
         goal_id="test_exp_goal_001",
         title="Verify Experiential Learning Pipeline",
@@ -100,7 +100,7 @@ def test_full_tripartite_goal_loop_execution(tmp_path: Path, monkeypatch: pytest
         "cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban"
     )
 
-    loop = TripartiteGoalLoop(max_depth=3)
+    loop = TripartiteGoalLoop(max_depth=3, memory_probe=lambda: 24.0, outcome_probe=lambda: 1.0)
     goal = GoalSpecification(
         goal_id="test_tripartite_full_002",
         title="End-to-End Tripartite Loop Convergence",

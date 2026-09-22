@@ -41,6 +41,42 @@ VAULT_DIR = Path.home() / "vaults" / "cohezion-vault"
 VAULT_LEARNINGS = VAULT_DIR / "01-Learnings"
 VAULT_RETROS = VAULT_DIR / "retros"
 VAULT_KANBAN = VAULT_DIR / "kanban"
+COMPOUND_TASKS = Path.home() / ".cohezion" / "compound_tasks.json"
+
+Probe = Callable[[], float | None]
+
+
+def read_available_gb(meminfo: Path = Path("/proc/meminfo")) -> float | None:
+    """MEASURED MemAvailable in GiB, or None when it cannot be read (UNKNOWN, never a guess)."""
+    try:
+        for line in meminfo.read_text().splitlines():
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) / (1024 * 1024)
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
+
+
+def read_loop_yield(window_days: float = 7.0, tasks_path: Path | None = None) -> float | None:
+    """MEASURED outcome: success fraction of compound tasks completed in the window.
+
+    None (UNKNOWN) when the file is unreadable/malformed OR the window holds no completed
+    tasks -- zero observations is not a zero yield. Only tasks-present-none-succeeded is 0.0.
+    """
+    path = tasks_path or COMPOUND_TASKS
+    try:
+        tasks = json.loads(path.read_text())
+        cutoff = datetime.now(UTC).timestamp() - window_days * 86400
+        recent = []
+        for t in tasks:
+            ts = t.get("completed_at")
+            if t.get("done") and ts:
+                when = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+                if (when if when.tzinfo else when.replace(tzinfo=UTC)).timestamp() >= cutoff:
+                    recent.append(bool(t.get("success")))
+    except (OSError, ValueError, TypeError, AttributeError):
+        return None
+    return sum(recent) / len(recent) if recent else None
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,7 +105,7 @@ class BleedingEdgeResearchResult:
 class ExperientialLearningResult:
     """Outcome of Phase 3: Experiential Learning."""
 
-    reward: float
+    reward: float | None  # None = an input signal was UNKNOWN; never defaulted to 1.0
     autoharness_allowed: bool
     zkfv_verified: bool
     zkfv_proof_id: str
@@ -98,7 +134,7 @@ class TripartiteGoalLoopResult:
     goal: GoalSpecification
     converged: bool
     iterations_run: int
-    final_reward: float
+    final_reward: float | None
     total_time_ms: float
     history: list[TripartiteIterationResult]
     vault_notes_created: list[str]
@@ -116,6 +152,8 @@ class TripartiteGoalLoop:
         memory: TraceMemory | None = None,
         local_model_url: str = "http://localhost:13305/v1/chat/completions",
         local_model_name: str = "Bonsai-8B-gguf",
+        memory_probe: Probe | None = None,
+        outcome_probe: Probe | None = None,
     ) -> None:
         self.strategies = list(
             strategies
@@ -146,6 +184,8 @@ class TripartiteGoalLoop:
         self.autoharness = AutoHarnessPolicy()
         self.manifold = PoincareManifoldND()
         self.surreal_persistence = DurableSurrealGoalPersistence()
+        self.memory_probe: Probe = memory_probe or read_available_gb
+        self.outcome_probe: Probe = outcome_probe or read_loop_yield
 
     # -------------------------------------------------------------------------
     # Phase 1: Internal Codebase Sweep
@@ -289,22 +329,30 @@ class TripartiteGoalLoop:
         research: BleedingEdgeResearchResult,
     ) -> tuple[ExperientialLearningResult, str, str]:
         """AutoHarness evaluation, ZK-FV proof, reward calculation, and dual persistence."""
-        # 1. AutoHarness Policy Execution (0 ms)
-        ast_eval = self.autoharness.evaluate_policy("memory_safe", {"available_gb": 24.0})
+        # 1. AutoHarness Policy Execution on MEASURED free memory (was a hardcoded 24.0)
+        available_gb = self.memory_probe()
+        outcome = self.outcome_probe()
+        ast_eval = self.autoharness.evaluate_policy(
+            "memory_safe", {"available_gb": available_gb if available_gb is not None else -1.0}
+        )
 
         # 2. ZK-FV Proof Generation
         gates = ZKFVCompiler.compile_ast_to_gates("grid_bounds")
         proof: ZKProof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
         zk_valid = ZKFVCompiler.verify_proof(proof)
 
-        # 3. Reward formulation
-        reward = 0.95 if step_success else 0.40
-        if ast_eval.allowed and zk_valid and sweep.passed:
-            reward = min(1.0, reward + 0.05)
+        # 3. Reward formulation, scaled by the MEASURED outcome yield. An unreadable
+        # input makes the reward UNKNOWN (None) rather than a vacuous maximum.
+        reward: float | None = None
+        if available_gb is not None and outcome is not None:
+            reward = (0.95 if step_success else 0.40) * outcome
+            if ast_eval.allowed and zk_valid and sweep.passed:
+                reward = min(1.0, reward + 0.05)
+        reward_txt = f"{reward:.4f}" if reward is not None else "UNKNOWN"
 
         lesson = (
             f"Iteration {iteration}: Strategy '{strategy}' resolved with"
-            f" reward {reward:.2f} under paradigm"
+            f" reward {reward_txt} under paradigm"
             f" '{research.frontier_paradigms[0]}' with AST bytecode"
             " verification."
         )
@@ -325,7 +373,9 @@ id: learning_{goal.goal_id}_it{iteration}
 goal_id: {goal.goal_id}
 iteration: {iteration}
 strategy: {strategy}
-reward: {reward:.4f}
+reward: {reward_txt}
+measured_available_gb: {available_gb}
+measured_outcome_yield: {outcome}
 zkfv_proof_id: {proof.proof_id}
 model_provider: {research.model_provider}
 timestamp: {datetime.now(UTC).isoformat()}
@@ -368,7 +418,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
                 goal_id: "{goal.goal_id}",
                 iteration: {iteration},
                 strategy: "{strategy}",
-                reward: {reward},
+                reward: {reward if reward is not None else "NONE"},
                 autoharness_verified: {str(ast_eval.allowed).lower()},
                 zkfv_valid: {str(zk_valid).lower()},
                 proof_id: "{proof.proof_id}",
@@ -437,8 +487,9 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
             if step_fn is not None:
                 step_ok, note, next_fc = step_fn(goal, strat)
             else:
-                step_ok = True
-                note = f"Deterministically executed {strat}"
+                # No step function = nothing was executed; success cannot be claimed.
+                step_ok = False
+                note = f"No step function: '{strat}' not executed"
                 next_fc = None
 
             # 3. Experiential Learning
@@ -451,8 +502,9 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
                 surreal_recs.append(s_rec)
 
             dt_it = (time.perf_counter() - t_it) * 1000
+            r_txt = f"{learn_res.reward:.2f}" if learn_res.reward is not None else "UNKNOWN"
             observe(
-                f"Iteration {it} via '{strat}': {note} (reward={learn_res.reward:.2f})",
+                f"Iteration {it} via '{strat}': {note} (reward={r_txt})",
                 satisfied=step_ok,
             )
 
@@ -485,7 +537,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
         except Exception:
             pass
 
-        final_reward = history[-1].learning.reward if history else 0.0
+        final_reward = history[-1].learning.reward if history else None
 
         return TripartiteGoalLoopResult(
             goal=goal,
