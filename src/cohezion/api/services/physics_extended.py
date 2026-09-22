@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
 
@@ -137,7 +137,7 @@ class EmergenceDetectResponse(BaseModel):
 
 @physics_ext_router.get("/bioelectric", response_model=BioelectricResponse)
 def get_bioelectric_state(
-    n_cells: int = 16,
+    n_cells: int = Query(16, ge=2, le=128),
     conductance: float = 0.3,
 ) -> BioelectricResponse:
     """Return BioelectricNetwork state — Levin-inspired collective intelligence.
@@ -223,9 +223,9 @@ def get_cosmogony_full_chain() -> CosmogonyChainResponse:
 @physics_ext_router.get("/hamiltonian/simulate", response_model=HamiltonianSimulateResponse)
 def get_hamiltonian_simulate(
     potential: str = "double_well",
-    epochs: int = 50,
-    n_agents: int = 4,
-    z_dim: int = 8,
+    epochs: int = Query(50, ge=1, le=500),
+    n_agents: int = Query(4, ge=1, le=32),
+    z_dim: int = Query(8, ge=1, le=64),
     dt: float = 0.01,
     temperature: float = 0.01,
     seed: int = 42,
@@ -439,9 +439,9 @@ def get_lcsp_predict(
 
 @physics_ext_router.get("/emergence/detect", response_model=EmergenceDetectResponse)
 def get_emergence_detect(
-    n_agents: int = 8,
-    n_cycles: int = 100,
-    z_dim: int = 12,
+    n_agents: int = Query(8, ge=2, le=64),
+    n_cycles: int = Query(100, ge=20, le=1000),
+    z_dim: int = Query(12, ge=2, le=64),
     seed: int = 42,
 ) -> EmergenceDetectResponse:
     """Detect emergent phenomena in synthetic trajectory data.
@@ -585,7 +585,7 @@ class TensorMetricResponse(BaseModel):
 @physics_ext_router.get("/bec/status", response_model=BECStatusResponse)
 def get_bec_status(
     condensate_fraction: float = 0.5,
-    atom_count: int = 100_000,
+    atom_count: int = Query(100_000, le=1_000_000_000),
 ) -> BECStatusResponse:
     """Bose-Einstein condensate HIHO state — quantum coherence ground state."""
     from cohezion.physics.bec_bridge import BECState
@@ -682,7 +682,7 @@ def get_bismuth_status(
 @physics_ext_router.get("/toroidal/status", response_model=ToroidalResponse)
 def get_toroidal_status(
     coherence: float = 0.5,
-    ring_count: int = 7,
+    ring_count: int = Query(7, le=1000),
 ) -> ToroidalResponse:
     """Fractal toroidal moment — time-reversal-breaking EVO topology."""
     from cohezion.physics.toroidal_moment import FractalToroidalMoment
