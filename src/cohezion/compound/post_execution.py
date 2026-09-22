@@ -425,12 +425,14 @@ class PostExecutionOrchestrator:
         if not self._ex._skill_health_tracker:
             return
         try:
+            from cohezion.compound.skill_health_tracker import health_quality_from_metrics
+
             tokens = token_metrics.get("tokens_used", 0) if token_metrics else 0
             self._ex._skill_health_tracker.record_usage(
                 skill_name=skill_name,
                 success=success,
                 tokens_used=tokens,
-                quality_score=metrics.get("coherence", 0.0),
+                quality_score=health_quality_from_metrics(metrics),
             )
         except Exception as e:
             logger.warning("Skill health tracking failed: %s", e)
