@@ -41,6 +41,7 @@ import logging
 import os
 import re
 import tempfile
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -181,15 +182,82 @@ _INFRA_FAILURE = re.compile(
 
 
 def is_infra_failure(err_msg: str) -> bool:
-    """True when *err_msg* describes the inference/API apparatus, not the item."""
+    """True when *err_msg* describes the inference/API apparatus, not the item.
+
+    Only ever apply this to an ERROR string (an exception message or ``metrics["error"]``),
+    never to model output: a proposal that merely talks about timeouts would match.
+    """
     return bool(_INFRA_FAILURE.search(err_msg))
 
 
-class GuardrailBlockedError(RuntimeError):
+# Exception class names (``metrics["error_type"]``, set by CompoundExecutor when
+# execute_fn raises) that mean the apparatus failed, not the item.
+_INFRA_ERROR_TYPES = frozenset(
+    {
+        "URLError",
+        "TimeoutError",
+        "timeout",
+        "ConnectionError",
+        "ConnectionRefusedError",
+        "ConnectionResetError",
+        "ConnectionAbortedError",
+        "BrokenPipeError",
+        "RemoteDisconnected",
+        "IncompleteRead",
+        "ReadTimeout",
+        "ConnectTimeout",
+        "ReadTimeoutError",
+    }
+)
+
+
+def infra_signal(result: Any) -> bool:
+    """Did a failed execution fail because the apparatus was down? Structured fields only.
+
+    C5 (2026-09-22): classification used ``_failure_reason``, which falls back to
+    ``result.output`` -- model prose. A proposal about "raising the request timeout" was
+    then classed as an outage, never counted, and retried forever. The verdict now comes
+    from ``metrics["error_type"]`` and ``metrics["error"]`` alone; with no structured error
+    the failure is NOT infra (counted), which keeps retries bounded.
+    """
+    metrics = getattr(result, "metrics", None)
+    if not isinstance(metrics, dict):
+        return False
+    if str(metrics.get("error_type") or "") in _INFRA_ERROR_TYPES:
+        return True
+    return is_infra_failure(str(metrics.get("error") or ""))
+
+
+def exception_is_infra(exc: BaseException) -> bool:
+    """Infra verdict for any exception raised while actioning an item.
+
+    A cycle failure carries the verdict computed from structured metrics. An HTTP error is
+    infra only for a 5xx; a 4xx is the API rejecting THIS item and must count, whatever its
+    text says. Other exceptions are infra by type, then by their own message (an exception
+    message, never model output).
+    """
+    if isinstance(exc, CycleFailedError):
+        return exc.infra
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code >= 500
+    if isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError)):
+        return True
+    return is_infra_failure(str(exc))
+
+
+class CycleFailedError(RuntimeError):
+    """The compound cycle reported failure; ``infra`` is decided from structured fields."""
+
+    def __init__(self, message: str, *, infra: bool = False) -> None:
+        super().__init__(message)
+        self.infra = infra
+
+
+class GuardrailBlockedError(CycleFailedError):
     """The compound cycle's input guardrail BLOCKED the item; carries which guard did it."""
 
     def __init__(self, message: str, guard_name: str = "", reason: str = "") -> None:
-        super().__init__(message)
+        super().__init__(message, infra=False)
         self.guard_name = guard_name
         self.reason = reason
 
@@ -480,7 +548,10 @@ def action_item(
                 guard_name=str(metrics.get("blocked_by_guard") or ""),
                 reason=str(metrics.get("blocked_guard_reason") or ""),
             )
-        raise RuntimeError(f"compound cycle failed for {item['id']}: {_failure_reason(result)}")
+        raise CycleFailedError(
+            f"compound cycle failed for {item['id']}: {_failure_reason(result)}",
+            infra=infra_signal(result),
+        )
 
     parsed = _parse_proposal(captured.get("raw", ""))
     entry = {
@@ -524,7 +595,7 @@ def run_batch(
     Non-guardrail failures are counted per item content (same ledger file); after
     ``MAX_FAILURE_ATTEMPTS`` the item is listed in ``failed_permanent`` and later runs
     skip it (``skipped_failed_permanent``) until its content changes. Infrastructure
-    failures (``is_infra_failure``) never count -- an outage must not DLQ good cards.
+    failures (``exception_is_infra``) never count -- an outage must not DLQ good cards.
     Guardrail blocks split by guard (``guardrail_block_kind``): content guards reject
     the card; resource/rate-limit blocks are listed in ``deferred_transient_guard`` and
     neither reject nor count.
@@ -623,7 +694,7 @@ def run_batch(
                 summary["failed"][item_id] = err_msg
                 continue
             summary["failed"][item_id] = err_msg
-            if item_id and not is_infra_failure(err_msg):
+            if item_id and not exception_is_infra(exc):
                 count = (prior["attempts"] if prior else 0) + 1
                 failures[item_id] = {
                     "fp": fingerprint,
