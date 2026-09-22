@@ -65,7 +65,11 @@ def test_experiential_learning_with_dual_persistence(
         "cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban"
     )
 
-    loop = TripartiteGoalLoop()
+    loop = TripartiteGoalLoop(
+        memory_probe=lambda: 24.0,
+        outcome_probe=lambda: 1.0,
+        accounting_probe=lambda: (3.0, 1.0, 4.0),  # measured counts that DO balance
+    )
     goal = GoalSpecification(
         goal_id="test_exp_goal_001",
         title="Verify Experiential Learning Pipeline",
@@ -90,7 +94,7 @@ def test_experiential_learning_with_dual_persistence(
     assert Path(v_path).exists()
     content = Path(v_path).read_text()
     assert "AutoHarness" in content
-    assert "ZK-FV Formal Proof Valid" in content
+    assert "Outcome-accounting constraint" in content
     assert str(goal.goal_id) in content
 
 
@@ -105,7 +109,12 @@ def test_full_tripartite_goal_loop_execution(tmp_path: Path, monkeypatch: pytest
         "cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban"
     )
 
-    loop = TripartiteGoalLoop(max_depth=3)
+    loop = TripartiteGoalLoop(
+        max_depth=3,
+        memory_probe=lambda: 24.0,
+        outcome_probe=lambda: 1.0,
+        accounting_probe=lambda: (3.0, 1.0, 4.0),
+    )
     goal = GoalSpecification(
         goal_id="test_tripartite_full_002",
         title="End-to-End Tripartite Loop Convergence",

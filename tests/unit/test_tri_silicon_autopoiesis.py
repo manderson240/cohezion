@@ -58,6 +58,8 @@ def test_tri_silicon_execute_cycle_end_to_end(engine: TriSiliconAutopoiesisEngin
     assert isinstance(result, TriSiliconCycleResult)
     assert result.cycle == 2
     assert isinstance(result.npu_guidance, str)
-    assert result.delta_entropy <= 0.0  # Negentropy invariant
-    assert result.autoharness_verified is True
+    # First cycle: no measured previous state, so Delta S is UNKNOWN -- never a
+    # constructed negentropy pass (the old test asserted the constructed value).
+    assert result.delta_entropy is None
+    assert result.autoharness_verified is None
     assert result.total_latency_ms > 0.0
