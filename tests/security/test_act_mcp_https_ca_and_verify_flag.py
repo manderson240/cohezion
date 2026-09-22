@@ -42,7 +42,9 @@ def test_no_ca_uses_system_bundle() -> None:
 
 
 def test_http_client_needs_no_context() -> None:
-    assert MCPHTTPSClient(use_https=False, ca_cert_path="/nonexistent.pem").get_ssl_context() is None
+    assert (
+        MCPHTTPSClient(use_https=False, ca_cert_path="/nonexistent.pem").get_ssl_context() is None
+    )
 
 
 @pytest.mark.parametrize("bad", ["false", "False", "0", "no", "true", 0, 1, None])

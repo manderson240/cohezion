@@ -197,6 +197,7 @@ def circuit_protected(
 
     return decorator
 
+
 # Re-exports come LAST (moved 2026-09-22): several submodules re-enter cohezion.reliability
 # through long cycles (semantic_cache -> core -> journey_worker -> reliability). Placing these
 # guarded imports before get_circuit/circuit_protected were defined made every such re-entry

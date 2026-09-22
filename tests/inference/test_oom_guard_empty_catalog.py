@@ -53,7 +53,9 @@ def test_sentinels_are_distinct_strings() -> None:
 def test_pre_load_gate_survives_unreachable_router(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(urllib.request, "urlopen", _unreachable)
     monkeypatch.setattr(oom_guard, "check_ram", lambda *_a, **_k: (True, 100.0))
-    allowed, reason = oom_guard.pre_load_gate("Qwen3.6-35B-A3B-GGUF", 0, base_url="http://127.0.0.1:9")
+    allowed, reason = oom_guard.pre_load_gate(
+        "Qwen3.6-35B-A3B-GGUF", 0, base_url="http://127.0.0.1:9"
+    )
     assert allowed is False and "N3" in reason  # name heuristic still blocks ctx=0 on a 35B
     ok, _ = oom_guard.pre_load_gate("Qwen3-0.6B-GGUF", 4096, base_url="http://127.0.0.1:9")
     assert ok is True

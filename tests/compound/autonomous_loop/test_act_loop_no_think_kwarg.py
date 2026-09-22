@@ -15,7 +15,9 @@ import pytest
 from cohezion.compound.autonomous_loop import act_loop
 
 
-def test_qwen3_request_disables_thinking_via_template_kwarg(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_qwen3_request_disables_thinking_via_template_kwarg(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     sent: list[dict] = []
 
     def fake_urlopen(req, timeout=None):  # noqa: ARG001
