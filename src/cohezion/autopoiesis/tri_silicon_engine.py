@@ -23,13 +23,26 @@ from cohezion.arc.strix_dsl_search import StrixHaloDSLEngine
 from cohezion.flume.loop_goal_refactor_engine import GoalSpecification
 from cohezion.physics.my_big_toe_entropy_engine import MyBigTOEEntropyEngine
 from cohezion.recursive_trace.tripartite_goal_loop import TripartiteGoalLoop
-from cohezion.reliability.oom_guard import OOMGuard
+from cohezion.reliability.oom_guard import MemoryState, OOMGuard
 
 
 logger = logging.getLogger("tri_silicon_autopoiesis")
 
 LEMONADE_URL = "http://127.0.0.1:13305/v1/chat/completions"
 VAULT_LEARNINGS_DIR = Path.home() / "vaults" / "cohezion-vault" / "01-Learnings"
+
+
+def observed_state(rewards: list[float | None], mem: MemoryState) -> list[list[float]] | None:
+    """Per-iteration [measured reward, measured free-RAM fraction]; None if any is unknown.
+
+    This is the only state the entropy check sees. It is MEASURED, so the entropy can
+    rise as well as fall between cycles (the previous version built the "after" points
+    as a tight cluster around a centroid, so Delta S <= 0 held by construction).
+    """
+    if not mem.total_gb or not rewards or any(r is None for r in rewards):
+        return None
+    frac = max(0.0, min(1.0, mem.available_gb / mem.total_gb))
+    return [[float(r), frac] for r in rewards]  # type: ignore[arg-type]
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,8 +58,8 @@ class TriSiliconCycleResult:
     cpu_sheaf_converged: bool
     cpu_latency_ms: float
     igpu_synthesis_triggered: bool
-    delta_entropy: float
-    autoharness_verified: bool
+    delta_entropy: float | None  # None = no measured previous state (e.g. first cycle)
+    autoharness_verified: bool | None  # None = negentropy check not performed
     total_latency_ms: float
     details: dict[str, Any] = field(default_factory=dict)
 
@@ -76,6 +89,7 @@ class TriSiliconAutopoiesisEngine:
             beam_width=20,
             n_threads=self.cpu_threads,
         )
+        self._prev_state: list[list[float]] | None = None  # measured state, previous cycle
 
     def execute_npu_phase(self, cycle: int) -> tuple[str, float]:
         """Phase 1: NPU-accelerated reflection and goal direction via FastFlowLM."""
@@ -175,6 +189,8 @@ class TriSiliconAutopoiesisEngine:
             "programs_found": programs_found,
             "converged": loop_res.converged,
             "final_reward": loop_res.final_reward,
+            "rewards": [it.learning.reward for it in loop_res.history],
+            "steps_executed": loop_res.steps_executed,
             "kagg_win_rate": kagg_win_rate,
             "latency_ms": latency_ms,
         }
@@ -215,32 +231,6 @@ class TriSiliconAutopoiesisEngine:
             logger.debug(f"[iGPU Phase] Skipped: {exc}")
             return False, f"Fallback synthesis: {exc}", latency_ms
 
-    def _extract_grounded_state_embedding(
-        self, guidance: str, cpu_results: dict[str, Any], is_post: bool = False
-    ) -> list[list[float]]:
-        """Synthesize 12D state points from grounded multi-silicon execution telemetry."""
-        g_hash = abs(hash(guidance))
-        base = [((g_hash >> (i * 3)) & 0x07) / 20.0 for i in range(12)]
-
-        if not is_post:
-            # 4 distributed silicon channels exploring different sectors of 12D FLUME manifold
-            return [
-                [base[d] * (1.0 if d % 2 == 0 else -1.0) for d in range(12)],  # NPU
-                [base[d] * (-1.0 if d % 3 == 0 else 1.0) for d in range(12)],  # CPU
-                [base[d] * (1.0 if d < 6 else -1.0) for d in range(12)],  # iGPU
-                [base[d] * (-1.0 if d < 6 else 1.0) for d in range(12)],  # Sheaf
-            ]
-        else:
-            # Post-cycle consensus: channels coalesce around centroid with high order
-            centroid = [sum(base[d] for d in range(12)) / 12.0 for d in range(12)]
-            # Higher reward/convergence tightens consensus radius
-            spread = (
-                0.001
-                if (cpu_results.get("converged", False) or cpu_results.get("programs_found", 0) > 0)
-                else 0.005
-            )
-            return [[centroid[d] + (spread * i) for d in range(12)] for i in range(4)]
-
     def execute_cycle(self, cycle: int) -> TriSiliconCycleResult:
         """Execute a complete sovereign Tri-Silicon autopoietic cycle."""
         t_start = time.perf_counter()
@@ -263,17 +253,23 @@ class TriSiliconAutopoiesisEngine:
         igpu_triggered, igpu_content, igpu_latency_ms = self.execute_igpu_phase(cycle, cpu_results)
 
         # 4. Strict Negentropy Invariant Verification (Delta S <= 0, no dissipative loophole)
-        pre_points = self._extract_grounded_state_embedding(
-            npu_guidance, cpu_results, is_post=False
-        )
-        post_points = self._extract_grounded_state_embedding(
-            npu_guidance, cpu_results, is_post=True
-        )
-        entropy_res = self.entropy_engine.evaluate_transition(
-            pre_points=pre_points,
-            post_points=post_points,
-            allow_dissipative_export=False,
-        )
+        #    on MEASURED state: this cycle vs the previous one. No previous state -> UNKNOWN.
+        post_state = observed_state(cpu_results.get("rewards", []), OOMGuard.get_memory_state())
+        delta_entropy: float | None = None
+        negentropy_ok: bool | None = None
+        entropy_reduced: bool | None = None
+        if self._prev_state is not None and post_state is not None:
+            entropy_res = self.entropy_engine.evaluate_transition(
+                pre_points=self._prev_state,
+                post_points=post_state,
+                pre_coherences=[pt[0] for pt in self._prev_state],
+                post_coherences=[pt[0] for pt in post_state],
+                allow_dissipative_export=False,
+            )
+            delta_entropy = entropy_res.delta_entropy
+            negentropy_ok = entropy_res.autoharness_verified
+            entropy_reduced = entropy_res.is_entropy_reduced
+        self._prev_state = post_state
 
         total_latency_ms = (time.perf_counter() - t_start) * 1000.0
 
@@ -281,7 +277,8 @@ class TriSiliconAutopoiesisEngine:
         self._persist_to_vault(
             cycle=cycle,
             guidance=npu_guidance,
-            delta_entropy=entropy_res.delta_entropy,
+            delta_entropy=delta_entropy,
+            negentropy_ok=negentropy_ok,
             cpu_results=cpu_results,
             igpu_triggered=igpu_triggered,
         )
@@ -289,12 +286,14 @@ class TriSiliconAutopoiesisEngine:
         try:
             if cpu_results.get("final_reward") is None:
                 raise ValueError("final_reward UNKNOWN; not recording a fabricated quality")
+            if entropy_reduced is None:
+                raise ValueError("Delta S UNKNOWN; not recording a fabricated success")
             from cohezion.learning.vault_neuron_reader import VaultNeuronWriter
 
             VaultNeuronWriter.get_instance().write_outcome(
                 task_id=f"tri_silicon_cycle_{cycle}",
                 category="autopoiesis_tri_silicon",
-                success=entropy_res.is_entropy_reduced,
+                success=entropy_reduced,
                 tokens=128,
                 node="strix_halo_tri_silicon",
                 model=self.npu_model,
@@ -314,13 +313,14 @@ class TriSiliconAutopoiesisEngine:
             cpu_sheaf_converged=cpu_results["converged"],
             cpu_latency_ms=cpu_results["latency_ms"],
             igpu_synthesis_triggered=igpu_triggered,
-            delta_entropy=entropy_res.delta_entropy,
-            autoharness_verified=entropy_res.autoharness_verified,
+            delta_entropy=delta_entropy,
+            autoharness_verified=negentropy_ok,
             total_latency_ms=total_latency_ms,
             details={
                 "igpu_content": igpu_content,
                 "igpu_latency_ms": igpu_latency_ms,
                 "final_reward": cpu_results.get("final_reward"),
+                "steps_executed": cpu_results.get("steps_executed", 0),
             },
         )
 
@@ -328,15 +328,18 @@ class TriSiliconAutopoiesisEngine:
         self,
         cycle: int,
         guidance: str,
-        delta_entropy: float,
+        delta_entropy: float | None,
         cpu_results: dict[str, Any],
         igpu_triggered: bool,
+        negentropy_ok: bool | None = None,
     ) -> None:
         """Write structured retrospective entry into Obsidian Vault."""
         try:
             if not VAULT_LEARNINGS_DIR.exists():
                 VAULT_LEARNINGS_DIR.mkdir(parents=True, exist_ok=True)
             today_str = time.strftime("%Y-%m-%d")
+            ds_txt = f"{delta_entropy:.4f}" if delta_entropy is not None else "UNKNOWN"
+            ok_txt = "not checked" if negentropy_ok is None else f"Negentropy OK={negentropy_ok}"
             retro_file = VAULT_LEARNINGS_DIR / f"autopoiesis_tri_silicon_{today_str}.md"
             entry = (
                 f"\n### Tri-Silicon Cycle {cycle} ({time.strftime('%H:%M:%S')})\n"
@@ -345,7 +348,8 @@ class TriSiliconAutopoiesisEngine:
                 f"Sheaf Converged: {cpu_results.get('converged', False)} | "
                 f"Kaggriculture Win Rate: {cpu_results.get('kagg_win_rate')}\n"
                 f"- **iGPU Synthesis**: {'Triggered' if igpu_triggered else 'Idle'}\n"
-                f"- **Entropy Delta**: ΔS = {delta_entropy:.4f} (Negentropy OK)\n"
+                f"- **Goal-loop steps executed**: {cpu_results.get('steps_executed', 0)}\n"
+                f"- **Entropy Delta**: ΔS = {ds_txt} ({ok_txt})\n"
             )
             with open(retro_file, "a", encoding="utf-8") as f:
                 f.write(entry)

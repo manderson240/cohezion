@@ -59,16 +59,16 @@ async def main():
                 "priority": "normal",
                 "source": "4h_daemon",
                 "category": "recursive_evolution",
-                "description": f"Converged: {res.converged}, Reward: {(f'{res.final_reward:.4f}' if res.final_reward is not None else 'UNKNOWN')}, Iterations: {res.iterations_run}",
+                "description": f"{'Converged: ' + str(res.converged) if res.steps_executed else 'No step executed (nothing attempted)'}, Reward: {(f'{res.final_reward:.4f}' if res.final_reward is not None else 'UNKNOWN')}, Iterations: {res.iterations_run}",
             })
             await bus.publish(
                 Event.agent_complete(
                     agent_name="4h_daemon",
                     duration_ms=ms,
-                    result={"cycle": cycle, "converged": res.converged, "reward": res.final_reward},
+                    result={"cycle": cycle, "converged": res.converged, "steps_executed": res.steps_executed, "reward": res.final_reward},
                 )
             )
-            logger.info(f"Cycle {cycle} succeeded: Converged={res.converged}, Reward={(f'{res.final_reward:.4f}' if res.final_reward is not None else 'UNKNOWN')}, Latency={ms:.2f}ms")
+            logger.info(f"Cycle {cycle} completed: {'Converged=' + str(res.converged) if res.steps_executed else 'NO STEP EXECUTED'}, Reward={(f'{res.final_reward:.4f}' if res.final_reward is not None else 'UNKNOWN')}, Latency={ms:.2f}ms")
         except Exception as e:
             logger.error(f"Cycle {cycle} encountered error: {e}", exc_info=True)
             

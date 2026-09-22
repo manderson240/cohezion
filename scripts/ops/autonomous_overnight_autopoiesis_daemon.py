@@ -151,7 +151,8 @@ async def main():
             )
 
             logger.info(
-                f"Cycle {cycle} Executed: Converged={loop_res.converged}, "
+                f"Cycle {cycle}: "
+                f"{'Converged=' + str(loop_res.converged) if loop_res.steps_executed else 'NO STEP EXECUTED'}, "
                 f"Reward={rw_txt}, "
                 f"Delta S={ds_txt} (Negentropy OK={negentropy_ok}), "
                 f"Duration={cycle_ms:.1f}ms"
@@ -170,7 +171,7 @@ async def main():
                 "source": "overnight_autopoiesis",
                 "category": "autopoietic_evolution",
                 "description": (
-                    f"Converged: {loop_res.converged} | "
+                    f"{'Converged: ' + str(loop_res.converged) if loop_res.steps_executed else 'No step executed (nothing attempted)'} | "
                     f"Final Reward: {rw_txt} | "
                     f"Entropy Delta: {ds_txt} | "
                     f"NPU Guidance: {tri_res.npu_guidance[:60]} | "
@@ -189,6 +190,7 @@ async def main():
                     result={
                         "cycle": cycle,
                         "converged": loop_res.converged,
+                        "steps_executed": loop_res.steps_executed,
                         "reward": loop_res.final_reward,
                         "delta_entropy": delta_s,
                         "tri_silicon": {

@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import json
 import logging
+import subprocess
+import sys
 import time
 import urllib.request
 from collections.abc import Callable, Sequence
@@ -42,8 +44,34 @@ VAULT_LEARNINGS = VAULT_DIR / "01-Learnings"
 VAULT_RETROS = VAULT_DIR / "retros"
 VAULT_KANBAN = VAULT_DIR / "kanban"
 COMPOUND_TASKS = Path.home() / ".cohezion" / "compound_tasks.json"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+# Falsifiable repository checks: each is a script whose EXIT CODE is the verdict.
+SWEEP_CHECKS: tuple[tuple[str, str], ...] = (
+    ("producer_consumer_audit", "scripts/ci/producer_consumer_audit.py"),
+    ("dormancy_scan", "scripts/ci/dormancy_scan.py"),
+)
 
 Probe = Callable[[], float | None]
+AccountingProbe = Callable[[], tuple[float, float, float] | None]
+# (name, script path) -> exit code, or None when the check could not be run (UNKNOWN)
+SweepRunner = Callable[[str, Path], int | None]
+
+
+def run_sweep_check(name: str, script: Path, timeout_s: float = 60.0) -> int | None:
+    """Run one repository check script; its exit code is the verdict. None = not run."""
+    if not script.is_file():
+        return None
+    try:
+        proc = subprocess.run(  # fixed in-repo script, no shell
+            [sys.executable, str(script)],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            timeout=timeout_s,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return proc.returncode
 
 
 def read_available_gb(meminfo: Path = Path("/proc/meminfo")) -> float | None:
@@ -79,14 +107,35 @@ def read_loop_yield(window_days: float = 7.0, tasks_path: Path | None = None) ->
     return sum(recent) / len(recent) if recent else None
 
 
+def read_outcome_accounting(tasks_path: Path | None = None) -> tuple[float, float, float] | None:
+    """MEASURED (succeeded, failed, completed) counts over all completed compound tasks.
+
+    The three legs are counted independently: a completed task whose outcome is not a
+    boolean ``success`` is in ``completed`` but in neither of the others, so the
+    conservation constraint succeeded + failed == completed CAN fail on real data.
+    None (UNKNOWN) when the file is unreadable or holds no completed tasks.
+    """
+    path = tasks_path or COMPOUND_TASKS
+    try:
+        tasks = json.loads(path.read_text())
+        done = [t for t in tasks if t.get("done")]
+    except (OSError, ValueError, TypeError, AttributeError):
+        return None
+    if not done:
+        return None
+    succeeded = sum(1 for t in done if t.get("success") is True)
+    failed = sum(1 for t in done if t.get("success") is False)
+    return float(succeeded), float(failed), float(len(done))
+
+
 @dataclass(frozen=True, slots=True)
 class CodebaseSweepResult:
     """Report from Phase 1: Internal Codebase Sweep."""
 
-    passed: bool
-    integrity_score: float
-    checks_evaluated: int
-    dormant_count: int
+    passed: bool  # True only when >=1 check RAN and every check that ran exited 0
+    integrity_score: float | None  # fraction of run checks that passed; None = none ran
+    checks_evaluated: int  # checks actually run (not merely listed)
+    dormant_count: int | None  # 0 only when dormancy_scan ran clean; None = unknown
     findings: list[str] = field(default_factory=list)
 
 
@@ -107,7 +156,9 @@ class ExperientialLearningResult:
 
     reward: float | None  # None = an input signal was UNKNOWN; never defaulted to 1.0
     autoharness_allowed: bool
-    zkfv_verified: bool
+    # Outcome-accounting constraint (succeeded + failed == completed) over MEASURED task
+    # counts. None = not performed (counts unreadable) -- never a constant pass.
+    zkfv_verified: bool | None
     zkfv_proof_id: str
     lesson_learned: str
     surreal_persisted: bool
@@ -136,6 +187,9 @@ class TripartiteGoalLoopResult:
     iterations_run: int
     final_reward: float | None
     total_time_ms: float
+    # Iterations in which a step function actually executed. 0 means NO work was
+    # attempted: converged=False then means "nothing ran", not "the work failed".
+    steps_executed: int
     history: list[TripartiteIterationResult]
     vault_notes_created: list[str]
     surreal_records_created: list[str]
@@ -154,6 +208,8 @@ class TripartiteGoalLoop:
         local_model_name: str = "Bonsai-8B-gguf",
         memory_probe: Probe | None = None,
         outcome_probe: Probe | None = None,
+        accounting_probe: AccountingProbe | None = None,
+        sweep_runner: SweepRunner | None = None,
     ) -> None:
         self.strategies = list(
             strategies
@@ -186,46 +242,41 @@ class TripartiteGoalLoop:
         self.surreal_persistence = DurableSurrealGoalPersistence()
         self.memory_probe: Probe = memory_probe or read_available_gb
         self.outcome_probe: Probe = outcome_probe or read_loop_yield
+        self.accounting_probe: AccountingProbe = accounting_probe or read_outcome_accounting
+        self.sweep_runner: SweepRunner = sweep_runner or run_sweep_check
 
     # -------------------------------------------------------------------------
     # Phase 1: Internal Codebase Sweep
     # -------------------------------------------------------------------------
     def execute_internal_sweep(self) -> CodebaseSweepResult:
-        """Audits repository integrity, producer-consumer wiring, and dormant seams."""
+        """Runs the repository's own check scripts; each exit code is a verdict.
+
+        A check that cannot be run (missing, timed out) is reported as NOT RUN and does
+        not count toward ``passed`` -- but a sweep where nothing ran never passes.
+        """
         findings: list[str] = []
-        checks_run = 0
+        ran = ok = 0
+        dormant_count: int | None = None
+        for name, rel in SWEEP_CHECKS:
+            rc = self.sweep_runner(name, REPO_ROOT / rel)
+            if rc is None:
+                findings.append(f"{name}: NOT RUN (script missing or timed out)")
+                continue
+            ran += 1
+            if rc == 0:
+                ok += 1
+                findings.append(f"{name}: exit 0")
+                if name == "dormancy_scan":
+                    dormant_count = 0
+            else:
+                findings.append(f"{name}: FAILED (exit {rc})")
 
-        # 1. Producer-Consumer check
-        checks_run += 1
-        audit_path = Path("scripts/ci/producer_consumer_audit.py")
-        if audit_path.exists():
-            findings.append("Producer-consumer audit verified: zero hollow seams.")
-        else:
-            findings.append("Warning: producer_consumer_audit.py missing.")
-
-        # 2. Dormancy check
-        checks_run += 1
-        dormancy_path = Path("scripts/ci/dormancy_scan.py")
-        if dormancy_path.exists():
-            findings.append("Dormancy scan verified: load-bearing capabilities active.")
-
-        # 3. Settings validation
-        checks_run += 1
-        agy_settings = Path.home() / ".gemini" / "antigravity-cli" / "settings.json"
-        if agy_settings.exists():
-            try:
-                data = json.loads(agy_settings.read_text())
-                if data.get("runningLightSpeed") == "fast":
-                    findings.append("AgY LightSpeed verified at 'fast'.")
-            except Exception as exc:
-                findings.append(f"AgY settings unreadable: {exc}")
-
-        integrity_score = 1.0 if len(findings) >= checks_run else 0.85
+        integrity_score = ok / ran if ran else None
         return CodebaseSweepResult(
-            passed=integrity_score >= 0.85,
+            passed=ran > 0 and ok == ran,
             integrity_score=integrity_score,
-            checks_evaluated=checks_run,
-            dormant_count=0,
+            checks_evaluated=ran,
+            dormant_count=dormant_count,
             findings=findings,
         )
 
@@ -336,17 +387,24 @@ class TripartiteGoalLoop:
             "memory_safe", {"available_gb": available_gb if available_gb is not None else -1.0}
         )
 
-        # 2. ZK-FV Proof Generation
-        gates = ZKFVCompiler.compile_ast_to_gates("grid_bounds")
-        proof: ZKProof = ZKFVCompiler.generate_proof(gates, (1.0, 0.0, 1.0))
-        zk_valid = ZKFVCompiler.verify_proof(proof)
+        # 2. Constraint check over MEASURED outcome accounting (was the constant input
+        #    (1.0, 0.0, 1.0), which satisfies a + b - c = 0 by construction). Gate:
+        #    succeeded + failed - completed = 0. Unreadable counts -> NOT PERFORMED.
+        zk_valid: bool | None = None
+        proof_id = "not-performed"
+        counts = self.accounting_probe()
+        if counts is not None:
+            gates = ZKFVCompiler.compile_ast_to_gates("outcome_conservation")
+            proof: ZKProof = ZKFVCompiler.generate_proof(gates, counts)
+            zk_valid = ZKFVCompiler.verify_proof(proof)
+            proof_id = proof.proof_id
 
         # 3. Reward formulation, scaled by the MEASURED outcome yield. An unreadable
         # input makes the reward UNKNOWN (None) rather than a vacuous maximum.
         reward: float | None = None
         if available_gb is not None and outcome is not None:
             reward = (0.95 if step_success else 0.40) * outcome
-            if ast_eval.allowed and zk_valid and sweep.passed:
+            if ast_eval.allowed and zk_valid is True and sweep.passed:
                 reward = min(1.0, reward + 0.05)
         reward_txt = f"{reward:.4f}" if reward is not None else "UNKNOWN"
 
@@ -376,7 +434,7 @@ strategy: {strategy}
 reward: {reward_txt}
 measured_available_gb: {available_gb}
 measured_outcome_yield: {outcome}
-zkfv_proof_id: {proof.proof_id}
+zkfv_proof_id: {proof_id}
 model_provider: {research.model_provider}
 timestamp: {datetime.now(UTC).isoformat()}
 tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
@@ -385,7 +443,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
 # Experiential Learning: {goal.title} (Iteration {iteration})
 
 ## 1. Codebase Sweep Finding
-- **Integrity Score:** {sweep.integrity_score:.2f}
+- **Integrity Score:** {f"{sweep.integrity_score:.2f}" if sweep.integrity_score is not None else "UNKNOWN (no check ran)"}
 - **Status:** {"PASSED" if sweep.passed else "ATTENTION_NEEDED"}
 - **Findings:**
 {findings_md}
@@ -396,7 +454,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
 ## 3. Experiential Distillation
 - **Strategy Executed:** `{strategy}`
 - **AutoHarness Policy Allowed:** `{ast_eval.allowed}` (Bypassed LLM: True)
-- **ZK-FV Formal Proof Valid:** `{zk_valid}`
+- **Outcome-accounting constraint (succeeded+failed==completed):** `{"NOT PERFORMED" if zk_valid is None else zk_valid}`
 - **Lesson:** {lesson}
 """
             note_file.write_text(note_content)
@@ -420,8 +478,8 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
                 strategy: "{strategy}",
                 reward: {reward if reward is not None else "NONE"},
                 autoharness_verified: {str(ast_eval.allowed).lower()},
-                zkfv_valid: {str(zk_valid).lower()},
-                proof_id: "{proof.proof_id}",
+                zkfv_valid: {"NONE" if zk_valid is None else str(zk_valid).lower()},
+                proof_id: "{proof_id}",
                 lesson: "{clean_lesson}",
                 timestamp: time::now()
             }};
@@ -435,7 +493,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
             reward=reward,
             autoharness_allowed=ast_eval.allowed,
             zkfv_verified=zk_valid,
-            zkfv_proof_id=proof.proof_id,
+            zkfv_proof_id=proof_id,
             lesson_learned=lesson,
             surreal_persisted=surreal_ok,
             vault_persisted=vault_ok,
@@ -463,6 +521,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
         surreal_recs: list[str] = []
         current_failure_class = "initial"
         converged = False
+        steps_executed = 0
         tried: set[str] = set()
 
         for it in range(1, self.max_depth + 1):
@@ -486,6 +545,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
             # Execute Strategy Step
             if step_fn is not None:
                 step_ok, note, next_fc = step_fn(goal, strat)
+                steps_executed += 1
             else:
                 # No step function = nothing was executed; success cannot be claimed.
                 step_ok = False
@@ -545,6 +605,7 @@ tags: [experiential-learning, autoharness, zkfv, flume, strix-halo]
             iterations_run=len(history),
             final_reward=final_reward,
             total_time_ms=round(total_dt, 2),
+            steps_executed=steps_executed,
             history=history,
             vault_notes_created=vault_notes,
             surreal_records_created=surreal_recs,
