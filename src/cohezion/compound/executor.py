@@ -1812,6 +1812,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # capability matrix's skill axis read 0 against a 305-skill registry for 28 days
         # while the store filled with names nothing could use. A lane name in the skill
         # store is noise; skip it at the source rather than filter it at every reader.
+        # (2026-09-22: "research-actioner" is now a registered skill, RESEARCH_ACTIONER_PRIME,
+        # so it IS recorded from here on; other lane labels still are not.)
         if self._skill_health_tracker and self._is_registry_skill(skill_name):
             try:
                 tokens = 0

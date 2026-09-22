@@ -1360,6 +1360,27 @@ class SkillRefiner:
             if skill_name.lower() in file.stem.lower():
                 return file
 
+        # Registry lookup: a lane label such as "research-actioner" matches neither branch
+        # above (upper() keeps the hyphen; the stem uses underscores), so the loop's busiest
+        # skill never refined. canonical_skill_key joins the two namespaces, as the
+        # executor's _is_registry_skill already does.
+        return self._find_prime_file_in_registry(skill_name)
+
+    def _find_prime_file_in_registry(self, skill_name: str) -> Path | None:
+        """Resolve *skill_name* through the authoritative skill registry, or None."""
+        try:
+            from cohezion.registry.skill_discovery import canonical_skill_key
+            from cohezion.registry.skill_registry import load_registry
+
+            wanted = canonical_skill_key(skill_name)
+            for key, entry in load_registry().items():
+                if canonical_skill_key(key) != wanted or not isinstance(entry, dict):
+                    continue
+                path = self.SKILLS_DIR / Path(str(entry.get("path", ""))).name
+                if path.name.endswith(".md") and path.exists():
+                    return path
+        except (OSError, ValueError, ImportError) as exc:
+            logger.debug("registry lookup for %s failed: %s", skill_name, exc)
         return None
 
     def _ensure_golden_fixtures(self, registry: Any, skill_name: str, prime_file: Path) -> None:
