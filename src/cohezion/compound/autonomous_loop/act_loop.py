@@ -19,7 +19,7 @@ import tempfile
 import time
 import urllib.request
 from collections.abc import Callable
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 
@@ -87,6 +87,72 @@ def make_chat_fn(
         return {"text": text, "truncated": truncated, "usage": data.get("usage"), "model": model}
 
     return chat
+
+
+_IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
+
+
+def _check_rel(path: str, root: str, what: str) -> None:
+    """*path* must be a plain relative ``.py`` path under *root*/ (no ``..``, no anchor)."""
+    pp = PurePosixPath(path)
+    if (
+        not path
+        or "\\" in path
+        or "\x00" in path
+        or pp.is_absolute()
+        or ".." in pp.parts
+        or pp.parts[:1] != (root,)
+        or len(pp.parts) < 2
+        or pp.suffix != ".py"
+    ):
+        raise ValueError(f"{what} must be a relative .py path under {root}/: {path!r}")
+
+
+def check_act_spec(
+    file: str, oracle: str, targets: list[str], extra_tests: list[str] | tuple[str, ...] = ()
+) -> None:
+    """Repo-free validation of an ACT spec; raises ValueError. Shared with the work-queue API.
+
+    Security finding C1 (2026-09-22): ``file.startswith("src/")`` accepted
+    ``src/../cloud-vault-mcp/.../auth.py`` and *oracle* was not checked at all, so a spec
+    could make the loop commit edits to auth/CI code or run pytest on ``/tmp/x_test.py``
+    (and the conftest.py beside it).
+    """
+    _check_rel(file, "src", "edit target")
+    for t in [oracle, *extra_tests]:
+        _check_rel(str(t).split("::", 1)[0], "tests", "oracle test")
+    if not targets or not all(isinstance(t, str) and _IDENT.match(t) for t in targets):
+        raise ValueError(f"edit targets must be Python identifiers: {targets!r}")
+
+
+def _is_git_repo(repo: Path) -> bool:
+    return (repo / ".git").exists()
+
+
+def resolve_act_paths(
+    repo: Path, file: str, oracle: str, targets: list[str], extra_tests: list[str] = ()
+) -> Path:
+    """Validate the spec against *repo*; return the edit target's path (C1).
+
+    Beyond :func:`check_act_spec`: every path must resolve to itself (no symlinked
+    component can redirect it outside src/ or tests/), exist, and -- in a git repo -- the
+    edit target must be tracked, so a GREEN commit can only ever touch a known source file.
+    """
+    check_act_spec(file, oracle, targets, extra_tests)
+    base = repo.resolve()
+    rels = [(file, "src")] + [(str(t).split("::", 1)[0], "tests") for t in [oracle, *extra_tests]]
+    for rel, root in rels:
+        want = base / rel
+        if want.resolve() != want or not want.resolve().is_relative_to(base / root):
+            raise ValueError(f"path escapes {root}/ via a symlink: {rel!r}")
+        if not want.is_file():
+            raise ValueError(f"no such file: {rel!r}")
+    if _is_git_repo(repo):
+        try:
+            git(repo, "ls-files", "--error-unmatch", "--", file)
+        except subprocess.CalledProcessError as exc:
+            raise ValueError(f"edit target is not tracked by git: {file!r}") from exc
+    return base / file
 
 
 def _top_level_names(node: ast.stmt) -> list[str]:
@@ -358,12 +424,62 @@ def act_loop(
     attempt: an edit that satisfies the oracle but breaks a caller is RED, never committed.
     (2026-09-21: commit 2b81df1ca passed its oracle and broke ``oom_guard.pre_load_gate``.)
     """
-    oracle_file = repo / oracle.split("::", 1)[0]  # *oracle* may be a pytest node id
-    if not file.startswith("src/") or repo / file == oracle_file:
-        raise ValueError(f"edit target must live under src/: {file}")
-    path = repo / file
+    path = resolve_act_paths(repo, file, oracle, targets, extra_tests)
+    oracle_file = repo.resolve() / oracle.split("::", 1)[0]  # *oracle* may be a pytest node id
     original = path.read_text()
     oracle_src = oracle_file.read_text()
+    # The model's text must never outlive a failure (C1): every exit path -- including an
+    # exception from pytest, the splice, or the commit -- restores *original* unless the
+    # edit was committed (or deliberately kept green with commit=False).
+    keep = False
+    try:
+        res = _act_iterations(
+            repo=repo, file=file, path=path, original=original, oracle=oracle,
+            oracle_file=oracle_file, oracle_src=oracle_src, targets=targets,
+            extra_tests=extra_tests, task=task, task_id=task_id, model=model, chat=chat,
+            python=python, max_iters=max_iters, log=log, commit=commit,
+            max_call_errors=max_call_errors, call_backoff_s=call_backoff_s,
+            confirm_repeats=confirm_repeats, callers=callers, caller_cap=caller_cap,
+            caller_timeout=caller_timeout, admit=admit, admit_models=admit_models,
+            max_verify_timeouts=max_verify_timeouts,
+        )  # fmt: skip
+        keep = res.get("status") == "GREEN"
+        return res
+    finally:
+        if not keep:
+            path.write_text(original)
+
+
+def _act_iterations(
+    *,
+    repo: Path,
+    file: str,
+    path: Path,
+    original: str,
+    oracle: str,
+    oracle_file: Path,
+    oracle_src: str,
+    targets: list[str],
+    extra_tests: list[str],
+    task: str,
+    task_id: str,
+    model: str,
+    chat: ChatFn,
+    python: str,
+    max_iters: int,
+    log: Path,
+    commit: bool,
+    max_call_errors: int,
+    call_backoff_s: float,
+    confirm_repeats: int,
+    callers: list[str] | None,
+    caller_cap: int,
+    caller_timeout: float,
+    admit: AdmitFn | None,
+    admit_models: list[str] | None,
+    max_verify_timeouts: int,
+) -> dict[str, Any]:
+    """Body of :func:`act_loop`; the caller owns restoring *path* on every non-GREEN exit."""
     tests = [oracle, *extra_tests]
     ok, failure = run_tests(repo, python, tests)
     if ok:
@@ -474,7 +590,18 @@ def act_loop(
                         "failed_on_confirm": rep,
                         "detail": r_out[-400:],
                     }
-            sha = _commit(repo, file, task_id, rec["model"], targets, python) if commit else None
+            try:
+                sha = (
+                    _commit(repo, file, task_id, rec["model"], targets, python) if commit else None
+                )
+            except (OSError, subprocess.SubprocessError) as exc:
+                _log(log, {"task_id": task_id, "iter": it, "outcome": f"COMMIT_FAILED {exc}"})
+                return {
+                    "status": "COMMIT_FAILED",
+                    "iterations": it,
+                    "wall_s": round(time.monotonic() - t0, 1),
+                    "detail": str(exc)[-400:],
+                }
             return {
                 "status": "GREEN",
                 "iterations": it,
