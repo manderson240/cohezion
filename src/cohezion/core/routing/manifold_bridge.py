@@ -3,14 +3,19 @@ Manifold Bridge: Latent-to-Action Translation Layer.
 Maps 512D Thought Vectors to observable Axiomatic Actions.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.core.routing.router import LOCAL_ROUTER
-from cohezion.universe.engine import (
-    LatentState,
-    UniverseJourney,
-)
+
+
+if TYPE_CHECKING:
+    # Annotation-only. A runtime import pulled cohezion.universe (-> swarm -> research ->
+    # compound) into every `import cohezion.core`, a hidden cycle that silently dropped
+    # guarded re-exports (hidden_import_cycle_scan.py).
+    from cohezion.universe.engine import LatentState, UniverseJourney
 
 
 logger = logging.getLogger(__name__)

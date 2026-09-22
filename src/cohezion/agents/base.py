@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 
 import httpx
 
-from cohezion.compound.exp_persistence.accumulator import get_accumulator
 from cohezion.core.compound.engine import CompoundLogicEngine
 from cohezion.core.credit_manager import get_credit_manager
 from cohezion.core.persistence.surreal_client import SurrealClient
@@ -576,6 +575,11 @@ class BaseAgent(ABC):
 
         # Autonomic Experience Persistence
         try:
+            # Lazy: importing cohezion.compound at module scope re-entered cohezion.agents
+            # while agents.base was half-built, silently dropping guarded re-exports
+            # (AdversarialCritique, HealerAgent, ...) -- see hidden_import_cycle_scan.py.
+            from cohezion.compound.exp_persistence.accumulator import get_accumulator
+
             accumulator = get_accumulator()
 
             # Refined Novelty Score (Threshold-based importance sampling)

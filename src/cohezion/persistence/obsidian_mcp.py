@@ -1,10 +1,17 @@
 # nested with for clarity
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from cohezion.universe.triune_manifold import TriuneState
+
+if TYPE_CHECKING:
+    # Annotation-only; the runtime import was a hidden persistence<->universe cycle
+    # (hidden_import_cycle_scan.py), same as surreal_logger.py.
+    from cohezion.universe.triune_manifold import TriuneState
 
 
 logger = logging.getLogger(__name__)
