@@ -63,14 +63,21 @@ BATCH_SIZE = 50
 # match over title + abstract + domain). Route B is checked FIRST: methodology
 # keywords are the narrower class, and an item like "prompt tuning for evals"
 # belongs with the experiment loop, not the implementation queue.
+#
+# Truncated stems (``quanti[sz]``, ``fine[- ]?tun``, ``orchestrat``) take a trailing
+# ``\w*`` so they match their inflections at a word START only. Before 2026-09-22 they sat
+# inside ``\b(...)\b`` with nothing after them, so ``quantiz`` required a word boundary
+# right after the ``z`` and never matched "quantized"/"quantization" (same for
+# "fine-tuning", "orchestration"). Whole words stay whole-word; ``distill`` gets its
+# noun and and gerund only ("distilled water" is not ML).
 _ROUTE_B_EXPERIMENT = re.compile(
-    r"\b(train|training|fine-?tun|sft|rlhf|dpo|distill|curriculum|eval|benchmark|"
-    r"skill-methodology|reward model|dataset)\b",
+    r"\b(train|training|fine[- ]?tun\w*|sft|rlhf|dpo|distill(?:ation|ing)?|"
+    r"curriculum|eval|benchmark|skill-methodology|reward model|dataset)\b",
     re.IGNORECASE,
 )
 _ROUTE_A_IMPLEMENT = re.compile(
-    r"\b(tool|toolchain|config|prompt|prompt-pattern|agent|inference|serving|quantiz|"
-    r"cache|caching|rag|retrieval|routing|orchestrat|mcp|sandbox|scheduler)\b",
+    r"\b(tool|toolchain|config|prompt|prompt-pattern|agent|inference|serving|quanti[sz]\w*|"
+    r"cache|caching|rag|retrieval|routing|orchestrat\w*|mcp|sandbox|scheduler)\b",
     re.IGNORECASE,
 )
 
