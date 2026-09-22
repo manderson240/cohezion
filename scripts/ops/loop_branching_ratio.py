@@ -148,6 +148,8 @@ def compute(src, days, now=None, dedup=True):  # dedup=False is the planted bug 
         notes["decided_items"], n["DECIDE"] = len({d[0] for d in D}), len(D)
         n["ACT_prose"] = len(uniq(t["id"] for t in tasks_S if t.get("done") and t.get("success")))
         notes["tasks_done_of_tasks"] = f"{n['ACT_prose']}/{len(tasks_S)}"  # sigma denom: +proposals
+        notes["task_items"] = len({t["source_item_id"] for t in tasks_S})  # item-level  # fmt: skip
+        notes["act_prose_items"] = len({t["source_item_id"] for t in tasks_S if t.get("done") and t.get("success")})  # fmt: skip
     if D is None or e3:
         notes["ACT_diff"] = e3 or "parent UNKNOWN"
     else:
