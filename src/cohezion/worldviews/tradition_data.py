@@ -1,13 +1,47 @@
-"""Indigenous cosmological traditions mapped to the 10-step Theory of Everything chain.
+"""Cultural and religious cosmologies, with Cohezion's interpretive 10-step ToE mapping.
 
-Each tradition encodes its own path through the same universal structure:
-Nothing -> Quadrature -> 12 Parameters -> 4 Fabrics -> Phase ->
-Symmetry Breaking -> SPIN -> HIHO -> COHESION -> Reality Precipitates
+STATUS — read before using any of this data:
+
+* The 10-step chain (Nothing -> Quadrature -> 12 Parameters -> 4 Fabrics -> Phase ->
+  Symmetry Breaking -> SPIN -> HIHO -> COHESION -> Reality Precipitates) is COHEZION'S
+  OWN framework. It is not a structure these traditions share or assert. Placing a
+  tradition's concept in one of its slots is Cohezion's interpretive analogy.
+* The mappings were generated in bulk (95be0e4bf, 2026-03-27) and have NOT been reviewed
+  by the communities concerned. No community consent or authority is recorded for them.
+  Each ``StepMapping.provenance`` says so ("generated, unreviewed") until a source exists.
+* ``cohezion_analogy`` (formerly ``physics_parallel``) is Cohezion's analogy, not a
+  claim made by the tradition. Many entries merely restate the step name.
+* Convergences are produced by the mapping template (every entry must fill every slot),
+  so they are interpretive, not empirical findings.
+* Speculative/fringe-physics frameworks (``stealthskater``) are NOT traditions and are
+  kept in a separate registry (``get_speculative_frameworks``) so they never share
+  standing with Indigenous and religious traditions.
+
+Context: Richards et al. 2026, "Ancient apocalypse now", Australian Archaeology 92(2),
+doi:10.1080/03122417.2026.2706246 — pseudoarchaeology markers (conclusion-first
+selection, stripped context, fringe given equal standing).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+
+INTERPRETIVE_NOTICE: str = (
+    "Interpretive, unreviewed: the 10-step ToE mapping is Cohezion's own analogy, "
+    "generated without review by, or consent from, the communities concerned. It is not "
+    "a statement of any tradition's beliefs or Law. Traditions should be understood in "
+    "their own terms, from their own knowledge holders."
+)
+
+DEFAULT_PROVENANCE: str = "generated, unreviewed"
+
+CATEGORY_TRADITION: str = "cultural-tradition"
+CATEGORY_SPECULATIVE: str = "speculative-physics"
+
+CONVERGENCE_BASIS: str = (
+    "interpretive: produced by Cohezion's 10-slot mapping template, not an empirical finding"
+)
 
 
 # The 10-step Theory of Everything chain
@@ -27,13 +61,23 @@ TOE_STEPS: list[str] = [
 
 @dataclass(frozen=True)
 class StepMapping:
-    """Maps one ToE step to its indigenous equivalent."""
+    """Cohezion's interpretive placement of one tradition concept in one ToE step.
+
+    ``cohezion_analogy`` is Cohezion's analogy, not the tradition's claim.
+    ``provenance`` records the source of the mapping; "generated, unreviewed" means none.
+    """
 
     step_index: int
     step_name: str
     indigenous_term: str
     description: str
-    physics_parallel: str
+    cohezion_analogy: str
+    provenance: str = DEFAULT_PROVENANCE
+
+    @property
+    def physics_parallel(self) -> str:
+        """Deprecated alias of ``cohezion_analogy`` (it was never a physics finding)."""
+        return self.cohezion_analogy
 
     def to_dict(self) -> dict:
         return {
@@ -41,7 +85,9 @@ class StepMapping:
             "step_name": self.step_name,
             "indigenous_term": self.indigenous_term,
             "description": self.description,
-            "physics_parallel": self.physics_parallel,
+            "cohezion_analogy": self.cohezion_analogy,
+            "physics_parallel": self.cohezion_analogy,  # deprecated key, kept for readers
+            "provenance": self.provenance,
         }
 
 
@@ -58,13 +104,19 @@ class UniqueContribution:
 
 @dataclass(frozen=True)
 class Tradition:
-    """A single indigenous cosmological tradition with its 10-step ToE mapping."""
+    """A registry entry with Cohezion's interpretive 10-step ToE mapping.
+
+    ``category`` separates cultural/religious traditions from speculative frameworks.
+    ``scope_note`` flags entries that generalise across many distinct peoples.
+    """
 
     name: str
     slug: str
     origin_region: str
     step_mappings: tuple[StepMapping, ...]
     unique_contributions: tuple[UniqueContribution, ...]
+    category: str = CATEGORY_TRADITION
+    scope_note: str = ""
 
     @property
     def ground_state_name(self) -> str:
@@ -92,6 +144,8 @@ class Tradition:
             "name": self.name,
             "slug": self.slug,
             "origin_region": self.origin_region,
+            "category": self.category,
+            "scope_note": self.scope_note,
             "ground_state_name": self.ground_state_name,
             "hiho_name": self.hiho_name,
             "cohesion_name": self.cohesion_name,
@@ -105,6 +159,8 @@ class Tradition:
             "name": self.name,
             "slug": self.slug,
             "origin_region": self.origin_region,
+            "category": self.category,
+            "scope_note": self.scope_note,
             "ground_state_name": self.ground_state_name,
             "hiho_name": self.hiho_name,
             "cohesion_name": self.cohesion_name,
@@ -114,16 +170,18 @@ class Tradition:
 
 @dataclass(frozen=True)
 class Convergence:
-    """A cross-tradition convergence pattern."""
+    """A cross-tradition pattern produced by the mapping template (interpretive)."""
 
     category: str
     description: str
     traditions_involved: tuple[str, ...]
     toe_steps: tuple[int, ...]
+    basis: str = CONVERGENCE_BASIS
 
     def to_dict(self) -> dict:
         return {
             "category": self.category,
+            "basis": self.basis,
             "description": self.description,
             "traditions_involved": list(self.traditions_involved),
             "toe_steps": list(self.toe_steps),
@@ -133,22 +191,28 @@ class Convergence:
 # ─── Helper to build step tuples concisely ──────────────────────────────
 
 
-def _steps(*entries: tuple[str, str, str]) -> tuple[StepMapping, ...]:
-    """Build a tuple of 10 StepMappings from (term, desc, physics) triples."""
-    assert len(entries) == 10, f"Expected 10 steps, got {len(entries)}"
+def _steps(*entries: tuple[str, ...]) -> tuple[StepMapping, ...]:
+    """Build 10 StepMappings from (term, desc, analogy[, provenance]) tuples.
+
+    Provenance defaults to "generated, unreviewed"; supply a 4th element only when a
+    real, checkable source exists.
+    """
+    if len(entries) != 10:
+        raise ValueError(f"Expected 10 steps, got {len(entries)}")
     return tuple(
         StepMapping(
             step_index=i,
             step_name=TOE_STEPS[i],
-            indigenous_term=term,
-            description=desc,
-            physics_parallel=phys,
+            indigenous_term=entry[0],
+            description=entry[1],
+            cohezion_analogy=entry[2],
+            provenance=entry[3] if len(entry) > 3 else DEFAULT_PROVENANCE,
         )
-        for i, (term, desc, phys) in enumerate(entries)
+        for i, entry in enumerate(entries)
     )
 
 
-# ─── 17 Traditions ──────────────────────────────────────────────────────
+# ─── 17 cultural/religious traditions (interpretive mappings) ──────────────────────────────────────────────────────
 
 _LAKOTA = Tradition(
     name="Lakota",
@@ -579,6 +643,11 @@ _INUIT = Tradition(
     name="Inuit",
     slug="inuit",
     origin_region="Arctic (Circumpolar North)",
+    scope_note=(
+        "Inuit communities across Alaska, Inuit Nunangat (Canada) and Kalaallit Nunaat "
+        "(Greenland) have distinct dialects, stories and practices. This entry generalises "
+        "across them; terms and their meanings vary by region."
+    ),
     step_mappings=_steps(
         (
             "Sila",
@@ -802,6 +871,12 @@ _ANDEAN = Tradition(
     name="Andean",
     slug="andean",
     origin_region="Andes (Peru, Bolivia, Ecuador)",
+    scope_note=(
+        "This entry mixes concepts from distinct Andean peoples (including Quechua- and "
+        "Aymara-speaking communities) and from the Inca state (e.g. Tawantinsuyu, ceque "
+        "lines), across different periods. It generalises and should not be read as the "
+        "worldview of any one community."
+    ),
     step_mappings=_steps(
         ("Pachamama", "Earth Mother as living ground of all being", "Vacuum state / quantum void"),
         (
@@ -856,6 +931,12 @@ _AMAZONIAN = Tradition(
     name="Amazonian",
     slug="amazonian",
     origin_region="Amazon Basin (South America)",
+    scope_note=(
+        "The Amazon basin is home to hundreds of distinct Indigenous peoples and languages "
+        "with different cosmologies and practices. This entry generalises across them and "
+        "draws partly on anthropological frameworks (e.g. perspectivism) rather than on "
+        "any one people's own account."
+    ),
     step_mappings=_steps(
         (
             "Forest Intelligence",
@@ -969,6 +1050,12 @@ _ABORIGINAL = Tradition(
     name="Aboriginal Australian",
     slug="aboriginal",
     origin_region="Australia",
+    scope_note=(
+        "Aboriginal Australia comprises hundreds of distinct nations and languages, each "
+        "with its own Law, stories and practices. This entry generalises across them and "
+        "must not be read as the Law of any one nation. Terms such as Tjukurpa belong to "
+        "particular language groups (Tjukurpa is Western Desert usage)."
+    ),
     step_mappings=_steps(
         (
             "Dreaming / Tjukurpa",
@@ -986,8 +1073,12 @@ _ABORIGINAL = Tradition(
             "12 degrees of freedom",
         ),
         (
-            "Four-section kinship (moieties)",
-            "Dual moiety system organizing all relationships",
+            "Section systems (four-section kinship)",
+            "In nations that use them, section systems divide society into four named "
+            "sections that shape kinship and marriage. They are distinct from two-part "
+            "moiety systems and from eight-part subsection systems; nations differ in "
+            "which of these they use, and some use none. (Corrected 2026-09-21: this row "
+            "previously labelled four-section kinship as moieties, which are two-part.)",
             "4 fabric domains",
         ),
         (
@@ -1112,10 +1203,18 @@ _ININEW = Tradition(
 # Restored 2026-08-01: present since #194 (b87186436) but silently dropped when this
 # file was recreated in the 17-tradition rewrite — the API docstring and
 # knowledge_bridge both still said "incl. stealthskater". Harness invariant S2 guards it.
+# Moved 2026-09-21 OUT of the traditions registry into _SPECULATIVE_FRAMEWORKS: it is a
+# fringe-physics website synthesis, not a cultural or religious tradition, and must not
+# share standing with them. Content intact; get_tradition("stealthskater") still resolves.
 _STEALTHSKATER = Tradition(
     name="Stealthskater Archive",
     slug="stealthskater",
     origin_region="Classified Research Archives (USA/Global)",
+    category=CATEGORY_SPECULATIVE,
+    scope_note=(
+        "Speculative/fringe-physics synthesis drawn from a single website archive. "
+        "Not a cultural or religious tradition; claims here are unverified."
+    ),
     step_mappings=_steps(
         (
             "Zero-Point Field",
@@ -1191,7 +1290,7 @@ _STEALTHSKATER = Tradition(
 
 # ─── Registry ───────────────────────────────────────────────────────────
 
-_ALL_TRADITIONS: tuple[Tradition, ...] = (
+_ALL_TRADITIONS: tuple[Tradition, ...] = (  # cultural/religious traditions only
     _LAKOTA,
     _VEDIC,
     _DAOIST,
@@ -1209,22 +1308,35 @@ _ALL_TRADITIONS: tuple[Tradition, ...] = (
     _DOGON,
     _ABORIGINAL,
     _ININEW,
-    _STEALTHSKATER,
 )
 
-_BY_SLUG: dict[str, Tradition] = {t.slug: t for t in _ALL_TRADITIONS}
+# Speculative / fringe-physics frameworks — a separate category, never listed as traditions.
+_SPECULATIVE_FRAMEWORKS: tuple[Tradition, ...] = (_STEALTHSKATER,)
+
+_BY_SLUG: dict[str, Tradition] = {t.slug: t for t in _ALL_TRADITIONS + _SPECULATIVE_FRAMEWORKS}
 
 
 def get_traditions() -> list[Tradition]:
+    """Cultural/religious traditions only (speculative frameworks excluded)."""
     return list(_ALL_TRADITIONS)
 
 
+def get_speculative_frameworks() -> list[Tradition]:
+    """Speculative/fringe-physics frameworks, kept apart from the traditions."""
+    return list(_SPECULATIVE_FRAMEWORKS)
+
+
 def get_tradition(slug: str) -> Tradition | None:
+    """Resolve any registry entry by slug.
+
+    Also resolves speculative frameworks (backward compatibility, harness S2); check
+    ``.category`` before presenting the result as a tradition.
+    """
     return _BY_SLUG.get(slug)
 
 
 def get_step_across_traditions(step_index: int) -> list[dict]:
-    """Return all 17 traditions' mapping for a given step (0-9)."""
+    """Return the 17 cultural traditions' interpretive mapping for a given step (0-9)."""
     if not 0 <= step_index <= 9:
         raise ValueError(f"Step index must be 0-9, got {step_index}")
     return [
@@ -1233,13 +1345,17 @@ def get_step_across_traditions(step_index: int) -> list[dict]:
             "slug": t.slug,
             "indigenous_term": t.step_mappings[step_index].indigenous_term,
             "description": t.step_mappings[step_index].description,
-            "physics_parallel": t.step_mappings[step_index].physics_parallel,
+            "cohezion_analogy": t.step_mappings[step_index].cohezion_analogy,
+            "physics_parallel": t.step_mappings[step_index].cohezion_analogy,  # deprecated
+            "provenance": t.step_mappings[step_index].provenance,
         }
         for t in _ALL_TRADITIONS
     ]
 
 
-# ─── Convergences ───────────────────────────────────────────────────────
+# ─── Convergences ───
+# Interpretive: every entry is required to fill all 10 slots, so these patterns are
+# produced by the template itself. See CONVERGENCE_BASIS.────────────────────────────────────────────────────
 
 _CONVERGENCES: tuple[Convergence, ...] = (
     Convergence(
