@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from cohezion.inference.model_card_harness import InferenceParams
+from cohezion.inference.model_card_harness import InferenceParams, thinking_off_extras
 from cohezion.inference.recipe_guard import RecipeGuard
 from cohezion.inference.registry import (
     Lane,
@@ -118,6 +118,8 @@ def _build_aligned_params(entry: ModelEntry, task: Task) -> InferenceParams:
     is_qwen3 = any(entry.model_id.startswith(p) for p in qwen3_prefixes)
     if is_qwen3 and task not in {Task.REASONING, Task.MATH, Task.ARCHITECT}:
         prompt_prefix = "/no_think\n"
+        # The prefix alone does not stop Qwen3.6 thinking; the template kwarg does.
+        extra_body.update(thinking_off_extras(entry.model_id))
 
     # Thinking-mode models: bound reasoning via budget_tokens
     if profile.thinking_mode == "always":
