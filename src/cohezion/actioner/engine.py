@@ -219,16 +219,21 @@ class WorkQueueAPI:
         return sorted(page.get("items", []), key=lambda i: i.get("created_at", ""))
 
     def mark_reviewed(self, item_id: str, relevance: str, note: str) -> dict:
-        """Promote a triaged item into the lane the actioner actually polls."""
+        """Promote a triaged item into the lane the actioner actually polls.
+
+        The triage reason is APPENDED to ``notes`` (``notes_append``), never written over
+        it -- same defect class as ``mark_actioned``: ``notes`` holds the research analysis.
+        """
         return self._request(
             "PATCH",
             f"/api/work-queue/{item_id}",
-            {"status": "reviewed", "relevance": relevance, "notes": note},
+            {"status": "reviewed", "relevance": relevance, "notes_append": note},
         )
 
     def mark_rejected(self, item_id: str, note: str) -> dict:
+        """Reject a card, appending the reason to ``notes`` rather than replacing it."""
         return self._request(
-            "PATCH", f"/api/work-queue/{item_id}", {"status": "rejected", "notes": note}
+            "PATCH", f"/api/work-queue/{item_id}", {"status": "rejected", "notes_append": note}
         )
 
 
