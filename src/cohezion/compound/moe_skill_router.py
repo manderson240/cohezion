@@ -30,6 +30,23 @@ class MoESkillRouter:
         best = router.route(skill_name, metrics)   # highest-weight expert
         router.update("quality", quality_delta)    # logit += alpha * clamp(delta)
         router.replay([("tier", 0.8), ("tier", 0.6)])  # batch update
+
+    DORMANT IN PRODUCTION (recorded 2026-09-22, deliberately not wired). Nothing outside
+    tests constructs this router or calls ``update()``/``route()``; ``SkillRefiner`` accepts it
+    (MR4) but no factory passes one (default ``None``). It is left unwired because no honest reward signal
+    for "expert k's recommendation was good" exists yet -- wiring ``update()`` to what is
+    available would be a placebo that never moves a weight. Three pieces are missing:
+
+    1. Attribution: the expert behind a recommendation is not persisted.
+       ``SkillRefiner._candidate_expert_map`` is rebuilt on every call and ``LearningSignal``
+       carries the recommendation text only.
+    2. Causal path: an appended refinement never reaches the next execution. The executor puts
+       ``learned_refinements`` into the guidance dict, but ``make_local_execute_fn`` builds its
+       prompt from ``guidance["guidance"]`` only; nothing reads that key.
+    3. Outcome: on the production path ``quality_score`` is the constant 0.5 (no quality key in
+       the local-inference metrics, so ``_extract_metrics`` falls back), so any delta is 0.
+
+    Wire it only once all three exist, and add it to ``scripts/ci/dormancy_scan.py`` then.
     """
 
     _EXPERT_NAMES: list[str] = ["quality", "efficiency", "caching", "tier", "fallback"]
@@ -51,7 +68,19 @@ class MoESkillRouter:
         return {k: v / z for k, v in exp.items()}
 
     def get_weight(self, expert_name: str) -> float:
-        return self.weights.get(expert_name, 0.0)
+        """Probability of ``expert_name``; an expert the router does not know gets the uniform share.
+
+        MR7 (2026-09-22): ``SkillRefiner`` can emit a candidate from an expert outside the
+        five-name roster (the AReaL2.0 ``"trajectory"`` perspective). Returning 0.0 for it made
+        the router a veto: once ANY router was wired -- even an untouched uniform one carrying
+        no information -- that candidate's score was zeroed and it could never be selected.
+        The router has no opinion about an expert it has never seen, so it answers with the
+        prior share ``1/n``: identical to every expert at uniform (a null router is a no-op on
+        selection, C2), and equal to the mean of any trained distribution, so an unknown expert
+        is neither starved nor ranked above the average learned expert. ``weights`` is
+        unchanged and still sums to 1 over exactly the known experts.
+        """
+        return self.weights.get(expert_name, 1.0 / len(self._EXPERT_NAMES))
 
     def route(self, skill_name: str, metrics: Any) -> str:
         """Return the best expert, discounted by how often it has already been routed to.
