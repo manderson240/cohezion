@@ -44,7 +44,7 @@ SAFE_CTX_SIZE: int = 16384
 HEAVY_MODEL_GB_THRESHOLD: float = 5.0
 
 # verify_all_bounded's violation entry when the catalog cannot be read: bound state UNKNOWN.
-ROUTER_UNREACHABLE: str = "<router unreachable: ctx bounds UNKNOWN>"
+ROUTER_UNREACHABLE = "ROUTER_UNREACHABLE"
 
 
 def check_ram(min_free_gb: float = 20.0) -> tuple[bool, float]:
@@ -63,11 +63,13 @@ def check_ram(min_free_gb: float = 20.0) -> tuple[bool, float]:
         return True, float("inf")
 
 
-def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]]:
+def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]] | None:
     """Fetch /api/v1/models — returns list of model dicts (name, size, recipe_options).
 
     Falls back to /v1/models (OpenAI-compat) when /api/v1/models is unavailable;
     that endpoint returns only id/created fields so recipe_options will be absent.
+
+    Returns None on network failure, [] on empty catalog.
     """
     for path in ("/api/v1/models", "/v1/models"):
         try:
@@ -82,7 +84,7 @@ def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]]:
                 return raw.get("models", raw.get("data", []))
         except Exception as exc:
             logger.debug("Catalog fetch from %s%s failed: %s", base_url, path, exc)
-    return []
+    return None
 
 
 def _get_recipe_options(base_url: str, model_name: str, timeout: float = 5.0) -> dict[str, Any]:
@@ -350,6 +352,9 @@ def _name_looks_heavy(model_name: str) -> bool:
     return False
 
 
+EMPTY_CATALOG = "EMPTY_CATALOG"
+
+
 def verify_all_bounded(base_url: str = LEMONADE_BASE_URL) -> tuple[bool, list[str]]:
     """Read-only check: return (all_safe, violations).
 
@@ -357,10 +362,12 @@ def verify_all_bounded(base_url: str = LEMONADE_BASE_URL) -> tuple[bool, list[st
     Use in harness tests or CI to assert N3 invariant without modifying state.
     """
     catalog = _get_catalog(base_url)
-    if not catalog:
+    if catalog is None:
         # Could not look, so cannot vouch: an unreachable router is UNKNOWN, not "all bounded".
-        # (Returned True until 2026-09-21 — a safety check that reported safe when blind.)
         return False, [ROUTER_UNREACHABLE]
+    if not catalog:
+        # Reachable router with zero models.
+        return False, [EMPTY_CATALOG]
 
     violations: list[str] = []
     for model in catalog:
