@@ -305,11 +305,16 @@ def pre_load_gate(
     """
     # 1. ctx_size=0 gate — non-negotiable for heavy models
     catalog = _get_catalog(base_url)
-    entry = next(
-        (m for m in catalog if (m.get("model_name") or m.get("id") or "") == model_name),
-        None,
-    )
-    is_heavy = _is_heavy(entry) if entry is not None else _name_looks_heavy(model_name)
+
+    # Handle unreachable router: cannot verify specific model, fall back to name heuristic
+    if catalog is None:
+        is_heavy = _name_looks_heavy(model_name)
+    else:
+        entry = next(
+            (m for m in catalog if (m.get("model_name") or m.get("id") or "") == model_name),
+            None,
+        )
+        is_heavy = _is_heavy(entry) if entry is not None else _name_looks_heavy(model_name)
 
     if is_heavy and ctx_size == 0:
         return False, (
@@ -331,12 +336,17 @@ def pre_load_gate(
     # floor with 42 GB free and hard-froze the box. When the catalog knows this
     # model, refuse if its safety-inflated footprint over-commits available RAM
     # minus the same reserve. Pure decision in load_safety; catalog entry as input.
-    if entry is not None:
-        from cohezion.inference.load_safety import check_load_safe
+    if catalog is not None:
+        entry = next(
+            (m for m in catalog if (m.get("model_name") or m.get("id") or "") == model_name),
+            None,
+        )
+        if entry is not None:
+            from cohezion.inference.load_safety import check_load_safe
 
-        fit_ok, fit_reason = check_load_safe(entry, free_gb, ram_floor_gb=min_free_gb)
-        if not fit_ok:
-            return False, f"weight over-commit for {model_name!r}: {fit_reason}"
+            fit_ok, fit_reason = check_load_safe(entry, free_gb, ram_floor_gb=min_free_gb)
+            if not fit_ok:
+                return False, f"weight over-commit for {model_name!r}: {fit_reason}"
 
     return True, f"ok: {free_gb:.1f} GiB free, ctx_size={ctx_size}, heavy={is_heavy}"
 
