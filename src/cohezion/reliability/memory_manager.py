@@ -80,12 +80,15 @@ class MemoryManager:
 
         memories = []
         for res in results:
+            # Qdrant returns payload=None for points stored without one; unpacking it directly
+            # raises AttributeError and loses the whole result set, not just the empty point.
+            payload = res.payload or {}
             memories.append(
                 {
                     "id": res.id,
                     # "score": res.score, # query_points might not return score the same way
-                    "text": res.payload.get("text"),
-                    "metadata": {k: v for k, v in res.payload.items() if k != "text"},
+                    "text": payload.get("text"),
+                    "metadata": {k: v for k, v in payload.items() if k != "text"},
                 }
             )
         return memories

@@ -41,7 +41,11 @@ class ResourceMonitor:
         self.active_calls = 0
         self.semaphore = asyncio.Semaphore(max_concurrency)
         self.heartbeat_log = Path("logs/system_heartbeat.log")
-        self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
+        # Directory creation is DEFERRED to the first append (see _append_log). Doing it here
+        # made merely CONSTRUCTING a ResourceMonitor write to the filesystem, relative to cwd --
+        # so every test that touches the singleton died with OSError: Read-only file system on
+        # 'logs' inside a read-only agent worktree (23 unit tests, diagnosed repeatedly as test
+        # ordering pollution). A monitor that never emits a heartbeat now creates nothing.
         self.critical_pressure = False
         self.throttled = False
         self.desperation_active = False
@@ -454,6 +458,7 @@ class ResourceMonitor:
 
     def _append_log(self, entry: str):
         """Synchronous log append for use in thread."""
+        self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
         with open(self.heartbeat_log, "a") as f:
             f.write(entry)
 
