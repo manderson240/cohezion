@@ -81,13 +81,10 @@ class McpClientResolver:
         If server_url is provided, creates a new client and connects.
         Otherwise, returns the default shared client (best-effort connect).
         """
-        import os
-
-        from cohezion.core.mcp_client import create_mcp_client
+        from cohezion.core.mcp_client import create_mcp_client, resolve_api_key
 
         if server_url:
-            api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
-            client = create_mcp_client(server_url=server_url, api_key=api_key)
+            client = create_mcp_client(server_url=server_url, api_key=resolve_api_key())
             await client.connect()
             return client, True
 
