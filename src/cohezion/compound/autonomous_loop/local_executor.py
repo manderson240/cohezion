@@ -66,6 +66,52 @@ def _worktree_lock(path: Path) -> threading.Lock:
         return _WORKTREE_LOCKS.setdefault(key, threading.Lock())
 
 
+# Default ACT worktree (ops review MAJOR 5, 2026-09-22): a DEDICATED linked worktree of the
+# repo this package lives in, on its own branch -- never the main checkout, never tmpfs
+# (the old default was a nonexistent /tmp/worktree), and never main/master. Created on first
+# use. An explicit worktree_path is honoured, but its branch must still be an act/ branch.
+_DEFAULT_ACT_ROOT = Path(__file__).resolve().parents[4]
+_ACT_WORKTREE_DIR = Path(".cache") / "act-worktree"
+ACT_BRANCH = "act/loop"
+UNSAFE_WORKTREE = "unsafe_worktree"
+
+
+def _git_out(repo: Path, *args: str) -> str:
+    import subprocess
+
+    return subprocess.run(
+        ["git", *args], cwd=repo, capture_output=True, text=True, check=True
+    ).stdout.strip()
+
+
+def ensure_act_worktree(root: Path | None = None, branch: str = ACT_BRANCH) -> Path:
+    """The dedicated ACT worktree under ``<root>/.cache/act-worktree``, created if absent."""
+    root = (root or _DEFAULT_ACT_ROOT).resolve()
+    wt = root / _ACT_WORKTREE_DIR
+    if (wt / ".git").exists():
+        return wt
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    exists = bool(_git_out(root, "branch", "--list", branch))
+    if exists:
+        _git_out(root, "worktree", "add", "-q", str(wt), branch)
+    else:
+        _git_out(root, "worktree", "add", "-q", "-b", branch, str(wt), "HEAD")
+    return wt
+
+
+def act_worktree_refusal(repo: Path) -> str | None:
+    """Why ACT must not commit in *repo* (None = safe): only an ``act/`` branch qualifies."""
+    if not (repo / ".git").exists():
+        return f"{repo} is not a git worktree"
+    try:
+        branch = _git_out(repo, "symbolic-ref", "--quiet", "--short", "HEAD")
+    except Exception:  # detached HEAD or unreadable repo
+        return f"{repo} has no checked-out branch (detached HEAD)"
+    if not branch.startswith("act/"):
+        return f"{repo} is on branch {branch!r}; ACT commits only to an act/ branch"
+    return None
+
+
 NEEDS_ORACLE = "needs_oracle"
 _ACT_STATUS = {
     "GREEN": "committed",
@@ -374,7 +420,18 @@ class LocalImprovementExecutor:
 
         task_id = str(getattr(task, "id", "unknown"))
         oracle, file, targets = _act_spec(task, worktree_path)  # type: ignore[misc]
-        repo = Path(worktree_path)
+        try:
+            repo = Path(worktree_path) if worktree_path else ensure_act_worktree()
+            refusal = act_worktree_refusal(repo)
+        except Exception as exc:  # git missing / worktree add failed: not a model failure
+            refusal = f"cannot prepare ACT worktree: {exc}"
+        if refusal:
+            logger.warning("task %s ACT refused: %s", task_id, refusal)
+            return {
+                **_error_result(task_id, "", "act", refusal, returncode=2),
+                "status": UNSAFE_WORKTREE,
+                "cascade_quality_score": None,  # an unsafe worktree says nothing about quality
+            }
         chat = self._act_chat_fn
         admit_models = list(self._act_models)
         if chat is None:
@@ -489,9 +546,10 @@ def _act_spec(task: Any, worktree_path: str) -> tuple[str, str, list[str]] | Non
     oracle = str(getattr(task, "oracle_test", "") or "")
     file = str(getattr(task, "edit_file", "") or "")
     targets = list(getattr(task, "edit_targets", None) or [])
-    if not (oracle and file and targets and worktree_path):
+    if not (oracle and file and targets):
         return None
-    if not (Path(worktree_path) / ".git").exists():
+    # "" = the dedicated ACT worktree (resolved in _execute_act); an explicit path must be git.
+    if worktree_path and not (Path(worktree_path) / ".git").exists():
         return None
     return oracle, file, targets
 

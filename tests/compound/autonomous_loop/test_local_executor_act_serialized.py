@@ -67,6 +67,7 @@ def _repo(root: Path) -> Path:
         ["config", "user.name", "t"],
         ["add", "."],
         ["commit", "-q", "-m", "base"],
+        ["checkout", "-q", "-b", "act/test"],  # ACT commits only to an act/ branch
     ):
         _git(repo, *c)
     return repo
