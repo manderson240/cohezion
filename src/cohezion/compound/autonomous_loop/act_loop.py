@@ -170,6 +170,10 @@ _RUNNER_BROKEN_MARKERS = (
     "no tests ran",
 )
 
+# run_tests' tail when the pytest subprocess hit its timeout. A timed-out verify is an
+# INSTRUMENT outcome (loaded box, hung fixture, runaway edit), not a verdict on the edit.
+PYTEST_TIMEOUT = "pytest TIMEOUT"
+
 
 def run_tests(repo: Path, python: str, tests: list[str], timeout: float = 300) -> tuple[bool, str]:
     """Run pytest on *tests*; return (green, output tail)."""
@@ -183,7 +187,7 @@ def run_tests(repo: Path, python: str, tests: list[str], timeout: float = 300) -
             cmd, cwd=repo, env=env, capture_output=True, text=True, timeout=timeout, check=False
         )
     except subprocess.TimeoutExpired:
-        return False, "pytest TIMEOUT"
+        return False, PYTEST_TIMEOUT
     finally:
         shutil.rmtree(pyc, ignore_errors=True)
     return p.returncode == 0, (p.stdout + p.stderr)[-3000:]
@@ -321,6 +325,7 @@ def act_loop(
     caller_timeout: float = 300,
     admit: AdmitFn | None = None,
     admit_models: list[str] | None = None,
+    max_verify_timeouts: int = 2,
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green.
 
@@ -331,7 +336,14 @@ def act_loop(
     second arm to compare against, so this confirms determinism rather than significance.
 
     Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / ADMISSION_REFUSED / RUNNER_BROKEN /
-    FLAKY_ORACLE / ORACLE_ALREADY_GREEN (non-discriminating).
+    FLAKY_ORACLE / VERIFY_TIMEOUT / ORACLE_ALREADY_GREEN (non-discriminating).
+
+    Verify timeouts: a pytest run that hits its timeout is an instrument failure like
+    RUNNER_BROKEN, not a RED attempt. It is logged as outcome VERIFY_TIMEOUT, the file is
+    restored, the attempt does not consume a model iteration and is not fed back as a test
+    failure. Its own budget (*max_verify_timeouts*) still bounds a runaway edit that hangs
+    every run; exceeding it (or a timeout before the first model call, or on a confirm
+    repeat) returns status VERIFY_TIMEOUT.
 
     Admission gate: when *admit* is given (production: ``hotswap.ensure_resident``), every
     chat call is preceded by admitting the first of *admit_models* (default ``[model]``) the
@@ -356,6 +368,8 @@ def act_loop(
     ok, failure = run_tests(repo, python, tests)
     if ok:
         return {"status": "ORACLE_ALREADY_GREEN"}
+    if failure == PYTEST_TIMEOUT:
+        return {"status": "VERIFY_TIMEOUT", "iterations": 0, "detail": "pre-edit oracle run"}
     if any(marker in failure for marker in _RUNNER_BROKEN_MARKERS):
         # The oracle could not RUN (no pytest, bad node id): an instrument failure. Asking the
         # model to fix it burns every iteration and ends EXHAUSTED, blaming the model.
@@ -369,7 +383,7 @@ def act_loop(
     run_timeout = 300 + (caller_timeout if guarded else 0)
     history: list[str] = []
     t0 = time.monotonic()
-    it = call_errors = 0
+    it = call_errors = verify_timeouts = 0
     while it < max_iters:
         it += 1
         defs = "\n\n\n".join(get_def_source(original, t) for t in targets)
@@ -421,6 +435,20 @@ def act_loop(
             history.append(f"attempt {it}:\n```python\n{code}\n```\nrejected: {exc}")
             continue
         ok, out = run_tests(repo, python, tests, run_timeout)
+        if out == PYTEST_TIMEOUT:
+            path.write_text(original)
+            rec["outcome"] = "VERIFY_TIMEOUT"
+            _log(log, rec)
+            verify_timeouts += 1
+            it -= 1  # the runner, not the model, failed to produce a verdict
+            if verify_timeouts > max_verify_timeouts:
+                return {
+                    "status": "VERIFY_TIMEOUT",
+                    "iterations": it,
+                    "wall_s": round(time.monotonic() - t0, 1),
+                    "verify_timeouts": verify_timeouts,
+                }
+            continue
         oracle_intact = oracle_file.read_text() == oracle_src
         rec.update(tests_green=ok, oracle_intact=oracle_intact, test_tail=out[-600:])
         if ok and oracle_intact:
@@ -431,6 +459,13 @@ def act_loop(
                 _log(log, {"task_id": task_id, "iter": it, "confirm": rep, "green": r_ok})
                 if not r_ok:
                     path.write_text(original)
+                    if r_out == PYTEST_TIMEOUT:
+                        return {
+                            "status": "VERIFY_TIMEOUT",
+                            "iterations": it,
+                            "wall_s": round(time.monotonic() - t0, 1),
+                            "failed_on_confirm": rep,
+                        }
                     return {
                         "status": "FLAKY_ORACLE",
                         "iterations": it,

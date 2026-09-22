@@ -59,6 +59,7 @@ _ACT_STATUS = {
     "ROUTER_UNAVAILABLE": "router_unavailable",
     "ADMISSION_REFUSED": "admission_refused",
     "RUNNER_BROKEN": "runner_broken",
+    "VERIFY_TIMEOUT": "verify_timeout",
     "ORACLE_ALREADY_GREEN": "oracle_already_green",
 }
 
