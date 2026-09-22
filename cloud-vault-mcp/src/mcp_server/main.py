@@ -11,6 +11,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
+from .auth import APIKeyAuth
 from .config import ServerConfig
 from .health import HealthChecker
 from .server import create_server
@@ -28,6 +29,18 @@ except ImportError:
 
 
 logger = logging.getLogger("cloud-vault-mcp")
+
+
+def protect_mcp_app(mcp_app, api_key: str):
+    """Wrap *mcp_app* with bearer-key auth when a key is configured.
+
+    `APIKeyAuth` existed but was never applied, so the server answered unauthenticated
+    requests while exposed through a public tunnel (2026-09-21). An empty key leaves the
+    app unwrapped; `main` already warns loudly in that case.
+    """
+    if not api_key:
+        return mcp_app
+    return APIKeyAuth(mcp_app, api_key=api_key)
 
 
 def main():
@@ -62,6 +75,9 @@ def main():
 
     # FastMCP provides factory methods to build ASGI apps - call streamable_http_app()
     mcp_app = mcp.streamable_http_app()
+
+    # Enforce MCP_API_KEY on every MCP request (/health is routed separately).
+    mcp_app = protect_mcp_app(mcp_app, config.api_key)
 
     # Add TrustedHostMiddleware if not accepting all hosts
     if "*" not in config.allowed_hosts:
