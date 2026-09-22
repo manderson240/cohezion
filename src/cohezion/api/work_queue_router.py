@@ -23,7 +23,7 @@ from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from cohezion.api.card_honesty import (
     RESEARCH_TYPES,
@@ -187,6 +187,9 @@ def _authorize_act_fields(body: BaseModel, token: object) -> bool:
     return True
 
 
+NOTES_APPEND_MAX = 4000
+
+
 class WorkItemPatch(BaseModel):
     status: str | None = None  # pending_review | approved | rejected | in_progress | done
     feedback: str | None = None
@@ -208,7 +211,9 @@ class WorkItemPatch(BaseModel):
     # Triage reasons (reviewed/rejected) are appended to `notes` rather than replacing it:
     # the reason belongs next to the analysis it judges, but must not destroy that analysis.
     # Appended inside the queue lock, so there is no read-modify-write race in the caller.
-    notes_append: str | None = None
+    # Capped (security review minor, 2026-09-22): every append rewrites the whole ~7 MB queue
+    # file, so an unbounded append grows every later read-modify-write without limit.
+    notes_append: str | None = Field(None, max_length=NOTES_APPEND_MAX)
     probe_ref: str | None = None
 
 
