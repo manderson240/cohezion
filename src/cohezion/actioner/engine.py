@@ -629,6 +629,30 @@ def action_item(
     return artifact
 
 
+def _admission_refusal(admit: Callable[[str], Any], model: str) -> str:
+    """"" when *model* is admitted, else the refusal reason. A gate that raises refuses."""
+    try:
+        result = admit(model)
+    except Exception as exc:  # the gate is a safety check: unavailable means closed
+        return f"admission gate error: {type(exc).__name__}: {exc}"
+    if getattr(result, "ok", False):
+        return ""
+    return str(getattr(result, "reason", "") or "admission refused")
+
+
+def summary_exit_code(summary: dict[str, Any]) -> int:
+    """Process exit code for one actioner run: 1 only for unresolved failures.
+
+    Terminal dispositions (``rejected``, ``failed_permanent``) and transient deferrals
+    (``deferred_transient_guard``, ``deferred_admission``) are handled outcomes; exiting 1
+    on them marked the 5-minute systemd unit failed under ordinary memory pressure.
+    """
+    handled = set()
+    for key in ("rejected", "failed_permanent", "deferred_transient_guard", "deferred_admission"):
+        handled.update(summary.get(key) or [])
+    return 1 if any(k not in handled for k in summary.get("failed", {})) else 0
+
+
 def run_batch(
     executor: Any,
     api: WorkQueueAPI | None = None,
@@ -639,8 +663,17 @@ def run_batch(
     vault_dir: Path = VAULT_EXPERIMENTS_DIR,
     misses_path: Path | None = None,
     dry_run: bool = False,
+    admit: Callable[[str], Any] | None = None,
+    model: str = DEFAULT_MODEL,
 ) -> dict[str, Any]:
     """Drain up to *batch_size* eligible items. Returns an honest summary.
+
+    Admission: when *admit* is given (production: ``hotswap.ensure_resident``), *model*
+    is admitted before every item that would call it, so a load the router would make on
+    demand still honours the 16 GiB RAM floor. The first refusal (or a gate that raises)
+    closes admission for the run: that item and every later routable one are listed in
+    ``deferred_admission`` with the reason in ``admission_refused``. Deferrals are neither
+    failures nor counted toward ``MAX_FAILURE_ATTEMPTS``.
 
     Per-item failures are isolated: the item stays ``reviewed`` (no PATCH) and
     the batch continues. Items with no triage match are left untouched in the queue
@@ -683,6 +716,7 @@ def run_batch(
 
     attempts = 0
     walked_all = True
+    admission_refused = ""
     for item in api.eligible_items():
         # batch_size caps ATTEMPTED items only — permanently-unmatched items at
         # the head of the oldest-first queue must not starve matchable ones
@@ -718,6 +752,14 @@ def run_batch(
         attempts += 1
         if dry_run:
             summary["actioned"].append({"id": item_id, "route": route, "dry_run": True})
+            continue
+        if admit is not None and item_id not in actioned_ids and not admission_refused:
+            admission_refused = _admission_refusal(admit, model)
+            if admission_refused:
+                summary["admission_refused"] = admission_refused
+                logger.warning("actioner: admission refused, deferring run: %s", admission_refused)
+        if admission_refused and item_id not in actioned_ids:
+            summary.setdefault("deferred_admission", []).append(item_id)
             continue
         try:
             probe_ref = ""

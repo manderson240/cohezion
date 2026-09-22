@@ -46,8 +46,14 @@ def main() -> int:
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
-    from cohezion.actioner.engine import WorkQueueAPI, default_chat_fn, run_batch
+    from cohezion.actioner.engine import (
+        WorkQueueAPI,
+        default_chat_fn,
+        run_batch,
+        summary_exit_code,
+    )
     from cohezion.compound import make_executor
+    from cohezion.inference.hotswap import ensure_resident
 
     executor = make_executor(_NullMCP())
     summary = run_batch(
@@ -56,15 +62,20 @@ def main() -> int:
         chat_fn=default_chat_fn(args.model),
         batch_size=args.batch,
         dry_run=args.dry_run,
+        admit=ensure_resident,  # 16 GiB floor before the router can load on demand
+        model=args.model,
     )
     print(json.dumps(summary, indent=2))
-    # Honest exit code: unresolved failures present -> nonzero (cron surfaces it),
-    # but items terminal-dispositioned (e.g. rejected by guardrail) are handled cleanly.
-    # failed_permanent items hit the retry cap and are skipped from now on, so they are
-    # terminal too; counting them would keep the unit in 1/FAILURE forever (L414).
-    rejected_set = set(summary.get("rejected", [])) | set(summary.get("failed_permanent", []))
-    unresolved_failures = {k: v for k, v in summary["failed"].items() if k not in rejected_set}
-    return 1 if unresolved_failures else 0
+    if summary.get("admission_refused"):
+        print(
+            f"DEFERRED (transient): admission refused for {args.model}: "
+            f"{summary['admission_refused']}; {len(summary.get('deferred_admission', []))} "
+            "item(s) left for the next run"
+        )
+    # Honest exit code: unresolved failures -> nonzero (cron surfaces it). Terminal
+    # dispositions (rejected, failed_permanent) and transient deferrals (resource/rate
+    # guard, admission refusal) are handled outcomes and exit 0 (L414).
+    return summary_exit_code(summary)
 
 
 if __name__ == "__main__":
