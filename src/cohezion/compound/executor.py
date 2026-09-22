@@ -1057,7 +1057,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             if input_check and input_check.action == GuardrailAction.BLOCK:
                 error_msg = f"Input blocked by guardrails: {input_check.reason}"
                 output = f"Error: {error_msg}"
-                metrics = {"error": error_msg, "blocked_by_guardrails": True}
+                metrics = {
+                    "error": error_msg,
+                    "blocked_by_guardrails": True,
+                    # Which guard: a content block is terminal, a resource/rate block
+                    # is transient load (consumed by actioner.engine.run_batch).
+                    "blocked_by_guard": input_check.guard_name,
+                    "blocked_guard_reason": input_check.reason,
+                }
                 logger.warning("Task input blocked: %s", input_check.reason)
                 # Log execution result and return
                 self.logger.log_execution_result(
