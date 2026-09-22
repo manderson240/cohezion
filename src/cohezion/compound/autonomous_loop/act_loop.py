@@ -97,6 +97,14 @@ def _top_level_names(node: ast.stmt) -> list[str]:
     return []
 
 
+def _import_names(node: ast.stmt) -> list[str]:
+    if isinstance(node, ast.Import):
+        return [a.asname or a.name.split(".")[0] for a in node.names]
+    if isinstance(node, ast.ImportFrom):
+        return [a.asname or a.name for a in node.names]
+    return []
+
+
 def _span(node: ast.stmt) -> tuple[int, int]:
     start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
     return start, node.end_lineno or node.lineno
@@ -119,9 +127,21 @@ def splice(source: str, replacement: str, anchor: str) -> str:
         raise ValueError("empty replacement")
     rep_lines, lines = replacement.splitlines(), source.splitlines()
     existing = {n: _span(node) for node in ast.parse(source).body for n in _top_level_names(node)}
+    imported = {n for node in ast.parse(source).body for n in _import_names(node)}
     edits: list[tuple[int, int, str]] = []  # (start, end, text); end < start means insert
     inserts: list[str] = []
     for node in new_nodes:
+        if isinstance(node, ast.Import | ast.ImportFrom):
+            # Models restate imports the file already has; that is a no-op, not an error.
+            # A NEW import is refused with an actionable reason (the bare "unsupported
+            # Import" gave the model nothing to act on: 5/5 identical retries, 2026-09-21).
+            new = [n for n in _import_names(node) if n not in imported]
+            if new:
+                raise ValueError(
+                    f"top-level `{ast.unparse(node)}` adds {new}, not imported by the file; "
+                    "remove it and import inside the function body instead"
+                )
+            continue
         names = _top_level_names(node)
         if not names:
             raise ValueError(f"unsupported top-level statement: {type(node).__name__}")
