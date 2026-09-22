@@ -197,10 +197,17 @@ def act_loop(
     commit: bool = True,
     max_call_errors: int = 12,
     call_backoff_s: float = 20.0,
+    confirm_repeats: int = 3,
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green.
 
-    Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / RUNNER_BROKEN /
+    A single green run can be a fluke (order-dependent oracle, uninitialised state, timing).
+    Before committing, the first GREEN is re-run *confirm_repeats - 1* more times; any red
+    repeat means the candidate is FLAKY_ORACLE, never committed, and the file is restored.
+    Pattern from EverMind-AI/Raven's Evolver (K=3 confirmation gate), adapted: we have no
+    second arm to compare against, so this confirms determinism rather than significance.
+
+    Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / RUNNER_BROKEN / FLAKY_ORACLE /
     ORACLE_ALREADY_GREEN (non-discriminating).
     """
     oracle_file = repo / oracle.split("::", 1)[0]  # *oracle* may be a pytest node id
@@ -264,6 +271,18 @@ def act_loop(
         if ok and oracle_intact:
             rec["outcome"] = "GREEN"
             _log(log, rec)
+            for rep in range(2, confirm_repeats + 1):
+                r_ok, r_out = run_tests(repo, python, tests)
+                _log(log, {"task_id": task_id, "iter": it, "confirm": rep, "green": r_ok})
+                if not r_ok:
+                    path.write_text(original)
+                    return {
+                        "status": "FLAKY_ORACLE",
+                        "iterations": it,
+                        "wall_s": round(time.monotonic() - t0, 1),
+                        "failed_on_confirm": rep,
+                        "detail": r_out[-400:],
+                    }
             sha = _commit(repo, file, task_id, rec["model"], targets, python) if commit else None
             return {
                 "status": "GREEN",
