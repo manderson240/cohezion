@@ -60,7 +60,9 @@ def main() -> int:
     print(json.dumps(summary, indent=2))
     # Honest exit code: unresolved failures present -> nonzero (cron surfaces it),
     # but items terminal-dispositioned (e.g. rejected by guardrail) are handled cleanly.
-    rejected_set = set(summary.get("rejected", []))
+    # failed_permanent items hit the retry cap and are skipped from now on, so they are
+    # terminal too; counting them would keep the unit in 1/FAILURE forever (L414).
+    rejected_set = set(summary.get("rejected", [])) | set(summary.get("failed_permanent", []))
     unresolved_failures = {k: v for k, v in summary["failed"].items() if k not in rejected_set}
     return 1 if unresolved_failures else 0
 

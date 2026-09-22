@@ -161,3 +161,29 @@ def test_items_without_an_id_are_never_ledgered(tmp_path):
     second = _run(api, tmp_path)
     assert second["skipped_known_miss"] == 0
     assert second["processed"] == 1
+
+
+def test_second_run_does_constant_per_item_work_and_changed_item_is_retriaged(
+    tmp_path, monkeypatch
+):
+    """2,000 unchanged unmatched items: run 2 triages none; an edited one is re-triaged."""
+    items = [_dead(i) for i in range(2000)]
+    api = FakeAPI(items)
+    calls = {"n": 0}
+    real = engine.triage
+
+    def counted(item):
+        calls["n"] += 1
+        return real(item)
+
+    monkeypatch.setattr(engine, "triage", counted)
+    _run(api, tmp_path)
+    assert calls["n"] == 2000
+    calls["n"] = 0
+    second = _run(api, tmp_path)
+    assert calls["n"] == 0
+    assert second["skipped_no_match"] == []  # no per-item output lines on a quiet run
+    items[7] = {**items[7], "title": "quantum lattices, now with an agent"}
+    third = _run(api, tmp_path)
+    assert calls["n"] == 1
+    assert third["actioned"][0]["id"] == "dead0007"
