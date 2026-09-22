@@ -123,12 +123,20 @@ class CacheWarmer:
         l2_cache = getattr(self.cache, "l2_cache", getattr(self.cache, "_l2_cache", {}))
         if l2_cache:
             try:
-                embedding = self.cache._text_to_embedding(task_description)
+                # Embed through the cache's own (TTL-cached) encoder decision and
+                # only compare entries from the same embedding space.
+                embed = getattr(self.cache, "_embed", None)
+                if embed is not None:
+                    embedding, space = embed(task_description)
+                else:
+                    embedding, space = self.cache._text_to_embedding(task_description), None
                 if embedding is not None:
                     best_match = None
                     best_sim = 0.0
 
                     for entry in l2_cache.values():
+                        if space is not None and getattr(entry, "encoder_id", space) != space:
+                            continue
                         if entry.embedding is not None:
                             sim = self.cache._cosine_similarity(embedding, entry.embedding)
                             if sim > best_sim:
