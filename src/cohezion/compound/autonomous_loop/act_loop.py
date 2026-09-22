@@ -857,6 +857,12 @@ def _tampered(repo: Path, file: str, baseline: dict[str, Any] | None) -> list[st
     return diffs
 
 
+def _one_line(text: str, cap: int = 120) -> str:
+    """Card-supplied text as ONE printable line: a newline could forge commit trailers
+    (``Co-Authored-By:``, ``Signed-off-by:``) in the message."""
+    return "".join(ch if ch.isprintable() else " " for ch in str(text))[:cap]
+
+
 def _commit(
     repo: Path, file: str, task_id: str, model: str, targets: list[str], python: str
 ) -> str:
@@ -864,7 +870,8 @@ def _commit(
     if ruff.exists():
         for cmd in (["format", file], ["check", "--fix", file]):
             subprocess.run([str(ruff), *cmd], cwd=repo, check=False, capture_output=True)
-    msg = f"fix(act-loop): {', '.join(targets)} [task: {task_id}] [author: local-model {model}]"
+    names, tid, who = (_one_line(x) for x in (", ".join(targets), task_id, model))
+    msg = f"fix(act-loop): {names} [task: {tid}] [author: local-model {who}]"
     try:
         git(repo, *_SAFE_GIT, "add", "--", file)
         git(repo, *_SAFE_GIT, "commit", "-q", "--no-verify", "-m", msg)
