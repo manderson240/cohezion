@@ -47,6 +47,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from cohezion.security.guardrail_pipeline import CONTENT_GUARDS
+
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +176,37 @@ _INFRA_FAILURE = re.compile(
 def is_infra_failure(err_msg: str) -> bool:
     """True when *err_msg* describes the inference/API apparatus, not the item."""
     return bool(_INFRA_FAILURE.search(err_msg))
+
+
+class GuardrailBlocked(RuntimeError):
+    """The compound cycle's input guardrail BLOCKED the item; carries which guard did it."""
+
+    def __init__(self, message: str, guard_name: str = "", reason: str = "") -> None:
+        super().__init__(message)
+        self.guard_name = guard_name
+        self.reason = reason
+
+
+def guardrail_block_kind(exc: BaseException) -> str | None:
+    """Classify a failure as a guardrail block: 'content', 'transient', or None (not a block).
+
+    - 'content': a text-inspecting guard (``CONTENT_GUARDS``) judged the input -- the same
+      text is blocked again every run, so the card is terminal-rejected (Learning 414).
+    - 'transient': a state guard (``resource`` CPU/memory pressure, ``rate_limit`` quota)
+      or a fail-closed guard *exception* -- says nothing about the item; retry later and
+      never count it toward ``MAX_FAILURE_ATTEMPTS`` (same treatment as infra failures).
+    A block whose guard is unknown (legacy executors that report only the message) keeps
+    the historical terminal behaviour.
+    """
+    guard = getattr(exc, "guard_name", "") if isinstance(exc, GuardrailBlocked) else ""
+    if guard:
+        if str(getattr(exc, "reason", "")).startswith("Guardrail exception:"):
+            return "transient"
+        return "content" if guard in CONTENT_GUARDS else "transient"
+    err_msg = str(exc)
+    if "Input blocked by guardrails" in err_msg or "Potential injection pattern" in err_msg:
+        return "content"
+    return None
 
 
 def triage(item: dict[str, Any]) -> str | None:
@@ -425,6 +458,13 @@ def action_item(
         execute_fn=execute_fn,
     )
     if not getattr(result, "success", False):
+        metrics = getattr(result, "metrics", None)
+        if isinstance(metrics, dict) and metrics.get("blocked_by_guardrails"):
+            raise GuardrailBlocked(
+                f"compound cycle failed for {item['id']}: {_failure_reason(result)}",
+                guard_name=str(metrics.get("blocked_by_guard") or ""),
+                reason=str(metrics.get("blocked_guard_reason") or ""),
+            )
         raise RuntimeError(f"compound cycle failed for {item['id']}: {_failure_reason(result)}")
 
     parsed = _parse_proposal(captured.get("raw", ""))
@@ -470,6 +510,9 @@ def run_batch(
     ``MAX_FAILURE_ATTEMPTS`` the item is listed in ``failed_permanent`` and later runs
     skip it (``skipped_failed_permanent``) until its content changes. Infrastructure
     failures (``is_infra_failure``) never count -- an outage must not DLQ good cards.
+    Guardrail blocks split by guard (``guardrail_block_kind``): content guards reject
+    the card; resource/rate-limit blocks are listed in ``deferred_transient_guard`` and
+    neither reject nor count.
     """
     api = api or WorkQueueAPI()
     chat_fn = chat_fn or default_chat_fn()
@@ -546,9 +589,15 @@ def run_batch(
         except Exception as exc:
             err_msg = str(exc)
             logger.warning("actioner: item %s failed: %s", item_id, err_msg)
-            # If the item failed due to guardrail injection detection, reject it
-            # so it does not poison the queue and cause an infinite crash loop (Learning 414).
-            if "Input blocked by guardrails" in err_msg or "Potential injection pattern" in err_msg:
+            block_kind = guardrail_block_kind(exc)
+            if block_kind == "transient":
+                # Resource/rate guard: system load, not the item. Retry next run, uncounted.
+                summary["failed"][item_id] = err_msg
+                summary.setdefault("deferred_transient_guard", []).append(item_id)
+                continue
+            # A content guardrail block is deterministic for this text: reject it so it
+            # does not poison the queue and cause an infinite crash loop (Learning 414).
+            if block_kind == "content":
                 try:
                     api.mark_rejected(item_id, note=f"rejected by guardrail: {err_msg[:200]}")
                     summary.setdefault("rejected", []).append(item_id)

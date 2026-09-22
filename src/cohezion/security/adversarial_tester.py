@@ -32,6 +32,7 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from cohezion.security.guardrail_pipeline import CONTENT_GUARDS
 from cohezion.security.attack_patterns import (
     PATTERN_SUMMARY,
     AttackPattern,
@@ -136,8 +137,8 @@ corpus larger than 60 patterns that turns into a flattering, meaningless detecti
 rate. Returning the guard name lets the caller count only content-inspecting guards.
 """
 
-CONTENT_GUARDS = frozenset({"constitutional", "prompt_injection", "output_filter"})
-"""Production guards whose verdict depends on the text. See :data:`GuardProbe`."""
+# CONTENT_GUARDS (imported above) are the production guards whose verdict depends on the
+# text; canonical definition lives with the pipeline because the actioner consumes it too.
 
 
 def production_guardrail_probe(content_only: bool = True) -> GuardProbe:

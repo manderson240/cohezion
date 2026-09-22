@@ -89,3 +89,91 @@ def test_guardrail_failures_still_reject_and_are_not_counted(tmp_path):
     )
     assert api.rejected == [ITEM["id"]]
     assert s["failed_permanent"] == []
+
+
+# --- Guardrail blocks split by guard (2026-09-22) -----------------------------------
+# A ResourceGuard BLOCK ("Resources constrained: CPU=...") is load, not content: it used
+# to permanently reject a good card on a load spike because every "Input blocked by
+# guardrails" message was treated as terminal.
+
+
+class GuardBlockingExecutor:
+    """Returns the executor's real guardrail-block metrics shape, naming the guard."""
+
+    def __init__(self, guard, reason):
+        self.guard, self.reason, self.calls = guard, reason, 0
+
+    def execute_task(self, task_description, skill_name, operation_type, execute_fn):
+        self.calls += 1
+        msg = f"Input blocked by guardrails: {self.reason}"
+        return SimpleNamespace(
+            success=False,
+            output=f"Error: {msg}",
+            metrics={
+                "error": msg,
+                "blocked_by_guardrails": True,
+                "blocked_by_guard": self.guard,
+                "blocked_guard_reason": self.reason,
+            },
+        )
+
+
+def test_resource_guard_block_is_retryable_and_uncounted(tmp_path):
+    exe = GuardBlockingExecutor("resource", "Resources constrained: CPU=97.0%, Memory=91.0%")
+    api = FakeAPI([ITEM])
+    for _ in range(MAX_FAILURE_ATTEMPTS + 2):
+        s = _run(exe, api, tmp_path)
+    assert api.rejected == []  # a load spike must not reject a good card
+    assert exe.calls == MAX_FAILURE_ATTEMPTS + 2  # never skipped: not counted
+    assert s["failed_permanent"] == [] and s["skipped_failed_permanent"] == 0
+    assert s["deferred_transient_guard"] == [ITEM["id"]]
+
+
+def test_rate_limit_block_is_transient_too(tmp_path):
+    api = FakeAPI([ITEM])
+    _run(GuardBlockingExecutor("rate_limit", "Rate limit exceeded"), api, tmp_path)
+    assert api.rejected == []
+
+
+def test_fail_closed_guard_exception_is_transient_even_for_a_content_guard(tmp_path):
+    api = FakeAPI([ITEM])
+    exe = GuardBlockingExecutor("prompt_injection", "Guardrail exception: prompt_injection")
+    _run(exe, api, tmp_path)
+    assert api.rejected == []
+
+
+def test_prompt_injection_block_still_terminal_rejects(tmp_path):
+    api = FakeAPI([ITEM])
+    exe = GuardBlockingExecutor("prompt_injection", "Potential injection pattern detected")
+    s = _run(exe, api, tmp_path)
+    assert api.rejected == [ITEM["id"]]
+    assert "deferred_transient_guard" not in s
+    assert s["failed_permanent"] == []
+
+
+def test_executor_reports_the_blocking_guard_name():
+    """Producer side: the real CompoundExecutor must put the guard name in metrics."""
+    from unittest.mock import MagicMock
+
+    from cohezion.compound.executor import CompoundExecutor
+    from cohezion.security.guardrail_pipeline import (
+        GuardrailAction,
+        GuardrailPipeline,
+        GuardrailResult,
+    )
+
+    class LoadGuard:
+        async def check(self, text, context):
+            return GuardrailResult(action=GuardrailAction.BLOCK, reason="Resources constrained")
+
+    exe = CompoundExecutor(
+        MagicMock(), guardrail_pipeline=GuardrailPipeline(guardrails=[("resource", LoadGuard())])
+    )
+    result = exe.execute_task(
+        task_description="Action research item x",
+        skill_name="research-actioner",
+        operation_type="generate",
+        execute_fn=lambda g: ("never", {}),
+    )
+    assert result.success is False
+    assert result.metrics["blocked_by_guard"] == "resource"
