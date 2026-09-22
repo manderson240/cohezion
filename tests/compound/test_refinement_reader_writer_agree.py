@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from pathlib import Path
 
 import pytest
 
@@ -88,13 +87,15 @@ def test_untracked_prime_is_written_in_place(tmp_path, overlay_dir):
     assert not overlay_dir.exists()
 
 
-def test_refine_passes_unverified_when_fixtures_are_absent(tracked_skills, overlay_dir,
-                                                           monkeypatch):
+def test_refine_passes_unverified_when_fixtures_are_absent(
+    tracked_skills, overlay_dir, monkeypatch
+):
     """R3 fail-open (run_fn wired, zero fixtures) must not count as verification."""
     from cohezion.compound import prompt_version_registry as pvr
 
-    monkeypatch.setattr(pvr.PromptVersionRegistry, "_load_behavioral_fixtures",
-                        lambda self, name: [])
+    monkeypatch.setattr(
+        pvr.PromptVersionRegistry, "_load_behavioral_fixtures", lambda self, name: []
+    )
     seen: dict[str, bool] = {}
     sr = SkillRefiner()
     sr._regression_run_fn = lambda cand, inp: ""

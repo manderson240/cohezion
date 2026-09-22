@@ -46,7 +46,7 @@ def test_needs_oracle_is_neither_done_nor_failed():
 
 def test_a_real_failure_is_still_a_failure():
     """Discriminating pair: only needs_oracle leaves the failure ledger."""
-    report, sprint, fail_counts, cats = _record({"success": False, "status": "act_exhausted"})
+    report, _sprint, fail_counts, cats = _record({"success": False, "status": "act_exhausted"})
     assert report.tasks_failed == 1 and report.tasks_needs_oracle == 0
     assert fail_counts["t1"] == 1 and cats["bugfix"]["failed"] == 1
     assert report.results[-1]["outcome"] == "failed"

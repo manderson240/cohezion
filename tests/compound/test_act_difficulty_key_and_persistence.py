@@ -23,13 +23,19 @@ from cohezion.compound.skill_refiner import SkillRefiner
 
 
 def _green(tier: str = "npu") -> dict:
-    return {"success": True, "status": "committed", "cascade_quality_score": 1.0,
-            "tier_used": tier, "elapsed_ms": 1000}
+    return {
+        "success": True,
+        "status": "committed",
+        "cascade_quality_score": 1.0,
+        "tier_used": tier,
+        "elapsed_ms": 1000,
+    }
 
 
 def _record_many(est: DifficultyEstimator, task: LoopTask, n: int = 4) -> None:
-    coord = LoopCoordinator(LoopConfig(), degradation_detector=MagicMock(),
-                            difficulty_estimator=est)
+    coord = LoopCoordinator(
+        LoopConfig(), degradation_detector=MagicMock(), difficulty_estimator=est
+    )
     for _ in range(n):
         coord._record_result(_green(), task, False, 0, RunReport(), {}, {}, SprintResult())
 

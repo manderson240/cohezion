@@ -1761,8 +1761,7 @@ class SkillRefiner:
                 with overlay.open("a", encoding="utf-8") as fh:
                     fh.write(self._create_refinement_section(signal) + "\n")
                 logger.info(
-                    "Refinement for tracked %s written to overlay %s (regression gate "
-                    "unverified)",
+                    "Refinement for tracked %s written to overlay %s (regression gate unverified)",
                     prime_file.name,
                     overlay,
                 )
