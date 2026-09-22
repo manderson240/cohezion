@@ -213,6 +213,40 @@ def _format_learned_refinements(guidance) -> str:
     return f"{_REFINEMENT_HEADER}\n\n" + "\n\n".join(kept) + "\n\n### End learned refinements"
 
 
+def _cascade_quality(text: str, output_type: str | None) -> tuple[float | None, str]:
+    """Quality of one cascade outcome, from evidence this function actually holds.
+
+    Returns ``(score, source)``. ``score is None`` means UNMEASURED and must be read as
+    unknown by every consumer -- never as a middling value. The previous behaviour
+    (no key at all, consumers defaulting to 0.5) pinned every production run at one
+    constant just below DifficultyEstimator's 0.6 floor, so no learner could tell a
+    good run from a bad one.
+
+    Deliberately NOT used as quality, because each was measured to be something else
+    (vault report 2026-09-03 "production quality signals are length or constant"):
+    - the tier gates in ``result.tier_path`` -- ``QualityGate`` is ``min_chars`` only, and
+      the terminal tier is ``QualityGate.TRUST``, which passes unconditionally;
+    - ``escalation_count`` -- RELATIVE to entry tier (H1/H2), so "clean <=> 0" degrades to
+      "was the entry tier" (falsified 2026-09-03);
+    - ``quality_eval`` scores for non-code types -- categorical is constant, generation is
+      length, short_answer rejects terse-correct answers (AQ6).
+    What IS content evidence: ``ast.parse`` on a code task (the one calibrated branch),
+    and a security rejection (prompt-injection / credential-leak pattern in the text).
+    Empty output is handled by the caller as a measured 0.0 (exhausted cascade).
+    """
+    try:
+        from cohezion.inference.quality_eval import evaluate
+
+        verdict = evaluate(text, output_type or "unknown")
+    except Exception:
+        return None, "unmeasured: quality_eval unavailable"
+    if verdict.reason.startswith("security:"):
+        return 0.0, verdict.reason
+    if output_type == "code":
+        return float(verdict.score), f"code: {verdict.reason}"
+    return None, f"unmeasured: no calibrated content check for {output_type or 'unknown'}"
+
+
 def make_local_execute_fn(task_description: str = "", context_prefix: str = "", orchestrator=None):
     """Return a callable compatible with CompoundExecutor.execute_task(execute_fn=...).
 
@@ -337,6 +371,9 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
                 return "", {
                     "error": err or "cascade exhausted: empty output",
                     "gate_miss": True,
+                    # Measured failure: nothing usable came back. 0.0 is evidence, not a default.
+                    "cascade_quality_score": 0.0,
+                    "cascade_quality_source": "cascade exhausted",
                     "model": model,
                     "escalation_count": result.escalation_count,
                     "cost_usd": result.cost_usd,
@@ -371,7 +408,14 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
             except Exception:
                 pass
 
+            quality, quality_source = _cascade_quality(
+                result.text, _d.output_type if _d is not None else None
+            )
             return result.text, {
+                # Always present (possibly None): the key's PRESENCE says this producer
+                # spoke, so SkillRefiner._extract_metrics must not fall back to a stand-in.
+                "cascade_quality_score": quality,
+                "cascade_quality_source": quality_source,
                 "model": model,
                 # which ENGINE ran — feeds the GIC DifficultyEstimator so it learns per-skill
                 # engine allocation (multi-engine compounding; CB16 reads top-level tier_used).
