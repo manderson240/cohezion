@@ -42,7 +42,9 @@ class ExecutionMetrics:
     duration_seconds: float
     tokens_used: int
     token_efficiency: float
-    quality_score: float
+    # None = UNMEASURED. Consumers that record or learn from quality must skip it rather
+    # than substitute a value (AG2 discipline: unknown is never conflated with a number).
+    quality_score: float | None
     anomaly_score: float
     cached_hits: int
     tokens_per_task: int = 0
@@ -442,7 +444,7 @@ class SkillRefiner:
         self._goal_consecutive_hits = 0
         if self._goal_epoch == 0:
             # Epoch 0: original metrics-driven heuristic — preserve backward compatibility.
-            if metrics.quality_score < 0.5:
+            if metrics.quality_score is not None and metrics.quality_score < 0.5:
                 self._session_goal = {
                     "objective": "improve quality_score",
                     "target_metric": "quality_score",
@@ -909,20 +911,33 @@ class SkillRefiner:
             or 0
         )
 
-        # POLARITY FIX (2026-07-12): anomaly_score is a HEALTH score (high=good) — use directly
+        # QUALITY SOURCE (2026-09-22). Precedence:
+        #  1. `cascade_quality_score` -- when the key is PRESENT the producer
+        #     (make_local_execute_fn) has spoken, INCLUDING an explicit None meaning
+        #     "not measured". Its value is content evidence only (ast.parse on code, a
+        #     security reject, an exhausted cascade); see local_inference._cascade_quality.
+        #  2. legacy `anomaly_score` alias -- kept for callers that pass a real score
+        #     (POLARITY FIX 2026-07-12: a HEALTH score, high=good, used directly).
+        #  3. nothing -> None (UNMEASURED). This was a fabricated 0.5, one tenth below
+        #     DifficultyEstimator's 0.6 floor: every run looked identical and sub-par.
         #
-        # AQ6 (2026-08-30) — DELIBERATELY *not* `metrics_dict.get("output_quality_score", ...)`.
-        # CompoundExecutor Step 3.9 now publishes a real measurement of the output text, and
-        # aliasing it here is the obvious-looking next move. It is wrong, and the measurement
-        # says so: `quality_eval.evaluate` is calibrated as a TIER-ESCALATION gate ("is this
-        # substantial enough not to escalate?"), not as answer correctness. Measured — a correct
-        # answer of "Yes." to a short_answer task scores 0.00/rejected purely for being under 10
-        # chars. Feeding that here would drive DifficultyEstimator (_QUALITY_FLOOR = 0.6),
-        # _auto_update_goal (< 0.5) and the ERP surprise signal to punish terse-but-correct
-        # output and escalate to costlier tiers — a Quarter-on-a-String regression.
+        # AQ6 (2026-08-30) still holds -- DELIBERATELY *not* `output_quality_score`.
+        # `quality_eval.evaluate` is an ESCALATION gate, not answer correctness: a correct
+        # "Yes." to a short_answer task scores 0.00/rejected for being under 10 chars.
         # Guarded by tests/compound/test_autodqa_quality_wiring.py::TestAQ6ScaleMismatch.
-        # Wiring it requires a calibration experiment first, not a one-line alias.
-        quality_score = anomaly_score
+        # `cascade_quality_score` differs by construction: it reports only the calibrated
+        # `code` branch and security rejects, and None for everything else.
+        if "cascade_quality_score" in metrics_dict:
+            raw_quality = metrics_dict["cascade_quality_score"]
+            quality_score = (
+                float(raw_quality)
+                if isinstance(raw_quality, (int, float)) and not isinstance(raw_quality, bool)
+                else None
+            )
+        elif "anomaly_score" in metrics_dict:
+            quality_score = anomaly_score
+        else:
+            quality_score = None
 
         # Calculate token efficiency (tokens per second)
         token_efficiency = tokens_used / duration if duration > 0 else 0.0
@@ -959,6 +974,15 @@ class SkillRefiner:
             LearningSignal if significant learning found, None otherwise
         """
         insights = []
+
+        if metrics.quality_score is None:
+            # UNMEASURED quality: record nothing quality-derived. Every recorder below
+            # (ERP, process reward, shadow canary, drift, health oracle, difficulty
+            # estimator) would otherwise learn from a stand-in, and a refinement signal
+            # whose confidence rests on quality has no basis. Skip -- do not substitute.
+            metrics.prediction_error = None
+            logger.debug("No learning signal: quality unmeasured for %s", skill_name)
+            return None
 
         # #117/#118: EnvironmentResponsePredictor + RL process reward wiring.
         # Compute prediction error BEFORE recording so predict() sees prior history.
