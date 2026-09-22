@@ -981,6 +981,14 @@ class SkillRefiner:
             # estimator) would otherwise learn from a stand-in, and a refinement signal
             # whose confidence rests on quality has no basis. Skip -- do not substitute.
             metrics.prediction_error = None
+            # ...except the health oracle's SYNTHESIS, which reads only already-measured
+            # history: without this, a tier restored from oracle_state.json (or computed by an
+            # older _synthesize) never updates on unmeasured lanes and routes every task.
+            if self._health_oracle is not None:
+                reassess = getattr(self._health_oracle, "reassess", None)
+                if callable(reassess):
+                    with contextlib.suppress(Exception):
+                        reassess()
             logger.debug("No learning signal: quality unmeasured for %s", skill_name)
             return None
 
