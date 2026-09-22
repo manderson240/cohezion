@@ -15,6 +15,7 @@ import json
 import logging
 import math
 import re
+from pathlib import Path
 from typing import Any
 
 
@@ -302,6 +303,24 @@ class PromptVersionRegistry:
             )
         except Exception:
             pass
+
+
+# ── checked-in golden fixtures (seeded into SurrealDB by a human, never by the gate) ─────────
+
+GOLDEN_FIXTURE_DIR = Path(__file__).parent / "golden_fixtures"
+_FIXTURE_DB_FIELDS = ("input", "expected_output", "validator_type", "critical")
+
+
+def load_golden_fixture_file(skill_name: str) -> list[dict[str, Any]]:
+    """Fixtures for *skill_name* from ``golden_fixtures/<skill_name>.json``, reduced to the
+    fields ``golden_fixture`` rows carry. Empty list when the skill has no checked-in file."""
+    path = GOLDEN_FIXTURE_DIR / f"{skill_name}.json"
+    if not path.is_file():
+        return []
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    if doc.get("skill_name") != skill_name:
+        raise ValueError(f"{path.name} declares skill_name={doc.get('skill_name')!r}")
+    return [{k: fx[k] for k in _FIXTURE_DB_FIELDS} for fx in doc.get("fixtures", [])]
 
 
 # ── behavioral regression eval (FAPO R3 — defends against quiet prompt regression) ────────────
