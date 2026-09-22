@@ -695,6 +695,10 @@ def _act_iterations(
         code = rec["edit"] = blocks[-1]
         try:
             path.write_text(splice(original, code, anchor=targets[0], allowed=set(targets)))
+            # Format BEFORE verification: the commit must be exactly the bytes that went
+            # green (correctness C7 -- `ruff check --fix` after the K=3 confirmation could
+            # delete an "unused" re-export and commit code no run had tested).
+            _format(repo, file, python)
         except Exception as exc:
             path.write_text(original)
             rec["outcome"] = f"APPLY_ERROR {type(exc).__name__}: {exc}"
@@ -857,6 +861,14 @@ def _tampered(repo: Path, file: str, baseline: dict[str, Any] | None) -> list[st
     return diffs
 
 
+def _format(repo: Path, file: str, python: str) -> None:
+    """ruff format + fix *file* in place, with the venv's ruff if it has one."""
+    ruff = Path(python).parent / "ruff"
+    if ruff.exists():
+        for cmd in (["format", file], ["check", "--fix", file]):
+            subprocess.run([str(ruff), *cmd], cwd=repo, check=False, capture_output=True)
+
+
 def _one_line(text: str, cap: int = 120) -> str:
     """Card-supplied text as ONE printable line: a newline could forge commit trailers
     (``Co-Authored-By:``, ``Signed-off-by:``) in the message."""
@@ -866,10 +878,6 @@ def _one_line(text: str, cap: int = 120) -> str:
 def _commit(
     repo: Path, file: str, task_id: str, model: str, targets: list[str], python: str
 ) -> str:
-    ruff = Path(python).parent / "ruff"
-    if ruff.exists():
-        for cmd in (["format", file], ["check", "--fix", file]):
-            subprocess.run([str(ruff), *cmd], cwd=repo, check=False, capture_output=True)
     names, tid, who = (_one_line(x) for x in (", ".join(targets), task_id, model))
     msg = f"fix(act-loop): {names} [task: {tid}] [author: local-model {who}]"
     try:
