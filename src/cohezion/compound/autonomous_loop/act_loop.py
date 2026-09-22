@@ -62,6 +62,10 @@ def make_chat_fn(
             params = ModelCardHarness.from_live_api().get_params("code", model)
             final_prompt, extra = params.apply(prompt)
             budget = max(max_tokens, params.max_tokens)
+            if "/no_think" in (params.prompt_prefix or ""):
+                # Qwen3.6 ignores the /no_think soft switch (measured 2026-09-21: 300/300
+                # tokens of reasoning, empty content); only the template kwarg disables it.
+                extra = {**extra, "chat_template_kwargs": {"enable_thinking": False}}
         except Exception:  # resolver unavailable: plain call
             final_prompt, extra, budget = prompt, {}, max_tokens
         msgs = [{"role": "user", "content": final_prompt}]
