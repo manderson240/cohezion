@@ -652,8 +652,8 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             cost_per_1k_input_usd=0.0003,
             cost_per_1k_output_usd=0.0010,
             priority=75,
-            verified_working=True,
-            notes="397B Qwen 3.5 via Ollama Cloud (frontier coding)",
+            verified_working=False,  # retired by Ollama Cloud 2026-09-25; successor kimi-k2.7-code:cloud
+            notes="397B Qwen 3.5 via Ollama Cloud (frontier coding) -- RETIRED 2026-09-25",
         ),
         ModelEntry(
             model_id="kimi-k3:cloud",

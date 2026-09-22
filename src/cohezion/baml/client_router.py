@@ -77,7 +77,7 @@ def build_registry(tier: str = "hybrid") -> Any:
             options={
                 "base_url": "http://127.0.0.1:11434/v1",
                 "api_key": "local",
-                "model": "deepseek-v4-flash:cloud",
+                "model": "deepseek-v4.1-flash:cloud",
                 "request_timeout_ms": 60000,
             },
         )
@@ -99,7 +99,7 @@ def build_registry(tier: str = "hybrid") -> Any:
             options={
                 "base_url": "http://127.0.0.1:11434/v1",
                 "api_key": "local",
-                "model": "deepseek-v4-flash:cloud",
+                "model": "deepseek-v4.1-flash:cloud",
                 "request_timeout_ms": 60000,
             },
         )

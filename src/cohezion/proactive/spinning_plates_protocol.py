@@ -173,7 +173,7 @@ class SpinningPlatesGovernor:
                 t0 = time.perf_counter()
                 prompt = "In 2 sentences, describe the frontier intersection of Sheaf Cohomology obstructions and Hamiltonian Neural ODEs for multi-agent AGI."
                 url = "http://localhost:11434/api/generate"
-                payload = {"model": "deepseek-v4-flash:cloud", "prompt": prompt, "stream": False}
+                payload = {"model": "deepseek-v4.1-flash:cloud", "prompt": prompt, "stream": False}
                 req = urllib.request.Request(
                     url,
                     data=json.dumps(payload).encode("utf-8"),

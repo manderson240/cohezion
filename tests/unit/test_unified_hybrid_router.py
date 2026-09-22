@@ -53,7 +53,7 @@ def test_route_tier2_escalation_when_evi_gt_075() -> None:
         )
 
         assert res.selected_tier == 2
-        assert res.model_name == "qwen3.5:397b-cloud"
+        assert res.model_name == "kimi-k2.7-code:cloud"
         assert res.escalated is True
         assert res.evi_score > 0.75
 
@@ -108,3 +108,27 @@ def test_unified_hybrid_router_force_cloud():
         assert isinstance(res, HybridRouteResponse)
         assert res.tier_used == "Tier 2 (Ollama Cloud)"
         assert res.content == "Ollama Cloud response text"
+
+
+# Ollama Cloud retirements, 2026-09-25. The bare "deepseek-v4-flash:cloud" alias shares
+# 0731's digest (verified via /api/show), so it retires too.
+_RETIRED_CLOUD_MODELS = {
+    "deepseek-v4-flash:0731-cloud",
+    "deepseek-v4-flash:cloud",
+    "qwen3.5:397b-cloud",
+}
+
+
+def test_no_route_table_pins_a_retired_cloud_model() -> None:
+    """Every module-level routing dict must resolve to a model that still exists."""
+    import cohezion.inference.unified_hybrid_router as uhr
+
+    pinned = {
+        f"{name}[{key}]": value
+        for name, table in vars(uhr).items()
+        if isinstance(table, dict)
+        for key, value in table.items()
+        if isinstance(value, str)
+    }
+    stale = {where: model for where, model in pinned.items() if model in _RETIRED_CLOUD_MODELS}
+    assert not stale, f"route tables still pin retired models: {stale}"

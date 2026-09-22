@@ -80,14 +80,15 @@ _TIER1_PINS: dict[TaskClass, str] = {
 _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "deepseek-v4-pro:cloud",  # 1.6T MoE Top Reasoning & Formal Logic
     TaskClass.DEEP_REASONING: "kimi-k3:cloud",  # Kimi K3 Autonomous Deep Reasoning
-    TaskClass.CODING: "qwen3.5:397b-cloud",  # 397B Multi-File System Refactors
+    TaskClass.CODING: "kimi-k2.7-code:cloud",  # Multi-File System Refactors (qwen3.5:397b retired 2026-09-25)
     TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",  # Agentic Tool Use & Precise Patch Gen
     TaskClass.VISION: "glm-5.3-flash:cloud",  # Fast Multimodal Geometry & Diagrams
     TaskClass.RESEARCH: "nemotron-3-ultra:cloud",  # Frontier Enterprise Knowledge Synthesis
     TaskClass.SCIENCE_FRONTIER: "nemotron-3-super:cloud",  # Frontier Physics, Science & Math Verification
     TaskClass.FAST_QA: "glm-5.3-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
-    TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud",  # Sub-Second Low-Latency Draft Generation
-    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:cloud",  # Fast edge fallback
+    # deepseek-v4-flash:0731 (and the bare :cloud alias, same digest) retired 2026-09-25
+    TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4.1-flash:cloud",  # Sub-Second Low-Latency Draft Generation
+    TaskClass.SUB_BILLION_EDGE: "deepseek-v4.1-flash:cloud",  # Fast edge fallback
     TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
     TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors & Vision
     TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
@@ -198,7 +199,7 @@ TIER_1_ROSTER = {
 
 TIER_2_ROSTER = {
     "reasoning": "deepseek-v4-pro:cloud",
-    "coding": "qwen3.5:397b-cloud",
+    "coding": "kimi-k2.7-code:cloud",
     "research": "glm-5.2:cloud",
     "general": "deepseek-v4-pro:cloud",
 }

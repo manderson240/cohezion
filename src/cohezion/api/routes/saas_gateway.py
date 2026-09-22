@@ -13,13 +13,13 @@ import logging
 import os
 import time
 import urllib.request
-from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
+
 
 logger = logging.getLogger("saas_gateway")
 
@@ -172,7 +172,7 @@ async def create_chat_completion(
         # Fallback to Ollama
         try:
             ollama_payload = {
-                "model": "deepseek-v4-flash:cloud" if "cloud" in req.model else "llama3.2",
+                "model": "deepseek-v4.1-flash:cloud" if "cloud" in req.model else "llama3.2",
                 "messages": [{"role": m.role, "content": m.content} for m in req.messages],
                 "stream": False,
             }
