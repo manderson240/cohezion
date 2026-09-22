@@ -461,7 +461,7 @@ if __name__ == "__main__":
 @click.option(
     "--model",
     "-m",
-    default="qwen3.5:cloud",
+    default="glm-5.3:cloud",
     help="Ollama cloud model for execution",
 )
 @click.option(

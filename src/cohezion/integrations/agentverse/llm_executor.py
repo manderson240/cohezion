@@ -22,8 +22,9 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_CLOUD_MODEL = "qwen3.5:cloud"
-DEFAULT_JUDGE_MODEL = "qwen3.5:cloud"
+# qwen3.5:cloud (== qwen3.5:397b) retired by Ollama Cloud 2026-09-25
+DEFAULT_CLOUD_MODEL = "glm-5.3:cloud"
+DEFAULT_JUDGE_MODEL = "glm-5.3:cloud"
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 LEMONADE_BASE_URL = os.getenv("LEMONADE_BASE_URL", "http://localhost:13305")
 

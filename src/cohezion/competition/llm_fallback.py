@@ -59,7 +59,7 @@ def llm_solve(task: dict[str, Any]) -> Grid | None:
     prompt += "\nWrite a Python function `solve(grid)` that passes all training examples."
 
     try:
-        executor = LLMExecutor(model="qwen3.5:cloud")
+        executor = LLMExecutor(model="kimi-k2.7-code:cloud")
         result = executor.execute_task(prompt, skill="python_PRIME")
         code = _extract_function(result.output if hasattr(result, "output") else str(result))
         if not code:

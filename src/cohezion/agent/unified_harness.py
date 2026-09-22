@@ -247,7 +247,7 @@ class UnifiedAgent:
           * ``guidance_max_facts=5`` — the injected block is capped regardless of how many guards
             accumulate, bounding the per-step token cost on the local fleet.
         """
-        self.executor = executor or LLMExecutor(model="qwen3.5:cloud")
+        self.executor = executor or LLMExecutor(model="glm-5.3:cloud")
         self.tools = tools or ToolRegistry()
         self.session_mgr = CompoundSessionManager()
         self.max_steps = 50
