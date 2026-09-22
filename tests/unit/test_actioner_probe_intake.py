@@ -53,7 +53,8 @@ class FakeQueue(WorkQueueAPI):
         rows = [
             i
             for i in self.items
-            if i.get("relevance") == query["relevance"] and i.get("status", "reviewed") == query["status"]
+            if i.get("relevance") == query["relevance"]
+            and i.get("status", "reviewed") == query["status"]
         ]
         return {"items": rows}
 

@@ -119,7 +119,7 @@ def test_driver_wires_the_admission_gate_and_exit_code(monkeypatch, capsys):
         return {"failed": {}, "deferred_admission": ["x"], "admission_refused": "floor"}
 
     monkeypatch.setattr(engine, "run_batch", fake_run_batch)
-    monkeypatch.setattr(engine, "default_chat_fn", lambda model: (lambda p: ""))
+    monkeypatch.setattr(engine, "default_chat_fn", lambda model: lambda p: "")
     monkeypatch.setattr(compound, "make_executor", lambda mcp: object())
     monkeypatch.setattr(sys, "argv", ["actioner.py"])
     path = Path(__file__).resolve().parents[2] / "scripts" / "actioner.py"

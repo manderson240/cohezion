@@ -630,7 +630,7 @@ def action_item(
 
 
 def _admission_refusal(admit: Callable[[str], Any], model: str) -> str:
-    """"" when *model* is admitted, else the refusal reason. A gate that raises refuses."""
+    """Empty string when *model* is admitted, else the refusal reason; a raising gate refuses."""
     try:
         result = admit(model)
     except Exception as exc:  # the gate is a safety check: unavailable means closed
