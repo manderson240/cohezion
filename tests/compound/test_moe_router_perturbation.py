@@ -155,18 +155,28 @@ class TestConsumptionPerturbation:
     def test_c2_null_router_matches_no_router_on_the_five_perspectives(self):
         assert _selection_sequence(MoESkillRouter()) == _selection_sequence(None)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "CLAIM FAILS (2026-09-22): SkillRefiner emits a 6th 'trajectory' candidate that "
-            "MoESkillRouter does not know; get_weight('trajectory') == 0.0, so wiring ANY "
-            "router -- even an untouched uniform one -- zeroes that candidate's score and it "
-            "can never win. A null perturbation changes the recommendation."
-        ),
-    )
     def test_c2_null_router_matches_no_router_with_trajectory_candidate(self):
         jt = MagicMock()
         jt.export_trajectories.return_value = [{"operation_type": "read", "coherence": 0.9}] * 5
         without = _selection_sequence(None, journey_tracker=jt)
         assert "trajectory" in without  # precondition: the candidate can win without a router
         assert _selection_sequence(MoESkillRouter(), journey_tracker=jt) == without
+
+    def test_mr7_unknown_expert_gets_uniform_share_not_zero(self):
+        """MR7: an expert outside the roster reads the prior share at ANY training state."""
+        r = _seeded_router()
+        assert r.get_weight("trajectory") == pytest.approx(1.0 / len(EXPERTS))
+        assert sum(r.weights.values()) == pytest.approx(1.0)
+        assert "trajectory" not in r.weights
+
+    def test_mr7_trajectory_candidate_survives_a_trained_router(self):
+        """Discriminating: a trained router must not veto the trajectory candidate.
+
+        With get_weight(unknown) == 0.0 the trajectory candidate's score is zero and it never
+        wins, whatever the other experts' weights are.
+        """
+        jt = MagicMock()
+        jt.export_trajectories.return_value = [{"operation_type": "read", "coherence": 0.9}] * 5
+        r = MoESkillRouter(alpha=1.0)
+        r.replay([("fallback", -1.0)] * 3)
+        assert "trajectory" in _selection_sequence(r, journey_tracker=jt)

@@ -648,6 +648,21 @@ far better (state, action, next_state) triples than inferred state-pair transiti
   literal is restored). 18 other executable sites still restate the literal; migrate as touched.
 - **Verification**: `uv run pytest tests/compound/test_moe_skill_router.py tests/physics/test_hiho_kernel.py -q` → 36 passed
 
+### MR7: an unknown expert reads the uniform share, not 0.0 -- and the router is DORMANT (2026-09-22)
+- `get_weight(name)` for a name outside `_EXPERT_NAMES` returns `1/n`. SkillRefiner's AReaL2.0
+  `"trajectory"` candidate has no expert; at 0.0 any wired router (even an untouched uniform
+  one) zeroed its score so it could never win. `weights` still sums to 1 over the five.
+- **T2 discriminating** (mutation-verified: restoring 0.0 fails 3):
+  `tests/compound/test_moe_router_perturbation.py::TestConsumptionPerturbation::test_c2_null_router_matches_no_router_with_trajectory_candidate`
+  (was a strict xfail), `::test_mr7_trajectory_candidate_survives_a_trained_router`.
+- **MR1-MR6 are NOT production invariants.** No non-test code constructs `MoESkillRouter` or
+  calls `update()`/`route()`; no factory passes `moe_router` (default None). Deliberately left unwired:
+  no honest reward exists -- (1) the expert behind a recommendation is not persisted,
+  (2) appended refinements never reach the prompt (`learned_refinements` has no reader;
+  `make_local_execute_fn` reads `guidance["guidance"]` only), (3) production `quality_score`
+  is the constant 0.5. Wire only when all three exist; add it to `dormancy_scan.py` then.
+- **Verification**: `uv run pytest tests/compound/test_moe_router_perturbation.py tests/compound/test_moe_skill_router.py -q` -> 47 passed
+
 ## Lessons Captured (2026-05-02)
 
 ## JepaGate Threshold Property Invariants (#156, 2026-06-28)
