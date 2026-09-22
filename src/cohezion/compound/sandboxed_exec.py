@@ -125,6 +125,15 @@ def _bwrap_prefix() -> tuple[str, ...]:
     return prefix if probe.returncode == 0 else ()
 
 
+def bwrap_prefix() -> tuple[str, ...]:
+    """Public view of the live namespace probe (``()`` when bwrap cannot isolate here).
+
+    Reused by ``act_loop.run_tests``, which cannot use :func:`run_untrusted` itself: pytest
+    needs more than NOFILE=3/NPROC=0. Callers append their own binds and ``--chdir``.
+    """
+    return _bwrap_prefix()
+
+
 def _kill_group(proc: subprocess.Popen) -> None:
     with contextlib.suppress(ProcessLookupError, PermissionError):
         os.killpg(proc.pid, signal.SIGKILL)

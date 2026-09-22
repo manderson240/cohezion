@@ -10,6 +10,7 @@ on green, naming the task id and the model.
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 import os
 import re
@@ -188,14 +189,76 @@ def get_def_source(source: str, name: str) -> str:
     raise KeyError(name)
 
 
-def splice(source: str, replacement: str, anchor: str) -> str:
-    """Replace top-level defs/constants named in *replacement*; insert new ones before *anchor*."""
+def _has_call(node: ast.AST) -> bool:
+    return any(
+        isinstance(n, ast.Call | ast.Await | ast.Yield | ast.YieldFrom) for n in ast.walk(node)
+    )
+
+
+def _decorator_dumps(node: ast.AST | None) -> set[str]:
+    """Every decorator expression anywhere in *node* (the ones the model may restate)."""
+    if node is None:
+        return set()
+    return {
+        ast.dump(d)
+        for n in ast.walk(node)
+        for d in getattr(n, "decorator_list", [])
+        if isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef)
+    }
+
+
+def _check_import_time(node: ast.stmt, allowed_decorators: set[str], where: str) -> None:
+    """Refuse model code that would RUN when the module is imported (security finding C2).
+
+    A def's body runs only when called (that is the point: the oracle calls it). But its
+    decorators, default values and annotations, a class body, and an assignment's value all
+    execute at import time -- during pytest collection and in every importer. Those may not
+    call anything, and decorators must be ones the original definition already had.
+    """
+    exprs: list[ast.AST] = []
+    decorators = list(getattr(node, "decorator_list", []))
+    for d in decorators:
+        if ast.dump(d) not in allowed_decorators:
+            raise ValueError(f"{where}: new decorator `{ast.unparse(d)}` is not allowed")
+    if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+        a = node.args
+        exprs += [*a.defaults, *(d for d in a.kw_defaults if d is not None)]
+        args = [*a.posonlyargs, *a.args, *a.kwonlyargs, a.vararg, a.kwarg]
+        exprs += [x.annotation for x in args if x is not None and x.annotation is not None]
+        if node.returns is not None:
+            exprs.append(node.returns)
+    elif isinstance(node, ast.ClassDef):
+        exprs += [*node.bases, *(k.value for k in node.keywords)]
+        for st in node.body:
+            if isinstance(st, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+                _check_import_time(st, allowed_decorators, f"{where}.{st.name}")
+            elif isinstance(st, ast.Assign | ast.AnnAssign | ast.Expr | ast.Pass):
+                exprs.append(st)
+            else:
+                raise ValueError(f"{where}: `{type(st).__name__}` in a class body is not allowed")
+    elif isinstance(node, ast.Assign | ast.AnnAssign):
+        exprs.append(node)
+    for e in exprs:
+        if _has_call(e):
+            raise ValueError(f"{where}: `{ast.unparse(e)}` would run code at import time")
+
+
+def splice(source: str, replacement: str, anchor: str, *, allowed: set[str]) -> str:
+    """Replace the top-level definitions named in *allowed* with their versions in *replacement*.
+
+    Only definitions whose name is in *allowed* (the task's edit targets) may appear: any
+    other def, assignment, expression, decorator or class body is refused (security finding
+    C2, 2026-09-22 -- ``X = __import__("os").system(...)`` and a replacement of a NON-target
+    function were both accepted). A new name in *allowed* is inserted before *anchor*.
+    """
     new_nodes = ast.parse(replacement).body
     if not new_nodes:
         raise ValueError("empty replacement")
     rep_lines, lines = replacement.splitlines(), source.splitlines()
-    existing = {n: _span(node) for node in ast.parse(source).body for n in _top_level_names(node)}
-    imported = {n for node in ast.parse(source).body for n in _import_names(node)}
+    src_body = ast.parse(source).body
+    existing = {n: _span(node) for node in src_body for n in _top_level_names(node)}
+    originals = {n: node for node in src_body for n in _top_level_names(node)}
+    imported = {n for node in src_body for n in _import_names(node)}
     edits: list[tuple[int, int, str]] = []  # (start, end, text); end < start means insert
     inserts: list[str] = []
     for node in new_nodes:
@@ -211,8 +274,22 @@ def splice(source: str, replacement: str, anchor: str) -> str:
                 )
             continue
         names = _top_level_names(node)
-        if not names:
+        assigned = (
+            node.targets
+            if isinstance(node, ast.Assign)
+            else [node.target]
+            if isinstance(node, ast.AnnAssign)
+            else []
+        )
+        if not names or not all(isinstance(t, ast.Name) for t in assigned):
             raise ValueError(f"unsupported top-level statement: {type(node).__name__}")
+        outside = [n for n in names if n not in allowed]
+        if outside:
+            raise ValueError(
+                f"`{', '.join(outside)}` is not an edit target ({sorted(allowed)}); "
+                "change only those definitions and put helpers inside the function body"
+            )
+        _check_import_time(node, _decorator_dumps(originals.get(names[0])), names[0])
         s, e = _span(node)
         text = "\n".join(rep_lines[s - 1 : e])
         hit = next((existing[n] for n in names if n in existing), None)
@@ -241,21 +318,82 @@ _RUNNER_BROKEN_MARKERS = (
 PYTEST_TIMEOUT = "pytest TIMEOUT"
 
 
+# Verification runs MODEL-WRITTEN code (the edited def's body, called by the oracle). It gets
+# no credentials: only these variables survive from the daemon's environment (C2).
+_VERIFY_ENV_ALLOW = ("PATH", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "COHEZION_JOURNEY_PERSIST")
+
+
+def verify_env(repo: Path, scratch: Path) -> dict[str, str]:
+    """Allow-listed environment for a verify run; HOME/TMPDIR/pycache live in *scratch*."""
+    env = {k: os.environ[k] for k in _VERIFY_ENV_ALLOW if k in os.environ}
+    env.setdefault("PATH", "/usr/bin:/bin")
+    (scratch / "tmp").mkdir(parents=True, exist_ok=True)
+    env.update(
+        PYTHONPATH=str(repo / "src"),
+        # Fresh bytecode cache per run: a same-size edit written within the mtime
+        # granularity of the previous run is otherwise served from a STALE .pyc.
+        PYTHONPYCACHEPREFIX=str(scratch / "pyc"),
+        HOME=str(scratch),
+        TMPDIR=str(scratch / "tmp"),
+    )
+    return env
+
+
+def _namespace_prefix() -> tuple[str, ...]:
+    try:
+        from cohezion.compound.sandboxed_exec import bwrap_prefix
+    except ImportError:
+        return ()
+    return bwrap_prefix()
+
+
+def verify_isolation() -> str:
+    """Which boundary the verify run gets: ``bwrap`` or ``env-scrub-only``.
+
+    ``env-scrub-only`` (bwrap missing or user namespaces denied) means NO filesystem or
+    network boundary: the model's code runs with this UID's file access. The commit-time
+    integrity check (:func:`_tampered`) and hook-less commits are then the only controls.
+    """
+    return "bwrap" if _namespace_prefix() else "env-scrub-only"
+
+
+def verify_argv(repo: Path, python: str, scratch: Path) -> list[str]:
+    """bwrap wrapper for a verify run: read-only root (incl. the repo and .git), no network,
+    private /tmp; only *scratch* is writable. ``[]`` when namespaces are unavailable."""
+    prefix = _namespace_prefix()
+    if not prefix:
+        return []
+    root, py_dir, tmp = str(repo.resolve()), str(Path(python).parent), str(scratch)
+    return [
+        *prefix,
+        # Re-expose paths the private /tmp may have shadowed.
+        "--ro-bind", root, root, "--ro-bind", py_dir, py_dir, "--bind", tmp, tmp,
+        "--chdir", root,
+    ]  # fmt: skip
+
+
 def run_tests(repo: Path, python: str, tests: list[str], timeout: float = 300) -> tuple[bool, str]:
-    """Run pytest on *tests*; return (green, output tail)."""
-    # Fresh bytecode cache per run: a same-size edit written within the mtime granularity
-    # of the previous run is otherwise served from a STALE .pyc (observed in the self-test).
-    pyc = tempfile.mkdtemp(prefix="act_pyc_")
-    env = {**os.environ, "PYTHONPATH": str(repo / "src"), "PYTHONPYCACHEPREFIX": pyc}
+    """Run pytest on *tests*; return (green, output tail).
+
+    Sandboxed per security finding C2: scrubbed env always, bwrap (read-only repo and .git,
+    ``--unshare-all`` so no network) when the host allows namespaces.
+    """
+    scratch = Path(tempfile.mkdtemp(prefix="act_verify_"))
     cmd = [python, "-m", "pytest", *tests, "-q", "-p", "no:cacheprovider", "--tb=short"]
     try:
         p = subprocess.run(
-            cmd, cwd=repo, env=env, capture_output=True, text=True, timeout=timeout, check=False
+            [*verify_argv(repo, python, scratch), *cmd],
+            cwd=repo,
+            env=verify_env(repo, scratch),
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         return False, PYTEST_TIMEOUT
     finally:
-        shutil.rmtree(pyc, ignore_errors=True)
+        shutil.rmtree(scratch, ignore_errors=True)
     return p.returncode == 0, (p.stdout + p.stderr)[-3000:]
 
 
@@ -363,8 +501,10 @@ def build_prompt(
         f"CURRENT TEST FAILURE:\n```\n{failure[-1500:]}\n```\n\n"
         + (f"YOUR PREVIOUS ATTEMPTS FAILED:\n{fb}\n\n" if fb else "")
         + "Reply with ONE ```python fenced block containing the COMPLETE new version of every "
-        "top-level function/constant you change (you may add new module-level constants or "
-        "functions). Do not include imports, tests, or unchanged definitions. No prose needed."
+        "definition shown above that you change. Only those definitions may appear: no new "
+        "top-level functions, constants, decorators or statements (put helpers and imports "
+        "inside the function body). Do not include tests or unchanged definitions. "
+        "No prose needed."
     )
 
 
@@ -494,7 +634,17 @@ def _act_iterations(
         skip = {t.split("::", 1)[0] for t in tests}
         callers = caller_tests(repo, file, exclude=skip, cap=caller_cap)
     guarded = _baseline_green(repo, python, callers, caller_timeout, budget_s=caller_timeout)
-    _log(log, {"task_id": task_id, "caller_tests": guarded, "caller_candidates": callers})
+    _log(
+        log,
+        {
+            "task_id": task_id,
+            "caller_tests": guarded,
+            "caller_candidates": callers,
+            "verify_isolation": verify_isolation(),
+        },
+    )
+    # Last point before MODEL code runs: everything after this is compared against it.
+    baseline = _repo_fingerprint(repo, file) if commit else None
     tests = [*tests, *guarded]
     run_timeout = 300 + (caller_timeout if guarded else 0)
     history: list[str] = []
@@ -544,7 +694,7 @@ def _act_iterations(
             continue
         code = rec["edit"] = blocks[-1]
         try:
-            path.write_text(splice(original, code, anchor=targets[0]))
+            path.write_text(splice(original, code, anchor=targets[0], allowed=set(targets)))
         except Exception as exc:
             path.write_text(original)
             rec["outcome"] = f"APPLY_ERROR {type(exc).__name__}: {exc}"
@@ -590,6 +740,17 @@ def _act_iterations(
                         "failed_on_confirm": rep,
                         "detail": r_out[-400:],
                     }
+            tamper = _tampered(repo, file, baseline) if commit else []
+            if tamper:
+                _log(
+                    log, {"task_id": task_id, "iter": it, "outcome": "TAMPERED", "changed": tamper}
+                )
+                return {
+                    "status": "TAMPERED",
+                    "iterations": it,
+                    "wall_s": round(time.monotonic() - t0, 1),
+                    "detail": tamper[:20],
+                }
             try:
                 sha = (
                     _commit(repo, file, task_id, rec["model"], targets, python) if commit else None
@@ -652,6 +813,50 @@ def git(repo: Path, *args: str) -> str:
     return p.stdout
 
 
+# Every git call made after model code has run: no hooks, no fsmonitor command (C2).
+_SAFE_GIT = ("-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false")
+
+
+def _repo_fingerprint(repo: Path, file: str) -> dict[str, Any] | None:
+    """Git control files + working-tree status, EXCLUDING the edit target; None if no repo.
+
+    Taken before model code first runs and compared before committing. A verify run that
+    plants a hook, rewrites .git/config (hooksPath, fsmonitor, filters), drops an untracked
+    conftest.py/.gitattributes, or touches any other file aborts the commit (TAMPERED).
+    """
+    if not _is_git_repo(repo):
+        return None
+    dirs = {
+        Path(repo, d).resolve()
+        for d in git(repo, "rev-parse", "--git-dir", "--git-common-dir").split()
+    }
+    files: dict[str, str] = {}
+    for d in sorted(dirs):
+        for sub in ("config", "hooks", "info"):
+            top = d / sub
+            for f in sorted([top, *top.rglob("*")] if top.is_dir() else [top]):
+                if f.is_symlink():
+                    files[str(f)] = "link:" + os.readlink(f)
+                elif f.is_file():
+                    files[str(f)] = (
+                        f"{f.stat().st_mode:o}:{hashlib.sha256(f.read_bytes()).hexdigest()}"
+                    )
+    status = git(repo, *_SAFE_GIT, "status", "--porcelain=v1", "--untracked-files=all")
+    lines = sorted(ln for ln in status.splitlines() if ln[3:] != file)
+    return {"git_dirs": sorted(map(str, dirs)), "files": files, "status": lines}
+
+
+def _tampered(repo: Path, file: str, baseline: dict[str, Any] | None) -> list[str]:
+    """What changed outside *file* since *baseline* (empty = clean)."""
+    if baseline is None:
+        return []
+    now = _repo_fingerprint(repo, file) or {}
+    diffs = [k for k in set(baseline["files"]) | set(now.get("files", {}))
+             if baseline["files"].get(k) != now.get("files", {}).get(k)]  # fmt: skip
+    diffs += sorted(set(now.get("status", [])) ^ set(baseline["status"]))
+    return diffs
+
+
 def _commit(
     repo: Path, file: str, task_id: str, model: str, targets: list[str], python: str
 ) -> str:
@@ -661,12 +866,12 @@ def _commit(
             subprocess.run([str(ruff), *cmd], cwd=repo, check=False, capture_output=True)
     msg = f"fix(act-loop): {', '.join(targets)} [task: {task_id}] [author: local-model {model}]"
     try:
-        git(repo, "add", "--", file)
-        git(repo, "commit", "-q", "-m", msg)
+        git(repo, *_SAFE_GIT, "add", "--", file)
+        git(repo, *_SAFE_GIT, "commit", "-q", "--no-verify", "-m", msg)
     except subprocess.CalledProcessError:
         # A failed commit (hook, index lock, no identity) must not leave the edit STAGED:
         # the next task's commit would sweep it in under its own task id. The caller
         # restores the working file; this unstages it.
-        subprocess.run(["git", "reset", "-q", "--", file], cwd=repo, check=False)
+        subprocess.run(["git", *_SAFE_GIT, "reset", "-q", "--", file], cwd=repo, check=False)
         raise
     return git(repo, "rev-parse", "--short", "HEAD").strip()
