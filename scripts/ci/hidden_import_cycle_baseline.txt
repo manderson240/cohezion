@@ -9,10 +9,6 @@ cohezion.agents.adk_swarm.aimo_specialists:AlgebraistAgent
 cohezion.agents.adk_swarm:AIMOOrchestrator
 cohezion.agents.adk_swarm:MetacognitionAgent
 cohezion.agents.generated:TestSkillAgent
-cohezion.compound.tdd_adversarial:AdversarialCritique
-cohezion.compound.tdd_adversarial:AdversarialRedTeamAgent
-cohezion.compound:CompoundEcoSymphony
-cohezion.compound:EcoResilienceCompoundEngine
 cohezion.flume:GitEncoder
 cohezion.real_envs.tasks:create_flask_api_task
 cohezion.real_envs.tasks:data_pipeline_task
