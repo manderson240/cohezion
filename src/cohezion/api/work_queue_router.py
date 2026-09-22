@@ -24,6 +24,14 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
+from cohezion.api.card_honesty import (
+    RESEARCH_TYPES,
+    canonical_paper_id,
+    gate_relevance,
+    label_summary,
+    may_mark_actioned,
+)
+
 
 router = APIRouter()
 
@@ -131,9 +139,11 @@ class WorkItemCreate(BaseModel):
     title: str
     description: str = ""
     url: str = ""
+    # Research cards default through gate_relevance: APPLY without probe_ref -> MONITOR.
     relevance: str = "APPLY"
     domain: str = ""
     notes: str = ""
+    probe_ref: str = ""  # path/id of a probe RESULT; the only thing that licenses APPLY
     priority: int = 1  # 0=low 1=normal 2=high — callers may file blocking items directly
 
 
@@ -151,6 +161,24 @@ class WorkItemPatch(BaseModel):
     # `notes` it replaced the analysis wholesale, destroying it on 764 cards before this
     # was caught. Three writers, three fields, no writer clobbers another's.
     action_route: str | None = None
+    probe_ref: str | None = None
+
+
+def _apply_card_honesty(
+    item: dict[str, Any], requested_relevance: str | None, notes_written: bool
+) -> None:
+    """Cap unprobed APPLY and label model summaries in place (see card_honesty)."""
+    if requested_relevance is not None:
+        gated = gate_relevance(
+            str(item.get("type", "")), requested_relevance, str(item.get("probe_ref", ""))
+        )
+        if gated != requested_relevance:
+            item["relevance_claimed"] = requested_relevance
+        item["relevance"] = gated
+    # Only label notes being written now; untouched legacy notes are left alone.
+    if notes_written and item.get("type") in RESEARCH_TYPES and item.get("notes"):
+        source = f"{item.get('title', '')}\n{item.get('description', '')}"
+        item["notes"], item["quote_check"] = label_summary(item["notes"], source)
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -183,6 +211,13 @@ def create_item(body: WorkItemCreate):
 
 def _create_item_locked(body: WorkItemCreate) -> dict[str, Any]:
     q = _load()
+    canonical_id = canonical_paper_id(body.url)
+    if canonical_id:
+        # One paper, one card: arxiv.org/abs/X, /abs/Xv2 and huggingface.co/papers/X
+        # are the same paper and were being carded separately.
+        for existing in q["items"]:
+            if canonical_paper_id(str(existing.get("url", ""))) == canonical_id:
+                return {**existing, "deduplicated": True}
     item: dict[str, Any] = {
         "id": uuid.uuid4().hex[:12],
         "type": body.type,
@@ -198,7 +233,10 @@ def _create_item_locked(body: WorkItemCreate) -> dict[str, Any]:
         "approved_at": None,
         "feedback": "",
         "action_route": "",
+        "probe_ref": body.probe_ref,
+        "canonical_id": canonical_id,
     }
+    _apply_card_honesty(item, body.relevance, notes_written=True)
     q["items"].append(item)
     _save(q)
     _persist(item)
@@ -215,6 +253,16 @@ def _patch_item_locked(item_id: str, body: WorkItemPatch) -> dict[str, Any]:
     q = _load()
     for item in q["items"]:
         if item.get("id") == item_id:
+            if body.probe_ref is not None:
+                item["probe_ref"] = body.probe_ref
+            if body.status == "actioned" and not may_mark_actioned(
+                body.action_route or str(item.get("action_route") or ""),
+                str(item.get("probe_ref") or ""),
+            ):
+                raise HTTPException(
+                    status_code=422,
+                    detail="status=actioned requires action_route or probe_ref",
+                )
             if body.status is not None:
                 item["status"] = body.status
                 if body.status == "approved":
@@ -225,10 +273,9 @@ def _patch_item_locked(item_id: str, body: WorkItemPatch) -> dict[str, Any]:
                 item["notes"] = body.notes
             if body.priority is not None:
                 item["priority"] = body.priority
-            if body.relevance is not None:
-                item["relevance"] = body.relevance
             if body.action_route is not None:
                 item["action_route"] = body.action_route
+            _apply_card_honesty(item, body.relevance, notes_written=body.notes is not None)
             _save(q)
             _persist(item)
             return item

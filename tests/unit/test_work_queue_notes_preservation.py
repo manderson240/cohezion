@@ -79,12 +79,14 @@ class TestActionerDoesNotClobberNotes:
         created = wq.create_item(
             wq.WorkItemCreate(type="research", title="card under test", notes=ANALYSIS)
         )
-        assert created["notes"] == ANALYSIS  # control: the store round-trips content at all
+        # control: the store round-trips content at all (research notes gain an additive
+        # "[model summary, unverified]" label from card_honesty; the content is intact)
+        assert created["notes"].endswith(ANALYSIS)
 
         body = _capture_patch_body(monkeypatch)["body"]
         patched = wq.patch_item(created["id"], wq.WorkItemPatch(**body))
 
-        assert patched["notes"] == ANALYSIS, "actioning a card destroyed its analysis"
+        assert patched["notes"] == created["notes"], "actioning a card destroyed its analysis"
         assert patched["status"] == "actioned"
         assert patched["action_route"] == "experiment"
 
@@ -96,4 +98,4 @@ class TestActionerDoesNotClobberNotes:
         """
         created = wq.create_item(wq.WorkItemCreate(type="research", title="t", notes="old"))
         patched = wq.patch_item(created["id"], wq.WorkItemPatch(notes="deliberately updated"))
-        assert patched["notes"] == "deliberately updated"
+        assert patched["notes"].endswith("deliberately updated")
