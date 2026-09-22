@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -51,6 +52,20 @@ _ACT_MODELS: list[str] = [
     "Gemma-4-31B-it-GGUF",
 ]
 _ACT_LOG = Path.home() / ".cohezion" / "act_loop.jsonl"
+# One ACT task per worktree at a time (correctness C2, 2026-09-22): execute_batch runs up to 3
+# tasks concurrently, and ACT tasks in one worktree share its index and working tree -- each
+# task's pytest ran against the others' half-applied edits, and one task's `git add`/commit
+# could sweep in another's file. Keyed by resolved path; in-process only (one daemon).
+_WORKTREE_LOCKS: dict[str, threading.Lock] = {}
+_WORKTREE_LOCKS_GUARD = threading.Lock()
+
+
+def _worktree_lock(path: Path) -> threading.Lock:
+    key = str(path.resolve())
+    with _WORKTREE_LOCKS_GUARD:
+        return _WORKTREE_LOCKS.setdefault(key, threading.Lock())
+
+
 NEEDS_ORACLE = "needs_oracle"
 _ACT_STATUS = {
     "GREEN": "committed",
@@ -383,22 +398,23 @@ class LocalImprovementExecutor:
         python = self._act_python or (str(venv_py) if venv_py.exists() else sys.executable)
         t0 = time.monotonic()
         try:
-            res = al.act_loop(
-                repo=repo,
-                file=file,
-                targets=targets,
-                oracle=oracle,
-                extra_tests=[],
-                task=getattr(task, "description", ""),
-                task_id=task_id,
-                model="|".join(self._act_models),
-                chat=chat,
-                python=python,
-                max_iters=self._act_max_iters,
-                log=self._act_log,
-                admit=admit,
-                admit_models=admit_models,
-            )
+            with _worktree_lock(repo):
+                res = al.act_loop(
+                    repo=repo,
+                    file=file,
+                    targets=targets,
+                    oracle=oracle,
+                    extra_tests=[],
+                    task=getattr(task, "description", ""),
+                    task_id=task_id,
+                    model="|".join(self._act_models),
+                    chat=chat,
+                    python=python,
+                    max_iters=self._act_max_iters,
+                    log=self._act_log,
+                    admit=admit,
+                    admit_models=admit_models,
+                )
         except Exception as exc:  # bad spec (missing file/def) is a task failure, not a crash
             logger.warning("act_loop %s raised: %s", task_id, exc)
             return {
