@@ -44,6 +44,16 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
+# The local-LLM safety contract (content -> reasoning_content fallback, inline-reasoning strip,
+# never-empty guard) lives in ONE place. Import it rather than restating it: the inline version
+# is what drifted last time, and a review lane that returns "" reads as SHIP downstream. No
+# except-ImportError fallback on purpose -- a review that cannot normalise its own replies must
+# refuse to run, not quietly grade with half the contract.
+sys.path.insert(0, str(REPO_ROOT / "src"))
+from cohezion.inference.gaia_adapter import _answer_only  # noqa: E402
+
+
 ROUTER = "http://localhost:13305/v1/chat/completions"
 MAX_DIFF_CHARS = 60_000
 FALSIFIER_TIMEOUT_S = 120
@@ -188,7 +198,14 @@ def _ask(model: str, prompt: str, *, max_tokens: int = 1200, timeout: int = 900)
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 -- localhost router
         r = json.loads(resp.read())
-    return r["choices"][0]["message"]["content"]
+    msg = (r.get("choices") or [{}])[0].get("message") or {}
+    # Reading message.content alone is the 2026-07-17 graphify trap: a reasoning model that
+    # exhausts its budget mid-think leaves content="" and puts the text in reasoning_content.
+    # Here that is not merely a blank review -- `_parse` treats zero parsed findings as SHIP,
+    # so an empty reply would silently APPROVE the diff. Delegate to the blessed normaliser
+    # rather than re-deriving it; it also handles the Gemma-4 `<|channel>` form and guarantees
+    # a reply that is entirely reasoning never collapses to "".
+    return _answer_only(msg.get("content") or "", msg.get("reasoning_content") or "")
 
 
 def run_lane(lens: str, diff: str) -> LaneResult:

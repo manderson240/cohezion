@@ -44,9 +44,20 @@ def main():
 
     # Check for ignored files that are somehow staged
     # (Rare but happens with git add -f)
-    ignored_staged = subprocess.run(
-        ["git", "ls-files", "-i", "-c", "--exclude-standard"], capture_output=True, text=True
-    ).stdout.splitlines()
+    #
+    # `git ls-files -i -c` lists every TRACKED file matching an ignore pattern anywhere in the
+    # repo -- it knows nothing about what this commit stages. Used unintersected it blocked
+    # EVERY commit on ~200 pre-existing tracked-and-ignored paths that no author touched, which
+    # trained everyone to reach for --no-verify -- and that also skips the secret scan below.
+    # A gate that is always red is indistinguishable from no gate, except that it disables its
+    # neighbours too. Intersect with the staged set so this fires on what the author is actually
+    # introducing, which is what the comment above always claimed it did.
+    ignored_tracked = set(
+        subprocess.run(
+            ["git", "ls-files", "-i", "-c", "--exclude-standard"], capture_output=True, text=True
+        ).stdout.splitlines()
+    )
+    ignored_staged = [f for f in staged_files if f in ignored_tracked]
 
     if ignored_staged:
         print("\n🚫 Commit blocked: Some staged files match .gitignore patterns.")
