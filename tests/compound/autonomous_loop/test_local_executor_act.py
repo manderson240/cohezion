@@ -206,7 +206,8 @@ def test_e_needs_oracle_never_escalates_to_cloud(monkeypatch, _prose_lane):
     coord._backlog = [LoopTask("t1", "no oracle", "general", 1, "v", 10) for _ in range(4)]
     report = coord.run(executor=cloud)
     assert cloud.execute_task.call_count == 0
-    assert report.tasks_completed == 0 and report.tasks_failed == 4
+    # needs_oracle is its own outcome (neither done nor failed), so no retry and no escalation
+    assert (report.tasks_completed, report.tasks_failed, report.tasks_needs_oracle) == (0, 0, 4)
 
 
 # ── Admission gate: model acquisition goes through hotswap.ensure_resident ──────────
