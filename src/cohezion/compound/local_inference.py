@@ -173,6 +173,46 @@ def _engine_for(min_tier_index: int, escalation_count: int, is_cloud: bool) -> s
     return _OMNI_TIERS[idx]
 
 
+# Learned-refinement prompt budget (LEARN -> next-cycle link).
+# SkillRefiner appends "## Learned Refinement" sections to a skill's PRIME file and
+# fetch_experience_guidance() puts them in guidance["learned_refinements"] (most recent
+# first, already capped at 5 by load_refined_guidance). Each section is ~300-500 chars.
+# 3 sections / 1500 chars (~375 tokens) keeps the newest lessons in view without
+# crowding the small NPU tier's context -- older refinements are the ones most likely
+# superseded, so they are the ones dropped.
+_MAX_REFINEMENT_SECTIONS = 3
+_MAX_REFINEMENT_CHARS = 1500
+_REFINEMENT_HEADER = "### Learned refinements from prior runs of this skill"
+
+
+def _format_learned_refinements(guidance) -> str:
+    """Render guidance["learned_refinements"] as a bounded, delimited prompt section.
+
+    Returns "" when there is nothing to add (non-dict guidance, missing/empty key,
+    non-string entries) so the prompt is byte-identical to the pre-refinement one.
+    Whole sections are dropped once the char budget is reached; a single oversized
+    newest section is truncated rather than dropped, so the latest lesson survives.
+    """
+    if not isinstance(guidance, dict):
+        return ""
+    raw = guidance.get("learned_refinements")
+    if not isinstance(raw, list):
+        return ""
+    sections = [s.strip() for s in raw if isinstance(s, str) and s.strip()]
+    kept: list[str] = []
+    used = 0
+    for section in sections[:_MAX_REFINEMENT_SECTIONS]:
+        if used + len(section) > _MAX_REFINEMENT_CHARS:
+            if not kept:
+                kept.append(section[:_MAX_REFINEMENT_CHARS].rstrip() + " [truncated]")
+            break
+        kept.append(section)
+        used += len(section)
+    if not kept:
+        return ""
+    return f"{_REFINEMENT_HEADER}\n\n" + "\n\n".join(kept) + "\n\n### End learned refinements"
+
+
 def make_local_execute_fn(task_description: str = "", context_prefix: str = "", orchestrator=None):
     """Return a callable compatible with CompoundExecutor.execute_task(execute_fn=...).
 
@@ -209,6 +249,14 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
         else:
             guidance_text = str(guidance) if guidance else ""
         parts = [p for p in [context_prefix, guidance_text, task_description] if p]
+        # Routing (classify + fast path) sees the prompt WITHOUT refinements, so a
+        # skill accumulating lessons never silently changes which tier it lands on.
+        routing_prompt = "\n\n".join(parts).strip()
+        # Consume the LEARN step: refinements go after the fixed context and BEFORE the
+        # variable guidance/task text (stable-first, so prefix caching still helps).
+        refinements = _format_learned_refinements(guidance)
+        if refinements:
+            parts.insert(1 if context_prefix else 0, refinements)
         prompt = "\n\n".join(parts).strip()
         # Lever 1 (correctness-review fix): override the orchestrator's escalation floor with the
         # task's quality_gate_chars ONLY for genuinely SHORT outputs (categorical/short answers) — so a
@@ -218,7 +266,7 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
         try:
             from cohezion.inference.task_classifier import classify
 
-            _d = classify(prompt)
+            _d = classify(routing_prompt)
             gate_chars = (
                 _d.quality_gate_chars
                 if _d.output_type in ("short_categorical", "short_answer")

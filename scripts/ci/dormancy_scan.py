@@ -182,6 +182,17 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
+    # LR1 (2026-09-22): LEARN -> next-cycle link. vault_integration PRODUCED
+    # guidance["learned_refinements"] and the executor PASSED it to execute_fn, but the only
+    # production execute_fn built its prompt from guidance["guidance"] alone -- a produced,
+    # passed, never-read key. Pinned to the call that puts the refinements INTO the prompt
+    # (not the helper's `def`), so removing the consumer re-fails this floor.
+    (
+        "LR1: make_local_execute_fn CONSUMES learned_refinements into the model prompt",
+        r"refinements = _format_learned_refinements\(guidance\)",
+        "src/cohezion/compound/local_inference.py",
+        1,
+    ),
 ]
 
 # Known-dormant capabilities (CONFIRMED by review, intentionally NOT yet wired). Reported as a NOTICE
