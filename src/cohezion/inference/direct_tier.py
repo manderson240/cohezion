@@ -43,6 +43,8 @@ from concurrent.futures import as_completed as _futs_done
 from dataclasses import dataclass, field
 from typing import Any
 
+from cohezion.inference.model_card_harness import thinking_off_extras
+
 
 logger = logging.getLogger(__name__)
 
@@ -133,15 +135,17 @@ class DirectLemonadeTier:
 
     def call(self, prompt: str) -> dict[str, Any]:
         """Synchronous call via urllib (stdlib-only, no httpx dependency)."""
-        payload = json.dumps(
-            {
-                "model": self.model_id,
-                "messages": self._build_messages(prompt),
-                "max_tokens": self.max_tokens,
-                "temperature": self.temperature,
-                "stream": False,
-            }
-        ).encode()
+        body: dict[str, Any] = {
+            "model": self.model_id,
+            "messages": self._build_messages(prompt),
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "stream": False,
+        }
+        if not self.system_message and _needs_no_think(self.model_id):
+            # "/no_think" alone does not stop Qwen3.x thinking; the template kwarg does.
+            body.update(thinking_off_extras(self.model_id))
+        payload = json.dumps(body).encode()
 
         start = time.perf_counter()
         try:
