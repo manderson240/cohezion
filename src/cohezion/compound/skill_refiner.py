@@ -1893,6 +1893,9 @@ class SkillRefiner:
             "autodata_wins": dict(getattr(self, "_autodata_wins", {})),
             "process_rewards": process_rewards,
             "erp_history": erp_history,
+            # Per-(skill, op) tier records predict_tier reads. Not persisting them meant every
+            # outcome -- ACT oracle results included -- was lost at process exit.
+            "difficulty_history": self._difficulty_estimator.to_dict(),
         }
 
     @classmethod
@@ -1921,6 +1924,7 @@ class SkillRefiner:
                     sn, op = encoded_key.split("::", 1)
                     predictor._history[(sn, op)] = deque(samples, maxlen=predictor._window_size)
 
+        instance._difficulty_estimator.load_dict(state.get("difficulty_history"))
         return instance
 
     def save_state(self, path: "str | Path | None" = None) -> None:
@@ -1953,6 +1957,7 @@ class SkillRefiner:
                     if "::" in encoded_key:
                         sn, op = encoded_key.split("::", 1)
                         predictor._history[(sn, op)] = deque(samples, maxlen=predictor._window_size)
+            self._difficulty_estimator.load_dict(data.get("difficulty_history"))
             # Warm the shadow canary from restored process_rewards so the canary's
             # per-skill baseline window isn't empty after a process restart.  Use the
             # process_reward z-scored values as quality proxies: map raw reward magnitudes

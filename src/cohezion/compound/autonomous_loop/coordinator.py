@@ -56,6 +56,10 @@ class LoopTask:
     oracle_test: str = ""
     edit_file: str = ""
     edit_targets: list[str] = field(default_factory=list)
+    # The skill this task exercises, i.e. the skill_name CompoundExecutor.execute_task would
+    # hand predict_tier. Measured ACT outcomes are keyed (skill, category) so that caller reads
+    # them; empty falls back to "act_loop", which no predict_tier caller queries.
+    skill: str = ""
 
 
 @dataclass
@@ -369,7 +373,7 @@ class LoopCoordinator:
             return
         with contextlib.suppress(Exception):
             self._difficulty_estimator.record(
-                "act_loop",
+                getattr(task, "skill", "") or "act_loop",
                 task.category,
                 tier,
                 0,  # act_loop iterations are attempts on one model, not tier escalations

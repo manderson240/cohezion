@@ -175,6 +175,44 @@ class DifficultyEstimator:
             )
         )
 
+    def to_dict(self) -> dict[str, list[dict[str, float | int | str]]]:
+        """JSON-safe history keyed "skill::op" (SkillRefiner's durable-spine encoding)."""
+        return {
+            f"{sn}::{op}": [
+                {
+                    "tier_used": r.tier_used,
+                    "escalation_count": r.escalation_count,
+                    "quality_score": r.quality_score,
+                    "latency_s": r.latency_s,
+                }
+                for r in window
+            ]
+            for (sn, op), window in self._history.items()
+            if window
+        }
+
+    def load_dict(self, state: dict | None) -> None:
+        """Restore history written by :meth:`to_dict`; malformed entries are skipped."""
+        for encoded_key, rows in (state or {}).items():
+            if "::" not in encoded_key or not isinstance(rows, list):
+                continue
+            sn, op = encoded_key.split("::", 1)
+            window: deque[_TierRecord] = deque(maxlen=_WINDOW)
+            for row in rows:
+                try:
+                    window.append(
+                        _TierRecord(
+                            tier_used=str(row["tier_used"]),
+                            escalation_count=int(row["escalation_count"]),
+                            quality_score=float(row["quality_score"]),
+                            latency_s=float(row.get("latency_s", 0.0)),
+                        )
+                    )
+                except (KeyError, TypeError, ValueError):
+                    continue
+            if window:
+                self._history[(sn, op)] = window
+
     def _complexity_score(self, prompt: str) -> float:
         """Estimate task difficulty from prompt text: 0.0 (trivial) → 1.0 (hard).
 
