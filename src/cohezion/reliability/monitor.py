@@ -456,11 +456,31 @@ class ResourceMonitor:
 
             await asyncio.sleep(2)  # Tight 2s loop for Framework 16 stability
 
+    _heartbeat_log_failed = False
+
     def _append_log(self, entry: str):
-        """Synchronous log append for use in thread."""
-        self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.heartbeat_log, "a") as f:
-            f.write(entry)
+        """Synchronous log append for use in thread. Best-effort: losing the log must not stop
+        the monitor.
+
+        The caller awaits this via asyncio.to_thread with no guard, so a raise here kills the
+        heartbeat loop outright -- and on a read-only filesystem both the mkdir and the open
+        raise. Observability failing is not the same as the thing being observed failing, and a
+        monitor that dies because it cannot write its own log takes down the signal it exists to
+        provide. Warn ONCE (loud, to the logger) and keep running; a repeating warning every 2s
+        would be its own denial of service.
+        """
+        try:
+            self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.heartbeat_log, "a") as f:
+                f.write(entry)
+        except OSError as exc:
+            if not ResourceMonitor._heartbeat_log_failed:
+                ResourceMonitor._heartbeat_log_failed = True
+                logger.warning(
+                    "heartbeat log unwritable (%s: %s); monitoring continues without the file",
+                    type(exc).__name__,
+                    exc,
+                )
 
     def checkpoint_active_mission(self, data: dict[str, Any], mission_id: str):
         """
