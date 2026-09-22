@@ -268,11 +268,15 @@ def initialize_cohezion_environment() -> bool:
             with open(log_dir / "universal_init.log", "a") as f:
                 f.write(f"{init_msg}\n")
         except Exception:
-            # Final fallback to stdout (visible in most environments)
-            # Only print if we're likely in an interactive environment
+            # Final fallback to STDERR, never stdout. The log dir is created under Path.cwd(),
+            # so a read-only cwd sends this banner down the fallback path -- and stdout is the
+            # MCP stdio message channel, where one line of diagnostics corrupts the protocol
+            # stream for the whole server (CLAUDE.md: "stdio MCP servers must be SILENT on
+            # stdout during initialization"). stderr is visible in the same environments and
+            # carries no protocol meaning.
             try:
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
-                    print(init_msg)
+                    print(init_msg, file=sys.stderr)
             except Exception:
                 pass  # Even error reporting failed, continue silently
 
@@ -283,10 +287,10 @@ def initialize_cohezion_environment() -> bool:
         # Fail silently to ensure Cohezion always works
         try:
             error_msg = f"[COHEZION_INIT_ERROR] {str(e)[:100]}..."
-            # Only print error if we're likely in an interactive environment
+            # stderr for the same reason as the banner above: stdout is the MCP message channel.
             try:
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
-                    print(error_msg)
+                    print(error_msg, file=sys.stderr)
             except Exception:
                 pass  # Even error reporting failed, continue silently
         except Exception:
