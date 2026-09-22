@@ -384,6 +384,7 @@ def act_loop(
     history: list[str] = []
     t0 = time.monotonic()
     it = call_errors = verify_timeouts = 0
+    last_model = model
     while it < max_iters:
         it += 1
         defs = "\n\n\n".join(get_def_source(original, t) for t in targets)
@@ -416,7 +417,7 @@ def act_loop(
                 return {"status": "ROUTER_UNAVAILABLE", "iterations": it, "wall_s": wall}
             time.sleep(call_backoff_s)
             continue
-        rec["model"] = reply.get("model", model)
+        rec["model"] = last_model = reply.get("model", model)
         rec.update(latency_s=round(time.monotonic() - t, 1), truncated=reply.get("truncated"))
         rec["usage"] = reply.get("usage")
         blocks = FENCE.findall(reply["text"])
@@ -492,6 +493,8 @@ def act_loop(
         "status": "EXHAUSTED",
         "iterations": max_iters,
         "wall_s": round(time.monotonic() - t0, 1),
+        # The model that made the last attempt: the caller credits the failure to its engine.
+        "model": last_model,
     }
 
 

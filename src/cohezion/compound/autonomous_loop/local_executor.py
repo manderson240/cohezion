@@ -59,7 +59,23 @@ _ACT_STATUS = {
     "ADMISSION_REFUSED": "admission_refused",
     "RUNNER_BROKEN": "runner_broken",
     "VERIFY_TIMEOUT": "verify_timeout",
+    "FLAKY_ORACLE": "flaky_oracle",
     "ORACLE_ALREADY_GREEN": "oracle_already_green",
+}
+# ACT outcome -> quality of the MODEL's work (PQ1: measured or None, never a stand-in).
+# GREEN = oracle + caller tests green, K confirmations, committed. EXHAUSTED = the model had
+# its full budget and never turned the oracle green. Everything else says nothing about the
+# model: FLAKY_ORACLE is an unreliable instrument; ROUTER_UNAVAILABLE / ADMISSION_REFUSED /
+# RUNNER_BROKEN / VERIFY_TIMEOUT are instrument failures; ORACLE_ALREADY_GREEN is
+# non-discriminating. Absent from this map -> None.
+_ACT_QUALITY: dict[str, float] = {"GREEN": 1.0, "EXHAUSTED": 0.0}
+# ACT model -> the DifficultyEstimator engine tier it runs on. All three are the tier-2
+# reasoning lane (quarter-on-a-string routing table). An unmapped model gets NO tier:
+# DifficultyEstimator.record coerces unknown tiers to "cpu", which would credit a guess.
+_ACT_MODEL_TIER: dict[str, str] = {
+    "Qwen3.6-35B-A3B-MTP-GGUF": "cpu",
+    "Qwen3-Coder-30B-A3B-Instruct-GGUF": "cpu",
+    "Gemma-4-31B-it-GGUF": "cpu",
 }
 
 # QA-judge lane. Model choice is empirical (live-smoked 2026-06-30 on :13305):
@@ -389,18 +405,28 @@ class LocalImprovementExecutor:
                 **_error_result(task_id, "", "act", str(exc), returncode=1),
                 "status": "act_error",
             }
-        status = _ACT_STATUS.get(res.get("status", ""), "act_error")
+        act_status = str(res.get("status", ""))
+        status = _ACT_STATUS.get(act_status, "act_error")
         success = status == "committed" and bool(res.get("commit"))
+        model = str(res.get("model", "") or "")
+        quality = _ACT_QUALITY.get(act_status)
+        if act_status == "GREEN" and not success:
+            quality = None  # oracle green but nothing committed: not the GREEN outcome
         logger.info("task %s ACT %s commit=%s", task_id, status, res.get("commit"))
         return {
             "task_id": task_id,
             "success": success,
             "status": status,
             "commit": res.get("commit"),
-            "summary": f"act_loop {res.get('status')} after {res.get('iterations', 0)} iters",
+            "summary": f"act_loop {act_status} after {res.get('iterations', 0)} iters",
             "tokens_used": 0,
             "output": "",
-            "model": res.get("model", ""),
+            # Same key/semantics as make_local_execute_fn (PQ1): present = producer spoke,
+            # None = UNKNOWN. Consumed by LoopCoordinator._record_result.
+            "cascade_quality_score": quality,
+            "cascade_quality_source": f"act_loop {act_status}",
+            "tier_used": _ACT_MODEL_TIER.get(model) if quality is not None else None,
+            "model": model,
             "node": "act",
             "elapsed_ms": (time.monotonic() - t0) * 1000,
             "returncode": 0 if success else 1,
