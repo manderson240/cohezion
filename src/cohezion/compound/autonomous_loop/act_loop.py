@@ -659,7 +659,14 @@ def _commit(
     if ruff.exists():
         for cmd in (["format", file], ["check", "--fix", file]):
             subprocess.run([str(ruff), *cmd], cwd=repo, check=False, capture_output=True)
-    git(repo, "add", "--", file)
     msg = f"fix(act-loop): {', '.join(targets)} [task: {task_id}] [author: local-model {model}]"
-    git(repo, "commit", "-q", "-m", msg)
+    try:
+        git(repo, "add", "--", file)
+        git(repo, "commit", "-q", "-m", msg)
+    except subprocess.CalledProcessError:
+        # A failed commit (hook, index lock, no identity) must not leave the edit STAGED:
+        # the next task's commit would sweep it in under its own task id. The caller
+        # restores the working file; this unstages it.
+        subprocess.run(["git", "reset", "-q", "--", file], cwd=repo, check=False)
+        raise
     return git(repo, "rev-parse", "--short", "HEAD").strip()
