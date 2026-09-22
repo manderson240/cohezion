@@ -830,6 +830,8 @@ def git(repo: Path, *args: str) -> str:
 
 
 # Every git call made after model code has run: no hooks, no fsmonitor command (C2).
+# Consequence: ACT commits on act/* branches have NOT been through the repo's pre-commit
+# battery. Landing one needs the normal gates (automerge_guard) -- never fast-forward blind.
 _SAFE_GIT = ("-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false")
 
 
@@ -839,6 +841,9 @@ def _repo_fingerprint(repo: Path, file: str) -> dict[str, Any] | None:
     Taken before model code first runs and compared before committing. A verify run that
     plants a hook, rewrites .git/config (hooksPath, fsmonitor, filters), drops an untracked
     conftest.py/.gitattributes, or touches any other file aborts the commit (TAMPERED).
+    It detects PERSISTENT changes only: a write that is undone before the check (a transient
+    edit during the verify window) is invisible to it. bwrap's read-only mounts, when
+    available, are what prevent those.
     """
     if not _is_git_repo(repo):
         return None
