@@ -2,13 +2,17 @@
 
 Wires disconnected physics modules into the Genesis Engine API layer.
 Follows the router pattern established in genesis.py.
+
+Handlers are plain ``def``: each does synchronous numpy/torch work and awaits nothing, so
+FastAPI runs them in its threadpool. As ``async def`` that work ran on the event loop and
+one slow request stalled every other request on the server (fixed 2026-09-21).
 """
 
 from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
 
@@ -132,8 +136,8 @@ class EmergenceDetectResponse(BaseModel):
 
 
 @physics_ext_router.get("/bioelectric", response_model=BioelectricResponse)
-async def get_bioelectric_state(
-    n_cells: int = 16,
+def get_bioelectric_state(
+    n_cells: int = Query(16, ge=2, le=128),
     conductance: float = 0.3,
 ) -> BioelectricResponse:
     """Return BioelectricNetwork state — Levin-inspired collective intelligence.
@@ -153,7 +157,7 @@ async def get_bioelectric_state(
 
 
 @physics_ext_router.get("/natural-capital", response_model=NaturalCapitalResponse)
-async def get_natural_capital(
+def get_natural_capital(
     coherence: float = 0.5,
     connectivity: float = 0.5,
     gauge_curvature: float = 0.0,
@@ -190,7 +194,7 @@ async def get_natural_capital(
 
 
 @physics_ext_router.get("/cosmogony/full-chain", response_model=CosmogonyChainResponse)
-async def get_cosmogony_full_chain() -> CosmogonyChainResponse:
+def get_cosmogony_full_chain() -> CosmogonyChainResponse:
     """Return the complete 10-step cosmogony chain status.
 
     Shows the current symmetry stage, all completed transitions,
@@ -217,11 +221,11 @@ async def get_cosmogony_full_chain() -> CosmogonyChainResponse:
 
 
 @physics_ext_router.get("/hamiltonian/simulate", response_model=HamiltonianSimulateResponse)
-async def get_hamiltonian_simulate(
+def get_hamiltonian_simulate(
     potential: str = "double_well",
-    epochs: int = 50,
-    n_agents: int = 4,
-    z_dim: int = 8,
+    epochs: int = Query(50, ge=1, le=500),
+    n_agents: int = Query(4, ge=1, le=32),
+    z_dim: int = Query(8, ge=1, le=64),
     dt: float = 0.01,
     temperature: float = 0.01,
     seed: int = 42,
@@ -273,7 +277,7 @@ async def get_hamiltonian_simulate(
 
 
 @physics_ext_router.get("/triune/state", response_model=TriuneStateResponse)
-async def get_triune_state() -> TriuneStateResponse:
+def get_triune_state() -> TriuneStateResponse:
     """Return current Triune manifold state (Doer 12D / Thinker 512D / Knower 2048D).
 
     Creates a default Triune state at the HIHO stability point and
@@ -306,7 +310,7 @@ async def get_triune_state() -> TriuneStateResponse:
 
 
 @physics_ext_router.get("/phonons/state", response_model=PhononStateResponse)
-async def get_phonon_state(
+def get_phonon_state(
     viscosity: float = 0.05,
     coupling: float = 0.12,
     delta_t: float = 0.1,
@@ -362,7 +366,7 @@ async def get_phonon_state(
 
 
 @physics_ext_router.get("/morphospace/wells", response_model=MorphospaceWellsResponse)
-async def get_morphospace_wells() -> MorphospaceWellsResponse:
+def get_morphospace_wells() -> MorphospaceWellsResponse:
     """Return known stability wells in the 12D morphospace.
 
     Initializes a MorphospaceMapper and returns its pre-computed
@@ -391,7 +395,7 @@ async def get_morphospace_wells() -> MorphospaceWellsResponse:
 
 
 @physics_ext_router.get("/lcsp/predict", response_model=LCSPPredictResponse)
-async def get_lcsp_predict(
+def get_lcsp_predict(
     state: str = "0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5",
 ) -> LCSPPredictResponse:
     """Predict the next 12D state from a current state using LCSP.
@@ -434,10 +438,10 @@ async def get_lcsp_predict(
 
 
 @physics_ext_router.get("/emergence/detect", response_model=EmergenceDetectResponse)
-async def get_emergence_detect(
-    n_agents: int = 8,
-    n_cycles: int = 100,
-    z_dim: int = 12,
+def get_emergence_detect(
+    n_agents: int = Query(8, ge=2, le=64),
+    n_cycles: int = Query(100, ge=20, le=1000),
+    z_dim: int = Query(12, ge=2, le=64),
     seed: int = 42,
 ) -> EmergenceDetectResponse:
     """Detect emergent phenomena in synthetic trajectory data.
@@ -579,9 +583,9 @@ class TensorMetricResponse(BaseModel):
 
 
 @physics_ext_router.get("/bec/status", response_model=BECStatusResponse)
-async def get_bec_status(
+def get_bec_status(
     condensate_fraction: float = 0.5,
-    atom_count: int = 100_000,
+    atom_count: int = Query(100_000, le=1_000_000_000),
 ) -> BECStatusResponse:
     """Bose-Einstein condensate HIHO state — quantum coherence ground state."""
     from cohezion.physics.bec_bridge import BECState
@@ -597,7 +601,7 @@ async def get_bec_status(
 
 
 @physics_ext_router.get("/mercury/status", response_model=MercuryLatticeResponse)
-async def get_mercury_status(
+def get_mercury_status(
     coherence: float = 0.5,
     lattice_coupling: float = 1.0,
 ) -> MercuryLatticeResponse:
@@ -614,7 +618,7 @@ async def get_mercury_status(
 
 
 @physics_ext_router.get("/colibre/status", response_model=ColibreStatusResponse)
-async def get_colibre_status(
+def get_colibre_status(
     redshift: float = 0.0,
     ism_hot_fraction: float = 0.5,
     sfr_density: float = 0.02,
@@ -642,7 +646,7 @@ async def get_colibre_status(
 
 
 @physics_ext_router.get("/mhd/status", response_model=MHDStatusResponse)
-async def get_mhd_status(
+def get_mhd_status(
     plasma_beta: float = 0.5,
     lundquist_number: float = 1e6,
 ) -> MHDStatusResponse:
@@ -659,7 +663,7 @@ async def get_mhd_status(
 
 
 @physics_ext_router.get("/bismuth/status", response_model=BismuthResponse)
-async def get_bismuth_status(
+def get_bismuth_status(
     field_strength_tesla: float = 10.0,
     mass_kg: float = 1e-3,
 ) -> BismuthResponse:
@@ -676,9 +680,9 @@ async def get_bismuth_status(
 
 
 @physics_ext_router.get("/toroidal/status", response_model=ToroidalResponse)
-async def get_toroidal_status(
+def get_toroidal_status(
     coherence: float = 0.5,
-    ring_count: int = 7,
+    ring_count: int = Query(7, le=1000),
 ) -> ToroidalResponse:
     """Fractal toroidal moment — time-reversal-breaking EVO topology."""
     from cohezion.physics.toroidal_moment import FractalToroidalMoment
@@ -695,7 +699,7 @@ async def get_toroidal_status(
 
 
 @physics_ext_router.get("/tensor-metric/status", response_model=TensorMetricResponse)
-async def get_tensor_metric_status(
+def get_tensor_metric_status(
     sarfatti_coherence: float = 0.5,
     destiny_weight: float = 0.5,
     epsilon: float = 0.01,

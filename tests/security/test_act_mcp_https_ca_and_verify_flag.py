@@ -47,7 +47,9 @@ def test_http_client_needs_no_context() -> None:
 
 @pytest.mark.parametrize("bad", ["false", "False", "0", "no", "true", 0, 1, None])
 def test_verify_ssl_must_be_bool_true(bad) -> None:
-    with pytest.raises(ValueError):
+    # Non-bool values raise TypeError (hand-written contract, fix/review-followups-20260921
+    # 7ad77b4ed); only verify_ssl=False raises ValueError. Integration kept that contract.
+    with pytest.raises(TypeError):
         MCPHTTPSClient(use_https=True, verify_ssl=bad)
 
 

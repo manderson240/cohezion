@@ -17,11 +17,9 @@ import pytest
 from cohezion.inference import oom_guard
 
 
-_UNSOLVED = pytest.mark.xfail(
-    reason="ACT-loop oracle for work-queue f2505e6983bf: the local model did not solve it "
-    "(2026-09-21); fixed by hand on fix/review-followups-20260921 (c11a7eec1).",
-    strict=False,
-)
+# ACT-loop oracle for work-queue f2505e6983bf: the local model did not solve it (2026-09-21);
+# fixed by hand on fix/review-followups-20260921 (c11a7eec1). The xfail marker was removed
+# when both branches were integrated (the tests now pass), so they guard against regression.
 
 
 IMPLAUSIBLE = {"model_name": "Qwen3.6-35B-A3B-GGUF", "size": 1.68}
@@ -32,7 +30,6 @@ IMPLAUSIBLE = {"model_name": "Qwen3.6-35B-A3B-GGUF", "size": 1.68}
     [IMPLAUSIBLE, {"id": "Qwen3.6-35B-A3B-GGUF", "size": 1.68}],
     ids=["model_name-key", "id-key"],
 )
-@_UNSOLVED
 def test_implausible_size_counts_as_heavy(model: dict) -> None:
     assert oom_guard._is_heavy(model) is True
 
@@ -50,7 +47,6 @@ def test_plausible_sizes_are_still_trusted(model: dict, expected: bool) -> None:
     assert oom_guard._is_heavy(model) is expected
 
 
-@_UNSOLVED
 def test_verify_all_bounded_flags_unbounded_implausible_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -62,7 +58,6 @@ def test_verify_all_bounded_flags_unbounded_implausible_model(
     assert violations == ["Qwen3.6-35B-A3B-GGUF"]  # the plausible small model stays exempt
 
 
-@_UNSOLVED
 def test_pre_load_gate_blocks_ctx0_on_implausible_model(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(oom_guard, "_get_catalog", lambda *_a, **_k: [IMPLAUSIBLE])
     monkeypatch.setattr(oom_guard, "check_ram", lambda *_a, **_k: (True, 100.0))

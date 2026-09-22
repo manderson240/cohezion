@@ -117,6 +117,50 @@ def _isolate_cohezion_state(tmp_path_factory) -> Generator[Path, None, None]:
             os.environ["COHEZION_STATE_DIR"] = previous
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _isolate_skill_approvals(tmp_path_factory) -> Generator[Path, None, None]:
+    """Redirect SkillRefiner's pending-approvals queue away from ~/.cohezion.
+
+    ``_APPROVALS_PATH`` is a ClassVar built from ``Path.home()`` at import, so
+    COHEZION_STATE_DIR above never reaches it: every blocked promotion a test provoked
+    was appended to the operator's real review queue. Patched on the class, once per
+    session; tests that set their own path (monkeypatch) still win for their duration.
+    """
+    from cohezion.compound.skill_refiner import SkillRefiner
+
+    path = tmp_path_factory.mktemp("skill_approvals") / "pending_skill_approvals.jsonl"
+    previous = SkillRefiner._APPROVALS_PATH
+    SkillRefiner._APPROVALS_PATH = path
+    try:
+        yield path
+    finally:
+        SkillRefiner._APPROVALS_PATH = previous
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _isolate_skill_registry(tmp_path_factory) -> Generator[Path, None, None]:
+    """Keep ConfigTemplateManager.update_registry off the tracked skill registry.
+
+    Its default is the cwd-relative, git-tracked src/cohezion/skills/skill_registry.json;
+    tests that generate agents (test_version_header_in_generated_agent) rewrote it on
+    every run. Starts from a copy so readers still see the real entries.
+    """
+    import shutil
+
+    from cohezion.core.config_templates import ConfigTemplateManager
+
+    path = tmp_path_factory.mktemp("skill_registry") / "skill_registry.json"
+    real = Path(__file__).resolve().parents[1] / "src/cohezion/skills/skill_registry.json"
+    if real.exists():
+        shutil.copyfile(real, path)
+    previous = ConfigTemplateManager.REGISTRY_PATH
+    ConfigTemplateManager.REGISTRY_PATH = path
+    try:
+        yield path
+    finally:
+        ConfigTemplateManager.REGISTRY_PATH = previous
+
+
 @pytest.fixture
 def mock_ollama():
     """Patch httpx calls to Ollama, returning a canned JSON response."""

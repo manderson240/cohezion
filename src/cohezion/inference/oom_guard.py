@@ -44,7 +44,10 @@ SAFE_CTX_SIZE: int = 16384
 HEAVY_MODEL_GB_THRESHOLD: float = 5.0
 
 # verify_all_bounded's violation entry when the catalog cannot be read: bound state UNKNOWN.
-ROUTER_UNREACHABLE = "ROUTER_UNREACHABLE"
+ROUTER_UNREACHABLE: str = "<router unreachable: ctx bounds UNKNOWN>"
+# verify_all_bounded's violation entry when the router answers but lists no models: also
+# UNKNOWN (nothing to vouch for), but the remedy differs -- the router is up, don't restart it.
+EMPTY_CATALOG: str = "<router reachable but catalog EMPTY: ctx bounds UNKNOWN>"
 
 
 def check_ram(min_free_gb: float = 20.0) -> tuple[bool, float]:
@@ -63,13 +66,11 @@ def check_ram(min_free_gb: float = 20.0) -> tuple[bool, float]:
         return True, float("inf")
 
 
-def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]] | None:
+def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]]:
     """Fetch /api/v1/models — returns list of model dicts (name, size, recipe_options).
 
     Falls back to /v1/models (OpenAI-compat) when /api/v1/models is unavailable;
     that endpoint returns only id/created fields so recipe_options will be absent.
-
-    Returns None on network failure, [] on empty catalog.
     """
     for path in ("/api/v1/models", "/v1/models"):
         try:
@@ -84,7 +85,20 @@ def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]] | 
                 return raw.get("models", raw.get("data", []))
         except Exception as exc:
             logger.debug("Catalog fetch from %s%s failed: %s", base_url, path, exc)
-    return None
+    return []
+
+
+def _router_reachable(base_url: str, timeout: float = 5.0) -> bool:
+    """True when the router answers HTTP at all (any status); False on a transport failure."""
+    try:
+        req = urllib.request.Request(base_url.rstrip("/") + "/v1/models", method="GET")  # noqa: S310
+        with urllib.request.urlopen(req, timeout=timeout):  # noqa: S310
+            return True
+    except urllib.error.HTTPError:
+        return True  # it answered, just not with 2xx
+    except Exception as exc:
+        logger.debug("Router reachability probe %s failed: %s", base_url, exc)
+        return False
 
 
 def _get_recipe_options(base_url: str, model_name: str, timeout: float = 5.0) -> dict[str, Any]:
@@ -144,15 +158,23 @@ def _is_heavy(model: dict[str, Any]) -> bool:
     """True when the model's size field indicates ≥ HEAVY_MODEL_GB_THRESHOLD GB.
 
     Size field may be absent, None, or a float (GB).  When absent we assume
-    heavy=True for unknown models to err on the side of caution.
+    heavy=True for unknown models to err on the side of caution. A size too small for the
+    model's parameter count (hotswap.implausible_size_gb, RS7: a live 35B reports 1.68 GB)
+    is treated as unknown, i.e. heavy -- a wrong size must not exempt a model from N3.
     """
+    from cohezion.inference.hotswap import implausible_size_gb
+
     size = model.get("size")
     if size is None:
         return True  # unknown size → treat as heavy
     try:
-        return float(size) >= HEAVY_MODEL_GB_THRESHOLD
+        size_gb = float(size)
     except (TypeError, ValueError):
         return True
+    name: str = model.get("model_name") or model.get("id") or ""
+    if name and implausible_size_gb(name, size_gb):
+        return True
+    return size_gb >= HEAVY_MODEL_GB_THRESHOLD
 
 
 def _ctx_is_unsafe(recipe_options: dict[str, Any]) -> bool:
@@ -305,16 +327,11 @@ def pre_load_gate(
     """
     # 1. ctx_size=0 gate — non-negotiable for heavy models
     catalog = _get_catalog(base_url)
-
-    # Handle unreachable router: cannot verify specific model, fall back to name heuristic
-    if catalog is None:
-        is_heavy = _name_looks_heavy(model_name)
-    else:
-        entry = next(
-            (m for m in catalog if (m.get("model_name") or m.get("id") or "") == model_name),
-            None,
-        )
-        is_heavy = _is_heavy(entry) if entry is not None else _name_looks_heavy(model_name)
+    entry = next(
+        (m for m in catalog if (m.get("model_name") or m.get("id") or "") == model_name),
+        None,
+    )
+    is_heavy = _is_heavy(entry) if entry is not None else _name_looks_heavy(model_name)
 
     if is_heavy and ctx_size == 0:
         return False, (
@@ -336,17 +353,12 @@ def pre_load_gate(
     # floor with 42 GB free and hard-froze the box. When the catalog knows this
     # model, refuse if its safety-inflated footprint over-commits available RAM
     # minus the same reserve. Pure decision in load_safety; catalog entry as input.
-    if catalog is not None:
-        entry = next(
-            (m for m in catalog if (m.get("model_name") or m.get("id") or "") == model_name),
-            None,
-        )
-        if entry is not None:
-            from cohezion.inference.load_safety import check_load_safe
+    if entry is not None:
+        from cohezion.inference.load_safety import check_load_safe
 
-            fit_ok, fit_reason = check_load_safe(entry, free_gb, ram_floor_gb=min_free_gb)
-            if not fit_ok:
-                return False, f"weight over-commit for {model_name!r}: {fit_reason}"
+        fit_ok, fit_reason = check_load_safe(entry, free_gb, ram_floor_gb=min_free_gb)
+        if not fit_ok:
+            return False, f"weight over-commit for {model_name!r}: {fit_reason}"
 
     return True, f"ok: {free_gb:.1f} GiB free, ctx_size={ctx_size}, heavy={is_heavy}"
 
@@ -362,9 +374,6 @@ def _name_looks_heavy(model_name: str) -> bool:
     return False
 
 
-EMPTY_CATALOG = "EMPTY_CATALOG"
-
-
 def verify_all_bounded(base_url: str = LEMONADE_BASE_URL) -> tuple[bool, list[str]]:
     """Read-only check: return (all_safe, violations).
 
@@ -372,12 +381,14 @@ def verify_all_bounded(base_url: str = LEMONADE_BASE_URL) -> tuple[bool, list[st
     Use in harness tests or CI to assert N3 invariant without modifying state.
     """
     catalog = _get_catalog(base_url)
-    if catalog is None:
-        # Could not look, so cannot vouch: an unreachable router is UNKNOWN, not "all bounded".
-        return False, [ROUTER_UNREACHABLE]
     if not catalog:
-        # Reachable router with zero models.
-        return False, [EMPTY_CATALOG]
+        # Could not look, so cannot vouch: an unreachable router is UNKNOWN, not "all bounded".
+        # (Returned True until 2026-09-21 — a safety check that reported safe when blind.)
+        # _get_catalog maps "unreachable" and "reachable, zero models" to the same [], so
+        # probe once more to name the right one: the operator remedies differ.
+        if _router_reachable(base_url):
+            return False, [EMPTY_CATALOG]
+        return False, [ROUTER_UNREACHABLE]
 
     violations: list[str] = []
     for model in catalog:

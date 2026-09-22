@@ -5,7 +5,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import certifi
 import pytest
 
 from cohezion.security.mcp_https_client import MCPHTTPSClient
@@ -78,17 +77,27 @@ class TestMCPHTTPSClient:
                 context = client.get_ssl_context()
                 assert context is not None
 
-    def test_get_ssl_context_missing_ca_cert(self):
-        """Test SSL context with missing CA certificate."""
-        client = MCPHTTPSClient(
-            use_https=True,
-            ca_cert_path="/nonexistent/ca.pem",
-            verify_ssl=True,
-        )
+    def test_get_ssl_context_missing_ca_cert_raises_like_httpx(self):
+        """A configured-but-missing CA must fail, the same way on every transport.
 
-        # A configured-but-missing CA fails loudly (work-queue 9df53f...), matching httpx.
-        with pytest.raises(FileNotFoundError):
+        get_ssl_context used to log a warning and fall back to the system CA bundle, so
+        a mistyped path to a private CA silently trusted every public CA instead, while
+        httpx given the same path raised. Both now raise FileNotFoundError (2026-09-21).
+        """
+        import httpx
+
+        client = MCPHTTPSClient(use_https=True, ca_cert_path="/nonexistent/ca.pem")
+        with pytest.raises(FileNotFoundError) as ssl_exc:
             client.get_ssl_context()
+        with pytest.raises(FileNotFoundError):
+            httpx.Client(verify=client.configure_httpx()["verify"])
+        assert "/nonexistent/ca.pem" in str(ssl_exc.value)
+
+    @pytest.mark.parametrize("value", ["false", "False", "0", 0, 1, None])
+    def test_non_bool_verify_ssl_is_rejected(self, value):
+        """verify_ssl="false" is truthy: it must not read as a valid True."""
+        with pytest.raises(TypeError, match="verify_ssl"):
+            MCPHTTPSClient(use_https=True, verify_ssl=value)
 
     @pytest.mark.parametrize("use_https", [True, False])
     def test_verify_ssl_false_is_rejected(self, use_https):
@@ -281,11 +290,15 @@ class TestMCPHTTPSClient:
         with pytest.raises(ValueError, match="ca_cert_path"):
             MCPHTTPSClient(use_https=True, verify_ssl=False)
 
-        client = MCPHTTPSClient(use_https=True, ca_cert_path=certifi.where())
-        context = client.get_ssl_context()
-        assert context.verify_mode == ssl.CERT_REQUIRED
-        assert context.check_hostname is True
-        assert client.configure_httpx()["verify"] == certifi.where()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ca = Path(tmpdir) / "ca.pem"
+            ca.write_text("CERTIFICATE")
+            client = MCPHTTPSClient(use_https=True, ca_cert_path=str(ca))
+            with patch.object(ssl.SSLContext, "load_verify_locations"):
+                context = client.get_ssl_context()
+            assert context.verify_mode == ssl.CERT_REQUIRED
+            assert context.check_hostname is True
+            assert client.configure_httpx()["verify"] == str(ca)
 
     def test_client_minimum_tls_version(self):
         """Test that minimum TLS version is enforced."""

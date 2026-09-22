@@ -34,9 +34,16 @@ class MCPHTTPSClient:
                 Use ``ca_cert_path`` to trust a private/self-signed CA instead.
 
         Raises:
-            ValueError: if ``verify_ssl`` is not True.
+            TypeError: if ``verify_ssl`` is not a bool (``"false"`` is truthy and
+                would otherwise read as True).
+            ValueError: if ``verify_ssl`` is False.
         """
-        if verify_ssl is not True:
+        if not isinstance(verify_ssl, bool):
+            raise TypeError(
+                f"MCPHTTPSClient: verify_ssl must be a bool, got {type(verify_ssl).__name__} "
+                f"{verify_ssl!r} (a string like 'false' is truthy)"
+            )
+        if not verify_ssl:
             raise ValueError(
                 "MCPHTTPSClient: verify_ssl=False is not supported -- certificate "
                 "verification is always enforced. To trust a self-signed server, "
@@ -63,7 +70,7 @@ class MCPHTTPSClient:
             Configured ssl.SSLContext or None if HTTPS not enabled
 
         Raises:
-            FileNotFoundError: if ``ca_cert_path`` is specified but does not exist.
+            FileNotFoundError: if ``ca_cert_path`` is set but does not exist.
         """
         if not self.use_https:
             return None
@@ -84,6 +91,10 @@ class MCPHTTPSClient:
         if self.ca_cert_path:
             ca_path = Path(self.ca_cert_path)
             if not ca_path.exists():
+                # Same error type httpx raises for this path (configure_httpx passes it
+                # through). Falling back to the system bundle would silently trust every
+                # public CA in place of the private one that was asked for.
+                self._ssl_context = None
                 raise FileNotFoundError(f"CA certificate not found: {self.ca_cert_path}")
             self._ssl_context.load_verify_locations(self.ca_cert_path)
             logger.info("Loaded CA certificate: %s", self.ca_cert_path)

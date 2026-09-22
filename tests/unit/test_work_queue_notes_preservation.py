@@ -97,3 +97,46 @@ class TestActionerDoesNotClobberNotes:
         created = wq.create_item(wq.WorkItemCreate(type="research", title="t", notes="old"))
         patched = wq.patch_item(created["id"], wq.WorkItemPatch(notes="deliberately updated"))
         assert patched["notes"] == "deliberately updated"
+
+
+def _apply_triage_call(store, monkeypatch, call) -> dict:
+    """Create a card with ANALYSIS, run a triage client call, apply its body via the real router."""
+    created = wq.create_item(wq.WorkItemCreate(type="research", title="t", notes=ANALYSIS))
+    sent: dict = {}
+
+    def fake_request(self, method, path, body=None):
+        sent.update(body or {})
+        return {}
+
+    monkeypatch.setattr(WorkQueueAPI, "_request", fake_request)
+    call(WorkQueueAPI(base_url="http://localhost:8080"), created["id"])
+    assert "notes" not in sent, f"triage must not overwrite the content field; body={sent!r}"
+    return wq.patch_item(created["id"], wq.WorkItemPatch(**sent))
+
+
+class TestTriageDoesNotClobberNotes:
+    """Same defect class as mark_actioned: mark_rejected/mark_reviewed PATCHed notes=<reason>."""
+
+    def test_mark_rejected_keeps_analysis_and_records_reason(self, store, monkeypatch):
+        patched = _apply_triage_call(
+            store, monkeypatch, lambda api, i: api.mark_rejected(i, note="rejected by guardrail: X")
+        )
+        assert ANALYSIS in patched["notes"], "rejecting a card destroyed its analysis"
+        assert "rejected by guardrail: X" in patched["notes"]
+        assert patched["status"] == "rejected"
+
+    def test_mark_reviewed_keeps_analysis_and_records_reason(self, store, monkeypatch):
+        patched = _apply_triage_call(
+            store,
+            monkeypatch,
+            lambda api, i: api.mark_reviewed(i, relevance="APPLY", note="triage: applies to X"),
+        )
+        assert ANALYSIS in patched["notes"], "reviewing a card destroyed its analysis"
+        assert "triage: applies to X" in patched["notes"]
+        assert patched["status"] == "reviewed"
+        assert patched["relevance"] == "APPLY"
+
+    def test_notes_append_on_empty_notes_has_no_leading_separator(self, store):
+        created = wq.create_item(wq.WorkItemCreate(type="research", title="t"))
+        patched = wq.patch_item(created["id"], wq.WorkItemPatch(notes_append="reason"))
+        assert patched["notes"] == "reason"

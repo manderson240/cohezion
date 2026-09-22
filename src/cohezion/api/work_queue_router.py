@@ -164,6 +164,10 @@ class WorkItemPatch(BaseModel):
     oracle_test: str | None = None
     edit_file: str | None = None
     edit_targets: list[str] | None = None
+    # Triage reasons (reviewed/rejected) are appended to `notes` rather than replacing it:
+    # the reason belongs next to the analysis it judges, but must not destroy that analysis.
+    # Appended inside the queue lock, so there is no read-modify-write race in the caller.
+    notes_append: str | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -238,6 +242,9 @@ def _patch_item_locked(item_id: str, body: WorkItemPatch) -> dict[str, Any]:
                 item["feedback"] = body.feedback
             if body.notes is not None:
                 item["notes"] = body.notes
+            if body.notes_append:
+                prior = item.get("notes") or ""
+                item["notes"] = f"{prior}\n\n{body.notes_append}" if prior else body.notes_append
             if body.priority is not None:
                 item["priority"] = body.priority
             if body.relevance is not None:
