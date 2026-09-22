@@ -201,6 +201,7 @@ async def _dispatch_openai_compatible(
     *,
     stream: bool = False,
     max_tokens: int = 512,
+    extra_body: dict[str, Any] | None = None,
 ) -> tuple[str, float, float | None, float | None]:
     """Dispatch to a Lemonade-style OpenAI-compatible /v1/chat/completions endpoint.
 
@@ -217,6 +218,11 @@ async def _dispatch_openai_compatible(
         "stream": stream,
     }
     payload = _inject_symmetry_axis(payload, coherence)
+    if extra_body:
+        # Model-card request fields (chat_template_kwargs, temperature, ...). Cannot
+        # override the model, messages, token budget or stream mode set above.
+        reserved = {"model", "messages", "max_tokens", "stream"}
+        payload.update({k: v for k, v in extra_body.items() if k not in reserved})
 
     if not stream:
         client = _get_shared_client(timeout)
@@ -452,6 +458,7 @@ async def _dispatch_one(
     *,
     stream: bool = False,
     max_tokens: int = 512,
+    extra_body: dict[str, Any] | None = None,
 ) -> tuple[str, float, float | None, float | None]:
     """Route to the right dispatch function for this model's lane.
 
@@ -469,7 +476,13 @@ async def _dispatch_one(
         return text, cost, None, None
     # Default: Lemonade-style OpenAI-compatible (supports streaming TTFT)
     return await _dispatch_openai_compatible(
-        model, prompt, coherence, timeout, stream=stream, max_tokens=max_tokens
+        model,
+        prompt,
+        coherence,
+        timeout,
+        stream=stream,
+        max_tokens=max_tokens,
+        extra_body=extra_body,
     )
 
 
@@ -883,10 +896,19 @@ async def extend_claude_aligned(
             error=f"Unknown claude_model {claude_model}",
         )
 
+    # Honour the card: prefix (e.g. "/no_think\n"), extra_body (chat_template_kwargs,
+    # temperature) and max_tokens. Local leg only -- card params are not cloud params,
+    # so the escalation below sends the caller's prompt unchanged.
+    local_prompt, local_extra = params.apply(prompt)
     for _ in range(max_local_attempts):
         try:
             text, cost, _ttft, _tps = await _dispatch_one(
-                registry.models[params.model_id], prompt, None, timeout
+                registry.models[params.model_id],
+                local_prompt,
+                None,
+                timeout,
+                max_tokens=params.max_tokens,
+                extra_body=local_extra,
             )
             local_result = RouteResult(
                 text=text,

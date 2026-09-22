@@ -57,6 +57,7 @@ _ACT_STATUS = {
     "GREEN": "committed",
     "EXHAUSTED": "act_exhausted",
     "ROUTER_UNAVAILABLE": "router_unavailable",
+    "ADMISSION_REFUSED": "admission_refused",
     "RUNNER_BROKEN": "runner_broken",
     "ORACLE_ALREADY_GREEN": "oracle_already_green",
 }
@@ -327,6 +328,7 @@ class LocalImprovementExecutor:
         act_max_iters: int = 5,
         act_log_path: Path | None = None,
         act_python: str | None = None,
+        act_admit_fn: Any = None,
     ) -> None:
         self._base_url = base_url
         self._started = False
@@ -338,6 +340,8 @@ class LocalImprovementExecutor:
         self._act_max_iters = act_max_iters
         self._act_log = act_log_path or _ACT_LOG
         self._act_python = act_python
+        # Admission gate before every ACT chat call; None -> hotswap.ensure_resident.
+        self._act_admit_fn = act_admit_fn
 
     def start(self, worktree_path: str) -> None:
         safe, free_gb = check_ram(_MIN_FREE_RAM_GB)
@@ -511,6 +515,7 @@ class LocalImprovementExecutor:
         oracle, file, targets = _act_spec(task, worktree_path)  # type: ignore[misc]
         repo = Path(worktree_path)
         chat = self._act_chat_fn
+        admit_models = list(self._act_models)
         if chat is None:
             resident = al.resident_llms(self._base_url)
             if not resident or not any(m in resident for m in self._act_models):
@@ -519,9 +524,15 @@ class LocalImprovementExecutor:
                     **_error_result(task_id, "", "act", msg, returncode=2),
                     "status": "no_resident_model",
                 }
+            # Admit a model that is already resident first: the gate then confirms rather
+            # than loads, unless another session evicted it in the meantime.
+            admit_models.sort(key=lambda m: m not in resident)
             chat = al.make_chat_fn(
                 self._act_models, max_tokens=3072, timeout=180, base_url=self._base_url
             )
+        admit = self._act_admit_fn
+        if admit is None:
+            from cohezion.inference.hotswap import ensure_resident as admit
         venv_py = repo / ".venv" / "bin" / "python3"
         python = self._act_python or (str(venv_py) if venv_py.exists() else sys.executable)
         t0 = time.monotonic()
@@ -539,6 +550,8 @@ class LocalImprovementExecutor:
                 python=python,
                 max_iters=self._act_max_iters,
                 log=self._act_log,
+                admit=admit,
+                admit_models=admit_models,
             )
         except Exception as exc:  # bad spec (missing file/def) is a task failure, not a crash
             logger.warning("act_loop %s raised: %s", task_id, exc)

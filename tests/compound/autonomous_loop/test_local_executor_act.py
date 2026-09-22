@@ -81,12 +81,32 @@ def _act_task() -> _Task:
     )
 
 
-def _executor(tmp_path: Path, chat) -> le.LocalImprovementExecutor:
+@dataclass
+class _Swap:
+    ok: bool
+    reason: str = ""
+
+
+def _fake_admit(verdicts: dict[str, bool] | None = None, default: bool = True):
+    """Stand-in for hotswap.ensure_resident: records calls, never touches :13305."""
+    seen: list[str] = []
+
+    def admit(model_id: str) -> _Swap:
+        seen.append(model_id)
+        ok = (verdicts or {}).get(model_id, default)
+        return _Swap(ok, "already resident" if ok else "insufficient RAM (fake)")
+
+    admit.seen = seen  # type: ignore[attr-defined]
+    return admit
+
+
+def _executor(tmp_path: Path, chat, admit=None) -> le.LocalImprovementExecutor:
     return le.LocalImprovementExecutor(
         act_chat_fn=chat,
         act_max_iters=2,
         act_log_path=tmp_path / "act.jsonl",
         act_python=sys.executable,
+        act_admit_fn=admit or _fake_admit(),
     )
 
 
@@ -187,3 +207,59 @@ def test_e_needs_oracle_never_escalates_to_cloud(monkeypatch, _prose_lane):
     report = coord.run(executor=cloud)
     assert cloud.execute_task.call_count == 0
     assert report.tasks_completed == 0 and report.tasks_failed == 4
+
+
+# ── Admission gate: model acquisition goes through hotswap.ensure_resident ──────────
+# A residency check before the call is not enough: another session can evict the model and
+# the router then loads it on demand, bypassing the 16 GiB floor.
+
+
+def test_refused_admission_makes_no_chat_call_and_reports_refusal(tmp_path):
+    repo = _make_repo(tmp_path)
+    chat = _fake_chat("def value():\n    return 2\n")
+    admit = _fake_admit(default=False)
+    res = _executor(tmp_path, chat, admit).execute_task(_act_task(), str(repo))
+    assert chat.calls["n"] == 0  # the refusal prevented the router call
+    assert res["status"] == "admission_refused"  # distinct from a model failure
+    assert res["success"] is False
+    assert admit.seen  # the gate was actually consulted
+    assert (repo / "src/pkg/mod.py").read_text().endswith("return 1\n")
+
+
+def test_admitted_model_lets_the_chat_proceed(tmp_path):
+    repo = _make_repo(tmp_path)
+    chat = _fake_chat("def value():\n    return 2\n")
+    admit = _fake_admit(default=True)
+    res = _executor(tmp_path, chat, admit).execute_task(_act_task(), str(repo))
+    assert chat.calls["n"] >= 1
+    assert res["status"] == "committed" and res["success"] is True
+    assert len(admit.seen) == chat.calls["n"]  # gated before EVERY call
+
+
+def test_first_refused_model_falls_back_to_next_admitted(tmp_path):
+    repo = _make_repo(tmp_path)
+    chat = _fake_chat("def value():\n    return 2\n")
+    models = le._ACT_MODELS
+    admit = _fake_admit({models[0]: False}, default=True)
+    res = _executor(tmp_path, chat, admit).execute_task(_act_task(), str(repo))
+    assert admit.seen[:2] == models[:2]
+    assert res["status"] == "committed"
+
+
+def test_default_admission_is_hotswap_ensure_resident(tmp_path, monkeypatch):
+    """Consumption: with no injected gate the executor consults hotswap.ensure_resident."""
+    from cohezion.inference import hotswap
+
+    admit = _fake_admit(default=False)
+    monkeypatch.setattr(hotswap, "ensure_resident", admit)
+    repo = _make_repo(tmp_path)
+    chat = _fake_chat("def value():\n    return 2\n")
+    ex = le.LocalImprovementExecutor(
+        act_chat_fn=chat,
+        act_max_iters=2,
+        act_log_path=tmp_path / "act.jsonl",
+        act_python=sys.executable,
+    )
+    res = ex.execute_task(_act_task(), str(repo))
+    assert admit.seen and chat.calls["n"] == 0
+    assert res["status"] == "admission_refused"

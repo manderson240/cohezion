@@ -26,6 +26,8 @@ from typing import Any
 BASE_URL = "http://localhost:13305"
 FENCE = re.compile(r"```(?:python|py)?\s*\n(.*?)```", re.DOTALL)
 ChatFn = Callable[[str], dict[str, Any]]
+# Admission gate: model_id -> object with ``ok`` / ``reason`` (hotswap.SwapResult).
+AdmitFn = Callable[[str], Any]
 
 
 class NotResidentError(RuntimeError):
@@ -317,6 +319,8 @@ def act_loop(
     callers: list[str] | None = None,
     caller_cap: int = 10,  # 20 oom_guard callers measured 76s per run; x3 confirm repeats
     caller_timeout: float = 300,
+    admit: AdmitFn | None = None,
+    admit_models: list[str] | None = None,
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green.
 
@@ -326,8 +330,15 @@ def act_loop(
     Pattern from EverMind-AI/Raven's Evolver (K=3 confirmation gate), adapted: we have no
     second arm to compare against, so this confirms determinism rather than significance.
 
-    Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / RUNNER_BROKEN / FLAKY_ORACLE /
-    ORACLE_ALREADY_GREEN (non-discriminating).
+    Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / ADMISSION_REFUSED / RUNNER_BROKEN /
+    FLAKY_ORACLE / ORACLE_ALREADY_GREEN (non-discriminating).
+
+    Admission gate: when *admit* is given (production: ``hotswap.ensure_resident``), every
+    chat call is preceded by admitting the first of *admit_models* (default ``[model]``) the
+    gate accepts. A residency check alone is not enough: another session can evict the
+    model and the router then loads it on demand, bypassing the RAM floor. If the gate
+    refuses every candidate the loop returns ADMISSION_REFUSED at once -- a safety-gate
+    outcome, not a model failure, and not retried through the call-error budget.
 
     Caller regression guard: *callers* None (default) auto-selects ``caller_tests`` (test
     files importing the edited module or a src module that imports it); ``[]`` disables it.
@@ -364,6 +375,18 @@ def act_loop(
         defs = "\n\n\n".join(get_def_source(original, t) for t in targets)
         prompt = build_prompt(task, file, defs, oracle_src, failure, history)
         rec: dict[str, Any] = {"task_id": task_id, "iter": it, "model": model}
+        if admit is not None:
+            refusals = _admission_refusals(admit, admit_models or [model])
+            if refusals is not None:
+                rec["outcome"] = "ADMISSION_REFUSED"
+                rec["refusals"] = refusals
+                _log(log, rec)
+                return {
+                    "status": "ADMISSION_REFUSED",
+                    "iterations": it - 1,
+                    "wall_s": round(time.monotonic() - t0, 1),
+                    "detail": refusals,
+                }
         t = time.monotonic()
         try:
             reply = chat(prompt)
@@ -435,6 +458,21 @@ def act_loop(
         "iterations": max_iters,
         "wall_s": round(time.monotonic() - t0, 1),
     }
+
+
+def _admission_refusals(admit: AdmitFn, models: list[str]) -> dict[str, str] | None:
+    """None once *admit* accepts one of *models* (in order); else each model's refusal."""
+    refusals: dict[str, str] = {}
+    for m in models:
+        try:
+            result = admit(m)
+        except Exception as exc:  # a gate that cannot decide has not admitted
+            refusals[m] = f"{type(exc).__name__}: {exc}"
+            continue
+        if getattr(result, "ok", False):
+            return None
+        refusals[m] = str(getattr(result, "reason", result))
+    return refusals
 
 
 def _log(log: Path, rec: dict[str, Any]) -> None:
