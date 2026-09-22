@@ -24,6 +24,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from cohezion.compound.semif_gate import semif_veto
 from cohezion.inference.agreement import agreement_penalty, semantic_agreement
 from cohezion.inference.quality_eval import QualityVerdict, evaluate
 from cohezion.inference.task_classifier import classify
@@ -108,6 +109,19 @@ class AutoDQA:
         """
         profile = classify(task_description)
         verdict = evaluate(output, profile.output_type, task_description)
+
+        # SemIf content veto. `evaluate` above is length-shaped (measured: AUROC 0.537 on the 114
+        # adjudicated DQA cases, and it accepted 111/114 including visible non-answers). SemIf
+        # scored 0.977 on the same set; at p < 0.3 it lost 0 true answers and caught 68% of
+        # non-answers. It can only REJECT -- it never raises a score -- and an unavailable judge
+        # (p is None) leaves the verdict exactly as `evaluate` produced it.
+        vetoed, p_yes = semif_veto(task_description, output)
+        if vetoed:
+            verdict = QualityVerdict(
+                accept=False,
+                score=min(verdict.score, _HIHO_LOW),
+                reason=f"{verdict.reason}; semif content judge p={p_yes:.3f} < veto threshold",
+            )
 
         if peer_outputs:
             agreement = semantic_agreement([output, *peer_outputs])
