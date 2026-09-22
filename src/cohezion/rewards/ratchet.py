@@ -1,7 +1,15 @@
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 from cohezion.persistence.obsidian_mcp import ObsidianMemoryMCP
-from cohezion.universe.triune_manifold import TriuneState
+
+
+if TYPE_CHECKING:
+    # Annotation-only; the runtime import made cohezion.rewards re-enter cohezion.universe
+    # (-> swarm -> research -> compound), a hidden cycle (hidden_import_cycle_scan.py).
+    from cohezion.universe.triune_manifold import TriuneState
 
 
 logger = logging.getLogger(__name__)

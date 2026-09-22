@@ -1,9 +1,17 @@
+from __future__ import annotations
+
 import datetime
 import logging
+from typing import TYPE_CHECKING
 
 from surrealdb import AsyncSurreal
 
-from cohezion.universe.triune_manifold import TriuneState
+
+if TYPE_CHECKING:
+    # Annotation-only: a runtime import made cohezion.persistence re-enter cohezion.universe
+    # (whose __init__ imports this module), silently dropping SurrealTrajectoryLogger and
+    # TriuneSimulationEngine (hidden_import_cycle_scan.py).
+    from cohezion.universe.triune_manifold import TriuneState
 
 
 logger = logging.getLogger(__name__)

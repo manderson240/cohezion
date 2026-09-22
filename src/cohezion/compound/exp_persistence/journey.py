@@ -6,8 +6,6 @@ from typing import Any
 import pandas as pd
 from datasets import Dataset, Features, Sequence, Value
 
-from cohezion.core.persistence.surreal_client import get_surreal_client
-
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +43,14 @@ class JourneyPersistence:
     @property
     def db(self):
         if self._db is None:
+            # Lazy: a module-level import closes the cycle surreal_client ->
+            # reliability -> semantic_cache -> compound.exp_persistence -> journey
+            # -> surreal_client (partially initialised). The package __init__
+            # suppresses that ImportError, so JourneyPersistence silently vanished
+            # from the re-export once e9869f425 made cohezion.learning import
+            # vault_neuron_reader (-> surreal_client) eagerly.
+            from cohezion.core.persistence.surreal_client import get_surreal_client
+
             self._db = get_surreal_client()
         return self._db
 

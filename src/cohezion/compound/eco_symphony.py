@@ -7,13 +7,22 @@ from __future__ import annotations
 
 import logging
 import uuid
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
-from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
 from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
 from cohezion.compound.stability_guard import HIHOStabilityGuard
 from cohezion.flume.manifolds.translator import ManifoldProjection
+
+
+if TYPE_CHECKING:
+    # Annotation-only (EcoResilienceCompoundEngine.__init__). A runtime import closed the
+    # cycle agents.specialists.ecoresilience_agent -> compound (package init re-exports this
+    # module) -> eco_symphony -> ecoresilience_agent (half-loaded), and the guarded
+    # re-export in cohezion.compound silently dropped CompoundEcoSymphony /
+    # EcoResilienceCompoundEngine (scripts/ci/hidden_import_cycle_scan.py, 2026-09-22).
+    from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
 
 
 logger = logging.getLogger(__name__)

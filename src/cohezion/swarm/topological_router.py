@@ -38,12 +38,15 @@ from enum import StrEnum
 
 import numpy as np
 
-# Lazy import — scipy C extensions must not load at module level.
-# Loading scipy after torch._C causes a BLAS allocator conflict (SIGSEGV).
-# See L290 (Session 94) and tests/conftest.py for full explanation.
-from cohezion.compound.topological_persistence import (
-    trajectory_persistence_summary,
-)
+
+# NOTE: ``cohezion.compound.topological_persistence`` is imported lazily inside
+# ``TopologicalRouter.analyze_agent`` (not here). Importing it at module level executed the whole
+# ``cohezion.compound`` package from ``cohezion.swarm``, closing the import cycle
+# agents.base -> universe -> universe.factory -> swarm -> compound -> tdd_adversarial
+# -> agents.base. The guarded re-exports swallowed the resulting ImportError and
+# AdversarialCritique / AdversarialRedTeamAgent / CompoundEcoSymphony /
+# EcoResilienceCompoundEngine silently vanished whenever ``cohezion.agents`` was
+# imported first (scripts/ci/hidden_import_cycle_scan.py, 2026-09-22).
 
 
 logger = logging.getLogger(__name__)
@@ -282,7 +285,9 @@ class TopologicalRouter:
             self._agent_topologies[agent_id] = topo
             return topo
 
-        # Compute persistence summary
+        # Compute persistence summary (lazy import: see the module-level NOTE)
+        from cohezion.compound.topological_persistence import trajectory_persistence_summary
+
         summary = trajectory_persistence_summary(
             trajectory, significance_threshold=self.cluster_threshold
         )
