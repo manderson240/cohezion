@@ -53,7 +53,9 @@ def _entry(model_id: str, task: Task) -> ModelEntry:
     )
 
 
-@pytest.mark.parametrize("model_id", [_QWEN36, "Qwen3.5-9B-GGUF", "Qwen3-8B-GGUF", "qwen3-coder-30b"])
+@pytest.mark.parametrize(
+    "model_id", [_QWEN36, "Qwen3.5-9B-GGUF", "Qwen3-8B-GGUF", "qwen3-coder-30b"]
+)
 def test_qwen3_families_get_the_template_kwarg(model_id: str) -> None:
     assert thinking_off_extras(model_id) == _OFF
 
@@ -96,7 +98,7 @@ def test_route_by_capability_reasoning_task_keeps_thinking() -> None:
 def _capture_direct_payload(monkeypatch: pytest.MonkeyPatch, model_id: str) -> dict:
     sent: list[dict] = []
 
-    def fake_urlopen(req, timeout=None):  # noqa: ARG001
+    def fake_urlopen(req, timeout=None):
         sent.append(json.loads(req.data))
         return io.BytesIO(json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode())
 
@@ -110,6 +112,8 @@ def test_direct_tier_qwen_payload_disables_thinking(monkeypatch: pytest.MonkeyPa
     assert body["chat_template_kwargs"] == {"enable_thinking": False}
 
 
-def test_direct_tier_non_qwen_payload_has_no_template_kwarg(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_direct_tier_non_qwen_payload_has_no_template_kwarg(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     body = _capture_direct_payload(monkeypatch, "Bonsai-8B-gguf")
     assert "chat_template_kwargs" not in body
