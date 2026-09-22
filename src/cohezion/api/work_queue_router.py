@@ -135,6 +135,15 @@ class WorkItemCreate(BaseModel):
     domain: str = ""
     notes: str = ""
     priority: int = 1  # 0=low 1=normal 2=high — callers may file blocking items directly
+    # ACT spec (optional, additive): a human-written pytest node id the change must turn
+    # green, and the one src/ file + top-level defs the model may replace. Without all
+    # three the compound ACT step reports `needs_oracle` instead of completing the card.
+    oracle_test: str | None = None
+    edit_file: str | None = None
+    edit_targets: list[str] | None = None
+
+
+_ACT_FIELDS = ("oracle_test", "edit_file", "edit_targets")
 
 
 class WorkItemPatch(BaseModel):
@@ -151,6 +160,10 @@ class WorkItemPatch(BaseModel):
     # `notes` it replaced the analysis wholesale, destroying it on 764 cards before this
     # was caught. Three writers, three fields, no writer clobbers another's.
     action_route: str | None = None
+    # Attach an ACT spec to an existing card (see WorkItemCreate).
+    oracle_test: str | None = None
+    edit_file: str | None = None
+    edit_targets: list[str] | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -199,6 +212,8 @@ def _create_item_locked(body: WorkItemCreate) -> dict[str, Any]:
         "feedback": "",
         "action_route": "",
     }
+    # Keys only when supplied: rows without an oracle keep their existing shape.
+    item.update({k: getattr(body, k) for k in _ACT_FIELDS if getattr(body, k) is not None})
     q["items"].append(item)
     _save(q)
     _persist(item)
@@ -229,6 +244,9 @@ def _patch_item_locked(item_id: str, body: WorkItemPatch) -> dict[str, Any]:
                 item["relevance"] = body.relevance
             if body.action_route is not None:
                 item["action_route"] = body.action_route
+            for k in _ACT_FIELDS:
+                if getattr(body, k) is not None:
+                    item[k] = getattr(body, k)
             _save(q)
             _persist(item)
             return item

@@ -16,6 +16,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+# Live inference-router guard for the blocking suites (unit/inference/cache/compound): any
+# unmarked test that tries to reach :13305-13309 is refused, and fails unless the attempt is a
+# known read-only reachability probe. See tests/_live_port_guard.py.
+from tests._live_port_guard import (  # noqa: F401 - pytest hooks, registered by name
+    pytest_configure,
+    pytest_runtest_call,
+    pytest_runtest_setup,
+    pytest_runtest_teardown,
+    pytest_unconfigure,
+    router_offline,
+)
+
 
 # Hypothesis CI profile (loaded via HYPOTHESIS_PROFILE=ci in CI workflows):
 # derandomize=True makes CI failures reproducible; deadline=None avoids flaky

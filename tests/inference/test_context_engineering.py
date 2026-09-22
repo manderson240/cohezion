@@ -97,6 +97,7 @@ class TestModelCardRegistryExactMatch:
         # Original cards must still be present
         assert registry.get_card("llama3.2-1b-FLM") is not None
 
+    @pytest.mark.integration  # asserts on the live :13305 model catalog
     def test_update_from_live_api_live_server(self, registry):
         """Live Lemonade server should update cards with real ctx_size.
 

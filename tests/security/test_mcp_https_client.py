@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import certifi
 import pytest
 
 from cohezion.security.mcp_https_client import MCPHTTPSClient
@@ -85,9 +86,9 @@ class TestMCPHTTPSClient:
             verify_ssl=True,
         )
 
-        # Should still return a context, just without custom CA
-        context = client.get_ssl_context()
-        assert context is not None
+        # A configured-but-missing CA fails loudly (work-queue 9df53f...), matching httpx.
+        with pytest.raises(FileNotFoundError):
+            client.get_ssl_context()
 
     @pytest.mark.parametrize("use_https", [True, False])
     def test_verify_ssl_false_is_rejected(self, use_https):
@@ -280,11 +281,11 @@ class TestMCPHTTPSClient:
         with pytest.raises(ValueError, match="ca_cert_path"):
             MCPHTTPSClient(use_https=True, verify_ssl=False)
 
-        client = MCPHTTPSClient(use_https=True, ca_cert_path="/nonexistent/ca.pem")
+        client = MCPHTTPSClient(use_https=True, ca_cert_path=certifi.where())
         context = client.get_ssl_context()
         assert context.verify_mode == ssl.CERT_REQUIRED
         assert context.check_hostname is True
-        assert client.configure_httpx()["verify"] == "/nonexistent/ca.pem"
+        assert client.configure_httpx()["verify"] == certifi.where()
 
     def test_client_minimum_tls_version(self):
         """Test that minimum TLS version is enforced."""

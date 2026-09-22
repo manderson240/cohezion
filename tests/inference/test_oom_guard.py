@@ -248,8 +248,16 @@ def test_verify_all_bounded_finds_violation():
 def test_verify_router_offline():
     from cohezion.inference.oom_guard import verify_all_bounded
 
-    with patch("cohezion.inference.oom_guard._get_catalog", return_value=[]):
-        safe, violations = verify_all_bounded()
+    import urllib.error
+    import urllib.request
+
+    def _refused(*_a, **_k):
+        raise urllib.error.URLError("connection refused")
+
+    # Patch the HTTP boundary: an EMPTY catalog from a reachable router is a different
+    # verdict (EMPTY_CATALOG), so offline must be simulated as offline, not as [].
+    with patch.object(urllib.request, "urlopen", _refused):
+        safe, violations = verify_all_bounded("http://127.0.0.1:9")
     # Blind is not safe: an unreachable router means the bounds are UNKNOWN.
     from cohezion.inference.oom_guard import ROUTER_UNREACHABLE
 

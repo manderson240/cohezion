@@ -34,9 +34,9 @@ class MCPHTTPSClient:
                 Use ``ca_cert_path`` to trust a private/self-signed CA instead.
 
         Raises:
-            ValueError: if ``verify_ssl`` is False.
+            ValueError: if ``verify_ssl`` is not True.
         """
-        if not verify_ssl:
+        if verify_ssl is not True:
             raise ValueError(
                 "MCPHTTPSClient: verify_ssl=False is not supported -- certificate "
                 "verification is always enforced. To trust a self-signed server, "
@@ -61,6 +61,9 @@ class MCPHTTPSClient:
 
         Returns:
             Configured ssl.SSLContext or None if HTTPS not enabled
+
+        Raises:
+            FileNotFoundError: if ``ca_cert_path`` is specified but does not exist.
         """
         if not self.use_https:
             return None
@@ -80,11 +83,10 @@ class MCPHTTPSClient:
 
         if self.ca_cert_path:
             ca_path = Path(self.ca_cert_path)
-            if ca_path.exists():
-                self._ssl_context.load_verify_locations(self.ca_cert_path)
-                logger.info("Loaded CA certificate: %s", self.ca_cert_path)
-            else:
-                logger.warning("CA certificate not found: %s", self.ca_cert_path)
+            if not ca_path.exists():
+                raise FileNotFoundError(f"CA certificate not found: {self.ca_cert_path}")
+            self._ssl_context.load_verify_locations(self.ca_cert_path)
+            logger.info("Loaded CA certificate: %s", self.ca_cert_path)
         else:
             # Use system CA bundle
             self._ssl_context.load_default_certs()

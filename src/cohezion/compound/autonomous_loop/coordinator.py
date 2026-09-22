@@ -40,6 +40,12 @@ class LoopTask:
     priority: int
     verification: str
     estimated_tokens: int
+    # ACT spec (additive, all optional): a human-written pytest node id the change must
+    # turn green, plus the ONE src/ file and top-level defs the model may replace. A task
+    # without them is `needs_oracle` -- never completion. See act_loop.py.
+    oracle_test: str = ""
+    edit_file: str = ""
+    edit_targets: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -250,7 +256,9 @@ class LoopCoordinator:
             report.tasks_completed += 1
             sprint.tasks_done += 1
         else:
-            fail_counts[task.id] = task_fail_count + 1
+            # needs_oracle is not a model failure: escalating it to cloud cannot help.
+            if result.get("status") != "needs_oracle":
+                fail_counts[task.id] = task_fail_count + 1
             report.tasks_failed += 1
             sprint.tasks_failed += 1
 

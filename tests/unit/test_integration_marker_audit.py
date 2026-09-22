@@ -28,6 +28,9 @@ FORBIDDEN_DIRS = ("reliability", "security")
 
 # node id -> why it cannot be deterministic (a live service it asserts on)
 INTEGRATION_MARKER_ALLOWLIST: dict[str, str] = {
+    "tests/inference/test_context_engineering.py::TestModelCardRegistryExactMatch::test_update_from_live_api_live_server": (
+        "live :13305 model catalog (ctx_size from /v1/models)"
+    ),
     "tests/inference/test_extend_availability_local.py::test_live_local_completion_via_registered_endpoint": (
         "live :13305 router must answer locally"
     ),

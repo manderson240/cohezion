@@ -148,6 +148,7 @@ async def test_route_by_capability_embeddings(mock_safe_memory, mock_lemonade_he
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("router_offline")  # fail-open path; no live :13305
 async def test_route_by_capability_oom_guard_trigger(mock_unsafe_memory):
     """Tests that when OOMGuard reports memory unsafe (is_safe=False), it safely routes to Tier 2."""
     router = UnifiedHybridRouter(prefer_local=True)

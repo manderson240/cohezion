@@ -17,10 +17,12 @@ from __future__ import annotations
 import json
 import logging
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Any
 
 from cohezion.config.defaults import LEMONADE_BASE_URL
@@ -40,6 +42,26 @@ _TIER_MODEL: dict[str, str] = {
 }
 _DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"
 _MIN_FREE_RAM_GB = 8.0
+
+# ACT lane: code-capable models in preference order. act_loop uses the first one that is
+# RESIDENT and never triggers a load. Qwen3.6-35B-A3B-MTP authored the first local-model
+# commit (a4b2002b0); the others were the act_probe defaults.
+_ACT_MODELS: list[str] = [
+    "Qwen3.6-35B-A3B-MTP-GGUF",
+    "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+    "Gemma-4-31B-it-GGUF",
+]
+_ACT_LOG = Path.home() / ".cohezion" / "act_loop.jsonl"
+NEEDS_ORACLE = "needs_oracle"
+_ACT_STATUS = {
+    "GREEN": "committed",
+    "EXHAUSTED": "act_exhausted",
+    "ROUTER_UNAVAILABLE": "router_unavailable",
+    "ADMISSION_REFUSED": "admission_refused",
+    "RUNNER_BROKEN": "runner_broken",
+    "VERIFY_TIMEOUT": "verify_timeout",
+    "ORACLE_ALREADY_GREEN": "oracle_already_green",
+}
 
 # Tiers to pre-load at warmup: (logical_name, model_name, extra_lemonade_flags)
 _WARMUP_TIERS: list[tuple[str, str, list[str]]] = [
@@ -297,11 +319,30 @@ class LocalImprovementExecutor:
     since each tier runs on separate silicon, they do not contend for compute.
     """
 
-    def __init__(self, base_url: str = LEMONADE_BASE_URL, degradation_detector: Any = None) -> None:
+    def __init__(
+        self,
+        base_url: str = LEMONADE_BASE_URL,
+        degradation_detector: Any = None,
+        *,
+        act_chat_fn: Any = None,
+        act_models: list[str] | None = None,
+        act_max_iters: int = 5,
+        act_log_path: Path | None = None,
+        act_python: str | None = None,
+        act_admit_fn: Any = None,
+    ) -> None:
         self._base_url = base_url
         self._started = False
         self._sweeper = LoopTickSweeper()
         self._degradation_detector = degradation_detector
+        # ACT lane (act_loop). act_chat_fn is the test seam; None -> live :13305 client.
+        self._act_chat_fn = act_chat_fn
+        self._act_models = act_models or list(_ACT_MODELS)
+        self._act_max_iters = act_max_iters
+        self._act_log = act_log_path or _ACT_LOG
+        self._act_python = act_python
+        # Admission gate before every ACT chat call; None -> hotswap.ensure_resident.
+        self._act_admit_fn = act_admit_fn
 
     def start(self, worktree_path: str) -> None:
         safe, free_gb = check_ram(_MIN_FREE_RAM_GB)
@@ -320,11 +361,20 @@ class LocalImprovementExecutor:
         logger.info("LocalImprovementExecutor stopped")
 
     def execute_task(self, task: Any, worktree_path: str) -> dict[str, Any]:
-        """Route a single task through the OmniRouter and return a result dict."""
+        """Complete a task through the ACT loop, or report that it cannot be completed.
+
+        success is True ONLY when act_loop committed a change with the task's oracle test
+        green. A task without an oracle (+ edit scope + git worktree) returns status
+        ``needs_oracle`` and success False: the prose lane still runs as an advisory draft
+        (``output``/``judge_pass``), but prose is never completion.
+        """
         description: str = getattr(task, "description", str(task))
         task_id: str = getattr(task, "id", "unknown")
         category: str = getattr(task, "category", "general")
         verification: str = getattr(task, "verification", "")
+
+        if _act_spec(task, worktree_path) is not None:
+            return self._execute_act(task, worktree_path)
 
         node = _classify_node(description)
         model = _TIER_MODEL.get(node, _DEFAULT_MODEL)
@@ -425,10 +475,12 @@ class LocalImprovementExecutor:
         # SECOND local lemonade lane judges the Dev output against the task's
         # acceptance criteria. Only a genuine quality FAIL counts toward the
         # cloud-escalation threshold — a non-empty WRONG answer no longer passes.
+        # The judge verdict is ADVISORY: prose without an oracle is never completion.
         if not output.strip():
-            success = False
+            judge_pass = False
         else:
-            success = _judge_quality(self._base_url, description, verification, output)
+            judge_pass = _judge_quality(self._base_url, description, verification, output)
+        success = False
         token_surprisal = _compute_slp(resp)
         tried_str = "→".join(m[:20] for m in tried_models)
         logger.info(
@@ -436,22 +488,95 @@ class LocalImprovementExecutor:
             task_id,
             node,
             tried_str,
-            "OK" if success else "EMPTY",
+            f"{NEEDS_ORACLE} (judge {'PASS' if judge_pass else 'FAIL'})",
             elapsed_ms,
             tokens,
         )
         return {
             "task_id": task_id,
             "success": success,
+            "status": NEEDS_ORACLE,
+            "judge_pass": judge_pass,
             "summary": output[:200],
             "tokens_used": tokens,
             "output": output,
             "model": model,
             "node": node,
             "elapsed_ms": elapsed_ms,
-            "returncode": 0 if success else 1,
+            "returncode": 1,
             "token_surprisal": token_surprisal,
             "tried_models": tried_models,
+        }
+
+    def _execute_act(self, task: Any, worktree_path: str) -> dict[str, Any]:
+        """Run act_loop in *worktree_path*; success iff it committed with the oracle green."""
+        from cohezion.compound.autonomous_loop import act_loop as al
+
+        task_id = str(getattr(task, "id", "unknown"))
+        oracle, file, targets = _act_spec(task, worktree_path)  # type: ignore[misc]
+        repo = Path(worktree_path)
+        chat = self._act_chat_fn
+        admit_models = list(self._act_models)
+        if chat is None:
+            resident = al.resident_llms(self._base_url)
+            if not resident or not any(m in resident for m in self._act_models):
+                msg = f"no ACT model resident (want {self._act_models}, resident {resident})"
+                return {
+                    **_error_result(task_id, "", "act", msg, returncode=2),
+                    "status": "no_resident_model",
+                }
+            # Admit a model that is already resident first: the gate then confirms rather
+            # than loads, unless another session evicted it in the meantime.
+            admit_models.sort(key=lambda m: m not in resident)
+            chat = al.make_chat_fn(
+                self._act_models, max_tokens=3072, timeout=180, base_url=self._base_url
+            )
+        admit = self._act_admit_fn
+        if admit is None:
+            from cohezion.inference.hotswap import ensure_resident as admit
+        venv_py = repo / ".venv" / "bin" / "python3"
+        python = self._act_python or (str(venv_py) if venv_py.exists() else sys.executable)
+        t0 = time.monotonic()
+        try:
+            res = al.act_loop(
+                repo=repo,
+                file=file,
+                targets=targets,
+                oracle=oracle,
+                extra_tests=[],
+                task=getattr(task, "description", ""),
+                task_id=task_id,
+                model="|".join(self._act_models),
+                chat=chat,
+                python=python,
+                max_iters=self._act_max_iters,
+                log=self._act_log,
+                admit=admit,
+                admit_models=admit_models,
+            )
+        except Exception as exc:  # bad spec (missing file/def) is a task failure, not a crash
+            logger.warning("act_loop %s raised: %s", task_id, exc)
+            return {
+                **_error_result(task_id, "", "act", str(exc), returncode=1),
+                "status": "act_error",
+            }
+        status = _ACT_STATUS.get(res.get("status", ""), "act_error")
+        success = status == "committed" and bool(res.get("commit"))
+        logger.info("task %s ACT %s commit=%s", task_id, status, res.get("commit"))
+        return {
+            "task_id": task_id,
+            "success": success,
+            "status": status,
+            "commit": res.get("commit"),
+            "summary": f"act_loop {res.get('status')} after {res.get('iterations', 0)} iters",
+            "tokens_used": 0,
+            "output": "",
+            "model": res.get("model", ""),
+            "node": "act",
+            "elapsed_ms": (time.monotonic() - t0) * 1000,
+            "returncode": 0 if success else 1,
+            "token_surprisal": None,
+            "tried_models": list(self._act_models),
         }
 
     def execute_batch(
@@ -486,6 +611,18 @@ class LocalImprovementExecutor:
                 results.append(result)
 
         return results
+
+
+def _act_spec(task: Any, worktree_path: str) -> tuple[str, str, list[str]] | None:
+    """(oracle_test, edit_file, edit_targets) when the task can drive act_loop, else None."""
+    oracle = str(getattr(task, "oracle_test", "") or "")
+    file = str(getattr(task, "edit_file", "") or "")
+    targets = list(getattr(task, "edit_targets", None) or [])
+    if not (oracle and file and targets and worktree_path):
+        return None
+    if not (Path(worktree_path) / ".git").exists():
+        return None
+    return oracle, file, targets
 
 
 def _error_result(
