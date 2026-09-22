@@ -587,6 +587,10 @@ class SkillRefiner:
             # and block promotion if a critical case regresses (defends the self-improvement loop
             # from QUIET prompt regression — check_drift only inspects edit-text embeddings, not
             # behavior). Fail-open when no run_fn is configured.
+            # regression_verified: the gate RAN against >=1 fixture and passed. Only then may a
+            # git-tracked PRIME file be rewritten (see _append_refinement); the fail-open paths
+            # (no run_fn, no fixtures, fixture load error) route the refinement to the overlay.
+            regression_verified = False
             if self._regression_run_fn is not None:
                 reg = PromptVersionRegistry()
                 # WIRING H1: the gate was DORMANT because nothing ever populated golden_fixture, so
@@ -616,6 +620,10 @@ class SkillRefiner:
                     )
                     self._record_blocked_promotion(skill_name, signal, "regression_gate")
                     return None
+                try:
+                    regression_verified = bool(reg._load_behavioral_fixtures(skill_name))
+                except Exception:  # UNKNOWN fixture presence is not verification
+                    regression_verified = False
 
             # Shadow canary: block promotion when current quality regresses vs rolling baseline.
             # Fail-open when no history yet or when quality_score is absent (e.g., mocked metrics).
@@ -657,7 +665,9 @@ class SkillRefiner:
                 return None
 
             # Append refinement
-            refined_path = self._append_refinement(prime_file, signal)
+            refined_path = self._append_refinement(
+                prime_file, signal, regression_verified=regression_verified
+            )
 
             if refined_path:
                 logger.info(f"Refined skill {skill_name}: {signal.key_insight}")
@@ -1399,30 +1409,16 @@ class SkillRefiner:
         return self._find_prime_file_in_registry(skill_name)
 
     def _find_prime_file_in_registry(self, skill_name: str) -> Path | None:
-        """Resolve *skill_name* through the authoritative skill registry, or None."""
-        try:
-            from cohezion.registry.skill_discovery import canonical_skill_key
-            from cohezion.registry.skill_registry import load_registry
+        """Resolve *skill_name* through the authoritative skill registry, or None.
 
-            wanted = canonical_skill_key(skill_name)
-            hits = []
-            for key, entry in load_registry().items():
-                if canonical_skill_key(key) != wanted or not isinstance(entry, dict):
-                    continue
-                # Registry paths are repo-relative ("src/cohezion/skills/X.md" or a bundle's
-                # ".../<dir>/SKILL.md"); re-root below SKILLS_DIR so both shapes resolve.
-                rel = Path(str(entry.get("path", ""))).parts
-                if "skills" in rel:
-                    path = self.SKILLS_DIR.joinpath(*rel[rel.index("skills") + 1 :])
-                    if path.suffix == ".md" and path.is_file():
-                        hits.append(path)
-            if len(hits) == 1:
-                return hits[0]
-            if hits:  # two registry skills canonicalise alike: refining either would be a guess
-                logger.warning("ambiguous registry match for %s: %s", skill_name, hits)
-        except (OSError, ValueError, ImportError) as exc:
-            logger.debug("registry lookup for %s failed: %s", skill_name, exc)
-        return None
+        Delegates to the resolver the refinement READER also uses, so writer and reader cannot
+        drift apart again (review 2026-09-22 C8).
+        """
+        from cohezion.compound.executor_helpers.refinement_reader import (
+            find_prime_file_in_registry,
+        )
+
+        return find_prime_file_in_registry(skill_name, self.SKILLS_DIR)
 
     def _ensure_golden_fixtures(self, registry: Any, skill_name: str, prime_file: Path) -> None:
         """WIRING H1: populate golden fixtures so the behavioral regression gate is non-dormant.
@@ -1732,16 +1728,48 @@ class SkillRefiner:
             pass
         return out
 
-    def _append_refinement(self, prime_file: Path, signal: LearningSignal) -> Path | None:
+    def _append_refinement(
+        self, prime_file: Path, signal: LearningSignal, *, regression_verified: bool = False
+    ) -> Path | None:
         """Append learned refinement to PRIME file.
 
         Args:
             prime_file: Path to PRIME .md file
             signal: LearningSignal to append
+            regression_verified: the FAPO R3 regression gate ran against >=1 golden fixture
+                and passed for this candidate.
+
+        A git-tracked PRIME file is rewritten ONLY when regression_verified. Otherwise the
+        refinement goes to the out-of-repo overlay (refinement_reader.overlay_path), which the
+        reader merges into guidance, so it still reaches the next run. Harness R3: a prompt edit
+        must not be promoted without the behavioral regression check; every R3 fail-open path
+        (no run_fn, no fixtures, load error) would otherwise let an uncalibrated signal rewrite
+        checked-in instructions -- in the service's dirty checkout, with nothing to revert it.
 
         Returns:
-            Path to refined file if successful, None otherwise
+            Path to refined file (PRIME or overlay) if successful, None otherwise
         """
+        from cohezion.compound.executor_helpers.refinement_reader import (
+            is_git_tracked,
+            overlay_path,
+        )
+
+        if not regression_verified and is_git_tracked(prime_file):
+            try:
+                overlay = overlay_path(prime_file)
+                overlay.parent.mkdir(parents=True, exist_ok=True)
+                with overlay.open("a", encoding="utf-8") as fh:
+                    fh.write(self._create_refinement_section(signal) + "\n")
+                logger.info(
+                    "Refinement for tracked %s written to overlay %s (regression gate "
+                    "unverified)",
+                    prime_file.name,
+                    overlay,
+                )
+                return overlay
+            except OSError as e:
+                logger.debug(f"Failed to write refinement overlay: {e}")
+                return None
         try:
             # Read current file
             content = prime_file.read_text(encoding="utf-8")
@@ -1765,17 +1793,20 @@ class SkillRefiner:
                 insertion_point = content.find(version_line)
 
             if insertion_point == -1:
-                logger.debug("Could not find insertion point in PRIME file")
-                return None
-
-            # Insert refinement and update version
-            new_content = (
-                content[:insertion_point]
-                + refinement
-                + "\n"
-                + f"## Version: {new_version}\n"
-                + content[insertion_point + len(version_line) + 1 :]
-            )
+                # No "## Version: x.y.z" / "## Keywords:" anchor (e.g. RESEARCH_ACTIONER_PRIME.md
+                # has "## VERSION"): append at EOF, version untouched. Returning None here meant
+                # such a skill could never be refined in place at all.
+                new_version = current_version
+                new_content = content.rstrip("\n") + "\n" + refinement + "\n"
+            else:
+                # Insert refinement and update version
+                new_content = (
+                    content[:insertion_point]
+                    + refinement
+                    + "\n"
+                    + f"## Version: {new_version}\n"
+                    + content[insertion_point + len(version_line) + 1 :]
+                )
 
             # DRAFT-THEN-PROMOTE. Without a gate this writes straight to the live PRIME file --
             # a closed loop: an uncalibrated quality signal rewrites the very instructions that
