@@ -14,6 +14,16 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+# Result statuses that say nothing about the MODEL: the instrument failed (act_error: git hook,
+# bad spec, crash; no_resident_model: router), no oracle exists (needs_oracle), or the executor
+# returned nothing for the task (result_missing -- the placeholder run() fabricates). PQ1: their
+# quality is UNKNOWN, and success=False is not a model measurement either, so neither a 0.0
+# quality nor a 0.0 success_rate may reach the DegradationDetector baseline.
+_UNKNOWN_OUTCOME_STATUSES = frozenset(
+    {"act_error", "no_resident_model", "needs_oracle", "result_missing"}
+)
+
+
 @dataclass
 class LoopConfig:
     use_local_inference: bool = True
@@ -161,6 +171,7 @@ class LoopCoordinator:
                             task.id,
                             {
                                 "success": False,
+                                "status": "result_missing",
                                 "tokens_used": 0,
                                 "node": "?",
                                 "model": "?",
@@ -286,13 +297,16 @@ class LoopCoordinator:
             # an instrument failure must not be scored 0.0 as if the model had failed.
             quality_score: float | None = result["cascade_quality_score"]
             self._record_act_difficulty(task, result, quality_score)
-        # Long2Short quality score: success/tokens (sparse — None when undefined)
-        elif not success:
-            quality_score = 0.0
-        elif tokens > 0:
+        # Long2Short quality score: success/tokens (sparse — None when undefined). A failure
+        # with NO producer-reported quality is UNKNOWN (PQ1), not 0.0: the absent key is
+        # exactly what act_error / no_resident_model / needs_oracle / result_missing carry.
+        elif success and tokens > 0:
             quality_score = 1.0 / tokens
         else:
-            quality_score = None  # success=True, tokens=0 → undefined
+            quality_score = None
+        outcome_known = result.get("status") not in _UNKNOWN_OUTCOME_STATUSES and not (
+            "cascade_quality_score" in result and result["cascade_quality_score"] is None
+        )
 
         report.results.append(
             {
@@ -313,9 +327,10 @@ class LoopCoordinator:
             with contextlib.suppress(Exception):
                 sparse: dict[str, Any] = {
                     "elapsed_seconds": result.get("elapsed_ms", 0) / 1000.0,
-                    "success_rate": 1.0 if success else 0.0,
                     "token_surprisal": result.get("token_surprisal"),
                 }
+                if outcome_known:
+                    sparse["success_rate"] = 1.0 if success else 0.0
                 if quality_score is not None:
                     sparse["quality_score"] = quality_score
                 self._degradation_detector.check_degradation(sparse)
