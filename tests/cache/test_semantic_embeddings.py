@@ -222,12 +222,36 @@ class TestSemanticTextEncoder:
         assert 0.0 <= similarity <= 1.0, "Fallback should still return valid similarity"
 
 
+class _BagOfWordsEncoder:
+    """Offline stand-in for the lemonade nomic-embed encoder: a normalised word-count vector."""
+
+    _VOCAB = ("what", "is", "python", "tell", "me", "about", "explain")
+
+    def is_available(self) -> bool:
+        return True
+
+    def encode(self, text: str) -> np.ndarray:
+        words = [w.strip("?.,!").lower() for w in text.split()]
+        vec = np.array([words.count(v) for v in self._VOCAB], dtype=np.float32)
+        norm = float(np.linalg.norm(vec))
+        return vec / norm if norm > 0 else vec
+
+
 class TestSemanticCacheDiscrimination:
     """Integration tests for semantic cache with real embeddings."""
 
-    def test_semantic_cache_hit_rate_improvement(self):
+    def test_semantic_cache_hit_rate_improvement(self, monkeypatch):
         """Test that semantic cache achieves better discrimination than hash-based."""
         from cohezion.cache.semantic_cache import SemanticCache
+
+        # The L2 semantic path is under test, not the embedding model. This used to embed via
+        # the LIVE :13305 nomic-embed router (and failed whenever it was down); a deterministic
+        # bag-of-words encoder gives the paraphrase the geometry the assertions need:
+        # cos("explain what python is", "what is python?") = 3/sqrt(12) = 0.87 > 0.85, while
+        # cos(query, "tell me about python") = 0.25.
+        monkeypatch.setattr(
+            "cohezion.cache.semantic_cache.get_lemonade_encoder", _BagOfWordsEncoder
+        )
 
         cache = SemanticCache(similarity_threshold=0.85)
 

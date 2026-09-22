@@ -1,4 +1,11 @@
+import pytest
+
 from cohezion.inference.deep_cooking import DeepCookingEngine, DeepCookingResult
+
+
+# The code under test calls the lemonade router (:13305) and fails open when it is down.
+# Fake it as down instead of discovering that against the live fleet (tests/_live_port_guard.py).
+pytestmark = pytest.mark.usefixtures("router_offline")
 
 
 def test_deep_cooking_engine_initialization_and_execution():

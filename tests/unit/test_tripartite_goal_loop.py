@@ -24,6 +24,11 @@ from cohezion.recursive_trace.tripartite_goal_loop import (
 )
 
 
+# The code under test calls the lemonade router (:13305) and fails open when it is down.
+# Fake it as down instead of discovering that against the live fleet (tests/_live_port_guard.py).
+pytestmark = pytest.mark.usefixtures("router_offline")
+
+
 def test_internal_codebase_sweep():
     loop = TripartiteGoalLoop()
     sweep = loop.execute_internal_sweep()

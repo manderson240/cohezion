@@ -1,3 +1,5 @@
+import pytest
+
 from cohezion.inference.cpu_inference_engine import CPUInferenceEngine, CPUInferenceResult
 from cohezion.physics.j_space_manifold import JSpaceManifold, JSpaceProjection
 from cohezion.physics.poincare_manifold import PoincareManifoldND
@@ -15,6 +17,7 @@ def test_j_space_manifold_projection_and_reconstruction():
     assert 0.0 <= proj.workspace_coherence <= 1.0
 
 
+@pytest.mark.usefixtures("router_offline")  # fail-open path; no live :13305
 def test_cpu_inference_engine():
     cpu = CPUInferenceEngine(threads=32)
     res = cpu.execute_cpu_inference("Analyze CPU parallel performance.")
