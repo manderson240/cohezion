@@ -16,6 +16,7 @@ import pytest
 
 from cohezion.inference import oom_guard
 
+
 _UNSOLVED = pytest.mark.xfail(
     reason="ACT-loop oracle for work-queue f2505e6983bf: the local model did not solve it "
     "(2026-09-21); fixed by hand on fix/review-followups-20260921 (c11a7eec1).",
