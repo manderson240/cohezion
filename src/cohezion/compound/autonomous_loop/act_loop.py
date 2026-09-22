@@ -315,7 +315,7 @@ def act_loop(
     call_backoff_s: float = 20.0,
     confirm_repeats: int = 3,
     callers: list[str] | None = None,
-    caller_cap: int = 20,
+    caller_cap: int = 10,  # 20 oom_guard callers measured 76s per run; x3 confirm repeats
     caller_timeout: float = 300,
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green.
