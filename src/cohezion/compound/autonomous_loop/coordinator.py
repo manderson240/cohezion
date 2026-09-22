@@ -64,6 +64,8 @@ class SprintResult:
     cloud_tokens: int = 0
     tasks_done: int = 0
     tasks_failed: int = 0
+    # Third outcome: no oracle, so neither completion nor failure (see _record_result).
+    tasks_needs_oracle: int = 0
 
     @property
     def tokens_used(self) -> int:
@@ -74,6 +76,9 @@ class SprintResult:
 class RunReport:
     tasks_completed: int = 0
     tasks_failed: int = 0
+    # Tasks that ran but cannot be judged -- no ACT oracle. NOT failures: a consumer must not
+    # retry them (a rerun cannot produce an oracle) nor count them against health.
+    tasks_needs_oracle: int = 0
     results: list[dict[str, Any]] = field(default_factory=list)
     sprint_results: list[SprintResult] = field(default_factory=list)
 
@@ -229,7 +234,12 @@ class LoopCoordinator:
             if cloud_exec is not None and getattr(cloud_exec, "_started", False):
                 cloud_exec.stop()
 
-        if sprint.tokens_used > 0 or sprint.tasks_done > 0 or sprint.tasks_failed > 0:
+        if (
+            sprint.tokens_used > 0
+            or sprint.tasks_done > 0
+            or sprint.tasks_failed > 0
+            or sprint.tasks_needs_oracle > 0
+        ):
             self._sprint_results.append(sprint)
 
         report.sprint_results = list(self._sprint_results)
@@ -276,20 +286,27 @@ class LoopCoordinator:
         success = result.get("success", False)
         task_fail_count = fail_counts.get(task.id, 0)
         if success:
+            outcome = "done"
             fail_counts[task.id] = 0
             report.tasks_completed += 1
             sprint.tasks_done += 1
+        elif result.get("status") == "needs_oracle":
+            # Third outcome: the task has no oracle, so it can be neither completed nor failed.
+            # Not a failure count (a retry or cloud escalation cannot produce an oracle), not a
+            # health failure for consumers of tasks_failed -- surfaced on its own counter.
+            outcome = "needs_oracle"
+            report.tasks_needs_oracle += 1
+            sprint.tasks_needs_oracle += 1
         else:
-            # needs_oracle is not a model failure: escalating it to cloud cannot help.
-            if result.get("status") != "needs_oracle":
-                fail_counts[task.id] = task_fail_count + 1
+            outcome = "failed"
+            fail_counts[task.id] = task_fail_count + 1
             report.tasks_failed += 1
             sprint.tasks_failed += 1
 
         cat = task.category
         if cat not in category_stats:
             category_stats[cat] = {"done": 0, "failed": 0}
-        category_stats[cat]["done" if success else "failed"] += 1
+        category_stats[cat][outcome] = category_stats[cat].get(outcome, 0) + 1
 
         if "cascade_quality_score" in result:
             # PQ1: the producer measured quality (ACT: oracle GREEN 1.0 / EXHAUSTED 0.0) or
@@ -314,6 +331,7 @@ class LoopCoordinator:
                 "tokens": tokens,
                 "is_cloud": is_cloud,
                 "success": success,
+                "outcome": outcome,
                 "node": result.get("node", "cloud" if is_cloud else "?"),
                 "model": result.get("model", "?"),
                 "elapsed_ms": result.get("elapsed_ms", 0),
