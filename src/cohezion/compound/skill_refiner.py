@@ -1373,12 +1373,21 @@ class SkillRefiner:
             from cohezion.registry.skill_registry import load_registry
 
             wanted = canonical_skill_key(skill_name)
+            hits = []
             for key, entry in load_registry().items():
                 if canonical_skill_key(key) != wanted or not isinstance(entry, dict):
                     continue
-                path = self.SKILLS_DIR / Path(str(entry.get("path", ""))).name
-                if path.name.endswith(".md") and path.exists():
-                    return path
+                # Registry paths are repo-relative ("src/cohezion/skills/X.md" or a bundle's
+                # ".../<dir>/SKILL.md"); re-root below SKILLS_DIR so both shapes resolve.
+                rel = Path(str(entry.get("path", ""))).parts
+                if "skills" in rel:
+                    path = self.SKILLS_DIR.joinpath(*rel[rel.index("skills") + 1 :])
+                    if path.suffix == ".md" and path.is_file():
+                        hits.append(path)
+            if len(hits) == 1:
+                return hits[0]
+            if hits:  # two registry skills canonicalise alike: refining either would be a guess
+                logger.warning("ambiguous registry match for %s: %s", skill_name, hits)
         except (OSError, ValueError, ImportError) as exc:
             logger.debug("registry lookup for %s failed: %s", skill_name, exc)
         return None

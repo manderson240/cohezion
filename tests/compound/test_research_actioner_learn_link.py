@@ -77,7 +77,11 @@ class TestCheckedInFixtures:
         assert all(
             set(f) == {"input", "expected_output", "validator_type", "critical"} for f in fixtures
         )
-        assert any(f["critical"] for f in fixtures)
+        # Critical = the proposal-contract cases only. Their JSON keys are demanded by the
+        # prompt itself; measured parse-failure rate in ada_proposals.jsonl: 75/4219 (1.8%).
+        # Triage cases ask a model to replay a regex, so they stay observe-only.
+        by_critical = {f["input"].startswith("You are triaging"): f["critical"] for f in fixtures}
+        assert by_critical == {True: True, False: False}
 
 
 def _fake_run(output_for_proposal: str):
@@ -127,3 +131,25 @@ class TestRegressionGate:
         blocked.assert_called_once()
         assert blocked.call_args.args[2] == "regression_gate"
         assert prime.read_text() == before
+
+
+class TestRegistryFallbackIsUnambiguous:
+    def test_two_skills_that_canonicalise_alike_resolve_to_none(self, tmp_path, monkeypatch):
+        for name in ("FOO_BAR_PRIME.md", "foo_bar.md"):
+            (tmp_path / name).write_text("x")
+        monkeypatch.setattr(SkillRefiner, "SKILLS_DIR", tmp_path)
+        reg = {
+            "FOO_BAR_PRIME": {"path": "src/cohezion/skills/FOO_BAR_PRIME.md"},
+            "foo_bar": {"path": "src/cohezion/skills/foo_bar.md"},
+        }
+        with patch("cohezion.registry.skill_registry.load_registry", return_value=reg):
+            assert SkillRefiner()._find_prime_file_in_registry("foo-bar") is None
+
+    def test_bundle_skill_resolves_to_its_own_skill_md(self, tmp_path, monkeypatch):
+        (tmp_path / "my-bundle").mkdir()
+        (tmp_path / "my-bundle" / "SKILL.md").write_text("x")
+        monkeypatch.setattr(SkillRefiner, "SKILLS_DIR", tmp_path)
+        reg = {"my-bundle": {"path": "src/cohezion/skills/my-bundle/SKILL.md"}}
+        with patch("cohezion.registry.skill_registry.load_registry", return_value=reg):
+            path = SkillRefiner()._find_prime_file_in_registry("my_bundle")
+        assert path == tmp_path / "my-bundle" / "SKILL.md"
