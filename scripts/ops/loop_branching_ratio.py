@@ -10,11 +10,12 @@ reference whatever their own date (right-censored near the window end, so biased
   DECIDE unique (item_id, sha1(proposal)) in ada_proposals.jsonl + (item_id, task id) in
          compound_tasks.json with item_id in SENSE                               parent SENSE
   ACT    prose: compound tasks done+success from SENSE items (text produced)     parent DECIDE
-         diff: unique `git log --all` commits naming a SENSE item id or `Compound-Task: N` of a
-         task from those items (bare "task N" NOT matched: 283 human commits say it)
-  LEARN  ACT(diff) commits touching src/cohezion/skills/ or *_PRIME.md + prompt_version rows
-         (all-time, unattributable: upper bound)                               parent ACT(diff)
-  CLOSE  ACT(diff) commits that are ancestors of origin/main                   parent ACT(diff)
+         diff: unique SENSE ITEMS with >=1 `git log --all` commit naming the item id or the
+         `Compound-Task: N` of a task from it (bare "task N" NOT matched: 283 human commits say
+         it). Commit count reported separately as notes.act_diff_commits.
+  LEARN  ACT(diff) items with a commit touching src/cohezion/skills/ or *_PRIME.md +
+         prompt_version rows (all-time, unattributable: upper bound)          parent ACT(diff)
+  CLOSE  ACT(diff) items with a commit that is an ancestor of origin/main     parent ACT(diff)
   RESCAN actioner journal sum(processed) / unique ids processed (the runaway signal).
 event_log is NOT a loop source (git-post-commit + claude-code-session rows only); not queried.
 """
@@ -153,16 +154,21 @@ def compute(src, days, now=None, dedup=True):  # dedup=False is the planted bug 
     if D is None or e3:
         notes["ACT_diff"] = e3 or "parent UNKNOWN"
     else:
-        tids = {str(t["id"]) for t in tasks_S}
-        A = [(sha, f) for sha, msg, f in cm[0]
-             if set(HEX12.findall(msg)) & S or set(TASKREF.findall(msg)) & tids]  # fmt: skip
-        A = list(dict(A).items()) if dedup else A
-        n["ACT_diff"], n["CLOSE"] = len(A), sum(1 for sha, _ in A if sha in cm[1])
+        item_of_task = {str(t["id"]): t["source_item_id"] for t in tasks_S}
+        # items a commit acts on: SENSE ids it names + source items of Compound-Task trailers
+        its = lambda m: (set(HEX12.findall(m)) & S) | {item_of_task[t] for t in TASKREF.findall(m) if t in item_of_task}  # noqa: E731  # fmt: skip
+        A = [(sha, f, its(msg)) for sha, msg, f in cm[0] if its(msg)]
+        A = list({sha: (sha, f, i) for sha, f, i in A}.values()) if dedup else A
+        # the contract is UNIQUE ITEMS: 2 commits for one item are one ACT child, not two
+        items = lambda rows: len(uniq(i for *_x, ii in rows for i in sorted(ii)))  # noqa: E731
+        n["ACT_diff"], notes["act_diff_commits"] = items(A), len(A)
+        n["CLOSE"] = items([r for r in A if r[0] in cm[1]])
+        notes["close_commits"] = sum(1 for r in A if r[0] in cm[1])
     if A is None or e4:
         notes["LEARN"] = e4 or "parent UNKNOWN"
     else:
-        skill = [s for s, f in A if any("src/cohezion/skills/" in x or x.endswith("_PRIME.md") for x in f)]  # fmt: skip
-        n["LEARN"], notes["prompt_version_rows_all_time"] = len(skill) + (pv if A else 0), pv
+        skill = [r for r in A if any("src/cohezion/skills/" in x or x.endswith("_PRIME.md") for x in r[1])]  # fmt: skip
+        n["LEARN"], notes["prompt_version_rows_all_time"] = items(skill) + (pv if A else 0), pv
     runs, e5 = _get(src, "runs", days)
     rescan = {"status": f"UNKNOWN: {e5}"}
     if not e5:
@@ -192,7 +198,8 @@ def _fixture(dead_act=False, broken=None, fanout=False):
              {"id": 8, "source_item_id": h(3), "done": True, "success": False}]  # fmt: skip
     c1 = ("c1", f"fix: item {h(0)}", ["src/cohezion/skills/X_PRIME.md"])
     commits = [] if dead_act else [c1, c1, ("c2", "feat: x\n\nCompound-Task: 7", ["a.py"]),
-                                   ("c3", "docs: Task 7 of the plan", ["b.md"])]  # fmt: skip
+                                   ("c3", "docs: Task 7 of the plan", ["b.md"]),
+                                   ("c4", f"fix: follow-up {h(0)}", ["c.py"])]  # same item as c1  # fmt: skip
     runs = ([(3, [h(i) for i in range(3)])] * 4, 1.0)
     src = {"queue": lambda: q, "proposals": lambda: props, "tasks": lambda: tasks,
            "prompt_versions": lambda: 0, "commits": lambda: (commits, {"c1"}),
@@ -212,7 +219,8 @@ def self_test(dedup=True):
         ("DECIDE dedups rows (x,y,z,task7,task8)", r["counts"]["DECIDE"], 5),
         ("sigma S->D", r["sigma"]["SENSE->DECIDE"], 0.5), ("decided items", r["notes"]["decided_items"], 4),
         ("ACT_prose", r["counts"]["ACT_prose"], 1), ("LEARN", r["counts"]["LEARN"], 1),
-        ("ACT_diff: c1 once, c2 trailer, c3 'Task 7' ignored", r["counts"]["ACT_diff"], 2),
+        ("ACT_diff items: c1+c4 same item once, c2 trailer, c3 ignored", r["counts"]["ACT_diff"], 2),
+        ("act_diff_commits: c1 once, c4, c2", r["notes"]["act_diff_commits"], 3),
         ("CLOSE", r["counts"]["CLOSE"], 1), ("rescan amplification", r["rescan"]["amplification"], 4.0),
         ("duplicating link sigma > 1", run(fanout=True)["sigma"]["SENSE->DECIDE"], 3.0),
         ("dead link sigma == 0", dead["sigma"]["DECIDE->ACT_diff"], 0.0),
