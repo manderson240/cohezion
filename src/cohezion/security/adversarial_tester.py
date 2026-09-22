@@ -32,13 +32,13 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from cohezion.security.guardrail_pipeline import CONTENT_GUARDS
 from cohezion.security.attack_patterns import (
     PATTERN_SUMMARY,
     AttackPattern,
     generate_test_batch,
     get_pattern_count,
 )
+from cohezion.security.guardrail_pipeline import CONTENT_GUARDS
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.security.validators import ValidationResult, validate_input
 

@@ -69,7 +69,7 @@ BATCH_SIZE = 50
 # inside ``\b(...)\b`` with nothing after them, so ``quantiz`` required a word boundary
 # right after the ``z`` and never matched "quantized"/"quantization" (same for
 # "fine-tuning", "orchestration"). Whole words stay whole-word; ``distill`` gets its
-# noun and and gerund only ("distilled water" is not ML).
+# noun and gerund only ("distilled water" is not ML).
 _ROUTE_B_EXPERIMENT = re.compile(
     r"\b(train|training|fine[- ]?tun\w*|sft|rlhf|dpo|distill(?:ation|ing)?|"
     r"curriculum|eval|benchmark|skill-methodology|reward model|dataset)\b",
@@ -185,7 +185,7 @@ def is_infra_failure(err_msg: str) -> bool:
     return bool(_INFRA_FAILURE.search(err_msg))
 
 
-class GuardrailBlocked(RuntimeError):
+class GuardrailBlockedError(RuntimeError):
     """The compound cycle's input guardrail BLOCKED the item; carries which guard did it."""
 
     def __init__(self, message: str, guard_name: str = "", reason: str = "") -> None:
@@ -205,7 +205,7 @@ def guardrail_block_kind(exc: BaseException) -> str | None:
     A block whose guard is unknown (legacy executors that report only the message) keeps
     the historical terminal behaviour.
     """
-    guard = getattr(exc, "guard_name", "") if isinstance(exc, GuardrailBlocked) else ""
+    guard = getattr(exc, "guard_name", "") if isinstance(exc, GuardrailBlockedError) else ""
     if guard:
         if str(getattr(exc, "reason", "")).startswith("Guardrail exception:"):
             return "transient"
@@ -467,7 +467,7 @@ def action_item(
     if not getattr(result, "success", False):
         metrics = getattr(result, "metrics", None)
         if isinstance(metrics, dict) and metrics.get("blocked_by_guardrails"):
-            raise GuardrailBlocked(
+            raise GuardrailBlockedError(
                 f"compound cycle failed for {item['id']}: {_failure_reason(result)}",
                 guard_name=str(metrics.get("blocked_by_guard") or ""),
                 reason=str(metrics.get("blocked_guard_reason") or ""),
