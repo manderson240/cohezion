@@ -104,10 +104,13 @@ def _item_to_task(item: dict[str, Any], task_id: int) -> dict[str, Any]:
         "done": False,
         "source_item_id": item.get("id"),
     }
-    # ACT spec passes through only when the card carries one (see work_queue_router).
-    for key in ("oracle_test", "edit_file", "edit_targets"):
-        if item.get(key):
-            task[key] = item[key]
+    # ACT spec passes through only when the card carries one AND a trusted writer set it
+    # (act_spec_trusted is set server-side only behind X-Act-Token; see work_queue_router).
+    # A spec without the flag (rows written before the gate existed) is dropped: ACT commits.
+    if item.get("act_spec_trusted") is True:
+        for key in ("oracle_test", "edit_file", "edit_targets"):
+            if item.get(key):
+                task[key] = item[key]
     return task
 
 

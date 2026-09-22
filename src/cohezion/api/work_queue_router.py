@@ -10,6 +10,7 @@ Endpoints:
 from __future__ import annotations
 
 import fcntl
+import hmac
 import json
 import os
 import sys
@@ -20,7 +21,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
@@ -155,6 +156,36 @@ class WorkItemCreate(BaseModel):
 
 _ACT_FIELDS = ("oracle_test", "edit_file", "edit_targets")
 
+# ACT fields make the compound loop edit and COMMIT code, so only a trusted writer may set
+# them (security finding M1, 2026-09-22: any local process could POST/PATCH them, no auth).
+# The writer proves itself with the X-Act-Token header matching COHEZION_ACT_TOKEN. Unset
+# token = ACT fields refused (fail closed). Cards so written carry act_spec_trusted=True,
+# a server-side flag the compound feeder requires before forwarding the spec.
+ACT_TOKEN_ENV = "COHEZION_ACT_TOKEN"  # noqa: S105 -- env var NAME, not a secret
+_ACT_TOKEN_HEADER = Header(None, alias="X-Act-Token")
+
+
+def _authorize_act_fields(body: BaseModel, token: object) -> bool:
+    """True when *body* sets ACT fields (and may); 403/422 when it may not; False if none."""
+    fields = {k: getattr(body, k) for k in _ACT_FIELDS if getattr(body, k) is not None}
+    if not fields:
+        return False
+    expected = os.environ.get(ACT_TOKEN_ENV, "")
+    supplied = token if isinstance(token, str) else ""  # direct calls pass the Header default
+    if not expected or not hmac.compare_digest(supplied.encode(), expected.encode()):
+        raise HTTPException(
+            status_code=403, detail=f"ACT spec fields require X-Act-Token ({ACT_TOKEN_ENV})"
+        )
+    from cohezion.compound.autonomous_loop.act_loop import check_act_fields
+
+    try:
+        check_act_fields(
+            fields.get("edit_file"), fields.get("oracle_test"), fields.get("edit_targets")
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return True
+
 
 class WorkItemPatch(BaseModel):
     status: str | None = None  # pending_review | approved | rejected | in_progress | done
@@ -219,14 +250,15 @@ def list_items(
 
 
 @router.post("/api/work-queue", status_code=201)
-def create_item(body: WorkItemCreate):
+def create_item(body: WorkItemCreate, x_act_token: str | None = _ACT_TOKEN_HEADER):
+    act_ok = _authorize_act_fields(body, x_act_token)
     # The lock must span load->mutate->save; holding it only around _save would still
     # lose the other writer's change, because each writer rewrites the WHOLE file.
     with _queue_lock():
-        return _create_item_locked(body)
+        return _create_item_locked(body, act_ok)
 
 
-def _create_item_locked(body: WorkItemCreate) -> dict[str, Any]:
+def _create_item_locked(body: WorkItemCreate, act_ok: bool = False) -> dict[str, Any]:
     q = _load()
     canonical_id = canonical_paper_id(body.url)
     if canonical_id:
@@ -254,7 +286,9 @@ def _create_item_locked(body: WorkItemCreate) -> dict[str, Any]:
         "canonical_id": canonical_id,
     }
     # Keys only when supplied: rows without an oracle keep their existing shape.
-    item.update({k: getattr(body, k) for k in _ACT_FIELDS if getattr(body, k) is not None})
+    if act_ok:
+        item.update({k: getattr(body, k) for k in _ACT_FIELDS if getattr(body, k) is not None})
+        item["act_spec_trusted"] = True
     _apply_card_honesty(item, body.relevance, notes_written=True)
     q["items"].append(item)
     _save(q)
@@ -263,12 +297,13 @@ def _create_item_locked(body: WorkItemCreate) -> dict[str, Any]:
 
 
 @router.patch("/api/work-queue/{item_id}")
-def patch_item(item_id: str, body: WorkItemPatch):
+def patch_item(item_id: str, body: WorkItemPatch, x_act_token: str | None = _ACT_TOKEN_HEADER):
+    act_ok = _authorize_act_fields(body, x_act_token)
     with _queue_lock():
-        return _patch_item_locked(item_id, body)
+        return _patch_item_locked(item_id, body, act_ok)
 
 
-def _patch_item_locked(item_id: str, body: WorkItemPatch) -> dict[str, Any]:
+def _patch_item_locked(item_id: str, body: WorkItemPatch, act_ok: bool = False) -> dict[str, Any]:
     q = _load()
     for item in q["items"]:
         if item.get("id") == item_id:
@@ -297,9 +332,11 @@ def _patch_item_locked(item_id: str, body: WorkItemPatch) -> dict[str, Any]:
                 item["priority"] = body.priority
             if body.action_route is not None:
                 item["action_route"] = body.action_route
-            for k in _ACT_FIELDS:
-                if getattr(body, k) is not None:
-                    item[k] = getattr(body, k)
+            if act_ok:
+                for k in _ACT_FIELDS:
+                    if getattr(body, k) is not None:
+                        item[k] = getattr(body, k)
+                item["act_spec_trusted"] = True
             # notes_append (triage reasons) is not a model summary: only a full `notes`
             # write is labelled, so appended reasons never re-label the stored analysis.
             _apply_card_honesty(item, body.relevance, notes_written=body.notes is not None)

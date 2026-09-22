@@ -119,10 +119,22 @@ def check_act_spec(
     could make the loop commit edits to auth/CI code or run pytest on ``/tmp/x_test.py``
     (and the conftest.py beside it).
     """
-    _check_rel(file, "src", "edit target")
-    for t in [oracle, *extra_tests]:
+    check_act_fields(file, oracle, targets)
+    for t in extra_tests:
         _check_rel(str(t).split("::", 1)[0], "tests", "oracle test")
-    if not targets or not all(isinstance(t, str) and _IDENT.match(t) for t in targets):
+
+
+def check_act_fields(
+    file: str | None = None, oracle: str | None = None, targets: list[str] | None = None
+) -> None:
+    """Validate whichever ACT fields are given (None = not supplied); raises ValueError."""
+    if file is not None:
+        _check_rel(file, "src", "edit target")
+    if oracle is not None:
+        _check_rel(str(oracle).split("::", 1)[0], "tests", "oracle test")
+    if targets is not None and (
+        not targets or not all(isinstance(t, str) and _IDENT.match(t) for t in targets)
+    ):
         raise ValueError(f"edit targets must be Python identifiers: {targets!r}")
 
 
