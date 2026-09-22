@@ -39,7 +39,7 @@ def item_counts(r):
 
 
 def build(n, optimistic=False, strict=True):  # strict=False: planted UNKNOWN->0 bug
-    """{state: {succ: p}} or {state: UNKNOWN}. Fan-out >1 is capped at 1 (flagged by caller)."""
+    """{state: {succ: p}} or {state: UNKNOWN}. Fan-out >1 is capped at 1 (report() lists it)."""
     P = {}
     for s in T:
         a, b = n[s], n[NXT[s]]
@@ -122,7 +122,10 @@ def report(r):
     P, Po = build(n), build(n, optimistic=True)
     s, so = solve(P), solve(Po)
     vis = solve(v) if (v := with_rescan(P, r["rescan"].get("amplification"))) != U else None
-    return {"item_counts": n, "chain": P, "P_close": s["absorb"].get("CLOSED", 0.0) if s else U,
+    capped = [
+        s for s in T if n[s] and n[NXT[s]] is not None and n[NXT[s]] > n[s]
+    ]  # fan-out >1 made p=1
+    return {"item_counts": n, "fanout_capped": capped, "chain": P, "P_close": s["absorb"].get("CLOSED", 0.0) if s else U,
             "P_close_optimistic": so["absorb"].get("CLOSED", 0.0) if so else U,
             "steps_lifecycle": round(s["steps"], 4) if s else U,
             "steps_actioner_visits": round(vis["steps"], 1) if vis else U, "rescan_status": r["rescan"]["status"],
