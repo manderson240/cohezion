@@ -140,6 +140,17 @@ if ! git worktree add -q "$CONTROL_WORKTREE" "$TRUNK_TIP" 2>/dev/null; then
   exit 3
 fi
 
+# Make the gate tooling runnable and, more importantly, PROVE the tree under test is the
+# integration worktree. Sourced from $WORKTREE's own copy so gate_env's root is the tree the
+# gates are about to judge, not the checkout the guard was launched from. Without the assertion
+# a stray editable install can point `cohezion` at the user's working copy, and every gate below
+# would grade code this PR never touched -- silently, with no error message.
+# shellcheck source=/dev/null
+source "$WORKTREE/scripts/ci/gate_env.sh" || {
+  echo "  -> ERROR: gate environment refused to initialise; gates would measure the wrong tree"
+  exit 3
+}
+
 # Step 1: Ruff format check
 step "ruff format --check" uv run ruff format --check src/ tests/
 
