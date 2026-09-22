@@ -204,6 +204,9 @@ def guardrail_block_kind(exc: BaseException) -> str | None:
       never count it toward ``MAX_FAILURE_ATTEMPTS`` (same treatment as infra failures).
     A block whose guard is unknown (legacy executors that report only the message) keeps
     the historical terminal behaviour.
+    Scope: INPUT blocks only. An output-filter block (``metrics.output_blocked_by_guardrails``)
+    judges non-deterministic model output, so it deliberately stays on the counted,
+    capped retry path rather than rejecting the card.
     """
     guard = getattr(exc, "guard_name", "") if isinstance(exc, GuardrailBlockedError) else ""
     if guard:
