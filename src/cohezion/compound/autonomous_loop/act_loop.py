@@ -187,6 +187,98 @@ def run_tests(repo: Path, python: str, tests: list[str], timeout: float = 300) -
     return p.returncode == 0, (p.stdout + p.stderr)[-3000:]
 
 
+def _module_name(file: str) -> str:
+    """Dotted module for a ``src/``-relative path (``__init__.py`` -> its package)."""
+    parts = list(Path(file).with_suffix("").parts)
+    if parts and parts[0] == "src":
+        parts = parts[1:]
+    if parts and parts[-1] == "__init__":
+        parts = parts[:-1]
+    return ".".join(parts)
+
+
+def _imported_modules(path: Path, own_module: str) -> set[str]:
+    """Every dotted name *path* imports (``from a import b`` yields ``a`` and ``a.b``)."""
+    try:
+        tree = ast.parse(path.read_text(errors="replace"))
+    except (SyntaxError, ValueError, OSError):
+        return set()
+    pkg = own_module.split(".")
+    out: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            out.update(a.name for a in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            if node.level:  # relative: resolve against the importing module's package
+                base = pkg[: len(pkg) - node.level] if node.level <= len(pkg) else []
+                mod = ".".join(base + ([node.module] if node.module else []))
+            else:
+                mod = node.module or ""
+            if mod:
+                out.add(mod)
+                out.update(f"{mod}.{a.name}" for a in node.names)
+    return out
+
+
+def caller_tests(
+    repo: Path, file: str, exclude: set[str] | None = None, cap: int = 20
+) -> list[str]:
+    """Test files that exercise *file*'s callers: they import it, or a src module that does.
+
+    Static scan, one hop through src/. Same-package tests first, then direct importers,
+    capped at *cap*. Oracle/extra tests go in *exclude* (repo-relative paths).
+    """
+    target = _module_name(file)
+    if not target:
+        return []
+    leaf = target.rsplit(".", 1)[-1]
+    targets = {target}
+    src = repo / "src"
+    for f in sorted(src.rglob("*.py")) if src.is_dir() else []:
+        rel = f.relative_to(repo).as_posix()
+        if rel == file or leaf not in f.read_text(errors="replace"):
+            continue
+        mod = _module_name(rel)
+        if target in _imported_modules(f, mod if f.name != "__init__.py" else mod + ".x"):
+            targets.add(mod)
+    leaves = {t.rsplit(".", 1)[-1] for t in targets}
+    same_pkg = "/".join(["tests", *target.split(".")[1:-1]])
+    found: list[tuple[bool, bool, str]] = []
+    tests_dir = repo / "tests"
+    for f in sorted(tests_dir.rglob("*.py")) if tests_dir.is_dir() else []:
+        rel = f.relative_to(repo).as_posix()
+        if (exclude and rel in exclude) or not (
+            f.name.startswith("test_") or f.stem.endswith("_test")
+        ):
+            continue
+        text = f.read_text(errors="replace")
+        if not any(lf in text for lf in leaves):
+            continue
+        hits = _imported_modules(f, _module_name(rel)) & targets
+        if hits:
+            in_pkg = rel.startswith(same_pkg + "/") if same_pkg != "tests" else True
+            found.append((not in_pkg, target not in hits, rel))
+    return [rel for *_k, rel in sorted(found)[:cap]]
+
+
+def _baseline_green(
+    repo: Path, python: str, files: list[str], timeout: float, budget_s: float
+) -> list[str]:
+    """The subset of *files* green BEFORE the edit: pre-existing red is not the model's fault."""
+    if not files:
+        return []
+    ok, _ = run_tests(repo, python, files, timeout)
+    if ok:
+        return files
+    deadline, keep = time.monotonic() + budget_s, []
+    for f in files:
+        if time.monotonic() > deadline:
+            break
+        if run_tests(repo, python, [f], timeout)[0]:
+            keep.append(f)
+    return keep
+
+
 def build_prompt(
     task: str, file: str, defs: str, oracle_src: str, failure: str, history: list[str]
 ) -> str:
@@ -222,6 +314,9 @@ def act_loop(
     max_call_errors: int = 12,
     call_backoff_s: float = 20.0,
     confirm_repeats: int = 3,
+    callers: list[str] | None = None,
+    caller_cap: int = 20,
+    caller_timeout: float = 300,
 ) -> dict[str, Any]:
     """Propose -> splice -> verify -> feed back, up to *max_iters*; commit only on green.
 
@@ -233,6 +328,12 @@ def act_loop(
 
     Status GREEN / EXHAUSTED / ROUTER_UNAVAILABLE / RUNNER_BROKEN / FLAKY_ORACLE /
     ORACLE_ALREADY_GREEN (non-discriminating).
+
+    Caller regression guard: *callers* None (default) auto-selects ``caller_tests`` (test
+    files importing the edited module or a src module that imports it); ``[]`` disables it.
+    Only callers green on the ORIGINAL file are kept, then run with the oracle on every
+    attempt: an edit that satisfies the oracle but breaks a caller is RED, never committed.
+    (2026-09-21: commit 2b81df1ca passed its oracle and broke ``oom_guard.pre_load_gate``.)
     """
     oracle_file = repo / oracle.split("::", 1)[0]  # *oracle* may be a pytest node id
     if not file.startswith("src/") or repo / file == oracle_file:
@@ -248,6 +349,13 @@ def act_loop(
         # The oracle could not RUN (no pytest, bad node id): an instrument failure. Asking the
         # model to fix it burns every iteration and ends EXHAUSTED, blaming the model.
         return {"status": "RUNNER_BROKEN", "python": python, "detail": failure[-400:]}
+    if callers is None:
+        skip = {t.split("::", 1)[0] for t in tests}
+        callers = caller_tests(repo, file, exclude=skip, cap=caller_cap)
+    guarded = _baseline_green(repo, python, callers, caller_timeout, budget_s=caller_timeout)
+    _log(log, {"task_id": task_id, "caller_tests": guarded, "caller_candidates": callers})
+    tests = [*tests, *guarded]
+    run_timeout = 300 + (caller_timeout if guarded else 0)
     history: list[str] = []
     t0 = time.monotonic()
     it = call_errors = 0
@@ -289,14 +397,14 @@ def act_loop(
             _log(log, rec)
             history.append(f"attempt {it}:\n```python\n{code}\n```\nrejected: {exc}")
             continue
-        ok, out = run_tests(repo, python, tests)
+        ok, out = run_tests(repo, python, tests, run_timeout)
         oracle_intact = oracle_file.read_text() == oracle_src
         rec.update(tests_green=ok, oracle_intact=oracle_intact, test_tail=out[-600:])
         if ok and oracle_intact:
             rec["outcome"] = "GREEN"
             _log(log, rec)
             for rep in range(2, confirm_repeats + 1):
-                r_ok, r_out = run_tests(repo, python, tests)
+                r_ok, r_out = run_tests(repo, python, tests, run_timeout)
                 _log(log, {"task_id": task_id, "iter": it, "confirm": rep, "green": r_ok})
                 if not r_ok:
                     path.write_text(original)
