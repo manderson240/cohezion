@@ -15,6 +15,7 @@ import math
 from typing import Dict, List, Tuple, Any, Optional, Set
 import numpy as np
 from scipy.optimize import linprog
+from scipy import sparse
 
 
 def solve_min_cost_flow_linking(
@@ -108,12 +109,17 @@ def solve_min_cost_flow_linking(
     v_to_idx = {v: i for i, v in enumerate(v_nodes)}
 
     n_constraints = len(u_nodes) + len(v_nodes)
-    A_ub = np.zeros((n_constraints, n_sub), dtype=np.float64)
-    b_ub = np.ones(n_constraints, dtype=np.float64)
-
+    rows = np.empty(2 * n_sub, dtype=np.int32)
+    cols = np.empty(2 * n_sub, dtype=np.int32)
     for j, (u, v, _) in enumerate(sub_edges):
-        A_ub[u_to_idx[u], j] = 1.0
-        A_ub[len(u_nodes) + v_to_idx[v], j] = 1.0
+        rows[2 * j] = u_to_idx[u]
+        cols[2 * j] = j
+        rows[2 * j + 1] = len(u_nodes) + v_to_idx[v]
+        cols[2 * j + 1] = j
+
+    data = np.ones(2 * n_sub, dtype=np.float64)
+    A_ub = sparse.coo_matrix((data, (rows, cols)), shape=(n_constraints, n_sub)).tocsc()
+    b_ub = np.ones(n_constraints, dtype=np.float64)
 
     bounds = [(0.0, 1.0) for _ in range(n_sub)]
 
