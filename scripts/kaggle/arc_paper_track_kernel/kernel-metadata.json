@@ -1,0 +1,21 @@
+{
+  "id": "manderson240/flume-arc-prize-2026-paper",
+  "title": "flume-arc-prize-2026-paper",
+  "code_file": "flume-arc-prize-2026-paper.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "research",
+    "paper",
+    "arc-prize-2026"
+  ],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [
+    "arc-prize-2026-paper-track"
+  ]
+}
