@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
@@ -20,7 +21,8 @@ from dotenv import load_dotenv
 from cohezion.quantum import QuantumBackendUnavailableError
 
 
-load_dotenv()
+# The repo's own .env, resolved from this file (not cwd-dependent find_dotenv).
+load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 
 try:
     import bluequbit
@@ -40,6 +42,7 @@ class BlueQubitARCSolver:
         self.device = device
         self.client = None
         self.init_error: str | None = None
+        self._init_exc: BaseException | None = None
         if not HAS_BLUEQUBIT:
             self.init_error = "BlueQubit SDK (bluequbit + qiskit) not installed"
             return
@@ -55,6 +58,7 @@ class BlueQubitARCSolver:
             self.client = bluequbit.init(api_token=token)
         except Exception as e:
             self.init_error = f"BlueQubit init failed: {e}"
+            self._init_exc = e
             logger.warning(self.init_error)
 
     def solve_graph_isomorphism_qubo(
@@ -73,7 +77,7 @@ class BlueQubitARCSolver:
         if self.client is None:
             raise QuantumBackendUnavailableError(
                 self.init_error or "BlueQubit client not initialized"
-            )
+            ) from self._init_exc
 
         t0 = time.perf_counter()
 

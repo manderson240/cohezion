@@ -77,8 +77,9 @@ def test_bridge_raise_carries_the_init_failure(monkeypatch) -> None:
     monkeypatch.setattr(bridge_mod, "HAS_BLUEQUBIT", True)
     monkeypatch.setattr(bridge_mod, "bluequbit", _BrokenSDK, raising=False)
     bridge = bridge_mod.BlueQubitQuantumBridge(api_token="t")
-    with pytest.raises(QuantumBackendUnavailableError, match="auth rejected"):
+    with pytest.raises(QuantumBackendUnavailableError, match="auth rejected") as info:
         bridge.run_quantum_kernel()
+    assert isinstance(info.value.__cause__, ConnectionError)
 
 
 def test_bridge_returns_the_measured_counts(monkeypatch) -> None:

@@ -41,6 +41,7 @@ class BlueQubitQuantumBridge:
         self.api_token = api_token or os.getenv("BLUEQUBIT_API_KEY")
         self.client = None
         self.init_error: str | None = None
+        self._init_exc: BaseException | None = None
         self._initialize_client()
 
     def _initialize_client(self) -> None:
@@ -58,6 +59,7 @@ class BlueQubitQuantumBridge:
                 logger.info("Initialized BlueQubit client with default/cached credentials.")
         except Exception as e:
             self.init_error = f"BlueQubit init failed: {e}"
+            self._init_exc = e
             logger.warning(self.init_error)
 
     def run_quantum_kernel(self, num_qubits: int = 4, device: str = "gpu") -> dict[str, Any]:
@@ -70,7 +72,7 @@ class BlueQubitQuantumBridge:
         if not HAS_BLUEQUBIT or self.client is None:
             raise QuantumBackendUnavailableError(
                 self.init_error or "BlueQubit client not initialized"
-            )
+            ) from self._init_exc
 
         qasm_circuit = f"""OPENQASM 2.0;
 include "qelib1.inc";

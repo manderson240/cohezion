@@ -53,6 +53,12 @@ def test_valid_angles(expr: str, expected: float) -> None:
         "",
         "1/0",
         "pi/",
+        "0x10",  # not valid OpenQASM; Python-only literal forms are rejected lexically
+        "0b1",
+        "1_000",
+        "1 # comment",
+        "b'1'",
+        "1j",
         "1e999",  # inf
         "1e999-1e999",  # nan
         "1" + "0" * 400,  # int too large for float -> OverflowError
@@ -65,6 +71,23 @@ def test_valid_angles(expr: str, expected: float) -> None:
 def test_rejects_everything_outside_the_grammar(expr: str) -> None:
     with pytest.raises(ValueError):
         parse_qasm_angle(expr)
+
+
+@pytest.mark.parametrize("value", [None, 1.5, 3, b"1"])
+def test_non_string_input_is_a_value_error(value: object) -> None:
+    with pytest.raises(ValueError):
+        parse_qasm_angle(value)  # type: ignore[arg-type]
+
+
+def test_long_input_is_rejected_before_parsing(monkeypatch) -> None:
+    import cohezion.physics.quantum.qasm_angle as mod
+
+    def _must_not_parse(*a, **k):
+        raise AssertionError("ast.parse reached for an over-long expression")
+
+    monkeypatch.setattr(mod.ast, "parse", _must_not_parse)
+    with pytest.raises(ValueError, match="longer than"):
+        parse_qasm_angle("1+" * 200 + "1")
 
 
 def test_peaked_solver_no_longer_calls_eval() -> None:
