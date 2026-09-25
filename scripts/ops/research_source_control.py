@@ -24,7 +24,18 @@ remedies and each has burned us at least once:
     429 -> throttled; retry later, do NOT conclude absence  (arxiv API, per memory)
     3xx -> redirect not followed; the endpoint moved       (arxiv abs pages)
     401/403 -> auth required; the query was never run      (GitHub code search)
+    406 -> refused this client; the query was not answered (arxiv API, 2026-09-25)
+    404 / other 4xx -> request rejected; the query never ran
     5xx -> upstream broken
+
+On any HTTP error the result carries `evidence` (response headers + the first bytes of the
+body). The 2026-09-25 arxiv 406 could not be diagnosed after the fact because nothing recorded
+WHY the server refused; minutes later it did not reproduce on any interpreter. arxiv's API asks
+for at most one request per 3 seconds, so back-to-back manual probes can trip it.
+
+The transport is deliberately urllib: most arxiv consumers in this repo fetch with
+urllib.request, and a control that probes with a different client certifies that client, not
+the one the research code actually uses.
 
 Usage:
     python scripts/ops/research_source_control.py            # all sources
@@ -34,8 +45,11 @@ Exit code is 0 only when EVERY source is verified live, so this can gate a resea
 
 from __future__ import annotations
 
+import contextlib
+import http.server
 import json
 import sys
+import threading
 import urllib.error
 import urllib.request
 
@@ -52,9 +66,24 @@ def _cause(status: int) -> str:
         return "REDIRECT not followed — the endpoint moved; the query never ran"
     if status in (401, 403):
         return "AUTH REQUIRED — the query never ran; add credentials before concluding anything"
+    if status == 406:
+        return "REFUSED (406) — server rejected this client; the query was not answered, UNKNOWN"
+    if status == 404:
+        return "NOT FOUND — the endpoint moved or was removed; the query never ran"
+    if 400 <= status < 500:
+        return f"CLIENT ERROR {status} — request rejected; the query never ran, UNKNOWN"
     if status >= 500:
         return f"UPSTREAM ERROR {status} — the source is broken, not empty"
     return f"HTTP {status}"
+
+
+def _evidence(err: urllib.error.HTTPError) -> dict:
+    """What the server said when it refused. The status alone cannot finish a diagnosis."""
+    try:
+        body = err.read(300).decode("utf-8", "replace")
+    except Exception as exc:  # best-effort: an unreadable body must not mask the status
+        body = f"<unreadable: {type(exc).__name__}>"
+    return {"headers": dict(err.headers.items()) if err.headers else {}, "body_head": body}
 
 
 def probe(name: str, url: str, extract, *, headers: dict | None = None) -> dict:
@@ -67,7 +96,14 @@ def probe(name: str, url: str, extract, *, headers: dict | None = None) -> dict:
             body = r.read()
             status = r.status
     except urllib.error.HTTPError as e:
-        return {"source": name, "live": False, "n": 0, "cause": _cause(e.code), "status": e.code}
+        return {
+            "source": name,
+            "live": False,
+            "n": 0,
+            "cause": _cause(e.code),
+            "status": e.code,
+            "evidence": _evidence(e),
+        }
     except Exception as exc:
         return {
             "source": name,
@@ -146,6 +182,37 @@ SOURCES = [
 ]
 
 
+@contextlib.contextmanager
+def _local_source():
+    """A throwaway HTTP source on 127.0.0.1: /ok answers 200 with a list, /refuse answers 406."""
+
+    class _Handler(http.server.BaseHTTPRequestHandler):
+        server_version = "planted-refuser"
+        sys_version = ""
+
+        def do_GET(self) -> None:
+            if self.path == "/ok":
+                code, body = 200, b"[1, 2, 3]"
+            else:
+                code, body = 406, b"Not Acceptable: planted refusal"
+            self.send_response(code)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format: str, *args: object) -> None:  # noqa: A002 (stdlib signature)
+            return None
+
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
+    thread = threading.Thread(target=srv.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{srv.server_address[1]}"
+    finally:
+        srv.shutdown()
+        srv.server_close()
+
+
 def self_test() -> int:
     """Prove the control can REPORT A BREAK. Without this it is unvalidated.
 
@@ -156,7 +223,15 @@ def self_test() -> int:
     """
     checks: list[tuple[str, bool, str]] = []
 
-    for status, want in ((429, "THROTTLED"), (403, "AUTH"), (301, "REDIRECT"), (503, "UPSTREAM")):
+    for status, want in (
+        (429, "THROTTLED"),
+        (403, "AUTH"),
+        (301, "REDIRECT"),
+        (503, "UPSTREAM"),
+        (406, "REFUSED"),
+        (404, "NOT FOUND"),
+        (418, "CLIENT ERROR"),
+    ):
         got = _cause(status)
         checks.append((f"status {status} -> {want}", want in got, got))
 
@@ -165,18 +240,28 @@ def self_test() -> int:
     checks.append(("unreachable host reported dead", not r["live"], r["cause"]))
     checks.append(("unreachable cause names the reason", "UNREACHABLE" in r["cause"], r["cause"]))
 
-    live_url = "https://huggingface.co/api/models?limit=3"
+    # A local server stands in for a live source, so the self-test fails only when the PROBE is
+    # wrong, never because an external site is down or the sandbox has no network.
+    with _local_source() as base:
 
-    def _raises(_body: bytes) -> int:
-        raise ValueError("planted shape change")
+        def _raises(body: bytes) -> int:
+            raise ValueError(f"planted shape change ({len(body)} bytes)")
 
-    r = probe("bad-shape", live_url, _raises)
-    checks.append(("200 with unparseable body is DEAD", not r["live"], r["cause"]))
-    checks.append(("unparseable names the reason", "UNPARSEABLE" in r["cause"], r["cause"]))
+        r = probe("bad-shape", f"{base}/ok", _raises)
+        checks.append(("200 with unparseable body is DEAD", not r["live"], r["cause"]))
+        checks.append(("unparseable names the reason", "UNPARSEABLE" in r["cause"], r["cause"]))
 
-    r = probe("zero-results", live_url, lambda _b: 0)
-    checks.append(("live source with 0 results is DEAD", not r["live"], r["cause"]))
-    checks.append(("zero-result cause says UNKNOWN", "UNKNOWN" in r["cause"], r["cause"]))
+        r = probe("zero-results", f"{base}/ok", lambda body: 0 * len(body))
+        checks.append(("live source with 0 results is DEAD", not r["live"], r["cause"]))
+        checks.append(("zero-result cause says UNKNOWN", "UNKNOWN" in r["cause"], r["cause"]))
+
+        r = probe("refused", f"{base}/refuse", _json_len(None))
+        ev = r.get("evidence") or {"headers": {}, "body_head": ""}
+        checks.append(("406 over the wire -> REFUSED", "REFUSED" in r["cause"], r["cause"]))
+        server = ev["headers"].get("Server", "")
+        checks.append(("406 evidence keeps headers", "planted-refuser" in server, server))
+        body_head = ev["body_head"]
+        checks.append(("406 evidence keeps body", "planted" in body_head, body_head))
 
     print("=== self-test: can this control detect a broken instrument? ===")
     bad = 0
@@ -201,6 +286,9 @@ def main() -> int:
         for r in results:
             mark = "OK  " if r["live"] else "DEAD"
             print(f"  [{mark}] {r['source']:<26} n={r['n']:<4} {r['cause']}")
+            if ev := r.get("evidence"):
+                server = ev["headers"].get("Server", "?")
+                print(f"         server={server} body={ev['body_head'][:120]!r}")
         dead = [r["source"] for r in results if not r["live"]]
         if dead:
             print(f"\n  {len(dead)} source(s) NOT verified: {', '.join(dead)}")
