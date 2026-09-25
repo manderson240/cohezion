@@ -887,7 +887,17 @@ Executed a comprehensive audit across all 10 architectural and hardware subsyste
    - Unit tests in `tests/swarm/test_rockstar_twins.py`: 8/8 passing in 7.97s.
    - Deliberation session persisted to SurrealDB (port 8001, `cohezion`/`main`, table `council_session`).
    - Retrospective written to Obsidian Vault (`~/vaults/cohezion-vault/retros/council-session-*-microservice-refactoring.md`).
-*12D State Vector*: `[12D State: Space=Rockstar-Digital-Twins-Council, Time=September 2026, Physics=Shannon-Lamport-Feynman-Microservices, Brane=Strix-Halo-Autonomous-Swarm-Green]`
+### Learning 448: Multi-Competition Forum Discussion Knowledge Extraction & Competitive Microstructure (2026-09-24)
+1. **Automated Discussion Intelligence Harvester**:
+   - Engineered native `KaggleDiscussionLearner` (`src/cohezion/researcher/kaggle_discussion_learner.py`) leveraging `KaggleApi().competition_list_topics` (`sort_by="active"`) and `competition_list_topic_messages`.
+   - Ingests, strips HTML, and structures raw JSON (`docs/research/kaggle_discussions_raw.json`) and synthesized research intelligence (`docs/research/kaggle_discussions_knowledge_base.md`).
+2. **Key Competitive Alpha Discovered Across 7 Tracks**:
+   - **Kaggriculture**: Competitor herds face completely price-inelastic daily feed demand (complaints of starved herds confirmed in Topic #737885). Organizers confirmed post-deadline 2-week continuous Bradley-Terry Tournament (Oct 1-15) where population win-rate dominates hot streaks (Topic #731587).
+   - **RSNA Knee**: Paired multilingual radiology reports contain dense supervisory signals absent in sparse `train.csv` NaNs; text-paired pseudo-labeling + CoAtNet / Qwen 3.5 drives single models to 0.950 (Topic #735304). Verified that window density must match 64-slot volume / 62-window density threshold (Topic #737696).
+   - **Biohub 3D Cell Tracking**: Organizers patched an artificial sentinel node exploit (`t=-1000, z=y=x=-10000`) and released the official scorer on GitHub (`royerlab/kaggle-cell-tracking-competition`). Cohezion's physical invariants (Hungarian cycle consistency + mitotic center-of-mass conservation) provide clean exploit immunity (Topic #727154).
+   - **Enveda CASMI26**: Decoupled test set anatomy: 16% Class 1 (library match), 45% Class 2 (in COCONUT/PubChem, no MS/MS), 39% Class 3 (novel). Identified the 0.33-0.34 plateau trap where over-aggressive library matching degrades ranking across the dominant 45% Class 2 slice; analog propagation is required for 0.36+ (Topic #741597).
+   - **ARC-AGI-3 & Paper Track**: Organizers extended notebook runtime to 9 hours on RTX 6000 Pro GPUs (Topic #697944). Officially approved single unified paper writeup spanning both ARC-AGI-2 and ARC-AGI-3 (Topic #694752).
+*12D State Vector*: `[12D State: Space=Kaggle-Discussion-Harvester, Time=September 2026, Physics=Bradley-Terry-Microstructure-Covariance-ClassAnatomy, Brane=Strix-Halo-Kaggle-Intelligence-Green]`
 
 ---
 ## Learning 254: Quadrature Nexus 4-Voice Consensus Governance (2026-08-10) — ⚠ FABRICATED CAPABILITY

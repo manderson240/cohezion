@@ -9,7 +9,7 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 KERNEL_REF = "manderson240/cohezion-biohub-v6"
 COMP_ID = "biohub-cell-tracking-during-development"
 SUB_FILE = "submission.csv"
-TARGET_VERSION = int(sys.argv[1]) if len(sys.argv) > 1 else 8
+TARGET_VERSION = int(sys.argv[1]) if len(sys.argv) > 1 else 10
 
 api = KaggleApi()
 api.authenticate()
@@ -26,7 +26,7 @@ for attempt in range(720):  # poll every 10s for up to 120 minutes
         try:
             res = api.competition_submit_code(
                 file_name=SUB_FILE,
-                message=f"Cohezion Biohub V8 SOTA: Global 4D Min-Cost Flow Transshipment (HiGHS LP) + Strict t+2 Grandchild Divergence v{TARGET_VERSION} (LB target 0.966-0.974)",
+                message=f"Cohezion Biohub V13 SOTA: Levin Field + Reciprocal Cycle Consistency + Mitotic COM Invariant v{TARGET_VERSION} (LB target 0.972+)",
                 competition=COMP_ID,
                 kernel=KERNEL_REF,
                 kernel_version=TARGET_VERSION,
