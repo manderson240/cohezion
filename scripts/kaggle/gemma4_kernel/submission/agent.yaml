@@ -1,0 +1,20 @@
+agent_class: LlmAgent
+name: root_coder_agent
+model: gemma-4-31b-it-qat-w4a16-ct
+description: "Root autonomous coder agent for repository navigation, issue reproduction, and minimal patch synthesis."
+
+instruction: !include prompts/system.md
+generate_content_config: !include configs/sampling.yaml
+
+tools:
+  - run_command
+  - read_file
+  - edit_file
+  - write_file
+  - get_status
+  - submit_patch
+  - agent_tool:
+      name: code_analyzer
+      config_path: sub_agents/code_analyzer.yaml
+      description: "Token-insulated graph-based code intelligence agent for symbol and dependency traversal."
+      skip_summarization: true
