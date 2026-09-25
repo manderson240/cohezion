@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security / Fixed — quantum packages no longer fabricate results or eval() QASM input
+- `BlueQubitQuantumBridge.run_quantum_kernel` returned hard-coded counts `{"0000": 512, "1111": 512}` when the SDK/client was unavailable, and on real jobs read `getattr(result, "counts", {})` — `JobResult` exposes `get_counts()`, so every real run reported `{}` as SUCCESS. `BlueQubitARCSolver` answered candidate index `0` without a token or after an error. Both now raise `cohezion.quantum.QuantumBackendUnavailableError` (with the real init cause), refuse success without counts, and let SDK errors propagate. `scripts/ops/validate_bluequbit_*.py` exit non-zero with the cause.
+- `peaked_solver._safe_parse_qasm_param` called `eval()` with empty builtins (not a sandbox; the regex pre-filter admitted `**`). It now delegates to the AST evaluator `cohezion.physics.quantum.qasm_angle.parse_qasm_angle` (numbers, `pi`, `+ - * /`, unary sign, parentheses; finite results only; `ValueError` otherwise). Differential check against the prior implementation on 467,250 real tracker QASM angle expressions: 0 differences.
+- Tests: `tests/quantum/test_no_fabricated_quantum_results.py`, `tests/physics/test_qasm_angle.py`.
+
 ## [1.27.0] - 2026-09-12
 
 ### Added — Ventral Hippocampus Computations, Affective Manifold & Circuit Routing (1.27.0)
