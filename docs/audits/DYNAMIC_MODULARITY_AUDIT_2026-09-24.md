@@ -250,3 +250,37 @@ Verification:
 - **Finding:** no production module imports anything from the `cohezion.core` package itself
   (`grep "^from cohezion.core import "` over `src/` is empty). The 59 eager re-exports had no
   production users, which confirms F2: the facade was purely declarative.
+
+#### R1 follow-up — what else the eager facade was doing (found 2026-09-25)
+
+The adversarial pass checked `core`'s own submodules. It did not check the **494 other modules** the
+eager facade loaded as a side effect. Among those, 40 do something at module scope. A snapshot of
+global state after `import cohezion.core.event_bus`:
+
+| Global state | Before (eager) | After (lazy) | Consumers affected? |
+|---|---|---|---|
+| Root logger | StreamHandler @ INFO **+ `RedactionFilter`** | none, WARNING | **yes, fixed (below)** |
+| `agents.specialists` registry | 7 | not loaded | no: its package `__init__` imports all 7 |
+| gym `Cohezion/*Env-v0` | 3 registered | not registered | no: the only `gym.make` caller (`scripts/resume_verify.py`) imports `cohezion.environments` first |
+| `swarm.providers` registry | 5 providers | not loaded | no: importing `providers.model_provider` registers all 5 |
+| `dba_operations.log` in the current directory | created on import (`core/persistence/admin.py`) | not created | improvement |
+
+- **The root handler came from a test tool.** `security/adversarial_tester.py:45` calls
+  `logging.basicConfig(level=INFO)` at import. It was in the chain, so every process that touched
+  `cohezion.core` got INFO logging. `log_redactor` then attached its filter to that handler at import.
+  **Log secret redaction was on or off depending on import order**, and the lazy change turned it off.
+- **Fix (`68656c3`):** `import cohezion` installs a LogRecord factory (`cohezion/_redaction.py`,
+  depending only on `logging` and `re`) that redacts every record when it is created, whatever the
+  handlers are and whenever they were configured. It redacts the **formatted** message. The old filter
+  redacted the template and the args separately, so `log.info("password=%s", secret)` leaked the
+  secret and broke formatting. Checked by mutation: 2 of 2 mutants fail the new tests.
+- **Implicit INFO logging is deliberately not restored**, because libraries shouldn't configure
+  logging. 45 `__main__` entrypoints log at INFO without configuring logging; they now show
+  WARNING and above only. The ones where that matters are long-running processes
+  (`scripts/swarm_ci_pr_resolver_daemon.py`, `inference/lemonade_cli_monitor.py`, the `flume/*finetune*`
+  pipelines). Each needs one `logging.basicConfig(level=logging.INFO)` in its `__main__` if its INFO
+  output is wanted. MCP stdio servers benefit from the quieter stderr.
+- **Method lesson:** a lazy-facade change needs a **global-state diff** (logging config, registries,
+  environment, files created) between the old and new import closures, not just an attribute-level
+  oracle. Those side effects are invisible to name resolution, and they are the functionality people
+  don't know they rely on.
