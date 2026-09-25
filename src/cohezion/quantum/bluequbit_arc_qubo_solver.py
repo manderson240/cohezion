@@ -2,20 +2,33 @@
 
 Formulates combinatorial object-graph matching and transformation selection as a
 Quantum Hamiltonian / QUBO problem, solving it on BlueQubit's cloud quantum simulators and QPUs:
-$$H = \sum_{i,j} J_{ij} \sigma_i^z \sigma_j^z + \sum_i h_i \sigma_i^z$$
+$$H = \\sum_{i,j} J_{ij} \\sigma_i^z \\sigma_j^z + \\sum_i h_i \\sigma_i^z$$
+
+There is no local fallback: without a real backend the solver raises
+``QuantumBackendUnavailableError`` rather than reporting a candidate index nobody computed.
 """
 
 from __future__ import annotations
+
+import logging
 import os
 import time
-import logging
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any
+
 from dotenv import load_dotenv
 
-load_dotenv("/home/mike-anderson/dev/cohezion/.env")
+from cohezion.quantum import QuantumBackendUnavailableError
 
-import bluequbit
-import qiskit
+
+load_dotenv()
+
+try:
+    import bluequbit
+    import qiskit
+
+    HAS_BLUEQUBIT = True
+except ImportError:
+    HAS_BLUEQUBIT = False
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +38,38 @@ class BlueQubitARCSolver:
 
     def __init__(self, device: str = "mps.cpu"):
         self.device = device
+        self.client = None
+        self.init_error: str | None = None
+        if not HAS_BLUEQUBIT:
+            self.init_error = "BlueQubit SDK (bluequbit + qiskit) not installed"
+            return
         token = (
             os.getenv("BLUEQUBIT_API_TOKEN")
             or os.getenv("BLUEQUBIT_API_KEY")
             or os.getenv("BLUEQUBIT_TOKEN")
         )
-        self.client = bluequbit.init(api_token=token) if token else None
+        if not token:
+            self.init_error = "no BlueQubit API token in the environment"
+            return
+        self.client = bluequbit.init(api_token=token)
 
     def solve_graph_isomorphism_qubo(
-        self, cost_matrix: List[List[float]], shots: int = 1000
-    ) -> Dict[str, Any]:
-        """Solves combinatorial graph partition via parameterized quantum superposition."""
+        self, cost_matrix: list[list[float]], shots: int = 1000
+    ) -> dict[str, Any]:
+        """Solves combinatorial graph partition via parameterized quantum superposition.
+
+        Raises:
+            ValueError: ``cost_matrix`` is empty.
+            QuantumBackendUnavailableError: no BlueQubit client is available.
+            RuntimeError: the job finished without measurement counts.
+        """
         n = len(cost_matrix)
-        if self.client is None or n == 0:
-            return {"status": "LOCAL_FALLBACK", "optimal_index": 0, "energy": 0.0}
+        if n == 0:
+            raise ValueError("cost_matrix is empty")
+        if self.client is None:
+            raise QuantumBackendUnavailableError(
+                self.init_error or "BlueQubit client not initialized"
+            )
 
         t0 = time.perf_counter()
 
@@ -57,25 +88,24 @@ class BlueQubitARCSolver:
 
         qc.measure(range(num_qubits), range(num_qubits))
 
-        # 3. Dispatch to BlueQubit Cloud Simulator / QPU
-        try:
-            job = self.client.run(qc, device=self.device, shots=shots)
-            counts = job.get_counts()
-            dt = time.perf_counter() - t0
+        # 3. Dispatch to BlueQubit Cloud Simulator / QPU. SDK errors propagate: an
+        # error dict carrying a default index would be read as an answer.
+        job = self.client.run(qc, device=self.device, shots=shots)
+        counts = job.get_counts()
+        if not counts:
+            raise RuntimeError(f"BlueQubit job {job.job_id} returned no measurement counts")
+        dt = time.perf_counter() - t0
 
-            # Extract most probable bitstring (lowest energy state)
-            best_bitstring = max(counts, key=counts.get)
-            best_idx = int(best_bitstring, 2) % n
+        # Extract most probable bitstring (lowest energy state)
+        best_bitstring = max(counts, key=counts.get)
+        best_idx = int(best_bitstring, 2) % n
 
-            return {
-                "status": "SUCCESS",
-                "job_id": getattr(job, "job_id", "completed"),
-                "optimal_candidate_index": best_idx,
-                "bitstring": best_bitstring,
-                "counts": counts,
-                "latency_s": dt,
-                "device": self.device,
-            }
-        except Exception as e:
-            logger.error(f"BlueQubit execution error: {e}")
-            return {"status": "ERROR", "error": str(e), "optimal_candidate_index": 0}
+        return {
+            "status": "SUCCESS",
+            "job_id": job.job_id,
+            "optimal_candidate_index": best_idx,
+            "bitstring": best_bitstring,
+            "counts": counts,
+            "latency_s": dt,
+            "device": self.device,
+        }
