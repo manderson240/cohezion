@@ -15,15 +15,19 @@ from __future__ import annotations
 import ast
 import math
 import operator
+from collections.abc import Callable
 
 
-_BINARY = {
+_BINARY: dict[type[ast.operator], Callable[[float, float], float]] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
     ast.Div: operator.truediv,
 }
-_UNARY = {ast.USub: operator.neg, ast.UAdd: operator.pos}
+_UNARY: dict[type[ast.unaryop], Callable[[float], float]] = {
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
 
 
 def parse_qasm_angle(expr: str) -> float:
