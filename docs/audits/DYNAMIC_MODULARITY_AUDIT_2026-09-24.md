@@ -222,3 +222,31 @@ the call site.
   The dynamic layer and the import-all pass are what catch those.
 - Some F3 failures depend on the environment (google-adk and mcp versions resolved by `uv.lock`). They are
   real for anyone running `uv sync --frozen`.
+
+## Remediation log
+
+### R1 — `cohezion.core` made lazy (commit `1e58e12`, 2026-09-25)
+
+`core/__init__.py`: 52 `suppress(Exception)` blocks replaced by a PEP 562 `__getattr__` over a
+59-name map. Measured in a fresh interpreter (same sandbox as above):
+
+| Import | Before | After |
+|---|---|---|
+| `cohezion.core.event_bus` | 498 modules / 5.2 s / 593 MB / torch | **4 modules / 68 ms / 10 MB / no torch** |
+| `cohezion.core` | 498 modules | **3 modules / 43 ms** |
+| `cohezion.config` | 498 modules | **25 modules / 269 ms / 27 MB** |
+| `cohezion.physics`, `reliability`, `security` | 499 / 421 / 581 | 409 / 335 / 535 (still fat via the `compound` and `reliability` facades — next targets) |
+
+Verification:
+- **Differential oracle (prior revision):** all 59 names resolve to identical objects; the
+  `import *` set is identical. `hasattr` on a broken submodule is still `False`, but the real
+  `ImportError` is now chained rather than suppressed.
+- **Differential tests:** 46 files (tests/core, data_mesh, sessions, and every test importing
+  `cohezion.core`) gave 550 passed / 2 failed / 1 skipped on both revisions. Both failures
+  (`test_context_engineering_mcp.py`, a MagicMock-vs-list assertion) were re-confirmed on the old revision.
+- **Independent adversarial pass** (separate agent, told to assume the change is broken):
+  0 confirmed defects. Checked module-scope side effects, nested submodule access, patch targets,
+  self-import cycles, concurrent first access (16 threads), and the CI scanners.
+- **Finding:** no production module imports anything from the `cohezion.core` package itself
+  (`grep "^from cohezion.core import "` over `src/` is empty). The 59 eager re-exports had no
+  production users, which confirms F2: the facade was purely declarative.
