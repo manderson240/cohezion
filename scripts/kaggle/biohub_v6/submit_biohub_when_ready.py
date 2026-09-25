@@ -26,7 +26,7 @@ for attempt in range(720):  # poll every 10s for up to 120 minutes
         try:
             res = api.competition_submit_code(
                 file_name=SUB_FILE,
-                message=f"Cohezion Biohub V13 SOTA: Levin Field + Reciprocal Cycle Consistency + Mitotic COM Invariant v{TARGET_VERSION} (LB target 0.972+)",
+                message=f"Cohezion Biohub V14 SOTA: Restored Clean Hungarian + Strict t+2 Grandchild Divergence + Stem-Adaptive Detection v{TARGET_VERSION} (LB target 0.966+)",
                 competition=COMP_ID,
                 kernel=KERNEL_REF,
                 kernel_version=TARGET_VERSION,
