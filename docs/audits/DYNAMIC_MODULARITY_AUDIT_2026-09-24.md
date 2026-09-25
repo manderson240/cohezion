@@ -284,3 +284,13 @@ global state after `import cohezion.core.event_bus`:
   environment, files created) between the old and new import closures, not just an attribute-level
   oracle. Those side effects are invisible to name resolution, and they are the functionality people
   don't know they rely on.
+
+#### R1 full-suite differential (2026-09-25)
+
+Full `tests/` run on `9a0a532` (before R1) and `68656c3` (R1 + the redaction fix), each in its own clean
+worktree: **the same 225 failing/erroring node IDs on both, with no new failures and no newly passing
+tests.** The pass counts differed (14,775 vs 13,223), but that is a test-selection effect:
+`tests/unit/test_import_smoke.py` only checks modules changed against `origin/main`, so it tested all
+1,558 modules on the clean tree and only 2 on the changed one. Forcing a full selection
+(`COHEZION_IMPORT_SMOKE_BASE=HEAD`) on the new tree: 1,559 collected, 0 failures. Every other file
+collected the same tests on both trees, apart from the 4 new redaction tests.
