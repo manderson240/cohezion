@@ -899,6 +899,17 @@ Executed a comprehensive audit across all 10 architectural and hardware subsyste
    - **ARC-AGI-3 & Paper Track**: Organizers extended notebook runtime to 9 hours on RTX 6000 Pro GPUs (Topic #697944). Officially approved single unified paper writeup spanning both ARC-AGI-2 and ARC-AGI-3 (Topic #694752).
 *12D State Vector*: `[12D State: Space=Kaggle-Discussion-Harvester, Time=September 2026, Physics=Bradley-Terry-Microstructure-Covariance-ClassAnatomy, Brane=Strix-Halo-Kaggle-Intelligence-Green]`
 
+### Learning 449: Gemma 4 Developer Agent Competition Onboarding & AutoHarness Protection (2026-09-25)
+1. **Google Gemma 4 Developer Agent Dual-Track Onboarding**:
+   - Entered `gemma-4-developer-agent` ($65,000 Main Track, Dec 2, 2026) and `gemma-4-developer-agent-paper` ($35,000 Paper Track, Nov 12, 2026; Best Paper, Best New Resource, Best New Application awards).
+   - Deconstructed `swegemma` architecture: 4x NVIDIA L4 GPUs (96 GB GDDR6), vLLM server with single base model constraint (`gemma-4-31b-it-qat-w4a16-ct`), 32,768 context limit, declarative `adk-submission` YAML schema only (no arbitrary Python entrypoints), and multi-LoRA serving (`adapters/` < 3 GiB total).
+2. **Compound Graph Engineering & Tool Isolation**:
+   - Root Coder Agent delegated workspace operations (`read_file`, `edit_file`, `write_file`, `run_command`, `submit_patch`).
+   - Repository-level code intelligence graphs (`get_code_neighbors`, `search_similar_code`, `get_code_subgraph`) encapsulated inside an `AgentTool` (`skip_summarization: true`) to prevent context window saturation on the root coder.
+3. **AutoHarness Deterministic Guard Value**:
+   - A prospective morning order-prepending extension for Kaggriculture was caught locally in `test_wheat_preemption.py`: prepending orders shifted contiguous slot indices, causing agent stalls at 3,000 starting coins. AutoHarness prevented an operational disaster, allowing the baseline Frontier agent (`submission.py`) to surge uninterrupted on the live ladder past **2116.5 rating**.
+*12D State Vector*: `[12D State: Space=Gemma-4-Developer-Agent, Time=September 2026, Physics=SWE-Gemma-ADK-Declarative-VModel-AutoHarness, Brane=Strix-Halo-Dual-Track-Green]`
+
 ---
 ## Learning 254: Quadrature Nexus 4-Voice Consensus Governance (2026-08-10) — ⚠ FABRICATED CAPABILITY
 L254: Perpendicular deliberation across Architect, Engineer, Ethicist, and Resource voices enforces strict 0.85 ratification limit. Over-allocation proposals are rejected when Resource approval falls below safety bounds.
