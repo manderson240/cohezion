@@ -199,7 +199,21 @@ def verify_rsna_submission(file_path: str) -> VerificationResult:
                 f"Verify that .rank(pct=True) was NOT applied, as it destroys calibrated Brier probabilities and ruins log-loss!"
             )
 
-    # 3. Check for row-wise trivial duplicates
+    # 3. Kolmogorov Parent Monotonicity Check: P(abnormal) >= max(specific conditions)
+    abnormal_col = next((c for c in prob_cols if "abnormal" in c.lower()), None)
+    specific_cols = [c for c in prob_cols if c != abnormal_col]
+    if abnormal_col and specific_cols:
+        max_specific = df[specific_cols].max(axis=1)
+        violations = df[df[abnormal_col] < max_specific - 0.01]
+        metrics["monotonicity_violations"] = len(violations)
+        if len(violations) > 0:
+            warnings.append(
+                f"Found {len(violations)} rows violating Kolmogorov parent monotonicity: "
+                f"P(Abnormal) < max(P(specific)). Abnormal is an umbrella condition; "
+                f"consider applying: df['{abnormal_col}'] = np.maximum(df['{abnormal_col}'], df[{specific_cols}].max(axis=1))"
+            )
+
+    # 4. Check for row-wise trivial duplicates
     if df[prob_cols].duplicated().sum() > len(df) * 0.5:
         warnings.append("Over 50% identical predictions across rows. Verify ensemble diversity.")
 
