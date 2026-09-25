@@ -125,6 +125,20 @@ def test_solver_raises_without_token(monkeypatch, no_token) -> None:
         solver.solve_graph_isomorphism_qubo(_MATRIX)
 
 
+def test_solver_init_failure_becomes_unavailable_with_cause(monkeypatch) -> None:
+    class _BrokenSDK:
+        @staticmethod
+        def init(**kwargs):
+            raise ConnectionError("auth rejected")
+
+    monkeypatch.setenv("BLUEQUBIT_API_TOKEN", "t")
+    monkeypatch.setattr(solver_mod, "HAS_BLUEQUBIT", True)
+    monkeypatch.setattr(solver_mod, "bluequbit", _BrokenSDK, raising=False)
+    solver = solver_mod.BlueQubitARCSolver()
+    with pytest.raises(QuantumBackendUnavailableError, match="auth rejected"):
+        solver.solve_graph_isomorphism_qubo(_MATRIX)
+
+
 def test_solver_raises_when_sdk_absent(monkeypatch) -> None:
     monkeypatch.setattr(solver_mod, "HAS_BLUEQUBIT", False)
     solver = solver_mod.BlueQubitARCSolver()

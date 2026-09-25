@@ -51,7 +51,11 @@ class BlueQubitARCSolver:
         if not token:
             self.init_error = "no BlueQubit API token in the environment"
             return
-        self.client = bluequbit.init(api_token=token)
+        try:
+            self.client = bluequbit.init(api_token=token)
+        except Exception as e:
+            self.init_error = f"BlueQubit init failed: {e}"
+            logger.warning(self.init_error)
 
     def solve_graph_isomorphism_qubo(
         self, cost_matrix: list[list[float]], shots: int = 1000

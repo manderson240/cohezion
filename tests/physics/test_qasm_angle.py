@@ -53,7 +53,14 @@ def test_valid_angles(expr: str, expected: float) -> None:
         "",
         "1/0",
         "pi/",
+        "1e999",  # inf
+        "1e999-1e999",  # nan
+        "1" + "0" * 400,  # int too large for float -> OverflowError
+        "-" * 10000 + "1",  # parser stack overflow -> MemoryError
+        "(" * 2000 + "1" + ")" * 2000,  # deep nesting
+        "+".join(["1"] * 5000),  # deep BinOp chain -> RecursionError in the walker
     ],
+    ids=lambda e: e[:24],
 )
 def test_rejects_everything_outside_the_grammar(expr: str) -> None:
     with pytest.raises(ValueError):
@@ -61,14 +68,20 @@ def test_rejects_everything_outside_the_grammar(expr: str) -> None:
 
 
 def test_peaked_solver_no_longer_calls_eval() -> None:
-    source = _PEAKED.read_text()
-    calls = [
-        node.func.id
-        for node in ast.walk(ast.parse(source))
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-    ]
-    assert "eval" not in calls and "exec" not in calls
-    assert "parse_qasm_angle" in calls
+    """Any call to eval/exec/compile, bare or as an attribute (builtins.eval)."""
+    tree = ast.parse(_PEAKED.read_text())
+    called = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name):
+                called.add(func.id)
+            elif isinstance(func, ast.Attribute):
+                called.add(func.attr)
+    assert not called & {"eval", "exec", "compile"}
+    assert "parse_qasm_angle" in called
+    names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+    assert not names & {"eval", "exec", "__builtins__"}
 
 
 def test_peaked_solver_parser_delegates_to_ast_evaluator() -> None:

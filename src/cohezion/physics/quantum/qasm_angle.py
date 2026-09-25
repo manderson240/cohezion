@@ -30,7 +30,8 @@ def parse_qasm_angle(expr: str) -> float:
     """Return the value of a QASM angle expression such as ``"-pi/2"`` or ``"1.3+pi"``.
 
     Raises:
-        ValueError: the expression is outside the grammar, is malformed, or divides by zero.
+        ValueError: the expression is outside the grammar, is malformed, divides by
+            zero, or is not finite.
     """
 
     def _eval(node: ast.AST) -> float:
@@ -51,6 +52,11 @@ def parse_qasm_angle(expr: str) -> float:
         raise ValueError(f"Unsupported QASM angle expression: {expr!r}")
 
     try:
-        return float(_eval(ast.parse(expr.strip(), mode="eval")))
-    except (SyntaxError, ZeroDivisionError, RecursionError) as e:
+        value = float(_eval(ast.parse(expr.strip(), mode="eval")))
+    except (SyntaxError, ZeroDivisionError, RecursionError, MemoryError, OverflowError) as e:
+        # MemoryError: parser stack overflow on deep nesting; OverflowError: int literal
+        # too large for float.
         raise ValueError(f"Failed to parse QASM angle expression: {expr!r}") from e
+    if not math.isfinite(value):
+        raise ValueError(f"Non-finite QASM angle: {expr!r}")
+    return value
