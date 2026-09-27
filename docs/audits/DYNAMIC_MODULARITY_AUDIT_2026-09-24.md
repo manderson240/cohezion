@@ -294,3 +294,61 @@ tests.** The pass counts differed (14,775 vs 13,223), but that is a test-selecti
 1,558 modules on the clean tree and only 2 on the changed one. Forcing a full selection
 (`COHEZION_IMPORT_SMOKE_BASE=HEAD`) on the new tree: 1,559 collected, 0 failures. Every other file
 collected the same tests on both trees, apart from the 4 new redaction tests.
+
+### R2 — `cohezion.compound` and `cohezion.reliability` made lazy (commit `025af75`, 2026-09-27)
+
+Converted mechanically from each `__init__`'s AST: 120 `compound` re-exports (71 of them inside
+`suppress(Exception)`, including relative imports) and 19 `reliability` re-exports now go through
+`_LAZY` + `__getattr__`. A name used by the package's own module-level code would have been kept eager
+(module globals don't go through `__getattr__`). There were none. `reliability`'s own `CircuitBreaker`
+code is unchanged.
+
+| Import (fresh interpreter) | Before | After |
+|---|---|---|
+| `cohezion.compound.executor` | 536 modules / torch | **66 / no torch** |
+| `cohezion.reliability.oom_guard` | 337 / torch | **5 / no torch** |
+| `cohezion.security` | 536 / torch | **53 / no torch** |
+| `cohezion.compound` | 536 / torch | **4 / no torch** |
+| `cohezion.physics` | 410 | 401 (next: its own facade) |
+
+Verification:
+- **Prior-revision oracle:** all 120 `compound` names resolve identically. `reliability` is identical
+  except `SemanticCache`, which was **silently MISSING** before (an eager import cycle, swallowed by
+  `suppress`) and now resolves. Same class as F3.
+- **Global-state diff**, with every lost side effect attributed to its source line and traced to its readers:
+  - Registries (specialists, model providers, gym envs): still filled on every consumer path.
+  - `atexit` hooks and warning filters: third-party (torch, numpy, boto…); installed when those libraries load.
+  - `COHEZION_ROOT` (set by `integrations/hermes_mcp_bridge.py`): its only readers run in the MCP
+    server process, which never imported `compound`. Identical fallback either way.
+  - `initialize_cohezion_environment()` no longer auto-runs: it only pre-warmed lazily created
+    singletons, and nothing reads its state.
+  - `data/`, `.opencode/logs` in the cwd: every writer creates its own directory.
+  - Unwanted effects that are now gone: a hardcoded `/home/mike-anderson/...` path on `sys.path`, and
+    files created in the cwd.
+- **One exposed defect, fixed:** `core/persistence/admin.py` called `logging.basicConfig(FileHandler(...))`
+  at import. It used to be a no-op because an earlier `basicConfig` won. Without the eager chain it could
+  run first and send a whole process's INFO logs to `./dba_operations.log`. Its handlers are now scoped to
+  the `CohezionDBA` logger and attached when a DBAdmin is created.
+- **Fixed as a side effect:** `from cohezion.compound.exp_persistence import JourneyPersistence` raised
+  ImportError on `main` (swallowed import cycle), so `tests/wiring/test_compound_subpackages_wired.py`
+  could not be collected, and CI's integration step stopped at collection because of it. It now collects
+  61 tests.
+- **Full-suite differential** (`32c18fe` vs `025af75`, clean worktrees): **same 221 failures**. Errors
+  went from 2 to 1 (the wiring file above). Per-file collected counts are identical except +7 (new
+  budget tests) and +61 (wiring tests now collectable).
+- **Independent adversarial review** (Sonnet, told to assume the change is broken): 0 defects. It
+  imported 17 production facade users in fresh interpreters and got identical outcomes old vs new.
+- **Regression guard:** `tests/unit/test_facade_import_cost.py`, fresh-interpreter budgets (no torch,
+  module-count caps) plus a no-file/no-root-handler check for `persistence.admin`. 5 of 7 fail on the
+  pre-change tree.
+
+Also found during review: `env_var` in the redaction patterns was malformed and **leaked the secret
+value** (`${API_KEY}=sk123abc` became `[REDACTED]sk123abc`). The bug predates this PR and moved over with
+the code; CodeQL flagged it. Fixed in `2d289c6` with tests (3 of 4 fail on the old pattern).
+
+Follow-ups, pre-existing and out of scope:
+- `scripts/example_multi_agent_team_execution.py` and `scripts/codebase_refinement.py` import names
+  `cohezion.compound` has never exported.
+- `tests/scripts/test_producer_consumer_audit.py` fails to collect only in a full `tests/` collection
+  (it depends on collection order), which still stops CI's integration step on `main`.
+- The test suite writes tracked files and leaves `agent-*` git worktrees and branches behind.
