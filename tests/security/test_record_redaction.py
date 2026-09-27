@@ -13,6 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 SRC = Path(__file__).resolve().parents[2] / "src"
 SECRET = "sk-live-9f8e7d6c5b4a"
@@ -67,3 +69,23 @@ def test_install_is_idempotent_and_preserves_non_string_args() -> None:
     assert install_record_redaction() is False
     record = logging.getLogRecordFactory()("n", logging.INFO, __file__, 1, "count=%d", (3,), None)
     assert record.getMessage() == "count=3"
+
+
+@pytest.mark.parametrize(
+    ("text", "secret"),
+    [
+        ("${API_KEY}=sk123abc", "sk123abc"),
+        ("$SECRET=hunter2", "hunter2"),
+        ("x ${PASSWORD}=p4ssw0rd end", "p4ssw0rd"),
+        ("export $TOKEN=tok_abcdef", "tok_abcdef"),
+    ],
+)
+def test_env_var_style_secret_value_is_fully_redacted(text: str, secret: str) -> None:
+    # The env_var pattern's character class was malformed ("[}\\]?=[...]"), so it consumed a
+    # single character after the name and the secret VALUE survived: "${API_KEY}=sk123abc"
+    # became "[REDACTED]sk123abc". Found by CodeQL (duplicate characters in a class).
+    from cohezion._redaction import RedactionFilter
+
+    redacted = RedactionFilter()._redact_string(text)
+    assert secret not in redacted
+    assert "[REDACTED]" in redacted

@@ -17,7 +17,6 @@ from __future__ import annotations
 import contextlib
 import logging
 import re
-from re import Pattern
 from typing import Any
 
 
@@ -36,7 +35,7 @@ class RedactionFilter(logging.Filter):
     """
 
     # Patterns to match and redact
-    PATTERNS: dict[str, Pattern[str]] = {
+    PATTERNS: dict[str, re.Pattern[str]] = {
         "api_key": re.compile(
             r"(api[_-]?key|apikey)\s*[:=]\s*['\"]?[a-zA-Z0-9_\-\.]+['\"]?",
             re.IGNORECASE,
@@ -61,7 +60,7 @@ class RedactionFilter(logging.Filter):
             r"eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",
         ),
         "env_var": re.compile(
-            r"\$\{?(api[_-]?key|password|token|secret|key)[}\]?=[^\s)}\]]+",
+            r"\$\{?(api[_-]?key|password|token|secret|key)\}?=[^\s)}\]]+",
             re.IGNORECASE,
         ),
     }
