@@ -72,6 +72,35 @@ def test_install_is_idempotent_and_preserves_non_string_args() -> None:
 
 
 @pytest.mark.parametrize(
+    ("msg", "args"),
+    [
+        ("user=%(name)s", {"other": 1}),  # KeyError
+        ("a=%s b=%s", ("only-one",)),  # TypeError
+        ("%(x)d", {"x": "not-a-number"}),  # TypeError via mapping
+    ],
+)
+def test_malformed_log_call_does_not_raise_into_caller(msg: str, args: object) -> None:
+    # The factory formats eagerly, inside logger.info() itself. Stock logging defers that to
+    # the handler and reports failures via handleError, so a malformed call must never raise
+    # out of the log call. KeyError was not caught before (found in pre-merge review).
+    err = _run(
+        "import logging, cohezion\n"
+        "logging.basicConfig()\n"
+        f"logging.getLogger('x').warning({msg!r}, {args!r})\n"
+    )  # _run asserts exit code 0: the log call did not raise
+    assert "Traceback" in err  # handleError still reports the bad call
+
+
+def test_malformed_log_call_survives_in_process() -> None:
+    from cohezion._redaction import install_record_redaction
+
+    install_record_redaction()
+    factory = logging.getLogRecordFactory()
+    record = factory("n", logging.INFO, __file__, 1, "user=%(name)s", ({"other": 1},), None)
+    assert record.msg == "user=%(name)s"
+
+
+@pytest.mark.parametrize(
     ("text", "secret"),
     [
         ("${API_KEY}=sk123abc", "sk123abc"),

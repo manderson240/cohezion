@@ -10,6 +10,10 @@ import side effect of ``security/adversarial_tester.py`` (``logging.basicConfig`
 the eager ``cohezion.core`` facade -- redaction was on or off depending on import order. The
 factory redacts every record at creation, whatever handlers exist and whenever they were made.
 See docs/audits/DYNAMIC_MODULARITY_AUDIT_2026-09-24.md (R1).
+
+Scope: the log MESSAGE only. Tracebacks (exc_info / stack_info) are formatted later by the
+handler's Formatter and are NOT redacted -- a secret inside an exception message still leaks via
+logger.exception(). Same gap as the RedactionFilter this replaces; not a regression.
 """
 
 from __future__ import annotations
@@ -125,10 +129,13 @@ def install_record_redaction() -> bool:
         # ("password=%s", secret), which redacting msg and args separately misses -- and
         # rewriting only the template leaves "%s" consumed and the args unformattable.
         # Records with nothing to redact are left untouched (msg/args preserved).
+        # This runs inside the log call itself (stock logging defers formatting to the handler,
+        # which reports errors via handleError). Nothing raised here may escape: a malformed
+        # call ("%(name)s" with a missing key -> KeyError) must stay a logged error, not a crash.
         try:
             message = record.getMessage()
-        except (TypeError, ValueError):  # malformed call: logging reports it later as usual
-            with contextlib.suppress(TypeError, ValueError, AttributeError):
+        except Exception:  # any formatting error; logging reports it later via handleError
+            with contextlib.suppress(Exception):
                 redactor.filter(record)
             return record
         redacted = redactor._redact_string(message)
