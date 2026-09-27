@@ -7,8 +7,8 @@ Provides:
 - Automatic recovery testing
 """
 
-import contextlib
 import functools
+import importlib as _importlib
 import inspect
 import logging
 import time
@@ -140,62 +140,6 @@ class CircuitBreaker:
 
 
 # Wiring-sweep 2026-06-22: reliability sub-modules were genuine import-graph orphans.
-with contextlib.suppress(Exception):
-    from cohezion.reliability.blackwell_handshake import (
-        BlackwellHandshake as BlackwellHandshake,
-    )
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.batch_manager import BatchManager as BatchManager
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.context_harness import ContextHarness as ContextHarness
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.heartbeat import get_heartbeats as get_heartbeats
-    from cohezion.reliability.heartbeat import update_heartbeat as update_heartbeat
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.memory_manager import MemoryManager as MemoryManager
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.monitor import (
-        ResourceMonitor as ResourceMonitor,
-    )
-    from cohezion.reliability.monitor import (
-        get_resource_monitor as get_resource_monitor,
-    )
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.offload_manager import OffloadManager as OffloadManager
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.pool import ConnectionPool as ConnectionPool
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.resource_guard import ResourceGuard as ResourceGuard
-    from cohezion.reliability.resource_guard import SystemVitals as SystemVitals
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.resolver import HallucinationResolver as HallucinationResolver
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.semantic_cache import SemanticCache as SemanticCache
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.sync import AgentWorkspace as AgentWorkspace
-    from cohezion.reliability.sync import FileLock as FileLock
-    from cohezion.reliability.sync import SafeWriter as SafeWriter
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.viscoelastic import (
-        ViscoelasticController as ViscoelasticController,
-    )
-
-with contextlib.suppress(Exception):
-    from cohezion.reliability.residency_awareness import (
-        ResidencyAnchorBase as ResidencyAnchorBase,
-    )
 
 
 # Circuit registry
@@ -255,3 +199,54 @@ def circuit_protected(
         return wrapper
 
     return decorator
+
+
+# --- Lazy public names (PEP 562). See docs/audits/DYNAMIC_MODULARITY_AUDIT_2026-09-24.md.
+# These used to be imported eagerly (many inside contextlib.suppress(Exception)), so importing
+# any cohezion.reliability.* submodule executed all of them and every package they reach. They now load on
+# first access; a broken submodule raises a chained AttributeError where it is used.
+_LAZY: dict[str, tuple[str, str]] = {
+    "BlackwellHandshake": ("cohezion.reliability.blackwell_handshake", "BlackwellHandshake"),
+    "BatchManager": ("cohezion.reliability.batch_manager", "BatchManager"),
+    "ContextHarness": ("cohezion.reliability.context_harness", "ContextHarness"),
+    "get_heartbeats": ("cohezion.reliability.heartbeat", "get_heartbeats"),
+    "update_heartbeat": ("cohezion.reliability.heartbeat", "update_heartbeat"),
+    "MemoryManager": ("cohezion.reliability.memory_manager", "MemoryManager"),
+    "ResourceMonitor": ("cohezion.reliability.monitor", "ResourceMonitor"),
+    "get_resource_monitor": ("cohezion.reliability.monitor", "get_resource_monitor"),
+    "OffloadManager": ("cohezion.reliability.offload_manager", "OffloadManager"),
+    "ConnectionPool": ("cohezion.reliability.pool", "ConnectionPool"),
+    "ResourceGuard": ("cohezion.reliability.resource_guard", "ResourceGuard"),
+    "SystemVitals": ("cohezion.reliability.resource_guard", "SystemVitals"),
+    "HallucinationResolver": ("cohezion.reliability.resolver", "HallucinationResolver"),
+    "SemanticCache": ("cohezion.reliability.semantic_cache", "SemanticCache"),
+    "AgentWorkspace": ("cohezion.reliability.sync", "AgentWorkspace"),
+    "FileLock": ("cohezion.reliability.sync", "FileLock"),
+    "SafeWriter": ("cohezion.reliability.sync", "SafeWriter"),
+    "ViscoelasticController": ("cohezion.reliability.viscoelastic", "ViscoelasticController"),
+    "ResidencyAnchorBase": ("cohezion.reliability.residency_awareness", "ResidencyAnchorBase"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    target = _LAZY.get(name)
+    if target is None:
+        try:
+            return _importlib.import_module(f"{__name__}.{name}")
+        except ModuleNotFoundError as e:
+            if e.name != f"{__name__}.{name}":
+                raise
+            raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from None
+    module, attr = target
+    try:
+        value = getattr(_importlib.import_module(module), attr)
+    except ImportError as e:
+        raise AttributeError(
+            f"module {__name__!r} attribute {name!r} unavailable: {module} failed to import ({e})"
+        ) from e
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(_LAZY))

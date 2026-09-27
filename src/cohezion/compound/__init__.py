@@ -2,509 +2,223 @@
 
 from __future__ import annotations
 
-import contextlib
-import logging
+import importlib as _importlib
+from typing import Any
 
 
-# Universal initialization
-with contextlib.suppress(Exception):
-    from .universal.init import (
-        initialize_cohezion_environment as initialize_cohezion_environment,
-    )
-
-from cohezion.compound.analytics.engine import (
-    ExecutionAnalyzer as ExecutionAnalyzer,
-)
-from cohezion.compound.analytics.engine import (
-    SimpleAnalyzer as SimpleAnalyzer,
-)
-from cohezion.compound.analytics.metrics import MetricsCollector as MetricsCollector
-
-# Legacy API (Selective Compatibility)
-from cohezion.compound.batch_executor import (
-    BatchableExecutor as BatchableExecutor,
-)
-from cohezion.compound.batch_executor import (
-    BatchExecutorFactory as BatchExecutorFactory,
-)
-from cohezion.compound.config import (
-    CompoundConfig as Config,  # noqa: F401  # pyright: ignore[reportUnusedImport]
-)
-from cohezion.compound.core.batch_processor import BatchProcessor as BatchProcessor
-
-
-# Wiring-sweep 2026-06-06: hiho_lm_gate was an import-graph orphan (no production importer).
-# Re-exported here so its HIHO-LM quality gate is part of compound's public surface and
-# reachable by static analysis. Guarded — a future LM-import fragility must not take down
-# the whole package. (Deeper integration of this model-based gate INTO anti_sycophancy /
-# AUTODQA is a BEHAVIOR change — flagged for human decision in WIRING_SWEEP_LEDGER.md.)
-with contextlib.suppress(Exception):
-    from cohezion.compound.hiho_lm_gate import (
-        check_quality as check_quality,
-    )
-    from cohezion.compound.hiho_lm_gate import (
-        check_sycophancy as check_sycophancy,
-    )
-    from cohezion.compound.hiho_lm_gate import (
-        ppl_score as ppl_score,
-    )
-
-# Wiring-sweep 2026-06-06: journey_to_training was a genuine import-graph orphan. Re-exported
-# so the journey→training bridge is part of compound's public surface + statically reachable.
-with contextlib.suppress(Exception):
-    from cohezion.compound.journey_to_training import (
-        JourneyToTrainingBridge as JourneyToTrainingBridge,
-    )
-    from cohezion.compound.journey_to_training import (
-        ValidationResult as ValidationResult,
-    )
-
-# The package-level CompoundSessionManager is the production one from
-# session_manager.py — the class every consumer imports directly (mcp/, api/,
-# agent/, swarm/) and the one hookify/validator.py string keys match.
-with contextlib.suppress(Exception):
-    from cohezion.compound.session_manager import (
-        CompoundSessionManager as CompoundSessionManager,
-    )
-
-# Wiring-sweep 2026-06-06: thermal_autoresearch_executor was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.thermal_autoresearch_executor import (
-        ThermalAutoresearchExecutor as ThermalAutoresearchExecutor,
-    )
-
-# Wiring-sweep 2026-06-06: distillation_engine was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.distillation_engine import (
-        DistillationEngine as DistillationEngine,
-    )
-
-# Wiring-sweep 2026-06-06: agi_reasoning was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.agi_reasoning import (
-        AGIEvaluator as AGIEvaluator,
-    )
-    from cohezion.compound.agi_reasoning import (
-        ReasoningModel as ReasoningModel,
-    )
-
-# Self-Harness Weakness Mining (arXiv 2606.09498 §3.1): mine_failure_signatures
-# was defined but never exported — zero callers, zero static analysis reachability.
-# Re-exported here so the FailureSignature pipeline is part of compound's public
-# surface and reachable by executor, skill_refiner, and downstream consumers.
-with contextlib.suppress(Exception):
-    from cohezion.compound.retrospection_summary import (
-        FailureSignature as FailureSignature,
-    )
-with contextlib.suppress(Exception):
-    from cohezion.compound.retrospection_summary import (
-        mine_failure_signatures as mine_failure_signatures,
-    )
-
-# Wiring-sweep 2026-06-06: aimo_reasoning was a genuine import-graph orphan. Re-export its
-# DISTINCTIVE classes only — `ReasoningModel` collides with agi_reasoning's (surface-name
-# duplicate flagged for human review in WIRING_SWEEP_LEDGER.md), so it is NOT re-exported here.
-with contextlib.suppress(Exception):
-    from cohezion.compound.aimo_reasoning import (
-        AIMOScaler as AIMOScaler,
-    )
-    from cohezion.compound.aimo_reasoning import (
-        ProcessRewardModel as ProcessRewardModel,
-    )
-# Wiring-sweep 2026-06-22: clr_quality_gate was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.clr_quality_gate import (
-        CLRQualityGate as CLRQualityGate,
-    )
-
-# Wiring-sweep 2026-06-22: degradation_health was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.degradation_health import (
-        HealthObservabilityMixin as HealthObservabilityMixin,
-    )
-
-# Wiring-sweep 2026-06-22: loop_daemon was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.loop_daemon import (
-        LoopDaemon as LoopDaemon,
-    )
-
-# Wiring-sweep 2026-06-22: rubric_middleware was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.rubric_middleware import (
-        RubricMiddleware as RubricMiddleware,
-    )
-    from cohezion.compound.rubric_middleware import (
-        RubricVerdict as RubricVerdict,
-    )
-
-# Wiring-sweep 2026-06-22: vmodel_harness was a genuine import-graph orphan (V-Model CI gate).
-with contextlib.suppress(Exception):
-    from cohezion.compound.vmodel_harness import (
-        VModelCoverageReport as VModelCoverageReport,
-    )
-    from cohezion.compound.vmodel_harness import (
-        VModelHarness as VModelHarness,
-    )
-
-from cohezion.compound.core.executor import (
-    CompoundExecutor as CompoundExecutor,
-)
-from cohezion.compound.core.executor import (
-    execute_simple as execute_simple,
-)
-from cohezion.compound.executor import (
-    CompoundExecutor as LegacyCompoundExecutor,  # noqa: F401  # pyright: ignore[reportUnusedImport]
-)
-from cohezion.compound.executor_factory import (  # noqa: F401
-    ExecutorFactory as CompoundExecutorFactory,  # pyright: ignore[reportUnusedImport]
-)
-
-# New Simplified API
-from cohezion.compound.models import (
-    AnalysisReport as AnalysisReport,
-)
-from cohezion.compound.models import (
-    ExecutionContext as ExecutionContext,
-)
-from cohezion.compound.models import (
-    ExecutionMetrics as ExecutionMetrics,
-)
-from cohezion.compound.models import (
-    ExecutionResult as ExecutionResult,
-)
-from cohezion.compound.models import (
-    ExecutionStatus as ExecutionStatus,
-)
-from cohezion.compound.models import (
-    IntentType as IntentType,
-)
-from cohezion.compound.models import (
-    Task as Task,
-)
-from cohezion.compound.persistence.vault import (
-    SessionPersister as SessionPersister,
-)
-from cohezion.compound.persistence.vault import (
-    VaultPersister as VaultPersister,
-)
-
-# Self-improving skill quality ecosystem
-from cohezion.compound.skill_evolution_diff import (
-    SkillDiff as SkillDiff,
-)
-from cohezion.compound.skill_evolution_diff import (
-    SkillEvolutionTracker as SkillEvolutionTracker,
-)
-from cohezion.compound.skill_evolution_diff import (
-    SkillVersion as SkillVersion,
-)
-from cohezion.compound.skill_health_tracker import (
-    SkillHealthRecord as SkillHealthRecord,
-)
-from cohezion.compound.skill_health_tracker import (
-    SkillHealthTracker as SkillHealthTracker,
-)
-from cohezion.compound.skill_quality_orchestrator import (
-    ImprovementHypothesis as ImprovementHypothesis,
-)
-from cohezion.compound.skill_quality_orchestrator import (
-    ImprovementResult as ImprovementResult,
-)
-from cohezion.compound.skill_quality_orchestrator import (
-    SkillQualityOrchestrator as SkillQualityOrchestrator,
-)
-from cohezion.compound.skill_quality_scorer import (
-    DimensionScore as DimensionScore,
-)
-from cohezion.compound.skill_quality_scorer import (
-    SkillQualityReport as SkillQualityReport,
-)
-from cohezion.compound.skill_quality_scorer import (
-    SkillQualityScorer as SkillQualityScorer,
-)
-from cohezion.compound.skills.selector import SkillSelector as SkillSelector
-
-# TDD and Adversarial Review System
-from cohezion.compound.tdd_adversarial.adversarial_review import (
-    AdversarialReviewSystem as AdversarialReviewSystem,
-)
-from cohezion.compound.tdd_adversarial.adversarial_review import (
-    PerspectiveState as PerspectiveState,
-)
-from cohezion.compound.tdd_adversarial.adversarial_review import (
-    ReviewFinding as ReviewFinding,
-)
-from cohezion.compound.tdd_adversarial.adversarial_review import (
-    ReviewPerspective as ReviewPerspective,
-)
-from cohezion.compound.tdd_adversarial.adversarial_review import (
-    ReviewSession as ReviewSession,
-)
-from cohezion.compound.tdd_adversarial.adversarial_review import (
-    get_adversarial_review_system as get_adversarial_review_system,
-)
-from cohezion.compound.tdd_adversarial.coordinator import (
-    TDDAdversarialCoordinator as TDDAdversarialCoordinator,
-)
-from cohezion.compound.tdd_adversarial.coordinator import (
-    TDDAdversarialState as TDDAdversarialState,
-)
-from cohezion.compound.tdd_adversarial.coordinator import (
-    get_tdd_adversarial_coordinator as get_tdd_adversarial_coordinator,
-)
-from cohezion.compound.tdd_adversarial.tdd_integration import (
-    TDDIntegration as TDDIntegration,
-)
-from cohezion.compound.tdd_adversarial.tdd_integration import (
-    TDDState as TDDState,
-)
-from cohezion.compound.tdd_adversarial.tdd_integration import (
-    TestResult as TestResult,
-)
-from cohezion.compound.tdd_adversarial.tdd_integration import (
-    TestStatus as TestStatus,
-)
-from cohezion.compound.tdd_adversarial.tdd_integration import (
-    TestType as TestType,
-)
-from cohezion.compound.tdd_adversarial.tdd_integration import (
-    get_tdd_integration as get_tdd_integration,
-)
+# --- Lazy public names (PEP 562). See docs/audits/DYNAMIC_MODULARITY_AUDIT_2026-09-24.md.
+# These used to be imported eagerly (many inside contextlib.suppress(Exception)), so importing
+# any cohezion.compound.* submodule executed all of them and every package they reach. They now load on
+# first access; a broken submodule raises a chained AttributeError where it is used.
+_LAZY: dict[str, tuple[str, str]] = {
+    "initialize_cohezion_environment": (
+        "cohezion.compound.universal.init",
+        "initialize_cohezion_environment",
+    ),
+    "ExecutionAnalyzer": ("cohezion.compound.analytics.engine", "ExecutionAnalyzer"),
+    "SimpleAnalyzer": ("cohezion.compound.analytics.engine", "SimpleAnalyzer"),
+    "MetricsCollector": ("cohezion.compound.analytics.metrics", "MetricsCollector"),
+    "BatchableExecutor": ("cohezion.compound.batch_executor", "BatchableExecutor"),
+    "BatchExecutorFactory": ("cohezion.compound.batch_executor", "BatchExecutorFactory"),
+    "Config": ("cohezion.compound.config", "CompoundConfig"),
+    "BatchProcessor": ("cohezion.compound.core.batch_processor", "BatchProcessor"),
+    "check_quality": ("cohezion.compound.hiho_lm_gate", "check_quality"),
+    "check_sycophancy": ("cohezion.compound.hiho_lm_gate", "check_sycophancy"),
+    "ppl_score": ("cohezion.compound.hiho_lm_gate", "ppl_score"),
+    "JourneyToTrainingBridge": ("cohezion.compound.journey_to_training", "JourneyToTrainingBridge"),
+    "ValidationResult": ("cohezion.compound.journey_to_training", "ValidationResult"),
+    "CompoundSessionManager": ("cohezion.compound.session_manager", "CompoundSessionManager"),
+    "ThermalAutoresearchExecutor": (
+        "cohezion.compound.thermal_autoresearch_executor",
+        "ThermalAutoresearchExecutor",
+    ),
+    "DistillationEngine": ("cohezion.compound.distillation_engine", "DistillationEngine"),
+    "AGIEvaluator": ("cohezion.compound.agi_reasoning", "AGIEvaluator"),
+    "ReasoningModel": ("cohezion.compound.agi_reasoning", "ReasoningModel"),
+    "FailureSignature": ("cohezion.compound.retrospection_summary", "FailureSignature"),
+    "mine_failure_signatures": (
+        "cohezion.compound.retrospection_summary",
+        "mine_failure_signatures",
+    ),
+    "AIMOScaler": ("cohezion.compound.aimo_reasoning", "AIMOScaler"),
+    "ProcessRewardModel": ("cohezion.compound.aimo_reasoning", "ProcessRewardModel"),
+    "CLRQualityGate": ("cohezion.compound.clr_quality_gate", "CLRQualityGate"),
+    "HealthObservabilityMixin": (
+        "cohezion.compound.degradation_health",
+        "HealthObservabilityMixin",
+    ),
+    "LoopDaemon": ("cohezion.compound.loop_daemon", "LoopDaemon"),
+    "RubricMiddleware": ("cohezion.compound.rubric_middleware", "RubricMiddleware"),
+    "RubricVerdict": ("cohezion.compound.rubric_middleware", "RubricVerdict"),
+    "VModelCoverageReport": ("cohezion.compound.vmodel_harness", "VModelCoverageReport"),
+    "VModelHarness": ("cohezion.compound.vmodel_harness", "VModelHarness"),
+    "CompoundExecutor": ("cohezion.compound.core.executor", "CompoundExecutor"),
+    "execute_simple": ("cohezion.compound.core.executor", "execute_simple"),
+    "LegacyCompoundExecutor": ("cohezion.compound.executor", "CompoundExecutor"),
+    "CompoundExecutorFactory": ("cohezion.compound.executor_factory", "ExecutorFactory"),
+    "AnalysisReport": ("cohezion.compound.models", "AnalysisReport"),
+    "ExecutionContext": ("cohezion.compound.models", "ExecutionContext"),
+    "ExecutionMetrics": ("cohezion.compound.models", "ExecutionMetrics"),
+    "ExecutionResult": ("cohezion.compound.models", "ExecutionResult"),
+    "ExecutionStatus": ("cohezion.compound.models", "ExecutionStatus"),
+    "IntentType": ("cohezion.compound.models", "IntentType"),
+    "Task": ("cohezion.compound.models", "Task"),
+    "SessionPersister": ("cohezion.compound.persistence.vault", "SessionPersister"),
+    "VaultPersister": ("cohezion.compound.persistence.vault", "VaultPersister"),
+    "SkillDiff": ("cohezion.compound.skill_evolution_diff", "SkillDiff"),
+    "SkillEvolutionTracker": ("cohezion.compound.skill_evolution_diff", "SkillEvolutionTracker"),
+    "SkillVersion": ("cohezion.compound.skill_evolution_diff", "SkillVersion"),
+    "SkillHealthRecord": ("cohezion.compound.skill_health_tracker", "SkillHealthRecord"),
+    "SkillHealthTracker": ("cohezion.compound.skill_health_tracker", "SkillHealthTracker"),
+    "ImprovementHypothesis": (
+        "cohezion.compound.skill_quality_orchestrator",
+        "ImprovementHypothesis",
+    ),
+    "ImprovementResult": ("cohezion.compound.skill_quality_orchestrator", "ImprovementResult"),
+    "SkillQualityOrchestrator": (
+        "cohezion.compound.skill_quality_orchestrator",
+        "SkillQualityOrchestrator",
+    ),
+    "DimensionScore": ("cohezion.compound.skill_quality_scorer", "DimensionScore"),
+    "SkillQualityReport": ("cohezion.compound.skill_quality_scorer", "SkillQualityReport"),
+    "SkillQualityScorer": ("cohezion.compound.skill_quality_scorer", "SkillQualityScorer"),
+    "SkillSelector": ("cohezion.compound.skills.selector", "SkillSelector"),
+    "AdversarialReviewSystem": (
+        "cohezion.compound.tdd_adversarial.adversarial_review",
+        "AdversarialReviewSystem",
+    ),
+    "PerspectiveState": (
+        "cohezion.compound.tdd_adversarial.adversarial_review",
+        "PerspectiveState",
+    ),
+    "ReviewFinding": ("cohezion.compound.tdd_adversarial.adversarial_review", "ReviewFinding"),
+    "ReviewPerspective": (
+        "cohezion.compound.tdd_adversarial.adversarial_review",
+        "ReviewPerspective",
+    ),
+    "ReviewSession": ("cohezion.compound.tdd_adversarial.adversarial_review", "ReviewSession"),
+    "get_adversarial_review_system": (
+        "cohezion.compound.tdd_adversarial.adversarial_review",
+        "get_adversarial_review_system",
+    ),
+    "TDDAdversarialCoordinator": (
+        "cohezion.compound.tdd_adversarial.coordinator",
+        "TDDAdversarialCoordinator",
+    ),
+    "TDDAdversarialState": ("cohezion.compound.tdd_adversarial.coordinator", "TDDAdversarialState"),
+    "get_tdd_adversarial_coordinator": (
+        "cohezion.compound.tdd_adversarial.coordinator",
+        "get_tdd_adversarial_coordinator",
+    ),
+    "TDDIntegration": ("cohezion.compound.tdd_adversarial.tdd_integration", "TDDIntegration"),
+    "TDDState": ("cohezion.compound.tdd_adversarial.tdd_integration", "TDDState"),
+    "TestResult": ("cohezion.compound.tdd_adversarial.tdd_integration", "TestResult"),
+    "TestStatus": ("cohezion.compound.tdd_adversarial.tdd_integration", "TestStatus"),
+    "TestType": ("cohezion.compound.tdd_adversarial.tdd_integration", "TestType"),
+    "get_tdd_integration": (
+        "cohezion.compound.tdd_adversarial.tdd_integration",
+        "get_tdd_integration",
+    ),
+    "BehaviorProperty": ("cohezion.compound.behavioral_eval", "BehaviorProperty"),
+    "BehaviorTestResult": ("cohezion.compound.behavioral_eval", "BehaviorTestResult"),
+    "CompoundEcoSymphony": ("cohezion.compound.eco_symphony", "CompoundEcoSymphony"),
+    "EcoResilienceCompoundEngine": (
+        "cohezion.compound.eco_symphony",
+        "EcoResilienceCompoundEngine",
+    ),
+    "EvolutionTrainingConfig": (
+        "cohezion.compound.evolution_training_bridge",
+        "EvolutionTrainingConfig",
+    ),
+    "EvolutionTrainingExporter": (
+        "cohezion.compound.evolution_training_bridge",
+        "EvolutionTrainingExporter",
+    ),
+    "EvolutionTrainingSignalGenerator": (
+        "cohezion.compound.evolution_training_bridge",
+        "EvolutionTrainingSignalGenerator",
+    ),
+    "compute_temporal_correlation": (
+        "cohezion.compound.experiment_correlator",
+        "compute_temporal_correlation",
+    ),
+    "HarnessSynthesizer": ("cohezion.compound.harness", "HarnessSynthesizer"),
+    "CompoundHealthReport": ("cohezion.compound.health", "CompoundHealthReport"),
+    "SkillHistoryResponse": ("cohezion.compound.health", "SkillHistoryResponse"),
+    "encode_step_sequence": ("cohezion.compound.holographic_projection", "encode_step_sequence"),
+    "holographic_project": ("cohezion.compound.holographic_projection", "holographic_project"),
+    "step_to_axiomatic": ("cohezion.compound.holographic_projection", "step_to_axiomatic"),
+    "text_to_latent": ("cohezion.compound.holographic_projection", "text_to_latent"),
+    "IntakeGreeting": ("cohezion.compound.intake_specialist", "IntakeGreeting"),
+    "IntakeSpecialist": ("cohezion.compound.intake_specialist", "IntakeSpecialist"),
+    "LongHorizonTask": ("cohezion.compound.long_horizon_task", "LongHorizonTask"),
+    "TaskStepResult": ("cohezion.compound.long_horizon_task", "TaskStepResult"),
+    "get_context_usage_percent": (
+        "cohezion.compound.long_horizon_task",
+        "get_context_usage_percent",
+    ),
+    "PlasmaAnomalyData": ("cohezion.compound.plasma_theosophy_synthesizer", "PlasmaAnomalyData"),
+    "PlasmaTheosophySynthesizer": (
+        "cohezion.compound.plasma_theosophy_synthesizer",
+        "PlasmaTheosophySynthesizer",
+    ),
+    "PostExecutionOrchestrator": ("cohezion.compound.post_execution", "PostExecutionOrchestrator"),
+    "ImprovementOpportunity": ("cohezion.compound.recursive_challenger", "ImprovementOpportunity"),
+    "RecursiveChallenger": ("cohezion.compound.recursive_challenger", "RecursiveChallenger"),
+    "get_test_count": ("cohezion.compound.recursive_challenger", "get_test_count"),
+    "CycleMetrics": ("cohezion.compound.retrospection_summary", "CycleMetrics"),
+    "RetrospectionSummary": ("cohezion.compound.retrospection_summary", "RetrospectionSummary"),
+    "RetrospectionValidator": (
+        "cohezion.compound.retrospection_validator",
+        "RetrospectionValidator",
+    ),
+    "RoutingDecision": ("cohezion.compound.routing_feedback_loop", "RoutingDecision"),
+    "RoutingDecisionType": ("cohezion.compound.routing_feedback_loop", "RoutingDecisionType"),
+    "RoutingMetrics": ("cohezion.compound.routing_feedback_loop", "RoutingMetrics"),
+    "AgentVote": ("cohezion.compound.skill_consensus_voter", "AgentVote"),
+    "VotingStrategy": ("cohezion.compound.skill_consensus_voter", "VotingStrategy"),
+    "RefinementMetrics": ("cohezion.compound.skill_refinement_validator", "RefinementMetrics"),
+    "SkillRefinementValidator": (
+        "cohezion.compound.skill_refinement_validator",
+        "SkillRefinementValidator",
+    ),
+    "TapeEntry": ("cohezion.compound.tape_logger", "TapeEntry"),
+    "TapeLogger": ("cohezion.compound.tape_logger", "TapeLogger"),
+    "QueuedTask": ("cohezion.compound.task_queue", "QueuedTask"),
+    "TaskPriority": ("cohezion.compound.task_queue", "TaskPriority"),
+    "ThermalMetrics": ("cohezion.compound.thermal_predictor", "ThermalMetrics"),
+    "UniverseBridge": ("cohezion.compound.universe_bridge", "UniverseBridge"),
+    "SearchQuery": ("cohezion.compound.vault_search_executor", "SearchQuery"),
+    "SearchResult": ("cohezion.compound.vault_search_executor", "SearchResult"),
+    "PruningReport": ("cohezion.compound.vector_pruning", "PruningReport"),
+    "SemanticVector": ("cohezion.compound.vector_pruning", "SemanticVector"),
+    "GapReport": ("cohezion.compound.workflow_manager", "GapReport"),
+    "OnboardingResult": ("cohezion.compound.workflow_manager", "OnboardingResult"),
+    "WorkflowManager": ("cohezion.compound.workflow_manager", "WorkflowManager"),
+    "OtelSpan": ("cohezion.compound.trace_exporter", "OtelSpan"),
+    "make_executor": ("cohezion.compound.executor_factory", "make_executor"),
+}
 
 
-# Wiring-sweep 2026-06-22: behavioral_eval was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.behavioral_eval import (
-        BehaviorProperty as BehaviorProperty,
-    )
-    from cohezion.compound.behavioral_eval import (
-        BehaviorTestResult as BehaviorTestResult,
-    )
-
-# Wiring-sweep 2026-06-22: eco_symphony was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.eco_symphony import (
-        CompoundEcoSymphony as CompoundEcoSymphony,
-    )
-    from cohezion.compound.eco_symphony import (
-        EcoResilienceCompoundEngine as EcoResilienceCompoundEngine,
-    )
-
-# Wiring-sweep 2026-06-22: evolution_training_bridge was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.evolution_training_bridge import (
-        EvolutionTrainingConfig as EvolutionTrainingConfig,
-    )
-    from cohezion.compound.evolution_training_bridge import (
-        EvolutionTrainingExporter as EvolutionTrainingExporter,
-    )
-    from cohezion.compound.evolution_training_bridge import (
-        EvolutionTrainingSignalGenerator as EvolutionTrainingSignalGenerator,
-    )
-
-# Wiring-sweep 2026-06-22: experiment_correlator was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.experiment_correlator import (
-        compute_temporal_correlation as compute_temporal_correlation,
-    )
-
-# Wiring-sweep 2026-06-22: harness was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.harness import (
-        HarnessSynthesizer as HarnessSynthesizer,
-    )
-
-# Wiring-sweep 2026-06-22: health was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.health import (
-        CompoundHealthReport as CompoundHealthReport,
-    )
-    from cohezion.compound.health import (
-        SkillHistoryResponse as SkillHistoryResponse,
-    )
-
-# Wiring-sweep 2026-06-22: holographic_projection was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.holographic_projection import (
-        encode_step_sequence as encode_step_sequence,
-    )
-    from cohezion.compound.holographic_projection import (
-        holographic_project as holographic_project,
-    )
-    from cohezion.compound.holographic_projection import (
-        step_to_axiomatic as step_to_axiomatic,
-    )
-    from cohezion.compound.holographic_projection import (
-        text_to_latent as text_to_latent,
-    )
-
-# Wiring-sweep 2026-06-22: intake_specialist was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.intake_specialist import (
-        IntakeGreeting as IntakeGreeting,
-    )
-    from cohezion.compound.intake_specialist import (
-        IntakeSpecialist as IntakeSpecialist,
-    )
-
-# Wiring-sweep 2026-06-22: long_horizon_task was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.long_horizon_task import (
-        LongHorizonTask as LongHorizonTask,
-    )
-    from cohezion.compound.long_horizon_task import (
-        TaskStepResult as TaskStepResult,
-    )
-    from cohezion.compound.long_horizon_task import (
-        get_context_usage_percent as get_context_usage_percent,
-    )
-
-# Wiring-sweep 2026-06-22: plasma_theosophy_synthesizer was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.plasma_theosophy_synthesizer import (
-        PlasmaAnomalyData as PlasmaAnomalyData,
-    )
-    from cohezion.compound.plasma_theosophy_synthesizer import (
-        PlasmaTheosophySynthesizer as PlasmaTheosophySynthesizer,
-    )
-
-# Wiring-sweep 2026-06-22: post_execution was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.post_execution import (
-        PostExecutionOrchestrator as PostExecutionOrchestrator,
-    )
-
-# Wiring-sweep 2026-06-22: recursive_challenger was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.recursive_challenger import (
-        ImprovementOpportunity as ImprovementOpportunity,
-    )
-    from cohezion.compound.recursive_challenger import (
-        RecursiveChallenger as RecursiveChallenger,
-    )
-    from cohezion.compound.recursive_challenger import (
-        get_test_count as get_test_count,
-    )
-
-# Wiring-sweep 2026-06-22: retrospection_summary was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.retrospection_summary import (
-        CycleMetrics as CycleMetrics,
-    )
-    from cohezion.compound.retrospection_summary import (
-        RetrospectionSummary as RetrospectionSummary,
-    )
-
-# Wiring-sweep 2026-06-22: retrospection_validator was a genuine import-graph orphan.
-# ValidationResult skipped — name collision with journey_to_training.ValidationResult (already wired).
-with contextlib.suppress(Exception):
-    from cohezion.compound.retrospection_validator import (
-        RetrospectionValidator as RetrospectionValidator,
-    )
-
-# Wiring-sweep 2026-06-22: routing_feedback_loop was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.routing_feedback_loop import (
-        RoutingDecision as RoutingDecision,
-    )
-    from cohezion.compound.routing_feedback_loop import (
-        RoutingDecisionType as RoutingDecisionType,
-    )
-    from cohezion.compound.routing_feedback_loop import (
-        RoutingMetrics as RoutingMetrics,
-    )
-
-# Wiring-sweep 2026-06-22: skill_consensus_voter was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.skill_consensus_voter import (
-        AgentVote as AgentVote,
-    )
-    from cohezion.compound.skill_consensus_voter import (
-        VotingStrategy as VotingStrategy,
-    )
-
-# Wiring-sweep 2026-06-22: skill_refinement_validator was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.skill_refinement_validator import (
-        RefinementMetrics as RefinementMetrics,
-    )
-    from cohezion.compound.skill_refinement_validator import (
-        SkillRefinementValidator as SkillRefinementValidator,
-    )
-
-# Wiring-sweep 2026-06-22: tape_logger was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.tape_logger import (
-        TapeEntry as TapeEntry,
-    )
-    from cohezion.compound.tape_logger import (
-        TapeLogger as TapeLogger,
-    )
-
-# Wiring-sweep 2026-06-22: task_queue was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.task_queue import (
-        QueuedTask as QueuedTask,
-    )
-    from cohezion.compound.task_queue import (
-        TaskPriority as TaskPriority,
-    )
-
-# Wiring-sweep 2026-06-22: thermal_predictor was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.thermal_predictor import (
-        ThermalMetrics as ThermalMetrics,
-    )
-
-# Wiring-sweep 2026-06-22: universe_bridge was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.universe_bridge import (
-        UniverseBridge as UniverseBridge,
-    )
-
-# Wiring-sweep 2026-06-22: vault_search_executor was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.vault_search_executor import (
-        SearchQuery as SearchQuery,
-    )
-    from cohezion.compound.vault_search_executor import (
-        SearchResult as SearchResult,
-    )
-
-# Wiring-sweep 2026-06-22: vector_pruning was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.vector_pruning import (
-        PruningReport as PruningReport,
-    )
-    from cohezion.compound.vector_pruning import (
-        SemanticVector as SemanticVector,
-    )
-
-# Wiring-sweep 2026-06-22: workflow_manager was a genuine import-graph orphan.
-with contextlib.suppress(Exception):
-    from cohezion.compound.workflow_manager import (
-        GapReport as GapReport,
-    )
-    from cohezion.compound.workflow_manager import (
-        OnboardingResult as OnboardingResult,
-    )
-    from cohezion.compound.workflow_manager import (
-        WorkflowManager as WorkflowManager,
-    )
+def __getattr__(name: str) -> Any:
+    target = _LAZY.get(name)
+    if target is None:
+        try:
+            return _importlib.import_module(f"{__name__}.{name}")
+        except ModuleNotFoundError as e:
+            if e.name != f"{__name__}.{name}":
+                raise
+            raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from None
+    module, attr = target
+    try:
+        value = getattr(_importlib.import_module(module), attr)
+    except ImportError as e:
+        raise AttributeError(
+            f"module {__name__!r} attribute {name!r} unavailable: {module} failed to import ({e})"
+        ) from e
+    globals()[name] = value
+    return value
 
 
-# Wiring-sweep 2026-06-22: loop_daemon, trace_exporter, vmodel_harness orphans.
-with contextlib.suppress(Exception):
-    from cohezion.compound.loop_daemon import LoopDaemon as LoopDaemon
-
-with contextlib.suppress(Exception):
-    from cohezion.compound.trace_exporter import OtelSpan as OtelSpan
-
-with contextlib.suppress(Exception):
-    from cohezion.compound.vmodel_harness import VModelHarness as VModelHarness
-
-
-from cohezion.compound.executor_factory import (
-    make_executor as make_executor,
-)
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(_LAZY))
