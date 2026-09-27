@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.1] - 2026-09-27
+
+### Performance — Lazy package facades (dynamic modularity audit R1/R2)
+- Added the dynamic modularity audit (`docs/audits/DYNAMIC_MODULARITY_AUDIT_2026-09-24.md`) and its report-only instrument (`scripts/ci/modularity_audit.py`): 79% of leaf modules imported 400+ cohezion modules because of 686 suppressed re-export blocks in package `__init__` files.
+- `src/cohezion/core/__init__.py`, `src/cohezion/compound/__init__.py` and `src/cohezion/reliability/__init__.py` now resolve their public names lazily (PEP 562). Fresh-interpreter import of `cohezion.core.event_bus`: 498 modules / 5.2 s / 593 MB to 4 modules / 68 ms / 10 MB; `cohezion.compound.executor`: 536 modules to 66; `cohezion.reliability.oom_guard`: 337 to 5. None of them load torch any more.
+- `cohezion.reliability.SemanticCache` resolves again: the eager facade hit an import cycle that the suppress block silently swallowed.
+- Import budgets guard against regression: `tests/unit/test_facade_import_cost.py`.
+
+### Fixed — Log secret redaction is process-wide and order-independent
+- Redaction previously reached the root handler only as an import-order accident. `import cohezion` now installs a LogRecord factory (`src/cohezion/_redaction.py`) that redacts the formatted message of every record, including secrets passed as format args, which the old filter leaked. Tests: `tests/security/test_record_redaction.py`.
+- The DBA admin module no longer configures the root logger (with a file handler) at import; its handlers are scoped to the CohezionDBA logger and attached when a DBAdmin is created (`src/cohezion/core/persistence/admin.py`).
+- Implicit INFO-level root logging, an import side effect of a test tool, is intentionally not restored: entrypoints that want INFO output configure logging themselves.
+
+### Added
+- Seven official SurrealDB agent skills under `.claude/skills/`, tracked in `skills-lock.json`.
+
 ## [1.27.0] - 2026-09-12
 
 ### Added — Ventral Hippocampus Computations, Affective Manifold & Circuit Routing (1.27.0)
