@@ -52,8 +52,8 @@ def norm(text: str) -> str:
     return re.sub(r"\s+", " ", _STRIP.sub("", text)).strip().lower()
 
 
-def sentences(text: str) -> list[str]:
-    return [s.strip() for s in _SENT.split(text) if len(s.strip()) > 20]
+def sentences(text: str, min_len: int = 20) -> list[str]:
+    return [s.strip() for s in _SENT.split(text) if len(s.strip()) > min_len]
 
 
 def has_cue(sentence: str) -> bool:
