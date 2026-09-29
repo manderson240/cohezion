@@ -40,6 +40,8 @@ import re
 import urllib.request
 from dataclasses import dataclass, field
 
+from cohezion.inference import kv_budget
+
 
 logger = logging.getLogger(__name__)
 
@@ -181,9 +183,25 @@ def implausible_size_gb(model_id: str, size_gb: float) -> bool:
     return size_gb < params * _MIN_GB_PER_B
 
 
-def _kv_overhead_gb(weights_gb: float) -> float:
-    """Mirrors ram_scheduler._kv_overhead: KV cache at a bounded ctx_size."""
-    return 3.0 if weights_gb > 10.0 else 1.0
+_KV_CTX_BUDGET_GB = 4.0  # KV + recurrent state a kv-aware load may claim (q4_0 KV)
+_COMPUTE_BUFFER_GB = 2.0  # llama.cpp compute buffers on top of KV (assumption, not measured)
+
+
+def _kv_overhead_gb(
+    weights_gb: float, model_id: str | None = None, ctx_size: int | None = None
+) -> float:
+    """Mirrors ram_scheduler._kv_overhead: KV cache at a bounded ctx_size.
+
+    With a surveyed ``model_id`` and a ``ctx_size`` the real architecture-aware KV + recurrent
+    state (``kv_budget.kv_bytes_from_profile``) plus compute buffers replaces the flat guess —
+    but never BELOW it, so this can only make the gate stricter than before, never looser.
+    """
+    flat = 3.0 if weights_gb > 10.0 else 1.0
+    p = kv_budget.profile_for(model_id) if model_id and ctx_size else None
+    if p is None:
+        return flat
+    kv_gb = kv_budget.kv_bytes_from_profile(p, seq_len=ctx_size) / 2**30
+    return max(flat, kv_gb + _COMPUTE_BUFFER_GB)
 
 
 def unload(model_id: str, timeout: float = 30.0) -> bool:
@@ -236,6 +254,7 @@ def ensure_resident(
     protect: tuple[str, ...] = (),
     load_timeout: float = 300.0,
     ledger: object | None = None,
+    kv_aware_ctx: bool = False,
 ) -> SwapResult:
     """Make ``model_id`` resident, evicting least-recently-used models if needed.
 
@@ -249,7 +268,15 @@ def ensure_resident(
     With a ledger supplied, eviction stays possible. The server still wins whenever it
     answers — passing a ledger never overrides ground truth.
     """
-    ctx_size = max(1024, min(int(ctx_size), MAX_CTX))
+    # ``kv_aware_ctx`` (opt-in) swaps the flat N3 cap for a per-model one derived from real KV
+    # cost: a hybrid/SWA model needs <1 GB of KV at 128k, a dense one ~5 GB. Unsurveyed models
+    # still get MAX_CTX, and the default (False) keeps every existing caller's behaviour.
+    ctx_cap = (
+        kv_budget.ctx_cap_for(model_id, floor=MAX_CTX, budget_bytes=int(_KV_CTX_BUDGET_GB * 2**30))
+        if kv_aware_ctx
+        else MAX_CTX
+    )
+    ctx_size = max(1024, min(int(ctx_size), ctx_cap))
 
     loaded = resident_models()
     if ledger is not None:
@@ -276,7 +303,7 @@ def ensure_resident(
             f"implausible catalog size {weights:.2f}GB for a {params:g}B model — "
             f"refusing blind cold load (bad metadata defeats the weights-fit gate)",
         )
-    needed = weights + _kv_overhead_gb(weights)
+    needed = weights + _kv_overhead_gb(weights, model_id if kv_aware_ctx else None, ctx_size)
 
     evicted: list[str] = []
     # Victims: least-recently-used first, never busy, never protected, never the target.
