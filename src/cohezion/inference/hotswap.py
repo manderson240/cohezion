@@ -40,8 +40,6 @@ import re
 import urllib.request
 from dataclasses import dataclass, field
 
-from cohezion.inference import kv_budget
-
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +197,8 @@ def _kv_overhead_gb(
     flat = 3.0 if weights_gb > 10.0 else 1.0
     if not (model_id and ctx_size):
         return flat
+    from cohezion.inference import kv_budget  # lazy: hotswap is a reflex module (two-lineage rule)
+
     p = kv_budget.profile_for(model_id)
     if p is None:
         return flat
@@ -273,6 +273,8 @@ def ensure_resident(
     # ``kv_aware_ctx`` (opt-in) swaps the flat N3 cap for a per-model one derived from real KV
     # cost: a hybrid/SWA model needs <1 GB of KV at 128k, a dense one ~5 GB. Unsurveyed models
     # still get MAX_CTX, and the default (False) keeps every existing caller's behaviour.
+    from cohezion.inference import kv_budget  # lazy: keep the import-time closure reflex-only
+
     ctx_cap = (
         kv_budget.ctx_cap_for(model_id, floor=MAX_CTX, budget_bytes=int(_KV_CTX_BUDGET_GB * 2**30))
         if kv_aware_ctx
