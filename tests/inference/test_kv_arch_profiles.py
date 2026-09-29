@@ -100,3 +100,23 @@ def test_kv8_overhead_is_never_looser_than_the_flat_guess():
         for w in (5.0, 20.0):
             assert hotswap._kv_overhead_gb(w, m, 131072) >= hotswap._kv_overhead_gb(w)
     assert hotswap._kv_overhead_gb(20.0, "Devstral-Small-2507-GGUF", 131072) > 3.0  # dense@128k
+
+
+def test_kv9_missing_kv_metadata_fails_loud_instead_of_budgeting_zero():
+    with pytest.raises(ValueError, match="cannot budget KV"):
+        kb.kv_profile_from_gguf_meta({"general.architecture": "x", "x.block_count": 8})
+
+
+def test_kv10_per_layer_head_count_list_and_length_mismatch():
+    base = {"general.architecture": "x", "x.block_count": 4, "x.embedding_length": 64}
+    meta = {**base, "x.attention.head_count": [4, 0, 4, 0], "x.attention.head_count_kv": [2, 0, 2, 0],
+            "x.attention.key_length": 16, "x.attention.value_length": 16}  # fmt: skip
+    p = kb.kv_profile_from_gguf_meta(meta)  # list head_count must not crash the division
+    assert p.global_elems_per_token == 2 * 2 * 32  # two attention layers x 2 kv heads x (16+16)
+    with pytest.raises(ValueError, match="entries for 4 layers"):
+        kb.kv_profile_from_gguf_meta({**meta, "x.attention.head_count_kv": [2, 0]})
+
+
+def test_kv11_default_off_overhead_path_with_an_int_ctx_is_the_flat_guess():
+    assert hotswap._kv_overhead_gb(20.0, None, 131072) == 3.0
+    assert hotswap._kv_overhead_gb(5.0, None, 131072) == 1.0

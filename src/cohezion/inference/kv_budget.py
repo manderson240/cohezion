@@ -142,12 +142,18 @@ def kv_profile_from_gguf_meta(meta: dict) -> KVProfile:
     kvh = g("attention.head_count_kv", "head_count_kv")
     heads = g("attention.head_count", "head_count")
     emb = g("embedding_length")
-    head_dim = (emb // heads) if emb and heads else 0
+    # head_count is a per-layer LIST on Nemotron-H-style headers; only derive head_dim from it
+    # when key/value length are absent AND it is a scalar (otherwise the explicit lengths rule).
+    head_dim = emb // heads if emb and isinstance(heads, int) and heads else 0
     key_len = g("attention.key_length", "key_length") or head_dim
     val_len = g("attention.value_length", "value_length") or head_dim
+    if layers is None or kvh is None:  # a silent 0 B/token would UNDER-estimate and OOM
+        raise ValueError(f"{a}: GGUF metadata lacks block_count/head_count_kv; cannot budget KV")
     interval = g("full_attention_interval")
     if interval is None and a == "qwen3next":
         interval = _DEFAULT_FULL_ATTENTION_INTERVAL
+    if isinstance(kvh, list) and len(kvh) != layers:
+        raise ValueError(f"{a}: head_count_kv has {len(kvh)} entries for {layers} layers")
     per_layer = [kvh] * layers if not isinstance(kvh, list) else list(kvh)
     swa_window, swa_elems = 0, 0
     pattern = g("attention.sliding_window_pattern")
