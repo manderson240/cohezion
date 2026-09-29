@@ -92,3 +92,15 @@ def test_me8_memory_node_ids_match_index_memory_and_preserve_case():
     assert me.node_id("SESSION-29-SUMMARY") == "SESSION_29_SUMMARY"
     assert me.node_id("20260904-loop-docs") == "20260904_loop_docs"
     assert me.entity_id("memory", "Fleet-Index") == "memory:Fleet_Index"
+
+
+def test_me9_hostile_sentence_stays_inside_one_json_string_literal(monkeypatch):
+    # Note text is untrusted. It reaches SurrealQL only via json.dumps, which escapes the quote
+    # that would end the literal; verified live too (stored verbatim, nothing deleted).
+    hostile = 'x"; DELETE mem_mentions; LET $z = "}⟩; RETURN 1; //'
+    seen: list[str] = []
+    monkeypatch.setattr(me, "surreal", lambda q: seen.append(q) or [{"status": "OK"}])
+    edge = {"source": "s", "entity": "graph_entity:file_x", "kind": "file", "canonical": "x"}
+    assert me.write_edges([{**edge, "sentence": hostile}], [], "t") == 0
+    assert me.json.dumps(hostile) in seen[0]  # present only in escaped form
+    assert 'x"; DELETE mem_mentions' not in seen[0]  # the raw, unescaped payload never appears
