@@ -197,7 +197,9 @@ def _kv_overhead_gb(
     but never BELOW it, so this can only make the gate stricter than before, never looser.
     """
     flat = 3.0 if weights_gb > 10.0 else 1.0
-    p = kv_budget.profile_for(model_id) if model_id and ctx_size else None
+    if not (model_id and ctx_size):
+        return flat
+    p = kv_budget.profile_for(model_id)
     if p is None:
         return flat
     kv_gb = kv_budget.kv_bytes_from_profile(p, seq_len=ctx_size) / 2**30
