@@ -1,0 +1,63 @@
+{
+  "version": "1",
+  "model_name": "user.cohezion-npu-router",
+  "recipe": "collection.router",
+  "components": [
+    "qwen3.5-4b-FLM",
+    "Qwen3-Coder-30B-A3B-Instruct-GGUF"
+  ],
+  "routing": {
+    "candidates": [
+      "qwen3.5-4b-FLM",
+      "Qwen3-Coder-30B-A3B-Instruct-GGUF"
+    ],
+    "default_model": "qwen3.5-4b-FLM",
+    "rules": [
+      {
+        "id": "agentic-tools",
+        "match": {
+          "has_tools": true
+        },
+        "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "outputs": {
+          "reason": "tool-carrying agentic turn -> MoE A3B on the CPU lane (strong tool calling, NPU stays free of swaps)"
+        }
+      },
+      {
+        "id": "code",
+        "match": {
+          "any": [
+            {
+              "regex": "\\b(python|javascript|typescript|rust|golang|java|c\\+\\+|pytest|refactor|stack trace|traceback)\\b"
+            },
+            {
+              "keywords_any": [
+                "def ",
+                "class ",
+                "import ",
+                "write code",
+                "implement",
+                "bug",
+                "fix the test"
+              ]
+            }
+          ]
+        },
+        "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "outputs": {
+          "reason": "code -> coder MoE on the CPU lane"
+        }
+      },
+      {
+        "id": "long-context",
+        "match": {
+          "min_chars": 12000
+        },
+        "route_to": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+        "outputs": {
+          "reason": "long prompt -> CPU lane (4B NPU model caps at ctx 16384)"
+        }
+      }
+    ]
+  }
+}
