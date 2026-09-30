@@ -35,3 +35,18 @@ def test_si4_scanner_is_wired_into_both_gates():
     for gate in ("scripts/ci/automerge_guard.sh", ".github/workflows/ci.yml"):
         text = (ROOT / gate).read_text()
         assert "sdk_import_scan.py --self-test" in text and "sdk_import_scan.py\n" in text, gate
+
+
+def test_si5_import_as_form_is_scanned_not_just_from_imports(tmp_path):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "a.py").write_text("import gaia.agents.no_such_pkg.agent as Nope\n")
+    (tmp_path / "src" / "b.py").write_text("import gaia.llm.lemonade_client as ok\n")
+    assert {k.split("::")[0] for k in sis.scan(tmp_path / "src")} == {"src/a.py"}
+
+
+def test_si6_an_sdk_module_that_exits_at_import_is_reported_not_fatal(monkeypatch):
+    def boom(_name):
+        raise SystemExit(3)
+
+    monkeypatch.setattr(sis.importlib, "import_module", boom)
+    assert sis.unresolved("gaia.whatever", []) == ["gaia.whatever (SystemExit)"]

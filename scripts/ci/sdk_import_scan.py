@@ -36,7 +36,7 @@ def unresolved(module: str, names: list[str]) -> list[str]:
     """Failures for one import statement: the module itself, or each name missing from it."""
     try:
         mod = importlib.import_module(module)
-    except Exception as exc:
+    except (Exception, SystemExit) as exc:
         return [f"{module} ({type(exc).__name__})"]
     bad = []
     for name in names:
@@ -44,7 +44,7 @@ def unresolved(module: str, names: list[str]) -> list[str]:
             continue
         try:
             importlib.import_module(f"{module}.{name}")  # `from pkg import submodule`
-        except Exception:
+        except (Exception, SystemExit):
             bad.append(f"{module}:{name}")
     return bad
 
