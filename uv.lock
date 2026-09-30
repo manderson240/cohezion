@@ -183,7 +183,7 @@ wheels = [
 
 [[package]]
 name = "amd-gaia"
-version = "0.23.0"
+version = "0.24.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "accelerate" },
@@ -196,7 +196,6 @@ dependencies = [
     { name = "pillow" },
     { name = "pydantic" },
     { name = "python-dotenv" },
-    { name = "python-multipart" },
     { name = "pywin32", marker = "sys_platform == 'win32'" },
     { name = "requests" },
     { name = "rich" },
@@ -205,9 +204,9 @@ dependencies = [
     { name = "transformers" },
     { name = "watchdog" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/70/3f/54e91af798646bf193370b47e1436594f5f4ef8f72aba731f5609f30be76/amd_gaia-0.23.0.tar.gz", hash = "sha256:093d86823f501ab6575e4a29e8f2d7994954052fb6aa86032b399f1abbd8c9f5", size = 2108089, upload-time = "2026-08-13T21:45:29.389Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/1e/b74bf85b66ec1e67b4724efe76e4e7e91661f1de4d571e44158cac48df34/amd_gaia-0.24.1.tar.gz", hash = "sha256:a85aebe714acf09c5ee266f96c3f0ab681349b2dbb14d203e3c6dd4b3e15c47c", size = 2410686, upload-time = "2026-09-16T08:11:21.166Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/ce/b3c9b00183f2787a78e38f8081114a28beab661e6b3b518dda542620dbeb/amd_gaia-0.23.0-py3-none-any.whl", hash = "sha256:41b97789946d5a08f40ccbdce7a131d2668f4e4bb36c6c15795396a8149f80ec", size = 2191809, upload-time = "2026-08-13T21:45:27.534Z" },
+    { url = "https://files.pythonhosted.org/packages/04/23/15a5ddd4d19ea559c95e76e55e4987c484c10a6326932d12e55227c63154/amd_gaia-0.24.1-py3-none-any.whl", hash = "sha256:1e5d6e9da031a26a4bf97929f319e16e843f43aedeeeaf308b4f8c39d2aa14cd", size = 2516194, upload-time = "2026-09-16T08:11:18.672Z" },
 ]
 
 [[package]]
@@ -944,7 +943,7 @@ requires-dist = [
     { name = "aiofiles", specifier = ">=25.1.0" },
     { name = "aiohttp", specifier = ">=3.13.3" },
     { name = "aiohttp", marker = "extra == 'agentjet'", specifier = ">=3.9" },
-    { name = "amd-gaia", specifier = ">=0.21.1" },
+    { name = "amd-gaia", specifier = ">=0.24.1" },
     { name = "anthropic", specifier = ">=0.7.0" },
     { name = "arc-agi", specifier = ">=0.0.7" },
     { name = "baml-py", marker = "extra == 'dev'", specifier = ">=0.226.2" },
