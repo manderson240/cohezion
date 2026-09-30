@@ -94,6 +94,13 @@ def _chat(model: str, n_predict: int) -> tuple[dict, float]:
         return json.load(r), time.time() - t
 
 
+def _safe_resident() -> list[dict]:
+    try:
+        return _get("/api/v1/health")["all_models_loaded"]
+    except Exception:
+        return []
+
+
 def bench(
     model: str, lane: str, ctx: int, threads: int | None, n_predict: int, allow_npu_swap: bool
 ) -> dict:
@@ -152,6 +159,14 @@ def bench(
         pre = [r["prefill_tps"] for r in runs if r["prefill_tps"]]
         row.update(status="ok", method=runs[0]["method"], decode_tps=round(statistics.median(dec), 2) if dec else None,
                    prefill_tps=round(statistics.median(pre), 1) if pre else None, n_runs=len(dec))  # fmt: skip
+    except Exception as exc:
+        code = getattr(exc, "code", None)
+        still = [m["model_name"] for m in _safe_resident()]
+        row.update(
+            status="error",
+            detail=f"{type(exc).__name__}{f' {code}' if code else ''}: {exc}"[:200],
+            evicted=model not in still,
+        )
     finally:
         subprocess.run(["lemonade", "unload", model], capture_output=True, timeout=120)
     return row

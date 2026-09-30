@@ -52,10 +52,9 @@ def test_sb4_an_occupied_npu_blocks_an_npu_load_unless_explicitly_allowed(monkey
 
 def test_sb5_load_command_selects_the_lane_and_never_saves_options():
     cpu = sb.load_cmd("M", "cpu", 8192, 12)
-    assert (
-        cpu[:3] == ["lemonade", "load", "M"]
-        and cpu[cpu.index("--llamacpp") : cpu.index("--llamacpp") + 2] == ["--llamacpp", "cpu"]
-    )
+    assert cpu[:3] == ["lemonade", "load", "M"] and cpu[
+        cpu.index("--llamacpp") : cpu.index("--llamacpp") + 2
+    ] == ["--llamacpp", "cpu"]
     assert "-t 12" in cpu and "--save-options" not in cpu
     assert "vulkan" in sb.load_cmd("M", "igpu", 8192, None) and "--llamacpp" not in sb.load_cmd(
         "M", "npu", 8192, None
@@ -79,3 +78,15 @@ def test_sb7_router_unreachable_is_a_skip_not_a_score(monkeypatch):
 
     monkeypatch.setattr(sb, "_get", boom)
     assert sb.bench("M", "cpu", 8192, None, 64, False)["status"] == "skipped"
+
+
+def test_sb8_a_failed_measurement_is_a_recorded_error_row_and_still_unloads(monkeypatch):
+    ran = _world(monkeypatch)
+
+    def boom(_model, _n):
+        raise sb.urllib.error.HTTPError("u", 404, "Not Found", None, None)
+
+    monkeypatch.setattr(sb, "_chat", boom)
+    row = sb.bench("M", "cpu", 8192, 12, 64, False)
+    assert row["status"] == "error" and "404" in row["detail"] and row["evicted"] is True
+    assert ["lemonade", "unload", "M"] in ran  # cleanup still happens
