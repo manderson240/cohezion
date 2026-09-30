@@ -66,3 +66,24 @@ def test_ga4_build_questions_ground_truth_comes_from_the_rows_not_a_model():
     qs = ga.build_questions(2, _res(), db=db)
     count = next(q for q in qs if q["kind"] == "count")
     assert count["expected"] == {"3"} and "hotswap.py" in count["q"]
+
+
+def test_ga5_a_hostile_token_resolves_to_nothing_and_never_reaches_the_database():
+    # Model-controlled tool arguments: an unresolvable token must short-circuit BEFORE any query.
+    calls = []
+    hostile = "x'); DELETE graph_entity; ("
+    out = ga.who_mentions_impl(hostile, _res(), db=lambda q: calls.append(q) or [{"result": []}])
+    assert out["resolved"] is False and out["count"] == 0
+    assert calls == []
+
+
+def test_ga6_a_hostile_note_name_is_reduced_to_a_bare_record_id():
+    import re
+
+    seen = []
+    ga.entities_in_note_impl(
+        "x' ; DELETE graph_entity; --", db=lambda q: seen.append(q) or [{"result": []}]
+    )
+    rid = seen[0].split("in = memory:", 1)[1].rstrip(";")
+    assert re.fullmatch(r"[A-Za-z0-9_]+", rid), rid  # no quote, space, semicolon or dash survives
+    assert seen[0].count(";") == 1  # exactly one statement terminator: nothing was smuggled in
