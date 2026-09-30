@@ -140,3 +140,14 @@ def test_sb12_cpu_sweep_records_an_error_row_not_a_crash_when_llama_bench_fails(
         8,
         12,
     ]
+
+
+def test_sb13_cpu_sweep_survives_the_benchmark_binary_being_absent(monkeypatch):
+    # The exception path (not a non-zero exit): a missing llama-bench must be a recorded row.
+    def missing(*_a, **_k):
+        raise FileNotFoundError("llama-bench")
+
+    monkeypatch.setattr(sb, "avail_gb", lambda: 40.0)
+    monkeypatch.setattr(sb.subprocess, "run", missing)
+    rows = sb.cpu_sweep("/m/x.gguf", [12])
+    assert rows[0]["status"] == "error" and "FileNotFoundError" in rows[0]["detail"]
