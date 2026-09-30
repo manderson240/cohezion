@@ -90,3 +90,53 @@ def test_sb8_a_failed_measurement_is_a_recorded_error_row_and_still_unloads(monk
     row = sb.bench("M", "cpu", 8192, 12, 64, False)
     assert row["status"] == "error" and "404" in row["detail"] and row["evicted"] is True
     assert ["lemonade", "unload", "M"] in ran  # cleanup still happens
+
+
+def test_sb9_a_hung_load_is_a_recorded_timeout_row_with_an_unload_request(monkeypatch):
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[1] == "load":
+            raise sb.subprocess.TimeoutExpired(cmd, kw.get("timeout", 0))
+        return type("P", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+    _world(monkeypatch)
+    monkeypatch.setattr(sb.subprocess, "run", fake_run)
+    row = sb.bench("M", "cpu", 8192, 12, 64, False)
+    assert row["status"] == "load_timeout" and ["lemonade", "unload", "M"] in calls
+
+
+_BENCH_JSON = (
+    "load_backend: loaded CPU backend from /x/libggml-cpu-zen4.so\n"
+    '[{"n_prompt": 512, "n_gen": 0, "avg_ts": 210.456, "n_threads": 12},'
+    ' {"n_prompt": 0, "avg_ts": 31.127, "n_gen": 128, "n_threads": 12}]'
+)
+
+
+def test_sb10_parse_bench_reads_prefill_and_decode_from_llama_bench_json_despite_log_noise():
+    assert sb.parse_bench(_BENCH_JSON) == {"prefill_tps": 210.5, "decode_tps": 31.13}
+    assert sb.parse_bench("[]") == {
+        "prefill_tps": None,
+        "decode_tps": None,
+    }  # no rows -> None, never 0
+
+
+def test_sb11_bench_command_uses_the_lemonade_cpu_backend_and_requested_threads():
+    cmd = sb.bench_cmd("/m/x.gguf", 12)
+    assert cmd[0].endswith("llamacpp/cpu/llama-bench") and cmd[cmd.index("-t") + 1] == "12"
+    assert cmd[cmd.index("-m") + 1] == "/m/x.gguf" and cmd[-2:] == ["-o", "json"]
+
+
+def test_sb12_cpu_sweep_records_an_error_row_not_a_crash_when_llama_bench_fails(monkeypatch):
+    monkeypatch.setattr(sb, "avail_gb", lambda: 40.0)
+    monkeypatch.setattr(
+        sb.subprocess,
+        "run",
+        lambda *a, **k: type("P", (), {"returncode": 1, "stdout": "", "stderr": "boom"})(),
+    )
+    rows = sb.cpu_sweep("/m/x.gguf", [8, 12])
+    assert [r["status"] for r in rows] == ["error", "error"] and [r["threads"] for r in rows] == [
+        8,
+        12,
+    ]

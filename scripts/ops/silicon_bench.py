@@ -26,6 +26,13 @@ from pathlib import Path
 
 ROUTER = "http://localhost:13305"
 FLOOR_GB, MARGIN_GB = 16.0, 2.0
+LOAD_TIMEOUT_S, CHAT_TIMEOUT_S = (
+    240,
+    180,
+)  # stay well under any caller timeout so a hang still writes a row
+LLAMA_BIN = Path(
+    "/var/cache/lemonade/bin/llamacpp/cpu"
+)  # the SAME cpu backend Lemonade serves with
 OUT = Path(__file__).resolve().parents[2] / ".cache" / "silicon_bench.jsonl"
 PROMPT = (
     "List the planets of the solar system in order from the sun, one per line, with one fact each."
@@ -90,7 +97,7 @@ def _chat(model: str, n_predict: int) -> tuple[dict, float]:
         {"Content-Type": "application/json"},
     )
     t = time.time()
-    with urllib.request.urlopen(req, timeout=600) as r:  # noqa: S310
+    with urllib.request.urlopen(req, timeout=CHAT_TIMEOUT_S) as r:  # noqa: S310
         return json.load(r), time.time() - t
 
 
@@ -142,9 +149,21 @@ def bench(
             "reason": f"headroom: {a:.1f} GB free, need {size:.1f}+{FLOOR_GB + MARGIN_GB:.0f}",
         }
     t = time.time()
-    p = subprocess.run(
-        load_cmd(model, lane, ctx, threads), capture_output=True, text=True, timeout=900
-    )
+    try:
+        p = subprocess.run(
+            load_cmd(model, lane, ctx, threads),
+            capture_output=True,
+            text=True,
+            timeout=LOAD_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        # A hung load is a recorded outcome (the router may now be wedged), not a silent kill by the caller.
+        subprocess.run(["lemonade", "unload", model], capture_output=True, timeout=60)
+        return {
+            **row,
+            "status": "load_timeout",
+            "detail": f"load exceeded {LOAD_TIMEOUT_S}s; unload requested",
+        }
     if p.returncode:
         return {**row, "status": "load_failed", "detail": (p.stdout + p.stderr)[-200:]}
     row.update(
@@ -172,15 +191,88 @@ def bench(
     return row
 
 
+def bench_cmd(gguf: str, threads: int, pp: int = 512, tg: int = 128, reps: int = 3) -> list[str]:
+    return [
+        str(LLAMA_BIN / "llama-bench"),
+        "-m",
+        gguf,
+        "-t",
+        str(threads),
+        "-p",
+        str(pp),
+        "-n",
+        str(tg),
+        "-r",
+        str(reps),
+        "-o",
+        "json",
+    ]
+
+
+def parse_bench(stdout: str) -> dict:
+    """prefill/decode tok/s from ``llama-bench -o json`` (a list of rows; pp rows have n_gen == 0)."""
+    rows = json.loads(stdout[stdout.index("[") :])
+    pre = [r["avg_ts"] for r in rows if r.get("n_gen") == 0 and r.get("n_prompt")]
+    dec = [r["avg_ts"] for r in rows if r.get("n_prompt") == 0 and r.get("n_gen")]
+    return {
+        "prefill_tps": round(pre[0], 1) if pre else None,
+        "decode_tps": round(dec[0], 2) if dec else None,
+    }
+
+
+def cpu_sweep(gguf: str, thread_counts: list[int]) -> list[dict]:
+    """Router-free CPU lane measurement: touches nothing shared, so it cannot stall the fleet."""
+    import os
+
+    out = []
+    for n in thread_counts:
+        row = {
+            "ts": time.strftime("%FT%T"),
+            "model": Path(gguf).name,
+            "lane": "cpu",
+            "mode": "llama-bench",
+            "threads": n,
+            "avail_gb": round(avail_gb(), 1),
+        }
+        try:
+            p = subprocess.run(
+                bench_cmd(gguf, n),
+                capture_output=True,
+                text=True,
+                timeout=900,
+                env={**os.environ, "LD_LIBRARY_PATH": str(LLAMA_BIN)},
+            )
+            row.update(status="ok", **parse_bench(p.stdout)) if p.returncode == 0 else row.update(
+                status="error", detail=p.stderr[-200:]
+            )
+        except Exception as exc:
+            row.update(status="error", detail=f"{type(exc).__name__}: {exc}"[:200])
+        out.append(row)
+    return out
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("model")
-    ap.add_argument("--lane", choices=("npu", "igpu", "cpu"), required=True)
+    ap.add_argument("model", nargs="?")
+    ap.add_argument("--lane", choices=("npu", "igpu", "cpu"), default="cpu")
+    ap.add_argument("--gguf", help="router-free: llama-bench this GGUF file on the CPU lane")
+    ap.add_argument(
+        "--threads-list", default="8,12,16", help="with --gguf: comma-separated thread counts"
+    )
     ap.add_argument("--ctx", type=int, default=8192)
     ap.add_argument("--threads", type=int)
     ap.add_argument("--n-predict", type=int, default=128)
     ap.add_argument("--allow-npu-swap", action="store_true")
     a = ap.parse_args(argv)
+    if a.gguf:
+        rows = cpu_sweep(a.gguf, [int(x) for x in a.threads_list.split(",")])
+        OUT.parent.mkdir(parents=True, exist_ok=True)
+        with OUT.open("a") as fh:
+            fh.writelines(json.dumps(r) + "\n" for r in rows)
+        print(json.dumps(rows))
+        return 0 if all(r["status"] == "ok" for r in rows) else 1
+    if not a.model:
+        ap.error("MODEL or --gguf is required")
     row = bench(a.model, a.lane, a.ctx, a.threads, a.n_predict, a.allow_npu_swap)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("a") as fh:
