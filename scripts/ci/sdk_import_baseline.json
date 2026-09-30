@@ -1,0 +1,4 @@
+[
+ "src/cohezion/inference/gaia_adapter.py::gaia.agents.chat.agent (ModuleNotFoundError)",
+ "src/cohezion/inference/gaia_adapter.py::gaia.agents.mcp.agent (ModuleNotFoundError)"
+]

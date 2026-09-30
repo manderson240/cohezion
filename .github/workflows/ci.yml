@@ -135,6 +135,8 @@ jobs:
         run: |
           uv run python scripts/ci/phantom_attr_scan.py --self-test
           uv run python scripts/ci/phantom_attr_scan.py
+          uv run python scripts/ci/sdk_import_scan.py --self-test
+          uv run python scripts/ci/sdk_import_scan.py
 
       # Lineage scan (fourth sibling): can each REFLEX module (ResourceGuard, sandbox, hotswap)
       # load in a fresh interpreter within 1 s / 60 MB with no deliberative (LLM-stack) module

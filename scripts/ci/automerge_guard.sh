@@ -219,6 +219,14 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
 step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 
+# Step 6c-sdk: SDK import drift — "does every third-party-SDK import still resolve on the INSTALLED
+# version?" Added 2026-09-30: amd-gaia removed gaia.agents.chat / gaia.agents.mcp, and
+# gaia_adapter kept importing them lazily under `except ImportError`, so the break surfaced at call
+# time with a misleading "not installed" message while 445 tests stayed green. Ratchet: known-dead
+# imports are baselined in scripts/ci/sdk_import_baseline.json; only NEW unresolved imports fail.
+step "sdk-import self-test" uv run python scripts/ci/sdk_import_scan.py --self-test
+step "sdk-import scan" uv run python scripts/ci/sdk_import_scan.py
+
 # Step 6c-quater: Lineage — fourth sibling. dormancy asks "has a consumer?", doc-consistency "do the
 # docs tell the truth?", phantom-attr "does the attribute exist?"; lineage asks "can the reflex run
 # when the LLM layer is dead?" Measured 2026-09-19: the memory-pressure guard cost 500 MB to import
