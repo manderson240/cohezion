@@ -20,6 +20,8 @@ if [ "${ALLOW_MAIN_PUSH:-0}" != "1" ]; then
                 "(Human override for a hotfix: ALLOW_MAIN_PUSH=1 git push ...)"
             exit 1
         fi
+    # The while loop runs in a pipeline subshell, so its `exit 1` only ends the subshell.
+    # `|| exit 1` carries that failure to the hook; removing it silently disables the guard.
     done || exit 1
 fi
 
