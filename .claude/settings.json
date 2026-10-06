@@ -27,5 +27,17 @@
     "PYTHONPATH": "src",
     "COHEZION_SESSION_ID": "",
     "ANTHROPIC_INTEL_LOCAL_LLM": "http://localhost:13307"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/codegraph/codegraph-watch.sh"
+          }
+        ]
+      }
+    ]
   }
 }
