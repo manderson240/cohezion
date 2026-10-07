@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-10-07
+
+### Fixed — Lost behaviour restored
+- `CompoundExecutor` again remembers each successful turn in CohezionMemory when `enable_memory=True` (#198's wiring had been dropped in a merge resolution, and `ExecutorFactory` had lost the parameters). Opt-in and non-blocking, as originally designed.
+- `ResourceGuard.can_load_model` enforces the 16 GiB RAM floor *after* the load and the CPU gate; it approved loads that would have left the box below the floor. The OOM hardener no longer loads models it should defer, and `verify_all_bounded` reports failure instead of "all bounded" when the router is unreachable (fix stranded on a side branch since 2026-09-05/21).
+- `MCPHTTPSClient.get_ssl_context` honours an explicit `verify_ssl=False` again (a CodeQL hardening line silently re-enabled verification). The default is unchanged: certificate and hostname verification, TLS >= 1.2.
+- Seven `/api/physics/*` endpoints (LENR, ionic-cluster, dielectric, QGP, Sarfatti) that the tests had pinned since #241, landed from a stranded side branch.
+- Nine packages re-export the names their wiring tests pin (`rl`, `cost_optimization`, `hookify`, `knowledge_graph`, `substrate`, `eval`, `flux.providers`, `vanguard`, `pipeline`); import cost is unchanged.
+- Seven undefined names (ruff F821) that were latent `NameError`s, including an f-string that interpolated a nonexistent `ms`.
+
+### Fixed — From the adversarial review of this release
+- The new physics endpoints validate input: agent ids are bounded (1-64 safe chars), per-agent registries are LRU-capped, LENR history is a bounded window, non-finite and non-physical values return 422. Finite out-of-range coherence is still clamped by the physics.
+- App-wide: a JSON body containing NaN/Infinity returned 500, because the default validation handler could not serialize the rejected input. It now returns the normal 422.
+- `verify_all_bounded` reports a model whose options cannot be read as UNKNOWN instead of bounded.
+- Package `__all__` lists only names whose guarded import succeeded, so star-imports cannot raise.
+- The restored memory wiring imported `CohezionMemory` from a package that does not export it, so it silently disabled itself; caught by the mypy ratchet and fixed.
+
+### Fixed — Tests
+- The suite no longer rewrites tracked files: RL/FLUME checkpoints, `skill_registry.json`, generated agents, the config-sync audit log, the healing log, and a generated mycelium test. A checkpoint left by one run is what made `test_api_integration`'s RL tests fail on the next.
+- Tests updated where they encoded superseded values: Claude pricing per MTok (eda411480 fixed a 1000x overestimate), the encoder-calibrated cache threshold, 18 worldview traditions, the cache novelty gate, the calibration-profile loader's real import site.
+- Integration tier: 212 failures before 1.27.2, 79 after it, 34 on this release (11,326 passed). The rest are tests for features that were never built (listed in the PR).
+
 ## [1.27.2] - 2026-10-06
 
 ### Fixed — 130 of 169 API routes had been returning 404 since #267
