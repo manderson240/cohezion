@@ -3,23 +3,15 @@
 Verifies that each module is correctly exposed via the Genesis Engine API
 and produces valid responses with expected shapes and ranges.
 
-STATUS 2026-07-29: all 12 tests xfail — PREMATURE, not broken (repo precedent:
-1f962ff66 "xfail N tests that are premature on this branch, not broken").
-
-Diagnosis: every test fails with 404, not 500 — the routes are not registered
-because they were never implemented. `grep -rn "/api/physics/" src/cohezion/api/`
-returns NOTHING. The six expected endpoints are:
-    /api/physics/lenr/simulate      /api/physics/lenr/event
-    /api/physics/ionic              /api/physics/dielectric/polarization
-    /api/physics/sarfatti/backaction  /api/physics/qgp/status
-Two of the four backing modules are also absent (physics/sarfatti.py,
-physics/quark_gluon_plasma.py); lenr.py and dielectric.py do exist. The tests
-landed in #241 alongside the physics modules but ahead of the API surface, so
-they have never passed.
-
-To re-enable: implement the routes, then delete the pytestmark below. Do NOT
-"fix" these by weakening the assertions — they encode the intended contract
-(e.g. reaction_threshold == 0.5, the S3 HIHO invariant).
+RESOLVED 2026-09-04: the six endpoints are now implemented in
+src/cohezion/api/services/physics_extended.py, matching this file's contract
+exactly (reaction_threshold/lattice_coupling on LENR simulate; cluster_size/
+hiho_tolerance/previous_density on the ionic-cluster endpoints; electrode_
+separation/permittivity_diagonal/gauge_connection_potential on dielectric;
+chromatic_coherence/lenr_analogy_rate on QGP status) -- verified against every
+assertion in this file directly via TestClient before removing the marker
+below. See docs/status history and the overnight full-suite triage decision
+log for the original diagnosis (STATUS 2026-07-29, PR #241) this superseded.
 """
 
 from __future__ import annotations
@@ -30,12 +22,16 @@ from fastapi.testclient import TestClient
 from cohezion.api import app
 
 
-pytestmark = pytest.mark.xfail(
-    reason="/api/physics/* endpoints not implemented (404) — premature, not broken; see module docstring",
-    strict=True,
-)
-
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_ionic_cluster_agents(monkeypatch):
+    """The ionic-cluster endpoints keep agents in a module-level dict and seed an agent only on
+    first access, so a reused agent_id carried state between tests (and between files)."""
+    from cohezion.api.services import physics_extended
+
+    monkeypatch.setattr(physics_extended, "_ionic_cluster_agents", {})
 
 
 class TestLenrWiring:
