@@ -254,12 +254,22 @@ jobs:
       - name: Run inference tests (gating)
         run: uv run pytest tests/inference/ -q --tb=short
 
+      # Test failures here stay non-blocking (exit 1), but a run that cannot execute does not:
+      # one ImportError at collection (exit 2) aborted this whole tier, so ~11k tests ran zero
+      # times while this step, then continue-on-error, reported green (found 2026-10-06).
+      # Exit 5 (nothing collected) is the same blindness.
       - name: Run integration tests
-        run: >
-          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v
-          --tb=short
-          --junitxml=integration-report.xml
-        continue-on-error: true
+        run: |
+          set +e
+          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v \
+            --tb=short --junitxml=integration-report.xml
+          rc=$?
+          if [ "$rc" -ge 2 ]; then
+            echo "::error::integration tier did not run (pytest exit $rc: collection/usage error or nothing collected)"
+            exit "$rc"
+          fi
+          [ "$rc" -eq 1 ] && echo "::warning::integration tier has failing tests (non-blocking)"
+          exit 0
 
       - name: Upload coverage
         if: matrix.python-version == '3.13'
