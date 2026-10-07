@@ -3,6 +3,14 @@
 import contextlib
 
 
+__all__ = [
+    "AttributionEngine",
+    "SourceConnector",
+    "SubstrateSandbox",
+    "VanguardScoutReport",
+]
+
+
 with contextlib.suppress(Exception):
     from cohezion.vanguard.attribution import AttributedRecord as AttributedRecord
     from cohezion.vanguard.attribution import AttributionEngine as AttributionEngine

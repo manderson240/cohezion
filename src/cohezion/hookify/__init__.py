@@ -9,7 +9,15 @@ with contextlib.suppress(Exception):
     from cohezion.hookify.validator import ValidationResult as ValidationResult
 
 
-__all__ = ["HookifyValidator", "Rule", "ValidationResult"]
+__all__ = [
+    "AdversarialReviewHarness",
+    "AdversarialReviewResult",
+    "ConsensusVoter",
+    "HookifyValidator",
+    "ReviewPerspective",
+    "Rule",
+    "ValidationResult",
+]
 
 with contextlib.suppress(Exception):
     from cohezion.hookify.adversarial_review import (

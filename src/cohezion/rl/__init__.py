@@ -6,6 +6,9 @@ import contextlib
 # Wiring-sweep 2026-06-22: causal_interpreter.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.rl.causal_interpreter import (
+        ActivationPatcher as ActivationPatcher,
+    )
+    from cohezion.rl.causal_interpreter import (
         CausalInterventionTester as CausalInterventionTester,
     )
     from cohezion.rl.causal_interpreter import (
@@ -21,7 +24,16 @@ with contextlib.suppress(Exception):
         DistributedConfig as DistributedConfig,
     )
     from cohezion.rl.distributed_trainer import (
+        DistributedLauncher as DistributedLauncher,
+    )
+    from cohezion.rl.distributed_trainer import (
         DistributedPPOTrainer as DistributedPPOTrainer,
+    )
+    from cohezion.rl.distributed_trainer import (
+        ScalingBenchmark as ScalingBenchmark,
+    )
+    from cohezion.rl.distributed_trainer import (
+        ScalingMetrics as ScalingMetrics,
     )
 
 # Wiring-sweep 2026-06-22: environment.py was a genuine import-graph orphan.
@@ -40,7 +52,13 @@ with contextlib.suppress(Exception):
 # Wiring-sweep 2026-06-22: grpo_trainer.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.rl.grpo_trainer import (
+        AsyncGRPOTrainer as AsyncGRPOTrainer,
+    )
+    from cohezion.rl.grpo_trainer import (
         GRPOConfig as GRPOConfig,
+    )
+    from cohezion.rl.grpo_trainer import (
+        GRPOMetrics as GRPOMetrics,
     )
     from cohezion.rl.grpo_trainer import (
         GRPOTrainer as GRPOTrainer,
@@ -109,10 +127,13 @@ with contextlib.suppress(Exception):
 
 
 __all__ = [
+    "ActivationPatcher",
+    "AsyncGRPOTrainer",
     "CausalInterventionTester",
     "CoherenceReward",
     "CompositeReward",
     "DistributedConfig",
+    "DistributedLauncher",
     "DistributedPPOTrainer",
     "DiversityBonus",
     "EVOTracker",
@@ -120,6 +141,7 @@ __all__ = [
     "EthericVariantOscillator",
     "FlumeNavEnv",
     "GRPOConfig",
+    "GRPOMetrics",
     "GRPOTrainer",
     "HamiltonianReward",
     "InterpretabilityReport",
@@ -129,6 +151,8 @@ __all__ = [
     "PPOTrainer",
     "PolicyNetwork",
     "SFTTrainer",
+    "ScalingBenchmark",
+    "ScalingMetrics",
     "StabilityPenalty",
     "TRIUNEPolicy",
     "TaskGenerator",

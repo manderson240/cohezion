@@ -25,6 +25,8 @@ __all__ = [
     "ProtectionAction",
     "ProtectionConfig",
     "ProtectionLevel",
+    "SubmitResult",
+    "submit",
 ]
 
 import contextlib

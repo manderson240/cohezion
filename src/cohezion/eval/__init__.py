@@ -3,6 +3,14 @@
 import contextlib
 
 
+__all__ = [
+    "CapabilityScorecard",
+    "EvalPipeline",
+    "HuggingFaceExporter",
+    "UniverseEvaluator",
+]
+
+
 with contextlib.suppress(Exception):
     from cohezion.eval.capability_scorecard import CapabilityScorecard as CapabilityScorecard
     from cohezion.eval.capability_scorecard import StatisticalComparison as StatisticalComparison
@@ -16,6 +24,7 @@ with contextlib.suppress(Exception):
 
 with contextlib.suppress(Exception):
     from cohezion.eval.pipeline import EpisodeResult as EpisodeResult
+    from cohezion.eval.pipeline import EvalPipeline as EvalPipeline
     from cohezion.eval.pipeline import PipelineProgress as PipelineProgress
     from cohezion.eval.pipeline import RalphLoopConfig as RalphLoopConfig
 
