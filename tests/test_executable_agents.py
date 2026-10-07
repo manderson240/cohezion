@@ -171,6 +171,26 @@ class TestGeneratedAgentProcess:
 # ---------------------------------------------------------------------------
 
 
+@pytest.fixture
+def _restore_registration_outputs():
+    """Restore the tracked files AgentFactory registration rewrites, and drop new ones.
+
+    Registration writes the real src/cohezion/skills/skill_registry.json and
+    src/cohezion/agents/generated/ (the generated agents must be importable as
+    cohezion.agents.generated.*, so the test cannot run from a temp cwd). Without this every
+    test run left the tracked registry and generated agents modified.
+    """
+    root = Path(__file__).resolve().parents[1] / "src" / "cohezion"
+    files = [root / "skills" / "skill_registry.json", *(root / "agents" / "generated").glob("*.py")]
+    saved = {f: f.read_bytes() for f in files}
+    yield
+    for f in (root / "agents" / "generated").glob("*.py"):
+        if f not in saved:
+            f.unlink()
+    for f, data in saved.items():
+        f.write_bytes(data)
+
+
 class TestFactoryCreateExecutable:
     """Tests for AgentFactory.create_executable() with generated agents."""
 
@@ -205,7 +225,9 @@ class TestFactoryCreateExecutable:
         result = asyncio.get_event_loop().run_until_complete(agent.process("test input"))
         assert result.skill_name == "FACTORY_TEST_PRIME"
 
-    def test_factory_generate_top_skills(self, tmp_path: Path) -> None:
+    def test_factory_generate_top_skills(
+        self, tmp_path: Path, _restore_registration_outputs
+    ) -> None:
         """generate_top_skills() should generate agents for skills with instructions."""
         from cohezion.agents.factory import AgentFactory
 
