@@ -188,7 +188,14 @@ def _ask(model: str, prompt: str, *, max_tokens: int = 1200, timeout: int = 900)
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 -- localhost router
         r = json.loads(resp.read())
-    return r["choices"][0]["message"]["content"]
+    # Shared local-LLM safety contract (same helper gauntlet._call_model delegates to): FLM can
+    # ignore enable_thinking and leave the answer in reasoning_content with content="", which
+    # parse_lane would otherwise score UNKNOWN; also strips <think>/Gemma channel markup.
+    # Transport stays here because run_lane's swap-race retry relies on this raising.
+    from cohezion.inference.gaia_adapter import _answer_only  # lazy: keep --self-test light
+
+    msg = r["choices"][0]["message"]
+    return _answer_only(msg.get("content") or "", msg.get("reasoning_content") or "")
 
 
 def run_lane(lens: str, diff: str) -> LaneResult:
