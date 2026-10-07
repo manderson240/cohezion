@@ -1397,7 +1397,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     _mem.remember(
                         [
                             {"role": "user", "content": task_description},
-                            {"role": "assistant", "content": output[:4000]},
+                            {"role": "assistant", "content": str(output)[:4000]},
                         ],
                         agent_id=project,
                     )
