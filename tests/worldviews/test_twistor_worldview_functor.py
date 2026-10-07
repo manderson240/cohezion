@@ -20,7 +20,7 @@ def functor() -> TwistorWorldviewFunctor:
 
 
 def test_tradition_count(functor: TwistorWorldviewFunctor) -> None:
-    assert len(functor.traditions) == len(get_traditions())
+    assert len(functor.traditions) == len(get_traditions()) == 18  # 18 since S2 (2026-08-01)
 
 
 def test_single_step_functor(functor: TwistorWorldviewFunctor) -> None:

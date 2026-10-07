@@ -375,11 +375,22 @@ def restore_registration_outputs():
     test run left the tracked registry and generated agents modified.
     """
     root = Path(__file__).resolve().parents[1] / "src" / "cohezion"
+    # One registration test at a time across processes (xdist): without the lock, one
+    # worker's teardown restored the registry over another worker's in-flight output.
+    import fcntl
+    import tempfile
+
+    lock = open(Path(tempfile.gettempdir()) / "cohezion-registration-test.lock", "w")  # noqa: SIM115
+    fcntl.flock(lock, fcntl.LOCK_EX)
     files = [root / "skills" / "skill_registry.json", *(root / "agents" / "generated").glob("*.py")]
-    saved = {f: f.read_bytes() for f in files}
-    yield
-    for f in (root / "agents" / "generated").glob("*.py"):
-        if f not in saved:
-            f.unlink()
-    for f, data in saved.items():
-        f.write_bytes(data)
+    try:
+        saved = {f: f.read_bytes() for f in files}
+        yield
+        for f in (root / "agents" / "generated").glob("*.py"):
+            if f not in saved:
+                f.unlink()
+        for f, data in saved.items():
+            f.write_bytes(data)
+    finally:
+        fcntl.flock(lock, fcntl.LOCK_UN)
+        lock.close()
