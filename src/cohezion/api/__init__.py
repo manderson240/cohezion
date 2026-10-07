@@ -15,10 +15,13 @@ reference them by full path (``patch("cohezion.api._get_vae", ...)`` etc.).
 import contextlib
 import importlib
 import logging
+import math
 import os
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.routing import APIRoute
@@ -92,6 +95,26 @@ async def rate_limit_middleware(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-RateLimit-Remaining"] = str(result.remaining)
     return response
+
+
+def _json_safe(value):
+    """Render non-finite floats as strings so a validation error can always be serialized."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return repr(value)
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+    # FastAPI's default handler echoes the rejected input; a body carrying NaN/Infinity then
+    # fails JSON encoding and the client gets a 500 instead of the 422. Same response shape.
+    return JSONResponse(
+        status_code=422, content={"detail": _json_safe(jsonable_encoder(exc.errors()))}
+    )
 
 
 # Static files

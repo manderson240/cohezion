@@ -29,9 +29,11 @@ client = TestClient(app)
 def _fresh_ionic_cluster_agents(monkeypatch):
     """The ionic-cluster endpoints keep agents in a module-level dict and seed an agent only on
     first access, so a reused agent_id carried state between tests (and between files)."""
+    from collections import OrderedDict
+
     from cohezion.api.services import physics_extended
 
-    monkeypatch.setattr(physics_extended, "_ionic_cluster_agents", {})
+    monkeypatch.setattr(physics_extended, "_ionic_cluster_agents", OrderedDict())
 
 
 class TestLenrWiring:

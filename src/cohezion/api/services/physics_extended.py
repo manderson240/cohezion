@@ -7,9 +7,11 @@ Follows the router pattern established in genesis.py.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+import math
+from collections import OrderedDict, deque
+from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 
@@ -748,9 +750,21 @@ class LenrSimulateResponse(BaseModel):
     reaction_rate: float
 
 
+# Input bounds for the stateful/stateless physics endpoints below (adversarial review
+# 2026-10-07). The physics classes clamp coherence/density into [0, 1] themselves, so finite
+# out-of-range values stay accepted; what is rejected is what they cannot absorb: NaN/inf
+# (NaN survives max/min and poisons running means), non-positive geometry, and client-chosen
+# agent ids that would otherwise grow process-global state without limit.
+_AGENT_ID = r"^[A-Za-z0-9_.:-]+$"
+AgentId = Annotated[str, Query(min_length=1, max_length=64, pattern=_AGENT_ID)]
+Finite = Annotated[float, Query(allow_inf_nan=False)]
+_MAX_AGENTS = 1024  # per registry; least-recently-used agent is evicted beyond this
+_MAX_LENR_EVENTS = 1000  # per agent; event_count / mean_rate cover this recent window
+
+
 class LenrEventRequest(BaseModel):
-    coherence: float
-    agent_id: str = "lenr-bridge"
+    coherence: float = Field(allow_inf_nan=False)
+    agent_id: str = Field(default="lenr-bridge", min_length=1, max_length=64, pattern=_AGENT_ID)
 
 
 class LenrEventResponse(BaseModel):
@@ -778,8 +792,8 @@ class IonicClusterStatusResponse(BaseModel):
 
 
 class IonicClusterStepRequest(BaseModel):
-    delta: float
-    agent_id: str
+    delta: float = Field(allow_inf_nan=False)
+    agent_id: str = Field(min_length=1, max_length=64, pattern=_AGENT_ID)
 
 
 class DielectricPolarizationResponse(BaseModel):
@@ -817,15 +831,29 @@ class QgpStatusResponse(BaseModel):
 
 # Per-agent state, mirroring the mutable-dataclass design of LENRHamiltonian
 # (event history) and IonicClusterState (step() mutates in place).
-_lenr_agents: dict[str, LENRHamiltonian] = {}
-_ionic_cluster_agents: dict[str, IonicClusterState] = {}
+# Bounded LRU registries: agent ids come from clients.
+_lenr_agents: OrderedDict[str, LENRHamiltonian] = OrderedDict()
+_ionic_cluster_agents: OrderedDict[str, IonicClusterState] = OrderedDict()
+
+
+def _registry_get(registry: OrderedDict, agent_id: str, factory):
+    """Return the agent's state, creating it via factory(); evict the LRU agent at capacity."""
+    state = registry.get(agent_id)
+    if state is None:
+        state = factory()
+        registry[agent_id] = state
+        while len(registry) > _MAX_AGENTS:
+            registry.popitem(last=False)
+    else:
+        registry.move_to_end(agent_id)
+    return state
 
 
 @physics_ext_router.get("/lenr/simulate", response_model=LenrSimulateResponse)
 async def get_lenr_simulate(
-    coherence: float = 0.5,
-    reaction_threshold: float = 0.5,
-    lattice_coupling: float = 1.0,
+    coherence: Finite = 0.5,
+    reaction_threshold: Finite = 0.5,
+    lattice_coupling: Finite = 1.0,
 ) -> LenrSimulateResponse:
     """LENR reaction rate at a given lattice coherence — stateless."""
     from cohezion.physics.lenr import LENRHamiltonian
@@ -844,10 +872,12 @@ async def post_lenr_event(payload: LenrEventRequest) -> LenrEventResponse:
     """Record a LENR coherence event for an agent and return its running mean rate."""
     from cohezion.physics.lenr import LENRHamiltonian
 
-    h = _lenr_agents.get(payload.agent_id)
-    if h is None:
+    def _new() -> LENRHamiltonian:
         h = LENRHamiltonian(agent_id=payload.agent_id)
-        _lenr_agents[payload.agent_id] = h
+        h._coherence_events = deque(maxlen=_MAX_LENR_EVENTS)  # type: ignore[assignment]
+        return h
+
+    h = _registry_get(_lenr_agents, payload.agent_id, _new)
     rate = h.record_coherence_event(payload.coherence)
     return LenrEventResponse(
         agent_id=payload.agent_id,
@@ -860,10 +890,10 @@ async def post_lenr_event(payload: LenrEventRequest) -> LenrEventResponse:
 
 @physics_ext_router.get("/ionic-cluster/status", response_model=IonicClusterStatusResponse)
 async def get_ionic_cluster_status(
-    agent_id: str = "ionic-cluster-default",
-    plasma_density: float = 0.5,
-    cluster_size: int = 100,
-    hiho_tolerance: float = 0.05,
+    agent_id: AgentId = "ionic-cluster-default",
+    plasma_density: Finite = 0.5,
+    cluster_size: Annotated[int, Query(ge=1, le=10**9)] = 100,
+    hiho_tolerance: Annotated[float, Query(ge=0.0, le=1.0, allow_inf_nan=False)] = 0.05,
 ) -> IonicClusterStatusResponse:
     """Ionic cluster HIHO status for an agent.
 
@@ -873,14 +903,15 @@ async def get_ionic_cluster_status(
     """
     from cohezion.physics.ionic_cluster import IonicClusterState
 
-    state = _ionic_cluster_agents.get(agent_id)
-    if state is None:
-        state = IonicClusterState(
+    state = _registry_get(
+        _ionic_cluster_agents,
+        agent_id,
+        lambda: IonicClusterState(
             plasma_density=plasma_density,
             cluster_size=cluster_size,
             hiho_tolerance=hiho_tolerance,
-        )
-        _ionic_cluster_agents[agent_id] = state
+        ),
+    )
     return IonicClusterStatusResponse(
         agent_id=agent_id,
         plasma_density=state.plasma_density,
@@ -898,10 +929,7 @@ async def post_ionic_cluster_step(payload: IonicClusterStepRequest) -> IonicClus
     """Advance an agent's ionic cluster plasma density by delta."""
     from cohezion.physics.ionic_cluster import IonicClusterState
 
-    state = _ionic_cluster_agents.get(payload.agent_id)
-    if state is None:
-        state = IonicClusterState()
-        _ionic_cluster_agents[payload.agent_id] = state
+    state = _registry_get(_ionic_cluster_agents, payload.agent_id, IonicClusterState)
     previous_density = state.plasma_density
     state.step(payload.delta)
     return IonicClusterStatusResponse(
@@ -919,18 +947,24 @@ async def post_ionic_cluster_step(payload: IonicClusterStepRequest) -> IonicClus
 
 @physics_ext_router.get("/dielectric/polarization", response_model=DielectricPolarizationResponse)
 async def get_dielectric_polarization(
-    voltage: float = 1e4,
-    electrode_separation: float = 0.01,
-    permittivity_diagonal: str = "1.0,1.0,1.0",
+    voltage: Finite = 1e4,
+    electrode_separation: Annotated[float, Query(gt=0.0, allow_inf_nan=False)] = 0.01,
+    permittivity_diagonal: Annotated[str, Query(max_length=200)] = "1.0,1.0,1.0",
 ) -> DielectricPolarizationResponse:
     """Dielectric field EHD thrust (Biefield-Brown) and U(1) gauge potential — stateless."""
     import numpy as np
 
     from cohezion.physics.dielectric import DielectricField
 
-    diag = [float(v.strip()) for v in permittivity_diagonal.split(",")]
-    if len(diag) != 3:
-        diag = [1.0, 1.0, 1.0]
+    try:
+        diag = [float(v.strip()) for v in permittivity_diagonal.split(",")]
+    except ValueError:
+        diag = []
+    if len(diag) != 3 or not all(math.isfinite(d) and d > 0 for d in diag):
+        raise HTTPException(
+            status_code=422,
+            detail="permittivity_diagonal must be three finite positive numbers, e.g. 1.0,1.0,1.0",
+        )
     field = DielectricField(
         permittivity_tensor=np.diag(diag),
         electrode_separation=electrode_separation,
@@ -949,7 +983,7 @@ async def get_dielectric_polarization(
 
 @physics_ext_router.get("/sarfatti/backaction", response_model=SarfattiBackactionResponse)
 async def get_sarfatti_backaction(
-    coherence: float = 0.5, destiny_weight: float = 0.5
+    coherence: Finite = 0.5, destiny_weight: Finite = 0.5
 ) -> SarfattiBackactionResponse:
     """Sarfatti retrocausal back-action amplitude at a given coherence — stateless."""
     from cohezion.physics.sarfatti_bridge import SarfattiBackAction
@@ -966,7 +1000,8 @@ async def get_sarfatti_backaction(
 
 @physics_ext_router.get("/qgp/status", response_model=QgpStatusResponse)
 async def get_qgp_status(
-    quark_coherence: float = 0.5, temperature_mev: float = 155.0
+    quark_coherence: Finite = 0.5,
+    temperature_mev: Annotated[float, Query(ge=0.0, allow_inf_nan=False)] = 155.0,
 ) -> QgpStatusResponse:
     """Quark-Gluon Plasma deconfinement crossover status — stateless."""
     from cohezion.physics.sarfatti_bridge import QuarkGluonPlasma
