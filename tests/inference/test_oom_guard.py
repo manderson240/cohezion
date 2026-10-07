@@ -255,3 +255,17 @@ def test_verify_router_offline():
 
     assert safe is False
     assert violations == [ROUTER_UNREACHABLE]
+
+
+def test_verify_all_bounded_unreadable_model_is_unknown_not_safe(monkeypatch) -> None:
+    """A heavy model whose recipe_options cannot be fetched must not count as bounded."""
+    from cohezion.inference import oom_guard
+
+    monkeypatch.setattr(
+        oom_guard, "_get_catalog", lambda base_url: [{"id": "Big-70B-GGUF", "size": 40.0}]
+    )
+    monkeypatch.setattr(oom_guard, "_is_heavy", lambda model: True)
+    monkeypatch.setattr(oom_guard, "_fetch_recipe_options", lambda base_url, name, **_: None)
+    safe, violations = oom_guard.verify_all_bounded("http://router")
+    assert safe is False
+    assert violations == ["Big-70B-GGUF (recipe_options unreadable)"]

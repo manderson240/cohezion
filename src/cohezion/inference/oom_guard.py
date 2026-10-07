@@ -85,8 +85,10 @@ def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]]:
     return []
 
 
-def _get_recipe_options(base_url: str, model_name: str, timeout: float = 5.0) -> dict[str, Any]:
-    """Fetch /api/v1/models/<name> and return recipe_options dict (may be empty)."""
+def _fetch_recipe_options(
+    base_url: str, model_name: str, timeout: float = 5.0
+) -> dict[str, Any] | None:
+    """Fetch /api/v1/models/<name> recipe_options; None when the fetch itself failed."""
     try:
         url = f"{base_url.rstrip('/')}/api/v1/models/{model_name}"
         req = urllib.request.Request(url, method="GET")  # noqa: S310
@@ -95,7 +97,12 @@ def _get_recipe_options(base_url: str, model_name: str, timeout: float = 5.0) ->
             return data.get("recipe_options") or {}
     except Exception as exc:
         logger.debug("recipe_options fetch for %s failed: %s", model_name, exc)
-        return {}
+        return None
+
+
+def _get_recipe_options(base_url: str, model_name: str, timeout: float = 5.0) -> dict[str, Any]:
+    """Fetch /api/v1/models/<name> and return recipe_options dict (may be empty)."""
+    return _fetch_recipe_options(base_url, model_name, timeout) or {}
 
 
 def _harden_model(
@@ -357,8 +364,11 @@ def verify_all_bounded(base_url: str = LEMONADE_BASE_URL) -> tuple[bool, list[st
         name: str = model.get("model_name") or model.get("id") or ""
         if not name or not _is_heavy(model):
             continue
-        recipe_options = model.get("recipe_options") or _get_recipe_options(base_url, name)
-        if _ctx_is_unsafe(recipe_options):
+        recipe_options = model.get("recipe_options") or _fetch_recipe_options(base_url, name)
+        if recipe_options is None:
+            # Could not read this model's bounds: UNKNOWN, never counted as bounded.
+            violations.append(f"{name} (recipe_options unreadable)")
+        elif _ctx_is_unsafe(recipe_options):
             violations.append(name)
 
     return len(violations) == 0, violations
