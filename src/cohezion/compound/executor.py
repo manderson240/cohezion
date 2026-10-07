@@ -404,7 +404,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             return None
         if self._memory_service is None:
             try:
-                from cohezion.memory import CohezionMemory
+                from cohezion.memory.service import CohezionMemory
 
                 self._memory_service = CohezionMemory.get_instance()
             except Exception as e:  # import/init failure must never block execution
