@@ -196,7 +196,10 @@ class TestL2Eviction:
     @pytest.mark.asyncio
     async def test_l2_lfu_eviction_at_capacity(self, fixed_embedding):
         """When L2 is full, the lowest-count entry is evicted."""
-        cache = SemanticCache(max_l1_size=512, max_l2_size=2)
+        # fixed_embedding gives every prompt the same vector, so the novelty gate (added after
+        # this test, ec1f73dd3) would skip p2/p3 as near-duplicates before LFU is ever reached.
+        # Disable it here so this test measures LFU eviction only.
+        cache = SemanticCache(max_l1_size=512, max_l2_size=2, novelty_threshold=1.01)
 
         await cache.put("p1", "r1", model="m")
         await cache.put("p2", "r2", model="m")
@@ -386,6 +389,8 @@ class TestStatsAndClearEdges:
         await cache.put("p", "r", model="m")
         await cache.get("p", model="m")  # +1 L1 hit
         await cache.get("missing", model="m")  # +1 miss
+        await cache.put("p2", "r2", model="m")  # same fixed vector: +1 novelty skip
+        assert cache.get_stats()["novelty_skipped"] == 1  # so the reset below is observable
         cache.clear()
         stats = cache.get_stats()
         assert stats == {
@@ -395,10 +400,13 @@ class TestStatsAndClearEdges:
             "misses": 0,
             "total_requests": 0,
             "overall_hit_rate": 0.0,
+            "combined_hit_rate": 0.0,
             "l1_hit_rate": 0.0,
             "l2_hit_rate": 0.0,
             "l3_hit_rate": 0.0,
             "l1_size": 0,
             "l2_size": 0,
             "similarity_threshold": cache.similarity_threshold,
+            "novelty_skipped": 0,
+            "access_entropy": 0.0,
         }
