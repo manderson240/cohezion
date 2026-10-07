@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-10-06
+
+### Fixed — 130 of 169 API routes had been returning 404 since #267
+- #267 moved the inline endpoints out of `src/cohezion/api/__init__.py` and dropped the router mounts with them. Nothing re-mounted them: 11 service routers (research, universe, journey-nexus, genesis, world-model, physics, worldviews, journeys, ouroboros, mycelium, modules) and 9 `routes/*.py` routers holding the extracted inline handlers (written in #89, never mounted). The app served 50 routes; it now serves 180: all 169 pre-#267 routes plus the 11 added since. Measured by diffing the OpenAPI route tables of `8f712a8bd^` and this release; all 169 operations keep identical parameters, security and request bodies.
+- `GET /compound/health` again reports the live executor's degradation health (CB6) and health-oracle synthesis (HO4); the extraction had dropped both fields.
+- `routes/flume_inline.py` (not `routes/flume.py`) is mounted, since its handlers match the ones that were live. A route `main_router` already serves is skipped rather than duplicated, and a router that fails to import is logged instead of silently swallowed.
+- `api/services/physics_extended.py` registered seven endpoints three times each; the two AST-identical duplicate copies are removed (cherry-picked from a fix stranded on a side branch since 2026-09-05).
+- Guard: `tests/api/test_service_router_mounts.py` (one served path per router, route count, no duplicate operation ids) and `tests/api/test_compound_health_enrichment.py`.
+
+### Fixed — The integration test tier was measuring nothing
+- `tests/scripts/test_producer_consumer_audit.py` imported `producer_consumer_audit` by name, and `scripts/` and `scripts/ci/` both contain a module with that name. When another test had put `scripts/` on `sys.path` first, collection raised ImportError and aborted `pytest tests/ --ignore=tests/unit --ignore=tests/inference`: 0 tests executed. It now loads the CI module by path. With collection working the tier runs 11,323 tests; the route restoration alone took it from 212 failures to 79.
+- CI: the integration step still tolerates failing tests (exit 1) but now fails when pytest cannot run (exit 2 or more, including nothing collected), so a collection abort can no longer pass as green.
+- `scripts/ci/local_adversarial_review.py` read only `message.content`. When FLM ignores `enable_thinking` and puts the answer in `reasoning_content`, a real verdict was scored UNKNOWN. It now applies the shared `gaia_adapter._answer_only` contract (the choke-point baseline gains exactly this file).
+- `test_ultra_realistic_agent_env_lifecycle_and_actions` skips, with a stated reason, when bwrap is installed but cannot create namespaces. The production sandbox is unchanged.
+
+### Added
+- `tests/universe/test_physics_core_rust_parity.py`: the Rust `cohezion_physics_core` kernels are compared against the pure-Python fallbacks they replace (all 256 CA rules, 1000 MHD cases): 0 mismatches. It skips when the extension is not built.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
