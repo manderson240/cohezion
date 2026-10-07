@@ -8,6 +8,8 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from cohezion.compound.models import ExecutionMetrics
 from cohezion.research.cost_optimization import (
     CostAwareRouter,
@@ -85,13 +87,14 @@ class TestCostTracker:
         cost = tracker.calculate_cost(1000, "ollama/phi3:mini")
         assert cost == 0.0
 
-        # Claude Haiku: $0.25 per 1K tokens
+        # Claude 3 Haiku: $0.25 per MILLION input tokens -> $0.00025 per 1K.
+        # (This test previously asserted $0.25 per 1K, the 1000x overestimate eda411480 fixed.)
         cost = tracker.calculate_cost(1000, "anthropic/claude-3-haiku")
-        assert cost == 0.25
+        assert cost == pytest.approx(0.00025)
 
-        # Claude Sonnet: $3.00 per 1K tokens
+        # Claude 3 Sonnet: $3 per MTok -> 2K tokens cost $0.006
         cost = tracker.calculate_cost(2000, "anthropic/claude-3-sonnet")
-        assert cost == 6.0
+        assert cost == pytest.approx(0.006)
 
     def test_record_experiment(self):
         """[COST-06] Recording experiment updates totals."""
@@ -183,7 +186,7 @@ class TestCostUtilities:
     def test_estimate_experiment_cost(self):
         """[COST-11] Cost estimation works correctly."""
         cost = estimate_experiment_cost("anthropic/claude-3-haiku", tokens=2000)
-        assert cost == 0.5  # 2K tokens at $0.25 per 1K
+        assert cost == pytest.approx(0.0005)  # 2K tokens at $0.25 per MTok
 
         cost = estimate_experiment_cost("ollama/phi3:mini", tokens=5000)
         assert cost == 0.0  # Free
