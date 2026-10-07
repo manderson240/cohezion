@@ -301,7 +301,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Cycle persistence without JourneyTracker: %s", e)
         # Strong refs to in-flight cache writes so they aren't GC'd mid-flight.
         self._cache_write_tasks: set[asyncio.Task] = set()
-        self._memory_service = memory_service
+        self._memory_service = memory_service  # CohezionMemory (mem0+SurrealDB); lazy
+        self._enable_memory = enable_memory
         self.mcp_client = mcp_client
         self.token_client = token_client
         self._guardrail_pipeline = guardrail_pipeline
@@ -390,8 +391,25 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         return self._inference_provider
 
     @property
-    def memory_service(self) -> Any:
-        """Backward-compat: returns the memory service (or None if not configured)."""
+    def memory_service(self) -> Any | None:
+        """Lazy CohezionMemory (mem0 + SurrealDB conversational memory).
+
+        Opt-in: returns None unless ``enable_memory=True`` was passed (default off,
+        so arbitrary CompoundExecutor callers never pay the synchronous mem0.add tax).
+        The singleton self-disables gracefully if the optional `memory` extra is
+        absent or the local nodes are offline, so remember() is a safe no-op then.
+        (#198; lost in a later merge resolution, restored 2026-10-06.)
+        """
+        if not self._enable_memory:
+            return None
+        if self._memory_service is None:
+            try:
+                from cohezion.memory import CohezionMemory
+
+                self._memory_service = CohezionMemory.get_instance()
+            except Exception as e:  # import/init failure must never block execution
+                logger.debug("CohezionMemory unavailable (non-blocking): %s", e)
+                self._enable_memory = False
         return self._memory_service
 
     @property
@@ -1367,6 +1385,24 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # cache so it is a no-op for direct construction (test isolation).
         if success and output:
             self._populate_semantic_cache(task_description, output, operation_type)
+
+        # Step 3.9: Record this turn to conversational memory (best-effort, success only).
+        # mem0 extracts salient facts; this is what makes every execution compound into
+        # the project's memory. Synchronous + guarded so it can never break execution.
+        # Recall is intentionally not wired: no execute_fn consumes recalled memories.
+        if success:
+            _mem = self.memory_service  # property returns None when disabled/unavailable
+            if _mem is not None:
+                try:
+                    _mem.remember(
+                        [
+                            {"role": "user", "content": task_description},
+                            {"role": "assistant", "content": output[:4000]},
+                        ],
+                        agent_id=project,
+                    )
+                except Exception as e:  # remember must never block execution
+                    logger.debug("Memory remember failed (non-blocking): %s", e)
 
         # Step 4: Log execution results
         self.logger.log_execution_result(

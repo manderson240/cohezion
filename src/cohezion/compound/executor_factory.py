@@ -58,11 +58,19 @@ class ExecutorFactory:
         # the same defect the inference_provider comment above records. Defaults to False so
         # direct ExecutorFactory.create() callers (notably tests) keep their current behavior.
         enable_cycle_persistence: bool = False,
+        memory_service: Any | None = None,
+        enable_memory: bool = False,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
         When token_client is provided, attempts to use TokenEfficientCompoundExecutor
         for automatic API prompt caching (40-60% token savings).
+
+        memory_service / enable_memory wire in CohezionMemory (mem0 + SurrealDB): when
+        enable_memory=True the executor remembers each successful turn so executions
+        compound into the project's memory. Opt-in (default off) so arbitrary callers
+        don't pay the synchronous mem0.add tax; best-effort and self-disabling when the
+        memory extra is absent or local nodes are offline. (#198, restored 2026-10-06.)
         """
         # W2: JourneyTracker cross-session identity lifecycle (GIC Identity, #138).
         # restore_identity() reloads agent_id + lifetime op counts from ~/.cohezion/journey_identity.json.
@@ -228,6 +236,8 @@ class ExecutorFactory:
             token_ledger=token_ledger,
             inference_provider=inference_provider,
             enable_cycle_persistence=enable_cycle_persistence,
+            memory_service=memory_service,
+            enable_memory=enable_memory,
         )
 
     @staticmethod
@@ -252,6 +262,8 @@ class ExecutorFactory:
         jepa_gate: Any | None = None,
         quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
+        memory_service: Any | None = None,
+        enable_memory: bool = False,
     ) -> CompoundExecutor:
         """Get or create singleton executor."""
         if ExecutorFactory._instance is None:
@@ -276,6 +288,8 @@ class ExecutorFactory:
                 jepa_gate=jepa_gate,
                 quality_evaluator=quality_evaluator,
                 token_ledger=token_ledger,
+                memory_service=memory_service,
+                enable_memory=enable_memory,
             )
         return ExecutorFactory._instance
 
