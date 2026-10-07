@@ -26,3 +26,7 @@ with contextlib.suppress(Exception):
 
 with contextlib.suppress(Exception):
     from cohezion.pipeline.weight_bridge import WeightBridge as WeightBridge
+
+# Guarded imports above may fail; list only names that actually bound, so
+# `from <package> import *` cannot raise on a missing optional dependency.
+__all__ = [_name for _name in __all__ if _name in globals()]

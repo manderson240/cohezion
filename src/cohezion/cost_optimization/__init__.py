@@ -96,3 +96,7 @@ with contextlib.suppress(Exception):
     from cohezion.cost_optimization.forecast_engine import Forecast as Forecast
     from cohezion.cost_optimization.forecast_engine import ForecastEngine as ForecastEngine
     from cohezion.cost_optimization.forecast_engine import ForecastSummary as ForecastSummary
+
+# Guarded imports above may fail; list only names that actually bound, so
+# `from <package> import *` cannot raise on a missing optional dependency.
+__all__ = [_name for _name in __all__ if _name in globals()]
