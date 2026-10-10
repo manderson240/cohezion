@@ -9,13 +9,29 @@ locker temperature/humidity) at the Geosciences Node. The SPICE geometry bundle 
 Reproduce the locker analysis (it downloads its own inputs into the git-ignored `data/` directory):
 
 ```bash
-uv run --no-project --with pandas --with matplotlib python research/artemis2/analyze_hobo.py
+uv run --no-project --with polars --with matplotlib python research/artemis2/analyze_hobo.py
 ```
 
 Outputs: `hobo_results.json` and `figures/`. Every number quoted in this section is written
 to `hobo_results.json` by the script, under the key named in brackets. The script checks
 both downloads against the MD5s in the PDS bundle manifest, and reads the label statistics
 from the PDS4 XML labels.
+
+## How this work is validated
+
+| Layer | What it checks | How to run it |
+|---|---|---|
+| Input integrity | Both CSVs and XML labels match the MD5s in the PDS bundle manifest; a tampered file is rejected | built into `analyze_hobo.py` |
+| Label cross-check | Data min/max/mean/std reproduce the statistics in the PDS4 labels, parsed from the XML | `label_vs_data` in `hobo_results.json` |
+| Traceability | Every number quoted in section 1 is written to `hobo_results.json`, under the key named in brackets | re-run the script |
+| Reproducibility | A clean run from fresh downloads reproduces the committed JSON and figures byte for byte | the reproduce command above |
+| Differential oracle | The polars port reproduces the previous pandas implementation on every field and all three figures; the only differences are two values in `phases` that pandas rounded with half-to-even scaling (23.895 -> 23.9) and Python rounds exactly (-> 23.89) | compare against the JSON at commit `2a59d6b` |
+| Unit tests | 12 offline tests of the transient detector, phase boundaries, derived humidity, CDT->UTC conversion, label parser and checksum gate. Mutation-tested: breaking each mechanism turns at least one test red | `uv run --no-project --with polars --with pytest python -m pytest tests/research/test_artemis2_hobo.py --noconftest` |
+| Adversarial review | Three independent reviewers (scientific rigor, primary-source re-check against the live PDS archive, code/reproducibility/security), each told to assume the work was wrong | corrections in commits `6c9d523`, `4a84aa5`, `d9a12c7` |
+| Primary-source spot checks | Transcript quotes, duplicate images, the missing video segment and the HTTP 403 audio entry were checked against the source files by hand | — |
+
+What this does **not** cover: the crew-camera, Orion-camera and audio numbers in section 3 come from the PDS
+inventories and the Atlas search index, checked by a reviewer, but there is no committed script that regenerates them.
 
 ## 1. Orion locker environment (2 × HOBO MX1101, 60 s cadence)
 
