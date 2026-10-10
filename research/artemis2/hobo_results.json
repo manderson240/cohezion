@@ -1,0 +1,394 @@
+{
+  "SN1104": {
+    "n_records": 37706,
+    "start_utc": "2026-03-26 16:25:46+00:00",
+    "end_utc": "2026-04-21 20:50:46+00:00",
+    "filename_start_doy": "086",
+    "actual_start_doy": "085",
+    "actual_end_doy": "111",
+    "cadence_counts": {
+      "60": 37705
+    },
+    "seq_monotonic_gapless": true,
+    "label_vs_data": {
+      "T": {
+        "label": [
+          25.57,
+          17.77,
+          22.06,
+          1.75
+        ],
+        "data": [
+          25.57,
+          17.77,
+          22.061,
+          1.751
+        ]
+      },
+      "RH": {
+        "label": [
+          68.579,
+          18.27,
+          38.51,
+          16.26
+        ],
+        "data": [
+          68.579,
+          18.274,
+          38.509,
+          16.265
+        ]
+      },
+      "Td": {
+        "label": [
+          15.56,
+          -2.87,
+          6.1,
+          5.32
+        ],
+        "data": [
+          15.56,
+          -2.87,
+          6.101,
+          5.323
+        ]
+      }
+    },
+    "dewpoint_resid_C": {
+      "mean": 0.021,
+      "max_abs": 0.036
+    },
+    "T_min_step": 0.02,
+    "RH_min_step": 0.018,
+    "phases": {
+      "1 pre-launch (pad)": {
+        "T_mean": 21.28,
+        "T_min": 20.86,
+        "T_max": 22.15,
+        "T_std": 0.34,
+        "RH_mean": 27.27,
+        "RH_min": 23.9,
+        "RH_max": 28.31,
+        "RH_std": 0.77,
+        "Td_mean": 1.67,
+        "Td_min": -0.01,
+        "Td_max": 2.14,
+        "Td_std": 0.27
+      },
+      "2 flight": {
+        "T_mean": 23.95,
+        "T_min": 21.01,
+        "T_max": 25.57,
+        "T_std": 1.25,
+        "RH_mean": 23.51,
+        "RH_min": 18.27,
+        "RH_max": 37.02,
+        "RH_std": 2.03,
+        "Td_mean": 1.83,
+        "Td_min": -2.87,
+        "Td_max": 9.12,
+        "Td_std": 1.66
+      },
+      "3 ocean / recovery": {
+        "T_mean": 23.07,
+        "T_min": 22.47,
+        "T_max": 23.52,
+        "T_std": 0.33,
+        "RH_mean": 45.34,
+        "RH_min": 26.88,
+        "RH_max": 49.32,
+        "RH_std": 6.66,
+        "Td_mean": 10.45,
+        "Td_min": 2.64,
+        "Td_max": 12.08,
+        "Td_std": 2.67
+      },
+      "4 ship, pre-handover": {
+        "T_mean": 21.1,
+        "T_min": 18.13,
+        "T_max": 23.33,
+        "T_std": 1.49,
+        "RH_mean": 58.28,
+        "RH_min": 49.29,
+        "RH_max": 68.58,
+        "RH_std": 3.28,
+        "Td_mean": 12.58,
+        "Td_min": 9.25,
+        "Td_max": 15.56,
+        "Td_std": 1.68
+      },
+      "5 post-handover": {
+        "T_mean": 20.75,
+        "T_min": 17.77,
+        "T_max": 22.32,
+        "T_std": 0.89,
+        "RH_mean": 57.7,
+        "RH_min": 44.32,
+        "RH_max": 64.8,
+        "RH_std": 2.18,
+        "Td_mean": 12.12,
+        "Td_min": 7.56,
+        "Td_max": 14.41,
+        "Td_std": 1.1
+      }
+    },
+    "min_dewpoint_margin_C": 5.92,
+    "min_margin_at": "2026-04-14 17:43:46+00:00",
+    "abs_humidity_by_phase_gm3": {
+      "1 pre-launch (pad)": 5.07,
+      "2 flight": 5.11,
+      "3 ocean / recovery": 9.37,
+      "4 ship, pre-handover": 10.77,
+      "5 post-handover": 10.43
+    },
+    "largest_10min_T_rise": {
+      "dC": 1.1,
+      "at": "2026-04-21 20:04:46+00:00"
+    },
+    "largest_10min_T_drop": {
+      "dC": -0.74,
+      "at": "2026-04-21 20:28:46+00:00"
+    },
+    "largest_10min_RH_rise": {
+      "dpct": 12.47,
+      "at": "2026-04-09 19:49:46+00:00"
+    },
+    "T_max_at": "2026-04-07 23:43:46+00:00",
+    "RH_max_at": "2026-04-14 17:43:46+00:00",
+    "pad_diurnal_T_amplitude_C": 0.14,
+    "pad_diurnal_T_peak_hour_utc": 1,
+    "flight_T_trend_C_per_day": 0.37,
+    "flight_AH_trend_gm3_per_day": 0.095
+  },
+  "SN1105": {
+    "n_records": 37690,
+    "start_utc": "2026-03-26 16:29:26+00:00",
+    "end_utc": "2026-04-21 20:38:26+00:00",
+    "filename_start_doy": "086",
+    "actual_start_doy": "085",
+    "actual_end_doy": "111",
+    "cadence_counts": {
+      "60": 37689
+    },
+    "seq_monotonic_gapless": true,
+    "label_vs_data": {
+      "T": {
+        "label": [
+          27.11,
+          16.82,
+          21.81,
+          1.46
+        ],
+        "data": [
+          27.11,
+          16.82,
+          21.812,
+          1.46
+        ]
+      },
+      "RH": {
+        "label": [
+          78.14,
+          18.68,
+          35.54,
+          11.61
+        ],
+        "data": [
+          78.137,
+          18.689,
+          35.543,
+          11.613
+        ]
+      },
+      "Td": {
+        "label": [
+          17.09,
+          -1.82,
+          5.23,
+          4.46
+        ],
+        "data": [
+          17.09,
+          -1.82,
+          5.229,
+          4.457
+        ]
+      }
+    },
+    "dewpoint_resid_C": {
+      "mean": 0.021,
+      "max_abs": 0.034
+    },
+    "T_min_step": 0.02,
+    "RH_min_step": 0.024,
+    "phases": {
+      "1 pre-launch (pad)": {
+        "T_mean": 21.33,
+        "T_min": 21.01,
+        "T_max": 22.49,
+        "T_std": 0.41,
+        "RH_mean": 27.0,
+        "RH_min": 22.0,
+        "RH_max": 28.04,
+        "RH_std": 1.14,
+        "Td_mean": 1.57,
+        "Td_min": -1.06,
+        "Td_max": 2.07,
+        "Td_std": 0.49
+      },
+      "2 flight": {
+        "T_mean": 22.61,
+        "T_min": 20.46,
+        "T_max": 26.04,
+        "T_std": 1.42,
+        "RH_mean": 25.72,
+        "RH_min": 18.69,
+        "RH_max": 37.34,
+        "RH_std": 2.86,
+        "Td_mean": 1.92,
+        "Td_min": -1.82,
+        "Td_max": 7.46,
+        "Td_std": 1.81
+      },
+      "3 ocean / recovery": {
+        "T_mean": 23.07,
+        "T_min": 22.35,
+        "T_max": 23.54,
+        "T_std": 0.35,
+        "RH_mean": 29.08,
+        "RH_min": 23.16,
+        "RH_max": 35.17,
+        "RH_std": 4.01,
+        "Td_mean": 4.0,
+        "Td_min": 0.66,
+        "Td_max": 6.23,
+        "Td_std": 1.87
+      },
+      "4 ship, pre-handover": {
+        "T_mean": 21.23,
+        "T_min": 17.34,
+        "T_max": 24.0,
+        "T_std": 1.15,
+        "RH_mean": 49.86,
+        "RH_min": 35.17,
+        "RH_max": 78.14,
+        "RH_std": 4.61,
+        "Td_mean": 10.31,
+        "Td_min": 5.85,
+        "Td_max": 17.09,
+        "Td_std": 1.92
+      },
+      "5 post-handover": {
+        "T_mean": 21.43,
+        "T_min": 16.82,
+        "T_max": 27.11,
+        "T_std": 1.76,
+        "RH_mean": 49.03,
+        "RH_min": 40.4,
+        "RH_max": 53.22,
+        "RH_std": 2.08,
+        "Td_mean": 10.29,
+        "Td_min": 4.87,
+        "Td_max": 14.87,
+        "Td_std": 1.73
+      }
+    },
+    "min_dewpoint_margin_C": 3.92,
+    "min_margin_at": "2026-04-11 20:56:26+00:00",
+    "abs_humidity_by_phase_gm3": {
+      "1 pre-launch (pad)": 5.04,
+      "2 flight": 5.18,
+      "3 ocean / recovery": 5.99,
+      "4 ship, pre-handover": 9.28,
+      "5 post-handover": 9.25
+    },
+    "largest_10min_T_rise": {
+      "dC": 3.1,
+      "at": "2026-04-11 20:59:26+00:00"
+    },
+    "largest_10min_T_drop": {
+      "dC": -0.91,
+      "at": "2026-04-11 15:23:26+00:00"
+    },
+    "largest_10min_RH_rise": {
+      "dpct": 27.52,
+      "at": "2026-04-11 20:53:26+00:00"
+    },
+    "T_max_at": "2026-04-15 23:47:26+00:00",
+    "RH_max_at": "2026-04-11 20:56:26+00:00",
+    "pad_diurnal_T_amplitude_C": 0.17,
+    "pad_diurnal_T_peak_hour_utc": 13,
+    "flight_T_trend_C_per_day": 0.492,
+    "flight_AH_trend_gm3_per_day": 0.117
+  },
+  "diff_1105_minus_1104_by_phase": {
+    "1 pre-launch (pad)": {
+      "T": 0.05,
+      "RH": -0.27,
+      "AH": -0.04
+    },
+    "2 flight": {
+      "T": -1.34,
+      "RH": 2.21,
+      "AH": 0.06
+    },
+    "3 ocean / recovery": {
+      "T": -0.0,
+      "RH": -16.28,
+      "AH": -3.38
+    },
+    "4 ship, pre-handover": {
+      "T": 0.14,
+      "RH": -8.42,
+      "AH": -1.49
+    },
+    "5 post-handover": {
+      "T": 0.68,
+      "RH": -8.68,
+      "AH": -1.19
+    }
+  },
+  "sn1105_move_step_time_estimate": "2026-04-09 18:55:00+00:00",
+  "sn1105_move_step_dT": 1.99,
+  "reentry_rh_step": {
+    "SN1104": {
+      "at": "2026-04-10 23:59:46+00:00",
+      "minutes_before_splashdown": 7.2
+    },
+    "SN1105": {
+      "at": "2026-04-10 23:58:26+00:00",
+      "minutes_before_splashdown": 8.6
+    }
+  },
+  "inflight_locker_access_events": {
+    "SN1104": [
+      {
+        "at": "2026-04-09 19:49:46+00:00",
+        "rh_excess_pct": 12.9
+      }
+    ],
+    "SN1105": [
+      {
+        "at": "2026-04-02 23:35:26+00:00",
+        "rh_excess_pct": 2.5
+      },
+      {
+        "at": "2026-04-04 05:18:26+00:00",
+        "rh_excess_pct": 2.4
+      },
+      {
+        "at": "2026-04-06 16:37:26+00:00",
+        "rh_excess_pct": 2.6
+      },
+      {
+        "at": "2026-04-06 18:09:26+00:00",
+        "rh_excess_pct": 4.6
+      },
+      {
+        "at": "2026-04-09 18:45:26+00:00",
+        "rh_excess_pct": 4.5
+      }
+    ]
+  },
+  "flight_T_correlation": 0.732
+}
