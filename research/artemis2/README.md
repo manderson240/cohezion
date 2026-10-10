@@ -248,28 +248,35 @@ Other notable observations:
 ### Archive defects found in the imaging and audio bundles
 1. **24 crew exposures were archived twice under different IDs.** All are from the Z9, for
    example `art002e009039` and `art002e029909`. Each pair has the same timestamp, camera
-   file number, focus distance and file size. The survey also found their source NEF files
-   have identical MD5 checksums. The duplicate copies inflate the image count, and one pair
-   disagrees on its target.
+   file number, focus distance and file size, and the index MD5s match. A live check of
+   three pairs found identical ETags and byte ranges, so these are true duplicates. They
+   inflate the image count. In **21 pairs** the labels disagree on observation target: the
+   `e009039`–`e009059` copies say "Moon" and their `e029909`–`e029929` twins are empty.
 2. **A video segment over the flyby is missing.** SAW3 channel 1 `art002m1010961940`
-   (04-06 ~19:40–21:38) has no channel-2 counterpart. The inventory lists 11 channel-1 files
+   (04-06 19:40:51–21:38:52) has no channel-2 counterpart. Channel 2 jumps from a file
+   ending at 19:42:40 to one starting at 21:39:14. The inventory lists 11 channel-1 files
    and only 10 channel-2 files.
 3. **Target metadata is unreliable.**
    - The primary target is "Moon" on all 10,329 crew labels, including about 825 Earth
      images and the Sun and deep-space frames.
    - The observation-target field is empty on 6,275 labels.
-   - 41 labels have an activity name in the target field.
+   - 40 crew labels and 1 Orion SAW3 label have an activity name in the target field
+     (`01_Discussion #1: Warm up`).
    - The activity tags seem to come from the plan timeline, not from what each image shows.
      Their windows overlap.
 4. **Flight-day bookkeeping is inconsistent.**
    - The 249 DCAM images are in folder `fd04` but labelled flight day 0.
-   - 249 images in `fd05` are labelled flight day 6.
+   - 249 images in `fd05` (141 CAB2 + 108 SAW3) are labelled flight day 6, and one SAW3
+     image in `fd06` is labelled flight day 8.
    - There is no `fd08` folder in the Orion bundle.
 5. **Audio inventory problems.**
-   - `art002a000052_pcd1_src_v01.m4a` is on disk but has no inventory entry and no label
-     (the inventory lists 53 PCD files; 54 are on disk).
-   - PCD recordings `a000001`/`a000003` and `a000002`/`a000004` have identical start/stop
-     times and sizes.
+   - The PDS Atlas search index lists `art002a000052_pcd1_src_v01.m4a` and its label, but
+     the collection inventory does not, and the file server returns HTTP 403 for both, the
+     same as for a nonexistent path.
+   - Its index MD5 is identical to the inventoried `art002a000052_pcd3_raw_v01.m4a`. It
+     looks like a stale duplicate left in the search index.
+   - PCD recordings `a000001`/`a000003` and `a000002`/`a000004` are byte-identical
+     duplicates: they have matching index MD5s, start/stop times and sizes.
    - Loop file `art002_2026-04-07_oe2` actually covers 2026-04-06 22:32–22:37.
 6. **Label value errors.**
    - Every crew label has the placeholder stop time `3000-01-01`.
@@ -298,7 +305,7 @@ Other notable observations:
 - **Anomalies in the record:**
   - duplicated crew images
   - a missing flyby video segment
-  - an unlabelled audio file
+  - a stale, unserved audio entry in the search index, plus duplicated audio recordings
   - Hertzsprung's zero coordinates
   - the HOBO filename day-of-year off by one
 
@@ -308,7 +315,8 @@ Other notable observations:
   locations and the pointing of the frames tagged "Impact Flashes" cannot be checked yet.
 
 _Method note: three independent adversarial reviews (scientific rigor, primary-source
-re-verification, and code/reproducibility/security) checked this write-up. Each assumed it
+re-verification against the live PDS archive and Atlas index, and
+code/reproducibility/security) checked this write-up. Each assumed it
 was wrong. Their accepted corrections are applied here: the flash location, timing and
 count; the overstated locker interpretations; and every locker number now traced to
 `hobo_results.json` with MD5-verified inputs. An earlier recomputation produced the
