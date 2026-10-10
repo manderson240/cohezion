@@ -1,0 +1,758 @@
+<title>Behind the Moon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single-column scroll story under a night sky; wide figures break out to 1120px,
+   prose holds ~66ch. Committed single dark theme: the subject is the Moon's night side. */
+:root {
+  color-scheme: dark;
+  --void: #0b0d15;          /* page ground, deep space with a blue-violet bias */
+  --panel: #131826;         /* raised surfaces: figures, casebook */
+  --rule: #262c3d;          /* hairlines, gridlines */
+  --regolith: #d9d4c7;      /* primary text: warm lunar grey */
+  --dust: #9a9eb0;          /* secondary text */
+  --faint: #6b7085;         /* tertiary labels, axis ticks */
+  --earthshine: #7fb2ff;    /* accent: earth-glow blue, links and highlights */
+  --corona: #f3c871;        /* used once per view: the Sun / flashes */
+  --series-e: #3987e5;      /* Locker E logger SN 1104 (categorical slot 1, dark) */
+  --series-f: #d95926;      /* Locker D/F logger SN 1105 (categorical slot 2, dark) */
+  --good: #0ca30c;
+  --critical: #d03b3b;
+  --warn: #fab219;
+  --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--void);
+  color: var(--regolith);
+  font: 17px/1.62 var(--body);
+  padding-inline: 16px;
+  padding-block: 0 64px;
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+a { color: var(--earthshine); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--earthshine); outline-offset: 3px; border-radius: 4px;
+}
+.wrap { max-width: 1120px; margin-inline: auto; }
+.prose { max-width: 66ch; }
+h1, h2, h3 { font-family: var(--display); font-weight: 800; letter-spacing: 0.01em; text-wrap: balance; line-height: 1.02; margin: 0; color: var(--regolith); }
+h2 { font-size: clamp(2.1rem, 5vw, 3.4rem); text-transform: uppercase; }
+h3 { font-size: 1.45rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+p { margin: 0; }
+.eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--earthshine); }
+.met { font-family: var(--mono); font-size: 0.8rem; color: var(--faint); font-variant-numeric: tabular-nums; }
+.lede { font-size: 1.16rem; color: var(--regolith); }
+.muted { color: var(--dust); }
+.stack { display: flex; flex-direction: column; gap: 18px; }
+section.chapter { padding-block: 88px 24px; display: flex; flex-direction: column; gap: 28px; }
+.chapter-head { display: flex; flex-direction: column; gap: 12px; }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; min-height: 560px; display: grid; align-items: end; padding-block: 56px 40px; overflow: hidden; }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-copy { position: relative; display: flex; flex-direction: column; gap: 18px; max-width: 760px; }
+.hero h1 { font-size: clamp(3.4rem, 11vw, 7.6rem); text-transform: uppercase; line-height: 0.9; }
+.hero h1 span { color: var(--earthshine); }
+.hero .lede { max-width: 58ch; }
+.ticker { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.ticker div { background: color-mix(in srgb, var(--void) 82%, transparent); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.ticker b { font-family: var(--display); font-size: 1.9rem; font-weight: 700; color: var(--regolith); font-variant-numeric: tabular-nums; line-height: 1; }
+.ticker span { font-family: var(--mono); font-size: 0.7rem; color: var(--dust); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ---------- Figures ---------- */
+figure { margin: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+figcaption { font-size: 0.92rem; color: var(--dust); }
+figcaption b { color: var(--regolith); font-weight: 600; }
+.fig-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; }
+.fig-title h3 { font-size: 1.15rem; }
+.chart { width: 100%; overflow-x: auto; position: relative; }
+.chart svg { display: block; width: 100%; height: auto; min-width: 560px; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--faint); }
+.chart .lbl { fill: var(--dust); }
+.chart .lbl-strong { fill: var(--regolith); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--mono); font-size: 0.78rem; color: var(--dust); }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.tip { position: absolute; pointer-events: none; background: #1c2233; border: 1px solid var(--rule); color: var(--regolith); border-radius: 6px; padding: 8px 10px; font-family: var(--mono); font-size: 0.76rem; line-height: 1.45; white-space: nowrap; box-shadow: 0 8px 24px rgb(0 0 0 / 0.45); z-index: 3; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 3px; gap: 2px; background: var(--void); }
+.seg button { font: 600 0.78rem var(--mono); color: var(--dust); background: transparent; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--rule); color: var(--regolith); }
+.seg button:hover { color: var(--regolith); }
+
+/* ---------- Bundle grid ---------- */
+.bundles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.bundle { border-top: 2px solid var(--rule); padding-top: 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.bundle .n { font-family: var(--display); font-size: 2.4rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.bundle .node { font-family: var(--mono); font-size: 0.7rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; }
+.bundle p { font-size: 0.95rem; color: var(--dust); }
+
+/* ---------- Flyby night ---------- */
+.night { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 860px) { .night { grid-template-columns: 1fr; } }
+.scrub { display: flex; flex-direction: column; gap: 8px; }
+.scrub input[type=range] { width: 100%; accent-color: var(--earthshine); }
+.scrub-row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.clock { font-family: var(--mono); font-size: 1.55rem; font-weight: 600; color: var(--regolith); font-variant-numeric: tabular-nums; }
+.phase-chip { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--dust); align-self: center; }
+.phase-chip.eclipse { border-color: var(--corona); color: var(--corona); }
+.phase-chip.los { border-color: var(--earthshine); color: var(--earthshine); }
+.voice { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.voice blockquote { margin: 0; font-size: 1.08rem; line-height: 1.55; font-style: italic; color: var(--regolith); }
+.voice .who { font-family: var(--mono); font-size: 0.76rem; color: var(--earthshine); }
+.voice .ctx { font-size: 0.9rem; color: var(--dust); }
+.jumps { display: flex; flex-wrap: wrap; gap: 6px; }
+.jumps button { font: 0.72rem var(--mono); color: var(--dust); background: var(--void); border: 1px solid var(--rule); border-radius: 999px; padding: 5px 10px; cursor: pointer; }
+.jumps button:hover { color: var(--regolith); border-color: var(--faint); }
+
+/* ---------- Flashes ---------- */
+.flash-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .flash-grid { grid-template-columns: 1fr; } }
+.moon-box { position: relative; background: #05060b; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; aspect-ratio: 1 / 1; max-width: 100%; }
+#moon { width: 100%; height: 100%; display: block; }
+.moon-note { position: absolute; left: 12px; right: 12px; bottom: 10px; font-family: var(--mono); font-size: 0.68rem; color: var(--faint); }
+.ledger { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.ledger div { border-left: 2px solid var(--rule); padding-left: 14px; display: flex; flex-direction: column; gap: 6px; }
+.ledger .solid { border-color: var(--good); }
+.ledger .unsure { border-color: var(--warn); }
+.ledger h3 { font-size: 1rem; }
+.ledger ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; color: var(--dust); font-size: 0.95rem; }
+.pull { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 3.6vw, 2.4rem); line-height: 1.1; text-transform: uppercase; color: var(--regolith); max-width: 26ch; }
+.pull em { color: var(--corona); font-style: normal; }
+
+/* ---------- Quotes wall ---------- */
+.quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.q { border-top: 1px solid var(--rule); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.q p { font-style: italic; }
+.q .met { color: var(--dust); }
+
+/* ---------- Findings list ---------- */
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.finding { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.finding .big { font-family: var(--display); font-size: 2rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.finding p { font-size: 0.93rem; color: var(--dust); }
+
+/* ---------- Casebook ---------- */
+.case-table { width: 100%; border-collapse: collapse; font-size: 0.94rem; min-width: 640px; }
+.case-table th, .case-table td { text-align: left; vertical-align: top; padding: 12px 10px; border-bottom: 1px solid var(--rule); }
+.case-table th { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); font-weight: 400; }
+.case-table td:first-child { color: var(--regolith); font-weight: 600; width: 30%; }
+.case-table td { color: var(--dust); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; color: var(--regolith); }
+.chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.chip.ok { --c: var(--good); }
+.chip.fix { --c: var(--warn); }
+.chip.no { --c: var(--critical); }
+.scroll-x { overflow-x: auto; }
+.review { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.review div { border: 1px dashed var(--rule); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.review s { color: var(--faint); }
+.review b { color: var(--regolith); font-weight: 600; }
+
+/* ---------- Sources ---------- */
+.sources { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; font-size: 0.93rem; color: var(--dust); }
+.sources ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.cmd { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+.cmd code { flex: 1 1 280px; min-width: 0; overflow-x: auto; white-space: nowrap; background: var(--void); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; font: 0.78rem var(--mono); color: var(--regolith); }
+.cmd button { font: 600 0.78rem var(--mono); background: var(--rule); color: var(--regolith); border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+details { color: var(--dust); font-size: 0.9rem; }
+details summary { cursor: pointer; font-family: var(--mono); font-size: 0.76rem; color: var(--dust); }
+details table { border-collapse: collapse; margin-top: 8px; font-family: var(--mono); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+details td, details th { padding: 4px 12px 4px 0; text-align: left; border-bottom: 1px solid var(--rule); }
+footer { padding-block: 56px 0; color: var(--faint); font-size: 0.85rem; }
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="hero-copy">
+    <p class="eyebrow">NASA PDS release · 7 October 2026 · Artemis II</p>
+    <h1>Behind<br><span>the Moon</span></h1>
+    <p class="lede">On 6 April 2026 four people passed 6,545&nbsp;km above the lunar far side, lost contact with Earth, and watched the Sun disappear behind the Moon. Six months later the science archive is public. This is a first look at what it holds: the photos, the voices, and two small loggers in a storage locker that recorded the whole trip.</p>
+    <div class="ticker" role="list">
+      <div role="listitem"><b>10,329</b><span>crew photographs</span></div>
+      <div role="listitem"><b>~57 h</b><span>mission audio</span></div>
+      <div role="listitem"><b>75,396</b><span>locker readings</span></div>
+      <div role="listitem"><b>~56 min</b><span>solar eclipse</span></div>
+      <div role="listitem"><b>3–6</b><span>reported impact flashes</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ THE RELEASE ============ -->
+<section class="chapter" id="release">
+  <div class="chapter-head">
+    <p class="eyebrow">The release</p>
+    <h2>Four bundles, one delay</h2>
+    <p class="prose lede">The Planetary Data System published the first Artemis II delivery on 7 October. The SPICE bundle, which records where the spacecraft was and where every camera pointed, is still delayed. Until it lands, nothing can be placed precisely on the lunar surface.</p>
+  </div>
+  <div class="bundles">
+    <div class="bundle"><span class="node">Cartography &amp; Imaging Node</span><span class="n">10,329</span><h3>Crew cameras</h3><p>Two Nikon D5s and a Z9 shot through Orion's windows, each image archived four ways, about 2.5&nbsp;TB in total.</p></div>
+    <div class="bundle"><span class="node">Cartography &amp; Imaging Node</span><span class="n">1,034</span><h3>Orion cameras</h3><p>1,012 images and 22 videos from the solar-array wing, cabin, optical-navigation and docking cameras.</p></div>
+    <div class="bundle"><span class="node">Cartography &amp; Imaging Node</span><span class="n">6,355</span><h3>Mission audio</h3><p>Transcript lines across 56 recordings: the crew's tablet notes plus two full days of the Orion-to-Earth voice loop.</p></div>
+    <div class="bundle"><span class="node">Geosciences Node</span><span class="n">2</span><h3>Locker loggers</h3><p>Temperature and humidity every minute from 26 March to 21 April, in the lockers that will one day carry lunar samples home.</p></div>
+  </div>
+</section>
+
+<!-- ============ NINE DAYS ============ -->
+<section class="chapter" id="days">
+  <div class="chapter-head">
+    <p class="eyebrow">Crew photography by day</p>
+    <h2>Nine days, one night</h2>
+    <p class="prose">Most of the mission was a commute. Eighty-five percent of the crew's photographs were taken on the two UTC days that bracket the lunar flyby.</p>
+  </div>
+  <figure>
+    <div class="fig-title"><h3>Crew camera images per UTC day</h3><span class="met">Source: crew-camera labels, start_date_time</span></div>
+    <div class="chart" id="daysChart"></div>
+    <figcaption>One bar per UTC day of flight. <b>6,484</b> images on 6 April and <b>2,299</b> on 7 April; the flyby straddled midnight UTC.</figcaption>
+    <details><summary>Show as a table</summary><table id="daysTable"></table></details>
+  </figure>
+</section>
+
+<!-- ============ FLYBY NIGHT ============ -->
+<section class="chapter" id="night">
+  <div class="chapter-head">
+    <p class="eyebrow">6–7 April · UTC</p>
+    <h2>The flyby night</h2>
+    <p class="prose">Drag through the night. The bars count photographs in ten-minute bins; the shaded bands are the radio blackout behind the Moon and the solar eclipse. The voice panel shows what the crew and mission control were saying at that moment, from the archived voice loop.</p>
+  </div>
+  <div class="night">
+    <figure>
+      <div class="fig-title"><h3>Photographs per 10 minutes</h3><div class="legend"><span><i style="background:var(--earthshine)"></i>Earth hidden (no direct link)</span><span><i style="background:var(--corona)"></i>Sun hidden (eclipse)</span></div></div>
+      <div class="chart" id="nightChart"></div>
+      <div class="scrub">
+        <div class="scrub-row"><span class="clock" id="clock">22:30</span><span class="phase-chip" id="phase">Approach</span></div>
+        <label class="met" for="scrubber">Time (UTC), 16:00 on 6 April to 02:30 on 7 April</label>
+        <input type="range" id="scrubber" min="0" max="630" step="1" value="390">
+        <div class="jumps" id="jumps"></div>
+      </div>
+      <figcaption>Earthset and earthrise times are the geometric times in the crew's targeting file. After Earthrise the cameras went almost quiet: <b>12 photographs between 23:24 and 00:30</b>. Then the crew shot 1,301 frames tagged "Sunset" in twenty minutes.</figcaption>
+    </figure>
+    <aside class="voice" aria-live="polite">
+      <span class="eyebrow">On the loop</span>
+      <span class="met" id="vTime">22:36:43 UTC</span>
+      <blockquote id="vText"></blockquote>
+      <span class="who" id="vWho"></span>
+      <p class="ctx" id="vCtx"></p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ FLASHES ============ -->
+<section class="chapter" id="flashes">
+  <div class="chapter-head">
+    <p class="eyebrow">The most notable report</p>
+    <h2>Pinpricks of light</h2>
+  </div>
+  <div class="flash-grid">
+    <div class="stack">
+      <div class="moon-box"><canvas id="moon" role="img" aria-label="Illustration: the dark Moon during the eclipse, ringed by the solar glow, with Earth-lit limb on one side and brief flashes appearing on the Earth-facing night side."></canvas><span class="moon-note">Illustration only. The flash positions are not known; these are drawn on the Earth-facing side, where the crew reported them.</span></div>
+    </div>
+    <div class="stack">
+      <p class="pull">“We have seen three impact flashes so far… <em>Jeremy just saw another one.</em>”</p>
+      <p class="met">Reid Wiseman · 00:59:10 UTC · 7 April · during the eclipse</p>
+      <p class="prose">With the Sun behind the Moon and the cabin displays dimmed, the crew reported tiny flashes on the dark lunar surface: meteoroids striking the Moon. Asked where, Wiseman answered at 01:00: <i>“on or a bit south of the equator and on the Earth side of the moon.”</i> Ground control replied that citizen observers on Earth had been watching that same side.</p>
+      <div class="ledger">
+        <div class="solid"><h3><span class="chip ok">Solid</span></h3><ul>
+          <li>Several crew members independently describe brief, white, star-sized flashes. Hansen: “a pinprick of light… no color.” Wiseman: “a millisecond… white, bluish white.”</li>
+          <li>They were reported on the Earth-facing side, so ground-based lunar-impact monitoring could in principle confirm them.</li>
+        </ul></div>
+        <div class="unsure"><h3><span class="chip fix">Uncertain</span></h3><ul>
+          <li><b>How many:</b> roughly 3 to 6. Hansen later said he and Wiseman “saw two identical ones”, so at least one was double-counted.</li>
+          <li><b>When:</b> mission control asked for flash reports from 22:33, and the next day the science team said they lacked “clarity on when the first four… occurred.” Most were probably seen around the eclipse, by the crew's recollection.</li>
+          <li><b>Where exactly:</b> no positions were logged. A crew annotation PDF exists, and the delayed SPICE geometry will help.</li>
+          <li><b>Caveats the crew raised:</b> an earlier report of “two meteors”, and Wiseman's own “maybe it was a priming bias”. Astronauts also see cosmic-ray flashes in their eyes; the crew said these were different.</li>
+        </ul></div>
+      </div>
+      <p class="prose muted">Why the eclipse helped: no solar glare, dark-adapted eyes, and a night hemisphere seen from thousands of kilometres instead of 384,000. An eclipse is not required to see impact flashes; telescopes on Earth record them on the Moon's night side routinely.</p>
+    </div>
+  </div>
+  <figure>
+    <div class="fig-title"><h3>A second, fainter claim: lofted dust</h3><span class="met">Debrief, 7 April 19:10–19:13 UTC</span></div>
+    <p class="prose">Just before Earthrise, Christina Koch thought she saw a thin grey haze above the limb, within the horns of the rising crescent Earth. She was careful about it: <i>“it was not tall… it could have been an optical thing.”</i> Wiseman had chosen a target specifically to look for suspended dust: <i>“negative, just really wanted to see some and I saw none.”</i> One observer, one maybe. Five frames carry the “Lofted Lunar Dust” tag.</p>
+  </figure>
+</section>
+
+<!-- ============ VOICES ============ -->
+<section class="chapter" id="voices">
+  <div class="chapter-head">
+    <p class="eyebrow">What the crew described</p>
+    <h2>Seen by eye</h2>
+    <p class="prose">Cameras struggled with earthshine and the glow of the hidden Sun. Some of the richest data in this release are spoken.</p>
+  </div>
+  <div class="quotes" id="quotes"></div>
+</section>
+
+<!-- ============ LOCKERS ============ -->
+<section class="chapter" id="lockers">
+  <div class="chapter-head">
+    <p class="eyebrow">Orion environment collection</p>
+    <h2>The locker that will hold the Moon</h2>
+    <p class="prose lede">Two pocket-sized loggers rode in bags inside Orion's storage lockers, recording every minute for 26 days. Future crews will bring lunar samples home in these lockers, so their air matters.</p>
+  </div>
+  <figure>
+    <div class="fig-title">
+      <h3 id="lockTitle">Temperature, 26 March – 21 April</h3>
+      <div class="seg" role="group" aria-label="Measurement">
+        <button type="button" data-v="T" aria-pressed="true">Temperature</button>
+        <button type="button" data-v="AH" aria-pressed="false">Absolute humidity</button>
+        <button type="button" data-v="RH" aria-pressed="false">Relative humidity</button>
+      </div>
+    </div>
+    <div class="legend"><span><i style="background:var(--series-e)"></i>SN 1104 · Locker E all flight</span><span><i style="background:var(--series-f)"></i>SN 1105 · Locker D, then F from flight day 9</span></div>
+    <div class="chart" id="lockChart"></div>
+    <figcaption>20-minute means of the minute data. Shaded: the 9.1-day flight. Hover or tap the chart for values. Absolute humidity is computed from temperature and RH and shows how much water is in the air, independent of temperature swings.</figcaption>
+  </figure>
+  <div class="findings">
+    <div class="finding"><span class="eyebrow">In flight</span><span class="big">5.1 g/m³</span><p>Mean absolute humidity in flight, the same as on the launch pad. RH stayed between 18 and 37 %; the air never came within 15 °C of its dew point.</p></div>
+    <div class="finding"><span class="eyebrow">Flyby</span><span class="big">0.24 °C</span><p>Locker E's whole temperature range across closest approach and the eclipse: no larger than any ordinary four hours of flight. A weak test, since the loggers are bagged and slow.</p></div>
+    <div class="finding"><span class="eyebrow">Splashdown</span><span class="big">+17 min</span><p>Humidity in Locker E rose 17 minutes after splashdown and reached 10 g/m³ within three hours. Locker F lagged until 01:42 UTC. Sample exposure starts in the ocean, days before handover.</p></div>
+    <div class="finding"><span class="eyebrow">Extremes</span><span class="big">27.1 °C</span><p>The archive's highest readings (27.1 °C, 78 % RH) came after the mission, during shipping. Label statistics overstate the flight environment.</p></div>
+  </div>
+  <figure>
+    <div class="fig-title"><h3>Flight day 9: someone handled the bags</h3><span class="met">9 April 18:00–20:30 UTC · minute data · relative humidity</span></div>
+    <div class="chart" id="fd09Chart"></div>
+    <figcaption>The guide says only that SN 1105 moved from Locker D to Locker F "sometime between 18:00 and 21:00". Sharp humidity spikes at <b>18:45</b> (SN 1105) and <b>19:49</b> (Locker E, +12.3 % in one minute, with a warm-up that lasted 15 minutes) fit handling during the documented final stowage. Afterwards SN 1105 ran about 2.4 °C warmer: Locker F is a warmer spot than D.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ CASEBOOK ============ -->
+<section class="chapter" id="casebook">
+  <div class="chapter-head">
+    <p class="eyebrow">Archive casebook</p>
+    <h2>Loose threads in the record</h2>
+    <p class="prose">Every claim below was re-checked against the live PDS archive and its search index by a reviewer who did not write it.</p>
+  </div>
+  <div class="scroll-x">
+    <table class="case-table">
+      <thead><tr><th>Finding</th><th>Status</th><th>Evidence</th></tr></thead>
+      <tbody id="caseRows"></tbody>
+    </table>
+  </div>
+  <div class="chapter-head" style="padding-top:24px">
+    <h3>What the review changed</h3>
+    <p class="prose muted">Three independent reviewers, each told to assume this analysis was wrong, tested it before publication. These are the corrections that held up.</p>
+  </div>
+  <div class="review" id="review"></div>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<section class="chapter" id="sources">
+  <div class="chapter-head"><p class="eyebrow">Sources and method</p><h2>Check our work</h2></div>
+  <div class="sources">
+    <div class="stack"><h3>Data</h3><ul>
+      <li><a href="https://pds-geosciences.wustl.edu/missions/artemis2/index.htm">PDS Geosciences: Artemis II mission page</a></li>
+      <li><a href="https://pds-geosciences.wustl.edu/artemis2/urn-nasa-pds-artemis2_mission/document/artemis2_data_user_guide.pdf">Artemis II Lunar Science Data User Guide (PDF)</a></li>
+      <li><a href="https://pds-imaging.jpl.nasa.gov/tools/atlas/archive-explorer?mission=artemis2&amp;bundle=artemis2_crew_camera">PDS Image Atlas: crew camera bundle</a></li>
+      <li>DOIs: crew camera <a href="https://doi.org/10.17189/x52v-tb80">10.17189/x52v-tb80</a> · Orion camera <a href="https://doi.org/10.17189/hzev-nq50">10.17189/hzev-nq50</a> · audio <a href="https://doi.org/10.17189/4a29-dz64">10.17189/4a29-dz64</a> · mission <a href="https://doi.org/10.17189/36fx-pd80">10.17189/36fx-pd80</a></li>
+    </ul></div>
+    <div class="stack"><h3>Analysis</h3>
+      <p>The locker analysis is a single reproducible script that downloads the PDS files, checks them against the archive's published MD5 checksums, and writes every number quoted here.</p>
+      <div class="cmd"><code id="cmdText">uv run --no-project --with polars --with matplotlib python research/artemis2/analyze_hobo.py</code><button type="button" id="copyBtn">Copy</button></div>
+      <p><a href="https://github.com/manderson240/cohezion/pull/313">Write-up and code: manderson240/cohezion#313</a></p>
+    </div>
+  </div>
+</section>
+
+<footer>Times are UTC. Transcript quotes are from the PDS mission-audio bundle's transcripts. Crew observations are reports, not instrument detections. Illustrations are marked as such.</footer>
+</div>
+
+<script>
+const HOBO = {"series": {"SN1104": {"t0": "2026-03-26 16:20:00+00:00", "step_min": 20, "T": [21.14, 21.15, 21.17, 21.17, 21.19, 21.2, 21.2, 21.21, 21.22, 21.22, 21.22, 21.24, 21.25, 21.25, 21.25, 21.27, 21.27, 21.27, 21.28, 21.28, 21.29, 21.29, 21.29, 21.3, 21.31, 21.32, 21.31, 21.31, 21.29, 21.29, 21.28, 21.27, 21.26, 21.25, 21.24, 21.22, 21.2, 21.2, 21.18, 21.17, 21.16, 21.15, 21.14, 21.13, 21.12, 21.1, 21.1, 21.09, 21.08, 21.08, 21.07, 21.06, 21.05, 21.04, 21.03, 21.02, 21.01, 21.0, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 21.01, 21.02, 21.03, 21.06, 21.07, 21.08, 21.08, 21.1, 21.1, 21.11, 21.13, 21.13, 21.14, 21.15, 21.15, 21.15, 21.16, 21.16, 21.17, 21.18, 21.2, 21.2, 21.21, 21.22, 21.22, 21.24, 21.25, 21.25, 21.27, 21.27, 21.27, 21.27, 21.27, 21.27, 21.27, 21.27, 21.27, 21.25, 21.25, 21.24, 21.22, 21.22, 21.2, 21.2, 21.18, 21.17, 21.16, 21.15, 21.14, 21.13, 21.11, 21.1, 21.09, 21.08, 21.07, 21.06, 21.04, 21.03, 21.02, 21.01, 20.99, 20.98, 20.97, 20.96, 20.95, 20.94, 20.92, 20.91, 20.9, 20.89, 20.89, 20.87, 20.86, 20.87, 20.87, 20.89, 20.89, 20.89, 20.91, 20.91, 20.93, 20.94, 20.96, 20.96, 20.97, 20.98, 20.99, 21.01, 21.03, 21.05, 21.07, 21.08, 21.1, 21.12, 21.15, 21.18, 21.2, 21.22, 21.25, 21.26, 21.27, 21.27, 21.28, 21.28, 21.27, 21.27, 21.27, 21.26, 21.25, 21.25, 21.22, 21.22, 21.21, 21.2, 21.2, 21.19, 21.17, 21.17, 21.17, 21.15, 21.15, 21.15, 21.14, 21.13, 21.13, 21.12, 21.1, 21.1, 21.1, 21.09, 21.08, 21.08, 21.07, 21.06, 21.06, 21.06, 21.06, 21.05, 21.05, 21.04, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.04, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.07, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.07, 21.06, 21.06, 21.06, 21.06, 21.04, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.02, 21.01, 21.02, 21.01, 21.01, 21.01, 21.01, 21.01, 21.0, 20.99, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.99, 20.99, 21.0, 21.01, 21.01, 21.01, 21.01, 21.01, 21.01, 21.01, 21.01, 21.02, 21.03, 21.05, 21.06, 21.07, 21.08, 21.1, 21.1, 21.13, 21.14, 21.15, 21.17, 21.19, 21.2, 21.21, 21.22, 21.24, 21.25, 21.26, 21.26, 21.26, 21.27, 21.27, 21.27, 21.27, 21.27, 21.27, 21.26, 21.25, 21.25, 21.23, 21.22, 21.22, 21.22, 21.22, 21.21, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.21, 21.21, 21.21, 21.22, 21.22, 21.22, 21.22, 21.25, 21.25, 21.25, 21.26, 21.27, 21.27, 21.27, 21.29, 21.29, 21.31, 21.32, 21.33, 21.34, 21.36, 21.38, 21.4, 21.41, 21.44, 21.45, 21.47, 21.49, 21.51, 21.53, 21.56, 21.58, 21.6, 21.64, 21.67, 21.7, 21.73, 21.76, 21.8, 21.82, 21.85, 21.88, 21.9, 21.93, 21.95, 21.96, 21.98, 21.99, 22.0, 22.01, 22.01, 22.01, 22.01, 22.01, 22.01, 22.02, 22.03, 22.04, 22.06, 22.07, 22.08, 22.09, 22.1, 22.11, 22.11, 22.12, 22.13, 22.13, 22.13, 22.13, 22.14, 22.14, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.13, 22.12, 22.11, 22.08, 22.07, 22.04, 22.01, 21.99, 21.95, 21.92, 21.89, 21.86, 21.84, 21.82, 21.8, 21.8, 21.77, 21.74, 21.72, 21.69, 21.65, 21.61, 21.57, 21.52, 21.48, 21.44, 21.41, 21.43, 21.47, 21.51, 21.56, 21.6, 21.66, 21.64, 21.62, 21.62, 21.64, 21.65, 21.66, 21.68, 21.68, 21.69, 21.66, 21.65, 21.65, 21.65, 21.62, 21.59, 21.57, 21.55, 21.53, 21.53, 21.51, 21.51, 21.51, 21.49, 21.46, 21.43, 21.4, 21.35, 21.31, 21.27, 21.23, 21.18, 21.16, 21.12, 21.08, 21.04, 21.02, 21.03, 21.06, 21.08, 21.08, 21.1, 21.14, 21.16, 21.19, 21.24, 21.26, 21.3, 21.34, 21.38, 21.4, 21.43, 21.46, 21.49, 21.52, 21.57, 21.59, 21.62, 21.65, 21.68, 21.7, 21.72, 21.72, 21.75, 21.78, 21.84, 21.9, 21.92, 21.95, 21.96, 21.97, 21.99, 22.01, 22.01, 22.01, 21.99, 21.97, 21.96, 21.95, 21.93, 21.9, 21.88, 21.86, 21.84, 21.82, 21.8, 21.79, 21.8, 21.8, 21.8, 21.78, 21.81, 21.86, 21.93, 21.97, 22.01, 22.05, 22.08, 22.12, 22.18, 22.23, 22.26, 22.29, 22.32, 22.35, 22.38, 22.39, 22.42, 22.44, 22.45, 22.47, 22.49, 22.51, 22.52, 22.54, 22.56, 22.56, 22.57, 22.6, 22.61, 22.64, 22.68, 22.73, 22.77, 22.79, 22.82, 22.85, 22.87, 22.89, 22.91, 22.92, 22.93, 22.96, 22.95, 22.93, 22.93, 22.9, 22.87, 22.81, 22.76, 22.84, 23.0, 23.12, 23.23, 23.32, 23.37, 23.41, 23.45, 23.49, 23.49, 23.43, 23.38, 23.38, 23.36, 23.37, 23.43, 23.46, 23.47, 23.47, 23.49, 23.5, 23.52, 23.55, 23.61, 23.63, 23.64, 23.68, 23.71, 23.71, 23.7, 23.69, 23.69, 23.67, 23.66, 23.66, 23.66, 23.64, 23.62, 23.59, 23.57, 23.57, 23.56, 23.54, 23.52, 23.5, 23.47, 23.44, 23.41, 23.4, 23.38, 23.35, 23.34, 23.36, 23.39, 23.41, 23.47, 23.54, 23.66, 23.74, 23.84, 23.91, 23.94, 23.97, 24.01, 24.05, 24.1, 24.16, 24.22, 24.21, 24.21, 24.23, 24.24, 24.25, 24.3, 24.41, 24.5, 24.58, 24.64, 24.65, 24.65, 24.67, 24.68, 24.67, 24.7, 24.72, 24.8, 24.78, 24.74, 24.73, 24.75, 24.77, 24.81, 24.84, 24.85, 24.89, 24.92, 24.94, 24.97, 25.0, 25.0, 24.99, 24.97, 24.95, 24.94, 24.94, 24.94, 24.93, 24.93, 24.92, 24.9, 24.87, 24.84, 24.8, 24.76, 24.74, 24.71, 24.68, 24.64, 24.6, 24.56, 24.52, 24.49, 24.46, 24.47, 24.48, 24.45, 24.44, 24.44, 24.46, 24.47, 24.48, 24.51, 24.54, 24.56, 24.58, 24.63, 24.65, 24.68, 24.72, 24.76, 24.65, 24.55, 24.57, 24.61, 24.68, 24.77, 24.87, 24.9, 24.9, 24.88, 24.89, 24.92, 24.94, 24.97, 24.95, 24.93, 24.92, 24.92, 24.91, 24.89, 24.86, 24.85, 24.85, 24.85, 24.81, 24.78, 24.76, 24.74, 24.71, 24.7, 24.69, 24.67, 24.63, 24.59, 24.55, 24.52, 24.47, 24.43, 24.39, 24.35, 24.31, 24.26, 24.22, 24.17, 24.14, 24.09, 24.06, 24.02, 23.99, 23.96, 23.92, 23.91, 23.89, 23.88, 23.88, 23.92, 23.94, 23.94, 23.93, 23.92, 23.91, 23.92, 23.93, 23.91, 23.88, 23.86, 23.83, 23.81, 23.79, 23.77, 23.75, 23.74, 23.74, 23.76, 23.78, 23.8, 23.82, 23.87, 23.9, 23.92, 23.94, 23.95, 23.95, 23.95, 23.97, 23.98, 23.98, 24.0, 24.02, 24.04, 24.07, 24.1, 24.15, 24.2, 24.27, 24.34, 24.4, 24.47, 24.52, 24.57, 24.61, 24.66, 24.71, 24.74, 24.76, 24.8, 24.82, 24.85, 24.87, 24.9, 24.92, 24.94, 24.98, 25.01, 25.03, 25.04, 25.04, 25.06, 25.07, 25.09, 25.11, 25.15, 25.2, 25.21, 25.21, 25.22, 25.26, 25.3, 25.31, 25.34, 25.37, 25.4, 25.46, 25.48, 25.49, 25.49, 25.49, 25.49, 25.47, 25.41, 25.39, 25.43, 25.42, 25.42, 25.44, 25.48, 25.52, 25.53, 25.55, 25.55, 25.49, 25.42, 25.36, 25.31, 25.27, 25.24, 25.22, 25.18, 25.15, 25.14, 25.16, 25.19, 25.19, 25.17, 25.21, 25.23, 25.26, 25.33, 25.37, 25.41, 25.44, 25.44, 25.44, 25.46, 25.48, 25.48, 25.47, 25.44, 25.43, 25.4, 25.38, 25.36, 25.34, 25.32, 25.31, 25.28, 25.26, 25.23, 25.21, 25.2, 25.17, 25.15, 25.12, 25.1, 25.09, 25.09, 25.08, 25.06, 25.04, 25.02, 25.02, 25.02, 25.02, 25.04, 25.04, 25.02, 25.0, 24.94, 24.93, 24.98, 24.97, 24.92, 24.9, 24.88, 24.87, 24.94, 24.98, 24.97, 24.97, 24.98, 24.99, 25.01, 25.08, 25.07, 25.05, 25.03, 24.99, 24.97, 24.94, 24.9, 24.85, 24.83, 24.83, 24.84, 24.85, 24.85, 24.85, 24.85, 24.84, 24.82, 24.82, 24.82, 24.82, 24.82, 24.84, 24.85, 24.86, 24.86, 24.85, 24.85, 24.83, 24.81, 24.78, 24.76, 24.74, 24.71, 24.66, 24.63, 24.6, 24.58, 24.57, 24.54, 24.53, 24.52, 24.51, 24.51, 24.49, 24.48, 24.46, 24.46, 24.47, 24.48, 24.48, 24.48, 24.48, 24.48, 24.52, 24.57, 24.58, 24.58, 24.58, 24.77, 24.76, 24.7, 24.74, 24.75, 24.75, 24.77, 24.77, 24.77, 24.78, 24.83, 24.82, 24.82, 24.82, 24.82, 24.82, 24.82, 24.82, 24.83, 24.89, 24.91, 24.89, 24.85, 24.85, 24.86, 24.92, 24.93, 24.93, 24.91, 24.92, 24.92, 24.93, 24.95, 24.94, 24.96, 24.95, 24.96, 24.94, 24.92, 24.91, 24.89, 24.86, 24.85, 24.84, 24.82, 24.82, 24.8, 24.76, 24.74, 24.71, 24.69, 24.68, 24.66, 24.62, 24.58, 24.55, 24.52, 24.48, 24.46, 24.43, 24.43, 24.41, 24.39, 24.4, 24.4, 24.41, 24.4, 24.33, 24.26, 24.17, 24.1, 24.02, 23.92, 23.81, 23.7, 23.59, 23.47, 23.37, 23.33, 23.31, 23.25, 23.19, 23.09, 22.98, 22.87, 22.66, 22.58, 22.67, 22.88, 23.15, 23.34, 23.42, 23.46, 23.49, 23.5, 23.46, 23.42, 23.37, 23.32, 23.26, 23.19, 23.12, 23.05, 22.97, 22.89, 22.82, 22.73, 22.64, 22.55, 22.49, 22.42, 22.35, 22.28, 22.21, 22.14, 22.07, 22.0, 21.93, 21.87, 21.81, 21.75, 21.69, 21.63, 21.58, 21.53, 21.48, 21.51, 21.55, 21.54, 21.54, 21.53, 21.55, 21.55, 21.51, 21.51, 21.5, 21.48, 21.43, 21.4, 21.37, 21.33, 21.31, 21.28, 21.25, 21.22, 21.19, 21.16, 21.14, 21.1, 21.08, 21.06, 21.03, 21.01, 20.99, 20.97, 20.96, 20.94, 20.92, 20.91, 20.89, 20.88, 20.86, 20.85, 20.84, 20.84, 20.83, 20.82, 20.82, 20.8, 20.79, 20.79, 20.78, 20.77, 20.76, 20.75, 20.75, 20.72, 20.72, 20.7, 20.7, 20.72, 20.76, 20.78, 20.82, 20.86, 20.9, 20.95, 20.98, 21.03, 21.08, 21.12, 21.17, 21.23, 21.29, 21.34, 21.4, 21.47, 21.52, 21.58, 21.65, 21.7, 21.77, 21.82, 21.88, 21.93, 21.98, 22.02, 22.08, 22.13, 22.2, 22.25, 22.3, 22.36, 22.41, 22.47, 22.53, 22.57, 22.62, 22.63, 22.68, 22.74, 22.79, 22.81, 22.85, 22.85, 22.88, 22.92, 22.97, 23.02, 23.07, 23.12, 23.17, 23.23, 23.23, 23.23, 23.25, 23.28, 23.3, 23.3, 23.31, 23.3, 23.33, 23.33, 23.32, 23.3, 23.28, 23.28, 23.28, 23.26, 23.26, 23.24, 23.22, 23.19, 23.17, 23.14, 23.11, 23.08, 23.04, 23.02, 23.0, 22.96, 22.92, 22.9, 22.86, 22.83, 22.8, 22.78, 22.79, 22.77, 22.75, 22.77, 22.79, 22.08, 21.49, 21.43, 21.21, 21.02, 20.89, 20.77, 20.68, 20.64, 20.6, 20.57, 20.54, 20.52, 20.5, 20.42, 20.28, 20.13, 19.99, 19.87, 19.78, 19.72, 19.68, 19.66, 19.67, 19.69, 19.73, 19.78, 19.84, 19.9, 19.96, 20.02, 20.08, 20.12, 20.13, 20.13, 20.08, 20.0, 19.9, 19.79, 19.67, 19.55, 19.45, 19.34, 19.24, 19.15, 19.07, 18.99, 18.93, 18.88, 18.82, 18.77, 18.73, 18.7, 18.66, 18.62, 18.58, 18.54, 18.53, 18.52, 18.53, 18.52, 18.5, 18.49, 18.48, 18.47, 18.46, 18.46, 18.44, 18.4, 18.37, 18.33, 18.28, 18.23, 18.18, 18.14, 18.13, 18.14, 18.21, 18.37, 18.63, 19.0, 19.44, 19.88, 20.21, 20.46, 20.8, 21.13, 21.24, 21.2, 21.1, 21.02, 21.06, 21.07, 21.08, 21.08, 21.14, 21.28, 21.49, 21.69, 21.85, 21.94, 21.95, 21.87, 21.78, 21.7, 21.62, 21.58, 21.54, 21.52, 21.51, 21.51, 21.51, 21.51, 21.51, 21.51, 21.49, 21.48, 21.46, 21.43, 21.4, 21.37, 21.33, 21.29, 21.25, 21.2, 21.14, 21.09, 21.03, 20.96, 20.9, 20.83, 20.76, 20.69, 20.62, 20.54, 20.46, 20.38, 20.29, 20.21, 20.12, 20.03, 19.94, 19.85, 19.75, 19.65, 19.55, 19.45, 19.35, 19.25, 19.17, 19.09, 19.02, 18.98, 19.05, 19.21, 19.52, 19.81, 19.97, 19.97, 19.98, 19.98, 19.98, 20.56, 20.62, 20.59, 20.56, 20.55, 20.53, 20.53, 20.53, 20.53, 20.55, 20.56, 20.58, 20.6, 20.6, 20.6, 20.6, 20.6, 20.6, 20.58, 20.56, 20.54, 20.52, 20.47, 20.38, 20.28, 20.18, 20.11, 20.03, 19.97, 19.92, 19.86, 19.81, 19.76, 19.7, 19.64, 19.58, 19.52, 19.45, 19.38, 19.31, 19.24, 19.16, 19.08, 19.0, 18.92, 18.83, 18.74, 18.66, 18.57, 18.49, 18.4, 18.31, 18.22, 18.13, 18.04, 17.96, 17.87, 17.81, 17.82, 17.96, 18.15, 18.34, 18.52, 18.69, 18.84, 19.0, 19.15, 19.27, 19.39, 19.49, 19.59, 19.68, 19.76, 19.83, 19.9, 19.96, 20.02, 20.07, 20.11, 20.15, 20.19, 20.23, 20.26, 20.3, 20.33, 20.36, 20.4, 20.45, 20.48, 20.51, 20.52, 20.54, 20.56, 20.58, 20.58, 20.58, 20.57, 20.55, 20.56, 20.59, 20.63, 20.64, 20.65, 20.66, 20.67, 20.68, 20.7, 20.7, 20.7, 20.71, 20.72, 20.73, 20.74, 20.75, 20.75, 20.75, 20.75, 20.76, 20.75, 20.75, 20.75, 20.75, 20.73, 20.72, 20.72, 20.72, 20.72, 20.73, 20.72, 20.72, 20.72, 20.72, 20.72, 20.75, 20.75, 20.75, 20.76, 20.77, 20.79, 20.79, 20.79, 20.79, 20.79, 20.79, 20.8, 20.82, 20.83, 20.84, 20.85, 20.87, 20.89, 20.89, 20.89, 20.9, 20.9, 20.91, 20.91, 20.91, 20.91, 20.91, 20.91, 20.93, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.94, 20.95, 20.99, 21.03, 21.08, 21.14, 21.2, 21.24, 21.3, 21.34, 21.39, 21.42, 21.47, 21.5, 21.53, 21.56, 21.58, 21.6, 21.63, 21.65, 21.66, 21.68, 21.7, 21.71, 21.72, 21.74, 21.75, 21.77, 21.79, 21.82, 21.85, 21.89, 21.93, 21.97, 22.0, 22.03, 22.07, 22.1, 22.12, 22.14, 22.17, 22.19, 22.21, 22.23, 22.25, 22.26, 22.27, 22.28, 22.3, 22.3, 22.31, 22.32, 22.32, 22.32, 22.32, 22.32, 22.32, 22.32, 22.3, 22.3, 22.29, 22.27, 22.27, 22.25, 22.24, 22.22, 22.2, 22.18, 22.16, 22.13, 22.12, 22.08, 22.05, 22.02, 22.0, 21.97, 21.94, 21.9, 21.88, 21.84, 21.81, 21.79, 21.76, 21.72, 21.7, 21.67, 21.63, 21.6, 21.57, 21.54, 21.51, 21.49, 21.45, 21.42, 21.4, 21.36, 21.33, 21.29, 21.26, 21.24, 21.2, 21.17, 21.15, 21.13, 21.11, 21.09, 21.08, 21.06, 21.05, 21.03, 21.02, 21.01, 21.01, 21.01, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.98, 20.99, 21.0, 21.01, 21.01, 21.01, 21.01, 21.02, 21.03, 21.03, 21.03, 21.06, 21.06, 21.06, 21.06, 21.08, 21.08, 21.08, 21.1, 21.1, 21.1, 21.11, 21.12, 21.13, 21.13, 21.13, 21.13, 21.14, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.17, 21.18, 21.2, 21.21, 21.24, 21.26, 21.28, 21.3, 21.33, 21.36, 21.39, 21.42, 21.45, 21.52, 21.45, 21.31, 21.21, 21.13, 21.07, 21.0, 20.94, 20.89, 20.84, 20.8, 20.76, 20.73, 20.69, 20.65, 20.62, 20.59, 20.57, 20.54, 20.52, 20.5, 20.47, 20.46, 20.44, 20.44, 20.41, 20.4, 20.39, 20.38, 20.36, 20.35, 20.34, 20.34, 20.32, 20.32, 20.32, 20.31, 20.29, 20.29, 20.29, 20.29, 20.28, 20.28, 20.27, 20.27, 20.27, 20.26, 20.24, 20.21, 20.17, 20.13, 20.09, 20.05, 20.0, 19.96, 19.92, 19.87, 19.83, 19.8, 19.77, 19.76, 19.73, 19.71, 19.7, 19.7, 19.7, 19.7, 19.72, 19.72, 19.72, 19.72, 19.72, 19.72, 19.72, 19.71, 19.67, 19.6, 19.75, 20.68, 20.19, 19.9], "RH": [28.3, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.2, 28.1, 28.1, 28.1, 28.0, 28.0, 28.0, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 28.0, 28.0, 28.0, 28.0, 28.1, 28.1, 28.1, 28.1, 28.1, 28.0, 28.0, 28.0, 28.0, 28.0, 27.9, 28.0, 28.0, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.8, 27.8, 27.8, 27.8, 27.7, 27.7, 27.7, 27.7, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.4, 27.4, 27.4, 27.4, 27.4, 27.5, 27.5, 27.5, 27.5, 27.5, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.7, 27.7, 27.7, 27.7, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.8, 27.7, 27.7, 27.7, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.5, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.7, 27.7, 27.7, 27.6, 27.6, 27.6, 27.6, 27.6, 27.5, 27.5, 27.5, 27.5, 27.5, 27.4, 27.4, 27.4, 27.4, 27.3, 27.3, 27.3, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 26.9, 26.9, 26.9, 26.9, 26.9, 26.9, 26.8, 26.8, 26.9, 26.9, 27.0, 27.0, 27.0, 26.9, 26.9, 26.9, 26.9, 26.9, 26.9, 26.9, 26.9, 26.8, 26.8, 26.8, 26.7, 26.7, 26.6, 26.6, 26.6, 26.6, 26.5, 26.5, 26.5, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.4, 26.3, 26.3, 26.3, 26.3, 26.3, 26.2, 26.2, 26.2, 26.2, 26.1, 26.1, 26.0, 26.0, 25.9, 25.8, 25.8, 25.7, 25.7, 25.6, 25.6, 25.6, 25.5, 25.5, 25.5, 25.4, 25.4, 25.3, 25.2, 25.1, 25.1, 25.0, 24.9, 24.9, 25.0, 25.0, 25.1, 25.2, 25.2, 25.1, 25.2, 24.8, 24.6, 24.4, 24.2, 24.1, 24.0, 23.9, 23.8, 24.0, 24.3, 24.8, 25.5, 26.1, 27.0, 27.8, 28.1, 28.3, 28.5, 28.7, 28.8, 28.8, 28.7, 28.6, 28.4, 28.2, 27.9, 27.7, 27.5, 27.3, 27.1, 27.0, 26.8, 26.7, 26.6, 26.5, 26.4, 26.3, 26.2, 26.0, 25.9, 25.8, 25.6, 25.5, 25.4, 25.2, 25.2, 25.2, 25.1, 25.0, 24.9, 24.9, 25.0, 25.2, 25.2, 25.2, 25.1, 25.0, 25.0, 24.9, 24.9, 24.8, 24.7, 24.7, 24.6, 24.5, 24.5, 24.4, 24.4, 24.4, 24.5, 24.5, 24.5, 24.5, 24.5, 24.5, 24.3, 24.0, 23.7, 23.5, 23.4, 23.3, 23.3, 22.5, 22.3, 22.1, 22.0, 21.9, 21.8, 21.7, 21.7, 21.8, 21.9, 21.8, 21.8, 21.6, 21.5, 21.2, 21.0, 20.7, 20.4, 20.2, 20.0, 19.7, 19.2, 19.1, 19.0, 19.0, 19.0, 19.0, 19.0, 19.1, 19.1, 19.4, 19.6, 19.7, 19.8, 19.8, 19.9, 19.9, 20.0, 20.0, 20.1, 20.1, 20.2, 20.3, 20.3, 20.3, 20.4, 20.4, 20.4, 20.4, 20.4, 20.5, 20.6, 20.7, 21.1, 21.5, 21.8, 22.1, 22.3, 22.4, 22.5, 22.6, 22.6, 22.6, 22.8, 22.7, 22.5, 22.5, 22.2, 21.9, 21.3, 20.6, 19.9, 20.0, 20.3, 20.5, 20.8, 20.7, 20.7, 20.7, 20.8, 20.5, 19.8, 19.3, 19.2, 18.6, 18.5, 19.1, 19.4, 19.6, 19.7, 19.8, 20.0, 20.4, 20.8, 21.5, 21.9, 22.2, 22.8, 23.1, 23.5, 23.5, 23.7, 23.9, 24.0, 24.3, 24.6, 24.8, 24.8, 24.7, 24.5, 24.4, 24.4, 24.3, 24.2, 24.0, 23.8, 23.6, 23.3, 23.0, 22.8, 22.6, 22.4, 22.4, 22.8, 23.0, 22.9, 23.0, 23.2, 23.8, 23.9, 24.4, 24.2, 24.2, 24.0, 23.8, 23.7, 23.5, 23.4, 23.4, 22.8, 22.3, 22.0, 21.5, 20.8, 20.8, 20.9, 21.2, 21.5, 21.8, 21.7, 21.5, 21.5, 21.5, 21.2, 21.2, 21.5, 22.7, 22.9, 23.1, 23.2, 23.1, 23.2, 23.2, 23.2, 23.2, 23.7, 24.2, 24.4, 24.6, 24.9, 24.9, 24.8, 24.8, 24.7, 24.6, 24.6, 24.6, 24.6, 24.6, 24.6, 24.5, 24.5, 24.5, 24.4, 24.3, 24.3, 24.2, 24.2, 24.1, 23.9, 23.8, 23.6, 23.5, 23.3, 23.6, 23.7, 23.5, 23.5, 23.6, 23.7, 23.8, 23.8, 24.0, 24.0, 24.0, 24.0, 24.2, 24.3, 24.4, 24.8, 25.2, 24.8, 25.2, 25.9, 26.4, 26.8, 27.6, 28.7, 28.8, 28.4, 27.6, 27.0, 26.7, 26.7, 26.7, 26.3, 26.0, 25.9, 25.7, 25.6, 25.6, 25.5, 25.7, 26.1, 26.4, 26.2, 26.2, 26.1, 26.2, 26.1, 26.3, 26.4, 26.3, 26.2, 26.2, 26.3, 26.3, 26.3, 26.2, 26.1, 26.1, 25.9, 25.8, 25.6, 25.5, 25.4, 25.3, 25.1, 25.0, 24.8, 24.7, 24.5, 24.6, 24.8, 24.9, 25.1, 25.5, 26.0, 26.0, 25.8, 25.6, 25.5, 25.7, 25.9, 25.7, 25.4, 25.2, 25.1, 25.0, 24.8, 24.6, 24.4, 24.2, 24.0, 23.9, 23.9, 23.8, 23.6, 23.5, 23.5, 23.6, 23.7, 23.6, 23.4, 23.2, 23.1, 23.1, 23.0, 23.0, 23.0, 23.0, 22.9, 22.9, 23.0, 23.2, 23.5, 23.8, 24.2, 24.5, 24.4, 24.3, 24.4, 24.3, 24.2, 24.0, 23.7, 23.5, 23.3, 23.0, 22.8, 22.5, 22.3, 22.2, 22.1, 22.0, 21.9, 21.8, 21.6, 21.4, 21.3, 21.2, 21.2, 21.4, 21.7, 21.6, 21.5, 21.5, 21.9, 22.4, 22.5, 22.8, 23.1, 23.6, 24.6, 25.0, 25.2, 25.4, 25.7, 25.9, 25.9, 25.1, 24.7, 25.1, 24.8, 24.4, 24.6, 24.8, 25.0, 25.1, 25.3, 25.1, 24.3, 23.5, 22.7, 22.3, 21.8, 21.6, 21.2, 20.7, 20.5, 20.2, 20.5, 20.8, 20.6, 20.7, 21.2, 21.5, 21.9, 22.8, 23.4, 24.2, 24.6, 24.7, 24.9, 25.4, 25.9, 26.1, 26.0, 26.0, 26.0, 26.0, 25.9, 25.9, 25.9, 25.8, 25.7, 25.7, 25.5, 25.4, 25.3, 25.3, 25.2, 25.0, 24.9, 24.7, 24.7, 24.8, 24.8, 24.6, 24.4, 24.2, 24.2, 24.4, 24.4, 24.6, 24.7, 24.7, 24.7, 23.9, 23.6, 24.0, 23.7, 22.9, 22.7, 22.4, 22.1, 22.7, 22.6, 22.3, 22.6, 22.8, 23.2, 24.0, 24.2, 24.1, 24.2, 24.1, 24.0, 24.0, 24.1, 24.2, 24.2, 24.2, 24.2, 24.2, 24.0, 24.0, 23.9, 23.8, 23.7, 23.6, 23.7, 23.8, 23.7, 23.7, 23.7, 23.7, 23.8, 23.8, 23.8, 23.7, 23.7, 23.6, 23.5, 23.4, 23.3, 23.2, 23.0, 22.9, 22.8, 22.8, 22.8, 22.7, 22.7, 22.7, 22.8, 22.8, 22.6, 22.5, 22.3, 22.1, 22.2, 22.1, 22.1, 22.0, 21.9, 21.8, 22.4, 23.0, 23.4, 23.4, 23.8, 24.8, 22.7, 22.7, 23.6, 23.8, 23.8, 23.8, 23.7, 23.5, 23.4, 23.6, 24.0, 23.8, 23.7, 23.6, 23.5, 23.4, 23.3, 23.0, 23.5, 23.9, 23.8, 23.3, 23.0, 23.3, 24.1, 24.5, 24.6, 24.5, 24.6, 24.5, 24.6, 24.6, 24.3, 24.5, 24.6, 24.6, 24.4, 24.0, 23.6, 23.3, 23.0, 22.8, 22.7, 22.9, 22.9, 22.7, 22.4, 22.0, 21.7, 21.6, 21.6, 21.5, 21.2, 20.9, 20.6, 20.4, 20.2, 20.0, 20.0, 20.4, 20.4, 20.1, 20.6, 21.0, 21.5, 21.6, 21.0, 20.6, 20.5, 20.2, 20.1, 20.0, 19.8, 20.2, 20.4, 20.4, 20.4, 21.6, 23.2, 24.4, 25.4, 25.6, 25.8, 26.0, 27.0, 28.3, 30.8, 34.8, 40.4, 44.1, 45.3, 46.2, 47.5, 48.4, 48.7, 48.8, 48.9, 48.9, 48.9, 49.0, 49.0, 49.1, 49.1, 49.1, 49.1, 49.1, 49.2, 49.2, 49.3, 49.4, 49.5, 49.6, 49.6, 49.7, 49.8, 49.9, 50.0, 50.0, 50.1, 50.1, 50.2, 50.2, 50.3, 50.4, 50.6, 53.5, 57.0, 58.8, 60.5, 61.4, 62.6, 62.8, 62.6, 63.2, 63.7, 63.4, 62.8, 62.6, 62.5, 62.3, 62.1, 62.0, 61.8, 61.7, 61.6, 61.5, 61.4, 61.3, 61.2, 61.2, 61.2, 61.1, 61.1, 61.0, 61.0, 61.0, 61.0, 61.0, 61.0, 60.9, 60.9, 60.8, 60.8, 60.8, 60.8, 60.7, 60.7, 60.6, 60.6, 60.5, 60.5, 60.4, 60.3, 60.2, 60.2, 60.1, 60.0, 59.9, 59.9, 59.8, 59.8, 59.6, 59.5, 59.8, 59.9, 59.8, 59.7, 59.6, 59.4, 59.3, 59.1, 59.0, 58.8, 58.6, 58.4, 58.3, 58.1, 58.0, 57.8, 57.5, 57.4, 57.3, 57.3, 57.2, 57.1, 57.1, 57.1, 57.4, 58.0, 58.5, 58.6, 59.3, 59.9, 60.7, 61.6, 62.3, 62.5, 62.1, 62.3, 63.2, 63.3, 62.9, 62.3, 60.9, 60.2, 60.0, 60.2, 60.5, 60.7, 60.7, 60.8, 61.8, 60.9, 60.0, 59.3, 59.4, 59.6, 59.3, 59.4, 59.1, 59.4, 59.5, 59.4, 59.1, 58.6, 58.5, 58.5, 58.5, 58.6, 58.7, 58.6, 58.1, 57.8, 57.6, 57.2, 57.1, 56.8, 56.2, 55.7, 54.8, 54.4, 54.2, 54.0, 54.0, 53.8, 54.2, 55.3, 55.3, 55.2, 55.8, 55.8, 54.0, 57.2, 58.0, 57.9, 57.9, 58.0, 58.0, 58.1, 58.3, 58.3, 58.3, 58.2, 58.2, 58.2, 57.9, 57.5, 57.2, 57.0, 57.0, 57.0, 57.1, 57.2, 57.3, 57.5, 57.6, 57.8, 57.9, 58.0, 58.1, 58.2, 58.3, 58.3, 58.3, 58.2, 58.0, 57.8, 57.5, 57.2, 57.0, 56.9, 56.8, 56.6, 56.5, 56.4, 56.4, 56.4, 56.3, 56.3, 56.3, 56.3, 56.3, 56.3, 56.3, 56.3, 56.3, 56.3, 56.3, 56.4, 56.4, 56.5, 56.5, 56.4, 56.4, 56.5, 56.5, 56.5, 56.5, 56.4, 56.4, 56.3, 56.3, 56.2, 56.1, 56.0, 56.1, 56.2, 56.4, 57.0, 58.7, 61.2, 64.2, 66.9, 68.2, 66.6, 64.9, 64.2, 63.8, 62.7, 61.8, 61.2, 60.9, 60.9, 60.7, 60.5, 60.4, 60.4, 62.3, 63.2, 63.1, 62.3, 61.2, 59.8, 58.6, 58.0, 57.7, 57.5, 57.5, 57.5, 57.6, 57.6, 57.6, 57.6, 57.6, 57.6, 57.5, 57.4, 57.3, 57.2, 57.1, 57.0, 56.9, 56.8, 56.8, 56.6, 56.6, 56.5, 56.4, 56.3, 56.2, 56.1, 56.0, 55.9, 55.8, 55.7, 55.6, 55.6, 55.5, 55.4, 55.3, 55.2, 55.2, 55.1, 55.0, 54.9, 54.9, 54.8, 54.8, 54.7, 54.8, 54.8, 54.9, 55.0, 55.6, 56.8, 58.5, 60.2, 60.3, 58.9, 57.5, 57.5, 57.2, 57.7, 63.2, 61.8, 60.4, 59.8, 59.7, 59.7, 59.7, 59.7, 59.7, 59.8, 60.1, 60.2, 60.0, 59.9, 59.8, 59.7, 59.5, 59.2, 59.1, 59.0, 59.0, 58.8, 58.2, 57.7, 57.7, 57.7, 57.8, 57.9, 58.0, 58.0, 58.0, 58.0, 58.0, 58.0, 57.9, 57.9, 57.8, 57.7, 57.6, 57.6, 57.5, 57.4, 57.3, 57.2, 57.2, 57.1, 57.0, 57.0, 56.9, 56.8, 56.8, 56.8, 56.8, 56.7, 56.7, 56.7, 56.7, 56.9, 57.5, 58.6, 60.3, 61.7, 62.5, 63.0, 63.2, 63.2, 63.1, 62.9, 62.7, 62.5, 62.3, 62.1, 61.9, 61.7, 61.5, 61.4, 61.2, 61.0, 60.9, 60.8, 60.7, 60.6, 60.7, 60.6, 60.6, 60.6, 60.6, 60.7, 60.5, 60.4, 60.2, 60.1, 60.0, 60.0, 59.8, 59.5, 58.9, 58.4, 59.2, 60.3, 60.2, 59.8, 59.6, 59.6, 59.5, 59.4, 59.4, 59.3, 59.2, 59.3, 58.9, 59.3, 59.2, 59.1, 59.1, 59.0, 59.0, 58.9, 58.8, 58.8, 58.7, 58.6, 58.5, 58.3, 58.2, 58.5, 58.7, 58.5, 58.3, 58.1, 58.3, 58.4, 58.3, 58.5, 58.3, 58.2, 58.2, 58.4, 58.3, 58.3, 57.8, 57.8, 58.0, 57.9, 57.8, 57.9, 58.3, 58.1, 58.1, 58.4, 58.1, 58.0, 57.8, 57.7, 57.7, 57.7, 57.7, 57.6, 57.4, 57.6, 57.6, 57.8, 57.8, 57.5, 57.4, 57.6, 57.6, 57.5, 57.5, 57.6, 57.6, 57.6, 57.7, 57.7, 57.6, 57.6, 57.6, 57.9, 58.5, 59.0, 59.4, 59.6, 59.8, 59.8, 59.8, 59.8, 59.7, 59.6, 59.6, 59.5, 59.4, 59.3, 59.2, 59.2, 59.1, 59.0, 59.0, 58.9, 58.9, 58.8, 58.8, 58.8, 58.8, 58.8, 59.0, 59.2, 59.3, 59.4, 59.5, 59.6, 59.6, 59.6, 59.5, 59.5, 59.4, 59.3, 59.3, 59.2, 59.2, 59.1, 59.1, 59.0, 59.0, 58.9, 58.9, 58.8, 58.8, 58.7, 58.6, 58.6, 58.5, 58.4, 58.3, 58.3, 58.2, 58.2, 58.1, 58.0, 57.9, 57.8, 57.7, 57.7, 57.6, 57.5, 57.4, 57.4, 57.3, 57.2, 57.2, 57.1, 57.0, 57.0, 57.0, 57.0, 56.9, 56.9, 56.9, 56.9, 56.9, 56.8, 56.8, 56.8, 56.8, 56.8, 56.8, 56.7, 56.7, 56.8, 56.9, 56.7, 56.4, 56.4, 56.5, 56.6, 56.7, 56.7, 56.8, 56.8, 56.8, 56.9, 56.9, 56.9, 56.9, 57.0, 57.0, 57.0, 57.0, 57.0, 57.1, 57.1, 57.1, 57.2, 57.2, 57.2, 57.2, 57.3, 57.3, 57.3, 57.3, 57.4, 57.4, 57.4, 57.4, 57.4, 57.4, 57.5, 57.5, 57.5, 57.5, 57.5, 57.5, 57.5, 57.6, 57.6, 57.6, 57.6, 57.6, 57.6, 57.6, 57.6, 57.6, 57.6, 57.5, 57.5, 57.5, 57.5, 57.5, 57.4, 57.4, 57.4, 57.4, 57.4, 57.4, 57.4, 57.4, 57.4, 57.4, 57.4, 57.5, 57.5, 57.6, 57.7, 57.8, 57.9, 58.0, 58.1, 58.2, 58.3, 58.4, 58.4, 58.5, 58.6, 58.7, 58.3, 56.4, 56.2, 56.0, 55.8, 55.7, 55.5, 55.4, 55.3, 55.2, 55.2, 55.1, 55.1, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 55.1, 55.1, 55.1, 55.1, 55.1, 55.1, 55.1, 55.1, 55.1, 55.2, 55.2, 55.2, 55.2, 55.2, 55.2, 55.3, 55.3, 55.3, 55.3, 55.3, 55.3, 55.3, 55.4, 55.3, 55.2, 55.2, 55.1, 55.0, 54.9, 54.8, 54.6, 54.5, 54.4, 54.3, 54.2, 54.2, 54.1, 54.0, 54.0, 53.9, 53.9, 53.9, 53.9, 54.0, 54.0, 54.0, 53.9, 53.9, 53.9, 53.9, 53.8, 53.6, 53.5, 52.3, 50.3, 45.8, 45.2, 45.2], "AH": [5.22, 5.22, 5.22, 5.22, 5.23, 5.23, 5.23, 5.23, 5.23, 5.23, 5.23, 5.23, 5.24, 5.24, 5.23, 5.24, 5.23, 5.23, 5.23, 5.22, 5.22, 5.21, 5.2, 5.2, 5.2, 5.2, 5.2, 5.19, 5.19, 5.19, 5.2, 5.2, 5.19, 5.19, 5.19, 5.18, 5.18, 5.17, 5.16, 5.16, 5.16, 5.15, 5.15, 5.14, 5.14, 5.14, 5.13, 5.13, 5.13, 5.13, 5.13, 5.13, 5.13, 5.12, 5.12, 5.11, 5.11, 5.11, 5.1, 5.1, 5.1, 5.11, 5.12, 5.12, 5.12, 5.14, 5.14, 5.15, 5.16, 5.16, 5.16, 5.16, 5.15, 5.15, 5.15, 5.16, 5.16, 5.16, 5.16, 5.16, 5.16, 5.16, 5.16, 5.16, 5.16, 5.16, 5.15, 5.15, 5.15, 5.14, 5.14, 5.14, 5.14, 5.14, 5.13, 5.13, 5.13, 5.13, 5.13, 5.13, 5.13, 5.13, 5.12, 5.12, 5.13, 5.13, 5.12, 5.12, 5.12, 5.11, 5.1, 5.1, 5.09, 5.09, 5.08, 5.07, 5.06, 5.06, 5.05, 5.04, 5.04, 5.03, 5.02, 5.02, 5.01, 5.0, 5.0, 5.0, 4.99, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.99, 4.98, 4.99, 5.0, 5.0, 5.0, 5.01, 5.01, 5.02, 5.02, 5.03, 5.03, 5.04, 5.04, 5.04, 5.05, 5.06, 5.07, 5.08, 5.09, 5.1, 5.11, 5.12, 5.12, 5.13, 5.15, 5.15, 5.16, 5.17, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.17, 5.16, 5.16, 5.15, 5.14, 5.13, 5.12, 5.12, 5.11, 5.1, 5.1, 5.1, 5.09, 5.09, 5.09, 5.08, 5.08, 5.08, 5.07, 5.07, 5.07, 5.07, 5.06, 5.06, 5.06, 5.05, 5.04, 5.04, 5.04, 5.03, 5.03, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.03, 5.03, 5.03, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.03, 5.03, 5.03, 5.02, 5.02, 5.03, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.03, 5.03, 5.03, 5.03, 5.03, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.03, 5.03, 5.04, 5.04, 5.04, 5.04, 5.05, 5.05, 5.05, 5.05, 5.05, 5.06, 5.06, 5.07, 5.07, 5.07, 5.08, 5.08, 5.08, 5.09, 5.09, 5.1, 5.1, 5.11, 5.11, 5.12, 5.12, 5.13, 5.14, 5.14, 5.14, 5.14, 5.14, 5.13, 5.13, 5.13, 5.12, 5.11, 5.11, 5.11, 5.1, 5.09, 5.08, 5.08, 5.07, 5.07, 5.06, 5.05, 5.05, 5.04, 5.04, 5.04, 5.05, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.03, 5.03, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.02, 5.01, 5.02, 5.02, 5.02, 5.02, 5.01, 5.01, 5.01, 5.01, 5.01, 5.01, 5.02, 5.01, 5.01, 5.02, 5.04, 5.05, 5.06, 5.07, 5.07, 5.07, 5.06, 5.07, 5.07, 5.09, 5.1, 5.1, 5.11, 5.11, 5.11, 5.11, 5.11, 5.12, 5.12, 5.12, 5.12, 5.12, 5.12, 5.12, 5.12, 5.13, 5.13, 5.12, 5.13, 5.12, 5.12, 5.12, 5.12, 5.12, 5.13, 5.14, 5.14, 5.14, 5.15, 5.15, 5.15, 5.15, 5.14, 5.14, 5.14, 5.14, 5.14, 5.13, 5.13, 5.12, 5.12, 5.11, 5.1, 5.08, 5.07, 5.06, 5.05, 5.04, 5.03, 5.02, 5.01, 5.01, 5.0, 4.99, 4.98, 4.97, 4.96, 4.94, 4.91, 4.89, 4.87, 4.85, 4.83, 4.81, 4.8, 4.8, 4.8, 4.81, 4.84, 4.84, 4.8, 4.81, 4.72, 4.67, 4.63, 4.59, 4.55, 4.51, 4.5, 4.47, 4.5, 4.58, 4.68, 4.83, 4.96, 5.13, 5.28, 5.34, 5.37, 5.42, 5.46, 5.48, 5.48, 5.46, 5.46, 5.41, 5.35, 5.31, 5.27, 5.22, 5.17, 5.13, 5.09, 5.06, 5.05, 5.01, 4.99, 4.98, 4.96, 4.93, 4.89, 4.86, 4.82, 4.78, 4.74, 4.71, 4.66, 4.65, 4.64, 4.61, 4.58, 4.57, 4.58, 4.61, 4.63, 4.63, 4.64, 4.63, 4.63, 4.63, 4.63, 4.62, 4.62, 4.61, 4.62, 4.61, 4.61, 4.6, 4.6, 4.6, 4.62, 4.64, 4.66, 4.66, 4.67, 4.67, 4.68, 4.65, 4.58, 4.53, 4.51, 4.52, 4.51, 4.5, 4.36, 4.32, 4.29, 4.26, 4.25, 4.23, 4.21, 4.2, 4.22, 4.23, 4.22, 4.21, 4.17, 4.14, 4.08, 4.03, 3.97, 3.92, 3.88, 3.84, 3.78, 3.68, 3.66, 3.66, 3.67, 3.67, 3.68, 3.7, 3.72, 3.74, 3.8, 3.85, 3.89, 3.9, 3.92, 3.94, 3.95, 3.97, 3.98, 3.99, 4.01, 4.03, 4.05, 4.06, 4.06, 4.07, 4.09, 4.09, 4.09, 4.11, 4.12, 4.15, 4.19, 4.27, 4.37, 4.43, 4.5, 4.55, 4.57, 4.59, 4.61, 4.61, 4.63, 4.67, 4.65, 4.61, 4.6, 4.54, 4.48, 4.33, 4.17, 4.05, 4.12, 4.2, 4.27, 4.36, 4.35, 4.36, 4.37, 4.4, 4.34, 4.16, 4.05, 4.03, 3.9, 3.89, 4.02, 4.1, 4.13, 4.16, 4.19, 4.22, 4.31, 4.41, 4.58, 4.67, 4.72, 4.86, 4.95, 5.03, 5.04, 5.07, 5.11, 5.12, 5.18, 5.24, 5.3, 5.3, 5.25, 5.2, 5.18, 5.18, 5.16, 5.12, 5.08, 5.03, 4.97, 4.9, 4.85, 4.8, 4.75, 4.7, 4.68, 4.78, 4.82, 4.82, 4.86, 4.92, 5.07, 5.12, 5.26, 5.23, 5.24, 5.21, 5.19, 5.16, 5.15, 5.15, 5.16, 5.02, 4.92, 4.85, 4.73, 4.6, 4.6, 4.66, 4.75, 4.84, 4.92, 4.89, 4.86, 4.86, 4.86, 4.79, 4.81, 4.87, 5.17, 5.21, 5.24, 5.25, 5.25, 5.27, 5.3, 5.3, 5.31, 5.43, 5.54, 5.61, 5.65, 5.73, 5.74, 5.72, 5.7, 5.67, 5.65, 5.64, 5.64, 5.64, 5.65, 5.63, 5.61, 5.6, 5.58, 5.54, 5.52, 5.52, 5.49, 5.47, 5.43, 5.38, 5.33, 5.29, 5.25, 5.2, 5.27, 5.3, 5.25, 5.24, 5.26, 5.3, 5.33, 5.33, 5.37, 5.39, 5.39, 5.39, 5.46, 5.49, 5.52, 5.63, 5.73, 5.59, 5.67, 5.83, 5.96, 6.06, 6.26, 6.56, 6.58, 6.51, 6.3, 6.17, 6.12, 6.12, 6.13, 6.03, 5.96, 5.93, 5.89, 5.87, 5.85, 5.82, 5.87, 5.96, 6.03, 5.98, 5.96, 5.94, 5.93, 5.91, 5.96, 5.98, 5.95, 5.91, 5.89, 5.89, 5.9, 5.87, 5.84, 5.81, 5.79, 5.73, 5.69, 5.64, 5.6, 5.56, 5.53, 5.49, 5.45, 5.4, 5.35, 5.31, 5.31, 5.35, 5.38, 5.43, 5.53, 5.65, 5.64, 5.58, 5.54, 5.52, 5.57, 5.62, 5.56, 5.5, 5.44, 5.41, 5.38, 5.32, 5.28, 5.24, 5.18, 5.15, 5.14, 5.13, 5.11, 5.08, 5.08, 5.08, 5.1, 5.13, 5.12, 5.07, 5.03, 5.01, 5.01, 5.01, 5.01, 5.01, 5.01, 5.01, 5.02, 5.05, 5.11, 5.18, 5.28, 5.39, 5.48, 5.46, 5.46, 5.49, 5.5, 5.49, 5.44, 5.39, 5.35, 5.3, 5.25, 5.2, 5.16, 5.12, 5.09, 5.09, 5.08, 5.05, 5.02, 4.99, 4.95, 4.92, 4.9, 4.92, 4.98, 5.06, 5.03, 5.0, 5.0, 5.12, 5.24, 5.26, 5.35, 5.43, 5.56, 5.81, 5.9, 5.97, 6.01, 6.08, 6.13, 6.11, 5.92, 5.82, 5.92, 5.84, 5.76, 5.8, 5.86, 5.94, 5.96, 6.0, 5.96, 5.75, 5.54, 5.34, 5.22, 5.09, 5.03, 4.94, 4.82, 4.75, 4.68, 4.76, 4.84, 4.78, 4.82, 4.93, 5.01, 5.12, 5.34, 5.51, 5.69, 5.8, 5.82, 5.87, 6.0, 6.12, 6.17, 6.15, 6.14, 6.13, 6.11, 6.09, 6.09, 6.07, 6.04, 6.02, 6.0, 5.96, 5.92, 5.89, 5.88, 5.85, 5.81, 5.77, 5.72, 5.71, 5.75, 5.75, 5.69, 5.62, 5.57, 5.58, 5.62, 5.64, 5.68, 5.69, 5.68, 5.68, 5.47, 5.42, 5.51, 5.45, 5.26, 5.2, 5.12, 5.04, 5.2, 5.2, 5.13, 5.19, 5.23, 5.34, 5.52, 5.59, 5.57, 5.58, 5.56, 5.51, 5.52, 5.54, 5.55, 5.52, 5.52, 5.52, 5.51, 5.49, 5.47, 5.45, 5.43, 5.4, 5.38, 5.39, 5.41, 5.4, 5.39, 5.41, 5.42, 5.44, 5.44, 5.44, 5.42, 5.4, 5.37, 5.34, 5.32, 5.29, 5.25, 5.2, 5.16, 5.14, 5.13, 5.11, 5.08, 5.08, 5.1, 5.11, 5.1, 5.06, 5.02, 4.99, 4.94, 4.95, 4.94, 4.94, 4.92, 4.89, 4.87, 5.02, 5.18, 5.26, 5.27, 5.35, 5.64, 5.15, 5.13, 5.35, 5.41, 5.4, 5.4, 5.38, 5.34, 5.31, 5.39, 5.47, 5.43, 5.41, 5.37, 5.35, 5.33, 5.3, 5.25, 5.38, 5.48, 5.45, 5.32, 5.25, 5.31, 5.53, 5.63, 5.65, 5.61, 5.63, 5.62, 5.63, 5.65, 5.58, 5.63, 5.64, 5.66, 5.59, 5.5, 5.41, 5.33, 5.25, 5.21, 5.19, 5.21, 5.22, 5.16, 5.08, 5.0, 4.92, 4.89, 4.89, 4.85, 4.77, 4.69, 4.62, 4.56, 4.51, 4.47, 4.45, 4.56, 4.53, 4.48, 4.58, 4.66, 4.78, 4.8, 4.65, 4.56, 4.5, 4.42, 4.38, 4.32, 4.26, 4.32, 4.34, 4.3, 4.27, 4.51, 4.85, 5.09, 5.27, 5.3, 5.29, 5.3, 5.43, 5.68, 6.22, 7.09, 8.36, 9.24, 9.54, 9.75, 10.04, 10.23, 10.27, 10.27, 10.26, 10.23, 10.2, 10.17, 10.14, 10.11, 10.08, 10.04, 9.99, 9.94, 9.9, 9.86, 9.84, 9.82, 9.8, 9.78, 9.75, 9.73, 9.71, 9.68, 9.66, 9.63, 9.61, 9.58, 9.57, 9.54, 9.53, 9.52, 9.52, 10.09, 10.78, 11.1, 11.43, 11.6, 11.83, 11.87, 11.81, 11.93, 12.0, 11.94, 11.8, 11.73, 11.69, 11.62, 11.58, 11.53, 11.48, 11.44, 11.4, 11.36, 11.33, 11.29, 11.27, 11.25, 11.22, 11.2, 11.18, 11.16, 11.15, 11.14, 11.12, 11.11, 11.09, 11.08, 11.06, 11.05, 11.03, 11.03, 11.02, 11.01, 11.0, 10.98, 10.96, 10.95, 10.93, 10.91, 10.9, 10.87, 10.85, 10.82, 10.8, 10.78, 10.78, 10.78, 10.79, 10.78, 10.79, 10.87, 10.91, 10.92, 10.92, 10.93, 10.93, 10.93, 10.93, 10.94, 10.95, 10.95, 10.96, 10.97, 10.97, 10.98, 10.98, 10.98, 10.98, 11.0, 11.03, 11.06, 11.07, 11.09, 11.12, 11.21, 11.38, 11.52, 11.58, 11.74, 11.9, 12.11, 12.33, 12.49, 12.57, 12.49, 12.56, 12.8, 12.85, 12.78, 12.7, 12.41, 12.28, 12.28, 12.35, 12.46, 12.52, 12.56, 12.61, 12.86, 12.69, 12.49, 12.36, 12.41, 12.46, 12.4, 12.42, 12.37, 12.44, 12.46, 12.44, 12.36, 12.25, 12.21, 12.21, 12.2, 12.23, 12.22, 12.19, 12.06, 11.99, 11.92, 11.83, 11.8, 11.69, 11.57, 11.44, 11.24, 11.14, 11.07, 11.01, 10.98, 10.94, 10.99, 11.23, 11.21, 11.18, 11.31, 11.34, 10.52, 10.78, 10.9, 10.73, 10.62, 10.55, 10.48, 10.45, 10.45, 10.44, 10.42, 10.38, 10.37, 10.35, 10.24, 10.1, 9.96, 9.85, 9.77, 9.73, 9.71, 9.7, 9.71, 9.74, 9.78, 9.83, 9.88, 9.93, 9.98, 10.03, 10.08, 10.11, 10.13, 10.13, 10.09, 10.02, 9.93, 9.83, 9.73, 9.63, 9.55, 9.47, 9.4, 9.33, 9.27, 9.22, 9.17, 9.14, 9.11, 9.08, 9.05, 9.03, 9.01, 8.99, 8.96, 8.94, 8.93, 8.93, 8.94, 8.95, 8.94, 8.93, 8.92, 8.92, 8.92, 8.92, 8.91, 8.89, 8.86, 8.83, 8.81, 8.77, 8.73, 8.7, 8.68, 8.69, 8.72, 8.86, 9.2, 9.76, 10.45, 11.18, 11.7, 11.65, 11.52, 11.62, 11.77, 11.65, 11.46, 11.26, 11.16, 11.19, 11.17, 11.13, 11.12, 11.15, 11.6, 11.9, 12.02, 11.99, 11.83, 11.58, 11.28, 11.12, 11.0, 10.91, 10.89, 10.87, 10.87, 10.87, 10.87, 10.87, 10.86, 10.86, 10.84, 10.82, 10.79, 10.76, 10.73, 10.69, 10.65, 10.61, 10.57, 10.52, 10.48, 10.43, 10.37, 10.32, 10.26, 10.21, 10.15, 10.1, 10.03, 9.98, 9.92, 9.86, 9.8, 9.73, 9.67, 9.61, 9.55, 9.48, 9.42, 9.35, 9.29, 9.22, 9.16, 9.1, 9.05, 9.02, 8.99, 8.97, 9.06, 9.29, 9.65, 10.11, 10.3, 10.16, 9.92, 9.93, 9.87, 9.95, 11.29, 11.07, 10.79, 10.68, 10.66, 10.63, 10.63, 10.63, 10.64, 10.67, 10.73, 10.76, 10.73, 10.71, 10.71, 10.68, 10.64, 10.6, 10.55, 10.54, 10.51, 10.48, 10.33, 10.2, 10.12, 10.08, 10.05, 10.03, 10.0, 9.98, 9.95, 9.92, 9.88, 9.84, 9.8, 9.75, 9.7, 9.65, 9.6, 9.55, 9.49, 9.44, 9.38, 9.32, 9.27, 9.2, 9.15, 9.09, 9.04, 8.98, 8.93, 8.87, 8.82, 8.77, 8.72, 8.68, 8.64, 8.63, 8.73, 8.98, 9.33, 9.66, 9.9, 10.07, 10.19, 10.3, 10.37, 10.42, 10.45, 10.48, 10.5, 10.52, 10.54, 10.55, 10.57, 10.57, 10.59, 10.59, 10.59, 10.6, 10.61, 10.61, 10.64, 10.66, 10.67, 10.69, 10.72, 10.76, 10.74, 10.74, 10.73, 10.73, 10.72, 10.72, 10.69, 10.63, 10.52, 10.42, 10.57, 10.78, 10.79, 10.73, 10.7, 10.71, 10.69, 10.68, 10.68, 10.67, 10.66, 10.69, 10.61, 10.68, 10.68, 10.67, 10.66, 10.65, 10.64, 10.63, 10.62, 10.61, 10.59, 10.58, 10.54, 10.51, 10.49, 10.54, 10.57, 10.54, 10.5, 10.47, 10.5, 10.51, 10.5, 10.55, 10.53, 10.51, 10.51, 10.54, 10.54, 10.54, 10.46, 10.47, 10.5, 10.48, 10.47, 10.48, 10.57, 10.55, 10.55, 10.61, 10.58, 10.56, 10.51, 10.51, 10.5, 10.51, 10.52, 10.5, 10.46, 10.49, 10.49, 10.55, 10.55, 10.49, 10.48, 10.52, 10.52, 10.5, 10.49, 10.5, 10.51, 10.52, 10.53, 10.53, 10.51, 10.5, 10.51, 10.57, 10.68, 10.8, 10.89, 10.97, 11.03, 11.07, 11.11, 11.14, 11.15, 11.17, 11.18, 11.19, 11.2, 11.2, 11.21, 11.21, 11.21, 11.21, 11.21, 11.22, 11.22, 11.22, 11.22, 11.22, 11.23, 11.26, 11.29, 11.34, 11.4, 11.44, 11.47, 11.51, 11.54, 11.56, 11.57, 11.59, 11.59, 11.6, 11.6, 11.6, 11.61, 11.61, 11.62, 11.62, 11.62, 11.61, 11.61, 11.61, 11.6, 11.59, 11.59, 11.57, 11.56, 11.55, 11.53, 11.52, 11.5, 11.48, 11.46, 11.45, 11.42, 11.4, 11.37, 11.35, 11.32, 11.29, 11.26, 11.23, 11.2, 11.18, 11.14, 11.11, 11.09, 11.07, 11.04, 11.02, 10.99, 10.97, 10.95, 10.92, 10.9, 10.88, 10.84, 10.83, 10.81, 10.78, 10.76, 10.74, 10.72, 10.72, 10.72, 10.66, 10.58, 10.58, 10.57, 10.57, 10.55, 10.55, 10.54, 10.53, 10.51, 10.51, 10.5, 10.49, 10.48, 10.48, 10.47, 10.47, 10.46, 10.46, 10.46, 10.46, 10.47, 10.46, 10.46, 10.46, 10.47, 10.47, 10.48, 10.48, 10.49, 10.49, 10.5, 10.51, 10.52, 10.52, 10.53, 10.53, 10.54, 10.55, 10.55, 10.56, 10.57, 10.57, 10.58, 10.58, 10.59, 10.59, 10.6, 10.6, 10.6, 10.6, 10.61, 10.61, 10.61, 10.61, 10.61, 10.61, 10.61, 10.61, 10.61, 10.61, 10.61, 10.61, 10.6, 10.6, 10.6, 10.6, 10.6, 10.6, 10.62, 10.63, 10.66, 10.68, 10.72, 10.74, 10.77, 10.8, 10.83, 10.87, 10.89, 10.93, 10.96, 10.99, 11.03, 11.0, 10.61, 10.48, 10.38, 10.3, 10.23, 10.17, 10.11, 10.06, 10.03, 9.99, 9.96, 9.93, 9.9, 9.88, 9.86, 9.84, 9.82, 9.81, 9.8, 9.79, 9.77, 9.77, 9.76, 9.76, 9.74, 9.74, 9.74, 9.74, 9.73, 9.72, 9.72, 9.72, 9.71, 9.72, 9.72, 9.72, 9.71, 9.71, 9.71, 9.72, 9.72, 9.71, 9.71, 9.71, 9.72, 9.7, 9.68, 9.65, 9.61, 9.57, 9.53, 9.49, 9.44, 9.4, 9.36, 9.31, 9.28, 9.25, 9.22, 9.2, 9.17, 9.16, 9.16, 9.15, 9.16, 9.16, 9.17, 9.17, 9.16, 9.16, 9.16, 9.15, 9.13, 9.1, 9.06, 8.82, 8.56, 8.23, 7.9, 7.77]}, "SN1105": {"t0": "2026-03-26 16:20:00+00:00", "step_min": 20, "T": [21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.19, 21.19, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.21, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.22, 21.21, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.18, 21.17, 21.17, 21.17, 21.17, 21.16, 21.16, 21.15, 21.15, 21.15, 21.15, 21.13, 21.13, 21.13, 21.13, 21.11, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.11, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.16, 21.16, 21.17, 21.17, 21.17, 21.17, 21.17, 21.17, 21.17, 21.16, 21.16, 21.16, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.15, 21.13, 21.13, 21.13, 21.12, 21.11, 21.1, 21.1, 21.1, 21.09, 21.08, 21.08, 21.08, 21.08, 21.06, 21.06, 21.06, 21.06, 21.05, 21.03, 21.03, 21.03, 21.03, 21.03, 21.02, 21.02, 21.02, 21.01, 21.01, 21.01, 21.01, 21.01, 21.01, 21.01, 21.01, 21.02, 21.02, 21.03, 21.03, 21.03, 21.03, 21.03, 21.05, 21.06, 21.06, 21.06, 21.07, 21.08, 21.08, 21.08, 21.09, 21.1, 21.1, 21.1, 21.1, 21.11, 21.12, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.13, 21.12, 21.12, 21.11, 21.11, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.1, 21.09, 21.09, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.07, 21.07, 21.07, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.06, 21.05, 21.04, 21.04, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.03, 21.04, 21.06, 21.06, 21.06, 21.06, 21.06, 21.07, 21.08, 21.08, 21.08, 21.08, 21.1, 21.1, 21.1, 21.12, 21.14, 21.15, 21.16, 21.17, 21.18, 21.2, 21.21, 21.22, 21.23, 21.25, 21.26, 21.27, 21.28, 21.29, 21.32, 21.32, 21.34, 21.36, 21.37, 21.38, 21.39, 21.41, 21.41, 21.44, 21.45, 21.46, 21.47, 21.49, 21.5, 21.51, 21.52, 21.53, 21.55, 21.56, 21.57, 21.58, 21.59, 21.6, 21.62, 21.63, 21.64, 21.65, 21.66, 21.68, 21.68, 21.7, 21.7, 21.72, 21.72, 21.75, 21.75, 21.77, 21.77, 21.8, 21.8, 21.82, 21.84, 21.85, 21.87, 21.88, 21.9, 21.92, 21.95, 21.96, 21.99, 22.01, 22.02, 22.04, 22.06, 22.08, 22.11, 22.12, 22.14, 22.15, 22.18, 22.19, 22.2, 22.23, 22.24, 22.25, 22.26, 22.27, 22.28, 22.3, 22.3, 22.32, 22.32, 22.34, 22.35, 22.35, 22.37, 22.37, 22.38, 22.39, 22.39, 22.41, 22.42, 22.42, 22.44, 22.44, 22.46, 22.47, 22.47, 22.49, 22.49, 22.49, 22.49, 22.47, 22.46, 22.44, 22.41, 22.38, 22.34, 22.29, 22.24, 22.18, 22.13, 22.06, 22.0, 21.94, 21.87, 21.81, 21.75, 21.68, 21.63, 21.57, 21.51, 21.47, 21.42, 21.38, 21.33, 21.3, 21.26, 21.23, 21.19, 21.16, 21.13, 21.1, 21.08, 21.07, 21.06, 21.06, 21.05, 21.04, 21.06, 21.06, 21.06, 21.06, 21.06, 21.07, 21.08, 21.08, 21.08, 21.08, 21.08, 21.08, 21.07, 21.07, 21.06, 21.06, 21.06, 21.06, 21.04, 21.03, 21.02, 21.01, 20.98, 20.97, 20.95, 20.93, 20.9, 20.88, 20.85, 20.83, 20.8, 20.77, 20.75, 20.71, 20.69, 20.67, 20.65, 20.63, 20.6, 20.59, 20.58, 20.56, 20.56, 20.53, 20.53, 20.51, 20.51, 20.48, 20.48, 20.48, 20.47, 20.46, 20.46, 20.46, 20.46, 20.46, 20.46, 20.46, 20.48, 20.48, 20.48, 20.49, 20.54, 20.8, 20.78, 20.8, 20.74, 20.72, 20.72, 20.74, 20.75, 20.77, 20.78, 20.79, 20.79, 20.8, 20.81, 20.82, 20.82, 20.82, 20.82, 20.82, 20.82, 20.84, 20.84, 20.87, 20.92, 20.96, 20.99, 21.01, 21.03, 21.06, 21.06, 21.08, 21.08, 21.1, 21.1, 21.1, 21.1, 21.08, 21.08, 21.07, 21.06, 21.05, 21.03, 21.03, 21.02, 21.01, 21.01, 20.98, 20.98, 20.98, 20.96, 20.96, 20.96, 20.96, 20.96, 20.97, 20.98, 21.01, 21.02, 21.04, 21.06, 21.08, 21.08, 21.08, 21.07, 21.03, 21.06, 21.08, 21.1, 21.14, 21.16, 21.19, 21.31, 21.39, 21.44, 21.47, 21.51, 21.51, 21.49, 21.48, 21.51, 21.54, 21.5, 21.39, 21.39, 21.37, 21.38, 21.46, 21.52, 21.6, 21.93, 21.87, 21.62, 21.56, 21.57, 21.61, 21.6, 21.61, 21.65, 21.7, 21.7, 21.69, 21.68, 21.66, 21.64, 21.63, 21.61, 21.6, 21.58, 21.54, 21.5, 21.46, 21.41, 21.39, 21.34, 21.3, 21.27, 21.23, 21.19, 21.15, 21.11, 21.08, 21.05, 21.03, 21.04, 21.06, 21.08, 21.15, 21.23, 21.39, 21.41, 21.47, 21.55, 21.58, 21.6, 21.66, 21.74, 21.81, 21.84, 22.02, 22.1, 22.11, 22.09, 22.12, 22.06, 22.01, 22.04, 22.14, 22.23, 22.26, 22.28, 22.27, 22.28, 22.34, 22.3, 22.31, 22.34, 22.77, 22.98, 22.92, 22.93, 22.94, 22.94, 22.94, 22.94, 22.92, 22.93, 22.96, 23.0, 23.02, 23.03, 23.04, 23.03, 23.02, 23.0, 22.98, 22.96, 22.94, 22.92, 22.88, 22.85, 22.81, 22.78, 22.73, 22.68, 22.62, 22.57, 22.52, 22.47, 22.42, 22.37, 22.33, 22.28, 22.24, 22.2, 22.19, 22.22, 22.18, 22.19, 22.22, 22.27, 22.36, 22.44, 22.47, 22.48, 22.48, 22.49, 22.52, 22.56, 22.59, 22.64, 22.69, 22.67, 22.63, 22.64, 22.68, 22.71, 22.74, 22.82, 22.86, 22.85, 22.82, 22.77, 22.75, 22.75, 22.78, 22.78, 22.77, 22.75, 22.75, 22.75, 22.74, 22.72, 22.7, 22.72, 22.77, 22.77, 22.74, 22.71, 22.68, 22.67, 22.66, 22.64, 22.61, 22.57, 22.52, 22.49, 22.47, 22.42, 22.38, 22.34, 22.3, 22.26, 22.21, 22.17, 22.14, 22.1, 22.06, 22.04, 22.0, 21.98, 21.95, 21.92, 21.9, 21.94, 21.96, 22.01, 22.23, 22.33, 22.25, 22.19, 22.28, 22.46, 22.33, 22.29, 22.22, 22.18, 22.18, 22.22, 22.29, 22.3, 22.34, 22.34, 22.37, 22.42, 22.42, 22.42, 22.4, 22.35, 22.29, 22.18, 22.24, 22.28, 22.25, 22.24, 22.24, 22.26, 22.25, 22.24, 22.23, 22.23, 22.29, 22.31, 22.32, 22.41, 22.47, 23.02, 23.42, 23.47, 23.47, 23.41, 23.34, 23.33, 23.31, 23.27, 23.21, 23.15, 23.08, 23.03, 22.97, 22.91, 22.85, 22.8, 22.76, 22.71, 22.68, 22.63, 22.58, 22.55, 22.53, 22.49, 22.48, 22.47, 22.49, 22.55, 22.56, 22.55, 22.57, 22.64, 22.86, 23.08, 23.14, 23.18, 23.37, 23.36, 23.34, 23.37, 23.38, 23.41, 23.34, 23.25, 23.18, 23.09, 23.12, 23.14, 23.14, 23.15, 23.14, 23.15, 23.19, 23.17, 23.16, 23.07, 22.97, 22.92, 22.93, 22.93, 22.92, 22.89, 22.88, 22.86, 22.9, 22.95, 23.06, 23.11, 23.19, 23.33, 23.38, 23.44, 23.57, 23.7, 23.76, 23.75, 23.7, 23.67, 23.73, 23.78, 23.65, 23.58, 23.54, 23.53, 23.52, 23.49, 23.46, 23.43, 23.38, 23.34, 23.29, 23.24, 23.19, 23.15, 23.13, 23.1, 23.06, 23.03, 22.99, 23.09, 23.15, 23.12, 23.05, 23.01, 23.01, 23.05, 23.1, 23.11, 23.13, 23.16, 23.18, 23.21, 23.17, 23.15, 23.2, 23.25, 23.23, 23.21, 23.19, 23.18, 23.26, 23.37, 23.44, 23.54, 23.62, 23.7, 23.76, 23.82, 23.82, 23.85, 23.83, 23.82, 23.82, 23.88, 23.9, 23.89, 23.9, 23.9, 23.87, 23.84, 23.79, 23.73, 23.68, 23.68, 23.67, 23.68, 23.65, 23.63, 23.63, 23.58, 23.59, 23.59, 23.59, 23.58, 23.56, 23.53, 23.49, 23.45, 23.41, 23.37, 23.32, 23.25, 23.19, 23.15, 23.14, 23.1, 23.07, 23.09, 23.11, 23.13, 23.09, 23.06, 23.04, 23.02, 22.99, 23.02, 23.0, 23.01, 23.02, 23.02, 23.03, 23.18, 23.51, 24.64, 25.13, 25.52, 25.94, 25.71, 25.61, 25.64, 25.66, 25.63, 25.63, 25.71, 25.72, 25.72, 25.73, 25.79, 25.84, 25.88, 25.89, 25.89, 25.91, 25.93, 25.92, 25.92, 25.95, 26.01, 25.97, 25.91, 25.88, 25.86, 25.82, 25.83, 25.81, 25.78, 25.77, 25.72, 25.67, 25.65, 25.7, 25.72, 25.72, 25.72, 25.71, 25.68, 25.64, 25.6, 25.56, 25.52, 25.48, 25.47, 25.45, 25.44, 25.42, 25.4, 25.38, 25.35, 25.32, 25.3, 25.27, 25.25, 25.22, 25.18, 25.15, 25.11, 25.09, 25.09, 25.11, 25.14, 25.14, 25.14, 25.14, 25.12, 25.06, 24.97, 24.83, 24.72, 24.61, 24.45, 24.29, 24.16, 24.04, 23.9, 23.77, 23.66, 23.56, 23.47, 23.38, 23.26, 23.07, 22.85, 22.76, 22.8, 22.96, 23.16, 23.34, 23.47, 23.52, 23.52, 23.5, 23.47, 23.44, 23.38, 23.32, 23.25, 23.17, 23.08, 22.99, 22.9, 22.8, 22.72, 22.62, 22.52, 22.44, 22.36, 22.27, 22.18, 22.11, 22.04, 21.97, 21.89, 21.82, 21.76, 21.7, 21.65, 21.59, 21.54, 21.49, 21.44, 21.4, 21.35, 21.31, 21.32, 21.33, 21.42, 21.8, 20.34, 19.3, 18.7, 18.33, 18.07, 17.88, 17.76, 17.69, 17.63, 17.55, 17.48, 17.42, 17.38, 17.35, 17.35, 17.38, 18.92, 23.03, 23.96, 23.8, 23.41, 23.18, 22.99, 22.91, 22.94, 23.06, 23.07, 22.54, 22.11, 21.82, 21.76, 21.88, 21.66, 21.32, 21.43, 21.3, 21.07, 21.06, 21.14, 21.11, 21.18, 21.12, 21.01, 21.05, 21.1, 21.14, 21.16, 21.17, 21.17, 21.17, 21.16, 21.15, 21.06, 21.04, 21.1, 20.95, 20.91, 20.92, 20.94, 20.92, 20.91, 20.89, 20.86, 20.84, 20.83, 20.82, 20.79, 20.75, 20.84, 20.92, 20.98, 20.86, 20.89, 20.96, 21.03, 21.09, 21.05, 21.1, 20.95, 21.0, 21.01, 20.98, 21.15, 21.06, 20.95, 21.01, 20.95, 21.11, 21.07, 21.02, 20.93, 20.87, 21.06, 21.1, 21.01, 20.88, 20.81, 20.97, 21.06, 20.93, 20.93, 20.95, 20.97, 20.84, 20.76, 20.82, 20.9, 20.96, 21.01, 21.04, 21.06, 21.06, 21.06, 21.06, 21.04, 21.03, 21.02, 20.99, 20.94, 20.99, 21.07, 20.98, 20.82, 20.79, 20.79, 20.82, 20.83, 20.84, 20.83, 20.83, 20.81, 20.73, 20.78, 20.83, 20.88, 20.76, 20.75, 20.74, 20.72, 20.7, 20.7, 20.7, 20.72, 20.76, 20.8, 20.83, 20.88, 20.95, 20.91, 20.97, 21.0, 20.86, 20.73, 20.79, 20.76, 20.8, 20.76, 20.84, 20.78, 20.73, 20.67, 20.81, 20.74, 20.67, 20.71, 20.92, 21.25, 21.47, 21.64, 21.73, 21.6, 21.55, 21.48, 21.41, 21.47, 21.59, 21.48, 21.28, 21.19, 21.21, 21.6, 21.96, 22.29, 22.37, 22.37, 22.35, 22.37, 22.43, 22.44, 22.44, 22.43, 22.37, 22.2, 22.2, 22.36, 22.52, 22.59, 22.47, 22.44, 22.44, 22.44, 22.42, 22.41, 22.39, 22.37, 22.36, 22.33, 22.3, 22.47, 22.6, 22.6, 22.54, 22.57, 22.63, 22.53, 22.37, 22.29, 22.22, 22.32, 22.6, 22.62, 22.67, 22.76, 22.76, 22.89, 22.81, 22.84, 22.89, 22.93, 22.88, 22.81, 22.92, 22.95, 22.89, 22.86, 22.84, 22.86, 22.94, 23.06, 23.2, 23.35, 23.42, 23.34, 23.22, 23.41, 23.63, 23.51, 23.29, 23.24, 23.26, 23.16, 23.07, 23.07, 23.12, 22.96, 22.9, 22.9, 22.9, 22.88, 22.93, 22.94, 22.8, 22.74, 22.78, 22.97, 22.94, 22.76, 22.68, 22.64, 22.62, 22.58, 22.57, 22.54, 22.51, 22.48, 22.44, 22.42, 22.4, 22.38, 22.56, 22.5, 22.41, 22.36, 22.37, 22.39, 22.41, 22.44, 22.5, 22.61, 22.74, 22.81, 22.97, 22.91, 23.43, 24.5, 25.25, 25.91, 26.37, 26.69, 26.74, 26.72, 26.69, 26.65, 26.69, 26.91, 27.01, 27.01, 26.96, 26.92, 26.96, 26.97, 26.99, 27.04, 27.1, 26.95, 26.58, 26.3, 26.03, 25.9, 25.79, 25.23, 24.12, 23.45, 22.9, 22.1, 21.29, 20.63, 20.19, 19.92, 19.74, 19.62, 19.52, 19.44, 19.36, 19.28, 19.18, 19.1, 19.0, 18.9, 18.79, 18.68, 18.58, 18.47, 18.36, 18.26, 18.15, 18.05, 17.95, 17.85, 17.75, 17.65, 17.56, 17.46, 17.37, 17.27, 17.18, 17.1, 17.02, 16.94, 16.88, 16.83, 17.09, 17.71, 18.36, 18.92, 19.35, 19.67, 19.91, 20.09, 20.24, 20.34, 20.41, 20.46, 20.49, 20.53, 20.56, 20.58, 20.59, 20.61, 20.63, 20.63, 20.64, 20.65, 20.66, 20.73, 20.84, 20.92, 20.96, 21.01, 21.0, 20.97, 20.94, 20.9, 20.86, 20.83, 20.81, 20.79, 20.76, 20.69, 20.62, 20.57, 20.58, 20.64, 20.77, 20.83, 20.84, 20.86, 20.86, 20.86, 20.86, 20.85, 20.84, 20.85, 20.85, 20.84, 20.85, 20.86, 20.86, 20.86, 20.85, 20.84, 20.82, 20.8, 20.78, 20.76, 20.74, 20.72, 20.7, 20.7, 20.71, 20.75, 20.76, 20.77, 20.78, 20.8, 20.82, 20.84, 20.85, 20.87, 20.89, 20.89, 20.9, 20.89, 20.88, 20.85, 20.84, 20.84, 20.86, 20.87, 20.9, 20.91, 20.93, 20.94, 20.96, 20.96, 20.96, 20.94, 20.91, 20.9, 20.89, 20.89, 20.88, 20.86, 20.86, 20.86, 20.88, 20.86, 20.86, 20.86, 20.89, 20.87, 20.86, 20.86, 20.84, 20.84, 20.82, 20.82, 20.82, 20.84, 20.92, 21.12, 21.4, 21.65, 21.86, 22.02, 22.12, 22.2, 22.25, 22.28, 22.3, 22.3, 22.3, 22.3, 22.3, 22.29, 22.27, 22.27, 22.25, 22.25, 22.24, 22.23, 22.23, 22.23, 22.23, 22.24, 22.24, 22.28, 22.35, 22.45, 22.55, 22.62, 22.69, 22.76, 22.8, 22.82, 22.85, 22.85, 22.85, 22.85, 22.85, 22.85, 22.85, 22.85, 22.84, 22.82, 22.82, 22.82, 22.8, 22.79, 22.78, 22.76, 22.74, 22.72, 22.7, 22.67, 22.64, 22.61, 22.57, 22.55, 22.52, 22.49, 22.46, 22.42, 22.38, 22.34, 22.29, 22.25, 22.2, 22.16, 22.12, 22.07, 22.02, 21.98, 21.93, 21.88, 21.83, 21.8, 21.76, 21.73, 21.7, 21.66, 21.63, 21.59, 21.55, 21.51, 21.48, 21.44, 21.4, 21.37, 21.34, 21.33, 21.36, 21.36, 21.3, 21.23, 21.18, 21.13, 21.09, 21.05, 21.02, 20.99, 20.97, 20.96, 20.96, 20.95, 20.94, 20.95, 20.96, 20.96, 20.97, 20.98, 21.0, 21.01, 21.03, 21.05, 21.07, 21.09, 21.11, 21.14, 21.16, 21.18, 21.2, 21.22, 21.23, 21.25, 21.26, 21.27, 21.28, 21.29, 21.29, 21.32, 21.32, 21.32, 21.34, 21.34, 21.35, 21.36, 21.37, 21.37, 21.37, 21.37, 21.37, 21.37, 21.37, 21.37, 21.37, 21.36, 21.34, 21.34, 21.34, 21.33, 21.32, 21.32, 21.31, 21.3, 21.29, 21.29, 21.29, 21.29, 21.3, 21.35, 21.41, 21.49, 21.57, 21.65, 21.73, 21.8, 21.87, 21.94, 22.01, 22.07, 22.13, 22.19, 22.25, 22.32, 22.38, 22.47, 22.09, 21.03, 20.64, 20.5, 20.41, 20.32, 20.28, 20.24, 20.22, 20.21, 20.2, 20.19, 20.16, 20.15, 20.15, 20.14, 20.14, 20.13, 20.13, 20.13, 20.13, 20.13, 20.14, 20.14, 20.13, 20.13, 20.14, 20.15, 20.15, 20.15, 20.14, 20.14, 20.14, 20.14, 20.14, 20.14, 20.13, 20.13, 20.13, 20.14, 20.15, 20.15, 20.15, 20.15, 20.14, 20.08, 19.99, 19.91, 19.84, 19.76, 19.7, 19.64, 19.58, 19.54, 19.49, 19.47, 19.46, 19.46, 19.48, 19.48, 19.51, 19.55, 19.6, 19.65, 19.7, 19.73, 19.76, 19.79, 19.82, 19.82, 19.82, 19.84, 19.81, 19.74, 19.84, 20.31, 20.58, 21.05, 20.35], "RH": [27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 28.0, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.8, 27.8, 27.8, 27.8, 27.8, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.7, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.5, 27.5, 27.5, 27.5, 27.4, 27.4, 27.4, 27.4, 27.4, 27.3, 27.3, 27.3, 27.3, 27.2, 27.2, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.3, 27.3, 27.3, 27.3, 27.3, 27.4, 27.4, 27.4, 27.4, 27.4, 27.5, 27.5, 27.5, 27.5, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.6, 27.5, 27.5, 27.5, 27.5, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.0, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.1, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.2, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.4, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.3, 27.2, 27.2, 27.2, 27.2, 27.1, 27.1, 27.1, 27.0, 27.0, 27.0, 26.9, 26.9, 26.9, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.8, 26.7, 26.7, 26.6, 26.6, 26.5, 26.5, 26.5, 26.5, 26.4, 26.4, 26.4, 26.3, 26.3, 26.2, 26.2, 26.1, 26.1, 26.1, 26.1, 26.0, 26.0, 26.0, 26.0, 26.0, 26.0, 26.0, 26.1, 26.0, 26.0, 26.0, 26.0, 26.0, 25.9, 25.8, 25.7, 25.4, 24.9, 24.3, 23.8, 23.4, 23.0, 22.7, 22.5, 22.3, 22.2, 22.1, 22.0, 22.0, 22.0, 22.1, 22.2, 22.6, 23.0, 23.4, 24.2, 24.5, 24.4, 24.2, 23.8, 23.5, 23.2, 23.0, 22.7, 22.5, 22.4, 22.4, 22.7, 22.9, 23.1, 23.2, 23.4, 23.6, 23.7, 23.9, 24.1, 24.3, 24.5, 24.7, 24.8, 25.0, 25.1, 25.2, 25.3, 25.4, 25.4, 25.5, 25.6, 25.6, 25.6, 25.6, 25.7, 25.7, 25.7, 25.7, 25.7, 25.8, 25.8, 25.7, 25.7, 25.7, 25.7, 25.6, 25.6, 25.5, 25.5, 25.4, 25.4, 25.3, 25.3, 25.2, 25.2, 25.2, 25.2, 25.2, 25.2, 25.2, 25.3, 25.3, 25.3, 25.3, 25.2, 25.2, 25.2, 25.2, 25.2, 25.2, 25.1, 25.1, 25.1, 25.1, 25.2, 25.2, 25.2, 25.3, 25.2, 25.2, 25.0, 25.0, 24.9, 25.0, 24.8, 23.5, 24.4, 24.1, 24.1, 24.0, 23.9, 23.9, 23.8, 23.8, 23.8, 23.7, 23.5, 23.4, 23.4, 23.2, 23.1, 22.9, 22.7, 22.4, 22.3, 22.2, 22.1, 22.0, 21.9, 21.8, 21.8, 21.7, 21.6, 21.6, 21.6, 21.6, 21.7, 21.7, 21.7, 21.7, 21.7, 21.7, 21.8, 21.8, 21.8, 21.9, 21.9, 21.9, 22.0, 22.0, 22.1, 22.1, 22.1, 22.2, 22.2, 22.3, 22.4, 22.6, 22.8, 23.1, 23.5, 23.8, 24.1, 24.3, 24.4, 24.6, 24.7, 25.2, 25.5, 25.6, 25.6, 25.6, 25.5, 25.3, 24.6, 23.0, 22.8, 22.8, 22.9, 23.2, 23.4, 23.6, 23.6, 23.9, 23.9, 23.6, 22.6, 22.0, 21.2, 21.1, 21.4, 21.8, 23.0, 25.9, 25.1, 24.2, 24.3, 24.6, 25.0, 25.4, 25.6, 26.0, 26.3, 26.5, 26.6, 26.7, 26.8, 26.9, 27.1, 27.3, 27.6, 27.7, 27.8, 27.8, 27.8, 27.8, 27.8, 27.7, 27.6, 27.5, 27.4, 27.2, 27.0, 26.8, 26.5, 26.3, 26.1, 26.2, 26.2, 26.4, 26.7, 27.4, 28.8, 28.5, 28.6, 28.7, 28.5, 28.4, 28.3, 28.1, 27.9, 27.7, 27.8, 27.9, 27.8, 27.5, 27.0, 26.7, 26.4, 26.2, 26.1, 25.9, 25.9, 25.8, 25.8, 25.7, 25.8, 25.6, 25.4, 25.4, 27.5, 27.1, 26.8, 26.9, 27.0, 27.0, 27.0, 26.9, 26.9, 27.0, 27.1, 27.3, 27.4, 27.6, 27.8, 27.9, 27.9, 27.9, 27.9, 27.9, 27.9, 27.8, 27.8, 27.8, 27.7, 27.7, 27.6, 27.6, 27.5, 27.5, 27.4, 27.4, 27.3, 27.2, 27.2, 27.1, 27.0, 26.9, 27.0, 27.0, 26.7, 26.7, 26.8, 26.8, 27.0, 27.2, 27.4, 27.5, 27.5, 27.6, 27.6, 27.7, 27.7, 27.8, 27.9, 27.9, 28.1, 28.3, 28.5, 28.8, 29.1, 29.8, 30.4, 30.9, 31.1, 31.0, 31.0, 31.0, 31.0, 30.9, 30.6, 30.4, 30.2, 29.9, 29.7, 29.5, 29.3, 29.4, 29.8, 30.1, 30.1, 30.1, 30.1, 30.1, 30.1, 30.1, 30.1, 30.0, 29.9, 29.8, 29.8, 29.8, 29.8, 29.7, 29.6, 29.5, 29.4, 29.2, 29.1, 29.0, 28.8, 28.7, 28.6, 28.4, 28.3, 28.1, 28.0, 28.2, 28.3, 28.6, 31.0, 30.9, 29.7, 28.9, 29.8, 34.2, 31.6, 30.2, 29.3, 28.6, 28.1, 27.7, 27.7, 27.0, 26.7, 26.0, 25.5, 25.2, 25.2, 25.2, 25.2, 25.0, 25.4, 25.8, 27.1, 27.3, 26.2, 25.6, 25.2, 25.3, 25.3, 25.3, 25.2, 25.3, 25.3, 25.2, 25.2, 26.0, 26.3, 27.1, 27.2, 27.3, 27.3, 27.3, 27.4, 27.4, 27.3, 27.3, 27.2, 27.1, 26.9, 26.8, 26.7, 26.5, 26.4, 26.2, 26.1, 26.0, 25.8, 25.7, 25.6, 25.5, 25.4, 25.3, 25.2, 25.2, 25.2, 25.5, 25.5, 25.6, 25.7, 26.7, 26.9, 26.1, 26.2, 26.2, 28.6, 29.0, 29.1, 29.6, 29.2, 28.8, 29.2, 30.0, 29.6, 29.2, 29.5, 29.4, 29.2, 29.2, 29.4, 29.6, 29.7, 29.7, 29.2, 27.4, 25.9, 25.1, 24.8, 24.8, 24.1, 23.9, 23.4, 22.7, 22.7, 23.3, 23.5, 22.7, 23.2, 24.5, 24.9, 25.9, 28.2, 29.7, 31.1, 30.9, 31.0, 31.1, 32.9, 34.3, 32.8, 31.7, 31.0, 30.6, 30.4, 30.2, 30.0, 29.9, 29.6, 29.5, 29.2, 28.9, 28.6, 28.6, 28.7, 28.5, 28.2, 27.8, 27.7, 29.3, 30.2, 29.3, 28.3, 28.0, 28.2, 28.5, 28.7, 28.9, 29.2, 29.4, 29.1, 28.9, 27.8, 26.8, 27.2, 27.1, 26.8, 26.2, 25.5, 24.8, 25.1, 25.2, 24.7, 25.1, 25.8, 26.4, 27.0, 27.3, 27.3, 27.0, 26.9, 26.9, 26.7, 27.0, 27.2, 27.2, 27.3, 27.2, 27.2, 27.0, 26.6, 26.2, 26.2, 26.3, 26.0, 26.6, 26.8, 26.8, 26.3, 26.2, 26.5, 26.8, 26.9, 26.8, 26.6, 26.4, 26.3, 26.1, 26.0, 25.8, 25.6, 25.1, 25.0, 24.9, 25.2, 25.1, 25.0, 25.4, 26.0, 26.3, 25.9, 25.4, 24.9, 24.5, 24.2, 24.5, 24.4, 24.9, 25.2, 25.2, 25.2, 27.6, 25.6, 24.4, 22.4, 22.0, 21.2, 21.1, 21.3, 21.6, 22.0, 22.2, 22.3, 22.0, 21.9, 22.0, 22.0, 22.1, 22.2, 22.2, 22.1, 22.0, 21.8, 21.8, 21.7, 21.5, 21.6, 21.6, 21.6, 21.6, 21.5, 21.7, 22.1, 22.1, 22.4, 22.6, 22.7, 23.0, 23.2, 23.3, 23.2, 23.2, 23.2, 23.2, 23.2, 23.2, 23.2, 23.0, 22.8, 22.6, 22.5, 22.3, 22.2, 22.1, 22.0, 21.8, 21.6, 21.4, 21.3, 21.1, 20.9, 20.7, 20.5, 20.3, 20.1, 19.9, 19.7, 19.6, 19.5, 19.4, 19.5, 19.6, 19.7, 19.7, 19.6, 19.5, 19.4, 19.3, 19.2, 19.0, 18.9, 18.8, 18.8, 18.7, 18.8, 19.1, 19.6, 20.2, 20.9, 21.5, 21.2, 23.3, 23.2, 23.3, 23.6, 24.1, 24.6, 25.2, 25.8, 26.4, 27.1, 27.8, 28.6, 29.4, 30.0, 30.7, 31.4, 32.0, 32.5, 32.9, 33.2, 33.5, 33.9, 34.3, 34.7, 35.1, 35.3, 35.4, 35.4, 35.5, 35.6, 35.7, 35.8, 35.9, 36.1, 36.2, 36.3, 36.4, 36.6, 36.7, 36.8, 37.0, 37.2, 37.6, 38.0, 39.8, 45.4, 41.9, 42.7, 43.6, 44.3, 44.8, 45.2, 45.6, 46.1, 46.3, 46.4, 46.5, 46.6, 46.8, 46.9, 47.1, 47.3, 65.5, 65.1, 55.0, 51.5, 51.0, 52.2, 52.7, 52.8, 53.3, 53.6, 52.3, 50.7, 51.1, 51.0, 52.7, 52.5, 50.9, 51.4, 52.3, 51.2, 51.2, 52.0, 52.3, 51.7, 52.4, 51.4, 51.7, 52.1, 52.1, 52.1, 52.1, 52.0, 51.9, 51.9, 51.9, 51.8, 51.3, 51.9, 51.9, 51.2, 51.7, 51.7, 51.7, 51.7, 51.6, 51.6, 51.5, 51.5, 51.6, 51.6, 51.3, 51.8, 51.9, 52.2, 51.7, 51.3, 51.8, 52.0, 52.0, 51.8, 51.8, 51.5, 51.2, 51.8, 51.4, 51.8, 52.1, 51.0, 51.4, 51.6, 51.4, 52.1, 51.4, 51.1, 51.0, 51.4, 52.2, 51.4, 50.9, 50.8, 51.1, 52.1, 51.4, 51.0, 51.1, 51.7, 50.9, 50.8, 50.9, 51.5, 51.6, 51.6, 51.5, 51.5, 51.4, 51.4, 51.4, 51.3, 51.3, 51.3, 51.3, 51.1, 51.4, 51.5, 51.7, 50.8, 50.7, 51.1, 51.3, 51.3, 51.3, 51.3, 51.3, 51.2, 51.2, 50.9, 51.6, 51.5, 51.3, 50.9, 51.2, 51.2, 51.1, 51.1, 51.2, 51.2, 51.4, 51.4, 51.4, 51.5, 51.6, 51.6, 51.1, 51.7, 51.3, 50.6, 50.9, 51.4, 51.1, 51.1, 51.2, 51.4, 51.0, 50.8, 51.1, 51.6, 50.7, 50.9, 51.3, 52.3, 52.4, 52.1, 52.0, 51.5, 50.6, 51.0, 50.6, 50.7, 51.4, 51.2, 50.2, 50.1, 50.4, 51.4, 52.2, 52.7, 52.2, 51.2, 50.9, 50.9, 51.2, 51.2, 51.0, 50.9, 50.8, 50.4, 50.1, 51.7, 52.1, 52.2, 51.1, 50.6, 50.9, 50.9, 50.8, 50.8, 50.7, 50.7, 50.6, 50.6, 50.3, 51.0, 51.6, 51.5, 50.3, 50.5, 50.8, 50.6, 49.8, 49.7, 50.0, 49.8, 52.0, 51.6, 50.4, 51.0, 50.4, 50.9, 50.5, 50.0, 50.4, 51.0, 50.1, 50.0, 50.0, 51.1, 50.0, 49.9, 50.0, 50.0, 50.3, 50.5, 50.8, 50.8, 50.8, 49.9, 49.3, 49.5, 51.2, 50.5, 48.8, 48.8, 50.1, 49.2, 49.4, 48.9, 49.9, 49.3, 48.7, 49.2, 49.3, 49.4, 48.9, 50.0, 48.6, 48.8, 48.6, 49.8, 49.9, 48.5, 48.2, 48.6, 48.8, 48.7, 48.8, 48.8, 48.7, 48.7, 48.7, 48.7, 48.7, 48.5, 49.2, 49.6, 48.3, 48.5, 48.6, 48.8, 48.8, 48.8, 48.9, 49.1, 49.4, 49.1, 49.6, 49.2, 48.2, 52.5, 51.5, 50.8, 49.7, 48.9, 47.4, 46.4, 45.9, 45.4, 45.2, 45.4, 45.6, 44.8, 44.4, 44.2, 44.1, 44.2, 43.9, 44.0, 43.9, 43.9, 42.7, 42.2, 42.8, 42.9, 43.8, 43.7, 41.2, 41.1, 42.0, 42.7, 42.9, 42.6, 42.6, 42.8, 43.1, 43.4, 43.6, 43.8, 44.0, 44.1, 44.2, 44.2, 44.3, 44.3, 44.3, 44.4, 44.4, 44.4, 44.4, 44.4, 44.5, 44.5, 44.5, 44.6, 44.6, 44.6, 44.7, 44.7, 44.7, 44.8, 44.8, 44.9, 44.9, 45.0, 45.0, 45.1, 45.3, 46.6, 47.8, 48.5, 48.8, 48.9, 48.9, 48.9, 48.8, 48.7, 48.6, 48.6, 48.5, 48.4, 48.4, 48.3, 48.3, 48.2, 48.2, 48.2, 48.2, 48.2, 48.2, 48.2, 48.5, 48.6, 48.5, 48.6, 48.5, 48.3, 48.2, 48.1, 48.1, 48.1, 48.1, 48.1, 48.1, 48.0, 47.9, 47.9, 47.9, 48.1, 48.4, 48.6, 48.5, 48.5, 48.5, 48.5, 48.5, 48.5, 48.5, 48.5, 48.6, 48.5, 48.6, 48.6, 48.7, 48.7, 48.7, 48.7, 48.7, 48.6, 48.6, 48.6, 48.6, 48.6, 48.6, 48.6, 48.7, 48.8, 48.8, 48.9, 48.9, 48.9, 49.0, 49.0, 49.0, 49.0, 49.0, 49.0, 49.1, 49.0, 49.0, 49.0, 49.0, 49.0, 49.0, 49.1, 49.1, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.2, 49.3, 49.3, 49.3, 49.3, 49.4, 49.4, 49.3, 49.4, 49.4, 49.4, 49.4, 49.4, 49.4, 49.4, 49.5, 49.9, 50.4, 50.9, 51.1, 51.1, 51.1, 51.0, 50.9, 50.8, 50.7, 50.6, 50.6, 50.6, 50.5, 50.5, 50.4, 50.4, 50.4, 50.4, 50.4, 50.4, 50.4, 50.4, 50.4, 50.4, 50.4, 50.5, 50.6, 50.8, 51.0, 51.0, 51.0, 51.0, 51.1, 51.0, 51.0, 51.0, 51.0, 50.9, 50.9, 50.9, 50.9, 50.9, 50.9, 50.8, 50.8, 50.8, 50.8, 50.8, 50.8, 50.8, 50.8, 50.7, 50.7, 50.7, 50.7, 50.6, 50.6, 50.6, 50.6, 50.6, 50.6, 50.5, 50.5, 50.5, 50.4, 50.4, 50.3, 50.3, 50.3, 50.3, 50.3, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.1, 50.1, 50.1, 50.1, 50.1, 50.1, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.1, 50.2, 50.1, 49.9, 49.9, 49.9, 49.9, 49.9, 49.9, 49.9, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.1, 50.1, 50.1, 50.1, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.4, 50.4, 50.3, 50.4, 50.3, 50.3, 50.4, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.3, 50.4, 50.5, 50.6, 50.7, 50.8, 50.8, 50.9, 51.0, 51.0, 51.0, 51.0, 51.1, 51.1, 51.1, 51.2, 51.2, 51.3, 51.5, 49.2, 49.0, 49.8, 50.0, 50.1, 50.1, 50.2, 50.1, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.1, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.2, 50.1, 50.0, 49.9, 49.9, 49.9, 49.8, 49.8, 49.8, 49.8, 49.7, 49.7, 49.7, 49.7, 49.8, 49.8, 49.8, 49.8, 49.9, 49.9, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 49.9, 49.9, 49.1, 48.3, 48.2, 47.7, 47.0, 45.2, 44.1], "AH": [5.17, 5.17, 5.17, 5.17, 5.17, 5.17, 5.17, 5.18, 5.18, 5.18, 5.18, 5.18, 5.19, 5.19, 5.19, 5.19, 5.19, 5.19, 5.19, 5.19, 5.19, 5.19, 5.19, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.18, 5.17, 5.17, 5.16, 5.16, 5.16, 5.15, 5.15, 5.14, 5.14, 5.14, 5.13, 5.13, 5.13, 5.13, 5.12, 5.12, 5.12, 5.11, 5.11, 5.1, 5.1, 5.09, 5.09, 5.09, 5.09, 5.09, 5.09, 5.09, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.1, 5.11, 5.1, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.12, 5.12, 5.11, 5.12, 5.12, 5.12, 5.12, 5.12, 5.12, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.11, 5.1, 5.1, 5.09, 5.09, 5.08, 5.08, 5.07, 5.07, 5.06, 5.06, 5.05, 5.04, 5.04, 5.03, 5.03, 5.02, 5.01, 5.0, 4.99, 4.99, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.99, 4.99, 4.99, 4.99, 4.99, 4.99, 5.0, 5.0, 5.0, 5.01, 5.01, 5.01, 5.02, 5.02, 5.03, 5.03, 5.04, 5.05, 5.05, 5.05, 5.06, 5.07, 5.07, 5.07, 5.07, 5.08, 5.09, 5.09, 5.09, 5.09, 5.09, 5.09, 5.09, 5.08, 5.08, 5.08, 5.08, 5.07, 5.07, 5.07, 5.06, 5.06, 5.06, 5.06, 5.06, 5.05, 5.05, 5.05, 5.05, 5.04, 5.04, 5.04, 5.04, 5.03, 5.03, 5.02, 5.02, 5.01, 5.01, 5.01, 5.0, 5.0, 4.99, 4.99, 4.99, 4.99, 4.99, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.96, 4.96, 4.96, 4.96, 4.96, 4.97, 4.97, 4.97, 4.97, 4.97, 4.97, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.98, 4.99, 4.99, 4.99, 4.99, 4.99, 4.99, 4.99, 5.0, 5.0, 5.0, 5.01, 5.01, 5.02, 5.02, 5.03, 5.03, 5.03, 5.03, 5.04, 5.04, 5.04, 5.04, 5.04, 5.04, 5.05, 5.05, 5.06, 5.06, 5.06, 5.07, 5.07, 5.08, 5.08, 5.08, 5.08, 5.08, 5.09, 5.09, 5.1, 5.1, 5.11, 5.11, 5.11, 5.12, 5.12, 5.12, 5.12, 5.13, 5.13, 5.13, 5.13, 5.13, 5.14, 5.14, 5.14, 5.14, 5.14, 5.13, 5.13, 5.13, 5.12, 5.12, 5.12, 5.11, 5.11, 5.11, 5.11, 5.1, 5.1, 5.11, 5.11, 5.12, 5.12, 5.12, 5.12, 5.12, 5.12, 5.13, 5.13, 5.14, 5.15, 5.15, 5.15, 5.15, 5.16, 5.16, 5.17, 5.18, 5.18, 5.19, 5.2, 5.2, 5.2, 5.19, 5.2, 5.2, 5.19, 5.19, 5.19, 5.18, 5.19, 5.18, 5.18, 5.18, 5.18, 5.18, 5.17, 5.16, 5.15, 5.15, 5.15, 5.15, 5.15, 5.15, 5.15, 5.14, 5.16, 5.16, 5.17, 5.17, 5.17, 5.17, 5.18, 5.17, 5.17, 5.16, 5.15, 5.12, 5.06, 4.96, 4.86, 4.76, 4.67, 4.59, 4.53, 4.47, 4.43, 4.39, 4.36, 4.34, 4.33, 4.32, 4.31, 4.32, 4.38, 4.44, 4.51, 4.65, 4.69, 4.64, 4.6, 4.5, 4.44, 4.37, 4.31, 4.26, 4.21, 4.17, 4.16, 4.21, 4.24, 4.26, 4.29, 4.31, 4.34, 4.36, 4.4, 4.43, 4.47, 4.5, 4.53, 4.56, 4.59, 4.61, 4.63, 4.65, 4.66, 4.68, 4.69, 4.7, 4.71, 4.71, 4.71, 4.72, 4.72, 4.72, 4.73, 4.73, 4.73, 4.73, 4.72, 4.71, 4.7, 4.69, 4.68, 4.66, 4.65, 4.63, 4.62, 4.6, 4.59, 4.57, 4.56, 4.54, 4.53, 4.53, 4.52, 4.52, 4.52, 4.52, 4.52, 4.51, 4.51, 4.5, 4.49, 4.49, 4.48, 4.48, 4.48, 4.47, 4.46, 4.45, 4.46, 4.47, 4.47, 4.48, 4.48, 4.48, 4.47, 4.45, 4.43, 4.42, 4.46, 4.49, 4.25, 4.41, 4.35, 4.34, 4.33, 4.32, 4.31, 4.31, 4.31, 4.3, 4.28, 4.26, 4.25, 4.23, 4.21, 4.18, 4.15, 4.11, 4.07, 4.05, 4.02, 4.01, 4.02, 4.01, 4.0, 3.99, 3.98, 3.98, 3.97, 3.97, 3.98, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.01, 4.01, 4.02, 4.02, 4.03, 4.03, 4.04, 4.04, 4.05, 4.05, 4.06, 4.08, 4.09, 4.12, 4.17, 4.23, 4.3, 4.36, 4.42, 4.47, 4.5, 4.52, 4.55, 4.63, 4.68, 4.7, 4.71, 4.71, 4.7, 4.68, 4.56, 4.29, 4.28, 4.28, 4.3, 4.38, 4.42, 4.44, 4.45, 4.5, 4.52, 4.45, 4.24, 4.11, 3.97, 3.95, 4.04, 4.11, 4.37, 5.01, 4.83, 4.6, 4.59, 4.66, 4.75, 4.81, 4.86, 4.95, 5.01, 5.05, 5.06, 5.08, 5.1, 5.12, 5.14, 5.18, 5.23, 5.26, 5.26, 5.24, 5.22, 5.21, 5.2, 5.18, 5.15, 5.12, 5.08, 5.03, 4.98, 4.93, 4.88, 4.84, 4.8, 4.8, 4.82, 4.86, 4.93, 5.08, 5.4, 5.35, 5.38, 5.43, 5.39, 5.38, 5.39, 5.37, 5.35, 5.33, 5.41, 5.44, 5.42, 5.37, 5.28, 5.19, 5.12, 5.09, 5.1, 5.09, 5.09, 5.1, 5.08, 5.08, 5.1, 5.05, 5.02, 5.03, 5.57, 5.56, 5.49, 5.5, 5.52, 5.53, 5.52, 5.51, 5.5, 5.52, 5.56, 5.61, 5.65, 5.68, 5.72, 5.73, 5.74, 5.74, 5.73, 5.72, 5.71, 5.69, 5.67, 5.66, 5.64, 5.62, 5.59, 5.57, 5.53, 5.51, 5.48, 5.45, 5.43, 5.4, 5.38, 5.35, 5.32, 5.29, 5.29, 5.3, 5.24, 5.24, 5.26, 5.29, 5.35, 5.41, 5.46, 5.48, 5.49, 5.5, 5.52, 5.55, 5.57, 5.6, 5.64, 5.63, 5.65, 5.69, 5.76, 5.81, 5.89, 6.06, 6.2, 6.3, 6.33, 6.29, 6.28, 6.28, 6.3, 6.27, 6.22, 6.16, 6.11, 6.06, 6.02, 5.97, 5.93, 5.96, 6.05, 6.1, 6.1, 6.08, 6.07, 6.06, 6.07, 6.07, 6.05, 6.02, 5.98, 5.96, 5.95, 5.93, 5.9, 5.88, 5.85, 5.82, 5.78, 5.73, 5.69, 5.65, 5.62, 5.59, 5.55, 5.51, 5.47, 5.43, 5.4, 5.45, 5.48, 5.56, 6.1, 6.11, 5.84, 5.66, 5.88, 6.81, 6.25, 5.95, 5.76, 5.61, 5.51, 5.45, 5.47, 5.33, 5.28, 5.14, 5.05, 5.01, 5.02, 5.01, 4.99, 4.95, 5.01, 5.07, 5.34, 5.39, 5.17, 5.03, 4.96, 4.98, 4.98, 4.97, 4.96, 4.97, 4.99, 4.99, 4.98, 5.17, 5.24, 5.58, 5.71, 5.76, 5.76, 5.75, 5.73, 5.73, 5.71, 5.69, 5.65, 5.61, 5.56, 5.52, 5.47, 5.42, 5.37, 5.33, 5.28, 5.25, 5.21, 5.18, 5.14, 5.11, 5.09, 5.05, 5.03, 5.02, 5.04, 5.1, 5.12, 5.12, 5.16, 5.38, 5.49, 5.38, 5.43, 5.43, 6.0, 6.09, 6.1, 6.21, 6.13, 6.05, 6.12, 6.24, 6.14, 6.04, 6.1, 6.09, 6.05, 6.06, 6.09, 6.14, 6.16, 6.17, 6.06, 5.66, 5.31, 5.13, 5.09, 5.07, 4.94, 4.88, 4.78, 4.63, 4.65, 4.77, 4.84, 4.7, 4.83, 5.14, 5.23, 5.45, 5.98, 6.35, 6.67, 6.63, 6.63, 6.65, 7.05, 7.37, 7.0, 6.73, 6.58, 6.49, 6.44, 6.37, 6.34, 6.29, 6.22, 6.18, 6.11, 6.02, 5.95, 5.93, 5.93, 5.89, 5.82, 5.73, 5.69, 6.06, 6.26, 6.07, 5.84, 5.75, 5.8, 5.88, 5.92, 5.98, 6.04, 6.1, 6.04, 6.01, 5.76, 5.57, 5.65, 5.65, 5.57, 5.45, 5.29, 5.15, 5.24, 5.29, 5.2, 5.33, 5.5, 5.64, 5.8, 5.88, 5.87, 5.83, 5.8, 5.78, 5.75, 5.83, 5.88, 5.88, 5.9, 5.88, 5.87, 5.82, 5.72, 5.62, 5.59, 5.61, 5.56, 5.68, 5.71, 5.7, 5.61, 5.55, 5.64, 5.7, 5.72, 5.69, 5.65, 5.6, 5.55, 5.51, 5.46, 5.41, 5.35, 5.23, 5.19, 5.15, 5.22, 5.19, 5.15, 5.24, 5.38, 5.45, 5.34, 5.23, 5.13, 5.05, 4.98, 5.05, 5.01, 5.12, 5.19, 5.19, 5.19, 5.72, 5.42, 5.51, 5.2, 5.21, 5.13, 5.05, 5.07, 5.16, 5.25, 5.3, 5.32, 5.27, 5.25, 5.26, 5.28, 5.32, 5.35, 5.36, 5.35, 5.32, 5.29, 5.29, 5.25, 5.22, 5.25, 5.26, 5.26, 5.22, 5.2, 5.24, 5.33, 5.34, 5.4, 5.43, 5.45, 5.51, 5.55, 5.56, 5.55, 5.56, 5.57, 5.57, 5.57, 5.55, 5.53, 5.48, 5.42, 5.37, 5.32, 5.28, 5.24, 5.21, 5.17, 5.13, 5.08, 5.03, 4.98, 4.94, 4.89, 4.84, 4.78, 4.72, 4.66, 4.6, 4.56, 4.54, 4.52, 4.5, 4.53, 4.55, 4.56, 4.56, 4.53, 4.49, 4.43, 4.38, 4.32, 4.24, 4.17, 4.13, 4.09, 4.05, 4.03, 4.08, 4.15, 4.26, 4.38, 4.48, 4.37, 4.75, 4.71, 4.74, 4.84, 4.99, 5.16, 5.33, 5.46, 5.59, 5.73, 5.88, 6.03, 6.16, 6.29, 6.41, 6.51, 6.6, 6.67, 6.72, 6.74, 6.78, 6.82, 6.86, 6.91, 6.95, 6.95, 6.94, 6.92, 6.91, 6.9, 6.89, 6.88, 6.88, 6.88, 6.88, 6.88, 6.88, 6.89, 6.9, 6.91, 6.91, 6.93, 7.01, 7.09, 7.48, 8.73, 7.39, 7.08, 6.98, 6.93, 6.91, 6.9, 6.91, 6.95, 6.95, 6.93, 6.92, 6.91, 6.92, 6.92, 6.95, 6.99, 10.79, 13.38, 11.93, 11.09, 10.73, 10.83, 10.82, 10.8, 10.91, 11.05, 10.8, 10.14, 9.97, 9.8, 10.08, 10.11, 9.68, 9.59, 9.82, 9.55, 9.41, 9.56, 9.66, 9.53, 9.7, 9.47, 9.48, 9.56, 9.6, 9.62, 9.63, 9.61, 9.6, 9.59, 9.59, 9.58, 9.42, 9.53, 9.57, 9.35, 9.41, 9.43, 9.43, 9.42, 9.4, 9.38, 9.36, 9.35, 9.35, 9.35, 9.27, 9.36, 9.42, 9.51, 9.45, 9.32, 9.43, 9.5, 9.55, 9.52, 9.51, 9.48, 9.35, 9.49, 9.43, 9.48, 9.63, 9.37, 9.38, 9.45, 9.39, 9.61, 9.46, 9.37, 9.31, 9.33, 9.6, 9.47, 9.32, 9.24, 9.26, 9.53, 9.45, 9.29, 9.32, 9.45, 9.31, 9.23, 9.2, 9.33, 9.39, 9.43, 9.44, 9.45, 9.45, 9.44, 9.44, 9.43, 9.42, 9.41, 9.4, 9.35, 9.38, 9.42, 9.5, 9.29, 9.19, 9.25, 9.28, 9.3, 9.3, 9.3, 9.3, 9.29, 9.27, 9.18, 9.32, 9.34, 9.33, 9.19, 9.23, 9.23, 9.21, 9.2, 9.21, 9.22, 9.26, 9.29, 9.31, 9.33, 9.38, 9.43, 9.3, 9.45, 9.39, 9.18, 9.18, 9.3, 9.22, 9.25, 9.25, 9.32, 9.22, 9.16, 9.17, 9.35, 9.14, 9.14, 9.25, 9.53, 9.73, 9.8, 9.88, 9.84, 9.59, 9.65, 9.53, 9.5, 9.68, 9.71, 9.46, 9.33, 9.32, 9.52, 9.89, 10.21, 10.3, 10.15, 10.09, 10.07, 10.14, 10.18, 10.15, 10.13, 10.11, 9.99, 9.83, 10.15, 10.33, 10.44, 10.26, 10.09, 10.12, 10.12, 10.12, 10.1, 10.08, 10.05, 10.04, 10.02, 9.95, 10.07, 10.3, 10.35, 10.1, 10.11, 10.19, 10.19, 9.95, 9.85, 9.86, 9.79, 10.27, 10.37, 10.13, 10.29, 10.23, 10.32, 10.31, 10.17, 10.25, 10.42, 10.26, 10.2, 10.15, 10.46, 10.25, 10.19, 10.19, 10.18, 10.26, 10.35, 10.47, 10.57, 10.65, 10.51, 10.33, 10.31, 10.77, 10.76, 10.31, 10.2, 10.44, 10.25, 10.26, 10.09, 10.3, 10.2, 9.99, 10.06, 10.08, 10.09, 9.98, 10.23, 9.95, 9.92, 9.84, 10.11, 10.23, 9.93, 9.78, 9.82, 9.82, 9.8, 9.79, 9.77, 9.76, 9.73, 9.71, 9.69, 9.69, 9.62, 9.77, 9.93, 9.65, 9.62, 9.63, 9.67, 9.68, 9.7, 9.73, 9.81, 9.93, 9.95, 10.08, 10.09, 9.86, 11.06, 11.52, 11.87, 12.04, 12.15, 12.0, 11.76, 11.63, 11.48, 11.41, 11.49, 11.69, 11.55, 11.45, 11.35, 11.3, 11.36, 11.27, 11.34, 11.34, 11.37, 10.97, 10.61, 10.6, 10.46, 10.62, 10.51, 9.61, 9.01, 8.85, 8.72, 8.37, 7.94, 7.63, 7.48, 7.41, 7.39, 7.37, 7.36, 7.35, 7.34, 7.31, 7.29, 7.25, 7.22, 7.18, 7.14, 7.1, 7.06, 7.02, 6.97, 6.93, 6.9, 6.86, 6.82, 6.79, 6.75, 6.72, 6.68, 6.65, 6.62, 6.58, 6.56, 6.53, 6.51, 6.49, 6.47, 6.49, 6.77, 7.21, 7.6, 7.91, 8.13, 8.29, 8.4, 8.48, 8.54, 8.57, 8.59, 8.6, 8.61, 8.62, 8.63, 8.63, 8.63, 8.63, 8.64, 8.64, 8.64, 8.64, 8.66, 8.74, 8.81, 8.84, 8.87, 8.88, 8.85, 8.82, 8.79, 8.76, 8.73, 8.72, 8.71, 8.7, 8.67, 8.61, 8.58, 8.56, 8.6, 8.69, 8.77, 8.8, 8.79, 8.8, 8.8, 8.8, 8.8, 8.8, 8.81, 8.82, 8.81, 8.82, 8.83, 8.84, 8.84, 8.84, 8.84, 8.83, 8.82, 8.8, 8.79, 8.78, 8.78, 8.76, 8.75, 8.77, 8.79, 8.82, 8.82, 8.83, 8.85, 8.86, 8.88, 8.9, 8.91, 8.91, 8.92, 8.93, 8.93, 8.92, 8.91, 8.89, 8.89, 8.9, 8.92, 8.93, 8.95, 8.96, 8.97, 8.99, 8.99, 8.99, 8.98, 8.97, 8.96, 8.95, 8.95, 8.95, 8.95, 8.94, 8.95, 8.95, 8.96, 8.95, 8.96, 8.97, 8.98, 8.97, 8.96, 8.96, 8.96, 8.95, 8.95, 8.95, 8.96, 8.99, 9.09, 9.3, 9.54, 9.72, 9.84, 9.92, 9.96, 9.99, 10.0, 10.0, 10.0, 9.99, 9.98, 9.97, 9.96, 9.95, 9.94, 9.93, 9.92, 9.92, 9.92, 9.91, 9.91, 9.91, 9.92, 9.92, 9.93, 9.98, 10.06, 10.15, 10.22, 10.26, 10.3, 10.35, 10.37, 10.38, 10.38, 10.38, 10.38, 10.37, 10.37, 10.37, 10.37, 10.37, 10.36, 10.34, 10.34, 10.33, 10.32, 10.31, 10.3, 10.29, 10.27, 10.26, 10.24, 10.22, 10.19, 10.18, 10.15, 10.13, 10.11, 10.09, 10.07, 10.04, 10.01, 9.98, 9.94, 9.91, 9.88, 9.85, 9.82, 9.79, 9.76, 9.73, 9.7, 9.67, 9.64, 9.62, 9.6, 9.58, 9.56, 9.54, 9.52, 9.49, 9.47, 9.44, 9.42, 9.4, 9.38, 9.36, 9.34, 9.36, 9.39, 9.37, 9.3, 9.26, 9.23, 9.21, 9.19, 9.17, 9.15, 9.14, 9.14, 9.13, 9.13, 9.13, 9.13, 9.13, 9.14, 9.15, 9.16, 9.17, 9.18, 9.19, 9.21, 9.22, 9.23, 9.25, 9.26, 9.28, 9.3, 9.31, 9.32, 9.33, 9.34, 9.35, 9.36, 9.36, 9.37, 9.38, 9.38, 9.39, 9.39, 9.39, 9.4, 9.4, 9.41, 9.42, 9.42, 9.42, 9.42, 9.42, 9.42, 9.42, 9.42, 9.41, 9.41, 9.4, 9.39, 9.39, 9.39, 9.39, 9.38, 9.38, 9.38, 9.37, 9.37, 9.36, 9.36, 9.37, 9.39, 9.43, 9.49, 9.55, 9.61, 9.67, 9.72, 9.77, 9.82, 9.87, 9.91, 9.95, 9.99, 10.03, 10.08, 10.12, 10.17, 10.26, 9.59, 8.99, 8.93, 8.9, 8.86, 8.83, 8.81, 8.78, 8.79, 8.78, 8.78, 8.78, 8.75, 8.75, 8.75, 8.74, 8.74, 8.74, 8.74, 8.73, 8.74, 8.74, 8.74, 8.74, 8.73, 8.73, 8.74, 8.74, 8.74, 8.74, 8.74, 8.73, 8.74, 8.74, 8.74, 8.73, 8.73, 8.73, 8.73, 8.74, 8.74, 8.74, 8.74, 8.74, 8.73, 8.68, 8.62, 8.57, 8.53, 8.49, 8.45, 8.42, 8.39, 8.36, 8.34, 8.32, 8.32, 8.33, 8.34, 8.35, 8.37, 8.4, 8.42, 8.46, 8.48, 8.5, 8.52, 8.53, 8.55, 8.54, 8.54, 8.54, 8.39, 8.21, 8.24, 8.39, 8.39, 8.3, 7.77]}}, "fd09": {"SN1104": {"t": ["18:00", "18:01", "18:02", "18:03", "18:04", "18:05", "18:06", "18:07", "18:08", "18:09", "18:10", "18:11", "18:12", "18:13", "18:14", "18:15", "18:16", "18:17", "18:18", "18:19", "18:20", "18:21", "18:22", "18:23", "18:24", "18:25", "18:26", "18:27", "18:28", "18:29", "18:30", "18:31", "18:32", "18:33", "18:34", "18:35", "18:36", "18:37", "18:38", "18:39", "18:40", "18:41", "18:42", "18:43", "18:44", "18:45", "18:46", "18:47", "18:48", "18:49", "18:50", "18:51", "18:52", "18:53", "18:54", "18:55", "18:56", "18:57", "18:58", "18:59", "19:00", "19:01", "19:02", "19:03", "19:04", "19:05", "19:06", "19:07", "19:08", "19:09", "19:10", "19:11", "19:12", "19:13", "19:14", "19:15", "19:16", "19:17", "19:18", "19:19", "19:20", "19:21", "19:22", "19:23", "19:24", "19:25", "19:26", "19:27", "19:28", "19:29", "19:30", "19:31", "19:32", "19:33", "19:34", "19:35", "19:36", "19:37", "19:38", "19:39", "19:40", "19:41", "19:42", "19:43", "19:44", "19:45", "19:46", "19:47", "19:48", "19:49", "19:50", "19:51", "19:52", "19:53", "19:54", "19:55", "19:56", "19:57", "19:58", "19:59", "20:00", "20:01", "20:02", "20:03", "20:04", "20:05", "20:06", "20:07", "20:08", "20:09", "20:10", "20:11", "20:12", "20:13", "20:14", "20:15", "20:16", "20:17", "20:18", "20:19", "20:20", "20:21", "20:22", "20:23", "20:24", "20:25", "20:26", "20:27", "20:28", "20:29"], "RH": [21.98, 21.98, 22.0, 22.08, 22.13, 22.16, 22.2, 22.28, 22.31, 22.38, 22.44, 22.51, 22.53, 22.58, 22.66, 22.66, 22.76, 22.76, 22.84, 22.84, 22.89, 22.89, 22.89, 22.91, 22.94, 22.96, 22.96, 23.01, 23.01, 23.01, 23.04, 23.04, 23.04, 23.11, 23.16, 23.19, 23.19, 23.19, 23.24, 23.27, 23.27, 23.32, 23.32, 23.32, 23.34, 23.34, 23.39, 23.39, 23.39, 23.39, 23.39, 23.41, 23.47, 23.49, 23.47, 23.39, 23.47, 23.32, 23.34, 23.39, 23.41, 23.41, 23.41, 23.47, 23.49, 23.49, 23.49, 23.24, 23.11, 23.24, 23.34, 23.39, 23.47, 23.47, 23.49, 23.54, 23.54, 23.54, 23.57, 23.57, 23.57, 23.62, 23.62, 23.62, 23.64, 23.64, 23.64, 23.69, 23.69, 23.69, 23.69, 23.69, 23.69, 23.64, 23.62, 23.62, 23.62, 24.8, 24.7, 24.55, 24.44, 24.37, 24.32, 24.24, 24.17, 24.15, 24.47, 24.52, 24.7, 37.02, 27.81, 25.35, 24.52, 23.92, 23.57, 23.32, 23.11, 22.96, 22.89, 22.81, 22.76, 22.76, 22.76, 22.76, 22.71, 22.69, 22.69, 22.69, 22.69, 22.71, 22.76, 22.81, 22.64, 22.69, 22.61, 22.61, 22.56, 22.53, 22.53, 22.53, 22.51, 22.51, 22.51, 22.51, 22.51, 22.51, 22.51, 22.51, 22.51, 22.51], "T": [24.48, 24.48, 24.51, 24.51, 24.51, 24.51, 24.51, 24.51, 24.53, 24.53, 24.53, 24.53, 24.53, 24.53, 24.53, 24.53, 24.53, 24.53, 24.56, 24.56, 24.56, 24.56, 24.56, 24.56, 24.56, 24.56, 24.56, 24.56, 24.58, 24.56, 24.58, 24.56, 24.56, 24.56, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.6, 24.6, 24.6, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.58, 24.56, 24.77, 25.06, 25.04, 24.99, 24.97, 24.94, 24.92, 24.92, 24.9, 24.87, 24.85, 24.85, 24.82, 24.82, 24.8, 24.8, 24.77, 24.77, 24.77, 24.75, 24.75, 24.75, 24.75, 24.75, 24.73, 24.73, 24.73, 24.73, 24.73, 24.73, 24.73, 24.73, 24.7, 24.7, 24.7, 24.7, 24.7, 24.7, 24.7, 24.68, 24.68]}, "SN1105": {"t": ["18:00", "18:01", "18:02", "18:03", "18:04", "18:05", "18:06", "18:07", "18:08", "18:09", "18:10", "18:11", "18:12", "18:13", "18:14", "18:15", "18:16", "18:17", "18:18", "18:19", "18:20", "18:21", "18:22", "18:23", "18:24", "18:25", "18:26", "18:27", "18:28", "18:29", "18:30", "18:31", "18:32", "18:33", "18:34", "18:35", "18:36", "18:37", "18:38", "18:39", "18:40", "18:41", "18:42", "18:43", "18:44", "18:45", "18:46", "18:47", "18:48", "18:49", "18:50", "18:51", "18:52", "18:53", "18:54", "18:55", "18:56", "18:57", "18:58", "18:59", "19:00", "19:01", "19:02", "19:03", "19:04", "19:05", "19:06", "19:07", "19:08", "19:09", "19:10", "19:11", "19:12", "19:13", "19:14", "19:15", "19:16", "19:17", "19:18", "19:19", "19:20", "19:21", "19:22", "19:23", "19:24", "19:25", "19:26", "19:27", "19:28", "19:29", "19:30", "19:31", "19:32", "19:33", "19:34", "19:35", "19:36", "19:37", "19:38", "19:39", "19:40", "19:41", "19:42", "19:43", "19:44", "19:45", "19:46", "19:47", "19:48", "19:49", "19:50", "19:51", "19:52", "19:53", "19:54", "19:55", "19:56", "19:57", "19:58", "19:59", "20:00", "20:01", "20:02", "20:03", "20:04", "20:05", "20:06", "20:07", "20:08", "20:09", "20:10", "20:11", "20:12", "20:13", "20:14", "20:15", "20:16", "20:17", "20:18", "20:19", "20:20", "20:21", "20:22", "20:23", "20:24", "20:25", "20:26", "20:27", "20:28", "20:29"], "RH": [26.38, 26.56, 26.82, 26.95, 27.03, 27.15, 27.22, 27.52, 28.09, 28.41, 28.24, 27.89, 27.64, 27.72, 27.81, 27.81, 28.02, 28.06, 28.21, 27.91, 28.14, 28.02, 26.63, 26.33, 26.36, 26.63, 26.14, 25.44, 25.71, 25.19, 24.77, 24.74, 24.82, 24.82, 24.67, 24.32, 24.52, 24.6, 25.27, 25.46, 25.69, 24.65, 26.08, 25.29, 24.45, 29.0, 25.32, 24.67, 24.32, 24.1, 23.9, 23.78, 23.63, 23.58, 23.5, 23.43, 23.36, 23.36, 23.31, 23.24, 23.16, 23.13, 23.08, 23.04, 22.79, 22.69, 22.56, 22.49, 22.39, 22.29, 22.24, 22.14, 22.07, 22.02, 22.07, 22.1, 22.1, 22.02, 22.05, 22.0, 21.97, 21.89, 21.82, 21.77, 21.8, 21.84, 21.94, 22.17, 22.22, 22.14, 22.02, 22.14, 22.14, 22.29, 22.17, 21.92, 21.82, 21.92, 21.72, 21.65, 21.7, 21.52, 21.47, 21.4, 21.33, 21.15, 21.05, 20.98, 21.05, 20.98, 21.77, 21.4, 21.2, 20.98, 20.95, 20.9, 20.9, 20.82, 20.85, 20.68, 20.75, 20.82, 20.88, 21.05, 21.2, 21.03, 21.12, 21.03, 20.95, 21.03, 21.12, 21.12, 21.12, 21.12, 21.15, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.2, 21.25, 21.25, 21.25, 21.25, 21.25, 21.28], "T": [23.11, 23.16, 23.16, 23.18, 23.18, 23.21, 23.21, 23.21, 23.21, 23.21, 23.21, 23.18, 23.18, 23.18, 23.16, 23.16, 23.16, 23.16, 23.16, 23.16, 23.16, 23.11, 23.16, 23.23, 23.3, 23.4, 23.45, 23.47, 23.52, 23.54, 23.54, 23.57, 23.59, 23.62, 23.66, 23.69, 23.74, 23.74, 23.79, 23.88, 24.0, 24.07, 24.51, 24.51, 24.41, 24.48, 24.53, 24.58, 24.63, 24.68, 24.7, 24.75, 24.77, 24.8, 24.82, 24.85, 24.87, 24.9, 24.92, 24.94, 24.99, 24.99, 25.02, 25.04, 25.06, 25.09, 25.11, 25.11, 25.14, 25.14, 25.16, 25.16, 25.16, 25.16, 25.19, 25.19, 25.21, 25.21, 25.23, 25.23, 25.23, 25.26, 25.26, 25.28, 25.28, 25.31, 25.33, 25.38, 25.45, 25.5, 25.53, 25.55, 25.6, 25.65, 25.7, 25.74, 25.77, 25.82, 25.84, 25.87, 25.89, 25.89, 25.91, 25.96, 25.99, 26.01, 25.99, 26.01, 26.01, 26.04, 25.99, 25.99, 25.96, 25.94, 25.91, 25.89, 25.89, 25.87, 25.84, 25.82, 25.79, 25.79, 25.77, 25.77, 25.77, 25.77, 25.77, 25.77, 25.72, 25.72, 25.7, 25.67, 25.67, 25.67, 25.65, 25.65, 25.65, 25.62, 25.65, 25.62, 25.62, 25.62, 25.62, 25.62, 25.62, 25.62, 25.6, 25.62, 25.62, 25.6]}}, "events": {"launch": "2026-04-01 22:35:12+00:00", "tli_day_start": "2026-04-02 18:15:12+00:00", "closest_approach": "2026-04-06 23:00:00+00:00", "eclipse_obs_end": "2026-04-07 01:45:00+00:00", "sn1105_move_window_start": "2026-04-09 18:00:00+00:00", "sn1105_move_window_end": "2026-04-09 21:00:00+00:00", "splashdown": "2026-04-11 00:07:00+00:00", "orion_power_down": "2026-04-11 00:30:00+00:00", "well_deck": "2026-04-11 08:14:00+00:00", "cargo_handover_after": "2026-04-14 19:00:00+00:00"}};
+const FLYBY = [["2026-04-06T16:10", 5], ["2026-04-06T16:20", 137], ["2026-04-06T16:30", 487], ["2026-04-06T16:40", 0], ["2026-04-06T16:50", 0], ["2026-04-06T17:00", 3], ["2026-04-06T17:10", 282], ["2026-04-06T17:20", 91], ["2026-04-06T17:30", 13], ["2026-04-06T17:40", 0], ["2026-04-06T17:50", 0], ["2026-04-06T18:00", 0], ["2026-04-06T18:10", 53], ["2026-04-06T18:20", 15], ["2026-04-06T18:30", 3], ["2026-04-06T18:40", 86], ["2026-04-06T18:50", 61], ["2026-04-06T19:00", 206], ["2026-04-06T19:10", 43], ["2026-04-06T19:20", 58], ["2026-04-06T19:30", 301], ["2026-04-06T19:40", 175], ["2026-04-06T19:50", 21], ["2026-04-06T20:00", 337], ["2026-04-06T20:10", 279], ["2026-04-06T20:20", 123], ["2026-04-06T20:30", 85], ["2026-04-06T20:40", 41], ["2026-04-06T20:50", 166], ["2026-04-06T21:00", 177], ["2026-04-06T21:10", 408], ["2026-04-06T21:20", 291], ["2026-04-06T21:30", 226], ["2026-04-06T21:40", 491], ["2026-04-06T21:50", 245], ["2026-04-06T22:00", 69], ["2026-04-06T22:10", 28], ["2026-04-06T22:20", 28], ["2026-04-06T22:30", 341], ["2026-04-06T22:40", 317], ["2026-04-06T22:50", 65], ["2026-04-06T23:00", 150], ["2026-04-06T23:10", 7], ["2026-04-06T23:20", 298], ["2026-04-06T23:30", 0], ["2026-04-06T23:40", 0], ["2026-04-06T23:50", 0], ["2026-04-07T00:00", 0], ["2026-04-07T00:10", 0], ["2026-04-07T00:20", 12], ["2026-04-07T00:30", 1230], ["2026-04-07T00:40", 365], ["2026-04-07T00:50", 108], ["2026-04-07T01:00", 110], ["2026-04-07T01:10", 96], ["2026-04-07T01:20", 278], ["2026-04-07T01:30", 1], ["2026-04-07T01:40", 1]];
+const DAYS = [["Apr 2",716],["Apr 3",337],["Apr 4",89],["Apr 5",325],["Apr 6",6484],["Apr 7",2299],["Apr 8",8],["Apr 9",71]];
+const NS = "http://www.w3.org/2000/svg";
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function svgRoot(host, w, h) {
+  const s = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img" });
+  host.appendChild(s); return s;
+}
+function niceTicks(lo, hi, n = 5) {
+  const span = hi - lo, step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= n) || mag * 10;
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+function tipFor(host) {
+  const t = document.createElement("div"); t.className = "tip"; t.hidden = true; host.appendChild(t); return t;
+}
+function placeTip(tip, host, x, y) {
+  const r = host.getBoundingClientRect(); tip.hidden = false;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let left = x - r.left + host.scrollLeft + 14, top = y - r.top - th - 10;
+  if (left + tw > host.scrollLeft + r.width) left = x - r.left + host.scrollLeft - tw - 14;
+  if (top < 0) top = y - r.top + 14;
+  tip.style.left = left + "px"; tip.style.top = top + "px";
+}
+
+/* ---------------- Hero sky ---------------- */
+(function sky() {
+  const c = document.getElementById("sky"), ctx = c.getContext("2d");
+  let W, H, stars = [], t0 = performance.now();
+  function size() {
+    const r = c.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+    W = r.width; H = r.height; c.width = W * d; c.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    stars = Array.from({ length: Math.round(W * H / 2600) }, () => ({ x: rnd() * W, y: rnd() * H, r: rnd() * 1.1 + 0.2, p: rnd() * 6.28 }));
+  }
+  function frame(now) {
+    const t = (now - t0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      const a = 0.35 + 0.35 * Math.sin(s.p + t * 0.8);
+      ctx.fillStyle = `rgba(217,212,199,${reduce ? 0.55 : a})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+    }
+    const R = Math.min(W, H) * 0.34, cx = W * (W < 700 ? 0.62 : 0.74), cy = H * 0.38;
+    // corona: soft radial glow with slow streamer shimmer
+    const g = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, R * 2.3);
+    g.addColorStop(0, "rgba(243,200,113,0.55)"); g.addColorStop(0.18, "rgba(243,200,113,0.16)"); g.addColorStop(1, "rgba(243,200,113,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 2.3, 0, 6.283); ctx.fill();
+    ctx.save(); ctx.translate(cx, cy);
+    for (let i = 0; i < 9; i++) {
+      const ang = i * 0.7 + (reduce ? 0 : Math.sin(t * 0.25 + i) * 0.05), len = R * (1.5 + 0.5 * Math.sin(i * 2.1 + (reduce ? 0 : t * 0.3)));
+      const sg = ctx.createLinearGradient(0, 0, Math.cos(ang) * len, Math.sin(ang) * len);
+      sg.addColorStop(0.55, "rgba(243,200,113,0.10)"); sg.addColorStop(1, "rgba(243,200,113,0)");
+      ctx.strokeStyle = sg; ctx.lineWidth = R * 0.12; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(ang) * len, Math.sin(ang) * len); ctx.stroke();
+    }
+    ctx.restore();
+    // the Moon's disk, with an earthshine-lit edge on the lower left
+    ctx.fillStyle = "#07080d"; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
+    const es = ctx.createRadialGradient(cx - R * 0.55, cy + R * 0.35, R * 0.1, cx - R * 0.2, cy + R * 0.1, R * 1.05);
+    es.addColorStop(0, "rgba(127,178,255,0.20)"); es.addColorStop(1, "rgba(127,178,255,0)");
+    ctx.fillStyle = es; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = "rgba(255,236,190,0.75)"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.stroke();
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  size(); addEventListener("resize", () => { size(); if (reduce) frame(performance.now()); });
+  requestAnimationFrame(frame);
+})();
+
+/* ---------------- Days chart ---------------- */
+(function days() {
+  const host = document.getElementById("daysChart"), W = 760, H = 250, m = { l: 52, r: 12, t: 14, b: 30 };
+  const s = svgRoot(host, W, H), tip = tipFor(host);
+  s.setAttribute("aria-label", "Bar chart of crew images per UTC day; 6 April has 6,484 and 7 April 2,299.");
+  const max = 7000, iw = W - m.l - m.r, ih = H - m.t - m.b, bw = iw / DAYS.length;
+  const y = v => m.t + ih - v / max * ih;
+  for (const v of niceTicks(0, max, 4)) {
+    el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: css("--rule"), "stroke-width": 1 }, s);
+    el("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, s).textContent = v.toLocaleString();
+  }
+  DAYS.forEach(([d, v], i) => {
+    const x = m.l + i * bw + bw * 0.2, w = bw * 0.6, top = y(v), h = m.t + ih - top;
+    const hot = i === 4 || i === 5;
+    const p = el("path", { d: `M${x},${m.t + ih} V${top + 4} q0,-4 4,-4 h${w - 8} q4,0 4,4 V${m.t + ih} Z`, fill: hot ? css("--earthshine") : css("--faint") }, s);
+    el("text", { x: x + w / 2, y: H - 10, "text-anchor": "middle", class: "lbl" }, s).textContent = d;
+    if (hot) el("text", { x: x + w / 2, y: top - 6, "text-anchor": "middle", class: "lbl-strong" }, s).textContent = v.toLocaleString();
+    const hit = el("rect", { x: m.l + i * bw, y: m.t, width: bw, height: ih, fill: "transparent" }, s);
+    hit.addEventListener("pointermove", e => { tip.innerHTML = `${d} 2026<br><b>${v.toLocaleString()}</b> images`; placeTip(tip, host, e.clientX, e.clientY); });
+    hit.addEventListener("pointerleave", () => tip.hidden = true);
+  });
+  document.getElementById("daysTable").innerHTML = "<tr><th>UTC day</th><th>Images</th></tr>" + DAYS.map(([d, v]) => `<tr><td>${d}</td><td>${v.toLocaleString()}</td></tr>`).join("");
+})();
+
+/* ---------------- Flyby night ---------------- */
+const T0 = Date.UTC(2026, 3, 6, 16, 0); // minutes since 16:00 on 6 April
+const at = (d, h, mi) => (Date.UTC(2026, 3, d, h, mi) - T0) / 60000;
+const BANDS = [
+  { a: at(6, 22, 42), b: at(6, 23, 25), kind: "los", label: "Earth behind the Moon" },
+  { a: at(7, 0, 35), b: at(7, 1, 32), kind: "eclipse", label: "Sun behind the Moon" },
+];
+const MARKS = [
+  { t: at(6, 23, 0), label: "Closest approach" },
+];
+const VOICES = [
+  { t: at(6, 19, 24), who: "Christina Koch", time: "19:24:19", text: "The more I look at the moon, the browner and browner it looks.", ctx: "Relaying the window team early in the observation shift." },
+  { t: at(6, 19, 38), who: "Reid Wiseman", time: "19:38:52", text: "It's weird that Aristarchus is so white and albedo, but its rays are so dim, so muted.", ctx: "Crew tablet recording, looking at the Aristarchus Plateau." },
+  { t: at(6, 22, 4), who: "Victor Glover, reading back CAPCOM", time: "22:04:10", text: "Lunar closest approach will be at MET 5 days, 0 hours, 25 minutes, 34 seconds. And the altitude will be 4,067 statute miles.", ctx: "4,067 statute miles is the 6,545 km of the guide." },
+  { t: at(6, 22, 33), who: "CAPCOM (Jenni)", time: "22:33:54", text: "As more and more of the moon is in darkness, we will take any report you have on impact flashes.", ctx: "Mission control asks for flash reports before the blackout, more than an hour before the eclipse." },
+  { t: at(6, 22, 36), who: "CAPCOM (Jenni)", time: "22:36:43", text: "You are six minutes from your 40-minute lunar flyby LOS. From all of us, it's a privilege to witness you carrying the fire past our farthest reach. Thank you. Godspeed.", ctx: "Last call before Earth set behind the Moon." },
+  { t: at(6, 22, 50), who: "Silence", time: "22:42 – 23:25", text: "No transmissions are recorded while Earth is behind the Moon.", ctx: "The crew kept photographing: Earthset, Vavilov crater, Impact Flashes, Lofted Lunar Dust, then Earthrise." },
+  { t: at(6, 23, 40), who: "CAPCOM", time: "23:40:53", text: "That was a little clipped, but I think we have a better link now. We experienced some blockage from a solar array.", ctx: "Contact restored after Earthrise." },
+  { t: at(6, 23, 57), who: "CAPCOM", time: "23:57:40", text: "You have three minutes until we go into a forward link LOS. We will be back up with you in about an hour during the eclipse on Madrid.", ctx: "A second, planned outage; the crew records reports 'in the blind'." },
+  { t: at(7, 0, 38), who: "Victor Glover", time: "00:38:06", text: "This continues to be unreal. The sun has gone behind the moon, and the corona is still visible, and it's bright, and it creates a halo almost around the entire moon.", ctx: "Recorded in the blind, three minutes after sunset." },
+  { t: at(7, 0, 50), who: "Victor Glover", time: "00:50:10", text: "The camera settings for Earthshine are challenging. What we're seeing, we're just not picking up on the cameras.", ctx: "The eye beats the D5 in the dark." },
+  { t: at(7, 0, 59), who: "Reid Wiseman", time: "00:59:10", text: "We have seen three impact flashes so far. I saw two and Jeremy has seen one… Jeremy saw two, so that's four total… And Jeremy just saw another one.", ctx: "The flash report. One minute later: “on the Earth side of the moon.”" },
+  { t: at(7, 1, 2), who: "Jeremy Hansen", time: "01:02:05", text: "The glow around the moon, once your eyes adjust, is easily 10 widths or diameters of the sun around the entire moon.", ctx: "A naked-eye estimate; window glare may contribute." },
+  { t: at(7, 1, 4), who: "Jeremy Hansen", time: "01:04:12", text: "I didn't pick out any color, but definitely structure. There were streamers, and they were not uniform at all.", ctx: "Answering the science team's question about the corona." },
+  { t: at(7, 1, 15), who: "Victor Glover", time: "01:15:52", text: "Yeah, we can absolutely see the color of Mars. That's awesome.", ctx: "Mars and Saturn near the dark limb." },
+  { t: at(7, 1, 23), who: "Victor Glover", time: "01:23:54", text: "We all think we're starting to see something. I believe the most popular term is baby hair.", ctx: "First light returning at the limb before sunrise." },
+  { t: at(7, 1, 29), who: "Reid Wiseman", time: "01:29:43", text: "We are in eclipse glasses. That was an absolutely spectacular, magnificent experience.", ctx: "Sunrise at 01:32." },
+];
+const JUMPS = [["Godspeed", at(6, 22, 36)], ["Blackout", at(6, 22, 50)], ["Sunset", at(7, 0, 38)], ["Flashes", at(7, 0, 59)], ["Corona", at(7, 1, 4)], ["Sunrise", at(7, 1, 29)]];
+(function night() {
+  const host = document.getElementById("nightChart"), W = 760, H = 270, m = { l: 46, r: 12, t: 26, b: 30 };
+  const s = svgRoot(host, W, H), tip = tipFor(host);
+  s.setAttribute("aria-label", "Photographs per ten minutes from 16:00 on 6 April to 03:00 on 7 April UTC, with shaded radio blackout and eclipse.");
+  const span = 660, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const x = t => m.l + t / span * iw;
+  const max = 1300, y = v => m.t + ih - v / max * ih;
+  for (const b of BANDS) {
+    el("rect", { x: x(b.a), y: m.t, width: x(b.b) - x(b.a), height: ih, fill: b.kind === "eclipse" ? css("--corona") : css("--earthshine"), "fill-opacity": 0.12 }, s);
+    el("text", { x: (x(b.a) + x(b.b)) / 2, y: m.t - 8, "text-anchor": "middle", class: "lbl" }, s).textContent = b.kind === "eclipse" ? "Eclipse" : "No Earth";
+  }
+  for (const v of [0, 400, 800, 1200]) {
+    el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: css("--rule") }, s);
+    el("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, s).textContent = v.toLocaleString();
+  }
+  for (let h = 16; h <= 27; h += 2) {
+    const t = (h - 16) * 60; el("text", { x: x(t), y: H - 10, "text-anchor": "middle" }, s).textContent = String(h % 24).padStart(2, "0") + ":00";
+  }
+  const bw = 10 / span * iw;
+  FLYBY.forEach(([ts, v]) => {
+    const t = (Date.parse(ts + ":00Z") - T0) / 60000; if (t < 0 || t >= span) return;
+    if (v > 0) {
+      const top = y(v), r = Math.min(3, (m.t + ih - top) / 2);
+      el("path", { d: `M${x(t) + 1},${m.t + ih} V${top + r} q0,-${r} ${r},-${r} h${bw - 2 - 2 * r} q${r},0 ${r},${r} V${m.t + ih} Z`, fill: css("--regolith"), "fill-opacity": 0.78 }, s);
+    }
+    const hit = el("rect", { x: x(t), y: m.t, width: bw, height: ih, fill: "transparent" }, s);
+    hit.addEventListener("pointermove", e => { tip.innerHTML = `${ts.slice(5).replace("T", " ")} UTC<br><b>${v.toLocaleString()}</b> photographs`; placeTip(tip, host, e.clientX, e.clientY); });
+    hit.addEventListener("pointerleave", () => tip.hidden = true);
+    hit.addEventListener("click", () => setTime(t + 5));
+  });
+  for (const mk of MARKS) {
+    el("line", { x1: x(mk.t), x2: x(mk.t), y1: m.t, y2: m.t + ih, stroke: css("--dust"), "stroke-dasharray": "3 3" }, s);
+    el("text", { x: x(mk.t) - 4, y: m.t + ih - 8, "text-anchor": "end", class: "lbl" }, s).textContent = mk.label;
+  }
+  const cursor = el("line", { x1: 0, x2: 0, y1: m.t - 2, y2: m.t + ih, stroke: css("--earthshine"), "stroke-width": 2 }, s);
+  const range = document.getElementById("scrubber"), clock = document.getElementById("clock"), phase = document.getElementById("phase");
+  const vTime = document.getElementById("vTime"), vText = document.getElementById("vText"), vWho = document.getElementById("vWho"), vCtx = document.getElementById("vCtx");
+  let lastVoice = null;
+  function setTime(t) {
+    t = Math.max(0, Math.min(630, Math.round(t))); range.value = t;
+    cursor.setAttribute("x1", x(t)); cursor.setAttribute("x2", x(t));
+    const ms = T0 + t * 60000, d = new Date(ms);
+    clock.textContent = d.toISOString().slice(11, 16) + (d.getUTCDate() === 7 ? " · 7 Apr" : " · 6 Apr");
+    const b = BANDS.find(b => t >= b.a && t <= b.b);
+    phase.className = "phase-chip" + (b ? " " + b.kind : "");
+    phase.textContent = b ? b.label : (t < at(6, 22, 42) ? "Nearside approach" : t < at(7, 0, 35) ? "Earth back in view" : "After sunrise");
+    const v = [...VOICES].reverse().find(q => q.t <= t) || VOICES[0];
+    if (v !== lastVoice) {
+      lastVoice = v; vTime.textContent = v.time + " UTC"; vText.textContent = "“" + v.text + "”"; vWho.textContent = v.who; vCtx.textContent = v.ctx;
+    }
+  }
+  window.setTime = setTime;
+  range.addEventListener("input", () => setTime(+range.value));
+  const jumps = document.getElementById("jumps");
+  for (const [label, t] of JUMPS) {
+    const btn = document.createElement("button"); btn.type = "button"; btn.textContent = label;
+    btn.addEventListener("click", () => setTime(t)); jumps.appendChild(btn);
+  }
+  setTime(at(6, 22, 36));
+})();
+
+/* ---------------- Moon illustration ---------------- */
+(function moon() {
+  const c = document.getElementById("moon"), ctx = c.getContext("2d");
+  let W, R, cx, cy, flashes = [], seed = 3;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  function size() {
+    const r = c.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+    W = r.width; c.width = W * d; c.height = W * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    R = W * 0.3; cx = W / 2; cy = W * 0.47;
+  }
+  function draw(now) {
+    ctx.clearRect(0, 0, W, W);
+    const g = ctx.createRadialGradient(cx, cy, R, cx, cy, R * 2.2);
+    g.addColorStop(0, "rgba(243,200,113,0.32)"); g.addColorStop(0.25, "rgba(243,200,113,0.08)"); g.addColorStop(1, "rgba(243,200,113,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+    ctx.fillStyle = "#0a0b10"; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
+    const es = ctx.createRadialGradient(cx - R * 1.1, cy, R * 0.2, cx - R * 0.6, cy, R * 1.5);
+    es.addColorStop(0, "rgba(127,178,255,0.26)"); es.addColorStop(1, "rgba(127,178,255,0)");
+    ctx.fillStyle = es; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = "rgba(255,236,190,0.6)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.stroke();
+    ctx.fillStyle = "rgba(154,158,176,0.75)"; ctx.font = "11px JetBrains Mono, monospace"; ctx.textAlign = "left";
+    ctx.fillText("Earth-facing side", 12, 20);
+    // flashes: brief, on the Earth-facing (left) half, near or south of the equator
+    if (!reduce && now && rnd() < 0.018) {
+      const ang = Math.PI * (0.55 + rnd() * 0.45), rr = R * (0.25 + rnd() * 0.65);
+      flashes.push({ x: cx + Math.cos(ang) * rr, y: cy + Math.abs(Math.sin(ang)) * rr * 0.5, born: now });
+    }
+    flashes = flashes.filter(f => now - f.born < 420);
+    for (const f of flashes) {
+      const a = 1 - (now - f.born) / 420;
+      const fg = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 7);
+      fg.addColorStop(0, `rgba(235,242,255,${a})`); fg.addColorStop(1, "rgba(235,242,255,0)");
+      ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(f.x, f.y, 7, 0, 6.283); ctx.fill();
+    }
+    if (reduce) { // static: show four marks
+      [[0.62, 0.55], [0.7, 0.3], [0.82, 0.62], [0.92, 0.2]].forEach(([u, v]) => {
+        const ang = Math.PI * u, rr = R * v * 1.2; ctx.fillStyle = "rgba(235,242,255,0.85)";
+        ctx.beginPath(); ctx.arc(cx + Math.cos(ang) * rr, cy + Math.abs(Math.sin(ang)) * rr * 0.5, 2, 0, 6.283); ctx.fill();
+      });
+    } else requestAnimationFrame(draw);
+  }
+  size(); addEventListener("resize", size); requestAnimationFrame(draw);
+})();
+
+/* ---------------- Quotes wall ---------------- */
+(function quotes() {
+  const Q = [
+    ["Christina Koch", "6 Apr · 19:24", "The more I look at the moon, the browner and browner it looks."],
+    ["Reid Wiseman", "6 Apr · 19:38", "It's weird that Aristarchus is so white and albedo, but its rays are so dim, so muted."],
+    ["Victor Glover", "7 Apr · 00:38", "The moon is just hanging in front of us, this black orb… the gray that blends and drifts into the blackness. We can see stars and the planets behind it."],
+    ["Jeremy Hansen", "7 Apr · 01:02", "I thought it would look dark against the black sky… but the sun is lighting up the entire limb of the moon."],
+    ["Jeremy Hansen", "7 Apr · 01:04", "There were streamers, and they were not uniform at all. For me, the 5 o'clock position, there was just this constant streamer."],
+    ["Christina Koch", "7 Apr · 19:15", "I think I made the comment that the moon turned into a sponge, a sponge of light."],
+  ];
+  document.getElementById("quotes").innerHTML = Q.map(([w, t, q]) => `<div class="q"><p>“${q}”</p><span class="met">${w} · ${t} UTC</span></div>`).join("");
+})();
+
+/* ---------------- Locker chart ---------------- */
+(function lockers() {
+  const host = document.getElementById("lockChart"), W = 980, H = 360, m = { l: 52, r: 74, t: 30, b: 32 };
+  const s = svgRoot(host, W, H), tip = tipFor(host);
+  const E = HOBO.events, ev = k => Date.parse(E[k].replace(" ", "T").replace("+00:00", "Z"));
+  const series = ["SN1104", "SN1105"].map(sn => {
+    const d = HOBO.series[sn], t0 = Date.parse(d.t0.replace(" ", "T").replace("+00:00", "Z"));
+    return { sn, t0, step: d.step_min * 60000, data: d };
+  });
+  const tMin = series[0].t0, tMax = Math.max(...series.map(s => s.t0 + (s.data.T.length - 1) * s.step));
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const x = t => m.l + (t - tMin) / (tMax - tMin) * iw;
+  const META = { T: ["Temperature", "°C"], AH: ["Absolute humidity", "g/m³"], RH: ["Relative humidity", "%"] };
+  const color = { SN1104: css("--series-e"), SN1105: css("--series-f") };
+  const name = { SN1104: "SN 1104 · Locker E", SN1105: "SN 1105 · Locker D→F" };
+  let cur = "T", yScale;
+  function draw() {
+    s.replaceChildren();
+    s.setAttribute("aria-label", `${META[cur][0]} in both lockers from 26 March to 21 April 2026.`);
+    document.getElementById("lockTitle").textContent = `${META[cur][0]}, 26 March – 21 April`;
+    const all = series.flatMap(sr => sr.data[cur]);
+    let lo = Math.min(...all), hi = Math.max(...all); const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+    const ticks = niceTicks(lo, hi, 5);
+    yScale = v => m.t + ih - (v - lo) / (hi - lo) * ih;
+    el("rect", { x: x(ev("launch")), y: m.t, width: x(ev("splashdown")) - x(ev("launch")), height: ih, fill: css("--earthshine"), "fill-opacity": 0.07 }, s);
+    for (const v of ticks) {
+      if (yScale(v) < m.t - 1 || yScale(v) > m.t + ih + 1) continue;
+      el("line", { x1: m.l, x2: W - m.r, y1: yScale(v), y2: yScale(v), stroke: css("--rule") }, s);
+      el("text", { x: m.l - 8, y: yScale(v) + 4, "text-anchor": "end" }, s).textContent = v;
+    }
+    for (let d = 27; d <= 52; d += 5) {
+      const t = Date.UTC(2026, 2, d), lbl = new Date(t);
+      if (t < tMin || t > tMax) continue;
+      el("text", { x: x(t), y: H - 10, "text-anchor": "middle" }, s).textContent = lbl.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+    }
+    const marks = [["launch", "Launch"], ["closest_approach", "Flyby"], ["sn1105_move_window_start", "FD9 move"], ["splashdown", "Splashdown"], ["cargo_handover_after", "Handover"]];
+    marks.forEach(([k, l], i) => {
+      const xx = x(ev(k));
+      el("line", { x1: xx, x2: xx, y1: m.t, y2: m.t + ih, stroke: css("--faint"), "stroke-dasharray": "2 4" }, s);
+      el("text", { x: xx, y: m.t - 8 - (i % 2) * 0, "text-anchor": i === 2 ? "end" : i === 3 ? "start" : "middle", class: "lbl" }, s).textContent = l;
+    });
+    const ends = [];
+    for (const sr of series) {
+      const vals = sr.data[cur];
+      const d = vals.map((v, i) => `${i ? "L" : "M"}${x(sr.t0 + i * sr.step).toFixed(1)},${yScale(v).toFixed(1)}`).join("");
+      el("path", { d, fill: "none", stroke: color[sr.sn], "stroke-width": 2, "stroke-linejoin": "round" }, s);
+      ends.push({ y: yScale(vals[vals.length - 1]), label: sr.sn === "SN1104" ? "Locker E" : "Locker F" });
+    }
+    ends.sort((a, b) => a.y - b.y);
+    if (ends[1].y - ends[0].y < 16) { const mid = (ends[0].y + ends[1].y) / 2; ends[0].y = mid - 8; ends[1].y = mid + 8; }
+    for (const e2 of ends) el("text", { x: W - m.r + 6, y: e2.y + 4, class: "lbl-strong" }, s).textContent = e2.label;
+    const hair = el("line", { y1: m.t, y2: m.t + ih, stroke: css("--dust"), visibility: "hidden" }, s);
+    const dots = series.map(sr => el("circle", { r: 4.5, fill: color[sr.sn], stroke: css("--panel"), "stroke-width": 2, visibility: "hidden" }, s));
+    const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, s);
+    function move(e) {
+      const pt = s.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const p = pt.matrixTransform(s.getScreenCTM().inverse());
+      const t = tMin + (p.x - m.l) / iw * (tMax - tMin);
+      let rows = [];
+      series.forEach((sr, j) => {
+        const i = Math.max(0, Math.min(sr.data[cur].length - 1, Math.round((t - sr.t0) / sr.step)));
+        const v = sr.data[cur][i], tx = sr.t0 + i * sr.step;
+        dots[j].setAttribute("cx", x(tx)); dots[j].setAttribute("cy", yScale(v)); dots[j].setAttribute("visibility", "visible");
+        rows.push(`<span style="color:${color[sr.sn]}">●</span> ${name[sr.sn]}: <b>${v}</b> ${META[cur][1]}`);
+        if (j === 0) { hair.setAttribute("x1", x(tx)); hair.setAttribute("x2", x(tx)); hair.setAttribute("visibility", "visible"); }
+      });
+      const d = new Date(t);
+      tip.innerHTML = d.toISOString().slice(0, 16).replace("T", " ") + " UTC<br>" + rows.join("<br>");
+      placeTip(tip, host, e.clientX, e.clientY);
+    }
+    hit.addEventListener("pointermove", move);
+    hit.addEventListener("pointerdown", move);
+    hit.addEventListener("pointerleave", () => { tip.hidden = true; hair.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); });
+  }
+  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+    cur = b.dataset.v; document.querySelectorAll(".seg button").forEach(o => o.setAttribute("aria-pressed", String(o === b))); draw();
+  }));
+  draw();
+})();
+
+/* ---------------- FD09 zoom ---------------- */
+(function fd09() {
+  const host = document.getElementById("fd09Chart"), W = 980, H = 260, m = { l: 46, r: 16, t: 26, b: 30 };
+  const s = svgRoot(host, W, H), tip = tipFor(host);
+  s.setAttribute("aria-label", "Relative humidity each minute on 9 April 18:00 to 20:30 UTC; SN 1105 spikes at 18:45, Locker E spikes to 37 percent at 19:49.");
+  const Z = HOBO.fd09, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const mins = s2 => { const [h, mm] = s2.split(":").map(Number); return (h - 18) * 60 + mm; };
+  const x = t => m.l + t / 150 * iw, lo = 18, hi = 40, y = v => m.t + ih - (v - lo) / (hi - lo) * ih;
+  el("rect", { x: x(0), y: m.t, width: x(150) - x(0), height: ih, fill: css("--earthshine"), "fill-opacity": 0.05 }, s);
+  for (const v of [20, 25, 30, 35, 40]) {
+    el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: css("--rule") }, s);
+    el("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, s).textContent = v + "%";
+  }
+  for (let t = 0; t <= 150; t += 30) el("text", { x: x(t), y: H - 10, "text-anchor": "middle" }, s).textContent = `${18 + Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+  const color = { SN1104: css("--series-e"), SN1105: css("--series-f") };
+  for (const sn of ["SN1105", "SN1104"]) {
+    const d = Z[sn].t.map((tt, i) => `${i ? "L" : "M"}${x(mins(tt)).toFixed(1)},${y(Z[sn].RH[i]).toFixed(1)}`).join("");
+    el("path", { d, fill: "none", stroke: color[sn], "stroke-width": 2, "stroke-linejoin": "round" }, s);
+  }
+  [[45, "SN 1105 handled · 18:45", "start"], [109, "Locker E · 19:49 · 37 % RH", "end"]].forEach(([t, l, anchor]) => {
+    el("text", { x: x(t) + (anchor === "start" ? 6 : -6), y: m.t + 4, "text-anchor": anchor, class: "lbl-strong" }, s).textContent = l;
+  });
+  el("text", { x: W - m.r, y: y(Z.SN1105.RH.at(-1)) + 18, "text-anchor": "end", class: "lbl" }, s).textContent = "SN 1105, now in Locker F";
+  const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, s);
+  hit.addEventListener("pointermove", e => {
+    const pt = s.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    const p = pt.matrixTransform(s.getScreenCTM().inverse());
+    const i = Math.max(0, Math.min(Z.SN1104.t.length - 1, Math.round((p.x - m.l) / iw * 150)));
+    tip.innerHTML = `${Z.SN1104.t[i]} UTC<br><span style="color:${color.SN1104}">●</span> Locker E: <b>${Z.SN1104.RH[i]}</b> %<br><span style="color:${color.SN1105}">●</span> SN 1105: <b>${Z.SN1105.RH[i] ?? "–"}</b> %`;
+    placeTip(tip, host, e.clientX, e.clientY);
+  });
+  hit.addEventListener("pointerleave", () => tip.hidden = true);
+})();
+
+/* ---------------- Casebook ---------------- */
+(function casebook() {
+  const rows = [
+    ["24 crew photographs archived twice", "ok", "Confirmed", "All from the Z9. Index MD5s, live ETags and byte ranges match. In 21 pairs the two labels disagree on the target."],
+    ["A flyby video segment is missing", "ok", "Confirmed", "Solar-array camera 3, channel 2 jumps from 19:42:40 to 21:39:14 on 6 April; channel 1 covers it."],
+    ["Every crew photo is labelled “Moon”", "ok", "Confirmed", "Including about 825 Earth images. The observation-target field is empty on 6,275 labels."],
+    ["A ghost audio file", "fix", "Corrected", "Listed in the search index with a label, absent from the inventory, refused by the server (HTTP 403). A byte copy of another recording."],
+    ["Duplicate tablet recordings", "ok", "Confirmed", "Recordings a000001/a000003 and a000002/a000004 are byte-identical."],
+    ["Hertzsprung Basin at 0°, 0°", "ok", "Confirmed", "A real 570 km farside basin with latitude, longitude and diameter all 0 in the targeting file."],
+    ["Logger file named for the wrong day", "ok", "Confirmed", "Files say day 086; the data begin on 26 March, day 085. The end day, 111, is right."],
+    ["Locker E opened “undocumented”", "no", "Withdrawn", "The guide never says the bag was untouched. The 19:49 spike fits the documented flight-day-9 stowage."],
+  ];
+  document.getElementById("caseRows").innerHTML = rows.map(([f, k, st, ev]) => `<tr><td>${f}</td><td><span class="chip ${k}">${st}</span></td><td>${ev}</td></tr>`).join("");
+  const rev = [
+    ["Where the flashes were", "probably on the far side, out of reach of Earth telescopes", "the crew said “the Earth side of the moon”; ground observers could confirm them"],
+    ["Why the flashes were visible", "only an eclipse makes them visible", "the eclipse removed glare; impact flashes are seen on the night side from Earth routinely"],
+    ["How many, and when", "four or more, during the eclipse", "roughly 3–6, possibly double-counted; timing by recollection"],
+    ["What the locker spikes mean", "the locker was opened", "consistent with bag handling; no ground truth"],
+    ["Eclipse length", "about 47 minutes (crew prompt times)", "about 56 minutes (geometric sunset 00:35, sunrise 01:32)"],
+    ["Reproducibility", "numbers copied into prose by hand", "every locker number written by the script, inputs checked against PDS checksums"],
+  ];
+  document.getElementById("review").innerHTML = rev.map(([h, a, b]) => `<div><span class="eyebrow">${h}</span><p><s>${a}</s></p><p><b>${b}</b></p></div>`).join("");
+})();
+
+/* ---------------- Copy ---------------- */
+document.getElementById("copyBtn").addEventListener("click", async e => {
+  const btn = e.currentTarget, txt = document.getElementById("cmdText");
+  try { await navigator.clipboard.writeText(txt.textContent); btn.textContent = "Copied"; }
+  catch { const r = document.createRange(); r.selectNodeContents(txt); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); btn.textContent = "Selected"; }
+  setTimeout(() => btn.textContent = "Copy", 1600);
+});
+</script>
