@@ -131,4 +131,125 @@ Defects in the file:
 
 ## 3. Crew camera, Orion camera and mission audio bundles
 
-_In progress: inventory and transcript survey pending._
+The PDS Imaging Node has no public directory listing. The files are served from
+`https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/<bundle>/`. The full label
+contents can be searched through the Atlas Elasticsearch endpoint
+(`POST https://pds-imaging.jpl.nasa.gov/api/search/atlas/_search`). Counts below come from
+the collection inventories and that index; the key numbers are in `imaging_summary.json`.
+
+| Bundle | Contents |
+|---|---|
+| Crew camera (~2.5 TB) | 10,329 exposures × 4 forms (NEF source, raw TIFF, processed TIFF, browse PNG). Nikon D5 s/n …015: 7,007; D5 …017: 552; Z9 …019: 2,770. 80–400 mm lens on 75 % |
+| Orion camera | 1,012 images (OpNav 404, DCAM 249, SAW3 189, CAB2 148, SAW4 12, SAW2 10) + 22 SAW3 videos |
+| Mission audio | 53 crew tablet (PCD) recordings (8.7 h), two 24-h Orion-to-Earth voice-loop days + one clip (~57 h total), 56 transcripts (6,355 lines), 5 annotation PDFs |
+
+**The flyby dominates the crew camera bundle.** Of the 10,329 crew images, 6,484 were taken
+on 04-06 UTC and 2,299 on 04-07. The busiest hours were 04-06 21:00 (1,838 images) and 04-07
+00:00 (1,715). In comparison, 04-08 has 8 images and 04-09 has 71.
+
+### What the crew reported: lunar impact flashes during the eclipse
+From the voice-loop transcript `art002_2026-04-07_oe1_trn-csv_v01.csv`, using its `utc`
+column:
+
+> **00:59:10 UTC, Wiseman:** "We have seen three impact flashes so far… Jeremy saw two, so
+> that's four total… It was not sun glint off a particulate from the thrusters or the purge
+> tanks. It was definitely impact flashes on the moon."
+
+> **19:06:46, Wiseman (next-day debrief):** "…a millisecond… white, bluish white…"
+> **19:05:44, Hansen:** "a pinprick of light… no color, about the size of a star."
+> **19:08:15, Wiseman:** "I never saw any that would have been in the Earth Glow side, so I do
+> not suspect any that I saw would be able to be correlated from an Earth-based science team."
+
+**What connects the archives.** The 00:59 report falls **inside the solar eclipse**:
+geometric sunset was at 00:35 and sunrise at 01:32 (section 2), and the "Eclipsed Moon"
+images were taken 00:55–01:22. With the Sun hidden behind the Moon, the crew were looking at
+an unlit lunar surface. That is the only geometry in which a meteoroid impact flash is
+visible to the eye. The Lunar Targeting Package scheduled "Impact Flashes" for 23:02, near
+Earthrise (105 images, 23:02–23:09, all from D5 s/n …015). The reported flashes came about
+two hours later, during the eclipse.
+
+Wiseman's remark about the earthshine side matters for confirmation. Earth-based monitoring
+can only see flashes on the earthshine-lit part of the night side. If the flashes were on
+the farside night area, no ground telescope could have recorded them. **Four or more
+reported naked-eye lunar impact flashes is the most scientifically striking item in the
+release.** These are crew reports, not instrument detections. Hansen also notes that the
+crew "did not record at all where we saw the impact flashes". A crew annotation PDF of the
+flashes (`art002e016252_pcd_ann_v01.pdf`) is in the audio bundle and may help locate them.
+
+Other notable observations:
+- **Corona.** 01:02:05, Hansen: the glow around the eclipsed Moon was "easily 10 widths or
+  diameters of the sun around the entire moon".
+- **Colour.** 04-06 19:24, Koch: "the more I look at the moon, the browner and browner it looks."
+- **Aristarchus.** Wiseman: "so white… but its rays are so dim, so muted."
+- **Ohm.** Koch reads Ohm's ray pattern as a grazing-angle impact.
+- **Grimaldi.** CAPCOM: the crew's report of how dark Grimaldi looked "was unexpected and was
+  something that has got the scientists excited".
+- **Spacecraft events heard on the loops:**
+  - a "cabin leak suspected" warning during suit drying, later traced to a cabin fan-speed
+    pressure shift
+  - an unexpected loss of signal during the handover to the DSN Madrid antenna
+  - a transient HCN read error from the atmosphere analyser
+  - a propulsion-system issue that CAPCOM said was "not an optocoupler glitch. It's something
+    internal to the prop system" (04-07 23:51)
+
+### Archive defects found in the imaging and audio bundles
+1. **24 crew exposures were archived twice under different IDs.** All are from the Z9, for
+   example `art002e009039` and `art002e029909`. Each pair has the same timestamp, camera
+   file number, focus distance and file size. The survey also found their source NEF files
+   have identical MD5 checksums. The duplicate copies inflate the image count, and one pair
+   disagrees on its target.
+2. **A video segment over the flyby is missing.** SAW3 channel 1 `art002m1010961940`
+   (04-06 ~19:40–21:38) has no channel-2 counterpart. The inventory lists 11 channel-1 files
+   and only 10 channel-2 files.
+3. **Target metadata is unreliable.**
+   - The primary target is "Moon" on all 10,329 crew labels, including about 825 Earth
+     images and the Sun and deep-space frames.
+   - The observation-target field is empty on 6,275 labels.
+   - 41 labels have an activity name in the target field.
+   - The activity tags seem to come from the plan timeline, not from what each image shows.
+     Their windows overlap.
+4. **Flight-day bookkeeping is inconsistent.**
+   - The 249 DCAM images are in folder `fd04` but labelled flight day 0.
+   - 249 images in `fd05` are labelled flight day 6.
+   - There is no `fd08` folder in the Orion bundle.
+5. **Audio inventory problems.**
+   - `art002a000052_pcd1_src_v01.m4a` is on disk but has no inventory entry and no label
+     (the inventory lists 53 PCD files; 54 are on disk).
+   - PCD recordings `a000001`/`a000003` and `a000002`/`a000004` have identical start/stop
+     times and sizes.
+   - Loop file `art002_2026-04-07_oe2` actually covers 2026-04-06 22:32–22:37.
+6. **Label value errors.**
+   - Every crew label has the placeholder stop time `3000-01-01`.
+   - A sampled Z9 label has its focus distance unit as mm where metres were meant, and bits
+     per sample and bit mask apparently swapped.
+   - The transcripts' `audio_time` column is a position in a stitched-together recording,
+     not wall-clock time; use the `utc` column.
+   - 35 transcript rows go backwards in time.
+   - Speaker names are inconsistent: "Wiseman " with a trailing space and 78 blank speakers.
+7. **ID gap.** Image IDs `art002e009302`–`009560` don't exist, but three annotation PDFs are
+   named exactly `e009303-e009388`, `e009389-e009474` and `e009475-e009560`. Those IDs were
+   probably assigned to annotation pages.
+
+## Summary — what's interesting
+
+- **Most interesting:** crew reports of 4+ naked-eye lunar impact flashes during the
+  ~56-minute solar eclipse behind the Moon. They were probably on the farside night area,
+  where no Earth telescope could confirm them. They are recorded only by voice and an
+  annotation PDF, with no flash positions logged.
+- **Most useful for future sample return:** the lockers were as dry as on the pad all flight
+  (~5.1 g/m³). Humidity exposure started within minutes of splashdown, not at handover,
+  and differed by locker (E vs F).
+- **Anomalies in the record:**
+  - an undocumented +12.9 % RH opening of Locker E on FD09
+  - duplicated crew images
+  - a missing flyby video segment
+  - an unlabelled audio file
+  - Hertzsprung's zero coordinates
+  - the HOBO filename DOY off by one
+- **Not yet possible:** SPICE (pointing and geometry) is delayed, so image footprints, the
+  flash locations and the pointing of the frames tagged "Impact Flashes" cannot be checked yet.
+
+_Method note: the locker analysis was independently recomputed by a second agent. That
+review led to the corrections in commit `6c9d523`. The imaging and audio section comes from a
+separate survey agent; I spot-checked the flash quotes, the duplicate pair and the missing
+video against the source files._
