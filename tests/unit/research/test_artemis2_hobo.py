@@ -15,7 +15,7 @@ import polars as pl
 import pytest
 
 
-_PATH = Path(__file__).resolve().parents[2] / "research" / "artemis2" / "analyze_hobo.py"
+_PATH = Path(__file__).resolve().parents[3] / "research" / "artemis2" / "analyze_hobo.py"
 _spec = importlib.util.spec_from_file_location("analyze_hobo", _PATH)
 hobo = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(hobo)
