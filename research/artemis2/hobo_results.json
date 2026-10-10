@@ -158,7 +158,24 @@
     "pad_diurnal_T_amplitude_C": 0.14,
     "pad_diurnal_T_peak_hour_utc": 1,
     "flight_T_trend_C_per_day": 0.37,
-    "flight_AH_trend_gm3_per_day": 0.095
+    "flight_AH_trend_gm3_per_day": 0.095,
+    "flight_min_dewpoint_margin_C": 15.65,
+    "flight_T_max": {
+      "C": 25.57,
+      "at": "2026-04-07 23:43:46+00:00"
+    },
+    "flight_T_12h_mean_max": {
+      "C": 25.38,
+      "window_end": "2026-04-08 02:32:46+00:00"
+    },
+    "T_mean_last_30min_before_splashdown": 22.84,
+    "flyby_window_22_02": {
+      "T_min": 23.74,
+      "T_max": 23.98,
+      "RH_min": 23.11,
+      "RH_max": 24.12
+    },
+    "flight_4h_T_range_median_C": 0.24
   },
   "SN1105": {
     "n_records": 37690,
@@ -319,7 +336,24 @@
     "pad_diurnal_T_amplitude_C": 0.17,
     "pad_diurnal_T_peak_hour_utc": 13,
     "flight_T_trend_C_per_day": 0.492,
-    "flight_AH_trend_gm3_per_day": 0.117
+    "flight_AH_trend_gm3_per_day": 0.117,
+    "flight_min_dewpoint_margin_C": 15.26,
+    "flight_T_max": {
+      "C": 26.04,
+      "at": "2026-04-09 19:49:26+00:00"
+    },
+    "flight_T_12h_mean_max": {
+      "C": 25.8,
+      "window_end": "2026-04-10 07:34:26+00:00"
+    },
+    "T_mean_last_30min_before_splashdown": 23.05,
+    "flyby_window_22_02": {
+      "T_min": 22.18,
+      "T_max": 22.44,
+      "RH_min": 24.9,
+      "RH_max": 27.79
+    },
+    "flight_4h_T_range_median_C": 0.31
   },
   "diff_1105_minus_1104_by_phase": {
     "1 pre-launch (pad)": {
@@ -348,19 +382,108 @@
       "AH": -1.19
     }
   },
-  "sn1105_move_step_time_estimate": "2026-04-09 18:55:00+00:00",
-  "sn1105_move_step_dT": 1.99,
+  "pad_single_minute_max_abs_diff": {
+    "T": 0.39,
+    "RH": 3.18
+  },
+  "flight_T_correlation": 0.732,
+  "fd09_relocation": {
+    "window": [
+      "2026-04-09 18:00:00+00:00",
+      "2026-04-09 21:00:00+00:00"
+    ],
+    "SN1104": {
+      "T_mean_6h_before": 24.5,
+      "T_mean_6h_after": 24.78,
+      "transients_in_window_thr1": [
+        {
+          "at": "2026-04-09 19:49:46+00:00",
+          "rh_excess_pct": 12.9
+        }
+      ]
+    },
+    "SN1105": {
+      "T_mean_6h_before": 23.07,
+      "T_mean_6h_after": 25.76,
+      "transients_in_window_thr1": [
+        {
+          "at": "2026-04-09 18:09:26+00:00",
+          "rh_excess_pct": 1.2
+        },
+        {
+          "at": "2026-04-09 18:45:26+00:00",
+          "rh_excess_pct": 4.5
+        }
+      ]
+    },
+    "difference_of_changes_C": 2.41,
+    "locker_E_event": {
+      "peak_at": "2026-04-09 19:49:46+00:00",
+      "RH_jump_vs_prev_min": 12.32,
+      "T_pre": 24.58,
+      "T_max_within_5min": 25.06,
+      "T_at_plus_15min": 24.8,
+      "AH_pre": 5.48,
+      "AH_peak": 8.41,
+      "AH_at_plus_20min": 5.16,
+      "minutes_until_RH_within_1pct_of_pre": 2
+    },
+    "SN1105_RH_change_within_2min_of_locker_E_peak": 0.79
+  },
+  "splashdown_humidity": {
+    "SN1104": {
+      "AH_mean_hour_before_splashdown": 5.31,
+      "AH_onset_5sigma_at": "2026-04-11 00:24:46+00:00",
+      "AH_at_power_down": 5.69,
+      "AH_at_splash_plus_2h": 9.49,
+      "AH_at_splash_plus_8h": 9.84,
+      "first_AH_ge_7_at": "2026-04-11 01:09:46+00:00",
+      "first_AH_ge_10_at": "2026-04-11 02:47:46+00:00"
+    },
+    "SN1105": {
+      "AH_mean_hour_before_splashdown": 4.46,
+      "AH_onset_5sigma_at": "2026-04-11 01:42:26+00:00",
+      "AH_at_power_down": 4.7,
+      "AH_at_splash_plus_2h": 5.31,
+      "AH_at_splash_plus_8h": 6.96,
+      "first_AH_ge_7_at": "2026-04-11 14:08:26+00:00",
+      "first_AH_ge_10_at": "2026-04-11 14:59:26+00:00"
+    }
+  },
   "reentry_rh_step": {
     "SN1104": {
-      "at": "2026-04-10 23:59:46+00:00",
+      "noise_std_pct": 0.029,
+      "threshold_pct": 0.144,
+      "first_hit_at": "2026-04-10 23:59:46+00:00",
+      "step_pct": 0.4,
       "minutes_before_splashdown": 7.2
     },
     "SN1105": {
-      "at": "2026-04-10 23:58:26+00:00",
-      "minutes_before_splashdown": 8.6
+      "noise_std_pct": 0.13,
+      "threshold_pct": 0.648,
+      "first_hit_at": "2026-04-11 00:00:26+00:00",
+      "step_pct": 1.98,
+      "minutes_before_splashdown": 6.6
     }
   },
-  "inflight_locker_access_events": {
+  "transient_counts": {
+    "SN1104_locker_E": {
+      "1.0": 2,
+      "1.5": 1,
+      "3.0": 1
+    },
+    "SN1105_locker_D": {
+      "1.0": 8,
+      "1.5": 4,
+      "3.0": 1
+    },
+    "SN1105_locker_F": {
+      "1.0": 0,
+      "1.5": 0,
+      "3.0": 0
+    }
+  },
+  "inflight_transients_thr1p5": {
     "SN1104": [
       {
         "at": "2026-04-09 19:49:46+00:00",
@@ -373,8 +496,8 @@
         "rh_excess_pct": 2.5
       },
       {
-        "at": "2026-04-04 05:18:26+00:00",
-        "rh_excess_pct": 2.4
+        "at": "2026-04-04 05:35:26+00:00",
+        "rh_excess_pct": 2.7
       },
       {
         "at": "2026-04-06 16:37:26+00:00",
@@ -390,5 +513,58 @@
       }
     ]
   },
-  "flight_T_correlation": 0.732
+  "inflight_transients_thr1": {
+    "SN1104": [
+      {
+        "at": "2026-04-02 23:31:46+00:00",
+        "rh_excess_pct": 1.1
+      },
+      {
+        "at": "2026-04-09 19:49:46+00:00",
+        "rh_excess_pct": 12.9
+      }
+    ],
+    "SN1105": [
+      {
+        "at": "2026-04-02 23:35:26+00:00",
+        "rh_excess_pct": 2.5
+      },
+      {
+        "at": "2026-04-04 05:35:26+00:00",
+        "rh_excess_pct": 2.7
+      },
+      {
+        "at": "2026-04-06 16:37:26+00:00",
+        "rh_excess_pct": 2.6
+      },
+      {
+        "at": "2026-04-06 18:09:26+00:00",
+        "rh_excess_pct": 4.6
+      },
+      {
+        "at": "2026-04-07 05:27:26+00:00",
+        "rh_excess_pct": 1.3
+      },
+      {
+        "at": "2026-04-07 19:54:26+00:00",
+        "rh_excess_pct": 1.1
+      },
+      {
+        "at": "2026-04-08 00:54:26+00:00",
+        "rh_excess_pct": 1.3
+      },
+      {
+        "at": "2026-04-09 03:57:26+00:00",
+        "rh_excess_pct": 1.4
+      },
+      {
+        "at": "2026-04-09 18:09:26+00:00",
+        "rh_excess_pct": 1.2
+      },
+      {
+        "at": "2026-04-09 18:45:26+00:00",
+        "rh_excess_pct": 4.5
+      }
+    ]
+  }
 }

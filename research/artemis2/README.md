@@ -12,97 +12,119 @@ Reproduce the locker analysis (it downloads its own inputs into the git-ignored 
 uv run --no-project --with pandas --with matplotlib python research/artemis2/analyze_hobo.py
 ```
 
-Outputs: `hobo_results.json` (every number quoted below) and `figures/`.
+Outputs: `hobo_results.json` and `figures/`. Every number quoted in this section is written
+to `hobo_results.json` by the script, under the key named in brackets. The script checks
+both downloads against the MD5s in the PDS bundle manifest, and reads the label statistics
+from the PDS4 XML labels.
 
 ## 1. Orion locker environment (2 × HOBO MX1101, 60 s cadence)
 
 Two loggers sat in bags in the crew-cabin storage lockers that future missions will use for
-returned lunar samples. SN 1104 stayed in **Locker E** for the whole mission. SN 1105 started
-in **Locker D** and was moved to **Locker F** on FD09. The logs run from 2026-03-26 to
-2026-04-21: six days on the pad, the 9.1-day flight, and ten days of recovery and shipping.
+returned lunar samples. SN 1104 was in **Locker E** (bag L_011) for the whole mission. SN 1105
+started in **Locker D** (bag L_022) and was moved to **Locker F** (bag R_027) on FD09. The logs
+run from 2026-03-26 to 2026-04-21: six days on the pad, the 9.1-day flight, and ten days of
+recovery and shipping. With two loggers on one flight, every comparison below mixes the
+locker, the bag and the position inside it. These data cannot separate those effects.
 
 ![overview](figures/hobo_overview.png)
 
 ### Data quality: clean
-- **Complete:** 37,706 and 37,690 records with no gaps. Every interval is exactly 60 s and
-  the sequence numbers are continuous.
+- **Complete:** 37,706 and 37,690 records with no gaps. Every interval is exactly 60 s and the
+  sequence numbers are continuous.
 - **Labels are accurate:** the PDS4 label statistics (min, max, mean, std) match the data to
-  rounding.
-- **Dew point checks out:** the logged dew point matches a Magnus–Tetens recomputation from
-  T and RH to ≤0.05 °C. The exact residual depends on which coefficient set is used.
-- **Cross-calibration is good:** on the pad the two loggers have a **mean offset of 0.05 °C
-  and 0.27 % RH**. Single-minute differences reach 0.4 °C and 3 % RH. Differences beyond
-  that later in the record are environmental, not instrumental.
+  rounding [`label_vs_data`].
+- **Dew point checks out:** the logged dew point matches a Magnus–Tetens recomputation to
+  ≤0.04 °C with the coefficients used here; the residual depends on the coefficient set
+  [`dewpoint_resid_C`].
+- **Cross-calibration is good:** on the pad the two loggers have a mean offset of 0.05 °C and
+  0.27 % RH, with single-minute differences up to 0.39 °C and 3.2 % RH
+  [`diff_1105_minus_1104_by_phase`, `pad_single_minute_max_abs_diff`].
 - **The timezone is CDT (UTC−5), as labelled.** The PDS label start (16:25:46Z) equals the
-  first CSV row (11:25:46 CDT) + 5 h. DST started 2026-03-08, so the offset does not change
-  anywhere in the record. As a consistency check, both loggers show a small RH step 6–8
-  minutes before the 00:07 UTC splashdown, and Locker E humidity starts climbing about
-  10 minutes after it. This is consistent with the timeline, but it is not independent proof
-  of the clock.
+  first CSV row (11:25:46 CDT) + 5 h. DST ran 2026-03-08 to 11-01, so the offset is constant
+  across the record.
 
 ### What the data tells us
-1. **The lockers stayed dry in flight.** Mean absolute humidity was **5.1 g/m³ in flight**,
-   the same as on the pad (5.1 g/m³). RH was 18–37 %. The closest the air came to its dew
-   point during flight was about 15 °C away, so condensation was never a risk.
-2. **The lockers warmed slowly.** The trend was +0.37 °C/day in Locker E and +0.49 °C/day in
-   D→F. Locker E peaked at about 25.3 °C (12-hour mean) on 04-07/08 and then cooled to
-   about 22.8 °C by reentry. The flight maximum was 26.0 °C (SN 1105, just after its move). A
-   detrended power spectrum shows no clear periodicity: there is no 24-hour crew-schedule line
-   and no attitude-cycling signal (`figures/hobo_flight_spectrum.png`).
-3. **The lunar flyby left no thermal trace.** At closest approach (2026-04-06 23:00 UTC) and
-   through the roughly 56-minute solar eclipse (geometric sunset 00:35 to sunrise 01:32,
-   from the target file), Locker E stayed between 23.74 and 23.98 °C. That 0.24 °C range is
-   typical of any 4-hour stretch of the flight. This is expected inside an actively
-   controlled cabin.
-4. **Moisture exposure started at splashdown, not at handover.** Absolute humidity in
-   Locker E began rising around 00:15 UTC, just after splashdown, and accelerated after
-   power-down (00:30). It went **from 5.7 g/m³ at 00:30 to 9.5 g/m³ at 02:00** and passed
-   10 g/m³ by 02:48. It stayed high for the rest of the record. Locker F was better isolated:
-   it climbed more slowly, from 4.7 to 6.9 g/m³ over 8 hours, and stayed at or below 7 g/m³
-   until a handling event at about 14:45 UTC. The cargo handover came more than 3.5 days
-   later, so for sample-curation planning the terrestrial-humidity clock starts at
-   power-down and differs by locker.
-5. **Most of the extreme values in the archive are post-mission.** SN 1105's label maxima
-   (27.1 °C, 78 % RH), both loggers' RH and dew-point maxima, and the smallest dew-point
-   margin (3.9 °C) all come from recovery and shipping. The one exception is SN 1104's
-   25.57 °C temperature maximum, which occurred in flight (04-07 23:43 UTC). Examples are 2026-04-11 20:56 UTC aboard ship and 2026-04-15/16 in transit.
-   Anyone who uses the label statistics as "flight environment" will overstate it.
+1. **The lockers stayed as dry in flight as on the pad.** Mean absolute humidity was 5.1 g/m³
+   in flight and 5.1 g/m³ on the pad, with RH between 18 and 37 % [`abs_humidity_by_phase_gm3`].
+   During flight the air never came within 15.3 °C of its dew point, so condensation in the
+   lockers was not a concern [`flight_min_dewpoint_margin_C`].
+2. **The lockers warmed slowly, then cooled before reentry.**
+   - The linear trend was +0.37 °C/day in Locker E and +0.49 °C/day in Locker D→F
+     [`flight_T_trend_C_per_day`].
+   - Locker E's 12-hour mean peaked at 25.4 °C on 04-07/08 [`flight_T_12h_mean_max`] and was
+     22.8 °C in the 30 minutes before splashdown.
+   - A detrended power spectrum shows no clear periodicity, such as a 24-hour crew-schedule
+     line (`figures/hobo_flight_spectrum.png`).
+3. **There is no detectable thermal trace of the flyby or the eclipse.** Between 22:00 and
+   02:00, covering closest approach (23:00) and the roughly 56-minute solar eclipse (section 2),
+   the loggers' temperatures stayed in these ranges [`flyby_window_22_02`]:
+   - Locker E: 23.74–23.98 °C, a 0.24 °C range, the same as the median 4-hour range in flight
+     [`flight_4h_T_range_median_C`].
+   - Locker D: 22.18–22.44 °C.
+
+   This is a weak test. The loggers are bagged and respond over hours, the eclipse lasted
+   under an hour, and the cabin is actively controlled. A small effect would not show.
+4. **After splashdown, humidity rose in both lockers, at very different times and rates**
+   [`splashdown_humidity`]:
+   - **Locker E:** absolute humidity crossed 5σ above its pre-splashdown level at 00:24 UTC,
+     17 minutes after splashdown. It reached 9.5 g/m³ two hours after splashdown and 10 g/m³
+     at 02:48, and stayed high.
+   - **Locker F:** it did not cross 5σ until 01:42. It was still 7.0 g/m³ eight hours later
+     and first reached 7 g/m³ at 14:08, just before a sharp excursion near 15:00.
+   - **The point for sample-curation planning:** in at least one locker, terrestrial humidity
+     reached the samples within about half an hour of splashdown, more than 3.5 days before
+     the bags were handed over. These data cannot show why the two lockers differed
+     (locker, bag, position, or ventilation path).
+5. **Most of the extreme values in the archive are post-mission.**
+   - These come from recovery and shipping: SN 1105's label maxima (27.1 °C, 78 % RH), both
+     loggers' RH and dew-point maxima, and the smallest dew-point margin (3.9 °C).
+   - The exception is SN 1104's temperature maximum of 25.57 °C, reached in flight at 04-07
+     23:43 UTC [`T_max_at`, `RH_max_at`, `min_margin_at`].
+   - Anyone who uses the label statistics as "the flight environment" will overstate it.
 
 ### Anomalies and curiosities
-- **Filename error.** Both files are named `art002_086-…`. The guide's filename spec for the
-  HOBO loggers is `art002_<UTC Start Date in DOY-hhmmss>_<UTC End Date in DOY-hhmmss>_…`
-  (Appendix, "HOBO data loggers"). The actual start, 2026-03-26, is **DOY 085** in both UTC
-  and CDT. The end field `111` is correct, so this is an off-by-one in the start field.
-- **An undocumented disturbance in Locker E on FD09.** The guide says SN 1104 sat untouched
-  in Locker E. At **2026-04-09 19:49 UTC** it recorded the **largest in-flight humidity
-  transient in the whole dataset: +12.9 % RH**. RH returns to baseline within about
-  3 minutes, but temperature rises about 0.5 °C and stays elevated for 15+ minutes, and the
-  absolute humidity stays shifted. That coupled, lasting response rules out a
-  single-sample sensor glitch; it is the signature of the bag or locker being opened. It
-  falls inside the documented 18:00–21:00 move window, about 65 minutes after the move time
-  the data gives (below), and during FD09 "final cabin stowage". It may be bag handling
-  connected with the move. It is **by far the largest** access-like event in Locker E. The
-  only other one is a +1.1 % excursion at 04-02 23:31.
-- **The FD09 relocation can be timed from the data.** The guide only gives the move as
-  "between 18:00 and 21:00 UTC". SN 1105 shows a handling transient peaking at **18:45 UTC**,
-  then a step warm-up into Locker F. Over the 6 hours on either side of the move, SN 1105's
-  mean rose about 2.6 °C (23.1 → 25.7 °C) while Locker E rose only 0.25 °C. Assuming Locker D
-  followed the same trend as E, Locker F was about 2.3–2.4 °C warmer than Locker D.
-- **The loggers worked as locker-access sensors.** A sealed locker's RH changes slowly. Sharp,
-  decaying excursions mean the locker was opened. The count depends on the threshold and the
-  detector. With this script's detector (`transient_events`, excess over a 31-minute rolling
-  median), Locker D/F (SN 1105) has 2 events at ≥3 % RH, 5 at ≥1.5 % and 10 at ≥1 %. Locker E
-  has 1 at ≥1.5 % and 2 at ≥1 %. An independently written detector found 3, 5–7 and 14 for
-  Locker D/F. Locker D was opened far more
-  often than Locker E. Its largest pre-move excursion, **04-06 18:09 (part of a multi-peak
-  cluster from 17:56)**, falls inside "Pre-Flyby Crew Conference and Camera Setup"
-  (17:03–18:17) in Table 4. This is a coincidence in time, not proof of what was stored
-  where.
-- **A humidity step during parachute descent.** Both loggers show an RH step within about a
-  minute of each other at 23:59–00:00 UTC, before splashdown. The step is +1.9 % in SN 1105
-  and only +0.4 % in SN 1104.
-  These data cannot show what caused it, for example a cabin vent or pressure-equalisation
-  event during descent.
+- **Filename error.** Both files are named `art002_086-…`.
+  - The guide's filename spec for the HOBO loggers is `art002_<UTC Start Date in
+    DOY-hhmmss>_<UTC End Date in DOY-hhmmss>_…` (Appendix, "HOBO data loggers").
+  - The actual start, 2026-03-26, is **DOY 085** in both UTC and CDT.
+  - The end field, `111`, is correct, so this is an off-by-one in the start field
+    [`filename_start_doy`, `actual_start_doy`].
+- **The FD09 relocation leaves a clear signature, but the guide gives only a window.** The
+  documented move window is 18:00–21:00 UTC. RH transients inside that window
+  [`fd09_relocation`]:
+  - **SN 1105:** two, at 18:09 (+1.2 %) and 18:45 (+4.5 %).
+  - **Locker E (SN 1104):** one large transient at 19:49:
+    - RH jumped +12.3 % in one minute and was back within 1 % of its prior level two minutes
+      later.
+    - Temperature rose from 24.58 to 25.06 °C and was still 24.80 °C after 15 minutes.
+    - Absolute humidity went 5.48 → 8.41 → 5.16 g/m³, ending *below* its prior level.
+  - **What these show:** the coupled, lasting response rules out a single-sample glitch. The
+    logs fit handling of the bags during the documented FD09 stowage. At 19:50 SN 1105 also
+    shows a small +0.8 % RH rise, so the two bags may have been handled together.
+  - **When the move happened:** the data cannot say which of 18:45 or 19:49 was the move
+    itself.
+  - **Lockers D and F differ in temperature:** over 6 hours either side of the window,
+    SN 1105's mean temperature rose 23.07 → 25.76 °C while Locker E rose 24.50 → 24.78 °C.
+    Locker F therefore ran about **2.4 °C warmer than Locker D**, assuming D followed E's
+    trend.
+- **Sharp RH transients are consistent with bag or locker handling, but no record says what
+  caused them.** Counts depend on the threshold [`transient_counts`]:
+
+  | Logger period | ≥1 % | ≥1.5 % | ≥3 % |
+  |---|---|---|---|
+  | Locker D, launch → FD09 move window | 8 | 4 | 1 |
+  | Locker F, after the move | 0 | 0 | 0 |
+  | Locker E, whole flight | 2 | 1 | 1 |
+
+  The largest Locker D transient, 04-06 18:09 (+4.6 %), falls inside "Pre-Flyby Crew Conference
+  and Camera Setup" (17:03–18:17) in Table 4. That is a coincidence in time, not evidence of
+  what was stored where.
+- **An RH step shortly before splashdown.** About 7 minutes before splashdown, both loggers
+  show an RH step of at least 5 times their own preceding noise [`reentry_rh_step`]:
+  - SN 1105: +2.0 % at 00:00, against noise of 0.13 %.
+  - SN 1104: +0.4 % at 23:59:46, against noise of 0.03 %.
+
+  The archive gives no parachute or vent timeline, so the cause is unknown.
 
 ![flight](figures/hobo_flight.png)
 
@@ -147,38 +169,69 @@ the collection inventories and that index; the key numbers are in `imaging_summa
 on 04-06 UTC and 2,299 on 04-07. The busiest hours were 04-06 21:00 (1,838 images) and 04-07
 00:00 (1,715). In comparison, 04-08 has 8 images and 04-09 has 71.
 
-### What the crew reported: lunar impact flashes during the eclipse
-From the voice-loop transcript `art002_2026-04-07_oe1_trn-csv_v01.csv`, using its `utc`
-column:
+### What the crew reported: lunar impact flashes
+From the voice-loop transcript `art002_2026-04-07_oe1_trn-csv_v01.csv`. Times are from its
+`utc` column. The `audio_time` column is a position in a stitched-together recording. The
+`utc` segment containing these rows has zero offset and matches the eclipse geometry: "The
+sun has gone behind the moon" at 00:38, against a computed sunset of 00:35.
 
-> **00:59:10 UTC, Wiseman:** "We have seen three impact flashes so far… Jeremy saw two, so
-> that's four total… It was not sun glint off a particulate from the thrusters or the purge
-> tanks. It was definitely impact flashes on the moon."
+> **00:59:10, Wiseman:** "We have seen three impact flashes so far… Jeremy saw two, so that's
+> four total… It was not sun glint off a particulate from the thrusters or the purge tanks. It
+> was definitely impact flashes on the moon. And Jeremy just saw another one."
+>
+> **01:00:04, Wiseman:** "they've all been either on or a bit south of the equator and **on
+> the Earth side of the moon**."
+>
+> **01:00:32, science team:** "we have citizen scientists here on Earth looking for impact
+> flashes. So hearing you saw them **on the near side** means that people saw them too."
 
-> **19:06:46, Wiseman (next-day debrief):** "…a millisecond… white, bluish white…"
-> **19:05:44, Hansen:** "a pinprick of light… no color, about the size of a star."
-> **19:08:15, Wiseman:** "I never saw any that would have been in the Earth Glow side, so I do
-> not suspect any that I saw would be able to be correlated from an Earth-based science team."
+**What is solid:**
+- Several crew members reported brief, white, star-like flashes on the unlit Moon:
+  - Hansen: "a pinprick of light… no color".
+  - Wiseman: "a millisecond… white, bluish white".
+- They report the flashes as on or a bit south of the lunar equator, on the Earth-facing
+  side. That region could be watched from the ground, and the science team said citizen
+  observers were already looking.
 
-**What connects the archives.** The 00:59 report falls **inside the solar eclipse**:
-geometric sunset was at 00:35 and sunrise at 01:32 (section 2), and the "Eclipsed Moon"
-images were taken 00:55–01:22. With the Sun hidden behind the Moon, the crew were looking at
-an unlit lunar surface. That is the only geometry in which a meteoroid impact flash is
-visible to the eye. The Lunar Targeting Package scheduled "Impact Flashes" for 23:02, near
-Earthrise (105 images, 23:02–23:09, all from D5 s/n …015). The reported flashes came about
-two hours later, during the eclipse.
+**What is uncertain:**
+- **Count.** About 3–6 unique flashes.
+  - At 00:59 the tally is 4, plus "another one".
+  - The next day Hansen says "Reid and I saw two identical ones", which means at least one
+    was double-counted.
+- **Timing.** The crew were already watching for flashes before the eclipse:
+  - Mission control asked for flash reports at 04-06 22:33, as the Moon went dark ahead of
+    loss of signal.
+  - The plan scheduled an "Impact Flashes" target at 23:02, and 105 images were tagged with
+    it.
+  - The next day the science team said "we do not feel we have clarity on when the first
+    four of those impact flashes occurred".
+  - Most or all were probably seen around the eclipse (00:35–01:32), but that is the crew's
+    recollection, not a log.
+- **Location.** On 04-07 at 19:08 Wiseman said none of *his* were "in the Earth Glow side".
+  That conflicts with his own report at 01:00. Positions should come from the crew
+  annotation PDF (`art002e016252_pcd_ann_v01.pdf`) and the delayed SPICE geometry. Hansen
+  says he "did not record at all where we saw" them.
+- **Caveats the crew raised themselves:**
+  - At 00:51 Glover relayed that Wiseman had "seen two meteors".
+  - Wiseman later added "maybe it was a priming bias".
+  - Astronauts routinely see flashes from cosmic rays hitting the retina. The crew said these
+    were different, but only from recollection.
 
-Wiseman's remark about the earthshine side matters for confirmation. Earth-based monitoring
-can only see flashes on the earthshine-lit part of the night side. If the flashes were on
-the farside night area, no ground telescope could have recorded them. **Four or more
-reported naked-eye lunar impact flashes is the most scientifically striking item in the
-release.** These are crew reports, not instrument detections. Hansen also notes that the
-crew "did not record at all where we saw the impact flashes". A crew annotation PDF of the
-flashes (`art002e016252_pcd_ann_v01.pdf`) is in the audio bundle and may help locate them.
+**Why the geometry helped:** the eclipse removed the Sun's glare and let the crew dark-adapt
+while looking at the night hemisphere. Orion was also thousands of kilometres from the Moon
+rather than 384,000, so a given flash was several magnitudes brighter than it would be from
+Earth. Together these favour seeing faint, brief flashes. The eclipse is not *required*:
+impact flashes are routinely recorded on the Moon's night side from Earth.
+
+**Why it matters:** if near-side positions and times can be pinned down from the annotation
+PDF and SPICE, ground-based lunar-impact monitoring records from 04-06/07 could
+independently confirm the flashes.
 
 Other notable observations:
-- **Corona.** 01:02:05, Hansen: the glow around the eclipsed Moon was "easily 10 widths or
-  diameters of the sun around the entire moon".
+- **Glow around the eclipsed Moon.** At 01:02:05 Hansen describes "the glow around the moon… once
+  your eyes adjust" as "easily 10 widths or diameters of the sun around the entire moon". This
+  is a dark-adapted, naked-eye estimate. It may be the corona or scattered light: the next day
+  Wiseman said the crew had underestimated "glare on the window structure".
 - **Colour.** 04-06 19:24, Koch: "the more I look at the moon, the browner and browner it looks."
 - **Aristarchus.** Wiseman: "so white… but its rays are so dim, so muted."
 - **Ohm.** Koch reads Ohm's ray pattern as a grazing-angle impact.
@@ -232,24 +285,31 @@ Other notable observations:
 
 ## Summary — what's interesting
 
-- **Most interesting:** crew reports of 4+ naked-eye lunar impact flashes during the
-  ~56-minute solar eclipse behind the Moon. They were probably on the farside night area,
-  where no Earth telescope could confirm them. They are recorded only by voice and an
-  annotation PDF, with no flash positions logged.
-- **Most useful for future sample return:** the lockers were as dry as on the pad all flight
-  (~5.1 g/m³). Humidity exposure started within minutes of splashdown, not at handover,
-  and differed by locker (E vs F).
+- **Most notable report:** the crew reported roughly 3–6 naked-eye lunar impact flashes,
+  probably around the ~56-minute solar eclipse behind the Moon.
+  - They described them as on or south of the equator on the **Earth-facing side**, so
+    ground-based monitoring might independently confirm them.
+  - These are crew reports with acknowledged caveats ("maybe it was a priming bias"), not
+    instrument detections.
+  - Times and positions were not logged.
+- **Most useful for future sample return:** in flight, the lockers stayed as dry as on the pad
+  (~5.1 g/m³). After splashdown, humidity in Locker E rose within about half an hour, days
+  before handover. Locker F lagged by hours, for reasons these data cannot separate.
 - **Anomalies in the record:**
-  - an undocumented +12.9 % RH opening of Locker E on FD09
   - duplicated crew images
   - a missing flyby video segment
   - an unlabelled audio file
   - Hertzsprung's zero coordinates
-  - the HOBO filename DOY off by one
-- **Not yet possible:** SPICE (pointing and geometry) is delayed, so image footprints, the
-  flash locations and the pointing of the frames tagged "Impact Flashes" cannot be checked yet.
+  - the HOBO filename day-of-year off by one
 
-_Method note: the locker analysis was independently recomputed by a second agent. That
-review led to the corrections in commit `6c9d523`. The imaging and audio section comes from a
-separate survey agent; I spot-checked the flash quotes, the duplicate pair and the missing
-video against the source files._
+  The FD09 humidity transients in both lockers fit the documented stowage and relocation;
+  they are not an anomaly.
+- **Not yet possible:** SPICE (pointing and geometry) is delayed, so image footprints, flash
+  locations and the pointing of the frames tagged "Impact Flashes" cannot be checked yet.
+
+_Method note: three independent adversarial reviews (scientific rigor, primary-source
+re-verification, and code/reproducibility/security) checked this write-up. Each assumed it
+was wrong. Their accepted corrections are applied here: the flash location, timing and
+count; the overstated locker interpretations; and every locker number now traced to
+`hobo_results.json` with MD5-verified inputs. An earlier recomputation produced the
+corrections in commit `6c9d523`._
