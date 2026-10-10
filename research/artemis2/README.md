@@ -321,3 +321,5 @@ was wrong. Their accepted corrections are applied here: the flash location, timi
 count; the overstated locker interpretations; and every locker number now traced to
 `hobo_results.json` with MD5-verified inputs. An earlier recomputation produced the
 corrections in commit `6c9d523`._
+
+_Interactive version: `research/artemis2/site/index.html` (self-contained; locker series are 20-minute means of the HOBO data, flyby photo counts are 10-minute bins of crew-camera label times)._
