@@ -178,7 +178,7 @@ footer { padding-block: 56px 0; color: var(--faint); font-size: 0.85rem; }
       <div role="listitem"><b>~57 h</b><span>mission audio</span></div>
       <div role="listitem"><b>75,396</b><span>locker readings</span></div>
       <div role="listitem"><b>~56 min</b><span>solar eclipse</span></div>
-      <div role="listitem"><b>3–6</b><span>reported impact flashes</span></div>
+      <div role="listitem"><b>5</b><span>impact flashes, mapped by the crew</span></div>
     </div>
   </div>
 </header>
@@ -250,25 +250,29 @@ footer { padding-block: 56px 0; color: var(--faint); font-size: 0.85rem; }
   </div>
   <div class="flash-grid">
     <div class="stack">
-      <div class="moon-box"><canvas id="moon" role="img" aria-label="Illustration: the dark Moon during the eclipse, ringed by the solar glow, with Earth-lit limb on one side and brief flashes appearing on the Earth-facing night side."></canvas><span class="moon-note">Illustration only. The flash positions are not known; these are drawn on the Earth-facing side, where the crew reported them.</span></div>
+      <div class="moon-box"><canvas id="moon" role="img" aria-label="Map of the five impact flashes the crew marked, on the Moon as seen from Orion at 01:04 UTC. A dashed line at 90 degrees east marks the edge of what Earth could see; all five flashes lie beyond it, on the far side."></canvas></div>
+      <p class="met">Dots: the crew's own marks, one colour per person (Hansen red, Wiseman blue, Glover green). Converted to lunar coordinates by fitting the annotation render's drawn grid with Orion's position from JPL Horizons. Accurate to a few degrees at best: the dots were placed by hand, from memory.</p>
     </div>
     <div class="stack">
       <p class="pull">“We have seen three impact flashes so far… <em>Jeremy just saw another one.</em>”</p>
       <p class="met">Reid Wiseman · 00:59:10 UTC · 7 April · during the eclipse</p>
-      <p class="prose">With the Sun behind the Moon and the cabin displays dimmed, the crew reported tiny flashes on the dark lunar surface: meteoroids striking the Moon. Asked where, Wiseman answered at 01:00: <i>“on or a bit south of the equator and on the Earth side of the moon.”</i> Ground control replied that citizen observers on Earth had been watching that same side.</p>
+      <p class="prose">With the Sun behind the Moon, the crew reported tiny flashes on the dark lunar surface: meteoroids striking the Moon. Asked where, Wiseman answered at 01:00: <i>“on or a bit south of the equator and on the Earth side of the moon.”</i> Ground control took that as the near side, the side citizen observers on Earth were watching.</p>
+      <p class="prose">The crew's own map says otherwise. On an annotation page, each crew member marked what they saw: five numbered flashes, “roughly 10 min into eclipse” for the first three, “#4 (later)”, “#5 towards end”. Converted to lunar coordinates, every one lies between <b>100°E and 170°E</b>, on the far side. Earth that night could see only to about 89°E. “The Earth side” fits the side of the disk facing Earth <i>as seen from Orion</i>, not the hemisphere Earth can see.</p>
       <div class="ledger">
         <div class="solid"><h3><span class="chip ok">Solid</span></h3><ul>
           <li>Several crew members independently describe brief, white, star-sized flashes. Hansen: “a pinprick of light… no color.” Wiseman: “a millisecond… white, bluish white.”</li>
-          <li>They were reported on the Earth-facing side, so ground-based lunar-impact monitoring could in principle confirm them.</li>
+          <li>Five flashes on the crew's map, two of them seen by more than one person (circled “likely same impacts”).</li>
+          <li>Spoken call-outs time them to the second: 00:41 to 00:53 for the first three, 00:59 to 01:03 for the fourth, about 01:18 for the fifth (“I saw one in the upper right quadrant”).</li>
+          <li>All five lie beyond the edge of Earth's view, so ground telescopes could not have recorded them.</li>
         </ul></div>
         <div class="unsure"><h3><span class="chip fix">Uncertain</span></h3><ul>
-          <li><b>How many:</b> roughly 3 to 6. Hansen later said he and Wiseman “saw two identical ones”, so at least one was double-counted.</li>
-          <li><b>When:</b> mission control asked for flash reports from 22:33, and the next day the science team said they lacked “clarity on when the first four… occurred.” Most were probably seen around the eclipse, by the crew's recollection.</li>
-          <li><b>Where exactly:</b> no positions were logged. A crew annotation PDF exists, and the delayed SPICE geometry will help.</li>
-          <li><b>Caveats the crew raised:</b> an earlier report of “two meteors”, and Wiseman's own “maybe it was a priming bias”. Astronauts also see cosmic-ray flashes in their eyes; the crew said these were different.</li>
+          <li><b>Exact positions:</b> marked from memory on a dark planning render; the marks for the triple-sighted #4 sit 9° apart.</li>
+          <li><b>The fifth:</b> at the same moment Glover relayed “right near the South Pole on the Terminator”, which does not match #5 near the north limb.</li>
+          <li><b>Caveats the crew raised:</b> Wiseman's first call turned out to be “streaks”, Glover relayed “two meteors”, and Wiseman later offered “maybe it was a priming bias”. Astronauts also see cosmic-ray flashes in their eyes; the crew said these were different.</li>
         </ul></div>
       </div>
-      <p class="prose muted">Why the eclipse helped: no solar glare, dark-adapted eyes, and a night hemisphere seen from thousands of kilometres instead of 384,000. An eclipse is not required to see impact flashes; telescopes on Earth record them on the Moon's night side routinely.</p>
+      <p class="prose" id="flash-cameras">Did any camera catch one? <span class="muted">No. The crew cameras were not exposing at the call-out moments. The Z9's eclipse series has a one-minute gap exactly over the two 00:51 sightings. The solar-array camera filmed the whole eclipse at 60 frames a second, and a frame-by-frame search of both downlink channels (208,591 frames each) found 43 brief brightenings seen in both. Every one is flicker of a star or of the corona-lit limb, not a new point on the dark Moon. The crew's eyes remain the only detector.</span></p>
+      <p class="prose muted">Why the eclipse helped: no solar glare, dark-adapted eyes, and a night hemisphere seen from about 11,800 km instead of 384,000, which makes a flash roughly a thousand times (7 magnitudes) brighter. Telescopes on Earth record impact flashes routinely, but only on the near side.</p>
     </div>
   </div>
   <figure>
@@ -484,10 +488,12 @@ const VOICES = [
   { t: at(6, 23, 57), who: "CAPCOM", time: "23:57:40", text: "You have three minutes until we go into a forward link LOS. We will be back up with you in about an hour during the eclipse on Madrid.", ctx: "A second, planned outage; the crew records reports 'in the blind'." },
   { t: at(7, 0, 38), who: "Victor Glover", time: "00:38:06", text: "This continues to be unreal. The sun has gone behind the moon, and the corona is still visible, and it's bright, and it creates a halo almost around the entire moon.", ctx: "Recorded in the blind, three minutes after sunset." },
   { t: at(7, 0, 50), who: "Victor Glover", time: "00:50:10", text: "The camera settings for Earthshine are challenging. What we're seeing, we're just not picking up on the cameras.", ctx: "The eye beats the D5 in the dark." },
+  { t: at(7, 0, 51), who: "Jeremy Hansen", time: "00:51:57", text: "We saw an impact flash.", ctx: "Crew tablet recording. Seconds earlier: \u201cit\u2019s just like a bloop.\u201d The first of three marked \u201croughly 10 min into eclipse\u201d." },
   { t: at(7, 0, 59), who: "Reid Wiseman", time: "00:59:10", text: "We have seen three impact flashes so far. I saw two and Jeremy has seen one… Jeremy saw two, so that's four total… And Jeremy just saw another one.", ctx: "The flash report. One minute later: “on the Earth side of the moon.”" },
   { t: at(7, 1, 2), who: "Jeremy Hansen", time: "01:02:05", text: "The glow around the moon, once your eyes adjust, is easily 10 widths or diameters of the sun around the entire moon.", ctx: "A naked-eye estimate; window glare may contribute." },
   { t: at(7, 1, 4), who: "Jeremy Hansen", time: "01:04:12", text: "I didn't pick out any color, but definitely structure. There were streamers, and they were not uniform at all.", ctx: "Answering the science team's question about the corona." },
   { t: at(7, 1, 15), who: "Victor Glover", time: "01:15:52", text: "Yeah, we can absolutely see the color of Mars. That's awesome.", ctx: "Mars and Saturn near the dark limb." },
+  { t: at(7, 1, 17), who: "Victor Glover", time: "01:17:59", text: "And actually, right after I said that, right near the South Pole on the Terminator, Reid just saw one.", ctx: "Wiseman, 26 s later: \u201cI saw one in the upper right quadrant.\u201d Flash #5, \u201ctowards end\u201d." },
   { t: at(7, 1, 23), who: "Victor Glover", time: "01:23:54", text: "We all think we're starting to see something. I believe the most popular term is baby hair.", ctx: "First light returning at the limb before sunrise." },
   { t: at(7, 1, 29), who: "Reid Wiseman", time: "01:29:43", text: "We are in eclipse glasses. That was an absolutely spectacular, magnificent experience.", ctx: "Sunrise at 01:32." },
 ];
@@ -553,48 +559,80 @@ const JUMPS = [["Godspeed", at(6, 22, 36)], ["Blackout", at(6, 22, 50)], ["Sunse
   setTime(at(6, 22, 36));
 })();
 
-/* ---------------- Moon illustration ---------------- */
+/* ---------------- Flash map (crew annotation -> lunar coordinates) ---------------- */
 (function moon() {
   const c = document.getElementById("moon"), ctx = c.getContext("2d");
-  let W, R, cx, cy, flashes = [], seed = 3;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  // View from Orion at 01:04 UTC (JPL Horizons): sub-observer 123.3E, 3.6S; north up.
+  const LC = 123.26 * Math.PI / 180, PC = -3.58 * Math.PI / 180;
+  const OBS = { Hansen: "#ff6b6b", Wiseman: "#7fb2ff", Glover: "#3ddc84" };
+  // Midpoints of the two fits in flash_annotations.json
+  const FL = [
+    { n: 1, lon: 144.1, lat: -22.6, when: "~00:41–00:53", who: ["Wiseman"] },
+    { n: 2, lon: 101.7, lat: -16.4, when: "~00:41–00:53", who: ["Hansen", "Wiseman"] },
+    { n: 3, lon: 168.8, lat: -14.8, when: "~00:41–00:53", who: ["Hansen"] },
+    { n: 4, lon: 121.8, lat: -50.7, when: "~00:59–01:03", who: ["Hansen", "Wiseman", "Glover"] },
+    { n: 5, lon: 143.5, lat: 54.7, when: "~01:18", who: ["Wiseman"] },
+  ];
+  let W, R, cx, cy;
+  function proj(lonDeg, latDeg) {
+    const l = lonDeg * Math.PI / 180 - LC, p = latDeg * Math.PI / 180;
+    return [cx + R * Math.cos(p) * Math.sin(l),
+            cy - R * (Math.cos(PC) * Math.sin(p) - Math.sin(PC) * Math.cos(p) * Math.cos(l))];
+  }
   function size() {
     const r = c.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
     W = r.width; c.width = W * d; c.height = W * d; ctx.setTransform(d, 0, 0, d, 0, 0);
-    R = W * 0.3; cx = W / 2; cy = W * 0.47;
+    R = W * 0.34; cx = W / 2; cy = W * 0.48;
   }
   function draw(now) {
     ctx.clearRect(0, 0, W, W);
-    const g = ctx.createRadialGradient(cx, cy, R, cx, cy, R * 2.2);
-    g.addColorStop(0, "rgba(243,200,113,0.32)"); g.addColorStop(0.25, "rgba(243,200,113,0.08)"); g.addColorStop(1, "rgba(243,200,113,0)");
+    const g = ctx.createRadialGradient(cx, cy, R, cx, cy, R * 2.1);
+    g.addColorStop(0, "rgba(243,200,113,0.28)"); g.addColorStop(0.25, "rgba(243,200,113,0.07)"); g.addColorStop(1, "rgba(243,200,113,0)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
     ctx.fillStyle = "#0a0b10"; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
-    const es = ctx.createRadialGradient(cx - R * 1.1, cy, R * 0.2, cx - R * 0.6, cy, R * 1.5);
-    es.addColorStop(0, "rgba(127,178,255,0.26)"); es.addColorStop(1, "rgba(127,178,255,0)");
-    ctx.fillStyle = es; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
-    ctx.strokeStyle = "rgba(255,236,190,0.6)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.stroke();
-    ctx.fillStyle = "rgba(154,158,176,0.75)"; ctx.font = "11px JetBrains Mono, monospace"; ctx.textAlign = "left";
-    ctx.fillText("Earth-facing side", 12, 20);
-    // flashes: brief, on the Earth-facing (left) half, near or south of the equator
-    if (!reduce && now && rnd() < 0.018) {
-      const ang = Math.PI * (0.55 + rnd() * 0.45), rr = R * (0.25 + rnd() * 0.65);
-      flashes.push({ x: cx + Math.cos(ang) * rr, y: cy + Math.abs(Math.sin(ang)) * rr * 0.5, born: now });
-    }
-    flashes = flashes.filter(f => now - f.born < 420);
-    for (const f of flashes) {
-      const a = 1 - (now - f.born) / 420;
-      const fg = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 7);
-      fg.addColorStop(0, `rgba(235,242,255,${a})`); fg.addColorStop(1, "rgba(235,242,255,0)");
-      ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(f.x, f.y, 7, 0, 6.283); ctx.fill();
-    }
-    if (reduce) { // static: show four marks
-      [[0.62, 0.55], [0.7, 0.3], [0.82, 0.62], [0.92, 0.2]].forEach(([u, v]) => {
-        const ang = Math.PI * u, rr = R * v * 1.2; ctx.fillStyle = "rgba(235,242,255,0.85)";
-        ctx.beginPath(); ctx.arc(cx + Math.cos(ang) * rr, cy + Math.abs(Math.sin(ang)) * rr * 0.5, 2, 0, 6.283); ctx.fill();
+    // Earth-lit part: longitudes west of 90E (the half of the Moon that faces Earth)
+    const mer = []; for (let la = -90; la <= 90; la += 3) mer.push(proj(90, la));
+    const [sx, sy] = mer[0], [nx, ny] = mer[mer.length - 1];
+    ctx.beginPath(); ctx.moveTo(nx, ny); mer.slice().reverse().forEach(([x, y]) => ctx.lineTo(x, y));
+    ctx.arc(cx, cy, R, Math.atan2(sy - cy, sx - cx), Math.atan2(ny - cy, nx - cx) + 2 * Math.PI, false);
+    ctx.closePath(); ctx.fillStyle = "rgba(127,178,255,0.13)"; ctx.fill();
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = "rgba(127,178,255,0.75)"; ctx.lineWidth = 1;
+    ctx.beginPath(); mer.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+    ctx.setLineDash([2, 5]); ctx.strokeStyle = "rgba(154,158,176,0.5)";
+    ctx.beginPath(); for (let lo = 34; lo <= 212; lo += 3) { const [x, y] = proj(lo, 0); lo === 34 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = "rgba(255,236,190,0.55)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.stroke();
+    ctx.font = "11px JetBrains Mono, monospace"; ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(127,178,255,0.9)"; ctx.fillText("◀ seen from Earth", 12, 20);
+    ctx.fillText("90°E: edge of Earth's view", 12, 36);
+    ctx.fillStyle = "rgba(154,158,176,0.8)"; ctx.textAlign = "right"; ctx.fillText("far side ▶", W - 12, 20);
+    ctx.fillText("N ↑ · from Orion 01:04 UTC", W - 12, 36);
+    const period = 9000, t = reduce ? period : (now || 0) % period;
+    FL.forEach((f, i) => {
+      const [x, y] = proj(f.lon, f.lat), fire = 600 + i * 1500, age = t - fire;
+      if (age < 0) return;
+      if (age < 500) {
+        const a = 1 - age / 500, rr = 6 + 22 * (age / 500);
+        const fg = ctx.createRadialGradient(x, y, 0, x, y, rr);
+        fg.addColorStop(0, `rgba(255,248,225,${a})`); fg.addColorStop(1, "rgba(255,248,225,0)");
+        ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(x, y, rr, 0, 6.283); ctx.fill();
+      }
+      f.who.forEach((w, k) => {
+        const ang = (k / f.who.length) * 6.283, off = f.who.length > 1 ? 3.5 : 0;
+        ctx.fillStyle = OBS[w]; ctx.beginPath(); ctx.arc(x + off * Math.cos(ang), y + off * Math.sin(ang), 3, 0, 6.283); ctx.fill();
       });
-    } else requestAnimationFrame(draw);
+      ctx.fillStyle = "rgba(217,212,199,0.95)"; ctx.textAlign = "left"; ctx.font = "12px JetBrains Mono, monospace";
+      ctx.fillText(`#${f.n}`, x + 8, y - 6);
+    });
+    const cur = FL.filter((f, i) => t >= 600 + i * 1500).pop();
+    if (cur) {
+      ctx.textAlign = "left"; ctx.font = "12px JetBrains Mono, monospace"; ctx.fillStyle = "rgba(217,212,199,0.9)";
+      ctx.fillText(`#${cur.n} · ${cur.when} UTC · ${cur.lon.toFixed(0)}°E ${Math.abs(cur.lat).toFixed(0)}°${cur.lat < 0 ? "S" : "N"}`, 12, W - 34);
+      let xx = 12; cur.who.forEach(w => { ctx.fillStyle = OBS[w]; ctx.fillText(w, xx, W - 18); xx += ctx.measureText(w + "  ").width; });
+    }
+    if (!reduce) requestAnimationFrame(draw);
   }
-  size(); addEventListener("resize", size); requestAnimationFrame(draw);
+  size(); addEventListener("resize", () => { size(); if (reduce) draw(0); }); requestAnimationFrame(draw);
 })();
 
 /* ---------------- Quotes wall ---------------- */
@@ -738,9 +776,9 @@ const JUMPS = [["Godspeed", at(6, 22, 36)], ["Blackout", at(6, 22, 50)], ["Sunse
   ];
   document.getElementById("caseRows").innerHTML = rows.map(([f, k, st, ev]) => `<tr><td>${f}</td><td><span class="chip ${k}">${st}</span></td><td>${ev}</td></tr>`).join("");
   const rev = [
-    ["Where the flashes were", "probably on the far side, out of reach of Earth telescopes", "the crew said “the Earth side of the moon”; ground observers could confirm them"],
+    ["Where the flashes were (revised twice)", "near side, where ground observers could confirm them (the review's correction)", "far side, 100–170°E, from the crew's own annotation map; the first draft's guess was right"],
     ["Why the flashes were visible", "only an eclipse makes them visible", "the eclipse removed glare; impact flashes are seen on the night side from Earth routinely"],
-    ["How many, and when", "four or more, during the eclipse", "roughly 3–6, possibly double-counted; timing by recollection"],
+    ["How many, and when", "roughly 3–6, timing by recollection", "five on the crew's map; spoken call-outs time them between 00:41 and 01:18"],
     ["What the locker spikes mean", "the locker was opened", "consistent with bag handling; no ground truth"],
     ["Eclipse length", "about 47 minutes (crew prompt times)", "about 56 minutes (geometric sunset 00:35, sunrise 01:32)"],
     ["Reproducibility", "numbers copied into prose by hand", "every locker number written by the script, inputs checked against PDS checksums"],

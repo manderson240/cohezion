@@ -12,6 +12,15 @@ Reproduce the locker analysis (it downloads its own inputs into the git-ignored 
 uv run --no-project --with polars --with matplotlib python research/artemis2/analyze_hobo.py
 ```
 
+The flash and transcript analyses (section 3):
+
+```bash
+uv run --no-project --with numpy --with scipy --with pillow python research/artemis2/flash_map.py   # downloads the annotation PDF
+uv run --no-project --with polars python research/artemis2/transcripts.py DIR    # DIR = downloaded data_transcripts_* folders
+uv run --no-project --with numpy --with scipy --with pillow python research/artemis2/flash_search_stills.py PNG...  # crew browse PNGs
+uv run --no-project --with numpy --with scipy python research/artemis2/flash_search_video.py CH1.mp4 CH2.mp4      # SAW3 videos, 2.9 GB each; ~50 min
+```
+
 Outputs: `hobo_results.json` and `figures/`. Every number quoted in this section is written
 to `hobo_results.json` by the script, under the key named in brackets. The script checks
 both downloads against the MD5s in the PDS bundle manifest, and reads the label statistics
@@ -28,6 +37,9 @@ from the PDS4 XML labels.
 | Differential oracle | The polars port reproduces the previous pandas implementation on every field and all three figures; the only differences are two values in `phases` that pandas rounded with half-to-even scaling (23.895 -> 23.9) and Python rounds exactly (-> 23.89) | compare against the JSON at commit `2a59d6b` |
 | Unit tests (CI-gating) | 12 offline tests of the transient detector, phase boundaries, derived humidity, CDT->UTC conversion, label parser and checksum gate. Mutation-tested: breaking each mechanism turns at least one test red | `uv run --no-project --with polars --with pytest python -m pytest tests/unit/research/test_artemis2_hobo.py --noconftest` |
 | Adversarial review | Three independent reviewers (scientific rigor, primary-source re-check against the live PDS archive, code/reproducibility/security), each told to assume the work was wrong | corrections in commits `6c9d523`, `4a84aa5`, `d9a12c7` |
+| Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Projection and inverse projection round-trip. With the view fixed from Horizons, the drawn meridians fit at 85°E/186°E, an independent check that the render matches Orion's real geometry. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
+| Quotes | Every curated transcript quote must match a CSV row verbatim at its UTC stamp, or `transcripts.py` exits non-zero (39 of 39 match) | `transcripts.py` |
+| Flash searches | Synthetic tests: a 3-frame point flash is found at its frame and place; steady stars, long brightenings and whole-frame changes are not; triage separates a rise from dark from flicker of an existing source | `tests/unit/research/test_artemis2_flash_search.py` |
 | Primary-source spot checks | Transcript quotes, duplicate images, the missing video segment and the HTTP 403 audio entry were checked against the source files by hand | — |
 
 What this does **not** cover: the crew-camera, Orion-camera and audio numbers in section 3 come from the PDS
@@ -201,47 +213,119 @@ sun has gone behind the moon" at 00:38, against a computed sunset of 00:35.
 > **01:00:32, science team:** "we have citizen scientists here on Earth looking for impact
 > flashes. So hearing you saw them **on the near side** means that people saw them too."
 
-**What is solid:**
-- Several crew members reported brief, white, star-like flashes on the unlit Moon:
-  - Hansen: "a pinprick of light… no color".
-  - Wiseman: "a millisecond… white, bluish white".
-- They report the flashes as on or a bit south of the lunar equator, on the Earth-facing
-  side. That region could be watched from the ground, and the science team said citizen
-  observers were already looking.
+**The crew's own map: where the flashes were.** The annotation PDF
+`art002e016252_pcd_ann_v01.pdf` is a OneNote planning render of the Moon for 7 Apr 2026
+01:04 UTC. The crew drew dots on it, one colour each: Hansen red, Wiseman blue, "Ike"
+(Glover) green. They numbered five flashes and wrote: "these three roughly 10 min into
+eclipse" (#1–#3), "#4 (later)", "#5 towards end", and circled #2 and #4 as "likely same
+impacts". `flash_map.py` turns the dots into lunar coordinates. It fits a sphere projection
+to the render's lit limb, drawn equator and two drawn meridians, with the viewing geometry
+fixed from JPL Horizons (Moon seen from Artemis II, `500@-1024`). Output is in
+`flash_annotations.json`.
 
-**What is uncertain:**
-- **Count.** About 3–6 unique flashes.
-  - At 00:59 the tally is 4, plus "another one".
-  - The next day Hansen says "Reid and I saw two identical ones", which means at least one
-    was double-counted.
-- **Timing.** The crew were already watching for flashes before the eclipse:
-  - Mission control asked for flash reports at 04-06 22:33, as the Moon went dark ahead of
-    loss of signal.
-  - The plan scheduled an "Impact Flashes" target at 23:02, and 105 images were tagged with
-    it.
-  - The next day the science team said "we do not feel we have clarity on when the first
-    four of those impact flashes occurred".
-  - Most or all were probably seen around the eclipse (00:35–01:32), but that is the crew's
-    recollection, not a log.
-- **Location.** On 04-07 at 19:08 Wiseman said none of *his* were "in the Earth Glow side".
-  That conflicts with his own report at 01:00. Positions should come from the crew
-  annotation PDF (`art002e016252_pcd_ann_v01.pdf`) and the delayed SPICE geometry. Hansen
-  says he "did not record at all where we saw" them.
-- **Caveats the crew raised themselves:**
-  - At 00:51 Glover relayed that Wiseman had "seen two meteors".
-  - Wiseman later added "maybe it was a priming bias".
-  - Astronauts routinely see flashes from cosmic rays hitting the retina. The crew said these
-    were different, but only from recollection.
+| # | marked by | when (crew note) | longitude | latitude |
+|---|---|---|---|---|
+| 1 | Wiseman | ~10 min into eclipse | 143–145°E | 22–23°S |
+| 2 | Hansen, Wiseman (circled) | ~10 min into eclipse | 100–104°E | 16–17°S |
+| 3 | Hansen | ~10 min into eclipse | 168–169°E | 15°S |
+| 4 | Hansen, Wiseman, Glover (circled) | later | 121–123°E | 49–53°S |
+| 5 | Wiseman | towards end | 142–145°E | 52–57°N |
+
+Ranges span two fits: the view fixed from Horizons (123.3°E), and the drawn grid forced to
+exactly 90°E/180°E (129.5°E). The grid check is independent: with the Horizons view fixed,
+the drawn meridians come out at 85°E and 186°E, i.e. a 90°/180° grid to within ~5°. The
+render's Earthshine-lit crescent ends at the 90°E line, as it should. The real uncertainty
+is larger than these ranges, because the dots were placed by hand from memory on a dark
+image. The dots for #4 are 9° apart across three observers.
+
+**Count.** The map shows five numbered flashes. Two of them (#2 and #4) were seen by more
+than one person, and the circles match Hansen's next-day remark "Reid and I saw two
+identical ones". The live tally at 00:59 was "three so far" plus "another one". Hansen also
+said he "did not record at all where we saw" them. So the map was drawn from memory, not
+logged live.
+
+**Finding: the flashes were on the lunar far side, not the near side.** Every marked flash is
+at 100–170°E. From Earth that night the Moon's disk was centred on 359.2°E (Horizons,
+geocentre), so Earth could see only up to about 89°E. None of the five could have been
+recorded by ground-based impact monitoring, which contradicts the 01:00 relay ("hearing you
+saw them on the near side means that people saw them too"). Wiseman's "on the Earth side of
+the moon" is best read as the side of the disk *as seen from Orion* that faced Earth (the
+Earthshine side, west of 90°E). #2 lies just beyond it. Wiseman's next-day remark that none of
+his were "in the Earth Glow side" agrees with the map. **Consequence:** Earth-based monitoring
+cannot confirm these flashes. Confirmation would have to come from Orion's own cameras
+(below) or from a later orbital search for fresh craters (e.g. LRO before/after imaging) at
+these coordinates.
+
+**When: the crew's call-outs, to the second.** The crew-tablet recording (PCD3
+`art002a000052`) and the voice loop agree to about 1 s, for example 00:59:10.8 vs 00:59:11.0.
+Quotes are verified verbatim by `transcripts.py`.
+
+| UTC (04-07) | who | words |
+|---|---|---|
+| 00:41:00 | Wiseman | "I just saw a meteor -- I just saw a flash!" (at 00:42:33, asked flash or streak: "No, streaks.") |
+| 00:51:15 | Wiseman | "100 percent just saw a meteorite" |
+| 00:51:38–57 | Hansen | "it's just like a bloop" … "We saw an impact flash." |
+| 00:52:52 | Hansen | "I think I just saw another one, but this one I'm less sure of" |
+| 00:59:10 | Wiseman | "We have seen three impact flashes so far." |
+| 00:59:18 | Hansen | "I just saw another one." |
+| 01:03:04 | Wiseman | "I just saw another one." |
+| 01:17:49 | Wiseman | "I think I just saw one." Glover relays (01:17:59): "right near the South Pole on the Terminator"; Wiseman (01:18:25): "I saw one in the upper right quadrant." |
+
+These fit the annotation: the first three around 00:41–00:53 ("roughly 10 min into
+eclipse"), #4 "later" around 00:59–01:03, and #5 "towards end" at ~01:18, near the north
+limb and right of centre, matching "upper right quadrant". Glover's "South Pole" relay at the
+same moment does not match #5. It may be a second flash, or a view rotated relative to the
+render. It is unresolved.
+
+**Caveats the crew raised themselves:**
+- Wiseman's first call (00:41) turned into "streaks" (a meteor-like trail, not a point flash).
+- At 00:51 Glover relayed that Wiseman had "seen two meteors".
+- Wiseman later added "maybe it was a priming bias".
+- Astronauts routinely see flashes from cosmic rays hitting the retina. Wiseman said there was a
+  "100% difference in those and what we saw yesterday", but only from recollection.
+
+**Did any camera catch one?** Two independent searches.
+- *Crew stills* (`flash_search_stills.py` → `flash_search_stills.json`). I checked all 73
+  frames taken within a few seconds before each call-out. Each flash happened while no long
+  exposure was open:
+  - At 00:41 the D5 was shooting bracketed bursts of 0.6–40 ms (about 3% of the time open).
+  - Both 00:51 sightings fall in a one-minute gap in the Z9's eclipse series (00:50:51 to
+    00:51:51).
+  - Nothing was shooting just before 00:52:52, 00:59:18 or 01:03:04.
+  - At 01:17–01:18 the D5 used 2.5–10 ms exposures.
+
+  On the seven long Z9 exposures (2–4 s, 00:50–00:52) that show the whole dark disk, the
+  search finds tens of sharp single-frame events per frame that are unique both on the
+  sensor and on the disk. The brightest are short tracks with demosaic colour fringes, the
+  signature of cosmic-ray hits on the sensor. In processed browse PNGs nothing can be
+  separated from that background, so the stills give no detection.
+- *SAW3 video* (`flash_search_video.py` → `flash_search_video.json`). The solar-array
+  camera recorded the whole eclipse at 59.94 frames/s, on two downlink channels that are
+  separate encodings of the same view (aligned to the frame; 97 of 300 test frames
+  bit-identical). The search:
+  - scanned 208,591 frames per channel, 00:35–01:33;
+  - flagged any point brighter than the same pixel 6–12 frames before and after (a transient
+    of 100 ms or less, ≥20 DN);
+  - kept only events that appear in both channels within 3 frames.
+
+  43 events pass the cross-channel check.
+  - **40 are flickers of sources already there**: a drifting point source (probably a star
+    or planet) and the corona-lit limb of the Moon. Their reference level is 26–234 DN.
+  - **3 rise from dark** (00:35:54, 00:37:24, 00:40:58). All three sit at the tip of the
+    corona-lit limb, on one five-minute track drifting with the camera attitude.
+
+  The 00:40:58 event comes 2.5 s before Wiseman's "I just saw a flash!", but it is edge
+  flicker on that track, not a point on the dark disk. Wiseman himself revised that sighting
+  to "streaks". **No impact flash is detected in the video.** That is not evidence against
+  the crew: SAW3 pointing is not yet archived, so whether the mapped sites were in its field
+  is unknown. Its sensitivity to a 1–10 ms flash is also unknown. And because the two
+  channels share one sensor, matching across them rules out encoding glitches but not sensor
+  events.
 
 **Why the geometry helped:** the eclipse removed the Sun's glare and let the crew dark-adapt
-while looking at the night hemisphere. Orion was also thousands of kilometres from the Moon
-rather than 384,000, so a given flash was several magnitudes brighter than it would be from
-Earth. Together these favour seeing faint, brief flashes. The eclipse is not *required*:
-impact flashes are routinely recorded on the Moon's night side from Earth.
-
-**Why it matters:** if near-side positions and times can be pinned down from the annotation
-PDF and SPICE, ground-based lunar-impact monitoring records from 04-06/07 could
-independently confirm the flashes.
+while looking at the night hemisphere. Orion was also ~11,800 km from the Moon (Horizons, at
+01:04), not 384,000. So a given flash was about 7 magnitudes brighter than it would be from
+Earth, (384,000/11,800)² ≈ 1,000×. Together these favour seeing faint, brief flashes.
 
 Other notable observations:
 - **Glow around the eclipsed Moon.** At 01:02:05 Hansen describes "the glow around the moon… once
@@ -253,13 +337,47 @@ Other notable observations:
 - **Ohm.** Koch reads Ohm's ray pattern as a grazing-angle impact.
 - **Grimaldi.** CAPCOM: the crew's report of how dark Grimaldi looked "was unexpected and was
   something that has got the scientists excited".
-- **Spacecraft events heard on the loops:**
-  - a "cabin leak suspected" warning during suit drying, later traced to a cabin fan-speed
-    pressure shift
-  - an unexpected loss of signal during the handover to the DSN Madrid antenna
-  - a transient HCN read error from the atmosphere analyser
-  - a propulsion-system issue that CAPCOM said was "not an optocoupler glitch. It's something
-    internal to the prop system" (04-07 23:51)
+- **Marks on a window.** 04-07 00:29, Hansen, as sunlight reached the window frame during the
+  sunset manoeuvre: "I think these are debris hits, man." … "It's like it came in deep,
+  man." … "That's not a nick." The tablet audio does not say which window or pane, and there is
+  no follow-up on the loops. The likeliest reading is micrometeoroid or debris pits revealed
+  by grazing light. It is worth checking against post-flight window inspection.
+
+### The transcripts in full (`transcripts.py` → `transcript_events.json`)
+All 56 transcript files, 6,355 rows. Rows per speaker (bracketed relay tags
+stripped): Wiseman 1,865, Hansen 1,377, Koch 1,251, Glover
+1,064, CAPCOM 479, science team 122, unattributed "Crew"
+93, blank 80, and a call with the International Space Station
+(17). A background read of every row (cross-checked by
+script) found no lunar observation or spacecraft event beyond those listed here and in
+`transcript_events.json`. That list is curated, not exhaustive: the 1,800-odd rows
+mentioning lunar features are mostly descriptive.
+
+Spacecraft events on the loops, in time order. Each quote is verified verbatim.
+
+| UTC | event | words |
+|---|---|---|
+| 04-06 00:09 | cabin leak alarm during suit drying | "warning cabin leak suspected"; Houston (01:05): a lower cabin fan speed shifted the sensor pressure, so "it registered a pressure change" |
+| 04-06 01:07 | S-band | "still looking at what happened with S-band string 2"; string swap later that day |
+| 04-06 02:16 | crew tablet | PCD 3 would not open the Lunar Targeting Package; fixed at 03:09 ("Hooray, that fixed it.") |
+| 04-06 04:22 | air analyser | "One said for HCN, it was like a read error." |
+| 04-06 21:15 | crew tablet | charge cord came undone: "we were about to die on this PCD" |
+| 04-06 21:16 | thermal | "we have a temperature constraint on the windows"; a shroud had to come off |
+| 04-06 23:40 | comm | after AOS: "We experienced some blockage from a solar array." |
+| 04-07 01:28 | SAW3 camera | "Saw three camera temperature low." Houston: "It just got a little cool during the eclipse." This is the camera searched for flashes below |
+| 04-07 03:13 | display units | DU-1 caution, "a recurrence of what we saw with DU-2" |
+| 04-07 22:30–22:39 | smoke detector | noise spikes; "suspecting interference from that cable" (an unconnected HDMI camera cable), then "we have seen the spikes return" |
+| 04-07 23:48–23:56 | propulsion | "optocoupler glitch", then "something internal to the prop system", then "We thought we had inhibited the fitter. Evidently not." (a helium isolation valve branch swap) |
+
+Also heard: an unexpected loss of signal during the handover to the DSN Madrid antenna, and
+Glover at Earthset (04-06 22:42): "We get a blue flash?" (unexplained, no follow-up).
+
+Transcript quality, measured:
+- 61 `[[inaudible…]]` markers and 542 rows with editorial brackets.
+- 78 rows with no speaker; "Wiseman " with a trailing space on 115 rows; "Hasnen" twice.
+- 34 timestamps going backwards within a file.
+- 4 unparseable UTC values: `2026-04-06 03:10:201200` and three date-only values.
+- Overlapping tablet recordings sometimes disagree on wording and speaker for the same moment.
 
 ### Archive defects found in the imaging and audio bundles
 1. **24 crew exposures were archived twice under different IDs.** All are from the Z9, for
@@ -308,13 +426,18 @@ Other notable observations:
 
 ## Summary — what's interesting
 
-- **Most notable report:** the crew reported roughly 3–6 naked-eye lunar impact flashes,
-  probably around the ~56-minute solar eclipse behind the Moon.
-  - They described them as on or south of the equator on the **Earth-facing side**, so
-    ground-based monitoring might independently confirm them.
-  - These are crew reports with acknowledged caveats ("maybe it was a priming bias"), not
-    instrument detections.
-  - Times and positions were not logged.
+- **Most notable report:** five naked-eye lunar impact flashes, mapped by the crew
+  themselves during the ~56-minute solar eclipse behind the Moon.
+  - Converting their annotation map gives **far-side** positions, 100–170°E. That is beyond
+    the ~89°E edge of Earth's view that night, so ground-based monitoring could not have seen
+    them, despite the "near side" reading relayed at 01:00.
+  - The crew's spoken call-outs time them to the second: three around 00:41–00:53, a
+    fourth around 00:59–01:03, and a fifth at ~01:18.
+  - These are crew reports with acknowledged caveats ("maybe it was a priming bias"). Two of
+    the five were seen by more than one crew member.
+  - No camera caught one. The crew stills were not exposing at the call-out moments, and the
+    SAW3 eclipse video shows no flash: all 43 cross-channel events are flicker of a star or of
+    the corona-lit limb.
 - **Most useful for future sample return:** in flight, the lockers stayed as dry as on the pad
   (~5.1 g/m³). After splashdown, humidity in Locker E rose within about half an hour, days
   before handover. Locker F lagged by hours, for reasons these data cannot separate.
@@ -327,8 +450,9 @@ Other notable observations:
 
   The FD09 humidity transients in both lockers fit the documented stowage and relocation;
   they are not an anomaly.
-- **Not yet possible:** SPICE (pointing and geometry) is delayed, so image footprints, flash
-  locations and the pointing of the frames tagged "Impact Flashes" cannot be checked yet.
+- **Not yet possible:** SPICE (camera pointing) is delayed, so image footprints and the
+  pointing of the frames tagged "Impact Flashes" cannot be checked yet. The flash
+  coordinates above use Orion's trajectory from JPL Horizons, not SPICE pointing.
 
 _Method note: three independent adversarial reviews (scientific rigor, primary-source
 re-verification against the live PDS archive and Atlas index, and
