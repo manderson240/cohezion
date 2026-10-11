@@ -89,3 +89,27 @@ def test_marker_detection_assigns_nearest_anchor():
 def test_great_circle_separation():
     assert fm.great_circle_deg((0.0, 0.0), (90.0, 0.0)) == pytest.approx(90.0)
     assert fm.great_circle_deg((10.0, 89.999), (190.0, 89.999)) == pytest.approx(0.002, abs=1e-3)
+
+
+DIST = 11762.1 / 1737.4  # Orion's range at 01:04 UTC, in lunar radii
+
+
+@pytest.mark.parametrize(
+    ("lon", "lat"), [(123.0, 0.0), (102.0, -15.0), (141.0, 52.0), (195.0, 5.0)]
+)
+def test_perspective_invert_is_inverse_of_project(lon, lat):
+    lc, pc = np.radians(VIEW["sub_lon"]), np.radians(VIEW["sub_lat"])
+    x, y, vis = fm.project(np.radians(lon), np.radians(lat), *PARAMS, lc, pc, DIST)
+    assert vis > 0
+    back = fm.invert(float(x), float(y), *PARAMS, lc, pc, DIST)
+    assert back[0] == pytest.approx(lon, abs=1e-6)
+    assert back[1] == pytest.approx(lat, abs=1e-6)
+
+
+def test_perspective_limb_is_closer_than_90_degrees():
+    """From ~6.8 lunar radii a point 85 deg from the disk centre is already out of sight."""
+    lc, pc = np.radians(VIEW["sub_lon"]), 0.0
+    _, _, vis_ortho = fm.project(lc + np.radians(85), 0.0, *PARAMS, lc, pc)
+    _, _, vis_persp = fm.project(lc + np.radians(85), 0.0, *PARAMS, lc, pc, DIST)
+    assert vis_ortho > 0
+    assert vis_persp < 0

@@ -29,31 +29,31 @@
   "models": {
     "A": {
       "cx_cy_R_px": [
-        987.2,
-        657.7,
-        366.8
+        984.9,
+        660.6,
+        364.6
       ],
-      "roll_deg": 0.03,
+      "roll_deg": 0.05,
       "view_lon_E": 123.26,
       "meridians_deg": [
-        85.4,
-        185.6
+        90.6,
+        179.8
       ],
-      "median_abs_resid_px": 0.95
+      "median_abs_resid_px": 0.43
     },
     "B": {
       "cx_cy_R_px": [
-        1008.4,
-        658.9,
-        386.5
+        983.6,
+        660.5,
+        363.6
       ],
-      "roll_deg": -0.17,
-      "view_lon_E": 129.53,
+      "roll_deg": 0.06,
+      "view_lon_E": 122.59,
       "meridians_deg": [
         90.0,
         180.0
       ],
-      "median_abs_resid_px": 1.02
+      "median_abs_resid_px": 0.48
     }
   },
   "flashes": {
@@ -76,23 +76,23 @@
       "note": "one of 'these three roughly 10 min into eclipse' (~00:45 UTC)",
       "models": {
         "A": {
-          "lon_E": 143.3,
-          "lat": -23.2,
-          "disk_radius_frac": 0.463
+          "lon_E": 140.8,
+          "lat": -20.4,
+          "disk_radius_frac": 0.464
         },
         "B": {
-          "lon_E": 144.9,
-          "lat": -22.0,
-          "disk_radius_frac": 0.401
+          "lon_E": 140.4,
+          "lat": -20.4,
+          "disk_radius_frac": 0.468
         }
       },
       "lon_E_range": [
-        143.3,
-        144.9
+        140.4,
+        140.8
       ],
       "lat_range": [
-        -23.2,
-        -22.0
+        -20.4,
+        -20.4
       ],
       "inter_observer_spread_deg": 0.0
     },
@@ -126,25 +126,25 @@
       "note": "one of the first three (~00:45 UTC); circled: 'likely same impacts' (two observers)",
       "models": {
         "A": {
-          "lon_E": 99.6,
-          "lat": -16.8,
-          "disk_radius_frac": 0.451
+          "lon_E": 103.1,
+          "lat": -14.8,
+          "disk_radius_frac": 0.444
         },
         "B": {
-          "lon_E": 103.7,
-          "lat": -16.0,
-          "disk_radius_frac": 0.474
+          "lon_E": 102.6,
+          "lat": -14.9,
+          "disk_radius_frac": 0.442
         }
       },
       "lon_E_range": [
-        99.6,
-        103.7
+        102.6,
+        103.1
       ],
       "lat_range": [
-        -16.8,
-        -16.0
+        -14.9,
+        -14.8
       ],
-      "inter_observer_spread_deg": 3.5
+      "inter_observer_spread_deg": 3.1
     },
     "3": {
       "observers": [
@@ -165,23 +165,23 @@
       "note": "one of the first three (~00:45 UTC)",
       "models": {
         "A": {
-          "lon_E": 169.3,
-          "lat": -15.1,
-          "disk_radius_frac": 0.728
+          "lon_E": 164.0,
+          "lat": -13.7,
+          "disk_radius_frac": 0.736
         },
         "B": {
-          "lon_E": 168.2,
-          "lat": -14.5,
-          "disk_radius_frac": 0.638
+          "lon_E": 163.8,
+          "lat": -13.8,
+          "disk_radius_frac": 0.742
         }
       },
       "lon_E_range": [
-        168.2,
-        169.3
+        163.8,
+        164.0
       ],
       "lat_range": [
-        -15.1,
-        -14.5
+        -13.8,
+        -13.7
       ],
       "inter_observer_spread_deg": 0.0
     },
@@ -226,25 +226,25 @@
       "note": "'(later)'; circled: 'likely same impacts' (three observers)",
       "models": {
         "A": {
-          "lon_E": 120.8,
-          "lat": -52.5,
-          "disk_radius_frac": 0.755
+          "lon_E": 121.8,
+          "lat": -46.1,
+          "disk_radius_frac": 0.751
         },
         "B": {
-          "lon_E": 122.8,
-          "lat": -48.9,
-          "disk_radius_frac": 0.717
+          "lon_E": 121.4,
+          "lat": -46.3,
+          "disk_radius_frac": 0.753
         }
       },
       "lon_E_range": [
-        120.8,
-        122.8
+        121.4,
+        121.8
       ],
       "lat_range": [
-        -52.5,
-        -48.9
+        -46.3,
+        -46.1
       ],
-      "inter_observer_spread_deg": 8.9
+      "inter_observer_spread_deg": 8.0
     },
     "5": {
       "observers": [
@@ -265,23 +265,23 @@
       "note": "'towards end' of the eclipse (eclipse ended ~01:32 UTC)",
       "models": {
         "A": {
-          "lon_E": 144.9,
-          "lat": 56.9,
-          "disk_radius_frac": 0.891
+          "lon_E": 141.6,
+          "lat": 51.7,
+          "disk_radius_frac": 0.906
         },
         "B": {
-          "lon_E": 142.1,
-          "lat": 52.4,
-          "disk_radius_frac": 0.838
+          "lon_E": 141.4,
+          "lat": 52.0,
+          "disk_radius_frac": 0.909
         }
       },
       "lon_E_range": [
-        142.1,
-        144.9
+        141.4,
+        141.6
       ],
       "lat_range": [
-        52.4,
-        56.9
+        51.7,
+        52.0
       ],
       "inter_observer_spread_deg": 0.0
     }

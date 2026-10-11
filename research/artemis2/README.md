@@ -37,7 +37,7 @@ from the PDS4 XML labels.
 | Differential oracle | The polars port reproduces the previous pandas implementation on every field and all three figures; the only differences are two values in `phases` that pandas rounded with half-to-even scaling (23.895 -> 23.9) and Python rounds exactly (-> 23.89) | compare against the JSON at commit `2a59d6b` |
 | Unit tests (CI-gating) | 12 offline tests of the transient detector, phase boundaries, derived humidity, CDT->UTC conversion, label parser and checksum gate. Mutation-tested: breaking each mechanism turns at least one test red | `uv run --no-project --with polars --with pytest python -m pytest tests/unit/research/test_artemis2_hobo.py --noconftest` |
 | Adversarial review | Three independent reviewers (scientific rigor, primary-source re-check against the live PDS archive, code/reproducibility/security), each told to assume the work was wrong | corrections in commits `6c9d523`, `4a84aa5`, `d9a12c7` |
-| Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Projection and inverse projection round-trip. With the view fixed from Horizons, the drawn meridians fit at 85°E/186°E, an independent check that the render matches Orion's real geometry. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
+| Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Orthographic and perspective projections round-trip. With the view fixed from Horizons, the drawn meridians fit at 90.6°E/179.8°E, an independent check that the render matches Orion's real geometry. An adversarial reviewer independently confirmed the far-side result and found that the first version used an orthographic projection, which shifted some latitudes by 5–10°. The perspective fix is in. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
 | Quotes | Every curated transcript quote must match a CSV row verbatim at its UTC stamp, or `transcripts.py` exits non-zero (39 of 39 match) | `transcripts.py` |
 | Flash searches | Synthetic tests: a 3-frame point flash is found at its frame and place; steady stars, long brightenings and whole-frame changes are not; triage separates a rise from dark from flicker of an existing source | `tests/unit/research/test_artemis2_flash_search.py` |
 | Primary-source spot checks | Transcript quotes, duplicate images, the missing video segment and the HTTP 403 audio entry were checked against the source files by hand | — |
@@ -225,18 +225,20 @@ fixed from JPL Horizons (Moon seen from Artemis II, `500@-1024`). Output is in
 
 | # | marked by | when (crew note) | longitude | latitude |
 |---|---|---|---|---|
-| 1 | Wiseman | ~10 min into eclipse | 143–145°E | 22–23°S |
-| 2 | Hansen, Wiseman (circled) | ~10 min into eclipse | 100–104°E | 16–17°S |
-| 3 | Hansen | ~10 min into eclipse | 168–169°E | 15°S |
-| 4 | Hansen, Wiseman, Glover (circled) | later | 121–123°E | 49–53°S |
-| 5 | Wiseman | towards end | 142–145°E | 52–57°N |
+| 1 | Wiseman | ~10 min into eclipse | 140–141°E | 20°S |
+| 2 | Hansen, Wiseman (circled) | ~10 min into eclipse | 103°E | 15°S |
+| 3 | Hansen | ~10 min into eclipse | 164°E | 14°S |
+| 4 | Hansen, Wiseman, Glover (circled) | later | 121–122°E | 46°S |
+| 5 | Wiseman | towards end | 141–142°E | 52°N |
 
-Ranges span two fits: the view fixed from Horizons (123.3°E), and the drawn grid forced to
-exactly 90°E/180°E (129.5°E). The grid check is independent: with the Horizons view fixed,
-the drawn meridians come out at 85°E and 186°E, i.e. a 90°/180° grid to within ~5°. The
-render's Earthshine-lit crescent ends at the 90°E line, as it should. The real uncertainty
-is larger than these ranges, because the dots were placed by hand from memory on a dark
-image. The dots for #4 are 9° apart across three observers.
+The projection is a true perspective view from Orion's range, 11,760 km or 6.8 lunar radii.
+From that close, the visible cap ends 81.5° from the disk centre, not 90°. Ranges span two
+fits: one with the view fixed from Horizons (123.3°E), and one with the drawn grid forced to
+exactly 90°E/180°E, where the view longitude comes out at 122.6°E. The grid check is
+independent: with the Horizons view fixed, the drawn meridians fit at 90.6°E and 179.8°E,
+with a median residual of 0.4 px. The render's Earthshine-lit crescent ends at the 90°E line,
+as it should. The real uncertainty is larger than these ranges, because the dots were placed
+by hand from memory on a dark image. The three observers' dots for #4 are 8° apart.
 
 **Count.** The map shows five numbered flashes. Two of them (#2 and #4) were seen by more
 than one person, and the circles match Hansen's next-day remark "Reid and I saw two
@@ -245,8 +247,9 @@ said he "did not record at all where we saw" them. So the map was drawn from mem
 logged live.
 
 **Finding: the flashes were on the lunar far side, not the near side.** Every marked flash is
-at 100–170°E. From Earth that night the Moon's disk was centred on 359.2°E (Horizons,
-geocentre), so Earth could see only up to about 89°E. None of the five could have been
+at 102–164°E. From Earth that night the Moon's disk was centred on 359.2°E (Horizons,
+geocentre), so Earth could see only up to about 89°E. The nearest, #2, is about 14° beyond Earth's limb. Moving it into view would need a
+hand-placement error of about a fifth of the disk radius. None of the five could have been
 recorded by ground-based impact monitoring, which contradicts the 01:00 relay ("hearing you
 saw them on the near side means that people saw them too"). Wiseman's "on the Earth side of
 the moon" is best read as the side of the disk *as seen from Orion* that faced Earth (the
@@ -428,7 +431,7 @@ Transcript quality, measured:
 
 - **Most notable report:** five naked-eye lunar impact flashes, mapped by the crew
   themselves during the ~56-minute solar eclipse behind the Moon.
-  - Converting their annotation map gives **far-side** positions, 100–170°E. That is beyond
+  - Converting their annotation map gives **far-side** positions, 102–164°E. That is beyond
     the ~89°E edge of Earth's view that night, so ground-based monitoring could not have seen
     them, despite the "near side" reading relayed at 01:00.
   - The crew's spoken call-outs time them to the second: three around 00:41–00:53, a

@@ -57,6 +57,7 @@ HORIZONS = [
 ]
 RENDER_FRACTION = 4 / 5  # 01:04 lies 4/5 of the way from 01:00 to 01:05
 AU_KM = 149_597_870.7
+MOON_RADIUS_KM = 1737.4
 
 # Handwritten flash number -> anchor pixel (in the 1966x1310 embedded image), read by eye.
 ANCHORS = {
@@ -167,26 +168,47 @@ def grid_points(im: np.ndarray) -> dict[str, list[tuple[float, float]]]:
 
 
 # ---------------------------------------------------------------- sphere projection
-def project(lam, phi, cx, cy, radius, roll, lc, pc):
-    """Orthographic-limit projection of (lon, lat) [rad] for a view centred on (lc, pc)."""
+def _scale(dist):
+    """Factor mapping the projected limb to unit radius (1 for an orthographic view)."""
+    return 1.0 if dist is None else float(np.sqrt(1 - 1 / dist**2))
+
+
+def project(lam, phi, cx, cy, radius, roll, lc, pc, dist=None):
+    """Project (lon, lat) [rad] for a view centred on (lc, pc).
+
+    dist is the observer's distance from the Moon's centre in lunar radii; None gives the
+    orthographic limit. From Orion (~6.8 radii) the visible cap ends 81.5 deg from the disk
+    centre, not 90, so perspective matters. `radius` is the apparent limb radius in pixels.
+    Returns (X, Y, visible) where visible > 0 for points on the near cap.
+    """
     x = np.cos(phi) * np.sin(lam - lc)
     y = np.cos(pc) * np.sin(phi) - np.sin(pc) * np.cos(phi) * np.cos(lam - lc)
-    vis = np.sin(pc) * np.sin(phi) + np.cos(pc) * np.cos(phi) * np.cos(lam - lc)
-    xr = x * np.cos(roll) - y * np.sin(roll)
-    yr = x * np.sin(roll) + y * np.cos(roll)
+    z = np.sin(pc) * np.sin(phi) + np.cos(pc) * np.cos(phi) * np.cos(lam - lc)
+    if dist is None:
+        vis, k = z, 1.0
+    else:
+        vis, k = z - 1 / dist, dist / (dist - z) * _scale(dist)
+    xr = (x * np.cos(roll) - y * np.sin(roll)) * k
+    yr = (x * np.sin(roll) + y * np.cos(roll)) * k
     return cx + radius * xr, cy - radius * yr, vis
 
 
-def invert(px, py, cx, cy, radius, roll, lc, pc):
+def invert(px, py, cx, cy, radius, roll, lc, pc, dist=None):
     xr, yr = (px - cx) / radius, (cy - py) / radius
-    x = xr * np.cos(roll) + yr * np.sin(roll)
-    y = -xr * np.sin(roll) + yr * np.cos(roll)
-    rho2 = x * x + y * y
+    u = xr * np.cos(roll) + yr * np.sin(roll)
+    v = -xr * np.sin(roll) + yr * np.cos(roll)
+    rho2 = u * u + v * v
     if rho2 > 1:
         return None
-    z = np.sqrt(1 - rho2)  # toward observer
-    # rotate (x, y, z) from view frame to body frame
-    phi = np.arcsin(y * np.cos(pc) + z * np.sin(pc))
+    if dist is None:
+        x, y, z = u, v, np.sqrt(1 - rho2)  # z toward observer
+    else:
+        # ray from the observer at (0, 0, dist) through (u, v) on the image plane
+        up, vp = u / _scale(dist), v / _scale(dist)
+        s2, d2 = up * up + vp * vp, dist * dist
+        t = (d2 - np.sqrt(max(d2 * d2 - (s2 + d2) * (d2 - 1), 0.0))) / (s2 + d2)
+        x, y, z = t * up, t * vp, dist * (1 - t)
+    phi = np.arcsin(np.clip(y * np.cos(pc) + z * np.sin(pc), -1, 1))
     lam = lc + np.arctan2(x, z * np.cos(pc) - y * np.sin(pc))
     return float(np.degrees(lam) % 360), float(np.degrees(phi)), float(np.sqrt(rho2))
 
@@ -198,38 +220,39 @@ def great_circle_deg(a, b) -> float:
     return float(np.degrees(np.arccos(np.clip(c, -1.0, 1.0))))
 
 
-def _curve_dist(pts, lam, phi, p, lc, pc):
-    X, Y, v = project(lam, phi, *p, lc, pc)
+def _curve_dist(pts, lam, phi, p, lc, pc, dist):
+    X, Y, v = project(lam, phi, *p, lc, pc, dist)
     X, Y = X[v > 0], Y[v > 0]
     return [float(np.min(np.hypot(X - a, Y - b))) for a, b in pts]
 
 
-def residuals(pts, p, lc, pc, mer_lons):
+def residuals(pts, p, lc, pc, mer_lons, dist=None):
     cx, cy, radius = p[:3]
     t = np.linspace(-np.pi, np.pi, 3000)
     ph = np.linspace(-np.pi / 2, np.pi / 2, 3000)
     res = [np.hypot(a - cx, b - cy) - radius for a, b in pts["limb"]]
-    res += _curve_dist(pts["equator"], t, np.zeros_like(t), p, lc, pc)
+    res += _curve_dist(pts["equator"], t, np.zeros_like(t), p, lc, pc, dist)
     for key, lon in zip(("meridian_left", "meridian_right"), mer_lons, strict=True):
-        res += _curve_dist(pts[key], np.full_like(ph, np.radians(lon)), ph, p, lc, pc)
+        res += _curve_dist(pts[key], np.full_like(ph, np.radians(lon)), ph, p, lc, pc, dist)
     return np.asarray(res)
 
 
 def fit_models(pts: dict, view: dict) -> dict:
     pc = np.radians(view["sub_lat"])
     lc_h = np.radians(view["sub_lon"])
+    dist = view["range_km"] / MOON_RADIUS_KM if view.get("range_km") else None
     p0 = [987.0, 658.0, 366.0, 0.0]
 
     # Model A: view from Horizons, meridian longitudes free (independent grid check)
     sa = least_squares(
-        lambda q: residuals(pts, q[:4], lc_h, pc, (q[4], q[5])),
+        lambda q: residuals(pts, q[:4], lc_h, pc, (q[4], q[5]), dist),
         [*p0, 90.0, 180.0],
         loss="soft_l1",
         f_scale=3,
     )
     # Model B: meridians forced to 90E / 180E, view longitude free
     sb = least_squares(
-        lambda q: residuals(pts, q[:4], q[4], pc, (90.0, 180.0)),
+        lambda q: residuals(pts, q[:4], q[4], pc, (90.0, 180.0), dist),
         [*p0, lc_h],
         loss="soft_l1",
         f_scale=3,
@@ -239,6 +262,7 @@ def fit_models(pts: dict, view: dict) -> dict:
             "params": sa.x[:4].tolist(),
             "lc": float(lc_h),
             "pc": float(pc),
+            "dist": dist,
             "meridians_deg": [float(sa.x[4]), float(sa.x[5])],
             "median_abs_resid_px": float(np.median(np.abs(sa.fun))),
         },
@@ -246,6 +270,7 @@ def fit_models(pts: dict, view: dict) -> dict:
             "params": sb.x[:4].tolist(),
             "lc": float(sb.x[4]),
             "pc": float(pc),
+            "dist": dist,
             "meridians_deg": [90.0, 180.0],
             "median_abs_resid_px": float(np.median(np.abs(sb.fun))),
         },
@@ -258,7 +283,9 @@ def locate(found: list[dict], models: dict) -> dict:
         marks = [m for m in found if m["flash"] == flash]
         per_model = {}
         for name, mdl in models.items():
-            pts = [invert(*m["px"], *mdl["params"], mdl["lc"], mdl["pc"]) for m in marks]
+            pts = [
+                invert(*m["px"], *mdl["params"], mdl["lc"], mdl["pc"], mdl["dist"]) for m in marks
+            ]
             pts = [p for p in pts if p is not None]
             lons = np.unwrap(np.radians([p[0] for p in pts]))
             per_model[name] = {
@@ -269,7 +296,9 @@ def locate(found: list[dict], models: dict) -> dict:
         lons_all = [per_model[k]["lon_E"] for k in per_model]
         lats_all = [per_model[k]["lat"] for k in per_model]
         a = models["A"]
-        observer_spread = [invert(*m["px"], *a["params"], a["lc"], a["pc"]) for m in marks]
+        observer_spread = [
+            invert(*m["px"], *a["params"], a["lc"], a["pc"], a["dist"]) for m in marks
+        ]
         observer_spread = [p for p in observer_spread if p is not None]
         out[flash] = {
             "observers": sorted({m["observer"] for m in marks}),
