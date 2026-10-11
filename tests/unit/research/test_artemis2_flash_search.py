@@ -67,3 +67,13 @@ def test_cross_match_requires_both_channels():
 def test_frame_time_round_trip():
     t = datetime(2026, 4, 7, 0, 45, tzinfo=UTC)
     assert abs((fsv.utc_at(fsv.frame_at(t)) - t).total_seconds()) < 1 / fsv.FPS
+
+
+def test_triage_separates_rise_from_dark_and_flicker_of_existing_source():
+    matched = [
+        {"ch1": {"peak": 30, "excess": 26}},  # reference 4 DN: rose from dark
+        {"ch1": {"peak": 140, "excess": 30}},  # reference 110 DN: a star flickering
+    ]
+    counts = fsv.triage(matched)
+    assert counts == {"from_dark": 1, "existing_source_brightening": 1}
+    assert [m["kind"] for m in matched] == ["from_dark", "existing_source_brightening"]

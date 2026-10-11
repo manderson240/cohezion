@@ -151,6 +151,24 @@ def cross_match(a: list[dict], b: list[dict]) -> list[dict]:
     return out
 
 
+FROM_DARK_DN = 15  # reference level below which a candidate rose from empty background
+
+
+def triage(matched: list[dict]) -> dict:
+    """Split cross-channel events into brightenings of an existing source and rises from dark.
+
+    reference = peak - excess, the brightest value at that pixel in the surrounding frames.
+    A flash on the night side should rise from near-dark. A flicker of a star or of a lit
+    edge rises from a source that is already there.
+    """
+    for m in matched:
+        ref = m["ch1"]["peak"] - m["ch1"]["excess"]
+        m["reference_dn"] = ref
+        m["kind"] = "from_dark" if ref < FROM_DARK_DN else "existing_source_brightening"
+    kinds = [m["kind"] for m in matched]
+    return {k: kinds.count(k) for k in ("from_dark", "existing_source_brightening")}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("ch1", type=Path)
@@ -161,7 +179,14 @@ def main() -> None:
     ap.add_argument(
         "--out", type=Path, default=Path(__file__).resolve().parent / "flash_search_video.json"
     )
+    ap.add_argument("--triage-only", action="store_true", help="re-triage an existing --out file")
     args = ap.parse_args()
+    if args.triage_only:
+        summary = json.loads(args.out.read_text())
+        summary["triage"] = triage(summary["corroborated"])
+        args.out.write_text(json.dumps(summary, indent=1) + "\n")
+        print(summary["triage"])
+        return
 
     day = datetime(2026, 4, 7, tzinfo=UTC)
     t0 = day + timedelta(
@@ -196,6 +221,7 @@ def main() -> None:
             ch: {"candidates": len(r["candidates"]), "busy_frames": len(r["busy_frames"])}
             for ch, r in res.items()
         },
+        "triage": triage(matched),
         "corroborated": matched,
         "channels": res,
         "sources": VIDEO_URLS,
