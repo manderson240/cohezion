@@ -73,3 +73,17 @@ def test_speakers_in_window_counts_only_loop_rows_in_range():
         ("03:00:00", "2026-04-07 03:00:00.000", "Wiseman", "out of range"),
     ])  # fmt: skip
     assert tr.speakers_in_window(df, "2026-04-07 02:25:30", "2026-04-07 02:39:00") == {"CAPCOM": 2}
+
+
+def test_loop_gaps_has_no_false_cut_at_midnight():
+    df = _loop([
+        ("00:00:00", "2026-04-07 23:58:00.000", "CAPCOM", "a"),
+        ("00:02:00", "2026-04-08 00:00:00.000", "Koch", "b"),
+        ("00:03:00", "2026-04-08 00:01:00.000", "CAPCOM", "c"),
+    ])  # fmt: skip
+    assert tr.loop_gaps(df)["cuts"] == []
+
+
+def test_speakers_in_window_includes_the_whole_stop_second():
+    df = _loop([("02:39:00", "2026-04-07 02:39:00.500", "CAPCOM", "late in the stop second")])
+    assert tr.speakers_in_window(df, "2026-04-07 02:25:30", "2026-04-07 02:39:00") == {"CAPCOM": 1}

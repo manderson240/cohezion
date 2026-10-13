@@ -113,3 +113,10 @@ def test_perspective_limb_is_closer_than_90_degrees():
     _, _, vis_persp = fm.project(lc + np.radians(85), 0.0, *PARAMS, lc, pc, DIST)
     assert vis_ortho > 0
     assert vis_persp < 0
+
+
+def test_flash_without_markers_is_reported_not_nan():
+    models = {"A": {"params": list(PARAMS), "lc": 2.15, "pc": -0.06, "dist": None}}
+    out = fm.locate([], models)
+    assert out["1"]["models"] is None
+    assert out["1"]["markers"] == []

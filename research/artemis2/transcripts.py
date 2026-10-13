@@ -23,6 +23,7 @@ import json
 import re
 import sys
 from collections import Counter
+from datetime import datetime, timedelta
 from itertools import pairwise
 from pathlib import Path
 
@@ -305,8 +306,8 @@ def loop_gaps(df: pl.DataFrame) -> dict:
         df.filter(pl.col("file").str.contains("_oe"))
         .with_columns(t=pl.col("utc").str.to_datetime("%Y-%m-%d %H:%M:%S%.f", strict=False))
         .with_columns(
-            offset=(pl.col("t") - pl.col("t").dt.truncate("1d")).dt.total_milliseconds() / 1000
-            - _clock_s("audio_time")
+            # full timestamps, not time of day, so a file that crosses midnight does not wrap
+            offset=pl.col("t").dt.epoch("ms") / 1000 - _clock_s("audio_time")
         )
     )
     cuts, quiet = [], []
@@ -333,10 +334,11 @@ def loop_gaps(df: pl.DataFrame) -> dict:
 
 
 def speakers_in_window(df: pl.DataFrame, start: str, stop: str) -> dict[str, int]:
-    """Rows per speaker label in the voice loops between two UTC stamps (inclusive)."""
-    win = df.filter(
-        pl.col("file").str.contains("_oe") & (pl.col("utc") >= start) & (pl.col("utc") <= stop)
-    )
+    """Rows per speaker label in the voice loops from `start` through the whole second `stop`."""
+    t = pl.col("utc").str.to_datetime("%Y-%m-%d %H:%M:%S%.f", strict=False)
+    lo = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+    hi = datetime.strptime(stop, "%Y-%m-%d %H:%M:%S") + timedelta(seconds=1)
+    win = df.filter(pl.col("file").str.contains("_oe") & (t >= lo) & (t < hi))
     counts = win.group_by(pl.col("speaker").str.strip_chars()).len().sort("len", descending=True)
     return {k or "(blank)": int(v) for k, v in counts.iter_rows()}
 

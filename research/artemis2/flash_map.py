@@ -281,6 +281,9 @@ def locate(found: list[dict], models: dict) -> dict:
     out = {}
     for flash in sorted(ANCHORS):
         marks = [m for m in found if m["flash"] == flash]
+        if not marks:  # no dot assigned: report it rather than write NaN coordinates
+            out[flash] = {"observers": [], "markers": [], "note": NOTES[flash], "models": None}
+            continue
         per_model = {}
         for name, mdl in models.items():
             pts = [
@@ -369,9 +372,7 @@ def main() -> None:
     for k, v in result["models"].items():
         print(k, v)
     for k, v in result["flashes"].items():
-        print(
-            f"#{k} {v['observers']} lon {v['lon_E_range']} lat {v['lat_range']} spread {v['inter_observer_spread_deg']}"
-        )
+        print(f"#{k} {v['observers']} lon {v.get('lon_E_range')} lat {v.get('lat_range')}")
     print("unassigned:", result["unassigned_markers"])
 
 

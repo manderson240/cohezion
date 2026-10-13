@@ -77,3 +77,32 @@ def test_triage_separates_rise_from_dark_and_flicker_of_existing_source():
     counts = fsv.triage(matched)
     assert counts == {"from_dark": 1, "existing_source_brightening": 1}
     assert [m["kind"] for m in matched] == ["from_dark", "existing_source_brightening"]
+
+
+def test_reference_is_read_at_the_max_excess_pixel():
+    """A dark pixel that flares next to a steady bright one must count as rising from dark."""
+    frames = _blank()
+    frames[:, 50, 70] = 200  # steady bright pixel
+    frames[30, 50, 70] = 255  # +55 on the bright pixel
+    frames[30, 50, 71] = 100  # +~100 on the dark neighbour: the max-excess pixel
+    found, _ = fsv.transients(frames, offset=0, thr=20)
+    hit = [c for c in found if c["frame"] == 30]
+    assert len(hit) == 1
+    assert hit[0]["reference"] < 10
+    assert fsv.triage([{"ch1": hit[0]}]) == {"from_dark": 1, "existing_source_brightening": 0}
+
+
+def test_multi_frame_flash_is_one_event_after_merging():
+    frames = _blank()
+    frames[20:23, 50, 70] = 200  # one 3-frame flash
+    found, _ = fsv.transients(frames, offset=0, thr=20)
+    assert len(found) == 3  # detected once per frame...
+    merged = fsv.merge_runs(fsv.cross_match(found, [dict(c) for c in found]))
+    assert len(merged) == 1  # ...but reported once
+    assert merged[0]["frames_in_run"] == 3
+
+
+def test_cross_match_uses_each_ch2_event_once():
+    a = [{"frame": 100, "x": 200, "y": 300}, {"frame": 101, "x": 200, "y": 300}]
+    b = [{"frame": 100, "x": 200, "y": 300}]
+    assert len(fsv.cross_match(a, b)) == 1

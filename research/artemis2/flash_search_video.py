@@ -103,13 +103,16 @@ def transients(frames: np.ndarray, offset: int, thr: int) -> tuple[list[dict], l
                 continue
             ex = np.where(blob, excess[sl], 0)
             yy, xx = np.unravel_index(int(ex.argmax()), ex.shape)
+            py, px = sl[0].start + int(yy), sl[1].start + int(xx)
             found.append(
                 {
                     "frame": offset + k,
-                    "x": (sl[1].start + int(xx)) * POOL,
-                    "y": (sl[0].start + int(yy)) * POOL,
+                    "x": px * POOL,
+                    "y": py * POOL,
                     "excess": int(ex.max()),
                     "peak": int(frames[k][sl][blob].max()),
+                    # brightest value at the max-excess pixel in the surrounding frames
+                    "reference": int(ref[py, px]),
                     "area_px": area * POOL * POOL,
                 }
             )
@@ -133,13 +136,16 @@ def scan(path: Path, start: int, stop: int, thr: int) -> dict:
 
 
 def cross_match(a: list[dict], b: list[dict]) -> list[dict]:
-    out = []
+    """Pair each ch1 candidate with an unused ch2 candidate close in time and position."""
+    out, used = [], set()
     for x in a:
-        for y in b:
+        for j, y in enumerate(b):
             if (
-                abs(x["frame"] - y["frame"]) <= MATCH_FRAMES
+                j not in used
+                and abs(x["frame"] - y["frame"]) <= MATCH_FRAMES
                 and np.hypot(x["x"] - y["x"], x["y"] - y["y"]) <= MATCH_PX * POOL
             ):
+                used.add(j)
                 out.append(
                     {
                         "ch1": x,
@@ -151,18 +157,48 @@ def cross_match(a: list[dict], b: list[dict]) -> list[dict]:
     return out
 
 
+def merge_runs(matched: list[dict]) -> list[dict]:
+    """Collapse consecutive-frame detections of one event into a single entry.
+
+    Each frame has its own reference window, so a flash lasting several frames is detected
+    once per frame. Matches within MATCH_FRAMES frames and MATCH_PX * POOL pixels of the
+    previous member of a run join that run. The run keeps its strongest frame and records
+    how many frames it spanned.
+    """
+    runs: list[list[dict]] = []
+    for m in sorted(matched, key=lambda m: m["ch1"]["frame"]):
+        c = m["ch1"]
+        for run in runs:
+            last = run[-1]["ch1"]
+            if (
+                0 <= c["frame"] - last["frame"] <= MATCH_FRAMES
+                and np.hypot(c["x"] - last["x"], c["y"] - last["y"]) <= MATCH_PX * POOL
+            ):
+                run.append(m)
+                break
+        else:
+            runs.append([m])
+    out = []
+    for run in runs:
+        best = max(run, key=lambda m: m["ch1"]["excess"])
+        out.append({**best, "frames_in_run": len(run), "first_utc": run[0]["utc"]})
+    return out
+
+
 FROM_DARK_DN = 15  # reference level below which a candidate rose from empty background
 
 
 def triage(matched: list[dict]) -> dict:
     """Split cross-channel events into brightenings of an existing source and rises from dark.
 
-    reference = peak - excess, the brightest value at that pixel in the surrounding frames.
+    reference = the brightest value at the max-excess pixel in the surrounding frames
+    (outputs written before that field existed fall back to peak - excess).
     A flash on the night side should rise from near-dark. A flicker of a star or of a lit
     edge rises from a source that is already there.
     """
     for m in matched:
-        ref = m["ch1"]["peak"] - m["ch1"]["excess"]
+        c = m["ch1"]
+        ref = c.get("reference", c["peak"] - c["excess"])  # older outputs lack "reference"
         m["reference_dn"] = ref
         m["kind"] = "from_dark" if ref < FROM_DARK_DN else "existing_source_brightening"
     kinds = [m["kind"] for m in matched]
@@ -188,6 +224,9 @@ def main() -> None:
     args = ap.parse_args()
     if args.triage_only:
         summary = json.loads(args.out.read_text())
+        if not any("frames_in_run" in m for m in summary["corroborated"]):
+            summary["cross_channel_detections"] = len(summary["corroborated"])
+            summary["corroborated"] = merge_runs(summary["corroborated"])
         summary["triage"] = triage(summary["corroborated"])
         if not args.full:
             summary.pop("channels", None)
@@ -209,7 +248,8 @@ def main() -> None:
             for ch, p in (("ch1", args.ch1), ("ch2", args.ch2))
         }
         res = {ch: j.result() for ch, j in jobs.items()}
-    matched = cross_match(res["ch1"]["candidates"], res["ch2"]["candidates"])
+    raw = cross_match(res["ch1"]["candidates"], res["ch2"]["candidates"])
+    matched = merge_runs(raw)
     for ch in res:
         for c in res[ch]["candidates"]:
             c["utc"] = utc_at(c["frame"]).isoformat(timespec="milliseconds")
@@ -228,6 +268,7 @@ def main() -> None:
             ch: {"candidates": len(r["candidates"]), "busy_frames": len(r["busy_frames"])}
             for ch, r in res.items()
         },
+        "cross_channel_detections": len(raw),
         "triage": triage(matched),
         "corroborated": matched,
         **({"channels": res} if args.full else {}),
