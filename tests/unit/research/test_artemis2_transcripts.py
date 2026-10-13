@@ -46,3 +46,30 @@ def test_quality_counts_backwards_and_unparseable_timestamps():
     assert q["blank_speaker_rows"] == 1
     assert q["inaudible_markers"] == 1
     assert q["speakers_with_trailing_space"] == {"Wiseman ": 1}
+
+
+def _loop(rows):
+    df = _df([(*r, "art002_2026-04-07_oe1_trn-csv_v01.csv") for r in rows])
+    return df.with_columns(row=pl.int_range(pl.len()))
+
+
+def test_loop_gaps_separates_cut_audio_from_kept_silence():
+    df = _loop([
+        ("10:00:00", "2026-04-07 10:00:00.000", "CAPCOM", "a"),
+        ("10:40:00", "2026-04-07 10:40:00.000", "Koch", "40 min of kept silence"),
+        ("10:41:00", "2026-04-07 10:47:00.000", "CAPCOM", "6 min removed from the recording"),
+        ("10:41:10", "2026-04-07", "Hansen", "in the blind, no time"),
+    ])  # fmt: skip
+    g = tr.loop_gaps(df)
+    assert [c["removed_min"] for c in g["cuts"]] == [6.0]
+    assert [q["silence_kept_min"] for q in g["silences_kept"]] == [40.0]
+    assert [r["text"] for r in g["undated_rows"]] == ["in the blind, no time"]
+
+
+def test_speakers_in_window_counts_only_loop_rows_in_range():
+    df = _loop([
+        ("02:26:00", "2026-04-07 02:26:00.000", "CAPCOM", "in"),
+        ("02:27:00", "2026-04-07 02:27:00.000", "CAPCOM ", "in, trailing space"),
+        ("03:00:00", "2026-04-07 03:00:00.000", "Wiseman", "out of range"),
+    ])  # fmt: skip
+    assert tr.speakers_in_window(df, "2026-04-07 02:25:30", "2026-04-07 02:39:00") == {"CAPCOM": 2}

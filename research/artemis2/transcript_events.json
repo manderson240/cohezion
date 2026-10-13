@@ -724,5 +724,164 @@
    "file": "art002a000045_pcd2_trn-csv_v01.csv",
    "also_in": []
   }
- ]
+ ],
+ "loop_gaps": {
+  "cuts": [
+   {
+    "file": "art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-06 06:22:50",
+    "to_utc": "2026-04-06 14:53:24",
+    "before": "CAPCOM: Awesome. Sleep well.",
+    "after": "Wiseman: Thank you.",
+    "removed_min": 509.7
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 06:09:43",
+    "to_utc": "2026-04-07 15:35:38",
+    "before": "Wiseman: All right, good night until I call you in five minutes. See ya.",
+    "after": "CAPCOM: Baby, that's a freak pushing on the floor.",
+    "removed_min": 565.7
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 22:31:38",
+    "to_utc": "2026-04-07 22:37:43",
+    "before": "Wiseman: Interesting. Okay, thank you.",
+    "after": "CAPCOM: Integrity Houston, two items, number one for 12.2.2509 or burn execution plus X flange hea",
+    "removed_min": 5.9
+   },
+   {
+    "file": "art002_2026-04-07_oe2_trn-csv_v01.csv",
+    "from_utc": "2026-04-06 22:34:51",
+    "to_utc": "2026-04-06 22:37:10",
+    "before": "Hansen: And yeah, just so you understand what's going on with window one, there is light coming th",
+    "after": "Glover: Thank you for that, Jenni. And thank you to all of you for allowing us the immense privile",
+    "removed_min": 2.0
+   },
+   {
+    "file": "art002_2026-04-07_oe2_trn-csv_v01.csv",
+    "from_utc": "2026-04-06 22:38:46",
+    "to_utc": "2026-04-06 23:27:53",
+    "before": "Glover: We will see you on the other side.",
+    "after": "Koch: Houston, Integrity, comm check.",
+    "removed_min": 47.2
+   }
+  ],
+  "silences_kept": [
+   {
+    "file": "art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-06 00:09:20",
+    "to_utc": "2026-04-06 00:59:28",
+    "before": ": [[Inaudible, on O/E-2 loop]] Houston Integrity 01 in the blind, we had a warning cabin lea",
+    "after": "CAPCOM: Integrity Houston after the LOS. How do you hear?",
+    "silence_kept_min": 50.1
+   },
+   {
+    "file": "art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-06 05:56:07",
+    "to_utc": "2026-04-06 06:21:21",
+    "before": "CAPCOM: Awesome. We'll get that down right away. Thank you.",
+    "after": "Wiseman: Houston Integrity on one for email.",
+    "silence_kept_min": 25.2
+   },
+   {
+    "file": "art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-06 15:34:32",
+    "to_utc": "2026-04-06 16:45:50",
+    "before": "CAPCOM: Copy. Thanks for the data.",
+    "after": "Wiseman: Houston Integrity, are you ready for HHV stream?",
+    "silence_kept_min": 71.3
+   },
+   {
+    "file": "art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-06 22:38:46",
+    "to_utc": "2026-04-06 23:27:53",
+    "before": "Glover: We will see you on the other side.",
+    "after": "Koch: Houston Integrity, comm check.",
+    "silence_kept_min": 49.1
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 03:31:14",
+    "to_utc": "2026-04-07 04:20:11",
+    "before": "CAPCOM: Integrity Houston OE2 is configured for your conference with Mr. Rattigan.",
+    "after": "Hansen: Houston Integrity, we are complete with the conference on two. You can normalize that. Tha",
+    "silence_kept_min": 48.9
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 05:22:23",
+    "to_utc": "2026-04-07 06:07:39",
+    "before": "Koch: Exactly.",
+    "after": "CAPCOM: Integrity Houston with a potential last goodnight before we go into a very long forward li",
+    "silence_kept_min": 45.3
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 15:35:38",
+    "to_utc": "2026-04-07 18:03:23",
+    "before": "CAPCOM: Baby, that's a freak pushing on the floor.",
+    "after": "Wiseman: Houston Integrity, we're getting ready for DPC. Would you like the D5 streamed on the 4K e",
+    "silence_kept_min": 147.7
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 20:24:25",
+    "to_utc": "2026-04-07 20:53:21",
+    "before": "Hansen: Okay, understood, Stan.",
+    "after": "CAPCOM: Integrity Houston for Victor, this is your two-minute warning. Please stop exercise within",
+    "silence_kept_min": 28.9
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 21:02:58",
+    "to_utc": "2026-04-07 21:50:18",
+    "before": "CAPCOM: Copy, Jeremy.",
+    "after": "Hansen [CAPCOM]: Houston integrity on one for ARS. [Go ahead for ARS.]",
+    "silence_kept_min": 47.3
+   },
+   {
+    "file": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "from_utc": "2026-04-07 22:47:53",
+    "to_utc": "2026-04-07 23:17:20",
+    "before": "Wiseman [CAPCOM]: Hey, Stan, on PCD2, we threw about 10 images in there in imagery for downlink for photo TV",
+    "after": "CAPCOM: Integrity Houston, two minutes to Starfield maneuvers, and we have a couple of other words",
+    "silence_kept_min": 29.4
+   }
+  ],
+  "undated_rows": [
+   {
+    "file": "art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "audio_time": "03:10:20",
+    "utc": "2026-04-06 03:10:201200",
+    "speaker": "CAPCOM",
+    "text": "That is awesome. Thanks, Jeremy."
+   },
+   {
+    "file": "art002_2026-04-07_oe2_trn-csv_v01.csv",
+    "audio_time": "00:03:22",
+    "utc": "2026-04-06",
+    "speaker": "Wiseman",
+    "text": " Houston Integrity in the Blind. We've just watched Earth set. We took a moment as four humans completely blocked from our home planet to just share in the moment together. There was a lot of joy, a lot of celebration, and now Victor and Christina are back in their windows doing their lunar observations. We got a lot of pictures of Earth set on the D5s, the Z9 with the 35 mil, which was exceptional.  And we got one iPhone video out the docking hatch, and we'll get that all down to you later. It's a magnificent feeling to be on the other side of the Moon, blocked from everyone we know and love, and we're making the most of it. We are savoring every single second of this adventure. Integrity out."
+   },
+   {
+    "file": "art002_2026-04-07_oe2_trn-csv_v01.csv",
+    "audio_time": "00:04:11",
+    "utc": "2026-04-06",
+    "speaker": "Wiseman",
+    "text": " Houston Integrity in the blind. We just watched as our trajectory and altitudes switched over. We saw a max altitude in nautical miles of 219669. And when we watched it click down to 219668, we knew we were headed home."
+   },
+   {
+    "file": "art002_2026-04-07_oe2_trn-csv_v01.csv",
+    "audio_time": "00:04:39",
+    "utc": "2026-04-06",
+    "speaker": "Hansen",
+    "text": " Houston, it's approximately MET 0040. We're continuing observations. There's a lot of sun coming in window three now. And all the windows, really. So it's just not as opportune viewing as we had before. But we're still continuing to make observations."
+   }
+  ]
+ },
+ "presidential_call_speakers": {
+  "CAPCOM": 10
+ }
 }

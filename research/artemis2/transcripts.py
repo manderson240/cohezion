@@ -23,6 +23,7 @@ import json
 import re
 import sys
 from collections import Counter
+from itertools import pairwise
 from pathlib import Path
 
 import polars as pl
@@ -279,6 +280,67 @@ def per_file(df: pl.DataFrame) -> list[dict]:
     return g.to_dicts()
 
 
+CUT_S = 60  # an offset jump larger than this means audio was removed from the stitched file
+QUIET_MIN = 25  # report conversation gaps at least this long
+
+
+def _clock_s(col: str) -> pl.Expr:
+    parts = pl.col(col).str.split(":")
+    return (
+        parts.list.get(0).cast(pl.Float64) * 3600
+        + parts.list.get(1).cast(pl.Float64) * 60
+        + parts.list.get(2).cast(pl.Float64)
+    )
+
+
+def loop_gaps(df: pl.DataFrame) -> dict:
+    """Cuts and silences in the voice-loop transcripts.
+
+    `audio_time` is a position in a stitched recording and `utc` is wall-clock time, so
+    offset = utc time-of-day - audio_time is constant while the recording runs continuously.
+    A jump in the offset means audio was removed between two rows (a cut). A long utc gap
+    with an unchanged offset is silence that was kept in the recording.
+    """
+    loops = (
+        df.filter(pl.col("file").str.contains("_oe"))
+        .with_columns(t=pl.col("utc").str.to_datetime("%Y-%m-%d %H:%M:%S%.f", strict=False))
+        .with_columns(
+            offset=(pl.col("t") - pl.col("t").dt.truncate("1d")).dt.total_milliseconds() / 1000
+            - _clock_s("audio_time")
+        )
+    )
+    cuts, quiet = [], []
+    for name, g in loops.filter(pl.col("t").is_not_null()).group_by("file", maintain_order=True):
+        rows = g.sort("row").to_dicts()
+        for a, b in pairwise(rows):
+            jump = b["offset"] - a["offset"]
+            span = (b["t"] - a["t"]).total_seconds() / 60
+            rec = {
+                "file": name[0],
+                "from_utc": a["utc"][:19],
+                "to_utc": b["utc"][:19],
+                "before": f"{a['speaker'].strip()}: {a['text'].strip()[:90]}",
+                "after": f"{b['speaker'].strip()}: {b['text'].strip()[:90]}",
+            }
+            if abs(jump) > CUT_S:
+                cuts.append({**rec, "removed_min": round(jump / 60, 1)})
+            elif span >= QUIET_MIN:
+                quiet.append({**rec, "silence_kept_min": round(span, 1)})
+    undated = loops.filter(pl.col("t").is_null()).select(
+        "file", "audio_time", "utc", "speaker", "text"
+    )
+    return {"cuts": cuts, "silences_kept": quiet, "undated_rows": undated.to_dicts()}
+
+
+def speakers_in_window(df: pl.DataFrame, start: str, stop: str) -> dict[str, int]:
+    """Rows per speaker label in the voice loops between two UTC stamps (inclusive)."""
+    win = df.filter(
+        pl.col("file").str.contains("_oe") & (pl.col("utc") >= start) & (pl.col("utc") <= stop)
+    )
+    counts = win.group_by(pl.col("speaker").str.strip_chars()).len().sort("len", descending=True)
+    return {k or "(blank)": int(v) for k, v in counts.iter_rows()}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("root", type=Path)
@@ -294,6 +356,11 @@ def main() -> None:
         "speakers": speaker_table(df),
         "files": per_file(df),
         "events": events,
+        "loop_gaps": loop_gaps(df),
+        # The President's call: every row is labelled CAPCOM and no crew answer is transcribed.
+        "presidential_call_speakers": speakers_in_window(
+            df, "2026-04-07 02:25:30", "2026-04-07 02:39:00"
+        ),
     }
     args.out.write_text(json.dumps(result, indent=1) + "\n")
     print(json.dumps(result["quality"], indent=1))

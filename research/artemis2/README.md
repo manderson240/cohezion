@@ -382,6 +382,70 @@ Transcript quality, measured:
 - 4 unparseable UTC values: `2026-04-06 03:10:201200` and three date-only values.
 - Overlapping tablet recordings sometimes disagree on wording and speaker for the same moment.
 
+### Gaps and omissions in the voice-loop transcripts (`loop_gaps` in `transcript_events.json`)
+Each voice-loop transcript is timed against one stitched recording (`audio_time`) as well
+as wall-clock UTC. While the recording runs continuously, the difference between the two is
+constant. A jump in that difference means audio was removed between two lines. Silences are
+normally kept: quiet stretches of 25 to 148 minutes leave the difference unchanged.
+
+**Audio removed from the stitched recordings:**
+- **04-06 06:22 → 14:53 (510 min)** and **04-07 06:09 → 15:35 (566 min)**: the crew's sleep
+  periods. Before the second, CAPCOM warned of "a very long forward link LOS", i.e. no uplink
+  to the crew.
+- **04-07 22:31:38 → 22:37:43 (6 min).** This is the only daytime cut in the main loop
+  files. It falls inside the smoke-detector troubleshooting: just before it Houston says it
+  is "no longer seeing that noise", and just after it Houston reports "we have seen the
+  spikes return". Nothing in the archive explains the cut. It may be editing or a recording
+  dropout.
+- The short `art002_2026-04-07_oe2` file is a compilation of clips (2 and 47 minutes
+  removed), not a continuous recording.
+
+**Conversation gaps with the audio kept** (≥25 min, from `silences_kept`):
+
+| UTC | length | explanation |
+|---|---|---|
+| 04-06 00:09–00:59 | 50 min | planned hour-long outage of the uplink to the crew ("forward LOS") |
+| 04-06 15:34–16:45 | 71 min | no traffic; no explanation given |
+| 04-06 22:38–23:27 | 49 min | blackout behind the Moon |
+| 04-07 03:31–04:20 | 49 min | "your conference with Mr. Rattigan", set up on the second loop, which is not transcribed for that period |
+| 04-07 05:22–06:07 | 45 min | late evening, before the sleep period |
+| 04-07 15:35–18:03 | 148 min | morning after the sleep period, then "getting ready for DPC" |
+| 04-07 21:02–21:50 | 47 min | private family conferences ("PFCs") |
+| 04-07 20:24–20:53, 22:47–23:17 | 29 min each | no traffic |
+
+Private medical, family and psychological conferences (PMC, PFC, PSC) are scheduled on the
+loops, but their content is never public. That is standard for crewed missions.
+
+**Omissions and misattributions inside the transcripts:**
+- **The President's call (04-07 02:25:30–02:39, `presidential_call_speakers`):** all 10 lines
+  are labelled CAPCOM, including the President's remarks. None of the crew's answers is
+  transcribed. His questions about losing contact (02:32:02) and about the far side
+  (02:32:51) are followed directly by his next remark. One line runs several speakers
+  together ("I am. Yes, I am. And now. Integrity and back over to you, Mr. President…").
+  The crew's reply to Administrator Isaacman's comm check is missing too. The next line is
+  Isaacman himself introducing the President, again labelled CAPCOM.
+- **Undated rows (`undated_rows`).**
+  - Three crew reports "in the blind" from the far-side blackout carry a date but no time,
+    for example "We've just watched Earth set" and the moment their distance from Earth
+    peaked at 219,669 nautical miles. They were recorded while out of contact.
+  - One row's time is corrupted (`2026-04-06 03:10:201200`).
+- **04-07 15:35:38, "Baby, that's a freak pushing on the floor."** It is labelled CAPCOM and
+  is the only line for 2.5 hours after the sleep cut. Its `audio_time` follows the
+  pre-sleep line directly. Probably wake-up music transcribed as speech; the archive does
+  not say.
+- **Mistranscriptions that can look mysterious.** The crew-tablet recordings settle them:
+  - "The satellite is continuing to grow in intensity" (01:21:08) is "And the light is
+    continuing…" in the tablet recording of the same moment.
+  - "HEA" and "AJA readings" are the AGA air analyser, transcribed three ways within 23 s.
+  - "Xena 9" is the Z9 camera.
+- **No code words.** Every acronym and rare term across all 56 files resolves to NASA
+  operations shorthand, a crew nickname or a transcription error. "Bogey", "fast walker",
+  "UFO", "UAP" and "unidentified" do not occur.
+
+None of this can be checked against the sound itself yet: the voice-loop audio files
+returned HTTP 403 when requested. Whether the President-call answers and the 6-minute
+stretch are missing from the audio, or only from the transcript, is open.
+
 ### Archive defects found in the imaging and audio bundles
 1. **24 crew exposures were archived twice under different IDs.** All are from the Z9, for
    example `art002e009039` and `art002e029909`. Each pair has the same timestamp, camera
