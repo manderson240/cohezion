@@ -242,7 +242,7 @@ by hand from memory on a dark image. The three observers' dots for #4 are 8° ap
 
 **Count.** The map shows five numbered flashes. Two of them (#2 and #4) were seen by more
 than one person, and the circles match Hansen's next-day remark "Reid and I saw two
-identical ones". The live tally at 00:59 was "three so far" plus "another one". Hansen also
+identical ones". The live tally at 00:59 was "three impact flashes so far", then "I just saw another one." Hansen also
 said he "did not record at all where we saw" them. So the map was drawn from memory, not
 logged live.
 
@@ -298,8 +298,8 @@ render. It is unresolved.
   - At 01:17–01:18 the D5 used 2.5–10 ms exposures.
 
   On the seven long Z9 exposures (2–4 s, 00:50–00:52) that show the whole dark disk, the
-  search finds tens of sharp single-frame events per frame that are unique both on the
-  sensor and on the disk. The brightest are short tracks with demosaic colour fringes, the
+  search finds 58 sharp single-frame events that are unique both on the sensor and on the
+  disk: 28, 10, 9, 6 and 5 on five frames, none on the other two. The brightest are short tracks with demosaic colour fringes, the
   signature of cosmic-ray hits on the sensor. In processed browse PNGs nothing can be
   separated from that background, so the stills give no detection.
 - *SAW3 video* (`flash_search_video.py` → `flash_search_video.json`). The solar-array
@@ -405,6 +405,7 @@ normally kept: quiet stretches of 25 to 148 minutes leave the difference unchang
 | UTC | length | explanation |
 |---|---|---|
 | 04-06 00:09–00:59 | 50 min | planned hour-long outage of the uplink to the crew ("forward LOS") |
+| 04-06 05:56–06:21 | 25 min | late evening, just before the sleep period |
 | 04-06 15:34–16:45 | 71 min | no traffic; no explanation given |
 | 04-06 22:38–23:27 | 49 min | blackout behind the Moon |
 | 04-07 03:31–04:20 | 49 min | "your conference with Mr. Rattigan", set up on the second loop, which is not transcribed for that period |
@@ -426,8 +427,8 @@ loops, but their content is never public. That is standard for crewed missions.
   Isaacman himself introducing the President, again labelled CAPCOM.
 - **Undated rows (`undated_rows`).**
   - Three crew reports "in the blind" from the far-side blackout carry a date but no time,
-    for example "We've just watched Earth set" and the moment their distance from Earth
-    peaked at 219,669 nautical miles. They were recorded while out of contact.
+    for example "We've just watched Earth set" and the moment their altitude readout peaked
+    at 219,669 nautical miles. They were recorded while out of contact.
   - One row's time is corrupted (`2026-04-06 03:10:201200`).
 - **04-07 15:35:38, "Baby, that's a freak pushing on the floor."** It is labelled CAPCOM and
   is the only line for 2.5 hours after the sleep cut. Its `audio_time` follows the
@@ -478,14 +479,14 @@ stretch are missing from the audio, or only from the transcript, is open.
      looks like a stale duplicate left in the search index.
    - PCD recordings `a000001`/`a000003` and `a000002`/`a000004` are byte-identical
      duplicates: they have matching index MD5s, start/stop times and sizes.
-   - Loop file `art002_2026-04-07_oe2` actually covers 2026-04-06 22:32–22:37.
+   - Loop file `art002_2026-04-07_oe2` actually covers 2026-04-06 22:32–23:28.
 6. **Label value errors.**
    - Every crew label has the placeholder stop time `3000-01-01`.
    - A sampled Z9 label has its focus distance unit as mm where metres were meant, and bits
      per sample and bit mask apparently swapped.
    - The transcripts' `audio_time` column is a position in a stitched-together recording,
      not wall-clock time; use the `utc` column.
-   - 35 transcript rows go backwards in time.
+   - 34 transcript rows go backwards in time.
    - Speaker names are inconsistent: "Wiseman " with a trailing space and 78 blank speakers.
 7. **ID gap.** Image IDs `art002e009302`–`009560` don't exist, but three annotation PDFs are
    named exactly `e009303-e009388`, `e009389-e009474` and `e009475-e009560`. Those IDs were
@@ -502,7 +503,7 @@ stretch are missing from the audio, or only from the transcript, is open.
     fourth around 00:59–01:03, and a fifth at ~01:18.
   - These are crew reports with acknowledged caveats ("maybe it was a priming bias"). Two of
     the five were seen by more than one crew member.
-  - No camera caught one. The crew stills were not exposing at the call-out moments, and the
+  - No camera caught one. No long crew exposure was open at the call-out moments, and the
     SAW3 eclipse video shows no flash: all 43 cross-channel events are flicker of a star or of
     the corona-lit limb.
 - **Most useful for future sample return:** in flight, the lockers stayed as dry as on the pad
