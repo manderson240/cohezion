@@ -121,6 +121,7 @@ def main() -> None:
         "--out", type=Path, default=Path(__file__).resolve().parent / "flash_search_stills.json"
     )
     ap.add_argument("--crops", type=Path, default=None)
+    ap.add_argument("--full", action="store_true", help="also write every peak in every frame")
     args = ap.parse_args()
 
     frames = []
@@ -149,6 +150,11 @@ def main() -> None:
             Image.fromarray(crop).resize((240, 240), Image.Resampling.NEAREST).save(
                 args.crops / f"{Path(c['frame']).stem}_{x}_{y}.png"
             )
+    if not args.full:  # per-frame peak lists are bulky; keep counts plus the candidates
+        frames = [
+            {**{k: v for k, v in f.items() if k != "peaks"}, "n_peaks": len(f["peaks"])}
+            for f in frames
+        ]
     result = {
         "k_sigma": args.k,
         "frames": frames,

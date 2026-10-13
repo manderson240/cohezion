@@ -180,10 +180,17 @@ def main() -> None:
         "--out", type=Path, default=Path(__file__).resolve().parent / "flash_search_video.json"
     )
     ap.add_argument("--triage-only", action="store_true", help="re-triage an existing --out file")
+    ap.add_argument(
+        "--full",
+        action="store_true",
+        help="also write every single-channel candidate (~400 KB); default keeps counts only",
+    )
     args = ap.parse_args()
     if args.triage_only:
         summary = json.loads(args.out.read_text())
         summary["triage"] = triage(summary["corroborated"])
+        if not args.full:
+            summary.pop("channels", None)
         args.out.write_text(json.dumps(summary, indent=1) + "\n")
         print(summary["triage"])
         return
@@ -223,7 +230,7 @@ def main() -> None:
         },
         "triage": triage(matched),
         "corroborated": matched,
-        "channels": res,
+        **({"channels": res} if args.full else {}),
         "sources": VIDEO_URLS,
     }
     args.out.write_text(json.dumps(summary, indent=1) + "\n")
