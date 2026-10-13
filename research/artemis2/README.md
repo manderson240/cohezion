@@ -39,7 +39,7 @@ from the PDS4 XML labels.
 | Adversarial review | Three independent reviewers (scientific rigor, primary-source re-check against the live PDS archive, code/reproducibility/security), each told to assume the work was wrong | corrections in commits `6c9d523`, `4a84aa5`, `d9a12c7` |
 | Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Orthographic and perspective projections round-trip. With the view fixed from Horizons, the drawn meridians fit at 90.6°E/179.8°E, an independent check that the render matches Orion's real geometry. An adversarial reviewer independently confirmed the far-side result and found that the first version used an orthographic projection, which shifted some latitudes by 5–10°. The perspective fix is in. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
 | Quotes | Every curated transcript quote must match a CSV row verbatim at its UTC stamp, or `transcripts.py` exits non-zero (39 of 39 match) | `transcripts.py` |
-| Flash searches | Synthetic tests: a 3-frame point flash is found at its frame and place; steady stars, long brightenings and whole-frame changes are not; triage separates a rise from dark from flicker of an existing source | `tests/unit/research/test_artemis2_flash_search.py` |
+| Flash searches | Synthetic tests: a 3-frame point flash is found at its frame and place; steady stars, long brightenings and whole-frame changes are not; triage separates a rise from dark from flicker of an existing source. An independent code review found four bugs (reference read at the wrong pixel, multi-frame events counted per frame, a midnight wrap in the transcript gap finder, NaN for an unmarked flash); each is fixed with a regression test and the video scan was rerun | `tests/unit/research/test_artemis2_flash_search.py` |
 | Primary-source spot checks | Transcript quotes, duplicate images, the missing video segment and the HTTP 403 audio entry were checked against the source files by hand | — |
 
 What this does **not** cover: the crew-camera, Orion-camera and audio numbers in section 3 come from the PDS
@@ -311,9 +311,15 @@ render. It is unresolved.
     of 100 ms or less, ≥20 DN);
   - kept only events that appear in both channels within 3 frames.
 
-  43 events pass the cross-channel check.
-  - **40 are flickers of sources already there**: a drifting point source (probably a star
-    or planet) and the corona-lit limb of the Moon. Their reference level is 26–234 DN.
+  43 detections pass the cross-channel check. They reduce to 40 distinct events once
+  detections of one event in consecutive frames are merged (one ran 3 frames, one 2).
+  - **37 are flickers of sources already there.** Their reference level (the same pixel in
+    the surrounding frames) is 22–234 DN. The sources are the corona-lit limb of the Moon
+    and a bright drifting point, which is **very likely Venus** (magnitude −3.9). Horizons
+    shows Venus moving *away* from the Moon as seen from Orion, from 13.2° at 00:35 to 25.4°
+    at 01:15. The point does the same. Mars and Saturn were moving *toward* the Moon (28.4°
+    to 16.3°, 20.3° to 8.9°), so neither fits. Saturn did go behind the Moon at about 01:20,
+    matching Glover's "Saturn has set" at 01:21.
   - **3 rise from dark** (00:35:54, 00:37:24, 00:40:58). All three sit at the tip of the
     corona-lit limb, on one five-minute track drifting with the camera attitude.
 
@@ -504,7 +510,7 @@ stretch are missing from the audio, or only from the transcript, is open.
   - These are crew reports with acknowledged caveats ("maybe it was a priming bias"). Two of
     the five were seen by more than one crew member.
   - No camera caught one. No long crew exposure was open at the call-out moments, and the
-    SAW3 eclipse video shows no flash: all 43 cross-channel events are flicker of a star or of
+    SAW3 eclipse video shows no flash: all 40 cross-channel events are flicker of Venus or of
     the corona-lit limb.
 - **Most useful for future sample return:** in flight, the lockers stayed as dry as on the pad
   (~5.1 g/m³). After splashdown, humidity in Locker E rose within about half an hour, days
