@@ -21,27 +21,30 @@ Audit team rankings, scores, and prize gap distances across active monetary comp
 ### 2. Offline Rust Wheel Packaging
 Bundle `cohezion-physics-core` into an offline Linux x86_64 `.whl` and Kaggle dataset bundle for zero-latency execution inside Kaggle containers:
 ```bash
-.venv/bin/python scripts/kaggle/package_rust_wheel_for_kaggle.py --verify
+PYTHONPATH=src .venv/bin/python scripts/kaggle/package_rust_wheel_for_kaggle.py --verify
 ```
 * Kaggle Dataset ID: `manderson240/cohezion-physics-core-wheel`
 * Offline install inside notebook: `!pip install --no-index --find-links=/kaggle/input/cohezion-physics-core-wheel cohezion_physics_core`
 
 ### 3. IV&V Gatekept Notebook Submission
-Code competitions (ARC-AGI-2, ARC-AGI-3, RSNA Knee, CASMI26) strictly reject local file uploads. All submissions must be dispatched via `kaggle_submit.py` in notebook mode:
+Code competitions (ARC-AGI-2, ARC-AGI-3, RSNA Knee, CASMI26) strictly reject local file uploads with HTTP 400 `FAILED_PRECONDITION`. All submissions must be dispatched via `kaggle_submit.py` in notebook mode:
 ```bash
-.venv/bin/python scripts/kaggle/kaggle_submit.py notebook \
+PYTHONPATH=src .venv/bin/python scripts/kaggle/kaggle_submit.py notebook \
   -c <competition-slug> \
   -k manderson240/<kernel-slug> \
   -f submission.csv \
   -m "Cohezion SOTA vX: Description" \
-  -w
+  --code-path <local-notebook-path>
 ```
-* The gatekeeper automatically enforces Two-Party IV&V verification and HMAC signing before dispatching to Kaggle.
+* **Two-Party IV&V Gate**: The gatekeeper verifies HMAC cryptographic attestation from `ivv-authority-daemon-v1` before contacting the Kaggle API.
+* **Docker-Python Verifier**: Scans notebook AST and cross-references all imported modules against Kaggle's official `gcr.io/kaggle-images/python` container manifest.
+* **Dynamic Version Resolution**: If `--version` is omitted, automatically queries the Kaggle SDK (`ApiGetKernelRequest`) to lock onto the latest completed execution version.
 
 ### 4. Background Ascent Daemon Monitoring
-Monitor the active 24/7 autonomous ascent loop:
-```bash
-tail -f /home/mike-anderson/.gemini/antigravity-cli/brain/80835800-7087-42b0-ae2a-5573c6be7538/.system_generated/tasks/task-30611.log
-```
+Monitor active 24/7 autonomous ascent swarms:
+- **R-Zero Challenger vs Solver Swarm**: `tmux capture-pane -pt r-zero-swarm -S -50`
+- **Kaggle Midnight Automated Submitter**: `tmux capture-pane -pt kaggle-midnight -S -50`
+- **Kaggle Sentinel Submission Monitor**: `tmux capture-pane -pt kaggle-sentinel -S -50`
+
 * **Dynamic High-Water Mark Ratchet**: Automatically advances $S_{\text{floor}}$ upon improvement ($\Delta > 0$).
-* **Rollback & Invariant Extraction**: Automatically rolls back regressed candidates and runs Quad-Perspective Adversarial Review.
+* **Rollback & Invariant Extraction**: Automatically rolls back regressed candidates and logs findings to SurrealDB (`experiment_run`).
