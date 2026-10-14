@@ -169,14 +169,14 @@ def execute_midnight_harvest(api: KaggleApi):
             code_path="scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb",
         )
 
-    # 5. Enveda CASMI26 Molecule ID (SOTA v15 IV&V Hardened)
+    # 5. Enveda CASMI26 Molecule ID (Podium v26 Dual FPNet Ensemble + Full Parsimony)
     if not check_is_pending(api, "enveda-CASMI26-molecule-id-mass-spectra"):
         submit_notebook(
             comp="enveda-CASMI26-molecule-id-mass-spectra",
-            kernel="manderson240/casmi26-analog-baseline-fork-cohezion",
+            kernel="manderson240/cohezion-casmi26-fork-v4n-0421",
             filename="submission.csv",
-            msg="Cohezion CASMI26 SOTA v15: IV&V Hardened Restored GBDT + Tautomer Canonicalization (Daily Quota Reset)",
-            code_path="scripts/kaggle/casmi26_kernel/casmi26-analog-baseline-fork-cohezion.ipynb",
+            msg="Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony + All-Adduct Surrogacy (Daily Quota Reset)",
+            code_path="scripts/kaggle/casmi26_v4n_podium/cohezion-casmi26-fork-v4n-0421.ipynb",
         )
 
     logger.info("Daily quota harvest completed. Invoking Recursive Experiential Learner...")

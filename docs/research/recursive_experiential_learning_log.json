@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-14T00:01:24.679579+00:00",
+  "timestamp": "2026-10-14T02:49:31.465343+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -22,8 +22,8 @@
         {
           "ref": 57159621,
           "date": "2026-10-14 00:01:08.433000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.956",
           "description": "Cohezion RSNA Knee SOTA v31: R7 ConvNeXt-small + Raptor-384 Rank Ensembling + Strict Probability Clipping (Daily Quota Reset)"
         },
         {
@@ -81,10 +81,17 @@
       },
       "recent_history": [
         {
-          "ref": 57159660,
-          "date": "2026-10-14 00:01:20.193000",
+          "ref": 57164320,
+          "date": "2026-10-14 02:41:54.760000",
           "status": "SubmissionStatus.PENDING",
           "public_score": "",
+          "description": "Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony (FRAG_MODE all) + All-Adduct Surrogacy"
+        },
+        {
+          "ref": 57159660,
+          "date": "2026-10-14 00:01:20.193000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.285",
           "description": "Cohezion CASMI26 SOTA v15: IV&V Hardened Restored GBDT + Tautomer Canonicalization (Daily Quota Reset)"
         },
         {
@@ -114,13 +121,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.285",
           "description": "Cohezion CASMI26 Podium v22: Dual Popularity (POP_MU 0.25 + PC_POP_LAM 0.25) + GL_SURROGATE + FILL_25 (Daily Quota Reset)"
-        },
-        {
-          "ref": 57083358,
-          "date": "2026-10-11 18:59:40.140000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.412",
-          "description": "Cohezion CASMI26 SOTA v24: All-Adduct Surrogate Scoring (ICE_SURROGATE all) + Restored Parsimony (FRAG_LAM 0.20, PC_JOIN_N 50)"
         }
       ]
     },
@@ -205,8 +205,8 @@
         {
           "ref": 57159536,
           "date": "2026-10-14 00:00:43.310000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.22",
           "description": "Cohezion ARC-AGI-3 SOTA v35: Monadic Markov Foundation + Soft-Affordance Guided Navigation (Daily Quota Reset)"
         },
         {

@@ -153,7 +153,7 @@ def get_submissions(comp_id: str) -> tuple[list[dict], bool]:
 
     try:
         res = subprocess.run(
-            ["kaggle", "competitions", "submissions", comp_id],
+            [sys.executable, "-m", "kaggle", "competitions", "submissions", comp_id],
             capture_output=True,
             text=True,
             timeout=30,

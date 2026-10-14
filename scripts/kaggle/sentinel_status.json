@@ -1245,21 +1245,21 @@
       }
     ],
     "rsna-knee-abnormality-detection": {
-      "last_polled_ts": 1791944336.4194245,
+      "last_polled_ts": 1791946250.8693016,
       "name": "RSNA Knee Abnormality Detection",
       "prize": "$77,000 USD",
       "deadline": "2026-10-22",
       "latest_sub": {
         "ref": "57159621",
-        "status": "PENDING",
-        "score": null,
-        "raw": "57159621  submission.csv  2026-10-14 00:01:08.433000  Cohezion RSNA Knee SOTA v31: R7 ConvNeXt-small + Raptor-384 Rank Ensembling + Strict Probability Clipping (Daily Quota Reset)                      SubmissionStatus.PENDING                              "
+        "status": "COMPLETE",
+        "score": "0.956",
+        "raw": "57159621  submission.csv  2026-10-14 00:01:08.433000  Cohezion RSNA Knee SOTA v31: R7 ConvNeXt-small + Raptor-384 Rank Ensembling + Strict Probability Clipping (Daily Quota Reset)                      SubmissionStatus.COMPLETE  0.956                      "
       },
       "history_count": 50,
-      "updated_at": "2026-10-14T02:18:56.419434+00:00"
+      "updated_at": "2026-10-14T02:50:50.869304+00:00"
     },
     "arc-prize-2026-arc-agi-2": {
-      "last_polled_ts": 1791944290.4056468,
+      "last_polled_ts": 1791946250.8693016,
       "name": "ARC Prize 2026: ARC-AGI-2",
       "prize": "$700,000 USD",
       "deadline": "2026-11-02",
@@ -1270,10 +1270,10 @@
         "raw": "57124197  submission.json  2026-10-13 00:23:00.697000  Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection                                                                                        SubmissionStatus.PENDING                              "
       },
       "history_count": 32,
-      "updated_at": "2026-10-14T02:18:10.405650+00:00"
+      "updated_at": "2026-10-14T02:50:50.869304+00:00"
     },
     "arc-prize-2026-arc-agi-3": {
-      "last_polled_ts": 1791943676.3132129,
+      "last_polled_ts": 1791946250.8693016,
       "name": "ARC Prize 2026: ARC-AGI-3",
       "prize": "$850,000 USD",
       "deadline": "2026-11-02",
@@ -1284,10 +1284,10 @@
         "raw": "57159536  submission.parquet  2026-10-14 00:00:43.310000  Cohezion ARC-AGI-3 SOTA v35: Monadic Markov Foundation + Soft-Affordance Guided Navigation (Daily Quota Reset)               SubmissionStatus.COMPLETE  0.22                       "
       },
       "history_count": 27,
-      "updated_at": "2026-10-14T02:07:56.313218+00:00"
+      "updated_at": "2026-10-14T02:50:50.869304+00:00"
     },
     "gemma-4-developer-agent": {
-      "last_polled_ts": 1791944336.4194245,
+      "last_polled_ts": 1791946250.8693016,
       "name": "Google - The Gemma 4 Developer Agent",
       "prize": "$65,000 USD",
       "deadline": "2026-12-02",
@@ -1298,24 +1298,24 @@
         "raw": "57159577  submission.zip  2026-10-14 00:00:55.357000  Cohezion Gemma-4 SOTA: 12B Fast-Inference Container + 240s Pytest Timeout + Paced Edit                                                                                                                                        SubmissionStatus.PENDING                              "
       },
       "history_count": 15,
-      "updated_at": "2026-10-14T02:18:56.419434+00:00"
+      "updated_at": "2026-10-14T02:50:50.869304+00:00"
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
-      "last_polled_ts": 1791943045.5296602,
+      "last_polled_ts": 1791946250.8693016,
       "name": "Enveda CASMI26 Molecule ID",
       "prize": "$50,000 USD",
       "deadline": "2026-12-14",
       "latest_sub": {
-        "ref": "57159660",
-        "status": "COMPLETE",
-        "score": "0.285",
-        "raw": "57159660  submission.csv  2026-10-14 00:01:20.193000  Cohezion CASMI26 SOTA v15: IV&V Hardened Restored GBDT + Tautomer Canonicalization (Daily Quota Reset)                                            SubmissionStatus.COMPLETE  0.285                      "
+        "ref": "57164320",
+        "status": "PENDING",
+        "score": null,
+        "raw": "57164320  submission.csv  2026-10-14 02:41:54.760000  Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony (FRAG_MODE all) + All-Adduct Surrogacy                         SubmissionStatus.PENDING                              "
       },
-      "history_count": 38,
-      "updated_at": "2026-10-14T01:57:25.529663+00:00"
+      "history_count": 39,
+      "updated_at": "2026-10-14T02:50:50.869304+00:00"
     },
     "nfl-big-data-bowl-2027": {
-      "last_polled_ts": 1791943492.0801938,
+      "last_polled_ts": 1791946250.8693016,
       "name": "NFL Big Data Bowl 2027",
       "prize": "$100,000 USD",
       "deadline": "2027-01-06",
@@ -1325,7 +1325,7 @@
         "score": null
       },
       "history_count": 0,
-      "updated_at": "2026-10-14T02:04:52.080198+00:00"
+      "updated_at": "2026-10-14T02:50:50.869304+00:00"
     }
   },
   "active_kernels": {
@@ -1335,5 +1335,5 @@
     "manderson240/arc-agi-2-fork-lb33-89-20260903": "QUEUED"
   },
   "lemonade_healthy": true,
-  "last_cycle_utc": "2026-10-14T02:19:12.749137+00:00"
+  "last_cycle_utc": "2026-10-14T02:52:01.245608+00:00"
 }
