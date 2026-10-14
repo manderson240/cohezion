@@ -37,6 +37,7 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 6. **Proactive Hybrid Delegation**: Proactively offload routine research, code generation, and background diagnostics to Tier 1 local silicon (`deepseek-r1-0528-8b-FLM`, `qwen3.6-moe-35b-a3b-FLM`, `Qwen3-Coder-30B`) and Tier 2 Ollama Cloud models (`deepseek-v4-pro:cloud`, `glm-5.2:cloud`, `qwen3.5:397b-cloud`) via `UnifiedHybridRouter` and subagents (`invoke_subagent`). Maintain Expected Value of Intervention threshold ($\text{EVI} > 0.75$) to trigger autonomous background self-healing (`src/cohezion/inference/unified_hybrid_router.py`, `src/cohezion/proactive/`).
 7. **Local Model Next-Step Consultation Mandate**: Whenever wondering what next step to take, encountering branching choices, or navigating ambiguous execution paths, Antigravity MUST proactively consult a local silicon model (Tier 1 Lemonade port `13305` or Ollama port `11434`, e.g., `deepseek-r1-0528-8b-FLM`, `Qwen3-Coder-30B`) to reason through candidate directions, evaluate trade-offs, and recommend the optimal high-leverage action before proceeding.
 8. **Kaggle Active Competition Reporting Filter**: Never report on expired or closed competitions. Strictly filter all leaderboard audits, submission tracking, and status reports to currently ACTIVE, unexpired competitions (e.g. ARC Prize 2026 tracks: ARC-AGI-2, ARC-AGI-3, Paper Track; RSNA Knee; Biohub Cell Tracking; Kaggriculture). Explicitly ignore and exclude the Pokémon TCG competition per user mandate.
+9. **Deterministic Kaggle Submission Protocol**: Code competitions (ARC-AGI-2, ARC-AGI-3, RSNA Knee, Gemma-4 Developer Agent, Enveda CASMI26) strictly reject local file uploads with HTTP 400 `FAILED_PRECONDITION` ("This competition only accepts Submissions from Notebooks"). All submissions MUST be dispatched through `scripts/kaggle/kaggle_submit.py` using mode `notebook` (calling `api.competition_submit_code` with `kernel_version`, NOT `version`). Never guess parameter names or submit local files to code competitions.
 
 ## Autoresearch Mode
 When in autoresearch mode:
@@ -292,53 +293,56 @@ visible to future agents, the Obsidian vault, and SurrealDB dashboards.
 
 Every agent MUST evaluate this three-tier decision tree **before** sending any inference request:
 
-### Tier 1 — Lemonade OmniRouter (NPU/iGPU/CPU, port 13305)
+### Tier 1 — Lemonade NPU & CPU Lane ONLY (Port 13305)
 
-Preferred for all routine inference. Lemonade dispatches across dedicated hardware backends:
-- **NPU Backend**: FastFlowLM (`recipe: flm`, `/var/cache/lemonade/bin/flm/npu/flm`) executing directly on AMD XDNA2 SRAM (<2W, 0 UMA RAM usage).
-- **iGPU Backend**: llama.cpp Vulkan (`recipe: llamacpp`) for heavy GGUF models on RDNA 3.5.
-- **CPU Backend**: ONNX / kokoro (`recipe: kokoro`) for TTS and audio.
+> **HARD POLICY (2026-10-06)**: *Local inference is strictly restricted to the NPU and CPU to eliminate host OOM errors and protect the 120GB GTT UMA aperture. Never load large GGUF models on the iGPU/Vulkan/ROCm. All heavy coding, deep reasoning, and large parameter tasks MUST be offloaded to Tier 2 (Ollama Cloud or Headless Claude).*
+
+Lemonade dispatches across dedicated OOM-safe hardware backends:
+- **NPU Backend**: FastFlowLM (`recipe: flm`, `/var/cache/lemonade/bin/flm/npu/flm`) executing directly on AMD XDNA2 SRAM (<2W, 0 UMA RAM usage, completely OOM-safe).
+- **CPU Backend**: ONNX / kokoro / llama.cpp CPU (`recipe: kokoro`, `recipe: llamacpp cpu`) for lightweight models ($\le 4\text{ GB}$).
+- **FORBIDDEN IN TIER 1**: All Vulkan, ROCm, and vLLM backends allocating against the UMA aperture. Large model loads trigger automatic reroute to Tier 2 via `ApertureGuard`.
 
 Select lane by task class:
 
-| Task Class | Model | Backend / Lane | Port | Ctx |
-|------------|-------|----------------|------|-----|
-| Reasoning / planning | `deepseek-r1-0528-8b-FLM` | FLM / NPU | 13305 | 40 960 |
-| Coding / multi-file refactor | `Qwen3-Coder-30B` (GGUF/Vulkan) | llamacpp / iGPU | 13305 | 32 768 |
-| Coding + tools (small NPU) | `qwen3.5-4b-FLM` / `qwen3-4b-FLM` | FLM / NPU | 13305 | 32 768 |
-| Vision / VLM | `gemma3-4b-FLM` / `qwen3vl-it-4b-FLM` | FLM / NPU | 13305 | 65 536 |
-| Research summary / MoE | `qwen3.6-moe-35b-a3b-FLM` *(pinned)* | FLM / NPU | 13305 | 32 768 |
-| Fast Q&A / retrieval | `llama3.2-1b-FLM` *(pre-warmed)* | FLM / NPU | 13305 | 4 096 |
-| Embeddings (concurrent) | `embed-gemma-300m-FLM` (`--embed 1`) | FLM / NPU | 13305 | 2 048 |
+| Task Class | Model | Backend / Lane | Port | Notes |
+|------------|-------|----------------|------|-------|
+| Routine reasoning / planning | `qwen3.5-4b-FLM` *(pinned)* | FLM / NPU | 13305 | Zero UMA footprint |
+| Vision / VLM | `qwen3vl-it-4b-FLM` / `gemma3-4b-FLM` | FLM / NPU | 13305 | Multimodal on NPU |
+| Fast Q&A / draft | `qwen3.5-4b-FLM` | FLM / NPU | 13305 | Zero UMA footprint |
+| Embeddings (concurrent) | `embed-gemma-300m-FLM` | FLM / NPU | 13305 | Zero UMA footprint |
+| Tiny edge fallback | `Qwen3-0.6B-GGUF` | CPU (llamacpp) | 13305 | 0.36 GB RAM only |
 
-**Fleet-lock discipline MUST be respected**: only one model load active at a time.
-Use `FleetLock("modelload")` before any `lemonade load` call.
+### Tier 2 — Ollama Cloud & Headless Claude Code
 
-### Tier 2 — Ollama Cloud Models
+Use for ALL heavy workloads: coding, multi-file refactoring, deep reasoning, mathematics, long context (>8k), and agentic tool swarms. Mapped directly from the official Ollama Cloud catalog (`https://ollama.com/search?c=cloud`):
 
-Use when:
-- Required task context > available NPU/iGPU context window, OR
-- Tier 1 is saturated (preflight reports VRAM > 90%), OR
-- Task requires a capability not in the local roster (e.g., 397B-scale reasoning).
+| Task Class | Model / Engine | Context | Strengths & Notes |
+|------------|----------------|:-------:|-------------------|
+| **Flagship Coding & Agentic Refactor** | `glm-5.3:cloud` | 1M | Z.ai flagship model; top open-weights for long-horizon agentic coding |
+| **Agentic Tool Use & Fast Patches** | `kimi-k2.7-code:cloud` | 256K | Moonshot AI coding agent; 30% lower thinking tokens, fast AST patch gen |
+| **Deep Reasoning & Formal Proofs** | `deepseek-v4-pro:cloud` | 524K | 1.6T MoE with 3 reasoning modes; Grandmaster logic & invariant proofs |
+| **Native Multimodal & Puzzle Agents** | `kimi-k3:cloud` | 1M | Moonshot 2.81T flagship; ARC-3 game affordances, complex visual dynamics |
+| **Frontier Enterprise MoE Multimodal** | `mistral-large-4:cloud` | 1M | 1.05T MoE (52B active + 1.6B vision encoder); enterprise multi-modal |
+| **High-Efficiency Multimodal Flash** | `glm-5.3-flash:cloud` | 1M | 18B active, Claude Opus 4.8 tier at $0.15/$0.50 per 1M tokens |
+| **Fast Deep Search & Invariant Triage**| `deepseek-v4.1-flash:cloud` | 1M | 763B search & reasoning; fast candidate ranking & formula triage |
+| **Ultra-Low Cost Background Swarms** | `nemotron-3-super:cloud` | 256K | 120B MoE (12B active) at $0.015/$0.60 per 1M; continuous sentinel daemons |
+| **High-Throughput Swarm Reasoning** | `nemotron-3-ultra:cloud` | 256K | 550B MoE; continuous CI/CD verification & hypothesis shootouts |
+| **Long-Horizon Science & Spectrometry**| `glm-5.2:cloud` | 1M | Physics, chemistry, formula cleavage matching (CASMI26) |
+| **Academic Paper & Theorem Proofs** | `gpt-oss:120b-cloud` | 128K | Open-weight verifiable theorems & Gemma-4 Paper Track ablations |
+| **Gemma Container Emulation** | `gemma4:31b-cloud` | 256K | Verifies container parity before Kaggle code agent submission |
+| **Autonomous Headless Coding Agent** | Headless Claude Code (`claude -p`) | 200K | Direct execution via `/home/mike-anderson/.local/bin/claude` |
 
-| Task Class | Model |
-|------------|-------|
-| Deep reasoning / math | `deepseek-v4-pro:cloud` |
-| Advanced coding | `qwen3.5:397b-cloud` |
-| Science / frontier research | `glm-5.2:cloud` |
-| General overflow | `deepseek-v4-pro:cloud` |
-
-Route via `UnifiedHybridRouter` using `backend="ollama_cloud"` parameter.
+Route via `UnifiedHybridRouter` using `backend="ollama_cloud"` or Hermes CLI (`/home/mike-anderson/.local/bin/hermes -m <model>`).
 
 ### Tier 3 — Premium APIs & Thinking Models (agy 1.1.21 Spec)
 
 | Tier 3 Model | Effort / Mode | Best For |
 |---|---|---|
-| `gemini-3.7-flash-high` | High (Thinking) | Complex orchestration, fast reasoning, multi-turn architecture |
-| `gemini-3.7-flash-medium` | Medium | Iterative development, fast agentic loop synthesis |
+| `gemini-3.8-flash-high` | High (Thinking) | Complex orchestration, fast reasoning, multi-turn architecture |
+| `gemini-3.8-flash-medium` | Medium | Iterative development, fast agentic loop synthesis |
 | `gemini-3.1-pro-high` | High | Deepest multi-modal reasoning & mathematical proofs |
-| `claude-sonnet-4-6` | High (Thinking) | Large-scale multi-file refactoring & code generation |
-| `claude-opus-4-6-thinking` | Deep (Thinking) | Frontier systems engineering & formal verification |
+| `claude-sonnet-5-5` | High (Thinking) | Large-scale multi-file refactoring & code generation |
+| `claude-opus-5-5-thinking` | Deep (Thinking) | Frontier systems engineering & formal verification |
 | `gpt-oss-120b-medium` | Medium | Transparent open-weight benchmark validation |
 
 **Reserved exclusively for**:
@@ -422,9 +426,6 @@ Use these skills and deterministic Python tooling to eliminate AI slop, throat-c
 | `no-ai-slop` | `.agents/skills/no-ai-slop/` | Agent skill eliminating 20+ patterns of AI slop, formatting slop, and superficial analysis from copy and documentation. |
 | `NO_AI_SLOP_PRIME` | `src/cohezion/skills/NO_AI_SLOP_PRIME.md` | Canonical Cohezion PRIME skill embedding the portability test, concrete fact preservation, and metadiscourse removal. |
 | `NoAiSlopVerifier` | `src/cohezion/text/no_ai_slop_verifier.py` | Deterministic Python verifier & sanitizer for automated prose auditing, score calculation, and in-place slop remediation (`python -m cohezion.text.no_ai_slop_verifier <path> [--fix]`). |
-
-
-
 
 <!-- BEGIN amd-skills:local-ai-use -->
 ## Local AI Use (managed by amd-skills/local-ai-use)

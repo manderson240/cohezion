@@ -6,7 +6,7 @@ description: |
   submission completes, a compound loop cycle finishes, or after any API deploy.
   Checks Lemonade health, test regression, Kaggle score delta, DegradationDetector
   baselines, and compound loop metrics. Emits PASS / WARN / ROLLBACK verdict.
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 tools:
   - Read
   - Bash

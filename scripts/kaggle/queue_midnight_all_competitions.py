@@ -128,23 +128,23 @@ def submit_file(comp: str, filepath: str, msg: str, code_path: str = None) -> bo
 def execute_midnight_harvest(api: KaggleApi):
     logger.info("=== 00:00:05 UTC REACHED: EXECUTING COMPREHENSIVE DAILY QUOTA HARVEST ===")
 
-    # 1. ARC-AGI-3 (SOTA v35)
+    # 1. ARC-AGI-3 (SOTA v36: 75 steps + orthogonal escape + push affordance)
     if not check_is_pending(api, "arc-prize-2026-arc-agi-3"):
         submit_notebook(
             comp="arc-prize-2026-arc-agi-3",
             kernel="manderson240/cohezion-arc-agi-3-autoharness-solver",
             filename="submission.parquet",
-            msg="Cohezion ARC-AGI-3 SOTA v35: Monadic Markov Foundation + Soft-Affordance Guided Navigation (Daily Quota Reset)",
+            msg="Cohezion ARC-AGI-3 SOTA v36: 75-Step Monadic Markov Engine + Orthogonal Escape Pulses + Push Affordance Bonus (Daily Quota Reset)",
             code_path="scripts/kaggle/cohezion-arc-agi-3-autoharness-solver/cohezion-arc-agi-3-autoharness-solver.ipynb",
         )
 
-    # 2. ARC-AGI-2 (SOTA v14 Monotonic DSL Injection)
+    # 2. ARC-AGI-2 (SOTA v15 Strict Monotonic DSL Injection)
     if not check_is_pending(api, "arc-prize-2026-arc-agi-2"):
         submit_notebook(
             comp="arc-prize-2026-arc-agi-2",
-            kernel="manderson240/cohezion-arc-prize-2026-sota",
+            kernel="manderson240/arc-agi-2-fork-lb33-89-20260903",
             filename="submission.json",
-            msg="Cohezion ARC-AGI-2 SOTA v14: IV&V Monotonic Invariant + Attempt-2 DSL Injection (Daily Quota Reset)",
+            msg="Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Reset)",
             code_path="scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb",
         )
 
