@@ -537,3 +537,17 @@ count; the overstated locker interpretations; and every locker number now traced
 corrections in commit `6c9d523`._
 
 _Interactive version: `research/artemis2/site/index.html` (self-contained; locker series are 20-minute means of the HOBO data, flyby photo counts are 10-minute bins of crew-camera label times)._
+
+## Open items (as of 2026-10-14)
+- **SPICE bundle** (camera pointing): still unreleased. The NAIF path and DOI in the Data
+  User Guide return 404. When it appears, check whether the mapped flash sites were in the
+  SAW3 field, and redo the flash map with archived pointing.
+- **Voice-loop audio**: returned HTTP 403. Once it can be fetched, check the President-call
+  answers and the 6-minute cut at 04-07 22:31 against the sound itself.
+- **Moving-object search**: covers the ~40 h of other SAW3 video and the crew photo
+  bursts. Star-field plate solving would recover camera pointing without SPICE.
+- **History rewrite** to remove the pre-LFS `status_update/` blobs (~10 MB): deferred;
+  it needs a force-push of main.
+- Inputs are not committed: the scripts download them (MD5-checked where the archive
+  publishes checksums). The SAW3 videos are 2.9 GB each and are fetched manually from
+  `flash_search_video.VIDEO_URLS`.
