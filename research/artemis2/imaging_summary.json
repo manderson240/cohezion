@@ -1,0 +1,128 @@
+{
+  "generated": "2026-10-10",
+  "access": {
+    "file_base": "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/",
+    "resolver": "https://pds-imaging.jpl.nasa.gov/api/data/atlas:pds4:artemis2:artemis2:/<bundle>/<path>?output=url",
+    "search_api": "https://pds-imaging.jpl.nasa.gov/api/search/atlas/_search",
+    "directory_listing_public": false,
+    "planetarydata_img_data_artemis": "302 -> Atlas archive-explorer; /img/data/artemis2/ = 404"
+  },
+  "crew_camera": {
+    "collections": {
+      "data_source": 10329,
+      "data_raw": 10329,
+      "data_processed": 10329,
+      "browse": 10329
+    },
+    "by_camera": {
+      "nkd5015 (D5 s/n 3500015)": 7007,
+      "nkd5017 (D5 s/n 3500017)": 552,
+      "nkz9019 (Z9 s/n 3920019)": 2770
+    },
+    "nikon_d5_total": 7559,
+    "nikon_z9_total": 2770,
+    "per_utc_day": {
+      "2026-04-02": 716,
+      "2026-04-03": 337,
+      "2026-04-04": 89,
+      "2026-04-05": 325,
+      "2026-04-06": 6484,
+      "2026-04-07": 2299,
+      "2026-04-08": 8,
+      "2026-04-09": 71
+    },
+    "per_flight_day_label": {
+      "1": 273,
+      "2": 616,
+      "3": 253,
+      "4": 276,
+      "5": 311,
+      "6": 8423,
+      "7": 98,
+      "8": 79
+    },
+    "peak_hours_utc": {
+      "2026-04-06T21": 1838,
+      "2026-04-07T00": 1715,
+      "2026-04-06T20": 1031
+    },
+    "lenses": {
+      "80-400mm": 7725,
+      "35mm f/2D": 2282,
+      "14-24mm": 322
+    },
+    "activities_distinct": 48,
+    "duplicate_exposures_two_ids": 24,
+    "nonunique_shutter_count_groups": 77,
+    "target_identification_moon_for_all": 10329,
+    "observational_target_id_missing": 6275,
+    "crew_member_field": "absent",
+    "total_bytes_all_collections": 2530027923717,
+    "duplicate_pairs": {
+      "count": 24,
+      "camera": "Z9 s/n 3920019",
+      "pairs_with_target_mismatch": 21
+    }
+  },
+  "orion_camera": {
+    "collections": {
+      "data_raw_image": 1012,
+      "browse_source": 1012,
+      "data_video": 22
+    },
+    "by_camera": {
+      "onav": 404,
+      "dcam": 249,
+      "saw3": 189,
+      "cab2": 148,
+      "saw4": 12,
+      "saw2": 10
+    },
+    "videos": {
+      "saw3_channel1": 11,
+      "saw3_channel2": 10,
+      "saw3_other": 1
+    },
+    "folders": [
+      "fd01",
+      "fd02",
+      "fd03",
+      "fd04",
+      "fd05",
+      "fd06",
+      "fd07",
+      "fd09",
+      "fd10"
+    ]
+  },
+  "mission_audio": {
+    "collections": {
+      "data_audio_pcd": 53,
+      "data_audio_loops": 3,
+      "data_transcripts_pcd": 106,
+      "data_transcripts_loops": 6,
+      "annotations": 5
+    },
+    "pcd_audio_hours": 8.72,
+    "loop_audio_hours": 48.09,
+    "transcript_csv_files": 56,
+    "transcript_lines": 6355,
+    "index_only_entry": {
+      "path": "data_audio_pcd/fd06/art002a000052_pcd1_src_v01.m4a",
+      "in_inventory": false,
+      "in_atlas_index": true,
+      "http_status": 403,
+      "md5_equals": "art002a000052_pcd3_raw_v01.m4a"
+    },
+    "duplicate_pcd_pairs_by_md5": [
+      [
+        "art002a000001",
+        "art002a000003"
+      ],
+      [
+        "art002a000002",
+        "art002a000004"
+      ]
+    ]
+  }
+}
