@@ -263,6 +263,8 @@ class RZeroSolver:
         code = response.strip()
         if "```python" in code:
             code = code.split("```python", 1)[1].split("```", 1)[0].strip()
+        elif "```py" in code:
+            code = code.split("```py", 1)[1].split("```", 1)[0].strip()
         elif "```" in code:
             code = code.split("```", 1)[1].split("```", 1)[0].strip()
 
@@ -295,13 +297,6 @@ class RZeroPragmatist:
         try:
             # 1. AST syntax check
             parsed = ast.parse(code)
-            # Ensure transform function exists
-            has_func = any(
-                isinstance(node, ast.FunctionDef) and node.name == "transform"
-                for node in parsed.body
-            )
-            if not has_func:
-                return False, None, "Code does not define 'def transform(grid)'"
 
             # 2. Compile and execute in restricted namespace
             compiled = compile(parsed, filename="<rzero_sandbox>", mode="exec")
@@ -318,9 +313,25 @@ class RZeroPragmatist:
                 "sum": sum,
             }
             exec(compiled, safe_globals, local_vars)  # noqa: S102
+
+            # Find callable entry point (prefer 'transform', fallback to other functions)
             fn = local_vars.get("transform")
             if not callable(fn):
-                return False, None, "'transform' is not callable"
+                for candidate_name in ("solve", "solution", "predict", "apply_rule"):
+                    if callable(local_vars.get(candidate_name)):
+                        fn = local_vars[candidate_name]
+                        break
+                if not callable(fn):
+                    callable_funcs = [
+                        v
+                        for k, v in local_vars.items()
+                        if callable(v) and not k.startswith("__") and k not in safe_globals
+                    ]
+                    if callable_funcs:
+                        fn = callable_funcs[-1]
+
+            if not callable(fn):
+                return False, None, "Code does not define any callable transform function"
 
             # 3. Call with input
             out = fn(input_grid)
