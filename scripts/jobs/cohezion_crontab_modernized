@@ -1,0 +1,55 @@
+SHELL=/bin/bash
+PATH=/home/mike-anderson/.local/bin:/home/mike-anderson/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# ==============================================================================
+# COHEZION MASTER CRON SCHEDULE (Modernized 2026-09-28)
+# System Engineering V-Model, Sovereign Research, Rust Daemon Sentinel & Storage
+# ==============================================================================
+
+# 1. Sovereign Research & Interpretability Engine (04:00 AM Daily)
+0 4 * * * cd /home/mike-anderson/dev/cohezion && source scripts/ci/headless_env_guard.sh && PYTHONPATH=src /home/mike-anderson/.local/bin/uv run python3 scripts/ops/master_daily_researcher.py >> ~/.cache/cohezion/daily_researcher.log 2>&1
+
+# 2. V-Model Compound Graph Refactor & Monad Verification (03:45 AM Daily)
+45 3 * * * cd /home/mike-anderson/dev/cohezion && source scripts/ci/headless_env_guard.sh && /home/mike-anderson/.local/bin/uv run python3 scripts/ops/vmodel_compound_trace_refactor.py >> ~/.cache/cohezion/vmodel_refactor.log 2>&1
+
+# 3. Nightly Verification Suite (04:30 AM Daily)
+30 4 * * * /usr/bin/bash -lc 'bash /home/mike-anderson/dev/cohezion/scripts/ci/nightly_verification.sh >> ~/.cohezion/nightly_verification/nightly-$(date +\%Y\%m\%d).log 2>&1'
+
+# 4. 24/7 Rust Sentinel Keepalive & Kaggle Ascent Supervisor (Every 30 min)
+*/30 * * * * pgrep -f "cohezion-sentinel" >/dev/null || (cd /home/mike-anderson/dev/cohezion && ./src/cohezion-sentinel/target/release/cohezion-sentinel >> /tmp/cohezion_sentinel_cron.log 2>&1 &)
+
+# 5. Local Storage Headroom Guard (Every 4 hours)
+0 */4 * * * /home/mike-anderson/dev/cohezion/scripts/jobs/storage_headroom_guard.sh >> /tmp/storage_guard.log 2>&1
+
+# 6. Production Scheduler (Every 6 hours)
+0 */6 * * * cd /home/mike-anderson/dev/cohezion && /home/mike-anderson/.local/bin/uv run python3 production_scheduler.py --mode quick >> data/vault/production/logs/quick_202603.log 2>&1
+
+# 7. Vault-Keeper Metabolism Cycle (Every 6 hours)
+5 */6 * * * cd /home/mike-anderson/dev/cohezion && /home/mike-anderson/.local/bin/uv run python3 tools/vault-keeper-cycle.py >> /home/mike-anderson/vaults/cohezion-vault/metabolism/vault-keeper.log 2>&1
+0 */6 * * * /home/mike-anderson/dev/cohezion/scripts/jobs/vault_keeper_monitor.sh
+0 1 * * 0 /home/mike-anderson/dev/cohezion/scripts/jobs/weekly_health_digest.sh
+
+# 8. FastFlowLM NPU & Lemonade Recipe Audit (06:00 AM Daily)
+0 6 * * * /home/mike-anderson/dev/cohezion/.venv/bin/python /home/mike-anderson/dev/cohezion/scripts/cloud/audit_lemonade_recipes.py >> /home/mike-anderson/.cohezion-research/logs/lemonade_audit_cron.log 2>&1
+
+# 9. Ollama Quota Check (09:00 AM Daily)
+0 9 * * * cd /home/mike-anderson/dev/cohezion && /home/mike-anderson/dev/cohezion/.venv/bin/python scripts/cloud/ollama_quota_check.py --threshold 75 >> /home/mike-anderson/.cohezion-research/logs/ollama_cron.log 2>&1
+
+# 10. Continuous Experiment Daemon (Every 6 hours)
+0 */6 * * * cd /home/mike-anderson/dev/cohezion && source scripts/ci/headless_env_guard.sh && /home/mike-anderson/.local/bin/uv run python -m cohezion.researcher.continuous_experiment_daemon --mode once >> /home/mike-anderson/dev/cohezion/data/vault/production/logs/daemon_247.log 2>&1
+
+# 11. Compound Daemon Keepalive (Every 30 min)
+*/30 * * * * flock -n $HOME/.cohezion/compound_daemon.cron.lock -c 'pgrep -f "python.*compound_daemon.py" >/dev/null || (cd /home/mike-anderson/dev/cohezion && /home/mike-anderson/.local/bin/uv run python $HOME/cohezion-labs/compound_daemon.py --interval 10 >> $HOME/.cohezion/compound_daemon.cron.log 2>&1)'
+
+# 12. Primitive Forge Daemon (Every 15 min overnight 20:00-06:45 ET only)
+*/15 20-23,0-6 * * * source /home/mike-anderson/dev/cohezion/scripts/ci/headless_env_guard.sh && /home/mike-anderson/.cohezion-research/run_forge_cycle.sh >> /home/mike-anderson/.cohezion-research/logs/forge/cron_session.log 2>&1
+
+# 13. Fleet Watchdog Backup (Hourly)
+0 * * * * /home/mike-anderson/.hermes/scripts/fleet-watchdog.sh >> /home/mike-anderson/.hermes/watchdog-cron.log 2>&1
+
+# 14. Weekly O'Reilly Harvest (Mondays 06:00 AM)
+0 6 * * 1 cd /home/mike-anderson/cohezion-labs && /home/mike-anderson/.local/bin/uv run oreilly_harvest.py --events && /home/mike-anderson/.local/bin/uv run oreilly_feed_queue.py >> /home/mike-anderson/.cohezion/oreilly_harvest.log 2>&1
+
+# 15. TCRAO Tri-Compute AutoResearch (Wednesdays 07:13 AM & Daily 02:30 AM)
+13 7 * * 3 /home/mike-anderson/UFO_Release_01/multimodal/scripts/run_instigator_rotation.sh >> /home/mike-anderson/UFO_Release_01/logs/instigator_cron.log 2>&1
+30 2 * * * /usr/bin/python3 /home/mike-anderson/UFO_Release_01/multimodal/scripts/update_convergence.py --threshold 0.10 >> /home/mike-anderson/UFO_Release_01/logs/update_convergence.log 2>&1

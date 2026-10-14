@@ -4,10 +4,10 @@
   "code_file": "cohezion-rsna-knee-sota-ensemble.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": false,
   "enable_gpu": true,
   "enable_tpu": false,
   "enable_internet": false,
+  "machine_shape": "NvidiaL4",
   "keywords": [
     "gpu"
   ],
@@ -34,6 +34,5 @@
   ],
   "model_sources": [
     "metaresearch/dinov2/PyTorch/small/1"
-  ],
-  "machine_shape": "NvidiaTeslaT4"
+  ]
 }

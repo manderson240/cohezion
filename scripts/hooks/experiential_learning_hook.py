@@ -57,11 +57,10 @@ SURREAL_PASS = os.environ.get("SURREAL_PASS", "root")
 
 DELEGATE_TIMEOUT_SEC = 15  # wall-clock cap for the narrative call
 HOOK_TOTAL_BUDGET_SEC = 20  # hard overall hook budget
-# Default model pin. The registry declares a 4-lane topology but only the
-# iGPU ROCWMMA lane (Gemma-4-E4B-it-GGUF on Lemonade :13307) is reliably live
-# today — see patterns/registry-vs-live-reconciliation-audit.md and the
-# `audit_liveness()` drift notes. Override with EXPERIENTIAL_LEARNING_MODEL.
-DEFAULT_NARRATIVE_MODEL = os.environ.get("EXPERIENTIAL_LEARNING_MODEL", "Gemma-4-E4B-it-GGUF")
+# Default model pin. The NPU FastFlowLM lane (qwen3.5-4b-FLM on Lemonade :13305)
+# is pinned and active with zero UMA footprint — see hardware safety policy.
+# Override with EXPERIENTIAL_LEARNING_MODEL.
+DEFAULT_NARRATIVE_MODEL = os.environ.get("EXPERIENTIAL_LEARNING_MODEL", "qwen3.5-4b-FLM")
 
 PROMPT_TEMPLATE = """\
 Summarize this git commit in one sentence (max 30 words). Start your answer

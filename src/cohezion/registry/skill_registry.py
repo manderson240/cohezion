@@ -3,7 +3,7 @@ import difflib
 import glob
 import json
 import os
-import re
+from pathlib import Path
 from typing import Any
 
 
@@ -63,27 +63,21 @@ def register_skill(
     version: str = "0.1.0",
     template_version: str = "v0.1",
     generated_from: str = "skill.md",
+    dual_attestation: Any = None,
 ) -> None:
-    """
-    Register (or update) a skill in the registry.
+    """Register (or update) a skill in the registry."""
+    if os.environ.get("COHEZION_ENFORCE_DUAL_ATTESTATION") == "1":
+        if dual_attestation is None:
+            raise ValueError(
+                f"DualAttestation Required: Skill '{name}' cannot be registered without independent verification."
+            )
+        from cohezion.authority.ivv import PromotionGatekeeper
+        gatekeeper = PromotionGatekeeper()
+        # Verify artifact matches attestation
+        skill_path = Path(path)
+        if skill_path.exists():
+            gatekeeper.assert_promotable(skill_path, dual_attestation)
 
-    Parameters
-    ----------
-    name: str
-        Unique identifier for the skill (e.g., "METAPHYSICS_PRIME").
-    description: str
-        Human‑readable description of what the skill does.
-    keywords: list[str]
-        A list of search‑friendly tokens that capture the core concepts.
-    path: str
-        Relative path to the markdown file that implements the skill.
-    version: str, optional
-        SemVer version of the skill implementation.
-    template_version: str, optional
-        Version of the template used to generate this skill.
-    generated_from: str, optional
-        Name of the template file used.
-    """
     registry = load_registry()
     registry[name] = {
         "description": description,
@@ -93,6 +87,7 @@ def register_skill(
         "template_version": template_version,
         "generated_from": generated_from,
         "last_updated": os.environ.get("COHEZION_TIMESTAMP", "") or "",
+        "attestation_leaf_hash": getattr(dual_attestation, "merkle_leaf_hash", None) if dual_attestation else None,
     }
     _save_registry(registry)
 

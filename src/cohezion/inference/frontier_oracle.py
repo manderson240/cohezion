@@ -31,8 +31,12 @@ from cohezion.inference.usage_log import record_usage
 
 logger = logging.getLogger(__name__)
 
-_FABLE_MODEL = "claude-fable-5"
-_OPUS_FALLBACK = "claude-opus-4-8"
+_FABLE_MODEL = "claude-fable-5-1"
+_FABLE_ALIASES = ("claude-fable-5-1", "claude-fable-5", "fable")
+_OPUS_FALLBACK = "claude-opus-5-5"
+_OPUS_ALIASES = ("claude-opus-5-5", "opus")
+_SONNET_MODEL = "claude-sonnet-5-5"
+_SONNET_ALIASES = ("claude-sonnet-5-5", "sonnet")
 
 # Keywords that signal frontier-level difficulty.
 # Whole-word matching only (after whitespace split + punctuation strip).
@@ -100,7 +104,7 @@ def fable_spend_usd(path: str | Path | None = None) -> float:
                     continue
                 try:
                     rec = json.loads(line)
-                    if rec.get("model") == _FABLE_MODEL:
+                    if rec.get("model") in _FABLE_ALIASES:
                         total += float(rec.get("cost_usd", 0.0))
                 except (ValueError, TypeError):
                     pass
@@ -251,6 +255,7 @@ def frontier_complete_sync(
     attempts = [
         ("fable", _FABLE_MODEL, lambda: _call_claude_sync(_FABLE_MODEL, prompt, timeout)),
         ("opus", _OPUS_FALLBACK, lambda: _call_claude_sync(_OPUS_FALLBACK, prompt, timeout)),
+        ("sonnet", _SONNET_MODEL, lambda: _call_claude_sync(_SONNET_MODEL, prompt, timeout)),
         ("agy", "agy-default", lambda: (_call_agy_sync(prompt, timeout), 0.0)),
     ]
     last_exc: Exception | None = None

@@ -16,6 +16,7 @@ from enum import StrEnum
 from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, get_event_bus
+from cohezion.inference.aperture_guard import validate_tier1_request
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
 from cohezion.inference.lemonade_health import probe_lemonade
 from cohezion.inference.transports.base import BaseInferenceTransport
@@ -58,56 +59,60 @@ class TaskClass(StrEnum):
     GENERAL = "general"
 
 
+# Tier 1 Local: Strictly NPU (XDNA2 SRAM) and CPU (<= 4GB) ONLY.
+# Zero large Vulkan/ROCm models to eliminate host OOM aperture races.
 _TIER1_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "deepseek-r1-0528-8b-FLM",
-    TaskClass.DEEP_REASONING: "Qwen3.6-35B-A3B-GGUF",
-    TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-    TaskClass.CODING_TOOLS: "Gemma-4-E4B-it-GGUF",
+    TaskClass.REASONING: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.DEEP_REASONING: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.CODING: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.CODING_TOOLS: "qwen3.6-moe-35b-a3b-FLM",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
-    TaskClass.RESEARCH: "Qwen3.6-35B-A3B-GGUF",
-    TaskClass.SCIENCE_FRONTIER: "deepseek-r1-0528-8b-FLM",
-    TaskClass.FAST_QA: "Gemma-4-E2B-it-GGUF",
-    TaskClass.ULTRA_FAST_DRAFT: "llama3.2-1b-FLM",
+    TaskClass.RESEARCH: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.SCIENCE_FRONTIER: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.FAST_QA: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.ULTRA_FAST_DRAFT: "qwen3.6-moe-35b-a3b-FLM",
     TaskClass.SUB_BILLION_EDGE: "Qwen3-0.6B-GGUF",
-    TaskClass.EXTREME_COMPACT: "Bonsai-8B-gguf",
-    TaskClass.LONG_CONTEXT_ANALYSIS: "Qwen3.6-35B-A3B-MTP-GGUF",
-    TaskClass.CREATIVE_SYNTHESIS: "gpt-oss-20b-mxfp4-GGUF",
+    TaskClass.EXTREME_COMPACT: "Qwen3-0.6B-GGUF",
+    TaskClass.LONG_CONTEXT_ANALYSIS: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.CREATIVE_SYNTHESIS: "qwen3.6-moe-35b-a3b-FLM",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
-    TaskClass.GENERAL: "Gemma-4-E4B-it-GGUF",
+    TaskClass.GENERAL: "qwen3.6-moe-35b-a3b-FLM",
 }
+
 
 
 _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "deepseek-v4-pro:cloud",  # 1.6T MoE Top Reasoning & Formal Logic
-    TaskClass.DEEP_REASONING: "kimi-k3:cloud",  # Kimi K3 Autonomous Deep Reasoning
-    TaskClass.CODING: "qwen3.5:397b-cloud",  # 397B Multi-File System Refactors
-    TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",  # Agentic Tool Use & Precise Patch Gen
-    TaskClass.VISION: "glm-5.3-flash:cloud",  # Fast Multimodal Geometry & Diagrams
-    TaskClass.RESEARCH: "nemotron-3-ultra:cloud",  # Frontier Enterprise Knowledge Synthesis
-    TaskClass.SCIENCE_FRONTIER: "nemotron-3-super:cloud",  # Frontier Physics, Science & Math Verification
-    TaskClass.FAST_QA: "glm-5.3-flash:cloud",  # Ultra-Fast High-Throughput Retrieval
-    TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4-flash:0731-cloud",  # Sub-Second Low-Latency Draft Generation
-    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:cloud",  # Fast edge fallback
-    TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
-    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors & Vision
-    TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
+    TaskClass.DEEP_REASONING: "kimi-k3:cloud",  # Kimi K3 Autonomous Deep Reasoning & Multimodal Search
+    TaskClass.CODING: "glm-5.3:cloud",  # Z.ai Flagship Coding Model & Long-Horizon Agentic Tasks
+    TaskClass.CODING_TOOLS: "kimi-k2.7-code:cloud",  # Moonshot AI Agentic Tool Use & Fast Patch Gen
+    TaskClass.VISION: "kimi-k3:cloud",  # Native Multimodal Reasoning & Game Grid Dynamics
+    TaskClass.RESEARCH: "nemotron-3-ultra:cloud",  # High-Throughput Enterprise Knowledge Synthesis
+    TaskClass.SCIENCE_FRONTIER: "glm-5.2:cloud",  # Long-Horizon Science, Physics & Mass Spectrometry
+    TaskClass.FAST_QA: "glm-5.3-flash:cloud",  # Ultra-Fast High-Throughput Multimodal Retrieval
+    TaskClass.ULTRA_FAST_DRAFT: "deepseek-v4.1-flash:cloud",  # Fast Sub-Second Deep Search & Draft Gen
+    TaskClass.SUB_BILLION_EDGE: "deepseek-v4-flash:cloud",  # Fast Edge Fallback
+    TaskClass.LONG_CONTEXT_ANALYSIS: "glm-5.3:cloud",  # 1M Context Long-Horizon Codebase Analysis
+    TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Coding & Agentic Frontier Synthesis
+    TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multimodal Semantic Vectors
+    TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence & Paper Track
 }
 
 
 _TIER3_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "gemini-3.7-flash-high",
-    TaskClass.DEEP_REASONING: "claude-opus-4-6-thinking",
-    TaskClass.CODING: "claude-sonnet-4-6",
-    TaskClass.CODING_TOOLS: "gemini-3.7-flash-high",
+    TaskClass.REASONING: "gemini-3.8-flash-high",
+    TaskClass.DEEP_REASONING: "claude-opus-5-5-thinking",
+    TaskClass.CODING: "claude-sonnet-5-5",
+    TaskClass.CODING_TOOLS: "gemini-3.8-flash-high",
     TaskClass.VISION: "gemini-3.1-pro-high",
-    TaskClass.RESEARCH: "gemini-3.7-flash-medium",
+    TaskClass.RESEARCH: "gemini-3.8-flash-medium",
     TaskClass.SCIENCE_FRONTIER: "gemini-3.1-pro-high",
-    TaskClass.FAST_QA: "gemini-3.7-flash-low",
-    TaskClass.ULTRA_FAST_DRAFT: "gemini-3.7-flash-low",
-    TaskClass.SUB_BILLION_EDGE: "gemini-3.7-flash-low",
-    TaskClass.EXTREME_COMPACT: "gemini-3.7-flash-low",
+    TaskClass.FAST_QA: "gemini-3.8-flash-low",
+    TaskClass.ULTRA_FAST_DRAFT: "gemini-3.8-flash-low",
+    TaskClass.SUB_BILLION_EDGE: "gemini-3.8-flash-low",
+    TaskClass.EXTREME_COMPACT: "gemini-3.8-flash-low",
     TaskClass.LONG_CONTEXT_ANALYSIS: "gemini-3.1-pro-high",
-    TaskClass.CREATIVE_SYNTHESIS: "claude-opus-4-6-thinking",
+    TaskClass.CREATIVE_SYNTHESIS: "claude-opus-5-5-thinking",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
     TaskClass.GENERAL: "gpt-oss-120b-medium",
 }
@@ -182,30 +187,35 @@ TIER_COSTS = {
     (1, 3): 1.25,  # Escalation Tier 1 -> Tier 3
 }
 
-# Roster mappings
+# Roster mappings — Tier 1 restricted to NPU (FLM) and CPU to protect host UMA
 TIER_1_ROSTER = {
-    "reasoning": "deepseek-r1-0528-8b-FLM",
-    "coding": "Qwen3-Coder-30B",
-    "coding_small": "qwen3-4b-FLM",
-    "coding_tools": "qwen3.5-4b-FLM",
+    "reasoning": "qwen3.6-moe-35b-a3b-FLM",
+    "coding": "qwen3.6-moe-35b-a3b-FLM",
+    "coding_small": "qwen3.6-moe-35b-a3b-FLM",
+    "coding_tools": "qwen3.6-moe-35b-a3b-FLM",
     "vision": "qwen3vl-it-4b-FLM",
     "vision_vlm": "gemma3-4b-FLM",
     "research": "qwen3.6-moe-35b-a3b-FLM",
-    "fast_qa": "llama3.2-1b-FLM",
+    "fast_qa": "qwen3.6-moe-35b-a3b-FLM",
     "embedding": "embed-gemma-300m-FLM",
-    "cpu_parallel": "Phi-4-mini-3.8B-CPU-32T",
+    "cpu_parallel": "Qwen3-0.6B-GGUF",
 }
 
 TIER_2_ROSTER = {
     "reasoning": "deepseek-v4-pro:cloud",
     "coding": "qwen3.5:397b-cloud",
+    "coding_claude": "claude-code-headless",
+    "deep_reasoning": "kimi-k3:cloud",
+    "coding_tools": "kimi-k2.7-code:cloud",
     "research": "glm-5.2:cloud",
     "general": "deepseek-v4-pro:cloud",
 }
 
 TIER_3_ROSTER = {
     "architecture": "gemini-3-pro",
-    "coding": "claude-3-5-sonnet",
+    "coding": "claude-sonnet-5-5",
+    "reasoning": "claude-opus-5-5",
+    "frontier": "claude-fable-5-1",
     "general": "gemini-3-pro",
 }
 
@@ -334,8 +344,10 @@ class UnifiedHybridRouter:
         current_tier = 1
         selected_model = self._select_model_for_tier(1, task_type)
 
-        # Check Tier 1 capability constraints
-        tier1_capable = (not tier1_saturated) and (context_tokens <= 32768)
+        # Check Tier 1 capability constraints under Hardware Aperture Guard (NPU/CPU only)
+        verdict = validate_tier1_request(selected_model)
+        is_heavy_task = task_type in ("coding", "deep_reasoning", "research", "architecture")
+        tier1_capable = (not tier1_saturated) and (context_tokens <= 16384) and (verdict == "allow") and (not is_heavy_task)
 
         if not tier1_capable or quality_gap > 0.1:
             # Evaluate escalation to Tier 2
@@ -357,10 +369,14 @@ class UnifiedHybridRouter:
                         reason = f"Tier 3 escalation (EVI={evi_2_to_3:.2f} > {self.evi_threshold:.2f}, high context/importance)"
                     else:
                         reason = (
-                            f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
+                            f"Tier 2 cloud offload (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
                         )
                 else:
-                    reason = f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
+                    reason = (
+                        "Tier 2 cloud offload (NPU/CPU local policy enforced)"
+                        if not tier1_capable
+                        else f"Tier 2 escalation (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
+                    )
             else:
                 reason = (
                     f"Tier 1 selected (EVI 1->2 = {evi_1_to_2:.2f} <= {self.evi_threshold:.2f})"
@@ -779,9 +795,10 @@ class UnifiedHybridRouter:
             "temperature": temp,
             "top_p": top_p,
         }
-        lemonade_timeout = float(os.environ.get("COHEZION_LEMONADE_TIMEOUT", "60.0"))
+        lemonade_timeout = float(os.environ.get("COHEZION_LEMONADE_TIMEOUT", "300.0"))
+        timeout = httpx.Timeout(connect=15.0, read=lemonade_timeout, write=60.0, pool=10.0)
         try:
-            async with httpx.AsyncClient(timeout=lemonade_timeout) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 res = await client.post(self._lemonade_url, json=payload)
                 if res.status_code == 200:
                     data = res.json()
@@ -823,7 +840,8 @@ class UnifiedHybridRouter:
 
         payload = {"model": model, "input": text}
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            embed_timeout = httpx.Timeout(connect=15.0, read=300.0, write=60.0, pool=10.0)
+            async with httpx.AsyncClient(timeout=embed_timeout) as client:
                 res = await client.post("http://localhost:13305/v1/embeddings", json=payload)
                 if res.status_code == 200:
                     data = res.json()

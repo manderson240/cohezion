@@ -14,11 +14,14 @@ Atomic Zero-Freeze Local Model Hot-Swapping, Dynamic Modularity, and OOM Safegua
 ## INSTRUCTION
 
 1. **Perform an Atomic Hot-Swap**:
+   > **Note (2026-10-06 Mandate)**: Local Tier 1 hot-swapping is restricted to NPU (`-FLM`) and CPU ($\le 4\text{GB}$). Heavy models (30B+) must be routed to Tier 2 (Ollama Cloud / Headless Claude).
    ```python
    from cohezion.inference.dynamic_hotswapper import DynamicModelHotSwapper
+   from cohezion.inference.aperture_guard import assert_safe_tier1
 
    swapper = DynamicModelHotSwapper()
-   model_metadata = {"id": "Qwen3-Coder-30B-A3B-Instruct-GGUF", "size": 18.2, "recipe": "gguf"}
+   model_metadata = {"id": "qwen3.5-4b-FLM", "size": 3.8, "recipe": "flm"}
+   assert_safe_tier1(model_metadata["id"])
    success, msg = await swapper.hotswap_model(model_metadata)
    if not success:
        raise RuntimeError(f"Hot-swap rejected: {msg}")

@@ -1,0 +1,1339 @@
+{
+  "timestamp": 1791310712,
+  "iso_time": "1791310712",
+  "competitions": {
+    "ARC-AGI-2": [
+      {
+        "ref_id": "56865081",
+        "file_name": "submission.json",
+        "date": "2026-10-06 00:14:11.523000",
+        "description": "Cohezion ARC-AGI-2 SOTA v14: IV&V Monotonic Invariant + Non-Destructive Attempt-2 DSL Injection",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "30.28"
+      },
+      {
+        "ref_id": "56832232",
+        "file_name": "submission.json",
+        "date": "2026-10-04 19:28:32.490000",
+        "description": "Cohezion ARC-AGI-2 SOTA v14: IV&V Monotonic Invariant + Non-Destructive Attempt-2 DSL Injection",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "30.97"
+      },
+      {
+        "ref_id": "56803464",
+        "file_name": "submission.json",
+        "date": "2026-10-03 17:37:09.420000",
+        "description": "Cohezion ARC-AGI-2 SOTA v13: Fast-Path Neuro-Symbolic DSL Program Synthesis on Quad-L4",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "30.56"
+      },
+      {
+        "ref_id": "56777662",
+        "file_name": "submission.json",
+        "date": "2026-10-02 16:10:06.267000",
+        "description": "Cohezion ARC-AGI-2 SOTA v12: Zero-False-Prune AutoHarness Invariants + Qwen3-4B LoRA SFT139 on NvidiaL4",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "28.47"
+      },
+      {
+        "ref_id": "56653596",
+        "file_name": "submission.json",
+        "date": "2026-09-28 22:24:34.407000",
+        "description": "Cohezion ARC-AGI-2 SOTA v11: AutoHarness Guard + Dynamic Path Resolution (Topic 704408 Hardening)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "29.31"
+      },
+      {
+        "ref_id": "56609704",
+        "file_name": "submission.json",
+        "date": "2026-09-27 13:20:45.910000",
+        "description": "Cohezion ARC-AGI-2 SOTA: Qwen3-4B LoRA SFT139 + AutoHarness Invariant Verifier LB 33.89+ candidate",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "30.56"
+      },
+      {
+        "ref_id": "56559443",
+        "file_name": "submission.json",
+        "date": "2026-09-25 20:12:36.260000",
+        "description": "Cohezion ARC-AGI-2 test v10",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "30.14"
+      },
+      {
+        "ref_id": "56505158",
+        "file_name": "submission.json",
+        "date": "2026-09-23 22:51:29.687000",
+        "description": "Cohezion ARC-AGI-2: Qwen3-4B LoRA SFT139 + Unsloth bfloat16 (LB target 33.89+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "29.31"
+      },
+      {
+        "ref_id": "56446027",
+        "file_name": "submission.json",
+        "date": "2026-09-22 00:01:01.920000",
+        "description": "Cohezion ARC-AGI-2 v10: Poincare Geodesic Beam + Laya System 1 Policy + MDL Regularization",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.00"
+      },
+      {
+        "ref_id": "56409554",
+        "file_name": "submission.json",
+        "date": "2026-09-21 00:44:57.723000",
+        "description": "Cohezion AutoHarness Invariants + Qwen3-4B LoRA L4 v4",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "31.81"
+      },
+      {
+        "ref_id": "56347388",
+        "file_name": "submission.json",
+        "date": "2026-09-19 03:43:39.820000",
+        "description": "Cohezion ARC-AGI-2: Quad-L4x4 dynamic CUDA worker auto-scaling v10",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "29.03"
+      },
+      {
+        "ref_id": "56282286",
+        "file_name": "submission.json",
+        "date": "2026-09-16 15:37:45.487000",
+        "description": "\"v8: exact 31.39 config (scriptVersionId 348797016 byte-exact) + ONE delta: bar-like synthetic LoRA train tasks ~15% budget; no TTA",
+        "status": "no selection changes\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56264122",
+        "file_name": "submission.json",
+        "date": "2026-09-15 23:34:04.263000",
+        "description": "\"Qwen3-4B LoRA v7: 24-view TTA (n=3 D4+permute",
+        "status": "length-grouped batching) + merged-vote consensus selection with AutoHarness invariant filter (reranker on LoRA samples)\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56232073",
+        "file_name": "submission.json",
+        "date": "2026-09-14 13:33:18.903000",
+        "description": "Cohezion ARC-AGI-2 test v1",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "28.89"
+      },
+      {
+        "ref_id": "56215062",
+        "file_name": "submission.json",
+        "date": "2026-09-13 21:18:30.970000",
+        "description": "Cohezion Qwen3-4B LoRA v5 + D4 TTA + AutoHarness Reload 3.0",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "30.56"
+      },
+      {
+        "ref_id": "56166676",
+        "file_name": "submission.json",
+        "date": "2026-09-11 13:56:05.817000",
+        "description": "Cohezion ARC-AGI-2: LB33.89 Qwen3-4B LoRA v2",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "31.39"
+      },
+      {
+        "ref_id": "56144947",
+        "file_name": "submission.json",
+        "date": "2026-09-10 13:18:13.990000",
+        "description": "Cohezion Anytime AutoHarness Solver v19",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.00"
+      },
+      {
+        "ref_id": "56097164",
+        "file_name": "submission.json",
+        "date": "2026-09-08 11:23:56.517000",
+        "description": "Test v1",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "5.42"
+      },
+      {
+        "ref_id": "56066459",
+        "file_name": "submission.json",
+        "date": "2026-09-07 01:40:11.430000",
+        "description": "Cohezion v19: AutoHarness Invariant Verifier + Grid-Hash Memoization + Poincare Diversified Selector",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.00"
+      },
+      {
+        "ref_id": "56064757",
+        "file_name": "submission.json",
+        "date": "2026-09-06 23:54:22.337000",
+        "description": "Cohezion v18: Quantile Diversified Selector (q=0.425) on 16-view D4 TTA",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "4.17"
+      },
+      {
+        "ref_id": "55981444",
+        "file_name": "submission.json",
+        "date": "2026-09-03 12:57:13.287000",
+        "description": "\"Fork: LB33.89 Qwen3-4B + per-task LoRA",
+        "status": "L4 (verbatim fork of mikelou1/arc-agi2-lb33-89-minimal-perfpatch",
+        "public_score": "attributed)\""
+      },
+      {
+        "ref_id": "55820014",
+        "file_name": "submission.json",
+        "date": "2026-08-27 14:09:34.907000",
+        "description": "Cohezion v17: Object Graph DSL + Symmetry + Topological Enclosure",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.00"
+      },
+      {
+        "ref_id": "55775747",
+        "file_name": "submission.json",
+        "date": "2026-08-25 17:32:49.580000",
+        "description": "Cohezion Master Ensemble v6: Block-Tiling + Fractals + GPU",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.00"
+      },
+      {
+        "ref_id": "55750350",
+        "file_name": "submission.json",
+        "date": "2026-08-24 17:58:22.397000",
+        "description": "Cohezion AGI v2: Grandmaster AutoHarness Solver",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      },
+      {
+        "ref_id": "54045873",
+        "file_name": "submission.json",
+        "date": "2026-06-25 15:38:52.677000",
+        "description": "\"v3: 18 patterns",
+        "status": "score-based ranking",
+        "public_score": "240 tasks"
+      },
+      {
+        "ref_id": "54014884",
+        "file_name": "submission.json",
+        "date": "2026-06-24 14:59:50.870000",
+        "description": "v1: zero-param pattern baseline",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      }
+    ],
+    "RSNA Knee Detection": [
+      {
+        "ref_id": "56882931",
+        "file_name": "submission.csv",
+        "date": "2026-10-06 14:17:24.753000",
+        "description": "Cohezion RSNA Knee SOTA v27: 0.943+ Speedy Raptors with Copula Rank Alignment",
+        "status": "SubmissionStatus.PENDING",
+        "public_score": null
+      },
+      {
+        "ref_id": "56867317",
+        "file_name": "submission.csv",
+        "date": "2026-10-06 01:56:48.477000",
+        "description": "Cohezion RSNA Knee SOTA v26: IV&V Certified 32-Slice Native Fidelity + Dual-Scale (r224+r336) + ROC-AUC Rank Blending",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.939"
+      },
+      {
+        "ref_id": "56811106",
+        "file_name": "submission.csv",
+        "date": "2026-10-04 01:33:38.357000",
+        "description": "Cohezion RSNA Knee SOTA v25: Native 16-Slice Fidelity + Intra-Class Quantile Rank Normalization (CoAtNet + Raptor + DINOv2 on NvidiaL4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.939"
+      },
+      {
+        "ref_id": "56801007",
+        "file_name": "submission.csv",
+        "date": "2026-10-03 15:18:42.147000",
+        "description": "Cohezion RSNA Knee SOTA v24: 2x Runtime Optimization + Kolmogorov Monotonicity Projection on NvidiaTeslaT4",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.939"
+      },
+      {
+        "ref_id": "56786335",
+        "file_name": "submission.csv",
+        "date": "2026-10-03 01:12:15.530000",
+        "description": "Cohezion RSNA Knee SOTA v22: Native 16-Slice + Quantile Rank + Kolmogorov Monotonicity Projection",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      },
+      {
+        "ref_id": "56776874",
+        "file_name": "submission.csv",
+        "date": "2026-10-02 15:26:20.167000",
+        "description": "Cohezion RSNA Knee SOTA v21: Native 16-Slice Fidelity + Intra-Class Quantile Rank Normalization (CoAtNet + Raptor + DINOv2 on NvidiaL4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.939"
+      },
+      {
+        "ref_id": "56648845",
+        "file_name": "submission.csv",
+        "date": "2026-09-28 18:04:51.667000",
+        "description": "Cohezion RSNA Knee SOTA 32-Slice Depth Sampling + Finding-Specific Optimal Calibration + Monotonicity v20 (CoAtNet + Raptor + DINOv2 on NvidiaL4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.939"
+      },
+      {
+        "ref_id": "56620832",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 22:30:36.947000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble v19: RadImageNet CUDA-Robust + Dirichlet Calibration (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56620804",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 22:29:26.217000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble v19: RadImageNet CUDA-Robust + Dirichlet Calibration (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56620788",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 22:28:16.853000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble v19: RadImageNet CUDA-Robust + Dirichlet Calibration (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56620767",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 22:27:07.710000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble v19: RadImageNet CUDA-Robust + Dirichlet Calibration (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56597413",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 04:16:27.227000",
+        "description": "Cohezion RSNA Knee SOTA Finding-Specific Optimal Calibration + Monotonicity v15 (CoAtNet + Raptor + DINOv2 on NvidiaTeslaT4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.941"
+      },
+      {
+        "ref_id": "56582369",
+        "file_name": "submission.csv",
+        "date": "2026-09-26 15:02:09.013000",
+        "description": "Cohezion RSNA Knee SOTA Pure Rank-Normalized Blend + Kolmogorov Monotonicity v14 (CoAtNet + Raptor + DINOv2 on NvidiaTeslaT4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56558544",
+        "file_name": "submission.csv",
+        "date": "2026-09-25 19:16:20.887000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Logit-Calibrated Ensemble v13 (CoAtNet + Raptor + DINOv2 on NvidiaTeslaT4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56528465",
+        "file_name": "submission.csv",
+        "date": "2026-09-24 18:04:08.740000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Logit-Calibrated Ensemble v12 (CoAtNet + Raptor + DINOv2 on NvidiaTeslaT4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.938"
+      },
+      {
+        "ref_id": "56506858",
+        "file_name": "submission.csv",
+        "date": "2026-09-24 00:16:15.450000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble v10",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.922"
+      },
+      {
+        "ref_id": "56477886",
+        "file_name": "submission.csv",
+        "date": "2026-09-23 00:45:24.927000",
+        "description": "\"Fork: speedy-raptors original (+coatnet d4-depthzone swa3 + global96 top3)",
+        "status": "T4\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56453153",
+        "file_name": "submission.csv",
+        "date": "2026-09-22 04:38:17.380000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble v11: Finding-Specific Calibrated Weights (ACL/MCL 3D Swin + Meniscus/Fracture ResGated CoAtNet)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.938"
+      },
+      {
+        "ref_id": "56452840",
+        "file_name": "submission.csv",
+        "date": "2026-09-22 04:23:42.397000",
+        "description": "RSNA test v9",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.939"
+      },
+      {
+        "ref_id": "56437063",
+        "file_name": "submission.csv",
+        "date": "2026-09-21 16:05:14.050000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble v9: Quantile Rank-Averaged Blend + Restored 35% Diversity Weight",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.939"
+      },
+      {
+        "ref_id": "56409536",
+        "file_name": "submission.csv",
+        "date": "2026-09-21 00:43:39.760000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Logit-Calibrated Ensemble v8 (CoAtNet + Raptor + DINOv2 on NvidiaTeslaT4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56347892",
+        "file_name": "submission.csv",
+        "date": "2026-09-19 04:10:46.187000",
+        "description": "Cohezion RSNA Knee SOTA Ensemble v7: TTA_OVERLAP False (8.5x speedup) + CoatNet/Raptor/Rad blend",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56285194",
+        "file_name": "submission.csv",
+        "date": "2026-09-16 18:12:27.393000",
+        "description": "\"Efficiency Fast3: v6 ensemble",
+        "status": "band32 leg TTA off (1 window vs 8) - runtime cut for efficiency prize\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56263288",
+        "file_name": "submission.csv",
+        "date": "2026-09-15 22:11:54.727000",
+        "description": "Cohezion RSNA Knee SOTA Ensemble v6: probe22 per-label routing + band32-ours leg (10 members) + jitter TTA + coat/rad arms",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      },
+      {
+        "ref_id": "56232091",
+        "file_name": "submission.csv",
+        "date": "2026-09-14 13:34:09.040000",
+        "description": "Cohezion RSNA Knee test v5",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56215388",
+        "file_name": "submission.csv",
+        "date": "2026-09-13 21:49:29.487000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Logit-Calibrated Ensemble v5 (CoAtNet + Raptor + DINOv2 on NvidiaTeslaT4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56175586",
+        "file_name": "submission.csv",
+        "date": "2026-09-12 01:11:35.703000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Logit-Calibrated Ensemble v2 (CoAtNet + Raptor + DINOv2)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56168232",
+        "file_name": "submission.csv",
+        "date": "2026-09-11 15:37:46.590000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble (CoAtNet-top3 + Raptor-4Arm + RadImageNet-v52 + DINOv2)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "56100850",
+        "file_name": "submission.csv",
+        "date": "2026-09-08 14:57:23.357000",
+        "description": "Cohezion RSNA Knee SOTA Multi-View Ensemble (CoAtNet + Raptor 4-View Rank Average)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.940"
+      },
+      {
+        "ref_id": "55848259",
+        "file_name": "submission.csv",
+        "date": "2026-08-28 16:01:03.613000",
+        "description": "Real DICOM pipeline: mount-path fix + per-study fluid heuristic (was blank/dummy on all 3 prior subs)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.483"
+      },
+      {
+        "ref_id": "55820015",
+        "file_name": "submission.csv",
+        "date": "2026-08-27 14:09:36.900000",
+        "description": "Cohezion RSNA v4: Multi-View MIL Sequence Prior",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      },
+      {
+        "ref_id": "55775888",
+        "file_name": "submission.csv",
+        "date": "2026-08-25 17:40:40.497000",
+        "description": "Cohezion RSNA Multi-Planar 3D Feature Aggregation v3 (CPU Rules Compliant)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      },
+      {
+        "ref_id": "55775820",
+        "file_name": "submission.csv",
+        "date": "2026-08-25 17:37:05.483000",
+        "description": "Cohezion RSNA Multi-View Baseline v2 (CPU/T4 Rules Compliant)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      }
+    ],
+    "Kaggriculture": [
+      {
+        "ref_id": "56691673",
+        "file_name": "main_HAO_V87.py",
+        "date": "2026-09-30 00:17:19.070000",
+        "description": "\"FINAL pair HAO_V87 (sequential",
+        "status": "validated)\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56691450",
+        "file_name": "main_THOMAS_V13.py",
+        "date": "2026-09-30 00:11:12.840000",
+        "description": "\"FINAL pair THOMAS_V13 (sequential",
+        "status": "validated)\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56690955",
+        "file_name": "main_HAO_V87.py",
+        "date": "2026-09-30 00:02:54.743000",
+        "description": "\"FINAL pair (2/2): haodou092 V87 Harvest Ledger (public Apache-2.0",
+        "status": "sha 75f6fb98) - best ladder probe 1658.7 in 46 games\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56690766",
+        "file_name": "main_THOMAS_V13.py",
+        "date": "2026-09-30 00:01:22.387000",
+        "description": "\"FINAL pair (1/2): Thomas Tschinkel Metav4 Farm v13 (public Apache-2.0",
+        "status": "sha 9d634946) - author's latest ladder agent\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56662757",
+        "file_name": "main_GPJ_MELON2749.py",
+        "date": "2026-09-29 04:34:22.267000",
+        "description": "\"Probe E: goodpjw2008 melon-threshold step-1 squeeze on V45 (public Apache-2.0",
+        "status": "sha 1f5c7a18)",
+        "public_score": "author-reported live 2749\""
+      },
+      {
+        "ref_id": "56662750",
+        "file_name": "main_ABO_V53.py",
+        "date": "2026-09-29 04:34:12.287000",
+        "description": "\"Probe D: Ahmed Berat Ozer V53 opening signature (public Apache-2.0",
+        "status": "sha 20fe549d)",
+        "public_score": "local RR 58-54\""
+      },
+      {
+        "ref_id": "56662745",
+        "file_name": "main_THOMAS_V13.py",
+        "date": "2026-09-29 04:34:02.123000",
+        "description": "\"Probe C: Thomas Tschinkel Metav4 Farm submission v13 (public Apache-2.0",
+        "status": "sha 9d634946)",
+        "public_score": "author's latest ladder agent\""
+      },
+      {
+        "ref_id": "56662741",
+        "file_name": "main_HAO_V87.py",
+        "date": "2026-09-29 04:33:51.807000",
+        "description": "\"Probe B: haodou092 V87 Harvest Ledger (public Apache-2.0",
+        "status": "sha 75f6fb98)",
+        "public_score": "local RR 88-24 vs public lineage\""
+      },
+      {
+        "ref_id": "56662733",
+        "file_name": "main_TET_DEMAND.py",
+        "date": "2026-09-29 04:33:37.407000",
+        "description": "\"Probe A: tetsutani demand-preserving Step1009 closure (public Apache-2.0",
+        "status": "sha 55be5d5f)",
+        "public_score": "local RR 90-8-14 vs public lineage\""
+      },
+      {
+        "ref_id": "56649558",
+        "file_name": "main_SOTA_FRONTIER_RAIN.py",
+        "date": "2026-09-28 18:32:23.457000",
+        "description": "Cohezion SOTA Frontier RAIN: Lookahead 4 + Zero-Float Seed Hedge + RACEPX Order-Book Preemption (+18.1k vs v7)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1624.0"
+      },
+      {
+        "ref_id": "56622866",
+        "file_name": "main_GM_41ROUTE.py",
+        "date": "2026-09-28 00:03:49.317000",
+        "description": "Cohezion GM 41-Route: Restoring Proven Peak Master Agent (Historical 2138.5)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1530.3"
+      },
+      {
+        "ref_id": "56622857",
+        "file_name": "main_SOTA_2945.py",
+        "date": "2026-09-28 00:03:44.630000",
+        "description": "Cohezion SOTA 2945: Restoring Proven High-Rating Agent (Historical 2119.5)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1425.8"
+      },
+      {
+        "ref_id": "56614155",
+        "file_name": "submission_v7.py",
+        "date": "2026-09-27 16:40:03.500000",
+        "description": "Cohezion SOTA v7: Pre-Emptive Dutch Auction Liquidity (Day 24-25) + Lockstep Queue Compaction (_vq_compact) (+170.6% vs Predatory Dumping)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1232.9"
+      },
+      {
+        "ref_id": "56612362",
+        "file_name": "submission.py",
+        "date": "2026-09-27 15:12:32.427000",
+        "description": "Cohezion SOTA v6: Rust-Optimized Finite-Horizon Cutoffs (Day 25 Slow-Freeze + Day 26 Dutch Auction + Day 28 Liquidation)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1343.8"
+      },
+      {
+        "ref_id": "56609838",
+        "file_name": "submission.py",
+        "date": "2026-09-27 13:27:44.157000",
+        "description": "Cohezion SOTA v5: Turn 27 Anti-Predator Dutch Auction + Lockstep Queue Compaction",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1315.3"
+      },
+      {
+        "ref_id": "56593556",
+        "file_name": "submission.py",
+        "date": "2026-09-27 00:54:38.417000",
+        "description": "Cohezion SOTA Frontier v4: Step-0 Opening Leverage + Turn-28 DeadStock Liquidation + Lockstep Queue Compaction",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1833.2"
+      },
+      {
+        "ref_id": "56555381",
+        "file_name": "submission.py",
+        "date": "2026-09-25 16:27:48.347000",
+        "description": "Cohezion SOTA Frontier v3: 100% Win Rate vs SOTA 2945 (+2873 coins delta) + Lockstep Queue Compaction + Dynamic Sell Reorder",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1862.4"
+      },
+      {
+        "ref_id": "56522906",
+        "file_name": "submission.py",
+        "date": "2026-09-24 13:51:50.960000",
+        "description": "Cohezion SOTA Frontier: Lockstep Market Queue Compaction (_vq_compact) + Dynamic Sell-Block Reordering (_v44y) + Lookahead 4 + Seed Hedge 0 (8/8 wins vs GM41)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1910.4"
+      },
+      {
+        "ref_id": "56500980",
+        "file_name": "submission.py",
+        "date": "2026-09-23 18:03:09.217000",
+        "description": "Cohezion Grandmaster SOTA 41-Route Multi-Expert Engine v2: 100% Local Win Rate (105k Mean Coins) + Order-Book Preemption + Dynamic Shop Adaptation",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1815.2"
+      },
+      {
+        "ref_id": "56454336",
+        "file_name": "submission.py",
+        "date": "2026-09-22 05:31:10.193000",
+        "description": "Cohezion GM SOTA Dominance: 41-Route + Step 0 Leverage + Day 28 Early DeadStock Liquidation",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "1896.3"
+      },
+      {
+        "ref_id": "56449933",
+        "file_name": "submission.py",
+        "date": "2026-09-22 02:06:23.533000",
+        "description": "Cohezion GM 41-Route Multi-Expert Engine (Step 0 Opening Immunity + Dynamic Shop Adaptation + E182 7-Turn Liquidation)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "2138.5"
+      },
+      {
+        "ref_id": "56441386",
+        "file_name": "submission.py",
+        "date": "2026-09-21 18:47:45.413000",
+        "description": "Cohezion SOTA 2945 Farm (8C/4S + Race/RACEPX Order-Book Preemption + Courier + Carrot2)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "2119.5"
+      },
+      {
+        "ref_id": "56441275",
+        "file_name": "submission.py",
+        "date": "2026-09-21 18:40:21.713000",
+        "description": "Cohezion Embedded World-Model Planner v4 (Turn-Exact Simulation + Multi-Animal Rollouts)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "333.3"
+      },
+      {
+        "ref_id": "56415706",
+        "file_name": "submission.py",
+        "date": "2026-09-21 04:02:35.377000",
+        "description": "Cohezion Embedded World-Model Planner v5 SOTA: Optimal Hire Tiers (700/300/120) + Terminal Liquidation (Day 27+ seed freeze & Day 29 fertilizer liquidation) (50/50 100% win rate local vs v4)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "353.9"
+      },
+      {
+        "ref_id": "56333720",
+        "file_name": "submission.py",
+        "date": "2026-09-18 15:25:34.467000",
+        "description": "\"v4macro: Layer-1 shop-conditioned fork (SHEEP->COW when milk shop drawn); 77 seeds x2 seats: 0 defects",
+        "status": "bank >130k\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56333717",
+        "file_name": "submission.py",
+        "date": "2026-09-18 15:25:25.883000",
+        "description": "\"v4c5: modal day13-29 hire schedule on v4 controller; 100-54 paired vs v4",
+        "status": "bank >110k",
+        "public_score": "0 defects\""
+      },
+      {
+        "ref_id": "56279254",
+        "file_name": "submission.py",
+        "date": "2026-09-16 13:08:39.937000",
+        "description": "v4macro restore: byte-verified (md5 841ad6e8) of the 712.9-806.9-rated bot; replaces 290.4 LIVESTOCK in tracked pair (tracked becomes v5 718.4 + v4macro)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "705.8"
+      },
+      {
+        "ref_id": "56263035",
+        "file_name": "main_v5_day3fork.py",
+        "date": "2026-09-15 21:49:27.017000",
+        "description": "\"v5 day3fork: v4macro base (live 712.9-806.9) + day-3 macro fork commit (lab n=200 seeds 200-299: day-3 commit beats day-9; local screen 20-14-6 over v4macro; smoke gates green: 720-turn eps",
+        "status": "zero rejected orders",
+        "public_score": "deterministic"
+      },
+      {
+        "ref_id": "56232178",
+        "file_name": "main_PLANNER_v4.py",
+        "date": "2026-09-14 13:39:40.860000",
+        "description": "Cohezion Embedded World-Model Planner v4 (Turn-Exact Simulation + Hyper-Scale Multi-Animal Rollouts)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "359.2"
+      },
+      {
+        "ref_id": "56217716",
+        "file_name": "main_LIVESTOCK.py",
+        "date": "2026-09-14 00:39:22.507000",
+        "description": "Cohezion Livestock Ranch v3: 4-cow near-shed ranch + deterministic wheat buffer (fixed entrypoint as last callable)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "290.4"
+      },
+      {
+        "ref_id": "56215849",
+        "file_name": "main_LIVESTOCK.py",
+        "date": "2026-09-13 22:36:48.233000",
+        "description": "Cohezion Livestock Ranch v2: 4-cow near-shed ranch + deterministic wheat buffer + carrot hands",
+        "status": "SubmissionStatus.ERROR",
+        "public_score": null
+      },
+      {
+        "ref_id": "56208700",
+        "file_name": "main_PLANNER_v4.py",
+        "date": "2026-09-13 14:13:24.460000",
+        "description": "\"Cohezion v7: Embedded World-Model Planner v4 (CARE-4 scale-6hands",
+        "status": "turn-exact forward simulation)\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56168309",
+        "file_name": "submission.py",
+        "date": "2026-09-11 15:42:55.343000",
+        "description": "\"v4macro: Layer-1 shop-conditioned fork (SHEEP->COW when milk shop drawn",
+        "status": "no wool shop); 77 seeds x2 seats: 0 defects/1232 games",
+        "public_score": "bank >130k\""
+      },
+      {
+        "ref_id": "56100644",
+        "file_name": "main_PLANNER_v3.py",
+        "date": "2026-09-08 14:45:10.117000",
+        "description": "\"Cohezion v6: Hardened World-Model Planner v3 (scale-6hands",
+        "status": "22.8k mean reward)\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "56097152",
+        "file_name": "main_PLANNER_v2.py",
+        "date": "2026-09-08 11:23:16.333000",
+        "description": "Cohezion v5: Embedded World-Model Planner (CARE-4 livestock + near-shed lanes)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "339.2"
+      },
+      {
+        "ref_id": "55994961",
+        "file_name": "submission.py",
+        "date": "2026-09-03 22:06:50.880000",
+        "description": "\"v4macro: Layer-1 shop-conditioned fork (SHEEP->COW when milk shop drawn",
+        "status": "no wool shop); 77 seeds x2 seats: automatylicza 145-9",
+        "public_score": "yuan800 130-24"
+      },
+      {
+        "ref_id": "55993865",
+        "file_name": "submission.py",
+        "date": "2026-09-03 20:09:24.417000",
+        "description": "\"v4c6: v4c5 hire schedule + wheat-buy cash-headroom fix (seed-109 rejected order -> 0); 32-8 held-out vs v4",
+        "status": "0 defects\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "55981442",
+        "file_name": "submission.py",
+        "date": "2026-09-03 12:57:08.960000",
+        "description": "\"v4c5: modal day13-29 hire schedule on v4 controller; 100-54 paired vs v4 (77 seeds x2)",
+        "status": "33-7 held-out (seeds 100-119)",
+        "public_score": "0 destroyed\""
+      },
+      {
+        "ref_id": "55969124",
+        "file_name": "submission.py",
+        "date": "2026-09-02 22:00:38.100000",
+        "description": "\"v4: walking-cost field controller on modal tape",
+        "status": "148-6 paired vs v2 on 77 seeds x both seats",
+        "public_score": "0 defects/1232 games\""
+      },
+      {
+        "ref_id": "55966510",
+        "file_name": "submission.py",
+        "date": "2026-09-02 18:23:00.893000",
+        "description": "\"v2: modal-route tape + rule market controller",
+        "status": "review-fixed",
+        "public_score": "154-0 vs starter/random/prior sub locally\""
+      },
+      {
+        "ref_id": "55853235",
+        "file_name": "submission.py",
+        "date": "2026-08-28 20:55:43.257000",
+        "description": "\"World-model planner: embedded exact engine (0% fidelity mismatch) + bounded rollout; discovered CARE-cows lever (3x milk)",
+        "status": "rejects 5-cow trap. Local 24-0 vs livestock agent\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "55852906",
+        "file_name": "submission.py",
+        "date": "2026-08-28 20:29:05.513000",
+        "description": "\"Carrot base + 4-cow near-shed ranch (35B-designed",
+        "status": "Coder-QA'd); local 12-0 vs prior carrot agent",
+        "public_score": "~2x banks"
+      },
+      {
+        "ref_id": "55847357",
+        "file_name": "submission.py",
+        "date": "2026-08-28 15:18:41.790000",
+        "description": "\"Fixed agent: correct action-dict contract",
+        "status": "near-shed carrot economy (beats starter 20-0 local; prior 172.2 was a broken no-op agent)\"",
+        "public_score": "SubmissionStatus.COMPLETE"
+      },
+      {
+        "ref_id": "55776297",
+        "file_name": "submission.py",
+        "date": "2026-08-25 18:04:51.310000",
+        "description": "Cohezion Kaggriculture MDP Agent v1",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "151.9"
+      }
+    ],
+    "ARC-AGI-3": [
+      {
+        "ref_id": "56866079",
+        "file_name": "submission.parquet",
+        "date": "2026-10-06 00:53:18.620000",
+        "description": "Cohezion ARC-AGI-3 SOTA v29: IV&V Certified Affordance Rarity Engine (64-bit Zobrist + Absorbing Markov Anti-Cycle)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.16"
+      },
+      {
+        "ref_id": "56860830",
+        "file_name": "submission.parquet",
+        "date": "2026-10-05 19:59:56.257000",
+        "description": "Auto-submission v5",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.24"
+      },
+      {
+        "ref_id": "56811789",
+        "file_name": "submission.parquet",
+        "date": "2026-10-04 02:16:10.680000",
+        "description": "Cohezion ARC-AGI-3 SOTA v28: Deadlock Pruning + 16-Color Zobrist Hashing + Non-Degenerate Spatial Click Exploration",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.11"
+      },
+      {
+        "ref_id": "56786015",
+        "file_name": "submission.parquet",
+        "date": "2026-10-03 00:53:31.610000",
+        "description": "Cohezion ARC-AGI-3 SOTA v27: Monadic Markov Anti-Cycle + Vectorized 64-bit Zobrist Hashing (CPU Unlimited Quota)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.25"
+      },
+      {
+        "ref_id": "56776970",
+        "file_name": "submission.parquet",
+        "date": "2026-10-02 15:31:29.497000",
+        "description": "Cohezion ARC-AGI-3 SOTA v2: Restored v15 Affordance Rarity Search + Vectorized 64-bit Zobrist Hashing (CPU Unlimited Quota)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.13"
+      },
+      {
+        "ref_id": "56622355",
+        "file_name": "submission.parquet",
+        "date": "2026-09-28 00:00:39.367000",
+        "description": "Cohezion ARC-AGI-3 AutoHarness Solver v1 (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.07"
+      },
+      {
+        "ref_id": "56610082",
+        "file_name": "submission.parquet",
+        "date": "2026-09-27 13:40:14.057000",
+        "description": "Cohezion v25: Dual-Mode SOTA (Zobrist Hash Cycle Evasion + AutoHarness Move Pruner + 35-step Truncation)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.08"
+      },
+      {
+        "ref_id": "56534560",
+        "file_name": "submission.parquet",
+        "date": "2026-09-25 00:03:49.713000",
+        "description": "Cohezion v24: Dual-Mode SOTA Engine (Cayley Permutation + Geodesic Nav + 35-step Truncation)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.15"
+      },
+      {
+        "ref_id": "56506644",
+        "file_name": "submission.parquet",
+        "date": "2026-09-24 00:08:56.673000",
+        "description": "Cohezion v23: Dynamic Step Allocation (120 Base) + Affordance Rarity Search",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.00"
+      },
+      {
+        "ref_id": "56452292",
+        "file_name": "submission.parquet",
+        "date": "2026-09-22 03:58:52.787000",
+        "description": "Cohezion v22: Avatar Tracking & Velocity Invariant + Fatal Transition Pruning + Multi-Level Reset Recovery (1200 Steps)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.04"
+      },
+      {
+        "ref_id": "56437095",
+        "file_name": "submission.parquet",
+        "date": "2026-09-21 16:06:15.457000",
+        "description": "Cohezion v21: Directed Affordance Rarity SearchAgent + AutoHarness Invariant Verifier (Offline Compliant)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.24"
+      },
+      {
+        "ref_id": "56279748",
+        "file_name": "submission.parquet",
+        "date": "2026-09-16 13:36:16.563000",
+        "description": "v20 restore: byte-exact v15 source (git 846572b59) \u2014 undo v17/v18/v19 re-derivation drift; target v15's 0.26",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.21"
+      },
+      {
+        "ref_id": "56262991",
+        "file_name": "submission.parquet",
+        "date": "2026-09-15 21:44:19.460000",
+        "description": "Cohezion v19: Directed Rarity-Search (exact v15 lineage) + Rarity-Directed Tie-Break among equal-invariant candidates",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.16"
+      },
+      {
+        "ref_id": "56216957",
+        "file_name": "submission.parquet",
+        "date": "2026-09-14 00:03:48.190000",
+        "description": "Cohezion v18: Directed Affordance Rarity SearchAgent + BlueQubit QUBO Tie-Breaking + AutoHarness Invariants",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.13"
+      },
+      {
+        "ref_id": "56208546",
+        "file_name": "submission.parquet",
+        "date": "2026-09-13 14:04:37.707000",
+        "description": "Cohezion v17: Quantum Prior Distillation (BlueQubit D4+QAOA) + AutoHarness Affordance Invariant",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.17"
+      },
+      {
+        "ref_id": "56175303",
+        "file_name": "submission.parquet",
+        "date": "2026-09-12 00:51:40.933000",
+        "description": "Cohezion v15: Directed Affordance Rarity SearchAgent (Avatar Tracking + Inverse Rarity Pathing + BBox Jitter)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.26"
+      },
+      {
+        "ref_id": "56170582",
+        "file_name": "submission.parquet",
+        "date": "2026-09-11 18:01:45.447000",
+        "description": "Cohezion v14: Affordance Rarity SearchAgent (Color Rarity Ascending + Action Economy Minimization)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.21"
+      },
+      {
+        "ref_id": "56145413",
+        "file_name": "submission.parquet",
+        "date": "2026-09-10 13:44:37.970000",
+        "description": "Cohezion v13: Native Arcade Master Orchestrator + Go-Explore Centroid Prober",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.04"
+      },
+      {
+        "ref_id": "56097205",
+        "file_name": "submission.parquet",
+        "date": "2026-09-08 11:26:03.400000",
+        "description": "Cohezion v11: Clean wheelhouse bootstrap + Free Pause SPS",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.00"
+      },
+      {
+        "ref_id": "56066489",
+        "file_name": "submission.parquet",
+        "date": "2026-09-07 01:42:43.380000",
+        "description": "Cohezion v1: Free Pause SPS + Go-Explore Agent with Centroid Click Probes",
+        "status": "SubmissionStatus.ERROR",
+        "public_score": null
+      }
+    ],
+    "Biohub 3D Tracking": [
+      {
+        "ref_id": "56679479",
+        "file_name": "submission.csv",
+        "date": "2026-09-29 14:55:33.820000",
+        "description": "Cohezion endgame A2: anvith 0.953 verbatim with REPAIR_DEADLINE_S 27000->36000 so the ~199-video hidden rerun keeps the full repair stage (visible output identical to A; repair on/off measured 0.953 vs 0.901)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.95387"
+      },
+      {
+        "ref_id": "56673417",
+        "file_name": "submission.csv",
+        "date": "2026-09-29 11:20:07.817000",
+        "description": "Cohezion endgame C: verbatim kunaldesale2408/biohub-cell-tracking with held-out validator ON; sweep selected DEEPCENTER_SAFE_DIV_THRESHOLD=0.20 (held-out proxy 0.9573 vs base 0.9555)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.90446"
+      },
+      {
+        "ref_id": "56663398",
+        "file_name": "submission.csv",
+        "date": "2026-09-29 05:04:05.833000",
+        "description": "Cohezion endgame B: verbatim repro of amanatar/optimized-biohub-max-score (knob re-roll on 0.953 lineage; local official scorer 0.9251 on 4 test copies vs anvith 0.9180)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.90190"
+      },
+      {
+        "ref_id": "56662897",
+        "file_name": "submission.csv",
+        "date": "2026-09-29 04:41:27.797000",
+        "description": "Cohezion endgame A: verbatim repro of anvithpothula/biohub-0-953-lb-original (public 0.953 lineage; local official scorer 0.9180 on 4 test copies vs v3 0.8953)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.95387"
+      },
+      {
+        "ref_id": "56645778",
+        "file_name": "submission.csv",
+        "date": "2026-09-28 15:47:26.853000",
+        "description": "Cohezion Biohub V21: Fully Guarded Mitotic COM + Repulsion + Persistence Filter (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93920"
+      },
+      {
+        "ref_id": "56645767",
+        "file_name": "submission.csv",
+        "date": "2026-09-28 15:47:11.107000",
+        "description": "Cohezion Biohub V22 SOTA: Restored 0.946 Chassis + Zero Prune + Relaxed Divergence (0.5um) + DeepCenter (0.18) + Adaptive 6bba (LB target 0.952-0.966+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93245"
+      },
+      {
+        "ref_id": "56621668",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 23:25:53.947000",
+        "description": "Cohezion Biohub V21: Fully Guarded Mitotic COM + Repulsion + Persistence Filter (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93920"
+      },
+      {
+        "ref_id": "56621653",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 23:24:40.990000",
+        "description": "Cohezion Biohub V21: Fully Guarded Mitotic COM + Repulsion + Persistence Filter (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93920"
+      },
+      {
+        "ref_id": "56614923",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 17:18:36.847000",
+        "description": "Cohezion Biohub V19: Strict Mitotic COM Conservation + Zero Prune Chassis (Rust Sentinel Auto-Submit)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93993"
+      },
+      {
+        "ref_id": "56594851",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 02:00:00.183000",
+        "description": "Cohezion Biohub V16 SOTA: Restored SOTA Chassis + Zero Prune Isolated + DeepCenter 0.28 + Adaptive Stem Threshold v18 (LB target 0.966+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93993"
+      },
+      {
+        "ref_id": "56593551",
+        "file_name": "submission.csv",
+        "date": "2026-09-27 00:54:09.450000",
+        "description": "test",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93993"
+      },
+      {
+        "ref_id": "56566297",
+        "file_name": "submission.csv",
+        "date": "2026-09-26 01:54:32.093000",
+        "description": "Cohezion Biohub V14 SOTA: Restored Clean Hungarian + Strict t+2 Grandchild Divergence + Stem-Adaptive Detection v17 (LB target 0.966+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93993"
+      },
+      {
+        "ref_id": "56556237",
+        "file_name": "submission.csv",
+        "date": "2026-09-25 17:15:15.817000",
+        "description": "Cohezion Biohub V14 SOTA: Restored Clean Hungarian + Strict t+2 Grandchild Divergence + Stem-Adaptive Detection v15 (LB target 0.966+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93554"
+      },
+      {
+        "ref_id": "56539910",
+        "file_name": "submission.csv",
+        "date": "2026-09-25 04:29:21.273000",
+        "description": "Cohezion Biohub V13 SOTA: Levin Field + Reciprocal Cycle Consistency + Mitotic COM Invariant v13 (LB target 0.972+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.92911"
+      },
+      {
+        "ref_id": "56521849",
+        "file_name": "submission.csv",
+        "date": "2026-09-24 13:02:15.243000",
+        "description": "Cohezion Biohub V10 SOTA: Levin Morphogenetic Field + Kinematic Directional Momentum + Mitotic Wave Prior v10 (LB target 0.968+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.92982"
+      },
+      {
+        "ref_id": "56505094",
+        "file_name": "submission.csv",
+        "date": "2026-09-23 22:47:07.347000",
+        "description": "Cohezion Biohub V9 SOTA: Sparse 4D Min-Cost Flow Transshipment (HiGHS LP) + DeepCenter (0.28) + Strict t+2 Divergence v9 (LB target 0.966-0.974)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.92533"
+      },
+      {
+        "ref_id": "56505065",
+        "file_name": "submission.csv",
+        "date": "2026-09-23 22:45:21.827000",
+        "description": "Cohezion Biohub V8 SOTA: Global 4D Min-Cost Flow Transshipment (HiGHS LP) + Strict t+2 Grandchild Divergence v9 (LB target 0.966-0.974)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.92533"
+      },
+      {
+        "ref_id": "56452965",
+        "file_name": "submission.csv",
+        "date": "2026-09-22 04:30:07.150000",
+        "description": "Cohezion Biohub V8 SOTA: Kinematic Angular Momentum Continuity + Strict t+2 Grandchild Divergence + DeepCenter (0.28) v7 (LB target 0.952-0.966+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.94684"
+      },
+      {
+        "ref_id": "56433510",
+        "file_name": "submission.csv",
+        "date": "2026-09-21 14:31:46.600000",
+        "description": "Cohezion Biohub V7 SOTA: Strict t+2 Grandchild Divergence + DeepCenter (0.28) + Calibrated Bidir (0.20) v5 (LB target 0.952-0.966+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.94625"
+      },
+      {
+        "ref_id": "56410067",
+        "file_name": "submission.csv",
+        "date": "2026-09-21 01:11:23.933000",
+        "description": "Cohezion Biohub V7: Kinematic Angular Divergence + Calibrated DeepCenter (0.18) v4 (LB target 0.966-0.974)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93245"
+      },
+      {
+        "ref_id": "56348421",
+        "file_name": "submission.csv",
+        "date": "2026-09-19 04:40:17.617000",
+        "description": "Cohezion Biohub V6 Adaptive Low Threshold v2: threshold 0.945 on 6bba recovering 32 edges and 26 GT nodes (LB target 0.966+)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.94486"
+      },
+      {
+        "ref_id": "56263700",
+        "file_name": "submission.csv",
+        "date": "2026-09-15 22:49:31.433000",
+        "description": "Cohezion Biohub V6 run79 fork (LB 0.944)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.94486"
+      },
+      {
+        "ref_id": "56232086",
+        "file_name": "submission.csv",
+        "date": "2026-09-14 13:33:55.547000",
+        "description": "Cohezion Biohub test v1",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93288"
+      },
+      {
+        "ref_id": "56215743",
+        "file_name": "submission.csv",
+        "date": "2026-09-13 22:26:06.227000",
+        "description": "Cohezion Biohub V5: UNet3D Dual-Seed Harmonic Blend v1",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93288"
+      },
+      {
+        "ref_id": "56170908",
+        "file_name": "submission.csv",
+        "date": "2026-09-11 18:23:48.010000",
+        "description": "Cohezion Biohub V5: Arm B Hungarian FP edge pruning (BIOHUB_OUTPUT_MOTION_RELINK=0)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93288"
+      },
+      {
+        "ref_id": "56097141",
+        "file_name": "submission.csv",
+        "date": "2026-09-08 11:22:40.353000",
+        "description": "Cohezion Biohub v4 (v1)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.93568"
+      },
+      {
+        "ref_id": "55993864",
+        "file_name": "submission.csv",
+        "date": "2026-09-03 20:09:21.047000",
+        "description": "\"biohub v3: public 50-ep UNet+transformer+ILP stack",
+        "status": "dual-seed harmonic blend",
+        "public_score": "N_est cap self-gated off; local official scorer 0.8953 (4 test-copy) / 0.8932 (all-8) vs live 0.595\""
+      },
+      {
+        "ref_id": "55853027",
+        "file_name": "submission.csv",
+        "date": "2026-08-28 20:38:14.850000",
+        "description": "biohub v2: per-dataset quantile-norm detection + 1-to-1 gated Hungarian (fixes anomaly + FP-edge duplication)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.59588"
+      },
+      {
+        "ref_id": "55847884",
+        "file_name": "submission.csv",
+        "date": "2026-08-28 15:45:37.620000",
+        "description": "Wired blob-detect + Hungarian lineage graph (blosc2 decode fix; 20091 real nodes across 4 datasets)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": "0.42341"
+      },
+      {
+        "ref_id": "55820016",
+        "file_name": "submission.csv",
+        "date": "2026-08-27 14:09:38.910000",
+        "description": "Cohezion Biohub v7: Hungarian Bipartite Mitosis Lineage",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      },
+      {
+        "ref_id": "55776375",
+        "file_name": "submission.csv",
+        "date": "2026-08-25 18:08:48.143000",
+        "description": "Cohezion Biohub Kinematic Spatio-Temporal Tracker v3 (CPU Rules Compliant)",
+        "status": "SubmissionStatus.COMPLETE",
+        "public_score": null
+      }
+    ],
+    "rsna-knee-abnormality-detection": {
+      "last_polled_ts": 1791944336.4194245,
+      "name": "RSNA Knee Abnormality Detection",
+      "prize": "$77,000 USD",
+      "deadline": "2026-10-22",
+      "latest_sub": {
+        "ref": "57159621",
+        "status": "PENDING",
+        "score": null,
+        "raw": "57159621  submission.csv  2026-10-14 00:01:08.433000  Cohezion RSNA Knee SOTA v31: R7 ConvNeXt-small + Raptor-384 Rank Ensembling + Strict Probability Clipping (Daily Quota Reset)                      SubmissionStatus.PENDING                              "
+      },
+      "history_count": 50,
+      "updated_at": "2026-10-14T02:18:56.419434+00:00"
+    },
+    "arc-prize-2026-arc-agi-2": {
+      "last_polled_ts": 1791944290.4056468,
+      "name": "ARC Prize 2026: ARC-AGI-2",
+      "prize": "$700,000 USD",
+      "deadline": "2026-11-02",
+      "latest_sub": {
+        "ref": "57124197",
+        "status": "PENDING",
+        "score": null,
+        "raw": "57124197  submission.json  2026-10-13 00:23:00.697000  Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection                                                                                        SubmissionStatus.PENDING                              "
+      },
+      "history_count": 32,
+      "updated_at": "2026-10-14T02:18:10.405650+00:00"
+    },
+    "arc-prize-2026-arc-agi-3": {
+      "last_polled_ts": 1791943676.3132129,
+      "name": "ARC Prize 2026: ARC-AGI-3",
+      "prize": "$850,000 USD",
+      "deadline": "2026-11-02",
+      "latest_sub": {
+        "ref": "57159536",
+        "status": "COMPLETE",
+        "score": "0.22",
+        "raw": "57159536  submission.parquet  2026-10-14 00:00:43.310000  Cohezion ARC-AGI-3 SOTA v35: Monadic Markov Foundation + Soft-Affordance Guided Navigation (Daily Quota Reset)               SubmissionStatus.COMPLETE  0.22                       "
+      },
+      "history_count": 27,
+      "updated_at": "2026-10-14T02:07:56.313218+00:00"
+    },
+    "gemma-4-developer-agent": {
+      "last_polled_ts": 1791944336.4194245,
+      "name": "Google - The Gemma 4 Developer Agent",
+      "prize": "$65,000 USD",
+      "deadline": "2026-12-02",
+      "latest_sub": {
+        "ref": "57159577",
+        "status": "PENDING",
+        "score": null,
+        "raw": "57159577  submission.zip  2026-10-14 00:00:55.357000  Cohezion Gemma-4 SOTA: 12B Fast-Inference Container + 240s Pytest Timeout + Paced Edit                                                                                                                                        SubmissionStatus.PENDING                              "
+      },
+      "history_count": 15,
+      "updated_at": "2026-10-14T02:18:56.419434+00:00"
+    },
+    "enveda-CASMI26-molecule-id-mass-spectra": {
+      "last_polled_ts": 1791943045.5296602,
+      "name": "Enveda CASMI26 Molecule ID",
+      "prize": "$50,000 USD",
+      "deadline": "2026-12-14",
+      "latest_sub": {
+        "ref": "57159660",
+        "status": "COMPLETE",
+        "score": "0.285",
+        "raw": "57159660  submission.csv  2026-10-14 00:01:20.193000  Cohezion CASMI26 SOTA v15: IV&V Hardened Restored GBDT + Tautomer Canonicalization (Daily Quota Reset)                                            SubmissionStatus.COMPLETE  0.285                      "
+      },
+      "history_count": 38,
+      "updated_at": "2026-10-14T01:57:25.529663+00:00"
+    },
+    "nfl-big-data-bowl-2027": {
+      "last_polled_ts": 1791943492.0801938,
+      "name": "NFL Big Data Bowl 2027",
+      "prize": "$100,000 USD",
+      "deadline": "2027-01-06",
+      "latest_sub": {
+        "status": "NO_SUBMISSIONS",
+        "ref": null,
+        "score": null
+      },
+      "history_count": 0,
+      "updated_at": "2026-10-14T02:04:52.080198+00:00"
+    }
+  },
+  "active_kernels": {
+    "manderson240/cohezion-rsna-knee-sota-ensemble": "COMPLETE",
+    "manderson240/cohezion-biohub-v6": "ERROR",
+    "manderson240/cohezion-arc-agi-3-autoharness-solver": "COMPLETE",
+    "manderson240/arc-agi-2-fork-lb33-89-20260903": "QUEUED"
+  },
+  "lemonade_healthy": true,
+  "last_cycle_utc": "2026-10-14T02:19:12.749137+00:00"
+}

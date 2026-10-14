@@ -87,10 +87,15 @@ def validate_submission_source(submission_dir: pathlib.Path) -> Dict[str, any]:
             fsize = fpath.stat().st_size
             total_size += fsize
 
-            # Check model specification in YAMLs
+            # Check model specification and strict invariants in YAMLs
             if ext in {".yaml", ".yml"}:
                 with open(fpath, "r", encoding="utf-8") as yf:
-                    data = yaml.load(yf, Loader=SafeIncludeLoader)
+                    raw_text = yf.read()
+                    if ".. " in raw_text or "../" in raw_text or "..\\" in raw_text:
+                        raise ValueError(f"Path traversal '..' detected in {rel_path}! Violates PathTraversalError sandbox invariant.")
+                    if "thinking_level" in raw_text:
+                        raise ValueError(f"'thinking_level' detected in {rel_path}! Omit thinking_level per vLLM OpenAI serving specification.")
+                    data = yaml.load(raw_text, Loader=SafeIncludeLoader)
                     if isinstance(data, dict) and "model" in data:
                         models_found.add(data["model"])
 

@@ -62,6 +62,14 @@ class EventType(Enum):
     MODEL_EVICTED = auto()
     MODEL_LOAD_REFUSED = auto()
 
+    # Kaggle competition & ecosystem events
+    KAGGLE_SUBMISSION_DISPATCHED = auto()
+    KAGGLE_SUBMISSION_GRADED = auto()
+    KAGGLE_QUOTA_RESET = auto()
+    KAGGLE_RESOURCE_SYNCED = auto()
+    KAGGLE_BENCHMARK_RECORDED = auto()
+    KAGGLE_AGENT_EXAM_EVALUATED = auto()
+
 
 @dataclass(frozen=True, slots=True)
 class Event:
@@ -155,6 +163,53 @@ class Event:
                 "current_models": current_models,
                 **kwargs,
             },
+        )
+
+    @classmethod
+    def kaggle_submission_dispatched(cls, competition: str, ref: str, **kwargs) -> Event:
+        return cls(
+            type=EventType.KAGGLE_SUBMISSION_DISPATCHED,
+            source="kaggle-submitter",
+            payload={"competition": competition, "ref": ref, **kwargs},
+        )
+
+    @classmethod
+    def kaggle_submission_graded(
+        cls,
+        competition: str,
+        ref: str,
+        score: float | None = None,
+        status: str = "COMPLETE",
+        **kwargs,
+    ) -> Event:
+        return cls(
+            type=EventType.KAGGLE_SUBMISSION_GRADED,
+            source="kaggle-sentinel",
+            payload={"competition": competition, "ref": ref, "score": score, "status": status, **kwargs},
+        )
+
+    @classmethod
+    def kaggle_resource_synced(cls, resource_type: str, handle: str, local_path: str, **kwargs) -> Event:
+        return cls(
+            type=EventType.KAGGLE_RESOURCE_SYNCED,
+            source="kaggle-hub",
+            payload={"resource_type": resource_type, "handle": handle, "local_path": local_path, **kwargs},
+        )
+
+    @classmethod
+    def kaggle_benchmark_recorded(cls, task_name: str, metric_value: float, run_id: str, **kwargs) -> Event:
+        return cls(
+            type=EventType.KAGGLE_BENCHMARK_RECORDED,
+            source="kaggle-benchmarks",
+            payload={"task_name": task_name, "metric_value": metric_value, "run_id": run_id, **kwargs},
+        )
+
+    @classmethod
+    def kaggle_agent_exam_evaluated(cls, exam_id: str, score: float, details: dict[str, Any] | None = None, **kwargs) -> Event:
+        return cls(
+            type=EventType.KAGGLE_AGENT_EXAM_EVALUATED,
+            source="kaggle-agent-exam",
+            payload={"exam_id": exam_id, "score": score, "details": details or {}, **kwargs},
         )
 
 

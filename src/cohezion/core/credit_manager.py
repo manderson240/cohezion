@@ -16,8 +16,9 @@ MODEL_COSTS: dict[str, int] = {
     # Antigravity IDE Models
     "gemini-3-pro": 10,
     "gemini-3-flash": 1,
-    "claude-sonnet-4.5": 15,
-    "claude-opus-4.5": 20,
+    "claude-haiku-5.5": 5,
+    "claude-sonnet-5.5": 15,
+    "claude-opus-5.5": 20,
     "gpt-oss": 2,
     # Local Ollama Models (Simulated Energy Cost)
     "phi3:mini": 1,

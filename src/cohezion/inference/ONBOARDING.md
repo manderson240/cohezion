@@ -68,7 +68,7 @@ from cohezion.inference import extend_claude
 
 result = await extend_claude(
     "Explain this stack trace...",
-    claude_model="claude-sonnet-4-6",
+    claude_model="claude-sonnet-5-5",
 )
 # NPU/iGPU/CPU tried first; escalates to Claude only on quality gate failure.
 ```

@@ -195,7 +195,7 @@ async def call_local_first(
         from cohezion.inference.registry import get_registry
 
         registry = get_registry()
-        for model_id in ("claude-sonnet-4-6", "claude-haiku-4-5", "gpt-4o-mini"):
+        for model_id in ("claude-sonnet-5-5", "claude-haiku-5-5", "gpt-4o-mini"):
             if model_id in registry.models:
                 cloud_prefer = model_id
                 break

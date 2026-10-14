@@ -7330,4 +7330,93 @@ def _final_sell_block_reorder_entrypoint(observation, configuration=None):
 
 _final_sell_block_reorder_entrypoint.telemetry = _FRO_REPORT
 agent = _final_sell_block_reorder_entrypoint
-kaggle_submission_agent = _final_sell_block_reorder_entrypoint
+
+# --- Cohezion v5 SOTA: Phased Anti-Predator Dutch Auction on Turn 27 ---
+_V5_PARENT = agent
+
+def _v5_anti_predator_entrypoint(observation, configuration=None):
+    action = _V5_PARENT(observation, configuration)
+    try:
+        step = int(observation['step'])
+        day = step // 24
+        if day >= 27:
+            market_orders = []
+            prices = observation.get("market", {}).get("prices", {})
+            shed = observation.get("private", {}).get("shed", {}) if "private" in observation else observation.get("shed", {})
+            existing = action.get("market", [])
+            
+            # Phase 1: Turn 27 - Sell high-value commodities at peak spot
+            if day == 27 and step % 24 == 0 and shed:
+                for item in ("MILK", "WOOL", "TOMATO", "MELON"):
+                    stock = shed.get(item, 0)
+                    if stock > 0 and prices.get(item, 0) >= 5.0:
+                        market_orders.append(["SELL", item, max(1, stock // 2)])
+            # Phase 2 & 3: Turn 28-29 - Pre-emptive liquidation before market collapse
+            elif day >= 28 and shed:
+                for item, stock in shed.items():
+                    if stock > 0:
+                        market_orders.append(["SELL", item, stock])
+            
+            if market_orders:
+                others = [o for o in existing if not (o and o[0] == "SELL")]
+                action = dict(action, market=market_orders + others)
+    except Exception:
+        pass
+    return action
+
+agent = _v5_anti_predator_entrypoint
+kaggle_submission_agent = _v5_anti_predator_entrypoint
+
+# --- Cohezion v6 SOTA: Rust-Optimized Finite-Horizon Cutoffs ---
+# Optimal parameters discovered via Rayon 160k-episode parameter sweep:
+# Slow Crop Freeze: Day 25 (Turn 600)
+# Dutch Auction: Day 26 (Turn 624)
+# Full Liquidation: Day 28 (Turn 672)
+_V6_PARENT = agent
+
+def _v6_rust_optimized_entrypoint(observation, configuration=None):
+    action = _V6_PARENT(observation, configuration)
+    try:
+        step = int(observation['step'])
+        day = step // 24
+        market_orders = []
+        prices = observation.get("market", {}).get("prices", {})
+        shed = observation.get("private", {}).get("shed", {}) if "private" in observation else observation.get("shed", {})
+        existing = action.get("market", [])
+        
+        # Rule 1: Day >= 25 Slow Crop Freeze - Prune any melon/tomato/wheat seed BUY orders
+        if day >= 25:
+            filtered_market = []
+            for order in action.get("market", []):
+                if order and order[0] == "BUY_PRODUCT":
+                    item = order[1] if len(order) > 1 else ""
+                    # Block slow crops that cannot mature before Turn 720
+                    if item in ("MELON_SEED", "TOMATO_SEED", "WHEAT_SEED"):
+                        continue
+                filtered_market.append(order)
+            action = dict(action, market=filtered_market)
+            existing = filtered_market
+
+        # Rule 2: Day 26 Anti-Predator Dutch Auction (Peak Spot Preemption)
+        if day == 26 and step % 24 == 0 and shed:
+            for item in ("MILK", "WOOL", "TOMATO", "MELON"):
+                stock = shed.get(item, 0)
+                if stock > 0 and prices.get(item, 0) >= 5.0:
+                    market_orders.append(["SELL", item, max(1, stock // 2)])
+
+        # Rule 3: Day >= 28 Full Dead-Stock & Fertilizer Liquidation
+        elif day >= 28 and shed:
+            for item, stock in shed.items():
+                if stock > 0:
+                    market_orders.append(["SELL", item, stock])
+        
+        if market_orders:
+            others = [o for o in existing if not (o and o[0] == "SELL")]
+            action = dict(action, market=market_orders + others)
+    except Exception:
+        pass
+    return action
+
+agent = _v6_rust_optimized_entrypoint
+kaggle_submission_agent = _v6_rust_optimized_entrypoint
+

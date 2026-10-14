@@ -1,0 +1,23 @@
+{
+  "id": "manderson240/token-insulated-compound-agent-graphs-for-gemma-4",
+  "title": "Token-Insulated Compound Agent Graphs for Gemma-4",
+  "code_file": "cohezion-gemma-4-developer-agent-paper.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "research",
+    "paper",
+    "gemma-4",
+    "software-engineering",
+    "agents"
+  ],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [
+    "gemma-4-developer-agent-paper"
+  ]
+}

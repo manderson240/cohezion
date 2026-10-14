@@ -541,8 +541,8 @@ def default_hierarchy(
     if include_claude:
         tiers.extend(
             [
-                ("claude-haiku-4-5", QualityGate(min_chars=50)),
-                ("claude-sonnet-4-6", QualityGate.TRUST),
+                ("claude-haiku-5-5", QualityGate(min_chars=50)),
+                ("claude-sonnet-5-5", QualityGate.TRUST),
             ]
         )
     return TieredOrchestrator(tiers=tiers, max_cost_usd=max_cost_usd)

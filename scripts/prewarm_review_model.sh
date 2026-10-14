@@ -21,7 +21,7 @@
 
 set -euo pipefail
 
-MODEL="${1:-Qwen3-Coder-30B-A3B-Instruct-GGUF}"
+MODEL="${1:-qwen3.5-4b-FLM}"
 CTX_SIZE="${2:-16384}"
 ROUTER="http://localhost:13305"
 TIMEOUT=120  # seconds to wait for model to appear in /v1/models
@@ -29,6 +29,16 @@ TIMEOUT=120  # seconds to wait for model to appear in /v1/models
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "=== Pre-warm: $MODEL (ctx_size=$CTX_SIZE) ==="
+
+# Step 0: Hardware Aperture Guard validation
+python3 -c "
+import sys
+from cohezion.inference.aperture_guard import validate_tier1_request
+verdict = validate_tier1_request('$MODEL')
+if verdict != 'allow':
+    print('❌ Hardware Aperture Guard: Model $MODEL is forbidden in Tier 1. Use Ollama Cloud or Headless Claude.')
+    sys.exit(1)
+" || exit 1
 
 # Step 1: Preflight check
 echo "[1/4] Running preflight_fleet.sh..."

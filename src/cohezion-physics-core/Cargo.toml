@@ -11,3 +11,4 @@ crate-type = ["cdylib"]
 ndarray = "0.17.2"
 numpy = "0.28.0"
 pyo3 = { version = "0.28.2", features = ["extension-module"] }
+rayon = "1.10"

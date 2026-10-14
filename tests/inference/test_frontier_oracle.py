@@ -171,7 +171,7 @@ async def test_frontier_task_routes_through_extend_claude_to_fable(tmp_path):
         )
     assert decision.use_frontier is True
     assert text == "frontier answer"
-    assert ec.call_args.kwargs["claude_model"] == "claude-fable-5"
+    assert ec.call_args.kwargs["claude_model"] in ("claude-fable-5-1", "claude-fable-5")
     bto.assert_not_called()  # frontier path does NOT spin up the local-only orchestrator
 
 

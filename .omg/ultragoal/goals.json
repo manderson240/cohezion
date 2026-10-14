@@ -1,33 +1,253 @@
 [
   {
-    "id": "goal_675dea9f65f2",
-    "intent": "sovereign_dual_store_memory",
+    "id": "goal_41a611ce0b5e",
+    "intent": "execution_trace_ideator",
     "status": "completed",
     "target_metric": "task_success",
+    "target_threshold": 1.0,
     "lyapunov_potential": 0.0,
     "success_predicate": "metric >= threshold"
   },
   {
-    "id": "goal_db13a881c011",
-    "intent": "strix_halo_hardware_resilience",
+    "id": "goal_eeca2d4ba59e",
+    "intent": "execution_trace_skill",
     "status": "completed",
     "target_metric": "task_success",
+    "target_threshold": 1.0,
     "lyapunov_potential": 0.0,
     "success_predicate": "metric >= threshold"
   },
   {
-    "id": "goal_54eb4feb7f69",
-    "intent": "kaggle_active_competitions_mastery",
+    "id": "goal_9f68dd9657f1",
+    "intent": "execution_trace_TEST",
     "status": "completed",
     "target_metric": "task_success",
+    "target_threshold": 1.0,
     "lyapunov_potential": 0.0,
     "success_predicate": "metric >= threshold"
   },
   {
-    "id": "goal_02c61f90a9dd",
-    "intent": "frictionless_hooks_and_memory_refinement",
+    "id": "goal_ae9497d403ab",
+    "intent": "execution_trace_generator",
     "status": "completed",
     "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_97ebd9569eb3",
+    "intent": "loop_None",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_24b06c777263",
+    "intent": "loop_goal_error_rate_b28bf6cf62",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_09625d7b6b89",
+    "intent": "loop_goal_test_pass_rate_0e5c1704a6",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_166d2189e83d",
+    "intent": "loop_goal_test_pass_rate_11ceb2ba28",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_92c77c3d93dc",
+    "intent": "loop_goal_test_pass_rate_1982f87f03",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_053dd5a04266",
+    "intent": "loop_goal_test_pass_rate_245bb51cfa",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_3cb268bda66a",
+    "intent": "loop_goal_test_pass_rate_7c21bf304e",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_e99817316b0c",
+    "intent": "loop_goal_test_pass_rate_96954f5fe6",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_2369363482a9",
+    "intent": "loop_goal_test_pass_rate_f98d17c6d9",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_f4d297e9c9a7",
+    "intent": "loop_goal_053dd5a04266",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_132e1c770c64",
+    "intent": "loop_goal_06ed7fbe0c6a",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_a65ce692875f",
+    "intent": "loop_goal_09625d7b6b89",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_9039b4636a19",
+    "intent": "loop_goal_0d8aae73f718",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_c86ad6307956",
+    "intent": "loop_goal_0ef32aeee939",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_7e5bbb6c187e",
+    "intent": "loop_goal_0f3b6b946cc6",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_8ae627c72408",
+    "intent": "loop_goal_0f86f97818dd",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_ed0766365e28",
+    "intent": "event_signal_system_health",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_d7073484bdad",
+    "intent": "event_signal_agent_complete",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_0d8aae73f718",
+    "intent": "gemma4_adk_agent_governance",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_f483eff74722",
+    "intent": "biohub_cell_tracking_tra_maximization",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_ecb7b33900e3",
+    "intent": "rsna_knee_roc_auc_rank_maximization",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_bcd917117395",
+    "intent": "arc_prize_world_model_synthesis",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_a7ed83c45f23",
+    "intent": "casmi26_cheminformatics_discovery",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_0f86f97818dd",
+    "intent": "hardware_aware_deterministic_verifier",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
     "lyapunov_potential": 0.0,
     "success_predicate": "metric >= threshold"
   },
@@ -36,6 +256,70 @@
     "intent": "proactive_local_silicon_consultation",
     "status": "completed",
     "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_cd1f19a2706e",
+    "intent": "arc3_macro_go_explore_quota_ascent",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_114d3668ffe6",
+    "intent": "rsna_knee_v26_32slice_calibration",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_a1b181c0ddb0",
+    "intent": "arc2_monotonic_improvement_invariant",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_0f3b6b946cc6",
+    "intent": "casmi26_unclipped_cleavage_fusion",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_38b4c605dd30",
+    "intent": "two_party_cryptographic_ivv_separation",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_5117d05967c4",
+    "intent": "continuous_experiential_learning_pipeline",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
+    "lyapunov_potential": 0.0,
+    "success_predicate": "metric >= threshold"
+  },
+  {
+    "id": "goal_82804b5d6d09",
+    "intent": "host_oom_and_swap_reclamation",
+    "status": "completed",
+    "target_metric": "task_success",
+    "target_threshold": 1.0,
     "lyapunov_potential": 0.0,
     "success_predicate": "metric >= threshold"
   }

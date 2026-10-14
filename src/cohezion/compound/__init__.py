@@ -508,3 +508,30 @@ with contextlib.suppress(Exception):
 from cohezion.compound.executor_factory import (
     make_executor as make_executor,
 )
+
+# IV&V Cryptographic Authority System (Two-Party Separation)
+with contextlib.suppress(Exception):
+    from cohezion.compound.ivv_authority import (
+        IVVAssertion as IVVAssertion,
+        IVVAuthority as IVVAuthority,
+        IVVAuthorityService as IVVAuthorityService,
+        IVVFinding as IVVFinding,
+        IVVKeyManager as IVVKeyManager,
+        IVVSeverity as IVVSeverity,
+        VerificationRequest as VerificationRequest,
+    )
+
+# Stateless Language Agents (SLA, arXiv:2610.07625)
+with contextlib.suppress(Exception):
+    from cohezion.compound.stateless_language_agent import (
+        AdvisorAssignment as AdvisorAssignment,
+        CandidateOutcome as CandidateOutcome,
+        EvidenceSummarizer as EvidenceSummarizer,
+        EvidenceSummary as EvidenceSummary,
+        ResearchCandidate as ResearchCandidate,
+        SLAHarness as SLAHarness,
+        StatelessAdvisor as StatelessAdvisor,
+        StatelessWorker as StatelessWorker,
+    )
+
+

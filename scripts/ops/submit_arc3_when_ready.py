@@ -10,10 +10,10 @@ import time
 
 
 KERNEL = "manderson240/cohezion-arc-agi-3-autoharness-solver"
-VERSION = "18"
+VERSION = "24"
 COMP = "arc-prize-2026-arc-agi-3"
 FILE = "submission.parquet"
-MSG = "Cohezion v18: Directed Affordance Rarity SearchAgent + BlueQubit QUBO Tie-Breaking + AutoHarness Invariants"
+MSG = "Cohezion v24: Dual-Mode SOTA Engine (Cayley Permutation + Geodesic Nav + 35-step Truncation)"
 
 print(f"Monitoring {KERNEL} for completion and submission...")
 
@@ -25,10 +25,10 @@ while True:
         check=False,
     )
     status_text = res.stdout + res.stderr
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Kernel Status: {status_text.strip()}")
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Kernel Status: {status_text.strip()}", flush=True)
 
     if "KernelWorkerStatus.COMPLETE" in status_text:
-        print("Kernel execution COMPLETE! Submitting to competition...")
+        print("Kernel execution COMPLETE! Submitting to competition...", flush=True)
         sub_res = subprocess.run(
             [
                 "kaggle",
@@ -49,13 +49,13 @@ while True:
             text=True,
             check=False,
         )
-        print("Submission stdout:", sub_res.stdout.strip())
-        print("Submission stderr:", sub_res.stderr.strip())
+        print("Submission stdout:", sub_res.stdout.strip(), flush=True)
+        print("Submission stderr:", sub_res.stderr.strip(), flush=True)
         if sub_res.returncode == 0:
-            print("✓ Successfully submitted to ARC-AGI-3!")
+            print("✓ Successfully submitted to ARC-AGI-3!", flush=True)
             break
         else:
-            print(f"Submission returned code {sub_res.returncode}. Quota likely resets at 00:00 UTC (~2.5h). Retrying in 300s...")
+            print(f"Submission returned code {sub_res.returncode}. Quota likely resets at 00:00 UTC. Retrying in 300s...", flush=True)
             time.sleep(300)
             continue
     elif "KernelWorkerStatus.ERROR" in status_text:

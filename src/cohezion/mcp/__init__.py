@@ -4,10 +4,19 @@ from __future__ import annotations
 
 import contextlib
 
+from .oreilly_mcp_client import (
+    OReillyContentItem,
+    OReillyMCPClient,
+    OReillyTOCItem,
+)
 from .wiki_mcp import WikiMCP
 
-
-__all__ = ["WikiMCP"]
+__all__ = [
+    "WikiMCP",
+    "OReillyMCPClient",
+    "OReillyContentItem",
+    "OReillyTOCItem",
+]
 
 # Wiring-sweep 2026-06-22: mcp/ orphan modules — creates import-graph edges.
 with contextlib.suppress(Exception):

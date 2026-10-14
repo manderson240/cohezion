@@ -1,0 +1,17 @@
+{
+  "id": "manderson240/cohezion-nfl-bdb-2027-starter",
+  "title": "cohezion-nfl-bdb-2027-starter",
+  "code_file": "cohezion-nfl-bdb-2027-starter.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": [
+    "nfl-big-data-bowl-2027"
+  ],
+  "kernel_sources": [],
+  "model_sources": []
+}

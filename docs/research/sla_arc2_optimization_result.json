@@ -1,0 +1,41 @@
+{
+  "competition": "arc-prize-2026-arc-agi-2",
+  "methodology": "Stateless Language Agents (arXiv:2610.07625)",
+  "epochs": 2,
+  "efficiency": {
+    "total_candidates": 5,
+    "improvements": 0,
+    "non_improvements": 5,
+    "inconclusive_failures": 0,
+    "success_rate": 0.0,
+    "projected_token_savings_pct": 0.0,
+    "global_best_score": 0.3181
+  },
+  "global_best_candidate_code": "# ARC-AGI-2 Baseline Transformation DSL\ndef transform_grid(grid):\n    # Pass-through identity\n    return [row[:] for row in grid]\n",
+  "epoch_history": [
+    {
+      "epoch": 1,
+      "elapsed_seconds": 0.00016259599942713976,
+      "global_best_score": 0.3181,
+      "global_best_candidate_id": "seed",
+      "improvements_found": 0,
+      "evaluated_candidates": 2,
+      "outcomes": {
+        "53f56b2b": "MEASURED_NON_IMPROVEMENT",
+        "58ff7569": "MEASURED_NON_IMPROVEMENT"
+      }
+    },
+    {
+      "epoch": 2,
+      "elapsed_seconds": 0.00011669902596622705,
+      "global_best_score": 0.3181,
+      "global_best_candidate_id": "seed",
+      "improvements_found": 0,
+      "evaluated_candidates": 2,
+      "outcomes": {
+        "1060d33c": "MEASURED_NON_IMPROVEMENT",
+        "fddae6bc": "MEASURED_NON_IMPROVEMENT"
+      }
+    }
+  ]
+}

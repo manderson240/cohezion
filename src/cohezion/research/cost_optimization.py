@@ -39,14 +39,9 @@ DEFAULT_COSTS = {
     "ollama/llama3.1:8b": 0.0,  # Local = free
     "ollama/qwen2.5:7b": 0.0,  # Local = free
     # Current Anthropic models ($/MTok input -> /1000).
-    "anthropic/claude-opus-5": 0.005,  # $5 / MTok
-    "anthropic/claude-opus-4-8": 0.005,  # $5 / MTok
-    "anthropic/claude-sonnet-5": 0.002,  # $2 / MTok
-    "anthropic/claude-sonnet-4-6": 0.003,  # $3 / MTok
-    "anthropic/claude-haiku-4-5": 0.001,  # $1 / MTok
-    # Retired, kept so historical experiment logs still price correctly.
-    "anthropic/claude-3-haiku": 0.00025,  # $0.25 / MTok
-    "anthropic/claude-3-sonnet": 0.003,  # $3 / MTok
+    "anthropic/claude-opus-5-5": 0.005,  # $5 / MTok
+    "anthropic/claude-sonnet-5-5": 0.003,  # $3 / MTok
+    "anthropic/claude-haiku-5-5": 0.001,  # $1 / MTok
     "openai/gpt-4o-mini": 0.00015,  # $0.15 / MTok
     "openai/gpt-4o": 0.0025,  # $2.50 / MTok
 }

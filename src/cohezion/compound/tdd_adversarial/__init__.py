@@ -27,17 +27,13 @@ with contextlib.suppress(Exception):
         get_adversarial_review_system as get_adversarial_review_system,
     )
 
-try:
+with contextlib.suppress(Exception):
     from cohezion.compound.tdd_adversarial.adversarial_reviewer import (
         AdversarialCritique as AdversarialCritique,
     )
     from cohezion.compound.tdd_adversarial.adversarial_reviewer import (
         AdversarialRedTeamAgent as AdversarialRedTeamAgent,
     )
-except Exception as exc:
-    import traceback
-    print("EXACT EXCEPTION IN TDD_ADVERSARIAL __INIT__:", exc)
-    traceback.print_exc()
 
 with contextlib.suppress(Exception):
     from cohezion.compound.tdd_adversarial.coordinator import (

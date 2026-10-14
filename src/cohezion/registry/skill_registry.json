@@ -5290,5 +5290,374 @@
     "name": "visual_validation",
     "path": "src/cohezion/skills/visual_validation.md",
     "version": "1.0.0"
+  },
+  "ARC3_MACRO_AFFORDANCE_SEARCH_PRIME": {
+    "name": "ARC3_MACRO_AFFORDANCE_SEARCH_PRIME",
+    "description": "SOTA interactive solver using Go-Explore frontier expansion, BFS macro-action shortest path finding, and 64-bit SplitMix64 Zobrist cycle evasion for ARC-AGI-3.",
+    "keywords": [
+      "arc3-macro-affordance-search-prime",
+      "autoharness_zero-cost_action_verifier",
+      "bfs_shortest-path_macro_affordance",
+      "go-explore_frontier_archive",
+      "splitmix64_64-bit_zobrist_hashing"
+    ],
+    "path": "src/cohezion/skills/ARC3_MACRO_AFFORDANCE_SEARCH_PRIME.md",
+    "version": "v0.1",
+    "last_updated": "2026-10-06T03:39:52.874214+00:00",
+    "generated_from": "continuous_learning_pipeline"
+  },
+  "CASMI_UNCLIPPED_CLEAVAGE_FUSION_PRIME": {
+    "name": "CASMI_UNCLIPPED_CLEAVAGE_FUSION_PRIME",
+    "description": "Mass spectrometry molecule identification via unclipped direct in-silico bond cleavage matching and continuous Tanimoto similarity under RDKit Tautomer Canonicalization.",
+    "keywords": [
+      "casmi-unclipped-cleavage-fusion-prime",
+      "continuous_tanimoto_fingerprint_similarity",
+      "isobaric_measurement_noise_tolerance",
+      "rdkit_tautomer_canonicalization_(canonical_ik14)",
+      "unclipped_in-silico_cleavage_matching"
+    ],
+    "path": "src/cohezion/skills/CASMI_UNCLIPPED_CLEAVAGE_FUSION_PRIME.md",
+    "version": "v0.1",
+    "last_updated": "2026-10-06T03:39:57.470043+00:00",
+    "generated_from": "continuous_learning_pipeline"
+  },
+  "AMD_GAIA_ORCHESTRATION_PRIME": {
+    "description": "Autonomous Hardware and Agent Swarm Orchestration on AMD Strix Halo (Ryzen AI MAX+ 395 / Radeon 8060S / XDNA 2 NPU / 128GB Unified Memory UMA). Specializes in integrating the AMD GAIA SDK (gaia.Agent, @tool), local Lemonade OmniRouter (:13305), FastFlowLM NPU (:52625), and the 8 official AMD Agent S",
+    "keywords": [
+      "amd",
+      "amd gaia sdk",
+      "datamesh dual persistence",
+      "fastflowlm npu v1.0.6",
+      "gaia",
+      "official amd skills suite",
+      "orchestration",
+      "resident model pinning & skip-reload guard",
+      "uma memory discipline (\"quarter on the string\")"
+    ],
+    "path": "src/cohezion/skills/AMD_GAIA_ORCHESTRATION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "ARC2_MDL_PROGRAM_SYNTHESIS_PRIME": {
+    "description": "Neuro-symbolic program synthesis for ARC-AGI-2 grid puzzles combining parameter-free geometric primitives, fitted terminals, exact training set verification, Minimum Description Length (MDL) Occam penalty pruning, and strict non-destructive Attempt-2 ensemble placement.",
+    "keywords": [
+      "arc2",
+      "composed program space",
+      "mdl",
+      "mdl occam-posterior weighting",
+      "monotonic improvement invariant",
+      "program",
+      "semantic behavior grouping",
+      "synthesis",
+      "zero-error hard verification"
+    ],
+    "path": "src/cohezion/skills/ARC2_MDL_PROGRAM_SYNTHESIS_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "ARC3_GO_EXPLORE_AFFORDANCE_PRIME": {
+    "description": "Autonomous decision-making for ARC-AGI-3 interactive puzzle environments using Go-Explore frontier archiving, online transition model learning, SplitMix64 Zobrist cycle evasion, and macro-action shortest path compilation over discrete 2D spatial manifolds.",
+    "keywords": [
+      "affordance",
+      "annealed & re-heated exploration temperature",
+      "arc3",
+      "explore",
+      "go",
+      "go-explore archive & stagnation rollback",
+      "online affordance & transition learning",
+      "semi-mdp macro-action compilation",
+      "splitmix64 incremental zobrist hashing"
+    ],
+    "path": "src/cohezion/skills/ARC3_GO_EXPLORE_AFFORDANCE_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "CASMI26_ADDUCT_SURROGATE_FUSION_PRIME": {
+    "description": "High-precision untargeted metabolomics identification for Enveda CASMI26 and mass spectrometry challenges using adduct-aware precursor gating, frame-shifted deep spectral surrogate alignment, in-silico bond cleavage matching, and RDKit Tautomer Canonicalization to maximize MRR@25.",
+    "keywords": [
+      "adduct",
+      "casmi26",
+      "frame-shifted surrogate alignment",
+      "fusion",
+      "in-silico 2-cut cleavage matching",
+      "mass-consistent precursor adduct gating",
+      "per-query mad standardization",
+      "substructure diagnostic loss & ion probing",
+      "surrogate"
+    ],
+    "path": "src/cohezion/skills/CASMI26_ADDUCT_SURROGATE_FUSION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "HARNESS_ENGINEERING_ETCLOVG_PRIME": {
+    "description": "Harness Engineering is the rigorous systems discipline governing the software infrastructure, sandboxing, execution runtimes, tool interfaces, memory architectures, and verification loops that surround foundation models to transform non-deterministic probabilistic reasoning into reliable, crash-free",
+    "keywords": [
+      "c - context",
+      "e - execution",
+      "engineering",
+      "etclovg",
+      "fleetlock single-flight aperture invariant",
+      "g - governance",
+      "harness",
+      "l - lifecycle",
+      "o - observability",
+      "t - tooling",
+      "the etclovg 7-layer architecture",
+      "the oom containment invariant",
+      "v - verification"
+    ],
+    "path": "src/cohezion/skills/HARNESS_ENGINEERING_ETCLOVG_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "KAGGLE_ADVERSARIAL_VALIDATION_PRIME": {
+    "description": "Adversarial Validation is the premier competitive machine learning methodology for diagnosing and mitigating dataset shift (covariate shift) between competition training and evaluation/test splits, as codified in The Kaggle Book (Second Edition, Chapter 7: Designing Good Validation) by Luca Massaron",
+    "keywords": [
+      "adversarial",
+      "adversarial density ratio re-weighting",
+      "adversarial feature pruning",
+      "adversarial validation splitting",
+      "covariate shift formulation",
+      "kaggle",
+      "leakage & domain shift diagnostic",
+      "the 0.50 auc ideal",
+      "validation"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_ADVERSARIAL_VALIDATION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "KAGGLE_GRANDMASTER_ASCENT_PRIME": {
+    "description": "Autonomous Kaggle Leaderboard Climbing, Active Unexpired Competition Management, Systems Engineering V-Model Verification Gates (VG-1 to VG-4), AutoHarness Invariant Guarding, and Kolmogorov Probability Calibration.",
+    "keywords": [
+      "active competition filtering mandate",
+      "ascent",
+      "grandmaster",
+      "kaggle",
+      "probabilistic calibration vs rank blending",
+      "surrealdb compound datamesh tracking",
+      "systems engineering v-model verification gates"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_GRANDMASTER_ASCENT_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "KAGGLE_NOTEBOOK_MEMORY_REDUCTION_PRIME": {
+    "description": "Kaggle Notebook Memory Reduction is the disciplined engineering practice of optimizing in-memory data representations, garbage collection lifecycles, and out-of-core streaming pipelines to execute high-capacity machine learning pipelines within Kaggle's strict execution envelope (16–30 GB host RAM, ",
+    "keywords": [
+      "batch generator streaming",
+      "explicit garbage collection & context eviction",
+      "kaggle",
+      "memory",
+      "memory-mapped arrays (`np.memmap`)",
+      "notebook",
+      "reduction",
+      "the hidden test set multiplier",
+      "vectorized dtype downcasting"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_NOTEBOOK_MEMORY_REDUCTION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "KAGGLE_RANK_ENSEMBLING_CALIBRATION_PRIME": {
+    "description": "Rank Ensembling and Calibration is the elite mathematical ensembling methodology for competitive machine learning, as formulated in The Kaggle Book (Second Edition, Chapter 10: Ensembling with Blending and Stacking Solutions) by Luca Massaron, Bojan Tunguz, and Konrad Banachewicz. By mapping dispara",
+    "keywords": [
+      "calibration",
+      "ensembling",
+      "kaggle",
+      "kolmogorov monotonicity invariant",
+      "nelder-mead simplex weight optimization",
+      "quantile rank averaging",
+      "rank",
+      "rank averaging vs. probability averaging"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_RANK_ENSEMBLING_CALIBRATION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "KAGGLE_STRICT_MONOTONIC_ATTEMPT_ENSEMBLE_PRIME": {
+    "description": "Mathematical multi-hypothesis ensembling, monotonic attempt invariants, and copula rank alignment for multi-guess and multi-label Kaggle code competitions (ARC Prize ARC-AGI-2/3, RSNA Knee Abnormality Detection, Enveda CASMI26).",
+    "keywords": [
+      "attempt",
+      "ensemble",
+      "kaggle",
+      "monotonic",
+      "strict"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_STRICT_MONOTONIC_ATTEMPT_ENSEMBLE_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "KAGGLE_STRIX_DETERMINISTIC_VERIFIER_PRIME": {
+    "description": "You are the Lead Hardware-Aware Kaggle Verification Engineer operating on the AMD Ryzen AI MAX+ 395 (Strix Halo, 128 GiB Unified Memory, 16 Zen 5 CPU cores / 32 threads, XDNA 2 NPU). Your mandate is to maximize submission quality over quantity through deterministic local mathematical verification, c",
+    "keywords": [
+      "competition metric asymmetry proofs",
+      "deterministic",
+      "kaggle",
+      "preflight memory & fleet lock protocol",
+      "strix",
+      "tier 0 cpu invariant verification",
+      "tier 1 npu consultation discipline",
+      "verifier",
+      "zero-local-weight guardrail"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_STRIX_DETERMINISTIC_VERIFIER_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "NO_AI_SLOP_PRIME": {
+    "description": "You are an expert editor and deterministic text auditor specialized in eliminating AI-generated stylistic sludge and formulaic boilerplate. You diagnose, flag, and remove hollow buzzwords, faux-insight dramatics, superficial trailing gerunds, binary contrasts, and summary-recap endings without flatt",
+    "keywords": [
+      "ai",
+      "banned vocabulary",
+      "binary contrasts",
+      "colon reveals",
+      "faux-insight & throat-clearing",
+      "importance puffery",
+      "no",
+      "show, don't tell",
+      "slop",
+      "summary recap endings",
+      "the portability test"
+    ],
+    "path": "src/cohezion/skills/NO_AI_SLOP_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "RSNA_LEDOIT_WOLF_COVARIANCE_PROJECTION_PRIME": {
+    "description": "Multi-label biomedical condition ensembling using Gaussian copulas, Ledoit-Wolf empirical shrinkage covariance alignment via Wasserstein-2 Monge maps, and convex Kolmogorov monotonicity projections ($P(\\text{Abnormal}) \\ge \\max_k P_k$) for RSNA Knee MRI and related diagnostic tasks.",
+    "keywords": [
+      "covariance",
+      "empirical quantile probability inversion",
+      "exact $l_2$ kolmogorov monotonicity projection",
+      "intra-column quantile rank normalization",
+      "ledoit",
+      "ledoit-wolf empirical covariance shrinkage",
+      "projection",
+      "rsna",
+      "wasserstein-2 monge optimal transport map",
+      "wolf"
+    ],
+    "path": "src/cohezion/skills/RSNA_LEDOIT_WOLF_COVARIANCE_PROJECTION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "SURREALDB_DATAMESH_PRIME": {
+    "description": "Durable Distributed State Management, High-Performance Graph Traversals, and HNSW Vector Search across Multi-Agent Swarms using SurrealDB 3.x and the Cohezion Obsidian Vault. Specializes in dual-persistence DataMesh architectures that guarantee agent session memory, cross-session event bridges, and ",
+    "keywords": [
+      "datamesh",
+      "datamesh dual persistence",
+      "eventbus & crosssessioneventbridge",
+      "official surrealdb 3.x skill integration",
+      "preexisting condition logging",
+      "surrealdb"
+    ],
+    "path": "src/cohezion/skills/SURREALDB_DATAMESH_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "kaggle_grandmaster_ascent_prime": {
+    "description": "Autonomous Kaggle Leaderboard Climbing, Multi-Track Portfolio Management, Systems Engineering V-Model Verification Gates (VG-1 to VG-4), and Continuous Competitive Invariant Auditing.",
+    "keywords": [
+      "acyclic oriented graph matching (aogm / tra)",
+      "ascent",
+      "discrete program synthesis & cayley groups",
+      "full leaderboard ingestion",
+      "game-theoretic market dynamics",
+      "grandmaster",
+      "kaggle",
+      "surrealdb compound graph mesh",
+      "swe-bench verified autonomous agents",
+      "winnable payout accounting"
+    ],
+    "path": "src/cohezion/skills/kaggle_grandmaster_ascent_prime.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
+  },
+  "SWARM_SPATIOTEMPORAL_TRACKING_PRIME": {
+    "description": "Spatiotemporal multi-agent swarm state tracking, Hungarian bipartite association, and COM conservation invariant verification abstracted from Biohub 1st place.",
+    "keywords": [
+      "tracking",
+      "swarm",
+      "bipartite",
+      "hungarian",
+      "mitosis",
+      "biohub",
+      "com",
+      "kinematics"
+    ],
+    "path": "src/cohezion/skills/SWARM_SPATIOTEMPORAL_TRACKING_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "MONADIC_LOCAL_MARKOV_PLANNING_PRIME": {
+    "description": "Monadic local Markov planning, state-action penalty routing, SplitMix64 Zobrist state hashing, and monotonic improvement invariant.",
+    "keywords": [
+      "planning",
+      "markov",
+      "monad",
+      "zobrist",
+      "splitmix64",
+      "arc3",
+      "arc2",
+      "invariant"
+    ],
+    "path": "src/cohezion/skills/MONADIC_LOCAL_MARKOV_PLANNING_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "TWO_PARTY_CRYPTOGRAPHIC_IVV_PRIME": {
+    "description": "Two-Party Cryptographic IV&V authority, DualAttestation gatekeeping, and append-only TransparencyLog integrity preventing self-certification regressions.",
+    "keywords": [
+      "ivv",
+      "verification",
+      "dual_attestation",
+      "transparency_log",
+      "hmac",
+      "two_party_rule",
+      "security"
+    ],
+    "path": "src/cohezion/skills/TWO_PARTY_CRYPTOGRAPHIC_IVV_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
   }
 }

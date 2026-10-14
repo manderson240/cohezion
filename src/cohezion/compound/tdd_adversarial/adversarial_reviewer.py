@@ -8,9 +8,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field
-
-from cohezion.agents.base import BaseAgent
+try:
+    from cohezion.agents.base import BaseAgent
+except ImportError:
+    class BaseAgent:  # type: ignore[no-redef]
+        def __init__(self, **kwargs: Any) -> None:
+            pass
 
 
 if TYPE_CHECKING:

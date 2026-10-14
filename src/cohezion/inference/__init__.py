@@ -8,7 +8,7 @@ Public API:
     result = await route("Summarize this PR...", task="summarization")
 
     # Extend Claude availability: try local first, escalate only if needed
-    result = await extend_claude(prompt, claude_model="claude-sonnet-4-6")
+    result = await extend_claude(prompt, claude_model="claude-sonnet-5-5")
 
     # Fleet status snapshot
     health = check_fleet()

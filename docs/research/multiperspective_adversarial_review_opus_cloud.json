@@ -1,0 +1,5 @@
+{
+  "claude_opus_5_5": "Error: Permission allow rule (../../../../../dev/cohezion/.claude/settings.local.json): Bash(grep -n -i -E \"ens_avg100|ens_oof100|run_d.*referee|U-Net.*upload|T1_U1\" ref_repro/LEDGER.md) has a wildcard before the rest of the command, so it also matches any options inserted at that position and approves them without a prompt. Replace that * with the exact value you mean, or only use * after the subcommand.\n",
+  "deepseek_v4_pro_cloud": "",
+  "kimi_k3_cloud": ""
+}

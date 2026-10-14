@@ -54,7 +54,8 @@ class ProactiveLocalDelegator:
             "stream": False,
         }
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            timeout = httpx.Timeout(connect=10.0, read=300.0, write=30.0, pool=10.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 res = await client.post("http://localhost:13305/v1/chat/completions", json=payload)
                 if res.status_code == 200:
                     data = res.json()
@@ -83,10 +84,10 @@ class ProactiveLocalDelegator:
             model = "qwen3-coder-30b"
             hw = "Radeon RX 7700S / Vulkan0 iGPU"
         elif task_class == "reasoning":
-            model = "deepseek-r1-0528-8b-FLM"
+            model = "qwen3.5-4b-FLM"
             hw = "XDNA2 NPU"
         else:
-            model = "llama3.2-1b-FLM"
+            model = "qwen3.5-4b-FLM"
             hw = "XDNA2 NPU"
 
         # Check Load Safety

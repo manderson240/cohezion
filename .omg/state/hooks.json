@@ -26,7 +26,20 @@
     "pre-verify": true,
     "post-verify": true,
     "checkpoint-save": true,
-    "blocker-raised": true
+    "blocker-raised": true,
+    "subagent-delegation": true,
+    "local-inference-timeout-guard": true,
+    "docker-python-verifier": true,
+    "kaggle-concurrency-guard": true,
+    "two-party-ivv-separation": true,
+    "kagglesdk-typed-bridge": true,
+    "kagglehub-zero-copy-guard": true,
+    "kaggle-benchmarks-evaluator": true,
+    "kaggle-agent-exam-validator": true,
+    "autoharness-invariant-factory": true,
+    "retrospective-skill-extractor": true,
+    "universal-competition-harness": true,
+    "midnight-quota-sentinel": true
   },
   "lanes": {
     "P0-safety": {

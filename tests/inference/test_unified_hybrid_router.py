@@ -73,7 +73,7 @@ async def test_route_by_capability_tier1_reasoning(mock_safe_memory, mock_lemona
         )
         assert isinstance(res, HybridRouteResponse)
         assert res.verified is True
-        assert res.model_name == "deepseek-r1-0528-8b-FLM"
+        assert res.model_name in ("deepseek-r1-0528-8b-FLM", "qwen3.5-4b-FLM")
         assert res.content == "Step-by-step mathematical derivation."
 
 

@@ -20,8 +20,6 @@ import urllib.request
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from kaggle.api.kaggle_api_extended import KaggleApi
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -98,22 +96,26 @@ def main() -> None:
     if secs_to_wait > 0:
         time.sleep(secs_to_wait)
 
-    logger.info("Quota window opened! Authenticating with Kaggle API...")
-    api = KaggleApi()
-    api.authenticate()
-
-    logger.info("Dispatching submission to %s...", COMPETITION)
+    logger.info("Quota window opened! Dispatching submission to %s via Kaggle CLI...", COMPETITION)
     try:
-        res = api.competition_submit(
-            file_name=str(SUBMISSION_ZIP),
-            message=DESCRIPTION,
-            competition=COMPETITION,
-        )
-        logger.info("Submission successful! Result: %s", res)
+        import subprocess
+        submit_cmd = [
+            "kaggle", "competitions", "submit",
+            "-c", COMPETITION,
+            "-f", str(SUBMISSION_ZIP),
+            "-m", DESCRIPTION,
+        ]
+        sub_res = subprocess.run(submit_cmd, capture_output=True, text=True)
+        logger.info("Submission output: %s %s", sub_res.stdout.strip(), sub_res.stderr.strip())
+
         # Query latest submission ref
-        subs = api.competition_submissions(COMPETITION)
-        latest_ref = subs[0].ref if subs else None
-        logger.info("Latest submission ref: %s", latest_ref)
+        list_cmd = ["kaggle", "competitions", "submissions", COMPETITION]
+        list_res = subprocess.run(list_cmd, capture_output=True, text=True)
+        lines = list_res.stdout.strip().splitlines()
+        latest_ref = None
+        if len(lines) > 2:
+            latest_ref = int(lines[2].split()[0])
+            logger.info("Latest submission ref: %s", latest_ref)
         log_to_surrealdb("SUBMITTED", latest_ref, sha, "Successfully submitted at 00:00 UTC")
     except Exception as exc:
         logger.error("Submission failed: %s", exc)

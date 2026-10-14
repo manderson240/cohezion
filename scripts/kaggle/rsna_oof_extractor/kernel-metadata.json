@@ -1,0 +1,23 @@
+{
+  "id": "manderson240/cohezion-rsna-oof-extractor",
+  "title": "cohezion-rsna-oof-extractor",
+  "code_file": "cohezion-rsna-oof-extractor.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [
+    "dreaddevelopment/raptor-knee-maxspan",
+    "dreaddevelopment/raptor-knee-native384",
+    "marwanmath/resnet-50-radimagenet-marwan",
+    "pilkwang/rsna-knee-weights"
+  ],
+  "competition_sources": [
+    "rsna-knee-abnormality-detection"
+  ],
+  "kernel_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}

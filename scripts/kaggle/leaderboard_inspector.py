@@ -24,7 +24,7 @@ import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-ACTIVE_COMPETITIONS = [
+RAW_COMPETITIONS = [
     {
         "id": "biohub-cell-tracking-during-development",
         "name": "Biohub 3D Cell Tracking",
@@ -90,17 +90,39 @@ ACTIVE_COMPETITIONS = [
     },
 ]
 
+# Strict Filter: Only ACTIVE, unexpired competitions (Rule 8)
+_today = datetime.now(UTC).date()
+ACTIVE_COMPETITIONS = [
+    c for c in RAW_COMPETITIONS
+    if datetime.strptime(c["deadline"], "%Y-%m-%d").date() >= _today
+]
+
 KAGGLE_USER = "manderson240"
 CACHE_DIR = Path("/tmp/lb_all")
 
+
+import shutil
+
+def get_kaggle_cmd() -> str:
+    cmd = shutil.which("kaggle")
+    if cmd:
+        return cmd
+    venv_cmd = Path(sys.executable).parent / "kaggle"
+    if venv_cmd.exists():
+        return str(venv_cmd)
+    local_venv_cmd = Path(".venv/bin/kaggle")
+    if local_venv_cmd.exists():
+        return str(local_venv_cmd)
+    return "kaggle"
 
 def download_and_extract_leaderboard(comp_id: str) -> Path | None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     zip_path = CACHE_DIR / f"{comp_id}.zip"
     
     # Download leaderboard zip
+    kaggle_bin = get_kaggle_cmd()
     subprocess.run(
-        ["kaggle", "competitions", "leaderboard", comp_id, "-d", "-p", str(CACHE_DIR), "-q"],
+        [kaggle_bin, "competitions", "leaderboard", comp_id, "-d", "-p", str(CACHE_DIR), "-q"],
         capture_output=True,
         text=True,
     )

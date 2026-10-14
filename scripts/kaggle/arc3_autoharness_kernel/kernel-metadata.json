@@ -5,7 +5,7 @@
   "language": "python",
   "kernel_type": "notebook",
   "is_private": false,
-  "enable_gpu": true,
+  "enable_gpu": false,
   "enable_tpu": false,
   "enable_internet": false,
   "dataset_sources": [
@@ -16,5 +16,5 @@
   ],
   "model_sources": [],
   "kernel_sources": [],
-  "machine_shape": "NvidiaL4"
+  "machine_shape": "None"
 }

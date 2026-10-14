@@ -215,8 +215,8 @@ def amd_optimized_hierarchy(
         ("Gemma-4-31B-it-GGUF", QualityGate(min_chars=60)),
     ]
     if include_cloud:
-        tiers.append(("claude-haiku-4-5", QualityGate(min_chars=80)))
-        tiers.append(("claude-sonnet-4-6", QualityGate.TRUST))  # type: ignore[attr-defined]
+        tiers.append(("claude-haiku-5-5", QualityGate(min_chars=80)))
+        tiers.append(("claude-sonnet-5-5", QualityGate.TRUST))  # type: ignore[attr-defined]
     return TieredOrchestrator(
         tiers=tiers,  # type: ignore[arg-type]
         max_cost_usd=max_cost_usd,

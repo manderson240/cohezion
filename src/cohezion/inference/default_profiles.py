@@ -181,25 +181,25 @@ _GEMINI_3_FLASH_PREVIEW = CapabilityProfile(
 )
 
 
-_CLAUDE_HAIKU = CapabilityProfile(
-    model_id="claude-haiku-4-5",
+_CLAUDE_HAIKU_55 = CapabilityProfile(
+    model_id="claude-haiku-5-5",
     family="claude",
-    supported_modes=frozenset({"chat", "summarization"}),
+    supported_modes=frozenset({"chat", "summarization", "tool_use"}),
     optimal_ctx=200000,
     min_ctx=1024,
-    strengths=frozenset({"general_chat", "summarization", "low_latency"}),
+    strengths=frozenset({"general_chat", "summarization", "low_latency", "speed"}),
     weaknesses=frozenset({"deep_math"}),
     sampling_sweet_spot={"temperature": 0.7, "top_p": 0.95},
     prompt_template_fingerprint="claude",
     thinking_mode="never",
     known_failure_modes=(),
-    source_url="https://docs.anthropic.com/en/docs/about-claude/models",
+    source_url="https://code.claude.com/docs/en/headless",
     read_at=_READ_AT,
 )
 
 
-_CLAUDE_SONNET = CapabilityProfile(
-    model_id="claude-sonnet-4-6",
+_CLAUDE_SONNET_55 = CapabilityProfile(
+    model_id="claude-sonnet-5-5",
     family="claude",
     supported_modes=frozenset({"chat", "tool_use", "reasoning"}),
     optimal_ctx=200000,
@@ -210,13 +210,13 @@ _CLAUDE_SONNET = CapabilityProfile(
     prompt_template_fingerprint="claude",
     thinking_mode="never",
     known_failure_modes=(),
-    source_url="https://docs.anthropic.com/en/docs/about-claude/models",
+    source_url="https://code.claude.com/docs/en/headless",
     read_at=_READ_AT,
 )
 
 
-_CLAUDE_OPUS = CapabilityProfile(
-    model_id="claude-opus-4-7",
+_CLAUDE_OPUS_55 = CapabilityProfile(
+    model_id="claude-opus-5-5",
     family="claude",
     supported_modes=frozenset({"chat", "tool_use", "reasoning", "long_horizon"}),
     optimal_ctx=200000,
@@ -227,7 +227,24 @@ _CLAUDE_OPUS = CapabilityProfile(
     prompt_template_fingerprint="claude",
     thinking_mode="never",
     known_failure_modes=("expensive; prefer Sonnet unless task requires Opus",),
-    source_url="https://docs.anthropic.com/en/docs/about-claude/models",
+    source_url="https://code.claude.com/docs/en/headless",
+    read_at=_READ_AT,
+)
+
+
+_CLAUDE_FABLE = CapabilityProfile(
+    model_id="claude-fable-5",
+    family="claude",
+    supported_modes=frozenset({"chat", "tool_use", "reasoning", "long_horizon", "adversarial"}),
+    optimal_ctx=200000,
+    min_ctx=1024,
+    strengths=frozenset({"reasoning", "code_gen", "long_horizon", "architect", "adversarial_review"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.7, "top_p": 0.95},
+    prompt_template_fingerprint="claude",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://code.claude.com/docs/en/headless",
     read_at=_READ_AT,
 )
 
@@ -279,9 +296,14 @@ DEFAULT_PROFILES: dict[str, CapabilityProfile] = {
     "deepseek-r1:70b": _DEEPSEEK_R1,
     "deepseek-v3.2:cloud": _DEEPSEEK_V32,
     "gemini-3-flash-preview:cloud": _GEMINI_3_FLASH_PREVIEW,
-    "claude-haiku-4-5": _CLAUDE_HAIKU,
-    "claude-sonnet-4-6": _CLAUDE_SONNET,
-    "claude-opus-4-7": _CLAUDE_OPUS,
+    "claude-haiku-5-5": _CLAUDE_HAIKU_55,
+    "haiku": _CLAUDE_HAIKU_55,
+    "claude-sonnet-5-5": _CLAUDE_SONNET_55,
+    "sonnet": _CLAUDE_SONNET_55,
+    "claude-opus-5-5": _CLAUDE_OPUS_55,
+    "opus": _CLAUDE_OPUS_55,
+    "claude-fable-5": _CLAUDE_FABLE,
+    "fable": _CLAUDE_FABLE,
     "gemini-3-flash": _GEMINI_3_FLASH,
     "gemini-3-pro": _GEMINI_3_PRO,
 }

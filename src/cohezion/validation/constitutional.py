@@ -24,7 +24,7 @@ class ConstitutionalShield:
     against the project's Constitution and Charter.
     """
 
-    def __init__(self, teacher_model: str = "claude-3-5-sonnet"):
+    def __init__(self, teacher_model: str = "claude-sonnet-5-5"):
         from pathlib import Path
 
         project_root = Path(__file__).resolve().parents[2]

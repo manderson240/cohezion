@@ -24,8 +24,9 @@ class LemonadeTransport(BaseInferenceTransport):
             "messages": [{"role": "user", "content": prompt}],
             **(params or {}),
         }
+        timeout = httpx.Timeout(connect=15.0, read=300.0, write=60.0, pool=10.0)
         try:
-            async with httpx.AsyncClient(timeout=45.0) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 res = await client.post(self.url, json=payload)
                 if res.status_code == 200:
                     data = res.json()

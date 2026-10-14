@@ -321,7 +321,7 @@ class SkillRefiner:
         # Shadow canary: rolling quality baseline per skill; blocks PRIME promotion on regression.
         self._shadow_canary = ShadowCanaryValidator()
         # Adversarial review: 3-perspective frontier-first LLM fan-out before PRIME commit.
-        # Priority: claude-fable-5 → claude-opus-4-8 → agy → Bonsai-8B-local.
+        # Priority: claude-fable-5 → claude-opus-5-5 → agy → Bonsai-8B-local.
         # None = dormant; gate lazy-builds on first refine() call; fail-open everywhere.
         self._adversarial_chat_fn: Any = None
         # Failure-conditioned retrieval (2607.13104 + MSCE 2607.16617 + self-healing-code):

@@ -1,0 +1,1693 @@
+{
+  "arc-prize-2026-arc-agi-2": [
+    {
+      "id": 697859,
+      "title": "Bitterbot's TOPAS Architecture Submission: 11.67% LB vs ~36% Local (Managing TTT Timeouts)",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/697859",
+      "comments": 23,
+      "votes": 10,
+      "signal_score": 17.56,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-05-07 16:48:56.703000",
+          "votes": 10,
+          "content": "We used this submission primarily as a pipeline test for our Kaggle setup using an early, not fully-trained checkpoint. We're currently running the TOPAS architecture. It\u2019s a highly efficient, lightweight setup at only ~100M parameters, and it relies heavily on deep recursion.\n\nOur current compute footprint - we are training on a single consumer-grade RTX 4090. This checkpoint is 14 days into training. We estimate another ~10 days for the model to properly converge.\n\nLocally, using the same 14-day checkpoint, we are hitting ~36%. The massive drop on the leaderboard comes down in part to time management constraints within the Kaggle environment.\n\nBecause TOPAS utilizes deep recursion, our TTT becomes computationally heavy. During our initial sandbox tests, we were struggling to stay within the strict time limits and kept timing out. While tinkering to ensure the submission would actually complete, we overcompensated on our time-limit thresholds. This resulted in the model bailing out early to save time, ultimately failing to output a prediction on a large chunk of the puzzles.\n\nMoving forward as we wait for the model to fully converge over the next week and a half, we need to fine-tune our time-management so we convert [[0]] placeholders into real beam outputs."
+        },
+        {
+          "author": "",
+          "date": "2026-05-16 14:38:24.043000",
+          "votes": 3,
+          "content": "Notebook submission process is kinda flakey.   During our last submission attempt last night the notebook crash within 250s and I assumed we burnt the attempt for the day.  In the morning we had a new leaderboard score of 19.03%, but from a previous version of the notebook.  Makes no sense.  Now I don't know which variables to adjust for the next run."
+        },
+        {
+          "author": "",
+          "date": "2026-05-07 18:55:43.517000",
+          "votes": 4,
+          "content": "Squeezing your code to fit Kaggle compute limit is what makes this competition challenging. \n\nIt is good that your first submission went through, even if the score may disappoint you."
+        },
+        {
+          "author": "",
+          "date": "2026-05-08 01:33:46.407000",
+          "votes": 1,
+          "content": "Tweaked the config, patiently waited for the daily submission to become available\u2026 forgot to turn on the accelerator\u2026 promptly crashed\u2026 burnt the daily submission\u2026   Ugh"
+        }
+      ]
+    },
+    {
+      "id": 747515,
+      "title": "Update on \"Kaggle Error\" Submissions & Queue Delays",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/747515",
+      "comments": 17,
+      "votes": 18,
+      "signal_score": 14.22,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-10 16:02:27.420000",
+          "votes": 1,
+          "content": "The current queue delay is around ~33h, so yes, your submission isn't stuck, its making its way towards the front of a long line of submissions. If its been >33h, its likely running right now and your score will arrive once it finishes, scores have continued to work its just incredibly high demand and finite supply.\n\nThanks for your patience everyone, we will continue to do what we can."
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 22:04:06.133000",
+          "votes": 18,
+          "content": "Hi everyone,\n\nI wanted to give an update on the long submission wait times and \"Kaggle Error\" failures many of you have been seeing over the past couple of days.\n\nWhat Happened\nDue to very high submission volume using L4s, submission jobs have been facing long queue times before actually getting a machine to run. Submissions that waited >15h to start were being marked as \u201cKaggle Error\u201d even if they eventually did run.\n\nWhat We Fixed\n\nExtended Queue Timeout: We've drastically extended the queue allowance so submissions will no longer be timed out while waiting to run.  \nScoring Submissions that had Queue Timeouts: We are actively reprocessing all affected submissions from the past few days. If your notebook ran to completion and produced a valid submission file, it is being scored and published to the leaderboard automatically. You should already see scores showing up on the leaderboard now.  \nQueue Wait Times: to even some of the load on the pool, we are implementing a pending submission limit (separate from the 1/day limit). If your team's previous submission is still scoring, you will need to wait until it finishes to submit again.\n\nWhat This Means for You\n\nNo action needed: You do not need to resubmit or contact support to recover an affected run; our batch recovery is processing them directly.  \nMonitor this post for updates\n\nThanks for your patience while we sort this out, and sorry for the frustration it caused over the last few days."
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 22:24:15.740000",
+          "votes": 1,
+          "content": "Thanks for your effort. How are we effectively preventing this from happening again, given that we now have an even bigger load, with everyone rushing to submit more and your batch recovery trying to spam it with the previously error ones? \n\nWe might need to ask Jensen for more L4s in Kaggle"
+        },
+        {
+          "author": "",
+          "date": "2026-10-10 14:33:13.413000",
+          "votes": 0,
+          "content": "Was the problem solved? I still get long wait times."
+        }
+      ]
+    },
+    {
+      "id": 685142,
+      "title": "Last Years 1st Place Solution",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/685142",
+      "comments": 21,
+      "votes": 25,
+      "signal_score": 13.15,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-03-27 00:29:52.980000",
+          "votes": 25,
+          "content": "Has anyone tried submitting last year's winning solution?\n\nhttps://www.kaggle.com/competitions/arc-prize-2025/writeups/nvarc\n\nI suspect it would achieve Public LB 27 and Private LB 24! \n\n(edit: last year was 4xL4 and this year is 2xT2, so it cannot achieve these scores)\n\n========\n\nUPDATE: The code has been reconfigured for 2xT4 and published here\n\nUPDATE 2: This competition has upgraded the GPUs to 4xL4, so we can now submit last years solution"
+        },
+        {
+          "author": "",
+          "date": "2026-03-27 06:06:47.453000",
+          "votes": 6,
+          "content": "That solution uses 4xL4 GPUs. We still don't have access to those.\n\n  NOTE: We are currently exploring options to provide better compute for this competition."
+        },
+        {
+          "author": "",
+          "date": "2026-03-30 13:56:04.087000",
+          "votes": 4,
+          "content": "UPDATE: The code has been reconfigured for 2xT4 and published here"
+        },
+        {
+          "author": "",
+          "date": "2026-03-30 12:22:22.530000",
+          "votes": 4,
+          "content": "You won't get these scores with 2xT4. We used 4xL4."
+        }
+      ]
+    },
+    {
+      "id": 746520,
+      "title": "Kaggle Error?",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/746520",
+      "comments": 25,
+      "votes": 19,
+      "signal_score": 12.88,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-07 12:37:19.007000",
+          "votes": 19,
+          "content": "Did anyone else get a Kaggle Error on their submission yesterday? Mine ran 15 hours and errored out. I also noticed slow downloads, possibly a docker image?"
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 12:39:44.680000",
+          "votes": 2,
+          "content": "@herbison @macruzbar Please create an offical kaggle topic for the \"kaggle error\"/queued submission issue in both arc2 and arc3 so all users can get the same information and can follow the way to a solution, thanks!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-07 12:48:57.163000",
+          "votes": 1,
+          "content": "@herbison Hi Dustin, could you please look at this failed submission?\n\nSubmission ref: 56890645\nSubmitted: 2026-10-06 20:49 UTC\nResult: \"Kaggle Error \u2013 A system error. Please try resubmitting\u2026\", after about 15 hours\n\nThe submission was about one hour after your message about the dataset outage in Notebooks (https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-2/discussion/743927#3533780). Another user reported the same \"A system error\" on the same day.\n\nMy questions:\n\nWas this submission affected by the dataset-mount outage? Or can you see a different cause in the rerun logs?\nWhen does the 12-hour runtime limit start for a rerun: at queue start, container start, or the first notebook cell? My notebook computes its time budget from the first cell, so a long image pull or dataset mount could push the total over the limit.\nThis version used \"Latest Container Image\". Do you recommend the pinned image for reruns, for faster and more reliable starts?\n\nThank you!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 22:07:41.717000",
+          "votes": 0,
+          "content": "Please see: https://kaggle.com/competitions/arc-prize-2026-arc-agi-2/discussion/747515"
+        }
+      ]
+    },
+    {
+      "id": 689054,
+      "title": "Upgraded Accelerators",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/689054",
+      "comments": 19,
+      "votes": 21,
+      "signal_score": 10.68,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-29 08:35:43.867000",
+          "votes": 2,
+          "content": "@addisonhoward @macruzbar It looks like the L4 queue is jammed. Can you do something? See https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-2/discussion/743927"
+        },
+        {
+          "author": "",
+          "date": "2026-04-07 16:31:11.630000",
+          "votes": 21,
+          "content": "Hi everyone, \nwe just upgraded the accelerators for ARC-AGI-2. This competition now has access to Kaggle's pool of powerful new L4x4 machines! These machines offer 96GB of GPU memory enabling submissions with much larger models. \n\nHead over to the Overview tab to learn the essentials and see this page for more in-depth information on these machines.\n\nGood luck!\n\nMar\u00eda"
+        },
+        {
+          "author": "",
+          "date": "2026-05-24 17:16:11.210000",
+          "votes": 1,
+          "content": "Dear ARC Prize Organizers,\n\nI hope you are doing well. My team and I have many promising ideas and approaches we would like to explore for the ARC Prize 2026 competition, but we are currently limited by a lack of GPU resources and financial means. I noticed that some sponsors may provide additional compute resources for participants, and I previously sent an email about this opportunity but have not yet received a response. Could you please let me know how we can apply or become eligible for these additional resources? Thank you very much for your time and for organizing this inspiring competition.\n\nKind regards,"
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 12:25:45.613000",
+          "votes": 0,
+          "content": "Hi @herbison,\n\nCould you please check my ARC-AGI-2 submissions?\nBoth used the same unchanged notebook and ended with \u201cA system error\u201d after extended waiting. The ordinary GPU smoke completed successfully.\nCould you confirm whether they exceeded the independent queue-time limit? If they were affected by the platform issue, could they be rerun, and could you verify their effect on my submission allowance?\nPlease advise whether I should wait for that retry or an official rerun.\n\nThank you."
+        }
+      ]
+    },
+    {
+      "id": 709522,
+      "title": "Historical leaderboard with runtime information",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/709522",
+      "comments": 6,
+      "votes": 32,
+      "signal_score": 9.91,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-08-21 16:16:47.140000",
+          "votes": 1,
+          "content": "But now its hagging off. I didn't make it to a better score yet."
+        },
+        {
+          "author": "",
+          "date": "2026-08-21 00:12:21.490000",
+          "votes": 1,
+          "content": "AIMO3, Nemotron, now ARC-AGI 2 and 3. At this point, @huikang is a Critical Competition Infrastructure"
+        },
+        {
+          "author": "",
+          "date": "2026-06-19 03:27:19.293000",
+          "votes": 32,
+          "content": "I made the historical leaderboard for ARC Price 2026 - ARC-AGI-2\n\nhttps://arc3.huikang.dev/leaderboard/?comp=arc2\n\nHere is a screenshot.\n\nThis was done for AIMO3 and it was helpful for many people, since I am doing this for ARC-AGI-3, so I am doing this here as well."
+        },
+        {
+          "author": "",
+          "date": "2026-07-22 05:21:35.707000",
+          "votes": 1,
+          "content": "Great work! Thank you for this. I just have one suggestion. The horizontal scroll bar is not accessible as it is at the bottom of the table and the table expands as we scroll vertically. Is it possible to modify this? May be move the scroll bar to the top and also freeze the header?"
+        }
+      ]
+    },
+    {
+      "id": 689254,
+      "title": "ARC Prize 2026 - ARC-AGI-2 - Let's go!",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/689254",
+      "comments": 7,
+      "votes": 9,
+      "signal_score": 7.72,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-06-03 04:40:05.700000",
+          "votes": 0,
+          "content": "@gregkamradt \nHey Greg Kamradt!\nWe respectfully request that the ARC AGI Team consider increasing the daily submission limit beyond one submission per day, similar to ARC AGI 3. A higher limit would help participants iterate faster, validate improvements, and make more meaningful progress throughout the competition.\n\nThank you for your consideration."
+        },
+        {
+          "author": "",
+          "date": "2026-04-08 02:26:47.247000",
+          "votes": 9,
+          "content": "Hi ARC Prize participants!\n\nWe're excited to have you here with us on Kaggle for ARC Prize 2026: ARC-AGI-2 edition. Our #1 goal is to make sure you have the tools, knowledge, and support you need to start solving ARC-AGI.\n\nHere is a guide to help you get started and ton of high signal resources and documentation to get you up to speed.\n\nPlug into the community & get competition updates:\n\nSubscribe to the newsletter\nJoin the Discord server\nFollow ARC Prize Twitter\nSubscribe on YouTube\n\nGreg Kamradt, President, ARC Prize Foundation"
+        },
+        {
+          "author": "",
+          "date": "2026-04-08 07:13:56.737000",
+          "votes": 1,
+          "content": "I find it incredible that there is neither a reference to our winning solution code nor our article describing it in your resource page at https://arcprize.org/resources\n\nHow can this be possible?"
+        },
+        {
+          "author": "",
+          "date": "2026-08-02 01:49:26.337000",
+          "votes": 0,
+          "content": "Thank you very much for including me in your team. I will learn a lot and help you a lot, God willing."
+        }
+      ]
+    },
+    {
+      "id": 684441,
+      "title": "How to get started + Competition's Official Discord",
+      "url": "/competitions/arc-prize-2026-arc-agi-2/discussion/684441",
+      "comments": 1,
+      "votes": 4,
+      "signal_score": 0.0,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-04-26 12:59:26.880000",
+          "votes": 5,
+          "content": "I don't see an arc agi2 competition channel in kaggle discord. There is any arc agi3 channel."
+        },
+        {
+          "author": "",
+          "date": "2026-03-24 21:16:14.167000",
+          "votes": 4,
+          "content": "Information for newbies\nNew to machine learning and data science? No question is too basic or too simple. Feel free to start your own thread, or use this thread as a place to post any first-timer clarifying questions for the Kaggle community to help you with!\n\nNew to Kaggle? Take a look at a few videos to learn a bit more about site etiquette, Kaggle lingo, and how to enter a competition using Kaggle Notebooks. Publish and share your models on Kaggle Models!\n\nLooking for a team? Express your interest in joining a team through our Team Up feature.\n\nRemember: Kaggle is for everyone. Whether you're teaming up or sharing tips in the competition forum, we expect everyone to follow our Kaggle community guidelines.\n\nCompetition's Official Discord\nIn addition to this competition forum, you can continue the discussion in our official Kaggle Discord Server here:\n\ndiscord.gg/kaggle\nThe Discord is a great place to ask getting started questions, chat about the nuances of this competition, and connect with potential team mates. Learn more about Discord at our announcement here. Here are a few things to keep in mind though:\n\n1. Discord Competition Channels are 'Public' - Don't Share Private Information\n\nDiscord channels for specific competitions are considered 'public' spaces where you are allowed to talk about competition details. Please remember that private sharing of competition code or data outside of your team is, as always, not permitted. Code sharing must always be done publicly through the Kaggle forums/notebooks.\n\n2. Discord Competition Channels are Not Monitored by Staff - Keep Important Information on the Kaggle Forums\n\nKaggle Staff and Hosts running competitions will not monitor Discord or be available to answer questions in Discord. This is intended to be a more casual space to discuss competitions and help each other. Please keep important questions, insights, writeups, and other valuable conversation on the Kaggle forums. \n\nHappy modeling!"
+        }
+      ]
+    }
+  ],
+  "arc-prize-2026-arc-agi-3": [
+    {
+      "id": 705405,
+      "title": "Correcting an Error in Competition Submission Limits",
+      "url": "/competitions/arc-prize-2026-arc-agi-3/discussion/705405",
+      "comments": 12,
+      "votes": 3,
+      "signal_score": 12.62,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-06-09 21:39:16.350000",
+          "votes": 3,
+          "content": "Hi everyone,\n\nWe want to sincerely apologize for a recent oversight regarding the daily submission limits for this competition, and share how we are addressing it.\n\nWhat happened:\nOur intended setting for this competition had been one submission per day. However, on May 27, a miscommunication over a mismatch between our settings and the written rules caused us to mistakenly change the competition settings to allow 5 submissions per day.\n\nThe Impact:\nDuring this 13-day window, the system allowed up to 5 submissions per day. Understandably, several teams utilized these available submissions to test and improve their models. We want to be entirely clear that we do not view this as cheating or breaking the rules; teams were simply operating within the limits our system presented to them.\n\nGoing forward:\nTo get back to the intended course, we are taking the following steps:\n\nRestoring the Cap: Yesterday, June 8, we restored the submission limit back to one submission per day.\nInvalidating Surplus Submissions: We are working now to invalidate any additional submissions teams made after their first successful submission for each day during that period. Because there are still 5 months remaining in the competition, this brief window of elevated submission allowance does not confer a material unfair advantage to teams, and resetting the counts now ensures all teams compete on equal footing for the remainder of the competition.\n\nWe understand that errors such as this are frustrating and disruptive. We very much appreciate your patience and continued participation in the Kaggle community.\n\nSincerely, \n\nMar\u00eda and the Kaggle team."
+        },
+        {
+          "author": "",
+          "date": "2026-06-11 10:42:32.280000",
+          "votes": 2,
+          "content": "[Request] Is it possible to make submissions with a score of 0 not count toward the submission limit? Internal errors provide no logs at all, so it is difficult to debug or understand what went wrong."
+        },
+        {
+          "author": "",
+          "date": "2026-06-10 20:34:29.933000",
+          "votes": 0,
+          "content": "This is completely unfair. Everyone had access to the 5 submissions per day and could use them; there was no injustice! You just made me lose 100 places\u2026 \n\nI don't understand!\n\nSome candidates obtained scores by directly using the .py code from the games. This was addressed by implementing obfuscation, but their scores were not invalidated.\n\nI don't understand how, on the one hand, submissions obtained dishonestly are still valid, and on the other hand, you arbitrarily decide to delete valid submissions, since everyone could make the 5 submissions per day.\n\nThe error lies with the platform, not with dishonest use by the candidates.\n\nThis is arbitrary, unfair, and I'm not sure it's valid from a legal standpoint.\n\nThe fairest course of action would be to publicly state that this is a Kaggle bug, not to cancel submissions made during the period of authorization of 5 submissions per day, and to continue with one submission per day.\n\n@macruzbar \n\n@gregkamradt"
+        },
+        {
+          "author": "",
+          "date": "2026-06-23 09:46:16.347000",
+          "votes": -1,
+          "content": "Hi! I'm trying to reproduce the StochasticGoose ARC-AGI-3 notebook.\n\nI started from the published notebook and submitted it without intentionally changing the algorithm. However, my submissions are scoring around 0.03\u20130.11 public score, while I understood the notebook was achieving roughly 0.25.\n\nCould you clarify:\n\nIs the published notebook identical to the version that achieved 0.25?\nWere there additional files, weights, patches, or dependencies used that are not included?\nHas the ARC-AGI-3 environment changed since that score was obtained?\n\nAny guidance would be greatly appreciated. Thanks!"
+        }
+      ]
+    },
+    {
+      "id": 697720,
+      "title": "Update on accelerators",
+      "url": "/competitions/arc-prize-2026-arc-agi-3/discussion/697720",
+      "comments": 6,
+      "votes": 10,
+      "signal_score": 9.71,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-07-21 14:26:15.640000",
+          "votes": 2,
+          "content": "So this benchmark is supposed to be an evaluation of whether frontier models can hit AGI performance, but the only HW available for this task can at best run quantized models with <100B parameters."
+        },
+        {
+          "author": "",
+          "date": "2026-05-07 02:12:48.867000",
+          "votes": 10,
+          "content": "Hi everyone, \na couple of days ago, Kaggle faced a stockout of H100 processors. If we are able to reallocate these processors in the coming months, we will. \n\nIn the meantime, we have changed to RTX 6000 Pro. Please read the description I updated on the Overview tab. If you have any questions, please let us know. \n\nBest, \n\nMar\u00eda"
+        },
+        {
+          "author": "",
+          "date": "2026-05-07 03:02:23.173000",
+          "votes": 2,
+          "content": "The machine type indicated in the Overview tab is \"g2-standard-48\" that has four NVIDIA L4 GPUs. Actually, \"g4-standard-48\"?"
+        },
+        {
+          "author": "",
+          "date": "2026-07-21 09:52:51.380000",
+          "votes": 0,
+          "content": "Hey Mar\u00eda,\n\nThere seems to be an issue with the RTX 600 Pro instances.\nCurrently, I do not have access to them, but can select TPU instead.\n\nAny official update on usable accelerators?\n\nThanks!"
+        }
+      ]
+    },
+    {
+      "id": 697944,
+      "title": "Update on Code Requirements",
+      "url": "/competitions/arc-prize-2026-arc-agi-3/discussion/697944",
+      "comments": 7,
+      "votes": 11,
+      "signal_score": 8.09,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-08 08:13:05.607000",
+          "votes": 2,
+          "content": "@macruzbar Dear Hosts,\nThank you for the public competition.\nHowever for the past week th queue for the running any notebook using the RTX 6000 is taking painfully long time in queues. Since or is a quit expensive GPU most of us cannot afford to run all experiments on rented RTX 6000. Can we please request to increase the quota of those GPUs.\nElse the only member who have a lot of compute (from big companies or startups or labs) can properly compete, which will reduce the spirit of open competition."
+        },
+        {
+          "author": "",
+          "date": "2026-05-07 22:16:59.523000",
+          "votes": 11,
+          "content": "Hi all, \nGiven the change in accelerators from H100s to RTX 6000, and because we want to make sure your models still have ample resource headroom to run successfully on the new hardware, we have adjusted the code requirements and extended the maximum notebook runtime. It has increased from 6 hours to 9 hours. I noted this on the Overview tab, in the section Code requirements. \n\nThank you everyone for your patience as we worked through this challenge. \n\nHappy modeling, and good luck!\n\nMar\u00eda"
+        },
+        {
+          "author": "",
+          "date": "2026-05-09 22:31:35.740000",
+          "votes": 3,
+          "content": "Hi, H100 still appears as a choice when I create a new notebook. Is that expected?"
+        },
+        {
+          "author": "",
+          "date": "2026-05-08 05:55:05.430000",
+          "votes": 2,
+          "content": "[hypothetical question] what would happen if i select a notebook which was submitted using H100 for my final submission at the end of the deadline? will it automatically reverted to RTX6000 or will i get scoring error??"
+        }
+      ]
+    },
+    {
+      "id": 695158,
+      "title": "Upgraded accelerators",
+      "url": "/competitions/arc-prize-2026-arc-agi-3/discussion/695158",
+      "comments": 2,
+      "votes": 21,
+      "signal_score": 7.83,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-04-28 18:20:14.977000",
+          "votes": 21,
+          "content": "Hi everyone, \nwe just upgraded the accelerators for ARC-AGI-3. This competition now has access to Kaggle's pool of powerful new H100 accelerators! \n\nHead over to the Overview tab to learn the essentials and see this page for more in-depth information on these machines.\n\nGood luck!\n\nMar\u00eda"
+        },
+        {
+          "author": "",
+          "date": "2026-05-28 13:46:11.760000",
+          "votes": 0,
+          "content": "This is very nice thanks kaggle team"
+        }
+      ]
+    },
+    {
+      "id": 713634,
+      "title": "Clarification on deadline for milestone prizes",
+      "url": "/competitions/arc-prize-2026-arc-agi-3/discussion/713634",
+      "comments": 5,
+      "votes": 6,
+      "signal_score": 6.58,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-06-24 20:36:05.363000",
+          "votes": 6,
+          "content": "Hi everyone, \nif you are considering open-sourcing your solution for the Milestone Prizes, please note that the deadline to do so is 11:59pm UTC on the corresponding day. For ARC-AGI-3, there are 2 milestone prizes, the first one is next week on June 30th, and the second one is on September 30th. I have updated the Timeline and the Prizes sections in the Overview tab to reflect this. \n\nGood luck!\n\nMar\u00eda"
+        },
+        {
+          "author": "",
+          "date": "2026-06-24 22:35:40.883000",
+          "votes": 4,
+          "content": "plz update the links. they are invalid"
+        },
+        {
+          "author": "",
+          "date": "2026-08-10 21:45:45.353000",
+          "votes": 0,
+          "content": "The milestone prize structure is interesting \u2014 it incentivizes early participation. The Progress Prize consists of guaranteed Final Leaderboard Prizes plus conditional Milestone Prizes. This means even if you don't win the overall competition, being on the leaderboard early can earn you a share of the milestone pool. Worth submitting early and often (1 submission per day limit)."
+        },
+        {
+          "author": "",
+          "date": "2026-07-28 09:17:29.637000",
+          "votes": 0,
+          "content": "Hey, so u have to open source the solution the same day as the deadline; for example 30 of september; or the day after"
+        }
+      ]
+    },
+    {
+      "id": 687384,
+      "title": "Welcome to ARC Prize 2026 - ARC-AGI-3 Edition",
+      "url": "/competitions/arc-prize-2026-arc-agi-3/discussion/687384",
+      "comments": 0,
+      "votes": 7,
+      "signal_score": 4.16,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-04-02 22:37:13.553000",
+          "votes": 7,
+          "content": "Hey team!\n\nWe are super excited you're here with us on Kaggle to learn more and participate in ARC Prize 2026: ARC-AGI-3 edition. Our #1 goal is to make sure you have the tools, knowledge, and support you need to start solving ARC-AGI.\n\nHere is a guide to help you get started. In addition to the Kaggle templates, track our community leaderboard and documentation to get you up to speed.\n\nPlug into the community & get competition updates:\n\nSubscribe to the newsletter\nJoin the Discord server\nFollow ARC Prize Twitter\nSubscribe on YouTube\n\nHave questions? Feel free to start a discussion topic on this competition, reach out to us on Twitter, Discord, or team@arcprize.org.\n\nGreg Kamradt, President, ARC Prize Foundation"
+        }
+      ]
+    },
+    {
+      "id": 684625,
+      "title": "How to get started + Competition's Official Discord",
+      "url": "/competitions/arc-prize-2026-arc-agi-3/discussion/684625",
+      "comments": 9,
+      "votes": 8,
+      "signal_score": 0.0,
+      "category": "SOTA_RECIPE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-07-06 04:38:22.037000",
+          "votes": 2,
+          "content": "Hello!\nNewbie here\u2026looking forward to learn and implement models"
+        },
+        {
+          "author": "",
+          "date": "2026-03-25 16:40:49.697000",
+          "votes": 8,
+          "content": "Information for newbies\nNew to machine learning and data science? No question is too basic or too simple. Feel free to start your own thread, or use this thread as a place to post any first-timer clarifying questions for the Kaggle community to help you with!\n\nNew to Kaggle? Take a look at a few videos to learn a bit more about site etiquette, Kaggle lingo, and how to enter a competition using Kaggle Notebooks. Publish and share your models on Kaggle Models!\n\nLooking for a team? Express your interest in joining a team through our Team Up feature.\n\nRemember: Kaggle is for everyone. Whether you're teaming up or sharing tips in the competition forum, we expect everyone to follow our Kaggle community guidelines.\n\nCompetition's Official Discord\nIn addition to this competition forum, you can continue the discussion in our official Kaggle Discord Server here:\n\ndiscord.gg/kaggle\nThe Discord is a great place to ask getting started questions, chat about the nuances of this competition, and connect with potential team mates. Learn more about Discord at our announcement here. Here are a few things to keep in mind though:\n\n1. Discord Competition Channels are 'Public' - Don't Share Private Information\n\nDiscord channels for specific competitions are considered 'public' spaces where you are allowed to talk about competition details. Please remember that private sharing of competition code or data outside of your team is, as always, not permitted. Code sharing must always be done publicly through the Kaggle forums/notebooks.\n\n2. Discord Competition Channels are Not Monitored by Staff - Keep Important Information on the Kaggle Forums\n\nKaggle Staff and Hosts running competitions will not monitor Discord or be available to answer questions in Discord. This is intended to be a more casual space to discuss competitions and help each other. Please keep important questions, insights, writeups, and other valuable conversation on the Kaggle forums. \n\nHappy modeling!"
+        },
+        {
+          "author": "",
+          "date": "2026-04-17 17:23:49.830000",
+          "votes": 1,
+          "content": "I have noticed inconsistent maximum cap of per-level efficiency score:\n\n1.15x mentioned at https://docs.arcprize.org/methodology\n1.0x  mentioned at https://arxiv.org/pdf/2603.24621\n1.0x  mentioned under \"Scoring Method\" at https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/data\n\n@gregkamradt  Could you please clarify if it is 1.15 (as per methodology) or 1.0 (as per arXiv paper)"
+        },
+        {
+          "author": "",
+          "date": "2026-08-10 21:42:51.700000",
+          "votes": 0,
+          "content": "For anyone just getting started: the key difference from ARC-AGI-2 is that AGI-3 tasks involve fluid intelligence \u2014 they require reasoning across multiple steps. My baseline approach: use the training data to identify common transformation patterns (tiling, symmetry, color mapping) and try to match each test input to the most similar training example. The identity transform (copying input as output) is a reasonable fallback."
+        }
+      ]
+    }
+  ],
+  "arc-prize-2026-paper-track": [
+    {
+      "id": 710600,
+      "title": "Regressive Plasticity Schedule: A Two-Stage Post-Training Schedule for ARC Program Synthesis",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/710600",
+      "comments": 0,
+      "votes": 1,
+      "signal_score": 7.39,
+      "category": "RULES_COMPLIANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-06-20 13:06:17.483000",
+          "votes": 1,
+          "content": "Paper: https://github.com/iamjasonfeng/RPS-Paper\n\nThis paper has been submitted to ARC Prize 2026 Paper Track and ARC AGI Community Leaderboard.\n\nAbstract\n\nThis paper presents Regressive Plasticity Schedule (RPS), a two-stage post-training schedule inspired by developmental plasticity. RPS combines two familiar ideas, curriculum learning and learning-rate reduction, in a specific way: the model is first trained on easier data at a higher learning rate, then trained on harder data at a substantially lower learning rate. This differs from ordinary learning-rate decay because the main intervention is not merely reducing the optimizer step size over time within one training stage; instead, RPS couples a discrete stage-level learning-rate drop to a curriculum boundary between easier and harder data. The broader motivation for RPS is to improve general reasoning: program synthesis is an important testbed here, but the more important question is whether staged plasticity can help models preserve foundational reasoning behaviors while adapting to harder domains. I tested RPS on Qwen3-8B using Alibaba Model Studio managed DPO fine-tuning with LoRA. The control condition, Equal Plasticity Schedule (EPS), used the same model, same two-stage data structure, same within-stage cosine scheduler, and same Stage 1 checkpoint, but did not reduce the Stage 2 learning rate. On ARC-AGI-1 public evaluation, RPS improved exact test-output accuracy from 10/419 to 17/419, which provides evidence of improved ARC-style general reasoning because these tasks require inferring and applying latent transformation rules from few examples. On ARC-AGI-2 public evaluation, neither RPS nor EPS solved any test outputs, but RPS substantially improved program-synthesis reliability: 234/240 attempted programs executed without error for RPS, compared with 188/240 for EPS. The result does not show that RPS solves ARC-AGI-2, but it suggests that a curriculum-coupled plasticity reduction can improve ARC-style reasoning behavior and make a model more stable at producing usable reasoning artifacts. If this pattern generalizes beyond ARC, RPS could have large potential as a simple post-training schedule for improving broader reasoning behavior."
+        }
+      ]
+    },
+    {
+      "id": 689255,
+      "title": "ARC Prize 2026 - Paper Track",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/689255",
+      "comments": 3,
+      "votes": 3,
+      "signal_score": 4.85,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-04-08 02:29:04.223000",
+          "votes": 3,
+          "content": "Hi Authors!\n\nWe're excited to have you here with us on Kaggle for ARC Prize 2026: Paper Track. This has been one of the most rewarding tracks in previous competitions\n\nCheck out the paper winners from previous years: 2025, 2024\n\nPlug into the community & get competition updates:\n\nSubscribe to the newsletter\nJoin the Discord server\nFollow ARC Prize Twitter\nSubscribe on YouTube\n\nGreg Kamradt, President, ARC Prize Foundation"
+        },
+        {
+          "author": "",
+          "date": "2026-08-15 03:33:03.517000",
+          "votes": 0,
+          "content": "HII i am new here"
+        }
+      ]
+    },
+    {
+      "id": 717842,
+      "title": "Falsification Engine SEN-EF",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/717842",
+      "comments": 0,
+      "votes": 1,
+      "signal_score": 3.39,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-07-02 15:07:31.077000",
+          "votes": 1,
+          "content": "Markdown\n\nPr\u00eamio ARC 2026 \u2014 An\u00e1lise T\u00e9cnica: Motor de Falsifica\u00e7\u00e3o SEN-EF\n1. Filosofia Central: A Arquitetura Popperiana\nEsta arquitetura rejeita abordagens indutivas ao Corpus de Abstra\u00e7\u00e3o e Racioc\u00ednio (ARC). Em vez de assumir que uma IA pode \"aprender\" um padr\u00e3o por meio de mera repeti\u00e7\u00e3o ou otimiza\u00e7\u00e3o estat\u00edstica bruta, esse sistema opera estritamente como um Motor de Refuta\u00e7\u00e3o fundamentado na Epistemologia de Karl Popper (Teoria dos Tr\u00eas Mundos).\n\nMundo 1 (Realidade Emp\u00edrica / Dados Brutos): As matrizes da grade de entrada (0-9). Obtido por meio de dados brutos de sensores e observa\u00e7\u00e3o estrutural.\nMundo 2 (Processamento Conceitual): A gera\u00e7\u00e3o de conjecturas ousadas e hip\u00f3teses algor\u00edtmicas via o framework SEN-EF (Narrative Engineering System \u2014 Fiction Engineering).\nMundo 3 (Valida\u00e7\u00e3o Axiom\u00e1tica): O filtro formal e rigoroso do escudo REN-EF, onde a elimina\u00e7\u00e3o de erros opera sob m\u00e1xima fric\u00e7\u00e3o l\u00f3gica.\n\n2. Metodologia: Elimina\u00e7\u00e3o de Atrito Estrutural e Erro\nDiferentemente das arquiteturas neurais padr\u00e3o que minimizam uma fun\u00e7\u00e3o de perda cont\u00ednua, o Falsification Engine SEN-EF aplica um filtro bin\u00e1rio absoluto a cada candidato a programa gerado.\n\nFase de Conjectura (SEN-EF): O sistema gera hip\u00f3teses expl\u00edcitas e simb\u00f3licas de transforma\u00e7\u00e3o (regras para cores, geometria, simetria e escala).\nFase de Refuta\u00e7\u00e3o (REN-EF): Cada hip\u00f3tese \u00e9 testada agressivamente contra os pares de treinamento de uma tarefa ARC. Se uma conjectura falhar em um \u00fanico pixel, ela \u00e9 instantaneamente refutada e eliminada.\nCorrobora\u00e7\u00e3o: Apenas hip\u00f3teses que sobrevivem \u00e0 falsifica\u00e7\u00e3o absoluta s\u00e3o avan\u00e7adas para a grade final de avalia\u00e7\u00e3o.\n\n3. Implementa\u00e7\u00e3o T\u00e9cnica e Reprodutibilidade\nA execu\u00e7\u00e3o desse pipeline de l\u00f3gica simb\u00f3lica \u00e9 otimizada para velocidade, clareza e resili\u00eancia estrutural. O ambiente completo de processamento determin\u00edstico rodou perfeitamente na plataforma, gerando sa\u00eddas limpas sob restri\u00e7\u00f5es computacionais rigorosas.\n\nStatus da Execu\u00e7\u00e3o: Execu\u00e7\u00e3o conclu\u00edda com sucesso em 28,0 segundos.\nAuditabilidade: Totalmente em conformidade com os princ\u00edpios de verifica\u00e7\u00e3o distribu\u00edda (Consist\u00eancia, Coer\u00eancia, Rastreabilidade, Explicabilidade e Auditabilidade).\n\n4. Verifica\u00e7\u00e3o e Link do Caderno\nO reposit\u00f3rio completo, os logs de verifica\u00e7\u00e3o e o ambiente de execu\u00e7\u00e3o da fonte para esse modelo s\u00e3o totalmente p\u00fablicos e acess\u00edveis para revis\u00e3o por pares.\n\nReposit\u00f3rio P\u00fablico de Modelos/Cadernos: https://www.kaggle.com/models/itaframyahoocom/falsificacao-motor-sen-cf\n\nAutor: Estrutura Ita Fram\n\nFramework: Infraestrutura Central SEN-EF / REN-EF<img src=\"https://www.googleapis.com/download/storage/v1/b/kaggle-forum-message-attachments/o/inbox%2F35414425%2F1e858bf0c18acb846f5435cfef0ef910%2F764a85e9-3c7d-4e3a-869a-b1833afb4649.png?generation=1783004216450693&alt=media\" alt=\"! (opens in a new tab)\">\" />"
+        }
+      ]
+    },
+    {
+      "id": 696513,
+      "title": "Bibliography? 1500-word limit?",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/696513",
+      "comments": 1,
+      "votes": 1,
+      "signal_score": 2.43,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-08-15 09:47:24.240000",
+          "votes": 1,
+          "content": "Same question as @benedictehelfer , and one more on top of it: does the 1,500-word limit also apply if\nyou upload a PDF through the Public Project Link instead of writing it in the Kaggle\nWriteup editor? The Submission Requirements page mentions the PDF option but doesn't say\nwhether the word limit carries over to it.\n\nAsking because 1,500 words across all six required sections works out to about 250 words\neach, which is a very different paper than if the PDF route is unlimited. Would rather\nknow before writing it than after."
+        },
+        {
+          "author": "",
+          "date": "2026-05-02 15:31:51.083000",
+          "votes": 1,
+          "content": "Can a bibliography be included? If so, does the bibliography fit within the 1500-word limit?"
+        }
+      ]
+    },
+    {
+      "id": 694752,
+      "title": "Paper Track: one unified writeup for ARC-AGI-2 and ARC-AGI-3?",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/694752",
+      "comments": 1,
+      "votes": 1,
+      "signal_score": 2.43,
+      "category": "RULES_COMPLIANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-04-27 15:35:50.470000",
+          "votes": 1,
+          "content": "A unified paper is allowed - it will be judged according to the rubric as normal. However, if you think your paper could more clearly communicate it's finding and impact using just one ARC-AGI version that is fine too.\n\nYes, please use 1 notebook as your primary one when submitting the paper but also link to any other assets you'd like to as well"
+        },
+        {
+          "author": "",
+          "date": "2026-04-26 19:59:23.403000",
+          "votes": 1,
+          "content": "Hello, I am planning to participate in both ARC-AGI-2 and ARC-AGI-3.\n\nFor the Paper Track, if I make one submission to ARC-AGI-2 and one submission to ARC-AGI-3, should I submit:\n\none unified Paper Track writeup covering the shared conceptual/methodological approach behind both submissions, or\ntwo separate Paper Track writeups, one linked to the ARC-AGI-2 submission and one linked to the ARC-AGI-3 submission?\n\nAlso, if a unified writeup is allowed, should one submission ID/notebook still be selected as the primary linked submission for eligibility purposes?"
+        }
+      ]
+    },
+    {
+      "id": 692867,
+      "title": "How to start with?",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/692867",
+      "comments": 2,
+      "votes": 0,
+      "signal_score": 1.65,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-04-19 21:06:20.760000",
+          "votes": 1,
+          "content": "Here are more competition resources: https://arcprize.org/competitions/2026\n\nThis is the paper track which builds off the submissions in the ARC Prize 2026: ARC-AGI-3 and ARC-AGI-2 competitions"
+        },
+        {
+          "author": "",
+          "date": "2026-04-18 09:42:04.747000",
+          "votes": 0,
+          "content": "This is my first time to this competition of ARC, Can anyone tell how to start with?"
+        }
+      ]
+    },
+    {
+      "id": 698299,
+      "title": "can I just link my codes through GitHub?",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/698299",
+      "comments": 2,
+      "votes": 0,
+      "signal_score": 1.65,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-05-09 08:54:06.187000",
+          "votes": 0,
+          "content": "I honestly do not know how to make use of the notebook on Kaggle, however I have multiple pdf files of my work and progress already uploaded to my project that explains my theory, methodology, and tests. I also simply linked my GitHub repository to my project, is that allowed? I'd rather not waste my time trying to understand how to use something new when I can just use what I am already using if it works."
+        },
+        {
+          "author": "",
+          "date": "2026-05-09 13:42:51.827000",
+          "votes": 0,
+          "content": "Too many notebooks of same project is bad on kaggle. Use claude to merge all of them with proper markdowns and tell to create a one notebook for uploading on kaggle. Then download and upload it on kaggle. Hope this helps !"
+        }
+      ]
+    },
+    {
+      "id": 735361,
+      "title": "Does editing a Writeup reset its submission time for the tie-break?",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/735361",
+      "comments": 0,
+      "votes": 1,
+      "signal_score": 1.39,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-08-15 09:49:19.747000",
+          "votes": 1,
+          "content": "The Evaluation page says that in the event of a tie, the paper that was entered first to\nthe competition wins. We're also allowed multiple submissions per day.\n\nSo can a Writeup be edited or resubmitted after you've submitted it, and if it can, does\nthat reset the timestamp used for the tie-break? Or does the original submission time\nstill stand?\n\nIt makes a fairly big difference for planning. Either you submit a complete version early\nand keep improving it, or you hold one final version back until the end. Those are\nopposite strategies and right now there's no way to tell which one is correct.\n\nUnrelated but while I'm here: the Timeline page lists the paper deadline as November 9,\nbut arcprize.org says \"November 8, 2026 - Papers due\". Which one is binding?"
+        }
+      ]
+    },
+    {
+      "id": 684624,
+      "title": "How to get started + Competition's Official Discord",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/684624",
+      "comments": 0,
+      "votes": 2,
+      "signal_score": 0.0,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-03-25 16:40:45.363000",
+          "votes": 2,
+          "content": "Information for newbies\nNew to machine learning and data science? No question is too basic or too simple. Feel free to start your own thread, or use this thread as a place to post any first-timer clarifying questions for the Kaggle community to help you with!\n\nNew to Kaggle? Take a look at a few videos to learn a bit more about site etiquette, Kaggle lingo, and how to enter a competition using Kaggle Notebooks. Publish and share your models on Kaggle Models!\n\nLooking for a team? Express your interest in joining a team through our Team Up feature.\n\nRemember: Kaggle is for everyone. Whether you're teaming up or sharing tips in the competition forum, we expect everyone to follow our Kaggle community guidelines.\n\nCompetition's Official Discord\nIn addition to this competition forum, you can continue the discussion in our official Kaggle Discord Server here:\n\ndiscord.gg/kaggle\nThe Discord is a great place to ask getting started questions, chat about the nuances of this competition, and connect with potential team mates. Learn more about Discord at our announcement here. Here are a few things to keep in mind though:\n\n1. Discord Competition Channels are 'Public' - Don't Share Private Information\n\nDiscord channels for specific competitions are considered 'public' spaces where you are allowed to talk about competition details. Please remember that private sharing of competition code or data outside of your team is, as always, not permitted. Code sharing must always be done publicly through the Kaggle forums/notebooks.\n\n2. Discord Competition Channels are Not Monitored by Staff - Keep Important Information on the Kaggle Forums\n\nKaggle Staff and Hosts running competitions will not monitor Discord or be available to answer questions in Discord. This is intended to be a more casual space to discuss competitions and help each other. Please keep important questions, insights, writeups, and other valuable conversation on the Kaggle forums. \n\nHappy modeling!"
+        }
+      ]
+    },
+    {
+      "id": 694095,
+      "title": "what is the ARC Prize project",
+      "url": "/competitions/arc-prize-2026-paper-track/discussion/694095",
+      "comments": 1,
+      "votes": 0,
+      "signal_score": 0.0,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-04-23 15:06:51.720000",
+          "votes": 1,
+          "content": "Check out more information here\n\nhttps://arcprize.org/\n\nand here https://arcprize.org/competitions/2026"
+        },
+        {
+          "author": "",
+          "date": "2026-04-23 09:28:09.537000",
+          "votes": 0,
+          "content": "I'm a beginner not Understand this work what is working and solving this is but what is I'm working for this competition"
+        }
+      ]
+    }
+  ],
+  "rsna-knee-abnormality-detection": [
+    {
+      "id": 746792,
+      "title": "Reaching 0.949 with one CoAtNet: labels, native crops, and anatomical mirroring",
+      "url": "/competitions/rsna-knee-abnormality-detection/discussion/746792",
+      "comments": 48,
+      "votes": 32,
+      "signal_score": 32.83,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-07 19:34:51.060000",
+          "votes": 32,
+          "content": "Our best single-model submission scores 0.949 public AUC. We are sharing the accuracy recipe, our smaller 0.945 model for the efficiency track, and several changes that did not help.\n\nThe accuracy result uses one CoAtNet checkpoint trained at 384 pixels. At inference we take a native 320-pixel center crop and average probabilities from the original view and an anatomical left/right mirror. It is one learned model evaluated twice. The checkpoint itself averages three selected epochs from one training run, called SWA in our code.\n\nThe score history\nThese are ordinary, full twelve-finding public leaderboard scores. Rows describe successive pipeline configurations; their differences are not all isolated causal effects.\n\nConfiguration\nPublic AUC\nChange\n\nOur all-data CoAtNet, 80 slices and 78 windows\n0.939\nStarting point\n\n96 slices, native 384-pixel cache, 94 windows\n0.940\n+0.001\n\nBlend + JEV labels\n0.942\n+0.002\n\nSmaller 224-pixel crop model with epoch weight averaging\n0.940\n\u22120.002\n\nAdd external OAI knee examples with masked labels\n0.945\n+0.005\n\n384-pixel, full-field external-data recipe\n0.948\n+0.003\n\nSame weights, native 320-pixel inference crop\n0.948\n0.000\n\nSame weights and crop, anatomical mirror probability averaging\n0.949\n+0.001\n\nThe first density change also changed cached resolution and window count. Adding external examples increased training rows and optimizer updates, and the serving precision path changed. The 224-to-384 step also changed training crop geometry and the pretrained architecture variant. Those rows should be read as recipe comparisons rather than additive gains from individual factors.\n\nTraining and labels\nThe model is a timm CoAtNet backbone with finding-specific multiple-instance attention pooling. We trained on 4,349 report-labeled competition studies; the 58 expert-labeled studies were excluded from training but reused for selection. The weak targets combine our report-derived soft labels with the public label sources credited below. In the external-data recipe, 2,399 OAI knees brought the training set to 6,748 rows. PF OA, Lateral OA and Synovitis received external supervision; unavailable finding cells were masked rather than treated as negatives. Positive class weights remained based on RSNA labels.\n\nBoth released candidates use seed 42, 16 epochs, backbone learning rate 4.01e\u22125, head learning rate 0.00195 and weight decay 0.0588. Training used 12 windows per study, batch size 1 and gradient accumulation over 16 studies; gold evaluation used 24 windows. The smaller model averages epochs 15, 13 and 12; the accuracy model averages epochs 14, 11 and 12. These selected averages are called SWA in our code. Adding external examples increased the scheduled optimizer updates from 4,336 to 6,736, so that comparison is not compute-matched.\n\nThe final inference recipe\nEach study has 96 preprocessed slices across five sagittal, coronal, and axial series slots. We evaluate 94 three-slice windows, process them in chunks of 16, and use finding-specific attention over the complete window bag.\n\nFor the accuracy model, native 384\u00d7384 windows are cropped to pixels [32:352, 32:352]. No resize is applied. Sagittal left/right mirroring reverses the three slice channels; coronal and axial mirroring flips image width. We use the center slice to determine the window plane and apply the transform before normalization. We average the two sigmoid probability vectors equally. The existing final per-finding percentile ranking preserves their ordering.\n\nThe smaller model uses a 307-pixel center crop resized to 224 pixels, the same 94-window policy, FP16 autocast, and one view. It scores 0.945. Recorded submit-to-score turnaround was about 7.2 minutes for that entry and 26.1 minutes for the mirrored accuracy entry. These include queueing and orchestration; they are not official inference runtimes or efficiency ranks.\n\nWhat did not help\n\nTested change\nPublic AUC, reference \u2192 result\n\nOlder model: 94 windows reduced to 24\n0.940 \u2192 0.934\n\nOlder model: width-flip TTA across every imaging plane\n0.940 \u2192 0.939\n\nCurrent weights: native crop reduced from 320 to 304 pixels\n0.948 \u2192 0.947\n\nCurrent weights: native crop reduced from 320 to 288 pixels\n0.948 \u2192 0.946\n\nEpoch 14 instead of averaged weights, same 320-pixel inference\n0.948 \u2192 0.947\n\nFresh training with corrected batch-normalization checkpoint replay\n0.948 \u2192 0.944\n\nFresh native 320-pixel crop training, anatomical mirror inference\n0.949 \u2192 0.946\n\nThe all-plane width flip is different from anatomical mirroring, and it was tested on an older checkpoint. Its failure does not establish a controlled comparison between the mirror implementations. The new crop-trained model also failed to replace the incumbent despite encouraging gold diagnostics.\n\nOur 58 labeled studies were reused for checkpoint selection and development. They are useful diagnostics, not independent cross-validation. For example, epoch 14 improved gold AUC while losing on the public board. Rounded public-score differences, especially +0.001, do not establish statistical significance or a private-test gain.\n\nCredits and release references\nThanks to dreaddevelopment for the public Raptor CoAtNet/MIL recipe and baseline weights. That public checkpoint scored 0.924 in our baseline read; it is context, rather than a controlled starting point for the table. Our selected checkpoints were retrained. The public weak-label contributions include stevenleehans, pilkwang, and riadmohamed42's JEV labels and verification. We thank RSNA and the competition data contributors.\n\nReproducibility notebooks: accuracy, 0.949 and efficiency, 0.945. The selected learned weights are a separate minimal dependency. Both notebooks preserve the exact scored scientific inference source and checkpoint hashes, include hardware/environment requirements, and are saved statically without running inference. No OAI images, identifiers, records, raw reports, subject-level labels or predictions are distributed.\n\nBoth models used the same 2,399 baseline OAI knees; the unsuccessful 12-month arm is excluded from these release models. The public Study describes aggregate methods/results while its exact-input linkage manifest remains restricted to qualified researchers.\n\nData and/or research tools used in the preparation of this manuscript were obtained and analyzed from the controlled access datasets distributed from the Osteoarthritis Initiative (OAI), a data repository housed within the NIMH Data Archive (NDA). OAI is a collaborative informatics system created by the National Institute of Mental Health and the National Institute of Arthritis, Musculoskeletal and Skin Diseases (NIAMS) to provide a worldwide resource to quicken the pace of biomarker identification, scientific investigation and OA drug development. Dataset identifier(s): 10.15154/0hcg-f676.\n\nShared NDA Study \u00b7 DOI: 10.15154/0hcg-f676. Official acknowledgement source: NDA manuscript preparation.\n\nWhat worked for your models, and what looked promising locally but failed on the leaderboard? Please share useful negative results as well as improvements\u2014especially experiences with weak labels, crop geometry, and plane-aware augmentation."
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 07:33:46.803000",
+          "votes": 2,
+          "content": "Thanks for the detailed write-up and for releasing the weights and notebooks. The anatomical mirroring explanation and the \u201cwhat did not help\u201d table were especially useful."
+        },
+        {
+          "author": "",
+          "date": "2026-10-07 20:34:16.957000",
+          "votes": 6,
+          "content": "Be careful - OAI may not be an allowed external data source. I\u2019d read the host comments about dataset accessibility and then OAI\u2019s own rules before risking using it in model training."
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 09:34:57.393000",
+          "votes": 1,
+          "content": "Haven't seen such detailed and useful work in a long time."
+        }
+      ]
+    },
+    {
+      "id": 743416,
+      "title": "Please clarify which external knee MRI datasets are allowed",
+      "url": "/competitions/rsna-knee-abnormality-detection/discussion/743416",
+      "comments": 35,
+      "votes": 91,
+      "signal_score": 20.42,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-08 13:52:21.413000",
+          "votes": 12,
+          "content": "Hope this reply from NDA regarding intended accessibility of OAI dataset helps"
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 04:04:15.933000",
+          "votes": 4,
+          "content": "@javaduke95 Following your Aug 27 guidance (straightforward registration or click-through data-use agreements are generally acceptable; institution-specific approvals are not), could you give a yes/no on two specific points before final selections on Oct 22?\n\nOAI through the NIMH Data Archive (login.gov account + click-through data-use terms): is it allowed as external training data? Some participants report that NIH country restrictions block access from their location (e.g. China), which seems relevant to \"reasonably accessible to all\".\nPublicly released checkpoints trained partly on OAI (for example the checkpoint behind the public 0.949 notebook, shared under Apache 2.0): may other teams use them in their submissions?\n\nMany teams are now building on public notebooks that use such a checkpoint, so a clear answer would keep the leaderboard fair for everyone. Thank you!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-07 09:35:08.100000",
+          "votes": 8,
+          "content": "I would like to follow up on this question, as the status of several commonly used knee MRI datasets is still unclear.\n\nResource\nHost status\nAccess / licensing issue\n\nKneeCoT\nProhibited (host ruling)\nDownload is technically easy, but the dataset card requires a formal ethical-use agreement with the affiliated hospital\n\nStanford MRNet\nUnclear\nStanford AIMI / Redivis access; subject to research-use terms and dataset-specific access requirements\n\nStanford SKM-TEA\nUnclear\nStanford AIMI / Redivis access; registration and dataset-specific access requirements\n\nNYU fastMRI / fastMRI+\nUnclear\nApplication required, including institutional affiliation and proposed use; Data Sharing Agreement\n\nOAI\nUnclear\nNDA registration / controlled-access process; not simply an unrestricted public download\n\nKneeMRI\nUnclear\nPublic download, but CC BY-NC-ND 4.0; unclear whether training/releasing model weights is compatible with the NoDerivatives clause\n\nKneeXNet-2.5D\nUnclear\nPublicly released OAI-derived annotations/models; repository says research/educational use, but no explicit repository license identified\n\nGiven that KneeCoT is prohibited because of its institutional agreement requirement, could the hosts clarify whether datasets requiring comparable or more substantial access procedures are also prohibited?\n\nAt minimum, could the KneeCoT prohibition be pinned? Although the dataset card explicitly requires a formal ethical-use agreement with the affiliated hospital, the files themselves are relatively easy to access, and this requirement may easily be overlooked in practice. Given the dataset\u2019s large scale and its inclusion of knee MRI examinations, diagnostic reports, labels, VQA data, and reasoning annotations that closely overlap with this competition\u2019s tasks, its use could potentially lead to substantial score gains. A pinned notice would help prevent inadvertent use and ensure that all teams are operating under the same rules.\n\n@javaduke95"
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 04:42:45.703000",
+          "votes": 0,
+          "content": "I find the calls for a strict external-data ban in the name of \u201cfairness\u201d pretty LAUGHABLE \ud83d\ude00. How exactly is this supposed to be enforced, and what level playing field are we pretending exists?\n\nWe can use LLMs from Google, OpenAI, or Anthropic to extract labels from radiology reports or help annotate knee MRIs. We don\u2019t know their complete pretraining and post-training datasets. I\u2019m not claiming they were trained on any particular knee MRI dataset, but if these teachers are allowed, how do we establish that their labels contain no benefit from external data? Where exactly is the boundary?\n\nIn my experience, datasets such as fastMRI, fastMRI+, OAI, and MRNet are readily accessible because:\n\nYou don't need an academic institution email\nYou don't have to sign any agreement and wait for human approval\n\nHow would organizers verify that a winning model never used them? Rerunning an inference notebook verifies its predictions, not its training history. Independently reproducing the full training pipeline requires substantial time and compute that most participants cannot spare.\n\nAnd if the argument is equal opportunity, what about participants working with two T4 GPUs and Kaggle\u2019s limited weekly quota while others train on clusters of H200s/ B200s/ B300s ? An external-data ban leaves that disparity intact. If equal resources are the principle, apply it to compute too."
+        },
+        {
+          "author": "",
+          "date": "2026-09-26 01:52:06.163000",
+          "votes": 91,
+          "content": "Thank you to the hosts for organizing this challenge and for taking the time to answer questions throughout the competition. I appreciate that assessing third-party datasets individually is difficult, especially when their access requirements and licenses differ.\n\nQuestions about external knee MRI data are spread across several threads. Without a clear answer for commonly used datasets, teams may train under different assumptions about what is permitted, which makes it difficult to ensure a level playing field.\n\nI have read the original question, the registration-gated dataset question, and the institutional-agreement follow-up. There are also separate questions about pretrained weights and research-use agreements.\n\nThe host has explicitly ruled that KneeCoT is not allowed because its formal institutional agreement may create unequal access. The host has also explained that non-commercial terms alone do not exclude a dataset, while straightforward registration and substantial institutional approval may be treated differently. It remains unclear to me how these principles apply to the following resources:\n\nResource\nRelevant access or licensing issue\n\nStanford MRNet\nResearch-use agreement\n\nStanford SKM-TEA\nRegistration and data-use terms\n\nNYU fastMRI and fastMRI+\nData-sharing agreement for images; separately released annotations\n\nOsteoarthritis Initiative (OAI)\nData Use Certification \n\nKneeMRI\nCC BY-NC-ND 4.0\n\nKneeXNet-2.5D\nPublic OAI-derived annotated images and pretrained weights; no explicit repository license that I could identify\n\nCould the hosts give a yes or no for each resource under this competition's external-data rules? If the answer differs between training on the images and fine-tuning publicly released weights, please state that separately. It would also help to know whether using each resource is compatible with the winner's requirement to release the final model. I understand that teams remain responsible for complying with the original providers' terms.\n\nBecause the same question keeps appearing in different threads, could the hosts pin the answer in the Discussion so all teams can find and follow the same guidance?\n\n@javaduke95"
+        }
+      ]
+    },
+    {
+      "id": 735304,
+      "title": "Best single-model score",
+      "url": "/competitions/rsna-knee-abnormality-detection/discussion/735304",
+      "comments": 132,
+      "votes": 81,
+      "signal_score": 20.15,
+      "category": "SOTA_RECIPE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-10 15:08:57.977000",
+          "votes": 6,
+          "content": "LB0.945 no fold\n\nonly LLM labels. (no pseudo)"
+        },
+        {
+          "author": "",
+          "date": "2026-10-10 18:11:43.847000",
+          "votes": 1,
+          "content": "single fold Dinov2 (ViT) : 94.3. Best ensemble 95.1"
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 03:49:23.203000",
+          "votes": 9,
+          "content": "My public scores:\n\nConvNeXt-T (2.5D), single model: 0.953\nDINOv2 ViT-S (2.5D), single model: 0.951\nEnsemble of the two: 0.955\n\nBoth single models are trained with pseudo labels, so they are not pure report-label single models. No external data used yet, though."
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 04:07:21.933000",
+          "votes": 7,
+          "content": "model is not the key. it is your labels."
+        },
+        {
+          "author": "",
+          "date": "2026-08-14 23:38:09.840000",
+          "votes": 81,
+          "content": "What is the best score you\u2019ve achieved with a single model?\n\nI\u2019m trying to train a strong single model first before moving on to ensembling, and I\u2019m curious how far a single model can go.\n\nI\u2019ve noticed that most of the public solutions use ensembles of 20+ models and achieve around 0.91. For those scoring around 0.92\u20130.94 on the leaderboard, are you also using ensembles, or is it possible to reach that range with a single model?\n\nFor reference, my current best score is 0.887 with DINOv2."
+        }
+      ]
+    },
+    {
+      "id": 733343,
+      "title": "Knee Abnormality Detection AI Challenge Overview",
+      "url": "/competitions/rsna-knee-abnormality-detection/discussion/733343",
+      "comments": 15,
+      "votes": 98,
+      "signal_score": 19.35,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-08-06 15:54:27.877000",
+          "votes": 98,
+          "content": "Courtesy of Dr. Jacob Kazam\n\nOverview of the Clinical Problem\nThe 2026 RSNA Knee Abnormality Detection AI Challenge asks participants to build machine learning models that detect a defined set of clinically important abnormalities on knee MRI examinations. It is the first RSNA AI Challenge to pair every imaging study with the text of its original radiology report, and to do so across a large, multilingual, international dataset. Models may learn from both the images and the report text, reflecting how knee MRI is actually interpreted and communicated in clinical practice.\n\nThe knee is one of the most frequently injured and most frequently imaged joints in the body. Knee disorders are a major and growing cause of pain and disability worldwide, affecting athletes, manual workers, and older adults alike. The knee is the most common site of osteoarthritis, which affects nearly a quarter of adults aged 40 and older, an estimated 654 million people worldwide. Acute injuries are also common: knee injuries account for an estimated 15 to 40 percent of all sports-related injuries.\n\nSeveral structures are commonly involved. Anterior cruciate ligament (ACL) tears are among the most frequent sports injuries, often occurring during sudden pivots or changes of direction and leading to immediate instability. Medial collateral ligament (MCL) injuries typically result from outward (valgus) stress on the knee and frequently accompany other structural damage. Meniscal tears, which may be traumatic or degenerative, disrupt the joint\u2019s shock absorption and mechanics, producing pain, locking, and functional limitation. Cartilage loss, joint effusion, synovitis, bone contusions, fractures, and Baker (popliteal) cysts are additional findings that cause symptoms and influence management.\n\nMRI is central to evaluating the knee because it depicts all of these structures, including ligaments, menisci, articular cartilage, and bone, without ionizing radiation, providing a comprehensive whole-joint assessment that other modalities cannot match. However, MRI interpretation varies across readers and practice settings, and access to subspecialty-trained musculoskeletal (MSK) radiologists is limited in many parts of the world. Reliable, consistent automated detection of knee abnormalities could help extend expert-level interpretation, reduce variability, and support more timely care.\n\nThe goal of this competition is to develop machine learning models that detect twelve clinically important knee abnormalities, learning from a large international dataset of knee MRI examinations paired with their original, multilingual radiology reports.\n\nAnatomical Overview\nThe knee is a synovial hinge joint formed by three bones: the femur (thigh bone) above, the tibia (shin bone) below, and the patella (kneecap) in front. The ends of these bones are covered by articular cartilage, a smooth layer that allows near-frictionless motion and distributes load. The joint is enclosed by a capsule lined with synovium, which produces lubricating fluid; an abnormal excess of this fluid is termed a joint effusion, and inflammation of the synovium is termed synovitis.\n\nKnee anatomy: anterior view (top) and lateral view (bottom), showing the femur, tibia, patella, cruciate ligaments, and meniscus. Illustrations by BruceBlaus, CC BY 3.0, via Wikimedia Commons.\n\nFor the purposes of this challenge, the knee is considered in three compartments. The medial compartment lies between the medial femoral condyle and the medial tibial plateau, on the inner side of the knee. The lateral compartment lies between the lateral femoral condyle and the lateral tibial plateau, on the outer side. The patellofemoral compartment lies between the patella and the femoral trochlea, the groove on the front of the femur. Osteoarthritis, or cartilage loss, is assessed separately in each of these three compartments.\n\nFour ligaments stabilize the knee. The anterior cruciate ligament (ACL) and posterior cruciate ligament (PCL) lie within the joint, in the intercondylar notch, and control front-to-back stability and rotation. The medial collateral ligament (MCL) and lateral collateral ligament (LCL) run along the inner and outer sides of the knee and resist side-to-side stress. This challenge focuses on tears of the ACL and the MCL.\n\nBetween the femur and tibia sit two menisci, the medial meniscus and the lateral meniscus, C-shaped wedges of fibrocartilage that cushion the joint, absorb shock, and improve the fit between the rounded femur and the relatively flat tibia. Tears of the medial and lateral meniscus are evaluated separately.\n\nOther relevant structures include the bone marrow within the femur, tibia, and patella, where a bruise from impact is called a bone contusion (or bone marrow edema) and a break in the bone is a fracture; and the soft tissues behind the knee, where a fluid-filled outpouching of the joint lining is called a Baker, or popliteal, cyst.\n\nImaging Overview\nSeveral modalities can image the knee. Radiographs (X-rays) show bones and joint-space narrowing but cannot directly visualize ligaments, menisci, or cartilage. Ultrasound and CT have specific roles but offer limited soft-tissue contrast for the internal structures of the joint. Magnetic resonance imaging (MRI) is the reference standard for evaluating internal derangement of the knee because it provides excellent soft-tissue contrast, depicts ligaments, menisci, cartilage, and bone marrow simultaneously, and does not use ionizing radiation.\n\nA knee MRI examination is not a single image but a set of series, each acquired with a particular pulse sequence and in a particular imaging plane. The three standard planes are axial (cross-sectional, viewed as if looking up through the leg), coronal (a front-facing, side-to-side view), and sagittal (a side-profile, front-to-back view). Different structures are best seen in different planes; for example, the cruciate ligaments and menisci are well evaluated on sagittal and coronal images, and the patellofemoral cartilage on axial images.\n\nSequences differ in how they weight tissue signal. Fluid-sensitive sequences, such as proton-density or T2-weighted images, often with fat suppression, make edema, effusion, and tears appear bright and are central to detecting most abnormalities; a meniscal tear, for instance, appears as abnormally increased signal that reaches the surface of the meniscus on more than one image. Other sequences emphasize anatomy or cartilage detail. Interpreting a study therefore requires integrating information across multiple series, planes, and slices for the same knee, an inherently three-dimensional task.\n\nSagittal proton-density, fat-suppressed (fluid-sensitive) MRI of the knee, the type of sequence on which most abnormalities are detected. Image by Ptrump16, CC BY-SA 4.0, via Wikimedia Commons.\n\nFor the purpose of the 2026 Knee Abnormality Challenge, a \u201cfluid sensitive\u201d sequence refers to one in which edema, hemorrhage, and other types of fluid appear bright and fat is suppressed in some way.\n\nBecause findings can be subtle and the criteria for what counts as clinically significant are nuanced, interpretation varies between readers. This variability, combined with limited access to subspecialty MSK radiologists, motivates the development of consistent automated tools.\n\nLabel Description\nModels are evaluated on twelve binary labels, each indicating the presence or absence of a specific finding in the imaged knee. The labels, and the criteria used by the annotating radiologists, are summarized below. In each case, ambiguous or borderline findings (\u201con the fence\u201d) were graded as negative to favor specificity.\n\nACL tear: A high-grade partial or full-thickness tear of the anterior cruciate ligament, meaning complete discontinuity of the ligament, or more than 50 percent of fibers disrupted, with or without secondary signs such as characteristic pivot-shift bone contusions. Mild signal change, degeneration, or thickening without discontinuity is graded negative.\n\nMCL tear: A high-grade partial or complete acute tear of the medial collateral ligament, with disrupted fibers and edema within and adjacent to the ligament. Low-grade sprains and chronic or remote stress changes are graded negative.\n\nMedial meniscus tear: Abnormal signal that definitely contacts the meniscal surface on at least two images, or a morphologic abnormality such as a truncated, diminutive, or displaced fragment, involving the medial meniscus. Intrasubstance degeneration that does not reach the surface is negative.\n\nLateral meniscus tear: The same criteria applied to the lateral meniscus.\n\nMedial compartment osteoarthritis: A moderate or large area (roughly 1 cm or greater) of high-grade cartilage loss, defined as greater than 50 percent of cartilage thickness, in the medial compartment, with or without underlying subchondral marrow changes.\n\nLateral compartment osteoarthritis: The same criteria applied to the lateral compartment.\n\nPatellofemoral compartment osteoarthritis: The same criteria applied to the patellofemoral compartment.\n\nJoint effusion: A moderate or large amount of fluid distending the joint.\n\nSynovitis: Inflammation and thickening of the synovial lining of the joint.\n\nBaker (popliteal) cyst: A moderate or large fluid collection in the characteristic location behind the knee.\n\nContusion: A bone contusion, seen as bone marrow edema-like signal from impact, without a discrete fracture line.\n\nAcute fracture: An acute cortical break or fracture line.\n\nEach study in the annotated reference set was independently labeled by two subspecialty-trained MSK radiologists, with disagreements adjudicated by a third radiologist to produce a single consensus ground truth. Labels are assigned at the level of the whole examination, for a single knee.\n\nExamples\nThe following annotated examples, drawn from the challenge\u2019s image annotation guidelines, illustrate representative positive and negative cases for several of the labels. In each figure, yellow arrows and arrowheads mark the findings described in the caption."
+        },
+        {
+          "author": "",
+          "date": "2026-08-10 12:14:23.900000",
+          "votes": 7,
+          "content": "For the train.csv. It contains only 58 flagged labels. Rest are NaN.\nThose flags do not reflect what is the report. \nDoes the reports are the GT?"
+        },
+        {
+          "author": "",
+          "date": "2026-08-10 21:41:22.047000",
+          "votes": 4,
+          "content": "Thanks for the overview! For anyone getting started, the key insight is that this is a multi-label classification problem \u2014 each study can have multiple abnormalities present simultaneously. The 12 abnormality categories each need their own probability prediction."
+        },
+        {
+          "author": "",
+          "date": "2026-10-07 05:17:51.717000",
+          "votes": 0,
+          "content": "Hi study organizers: can you comment on how to deal with bilateral knee mri's in which both left and right side are within the same studyid? If there is only one label per studyid then how should this be resolved? Just report every positive in either knee? For example if left knee ACL is torn but right knee ACL is normal then how should it be labeled if both studies are within same studyid?"
+        }
+      ]
+    },
+    {
+      "id": 733965,
+      "title": "Use of Commercially Hosted LLMs",
+      "url": "/competitions/rsna-knee-abnormality-detection/discussion/733965",
+      "comments": 13,
+      "votes": 23,
+      "signal_score": 14.31,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-23 20:31:07.657000",
+          "votes": -1,
+          "content": "Thanks for the clarification! Just one quick question: if LLM-generated labels/embeddings from the reports are allowed, would it also be okay to use an external LLM to extract structured features like findings, laterality, or severity and combine those with MRI features?\n\nAnd would this be allowed at inference time only if those same features can be generated from the information available at inference?"
+        },
+        {
+          "author": "",
+          "date": "2026-08-09 09:52:50.447000",
+          "votes": 23,
+          "content": "Use of commercially hosted LLMs and other external inference services is permitted, provided that the service and method of use otherwise comply with the Competition Rules, including requirements that external data, models, software, and associated tools be reasonably accessible to all participants and of minimal cost. \n\nIn other words, for purposes of this competition, submitting Competition Data, including report text, to an external LLM or API for inference or other computational processing (for example, extracting labels from reports) will not, by itself, be considered prohibited PRIVATE SHARING of Competition Data outside the Team.\n\nPlease refer to the RSNA Knee Abnormality Detection Competition Rules.  This is in accordance to Section 2.6.b, EXTERNAL DATA AND TOOLS.\n\nThe PRIVATE SHARING restriction is intended to prohibit sharing Competition Data, code, or competition-specific work product with other participants, teams, or third parties for collaboration or competitive use outside the registered Team.\n\nParticipants remain responsible for ensuring that any external service complies with all applicable Competition Rules and the service's terms of use, including the requirements for reasonable accessibility and minimal cost.\n\nThe Competition Host reserves the right to determine whether a particular service, model, or configuration is reasonably accessible, is prohibitively costly, or otherwise creates an unfair competitive advantage."
+        },
+        {
+          "author": "",
+          "date": "2026-08-21 21:48:19.597000",
+          "votes": 1,
+          "content": "Ok, by the sentence: \"(for example, extracting labels from reports) will not, by itself, be considered prohibited PRIVATE SHARING of Competition Data outside the Team.\" i can conclude that i can use LLM API (i.e. openAI) to read the reports, which are actually in diifferent languages, to generate the labels, so i don't have to struggle?\nI know that the answer may be abvious but i just want to make 100% sure i can save me so much trouble and focus on model not in getting the target labels without been kicked out from the competence.\nThanks!"
+        },
+        {
+          "author": "",
+          "date": "2026-08-14 21:30:30.767000",
+          "votes": 3,
+          "content": "To make the dataset question above concrete: the Osteoarthritis Initiative (OAI) is free of charge and open to any researcher after a click-through data use agreement, but the agreement limits use to non-commercial research. The same access pattern covers MRNet, fastMRI+ and SKM-TEA, so a ruling on the category would settle it for essentially every public knee-MRI resource. Given the prize money, could the host confirm whether external datasets under research-only agreements are permitted, and if so whether the winners' open-source obligation is affected? Teams need this before committing pretraining work ahead of the entry deadline. Thank you."
+        }
+      ]
+    },
+    {
+      "id": 733375,
+      "title": "Welcome to Knee Abnormality Detection Challenge!",
+      "url": "/competitions/rsna-knee-abnormality-detection/discussion/733375",
+      "comments": 1,
+      "votes": 17,
+      "signal_score": 2.82,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-08-06 17:17:57.863000",
+          "votes": 17,
+          "content": "The knee is the largest joint in the human body, and MRI is central to diagnosing major sports injuries, trauma, and degenerative disease, but interpretation is demanding and access to subspecialty musculoskeletal expertise is uneven. \n\nThis challenge invites the RSNA and Kaggle community to build models that detect 12 clinically important knee abnormalities, spanning ligament and meniscal tears, osteoarthritis, effusion, synovitis, fracture, and more.\n\nThis is also RSNA\u2019s first AI Challenge to pair MRI examinations with original multilingual radiology reports. We hope that combination encourages creative, rigorous work that reflects the **real **clinical task: connecting images, language, and meaningful patient care.\n\nAnd don't forget the efficiency prizes!   \"Real world\" here also means striking a balance between label-level accuracy and efficient use of resources.\n\nA challenge dataset can make a large collaborative effort look deceptively simple. We are deeply grateful to the contributing institutions, radiologists, data and privacy teams, RSNA colleagues, and Kaggle team who made this possible.  \n\nAbove all, we owe it to you\u2026 every participant who will bring curiosity, technical skill, and healthy skepticism to the work. Whether this is your first Kaggle competition or your hundredth, we hope you will share reproducible ideas, learn from one another, and help move imaging AI forward thoughtfully. \n\nGood luck, and welcome.\n\nLearn more about the challenge and RSNA\u2019s AI Challenge program."
+        },
+        {
+          "author": "",
+          "date": "2026-08-21 20:27:28.497000",
+          "votes": 0,
+          "content": "It was great to read about it but i difinetly dont have any idea how to start with 500 gb dataset and 300 gb ssd drive). I would be glad if you can remove me from competition lists and thank you for great opportunity to read about ml medical research since it was just was partly covered by med engineering course in my university\u2026"
+        }
+      ]
+    },
+    {
+      "id": 730709,
+      "title": "How to get started + Competition's Official Discord",
+      "url": "/competitions/rsna-knee-abnormality-detection/discussion/730709",
+      "comments": 2,
+      "votes": 10,
+      "signal_score": 0.0,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-07-30 03:29:19.177000",
+          "votes": 10,
+          "content": "Information for newbies\nNew to machine learning and data science? No question is too basic or too simple. Feel free to start your own thread, or use this thread as a place to post any first-timer clarifying questions for the Kaggle community to help you with!\n\nNew to Kaggle? Take a look at a few videos to learn a bit more about site etiquette, Kaggle lingo, and how to enter a competition using Kaggle Notebooks. Publish and share your models on Kaggle Models!\n\nLooking for a team? Express your interest in joining a team through our Team Up feature.\n\nRemember: Kaggle is for everyone. Whether you're teaming up or sharing tips in the competition forum, we expect everyone to follow our Kaggle community guidelines.\n\nCompetition's Official Discord\nIn addition to this competition forum, you can continue the discussion in our official Kaggle Discord Server here:\n\ndiscord.gg/kaggle\nThe Discord is a great place to ask getting started questions, chat about the nuances of this competition, and connect with potential team mates. Learn more about Discord at our announcement here. Here are a few things to keep in mind though:\n\n1. Discord Competition Channels are 'Public' - Don't Share Private Information\n\nDiscord channels for specific competitions are considered 'public' spaces where you are allowed to talk about competition details. Please remember that private sharing of competition code or data outside of your team is, as always, not permitted. Code sharing must always be done publicly through the Kaggle forums/notebooks.\n\n2. Discord Competition Channels are Not Monitored by Staff - Keep Important Information on the Kaggle Forums\n\nKaggle Staff and Hosts running competitions will not monitor Discord or be available to answer questions in Discord. This is intended to be a more casual space to discuss competitions and help each other. Please keep important questions, insights, writeups, and other valuable conversation on the Kaggle forums. \n\nHappy modeling!"
+        },
+        {
+          "author": "",
+          "date": "2026-08-06 17:00:15.157000",
+          "votes": 0,
+          "content": "Thank you for the helpful introduction and resources! I'm excited to join this competition and learn from the community. The multimodal nature of this challenge looks both interesting and challenging. Looking forward to experimenting with different approaches, following the discussions, and improving my skills throughout the competition. Best of luck to everyone participating!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-01 14:11:45.400000",
+          "votes": 0,
+          "content": "Thanks @macruzbar!!!!"
+        }
+      ]
+    }
+  ],
+  "enveda-CASMI26-molecule-id-mass-spectra": [
+    {
+      "id": 741359,
+      "title": "Welcome to CASMI 2026!",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/741359",
+      "comments": 10,
+      "votes": 26,
+      "signal_score": 20.19,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-14 19:17:02.470000",
+          "votes": 26,
+          "content": "Welcome to CASMI 2026! Identifying molecules from their mass spectra is one of the most important challenges in life sciences, but the number of machine learning scientists who have worked on mass spectra is very small relative to the size and importance of the scientific problem. This creates a great opportunity to have a large impact in a short amount of time. Hence this competition!  \n\nThe kinds of methods that have been developed in recent years against standing benchmarks like MassSpecGym span a wide variety of approaches that resemble those used across technology and life sciences. We are very excited to see the approaches this community comes up with to tackle this problem. We are especially excited to be providing spectra for many molecules whose structures have not been previously described. \n\nA note on external data and licensing\n\nWe want everyone to have a fair and enjoyable competition, so a quick reminder on the use of external data and models.\n\nPer the competition rules, the winning solution cannot include any licenses that would otherwise prohibit commercial use or redistribution. When you submit a winning solution, you grant us, the Competition Sponsor, a license to that solution and represent that you have the unrestricted right to grant it. Any external data, models, or tools you rely on must be compatible with that license.\n\nWe're aware that datasets exist which carry licenses that fall into this category, i.e. terms that restrict commercial use or redistribution. These should be avoided. Solutions built on data or tools that cannot be commercially licensed will not be eligible to win, and we reserve the right to disqualify any submission that does not comply or can\u2019t be reproduced with allowed data and tools.\n\nAs always, any external data used must be publicly available and equally accessible to all participants.\n\nSpecial thanks to the Kaggle team Ashley, Walter, and Addison for all their support!\n\nHappy modeling!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 08:28:44.667000",
+          "votes": 0,
+          "content": "please who can help me with the reson why code has been saying submission error for like 4 submissions now?"
+        },
+        {
+          "author": "",
+          "date": "2026-10-03 12:41:53.387000",
+          "votes": 0,
+          "content": "Looking to form or join a team for CASMI 2026 - need two more people.\n\nWhere I'm at: I've completed a thorough EDA pass on the training data molecule-level train/validation splitting (to avoid spectra from the same structure leaking across both sets), rebalancing the heavy spectra-per-molecule skew, checking precursor mass and adduct coverage against the test set's documented ranges, and isolating a systematic adduct-mislabeling bug that was corrupting ~40k rows (traced to an adduct-standardization error, fixed rather than discarded). Background: final-year Biochemistry student, currently a Machine Learning Engineering intern, comfortable in Python and ML fundamentals, with real domain chemistry knowledge to bring to structure elucidation. Worth noting this is my first Kaggle competition specifically, though not my first serious ML project.\n\nWhat I need: two teammates who'll engage seriously and contribute real work I'm not filtering by experience level, just looking for genuine commitment. Complementary skills that would help a lot: cheminformatics/RDKit experience, deep learning or generative modeling (spectrum-to-structure especially), or bandwidth to help split up retrieval-baseline and modeling work.\n\nComment or DM if you're interested, or if you've got a team with a spot open.\n\n\u2014 Dara"
+        },
+        {
+          "author": "",
+          "date": "2026-10-02 00:18:40.510000",
+          "votes": 0,
+          "content": "What if I learn every concept from Gemini?? Means of python , data science and every skill needed?? Is it that reliable or I should use some different app?? Please guide me."
+        }
+      ]
+    },
+    {
+      "id": 741404,
+      "title": "A complete statistical tour of the data (EDA notebook)",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/741404",
+      "comments": 3,
+      "votes": 27,
+      "signal_score": 16.74,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-15 01:33:17.700000",
+          "votes": 27,
+          "content": "I went through this dataset column by column and wrote the whole thing up in a public notebook. Sharing it here because three of the findings change how you should set up your validation, and it seems better if we all start from the same picture of the data.\n\nhttps://www.kaggle.com/code/josefreitasalvesneto/casmi-2026-a-complete-statistical-tour\n\nA few things you may want to know before you write any preprocessing code:\n\nThe public leaderboard is measuring the wrong thing. The data page says the test file is \"comprised of examples from the training dataset\" \u2014 it turns out to be enveda-180 rows, and the ones I checked are byte-for-byte identical to training spectra. That library is drug-like screening chemistry, not the natural products the prize is decided on. I would not read anything into a public score.\nTest spectra only look 10x richer than training spectra. Median 230 raw peaks vs 27 \u2014 but 82% of the test peaks are below 1% relative intensity, and at a 1% floor the two land at 18 and 14. The apparent train/test shift is mostly noise floor.\nA plain library search already scores MRR@25 = 0.907 on natural products that have reference spectra. Novelty Class 1 is close to solved without any learning, which means the entire score differential is in Classes 2 and 3.\nThe notebook also covers the 11 source libraries and how little they overlap, chemical space, adducts, collision energy, neutral losses, and where the labels wobble. Every number is computed in the notebook, so you can check any of it yourself.\n\nCorrections very welcome \u2014 if something looks wrong, tell me and I will fix it. Good luck, everyone."
+        },
+        {
+          "author": "",
+          "date": "2026-09-15 16:06:23.807000",
+          "votes": 7,
+          "content": "Thanks for making this notebook, and welcome to CASMI 2026!\n\nJust to clarify something about the public leaderboard and test.parquet: the public leaderboard score is calculated not on the contents of the test.parquet downloadable dummy file (which as you say just contains a sample of Enveda-180 spectra and is there to demonstrate the size and scope and structure of the test data), but rather on the public split of the Hidden test set provided to your submission notebook."
+        },
+        {
+          "author": "",
+          "date": "2026-09-15 17:11:46.457000",
+          "votes": 3,
+          "content": "Thank you for sharing this detailed analysis. @josefreitasalvesneto I\u2019m still a beginner and learning step by step, but I\u2019m very interested in the chemistry + data science side of this competition.\nI\u2019m currently trying to organize the main areas that could be useful for this type of problem, including:\n\nCheminformatics\nMolecular structures, SMILES, fingerprints, molecular descriptors, similarity search.\nPython: RDKit\nQSAR / QSPR\nPredicting molecular or chemical properties using machine learning.\nPython: RDKit + Scikit-learn\nMolecular Property Prediction\nPredicting properties such as activity, toxicity, solubility, and other molecular characteristics.\nPython: RDKit + Scikit-learn / PyTorch\nMolecular Representation Learning\nLearning useful representations from SMILES, fingerprints, molecular graphs, and molecular features.\nPython: RDKit + PyTorch / TensorFlow\nGraph Neural Networks for Chemistry\nRepresenting atoms as nodes and chemical bonds as edges.\nPython: PyTorch Geometric / DGL + RDKit\nAI for Drug Discovery\nVirtual screening, molecular activity prediction, hit discovery, and lead optimization.\nPython: RDKit + DeepChem\nMolecular Generation / Generative Chemistry\nUsing generative models to create or modify molecules with desired properties.\nPython: RDKit + PyTorch + Transformers / diffusion models\nChemical Reaction Prediction\nReaction prediction, reaction classification, retrosynthesis, and reaction-condition prediction.\nPython: RDKit + reaction datasets + Transformer models\nMolecular Optimization\nOptimizing molecules toward specific chemical or biological objectives.\nPython: RDKit + Bayesian Optimization / evolutionary optimization\nVirtual Screening\nSearching large chemical libraries and ranking compounds that may match a target.\nPython: RDKit + similarity search + Mranking\nComputational Chemistry + Machine Learning\nCombining computational chemistry, molecular simulations, and ML.\nPython: RDKit + DeepChem + scientific Python tools\nChemometrics\nApplying statistics and machine learning to chemical and experimental data.\nPython: NumPy + Pandas + Scikit-learn + SciPy\nSpectroscopy + Machine Learning\nWorking with NMR, IR, Raman, and mass-spectrometry data.\nPython: NumPy + SciPy + Scikit-learn + PyTorch\nMaterials Informatics\nUsing data science and ML to discover and predict properties of materials and compounds.\nPython: pymatgen + Matminer + Scikit-learn / PyTorch\nI\u2019m also trying to collect books, research papers, courses, official documentation, GitHub repositories, Python libraries, datasets, and practical notebooks for each section, so I can understand both the theory and the implementation.\nYour analysis of the validation setup, source-library overlap, noise floor, adducts, collision energy, and especially the Class 1 vs. Classes 2\u20133 difference is very helpful. I\u2019ll definitely go through the notebook carefully before making assumptions about preprocessing or validation.\nI\u2019m still learning, so I may not understand everything correctly yet, but I\u2019d really appreciate any corrections or recommendations from people with more experience in computational chemistry and mass spectrometry.\nThank you again for sharing your work and helping everyone start from a better understanding of the data. \ud83d\ude4f\nGood luck with the competition!"
+        }
+      ]
+    },
+    {
+      "id": 743974,
+      "title": "All you need is a good ranker",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/743974",
+      "comments": 3,
+      "votes": 22,
+      "signal_score": 14.35,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-28 05:11:05.317000",
+          "votes": 22,
+          "content": "When I started this competition, I thought the hardest issue would be finding the right molecule. Turns out, the bottleneck is the ranker. (of course, excluding Regime C)\n\nFor instance, my CV scores MRR @ 25 : 0.584 in Regime B and 0.846 in Regime A\n\nAmong them, number of molecules not in my top 25 are very low:- (below are CV MRR scores)\n\nOn an unrelated note, it's so sad to see instances where the true structure isnt part of my guesses, but the guesses my pipeline makes is so close\n\nAlso, feel free to use my ranker if it helps anyone : https://claude.ai/artifact/VAQDJb8q7hLFyhv66hWMNL\n(It is still at Phase-0 and very unstable, so if anyone is using it, please share some feedback)\n\nIt is very useful to visualize and see where you went wrong and its very fun to visualize these molecules"
+        },
+        {
+          "author": "",
+          "date": "2026-09-28 14:52:38.853000",
+          "votes": 1,
+          "content": "Your dashboard is amazing! Simple but informative, did you use AI to make it? Could you open source the UI or prompt?"
+        },
+        {
+          "author": "",
+          "date": "2026-10-01 19:33:51.773000",
+          "votes": 0,
+          "content": "please what is the path to Concatenate key spectral metadata as tabular features: precursor_mz, ionization_mode, adduct (one-hot encoded), collision_energy_ev, and instrument_type."
+        }
+      ]
+    },
+    {
+      "id": 741666,
+      "title": "My Learning Roadmap for the Enveda CASMI 2026 Kaggle Competition",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/741666",
+      "comments": 0,
+      "votes": 22,
+      "signal_score": 14.27,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-16 16:46:55.087000",
+          "votes": 22,
+          "content": "I\u2019m still a beginner and learning step by step, and I\u2019m not participating in this competition at the moment. However, I found the chemistry + data science side of this problem very interesting, so I decided to organize the topics and resources that I think could be useful for understanding this type of challenge.\n\nI may misunderstand some parts, so corrections and recommendations from people working in computational chemistry, metabolomics, mass spectrometry, and machine learning are very welcome.\n\nMy goal here is not to present a solution, but to build a learning roadmap.\n\n1\ufe0f\u20e3 Cheminformatics\n\nUnderstanding molecules computationally:\n\nSMILES\nMolecular structures\nMolecular fingerprints\nMolecular descriptors\nMolecular similarity\n\n\ud83d\udc0d Main tool: RDKit\n\n\ud83d\udcda Resources:\n\nRDKit Documentation: https://www.rdkit.org/docs/\nRDKit Book: https://www.rdkit.org/docs/RDKit_Book.html\nRDKit Python Getting Started: https://www.rdkit.org/docs/GettingStartedInPython.html\n\nRDKit provides functionality for fingerprints, molecular similarity, descriptors, chemical features, and many other cheminformatics tasks.\n\n2\ufe0f\u20e3 QSAR / QSPR & Molecular Property Prediction\n\nUsing molecular representations and machine learning to predict chemical properties.\n\nUseful topics:\n\nMolecular descriptors\nFingerprints\nRegression / classification\nMolecular property prediction\nDataset splitting\nCross-validation\n\n\ud83d\udc0d Tools:\nRDKit + Scikit-learn + DeepChem\n\n\ud83d\udcda Resource:\n\nDeepChem Tutorials: https://deepchem.io/tutorials/\nDeepChem Book: https://deepchem.io/\n\nDeepChem includes tutorials covering molecular fingerprints, molecular featurization, graph convolutions, dataset splitting, and molecular machine learning.\n\n\ud83d\udcc4 Research:\n\nAnalyzing Learned Molecular Representations for Property Prediction: https://arxiv.org/abs/1904.01561\n\n3\ufe0f\u20e3 Molecular Representation Learning\n\nA molecule can be represented in many ways:\n\nSMILES \u2192 sequence\nFingerprint \u2192 vector\nMolecule \u2192 graph\nChemical descriptors \u2192 numerical features\n\nThe interesting question is: which representation captures the information needed by the model?\n\n\ud83d\udcda Useful resources:\n\nDeepChem Molecular ML tutorials: https://deepchem.io/tutorials/\nRDKit Book: https://www.rdkit.org/docs/RDKit_Book.html\n\n\ud83d\udcc4 Research:\n\nAnalyzing Learned Molecular Representations for Property Prediction: https://arxiv.org/abs/1904.01561\n\n4\ufe0f\u20e3 Graph Neural Networks for Chemistry\n\nRepresenting:\n\nAtoms \u2192 Nodes\nBonds \u2192 Edges\n\nThen using message passing to learn molecular representations.\n\n\ud83d\udc0d Tools:\n\nPyTorch Geometric: https://pytorch-geometric.readthedocs.io/\nDGL: https://www.dgl.ai/\nRDKit: https://www.rdkit.org/\n\n\ud83d\udcc4 Research:\n\nGraph Neural Networks for Molecules: https://arxiv.org/abs/2209.05582\nGeometric Deep Learning: https://arxiv.org/abs/2104.13478\n\nPyTorch Geometric provides a framework for GNNs and geometric deep learning, while research on molecular GNNs covers property prediction, molecular optimization, generation, and related tasks.\n\n5\ufe0f\u20e3 Mass Spectrometry / MS/MS \u2b50\n\nFor this competition, this is one of the areas I would study most carefully.\n\nImportant concepts include:\n\nMS1 / MS2\nPrecursor ions\nFragment ions\nm/z\nPeak intensity\nAdducts\nIonization modes\nCollision energy\nMass tolerance\nSpectral similarity\nSpectral libraries\n\n\ud83d\udc0d Python tools:\n\nmatchms\nhttps://matchms.readthedocs.io/\n\nGitHub:\nhttps://github.com/matchms/matchms\n\nmatchms is designed for importing, processing, cleaning, and comparing tandem mass spectra.\n\n6\ufe0f\u20e3 Spectral Similarity & Spectral Embeddings\n\nInstead of treating a spectrum as just a list of peaks, machine learning can learn relationships between fragments.\n\nOne interesting approach is Spec2Vec, inspired by Word2Vec.\n\nGitHub:\nhttps://github.com/iomega/spec2vec\n\nTutorial / practical notebooks:\nhttps://github.com/iomega/spec2vec_gnps_data_analysis\n\nThe repository includes practical notebooks for processing MS/MS data, calculating spectral similarities, and building molecular networks.\n\n\ud83d\udcc4 Research:\nSpec2Vec: Improved mass spectral similarity scoring through learning of structural relationships\n\nhttps://doi.org/10.1371/journal.pcbi.1008724\n\n7\ufe0f\u20e3 Molecular Identification From MS/MS\n\nThis is especially relevant to the competition.\n\nThe general problem can be viewed as:\n\nMass spectrum \u2192 possible molecular candidates \u2192 rank candidates\n\nImportant concepts:\n\nMolecular formula prediction\nStructure identification\nCandidate generation\nCandidate ranking\nSpectral matching\nFragmentation patterns\n\nOne important ecosystem to study is SIRIUS + CSI:FingerID.\n\nGitHub:\nhttps://github.com/sirius-ms/sirius\n\nSIRIUS documentation:\nhttps://v6.docs.sirius-ms.io/\n\nSIRIUS can use isotope and fragmentation information for molecular-formula identification and integrate tools such as CSI:FingerID for structure identification.\n\n8\ufe0f\u20e3 Spectral Libraries & External Chemical Data\n\nPotentially useful sources for understanding and experimenting with MS/MS data include:\n\n\ud83e\uddea GNPS\nhttps://gnpsdocs.readthedocs.io/\n\nGNPS provides spectral-library search, molecular networking, public MS/MS datasets, and tools for MS/MS identification and analysis.\n\n\ud83e\uddea MassBank of North America (MoNA)\nhttps://mona.fiehnlab.ucdavis.edu/\n\nMoNA provides downloadable mass-spectral collections, including experimental and LC-MS/MS spectra.\n\n\ud83e\uddea NIST Chemistry WebBook\nhttps://webbook.nist.gov/chemistry/\n\nNIST provides mass spectra for more than 33,000 compounds along with other chemical and physical data.\n\n9\ufe0f\u20e3 Machine Learning for MS/MS\n\nThis is where chemistry and ML become particularly interesting.\n\nPossible approaches include:\n\nClassical spectral similarity\nFingerprint-based retrieval\nNeural networks\nContrastive learning\nSpectral embeddings\nTransformer-based models\nCandidate retrieval + reranking\n\nOne interesting open-source example is MIST, which works with MS/MS spectra and molecular candidates.\n\nGitHub:\nhttps://github.com/samgoldman97/mist\n\nThe repository includes examples for candidate ranking and embedding mass spectra into a continuous representation space.\n\n\ud83d\udd1f Molecular Networking\n\nAnother useful concept is molecular networking.\n\nInstead of analyzing every spectrum independently:\n\nSpectrum \u2192 Spectrum similarity \u2192 Network \u2192 Molecular families\n\nGNPS documentation:\nhttps://gnpsdocs.readthedocs.io/en/latest/networking/\n\nThis represents spectra as nodes and spectral similarities as connections, allowing related molecules to form molecular families.\n\n1\ufe0f\u20e31\ufe0f\u20e3 Computational Chemistry + Machine Learning\n\nFor deeper study:\n\nMolecular simulation\nQuantum chemistry\nMolecular descriptors\n3D molecular representations\nML approximation of expensive calculations\n\n\ud83d\udcc4 Useful research:\n\nMolecular Property Prediction: A Multilevel Quantum Interactions Modeling Perspective\nhttps://arxiv.org/abs/1906.11081\n\nThis is probably a deeper direction rather than the first thing I would study for understanding the competition.\n\n1\ufe0f\u20e32\ufe0f\u20e3 Chemometrics\n\nThe statistical side of chemical data:\n\nPCA\nPLS\nFeature selection\nDimensionality reduction\nRegression\nClassification\nExperimental variation\n\n\ud83d\udc0d Tools:\n\nNumPy + Pandas + SciPy + Scikit-learn\n\nThis area is useful because chemical datasets are not only an ML problem; understanding measurement variability and experimental structure is also important.\n\n1\ufe0f\u20e33\ufe0f\u20e3 Spectroscopy + Machine Learning\n\nA broader area worth exploring:\n\nMass spectrometry\nNMR\nIR\nRaman\nUV/Vis\n\nThe ML pipeline can often look like:\n\nRaw/processed spectrum \u2192 preprocessing \u2192 representation \u2192 model \u2192 identification/prediction\n\nFor this competition, however, I would focus primarily on MS/MS rather than trying to study every spectroscopy field at once.\n\n\ud83d\udcda A few resources I would prioritize\n\nIf I had to organize the learning path, I would start with:\n\nRDKit\nhttps://www.rdkit.org/docs/\n\nDeepChem\nhttps://deepchem.io/\n\nmatchms\nhttps://matchms.readthedocs.io/\n\nGNPS\nhttps://gnpsdocs.readthedocs.io/\n\nSpec2Vec\nhttps://github.com/iomega/spec2vec\n\nSIRIUS\nhttps://github.com/sirius-ms/sirius\n\nMoNA\nhttps://mona.fiehnlab.ucdavis.edu/\n\nNIST Chemistry WebBook\nhttps://webbook.nist.gov/chemistry/\n\nMIST\nhttps://github.com/samgoldman97/mist\n\nDeepChem Book\nhttps://deepchem.io/\n\n\ud83e\udde0 What I am trying to understand\n\nAfter reading more about this competition, I think the interesting part is not simply:\n\n\u00ab\"Train a neural network on spectra.\"\u00bb\n\nThere are several layers:\n\nChemical structure\n\u2193\nIonization / adduct\n\u2193\nPrecursor ion\n\u2193\nFragmentation\n\u2193\nMS/MS spectrum\n\u2193\nSpectral representation\n\u2193\nCandidate retrieval\n\u2193\nCandidate ranking\n\u2193\nMolecular identification\n\nAnd this makes the problem interesting from both the chemistry and machine learning perspectives.\n\nI also want to understand the validation strategy carefully before making assumptions about preprocessing or modeling. Things such as source-library overlap, adducts, collision energy, noise, and differences between chemical classes can potentially affect how well a model generalizes.\n\nI\u2019m still learning, so I may have some things wrong. If you have experience with mass spectrometry, metabolomics, cheminformatics, computational chemistry, or ML for chemistry, I would really appreciate corrections, resources, or recommendations.\n\nI\u2019m sharing this mainly as a learning roadmap, not as a competition solution.\n\nThank you for reading, and good luck to everyone participating in the competition!"
+        }
+      ]
+    },
+    {
+      "id": 744470,
+      "title": "Chasing medals with price ineligible sources",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/744470",
+      "comments": 15,
+      "votes": 16,
+      "signal_score": 13.83,
+      "category": "RULES_COMPLIANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-09 18:27:33.243000",
+          "votes": 3,
+          "content": "You do not need NIST or any additional data for a better score."
+        },
+        {
+          "author": "",
+          "date": "2026-09-29 22:59:36.707000",
+          "votes": 16,
+          "content": "Well, pretty much this. Is using NIST dataset, gated weights etc. is going to be enforced somehow on gold medals? My Claude agent insist we need the NIST based model for better score \ud83e\udd23 Since I don't care about the money, I might as well go and do it if I can (?) Who knows maybe this is what top teams do already \ud83d\ude01\ud83d\ude05"
+        },
+        {
+          "author": "",
+          "date": "2026-10-02 01:53:51.920000",
+          "votes": 1,
+          "content": "Another Kaggle competition called \"Detect illegal use of forbidden training data (e.g., inducing poison data in hidden test data)\". I think some papers claim to \"detect\" training data, maybe it is possible"
+        },
+        {
+          "author": "",
+          "date": "2026-09-29 23:42:35.140000",
+          "votes": 6,
+          "content": "I\u2019m sorry, the NIST dataset is not permitted for solutions, any solution using or trained on NIST will be disqualified.  It is not freely available and its  license has restrictions on redistribution of itself or derivatives, including model weights."
+        }
+      ]
+    },
+    {
+      "id": 745715,
+      "title": "Visible test.parquet molecule_ids appear to leak class-1 answers",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/745715",
+      "comments": 11,
+      "votes": 22,
+      "signal_score": 12.0,
+      "category": "DATA_LEAK_SHIFT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-07 19:43:11.773000",
+          "votes": 4,
+          "content": "There is no overlap in IDs between train and test, or between dummy test and rerun test. It's a relatively low-observation test set, so participants should be careful that they don't interpret noise with causation."
+        },
+        {
+          "author": "",
+          "date": "2026-10-03 23:07:17.643000",
+          "votes": 22,
+          "content": "A public notebook (imranarif536/casmi26-v44-pairtail-locked-top1, V3, 0.417) hard-codes the 400 visible molecule_id \u2192 SMILES pairs (the structures of the train spectra copied into the dummy test file) and forces them to rank 1 for every row, unguarded; its previous version scored 0.402. That is only possible if (a) the hidden rerun reuses the visible molecule_ids and (b) for a substantial share of ids the dummy row's structure equals the hidden truth. Forks are spreading (two dozen teams at 0.416\u20130.418). Could you confirm whether molecule_ids are shared between the visible file and the hidden set, and shuffle/remap them before the final rerun? We are not using this and would prefer a level field."
+        },
+        {
+          "author": "",
+          "date": "2026-10-06 10:45:11.677000",
+          "votes": 2,
+          "content": "+1 from our team. We don't use the visible molecule_id to structure pairs in any form, neither in submissions nor for diagnostics, and we'd welcome a remap or shuffle of the molecule_ids before the final rerun (ideally with the visible placeholder built from structures outside the hidden set), so the final leaderboard reflects identification from the spectra alone. Thanks for raising this."
+        },
+        {
+          "author": "",
+          "date": "2026-10-03 23:44:15.387000",
+          "votes": 3,
+          "content": "Can the admin confirm if the shuffle/remap will be done? Above is accurate according to my test."
+        }
+      ]
+    },
+    {
+      "id": 745072,
+      "title": "Prize eligibility: code and weights shared in public Kaggle datasets with an \"Other (non-commercial)\" licence",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/745072",
+      "comments": 16,
+      "votes": 6,
+      "signal_score": 10.14,
+      "category": "RULES_COMPLIANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-06 07:40:28.920000",
+          "votes": 1,
+          "content": "Looks like the organizers aren\u2019t going to do anything about it."
+        },
+        {
+          "author": "",
+          "date": "2026-10-04 05:07:10.213000",
+          "votes": 1,
+          "content": "Adding to the questions above: several of these datasets (for example ahmedberatozer/casmi26-v4b-models, casmi26-v2-pool and casmi26-fpnet-full1) contain code together with models and tables derived from train.parquet, which you have confirmed can be open-sourced (threads 742265 and 743236).\n\nIf an author publicly relicenses such a dataset under MIT, Apache-2.0 or CC0, can it then be used in a prize-eligible solution?\nFor assets that keep a non-commercial licence: does using them only forfeit prize eligibility, or can it also affect leaderboard placement and medals?\n\nThank you!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-02 03:27:01.940000",
+          "votes": 6,
+          "content": "Hi David and the Enveda team,\n\nMany public notebooks in this competition run inference code and model weights stored in public Kaggle datasets. Examples are ahmedberatozer/casmi26-v4b-models, \n  -fpnet-full1, -v2-pool, -v3-models, -iceberg and -glacier. Their licence field is \"Other\". The v4b-models description says the assets are for use \"under the \n  (respective) source licenses (non-commercial, with attribution)\", because they are derived from the competition training data (CC BY-NC) and COCONUT (CC BY 4.0). The \n  training scripts for the weights are not published.\n\nWe have two questions about prize-eligible solutions:\n\nDoes Foundational Rule 6.b (Public Code Sharing) also cover code that was shared publicly for this competition inside Kaggle datasets? That rule says shared code is \ndeemed licensed under an OSI-approved licence that does not limit commercial use. If it does, a winning solution could include that code and deliver it under the MIT \nwinner licence.\n\nUnder rule 2.5.3, can a winning solution use those published pretrained weights as they are? We would deliver our own training and inference code plus references to \nthe public datasets, even though the code used to train the weights is not public.\n\nA short answer would help the many teams building on the public notebooks. Thank you!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-02 11:35:30.803000",
+          "votes": 1,
+          "content": "Hi David, a follow-up on the question above. Several public notebooks use ahmedberatozer/casmi26-v4b-models, -v3-models, -fpnet-full1 and -v2-pool. As far as we can tell they contain models and candidate pools trained or built only on train.parquet and COCONUT (CC BY 4.0), but their description says \"non-commercial, with attribution\", which seems inherited from the competition data's CC BY-NC licence. Given your earlier answer that models trained on train.parquet are fine for solutions, could you confirm these datasets are acceptable in a prize-eligible solution? Thanks."
+        }
+      ]
+    },
+    {
+      "id": 740671,
+      "title": "How to get started + Competition's Official Discord",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/740671",
+      "comments": 18,
+      "votes": 4,
+      "signal_score": 3.64,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-10 18:30:44.193000",
+          "votes": 4,
+          "content": "Welcome! \n\nInformation for newbies\nNew to machine learning and data science? No question is too basic or too simple. Feel free to start your own thread, or use this thread as a place to post any first-timer clarifying questions for the Kaggle community to help you with!\n\nNew to Kaggle? Take a look at a few videos to learn a bit more about site etiquette, Kaggle lingo, and how to enter a competition using Kaggle Notebooks. Publish and share your models on Kaggle Models!\n\nParticipants under 18 years old: If you are under 18 years old and want to participate in this competition, you need to submit a couple of forms:\n\nForm #1: Parent/Guardian consent for minor's use of kaggle.com. You only have to fill this out once, and it is valid for any competitions on Kaggle. If you already filled this out in the past, you can move on to the next form. \nForm #2: Parent/Guardian consent for minor's participation in Kaggle competition. You have to fill out form #2 for this and any future competitions you want to join. \nKids under 13 years of age are not allowed to participate on Kaggle. If you have any questions, please leave a comment and we'll follow up with you!\n\nLooking for a team? Express your interest in joining a team through our Team Up feature.\n\nRemember: Kaggle is for everyone. Whether you're teaming up or sharing tips in the competition forum, we expect everyone to follow our Kaggle community guidelines.\n\nCompetition's Official Discord\nIn addition to this competition forum, you can continue the discussion in our official Kaggle Discord Server here:\n\ndiscord.gg/kaggle\nThe Discord is a great place to ask getting started questions, chat about the nuances of this competition, and connect with potential team mates. Learn more about Discord at our announcement here. Here are a few things to keep in mind though:\n\n1. Discord Competition Channels are 'Public' - Don't Share Private Information\n\nDiscord channels for specific competitions are considered 'public' spaces where you are allowed to talk about competition details. Please remember that private sharing of competition code or data outside of your team is, as always, not permitted. Code sharing must always be done publicly through the Kaggle forums/notebooks.\n\n2. Discord Competition Channels are Not Monitored by Staff - Keep Important Information on the Kaggle Forums\n\nKaggle Staff and Hosts running competitions will not monitor Discord or be available to answer questions in Discord. This is intended to be a more casual space to discuss competitions and help each other. Please keep important questions, insights, writeups, and other valuable conversation on the Kaggle forums. \n\nHappy modeling!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 08:29:32.153000",
+          "votes": 0,
+          "content": "please who can help me with the reson why code has been saying submission error for like 4 submissions now? Thank you very much"
+        },
+        {
+          "author": "",
+          "date": "2026-10-03 10:39:51.703000",
+          "votes": 0,
+          "content": "Looking to form or join a team for CASMI 2026 - need two more people.\n\nWhere I'm at: I've completed a thorough EDA pass on the training data molecule-level train/validation splitting (to avoid spectra from the same structure leaking across both sets), rebalancing the heavy spectra-per-molecule skew, checking precursor mass and adduct coverage against the test set's documented ranges, and isolating a systematic adduct-mislabeling bug that was corrupting ~40k rows (traced to an adduct-standardization error, fixed rather than discarded). Background: final-year Biochemistry student, currently a Machine Learning Engineering intern, comfortable in Python and ML fundamentals, with real domain chemistry knowledge to bring to structure elucidation. Worth noting this is my first Kaggle competition specifically, though not my first serious ML project.\n\nWhat I need: two teammates who'll engage seriously and contribute real work I'm not filtering by experience level, just looking for genuine commitment. Complementary skills that would help a lot: cheminformatics/RDKit experience, deep learning or generative modeling (spectrum-to-structure especially), or bandwidth to help split up retrieval-baseline and modeling work.\n\nComment or DM if you're interested, or if you've got a team with a spot open.\n\n\u2014 Amirah"
+        },
+        {
+          "author": "",
+          "date": "2026-10-01 19:25:55.073000",
+          "votes": 0,
+          "content": "please what is the route to Concatenate key spectral metadata as tabular features: precursor_mz, ionization_mode, adduct (one-hot encoded), collision_energy_ev, and instrument_type."
+        }
+      ]
+    },
+    {
+      "id": 742186,
+      "title": "Looking for teammates/ Chemistry & ML Background. I am a graduate of Pure and Industrial Chemistry that has 5 months of ML experience. I seek people who are very good at feature engineering, data analysis and chemistry.",
+      "url": "/competitions/enveda-CASMI26-molecule-id-mass-spectra/discussion/742186",
+      "comments": 22,
+      "votes": 1,
+      "signal_score": 0.0,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-24 21:46:32.503000",
+          "votes": 1,
+          "content": "I work in bio/protein ML and would like to collab: https://www.linkedin.com/in/zachary-cohen-220a96343/"
+        },
+        {
+          "author": "",
+          "date": "2026-09-20 15:29:39.560000",
+          "votes": 1,
+          "content": "Please who has a good idea of what the competition entails?"
+        },
+        {
+          "author": "",
+          "date": "2026-09-22 09:46:56.197000",
+          "votes": 0,
+          "content": "I'm doing my Bsc Mining Engineering and have done some Machine learning projects from Thrive Africa. you can see one of them in the link https://github.com/kwabenantiamoahlarbi-art/smart-crop-advisor. I'd like to join your group."
+        },
+        {
+          "author": "",
+          "date": "2026-09-22 00:04:04.003000",
+          "votes": 0,
+          "content": "I would like to join your team. I\u2019m David, bsc in soil and environmental management, Msc in Computer Engineering, Msc in Soil science. I\u2019m a research Data scientist. Currently working on a lot of ML model. Hit me up if needed."
+        }
+      ]
+    }
+  ],
+  "nfl-big-data-bowl-2027": [
+    {
+      "id": 747086,
+      "title": "Clarification on private cloud and AI-assisted data processing",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/747086",
+      "comments": 2,
+      "votes": 0,
+      "signal_score": 5.65,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-08 15:37:24.093000",
+          "votes": 0,
+          "content": "A private cloud workspace and an AI coding assistant are both fine. External tools and models, LLMs included, are allowed under General Rules \u00a72.6, as long as they're reasonably accessible and low cost."
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 04:58:07.663000",
+          "votes": 0,
+          "content": "I\u2019ve joined personally and want to use a private cloud workspace with an AI coding assistant. What conditions apply to raw-data processing, retention, model training and provider access under \u00a72.4? If the raw data stays in Kaggle, may an external assistant receive samples or analytical outputs, or should it only help with code?"
+        }
+      ]
+    },
+    {
+      "id": 747584,
+      "title": "Dataset Row Count Discrepancies Between Data Description and Downloaded CSV Files",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/747584",
+      "comments": 2,
+      "votes": 1,
+      "signal_score": 5.03,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-09 03:07:40.893000",
+          "votes": 1,
+          "content": "Hello NFL Big Data Bowl 2027 organizers,\n\nI noticed some discrepancies between the row counts listed in the competition's Data page and the actual CSV files provided in the downloadable dataset.\n\nHere is a comparison:\n\nFile\nRows Listed on Data Page\nActual CSV Rows\n\nplayer_play.csv\n316,338\n314,197\n\ngame_tracking_2023.csv\n1,421,805\n3,665,443\n\ngame_tracking_2024.csv\n3,042,118\n7,827,944\n\ngame_tracking_2025.csv\n4,339,021\n11,160,903\n\nTo verify these differences, I:\n\nDownloaded the competition dataset twice from Kaggle.\nConfirmed that both downloaded ZIP archives are identical using SHA256.\nConfirmed that all nine CSV files in my working directory match the downloaded archives byte-for-byte.\nIndependently counted CSV records using both Pandas and Python's standard-library csv.reader, excluding header rows.\n\nBoth counting methods produced the same results, and the discrepancies remained.\n\nInterestingly, the file sizes of the three game_tracking CSV files appear consistent with those listed on the Data page, despite the substantial differences in row counts.\n\nCould you please clarify:\n\nAre the row counts on the Data page based on a different dataset version or filtering convention?\nAre the CSV files currently available for download the intended files for this competition?\nShould participants use the actual CSV records as provided, or is there an additional preprocessing or filtering step expected before analysis?\n\nI want to ensure that my analysis is based on the correct dataset and follows the intended data definitions.\n\nThank you very much for your time and clarification!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 13:37:01.240000",
+          "votes": 0,
+          "content": "Hello organizers, I independently reproduced the exact CSV row counts reported above. I also checked bidirectional linkage between the three game_tracking files and player_play.csv using the composite key (game_id, play_id, nfl_id), after collapsing tracking frames to unique player-play keys.\n\nTracking keys without a matching player_play record: 2023: 449; 2024: 857; 2025: 1,191; total: 2,497. Conversely, player_play records without tracking: 293, 661 and 796 respectively; total: 1,750.\n\nThe 2,497 unmatched tracking keys are concentrated in roster positions WR (1,760), TE (721) and FB (16). They include 2,233 REG, 79 POST and 185 PRE keys. For 2,288 of them, player_play contains another player on the same game/play; for 209, the entire game/play pair is absent. No null or duplicate tracking composite keys, orphan player IDs or orphan game IDs were found.\n\nCould you please clarify whether these are intended player-level or play-level exclusions, and whether a corrected player_play.csv or source-version/filtering notice is available? In particular, should analyses using receiver context retain these as missing, or is there an official eligibility/filter rule? We have preserved the exceptions and have not imputed missing context. Thank you."
+        }
+      ]
+    },
+    {
+      "id": 746678,
+      "title": "Pass-rush opportunities and missing metric values",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/746678",
+      "comments": 3,
+      "votes": 0,
+      "signal_score": 4.08,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-07 17:53:39.060000",
+          "votes": 1,
+          "content": "Hello,\n\nThanks for the question. I agree it can be confusing.\n\nWhen quick pressure or time to pressure is NA and blitz is TRUE, that means there was no pressure.\n\nWhen quick pressure is false, that means a pressure occurred but it cannot be described as \"quick\".\n\nplayer_get_off is NA if the player never crosses the line of scrimmage (although this is very rare).\n\nDoes that answer your questions?"
+        },
+        {
+          "author": "",
+          "date": "2026-10-07 17:13:55.687000",
+          "votes": 0,
+          "content": "For player_play, which fields identify every pass-rush opportunity, including ordinary non-blitz rushes that produce no pressure? The dictionary defines blitzing for blitz participation and quick_pressure = 1.0 for pressure within 2.50 seconds, but does not specify whether quick_pressure = 0 means an observed non-event or what null means. On an eligible rush, can null distinguish a non-rush from an unobserved outcome? Also, is player_get_off recorded for every eligible rusher, and how are rushers who never cross the line of scrimmage represented? Clarifying these definitions would help avoid conditioning the denominator on successful or observed outcomes. Thank you."
+        }
+      ]
+    },
+    {
+      "id": 746521,
+      "title": "What about NFL Big Data Bowl 2027 - Prediction",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/746521",
+      "comments": 1,
+      "votes": 2,
+      "signal_score": 3.24,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-07 12:43:16.823000",
+          "votes": 2,
+          "content": "There are no plans to launch a prediction competition this year."
+        },
+        {
+          "author": "",
+          "date": "2026-10-07 12:39:20.673000",
+          "votes": 2,
+          "content": "@tombliss, Is there any possibility that a prediction competition will be launched this year?"
+        }
+      ]
+    },
+    {
+      "id": 746995,
+      "title": "Ask for joining a Team",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/746995",
+      "comments": 5,
+      "votes": 2,
+      "signal_score": 2.88,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-08 01:40:20.257000",
+          "votes": 2,
+          "content": "Hi, anyone who need a data science for your team, inviting me please.\n\nBackground: I got bechelor degree of computer science, and master of operating system structure and master of AI in University of Auckland. \n\nExperience: Worked at Softbank Robotics for 7 years, and Currently being a Business Analytics Consultant. \n\nThanks"
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 19:42:14.983000",
+          "votes": 0,
+          "content": "Hi everyone! \ud83d\ude0a I'm looking for a team to join for this competition. I'm interested in data analytics and machine learning, and I'm excited to learn, contribute, and work with others on this challenge. I'm still growing my skills, so if your team is open to collaborating and learning together, I'd love to connect! \ud83c\udfc8\ud83d\udcca"
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 15:26:47.407000",
+          "votes": 0,
+          "content": "What about the four of us?  I love football and analytics but have only recently take a liking to it and have a very basic understanding.  Would love to do the best I can and learn more with some experienced people"
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 10:56:12.520000",
+          "votes": 0,
+          "content": "Recent CS grad, worked as software developer for 8 months, did ML specialization of Andrew Ng, if suitable you can mail me at mustafaraza6372@gmail.com"
+        }
+      ]
+    },
+    {
+      "id": 747108,
+      "title": "combine_tracking.csv: nfl_id on BALL frames \u2014 are we reading this correctly? (plus two small notes)",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/747108",
+      "comments": 2,
+      "votes": 0,
+      "signal_score": 1.65,
+      "category": "DATA_LEAK_SHIFT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-08 15:39:38.507000",
+          "votes": 1,
+          "content": "Hello,\n\nThanks for the question on the combine tracking data -- the data dictionary was incorrect so we updated it. When the entity type is ball, the nfl_id represent the corresponding player in given event_id.\n\nWith respect to players without an in-game record, the 13 players who do not have in-game record did not ever make it to the field. You could use this information to as part of your analysis (i.e. perhaps their combine performance led to them never receiving the opportunity) or focus on those who do have on field plays.\n\nFollowing up on the question about NA values, those are plays where a penalty occurs to kill the play before it starts. Unfortunately, we do not have a value for lined_up_position for those plays."
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 13:46:29.720000",
+          "votes": 0,
+          "content": "Thank you for the clarification. One additional completeness check may help participants defining the sample as the 497 players with in-game records.\n\nOur audit of the supplied files, collapsing game tracking to unique (game_id, play_id, nfl_id) keys before joining, found 2,497 tracking player-play keys without a matching player_play record (2023: 449; 2024: 857; 2025: 1,191). Conversely, 1,750 player_play records have no matching tracking key. The unmatched tracking keys are concentrated in WR (1,760), TE (721) and FB (16); 2,233 are regular-season keys. These counts describe linkage exceptions, not duplicate tracking frames or additional players.\n\nA practical safeguard is to audit both sides of the join, retain unmatched keys in an exception table, and report coverage for the actual analytical cohort before filtering to complete cases. Restricting to players with at least one in-game record does not, by itself, establish complete player-play context. We are preserving the missing context rather than imputing it while awaiting the organizers' explanation.\n\nThe detailed findings and question are already posted in the row-count discussion: https://www.kaggle.com/competitions/nfl-big-data-bowl-2027/discussion/747584\n\nThis is a linkage safeguard, not a correction to the source data or a claim that the exclusions are erroneous."
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 05:48:23.443000",
+          "votes": 0,
+          "content": "Hi organizers,\n\nThe Data tab describes nfl_id in combine_tracking.csv as \"int64 / null\" with the note \"Null for\nBALL tracking frames.\" When we read the competition data as distributed, we get something we do\nnot fully understand, and we would like to confirm the intended semantics before we lock our\nfeature pipeline.\n\nWhat we observe (verified twice: once in a Kaggle notebook with pandas, and once with a plain\nPython stdlib CSV parser over the downloaded files):\n\nAcross all 463,189 rows of combine_tracking.csv, nfl_id is never null \u2014 for PLAYER rows and\nfor BALL rows alike (0 null rows in the whole file).\nOf the 6,310 drill attempts, 551 contain BALL frames, and those frames appear only in\nSKILL_DRILLS_WR and SKILL_DRILLS_TE.\nIn all 551 of those events, the BALL frames carry exactly one nfl_id, and it is identical to\nthe nfl_id on the PLAYER frames of the same event.\nThat leaves 54 players with any ball tracking at all (37 WR, 16 TE, 1 FB), so we are treating\nball tracking as a secondary/appendix analysis rather than the core of our submission.\n\nOur questions:\n  (a) Is the intended reading that a BALL row is attributed to the athlete performing that drill?\n  (b) Is ball tracking expected to remain limited to these 54 players, or is broader ball\n      coverage available somewhere we have not looked?\n\nTwo smaller notes, in case they are useful to other participants:\n\nplayer_play.csv contains 314,197 rows in the distributed files, and covers 497 of the 510\n players and 1,001 of the 1,002 games (the file catalog describes 316,338 rows). We are\n defining our sample as the 497 players with in-game records and will state this explicitly\n in the writeup \u2014 is that the intended interpretation?\nlined_up_position uses the literal string \"NA\" for \"not applicable\" (1,383 rows), which most\n pandas pipelines silently convert to a missing value. Just flagging it.\n\nThank you!"
+        }
+      ]
+    },
+    {
+      "id": 748114,
+      "title": "Reference Point for player_get_off",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/748114",
+      "comments": 1,
+      "votes": 0,
+      "signal_score": 1.04,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-11 09:24:56.753000",
+          "votes": 0,
+          "content": "It is based off the ball location at snap. This information is not provided in the competition."
+        },
+        {
+          "author": "",
+          "date": "2026-10-10 17:12:06.670000",
+          "votes": 0,
+          "content": "What reference point does player_get_off use for the line of scrimmage, and is the ball\u2019s position available anywhere in the tracking?"
+        }
+      ]
+    },
+    {
+      "id": 746316,
+      "title": "How to Get Started + Competition's Official Discord",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/746316",
+      "comments": 5,
+      "votes": 9,
+      "signal_score": 0.0,
+      "category": "RULES_COMPLIANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-08 07:30:49.003000",
+          "votes": 2,
+          "content": "Hi, I need help. I gave Kaggle access to Discord. After authorisation, it gave me an error message: \"Invalid field 'iss'\""
+        },
+        {
+          "author": "",
+          "date": "2026-10-06 19:38:19.953000",
+          "votes": 9,
+          "content": "Information for First Timers\nNew to machine learning and data science? No question is too basic or too simple. Feel free to start your own thread, or use this thread as a place to post any first-timer clarifying questions for the Kaggle community to help you with!\n\nNew to Kaggle? Take a look at a few videos to learn a bit more about site etiquette, Kaggle lingo, and how to enter a competition using Kaggle Notebooks. Publish and share your models on Kaggle Models!\n\nLooking for a Team? Express your interest in joining a team through our Team Up feature.\n\nRemember: Kaggle is for everyone. Whether you're teaming up or sharing tips in the competition forum, we expect everyone to follow our Kaggle community guidelines.\n\nCompetition's Official Discord\nIn addition to this competition forum, you can continue the discussion in our official Kaggle Discord Server here:\n\ndiscord.gg/kaggle\nThe Discord is a great place to ask getting started questions, chat about the nuances of this competition, and connect with potential team mates. Learn more about Discord at our announcement here. Here are a few things to keep in mind though:\n\n1. Discord Competition Channels are 'Public' - Don't Share Private Information\n\nDiscord channels for specific competitions are considered 'public' spaces where you are allowed to talk about competition details. Please remember that private sharing of competition code or data outside of your team is, as always, not permitted. Code sharing must always be done publicly through the Kaggle forums/notebooks.\n\n2. Discord Competition Channels are Not Monitored by Staff - Keep Important Information on the Kaggle Forums\n\nKaggle Staff and Hosts running competitions will not monitor Discord or be available to answer questions in Discord. This is intended to be a more casual space to discuss competitions and help each other. Please keep important questions, insights, writeups, and other valuable conversation on the Kaggle forums. \n\nHappy modeling!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-09 13:46:45.223000",
+          "votes": 0,
+          "content": "A small pandas example can keep the two linkage levels separate. Combine athletes link to players on nfl_id; game tracking links to player_play on (game_id, play_id, nfl_id). BALL rows carry the associated athlete's nfl_id, as Tom clarified in discussion/747108, so filter entity_type == \"PLAYER\" before calculating athlete movement.\n\nimport pandas as pd\n\ndef linkage_checks(combine_tracking, players, game_tracking, player_play):\n    athlete_ids = (\n        combine_tracking.loc[combine_tracking[\"entity_type\"].eq(\"PLAYER\"), [\"nfl_id\"]]\n        .drop_duplicates()\n    )\n    athlete_link = athlete_ids.merge(\n        players, on=\"nfl_id\", how=\"left\", validate=\"one_to_one\", indicator=True\n    )\n    keys = [\"game_id\", \"play_id\", \"nfl_id\"]\n    if game_tracking[keys].isna().any().any():\n        raise ValueError(\"Null game-tracking join key: review before merging\")\n    if player_play[keys].isna().any().any():\n        raise ValueError(\"Null player_play join key: review before merging\")\n    if player_play.duplicated(keys).any():\n        raise ValueError(\"Duplicate player_play key: review before merging\")\n    tracking_keys = game_tracking[keys].drop_duplicates()\n    play_link = tracking_keys.merge(\n        player_play[keys], on=keys, how=\"outer\",\n        validate=\"one_to_one\", indicator=True\n    )\n    return athlete_link, play_link\n\n# Load identifiers with consistent dtypes across files.\n# _merge: both = linked; left_only = tracking without context;\n# right_only = context without tracking.\n\nKeep unmatched records visible rather than silently dropping them or filling missing context with zero. Our independent join audit is posted in discussion/747584. Tom's clarification in discussion/747108 also distinguishes the 13 prospects who never reached the field from missing player-play context for an observed tracking record. Those represent different research questions.\n\nThe helper above was checked with synthetic matched/unmatched records, repeated tracking frames, BALL frames and invalid keys; this is a linkage illustration, not a new audit of the competition files."
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 17:15:00.427000",
+          "votes": 0,
+          "content": "Hello,\n\nI would like to confirm my eligibility for the NFL Big Data Bowl 2027 University Track.\n\nI am 23 years old and currently enrolled as an engineering student at City University in Lebanon.\n\nI am completing a five-year engineering program, which follows the Lebanese higher education system. I am currently in my final semester and expect to graduate in June 2027.\n\nI would like to participate individually in the University Track.\n\nCould you please confirm:\n\nAm I eligible to participate in the University Track as a student enrolled at a university in Lebanon?\nDoes my five-year engineering program meet the undergraduate or graduate student requirement?\nAm I eligible to receive cash prizes if selected as a finalist or winner?\nWould I need to provide proof of university enrollment?\n\nThank you for your time and clarification.\n\nBest regards."
+        }
+      ]
+    },
+    {
+      "id": 748104,
+      "title": "Beyond 40-Yards: 10Hz Acceleration & Longevity",
+      "url": "/competitions/nfl-big-data-bowl-2027/discussion/748104",
+      "comments": 0,
+      "votes": 0,
+      "signal_score": 0.0,
+      "category": "SOTA_RECIPE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-10 16:34:14.100000",
+          "votes": 0,
+          "content": "I just published my Notebook for the NFL Big Data Bowl 2027: Beyond 40-Yards: 10Hz Acceleration & Longevity.\n\nKey Takeaways:\n\nSimpson's Paradox: Proved that combine tracking data must be segmented by position to reveal true signals.\n\nKinematic Signals vs. Chronometers: Peak acceleration in drill-specific tracking data (like pass-rush drops and lateral wave drills) is a much stronger predictor of NFL career longevity (total_snaps) than traditional 40-yard dash times.\n\nModel: Improved baseline validation RMSE from 799.55 to 649.94 using LightGBM with native NaN handling for drill-specific features.\n\nCheck it out and let me know your thoughts! Upvotes and feedback are greatly appreciated! \ud83c\udfc8"
+        }
+      ]
+    }
+  ],
+  "gemma-4-developer-agent": [
+    {
+      "id": 742807,
+      "title": "Clarification on distillation from external LLMs",
+      "url": "/competitions/gemma-4-developer-agent/discussion/742807",
+      "comments": 11,
+      "votes": 46,
+      "signal_score": 17.43,
+      "category": "METRIC_NUANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-29 14:58:14.727000",
+          "votes": 6,
+          "content": "Hello and thank you for your question and your patience. As long as you are using those models in accordance with their model license terms, and the output you're using to submit to that competition doesn't 'conflict with the license requirement of the rules of this competition, you may use them."
+        },
+        {
+          "author": "",
+          "date": "2026-09-23 15:38:32.633000",
+          "votes": 46,
+          "content": "Hi organizers,\n\nMy understanding is that using external LLM APIs to generate synthetic training data has generally been allowed in recent Kaggle competitions. Given Section 2.6, I would expect this to be permitted here as well, subject to the competition\u2019s external data and model requirements.\n\nCould you clarify whether participants may use proprietary models, such as OpenAI Astra or Claude Opus 5.5, to generate code patches and agent trajectories for training Gemma specifically for this competition?\n\nRegarding provider restrictions on developing competing models, my current understanding is that training a model solely for this competition may be permissible, while deploying or using the resulting model outside the competition could raise separate concerns. I recognize that participants remain responsible for complying with their providers\u2019 terms.\n\nWith that distinction in mind, could you clarify:\n\nDoes the competition allow this form of distillation from proprietary API models? Are there any restrictions on which teacher models may be used?\nAre there different requirements for proprietary API teachers versus open-weight teachers?\nHow would a model intended solely for competition use fit with the winner licensing and release requirements under Sections 2.5 and 2.8? In particular, would winners need to release the trained weights or adapters for unrestricted use outside the competition?\n\nExamples of acceptable teacher models would be very helpful.\n\nThank you!"
+        },
+        {
+          "author": "",
+          "date": "2026-09-24 10:46:39.967000",
+          "votes": 6,
+          "content": "Hi @cnumber,\n\nWe are confering and will have an answer for you soon."
+        },
+        {
+          "author": "",
+          "date": "2026-09-25 14:51:19.727000",
+          "votes": 1,
+          "content": "I'm looking at using distillation methods for open source models as well. I'm not against open sourcing my training data results from the distillation process as I have a tool that does this for Gemma 4 already developed. I'm curious what they decide on here!\n\nEdit: Here is my KD tool which I'll be updating for this competition Ghostwriter"
+        }
+      ]
+    },
+    {
+      "id": 747519,
+      "title": "Update on \"Kaggle Error\" Submissions & Queue Delays",
+      "url": "/competitions/gemma-4-developer-agent/discussion/747519",
+      "comments": 53,
+      "votes": 27,
+      "signal_score": 16.65,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-11 15:52:06.773000",
+          "votes": -1,
+          "content": "Unfortunately, this issue has also prevented me from submitting another notebook the following day, causing me to lose valuable competition time and submission opportunities."
+        },
+        {
+          "author": "",
+          "date": "2026-10-11 13:47:48.230000",
+          "votes": -1,
+          "content": "Hi Team! My previous submission has been running for more than 24 hours, which is preventing me from making any new submissions. Could you please look into this and help resolve it?"
+        },
+        {
+          "author": "",
+          "date": "2026-10-11 07:32:07.727000",
+          "votes": -2,
+          "content": "Hi team!\nI\u2019ve run into a technical hiccup. My notebook has been running for over 12+ hrs, and it\u2019s blocking my submission, and since I already have an updated version ready, I can\u2019t submit it until this is resolved. Could you please help?\nThanks so much."
+        },
+        {
+          "author": "",
+          "date": "2026-10-10 16:01:50.570000",
+          "votes": 4,
+          "content": "The current queue delay is around ~33h, so yes, your submission isn't stuck, its making its way towards the front of a long line of submissions. If its been >33h, its likely running right now and your score will arrive once it finishes, scores have continued to work its just incredibly high demand and finite supply.\n\nThanks for your patience everyone, we will continue to do what we can."
+        },
+        {
+          "author": "",
+          "date": "2026-10-08 22:09:44.427000",
+          "votes": 27,
+          "content": "Hi everyone,\n\nI wanted to give an update on the long submission wait times and \"Kaggle Error\" failures many of you have been seeing over the past couple of days.\n\nWhat Happened\nDue to very high submission volume using L4s, submission jobs have been facing long queue times before actually getting a machine to run. Submissions that waited >15h to start were being marked as \u201cKaggle Error\u201d even if they eventually did run.\n\nWhat We Fixed\n\nExtended Queue Timeout: We've drastically extended the queue allowance so submissions will no longer be timed out while waiting to run.  \nScoring Submissions that had Queue Timeouts: We are actively reprocessing all affected submissions from the past few days. If your notebook ran to completion and produced a valid submission file, it is being scored and published to the leaderboard automatically. You should already see scores showing up on the leaderboard now.  \nQueue Wait Times: to even some of the load on the pool, we are implementing a pending submission limit (separate from the 1/day limit). If your team's previous submission is still scoring, you will need to wait until it finishes to submit again.\n\nWhat This Means for You\n\nNo action needed: You do not need to resubmit or contact support to recover an affected run; our batch recovery is processing them directly.  \nMonitor this post for updates\n\nThanks for your patience while we sort this out, and sorry for the frustration it caused over the last few days."
+        }
+      ]
+    },
+    {
+      "id": 748287,
+      "title": "New Gemma 4 Models Available: 12B, E4B, and E2B",
+      "url": "/competitions/gemma-4-developer-agent/discussion/748287",
+      "comments": 12,
+      "votes": 15,
+      "signal_score": 13.39,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-11 11:48:20.757000",
+          "votes": 15,
+          "content": "Hi everyone,\n\nWe've added support for several smaller Gemma 4 variants. You can now use any of the following models for your agents:\n\ngemma-4-31b-it-qat-w4a16-ct\ngemma-4-12b-it-qat-w4a16-ct\ngemma-4-e4b-it-qat-w4a16-ct\ngemma-4-e2b-it-qat-w4a16-ct\n\nWe don't support mixing variants within a submission, however. Every agent and subagent in your submission must use the same variant (though they can attach different LoRA adapters.)\n\nThese smaller models open up some new strategies:\n\nMore test time compute: Inference is faster and memory burden lower so you can execute more and longer reasoning turns and iteration cycles. You could also experiment with using ParallelAgent for concurrent LLM calls (though tool calls are still executed sequentially).\nFaster and more accessible LoRA finetuning: Experiment with different setups more quickly and on more accessible GPUs. We provide L4x4s for use in interactive notebooks, but adapters can now be finetuned on a wider variety of consumer hardware.\nMore specialized agents: Smaller models use smaller LoRA adapters, so you can include more of them in your submission.\n\nWe're excited to see what you build!"
+        },
+        {
+          "author": "",
+          "date": "2026-10-11 14:48:34.150000",
+          "votes": 2,
+          "content": "Hi, here is a well-known issue, already fixed on v2.** upstream, but as we are using still v1.36  . Parallel agent is not gonna work : https://github.com/google/adk-python/issues/7324#issuecomment-5868428151"
+        },
+        {
+          "author": "",
+          "date": "2026-10-11 19:03:25.467000",
+          "votes": 0,
+          "content": "thx appreciate the options this opens."
+        },
+        {
+          "author": "",
+          "date": "2026-10-11 18:30:02.290000",
+          "votes": 0,
+          "content": "@ryanholbrook  One question about timing: is the scorer's vLLM server configured exactly like the Getting Started notebook (tensor_parallel_size=4, max_model_len=32768, gpu_memory_utilization, prefix caching and any max_num_seqs settings), for every variant?"
+        }
+      ]
+    },
+    {
+      "id": 743683,
+      "title": "Rerunning Failed Submissions",
+      "url": "/competitions/gemma-4-developer-agent/discussion/743683",
+      "comments": 93,
+      "votes": 21,
+      "signal_score": 13.0,
+      "category": "BUG_ALERT",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-11 19:06:35.717000",
+          "votes": -1,
+          "content": "what to do please? my submission is scoring for 48h? i cant submit until this is resolved"
+        },
+        {
+          "author": "",
+          "date": "2026-10-11 06:43:48.590000",
+          "votes": -1,
+          "content": "Hi. Can you please take a look at my submission. It is running for 2 days already. Thanks"
+        },
+        {
+          "author": "",
+          "date": "2026-10-11 05:20:06.027000",
+          "votes": -1,
+          "content": "Hi, my S4 submission has remained at \u201cNotebook Running\u201d for approximately two days. It was submitted on October 9 and uses the single-agent shell repair loop. The submission details still show no score or more specific execution status.\n\nCould you please confirm whether this is waiting for L4x4 resources, actively executing, or stalled during evaluation? If it is stuck because of the current queueing issue, is a rerun possible?\n\nI have not submitted a duplicate. Thank you."
+        },
+        {
+          "author": "",
+          "date": "2026-10-10 14:08:41.550000",
+          "votes": -1,
+          "content": "My submission is running for 14hours +"
+        },
+        {
+          "author": "",
+          "date": "2026-09-26 12:01:49.977000",
+          "votes": 21,
+          "content": "Hi everyone,\n\nSome submissions since yesterday were failing with \"Your notebook has requested more CPU, GPU or TPU resources than are available.\" I believe I've resolved the issue, though please let me know if you're still having issues. I will rerun the affected submissions on Monday so that you won't be losing a submission."
+        }
+      ]
+    },
+    {
+      "id": 743007,
+      "title": "Welcome to the Gemma 4 Developer Agent Competition",
+      "url": "/competitions/gemma-4-developer-agent/discussion/743007",
+      "comments": 9,
+      "votes": 11,
+      "signal_score": 8.42,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-09-24 15:59:36.203000",
+          "votes": 11,
+          "content": "Hello Kagglers,\n\nToday\u2019s most capable software engineering agents rely on massive, closed-source models running in the cloud, leaving advanced autonomous development tools out of reach for many developers.\n\nWith Gemma 4, we want to change that.\n\nOur challenge to you is to push the boundaries of open-source models and post-train Gemma 4 into an autonomous coding agent capable of navigating real-world repositories and reliably resolving software engineering tasks on consumer-grade hardware. To help you get started, we\u2019ve provided a starter submission, development tasks, and a corresponding dataset of structured code graphs with pre-computed embeddings for repository-level retrieval.\n\nWhether you explore parameter-efficient fine-tuning, novel reinforcement learning approaches, or graph-based code reasoning, we want to see how far you can take local, open models. \n\nWe can't wait to see the agents you build and the solutions you invent!\n\nGoogle Research and The Gemma Team"
+        },
+        {
+          "author": "",
+          "date": "2026-09-28 14:08:15.187000",
+          "votes": 1,
+          "content": "L4 \u00d74 session is queued for very long time."
+        },
+        {
+          "author": "",
+          "date": "2026-10-06 14:58:18.043000",
+          "votes": 0,
+          "content": "Excited to participate in this challenge! We've been experimenting with an AST-based semantic skeletonization pipeline to overcome the 32k context bottleneck on massive SWE-bench repositories\n(compressing structural token footprints by ~95% while preserving full class hierarchies and function\nsignatures).\nCombining this with a 3-agent hierarchical triad (Scout, Synthesizer, Sandbox Verifier) running across 4x NVIDIA L4 GPUs via vLLM has shown great promise for surgical unified diff patches. Looking forward to\nlearning from the community's approaches! Best of luck to everyone."
+        },
+        {
+          "author": "",
+          "date": "2026-10-05 08:01:38.097000",
+          "votes": 0,
+          "content": "here i have a doubt that can we make agents work in parallel to solve tasks so we can increase time for solving each task and eval_config.yaml has no concurrency key so we can implement it as we what or you will decide it"
+        }
+      ]
+    },
+    {
+      "id": 745998,
+      "title": "Note on Code Graphs for Async Functions",
+      "url": "/competitions/gemma-4-developer-agent/discussion/745998",
+      "comments": 0,
+      "votes": 7,
+      "signal_score": 4.16,
+      "category": "RULES_COMPLIANCE",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-05 17:37:49.017000",
+          "votes": 7,
+          "content": "There have been a number of discussion posts pointing out that async def functions are not included in the code graph tools. This is true and is an issue for some of the public tasks in fastapi and httpx. \n\nHowever, it is not an issue for any of the private repo tasks. \n\nNone of the private repo tasks touch any functions defined with async def. Additionally, async def functions are rare within the private repos as a whole, at most 1.8% of functions. \n\nAs a result, we will not be doing an update to the private tasks' code graphs."
+        }
+      ]
+    },
+    {
+      "id": 742815,
+      "title": "How to get started + Competition's Official Discord",
+      "url": "/competitions/gemma-4-developer-agent/discussion/742815",
+      "comments": 2,
+      "votes": 6,
+      "signal_score": 0.0,
+      "category": "GENERAL_DISCUSSION",
+      "messages": [
+        {
+          "author": "",
+          "date": "2026-10-04 12:01:26.573000",
+          "votes": 1,
+          "content": "Please review this discussion https://www.kaggle.com/competitions/gemma-4-developer-agent/discussion/745775"
+        },
+        {
+          "author": "",
+          "date": "2026-09-23 16:34:50.717000",
+          "votes": 6,
+          "content": "Information for newbies\nWelcome! \nNew to machine learning and data science? No question is too basic or too simple. Feel free to start your own thread, or use this thread as a place to post any first-timer clarifying questions for the Kaggle community to help you with!\n\nNew to Kaggle? Take a look at a few videos to learn a bit more about site etiquette, Kaggle lingo, and how to enter a competition using Kaggle Notebooks. Publish and share your models on Kaggle Models!\n\nParticipants under 18 years old: If you are under 18 years old and want to participate in this competition, you need to submit a couple of forms:\n\nForm #1: Parent/Guardian consent for minor's use of kaggle.com. You only have to fill this out once, and it is valid for any competitions on Kaggle. If you already filled this out in the past, you can move on to the next form. \nForm #2: Parent/Guardian consent for minor's participation in Kaggle competition. You have to fill out form #2 for this and any future competitions you want to join. \nKids under 13 years of age are not allowed to participate on Kaggle. If you have any questions, please leave a comment and we'll follow up with you!\n\nLooking for a team? Express your interest in joining a team through our Team Up feature.\n\nRemember: Kaggle is for everyone. Whether you're teaming up or sharing tips in the competition forum, we expect everyone to follow our Kaggle community guidelines.\n\nCompetition's Official Discord\nIn addition to this competition forum, you can continue the discussion in our official Kaggle Discord Server here:\n\ndiscord.gg/kaggle\nThe Discord is a great place to ask getting started questions, chat about the nuances of this competition, and connect with potential team mates. Learn more about Discord at our announcement here. Here are a few things to keep in mind though:\n\n1. Discord Competition Channels are 'Public' - Don't Share Private Information\n\nDiscord channels for specific competitions are considered 'public' spaces where you are allowed to talk about competition details. Please remember that private sharing of competition code or data outside of your team is, as always, not permitted. Code sharing must always be done publicly through the Kaggle forums/notebooks.\n\n2. Discord Competition Channels are Not Monitored by Staff - Keep Important Information on the Kaggle Forums\n\nKaggle Staff and Hosts running competitions will not monitor Discord or be available to answer questions in Discord. This is intended to be a more casual space to discuss competitions and help each other. Please keep important questions, insights, writeups, and other valuable conversation on the Kaggle forums. \n\nHappy modeling!"
+        },
+        {
+          "author": "",
+          "date": "2026-09-28 15:13:10.203000",
+          "votes": 0,
+          "content": "I get invalid invite error in discord, is it a problem in my side or others have the same problem as well?"
+        }
+      ]
+    }
+  ]
+}

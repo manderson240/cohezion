@@ -358,11 +358,24 @@ async def _dispatch_headless_cli(
 
     if model.lane == Lane.CLOUD_CLAUDE:
         binary = "claude"
+        mid = model.model_id.lower()
+        if "fable" in mid:
+            cli_model = "fable"
+        elif "opus" in mid:
+            cli_model = "opus"
+        elif "sonnet" in mid:
+            cli_model = "sonnet"
+        elif "haiku" in mid:
+            cli_model = "haiku"
+        else:
+            cli_model = model.model_id
+
         cli_args_tail: list[str] = [
             "-p",
             prompt,
+            "--bare",
             "--model",
-            model.model_id,
+            cli_model,
             "--output-format",
             "json",
             "--no-session-persistence",
@@ -647,7 +660,7 @@ async def route(
 async def extend_claude(
     prompt: str,
     *,
-    claude_model: str = "claude-sonnet-4-6",
+    claude_model: str = "claude-sonnet-5-5",
     quality_threshold: float = 0.8,
     max_local_attempts: int = 2,
     timeout: float = 30.0,
@@ -847,7 +860,7 @@ async def extend_claude_aligned(
     prompt: str,
     *,
     params,
-    claude_model: str = "claude-sonnet-4-6",
+    claude_model: str = "claude-sonnet-5-5",
     quality_threshold: float = 0.8,
     max_local_attempts: int = 2,
     timeout: float = 30.0,

@@ -72,7 +72,7 @@ class HarnessPool:
     def available(self) -> int:
         return sum(1 for s in self._slots if not s.busy)
 
-    async def acquire(self, *, timeout: float = 60.0) -> HarnessSlot:
+    async def acquire(self, *, timeout: float = 300.0) -> HarnessSlot:
         """Wait for a free slot. Raises asyncio.TimeoutError on timeout.
 
         FIX (2026-04-18 review edge-case #8): previously if ``wait_for`` cancelled
@@ -124,7 +124,7 @@ def get_pool() -> HarnessPool:
 
 
 async def dispatch_through_harness(
-    model_id: str, prompt: str, *, timeout: float = 60.0
+    model_id: str, prompt: str, *, timeout: float = 300.0
 ) -> tuple[str, float, Harness]:
     """Run ``prompt`` against an Ollama cloud ``model_id`` via an available harness.
 

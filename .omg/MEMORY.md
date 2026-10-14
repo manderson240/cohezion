@@ -14,4 +14,5 @@
 - [Security Review](.omg/rules/security-review.md) | Triggers on auth, tokens, secrets, or permission surfaces
 - [Kaggle Discipline](.omg/rules/kaggle-discipline.md) | Triggers on Kaggle competition code, kernels, and submissions
 - [Hardware Safety](.omg/rules/hardware-safety.md) | Triggers on local model execution and memory allocation
+- [Subagent Delegation](.omg/rules/subagent-delegation.md) | Triggers on complex workflows, local inference, and competition ascents
 - [Dual-Store Persistence](.omg/rules/dual-store-persistence.md) | Triggers on learning cycles and retrospective extraction

@@ -76,6 +76,58 @@ def main():
                 sys.exit(1)
 
 
+    # 2.5 Docker-Python Compatibility Check for Kaggle Notebooks
+    kaggle_notebooks = [f for f in staged_files if f.startswith("scripts/kaggle/") and f.endswith(".ipynb")]
+    if kaggle_notebooks:
+        try:
+            from pathlib import Path
+            verifier_path = Path(__file__).resolve().parent / "docker_python_verifier.py"
+            if verifier_path.exists():
+                import importlib.util
+                spec = importlib.util.spec_from_file_location("docker_python_verifier", verifier_path)
+                if spec and spec.loader:
+                    dpv = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(dpv)
+                    for nb in kaggle_notebooks:
+                        ok, missing = dpv.verify_file(Path(nb))
+                        if not ok:
+                            print(f"\n❌ Commit blocked: '{nb}' contains unbundled dependencies not in Kaggle docker-python: {missing}")
+                            print("Please attach offline wheel datasets or adjust imports before committing.")
+                            sys.exit(1)
+        except Exception as e:
+            print(f"⚠️ Docker-python pre-commit check note: {e}")
+
+    # 2b. AutoHarness Invariant Factory Static AST & Bytecode Verification (arXiv:2603.03329v1)
+    if kaggle_notebooks:
+        try:
+            from cohezion.compound.invariant_factory import AutoHarnessInvariantFactory
+            COMP_MAP = {
+                "arc2": "arc-prize-2026-arc-agi-2",
+                "arc-agi-2": "arc-prize-2026-arc-agi-2",
+                "arc3": "arc-prize-2026-arc-agi-3",
+                "arc-agi-3": "arc-prize-2026-arc-agi-3",
+                "rsna": "rsna-knee-abnormality-detection",
+                "casmi": "enveda-CASMI26-molecule-id-mass-spectra",
+                "gemma": "gemma-4-developer-agent",
+            }
+            for nb in kaggle_notebooks:
+                matched_comp = "budget_limit_invariant"
+                for prefix, cid in COMP_MAP.items():
+                    if prefix in nb.lower():
+                        matched_comp = cid
+                        break
+                inv_res = AutoHarnessInvariantFactory.compile_and_verify(Path(nb), matched_comp)
+                if inv_res.has_critical_violations or not inv_res.bytecode_valid:
+                    print(f"\n❌ Commit blocked by AutoHarness Invariant Factory: '{nb}'")
+                    for v in inv_res.violations:
+                        if v.severity.value == "P0_CRITICAL":
+                            print(f"   - [{v.rule_name}] {v.message} (Remediation: {v.remediation_hint})")
+                    if not inv_res.bytecode_valid:
+                        print(f"   - [bytecode_compile] Syntax or compilation defect: {inv_res.metadata.get('compilation_error')}")
+                    sys.exit(1)
+        except Exception as e:
+            print(f"⚠️ AutoHarness pre-commit check note: {e}")
+
     # 3. Forbidden Credential Files & Secret Scanning
     try:
         from cohezion.security.secret_scrubber import (

@@ -1,0 +1,19 @@
+{
+  "id": "manderson240/cohezion-arc3-trajectory-miner",
+  "title": "cohezion-arc3-trajectory-miner",
+  "code_file": "cohezion-arc3-trajectory-miner.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [
+    "manderson240/cohezion-quantum-prior"
+  ],
+  "competition_sources": [
+    "arc-prize-2026-arc-agi-3"
+  ],
+  "kernel_sources": [],
+  "model_sources": []
+}

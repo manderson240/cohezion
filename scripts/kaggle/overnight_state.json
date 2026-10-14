@@ -1,0 +1,42 @@
+{
+  "arc-prize-2026-arc-agi-2": {
+    "ref": "56865081",
+    "status": "SubmissionStatus.COMPLETE",
+    "score": 30.28,
+    "error": "",
+    "description": "Cohezion ARC-AGI-2 SOTA v14: IV&V Monotonic Invariant + Non-Destructive Attempt-2 DSL Injection",
+    "metric_direction": "higher",
+    "baseline": 31.81,
+    "kernel_status": "KernelWorkerStatus.COMPLETE"
+  },
+  "arc-prize-2026-arc-agi-3": {
+    "ref": "56866079",
+    "status": "SubmissionStatus.COMPLETE",
+    "score": 0.16,
+    "error": "",
+    "description": "Cohezion ARC-AGI-3 SOTA v29: IV&V Certified Affordance Rarity Engine (64-bit Zobrist + Absorbing Markov Anti-Cycle)",
+    "metric_direction": "higher",
+    "baseline": 0.25,
+    "kernel_status": "KernelWorkerStatus.COMPLETE"
+  },
+  "rsna-knee-abnormality-detection": {
+    "ref": "56867317",
+    "status": "SubmissionStatus.COMPLETE",
+    "score": 0.939,
+    "error": "",
+    "description": "Cohezion RSNA Knee SOTA v26: IV&V Certified 32-Slice Native Fidelity + Dual-Scale (r224+r336) + ROC-AUC Rank Blending",
+    "metric_direction": "higher",
+    "baseline": 0.943,
+    "kernel_status": "KernelWorkerStatus.COMPLETE"
+  },
+  "enveda-CASMI26-molecule-id-mass-spectra": {
+    "ref": "56866686",
+    "status": "SubmissionStatus.COMPLETE",
+    "score": 0.288,
+    "error": "",
+    "description": "Cohezion CASMI26 SOTA v15: IV&V Hardened 4-Channel Calibrated Reranker (Destabilizing Mass Penalty Eliminated + Tautomer Canonicalization)",
+    "metric_direction": "higher",
+    "baseline": 0.335,
+    "kernel_status": "KernelWorkerStatus.COMPLETE"
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "version": "2",
+  "model_name": "user.StrixHalo-Cohezion-NPU-CPU-Cloud-Router",
+  "policy": {
+    "mandate": "Strict NPU and CPU only for local inference to prevent OOM. Heavy tasks offloaded to Ollama Cloud & Headless Claude.",
+    "tier1_backends_allowed": ["flm_npu", "cpu"],
+    "tier1_backends_denied": ["vulkan", "rocm", "hip", "vllm"],
+    "tier1_cpu_max_model_bytes": 4294967296,
+    "gtt_uma_soft_cap_bytes": 42949672960,
+    "gtt_uma_hard_cap_bytes": 53687091200,
+    "on_violation": "reject_and_reroute"
+  },
+  "tier1_local": {
+    "endpoint": "http://127.0.0.1:13305",
+    "npu_models": [
+      "qwen3.5-4b-FLM",
+      "qwen3vl-it-4b-FLM",
+      "embed-gemma-300m-FLM",
+      "gemma4-it-e2b-FLM"
+    ],
+    "cpu_models": [
+      "Qwen3-0.6B-GGUF",
+      "kokoro-v1",
+      "onnxruntime",
+      "Whisper-Large-v3-Turbo"
+    ],
+    "default_model": "qwen3.5-4b-FLM"
+  },
+  "tier2_cloud": {
+    "ollama_cloud": {
+      "endpoint": "http://127.0.0.1:11434",
+      "models": [
+        "glm-5.3:cloud",
+        "deepseek-v4-pro:cloud",
+        "kimi-k3:cloud",
+        "kimi-k2.7-code:cloud",
+        "glm-5.3-flash:cloud",
+        "deepseek-v4.1-flash:cloud",
+        "mistral-large-4:cloud",
+        "minimax-m3:cloud",
+        "nemotron-3-super:cloud",
+        "nemotron-3-ultra:cloud",
+        "gemma4:31b-cloud",
+        "gpt-oss:120b-cloud",
+        "glm-5.2:cloud"
+      ]
+    },
+    "claude_headless": {
+      "binary": "/home/mike-anderson/.local/bin/claude",
+      "triggers": ["code_gen", "refactor", "multi_turn_agent", "formal_verification"]
+    }
+  },
+  "routing": {
+    "rules": [
+      {
+        "id": "mathematical-and-formal-proofs",
+        "match": {
+          "any": [
+            {
+              "keywords_any": [
+                "proof",
+                "theorem",
+                "invariant",
+                "autoharness",
+                "poincare",
+                "copula",
+                "rhae",
+                "zobrist",
+                "dihedral",
+                "topological"
+              ]
+            }
+          ]
+        },
+        "outputs": {
+          "reason": "rigorous mathematical and invariant proofs routed to DeepSeek-V4-Pro"
+        },
+        "route_to": "deepseek-v4-pro:cloud",
+        "tier": 2
+      },
+      {
+        "id": "code-refactoring-and-synthesis",
+        "match": {
+          "any": [
+            {
+              "keywords_any": [
+                "def ",
+                "class ",
+                "import ",
+                "function",
+                "pytest",
+                "refactor",
+                "patch",
+                "module",
+                "pipeline"
+              ]
+            },
+            {
+              "regex": "\\b(python|rust|c\\+\\+|pytorch|jax|surrealdb)\\b"
+            }
+          ]
+        },
+        "outputs": {
+          "reason": "complex coding and agentic architecture routed to GLM-5.3 / Kimi-K2.7-Code"
+        },
+        "route_to": "glm-5.3:cloud",
+        "tier": 2
+      },
+      {
+        "id": "agentic-tool-execution",
+        "match": {
+          "has_tools": true
+        },
+        "outputs": {
+          "reason": "agentic tool calling routed to kimi-k2.7-code:cloud"
+        },
+        "route_to": "kimi-k2.7-code:cloud",
+        "tier": 2
+      },
+      {
+        "id": "cloud-multimodal-vision",
+        "match": {
+          "has_images": true,
+          "min_chars": 500
+        },
+        "outputs": {
+          "reason": "heavy multimodal reasoning routed to Kimi-K3"
+        },
+        "route_to": "kimi-k3:cloud",
+        "tier": 2
+      },
+      {
+        "id": "vision-npu",
+        "match": {
+          "has_images": true
+        },
+        "outputs": {
+          "reason": "lightweight multimodal vision on NPU SRAM"
+        },
+        "route_to": "qwen3vl-it-4b-FLM",
+        "tier": 1
+      },
+      {
+        "id": "short-edge-prompt",
+        "match": {
+          "max_chars": 500
+        },
+        "outputs": {
+          "reason": "fast low-latency edge turn on NPU SRAM"
+        },
+        "route_to": "qwen3.5-4b-FLM",
+        "tier": 1
+      }
+    ]
+  }
+}
