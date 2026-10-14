@@ -266,8 +266,81 @@ class StatelessAdvisor:
 
         assignments = self._parse_assignments(response, active_worker_ids)
         if not assignments:
-            logger.warning("Advisor LLM output failed to parse into assignments. Using heuristic fallback.")
-            return self._heuristic_assignment(summary, active_worker_ids)
+            logger.warning("Advisor LLM output failed to parse into assignments. Using Jev decision allocation.")
+            assignments = await self.assign_via_jev(summary, active_worker_ids)
+            if not assignments:
+                logger.warning("Jev allocation exhausted. Using heuristic fallback.")
+                return self._heuristic_assignment(summary, active_worker_ids)
+        return assignments
+
+    async def assign_via_jev(
+        self,
+        summary: EvidenceSummary,
+        active_worker_ids: List[str],
+    ) -> List[AdvisorAssignment]:
+        """Categorical worker-to-direction assignment using LLM-as-Jev (arXiv:2610.02076).
+
+        Formats directions as prefix-free options [1]..[K] and uses Jev scoring
+        to eliminate JSON parsing failures.
+        """
+        from cohezion.decision.llm_as_jev import JevCandidate, JevPromptFormatter, JevTrieScorer
+
+        dirs = list(summary.direction_stats.keys())
+        for init in self.initial_directions:
+            if init["direction_id"] not in dirs:
+                dirs.append(init["direction_id"])
+
+        if not dirs:
+            return []
+
+        candidates: List[JevCandidate] = []
+        for idx, d_id in enumerate(dirs, start=1):
+            st = summary.direction_stats.get(d_id, {})
+            hyp = st.get("hypothesis")
+            if not hyp:
+                for init in self.initial_directions:
+                    if init["direction_id"] == d_id:
+                        hyp = init.get("hypothesis", "Iterate hypothesis")
+                        break
+            hyp = hyp or "Iterate hypothesis"
+            desc = (
+                f"{hyp} | Imprv: {st.get('improvements', 0)}, "
+                f"NonImprv: {st.get('non_improvements', 0)}, "
+                f"Failures: {st.get('inconclusive_failures', 0)}"
+            )
+            candidates.append(JevCandidate(index=idx, label=d_id, description=desc))
+
+        assignments: List[AdvisorAssignment] = []
+        scorer = JevTrieScorer(candidates)
+
+        for w_id in active_worker_ids:
+            if not self.llm_caller:
+                break
+            jev_prompt = JevPromptFormatter.format_prompt(
+                context=(
+                    f"Advisor Coordination for {self.task_description}\n"
+                    f"Global Best: {summary.global_best_score}\n"
+                    f"Target Worker: {w_id}"
+                ),
+                candidates=candidates,
+                instruction=f"Select the highest priority research direction for {w_id}:",
+            )
+            resp = await self.llm_caller(jev_prompt)
+            decision = scorer.score_from_completion(resp)
+            chosen_cand = decision.selected_candidate
+            st = summary.direction_stats.get(chosen_cand.label, {})
+            reset = st.get("non_improvements", 0) >= 3
+
+            assignments.append(
+                AdvisorAssignment(
+                    worker_id=w_id,
+                    direction_id=chosen_cand.label,
+                    hypothesis=chosen_cand.description.split(" | ")[0],
+                    instructions=f"Focus on {chosen_cand.label} (Jev confidence: {decision.confidence:.2%})",
+                    reset_to_best=reset,
+                )
+            )
+
         return assignments
 
     def _heuristic_assignment(
