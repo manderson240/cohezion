@@ -291,6 +291,8 @@ class RZeroPragmatist:
         self.archive_path.parent.mkdir(parents=True, exist_ok=True)
         self.timeout_seconds = timeout_seconds
         self.optimizer = LocalModelOptimizer()
+        from cohezion.optimization.mdl_program_selector import MDLProgramSelector
+        self.mdl_selector = MDLProgramSelector()
 
     def _execute_code(self, code: str, input_grid: list[list[int]]) -> tuple[bool, Any, str]:
         """Safely execute synthesized code in restricted Python environment."""
@@ -407,6 +409,7 @@ class RZeroPragmatist:
 
     def _archive_verified_sample(self, challenge: RZeroChallenge, solution: RZeroSolution) -> None:
         """Persist verified challenge-solution pair for continuous learning & TTA."""
+        mdl_metrics = self.mdl_selector.compute_complexity(solution.code)
         record = {
             "challenge_id": challenge.challenge_id,
             "domain": challenge.domain,
@@ -414,6 +417,7 @@ class RZeroPragmatist:
             "task_spec": challenge.task_spec,
             "code": solution.code,
             "solver_model": solution.solver_model,
+            "mdl_complexity": mdl_metrics,
             "verified_at": time.time(),
         }
         try:
