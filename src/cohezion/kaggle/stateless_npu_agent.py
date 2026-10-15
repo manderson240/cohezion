@@ -33,9 +33,9 @@ import httpx
 logger = logging.getLogger("StatelessNPUAgent")
 logger.setLevel(logging.INFO)
 
-FASTFLOWLM_URL = "http://127.0.0.1:8002/v1/chat/completions"
-FASTFLOWLM_DIRECT_URL = "http://127.0.0.1:8002/v1/chat/completions"
-DEFAULT_NPU_MODEL = "qwen3.5:4b"
+FASTFLOWLM_URL = "http://127.0.0.1:52625/v1/chat/completions"
+FASTFLOWLM_DIRECT_URL = "http://127.0.0.1:52625/v1/chat/completions"
+DEFAULT_NPU_MODEL = "llama3.2:1b"
 MULTIMODAL_NPU_MODEL = "gemma4-it:e2b"
 _FASTFLOWLM_LOCK = asyncio.Lock()
 
@@ -252,6 +252,11 @@ class StatelessNPUClient:
                                 return content, usage
             except Exception as e:
                 logger.warning("Local endpoint %s returned error (%s: %s)", ep, type(e).__name__, e)
+
+        import os
+        if os.getenv("OLLAMA_CLOUD_RATIONING", "1") == "1":
+            logger.warning("Ollama Cloud rationing active (quota protection); skipping cloud fallback for background worker.")
+            raise RuntimeError("Local NPU lanes busy and Ollama Cloud rationing active (preserving quota).")
 
         logger.info(
             "Local NPU lanes busy or offline. Routing via Tier 2 Ollama Cloud (%s)...",
