@@ -8,18 +8,12 @@
   "enable_gpu": true,
   "enable_tpu": false,
   "enable_internet": true,
-  "keywords": [
-    "fine-tuning",
-    "lora",
-    "arc-agi",
-    "unsloth"
-  ],
+  "keywords": [],
   "dataset_sources": [
-    "manderson240/cohezion-quantum-prior"
+    "manderson240/cohezion-quantum-prior",
+    "codemasterminds01/arc-prize-2026-arc-agi-2"
   ],
   "competition_sources": [],
-  "model_sources": [
-    "qwen-lm/qwen2.5-coder/transformers/7b-instruct/1"
-  ],
+  "model_sources": [],
   "machine_shape": "NvidiaL4"
 }
