@@ -33,8 +33,8 @@ import httpx
 logger = logging.getLogger("StatelessNPUAgent")
 logger.setLevel(logging.INFO)
 
-FASTFLOWLM_URL = "http://127.0.0.1:8005/v1/chat/completions"
-FASTFLOWLM_DIRECT_URL = "http://127.0.0.1:8005/v1/chat/completions"
+FASTFLOWLM_URL = "http://127.0.0.1:8002/v1/chat/completions"
+FASTFLOWLM_DIRECT_URL = "http://127.0.0.1:8002/v1/chat/completions"
 DEFAULT_NPU_MODEL = "qwen3.5:4b"
 MULTIMODAL_NPU_MODEL = "gemma4-it:e2b"
 _FASTFLOWLM_LOCK = asyncio.Lock()
