@@ -30,12 +30,15 @@ from typing import Any
 import httpx
 
 
+from cohezion.platform.dynamic_topology import DynamicTopology
+
 logger = logging.getLogger("StatelessNPUAgent")
 logger.setLevel(logging.INFO)
 
-FASTFLOWLM_URL = "http://127.0.0.1:52625/v1/chat/completions"
-FASTFLOWLM_DIRECT_URL = "http://127.0.0.1:52625/v1/chat/completions"
-DEFAULT_NPU_MODEL = "llama3.2:1b"
+_TOPOLOGY = DynamicTopology.load()
+FASTFLOWLM_URL = _TOPOLOGY.npu.endpoint
+FASTFLOWLM_DIRECT_URL = _TOPOLOGY.npu.endpoint
+DEFAULT_NPU_MODEL = _TOPOLOGY.npu.default_model
 MULTIMODAL_NPU_MODEL = "gemma4-it:e2b"
 _FASTFLOWLM_LOCK = asyncio.Lock()
 
@@ -249,8 +252,8 @@ class StatelessNPUClient:
             except Exception as e:
                 logger.warning("Local endpoint %s returned error (%s: %s)", ep, type(e).__name__, e)
 
-        import os
-        if os.getenv("OLLAMA_CLOUD_RATIONING", "1") == "1":
+        topology = DynamicTopology.load()
+        if not topology.is_cloud_fallback_allowed(is_background_task=True):
             logger.warning("Ollama Cloud rationing active (quota protection); skipping cloud fallback for background worker.")
             raise RuntimeError("Local NPU lanes busy and Ollama Cloud rationing active (preserving quota).")
 

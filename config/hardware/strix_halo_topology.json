@@ -1,0 +1,60 @@
+{
+  "topology_version": "2.0.0",
+  "hardware_platform": "AMD Ryzen AI MAX+ 395 (Strix Halo)",
+  "total_unified_memory_gb": 128.0,
+  "profiles": {
+    "default": {
+      "description": "Standard sovereign quad-lane topology with 8K context clamping and cloud quota preservation",
+      "lanes": {
+        "npu": {
+          "enabled": true,
+          "hardware": "AMD XDNA 2 NPU (8 columns)",
+          "service_name": "fastflowlm-npu.service",
+          "endpoint": "http://127.0.0.1:52625/v1/chat/completions",
+          "default_model": "llama3.2:1b",
+          "available_models": [
+            "llama3.2:1b",
+            "qwen3.5:4b",
+            "deepseek-r1:8b",
+            "gemma4-it:e2b"
+          ],
+          "power_mode": "performance",
+          "memory_footprint_mb": 0.0,
+          "max_context": 4096
+        },
+        "gpu_embeddings": {
+          "enabled": true,
+          "hardware": "Radeon 8060S (RDNA 3.5 / 40 CUs)",
+          "endpoint": "http://127.0.0.1:8006/v1/embeddings",
+          "default_model": "nomic-embed-text-v2-moe.Q8_0",
+          "max_context": 8192,
+          "uma_ceiling_gb": 2.0
+        },
+        "cpu_sovereign": {
+          "enabled": true,
+          "hardware": "Zen 5 CPU (16c / 32t)",
+          "endpoint": "http://127.0.0.1:13305/v1/chat/completions",
+          "default_model": "Qwen3.6-35B-A3B-Instruct",
+          "max_concurrent_models": 2,
+          "default_context_size": 8192,
+          "memory_floor_gb": 25.0
+        },
+        "tier2_ollama_cloud": {
+          "enabled": true,
+          "endpoint": "http://127.0.0.1:11434/v1/chat/completions",
+          "rationing_active": true,
+          "evi_threshold": 0.85,
+          "allow_background_fallback": false
+        },
+        "tier3_frontier_api": {
+          "enabled": true,
+          "provider": "google-gemini",
+          "default_model": "gemini-3.8-flash-high",
+          "reserve_model": "gemini-2.5-pro",
+          "evi_threshold": 0.90,
+          "allow_background_fallback": false
+        }
+      }
+    }
+  }
+}
