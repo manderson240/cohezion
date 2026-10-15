@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-10-15T11:13:00Z",
+  "status": "PRE_REBOOT_CHECKPOINT",
+  "git_commit": "557e7e6ae",
+  "git_branch": "ollama_lemonade_kaggle_push",
+  "git_status": "CLEAN",
+  "surrealdb_learning_records": 648,
+  "stateless_npu_worker_epoch": 307,
+  "resumption_script": "bash scripts/ops/resume_autonomous_fleet.sh",
+  "services_to_resume": [
+    {
+      "name": "supervised_flm_server",
+      "command": "python3 scripts/npu/supervised_flm_server.py --port 8005 --model qwen3.5:4b",
+      "port": 8005,
+      "hardware": "AMD XDNA 2 NPU (/dev/accel/accel0)"
+    },
+    {
+      "name": "a2a_npu_microservice",
+      "command": "python3 scripts/npu/a2a_npu_microservice.py",
+      "port": 8008,
+      "hardware": "AMD XDNA 2 NPU (/dev/accel/accel0)"
+    },
+    {
+      "name": "fleet_sentry",
+      "command": "python3 scripts/fleet_sentry.py --watch --interval 20.0",
+      "filter": "EmaRateFilter (alpha=0.40)"
+    },
+    {
+      "name": "kaggle_sentinel",
+      "tmux_session": "kaggle-sentinel",
+      "command": "python3 scripts/kaggle/master_24_7_kaggle_sentinel.py"
+    },
+    {
+      "name": "kaggle_midnight",
+      "tmux_session": "kaggle-midnight",
+      "command": "python3 scripts/kaggle/queue_midnight_all_competitions.py"
+    },
+    {
+      "name": "kaggle_npu_ascension",
+      "tmux_session": "kaggle-npu-ascension",
+      "command": "python3 scripts/kaggle/stateless_npu_ascension_worker.py --epochs 1000 --model qwen3.5:4b"
+    }
+  ]
+}

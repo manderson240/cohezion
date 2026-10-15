@@ -1259,7 +1259,7 @@
       "updated_at": "2026-10-15T15:02:07.297327+00:00"
     },
     "arc-prize-2026-arc-agi-2": {
-      "last_polled_ts": 1792076649.1085417,
+      "last_polled_ts": 1792077136.2143524,
       "name": "ARC Prize 2026: ARC-AGI-2",
       "prize": "$700,000 USD",
       "deadline": "2026-11-02",
@@ -1270,7 +1270,7 @@
         "raw": "57215224  submission.json  2026-10-15 03:48:18.137000  Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Harvest)                                                                  SubmissionStatus.PENDING                              "
       },
       "history_count": 34,
-      "updated_at": "2026-10-15T15:04:09.108547+00:00"
+      "updated_at": "2026-10-15T15:12:16.214355+00:00"
     },
     "arc-prize-2026-arc-agi-3": {
       "last_polled_ts": 1792076420.4846249,
@@ -1287,7 +1287,7 @@
       "updated_at": "2026-10-15T15:00:20.484628+00:00"
     },
     "gemma-4-developer-agent": {
-      "last_polled_ts": 1792076649.1085417,
+      "last_polled_ts": 1792077136.2143524,
       "name": "Google - The Gemma 4 Developer Agent",
       "prize": "$65,000 USD",
       "deadline": "2026-12-02",
@@ -1298,7 +1298,7 @@
         "raw": "57198321  submission.zip  2026-10-15 00:00:30.380000  Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)                                                                                                                     SubmissionStatus.PENDING                              "
       },
       "history_count": 16,
-      "updated_at": "2026-10-15T15:04:09.108547+00:00"
+      "updated_at": "2026-10-15T15:12:16.214355+00:00"
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
       "last_polled_ts": 1792076466.703032,
@@ -1335,5 +1335,5 @@
     "manderson240/arc-agi-2-fork-lb33-89-20260903": "QUEUED"
   },
   "lemonade_healthy": true,
-  "last_cycle_utc": "2026-10-15T15:04:09.108547+00:00"
+  "last_cycle_utc": "2026-10-15T15:13:32.488373+00:00"
 }
