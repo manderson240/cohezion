@@ -1972,3 +1972,22 @@ L539: First-Principles Systems Engineering V-Model Execution across Core Algorit
     - Authored `ALGORITHMIC_FOUNDATIONS_PRIME.md` (registered in `skill_registry.json`) and `v_model_algorithmic_foundations_plan.md`.
     - Fully certified by 15 passing unit tests across all 4 algorithmic modules in 3.25s.
 *12D State Vector*: `[12D State: Space=Algorithmic-Foundations-VModel, Time=October 2026, Physics=ArcBitboard-ConvexSimplexSLSQP-ExactBipartiteLAPJV-EmaRateFilter, Brane=Cohezion-Core-MathematicalIntegrity-Sovereignty]`
+
+---
+
+## Learning 540: Antigravity CLI 1.3.5 / Engine 1.107 Architecture — Auto Mode, Context Compaction & High-Efficiency Tier 3 Alignment (2026-10-15)
+L540: Operationalization of the Antigravity CLI 1.3.5 and Engine 1.107.0 Upgrade:
+(1) Auto Mode & Sandbox Governance:
+    - Activated `mode: "auto"` in `~/.gemini/antigravity-cli/settings.json` with comprehensive `trustedWorkspaces` coverage across active and future git worktrees.
+    - Non-destructive commands and deterministic file edits are executed with zero latency overhead while terminal boundary crossings undergo isolated secondary agent review.
+(2) On-Demand Context Compaction (`/compact`):
+    - Abstracted `/compact` and `/compact <message>` workflows into long-horizon autonomous swarms, eliminating prompt-cache thrashing and context bloating during overnight Kaggle runs.
+(3) Dynamic Model Tiers & Extended Reasoning Efforts:
+    - Re-aligned Tier 3 model routing to the active engine catalog (`gemini-3.8-flash-high`, `gemini-3.8-flash-medium`, `gemini-3.8-flash-low`, `claude-sonnet-4-6`, `claude-opus-4-6-thinking`, `gpt-oss-120b-medium`).
+    - Integrated expanded reasoning effort spectrum (`low`, `medium`, `high`, `xhigh`, `max`), allowing fine-grained calibration of thinking token budgets against task complexity.
+(4) Accelerated High-Capacity Trajectory Navigation:
+    - Incorporated virtual row rendering and hunk folding (`Ctrl+O`, `f`) for large diff inspections (>100K LOC), preventing terminal rendering stalls during massive codebase consolidations.
+(5) Persistent Tool & Subagent Declarations:
+    - Enabled `_meta: {"antigravity/alwaysLoad": true}` for critical MCP verifiers and aligned plugin subagents with root `agents.json`.
+*12D State Vector*: `[12D State: Space=Antigravity-CLI-1.3.5-Engine-1.107, Time=October 2026, Physics=AutoMode-ContextCompaction-DynamicModelTiers-AlwaysLoadedMCP-VirtualRowDiffs, Brane=Cohezion-Core-OperationalAscension-Sovereignty]`
+

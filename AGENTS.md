@@ -334,16 +334,25 @@ Use for ALL heavy workloads: coding, multi-file refactoring, deep reasoning, mat
 
 Route via `UnifiedHybridRouter` using `backend="ollama_cloud"` or Hermes CLI (`/home/mike-anderson/.local/bin/hermes -m <model>`).
 
-### Tier 3 — Premium APIs & Thinking Models (agy 1.1.21 Spec)
+### Tier 3 — Premium APIs & Thinking Models (agy 1.3.5 Spec)
 
 | Tier 3 Model | Effort / Mode | Best For |
 |---|---|---|
 | `gemini-3.8-flash-high` | High (Thinking) | Complex orchestration, fast reasoning, multi-turn architecture |
 | `gemini-3.8-flash-medium` | Medium | Iterative development, fast agentic loop synthesis |
-| `gemini-3.1-pro-high` | High | Deepest multi-modal reasoning & mathematical proofs |
-| `claude-sonnet-5-5` | High (Thinking) | Large-scale multi-file refactoring & code generation |
-| `claude-opus-5-5-thinking` | Deep (Thinking) | Frontier systems engineering & formal verification |
+| `gemini-3.8-flash-low` | Low | High-throughput quick scans and sanity checks |
+| `claude-sonnet-4-6` | High (Thinking) | Large-scale multi-file refactoring & code generation |
+| `claude-opus-4-6-thinking` | Deep (Thinking) | Frontier systems engineering & formal verification |
 | `gpt-oss-120b-medium` | Medium | Transparent open-weight benchmark validation |
+
+*Effort Levels Supported*: `low`, `medium`, `high`, `xhigh`, `max`.
+
+**New agy 1.3.5 Operational Capabilities**:
+- **Auto Mode** (`--mode auto`, `Shift+Tab` cycle): Approves safe edits/commands automatically; sandbox-escaping actions reviewed by a separate agent.
+- **On-Demand Compaction** (`/compact`, `/compact <message>`): Summarizes conversation and compacts context window on demand.
+- **Foldable & Highlighted `/diff`**: `Ctrl+O` folds/unfolds unchanged context hunks, `f` toggles full file view, virtual row rendering for files >100K lines.
+- **Always-Loaded MCP Tools**: Tools marked `_meta: {"antigravity/alwaysLoad": true}` bypass dynamic discovery and remain resident in context.
+- **Root `agents.json` Support**: Custom subagent declarations defined at plugin root.
 
 **Reserved exclusively for**:
 - Architecture decisions requiring synthesis across >100K token context
