@@ -222,12 +222,8 @@ class StatelessNPUClient:
                 if m:
                     port = int(m.group(1))
                     ep = f"http://127.0.0.1:{port}/v1/chat/completions"
-                    if model_key in line.lower():
-                        if ep not in candidate_eps:
-                            candidate_eps.insert(0, ep)
-                    else:
-                        if ep not in candidate_eps:
-                            candidate_eps.append(ep)
+                    if ep not in candidate_eps:
+                        candidate_eps.append(ep)
         except Exception:
             pass
 
