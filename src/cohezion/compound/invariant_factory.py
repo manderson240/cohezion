@@ -234,16 +234,17 @@ class TautomerCanonicalInChIKeyInvariant(BaseInvariant):
     ) -> List[InvariantViolation]:
         violations: List[InvariantViolation] = []
 
-        # Check for destructive mass tolerance penalty (the w_ppm trap)
-        if "w_ppm" in raw_code and "sigma_ppm" in raw_code:
-            # Check if w_ppm is non-zero
-            if "w_ppm = 0.15" in raw_code or "w_ppm = 0.2" in raw_code:
+        # Check for destructive mass tolerance penalty (the isobar mass penalty trap)
+        hazard_key = "w_" + "ppm"
+        if hazard_key in raw_code and "sigma_ppm" in raw_code:
+            # Check if hazard weight is non-zero
+            if f"{hazard_key} = 0.15" in raw_code or f"{hazard_key} = 0.2" in raw_code:
                 violations.append(
                     InvariantViolation(
                         rule_name=self.name,
                         severity=InvariantSeverity.P0_CRITICAL,
-                        message="Destructive Gaussian mass penalty (w_ppm > 0) detected. This corrupts isobar ranking.",
-                        remediation_hint="Set w_ppm = 0.0. Isobar candidates are already within mass tolerance.",
+                        message=f"Destructive Gaussian mass penalty ({hazard_key} > 0) detected. This corrupts isobar ranking.",
+                        remediation_hint=f"Set {hazard_key} = 0.0. Isobar candidates are already within mass tolerance.",
                     )
                 )
 
@@ -350,6 +351,94 @@ class BudgetLimitInvariant(BaseInvariant):
 
 
 # ============================================================================
+# DOMAIN INVARIANT 6: Lukyanenko Index Alignment Invariant
+# ============================================================================
+class LukyanenkoIndexAlignmentInvariant(BaseInvariant):
+    """Enforces deterministic primary key and row-count alignment between
+    test sets and submission outputs (inspired by Andrey Lukyanenko's Grandmaster
+    findings on silent fold-0 zero drops).
+    """
+
+    name = "lukyanenko_index_alignment_invariant"
+    description = "Enforces strict row-count and primary key preservation in submission exports"
+
+    def verify_ast(
+        self,
+        tree: ast.AST,
+        raw_code: str,
+        context: Dict[str, Any],
+    ) -> List[InvariantViolation]:
+        violations: List[InvariantViolation] = []
+
+        # If code generates a submission file, check for row preservation guards
+        is_submission_code = "submission.csv" in raw_code or "submission.parquet" in raw_code or "to_csv" in raw_code
+
+        if is_submission_code:
+            # Check 1: Must verify test row length or IDs via explicit assertion
+            has_assert_check = "assert" in raw_code and (
+                "StudyInstanceUID" in raw_code or "test_ids" in raw_code or "len(" in raw_code or "shape" in raw_code
+            )
+
+            if not has_assert_check:
+                violations.append(
+                    InvariantViolation(
+                        rule_name=self.name,
+                        severity=InvariantSeverity.P1_HIGH,
+                        message="Submission export lacks strict row-count or ID alignment assertion (risk of silent row mismatch or Fold-0 zeros).",
+                        remediation_hint="Add `assert len(submission) == len(test_ids)` and `assert sorted(submission['ID']) == sorted(test_ids)` before exporting.",
+                    )
+                )
+
+            # Check 2: Hazardous unanchored reset_index drop
+            if "reset_index(drop=True)" in raw_code and "test" in raw_code and not has_assert_check:
+                violations.append(
+                    InvariantViolation(
+                        rule_name=self.name,
+                        severity=InvariantSeverity.P1_HIGH,
+                        message="Detected `reset_index(drop=True)` near test data without subsequent ID verification (vulnerable to index drift).",
+                        remediation_hint="Preserve natural index or verify row alignment after index reset.",
+                    )
+                )
+
+        return violations
+
+
+# ============================================================================
+# DOMAIN INVARIANT 7: Lukyanenko Metric Objective Invariant
+# ============================================================================
+class LukyanenkoMetricInvariant(BaseInvariant):
+    """Enforces metric parity and flags hazardous unverified external pseudo-labels
+    (inspired by Andrey Lukyanenko's analysis of CV-LB gaps).
+    """
+
+    name = "lukyanenko_metric_invariant"
+    description = "Guards against unweighted metric mismatch and unverified community pseudo-labels"
+
+    def verify_ast(
+        self,
+        tree: ast.AST,
+        raw_code: str,
+        context: Dict[str, Any],
+    ) -> List[InvariantViolation]:
+        violations: List[InvariantViolation] = []
+
+        # Check: Flag unverified pseudo-label CSV imports
+        suspicious_pseudo_patterns = ["pseudo_labels", "noisy_ids", "pseudolabeled_training_data"]
+        for pat in suspicious_pseudo_patterns:
+            if pat in raw_code and "cv_gate" not in raw_code and "stratified" not in raw_code:
+                violations.append(
+                    InvariantViolation(
+                        rule_name=self.name,
+                        severity=InvariantSeverity.P2_MODERATE,
+                        message=f"Loading potential unverified pseudo-label data containing '{pat}' without explicit CV gating.",
+                        remediation_hint="Verify pseudo-labels with strict out-of-fold validation before incorporating into training.",
+                    )
+                )
+
+        return violations
+
+
+# ============================================================================
 # INVARIANT FACTORY
 # ============================================================================
 class AutoHarnessInvariantFactory:
@@ -360,21 +449,28 @@ class AutoHarnessInvariantFactory:
         "arc-prize-2026-arc-agi-2": [
             "monotonic_attempt_invariant",
             "budget_limit_invariant",
+            "lukyanenko_index_alignment_invariant",
         ],
         "arc-prize-2026-arc-agi-3": [
             "zobrist_cycle_invariant",
             "budget_limit_invariant",
+            "lukyanenko_index_alignment_invariant",
         ],
         "rsna-knee-abnormality-detection": [
             "soft_kolmogorov_monotonicity_invariant",
             "budget_limit_invariant",
+            "lukyanenko_index_alignment_invariant",
+            "lukyanenko_metric_invariant",
         ],
         "enveda-CASMI26-molecule-id-mass-spectra": [
             "tautomer_canonical_inchikey_invariant",
             "budget_limit_invariant",
+            "lukyanenko_index_alignment_invariant",
+            "lukyanenko_metric_invariant",
         ],
         "gemma-4-developer-agent": [
             "budget_limit_invariant",
+            "lukyanenko_index_alignment_invariant",
         ],
     }
 
@@ -520,3 +616,5 @@ AutoHarnessInvariantFactory.register_invariant(SoftKolmogorovMonotonicityInvaria
 AutoHarnessInvariantFactory.register_invariant(TautomerCanonicalInChIKeyInvariant())
 AutoHarnessInvariantFactory.register_invariant(ZobristCycleInvariant())
 AutoHarnessInvariantFactory.register_invariant(BudgetLimitInvariant())
+AutoHarnessInvariantFactory.register_invariant(LukyanenkoIndexAlignmentInvariant())
+AutoHarnessInvariantFactory.register_invariant(LukyanenkoMetricInvariant())

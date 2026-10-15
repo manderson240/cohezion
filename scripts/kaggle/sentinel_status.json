@@ -1245,7 +1245,7 @@
       }
     ],
     "rsna-knee-abnormality-detection": {
-      "last_polled_ts": 1792089915.6847806,
+      "last_polled_ts": 1792091736.3965278,
       "name": "RSNA Knee Abnormality Detection",
       "prize": "$77,000 USD",
       "deadline": "2026-10-22",
@@ -1256,10 +1256,10 @@
         "raw": "57215252  submission.csv  2026-10-15 03:49:23.470000  Cohezion RSNA Knee SOTA v35: Equilibrium Calibrated Tri-Model (A224=0.38 + Balanced R7 Weights) (Daily Quota Maximization)                         SubmissionStatus.COMPLETE  0.955                      "
       },
       "history_count": 50,
-      "updated_at": "2026-10-15T18:45:15.684792+00:00"
+      "updated_at": "2026-10-15T19:15:36.396537+00:00"
     },
     "arc-prize-2026-arc-agi-2": {
-      "last_polled_ts": 1792090706.6096187,
+      "last_polled_ts": 1792092057.1511106,
       "name": "ARC Prize 2026: ARC-AGI-2",
       "prize": "$700,000 USD",
       "deadline": "2026-11-02",
@@ -1270,10 +1270,10 @@
         "raw": "57215224  submission.json  2026-10-15 03:48:18.137000  Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Harvest)                                                                  SubmissionStatus.PENDING                              "
       },
       "history_count": 34,
-      "updated_at": "2026-10-15T18:58:26.609629+00:00"
+      "updated_at": "2026-10-15T19:20:57.151122+00:00"
     },
     "arc-prize-2026-arc-agi-3": {
-      "last_polled_ts": 1792089078.1482406,
+      "last_polled_ts": 1792090892.850486,
       "name": "ARC Prize 2026: ARC-AGI-3",
       "prize": "$850,000 USD",
       "deadline": "2026-11-02",
@@ -1284,10 +1284,10 @@
         "raw": "57198301  submission.parquet  2026-10-15 00:00:19.820000  Cohezion ARC-AGI-3 SOTA v36: 75-Step Monadic Markov Engine + Orthogonal Escape Pulses + Push Affordance Bonus (Daily Quota Reset)  SubmissionStatus.COMPLETE  0.15                       "
       },
       "history_count": 28,
-      "updated_at": "2026-10-15T18:31:18.148248+00:00"
+      "updated_at": "2026-10-15T19:01:32.850501+00:00"
     },
     "gemma-4-developer-agent": {
-      "last_polled_ts": 1792090706.6096187,
+      "last_polled_ts": 1792092057.1511106,
       "name": "Google - The Gemma 4 Developer Agent",
       "prize": "$65,000 USD",
       "deadline": "2026-12-02",
@@ -1298,10 +1298,10 @@
         "raw": "57198321  submission.zip  2026-10-15 00:00:30.380000  Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)                                                                                                                     SubmissionStatus.PENDING                              "
       },
       "history_count": 16,
-      "updated_at": "2026-10-15T18:58:26.609629+00:00"
+      "updated_at": "2026-10-15T19:20:57.151122+00:00"
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
-      "last_polled_ts": 1792089141.786896,
+      "last_polled_ts": 1792090954.8704822,
       "name": "Enveda CASMI26 Molecule ID",
       "prize": "$50,000 USD",
       "deadline": "2026-12-14",
@@ -1312,10 +1312,10 @@
         "raw": "57215266  submission.csv  2026-10-15 03:50:00.080000  Cohezion CASMI26 SOTA v27: Deep PubChem Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18) (Daily Quota Maximization)  SubmissionStatus.COMPLETE  0.417                      "
       },
       "history_count": 41,
-      "updated_at": "2026-10-15T18:32:21.786904+00:00"
+      "updated_at": "2026-10-15T19:02:34.870496+00:00"
     },
     "nfl-big-data-bowl-2027": {
-      "last_polled_ts": 1792089078.1482406,
+      "last_polled_ts": 1792090892.850486,
       "name": "NFL Big Data Bowl 2027",
       "prize": "$100,000 USD",
       "deadline": "2027-01-06",
@@ -1325,7 +1325,7 @@
         "score": null
       },
       "history_count": 0,
-      "updated_at": "2026-10-15T18:31:18.148248+00:00"
+      "updated_at": "2026-10-15T19:01:32.850501+00:00"
     }
   },
   "active_kernels": {
@@ -1335,5 +1335,5 @@
     "manderson240/arc-agi-2-fork-lb33-89-20260903": "QUEUED"
   },
   "lemonade_healthy": true,
-  "last_cycle_utc": "2026-10-15T18:59:44.408014+00:00"
+  "last_cycle_utc": "2026-10-15T19:20:57.151122+00:00"
 }

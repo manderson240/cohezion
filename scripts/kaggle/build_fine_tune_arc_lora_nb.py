@@ -164,7 +164,7 @@ def generate_fine_tuning_notebook() -> dict:
                 "    output_dir='/kaggle/working/results',\n",
                 "    per_device_train_batch_size=1,\n",
                 "    gradient_accumulation_steps=8,\n",
-                "    warmup_ratio=0.05,\n",
+                "    warmup_steps=50,\n",
                 "    max_steps=1500,\n",
                 "    learning_rate=2e-4,\n",
                 "    lr_scheduler_type='cosine',\n",
