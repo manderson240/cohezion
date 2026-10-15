@@ -11,7 +11,8 @@
   "keywords": [],
   "dataset_sources": [
     "manderson240/cohezion-quantum-prior",
-    "codemasterminds01/arc-prize-2026-arc-agi-2"
+    "codemasterminds01/arc-prize-2026-arc-agi-2",
+    "beraterolelk/arc-agi-5000-synthetic-reasoning-tasks"
   ],
   "competition_sources": [],
   "model_sources": [],

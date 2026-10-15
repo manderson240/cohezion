@@ -11,7 +11,8 @@
   "enable_internet": false,
   "keywords": [],
   "dataset_sources": [
-    "manderson240/cohezion-quantum-prior"
+    "manderson240/cohezion-quantum-prior",
+    "jihangli1121/arc-agi-3-replays-v1"
   ],
   "kernel_sources": [],
   "competition_sources": [

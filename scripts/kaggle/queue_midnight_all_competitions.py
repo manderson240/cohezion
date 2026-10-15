@@ -201,13 +201,13 @@ def execute_midnight_harvest(api: KaggleApi):
     else:
         logger.info("[gemma-4-developer-agent] Previous submission still scoring. Background watcher will dispatch upon queue clearance.")
 
-    # 4. RSNA Knee Abnormality Detection (SOTA v35 Equilibrium Calibrated Tri-Model Blend)
+    # 4. RSNA Knee Abnormality Detection (SOTA v36 Pure Optimum Calibrated Tri-Model Blend)
     if not check_is_pending(api, "rsna-knee-abnormality-detection"):
         submit_notebook(
             comp="rsna-knee-abnormality-detection",
             kernel="manderson240/cohezion-rsna-knee-0-957-r7-blend",
             filename="submission.csv",
-            msg="Cohezion RSNA Knee SOTA v35: Equilibrium Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 + R7) + Calibrated Copula Weights (Daily Quota Reset)",
+            msg="Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights (Daily Quota Reset)",
             code_path="scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb",
         )
 
