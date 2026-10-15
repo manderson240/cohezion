@@ -230,27 +230,30 @@ class StatelessNPUClient:
         except Exception:
             pass
 
-        for ep in candidate_eps:
-            try:
-                local_payload = dict(payload)
-                local_payload["model"] = model
-                async with _FASTFLOWLM_LOCK:
-                    async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
-                        resp = await client.post(ep, json=local_payload)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            msg = data.get("choices", [{}])[0].get("message", {})
-                            content = (msg.get("content") or "").strip()
-                            if not content:
-                                content = (msg.get("reasoning_content") or "").strip()
-                            if content:
-                                usage = data.get("usage", {})
-                                duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000.0
-                                usage["duration_ms"] = duration_ms
-                                usage["backend"] = f"fastflowlm_npu_{model}"
-                                return content, usage
-            except Exception as e:
-                logger.warning("Local endpoint %s returned error (%s: %s)", ep, type(e).__name__, e)
+        for attempt in range(3):
+            for ep in candidate_eps:
+                try:
+                    local_payload = dict(payload)
+                    local_payload["model"] = model
+                    async with _FASTFLOWLM_LOCK:
+                        async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
+                            resp = await client.post(ep, json=local_payload)
+                            if resp.status_code == 200:
+                                data = resp.json()
+                                msg = data.get("choices", [{}])[0].get("message", {})
+                                content = (msg.get("content") or "").strip()
+                                if not content:
+                                    content = (msg.get("reasoning_content") or "").strip()
+                                if content:
+                                    usage = data.get("usage", {})
+                                    duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000.0
+                                    usage["duration_ms"] = duration_ms
+                                    usage["backend"] = f"fastflowlm_npu_{model}"
+                                    return content, usage
+                except Exception as e:
+                    logger.warning("Local endpoint %s returned error on attempt %d (%s: %s)", ep, attempt + 1, type(e).__name__, e)
+            if attempt < 2:
+                await asyncio.sleep(2.0 * (attempt + 1))
 
         topology = DynamicTopology.load()
         if not topology.is_cloud_fallback_allowed(is_background_task=True):

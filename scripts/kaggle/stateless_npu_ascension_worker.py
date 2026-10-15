@@ -297,7 +297,12 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
             )
 
             logger.info("[%s] Dispatching single-turn stateless NPU agent...", track["name"])
-            result = await agent.execute_turn(state, track["evaluator"])
+            try:
+                result = await agent.execute_turn(state, track["evaluator"])
+            except Exception as e:
+                logger.warning("[%s] Transient error during execution in epoch %d: %s. Pausing before next track.", track["name"], epoch, e)
+                await asyncio.sleep(3.0)
+                continue
 
             logger.info(
                 "[%s] Result: Outcome=%s | Score=%.4f (Baseline: %.4f) | Gen: %.1fms | Tokens: %d | Diag: %s",
