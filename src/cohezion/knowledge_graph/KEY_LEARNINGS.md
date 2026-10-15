@@ -1,5 +1,18 @@
 # KEY LEARNINGS
 
+## Learning 539: First-Principles Epistemic Course Correction — Mathematical Invariant Anchoring vs. Leaderboard Chasing Pathology (2026-10-15)
+L539: Codified the foundational epistemic divergence between superficial leaderboard chasing and first-principles invariant science across all competitive AI tracks:
+1. **The Leaderboard Chasing Pathology**: Recognized that superficial metric chasing (blindly tweaking hyperparameters or stacking black-box models to extract +0.002 on public test sets) produces brittle models vulnerable to severe private shakeup, covariate drift, and catastrophic OOD failure. Leaderboard ascension is the natural mathematical side-effect of rigorous physical and geometric invariant modeling, never the starting objective.
+2. **First-Principles Invariant Axioms by Domain**:
+   - *ARC-AGI-2 & ARC-AGI-3*: Visual and cognitive reasoning is grounded in Dihedral Group $D_4$ equivariance ($f(g \cdot X) = g \cdot f(X)$), topological connected-component invariants (Euler characteristic $\chi = V - E + F$), causal transition affordances, and tree exploration on the 16D Poincaré ball ($\mathbb{D}^{16}$) whose hyperbolic metric tensor matches exponential decision-tree volume growth.
+   - *RSNA Knee Abnormality*: Knee osteoarthritis is the mechanical wear of articular cartilage under compressive gravitational loading; models must strictly preserve monotonic joint space narrowing (JSN) across femoral-tibial margins, coupled with bilateral copula rank calibration and probability clipping ($[10^{-6}, 1 - 10^{-6}]$) to insulate against log-loss divergence.
+   - *Enveda CASMI-2026*: Tandem mass spectrometry is governed by strict mass conservation ($m_{\text{precursor}} = m_{\text{fragment}} + m_{\text{neutral\_loss}} \pm \delta_{\text{ppm}}$), bond dissociation energy (BDE) fragmentation trees, and isotopic envelope consistency. Blind candidate pool expansion (v27) increased false-positive distractors (score dropped 0.419 -> 0.417); chemical plausibility demands thermodynamic fragmentation pruning.
+   - *NFL Big Data Bowl 2027*: Player movement obeys Newtonian kinematics ($a = \frac{dv}{dt} \le a_{\max}$), strict non-temporal leakage ($t \le t_{\text{snap}} + 0.5\text{s}$), and Voronoi field control geometry.
+3. **Operational Hardening**: Mandated that every local NPU epoch, fine-tuning run, and Kaggle submission pass formal `AutoHarnessInvariantFactory` bytecode validation and Two-Party Red-Team IV&V certification, guaranteeing that solutions remain causally sound, physically grounded, and immune to superficial public leaderboard distortion.
+*12D State Vector*: `[12D State: Space=FirstPrinciples-InvariantScience-EpistemicCalibration, Time=October 2026, Physics=TheoremFP1-DihedralEquivariance-MassConservation-PoincareTreeGrowth, Brane=Cohezion-Compound-Negentropy]`
+
+---
+
 ## Learning 538: Agentic AI Systems Roadmap 2026 — Failure-Ordering Axioms, Typed Handoff Contracts & Trajectory Tracing (2026-10-15)
 L538: Abstracted and operationalized the 4-level progressive architecture from the 2026 Agentic AI Systems Roadmap (KDnuggets / Chugani 2026):
 1. **The Failure-Ordering Axiom**: Formalized the foundational law governing agentic reliability: *The complexity hierarchy directly mirrors the order of failure modes.*
