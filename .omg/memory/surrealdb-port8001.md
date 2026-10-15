@@ -13,7 +13,7 @@ coherence: 0.50
 - **Database**: `main`
 - **Authentication**: `root:root` (HTTP Basic Auth)
 - **Direct SQL Endpoint**: `http://localhost:8001/sql`
-- **Verified Record Count**: 145 learning records, 21,850+ kanban items
+- **Verified Record Count**: 647 learning records, 21,850+ kanban items
 
 ## Direct HTTP Fallback Pattern
 When the Bitwarden vault is locked or `BW_SESSION` is missing, `surreal_client.py` raises `InsecureSurrealCredentialsError`.

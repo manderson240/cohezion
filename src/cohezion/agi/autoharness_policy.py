@@ -41,6 +41,7 @@ class AutoHarnessPolicy:
         # reconcile 2026-08-26: the branch's state-policy registry (bounded_grid, positive_mass, ...)
         # lives alongside main's AST rule registry; both sides' callers use AutoHarnessPolicy().
         self._policy_registry: dict[str, Callable[[dict[str, Any]], bool]] = {}
+        self._margin_registry: dict[str, Callable[[dict[str, Any]], float]] = {}
         self._register_default_policies()
 
     def _register_default_rules(self) -> None:
@@ -180,15 +181,64 @@ class AutoHarnessPolicy:
             verify_command_safety(state.get("command", "")).allowed
         )
 
+        # 5. Continuous clearance margin policies (Proprioceptive Cybernetics P1)
+        self._margin_registry["memory_safe"] = lambda state: (
+            float(state.get("available_gb", 0.0)) - 20.0
+        )
+        self._margin_registry["positive_mass"] = lambda state: float(state.get("mass", 0.0))
+        self._margin_registry["bounded_grid"] = lambda state: float(
+            min(
+                30 - len(state.get("grid", [])),
+                min((30 - len(row) for row in state.get("grid", [])), default=30),
+            )
+        )
+
     def register_policy(self, name: str, policy_fn: Callable[[dict[str, Any]], bool]) -> None:
         """Register a custom deterministic policy function."""
         self._policy_registry[name] = policy_fn
 
+    def register_margin_policy(
+        self, name: str, margin_fn: Callable[[dict[str, Any]], float]
+    ) -> None:
+        """Register a continuous clearance margin policy h(x) where h(x) >= 0 is safe."""
+        self._margin_registry[name] = margin_fn
+
     def evaluate_policy(
-        self, action_type: str, state: dict[str, Any], source_code: str | None = None
+        self,
+        action_type: str,
+        state: dict[str, Any],
+        source_code: str | None = None,
+        efference_ticket: dict[str, Any] | None = None,
     ) -> ActionPolicyResult:
-        """Evaluate an action against deterministic harness policies before LLM invocation."""
+        """Evaluate an action against deterministic harness policies before LLM invocation.
+
+        Parameters
+        ----------
+        action_type : str
+            Identifier for the policy to evaluate.
+        state : dict[str, Any]
+            State dictionary to test against policy predicates.
+        source_code : str | None
+            Optional Python source code string for static AST verification.
+        efference_ticket : dict[str, Any] | None
+            Optional forward prediction ticket (efference copy) for corollary discharge residual check.
+
+        Returns
+        -------
+        ActionPolicyResult
+            Structured result containing validity, latency, clearance margin, and efference status.
+        """
         t0 = time.perf_counter()
+
+        # Step 0: Calculate continuous clearance margin if registered
+        margin = 0.0
+        margin_fn = self._margin_registry.get(action_type)
+        if margin_fn:
+            try:
+                margin = float(margin_fn(state))
+            except Exception as e:
+                logger.debug("Margin calculation error for '%s': %s", action_type, e)
+                margin = 0.0
 
         # Step 1: Check registered policy rules
         policy_fn = self._policy_registry.get(action_type)
@@ -204,6 +254,7 @@ class AutoHarnessPolicy:
                         verification_score=0.0,
                         execution_time_ms=dt_ms,
                         reason=f"Action violated deterministic policy '{action_type}'",
+                        clearance_margin=margin,
                     )
             except Exception as e:
                 dt_ms = (time.perf_counter() - t0) * 1000.0
@@ -214,14 +265,58 @@ class AutoHarnessPolicy:
                     verification_score=0.0,
                     execution_time_ms=dt_ms,
                     reason=f"Policy evaluation error: {e}",
+                    clearance_margin=margin,
+                )
+        elif margin_fn is not None:
+            # If no boolean policy exists but margin policy does, enforce h(x) >= 0
+            if margin < 0.0:
+                dt_ms = (time.perf_counter() - t0) * 1000.0
+                return ActionPolicyResult(
+                    allowed=False,
+                    bypassed_llm=True,
+                    action_type=action_type,
+                    verification_score=0.0,
+                    execution_time_ms=dt_ms,
+                    reason=f"Action breached clearance margin '{action_type}' (margin: {margin:.4f} < 0)",
+                    clearance_margin=margin,
                 )
 
-        # Step 2: If source code is supplied, run zero-cost static AST verification
+        # Step 2: Check efference copy (corollary discharge) if ticket provided
+        efference_info: dict[str, Any] = {}
+        if efference_ticket is not None:
+            tolerance = float(efference_ticket.get("_tolerance", 1.0))
+            residuals: dict[str, float] = {}
+            mismatch = False
+            for k, expected_v in efference_ticket.items():
+                if k.startswith("_"):
+                    continue
+                actual_v = state.get(k)
+                if isinstance(expected_v, (int, float)) and isinstance(actual_v, (int, float)):
+                    res = abs(float(actual_v) - float(expected_v))
+                    residuals[k] = res
+                    if res > tolerance:
+                        mismatch = True
+            efference_info = {
+                "ticket": efference_ticket,
+                "residuals": residuals,
+                "mismatch": mismatch,
+            }
+            if mismatch:
+                dt_ms = (time.perf_counter() - t0) * 1000.0
+                return ActionPolicyResult(
+                    allowed=False,
+                    bypassed_llm=True,
+                    action_type=action_type,
+                    verification_score=0.0,
+                    execution_time_ms=dt_ms,
+                    reason=f"Corollary discharge mismatch: efference error exceeded tolerance ({residuals})",
+                    clearance_margin=margin,
+                    efference_copy=efference_info,
+                )
+
+        # Step 3: If source code is supplied, run zero-cost static AST verification
         v_score = 1.0
         if source_code:
-            # reconcile 2026-08-26: main's AST verifier is this class's own verify_code
-            # (VerificationResult: valid/violations); the branch's separate AutoHarnessVerifier
-            # (score/errors) was retired in favour of it.
             v_res = self.verify_code(source_code)
             v_score = 1.0 if v_res.valid else 0.0
             if not v_res.valid:
@@ -233,6 +328,8 @@ class AutoHarnessPolicy:
                     verification_score=0.0,
                     execution_time_ms=dt_ms,
                     reason=f"AST verification failed: {v_res.violations}",
+                    clearance_margin=margin,
+                    efference_copy=efference_info,
                 )
 
         dt_ms = (time.perf_counter() - t0) * 1000.0
@@ -243,6 +340,8 @@ class AutoHarnessPolicy:
             verification_score=v_score,
             execution_time_ms=dt_ms,
             reason="Validated by AutoHarness policy",
+            clearance_margin=margin,
+            efference_copy=efference_info,
         )
 
 
@@ -258,3 +357,5 @@ class ActionPolicyResult:
     execution_time_ms: float
     reason: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
+    clearance_margin: float = 0.0
+    efference_copy: dict[str, Any] = field(default_factory=dict)

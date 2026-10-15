@@ -5659,5 +5659,358 @@
     "generated_from": "skill.md",
     "last_updated": "",
     "attestation_leaf_hash": null
+  },
+  "ARC3_AFFORDANCE_MARKOV_HYBRID_PRIME": {
+    "description": "Interactive Grid World Affordance Search & Soft Monadic Markov Policy",
+    "keywords": [
+      "affordance",
+      "arc3",
+      "hybrid",
+      "markov"
+    ],
+    "path": "src/cohezion/skills/ARC3_AFFORDANCE_MARKOV_HYBRID_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "ARC3_RHAE_LEVEL_BUDGET_PRIME": {
+    "description": "You are an autonomous interactive game reasoning engineer and reinforcement search specialist for discrete puzzle environments (ARC-AGI-3). You specialize in Relative Human Action Efficiency (RHAE) scoring optimization, quadratic marginal penalty avoidance, 64-bit SplitMix64 Zobrist state hashing, l",
+    "keywords": [
+      "arc3",
+      "budget",
+      "level",
+      "levelbudget hard truncation invariant",
+      "rhae",
+      "rhae quadratic scoring formula",
+      "scorecard closing invariant",
+      "state-hash liveness watchdog"
+    ],
+    "path": "src/cohezion/skills/ARC3_RHAE_LEVEL_BUDGET_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "ARC_TTT_DIHEDRAL_AND_GO_EXPLORE_RHAE_PRIME": {
+    "description": "Test-Time Training (TTT) on D4 dihedral demonstration symmetries for static abstract reasoning (ARC-AGI-2) and Hierarchical Go-Explore with 64-bit SplitMix64 Zobrist hashing and BFS macro-action compilation under quadratic RHAE score decay (ARC-AGI-3).",
+    "keywords": [
+      "and",
+      "arc",
+      "dihedral",
+      "explore",
+      "go",
+      "rhae",
+      "ttt"
+    ],
+    "path": "src/cohezion/skills/ARC_TTT_DIHEDRAL_AND_GO_EXPLORE_RHAE_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "AUTOHARNESS_ZERO_LATENCY_INVARIANT_COMPILER_PRIME": {
+    "description": "Zero-cost deterministic AST/bytecode compilation and domain invariant verification for agentic execution pipelines and competitive ML submissions without runtime LLM overhead.",
+    "keywords": [
+      "autoharness",
+      "compiler",
+      "invariant",
+      "latency",
+      "zero"
+    ],
+    "path": "src/cohezion/skills/AUTOHARNESS_ZERO_LATENCY_INVARIANT_COMPILER_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "CASMI26_ADDUCT_LATENT_MARGINALIZATION_PRIME": {
+    "description": "High-Resolution Mass Spectrometry Adduct Latent Marginalization & Cross-Adduct Consistency",
+    "keywords": [
+      "adduct",
+      "casmi26",
+      "latent",
+      "marginalization"
+    ],
+    "path": "src/cohezion/skills/CASMI26_ADDUCT_LATENT_MARGINALIZATION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "CASMI26_DUAL_STAGE_POPULARITY_PRIME": {
+    "description": "Expert in mass spectrometry-based small molecule and natural product identification, specifically optimizing Mean Reciprocal Rank (MRR@25) over InChIKey planar connectivity (IK14) in untargeted metabolomics (Enveda CASMI26). Specializes in multi-stage candidate pool filtering, precursor adduct surro",
+    "keywords": [
+      "adduct surrogate expansion",
+      "casmi26",
+      "dual",
+      "dual-stage popularity gating",
+      "isobaric overcrowding problem",
+      "popularity",
+      "stage",
+      "theorem e2 (candidate recall upper bound)"
+    ],
+    "path": "src/cohezion/skills/CASMI26_DUAL_STAGE_POPULARITY_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "CASMI26_V4N_MULTI_ENGINE_FUSION_PRIME": {
+    "description": "Multi-engine candidate fusion combining PubChem bio-occurrence priors, in-silico bond cleavage (MetFrag), and ICEBERG/GLACIER surrogate scoring for high-accuracy natural product identification from MS2 spectra.",
+    "keywords": [
+      "casmi26",
+      "engine",
+      "fusion",
+      "multi",
+      "v4n"
+    ],
+    "path": "src/cohezion/skills/CASMI26_V4N_MULTI_ENGINE_FUSION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "DETERMINISTIC_IDEMPOTENCE_PRIME": {
+    "description": "Mathematical and empirical deterministic idempotence verification across hyper-dimensional manifold projections, Bayesian and Copula parameter optimization, out-of-fold adversarial validation, synthetic task AST compilation, dead-end ledger graph linters, and two-party cryptographic attestation. Enf",
+    "keywords": [
+      "adversarial validation determinism",
+      "cryptographic bitwise invariance",
+      "dead-end linter idempotence",
+      "deterministic",
+      "deterministic nelder-mead copula convergence",
+      "idempotence",
+      "idempotence operator axiom",
+      "poincaré ball idempotent retraction",
+      "procedural ast determinism",
+      "two-party adversarial iv&v invariance"
+    ],
+    "path": "src/cohezion/skills/DETERMINISTIC_IDEMPOTENCE_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "EVO2_WEIGHT_HARNESS_COEVOLUTION_PRIME": {
+    "description": "Weight-Harness Co-Evolution and dual-role policy adaptation (arXiv:2610.13025). Coordinates the joint evolution of policy weights and evaluation harnesses using dual Proposer/Reflector decomposition, HarnessTree DAG exploration with genetic branch crossover, and EvoTIDE trajectory recovery.",
+    "keywords": [
+      "arxiv:2610.13025",
+      "coevolution",
+      "dual-role decomposition",
+      "evo2",
+      "genetic crossover",
+      "harness",
+      "harnesstree ($\\mathcal{t}$)",
+      "weight"
+    ],
+    "path": "src/cohezion/skills/EVO2_WEIGHT_HARNESS_COEVOLUTION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "KAGGLE_COMPETITIVE_EVALUATION_PRIME": {
+    "description": "You are a competitive machine learning grandmaster and evaluation strategist specializing in high-stakes benchmark competitions. You master metric invariance theorems, sample variance calibration between public and hidden private evaluation sets, container runtime budgets, and two-submission portfol",
+    "keywords": [
+      "competitive",
+      "evaluation",
+      "invariant $e_2$ (candidate recall upper bound)",
+      "kaggle",
+      "two-submission final selection protocol"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_COMPETITIVE_EVALUATION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "KAGGLE_LEADERBOARD_ASCENSION_ACCELERATOR_PRIME": {
+    "description": "Kaggle Leaderboard Ascension Accelerator is the mathematical and operational framework for climbing to the top of competitive machine learning leaderboards. Synthesizing principles from The Kaggle Book (Second Edition) by Massaron, Tunguz, and Banachewicz with sovereign agentic autonomy, this skill ",
+    "keywords": [
+      "accelerator",
+      "ascension",
+      "copula rank alignment & quantile inversion",
+      "daily quota maximization & reset cadence",
+      "kaggle",
+      "kolmogorov monotonicity & parsimony gating",
+      "leaderboard",
+      "two-party cryptographic iv&v gate"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_LEADERBOARD_ASCENSION_ACCELERATOR_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "LLM_AS_JEV_DECISION_PRIME": {
+    "description": "Jev-style categorical decision modeling and calibrated option selection over unbounded candidate sets (K >= 2) using standard language model backbones without unconstrained free-form generation or dedicated classification heads, as formulated in arXiv:2610.02076 (Yinheng Li & Justin Wagle, Microsoft",
+    "keywords": [
+      "as",
+      "bracketed numeric identifiers",
+      "brier score",
+      "decision",
+      "expected calibration error (ece)",
+      "jev",
+      "jev decision formulation",
+      "joint candidate scoring",
+      "llm",
+      "prefix-free suffix property",
+      "tree-factorized listwise loss",
+      "truncated kl regularization anchors"
+    ],
+    "path": "src/cohezion/skills/LLM_AS_JEV_DECISION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "PROPRIOCEPTIVE_CYBERNETICS_PRIME": {
+    "description": "Proprioceptive cybernetics, somatosensory mechanoreceptors, corollary discharge, and autopoietic feedback loops. Provides real-time physiological telemetry monitoring over 12-dimensional state vectors ($\\mathbf{x}_{\\text{proprio}} \\in \\mathbb{R}^{12}$), muscle spindle rate-limiting $(\\Delta L, \\dot{",
+    "keywords": [
+      "12d somatosensory state vector",
+      "corollary discharge & efference copy",
+      "cybernetics",
+      "golgi tendon organs (ib afferents)",
+      "muscle spindles (type ia / ii afferents)",
+      "p0 rate reflex & crossing-time protocol",
+      "proprioceptive",
+      "spinal reflex isolation axiom",
+      "variable mechanical impedance"
+    ],
+    "path": "src/cohezion/skills/PROPRIOCEPTIVE_CYBERNETICS_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "REVERSE_ENGINEER_ANYTHING_PRIME": {
+    "description": "Investigating, decompiling, and dissecting shipped software artifacts, compiled binary layouts (ELF/Mach-O/PE), Python wheels, serialized model weights, and runtime bytecode without source code access using canonical Evidence records, progressive Unknown Ledgers, and prompt-injection-safe provenance",
+    "keywords": [
+      "anything",
+      "canonical evidence algebra",
+      "engineer",
+      "facet availability",
+      "morluto/rea",
+      "reverse",
+      "target-content provenance",
+      "the unknown ledger"
+    ],
+    "path": "src/cohezion/skills/REVERSE_ENGINEER_ANYTHING_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "R_ZERO_CHALLENGER_PRIME": {
+    "description": "Co-evolutionary self-play engineering using the R-Zero Triad (Challenger, Solver, Pragmatist) for autonomous reinforcement learning, synthetic benchmark creation, and edge-case discovery. Specializes in generating adaptive difficulty 0.5-coherence traps, procedural spatial puzzles (ARC-AGI-2 and ARC",
+    "keywords": [
+      "0.5 coherence traps (hiho boundary)",
+      "adaptive difficulty adjustment",
+      "challenger",
+      "exemplar harvesting",
+      "llm-as-jev reflector integration",
+      "pragmatist",
+      "r",
+      "solver",
+      "the r-zero triad",
+      "trajectory coherence metric",
+      "zero"
+    ],
+    "path": "src/cohezion/skills/R_ZERO_CHALLENGER_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "SCIENTIFIC_ML_E007_ADDUCT_AND_3D_CROSS_PLANAR_ATTENTION_PRIME": {
+    "description": "Untargeted metabolomics identification via multi-hypothesis adduct neutral mass expansion (E007) and stepped collision energy fusion (CASMI26), alongside multi-view 3D Cross-Planar Attention with Ledoit-Wolf shrinkage Monge copula alignment (RSNA Knee).",
+    "keywords": [
+      "3d",
+      "adduct",
+      "and",
+      "attention",
+      "cross",
+      "e007",
+      "ml",
+      "planar",
+      "scientific"
+    ],
+    "path": "src/cohezion/skills/SCIENTIFIC_ML_E007_ADDUCT_AND_3D_CROSS_PLANAR_ATTENTION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "SOFT_KOLMOGOROV_CALIBRATION_PRIME": {
+    "description": "Multi-label medical diagnostics probability calibration, hierarchical condition monotonicity, and ROC-AUC rank-preservation. Solves the flat-tie degradation failure mode in competitive multi-label classification where sub-conditions imply an omnibus abnormality condition.",
+    "keywords": [
+      "calibration",
+      "kolmogorov",
+      "kolmogorov monotonicity axiom",
+      "probabilistic noisy-or failure model",
+      "soft",
+      "soft kolmogorov convex blend"
+    ],
+    "path": "src/cohezion/skills/SOFT_KOLMOGOROV_CALIBRATION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "STATELESS_LANGUAGE_AGENTS_PRIME": {
+    "description": "Stateless Language Agents (SLA) per arXiv:2610.07625 (FAIR at Meta, UT Austin, Georgia Tech) optimize long-horizon automated scientific research and Kaggle competition exploration by enforcing \"Stateful Search in the Deterministic Harness, Stateless Execution in LLMs\". Traditional multi-turn agent c",
+    "keywords": [
+      "advisor token parsimony",
+      "agents",
+      "arxiv:2610.07625",
+      "failure disambiguation",
+      "harness-centric statefulness",
+      "language",
+      "local candidate retention with global reset",
+      "single-turn stateless functions",
+      "stateless"
+    ],
+    "path": "src/cohezion/skills/STATELESS_LANGUAGE_AGENTS_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "AGENTIC_SYSTEMS_ROADMAP_PRIME": {
+    "description": "Architecting, orchestrating, and operationally hardening production multi-agent AI systems across four hierarchical tiers: single cognitive reasoning loops with strict validation, stateful tri-partite memory and cyclic graph flows, typed swarm handoff contracts with debate-critique conflict resoluti",
+    "keywords": [
+      "agentic",
+      "debate-and-critique topology",
+      "roadmap",
+      "systems",
+      "the failure-ordering axiom",
+      "trajectory-level evaluation",
+      "tri-partite memory hierarchy",
+      "typed swarm handoff contracts"
+    ],
+    "path": "src/cohezion/skills/AGENTIC_SYSTEMS_ROADMAP_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
   }
 }

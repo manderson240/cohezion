@@ -39,26 +39,37 @@
     "autoharness-invariant-factory": true,
     "retrospective-skill-extractor": true,
     "universal-competition-harness": true,
-    "midnight-quota-sentinel": true
+    "midnight-quota-sentinel": true,
+    "proprioceptive-somatic-reflex": true,
+    "myotatic-ast-damping": true,
+    "gto-tension-inhibition": true,
+    "efference-copy-residual": true,
+    "deterministic-idempotence-gate": true,
+    "typed-swarm-handoff-contract": true,
+    "debate-critique-conflict-resolution": true,
+    "circuit-breaker-token-ceiling": true,
+    "trajectory-graph-tracing": true,
+    "npu-socket-serialization-guard": true,
+    "tri-partite-memory-sync": true
   },
   "lanes": {
     "P0-safety": {
       "timeout_ms": 400,
       "debounce_ms": 0,
       "fail_policy": "closed",
-      "description": "Critical permission, hardware and invariant guardrails"
+      "description": "Critical permission, hardware, somatic mechanoreceptor, socket serialization, and circuit breaker guardrails"
     },
     "P1-quality": {
       "timeout_ms": 800,
       "debounce_ms": 200,
       "fail_policy": "warn",
-      "description": "AutoHarness AST verification, dual-store sync, and test suites"
+      "description": "AutoHarness AST verification, typed handoff contracts, dual-store sync, and deterministic test suites"
     },
     "P2-optimization": {
       "timeout_ms": 600,
       "debounce_ms": 500,
       "fail_policy": "open",
-      "description": "Context compaction, caching, and background metrics"
+      "description": "Context compaction, tri-partite memory sync, caching, and trajectory graph tracing"
     }
   },
   "lifecycle_policy": {

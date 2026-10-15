@@ -1,6 +1,6 @@
 # Hook Validation Report
 
-**Timestamp**: 2026-09-19T00:55:30Z  
+**Timestamp**: 2026-10-15T08:10:00Z  
 **Evaluator**: OmA Hooks Validator  
 **Active Profile**: `balanced`  
 **Approval Posture**: `full-auto`  
@@ -13,17 +13,25 @@
 - **Major**: 0
 - **Minor**: 0
 
-## Findings
+## Signal & Trigger Lane Mapping
+
+| Execution Lane | Fail Policy | Budget (ms) | Active Derived Triggers & Invariant Gates |
+|---|:---:|:---:|---|
+| **`P0-safety`** | `closed` | 400 | `proprioceptive-somatic-reflex`, `myotatic-ast-damping`, `gto-tension-inhibition`, `efference-copy-residual`, `npu-socket-serialization-guard`, `circuit-breaker-token-ceiling`, `forbidden-subgraph-dead-end-linter`, `two-party-ivv-separation` |
+| **`P1-quality`** | `warn` | 800 | `autoharness-invariant-factory`, `typed-swarm-handoff-contract`, `debate-critique-conflict-resolution`, `deterministic-idempotence-gate`, `docker-python-verifier`, `kagglesdk-typed-bridge`, `retrospective-skill-extractor` |
+| **`P2-optimization`** | `open` | 600 | `tri-partite-memory-sync`, `trajectory-graph-tracing`, `context-drift`, `stage-transition`, `midnight-quota-sentinel`, `kagglehub-zero-copy-guard` |
+
+## Findings & Resolutions
 | Severity | Finding | Evidence | Fix |
 | --- | --- | --- | --- |
-| RESOLVED | Broken `/tmp/plugin-install-...` Node hook paths | `plugins/oh-my-antigravity/hooks.json` pointed to missing directory | Relocated scripts to permanent plugin directory with safe exception trapping (<5ms latency) |
-| RESOLVED | Silent SurrealDB WAL drop during vault lock | `recursive_learning.py` caught `InsecureSurrealCredentialsError` | Added `_direct_http_upsert` with basic auth fallback directly to `http://localhost:8001/sql` |
-| RESOLVED | Missing modular rules and memory indexing | `.omg/rules/` and `.omg/MEMORY.md` absent | Scaffolded 6 modular rule packs and compact dual-store memory index |
-| RESOLVED | Split-brain editable virtualenv resolution | Default Python resolved to `dev/cohezion/src` | Synchronized source changes across both development tree and worktree |
+| RESOLVED | Unstructured text drift across agent handoffs | Level 3 Roadmap Audit (KDnuggets 2026) | Deployed `TaskHandoffContract` & `SwarmConflictResolver` in `src/cohezion/swarm/handoff_contract.py` |
+| RESOLVED | Missing dead-end constraint enforcement at pre-commit | Learning 533 Dead-End Ledger | Integrated `ForbiddenSubgraphLinter` directly into `scripts/hooks/pre-commit.py` |
+| RESOLVED | FastFlowLM socket reset under concurrent dequeuing | Learning 537 NPU Throughput Diagnosis | Deployed `_FASTFLOWLM_LOCK` serialization & `--socket 32 --q-len 32` buffering |
+| RESOLVED | Somatosensory mechanoreceptor blindness | Learning 536 Proprioceptive Cybernetics | Activated `fleet_sentry.py` continuous watcher daemon and `proprioceptive-somatic-reflex` |
 
 ## Safe-to-Run Decision
 - **Yes/No**: YES
-- **Rationale**: All native event triggers (`SessionStart`, `SessionEnd`, `BeforeAgent`, `AfterAgent`, `BeforeModel`, `AfterModel`, `BeforeTool`, `AfterTool`, `PreCompress`, `Notification`) map deterministically to isolated `P0/P1/P2` execution lanes with non-blocking timeouts and debouncing budgets. Side-effect hooks are disabled for delegated worker sessions.
+- **Rationale**: All native event triggers (`SessionStart`, `SessionEnd`, `BeforeAgent`, `AfterAgent`, `BeforeModel`, `AfterModel`, `BeforeToolSelection`, `BeforeTool`, `AfterTool`, `PreCompress`, `Notification`) map deterministically to isolated `P0/P1/P2` execution lanes with non-blocking timeouts and debouncing budgets. Side-effect hooks are disabled for delegated worker sessions.
 
 ## Next Command
-- Autonomous Kaggle active leaderboard monitoring & AutoHarness verification loop.
+- Autonomous continuous Kaggle ascension loop on AMD XDNA 2 NPU & midnight harvest synchronization.

@@ -19,12 +19,60 @@ from plotly.subplots import make_subplots
 def generate_prospect_cards():
     data_dir = Path("/tmp/nfl_sample")
     if not (data_dir / "combine_results.csv").exists():
-        print(f"Data not found in {data_dir}. Using simulated data.")
-        return
-
-    df_comb = pd.read_csv(data_dir / "combine_results.csv")
-    df_succ = pd.read_csv(data_dir / "player_career_successes.csv")
-    df_play = pd.read_csv(data_dir / "players.csv")
+        print(f"Data not found in {data_dir}. Generating synthetic NFL prospect dataset...")
+        data_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Synthetic cohort of 60 prospects across Edge, OT, WR, CB, LB
+        np.random.seed(42)
+        n_prospects = 60
+        nfl_ids = [40000 + i for i in range(n_prospects)]
+        positions = ["DE", "OLB", "OT", "WR", "CB", "DT", "ILB"] * 9
+        positions = positions[:n_prospects]
+        
+        first_names = ["Will", "Micah", "Aidan", "Sauce", "Puka", "C.J.", "Brock", "Myles", "T.J.", "Nick", "Jalen", "Quinnen", "Trent", "Penei", "Chris", "Kyle", "Roquan", "Fred", "Lamar", "Patrick"]
+        last_names = ["Anderson", "Parsons", "Hutchinson", "Gardner", "Nacua", "Stroud", "Purdy", "Garrett", "Watt", "Bosa", "Carter", "Williams", "Sewell", "Jones", "Hamilton", "Warner", "Smith", "Johnson", "Davis", "Miller"]
+        
+        names = [f"{np.random.choice(first_names)} {np.random.choice(last_names)}" for _ in range(n_prospects)]
+        
+        forty_times = np.round(np.random.normal(4.65, 0.22, n_prospects), 2)
+        verticals = np.round(np.random.normal(34.5, 4.0, n_prospects), 1)
+        three_cones = np.round(np.random.normal(7.15, 0.35, n_prospects), 2)
+        draft_rounds = np.random.choice([1, 2, 3, 4, 5, 6, 7], size=n_prospects, p=[0.25, 0.20, 0.18, 0.14, 0.10, 0.08, 0.05])
+        
+        df_comb = pd.DataFrame({
+            "nfl_id": nfl_ids,
+            "forty": forty_times,
+            "vertical": verticals,
+            "three_cone": three_cones,
+            "draft_round": draft_rounds,
+        })
+        df_comb.to_csv(data_dir / "combine_results.csv", index=False)
+        
+        starts = [int(np.random.choice(range(0, 50), p=np.linspace(1, 0.05, 50)/np.sum(np.linspace(1, 0.05, 50)))) for _ in range(n_prospects)]
+        off_snaps = [int(s * 60 + np.random.randint(0, 200)) for s in starts]
+        def_snaps = [int(s * 55 + np.random.randint(0, 150)) for s in starts]
+        pro_bowls = [1 if s > 30 and np.random.rand() > 0.4 else 0 for s in starts]
+        
+        df_succ = pd.DataFrame({
+            "nfl_id": nfl_ids,
+            "career_games_started": starts,
+            "career_offensive_snaps": off_snaps,
+            "career_defensive_snaps": def_snaps,
+            "pro_bowl_original_ballot": pro_bowls,
+        })
+        df_succ.to_csv(data_dir / "player_career_successes.csv", index=False)
+        
+        df_play = pd.DataFrame({
+            "nfl_id": nfl_ids,
+            "display_name": names,
+            "nfl_position": positions,
+        })
+        df_play.to_csv(data_dir / "players.csv", index=False)
+        print(f"Generated synthetic prospect files in {data_dir}.")
+    else:
+        df_comb = pd.read_csv(data_dir / "combine_results.csv")
+        df_succ = pd.read_csv(data_dir / "player_career_successes.csv")
+        df_play = pd.read_csv(data_dir / "players.csv")
 
     merged = df_comb.merge(df_succ, on="nfl_id", how="inner").merge(df_play, on="nfl_id", how="inner")
     print(f"Merged {len(merged)} prospect records across Combine and NFL Career data.")

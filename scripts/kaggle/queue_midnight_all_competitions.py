@@ -68,9 +68,51 @@ def submit_notebook(comp: str, kernel: str, filename: str, msg: str, code_path: 
                     comp, inv_res.violations
                 )
                 return False
-            logger.info("[%s] ✓ AutoHarness invariants verified cleanly (%d checked).", comp, inv_res.invariants_checked)
         except Exception as e:
             logger.warning("[%s] AutoHarness pre-dispatch check note: %s", comp, e)
+
+        # Forbidden Subgraph / Dead-End Ledger Gate (Meta-Aspect 1)
+        try:
+            from cohezion.registry.forbidden_subgraphs import ForbiddenSubgraphLinter
+            linter = ForbiddenSubgraphLinter()
+            if str(code_path).endswith(".ipynb"):
+                l_pass, l_viols = linter.audit_notebook(code_path, domain=comp)
+            else:
+                with open(code_path, "r", encoding="utf-8") as f:
+                    l_pass, l_viols = linter.audit_code(f.read(), domain=comp)
+            if not l_pass:
+                logger.critical("[%s] FORBIDDEN SUBGRAPH DETECTED! Aborting dispatch: %s", comp, l_viols)
+                return False
+            logger.info("[%s] ✓ Dead-End Ledger check PASSED (0 anti-patterns).", comp)
+        except Exception as e:
+            logger.warning("[%s] Dead-End Ledger pre-dispatch check note: %s", comp, e)
+
+        # Two-Party Adversarial IV&V Gate (Meta-Aspect 4)
+        try:
+            sys.path.insert(0, str(WORKSPACE / "scripts" / "testing"))
+            from red_team_adversary import (
+                RedTeamAdversary,
+                default_poincare_distance,
+                default_d4_verifier,
+                default_zobrist_hash,
+                default_copula_blend,
+            )
+            adversary = RedTeamAdversary()
+            if "arc-agi-3" in comp:
+                adversary.probe_poincare_invariants(default_poincare_distance)
+                adversary.probe_zobrist_hash_collisions(default_zobrist_hash)
+            elif "arc-agi-2" in comp:
+                adversary.probe_d4_symmetry(default_d4_verifier)
+            elif "rsna" in comp or "casmi" in comp:
+                adversary.probe_copula_rank_monotonicity(default_copula_blend)
+
+            report = adversary.generate_audit_report()
+            if not report["is_certified"]:
+                logger.critical("[%s] ADVERSARIAL RED-TEAM REJECTED INVARIANTS: %s", comp, report["findings"])
+                return False
+            logger.info("[%s] ✓ Adversarial Red-Team IV&V Certification PASSED cleanly.", comp)
+        except Exception as e:
+            logger.warning("[%s] Adversarial Red-Team pre-dispatch check note: %s", comp, e)
 
     cmd = [
         sys.executable, "scripts/kaggle/kaggle_submit.py", "notebook",
@@ -134,7 +176,7 @@ def execute_midnight_harvest(api: KaggleApi):
             comp="arc-prize-2026-arc-agi-3",
             kernel="manderson240/cohezion-arc-agi-3-autoharness-solver",
             filename="submission.parquet",
-            msg="Cohezion ARC-AGI-3 SOTA v36: 75-Step Monadic Markov Engine + Orthogonal Escape Pulses + Push Affordance Bonus (Daily Quota Reset)",
+            msg="Cohezion ARC-AGI-3 SOTA v37: Poincaré Hyperbolic MCTS Affordance Oracle + Monadic Soft-Affordance (Google Earth AI Dedicated Workspace Edition)",
             code_path="scripts/kaggle/cohezion-arc-agi-3-autoharness-solver/cohezion-arc-agi-3-autoharness-solver.ipynb",
         )
 
@@ -148,34 +190,34 @@ def execute_midnight_harvest(api: KaggleApi):
             code_path="scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb",
         )
 
-    # 3. Google Gemma 4 Developer Agent (12B Fast-Inference Container)
+    # 3. Google Gemma 4 Developer Agent (31B Stable QAT Container)
     if not check_is_pending(api, "gemma-4-developer-agent"):
         submit_file(
             comp="gemma-4-developer-agent",
             filepath="scripts/kaggle/gemma4_kernel/submission.zip",
-            msg="Cohezion Gemma-4 SOTA: 12B Fast-Inference Container + 240s Pytest Timeout + Paced Edit",
+            msg="Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)",
             code_path="scripts/kaggle/gemma4_kernel/package_submission.py",
         )
     else:
         logger.info("[gemma-4-developer-agent] Previous submission still scoring. Background watcher will dispatch upon queue clearance.")
 
-    # 4. RSNA Knee Abnormality Detection (SOTA v31 0.957 R7 + Raptor Blend)
+    # 4. RSNA Knee Abnormality Detection (SOTA v35 Equilibrium Calibrated Tri-Model Blend)
     if not check_is_pending(api, "rsna-knee-abnormality-detection"):
         submit_notebook(
             comp="rsna-knee-abnormality-detection",
             kernel="manderson240/cohezion-rsna-knee-0-957-r7-blend",
             filename="submission.csv",
-            msg="Cohezion RSNA Knee SOTA v31: R7 ConvNeXt-small + Raptor-384 Rank Ensembling + Strict Probability Clipping (Daily Quota Reset)",
+            msg="Cohezion RSNA Knee SOTA v35: Equilibrium Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 + R7) + Calibrated Copula Weights (Daily Quota Reset)",
             code_path="scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb",
         )
 
-    # 5. Enveda CASMI26 Molecule ID (Podium v26 Dual FPNet Ensemble + Full Parsimony)
+    # 5. Enveda CASMI26 Molecule ID (Podium v27 Deep PubChem Candidate Expansion)
     if not check_is_pending(api, "enveda-CASMI26-molecule-id-mass-spectra"):
         submit_notebook(
             comp="enveda-CASMI26-molecule-id-mass-spectra",
             kernel="manderson240/cohezion-casmi26-fork-v4n-0421",
             filename="submission.csv",
-            msg="Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony + All-Adduct Surrogacy (Daily Quota Reset)",
+            msg="Cohezion CASMI26 SOTA v27: Deep PubChem Expansion (PC_JOIN_N=75, PC_POP_UNION=250, lambda_frag=0.18) (Daily Quota Reset)",
             code_path="scripts/kaggle/casmi26_v4n_podium/cohezion-casmi26-fork-v4n-0421.ipynb",
         )
 

@@ -1,22 +1,28 @@
 {
-  "version": "1.0",
-  "updated_at": "2026-09-19T00:55:00Z",
-  "total_entries": 4,
+  "version": "1.1",
+  "updated_at": "2026-10-15T08:12:00Z",
+  "total_entries": 8,
   "entries": [
     {
       "id": "surrealdb-port8001",
       "title": "SurrealDB Instance Port 8001 & Direct HTTP Fallback",
       "path": ".omg/memory/surrealdb-port8001.md",
       "surreal_table": "learning",
-      "surreal_count": 145,
+      "surreal_count": 647,
       "tags": ["persistence", "surrealdb", "port8001"]
     },
     {
       "id": "kaggle-active-tracks",
       "title": "Kaggle Active Competitions & Submission Governance",
       "path": ".omg/memory/kaggle-active-tracks.md",
-      "competitions": ["arc-prize-2026", "biohub-cell-tracking-during-development", "rsna-knee-abnormality-detection", "casmi-2026-challenge-biomolecule-identification", "kaggriculture"],
-      "tags": ["kaggle", "leaderboard", "autoharness"]
+      "competitions": [
+        "arc-prize-2026",
+        "rsna-knee-abnormality-detection",
+        "casmi-2026-challenge-biomolecule-identification",
+        "nfl-big-data-bowl-2027",
+        "gemma-4-developer-agent"
+      ],
+      "tags": ["kaggle", "leaderboard", "autoharness", "active-competitions"]
     },
     {
       "id": "strix-halo-fleet-discipline",
@@ -29,10 +35,42 @@
     },
     {
       "id": "autoharness-policy",
-      "title": "AutoHarness Policy & Zero-Cost AST Verification",
+      "title": "AutoHarness Policy & Continuous Clearance Margins",
       "path": ".omg/memory/autoharness-policy.md",
       "arxiv_ref": "arXiv:2603.03329v1",
-      "tags": ["agi", "autoharness", "ast", "zkfv"]
+      "tags": ["agi", "autoharness", "ast", "zkfv", "clearance-margins"]
+    },
+    {
+      "id": "proprioceptive-cybernetics",
+      "title": "Proprioceptive Cybernetics & Autopoietic Somatosensory Sentry",
+      "path": ".omg/memory/proprioceptive-cybernetics.md",
+      "prime_skill": "PROPRIOCEPTIVE_CYBERNETICS_PRIME.md",
+      "learning_ref": "L536",
+      "tags": ["cybernetics", "proprioception", "fleet-sentry", "muscle-spindles"]
+    },
+    {
+      "id": "deterministic-idempotence",
+      "title": "Deterministic Idempotence & Bitwise Invariant Operators",
+      "path": ".omg/memory/deterministic-idempotence.md",
+      "prime_skill": "DETERMINISTIC_IDEMPOTENCE_PRIME.md",
+      "learning_ref": "L535",
+      "tags": ["verification", "idempotence", "bitwise-identity", "zero-drift"]
+    },
+    {
+      "id": "npu-xdna2-acceleration",
+      "title": "AMD XDNA 2 NPU Acceleration & FastFlowLM Optimization",
+      "path": ".omg/memory/npu-xdna2-acceleration.md",
+      "prime_skill": "FASTFLOWLM_PRIME.md",
+      "learning_ref": "L430, L526, L537",
+      "tags": ["hardware", "npu", "xdna2", "fastflowlm", "sram"]
+    },
+    {
+      "id": "agentic-roadmap-2026",
+      "title": "2026 Agentic AI Systems Roadmap & Typed Handoff Contracts",
+      "path": ".omg/memory/agentic-roadmap-2026.md",
+      "prime_skill": "AGENTIC_SYSTEMS_ROADMAP_PRIME.md",
+      "learning_ref": "L538",
+      "tags": ["architecture", "swarm", "contracts", "circuit-breakers"]
     }
   ]
 }

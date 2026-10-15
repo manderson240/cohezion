@@ -1,5 +1,5 @@
 name: black_cat_coder
-model: gemma-4-12b-it-qat-w4a16-ct
+model: gemma-4-31b-it-qat-w4a16-ct
 description: Fixes one repository issue with a small, verified source patch.
 instruction: !include prompts/system.md
 tools:

@@ -19,6 +19,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 
+# Ensure local worktree src/ takes precedence over any globally installed package
+_src_path = str(Path(__file__).resolve().parent.parent / "src")
+if sys.path[0] != _src_path:
+    if _src_path in sys.path:
+        sys.path.remove(_src_path)
+    sys.path.insert(0, _src_path)
+
 
 # Hypothesis CI profile (loaded via HYPOTHESIS_PROFILE=ci in CI workflows):
 # derandomize=True makes CI failures reproducible; deadline=None avoids flaky

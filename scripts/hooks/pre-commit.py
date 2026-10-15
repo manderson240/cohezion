@@ -128,6 +128,29 @@ def main():
         except Exception as e:
             print(f"⚠️ AutoHarness pre-commit check note: {e}")
 
+    # 2c. Forbidden Subgraph Dead-End Ledger Gate (Learning 533)
+    staged_code_files = [f for f in staged_files if f.endswith(".py") or f.endswith(".ipynb")]
+    if staged_code_files:
+        try:
+            from cohezion.registry.forbidden_subgraphs import ForbiddenSubgraphLinter
+            linter = ForbiddenSubgraphLinter()
+            for cf in staged_code_files:
+                if "forbidden_subgraphs" in cf or "test_" in cf or "/testing/" in cf or "/tests/" in cf:
+                    continue
+                if os.path.isfile(cf):
+                    with open(cf, encoding="utf-8", errors="replace") as code_f:
+                        code_content = code_f.read()
+                    passed, violations = linter.audit_code(code_content)
+                    crit_violations = [v for v in violations if v.get("severity") == "CRITICAL"]
+                    if crit_violations:
+                        print(f"\n❌ Commit blocked by Forbidden Subgraph Linter: '{cf}'")
+                        for v in crit_violations:
+                            print(f"   - [{v['rule_id']}] {v['name']}: {v['description']}")
+                            print(f"     Historical Root Cause: {v['historical_learning']}")
+                        sys.exit(1)
+        except Exception as e:
+            print(f"⚠️ Forbidden subgraph linter note: {e}")
+
     # 3. Forbidden Credential Files & Secret Scanning
     try:
         from cohezion.security.secret_scrubber import (

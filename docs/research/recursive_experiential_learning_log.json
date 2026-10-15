@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-14T02:49:31.465343+00:00",
+  "timestamp": "2026-10-15T00:00:58.235928+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -19,6 +19,27 @@
         ]
       },
       "recent_history": [
+        {
+          "ref": 57198355,
+          "date": "2026-10-15 00:00:42.077000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion RSNA Knee SOTA v34: Noise-Insulated Tri-Model Blend (Raptor-384 + Raptor-224 + R7) + Calibrated Copula Weights (Daily Quota Reset)"
+        },
+        {
+          "ref": 57179525,
+          "date": "2026-10-14 10:49:35.843000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.956",
+          "description": "Cohezion RSNA Knee SOTA v33: Calibrated Tri-Model Multi-Resolution Blend (Raptor-384 + Raptor-224 + R7) + Per-Pathology Copula Weights"
+        },
+        {
+          "ref": 57164600,
+          "date": "2026-10-14 02:54:21.150000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.956",
+          "description": "Cohezion RSNA Knee SOTA v32: Tri-Model Rank Ensemble (Raptor-384 + Raptor-224 + R7 ConvNeXt-small) + Strict Boundary Clipping"
+        },
         {
           "ref": 57159621,
           "date": "2026-10-14 00:01:08.433000",
@@ -39,27 +60,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.939",
           "description": "Cohezion RSNA Knee SOTA v30: Speedy Raptors + Pre-Fusion Temperature Calibration + Classwise Prior Weights (NvidiaL4)"
-        },
-        {
-          "ref": 57148085,
-          "date": "2026-10-13 15:18:46.247000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.939",
-          "description": "Cohezion RSNA Knee SOTA v29: Speedy Raptors + NvidiaL4 + 12x12 Clinical Prior Copula Coupling + Guardrails (Daily Harvest)"
-        },
-        {
-          "ref": 57126357,
-          "date": "2026-10-13 01:38:36.237000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.943",
-          "description": "Cohezion RSNA Knee SOTA v27: 0.943+ Speedy Raptors with Copula Rank Alignment (Daily Quota Harvest)"
-        },
-        {
-          "ref": 57116495,
-          "date": "2026-10-12 19:01:48.043000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.939",
-          "description": "Cohezion RSNA Knee SOTA v32: Restored Pure Copula Rank Alignment + Strict Probability Clipping [1e-6, 1.0 - 1e-6] (NvidiaL4)"
         }
       ]
     },
@@ -81,10 +81,17 @@
       },
       "recent_history": [
         {
-          "ref": 57164320,
-          "date": "2026-10-14 02:41:54.760000",
+          "ref": 57198385,
+          "date": "2026-10-15 00:00:52.813000",
           "status": "SubmissionStatus.PENDING",
           "public_score": "",
+          "description": "Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony + All-Adduct Surrogacy (Daily Quota Reset)"
+        },
+        {
+          "ref": 57164320,
+          "date": "2026-10-14 02:41:54.760000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.417",
           "description": "Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony (FRAG_MODE all) + All-Adduct Surrogacy"
         },
         {
@@ -114,13 +121,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.285",
           "description": "Cohezion CASMI26 SOTA v25: 4-Channel Calibrated Reranker (Zero-POP_MU + In-Silico Cleavage + Canonical Tautomer)"
-        },
-        {
-          "ref": 57088689,
-          "date": "2026-10-12 00:03:30.500000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.285",
-          "description": "Cohezion CASMI26 Podium v22: Dual Popularity (POP_MU 0.25 + PC_POP_LAM 0.25) + GL_SURROGATE + FILL_25 (Daily Quota Reset)"
         }
       ]
     },
@@ -142,10 +142,17 @@
       },
       "recent_history": [
         {
-          "ref": 57124197,
-          "date": "2026-10-13 00:23:00.697000",
+          "ref": 57166867,
+          "date": "2026-10-14 04:27:34.973000",
           "status": "SubmissionStatus.PENDING",
           "public_score": "",
+          "description": "Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection"
+        },
+        {
+          "ref": 57124197,
+          "date": "2026-10-13 00:23:00.697000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "29.31",
           "description": "Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection"
         },
         {
@@ -175,13 +182,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "28.47",
           "description": "Cohezion ARC-AGI-2: Quad-L4 TTT Verification Baseline (Target LB 33.89%)"
-        },
-        {
-          "ref": 56897895,
-          "date": "2026-10-07 02:38:28.447000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "26.39",
-          "description": "Cohezion ARC-AGI-2: Quad-L4 TTT Verification Baseline (Target LB 33.89%)"
         }
       ]
     },
@@ -202,6 +202,13 @@
         ]
       },
       "recent_history": [
+        {
+          "ref": 57198301,
+          "date": "2026-10-15 00:00:19.820000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion ARC-AGI-3 SOTA v36: 75-Step Monadic Markov Engine + Orthogonal Escape Pulses + Push Affordance Bonus (Daily Quota Reset)"
+        },
         {
           "ref": 57159536,
           "date": "2026-10-14 00:00:43.310000",
@@ -236,13 +243,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.16",
           "description": "Cohezion ARC-AGI-3 SOTA v31: Monadic Markov Engine + 64-bit Zobrist Anti-Cycle"
-        },
-        {
-          "ref": 56981979,
-          "date": "2026-10-09 00:48:51.820000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.10",
-          "description": "Cohezion ARC-AGI-3 SOTA v30: Go-Explore BFS Macro Planning + 64-bit Zobrist Anti-Cycle"
         }
       ]
     },
@@ -264,9 +264,16 @@
       },
       "recent_history": [
         {
+          "ref": 57198321,
+          "date": "2026-10-15 00:00:30.380000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)"
+        },
+        {
           "ref": 57159577,
           "date": "2026-10-14 00:00:55.357000",
-          "status": "SubmissionStatus.PENDING",
+          "status": "SubmissionStatus.COMPLETE",
           "public_score": "",
           "description": "Cohezion Gemma-4 SOTA: 12B Fast-Inference Container + 240s Pytest Timeout + Paced Edit"
         },
@@ -297,13 +304,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.00",
           "description": "Cohezion Gemma-4 SOTA: Zero-Budget Thinking + Colocated Prompts + Canonical eval_config"
-        },
-        {
-          "ref": 56927412,
-          "date": "2026-10-08 01:18:11.817000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.00",
-          "description": "Cohezion Gemma-4 SOTA: Zero-Budget Thinking + Extract Diff on Timeout + Lean ADK Scaffold"
         }
       ]
     }

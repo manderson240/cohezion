@@ -28,6 +28,7 @@ import json
 import logging
 import os
 import random
+import subprocess
 import sys
 import time
 import urllib.request
@@ -104,8 +105,50 @@ def log_to_surreal(table: str, record: dict) -> None:
         logger.debug("SurrealDB logging failed for %s: %s", table, e)
 
 
+def discover_flm_port() -> int:
+    """Discover active flm-real port dynamically."""
+    try:
+        out = subprocess.check_output(["pgrep", "-fa", "flm-real"], text=True, timeout=2.0)
+        for line in out.splitlines():
+            parts = line.split()
+            if "--port" in parts:
+                idx = parts.index("--port")
+                if idx + 1 < len(parts):
+                    return int(parts[idx + 1])
+    except Exception:
+        pass
+    return 8005
+
+
+def _call_npu_direct(prompt: str, max_tokens: int = 1024) -> str:
+    """Fallback to direct FastFlowLM NPU lane with prompt safety bounding and auto-port discovery."""
+    bounded_prompt = prompt[-3500:] if len(prompt) > 3500 else prompt
+    port = discover_flm_port()
+    payload = json.dumps({
+        "model": "deepseek-r1-0528:8b",
+        "messages": [{"role": "user", "content": bounded_prompt}],
+        "max_tokens": min(max_tokens, 1024),
+        "temperature": 0.2,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        f"http://127.0.0.1:{port}/v1/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        # Long timeout prevents client-side socket cancellation mid-prefill
+        with urllib.request.urlopen(req, timeout=60.0) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            choices = data.get("choices", [])
+            if choices:
+                return choices[0].get("message", {}).get("content", "").strip()
+    except Exception as e:
+        logger.debug("NPU direct fallback failed: %s", e)
+    return ""
+
+
 async def call_ollama(model: str, prompt: str, temperature: float = 0.2, max_tokens: int = 2048) -> str:
-    """Single-turn stateless async invocation to Ollama Cloud models."""
+    """Single-turn stateless async invocation to Ollama Cloud models with NPU fallback."""
     loop = asyncio.get_running_loop()
 
     def _sync_post():
@@ -127,9 +170,18 @@ async def call_ollama(model: str, prompt: str, temperature: float = 0.2, max_tok
             with urllib.request.urlopen(req, timeout=45.0) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 return data.get("response", "").strip()
+        except urllib.error.HTTPError as exc:
+            if exc.code == 429:
+                logger.warning("Ollama Cloud 429 rate limit for %s; falling back to direct NPU lane...", model)
+                time.sleep(2.0)
+                npu_res = _call_npu_direct(prompt, max_tokens)
+                if npu_res:
+                    return npu_res
+            logger.warning("Ollama call failed for %s: %s", model, exc)
+            return _call_npu_direct(prompt, max_tokens)
         except Exception as exc:
             logger.warning("Ollama call failed for %s: %s", model, exc)
-            return ""
+            return _call_npu_direct(prompt, max_tokens)
 
     return await loop.run_in_executor(None, _sync_post)
 

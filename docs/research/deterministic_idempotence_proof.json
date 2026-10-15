@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-10-15T05:12:03Z",
+  "status": "PROVEN_DETERMINISTIC_IDEMPOTENT",
+  "all_idempotent": true,
+  "elapsed_seconds": 0.27,
+  "domains": {
+    "poincare_projection": {
+      "domain": "Poincare_Projection",
+      "idempotent": true,
+      "max_delta_p1_p2": 0.0,
+      "max_delta_p2_p3": 0.0,
+      "digest_p1": "cf09414a7ac92cece7eefd65be2919f6d5b51f6ce3d6dc7f7d1ba845d33e51a6",
+      "digest_p2": "cf09414a7ac92cece7eefd65be2919f6d5b51f6ce3d6dc7f7d1ba845d33e51a6",
+      "digest_p3": "cf09414a7ac92cece7eefd65be2919f6d5b51f6ce3d6dc7f7d1ba845d33e51a6"
+    },
+    "copula_optimization": {
+      "idempotent": true,
+      "digest": "5ee58f67db54dfae5c26110a78c172b37fbd1175a93bf99f258821ae72ef7973",
+      "optimal_weights": [
+        0.60821,
+        0.0,
+        0.39179
+      ]
+    },
+    "adversarial_validation": {
+      "domain": "Adversarial_Validation",
+      "idempotent": true,
+      "runs_tested": 5,
+      "identical_digests": true,
+      "sample_digest": "e5329b4bb2bd620cff1bc8599b4217995c2c2d69b1d6a359479648383393f8e2",
+      "roc_auc": 0.5461,
+      "risk_level": "LOW"
+    },
+    "synthetic_arc_manifold": {
+      "domain": "Synthetic_ARC_Procedural_Manifold",
+      "idempotent": true,
+      "runs_tested": 3,
+      "tasks_generated_per_run": 50,
+      "digest": "57824a1748c05bc390bb149c7a32e2762b2fae70ebd5dd67b4305c93dbb9b60b"
+    },
+    "dead_end_ledger": {
+      "domain": "Dead_End_Ledger_AST_Linter",
+      "idempotent": true,
+      "clean_pass": true,
+      "viol_pass": true,
+      "clean_digest": "1b711c794e69600117c71c8c8ec5589c7476f0646867c2fa0c9babc53b61aeed",
+      "viol_digest": "1b711c794e69600117c71c8c8ec5589c7476f0646867c2fa0c9babc53b61aeed"
+    },
+    "red_team_ivv": {
+      "domain": "Two_Party_Adversarial_IV&V",
+      "idempotent": true,
+      "is_certified": true,
+      "digest": "e248f589bbd0dc081be5589194409f2e0ebc2995b49da6f415920bbe3ca98e46"
+    }
+  }
+}
