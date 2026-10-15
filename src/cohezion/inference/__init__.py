@@ -298,6 +298,21 @@ from cohezion.inference.registry import (
 )
 
 
+with contextlib.suppress(Exception):
+    from cohezion.inference.hybrid_reasoning_agent import (
+        ContinuousWorkingMemory as ContinuousWorkingMemory,
+    )
+    from cohezion.inference.hybrid_reasoning_agent import (
+        HybridLink as HybridLink,
+    )
+    from cohezion.inference.hybrid_reasoning_agent import (
+        HybridReasoningAgent as HybridReasoningAgent,
+    )
+    from cohezion.inference.hybrid_reasoning_agent import (
+        HybridTrajectory as HybridTrajectory,
+    )
+
+
 __all__ = [
     "FleetHealth",
     "FleetRegistry",
