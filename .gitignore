@@ -200,6 +200,7 @@ data/compound/metrics/
 infrastructure/
 .env.surrealdb
 cloud-vault-mcp/history.txt
+history.txt
 
 # Generated/large files discovered during triage
 ruff_*.txt
