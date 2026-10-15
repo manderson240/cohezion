@@ -87,7 +87,7 @@ class PoincareManifoldND:
         try:
             import torch
 
-            X = torch.tensor([p.coords for p in points], dtype=torch.float32)
+            X = torch.tensor([p.coords for p in points], dtype=torch.float64)
             sq_norms = torch.sum(X * X, dim=1, keepdim=True)
             sq_dist = torch.cdist(X, X, p=2) ** 2
             denom = torch.clamp((1.0 - sq_norms) * (1.0 - sq_norms.T), min=cls.EPS)
@@ -96,13 +96,25 @@ class PoincareManifoldND:
             dist_matrix.fill_diagonal_(0.0)
             return dist_matrix.tolist()
         except Exception:
-            matrix = [[0.0] * n for _ in range(n)]
-            for i in range(n):
-                for j in range(i + 1, n):
-                    d = cls.distance(points[i], points[j])
-                    matrix[i][j] = d
-                    matrix[j][i] = d
-            return matrix
+            try:
+                import numpy as np
+
+                arr = np.array([p.coords for p in points], dtype=np.float64)
+                sq_n = np.sum(arr * arr, axis=1, keepdims=True)
+                sq_d = np.maximum(0.0, sq_n + sq_n.T - 2.0 * np.dot(arr, arr.T))
+                denom = np.maximum(cls.EPS, (1.0 - sq_n) * (1.0 - sq_n.T))
+                arg = np.maximum(1.0, 1.0 + 2.0 * sq_d / denom)
+                d_mat = np.arccosh(arg)
+                np.fill_diagonal(d_mat, 0.0)
+                return d_mat.tolist()
+            except Exception:
+                matrix = [[0.0] * n for _ in range(n)]
+                for i in range(n):
+                    for j in range(i + 1, n):
+                        d = cls.distance(points[i], points[j])
+                        matrix[i][j] = d
+                        matrix[j][i] = d
+                return matrix
 
     @classmethod
     def parallel_transport(

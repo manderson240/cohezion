@@ -6012,5 +6012,82 @@
     "generated_from": "skill.md",
     "last_updated": "",
     "attestation_leaf_hash": null
+  },
+  "ALGORITHMIC_FOUNDATIONS_PRIME": {
+    "description": "Designing, profiling, and executing mathematically rigorous, elegantly simple algorithms and zero-allocation data structures across autonomous AI swarms, competitive Kaggle ascensions, and real-time host cybernetics—replacing continuous approximations and heap-allocated abstractions with bitboards, ",
+    "keywords": [
+      "algorithmic",
+      "convex simplex duality",
+      "discrete ema proprioceptive smoothing",
+      "exact bipartite matching vs greedy tolerance",
+      "foundations",
+      "the bitboard invariance principle"
+    ],
+    "path": "src/cohezion/skills/ALGORITHMIC_FOUNDATIONS_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "FIRST_PRINCIPLES_INVARIANT_SCIENCE_PRIME": {
+    "description": "Expertise in grounding competitive AI systems and autonomous agent swarms in physical laws, geometric manifolds, and causal invariants (Dihedral $D_4$ symmetry, tandem mass conservation, monotonic joint space narrowing, and hyperbolic Poincaré tree search) rather than superficial leaderboard chasing",
+    "keywords": [
+      "autoharness zero-cost bytecode verification",
+      "dihedral group $d_4$ equivariance",
+      "first",
+      "invariant",
+      "poincaré ball tree embedding $\\mathbb{d}^n$",
+      "principles",
+      "science",
+      "sub-graph mass conservation",
+      "the leaderboard chasing anti-pattern"
+    ],
+    "path": "src/cohezion/skills/FIRST_PRINCIPLES_INVARIANT_SCIENCE_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "KAGGLE_CLOUD_FINE_TUNING_AND_MODEL_HUB_PRIME": {
+    "description": "Expertise in orchestrating end-to-end production LLM fine-tuning on Kaggle Cloud GPUs (Nvidia L4/T4) with LoRA adapter rank scaling, offline container compatibility, automated watcher daemons, and direct deployment to the Kaggle Models Hub.",
+    "keywords": [
+      "and",
+      "autonomous watcher & auto-publisher",
+      "cloud",
+      "fine",
+      "full linear projection lora ($r=32, \\alpha=64$)",
+      "hub",
+      "kaggle",
+      "model",
+      "offline parity verification",
+      "tuning",
+      "zero-uma resource discipline"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_CLOUD_FINE_TUNING_AND_MODEL_HUB_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "LUKYANENKO_INVARIANT_ENGINEERING_PRIME": {
+    "description": "Expertise in operationalizing Grandmaster Andrey Lukyanenko's hard-learned competitive ML axioms: primary key index alignment, loss-vs-metric objective alignment (countering severe class imbalance), probability noise insulation, and anti-confabulation AST validation to prevent catastrophic post-merg",
+    "keywords": [
+      "anti-confabulation ast verification",
+      "engineering",
+      "invariant",
+      "lukyanenko",
+      "metric objective alignment",
+      "primary key alignment invariant",
+      "probability margin insulation"
+    ],
+    "path": "src/cohezion/skills/LUKYANENKO_INVARIANT_ENGINEERING_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
   }
 }

@@ -56,3 +56,18 @@ def test_curvature_regularization_loss():
     loss = PoincareManifoldND.curvature_regularization_loss(pts)
     assert loss > 0.0
     assert math.isfinite(loss)
+
+
+def test_pairwise_distance_matrix():
+    pts = [PoincareManifoldND.project(tuple([0.05 * (i + 1)] * 16)) for i in range(5)]
+    mat = PoincareManifoldND.pairwise_distance_matrix(pts)
+    assert len(mat) == 5
+    assert len(mat[0]) == 5
+
+    # Verify symmetry and diagonal zeros
+    for i in range(5):
+        assert mat[i][i] == 0.0
+        for j in range(5):
+            assert mat[i][j] == mat[j][i]
+            expected_dist = PoincareManifoldND.distance(pts[i], pts[j])
+            assert pytest.approx(mat[i][j], abs=1e-5) == expected_dist
