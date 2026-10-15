@@ -1,0 +1,2 @@
+description = "Synthesize deterministic AutoHarness invariant verifiers and AST bytecode policies"
+prompt = "Execute the AutoHarness synthesizer (arXiv:2603.03329v1) on the specified problem domain: {{args}}. Enforce physical/geometric invariant verifiers, zero-cost bytecode compilation, and deterministic state checking to bypass LLM inference latency."

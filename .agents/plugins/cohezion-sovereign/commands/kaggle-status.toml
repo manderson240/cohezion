@@ -1,0 +1,2 @@
+description = "Audit active Kaggle competition status, live submissions, and background watcher daemons"
+prompt = "Perform a real-time status audit of all active Kaggle competitions (strictly filtering out closed competitions and Pokémon TCG). Check background daemons (kaggle-lora-watcher, kaggle-sentinel, kaggle-midnight, kaggle-npu-ascension) and report current leaderboard standings and pending submission outcomes."

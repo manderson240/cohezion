@@ -1,0 +1,2 @@
+description = "Compute double-precision Poincaré hyperbolic distance and geodesic projections"
+prompt = "Analyze high-dimensional embeddings using the double-precision PoincareManifoldND: {{args}}. Verify conformal factors, compute pairwise hyperbolic distances in the unit ball D^n, and determine tree-hierarchical semantic structures."

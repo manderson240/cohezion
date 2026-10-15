@@ -1,0 +1,6 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "cohezion-sovereign",
+  "version": "1.0.0",
+  "description": "Cohezion Sovereign Kaggle & Invariant Intelligence Extension for deterministic AutoHarness verifiers, Poincaré hyperbolic geodesics, and active Kaggle competition orchestration."
+}
