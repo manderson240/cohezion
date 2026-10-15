@@ -15,7 +15,8 @@
     "manderson240/cohezion-quantum-prior"
   ],
   "kernel_sources": [
-    "sorokin/pip-install-unsloth-flash-patch"
+    "sorokin/pip-install-unsloth-flash-patch",
+    "manderson240/cohezion-arc2-lora-finetune"
   ],
   "competition_sources": [
     "arc-prize-2026-arc-agi-2"
