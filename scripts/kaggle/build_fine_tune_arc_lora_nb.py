@@ -37,6 +37,7 @@ def generate_fine_tuning_notebook() -> dict:
                 "# 1. Environment & Dependencies Installation\n",
                 "import os, sys, subprocess\n",
                 "print('Configuring environment for high-throughput LoRA fine-tuning...')\n",
+                "subprocess.run([sys.executable, '-m', 'pip', 'uninstall', '-y', 'torchao'], check=False)\n",
                 "subprocess.run([sys.executable, '-m', 'pip', 'install', '-q', 'peft', 'trl', 'accelerate', 'transformers'], check=False)\n",
                 "print('Dependencies installed successfully.')"
             ]
