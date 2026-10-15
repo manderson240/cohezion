@@ -1,0 +1,27 @@
+{
+  "id": "manderson240/cohezion-arc2-lora-finetune",
+  "title": "cohezion-arc2-lora-finetune",
+  "code_file": "fine_tune_arc_lora.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "fine-tuning",
+    "lora",
+    "arc-agi",
+    "unsloth"
+  ],
+  "dataset_sources": [
+    "manderson240/cohezion-quantum-prior"
+  ],
+  "competition_sources": [
+    "arc-prize-2026-arc-agi-2"
+  ],
+  "model_sources": [
+    "qwen/qwen2.5-coder-7b-instruct/Transformers/default/1"
+  ],
+  "machine_shape": "NvidiaL4"
+}

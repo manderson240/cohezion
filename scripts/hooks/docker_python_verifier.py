@@ -36,6 +36,7 @@ KAGGLE_DOCKER_PYTHON_PACKAGES = {
     "monai", "kornia", "skimage", "scikit-image", "pydicom", "nibabel", "SimpleITK", "dicomsdl",
     # NLP & Transformers
     "transformers", "datasets", "accelerate", "tokenizers", "huggingface_hub",
+    "peft", "trl", "bitsandbytes",
     "spacy", "nltk", "gensim", "sentencepiece", "tiktoken",
     # Chemistry, Biology & Microscopy
     "rdkit", "Bio", "biopython", "networkx", "zarr", "blosc2", "tracksdata", "tifffile",

@@ -110,7 +110,8 @@ def verify_compatibility(file_path: Path) -> Tuple[bool, List[str], Set[str]]:
         "scikit_learn", "lightgbm", "xgboost", "catboost", "cv2", "opencv_python",
         "PIL", "pillow", "matplotlib", "seaborn", "timm", "polars", "pyarrow", "rdkit",
         "kagglesdk", "kagglehub", "kaggle", "transformers", "accelerate", "einops",
-        "numba", "cupy", "optuna", "skimage", "joblib", "tqdm", "yaml"
+        "numba", "cupy", "optuna", "skimage", "joblib", "tqdm", "yaml",
+        "peft", "trl", "bitsandbytes", "datasets"
     }
     competition_attached = {"arc_agi", "arcengine", "cohezion_physics_core"}
     allowed = installed | stdlib | kaggle_known | competition_attached
