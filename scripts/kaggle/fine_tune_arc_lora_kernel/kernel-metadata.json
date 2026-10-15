@@ -17,11 +17,9 @@
   "dataset_sources": [
     "manderson240/cohezion-quantum-prior"
   ],
-  "competition_sources": [
-    "arc-prize-2026-arc-agi-2"
-  ],
+  "competition_sources": [],
   "model_sources": [
-    "qwen/qwen2.5-coder-7b-instruct/Transformers/default/1"
+    "qwen-lm/qwen2.5-coder/transformers/7b-instruct/1"
   ],
   "machine_shape": "NvidiaL4"
 }
