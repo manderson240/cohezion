@@ -206,6 +206,8 @@ class RecursiveLearningEngine:
         trajectory_summary: str,
         trajectory_points: Sequence[PoincarePoint] | None = None,
         synthesized_code: str | None = None,
+        target_competition: str | None = None,
+        transfers_to: list[str] | None = None,
     ) -> LearningCycleResult:
         """Run an async recursive self-improvement cycle guarded by AutoHarness and ZKFV."""
         t0 = time.time()
@@ -253,9 +255,28 @@ class RecursiveLearningEngine:
             "delta_entropy": delta_entropy,
             "zkfv_verified": proof.verified,
             "zkfv_sig": proof.polynomial_signature,
+            "target_competition": target_competition,
         }
 
         surreal_ok = await self.surreal_upsert(cycle_id, learning_data)
+
+        # 4b. Graph Engineering: Link to Kaggle knowledge graph
+        if surreal_ok and target_competition:
+            try:
+                from cohezion.knowledge_graph.kaggle_graph_engine import (
+                    KaggleGraphEngine,
+                )
+
+                graph_engine = KaggleGraphEngine()
+                graph_engine.link_learning_to_competition(
+                    learning_id=cycle_id,
+                    competition_slug=target_competition,
+                    transfers_to=transfers_to,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Failed to link learning to competition graph: %s", exc
+                )
 
         # 5. EventBus Cross-Session Synchronization
         try:

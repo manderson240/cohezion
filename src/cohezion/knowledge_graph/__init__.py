@@ -59,3 +59,9 @@ with contextlib.suppress(Exception):
     from cohezion.knowledge_graph.universe_genealogy_migration import (
         UniverseGenealogySurvey as UniverseGenealogySurvey,
     )
+
+with contextlib.suppress(Exception):
+    from cohezion.knowledge_graph.kaggle_graph_engine import (
+        KaggleGraphEngine as KaggleGraphEngine,
+    )
+
