@@ -12,6 +12,10 @@
 ## Concurrency & Software Orchestration
 * [[thread-safe-sync-to-async-bridge]] - Loop-Isolated Coroutine Bridge
 
-## Persistence Abstraction
-* [[surrealdb-inmemorystore-mocking]] - Mock persistence query matching
+## Geometric & Physical Foundations
+* [[poincare-hyperbolic-manifold]] - N-Dimensional Hyperbolic Space & Geodesic Distance
+* [[first-principles-invariants]] - Physical & Geometric Invariant Formulations
+
+## Competitive ML Invariant Engineering
+* [[lukyanenko-axioms]] - Index Alignment, Metric Congruence, and AST Verification
 
