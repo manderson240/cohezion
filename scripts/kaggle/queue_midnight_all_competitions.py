@@ -170,13 +170,13 @@ def submit_file(comp: str, filepath: str, msg: str, code_path: str = None) -> bo
 def execute_midnight_harvest(api: KaggleApi):
     logger.info("=== 00:00:05 UTC REACHED: EXECUTING COMPREHENSIVE DAILY QUOTA HARVEST ===")
 
-    # 1. ARC-AGI-3 (SOTA v36: 75 steps + orthogonal escape + push affordance)
+    # 1. ARC-AGI-3 (SOTA v38: Poincaré Hyperbolic MCTS Affordance Oracle + Double Precision)
     if not check_is_pending(api, "arc-prize-2026-arc-agi-3"):
         submit_notebook(
             comp="arc-prize-2026-arc-agi-3",
             kernel="manderson240/cohezion-arc-agi-3-autoharness-solver",
             filename="submission.parquet",
-            msg="Cohezion ARC-AGI-3 SOTA v37: Poincaré Hyperbolic MCTS Affordance Oracle + Monadic Soft-Affordance (Google Earth AI Dedicated Workspace Edition)",
+            msg="Cohezion ARC-AGI-3 SOTA v38: Poincaré Hyperbolic MCTS Affordance Oracle + Monadic Soft-Affordance + Double-Precision (Daily Quota Reset)",
             code_path="scripts/kaggle/cohezion-arc-agi-3-autoharness-solver/cohezion-arc-agi-3-autoharness-solver.ipynb",
         )
 
@@ -211,13 +211,13 @@ def execute_midnight_harvest(api: KaggleApi):
             code_path="scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb",
         )
 
-    # 5. Enveda CASMI26 Molecule ID (Podium v27 Deep PubChem Candidate Expansion)
+    # 5. Enveda CASMI26 Molecule ID (Podium v26 Verified Dual FPNet Ensemble + Full-Candidate Parsimony)
     if not check_is_pending(api, "enveda-CASMI26-molecule-id-mass-spectra"):
         submit_notebook(
             comp="enveda-CASMI26-molecule-id-mass-spectra",
             kernel="manderson240/cohezion-casmi26-fork-v4n-0421",
             filename="submission.csv",
-            msg="Cohezion CASMI26 SOTA v27: Deep PubChem Expansion (PC_JOIN_N=75, PC_POP_UNION=250, lambda_frag=0.18) (Daily Quota Reset)",
+            msg="Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15) (Daily Quota Reset)",
             code_path="scripts/kaggle/casmi26_v4n_podium/cohezion-casmi26-fork-v4n-0421.ipynb",
         )
 
