@@ -101,18 +101,18 @@ _TIER2_PINS: dict[TaskClass, str] = {
 
 _TIER3_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "gemini-3.8-flash-high",
-    TaskClass.DEEP_REASONING: "claude-opus-5-5-thinking",
-    TaskClass.CODING: "claude-sonnet-5-5",
+    TaskClass.DEEP_REASONING: "claude-opus-4-6-thinking",
+    TaskClass.CODING: "claude-sonnet-4-6",
     TaskClass.CODING_TOOLS: "gemini-3.8-flash-high",
-    TaskClass.VISION: "gemini-3.1-pro-high",
+    TaskClass.VISION: "gemini-3.8-flash-high",
     TaskClass.RESEARCH: "gemini-3.8-flash-medium",
-    TaskClass.SCIENCE_FRONTIER: "gemini-3.1-pro-high",
+    TaskClass.SCIENCE_FRONTIER: "gemini-3.8-flash-high",
     TaskClass.FAST_QA: "gemini-3.8-flash-low",
     TaskClass.ULTRA_FAST_DRAFT: "gemini-3.8-flash-low",
     TaskClass.SUB_BILLION_EDGE: "gemini-3.8-flash-low",
     TaskClass.EXTREME_COMPACT: "gemini-3.8-flash-low",
-    TaskClass.LONG_CONTEXT_ANALYSIS: "gemini-3.1-pro-high",
-    TaskClass.CREATIVE_SYNTHESIS: "claude-opus-5-5-thinking",
+    TaskClass.LONG_CONTEXT_ANALYSIS: "gemini-3.8-flash-high",
+    TaskClass.CREATIVE_SYNTHESIS: "claude-opus-4-6-thinking",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
     TaskClass.GENERAL: "gpt-oss-120b-medium",
 }
@@ -346,8 +346,7 @@ class UnifiedHybridRouter:
 
         # Check Tier 1 capability constraints under Hardware Aperture Guard (NPU/CPU only)
         verdict = validate_tier1_request(selected_model)
-        is_heavy_task = task_type in ("coding", "deep_reasoning", "research", "architecture")
-        tier1_capable = (not tier1_saturated) and (context_tokens <= 16384) and (verdict == "allow") and (not is_heavy_task)
+        tier1_capable = (not tier1_saturated) and (context_tokens <= 16384) and (verdict == "allow")
 
         if not tier1_capable or quality_gap > 0.1:
             # Evaluate escalation to Tier 2
@@ -618,21 +617,30 @@ class UnifiedHybridRouter:
                 return resp
 
         # --- Tier-2: Ollama cloud fallback ----------------------------
-        chosen_tier2_model = _TIER2_PINS.get(task_class, self.cloud_model)
-        cloud_out = await self.aquery_ollama_cloud(prompt, chosen_tier2_model)
-        if cloud_out is not None:
-            dt_ms = (time.perf_counter() - t0) * 1000.0
-            resp = HybridRouteResponse(
-                content=cloud_out,
-                tier_used="Tier 2 (Ollama Cloud)",
-                model_name=chosen_tier2_model,
-                latency_ms=round(dt_ms, 2),
-                verified=True,
-                task_class=task_class,
-                evi_score=evi_score,
+        # Ollama Cloud Quota Rationing Guard (95% monthly usage cap protection)
+        quota_rationing = os.environ.get("OLLAMA_CLOUD_RATIONING", "1") == "1"
+        if quota_rationing and not force_cloud and evi_score < 0.85:
+            logger.warning(
+                "Ollama Cloud quota rationing active (95%% usage cap, resets in 3 days). "
+                "Preserving quota by bypassing automated Tier-2 fallback (evi_score=%.2f < 0.85).",
+                evi_score,
             )
-            await self._publish_routing_event(resp, "tier2_fallback")
-            return resp
+        else:
+            chosen_tier2_model = _TIER2_PINS.get(task_class, self.cloud_model)
+            cloud_out = await self.aquery_ollama_cloud(prompt, chosen_tier2_model)
+            if cloud_out is not None:
+                dt_ms = (time.perf_counter() - t0) * 1000.0
+                resp = HybridRouteResponse(
+                    content=cloud_out,
+                    tier_used="Tier 2 (Ollama Cloud)",
+                    model_name=chosen_tier2_model,
+                    latency_ms=round(dt_ms, 2),
+                    verified=True,
+                    task_class=task_class,
+                    evi_score=evi_score,
+                )
+                await self._publish_routing_event(resp, "tier2_fallback")
+                return resp
 
         # --- Tier-0: synthetic fallback (unverified) ------------------
         dt_ms = (time.perf_counter() - t0) * 1000.0
@@ -686,8 +694,17 @@ class UnifiedHybridRouter:
                     verified=True,
                 )
 
-        # Step 3: Try Ollama Cloud Overflow
-        cloud_res = self.query_ollama_cloud(prompt, self.cloud_model)
+        # Step 3: Try Ollama Cloud Overflow (protected by 95% quota rationing guard)
+        quota_rationing = os.environ.get("OLLAMA_CLOUD_RATIONING", "1") == "1"
+        if quota_rationing and not force_cloud:
+            logger.warning(
+                "Ollama Cloud quota rationing active (95%% usage cap, resets in 3 days). "
+                "Preserving quota by bypassing sync Ollama Cloud fallback."
+            )
+            cloud_res = None
+        else:
+            cloud_res = self.query_ollama_cloud(prompt, self.cloud_model)
+
         if cloud_res:
             dt_ms = (time.perf_counter() - t0) * 1000.0
             return HybridRouteResponse(

@@ -33,7 +33,7 @@ def test_route_tier1_happy_path() -> None:
         )
 
         assert res.selected_tier == 1
-        assert res.model_name == "Qwen3-Coder-30B"
+        assert res.model_name == "qwen3.6-moe-35b-a3b-FLM"
         assert res.escalated is False
         assert "Tier 1 selected" in res.reason
 
