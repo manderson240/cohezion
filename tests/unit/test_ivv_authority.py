@@ -3,13 +3,13 @@
 import hashlib
 import tempfile
 from pathlib import Path
+
 import pytest
+
 from cohezion.compound.ivv_authority import (
     IVVAuthority,
     IVVAuthorityService,
-    IVVFinding,
     IVVKeyManager,
-    IVVSeverity,
     VerificationRequest,
 )
 
@@ -111,3 +111,47 @@ def test_ivv_service_anti_spoofing():
         assertion = service.verify_request(req)
         assert assertion.passed is False
         assert any(f.gate == "INDEPENDENCE_CHECK" for f in assertion.findings)
+
+
+def test_ivv_service_data_artifact_verification():
+    """Verify IVVAuthorityService audits tabular CSV and data artifacts without AST parse errors."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        key_file = Path(tmpdir) / "ivv_authority.key"
+        store_dir = Path(tmpdir) / "assertions"
+        km = IVVKeyManager(key_path=key_file)
+        auth = IVVAuthority(key_manager=km, store_dir=store_dir)
+        service = IVVAuthorityService(authority=auth, verifier_id="authority-verifier")
+
+        # 1. Valid CSV passes
+        csv_file = Path(tmpdir) / "submission.csv"
+        csv_file.write_text("id,prediction\n0,1.5\n1,2.0\n")
+        req = VerificationRequest(
+            artifact_path=str(csv_file),
+            competition="biohub_cell_tracking_during_development",
+            creator_id="cohezion-agent",
+        )
+        assertion = service.verify_request(req)
+        assert assertion.passed is True
+        assert not any(f.gate == "AST_PARSE" for f in assertion.findings)
+
+        # 2. Empty CSV fails
+        empty_csv = Path(tmpdir) / "empty.csv"
+        empty_csv.write_text("")
+        req_empty = VerificationRequest(
+            artifact_path=str(empty_csv),
+            competition="biohub_cell_tracking_during_development",
+            creator_id="cohezion-agent",
+        )
+        assert service.verify_request(req_empty).passed is False
+
+        # 3. CSV leaking authority key path fails
+        leaking_csv = Path(tmpdir) / "leak.csv"
+        leaking_csv.write_text("id,key\n0,~/.cohezion/security/ivv_authority.key\n")
+        req_leak = VerificationRequest(
+            artifact_path=str(leaking_csv),
+            competition="biohub_cell_tracking_during_development",
+            creator_id="cohezion-agent",
+        )
+        assertion_leak = service.verify_request(req_leak)
+        assert assertion_leak.passed is False
+        assert any(f.gate == "SECURITY_BOUNDARY" for f in assertion_leak.findings)

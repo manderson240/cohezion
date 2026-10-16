@@ -18,19 +18,22 @@ from __future__ import annotations
 
 import ast
 import base64
+import csv
 import hashlib
 import hmac
+import io
 import json
 import logging
 import os
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
 import secrets
 import subprocess
 import time
-from typing import Any
 import urllib.request
+import zipfile
+from dataclasses import dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +62,9 @@ class IVVFinding:
         """Serialize finding to dictionary."""
         return {
             "gate": self.gate,
-            "severity": self.severity.value if isinstance(self.severity, Enum) else str(self.severity),
+            "severity": self.severity.value
+            if isinstance(self.severity, Enum)
+            else str(self.severity),
             "description": self.description,
             "counterexample": self.counterexample,
             "suggested_invariant": self.suggested_invariant,
@@ -147,10 +152,7 @@ class IVVAssertion:
     def from_dict(cls, data: dict[str, Any]) -> IVVAssertion:
         """Instantiate assertion from dictionary."""
         findings_data = data.get("findings", [])
-        findings = [
-            IVVFinding.from_dict(f) if isinstance(f, dict) else f
-            for f in findings_data
-        ]
+        findings = [IVVFinding.from_dict(f) if isinstance(f, dict) else f for f in findings_data]
         return cls(
             artifact_hash=str(data["artifact_hash"]),
             test_suite_hash=str(data["test_suite_hash"]),
@@ -321,7 +323,10 @@ class IVVAuthority:
         """
         # 1. Enforce creator != verifier
         if assertion.creator_id == assertion.verifier_id:
-            return False, f"Independence violated: creator and verifier are identical ('{assertion.creator_id}')"
+            return (
+                False,
+                f"Independence violated: creator and verifier are identical ('{assertion.creator_id}')",
+            )
 
         # 2. Check artifact file existence & sha256 match
         path = Path(artifact_path)
@@ -413,7 +418,9 @@ class IVVAuthorityService:
                 matches.append(file)
 
         if not matches:
-            generic = list(self.tests_dir.glob("test_general*.py")) + list(self.tests_dir.glob("test_ivv*.py"))
+            generic = list(self.tests_dir.glob("test_general*.py")) + list(
+                self.tests_dir.glob("test_ivv*.py")
+            )
             matches = generic
 
         return sorted(matches)
@@ -458,7 +465,11 @@ class IVVAuthorityService:
                             suggested_invariant="Creator artifact must not reference internal authority key",
                         )
                     )
-            if isinstance(node, ast.Attribute) and node.attr in ("_key", "sign", "verify_assertion"):
+            if isinstance(node, ast.Attribute) and node.attr in (
+                "_key",
+                "sign",
+                "verify_assertion",
+            ):
                 findings.append(
                     IVVFinding(
                         gate="SECURITY_INTEGRITY",
@@ -466,6 +477,100 @@ class IVVAuthorityService:
                         description=f"Artifact accesses sensitive authority attribute: {node.attr}",
                         counterexample=f"Access to attribute {node.attr}",
                         suggested_invariant="Artifact must not manipulate internal verification attributes",
+                    )
+                )
+
+        return findings
+
+    def audit_tabular_and_data_artifacts(
+        self, artifact_path: Path, artifact_bytes: bytes
+    ) -> list[IVVFinding]:
+        """Audits data/tabular artifacts (CSV, Parquet, JSON, text) for structural validity and security."""
+        findings: list[IVVFinding] = []
+        if len(artifact_bytes) == 0:
+            findings.append(
+                IVVFinding(
+                    gate="DATA_INTEGRITY",
+                    severity=IVVSeverity.P0_CRITICAL,
+                    description=f"Artifact {artifact_path.name} is 0 bytes (empty file)",
+                    suggested_invariant="Artifact must contain non-empty data",
+                )
+            )
+            return findings
+
+        # Check for authority key leak in raw text/bytes
+        try:
+            sample_text = artifact_bytes[:500000].decode("utf-8", errors="replace")
+            if "ivv_authority.key" in sample_text:
+                findings.append(
+                    IVVFinding(
+                        gate="SECURITY_BOUNDARY",
+                        severity=IVVSeverity.P0_CRITICAL,
+                        description="Artifact contains reference to private authority key path",
+                        counterexample="ivv_authority.key found in data artifact",
+                        suggested_invariant="Creator artifact must not reference internal authority key",
+                    )
+                )
+        except Exception:
+            pass
+
+        suffix = artifact_path.suffix.lower()
+        if suffix in (".csv", ".tsv"):
+            delimiter = "\t" if suffix == ".tsv" else ","
+            try:
+                # Sample up to 100,000 characters
+                sample_str = artifact_bytes[:100000].decode("utf-8", errors="replace")
+                reader = csv.reader(io.StringIO(sample_str), delimiter=delimiter)
+                header = next(reader, None)
+                if not header:
+                    findings.append(
+                        IVVFinding(
+                            gate="CSV_VALIDITY",
+                            severity=IVVSeverity.P0_CRITICAL,
+                            description=f"CSV artifact {artifact_path.name} has no valid header row",
+                            suggested_invariant="CSV artifact must contain a valid header row",
+                        )
+                    )
+                else:
+                    first_row = next(reader, None)
+                    if not first_row:
+                        findings.append(
+                            IVVFinding(
+                                gate="CSV_VALIDITY",
+                                severity=IVVSeverity.P1_HIGH,
+                                description=f"CSV artifact {artifact_path.name} has a header but no data rows",
+                                suggested_invariant="CSV artifact must contain data rows",
+                            )
+                        )
+            except Exception as exc:
+                findings.append(
+                    IVVFinding(
+                        gate="CSV_VALIDITY",
+                        severity=IVVSeverity.P0_CRITICAL,
+                        description=f"Error parsing CSV artifact: {exc}",
+                        suggested_invariant="CSV artifact must be valid delimiter-separated text",
+                    )
+                )
+        elif suffix == ".json":
+            try:
+                json.loads(artifact_bytes.decode("utf-8"))
+            except Exception as exc:
+                findings.append(
+                    IVVFinding(
+                        gate="JSON_VALIDITY",
+                        severity=IVVSeverity.P0_CRITICAL,
+                        description=f"Error parsing JSON artifact: {exc}",
+                        suggested_invariant="JSON artifact must be syntactically valid JSON",
+                    )
+                )
+        elif suffix in (".parquet", ".feather"):
+            if suffix == ".parquet" and not artifact_bytes.startswith(b"PAR1"):
+                findings.append(
+                    IVVFinding(
+                        gate="PARQUET_VALIDITY",
+                        severity=IVVSeverity.P0_CRITICAL,
+                        description="Parquet artifact missing standard PAR1 magic header",
+                        suggested_invariant="Parquet artifact must start with PAR1 magic bytes",
                     )
                 )
 
@@ -495,7 +600,9 @@ class IVVAuthorityService:
                         gate="TEST_SUITE_EXECUTION",
                         severity=IVVSeverity.P0_CRITICAL,
                         description=f"Independent test suite failed (exit code {result.returncode})",
-                        counterexample=result.stdout[-500:] if result.stdout else result.stderr[-500:],
+                        counterexample=result.stdout[-500:]
+                        if result.stdout
+                        else result.stderr[-500:],
                         suggested_invariant="All tests in independent verifier suite must pass",
                     )
                 )
@@ -522,7 +629,11 @@ class IVVAuthorityService:
 
     def _persist_to_surrealdb(self, assertion: IVVAssertion) -> bool:
         """Persists signed assertion to SurrealDB verification_assertion table (fail-open)."""
-        safe_id = assertion.artifact_hash if assertion.artifact_hash.isalnum() else f"`{assertion.artifact_hash}`"
+        safe_id = (
+            assertion.artifact_hash
+            if assertion.artifact_hash.isalnum()
+            else f"`{assertion.artifact_hash}`"
+        )
         data = assertion.to_dict()
         surql = f"UPSERT verification_assertion:{safe_id} CONTENT {json.dumps(data)};"
         try:
@@ -564,9 +675,14 @@ class IVVAuthorityService:
 
         artifact_bytes = artifact_path.read_bytes()
         artifact_hash = hashlib.sha256(artifact_bytes).hexdigest()
-        
-        # Handle notebook vs python file
-        if artifact_path.suffix == ".ipynb":
+
+        # Handle notebook vs zip vs python file vs tabular/data artifact
+        suffix = artifact_path.suffix.lower()
+        is_code = suffix in (".py", ".ipynb")
+        is_zip = suffix == ".zip"
+        code = ""
+
+        if suffix == ".ipynb":
             try:
                 nb_data = json.loads(artifact_bytes.decode("utf-8", errors="replace"))
                 code_blocks = []
@@ -584,7 +700,7 @@ class IVVAuthorityService:
                 code = "\n\n".join(code_blocks)
             except Exception as e:
                 code = f"# Error reading notebook: {e}"
-        elif artifact_path.suffix == ".zip":
+        elif is_zip:
             # For zip archives, extract and audit text/code files inside
             code_blocks = []
             try:
@@ -596,10 +712,12 @@ class IVVAuthorityService:
                             text_content = zf.read(name).decode("utf-8", errors="replace")
                             # Add comments so security scan can check for authority key leaks
                             code_blocks.append(f"# {name}\n# {text_content[:200]}")
-                code = "\n\n".join(code_blocks) if code_blocks else "# Empty or non-code zip archive"
+                code = (
+                    "\n\n".join(code_blocks) if code_blocks else "# Empty or non-code zip archive"
+                )
             except Exception as e:
                 code = f"# Error reading zip: {e}"
-        else:
+        elif is_code:
             code = artifact_bytes.decode("utf-8", errors="replace")
 
         findings: list[IVVFinding] = []
@@ -620,14 +738,19 @@ class IVVAuthorityService:
         test_files = self.discover_test_suite(request.competition)
         test_suite_hash = self.calculate_test_suite_hash(test_files)
 
-        findings.extend(self.audit_ast_and_invariants(code))
+        if is_code or is_zip:
+            findings.extend(self.audit_ast_and_invariants(code))
+        else:
+            findings.extend(self.audit_tabular_and_data_artifacts(artifact_path, artifact_bytes))
 
         has_p0 = any(f.severity == IVVSeverity.P0_CRITICAL for f in findings)
         if not has_p0 and test_files:
             test_findings = self.execute_test_suite(test_files, artifact_path)
             findings.extend(test_findings)
 
-        passed = not any(f.severity in (IVVSeverity.P0_CRITICAL, IVVSeverity.P1_HIGH) for f in findings)
+        passed = not any(
+            f.severity in (IVVSeverity.P0_CRITICAL, IVVSeverity.P1_HIGH) for f in findings
+        )
 
         assertion = self.authority.sign_assertion(
             artifact_hash=artifact_hash,
