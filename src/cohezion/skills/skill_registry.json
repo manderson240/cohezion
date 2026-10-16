@@ -66,6 +66,12 @@
     "source": "src/cohezion/skills/AGENTIC_MEMORY_ZETTELKASTEN_PRIME.md",
     "version": "v1.0"
   },
+  "AGENTIC_SYSTEMS_ROADMAP_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/AGENTIC_SYSTEMS_ROADMAP_PRIME.md",
+    "version": "v1.0"
+  },
   "AGENTJET_PRIME": {
     "concepts": [],
     "see_also": [],
@@ -102,6 +108,12 @@
     "concepts": [],
     "see_also": [],
     "source": "src/cohezion/skills/AGUI_EVENT_STREAMING_PRIME.md",
+    "version": "v1.0"
+  },
+  "ALGORITHMIC_FOUNDATIONS_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/ALGORITHMIC_FOUNDATIONS_PRIME.md",
     "version": "v1.0"
   },
   "AMBIENT_SONIFICATION_PRIME": {
@@ -388,6 +400,12 @@
     "source": "src/cohezion/skills/CASMI26_DUAL_STAGE_POPULARITY_PRIME.md",
     "version": "v1.0"
   },
+  "CASMI26_MASS_SPEC_INVARIANTS_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/CASMI26_MASS_SPEC_INVARIANTS_PRIME.md",
+    "version": "v1.0"
+  },
   "CASMI26_V4N_MULTI_ENGINE_FUSION_PRIME": {
     "concepts": [],
     "see_also": [],
@@ -588,6 +606,12 @@
     "source": "src/cohezion/skills/DEPENDENCY_AUTOMATION_PRIME.md",
     "version": "v1.0"
   },
+  "DETERMINISTIC_IDEMPOTENCE_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/DETERMINISTIC_IDEMPOTENCE_PRIME.md",
+    "version": "v1.0"
+  },
   "DISSIPATIVE_STRUCTURES_PRIME": {
     "concepts": [],
     "see_also": [],
@@ -622,6 +646,23 @@
     "see_also": [],
     "source": "src/cohezion/skills/ELEGANT_SIMPLICITY_PRIME.md",
     "version": "v1.0"
+  },
+  "EVO2_WEIGHT_HARNESS_COEVOLUTION_PRIME": {
+    "concepts": [
+      "arXiv:2610.13025",
+      "Dual-Role Decomposition",
+      "HarnessTree",
+      "Branch Crossover Search",
+      "EvoTIDE Trajectory Recovery",
+      "Prefix Continuation"
+    ],
+    "see_also": [
+      "STATELESS_LANGUAGE_AGENTS_PRIME",
+      "AUTOHARNESS_POLICY_PRIME",
+      "SELF_EVALUATION_PRIME"
+    ],
+    "source": "src/cohezion/skills/EVO2_WEIGHT_HARNESS_COEVOLUTION_PRIME.md",
+    "version": "v0.1"
   },
   "EVO_ANALOGUE_ROUTING_PRIME": {
     "concepts": [],
@@ -678,6 +719,12 @@
     "concepts": [],
     "see_also": [],
     "source": "src/cohezion/skills/FASTFLOWLM_PRIME.md",
+    "version": "v1.0"
+  },
+  "FIRST_PRINCIPLES_INVARIANT_SCIENCE_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/FIRST_PRINCIPLES_INVARIANT_SCIENCE_PRIME.md",
     "version": "v1.0"
   },
   "FLEET_SYNCHRONIZATION_PRIME": {
@@ -764,6 +811,12 @@
       "REPO_HYGIENE_PRIME"
     ],
     "source": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md",
+    "version": "v1.0"
+  },
+  "HARNESS2_RECURSIVE_HARNESSING_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/HARNESS2_RECURSIVE_HARNESSING_PRIME.md",
     "version": "v1.0"
   },
   "HARNESS_BENEFIT_ALIGNMENT_PRIME": {
@@ -919,6 +972,12 @@
     "source": "src/cohezion/skills/KAGGLE_BLACKWELL_RUNNER_PRIME.md",
     "version": "v1.0"
   },
+  "KAGGLE_CLOUD_FINE_TUNING_AND_MODEL_HUB_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/KAGGLE_CLOUD_FINE_TUNING_AND_MODEL_HUB_PRIME.md",
+    "version": "v1.0"
+  },
   "KAGGLE_COMPETITIVE_EVALUATION_PRIME": {
     "concepts": [],
     "see_also": [],
@@ -959,6 +1018,12 @@
     "concepts": [],
     "see_also": [],
     "source": "src/cohezion/skills/KAGGLE_HETEROGENEOUS_SWARM_PRIME.md",
+    "version": "v1.0"
+  },
+  "KAGGLE_LEADERBOARD_ASCENSION_ACCELERATOR_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/KAGGLE_LEADERBOARD_ASCENSION_ACCELERATOR_PRIME.md",
     "version": "v1.0"
   },
   "KAGGLE_NOTEBOOK_MEMORY_REDUCTION_PRIME": {
@@ -1054,6 +1119,12 @@
     "source": "src/cohezion/skills/LEMONADE_V117_ALIGNMENT_PRIME.md",
     "version": "v1.0"
   },
+  "LLM_AS_JEV_DECISION_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/LLM_AS_JEV_DECISION_PRIME.md",
+    "version": "v1.0"
+  },
   "LLM_WIKI_PRIME": {
     "concepts": [],
     "see_also": [],
@@ -1095,6 +1166,12 @@
     "see_also": [],
     "source": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md",
     "version": "1.0"
+  },
+  "LUKYANENKO_INVARIANT_ENGINEERING_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/LUKYANENKO_INVARIANT_ENGINEERING_PRIME.md",
+    "version": "v1.0"
   },
   "MAGNETOHYDRODYNAMICS_PRIME": {
     "concepts": [],
@@ -1381,6 +1458,12 @@
     "source": "src/cohezion/skills/PROACTIVE_PERSISTENCE_PRIME.md",
     "version": "v1.0"
   },
+  "PROPRIOCEPTIVE_CYBERNETICS_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/PROPRIOCEPTIVE_CYBERNETICS_PRIME.md",
+    "version": "v1.0"
+  },
   "QUADRATURE_PRIME": {
     "concepts": [
       "The Nexus",
@@ -1427,6 +1510,12 @@
     "concepts": [],
     "see_also": [],
     "source": "src/cohezion/skills/QUANTUM_STRUCTURED_WORLD_MODEL_PRIME.md",
+    "version": "v1.0"
+  },
+  "QUANT_RETRIEVAL_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/QUANT_RETRIEVAL_PRIME.md",
     "version": "v1.0"
   },
   "QUARTER_ON_A_STRING_PRIME": {
@@ -1593,10 +1682,22 @@
     "source": "src/cohezion/skills/ROUTING_ACCURACY_CALIBRATION_PRIME.md",
     "version": "v1.0"
   },
+  "RSNA_KNEE_ANATOMICAL_INVARIANTS_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/RSNA_KNEE_ANATOMICAL_INVARIANTS_PRIME.md",
+    "version": "v1.0"
+  },
   "RSNA_LEDOIT_WOLF_COVARIANCE_PROJECTION_PRIME": {
     "concepts": [],
     "see_also": [],
     "source": "src/cohezion/skills/RSNA_LEDOIT_WOLF_COVARIANCE_PROJECTION_PRIME.md",
+    "version": "v1.0"
+  },
+  "R_ZERO_CHALLENGER_PRIME": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/R_ZERO_CHALLENGER_PRIME.md",
     "version": "v1.0"
   },
   "SANDBOX_ISOLATION_PRIME": {
@@ -2889,6 +2990,66 @@
     "source": "src/cohezion/skills/surrealdb/skills-repo/skills/surrealdb-cli/references/start.md",
     "version": "v1.0"
   },
+  "surrealdb-agent-memory-docs": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealdb-agent-memory-docs.md",
+    "version": "v1.0"
+  },
+  "surrealdb-cli": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealdb-cli.md",
+    "version": "v1.0"
+  },
+  "surrealdb-docs": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealdb-docs.md",
+    "version": "v1.0"
+  },
+  "surrealdb-js": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealdb-js.md",
+    "version": "v1.0"
+  },
+  "surrealdb-python": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealdb-python.md",
+    "version": "v1.0"
+  },
+  "surrealdb-vector": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealdb-vector.md",
+    "version": "v1.0"
+  },
+  "surrealkit": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealkit.md",
+    "version": "v1.0"
+  },
+  "surrealql": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealql.md",
+    "version": "v1.0"
+  },
+  "surrealql-functions": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealql-functions.md",
+    "version": "v1.0"
+  },
+  "surrealql-performance": {
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/surrealdb/surrealql-performance.md",
+    "version": "v1.0"
+  },
   "swarm_orchestration": {
     "concepts": [],
     "see_also": [],
@@ -2954,22 +3115,5 @@
     "see_also": [],
     "source": "src/cohezion/skills/visual_validation.md",
     "version": "v1.0"
-  },
-  "EVO2_WEIGHT_HARNESS_COEVOLUTION_PRIME": {
-    "concepts": [
-      "arXiv:2610.13025",
-      "Dual-Role Decomposition",
-      "HarnessTree",
-      "Branch Crossover Search",
-      "EvoTIDE Trajectory Recovery",
-      "Prefix Continuation"
-    ],
-    "see_also": [
-      "STATELESS_LANGUAGE_AGENTS_PRIME",
-      "AUTOHARNESS_POLICY_PRIME",
-      "SELF_EVALUATION_PRIME"
-    ],
-    "source": "src/cohezion/skills/EVO2_WEIGHT_HARNESS_COEVOLUTION_PRIME.md",
-    "version": "v0.1"
   }
 }

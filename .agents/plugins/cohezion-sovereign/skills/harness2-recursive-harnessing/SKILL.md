@@ -63,8 +63,13 @@ This skill operationalizes Google Research's Harness^2 recursive self-improvemen
    Upon moving to task $t+1$, reset execution harness to $\mathcal{H}_0$.
    Pass the updated experience library to the improvement proposer.
 
+7. **ARC-AGI-3 & Interactive Game Affordance Extensions**:
+   - **Context Eviction Invariant**: Continuously evict historical tool messages while preserving current game code state and affordance hypotheses in the prompt buffer, sustaining multi-turn interaction without token saturation.
+   - **Dynamic Difficulty Time-Budget Partitioning**: Replace static puzzle timeouts with adaptive budget partitioning based on action-space entropy, eliminating early bailouts on solvable complex levels (preventing the 36% local -> 11.67% LB drop observed in TOPAS).
+   - **Centralized Scorecard Invariant**: Never instantiate `env.make()` inside worker child processes; maintain a single orchestrator environment instance to avoid multiple scorecard collisions and 0.0 scores.
+
 ## VERSION
-v1.0
+v1.1
 
 ## SEE ALSO
 - FIRST_PRINCIPLES_INVARIANT_SCIENCE_PRIME

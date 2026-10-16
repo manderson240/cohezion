@@ -75,9 +75,9 @@ PORTFOLIO_CONFIG = {
                 "msg": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling",
             },
             4: {
-                "name": "v39_kolmogorov_projection",
-                "patch_script": None,
-                "msg": "Cohezion RSNA Knee SOTA v39: Kolmogorov Monotonicity Projection P(Abnormal) >= max_k P_k",
+                "name": "v39_anatomical_invariant",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v39_kolmogorov.py",
+                "msg": "Cohezion RSNA Knee SOTA v39: Anatomical Bilateral Symmetry + Secondary Effusion Invariant (P(Effusion) >= 0.85 * max_k)",
             },
             5: {
                 "name": "v40_trimmed_median_consensus",
@@ -178,8 +178,8 @@ PORTFOLIO_CONFIG = {
             },
             4: {
                 "name": "v29_chemical_graph_reranker",
-                "patch_script": None,
-                "msg": "Cohezion CASMI26 SOTA v29: Parsimonious Chemical Graph Fragmentation Reranker (lambda_frag=0.22)",
+                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v29_chemical_graph.py",
+                "msg": "Cohezion CASMI26 SOTA v29: Parsimonious Chemical Graph Fragmentation Reranker (PC_JOIN_N 100, PC_POP_UNION 300, lambda_frag=0.22)",
             },
             5: {
                 "name": "v30_extreme_parsimony_hybrid",
@@ -211,9 +211,9 @@ PORTFOLIO_CONFIG = {
                 "msg": "Cohezion Name That LLM v4: 5-Stream Stylometric (LinearSVC + HistGBM Ensemble) + Sinkhorn Marginal Balancing",
             },
             4: {
-                "name": "v5_morphological_markov",
-                "patch_script": None,
-                "msg": "Cohezion Name That LLM v5: Character-Level Morphological Markov Transition Matrix + Stylistic Complexity",
+                "name": "v5_leak_free_group_kfold",
+                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v5.py",
+                "msg": "Cohezion Name That LLM v5: Leak-Free StratifiedGroupKFold on prompt_id + Dual Model Ensemble + Sinkhorn Uniform Marginal Balancing",
             },
             5: {
                 "name": "v6_temperature_scaled_sinkhorn",
