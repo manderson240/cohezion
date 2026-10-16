@@ -25,10 +25,28 @@ from pathlib import Path
 from typing import Any, Generic, TypeVar
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+from cohezion.agi.recuris_memory import (
+    CheckerPipeline,
+    ExperientialSkill,
+    FailureLocalizationResult,
+    InvocationPolicy,
+    MemoryComponent,
+    MemoryQuad,
+    TraceFailureLocalizer,
+    ValidationGatedAdmission,
+    WorkingMemoryState,
+)
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
+from cohezion.compound.harness_protocol import HarnessContextProtocol
 from cohezion.contracts import PoincarePoint
 from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.core.persistence.surreal_client import get_surreal_client
+from cohezion.knowledge_graph.hippocam_memory import (
+    ConsolidatedMemoryNode,
+    Intent,
+    PalimPrefixTree,
+    PrecipConsolidator,
+)
 from cohezion.physics.ctac_engine import CTACEngine
 
 
@@ -129,6 +147,17 @@ class RecursiveLearningEngine:
         self.ctac_engine = CTACEngine(target_coherence=0.50)
         self.zkfv_compiler = ZKFVCompiler(salt="cohezion_negentropy_v2")
         self.surreal_client = get_surreal_client()
+        # Recuris M = (E, W, rho, C) engine (arXiv:2608.24876)
+        self.recuris_memory = MemoryQuad(
+            E={},
+            W=WorkingMemoryState(task_id="master_recursive_loop"),
+            rho=InvocationPolicy(),
+            C=CheckerPipeline(),
+        )
+        # Hippocam Continual Consolidation Tree (arXiv:2610.12124)
+        self.hippocam_tree = PalimPrefixTree()
+        # Harness Context Protocol engine (arXiv:2608.09819)
+        self.hcp = HarnessContextProtocol()
 
     def _direct_http_upsert(self, record_id: str, data: dict[str, Any]) -> bool:
         """Direct HTTP POST fallback to SurrealDB (port 8001) bypassing client vault dependency."""
@@ -274,9 +303,7 @@ class RecursiveLearningEngine:
                     transfers_to=transfers_to,
                 )
             except Exception as exc:
-                logger.warning(
-                    "Failed to link learning to competition graph: %s", exc
-                )
+                logger.warning("Failed to link learning to competition graph: %s", exc)
 
         # 5. EventBus Cross-Session Synchronization
         try:
@@ -328,3 +355,36 @@ class RecursiveLearningEngine:
             delta_entropy=delta_entropy,
             zkfv_verified=proof.verified,
         )
+
+    def diagnose_failure_trace(
+        self,
+        trace: Sequence[Any],
+        task_succeeded: bool,
+    ) -> FailureLocalizationResult | None:
+        """Localize episode failure to E, W, rho, or C using Recuris trace analysis (arXiv:2608.24876)."""
+        return TraceFailureLocalizer.localize_failure(trace, task_succeeded)
+
+    def admit_experiential_skill(self, skill: ExperientialSkill) -> tuple[bool, str]:
+        """Admit a new verified skill to Experiential Memory E under validation gating."""
+        localization = FailureLocalizationResult(
+            failed_component=MemoryComponent.EXPERIENTIAL_MEMORY,
+            confidence=1.0,
+            rationale="Direct skill admission request.",
+            proposed_patch_target="ExperientialMemory",
+            evidence_trace_indices=[],
+        )
+        return ValidationGatedAdmission.admit_patch(self.recuris_memory, localization, skill)
+
+    def consolidate_closed_intent(
+        self,
+        closed_intent: Intent,
+        raw_messages: list[dict[str, Any]],
+    ) -> ConsolidatedMemoryNode:
+        """Consolidate an intent into the Hippocam message tree separating narrative from invariants (arXiv:2610.12124)."""
+        node = PrecipConsolidator.consolidate_intent(closed_intent, raw_messages)
+        self.hippocam_tree.insert(node)
+        return node
+
+    def recall_memory_node(self, node_id: str) -> ConsolidatedMemoryNode | None:
+        """Progressively recall fine-grained node details from the Hippocam message tree without context explosion."""
+        return self.hippocam_tree.recall(node_id)
