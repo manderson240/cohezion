@@ -88,6 +88,15 @@ RAW_COMPETITIONS = [
         "twin": "Dr. Ilya Prigogine & Dr. Claude Shannon",
         "direction": "higher",
     },
+    {
+        "id": "nfl-big-data-bowl-2027",
+        "name": "NFL Big Data Bowl 2027",
+        "deadline": "2027-01-06",
+        "winnable": "$10,000 - $30,000",
+        "target": "Top 3 Podium",
+        "twin": "Dr. Claude Shannon & Dr. Richard Feynman",
+        "direction": "higher",
+    },
 ]
 
 # Strict Filter: Only ACTIVE, unexpired competitions (Rule 8)
@@ -232,7 +241,14 @@ UPSERT competition:{table_id} CONTENT {{
     req = urllib.request.Request(
         "http://localhost:8001/sql",
         data=full_sql.encode("utf-8"),
-        headers={"Accept": "application/json", "Content-Type": "application/json"},
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "surreal-ns": "cohezion",
+            "surreal-db": "main",
+            "NS": "cohezion",
+            "DB": "main",
+        },
         method="POST",
     )
     auth = base64.b64encode(b"root:root").decode("ascii")

@@ -97,6 +97,11 @@ COMPETITION_REGISTRY = {
         "default_file": "submission.csv",
         "default_kernel": "manderson240/cohezion-biohub-v6",
     },
+    "nfl-big-data-bowl-2027": {
+        "type": "notebook",
+        "default_file": "submission.csv",
+        "default_kernel": "manderson240/cohezion-nfl-bdb-2027-kinematic",
+    },
 }
 
 

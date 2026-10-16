@@ -2028,3 +2028,37 @@ L540: Operationalization of the Antigravity CLI 1.3.5 and Engine 1.107.0 Upgrade
     - Enabled `_meta: {"antigravity/alwaysLoad": true}` for critical MCP verifiers and aligned plugin subagents with root `agents.json`.
 *12D State Vector*: `[12D State: Space=Antigravity-CLI-1.3.5-Engine-1.107, Time=October 2026, Physics=AutoMode-ContextCompaction-DynamicModelTiers-AlwaysLoadedMCP-VirtualRowDiffs, Brane=Cohezion-Core-OperationalAscension-Sovereignty]`
 
+---
+
+## Learning 541: Local Silicon & Kaggle Infrastructure Synergy — ApertureGuard Gate Hardening, Zero-Swap Invariant & Single-Port Sovereign NPU Inference (2026-10-16)
+L541: Hardening of Local Silicon Hardware (AMD Ryzen AI MAX+ 395 XDNA2 NPU, Zen 5 CPU, 128GB UMA) and Cloud Kaggle Synergy with Systems Engineering V-Model Rigor:
+(1) AdmissionGate ApertureGuard Integration (`src/cohezion/platform/admission_gate.py`, `src/cohezion/inference/aperture_guard.py`):
+    - Resolved root cause of lemond HTTP lockups: background scripts auto-loading large CPU models (>4 GB, e.g. Gemma-4-26B, Qwen3.6-35B) pegged the systemd cgroup `CPUQuota=400%` and starved NPU queries.
+    - Wired `ApertureGuard.validate_tier1_request()` directly into `AdmissionGate.decide()` before residency matching. Any model violating Tier 1 CPU/UMA constraints is rejected at the HTTP admission proxy level in 2 ms with HTTP 503 (`type: admission_refused`), preventing it from ever reaching Lemonade or triggering cgroup freezing.
+    - Added comprehensive unit testing suite `TestApertureGuardEnforcement` in `tests/platform/test_admission_gate.py` (37/37 passing in 3.86s).
+(2) Zero-Swap Memory Invariant & Single-Port Sovereign Inference:
+    - Unlocked zero-swap pristine state via complete swap drain and reclamation (`39Gi total, 0B used, 43Gi RAM available`).
+    - Benchmarked single-port `13305` throughput to `llama3.2-1b-FLM` on the AMD XDNA 2 NPU: prefill TTFT = 323 ms, decoding speed = 67.6 tokens/sec, prefill speed = 111.4 tokens/sec, 0 UMA RAM footprint, and <2W power dissipation.
+(3) Continuous Multi-Track Research & Sentinel Telemetry:
+    - `stateless_npu_ascension_worker.py` successfully executing autonomous invariant exploration across ARC-AGI-2, RSNA Knee, and NFL Big Data Bowl 2027 (~1.1s per cycle).
+    - `master_24_7_kaggle_sentinel.py` actively tracking live Kaggle code submissions (RSNA Knee SOTA 0.955, CASMI26 0.418, ARC-3 0.170, with ARC-2 Ref #57247164 and Gemma-4 Ref #57247198 pending evaluation).
+    - `queue_arc3_midnight.py` holding countdown to midnight daily quota reset for ARC-3 SOTA v39 (Kernel v15).
+*12D State Vector*: `[12D State: Space=LocalSilicon-Kaggle-Infrastructure-Synergy, Time=October 2026, Physics=ApertureGuard-AdmissionGate-ZeroSwap-XDNA2-FastFlowLM-SinglePort13305, Brane=Cohezion-MasterOrchestrator-Sovereign-Execution]`
+
+---
+
+## Learning 542: Unified Compound Optimization of Local Silicon & Kaggle Cloud Infrastructure with Systems Engineering V-Model Rigor (2026-10-16)
+L542: End-to-end alignment and optimization of Local Silicon (AMD Ryzen AI MAX+ 395 XDNA2 NPU, Zen 5 CPU, 128GB UMA) and Cloud Kaggle Resources ($50/day AI Models API, 30h/week GPU quota, dedicated competition runners):
+(1) Systems Engineering V-Model Closed-Loop Compound Architecture:
+    - **Decomposition & Specification**: Decomposed inference requirements across tiers — Tier 1 local silicon strictly constrained to AMD XDNA 2 NPU on SRAM (<2W, 0 UMA RAM, <1s/turn) and lightweight CPU verification (<50ms AST & bytecode checks); Tier 2 offloading for multi-file refactoring and deep reasoning (Ollama Cloud / Claude Code); Kaggle cloud cluster for 3D deep learning and competition evaluations.
+    - **Integration & Verification**: Wired single-port `13305` admission proxy to FastFlowLM NPU lane (`llama3.2-1b-FLM`), running continuous stateless invariant discovery in tmux (`kaggle-npu-ascension`, Epoch 127+ with 0B swap and 42 GiB RAM headroom).
+(2) Subsystem Pointers, Workflows & Skills Synchronization:
+    - **Workflow Hardening**: Updated `.agent/workflows/kaggle-offline-ascension.md` to eliminate obsolete port 8005 references and bind autonomous evolution exclusively to Port 13305 Admission Gate with resident FastFlowLM NPU models.
+    - **Skill Modernization**: Upgraded `.agents/skills/kaggle-strix-verifier/SKILL.md` and `.agents/skills/strix-fleet-guard/SKILL.md` with active competition filters (RSNA Knee, ARC-AGI-2, ARC-AGI-3, Enveda CASMI26, Gemma-4 Developer Agent, NFL Big Data Bowl 2027), pruning expired competitions and codifying the deterministic notebook submission protocol (`scripts/kaggle/kaggle_submit.py --mode notebook`).
+    - **SurrealDB v2/v3 Telemetry & Header Normalization**: Added `surreal-ns: cohezion` and `surreal-db: main` headers and prepended `USE NS cohezion DB main;` across `master_24_7_kaggle_sentinel.py`, `leaderboard_inspector.py`, `recursive_experiential_learner.py`, `stateless_autonomous_swarm_engine.py`, and `run_r_zero_challenger_solver_daemon.py`, restoring real-time persistence of leaderboard events, competition rankings, and experiential learnings into SurrealDB and Obsidian Vault (`~/vaults/cohezion-vault/01-Learnings/`).
+    - **Full Competition Portfolio Coverage**: Integrated NFL Big Data Bowl 2027 into `kaggle_submit.py`, `leaderboard_inspector.py`, and `recursive_experiential_learner.py`.
+*12D State Vector*: `[12D State: Space=LocalSilicon-Kaggle-VModel-Optimization, Time=October 2026, Physics=SinglePort13305-SurrealDBv3Sync-NPUFastFlowLM-ActiveCompetitionFilter, Brane=Cohezion-MasterOrchestrator-SystemsEngineering-Compound]`
+
+
+
+

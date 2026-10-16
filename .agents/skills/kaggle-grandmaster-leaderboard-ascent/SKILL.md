@@ -24,7 +24,8 @@ Kaggle competitions have strict, non-negotiable daily submission limits that res
 | **ARC-AGI-2** | $700,000 | **1 / day** | Pre-execute Quad-L4 LoRA kernel; auto-dispatch at `00:00:05 UTC` | `kaggle_submit.py notebook` |
 | **RSNA Knee** | $77,000 | **5 / day** | Staged daytime calibration (Slot 1: 00:00 UTC, Slot 2: 03:00 UTC, Slot 3: 11:00 UTC, Slot 4: 17:00 UTC, Slot 5: 22:00 UTC) | `kaggle_submit.py notebook` |
 | **Enveda CASMI26**| $50,000 | **5 / day** | Iterative ablation ladder (dual FPNet neural ensemble + full parsimony + ranker blending) | `kaggle_submit.py notebook` |
-| **Gemma 4 Dev** | $25,000 | **1 / day** | Evaluated via container test suite; dispatched after clean container build | `kaggle_submit.py file` |
+| **Gemma 4 Dev** | $65,000 | **1 / day** | Evaluated via fast-inference container; dispatched via notebook submission | `kaggle_submit.py notebook` |
+| **NFL BDB 2027** | $100,000 | **5 / day** | Kinematic Voronoi space-control and D4 equivariant player tracking | `kaggle_submit.py notebook` |
 
 ## Core Protocol & Rules
 

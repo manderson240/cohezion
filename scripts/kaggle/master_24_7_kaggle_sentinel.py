@@ -126,12 +126,14 @@ _CONSECUTIVE_ERRORS: dict[str, int] = {}
 def log_to_surreal(record: dict) -> None:
     """Persist structured event record into SurrealDB."""
     try:
-        sql = f"CREATE kaggle_leaderboard_log CONTENT {json.dumps(record)};"
+        sql = f"USE NS {SURREAL_NS} DB {SURREAL_DB}; CREATE kaggle_leaderboard_log CONTENT {json.dumps(record)};"
         req = urllib.request.Request(
             SURREAL_URL,
             data=sql.encode("utf-8"),
             headers={
                 "Accept": "application/json",
+                "surreal-ns": SURREAL_NS,
+                "surreal-db": SURREAL_DB,
                 "NS": SURREAL_NS,
                 "DB": SURREAL_DB,
                 "Authorization": f"Basic {base64.b64encode(f'{SURREAL_USER}:{SURREAL_PASS}'.encode()).decode()}",

@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-16T00:01:09.340143+00:00",
+  "timestamp": "2026-10-16T05:53:54.596833+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -22,8 +22,8 @@
         {
           "ref": 57247238,
           "date": "2026-10-16 00:00:52.277000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.955",
           "description": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights (Daily Quota Reset)"
         },
         {
@@ -83,8 +83,8 @@
         {
           "ref": 57247277,
           "date": "2026-10-16 00:01:04.380000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.418",
           "description": "Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15) (Daily Quota Reset)"
         },
         {
@@ -205,8 +205,8 @@
         {
           "ref": 57247133,
           "date": "2026-10-16 00:00:21.150000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.17",
           "description": "Cohezion ARC-AGI-3 SOTA v38: Poincar\u00e9 Hyperbolic MCTS Affordance Oracle + Monadic Soft-Affordance + Double-Precision (Daily Quota Reset)"
         },
         {

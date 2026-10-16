@@ -10,7 +10,7 @@ Execute continuous, zero-idle local computation between Kaggle submission resets
 
 ## Prerequisites
 - Zen 5 CPU (32 threads) available for compilation, validation, and Copula optimization.
-- AMD XDNA 2 NPU active on port 8005 (FastFlowLM SRAM execution, 0 GiB UMA impact).
+- AMD XDNA 2 NPU active on port 13305 (FastFlowLM SRAM execution, 0 GiB UMA impact).
 - Fleet sentry running (`scripts/fleet_sentry.py`).
 
 ## Workflow Steps
@@ -20,7 +20,7 @@ flowchart TD
     A["1. Hardware Pre-Flight & Fleet Lock"] --> B["2. AutoHarness Bytecode & AST Verification"]
     B --> C["3. Two-Party Adversarial IV&V"]
     C --> D["4. Seeded Copula Optimization & OOF Validation"]
-    D --> E["5. NPU Autonomous Evolution (Port 8005)"]
+    D --> E["5. NPU Autonomous Evolution (Port 13305)"]
     E --> F["6. Cryptographic Sealing & TransparencyLog"]
     F --> G["7. Midnight Automated Dispatch (00:00:05 UTC)"]
 ```
@@ -48,11 +48,11 @@ python3 scripts/testing/prove_deterministic_idempotence.py
 Optimize ensemble weights deterministically across out-of-fold predictions using Nelder-Mead with fixed seed.
 
 ### Step 5: NPU Background Evolution
-Dispatch candidate prompt mutation and invariant discovery to the local NPU daemon on port 8005:
+Dispatch candidate prompt mutation and invariant discovery to the local NPU daemon on port 13305:
 ```bash
-curl -s http://127.0.0.1:8005/v1/chat/completions \
+curl -s http://127.0.0.1:13305/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model": "deepseek-r1-0528:8b", "messages": [{"role": "user", "content": "Analyze ARC invariant"}]}'
+  -d '{"model": "llama3.2-1b-FLM", "messages": [{"role": "user", "content": "Analyze ARC invariant"}]}'
 ```
 
 ### Step 6: Cryptographic Sealing & Promotion

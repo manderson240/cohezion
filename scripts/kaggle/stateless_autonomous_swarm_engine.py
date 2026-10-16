@@ -87,12 +87,14 @@ VAULT_DIR = Path("/home/mike-anderson/vaults/cohezion-vault/01-Learnings")
 def log_to_surreal(table: str, record: dict) -> None:
     """Persist structured record to SurrealDB."""
     try:
-        sql = f"CREATE {table} CONTENT {json.dumps(record)};"
+        sql = f"USE NS {SURREAL_NS} DB {SURREAL_DB}; CREATE {table} CONTENT {json.dumps(record)};"
         req = urllib.request.Request(
             SURREAL_URL,
             data=sql.encode("utf-8"),
             headers={
                 "Accept": "application/json",
+                "surreal-ns": SURREAL_NS,
+                "surreal-db": SURREAL_DB,
                 "NS": SURREAL_NS,
                 "DB": SURREAL_DB,
                 "Authorization": f"Basic {base64.b64encode(f'{SURREAL_USER}:{SURREAL_PASS}'.encode()).decode()}",
@@ -105,44 +107,29 @@ def log_to_surreal(table: str, record: dict) -> None:
         logger.debug("SurrealDB logging failed for %s: %s", table, e)
 
 
-def discover_flm_port() -> int:
-    """Discover active flm-real port dynamically."""
-    try:
-        out = subprocess.check_output(["pgrep", "-fa", "flm-real"], text=True, timeout=2.0)
-        for line in out.splitlines():
-            parts = line.split()
-            if "--port" in parts:
-                idx = parts.index("--port")
-                if idx + 1 < len(parts):
-                    return int(parts[idx + 1])
-    except Exception:
-        pass
-    return 8005
-
-
 def _call_npu_direct(prompt: str, max_tokens: int = 1024) -> str:
-    """Fallback to direct FastFlowLM NPU lane with prompt safety bounding and auto-port discovery."""
+    """Call FastFlowLM NPU lane via Single-Port Invariant (port 13305 Admission Gate)."""
     bounded_prompt = prompt[-3500:] if len(prompt) > 3500 else prompt
-    port = discover_flm_port()
     payload = json.dumps({
-        "model": "deepseek-r1-0528:8b",
+        "model": "llama3.2-1b-FLM",
         "messages": [{"role": "user", "content": bounded_prompt}],
         "max_tokens": min(max_tokens, 1024),
         "temperature": 0.2,
     }).encode("utf-8")
     req = urllib.request.Request(
-        f"http://127.0.0.1:{port}/v1/chat/completions",
+        "http://127.0.0.1:13305/v1/chat/completions",
         data=payload,
         headers={"Content-Type": "application/json"},
     )
     try:
-        # Long timeout prevents client-side socket cancellation mid-prefill
-        with urllib.request.urlopen(req, timeout=60.0) as resp:
+        with urllib.request.urlopen(req, timeout=30.0) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             choices = data.get("choices", [])
             if choices:
                 return choices[0].get("message", {}).get("content", "").strip()
     except Exception as e:
+        logger.debug("NPU direct call failed via port 13305: %s", e)
+        return ""
         logger.debug("NPU direct fallback failed: %s", e)
     return ""
 
