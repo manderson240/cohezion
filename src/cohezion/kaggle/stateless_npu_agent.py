@@ -37,9 +37,9 @@ logger.setLevel(logging.INFO)
 
 _TOPOLOGY = DynamicTopology.load()
 FASTFLOWLM_URL = _TOPOLOGY.npu.endpoint
-FASTFLOWLM_DIRECT_URL = _TOPOLOGY.npu.endpoint
-DEFAULT_NPU_MODEL = "llama3.2-1b-FLM"
-MULTIMODAL_NPU_MODEL = "gemma4-it:e2b"
+DEFAULT_NPU_MODEL = "qwen3.5-4b-FLM"
+REASONING_NPU_MODEL = "deepseek-r1-0528-8b-FLM"
+MULTIMODAL_NPU_MODEL = "qwen3vl-it-4b-FLM"
 _FASTFLOWLM_LOCK = asyncio.Lock()
 
 
@@ -339,9 +339,11 @@ class StatelessNPUAgent:
         self,
         client: StatelessNPUClient | None = None,
         model: str = DEFAULT_NPU_MODEL,
+        enable_dual_model_repair: bool = True,
     ):
         self.client = client or StatelessNPUClient()
         self.model = model
+        self.enable_dual_model_repair = enable_dual_model_repair
 
     def build_prompt(self, state: StatelessState) -> str:
         """Constructs a clean, single-turn prompt strictly reconstructed from current state."""
@@ -411,54 +413,77 @@ class StatelessNPUAgent:
         candidate_id = hashlib.sha256(code.encode("utf-8")).hexdigest()[:12]
 
         # Deterministic AST Verification (AutoHarness arXiv:2603.03329v1)
+        is_syntax_error = False
+        syntax_err_msg = ""
         try:
             ast.parse(code)
         except SyntaxError as e:
-            return StatelessMutationResult(
-                candidate_id=candidate_id,
-                task_id=state.task_id,
-                code=code,
-                outcome=CandidateOutcome.INCONCLUSIVE_FAILURE,
-                score=0.0,
-                diagnostics=f"SyntaxError in generated code: {e}",
-                generation_ms=usage.get("duration_ms", 0.0),
-                tokens=usage.get("completion_tokens", 0),
-                npu_model=self.model,
-            )
+            is_syntax_error = True
+            syntax_err_msg = f"SyntaxError in generated code: {e}"
 
-        # Evaluate against domain evaluator
-        try:
-            score, diag, is_error = evaluator_fn(code)
-            if is_error:
-                outcome = CandidateOutcome.INCONCLUSIVE_FAILURE
-            elif score > state.baseline_score:
-                outcome = CandidateOutcome.MEASURED_IMPROVEMENT
-            else:
-                outcome = CandidateOutcome.MEASURED_NON_IMPROVEMENT
+        if not is_syntax_error:
+            try:
+                score, diag, is_error = evaluator_fn(code)
+            except Exception as exc:
+                score, diag, is_error = 0.0, f"Evaluator execution error: {exc}", True
+        else:
+            score, diag, is_error = 0.0, syntax_err_msg, True
 
-            return StatelessMutationResult(
-                candidate_id=candidate_id,
-                task_id=state.task_id,
-                code=code,
-                outcome=outcome,
-                score=score,
-                diagnostics=diag,
-                generation_ms=usage.get("duration_ms", 0.0),
-                tokens=usage.get("completion_tokens", 0),
-                npu_model=self.model,
+        # Dual-Model Autonomous NPU Reasoning Repair with DeepSeek-R1-8B
+        if is_error and self.enable_dual_model_repair:
+            logger.info("[%s] Triggering autonomous NPU reasoning repair via %s...", state.task_id, REASONING_NPU_MODEL)
+            repair_prompt = (
+                f"# Autonomous First-Principles Code Repair ({state.domain.value.upper()})\n"
+                f"The generated code candidate failed verification.\n"
+                f"**Error Diagnostic**: {diag}\n"
+                f"**Failed Code**:\n```python\n{code}\n```\n\n"
+                f"**Target Invariant / Requirement**:\n{state.hypothesis}\n\n"
+                f"## Instructions:\n"
+                f"1. Fix the error completely so the code parses and executes cleanly.\n"
+                f"2. Maintain entrypoint `{target_fn}`.\n"
+                f"3. Output ONLY valid Python inside a single ```python block."
             )
-        except Exception as exc:
-            return StatelessMutationResult(
-                candidate_id=candidate_id,
-                task_id=state.task_id,
-                code=code,
-                outcome=CandidateOutcome.INCONCLUSIVE_FAILURE,
-                score=0.0,
-                diagnostics=f"Evaluator execution error: {exc}",
-                generation_ms=usage.get("duration_ms", 0.0),
-                tokens=usage.get("completion_tokens", 0),
-                npu_model=self.model,
-            )
+            try:
+                repair_output, repair_usage = await self.client.query_stateless(
+                    prompt=repair_prompt,
+                    system_prompt="You are a formal code repair verifier on AMD XDNA 2 NPU. Output ONLY executable Python inside ```python.",
+                    model=REASONING_NPU_MODEL,
+                    max_tokens=1024,
+                    temperature=0.1,
+                )
+                repaired_code = self._extract_code(repair_output, target_fn=target_fn)
+                ast.parse(repaired_code)
+                r_score, r_diag, r_is_error = evaluator_fn(repaired_code)
+                if not r_is_error:
+                    logger.info("[%s] Autonomous NPU repair SUCCESSFUL! Score: %.4f (Baseline: %.4f)", state.task_id, r_score, state.baseline_score)
+                    code = repaired_code
+                    candidate_id = hashlib.sha256(code.encode("utf-8")).hexdigest()[:12]
+                    score = r_score
+                    diag = f"[Repaired by {REASONING_NPU_MODEL}] {r_diag}"
+                    is_error = False
+                    usage["completion_tokens"] = usage.get("completion_tokens", 0) + repair_usage.get("completion_tokens", 0)
+                    usage["duration_ms"] = usage.get("duration_ms", 0.0) + repair_usage.get("duration_ms", 0.0)
+            except Exception as repair_err:
+                logger.debug("[%s] Dual-model repair pass did not resolve error: %s", state.task_id, repair_err)
+
+        if is_error:
+            outcome = CandidateOutcome.INCONCLUSIVE_FAILURE
+        elif score > state.baseline_score:
+            outcome = CandidateOutcome.MEASURED_IMPROVEMENT
+        else:
+            outcome = CandidateOutcome.MEASURED_NON_IMPROVEMENT
+
+        return StatelessMutationResult(
+            candidate_id=candidate_id,
+            task_id=state.task_id,
+            code=code,
+            outcome=outcome,
+            score=score,
+            diagnostics=diag,
+            generation_ms=usage.get("duration_ms", 0.0),
+            tokens=usage.get("completion_tokens", 0),
+            npu_model=self.model,
+        )
 
     @staticmethod
     def _extract_code(raw_text: str, target_fn: str = "") -> str:

@@ -55,6 +55,9 @@ SURREAL_DB = os.environ.get("SURREAL_DB", "main")
 SURREAL_USER = os.environ.get("SURREAL_USER", "root")
 SURREAL_PASS = os.environ.get("SURREAL_PASS", "root")
 VAULT_DIR = Path("/home/mike-anderson/vaults/cohezion-vault/01-Learnings")
+ARTIFACTS_DIR = WORKSPACE / "scripts/kaggle/ascension_artifacts"
+SENTINEL_STATUS_FILE = WORKSPACE / "scripts/kaggle/sentinel_status.json"
+VAULT_BREAKTHROUGHS_FILE = VAULT_DIR / "npu_ascension_breakthroughs.md"
 
 
 def persist_to_surreal(table: str, record: dict) -> None:
@@ -76,6 +79,133 @@ def persist_to_surreal(table: str, record: dict) -> None:
             pass
     except Exception as e:
         logger.debug("SurrealDB logging failed for %s: %s", table, e)
+
+
+def persist_checkpoint_to_surreal(track_slug: str, record: dict) -> None:
+    """Persists durable track checkpoint state to SurrealDB."""
+    try:
+        sql = f"USE NS {SURREAL_NS} DB {SURREAL_DB}; UPSERT stateless_npu_checkpoint:{track_slug} CONTENT {json.dumps(record)};"
+        req = urllib.request.Request(
+            SURREAL_URL,
+            data=sql.encode("utf-8"),
+            headers={
+                "Accept": "application/json",
+                "surreal-ns": SURREAL_NS,
+                "surreal-db": SURREAL_DB,
+                "Authorization": f"Basic {base64.b64encode(f'{SURREAL_USER}:{SURREAL_PASS}'.encode()).decode()}",
+                "Connection": "close",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=5):
+            pass
+    except Exception as e:
+        logger.debug("SurrealDB checkpoint persistence failed for %s: %s", track_slug, e)
+
+
+def save_track_checkpoint(
+    track_slug: str,
+    track_name: str,
+    domain: str,
+    score: float,
+    baseline_score: float,
+    code: str,
+    candidate_id: str,
+    epoch: int,
+    model: str,
+    diagnostics: str,
+) -> None:
+    """Persists a new winning breakthrough to disk, SurrealDB, Sentinel status, and Vault."""
+    try:
+        ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+        now_iso = datetime.now(UTC).isoformat()
+        delta = score - baseline_score
+
+        # 1. Save executable code to disk
+        code_file = ARTIFACTS_DIR / f"{track_slug}_best.py"
+        code_file.write_text(code, encoding="utf-8")
+
+        # 2. Save metadata state JSON to disk
+        state_data = {
+            "track_slug": track_slug,
+            "track_name": track_name,
+            "domain": domain,
+            "best_score": score,
+            "baseline_score": baseline_score,
+            "delta": delta,
+            "candidate_id": candidate_id,
+            "epoch": epoch,
+            "npu_model": model,
+            "code": code,
+            "timestamp": now_iso,
+            "diagnostics": diagnostics,
+        }
+        state_file = ARTIFACTS_DIR / f"{track_slug}_state.json"
+        state_file.write_text(json.dumps(state_data, indent=2), encoding="utf-8")
+
+        # 3. Update SurrealDB
+        persist_checkpoint_to_surreal(track_slug, state_data)
+
+        # 4. Append to Obsidian Vault
+        try:
+            VAULT_DIR.mkdir(parents=True, exist_ok=True)
+            vault_entry = (
+                f"\n\n### [{now_iso}] NPU Breakthrough: {track_name} Score {score:.4f} (+{delta:.4f})\n"
+                f"- **Model**: `{model}` (AMD XDNA 2 NPU)\n"
+                f"- **Candidate ID**: `{candidate_id}`\n"
+                f"- **Epoch**: {epoch}\n"
+                f"- **Diagnostics**: {diagnostics}\n"
+                f"- **Code Artifact**: `scripts/kaggle/ascension_artifacts/{track_slug}_best.py`\n\n"
+                f"```python\n{code}\n```\n"
+            )
+            with open(VAULT_BREAKTHROUGHS_FILE, "a", encoding="utf-8") as vf:
+                vf.write(vault_entry)
+        except Exception as v_err:
+            logger.debug("Failed appending to vault: %s", v_err)
+
+        # 5. Update sentinel_status.json
+        try:
+            if SENTINEL_STATUS_FILE.exists():
+                with open(SENTINEL_STATUS_FILE, "r", encoding="utf-8") as sf:
+                    sentinel_data = json.load(sf)
+                if "npu_ascension" not in sentinel_data:
+                    sentinel_data["npu_ascension"] = {}
+                sentinel_data["npu_ascension"][track_slug] = {
+                    "track_name": track_name,
+                    "score": score,
+                    "delta": delta,
+                    "candidate_id": candidate_id,
+                    "model": model,
+                    "updated_at": now_iso,
+                }
+                with open(SENTINEL_STATUS_FILE, "w", encoding="utf-8") as sf:
+                    json.dump(sentinel_data, sf, indent=2)
+        except Exception as s_err:
+            logger.debug("Failed updating sentinel status: %s", s_err)
+
+        logger.info(
+            "💾 [%s] Checkpoint successfully persisted (Score: %.4f | File: %s)",
+            track_name,
+            score,
+            state_file,
+        )
+    except Exception as exc:
+        logger.error("[%s] Error persisting checkpoint: %s", track_name, exc)
+
+
+def load_track_checkpoint(track_slug: str) -> dict | None:
+    """Loads a persisted track state from disk if available."""
+    state_file = ARTIFACTS_DIR / f"{track_slug}_state.json"
+    if state_file.exists():
+        try:
+            with open(state_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            code_file = ARTIFACTS_DIR / f"{track_slug}_best.py"
+            if code_file.exists() and "code" not in data:
+                data["code"] = code_file.read_text(encoding="utf-8")
+            return data
+        except Exception as e:
+            logger.warning("Error loading checkpoint for %s: %s", track_slug, e)
+    return None
 
 
 # ARC-AGI-2 First-Principles Evaluator
@@ -225,10 +355,11 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
     """Runs autonomous, stateless NPU loops for active Kaggle competitions."""
     logger.info("Initializing Stateless NPU Ascension Worker (Model: %s on NPU)...", model)
     client = StatelessNPUClient()
-    agent = StatelessNPUAgent(client=client, model=model)
+    agent = StatelessNPUAgent(client=client, model=model, enable_dual_model_repair=True)
 
     tracks = [
         {
+            "slug": "arc_agi_2",
             "name": "ARC-AGI-2",
             "domain": InvariantDomain.ARC_AGI,
             "target_invariant": FIRST_PRINCIPLES_CATALOG["arc_d4_symmetry"].formal_definition,
@@ -244,6 +375,7 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
             "baseline_score": 0.3028,
         },
         {
+            "slug": "rsna_knee",
             "name": "RSNA Knee",
             "domain": InvariantDomain.RSNA_KNEE,
             "target_invariant": FIRST_PRINCIPLES_CATALOG[
@@ -262,6 +394,7 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
             "baseline_score": 0.9430,
         },
         {
+            "slug": "nfl_bdb_2027",
             "name": "NFL Big Data Bowl 2027",
             "domain": InvariantDomain.NFL_BDB,
             "target_invariant": FIRST_PRINCIPLES_CATALOG[
@@ -283,11 +416,26 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
         },
     ]
 
+    # Hydrate track states from persistent checkpoints on disk
+    for track in tracks:
+        chk = load_track_checkpoint(track["slug"])
+        if chk and "best_score" in chk and "code" in chk:
+            track["initial_code"] = chk["code"]
+            track["baseline_score"] = float(chk["best_score"])
+            logger.info(
+                "[%s] Restored persistent state: Score=%.4f (Model: %s | ID: %s | Time: %s)",
+                track["name"],
+                track["baseline_score"],
+                chk.get("npu_model", "unknown"),
+                chk.get("candidate_id", "unknown"),
+                chk.get("timestamp", "unknown"),
+            )
+
     for epoch in range(1, epochs + 1):
         logger.info("=== Starting Stateless NPU Research Epoch %d / %d ===", epoch, epochs)
         for track in tracks:
             state = StatelessState(
-                task_id=f"{track['name'].lower()}_epoch_{epoch}",
+                task_id=f"{track['slug']}_epoch_{epoch}",
                 domain=track["domain"],
                 hypothesis=track["hypothesis"],
                 current_code=track["initial_code"],
@@ -321,6 +469,18 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
                     track["name"],
                     result.score,
                     result.score - track["baseline_score"],
+                )
+                save_track_checkpoint(
+                    track_slug=track["slug"],
+                    track_name=track["name"],
+                    domain=track["domain"].value,
+                    score=result.score,
+                    baseline_score=track["baseline_score"],
+                    code=result.code,
+                    candidate_id=result.candidate_id,
+                    epoch=epoch,
+                    model=result.npu_model,
+                    diagnostics=result.diagnostics,
                 )
                 track["initial_code"] = result.code
                 track["baseline_score"] = result.score
