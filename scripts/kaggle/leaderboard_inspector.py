@@ -26,24 +26,6 @@ from pathlib import Path
 
 RAW_COMPETITIONS = [
     {
-        "id": "biohub-cell-tracking-during-development",
-        "name": "Biohub 3D Cell Tracking",
-        "deadline": "2026-09-29",
-        "winnable": "$8,000 - $18,000",
-        "target": "Top 3 Podium (1st Target)",
-        "twin": "Dr. Barbara McClintock & Dr. Ilya Prigogine",
-        "direction": "higher",
-    },
-    {
-        "id": "kaggriculture",
-        "name": "Kaggriculture Simulation",
-        "deadline": "2026-09-30",
-        "winnable": "$5,000 (Flat)",
-        "target": "Top 10 Finisher",
-        "twin": "Dr. John von Neumann & Dr. Claude Shannon",
-        "direction": "higher",
-    },
-    {
         "id": "rsna-knee-abnormality-detection",
         "name": "RSNA Knee Abnormality",
         "deadline": "2026-10-22",

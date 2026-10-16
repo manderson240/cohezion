@@ -3,19 +3,22 @@ name: first-principles-invariant-science
 metadata:
   version: "1.0.0"
 description: >-
-  First-principles physical, chemical, and topological invariant engineering for ARC-AGI, RSNA Knee, and CASMI-2026.
+  First-principles physical, chemical, topological, and stylometric invariant engineering for ARC-AGI, RSNA Knee, CASMI-2026, Name That LLM, and NFL Big Data Bowl 2027.
 ---
 
 # SKILL: FIRST_PRINCIPLES_INVARIANT_SCIENCE_PRIME
 
 ## DOMAIN EXPERTISE
-Expertise in grounding competitive AI systems and autonomous agent swarms in physical laws, geometric manifolds, and causal invariants (Dihedral $D_4$ symmetry, tandem mass conservation, monotonic joint space narrowing, and hyperbolic Poincaré tree search) rather than superficial leaderboard chasing.
+Expertise in grounding competitive AI systems and autonomous agent swarms in physical laws, geometric manifolds, and causal invariants (Dihedral $D_4$ symmetry, tandem mass conservation, monotonic joint space narrowing, stylometric syntactic/morphological entropy, Voronoi spatial field control, and hyperbolic Poincaré tree search) rather than superficial leaderboard chasing.
 
 ## KEY TEXTS & CONCEPTS
 - **The Leaderboard Chasing Anti-Pattern**: Overfitting public test splits via ungrounded black-box stacking or arbitrary prompt mutations.
-- **Dihedral Group $D_4$ Equivariance**: Visual transformations must commute with planar rotations and reflections: $\forall g \in D_4, f(g \cdot X) = g \cdot f(X)$.
+- **Dihedral Group $D_4$ Equivariance**: Visual transformations must commute with planar rotations and reflections: $\forall g \in D_4, f(g \cdot X) = g \cdot f(X)$ (ARC-AGI-2/3).
 - **Poincaré Ball Tree Embedding $\mathbb{D}^n$**: Hyperbolic metric spaces naturally accommodate exponential decision-tree branching with bounded distortion.
-- **Sub-Graph Mass Conservation**: In tandem mass spectrometry, every daughter fragment ion obeys strict mass balance with the precursor ion ($m_{\text{precursor}} = m_{\text{fragment}} + m_{\text{neutral\_loss}} \pm \delta_{\text{ppm}}$).
+- **Sub-Graph Mass Conservation**: In tandem mass spectrometry, every daughter fragment ion obeys strict mass balance with the precursor ion ($m_{\text{precursor}} = m_{\text{fragment}} + m_{\text{neutral\_loss}} \pm \delta_{\text{ppm}}$) (CASMI26).
+- **Anatomical Monotonicity & Bilateral Symmetry**: Joint space narrowing (JSN) and subchondral sclerosis severity must follow monotonic degeneration ordering constrained by contralateral knee ratios (RSNA Knee).
+- **Stylometric Invariant Density & Sinkhorn Optimal Transport**: Generative LLMs exhibit distinct tokenizer-free character transition matrices and function-word distributions; Balanced Accuracy optimization requires Sinkhorn uniform marginal prior balancing across model classes (Name That LLM).
+- **Kinematic Conservation & Field Tessellation**: Player velocity and acceleration vectors obey $a = dv/dt \le a_{\max}$; pass-rush impact is strictly bounded by Voronoi field control areas (NFL BDB 2027).
 - **AutoHarness Zero-Cost Bytecode Verification**: Deterministic formal verification gating every candidate action prior to execution.
 
 ## INSTRUCTION

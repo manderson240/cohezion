@@ -42,6 +42,7 @@ TARGET_COMPETITIONS = [
     "rsna-knee-abnormality-detection",
     "enveda-CASMI26-molecule-id-mass-spectra",
     "nfl-big-data-bowl-2027",
+    "name-that-llm",
     "gemma-4-developer-agent",
 ]
 
@@ -52,7 +53,8 @@ HIGH_SIGNAL_KEYWORDS = [
     "affordance", "zobrist", "program synthesis", "raptor", "coatnet", "dinov2",
     "m/z", "ppm", "fragment", "sub-structure", "tanimoto", "auc", "roc", "calibration",
     "loss", "gradient", "lora", "sft", "ttt", "beam search", "heuristic", "post-process",
-    "adduct", "neutral loss", "ms/ms", "ms2"
+    "adduct", "neutral loss", "ms/ms", "ms2", "stylometry", "sinkhorn", "balanced accuracy",
+    "markov", "n-gram", "temperature", "marginal", "de-anonymization", "perplexity"
 ]
 
 LOW_SIGNAL_KEYWORDS = [
