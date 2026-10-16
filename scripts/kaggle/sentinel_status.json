@@ -1259,7 +1259,7 @@
       "updated_at": "2026-10-16T03:50:34.947286+00:00"
     },
     "arc-prize-2026-arc-agi-2": {
-      "last_polled_ts": 1792122866.855528,
+      "last_polled_ts": 1792122990.4511716,
       "name": "ARC Prize 2026: ARC-AGI-2",
       "prize": "$700,000 USD",
       "deadline": "2026-11-02",
@@ -1270,7 +1270,7 @@
         "raw": "57247164  submission.json  2026-10-16 00:00:31.660000  Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Reset)                                                                    SubmissionStatus.PENDING                              "
       },
       "history_count": 35,
-      "updated_at": "2026-10-16T03:54:26.855541+00:00"
+      "updated_at": "2026-10-16T03:56:30.451187+00:00"
     },
     "arc-prize-2026-arc-agi-3": {
       "last_polled_ts": 1792121971.4360962,
@@ -1287,7 +1287,7 @@
       "updated_at": "2026-10-16T03:39:31.436106+00:00"
     },
     "gemma-4-developer-agent": {
-      "last_polled_ts": 1792122789.007389,
+      "last_polled_ts": 1792122912.815371,
       "name": "Google - The Gemma 4 Developer Agent",
       "prize": "$65,000 USD",
       "deadline": "2026-12-02",
@@ -1298,21 +1298,21 @@
         "raw": "57247198  submission.zip  2026-10-16 00:00:41.347000  Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)                                                                                                                     SubmissionStatus.PENDING                              "
       },
       "history_count": 17,
-      "updated_at": "2026-10-16T03:53:09.007399+00:00"
+      "updated_at": "2026-10-16T03:55:12.815381+00:00"
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
-      "last_polled_ts": 1792122789.007389,
+      "last_polled_ts": 1792122912.815371,
       "name": "Enveda CASMI26 Molecule ID",
       "prize": "$50,000 USD",
       "deadline": "2026-12-14",
       "latest_sub": {
         "ref": "57247277",
-        "status": "PENDING",
-        "score": null,
-        "raw": "57247277  submission.csv  2026-10-16 00:01:04.380000  Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15) (Daily Quota Reset)      SubmissionStatus.PENDING                              "
+        "status": "COMPLETE",
+        "score": "0.418",
+        "raw": "57247277  submission.csv  2026-10-16 00:01:04.380000  Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15) (Daily Quota Reset)      SubmissionStatus.COMPLETE  0.418                      "
       },
       "history_count": 42,
-      "updated_at": "2026-10-16T03:53:09.007399+00:00"
+      "updated_at": "2026-10-16T03:55:12.815381+00:00"
     },
     "nfl-big-data-bowl-2027": {
       "last_polled_ts": 1792121629.6715512,
@@ -1335,5 +1335,5 @@
     "manderson240/arc-agi-2-fork-lb33-89-20260903": "QUEUED"
   },
   "lemonade_healthy": true,
-  "last_cycle_utc": "2026-10-16T03:54:26.855541+00:00"
+  "last_cycle_utc": "2026-10-16T03:57:01.363639+00:00"
 }

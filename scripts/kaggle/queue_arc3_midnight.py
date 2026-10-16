@@ -38,8 +38,9 @@ def main():
         ".venv/bin/python3", "scripts/kaggle/kaggle_submit.py", "notebook",
         "-c", "arc-prize-2026-arc-agi-3",
         "-k", "manderson240/cohezion-arc-agi-3-autoharness-solver",
+        "-v", "15",
         "-f", "submission.parquet",
-        "-m", "Cohezion ARC-AGI-3 SOTA v31: Monadic Markov Engine + 64-bit Zobrist Anti-Cycle (Daily Quota Reset)",
+        "-m", "Cohezion ARC-AGI-3 SOTA v39: Harness^2 Recursive Invariants + Poincaré MCTS + Watchdog <= 4 (Daily Quota Reset)",
         "-w"
     ]
     
