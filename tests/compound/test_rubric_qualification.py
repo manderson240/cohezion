@@ -1,0 +1,160 @@
+"""RQ: RubricMiddleware must earn the right to gate learning (salted calibration, from GEMS desk 2026-10-16).
+
+  RQ1 qualify() scores the judge on known-good / known-bad outputs by balanced accuracy and sets `qualified`
+  RQ2 a judge that FAILS qualification never gates: evaluate() returns passed=True without calling inference
+  RQ3 require_qualification=True: an un-qualified (never run) judge never gates either
+  RQ4 unparseable answers on gold items count against the judge (fail-open parsing must not inflate its score)
+  RQ5 qualification needs both classes (a one-class gold set cannot qualify anything)
+Default (require_qualification=False, never qualified) keeps the historic behaviour (MD1-MD7 unchanged).
+"""
+
+from __future__ import annotations
+
+import json
+from unittest.mock import patch
+
+import pytest
+
+from cohezion.compound.rubric_middleware import RubricMiddleware
+
+
+GOLD = [(f"good {i}", "", False) for i in range(4)] + [(f"bad {i}", "", True) for i in range(4)]
+
+
+def _judge(answer):
+    """Patch inference: answer(output) -> perceived_error (True/False) or None for an unparseable reply."""
+
+    def fake(self, task_output, task_context):
+        v = answer(task_output)
+        return "not json" if v is None else json.dumps({"perceived_error": v, "reason": "r"})
+
+    return patch.object(RubricMiddleware, "_call_inference", fake)
+
+
+def test_rq1_accurate_judge_qualifies():
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: o.startswith("bad")):
+        assert rm.qualify(GOLD) == 1.0
+    assert rm.qualified is True
+
+
+def test_rq1_rq2_coin_flip_judge_fails_and_then_never_gates():
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: True):  # rejects everything: balanced accuracy 0.5
+        assert rm.qualify(GOLD) == 0.5
+        assert rm.qualified is False
+        v = rm.evaluate("bad output")
+    assert v.passed is True and "unqualified" in v.reason
+
+
+def test_rq2_failed_judge_does_not_call_inference():
+    rm = RubricMiddleware(rubric="x")
+    rm.qualified = False
+    calls = []
+    with patch.object(
+        RubricMiddleware,
+        "_call_inference",
+        lambda self, o, c: calls.append(o) or '{"perceived_error": true}',
+    ):
+        assert rm.evaluate("anything").passed is True
+    assert (
+        calls == []
+    )  # evaluate's fail-open except would hide a raising mock, so count calls instead
+
+
+def test_rq3_required_but_never_qualified_does_not_gate():
+    rm = RubricMiddleware(rubric="x", require_qualification=True)
+    with _judge(lambda o: True):
+        assert rm.evaluate("bad output").passed is True
+
+
+def test_rq3_required_and_qualified_does_gate():
+    rm = RubricMiddleware(rubric="x", require_qualification=True)
+    with _judge(lambda o: o.startswith("bad")):
+        rm.qualify(GOLD)
+        assert rm.evaluate("bad output").passed is False
+        assert rm.evaluate("good output").passed is True
+
+
+def test_rq4_unparseable_gold_answers_count_against_the_judge():
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: None):  # fail-open parse would read every one as "passed"
+        assert rm.qualify(GOLD) < 0.8
+    assert rm.qualified is False
+
+
+def test_rq5_one_class_gold_set_cannot_qualify():
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: False), pytest.raises(ValueError):
+        rm.qualify([g for g in GOLD if not g[2]])
+
+
+# ── review findings (adversarial pass 2026-10-16) ─────────────────────────────
+
+
+def test_rq4_unparseable_on_good_items_only_is_not_rescued_by_fail_open():
+    """Correct on bad items, 'not json' on good ones: right answer 0.5; a fail-open reader would score 1.0."""
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: True if o.startswith("bad") else None):
+        assert rm.qualify(GOLD) == 0.5
+    assert rm.qualified is False
+
+
+def test_rq1_balanced_not_plain_accuracy_on_skewed_gold():
+    """2 bad / 9 good, judge passes everything: plain accuracy 0.82 would qualify, balanced is 0.5."""
+    gold = [(f"bad {i}", "", True) for i in range(2)] + [(f"good {i}", "", False) for i in range(9)]
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: False):
+        assert rm.qualify(gold) == 0.5
+    assert rm.qualified is False
+
+
+def test_rq6_string_perceived_error_is_wrong_not_coerced():
+    rm = RubricMiddleware(rubric="x")
+
+    def fake(self, o, c):
+        return json.dumps({"perceived_error": "true" if o.startswith("bad") else "false"})
+
+    with patch.object(RubricMiddleware, "_call_inference", fake):
+        assert rm.qualify(GOLD) == 0.0
+
+
+def test_rq5_both_one_class_directions_refused_and_state_untouched():
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: o.startswith("bad")):
+        for subset in (
+            [g for g in GOLD if g[2]],
+            [g for g in GOLD if not g[2]],
+            GOLD[:1] + GOLD[4:5],
+        ):
+            with pytest.raises(ValueError):
+                rm.qualify(subset)
+    assert rm.qualified is None
+
+
+def test_rq7_threshold_must_exceed_chance():
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: True), pytest.raises(ValueError):
+        rm.qualify(GOLD, threshold=0.5)
+
+
+def test_rq7_score_equal_to_threshold_qualifies():
+    gold = [(f"bad {i}", "", True) for i in range(5)] + [(f"good {i}", "", False) for i in range(5)]
+    rm = RubricMiddleware(rubric="x")
+    # bad: 3/5 correct, good: 5/5 -> (0.6 + 1.0) / 2 = 0.8 exactly
+    with _judge(lambda o: o in ("bad 0", "bad 1", "bad 2")):
+        assert abs(rm.qualify(gold) - 0.8) < 1e-12
+    assert rm.qualified is True
+
+
+def test_rq8_changing_the_judge_after_qualifying_invalidates_it():
+    rm = RubricMiddleware(rubric="x", require_qualification=True)
+    with _judge(lambda o: o.startswith("bad")):
+        rm.qualify(GOLD)
+        assert rm.evaluate("bad output").passed is False
+        rm.rubric = "a different rubric"
+        assert rm.evaluate("bad output").passed is True
+    hand = RubricMiddleware(rubric="x", require_qualification=True)
+    hand.qualified = True  # set by hand, never measured
+    with _judge(lambda o: True):
+        assert hand.evaluate("bad output").passed is True

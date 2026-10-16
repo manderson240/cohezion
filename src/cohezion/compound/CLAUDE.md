@@ -80,6 +80,17 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
   KeyError regardless of the limits and survived the mutant.
 - **Verification**: `uv run pytest tests/compound/test_sandboxed_exec.py -q` → 20 passed
 
+**RQ** (Rubric Qualification, salted calibration; from the GEMS judge desk, 2026-10-16)
+- RQ1: `RubricMiddleware.qualify(gold)` scores BALANCED accuracy on `(output, context, should_fail)` items (>= 2 per class,
+  threshold in (0.5, 1]); unparseable / non-bool / failed answers count as WRONG (fail-open must not inflate the score).
+- RQ2: a judge that failed qualify(), was qualified for a DIFFERENT (rubric, model, router), or had `qualified` set by hand,
+  never gates: `evaluate()` returns passed=True without calling inference. `require_qualification=True` extends this to
+  never-qualified judges. Default (False, never qualified) = historic behaviour.
+- OPEN: RubricMiddleware has no production constructor yet (dormant; Kanban 14da592755ce). Wire it with
+  `require_qualification=True` and gold from SkillRefiner golden_fixture rows.
+- **Verification**: `uv run pytest tests/compound/test_rubric_qualification.py -q` → 14 passed; 6/6 mutants killed
+  (plain accuracy, bool() coercion, no fingerprint, no threshold check, no min-per-class, gate removed).
+
 ## Wiring Discipline (non-destructive)
 
 A method that ACCEPTS a value is not wired. Wiring = a production (non-test, non-def) consumer reads it and acts.
