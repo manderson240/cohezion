@@ -1,5 +1,18 @@
 # KEY LEARNINGS
 
+## Learning 545: Multi-Track Kaggle Forum Intelligence & Invariant Synthesis Across Active Competitions (2026-10-16)
+L545: Automated high-leverage discussion forum mining and technical synthesis across all 6 active, unexpired Kaggle competitions (`scripts/kaggle/mine_active_discussions.py` -> `docs/kaggle/ACTIVE_COMPETITIONS_DISCUSSION_MINING.md`):
+1. **Domain-Specific Invariant & Architecture Breakthroughs**:
+   - **RSNA Knee Abnormality Detection**: Discovered single-model 0.949 AUC breakthrough achieved via 384px CoAtNet checkpoint with native 320px center-cropping and dual-view anatomical left/right mirroring combined with Stochastic Weight Averaging (SWA). Uncovered critical label artifact: 25.4% of label cells are "not addressed" in radiology reports, where treating absence of explicit text as negative targets destroys classifier sensitivity on joint effusion/synovitis.
+   - **Enveda CASMI26 Molecule ID**: Isolated the primary competitive ceiling as candidate re-ranking (MRR@25: 0.584 in Regime B vs 0.846 in Regime A). Confirmed top teams employ dual forward/backward predictors (`SMILES + adduct -> MS/MS` predicting observed peak intensities alongside `MS/MS + adduct -> candidate ranking`). Exposed fatal public leak: notebooks copying visible 400 dummy test IDs achieve synthetic 0.418 on public LB but fail completely on private evaluation. Host reaffirmed strict disqualification for NIST-20 dataset usage.
+   - **ARC Prize 2026 (ARC-AGI-2 & ARC-AGI-3)**: Milestone 1 & 2 winners converge on the Tufa Labs Duck Harness serving Qwen 3.6/3.8 Flash FP8 with dynamic context eviction and Python REPL execution. Proved that deep recursive test-time training (TOPAS, ~36% local) suffers severe Kaggle LB drops (11.67%) without adaptive puzzle difficulty time-budget partitioning.
+   - **Name That LLM**: Solved CV-LB misalignment: random K-Fold split causes 17 sibling model responses per prompt to leak into train, depressing balanced accuracy to 0.217; `StratifiedGroupKFold(groups=prompt_id)` restores true generalization to 0.369 balanced accuracy. Identified 150 prompt archetypes centered on pop-science and philosophical exposition.
+   - **Gemma-4 Developer Agent**: Established optimal inference pacing: 4,096-token thinking budget with $T=1.0$ and top-p 0.95 resolves 54/129 tasks; 4.5–5.5 min per task prevents L4x4 queue aborts. Fixed critical wheelhouse bug where `gemma-4-12b-it-qat-w4a16-ct` crashes unless `model.vision_embedder.*` is explicitly added to the weight skip list.
+2. **Persistence & Compound Synthesis**: Serialized 60 raw forum discussion dossiers to `data/kaggle_discussions/`, generated strategic synthesis at `docs/kaggle/ACTIVE_COMPETITIONS_DISCUSSION_MINING.md`, synchronized to Obsidian Knowledge Vault, and committed to SurrealDB (`learning`).
+*12D State Vector*: `[12D State: Space=KaggleForumIntelligence-CrossCompetitionSynthesis, Time=October 2026, Physics=TheoremD1-GroupKFold-AnatomicalMirroring-DuckHarness-ParsimonyRerank, Brane=Cohezion-Compound-Negentropy]`
+
+---
+
 ## Learning 544: First-Principles Invariant Engineering & Bipartite Systems Engineering V-Model Compound Architecture (2026-10-16)
 L544: Formalized and implemented the First-Principles Mathematical Invariants and Bipartite Systems Engineering V-Model Compound Graph engine (`src/cohezion/compound/first_principles_vmodel_engine.py`) with 100% Verification Traceability Matrix (VTM) coverage:
 1. **Mathematical Invariant Formalization Across Domains**:
