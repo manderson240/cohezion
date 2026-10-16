@@ -3115,5 +3115,13 @@
     "see_also": [],
     "source": "src/cohezion/skills/visual_validation.md",
     "version": "v1.0"
+  },
+  "kaggle-grandmaster-winning-strategies": {
+    "name": "kaggle-grandmaster-winning-strategies",
+    "source": ".agents/plugins/cohezion-sovereign/skills/kaggle-grandmaster-winning-strategies/SKILL.md",
+    "prime_source": "src/cohezion/skills/KAGGLE_GRANDMASTER_WINNING_STRATEGIES_PRIME.md",
+    "category": "competitive-ml",
+    "version": "1.0.0",
+    "description": "Systematic abstraction and operationalization of winning Kaggle Grandmaster strategies, axioms, and architectural invariants across Medical Vision, Mass Spectrometry, Tabular/NLP, and Agentic Reasoning."
   }
 }
