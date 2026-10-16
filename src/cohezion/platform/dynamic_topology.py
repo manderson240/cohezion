@@ -27,10 +27,17 @@ class NPULaneConfig:
 
     enabled: bool = True
     hardware: str = "AMD XDNA 2 NPU"
-    service_name: str = "fastflowlm-npu.service"
-    endpoint: str = "http://127.0.0.1:52625/v1/chat/completions"
-    default_model: str = "llama3.2:1b"
-    available_models: list[str] = field(default_factory=lambda: ["llama3.2:1b", "qwen3.5:4b", "deepseek-r1:8b"])
+    service_name: str = "lemond.service"
+    endpoint: str = "http://127.0.0.1:13305/v1/chat/completions"
+    default_model: str = "llama3.2-1b-FLM"
+    available_models: list[str] = field(
+        default_factory=lambda: [
+            "llama3.2-1b-FLM",
+            "qwen3.5-4b-FLM",
+            "deepseek-r1-0528-8b-FLM",
+            "gemma4-it-e2b-FLM",
+        ]
+    )
     power_mode: str = "performance"
     memory_footprint_mb: float = 0.0
     max_context: int = 4096
@@ -55,8 +62,8 @@ class GPULaneConfig:
 
     enabled: bool = True
     hardware: str = "Radeon 8060S (40 CUs)"
-    endpoint: str = "http://127.0.0.1:8006/v1/embeddings"
-    default_model: str = "nomic-embed-text-v2-moe.Q8_0"
+    endpoint: str = "http://127.0.0.1:13305/v1/embeddings"
+    default_model: str = "nomic-embed-text-v2-moe-GGUF"
     max_context: int = 8192
     uma_ceiling_gb: float = 2.0
 
@@ -110,12 +117,12 @@ class DynamicTopology:
         npu_raw = profile.get("npu", {})
         npu_ep = os.getenv("FLM_ENDPOINT") or os.getenv("FASTFLOWLM_URL")
         if not npu_ep:
-            port = os.getenv("FLM_PORT", str(npu_raw.get("endpoint", "52625")))
+            port = os.getenv("FLM_PORT", str(npu_raw.get("endpoint", "http://127.0.0.1:13305/v1/chat/completions")))
             if "://" in port:
                 npu_ep = port
             else:
                 npu_ep = f"http://127.0.0.1:{port}/v1/chat/completions"
-        npu_model = os.getenv("FLM_MODEL", npu_raw.get("default_model", "llama3.2:1b"))
+        npu_model = os.getenv("FLM_MODEL", npu_raw.get("default_model", "llama3.2-1b-FLM"))
         npu_config = NPULaneConfig(
             enabled=npu_raw.get("enabled", True),
             endpoint=npu_ep,
@@ -142,8 +149,8 @@ class DynamicTopology:
         gpu_raw = profile.get("gpu_embeddings", {})
         gpu_config = GPULaneConfig(
             enabled=gpu_raw.get("enabled", True),
-            endpoint=os.getenv("EMBEDDINGS_ENDPOINT", gpu_raw.get("endpoint", "http://127.0.0.1:8006/v1/embeddings")),
-            default_model=gpu_raw.get("default_model", "nomic-embed-text-v2-moe.Q8_0"),
+            endpoint=os.getenv("EMBEDDINGS_ENDPOINT", gpu_raw.get("endpoint", "http://127.0.0.1:13305/v1/embeddings")),
+            default_model=gpu_raw.get("default_model", "nomic-embed-text-v2-moe-GGUF"),
         )
 
         # 4. Resolve Cloud Rationing

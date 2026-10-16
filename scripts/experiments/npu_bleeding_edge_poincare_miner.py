@@ -132,10 +132,10 @@ CREATE npu_poincare_experiments CONTENT {json.dumps(clean_record)};
         logger.warning("SurrealDB persistence note: %s", e)
 
 
-async def query_npu(prompt: str, system_prompt: str, model: str = "deepseek-r1-0528:8b") -> tuple[str, dict[str, Any]]:
-    """Resilient execution against FastFlowLM NPU instance with Tier 2 cloud fallback."""
+async def query_npu(prompt: str, system_prompt: str, model: str = "deepseek-r1-0528-8b-FLM") -> tuple[str, dict[str, Any]]:
+    """Resilient execution against Lemonade NPU instance with Tier 2 cloud fallback."""
     from cohezion.kaggle.stateless_npu_agent import StatelessNPUClient
-    client = StatelessNPUClient(endpoint_url="http://127.0.0.1:8005/v1/chat/completions", timeout_sec=360.0)
+    client = StatelessNPUClient(endpoint_url="http://127.0.0.1:13305/v1/chat/completions", timeout_sec=360.0)
     return await client.query_stateless(
         prompt=prompt,
         system_prompt=system_prompt,

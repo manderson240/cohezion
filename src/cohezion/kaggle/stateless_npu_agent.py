@@ -213,45 +213,47 @@ class StatelessNPUClient:
         }
 
         start_time = asyncio.get_event_loop().time()
-        # 1. Attempt Tier 1 local NPU execution (fast, 0 UMA aperture)
-        candidate_eps = [self.endpoint_url]
-        try:
-            import re
-            import subprocess
-            pg = subprocess.run(["pgrep", "-fa", "flm-real"], capture_output=True, text=True).stdout
-            model_key = model.split(":")[0].lower()
-            for line in pg.splitlines():
-                m = re.search(r"--port\s+(\d+)", line)
-                if m:
-                    port = int(m.group(1))
-                    ep = f"http://127.0.0.1:{port}/v1/chat/completions"
-                    if ep not in candidate_eps:
-                        candidate_eps.append(ep)
-        except Exception:
-            pass
+        # 1. Attempt Tier 1 local NPU execution via unified Lemonade Gateway (:13305)
+        # Lemonade routes models with '-FLM' suffix directly to the FastFlowLM NPU backend
+        target_model = model
+        if not target_model.endswith("-FLM") and target_model in ("llama3.2:1b", "qwen3.5:4b", "deepseek-r1:8b"):
+            target_model = f"{target_model.replace(':', '-')}-FLM"
 
         for attempt in range(3):
-            for ep in candidate_eps:
-                try:
-                    local_payload = dict(payload)
-                    local_payload["model"] = model
-                    async with _FASTFLOWLM_LOCK:
-                        async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
-                            resp = await client.post(ep, json=local_payload)
-                            if resp.status_code == 200:
-                                data = resp.json()
-                                msg = data.get("choices", [{}])[0].get("message", {})
-                                content = (msg.get("content") or "").strip()
-                                if not content:
-                                    content = (msg.get("reasoning_content") or "").strip()
-                                if content:
-                                    usage = data.get("usage", {})
-                                    duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000.0
-                                    usage["duration_ms"] = duration_ms
-                                    usage["backend"] = f"fastflowlm_npu_{model}"
-                                    return content, usage
-                except Exception as e:
-                    logger.warning("Local endpoint %s returned error on attempt %d (%s: %s)", ep, attempt + 1, type(e).__name__, e)
+            try:
+                local_payload = dict(payload)
+                local_payload["model"] = target_model
+                async with _FASTFLOWLM_LOCK:
+                    async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
+                        resp = await client.post(self.endpoint_url, json=local_payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            msg = data.get("choices", [{}])[0].get("message", {})
+                            content = (msg.get("content") or "").strip()
+                            if not content:
+                                content = (msg.get("reasoning_content") or "").strip()
+                            if content:
+                                usage = data.get("usage", {})
+                                duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000.0
+                                usage["duration_ms"] = duration_ms
+                                usage["backend"] = f"fastflowlm_npu_{target_model}"
+                                return content, usage
+                        else:
+                            logger.warning(
+                                "Unified local gateway %s returned HTTP %d on attempt %d: %s",
+                                self.endpoint_url,
+                                resp.status_code,
+                                attempt + 1,
+                                resp.text[:120],
+                            )
+            except Exception as e:
+                logger.warning(
+                    "Unified local gateway %s error on attempt %d (%s: %s)",
+                    self.endpoint_url,
+                    attempt + 1,
+                    type(e).__name__,
+                    e,
+                )
             if attempt < 2:
                 await asyncio.sleep(2.0 * (attempt + 1))
 

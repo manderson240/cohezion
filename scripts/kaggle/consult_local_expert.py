@@ -8,8 +8,8 @@ import json
 import sys
 import httpx
 
-LEMONADE_URL = "http://localhost:8003/v1/chat/completions"
-MODEL_NAME = "default"
+LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
+MODEL_NAME = "llama3.2-1b-FLM"
 
 SYSTEM_PROMPT = """You are the Senior Kaggle Grandmaster and Autoresearch Strategist for Cohezion.
 Your job is to evaluate active Kaggle competitions, analyze why previous submissions succeeded or plateaued,

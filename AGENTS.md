@@ -301,6 +301,7 @@ Lemonade dispatches across dedicated OOM-safe hardware backends:
 - **NPU Backend**: FastFlowLM (`recipe: flm`, `/var/cache/lemonade/bin/flm/npu/flm`) executing directly on AMD XDNA2 SRAM (<2W, 0 UMA RAM usage, completely OOM-safe).
 - **CPU Backend**: ONNX / kokoro / llama.cpp CPU (`recipe: kokoro`, `recipe: llamacpp cpu`) for lightweight models ($\le 4\text{ GB}$).
 - **FORBIDDEN IN TIER 1**: All Vulkan, ROCm, and vLLM backends allocating against the UMA aperture. Large model loads trigger automatic reroute to Tier 2 via `ApertureGuard`.
+- **SINGLE-PORT INVARIANT (2026-10-15)**: Port `13305` (`cohezion.platform.admission_proxy` -> `lemond`) is the EXCLUSIVE gateway for all local inference. Standalone daemons (e.g., `:52625`), internal backend ports (`:8002`-`:8008`), and direct port-bypasses are strictly prohibited, masked in systemd, and enforced via `scripts/ci/check_inference_port_bypass.sh`.
 
 Select lane by task class:
 

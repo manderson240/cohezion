@@ -35,34 +35,15 @@ else
     sleep 2
 fi
 
-# 3. Launch Supervised FastFlowLM NPU Daemon (Port 8005)
-echo "[3/6] Starting Supervised FastFlowLM NPU server on port 8005..."
-if curl -s http://127.0.0.1:8005/v1/models >/dev/null 2>&1; then
-    echo "      FLM server already running on port 8005."
+# 3. Check Unified Local Inference Gateway (:13305)
+echo -n "[3/5] Checking Lemonade & Admission Gate (:13305)... "
+if curl -s http://127.0.0.1:13305/v1/models >/dev/null 2>&1; then
+    echo "ONLINE"
 else
-    nohup python3 scripts/npu/supervised_flm_server.py --port 8005 --model qwen3.5:4b > /tmp/flm_server_8005.log 2>&1 &
-    echo "      Waiting for port 8005 readiness..."
-    for i in {1..20}; do
-        if curl -s http://127.0.0.1:8005/v1/models >/dev/null 2>&1; then
-            echo "      Port 8005 is ONLINE (PID: $(pgrep -f 'supervised_flm_server.py'))"
-            break
-        fi
-        sleep 1
-    done
-fi
-
-# 4. Launch A2A NPU Microservice (Port 8008)
-echo "[4/6] Starting Cohezion A2A NPU Microservice on port 8008..."
-if curl -s http://127.0.0.1:8008/a2a/v1/health >/dev/null 2>&1; then
-    echo "      A2A microservice already running on port 8008."
-else
-    nohup python3 scripts/npu/a2a_npu_microservice.py > /tmp/a2a_npu_8008.log 2>&1 &
-    sleep 1
-    if curl -s http://127.0.0.1:8008/a2a/v1/health >/dev/null 2>&1; then
-        echo "      A2A microservice is ONLINE on port 8008."
-    else
-        echo "      A2A microservice starting..."
-    fi
+    echo "OFFLINE. Ensuring lemond and cohezion-admission-gate services are running..."
+    sudo systemctl restart lemond.service 2>/dev/null || true
+    systemctl --user restart cohezion-admission-gate.service 2>/dev/null || true
+    sleep 3
 fi
 
 # 5. Launch Fleet Sentry Watcher with EMA Rate Filter
@@ -103,6 +84,6 @@ fi
 
 echo "=================================================================="
 echo " [Cohezion Fleet] All Autonomous Services Resumed Successfully!"
-echo " Telemetry Ports: FLM=:8005 | A2A=:8008 | SurrealDB=:8001"
+echo " Telemetry Ports: Unified Lemonade Gateway=:13305 | SurrealDB=:8001 | Ollama=:11434"
 echo " Active Tmux Sessions: $(tmux list-sessions 2>/dev/null | awk -F: '{print $1}' | tr '\n' ' ')"
 echo "=================================================================="

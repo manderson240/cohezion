@@ -42,7 +42,7 @@ fi
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-PATTERN='\b1330[6-9]\b'
+PATTERN='\b(1330[6-9]|52625)\b'
 
 candidates=""
 while IFS=: read -r file line content; do

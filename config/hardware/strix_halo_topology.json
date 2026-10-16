@@ -9,14 +9,14 @@
         "npu": {
           "enabled": true,
           "hardware": "AMD XDNA 2 NPU (8 columns)",
-          "service_name": "fastflowlm-npu.service",
-          "endpoint": "http://127.0.0.1:52625/v1/chat/completions",
-          "default_model": "llama3.2:1b",
+          "service_name": "lemond.service",
+          "endpoint": "http://127.0.0.1:13305/v1/chat/completions",
+          "default_model": "llama3.2-1b-FLM",
           "available_models": [
-            "llama3.2:1b",
-            "qwen3.5:4b",
-            "deepseek-r1:8b",
-            "gemma4-it:e2b"
+            "llama3.2-1b-FLM",
+            "qwen3.5-4b-FLM",
+            "deepseek-r1-0528-8b-FLM",
+            "gemma4-it-e2b-FLM"
           ],
           "power_mode": "performance",
           "memory_footprint_mb": 0.0,
@@ -25,8 +25,8 @@
         "gpu_embeddings": {
           "enabled": true,
           "hardware": "Radeon 8060S (RDNA 3.5 / 40 CUs)",
-          "endpoint": "http://127.0.0.1:8006/v1/embeddings",
-          "default_model": "nomic-embed-text-v2-moe.Q8_0",
+          "endpoint": "http://127.0.0.1:13305/v1/embeddings",
+          "default_model": "nomic-embed-text-v2-moe-GGUF",
           "max_context": 8192,
           "uma_ceiling_gb": 2.0
         },
