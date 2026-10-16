@@ -38,7 +38,7 @@ resume:  ## Re-verify the Anthropic Universes living resume (docs/anthropic-univ
 	@echo "✓ Resume receipt refreshed: docs/resume_receipt.json"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
-	PYTHONPATH=src:scripts/ci uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
+	PYTHONPATH=src:scripts:scripts/ci:. uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
 
 lint-ratchet:  ## Check ruff debt ratchet (blocking gate)

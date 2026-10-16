@@ -48,7 +48,10 @@ from typing import Any
 
 
 # Ensure Kaggle SDK and Cohezion packages are loaded from the environment
-src_path = Path(__file__).resolve().parent.parent.parent / "src"
+repo_path = Path(__file__).resolve().parent.parent.parent
+if str(repo_path) not in sys.path:
+    sys.path.insert(0, str(repo_path))
+src_path = repo_path / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
@@ -57,7 +60,7 @@ try:
 except ImportError:
     venv_py = Path(__file__).resolve().parent.parent.parent / ".venv/bin/python"
     if venv_py.exists() and sys.executable != str(venv_py):
-        os.execv(str(venv_py), [str(venv_py)] + sys.argv)
+        os.execv(str(venv_py), [str(venv_py), *sys.argv])  # noqa: S606
     print(
         "Error: kaggle package not found. Ensure .venv or environment is active.", file=sys.stderr
     )
@@ -110,7 +113,7 @@ def get_api() -> KaggleApi:
     return api
 
 
-from cohezion.compound.ivv_authority import (
+from cohezion.compound.ivv_authority import (  # noqa: E402
     IVVAuthority,
     IVVAuthorityService,
     VerificationRequest,
@@ -337,7 +340,7 @@ def submit_notebook(
                 print(f"⚠️ Failed to dynamically resolve latest kernel_version for '{kernel}': {e}")
                 raise RuntimeError(
                     f"Cannot submit without an explicit or dynamically verified kernel version: {e}"
-                )
+                ) from e
 
         response = api.competition_submit_code(**kwargs)
         ref = getattr(response, "ref", None) or getattr(response, "submission_id", None)

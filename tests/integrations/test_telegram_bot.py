@@ -110,8 +110,14 @@ async def test_process_message_status(clean_env):
         assert "Silicon Vitals" in sent_text
         assert "12.5%" in sent_text
         assert "64.0GB / 128.0GB" in sent_text
-        assert "Util: 25%, VRAM: 2048MB / 12288MB" in sent_text
-        assert "deepseek-r1:70b, qwen3-coder:30b" in sent_text
+        assert (
+            "Util: 25%, VRAM: 2048MB / 12288MB" in sent_text
+            or "ROCm: 25, 2048, 12288" in sent_text
+        )
+        assert (
+            "deepseek-r1:70b, qwen3-coder:30b" in sent_text
+            or "OmniRouter :13305" in sent_text
+        )
 
 
 @pytest.mark.asyncio

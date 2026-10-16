@@ -17,10 +17,10 @@ from __future__ import annotations
 import ast
 import json
 import logging
-from pathlib import Path
 import sys
-from typing import Dict, List, Set, Tuple
 import urllib.request
+from pathlib import Path
+
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s")
 logger = logging.getLogger("docker_python_verifier")
@@ -30,21 +30,21 @@ MANIFEST_URL = "https://raw.githubusercontent.com/Kaggle/docker-python/main/kagg
 CACHE_FILE = REPO_CACHE_DIR / "kaggle_requirements.txt"
 
 
-def ensure_manifest() -> Set[str]:
+def ensure_manifest() -> set[str]:
     """Ensures local cache of Kaggle's official container package manifest."""
     REPO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    if not CACHE_FILE.exists() or (time_diff := (Path(__file__).stat().st_mtime - CACHE_FILE.stat().st_mtime)) > 86400:
+    if not CACHE_FILE.exists() or (Path(__file__).stat().st_mtime - CACHE_FILE.stat().st_mtime) > 86400:
         try:
             logger.info("Fetching latest kaggle_requirements.txt from Kaggle/docker-python...")
             req = urllib.request.Request(MANIFEST_URL, headers={"User-Agent": "Cohezion-IVV/1.0"})
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310
                 content = resp.read().decode("utf-8")
                 CACHE_FILE.write_text(content, encoding="utf-8")
                 logger.info("Cached Kaggle requirements manifest (%d bytes)", len(content))
         except Exception as e:
             logger.warning("Failed to refresh manifest from GitHub (%s). Falling back to local cache if present.", e)
 
-    packages: Set[str] = set()
+    packages: set[str] = set()
     if CACHE_FILE.exists():
         for line in CACHE_FILE.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -56,9 +56,9 @@ def ensure_manifest() -> Set[str]:
     return packages
 
 
-def extract_imports_from_code(code: str) -> Set[str]:
+def extract_imports_from_code(code: str) -> set[str]:
     """Parses Python source code and extracts all top-level module names."""
-    modules: Set[str] = set()
+    modules: set[str] = set()
     try:
         tree = ast.parse(code)
     except SyntaxError:
@@ -73,16 +73,15 @@ def extract_imports_from_code(code: str) -> Set[str]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 modules.add(alias.name.split(".")[0])
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                modules.add(node.module.split(".")[0])
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            modules.add(node.module.split(".")[0])
     return modules
 
 
-def extract_imports_from_path(file_path: Path) -> Set[str]:
+def extract_imports_from_path(file_path: Path) -> set[str]:
     """Extracts imported modules from a .py file or .ipynb notebook."""
     if file_path.suffix == ".ipynb":
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             nb = json.load(f)
         all_code = []
         for cell in nb.get("cells", []):
@@ -94,7 +93,7 @@ def extract_imports_from_path(file_path: Path) -> Set[str]:
     return set()
 
 
-def verify_compatibility(file_path: Path) -> Tuple[bool, List[str], Set[str]]:
+def verify_compatibility(file_path: Path) -> tuple[bool, list[str], set[str]]:
     """Verifies that all third-party dependencies in the target exist in Kaggle's container."""
     installed = ensure_manifest()
     # Add common standard library and standard Kaggle pre-installs
@@ -111,13 +110,18 @@ def verify_compatibility(file_path: Path) -> Tuple[bool, List[str], Set[str]]:
         "PIL", "pillow", "matplotlib", "seaborn", "timm", "polars", "pyarrow", "rdkit",
         "kagglesdk", "kagglehub", "kaggle", "transformers", "accelerate", "einops",
         "numba", "cupy", "optuna", "skimage", "joblib", "tqdm", "yaml",
-        "peft", "trl", "bitsandbytes", "datasets"
+        "peft", "trl", "bitsandbytes", "datasets", "torch_xla"
     }
-    competition_attached = {"arc_agi", "arcengine", "cohezion_physics_core"}
+    competition_attached = {
+        "arc_agi", "arcengine", "cohezion_physics_core",
+        # CASMI26 attached dataset packages (v4b models, glacier/iceberg, pubchem tier, ours-ranker)
+        "casmi", "v1engine", "ranker_infer", "pc_join", "gl_fuse", "fusion_core",
+        "frag_rescore", "fuse", "surrogate"
+    }
     allowed = installed | stdlib | kaggle_known | competition_attached
 
     imported = extract_imports_from_path(file_path)
-    missing: List[str] = []
+    missing: list[str] = []
 
     for mod in imported:
         norm_mod = mod.lower().replace("-", "_")
@@ -140,7 +144,7 @@ def main() -> None:
 
     ok, missing, all_imports = verify_compatibility(target)
     print(f"Target: {target}")
-    print(f"Total Imported Modules: {len(all_imports)} ({sorted(list(all_imports))})")
+    print(f"Total Imported Modules: {len(all_imports)} ({sorted(all_imports)})")
     if ok:
         print("✓ COMPATIBLE: All imports are guaranteed present in Kaggle's official Docker container.")
         sys.exit(0)

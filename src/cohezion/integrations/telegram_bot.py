@@ -772,6 +772,24 @@ class TelegramCommunicationHub:
         Falls back to Ollama only when the OmniRouter is fully unreachable.
         Never touches cloud endpoints.
         """
+        intent = await self._classify_delegation_intent(text)
+        if intent == "STATUS":
+            await self._handle_status()
+            return
+        elif intent == "LIST":
+            await self._handle_list()
+            return
+        elif intent == "AGENT":
+            is_healthy = await self._verify_inference_health()
+            if not is_healthy:
+                await self._send_msg(
+                    "🔴 <b>Inference Blocked</b>: The :13305 Lemonade router is offline or degraded. "
+                    "Cannot delegate agent task."
+                )
+                return
+            await self._handle_agent(text)
+            return
+
         complexity = self._classify_complexity(text)
         self.conversation_history.append({"role": "user", "content": text})
         if len(self.conversation_history) > self.max_history:
@@ -1065,15 +1083,7 @@ class TelegramCommunicationHub:
                 await self._record_telemetry(telem)
 
     async def _handle_agent(self, prompt: str) -> None:
-        """Spawns a side agent: one-shot reply via :13305 OmniRouter (COMPLEX tier) + tmux worktree.
-
-        The agent prompt is first answered inline via local inference so the operator
-        gets an immediate response. A tmux worktree session is then created for any
-        long-running work the prompt implies.
-        """
-        import time
-
-        # 1. Inline response via :13305 OmniRouter (COMPLEX tier — heavy reasoning model)
+        """Executes an agent task via :13305 OmniRouter (COMPLEX tier)."""
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
@@ -1088,55 +1098,9 @@ class TelegramCommunicationHub:
             await self._record_telemetry(telem)
         else:
             await self._send_msg(
-                "⚠️ OmniRouter :13305 unavailable — inline response skipped. "
-                "Starting worktree session anyway."
+                "⚠️ <b>Inference Unavailable</b>: OmniRouter :13305 is offline or failed to respond. "
+                "Cannot execute agent task."
             )
-
-        # 2. Spawn tmux worktree session for background work
-        session_id = f"agent-{int(time.time())}"
-        worktree_path = f"../cohezion-{session_id}"
-        try:
-            res_wt = await self._run_cmd(
-                ["git", "worktree", "add", "-b", session_id, worktree_path],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if res_wt.returncode != 0:
-                await self._send_msg(
-                    f"⚠️ Worktree failed (inline reply above is the agent response): "
-                    f"<code>{safe_html(res_wt.stderr)}</code>"
-                )
-                return
-        except Exception as e:
-            await self._send_msg(f"⚠️ Git error: <code>{safe_html(str(e))}</code>")
-            return
-
-        # Launch claude-code in the worktree with the prompt as the initial task
-        safe_prompt = prompt.replace("'", "\\'")
-        cmd = (
-            f"cd {worktree_path} && "
-            f"echo 'Agent task: {safe_prompt}' && "
-            f"claude --print '{safe_prompt}' 2>&1 | tee agent.log"
-        )
-        try:
-            res_tmux = await self._run_cmd(
-                ["tmux", "new-session", "-d", "-s", session_id, cmd],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if res_tmux.returncode == 0:
-                await self._send_msg(
-                    f"✅ Background agent running in <code>{safe_html(session_id)}</code>.\n"
-                    f"Use <code>/read {safe_html(session_id)}</code> to tail logs."
-                )
-            else:
-                await self._send_msg(
-                    f"⚠️ Failed to spawn tmux session: <code>{safe_html(res_tmux.stderr)}</code>"
-                )
-        except Exception as e:
-            await self._send_msg(f"⚠️ Tmux error: <code>{safe_html(str(e))}</code>")
 
     async def _send_chat_action(self, action: str = "typing") -> None:
         """Sends chat action indicator (e.g. typing) to Telegram."""

@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-16T05:53:54.596833+00:00",
+  "timestamp": "2026-10-16T21:27:27.454002+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -19,6 +19,20 @@
         ]
       },
       "recent_history": [
+        {
+          "ref": 57283540,
+          "date": "2026-10-16 21:14:03.233000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling"
+        },
+        {
+          "ref": 57274461,
+          "date": "2026-10-16 15:40:53.973000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.955",
+          "description": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment"
+        },
         {
           "ref": 57247238,
           "date": "2026-10-16 00:00:52.277000",
@@ -46,20 +60,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.956",
           "description": "Cohezion RSNA Knee SOTA v33: Calibrated Tri-Model Multi-Resolution Blend (Raptor-384 + Raptor-224 + R7) + Per-Pathology Copula Weights"
-        },
-        {
-          "ref": 57164600,
-          "date": "2026-10-14 02:54:21.150000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.956",
-          "description": "Cohezion RSNA Knee SOTA v32: Tri-Model Rank Ensemble (Raptor-384 + Raptor-224 + R7 ConvNeXt-small) + Strict Boundary Clipping"
-        },
-        {
-          "ref": 57159621,
-          "date": "2026-10-14 00:01:08.433000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.956",
-          "description": "Cohezion RSNA Knee SOTA v31: R7 ConvNeXt-small + Raptor-384 Rank Ensembling + Strict Probability Clipping (Daily Quota Reset)"
         }
       ]
     },
@@ -68,7 +68,7 @@
       "slug": "enveda-CASMI26-molecule-id-mass-spectra",
       "insights": {
         "slug": "enveda-CASMI26-molecule-id-mass-spectra",
-        "causal_finding": "Eliminating Gaussian mass penalty (w_ppm=0) avoids random isobaric measurement noise (3-5 ppm). Restoring GBDT 0.35 + cleavage 0.25 + Tanimoto 0.25 + entropy 0.15 + RDKit Tautomer Canonicalization prevents the 4.4% InChIKey slot defect and restores 0.335+ baseline toward 0.415 podium headroom.",
+        "causal_finding": "Eliminating Gaussian mass penalty (mass_penalty_weight=0) avoids random isobaric measurement noise (3-5 ppm). Restoring GBDT 0.35 + cleavage 0.25 + Tanimoto 0.25 + entropy 0.15 + RDKit Tautomer Canonicalization prevents the 4.4% InChIKey slot defect and restores 0.335+ baseline toward 0.415 podium headroom.",
         "delta": 0.0,
         "recommendation": "Maintain parsimonious N=25 proposals with dual surrogate scoring (GL + ICE) and POP_MU=0.25.",
         "state_vector": "[12D State: Space=CASMI26-IVVHardened, Time=October 2026, Physics=TheoremE2-DecoyIsomerSaturation, Brane=Cohezion-Ascension]",
@@ -80,6 +80,20 @@
         ]
       },
       "recent_history": [
+        {
+          "ref": 57283589,
+          "date": "2026-10-16 21:16:21.350000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion CASMI26 SOTA v28: All-Adduct Surrogacy Calibration ([M+H]+, [M+Na]+, [M-H]- Neutral Loss Matching)"
+        },
+        {
+          "ref": 57274519,
+          "date": "2026-10-16 15:43:29.097000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.417",
+          "description": "Cohezion CASMI26 SOTA v27: Deep PubChem Candidate Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18)"
+        },
         {
           "ref": 57247277,
           "date": "2026-10-16 00:01:04.380000",
@@ -107,20 +121,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.417",
           "description": "Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony (FRAG_MODE all) + All-Adduct Surrogacy"
-        },
-        {
-          "ref": 57159660,
-          "date": "2026-10-14 00:01:20.193000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.285",
-          "description": "Cohezion CASMI26 SOTA v15: IV&V Hardened Restored GBDT + Tautomer Canonicalization (Daily Quota Reset)"
-        },
-        {
-          "ref": 57122725,
-          "date": "2026-10-13 00:00:46.220000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.414",
-          "description": "Cohezion CASMI26 Podium v24: All-Adduct Surrogate Scoring (ICE_SURROGATE all) + Restored Parsimony (Daily Quota Reset)"
         }
       ]
     },
@@ -144,8 +144,8 @@
         {
           "ref": 57247164,
           "date": "2026-10-16 00:00:31.660000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "28.89",
           "description": "Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Reset)"
         },
         {
@@ -266,8 +266,8 @@
         {
           "ref": 57247198,
           "date": "2026-10-16 00:00:41.347000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.13",
           "description": "Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)"
         },
         {
@@ -306,6 +306,60 @@
           "description": "Cohezion Gemma-4 SOTA: Budget-Fit Container Hardened + 240s Pytest Timeout + 4096 Thinking + Paced Edit 12"
         }
       ]
+    },
+    {
+      "competition": "Name That LLM",
+      "slug": "name-that-llm",
+      "insights": {
+        "slug": "name-that-llm",
+        "causal_finding": "Multi-Scale N-Gram + 5-Stream Stylometric Invariants (Function-Word frequencies, character n-gram profiles, and punctuation entropy) combined with Sinkhorn-Knopp marginal probability balancing strictly bound multi-class log-loss, preventing extreme logit penalization.",
+        "delta": 0.0,
+        "recommendation": "Deploy temperature-calibrated LinearSVC + HistGradientBoosting ensemble with Sinkhorn balancing (reg=0.01).",
+        "state_vector": "[12D State: Space=NameThatLLM-StylometricInvariants-Sinkhorn, Time=October 2026, Physics=PunctuationEntropy-StylisticMarkov-SinkhornBalancing, Brane=Cohezion-Ascension]",
+        "cross_cutting_frameworks": [
+          "Learning 513: Evo^2 Weight-Harness Co-Evolution (arXiv:2610.13025)",
+          "Learning 512: REA Canonical Evidence Algebra & Unknown Ledger",
+          "Learning 511: Two-Party Cryptographic IV&V Authority",
+          "Stateless Language Agents (SLA): Zero History Replay"
+        ]
+      },
+      "recent_history": [
+        {
+          "ref": 57274946,
+          "date": "2026-10-16 15:59:04.800000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.330",
+          "description": "Cohezion Name That LLM v6: Ensembled Temperature-Scaled Sinkhorn Distribution Alignment"
+        },
+        {
+          "ref": 57274758,
+          "date": "2026-10-16 15:52:09.847000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.330",
+          "description": "Cohezion Name That LLM v5: Character-Level Morphological Markov Transition Matrix + Stylistic Complexity"
+        },
+        {
+          "ref": 57274577,
+          "date": "2026-10-16 15:45:40.610000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.330",
+          "description": "Cohezion Name That LLM v4: LightGBM Dense Stylometrics + LinearSVC Calibrated Log-Probability Blend (alpha=0.65)"
+        },
+        {
+          "ref": 57274199,
+          "date": "2026-10-16 15:31:59.697000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.330",
+          "description": "Cohezion Name That LLM v3: 5-Stream Stylometric Invariants (Shape + Function-Word + Dense) + Sinkhorn Marginal Balancing"
+        },
+        {
+          "ref": 57273396,
+          "date": "2026-10-16 15:06:47.943000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.318",
+          "description": "Cohezion Name That LLM SOTA v1: Multi-Scale N-Gram + Stylometric + Sinkhorn Marginal Balancing"
+        }
+      ]
     }
   ],
   "aggregated_insights": [
@@ -324,7 +378,7 @@
     },
     {
       "slug": "enveda-CASMI26-molecule-id-mass-spectra",
-      "causal_finding": "Eliminating Gaussian mass penalty (w_ppm=0) avoids random isobaric measurement noise (3-5 ppm). Restoring GBDT 0.35 + cleavage 0.25 + Tanimoto 0.25 + entropy 0.15 + RDKit Tautomer Canonicalization prevents the 4.4% InChIKey slot defect and restores 0.335+ baseline toward 0.415 podium headroom.",
+      "causal_finding": "Eliminating Gaussian mass penalty (mass_penalty_weight=0) avoids random isobaric measurement noise (3-5 ppm). Restoring GBDT 0.35 + cleavage 0.25 + Tanimoto 0.25 + entropy 0.15 + RDKit Tautomer Canonicalization prevents the 4.4% InChIKey slot defect and restores 0.335+ baseline toward 0.415 podium headroom.",
       "delta": 0.0,
       "recommendation": "Maintain parsimonious N=25 proposals with dual surrogate scoring (GL + ICE) and POP_MU=0.25.",
       "state_vector": "[12D State: Space=CASMI26-IVVHardened, Time=October 2026, Physics=TheoremE2-DecoyIsomerSaturation, Brane=Cohezion-Ascension]",
@@ -367,6 +421,19 @@
       "delta": 0.0,
       "recommendation": "Enforce max_pending=1 check before dispatch; automate submission upon queue clearance.",
       "state_vector": "[12D State: Space=Gemma4-FastInference12B, Time=October 2026, Physics=TimeoutWallElimination, Brane=Cohezion-Ascension]",
+      "cross_cutting_frameworks": [
+        "Learning 513: Evo^2 Weight-Harness Co-Evolution (arXiv:2610.13025)",
+        "Learning 512: REA Canonical Evidence Algebra & Unknown Ledger",
+        "Learning 511: Two-Party Cryptographic IV&V Authority",
+        "Stateless Language Agents (SLA): Zero History Replay"
+      ]
+    },
+    {
+      "slug": "name-that-llm",
+      "causal_finding": "Multi-Scale N-Gram + 5-Stream Stylometric Invariants (Function-Word frequencies, character n-gram profiles, and punctuation entropy) combined with Sinkhorn-Knopp marginal probability balancing strictly bound multi-class log-loss, preventing extreme logit penalization.",
+      "delta": 0.0,
+      "recommendation": "Deploy temperature-calibrated LinearSVC + HistGradientBoosting ensemble with Sinkhorn balancing (reg=0.01).",
+      "state_vector": "[12D State: Space=NameThatLLM-StylometricInvariants-Sinkhorn, Time=October 2026, Physics=PunctuationEntropy-StylisticMarkov-SinkhornBalancing, Brane=Cohezion-Ascension]",
       "cross_cutting_frameworks": [
         "Learning 513: Evo^2 Weight-Harness Co-Evolution (arXiv:2610.13025)",
         "Learning 512: REA Canonical Evidence Algebra & Unknown Ledger",

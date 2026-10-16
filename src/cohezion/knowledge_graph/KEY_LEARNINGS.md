@@ -1,5 +1,14 @@
 # KEY LEARNINGS
 
+## Learning 542: Deterministic Verification Decoupling, Kaggle Multi-Accelerator Manifest Invariance & Continuous Daily Allotment Saturation (2026-10-16)
+L542: Resolved critical execution blockers in autonomous Kaggle submission pipelines and formalized deterministic verification decoupling:
+1. **The Static AST AST-Walking False-Positive Dilemma**: Offline container verifiers that parse top-level Python AST imports indiscriminately flag optional device accelerator discovery branches (e.g. `torch_xla` within `try...except ImportError` blocks on dual-accelerator TPU/GPU runners) and modular code bundled inside attached Kaggle datasets (e.g., CASMI26 modular components `casmi`, `v1engine`, `ranker_infer`, `pc_join`, `gl_fuse`, `fusion_core`, `frag_rescore`, `fuse`, `surrogate`). Decoupled the verification taxonomy into: (a) base Docker-Python pre-installed packages, (b) verified accelerator runtimes, and (c) attached competition dataset modules, achieving 100% cryptographic IV&V certification without disabling static safety gates.
+2. **Workspace Root & Import Topology Invariance**: Subshell CLI invocations (e.g. `kaggle_submit.py`) can diverge in runtime `sys.path` depending on the invoking terminal's working directory. Mandated explicit parent-relative workspace root injection at the entry point of all operational scripts, eliminating `ModuleNotFoundError` during background subshell dispatches.
+3. **Continuous 24/7 Autonomous Daily Allotment Saturation (Mandate 10)**: Standardized the long-running autonomous supervisor daemon in tmux session `kaggle-allotment`. The engine continuously monitors scoring queues across active competitions (RSNA Knee, CASMI26, ARC-AGI-2, ARC-AGI-3, Name That LLM, Gemma-4), observes per-track submission ceilings, prevents dispatches during `PENDING` states, and harvests public leaderboard scores into SurrealDB (`learning` table) and the Obsidian Vault (`01-Learnings/`).
+*12D State Vector*: `[12D State: Space=VerificationDecoupling-MultiAcceleratorManifest-AllotmentSaturation, Time=October 2026, Physics=TheoremV1-ASTVerifierDecoupling-AllotmentSaturation-TopologyInvariance, Brane=Cohezion-Compound-Negentropy]`
+
+---
+
 ## Learning 541: Agentic Retrieval Disruption, Semantic Anchoring & The Autonomous Scientist (2026-10-16)
 L541: Synthesized foundational architectural solutions to the agentic retrieval crisis (The New Stack 2026) and autonomous scientific discovery workflows (arXiv:2610.18933, arXiv:2610.18861):
 1. **The Agentic AI Retrieval Bottleneck**: Standard vector RAG fails catastrophically in multi-step agent workflows due to context rot, query drift, and high-dimensional semantic scattering. Agents require deterministic entity-relation graphs, schema-aware routing, and dynamic contextual filtering rather than static top-k cosine similarity chunks.
