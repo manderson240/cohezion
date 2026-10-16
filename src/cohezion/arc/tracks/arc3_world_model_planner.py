@@ -53,9 +53,11 @@ except ImportError:
         NOT_FINISHED = "NOT_FINISHED"
 
 from cohezion.arc.tracks.arc_agi_3_sota_engine import ARCSOTAAgent, hash_grid
+from cohezion.arc.tracks.arc3_dynamic_horizon import DynamicEntropyHorizonController
 from cohezion.competitions.world_models.embedded_adajepa_poincare_world_model import (
     EmbeddedPoincareJEPAWorldModel,
 )
+import math
 
 logger = logging.getLogger("ARC3WorldModelPlanner")
 
@@ -249,6 +251,12 @@ class WorldModelARC3Planner(ARCSOTAAgent):
         self.world_model = EmbeddedPoincareJEPAWorldModel(latent_dim=12, curvature=1.0)
         self.cayley_graph = CayleyPermutationGraph()
         self.nav_simulator = PoincareGeodesicNavSimulator(self.world_model)
+        self.horizon_controller = DynamicEntropyHorizonController(
+            h_min=4,
+            h_max=self.max_steps_per_level,
+            entropy_critical=1.38,
+            base_horizon=15,
+        )
 
         # Telemetry & metrics
         self.mental_simulations_count = 0
@@ -364,8 +372,17 @@ class WorldModelARC3Planner(ARCSOTAAgent):
         # 2. Cayley Mental Simulation: attempt shortest-path imagination rollout
         if self.confirmed_buttons:
             self.mental_simulations_count += 1
+            n_btns = max(1, len(self.confirmed_buttons))
+            click_entropy = math.log(n_btns) if n_btns > 1 else 0.0
+            remaining_frac = max(0.1, 1.0 - (self.level_step_count / max(1, self.max_steps_per_level)))
+            dynamic_depth = self.horizon_controller.calculate_horizon(
+                current_entropy=click_entropy,
+                clearance_margin=1.0,
+                remaining_budget_fraction=remaining_frac,
+            )
+            effective_depth = min(dynamic_depth, 8 if n_btns > 2 else 12)
             planned_path = self.cayley_graph.simulate_shortest_path(
-                current_hash=curr_hash, max_depth=8
+                current_hash=curr_hash, max_depth=effective_depth
             )
             if planned_path:
                 for btn in planned_path[1:]:
@@ -437,6 +454,15 @@ class WorldModelARC3Planner(ARCSOTAAgent):
 
         # Latent Poincaré Forward Trajectory Simulation with Dead-End Pruning
         self.mental_simulations_count += 1
+        clearance = 4.0 - len(self.walls) * 0.05
+        visits = self.visited_positions.get(self.player_pos, 0)
+        nav_entropy = min(1.5, 0.2 + visits * 0.1)
+        remaining_frac = max(0.1, 1.0 - (self.level_step_count / max(1, self.max_steps_per_level)))
+        dynamic_depth = self.horizon_controller.calculate_horizon(
+            current_entropy=nav_entropy,
+            clearance_margin=max(0.1, clearance),
+            remaining_budget_fraction=remaining_frac,
+        )
         sim_action, pruned = self.nav_simulator.simulate_forward_trajectories(
             player_pos=self.player_pos,
             goal_pos=self.goal_pos,
@@ -444,7 +470,7 @@ class WorldModelARC3Planner(ARCSOTAAgent):
             visited_positions=self.visited_positions,
             available_actions=avail,
             last_action_id=self.last_action_id,
-            max_depth=6,
+            max_depth=min(dynamic_depth, 10),
         )
         self.pruned_dead_ends_count += pruned
 
