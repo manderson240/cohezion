@@ -29,7 +29,7 @@ class NPULaneConfig:
     hardware: str = "AMD XDNA 2 NPU"
     service_name: str = "lemond.service"
     endpoint: str = "http://127.0.0.1:13305/v1/chat/completions"
-    default_model: str = "llama3.2-1b-FLM"
+    default_model: str = "qwen3.5-4b-FLM"
     available_models: list[str] = field(
         default_factory=lambda: [
             "llama3.2-1b-FLM",

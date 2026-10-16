@@ -11,7 +11,7 @@
           "hardware": "AMD XDNA 2 NPU (8 columns)",
           "service_name": "lemond.service",
           "endpoint": "http://127.0.0.1:13305/v1/chat/completions",
-          "default_model": "llama3.2-1b-FLM",
+          "default_model": "qwen3.5-4b-FLM",
           "available_models": [
             "llama3.2-1b-FLM",
             "qwen3.5-4b-FLM",

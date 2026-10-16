@@ -62,21 +62,21 @@ class TaskClass(StrEnum):
 # Tier 1 Local: Strictly NPU (XDNA2 SRAM) and CPU (<= 4GB) ONLY.
 # Zero large Vulkan/ROCm models to eliminate host OOM aperture races.
 _TIER1_PINS: dict[TaskClass, str] = {
-    TaskClass.REASONING: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.DEEP_REASONING: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.CODING: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.CODING_TOOLS: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.REASONING: "qwen3.5-4b-FLM",
+    TaskClass.DEEP_REASONING: "qwen3.5-4b-FLM",
+    TaskClass.CODING: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
+    TaskClass.CODING_TOOLS: "Qwen3-Coder-30B-A3B-Instruct-GGUF",
     TaskClass.VISION: "qwen3vl-it-4b-FLM",
-    TaskClass.RESEARCH: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.SCIENCE_FRONTIER: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.FAST_QA: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.ULTRA_FAST_DRAFT: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.RESEARCH: "qwen3.5-4b-FLM",
+    TaskClass.SCIENCE_FRONTIER: "qwen3.5-4b-FLM",
+    TaskClass.FAST_QA: "qwen3.5-4b-FLM",
+    TaskClass.ULTRA_FAST_DRAFT: "llama3.2-1b-FLM",
     TaskClass.SUB_BILLION_EDGE: "Qwen3-0.6B-GGUF",
     TaskClass.EXTREME_COMPACT: "Qwen3-0.6B-GGUF",
-    TaskClass.LONG_CONTEXT_ANALYSIS: "qwen3.6-moe-35b-a3b-FLM",
-    TaskClass.CREATIVE_SYNTHESIS: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.LONG_CONTEXT_ANALYSIS: "qwen3.5-4b-FLM",
+    TaskClass.CREATIVE_SYNTHESIS: "qwen3.5-4b-FLM",
     TaskClass.EMBEDDINGS: "embed-gemma-300m-FLM",
-    TaskClass.GENERAL: "qwen3.6-moe-35b-a3b-FLM",
+    TaskClass.GENERAL: "qwen3.5-4b-FLM",
 }
 
 
