@@ -238,12 +238,19 @@ class StatelessNPUClient:
                                 usage["duration_ms"] = duration_ms
                                 usage["backend"] = f"fastflowlm_npu_{target_model}"
                                 return content, usage
+                        elif resp.status_code == 404 and target_model != "llama3.2-1b-FLM":
+                            logger.info(
+                                "Model %s not resident on NPU; falling back to resident llama3.2-1b-FLM",
+                                target_model,
+                            )
+                            target_model = "llama3.2-1b-FLM"
+                            continue
                         else:
                             logger.warning(
                                 "Unified local gateway %s returned HTTP %d on attempt %d: %s",
                                 self.endpoint_url,
-                                resp.status_code,
                                 attempt + 1,
+                                resp.status_code,
                                 resp.text[:120],
                             )
             except Exception as e:
