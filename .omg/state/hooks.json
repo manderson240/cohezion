@@ -50,7 +50,11 @@
     "circuit-breaker-token-ceiling": true,
     "trajectory-graph-tracing": true,
     "npu-socket-serialization-guard": true,
-    "tri-partite-memory-sync": true
+    "tri-partite-memory-sync": true,
+    "harness2-contrastive-ppc": true,
+    "confounding-doctrine-defense": true,
+    "common-base-reset-guard": true,
+    "agentic-retrieval-anchoring": true
   },
   "lanes": {
     "P0-safety": {

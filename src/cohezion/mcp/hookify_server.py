@@ -13,7 +13,14 @@ import re
 from pathlib import Path
 from typing import Any
 
-from mcp.server.fastmcp import FastMCP
+
+try:
+    from mcp.server import MCPServer as FastMCP
+except (ImportError, ModuleNotFoundError):
+    try:
+        from mcp.server.fastmcp import FastMCP
+    except (ImportError, ModuleNotFoundError):
+        FastMCP = Any  # type: ignore[assignment,misc]
 
 from cohezion.hookify.validator import HookifyValidator, Rule
 

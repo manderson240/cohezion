@@ -1,5 +1,25 @@
 # KEY LEARNINGS
 
+## Learning 541: Agentic Retrieval Disruption, Semantic Anchoring & The Autonomous Scientist (2026-10-16)
+L541: Synthesized foundational architectural solutions to the agentic retrieval crisis (The New Stack 2026) and autonomous scientific discovery workflows (arXiv:2610.18933, arXiv:2610.18861):
+1. **The Agentic AI Retrieval Bottleneck**: Standard vector RAG fails catastrophically in multi-step agent workflows due to context rot, query drift, and high-dimensional semantic scattering. Agents require deterministic entity-relation graphs, schema-aware routing, and dynamic contextual filtering rather than static top-k cosine similarity chunks.
+2. **Hybrid Reasoning & Invariant Scientific Discovery**: Combining fast system-1 verification (deterministic AST bytecode analyzers) with deep system-2 tree search on hyperbolic manifolds prevents hallucinations and bounds token budgets. The Agentic Scientist paradigm requires verifiable execution harnesses where every hypothesis is tested against deterministic unit tests, empirical invariants, and two-party cryptographic gatekeeping before promotion.
+3. **Operational Synergy in Cohezion**: Integrated schema-aware graph retrieval with SurrealDB v3 graph relations (`involves`, `contains`, `resolves`), eliminating context pollution and enabling sub-millisecond retrieval of historical experiment trajectories.
+*12D State Vector*: `[12D State: Space=AgenticRetrieval-SemanticAnchoring-AutonomousScientist, Time=October 2026, Physics=TheoremR2-ContextRotElimination-HyperbolicTreeSearch-GraphGrounding, Brane=Cohezion-Compound-Negentropy]`
+
+---
+
+## Learning 540: Harness^2 Dual-Level Recursive Agent Harnessing & The Confounding Doctrine (2026-10-16)
+L540: Abstracted and operationalized Google Research's Harness^2 framework (arXiv:2610.14224) into Cohezion's autonomous swarm orchestration architecture:
+1. **The Zero-Verifier Dilemma Solved via Contrastive PPC**: In open-world tasks without ground-truth labels, single-trajectory evaluation is impossible. Harness^2 resolves this via contrastive Propose-Probe-Compose (PPC) cycles, comparing candidate trajectories against a reference execution $e^0$ under matched environmental conditions and extracting behavioral contrasts (error mitigations, tool call divergences, deliverable substance).
+2. **K=8 Canonical Component Decomposition**: Formalized the full execution harness into 8 modular files: `prompt.txt` (role/persona), `guardrails.md` (negative boundaries/stop conditions), `memory.md` (workspace state/scratchpad), `skills/` (procedural markdown guides), `tools/` (declarations/constraints), `scripts/` (deterministic Python helper programs offloading computation from LLMs), `subagents/` (delegation topology), and `plugin.py` (runtime middleware/hooks).
+3. **The Confounding Doctrine**: Established the strict causal attribution rule: If $>2$ components are modified simultaneously without an isolated ablation rollout, the verdict must be marked `CONFOUNDED`. Never inject unisolated or unevidenced causal claims into the continual improvement library.
+4. **Common Base Reset ($\mathcal{H}_0$) & Meta-Harnessing Transfer**: Rather than accumulating noisy task-specific harness mutations, every new task resets to canonical base harness $\mathcal{H}_0$. Recursion operates strictly on the meta-harnessing mechanism $\mathcal{R}_{t+1}$ using retrieved `cue-lesson-evidence` experience cards persisted to SurrealDB (`harness_experience`) and disk.
+5. **Applied to ARC-AGI-3 (SOTA v39)**: Applied Invariant Guardrail `INV-01`, tightening the loop watchdog to $\le 4$ consecutive cycle traps and enforcing a 35-step dynamic horizon, directly protecting the quadratic score metric $\min(1.0, (N_{\text{human}} / N_{\text{AI}})^2)$.
+*12D State Vector*: `[12D State: Space=Harness2-RecursiveHarnessing-ConfoundingDoctrine, Time=October 2026, Physics=TheoremH2-DualRecursionDecoupling-ContrastivePPC-CommonBaseReset, Brane=Cohezion-Compound-Negentropy]`
+
+---
+
 ## Learning 539: First-Principles Epistemic Course Correction — Mathematical Invariant Anchoring vs. Leaderboard Chasing Pathology (2026-10-15)
 L539: Codified the foundational epistemic divergence between superficial leaderboard chasing and first-principles invariant science across all competitive AI tracks:
 1. **The Leaderboard Chasing Pathology**: Recognized that superficial metric chasing (blindly tweaking hyperparameters or stacking black-box models to extract +0.002 on public test sets) produces brittle models vulnerable to severe private shakeup, covariate drift, and catastrophic OOD failure. Leaderboard ascension is the natural mathematical side-effect of rigorous physical and geometric invariant modeling, never the starting objective.

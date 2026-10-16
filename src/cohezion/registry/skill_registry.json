@@ -6089,5 +6089,41 @@
     "generated_from": "skill.md",
     "last_updated": "",
     "attestation_leaf_hash": null
+  },
+  "HARNESS2_RECURSIVE_HARNESSING_PRIME": {
+    "description": "This skill establishes the dual-level recursive harnessing paradigm formulated in Harness^2 (arXiv:2610.14224). It decouples the base execution engine from its runtime harness, orchestrating recursive self-improvement across two connected loops: (1) Task-Level Recursion via contrastive Propose-Probe",
+    "keywords": [
+      "arxiv:2610.14224",
+      "common base reset ($\\mathcal{h}_0$)",
+      "harness2",
+      "harnessing",
+      "k=8 component file-level harness decomposition",
+      "ppc contrastive loop (zero-verifier invariance)",
+      "recursive",
+      "the confounding doctrine"
+    ],
+    "path": "src/cohezion/skills/HARNESS2_RECURSIVE_HARNESSING_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "QUANT_RETRIEVAL_PRIME": {
+    "description": "Expert retrieval interface for Cohezion's SurrealDB v3.3.0 knowledge mesh. Instructs agents on searching like a 2010 Quant by combining exact metadata filters, dense vector similarity, lexical keyword matching, and graph relationship hops. Prevents context poisoning by requiring early retrieval qual",
+    "keywords": [
+      "early quality gate",
+      "quant",
+      "retrieval",
+      "schema-to-skill",
+      "search like a 2010 quant (bratseth thesis)",
+      "the retrieval problem (browsecomp-plus)"
+    ],
+    "path": "src/cohezion/skills/QUANT_RETRIEVAL_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
   }
 }

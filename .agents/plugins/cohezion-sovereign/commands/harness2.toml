@@ -1,0 +1,2 @@
+description = "Run Harness^2 contrastive PPC improvement loop and experience reflection (arXiv:2610.14224)"
+prompt = "Execute Harness^2 dual-level recursive harnessing on task: {{args}}. Decompose the harness into K=8 canonical components, generate orthogonal Invariant (INV) and Domain (DOM) candidates, probe trajectories without ground truth, compose verified edits, and enforce the Confounding Doctrine during reflection."
