@@ -1245,21 +1245,21 @@
       }
     ],
     "rsna-knee-abnormality-detection": {
-      "last_polled_ts": 1792162739.0785682,
+      "last_polled_ts": 1792183783.8660398,
       "name": "RSNA Knee Abnormality Detection",
       "prize": "$77,000 USD",
       "deadline": "2026-10-22",
       "latest_sub": {
-        "ref": "57247238",
+        "ref": "57274461",
         "status": "COMPLETE",
         "score": "0.955",
-        "raw": "57247238  submission.csv  2026-10-16 00:00:52.277000  Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights (Daily Quota Reset)  SubmissionStatus.COMPLETE  0.955                      "
+        "raw": "57274461  submission.csv  2026-10-16 15:40:53.973000  Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment                                             SubmissionStatus.COMPLETE  0.955                      "
       },
       "history_count": 50,
-      "updated_at": "2026-10-16T14:58:59.078575+00:00"
+      "updated_at": "2026-10-16T20:49:43.866047+00:00"
     },
     "arc-prize-2026-arc-agi-2": {
-      "last_polled_ts": 1792161891.0707655,
+      "last_polled_ts": 1792183738.2333665,
       "name": "ARC Prize 2026: ARC-AGI-2",
       "prize": "$700,000 USD",
       "deadline": "2026-11-02",
@@ -1270,10 +1270,10 @@
         "raw": "57247164  submission.json  2026-10-16 00:00:31.660000  Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Reset)                                                                    SubmissionStatus.COMPLETE  28.89                      "
       },
       "history_count": 35,
-      "updated_at": "2026-10-16T14:44:51.070773+00:00"
+      "updated_at": "2026-10-16T20:48:58.233371+00:00"
     },
     "arc-prize-2026-arc-agi-3": {
-      "last_polled_ts": 1792161754.1637447,
+      "last_polled_ts": 1792183437.5504096,
       "name": "ARC Prize 2026: ARC-AGI-3",
       "prize": "$850,000 USD",
       "deadline": "2026-11-02",
@@ -1284,38 +1284,38 @@
         "raw": "57247133  submission.parquet  2026-10-16 00:00:21.150000  Cohezion ARC-AGI-3 SOTA v38: Poincar\u00e9 Hyperbolic MCTS Affordance Oracle + Monadic Soft-Affordance + Double-Precision (Daily Quota Reset)  SubmissionStatus.COMPLETE  0.17                       "
       },
       "history_count": 29,
-      "updated_at": "2026-10-16T14:42:34.163753+00:00"
+      "updated_at": "2026-10-16T20:43:57.550418+00:00"
     },
     "gemma-4-developer-agent": {
-      "last_polled_ts": 1792163041.323124,
+      "last_polled_ts": 1792182548.967306,
       "name": "Google - The Gemma 4 Developer Agent",
       "prize": "$65,000 USD",
       "deadline": "2026-12-02",
       "latest_sub": {
         "ref": "57247198",
-        "status": "PENDING",
-        "score": null,
-        "raw": "57247198  submission.zip  2026-10-16 00:00:41.347000  Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)                                                                                                                     SubmissionStatus.PENDING                              "
+        "status": "COMPLETE",
+        "score": "0.13",
+        "raw": "57247198  submission.zip  2026-10-16 00:00:41.347000  Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)                                                                                                                     SubmissionStatus.COMPLETE  0.13                       "
       },
       "history_count": 17,
-      "updated_at": "2026-10-16T15:04:01.323134+00:00"
+      "updated_at": "2026-10-16T20:29:08.967314+00:00"
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
-      "last_polled_ts": 1792162707.9076562,
+      "last_polled_ts": 1792183166.5077813,
       "name": "Enveda CASMI26 Molecule ID",
       "prize": "$50,000 USD",
       "deadline": "2026-12-14",
       "latest_sub": {
-        "ref": "57247277",
+        "ref": "57274519",
         "status": "COMPLETE",
-        "score": "0.418",
-        "raw": "57247277  submission.csv  2026-10-16 00:01:04.380000  Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15) (Daily Quota Reset)      SubmissionStatus.COMPLETE  0.418                      "
+        "score": "0.417",
+        "raw": "57274519  submission.csv  2026-10-16 15:43:29.097000  Cohezion CASMI26 SOTA v27: Deep PubChem Candidate Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18)                   SubmissionStatus.COMPLETE  0.417                      "
       },
-      "history_count": 42,
-      "updated_at": "2026-10-16T14:58:27.907664+00:00"
+      "history_count": 43,
+      "updated_at": "2026-10-16T20:39:26.507789+00:00"
     },
     "nfl-big-data-bowl-2027": {
-      "last_polled_ts": 1792161421.4496298,
+      "last_polled_ts": 1792183075.8171709,
       "name": "NFL Big Data Bowl 2027",
       "prize": "$100,000 USD",
       "deadline": "2027-01-06",
@@ -1325,7 +1325,21 @@
         "score": null
       },
       "history_count": 0,
-      "updated_at": "2026-10-16T14:37:01.449638+00:00"
+      "updated_at": "2026-10-16T20:37:55.817179+00:00"
+    },
+    "name-that-llm": {
+      "last_polled_ts": 1792183015.2012944,
+      "name": "Name That LLM",
+      "prize": "$50,000 USD",
+      "deadline": "2027-01-14",
+      "latest_sub": {
+        "ref": "57274946",
+        "status": "COMPLETE",
+        "score": "0.330",
+        "raw": "57274946  submission.parquet  2026-10-16 15:59:04.800000  Cohezion Name That LLM v6: Ensembled Temperature-Scaled Sinkhorn Distribution Alignment                                   SubmissionStatus.COMPLETE  0.330                      "
+      },
+      "history_count": 5,
+      "updated_at": "2026-10-16T20:36:55.201303+00:00"
     }
   },
   "active_kernels": {
@@ -1335,5 +1349,5 @@
     "manderson240/arc-agi-2-fork-lb33-89-20260903": "QUEUED"
   },
   "lemonade_healthy": true,
-  "last_cycle_utc": "2026-10-16T15:05:02.097256+00:00"
+  "last_cycle_utc": "2026-10-16T20:55:29.883983+00:00"
 }

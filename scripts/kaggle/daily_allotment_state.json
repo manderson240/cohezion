@@ -5,7 +5,7 @@
       "used_today": 2,
       "latest_ref": "57274461",
       "latest_score": "0.955",
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "arc-prize-2026-arc-agi-2": {
       "used_today": 1,
@@ -22,20 +22,20 @@
     "enveda-CASMI26-molecule-id-mass-spectra": {
       "used_today": 2,
       "latest_ref": "57274519",
-      "latest_score": "0.418",
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "latest_score": "0.417",
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "name-that-llm": {
-      "used_today": 4,
-      "latest_ref": "57274758",
+      "used_today": 5,
+      "latest_ref": "57274946",
       "latest_score": "0.330",
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "gemma-4-developer-agent": {
       "used_today": 1,
       "latest_ref": "57247198",
-      "latest_score": null,
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "latest_score": "0.13",
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     }
   }
 }
