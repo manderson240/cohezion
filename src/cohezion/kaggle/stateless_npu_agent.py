@@ -38,7 +38,7 @@ logger.setLevel(logging.INFO)
 _TOPOLOGY = DynamicTopology.load()
 FASTFLOWLM_URL = _TOPOLOGY.npu.endpoint
 FASTFLOWLM_DIRECT_URL = _TOPOLOGY.npu.endpoint
-DEFAULT_NPU_MODEL = _TOPOLOGY.npu.default_model
+DEFAULT_NPU_MODEL = "llama3.2-1b-FLM"
 MULTIMODAL_NPU_MODEL = "gemma4-it:e2b"
 _FASTFLOWLM_LOCK = asyncio.Lock()
 
@@ -219,7 +219,7 @@ class StatelessNPUClient:
         if not target_model.endswith("-FLM") and target_model in ("llama3.2:1b", "qwen3.5:4b", "deepseek-r1:8b"):
             target_model = f"{target_model.replace(':', '-')}-FLM"
 
-        for attempt in range(3):
+        for attempt in range(4):
             try:
                 local_payload = dict(payload)
                 local_payload["model"] = target_model
@@ -238,12 +238,18 @@ class StatelessNPUClient:
                                 usage["duration_ms"] = duration_ms
                                 usage["backend"] = f"fastflowlm_npu_{target_model}"
                                 return content, usage
-                        elif resp.status_code == 404 and target_model != "llama3.2-1b-FLM":
+                        elif resp.status_code == 404:
                             logger.info(
-                                "Model %s not resident on NPU; falling back to resident llama3.2-1b-FLM",
+                                "Model %s not currently loaded in Lemonade router (404); issuing /api/v1/load request...",
                                 target_model,
                             )
-                            target_model = "llama3.2-1b-FLM"
+                            try:
+                                load_url = self.endpoint_url.replace("/v1/chat/completions", "/api/v1/load")
+                                await client.post(load_url, json={"model_name": target_model}, timeout=20.0)
+                            except Exception as load_err:
+                                logger.warning("Auto-load request for %s encountered: %s", target_model, load_err)
+                                if target_model != "llama3.2-1b-FLM":
+                                    target_model = "llama3.2-1b-FLM"
                             continue
                         else:
                             logger.warning(
