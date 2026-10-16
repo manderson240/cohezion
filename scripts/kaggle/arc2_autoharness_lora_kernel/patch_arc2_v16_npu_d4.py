@@ -49,6 +49,10 @@ def patch_arc2_v16() -> None:
                         except Exception:
                             target_pred[attempt_key] = [r[::-1] for r in test_in]"""
 
+    if "AutoHarness SOTA v16: NPU-Verified D4 Dihedral Equivariance" in src:
+        print("✓ Notebook already patched with SOTA v16 NPU-D4 equivariance.")
+        return
+
     if old_fallback not in src:
         raise ValueError("Could not find old fallback snippet in Cell 9!")
 
