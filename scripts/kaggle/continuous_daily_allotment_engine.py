@@ -486,6 +486,58 @@ def log_experiential_learning(comp_slug: str, sub: Any) -> None:
         logger.warning("[%s] Experiential learning logging note: %s", comp_slug, e)
 
 
+def record_pre_dispatch_reflection(
+    comp_slug: str, target_slot: int, prior_sub: Any, comp_cfg: dict[str, Any]
+) -> None:
+    """Reflects on the prior submission score and invariant hypothesis before dispatching next slot."""
+    slot_info = comp_cfg.get("slots", {}).get(target_slot, {})
+    hypothesis_name = slot_info.get("name", f"slot_{target_slot}")
+    prior_score = getattr(prior_sub, "public_score", None)
+    prior_ref = getattr(prior_sub, "ref", None)
+
+    reflection_text = (
+        f"Pre-dispatch reflection for {comp_slug} Slot {target_slot} ({hypothesis_name}). "
+        f"Prior submission Ref #{prior_ref} scored {prior_score}. "
+        f"Target hypothesis incorporates: {slot_info.get('msg', 'No description')}."
+    )
+    logger.info("[%s] 🧠 Causal Reflection: %s", comp_slug, reflection_text)
+
+    # Persist reflection and graph edge into SurrealDB
+    try:
+        import base64
+        import urllib.request
+        auth = base64.b64encode(b"root:root").decode()
+        now_ts = int(datetime.datetime.now(datetime.UTC).timestamp())
+        surql = f"""
+        USE NS cohezion DB main;
+        UPSERT submission_reflection:`reflection_{comp_slug.replace('-', '_')}_{now_ts}` CONTENT {{
+            "competition": "{comp_slug}",
+            "target_slot": {target_slot},
+            "hypothesis_name": "{hypothesis_name}",
+            "prior_ref": "{prior_ref}",
+            "prior_score": "{prior_score}",
+            "reflection": "{reflection_text}",
+            "timestamp": "{datetime.datetime.now(datetime.UTC).isoformat()}"
+        }};
+        """
+        req = urllib.request.Request(
+            "http://localhost:8001/sql",
+            data=surql.encode("utf-8"),
+            headers={
+                "surreal-ns": "cohezion",
+                "surreal-db": "main",
+                "Authorization": f"Basic {auth}",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=3.0) as resp:
+            pass
+        logger.info("[%s] ✓ Recorded pre-dispatch reflection into SurrealDB", comp_slug)
+    except Exception as e:
+        logger.debug("[%s] Note recording reflection: %s", comp_slug, e)
+
+
 def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
     """Runs a single evaluation and dispatch cycle across all active competitions.
     Returns True if any submission was dispatched.
@@ -507,11 +559,23 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
             comp_slug, {"used_today": 0, "latest_ref": None, "latest_score": None, "status": "IDLE"}
         )
 
+        prev_status = comp_state.get("status")
         is_pending, latest_ref, latest_status = check_is_pending(api, comp_slug)
         used_count, subs = count_today_submissions(api, comp_slug, today_date)
         comp_state["used_today"] = used_count
         comp_state["status"] = latest_status or "NONE"
         comp_state["latest_ref"] = latest_ref
+
+        # Learn from completed submissions when status transitions from PENDING -> COMPLETE
+        if prev_status == "SubmissionStatus.PENDING" and latest_status != "SubmissionStatus.PENDING":
+            logger.info(
+                "[%s] Submission Ref #%s cleared with status %s! Triggering recursive experiential learning...",
+                comp_slug,
+                latest_ref,
+                latest_status,
+            )
+            if subs:
+                log_experiential_learning(comp_slug, subs[0])
 
         if subs and subs[0].public_score is not None and str(subs[0].public_score).strip():
             comp_state["latest_score"] = str(subs[0].public_score)
@@ -554,6 +618,18 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
             max_daily,
             comp_cfg.get("slots", {}).get(target_slot, {}).get("name"),
         )
+
+        # Learn from prior submissions before submitting the next solution
+        if subs:
+            logger.info(
+                "[%s] Learning from prior submission (Ref #%s, Score: %s) before submitting Slot %d...",
+                comp_slug,
+                subs[0].ref,
+                subs[0].public_score,
+                target_slot,
+            )
+            log_experiential_learning(comp_slug, subs[0])
+            record_pre_dispatch_reflection(comp_slug, target_slot, subs[0], comp_cfg)
 
         success = dispatch_slot_submission(api, comp_slug, target_slot, comp_cfg)
         if success:
