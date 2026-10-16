@@ -32,6 +32,8 @@ WORKSPACE = Path(
 sys.path.insert(0, str(WORKSPACE / "src"))
 sys.path.insert(0, str(WORKSPACE))
 
+from cohezion.agi.recursive_learning import RecursiveLearningEngine
+from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.kaggle.stateless_npu_agent import (
     DEFAULT_NPU_MODEL,
     FIRST_PRINCIPLES_CATALOG,
@@ -102,7 +104,7 @@ def persist_checkpoint_to_surreal(track_slug: str, record: dict) -> None:
         logger.debug("SurrealDB checkpoint persistence failed for %s: %s", track_slug, e)
 
 
-def save_track_checkpoint(
+async def save_track_checkpoint(
     track_slug: str,
     track_name: str,
     domain: str,
@@ -113,6 +115,7 @@ def save_track_checkpoint(
     epoch: int,
     model: str,
     diagnostics: str,
+    learned_invariants: list[str] | None = None,
 ) -> None:
     """Persists a new winning breakthrough to disk, SurrealDB, Sentinel status, and Vault."""
     try:
@@ -138,6 +141,7 @@ def save_track_checkpoint(
             "code": code,
             "timestamp": now_iso,
             "diagnostics": diagnostics,
+            "learned_invariants": learned_invariants or [],
         }
         state_file = ARTIFACTS_DIR / f"{track_slug}_state.json"
         state_file.write_text(json.dumps(state_data, indent=2), encoding="utf-8")
@@ -181,6 +185,49 @@ def save_track_checkpoint(
                     json.dump(sentinel_data, sf, indent=2)
         except Exception as s_err:
             logger.debug("Failed updating sentinel status: %s", s_err)
+
+        # 6. Autopoietic Recursive Learning Engine (ZKFV polynomial proof & SurrealDB learning cycle)
+        try:
+            r_engine = RecursiveLearningEngine()
+            summary = (
+                f"Stateless NPU breakthrough in {track_name}: Score {score:.4f} (+{delta:.4f}) "
+                f"via model {model} (candidate {candidate_id}). Diagnostics: {diagnostics}"
+            )
+            learning_res = await r_engine.execute_recursive_learning_cycle(
+                trajectory_summary=summary,
+                synthesized_code=code,
+                target_competition=track_slug,
+            )
+            logger.info(
+                "🧠 [%s] Recursive Learning Cycle %s completed (ZKFV=%s, Dim=%d, Negentropy=%.4f)",
+                track_name,
+                learning_res.cycle_id,
+                learning_res.zkfv_verified,
+                learning_res.autocontext_dim,
+                learning_res.delta_entropy,
+            )
+        except Exception as r_err:
+            logger.debug("[%s] Recursive learning cycle non-fatal error: %s", track_name, r_err)
+
+        # 7. Publish to EventBus
+        try:
+            bus = EventBus()
+            event = Event(
+                type=EventType.CUSTOM,
+                source="npu_ascension_worker",
+                payload={
+                    "track_slug": track_slug,
+                    "track_name": track_name,
+                    "score": score,
+                    "delta": delta,
+                    "candidate_id": candidate_id,
+                    "npu_model": model,
+                    "diagnostics": diagnostics,
+                },
+            )
+            await bus.publish(event)
+        except Exception as e_err:
+            logger.debug("[%s] EventBus publish non-fatal error: %s", track_name, e_err)
 
         logger.info(
             "💾 [%s] Checkpoint successfully persisted (Score: %.4f | File: %s)",
@@ -381,6 +428,9 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
 """,
             "evaluator": evaluate_arc_dsl,
             "baseline_score": 0.3028,
+            "learned_invariants": [
+                "D4 dihedral group invariance: 90-deg rotation and horizontal reflection on duplicate attempt_2 yields strict monotonicity (+0.0120 lift)."
+            ],
         },
         {
             "slug": "rsna_knee",
@@ -400,6 +450,9 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
 """,
             "evaluator": evaluate_rsna_knee_invariants,
             "baseline_score": 0.9430,
+            "learned_invariants": [
+                "Anatomical Joint Space Narrowing (JSN) marginal variance + copula median rank yields strict monotonicity (+0.0110 lift)."
+            ],
         },
         {
             "slug": "nfl_bdb_2027",
@@ -421,6 +474,9 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
 """,
             "evaluator": evaluate_nfl_kinematics,
             "baseline_score": 0.7250,
+            "learned_invariants": [
+                "Conserved closing acceleration (d^2x/dt^2) + angular burst (dtheta/dt) + Voronoi spatial field control area yields strict monotonicity (+0.0370 lift)."
+            ],
         },
     ]
 
@@ -430,6 +486,8 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
         if chk and "best_score" in chk and "code" in chk:
             track["initial_code"] = chk["code"]
             track["baseline_score"] = float(chk["best_score"])
+            if chk.get("learned_invariants"):
+                track["learned_invariants"] = chk["learned_invariants"]
             logger.info(
                 "[%s] Restored persistent state: Score=%.4f (Model: %s | ID: %s | Time: %s)",
                 track["name"],
@@ -450,6 +508,7 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
                 target_invariant=track["target_invariant"],
                 baseline_score=track["baseline_score"],
                 last_error=track.get("last_error"),
+                learned_invariants=list(track.get("learned_invariants", [])),
             )
 
             logger.info("[%s] Dispatching single-turn stateless NPU agent...", track["name"])
@@ -478,7 +537,12 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
                     result.score,
                     result.score - track["baseline_score"],
                 )
-                save_track_checkpoint(
+                inv_summary = (
+                    f"Epoch {epoch} ({result.npu_model}): Score {result.score:.4f} "
+                    f"(+{result.score - track['baseline_score']:.4f}) achieved via {result.diagnostics}"
+                )
+                track.setdefault("learned_invariants", []).append(inv_summary)
+                await save_track_checkpoint(
                     track_slug=track["slug"],
                     track_name=track["name"],
                     domain=track["domain"].value,
@@ -489,6 +553,7 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
                     epoch=epoch,
                     model=result.npu_model,
                     diagnostics=result.diagnostics,
+                    learned_invariants=track["learned_invariants"],
                 )
                 track["initial_code"] = result.code
                 track["baseline_score"] = result.score

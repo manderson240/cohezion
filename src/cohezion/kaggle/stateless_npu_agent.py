@@ -23,7 +23,7 @@ import asyncio
 import hashlib
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
@@ -155,6 +155,7 @@ class StatelessState:
     target_invariant: str
     last_error: str | None = None
     baseline_score: float = 0.0
+    learned_invariants: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -368,6 +369,16 @@ class StatelessNPUAgent:
                     "Fix this issue while ensuring the target physical/mathematical invariant is strictly satisfied.",
                 ]
             )
+
+        if state.learned_invariants:
+            prompt_lines.extend(
+                [
+                    "",
+                    "## Recursive Empirical Learnings (Prior High-Water Marks & Symmetries):",
+                ]
+            )
+            for inv in state.learned_invariants:
+                prompt_lines.append(f"- {inv}")
 
         prompt_lines.extend(
             [
