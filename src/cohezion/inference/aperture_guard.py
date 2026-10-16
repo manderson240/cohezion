@@ -10,9 +10,11 @@ Enforces the strict NPU/CPU local inference policy:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from pathlib import Path
 from typing import Literal
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,16 +25,24 @@ GTT_UMA_HARD_CAP_BYTES = 50 * 1024 * 1024 * 1024  # 50 GiB
 
 # Allowed models for Tier 1
 TIER1_NPU_ALLOWLIST = {
+    "llama3.2-1b-FLM",
+    "llama3.2:1b",
     "qwen3.5-4b-FLM",
+    "qwen3.5:4b",
     "qwen3vl-it-4b-FLM",
+    "qwen3vl:4b",
     "embed-gemma-300m-FLM",
     "gemma3-4b-FLM",
+    "gemma3:4b",
     "gemma4-it-e2b-FLM",
     "qwen3.6-moe-35b-a3b-FLM",
 }
 
 TIER1_CPU_ALLOWLIST = {
     "Qwen3-0.6B-GGUF",
+    "Qwen3-0.6B",
+    "nomic-embed-text-v2-moe-GGUF",
+    "nomic-embed-text",
     "kokoro-v1",
     "onnxruntime",
     "moonshine",
@@ -42,10 +52,14 @@ TIER1_CPU_ALLOWLIST = {
 BLOCKED_TIER1_BACKENDS = {"vulkan", "rocm", "hip", "vllm"}
 
 
-class AperturePolicyViolation(Exception):
+class AperturePolicyError(Exception):
     """Raised when an inference request violates the hardware aperture safety policy."""
 
     pass
+
+
+# Backwards compatibility alias
+AperturePolicyViolation = AperturePolicyError
 
 
 def get_current_gtt_used_bytes() -> int:
@@ -53,10 +67,8 @@ def get_current_gtt_used_bytes() -> int:
     total_used = 0
     for p in Path("/sys/class/drm").glob("card*/device/mem_info_gtt_used"):
         if p.is_file():
-            try:
+            with contextlib.suppress(Exception):
                 total_used += int(p.read_text().strip())
-            except Exception:
-                pass
     return total_used
 
 
@@ -108,7 +120,10 @@ def validate_tier1_request(
         return "allow"
 
     # 4. Any other GGUF or large model must not run on local GPU/UMA
-    if "-GGUF" in model_id.upper() or "35B" in model_id or "31B" in model_id or "30B" in model_id:
+    mid_upper = model_id.upper()
+    if "-GGUF" in mid_upper or any(
+        k in mid_upper for k in ("70B", "35B", "31B", "30B", "27B", "26B", "14B", "12B", "8B", "7B")
+    ):
         logger.info(
             "Hardware Aperture Guard: Large model '%s' must not run on Tier 1 to protect UMA. Offloading to Tier 2.",
             model_id,

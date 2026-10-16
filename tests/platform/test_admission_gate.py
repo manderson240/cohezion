@@ -309,3 +309,43 @@ class TestSwapAndMemoryPressure:
         d = g.decide("Bonsai-8B-gguf")
         assert d.allow is True
 
+
+class TestApertureGuardEnforcement:
+    def test_aperture_guard_refuses_heavy_model_even_with_high_memory(self) -> None:
+        cfg = GateConfig(floor_gb=16.0, enforce_aperture_guard=True)
+        g = AdmissionGate(
+            config=cfg,
+            read_available_gb=lambda: 90.0,
+            read_resident=lambda: [],
+        )
+        d = g.decide("Qwen3.6-35B-A3B-GGUF")
+        assert d.allow is False
+        assert "hardware aperture guard" in d.reason.lower()
+
+    def test_aperture_guard_allows_npu_model(self) -> None:
+        cfg = GateConfig(floor_gb=16.0, enforce_aperture_guard=True)
+        g = AdmissionGate(
+            config=cfg,
+            read_available_gb=lambda: 50.0,
+            read_resident=lambda: _entries(["llama3.2-1b-FLM"]),
+        )
+        d = g.decide("llama3.2-1b-FLM")
+        assert d.allow is True
+
+    def test_aperture_guard_refuses_gemma_26b(self) -> None:
+        cfg = GateConfig(floor_gb=16.0, enforce_aperture_guard=True)
+        g = AdmissionGate(
+            config=cfg,
+            read_available_gb=lambda: 90.0,
+            read_resident=lambda: [],
+        )
+        d = g.decide("gemma-4-26B-A4B-it-GGUF")
+        assert d.allow is False
+        assert "hardware aperture guard" in d.reason.lower()
+
+    def test_aperture_guard_disabled_by_default_in_gate_config(self) -> None:
+        assert GateConfig().enforce_aperture_guard is False
+
+    def test_aperture_guard_enabled_by_default_in_from_env(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            assert GateConfig.from_env().enforce_aperture_guard is True

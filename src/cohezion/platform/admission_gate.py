@@ -165,6 +165,7 @@ class GateConfig:
     enforce: bool = True
     upstream_base: str = DEFAULT_UPSTREAM
     health_timeout_s: float = 2.0
+    enforce_aperture_guard: bool = False
 
     @classmethod
     def from_env(cls) -> GateConfig:
@@ -176,18 +177,21 @@ class GateConfig:
             os.environ.get("COHEZION_RESOURCE_FLOOR_GB", str(DEFAULT_FLOOR_GB)),
         )
         enforce_raw = os.environ.get("COHEZION_ADMISSION_ENFORCE", "1").strip().lower()
+        aperture_raw = os.environ.get("COHEZION_ADMISSION_APERTURE_GUARD", "1").strip().lower()
         cfg = cls(
             floor_gb=float(floor),
             enforce=enforce_raw not in ("0", "false", "no", "off", ""),
             upstream_base=os.environ.get("COHEZION_ADMISSION_UPSTREAM", DEFAULT_UPSTREAM),
             health_timeout_s=float(os.environ.get("COHEZION_ADMISSION_HEALTH_TIMEOUT_S", "2.0")),
+            enforce_aperture_guard=aperture_raw not in ("0", "false", "no", "off", ""),
         )
         logger.info(
-            "admission config: floor=%.1fGB enforce=%s (raw=%r) upstream=%s",
+            "admission config: floor=%.1fGB enforce=%s (raw=%r) upstream=%s aperture_guard=%s",
             cfg.floor_gb,
             cfg.enforce,
             enforce_raw,
             cfg.upstream_base,
+            cfg.enforce_aperture_guard,
         )
         return cfg
 
@@ -287,6 +291,17 @@ class AdmissionGate:
     def decide(self, model_name: str | None) -> AdmissionDecision:
         if not model_name:
             return AdmissionDecision(True, False, "no model named — not load-triggering")
+
+        if self._config.enforce_aperture_guard:
+            from cohezion.inference.aperture_guard import validate_tier1_request
+
+            verdict = validate_tier1_request(model_name)
+            if verdict == "reroute_tier2":
+                reason = (
+                    f"hardware aperture guard: model '{model_name}' exceeds Tier 1 CPU/UMA constraints "
+                    f"— offload to Tier 2 (Ollama Cloud or Headless Claude)"
+                )
+                return self._refusal(reason, model_name)
 
         resident = self._resident_entries()
         if resident is not None and any(
