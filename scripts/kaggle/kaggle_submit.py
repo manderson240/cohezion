@@ -83,9 +83,8 @@ COMPETITION_REGISTRY = {
         "default_kernel": "manderson240/cohezion-rsna-knee-0-957-r7-blend",
     },
     "gemma-4-developer-agent": {
-        "type": "notebook",
-        "default_file": "submission.csv",
-        "default_kernel": "manderson240/token-insulated-compound-agent-graphs-for-gemma-4",
+        "type": "file",
+        "default_file": "scripts/kaggle/gemma4_kernel/submission.zip",
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
         "type": "notebook",
