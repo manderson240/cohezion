@@ -51,6 +51,7 @@ class InvariantDomain(str, Enum):
     BIOHUB_CELL = "biohub_cell"
     NFL_BDB = "nfl_bdb"
     GEMMA4_DEV = "gemma4_dev"
+    NAME_THAT_LLM = "name_that_llm"
 
 
 class CandidateOutcome(str, Enum):
@@ -139,6 +140,22 @@ def verify_nfl_kinematics(features):
         verifier_code="""
 def verify_cteg_bounds(analyzer, max_tokens=14336):
     return True, "CTEG token insulation bounds verified"
+""",
+    ),
+    "name_that_llm_stylometry": FirstPrinciplesRule(
+        domain=InvariantDomain.NAME_THAT_LLM,
+        name="Prompt-Centered Stylometric Invariance & Sinkhorn Marginal Balancing",
+        formal_definition=(
+            "Extract prompt-invariant stylometric features (punctuation density, function word entropy, "
+            "syntactic clause branching, subword token boundary entropy) combined with transductive prompt "
+            "centering (x_style = x - mu_prompt) and Sinkhorn uniform marginal prior balancing across 18 generative LLMs."
+        ),
+        verifier_code="""
+def verify_stylometric_invariants(probs, n_classes=18):
+    # Verifies probabilities form valid distribution over 18 classes
+    import numpy as np
+    arr = np.array(probs)
+    return arr.shape[-1] == n_classes and np.allclose(arr.sum(axis=-1), 1.0, atol=1e-3), "Valid 18-class probability distribution"
 """,
     ),
 }

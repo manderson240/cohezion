@@ -97,6 +97,15 @@ RAW_COMPETITIONS = [
         "twin": "Dr. Claude Shannon & Dr. Richard Feynman",
         "direction": "higher",
     },
+    {
+        "id": "name-that-llm",
+        "name": "Name That LLM",
+        "deadline": "2027-01-14",
+        "winnable": "$10,000 - $25,000",
+        "target": "Top 3 Podium",
+        "twin": "Dr. Claude Shannon & Dr. Leslie Lamport",
+        "direction": "higher",
+    },
 ]
 
 # Strict Filter: Only ACTIVE, unexpired competitions (Rule 8)

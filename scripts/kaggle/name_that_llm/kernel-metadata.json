@@ -1,0 +1,16 @@
+{
+  "id": "manderson240/cohezion-name-that-llm-sota-starter",
+  "title": "Cohezion Name That LLM SOTA Starter",
+  "code_file": "cohezion-name-that-llm-sota-starter.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "false",
+  "enable_tpu": "false",
+  "enable_internet": "false",
+  "dataset_sources": [],
+  "competition_sources": [
+    "name-that-llm"
+  ],
+  "kernel_sources": []
+}

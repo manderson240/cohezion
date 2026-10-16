@@ -109,6 +109,14 @@ ACTIVE_COMPETITIONS = [
         "pending_poll_sec": 180,
         "complete_poll_sec": 1800,
     },
+    {
+        "id": "name-that-llm",
+        "name": "Name That LLM",
+        "prize": "$50,000 USD",
+        "deadline": "2027-01-14",
+        "pending_poll_sec": 120,
+        "complete_poll_sec": 1800,
+    },
 ]
 
 # SurrealDB Endpoint
