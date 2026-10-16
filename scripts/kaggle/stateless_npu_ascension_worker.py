@@ -214,8 +214,9 @@ def evaluate_arc_dsl(code: str) -> tuple[float, str, bool]:
     try:
         compile(code, "<arc_candidate>", "exec")
 
+        import numpy as np
         # Verify execution on sample grid
-        local_scope: dict[str, Any] = {}
+        local_scope: dict[str, Any] = {"np": np, "numpy": np}
         exec(code, local_scope)
         if "transform_grid" not in local_scope:
             return 0.0, "Missing required transform_grid(grid) entrypoint", True
@@ -229,12 +230,12 @@ def evaluate_arc_dsl(code: str) -> tuple[float, str, bool]:
             [0, 1, 0],
         ]
         out_grid = transform_fn(test_grid)
+        if hasattr(out_grid, "tolist"):
+            out_grid = out_grid.tolist()
         if not isinstance(out_grid, list) or not all(isinstance(r, list) for r in out_grid):
             return 0.0, "transform_grid must return 2D list of integers", True
 
         # Check D4 symmetry preservation
-        import numpy as np
-
         arr_in = np.array(test_grid)
         arr_out = np.array(out_grid)
 
@@ -259,14 +260,14 @@ def evaluate_rsna_knee_invariants(code: str) -> tuple[float, str, bool]:
     """Evaluates RSNA Knee feature extractor on anatomical JSN and rank monotonicity."""
     try:
         compile(code, "<rsna_candidate>", "exec")
-        local_scope: dict[str, Any] = {}
+        import numpy as np
+        local_scope: dict[str, Any] = {"np": np, "numpy": np}
         exec(code, local_scope)
 
         if "extract_knee_invariants" not in local_scope:
             return 0.0, "Missing required extract_knee_invariants(mri_slice) entrypoint", True
 
         extract_fn = local_scope["extract_knee_invariants"]
-        import numpy as np
 
         sample_slice = np.ones((16, 16), dtype=float).tolist()
         try:
@@ -298,7 +299,14 @@ def evaluate_nfl_kinematics(code: str) -> tuple[float, str, bool]:
     """Evaluates NFL tracking kinematic feature extraction for pass-rush / pressure dynamics."""
     try:
         compile(code, "<nfl_candidate>", "exec")
-        local_scope: dict[str, Any] = {}
+        import numpy as np
+        import pandas as pd
+        local_scope: dict[str, Any] = {
+            "np": np,
+            "numpy": np,
+            "pd": pd,
+            "pandas": pd,
+        }
         exec(code, local_scope)
 
         if "extract_play_kinematics" not in local_scope:

@@ -25,20 +25,20 @@ for attempt in range(1080):  # poll for up to 180 minutes (every 10s)
     if "COMPLETE" in status_str:
         print(f"✓ Kernel run completed! Submitting v{TARGET_VERSION} to ARC-AGI-2...", flush=True)
         sub_msg = (
-            f"Cohezion ARC-AGI-2 SOTA v{TARGET_VERSION}: Zero-False-Prune AutoHarness Invariants + "
-            f"Qwen3-4B LoRA SFT139 on NvidiaL4"
+            f"Cohezion ARC-AGI-2 SOTA v{TARGET_VERSION}: NPU-Verified D4 Dihedral Equivariance + "
+            f"Zero-False-Prune AutoHarness Invariants + Qwen3-4B LoRA on NvidiaL4"
         )
         submit_cmd = [
-            KAGGLE_BIN, "competitions", "submit",
-            "-c", COMP_ID,
-            "-f", SUB_FILE,
-            "-m", sub_msg,
-            "-k", KERNEL_REF,
-            "-v", str(TARGET_VERSION)
+            sys.executable, "scripts/kaggle/kaggle_submit.py", "notebook",
+            "--competition", COMP_ID,
+            "--kernel", KERNEL_REF,
+            "--version", str(TARGET_VERSION),
+            "--file", SUB_FILE,
+            "--message", sub_msg,
         ]
         sub_res = subprocess.run(submit_cmd, capture_output=True, text=True)
         print("Submit output:", sub_res.stdout, sub_res.stderr, flush=True)
-        sys.exit(0)
+        sys.exit(sub_res.returncode)
     elif "ERROR" in status_str or "CANCELLED" in status_str:
         print(f"Kernel terminated with status: {status_str}", flush=True)
         sys.exit(1)

@@ -1245,7 +1245,7 @@
       }
     ],
     "rsna-knee-abnormality-detection": {
-      "last_polled_ts": 1792155470.5916803,
+      "last_polled_ts": 1792156372.9648566,
       "name": "RSNA Knee Abnormality Detection",
       "prize": "$77,000 USD",
       "deadline": "2026-10-22",
@@ -1256,10 +1256,10 @@
         "raw": "57247238  submission.csv  2026-10-16 00:00:52.277000  Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights (Daily Quota Reset)  SubmissionStatus.COMPLETE  0.955                      "
       },
       "history_count": 50,
-      "updated_at": "2026-10-16T12:57:50.591689+00:00"
+      "updated_at": "2026-10-16T13:12:52.964866+00:00"
     },
     "arc-prize-2026-arc-agi-2": {
-      "last_polled_ts": 1792156082.8182397,
+      "last_polled_ts": 1792156813.9376633,
       "name": "ARC Prize 2026: ARC-AGI-2",
       "prize": "$700,000 USD",
       "deadline": "2026-11-02",
@@ -1270,10 +1270,10 @@
         "raw": "57247164  submission.json  2026-10-16 00:00:31.660000  Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Reset)                                                                    SubmissionStatus.PENDING                              "
       },
       "history_count": 35,
-      "updated_at": "2026-10-16T13:08:02.818246+00:00"
+      "updated_at": "2026-10-16T13:20:13.937671+00:00"
     },
     "arc-prize-2026-arc-agi-3": {
-      "last_polled_ts": 1792154542.1932647,
+      "last_polled_ts": 1792156342.3219836,
       "name": "ARC Prize 2026: ARC-AGI-3",
       "prize": "$850,000 USD",
       "deadline": "2026-11-02",
@@ -1284,10 +1284,10 @@
         "raw": "57247133  submission.parquet  2026-10-16 00:00:21.150000  Cohezion ARC-AGI-3 SOTA v38: Poincar\u00e9 Hyperbolic MCTS Affordance Oracle + Monadic Soft-Affordance + Double-Precision (Daily Quota Reset)  SubmissionStatus.COMPLETE  0.17                       "
       },
       "history_count": 29,
-      "updated_at": "2026-10-16T12:42:22.193272+00:00"
+      "updated_at": "2026-10-16T13:12:22.321992+00:00"
     },
     "gemma-4-developer-agent": {
-      "last_polled_ts": 1792156128.5287018,
+      "last_polled_ts": 1792156860.7724102,
       "name": "Google - The Gemma 4 Developer Agent",
       "prize": "$65,000 USD",
       "deadline": "2026-12-02",
@@ -1298,7 +1298,7 @@
         "raw": "57247198  submission.zip  2026-10-16 00:00:41.347000  Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)                                                                                                                     SubmissionStatus.PENDING                              "
       },
       "history_count": 17,
-      "updated_at": "2026-10-16T13:08:48.528710+00:00"
+      "updated_at": "2026-10-16T13:21:00.772418+00:00"
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
       "last_polled_ts": 1792155486.9258394,
@@ -1335,5 +1335,5 @@
     "manderson240/arc-agi-2-fork-lb33-89-20260903": "QUEUED"
   },
   "lemonade_healthy": true,
-  "last_cycle_utc": "2026-10-16T13:09:19.164512+00:00"
+  "last_cycle_utc": "2026-10-16T13:22:01.356875+00:00"
 }
