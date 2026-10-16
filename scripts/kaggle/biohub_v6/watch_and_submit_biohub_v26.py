@@ -26,7 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger("BiohubWatcher")
 
 KERNEL_SLUG = "manderson240/cohezion-biohub-v6"
-KERNEL_VERSION = 27
+KERNEL_VERSION = 28
 COMPETITION = "biohub-cell-tracking-during-development"
 OUTPUT_DIR = Path("/tmp/biohub_v26_out")
 SURREAL_URL = os.environ.get("SURREAL_URL", "http://localhost:8001/sql")
