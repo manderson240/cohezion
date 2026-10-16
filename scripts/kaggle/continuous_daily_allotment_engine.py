@@ -47,6 +47,7 @@ logger = logging.getLogger("allotment_engine")
 WORKSPACE = Path(
     "/home/mike-anderson/.gemini/antigravity-cli/worktrees/cohezion/ollama_lemonade_kaggle_push"
 )
+sys.path.insert(0, str(WORKSPACE / "src"))
 STATE_FILE = WORKSPACE / "scripts" / "kaggle" / "daily_allotment_state.json"
 
 # Invariant specifications for Slots 1..5 for each competition

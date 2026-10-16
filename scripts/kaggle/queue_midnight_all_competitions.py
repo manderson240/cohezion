@@ -17,21 +17,23 @@ from __future__ import annotations
 
 import datetime
 import logging
-from pathlib import Path
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 from kaggle.api.kaggle_api_extended import KaggleApi
+
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s")
 logger = logging.getLogger("midnight_submitter")
 
 WORKSPACE = Path("/home/mike-anderson/.gemini/antigravity-cli/worktrees/cohezion/ollama_lemonade_kaggle_push")
+sys.path.insert(0, str(WORKSPACE / "src"))
 
 
 def get_seconds_until_midnight_utc() -> int:
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     today_target = now.replace(hour=0, minute=0, second=5, microsecond=0)
     if now < today_target:
         target = today_target
@@ -54,7 +56,7 @@ def check_is_pending(api: KaggleApi, comp_slug: str) -> bool:
     return False
 
 
-def submit_notebook(comp: str, kernel: str, filename: str, msg: str, code_path: str = None) -> bool:
+def submit_notebook(comp: str, kernel: str, filename: str, msg: str, code_path: str | None = None) -> bool:
     logger.info("Submitting notebook for %s (%s)...", comp, kernel)
 
     # AutoHarness Invariant Factory Gate (arXiv:2603.03329v1)
@@ -78,7 +80,7 @@ def submit_notebook(comp: str, kernel: str, filename: str, msg: str, code_path: 
             if str(code_path).endswith(".ipynb"):
                 l_pass, l_viols = linter.audit_notebook(code_path, domain=comp)
             else:
-                with open(code_path, "r", encoding="utf-8") as f:
+                with open(code_path, encoding="utf-8") as f:
                     l_pass, l_viols = linter.audit_code(f.read(), domain=comp)
             if not l_pass:
                 logger.critical("[%s] FORBIDDEN SUBGRAPH DETECTED! Aborting dispatch: %s", comp, l_viols)
@@ -92,10 +94,10 @@ def submit_notebook(comp: str, kernel: str, filename: str, msg: str, code_path: 
             sys.path.insert(0, str(WORKSPACE / "scripts" / "testing"))
             from red_team_adversary import (
                 RedTeamAdversary,
-                default_poincare_distance,
-                default_d4_verifier,
-                default_zobrist_hash,
                 default_copula_blend,
+                default_d4_verifier,
+                default_poincare_distance,
+                default_zobrist_hash,
             )
             adversary = RedTeamAdversary()
             if "arc-agi-3" in comp:
@@ -132,7 +134,7 @@ def submit_notebook(comp: str, kernel: str, filename: str, msg: str, code_path: 
     return res.returncode == 0
 
 
-def submit_file(comp: str, filepath: str, msg: str, code_path: str = None) -> bool:
+def submit_file(comp: str, filepath: str, msg: str, code_path: str | None = None) -> bool:
     logger.info("Submitting file for %s (%s)...", comp, filepath)
 
     # AutoHarness Invariant Factory Gate (arXiv:2603.03329v1)
@@ -251,7 +253,7 @@ def main():
             sleep_dur = min(wait_sec, 300)
             time.sleep(sleep_dur)
             if wait_sec > 300:
-                now_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%H:%M:%S")
+                now_utc = datetime.datetime.now(datetime.UTC).strftime("%H:%M:%S")
                 logger.info("Current UTC: %s | Remaining wait: %d seconds (%0.2f hours)", now_utc, wait_sec, wait_sec / 3600.0)
 
         execute_midnight_harvest(api)

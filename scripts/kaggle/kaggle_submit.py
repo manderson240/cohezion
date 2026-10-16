@@ -80,7 +80,7 @@ COMPETITION_REGISTRY = {
     "rsna-knee-abnormality-detection": {
         "type": "notebook",
         "default_file": "submission.csv",
-        "default_kernel": "manderson240/cohezion-rsna-knee-sota-ensemble",
+        "default_kernel": "manderson240/cohezion-rsna-knee-0-957-r7-blend",
     },
     "gemma-4-developer-agent": {
         "type": "notebook",
@@ -90,12 +90,12 @@ COMPETITION_REGISTRY = {
     "enveda-CASMI26-molecule-id-mass-spectra": {
         "type": "notebook",
         "default_file": "submission.csv",
-        "default_kernel": "manderson240/casmi26-analog-baseline-fork-cohezion",
+        "default_kernel": "manderson240/cohezion-casmi26-fork-v4n-0421",
     },
-    "biohub-cell-tracking-during-development": {
+    "name-that-llm": {
         "type": "notebook",
-        "default_file": "submission.csv",
-        "default_kernel": "manderson240/cohezion-biohub-v6",
+        "default_file": "submission.parquet",
+        "default_kernel": "manderson240/cohezion-name-that-llm-sota-starter",
     },
     "nfl-big-data-bowl-2027": {
         "type": "notebook",
