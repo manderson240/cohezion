@@ -71,7 +71,7 @@ PORTFOLIO_CONFIG = {
             },
             3: {
                 "name": "v38_isotonic_rank",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v38_isotonic_rank.py",
                 "msg": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling",
             },
             4: {
@@ -110,12 +110,12 @@ PORTFOLIO_CONFIG = {
             },
             4: {
                 "name": "v18_poincare_geodesic_rerank",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/arc2_autoharness_lora_kernel/patch_arc2_v18_poincare_geodesic_rerank.py",
                 "msg": "Cohezion ARC-AGI-2 SOTA v18: Poincaré Hyperbolic Grid Geodesic Nearest-Neighbor Reranker",
             },
             5: {
                 "name": "v19_monadic_markov_dsl",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/arc2_autoharness_lora_kernel/patch_arc2_v19_monadic_markov_dsl.py",
                 "msg": "Cohezion ARC-AGI-2 SOTA v19: SplitMix64 Monadic Markov DSL Synthesizer with Deduplication",
             },
         },
@@ -144,12 +144,12 @@ PORTFOLIO_CONFIG = {
             },
             4: {
                 "name": "v41_go_explore_archive",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/cohezion-arc-agi-3-autoharness-solver/patch_arc3_v41_go_explore_archive.py",
                 "msg": "Cohezion ARC-AGI-3 SOTA v41: Multi-Agent Consensus Exploration (Go-Explore Novelty Distance)",
             },
             5: {
                 "name": "v42_adaptive_rhae",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/cohezion-arc-agi-3-autoharness-solver/patch_arc3_v42_adaptive_rhae.py",
                 "msg": "Cohezion ARC-AGI-3 SOTA v42: Dynamic Horizon Affordance Rollout with Adaptive RHAE Metric Preserver",
             },
         },
@@ -173,7 +173,7 @@ PORTFOLIO_CONFIG = {
             },
             3: {
                 "name": "v28_adduct_surrogacy",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v28_adduct_surrogacy.py",
                 "msg": "Cohezion CASMI26 SOTA v28: All-Adduct Surrogacy Calibration ([M+H]+, [M+Na]+, [M-H]- Neutral Loss Matching)",
             },
             4: {
