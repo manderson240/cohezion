@@ -4,14 +4,14 @@
     "rsna-knee-abnormality-detection": {
       "used_today": 4,
       "latest_ref": "57307156",
-      "latest_score": "0.956",
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "latest_score": "0.950",
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "arc-prize-2026-arc-agi-2": {
       "used_today": 1,
       "latest_ref": "57288127",
-      "latest_score": "28.89",
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "latest_score": "28.19",
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "arc-prize-2026-arc-agi-3": {
       "used_today": 1,

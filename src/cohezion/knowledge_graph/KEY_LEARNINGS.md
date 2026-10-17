@@ -1,5 +1,20 @@
 # KEY LEARNINGS
 
+## Learning 551: Autonomous Code Repair Sampling Temperature Penalty, Gemma-4 Pass-Rate Scaling & Deterministic Packaging Invariants (2026-10-17)
+L551: Extracted and codified the empirical temperature-scaling relationship in autonomous repository repair, resolving performance degradation in the Gemma-4 Developer Agent:
+1. **Sampling Temperature & Autonomous Code Repair Entropy Penalty**:
+   - Historical evaluation on the Gemma-4 Developer Agent benchmark (SWE-bench execution framework) demonstrated a strict monotonic degradation in pass rate as sampling temperature was raised:
+     - $T = 0.10 \implies \mathbf{0.15}$ (Benchmark Peak, commit `55165158`)
+     - $T = 0.20 \implies 0.13$ (commit `557e7e6a`)
+     - $T = 1.00 \implies 0.10$ (Ref `#57287771`, commit `8eeb7947`)
+   - Root cause: Autonomous software engineering environments require exact AST substring matching for file edits (`old_string` in `edit_file`). At higher temperatures ($T \ge 0.2$), stochastic sampling generates subtle indentation shifts, identifier variations, and whitespace mismatches that invalidate regex/exact string replacements, leading to rejected edits and aborted test-pass attempts.
+2. **Deterministic AutoHarness Calibration & Verification**:
+   - Re-calibrated `scripts/kaggle/gemma4_kernel/submission/configs/sampling.yaml` to $T=0.1, \text{top\_p}=0.95, \text{top\_k}=40$ with 4096-token thinking budget.
+   - Re-packaged and verified `submission.zip` with AutoHarness round-trip manifest schema validation, generating verified SHA-256 digest `b60ae115c6e2...` for immediate dispatch on the next UTC reset.
+*12D State Vector*: `[12D State: Space=Gemma4-DeterministicSampling-AutoHarnessPackaging, Time=October 2026, Physics=GreedyTokenInvariance-ExactASTMatching-PassRateScaling, Brane=Cohezion-Compound-ExperientialLearning]`
+
+---
+
 ## Learning 550: Loopback IPv6 Connect Latency Resolution, Hardware Gateway Invariance & Offline Kaggle GPU Compute Decoupling (2026-10-17)
 L550: Resolved systemic network latency delays in local silicon inference loops and established the offline Kaggle GPU quota harvesting architecture:
 1. **Loopback IPv6 Resolution Delay & Local Gateway Invariance**:
