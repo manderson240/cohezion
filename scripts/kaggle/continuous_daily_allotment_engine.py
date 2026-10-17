@@ -553,13 +553,32 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
             "=== NEW UTC DAY DETECTED (%s). RESETTING DAILY ALLOTMENT COUNTERS ===", today_date
         )
         state["utc_date"] = str(today_date)
-        state["competitions"] = {}
+        comps = state.setdefault("competitions", {})
+        for c_slug, c_info in comps.items():
+            c_info["used_today"] = 0
+            m_daily = PORTFOLIO_CONFIG.get(c_slug, {}).get("max_daily", 5)
+            if m_daily == 1:
+                cur_slot = c_info.get("active_slot", 1)
+                num_slots = len(PORTFOLIO_CONFIG.get(c_slug, {}).get("slots", {})) or 1
+                c_info["active_slot"] = (cur_slot % num_slots) + 1
+                logger.info(
+                    "[%s] Single-slot competition advanced to Slot %d for the new day (%s)",
+                    c_slug,
+                    c_info["active_slot"],
+                    today_date,
+                )
 
     dispatched_any = False
 
     for comp_slug, comp_cfg in PORTFOLIO_CONFIG.items():
         comp_state = state["competitions"].setdefault(
-            comp_slug, {"used_today": 0, "latest_ref": None, "latest_score": None, "status": "IDLE"}
+            comp_slug, {
+                "used_today": 0,
+                "active_slot": 1,
+                "latest_ref": None,
+                "latest_score": None,
+                "status": "IDLE",
+            }
         )
 
         prev_status = comp_state.get("status")
@@ -613,7 +632,10 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
             continue
 
         # Ready to dispatch the next slot!
-        target_slot = used_count + 1
+        if max_daily == 1:
+            target_slot = comp_state.get("active_slot", 1)
+        else:
+            target_slot = used_count + 1
         logger.info(
             "[%s] >>> READY TO DISPATCH SLOT %d/%d (Hypothesis: %s) <<<",
             comp_slug,

@@ -2,19 +2,21 @@
   "utc_date": "2026-10-17",
   "competitions": {
     "rsna-knee-abnormality-detection": {
-      "used_today": 4,
-      "latest_ref": "57307156",
-      "latest_score": "0.950",
-      "status": "SUBMISSIONSTATUS.COMPLETE"
+      "used_today": 5,
+      "latest_ref": "57328244",
+      "latest_score": null,
+      "status": "SUBMISSIONSTATUS.PENDING"
     },
     "arc-prize-2026-arc-agi-2": {
       "used_today": 1,
+      "active_slot": 1,
       "latest_ref": "57288127",
       "latest_score": "28.19",
       "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "arc-prize-2026-arc-agi-3": {
       "used_today": 1,
+      "active_slot": 1,
       "latest_ref": "57287157",
       "latest_score": "0.01",
       "status": "SUBMISSIONSTATUS.COMPLETE"
@@ -33,6 +35,7 @@
     },
     "gemma-4-developer-agent": {
       "used_today": 1,
+      "active_slot": 1,
       "latest_ref": "57287771",
       "latest_score": "0.10",
       "status": "SUBMISSIONSTATUS.COMPLETE"
