@@ -81,7 +81,7 @@ PORTFOLIO_CONFIG = {
             },
             5: {
                 "name": "v40_trimmed_median_consensus",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v40_trimmed_median.py",
                 "msg": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble",
             },
         },
@@ -105,7 +105,7 @@ PORTFOLIO_CONFIG = {
             },
             3: {
                 "name": "v17_zero_false_prune",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/arc2_autoharness_lora_kernel/patch_arc2_v17_zero_false_prune.py",
                 "msg": "Cohezion ARC-AGI-2 SOTA v17: Zero-False-Prune Topology Invariant (Conformal Bounding Box Validation)",
             },
             4: {
@@ -139,7 +139,7 @@ PORTFOLIO_CONFIG = {
             },
             3: {
                 "name": "v40_orthogonal_escape",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/cohezion-arc-agi-3-autoharness-solver/patch_arc3_v40_orthogonal_escape.py",
                 "msg": "Cohezion ARC-AGI-3 SOTA v40: Soft-Affordance Navigation + Orthogonal Escape Pulse (Delta >= 2)",
             },
             4: {
@@ -183,8 +183,8 @@ PORTFOLIO_CONFIG = {
             },
             5: {
                 "name": "v30_extreme_parsimony_hybrid",
-                "patch_script": None,
-                "msg": "Cohezion CASMI26 SOTA v30: Extreme Candidate Space Parsimony Hybrid (PC_JOIN_N=100, lambda_frag=0.25)",
+                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py",
+                "msg": "Cohezion CASMI26 SOTA v30: Extreme Candidate Space Parsimony Hybrid (PC_JOIN_N=120, PC_POP_UNION=350, lambda_frag=0.25)",
             },
         },
     },
@@ -217,7 +217,7 @@ PORTFOLIO_CONFIG = {
             },
             5: {
                 "name": "v6_temperature_scaled_sinkhorn",
-                "patch_script": None,
+                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v6.py",
                 "msg": "Cohezion Name That LLM v6: Ensembled Temperature-Scaled Sinkhorn Distribution Alignment",
             },
         },

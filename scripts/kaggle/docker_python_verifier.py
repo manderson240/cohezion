@@ -114,11 +114,32 @@ def verify_compatibility(file_path: Path) -> tuple[bool, list[str], set[str]]:
     }
     competition_attached = {
         "arc_agi", "arcengine", "cohezion_physics_core",
+        # ARC-AGI attached packages & kernel sources (unsloth flash patch, solvers)
+        "unsloth", "arc_loader", "arc_decoder", "arc_solver", "starter",
         # CASMI26 attached dataset packages (v4b models, glacier/iceberg, pubchem tier, ours-ranker)
         "casmi", "v1engine", "ranker_infer", "pc_join", "gl_fuse", "fusion_core",
         "frag_rescore", "fuse", "surrogate"
     }
-    allowed = installed | stdlib | kaggle_known | competition_attached
+
+    # Discover any locally written python modules from %%writefile in notebooks
+    local_written = set()
+    if file_path.suffix == ".ipynb":
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                nb = json.load(f)
+            for cell in nb.get("cells", []):
+                if cell.get("cell_type") == "code":
+                    src = "".join(cell.get("source", []))
+                    for line in src.splitlines():
+                        sline = line.strip()
+                        if sline.startswith("%%writefile ") or sline.startswith("%writefile "):
+                            target_f = sline.split()[1].strip()
+                            if target_f.endswith(".py"):
+                                local_written.add(Path(target_f).stem.lower().replace("-", "_"))
+        except Exception:
+            pass
+
+    allowed = installed | stdlib | kaggle_known | competition_attached | local_written
 
     imported = extract_imports_from_path(file_path)
     missing: list[str] = []
