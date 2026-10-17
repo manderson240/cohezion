@@ -15,18 +15,15 @@ import json
 import shutil
 from pathlib import Path
 
+BASE_PATH = Path("scripts/kaggle/casmi26_v4n_podium/cohezion-casmi26-fork-v4n-0421.canonical_base.ipynb")
 NB_PATH = Path("scripts/kaggle/casmi26_v4n_podium/cohezion-casmi26-fork-v4n-0421.ipynb")
-BAK_PATH = Path("scripts/kaggle/casmi26_v4n_podium/cohezion-casmi26-fork-v4n-0421.ipynb.v29.bak")
 
 
 def main() -> None:
-    if not NB_PATH.exists():
-        raise FileNotFoundError(f"{NB_PATH} does not exist")
+    if not BASE_PATH.exists():
+        raise FileNotFoundError(f"{BASE_PATH} does not exist")
 
-    shutil.copyfile(NB_PATH, BAK_PATH)
-    print(f"Backed up {NB_PATH} to {BAK_PATH}")
-
-    with open(NB_PATH, encoding="utf-8") as f:
+    with open(BASE_PATH, encoding="utf-8") as f:
         nb = json.load(f)
 
     c4_source = "".join(nb["cells"][4]["source"])

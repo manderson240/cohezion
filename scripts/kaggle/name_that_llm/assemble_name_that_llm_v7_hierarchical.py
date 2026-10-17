@@ -19,17 +19,14 @@ from pathlib import Path
 
 NB_DIR = Path("scripts/kaggle/name_that_llm")
 NB_PATH = NB_DIR / "cohezion-name-that-llm-sota-starter.ipynb"
-BAK_PATH = NB_DIR / "cohezion-name-that-llm-sota-starter.ipynb.v6.bak"
+CANONICAL_BASE = NB_DIR / "cohezion-name-that-llm-sota-starter.canonical_base.ipynb"
 
 
 def main() -> None:
-    if not NB_PATH.exists():
-        raise FileNotFoundError(f"{NB_PATH} does not exist")
+    if not CANONICAL_BASE.exists():
+        raise FileNotFoundError(f"{CANONICAL_BASE} does not exist")
 
-    shutil.copyfile(NB_PATH, BAK_PATH)
-    print(f"Backed up notebook to {BAK_PATH}")
-
-    with open(NB_PATH, encoding="utf-8") as f:
+    with open(CANONICAL_BASE, encoding="utf-8") as f:
         nb = json.load(f)
 
     # Cell 0: Header markdown
@@ -146,7 +143,7 @@ def main() -> None:
         "# Cell 4: Hierarchical 6-Lab Bayesian Decomposition, Model Training & Inference\n",
         "from sklearn.feature_extraction.text import TfidfVectorizer\n",
         "from sklearn.linear_model import LogisticRegression\n",
-        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.preprocessing import StandardScaler, Normalizer\n",
         "from scipy.sparse import hstack, csr_matrix\n",
         "\n",
         "ALL_MODELS = sorted(list(train_df['model'].unique()))\n",
@@ -189,8 +186,9 @@ def main() -> None:
         "X_tr_s = extract_compression_and_stylometric_features(train_texts)\n",
         "X_te_s = extract_compression_and_stylometric_features(test_texts)\n",
         "scaler = StandardScaler()\n",
-        "X_tr_s_scaled = scaler.fit_transform(X_tr_s)\n",
-        "X_te_s_scaled = scaler.transform(X_te_s)\n",
+        "normalizer = Normalizer(norm='l2')\n",
+        "X_tr_s_scaled = normalizer.transform(scaler.fit_transform(X_tr_s))\n",
+        "X_te_s_scaled = normalizer.transform(scaler.transform(X_te_s))\n",
         "\n",
         "X_train_all = hstack([X_tr_w, X_tr_c, csr_matrix(X_tr_s_scaled)]).tocsr()\n",
         "X_test_all = hstack([X_te_w, X_te_c, csr_matrix(X_te_s_scaled)]).tocsr()\n",
@@ -242,8 +240,8 @@ def main() -> None:
         "            col = model_to_col[sub_mod]\n",
         "            model_probs[:, col] = p_lab * eq_p\n",
         "\n",
-        "# Temperature Scaling (T=0.88)\n",
-        "T = 0.88\n",
+        "# Temperature Scaling (T=1.15 for smooth entropic transport)\n",
+        "T = 1.15\n",
         "logits = np.log(np.clip(model_probs, 1e-9, 1.0))\n",
         "scaled_probs = np.exp(logits / T)\n",
         "scaled_probs /= scaled_probs.sum(axis=1, keepdims=True)\n",

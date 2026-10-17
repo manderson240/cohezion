@@ -25,6 +25,7 @@ import ast
 import datetime
 import json
 import logging
+import shutil
 import subprocess
 import sys
 import time
@@ -60,14 +61,14 @@ PORTFOLIO_CONFIG = {
         "notebook": "scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb",
         "slots": {
             1: {
-                "name": "v36_pure_optimum",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v36_pure_optimum.py",
-                "msg": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights",
+                "name": "v40_trimmed_median_consensus",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v40_trimmed_median.py",
+                "msg": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble (HIHO 0.5 Coherence + Kolmogorov Effusion)",
             },
             2: {
-                "name": "v37_jsn_covariance",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v37_jsn.py",
-                "msg": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment",
+                "name": "v39_anatomical_invariant",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v39_kolmogorov.py",
+                "msg": "Cohezion RSNA Knee SOTA v39: Anatomical Bilateral Symmetry + Secondary Effusion Invariant (P(Effusion) >= 0.85 * max_k)",
             },
             3: {
                 "name": "v38_isotonic_rank",
@@ -75,14 +76,14 @@ PORTFOLIO_CONFIG = {
                 "msg": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling",
             },
             4: {
-                "name": "v39_anatomical_invariant",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v39_kolmogorov.py",
-                "msg": "Cohezion RSNA Knee SOTA v39: Anatomical Bilateral Symmetry + Secondary Effusion Invariant (P(Effusion) >= 0.85 * max_k)",
+                "name": "v37_jsn_covariance",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v37_jsn.py",
+                "msg": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment",
             },
             5: {
-                "name": "v40_trimmed_median_consensus",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v40_trimmed_median.py",
-                "msg": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble",
+                "name": "v36_pure_optimum",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v36_pure_optimum.py",
+                "msg": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights",
             },
         },
     },
@@ -162,29 +163,29 @@ PORTFOLIO_CONFIG = {
         "notebook": "scripts/kaggle/casmi26_v4n_podium/cohezion-casmi26-fork-v4n-0421.ipynb",
         "slots": {
             1: {
-                "name": "v26_dual_fpnet_parsimony",
-                "patch_script": None,
-                "msg": "Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15)",
+                "name": "v30_extreme_parsimony_hybrid",
+                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py",
+                "msg": "Cohezion CASMI26 SOTA v30: Extreme Candidate Space Parsimony Hybrid (PC_JOIN_N=120, PC_POP_UNION=350, lambda_frag=0.25)",
             },
             2: {
-                "name": "v27_deep_expansion",
-                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v27_deep_expansion.py",
-                "msg": "Cohezion CASMI26 SOTA v27: Deep PubChem Candidate Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18)",
+                "name": "v31_calibrated_candidate_space",
+                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v31_calibrated_candidate_space.py",
+                "msg": "Cohezion CASMI26 SOTA v31: Calibrated Candidate Space Parsimony (PC_JOIN_N=90, PC_POP_UNION=280, lambda_frag=0.19)",
             },
             3: {
-                "name": "v28_adduct_surrogacy",
-                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v28_adduct_surrogacy.py",
-                "msg": "Cohezion CASMI26 SOTA v28: All-Adduct Surrogacy Calibration ([M+H]+, [M+Na]+, [M-H]- Neutral Loss Matching)",
-            },
-            4: {
                 "name": "v29_chemical_graph_reranker",
                 "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v29_chemical_graph.py",
                 "msg": "Cohezion CASMI26 SOTA v29: Parsimonious Chemical Graph Fragmentation Reranker (PC_JOIN_N 100, PC_POP_UNION 300, lambda_frag=0.22)",
             },
+            4: {
+                "name": "v28_adduct_surrogacy",
+                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v28_adduct_surrogacy.py",
+                "msg": "Cohezion CASMI26 SOTA v28: All-Adduct Surrogacy Calibration ([M+H]+, [M+Na]+, [M-H]- Neutral Loss Matching)",
+            },
             5: {
-                "name": "v30_extreme_parsimony_hybrid",
-                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py",
-                "msg": "Cohezion CASMI26 SOTA v30: Extreme Candidate Space Parsimony Hybrid (PC_JOIN_N=120, PC_POP_UNION=350, lambda_frag=0.25)",
+                "name": "v27_deep_expansion",
+                "patch_script": "scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v27_deep_expansion.py",
+                "msg": "Cohezion CASMI26 SOTA v27: Deep PubChem Candidate Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18)",
             },
         },
     },
@@ -196,29 +197,29 @@ PORTFOLIO_CONFIG = {
         "notebook": "scripts/kaggle/name_that_llm/cohezion-name-that-llm-sota-starter.ipynb",
         "slots": {
             1: {
-                "name": "v1_multiscale_ngram_sinkhorn",
-                "patch_script": None,
-                "msg": "Cohezion Name That LLM SOTA v1: Multi-Scale N-Gram + Stylometric + Sinkhorn Marginal Balancing",
+                "name": "v7_hierarchical_l2_scaled_sinkhorn",
+                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v7_hierarchical.py",
+                "msg": "Cohezion Name That LLM SOTA v7: Hierarchical 6-Lab Bayesian Decomposition + L2 Scaled Compression Entropy + T=1.15 Sinkhorn Marginal Balancing",
             },
             2: {
-                "name": "v3_5stream_stylometric",
-                "patch_script": None,
-                "msg": "Cohezion Name That LLM v3: 5-Stream Stylometric Invariants (Shape + Function-Word + Dense) + Sinkhorn Marginal Balancing",
+                "name": "v6_temperature_scaled_sinkhorn",
+                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v6.py",
+                "msg": "Cohezion Name That LLM v6: Ensembled Temperature-Scaled Sinkhorn Distribution Alignment",
             },
             3: {
-                "name": "v4_hgb_dense_stylometry",
-                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v4.py",
-                "msg": "Cohezion Name That LLM v4: 5-Stream Stylometric (LinearSVC + HistGBM Ensemble) + Sinkhorn Marginal Balancing",
-            },
-            4: {
                 "name": "v5_leak_free_group_kfold",
                 "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v5.py",
                 "msg": "Cohezion Name That LLM v5: Leak-Free StratifiedGroupKFold on prompt_id + Dual Model Ensemble + Sinkhorn Uniform Marginal Balancing",
             },
+            4: {
+                "name": "v4_hgb_dense_stylometry",
+                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v4.py",
+                "msg": "Cohezion Name That LLM v4: 5-Stream Stylometric (LinearSVC + HistGBM Ensemble) + Sinkhorn Marginal Balancing",
+            },
             5: {
-                "name": "v6_temperature_scaled_sinkhorn",
-                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v6.py",
-                "msg": "Cohezion Name That LLM v6: Ensembled Temperature-Scaled Sinkhorn Distribution Alignment",
+                "name": "v7_hierarchical_entropy_rerank",
+                "patch_script": "scripts/kaggle/name_that_llm/assemble_name_that_llm_v7_hierarchical.py",
+                "msg": "Cohezion Name That LLM SOTA v7.1: Multi-Compressor Entropy Signatures + 6-Lab Prior Gating",
             },
         },
     },
@@ -230,7 +231,7 @@ PORTFOLIO_CONFIG = {
         "slots": {
             1: {
                 "name": "31b_stable_qat_2048",
-                "msg": "Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)",
+                "msg": "Cohezion Gemma-4 SOTA: 31B Stable QAT + Calibrated 1024 Thinking Budget + AST Syntax Verifier",
             },
             2: {
                 "name": "31b_extended_4096_ast",
@@ -402,7 +403,17 @@ def dispatch_slot_submission(
     slot_info = slots_map.get(slot_num) or slots_map.get(min(slot_num, max(slots_map.keys())))
     if not slot_info:
         logger.warning("[%s] No slot config found for slot %d", comp_slug, slot_num)
-        return False
+    code_path = comp_cfg.get("notebook") or comp_cfg.get("code_path")
+
+    # Pristine Baseline Reset: Prevent multi-version cumulative mutation across slots
+    if code_path and str(code_path).endswith(".ipynb"):
+        cp = Path(code_path)
+        base_cp = cp.parent / (cp.stem + ".canonical_base.ipynb")
+        if not base_cp.exists():
+            base_cp = cp.with_suffix(".canonical_base.ipynb")
+        if base_cp.exists():
+            shutil.copyfile(base_cp, cp)
+            logger.info("[%s] Restored notebook from canonical base %s before Slot %d dispatch.", comp_slug, base_cp.name, slot_num)
 
     patch_script = slot_info.get("patch_script")
     if patch_script and Path(patch_script).exists():
@@ -413,7 +424,17 @@ def dispatch_slot_submission(
             return False
         logger.info("[%s] Patch script succeeded: %s", comp_slug, res.stdout.strip())
 
-    code_path = comp_cfg.get("notebook") or comp_cfg.get("code_path")
+    # Build fresh package archive for file mode (e.g. Gemma 4)
+    if comp_cfg.get("mode") == "file":
+        pack_script = comp_cfg.get("code_path")
+        if pack_script and Path(pack_script).exists():
+            logger.info("[%s] Building fresh package archive via %s...", comp_slug, pack_script)
+            res = subprocess.run([sys.executable, pack_script], capture_output=True, text=True)
+            if res.returncode != 0:
+                logger.error("[%s] Packaging script failed: %s", comp_slug, res.stderr)
+                return False
+            logger.info("[%s] Packaging script succeeded.", comp_slug)
+
     if code_path and not verify_invariants(code_path, comp_slug):
         logger.critical(
             "[%s] Pre-dispatch invariant gates failed. Aborting Slot %d dispatch.",

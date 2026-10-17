@@ -19,14 +19,14 @@ import shutil
 from pathlib import Path
 
 NB_PATH = Path("scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb")
-SRC_BAK = Path("scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb.v38.bak")
+SRC_BAK = Path("scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.canonical_base.ipynb")
 
 
 def main() -> None:
     if not SRC_BAK.exists():
         raise FileNotFoundError(f"{SRC_BAK} does not exist")
 
-    # Read from clean v38 baseline
+    # Read from clean canonical baseline
     with open(SRC_BAK, encoding="utf-8") as f:
         nb = json.load(f)
 
@@ -54,16 +54,15 @@ def main() -> None:
         "        b_med = np.nanmedian(stack_3, axis=0)\n"
         "        wr = W_RAPTOR_C.get(c, W_RAPTOR)\n"
         "        b_lin = wr * ((1.0 - A224) * rr + A224 * rr224) + (1.0 - wr) * ro\n"
-        "        b = 0.70 * b_med + 0.30 * b_lin\n"
+        "        b = 0.50 * b_med + 0.50 * b_lin\n"
         "    else:\n"
         "        wr = W_RAPTOR_C.get(c, W_RAPTOR)\n"
         "        b = wr * rr + (1.0 - wr) * ro"
     )
 
-    if old_blend in cell_source:
-        cell_source = cell_source.replace(old_blend, new_blend)
-    else:
-        print("Warning: old_blend block not found verbatim; checking variant replacement...")
+    if old_blend not in cell_source:
+        raise RuntimeError("old_blend block not found in canonical base notebook cell!")
+    cell_source = cell_source.replace(old_blend, new_blend)
 
     # Inject secondary effusion invariant
     old_clip = (
